@@ -1,0 +1,614 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>syscore package &mdash; pysystemtrade 0.0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="pysystemtrade 0.0.1 documentation" href="index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="syscore-package">
+<h1>syscore package<a class="headerlink" href="#syscore-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-syscore.algos">
+<span id="syscore-algos-module"></span><h2>syscore.algos module<a class="headerlink" href="#module-syscore.algos" title="Permalink to this headline">¶</a></h2>
+<p>Algos.py</p>
+<p>Basic building blocks of trading rules, like volatility measurement and crossovers</p>
+<dl class="function">
+<dt id="syscore.algos.robust_vol_calc">
+<code class="descclassname">syscore.algos.</code><code class="descname">robust_vol_calc</code><span class="sig-paren">(</span><em>x</em>, <em>days=35</em>, <em>min_periods=10</em>, <em>vol_abs_min=1e-10</em>, <em>vol_floor=True</em>, <em>floor_min_quant=0.05</em>, <em>floor_min_periods=100</em>, <em>floor_days=500</em><span class="sig-paren">)</span><a class="headerlink" href="#syscore.algos.robust_vol_calc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Robust exponential volatility calculation, assuming daily series of prices
+We apply an absolute minimum level of vol (absmin)</p>
+<blockquote>
+<div>and a volfloor based on lowest vol over recent history</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>days</strong> (<em>int</em>) &#8211; Number of days in lookback (<em>default</em> 35)</li>
+<li><strong>min_periods</strong> (<em>int</em>) &#8211; The minimum number of observations (<em>default</em> 10)</li>
+<li><strong>vol_abs_min</strong> &#8211; The size of absolute minimum (<em>default</em> =0.0000000001) 0.0= not used</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>:param vol_floor Apply a floor to volatility (<em>default</em> True)
+:type vol_floor: bool
+:param floor_min_quant: The quantile to use for volatility floor (eg 0.05 means we use 5% vol) (<em>default 0.05)
+:type floor_min_quant: float
+:param floor_days: The lookback for calculating volatility floor, in days (*default</em> 500)
+:type floor_days: int
+:param floor_min_periods: Minimum observations for floor - until reached floor is zero (<em>default</em> 100)
+:type floor_min_periods: int</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">pd.DataFrame &#8211; volatility measure</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-syscore.dateutils">
+<span id="syscore-dateutils-module"></span><h2>syscore.dateutils module<a class="headerlink" href="#module-syscore.dateutils" title="Permalink to this headline">¶</a></h2>
+<p>Various routines to do with dates</p>
+<dl class="function">
+<dt id="syscore.dateutils.expiry_date">
+<code class="descclassname">syscore.dateutils.</code><code class="descname">expiry_date</code><span class="sig-paren">(</span><em>expiry_ident</em><span class="sig-paren">)</span><a class="headerlink" href="#syscore.dateutils.expiry_date" title="Permalink to this definition">¶</a></dt>
+<dd><p>Translates an expiry date which could be &#8220;20150305&#8221; or &#8220;201505&#8221; into a datetime</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>expiry_ident</strong> &#8211; Expiry to be processed</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">datetime.datetime or datetime.date</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">expiry_date</span><span class="p">(</span><span class="s">&#39;201503&#39;</span><span class="p">)</span>
+<span class="go">datetime.datetime(2015, 3, 1, 0, 0)</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">expiry_date</span><span class="p">(</span><span class="s">&#39;20150305&#39;</span><span class="p">)</span>
+<span class="go">datetime.datetime(2015, 3, 5, 0, 0)</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">expiry_date</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2015</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<span class="go">datetime.datetime(2015, 5, 1, 0, 0)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="syscore.dateutils.expiry_diff">
+<code class="descclassname">syscore.dateutils.</code><code class="descname">expiry_diff</code><span class="sig-paren">(</span><em>carry_row</em>, <em>floor_date_diff=20</em><span class="sig-paren">)</span><a class="headerlink" href="#syscore.dateutils.expiry_diff" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a pandas row containing CARRY_CONTRACT and PRICE_CONTRACT, both of which represent dates</p>
+<p>Return the annualised difference between the dates</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>carry_row</strong> (<em>pandas row, or something that quacks like it</em>) &#8211; object with attributes CARRY_CONTRACT and PRICE_CONTRACT</li>
+<li><strong>floor_date_diff</strong> &#8211; If date resolves to less than this, floor here (<em>default</em> 20)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">datetime.datetime or datetime.date</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-syscore.fileutils">
+<span id="syscore-fileutils-module"></span><h2>syscore.fileutils module<a class="headerlink" href="#module-syscore.fileutils" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="syscore.fileutils.get_pathname_for_package">
+<code class="descclassname">syscore.fileutils.</code><code class="descname">get_pathname_for_package</code><span class="sig-paren">(</span><em>package_name</em>, <em>paths_or_files=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#syscore.fileutils.get_pathname_for_package" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the filename of part of a package</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>package_name</strong> &#8211; Name of python package</li>
+<li><strong>path</strong> &#8211; Subdirectory within</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">full pathname of package</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">get_pathname_for_package</span><span class="p">(</span><span class="s">&quot;syscore&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s">&quot;fileutils.py&quot;</span><span class="p">])</span>
+<span class="go">&#39;/home/rob/workspace3/newengine/syscore/fileutils.py&#39;</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">get_pathname_for_package</span><span class="p">(</span><span class="s">&quot;syscore&quot;</span><span class="p">)</span>
+<span class="go">&#39;/home/rob/workspace3/newengine/syscore&#39;</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">get_pathname_for_package</span><span class="p">(</span><span class="s">&quot;syscore&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s">&quot;tests&quot;</span><span class="p">,</span><span class="s">&quot;pricetestdata.csv&quot;</span><span class="p">])</span>
+<span class="go">&#39;/home/rob/workspace3/newengine/syscore/tests/pricetestdata.csv&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="module-syscore.genutils">
+<span id="syscore-genutils-module"></span><h2>syscore.genutils module<a class="headerlink" href="#module-syscore.genutils" title="Permalink to this headline">¶</a></h2>
+<p>Utilities I can&#8217;t put anywhere else...</p>
+<dl class="function">
+<dt id="syscore.genutils.sign">
+<code class="descclassname">syscore.genutils.</code><code class="descname">sign</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#syscore.genutils.sign" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the sign of x (float or int)
+:param x: Thing we want sign of
+:type x: int, float</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">1 or -1</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">sign</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="go">1.0</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">sign</span><span class="p">(</span><span class="mf">3.0</span><span class="p">)</span>
+<span class="go">1.0</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">sign</span><span class="p">(</span><span class="o">-</span><span class="mi">3</span><span class="p">)</span>
+<span class="go">-1.0</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">sign</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="go">1.0</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="syscore.genutils.str_of_int">
+<code class="descclassname">syscore.genutils.</code><code class="descname">str_of_int</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#syscore.genutils.str_of_int" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the string of int of x, handling nan&#8217;s or whatever</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>x</strong> (<em>int or float</em>) &#8211; Name of python package</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">1.0 or -1.0</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">str_of_int</span><span class="p">(</span><span class="mi">34</span><span class="p">)</span>
+<span class="go">&#39;34&#39;</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">str_of_int</span><span class="p">(</span><span class="mf">34.0</span><span class="p">)</span>
+<span class="go">&#39;34&#39;</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">str_of_int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+<span class="go">&#39;&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="module-syscore.objects">
+<span id="syscore-objects-module"></span><h2>syscore.objects module<a class="headerlink" href="#module-syscore.objects" title="Permalink to this headline">¶</a></h2>
+<p>Do fun things with objects and classes</p>
+<dl class="function">
+<dt id="syscore.objects.calc_or_cache">
+<code class="descclassname">syscore.objects.</code><code class="descname">calc_or_cache</code><span class="sig-paren">(</span><em>some_object</em>, <em>dictname</em>, <em>keyname</em>, <em>func</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#syscore.objects.calc_or_cache" title="Permalink to this definition">¶</a></dt>
+<dd><p>Assumes that some_object has an attribute dictname, and that is a dict</p>
+<p>If dictname[keyname] exists return it. Else call func with <a href="#id1"><span class="problematic" id="id2">*</span></a>args and <a href="#id3"><span class="problematic" id="id4">**</span></a>kwargs
+if the latter updates the dictionary</p>
+<p>Used for cache within various kinds of objects like config, price, data, system...</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>some_object</strong> (<em>object</em>) &#8211; The object with object.dictname</li>
+<li><strong>dictname</strong> (<em>str</em>) &#8211; attribute of object containing a dict</li>
+<li><strong>keyname</strong> (<em>valid dict key</em>) &#8211; keyname to look for in dict</li>
+<li><strong>func</strong> (<em>function</em>) &#8211; function to call if keyname missing. will take some_object and keyname as first two args</li>
+<li><strong>kwargs</strong> (<em>args,</em>) &#8211; also passed to fun if called</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">contents of dict or result of calling function</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="syscore.objects.calc_or_cache_nested">
+<code class="descclassname">syscore.objects.</code><code class="descname">calc_or_cache_nested</code><span class="sig-paren">(</span><em>some_object</em>, <em>dictname</em>, <em>keyname1</em>, <em>keyname2</em>, <em>func</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#syscore.objects.calc_or_cache_nested" title="Permalink to this definition">¶</a></dt>
+<dd><p>Assumes that some_object has an attribute dictname, and that is a nested dict</p>
+<p>If dictname[keyname1][keyname2] exists return it. 
+Else call func with arguments: some_object, keyname1, keyname2, <a href="#id5"><span class="problematic" id="id6">*</span></a>args and <a href="#id7"><span class="problematic" id="id8">**</span></a>kwargs
+if we have to call the func updates the dictionary with it&#8217;s value</p>
+<p>Used for cache within various kinds of objects like config, price, data, system...</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>some_object</strong> (<em>object</em>) &#8211; The object with object.dictname</li>
+<li><strong>dictname</strong> (<em>str</em>) &#8211; attribute of object containing a dict</li>
+<li><strong>keyname1</strong> (<em>valid dict key</em>) &#8211; keyname to look for in dict</li>
+<li><strong>keyname2</strong> (<em>valid dict key</em>) &#8211; keyname to look for in nested dict</li>
+<li><strong>func</strong> (<em>function</em>) &#8211; function to call if keyname missing. will take some_object and keyname1, keyname2 as first three args</li>
+<li><strong>kwargs</strong> (<em>args,</em>) &#8211; also passed to fun if called</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">contents of dict or result of calling function</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="syscore.objects.hasallattr">
+<code class="descclassname">syscore.objects.</code><code class="descname">hasallattr</code><span class="sig-paren">(</span><em>some_object</em>, <em>attrlist=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#syscore.objects.hasallattr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check something has all the attributes you need</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>some_object</strong> (<em>object</em>) &#8211; The object with attributes to test</li>
+<li><strong>attrlist</strong> (<em>list of str</em>) &#8211; Attributes to check</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">bool</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sysdata.data</span> <span class="kn">import</span> <span class="n">Data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">=</span><span class="n">Data</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">setattr</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s">&quot;one&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">setattr</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s">&quot;two&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hasallattr</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="p">[</span><span class="s">&quot;one&quot;</span><span class="p">,</span> <span class="s">&quot;two&quot;</span><span class="p">])</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">hasallattr</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="p">[</span><span class="s">&quot;one&quot;</span><span class="p">,</span> <span class="s">&quot;two&quot;</span><span class="p">,</span><span class="s">&quot;three&quot;</span><span class="p">])</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="syscore.objects.resolve_data_method">
+<code class="descclassname">syscore.objects.</code><code class="descname">resolve_data_method</code><span class="sig-paren">(</span><em>some_object</em>, <em>data_string</em><span class="sig-paren">)</span><a class="headerlink" href="#syscore.objects.resolve_data_method" title="Permalink to this definition">¶</a></dt>
+<dd><p>eg if data_string=&#8221;data1.data2.method&#8221; then returns the method some_object.data1.data2.method</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>some_object</strong> (<em>object</em>) &#8211; The object with a method</li>
+<li><strong>data_string</strong> (<em>str</em>) &#8211; method or attribute within object</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">method in some_object</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sysdata.data</span> <span class="kn">import</span> <span class="n">Data</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">=</span><span class="n">Data</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">resolve_data_method</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s">&quot;get_instrument_price&quot;</span><span class="p">)</span>
+<span class="go">&lt;bound method Data.get_instrument_price of Data object with 0 instruments&gt;</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">meta_data</span><span class="o">=</span><span class="n">Data</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">setattr</span><span class="p">(</span><span class="n">meta_data</span><span class="p">,</span> <span class="s">&quot;meta&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">resolve_data_method</span><span class="p">(</span><span class="n">meta_data</span><span class="p">,</span> <span class="s">&quot;meta.get_instrument_price&quot;</span><span class="p">)</span>
+<span class="go">&lt;bound method Data.get_instrument_price of Data object with 0 instruments&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">meta_meta_data</span><span class="o">=</span><span class="n">Data</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">setattr</span><span class="p">(</span><span class="n">meta_meta_data</span><span class="p">,</span> <span class="s">&quot;moremeta&quot;</span><span class="p">,</span> <span class="n">meta_data</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">resolve_data_method</span><span class="p">(</span><span class="n">meta_meta_data</span><span class="p">,</span> <span class="s">&quot;moremeta.meta.get_instrument_price&quot;</span><span class="p">)</span>
+<span class="go">&lt;bound method Data.get_instrument_price of Data object with 0 instruments&gt;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="syscore.objects.resolve_function">
+<code class="descclassname">syscore.objects.</code><code class="descname">resolve_function</code><span class="sig-paren">(</span><em>func_or_func_name</em><span class="sig-paren">)</span><a class="headerlink" href="#syscore.objects.resolve_function" title="Permalink to this definition">¶</a></dt>
+<dd><p>if func_or_func_name is a callable function, then return the function</p>
+<p>If it is a string containing &#8216;.&#8217; then it is a function in a module, return the function</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>func_or_func_name</strong> (<em>int, float, or something else eg np.nan</em>) &#8211; Name of a function including package.module, or a callable function</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">function</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">resolve_function</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+<span class="go">&lt;class &#39;str&#39;&gt;</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">resolve_function</span><span class="p">(</span><span class="s">&quot;syscore.algos.robust_vol_calc&quot;</span><span class="p">)</span>
+<span class="go">&lt;function robust_vol_calc at 0xb70077c4&gt;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="syscore.objects.update_recalc">
+<code class="descclassname">syscore.objects.</code><code class="descname">update_recalc</code><span class="sig-paren">(</span><em>subsystem_object</em>, <em>additional_delete_on_recalc=[]</em>, <em>additional_dont_delete=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#syscore.objects.update_recalc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the recalculation dictionaries</p>
+<p>FIXME - is this actually used??</p>
+<p>(see system.basesystem and subsystem)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>subsystem_object</strong> (<em>object</em>) &#8211; The subsystem object with attributes to test</li>
+<li><strong>additional_delete_on_recalc</strong> (<em>list of str</em>) &#8211; Things to add to this attribute</li>
+<li><strong>additional_dont_delete</strong> (<em>list of str</em>) &#8211; Things to add to this attribute</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None (changes subsystem_object)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-syscore.pdutils">
+<span id="syscore-pdutils-module"></span><h2>syscore.pdutils module<a class="headerlink" href="#module-syscore.pdutils" title="Permalink to this headline">¶</a></h2>
+<p>Utilities to help with pandas</p>
+<dl class="function">
+<dt id="syscore.pdutils.apply_cap">
+<code class="descclassname">syscore.pdutils.</code><code class="descname">apply_cap</code><span class="sig-paren">(</span><em>pd_dataframe</em>, <em>capvalue</em><span class="sig-paren">)</span><a class="headerlink" href="#syscore.pdutils.apply_cap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Applies a cap to the values in a Tx1 pandas dataframe</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>pd_dataframe</strong> (<em>pd.DataFrame</em>) &#8211; Tx1 pandas data frame</li>
+<li><strong>capvalue</strong> &#8211; Maximum absolute value allowed</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">pd.DataFrame Tx1</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">a</span><span class="o">=</span><span class="p">[</span><span class="mf">2.0</span><span class="p">,</span> <span class="mf">7.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">7.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">6.99</span><span class="p">]),</span> <span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2015</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="n">periods</span><span class="o">=</span><span class="mi">4</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">apply_cap</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">)</span>
+<span class="go">            0</span>
+<span class="go">2015-01-01  2</span>
+<span class="go">2015-01-02  5</span>
+<span class="go">2015-01-03 -5</span>
+<span class="go">2015-01-04 -5</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="syscore.pdutils.divide_df">
+<code class="descclassname">syscore.pdutils.</code><code class="descname">divide_df</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="headerlink" href="#syscore.pdutils.divide_df" title="Permalink to this definition">¶</a></dt>
+<dd><p>Divide Tx1 dataframe by Tx1 dataframe</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (<em>pd.DataFrame</em>) &#8211; Tx1 pandas data frame</li>
+<li><strong>y</strong> (<em>pd.DataFrame</em>) &#8211; Tx1 pandas data frame</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">pd.DataFrame Tx1</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">a</span><span class="o">=</span><span class="p">[</span><span class="mf">2.0</span><span class="p">,</span> <span class="mf">7.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">7.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">7.00</span><span class="p">]),</span> <span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2015</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="n">periods</span><span class="o">=</span><span class="mi">4</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">b</span><span class="o">=</span><span class="p">[</span><span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">3.5</span><span class="p">]),</span> <span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2015</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="n">periods</span><span class="o">=</span><span class="mi">4</span><span class="p">))</span>
+</pre></div>
+</div>
+<blockquote>
+<div>a</div></blockquote>
+<p>2015-01-01  1.0
+2015-01-02  2.0
+2015-01-03 -3.5
+2015-01-04  2.0</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="syscore.pdutils.pd_readcsv">
+<code class="descclassname">syscore.pdutils.</code><code class="descname">pd_readcsv</code><span class="sig-paren">(</span><em>filename</em>, <em>date_index_name='DATETIME'</em><span class="sig-paren">)</span><a class="headerlink" href="#syscore.pdutils.pd_readcsv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads a pandas data frame, with time index labelled 
+package_name(/path1/path2.., filename</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>filename</strong> (<em>str</em>) &#8211; Filename with extension</li>
+<li><strong>date_index_name</strong> (<em>list of str</em>) &#8211; Column name of date index</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">pd.DataFrame</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s">&quot;tests/pricetestdata.csv&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="go">                ADJ</span>
+<span class="go">2015-04-22  159.225</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="syscore.pdutils.pd_readcsv_frompackage">
+<code class="descclassname">syscore.pdutils.</code><code class="descname">pd_readcsv_frompackage</code><span class="sig-paren">(</span><em>package_name, filename, path=['']</em><span class="sig-paren">)</span><a class="headerlink" href="#syscore.pdutils.pd_readcsv_frompackage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run pd_readcsv on a file in python with optional paths eg path=[&#8216;path&#8217;,path2&#8217;, ...]
+package_name(/path1/path2.., filename</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>package_name</strong> (<em>str</em>) &#8211; Name of a package eg syscore that contains</li>
+<li><strong>filename</strong> (<em>str</em>) &#8211; Filename with extension</li>
+<li><strong>path</strong> (<em>list of str</em>) &#8211; List of paths to complete full path structure</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">pd.DataFrame</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">pd_readcsv_frompackage</span><span class="p">(</span><span class="s">&quot;syscore&quot;</span><span class="p">,</span> <span class="s">&quot;pricetestdata.csv&quot;</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="p">[</span><span class="s">&quot;tests&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="go">                ADJ</span>
+<span class="go">2015-04-22  159.225</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="module-syscore">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-syscore" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">syscore package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-syscore.algos">syscore.algos module</a></li>
+<li><a class="reference internal" href="#module-syscore.dateutils">syscore.dateutils module</a></li>
+<li><a class="reference internal" href="#module-syscore.fileutils">syscore.fileutils module</a></li>
+<li><a class="reference internal" href="#module-syscore.genutils">syscore.genutils module</a></li>
+<li><a class="reference internal" href="#module-syscore.objects">syscore.objects module</a></li>
+<li><a class="reference internal" href="#module-syscore.pdutils">syscore.pdutils module</a></li>
+<li><a class="reference internal" href="#module-syscore">Module contents</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/syscore.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Rob Carver.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+      |
+      <a href="_sources/syscore.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

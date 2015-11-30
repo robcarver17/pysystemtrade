@@ -1,0 +1,374 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>systems package &mdash; pysystemtrade 0.0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="pysystemtrade 0.0.1 documentation" href="index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="systems-package">
+<h1>systems package<a class="headerlink" href="#systems-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="systems.examples.html">systems.examples package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="systems.examples.html#module-systems.examples">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="systems.syscore.html">systems.syscore package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="systems.syscore.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="systems.syscore.html#module-systems.syscore.algos">systems.syscore.algos module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="systems.syscore.html#module-systems.syscore.dateutils">systems.syscore.dateutils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="systems.syscore.html#module-systems.syscore.fileutils">systems.syscore.fileutils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="systems.syscore.html#module-systems.syscore.genutils">systems.syscore.genutils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="systems.syscore.html#module-systems.syscore.objects">systems.syscore.objects module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="systems.syscore.html#module-systems.syscore.pdutils">systems.syscore.pdutils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="systems.syscore.html#module-systems.syscore">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="systems.sysdata.html">systems.sysdata package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="systems.sysdata.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="systems.sysdata.html#systems-sysdata-configdata-module">systems.sysdata.configdata module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="systems.sysdata.html#module-systems.sysdata.data">systems.sysdata.data module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="systems.sysdata.html#module-systems.sysdata.futuresdata">systems.sysdata.futuresdata module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="systems.sysdata.html#module-systems.sysdata.legacy">systems.sysdata.legacy module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="systems.sysdata.html#module-systems.sysdata.quandl">systems.sysdata.quandl module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="systems.sysdata.html#module-systems.sysdata">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="systems-basesystem-module">
+<h2>systems.basesystem module<a class="headerlink" href="#systems-basesystem-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-systems.defaults">
+<span id="systems-defaults-module"></span><h2>systems.defaults module<a class="headerlink" href="#module-systems.defaults" title="Permalink to this headline">¶</a></h2>
+<p>All default parameters that might be used in a system are stored here</p>
+<dl class="docutils">
+<dt>Order of preferences is - passed in command line to calculation method, </dt>
+<dd>stored in system config object
+found in defaults</dd>
+</dl>
+</div>
+<div class="section" id="systems-forecasting-module">
+<h2>systems.forecasting module<a class="headerlink" href="#systems-forecasting-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-systems.rawdata">
+<span id="systems-rawdata-module"></span><h2>systems.rawdata module<a class="headerlink" href="#module-systems.rawdata" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="systems.rawdata.SubSystemRawData">
+<em class="property">class </em><code class="descclassname">systems.rawdata.</code><code class="descname">SubSystemRawData</code><a class="headerlink" href="#systems.rawdata.SubSystemRawData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#systems.subsystem.SubSystem" title="systems.subsystem.SubSystem"><code class="xref py py-class docutils literal"><span class="pre">systems.subsystem.SubSystem</span></code></a></p>
+<dl class="docutils">
+<dt>A SubSystem that does some fairly common calculations before we do forecasting</dt>
+<dd><p class="first">This is optional; forecasts can go straight to system.data
+The advantages of using RawData are:</p>
+<blockquote class="last">
+<div><ul class="simple">
+<li>preliminary calculations that are reused can be cached, to save time (eg volatility)</li>
+<li>preliminary calculations are available for inspection when diagnosing what is going on</li>
+</ul>
+</div></blockquote>
+</dd>
+</dl>
+<dl class="method">
+<dt id="systems.rawdata.SubSystemRawData.daily_prices">
+<code class="descname">daily_prices</code><span class="sig-paren">(</span><em>instrument_code</em><span class="sig-paren">)</span><a class="headerlink" href="#systems.rawdata.SubSystemRawData.daily_prices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets daily prices</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>instrument_code</strong> &#8211; Instrument to get prices for</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Tx1 pd.DataFrame</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">systems.basesystem</span> <span class="kn">import</span> <span class="n">System</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">systems.rawdata</span> <span class="kn">import</span> <span class="n">SubSystemRawData</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">syscore.fileutils</span> <span class="kn">import</span> <span class="n">get_pathname_for_package</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sysdata.legacy</span> <span class="kn">import</span> <span class="n">csvFuturesData</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">datapath</span><span class="o">=</span><span class="n">get_pathname_for_package</span><span class="p">(</span><span class="s">&quot;sysdata&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s">&quot;tests&quot;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">=</span><span class="n">csvFuturesData</span><span class="p">(</span><span class="n">datapath</span><span class="o">=</span><span class="n">datapath</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rawdata</span><span class="o">=</span><span class="n">SubSystemRawData</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">system</span><span class="o">=</span><span class="n">System</span><span class="p">([</span><span class="n">rawdata</span><span class="p">],</span> <span class="n">data</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">system</span><span class="o">.</span><span class="n">rawdata</span><span class="o">.</span><span class="n">daily_prices</span><span class="p">(</span><span class="s">&quot;EDOLLAR&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="go">                ADJ</span>
+<span class="go">2015-04-21  97.9050</span>
+<span class="go">2015-04-22  97.8325</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="systems.rawdata.SubSystemRawData.daily_returns">
+<code class="descname">daily_returns</code><span class="sig-paren">(</span><em>instrument_code</em><span class="sig-paren">)</span><a class="headerlink" href="#systems.rawdata.SubSystemRawData.daily_returns" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets daily returns (not % returns)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>instrument_code</strong> &#8211; Instrument to get prices for</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Tx1 pd.DataFrame</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">systems.basesystem</span> <span class="kn">import</span> <span class="n">System</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">systems.rawdata</span> <span class="kn">import</span> <span class="n">SubSystemRawData</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">syscore.fileutils</span> <span class="kn">import</span> <span class="n">get_pathname_for_package</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sysdata.legacy</span> <span class="kn">import</span> <span class="n">csvFuturesData</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">datapath</span><span class="o">=</span><span class="n">get_pathname_for_package</span><span class="p">(</span><span class="s">&quot;sysdata&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s">&quot;tests&quot;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">=</span><span class="n">csvFuturesData</span><span class="p">(</span><span class="n">datapath</span><span class="o">=</span><span class="n">datapath</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rawdata</span><span class="o">=</span><span class="n">SubSystemRawData</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">system</span><span class="o">=</span><span class="n">System</span><span class="p">([</span><span class="n">rawdata</span><span class="p">],</span> <span class="n">data</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">system</span><span class="o">.</span><span class="n">rawdata</span><span class="o">.</span><span class="n">daily_returns</span><span class="p">(</span><span class="s">&quot;EDOLLAR&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="go">               ADJ</span>
+<span class="go">2015-04-21 -0.0200</span>
+<span class="go">2015-04-22 -0.0725</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="systems.rawdata.SubSystemRawData.daily_returns_volatility">
+<code class="descname">daily_returns_volatility</code><span class="sig-paren">(</span><em>instrument_code</em>, <em>volconfig=None</em><span class="sig-paren">)</span><a class="headerlink" href="#systems.rawdata.SubSystemRawData.daily_returns_volatility" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets volatility of daily returns (not % returns)</p>
+<p>This is done using a user defined function</p>
+<p>We can eithier inherit this from the config file, or pass eg: volconfig=dict(func=&#8221;module.file.funcname, arg1=...)</p>
+<p>The dict must contain func key; anything else is optional</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>instrument_code</strong> &#8211; Instrument to get prices for</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Tx1 pd.DataFrame</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">systems.basesystem</span> <span class="kn">import</span> <span class="n">System</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">systems.rawdata</span> <span class="kn">import</span> <span class="n">SubSystemRawData</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">syscore.fileutils</span> <span class="kn">import</span> <span class="n">get_pathname_for_package</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sysdata.legacy</span> <span class="kn">import</span> <span class="n">csvFuturesData</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">datapath</span><span class="o">=</span><span class="n">get_pathname_for_package</span><span class="p">(</span><span class="s">&quot;sysdata&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s">&quot;tests&quot;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">=</span><span class="n">csvFuturesData</span><span class="p">(</span><span class="n">datapath</span><span class="o">=</span><span class="n">datapath</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rawdata</span><span class="o">=</span><span class="n">SubSystemRawData</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">system</span><span class="o">=</span><span class="n">System</span><span class="p">([</span><span class="n">rawdata</span><span class="p">],</span> <span class="n">data</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">system</span><span class="o">.</span><span class="n">rawdata</span><span class="o">.</span><span class="n">daily_returns_volatility</span><span class="p">(</span><span class="s">&quot;EDOLLAR&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="go">                 vol</span>
+<span class="go">2015-04-21  0.057053</span>
+<span class="go">2015-04-22  0.058340</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sysdata.configdata</span> <span class="kn">import</span> <span class="n">Config</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span><span class="o">=</span><span class="n">Config</span><span class="p">(</span><span class="n">get_pathname_for_package</span><span class="p">(</span><span class="s">&quot;systems&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s">&quot;provided&quot;</span><span class="p">,</span><span class="s">&quot;example&quot;</span><span class="p">,</span> <span class="s">&quot;exampleconfig.yaml&quot;</span><span class="p">]))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">system</span><span class="o">=</span><span class="n">System</span><span class="p">([</span><span class="n">rawdata</span><span class="p">],</span> <span class="n">data</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">system</span><span class="o">.</span><span class="n">rawdata</span><span class="o">.</span><span class="n">daily_returns_volatility</span><span class="p">(</span><span class="s">&quot;EDOLLAR&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="go">                 vol</span>
+<span class="go">2015-04-21  0.057053</span>
+<span class="go">2015-04-22  0.058340</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span><span class="o">=</span><span class="n">Config</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">parameters</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">volatility_calculation</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="s">&quot;syscore.algos.robust_vol_calc&quot;</span><span class="p">,</span> <span class="n">days</span><span class="o">=</span><span class="mi">200</span><span class="p">))))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">system</span><span class="o">=</span><span class="n">System</span><span class="p">([</span><span class="n">rawdata</span><span class="p">],</span> <span class="n">data</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">system</span><span class="o">.</span><span class="n">rawdata</span><span class="o">.</span><span class="n">daily_returns_volatility</span><span class="p">(</span><span class="s">&quot;EDOLLAR&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="go">                 vol</span>
+<span class="go">2015-04-21  0.065903</span>
+<span class="go">2015-04-22  0.066014</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="systems.rawdata.SubSystemRawData.get_instrument_price">
+<code class="descname">get_instrument_price</code><span class="sig-paren">(</span><em>instrument_code</em><span class="sig-paren">)</span><a class="headerlink" href="#systems.rawdata.SubSystemRawData.get_instrument_price" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the instrument price from the parent system.data object</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>instrument_code</strong> &#8211; Instrument to get prices for</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Tx1 pd.DataFrame</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">systems.basesystem</span> <span class="kn">import</span> <span class="n">System</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">systems.rawdata</span> <span class="kn">import</span> <span class="n">SubSystemRawData</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">syscore.fileutils</span> <span class="kn">import</span> <span class="n">get_pathname_for_package</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sysdata.legacy</span> <span class="kn">import</span> <span class="n">csvFuturesData</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">datapath</span><span class="o">=</span><span class="n">get_pathname_for_package</span><span class="p">(</span><span class="s">&quot;sysdata&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s">&quot;tests&quot;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">=</span><span class="n">csvFuturesData</span><span class="p">(</span><span class="n">datapath</span><span class="o">=</span><span class="n">datapath</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rawdata</span><span class="o">=</span><span class="n">SubSystemRawData</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">system</span><span class="o">=</span><span class="n">System</span><span class="p">([</span><span class="n">rawdata</span><span class="p">],</span> <span class="n">data</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">system</span><span class="o">.</span><span class="n">rawdata</span><span class="o">.</span><span class="n">get_instrument_price</span><span class="p">(</span><span class="s">&quot;EDOLLAR&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="go">                ADJ</span>
+<span class="go">2015-04-21  97.9050</span>
+<span class="go">2015-04-22  97.8325</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="systems.rawdata.SubSystemRawData.norm_returns">
+<code class="descname">norm_returns</code><span class="sig-paren">(</span><em>instrument_code</em><span class="sig-paren">)</span><a class="headerlink" href="#systems.rawdata.SubSystemRawData.norm_returns" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get returns normalised by recent vol</p>
+<p>Useful statistic, also used for some trading rules</p>
+<p>This is an optional subsystem; forecasts can go straight to system.data
+:param instrument_code: Instrument to get prices for 
+:type trading_rules: str</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Tx1 pd.DataFrame</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">systems.basesystem</span> <span class="kn">import</span> <span class="n">System</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">systems.rawdata</span> <span class="kn">import</span> <span class="n">SubSystemRawData</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">syscore.fileutils</span> <span class="kn">import</span> <span class="n">get_pathname_for_package</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sysdata.legacy</span> <span class="kn">import</span> <span class="n">csvFuturesData</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">datapath</span><span class="o">=</span><span class="n">get_pathname_for_package</span><span class="p">(</span><span class="s">&quot;sysdata&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s">&quot;tests&quot;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">=</span><span class="n">csvFuturesData</span><span class="p">(</span><span class="n">datapath</span><span class="o">=</span><span class="n">datapath</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rawdata</span><span class="o">=</span><span class="n">SubSystemRawData</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">system</span><span class="o">=</span><span class="n">System</span><span class="p">([</span><span class="n">rawdata</span><span class="p">],</span> <span class="n">data</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">system</span><span class="o">.</span><span class="n">rawdata</span><span class="o">.</span><span class="n">norm_returns</span><span class="p">(</span><span class="s">&quot;EDOLLAR&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="go">            norm_return</span>
+<span class="go">2015-04-21    -0.342101</span>
+<span class="go">2015-04-22    -1.270742</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="systems-setup-module">
+<h2>systems.setup module<a class="headerlink" href="#systems-setup-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-systems.subsystem">
+<span id="systems-subsystem-module"></span><h2>systems.subsystem module<a class="headerlink" href="#module-systems.subsystem" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="systems.subsystem.SubSystem">
+<em class="property">class </em><code class="descclassname">systems.subsystem.</code><code class="descname">SubSystem</code><a class="headerlink" href="#systems.subsystem.SubSystem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Default subsystem</p>
+<p>Usually we inherit from this, rather than use &#8216;in the raw&#8217;</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-systems">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-systems" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">systems package</a><ul>
+<li><a class="reference internal" href="#subpackages">Subpackages</a></li>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#systems-basesystem-module">systems.basesystem module</a></li>
+<li><a class="reference internal" href="#module-systems.defaults">systems.defaults module</a></li>
+<li><a class="reference internal" href="#systems-forecasting-module">systems.forecasting module</a></li>
+<li><a class="reference internal" href="#module-systems.rawdata">systems.rawdata module</a></li>
+<li><a class="reference internal" href="#systems-setup-module">systems.setup module</a></li>
+<li><a class="reference internal" href="#module-systems.subsystem">systems.subsystem module</a></li>
+<li><a class="reference internal" href="#module-systems">Module contents</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/systems.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Rob Carver.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+      |
+      <a href="_sources/systems.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
