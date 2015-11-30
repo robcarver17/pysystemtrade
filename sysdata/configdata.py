@@ -11,11 +11,22 @@ trading_rules - a specification of the trading rules for a system
 """
 import yaml
 
-class configData(object):
+class Config(object):
     
     def __init__(self,  config_object=dict()):
         """
-        We can create a config_object with eithier a string (which points to a filename) or a nested dict
+        Config objects control the behaviour of systems 
+        
+        :param config_object: Eithier a string (which points to a YAML filename) or a dict (which may nest many things)
+        :type config_object: str or dict
+        
+        :returns: new Config object
+    
+        >>> Config(dict(parameters=dict(p1=3, p2=4.6), another_thing=[]))
+        Config with elements: parameters,another_thing
+
+        >>> Config("tests/exampleconfig.yaml")
+        Config with elements: trading_rules,parameters
         """
         if type(config_object) is dict:
             ## its a dict
@@ -52,3 +63,6 @@ class configData(object):
         return "Config with elements: "+element_names
         
          
+if __name__ == '__main__':
+    import doctest
+    doctest.testmod()

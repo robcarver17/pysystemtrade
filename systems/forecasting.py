@@ -7,7 +7,7 @@ a) We do this by passing a list of trading rules
 
 forecasting([trading_rule1, trading_rule2, ..])
 
-Note that trading rules can be created using the tradingRule class, or you can just pass in the
+Note that trading rules can be created using the TradingRule class, or you can just pass in the
   name of a function, or a function. 
 
 We can also use a generate_variations method to create a list of multiple rules
@@ -45,19 +45,26 @@ We don't do scaling and capping here, but in the combined forecast module
 from copy import copy
 
 from systems.subsystem import SubSystem
-from syscore.objects import resolve_function, resolve_data_method, hasallattr
+from syscore.objects import resolve_function, resolve_data_method, hasallattr, calc_or_cache_nested
 
 class Rules(SubSystem):
     
     def __init__(self, trading_rules=None):
         """
-        The SubSystem for forecasting
+        Create a SubSystem for forecasting
         
         This isn't an optional subsystem
         
-        We eithier pass a dict or a list of trading rules (functions, strings specifying a function, or objects of class tradingRule)
+        We eithier pass a dict or a list of trading rules (functions, strings specifying a function, or objects of class TradingRule)
           ... or we'll get it from the overall system config (trading_rules=None)
           
+        :param trading_rules: Set of trading rules 
+        :type trading_rules:    None       (rules will be inherited from self.parent system)
+                                TradingRule, str, callable function, or tuple (single rule)
+                                list or dict  (multiple rules)                  
+
+        :returns: Rules object
+        
         """
         delete_on_recalc=["_raw_forecasts"]
 
@@ -66,43 +73,65 @@ class Rules(SubSystem):
         setattr(self, "_delete_on_recalc", delete_on_recalc)
         setattr(self, "_dont_recalc", dont_delete)
 
-        setattr(self, "name", "forecast")
-        setattr(self, "_stored_trading_rules", trading_rules)
-        setattr(self, "_have_we_parsed_trading_rules", False)
+        setattr(self, "name", "rules")
+        
+        
+        ## We won't have trading rules we can use until we've parsed them
+        setattr(self, "_trading_rules", None)
+
+        ## ... store the ones we've been passed for now
+        setattr(self, "_passed_trading_rules", trading_rules)
+
+    def __repr__(self):
+        trading_rules=self._trading_rules
+        
+        if trading_rules is not None:
+            rule_names=", ".join(self._trading_rules.keys())
+            return "Rules object with rules "+rule_names
+
+        else:
+            return "Rules object with unknown trading rules [try Rules.tradingrules() ]"
         
     def trading_rules(self):
         """
         Ensure self.trading_rules is actually a properly specified list of trading rules
+        
+        We can't do this when we __init__ because we might not have a parent yet
+
+        :returns: List of TradingRule objects
+        
         """
         
-        current_rules=self._stored_trading_rules
-        
-        ## we only want to do this once
-        if self._have_we_parsed_trading_rules and current_rules is not None:
+        current_rules=self._trading_rules
+
+        ## We have already parsed the trading rules for this object, just return them        
+        if current_rules is not None:
             return current_rules
         
-        if current_rules is None:
+        ## What where we passed when object was created?
+        passed_rules=self._passed_trading_rules
+        
+        if passed_rules is None:
             """
             We weren't passed anything in the command lines so need to inherit from the system config
             """
         
             if not hasattr(self, "parent"):
-                raise Exception("A Rules subsystem needs to be part of a system to identify trading rules")
+                raise Exception("A Rules subsystem needs to be part of a System to identify trading rules, unless rules are passed when object created")
             
             ## self.parent.config.tradingrules will already be in dictionary form
-            forecasting_config=tupilise_forecast_config(self.parent.config.tradingrules)
-            new_rules=process_trading_rule_spec(forecasting_config)
+            forecasting_config=self.parent.config.trading_rules
+            new_rules=process_trading_rules(forecasting_config)
             
         else:
 
         ### Okay, we've been passed a list manually which we'll use rather than getting it from the system
-            new_rules=process_trading_rule_spec(current_rules)
-            
-        setattr(self, "_list_of_trading_rules", new_rules)
-        setattr(self, "_parsed_trading_rules", True)
+            new_rules=process_trading_rules(passed_rules)
+        
+        setattr(self, "_trading_rules", new_rules)
         return(new_rules)
 
-    def get_raw_forecast(self, instrument_code, tradrule_variation):
+    def get_raw_forecast(self, instrument_code, rule_variation_name):
         """
         This method- and only this method- is required for other parts of the system to work
         
@@ -110,61 +139,115 @@ class Rules(SubSystem):
         
         This forecast may well need scaling and capping later
         
-        FIXME - DIAGS FROM RULE?
         """
         
-        trading_rule=self.trading_rules()[tradrule_variation]
+        def _get_forecast(system,  instrument_code, rule_variation_name, rules_subsystem ):
+            ## This function gets called if we haven't cached the forecast
+            trading_rule=rules_subsystem.trading_rules()[rule_variation_name]
+            
+            result=trading_rule.call(rules_subsystem.parent, instrument_code)
+            
+            return result
         
-        result=trading_rule.call(self.parent, instrument_code)
-        
-        return result
+        forecast=calc_or_cache_nested(self.parent, "_raw_forecasts", instrument_code, rule_variation_name, _get_forecast, self)
+        return forecast
 
 
 
-class tradingRule(object):
+class TradingRule(object):
     """
     Container for trading rules
     
     Can be called manually or will be called when configuring a system
-    
-    rule: eithier a function, or a string identifying the module and name of function (eg 'systems.mytradingrules.myspecialrule')
-    
-    Functions must be of the form function(*dataargs, **kwargs), where *dataargs are unnamed data items, and **kwargs are named configuration items
-    
-                              data, an ordered list of strings identifying data to be used (default, just price)
-                             other_args: a dictionary of named arguments to be passed to the trading rule
-                             forecast_scalar: a number indicating
-                             
-    Alternatively if rule is a tuple then it will create 
-                                  
+
     """
     
+    
     def __init__(self, rule, data=list(), other_args=dict()):
+        """
+        Create a trading rule from a function
 
-        if hasallattr(rule, ["function", "data", "args"]):
+        Functions must be of the form function(*dataargs, **kwargs), where *dataargs are unnamed data items, and **kwargs are named configuration items
+        
+                                  data, an ordered list of strings identifying data to be used (default, just price)
+                                 other_args: a dictionary of named arguments to be passed to the trading rule
+
+        :param rule: Trading rule to be created 
+        :type trading_rules:  
+                              The following describe a rule completely (ignore data and other_args arguments)
+                                  3-tuple ; containing (function, data, other_args)  
+                                  dict (containing key "function", and optionally keys "other_args" and "data") 
+                                  TradingRule (object is created out of this rule)
+
+                              
+                              The following will be combined with the data and other_args arguments to produce a complete TradingRule:
+                                  
+                                  Other callable function  
+                                  str (with path to function eg "systems.provide.example.rules.ewmac_forecast_with_defaults")
+
+        :param data: (list of) str pointing to location of inputs in a system method call (eg "data.get_instrument_price")
+                     (Eithier passed in separately, or as part of a TradingRule, 3-tuple, or dict object)
+        :type data: single str, or list of str
+        
+        :param other_args: Other named arguments to be passed to trading rule function
+                     (Eithier passed in separately , or as part of a TradingRule, 3-tuple, or dict object)
+        :type other_args: dict
+    
+        :returns: single Tradingrule object
+
+                                      
+        """
+
+        if hasallattr(rule, ["function", "data", "other_args"]):
             ## looks like it is already a trading rule
-            self=rule
+            (rule_function, data, other_args)=(rule.function, rule.data, rule.other_args)
             
 
         elif type(rule) is tuple:
             if len(data)>0 or len(other_args)>0:
                 print("WARNING: Creating trade rule with 'rule' tuple argument, ignoring data and/or other args")
-            if len(rule)<>3:
-                raise Exception("Creating trading rule with a tuple, must be length 3 exactly (function/name, data=[], args=dict())")
-                
-            self=tradingRule(rule[0], rule[1], rule[2])
-        
-        else:            
-            ## Create from scratch
             
-            ## turn string into function if required
-            rule_function=resolve_function(rule)
-            
-            setattr(self, "function", rule_function)
-            setattr(self, "data", data)
-            setattr(self, "args", other_args)
+            if len(rule)!=3:
+                raise Exception("Creating trading rule with a tuple, must be length 3 exactly (function/name, data [...], args dict(...))")
+            (rule_function, data, other_args)=rule
         
+        elif type(rule) is dict:
+            if len(data)>0 or len(other_args)>0:
+                print("WARNING: Creating trade rule with 'rule' dict argument, ignoring data and/or other args")
 
+            try:
+                rule_function=rule['function']
+            except KeyError:
+                raise Exception("If you specify a TradingRule as a dict it has to contain a 'function' keyname")
+            
+            if "data" in rule:
+                data=rule['data']
+            else:
+                data=[]
+            
+            if "other_args" in rule:
+                other_args=rule['other_args']
+                
+            else:
+                other_args=dict()
+        else:
+            rule_function=rule
+
+        ## turn string into a callable function if required
+        rule_function=resolve_function(rule_function)
+
+        if type(data) is str:
+            ## turn into a 1 item list or wont' get parsed properly
+            data=[data]
+            
+        setattr(self, "function", rule_function)
+        setattr(self, "data", data)
+        setattr(self, "other_args", other_args)
+        
+    def __repr__(self):
+        data_names=", ".join(self.data)
+        args_names=", ".join(self.other_args.keys())
+        return "TradingRule; function: %s, data: %s and other_args: %s" % (str(self.function), data_names, args_names)
     
     def call(self, system, instrument_code):
         """
@@ -182,49 +265,77 @@ class tradingRule(object):
             datalist=self.data
             
         data_methods=[resolve_data_method(system, data_string) for data_string in datalist]
-        data=[datamethod(instrument_code) for datamethod in data_methods]
+        data=[data_method(instrument_code) for data_method in data_methods]
         
-        other_args=self.args
-        
-        """ FIXME: in a system rules need to return a tuple (result, diags) for diag to persist
-        
-        """
+        other_args=self.other_args
         
         return self.function(*data, **other_args)
         
     
 
 
-def process_trading_rule_spec(trading_rules):
+def process_trading_rules(trading_rules):
     """
-    Returns a named dictionary of trading rule variations, with type tradingRule
 
-        data types handled:  
-           dict - parse each element of the dict and use the names
-           list - parse each element of the list and give them arbitrary names
-           anything else is assumed to be something we can pass to tradingRule (string, function, tuple, or tradingRule object)
-            
+    There are a number of ways to specify a set of trading rules. This function processes them all,
+       and returns a dict of TradingRule objects.
+    
+    data types handled:  
+       dict - parse each element of the dict and use the names [unless has one or more of keynames: function, data, args]
+       list - parse each element of the list and give them arbitrary names
+       anything else is assumed to be something we can pass to TradingRule (string, function, tuple, (dict with keynames function, data, args), or TradingRule object)
+
+
+    :param trading_rules: Set of trading rules 
+    
+    :type trading_rules:    Single rule:
+                            dict(function=str, optionally: args=dict(), optionally: data=list()), 
+                            TradingRule, str, callable function, or tuple 
+                        
+                            Multiple rules:
+                            list, dict without 'function' keyname                  
+
+    :returns: dict of Tradingrule objects
+    
     """
-    
-    if type(trading_rules) is dict:
-        ## Note the system config will always come in as a dict
-        ans=[(keyname, process_trading_rule_spec(trading_rules[keyname])) for keyname in trading_rules]
-        return ans
-    
     if type(trading_rules) is list:
         ## Give some arbitrary name
-        ans=dict([("rule%d" % ruleid, process_trading_rule_spec(rule)) for (ruleid, rule) in enumerate(trading_rules)])
+        ans=dict([("rule%d" % ruleid, TradingRule(rule)) for (ruleid, rule) in enumerate(trading_rules)])
+        return ans
+
+    if type(trading_rules) is dict:
+        if "function" not in trading_rules:
+            ## Note the system config will always come in as a dict
+            ans=dict([(keyname, TradingRule(trading_rules[keyname])) for keyname in trading_rules])
+            return ans
     
-    ## Must be an individual rule (string, function or tuple)
-    rule=trading_rules
-    return tradingRule(rule)
+    ## Must be an individual rule (string, function, dict with 'function' or tuple)
+    return process_trading_rules([trading_rules])
 
 
-def create_univariations(baseRule, list_of_args, argname, **kwargs):
+def create_variations_oneparameter(baseRule, list_of_args, argname, nameformat="%s_%s"):
     """
     Returns a dict of trading rule variations, varying only one named parameter
     
-    eg create_variations(breakout, [4,10, 100, ], argname="window_size")
+    :param baseRule: Trading rule to copy 
+    :type baseRule: TradingRule object
+    
+    :param list_of_args: set of parameters to use
+    :type list_of_args: list
+    
+    :param argname: Argument passed to trading rule which will be changed
+    :type argname: str
+    
+    :param nameformat: Format to use when naming trading rules; nameformat % (argname, argvalue) will be used
+    :type nameformat: str containing two '%s' elements
+    
+    :returns: dict of Tradingrule objects
+    
+    >>> 
+    >>> rule=TradingRule(("systems.provided.example.rules.ewmac_forecast_with_defaults", [], {}))
+    >>> variations=create_variations_oneparameter(rule, [4,10,100], "Lfast")
+    >>> variations.keys()
+    dict_keys(['Lfast_100', 'Lfast_4', 'Lfast_10'])
     """
     list_of_args_dict=[]
     for arg_value in list_of_args:
@@ -232,16 +343,35 @@ def create_univariations(baseRule, list_of_args, argname, **kwargs):
         thisdict[argname]=arg_value
         list_of_args_dict.append(thisdict)
 
-    ans=create_variations(baseRule, list_of_args_dict, argname, **kwargs)
+    ans=create_variations(baseRule, list_of_args_dict, key_argname=argname,  nameformat=nameformat)
     
     return ans
 
-def create_variations(baseRule, list_of_args_dict, key_argname=None, basename="rule",  nameformat="%s_%s"):
+def create_variations(baseRule, list_of_args_dict, key_argname=None,   nameformat="%s_%s"):
     """
     Returns a dict of trading rule variations 
     
     eg create_variations(ewmacrule, [dict(fast=2, slow=8), dict(fast=4, ...) ], argname="fast", basename="ewmac")
+
+
+    :param baseRule: Trading rule to copy 
+    :type baseRule: TradingRule object
     
+    :param list_of_args_dict:  sets of parameters to use. 
+    :type list_of_args: list of dicts; each dict contains a set of parameters to vary for each instance
+    
+    :param key_argname: Non
+    :type key_argname: str or None (None is allowed if only one parameter is changed)
+    
+    :param nameformat: Format to use when naming trading rules; nameformat % (argname, argvalue) will be used
+    :type nameformat: str containing two '%s' elements
+    
+    :returns: dict of Tradingrule objects
+    
+    >>> rule=TradingRule(("systems.provided.example.rules.ewmac_forecast_with_defaults", [], {}))
+    >>> variations=create_variations(rule, [dict(Lfast=2, Lslow=8), dict(Lfast=4, Lslow=16)], "Lfast", nameformat="ewmac_%s_%s")
+    >>> variations.keys()
+    dict_keys(['ewmac_Lfast_2', 'ewmac_Lfast_4'])
     """
     
     if key_argname is None:
@@ -257,7 +387,7 @@ def create_variations(baseRule, list_of_args_dict, key_argname=None, basename="r
     baseRuledata=baseRule.data
     
     ## these will be overwritten as we run through
-    baseRuleargs=copy(baseRule.args)
+    baseRuleargs=copy(baseRule.other_args)
     
     variations=dict()
     
@@ -268,46 +398,14 @@ def create_variations(baseRule, list_of_args_dict, key_argname=None, basename="r
         for arg_name in args_dict.keys():
             baseRuleargs[arg_name]=args_dict[arg_name]
             
-        rule_variation=tradingRule(baseRulefunction, baseRuledata, baseRuleargs)
-        var_name=nameformat % (basename, str(args_dict[key_argname]))
+        rule_variation=TradingRule(baseRulefunction, baseRuledata, baseRuleargs)
+        var_name=nameformat % (key_argname, str(args_dict[key_argname]))
         
         variations[var_name]=rule_variation
         
     return variations
 
-def tupilise_forecast_config(forecasting_config):
-    """
-    We strictly limit config objects to be dictionaries and lists
-    
-    But we need 4-tuples to create sets of trading rules
-    
-    forecasting_config is a dict of dicts. Each dict element must contain keys: function (usually string), data (a list), args (a dict)
-    
-    Note if eithier data or args is missing then we create them
-    """
-    
-    def _tupilise_trading_rule(tradingrule_dict):
-        try:
-            rule_function=tradingrule_dict['function']
-        except KeyError:
-            raise Exception("")
-        
-        if "data" in tradingrule_dict:
-            rule_data=tradingrule_dict['data']
-            if type(rule_data) is str:
-                ## if only one kind of data won't get parsed properly
-                rule_data=[rule_data]
-        else:
-            rule_data=[]
-        
-        if "args" in tradingrule_dict:
-            rule_args=tradingrule_dict['args']
-            
-        else:
-            rule_args=dict()
-        
-        return (rule_function, rule_data, rule_args)
-        
-    forecasting_config=dict([(rulename, _tupilise_trading_rule(forecasting_config[rulename])) for rulename in forecasting_config])
-    
-    return forecasting_config
+
+if __name__ == '__main__':
+    import doctest
+    doctest.testmod()

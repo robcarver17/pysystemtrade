@@ -5,17 +5,29 @@ from copy import copy
 from syscore.objects import calc_or_cache, resolve_function
 
 
-class subSystemRawData(SubSystem):
+class SubSystemRawData(SubSystem):
+
+    """
+        A SubSystem that does some fairly common calculations before we do forecasting
+            This is optional; forecasts can go straight to system.data
+            The advantages of using RawData are: 
+                   - preliminary calculations that are reused can be cached, to save time (eg volatility)
+                   - preliminary calculations are available for inspection when diagnosing what is going on
+    """    
     
     def __init__(self):
         """
-        A SubSystem that does some fairly common calculations before we do forecasting
-            This is optional; forecasts can go straight to system.data
+        Create a new subsystem raw data object
+
+        :returns: None
         """
+        
+        ## As with all subsystems any data that methods produce needs to be stored in a dict, indexed here
         delete_on_recalc=["_daily_returns_dict", "_daily_prices_dict", "_daily_vol_dict",  
                           "_norm_return_dict", "_price_dict", "_capped_norm_return_dict",
                            "_indexed_dict"]
 
+        ## Anything in this list wouldn't normally be deleted if we cleared a system of instrument data
         dont_delete=[]
         
         setattr(self, "_delete_on_recalc", delete_on_recalc)
@@ -24,19 +36,58 @@ class subSystemRawData(SubSystem):
         setattr(self, "name", "rawdata")
     
     def get_instrument_price(self, instrument_code):
-            """
-            Gets the instrument price
-            """
-            def _get_instrument_price(system, instrument_code):
-                instrprice=system.data.get_instrument_price(instrument_code)
-                return instrprice
+        """
+        Gets the instrument price from the parent system.data object
+                  
+        :param instrument_code: Instrument to get prices for 
+        :type trading_rules: str
         
-            return calc_or_cache(self.parent, "_price_dict", instrument_code, _get_instrument_price)
+        :returns: Tx1 pd.DataFrame
+
+        >>> from systems.basesystem import System
+        >>> from systems.rawdata import SubSystemRawData
+        >>> from syscore.fileutils import get_pathname_for_package
+        >>> from sysdata.legacy import csvFuturesData
+        >>>
+        >>> datapath=get_pathname_for_package("sysdata", ["tests"])
+        >>> data=csvFuturesData(datapath=datapath)
+        >>> rawdata=SubSystemRawData()
+        >>> system=System([rawdata], data)
+        >>> system.rawdata.get_instrument_price("EDOLLAR").tail(2)
+                        ADJ
+        2015-04-21  97.9050
+        2015-04-22  97.8325
+        """
+        def _get_instrument_price(system, instrument_code):
+            instrprice=system.data.get_instrument_price(instrument_code)
+            return instrprice
+    
+        return calc_or_cache(self.parent, "_price_dict", instrument_code, _get_instrument_price)
         
     
     def daily_prices(self, instrument_code):
         """
         Gets daily prices
+
+        :param instrument_code: Instrument to get prices for 
+        :type trading_rules: str
+        
+        :returns: Tx1 pd.DataFrame
+
+        >>> from systems.basesystem import System
+        >>> from systems.rawdata import SubSystemRawData
+        >>> from syscore.fileutils import get_pathname_for_package
+        >>> from sysdata.legacy import csvFuturesData
+        >>>
+        >>> datapath=get_pathname_for_package("sysdata", ["tests"])
+        >>> data=csvFuturesData(datapath=datapath)
+        >>> rawdata=SubSystemRawData()
+        >>> system=System([rawdata], data)
+        >>> system.rawdata.daily_prices("EDOLLAR").tail(2)
+                        ADJ
+        2015-04-21  97.9050
+        2015-04-22  97.8325
+
         """
         def _daily_prices(system, instrument_code):
             instrprice=system.rawdata.get_instrument_price(instrument_code)
@@ -48,6 +99,25 @@ class subSystemRawData(SubSystem):
     def daily_returns(self, instrument_code):
         """
         Gets daily returns (not % returns)
+
+        :param instrument_code: Instrument to get prices for 
+        :type trading_rules: str
+        
+        :returns: Tx1 pd.DataFrame
+
+        >>> from systems.basesystem import System
+        >>> from systems.rawdata import SubSystemRawData
+        >>> from syscore.fileutils import get_pathname_for_package
+        >>> from sysdata.legacy import csvFuturesData
+        >>>
+        >>> datapath=get_pathname_for_package("sysdata", ["tests"])
+        >>> data=csvFuturesData(datapath=datapath)
+        >>> rawdata=SubSystemRawData()
+        >>> system=System([rawdata], data)
+        >>> system.rawdata.daily_returns("EDOLLAR").tail(2)
+                       ADJ
+        2015-04-21 -0.0200
+        2015-04-22 -0.0725
         """
         def _daily_returns(system, instrument_code):
             instrdailyprice=system.rawdata.daily_prices(instrument_code)
@@ -65,19 +135,55 @@ class subSystemRawData(SubSystem):
         We can eithier inherit this from the config file, or pass eg: volconfig=dict(func="module.file.funcname, arg1=...)
         
         The dict must contain func key; anything else is optional
+
+        :param instrument_code: Instrument to get prices for 
+        :type trading_rules: str
+        
+        :returns: Tx1 pd.DataFrame
+
+        >>> from systems.basesystem import System
+        >>> from systems.rawdata import SubSystemRawData
+        >>> from syscore.fileutils import get_pathname_for_package
+        >>> from sysdata.legacy import csvFuturesData
+        >>>
+        >>> datapath=get_pathname_for_package("sysdata", ["tests"])
+        >>> data=csvFuturesData(datapath=datapath)
+        >>> rawdata=SubSystemRawData()
+        >>> system=System([rawdata], data)
+        >>> system.rawdata.daily_returns_volatility("EDOLLAR").tail(2)
+                         vol
+        2015-04-21  0.057053
+        2015-04-22  0.058340
+        >>>
+        >>> from sysdata.configdata import Config
+        >>> config=Config(get_pathname_for_package("systems", ["provided","example", "exampleconfig.yaml"]))
+        >>> system=System([rawdata], data, config)
+        >>> system.rawdata.daily_returns_volatility("EDOLLAR").tail(2)
+                         vol
+        2015-04-21  0.057053
+        2015-04-22  0.058340
+        >>>
+        >>> config=Config(dict(parameters=dict(volatility_calculation=dict(func="syscore.algos.robust_vol_calc", days=200))))
+        >>> system=System([rawdata], data, config)
+        >>> system.rawdata.daily_returns_volatility("EDOLLAR").tail(2)
+                         vol
+        2015-04-21  0.065903
+        2015-04-22  0.066014
+        
         """
-        def _daily_returns_volatility(system, instrument_code, volconfig):
+        def _daily_returns_volatility(system, instrument_code, passed_volconfig):
             dailyreturns=system.rawdata.daily_returns(instrument_code)
-            if volconfig is None:
+            if passed_volconfig is None:
                 try:
                     volconfig=copy(system.config.parameters['volatility_calculation'])
                     identify_error="inherited from data object"
                 except:
-                    volconfig=system_defaults['volatility_calculation']
+                    volconfig=copy(system_defaults['volatility_calculation'])
                     identify_error="found in system.defaults.py"
 
             else:
                 identify_error="passed directly into method call"
+                volconfig=copy(passed_volconfig)
 
             if "func" not in volconfig:
                 
@@ -102,13 +208,37 @@ class subSystemRawData(SubSystem):
         Useful statistic, also used for some trading rules
         
         This is an optional subsystem; forecasts can go straight to system.data
-    
+        :param instrument_code: Instrument to get prices for 
+        :type trading_rules: str
+        
+        :returns: Tx1 pd.DataFrame
+
+        >>> from systems.basesystem import System
+        >>> from systems.rawdata import SubSystemRawData
+        >>> from syscore.fileutils import get_pathname_for_package
+        >>> from sysdata.legacy import csvFuturesData
+        >>>
+        >>> datapath=get_pathname_for_package("sysdata", ["tests"])
+        >>> data=csvFuturesData(datapath=datapath)
+        >>> rawdata=SubSystemRawData()
+        >>> system=System([rawdata], data)
+        >>> system.rawdata.norm_returns("EDOLLAR").tail(2)
+                    norm_return
+        2015-04-21    -0.342101
+        2015-04-22    -1.270742
         """
         def _norm_returns(system, instrument_code):
             returnvol=system.rawdata.daily_returns_volatility(instrument_code).shift(1)
             dailyreturns=system.rawdata.daily_returns(instrument_code)
             norm_return=dailyreturns.iloc[:,0]/returnvol.iloc[:,0]
-            return norm_return.to_frame()
+            norm_return=norm_return.to_frame()
+            norm_return.columns=["norm_return"]
+            return norm_return
         
         return calc_or_cache(self.parent, "_norm_return_dict", instrument_code, _norm_returns)
+
+    
         
+if __name__ == '__main__':
+    import doctest
+    doctest.testmod()

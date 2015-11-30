@@ -1,8 +1,8 @@
 Requirements:
 *************
 
-Python > 3.0
-Pandas
-Matlotplib
-yaml
-numpy
+python >= 3.4.3
+pandas >= 0.17.0
+matlotplib > 1.4.3
+yaml >= 3.11
+numpy >= 1.10.1

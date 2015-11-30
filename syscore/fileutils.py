@@ -1,14 +1,43 @@
 import os
 import sys
 
-def get_pathname_for_package(package_name, path=""):
+"""
+IMPORTANT: for this to work all modules must be imported into namespace
+"""
+import syscore
+
+def get_pathname_for_package(package_name, paths_or_files=[]):
     """
     Returns the filename of part of a package
     
-    eg get_pathname_for_package("syscore", "fileutils.py") will return the location of this files
-    """
+    :param package_name: Name of python package
+    :type str:
+    
+    :param path: Subdirectory within 
+        
+    :returns: full pathname of package
+    
+    >>> get_pathname_for_package("syscore", ["fileutils.py"])
+    '/home/rob/workspace3/newengine/syscore/fileutils.py'
 
+    >>> get_pathname_for_package("syscore")
+    '/home/rob/workspace3/newengine/syscore'
+    
+    >>> get_pathname_for_package("syscore", ["tests","pricetestdata.csv"])
+    '/home/rob/workspace3/newengine/syscore/tests/pricetestdata.csv'
+    """
+    
     d = os.path.dirname(sys.modules[package_name].__file__)
-    pathname = os.path.join(d,  path)
+
+    if len(paths_or_files)==0:
+        return d
+    
+    last_item_in_list=paths_or_files.pop()
+
+    pathname = os.path.join(get_pathname_for_package(package_name, paths_or_files),  last_item_in_list)
 
     return pathname
+
+if __name__ == '__main__':
+    import doctest
+    doctest.testmod()

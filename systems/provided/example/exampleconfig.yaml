@@ -7,9 +7,10 @@ parameters:
   smooth_rolldown_for_carry: 125
 trading_rules:
   ewmac8:
-     function: syscore.algos.calc_ewmac_forecast
+     function: systems.provided.example.rules.ewmac_forecast_with_defaults_no_vol
      data:
-         - data.get_instrument_price 
+         - "rawdata.daily_prices"
+         - "rawdata.daily_returns_volatility"
      args: 
          Lfast: 8
          Lslow: 32

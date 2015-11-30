@@ -3,10 +3,13 @@
 class SubSystem(object):
     """
     Default subsystem
+    
+    Usually we inherit from this, rather than use 'in the raw'
     """
     
     def __init__(self):
         '''
+        
         '''
         
 
