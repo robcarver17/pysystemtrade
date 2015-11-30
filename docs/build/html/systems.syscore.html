@@ -41,125 +41,26 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-systems.syscore.algos">
-<span id="systems-syscore-algos-module"></span><h2>systems.syscore.algos module<a class="headerlink" href="#module-systems.syscore.algos" title="Permalink to this headline">¶</a></h2>
-<p>Algos</p>
-<p>Basic building blocks of trading rules, like volatility measurement and crossovers</p>
-<dl class="function">
-<dt id="systems.syscore.algos.calc_ewmac_forecast">
-<code class="descclassname">systems.syscore.algos.</code><code class="descname">calc_ewmac_forecast</code><span class="sig-paren">(</span><em>price</em>, <em>Lfast</em>, <em>Lslow</em><span class="sig-paren">)</span><a class="headerlink" href="#systems.syscore.algos.calc_ewmac_forecast" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate the ewmac trading fule forecast, given a price and EWMA speeds Lfast, Lslow and vol_lookback</p>
-<p>Assumes that &#8216;price&#8217; is daily data</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="systems.syscore.algos.robust_vol_calc">
-<code class="descclassname">systems.syscore.algos.</code><code class="descname">robust_vol_calc</code><span class="sig-paren">(</span><em>x</em>, <em>days=35</em>, <em>volfloor=True</em>, <em>minquant=0.05</em>, <em>mincount=10</em>, <em>mincountformin=100</em>, <em>daysformin=500</em>, <em>absmin=1e-10</em><span class="sig-paren">)</span><a class="headerlink" href="#systems.syscore.algos.robust_vol_calc" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a N day rolling sigma</p>
-<p>Optionally: Uses 500 days to calculate sigma floor at 5% point</p>
-<p>Optionally (absmin is not None): remove very low values of vol</p>
-</dd></dl>
-
+<div class="section" id="systems-syscore-algos-module">
+<h2>systems.syscore.algos module<a class="headerlink" href="#systems-syscore-algos-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-systems.syscore.dateutils">
-<span id="systems-syscore-dateutils-module"></span><h2>systems.syscore.dateutils module<a class="headerlink" href="#module-systems.syscore.dateutils" title="Permalink to this headline">¶</a></h2>
-<p>Various routines to do with dates</p>
-<dl class="function">
-<dt id="systems.syscore.dateutils.expiryDate">
-<code class="descclassname">systems.syscore.dateutils.</code><code class="descname">expiryDate</code><span class="sig-paren">(</span><em>expiry_ident</em><span class="sig-paren">)</span><a class="headerlink" href="#systems.syscore.dateutils.expiryDate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Translates an expiry date which could be &#8220;20150305&#8221; or &#8220;201505&#8221; into a datetime</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="systems.syscore.dateutils.expiry_diff">
-<code class="descclassname">systems.syscore.dateutils.</code><code class="descname">expiry_diff</code><span class="sig-paren">(</span><em>carry_row</em>, <em>min_days=20</em><span class="sig-paren">)</span><a class="headerlink" href="#systems.syscore.dateutils.expiry_diff" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given a pandas row containing CARRY_CONTRACT and PRICE_CONTRACT, both of which represent dates</p>
-<p>Return the annualised difference between the dates</p>
-</dd></dl>
-
+<div class="section" id="systems-syscore-dateutils-module">
+<h2>systems.syscore.dateutils module<a class="headerlink" href="#systems-syscore-dateutils-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-systems.syscore.fileutils">
-<span id="systems-syscore-fileutils-module"></span><h2>systems.syscore.fileutils module<a class="headerlink" href="#module-systems.syscore.fileutils" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="systems.syscore.fileutils.get_pathname_for_package">
-<code class="descclassname">systems.syscore.fileutils.</code><code class="descname">get_pathname_for_package</code><span class="sig-paren">(</span><em>package_name</em>, <em>path=''</em><span class="sig-paren">)</span><a class="headerlink" href="#systems.syscore.fileutils.get_pathname_for_package" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the filename of part of a package</p>
-<p>eg get_pathname_for_package(&#8220;syscore&#8221;, &#8220;fileutils.py&#8221;) will return the location of this files</p>
-</dd></dl>
-
+<div class="section" id="systems-syscore-fileutils-module">
+<h2>systems.syscore.fileutils module<a class="headerlink" href="#systems-syscore-fileutils-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-systems.syscore.genutils">
-<span id="systems-syscore-genutils-module"></span><h2>systems.syscore.genutils module<a class="headerlink" href="#module-systems.syscore.genutils" title="Permalink to this headline">¶</a></h2>
-<p>Utilities I can&#8217;t put anywhere else...</p>
-<dl class="function">
-<dt id="systems.syscore.genutils.sign">
-<code class="descclassname">systems.syscore.genutils.</code><code class="descname">sign</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#systems.syscore.genutils.sign" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the sign of x (float or int)</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="systems.syscore.genutils.str_of_int">
-<code class="descclassname">systems.syscore.genutils.</code><code class="descname">str_of_int</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#systems.syscore.genutils.str_of_int" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the string of int of x, handling nan&#8217;s or whatever</p>
-</dd></dl>
-
+<div class="section" id="systems-syscore-genutils-module">
+<h2>systems.syscore.genutils module<a class="headerlink" href="#systems-syscore-genutils-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-systems.syscore.objects">
-<span id="systems-syscore-objects-module"></span><h2>systems.syscore.objects module<a class="headerlink" href="#module-systems.syscore.objects" title="Permalink to this headline">¶</a></h2>
-<p>Do fun things with objects and classes</p>
-<dl class="function">
-<dt id="systems.syscore.objects.calc_or_cache">
-<code class="descclassname">systems.syscore.objects.</code><code class="descname">calc_or_cache</code><span class="sig-paren">(</span><em>some_object</em>, <em>dictname</em>, <em>keyname</em>, <em>func</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#systems.syscore.objects.calc_or_cache" title="Permalink to this definition">¶</a></dt>
-<dd><p>Assumes that some_object has an attribute dictname, and that is a dict</p>
-<p>If dictname[keyname] exists return it. Else call func with <a href="#id1"><span class="problematic" id="id2">*</span></a>args and <a href="#id3"><span class="problematic" id="id4">**</span></a>kwargs</p>
-<p>Used for cache within various kinds of objects like config, price, data, system...</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="systems.syscore.objects.hasallattr">
-<code class="descclassname">systems.syscore.objects.</code><code class="descname">hasallattr</code><span class="sig-paren">(</span><em>some_object</em>, <em>attrlist=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#systems.syscore.objects.hasallattr" title="Permalink to this definition">¶</a></dt>
-<dd><p>Check something has all the attributes you need</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="systems.syscore.objects.resolve_data_method">
-<code class="descclassname">systems.syscore.objects.</code><code class="descname">resolve_data_method</code><span class="sig-paren">(</span><em>some_object</em>, <em>data_string</em>, <em>_resolved_object=None</em><span class="sig-paren">)</span><a class="headerlink" href="#systems.syscore.objects.resolve_data_method" title="Permalink to this definition">¶</a></dt>
-<dd><p>eg if data_string=&#8221;data1.data2.method&#8221; then returns the method some_object.data1.data2.method</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="systems.syscore.objects.resolve_function">
-<code class="descclassname">systems.syscore.objects.</code><code class="descname">resolve_function</code><span class="sig-paren">(</span><em>func_or_func_name</em><span class="sig-paren">)</span><a class="headerlink" href="#systems.syscore.objects.resolve_function" title="Permalink to this definition">¶</a></dt>
-<dd><p>if func_or_func_name is a callable function, then return the function</p>
-<p>If it is a string containing &#8216;.&#8217; then it is a function in a module, return the function</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="systems.syscore.objects.update_recalc">
-<code class="descclassname">systems.syscore.objects.</code><code class="descname">update_recalc</code><span class="sig-paren">(</span><em>subsystem_object</em>, <em>additional_delete_on_recalc=[]</em>, <em>additional_dont_delete=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#systems.syscore.objects.update_recalc" title="Permalink to this definition">¶</a></dt>
-<dd><p>Update the recalculation dictionaries when inheriting from a parent</p>
-<p>(see system.basesystem and subsystem)</p>
-</dd></dl>
-
+<div class="section" id="systems-syscore-objects-module">
+<h2>systems.syscore.objects module<a class="headerlink" href="#systems-syscore-objects-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-systems.syscore.pdutils">
-<span id="systems-syscore-pdutils-module"></span><h2>systems.syscore.pdutils module<a class="headerlink" href="#module-systems.syscore.pdutils" title="Permalink to this headline">¶</a></h2>
-<p>Utilities to help with pandas</p>
-<dl class="function">
-<dt id="systems.syscore.pdutils.apply_cap">
-<code class="descclassname">systems.syscore.pdutils.</code><code class="descname">apply_cap</code><span class="sig-paren">(</span><em>pddataframe</em>, <em>capvalue</em><span class="sig-paren">)</span><a class="headerlink" href="#systems.syscore.pdutils.apply_cap" title="Permalink to this definition">¶</a></dt>
-<dd><p>Applies a cap to the values in a Tx1 pandas dataframe</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="systems.syscore.pdutils.pd_readcsv">
-<code class="descclassname">systems.syscore.pdutils.</code><code class="descname">pd_readcsv</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#systems.syscore.pdutils.pd_readcsv" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reads the pandas dataframe from a filename, given the index is correctly labelled</p>
-</dd></dl>
-
+<div class="section" id="systems-syscore-pdutils-module">
+<h2>systems.syscore.pdutils module<a class="headerlink" href="#systems-syscore-pdutils-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-systems.syscore">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-systems.syscore" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-contents">
+<h2>Module contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
 </div>
 </div>
 
@@ -173,13 +74,13 @@
   <ul>
 <li><a class="reference internal" href="#">systems.syscore package</a><ul>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
-<li><a class="reference internal" href="#module-systems.syscore.algos">systems.syscore.algos module</a></li>
-<li><a class="reference internal" href="#module-systems.syscore.dateutils">systems.syscore.dateutils module</a></li>
-<li><a class="reference internal" href="#module-systems.syscore.fileutils">systems.syscore.fileutils module</a></li>
-<li><a class="reference internal" href="#module-systems.syscore.genutils">systems.syscore.genutils module</a></li>
-<li><a class="reference internal" href="#module-systems.syscore.objects">systems.syscore.objects module</a></li>
-<li><a class="reference internal" href="#module-systems.syscore.pdutils">systems.syscore.pdutils module</a></li>
-<li><a class="reference internal" href="#module-systems.syscore">Module contents</a></li>
+<li><a class="reference internal" href="#systems-syscore-algos-module">systems.syscore.algos module</a></li>
+<li><a class="reference internal" href="#systems-syscore-dateutils-module">systems.syscore.dateutils module</a></li>
+<li><a class="reference internal" href="#systems-syscore-fileutils-module">systems.syscore.fileutils module</a></li>
+<li><a class="reference internal" href="#systems-syscore-genutils-module">systems.syscore.genutils module</a></li>
+<li><a class="reference internal" href="#systems-syscore-objects-module">systems.syscore.objects module</a></li>
+<li><a class="reference internal" href="#systems-syscore-pdutils-module">systems.syscore.pdutils module</a></li>
+<li><a class="reference internal" href="#module-contents">Module contents</a></li>
 </ul>
 </li>
 </ul>

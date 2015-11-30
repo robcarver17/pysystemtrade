@@ -44,106 +44,20 @@
 <div class="section" id="systems-sysdata-configdata-module">
 <h2>systems.sysdata.configdata module<a class="headerlink" href="#systems-sysdata-configdata-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-systems.sysdata.data">
-<span id="systems-sysdata-data-module"></span><h2>systems.sysdata.data module<a class="headerlink" href="#module-systems.sysdata.data" title="Permalink to this headline">¶</a></h2>
-<p>Core data object - Base class</p>
-<p>Data objects are used to get data from a particular source, and give certain information about it</p>
-<p>This bare Data class isn&#8217;t much good and holds only price data</p>
-<dl class="docutils">
-<dt>Normally we&#8217;d extend this for specific asset classes (eg carry data for futures), and then for a </dt>
-<dd>specific source of data (eg csv files, databases, ...)</dd>
-</dl>
-<p>The inheritance is:</p>
-<p>Base generic class: Data
--&gt; asset class specific eg futuresdata.FuturesData
--&gt; source specific eg legacy.csvFuturesData</p>
-<dl class="class">
-<dt id="systems.sysdata.data.Data">
-<em class="property">class </em><code class="descclassname">systems.sysdata.data.</code><code class="descname">Data</code><span class="sig-paren">(</span><em>pricedict={}</em><span class="sig-paren">)</span><a class="headerlink" href="#systems.sysdata.data.Data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
-<p>data=Data(dict(a=pd.DataFrame(...), b=pd.DataFrame(...))
-print(data.get_instrument_list())
-print(data.</p>
-<dl class="method">
-<dt id="systems.sysdata.data.Data.get_instrument_list">
-<code class="descname">get_instrument_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#systems.sysdata.data.Data.get_instrument_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>list of instruments in this data set</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="systems.sysdata.data.Data.get_instrument_price">
-<code class="descname">get_instrument_price</code><span class="sig-paren">(</span><em>instrument_code</em><span class="sig-paren">)</span><a class="headerlink" href="#systems.sysdata.data.Data.get_instrument_price" title="Permalink to this definition">¶</a></dt>
-<dd><p>Default method to get instrument price
-Will usually be overriden when inherited with specific data source</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="systems.sysdata.data.Data.keys">
-<code class="descname">keys</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#systems.sysdata.data.Data.keys" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
+<div class="section" id="systems-sysdata-data-module">
+<h2>systems.sysdata.data module<a class="headerlink" href="#systems-sysdata-data-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-systems.sysdata.futuresdata">
-<span id="systems-sysdata-futuresdata-module"></span><h2>systems.sysdata.futuresdata module<a class="headerlink" href="#module-systems.sysdata.futuresdata" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="systems.sysdata.futuresdata.FuturesData">
-<em class="property">class </em><code class="descclassname">systems.sysdata.futuresdata.</code><code class="descname">FuturesData</code><span class="sig-paren">(</span><em>pricedict={}</em>, <em>carrydatadict={}</em><span class="sig-paren">)</span><a class="headerlink" href="#systems.sysdata.futuresdata.FuturesData" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="sysdata.html#sysdata.data.Data" title="sysdata.data.Data"><code class="xref py py-class docutils literal"><span class="pre">sysdata.data.Data</span></code></a></p>
-<p>Get futures specific data</p>
-<p>Will normally be overriden by a method for a specific data source
-See legacy.py</p>
-<dl class="method">
-<dt id="systems.sysdata.futuresdata.FuturesData.get_instrument_rawcarrydata">
-<code class="descname">get_instrument_rawcarrydata</code><span class="sig-paren">(</span><em>instrument_code</em><span class="sig-paren">)</span><a class="headerlink" href="#systems.sysdata.futuresdata.FuturesData.get_instrument_rawcarrydata" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a pd. dataframe with the 4 columns PRICE, CARRY, PRICE_CONTRACT, CARRY_CONTRACT</p>
-<p>These are specifically needed for futures trading</p>
-<p>For other asset classes we&#8217;d probably pop in eg equities fundamental data, FX interest rates...</p>
-<p>Normally we&#8217;d inherit from this method for a specific data source</p>
-</dd></dl>
-
-</dd></dl>
-
+<div class="section" id="systems-sysdata-futuresdata-module">
+<h2>systems.sysdata.futuresdata module<a class="headerlink" href="#systems-sysdata-futuresdata-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-systems.sysdata.legacy">
-<span id="systems-sysdata-legacy-module"></span><h2>systems.sysdata.legacy module<a class="headerlink" href="#module-systems.sysdata.legacy" title="Permalink to this headline">¶</a></h2>
-<p>Get legacy data from .csv files</p>
-<p>Used for quick examples / &#8216;scaffolding&#8217;</p>
-<dl class="class">
-<dt id="systems.sysdata.legacy.csvFuturesData">
-<em class="property">class </em><code class="descclassname">systems.sysdata.legacy.</code><code class="descname">csvFuturesData</code><span class="sig-paren">(</span><em>datapath=None</em>, <em>pricedict={}</em>, <em>carrydatadict={}</em><span class="sig-paren">)</span><a class="headerlink" href="#systems.sysdata.legacy.csvFuturesData" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="sysdata.html#sysdata.futuresdata.FuturesData" title="sysdata.futuresdata.FuturesData"><code class="xref py py-class docutils literal"><span class="pre">sysdata.futuresdata.FuturesData</span></code></a></p>
-<dl class="method">
-<dt id="systems.sysdata.legacy.csvFuturesData.get_instrument_asset_classes">
-<code class="descname">get_instrument_asset_classes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#systems.sysdata.legacy.csvFuturesData.get_instrument_asset_classes" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns dataframe with index of instruments, column AssetClass</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="systems.sysdata.legacy.csvFuturesData.get_instrument_list">
-<code class="descname">get_instrument_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#systems.sysdata.legacy.csvFuturesData.get_instrument_list" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="systems.sysdata.legacy.csvFuturesData.get_instrument_price">
-<code class="descname">get_instrument_price</code><span class="sig-paren">(</span><em>instrument_code</em><span class="sig-paren">)</span><a class="headerlink" href="#systems.sysdata.legacy.csvFuturesData.get_instrument_price" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="systems.sysdata.legacy.csvFuturesData.get_instrument_rawcarrydata">
-<code class="descname">get_instrument_rawcarrydata</code><span class="sig-paren">(</span><em>instrument_code</em><span class="sig-paren">)</span><a class="headerlink" href="#systems.sysdata.legacy.csvFuturesData.get_instrument_rawcarrydata" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
+<div class="section" id="systems-sysdata-legacy-module">
+<h2>systems.sysdata.legacy module<a class="headerlink" href="#systems-sysdata-legacy-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-systems.sysdata.quandl">
-<span id="systems-sysdata-quandl-module"></span><h2>systems.sysdata.quandl module<a class="headerlink" href="#module-systems.sysdata.quandl" title="Permalink to this headline">¶</a></h2>
-<p>Get data from quandl</p>
+<div class="section" id="systems-sysdata-quandl-module">
+<h2>systems.sysdata.quandl module<a class="headerlink" href="#systems-sysdata-quandl-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-systems.sysdata">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-systems.sysdata" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-contents">
+<h2>Module contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
 </div>
 </div>
 
@@ -158,11 +72,11 @@ See legacy.py</p>
 <li><a class="reference internal" href="#">systems.sysdata package</a><ul>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
 <li><a class="reference internal" href="#systems-sysdata-configdata-module">systems.sysdata.configdata module</a></li>
-<li><a class="reference internal" href="#module-systems.sysdata.data">systems.sysdata.data module</a></li>
-<li><a class="reference internal" href="#module-systems.sysdata.futuresdata">systems.sysdata.futuresdata module</a></li>
-<li><a class="reference internal" href="#module-systems.sysdata.legacy">systems.sysdata.legacy module</a></li>
-<li><a class="reference internal" href="#module-systems.sysdata.quandl">systems.sysdata.quandl module</a></li>
-<li><a class="reference internal" href="#module-systems.sysdata">Module contents</a></li>
+<li><a class="reference internal" href="#systems-sysdata-data-module">systems.sysdata.data module</a></li>
+<li><a class="reference internal" href="#systems-sysdata-futuresdata-module">systems.sysdata.futuresdata module</a></li>
+<li><a class="reference internal" href="#systems-sysdata-legacy-module">systems.sysdata.legacy module</a></li>
+<li><a class="reference internal" href="#systems-sysdata-quandl-module">systems.sysdata.quandl module</a></li>
+<li><a class="reference internal" href="#module-contents">Module contents</a></li>
 </ul>
 </li>
 </ul>

@@ -7,9 +7,6 @@ Subpackages
 .. toctree::
 
     systems.examples
-    systems.syscore
-    systems.sysdata
-    systems.syssims
 
 Submodules
 ----------

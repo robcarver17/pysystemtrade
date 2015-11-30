@@ -46,27 +46,6 @@
 <li class="toctree-l2"><a class="reference internal" href="systems.examples.html#module-systems.examples">Module contents</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="systems.syscore.html">systems.syscore package</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="systems.syscore.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="systems.syscore.html#module-systems.syscore.algos">systems.syscore.algos module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="systems.syscore.html#module-systems.syscore.dateutils">systems.syscore.dateutils module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="systems.syscore.html#module-systems.syscore.fileutils">systems.syscore.fileutils module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="systems.syscore.html#module-systems.syscore.genutils">systems.syscore.genutils module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="systems.syscore.html#module-systems.syscore.objects">systems.syscore.objects module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="systems.syscore.html#module-systems.syscore.pdutils">systems.syscore.pdutils module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="systems.syscore.html#module-systems.syscore">Module contents</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="systems.sysdata.html">systems.sysdata package</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="systems.sysdata.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="systems.sysdata.html#systems-sysdata-configdata-module">systems.sysdata.configdata module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="systems.sysdata.html#module-systems.sysdata.data">systems.sysdata.data module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="systems.sysdata.html#module-systems.sysdata.futuresdata">systems.sysdata.futuresdata module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="systems.sysdata.html#module-systems.sysdata.legacy">systems.sysdata.legacy module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="systems.sysdata.html#module-systems.sysdata.quandl">systems.sysdata.quandl module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="systems.sysdata.html#module-systems.sysdata">Module contents</a></li>
-</ul>
-</li>
 </ul>
 </div>
 </div>
@@ -85,8 +64,168 @@
 found in defaults</dd>
 </dl>
 </div>
-<div class="section" id="systems-forecasting-module">
-<h2>systems.forecasting module<a class="headerlink" href="#systems-forecasting-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-systems.forecasting">
+<span id="systems-forecasting-module"></span><h2>systems.forecasting module<a class="headerlink" href="#module-systems.forecasting" title="Permalink to this headline">¶</a></h2>
+<p>construct the forecasting subsystem</p>
+<p>Ways we can do this:</p>
+<ol class="loweralpha simple">
+<li>We do this by passing a list of trading rules</li>
+</ol>
+<p>forecasting([trading_rule1, trading_rule2, ..])</p>
+<dl class="docutils">
+<dt>Note that trading rules can be created using the TradingRule class, or you can just pass in the</dt>
+<dd>name of a function, or a function.</dd>
+</dl>
+<p>We can also use a generate_variations method to create a list of multiple rules</p>
+<ol class="loweralpha simple" start="2">
+<li>or we can create from a system config</li>
+</ol>
+<p>.... output from this will be forecast for each instrument, trading rule variation ...</p>
+<p>need to have:</p>
+<p>trading rules (eithier str pointers, or actual functions)
+data arg(s) to be passed to trading rules (as str to use with getattr eg [system].data.getthing[(instrument)]
+[default for this will be price only]
+trading rules also need to have a &#8216;simple&#8217; form, for quick and dirty use
+probably nicest to have a wrapper function that wraps simple trading rules; in interactive world you&#8217;d pass the config etc into this</p>
+<p>other config for trading rules, including forecast scalar [with defaults]</p>
+<dl class="docutils">
+<dt>So config dict=(data=dict(&#8220;&#8221;,&#8221;&#8221;,&#8221;&#8221;) or data=(dict( actual data)), other_args=dict(a=1, b=2, ...),</dt>
+<dd>)</dd>
+</dl>
+<p>how to pass the system.config into the trading rules... 
+... we parse the list of trading rules. if they contain a config dict we use that. otherwise we ...</p>
+<blockquote>
+<div>use the relevant part of forecast_config. That allows people to override rules if they feel like it.</div></blockquote>
+<p>Note that system.config.forecast will be used if forecast_config not passed</p>
+<p>We don&#8217;t do scaling and capping here, but in the combined forecast module
+(since we might want to estimate scaling factors live)</p>
+<dl class="class">
+<dt id="systems.forecasting.Rules">
+<em class="property">class </em><code class="descclassname">systems.forecasting.</code><code class="descname">Rules</code><span class="sig-paren">(</span><em>trading_rules=None</em><span class="sig-paren">)</span><a class="headerlink" href="#systems.forecasting.Rules" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#systems.subsystem.SubSystem" title="systems.subsystem.SubSystem"><code class="xref py py-class docutils literal"><span class="pre">systems.subsystem.SubSystem</span></code></a></p>
+<dl class="method">
+<dt id="systems.forecasting.Rules.get_raw_forecast">
+<code class="descname">get_raw_forecast</code><span class="sig-paren">(</span><em>instrument_code</em>, <em>rule_variation_name</em><span class="sig-paren">)</span><a class="headerlink" href="#systems.forecasting.Rules.get_raw_forecast" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method- and only this method- is required for other parts of the system to work</p>
+<p>Does what it says on the tin - pulls the forecast for the trading rule</p>
+<p>This forecast may well need scaling and capping later</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="systems.forecasting.Rules.trading_rules">
+<code class="descname">trading_rules</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#systems.forecasting.Rules.trading_rules" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ensure self.trading_rules is actually a properly specified list of trading rules</p>
+<p>We can&#8217;t do this when we __init__ because we might not have a parent yet</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">List of TradingRule objects</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="systems.forecasting.TradingRule">
+<em class="property">class </em><code class="descclassname">systems.forecasting.</code><code class="descname">TradingRule</code><span class="sig-paren">(</span><em>rule</em>, <em>data=[]</em>, <em>other_args={}</em><span class="sig-paren">)</span><a class="headerlink" href="#systems.forecasting.TradingRule" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Container for trading rules</p>
+<p>Can be called manually or will be called when configuring a system</p>
+<dl class="method">
+<dt id="systems.forecasting.TradingRule.call">
+<code class="descname">call</code><span class="sig-paren">(</span><em>system</em>, <em>instrument_code</em><span class="sig-paren">)</span><a class="headerlink" href="#systems.forecasting.TradingRule.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Actually call a trading rule</p>
+<p>To do this we need some data from the system</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="systems.forecasting.create_variations">
+<code class="descclassname">systems.forecasting.</code><code class="descname">create_variations</code><span class="sig-paren">(</span><em>baseRule</em>, <em>list_of_args_dict</em>, <em>key_argname=None</em>, <em>nameformat='%s_%s'</em><span class="sig-paren">)</span><a class="headerlink" href="#systems.forecasting.create_variations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a dict of trading rule variations</p>
+<p>eg create_variations(ewmacrule, [dict(fast=2, slow=8), dict(fast=4, ...) ], argname=&#8221;fast&#8221;, basename=&#8221;ewmac&#8221;)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>baseRule</strong> (<em>TradingRule object</em>) &#8211; Trading rule to copy</li>
+<li><strong>list_of_args_dict</strong> &#8211; sets of parameters to use.</li>
+<li><strong>key_argname</strong> (<em>str or None (None is allowed if only one parameter is changed)</em>) &#8211; Non</li>
+<li><strong>nameformat</strong> (<em>str containing two '%s' elements</em>) &#8211; Format to use when naming trading rules; nameformat % (argname, argvalue) will be used</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">dict of Tradingrule objects</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">rule</span><span class="o">=</span><span class="n">TradingRule</span><span class="p">((</span><span class="s">&quot;systems.provided.example.rules.ewmac_forecast_with_defaults&quot;</span><span class="p">,</span> <span class="p">[],</span> <span class="p">{}))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">variations</span><span class="o">=</span><span class="n">create_variations</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="p">[</span><span class="nb">dict</span><span class="p">(</span><span class="n">Lfast</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">Lslow</span><span class="o">=</span><span class="mi">8</span><span class="p">),</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Lfast</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">Lslow</span><span class="o">=</span><span class="mi">16</span><span class="p">)],</span> <span class="s">&quot;Lfast&quot;</span><span class="p">,</span> <span class="n">nameformat</span><span class="o">=</span><span class="s">&quot;ewmac_</span><span class="si">%s</span><span class="s">_</span><span class="si">%s</span><span class="s">&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">variations</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+<span class="go">dict_keys([&#39;ewmac_Lfast_2&#39;, &#39;ewmac_Lfast_4&#39;])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="systems.forecasting.create_variations_oneparameter">
+<code class="descclassname">systems.forecasting.</code><code class="descname">create_variations_oneparameter</code><span class="sig-paren">(</span><em>baseRule</em>, <em>list_of_args</em>, <em>argname</em>, <em>nameformat='%s_%s'</em><span class="sig-paren">)</span><a class="headerlink" href="#systems.forecasting.create_variations_oneparameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a dict of trading rule variations, varying only one named parameter</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>baseRule</strong> (<em>TradingRule object</em>) &#8211; Trading rule to copy</li>
+<li><strong>list_of_args</strong> (<em>list</em>) &#8211; set of parameters to use</li>
+<li><strong>argname</strong> (<em>str</em>) &#8211; Argument passed to trading rule which will be changed</li>
+<li><strong>nameformat</strong> (<em>str containing two '%s' elements</em>) &#8211; Format to use when naming trading rules; nameformat % (argname, argvalue) will be used</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">dict of Tradingrule objects</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rule</span><span class="o">=</span><span class="n">TradingRule</span><span class="p">((</span><span class="s">&quot;systems.provided.example.rules.ewmac_forecast_with_defaults&quot;</span><span class="p">,</span> <span class="p">[],</span> <span class="p">{}))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">variations</span><span class="o">=</span><span class="n">create_variations_oneparameter</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">100</span><span class="p">],</span> <span class="s">&quot;Lfast&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">variations</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+<span class="go">dict_keys([&#39;Lfast_100&#39;, &#39;Lfast_4&#39;, &#39;Lfast_10&#39;])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="systems.forecasting.process_trading_rules">
+<code class="descclassname">systems.forecasting.</code><code class="descname">process_trading_rules</code><span class="sig-paren">(</span><em>trading_rules</em><span class="sig-paren">)</span><a class="headerlink" href="#systems.forecasting.process_trading_rules" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>There are a number of ways to specify a set of trading rules. This function processes them all,</dt>
+<dd>and returns a dict of TradingRule objects.</dd>
+<dt>data types handled:  </dt>
+<dd>dict - parse each element of the dict and use the names [unless has one or more of keynames: function, data, args]
+list - parse each element of the list and give them arbitrary names
+anything else is assumed to be something we can pass to TradingRule (string, function, tuple, (dict with keynames function, data, args), or TradingRule object)</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>trading_rules</strong> &#8211; Set of trading rules</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dict of Tradingrule objects</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </div>
 <div class="section" id="module-systems.rawdata">
 <span id="systems-rawdata-module"></span><h2>systems.rawdata module<a class="headerlink" href="#module-systems.rawdata" title="Permalink to this headline">¶</a></h2>
@@ -316,7 +455,7 @@ The advantages of using RawData are:</p>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
 <li><a class="reference internal" href="#systems-basesystem-module">systems.basesystem module</a></li>
 <li><a class="reference internal" href="#module-systems.defaults">systems.defaults module</a></li>
-<li><a class="reference internal" href="#systems-forecasting-module">systems.forecasting module</a></li>
+<li><a class="reference internal" href="#module-systems.forecasting">systems.forecasting module</a></li>
 <li><a class="reference internal" href="#module-systems.rawdata">systems.rawdata module</a></li>
 <li><a class="reference internal" href="#systems-setup-module">systems.setup module</a></li>
 <li><a class="reference internal" href="#module-systems.subsystem">systems.subsystem module</a></li>
