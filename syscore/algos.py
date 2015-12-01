@@ -12,8 +12,8 @@ def robust_vol_calc(x, days=35, min_periods=10, vol_abs_min=0.0000000001, vol_fl
                     floor_days=500):
     """
     Robust exponential volatility calculation, assuming daily series of prices
-    We apply an absolute minimum level of vol (absmin)
-     and a volfloor based on lowest vol over recent history
+    We apply an absolute minimum level of vol (absmin);
+    and a volfloor based on lowest vol over recent history
     
     :param days: Number of days in lookback (*default* 35)
     :type days: int
