@@ -4,6 +4,8 @@ Here is a whistlestop tour of what pysystemtrade can currently do.
 
 ## A simple trading rule
 
+(code is [here](/examples/introduction/asimpletradingrule.py) )
+
 As systematic traders we believe that the future will be at least a bit like the past. So first of all we need some past data. In principle past data can come from many places, but to begin with we'll get it from some pre-baked .csv files: 
 
 ```python
