@@ -1,0 +1,86 @@
+#YAML
+parameters:
+  volatility_calculation:
+    func: "syscore.algos.robust_vol_calc"
+    days: 35
+  percentage_vol_target: 20.0
+  notional_trading_capital: 250000
+  base_currency: "USD"
+trading_rules:
+  ewmac2_8:
+     function: systems.futures.rules.ewmac
+     data:
+         - "rawdata.daily_prices"
+         - "rawdata.daily_returns_volatility"
+     other_args: 
+         Lfast: 2
+         Lslow: 8
+     forecast_scalar: 10.6
+  ewmac4_16:
+     function: systems.futures.rules.ewmac
+     data:
+         - "rawdata.daily_prices"
+         - "rawdata.daily_returns_volatility"
+     other_args: 
+         Lfast: 4
+         Lslow: 16
+     forecast_scalar: 7.5
+  ewmac8_32:
+     function: systems.futures.rules.ewmac
+     data:
+         - "rawdata.daily_prices"
+         - "rawdata.daily_returns_volatility"
+     other_args: 
+         Lfast: 8
+         Lslow: 32
+     forecast_scalar: 5.3
+  ewmac16_64:
+     function: systems.futures.rules.ewmac
+     data:
+         - "rawdata.daily_prices"
+         - "rawdata.daily_returns_volatility"
+     other_args: 
+         Lfast: 16
+         Lslow: 64
+     forecast_scalar: 3.75
+  ewmac32_128:
+     function: systems.futures.rules.ewmac
+     data:
+         - "rawdata.daily_prices"
+         - "rawdata.daily_returns_volatility"
+     other_args: 
+         Lfast: 32
+         Lslow: 128
+     forecast_scalar: 2.65
+  ewmac64_256:
+     function: systems.futures.rules.ewmac
+     data:
+         - "rawdata.daily_prices"
+         - "rawdata.daily_returns_volatility"
+     other_args: 
+         Lfast: 64
+         Lslow: 256
+     forecast_scalar: 1.87
+  carry:
+     function: systems.futures.rules.carry
+     data:
+         - "rawdata.daily_annualised_roll"
+         - "rawdata.daily_returns_volatility"
+     other_args:
+         smooth_days: 90
+     forecast_scalar: 30
+forecast_weights:
+     ewmac16_64: 0.21
+     ewmac32_128: 0.08
+     ewmac64_256: 0.21
+     carry: 0.50
+forecast_div_multiplier: 1.31
+instrument_weights:
+    EDOLLAR: 0.117
+    US10: 0.117
+    EUROSTOX: 0.20
+    V2X: 0.098
+    MXP: 0.233
+    CORN: 0.233
+instrument_div_multiplier: 1.89
+

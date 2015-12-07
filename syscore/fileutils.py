@@ -17,14 +17,6 @@ def get_pathname_for_package(package_name, paths_or_files=[]):
         
     :returns: full pathname of package
     
-    >>> get_pathname_for_package("syscore", ["fileutils.py"])
-    '/home/rob/workspace3/newengine/syscore/fileutils.py'
-
-    >>> get_pathname_for_package("syscore")
-    '/home/rob/workspace3/newengine/syscore'
-    
-    >>> get_pathname_for_package("syscore", ["tests","pricetestdata.csv"])
-    '/home/rob/workspace3/newengine/syscore/tests/pricetestdata.csv'
     """
     
     d = os.path.dirname(sys.modules[package_name].__file__)

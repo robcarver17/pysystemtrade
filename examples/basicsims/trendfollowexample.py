@@ -6,7 +6,7 @@ Work up a minimum example of a trend following system
 
 ## Get some data
 
-from sysdata.legacy import csvFuturesData
+from sysdata.csvdata import csvFuturesData
 from syscore.algos import robust_vol_calc
 from systems.defaultfutures import full_futures_system
 from matplotlib.pyplot import show

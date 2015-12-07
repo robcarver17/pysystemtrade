@@ -1,53 +1,31 @@
-"""
-construct the forecasting subsystem
-
-Ways we can do this:
-
-a) We do this by passing a list of trading rules
-
-forecasting([trading_rule1, trading_rule2, ..])
-
-Note that trading rules can be created using the TradingRule class, or you can just pass in the
-  name of a function, or a function. 
-
-We can also use a generate_variations method to create a list of multiple rules
-
-
-b) or we can create from a system config
-
-
-.... output from this will be forecast for each instrument, trading rule variation ...
-
-need to have:
-
-trading rules (eithier str pointers, or actual functions)
-data arg(s) to be passed to trading rules (as str to use with getattr eg [system].data.getthing[(instrument)]
-[default for this will be price only]
-trading rules also need to have a 'simple' form, for quick and dirty use
-probably nicest to have a wrapper function that wraps simple trading rules; in interactive world you'd pass the config etc into this
-
-other config for trading rules, including forecast scalar [with defaults]
-
-So config dict=(data=dict("","","") or data=(dict( actual data)), other_args=dict(a=1, b=2, ...),
-       )
-
-how to pass the system.config into the trading rules... 
-... we parse the list of trading rules. if they contain a config dict we use that. otherwise we ... 
-       use the relevant part of forecast_config. That allows people to override rules if they feel like it.
-
-Note that system.config.forecast will be used if forecast_config not passed
-
-We don't do scaling and capping here, but in the combined forecast module
-(since we might want to estimate scaling factors live)
-
-
-"""
 from copy import copy
 
 from systems.subsystem import SubSystem
 from syscore.objects import resolve_function, resolve_data_method, hasallattr, calc_or_cache_nested
 
 class Rules(SubSystem):
+    """
+    Construct the forecasting subsystem
+    
+    Ways we can do this:
+    
+    a) We do this by passing a list of trading rules
+    
+    forecasting([trading_rule1, trading_rule2, ..])
+    
+    Note that trading rules can be created using the TradingRule class, or you can just pass in the
+      name of a function, or a function. 
+    
+    We can also use a generate_variations method to create a list of multiple rules
+    
+    b) or we can create from a system config
+    
+    
+    KEY INPUT: Depends on trading rule(s) data argument    
+    KEY OUTPUT: system.rules.get_raw_forecast(instrument_code, rule_variation_name)
+    
+    Name: rules
+    """
     
     def __init__(self, trading_rules=None):
         """
@@ -119,6 +97,12 @@ class Rules(SubSystem):
             if not hasattr(self, "parent"):
                 raise Exception("A Rules subsystem needs to be part of a System to identify trading rules, unless rules are passed when object created")
             
+            if not hasattr(self.parent, "config"):
+                raise Exception("A system needs to include a config with trading_rules, unless rules are passed when object created")
+            
+            if not hasattr(self.parent.config, "trading_rules"):
+                raise Exception("A system config needs to include trading_rules, unless rules are passed when object created")
+            
             ## self.parent.config.tradingrules will already be in dictionary form
             forecasting_config=self.parent.config.trading_rules
             new_rules=process_trading_rules(forecasting_config)
@@ -133,19 +117,20 @@ class Rules(SubSystem):
 
     def get_raw_forecast(self, instrument_code, rule_variation_name):
         """
-        This method- and only this method- is required for other parts of the system to work
-        
         Does what it says on the tin - pulls the forecast for the trading rule
         
-        This forecast may well need scaling and capping later
+        This forecast will need scaling and capping later
+        
+        KEY OUTPUT
         
         """
         
-        def _get_forecast(system,  instrument_code, rule_variation_name, rules_subsystem ):
+        def _get_forecast(system,  instrument_code, rule_variation_name, rules_subsystem):
             ## This function gets called if we haven't cached the forecast
             trading_rule=rules_subsystem.trading_rules()[rule_variation_name]
             
-            result=trading_rule.call(rules_subsystem.parent, instrument_code)
+            result=trading_rule.call(system, instrument_code)
+            result.columns=[rule_variation_name]
             
             return result
         
@@ -334,8 +319,10 @@ def create_variations_oneparameter(baseRule, list_of_args, argname, nameformat="
     >>> 
     >>> rule=TradingRule(("systems.provided.example.rules.ewmac_forecast_with_defaults", [], {}))
     >>> variations=create_variations_oneparameter(rule, [4,10,100], "Lfast")
-    >>> variations.keys()
-    dict_keys(['Lfast_100', 'Lfast_4', 'Lfast_10'])
+    >>> ans=list(variations.keys())
+    >>> ans.sort()
+    >>> ans
+    ['Lfast_10', 'Lfast_100', 'Lfast_4']
     """
     list_of_args_dict=[]
     for arg_value in list_of_args:
@@ -370,8 +357,10 @@ def create_variations(baseRule, list_of_args_dict, key_argname=None,   nameforma
     
     >>> rule=TradingRule(("systems.provided.example.rules.ewmac_forecast_with_defaults", [], {}))
     >>> variations=create_variations(rule, [dict(Lfast=2, Lslow=8), dict(Lfast=4, Lslow=16)], "Lfast", nameformat="ewmac_%s_%s")
-    >>> variations.keys()
-    dict_keys(['ewmac_Lfast_2', 'ewmac_Lfast_4'])
+    >>> ans=list(variations.keys())
+    >>> ans.sort()
+    >>> ans
+    ['ewmac_Lfast_2', 'ewmac_Lfast_4']
     """
     
     if key_argname is None:

@@ -2,7 +2,7 @@
 Simple trading rules used in examples
 '''
 import pandas as pd
-from syscore.algos import robust_vol_calc, divide_df
+from syscore.algos import robust_vol_calc, divide_df_single_column
 
 def ewmac_forecast_with_defaults(price, Lfast=16, Lslow=32):
     """
@@ -35,7 +35,7 @@ def ewmac_forecast_with_defaults(price, Lfast=16, Lslow=32):
     
     vol=robust_vol_calc(price.diff())    
     
-    return divide_df(raw_ewmac,vol)
+    return divide_df_single_column(raw_ewmac,vol)
 
 def ewmac_forecast_with_defaults_no_vol(price, vol, Lfast=16, Lslow=32):
     """
@@ -66,5 +66,5 @@ def ewmac_forecast_with_defaults_no_vol(price, vol, Lfast=16, Lslow=32):
     slow_ewma=pd.ewma(price, span=Lslow)
     raw_ewmac=fast_ewma - slow_ewma
     
-    return divide_df(raw_ewmac,vol)
+    return divide_df_single_column(raw_ewmac,vol)
 

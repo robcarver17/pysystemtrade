@@ -33,7 +33,7 @@ class System(object):
     
         >>> from subsystem import SubSystem
         >>> subsystem=SubSystem()
-        >>> from sysdata.legacy import csvFuturesData
+        >>> from sysdata.csvdata import csvFuturesData
         >>> data=csvFuturesData()
         >>> System([subsystem], data)
         System with subsystems: default
@@ -68,13 +68,20 @@ class System(object):
             
             ## Subsystems have names, which are also how we find them in the system attributes
             sub_name=subsystem.name
+            
+            if sub_name in subsystem_names:
+                raise Exception("You have duplicate subsystems with the name %s. Remove one of them, or change a name." % sub_name) 
+
             setattr(self, sub_name, subsystem)
+
             subsystem_names.append(sub_name)
             
-            delete_on_recalc=delete_on_recalc+subsystem._delete_on_recalc
-            dont_recalc=dont_recalc+subsystem._dont_recalc
+            subsystem_delete_on_recalc=getattr(subsystem, "_delete_on_recalc",[])
+            subsystem_dont_recalc=getattr(subsystem, "_dont_recalc",[])
             
-
+            delete_on_recalc=delete_on_recalc+subsystem_delete_on_recalc
+            dont_recalc=dont_recalc+subsystem_dont_recalc
+            
         setattr(self, "_subsystem_names", subsystem_names)
         
         """
@@ -130,29 +137,23 @@ class System(object):
         
         (this is roughly equivalent to creating the systems object from scratch)
         
-        FIXME: REMOVE THIS NOTE
-        For cross sectional there will need to be a completeness check to make sure all nodes required
-              are included before returning a cached data]
-              
-        >>> from rawdata import SubSystemRawData
-        >>> from sysdata.legacy import csvFuturesData
-        >>> from syscore.fileutils import get_pathname_for_package
+        >>> from systems.provided.example.testdata import get_test_object
+        >>> from systems.basesystem import System
         >>>
-        >>> datapath=get_pathname_for_package("sysdata", ["tests"])
-        >>> data=csvFuturesData(datapath=datapath)
-        >>> subsystem=SubSystemRawData()
-        >>> system=System([subsystem], data)
+        >>> (rawdata, data, config)=get_test_object()
+
+        >>> system=System([rawdata], data)
         >>> 
         >>> # get some price data
         >>> system.rawdata.get_instrument_price("EDOLLAR").tail(2)
-                        ADJ
+                      price
         2015-04-21  97.9050
         2015-04-22  97.8325
         >>>
         >>> # this is stored in _price_dict 
         >>>
         >>> system._price_dict["EDOLLAR"].tail(2)
-                        ADJ
+                      price
         2015-04-21  97.9050
         2015-04-22  97.8325
         >>>
@@ -168,7 +169,7 @@ class System(object):
         >>> # if we ask for it again, it will be there
         >>>
         >>> system.rawdata.get_instrument_price("EDOLLAR").tail(2)
-                        ADJ
+                      price
         2015-04-21  97.9050
         2015-04-22  97.8325
 
@@ -176,13 +177,13 @@ class System(object):
         
         
         if delete_all:
-            nodes_to_delete=self._delete_on_recalc+self._dont_recalc
+            nodes_to_delete=getattr(self,"_delete_on_recalc",[])+getattr(self,"_dont_recalc", [])
         else:
-            nodes_to_delete=self._delete_on_recalc
+            nodes_to_delete=getattr(self, "_delete_on_recalc", [])
 
         
         for attr_to_delete in nodes_to_delete:
-            dicttoclean=getattr(self, attr_to_delete)
+            dicttoclean=getattr(self, attr_to_delete, dict())
             if instrument_code in dicttoclean:
                 ## remove data for this instrument
                 throwaway=dicttoclean.pop(instrument_code)

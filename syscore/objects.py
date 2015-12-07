@@ -5,6 +5,11 @@ Do fun things with objects and classes
 import importlib
 from copy import deepcopy
 
+"""
+This is used for items which affect an entire system, not just one instrument
+"""
+ALL_KEYNAME="all"
+
 def resolve_function(func_or_func_name):
     """
     if func_or_func_name is a callable function, then return the function
@@ -36,7 +41,7 @@ def resolve_function(func_or_func_name):
         ## it's another module, have to get it
         mod_name, func_name = func_or_func_name.rsplit('.',1)
         mod = importlib.import_module(mod_name)
-        func = getattr(mod, func_name)
+        func = getattr(mod, func_name, None)
 
     else:
         raise Exception("Need full module file name string: %s isn't good enough" % func_or_func_name)
@@ -85,6 +90,9 @@ def resolve_data_method(some_object, data_string):
     return _get_attr_within_list(some_object, list_to_parse)
 
 
+
+
+
 def calc_or_cache(some_object, dictname, keyname, func, *args, **kwargs):
     """
     Assumes that some_object has an attribute dictname, and that is a dict
@@ -112,7 +120,10 @@ def calc_or_cache(some_object, dictname, keyname, func, *args, **kwargs):
     
     
     """
-    somedict=getattr(some_object, dictname)
+    somedict=getattr(some_object, dictname, None)
+    if somedict is None:
+        setattr(some_object, dictname, dict())
+        somedict=dict()
     
     if keyname not in somedict.keys():
         
@@ -120,6 +131,8 @@ def calc_or_cache(some_object, dictname, keyname, func, *args, **kwargs):
         setattr(some_object, dictname, somedict)
     
     return somedict[keyname]
+
+
 
 
 def calc_or_cache_nested(some_object, dictname, keyname1, keyname2, func, *args, **kwargs):
@@ -153,7 +166,11 @@ def calc_or_cache_nested(some_object, dictname, keyname1, keyname2, func, *args,
     
     
     """
-    somedict=getattr(some_object, dictname)
+
+    somedict=getattr(some_object, dictname, None)
+    if somedict is None:
+        setattr(some_object, dictname, dict())
+        somedict=dict()
     
     found=False
     if keyname1 in somedict.keys():
@@ -175,9 +192,9 @@ def update_recalc(subsystem_object, additional_delete_on_recalc=[], additional_d
     """
     Update the recalculation dictionaries 
     
-    FIXME - is this actually used??
+    Used when a subsystem inherits from another
     
-    (see system.basesystem and subsystem)
+    (see system.subsystem and systems.futures.rawdata for an example)
 
     :param subsystem_object: The subsystem object with attributes to test
     :type subsystem_object: object
@@ -192,8 +209,8 @@ def update_recalc(subsystem_object, additional_delete_on_recalc=[], additional_d
 
     """
     
-    original_delete_on_recalc=subsystem_object._delete_on_recalc
-    original_dont_delete=subsystem_object._dont_recalc
+    original_delete_on_recalc=getattr(subsystem_object,"_delete_on_recalc", [])
+    original_dont_delete=getattr(subsystem_object,"_dont_recalc", [])
     
     child_delete_on_recalc=list(set(original_delete_on_recalc+additional_delete_on_recalc))
     child_dont_delete=list(set(original_dont_delete+additional_dont_delete))

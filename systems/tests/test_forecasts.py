@@ -9,7 +9,7 @@ from systems.forecasting import TradingRule, Rules, process_trading_rules,  crea
 from systems.basesystem import System
 from systems.rawdata import SubSystemRawData
 from sysdata.configdata import Config
-from sysdata.legacy import csvFuturesData
+from sysdata.csvdata import csvFuturesData
 from syscore.fileutils import get_pathname_for_package
 
 

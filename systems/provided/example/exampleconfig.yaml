@@ -5,6 +5,10 @@ parameters:
     func: "syscore.algos.robust_vol_calc"
     days: 35
   smooth_rolldown_for_carry: 125
+  forecast_cap: 21.0
+  percentage_vol_target: 16.0
+  notional_trading_capital: 100000
+  base_currency: "GBP"
 trading_rules:
   ewmac8:
      function: systems.provided.example.rules.ewmac_forecast_with_defaults_no_vol
@@ -14,4 +18,21 @@ trading_rules:
      args: 
          Lfast: 8
          Lslow: 32
-
+     forecast_scalar: 5.3
+  ewmac16:
+     function: systems.provided.example.rules.ewmac_forecast_with_defaults_no_vol
+     data:
+         - "rawdata.daily_prices"
+         - "rawdata.daily_returns_volatility"
+     args: 
+         Lfast: 16
+         Lslow: 64
+     forecast_scalar: 7.5
+forecast_weights:
+     ewmac8: 0.50
+     ewmac16: 0.50
+forecast_div_multiplier: 1.1
+instrument_weights:
+     EDOLLAR: 0.50
+     US10: 0.50
+instrument_div_multiplier: 1.2

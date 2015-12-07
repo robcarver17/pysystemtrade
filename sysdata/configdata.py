@@ -17,31 +17,49 @@ class Config(object):
         """
         Config objects control the behaviour of systems 
         
-        :param config_object: Eithier a string (which points to a YAML filename) or a dict (which may nest many things)
+        :param config_object: Eithier:
+                        a string (which points to a YAML filename) 
+                        or a dict (which may nest many things)
+                        or a list of strings or dicts (build config from multiple elements, latter elements will overwrite earlier oness)
+                        
         :type config_object: str or dict
         
         :returns: new Config object
     
         >>> Config(dict(parameters=dict(p1=3, p2=4.6), another_thing=[]))
-        Config with elements: parameters,another_thing
+        Config with elements: another_thing, parameters
 
         >>> Config("tests/exampleconfig.yaml")
-        Config with elements: trading_rules,parameters
+        Config with elements: parameters, trading_rules
+        
+        >>> Config(["tests/exampleconfig.yaml", dict(parameters=dict(p1=3, p2=4.6), another_thing=[])])
+        Config with elements: another_thing, parameters, trading_rules
+
         """
-        if type(config_object) is dict:
+
+        if type(config_object) is list:
+            ## multiple configs
+            for config_item in config_object:
+                self._create_config_from_item(config_item)
+        else:
+            self._create_config_from_item(config_object)
+
+    def _create_config_from_item(self, config_item):
+        if type(config_item) is dict:
             ## its a dict
-            self._create_config_from_dict(config_object)
+            self._create_config_from_dict(config_item)
             
-        elif type(config_object) is str:
+        elif type(config_item) is str:
             ## must be a file YAML'able, from which we load the 
-            with open(config_object) as file_to_parse:
+            with open(config_item) as file_to_parse:
                 dict_to_parse=yaml.load(file_to_parse)
                 
             self._create_config_from_dict(dict_to_parse)
                 
                 
         else:
-            raise Exception("Can only create a config with a nested dict or the string of a 'yamable' filename")
+            raise Exception("Can only create a config with a nested dict or the string of a 'yamable' filename, or a list comprising these things")
+        
 
     def _create_config_from_dict(self, config_object):
         """
@@ -53,13 +71,17 @@ class Config(object):
         Then this object will become self.a=2, self.b=2
         
         """
-        attr_names=config_object.keys()
+        attr_names=list(config_object.keys())
         [setattr(self, keyname, config_object[keyname]) for keyname in config_object]
+        existing_elements=getattr(self, "_elements", [])
+        new_elements=list(set(existing_elements+attr_names))
         
-        setattr(self, "_elements", attr_names)
+        setattr(self, "_elements", new_elements)
         
     def __repr__(self):
-        element_names=",".join(self._elements)
+        element_names=getattr(self, "_elements", [])
+        element_names.sort()
+        element_names=", ".join(element_names)
         return "Config with elements: "+element_names
         
          
