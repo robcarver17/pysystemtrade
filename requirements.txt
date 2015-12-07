@@ -4,5 +4,6 @@ Requirements:
 python >= 3.4.3
 pandas >= 0.17.0
 matlotplib > 1.4.3
-yaml >= 3.11
+pyyaml >= 3.11
 numpy >= 1.10.1
+scipy >= 0.16.1
