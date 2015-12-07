@@ -17,6 +17,8 @@ from systems.basesystem import System
 from systems.futures.rawdata import FuturesRawData
 from systems.forecasting import Rules
 from systems.forecast_scale_cap import ForecastScaleCapFixed
+from systems.positionsizing import PositionSizing
+from systems.portfolio import PortfoliosFixed
 
 def full_futures_system( data=None, config=None, trading_rules=None):
     """

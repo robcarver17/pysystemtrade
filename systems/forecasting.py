@@ -1,9 +1,9 @@
 from copy import copy
 
-from systems.subsystem import SubSystem
+from systems.stage import SystemStage
 from syscore.objects import resolve_function, resolve_data_method, hasallattr, calc_or_cache_nested
 
-class Rules(SubSystem):
+class Rules(SystemStage):
     """
     Construct the forecasting subsystem
     
@@ -29,7 +29,7 @@ class Rules(SubSystem):
     
     def __init__(self, trading_rules=None):
         """
-        Create a SubSystem for forecasting
+        Create a SystemStage for forecasting
         
         This isn't an optional subsystem
         

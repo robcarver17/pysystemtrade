@@ -1,13 +1,13 @@
 import pandas as pd
 import numpy as np
 
-from systems.subsystem import SubSystem
+from systems.subsystem import SystemStage
 from systems.defaults import system_defaults
 from syscore.objects import calc_or_cache, ALL_KEYNAME
 from syscore.pdutils import multiply_df_single_column, divide_df_single_column, fix_weights_vs_pdm
 from syscore.dateutils import ROOT_BDAYS_INYEAR
 
-class PortfoliosFixed(SubSystem):
+class PortfoliosFixed(SystemStage):
     """
     Subsystem for portfolios 
     
@@ -28,7 +28,7 @@ class PortfoliosFixed(SubSystem):
     
     def __init__(self, instrument_weights=None, instrument_div_multiplier=None):
         """
-        Create a SubSystem for creating portfolios
+        Create a SystemStage for creating portfolios
         
         If parameters are not passed will look in system.config
           

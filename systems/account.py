@@ -2,15 +2,15 @@ import pandas as pd
 import numpy as np
 
 from syscore.accounting import accountCurve, pandl
-from systems.subsystem import SubSystem
+from systems.stage import SystemStage
 from systems.defaults import system_defaults
 from syscore.objects import calc_or_cache, ALL_KEYNAME
 from syscore.pdutils import multiply_df_single_column, divide_df_single_column, fix_weights_vs_pdm
 from syscore.dateutils import ROOT_BDAYS_INYEAR
 
-class account(SubSystem):
+class account(SystemStage):
     """
-    Subsystem for accounting
+    SystemStage for accounting
     
     KEY INPUT: 
                 found in self.get_forecast(instrument_code, rule_variation)
@@ -39,7 +39,7 @@ class account(SubSystem):
     
     def __init__(self):
         """
-        Create a SubSystem for accounting
+        Create a SystemStage for accounting
         
         
                 
@@ -54,7 +54,7 @@ class account(SubSystem):
         setattr(self, "name", "accounts")
 
         
-    def get_subsys_position(self, instrument_code):
+    def get_subsystem_position(self, instrument_code):
         """
         Get the position assuming all capital in one position, from a previous module
         

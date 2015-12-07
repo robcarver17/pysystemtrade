@@ -1,20 +1,20 @@
  
 
-class SubSystem(object):
+class SystemStage(object):
     """
-    Default subsystem:  we inherit from this, rather than use 'in the raw'
+    Default stage object:  we inherit from this, rather than use 'in the raw'
     
-    Here is the standard header to use for subsystems:
+    Here is the standard header to use for stages:
     
-    Create a SubSystem for doing something
+    Create a SystemStage for doing something
     
     
     KEY INPUT: system.....method(args)
                 found in self.method(args) 
                 
-    KEY OUTPUT: system.subsystem_name.method(args)
+    KEY OUTPUT: system.stage_name.method(args)
 
-    Name: subsystem_name
+    Name: stage_name
     """
     
     def __init__(self):
@@ -33,6 +33,6 @@ class SubSystem(object):
     def __repr__(self):
         attributes=getattr(self, "_delete_on_recalc", [])+getattr(self, "_dont_recalc", [])
         attributes=", ".join(attributes)
-        return "SubSystem '%s' containing %s" % (self.name, attributes)
+        return "SystemStage '%s' containing %s" % (self.name, attributes)
     
     

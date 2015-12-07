@@ -1,14 +1,14 @@
-from systems.subsystem import SubSystem
+from systems.subsystem import SystemStage
 from systems.defaults import system_defaults
 from copy import copy
 
 from syscore.objects import calc_or_cache, resolve_function
 from syscore.pdutils import divide_df_single_column
 
-class RawData(SubSystem):
+class RawData(SystemStage):
 
     """
-        A SubSystem that does some fairly common calculations before we do forecasting
+        A SystemStage that does some fairly common calculations before we do forecasting
             This is optional; forecasts can go straight to system.data
             The advantages of using RawData are: 
                    - preliminary calculations that are reused can be cached, to save time (eg volatility)

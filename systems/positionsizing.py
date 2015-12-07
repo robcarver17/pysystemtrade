@@ -1,13 +1,13 @@
 import pandas as pd
 import numpy as np
 
-from systems.subsystem import SubSystem
+from systems.subsystem import SystemStage
 from systems.defaults import system_defaults
 from syscore.objects import calc_or_cache, ALL_KEYNAME
 from syscore.pdutils import multiply_df_single_column, divide_df_single_column
 from syscore.dateutils import ROOT_BDAYS_INYEAR
 
-class PositionSizing(SubSystem):
+class PositionSizing(SystemStage):
     """
     Subsystem for position sizing (take combined forecast; turn into subsystem positions)
     
@@ -33,7 +33,7 @@ class PositionSizing(SubSystem):
     
     def __init__(self, percentage_vol_target=None, notional_trading_capital=None, base_currency=None):
         """
-        Create a SubSystem for combining forecasts
+        Create a SystemStage for combining forecasts
         
         If parameters are not passed will look in system.config, and then defaults.py
           

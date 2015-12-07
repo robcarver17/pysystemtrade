@@ -8,7 +8,7 @@ class System(object):
     
     Systems are:
     
-        made up of subsystems
+        made up of stages
     
        take a data and a config object
        

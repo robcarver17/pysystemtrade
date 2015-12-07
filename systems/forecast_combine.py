@@ -1,13 +1,13 @@
 import pandas as pd
 import numpy as np
 
-from systems.subsystem import SubSystem
+from systems.subsystem import SystemStage
 from syscore.objects import calc_or_cache
 from syscore.pdutils import multiply_df, fix_weights_vs_pdm
 
 
 
-class ForecastCombineFixed(SubSystem):
+class ForecastCombineFixed(SystemStage):
     """
     Subsystem for combining forecasts (already capped and scaled)
     
@@ -22,7 +22,7 @@ class ForecastCombineFixed(SubSystem):
     
     def __init__(self, forecast_weights=dict(), forecast_div_multiplier=dict()):
         """
-        Create a SubSystem for combining forecasts
+        Create a SystemStage for combining forecasts
         
         If forecast_weights, and forecast_div_multiplier are not passed will get them from system.config
         

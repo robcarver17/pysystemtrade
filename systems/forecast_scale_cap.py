@@ -1,13 +1,13 @@
 from copy import copy
 
-from systems.subsystem import SubSystem
+from systems.subsystem import SystemStage
 from systems.defaults import system_defaults
 from syscore.objects import resolve_function, resolve_data_method, hasallattr, calc_or_cache_nested
 from syscore.pdutils import apply_cap
 
-class ForecastScaleCapFixed(SubSystem):
+class ForecastScaleCapFixed(SystemStage):
     """
-    Create a SubSystem for scaling and capping forecasting
+    Create a SystemStage for scaling and capping forecasting
     
     This simple variation uses Fixed capping and scaling
     
@@ -22,7 +22,7 @@ class ForecastScaleCapFixed(SubSystem):
     
     def __init__(self, forecast_scalars=dict(), forecast_cap=None):
         """
-        Create a SubSystem for scaling and capping forecasting
+        Create a SystemStage for scaling and capping forecasting
         
         Using Fixed capping and scaling
         

@@ -188,16 +188,16 @@ def calc_or_cache_nested(some_object, dictname, keyname1, keyname2, func, *args,
     return somedict[keyname1][keyname2]
 
 
-def update_recalc(subsystem_object, additional_delete_on_recalc=[], additional_dont_delete=[]):
+def update_recalc(stage_object, additional_delete_on_recalc=[], additional_dont_delete=[]):
     """
     Update the recalculation dictionaries 
     
-    Used when a subsystem inherits from another
+    Used when a stage inherits from another
     
-    (see system.subsystem and systems.futures.rawdata for an example)
+    (see system.stage and systems.futures.rawdata for an example)
 
-    :param subsystem_object: The subsystem object with attributes to test
-    :type subsystem_object: object
+    :param stage_object: The stage object with attributes to test
+    :type stage_object: object
 
     :param additional_delete_on_recalc: Things to add to this attribute
     :type additional_delete_on_recalc: list of str
@@ -205,18 +205,18 @@ def update_recalc(subsystem_object, additional_delete_on_recalc=[], additional_d
     :param additional_dont_delete: Things to add to this attribute
     :type additional_dont_delete: list of str
     
-    :returns: None (changes subsystem_object)
+    :returns: None (changes stage_object)
 
     """
     
-    original_delete_on_recalc=getattr(subsystem_object,"_delete_on_recalc", [])
-    original_dont_delete=getattr(subsystem_object,"_dont_recalc", [])
+    original_delete_on_recalc=getattr(stage_object,"_delete_on_recalc", [])
+    original_dont_delete=getattr(stage_object,"_dont_recalc", [])
     
     child_delete_on_recalc=list(set(original_delete_on_recalc+additional_delete_on_recalc))
     child_dont_delete=list(set(original_dont_delete+additional_dont_delete))
     
-    setattr(subsystem_object, "_delete_on_recalc", child_delete_on_recalc)
-    setattr(subsystem_object, "_dont_delete", child_dont_delete)
+    setattr(stage_object, "_delete_on_recalc", child_delete_on_recalc)
+    setattr(stage_object, "_dont_delete", child_dont_delete)
 
 
 def hasallattr(some_object, attrlist=[]):
