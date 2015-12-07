@@ -47,11 +47,12 @@ A setup.py file is provided, however as the installation is trivial this shouldn
 
 ## Use and documentation
 
-Introduction (start here): (FIX ME LINK)
+[Introduction (start here)](docs/introduction.md)
 
-User guide: (FIX ME LINK)
+[User guide](docs/userguide.md)
 
-Frequently asked questions: (FIX ME LINK)
+[Frequently asked questions](docs/FAQ.md)
+
 
 ### A note on support
 
