@@ -2,7 +2,7 @@
 
 Here is a whistlestop tour of what pysystemtrade can currently do. 
 
-# A simple trading rule
+## A simple trading rule
 
 As systematic traders we believe that the future will be at least a bit like the past. So first of all we need some past data. In principle past data can come from many places, but to begin with we'll get it from some pre-baked .csv files: 
 
@@ -131,20 +131,49 @@ Did we make any money?
 ```python
 from syscore.accounting import pandl
 account=pandl(price, forecast=ewmac)
-
-## Get the sharpe ratio (annualised, based on daily returns)
-account.sharpe()
+account.stats()
 ```
 
 ```
-
-account.curve().plot() ## plot the cumulative account curve
+[[('min', '-0.02341'),
+  ('max', '0.0363'),
+  ('median', '0'),
+  ('mean', '5.227e-05'),
+  ('std', '0.001847'),
+  ('skew', '0.8685'),
+  ('ann_daily_mean', '0.01338'),
+  ('ann_daily_std', '0.02955'),
+  ('sharpe', '0.4529'),
+  ('sortino', '0.4986'),
+  ('avg_drawdown', '-0.02341'),
+  ('time_in_drawdown', '0.9782'),
+  ('calmar', '0.155'),
+  ('avg_return_to_drawdown', '0.5717'),
+  ('avg_loss', '-0.001168'),
+  ('avg_gain', '0.001216'),
+  ('gaintolossratio', '1.041'),
+  ('profitfactor', '1.12'),
+  ('hitrate', '0.5183')],
+ ('You can also plot:', ['rolling_ann_std', 'drawdown', 'curve']),
+ ('You can also print:', ['weekly', 'monthly', 'annual'])]
 ```
 
 
 Looks like we did. **account**, by the way inherits from a pandas data frame. Here are some other things we can do with it:
 
+```python
+account.sharpe() ## get the Sharpe Ratio (annualised), and any other statistic from stats
+account.curve().plot() ## plot the cumulative account curve
+account.drawdown().plot() ## see the drawdowns
+account.weekly() ## weekly returns (also monthly, annual)
 ```
+
+
+## A simple trading rule
+
+This is all very well, but what we really want to do is build a trading **system** composed of several trading rules, and a few more instruments.
+
+
 
 
 
