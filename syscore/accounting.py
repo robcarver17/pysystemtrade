@@ -8,11 +8,18 @@ from copy import copy
 import pandas as pd
 from pandas.tseries.offsets import BDay
 import numpy as np
-import scipy
+from scipy.stats import skew
 
 from syscore.algos import robust_vol_calc
 from syscore.pdutils import multiply_df_single_column, divide_df_single_column, drawdown
 from syscore.dateutils import BUSINESS_DAYS_IN_YEAR, ROOT_BDAYS_INYEAR
+
+"""
+some defaults
+"""
+CAPITAL=10000000.0
+ANN_RISK_TARGET=0.16
+DAILY_CAPITAL=CAPITAL*ANN_RISK_TARGET/ROOT_BDAYS_INYEAR
 
 def pandl(price=None, trades=None, marktomarket=True, positions=None, delayfill=True, roundpositions=False, 
           price_change_volatility=None, forecast=None, fx=None, value_of_price_point=1.0, 
@@ -84,7 +91,7 @@ def pandl(price=None, trades=None, marktomarket=True, positions=None, delayfill=
         fx=pd.Series([1.0]*len(price.index), index=price.index).to_frame("fx")
     
     if trades is None:
-        get_trades_from_positions(positions, delayfill, roundpositions, price_change_volatility, forecast, fx, value_of_price_point)
+        trades=get_trades_from_positions(price, positions, delayfill, roundpositions, price_change_volatility, forecast, fx, value_of_price_point)
 
     if marktomarket:
         ### want to have both kinds of price
@@ -118,7 +125,14 @@ def pandl(price=None, trades=None, marktomarket=True, positions=None, delayfill=
     if return_all:
         return (cum_trades, trades, instr_ccy_returns, base_ccy_returns)
     else:
-        return accountCurve(base_ccy_returns)
+        if positions is None:
+            ## arbitrary, return in % terms
+            capital=CAPITAL
+        else:
+            ## return in money terms
+            capital=None
+            
+        return accountCurve(base_ccy_returns, capital=CAPITAL)
         
 def get_trades_from_positions(price, positions, delayfill, roundpositions, price_change_volatility, forecast, fx, value_of_price_point):
     """
@@ -162,7 +176,7 @@ def get_trades_from_positions(price, positions, delayfill, roundpositions, price
     """
     
     if positions is None:
-        get_positions_from_forecasts(price, price_change_volatility, forecast, fx, value_of_price_point)
+        positions=get_positions_from_forecasts(price, price_change_volatility, forecast, fx, value_of_price_point)
        
     if roundpositions:
         ## round to whole positions
@@ -172,6 +186,7 @@ def get_trades_from_positions(price, positions, delayfill, roundpositions, price
 
     ## deal with edge cases where we don't have a zero position initially, or leading nans
     first_row=pd.DataFrame([0.0], index=[round_positions.index[0]-BDay(1)])
+    first_row.columns=round_positions.columns
     round_positions=pd.concat([first_row, round_positions], axis=0)
     round_positions=round_positions.ffill()
 
@@ -231,7 +246,7 @@ def get_positions_from_forecasts(price, price_change_volatility, forecast, fx, v
         price_change_volatility=robust_vol_calc(price.diff(), **kwargs)
 
     """
-    Herein the proof why this position calculation is correct
+    Herein the proof why this position calculation is correct (see chapters 5-11 of 'systematic trading' book)
     
     Position = forecast x instrument weight x instrument_div_mult x vol_scalar / 10.0
              = forecast x instrument weight x instrument_div_mult x daily cash vol target / (10.0 x                             instr value volatility)
@@ -240,16 +255,18 @@ def get_positions_from_forecasts(price, price_change_volatility, forecast, fx, v
              = forecast x instrument weight x instrument_div_mult x daily cash vol target / (10.0 x underlying price x 0.01 x value of price move x 100 x price diff volatility/(underlying price)        x fx rate)
              = forecast x instrument weight x instrument_div_mult x daily cash vol target / (10.0 x                         x value of price move       x price change volatility                           x fx rate)
     
-    Making some arbitrary assumptions (one instrument, 100% of capital, daily target 1 million):
+    Making some arbitrary assumptions (one instrument, 100% of capital, daily target DAILY_CAPITAL):
     
-             = forecast x 1.0               x 1.0                 x 1,000,000            / (10.0 x                         x value of price move       x price diff volatility                           x fx rate)
-             = forecast x  100,000 / (value of price move x price change volatility x fx rate)
+             = forecast x 1.0               x 1.0                 x DAILY_CAPITAL            / (10.0 x                         x value of price move       x price diff volatility                           x fx rate)
+             = forecast x  multiplier / (value of price move x price change volatility x fx rate)
     
     """
+    
+    multiplier=DAILY_CAPITAL*1.0*1.0/10.0
     fx=fx.reindex(price_change_volatility.index, method="ffill")
     denominator=value_of_price_point * multiply_df_single_column(price_change_volatility,fx, ffill=(False, True))
     
-    position = divide_df_single_column(forecast * 100000, denominator, ffill=(True, True))
+    position = divide_df_single_column(forecast * multiplier, denominator, ffill=(True, True))
     position.columns=['position']
 
     return position
@@ -316,13 +333,13 @@ class accountCurve(pd.DataFrame):
 
     def ann_daily_mean(self):
         x=self.daily()
-        avg=x.mean()
+        avg=float(x.mean())
         
         return avg*BUSINESS_DAYS_IN_YEAR
     
     def ann_daily_std(self):
         x=self.daily()
-        daily_std=x.std()
+        daily_std=float(x.std())
         
         return daily_std*ROOT_BDAYS_INYEAR
     
@@ -346,13 +363,28 @@ class accountCurve(pd.DataFrame):
         
     def time_in_drawdown(self):
         dd=self.drawdown()
-        dd=[z for z in dd if not np.isnan(z)]
+        dd=[z[0] for z in dd.values if not np.isnan(z[0])]
         in_dd=float(len([z for z in dd if z<0]))
         return in_dd/float(len(dd))
 
+    def calmar(self):
+        return self.ann_daily_mean()/-self.worst_drawdown()
+
+    def avg_return_to_drawdown(self):
+        return self.ann_daily_mean()/-self.avg_drawdown()
+
+    def sortino(self):
+        daily_stddev=np.std(self.losses())    
+        daily_mean=self.mean()
+        
+        ann_stdev=daily_stddev*ROOT_BDAYS_INYEAR
+        ann_mean=daily_mean*BUSINESS_DAYS_IN_YEAR
+        
+        return ann_mean/ann_stdev
+    
     def vals(self):
         x=self.daily()
-        x=[z for z in x if not np.isnan(z)]
+        x=[z[0] for z in x.values if not np.isnan(z[0])]
         return x
 
     def min(self):
@@ -366,11 +398,15 @@ class accountCurve(pd.DataFrame):
         return np.median(self.vals())
     
     def skew(self):
-        return scipy.stats.skew(self.vals())
+        return skew(self.vals())
     
     def mean(self):
         x=self.daily()
         return np.nanmean(x)
+
+    def std(self):
+        x=self.daily()
+        return np.nanstd(x)
     
     def losses(self):
         x=self.vals()
@@ -402,7 +438,26 @@ class accountCurve(pd.DataFrame):
         x=self.daily()
         y=pd.rolling_std(x, window, min_periods=4, center=True)
         return y*ROOT_BDAYS_INYEAR
+    
 
+    def stats(self):
+        
+        stats_list=["min", "max", "median", "mean", "std", "skew",
+                    "ann_daily_mean", "ann_daily_std", "sharpe", "sortino",
+                    "avg_drawdown", "time_in_drawdown", 
+                    "calmar", "avg_return_to_drawdown",  
+                      "avg_loss", "avg_gain", "gaintolossratio", "profitfactor", "hitrate"]
+        
+        build_stats=[]
+        for stat_name in stats_list:
+            stat_method=getattr(self, stat_name)
+            ans=stat_method()
+            build_stats.append((stat_name, "{0:.4g}".format(ans)))
+
+        comment1=("You can also plot:", ["rolling_ann_std", "drawdown", "curve"])
+        comment2=("You can also print:", ["weekly", "monthly", "annual"])
+        
+        return [build_stats, comment1, comment2]
         
 if __name__ == '__main__':
     import doctest

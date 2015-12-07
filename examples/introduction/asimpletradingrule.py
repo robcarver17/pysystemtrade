@@ -7,12 +7,6 @@ Work up a minimum example of a trend following system
 ## Get some data
 
 from sysdata.csvdata import csvFuturesData
-from syscore.algos import robust_vol_calc
-from systems.defaultfutures import full_futures_system
-from matplotlib.pyplot import show
-from sysdata.configdata import configData
-
-import pandas as pd
 
 """"
 Let's get some data
@@ -24,7 +18,7 @@ We can get data from various places; however for now we're going to use prepacka
 
 data=csvFuturesData()
 
-print data
+print(data)
 
 """
 We get stuff out of data with methods
@@ -49,7 +43,7 @@ We have extra futures data here
 
 """
 
-print(data.get_instrument_rawcarrydata("US10"))
+print(data.get_instrument_raw_carry_data("US10"))
 
 """
 Technical note: csvFuturesData inherits from FuturesData which itself inherits from Data
@@ -67,6 +61,10 @@ Let's create a simple trading rule
 No capping or scaling
 
 """
+
+import pandas as pd
+from syscore.algos import robust_vol_calc
+from syscore.pdutils import divide_df_single_column
 
 def calc_ewmac_forecast(price, Lfast, Lslow=None):
     
@@ -91,7 +89,7 @@ def calc_ewmac_forecast(price, Lfast, Lslow=None):
     
     vol=robust_vol_calc(price.diff())    
     
-    return raw_ewmac/vol
+    return divide_df_single_column(raw_ewmac, vol)
 
 """
 Try it out
@@ -101,10 +99,20 @@ Try it out
 instrument_code='EDOLLAR'
 price=data.get_instrument_price(instrument_code)
 ewmac=calc_ewmac_forecast(price, 4, 16)
+ewmac.tail(5)
+
+from matplotlib.pyplot import show
+ewmac.plot()
+show()
 
 """
-[FIX ME at this point we'd illustrate how to use 'quick and dirty' p&l tools]
+Did we make money?
 """
+
+from syscore.accounting import pandl
+account=pandl(price, forecast=ewmac)
+print(account.stats())
+
 
 """
 Okay, I wonder how this would work for a number of instruments?
