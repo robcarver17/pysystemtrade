@@ -67,7 +67,7 @@ I'll try and incorporate any feedback into the code, but this is a part time ven
 
 ## Release notes
 
-See [DONE_TO_DO](DONE_TO_DO) for release notes, and future plans.
+See [DONE_TO_DO](DONE_TO_DO.md) for release notes, and future plans.
 
 ## Licensing and legal stuff
 
