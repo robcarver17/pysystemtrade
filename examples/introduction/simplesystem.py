@@ -67,8 +67,6 @@ from systems.forecast_scale_cap import ForecastScaleCapFixed
 
 fcs=ForecastScaleCapFixed(forecast_scalars=dict(ewmac8=5.3, ewmac32=2.65))
 my_system=System([fcs, my_rules], data)
-print(my_system.rules.get_raw_forecast("EDOLLAR", "ewmac32").tail(5))
-print(my_system.rules.get_raw_forecast("EDOLLAR", "ewmac8").tail(5))
 print(my_system.forecastScaleCap.get_capped_forecast("EDOLLAR", "ewmac32").tail(5))
 
 """
@@ -105,7 +103,15 @@ my_system=System([rawdata, fcs, my_rules, combiner, possizer, portfolio], data)
 
 print(my_system.portfolio.get_notional_position("EDOLLAR").tail(5))
 
+"""
+Have we made some dosh?
+"""
+
 from systems.account import Account
+my_account=Account()
+my_system=System([rawdata, fcs, my_rules, combiner, possizer, portfolio, my_account], data)
+profits=my_system.account.portfolio()
+profits.stats()
 
 
 """
@@ -121,14 +127,6 @@ my_config=Config(dict(trading_rules=dict(ewmac8=ewmac_8, ewmac32=ewmac_32),
 print(my_config)
 my_system=System([Account(), PortfoliosFixed(), PositionSizing(), FuturesRawData(), ForecastCombineFixed(), ForecastScaleCapFixed(), Rules()
 ], data, my_config)
-print(my_system.rules.get_raw_forecast("EDOLLAR", "ewmac32").tail(5))
-print(my_system.rules.get_raw_forecast("EDOLLAR", "ewmac8").tail(5))
-print(my_system.forecastScaleCap.get_capped_forecast("EDOLLAR", "ewmac32").tail(5))
-print(my_system.forecastScaleCap.get_forecast_scalar("EDOLLAR", "ewmac32"))
-print(my_system.combForecast.get_combined_forecast("EDOLLAR").tail(5))
-print(my_system.combForecast.get_forecast_weights("EDOLLAR").tail(5))
-print(my_system.positionSize.get_subsystem_position("EDOLLAR").tail(5))
-
 print(my_system.portfolio.get_notional_position("EDOLLAR").tail(5))
 
 """
@@ -150,8 +148,4 @@ print(my_system.positionSize.get_subsystem_position("EDOLLAR").tail(5))
 
 print(my_system.portfolio.get_notional_position("EDOLLAR").tail(5))
 
-my_account=Account()
-my_system=System([rawdata, fcs, my_rules, combiner, possizer, portfolio, my_account], data)
-profits=my_system.account.portfolio()
-profits.stats()
 

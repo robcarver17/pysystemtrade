@@ -45,7 +45,7 @@ data.get_instrument_price("EDOLLAR").tail(5)
 
 This is old data, but it's sufficient for playing with.  
 
-*I'll update the data at some point, as well as including methods for you to get your own data*
+*I'll update the data at some point, as well as including methods for you to get your own data from different sources*
 
 *Technical note: This is the 'back-adjusted' price for the future, formed from stiching adjacent contracts together using the 'panama' method*
 
@@ -111,7 +111,7 @@ Let's run it and look at the output
 ```python
 instrument_code='EDOLLAR'
 price=data.get_instrument_price(instrument_code)
-ewmac=calc_ewmac_forecast(price, 4, 16)
+ewmac=calc_ewmac_forecast(price, 32, 128)
 ewmac.tail(5)
 
 from matplotlib.pyplot import show
@@ -121,11 +121,11 @@ show()
 
 ```
                price
-2015-04-16  0.919245
-2015-04-17  1.003627
-2015-04-20  0.939076
-2015-04-21  0.768698
-2015-04-22  0.268149
+2015-04-16  3.742889
+2015-04-17  3.918523
+2015-04-20  4.062661
+2015-04-21  4.179868
+2015-04-22  4.041079
 ```
 
 Did we make any money?
@@ -137,25 +137,25 @@ account.stats()
 ```
 
 ```
-[[('min', '-0.02341'),
-  ('max', '0.0363'),
+[[('min', '-0.07944'),
+  ('max', '0.05662'),
   ('median', '0'),
-  ('mean', '5.227e-05'),
-  ('std', '0.001847'),
-  ('skew', '0.8685'),
-  ('ann_daily_mean', '0.01338'),
-  ('ann_daily_std', '0.02955'),
-  ('sharpe', '0.4529'),
-  ('sortino', '0.4986'),
-  ('avg_drawdown', '-0.02341'),
-  ('time_in_drawdown', '0.9782'),
-  ('calmar', '0.155'),
-  ('avg_return_to_drawdown', '0.5717'),
-  ('avg_loss', '-0.001168'),
-  ('avg_gain', '0.001216'),
-  ('gaintolossratio', '1.041'),
-  ('profitfactor', '1.12'),
-  ('hitrate', '0.5183')],
+  ('mean', '0.0001884'),
+  ('std', '0.005823'),
+  ('skew', '-0.8771'),
+  ('ann_daily_mean', '0.04823'),
+  ('ann_daily_std', '0.09317'),
+  ('sharpe', '0.5177'),
+  ('sortino', '0.5248'),
+  ('avg_drawdown', '-0.1392'),
+  ('time_in_drawdown', '0.9703'),
+  ('calmar', '0.1221'),
+  ('avg_return_to_drawdown', '0.3465'),
+  ('avg_loss', '-0.003849'),
+  ('avg_gain', '0.003871'),
+  ('gaintolossratio', '1.006'),
+  ('profitfactor', '1.135'),
+  ('hitrate', '0.5302')],
  ('You can also plot:', ['rolling_ann_std', 'drawdown', 'curve']),
  ('You can also print:', ['weekly', 'monthly', 'annual'])]
 ```
@@ -241,11 +241,11 @@ my_system.rules.get_raw_forecast("EDOLLAR", "ewmac").tail(5)
 
 ```
                ewmac
-2015-04-16  0.999120
-2015-04-17  1.057726
-2015-04-20  1.085446
-2015-04-21  1.082781
-2015-04-22  0.954941
+2015-04-16  3.742889
+2015-04-17  3.918523
+2015-04-20  4.062661
+2015-04-21  4.179868
+2015-04-22  4.041079
 ```
 
 We'll see this pattern of my_system...stage name...get_something() a lot. The Rules object has become an attribute of the parent system, with name 'rules'. The names used for each stage are fixed regardless of exactly what the stage class or instance is called, so we can always find what we need.
@@ -265,9 +265,9 @@ TradingRule; function: <function ewmac_forecast_with_defaults at 0xb734ca4c>, da
 
 Time to reveal what the mysterious object is. A **TradingRule** contains 3 elements - a function, a list of any data the function needs, and a dict of any other arguments that can be passed to the function. So the function is just the ewmac function that we imported earlier, and in this trivial case there is no data, and no arguments. Having no data is fine, because the code assumes that you'd normally want to pass the price of an instrument to a trading rule if you don't tell it otherwise. Furthermore on this occassion having no arguments is also no problem since the ewmac function we're using includes some defaults.
 
-*If you're familiar with the concept of args and kwargs; `data` is a bit like args - we always pass a list of positional arguments to `function`; and `other_args` are a bit like kwargs - we always pass in a dict of named arguments to `function`*
+*If you're familiar with the concept in python of args and kwargs; `data` is a bit like args - we always pass a list of positional arguments to `function`; and `other_args` are a bit like kwargs - we always pass in a dict of named arguments to `function`*
 
-There are a few different ways to define trading rules complete. I'll use a couple of different ones here:
+There are a few different ways to define trading rules completely. I'll use a couple of different ones here:
 
 ```python
 ewmac_8=TradingRule((ewmac, [], dict(Lfast=8, Lslow=32)))
@@ -300,23 +300,23 @@ my_system.forecastScaleCap.get_capped_forecast("EDOLLAR", "ewmac32")
 2015-04-22  10.708858
 ```
 
-Since we have two trading rule variations we're naturally going to want to combine them. Let's come up with some arbitrary forecast weights and diversification multiplier for now:
+Since we have two trading rule variations we're naturally going to want to combine them (chapter 8 of my book). Let's come up with some arbitrary forecast weights and diversification multiplier for now:
 
 
 ```python
 combiner=ForecastCombineFixed(forecast_weights=dict(ewmac8=0.5, ewmac32=0.5), forecast_div_multiplier=1.1)
 my_system=System([fcs, my_rules, combiner], data)
-my_system.combForecast.get_combined_forecast("GOLD").tail(5)
+my_system.combForecast.get_combined_forecast("EDOLLAR").tail(5)
 ```
 
 
 ```
             comb_forecast
-2015-04-16      -1.724752
-2015-04-17      -1.557607
-2015-04-20      -1.881666
-2015-04-21      -1.806096
-2015-04-22      -2.448376
+2015-04-16      10.078925
+2015-04-17      10.635408
+2015-04-20      10.898699
+2015-04-21      10.896673
+2015-04-22       9.726712
 ```
 
 If you're working through my book you'd know the next stage is deciding what level of risk to target (chapter 9) and position sizing (chapter 10). Before that we need to include another stage - 'raw data'. This does some calculations of things like price volatility, which we need to size positions.
@@ -328,14 +328,14 @@ rawdata=FuturesRawData()
 
 
 
-Now let's do the postion scaling:
+Now let's do the position scaling:
 
 ```python
 from systems.positionsizing import PositionSizing
 possizer=PositionSizing(percentage_vol_target=0.10, notional_trading_capital=50000, base_currency="GBP")
 my_system=System([rawdata, fcs, my_rules, combiner, possizer], data)
 
-my_system.positionSize.get_subsystem_position("VIX").tail(5)
+my_system.positionSize.get_subsystem_position("EDOLLAR").tail(5)
 ```
 
 
@@ -343,11 +343,11 @@ my_system.positionSize.get_subsystem_position("VIX").tail(5)
 
 ```
             ss_position
-2015-04-16    -1.432605
-2015-04-17    -1.324730
-2015-04-20    -1.429758
-2015-04-21    -1.486577
-2015-04-22    -1.603084
+2015-04-16     3.001186
+2015-04-17     3.286852
+2015-04-20     3.479907
+2015-04-21     3.569091
+2015-04-22     3.108522
 ```
 
 We're almost there. The final stage we need to get positions is to combine everything into a portfolio (chapter 11). Again I'm going to make up some instrument weights, and diversification multiplier.
@@ -364,11 +364,11 @@ my_system.portfolio.get_notional_position("EDOLLAR").tail(5)
 
 ```                 
                  pos
-2015-04-16  1.125445
-2015-04-17  1.232569
-2015-04-20  1.304965
-2015-04-21  1.338409
-2015-04-22  1.165696
+2015-04-16  1.800711
+2015-04-17  1.972111
+2015-04-20  2.087944
+2015-04-21  2.141454
+2015-04-22  1.865113
 ```
 
 Although this is fine and dandy, we're probably going to be curious about whether this made money or not. So we'll need to add just one more stage, to count our virtual profits:
@@ -390,7 +390,7 @@ Once again we have the now familiar accounting object.
 
 Let's introduce the idea of **config** objects.
 
-Configuration objects can be created by reading in files written in yaml, or directly from a dictionary. The former approach is useful for running live systems, or repeating a backtest. To make life easier let's just use the dictionary approach for now. To reproduce the setup we had above we'd this config:
+Configuration objects can be created directly from a dictionary or by reading in files written in (yaml)[http:/pyyaml.org. To reproduce the setup we had above directly from a directory we'd create this config:
 
 ```python
 from sysdata.configdata import Config
@@ -403,7 +403,7 @@ my_config
 Config with elements: base_currency, forecast_div_multiplier, forecast_scalars, forecast_weights, instrument_div_multiplier, instrument_weights, notional_trading_capital, percentage_vol_target, trading_rules
 ```
 
-Alternatively we could get the same result from reading a YAML file ( [this one to be precise]() ). 
+Alternatively we could get the same result from reading a YAML file ( [this one to be precise](/systems/provided/example/simplesystemconfig.yaml) ). 
 
 ```python
 from syscore.fileutils import get_pathname_for_package
@@ -412,7 +412,7 @@ my_config=Config(get_pathname_for_package("systems", ["provided", "example", "si
 
 (The get_path_name.. is just a way of navigating the python directories in the project.)
 
-This next line of code will reproduce what we've already done, but we'll use 'empty' stages without passing any arguments, and let the config tell the system what to do.
+Now we've got a config this next line of code will reproduce what we've already done, but we'll use 'empty' instances of stages created without passing any arguments, and let the config tell the system what to do.
 
 ```python
 my_system=System([Account(), PortfoliosFixed(), PositionSizing(), FuturesRawData(), ForecastCombineFixed(), ForecastScaleCapFixed(), Rules()
@@ -421,36 +421,41 @@ my_system=System([Account(), PortfoliosFixed(), PositionSizing(), FuturesRawData
 
 
 
-
 ## A simple pre-baked system
 
-The above might seem like a lot of work, and normally we wouldn't create a system by importing and then adding each stage manually. Instead you can use a 'pre baked' system, and then modify it as required. 
+Normally we wouldn't create a system by adding each stage manually. Instead you can use a 'pre baked' system, and then modify it as required. 
 
 For example (code is [here](prebakedsystem.spy) )
 
-'''python
+```python
 from systems.provided.example.simplesystem import simplesystem
 my_system=simplesystem()
 my_system
+```
 
-my_system.portfolio.get_notional_position("EDOLLAR").tail(5)
-
-'''
-
-'''
+```
 System with stages: accounts, portfolio, positionSize, rawdata, combForecast, forecastScaleCap, rules
+```
 
-                   pos
-2015-04-16  180.071137
-2015-04-17  197.211099
-2015-04-20  208.794433
-2015-04-21  214.145435
-2015-04-22  186.511333
-'''
+Everything will now work as before:
 
-By default this has loaded the same data and read the config from the same yaml file. However we can do this manually, allowing us to use new data and a modified config with a pre-baked system.
+```python
+my_system.portfolio.get_notional_position("EDOLLAR").tail(5)
+```
 
-'''python
+
+```
+                 pos
+2015-04-16  1.800711
+2015-04-17  1.972111
+2015-04-20  2.087944
+2015-04-21  2.141454
+2015-04-22  1.865113
+```
+
+By default this has loaded the same data and read the config from the same yaml file. However we can also do this manually, allowing us to use new data and a modified config with a pre-baked system.
+
+```python
 from syscore.fileutils import get_pathname_for_package
 from sysdata.configdata import Config
 from sysdata.csvdata import csvFuturesData
@@ -458,20 +463,32 @@ from sysdata.csvdata import csvFuturesData
 my_config=Config(get_pathname_for_package("systems", ["provided", "example", "simplesystemconfig.yaml"]))
 my_data=csvFuturesData()
 my_system=simplesystem(config=my_config, data=my_data)
-'''
+```
 
-For the vast majority of the time this will be how you use this project.
+For the vast majority of the time this will be how you create new systems.
 
 
 ## A complete pre-baked system
 
 Let's now see how we might use another 'pre-baked' system, in this case the staunch systems trader example definied in chapter 15 of my book ["Systematic Trading"](http:/www.systematictrading.org). Here again we default to using csv data.
 
-'''python
+(Code is [here](prebakedsystem.spy) )
+
+```python
 from systems.futures.basesystem import futures_system
 system=futures_system()
-'''
+system.portfolio.get_notional_position("EUROSTX").tail(5)
+```
+
+```
+                 pos
+2015-04-16  2.929976
+2015-04-17  2.038499
+2015-04-20  1.897126
+2015-04-21  1.981541
+2015-04-22  2.119637
+```
 
 It's worth looking at the config for this system [here](/systems/futures/futuresconfig.yaml), and comparing it to what you see in chapter 15.
 
-You'll probably want to read the [users guide](userguide.md) after this.
+You'll probably want to read the [users guide](userguide.md) next.
