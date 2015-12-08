@@ -65,6 +65,13 @@ For a complete list of possible , see [this table](#table_system_stage_methods)
 
 ### System
 
+### Stages: General
+
+
+<a name="stage_wiring">
+#### Stage 'wiring'
+</a>
+
 ### Stage: Raw data
 
 ### Stage: Rules
@@ -74,6 +81,41 @@ For a complete list of possible , see [this table](#table_system_stage_methods)
 ### Summary information
 
 <a name="table_system_stage_methods">
-#### Table of standard system.stage methods
+#### Table of standard system.data and system.stage methods
 </a>
+
+This table lists all the methods that can be used to get data out of a system and its 'child' stages. Although strictly speaking `system.data` is not a stage, it is included for completeness and because other stages will make use of it.
+
+
+##### Explanation of columns
+
+
+The system name is omitted from the 'call' column. So for example to 
+
+```python
+from systems.futures.basesystem import futures_system
+system=futures_system()
+```
+
+Standard methods are in all systems. Non standard methods are for stage classes inherited from the standard class, eg the raw data method specific to futures.
+
+Arguments are:
+
+- instrument_code: A string indicating the name of the instrument
+- rule_name: A string indicating the name of the trading rule variation
+
+Types are one or more of D, I, O:
+
+- **D**iagnostic: Exposed method useful for seeing intermediate calculations
+- Key **I**nput: A method which gets information from another stage. See [stage wiring](#stage_wiring).
+- Key **O**utput: A method whose output is used by other stages. See [stage wiring](#stage_wiring).
+
+Private methods are excluded from this table.
+
+
+##### Data object
+
+| Call                 | Standard? | Arguments       | Type | Description                                                    |
+|:--------------------:|:---------:|:---------------:|:----:|:--------------------------------------------------------------:|
+| get_instrument_price | Standard  | instrument_code | D,O  | Price used for trading rule analysis (backadjusted if relevant)|
 
