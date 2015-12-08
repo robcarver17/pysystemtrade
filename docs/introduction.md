@@ -49,7 +49,7 @@ This is old data, but it's sufficient for playing with.
 
 *Technical note: This is the 'back-adjusted' price for the future, formed from stiching adjacent contracts together using the 'panama' method*
 
-**data** objects behave a bit like dicts (though they don't formally inherit from them). So these both work:
+`data` objects behave a bit like dicts (though they don't formally inherit from them). So these both work:
 
 ```python
 data.keys() ## equivalent to data.get_instrument_list
@@ -161,10 +161,10 @@ account.stats()
 ```
 
 
-Looks like we did make a few bucks. **account**, by the way inherits from a pandas data frame. Here are some other things we can do with it:
+Looks like we did make a few bucks. `account`, by the way inherits from a pandas data frame. Here are some other things we can do with it:
 
 ```python
-account.sharpe() ## get the Sharpe Ratio (annualised), and any other statistic from stats
+account.sharpe() ## get the Sharpe Ratio (annualised), and any other statistic which is in the stats list
 account.curve().plot() ## plot the cumulative account curve
 account.drawdown().plot() ## see the drawdowns
 account.weekly() ## weekly returns (also monthly, annual)
@@ -198,7 +198,7 @@ data=csvFuturesData()
 from systems.provided.example.rules import ewmac_forecast_with_defaults as ewmac
 ```
 
-This is a slightly different version of the rule we defined before, which has default values for Lfast and Lslow. Now there are many ways to create a set of trading rules; here is the simplest:
+This is a slightly different version of the rule we defined before, which has default values for `Lfast` and `Lslow`. Now there are many ways to create a set of trading rules; here is the simplest:
 
 ```python
 from systems.forecasting import Rules
@@ -210,7 +210,7 @@ my_rules
 {'rule0': TradingRule; function: <function ewmac_forecast_with_defaults at 0xb727fa4c>, data:  and other_args: }
 ```
 
-This won't make much sense now, but bear with me (and don't worry if you get a different hexadecimal number). Suffice to say we've created a dict of trading rules with one element, which has been given the thrilling name of 'rule0'. Rule0 isn't especially meaningful, so let's come up with a better name:
+This won't make much sense now, but bear with me (and don't worry if you get a different hexadecimal number). Suffice to say we've created a dict of trading rules with one element, which has been given the thrilling name of `rule0`. `rule0` isn't especially meaningful, so let's come up with a better name:
 
 ```python
 my_rules=Rules(dict(ewmac=ewmac))
@@ -221,7 +221,7 @@ my_rules
 {'ewmac': TradingRule; function: <function ewmac_forecast_with_defaults at 0xb72bca4c>, data:  and other_args: }
 ```
 
-The next stage is to create a system incorporating our **data** object, and the my_rules stage.
+The next stage is to create a system incorporating our `data` object, and the `my_rules` stage.
 
 ```python
 from systems.basesystem import System
@@ -248,7 +248,7 @@ my_system.rules.get_raw_forecast("EDOLLAR", "ewmac").tail(5)
 2015-04-22  4.041079
 ```
 
-We'll see this pattern of my_system...stage name...get_something() a lot. The Rules object has become an attribute of the parent system, with name 'rules'. The names used for each stage are fixed regardless of exactly what the stage class or instance is called, so we can always find what we need.
+We'll see this pattern of `my_system...stage name...get_something()` a lot. The `Rules` object has become an attribute of the parent system, with name `rules`. Notice that the names used for each stage are fixed regardless of exactly what the stage class or instance is called, so we can always find what we need.
 
 What about if we want more than one trading rule, say a couple of variations of the ewmac rule? To define two different flavours of ewmac we're going to need to learn a little bit more about trading rules. Remember when we had `my_rules=Rules(dict(ewmac=ewmac))`? Well this is an equivalent way of doing it:
 
@@ -263,7 +263,7 @@ ewmac_rule
 TradingRule; function: <function ewmac_forecast_with_defaults at 0xb734ca4c>, data:  and other_args: 
 ```
 
-Time to reveal what the mysterious object is. A **TradingRule** contains 3 elements - a function, a list of any data the function needs, and a dict of any other arguments that can be passed to the function. So the function is just the ewmac function that we imported earlier, and in this trivial case there is no data, and no arguments. Having no data is fine, because the code assumes that you'd normally want to pass the price of an instrument to a trading rule if you don't tell it otherwise. Furthermore on this occassion having no arguments is also no problem since the ewmac function we're using includes some defaults.
+Time to reveal what the mysterious object is. A `TradingRule` contains 3 elements - a function, a list of any data the function needs, and a dict of any other arguments that can be passed to the function. So the function is just the `ewmac` function that we imported earlier, and in this trivial case there is no data, and no arguments. Having no data is fine, because the code assumes that you'd normally want to pass the price of an instrument to a trading rule if you don't tell it otherwise. Furthermore on this occassion having no arguments is also no problem since the ewmac function we're using includes some defaults.
 
 *If you're familiar with the concept in python of args and kwargs; `data` is a bit like args - we always pass a list of positional arguments to `function`; and `other_args` are a bit like kwargs - we always pass in a dict of named arguments to `function`*
 
@@ -280,7 +280,7 @@ my_rules.trading_rules()['ewmac32']
 TradingRule; function: <function ewmac_forecast_with_defaults at 0xb7252a4c>, data:  and other_args: Lfast, Lslow
 ```
 
-Now these trading rules aren't producing forecasts that are correctly scaled (with an average absolute value of 10), and they don't have the cap of 20 that I recommend. To fix this we need to add another stage to our system. In future versions of this project we'll be able to estimate forecast scalars on a rolling out of sample basis; but for now we'll just use the fixed values from Appendix B of my book.
+Now these trading rules aren't producing forecasts that are correctly scaled (with an average absolute value of 10), and they don't have the cap of 20 that I recommend. To fix this we need to add another stage to our system. In future versions of this project we'll be able to estimate forecast scalars on a rolling out of sample basis; but for now we'll just use the fixed values from Appendix B of my book ["Systematic Trading"](http:/www.systematictrading.org).
 
 ```python
 from systems.forecast_scale_cap import ForecastScaleCapFixed
@@ -382,11 +382,12 @@ profits.stats()
 ```
 
 ```
+FIX ME - OUTPUT GOES HERE
 ```
 
 Once again we have the now familiar accounting object.
 
-*Note that the order of stages in the list passed to System isn't relevant#
+*Note that the order of stages in the list passed to `System()` isn't relevant*
 
 ## Config objects
 
@@ -477,7 +478,7 @@ For the vast majority of the time this will be how you create new systems.
 
 ## A complete pre-baked system
 
-Let's now see how we might use another 'pre-baked' system, in this case the staunch systems trader example definied in chapter 15 of my book ["Systematic Trading"](http:/www.systematictrading.org). Here again we default to using csv data.
+Let's now see how we might use another 'pre-baked' system, in this case the staunch systems trader example definied in chapter 15 of my book. Here again we default to using csv data.
 
 (Code is [here](prebakedsystem.spy) )
 
