@@ -25,7 +25,7 @@ system=futures_system()
 system.rules.get_raw_forecast("EDOLLAR", "ewmac64_256")
 ```
 
-For a complete list of possible , see [this table](####Table_of_standard_system.stage_methods)
+For a complete list of possible , see [this table](#Table_of_standard_system.stage_methods)
 
 
 ### See how profitable a backtest was
