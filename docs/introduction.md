@@ -386,11 +386,15 @@ profits.stats()
 
 Once again we have the now familiar accounting object.
 
+*Note that the order of stages in the list passed to System isn't relevant#
 
+## Config objects
 
-Let's introduce the idea of **config** objects.
+Now let's introduce the idea of **config** objects.
 
-Configuration objects can be created directly from a dictionary or by reading in files written in (yaml)[http:/pyyaml.org. To reproduce the setup we had above directly from a directory we'd create this config:
+(code continues from [same place](/examples/introduction/simplesystem.py) as before)
+
+Configuration objects can be created directly from a dictionary or by reading in files written in (yaml)[http:/pyyaml.org]. To reproduce the setup we had above directly from a directory we'd create this config:
 
 ```python
 from sysdata.configdata import Config
@@ -412,9 +416,9 @@ my_config=Config(get_pathname_for_package("systems", ["provided", "example", "si
 
 (The get_path_name.. is just a way of navigating the python directories in the project.)
 
-If you look at the YAML file you'll notice that the trading rule function has been specified as a string `systems.provided.example.rules.ewmac_forecast_with_defaults`. This is because we can't create a (*actually we can; but it's quite a bit of work and creates a potential security risk*). Instead we specify where the relevant function can be found in the project directory structure. 
+If you look at the YAML file you'll notice that the trading rule function has been specified as a string `systems.provided.example.rules.ewmac_forecast_with_defaults`. This is because we can't create a function in a YAML text file (*actually we can; but it's quite a bit of work and creates a potential security risk*). Instead we specify where the relevant function can be found in the project directory structure. 
 
-Similarly for the ewmac8 rule we've specified a data source `data.get_instrument_price`. This is the default. Equally we could specify any attribute and method within the system object, as long as it takes the argument `instrument_code`. We can also have a list of data inputs .This means you can configure almost any trading rule.
+Similarly for the ewmac8 rule we've specified a data source `data.get_instrument_price`. This is the default, which is why we haven't needed to specify it before, and it isn't included in the specification for the ewmac32 rule. Equally we could specify any attribute and method within the system object, as long as it takes the argument `instrument_code`. We can also have a list of data inputs.This means you can configure almost any trading rule quite easily through configuration changes.
 
 Now we've got a config this next line of code will reproduce what we've already done, but now we use 'empty' instances of stages created without passing any arguments, and let the config tell the system what to do.
 
