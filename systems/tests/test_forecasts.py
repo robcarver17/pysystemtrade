@@ -26,13 +26,13 @@ class Test(unittest.TestCase):
         system=System([rules], data)
         
         ans=system.rules.get_raw_forecast("EDOLLAR", "rule0")
-        self.assertAlmostEqual(ans.iloc[-1][0], 0.954941, 5)
+        self.assertAlmostEqual(ans.iloc[-1][0], 4.0410786602, 5)
         
         config=Config(dict(trading_rules=dict(ewmac=dict(function="systems.provided.example.rules.ewmac_forecast_with_defaults"))))
         rules=Rules()
         system=System([rules], data, config)
         ans=system.rules.get_raw_forecast("EDOLLAR", "ewmac")
-        self.assertAlmostEqual(ans.iloc[-1][0], 0.954941, 5)
+        self.assertAlmostEqual(ans.iloc[-1][0], 4.0410786602, 5)
         
         config=Config(get_pathname_for_package("systems", ["provided","example", "exampleconfig.yaml"]))
         rawdata=RawData()
@@ -40,7 +40,7 @@ class Test(unittest.TestCase):
         rules=Rules()
         system=System([rules, rawdata], data, config)
         ans=system.rules.get_raw_forecast("EDOLLAR", "ewmac8")
-        self.assertAlmostEqual(ans.iloc[-1][0], 0.954941, 5)
+        self.assertAlmostEqual(ans.iloc[-1][0], 0.954941033, 5)
         
     def testinitTradingRules(self):
         rule=TradingRule((ewmac_forecast_with_defaults, [], {}))
@@ -110,14 +110,14 @@ class Test(unittest.TestCase):
         ## Call with default data and config
         rule=TradingRule(ewmac_forecast_with_defaults)
         ans=rule.call(system, "EDOLLAR")
-        self.assertAlmostEqual(ans.iloc[-1][0], 0.954941, 5)
+        self.assertAlmostEqual(ans.iloc[-1][0], 4.0410786602, 5)
         
         ## Change the data source
         rule=TradingRule(("systems.provided.example.rules.ewmac_forecast_with_defaults_no_vol",
                           ["rawdata.daily_prices", "rawdata.daily_returns_volatility"], dict()))
 
         ans=rule.call(system, "EDOLLAR")
-        self.assertAlmostEqual(ans.iloc[-1][0], 0.954941, 5)
+        self.assertAlmostEqual(ans.iloc[-1][0], 0.954941033, 5)
         
         rule=TradingRule(dict(function="systems.provided.example.rules.ewmac_forecast_with_defaults_no_vol",
                           data=["rawdata.daily_prices", "rawdata.daily_returns_volatility"], 

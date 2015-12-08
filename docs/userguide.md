@@ -25,7 +25,7 @@ system=futures_system()
 system.rules.get_raw_forecast("EDOLLAR", "ewmac64_256")
 ```
 
-For a complete list of possible , see [this table](#table_system_stage_methods)
+For a complete list of possible intermediate results, see [this table](#table_system_stage_methods) and look for rows marked with **D** for diagnostic.
 
 
 ### See how profitable a backtest was
@@ -103,13 +103,13 @@ Standard methods are in all systems. Non standard methods are for stage classes 
 Common arguments are:
 
 - instrument_code: A string indicating the name of the instrument
-- rule_name: A string indicating the name of the trading rule variation
+- rule_variation_name: A string indicating the name of the trading rule variation
 
 Types are one or more of D, I, O:
 
 - **D**iagnostic: Exposed method useful for seeing intermediate calculations
 - Key **I**nput: A method which gets information from another stage. See [stage wiring](#stage_wiring). The description will list the source of the data.
-- Key **O**utput: A method whose output is used by other stages. See [stage wiring](#stage_wiring).
+- Key **O**utput: A method whose output is used by other stages. See [stage wiring](#stage_wiring). Note this excludes items only used by specific trading rules (noteably rawdata.daily_annualised_roll)
 
 Private methods are excluded from this table.
 
@@ -125,7 +125,7 @@ Private methods are excluded from this table.
 | data.get_fx_for_instrument  |Standard | instrument_code, base_currency | D, O | What is the exchange rate between the currency of this instrument, and some base currency? |
 | data.get_instrument_raw_carry_data | Futures | instrument_code | D, O | Returns a dataframe with the 4 columns PRICE, CARRY, PRICE_CONTRACT, CARRY_CONTRACT |
 
-##### Raw data object
+##### Raw data stage
         
 | Call                              | Standard?| Arguments       | Type | Description                                                    |
 |:-------------------------:|:---------:|:---------------:|:----:|:--------------------------------------------------------------:|
@@ -136,5 +136,29 @@ Private methods are excluded from this table.
 | rawdata.daily_returns_volatility | Standard | instrument_code | D,O | Daily standard deviation of returns in price units |
 | rawdata.get_daily_percentage_volatility | Standard | instrument_code | D,O | Daily standard deviation of returns in % (10.0 = 10%) |
 | rawdata.norm_returns | Standard            | instrument_code | D | Daily returns normalised by vol (1.0 = 1 sigma) |
+| rawdata.get_instrument_raw_carry_data | Futures | instrument_code | I | data.get_instrument_raw_carry_data | 
+| rawdata.raw_futures_roll| Futures | instrument_code | D |  | 
+| rawdata.roll_differentials | Futures | instrument_code | D |  |
+| rawdata.annualised_roll | Futures | instrument_code | D | Annualised roll |
+| rawdata.daily_annualised_roll | Futures | instrument_code | D | Annualised roll. Used for carry rule. |
+ 
 
-#####
+##### Trading rules stage
+| Call                              | Standard?| Arguments       | Type | Description                                                    |
+|:-------------------------:|:---------:|:---------------:|:----:|:--------------------------------------------------------------:|
+| rules.trading_rules | Standard  |         | D  | List of trading rule variations |
+| rules.get_raw_forecast | Standard | instrument_code, rule_variation_name |  Get forecast (unscaled, uncapped) |
+
+ 
+##### Forecast scaling and capping stage
+
+| Call                              | Standard?| Arguments       | Type | Description                                                    |
+|:-------------------------:|:---------:|:---------------:|:----:|:--------------------------------------------------------------:|
+| forecastScaleCap.get_raw_forecast | Standard  | instrument_code, rule_variation_name        | I  | rules.get_raw_forecast |
+| forecastScaleCap.get_forecast_scalar | Standard | instrument_code, rule_variation_name        | D  | Get the scalar to use for a forecast |
+| forecastScaleCap.get_forecast_cap | Standard | instrument_code, rule_variation_name        | D  | Get the maximum allowable forecast |
+| forecastScaleCap.get_scaled_forecast | Standard | instrument_code, rule_variation_name        | D  | Get the forecast after scaling (after capping) |
+| forecastScaleCap.get_capped_forecast | Standard | instrument_code, rule_variation_name        | D, O  | Get the forecast after scaling (after capping) |
+
+##### Forecast scaling and capping stage
+

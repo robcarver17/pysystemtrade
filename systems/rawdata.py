@@ -170,7 +170,7 @@ class RawData(SystemStage):
         
         return dailyreturn
     
-    
+        
         
     def daily_returns_volatility(self, instrument_code):
         """
