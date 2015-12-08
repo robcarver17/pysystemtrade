@@ -181,7 +181,7 @@ A system consists of some data (which we've already seen), a number of processin
 
 A full list of stages would include:
 
-1. Preprocessing some raw data
+1. Preprocessing some raw data (which we don't cover in this introduction)
 2. Running some trading rules over it to generate forecasts
 3. Scaling and capping those forecasts 
 4. Combining forecasts together
@@ -319,21 +319,13 @@ my_system.combForecast.get_combined_forecast("EDOLLAR").tail(5)
 2015-04-22       9.726712
 ```
 
-If you're working through my book you'd know the next stage is deciding what level of risk to target (chapter 9) and position sizing (chapter 10). Before that we need to include another stage - 'raw data'. This does some calculations of things like price volatility, which we need to size positions.
-
-```python
-from systems.futures.rawdata import FuturesRawData
-rawdata=FuturesRawData()
-```
-
-
-
-Now let's do the position scaling:
+If you're working through my book you'd know the next stage is deciding what level of risk to target (chapter 9) and position sizing (chapter 10). 
+Let's do the position scaling:
 
 ```python
 from systems.positionsizing import PositionSizing
 possizer=PositionSizing(percentage_vol_target=0.10, notional_trading_capital=50000, base_currency="GBP")
-my_system=System([rawdata, fcs, my_rules, combiner, possizer], data)
+my_system=System([ fcs, my_rules, combiner, possizer], data)
 
 my_system.positionSize.get_subsystem_position("EDOLLAR").tail(5)
 ```
@@ -357,7 +349,7 @@ We're almost there. The final stage we need to get positions is to combine every
 ```python
 from systems.portfolio import PortfoliosFixed
 portfolio=PortfoliosFixed(instrument_weights=dict(US10=.1, EDOLLAR=.4, CORN=.3, SP500=.8), instrument_div_multiplier=1.5)
-my_system=System([rawdata, fcs, my_rules, combiner, possizer, portfolio], data)
+my_system=System([ fcs, my_rules, combiner, possizer, portfolio], data)
 
 my_system.portfolio.get_notional_position("EDOLLAR").tail(5)
 ```
@@ -376,7 +368,7 @@ Although this is fine and dandy, we're probably going to be curious about whethe
 ```python
 from systems.account import Account
 my_account=Account()
-my_system=System([rawdata, fcs, my_rules, combiner, possizer, portfolio, my_account], data)
+my_system=System([ fcs, my_rules, combiner, possizer, portfolio, my_account], data)
 profits=my_system.account.portfolio()
 profits.stats()
 ```
@@ -424,7 +416,7 @@ Similarly for the ewmac8 rule we've specified a data source `data.get_instrument
 Now we've got a config this next line of code will reproduce what we've already done, but now we use 'empty' instances of stages created without passing any arguments, and let the config tell the system what to do.
 
 ```python
-my_system=System([Account(), PortfoliosFixed(), PositionSizing(), FuturesRawData(), ForecastCombineFixed(), ForecastScaleCapFixed(), Rules()
+my_system=System([Account(), PortfoliosFixed(), PositionSizing(), ForecastCombineFixed(), ForecastScaleCapFixed(), Rules()
 ], data, my_config)
 ``` 
 
@@ -442,7 +434,7 @@ my_system
 ```
 
 ```
-System with stages: accounts, portfolio, positionSize, rawdata, combForecast, forecastScaleCap, rules
+System with stages: accounts, portfolio, positionSize, combForecast, forecastScaleCap, rules
 ```
 
 Everything will now work as before:

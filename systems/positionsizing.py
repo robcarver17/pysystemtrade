@@ -2,7 +2,7 @@
 from systems.stage import SystemStage
 from systems.defaults import system_defaults
 from syscore.objects import calc_or_cache, ALL_KEYNAME
-from syscore.pdutils import multiply_df_single_column
+from syscore.pdutils import multiply_df_single_column, divide_df_single_column
 from syscore.dateutils import ROOT_BDAYS_INYEAR
 from syscore.algos import robust_vol_calc
 
@@ -15,13 +15,18 @@ class PositionSizing(SystemStage):
                 
                 b) system.rawdata.get_daily_percentage_volatility(instrument_code)
                  found in self.get_price_volatility(instrument_code)
+                 
+                 If not found, uses system.data.get_instrument_price to calculate
                    
                 c) system.rawdata.daily_denominator_price((instrument_code)
-                   system.data.get_value_of_block_price_move(instrument_code)
+                 found in self.get_instrument_sizing_data(instrument_code)
 
+                If not found, uses system.data.get_instrument_price 
+
+                d)  system.data.get_value_of_block_price_move(instrument_code)
                  found in self.get_instrument_sizing_data(instrument_code)
                    
-                 d)  system.data.get_fx_for_currency(instrument_code, base_currency)
+                e)  system.data.get_fx_for_currency(instrument_code, base_currency)
                    found in self.get_fx_rate(instrument_code)
                 
                 
@@ -104,14 +109,23 @@ class PositionSizing(SystemStage):
         >>> 
         >>> system.positionSize.get_price_volatility("EDOLLAR").tail(2)
                          vol
-        2015-04-21  0.000583
-        2015-04-22  0.000596
-
+        2015-04-21  0.058307
+        2015-04-22  0.059634
+        >>>
+        >>> system2=System([ rules, fcs, comb, PositionSizing()], data, config)
+        >>> 
+        >>> system2.positionSize.get_price_volatility("EDOLLAR").tail(2)
+                         vol
+        2015-04-21  0.058274
+        2015-04-22  0.059632
         """
         if hasattr(self.parent, "rawdata"):
             daily_perc_vol=self.parent.rawdata.get_daily_percentage_volatility(instrument_code)
         else:
-            raise Exception("Need a raw data object, with volatility, to do position scaling")
+            price=self.parent.data.get_instrument_price(instrument_code)
+            price=price.resample("1B", how="last")
+            return_vol=robust_vol_calc(price.diff())
+            daily_perc_vol=100.0*divide_df_single_column(return_vol,price)
             
         return daily_perc_vol
 
@@ -143,10 +157,28 @@ class PositionSizing(SystemStage):
         >>>
         >>> ans[1]
         2500
+        >>>
+        >>> system=System([rules, fcs, comb, PositionSizing()], data, config)
+        >>> 
+        >>> ans=system.positionSize.get_instrument_sizing_data("EDOLLAR")
+        >>> ans[0].tail(2)
+                      price
+        2015-04-21  97.9050
+        2015-04-22  97.8325        
+        >>>
+        >>> ans[1]
+        2500
+
 
         """
+
+        if hasattr(self.parent, "rawdata"):
+            underlying_price=self.parent.rawdata.daily_denominator_price(instrument_code)
+
+        else:
+            underlying_price=self.parent.data.get_instrument_price(instrument_code)
+            underlying_price=underlying_price.resample("1B", how="last")
         
-        underlying_price=self.parent.rawdata.daily_denominator_price(instrument_code)
         value_of_price_move=self.parent.data.get_value_of_block_price_move(instrument_code)
     
         return (underlying_price, value_of_price_move)
@@ -278,7 +310,13 @@ class PositionSizing(SystemStage):
                       price
         2015-04-21  2445.75
         2015-04-22      NaN
-        
+        >>>
+        >>> system=System([rules, fcs, comb, PositionSizing()], data, config)
+        >>> system.positionSize.get_block_value("EDOLLAR").tail(2)
+                        price
+        2015-04-21  2447.6250
+        2015-04-22  2445.8125
+
         """                    
         def _get_block_value(system,  instrument_code,  this_stage ):
             
@@ -306,9 +344,16 @@ class PositionSizing(SystemStage):
         >>> system=System([rawdata, rules, fcs, comb, PositionSizing()], data, config)
         >>> 
         >>> system.positionSize.get_instrument_currency_vol("EDOLLAR").tail(2)
-                         icv
-        2015-04-21  1.426040
-        2015-04-22  1.458498
+                           icv
+        2015-04-21  142.603997
+        2015-04-22  145.849773
+        >>>
+        >>> system2=System([ rules, fcs, comb, PositionSizing()], data, config)
+        >>> system2.positionSize.get_instrument_currency_vol("EDOLLAR").tail(2)
+                           icv
+        2015-04-21  142.633151
+        2015-04-22  145.849773
+        
         """
         def _get_instrument_currency_vol(system,  instrument_code,  this_stage ):
             
@@ -339,9 +384,16 @@ class PositionSizing(SystemStage):
         >>> system=System([rawdata, rules, fcs, comb, PositionSizing()], data, config)
         >>> 
         >>> system.positionSize.get_instrument_value_vol("EDOLLAR").tail(2)
-                         ivv
-        2015-04-21  0.954083
-        2015-04-22  0.977827
+                          ivv
+        2015-04-21  95.408349
+        2015-04-22  97.782721
+        >>> 
+        >>> system2=System([rawdata, rules, fcs, comb, PositionSizing()], data, config)
+        >>> system2.positionSize.get_instrument_value_vol("EDOLLAR").tail(2)
+                          ivv
+        2015-04-21  95.408349
+        2015-04-22  97.782721
+        
         """
         def _get_instrument_value_vol(system,  instrument_code,  this_stage ):
             
@@ -374,9 +426,15 @@ class PositionSizing(SystemStage):
         >>> system=System([rawdata, rules, fcs, comb, PositionSizing()], data, config)
         >>> 
         >>> system.positionSize.get_volatility_scalar("EDOLLAR").tail(2)
-                     vol_scalar
-        2015-04-21  1048.126301
-        2015-04-22  1022.675574
+                      vol_scalar
+        2015-04-21     10.481263
+        2015-04-22     10.226755
+        >>> 
+        >>> system2=System([ rules, fcs, comb, PositionSizing()], data, config)
+        >>> system2.positionSize.get_volatility_scalar("EDOLLAR").tail(2)
+                      vol_scalar
+        2015-04-21    10.479121
+        2015-04-22    10.226756
 
         """
         def _get_volatility_scalar(system,  instrument_code,  this_stage ):
@@ -411,8 +469,14 @@ class PositionSizing(SystemStage):
         >>> 
         >>> system.positionSize.get_subsystem_position("EDOLLAR").tail(2)
                     ss_position
-        2015-04-21   798.963739
-        2015-04-22   687.522788
+        2015-04-21     7.989637
+        2015-04-22     6.875228
+        >>> 
+        >>> system2=System([rawdata, rules, fcs, comb, PositionSizing()], data, config)
+        >>> system2.positionSize.get_subsystem_position("EDOLLAR").tail(2)
+                    ss_position
+        2015-04-21     7.989637
+        2015-04-22     6.875228
 
         """
         def _get_subsystem_position(system,  instrument_code,  this_stage ):

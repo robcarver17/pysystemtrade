@@ -6,7 +6,6 @@ from systems.forecasting import Rules
 from systems.basesystem import System
 from systems.forecast_combine import ForecastCombineFixed
 from systems.forecast_scale_cap import ForecastScaleCapFixed
-from systems.futures.rawdata import FuturesRawData
 from systems.positionsizing import PositionSizing
 from systems.portfolio import PortfoliosFixed
 from systems.account import Account
@@ -21,7 +20,7 @@ def simplesystem(data=None, config=None):
     if data is None:
         data=csvFuturesData()
 
-    my_system=System([Account(), PortfoliosFixed(), PositionSizing(), FuturesRawData(), ForecastCombineFixed(), ForecastScaleCapFixed(), Rules()
+    my_system=System([Account(), PortfoliosFixed(), PositionSizing(),  ForecastCombineFixed(), ForecastScaleCapFixed(), Rules()
                       ], data, config)
 
     return my_system
