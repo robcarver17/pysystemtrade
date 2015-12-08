@@ -412,13 +412,16 @@ my_config=Config(get_pathname_for_package("systems", ["provided", "example", "si
 
 (The get_path_name.. is just a way of navigating the python directories in the project.)
 
-Now we've got a config this next line of code will reproduce what we've already done, but we'll use 'empty' instances of stages created without passing any arguments, and let the config tell the system what to do.
+If you look at the YAML file you'll notice that the trading rule function has been specified as a string `systems.provided.example.rules.ewmac_forecast_with_defaults`. This is because we can't create a (*actually we can; but it's quite a bit of work and creates a potential security risk*). Instead we specify where the relevant function can be found in the project directory structure. 
+
+Similarly for the ewmac8 rule we've specified a data source `data.get_instrument_price`. This is the default. Equally we could specify any attribute and method within the system object, as long as it takes the argument `instrument_code`. We can also have a list of data inputs .This means you can configure almost any trading rule.
+
+Now we've got a config this next line of code will reproduce what we've already done, but now we use 'empty' instances of stages created without passing any arguments, and let the config tell the system what to do.
 
 ```python
 my_system=System([Account(), PortfoliosFixed(), PositionSizing(), FuturesRawData(), ForecastCombineFixed(), ForecastScaleCapFixed(), Rules()
 ], data, my_config)
 ``` 
-
 
 
 ## A simple pre-baked system
