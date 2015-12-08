@@ -1,4 +1,4 @@
-from systems.subsystem import SystemStage
+from systems.stage import SystemStage
 from systems.defaults import system_defaults
 from copy import copy
 
@@ -24,12 +24,12 @@ class RawData(SystemStage):
     
     def __init__(self):
         """
-        Create a new subsystem raw data object
+        Create a new stage: raw data object
 
         :returns: None
         """
         
-        ## As with all subsystems any data that methods produce needs to be stored in a dict, indexed here
+        ## As with all stages any data that methods produce needs to be stored in a dict, indexed here
         delete_on_recalc=["_daily_returns_dict", "_daily_prices_dict", "_daily_vol_dict",  
                           "_norm_return_dict", "_price_dict", "_capped_norm_return_dict",
                            "_indexed_dict", "_daily_denominator_price_dict", "_daily_percentage_volatility"]
@@ -53,7 +53,7 @@ class RawData(SystemStage):
         
         :returns: Tx1 pd.DataFrame
 
-        >>> from systems.provided.example.testdata import get_test_object
+        >>> from systems.tests.testdata import get_test_object
         >>> from systems.basesystem import System
         >>>
         >>> (rawdata, data, config)=get_test_object()
@@ -83,7 +83,7 @@ class RawData(SystemStage):
 
         KEY OUTPUT
 
-        >>> from systems.provided.example.testdata import get_test_object
+        >>> from systems.tests.testdata import get_test_object
         >>> from systems.basesystem import System
         >>>
         >>> (rawdata, data, config)=get_test_object()
@@ -95,8 +95,8 @@ class RawData(SystemStage):
         2015-04-22  97.8325
 
         """
-        def _daily_prices(system, instrument_code, this_subsystem):
-            instrprice=this_subsystem.get_instrument_price(instrument_code)
+        def _daily_prices(system, instrument_code, this_stage):
+            instrprice=this_stage.get_instrument_price(instrument_code)
             dailyprice=instrprice.resample("1B", how="last")
             return dailyprice
         
@@ -117,7 +117,7 @@ class RawData(SystemStage):
 
         KEY OUTPUT
 
-        >>> from systems.provided.example.testdata import get_test_object
+        >>> from systems.tests.testdata import get_test_object
         >>> from systems.basesystem import System
         >>>
         >>> (rawdata, data, config)=get_test_object()
@@ -128,9 +128,9 @@ class RawData(SystemStage):
         1983-09-26  71.416192
         1983-09-27  71.306192
         """
-        def _daily_denominator_returns(system, instrument_code, this_subsystem):
+        def _daily_denominator_returns(system, instrument_code, this_stage):
             
-            dem_returns=this_subsystem.daily_prices(instrument_code)
+            dem_returns=this_stage.daily_prices(instrument_code)
             return dem_returns
         
         dem_returns=calc_or_cache(self.parent, "_daily_denominator_price_dict", instrument_code, _daily_denominator_returns, self)
@@ -151,7 +151,7 @@ class RawData(SystemStage):
 
         KEY OUTPUT
 
-        >>> from systems.provided.example.testdata import get_test_object
+        >>> from systems.tests.testdata import get_test_object
         >>> from systems.basesystem import System
         >>>
         >>> (rawdata, data, config)=get_test_object()
@@ -161,8 +161,8 @@ class RawData(SystemStage):
         2015-04-21 -0.0200
         2015-04-22 -0.0725
         """
-        def _daily_returns(system, instrument_code, this_subsystem):
-            instrdailyprice=this_subsystem.daily_prices(instrument_code)
+        def _daily_returns(system, instrument_code, this_stage):
+            instrdailyprice=this_stage.daily_prices(instrument_code)
             dailyreturn=instrdailyprice.diff()
             return dailyreturn
         
@@ -189,7 +189,7 @@ class RawData(SystemStage):
         
         :returns: Tx1 pd.DataFrame
 
-        >>> from systems.provided.example.testdata import get_test_object
+        >>> from systems.tests.testdata import get_test_object
         >>> from systems.basesystem import System
         >>>
         >>> (rawdata, data, config)=get_test_object()
@@ -217,8 +217,8 @@ class RawData(SystemStage):
         2015-04-22  0.066014
         
         """
-        def _daily_returns_volatility(system, instrument_code,  this_subsystem):
-            dailyreturns=this_subsystem.daily_returns(instrument_code)
+        def _daily_returns_volatility(system, instrument_code,  this_stage):
+            dailyreturns=this_stage.daily_returns(instrument_code)
             try:
                 volconfig=copy(system.config.parameters['volatility_calculation'])
                 identify_error="inherited from data object"
@@ -254,20 +254,20 @@ class RawData(SystemStage):
         
         :returns: Tx1 pd.DataFrame
         
-        >>> from systems.provided.example.testdata import get_test_object
+        >>> from systems.tests.testdata import get_test_object
         >>> from systems.basesystem import System
         >>>
         >>> (rawdata, data, config)=get_test_object()
         >>> system=System([rawdata], data)
         >>> system.rawdata.get_daily_percentage_volatility("EDOLLAR").tail(2)
                          vol
-        2015-04-21  0.000583
-        2015-04-22  0.000596        
+        2015-04-21  0.058262
+        2015-04-22  0.059588
         """
-        def _get_daily_percentage_volatility(system, instrument_code, this_subsystem):
-            denom_price=this_subsystem.daily_denominator_price(instrument_code)
-            return_vol=this_subsystem.daily_returns_volatility(instrument_code)
-            perc_vol=divide_df_single_column(return_vol, denom_price.shift(1))
+        def _get_daily_percentage_volatility(system, instrument_code, this_stage):
+            denom_price=this_stage.daily_denominator_price(instrument_code)
+            return_vol=this_stage.daily_returns_volatility(instrument_code)
+            perc_vol=100.0*divide_df_single_column(return_vol, denom_price.shift(1))
             
             return perc_vol
         
@@ -287,7 +287,7 @@ class RawData(SystemStage):
         
         :returns: Tx1 pd.DataFrame
 
-        >>> from systems.provided.example.testdata import get_test_object
+        >>> from systems.tests.testdata import get_test_object
         >>> from systems.basesystem import System
         >>>
         >>> (rawdata, data, config)=get_test_object()
@@ -297,9 +297,9 @@ class RawData(SystemStage):
         2015-04-21    -0.342101
         2015-04-22    -1.270742
         """
-        def _norm_returns(system, instrument_code, this_subsystem):
-            returnvol=this_subsystem.daily_returns_volatility(instrument_code).shift(1)
-            dailyreturns=this_subsystem.daily_returns(instrument_code)
+        def _norm_returns(system, instrument_code, this_stage):
+            returnvol=this_stage.daily_returns_volatility(instrument_code).shift(1)
+            dailyreturns=this_stage.daily_returns(instrument_code)
             norm_return=divide_df_single_column(dailyreturns,returnvol)
             norm_return.columns=["norm_return"]
             return norm_return

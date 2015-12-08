@@ -1,10 +1,6 @@
 import os
 import sys
 
-"""
-IMPORTANT: for this to work all modules must be imported into namespace
-"""
-import syscore
 
 def get_pathname_for_package(package_name, paths_or_files=[]):
     """

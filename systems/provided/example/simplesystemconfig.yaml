@@ -1,0 +1,28 @@
+#YAML
+percentage_vol_target: 10.0
+notional_trading_capital: 50000
+base_currency: "GBP"
+trading_rules:
+  ewmac8:
+     function: systems.provided.example.rules.ewmac_forecast_with_defaults
+     data: data.get_instrument_price
+     other_args: 
+         Lfast: 8
+         Lslow: 32
+     forecast_scalar: 5.3
+  ewmac32:
+     function: systems.provided.example.rules.ewmac_forecast_with_defaults
+     other_args: 
+         Lfast: 32
+         Lslow: 128
+     forecast_scalar: 2.65
+forecast_weights:
+     ewmac8: 0.50
+     ewmac32: 0.50
+forecast_div_multiplier: 1.1
+instrument_weights:
+     EDOLLAR: .4
+     US10: .1
+     CORN: .3
+     SP500: .2
+instrument_div_multiplier: 1.5

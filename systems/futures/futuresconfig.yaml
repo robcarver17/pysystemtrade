@@ -3,9 +3,9 @@ parameters:
   volatility_calculation:
     func: "syscore.algos.robust_vol_calc"
     days: 35
-  percentage_vol_target: 20.0
-  notional_trading_capital: 250000
-  base_currency: "USD"
+percentage_vol_target: 20.0
+notional_trading_capital: 250000
+base_currency: "USD"
 trading_rules:
   ewmac2_8:
      function: systems.futures.rules.ewmac
@@ -78,7 +78,7 @@ forecast_div_multiplier: 1.31
 instrument_weights:
     EDOLLAR: 0.117
     US10: 0.117
-    EUROSTOX: 0.20
+    EUROSTX: 0.20
     V2X: 0.098
     MXP: 0.233
     CORN: 0.233

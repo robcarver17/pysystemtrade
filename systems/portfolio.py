@@ -1,15 +1,12 @@
 import pandas as pd
-import numpy as np
 
-from systems.subsystem import SystemStage
-from systems.defaults import system_defaults
+from systems.stage import SystemStage
 from syscore.objects import calc_or_cache, ALL_KEYNAME
-from syscore.pdutils import multiply_df_single_column, divide_df_single_column, fix_weights_vs_pdm
-from syscore.dateutils import ROOT_BDAYS_INYEAR
+from syscore.pdutils import multiply_df_single_column,  fix_weights_vs_pdm
 
 class PortfoliosFixed(SystemStage):
     """
-    Subsystem for portfolios 
+    Stage for portfolios 
     
     Gets the position, accounts for instrument weights and diversification multiplier
     
@@ -55,7 +52,7 @@ class PortfoliosFixed(SystemStage):
         setattr(self, "_passed_instrument_weights", instrument_weights)
         setattr(self, "_passed_instrument_div_multiplier", instrument_div_multiplier)
         
-    def get_subsys_position(self, instrument_code):
+    def get_subsystem_position(self, instrument_code):
         """
         Get the position assuming all capital in one position, from a previous module
         
@@ -66,20 +63,20 @@ class PortfoliosFixed(SystemStage):
         
         KEY INPUT
         
-        >>> from systems.provided.example.testdata import get_test_object_futures_with_pos_sizing
+        >>> from systems.tests.testdata import get_test_object_futures_with_pos_sizing
         >>> from systems.basesystem import System
         >>> (posobject, combobject, capobject, rules, rawdata, data, config)=get_test_object_futures_with_pos_sizing()
         >>> system=System([rawdata, rules, posobject, combobject, capobject,PortfoliosFixed()], data, config)
         >>> 
         >>> ## from config
-        >>> system.portfolio.get_subsys_position("EDOLLAR").tail(2)
+        >>> system.portfolio.get_subsystem_position("EDOLLAR").tail(2)
                     ss_position
         2015-04-21   798.963739
         2015-04-22   687.522788
 
         """
 
-        return self.parent.positionSize.get_subsys_position(instrument_code)
+        return self.parent.positionSize.get_subsystem_position(instrument_code)
     
 
     def get_raw_instrument_weights(self):
@@ -93,7 +90,7 @@ class PortfoliosFixed(SystemStage):
         
         :returns: TxK pd.DataFrame containing weights, columns are instrument names, T covers all subsystem positions 
 
-        >>> from systems.provided.example.testdata import get_test_object_futures_with_pos_sizing
+        >>> from systems.tests.testdata import get_test_object_futures_with_pos_sizing
         >>> from systems.basesystem import System
         >>> (posobject, combobject, capobject, rules, rawdata, data, config)=get_test_object_futures_with_pos_sizing()
         >>> system=System([rawdata, rules, posobject, combobject, capobject,PortfoliosFixed()], data, config)
@@ -113,10 +110,10 @@ class PortfoliosFixed(SystemStage):
         2015-04-22      0.1   0.9
 
         """                    
-        def _get_instrument_weights(system,  an_ignored_variable,  this_subsystem ):
+        def _get_instrument_weights(system,  an_ignored_variable,  this_stage ):
 
-            if this_subsystem._passed_instrument_weights is not None:
-                instrument_weights=this_subsystem._passed_instrument_weights
+            if this_stage._passed_instrument_weights is not None:
+                instrument_weights=this_stage._passed_instrument_weights
             else:
                 try:
                     instrument_weights=system.config.instrument_weights
@@ -129,7 +126,7 @@ class PortfoliosFixed(SystemStage):
             instrument_list.sort()
             
             subsys_ts=[
-                            this_subsystem.get_subsys_position(instrument_code).index 
+                            this_stage.get_subsystem_position(instrument_code).index 
                          for instrument_code in instrument_list]
             
             earliest_date=min([min(fts) for fts in subsys_ts])
@@ -160,12 +157,12 @@ class PortfoliosFixed(SystemStage):
 
 
         """                    
-        def _get_clean_instrument_weights(system,  an_ignored_variable,  this_subsystem ):
+        def _get_clean_instrument_weights(system,  an_ignored_variable,  this_stage ):
 
-            raw_instr_weights=this_subsystem.get_raw_instrument_weights()
+            raw_instr_weights=this_stage.get_raw_instrument_weights()
             instrument_list=list(raw_instr_weights.columns)
             
-            subsys_positions=[this_subsystem.get_subsys_position(instrument_code) 
+            subsys_positions=[this_stage.get_subsystem_position(instrument_code) 
                          for instrument_code in instrument_list]
             
             subsys_positions=pd.concat(subsys_positions, axis=1).ffill()
@@ -188,7 +185,7 @@ class PortfoliosFixed(SystemStage):
         
         :returns: TxK pd.DataFrame containing weights, columns are instrument names, T covers all subsystem positions 
 
-        >>> from systems.provided.example.testdata import get_test_object_futures_with_pos_sizing
+        >>> from systems.tests.testdata import get_test_object_futures_with_pos_sizing
         >>> from systems.basesystem import System
         >>> (posobject, combobject, capobject, rules, rawdata, data, config)=get_test_object_futures_with_pos_sizing()
         >>> system=System([rawdata, rules, posobject, combobject, capobject,PortfoliosFixed()], data, config)
@@ -208,10 +205,10 @@ class PortfoliosFixed(SystemStage):
         2015-04-22    2
 
         """                    
-        def _get_instrument_div_multiplier(system,  an_ignored_variable,  this_subsystem ):
+        def _get_instrument_div_multiplier(system,  an_ignored_variable,  this_stage ):
 
-            if this_subsystem._passed_instrument_div_multiplier is not None:
-                div_mult=this_subsystem._passed_instrument_div_multiplier
+            if this_stage._passed_instrument_div_multiplier is not None:
+                div_mult=this_stage._passed_instrument_div_multiplier
             else:
                 try:
                     div_mult=system.config.instrument_div_multiplier
@@ -222,7 +219,7 @@ class PortfoliosFixed(SystemStage):
             ## Need to turn into a timeseries covering the range of forecast dates
 
             ## this will be daily, but will be resampled later
-            weight_ts=this_subsystem.get_instrument_weights().index
+            weight_ts=this_stage.get_instrument_weights().index
             
             ts_idm=pd.Series([div_mult]*len(weight_ts), index=weight_ts).to_frame("idm")
 
@@ -246,7 +243,7 @@ class PortfoliosFixed(SystemStage):
         :returns: Tx1 pd.DataFrame 
         
         KEY OUTPUT
-        >>> from systems.provided.example.testdata import get_test_object_futures_with_pos_sizing
+        >>> from systems.tests.testdata import get_test_object_futures_with_pos_sizing
         >>> from systems.basesystem import System
         >>> (posobject, combobject, capobject, rules, rawdata, data, config)=get_test_object_futures_with_pos_sizing()
         >>> system=System([rawdata, rules, posobject, combobject, capobject,PortfoliosFixed()], data, config)
@@ -259,10 +256,10 @@ class PortfoliosFixed(SystemStage):
         >>>
 
         """                    
-        def _get_notional_position(system,  instrument_code,  this_subsystem ):
-            idm=this_subsystem.get_instrument_diversification_multiplier()
-            instr_weights=this_subsystem.get_instrument_weights()
-            subsys_position=this_subsystem.get_subsys_position(instrument_code)
+        def _get_notional_position(system,  instrument_code,  this_stage ):
+            idm=this_stage.get_instrument_diversification_multiplier()
+            instr_weights=this_stage.get_instrument_weights()
+            subsys_position=this_stage.get_subsystem_position(instrument_code)
             
             inst_weight_this_code=instr_weights[instrument_code].to_frame("weight")
             

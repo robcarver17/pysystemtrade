@@ -1,15 +1,14 @@
-import pandas as pd
-import numpy as np
 
-from systems.subsystem import SystemStage
+from systems.stage import SystemStage
 from systems.defaults import system_defaults
 from syscore.objects import calc_or_cache, ALL_KEYNAME
-from syscore.pdutils import multiply_df_single_column, divide_df_single_column
+from syscore.pdutils import multiply_df_single_column
 from syscore.dateutils import ROOT_BDAYS_INYEAR
+from syscore.algos import robust_vol_calc
 
 class PositionSizing(SystemStage):
     """
-    Subsystem for position sizing (take combined forecast; turn into subsystem positions)
+    Stage for position sizing (take combined forecast; turn into subsystem positions)
     
     KEY INPUTS: a) system.combForecast.get_combined_forecast(instrument_code)
                  found in self.get_combined_forecast
@@ -26,7 +25,7 @@ class PositionSizing(SystemStage):
                    found in self.get_fx_rate(instrument_code)
                 
                 
-    KEY OUTPUT: system.positionSize.get_subsys_position(instrument_code)
+    KEY OUTPUT: system.positionSize.get_subsystem_position(instrument_code)
 
     Name: positionSize
     """
@@ -49,7 +48,7 @@ class PositionSizing(SystemStage):
                 
         """
         delete_on_recalc=['_block_value', '_instrument_currency_vol','_instrument_value_vol',
-                          '_vol_scalar','_subsys_position', '_fx_rate']
+                          '_vol_scalar','_subsystem_position', '_fx_rate']
 
         dont_delete=['_vol_target']
         
@@ -73,7 +72,7 @@ class PositionSizing(SystemStage):
         
         KEY INPUT
         
-        >>> from systems.provided.example.testdata import get_test_object_futures_with_comb_forecasts
+        >>> from systems.tests.testdata import get_test_object_futures_with_comb_forecasts
         >>> from systems.basesystem import System
         >>> (comb, fcs, rules, rawdata, data, config)=get_test_object_futures_with_comb_forecasts()
         >>> system=System([rawdata, rules, fcs, comb, PositionSizing()], data, config)
@@ -98,7 +97,7 @@ class PositionSizing(SystemStage):
         
         KEY INPUT
 
-        >>> from systems.provided.example.testdata import get_test_object_futures_with_comb_forecasts
+        >>> from systems.tests.testdata import get_test_object_futures_with_comb_forecasts
         >>> from systems.basesystem import System
         >>> (comb, fcs, rules, rawdata, data, config)=get_test_object_futures_with_comb_forecasts()
         >>> system=System([rawdata, rules, fcs, comb, PositionSizing()], data, config)
@@ -109,9 +108,11 @@ class PositionSizing(SystemStage):
         2015-04-22  0.000596
 
         """
-        
-        daily_perc_vol=self.parent.rawdata.get_daily_percentage_volatility(instrument_code)
-        
+        if hasattr(self.parent, "rawdata"):
+            daily_perc_vol=self.parent.rawdata.get_daily_percentage_volatility(instrument_code)
+        else:
+            raise Exception("Need a raw data object, with volatility, to do position scaling")
+            
         return daily_perc_vol
 
 
@@ -129,7 +130,7 @@ class PositionSizing(SystemStage):
         :returns: tuple (Tx1 pd.DataFrame: underlying price [as used to work out % volatility], 
                               float: value of price block move) 
 
-        >>> from systems.provided.example.testdata import get_test_object_futures_with_comb_forecasts
+        >>> from systems.tests.testdata import get_test_object_futures_with_comb_forecasts
         >>> from systems.basesystem import System
         >>> (comb, fcs, rules, rawdata, data, config)=get_test_object_futures_with_comb_forecasts()
         >>> system=System([rawdata, rules, fcs, comb, PositionSizing()], data, config)
@@ -165,7 +166,7 @@ class PositionSizing(SystemStage):
         
         :Returns: tuple (str, float): str is base_currency, float is value 
 
-        >>> from systems.provided.example.testdata import get_test_object_futures_with_comb_forecasts
+        >>> from systems.tests.testdata import get_test_object_futures_with_comb_forecasts
         >>> from systems.basesystem import System
         >>> (comb, fcs, rules, rawdata, data, config)=get_test_object_futures_with_comb_forecasts()
         >>> system=System([rawdata, rules, fcs, comb, PositionSizing()], data, config)
@@ -175,7 +176,7 @@ class PositionSizing(SystemStage):
         'GBP'
         >>>
         >>> ## from defaults
-        >>> ignore=config.parameters.pop('base_currency')
+        >>> del(config.base_currency)
         >>> system=System([rawdata, rules, fcs, comb, PositionSizing()], data, config)
         >>> system.positionSize.get_daily_cash_vol_target()['base_currency']
         'USD'
@@ -187,29 +188,29 @@ class PositionSizing(SystemStage):
         
         """
 
-        def _get_vol_target(system,  an_ignored_variable,  this_subsystem ):
+        def _get_vol_target(system,  an_ignored_variable,  this_stage ):
 
-            if this_subsystem._passed_percentage_vol_target is not None:
-                percentage_vol_target=this_subsystem._passed_percentage_vol_target
+            if this_stage._passed_percentage_vol_target is not None:
+                percentage_vol_target=this_stage._passed_percentage_vol_target
             else:
                 try:
-                    percentage_vol_target=system.config.parameters['percentage_vol_target']
+                    percentage_vol_target=system.config.percentage_vol_target
                 except:
                     percentage_vol_target=system_defaults['percentage_vol_target']
                     
-            if this_subsystem._passed_notional_trading_capital is not None:
-                notional_trading_capital=this_subsystem._passed_notional_trading_capital
+            if this_stage._passed_notional_trading_capital is not None:
+                notional_trading_capital=this_stage._passed_notional_trading_capital
             else:
                 try:
-                    notional_trading_capital=system.config.parameters['notional_trading_capital']
+                    notional_trading_capital=system.config.notional_trading_capital
                 except:
                     notional_trading_capital=system_defaults['notional_trading_capital']
                     
-            if this_subsystem._passed_base_currency is not None:
-                base_currency=this_subsystem._passed_base_currency
+            if this_stage._passed_base_currency is not None:
+                base_currency=this_stage._passed_base_currency
             else:
                 try:
-                    base_currency=system.config.parameters['base_currency']
+                    base_currency=system.config.base_currency
                 except:
                     base_currency=system_defaults['base_currency']
 
@@ -237,7 +238,7 @@ class PositionSizing(SystemStage):
         
         :returns: Tx1 pd.DataFrame: fx rate
 
-        >>> from systems.provided.example.testdata import get_test_object_futures_with_comb_forecasts
+        >>> from systems.tests.testdata import get_test_object_futures_with_comb_forecasts
         >>> from systems.basesystem import System
         >>> (comb, fcs, rules, rawdata, data, config)=get_test_object_futures_with_comb_forecasts()
         >>> system=System([rawdata, rules, fcs, comb, PositionSizing()], data, config)
@@ -248,8 +249,8 @@ class PositionSizing(SystemStage):
         2015-11-02  0.650542
         """
 
-        def _get_fx_rate(system,  instrument_code,  this_subsystem ):
-            base_currency=this_subsystem.get_daily_cash_vol_target()['base_currency']
+        def _get_fx_rate(system,  instrument_code,  this_stage ):
+            base_currency=this_stage.get_daily_cash_vol_target()['base_currency']
             fx_rate=system.data.get_fx_for_currency(instrument_code, base_currency)
     
             return fx_rate
@@ -268,7 +269,7 @@ class PositionSizing(SystemStage):
         
         :returns: Tx1 pd.DataFrame 
 
-        >>> from systems.provided.example.testdata import get_test_object_futures_with_comb_forecasts
+        >>> from systems.tests.testdata import get_test_object_futures_with_comb_forecasts
         >>> from systems.basesystem import System
         >>> (comb, fcs, rules, rawdata, data, config)=get_test_object_futures_with_comb_forecasts()
         >>> system=System([rawdata, rules, fcs, comb, PositionSizing()], data, config)
@@ -279,9 +280,9 @@ class PositionSizing(SystemStage):
         2015-04-22      NaN
         
         """                    
-        def _get_block_value(system,  instrument_code,  this_subsystem ):
+        def _get_block_value(system,  instrument_code,  this_stage ):
             
-            (underlying_price, value_of_price_move)=this_subsystem.get_instrument_sizing_data(instrument_code)
+            (underlying_price, value_of_price_move)=this_stage.get_instrument_sizing_data(instrument_code)
             block_value=0.01*underlying_price*value_of_price_move
             
             return block_value
@@ -299,7 +300,7 @@ class PositionSizing(SystemStage):
         
         :returns: Tx1 pd.DataFrame 
 
-        >>> from systems.provided.example.testdata import get_test_object_futures_with_comb_forecasts
+        >>> from systems.tests.testdata import get_test_object_futures_with_comb_forecasts
         >>> from systems.basesystem import System
         >>> (comb, fcs, rules, rawdata, data, config)=get_test_object_futures_with_comb_forecasts()
         >>> system=System([rawdata, rules, fcs, comb, PositionSizing()], data, config)
@@ -309,10 +310,10 @@ class PositionSizing(SystemStage):
         2015-04-21  1.426040
         2015-04-22  1.458498
         """
-        def _get_instrument_currency_vol(system,  instrument_code,  this_subsystem ):
+        def _get_instrument_currency_vol(system,  instrument_code,  this_stage ):
             
-            block_value=this_subsystem.get_block_value(instrument_code)
-            daily_perc_vol=this_subsystem.get_price_volatility(instrument_code)
+            block_value=this_stage.get_block_value(instrument_code)
+            daily_perc_vol=this_stage.get_price_volatility(instrument_code)
             
             instr_ccy_vol=multiply_df_single_column(block_value, daily_perc_vol, ffill=(True, False))
             instr_ccy_vol.columns=['icv']
@@ -332,7 +333,7 @@ class PositionSizing(SystemStage):
         
         :returns: Tx1 pd.DataFrame 
 
-        >>> from systems.provided.example.testdata import get_test_object_futures_with_comb_forecasts
+        >>> from systems.tests.testdata import get_test_object_futures_with_comb_forecasts
         >>> from systems.basesystem import System
         >>> (comb, fcs, rules, rawdata, data, config)=get_test_object_futures_with_comb_forecasts()
         >>> system=System([rawdata, rules, fcs, comb, PositionSizing()], data, config)
@@ -342,10 +343,10 @@ class PositionSizing(SystemStage):
         2015-04-21  0.954083
         2015-04-22  0.977827
         """
-        def _get_instrument_value_vol(system,  instrument_code,  this_subsystem ):
+        def _get_instrument_value_vol(system,  instrument_code,  this_stage ):
             
-            instr_ccy_vol=this_subsystem.get_instrument_currency_vol(instrument_code)
-            fx_rate=this_subsystem.get_fx_rate(instrument_code)            
+            instr_ccy_vol=this_stage.get_instrument_currency_vol(instrument_code)
+            fx_rate=this_stage.get_fx_rate(instrument_code)            
 
             instr_value_vol=multiply_df_single_column(instr_ccy_vol, fx_rate, ffill=(False, True))
             instr_value_vol.columns=['ivv']
@@ -367,7 +368,7 @@ class PositionSizing(SystemStage):
         
         :returns: Tx1 pd.DataFrame 
 
-        >>> from systems.provided.example.testdata import get_test_object_futures_with_comb_forecasts
+        >>> from systems.tests.testdata import get_test_object_futures_with_comb_forecasts
         >>> from systems.basesystem import System
         >>> (comb, fcs, rules, rawdata, data, config)=get_test_object_futures_with_comb_forecasts()
         >>> system=System([rawdata, rules, fcs, comb, PositionSizing()], data, config)
@@ -378,10 +379,10 @@ class PositionSizing(SystemStage):
         2015-04-22  1022.675574
 
         """
-        def _get_volatility_scalar(system,  instrument_code,  this_subsystem ):
+        def _get_volatility_scalar(system,  instrument_code,  this_stage ):
             
-            instr_value_vol=this_subsystem.get_instrument_value_vol(instrument_code)
-            cash_vol_target=this_subsystem.get_daily_cash_vol_target()['daily_cash_vol_target']
+            instr_value_vol=this_stage.get_instrument_value_vol(instrument_code)
+            cash_vol_target=this_stage.get_daily_cash_vol_target()['daily_cash_vol_target']
             
             vol_scalar=cash_vol_target/ instr_value_vol
             vol_scalar.columns=['vol_scalar']
@@ -392,7 +393,7 @@ class PositionSizing(SystemStage):
         return vol_scalar
 
     
-    def get_subsys_position(self, instrument_code):
+    def get_subsystem_position(self, instrument_code):
         """
         Get scaled position (assuming for now we trade our entire capital for one instrument) 
 
@@ -403,32 +404,32 @@ class PositionSizing(SystemStage):
         
         :returns: Tx1 pd.DataFrame 
 
-        >>> from systems.provided.example.testdata import get_test_object_futures_with_comb_forecasts
+        >>> from systems.tests.testdata import get_test_object_futures_with_comb_forecasts
         >>> from systems.basesystem import System
         >>> (comb, fcs, rules, rawdata, data, config)=get_test_object_futures_with_comb_forecasts()
         >>> system=System([rawdata, rules, fcs, comb, PositionSizing()], data, config)
         >>> 
-        >>> system.positionSize.get_subsys_position("EDOLLAR").tail(2)
+        >>> system.positionSize.get_subsystem_position("EDOLLAR").tail(2)
                     ss_position
         2015-04-21   798.963739
         2015-04-22   687.522788
 
         """
-        def _get_subsys_position(system,  instrument_code,  this_subsystem ):
+        def _get_subsystem_position(system,  instrument_code,  this_stage ):
             
             avg_abs_forecast=system_defaults['average_absolute_forecast']
             
-            vol_scalar=this_subsystem.get_volatility_scalar(instrument_code)
-            forecast=this_subsystem.get_combined_forecast(instrument_code)
+            vol_scalar=this_stage.get_volatility_scalar(instrument_code)
+            forecast=this_stage.get_combined_forecast(instrument_code)
             
-            subsys_position=multiply_df_single_column(vol_scalar, forecast, ffill=(True, False))/avg_abs_forecast
-            subsys_position.columns=['ss_position'] 
+            subsystem_position=multiply_df_single_column(vol_scalar, forecast, ffill=(True, False))/avg_abs_forecast
+            subsystem_position.columns=['ss_position'] 
                                    
-            return subsys_position
+            return subsystem_position
 
         
-        subsys_position=calc_or_cache(self.parent, '_subsys_position', instrument_code,  _get_subsys_position, self)
-        return subsys_position
+        subsystem_position=calc_or_cache(self.parent, '_subsystem_position', instrument_code,  _get_subsystem_position, self)
+        return subsystem_position
 
 if __name__ == '__main__':
     import doctest

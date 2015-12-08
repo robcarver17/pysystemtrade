@@ -2,9 +2,10 @@
 Simple trading rules used in examples
 '''
 import pandas as pd
-from syscore.algos import robust_vol_calc, divide_df_single_column
+from syscore.algos import robust_vol_calc
+from syscore.pdutils import divide_df_single_column
 
-def ewmac_forecast_with_defaults(price, Lfast=16, Lslow=32):
+def ewmac_forecast_with_defaults(price, Lfast=32, Lslow=128):
     """
     Calculate the ewmac trading fule forecast, given a price and EWMA speeds Lfast, Lslow and vol_lookback
     

@@ -239,7 +239,7 @@ class Data(object):
         :returns: Tx1 pd.DataFrame
         
         >>> data=Data()
-        >>> data.get_fx_rate("wibble", "USD").tail(2)
+        >>> data.get_fx_for_currency("wibble", "USD").tail(2)
                     fx
         2049-12-31   1
         2050-01-01   1

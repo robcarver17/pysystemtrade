@@ -98,8 +98,8 @@ Try it out
 """
 instrument_code='EDOLLAR'
 price=data.get_instrument_price(instrument_code)
-ewmac=calc_ewmac_forecast(price, 4, 16)
-ewmac.tail(5)
+ewmac=calc_ewmac_forecast(price, 32, 128)
+print(ewmac.tail(5))
 
 from matplotlib.pyplot import show
 ewmac.plot()

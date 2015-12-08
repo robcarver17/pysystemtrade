@@ -5,7 +5,7 @@ from syscore.objects import resolve_function, resolve_data_method, hasallattr, c
 
 class Rules(SystemStage):
     """
-    Construct the forecasting subsystem
+    Construct the forecasting stage
     
     Ways we can do this:
     
@@ -30,9 +30,7 @@ class Rules(SystemStage):
     def __init__(self, trading_rules=None):
         """
         Create a SystemStage for forecasting
-        
-        This isn't an optional subsystem
-        
+                
         We eithier pass a dict or a list of trading rules (functions, strings specifying a function, or objects of class TradingRule)
           ... or we'll get it from the overall system config (trading_rules=None)
           
@@ -95,7 +93,7 @@ class Rules(SystemStage):
             """
         
             if not hasattr(self, "parent"):
-                raise Exception("A Rules subsystem needs to be part of a System to identify trading rules, unless rules are passed when object created")
+                raise Exception("A Rules stage needs to be part of a System to identify trading rules, unless rules are passed when object created")
             
             if not hasattr(self.parent, "config"):
                 raise Exception("A system needs to include a config with trading_rules, unless rules are passed when object created")
@@ -125,9 +123,9 @@ class Rules(SystemStage):
         
         """
         
-        def _get_forecast(system,  instrument_code, rule_variation_name, rules_subsystem):
+        def _get_forecast(system,  instrument_code, rule_variation_name, rules_stage):
             ## This function gets called if we haven't cached the forecast
-            trading_rule=rules_subsystem.trading_rules()[rule_variation_name]
+            trading_rule=rules_stage.trading_rules()[rule_variation_name]
             
             result=trading_rule.call(system, instrument_code)
             result.columns=[rule_variation_name]

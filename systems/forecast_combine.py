@@ -1,7 +1,6 @@
 import pandas as pd
-import numpy as np
 
-from systems.subsystem import SystemStage
+from systems.stage import SystemStage
 from syscore.objects import calc_or_cache
 from syscore.pdutils import multiply_df, fix_weights_vs_pdm
 
@@ -9,7 +8,7 @@ from syscore.pdutils import multiply_df, fix_weights_vs_pdm
 
 class ForecastCombineFixed(SystemStage):
     """
-    Subsystem for combining forecasts (already capped and scaled)
+    Stage for combining forecasts (already capped and scaled)
     
     KEY INPUT: system.forecastScaleCap.get_capped_forecast(instrument_code, rule_variation_name)
 
@@ -64,7 +63,7 @@ class ForecastCombineFixed(SystemStage):
         
         :returns: dict of Tx1 pd.DataFrames; keynames rule_variation_name
         
-        >>> from systems.provided.example.testdata import get_test_object_futures_with_rules_and_capping
+        >>> from systems.tests.testdata import get_test_object_futures_with_rules_and_capping
         >>> from systems.basesystem import System
         >>> (fcs, rules, rawdata, data, config)=get_test_object_futures_with_rules_and_capping()
         >>> system=System([rawdata, rules, fcs, ForecastCombineFixed()], data, config)
@@ -89,7 +88,7 @@ class ForecastCombineFixed(SystemStage):
 
         :returns: TxK pd.DataFrame containing weights, columns are trading rule variation names, T covers all 
 
-        >>> from systems.provided.example.testdata import get_test_object_futures_with_rules_and_capping
+        >>> from systems.tests.testdata import get_test_object_futures_with_rules_and_capping
         >>> from systems.basesystem import System
         >>> (fcs, rules, rawdata, data, config)=get_test_object_futures_with_rules_and_capping()
         >>> system=System([rawdata, rules, fcs, ForecastCombineFixed()], data, config)
@@ -121,14 +120,14 @@ class ForecastCombineFixed(SystemStage):
         2015-04-21      0.7     0.3
         2015-04-22      0.7     0.3
         """                    
-        def _get_forecast_weight(system,  instrument_code,  this_subsystem ):
+        def _get_forecast_weight(system,  instrument_code,  this_stage ):
 
             
-            if instrument_code in this_subsystem._passed_forecast_weights:
-                fixed_weights=this_subsystem._passed_forecast_weights[instrument_code]
-            elif len(this_subsystem._passed_forecast_weights)>0:
+            if instrument_code in this_stage._passed_forecast_weights:
+                fixed_weights=this_stage._passed_forecast_weights[instrument_code]
+            elif len(this_stage._passed_forecast_weights)>0:
                 ## must be a non nested dict
-                fixed_weights=this_subsystem._passed_forecast_weights
+                fixed_weights=this_stage._passed_forecast_weights
             
             ## Okay we were passed a length zero dict; i.e. nothing
             ## Let's try the config
@@ -149,7 +148,7 @@ class ForecastCombineFixed(SystemStage):
             rule_variation_list.sort()
             
             forecasts_ts=[
-                            this_subsystem.get_capped_forecast(instrument_code, rule_variation_name).index 
+                            this_stage.get_capped_forecast(instrument_code, rule_variation_name).index 
                          for rule_variation_name in rule_variation_list]
             
             earliest_date=min([min(fts) for fts in forecasts_ts])
@@ -186,7 +185,7 @@ class ForecastCombineFixed(SystemStage):
 
 
 
-        >>> from systems.provided.example.testdata import get_test_object_futures_with_rules_and_capping
+        >>> from systems.tests.testdata import get_test_object_futures_with_rules_and_capping
         >>> from systems.basesystem import System
         >>> (fcs, rules, rawdata, data, config)=get_test_object_futures_with_rules_and_capping()
         >>> system=System([rawdata, rules, fcs, ForecastCombineFixed()], data, config)
@@ -218,15 +217,15 @@ class ForecastCombineFixed(SystemStage):
         2015-04-22  2.5
 
         """                    
-        def _get_forecast_div_multiplier(system,  instrument_code,  this_subsystem ):
+        def _get_forecast_div_multiplier(system,  instrument_code,  this_stage ):
             
-            if type(this_subsystem._passed_forecast_div_multiplier) is float:
+            if type(this_stage._passed_forecast_div_multiplier) is float:
                 ## single value for all keys
-                fixed_div_mult=this_subsystem._passed_forecast_div_multiplier
+                fixed_div_mult=this_stage._passed_forecast_div_multiplier
                 
-            elif instrument_code in this_subsystem._passed_forecast_div_multiplier.keys():
+            elif instrument_code in this_stage._passed_forecast_div_multiplier.keys():
                 ## Must be a dict
-                fixed_div_mult=this_subsystem._passed_forecast_div_multiplier[instrument_code]
+                fixed_div_mult=this_stage._passed_forecast_div_multiplier[instrument_code]
                 
             ## Okay we were passed a length zero dict; i.e. nothing (or one missing the instrument at least)
             ## Let's try the config
@@ -245,7 +244,7 @@ class ForecastCombineFixed(SystemStage):
             ## Now we have a dict, fixed_weights.
             ## Need to turn into a timeseries covering the range of forecast dates
             ## get forecast weights first
-            forecast_weights=this_subsystem.get_forecast_weights(instrument_code)
+            forecast_weights=this_stage.get_forecast_weights(instrument_code)
             weight_ts=forecast_weights.index
             
             ts_fdm=pd.Series([fixed_div_mult]*len(weight_ts), index=weight_ts)
@@ -273,7 +272,7 @@ class ForecastCombineFixed(SystemStage):
         KEY OUTPUT
 
 
-        >>> from systems.provided.example.testdata import get_test_object_futures_with_rules_and_capping
+        >>> from systems.tests.testdata import get_test_object_futures_with_rules_and_capping
         >>> from systems.basesystem import System
         >>> (fcs, rules, rawdata, data, config)=get_test_object_futures_with_rules_and_capping()
         >>> system=System([rawdata, rules, fcs, ForecastCombineFixed()], data, config)
@@ -283,12 +282,12 @@ class ForecastCombineFixed(SystemStage):
         2015-04-21       7.622781
         2015-04-22       6.722785
         """                    
-        def _get_combined_forecast(system,  instrument_code,  this_subsystem ):
+        def _get_combined_forecast(system,  instrument_code,  this_stage ):
             
-            forecast_weights=this_subsystem.get_forecast_weights(instrument_code)
+            forecast_weights=this_stage.get_forecast_weights(instrument_code)
             rule_variation_list=list(forecast_weights.columns)
-            forecasts=[this_subsystem.get_capped_forecast(instrument_code, rule_variation_name) for rule_variation_name in rule_variation_list]
-            forecast_div_multiplier=this_subsystem.get_forecast_diversification_multiplier(instrument_code)
+            forecasts=[this_stage.get_capped_forecast(instrument_code, rule_variation_name) for rule_variation_name in rule_variation_list]
+            forecast_div_multiplier=this_stage.get_forecast_diversification_multiplier(instrument_code)
 
             forecasts=pd.concat(forecasts, axis=1)
                 

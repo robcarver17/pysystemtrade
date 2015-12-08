@@ -17,7 +17,6 @@ portfolio p&l
 
 remove bad imports
 subsystem->systemstage
-verbose print with timestampe
 
 
 docs- intro, tutorial, api reference, developer documentation

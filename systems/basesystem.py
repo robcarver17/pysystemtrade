@@ -16,7 +16,7 @@ class System(object):
     '''
 
 
-    def __init__(self,  sub_system_list, data, config=None):
+    def __init__(self,  stage_list, data, config=None):
         """
         Create a system object for doing simulations or live trading
 
@@ -26,17 +26,17 @@ class System(object):
         :param config: Optional configuration 
         :type config: sysdata.configdata.Config 
 
-        :param sub_system_list: A list of sub-subsystems 
-        :type sub_system_list: list of systems.subsystem.SubSystem (or anything that inherits from it)
+        :param stage_list: A list of stages 
+        :type stage_list: list of systems.stage.SystemStage (or anything that inherits from it)
         
         :returns: new system object
     
-        >>> from subsystem import SubSystem
-        >>> subsystem=SubSystem()
+        >>> from stage import SystemStage
+        >>> stage=SystemStage()
         >>> from sysdata.csvdata import csvFuturesData
         >>> data=csvFuturesData()
-        >>> System([subsystem], data)
-        System with subsystems: default
+        >>> System([stage], data)
+        System with stages: default
         
         """
         
@@ -52,37 +52,37 @@ class System(object):
         """
         delete_on_recalc=[]
         dont_recalc=[]
-        subsystem_names=[]
+        stage_names=[]
         
-        assert type(sub_system_list) is list
+        assert type(stage_list) is list
         
-        for subsystem in sub_system_list:
+        for stage in stage_list:
             
             """
             This is where we put the methods to store various stages of the process
             
             """
 
-            ## Each subsystem has a link back to the parent system
-            setattr(subsystem, "parent", self)
+            ## Each stage has a link back to the parent system
+            setattr(stage, "parent", self)
             
-            ## Subsystems have names, which are also how we find them in the system attributes
-            sub_name=subsystem.name
+            ## Stages have names, which are also how we find them in the system attributes
+            sub_name=stage.name
             
-            if sub_name in subsystem_names:
+            if sub_name in stage_names:
                 raise Exception("You have duplicate subsystems with the name %s. Remove one of them, or change a name." % sub_name) 
 
-            setattr(self, sub_name, subsystem)
+            setattr(self, sub_name, stage)
 
-            subsystem_names.append(sub_name)
+            stage_names.append(sub_name)
             
-            subsystem_delete_on_recalc=getattr(subsystem, "_delete_on_recalc",[])
-            subsystem_dont_recalc=getattr(subsystem, "_dont_recalc",[])
+            stage_delete_on_recalc=getattr(stage, "_delete_on_recalc",[])
+            stage_dont_recalc=getattr(stage, "_dont_recalc",[])
             
-            delete_on_recalc=delete_on_recalc+subsystem_delete_on_recalc
-            dont_recalc=dont_recalc+subsystem_dont_recalc
+            delete_on_recalc=delete_on_recalc+stage_delete_on_recalc
+            dont_recalc=dont_recalc+stage_dont_recalc
             
-        setattr(self, "_subsystem_names", subsystem_names)
+        setattr(self, "_stage_names", stage_names)
         
         """
         These are the places where we hide all intermediate results
@@ -107,8 +107,8 @@ class System(object):
             setattr(self, dictname, empty_dict)
         
     def __repr__(self):
-        sslist=", ".join(self._subsystem_names)
-        return "System with subsystems: "+sslist
+        sslist=", ".join(self._stage_names)
+        return "System with stages: "+sslist
         
     def delete_instrument_data_from_cache(self, instrument_code, delete_all=False):
         """
@@ -137,7 +137,7 @@ class System(object):
         
         (this is roughly equivalent to creating the systems object from scratch)
         
-        >>> from systems.provided.example.testdata import get_test_object
+        >>> from systems.tests.testdata import get_test_object
         >>> from systems.basesystem import System
         >>>
         >>> (rawdata, data, config)=get_test_object()

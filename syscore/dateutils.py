@@ -1,7 +1,6 @@
 """
 Various routines to do with dates
 """
-import pandas as pd
 import datetime
 import numpy as np
 

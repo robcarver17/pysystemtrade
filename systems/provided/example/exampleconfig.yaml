@@ -6,9 +6,9 @@ parameters:
     days: 35
   smooth_rolldown_for_carry: 125
   forecast_cap: 21.0
-  percentage_vol_target: 16.0
-  notional_trading_capital: 100000
-  base_currency: "GBP"
+percentage_vol_target: 16.0
+notional_trading_capital: 100000
+base_currency: "GBP"
 trading_rules:
   ewmac8:
      function: systems.provided.example.rules.ewmac_forecast_with_defaults_no_vol

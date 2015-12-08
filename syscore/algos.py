@@ -5,7 +5,6 @@ Basic building blocks of trading rules, like volatility measurement and crossove
 
 """
 import pandas as pd
-from syscore.pdutils import divide_df_single_column
 
 def robust_vol_calc(x, days=35, min_periods=10, vol_abs_min=0.0000000001, vol_floor=True, 
                     floor_min_quant=0.05,  floor_min_periods=100, 

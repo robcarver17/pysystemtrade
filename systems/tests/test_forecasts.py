@@ -7,7 +7,7 @@ import unittest
 from systems.provided.example.rules import ewmac_forecast_with_defaults
 from systems.forecasting import TradingRule, Rules, process_trading_rules,  create_variations, create_variations_oneparameter
 from systems.basesystem import System
-from systems.rawdata import SubSystemRawData
+from systems.rawdata import RawData
 from sysdata.configdata import Config
 from sysdata.csvdata import csvFuturesData
 from syscore.fileutils import get_pathname_for_package
@@ -35,7 +35,7 @@ class Test(unittest.TestCase):
         self.assertAlmostEqual(ans.iloc[-1][0], 0.954941, 5)
         
         config=Config(get_pathname_for_package("systems", ["provided","example", "exampleconfig.yaml"]))
-        rawdata=SubSystemRawData()
+        rawdata=RawData()
  
         rules=Rules()
         system=System([rules, rawdata], data, config)
@@ -103,7 +103,7 @@ class Test(unittest.TestCase):
         datapath=get_pathname_for_package("sysdata", ["tests"])
         data=csvFuturesData(datapath=datapath)
         
-        rawdata=SubSystemRawData()
+        rawdata=RawData()
         rules=Rules()
         system=System([rawdata, rules], data)
         
