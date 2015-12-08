@@ -135,7 +135,7 @@ class Data(object):
         
         return 1.0
 
-    def get_default_currency(self):
+    def _get_default_currency(self):
         """
         We assume we always have rates for the default currency vs others to use in getting cross rates
         eg if default is USD assume we always know GBPUSD, AUDUSD... 
@@ -147,7 +147,7 @@ class Data(object):
         
         return DEFAULT_CURRENCY
 
-    def get_default_series(self):
+    def _get_default_series(self):
         """
         What we return if currency rates match
         """
@@ -171,7 +171,7 @@ class Data(object):
         return self.get_default_currency()
 
 
-    def get_fx_data(self, currency1, currency2):
+    def _get_fx_data(self, currency1, currency2):
         """
         Get the FX rate currency1/currency2 between two currencies
         Or return None if not available
@@ -195,7 +195,7 @@ class Data(object):
         ## no data available
         return None
 
-    def get_fx_cross(self, currency1, currency2):
+    def _get_fx_cross(self, currency1, currency2):
         """
         Get the FX rate between two currencies, using crosses with DEFAULT_CURRENCY if neccessary
 
@@ -211,13 +211,13 @@ class Data(object):
         """
         
         ### try and get from raw data
-        fx_rate_series=self.get_fx_data(currency1, currency2)
+        fx_rate_series=self._get_fx_data(currency1, currency2)
         
         if fx_rate_series is None:
             ## missing; have to get get cross rates
-            default_currency=self.get_default_currency()
-            currency1_vs_default=self.get_fx_data(currency1, default_currency).resample("1B", how="last")
-            currency2_vs_default=self.get_fx_data(currency2, default_currency).resample("1B", how="last")
+            default_currency=self._get_default_currency()
+            currency1_vs_default=self._get_fx_data(currency1, default_currency).resample("1B", how="last")
+            currency2_vs_default=self._get_fx_data(currency2, default_currency).resample("1B", how="last")
             
             together=pd.concat([currency1_vs_default, currency2_vs_default], axis=1, join='inner').ffill()
             
@@ -226,7 +226,7 @@ class Data(object):
         
         return fx_rate_series
 
-    def get_fx_for_currency(self, instrument_code, base_currency):
+    def get_fx_for_instrument(self, instrument_code, base_currency):
         """
         Get the FX rate between the FX rate for the instrument and the base (account) currency
 
@@ -239,14 +239,14 @@ class Data(object):
         :returns: Tx1 pd.DataFrame
         
         >>> data=Data()
-        >>> data.get_fx_for_currency("wibble", "USD").tail(2)
+        >>> data.get_fx_for_instrument("wibble", "USD").tail(2)
                     fx
         2049-12-31   1
         2050-01-01   1
         """
 
         instrument_currency=self.get_instrument_currency(instrument_code)
-        fx_rate_series=self.get_fx_cross(instrument_currency, base_currency)
+        fx_rate_series=self._get_fx_cross(instrument_currency, base_currency)
         
         return fx_rate_series
 

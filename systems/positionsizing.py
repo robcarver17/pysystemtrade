@@ -26,7 +26,7 @@ class PositionSizing(SystemStage):
                 d)  system.data.get_value_of_block_price_move(instrument_code)
                  found in self.get_instrument_sizing_data(instrument_code)
                    
-                e)  system.data.get_fx_for_currency(instrument_code, base_currency)
+                e)  system.data.get_fx_for_instrument(instrument_code, base_currency)
                    found in self.get_fx_rate(instrument_code)
                 
                 
@@ -283,7 +283,7 @@ class PositionSizing(SystemStage):
 
         def _get_fx_rate(system,  instrument_code,  this_stage ):
             base_currency=this_stage.get_daily_cash_vol_target()['base_currency']
-            fx_rate=system.data.get_fx_for_currency(instrument_code, base_currency)
+            fx_rate=system.data.get_fx_for_instrument(instrument_code, base_currency)
     
             return fx_rate
             

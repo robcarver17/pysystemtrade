@@ -207,7 +207,7 @@ class csvFuturesData(FuturesData):
         
         return currency
         
-    def get_fx_data(self, currency1, currency2):
+    def _get_fx_data(self, currency1, currency2):
         """
         Get fx data
         
@@ -221,14 +221,14 @@ class csvFuturesData(FuturesData):
 
         >>> data=csvFuturesData()
         >>> # datapath="tests/"
-        >>> data.get_fx_data("EUR", "USD").tail(2)
+        >>> data._get_fx_data("EUR", "USD").tail(2)
                      EURUSD
         2015-10-30  1.09774
         2015-11-02  1.09827
-        >>> data.get_fx_cross("EUR", "GBP").tail(2)
+        >>> data._get_fx_cross("EUR", "GBP").tail(2)
                           fx
         2015-10-30  0.718219
-        2015-11-02  0.714471        
+        2015-11-02  0.714471
         """    
 
         if currency1==currency2:
