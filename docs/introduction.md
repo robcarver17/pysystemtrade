@@ -387,7 +387,7 @@ Now let's introduce the idea of **config** objects.
 
 (code continues from [same place](/examples/introduction/simplesystem.py) as before)
 
-Configuration objects can be created directly from a dictionary or by reading in files written in (yaml)[http:/pyyaml.org]. To reproduce the setup we had above directly from a directory we'd create this config:
+Configuration objects can be created directly from a dictionary or by reading in files written in [yaml](http://pyyaml.org). To reproduce the setup we had above we'd make a dict like so:
 
 ```python
 from sysdata.configdata import Config
