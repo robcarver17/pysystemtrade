@@ -232,7 +232,7 @@ class csvFuturesData(FuturesData):
         """    
 
         if currency1==currency2:
-            return self.get_default_series()
+            return self._get_default_series()
 
         
         filename=os.path.join(self._datapath, "%s%sfx.csv" % (currency1, currency2))

@@ -6,14 +6,13 @@ This guide is divided into two parts. The first 'How do I?' explains how to do m
 
 ### Create a standard futures backtest
 
-This creates the staunch systems trader example definied in chapter 15 of my book, using the csv data that is provided.
+This creates the staunch systems trader example defined in chapter 15 of my book, using the csv data that is provided, and gives you the position in the Eurodollar market:
 
 ```python
 from systems.futures.basesystem import futures_system
 system=futures_system()
+system.portfolio.get_notional_forecast("EDOLLAR")
 ```
-
-
 
 ### See intermediate results from a backtest
 
@@ -30,9 +29,22 @@ For a complete list of possible intermediate results, see [this table](#table_sy
 
 ### See how profitable a backtest was
 
+```python
+from systems.futures.basesystem import futures_system
+system=futures_system()
+system.accounts.portfolio.stats() ## see some statistics
+system.accounts.portfolio.curve().plot() ## plot an account curve
+system.accounts.portfolio.instrument().plot() ## plot an account curve for each instrument
+```
+
+For more information on what statistics are available, see the [relevant reference section](#standard_accounts_stage).
+
 
 ### Run a backtest on a different set of instruments
 
+You need to change the instrument weights. config_instr_weights
+
+You also need to ensure that you have the data you need for any new instruments. See 'create my own data' below.
 
 
 ### Change backtest parameters 
@@ -63,6 +75,11 @@ For a complete list of possible intermediate results, see [this table](#table_sy
 
 ### Configuration
 
+
+<a name="config_instr_weights">
+#### Instrument weights, and diversification multiplier
+<\a>
+
 ### System
 
 ### Stages: General
@@ -76,9 +93,17 @@ For a complete list of possible intermediate results, see [this table](#table_sy
 
 ### Stage: Rules
 
-### Stage:
+### Stage: Accounting
+
+<a name="standard_accounts_stage">
+#### Using the standard accounts stage
+</a>
+
+
 
 ### Summary information
+
+
 
 <a name="table_system_stage_methods">
 #### Table of standard system.data and system.stage methods
@@ -143,14 +168,14 @@ Private methods are excluded from this table.
 | rawdata.daily_annualised_roll | Futures | instrument_code | D | Annualised roll. Used for carry rule. |
  
 
-##### Trading rules stage
+##### Trading rules stage (chapter 7 of book)
 | Call                              | Standard?| Arguments       | Type | Description                                                    |
 |:-------------------------:|:---------:|:---------------:|:----:|:--------------------------------------------------------------:|
 | rules.trading_rules | Standard  |         | D  | List of trading rule variations |
-| rules.get_raw_forecast | Standard | instrument_code, rule_variation_name |  Get forecast (unscaled, uncapped) |
+| rules.get_raw_forecast | Standard | instrument_code, rule_variation_name | D,O| Get forecast (unscaled, uncapped) |
 
  
-##### Forecast scaling and capping stage
+##### Forecast scaling and capping stage (chapter 7 of book)
 
 | Call                              | Standard?| Arguments       | Type | Description                                                    |
 |:-------------------------:|:---------:|:---------------:|:----:|:--------------------------------------------------------------:|
@@ -160,5 +185,45 @@ Private methods are excluded from this table.
 | forecastScaleCap.get_scaled_forecast | Standard | instrument_code, rule_variation_name        | D  | Get the forecast after scaling (after capping) |
 | forecastScaleCap.get_capped_forecast | Standard | instrument_code, rule_variation_name        | D, O  | Get the forecast after scaling (after capping) |
 
-##### Forecast scaling and capping stage
+##### Combine forecasts stage (chapter 8 of book)
+
+| Call                              | Standard?| Arguments       | Type | Description                                                    |
+|:-------------------------:|:---------:|:---------------:|:----:|:--------------------------------------------------------------:|
+| combForecast.get_capped_forecast | Standard  | instrument_code, rule_variation_name        | I  | forecastScaleCap.get_capped_forecast |
+| combForecast.get_forecast_weights | Standard  | instrument_code        | D  | Forecast weights |
+| combForecast.get_forecast_diversification_multiplier | Standard  | instrument_code        | D  | Get diversification multiplier |
+| combForecast.get_combined_forecast | Standard  | instrument_code        | D,O  | Get weighted average of forecasts for instrument |
+
+
+##### Position sizing stage (chapters 9 and 10 of book)
+| Call                              | Standard?| Arguments       | Type | Description                                                    |
+|:-------------------------:|:---------:|:---------------:|:----:|:--------------------------------------------------------------:|
+| positionSize.get_combined_forecast | Standard  | instrument_code        | I  | combForecast.get_combined_forecast |
+| positionSize.get_price_volatility | Standard | instrument_code        | I  | rawdata.get_daily_percentage_volatility (or data.get_combined_forecast) |
+| positionSize.get_instrument_sizing_data | Standard | instrument_code        | I  | rawdata.get_rawdata.daily_denominator_price( (or data.get_instrument_price); data.get_value_of_block_price_move |
+| positionSize.get_fx_rate | Standard | instrument_code | I | data.get_fx_for_instrument |
+| positionSize.get_daily_cash_vol_target | Standard |  | D | Dictionary of base_currency, percentage_vol_target, notional_trading_capital, annual_cash_vol_target, daily_cash_vol_target |
+| positionSize.get_block_value | Standard | instrument_code | D | Get value of a 1% move in the price |
+| positionSize.get_instrument_currency_vol | Standard | instrument_code |D | Get daily volatility in the currency of the instrument |
+| positionSize.get_instrument_value_vol | Standard | instrument_code |D | Get daily volatility in the currency of the trading account |
+| positionSize.get_volatility_scalar | Standard | instrument_code | D |Get ratio of target volatility vs volatility of instrument in instrument's own currency |
+| positionSize.get_subsystem_position| Standard | instrument_code | D, O |Get position if we put our entire trading capital into one instrument |
+
+##### Portfolio stage (chapter 11 of book)
+| Call                              | Standard?| Arguments       | Type | Description                                                    |
+|:-------------------------:|:---------:|:---------------:|:----:|:--------------------------------------------------------------:|
+| portfolio.get_subsystem_position| Standard | instrument_code | I |positionSize.get_subsystem_position |
+| portfolio.get_instrument_weights| Standard |  | D |Get instrument weights |
+| portfolio.get_instrument_diversification_multiplier| Standard |  | D |Get instrument div. multiplier |
+| portfolio.get_notional_position| Standard | instrument_code | D |Get the *notional* position (with constant risk capital; doesn't allow for adjustments when profits or losses are made) |
+
+##### Accounting stage
+| Call                              | Standard?| Arguments       | Type | Description                                                    |
+|:-------------------------:|:---------:|:---------------:|:----:|:--------------------------------------------------------------:|
+| accounts.get_notional_position| Standard |  | I | portfolio.get_notional_position|
+
+
+#### System parameters
+
+Configuration options, and how to apply through arguments and in config.
 

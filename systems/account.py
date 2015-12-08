@@ -86,17 +86,19 @@ class Account(SystemStage):
         def rules(self, subset=None, percentage=True, isolated=False, sumup=False):
             pass
 
+        def rulegroup(self, subset=None, percentage=True, isolated=False, sumup=False):
+            pass
+        
+        def rulestyle(self, subset=None, percentage=True, isolated=False, sumup=False):
+            pass
+
+        ## these should be in a futures accounting object...
         def assetclass(self, subset=None, percentage=True, isolated=False, sumup=False):
             pass
         
         def country(self, subset=None, percentage=True, isolated=False, sumup=False):
             pass
         
-        def rulegroup(self, subset=None, percentage=True, isolated=False, sumup=False):
-            pass
-        
-        def rulestyle(self, subset=None, percentage=True, isolated=False, sumup=False):
-            pass
         
 
 if __name__ == '__main__':

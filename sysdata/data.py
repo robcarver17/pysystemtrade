@@ -190,7 +190,7 @@ class Data(object):
         """
 
         if currency1==currency2:
-            return self.get_default_series()
+            return self._get_default_series()
 
         ## no data available
         return None
