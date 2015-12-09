@@ -23,20 +23,9 @@ class PortfoliosFixed(SystemStage):
     Name: portfolio
     """
     
-    def __init__(self, instrument_weights=None, instrument_div_multiplier=None):
+    def __init__(self):
         """
         Create a SystemStage for creating portfolios
-        
-        If parameters are not passed will look in system.config
-          
-        :param instrument_weights: Instrument weights
-        :type instrument_weights:    None       (weights will be inherited from system.config)
-                                    dict of floats
-
-        :param instrument_div_multiplier: Multiplier to apply
-        :type instrument_div_multiplier: None (i.d.m. will be inherited from system.config)
-                                       float 
-                
         
                 
         """
@@ -49,8 +38,6 @@ class PortfoliosFixed(SystemStage):
 
         setattr(self, "name", "portfolio")
 
-        setattr(self, "_passed_instrument_weights", instrument_weights)
-        setattr(self, "_passed_instrument_div_multiplier", instrument_div_multiplier)
         
     def get_subsystem_position(self, instrument_code):
         """
@@ -101,24 +88,13 @@ class PortfoliosFixed(SystemStage):
         2015-04-21      0.5   0.5
         2015-04-22      0.5   0.5
         >>>
-        >>> ## pass in to object instead
-        >>> ird=dict(EDOLLAR=0.1, US10=0.9)
-        >>> system2=System([rawdata, rules, posobject, combobject, capobject,PortfoliosFixed(instrument_weights=ird)], data, config)
-        >>> system2.portfolio.get_instrument_weights().tail(2)
-                    EDOLLAR  US10
-        2015-04-21      0.1   0.9
-        2015-04-22      0.1   0.9
-
         """                    
         def _get_instrument_weights(system,  an_ignored_variable,  this_stage ):
 
-            if this_stage._passed_instrument_weights is not None:
-                instrument_weights=this_stage._passed_instrument_weights
-            else:
-                try:
-                    instrument_weights=system.config.instrument_weights
-                except:
-                    raise Exception("Instrument weights must be passed to PortfoliosFixed(...) or in system.config")
+            try:
+                instrument_weights=system.config.instrument_weights
+            except:
+                raise Exception("Instrument weights must be passed to PortfoliosFixed(...) or in system.config")
             
             ## Now we have a dict, fixed_weights.
             ## Need to turn into a timeseries covering the range of forecast dates
@@ -180,9 +156,6 @@ class PortfoliosFixed(SystemStage):
         """
         Get the instrument diversification multiplier
         
-        From: (a) passed into subsystem when created
-              (b) ... if not found then: in system.config.instrument_weights
-        
         :returns: TxK pd.DataFrame containing weights, columns are instrument names, T covers all subsystem positions 
 
         >>> from systems.tests.testdata import get_test_object_futures_with_pos_sizing
@@ -196,24 +169,14 @@ class PortfoliosFixed(SystemStage):
         2015-04-21  1.2
         2015-04-22  1.2
         >>>
-        >>> ## pass in to object instead
-        >>> idm=2.0
-        >>> system2=System([rawdata, rules, posobject, combobject, capobject,PortfoliosFixed(instrument_div_multiplier=idm)], data, config)
-        >>> system2.portfolio.get_instrument_diversification_multiplier().tail(2)
-                    idm
-        2015-04-21    2
-        2015-04-22    2
 
         """                    
         def _get_instrument_div_multiplier(system,  an_ignored_variable,  this_stage ):
 
-            if this_stage._passed_instrument_div_multiplier is not None:
-                div_mult=this_stage._passed_instrument_div_multiplier
-            else:
-                try:
-                    div_mult=system.config.instrument_div_multiplier
-                except:
-                    raise Exception("Instrument div. multiplier must be passed to PortfoliosFixed(...) or in system.config")
+            try:
+                div_mult=system.config.instrument_div_multiplier
+            except:
+                raise Exception("Instrument div. multiplier must be passed to PortfoliosFixed(...) or in system.config")
             
             ## Now we have a fixed weight
             ## Need to turn into a timeseries covering the range of forecast dates

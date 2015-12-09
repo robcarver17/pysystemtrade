@@ -35,20 +35,9 @@ class PositionSizing(SystemStage):
     Name: positionSize
     """
     
-    def __init__(self, percentage_vol_target=None, notional_trading_capital=None, base_currency=None):
+    def __init__(self):
         """
         Create a SystemStage for combining forecasts
-        
-        If parameters are not passed will look in system.config, and then defaults.py
-          
-        :param percentage_vol_target: Percentage (eg 10.0 is 10%) annualised risk target 
-        :type percentage_vol_target: float, or None (will look in config, or defaults for value)
-        
-        :param notional_trading_capital: Cash value of trading capital at start of backtest 
-        :type notional_trading_capital: float, or None (will look in config, or defaults for value)
-
-        :param base_currency: Currency of trading capital eg USD, GBP, ... 
-        :type notional_trading_capital: str, or None (will look in config, or defaults for value)
         
                 
         """
@@ -61,10 +50,6 @@ class PositionSizing(SystemStage):
         setattr(self, "_dont_recalc", dont_delete)
 
         setattr(self, "name", "positionSize")
-
-        setattr(self, "_passed_percentage_vol_target", percentage_vol_target)
-        setattr(self, "_passed_notional_trading_capital", notional_trading_capital)
-        setattr(self, "_passed_base_currency", base_currency)
         
     def get_combined_forecast(self, instrument_code):
         """
@@ -213,38 +198,25 @@ class PositionSizing(SystemStage):
         >>> system.positionSize.get_daily_cash_vol_target()['base_currency']
         'USD'
         >>>
-        >>> ## passed in
-        >>> system=System([rawdata, rules, fcs, comb, PositionSizing(base_currency="CHF")], data, config)
-        >>> system.positionSize.get_daily_cash_vol_target()['base_currency']
-        'CHF'
         
         """
 
         def _get_vol_target(system,  an_ignored_variable,  this_stage ):
 
-            if this_stage._passed_percentage_vol_target is not None:
-                percentage_vol_target=this_stage._passed_percentage_vol_target
-            else:
-                try:
-                    percentage_vol_target=system.config.percentage_vol_target
-                except:
-                    percentage_vol_target=system_defaults['percentage_vol_target']
+            try:
+                percentage_vol_target=system.config.percentage_vol_target
+            except:
+                percentage_vol_target=system_defaults['percentage_vol_target']
                     
-            if this_stage._passed_notional_trading_capital is not None:
-                notional_trading_capital=this_stage._passed_notional_trading_capital
-            else:
-                try:
-                    notional_trading_capital=system.config.notional_trading_capital
-                except:
-                    notional_trading_capital=system_defaults['notional_trading_capital']
+            try:
+                notional_trading_capital=system.config.notional_trading_capital
+            except:
+                notional_trading_capital=system_defaults['notional_trading_capital']
                     
-            if this_stage._passed_base_currency is not None:
-                base_currency=this_stage._passed_base_currency
-            else:
-                try:
-                    base_currency=system.config.base_currency
-                except:
-                    base_currency=system_defaults['base_currency']
+            try:
+                base_currency=system.config.base_currency
+            except:
+                base_currency=system_defaults['base_currency']
 
             annual_cash_vol_target=notional_trading_capital*percentage_vol_target/100.0
             daily_cash_vol_target=annual_cash_vol_target/ROOT_BDAYS_INYEAR

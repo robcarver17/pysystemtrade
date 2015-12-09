@@ -1,14 +1,13 @@
 #YAML
-parameters:
-  vol_norm_return_limit: 6.0
-  volatility_calculation:
-    func: "syscore.algos.robust_vol_calc"
-    days: 35
-  smooth_rolldown_for_carry: 125
-  forecast_cap: 21.0
-percentage_vol_target: 16.0
-notional_trading_capital: 100000
-base_currency: "GBP"
+#
+# Raw data
+#
+volatility_calculation:
+	func: "syscore.algos.robust_vol_calc"
+	days: 35
+#
+# Trading rules
+#
 trading_rules:
   ewmac8:
      function: systems.provided.example.rules.ewmac_forecast_with_defaults_no_vol
@@ -28,11 +27,25 @@ trading_rules:
          Lfast: 16
          Lslow: 64
      forecast_scalar: 7.5
+forecast_cap: 21.0
+#
+# forecast combination
+#
 forecast_weights:
      ewmac8: 0.50
      ewmac16: 0.50
 forecast_div_multiplier: 1.1
+#
+# Capital correction
+#
+percentage_vol_target: 16.0
+notional_trading_capital: 100000
+base_currency: "GBP"
+#
+# Portfolio creation
+#
 instrument_weights:
      EDOLLAR: 0.50
      US10: 0.50
 instrument_div_multiplier: 1.2
+

@@ -1,11 +1,13 @@
 #YAML
-parameters:
-  volatility_calculation:
-    func: "syscore.algos.robust_vol_calc"
-    days: 35
-percentage_vol_target: 20.0
-notional_trading_capital: 250000
-base_currency: "USD"
+#
+# Raw data
+#
+volatility_calculation:
+  func: "syscore.algos.robust_vol_calc"
+  days: 35
+#
+# Trading rules
+#
 trading_rules:
   ewmac2_8:
      function: systems.futures.rules.ewmac
@@ -69,12 +71,25 @@ trading_rules:
      other_args:
          smooth_days: 90
      forecast_scalar: 30
+forecast_cap: 20.0
+#
+# forecast combination
+#
 forecast_weights:
      ewmac16_64: 0.21
      ewmac32_128: 0.08
      ewmac64_256: 0.21
      carry: 0.50
 forecast_div_multiplier: 1.31
+#
+# Capital correction
+#
+percentage_vol_target: 20.0
+notional_trading_capital: 250000
+base_currency: "USD"
+#
+# Portfolio creation
+#
 instrument_weights:
     EDOLLAR: 0.117
     US10: 0.117

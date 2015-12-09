@@ -280,15 +280,61 @@ my_rules.trading_rules()['ewmac32']
 TradingRule; function: <function ewmac_forecast_with_defaults at 0xb7252a4c>, data:  and other_args: Lfast, Lslow
 ```
 
-Now these trading rules aren't producing forecasts that are correctly scaled (with an average absolute value of 10), and they don't have the cap of 20 that I recommend. To fix this we need to add another stage to our system. In future versions of this project we'll be able to estimate forecast scalars on a rolling out of sample basis; but for now we'll just use the fixed values from Appendix B of my book ["Systematic Trading"](http:/www.systematictrading.org).
+```python
+my_system.rules.get_raw_forecast("EDOLLAR", "ewmac").tail(5)
+```
+
+```
+               ewmac
+2015-04-16  3.742889
+2015-04-17  3.918523
+2015-04-20  4.062661
+2015-04-21  4.179868
+2015-04-22  4.041079
+```
+
+
+Now let's introduce the idea of **config** objects. A config or configuration object allows us to control the behaviour of the various stages in the system. So for example 
+
+Configuration objects can be created directly from a dictionary or by reading in files written in yaml (which we'll talk about below). A configuration object is just a collection of attributes. We create them like so:
 
 ```python
+from sysdata.configdata import Config
+my_config=Config()
+my_config
+```
+
+So far, not exciting. Let's see how we'd use a config to define our trading rules:
+
+```python
+empty_rules=Rules()
+my_config.trading_rules=dict(ewmac8=ewmac_8, ewmac32=ewmac_32)
+my_system=System([empty_rules], data, my_config)
+my_system.rules.get_raw_forecast("EDOLLAR", "ewmac").tail(5)
+```
+
+Notice the differences from before:
+
+1. We pass in an 'empty' instance of rules that contains no arguments
+2. We create an element in config: trading_rules, that contains our dictionary of trading rules
+3. The system uses the config.trading_rules
+
+*Note if you'd passed the dict of trading rules into Rules() **and** into the config, the former would be used*
+
+Now these trading rules aren't producing forecasts that are correctly scaled (with an average absolute value of 10), and they don't have the cap of 20 that I recommend. In future versions of this project we'll be able to estimate forecast scalars on a rolling out of sample basis; but for now we'll just use the fixed values from Appendix B of my book ["Systematic Trading"](http:/www.systematictrading.org). To fix this we need to add another stage to our system. 
+
+
+```python
+my_config.forecast_scalars=dict(ewmac8=5.3, ewmac32=2.65)
+
 from systems.forecast_scale_cap import ForecastScaleCapFixed
 
-fcs=ForecastScaleCapFixed(forecast_scalars=dict(ewmac8=5.3, ewmac32=2.65))
-my_system=System([fcs, my_rules], data, my_config)
+fcs=ForecastScaleCapFixed()
+my_system=System([fcs, empty_rules], data, my_config)
 my_system.forecastScaleCap.get_capped_forecast("EDOLLAR", "ewmac32")
 ```
+
+*Note that the order of stages in the list passed to `System([...], ...)` isn't relevant*
 
 
 ```
@@ -304,8 +350,11 @@ Since we have two trading rule variations we're naturally going to want to combi
 
 
 ```python
-combiner=ForecastCombineFixed(forecast_weights=dict(ewmac8=0.5, ewmac32=0.5), forecast_div_multiplier=1.1)
-my_system=System([fcs, my_rules, combiner], data)
+from systems.forecast_combine import ForecastCombineFixed
+my_config.forecast_weights=dict(ewmac8=0.5, ewmac32=0.5)
+my_config.forecast_div_multiplier=1.1
+combiner=ForecastCombineFixed()
+my_system=System([fcs, empty_rules, combiner], data, my_config)
 my_system.combForecast.get_combined_forecast("EDOLLAR").tail(5)
 ```
 
@@ -324,8 +373,13 @@ Let's do the position scaling:
 
 ```python
 from systems.positionsizing import PositionSizing
-possizer=PositionSizing(percentage_vol_target=0.10, notional_trading_capital=50000, base_currency="GBP")
-my_system=System([ fcs, my_rules, combiner, possizer], data)
+possizer=PositionSizing()
+
+my_config.percentage_vol_target=0.10
+my_config.notional_trading_capital=50000
+my_config.base_currency="GBP")
+
+my_system=System([ fcs, empty_rules, combiner, possizer], data, my_config)
 
 my_system.positionSize.get_subsystem_position("EDOLLAR").tail(5)
 ```
@@ -348,8 +402,10 @@ We're almost there. The final stage we need to get positions is to combine every
 
 ```python
 from systems.portfolio import PortfoliosFixed
-portfolio=PortfoliosFixed(instrument_weights=dict(US10=.1, EDOLLAR=.4, CORN=.3, SP500=.8), instrument_div_multiplier=1.5)
-my_system=System([ fcs, my_rules, combiner, possizer, portfolio], data)
+portfolio=PortfoliosFixed()
+my_config.instrument_weights=dict(US10=.1, EDOLLAR=.4, CORN=.3, SP500=.8)
+my_config.instrument_div_multiplier=1.5
+my_system=System([ fcs, empty_rules, combiner, possizer, portfolio], data, my_config)
 
 my_system.portfolio.get_notional_position("EDOLLAR").tail(5)
 ```
@@ -367,8 +423,8 @@ Although this is fine and dandy, we're probably going to be curious about whethe
 
 ```python
 from systems.account import Account
-my_account=Account()
-my_system=System([ fcs, my_rules, combiner, possizer, portfolio, my_account], data)
+account=Account()
+my_system=System([ fcs, empty_rules, combiner, possizer, portfolio, account], data, my_config)
 profits=my_system.account.portfolio()
 profits.stats()
 ```
@@ -379,15 +435,10 @@ FIX ME - OUTPUT GOES HERE
 
 Once again we have the now familiar accounting object.
 
-*Note that the order of stages in the list passed to `System()` isn't relevant*
 
-## Config objects
+## Getting config from dictionaries and files
 
-Now let's introduce the idea of **config** objects.
-
-(code continues from [same place](/examples/introduction/simplesystem.py) as before)
-
-Configuration objects can be created directly from a dictionary or by reading in files written in [yaml](http://pyyaml.org). To reproduce the setup we had above we'd make a dict like so:
+To speed things up you can also pass a dictionary to Config. To reproduce the setup we had above we'd make a dict like so:
 
 ```python
 from sysdata.configdata import Config
@@ -400,7 +451,7 @@ my_config
 Config with elements: base_currency, forecast_div_multiplier, forecast_scalars, forecast_weights, instrument_div_multiplier, instrument_weights, notional_trading_capital, percentage_vol_target, trading_rules
 ```
 
-Alternatively we could get the same result from reading a YAML file ( [this one to be precise](/systems/provided/example/simplesystemconfig.yaml) ). 
+Alternatively we could get the same result from reading a [yaml](http://pyyaml.org) file ( [this one to be precise](/systems/provided/example/simplesystemconfig.yaml) ). Don't worry if you're not familiar with yaml; it's just a nice way of creating nested dicts, lists and other python objects in plain text. Just be aware that indentations are important, just in like python.
 
 ```python
 from syscore.fileutils import get_pathname_for_package
@@ -413,7 +464,7 @@ If you look at the YAML file you'll notice that the trading rule function has be
 
 Similarly for the ewmac8 rule we've specified a data source `data.get_instrument_price`. This is the default, which is why we haven't needed to specify it before, and it isn't included in the specification for the ewmac32 rule. Equally we could specify any attribute and method within the system object, as long as it takes the argument `instrument_code`. We can also have a list of data inputs.This means you can configure almost any trading rule quite easily through configuration changes.
 
-Now we've got a config this next line of code will reproduce what we've already done, but now we use 'empty' instances of stages created without passing any arguments, and let the config tell the system what to do.
+Now we've got a complete config this next line of code will reproduce what we've already done:
 
 ```python
 my_system=System([Account(), PortfoliosFixed(), PositionSizing(), ForecastCombineFixed(), ForecastScaleCapFixed(), Rules()
@@ -423,9 +474,9 @@ my_system=System([Account(), PortfoliosFixed(), PositionSizing(), ForecastCombin
 
 ## A simple pre-baked system
 
-Normally we wouldn't create a system by adding each stage manually. Instead you can use a 'pre baked' system, and then modify it as required. 
+Normally we wouldn't create a system by adding each stage manually (importing and creating long lists of stage objects). Instead you can use a 'pre baked' system, and then modify it as required. 
 
-For example (code is [here](prebakedsystem.spy) )
+For example here is a pre-baked version of the previous example (code is [here](prebakedsystem.spy) ):
 
 ```python
 from systems.provided.example.simplesystem import simplesystem

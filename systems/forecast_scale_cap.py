@@ -19,29 +19,18 @@ class ForecastScaleCapFixed(SystemStage):
     """
     
     
-    def __init__(self, forecast_scalars=dict(), forecast_cap=None):
+    def __init__(self):
         """
         Create a SystemStage for scaling and capping forecasting
         
         Using Fixed capping and scaling
         
-        :param forecast_scalars: Dict of forecast scalars, keynames trading_rule name
-        :type trading_rules:    None     (will get scalars from self.parent.config.trading_rules...forecast_scalar)
-                                dict  (will get scalars from passed dict)
-        
-        :param forecast_cap: Value to cap scaled forecasts at
-        :type forecast_cap: None (will get cap from self.parent.config.parameters.forecast_cap, or from system defaults.py)
-                            float
-                            
         :returns: None
         
         """
         delete_on_recalc=["_forecast_scalars", "_scaled_forecast", "_forecast_cap", "_capped_forecast"]
 
         dont_delete=[]
-        
-        setattr(self, "_passed_forecast_scalars", forecast_scalars)
-        setattr(self, "_passed_forecast_cap", forecast_cap)
         
         setattr(self, "_delete_on_recalc", delete_on_recalc)
         setattr(self, "_dont_recalc", dont_delete)
@@ -109,12 +98,6 @@ class ForecastScaleCapFixed(SystemStage):
         >>> system1.forecastScaleCap.get_forecast_scalar("EDOLLAR", "ewmac8")
         5.3
         >>>
-        >>> ## passed to subsystem
-        >>> fsc=ForecastScaleCapFixed(forecast_scalars=dict(ewmac8=10.0))
-        >>> system2=System([rawdata, rules, fsc], data, config)
-        >>> system2.forecastScaleCap.get_forecast_scalar("EDOLLAR", "ewmac8")
-        10.0
-        >>>
         >>> ## default
         >>> unused=config.trading_rules['ewmac8'].pop('forecast_scalar')
         >>> system3=System([rawdata, rules, ForecastScaleCapFixed()], data, config)
@@ -129,19 +112,15 @@ class ForecastScaleCapFixed(SystemStage):
         """
         
         def _get_forecast_scalar(system,  instrument_code, rule_variation_name, this_stage):
-            ## Try the subsystem stored argument
-            if rule_variation_name in this_stage._passed_forecast_scalars:
-                scalar=this_stage._passed_forecast_scalars[rule_variation_name]
-            else:
-                ## Try the config file
-                    try:
-                        scalar=system.config.trading_rules[rule_variation_name]['forecast_scalar']
-                    except:
-                        try:
-                            scalar=system.config.forecast_scalars[rule_variation_name]
-                        except:
-                            ## go with defaults
-                            scalar=system_defaults['forecast_scalar']
+            ## Try the config file
+            try:
+                scalar=system.config.trading_rules[rule_variation_name]['forecast_scalar']
+            except:
+                try:
+                    scalar=system.config.forecast_scalars[rule_variation_name]
+                except:
+                    ## go with defaults
+                    scalar=system_defaults['forecast_scalar']
         
             return scalar
         
@@ -155,8 +134,8 @@ class ForecastScaleCapFixed(SystemStage):
         
         In this simple version it's the same for all instruments, and rule variations
         
-        We get the cap from:     (a) passed argument when this subsystem created
-                                 (b) ... or if missing: configuration file in parent system
+        We get the cap from:     
+                                 (a)  configuration object in parent system
                                  (c) or if missing: uses the forecast_cap from systems.default.py
         
         :param instrument_code: 
@@ -176,11 +155,6 @@ class ForecastScaleCapFixed(SystemStage):
         >>> system.forecastScaleCap.get_forecast_cap("EDOLLAR", "ewmac8")
         21.0
         >>>
-        >>> ## passed to subsystem
-        >>> system2=System([rawdata, rules, ForecastScaleCapFixed(forecast_cap=2.0)], data, config)
-        >>> system2.forecastScaleCap.get_forecast_cap("EDOLLAR", "ewmac8")
-        2.0
-        >>>
         >>> ## default
         >>> unused=config.parameters.pop('forecast_cap')
         >>> system3=System([rawdata, rules, ForecastScaleCapFixed()], data, config)
@@ -190,16 +164,12 @@ class ForecastScaleCapFixed(SystemStage):
         """
 
         def _get_forecast_cap(system,  instrument_code, rule_variation_name, this_stage):
-            ## Try the subsystem stored argument
-            if this_stage._passed_forecast_cap is not None:
-                cap=this_stage._passed_forecast_cap
-            else:
-                ## Try the config file
-                    try:
-                        cap=system.config.parameters['forecast_cap']
-                    except:
-                        ## go with defaults
-                        cap=system_defaults['forecast_cap']
+            ## Try the config file
+            try:
+                cap=system.config.forecast_cap
+            except:
+                ## go with defaults
+                cap=system_defaults['forecast_cap']
         
             return cap
         

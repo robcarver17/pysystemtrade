@@ -26,7 +26,6 @@ class RawData(SystemStage):
         """
         Create a new stage: raw data object
 
-        :returns: None
         """
         
         ## As with all stages any data that methods produce needs to be stored in a dict, indexed here
@@ -178,7 +177,9 @@ class RawData(SystemStage):
         
         This is done using a user defined function
         
-        We can eithier inherit this from the config file, or pass eg: volconfig=dict(func="module.file.funcname, arg1=...)
+        We get this from:
+          the configuration object
+          or if not found, system.defaults.py
         
         The dict must contain func key; anything else is optional
 
@@ -209,9 +210,9 @@ class RawData(SystemStage):
         2015-04-21  0.057053
         2015-04-22  0.058340
         >>>
-        >>> config=Config(dict(parameters=dict(volatility_calculation=dict(func="syscore.algos.robust_vol_calc", days=200))))
-        >>> system=System([rawdata], data, config)
-        >>> system.rawdata.daily_returns_volatility("EDOLLAR").tail(2)
+        >>> config=Config(dict(volatility_calculation=dict(func="syscore.algos.robust_vol_calc", days=200)))
+        >>> system2=System([rawdata], data, config)
+        >>> system2.rawdata.daily_returns_volatility("EDOLLAR").tail(2)
                          vol
         2015-04-21  0.065903
         2015-04-22  0.066014
@@ -219,13 +220,14 @@ class RawData(SystemStage):
         """
         def _daily_returns_volatility(system, instrument_code,  this_stage):
             dailyreturns=this_stage.daily_returns(instrument_code)
+
             try:
                 volconfig=copy(system.config.parameters['volatility_calculation'])
-                identify_error="inherited from data object"
+                identify_error="inherited from config object"
             except:
                 volconfig=copy(system_defaults['volatility_calculation'])
                 identify_error="found in system.defaults.py"
-
+    
             if "func" not in volconfig:
                 
                 raise Exception("The volconfig dict (%s) needs to have a 'func' key" % identify_error)

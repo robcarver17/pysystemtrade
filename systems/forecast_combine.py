@@ -19,22 +19,10 @@ class ForecastCombineFixed(SystemStage):
     Name: combForecast
     """
     
-    def __init__(self, forecast_weights=dict(), forecast_div_multiplier=dict()):
+    def __init__(self):
         """
         Create a SystemStage for combining forecasts
         
-        If forecast_weights, and forecast_div_multiplier are not passed will get them from system.config
-        
-          
-        :param forecast_weights: Dict or nested dict of weights 
-        :type forecast_weights:    empty dict       (weights will be inherited from system.config)
-                                dict (key names: rule variation names) of float 
-                                nested dict (key names: instrument names; then rulevariation names) of float
-
-        :param forecast_div_multiplier: float or dict of forecast multipliers
-        :type forecast_div_multiplier: empty dict (f.d.m. will be inherited from system.config)
-                                       float 
-                                       dict of floats (key names: instrument names)
                 
         """
         delete_on_recalc=['_combined_forecast']
@@ -45,9 +33,6 @@ class ForecastCombineFixed(SystemStage):
         setattr(self, "_dont_recalc", dont_delete)
 
         setattr(self, "name", "combForecast")
-
-        setattr(self, "_passed_forecast_weights", forecast_weights)
-        setattr(self, "_passed_forecast_div_multiplier", forecast_div_multiplier)
     
     def get_capped_forecast(self, instrument_code, rule_variation_name):
         """
@@ -107,31 +92,11 @@ class ForecastCombineFixed(SystemStage):
         2015-04-22      0.1     0.9
         >>>
         >>> 
-        >>> ## now with passed argumnents
-        >>> system3=System([rawdata, rules, fcs, ForecastCombineFixed(forecast_weights=dict(ewmac8=0.6, ewmac16=0.4))], data, config)
-        >>> system3.combForecast.get_forecast_weights("EDOLLAR").tail(2)
-                    ewmac16  ewmac8
-        2015-04-21      0.4     0.6
-        2015-04-22      0.4     0.6
-        >>>
-        >>> system4=System([rawdata, rules, fcs, ForecastCombineFixed(forecast_weights=dict(EDOLLAR=dict(ewmac8=0.3, ewmac16=0.7)))], data, config)
-        >>> system4.combForecast.get_forecast_weights("EDOLLAR").tail(2)
-                    ewmac16  ewmac8
-        2015-04-21      0.7     0.3
-        2015-04-22      0.7     0.3
         """                    
         def _get_forecast_weight(system,  instrument_code,  this_stage ):
 
-            
-            if instrument_code in this_stage._passed_forecast_weights:
-                fixed_weights=this_stage._passed_forecast_weights[instrument_code]
-            elif len(this_stage._passed_forecast_weights)>0:
-                ## must be a non nested dict
-                fixed_weights=this_stage._passed_forecast_weights
-            
-            ## Okay we were passed a length zero dict; i.e. nothing
             ## Let's try the config
-            elif "forecast_weights" in dir(system.config):
+            if "forecast_weights" in dir(system.config):
                 
                 if instrument_code in system.config.forecast_weights:
                     ## nested dict
@@ -175,8 +140,7 @@ class ForecastCombineFixed(SystemStage):
         
         Get the diversification multiplier for this instrument
 
-        From: (a) passed into subsystem when created
-              (b) ... if not found then: in system.config.instrument_weights
+        From: system.config.instrument_weights
         
         :param instrument_code: instrument to get multiplier for
         :type instrument_code: str 
@@ -203,33 +167,12 @@ class ForecastCombineFixed(SystemStage):
         2015-04-21    2
         2015-04-22    2
         >>>
-        >>> ## now with passed argumnents
-        >>> system3=System([rawdata, rules, fcs, ForecastCombineFixed(forecast_div_multiplier=1.5)], data, config)
-        >>> system3.combForecast.get_forecast_diversification_multiplier("EDOLLAR").tail(2)
-                    fdm
-        2015-04-21  1.5
-        2015-04-22  1.5
-        >>>
-        >>> system4=System([rawdata, rules, fcs, ForecastCombineFixed(forecast_div_multiplier=2.5)], data, config)
-        >>> system4.combForecast.get_forecast_diversification_multiplier("EDOLLAR").tail(2)
-                    fdm
-        2015-04-21  2.5
-        2015-04-22  2.5
 
         """                    
         def _get_forecast_div_multiplier(system,  instrument_code,  this_stage ):
             
-            if type(this_stage._passed_forecast_div_multiplier) is float:
-                ## single value for all keys
-                fixed_div_mult=this_stage._passed_forecast_div_multiplier
-                
-            elif instrument_code in this_stage._passed_forecast_div_multiplier.keys():
-                ## Must be a dict
-                fixed_div_mult=this_stage._passed_forecast_div_multiplier[instrument_code]
-                
-            ## Okay we were passed a length zero dict; i.e. nothing (or one missing the instrument at least)
             ## Let's try the config
-            elif "forecast_div_multiplier" in dir(system.config):
+            if "forecast_div_multiplier" in dir(system.config):
                 if type(system.config.forecast_div_multiplier) is float:
                     fixed_div_mult=system.config.forecast_div_multiplier
                     
@@ -239,7 +182,7 @@ class ForecastCombineFixed(SystemStage):
                 else:
                     raise Exception("Missing key of %s in dict of forecast_div_multiplier in config" % instrument_code)
             else:
-                raise Exception("Need to specify a dict of forecast_weights eithier in config.forecast_weights, or ForecastCombineFixed(forecast_weights=...)")
+                raise Exception("Need to specify a dict of forecast_weights in config.forecast_weights")
             
             ## Now we have a dict, fixed_weights.
             ## Need to turn into a timeseries covering the range of forecast dates
