@@ -96,7 +96,7 @@ system.config.instrument_weights=new_weights
 system.config.instrument_div_multiplier=new_idm
 ```
 
-
+ 
 <a name="change_backtest_parameters">
 ### Change backtest parameters 
 </a>
@@ -104,9 +104,19 @@ system.config.instrument_div_multiplier=new_idm
 The backtest looks for its configuration information 
 
 1. Arguments passed when creating a stage object
-2. 
+2. Elements in the configuration ob
 3. Project defaults 
 
+This suggests that you can modify the systems behaviour in any of the following ways:
+
+1. Create a new stage object, passing in the 
+2. Change
+3. Change the configuration object 
+4. Change the project defaults (not recommended)
+
+For the time 
+
+If you
 
 ### Save my work
 
