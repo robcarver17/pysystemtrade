@@ -24,22 +24,11 @@ class Data(object):
     """
     
     
-    def __init__(self, price_dict=dict()):
+    def __init__(self):
         
         """
-        Config objects control the behaviour of systems 
-        
-        :param price_dict: Optionally a dictionary of prices, keyword instrument names 
-        :type price_dict: Dict of Tx1 pd.DataFrame (not checked here)
-        
-        :returns: new Data object
-    
-        >>> data=Data(dict(a=[]))
-        >>> data
-        Data object with 1 instruments
-
+        Data socket base class 
         """
-        setattr(self, "_pricedict", price_dict)
 
     def __repr__(self):
         return "Data object with %d instruments" % len(self.get_instrument_list())    
@@ -55,21 +44,8 @@ class Data(object):
         
         :returns: pd.DataFrame
     
-        >>> import pandas as pd
-        >>> price=pd.DataFrame(dict(price=[2.0, 2.4, 2.2, 2.7]), pd.date_range(pd.datetime(2015,1,1), periods=4))
-        >>> data=Data(dict(a=price))
-        >>> data.get_instrument_price("a")
-                    price
-        2015-01-01    2.0
-        2015-01-02    2.4
-        2015-01-03    2.2
-        2015-01-04    2.7
-        
         """
-        if instrument_code in self._pricedict:
-            return self._pricedict[instrument_code]
-        else:
-            raise Exception("You have created a Data() object missing key value %s; you might need to use a more specific data object" % instrument_code)
+        raise Exception("You have created a Data() object; you might need to use a more specific data object" % instrument_code)
 
         
     def __getitem__(self, keyname):
@@ -80,16 +56,6 @@ class Data(object):
         :type keyname: str
         
         :returns: pd.DataFrame 
-    
-        >>> import pandas as pd
-        >>> price=pd.DataFrame(dict(price=[2.0, 2.4, 2.2, 2.7]), pd.date_range(pd.datetime(2015,1,1), periods=4))
-        >>> data=Data(dict(a=price))
-        >>> data["a"]
-                    price
-        2015-01-01    2.0
-        2015-01-02    2.4
-        2015-01-03    2.2
-        2015-01-04    2.7
         """
         price=self.get_instrument_price(keyname)
         
@@ -102,12 +68,8 @@ class Data(object):
         
         :returns: list of str
     
-        >>> data=Data(dict(a=[]))
-        >>> data.get_instrument_list()
-        ['a']
         """
-        # trivial if a dictionary
-        return list(self._pricedict.keys())
+        raise Exception("You have created a Data() object; you might need to use a more specific data object")
 
     def keys(self):
         """

@@ -94,7 +94,7 @@ class PortfoliosFixed(SystemStage):
             try:
                 instrument_weights=system.config.instrument_weights
             except:
-                raise Exception("Instrument weights must be passed to PortfoliosFixed(...) or in system.config")
+                raise Exception("Instrument weights must be in system.config")
             
             ## Now we have a dict, fixed_weights.
             ## Need to turn into a timeseries covering the range of forecast dates

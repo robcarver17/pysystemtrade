@@ -15,7 +15,12 @@ None that I know of
 
 portfolio p&l
 
+fix up default.py
+defaults for IDM, FDM to be used
+check on the fly add trading rules works
+remove fixed values of 10.0
 remove bad imports
+run all tests
 
 
 docs- intro, tutorial, api reference, developer documentation
@@ -27,6 +32,8 @@ system cleaning
 
 * Simulation:
 
+  * which instruments in a portfolio?
+  * add account object to portfolio stage for ease of use
   * estimated trades; with buffering of trades
   * vol targeting with capital adjustment
   * Rolling estimate of forecast scalars

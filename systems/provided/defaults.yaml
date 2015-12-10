@@ -1,0 +1,34 @@
+# YAML
+#
+# Raw data
+#
+volatility_calculation:
+  func: "syscore.algos.robust_vol_calc"
+  days: 35
+  min_periods: 10
+  vol_abs_min: 0.0000000001 
+  vol_floor: True
+  floor_min_quant: 0.05
+  floor_min_periods: 100
+  floor_days: 500
+#
+# forecast capping and scaling
+#
+forecast_scalar: 1.0
+forecast_cap: 20.0
+average_absolute_forecast=10.0
+#
+# forecast combination
+#
+forecast_div_multiplier: 1.0
+#
+# Capital correction
+#
+percentage_vol_target: 16.0
+notional_trading_capital: 1000000
+base_currency: "USD"
+#
+# Portfolio creation
+#
+instrument_div_multiplier: 1.0
+

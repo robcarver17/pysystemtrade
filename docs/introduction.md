@@ -270,8 +270,8 @@ Time to reveal what the mysterious object is. A `TradingRule` contains 3 element
 There are a few different ways to define trading rules completely. I'll use a couple of different ones here:
 
 ```python
-ewmac_8=TradingRule((ewmac, [], dict(Lfast=8, Lslow=32)))
-ewmac_32=TradingRule(dict(function=ewmac, other_args=dict(Lfast=32, Lslow=128)))
+ewmac_8=TradingRule((ewmac, [], dict(Lfast=8, Lslow=32))) ## as a tuple (function, data, other_args) notice the empty element in the middle
+ewmac_32=TradingRule(dict(function=ewmac, other_args=dict(Lfast=32, Lslow=128)))  ## as a dict
 my_rules=Rules(dict(ewmac8=ewmac_8, ewmac32=ewmac_32))
 my_rules.trading_rules()['ewmac32']
 ```
@@ -294,14 +294,18 @@ my_system.rules.get_raw_forecast("EDOLLAR", "ewmac").tail(5)
 ```
 
 
-Now let's introduce the idea of **config** objects. A config or configuration object allows us to control the behaviour of the various stages in the system. So for example 
+Now let's introduce the idea of **config** objects. A config or configuration object allows us to control the behaviour of the various stages in the system. 
 
-Configuration objects can be created directly from a dictionary or by reading in files written in yaml (which we'll talk about below). A configuration object is just a collection of attributes. We create them like so:
+Configuration objects can be created on the fly or by reading in files written in yaml (which we'll talk about below). A configuration object is just a collection of attributes. We create them interactively like so:
 
 ```python
 from sysdata.configdata import Config
 my_config=Config()
 my_config
+```
+
+```
+FIX ME OUTPUT
 ```
 
 So far, not exciting. Let's see how we'd use a config to define our trading rules:
@@ -319,7 +323,7 @@ Notice the differences from before:
 2. We create an element in config: trading_rules, that contains our dictionary of trading rules
 3. The system uses the config.trading_rules
 
-*Note if you'd passed the dict of trading rules into Rules() **and** into the config, the former would be used*
+*Note if you'd passed the dict of trading rules into Rules()* **and** *into the config, the former would be used*
 
 Now these trading rules aren't producing forecasts that are correctly scaled (with an average absolute value of 10), and they don't have the cap of 20 that I recommend. In future versions of this project we'll be able to estimate forecast scalars on a rolling out of sample basis; but for now we'll just use the fixed values from Appendix B of my book ["Systematic Trading"](http:/www.systematictrading.org). To fix this we need to add another stage to our system. 
 

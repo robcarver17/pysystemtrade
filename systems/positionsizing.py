@@ -1,6 +1,5 @@
-
-from systems.stage import SystemStage
 from systems.defaults import system_defaults
+from systems.stage import SystemStage
 from syscore.objects import calc_or_cache, ALL_KEYNAME
 from syscore.pdutils import multiply_df_single_column, divide_df_single_column
 from syscore.dateutils import ROOT_BDAYS_INYEAR
@@ -206,17 +205,17 @@ class PositionSizing(SystemStage):
             try:
                 percentage_vol_target=system.config.percentage_vol_target
             except:
-                percentage_vol_target=system_defaults['percentage_vol_target']
+                percentage_vol_target=system_defaults.percentage_vol_target
                     
             try:
                 notional_trading_capital=system.config.notional_trading_capital
             except:
-                notional_trading_capital=system_defaults['notional_trading_capital']
+                notional_trading_capital=system_defaults.notional_trading_capital
                     
             try:
                 base_currency=system.config.base_currency
             except:
-                base_currency=system_defaults['base_currency']
+                base_currency=system_defaults.base_currency
 
             annual_cash_vol_target=notional_trading_capital*percentage_vol_target/100.0
             daily_cash_vol_target=annual_cash_vol_target/ROOT_BDAYS_INYEAR
