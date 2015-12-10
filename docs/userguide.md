@@ -453,8 +453,9 @@ Methods that you'll probably want to override:
 - `get_instrument_currency`: Returns str
 - `_get_fx_data(currency1, currency2)`  Returns Tx1 pandas data frame
 
-You should not override get_fx_for_instrument, or any of the other private fx related methods. Once , then these methods will interact to give the correct fx rate for get_fx_for_instrument(), handling cross rates and working them out when needed.
+You should not override get_fx_for_instrument, or any of the other private fx related methods. Once you've created a _get_fx_data method, then these methods will interact in the Data () base class methods to give the correct fx rate for get_fx_for_instrument(), handling cross rates and working them out when needed.
  
+Finally data methods should not do any caching and store results that are read in. [Caching](#caching) is done within the system.
 
 #### Creating a new type of data (or extending an existing one)
 
@@ -611,17 +612,18 @@ Under the hood this is effectively getting a configuration from a .yaml file - [
 
 #### Creating a configuration object from a list
 
-We can also pass a list into Config(), where each item of the list contains a dict or filename. For example we could do this with the simple example above:
+We can also pass a list into Config(), where each item of the list contains a dict or filename. For example we could do this with the simple filename example above:
 
 ```python
 from sysdata.configdata import Config
 
-my_config_dict=dict(optionone=1, optiontwo=dict(a=3.0, b="beta", c=["a", "b"]), optionthree=[1.0, 2.0])
-
+my_config_dict=dict(optionfour=1, optionfive=dict(one=1, two=2.0))
 my_config=Config(["filename.yaml", my_config_dict])
 ```
 
-However, since there are overlapping keynames in these 
+Note that if there are overlapping keynames, then those in latter parts of the list of configs will override earlier versions. 
+
+This can be useful if, for example, we wanted to change the instrument weights 'on the fly' but keep the rest of the configuration unchanged.
 
 <a name="defaults">
 ### Defaults
@@ -746,16 +748,152 @@ It shouldn't be neccessary to modify the configuration class since it's delibera
 
 ## System
 
+A system object consists of a number of stages, some data and possibly a config object.
+
+
+### Pre-baked systems
+
+We can create a system from an existing 'pre-baked system'. These 
+
+```python
+from systems.provided.futures_chapter15.basesystem import futures_system
+system=futures_system()
+```
+
+We can include our own data, and / or configuration, in such a system:
+
+```python
+system=futures_system(data=my_data)
+system=futures_system(config=my_config)
+system=futures_system(data=my_data, config=my_config)
+```
+
+Finally we can also create our own [trading rules object](#rules), and pass that in. This is useful for interactive model development.
+
+```python
+from systems.forecasting import Rules
+my_rules=dict(rule=a_new_rule) ## rather trivial example which won't affect the system's behaviour
+system=futures_system(trading_rules=my_rules) ## we might need a new configuration as well here if we're changing instrument weights
+```
+
+
+#### [Futures system for chapter 15](/systems/provided/futures_chapter15)
+
+This system implements the framework in chapter 15 of my book.
+
+```python
+from systems.provided.futures_chapter15.basesystem import futures_system
+system=futures_system()
+```
+
+
+Effectively it implements the following:
+
+```python
+from sysdata.csvdata import csvFuturesData
+from sysdata.configdata import Config
+from syscore.fileutils import get_pathname_for_package
+
+from systems.forecasting import Rules
+from systems.basesystem import System
+from systems.forecast_combine import ForecastCombineFixed
+from systems.forecast_scale_cap import ForecastScaleCapFixed
+from systems.futures.rawdata import FuturesRawData
+from systems.positionsizing import PositionSizing
+from systems.portfolio import PortfoliosFixed
+from systems.account import Account
+
+data=csvFuturesData()
+config=Config(get_pathname_for_package("systems", ["provided","futures_chapter15","futuresconfig.yaml"]))
+
+## Given an object trading_rules:
+system=System([Account(), PortfoliosFixed(), PositionSizing(), FuturesRawData(), ForecastCombineFixed(), 
+                   ForecastScaleCapFixed(), Rules(trading_rules)], data, config)
+```
+
 
 
 <a name="caching">
 ### System Caching
 </a>
 
-The data object doesn't actually store any information. So any caching will be done in the system.
+The only interesting thing that 
 
+The data object doesn't actually store any information, and . So any caching will be done in the system.
+
+
+### Creating a new 'pre-baked' system
+
+It's worth creating a new pre-baked system if you're likely to  want to repeat a backtest, or when you've settled on a system you want to paper or live trade.
+
+The elements of a new pre-baked system will be:
+
+1. New stages, or a difference choice of existing stages.
+2. A set of data (eithier new or existing)
+3. A configuration file
+4. A python function that loads the above elements, and returns a system object
+
+To remain organised it's good practice to save your configuration file and python function into a directory like `pysystemtrade/private/this_system_name/` (you'll need to create a couple of directories first). If you plan to contribute to github, just be careful to avoid adding 'private' to your commit ( [you may want to read this](https://24ways.org/2013/keeping-parts-of-your-codebase-private-on-github/) ). If you have novel data you're using for this system, you may also want to save it in the same directory.
+
+Then it's a case of creating the python function. Here is an extract from the futures_system 
+
+```python
+## We probably need these to get our data
+
+from sysdata.csvdata import csvFuturesData
+from sysdata.configdata import Config
+from syscore.fileutils import get_pathname_for_package
+
+## We now import all the stages we need
+from systems.forecasting import Rules
+from systems.basesystem import System
+from systems.forecast_combine import ForecastCombineFixed
+from systems.forecast_scale_cap import ForecastScaleCapFixed
+from systems.futures.rawdata import FuturesRawData
+from systems.positionsizing import PositionSizing
+from systems.portfolio import PortfoliosFixed
+from systems.account import Account
+
+
+def futures_system( data=None, config=None, trading_rules=None):
+    """
+    
+    :param data: data object (defaults to reading from csv files)
+    :type data: sysdata.data.Data, or anything that inherits from it
+    
+    :param config: Configuration object (defaults to futuresconfig.yaml in this directory)
+    :type config: sysdata.configdata.Config
+    
+    :param trading_rules: Set of trading rules to use (defaults to set specified in config object)
+    :param trading_rules: list or dict of TradingRules, or something that can be parsed to that
+    
+    """
+    
+    if data is None:
+        data=csvFuturesData()
+    
+    if config is None:
+        config=Config(get_pathname_for_package("systems", ["provided","futures_chapter15","futuresconfig.yaml"]))
+        
+    ## It's nice to keep the option to dynamically load trading rules but if you prefer you can remove this and set rules=Rules() here
+    rules=Rules(trading_rules)
+
+    ## build the system
+    system=System([Account(), PortfoliosFixed(), PositionSizing(), FuturesRawData(), ForecastCombineFixed(), 
+                   ForecastScaleCapFixed(), rules], data, config)
+    
+    return system
+```
+
+
+### Changing or making 
+
+It shouldn't be neccessary to modify or create a new System() class.
+
+
+<a name="stage_general">
 ## Stages: General
-
+</a>
 
 <a name="stage_wiring">
 ### Stage 'wiring'

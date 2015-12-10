@@ -47,7 +47,7 @@ def futures_system( data=None, config=None, trading_rules=None):
         data=csvFuturesData()
     
     if config is None:
-        config=Config(get_pathname_for_package("systems", ["futures","futuresconfig.yaml"]))
+        config=Config(get_pathname_for_package("systems", ["provided","futures_chapter15","futuresconfig.yaml"]))
         
     rules=Rules(trading_rules)
 

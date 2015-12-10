@@ -19,6 +19,7 @@ fix up default.py
 defaults for IDM, FDM to be used
 check on the fly add trading rules works
 remove fixed values of 10.0
+default to equal weights
 remove bad imports
 run all tests
 
