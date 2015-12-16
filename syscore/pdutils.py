@@ -4,10 +4,9 @@ Utilities to help with pandas
 
 import pandas as pd
 import numpy as np
-from syscore.fileutils import get_pathname_for_package
-import os
+from syscore.fileutils import get_filename_for_package
 
-def pd_readcsv_frompackage(*args):
+def pd_readcsv_frompackage(filename):
     """
     Run pd_readcsv on a file in python 
 
@@ -18,7 +17,7 @@ def pd_readcsv_frompackage(*args):
     
     """
     
-    full_filename=get_pathname_for_package(*args)
+    full_filename=get_filename_for_package(filename)
     return pd_readcsv(full_filename)
 
 def pd_readcsv(filename, date_index_name="DATETIME"):

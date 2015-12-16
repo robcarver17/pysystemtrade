@@ -17,8 +17,7 @@ from sysdata.futuresdata import FuturesData
 """
 Static variables to store location of data
 """
-LEGACY_DATA_MODULE="sysdata"
-LEGACY_DATA_DIR="legacycsv"
+LEGACY_DATA_PATH="sysdata.legacycsv"
 
 class csvFuturesData(FuturesData):
     """
@@ -48,8 +47,9 @@ class csvFuturesData(FuturesData):
         """
 
         if datapath is None:            
-            datapath=get_pathname_for_package(LEGACY_DATA_MODULE, LEGACY_DATA_DIR)
-
+            datapath=LEGACY_DATA_PATH
+        
+        datapath=get_pathname_for_package(datapath)
         """
         Most Data objects that read data from a specific place have a 'source' of some kind
         Here it's a directory
@@ -66,7 +66,7 @@ class csvFuturesData(FuturesData):
         
         :returns: pd.DataFrame
 
-        >>> data=csvFuturesData(datapath="tests/")
+        >>> data=csvFuturesData("sysdata.tests")
         >>> data.get_instrument_price("EDOLLAR").tail(2)
                       price
         2015-04-21  97.9050
@@ -95,7 +95,7 @@ class csvFuturesData(FuturesData):
         
         :returns: pd.DataFrame
     
-        >>> data=csvFuturesData(datapath="tests/")
+        >>> data=csvFuturesData("sysdata.tests")
         >>> data.get_instrument_raw_carry_data("EDOLLAR").tail(5)
                      PRICE    CARRY CARRY_CONTRACT PRICE_CONTRACT
         2015-04-16  97.860  97.9350         201806         201809
@@ -120,7 +120,7 @@ class csvFuturesData(FuturesData):
                 
         :returns: pd.DataFrame
 
-        >>> data=csvFuturesData(datapath="tests/")
+        >>> data=csvFuturesData("sysdata.tests")
         >>> data._get_instrument_data()
                    Instrument  Pointsize AssetClass Currency
         Instrument                                          
@@ -140,7 +140,7 @@ class csvFuturesData(FuturesData):
         
         :returns: list of str
 
-        >>> data=csvFuturesData(datapath="tests/")
+        >>> data=csvFuturesData("sysdata.tests")
         >>> data.get_instrument_list()
         ['EDOLLAR', 'US10']
         >>> data.keys()
@@ -157,7 +157,7 @@ class csvFuturesData(FuturesData):
         """
         Returns dataframe with index of instruments, column AssetClass
 
-        >>> data=csvFuturesData(datapath="tests/")
+        >>> data=csvFuturesData("sysdata.tests")
         >>> data.get_instrument_asset_classes()
         Instrument
         EDOLLAR    STIR
@@ -178,7 +178,7 @@ class csvFuturesData(FuturesData):
         
         :returns: float
 
-        >>> data=csvFuturesData(datapath="tests/")
+        >>> data=csvFuturesData("sysdata.tests")
         >>> data.get_value_of_block_price_move("EDOLLAR")
         2500
         """
@@ -197,7 +197,7 @@ class csvFuturesData(FuturesData):
         
         :returns: str
 
-        >>> data=csvFuturesData(datapath="tests/")
+        >>> data=csvFuturesData("sysdata.tests")
         >>> data.get_instrument_currency("US10")
         'USD'
         """

@@ -10,7 +10,6 @@ from systems.basesystem import System
 from systems.rawdata import RawData
 from sysdata.configdata import Config
 from sysdata.csvdata import csvFuturesData
-from syscore.fileutils import get_pathname_for_package
 
 
 
@@ -19,8 +18,7 @@ class Test(unittest.TestCase):
     def testRules(self):
         
         #config=Config(dict(trading_rules=dict(ewmac=dict(function="systems.provided.example.rules.ewmac_forecast_with_defaults"))))
-        datapath=get_pathname_for_package("sysdata", ["tests"])
-        data=csvFuturesData(datapath=datapath)
+        data=csvFuturesData("sysdata.tests")
         
         rules=Rules(dict(function="systems.provided.example.rules.ewmac_forecast_with_defaults"))
         system=System([rules], data)
@@ -34,7 +32,7 @@ class Test(unittest.TestCase):
         ans=system.rules.get_raw_forecast("EDOLLAR", "ewmac")
         self.assertAlmostEqual(ans.iloc[-1][0], 4.0410786602, 5)
         
-        config=Config(get_pathname_for_package("systems", ["provided","example", "exampleconfig.yaml"]))
+        config=Config("systems.provided.example.exampleconfig.yaml")
         rawdata=RawData()
  
         rules=Rules()
@@ -100,8 +98,7 @@ class Test(unittest.TestCase):
     def testCallingTradingRule(self):
         
         #config=Config(dict(trading_rules=dict(ewmac=dict(function="systems.provided.example.rules.ewmac_forecast_with_defaults"))))
-        datapath=get_pathname_for_package("sysdata", ["tests"])
-        data=csvFuturesData(datapath=datapath)
+        data=csvFuturesData("sysdata.tests")
         
         rawdata=RawData()
         rules=Rules()

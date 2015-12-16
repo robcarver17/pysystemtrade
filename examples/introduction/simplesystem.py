@@ -152,8 +152,7 @@ print(my_system.portfolio.get_notional_position("EDOLLAR").tail(5))
 """
 ... or to import one
 """
-from syscore.fileutils import get_pathname_for_package
-my_config=Config(get_pathname_for_package("systems", "provided", "example", "simplesystemconfig.yaml"))
+my_config=Config("systems.provided.example.simplesystemconfig.yaml")
 print(my_config)
 my_system=System([Account(), PortfoliosFixed(), PositionSizing(),  ForecastCombineFixed(), ForecastScaleCapFixed(), Rules()
 ], data, my_config)

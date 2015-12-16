@@ -6,7 +6,6 @@ A system consists of a system, plus a config
 '''
 from sysdata.csvdata import csvFuturesData
 from sysdata.configdata import Config
-from syscore.fileutils import get_pathname_for_package
 
 from systems.forecasting import Rules
 from systems.basesystem import System
@@ -47,7 +46,7 @@ def futures_system( data=None, config=None, trading_rules=None):
         data=csvFuturesData()
     
     if config is None:
-        config=Config(get_pathname_for_package("systems", "provided","futures_chapter15","futuresconfig.yaml"))
+        config=Config("systems.provided.futures_chapter15.futuresconfig.yaml")
         
     rules=Rules(trading_rules)
 

@@ -1,6 +1,5 @@
 from sysdata.csvdata import csvFuturesData
 from sysdata.configdata import Config
-from syscore.fileutils import get_pathname_for_package
 
 from systems.forecasting import Rules
 from systems.basesystem import System
@@ -16,7 +15,7 @@ def simplesystem(data=None, config=None):
     Example of how to 'wrap' a complete system
     """
     if config is None:
-        config=Config(get_pathname_for_package("systems", ["provided", "example", "simplesystemconfig.yaml"]))
+        config=Config("systems.provided.example.simplesystemconfig.yaml")
     if data is None:
         data=csvFuturesData()
 

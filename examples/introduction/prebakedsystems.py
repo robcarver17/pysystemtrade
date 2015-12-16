@@ -6,13 +6,12 @@ print(my_system.portfolio.get_notional_position("EDOLLAR").tail(5))
 
 from sysdata.csvdata import csvFuturesData
 from sysdata.configdata import Config
-from syscore.fileutils import get_pathname_for_package
 
 """
 Now loading config and data
 """
 
-my_config=Config(get_pathname_for_package("systems", "provided", "example", "simplesystemconfig.yaml"))
+my_config=Config("systems.provided.example.simplesystemconfig.yaml")
 my_data=csvFuturesData()
 my_system=simplesystem(config=my_config, data=my_data)
 print(my_system.portfolio.get_notional_position("EDOLLAR").tail(5))

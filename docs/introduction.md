@@ -482,11 +482,10 @@ Config with elements: base_currency, forecast_div_multiplier, forecast_scalars, 
 Alternatively we could get the same result from reading a [yaml](http://pyyaml.org) file ( [this one to be precise](/systems/provided/example/simplesystemconfig.yaml) ). Don't worry if you're not familiar with yaml; it's just a nice way of creating nested dicts, lists and other python objects in plain text. Just be aware that indentations are important, just in like python.
 
 ```python
-from syscore.fileutils import get_pathname_for_package
-my_config=Config(get_pathname_for_package("systems", "provided", "example", "simplesystemconfig.yaml"))
+my_config=Config("systems.provided.example.simplesystemconfig.yaml")
 ```
 
-(The get_path_name.. is just a way of navigating the python directories in the project.)
+(Notice we don't put filenames in; rather a python style reference within the project)
 
 If you look at the YAML file you'll notice that the trading rule function has been specified as a string `systems.provided.example.rules.ewmac_forecast_with_defaults`. This is because we can't easily create a function in a YAML text file (*we can in theory; but it's quite a bit of work and creates a potential security risk*). Instead we specify where the relevant function can be found in the project directory structure. 
 
@@ -521,11 +520,10 @@ my_system.portfolio.get_notional_position("EDOLLAR").tail(5)
 By default this has loaded the same data and read the config from the same yaml file. However we can also do this manually, allowing us to use new data and a modified config with a pre-baked system.
 
 ```python
-from syscore.fileutils import get_pathname_for_package
 from sysdata.configdata import Config
 from sysdata.csvdata import csvFuturesData
 
-my_config=Config(get_pathname_for_package("systems", "provided", "example", "simplesystemconfig.yaml"))
+my_config=Config("systems.provided.example.simplesystemconfig.yaml")
 my_data=csvFuturesData()
 
 ## I could change my_config, and my_data here if I wanted to

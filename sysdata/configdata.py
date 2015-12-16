@@ -10,6 +10,7 @@ trading_rules - a specification of the trading rules for a system
 
 """
 import yaml
+from syscore.fileutils import get_filename_for_package
 
 class Config(object):
     
@@ -29,10 +30,10 @@ class Config(object):
         >>> Config(dict(parameters=dict(p1=3, p2=4.6), another_thing=[]))
         Config with elements: another_thing, parameters
 
-        >>> Config("tests/exampleconfig.yaml")
+        >>> Config("sysdata.tests.exampleconfig.yaml")
         Config with elements: parameters, trading_rules
         
-        >>> Config(["tests/exampleconfig.yaml", dict(parameters=dict(p1=3, p2=4.6), another_thing=[])])
+        >>> Config(["sysdata.tests.exampleconfig.yaml", dict(parameters=dict(p1=3, p2=4.6), another_thing=[])])
         Config with elements: another_thing, parameters, trading_rules
 
         """
@@ -50,8 +51,9 @@ class Config(object):
             self._create_config_from_dict(config_item)
             
         elif type(config_item) is str:
-            ## must be a file YAML'able, from which we load the 
-            with open(config_item) as file_to_parse:
+            ## must be a file YAML'able, from which we load the
+            filename=get_filename_for_package(config_item) 
+            with open(filename) as file_to_parse:
                 dict_to_parse=yaml.load(file_to_parse)
                 
             self._create_config_from_dict(dict_to_parse)

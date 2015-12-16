@@ -1,7 +1,9 @@
 
 This guide is divided into three parts. The first 'How do I?' explains how to do many common tasks. The second part 'Guide' details the relevant parts of the code, and explains how to modify or create new parts. The final part 'Reference' includes lists of methods and parameters.
 
+<a name="how_do_i">
 # How do I?
+</a>
 
 ## How do I.... Experiment with a single trading rule and instrument
 
@@ -74,12 +76,10 @@ You can make a new config file by copying this [one](/systems/futures/futurescon
 You should then create a new system which points to the new config file:
 
 ```python
-from syscore.fileutils import get_pathname_for_package
 from sysdata.configdata import Config
-
-my_config=Config(get_pathname_for_package("private", "this_system_name", "config.yaml"))
-
 from systems.futures.basesystem import futures_system
+
+my_config=Config("private.this_system_name.config.yaml"))
 system=futures_system(config=my_config)
 ```
 
@@ -152,10 +152,9 @@ instrument_div_multiplier: 1.89
 You should then create a new system which points to the new config file:
 
 ```python
-from syscore.fileutils import get_pathname_for_package
 from sysdata.configdata import Config
 
-my_config=Config(get_pathname_for_package("private", "this_system_name", "config.yaml"))
+my_config=Config("private.this_system_name.config.yaml")
 
 from systems.futures.basesystem import futures_system
 system=futures_system(config=my_config)
@@ -181,10 +180,11 @@ system=futures_system(config=new_config)
 ```
 
 
-
+<a name="how_do_i_write_rules">
 ## How do I....Create my own trading rule
+</a>
 
-You should read the relevant guide section ['rules'](#rules) as there is much more to this subject than I will explain briefly here.
+At some point you should read the relevant guide section ['rules'](#rules) as there is much more to this subject than I will explain briefly here.
 
 
 ### Writing the function
@@ -314,12 +314,12 @@ You can create your own directory for .csv files such as `pysystemtrade/private/
 
 ```python
 from sysdata.csvdata import csvFuturesData
-from syscore.fileutils import get_pathname_for_package
 from systems.futures.basesystem import futures_system
 
-data=csvFuturesData(get_pathname_for_package("private", "system_name", "data"))
+data=csvFuturesData("private.system_name.data"))
 system=futures_system(data=data)
 ```
+Notice that we use python style "." internal references within a project, we don't give actual path names.
 
 There is more detail about using .csv files [here](#csv).
 
@@ -337,9 +337,9 @@ Because instances of **System()** encapsulate the data and functions you need, y
 ```python
 from systems.futures.basesystem import futures_system
 import pickle
-from syscore.fileutils import get_pathname_for_package
+from syscore.fileutils import get_filename_for_package
 
-filename=get_pathname_for_package("systems", ["users", "your_name", "this_system_name", "system.pck"]))
+filename=get_filename_for_package("systems.private.this_system_name.system.pck")
 
 with open(filename, 'wb') as outfile:
    pickle.dump(system)    
@@ -353,7 +353,9 @@ You can also save a config object into a yaml file - see [saving configuration](
 
 The guide section explains in more detail how each part of the system works. Each section is split into parts that get progressively trickier; varying from using the standard objects that are supplied up to writing your own.
 
+<a name="data">
 ## Data 
+</a>
 
 A data object is used to feed data into a system. Data objects work with a particular **kind** of data (normally asset class specific, eg futures) from a particular **source** (for example .csv files, databases and so on).
 
@@ -416,8 +418,7 @@ from sysdata.csvdata import csvFuturesData
 data=csvFuturesData()
 
 ## OR with a particular folder
-from syscore.fileutils import get_pathname_for_package
-data=csvFuturesData(get_pathname_for_package("private", "system_name", "data"))  ## assuming you've created data in pysystemtrade/private/system_name/data/
+data=csvFuturesData("private.system_name.data")  ## assuming you've created data in pysystemtrade/private/system_name/data/
 
 ## getting data out
 data.get_instrument_raw_carry_data(instrument_code) ## specific data for futures
@@ -435,7 +436,7 @@ The pathname must contain .csv files of the following four types (where code is 
 3. Futures data - code_carrydata.csv (eg AEX_carrydata): headings: DATETIME, PRICE,CARRY,CARRY_CONTRACT PRICE_CONTRACT
 4. Currency data - ccy1ccy2fx.csv (eg AUDUSDfx): headings: DATETIME, FXRATE
 
-DATETIME should be something that pandas.to_datetime can parse. Note that the price in (2) is the continously stitched price, whereas the price in (3) is the price of the contract we're currently trading. 
+DATETIME should be something that pandas.to_datetime can parse. Note that the price in (2) is the continously stitched price (see [volatility calculation](#vol_calc) ), whereas the price in (3) is the price of the contract we're currently trading. 
 
 At a minimum we need to have a currency file for each instrument's currency against the default (defined as "USD"); and for the currency of the account we're trading in (i.e. for a UK investor you'd need a GBPUSD file). If cross rate files are available they will be used; otherwise the USD rates will be used to work out implied cross rates.
 
@@ -560,7 +561,9 @@ class csvFuturesData(FuturesData):
 	## Note that we don't include any other fx methods here; the one's in the data class should do just fine
 ```
 
+<a name="config">
 ## Configuration
+</a>
 
 Configuration (config) objects determine how a system behaves. Configuration objects are very simple; they have attributes which contain eithier parameters, or nested groups of parameters.
 
@@ -604,7 +607,7 @@ Note that as with python the indentation in a yaml file shows how things are nes
 
 ```python
 from sysdata.configdata import Config
-my_config=Config("filename.yaml")
+my_config=Config("private.filename.yaml") ## assuming the file is in "pysystemtrade/private/filename.yaml"
 ```
 
 There are no restrictions on what is nested in the dictionary (but the top level must be a dict); although it is easier to use str, float, int, lists and dicts, and the standard project code only requires those (if you're a pyyaml expert you can do other python objects like tuples, but it won't be pretty). 
@@ -746,14 +749,14 @@ You can also save a config object into a yaml file:
 ```python
 from systems.futures.basesystem import futures_system
 import yaml
-from syscore.fileutils import get_pathname_for_package
+from syscore.fileutils import get_filename_for_package
 
 system=futures_system()
 my_config=system.config
 
 ## make some changes to my_config here
 
-filename=get_pathname_for_package("private", "this_system_name", "config.yaml"))
+filename=get_pathname_for_package("private.this_system_name.config.yaml")
 
 with open(filename, 'w') as outfile:
     outfile.write( yaml.dump(my_config, default_flow_style=True) )
@@ -767,10 +770,11 @@ A future version of this project will allow you to save the final optimised weig
 
 It shouldn't be neccessary to modify the configuration class since it's deliberately lightweight and flexible.
 
-
+<a name="system">
 ## System
+</a>
 
-A system object consists of a number of **stages**, some **data**, and normally a **config** object.
+A instance of a system object consists of a number of **stages**, some **data**, and normally a **config** object.
 
 
 ### Pre-baked systems
@@ -793,7 +797,6 @@ system=futures_system(data=my_data, config=my_config)
 Finally we can also create our own [trading rules object](#rules), and pass that in. This is useful for interactive model development. If for example we've just written a new rule on the fly:
 
 ```python
-from systems.forecasting import Rules
 my_rules=dict(rule=a_new_rule) 
 system=futures_system(trading_rules=my_rules) ## we probably need a new configuration as well here if we're changing forecast weights
 ```
@@ -813,10 +816,11 @@ Effectively it implements the following;
 
 ```python
 data=csvFuturesData() ## or the data object that has been passed
-config=Config(get_pathname_for_package("systems", "provided","futures_chapter15","futuresconfig.yaml")) ## or the config object that is passed
+config=Config("systems.provided.futures_chapter15.futuresconfig.yaml") ## or the config object that is passed
 
 ## Optionally the user can provide trading_rules (something which can be parsed as a set of trading rules); however this defaults to None in which case
 ##     the rules in the config will be used.
+
 system=System([Account(), PortfoliosFixed(), PositionSizing(), FuturesRawData(), ForecastCombineFixed(), 
                    ForecastScaleCapFixed(), Rules(trading_rules)], data, config)
 ```
@@ -942,14 +946,14 @@ A possible workflow might be:
 6. run `system.delete_all_items(delete_protected=True)` or equivalently create a new system object
 7. Run a backtest. This will re-estimate everything from scratch for the final version of your system.
 
-Another reason to use caching would be if you want to do your initial exploration with just a subset 
+Another reason to use caching would be if you want to do your initial exploration with just a subset of the data.
 
 1. Create a basic version of the system, with a subset of the instruments and trading rules that you need.
 2. .... 6 as before
 7. Add the rest of your instruments to your data set.
 8. Run a backtest. This will re-estimate everything from scratch for the final version of your system, including the expanded instrument weights.
 
-Here's a simple example:
+Here's a simple example of using caching in system development:
 
 ```python
 from systems.futures.basesystem import futures_system
@@ -1222,7 +1226,6 @@ Then it's a case of creating the python function. Here is an extract from the fu
 
 from sysdata.csvdata import csvFuturesData
 from sysdata.configdata import Config
-from syscore.fileutils import get_pathname_for_package
 
 ## We now import all the stages we need
 from systems.forecasting import Rules
@@ -1253,7 +1256,7 @@ def futures_system( data=None, config=None, trading_rules=None):
         data=csvFuturesData()
     
     if config is None:
-        config=Config(get_pathname_for_package("systems", "provided","futures_chapter15","futuresconfig.yaml"))
+        config=Config("systems.provided.futures_chapter15.futuresconfig.yaml")
         
     ## It's nice to keep the option to dynamically load trading rules but if you prefer you can remove this and set rules=Rules() here
     rules=Rules(trading_rules)
@@ -1361,13 +1364,13 @@ The stage 'wiring' is how the various stages communicate with each other. Genera
 
 For example consider the first few items in the list above. Let's label them appropriately:
 
-- **Output**: system.combForecast.get_combined_forecast("EDOLLAR")
-  - **Internal**: system.combForecast.get_forecast_diversification_multiplier("EDOLLAR")
-  - **Internal**: system.combForecast.get_forecast_weights("EDOLLAR")
-  - **Input**: system.combForecast.get_capped_forecast("EDOLLAR", "ewmac2_8")) etc
-    - **Output**: system.forecastScaleCap.get_capped_forecast("EDOLLAR", "ewmac2_8")) etc
+- **Output (combForecast)**: system.combForecast.get_combined_forecast("EDOLLAR")
+  - **Internal (combForecast)**: system.combForecast.get_forecast_diversification_multiplier("EDOLLAR")
+  - **Internal (combForecast)**: system.combForecast.get_forecast_weights("EDOLLAR")
+  - **Input (combForecast)**: system.combForecast.get_capped_forecast("EDOLLAR", "ewmac2_8")) etc
+    - **Output (forecastScaleCap)**: system.forecastScaleCap.get_capped_forecast("EDOLLAR", "ewmac2_8")) etc
 
-This approach (which you can also think of as the stage API) is used to make it easier to modify the code -  we can change the way a stage works internally, or replace it with a new stage with the same name, but as long as we keep the output method intact we don't need to mess around with any other stage.
+This approach (which you can also think of as the stage "API") is used to make it easier to modify the code -  we can change the way a stage works internally, or replace it with a new stage with the same name, but as long as we keep the output method intact we don't need to mess around with any other stage.
 
 ### Using a different set of stages
 
@@ -1384,7 +1387,7 @@ def futures_system( data=None, config=None, trading_rules=None):
     code to import default data and config would go here
     """
 
-    ## build the system
+    ## build the system with different stages
     system=System([Account(), PortfoliosOptimised(), PositionSizing(), FuturesRawData(), ForecastCombineOptimised(), 
                    ForecastScaleCapFixed(), rules], data, config)
     
@@ -1397,17 +1400,18 @@ def futures_system( data=None, config=None, trading_rules=None):
 If you're going to write a new stage (completely new, or to replace an existing stage) you need to do the following:
 
 1. New stages should inherit from [SystemStage](/systems/stage/SystemStage)
-2. New stages will need a unique name; this is stored in the object attribute "name". They can then be accessed with system.stage_name
-2. Modified stages should inherit from the existing stage you're modifying. For example if you create a new way of calculating forecast weights then you should inherit from [class ForecastCombineFixed](/systems/forecast_combine.py), and then override the get_forecast_weights method. You should also use the same name, or the wiring will go haywire.
-3. Think about whether you need to protect part of the system cache for this stage output [system caching](#caching). To do this create a list in the attribute _protected with the item names you wish to protect.
-4. If you're inheriting from another stage be sure to add to it's list of protected items, rather than replacing it.
-5. Use non-cached input methods to get data from other stages. Be wary of accessing internal methods in other stages; try to stick to output methods only. 
-6. Use cached input methods to get data from the system data object (since this is the first time it will be cached). Again only access public methods of the system data object.
-7. Use cached methods for internal and output methods(see [system caching](#caching) ). Cache keys for items should be the same as the method name.
-8. Internal methods should be public if they could be used for diagnostics, otherwise prefix them with _ to make them private.
-9. The doc string for input and output methods should clearly identify them as such. This is to make viewing the wiring easier.
-10. The doc string at the head of the stage should specify the input methods (and where they take their input from), and the output methods
-11. The doc string should also explain what it does, and the name of the stage
+2. Modified stages should inherit from the existing stage you're modifying. For example if you create a new way of calculating forecast weights then you should inherit from [class ForecastCombineFixed](/systems/forecast_combine.py), and then override the get_forecast_weights method; whilst keeping the other methods unchanged. 
+3. New stages will need a unique name; this is stored in the object attribute "name". They can then be accessed with system.stage_name
+4. Modified stages should use the same name as their parent, or the wiring will go haywire.
+5. Think about whether you need to protect part of the system cache for this stage output [system caching](#caching). To do this create a list in the attribute _protected with the item names you wish to protect.
+6. If you're inheriting from another stage be sure to add to it's list of protected items, rather than replacing it.
+7. Use non-cached input methods to get data from other stages. Be wary of accessing internal methods in other stages; try to stick to output methods only. 
+8. Use cached input methods to get data from the system data object (since this is the first time it will be cached). Again only access public methods of the system data object.
+9. Use cached methods for internal and output methods(see [system caching](#caching) ). Cache keys for items should be the same as the method name.
+10. Internal methods should be public if they could be used for diagnostics, otherwise prefix them with _ to make them private.
+11. The doc string for input and output methods should clearly identify them as such. This is to make viewing the wiring easier.
+12. The doc string at the head of the stage should specify the input methods (and where they take their input from), and the output methods
+13. The doc string should also explain what it does, and the name of the stage
 
 Here's an example of a base class, to use as a template for new classes (annotated extract):
 
@@ -1691,40 +1695,571 @@ The standard list of stages is as follows. The default class is given below, as 
 
 Each of these stages is described in more detail below.
 
+<a name="stage_rawdata">
 ### Stage: Raw data
+</a>
 
-The raw data stage is used to pre-process . 
+The raw data stage is used to pre-process data for calculating trading rules, scaling positions, or anything else we might. Good reasons to include something in raw data are:
 
-#### Using the existing raw data object
+1. If it is used multiple times, eg price volatility
+2. To provide better diagnostics and visibility in the system, eg the intermediate steps required to calculate the carry rule for futures
+
+ 
+#### Using the standard [RawData class](/systems/rawdata.py)
+
+The base RawData class includes methods to get instrument prices, daily prices, daily returns, volatility, and normalised returns (return over volatility).
 
 <a name="vol_calc">
 ##### Volatility calculation
 </a>
 
+There are two types of volatility in my trading systems:
+
+1. Price difference volatility eg sigma (Pt - Pt-1)
+2. Percentage return volatility eg sigma (Pt - Pt -1 / P*t-1)
+
+The first kind is used in trading rules to normalise the forecast into something proportional to Sharpe Ratio. The second kind is used to scale positions. In both cases we use a 'stitched' price to work out price differences. So in futures we splice together futures contracts as we roll, shifting them according to the Panama method. Similarly if the system dealt with cash equities, it would handle ex-dividend dates in the same way. If we didn't do this, but just used the 'natural' price (the raw price of the contract we're trading) to calculate returns, we'd get sharp returns on rolls. 
+
+In fact stitched prices are used by default in the system; since they make more sense for trading rules that usually prefer smoother prices without weird jumps. Nearly all the methods in raw data that mention price are referring to the stitched price.
+
+However when working out percentage returns we absolutely don't want to use the 'stitched' price as the denominator. For positive carry assets stitched prices will increase over time; this means they will be small or even negative in the past and the percentage returns will be large or have the wrong sign.
+
+For this reason there is a special method in the data class called daily_denominator_price. This tells the code what price to use for the P* in the calculation above. In the base class this defaults to the stitched price (but in the futures class, described below, it uses the raw price of the current contract).
+
+The other point to note is that the price difference volatility calculation is configurable through config.volatility_calculation.
+
+The default function used is a robust EWMA volatility calculator with the following configurable attributes:
+
+- 35 day span
+- Needs 10 periods to generate a value
+- Will floor any values less than 0.0000000001 
+- Applys a further vol floor which:
+  - Calculates the 5% percentile of vol using a 500 day moving average (needing 100 periods to generate a value)
+  - Floors any vol below that level
+
+YAML: 
+```
+volatility_calculation:
+  func: "syscore.algos.robust_vol_calc"
+  days: 35
+  min_periods: 10
+  vol_abs_min: 0.0000000001 
+  vol_floor: True
+  floor_min_quant: 0.05
+  floor_min_periods: 100
+  floor_days: 500
+
+```
+
+
+#### Using the [FuturesRawData class](/systems/futures/rawdata.py)
+
+The futures raw data class has some extra methods needed to calculate the carry rule for futures, and to expose the intermediate calculations. It also overrides daily_denominator_price with the raw price of the futures contract currently traded (as noted [above](#vol_calc) ).
+
+
+#### New or modified raw data classes
+
+It would make sense to create new raw data classes for new types of assets, or to get more visibility inside trading rule calculations.
+
+For example:
+
+1. To work out the quality factor for an equity value system, based on raw accounting ratios
+2. To work out the moving averages to be used in an EWMAC trading rule, so they can be viewed for diagnostic purposes.
+
+For new asset classes in particular you should think hard about what you should override the daily_denominator_price (see discussion on volatility calculation above).
+
 <a name="rules">
 ### Stage: Rules
 </a>
 
+Trading rules are at the heart of a fully systematic trading system. This stage description is different from the others; and will be in the form of a tutorial around creating trading rules.
 
-### Stage: Forecast scale and cap
+Before then the base class [for Rules is here](/systems/forecasting.py); and it shouldn't be neccessary to modify this class.
 
-
-### Stage: Forecast combine
-
-
-### Stage: Position scaling
-
-
-### Stage: Creating portfolios
-
-
-### Stage: Accounting
-
-<a name="standard_accounts_stage">
-#### Using the standard accounts stage
+<a name="TradingRules">
+### Trading rules
 </a>
 
+A trading rule consists of:
 
+- a function
+- some data (specified as positional arguments) 
+- some optional control arguments (specified as key word arguments)
+
+So the function must be something like these:
+
+```python
+def trading_rule_function(data1):
+   ## do something with data1
+
+def trading_rule_function(data1, arg1=default_value):
+   ## do something with data1
+   ## controlled by value of arg1
+
+def trading_rule_function(data1, data2):
+   ## do something with data1 and data2
+
+def trading_rule_function(data1, data2, arg1=default_value, arg2=default_value):
+   ## do something with data1
+   ## controlled by value of arg1 and arg2
+
+```
+... and so on. 
+
+At a minimum we need to know the function, since other arguments are optional, and if no data is specified the instrument price is used. A rule specified with only the function is a 'bare' rule. It should take only one data argument which is price, and have no other arguments that need new parameter values.
+
+In this project there is a specific [TradingRule class](/systems/forecasting.py). A TradingRule instance contains 3 elements - a function, a list of any data the function needs, and a dict of any other arguments that can be passed to the function.
+
+The function can eithier be the actual function, or a relative reference to it eg "systems.provided.futures_chapter15.rules.ewmac" (this is useful when a  configuration is created from a file). Data must always be in the form of references to attributes and methods of the system object, eg 'data.get_instrument_price' or 'rawdata.get_daily_prices'. Eithier a single data item, or a list must be passed. Other arguments are in the form a dictionary. 
+
+We can create trading rules in a number of different ways. I've noticed that different people find different ways of defining rules more natural than others, hence the deliberate flexibility here.
+
+Bare rules can be defined as follows:
+
+```python
+from systems.forecasting import TradingRule
+
+TradingRule(ewmac) ## with only the function
+TradingRule("systems.provided.futures_chapter15.rules.ewmac") ## string reference to the function
+```
+
+We can also add data and other arguments:
+
+```python
+TradingRule(ewmac, data='rawdata.get_daily_prices', other_args=dict(Lfast=2, Lslow=8)) 
+```
+
+Multiple data is fine, and it's okay to omit data or other_args:
+
+```python
+TradingRule(some_rule, data=['rawdata.get_daily_prices','data.get_instrument_price'])
+```
+
+Sometimes it's easier to specify the rule 'en bloc'. You can do this with a 3 tuple. Notice here we're specifying the function with a string, and listing multiple data items:
+
+```python
+TradingRule(("systems.provided.futures_chapter15.rules.ewmac", ['rawdata.get_daily_prices','data.get_instrument_price'], dict(Lfast=3, Lslow=12)))
+```
+
+Or with a dict. If using a dict keywords can be omitted (but not 'function'). 
+
+```python
+TradingRule(dict(function="systems.provided.futures_chapter15.rules.ewmac", data=['rawdata.get_daily_prices','data.get_instrument_price']))
+```
+
+Note if you use an 'en bloc' method, and also include the data or other_args arguments in your call to TradingRule, you'll get a warning.
+
+The dictionary method is used when configuration objects are read from YAML files; these contain the trading rules in a nested dict.
+
+YAML: (example) 
+```
+trading_rules:
+  ewmac2_8:
+     function: systems.futures.rules.ewmac
+     data:
+         - "rawdata.daily_prices"
+         - "rawdata.daily_returns_volatility"
+     other_args: 
+         Lfast: 2
+         Lslow: 8
+     forecast_scalar: 10.6
+```
+
+Note that *forecast_scalar* isn't strictly part of the trading rule definition, but if included here will be used instead of the seperate 'config.forecast_scalar' parameter (see the [next stage](#stage_scale) ). 
+
+
+### The Rules class, and specifying lists of trading rules
+
+We can pass a trading rule, or a group of rules, into the class Rules() in a number of ways.
+
+#### Creating lists of rules from a configuration object
+
+Normally we'd pass in the list of rules form a configuration object. Let's have a look at an incomplete version of the pre-baked chapter 15 futures system.
+
+```python
+## We probably need these to get our data
+
+from sysdata.csvdata import csvFuturesData
+from sysdata.configdata import Config
+from systems.basesystem import System
+
+## We now import all the stages we need
+from systems.forecasting import Rules
+from systems.futures.rawdata import FuturesRawData
+
+data=csvFuturesData()
+config=Config("systems.provided.futures_chapter15.futuresconfig.yaml")
+        
+rules=Rules()
+
+## build the system
+system=System([rules, FuturesRawData()], data, config)
+
+rules
+```
+
+```
+Rules object with unknown trading rules [try Rules.tradingrules() ]
+```
+
+```python
+## 
+forecast=system.rules.get_raw_forecast('EDOLLAR','ewmac2_8')
+rules
+```
+
+```
+Rules object with rules ewmac32_128, ewmac64_256, ewmac16_64, ewmac8_32, ewmac4_16, ewmac2_8, carry
+```
+
+```python
+## 
+rules.trading_rules()
+```
+
+```
+{'carry': TradingRule; function: <function carry at 0xb2e0f26c>, data: rawdata.daily_annualised_roll, rawdata.daily_returns_volatility and other_args: smooth_days,
+ 'ewmac16_64': TradingRule; function: <function ewmac at 0xb2e0f224>, data: rawdata.daily_prices, rawdata.daily_returns_volatility and other_args: Lfast, Lslow,
+ 'ewmac2_8': TradingRule; function: <function ewmac at 0xb2e0f224>, data: rawdata.daily_prices, rawdata.daily_returns_volatility and other_args: Lfast, Lslow,
+ 'ewmac32_128': TradingRule; function: <function ewmac at 0xb2e0f224>, data: rawdata.daily_prices, rawdata.daily_returns_volatility and other_args: Lfast, Lslow,
+ 'ewmac4_16': TradingRule; function: <function ewmac at 0xb2e0f224>, data: rawdata.daily_prices, rawdata.daily_returns_volatility and other_args: Lfast, Lslow,
+ 'ewmac64_256': TradingRule; function: <function ewmac at 0xb2e0f224>, data: rawdata.daily_prices, rawdata.daily_returns_volatility and other_args: Lfast, Lslow,
+ 'ewmac8_32': TradingRule; function: <function ewmac at 0xb2e0f224>, data: rawdata.daily_prices, rawdata.daily_returns_volatility and other_args: Lfast, Lslow}
+```
+
+
+What actually happens when we run this? (this is a little complex but worth understanding).
+
+1. The Rules class is created with no arguments.
+2. We create the system object. This means that all the stages in the system can see the system, in particular they can see the configuration
+3. When the Rules object is first created it is 'empty' - it doesn't have a list of valid *processed* trading rules.
+3. get_raw_forecast is called, and looks for the trading rule "ewmac2_8". It gets this by calling the method get_trading_rules
+4. When the method 'get_trading_rules' is called it looks to see if there is a *processed* dict of trading rules
+5. The first time the method 'get_trading_rules' is called there won't be a processed list. So it looks for something to process
+6. First it will look to see if anything was passed when the instance rules of the Rules() class was created
+7. Since we didn't pass anything instead it processes what it finds in system.config.trading_rules - a nested dict, keynames rule variation names. 
+8. The Rules instance now has processed rule names in the form of a dict, keynames rule variation names, each element containing a valid TradingRule object
+
+
+
+#### Interactively passing a list of trading rules
+
+Often when we're working in development mode we won't have worked up a proper config. To get round this we can pass a single trading rule or a set of trading rules to the Rules() instance when we create it. If we pass a dict, then the rules will be given appropriate names, otherwise if a single rule or a list is passed they will be given arbitrary names "rule0", "rule1", ... 
+
+Also note that we don't have pass a single rule, list or dict of rules; we can also pass anything that can be processed into a trading rule.
+
+```python
+## We now import all the stages we need
+from systems.forecasting import Rules
+
+## Pass a single rule. Any of the following are fine. See [defining TradingRule objects](#TradingRules) for more.
+trading_rule=TradingRule(ewmac)
+trading_rule=(ewmac, 'rawdata.get_daily_prices', dict(Lfast=2, Lslow=8)) 
+trading_rule=dict(function=ewmac, data='rawdata.get_daily_prices', other_args=dict(Lfast=2, Lslow=8)) 
+
+rules=Rules(trading_rule)
+## The rulea will be given an arbitrary name
+
+## Pass a list of rules. Each rule can be defined how you like
+trading_rule1=(ewmac, 'rawdata.get_daily_prices', dict(Lfast=2, Lslow=8)) 
+trading_rule2=dict(function=ewmac, other_args=dict(Lfast=4, Lslow=16)) 
+
+rules=Rules([trading_rule1, tradingrule2])
+## The rules will be given arbitrary names
+
+## Pass a dict of rules. Each rule can be defined how you like
+trading_rule1=(ewmac, 'rawdata.get_daily_prices', dict(Lfast=2, Lslow=8)) 
+trading_rule2=dict(function=ewmac, other_args=dict(Lfast=4, Lslow=16)) 
+
+rules=Rules(dict(ewmac2_8=trading_rule1, ewmac4_16=tradingrule2))
+
+
+```
+
+#### Creating variations on a single trading rule
+
+A very common development pattern is to create a trading rule with some parameters that can be changed, and then to produce a number of variations. Two functions are provided to make this easier.
+
+```python
+from systems.forecasting import create_variations_oneparameter, create_variations, TradingRule
+
+## Let's create 3 variations of ewmac
+## The default ewmac has Lslow=128
+## Let's keep that fixed and vary Lfast
+rule=TradingRule("systems.provided.example.rules.ewmac_forecast_with_defaults")
+trading_rules=create_variations_oneparameter(rule, [4,10,100], "ewmac_Lfast")
+
+variations.keys()
+```
+
+```
+dict_keys(['ewmac_Lfast_4', 'ewmac_Lfast_10', 'ewmac_Lfast_100'])
+```
+
+
+```python
+## Now let's vary both Lslow and Lfast
+rule=TradingRule("systems.provided.example.rules.ewmac_forecast_with_defaults")
+trading_rules=create_variations_oneparameter(rule, [4,10,100], "Lfast")
+variations=create_variations(rule, [dict(Lfast=2, Lslow=8), dict(Lfast=4, Lslow=16)], argname="Lfast")
+
+variations.keys()
+```
+
+```
+dict_keys(['ewmac_Lfast_4', 'ewmac_Lfast_2'])
+```
+
+We'd now create an instance of Rules(), passing variations in as an argument.
+
+#### Using a newly created Rules() instance
+
+Once we have our new rules object we can create a new system with it:
+
+```python
+## build the system
+system=System([rules, FuturesRawData()], data, config)  
+
+rules
+```
+
+It's generally a good idea to put new fixed forecast scalars (see [forecasting scaling and capping](#stage_scale) ) and forecast weights into the config (see [the combining stage](#stage_combine) ); although in future versions when forecast weights are optimised this won't be a problem. Or if you're just playing with ideas you can live with the default forecast scale of 1.0, and you can delete the forecast weights so that the system will default to using equal weights:
+
+```python
+del(config.forecast_weights)
+```
+
+
+
+#### Passing trading rules to a pre-baked system function
+
+If we've got a pre-baked system and a new set of trading rules we want to try that aren't in a config, we can pass them into the system when it's created:
+
+```python
+from systems.provided.futures_chapter15.basesystem import futures_system
+
+## we now create my_rules as we did above, for example
+trading_rule1=(ewmac, 'rawdata.get_daily_prices', dict(Lfast=2, Lslow=8)) 
+trading_rule2=dict(function=ewmac, other_args=dict(Lfast=4, Lslow=16)) 
+
+system=futures_system(trading_rules=dict(ewmac2_8=trading_rule1, ewmac4_16=tradingrule2)) ## we may need to change the configuration
+```
+
+
+#### Changing the trading rules in a system on the fly (advanced)
+
+The workflow above has been exclusively create Rules() instance (eithier empty, or passing in a set of trading rules), then create a system that uses it. However sometimes we might want to modify the list of trading rules in the system object. For example you may have loaded a pre-baked system in (which will have an empty Rules() instance and so be using the rules from the config). Rather than replace that wholesale, you might want to drop one of the rules, add an additional one, or change a rule that already exists.
+
+To do this we need to directly access the private _trading_rules attribute that stores **processed** trading rules in a dict. This means we can't pass in any old rubbish that can be parsed into a trading rule as we did above; we need to pass in actual TradingRule objects.
+
+```python
+from systems.provided.futures_chapter15.basesystem import futures_system
+from systems.forecasting import TradingRule
+
+system=futures_system()
+
+## Parse the existing rules in the config (not required if you're going to backtest first as this will call this method doing it's normal business)
+system.rules.trading_rules()
+
+
+#############
+## add a rule
+new_rule=TradingRule("systems.provided.futures_chapter15.rules.ewmac") ## any form of [TradingRule](#TradingRule) is fine here
+system.rules._trading_rules['new_rule']=new_rule 
+#############
+
+
+#############
+## modify a rule with existing key 'ewmac2_8'
+modified_rule=system.rules._trading_rules['ewmac2_8']
+modified_rule.other_args['Lfast']=10
+
+## We can also do:
+## modified_rule.function=new_function
+## modified_rule.data='data.get_instrument_price'
+##
+
+system.rules._trading_rules['ewmac2_8']=modified_rule 
+#############
+
+
+#############
+## delete a rule (not recommended)
+## Removing the rule from the set of forecast weights would have the same effect - and you need to do this anyway
+system.rules._trading_rules.pop("ewmac2_8")
+#############
+
+```
+
+
+
+<a name="stage_scale">
+### Stage: Forecast scale and cap
+</a>
+
+This is a simple stage that performs two steps:
+
+1. Scale forecasts so they have the right average absolute value, by multipling raw forecasts by a forecast scalar
+2. Cap forecasts at a maximum value
+
+#### Using the standard [ForecastScaleCapFixed class](/systems/forecast_scale_cap.py)
+
+The standard 'fixed' class uses fixed scaling and caps. 
+
+Forecast scalars are specific to each rule. Scalars can eithier be included in the trading_rules or forecast_scalars part of the config. The former takes precedence if both are included:
+
+YAML: (example) 
+```
+trading_rules:
+  rule_name:
+     function: systems.futures.rules.arbitrary_function
+     forecast_scalar: 10.6
+
+```
+
+YAML: (example) 
+```
+forecast_scalars: 
+   rule_name: 10.6
+```
+
+
+The forecast cap is also configurable, but must be the same for all rules:
+
+YAML: 
+```
+forecast_cap: 20.0
+```
+
+
+#### New or modified forecast scaling and capping
+
+I plan to introduce automatically calculated forecast scalars in a future project (on a rolling out of sample basis).
+
+Possible changes here could include putting in reponse functions (as described in [this AHL paper](http://papers.ssrn.com/sol3/papers.cfm?abstract_id=2695101) ).
+
+<a name="stage_combine">
+### Stage: Forecast combine
+</a>
+
+We now take a weighted average of forecasts using instrument weights, and multiply by the forecast diversification multiplier.
+
+#### Using the standard [ForecastCombineFixed class](/systems/forecast_combine.py)
+
+The current standard 'fixed' class uses fixed weights and a fixed multiplier. All are configurable.
+
+Forecast weights can be (a) common across instruments, or (b) specified differently for each instrument. If not included equal weights will be used.
+
+YAML: (a)  
+```
+forecast_weights:
+     ewmac: 0.50
+     carry: 0.50
+
+```
+
+YAML: (b)  
+```
+forecast_weights:
+     SP500:
+	  ewmac: 0.50
+	  carry: 0.50
+     US10:
+	  ewmac: 0.10
+	  carry: 0.90
+
+```
+
+The diversification multiplier can also be (a) common across instruments, or (b) we use a different one for each instrument (would be normal if instrument weights were also different).
+
+
+YAML: (a)  
+```
+forecast_div_multiplier: 1.0
+
+```
+
+YAML: (b)  
+```
+forecast_div_multiplier:
+     SP500: 1.4
+     US10:  1.1
+```
+
+Note that the get_combined_forecast method in the standard fixed base class automatically adjusts forecast weights if different trading rules have different start dates for their forecasts. It does not adjust the multiplier. This means that in the past the multiplier will probably be too high. 
+
+
+#### Writing new or modified forecast combination stages
+
+I plan to create a stage that will optimise forecast weights and calculate multipliers automatically.
+
+<a name="position_scale">
+### Stage: Position scaling
+</a>
+
+<a name="notional">
+We now scale our positions according to our percentage volatility target. At this stage we treat our target, and therefore our account size, as fixed. So we ignore any compounding of losses and profits. It's for this reason the I refer to the 'notional' position. In a later version of the project I'll deal with this problem.
+</a>
+
+#### Using the standard [PositionSizing class](/systems/positionsizing.py)
+
+The annualised percentage volatility target, notional trading capital and currency of trading capital are all configurable.
+
+YAML:  
+```
+percentage_vol_target: 16.0
+notional_trading_capital: 1000000
+base_currency: "USD"
+```
+
+Note that the stage code tries to get the percentage volatility of an instrument from the rawdata stage. Since a rawdata stage might be omitted, it can also fall back to calculating this from scratch using the data object and the default volatility calculation method.
+
+
+#### New or modified position scaling stages
+
+This is not recommended.
+
+<a name="stage_portfolio">
+### Stage: Creating portfolios
+</a>
+
+The instrument weights used to combine different instruments together into the final portfolio. 
+
+#### Using the standard[PortfoliosFixed class](/systems/portfolio.py)
+
+The standard class uses fixed weights and multiplier.
+
+Both are configurable. If omitted equal weights will be used, and a multiplier of 1.0
+
+YAML: 
+```
+instrument_weights:
+    EDOLLAR: 0.5
+    US10: 0.5
+instrument_div_multiplier: 1.2
+
+```
+
+Note that the get_instrument_weights method in the standard fixed base class automatically adjusts raw forecast weights if different instruments have different start dates for their price history and forecasts. It does not adjust the multiplier. This means that in the past the multiplier will probably be too high. 
+
+
+#### Writing new or modified portfolio stages
+
+I plan to create a stage that will optimise instrument weights and calculate multipliers automatically.
+
+<a name="accounts_stage">
+### Stage: Accounting
+</a>
+
+<a name="standard_accounts_stage">
+#### Using the standard [Account class](/systems/account.py)
+</a>
+
+wibble
+
+#### Writing new or modified accounting stages
+
+I plan to include costs in the accounting stage, to generate lists of simulated trades and to provide the data needed to optimise forecast and instrument weights.
 
 # Summary information
 

@@ -191,10 +191,8 @@ class RawData(SystemStage):
         2015-04-21  0.057053
         2015-04-22  0.058340
         >>>
-        >>> from syscore.fileutils import get_pathname_for_package
-        >>>
         >>> from sysdata.configdata import Config
-        >>> config=Config(get_pathname_for_package("systems", "provided","example", "exampleconfig.yaml"))
+        >>> config=Config("systems.provided.example.exampleconfig.yaml")
         >>> system=System([rawdata], data, config)
         >>> system.rawdata.daily_returns_volatility("EDOLLAR").tail(2)
                          vol
