@@ -71,7 +71,7 @@ If you use options 2 or 3, you can [save the config](#save_config) to a yaml fil
 
 Configurations in this project are stored in [yaml](http://pyyaml.org) files. Don't worry if you're not familiar with yaml; it's just a nice way of creating nested dicts, lists and other python objects in plain text. Just be aware that indentations are important, just in like python, to create nesting.
 
-You can make a new config file by copying this [one](/systems/futures/futuresconfig.yaml), and modifying it. Best practice is to save this as `pysystemtrade/private/this_system_name/config.yaml` (you'll need to create a couple of directories first).
+You can make a new config file by copying this [one](/systems/provided/futures_chapter15/futuresconfig.yaml), and modifying it. Best practice is to save this as `pysystemtrade/private/this_system_name/config.yaml` (you'll need to create a couple of directories first).
 
 You should then create a new system which points to the new config file:
 
@@ -118,7 +118,7 @@ system.config.instrument_div_multiplier=new_idm
 ## The config is updated, but to reiterate anything that uses it will need to be cleared from the cache
 ```
 
-Because we don't create a new system and have to recalculate everything from scratch, this can be useful for testing isolated changes to the system if you know what you're doing.
+Because we don't create a new system and have to recalculate everything from scratch, this can be useful for testing isolated changes to the system **if** you know what you're doing.
 
 ### Option 4: Change the project defaults (definitely not recommended)
 
@@ -130,9 +130,9 @@ I don't recommend changing the defaults, but should you want to more information
 You need to change the instrument weights in the configuration. Only instruments with weights have positions produced for them. There are two easy ways to do this - change the config file, or the config object already in the system (for more on changing config parameters see ['change backtest parameters'](#change_backtest_parameters) ). You also need to ensure that you have the data you need for any new instruments. See ['use my own data'](#create_my_own_data) below.
 
 
-### Change the configuration file
+### Change instruments: Change the configuration file
 
-You should make a new config file by copying this [one](/systems/futures/futuresconfig.yaml). Best practice is to save this as `pysystemtrade/private/this_system_name/config.yaml` (you'll need to create this directory).
+You should make a new config file by copying this [one](/systems/provided/futures_chapter15/futuresconfig.yaml). Best practice is to save this as `pysystemtrade/private/this_system_name/config.yaml` (you'll need to create this directory).
 
 You can then change this section of the config:
 
@@ -160,7 +160,7 @@ from systems.futures.basesystem import futures_system
 system=futures_system(config=my_config)
 ```
 
-### Change the configuration object
+### Change instruments: Change the configuration object
 
 We can also modify the configuration object in the system directly:
 
@@ -231,9 +231,9 @@ from systems.futures.rules import ewmac
 
 Can also be referenced like so: `systems.futures.rules.ewmac`
 
-Also note that the list of data for the rule will also be in the form of string references to methods in the system object. So for example to get the daily price we'd use the method system.rawdata.daily_prices(instrument_code) (for a list of all the data methods in a system see [stage methods](#table_system_stage_methods) ). In the trading rule specification this would be "rawdata.daily_prices". 
+Also note that the list of data for the rule will also be in the form of string references to methods in the system object. So for example to get the daily price we'd use the method `system.rawdata.daily_prices(instrument_code)` (for a list of all the data methods in a system see [stage methods](#table_system_stage_methods) ). In the trading rule specification this would be shown as "rawdata.daily_prices". 
 
-If no data is included, then the system will default to passing a single data item - the price of the instrument. Finally if other_arg keyword arguments are missing then the function will use it's own defaults.
+If no data is included, then the system will default to passing a single data item - the price of the instrument. Finally if any or all the `other_arg` keyword arguments are missing then the function will use it's own defaults.
  
 At this stage we can also remove any trading rules that we don't want. We also ought to modify the forecast scalars, forecast weights and probably the forecast diversification multiplier. 
 
@@ -268,6 +268,7 @@ forecast_div_multiplier=1.5
 
 
 Python (example - assuming we already have a config object loaded to modify)
+
 ```python
 from systems.forecasting import TradingRule
 
@@ -323,7 +324,7 @@ Notice that we use python style "." internal references within a project, we don
 
 There is more detail about using .csv files [here](#csv).
 
-If you want to get data from a different place (eg a database, yahoo finance, broker, quandl...) you'll need to [create your own Data object](#create_data). Note that I intend to add support for a sql3 database, Interactive brokers and quandl data in the future.
+If you want to get data from a different place (eg a database, yahoo finance, broker, quandl...) you'll need to [create your own Data object](#create_data). Note that I intend to add support for sqlite database, HDF5, Interactive brokers and quandl data in the future.
 
 If you want to use a different set of data values (eg equity EP ratios, interest rates...) you'll need to [create your own Data object](#create_data).
 
@@ -361,13 +362,13 @@ A data object is used to feed data into a system. Data objects work with a parti
 
 ### Using the standard data objects
 
-Only one kind of specific data object is provided with the system in the current version - csvFutures. 
+Only one kind of specific data object is provided with the system in the current version - `csvFutures`. 
 
 #### Generic data objects
 
 You can get use data objects directly:
 
-*These commands will work with all data objects - the csvFutures version is used as an example.*
+*These commands will work with all data objects - the `csvFutures` version is used as an example.*
 
 ```python
 from sysdata.csvdata import csvFuturesData
@@ -385,10 +386,6 @@ data.get_value_of_block_price_move(instrument_code)
 data.get_instrument_currency(instrument_code)
 data.get_fx_for_instrument(instrument_code, base_currency) # get fx rate between instrument currency and base currency
 
-## using with a system
-from systems.futures.basesystem import futures_system
-system=futures_system(data=data)
-
 ```
 
 Or within a system:
@@ -401,15 +398,15 @@ system=futures_system(data=data)
 system.data.get_instrument_currency(instrument_code) # and so on
 ```
 
-When specifying a data item within a trading [rule](#rules) you should omit the system eg `data.get_instrument_price`.
+(Note that when specifying a data item within a trading [rule](#rules) you should omit the system eg `data.get_instrument_price`)
 
 
 
 <a name="csvdata">
-#### The csvFuturesData object 
+#### The [csvFuturesData](/sysdata/csvdata.py) object 
 </a>
 
-The csvFuturesData object works like this:
+The `csvFuturesData` object works like this:
 
 ```python
 from sysdata.csvdata import csvFuturesData
@@ -431,29 +428,29 @@ system.data.get_instrument_raw_carry_data(instrument_code)
 
 The pathname must contain .csv files of the following four types (where code is the instrument_code):
 
-1. Static data- instrument_config.csv: headings: Instrument, Pointsize, AssetClass, Currency
-2. Price data- code_price.csv: headings: DATETIME, PRICE
-3. Futures data - code_carrydata.csv (eg AEX_carrydata): headings: DATETIME, PRICE,CARRY,CARRY_CONTRACT PRICE_CONTRACT
-4. Currency data - ccy1ccy2fx.csv (eg AUDUSDfx): headings: DATETIME, FXRATE
+1. Static data- `instrument_config.csv` headings: Instrument, Pointsize, AssetClass, Currency
+2. Price data- `code_price.csv` (eg SP500_price.csv) headings: DATETIME, PRICE
+3. Futures data - `code_carrydata.csv` (eg AEX_carrydata.csv): headings: DATETIME, PRICE,CARRY,CARRY_CONTRACT PRICE_CONTRACT
+4. Currency data - `ccy1ccy2fx.csv` (eg AUDUSDfx.csv) headings: DATETIME, FXRATE
 
-DATETIME should be something that pandas.to_datetime can parse. Note that the price in (2) is the continously stitched price (see [volatility calculation](#vol_calc) ), whereas the price in (3) is the price of the contract we're currently trading. 
+DATETIME should be something that `pandas.to_datetime` can parse. Note that the price in (2) is the continously stitched price (see [volatility calculation](#vol_calc) ), whereas the price in (3) is the price of the contract we're currently trading. 
 
-At a minimum we need to have a currency file for each instrument's currency against the default (defined as "USD"); and for the currency of the account we're trading in (i.e. for a UK investor you'd need a GBPUSD file). If cross rate files are available they will be used; otherwise the USD rates will be used to work out implied cross rates.
+At a minimum we need to have a currency file for each instrument's currency against the default (defined as "USD"); and for the currency of the account we're trading in (i.e. for a UK investor you'd need a `GBPUSDfx.csv` file). If cross rate files are available they will be used; otherwise the USD rates will be used to work out implied cross rates.
 
 See [pysystem/sysdata/legacycsv](/sysdata/legacycsv) for files you can modify.
 
 
-### Creating your own data data objects
+### Creating your own data objects
 
 You should be familiar with the python object orientated idiom before reading this section.
 
-The [Data](/sysdata/data) object is the base class for data. From that we inherit data type specific classes such as the [FuturesData](/sysdata/futuresdata) object. These in turn are inherited from for specific data sources, such as [csvFuturesData](/sysdata/csvdata).
+The [`Data()`](/sysdata/data) object is the base class for data. From that we inherit data type specific classes such as the [`FuturesData`](/sysdata/futuresdata) object. These in turn are inherited from for specific data sources, such as [`csvFuturesData`](/sysdata/csvdata).
 
 So the FuturesData object is defined `class FuturesData(Data)`, and csvFuturesData as `class csvFuturesData(FuturesData)`. It would also be helpful if this naming scheme was adhered to: sourceTypeData. For example if we had some single equity data stored in a database we'd do `class EquitiesData(Data)`, and `class dbEquitiesData(EquitiesData)`.
 
 So, you should consider whether you need a new type of data, a new source of data or both. You may also wish to extend an existing class. For example if you wished to add some fundamental data for futures you might define: `class FundamentalFutures(FuturesData)`. You'd then need to inherit from that for a specific source.
 
-This might seem a hassle, and it's tempting to skip and just inherit from Data() directly, however once your system is up and running it is very convenient to have the possibility of multiple data sources and this process ensures they keep a consistent API for a given data type.
+This might seem a hassle, and it's tempting to skip and just inherit from `Data()` directly, however once your system is up and running it is very convenient to have the possibility of multiple data sources and this process ensures they keep a consistent API for a given data type.
 
 #### The Data() class
 
@@ -465,13 +462,13 @@ Methods that you'll probably want to override:
 - `get_instrument_currency`: Returns str
 - `_get_fx_data(currency1, currency2)`  Returns Tx1 pandas data frame of exchange rates
 
-You should not override get_fx_for_instrument, or any of the other private fx related methods. Once you've created a _get_fx_data method, then the methods in the Data () base class will interact to give the correct fx rate when external objects call get_fx_for_instrument(); handling cross rates and working them out as needed.
+You should not override `get_fx_for_instrument`, or any of the other private fx related methods. Once you've created a `_get_fx_data method`, then the methods in the `Data` base class will interact to give the correct fx rate when external objects call `get_fx_for_instrument()`; handling cross rates and working them out as needed.
  
-Finally data methods should not do any caching and store results that are read in. [Caching](#caching) is done within the system.
+Finally data methods should not do any caching. [Caching](#caching) is done within the system.
 
 #### Creating a new type of data (or extending an existing one)
 
-Here is an annotated extract of the FuturesData class illustrating how it extends Data:
+Here is an annotated extract of the `FuturesData` class illustrating how it extends `Data`:
 
 ```python
 
@@ -493,7 +490,7 @@ class FuturesData(Data):
 
 #### Creating a new data source (or extending an existing one)
 
-Here is an annotated extract of the csvFuturesData class, illustrating how it extends FuturesData and Data for a specific source:
+Here is an annotated extract of the `csvFuturesData` class, illustrating how it extends `FuturesData` and `Data` for a specific source:
 
 ```python
 class csvFuturesData(FuturesData):
@@ -565,7 +562,7 @@ class csvFuturesData(FuturesData):
 ## Configuration
 </a>
 
-Configuration (config) objects determine how a system behaves. Configuration objects are very simple; they have attributes which contain eithier parameters, or nested groups of parameters.
+Configuration (`config`) objects determine how a system behaves. Configuration objects are very simple; they have attributes which contain eithier parameters, or nested groups of parameters.
 
 ### Creating a configuration object
 
@@ -587,7 +584,7 @@ my_config=Config(my_config_dict)
 
 There are no restrictions on what is nested in the dictionary, but if you include arbitrary items like the above they won't be very useful!. The section on [configuration options](#Configuration_options) explains what configuration options would be used by a system.
 
-#### Creating a configuration object from a file
+#### 2) Creating a configuration object from a file
 
 This simple file will reproduce the useless config we get from a dictionary in the example above.
 
@@ -610,12 +607,12 @@ from sysdata.configdata import Config
 my_config=Config("private.filename.yaml") ## assuming the file is in "pysystemtrade/private/filename.yaml"
 ```
 
-There are no restrictions on what is nested in the dictionary (but the top level must be a dict); although it is easier to use str, float, int, lists and dicts, and the standard project code only requires those (if you're a pyyaml expert you can do other python objects like tuples, but it won't be pretty). 
+There are no restrictions on what is nested in the dictionary (but the top level must be a dict); although it is easier to use str, float, int, lists and dicts, and the standard project code only requires those (if you're a PyYAML expert you can do other python objects like tuples, but it won't be pretty). 
 
 The section on [configuration options](#Configuration_options) explains what configuration options are available.
 
 
-#### Creating a configuration object from a pre-baked system
+#### 3) Creating a configuration object from a pre-baked system
 
 ```python
 from systems.futures.basesystem import futures_system
@@ -623,12 +620,12 @@ system=futures_system()
 new_config=system.config
 ```
 
-Under the hood this is effectively getting a configuration from a .yaml file - [this one](/systems/futures/futuresconfig.yaml).
+Under the hood this is effectively getting a configuration from a .yaml file - [this one](/systems/provided/futures_chapter15/futuresconfig.yaml).
 
 
-#### Creating a configuration object from a list
+#### 4) Creating a configuration object from a list
 
-We can also pass a list into Config(), where each item of the list contains a dict or filename. For example we could do this with the simple filename example above:
+We can also pass a list into `Config()`, where each item of the list contains a dict or filename. For example we could do this with the simple filename example above:
 
 ```python
 from sysdata.configdata import Config
@@ -645,7 +642,7 @@ This can be useful if, for example, we wanted to change the instrument weights '
 ### Project defaults
 </a>
 
-Many (but not all) configuration parameters have defaults which are used by the system if the parameters are not in the object. These can be found in the file [pysystemtrade/systems/provided/defaults.yaml](/systems/provided/defaults.yaml). The section on [configuration options](#Configuration_options) explains what the defaults are, and where they are used.
+Many (but not all) configuration parameters have defaults which are used by the system if the parameters are not in the object. These can be found in the [defaults.yaml file](/systems/provided/defaults.yaml). The section on [configuration options](#Configuration_options) explains what the defaults are, and where they are used.
 
 I recommend that you do not change these defaults. It's better to use the settings you want in each system configuration file. 
 
@@ -737,7 +734,7 @@ my_config_list:
    - "second item"
 ```
 
-Similarly if you wanted to use project defaults for your new parameters you'll also need to update the [defaults.yaml file](/systems/provided/defaults.yaml).
+Similarly if you wanted to use project defaults for your new parameters you'll also need to include them in the [defaults.yaml file](/systems/provided/defaults.yaml).
 
 
 <a name="save_config">
@@ -829,7 +826,7 @@ system=System([Account(), PortfoliosFixed(), PositionSizing(), FuturesRawData(),
 
 The system object doesn't do very much in itself, except provide access to it's 'child' stages. The child stages are all attributes of the parent system.
 
-For example to get the final portfolio level 'notional' position, which is in the child stage named 'portfolio':
+For example to get the final portfolio level 'notional' position, which is in the child stage named `portfolio`:
 
 ```python
 system.portfolio.get_notional_position("EDOLLAR")
@@ -846,8 +843,8 @@ For a list of all the methods in a system and it's stages see [stage methods](#t
 We can also access or change elements of the config object:
 
 ```python
-config.trading_rules
-config.instrument_div_multiplier=1.2
+system.config.trading_rules
+system.config.instrument_div_multiplier=1.2
 ```
 
 
@@ -855,9 +852,9 @@ config.instrument_div_multiplier=1.2
 ### System Caching
 </a>
 
-Pulling in data and calculating all the various stages in a system can be a time consuming process. So the code supports caching. When we first ask for some data by calling a stage method, like `system.data.get_instrument_price("EDOLLAR")`, the system first checks to see if it has already pre-calculated this figure. If not then it will calculate the figure from scratch. This in turn may involve calculating preliminary figures that are needed for this position, unless they've already been pre-calculated. So for example to get a combined forecast, we'd already need to have all the individual forecasts from different trading rule variations for a particular instrument. Once we've calculated a particular data point, which could take some time, it is stored in the system object cache (along with any intermediate results we also calculated). The next time we ask for it will be served up immediately. 
+Pulling in data and calculating all the various stages in a system can be a time consuming process. So the code supports caching. When we first ask for some data by calling a stage method, like `system.portfolio.get_notional_position("EDOLLAR")`, the system first checks to see if it has already pre-calculated this figure. If not then it will calculate the figure from scratch. This in turn may involve calculating preliminary figures that are needed for this position, unless they've already been pre-calculated. So for example to get a combined forecast, we'd already need to have all the individual forecasts from different trading rule variations for a particular instrument. Once we've calculated a particular data point, which could take some time, it is stored in the system object cache (along with any intermediate results we also calculated). The next time we ask for it will be served up immediately. 
 
-Most of the time you shouldn't need to worry about caching. If you're testing different configurations, or updating or changing your data, you just have to make sure you recreate the system object from scratch after each change. A new system object will have no cache.
+Most of the time you shouldn't need to worry about caching. If you're testing different configurations, or updating or changing your data, you just have to make sure you recreate the system object from scratch after each change. A new system object will have an empty cache.
 
 ```python
 from copy import copy
@@ -891,14 +888,14 @@ system.combForecast.get_combined_forecast("EDOLLAR")
 
 It's also possible to selectively delete certain cached items, whilst keeping the rest of the system intact. You shouldn't do this without understanding  [stage wiring](#stage_wiring). You need to have a good knowledge of the various methods in each stage, to understand the downstream implications of eithier deleting or keeping a particular data value.
 
-There are four kinds of data stored in the cache:
+There are four attributes of data stored in the cache:
 
-1. Unprotected data 
+1. Unprotected data that is deleted from the cache on request
 2. Protected data that wouldn't normally be deletable
 3. Data specific to a particular instrument (can be protected or unprotected)
 4. Data which applies to the whole system (can be protected or unprotected)
 
-Protected items and items common across the system wouldn't normally be deleted if for example; since they are usually the slowest things to calculate.
+Protected items and items common across the system wouldn't normally be deleted since they are usually the slowest things to calculate.
 
 For example here are is how we'd check the cache after getting a notional position (which generates a huge number of intermediate results)
 
@@ -914,7 +911,7 @@ system.get_instrument_codes_for_item("capped_forecast") ## lists all instruments
 
 ```
 
-Now if we want to selectively clear the cache we could do one of the following:
+Now if we want to selectively clear parts of the cache we could do one of the following:
 
 ```python
 system.delete_items_for_instrument(instrument_code) ## deletes everything related to an instrument: NOT protected, or across system items
@@ -997,11 +994,11 @@ Step 4 might be very involved and slow, but markets are closed so that's fine.
 Then we do the following throughout the day:
 
 5. Wait for a new price to come in (perhaps through a message bus)
-6. So we don't subsequently use stale prices delete everything specific to that instrument `system.delete_items_for_instrument(instrument_code)`
+6. So we don't subsequently use stale prices delete everything specific to that instrument with `system.delete_items_for_instrument(instrument_code)`
 7. Re-calculate the optimal positions for this instrument
 8. This is then passed to our trading algo
 
-Because we've deleted everything specific to the instrument we'll recalculate the positions, and all intermediate stages, using the new price. However we won't have to repeat lengthy calculations that cut across instruments, such as correlation estimates, risk overlays, cross sectional data or weight estimation.
+Because we've deleted everything specific to the instrument we'll recalculate the positions, and all intermediate stages, using the new price. However we won't have to repeat lengthy calculations that cut across instruments, such as correlation estimates, risk overlays, cross sectional data or weight estimation. That can wait till our next overnight run.
 
 
 ### Very advanced: Caching in new or modified code
@@ -1016,9 +1013,9 @@ Similarly most stages contain 'input' methods, which do no calculations but get 
 
 You should cache as early as possible; so that all the subsequent stages that need that data item already have it. Avoid looping back, where a stage uses data from a later stage, as you may end up with infinite recursion. 
 
-The cache 'lives' in the parent system object in the attribute system._cache, *not* the stage with the relevant method. There are standard functions which will check to see if an item is cached in the system, and then call a function to calculate it if required (see below). To make this easier when a stage object joins a system it gains an attribute self.parent, which will be the 'parent' system. 
+The cache 'lives' in the parent system object in the attribute `system._cache`, *not* the stage with the relevant method. There are standard functions which will check to see if an item is cached in the system, and then call a function to calculate it if required (see below). To make this easier when a stage object joins a system it gains an attribute self.parent, which will be the 'parent' system. 
 
-The cache is a dictionary, whose keys are the item names. Item names should be the same as the methods that call them, eg system.portfolio.get_notional_position() caches to system._cache['get_notional_position']. Within each item element must be dictionaries, the keys of which are instrument codes. You can also nest dictionaries, as when we store forecasts for each instrument and trading rule variation.
+The cache is a dictionary, whose keys are the item names. Item names should be the same as the methods that call them, eg `system.portfolio.get_notional_position()` caches to `system._cache['get_notional_position']`. Within each item element must be dictionaries, the keys of which are instrument codes. You can also nest dictionaries, as when we store forecasts for each instrument and trading rule variation.
 
 Think carefully about wether your method should create data that is protected from casual cache deletion. As a rule anything that cuts across instruments and / or changes slowly should be protected. Here are the current list of protected items:
 
@@ -1030,7 +1027,7 @@ Think carefully about wether your method should create data that is protected fr
 
 To this list I'd add any cross sectional data, and anything that measures portfolio risk (not yet implemented in this project).
 
-Let's look at the forecast_combine.py file for an example of how to write caching code
+Let's look at the [`forecast_combine.py`](/systems/forecast_combine.py) file for an example of how to write caching code. This code is an annotated extract:
 
 ```python
 
@@ -1094,7 +1091,7 @@ class ForecastCombineFixed(SystemStage):
 
 ```
 
-And here is the calc_or_cache function. If it doesn't find the dictname as an attribute then it calls the private calculation function (_get_combined_forecast) in this case, for which the stage object (self) is the only *arg (and which then becomes this_stage in the calculation function).
+And here is the [`calc_or_cache function`](/systems/basesystem.py). If it doesn't find the dictname as an attribute then it calls the calculation function (`_get_combined_forecast`) in this case, for which the stage object (self) is the only *arg (and which then becomes this_stage in the calculation function).
 
 ```python
     def calc_or_cache(self, itemname, instrument_code, func, *args, **kwargs):
@@ -1131,7 +1128,7 @@ And here is the calc_or_cache function. If it doesn't find the dictname as an at
 
 
 
-If a cache has to store more than one just one item per instrument, which is common for the results of trading rule calculations, we should use the nested version of calc_or_cache, as in this method from forecast_scale_cap.py:
+If a cache has to store more than one just one item per instrument, which is common for the results of trading rule calculations, we should use the nested version of `calc_or_cache`, as in this method from forecast_scale_cap.py:
 
 ```python
     def get_forecast_scalar(self, instrument_code, rule_variation_name):
@@ -1159,11 +1156,11 @@ If a cache has to store more than one just one item per instrument, which is com
         return forecast_scalar
 ```
 
-Every rule variation for every instrument has a different scalar (or at least the potential to have one - in practice in the default config they would have the same across all instruments). So we store the results in a nested dict. The top level dict should always be organised by instrument_code, otherwise the cache aware code in the system object won't work properly. 
+Every rule variation for every instrument has a different scalar (or at least the potential to have one - in practice in the default config they would have the same across all instruments). So we store the results in a nested dict. The top level dict should always be organised by `instrument_code`, otherwise the cache aware code in the system object won't work properly. 
 
-Again if a calculation function (like _get_forecast_scalar) needs the current stage object (self) then we pass it in renaming it as this_stage.
+Again if a calculation function (like `_get_forecast_scalar`) needs the current stage object (`self`) then we pass it in renaming it as `this_stage`.
 
-For reference here is `calc_or_cache_nested`. Notice that in the example above keyname is the rule_variation_name and the current stage (self) is the only *arg. 
+For reference here is [`calc_or_cache_nested`](/systems/basesystem.py). Notice that in the example above keyname is the rule_variation_name and the current stage (self) is the only *arg. 
 
 ```python
     def calc_or_cache_nested(self, itemname, instrument_code, keyname, func, *args, **kwargs):
@@ -1219,7 +1216,7 @@ The elements of a new pre-baked system will be:
 
 To remain organised it's good practice to save your configuration file and any python functions you need into a directory like `pysystemtrade/private/this_system_name/` (you'll need to create a couple of directories first). If you plan to contribute to github, just be careful to avoid adding 'private' to your commit ( [you may want to read this](https://24ways.org/2013/keeping-parts-of-your-codebase-private-on-github/) ). If you have novel data you're using for this system, you may also want to save it in the same directory.
 
-Then it's a case of creating the python function. Here is an extract from the futures_system 
+Then it's a case of creating the python function. Here is an extract from the [futuressystem for chapter 15](/systems/provided/futures_chapter15/basesystem.py)
 
 ```python
 ## We probably need these to get our data
@@ -1271,7 +1268,7 @@ def futures_system( data=None, config=None, trading_rules=None):
 
 ### Changing or making a new System class
 
-It shouldn't be neccessary to modify the System() class or create new ones.
+It shouldn't be neccessary to modify the `System()` class or create new ones.
 
 
 <a name="stage_general">
@@ -1336,22 +1333,22 @@ system.rawdata.get_instrument_price("EDOLLAR").tail(5)
 ### Stage 'wiring'
 </a>
 
-It's worth having a basic understanding of how the stages within a system are 'wired' together. If you're going to modify or create new code, or use [system caching](#caching), you're going to need to understand this properly.
+It's worth having a basic understanding of how the stages within a system are 'wired' together. Futhermore if you're going to modify or create new code, or use [advanced system caching](#caching), you're going to need to understand this properly.
 
-What actually happens when we call system.combForecast.get_combined_forecast("EDOLLAR") in the pre-baked futures system? Well this in turn will call other methods in this stage, and they will call methods in previous stages,.. and so on until we get back to the underlying data. We can represent this with a diagram:
+What actually happens when we call `system.combForecast.get_combined_forecast("EDOLLAR")` in the pre-baked futures system? Well this in turn will call other methods in this stage, and they will call methods in previous stages,.. and so on until we get back to the underlying data. We can represent this with a diagram:
 
-- system.combForecast.get_combined_forecast("EDOLLAR")
-  - system.combForecast.get_forecast_diversification_multiplier("EDOLLAR")
-  - system.combForecast.get_forecast_weights("EDOLLAR")
-  - system.combForecast.get_capped_forecast("EDOLLAR", "ewmac2_8")) etc
-    - system.forecastScaleCap.get_capped_forecast("EDOLLAR", "ewmac2_8")) etc
-      - system.forecastScaleCap.get_forecast_cap("EDOLLAR", "ewmac2_8") etc
-      - system.forecastScaleCap.get_scaled_forecast("EDOLLAR", "ewmac2_8") etc
-        - system.forecastScaleCap.get_forecast_scalar("EDOLLAR",  "ewmac2_8") etc
-        - system.forecastScaleCap.get_raw_forecast("EDOLLAR",  "ewmac2_8") etc
-          - system.rules.get_raw_forecast("EDOLLAR",  "ewmac2_8") etc
-            - system.data.get_instrument_price("EDOLLAR")
-            - system.rawdata.get_daily_returns_volatility("EDOLLAR")
+- `system.combForecast.get_combined_forecast("EDOLLAR")`
+  - `system.combForecast.get_forecast_diversification_multiplier("EDOLLAR")`
+  - `system.combForecast.get_forecast_weights("EDOLLAR")`
+  - `system.combForecast.get_capped_forecast("EDOLLAR", "ewmac2_8"))` etc
+    - `system.forecastScaleCap.get_capped_forecast("EDOLLAR", "ewmac2_8"))` etc
+      - `system.forecastScaleCap.get_forecast_cap("EDOLLAR", "ewmac2_8")` etc
+      - `system.forecastScaleCap.get_scaled_forecast("EDOLLAR", "ewmac2_8")` etc
+        - `system.forecastScaleCap.get_forecast_scalar("EDOLLAR",  "ewmac2_8")` etc
+        - `system.forecastScaleCap.get_raw_forecast("EDOLLAR",  "ewmac2_8")` etc
+          - `system.rules.get_raw_forecast("EDOLLAR",  "ewmac2_8")` etc
+            - `system.data.get_instrument_price("EDOLLAR")`
+            - `system.rawdata.get_daily_returns_volatility("EDOLLAR")`
               - (further stages to calculate volatility omitted)
 
 A system effectively consists of a 'tree' of which the above shows only a small part. When we ask for a particular 'leaf' of the tree, the data travels up the 'branches' of the tree, being cached as it goes. 
@@ -1364,11 +1361,11 @@ The stage 'wiring' is how the various stages communicate with each other. Genera
 
 For example consider the first few items in the list above. Let's label them appropriately:
 
-- **Output (combForecast)**: system.combForecast.get_combined_forecast("EDOLLAR")
-  - **Internal (combForecast)**: system.combForecast.get_forecast_diversification_multiplier("EDOLLAR")
-  - **Internal (combForecast)**: system.combForecast.get_forecast_weights("EDOLLAR")
-  - **Input (combForecast)**: system.combForecast.get_capped_forecast("EDOLLAR", "ewmac2_8")) etc
-    - **Output (forecastScaleCap)**: system.forecastScaleCap.get_capped_forecast("EDOLLAR", "ewmac2_8")) etc
+- **Output (combForecast)**: `system.combForecast.get_combined_forecast("EDOLLAR")`
+  - **Internal (combForecast)**: `system.combForecast.get_forecast_diversification_multiplier("EDOLLAR")`
+  - **Internal (combForecast)**: `system.combForecast.get_forecast_weights("EDOLLAR")`
+  - **Input (combForecast)**: `system.combForecast.get_capped_forecast("EDOLLAR", "ewmac2_8"))` etc
+    - **Output (forecastScaleCap)**: `system.forecastScaleCap.get_capped_forecast("EDOLLAR", "ewmac2_8"))` etc
 
 This approach (which you can also think of as the stage "API") is used to make it easier to modify the code -  we can change the way a stage works internally, or replace it with a new stage with the same name, but as long as we keep the output method intact we don't need to mess around with any other stage.
 
@@ -1376,7 +1373,7 @@ This approach (which you can also think of as the stage "API") is used to make i
 
 In future versions of this project there will be different versions of each stage available; for example there will be options to use portfolio optimisation to work out weights. Additionally you can add new kinds of stages if desired (see below), and remove stages you don't need (though you can't remove intermediate stages that a remaining stage would need to work out it's results).
 
-It's best to create a new 'pre-baked' system by copying and modifying a file such as "/systems/provided/futures_chapter_15/". You need to import the new stages you require and then put them into the system, like so:
+It's best to create a new 'pre-baked' system by copying and modifying a file such as [this](/systems/provided/futures_chapter_15/basesystem.py). You need to import the new stages you require and then put them into the system, like so:
 
 ```python
 from systems.provided.futures_chapter15 import *
@@ -1397,13 +1394,13 @@ def futures_system( data=None, config=None, trading_rules=None):
 
 ### Writing new stages
 
-If you're going to write a new stage (completely new, or to replace an existing stage) you need to do the following:
+If you're going to write a new stage (completely new, or to replace an existing stage) you need to keep the following in mind:
 
-1. New stages should inherit from [SystemStage](/systems/stage/SystemStage)
-2. Modified stages should inherit from the existing stage you're modifying. For example if you create a new way of calculating forecast weights then you should inherit from [class ForecastCombineFixed](/systems/forecast_combine.py), and then override the get_forecast_weights method; whilst keeping the other methods unchanged. 
-3. New stages will need a unique name; this is stored in the object attribute "name". They can then be accessed with system.stage_name
+1. New stages should inherit from [`SystemStage`](/systems/stage/SystemStage)
+2. Modified stages should inherit from the existing stage you're modifying. For example if you create a new way of calculating forecast weights then you should inherit from [class `ForecastCombineFixed`](/systems/forecast_combine.py), and then override the `get_forecast_weights` method; whilst keeping the other methods unchanged. 
+3. New stages will need a unique name; this is stored in the object attribute `name`. They can then be accessed with `system.stage_name`
 4. Modified stages should use the same name as their parent, or the wiring will go haywire.
-5. Think about whether you need to protect part of the system cache for this stage output [system caching](#caching). To do this create a list in the attribute _protected with the item names you wish to protect.
+5. Think about whether you need to protect part of the system cache for this stage output [system caching](#caching). To do this create a list in the attribute `_protected` with the item names you wish to protect.
 6. If you're inheriting from another stage be sure to add to it's list of protected items, rather than replacing it.
 7. Use non-cached input methods to get data from other stages. Be wary of accessing internal methods in other stages; try to stick to output methods only. 
 8. Use cached input methods to get data from the system data object (since this is the first time it will be cached). Again only access public methods of the system data object.
@@ -1411,7 +1408,7 @@ If you're going to write a new stage (completely new, or to replace an existing 
 10. Internal methods should be public if they could be used for diagnostics, otherwise prefix them with _ to make them private.
 11. The doc string for input and output methods should clearly identify them as such. This is to make viewing the wiring easier.
 12. The doc string at the head of the stage should specify the input methods (and where they take their input from), and the output methods
-13. The doc string should also explain what it does, and the name of the stage
+13. The doc string should also explain what the stage does, and the name of the stage
 
 Here's an example of a base class, to use as a template for new classes (annotated extract):
 
@@ -1724,9 +1721,9 @@ In fact stitched prices are used by default in the system; since they make more 
 
 However when working out percentage returns we absolutely don't want to use the 'stitched' price as the denominator. For positive carry assets stitched prices will increase over time; this means they will be small or even negative in the past and the percentage returns will be large or have the wrong sign.
 
-For this reason there is a special method in the data class called daily_denominator_price. This tells the code what price to use for the P* in the calculation above. In the base class this defaults to the stitched price (but in the futures class, described below, it uses the raw price of the current contract).
+For this reason there is a special method in the data class called `daily_denominator_price`. This tells the code what price to use for the P* in the calculation above. In the base class this defaults to the stitched price (but in the futures class, described below, it uses the raw price of the current contract).
 
-The other point to note is that the price difference volatility calculation is configurable through config.volatility_calculation.
+The other point to note is that the price difference volatility calculation is configurable through `config.volatility_calculation`.
 
 The default function used is a robust EWMA volatility calculator with the following configurable attributes:
 
@@ -1754,7 +1751,7 @@ volatility_calculation:
 
 #### Using the [FuturesRawData class](/systems/futures/rawdata.py)
 
-The futures raw data class has some extra methods needed to calculate the carry rule for futures, and to expose the intermediate calculations. It also overrides daily_denominator_price with the raw price of the futures contract currently traded (as noted [above](#vol_calc) ).
+The futures raw data class has some extra methods needed to calculate the carry rule for futures, and to expose the intermediate calculations. It also overrides `daily_denominator_price` with the raw price of the futures contract currently traded (as noted [above](#vol_calc) ).
 
 
 #### New or modified raw data classes
@@ -1766,7 +1763,7 @@ For example:
 1. To work out the quality factor for an equity value system, based on raw accounting ratios
 2. To work out the moving averages to be used in an EWMAC trading rule, so they can be viewed for diagnostic purposes.
 
-For new asset classes in particular you should think hard about what you should override the daily_denominator_price (see discussion on volatility calculation above).
+For new asset classes in particular you should think hard about what you should override the `daily_denominator_price` (see discussion on volatility calculation above).
 
 <a name="rules">
 ### Stage: Rules
@@ -1774,7 +1771,7 @@ For new asset classes in particular you should think hard about what you should 
 
 Trading rules are at the heart of a fully systematic trading system. This stage description is different from the others; and will be in the form of a tutorial around creating trading rules.
 
-Before then the base class [for Rules is here](/systems/forecasting.py); and it shouldn't be neccessary to modify this class.
+The base class,  Rules() [is here](/systems/forecasting.py); and it shouldn't be neccessary to modify this class.
 
 <a name="TradingRules">
 ### Trading rules
@@ -1808,7 +1805,7 @@ def trading_rule_function(data1, data2, arg1=default_value, arg2=default_value):
 
 At a minimum we need to know the function, since other arguments are optional, and if no data is specified the instrument price is used. A rule specified with only the function is a 'bare' rule. It should take only one data argument which is price, and have no other arguments that need new parameter values.
 
-In this project there is a specific [TradingRule class](/systems/forecasting.py). A TradingRule instance contains 3 elements - a function, a list of any data the function needs, and a dict of any other arguments that can be passed to the function.
+In this project there is a specific [`TradingRule` class](/systems/forecasting.py). A `TradingRule` instance contains 3 elements - a function, a list of any data the function needs, and a dict of any other arguments that can be passed to the function.
 
 The function can eithier be the actual function, or a relative reference to it eg "systems.provided.futures_chapter15.rules.ewmac" (this is useful when a  configuration is created from a file). Data must always be in the form of references to attributes and methods of the system object, eg 'data.get_instrument_price' or 'rawdata.get_daily_prices'. Eithier a single data item, or a list must be passed. Other arguments are in the form a dictionary. 
 
@@ -1841,13 +1838,13 @@ Sometimes it's easier to specify the rule 'en bloc'. You can do this with a 3 tu
 TradingRule(("systems.provided.futures_chapter15.rules.ewmac", ['rawdata.get_daily_prices','data.get_instrument_price'], dict(Lfast=3, Lslow=12)))
 ```
 
-Or with a dict. If using a dict keywords can be omitted (but not 'function'). 
+Or with a dict. If using a dict keywords can be omitted (but not `function`). 
 
 ```python
 TradingRule(dict(function="systems.provided.futures_chapter15.rules.ewmac", data=['rawdata.get_daily_prices','data.get_instrument_price']))
 ```
 
-Note if you use an 'en bloc' method, and also include the data or other_args arguments in your call to TradingRule, you'll get a warning.
+Note if you use an 'en bloc' method, and also include the `data` or `other_args` arguments in your call to `TradingRule`, you'll get a warning.
 
 The dictionary method is used when configuration objects are read from YAML files; these contain the trading rules in a nested dict.
 
@@ -1865,7 +1862,7 @@ trading_rules:
      forecast_scalar: 10.6
 ```
 
-Note that *forecast_scalar* isn't strictly part of the trading rule definition, but if included here will be used instead of the seperate 'config.forecast_scalar' parameter (see the [next stage](#stage_scale) ). 
+Note that *`forecast_scalar`* isn't strictly part of the trading rule definition, but if included here will be used instead of the seperate `config.forecast_scalar` parameter (see the [next stage](#stage_scale) ). 
 
 
 ### The Rules class, and specifying lists of trading rules
@@ -1930,21 +1927,21 @@ rules.trading_rules()
 
 What actually happens when we run this? (this is a little complex but worth understanding).
 
-1. The Rules class is created with no arguments.
-2. We create the system object. This means that all the stages in the system can see the system, in particular they can see the configuration
-3. When the Rules object is first created it is 'empty' - it doesn't have a list of valid *processed* trading rules.
-3. get_raw_forecast is called, and looks for the trading rule "ewmac2_8". It gets this by calling the method get_trading_rules
-4. When the method 'get_trading_rules' is called it looks to see if there is a *processed* dict of trading rules
-5. The first time the method 'get_trading_rules' is called there won't be a processed list. So it looks for something to process
-6. First it will look to see if anything was passed when the instance rules of the Rules() class was created
-7. Since we didn't pass anything instead it processes what it finds in system.config.trading_rules - a nested dict, keynames rule variation names. 
-8. The Rules instance now has processed rule names in the form of a dict, keynames rule variation names, each element containing a valid TradingRule object
+1. The `Rules` class is created with no arguments.
+2. We create the `system` object. This means that all the stages can see the system, in particular they can see the configuration
+3. When the `Rules` object is first created it is 'empty' - it doesn't have a list of valid *processed* trading rules.
+3. `get_raw_forecast` is called, and looks for the trading rule "ewmac2_8". It gets this by calling the method `get_trading_rules`
+4. When the method `get_trading_rules` is called it looks to see if there is a *processed* dict of trading rules
+5. The first time the method `get_trading_rules` is called there won't be a processed list. So it looks for something to process
+6. First it will look to see if anything was passed when the instance rules of the `Rules()` class was created
+7. Since we didn't pass anything instead it processes what it finds in `system.config.trading_rules` - a nested dict, keynames rule variation names. 
+8. The `Rules` instance now has processed rule names in the form of a dict, keynames rule variation names, each element containing a valid `TradingRule` object
 
 
 
 #### Interactively passing a list of trading rules
 
-Often when we're working in development mode we won't have worked up a proper config. To get round this we can pass a single trading rule or a set of trading rules to the Rules() instance when we create it. If we pass a dict, then the rules will be given appropriate names, otherwise if a single rule or a list is passed they will be given arbitrary names "rule0", "rule1", ... 
+Often when we're working in development mode we won't have worked up a proper config. To get round this we can pass a single trading rule or a set of trading rules to the `Rules()` instance when we create it. If we pass a dict, then the rules will be given appropriate names, otherwise if a single rule or a list is passed they will be given arbitrary names "rule0", "rule1", ... 
 
 Also note that we don't have pass a single rule, list or dict of rules; we can also pass anything that can be processed into a trading rule.
 
@@ -2010,7 +2007,7 @@ variations.keys()
 dict_keys(['ewmac_Lfast_4', 'ewmac_Lfast_2'])
 ```
 
-We'd now create an instance of Rules(), passing variations in as an argument.
+We'd now create an instance of `Rules()`, passing variations in as an argument.
 
 #### Using a newly created Rules() instance
 
@@ -2020,7 +2017,6 @@ Once we have our new rules object we can create a new system with it:
 ## build the system
 system=System([rules, FuturesRawData()], data, config)  
 
-rules
 ```
 
 It's generally a good idea to put new fixed forecast scalars (see [forecasting scaling and capping](#stage_scale) ) and forecast weights into the config (see [the combining stage](#stage_combine) ); although in future versions when forecast weights are optimised this won't be a problem. Or if you're just playing with ideas you can live with the default forecast scale of 1.0, and you can delete the forecast weights so that the system will default to using equal weights:
@@ -2048,9 +2044,9 @@ system=futures_system(trading_rules=dict(ewmac2_8=trading_rule1, ewmac4_16=tradi
 
 #### Changing the trading rules in a system on the fly (advanced)
 
-The workflow above has been exclusively create Rules() instance (eithier empty, or passing in a set of trading rules), then create a system that uses it. However sometimes we might want to modify the list of trading rules in the system object. For example you may have loaded a pre-baked system in (which will have an empty Rules() instance and so be using the rules from the config). Rather than replace that wholesale, you might want to drop one of the rules, add an additional one, or change a rule that already exists.
+The workflow above has been to create a `Rules` instance (eithier empty, or passing in a set of trading rules), then create a system that uses it. However sometimes we might want to modify the list of trading rules in the system object. For example you may have loaded a pre-baked system in (which will have an empty `Rules()` instance and so be using the rules from the config). Rather than replace that wholesale, you might want to drop one of the rules, add an additional one, or change a rule that already exists.
 
-To do this we need to directly access the private _trading_rules attribute that stores **processed** trading rules in a dict. This means we can't pass in any old rubbish that can be parsed into a trading rule as we did above; we need to pass in actual TradingRule objects.
+To do this we need to directly access the private `_trading_rules` attribute that stores **processed** trading rules in a dict. This means we can't pass in any old rubbish that can be parsed into a trading rule as we did above; we need to pass in actual `TradingRule` objects.
 
 ```python
 from systems.provided.futures_chapter15.basesystem import futures_system
@@ -2106,7 +2102,7 @@ This is a simple stage that performs two steps:
 
 The standard 'fixed' class uses fixed scaling and caps. 
 
-Forecast scalars are specific to each rule. Scalars can eithier be included in the trading_rules or forecast_scalars part of the config. The former takes precedence if both are included:
+Forecast scalars are specific to each rule. Scalars can eithier be included in the `trading_rules` or `forecast_scalars` part of the config. The former takes precedence if both are included:
 
 YAML: (example) 
 ```
@@ -2136,7 +2132,7 @@ forecast_cap: 20.0
 
 I plan to introduce automatically calculated forecast scalars in a future project (on a rolling out of sample basis).
 
-Possible changes here could include putting in reponse functions (as described in [this AHL paper](http://papers.ssrn.com/sol3/papers.cfm?abstract_id=2695101) ).
+Possible changes here could include putting in response functions (as described in [this AHL paper](http://papers.ssrn.com/sol3/papers.cfm?abstract_id=2695101) ).
 
 <a name="stage_combine">
 ### Stage: Forecast combine
@@ -2186,7 +2182,7 @@ forecast_div_multiplier:
      US10:  1.1
 ```
 
-Note that the get_combined_forecast method in the standard fixed base class automatically adjusts forecast weights if different trading rules have different start dates for their forecasts. It does not adjust the multiplier. This means that in the past the multiplier will probably be too high. 
+Note that the `get_combined_forecast` method in the standard fixed base class automatically adjusts forecast weights if different trading rules have different start dates for their forecasts. It does not adjust the multiplier. This means that in the past the multiplier will probably be too high. 
 
 
 #### Writing new or modified forecast combination stages
@@ -2240,7 +2236,7 @@ instrument_div_multiplier: 1.2
 
 ```
 
-Note that the get_instrument_weights method in the standard fixed base class automatically adjusts raw forecast weights if different instruments have different start dates for their price history and forecasts. It does not adjust the multiplier. This means that in the past the multiplier will probably be too high. 
+Note that the `get_instrument_weights` method in the standard fixed base class automatically adjusts raw forecast weights if different instruments have different start dates for their price history and forecasts. It does not adjust the multiplier. This means that in the past the multiplier will probably be too high. 
 
 
 #### Writing new or modified portfolio stages
@@ -2269,13 +2265,12 @@ I plan to include costs in the accounting stage, to generate lists of simulated 
 ## Table of standard system.data and system.stage methods
 </a>
 
-This table lists all the methods that can be used to get data out of a system and its 'child' stages. Although strictly speaking `system.data` is not a stage, it is included for completeness and because other stages will make use of it.
+The tables in this section list all the methods that can be used to get data out of a system and its 'child' stages. 
 
 
 ### Explanation of columns
 
-
-For brevity the name of the system instance is omitted from the 'call' column. So for example to get the instrument price for Eurodollar from the data object, which is marked as *data.get_instrument_price* we would do something like this:
+For brevity the name of the system instance is omitted from the 'call' column. So for example to get the instrument price for Eurodollar from the data object, which is marked as *`data.get_instrument_price`* we would do something like this:
 
 ```python
 from systems.futures.basesystem import futures_system
@@ -2287,8 +2282,8 @@ Standard methods are in all systems. Non standard methods are for stage classes 
 
 Common arguments are:
 
-- instrument_code: A string indicating the name of the instrument
-- rule_variation_name: A string indicating the name of the trading rule variation
+- `instrument_code`: A string indicating the name of the instrument
+- `rule_variation_name`: A string indicating the name of the trading rule variation
 
 Types are one or more of D, I, O:
 
@@ -2304,12 +2299,12 @@ Private methods are excluded from this table.
 
 | Call                              | Standard?| Arguments       | Type | Description                                                    |
 |:-------------------------:|:---------:|:---------------:|:----:|:--------------------------------------------------------------:|
-| data.get_instrument_price | Standard  | instrument_code        | D,O  | Price used for trading rule analysis (backadjusted if relevant)|
-| data.get_instrument_list  | Standard  |                        |  D   | List of instruments available in data set (not all will be used for backtest)|
-| data.get_value_of_block_price_move| Standard | instrument_code | D,O  | How much does a $1 (or whatever) move in the price of an instrument block affect it's value? |
-| data.get_instrument_currency|Standard | instrument_code | D,O | What currency does this instrument trade in? |
-| data.get_fx_for_instrument  |Standard | instrument_code, base_currency | D, O | What is the exchange rate between the currency of this instrument, and some base currency? |
-| data.get_instrument_raw_carry_data | Futures | instrument_code | D, O | Returns a dataframe with the 4 columns PRICE, CARRY, PRICE_CONTRACT, CARRY_CONTRACT |
+| `data.get_instrument_price` | Standard  | `instrument_code`        | D,O  | Price used for trading rule analysis (backadjusted if relevant)|
+| `data.get_instrument_list`  | Standard  |                        |  D   | List of instruments available in data set (not all will be used for backtest)|
+| `data.get_value_of_block_price_move`| Standard | `instrument_code` | D,O  | How much does a $1 (or whatever) move in the price of an instrument block affect it's value? |
+| `data.get_instrument_currency`|Standard | `instrument_code` | D,O | What currency does this instrument trade in? |
+| `data.get_fx_for_instrument`  |Standard | `instrument_code, base_currency` | D, O | What is the exchange rate between the currency of this instrument, and some base currency? |
+| `data.get_instrument_raw_carry_data` | Futures | `instrument_code` | D, O | Returns a dataframe with the 4 columns PRICE, CARRY, PRICE_CONTRACT, CARRY_CONTRACT |
 
 
 
@@ -2318,18 +2313,18 @@ Private methods are excluded from this table.
         
 | Call                              | Standard?| Arguments       | Type | Description                                                    |
 |:-------------------------:|:---------:|:---------------:|:----:|:--------------------------------------------------------------:|
-| rawdata.get_instrument_price | Standard  | instrument_code        | I  | data.get_instrument_price|
-| rawdata.daily_prices | Standard |     instrument_code         | D,O | Price resampled to end of day |
-| rawdata.daily_denominator_price | Standard | instrument_code  |  O | Price used to calculate % volatility (for futures the current contract price) |
-| rawdata.daily_returns | Standard | instrument_code | D, O | Daily returns in price units|
-| rawdata.daily_returns_volatility | Standard | instrument_code | D,O | Daily standard deviation of returns in price units |
-| rawdata.get_daily_percentage_volatility | Standard | instrument_code | D,O | Daily standard deviation of returns in % (10.0 = 10%) |
-| rawdata.norm_returns | Standard            | instrument_code | D | Daily returns normalised by vol (1.0 = 1 sigma) |
-| rawdata.get_instrument_raw_carry_data | Futures | instrument_code | I | data.get_instrument_raw_carry_data | 
-| rawdata.raw_futures_roll| Futures | instrument_code | D |  | 
-| rawdata.roll_differentials | Futures | instrument_code | D |  |
-| rawdata.annualised_roll | Futures | instrument_code | D | Annualised roll |
-| rawdata.daily_annualised_roll | Futures | instrument_code | D | Annualised roll. Used for carry rule. |
+| `rawdata.get_instrument_price` | Standard  | `instrument_code`        | I  | `data.get_instrument_price`|
+| `rawdata.daily_prices` | Standard |     `instrument_code`     | D,O | Price resampled to end of day |
+| `rawdata.daily_denominator_price` | Standard | `instrument_code`  |  O | Price used to calculate % volatility (for futures the current contract price) |
+| `rawdata.daily_returns` | Standard | `instrument_code` | D, O | Daily returns in price units|
+| `rawdata.daily_returns_volatility` | Standard | `instrument_code` | D,O | Daily standard deviation of returns in price units |
+| `rawdata.get_daily_percentage_volatility` | Standard | `instrument_code` | D,O | Daily standard deviation of returns in % (10.0 = 10%) |
+| `rawdata.norm_returns` | Standard            | `instrument_code` | D | Daily returns normalised by vol (1.0 = 1 sigma) |
+| `rawdata.get_instrument_raw_carry_data` | Futures | `instrument_code` | I | data.get_instrument_raw_carry_data | 
+| `rawdata.raw_futures_roll`| Futures | `instrument_code` | D |  | 
+| `rawdata.roll_differentials` | Futures | `instrument_code` | D |  |
+| `rawdata.annualised_roll` | Futures | `instrument_code` | D | Annualised roll |
+| `rawdata.daily_annualised_roll` | Futures | `instrument_code` | D | Annualised roll. Used for carry rule. |
  
 
 
@@ -2338,8 +2333,8 @@ Private methods are excluded from this table.
 
 | Call                              | Standard?| Arguments       | Type | Description                                                    |
 |:-------------------------:|:---------:|:---------------:|:----:|:--------------------------------------------------------------:|
-| rules.trading_rules | Standard  |         | D  | List of trading rule variations |
-| rules.get_raw_forecast | Standard | instrument_code, rule_variation_name | D,O| Get forecast (unscaled, uncapped) |
+| `rules.trading_rules` | Standard  |         | D  | List of trading rule variations |
+| `rules.get_raw_forecast` | Standard | `instrument_code`, `rule_variation_name` | D,O| Get forecast (unscaled, uncapped) |
 
 
 ### Forecast scaling and capping stage (chapter 7 of book)
@@ -2347,11 +2342,11 @@ Private methods are excluded from this table.
 
 | Call                              | Standard?| Arguments       | Type | Description                                                    |
 |:-------------------------:|:---------:|:---------------:|:----:|:--------------------------------------------------------------:|
-| forecastScaleCap.get_raw_forecast | Standard  | instrument_code, rule_variation_name        | I  | rules.get_raw_forecast |
-| forecastScaleCap.get_forecast_scalar | Standard | instrument_code, rule_variation_name        | D  | Get the scalar to use for a forecast |
-| forecastScaleCap.get_forecast_cap | Standard | instrument_code, rule_variation_name        | D  | Get the maximum allowable forecast |
-| forecastScaleCap.get_scaled_forecast | Standard | instrument_code, rule_variation_name        | D  | Get the forecast after scaling (after capping) |
-| forecastScaleCap.get_capped_forecast | Standard | instrument_code, rule_variation_name        | D, O  | Get the forecast after scaling (after capping) |
+| `forecastScaleCap.get_raw_forecast` | Standard  | `instrument_code`, `rule_variation_name`        | I  | `rules.get_raw_forecast` |
+| `forecastScaleCap.get_forecast_scalar` | Standard | `instrument_code`, `rule_variation_name`        | D  | Get the scalar to use for a forecast |
+| `forecastScaleCap.get_forecast_cap` | Standard | `instrument_code`, `rule_variation_name`        | D  | Get the maximum allowable forecast |
+| `forecastScaleCap.get_scaled_forecast` | Standard | `instrument_code`, `rule_variation_name`        | D  | Get the forecast after scaling (after capping) |
+| `forecastScaleCap.get_capped_forecast` | Standard | `instrument_code`, `rule_variation_name`        | D, O  | Get the forecast after scaling (after capping) |
 
 
 ### Combine forecasts stage (chapter 8 of book)
@@ -2359,10 +2354,10 @@ Private methods are excluded from this table.
 
 | Call                              | Standard?| Arguments       | Type | Description                                                    |
 |:-------------------------:|:---------:|:---------------:|:----:|:--------------------------------------------------------------:|
-| combForecast.get_capped_forecast | Standard  | instrument_code, rule_variation_name        | I  | forecastScaleCap.get_capped_forecast |
-| combForecast.get_forecast_weights | Standard  | instrument_code        | D  | Forecast weights |
-| combForecast.get_forecast_diversification_multiplier | Standard  | instrument_code        | D  | Get diversification multiplier |
-| combForecast.get_combined_forecast | Standard  | instrument_code        | D,O  | Get weighted average of forecasts for instrument |
+| `combForecast.get_capped_forecast` | Standard  | `instrument_code`, `rule_variation_name`        | I  | `forecastScaleCap.get_capped_forecast` |
+| `combForecast.get_forecast_weights` | Standard  | `instrument_code`        | D  | Forecast weights |
+| `combForecast.get_forecast_diversification_multiplier` | Standard  | `instrument_code`        | D  | Get diversification multiplier |
+| `combForecast.get_combined_forecast` | Standard  | `instrument_code`        | D,O  | Get weighted average of forecasts for instrument |
 
 
 
@@ -2371,16 +2366,16 @@ Private methods are excluded from this table.
 
 | Call                              | Standard?| Arguments       | Type | Description                                                    |
 |:-------------------------:|:---------:|:---------------:|:----:|:--------------------------------------------------------------:|
-| positionSize.get_combined_forecast | Standard  | instrument_code        | I  | combForecast.get_combined_forecast |
-| positionSize.get_price_volatility | Standard | instrument_code        | I  | rawdata.get_daily_percentage_volatility (or data.get_combined_forecast) |
-| positionSize.get_instrument_sizing_data | Standard | instrument_code        | I  | rawdata.get_rawdata.daily_denominator_price( (or data.get_instrument_price); data.get_value_of_block_price_move |
-| positionSize.get_fx_rate | Standard | instrument_code | I | data.get_fx_for_instrument |
-| positionSize.get_daily_cash_vol_target | Standard |  | D | Dictionary of base_currency, percentage_vol_target, notional_trading_capital, annual_cash_vol_target, daily_cash_vol_target |
-| positionSize.get_block_value | Standard | instrument_code | D | Get value of a 1% move in the price |
-| positionSize.get_instrument_currency_vol | Standard | instrument_code |D | Get daily volatility in the currency of the instrument |
-| positionSize.get_instrument_value_vol | Standard | instrument_code |D | Get daily volatility in the currency of the trading account |
-| positionSize.get_volatility_scalar | Standard | instrument_code | D |Get ratio of target volatility vs volatility of instrument in instrument's own currency |
-| positionSize.get_subsystem_position| Standard | instrument_code | D, O |Get position if we put our entire trading capital into one instrument |
+| `positionSize.get_combined_forecast` | Standard  | `instrument_code`        | I  | `combForecast.get_combined_forecast` |
+| `positionSize.get_price_volatility` | Standard | `instrument_code`        | I  | `rawdata.get_daily_percentage_volatility` (or `data.get_instrument_price`) |
+| `positionSize.get_instrument_sizing_data` | Standard | `instrument_code`        | I  | `rawdata.get_rawdata.daily_denominator_price( (or `data.get_instrument_price`); `data.get_value_of_block_price_move` |
+| `positionSize.get_fx_rate` | Standard | `instrument_code` | I | `data.get_fx_for_instrument` |
+| `positionSize.get_daily_cash_vol_target` | Standard |  | D | Dictionary of base_currency, percentage_vol_target, notional_trading_capital, annual_cash_vol_target, daily_cash_vol_target |
+| `positionSize.get_block_value` | Standard | `instrument_code` | D | Get value of a 1% move in the price |
+| `positionSize.get_instrument_currency_vol` | Standard | `instrument_code` |D | Get daily volatility in the currency of the instrument |
+| `positionSize.get_instrument_value_vol` | Standard | `instrument_code` |D | Get daily volatility in the currency of the trading account |
+| `positionSize.get_volatility_scalar` | Standard | `instrument_code` | D |Get ratio of target volatility vs volatility of instrument in instrument's own currency |
+| `positionSize.get_subsystem_position`| Standard | `instrument_code` | D, O |Get position if we put our entire trading capital into one instrument |
 
 
 
@@ -2389,10 +2384,10 @@ Private methods are excluded from this table.
 
 | Call                              | Standard?| Arguments       | Type | Description                                                    |
 |:-------------------------:|:---------:|:---------------:|:----:|:--------------------------------------------------------------:|
-| portfolio.get_subsystem_position| Standard | instrument_code | I |positionSize.get_subsystem_position |
-| portfolio.get_instrument_weights| Standard |  | D |Get instrument weights |
-| portfolio.get_instrument_diversification_multiplier| Standard |  | D |Get instrument div. multiplier |
-| portfolio.get_notional_position| Standard | instrument_code | D |Get the *notional* position (with constant risk capital; doesn't allow for adjustments when profits or losses are made) |
+| `portfolio.get_subsystem_position`| Standard | `instrument_code` | I |`positionSize.get_subsystem_position` |
+| `portfolio.get_instrument_weights`| Standard |  | D |Get instrument weights |
+| `portfolio.get_instrument_diversification_multiplier`| Standard |  | D |Get instrument div. multiplier |
+| `portfolio.get_notional_position`| Standard | `instrument_code` | D |Get the *notional* position (with constant risk capital; doesn't allow for adjustments when profits or losses are made) |
 
 
 
@@ -2401,7 +2396,7 @@ Private methods are excluded from this table.
 
 | Call                              | Standard?| Arguments       | Type | Description                                                    |
 |:-------------------------:|:---------:|:---------------:|:----:|:--------------------------------------------------------------:|
-| accounts.get_notional_position| Standard |  | I | portfolio.get_notional_position|
+| `accounts.get_notional_position`| Standard |  | I | `portfolio.get_notional_position`|
 
 
 

@@ -177,7 +177,7 @@ account.weekly() ## weekly returns (also monthly, annual)
 
 This is all very well, but what we probably want to do is build a trading **system** composed of several trading rules, and a few more instruments.
 
-A system consists of some data (which we've already seen), a number of processing *stages*, and optionally a configuration to modify each of the stages behaves.
+A system consists of some `data` (which we've already seen), a number of processing *stages*, and optionally a configuration to modify each of the stages behaves.
 
 A full list of stages would include:
 
@@ -282,7 +282,7 @@ my_rules.trading_rules()['ewmac32']
 TradingRule; function: <function ewmac_forecast_with_defaults at 0xb7252a4c>, data:  and other_args: Lfast, Lslow
 ```
 
-Again, let's check that ewmac32 is the same as the ewmac we have before (it should be, since 32, 128 are the default arguments for the underlying trading rule function):
+Again, let's check that `ewmac32` is the same as the `ewmac` we have before (it should be, since 32, 128 are the default arguments for the underlying trading rule function):
 
 ```python
 my_system=System([my_rules], data)
@@ -299,7 +299,7 @@ my_system.rules.get_raw_forecast("EDOLLAR", "ewmac32").tail(5)
 ```
 
 
-Now let's introduce the idea of **config** objects. A config or configuration object allows us to control the behaviour of the various stages in the system. 
+Now let's introduce the idea of **config** objects. A `config` or configuration object allows us to control the behaviour of the various stages in the system. 
 
 Configuration objects can be created on the fly or by reading in files written in yaml (which we'll talk about below). A configuration object is just a collection of attributes. We create them interactively like so:
 
@@ -311,9 +311,10 @@ my_config
 
 ```
 Config with elements: 
+## this line intentionally left blank. Apart from this comment of course.
 ```
 
-So far, not exciting. Let's see how we'd use a config to define our trading rules:
+So far, not exciting. Let's see how we'd use a `config` to define our trading rules:
 
 ```python
 empty_rules=Rules()
@@ -324,8 +325,8 @@ my_system=System([empty_rules], data, my_config)
 Notice the differences from before:
 
 1. We pass in an 'empty' instance of rules that contains no arguments
-2. We create an element in config: trading_rules, that contains our dictionary of trading rules
-3. The system uses the config.trading_rules
+2. We create an element in `config`: `trading_rules`, that contains our dictionary of trading rules
+3. The system uses the `config.trading_rules`
 
 *Note if you'd passed the dict of trading rules into Rules()* **and** *into the config, only the former would be used*
 
@@ -466,7 +467,7 @@ Once again we have the now familiar accounting object.
 
 ## Getting config from dictionaries and files
 
-To speed things up you can also pass a dictionary to Config. To reproduce the setup we had above we'd make a dict like so:
+To speed things up you can also pass a dictionary to `Config()`. To reproduce the setup we had above we'd make a dict like so:
 
 ```python
 from sysdata.configdata import Config
@@ -489,7 +490,7 @@ my_config=Config("systems.provided.example.simplesystemconfig.yaml")
 
 If you look at the YAML file you'll notice that the trading rule function has been specified as a string `systems.provided.example.rules.ewmac_forecast_with_defaults`. This is because we can't easily create a function in a YAML text file (*we can in theory; but it's quite a bit of work and creates a potential security risk*). Instead we specify where the relevant function can be found in the project directory structure. 
 
-Similarly for the ewmac8 rule we've specified a data source `data.get_instrument_price` which points to system.data.get_instrument_price. This is the default, which is why we haven't needed to specify it before, and it isn't included in the specification for the ewmac32 rule. Equally we could specify any attribute and method within the system object, as long as it takes the argument `instrument_code`. We can also have a list of data inputs. This means you can configure almost any trading rule quite easily through configuration changes.
+Similarly for the ewmac8 rule we've specified a data source `data.get_instrument_price` which points to `system.data.get_instrument_price()`. This is the default, which is why we haven't needed to specify it before, and it isn't included in the specification for the ewmac32 rule. Equally we could specify any attribute and method within the system object, as long as it takes the argument `instrument_code`. We can also have a list of data inputs. This means you can configure almost any trading rule quite easily through configuration changes.
 
 
 
@@ -497,7 +498,7 @@ Similarly for the ewmac8 rule we've specified a data source `data.get_instrument
 
 Normally we wouldn't create a system by adding each stage manually (importing and creating long lists of stage objects). Instead you can use a 'pre baked' system, and then modify it as required. 
 
-For example here is a pre-baked version of the previous example (code is [here](prebakedsystem.spy) ):
+For example here is a pre-baked version of the previous example (code is [here](/examples/introduction/prebakedsystems.py) ):
 
 ```python
 from systems.provided.example.simplesystem import simplesystem
@@ -517,7 +518,7 @@ my_system.portfolio.get_notional_position("EDOLLAR").tail(5)
 
 
 
-By default this has loaded the same data and read the config from the same yaml file. However we can also do this manually, allowing us to use new data and a modified config with a pre-baked system.
+By default this has loaded the same data and read the config from the same yaml file. However we can also do this manually, allowing us to use new `data` and a modified `config` with a pre-baked system.
 
 ```python
 from sysdata.configdata import Config
@@ -537,7 +538,7 @@ For the vast majority of the time this will be how you create new systems.
 
 Let's now see how we might use another 'pre-baked' system, in this case the staunch systems trader example definied in chapter 15 of my book. Here again we default to using csv data.
 
-(Code is [here](prebakedsystem.spy) )
+(Code is [here](/examples/introduction/prebakedsystems.py) )
 
 ```python
 from systems.provided.futures_chapter15.basesystem import futures_system
@@ -554,6 +555,6 @@ system.portfolio.get_notional_position("EUROSTX").tail(5)
 2015-04-22  2.119637
 ```
 
-It's worth looking at the config for this system [here](/systems/futures/futuresconfig.yaml), and comparing it to what you see in chapter 15.
+It's worth looking at the config for this system [here](/systems/provided/futures_chapter15/futuresconfig.yaml), and comparing it to what you see in chapter 15.
 
 You'll probably want to read the [users guide](userguide.md) next.
