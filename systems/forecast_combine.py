@@ -1,9 +1,8 @@
 import pandas as pd
 
 from systems.stage import SystemStage
-from syscore.objects import calc_or_cache
 from syscore.pdutils import multiply_df, fix_weights_vs_pdm
-
+from systems.defaults import system_defaults
 
 
 class ForecastCombineFixed(SystemStage):
@@ -25,12 +24,9 @@ class ForecastCombineFixed(SystemStage):
         
                 
         """
-        delete_on_recalc=['_combined_forecast']
 
-        dont_delete=['_forecast_weights','_forecast_div_multiplier']
-        
-        setattr(self, "_delete_on_recalc", delete_on_recalc)
-        setattr(self, "_dont_recalc", dont_delete)
+        protected=['get_forecast_weights','get_forecast_diversification_multiplier']
+        setattr(self, "_protected", protected)
 
         setattr(self, "name", "combForecast")
     
@@ -91,9 +87,15 @@ class ForecastCombineFixed(SystemStage):
         2015-04-21      0.1     0.9
         2015-04-22      0.1     0.9
         >>>
-        >>> 
+        >>> del(config.forecast_weights)
+        >>> system3=System([rawdata, rules, fcs, ForecastCombineFixed()], data, config)
+        >>> system3.combForecast.get_forecast_weights("EDOLLAR").tail(2)
+        WARNING: No forecast weights  - using equal weights of 0.5000 over all 2 trading rules in system
+                    ewmac16  ewmac8
+        2015-04-21      0.5     0.5
+        2015-04-22      0.5     0.5
         """                    
-        def _get_forecast_weight(system,  instrument_code,  this_stage ):
+        def _get_forecast_weights(system,  instrument_code,  this_stage ):
 
             ## Let's try the config
             if "forecast_weights" in dir(system.config):
@@ -105,7 +107,12 @@ class ForecastCombineFixed(SystemStage):
                     ## assume it's a non nested dict
                     fixed_weights=system.config.forecast_weights
             else:
-                raise Exception("Need to specify a dict of forecast_weights eithier in config.forecast_weights, or ForecastCombineFixed(forecast_weights=...)")
+                rules=list(self.parent.rules.trading_rules().keys())
+                weight=1.0/len(rules)
+
+                print("WARNING: No forecast weights  - using equal weights of %.4f over all %d trading rules in system" % (weight, len(rules)))
+                fixed_weights=dict([(rule_name, weight) for rule_name in rules])
+                
             
             ## Now we have a dict, fixed_weights.
             ## Need to turn into a timeseries covering the range of forecast dates
@@ -131,7 +138,7 @@ class ForecastCombineFixed(SystemStage):
 
             return forecasts_weights
         
-        forecast_weights=calc_or_cache(self.parent, "_forecast_weights", instrument_code,  _get_forecast_weight, self)
+        forecast_weights=self.parent.calc_or_cache( "get_forecast_weights", instrument_code,  _get_forecast_weights, self)
         return forecast_weights
 
 
@@ -167,12 +174,18 @@ class ForecastCombineFixed(SystemStage):
         2015-04-21    2
         2015-04-22    2
         >>>
-
+        >>> ## defaults
+        >>> del(config.forecast_div_multiplier)
+        >>> system3=System([rawdata, rules, fcs, ForecastCombineFixed()], data, config)
+        >>> system3.combForecast.get_forecast_diversification_multiplier("EDOLLAR").tail(2)
+                    fdm
+        2015-04-21    1
+        2015-04-22    1
         """                    
         def _get_forecast_div_multiplier(system,  instrument_code,  this_stage ):
             
             ## Let's try the config
-            if "forecast_div_multiplier" in dir(system.config):
+            if hasattr(system.config, "forecast_div_multiplier"):
                 if type(system.config.forecast_div_multiplier) is float:
                     fixed_div_mult=system.config.forecast_div_multiplier
                     
@@ -180,9 +193,13 @@ class ForecastCombineFixed(SystemStage):
                     ## dict
                     fixed_div_mult=system.config.forecast_div_multiplier[instrument_code] 
                 else:
-                    raise Exception("Missing key of %s in dict of forecast_div_multiplier in config" % instrument_code)
+                    raise Exception("FDM in config needs to be eithier float, or dict with instrument_code keys")
+
+            elif "forecast_div_multiplier" in system_defaults:
+                ## try defaults
+                fixed_div_mult=system_defaults['forecast_div_multiplier']
             else:
-                raise Exception("Need to specify a dict of forecast_weights in config.forecast_weights")
+                raise Exception("Need to specify FDM in config or system_defaults")
             
             ## Now we have a dict, fixed_weights.
             ## Need to turn into a timeseries covering the range of forecast dates
@@ -195,7 +212,7 @@ class ForecastCombineFixed(SystemStage):
             
             return ts_fdm
         
-        forecast_div_multiplier=calc_or_cache(self.parent, '_forecast_div_multiplier', instrument_code,  _get_forecast_div_multiplier, self)
+        forecast_div_multiplier=self.parent.calc_or_cache( 'get_forecast_diversification_multiplier', instrument_code,  _get_forecast_div_multiplier, self)
         return forecast_div_multiplier
     
         
@@ -251,7 +268,7 @@ class ForecastCombineFixed(SystemStage):
             
             return combined_forecast
         
-        combined_forecast=calc_or_cache(self.parent, '_combined_forecast', instrument_code,  _get_combined_forecast, self)
+        combined_forecast=self.parent.calc_or_cache( 'get_combined_forecast', instrument_code,  _get_combined_forecast, self)
         return combined_forecast
 
 

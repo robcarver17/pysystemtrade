@@ -7,27 +7,18 @@ import numpy as np
 from syscore.fileutils import get_pathname_for_package
 import os
 
-def pd_readcsv_frompackage(package_name, filename, path=[""]):
+def pd_readcsv_frompackage(*args):
     """
-    Run pd_readcsv on a file in python with optional paths eg path=['path',path2', ...]
-    package_name(/path1/path2.., filename
+    Run pd_readcsv on a file in python 
 
-    :param package_name: Name of a package eg syscore that contains
-    :type package_name: str
-
-    :param filename: Filename with extension
-    :type filename: str
-
-    :param path: List of paths to complete full path structure
-    :type path: list of str
-    
+    :param args: List showing location in project directory of file eg systems, provided, tests.csv
+    :type args: str
     
     :returns: pd.DataFrame
     
     """
     
-    pathname=get_pathname_for_package(package_name, path)
-    full_filename= os.path.join(pathname,  filename)
+    full_filename=get_pathname_for_package(*args)
     return pd_readcsv(full_filename)
 
 def pd_readcsv(filename, date_index_name="DATETIME"):

@@ -165,7 +165,7 @@ Looks like we did make a few bucks. `account`, by the way inherits from a pandas
 
 ```python
 account.sharpe() ## get the Sharpe Ratio (annualised), and any other statistic which is in the stats list
-account.curve().plot() ## plot the cumulative account curve
+account.curve().plot() ## plot the cumulative account curve (equivalent to account.cumsum().plot() inicidentally)
 account.drawdown().plot() ## see the drawdowns
 account.weekly() ## weekly returns (also monthly, annual)
 ```
@@ -203,18 +203,18 @@ This is a slightly different version of the rule we defined before, which has de
 ```python
 from systems.forecasting import Rules
 my_rules=Rules(ewmac)
-my_rules
+my_rules.trading_rules()
 ```
 
 ```
 {'rule0': TradingRule; function: <function ewmac_forecast_with_defaults at 0xb727fa4c>, data:  and other_args: }
 ```
 
-This won't make much sense now, but bear with me (and don't worry if you get a different hexadecimal number). Suffice to say we've created a dict of trading rules with one element, which has been given the thrilling name of `rule0`. `rule0` isn't especially meaningful, so let's come up with a better name:
+This won't make much sense now, but bear with me (and don't worry if you get a different hexadecimal number). Suffice to say we've created a dict of trading rules with one variation, which has been given the thrilling name of `rule0`. `rule0` isn't especially meaningful, so let's come up with a better name:
 
 ```python
 my_rules=Rules(dict(ewmac=ewmac))
-my_rules
+my_rules.trading_rules()
 ```
 
 ```
@@ -248,6 +248,8 @@ my_system.rules.get_raw_forecast("EDOLLAR", "ewmac").tail(5)
 2015-04-22  4.041079
 ```
 
+This is exactly what we got in the simple example above; but with far more work. Don't worry, it will be worth it.
+
 We'll see this pattern of `my_system...stage name...get_something()` a lot. The `Rules` object has become an attribute of the parent system, with name `rules`. Notice that the names used for each stage are fixed regardless of exactly what the stage class or instance is called, so we can always find what we need.
 
 What about if we want more than one trading rule, say a couple of variations of the ewmac rule? To define two different flavours of ewmac we're going to need to learn a little bit more about trading rules. Remember when we had `my_rules=Rules(dict(ewmac=ewmac))`? Well this is an equivalent way of doing it:
@@ -280,8 +282,11 @@ my_rules.trading_rules()['ewmac32']
 TradingRule; function: <function ewmac_forecast_with_defaults at 0xb7252a4c>, data:  and other_args: Lfast, Lslow
 ```
 
+Again, let's check that ewmac32 is the same as the ewmac we have before (it should be, since 32, 128 are the default arguments for the underlying trading rule function):
+
 ```python
-my_system.rules.get_raw_forecast("EDOLLAR", "ewmac").tail(5)
+my_system=System([my_rules], data)
+my_system.rules.get_raw_forecast("EDOLLAR", "ewmac32").tail(5)
 ```
 
 ```
@@ -305,7 +310,7 @@ my_config
 ```
 
 ```
-FIX ME OUTPUT
+Config with elements: 
 ```
 
 So far, not exciting. Let's see how we'd use a config to define our trading rules:
@@ -314,7 +319,6 @@ So far, not exciting. Let's see how we'd use a config to define our trading rule
 empty_rules=Rules()
 my_config.trading_rules=dict(ewmac8=ewmac_8, ewmac32=ewmac_32)
 my_system=System([empty_rules], data, my_config)
-my_system.rules.get_raw_forecast("EDOLLAR", "ewmac").tail(5)
 ```
 
 Notice the differences from before:
@@ -323,9 +327,9 @@ Notice the differences from before:
 2. We create an element in config: trading_rules, that contains our dictionary of trading rules
 3. The system uses the config.trading_rules
 
-*Note if you'd passed the dict of trading rules into Rules()* **and** *into the config, the former would be used*
+*Note if you'd passed the dict of trading rules into Rules()* **and** *into the config, only the former would be used*
 
-Now these trading rules aren't producing forecasts that are correctly scaled (with an average absolute value of 10), and they don't have the cap of 20 that I recommend. In future versions of this project we'll be able to estimate forecast scalars on a rolling out of sample basis; but for now we'll just use the fixed values from Appendix B of my book ["Systematic Trading"](http:/www.systematictrading.org). To fix this we need to add another stage to our system. 
+Now these trading rules aren't producing forecasts that are correctly scaled (with an average absolute value of 10), and they don't have the cap of 20 that I recommend. In future versions of this project we'll be able to estimate forecast scalars on a rolling out of sample basis; but for now we'll just use the fixed values from Appendix B of my book ["Systematic Trading"](http:/www.systematictrading.org). To fix this we need to add another stage to our system: forecast scaling and capping. 
 
 
 ```python
@@ -350,14 +354,34 @@ my_system.forecastScaleCap.get_capped_forecast("EDOLLAR", "ewmac32")
 2015-04-22  10.708858
 ```
 
-Since we have two trading rule variations we're naturally going to want to combine them (chapter 8 of my book). Let's come up with some arbitrary forecast weights and diversification multiplier for now:
+*We didn't have to pass the forecast cap of 20.0, since the system was happy to use the default value (this is defined in the system defaults file, which the full [users guide](userguide.md) will tell you more about).*
 
+Since we have two trading rule variations we're naturally going to want to combine them (chapter 8 of my book). For a very quick and dirty exercise running this code will use equal forecast weights across instruments, and use no diversification multiplier:
 
 ```python
 from systems.forecast_combine import ForecastCombineFixed
+combiner=ForecastCombineFixed()
+my_system=System([fcs, empty_rules, combiner], data, my_config)
+my_system.combForecast.get_combined_forecast("EDOLLAR").tail(5)
+```
+
+```
+WARNING: No forecast weights  - using equal weights of 0.5000 over all 2 trading rules in system
+            comb_forecast
+2015-04-16       9.162660
+2015-04-17       9.668552
+2015-04-20       9.907909
+2015-04-21       9.906067
+2015-04-22       8.842466
+```
+
+
+Let's come up with some arbitrary forecast weights and diversification multiplier for now:
+
+
+```python
 my_config.forecast_weights=dict(ewmac8=0.5, ewmac32=0.5)
 my_config.forecast_div_multiplier=1.1
-combiner=ForecastCombineFixed()
 my_system=System([fcs, empty_rules, combiner], data, my_config)
 my_system.combForecast.get_combined_forecast("EDOLLAR").tail(5)
 ```
@@ -379,9 +403,9 @@ Let's do the position scaling:
 from systems.positionsizing import PositionSizing
 possizer=PositionSizing()
 
-my_config.percentage_vol_target=0.10
-my_config.notional_trading_capital=50000
-my_config.base_currency="GBP")
+my_config.percentage_vol_target=25
+my_config.notional_trading_capital=500000
+my_config.base_currency="GBP"
 
 my_system=System([ fcs, empty_rules, combiner, possizer], data, my_config)
 
@@ -393,16 +417,16 @@ my_system.positionSize.get_subsystem_position("EDOLLAR").tail(5)
 
 ```
             ss_position
-2015-04-16     3.001186
-2015-04-17     3.286852
-2015-04-20     3.479907
-2015-04-21     3.569091
-2015-04-22     3.108522
+2015-04-16    75.048813
+2015-04-17    82.175489
+2015-04-20    86.984346
+2015-04-21    89.209027
+2015-04-22    77.713056
 ```
 
 We're almost there. The final stage we need to get positions is to combine everything into a portfolio (chapter 11). Again I'm going to make up some instrument weights, and diversification multiplier.
 
-
+*Again if we couldn't be bothered, this would default to equal weights and 1.0 respectively*
 
 ```python
 from systems.portfolio import PortfoliosFixed
@@ -415,12 +439,12 @@ my_system.portfolio.get_notional_position("EDOLLAR").tail(5)
 ```
 
 ```                 
-                 pos
-2015-04-16  1.800711
-2015-04-17  1.972111
-2015-04-20  2.087944
-2015-04-21  2.141454
-2015-04-22  1.865113
+                  pos
+2015-04-16  45.029288
+2015-04-17  49.305294
+2015-04-20  52.190608
+2015-04-21  53.525416
+2015-04-22  46.627833
 ```
 
 Although this is fine and dandy, we're probably going to be curious about whether this made money or not. So we'll need to add just one more stage, to count our virtual profits:
@@ -446,8 +470,8 @@ To speed things up you can also pass a dictionary to Config. To reproduce the se
 
 ```python
 from sysdata.configdata import Config
-my_config=Config(dict(trading_rules=dict(ewmac8=ewmac_8, ewmac32=ewmac_32), instrument_weights=dict(US10=.1, EDOLLAR=.4, CORN=.3, SP500=.8), instrument_div_multiplier=1.5, forecast_scalars=dict(ewmac8=5.3, ewmac32=2.65), forecast_weights=dict(ewmac8=0.5, ewmac32=0.5), forecast_div_multiplier=1.1
-,percentage_vol_target=0.10, notional_trading_capital=50000, base_currency="GBP"))
+my_config=Config(dict(trading_rules=dict(ewmac8=ewmac_8, ewmac32=ewmac_32), instrument_weights=dict(US10=.1, EDOLLAR=.4, CORN=.3, SP500=.2), instrument_div_multiplier=1.5, forecast_scalars=dict(ewmac8=5.3, ewmac32=2.65), forecast_weights=dict(ewmac8=0.5, ewmac32=0.5), forecast_div_multiplier=1.1
+,percentage_vol_target=25, notional_trading_capital=500000, base_currency="GBP"))
 my_config
 ```
 
@@ -459,21 +483,15 @@ Alternatively we could get the same result from reading a [yaml](http://pyyaml.o
 
 ```python
 from syscore.fileutils import get_pathname_for_package
-my_config=Config(get_pathname_for_package("systems", ["provided", "example", "simplesystemconfig.yaml"]))
+my_config=Config(get_pathname_for_package("systems", "provided", "example", "simplesystemconfig.yaml"))
 ```
 
 (The get_path_name.. is just a way of navigating the python directories in the project.)
 
-If you look at the YAML file you'll notice that the trading rule function has been specified as a string `systems.provided.example.rules.ewmac_forecast_with_defaults`. This is because we can't create a function in a YAML text file (*actually we can; but it's quite a bit of work and creates a potential security risk*). Instead we specify where the relevant function can be found in the project directory structure. 
+If you look at the YAML file you'll notice that the trading rule function has been specified as a string `systems.provided.example.rules.ewmac_forecast_with_defaults`. This is because we can't easily create a function in a YAML text file (*we can in theory; but it's quite a bit of work and creates a potential security risk*). Instead we specify where the relevant function can be found in the project directory structure. 
 
-Similarly for the ewmac8 rule we've specified a data source `data.get_instrument_price`. This is the default, which is why we haven't needed to specify it before, and it isn't included in the specification for the ewmac32 rule. Equally we could specify any attribute and method within the system object, as long as it takes the argument `instrument_code`. We can also have a list of data inputs.This means you can configure almost any trading rule quite easily through configuration changes.
+Similarly for the ewmac8 rule we've specified a data source `data.get_instrument_price` which points to system.data.get_instrument_price. This is the default, which is why we haven't needed to specify it before, and it isn't included in the specification for the ewmac32 rule. Equally we could specify any attribute and method within the system object, as long as it takes the argument `instrument_code`. We can also have a list of data inputs. This means you can configure almost any trading rule quite easily through configuration changes.
 
-Now we've got a complete config this next line of code will reproduce what we've already done:
-
-```python
-my_system=System([Account(), PortfoliosFixed(), PositionSizing(), ForecastCombineFixed(), ForecastScaleCapFixed(), Rules()
-], data, my_config)
-``` 
 
 
 ## A simple pre-baked system
@@ -499,14 +517,6 @@ my_system.portfolio.get_notional_position("EDOLLAR").tail(5)
 ```
 
 
-```
-                 pos
-2015-04-16  1.800711
-2015-04-17  1.972111
-2015-04-20  2.087944
-2015-04-21  2.141454
-2015-04-22  1.865113
-```
 
 By default this has loaded the same data and read the config from the same yaml file. However we can also do this manually, allowing us to use new data and a modified config with a pre-baked system.
 
@@ -515,8 +525,10 @@ from syscore.fileutils import get_pathname_for_package
 from sysdata.configdata import Config
 from sysdata.csvdata import csvFuturesData
 
-my_config=Config(get_pathname_for_package("systems", ["provided", "example", "simplesystemconfig.yaml"]))
+my_config=Config(get_pathname_for_package("systems", "provided", "example", "simplesystemconfig.yaml"))
 my_data=csvFuturesData()
+
+## I could change my_config, and my_data here if I wanted to
 my_system=simplesystem(config=my_config, data=my_data)
 ```
 
@@ -530,7 +542,7 @@ Let's now see how we might use another 'pre-baked' system, in this case the stau
 (Code is [here](prebakedsystem.spy) )
 
 ```python
-from systems.futures.basesystem import futures_system
+from systems.provided.futures_chapter15.basesystem import futures_system
 system=futures_system()
 system.portfolio.get_notional_position("EUROSTX").tail(5)
 ```

@@ -3,8 +3,8 @@
 # Raw data
 #
 volatility_calculation:
-	func: "syscore.algos.robust_vol_calc"
-	days: 35
+   func: "syscore.algos.robust_vol_calc"
+   days: 35
 #
 # Trading rules
 #

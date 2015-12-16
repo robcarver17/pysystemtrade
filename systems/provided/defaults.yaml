@@ -16,7 +16,7 @@ volatility_calculation:
 #
 forecast_scalar: 1.0
 forecast_cap: 20.0
-average_absolute_forecast=10.0
+average_absolute_forecast: 10.0
 #
 # forecast combination
 #

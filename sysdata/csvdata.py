@@ -48,7 +48,7 @@ class csvFuturesData(FuturesData):
         """
 
         if datapath is None:            
-            datapath=get_pathname_for_package(LEGACY_DATA_MODULE, [LEGACY_DATA_DIR])
+            datapath=get_pathname_for_package(LEGACY_DATA_MODULE, LEGACY_DATA_DIR)
 
         """
         Most Data objects that read data from a specific place have a 'source' of some kind
@@ -232,7 +232,7 @@ class csvFuturesData(FuturesData):
         """    
 
         if currency1==currency2:
-            return self.get_default_series()
+            return self._get_default_series()
 
         
         filename=os.path.join(self._datapath, "%s%sfx.csv" % (currency1, currency2))

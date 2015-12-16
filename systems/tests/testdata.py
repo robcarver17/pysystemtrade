@@ -13,10 +13,10 @@ def get_test_object():
     """
     Returns some standard test data
     """
-    datapath=get_pathname_for_package("sysdata", ["tests"])
+    datapath=get_pathname_for_package("sysdata", "tests")
     data=csvFuturesData(datapath=datapath)
     rawdata=RawData()
-    config_filename=get_pathname_for_package("systems", ["provided", "example", "exampleconfig.yaml"])
+    config_filename=get_pathname_for_package("systems", "provided", "example", "exampleconfig.yaml")
     config=Config(config_filename)
     return (rawdata, data, config) 
 
@@ -25,10 +25,10 @@ def get_test_object_futures():
     """
     Returns some standard test data
     """
-    datapath=get_pathname_for_package("sysdata", ["tests"])
+    datapath=get_pathname_for_package("sysdata", "tests")
     data=csvFuturesData(datapath=datapath)
     rawdata=FuturesRawData()
-    config_filename=get_pathname_for_package("systems", ["provided", "example", "exampleconfig.yaml"])
+    config_filename=get_pathname_for_package("systems", "provided", "example", "exampleconfig.yaml")
     config=Config(config_filename)
     return (rawdata, data, config) 
 
@@ -37,11 +37,11 @@ def get_test_object_futures_with_rules():
     """
     Returns some standard test data
     """
-    datapath=get_pathname_for_package("sysdata", ["tests"])
+    datapath=get_pathname_for_package("sysdata", "tests")
     data=csvFuturesData(datapath=datapath)
     rawdata=FuturesRawData()
     rules=Rules()
-    config_filename=get_pathname_for_package("systems", ["provided", "example", "exampleconfig.yaml"])
+    config_filename=get_pathname_for_package("systems", "provided", "example", "exampleconfig.yaml")
     config=Config(config_filename)
     return (rules, rawdata, data, config) 
 
@@ -49,11 +49,11 @@ def get_test_object_futures_with_rules_and_capping():
     """
     Returns some standard test data
     """
-    datapath=get_pathname_for_package("sysdata", ["tests"])
+    datapath=get_pathname_for_package("sysdata", "tests")
     data=csvFuturesData(datapath=datapath)
     rawdata=FuturesRawData()
     rules=Rules()
-    config_filename=get_pathname_for_package("systems", ["provided", "example", "exampleconfig.yaml"])
+    config_filename=get_pathname_for_package("systems", "provided", "example", "exampleconfig.yaml")
     config=Config(config_filename)
     capobject=ForecastScaleCapFixed()
     return (capobject, rules, rawdata, data, config) 
@@ -62,11 +62,11 @@ def get_test_object_futures_with_comb_forecasts():
     """
     Returns some standard test data
     """
-    datapath=get_pathname_for_package("sysdata", ["tests"])
+    datapath=get_pathname_for_package("sysdata", "tests")
     data=csvFuturesData(datapath=datapath)
     rawdata=FuturesRawData()
     rules=Rules()
-    config_filename=get_pathname_for_package("systems", ["provided", "example", "exampleconfig.yaml"])
+    config_filename=get_pathname_for_package("systems", "provided", "example", "exampleconfig.yaml")
     config=Config(config_filename)
     capobject=ForecastScaleCapFixed()
     combobject=ForecastCombineFixed()
@@ -76,11 +76,11 @@ def get_test_object_futures_with_pos_sizing():
     """
     Returns some standard test data
     """
-    datapath=get_pathname_for_package("sysdata", ["tests"])
+    datapath=get_pathname_for_package("sysdata", "tests")
     data=csvFuturesData(datapath=datapath)
     rawdata=FuturesRawData()
     rules=Rules()
-    config_filename=get_pathname_for_package("systems", ["provided", "example", "exampleconfig.yaml"])
+    config_filename=get_pathname_for_package("systems", "provided", "example", "exampleconfig.yaml")
     config=Config(config_filename)
     capobject=ForecastScaleCapFixed()
     combobject=ForecastCombineFixed()

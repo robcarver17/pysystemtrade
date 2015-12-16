@@ -1,7 +1,6 @@
 
 from systems.stage import SystemStage
 from systems.defaults import system_defaults
-from syscore.objects import  calc_or_cache_nested
 from syscore.pdutils import apply_cap
 
 class ForecastScaleCapFixed(SystemStage):
@@ -28,12 +27,9 @@ class ForecastScaleCapFixed(SystemStage):
         :returns: None
         
         """
-        delete_on_recalc=["_forecast_scalars", "_scaled_forecast", "_forecast_cap", "_capped_forecast"]
 
-        dont_delete=[]
-        
-        setattr(self, "_delete_on_recalc", delete_on_recalc)
-        setattr(self, "_dont_recalc", dont_delete)
+        protected=["get_forecast_scalars"]
+        setattr(self, "_protected", protected)
 
         setattr(self, "name", "forecastScaleCap")
     
@@ -72,15 +68,9 @@ class ForecastScaleCapFixed(SystemStage):
     
         In this simple version it's the same for all instruments, and fixed
 
-        We get the scalars from: (a) passed argument when this subsystem created
-                                 (b) ... or if missing: configuration file in parent system
-                                 (c) or if missing: uses the scalar from systems.defaults.py
+        We get the scalars from: (a) configuration file in parent system
+                                 (b) or if missing: uses the scalar from systems.defaults.py
 
-
-        setattr(self, "_forecast_scalars", forecast_scalars)
-        setattr(self, "_forecast_cap", forecast_cap)
-
-        
         :param instrument_code: 
         :type str: 
         
@@ -117,6 +107,7 @@ class ForecastScaleCapFixed(SystemStage):
                 scalar=system.config.trading_rules[rule_variation_name]['forecast_scalar']
             except:
                 try:
+                    ## can also put somewhere else ...
                     scalar=system.config.forecast_scalars[rule_variation_name]
                 except:
                     ## go with defaults
@@ -124,7 +115,7 @@ class ForecastScaleCapFixed(SystemStage):
         
             return scalar
         
-        forecast_scalar=calc_or_cache_nested(self.parent, "_forecast_scalars", instrument_code, rule_variation_name, _get_forecast_scalar, self)
+        forecast_scalar=self.parent.calc_or_cache_nested( "get_forecast_scalar", instrument_code, rule_variation_name, _get_forecast_scalar, self)
 
         return forecast_scalar
     
@@ -156,7 +147,7 @@ class ForecastScaleCapFixed(SystemStage):
         21.0
         >>>
         >>> ## default
-        >>> unused=config.parameters.pop('forecast_cap')
+        >>> del(config.forecast_cap)
         >>> system3=System([rawdata, rules, ForecastScaleCapFixed()], data, config)
         >>> system3.forecastScaleCap.get_forecast_cap("EDOLLAR", "ewmac8")
         20.0
@@ -173,7 +164,7 @@ class ForecastScaleCapFixed(SystemStage):
         
             return cap
         
-        forecast_cap=calc_or_cache_nested(self.parent, "_forecast_cap", instrument_code, rule_variation_name, _get_forecast_cap, self)
+        forecast_cap=self.parent.calc_or_cache_nested( "get_forecast_cap", instrument_code, rule_variation_name, _get_forecast_cap, self)
 
         return forecast_cap
 
@@ -208,7 +199,7 @@ class ForecastScaleCapFixed(SystemStage):
             
             return scaled_forecast
         
-        scaled_forecast=calc_or_cache_nested(self.parent, "_scaled_forecast", instrument_code, rule_variation_name, _get_scaled_forecast, self)
+        scaled_forecast=self.parent.calc_or_cache_nested( "get_scaled_forecast", instrument_code, rule_variation_name, _get_scaled_forecast, self)
 
         return scaled_forecast
 
@@ -231,7 +222,8 @@ class ForecastScaleCapFixed(SystemStage):
         >>> from systems.tests.testdata import get_test_object_futures_with_rules
         >>> from systems.basesystem import System
         >>> (rules, rawdata, data, config)=get_test_object_futures_with_rules()
-        >>> system=System([rawdata, rules, ForecastScaleCapFixed(forecast_cap=4.0)], data, config)
+        >>> config.forecast_cap=4.0
+        >>> system=System([rawdata, rules, ForecastScaleCapFixed()], data, config)
         >>> system.forecastScaleCap.get_capped_forecast("EDOLLAR", "ewmac8").tail(2)
                     ewmac8
         2015-04-21       4
@@ -250,7 +242,7 @@ class ForecastScaleCapFixed(SystemStage):
             
             return capped_forecast
         
-        capped_forecast=calc_or_cache_nested(self.parent, "_capped_forecast", instrument_code, rule_variation_name, _get_capped_forecast, self)
+        capped_forecast=self.parent.calc_or_cache_nested( "get_capped_forecast", instrument_code, rule_variation_name, _get_capped_forecast, self)
 
         return capped_forecast
 

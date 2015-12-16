@@ -2,7 +2,7 @@ from systems.stage import SystemStage
 from systems.defaults import system_defaults
 from copy import copy
 
-from syscore.objects import calc_or_cache, resolve_function
+from syscore.objects import resolve_function
 from syscore.pdutils import divide_df_single_column
 
 class RawData(SystemStage):
@@ -28,16 +28,6 @@ class RawData(SystemStage):
 
         """
         
-        ## As with all stages any data that methods produce needs to be stored in a dict, indexed here
-        delete_on_recalc=["_daily_returns_dict", "_daily_prices_dict", "_daily_vol_dict",  
-                          "_norm_return_dict", "_price_dict", "_capped_norm_return_dict",
-                           "_indexed_dict", "_daily_denominator_price_dict", "_daily_percentage_volatility"]
-
-        ## Anything in this list wouldn't normally be deleted if we cleared a system of instrument data
-        dont_delete=[]
-        
-        setattr(self, "_delete_on_recalc", delete_on_recalc)
-        setattr(self, "_dont_recalc", dont_delete)
 
         setattr(self, "name", "rawdata")
     
@@ -66,7 +56,7 @@ class RawData(SystemStage):
             instrprice=system.data.get_instrument_price(instrument_code)
             return instrprice
     
-        instrprice=calc_or_cache(self.parent, "_price_dict", instrument_code, _get_instrument_price)
+        instrprice=self.parent.calc_or_cache( "instrument_price", instrument_code, _get_instrument_price)
         
         return instrprice
         
@@ -99,7 +89,7 @@ class RawData(SystemStage):
             dailyprice=instrprice.resample("1B", how="last")
             return dailyprice
         
-        dailyprice=calc_or_cache(self.parent, "_daily_prices_dict", instrument_code, _daily_prices, self)
+        dailyprice=self.parent.calc_or_cache("daily_price", instrument_code, _daily_prices, self)
         
         return dailyprice
     
@@ -132,7 +122,7 @@ class RawData(SystemStage):
             dem_returns=this_stage.daily_prices(instrument_code)
             return dem_returns
         
-        dem_returns=calc_or_cache(self.parent, "_daily_denominator_price_dict", instrument_code, _daily_denominator_returns, self)
+        dem_returns=self.parent.calc_or_cache( "daily_denominator_price", instrument_code, _daily_denominator_returns, self)
         
         return dem_returns
         
@@ -162,12 +152,12 @@ class RawData(SystemStage):
         """
         def _daily_returns(system, instrument_code, this_stage):
             instrdailyprice=this_stage.daily_prices(instrument_code)
-            dailyreturn=instrdailyprice.diff()
-            return dailyreturn
+            dailyreturns=instrdailyprice.diff()
+            return dailyreturns
         
-        dailyreturn=calc_or_cache(self.parent, "_daily_returns_dict", instrument_code, _daily_returns, self)
+        dailyreturns=self.parent.calc_or_cache( "daily_returns", instrument_code, _daily_returns, self)
         
-        return dailyreturn
+        return dailyreturns
     
         
         
@@ -195,6 +185,7 @@ class RawData(SystemStage):
         >>>
         >>> (rawdata, data, config)=get_test_object()
         >>> system=System([rawdata], data)
+        >>> ## uses defaults
         >>> system.rawdata.daily_returns_volatility("EDOLLAR").tail(2)
                          vol
         2015-04-21  0.057053
@@ -203,7 +194,7 @@ class RawData(SystemStage):
         >>> from syscore.fileutils import get_pathname_for_package
         >>>
         >>> from sysdata.configdata import Config
-        >>> config=Config(get_pathname_for_package("systems", ["provided","example", "exampleconfig.yaml"]))
+        >>> config=Config(get_pathname_for_package("systems", "provided","example", "exampleconfig.yaml"))
         >>> system=System([rawdata], data, config)
         >>> system.rawdata.daily_returns_volatility("EDOLLAR").tail(2)
                          vol
@@ -222,7 +213,7 @@ class RawData(SystemStage):
             dailyreturns=this_stage.daily_returns(instrument_code)
 
             try:
-                volconfig=copy(system.config.parameters['volatility_calculation'])
+                volconfig=copy(system.config.volatility_calculation)
                 identify_error="inherited from config object"
             except:
                 volconfig=copy(system_defaults['volatility_calculation'])
@@ -239,7 +230,7 @@ class RawData(SystemStage):
             
             return vol
         
-        vol=calc_or_cache(self.parent, "_daily_vol_dict", instrument_code, _daily_returns_volatility, self)
+        vol=self.parent.calc_or_cache( "daily_returns_volatility", instrument_code, _daily_returns_volatility, self)
         
         return vol
             
@@ -273,8 +264,8 @@ class RawData(SystemStage):
             
             return perc_vol
         
-        return calc_or_cache(self.parent, "_daily_percentage_volatility", instrument_code, _get_daily_percentage_volatility, self)
-
+        perc_vol=self.parent.calc_or_cache( "daily_percentage_volatility", instrument_code, _get_daily_percentage_volatility, self)
+        return perc_vol
 
 
     def norm_returns(self, instrument_code):
@@ -306,7 +297,7 @@ class RawData(SystemStage):
             norm_return.columns=["norm_return"]
             return norm_return
         
-        norm_returns=calc_or_cache(self.parent, "_norm_return_dict", instrument_code, _norm_returns, self)
+        norm_returns=self.parent.calc_or_cache( "_norm_return_dict", instrument_code, _norm_returns, self)
         
         return norm_returns
     

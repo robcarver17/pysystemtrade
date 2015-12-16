@@ -1,8 +1,9 @@
 import pandas as pd
 
 from systems.stage import SystemStage
-from syscore.objects import calc_or_cache, ALL_KEYNAME
+from systems.basesystem import ALL_KEYNAME
 from syscore.pdutils import multiply_df_single_column,  fix_weights_vs_pdm
+from systems.defaults import system_defaults
 
 class PortfoliosFixed(SystemStage):
     """
@@ -29,12 +30,9 @@ class PortfoliosFixed(SystemStage):
         
                 
         """
-        delete_on_recalc=["_instrument_weights", "_instrument_div_multiplier", "_raw_instrument_weights", "_notional_position"]
-
-        dont_delete=[]
+        protected=["get_instrument_weights", "get_instrument_diversification_multiplier", "get_raw_instrument_weights"]
         
-        setattr(self, "_delete_on_recalc", delete_on_recalc)
-        setattr(self, "_dont_recalc", dont_delete)
+        setattr(self, "_protected", protected)
 
         setattr(self, "name", "portfolio")
 
@@ -58,8 +56,8 @@ class PortfoliosFixed(SystemStage):
         >>> ## from config
         >>> system.portfolio.get_subsystem_position("EDOLLAR").tail(2)
                     ss_position
-        2015-04-21   798.963739
-        2015-04-22   687.522788
+        2015-04-21     7.989637
+        2015-04-22     6.875228
 
         """
 
@@ -80,22 +78,34 @@ class PortfoliosFixed(SystemStage):
         >>> from systems.tests.testdata import get_test_object_futures_with_pos_sizing
         >>> from systems.basesystem import System
         >>> (posobject, combobject, capobject, rules, rawdata, data, config)=get_test_object_futures_with_pos_sizing()
+        >>> config.instrument_weights=dict(EDOLLAR=0.1, US10=0.9)
         >>> system=System([rawdata, rules, posobject, combobject, capobject,PortfoliosFixed()], data, config)
         >>> 
         >>> ## from config
         >>> system.portfolio.get_instrument_weights().tail(2)
                     EDOLLAR  US10
+        2015-04-21      0.1   0.9
+        2015-04-22      0.1   0.9
+        >>>
+        >>> del(config.instrument_weights)
+        >>> system2=System([rawdata, rules, posobject, combobject, capobject,PortfoliosFixed()], data, config)
+        >>> system2.portfolio.get_instrument_weights().tail(2)
+        WARNING: No instrument weights  - using equal weights of 0.5000 over all 2 instruments in data
+                    EDOLLAR  US10
         2015-04-21      0.5   0.5
         2015-04-22      0.5   0.5
-        >>>
         """                    
         def _get_instrument_weights(system,  an_ignored_variable,  this_stage ):
 
             try:
                 instrument_weights=system.config.instrument_weights
             except:
-                raise Exception("Instrument weights must be in system.config")
-            
+                instruments=self.parent.data.get_instrument_list()
+                weight=1.0/len(instruments)
+
+                print("WARNING: No instrument weights  - using equal weights of %.4f over all %d instruments in data" % (weight, len(instruments)))
+                instrument_weights=dict([(instrument_code, weight) for instrument_code in instruments])
+                
             ## Now we have a dict, fixed_weights.
             ## Need to turn into a timeseries covering the range of forecast dates
             instrument_list=list(instrument_weights.keys())
@@ -120,7 +130,7 @@ class PortfoliosFixed(SystemStage):
 
             return instrument_weights_weights
         
-        instrument_weights=calc_or_cache(self.parent, "_raw_instrument_weights", ALL_KEYNAME,  _get_instrument_weights, self)
+        instrument_weights=self.parent.calc_or_cache( "get_raw_instrument_weights", ALL_KEYNAME,  _get_instrument_weights, self)
         return instrument_weights
 
 
@@ -148,7 +158,7 @@ class PortfoliosFixed(SystemStage):
 
             return instrument_weights
         
-        instrument_weights=calc_or_cache(self.parent, "_instrument_weights", ALL_KEYNAME,  _get_clean_instrument_weights, self)
+        instrument_weights=self.parent.calc_or_cache( "get_instrument_weights", ALL_KEYNAME,  _get_clean_instrument_weights, self)
         return instrument_weights
 
     
@@ -169,14 +179,22 @@ class PortfoliosFixed(SystemStage):
         2015-04-21  1.2
         2015-04-22  1.2
         >>>
-
+        >>> ## from defaults
+        >>> del(config.instrument_div_multiplier)
+        >>> system2=System([rawdata, rules, posobject, combobject, capobject,PortfoliosFixed()], data, config)
+        >>> system2.portfolio.get_instrument_diversification_multiplier().tail(2)
+                    idm
+        2015-04-21    1
+        2015-04-22    1
         """                    
         def _get_instrument_div_multiplier(system,  an_ignored_variable,  this_stage ):
 
-            try:
+            if hasattr(system.config, "instrument_div_multiplier"):
                 div_mult=system.config.instrument_div_multiplier
-            except:
-                raise Exception("Instrument div. multiplier must be passed to PortfoliosFixed(...) or in system.config")
+            elif "instrument_div_multiplier" in system_defaults:
+                div_mult=system_defaults["instrument_div_multiplier"]
+            else:
+                raise Exception("Instrument div. multiplier must be in system.config or system_defaults")
             
             ## Now we have a fixed weight
             ## Need to turn into a timeseries covering the range of forecast dates
@@ -188,7 +206,7 @@ class PortfoliosFixed(SystemStage):
 
             return ts_idm
         
-        instrument_div_multiplier=calc_or_cache(self.parent, "_instrument_div_multiplier", ALL_KEYNAME,  _get_instrument_div_multiplier, self)
+        instrument_div_multiplier=self.parent.calc_or_cache( "get_instrument_diversification_multiplier", ALL_KEYNAME,  _get_instrument_div_multiplier, self)
         return instrument_div_multiplier
 
 
@@ -213,9 +231,9 @@ class PortfoliosFixed(SystemStage):
         >>> 
         >>> ## from config
         >>> system.portfolio.get_notional_position("EDOLLAR").tail(2)
-                           pos
-        2015-04-21  479.378243
-        2015-04-22  412.513673
+                         pos
+        2015-04-21  4.793782
+        2015-04-22  4.125137
         >>>
 
         """                    
@@ -235,7 +253,7 @@ class PortfoliosFixed(SystemStage):
 
             return notional_position
         
-        notional_position=calc_or_cache(self.parent, "_notional_position", instrument_code,  _get_notional_position, self)
+        notional_position=self.parent.calc_or_cache( "get_notional_position", instrument_code,  _get_notional_position, self)
         return notional_position
 
         

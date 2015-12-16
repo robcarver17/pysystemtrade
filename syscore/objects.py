@@ -3,12 +3,7 @@ Do fun things with objects and classes
 """
 
 import importlib
-from copy import deepcopy
 
-"""
-This is used for items which affect an entire system, not just one instrument
-"""
-ALL_KEYNAME="all"
 
 def resolve_function(func_or_func_name):
     """
@@ -90,107 +85,9 @@ def resolve_data_method(some_object, data_string):
     return _get_attr_within_list(some_object, list_to_parse)
 
 
-
-
-
-def calc_or_cache(some_object, dictname, keyname, func, *args, **kwargs):
+def update_recalc(stage_object, additional_protected=[]):
     """
-    Assumes that some_object has an attribute dictname, and that is a dict
-    
-    If dictname[keyname] exists return it. Else call func with *args and **kwargs
-    if the latter updates the dictionary
-
-    Used for cache within various kinds of objects like config, price, data, system...
-
-    :param some_object: The object with object.dictname 
-    :type some_object: object
-    
-    :param dictname: attribute of object containing a dict 
-    :type dictname: str
-
-    :param keyname: keyname to look for in dict 
-    :type keyname: valid dict key
-    
-    :param func: function to call if keyname missing. will take some_object and keyname as first two args
-    :type func: function
-
-    :param args, kwargs: also passed to fun if called
-    
-    :returns: contents of dict or result of calling function
-    
-    
-    """
-    somedict=getattr(some_object, dictname, None)
-    if somedict is None:
-        setattr(some_object, dictname, dict())
-        somedict=dict()
-    
-    if keyname not in somedict.keys():
-        
-        somedict[keyname]=func(some_object, keyname, *args, **kwargs)
-        setattr(some_object, dictname, somedict)
-    
-    return somedict[keyname]
-
-
-
-
-def calc_or_cache_nested(some_object, dictname, keyname1, keyname2, func, *args, **kwargs):
-    """
-    Assumes that some_object has an attribute dictname, and that is a nested dict
-    
-    If dictname[keyname1][keyname2] exists return it. 
-    Else call func with arguments: some_object, keyname1, keyname2, *args and **kwargs
-    if we have to call the func updates the dictionary with it's value
-
-    Used for cache within various kinds of objects like config, price, data, system...
-
-    :param some_object: The object with object.dictname 
-    :type some_object: object
-    
-    :param dictname: attribute of object containing a dict 
-    :type dictname: str
-
-    :param keyname1: keyname to look for in dict 
-    :type keyname1: valid dict key
-
-    :param keyname2: keyname to look for in nested dict 
-    :type keyname2: valid dict key
-
-    :param func: function to call if keyname missing. will take some_object and keyname1, keyname2 as first three args
-    :type func: function
-
-    :param args, kwargs: also passed to fun if called
-    
-    :returns: contents of dict or result of calling function
-    
-    
-    """
-
-    somedict=getattr(some_object, dictname, None)
-    if somedict is None:
-        setattr(some_object, dictname, dict())
-        somedict=dict()
-    
-    found=False
-    if keyname1 in somedict.keys():
-        ## okay check the nested dict
-        if keyname2 in somedict[keyname1].keys():
-            found=True
-    else:
-        ## Need to add the top level dict
-        somedict[keyname1]=dict()
-    
-    if not found:        
-        somedict[keyname1][keyname2]=func(some_object, keyname1, keyname2, *args, **kwargs)
-        setattr(some_object, dictname, somedict)
-    
-    return somedict[keyname1][keyname2]
-
-
-def update_recalc(stage_object, additional_delete_on_recalc=[], additional_dont_delete=[]):
-    """
-    Update the recalculation dictionaries 
+    Update the recalculation dictionary 
     
     Used when a stage inherits from another
     
@@ -199,24 +96,18 @@ def update_recalc(stage_object, additional_delete_on_recalc=[], additional_dont_
     :param stage_object: The stage object with attributes to test
     :type stage_object: object
 
-    :param additional_delete_on_recalc: Things to add to this attribute
-    :type additional_delete_on_recalc: list of str
-    
-    :param additional_dont_delete: Things to add to this attribute
-    :type additional_dont_delete: list of str
+    :param additional_protected: Things to add to this attribute
+    :type additional_protected: list of str
     
     :returns: None (changes stage_object)
 
     """
     
-    original_delete_on_recalc=getattr(stage_object,"_delete_on_recalc", [])
-    original_dont_delete=getattr(stage_object,"_dont_recalc", [])
+    original_dont_delete=getattr(stage_object,"_protected", [])
     
-    child_delete_on_recalc=list(set(original_delete_on_recalc+additional_delete_on_recalc))
-    child_dont_delete=list(set(original_dont_delete+additional_dont_delete))
+    child_dont_delete=list(set(original_dont_delete+additional_protected))
     
-    setattr(stage_object, "_delete_on_recalc", child_delete_on_recalc)
-    setattr(stage_object, "_dont_delete", child_dont_delete)
+    setattr(stage_object, "_protected", child_dont_delete)
 
 
 def hasallattr(some_object, attrlist=[]):

@@ -2,7 +2,7 @@ import pandas as pd
 
 from syscore.accounting import accountCurve, pandl
 from systems.stage import SystemStage
-from syscore.objects import calc_or_cache, ALL_KEYNAME
+from systems.basesystem import ALL_KEYNAME
 from syscore.pdutils import multiply_df_single_column,  fix_weights_vs_pdm
 
 class Account(SystemStage):

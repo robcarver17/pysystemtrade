@@ -10,7 +10,7 @@ volatility_calculation:
 #
 trading_rules:
   ewmac2_8:
-     function: systems.futures.rules.ewmac
+     function: systems.provided.futures_chapter15.rules.ewmac
      data:
          - "rawdata.daily_prices"
          - "rawdata.daily_returns_volatility"
@@ -19,7 +19,7 @@ trading_rules:
          Lslow: 8
      forecast_scalar: 10.6
   ewmac4_16:
-     function: systems.futures.rules.ewmac
+     function: systems.provided.futures_chapter15.rules.ewmac
      data:
          - "rawdata.daily_prices"
          - "rawdata.daily_returns_volatility"
@@ -28,7 +28,7 @@ trading_rules:
          Lslow: 16
      forecast_scalar: 7.5
   ewmac8_32:
-     function: systems.futures.rules.ewmac
+     function: systems.provided.futures_chapter15.rules.ewmac
      data:
          - "rawdata.daily_prices"
          - "rawdata.daily_returns_volatility"
@@ -37,7 +37,7 @@ trading_rules:
          Lslow: 32
      forecast_scalar: 5.3
   ewmac16_64:
-     function: systems.futures.rules.ewmac
+     function: systems.provided.futures_chapter15.rules.ewmac
      data:
          - "rawdata.daily_prices"
          - "rawdata.daily_returns_volatility"
@@ -46,7 +46,7 @@ trading_rules:
          Lslow: 64
      forecast_scalar: 3.75
   ewmac32_128:
-     function: systems.futures.rules.ewmac
+     function: systems.provided.futures_chapter15.rules.ewmac
      data:
          - "rawdata.daily_prices"
          - "rawdata.daily_returns_volatility"
@@ -55,7 +55,7 @@ trading_rules:
          Lslow: 128
      forecast_scalar: 2.65
   ewmac64_256:
-     function: systems.futures.rules.ewmac
+     function: systems.provided.futures_chapter15.rules.ewmac
      data:
          - "rawdata.daily_prices"
          - "rawdata.daily_returns_volatility"
@@ -64,7 +64,7 @@ trading_rules:
          Lslow: 256
      forecast_scalar: 1.87
   carry:
-     function: systems.futures.rules.carry
+     function: systems.provided.futures_chapter15.rules.carry
      data:
          - "rawdata.daily_annualised_roll"
          - "rawdata.daily_returns_volatility"

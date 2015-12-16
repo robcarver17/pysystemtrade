@@ -1,7 +1,7 @@
 import numpy as np
 
 from systems.rawdata import RawData
-from syscore.objects import update_recalc, calc_or_cache
+from syscore.objects import update_recalc
 from syscore.dateutils import expiry_diff
 from syscore.pdutils import divide_df_single_column
 
@@ -25,11 +25,8 @@ class FuturesRawData(RawData):
         """
         Create a futures raw data subsystem
         
-        >>> ans=FuturesRawData()
-        >>> delkeys=ans._delete_on_recalc
-        >>> delkeys.sort()
-        >>> delkeys
-        ['_annualisedrolldict', '_capped_norm_return_dict', '_daily_denominator_price_dict', '_daily_percentage_volatility', '_daily_prices_dict', '_daily_returns_dict', '_daily_vol_dict', '_dailyannualisedrolldict', '_indexed_dict', '_norm_return_dict', '_price_dict', '_raw_carry_dict', '_rawfuturesrolldict', '_rolldifferentialsdict', '_smoothedrolldict']
+        >>> FuturesRawData()
+        SystemStage 'rawdata'
         """
         
         super(FuturesRawData, self).__init__()
@@ -38,11 +35,8 @@ class FuturesRawData(RawData):
         if you add another method to this you also need to add its blank dict here
         """
         
-        delete_on_recalc=["_dailyannualisedrolldict", "_annualisedrolldict","_rawfuturesrolldict", 
-                             "_dailyannualisedrolldict", "_raw_carry_dict", 
-                          "_rolldifferentialsdict", "_smoothedrolldict"]
-        dont_delete=[]
-        update_recalc(self, delete_on_recalc, dont_delete)
+        protected=[]
+        update_recalc(self,  protected)
         
     def get_instrument_raw_carry_data(self, instrument_code):
         """
@@ -55,7 +49,7 @@ class FuturesRawData(RawData):
        
         KEY INPUT
         
-        >>> from systems.provided.example.testdata import get_test_object_futures
+        >>> from systems.tests.testdata import get_test_object_futures
         >>> from systems.basesystem import System
         >>> (rawdata, data, config)=get_test_object_futures()
         >>> system=System([rawdata], data)
@@ -69,7 +63,7 @@ class FuturesRawData(RawData):
             instrcarrydata=system.data.get_instrument_raw_carry_data(instrument_code)
             return instrcarrydata
 
-        raw_carry=calc_or_cache(self.parent, "_raw_carry_dict", instrument_code, _calc_raw_carry)
+        raw_carry=self.parent.calc_or_cache( "instrument_raw_carry_data", instrument_code, _calc_raw_carry)
         
         return raw_carry
         
@@ -85,7 +79,7 @@ class FuturesRawData(RawData):
         
         :returns: Tx4 pd.DataFrame
 
-        >>> from systems.provided.example.testdata import get_test_object_futures
+        >>> from systems.tests.testdata import get_test_object_futures
         >>> from systems.basesystem import System
         >>> (rawdata, data, config)=get_test_object_futures()
         >>> system=System([rawdata], data)
@@ -106,7 +100,7 @@ class FuturesRawData(RawData):
             raw_roll=raw_roll.to_frame('raw_roll')
             return raw_roll
 
-        raw_roll=calc_or_cache(self.parent, "_rawfuturesrolldict", instrument_code, _calc_raw_futures_roll, self)
+        raw_roll=self.parent.calc_or_cache( "raw_futures_roll", instrument_code, _calc_raw_futures_roll, self)
         
         return raw_roll
 
@@ -120,7 +114,7 @@ class FuturesRawData(RawData):
         
         :returns: Tx4 pd.DataFrame
 
-        >>> from systems.provided.example.testdata import get_test_object_futures
+        >>> from systems.tests.testdata import get_test_object_futures
         >>> from systems.basesystem import System
         >>> (rawdata, data, config)=get_test_object_futures()
         >>> system=System([rawdata], data)
@@ -137,7 +131,7 @@ class FuturesRawData(RawData):
             
             return roll_diff
     
-        roll_diff=calc_or_cache(self.parent, "_rolldifferentialsdict", instrument_code, _calc_roll_differentials, self)
+        roll_diff=self.parent.calc_or_cache( "roll_differentials", instrument_code, _calc_roll_differentials, self)
         
         return roll_diff
 
@@ -151,7 +145,7 @@ class FuturesRawData(RawData):
         
         :returns: Tx4 pd.DataFrame
 
-        >>> from systems.provided.example.testdata import get_test_object_futures
+        >>> from systems.tests.testdata import get_test_object_futures
         >>> from systems.basesystem import System
         >>> (rawdata, data, config)=get_test_object_futures()
         >>> system=System([rawdata], data)
@@ -171,7 +165,7 @@ class FuturesRawData(RawData):
 
             return annroll
 
-        annroll=calc_or_cache(self.parent, "_annualisedrolldict", instrument_code, _calc_annualised_roll, self)
+        annroll=self.parent.calc_or_cache( "annualised_roll", instrument_code, _calc_annualised_roll, self)
 
         return annroll
     
@@ -189,7 +183,7 @@ class FuturesRawData(RawData):
 
         KEY OUTPUT
         
-        >>> from systems.provided.example.testdata import get_test_object_futures
+        >>> from systems.tests.testdata import get_test_object_futures
         >>> from systems.basesystem import System
         >>> (rawdata, data, config)=get_test_object_futures()
         >>> system=System([rawdata], data)
@@ -207,7 +201,7 @@ class FuturesRawData(RawData):
             return annroll
         
         
-        ann_daily_roll=calc_or_cache(self.parent, "_dailyannualisedrolldict", instrument_code, _calc_daily_ann_roll, self)
+        ann_daily_roll=self.parent.calc_or_cache( "daily_annualised_roll", instrument_code, _calc_daily_ann_roll, self)
         
         return ann_daily_roll
     
@@ -224,7 +218,7 @@ class FuturesRawData(RawData):
 
         KEY OUTPUT
 
-        >>> from systems.provided.example.testdata import get_test_object_futures
+        >>> from systems.tests.testdata import get_test_object_futures
         >>> from systems.basesystem import System
         >>> (rawdata, data, config)=get_test_object_futures()
         >>> system=System([rawdata], data)
@@ -241,7 +235,7 @@ class FuturesRawData(RawData):
             daily_prices.columns=['price']
             return daily_prices
         
-        daily_dem_prices=calc_or_cache(self.parent, "_daily_denominator_price_dict", instrument_code, _daily_denominator_prices, self)
+        daily_dem_prices=self.parent.calc_or_cache( "daily_denominator_price", instrument_code, _daily_denominator_prices, self)
         
         return daily_dem_prices
         

@@ -69,7 +69,7 @@ class Data(object):
         :returns: list of str
     
         """
-        raise Exception("You have created a Data() object; you might need to use a more specific data object")
+        return []
 
     def keys(self):
         """
@@ -77,9 +77,9 @@ class Data(object):
         
         :returns: list of str
     
-        >>> data=Data(dict(a=[]))
+        >>> data=Data()
         >>> data.keys()
-        ['a']
+        []
         """
         return self.get_instrument_list()
     
@@ -130,7 +130,7 @@ class Data(object):
         :returns: str
         
         """
-        return self.get_default_currency()
+        return self._get_default_currency()
 
 
     def _get_fx_data(self, currency1, currency2):

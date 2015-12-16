@@ -1,7 +1,7 @@
 from copy import copy
 
 from systems.stage import SystemStage
-from syscore.objects import resolve_function, resolve_data_method, hasallattr, calc_or_cache_nested
+from syscore.objects import resolve_function, resolve_data_method, hasallattr
 
 class Rules(SystemStage):
     """
@@ -23,6 +23,7 @@ class Rules(SystemStage):
     
     KEY INPUT: Depends on trading rule(s) data argument    
     KEY OUTPUT: system.rules.get_raw_forecast(instrument_code, rule_variation_name)
+                system.rules.trading_rules()
     
     Name: rules
     """
@@ -42,15 +43,7 @@ class Rules(SystemStage):
         :returns: Rules object
         
         """
-        delete_on_recalc=["_raw_forecasts"]
-
-        dont_delete=[]
-        
-        setattr(self, "_delete_on_recalc", delete_on_recalc)
-        setattr(self, "_dont_recalc", dont_delete)
-
         setattr(self, "name", "rules")
-        
         
         ## We won't have trading rules we can use until we've parsed them
         setattr(self, "_trading_rules", None)
@@ -132,7 +125,7 @@ class Rules(SystemStage):
             
             return result
         
-        forecast=calc_or_cache_nested(self.parent, "_raw_forecasts", instrument_code, rule_variation_name, _get_forecast, self)
+        forecast=self.parent.calc_or_cache_nested( "get_raw_forecast", instrument_code, rule_variation_name, _get_forecast, self)
         return forecast
 
 

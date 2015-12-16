@@ -111,6 +111,7 @@ Did we make money?
 
 from syscore.accounting import pandl
 account=pandl(price, forecast=ewmac)
-print(account.stats())
+account.curve().plot()
+show()
 
 

@@ -1,6 +1,6 @@
 from systems.defaults import system_defaults
 from systems.stage import SystemStage
-from syscore.objects import calc_or_cache, ALL_KEYNAME
+from systems.basesystem import ALL_KEYNAME
 from syscore.pdutils import multiply_df_single_column, divide_df_single_column
 from syscore.dateutils import ROOT_BDAYS_INYEAR
 from syscore.algos import robust_vol_calc
@@ -40,13 +40,8 @@ class PositionSizing(SystemStage):
         
                 
         """
-        delete_on_recalc=['_block_value', '_instrument_currency_vol','_instrument_value_vol',
-                          '_vol_scalar','_subsystem_position', '_fx_rate']
-
-        dont_delete=['_vol_target']
-        
-        setattr(self, "_delete_on_recalc", delete_on_recalc)
-        setattr(self, "_dont_recalc", dont_delete)
+        protected=['get_daily_cash_vol_target']
+        setattr(self, "_protected", protected)
 
         setattr(self, "name", "positionSize")
         
@@ -148,7 +143,7 @@ class PositionSizing(SystemStage):
         >>> ans[0].tail(2)
                       price
         2015-04-21  97.9050
-        2015-04-22  97.8325        
+        2015-04-22  97.8325
         >>>
         >>> ans[1]
         2500
@@ -175,9 +170,8 @@ class PositionSizing(SystemStage):
        
         Requires: percentage_vol_target, notional_trading_capital, base_currency
         
-        To find these, look in (a) arguments passed when subsystem created
-                (b).... if not found, in system.config.parameters...
-                (c).... if not found, in systems.get_defaults.py
+        To find these, look in (a) in system.config.parameters...
+                (b).... if not found, in systems.get_defaults.py
 
         
         :Returns: tuple (str, float): str is base_currency, float is value 
@@ -205,17 +199,17 @@ class PositionSizing(SystemStage):
             try:
                 percentage_vol_target=system.config.percentage_vol_target
             except:
-                percentage_vol_target=system_defaults.percentage_vol_target
+                percentage_vol_target=system_defaults['percentage_vol_target']
                     
             try:
                 notional_trading_capital=system.config.notional_trading_capital
             except:
-                notional_trading_capital=system_defaults.notional_trading_capital
+                notional_trading_capital=system_defaults['notional_trading_capital']
                     
             try:
                 base_currency=system.config.base_currency
             except:
-                base_currency=system_defaults.base_currency
+                base_currency=system_defaults['base_currency']
 
             annual_cash_vol_target=notional_trading_capital*percentage_vol_target/100.0
             daily_cash_vol_target=annual_cash_vol_target/ROOT_BDAYS_INYEAR
@@ -226,7 +220,7 @@ class PositionSizing(SystemStage):
             
             return vol_target_dict
         
-        vol_target_dict=calc_or_cache(self.parent, '_vol_target', ALL_KEYNAME,  _get_vol_target, self)
+        vol_target_dict=self.parent.calc_or_cache( 'get_daily_cash_vol_target', ALL_KEYNAME,  _get_vol_target, self)
         return vol_target_dict
     
 
@@ -258,7 +252,7 @@ class PositionSizing(SystemStage):
     
             return fx_rate
             
-        fx_rate=calc_or_cache(self.parent, '_fx_rate', instrument_code,  _get_fx_rate, self)
+        fx_rate=self.parent.calc_or_cache( 'get_fx_rate', instrument_code,  _get_fx_rate, self)
         
         return fx_rate
         
@@ -296,7 +290,7 @@ class PositionSizing(SystemStage):
             
             return block_value
         
-        block_value=calc_or_cache(self.parent, '_block_value', instrument_code,  _get_block_value, self)
+        block_value=self.parent.calc_or_cache( 'get_block_value', instrument_code,  _get_block_value, self)
         return block_value
 
 
@@ -337,7 +331,7 @@ class PositionSizing(SystemStage):
             return instr_ccy_vol
 
         
-        instr_ccy_vol=calc_or_cache(self.parent, '_instrument_currency_vol', instrument_code,  _get_instrument_currency_vol, self)
+        instr_ccy_vol=self.parent.calc_or_cache( 'get_instrument_currency_vol', instrument_code,  _get_instrument_currency_vol, self)
         return instr_ccy_vol
 
     def get_instrument_value_vol(self, instrument_code):
@@ -377,7 +371,7 @@ class PositionSizing(SystemStage):
             return instr_value_vol
 
         
-        instr_value_vol=calc_or_cache(self.parent, '_instrument_value_vol', instrument_code,  _get_instrument_value_vol, self)
+        instr_value_vol=self.parent.calc_or_cache( 'get_instrument_value_vol', instrument_code,  _get_instrument_value_vol, self)
         return instr_value_vol
     
 
@@ -401,12 +395,12 @@ class PositionSizing(SystemStage):
         2015-04-21     10.481263
         2015-04-22     10.226755
         >>> 
+        >>> ## without raw data
         >>> system2=System([ rules, fcs, comb, PositionSizing()], data, config)
         >>> system2.positionSize.get_volatility_scalar("EDOLLAR").tail(2)
                       vol_scalar
         2015-04-21    10.479121
         2015-04-22    10.226756
-
         """
         def _get_volatility_scalar(system,  instrument_code,  this_stage ):
             
@@ -418,7 +412,7 @@ class PositionSizing(SystemStage):
                         
             return vol_scalar
 
-        vol_scalar=calc_or_cache(self.parent, '_vol_scalar', instrument_code,  _get_volatility_scalar, self)
+        vol_scalar=self.parent.calc_or_cache( 'get_volatility_scalar', instrument_code,  _get_volatility_scalar, self)
         return vol_scalar
 
     
@@ -451,7 +445,9 @@ class PositionSizing(SystemStage):
 
         """
         def _get_subsystem_position(system,  instrument_code,  this_stage ):
-            
+            """
+            We don't allow this to be changed in config
+            """
             avg_abs_forecast=system_defaults['average_absolute_forecast']
             
             vol_scalar=this_stage.get_volatility_scalar(instrument_code)
@@ -463,7 +459,7 @@ class PositionSizing(SystemStage):
             return subsystem_position
 
         
-        subsystem_position=calc_or_cache(self.parent, '_subsystem_position', instrument_code,  _get_subsystem_position, self)
+        subsystem_position=self.parent.calc_or_cache( 'get_subsystem_position', instrument_code,  _get_subsystem_position, self)
         return subsystem_position
 
 if __name__ == '__main__':

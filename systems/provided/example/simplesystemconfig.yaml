@@ -1,6 +1,6 @@
 #YAML
-percentage_vol_target: 10.0
-notional_trading_capital: 50000
+percentage_vol_target: 25
+notional_trading_capital: 500000
 base_currency: "GBP"
 trading_rules:
   ewmac8:

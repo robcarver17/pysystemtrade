@@ -13,15 +13,12 @@ None that I know of
 
 # Features to add - this release
 
-portfolio p&l
 
-fix up default.py
-defaults for IDM, FDM to be used
+update all docs so far
 check on the fly add trading rules works
-remove fixed values of 10.0
-default to equal weights
-remove bad imports
+
 run all tests
+portfolio p&l
 
 
 docs- intro, tutorial, api reference, developer documentation
