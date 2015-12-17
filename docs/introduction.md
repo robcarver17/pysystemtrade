@@ -459,10 +459,13 @@ profits.stats()
 ```
 
 ```
-FIX ME - OUTPUT GOES HERE
+[
+('std', '0.0191'), ('skew', '-0.1369'), ('ann_daily_mean', '0.1738'), ('ann_daily_std', '0.3056'), 
+('sharpe', '0.5687'), ('sortino', '0.645'), ('avg_drawdown', '-0.2062')]
+
 ```
 
-Once again we have the now familiar accounting object.
+Once again we have the now familiar accounting object. Some results have been removed, in the interests of staying awake.
 
 
 ## Getting config from dictionaries and files

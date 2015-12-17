@@ -37,10 +37,10 @@ For a complete list of possible intermediate results, see [this table](#table_sy
 ```python
 from systems.futures.basesystem import futures_system
 system=futures_system()
-system.accounts.portfolio.stats() ## see some statistics
-system.accounts.portfolio.curve().plot() ## plot an account curve
-system.accounts.portfolio.instrument().stats() ## produce statistics for all instruments
-system.accounts.portfolio.instrument().plot() ## plot an account curve for each instrument
+system.accounts.portfolio().stats() ## see some statistics
+system.accounts.portfolio().curve().plot() ## plot an account curve
+system.accounts.portfolio().pandl_for_instrument("US10").stats() ## produce statistics for a 10 year bond
+system.accounts.pandl_for_instrument_forecast("EDOLLAR", "carry").sharpe() ## Sharpe for a specific trading rule variation
 ```
 
 For more information on what statistics are available, see the [relevant guide section](#standard_accounts_stage).
@@ -1682,13 +1682,13 @@ New stage code should be included in a subdirectory of the systems package (as f
 
 The standard list of stages is as follows. The default class is given below, as well as the system attribute used to access the stage.
 
-1. Raw data: [class RawData](/systems/rawdata.py) `system.rawdata`
-2. Forecasting [class Rules](/systems/forecasting.py) `system.rules` (chapter 7 of my book)
-3. Scale and cap forecasts [class ForecastScaleCapFixed](/systems/forecast_scale_cap.py) `system.forecastScaleCap`(chapter 7)
-4. Combine forecasts [class ForecastCombineFixed](/systems/forecast_combine.py) `system.combForecast` (chapter 8)
-5. Calculate subsystem positions [class PositionSizing](/systems/positionsizing.py)  `system.positionSize` (chapters 9 and 10)
-6. Create a portfolio across multiple instruments [class PortfoliosFixed](/systems/portfolio.py) `system.portfolio` (chapter 11)
-7. Calculate performance [class Account](/systems/account.py) `system.accounts`
+1. [Raw data:](#stage_rawdata) [class RawData](/systems/rawdata.py) `system.rawdata`
+2. [Forecasting:](#rules) [class Rules](/systems/forecasting.py) `system.rules` (chapter 7 of my book)
+3. [Scale and cap forecasts:](#stage_scale) [class ForecastScaleCapFixed](/systems/forecast_scale_cap.py) `system.forecastScaleCap`(chapter 7)
+4. [Combine forecasts:](#stage_combine) [class ForecastCombineFixed](/systems/forecast_combine.py) `system.combForecast` (chapter 8)
+5. [Calculate subsystem positions:](#position_scale) [class PositionSizing](/systems/positionsizing.py)  `system.positionSize` (chapters 9 and 10)
+6. [Create a portfolio across multiple instruments:](#stage_portfolio) [class PortfoliosFixed](/systems/portfolio.py) `system.portfolio` (chapter 11)
+7. [Calculate performance:](#accounts_stage) [class Account](/systems/account.py) `system.accounts`
 
 Each of these stages is described in more detail below.
 
@@ -2247,15 +2247,66 @@ I plan to create a stage that will optimise instrument weights and calculate mul
 ### Stage: Accounting
 </a>
 
+The final stage is the all important accounting stage, which calculates p&l.
+
 <a name="standard_accounts_stage">
 #### Using the standard [Account class](/systems/account.py)
 </a>
 
-wibble
+The standard accounting class includes three useful methods:
+
+- `portfolio`: works out the p&l for the whole system
+- `pandl_for_instrument`: the contribution of a particular instrument to the p&l
+- `pandl_for_instrument_forecast`: work out how well a particular trading rule variation has done with a particular instrument
+
+These classes share some useful arguments (all boolean):
+
+- `delayfill`: Assume we trade at the next days closing price. defaults to True (more conservative)
+- `roundpositions`: Round positions to nearest instrument block. defaults to False. Not used in `pandl_for_instrument_forecast`
+- `percentage`: Return the p&l as a percentage of notional capital. defaults to False. 
+
+All p&l methods return an object of type `accountCurve`. This inherits from a pandas data frame, so it can be plotted, averaged and so on. It also has some special methods. To see what they are use the `stats` method:
+
+```python
+from systems.futures.basesystem import futures_system
+system=futures_system()
+system.accounts.portfolio().stats() 
+```
+
+```
+[[('min', '-0.764'),
+  ('max', '0.1589'),
+  ('median', '0'),
+  ('mean', '0.0006711'),
+  ('std', '0.02224'),
+  ('skew', '-5.726'),
+  ('ann_daily_mean', '0.1718'),
+  ('ann_daily_std', '0.3559'),
+  ('sharpe', '0.4827'),
+  ('sortino', '0.4677'),
+  ('avg_drawdown', '-0.339'),
+  ('time_in_drawdown', '0.9864'),
+  ('calmar', '0.1109'),
+  ('avg_return_to_drawdown', '0.5068'),
+  ('avg_loss', '-0.01581'),
+  ('avg_gain', '0.01534'),
+  ('gaintolossratio', '0.9702'),
+  ('profitfactor', '1.113'),
+  ('hitrate', '0.5343')],
+ ('You can also plot:', ['rolling_ann_std', 'drawdown', 'curve']),
+ ('You can also print:', ['weekly', 'monthly', 'annual'])]
+```
+
+The `stats` method lists three kinds of output:
+
+1. Statistics which can also be extracted with their own methods eg to extract sortino use `system.accounts.portfolio().sortino()`
+2. Methods which can be used to do interesting plots eg `system.accounts.portfolio().drawdown()`
+3. Methods which can be used to get returns over different periods, eg `systems.accounts.portfolio().annual()`
+ 
 
 #### Writing new or modified accounting stages
 
-I plan to include costs in the accounting stage, to generate lists of simulated trades and to provide the data needed to optimise forecast and instrument weights.
+I plan to include costs in the accounting stage, to generate lists of simulated trades and to provide the data needed to optimise forecast and instrument weights. I also plan to extend the `accountCurve` object to handle multiple columns, and to give statistics over different periods.
 
 # Summary information
 
@@ -2308,7 +2359,7 @@ Private methods are excluded from this table.
 
 
 
-### Raw data stage
+### [Raw data stage](#stage_rawdata)
 
         
 | Call                              | Standard?| Arguments       | Type | Description                                                    |
@@ -2328,7 +2379,7 @@ Private methods are excluded from this table.
  
 
 
-### Trading rules stage (chapter 7 of book)
+### [Trading rules stage (chapter 7 of book)](#rules)
 
 
 | Call                              | Standard?| Arguments       | Type | Description                                                    |
@@ -2337,31 +2388,33 @@ Private methods are excluded from this table.
 | `rules.get_raw_forecast` | Standard | `instrument_code`, `rule_variation_name` | D,O| Get forecast (unscaled, uncapped) |
 
 
-### Forecast scaling and capping stage (chapter 7 of book)
+### [Forecast scaling and capping stage (chapter 7 of book)](#stage_scale)
 
 
 | Call                              | Standard?| Arguments       | Type | Description                                                    |
 |:-------------------------:|:---------:|:---------------:|:----:|:--------------------------------------------------------------:|
 | `forecastScaleCap.get_raw_forecast` | Standard  | `instrument_code`, `rule_variation_name`        | I  | `rules.get_raw_forecast` |
 | `forecastScaleCap.get_forecast_scalar` | Standard | `instrument_code`, `rule_variation_name`        | D  | Get the scalar to use for a forecast |
-| `forecastScaleCap.get_forecast_cap` | Standard | `instrument_code`, `rule_variation_name`        | D  | Get the maximum allowable forecast |
+| `forecastScaleCap.get_forecast_cap` | Standard | `instrument_code`, `rule_variation_name`        | D,O  | Get the maximum allowable forecast |
 | `forecastScaleCap.get_scaled_forecast` | Standard | `instrument_code`, `rule_variation_name`        | D  | Get the forecast after scaling (after capping) |
 | `forecastScaleCap.get_capped_forecast` | Standard | `instrument_code`, `rule_variation_name`        | D, O  | Get the forecast after scaling (after capping) |
 
 
-### Combine forecasts stage (chapter 8 of book)
+### [Combine forecasts stage (chapter 8 of book)](#stage_combine)
 
 
 | Call                              | Standard?| Arguments       | Type | Description                                                    |
 |:-------------------------:|:---------:|:---------------:|:----:|:--------------------------------------------------------------:|
 | `combForecast.get_capped_forecast` | Standard  | `instrument_code`, `rule_variation_name`        | I  | `forecastScaleCap.get_capped_forecast` |
-| `combForecast.get_forecast_weights` | Standard  | `instrument_code`        | D  | Forecast weights |
+| `combForecast.get_forecast_cap` | Standard | `instrument_code`, `rule_variation_name`        | I  | `forecastScaleCap.get_forecast_cap` |
+| `combForecast.get_raw_forecast_weights` | Standard  | `instrument_code`        | D  | Forecast weights |
+| `combForecast.get_forecast_weights` | Standard  | `instrument_code`        | D  | Forecast weights, adjusted for missing forecasts|
 | `combForecast.get_forecast_diversification_multiplier` | Standard  | `instrument_code`        | D  | Get diversification multiplier |
 | `combForecast.get_combined_forecast` | Standard  | `instrument_code`        | D,O  | Get weighted average of forecasts for instrument |
 
 
 
-### Position sizing stage (chapters 9 and 10 of book)
+### [Position sizing stage (chapters 9 and 10 of book)](#position_scale)
 
 
 | Call                              | Standard?| Arguments       | Type | Description                                                    |
@@ -2379,25 +2432,35 @@ Private methods are excluded from this table.
 
 
 
-### Portfolio stage (chapter 11 of book)
+### [Portfolio stage (chapter 11 of book)](#stage_portfolio)
 
 
 | Call                              | Standard?| Arguments       | Type | Description                                                    |
 |:-------------------------:|:---------:|:---------------:|:----:|:--------------------------------------------------------------:|
 | `portfolio.get_subsystem_position`| Standard | `instrument_code` | I |`positionSize.get_subsystem_position` |
+| `portfolio.get_instrument_list`| Standard |  | D,O |List of instruments in system |
 | `portfolio.get_instrument_weights`| Standard |  | D |Get instrument weights |
 | `portfolio.get_instrument_diversification_multiplier`| Standard |  | D |Get instrument div. multiplier |
-| `portfolio.get_notional_position`| Standard | `instrument_code` | D |Get the *notional* position (with constant risk capital; doesn't allow for adjustments when profits or losses are made) |
+| `portfolio.get_notional_position`| Standard | `instrument_code` | D,O |Get the *notional* position (with constant risk capital; doesn't allow for adjustments when profits or losses are made) |
 
 
 
-### Accounting stage
+### [Accounting stage](#accounts_stage)
 
 
 | Call                              | Standard?| Arguments       | Type | Description                                                    |
 |:-------------------------:|:---------:|:---------------:|:----:|:--------------------------------------------------------------:|
-| `accounts.get_notional_position`| Standard |  | I | `portfolio.get_notional_position`|
-
+| `accounts.get_notional_position`| Standard |  `instrument_code` | I | `portfolio.get_notional_position`|
+| `accounts.get_capped_forecast`| Standard | `instrument_code`, `rule_variation_name`  | I | `forecastScaleCap.get_capped_forecast`|
+| `accounts.get_instrument_list`| Standard |  | I | `portfolio.get_instrument_list`|
+| `accounts.get_notional_capital`| Standard |  | I | `positionSize.get_daily_cash_vol_target`|
+| `accounts.get_fx_rate`| Standard |  `instrument_code` | I | `positionSize.get_fx_rate`|
+| `accounts.get_instrument_price`| Standard |  `instrument_code` | I | `data.get_instrument_price`|
+| `accounts.get_value_of_price_move`| Standard |  `instrument_code` | I | `positionSize.get_instrument_sizing_data`|
+| `accounts.get_daily_returns_volatility`| Standard |  `instrument_code` | I | `rawdata.daily_returns_volatility` or `data.get_instrument_price`|
+| `accounts.pandl_for_instrument`| Standard |  `instrument_code` | O,D | P&l for an instrument within a system|
+| `accounts.pandl_for_instrument_forecast`| Standard | `instrument_code`, `rule_variation_name` | O,D | P&l for a trading rule and instrument |
+| `accounts.portfolio`| Standard |  | O,D | P&l for whole system |
 
 
 <a name="Configuration_options">

@@ -68,20 +68,20 @@ class csvFuturesData(FuturesData):
 
         >>> data=csvFuturesData("sysdata.tests")
         >>> data.get_instrument_price("EDOLLAR").tail(2)
-                      price
-        2015-04-21  97.9050
-        2015-04-22  97.8325
+                               price
+        2015-12-11 17:08:14  97.9675
+        2015-12-11 19:33:39  97.9875
         >>> data["US10"].tail(2)
-                         price
-        2015-04-21  129.390625
-        2015-04-22  128.867188
+                                  price
+        2015-12-11 16:06:35  126.914062
+        2015-12-11 17:24:06  126.945312
         """
 
         # Read from .csv
         filename = os.path.join(self._datapath, instrument_code + "_price.csv")
         instrpricedata = pd_readcsv(filename)
         instrpricedata.columns = ["price"]
-
+        instrpricedata=instrpricedata.groupby(level=0).last()
         return instrpricedata
 
     def get_instrument_raw_carry_data(self, instrument_code):
@@ -96,20 +96,17 @@ class csvFuturesData(FuturesData):
         :returns: pd.DataFrame
 
         >>> data=csvFuturesData("sysdata.tests")
-        >>> data.get_instrument_raw_carry_data("EDOLLAR").tail(5)
-                     PRICE    CARRY CARRY_CONTRACT PRICE_CONTRACT
-        2015-04-16  97.860  97.9350         201806         201809
-        2015-04-17  97.865  97.9400         201806         201809
-        2015-04-20  97.850  97.9250         201806         201809
-        2015-04-21  97.830  97.9050         201806         201809
-        2015-04-22     NaN  97.8325         201806         201809
+        >>> data.get_instrument_raw_carry_data("US10").tail(4)
+                                  PRICE  CARRY CARRY_CONTRACT PRICE_CONTRACT
+        2015-12-10 23:00:00  126.328125    NaN         201606         201603
+        2015-12-11 14:35:15  126.835938    NaN         201606         201603
+        2015-12-11 16:06:35  126.914062    NaN         201606         201603
+        2015-12-11 17:24:06  126.945312    NaN         201606         201603
         """
 
         filename = os.path.join(
             self._datapath, instrument_code + "_carrydata.csv")
         instrcarrydata = pd_readcsv(filename)
-        instrcarrydata.columns = ["PRICE", "CARRY",
-                                  "CARRY_CONTRACT", "PRICE_CONTRACT"]
 
         instrcarrydata.CARRY_CONTRACT = instrcarrydata.CARRY_CONTRACT.apply(
             str_of_int)
@@ -225,12 +222,12 @@ class csvFuturesData(FuturesData):
         >>> # datapath="tests/"
         >>> data._get_fx_data("EUR", "USD").tail(2)
                      EURUSD
-        2015-10-30  1.09774
-        2015-11-02  1.09827
+        2015-12-09  1.09085
+        2015-12-10  1.09641
         >>> data._get_fx_cross("EUR", "GBP").tail(2)
                           fx
-        2015-10-30  0.718219
-        2015-11-02  0.714471
+        2015-12-09  0.724663
+        2015-12-10  0.724463
         """
 
         if currency1 == currency2:

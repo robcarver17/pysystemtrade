@@ -26,3 +26,8 @@ from systems.provided.futures_chapter15.basesystem import futures_system
 system = futures_system()
 
 print(system.portfolio.get_notional_position("EUROSTX").tail(5))
+
+system.accounts.portfolio().stats()
+system.accounts.pandl_for_instrument("US10").curve().plot()
+from matplotlib.pyplot import show
+show()

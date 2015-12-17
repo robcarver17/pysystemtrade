@@ -10,8 +10,10 @@ class ForecastCombineFixed(SystemStage):
     Stage for combining forecasts (already capped and scaled)
 
     KEY INPUT: system.forecastScaleCap.get_capped_forecast(instrument_code, rule_variation_name)
-
                 found in self.get_capped_forecast(instrument_code, rule_variation_name)
+                
+                system.forecastScaleCap.get_forecast_cap()
+                found in self.get_forecast_cap()
 
     KEY OUTPUT: system.combForecast.get_combined_forecast(instrument_code)
 
@@ -62,8 +64,8 @@ class ForecastCombineFixed(SystemStage):
         >>> system=System([rawdata, rules, fcs, ForecastCombineFixed()], data, config)
         >>> system.combForecast.get_capped_forecast("EDOLLAR","ewmac8").tail(2)
                       ewmac8
-        2015-04-21  5.738741
-        2015-04-22  5.061187
+        2015-12-10 -0.244268
+        2015-12-11  0.155697
         """
 
         return self.parent.forecastScaleCap.get_capped_forecast(
@@ -92,23 +94,23 @@ class ForecastCombineFixed(SystemStage):
         >>> ## from config
         >>> system.combForecast.get_forecast_diversification_multiplier("EDOLLAR").tail(2)
                     fdm
-        2015-04-21  1.1
-        2015-04-22  1.1
+        2015-12-10  1.1
+        2015-12-11  1.1
         >>>
         >>> config.forecast_div_multiplier=dict(EDOLLAR=2.0)
         >>> system2=System([rawdata, rules, fcs, ForecastCombineFixed()], data, config)
         >>> system2.combForecast.get_forecast_diversification_multiplier("EDOLLAR").tail(2)
                     fdm
-        2015-04-21    2
-        2015-04-22    2
+        2015-12-10    2
+        2015-12-11    2
         >>>
         >>> ## defaults
         >>> del(config.forecast_div_multiplier)
         >>> system3=System([rawdata, rules, fcs, ForecastCombineFixed()], data, config)
         >>> system3.combForecast.get_forecast_diversification_multiplier("EDOLLAR").tail(2)
                     fdm
-        2015-04-21    1
-        2015-04-22    1
+        2015-12-10    1
+        2015-12-11    1
         """
         def _get_forecast_div_multiplier(system, instrument_code, this_stage):
 
@@ -168,23 +170,23 @@ class ForecastCombineFixed(SystemStage):
         >>> ## from config
         >>> system.combForecast.get_raw_forecast_weights("EDOLLAR").tail(2)
                     ewmac16  ewmac8
-        2015-04-21      0.5     0.5
-        2015-04-22      0.5     0.5
+        2015-12-10      0.5     0.5
+        2015-12-11      0.5     0.5
         >>>
         >>> config.forecast_weights=dict(EDOLLAR=dict(ewmac8=0.9, ewmac16=0.1))
         >>> system2=System([rawdata, rules, fcs, ForecastCombineFixed()], data, config)
         >>> system2.combForecast.get_raw_forecast_weights("EDOLLAR").tail(2)
                     ewmac16  ewmac8
-        2015-04-21      0.1     0.9
-        2015-04-22      0.1     0.9
+        2015-12-10      0.1     0.9
+        2015-12-11      0.1     0.9
         >>>
         >>> del(config.forecast_weights)
         >>> system3=System([rawdata, rules, fcs, ForecastCombineFixed()], data, config)
         >>> system3.combForecast.get_raw_forecast_weights("EDOLLAR").tail(2)
         WARNING: No forecast weights  - using equal weights of 0.5000 over all 2 trading rules in system
                     ewmac16  ewmac8
-        2015-04-21      0.5     0.5
-        2015-04-22      0.5     0.5
+        2015-12-10      0.5     0.5
+        2015-12-11      0.5     0.5
         """                    
         def _get_raw_forecast_weights(system,  instrument_code,  this_stage ):
 
@@ -254,23 +256,23 @@ class ForecastCombineFixed(SystemStage):
         >>> ## from config
         >>> system.combForecast.get_forecast_weights("EDOLLAR").tail(2)
                     ewmac16  ewmac8
-        2015-04-21      0.5     0.5
-        2015-04-22      0.5     0.5
+        2015-12-10      0.5     0.5
+        2015-12-11      0.5     0.5
         >>>
         >>> config.forecast_weights=dict(EDOLLAR=dict(ewmac8=0.9, ewmac16=0.1))
         >>> system2=System([rawdata, rules, fcs, ForecastCombineFixed()], data, config)
         >>> system2.combForecast.get_forecast_weights("EDOLLAR").tail(2)
                     ewmac16  ewmac8
-        2015-04-21      0.1     0.9
-        2015-04-22      0.1     0.9
+        2015-12-10      0.1     0.9
+        2015-12-11      0.1     0.9
         >>>
         >>> del(config.forecast_weights)
         >>> system3=System([rawdata, rules, fcs, ForecastCombineFixed()], data, config)
         >>> system3.combForecast.get_forecast_weights("EDOLLAR").tail(2)
         WARNING: No forecast weights  - using equal weights of 0.5000 over all 2 trading rules in system
                     ewmac16  ewmac8
-        2015-04-21      0.5     0.5
-        2015-04-22      0.5     0.5
+        2015-12-10      0.5     0.5
+        2015-12-11      0.5     0.5
         """                    
         def _get_forecast_weights(system,  instrument_code,  this_stage ):
             
@@ -312,15 +314,15 @@ class ForecastCombineFixed(SystemStage):
         >>> 
         >>> system.combForecast.get_combined_forecast("EDOLLAR").tail(2)
                     comb_forecast
-        2015-04-21       7.622781
-        2015-04-22       6.722785
+        2015-12-10      -0.324461
+        2015-12-11       0.206813
         >>>
-        >>> config.forecast_div_multiplier=100.0
+        >>> config.forecast_div_multiplier=1000.0
         >>> system2=System([rawdata, rules, fcs, ForecastCombineFixed()], data, config)
         >>> system2.combForecast.get_combined_forecast("EDOLLAR").tail(2)
                     comb_forecast
-        2015-04-21             21
-        2015-04-22             21
+        2015-12-10            -21
+        2015-12-11             21
         """                    
         def _get_combined_forecast(system,  instrument_code,  this_stage ):
             

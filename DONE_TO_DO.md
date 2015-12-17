@@ -11,14 +11,6 @@ Basic backtesting enviroment with example futures data.
 None that I know of
 
 
-# Features to add - this release
-
-
-portfolio p&l
-
-
-docs- intro, tutorial, api reference, developer documentation
-
 # Features to add - later releases
 
 logging / error catching

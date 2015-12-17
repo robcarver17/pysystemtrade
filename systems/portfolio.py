@@ -21,6 +21,7 @@ class PortfoliosFixed(SystemStage):
                 found in self.get_subsystem_position(instrument_code)
 
     KEY OUTPUT: system.portfolio.get_notional_position(instrument_code)
+                system.portfolio.get_instrument_list()
 
     Name: portfolio
     """
@@ -57,8 +58,8 @@ class PortfoliosFixed(SystemStage):
         >>> ## from config
         >>> system.portfolio.get_subsystem_position("EDOLLAR").tail(2)
                     ss_position
-        2015-04-21     7.989637
-        2015-04-22     6.875228
+        2015-12-09    -0.033593
+        2015-12-10    -0.363003
 
         """
 
@@ -84,16 +85,16 @@ class PortfoliosFixed(SystemStage):
         >>> ## from config
         >>> system.portfolio.get_instrument_weights().tail(2)
                     EDOLLAR  US10
-        2015-04-21      0.1   0.9
-        2015-04-22      0.1   0.9
+        2015-12-09      0.1   0.9
+        2015-12-10      0.1   0.9
         >>>
         >>> del(config.instrument_weights)
         >>> system2=System([rawdata, rules, posobject, combobject, capobject,PortfoliosFixed()], data, config)
         >>> system2.portfolio.get_instrument_weights().tail(2)
         WARNING: No instrument weights  - using equal weights of 0.5000 over all 2 instruments in data
                     EDOLLAR  US10
-        2015-04-21      0.5   0.5
-        2015-04-22      0.5   0.5
+        2015-12-09      0.5   0.5
+        2015-12-10      0.5   0.5
         """
         def _get_instrument_weights(system, an_ignored_variable, this_stage):
 
@@ -191,16 +192,16 @@ class PortfoliosFixed(SystemStage):
         >>> ## from config
         >>> system.portfolio.get_instrument_diversification_multiplier().tail(2)
                     idm
-        2015-04-21  1.2
-        2015-04-22  1.2
+        2015-12-09  1.2
+        2015-12-10  1.2
         >>>
         >>> ## from defaults
         >>> del(config.instrument_div_multiplier)
         >>> system2=System([rawdata, rules, posobject, combobject, capobject,PortfoliosFixed()], data, config)
         >>> system2.portfolio.get_instrument_diversification_multiplier().tail(2)
                     idm
-        2015-04-21    1
-        2015-04-22    1
+        2015-12-09    1
+        2015-12-10    1
         """
         def _get_instrument_div_multiplier(
                 system, an_ignored_variable, this_stage):
@@ -250,9 +251,8 @@ class PortfoliosFixed(SystemStage):
         >>> ## from config
         >>> system.portfolio.get_notional_position("EDOLLAR").tail(2)
                          pos
-        2015-04-21  4.793782
-        2015-04-22  4.125137
-        >>>
+        2015-12-09 -0.020156
+        2015-12-10 -0.217802
 
         """
         def _get_notional_position(system, instrument_code, this_stage):

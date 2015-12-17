@@ -15,6 +15,8 @@ class ForecastScaleCapFixed(SystemStage):
                 found in self.get_raw_forecast(instrument_code, rule_variation_name)
 
     KEY OUTPUT: system.forecastScaleCap.get_capped_forecast(instrument_code, rule_variation_name)
+    
+                system.forecastScaleCap.get_forecast_cap()
 
     Name: forecastScaleCap
     """
@@ -54,8 +56,8 @@ class ForecastScaleCapFixed(SystemStage):
         >>> system=System([rawdata, rules, ForecastScaleCapFixed()], data, config)
         >>> system.forecastScaleCap.get_raw_forecast("EDOLLAR","ewmac8").tail(2)
                       ewmac8
-        2015-04-21  1.082781
-        2015-04-22  0.954941
+        2015-12-10 -0.046088
+        2015-12-11  0.029377
         """
 
         raw_forecast = self.parent.rules.get_raw_forecast(
@@ -183,8 +185,8 @@ class ForecastScaleCapFixed(SystemStage):
         >>> system=System([rawdata, rules, ForecastScaleCapFixed()], data, config)
         >>> system.forecastScaleCap.get_scaled_forecast("EDOLLAR", "ewmac8").tail(2)
                       ewmac8
-        2015-04-21  5.738741
-        2015-04-22  5.061187
+        2015-12-10 -0.244268
+        2015-12-11  0.155697
         """
 
         def _get_scaled_forecast(
@@ -222,12 +224,12 @@ class ForecastScaleCapFixed(SystemStage):
         >>> from systems.tests.testdata import get_test_object_futures_with_rules
         >>> from systems.basesystem import System
         >>> (rules, rawdata, data, config)=get_test_object_futures_with_rules()
-        >>> config.forecast_cap=4.0
+        >>> config.forecast_cap=0.2
         >>> system=System([rawdata, rules, ForecastScaleCapFixed()], data, config)
         >>> system.forecastScaleCap.get_capped_forecast("EDOLLAR", "ewmac8").tail(2)
-                    ewmac8
-        2015-04-21       4
-        2015-04-22       4
+                      ewmac8
+        2015-12-10 -0.200000
+        2015-12-11  0.155697
 
 
         """

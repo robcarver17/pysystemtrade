@@ -51,9 +51,9 @@ class FuturesRawData(RawData):
         >>> (rawdata, data, config)=get_test_object_futures()
         >>> system=System([rawdata], data)
         >>> system.rawdata.get_instrument_raw_carry_data("EDOLLAR").tail(2)
-                    PRICE    CARRY CARRY_CONTRACT PRICE_CONTRACT
-        2015-04-21  97.83  97.9050         201806         201809
-        2015-04-22    NaN  97.8325         201806         201809
+                               PRICE  CARRY CARRY_CONTRACT PRICE_CONTRACT
+        2015-12-11 17:08:14  97.9675    NaN         201812         201903
+        2015-12-11 19:33:39  97.9875    NaN         201812         201903
         """
 
         def _calc_raw_carry(system, instrument_code):
@@ -79,10 +79,10 @@ class FuturesRawData(RawData):
         >>> from systems.basesystem import System
         >>> (rawdata, data, config)=get_test_object_futures()
         >>> system=System([rawdata], data)
-        >>> system.rawdata.raw_futures_roll("EDOLLAR").tail(2)
-                    raw_roll
-        2015-04-21    -0.075
-        2015-04-22       NaN
+        >>> system.rawdata.raw_futures_roll("EDOLLAR").ffill().tail(2)
+                             raw_roll
+        2015-12-11 17:08:14     -0.07
+        2015-12-11 19:33:39     -0.07
         """
 
         def _calc_raw_futures_roll(system, instrument_code, this_subsystem):
@@ -114,10 +114,10 @@ class FuturesRawData(RawData):
         >>> from systems.basesystem import System
         >>> (rawdata, data, config)=get_test_object_futures()
         >>> system=System([rawdata], data)
-        >>> system.rawdata.roll_differentials("EDOLLAR").tail(2)
-                    roll_diff
-        2015-04-21  -0.251882
-        2015-04-22  -0.251882
+        >>> system.rawdata.roll_differentials("EDOLLAR").ffill().tail(2)
+                             roll_diff
+        2015-12-11 17:08:14  -0.246407
+        2015-12-11 19:33:39  -0.246407
         """
         def _calc_roll_differentials(system, instrument_code, this_subsystem):
             carrydata = this_subsystem.get_instrument_raw_carry_data(
@@ -146,10 +146,10 @@ class FuturesRawData(RawData):
         >>> from systems.basesystem import System
         >>> (rawdata, data, config)=get_test_object_futures()
         >>> system=System([rawdata], data)
-        >>> system.rawdata.annualised_roll("EDOLLAR").tail(2)
-                    annualised_roll
-        2015-04-21         0.297758
-        2015-04-22              NaN
+        >>> system.rawdata.annualised_roll("EDOLLAR").ffill().tail(2)
+                             annualised_roll
+        2015-12-11 17:08:14         0.284083
+        2015-12-11 19:33:39         0.284083
 
         """
 
@@ -184,10 +184,10 @@ class FuturesRawData(RawData):
         >>> from systems.basesystem import System
         >>> (rawdata, data, config)=get_test_object_futures()
         >>> system=System([rawdata], data)
-        >>> system.rawdata.daily_annualised_roll("EDOLLAR").tail(2)
+        >>> system.rawdata.daily_annualised_roll("EDOLLAR").ffill().tail(2)
                     annualised_roll_daily
-        2015-04-21               0.297758
-        2015-04-22                    NaN
+        2015-12-10               0.284083
+        2015-12-11               0.284083
         """
 
         def _calc_daily_ann_roll(system, instrument_code, this_subsystem):
@@ -219,10 +219,10 @@ class FuturesRawData(RawData):
         >>> (rawdata, data, config)=get_test_object_futures()
         >>> system=System([rawdata], data)
         >>>
-        >>> system.rawdata.daily_denominator_price("EDOLLAR").tail(2)
-                    price
-        2015-04-21  97.83
-        2015-04-22  NaN
+        >>> system.rawdata.daily_denominator_price("EDOLLAR").ffill().tail(2)
+                      price
+        2015-12-10  97.8800
+        2015-12-11  97.9875
 
         """
         def _daily_denominator_prices(system, instrument_code, this_subsystem):

@@ -134,8 +134,8 @@ from systems.account import Account
 my_account = Account()
 my_system = System([fcs, my_rules, combiner, possizer,
                     portfolio, my_account], data, my_config)
-profits = my_system.account.portfolio()
-profits.stats()
+profits = my_system.accounts.portfolio()
+print(profits.stats())
 
 
 """

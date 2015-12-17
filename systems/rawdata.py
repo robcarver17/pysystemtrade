@@ -48,9 +48,9 @@ class RawData(SystemStage):
         >>> (rawdata, data, config)=get_test_object()
         >>> system=System([rawdata], data)
         >>> system.rawdata.get_instrument_price("EDOLLAR").tail(2)
-                      price
-        2015-04-21  97.9050
-        2015-04-22  97.8325
+                               price
+        2015-12-11 17:08:14  97.9675
+        2015-12-11 19:33:39  97.9875
         """
         def _get_instrument_price(system, instrument_code):
             instrprice = system.data.get_instrument_price(instrument_code)
@@ -80,8 +80,8 @@ class RawData(SystemStage):
         >>> system=System([rawdata], data)
         >>> system.rawdata.daily_prices("EDOLLAR").tail(2)
                       price
-        2015-04-21  97.9050
-        2015-04-22  97.8325
+        2015-12-10  97.8800
+        2015-12-11  97.9875
 
         """
         def _daily_prices(system, instrument_code, this_stage):
@@ -114,8 +114,8 @@ class RawData(SystemStage):
         >>> system=System([rawdata], data)
         >>> system.rawdata.daily_denominator_price("EDOLLAR").head(2)
                         price
-        1983-09-26  71.416192
-        1983-09-27  71.306192
+        1983-09-26  71.241192
+        1983-09-27  71.131192
         """
         def _daily_denominator_returns(system, instrument_code, this_stage):
 
@@ -145,8 +145,8 @@ class RawData(SystemStage):
         >>> system=System([rawdata], data)
         >>> system.rawdata.daily_returns("EDOLLAR").tail(2)
                      price
-        2015-04-21 -0.0200
-        2015-04-22 -0.0725
+        2015-12-10 -0.0650
+        2015-12-11  0.1075
         """
         def _daily_returns(system, instrument_code, this_stage):
             instrdailyprice = this_stage.daily_prices(instrument_code)
@@ -185,23 +185,23 @@ class RawData(SystemStage):
         >>> ## uses defaults
         >>> system.rawdata.daily_returns_volatility("EDOLLAR").tail(2)
                          vol
-        2015-04-21  0.057053
-        2015-04-22  0.058340
+        2015-12-10  0.054145
+        2015-12-11  0.058522
         >>>
         >>> from sysdata.configdata import Config
         >>> config=Config("systems.provided.example.exampleconfig.yaml")
         >>> system=System([rawdata], data, config)
         >>> system.rawdata.daily_returns_volatility("EDOLLAR").tail(2)
                          vol
-        2015-04-21  0.057053
-        2015-04-22  0.058340
+        2015-12-10  0.054145
+        2015-12-11  0.058522
         >>>
         >>> config=Config(dict(volatility_calculation=dict(func="syscore.algos.robust_vol_calc", days=200)))
         >>> system2=System([rawdata], data, config)
         >>> system2.rawdata.daily_returns_volatility("EDOLLAR").tail(2)
                          vol
-        2015-04-21  0.065903
-        2015-04-22  0.066014
+        2015-12-10  0.057946
+        2015-12-11  0.058626
 
         """
         def _daily_returns_volatility(system, instrument_code, this_stage):
@@ -251,8 +251,8 @@ class RawData(SystemStage):
         >>> system=System([rawdata], data)
         >>> system.rawdata.get_daily_percentage_volatility("EDOLLAR").tail(2)
                          vol
-        2015-04-21  0.058262
-        2015-04-22  0.059588
+        2015-12-10  0.055281
+        2015-12-11  0.059789
         """
         def _get_daily_percentage_volatility(
                 system, instrument_code, this_stage):
@@ -286,8 +286,8 @@ class RawData(SystemStage):
         >>> system=System([rawdata], data)
         >>> system.rawdata.norm_returns("EDOLLAR").tail(2)
                     norm_return
-        2015-04-21    -0.342101
-        2015-04-22    -1.270742
+        2015-12-10    -1.219510
+        2015-12-11     1.985413
         """
         def _norm_returns(system, instrument_code, this_stage):
             returnvol = this_stage.daily_returns_volatility(

@@ -23,8 +23,8 @@ DAILY_CAPITAL = CAPITAL * ANN_RISK_TARGET / ROOT_BDAYS_INYEAR
 
 
 def pandl(price=None, trades=None, marktomarket=True, positions=None, delayfill=True, roundpositions=False,
-          price_change_volatility=None, forecast=None, fx=None, value_of_price_point=1.0,
-          return_all=False):
+          get_daily_returns_volatility=None, forecast=None, fx=None, value_of_price_point=1.0,
+          return_all=False, capital=None):
     """
     Calculate pandl for an individual position
 
@@ -43,7 +43,8 @@ def pandl(price=None, trades=None, marktomarket=True, positions=None, delayfill=
 
     If value_of_price_point is not provided, assume is 1.0 (block size is value of 1 price point, eg 100 if you're buying 100 shares for one instrument block)
 
-
+    If capital is provided (eithier as a float, or dataframe) then % returns will be calculated
+    If capital is zero will use default values
 
     :param price: price series
     :type price: Tx1 pd.DataFrame
@@ -63,8 +64,8 @@ def pandl(price=None, trades=None, marktomarket=True, positions=None, delayfill=
     :param roundpositions: If calculating trades, should we round positions first?
     :type roundpositions: bool
 
-    :param price_change_volatility: series of volatility estimates, used for calculation positions
-    :type price_change_volatility: Tx1 pd.DataFrame  or None
+    :param get_daily_returns_volatility: series of volatility estimates, used for calculation positions
+    :type get_daily_returns_volatility: Tx1 pd.DataFrame  or None
 
     :param forecast: series of forecasts, needed to work out positions
     :type forecast: Tx1 pd.DataFrame  or None
@@ -78,10 +79,11 @@ def pandl(price=None, trades=None, marktomarket=True, positions=None, delayfill=
     :param roundpositions: If calculating trades, should we round positions first?
     :type roundpositions: bool
 
+    :param capital: notional capital. If None not used. Works out % returns. If 0.0 uses default 
+    :type capital: None, 0.0, float or Tx1 timeseries
 
     :returns: if return_all : 4- Tuple (positions, trades, instr_ccy_returns, base_ccy_returns) all Tx1 pd.DataFrames
                             is "":   Tx1 accountCurve
-
 
     """
     if price is None:
@@ -94,7 +96,7 @@ def pandl(price=None, trades=None, marktomarket=True, positions=None, delayfill=
 
     if trades is None:
         trades = get_trades_from_positions(
-            price, positions, delayfill, roundpositions, price_change_volatility, forecast, fx, value_of_price_point)
+            price, positions, delayfill, roundpositions, get_daily_returns_volatility, forecast, fx, value_of_price_point)
 
     if marktomarket:
         # want to have both kinds of price
@@ -128,21 +130,26 @@ def pandl(price=None, trades=None, marktomarket=True, positions=None, delayfill=
     base_ccy_returns.columns = ["pandl_base"]
     cum_trades.columns = ["cum_trades"]
 
-    if return_all:
-        return (cum_trades, trades, instr_ccy_returns, base_ccy_returns)
-    else:
-        if positions is None:
-            # arbitrary, return in % terms
-            capital = CAPITAL
-        else:
-            # return in money terms
-            capital = None
 
-        return accountCurve(base_ccy_returns, capital=CAPITAL)
+    if return_all:
+        return (cum_trades, trades, instr_ccy_returns, base_ccy_returns, capital)
+    else:
+        if capital is not None:
+            if isinstance(capital, float):
+                if capital==0.0:
+                    ## use default. Good for forecasts when no meaningful capital
+                    capital=CAPITAL
+                base_ccy_returns = base_ccy_returns / capital
+            else:
+                ## time series 
+                capital = capital.reindex(base_ccy_returns.index, method="ffill")
+                base_ccy_returns = divide_df_single_column(base_ccy_returns, capital)
+
+        return accountCurve(base_ccy_returns)
 
 
 def get_trades_from_positions(price, positions, delayfill, roundpositions,
-                              price_change_volatility, forecast, fx, value_of_price_point):
+                              get_daily_returns_volatility, forecast, fx, value_of_price_point):
     """
     Work out trades implied by a series of positions
        If delayfill is True, assume we get filled at the next price after the trade
@@ -166,8 +173,8 @@ def get_trades_from_positions(price, positions, delayfill, roundpositions,
     :param roundpositions: If calculating trades, should we round positions first?
     :type roundpositions: bool
 
-    :param price_change_volatility: series of volatility estimates, used for calculation positions
-    :type price_change_volatility: Tx1 pd.DataFrame  or None
+    :param get_daily_returns_volatility: series of volatility estimates, used for calculation positions
+    :type get_daily_returns_volatility: Tx1 pd.DataFrame  or None
 
     :param forecast: series of forecasts, needed to work out positions
     :type forecast: Tx1 pd.DataFrame  or None
@@ -185,7 +192,7 @@ def get_trades_from_positions(price, positions, delayfill, roundpositions,
 
     if positions is None:
         positions = get_positions_from_forecasts(
-            price, price_change_volatility, forecast, fx, value_of_price_point)
+            price, get_daily_returns_volatility, forecast, fx, value_of_price_point)
 
     if roundpositions:
         # round to whole positions
@@ -223,7 +230,7 @@ def get_trades_from_positions(price, positions, delayfill, roundpositions,
 
 
 def get_positions_from_forecasts(
-        price, price_change_volatility, forecast, fx, value_of_price_point, **kwargs):
+        price, get_daily_returns_volatility, forecast, fx, value_of_price_point, **kwargs):
     """
     Work out position using forecast, volatility, fx, value_of_price_point (this will be for an arbitrary daily risk target)
 
@@ -232,8 +239,8 @@ def get_positions_from_forecasts(
     :param price: price series
     :type price: Tx1 pd.DataFrame
 
-    :param price_change_volatility: series of volatility estimates. NOT % volatility, price difference vol
-    :type price_change_volatility: Tx1 pd.DataFrame  or None
+    :param get_daily_returns_volatility: series of volatility estimates. NOT % volatility, price difference vol
+    :type get_daily_returns_volatility: Tx1 pd.DataFrame  or None
 
     :param forecast: series of forecasts, needed to work out positions
     :type forecast: Tx1 pd.DataFrame
@@ -253,8 +260,8 @@ def get_positions_from_forecasts(
         raise Exception(
             "If you don't provide a series of trades or positions, I need a forecast")
 
-    if price_change_volatility is None:
-        price_change_volatility = robust_vol_calc(price.diff(), **kwargs)
+    if get_daily_returns_volatility is None:
+        get_daily_returns_volatility = robust_vol_calc(price.diff(), **kwargs)
 
     """
     Herein the proof why this position calculation is correct (see chapters 5-11 of 'systematic trading' book)
@@ -274,10 +281,10 @@ def get_positions_from_forecasts(
     """
 
     multiplier = DAILY_CAPITAL * 1.0 * 1.0 / 10.0
-    fx = fx.reindex(price_change_volatility.index, method="ffill")
+    fx = fx.reindex(get_daily_returns_volatility.index, method="ffill")
     denominator = value_of_price_point * \
         multiply_df_single_column(
-            price_change_volatility, fx, ffill=(False, True))
+            get_daily_returns_volatility, fx, ffill=(False, True))
 
     position = divide_df_single_column(
         forecast * multiplier, denominator, ffill=(True, True))
@@ -288,33 +295,20 @@ def get_positions_from_forecasts(
 
 class accountCurve(pd.DataFrame):
 
-    def __init__(self, returns=None, capital=None, **kwargs):
+    def __init__(self, returns=None,  **kwargs):
         """
         Create an account curve; from which many lovely statistics can be gathered
 
         We create eithier by passing returns (a dataframe of returns), or **kwargs which will be used by the pandl function
 
-        If capital is provided (eithier as a float, or dataframe) then % returns will be calculated
-
         :param returns: series of returns
         :type price: Tx1 pd.DataFrame
 
-        :param capital: scaling factor for accounting
-        :type capital: None
-                       float : fixed scaling will be applied
-
-        FIXME: needs doctest
         """
 
         if returns is None:
             returns = pandl(**kwargs)
 
-        if capital is not None:
-            if isinstance(capital, float):
-                returns = returns / capital
-            else:
-                capital = capital.reindex(returns.index, method="ffill")
-                returns = divide_df_single_column(returns, capital)
 
         super(accountCurve, self).__init__(returns)
 
