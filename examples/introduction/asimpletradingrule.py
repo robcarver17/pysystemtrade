@@ -4,7 +4,7 @@ Work up a minimum example of a trend following system
 
 """
 
-## Get some data
+# Get some data
 
 from sysdata.csvdata import csvFuturesData
 
@@ -13,10 +13,10 @@ Let's get some data
 
 We can get data from various places; however for now we're going to use prepackaged 'legacy' data stored
    in csv files
-   
+
 """
 
-data=csvFuturesData()
+data = csvFuturesData()
 
 print(data)
 
@@ -66,29 +66,30 @@ import pandas as pd
 from syscore.algos import robust_vol_calc
 from syscore.pdutils import divide_df_single_column
 
+
 def calc_ewmac_forecast(price, Lfast, Lslow=None):
-    
-    
     """
     Calculate the ewmac trading fule forecast, given a price and EWMA speeds Lfast, Lslow and vol_lookback
-    
+
     Assumes that 'price' is daily data
     """
-    ## price: This is the stitched price series
-    ## We can't use the price of the contract we're trading, or the volatility will be jumpy
-    ## And we'll miss out on the rolldown. See http://qoppac.blogspot.co.uk/2015/05/systems-building-futures-rolling.html
+    # price: This is the stitched price series
+    # We can't use the price of the contract we're trading, or the volatility will be jumpy
+    # And we'll miss out on the rolldown. See
+    # http://qoppac.blogspot.co.uk/2015/05/systems-building-futures-rolling.html
 
     if Lslow is None:
-        Lslow=4*Lfast
-    
-    ## We don't need to calculate the decay parameter, just use the span directly
-    
-    fast_ewma=pd.ewma(price, span=Lfast)
-    slow_ewma=pd.ewma(price, span=Lslow)
-    raw_ewmac=fast_ewma - slow_ewma
-    
-    vol=robust_vol_calc(price.diff())    
-    
+        Lslow = 4 * Lfast
+
+    # We don't need to calculate the decay parameter, just use the span
+    # directly
+
+    fast_ewma = pd.ewma(price, span=Lfast)
+    slow_ewma = pd.ewma(price, span=Lslow)
+    raw_ewmac = fast_ewma - slow_ewma
+
+    vol = robust_vol_calc(price.diff())
+
     return divide_df_single_column(raw_ewmac, vol)
 
 """
@@ -96,9 +97,9 @@ Try it out
 
 (this isn't properly scaled at this stage of course)
 """
-instrument_code='EDOLLAR'
-price=data.get_instrument_price(instrument_code)
-ewmac=calc_ewmac_forecast(price, 32, 128)
+instrument_code = 'EDOLLAR'
+price = data.get_instrument_price(instrument_code)
+ewmac = calc_ewmac_forecast(price, 32, 128)
 print(ewmac.tail(5))
 
 from matplotlib.pyplot import show
@@ -110,8 +111,6 @@ Did we make money?
 """
 
 from syscore.accounting import pandl
-account=pandl(price, forecast=ewmac)
+account = pandl(price, forecast=ewmac)
 account.curve().plot()
 show()
-
-
