@@ -14,10 +14,6 @@ None that I know of
 # Features to add - this release
 
 
-update all docs so far
-check on the fly add trading rules works
-
-run all tests
 portfolio p&l
 
 

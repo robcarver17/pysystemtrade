@@ -1,4 +1,5 @@
 
+from systems.basesystem import ALL_KEYNAME
 from systems.stage import SystemStage
 from systems.defaults import system_defaults
 from syscore.pdutils import apply_cap
@@ -123,22 +124,13 @@ class ForecastScaleCapFixed(SystemStage):
 
         return forecast_scalar
 
-    def get_forecast_cap(self, instrument_code, rule_variation_name):
+    def get_forecast_cap(self,):
         """
         Get forecast cap
-
-        In this simple version it's the same for all instruments, and rule variations
 
         We get the cap from:
                                  (a)  configuration object in parent system
                                  (c) or if missing: uses the forecast_cap from systems.default.py
-
-        :param instrument_code:
-        :type str:
-
-        :param rule_variation_name:
-        :type str: name of the trading rule variation
-
         :returns: float
 
         >>> from systems.tests.testdata import get_test_object_futures_with_rules
@@ -147,19 +139,18 @@ class ForecastScaleCapFixed(SystemStage):
         >>> system=System([rawdata, rules, ForecastScaleCapFixed()], data, config)
         >>>
         >>> ## From config
-        >>> system.forecastScaleCap.get_forecast_cap("EDOLLAR", "ewmac8")
+        >>> system.forecastScaleCap.get_forecast_cap()
         21.0
         >>>
         >>> ## default
         >>> del(config.forecast_cap)
         >>> system3=System([rawdata, rules, ForecastScaleCapFixed()], data, config)
-        >>> system3.forecastScaleCap.get_forecast_cap("EDOLLAR", "ewmac8")
+        >>> system3.forecastScaleCap.get_forecast_cap()
         20.0
 
         """
 
-        def _get_forecast_cap(system, instrument_code,
-                              rule_variation_name, this_stage):
+        def _get_forecast_cap(system, not_used):
             # Try the config file
             try:
                 cap = system.config.forecast_cap
@@ -169,8 +160,8 @@ class ForecastScaleCapFixed(SystemStage):
 
             return cap
 
-        forecast_cap = self.parent.calc_or_cache_nested(
-            "get_forecast_cap", instrument_code, rule_variation_name, _get_forecast_cap, self)
+        forecast_cap = self.parent.calc_or_cache(
+            "get_forecast_cap", ALL_KEYNAME, _get_forecast_cap)
 
         return forecast_cap
 
@@ -246,9 +237,8 @@ class ForecastScaleCapFixed(SystemStage):
 
             scaled_forecast = this_stage.get_scaled_forecast(
                 instrument_code, rule_variation_name)
-            cap = this_stage.get_forecast_cap(
-                instrument_code, rule_variation_name)
-
+            cap = this_stage.get_forecast_cap()
+            
             capped_forecast = apply_cap(scaled_forecast, cap)
             capped_forecast.columns = scaled_forecast.columns
 

@@ -167,6 +167,16 @@ class PortfoliosFixed(SystemStage):
             "get_instrument_weights", ALL_KEYNAME, _get_clean_instrument_weights, self)
         return instrument_weights
 
+    def get_instrument_list(self):
+        """
+        Get the instrument list
+        
+        Used for diagnostic purposes
+        :returns: list of instrument_code str 
+        """
+        
+        return list(self.get_instrument_weights().columns)
+
     def get_instrument_diversification_multiplier(self):
         """
         Get the instrument diversification multiplier

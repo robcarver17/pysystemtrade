@@ -98,4 +98,43 @@ instrument_weights:
     MXP: 0.233
     CORN: 0.233
 instrument_div_multiplier: 1.89
+rule_groups:
+    ewmac_fast:
+       - ewmac2_8
+       - ewmac4_16
+    ewmac_medium:
+       - ewmac8_32
+       - ewmac16_64
+    ewmac_slow:
+       - ewmac32_128
+       - ewmac64_256
+    carry:
+       - carry
+style_groups:
+    trend:
+        - ewmac_fast
+        - ewmac_medium
+        - ewmac_slow
+    carry:
+        - carry
+countries:
+    US:
+      - EDOLLAR
+      - US10
+    Europe:
+      - EUROSTX
+      - V2X
+    Other:
+    - MXP
+    - CORN
+asset_classes:
+    Rates:
+      - EDOLLAR
+      - US10
+    Risky:
+      - EUROSTX
+      - V2X
+      - MXP
+    Other:
+      - CORN
 
