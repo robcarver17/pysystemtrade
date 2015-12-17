@@ -15,13 +15,11 @@ def simplesystem(data=None, config=None):
     Example of how to 'wrap' a complete system
     """
     if config is None:
-        config=Config("systems.provided.example.simplesystemconfig.yaml")
+        config = Config("systems.provided.example.simplesystemconfig.yaml")
     if data is None:
-        data=csvFuturesData()
+        data = csvFuturesData()
 
-    my_system=System([Account(), PortfoliosFixed(), PositionSizing(),  ForecastCombineFixed(), ForecastScaleCapFixed(), Rules()
-                      ], data, config)
+    my_system = System([Account(), PortfoliosFixed(), PositionSizing(), ForecastCombineFixed(), ForecastScaleCapFixed(), Rules()
+                        ], data, config)
 
     return my_system
-
-
