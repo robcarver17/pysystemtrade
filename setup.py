@@ -15,7 +15,7 @@ setup(
                  " (www.systematictrading.org)"),
     license="GNU GPL v3",
     keywords="systematic trading interactive brokers",
-    url="qoppac.blogspot.com/pysystemtrade.html",
+    url="http://qoppac.blogspot.co.uk/p/pysystemtrade.html",
     packages=['examples', 'syscore', 'sysdata', 'systems', 'syssims'],
     long_description=read('README.md'),
     install_requires=["pandas >= 0.17.0", "numpy >= 1.10.1", "python >= 3.4.3", "matlotplib > 1.4.3",

@@ -22,12 +22,9 @@ Let's get the chapter 15 system
 """
 
 from systems.provided.futures_chapter15.basesystem import futures_system
+from matplotlib.pyplot import show
 
 system = futures_system()
-
-print(system.portfolio.get_notional_position("EUROSTX").tail(5))
-
-system.accounts.portfolio().stats()
-system.accounts.pandl_for_instrument("US10").curve().plot()
-from matplotlib.pyplot import show
+print(system.accounts.portfolio().sharpe())
+system.accounts.portfolio().curve().plot()
 show()
