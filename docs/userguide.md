@@ -300,7 +300,7 @@ system=futures_system(config=config)
 ## How do I....Use different data or instruments
 </a>
 
-Currently the only data that is supported is .csv files for futures stitched prices (eg US10_price.csv), fx (eg AUDUSDfx.csv), and futures specific (eg AEX_carrydata.csv), data. A set of data is provided in [pysystem/sys/data/legacycsv](/sysdata/legacycsv) which is currently several months old. It's my intention to update this and try to keep it reasonably current with each release.
+Currently the only data that is supported is .csv files for futures stitched prices (eg US10_price.csv), fx (eg AUDUSDfx.csv), and futures specific (eg AEX_carrydata.csv), data. A set of data is provided in [pysystem/sys/data/legacycsv](/sysdata/legacycsv). It's my intention to update this and try to keep it reasonably current with each release.
 
 You can update that data, if you wish. Be careful to save it as a .csv with the right formatting, or pandas will complain. Check that a file is correctly formatted like so:
 
@@ -329,7 +329,7 @@ If you want to get data from a different place (eg a database, yahoo finance, br
 If you want to use a different set of data values (eg equity EP ratios, interest rates...) you'll need to [create your own Data object](#create_data).
 
 
-## Save my work
+## How do I... Save my work
 
 To remain organised it's good practice to save any work into a directory like `pysystemtrade/private/this_system_name/` (you'll need to create a couple of directories first). If you plan to contribute to github, just be careful to avoid adding 'private' to your commit ( [you may want to read this](https://24ways.org/2013/keeping-parts-of-your-codebase-private-on-github/) ). 
 
