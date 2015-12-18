@@ -14,7 +14,7 @@ Rob Carver
 
 **pysystem** trade is the open source version of my own backtesting engine that implements systems according to the framework outlined in my book ["Systematic Trading"](http://www.systematictrading.org), which is further developed on [my blog](http://qoppac.blogspot.com).
 
-For a longer explanation of the motivation and point of this projec see my [blog post.](http://qoppac.blogspot.co.uk/2015/12/pysystemtrade.html)
+For a longer explanation of the motivation and point of this project see my [blog post.](http://qoppac.blogspot.co.uk/2015/12/pysystemtrade.html)
 
 *Eventually* pysystemtrade will include the following:
 

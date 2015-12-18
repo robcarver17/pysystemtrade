@@ -18,7 +18,6 @@ system cleaning
 
 * Simulation:
 
-  * which instruments in a portfolio?
   * add account object to portfolio stage for ease of use
   * estimated trades; with buffering of trades
   * vol targeting with capital adjustment
@@ -28,7 +27,8 @@ system cleaning
   * quandl data
   * Create live config from a system object (Put final value of estimates into a yaml file) 
   * database data
-  * stitch futures contracts
+  * stitch futures contracts 
+  * add new data from unstitched contracts (with explanatory post, include explanation for Nth contract stitching)
   * check systems have correct attributes; check turnover, minimum size etc
 
 * Live trading:
@@ -42,6 +42,8 @@ system cleaning
   * get pricing data system 
   * Reporting: 
     * risk report
+      * risk by asset class
     * interrogate signal object generated at run time
     * p&l report
     * trades report
+    

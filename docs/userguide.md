@@ -1,5 +1,5 @@
 
-This guide is divided into three parts. The first 'How do I?' explains how to do many common tasks. The second part 'Guide' details the relevant parts of the code, and explains how to modify or create new parts. The final part 'Reference' includes lists of methods and parameters.
+This guide is divided into three parts. The first ['How do I?'](#how_do_i) explains how to do many common tasks. The second part ['Guide'](#guide) details the relevant parts of the code, and explains how to modify or create new parts. The final part ['Reference'](#reference) includes lists of methods and parameters.
 
 <a name="how_do_i">
 # How do I?
@@ -349,10 +349,19 @@ with open(filename, 'wb') as outfile:
 You can also save a config object into a yaml file - see [saving configuration](#save_config).
 
 
-
+<a name="guide">
 # Guide
+</a>
 
-The guide section explains in more detail how each part of the system works. Each section is split into parts that get progressively trickier; varying from using the standard objects that are supplied up to writing your own.
+
+The guide section explains in more detail how each part of the system works: 
+
+1. [Data](#data) objects
+2. [Config](#config) objects and yaml files
+3. [System](#system) objects, 
+4. [Stages](#stage_general) within a system. 
+
+Each section is split into parts that get progressively trickier; varying from using the standard objects that are supplied up to writing your own.
 
 <a name="data">
 ## Data 
@@ -2308,8 +2317,9 @@ The `stats` method lists three kinds of output:
 
 I plan to include costs in the accounting stage, to generate lists of simulated trades and to provide the data needed to optimise forecast and instrument weights. I also plan to extend the `accountCurve` object to handle multiple columns, and to give statistics over different periods.
 
-# Summary information
-
+<a name="reference">
+# Reference
+</a>
 
 
 <a name="table_system_stage_methods">
