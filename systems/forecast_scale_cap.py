@@ -15,7 +15,7 @@ class ForecastScaleCapFixed(SystemStage):
                 found in self.get_raw_forecast(instrument_code, rule_variation_name)
 
     KEY OUTPUT: system.forecastScaleCap.get_capped_forecast(instrument_code, rule_variation_name)
-    
+
                 system.forecastScaleCap.get_forecast_cap()
 
     Name: forecastScaleCap
@@ -240,7 +240,7 @@ class ForecastScaleCapFixed(SystemStage):
             scaled_forecast = this_stage.get_scaled_forecast(
                 instrument_code, rule_variation_name)
             cap = this_stage.get_forecast_cap()
-            
+
             capped_forecast = apply_cap(scaled_forecast, cap)
             capped_forecast.columns = scaled_forecast.columns
 

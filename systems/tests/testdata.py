@@ -79,17 +79,18 @@ def get_test_object_futures_with_pos_sizing():
     posobject = PositionSizing()
     return (posobject, combobject, capobject, rules, rawdata, data, config)
 
+
 def get_test_object_futures_with_portfolios():
     """
     Returns some standard test data
     """
-    data=csvFuturesData("sysdata.tests")
-    rawdata=FuturesRawData()
-    rules=Rules()
-    config=Config("systems.provided.example.exampleconfig.yaml")
-    capobject=ForecastScaleCapFixed()
-    combobject=ForecastCombineFixed()
-    posobject=PositionSizing()
-    portfolio=PortfoliosFixed()
-    return (portfolio, posobject, combobject, capobject, rules, rawdata, data, config) 
-
+    data = csvFuturesData("sysdata.tests")
+    rawdata = FuturesRawData()
+    rules = Rules()
+    config = Config("systems.provided.example.exampleconfig.yaml")
+    capobject = ForecastScaleCapFixed()
+    combobject = ForecastCombineFixed()
+    posobject = PositionSizing()
+    portfolio = PortfoliosFixed()
+    return (portfolio, posobject, combobject,
+            capobject, rules, rawdata, data, config)

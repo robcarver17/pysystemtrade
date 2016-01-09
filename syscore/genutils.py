@@ -4,11 +4,13 @@ Utilities I can't put anywhere else...
 
 from math import copysign
 
+
 def TorF(x):
     if x:
         return "T"
     else:
         return "F"
+
 
 def str_of_int(x):
     """

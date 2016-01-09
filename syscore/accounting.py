@@ -79,7 +79,7 @@ def pandl(price=None, trades=None, marktomarket=True, positions=None, delayfill=
     :param roundpositions: If calculating trades, should we round positions first?
     :type roundpositions: bool
 
-    :param capital: notional capital. If None not used. Works out % returns. If 0.0 uses default 
+    :param capital: notional capital. If None not used. Works out % returns. If 0.0 uses default
     :type capital: None, 0.0, float or Tx1 timeseries
 
     :returns: if return_all : 4- Tuple (positions, trades, instr_ccy_returns, base_ccy_returns) all Tx1 pd.DataFrames
@@ -130,20 +130,23 @@ def pandl(price=None, trades=None, marktomarket=True, positions=None, delayfill=
     base_ccy_returns.columns = ["pandl_base"]
     cum_trades.columns = ["cum_trades"]
 
-
     if return_all:
-        return (cum_trades, trades, instr_ccy_returns, base_ccy_returns, capital)
+        return (cum_trades, trades, instr_ccy_returns,
+                base_ccy_returns, capital)
     else:
         if capital is not None:
             if isinstance(capital, float):
-                if capital==0.0:
-                    ## use default. Good for forecasts when no meaningful capital
-                    capital=CAPITAL
+                if capital == 0.0:
+                    # use default. Good for forecasts when no meaningful
+                    # capital
+                    capital = CAPITAL
                 base_ccy_returns = base_ccy_returns / capital
             else:
-                ## time series 
-                capital = capital.reindex(base_ccy_returns.index, method="ffill")
-                base_ccy_returns = divide_df_single_column(base_ccy_returns, capital)
+                # time series
+                capital = capital.reindex(
+                    base_ccy_returns.index, method="ffill")
+                base_ccy_returns = divide_df_single_column(
+                    base_ccy_returns, capital)
 
         return accountCurve(base_ccy_returns)
 
@@ -295,7 +298,7 @@ def get_positions_from_forecasts(
 
 class accountCurve(pd.DataFrame):
 
-    def __init__(self, returns=None,  **kwargs):
+    def __init__(self, returns=None, **kwargs):
         """
         Create an account curve; from which many lovely statistics can be gathered
 
@@ -308,7 +311,6 @@ class accountCurve(pd.DataFrame):
 
         if returns is None:
             returns = pandl(**kwargs)
-
 
         super(accountCurve, self).__init__(returns)
 
