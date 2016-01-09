@@ -9,11 +9,14 @@ from syscore.pdutils import divide_df_single_column
 class RawData(SystemStage):
 
     """
-        A SystemStage that does some fairly common calculations before we do forecasting
+        A SystemStage that does some fairly common calculations before we do
+        forecasting
             This is optional; forecasts can go straight to system.data
             The advantages of using RawData are:
-                   - preliminary calculations that are reused can be cached, to save time (eg volatility)
-                   - preliminary calculations are available for inspection when diagnosing what is going on
+                   - preliminary calculations that are reused can be cached, to
+                     save time (eg volatility)
+                   - preliminary calculations are available for inspection when
+                     diagnosing what is going on
 
     KEY INPUT: system.data.get_instrument_price(instrument_code)
                found in self.get_instrument_price
@@ -56,8 +59,9 @@ class RawData(SystemStage):
             instrprice = system.data.get_instrument_price(instrument_code)
             return instrprice
 
-        instrprice = self.parent.calc_or_cache(
-            "instrument_price", instrument_code, _get_instrument_price)
+        instrprice = self.parent.calc_or_cache("instrument_price",
+                                               instrument_code,
+                                               _get_instrument_price)
 
         return instrprice
 

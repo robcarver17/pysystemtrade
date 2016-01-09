@@ -4,6 +4,7 @@ Created on 27 Nov 2015
 @author: rob
 '''
 import unittest as ut
+
 import numpy as np
 
 from syscore.pdutils import pd_readcsv_frompackage
@@ -14,9 +15,11 @@ class Test(ut.TestCase):
 
     def test_robust_vol_calc(self):
         prices = pd_readcsv_frompackage(
-            "syscore", "pricetestdata.csv", ["tests"])
+            "syscore.tests.pricetestdata.csv")
+        
         returns = prices.diff()
         vol = robust_vol_calc(returns, days=35)
+
         self.assertAlmostEqual(vol.iloc[-1, 0], 0.41905275480464305)
 
         vol = robust_vol_calc(returns, days=100)
@@ -24,7 +27,7 @@ class Test(ut.TestCase):
 
     def test_robust_vol_calc_min_period(self):
         prices = pd_readcsv_frompackage(
-            "syscore", "pricetestdata_min_period.csv", ["tests"])
+            "syscore.tests.pricetestdata_min_period.csv")
         returns = prices.diff()
         vol = robust_vol_calc(returns, min_periods=9)
         self.assertAlmostEqual(vol.iloc[-1, 0], 0.45829858614978286)
@@ -33,14 +36,14 @@ class Test(ut.TestCase):
 
     def test_robust_vol_calc_min_value(self):
         prices = pd_readcsv_frompackage(
-            "syscore", "pricetestdata_zero_vol.csv", ["tests"])
+            "syscore.tests.pricetestdata_zero_vol.csv")
         returns = prices.diff()
         vol = robust_vol_calc(returns, vol_abs_min=0.01)
         self.assertEqual(vol.iloc[-1, 0], 0.01)
 
     def test_robust_vol_calc_floor(self):
         prices = pd_readcsv_frompackage(
-            "syscore", "pricetestdata_vol_floor.csv", ["tests"])
+            "syscore.tests.pricetestdata_vol_floor.csv")
         returns = prices.diff()
         vol = robust_vol_calc(returns)
         self.assertAlmostEqual(vol.iloc[-1, 0], 0.54492982003602064)

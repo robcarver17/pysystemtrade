@@ -22,28 +22,37 @@ ANN_RISK_TARGET = 0.16
 DAILY_CAPITAL = CAPITAL * ANN_RISK_TARGET / ROOT_BDAYS_INYEAR
 
 
-def pandl(price=None, trades=None, marktomarket=True, positions=None, delayfill=True, roundpositions=False,
-          get_daily_returns_volatility=None, forecast=None, fx=None, value_of_price_point=1.0,
-          return_all=False, capital=None):
+def pandl(price=None, trades=None, marktomarket=True, positions=None,
+          delayfill=True, roundpositions=False,
+          get_daily_returns_volatility=None, forecast=None, fx=None,
+          value_of_price_point=1.0, return_all=False, capital=None):
     """
     Calculate pandl for an individual position
 
-    If marktomarket=True, and trades is provided, calculate pandl both at open/close and mark to market in between
+    If marktomarket=True, and trades is provided, calculate pandl both at
+    open/close and mark to market in between
 
-    If trades is not provided, work out using positions.
-           If delayfill is True, assume we get filled at the next price after the trade
+    If trades is not provided, work out using positions. If delayfill is True,
+           assume we get filled at the next price after the trade
 
-           If roundpositions is True when working out trades from positions, then round; otherwise assume we trade fractional lots
+           If roundpositions is True when working out trades from positions,
+           then round; otherwise assume we trade fractional lots
 
-        If positions are not provided, work out position using forecast and volatility (this will be for an arbitrary daily risk target)
+        If positions are not provided, work out position using forecast and
+        volatility (this will be for an arbitrary daily risk target)
 
-             If volatility is not provided, work out from price
+        If volatility is not provided, work out from price
 
-    If fx is not provided, assume fx rate is 1.0 and work out p&l in currency of instrument
+    If fx is not provided, assume fx rate is 1.0 and work out p&l in currency
+        of instrument
 
-    If value_of_price_point is not provided, assume is 1.0 (block size is value of 1 price point, eg 100 if you're buying 100 shares for one instrument block)
+    If value_of_price_point is not provided, assume is 1.0 (block size is value
+    of 1 price point, eg 100 if you're buying 100 shares for one instrument
+    block)
 
-    If capital is provided (eithier as a float, or dataframe) then % returns will be calculated
+    If capital is provided (eithier as a float, or dataframe) then % returns
+    will be calculated.
+
     If capital is zero will use default values
 
     :param price: price series
@@ -61,16 +70,19 @@ def pandl(price=None, trades=None, marktomarket=True, positions=None, delayfill=
     :param delayfill: If calculating trades, should we round positions first?
     :type delayfill: bool
 
-    :param roundpositions: If calculating trades, should we round positions first?
+    :param roundpositions: If calculating trades, should we round positions
+        first?
     :type roundpositions: bool
 
-    :param get_daily_returns_volatility: series of volatility estimates, used for calculation positions
+    :param get_daily_returns_volatility: series of volatility estimates, used
+        for calculation positions
     :type get_daily_returns_volatility: Tx1 pd.DataFrame  or None
 
     :param forecast: series of forecasts, needed to work out positions
     :type forecast: Tx1 pd.DataFrame  or None
 
-    :param fx: series of fx rates from instrument currency to base currency, to work out p&l in base currency
+    :param fx: series of fx rates from instrument currency to base currency, to
+        work out p&l in base currency
     :type fx: Tx1 pd.DataFrame  or None
 
     :param value_of_price_point: value of one unit movement in price
@@ -79,11 +91,13 @@ def pandl(price=None, trades=None, marktomarket=True, positions=None, delayfill=
     :param roundpositions: If calculating trades, should we round positions first?
     :type roundpositions: bool
 
-    :param capital: notional capital. If None not used. Works out % returns. If 0.0 uses default
+    :param capital: notional capital. If None not used. Works out % returns. If
+        0.0 uses default
     :type capital: None, 0.0, float or Tx1 timeseries
 
-    :returns: if return_all : 4- Tuple (positions, trades, instr_ccy_returns, base_ccy_returns) all Tx1 pd.DataFrames
-                            is "":   Tx1 accountCurve
+    :returns: if return_all : 4- Tuple (positions, trades, instr_ccy_returns,
+                            base_ccy_returns) all Tx1 pd.DataFrames is "": Tx1
+                            accountCurve
 
     """
     if price is None:
@@ -95,8 +109,14 @@ def pandl(price=None, trades=None, marktomarket=True, positions=None, delayfill=
                        index=price.index).to_frame("fx")
 
     if trades is None:
-        trades = get_trades_from_positions(
-            price, positions, delayfill, roundpositions, get_daily_returns_volatility, forecast, fx, value_of_price_point)
+        trades = get_trades_from_positions(price,
+                                           positions,
+                                           delayfill,
+                                           roundpositions,
+                                           get_daily_returns_volatility,
+                                           forecast,
+                                           fx,
+                                           value_of_price_point)
 
     if marktomarket:
         # want to have both kinds of price
@@ -151,51 +171,61 @@ def pandl(price=None, trades=None, marktomarket=True, positions=None, delayfill=
         return accountCurve(base_ccy_returns)
 
 
-def get_trades_from_positions(price, positions, delayfill, roundpositions,
-                              get_daily_returns_volatility, forecast, fx, value_of_price_point):
+def get_trades_from_positions(price,
+                              positions,
+                              delayfill,
+                              roundpositions,
+                              get_daily_returns_volatility,
+                              forecast,
+                              fx,
+                              value_of_price_point):
     """
     Work out trades implied by a series of positions
-       If delayfill is True, assume we get filled at the next price after the trade
+       If delayfill is True, assume we get filled at the next price after the
+       trade
 
-       If roundpositions is True when working out trades from positions, then round; otherwise assume we trade fractional lots
+       If roundpositions is True when working out trades from positions, then
+       round; otherwise assume we trade fractional lots
 
-    If positions are not provided, work out position using forecast and volatility (this will be for an arbitrary daily risk target)
+    If positions are not provided, work out position using forecast and
+    volatility (this will be for an arbitrary daily risk target)
 
     If volatility is not provided, work out from price
 
 
-    :param price: price series
-    :type price: Tx1 pd.DataFrame
+    Args:
+        price (Tx1 pd.DataFrame): price series
 
-    :param positions: series of positions
-    :type positions: Tx1 pd.DataFrame  or None
+        positions (Tx1 pd.DataFrame or None): (series of positions)
 
-    :param delayfill: If calculating trades, should we round positions first?
-    :type delayfill: bool
+        delayfill (bool): If calculating trades, should we round positions
+            first?
 
-    :param roundpositions: If calculating trades, should we round positions first?
-    :type roundpositions: bool
+        roundpositions (bool): If calculating trades, should we round positions
+            first?
 
-    :param get_daily_returns_volatility: series of volatility estimates, used for calculation positions
-    :type get_daily_returns_volatility: Tx1 pd.DataFrame  or None
+        get_daily_returns_volatility (Tx1 pd.DataFrame or None): series of
+            volatility estimates, used for calculation positions
 
-    :param forecast: series of forecasts, needed to work out positions
-    :type forecast: Tx1 pd.DataFrame  or None
+        forecast (Tx1 pd.DataFrame or None): series of forecasts, needed to
+            work out positions
 
-    :param fx: series of fx rates from instrument currency to base currency, to work out p&l in base currency
-    :type fx: Tx1 pd.DataFrame  or None
+        fx (Tx1 pd.DataFrame or None): series of fx rates from instrument
+            currency to base currency, to work out p&l in base currency
 
-    :param block_size: value of one movement in price
-    :type block_size: float
+        block_size (float): value of one movement in price
 
-
-    :returns: Tx1 pd dataframe of trades
+    Returns:
+        Tx1 pd dataframe of trades
 
     """
 
     if positions is None:
-        positions = get_positions_from_forecasts(
-            price, get_daily_returns_volatility, forecast, fx, value_of_price_point)
+        positions = get_positions_from_forecasts(price,
+                                                 get_daily_returns_volatility,
+                                                 forecast,
+                                                 fx,
+                                                 value_of_price_point)
 
     if roundpositions:
         # round to whole positions
@@ -222,7 +252,6 @@ def get_trades_from_positions(price, positions, delayfill, roundpositions,
     ans.columns = ['trades', 'fill_price']
 
     # fill will happen at next valid price if it happens to be missing
-
     ans.fill_price = ans.fill_price.fillna(method="bfill")
 
     # remove zeros (turns into nans)
@@ -232,23 +261,27 @@ def get_trades_from_positions(price, positions, delayfill, roundpositions,
     return ans
 
 
-def get_positions_from_forecasts(
-        price, get_daily_returns_volatility, forecast, fx, value_of_price_point, **kwargs):
+def get_positions_from_forecasts(price, get_daily_returns_volatility, forecast,
+                                 fx, value_of_price_point, **kwargs):
     """
-    Work out position using forecast, volatility, fx, value_of_price_point (this will be for an arbitrary daily risk target)
+    Work out position using forecast, volatility, fx, value_of_price_point
+    (this will be for an arbitrary daily risk target)
 
-    If volatility is not provided, work out from price (uses a standard method so may differ from precise system p&l)
+    If volatility is not provided, work out from price (uses a standard method
+    so may differ from precise system p&l)
 
     :param price: price series
     :type price: Tx1 pd.DataFrame
 
-    :param get_daily_returns_volatility: series of volatility estimates. NOT % volatility, price difference vol
+    :param get_daily_returns_volatility: series of volatility estimates. NOT %
+    volatility, price difference vol
     :type get_daily_returns_volatility: Tx1 pd.DataFrame  or None
 
     :param forecast: series of forecasts, needed to work out positions
     :type forecast: Tx1 pd.DataFrame
 
-    :param fx: series of fx rates from instrument currency to base currency, to work out p&l in base currency
+    :param fx: series of fx rates from instrument currency to base currency, to
+    work out p&l in base currency
     :type fx: Tx1 pd.DataFrame
 
     :param value_of_price_point: value of one unit movement in price
@@ -261,38 +294,40 @@ def get_positions_from_forecasts(
     """
     if forecast is None:
         raise Exception(
-            "If you don't provide a series of trades or positions, I need a forecast")
+            "If you don't provide a series of trades or positions, I need a "
+            "forecast")
 
     if get_daily_returns_volatility is None:
         get_daily_returns_volatility = robust_vol_calc(price.diff(), **kwargs)
 
     """
-    Herein the proof why this position calculation is correct (see chapters 5-11 of 'systematic trading' book)
+    Herein the proof why this position calculation is correct (see chapters
+    5-11 of 'systematic trading' book)
 
     Position = forecast x instrument weight x instrument_div_mult x vol_scalar / 10.0
-             = forecast x instrument weight x instrument_div_mult x daily cash vol target / (10.0 x                             instr value volatility)
-             = forecast x instrument weight x instrument_div_mult x daily cash vol target / (10.0 x                               instr ccy volatility                                                    x fx rate)
-             = forecast x instrument weight x instrument_div_mult x daily cash vol target / (10.0 x            block value                              x % price volatility                              x fx rate)
-             = forecast x instrument weight x instrument_div_mult x daily cash vol target / (10.0 x underlying price x 0.01 x value of price move x 100 x price diff volatility/(underlying price)        x fx rate)
-             = forecast x instrument weight x instrument_div_mult x daily cash vol target / (10.0 x                         x value of price move       x price change volatility                           x fx rate)
+             = forecast x instrument weight x instrument_div_mult x daily cash vol target / (10.0 x instr value volatility)
+             = forecast x instrument weight x instrument_div_mult x daily cash vol target / (10.0 x instr ccy volatility x fx rate)
+             = forecast x instrument weight x instrument_div_mult x daily cash vol target / (10.0 x block value x % price volatility x fx rate)
+             = forecast x instrument weight x instrument_div_mult x daily cash vol target / (10.0 x underlying price x 0.01 x value of price move x 100 x price diff volatility/(underlying price) x fx rate)
+             = forecast x instrument weight x instrument_div_mult x daily cash vol target / (10.0 x value of price move x price change volatility x fx rate)
 
     Making some arbitrary assumptions (one instrument, 100% of capital, daily target DAILY_CAPITAL):
 
-             = forecast x 1.0               x 1.0                 x DAILY_CAPITAL            / (10.0 x                         x value of price move       x price diff volatility                           x fx rate)
+             = forecast x 1.0 x 1.0 x DAILY_CAPITAL / (10.0 x value of price move x price diff volatility x fx rate)
              = forecast x  multiplier / (value of price move x price change volatility x fx rate)
-
     """
-
     multiplier = DAILY_CAPITAL * 1.0 * 1.0 / 10.0
     fx = fx.reindex(get_daily_returns_volatility.index, method="ffill")
-    denominator = value_of_price_point * \
-        multiply_df_single_column(
-            get_daily_returns_volatility, fx, ffill=(False, True))
 
-    position = divide_df_single_column(
-        forecast * multiplier, denominator, ffill=(True, True))
+    denominator = (value_of_price_point *
+                   multiply_df_single_column(get_daily_returns_volatility,
+                                             fx,
+                                             ffill=(False, True)))
+
+    position = divide_df_single_column(forecast * multiplier,
+                                       denominator,
+                                       ffill=(True, True))
     position.columns = ['position']
-
     return position
 
 
