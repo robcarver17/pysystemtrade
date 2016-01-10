@@ -35,7 +35,7 @@ class System(object):
 
         :returns: new system object
 
-        >>> from stage import SystemStage
+        >>> from systems.stage import SystemStage
         >>> stage=SystemStage()
         >>> from sysdata.csvdata import csvFuturesData
         >>> data=csvFuturesData()

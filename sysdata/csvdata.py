@@ -41,7 +41,7 @@ class csvFuturesData(FuturesData):
 
         :returns: new csvFuturesData object
 
-        >>> data=csvFuturesData()
+        >>> data = csvFuturesData()
         >>> data
         FuturesData object with 38 instruments
 
@@ -117,14 +117,15 @@ class csvFuturesData(FuturesData):
 
     def _get_instrument_data(self):
         """
-        Get a data frame of interesting information about instruments, eithier from a file or cached
+        Get a data frame of interesting information about instruments, eithier
+        from a file or cached
 
         :returns: pd.DataFrame
 
         >>> data=csvFuturesData("sysdata.tests")
         >>> data._get_instrument_data()
                    Instrument  Pointsize AssetClass Currency
-        Instrument
+        Instrument                                          
         EDOLLAR       EDOLLAR       2500       STIR      USD
         US10             US10       1000       Bond      USD
         """
