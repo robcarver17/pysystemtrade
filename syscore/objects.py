@@ -19,8 +19,8 @@ def resolve_function(func_or_func_name):
     >>> resolve_function(str)
     <class 'str'>
 
-    >>> resolve_function("syscore.algos.robust_vol_calc")
-    <function robust_vol_calc at 0xb70077c4>
+    >>> resolve_function("syscore.algos.robust_vol_calc").__name__
+    'robust_vol_calc'
 
     """
 

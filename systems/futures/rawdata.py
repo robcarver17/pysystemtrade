@@ -10,8 +10,8 @@ class FuturesRawData(RawData):
     """
     A SubSystem that does futures specific raw data calculations
 
-    KEY INPUT: system.data.get_instrument_raw_carry_data(instrument_code)
-              found in self.get_instrument_raw_carry_data(self, instrument_code)
+    KEY INPUT: system.data.get_instrument_raw_carry_data(instrument_code) found
+               in self.get_instrument_raw_carry_data(self, instrument_code)
 
     KEY OUTPUT: system.rawdata.daily_annualised_roll(instrument_code)
 
@@ -25,7 +25,6 @@ class FuturesRawData(RawData):
         >>> FuturesRawData()
         SystemStage 'rawdata'
         """
-
         super(FuturesRawData, self).__init__()
 
         """
@@ -61,8 +60,9 @@ class FuturesRawData(RawData):
                 instrument_code)
             return instrcarrydata
 
-        raw_carry = self.parent.calc_or_cache(
-            "instrument_raw_carry_data", instrument_code, _calc_raw_carry)
+        raw_carry = self.parent.calc_or_cache("instrument_raw_carry_data",
+                                              instrument_code,
+                                              _calc_raw_carry)
 
         return raw_carry
 

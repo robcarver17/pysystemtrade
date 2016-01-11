@@ -32,11 +32,19 @@ def futures_system(data=None, config=None, trading_rules=None):
     >>> system=futures_system()
     >>> system
     System with stages: accounts, portfolio, positionSize, rawdata, combForecast, forecastScaleCap, rules
-    >>> system.rules.get_raw_forecast("EDOLLAR", "ewmac2_8").tail(2)
+    >>> system.rules.get_raw_forecast("EDOLLAR", "ewmac2_8").dropna().head(2)
+                ewmac2_8
+    1983-10-10  0.695929
+    1983-10-11 -0.604704
+
                 ewmac2_8
     2015-04-21  0.172416
     2015-04-22 -0.477559
-    >>> system.rules.get_raw_forecast("EDOLLAR", "carry").tail(2)
+    >>> system.rules.get_raw_forecast("EDOLLAR", "carry").dropna().head(2)
+                   carry
+    1983-10-10  0.952297
+    1983-10-11  0.854075
+
                    carry
     2015-04-21  0.350892
     2015-04-22  0.350892
