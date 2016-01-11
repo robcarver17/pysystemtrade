@@ -57,16 +57,16 @@ class Test(unittest.TestCase):
 
         print(system.get_item_from_cache("b", ALL_KEYNAME))
 
-        print(system.get_items_with_all())
+        print(system.get_items_across_system())
         print(system.get_items_with_data())
         print(system.get_protected_items())
         print(system.get_items_for_instrument("SP500"))
 
-        system.delete_items_with_all()
+        system.delete_items_across_system()
 
         print(system._cache)
 
-        system.delete_items_with_all(True)
+        system.delete_items_across_system(True)
 
         print(system._cache)
 
@@ -79,6 +79,8 @@ class Test(unittest.TestCase):
         system.delete_item("a")
 
         print(system._cache)
+
+        # TODO assert not print
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']

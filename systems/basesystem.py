@@ -24,14 +24,14 @@ class System(object):
         """
         Create a system object for doing simulations or live trading
 
+        :param stage_list: A list of stages
+        :type stage_list: list of systems.stage.SystemStage (or anything that inherits from it)
+
         :param data: data for doing simulations
         :type data: sysdata.data.Data (or anything that inherits from that)
 
         :param config: Optional configuration
         :type config: sysdata.configdata.Config
-
-        :param stage_list: A list of stages
-        :type stage_list: list of systems.stage.SystemStage (or anything that inherits from it)
 
         :returns: new system object
 
@@ -72,26 +72,31 @@ class System(object):
 
             if sub_name in stage_names:
                 raise Exception(
-                    "You have duplicate subsystems with the name %s. Remove one of them, or change a name." % sub_name)
+                    "You have duplicate subsystems with the name %s. Remove "
+                    "one of them, or change a name." % sub_name)
 
             setattr(self, sub_name, stage)
 
             stage_names.append(sub_name)
 
+            # list of attributes / methods of the stage which are protected
             stage_protected = getattr(stage, "_protected", [])
-            protected = protected + stage_protected
+            protected += stage_protected
 
         setattr(self, "_stage_names", stage_names)
 
         """
         The cache hides all intermediate results
 
-        We call optimal_positions and then that propogates back finding all the data we need
+        We call optimal_positions and then that propogates back finding all the
+        data we need
 
-        The results are then cached in the object. Should we call delete_instrument_data (in base class system) then
-            everything related to a particular instrument is removed from these 'nodes'
-        This is very useful in live trading when we don't want to update eg cross sectional data every
-            sample
+        The results are then cached in the object. Should we call
+            delete_instrument_data (in base class system) then everything
+            related to a particular instrument is removed from these 'nodes'
+
+        This is very useful in live trading when we don't want to update eg
+            cross sectional data every sample
         """
 
         setattr(self, "_cache", dict())
@@ -123,10 +128,8 @@ class System(object):
         return self._protected
 
     def get_instrument_codes_for_item(self, itemname):
-        if itemname in self._cache:
-            return self._cache[itemname].keys()
-        else:
-            return []
+        item = self._cache.get(itemname, {})
+        return item.keys()
 
     def get_items_for_instrument(self, instrument_code):
         """
@@ -136,8 +139,8 @@ class System(object):
         """
 
         items_with_data = self.get_items_with_data()
-        items_code_list = [self.get_instrument_codes_for_item(
-            itemname) for itemname in items_with_data]
+        items_code_list = [self.get_instrument_codes_for_item(itemname) for
+                           itemname in items_with_data]
         items_with_instrument_data = [itemname for (itemname, code_list) in zip(
             items_with_data, items_code_list) if instrument_code in code_list]
 
@@ -158,8 +161,8 @@ class System(object):
 
         return self._cache.pop(itemname)
 
-    def delete_items_for_instrument(
-            self, instrument_code, delete_protected=False):
+    def delete_items_for_instrument(self, instrument_code,
+                                    delete_protected=False):
         """
         Delete everything in the system relating to an instrument_code
 
@@ -170,15 +173,14 @@ class System(object):
         :type delete_protected: bool
 
 
-        [When working with a live system we listen to a message bus
+        When working with a live system we listen to a message bus, if a new
+        price is received then we delete things in the cache
 
-        if a new price is received then we delete things in the cache
+        This means when we ask for self.optimal_positions(instrument_code) it
+          has to recalc all intermediate steps as the cached
 
-        This means when we ask for self.optimal_positions(instrument_code) it has to recalc all
-          intermediate steps as the cached
-
-        However we ignore anything in self._protected
-        This is normally cross sectional data which we only want to calculate periodically
+        However we ignore anything in self._protected This is normally cross
+        sectional data which we only want to calculate periodically
 
         if delete_protected is True then we delete that stuff as well
         (this is roughly equivalent to creating the systems object from scratch)
@@ -187,11 +189,11 @@ class System(object):
         item_list = self.get_items_for_instrument(instrument_code)
         if not delete_protected:
             protected_items = self.get_protected_items()
-            item_list = [
-                itemname for itemname in item_list if itemname not in protected_items]
+            item_list = [itemname for itemname in item_list if itemname not in
+                         protected_items]
 
-        deleted_values = [self._delete_item_from_cache(
-            itemname, instrument_code) for itemname in item_list]
+        deleted_values = [self._delete_item_from_cache(itemname, instrument_code) for
+                          itemname in item_list]
 
         return deleted_values
 
@@ -252,8 +254,8 @@ class System(object):
         # should never get here, failsafe
         return None
 
-    def _delete_item_from_cache(
-            self, itemname, instrument_code=ALL_KEYNAME, keyname=None):
+    def _delete_item_from_cache(self, itemname, instrument_code=ALL_KEYNAME,
+                                keyname=None):
         """
         Delete an item from the cache self._cache
 
@@ -291,8 +293,8 @@ class System(object):
         # should never get here
         return None
 
-    def set_item_in_cache(self, value, itemname,
-                          instrument_code=ALL_KEYNAME, keyname=None):
+    def set_item_in_cache(self, value, itemname, instrument_code=ALL_KEYNAME,
+                          keyname=None):
         """
         Set an item in a cache to a specific value
 
@@ -334,8 +336,8 @@ class System(object):
         """
         Assumes that self._cache has an attribute itemname, and that is a dict
 
-        If self._cache.itemname[instrument_code] exists return it. Else call func with *args and **kwargs
-        if the latter updates the dictionary
+        If self._cache.itemname[instrument_code] exists return it. Else call
+        func with *args and **kwargs if the latter updates the dictionary
 
         :param itemname: attribute of object containing a dict
         :type itemname: str
@@ -343,7 +345,8 @@ class System(object):
         :param instrument_code: keyname to look for in dict
         :type instrument_code: str
 
-        :param func: function to call if missing from cache. will take self and instrument_code as first two args
+        :param func: function to call if missing from cache. will take self and
+            instrument_code as first two args
         :type func: function
 
         :param args, kwargs: also passed to func if called
@@ -355,22 +358,23 @@ class System(object):
         value = self.get_item_from_cache(itemname, instrument_code)
 
         if value is None:
-
             value = func(self, instrument_code, *args, **kwargs)
             self.set_item_in_cache(value, itemname, instrument_code)
 
         return value
 
-    def calc_or_cache_nested(
-            self, itemname, instrument_code, keyname, func, *args, **kwargs):
+    def calc_or_cache_nested(self, itemname, instrument_code, keyname, func,
+                             *args, **kwargs):
         """
         Assumes that self._cache has a key itemname, and that is a nested dict
 
         If itemname[instrument_code][keyname] exists return it.
-        Else call func with arguments: self, instrument_code, keyname, *args and **kwargs
-        if we have to call the func updates the dictionary with it's value
+        Else call func with arguments: self, instrument_code, keyname, *args
+        and **kwargs if we have to call the func updates the dictionary with
+        it's value
 
-        Used for cache within various kinds of objects like config, price, data, system...
+        Used for cache within various kinds of objects like config, price,
+        data, system...
 
         :param itemname: cache item to look for
         :type itemname: str
@@ -381,14 +385,13 @@ class System(object):
         :param keyname: keyname to look for in nested dict
         :type keyname: valid dict key
 
-        :param func: function to call if missing from cache. will take self and instrument_code, keyname as first three args
+        :param func: function to call if missing from cache. will take self and
+            instrument_code, keyname as first three args
         :type func: function
 
         :param args, kwargs: also passed to func if called
 
         :returns: contents of dict or result of calling function
-
-
         """
 
         value = self.get_item_from_cache(itemname, instrument_code, keyname)

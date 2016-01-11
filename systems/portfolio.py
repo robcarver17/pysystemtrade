@@ -171,11 +171,11 @@ class PortfoliosFixed(SystemStage):
     def get_instrument_list(self):
         """
         Get the instrument list
-        
+
         Used for diagnostic purposes
-        :returns: list of instrument_code str 
+        :returns: list of instrument_code str
         """
-        
+
         return list(self.get_instrument_weights().columns)
 
     def get_instrument_diversification_multiplier(self):

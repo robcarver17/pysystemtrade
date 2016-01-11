@@ -81,7 +81,7 @@ class PositionSizing(SystemStage):
         :returns: Tx1 pd.DataFrame
 
         KEY INPUT
-        
+
         Note as an exception to the normal rule we cache this, as it sometimes comes from data
 
         >>> from systems.tests.testdata import get_test_object_futures_with_comb_forecasts
@@ -102,7 +102,6 @@ class PositionSizing(SystemStage):
         2015-12-11  0.059724
         """
 
-
         def _get_price_volatility(system, instrument_code):
             if hasattr(system, "rawdata"):
                 daily_perc_vol = system.rawdata.get_daily_percentage_volatility(
@@ -111,15 +110,15 @@ class PositionSizing(SystemStage):
                 price = system.data.get_instrument_price(instrument_code)
                 price = price.resample("1B", how="last")
                 return_vol = robust_vol_calc(price.diff())
-                daily_perc_vol = 100.0 * divide_df_single_column(return_vol, price)
-    
+                daily_perc_vol = 100.0 * \
+                    divide_df_single_column(return_vol, price)
+
             return daily_perc_vol
 
         price_volatility = self.parent.calc_or_cache(
             'get_price_volatility', instrument_code, _get_price_volatility)
 
         return price_volatility
-
 
     def get_instrument_sizing_data(self, instrument_code):
         """
@@ -214,7 +213,8 @@ class PositionSizing(SystemStage):
                     'percentage_vol_target']
 
             try:
-                notional_trading_capital = float(system.config.notional_trading_capital)
+                notional_trading_capital = float(
+                    system.config.notional_trading_capital)
             except:
                 notional_trading_capital = float(system_defaults[
                     'notional_trading_capital'])
@@ -304,7 +304,7 @@ class PositionSizing(SystemStage):
             (underlying_price, value_of_price_move) = this_stage.get_instrument_sizing_data(
                 instrument_code)
             block_value = 0.01 * underlying_price * value_of_price_move
-            block_value.columns=["bvalue"]
+            block_value.columns = ["bvalue"]
 
             return block_value
 

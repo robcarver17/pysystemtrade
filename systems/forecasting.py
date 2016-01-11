@@ -133,8 +133,11 @@ class Rules(SystemStage):
 
             return result
 
-        forecast = self.parent.calc_or_cache_nested(
-            "get_raw_forecast", instrument_code, rule_variation_name, _get_forecast, self)
+        forecast = self.parent.calc_or_cache_nested("get_raw_forecast",
+                                                    instrument_code,
+                                                    rule_variation_name,
+                                                    _get_forecast,
+                                                    self)
         return forecast
 
 
@@ -150,23 +153,26 @@ class TradingRule(object):
         """
         Create a trading rule from a function
 
-        Functions must be of the form function(*dataargs, **kwargs), where *dataargs are unnamed data items, and **kwargs are named configuration items
-
-                                  data, an ordered list of strings identifying data to be used (default, just price)
-                                 other_args: a dictionary of named arguments to be passed to the trading rule
+        Functions must be of the form function(*dataargs, **kwargs), where
+        *dataargs are unnamed data items, and **kwargs are named configuration
+        items data, an ordered list of strings identifying data to be used
+        (default, just price) other_args: a dictionary of named arguments to be
+        passed to the trading rule
 
         :param rule: Trading rule to be created
         :type trading_rules:
-                              The following describe a rule completely (ignore data and other_args arguments)
-                                  3-tuple ; containing (function, data, other_args)
-                                  dict (containing key "function", and optionally keys "other_args" and "data")
-                                  TradingRule (object is created out of this rule)
+            The following describe a rule completely (ignore data and other_args arguments)
+                3-tuple ; containing (function, data, other_args)
+                dict (containing key "function", and optionally keys "other_args" and "data")
+                TradingRule (object is created out of this rule)
 
 
-                              The following will be combined with the data and other_args arguments to produce a complete TradingRule:
+            The following will be combined with the data and other_args arguments
+            to produce a complete TradingRule:
 
-                                  Other callable function
-                                  str (with path to function eg "systems.provide.example.rules.ewmac_forecast_with_defaults")
+                Other callable function
+                str (with path to function eg
+                "systems.provide.example.rules.ewmac_forecast_with_defaults")
 
         :param data: (list of) str pointing to location of inputs in a system method call (eg "data.get_instrument_price")
                      (Eithier passed in separately, or as part of a TradingRule, 3-tuple, or dict object)

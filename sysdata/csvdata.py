@@ -81,7 +81,7 @@ class csvFuturesData(FuturesData):
         filename = os.path.join(self._datapath, instrument_code + "_price.csv")
         instrpricedata = pd_readcsv(filename)
         instrpricedata.columns = ["price"]
-        instrpricedata=instrpricedata.groupby(level=0).last()
+        instrpricedata = instrpricedata.groupby(level=0).last()
         return instrpricedata
 
     def get_instrument_raw_carry_data(self, instrument_code):

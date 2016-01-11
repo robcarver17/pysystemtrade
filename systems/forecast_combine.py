@@ -11,7 +11,7 @@ class ForecastCombineFixed(SystemStage):
 
     KEY INPUT: system.forecastScaleCap.get_capped_forecast(instrument_code, rule_variation_name)
                 found in self.get_capped_forecast(instrument_code, rule_variation_name)
-                
+
                 system.forecastScaleCap.get_forecast_cap()
                 found in self.get_forecast_cap()
 
@@ -36,12 +36,12 @@ class ForecastCombineFixed(SystemStage):
     def get_forecast_cap(self):
         """
         Get the forecast cap from the previous module
-        
+
         :returns: float
-        
+
         KEY INPUT
         """
-        
+
         return self.parent.forecastScaleCap.get_forecast_cap()
 
     def get_capped_forecast(self, instrument_code, rule_variation_name):
@@ -70,7 +70,6 @@ class ForecastCombineFixed(SystemStage):
 
         return self.parent.forecastScaleCap.get_capped_forecast(
             instrument_code, rule_variation_name)
-
 
     def get_forecast_diversification_multiplier(self, instrument_code):
         """
@@ -153,20 +152,20 @@ class ForecastCombineFixed(SystemStage):
     def get_raw_forecast_weights(self, instrument_code):
         """
         Get the forecast weights for this instrument
-        
+
         From: (a) passed into subsystem when created
               (b) ... if not found then: in system.config.instrument_weights
-        
-        :param instrument_code: 
-        :type str: 
 
-        :returns: TxK pd.DataFrame containing weights, columns are trading rule variation names, T covers all 
+        :param instrument_code:
+        :type str:
+
+        :returns: TxK pd.DataFrame containing weights, columns are trading rule variation names, T covers all
 
         >>> from systems.tests.testdata import get_test_object_futures_with_rules_and_capping
         >>> from systems.basesystem import System
         >>> (fcs, rules, rawdata, data, config)=get_test_object_futures_with_rules_and_capping()
         >>> system=System([rawdata, rules, fcs, ForecastCombineFixed()], data, config)
-        >>> 
+        >>>
         >>> ## from config
         >>> system.combForecast.get_raw_forecast_weights("EDOLLAR").tail(2)
                     ewmac16  ewmac8
@@ -187,72 +186,78 @@ class ForecastCombineFixed(SystemStage):
                     ewmac16  ewmac8
         2015-12-10      0.5     0.5
         2015-12-11      0.5     0.5
-        """                    
-        def _get_raw_forecast_weights(system,  instrument_code,  this_stage ):
+        """
+        def _get_raw_forecast_weights(system, instrument_code, this_stage):
 
-            ## Let's try the config
+            # Let's try the config
             if "forecast_weights" in dir(system.config):
-                
+
                 if instrument_code in system.config.forecast_weights:
-                    ## nested dict
-                    fixed_weights=system.config.forecast_weights[instrument_code] 
+                    # nested dict
+                    fixed_weights = system.config.forecast_weights[
+                        instrument_code]
                 else:
-                    ## assume it's a non nested dict
-                    fixed_weights=system.config.forecast_weights
+                    # assume it's a non nested dict
+                    fixed_weights = system.config.forecast_weights
             else:
-                rules=list(self.parent.rules.trading_rules().keys())
-                weight=1.0/len(rules)
+                rules = list(self.parent.rules.trading_rules().keys())
+                weight = 1.0 / len(rules)
 
-                print("WARNING: No forecast weights  - using equal weights of %.4f over all %d trading rules in system" % (weight, len(rules)))
-                fixed_weights=dict([(rule_name, weight) for rule_name in rules])
-                
-            
-            ## Now we have a dict, fixed_weights.
-            ## Need to turn into a timeseries covering the range of forecast dates
-            rule_variation_list=list(fixed_weights.keys())
-            rule_variation_list.sort()
-            
-            forecasts_ts=[
-                            this_stage.get_capped_forecast(instrument_code, rule_variation_name).index 
-                         for rule_variation_name in rule_variation_list]
-            
-            earliest_date=min([min(fts) for fts in forecasts_ts])
-            latest_date=max([max(fts) for fts in forecasts_ts])
+                print(
+                    "WARNING: No forecast weights  - using equal weights of %.4f over all %d trading rules in system" %
+                    (weight, len(rules)))
+                fixed_weights = dict([(rule_name, weight)
+                                      for rule_name in rules])
 
-            ## this will be daily, but will be resampled later
-            weight_ts=pd.date_range(start=earliest_date, end=latest_date)
-            
-            forecasts_weights=dict([
-                            (rule_variation_name, pd.Series([fixed_weights[rule_variation_name]]*len(weight_ts), index=weight_ts)) 
-                         for rule_variation_name in rule_variation_list])
-            
-            forecasts_weights=pd.concat(forecasts_weights, axis=1)
-            forecasts_weights.columns=rule_variation_list
+            # Now we have a dict, fixed_weights.
+            # Need to turn into a timeseries covering the range of forecast
+            # dates
+            rule_variation_list = sorted(fixed_weights.keys())
+
+            forecasts_ts = [
+                this_stage.get_capped_forecast(
+                    instrument_code, rule_variation_name).index
+                for rule_variation_name in rule_variation_list]
+
+            earliest_date = min([min(fts) for fts in forecasts_ts])
+            latest_date = max([max(fts) for fts in forecasts_ts])
+
+            # this will be daily, but will be resampled later
+            weight_ts = pd.date_range(start=earliest_date, end=latest_date)
+
+            forecasts_weights = dict([
+                (rule_variation_name, pd.Series(
+                    [fixed_weights[rule_variation_name]] * len(weight_ts), index=weight_ts))
+                for rule_variation_name in rule_variation_list])
+
+            forecasts_weights = pd.concat(forecasts_weights, axis=1)
+            forecasts_weights.columns = rule_variation_list
 
             return forecasts_weights
-        
-        forecast_weights=self.parent.calc_or_cache( "get_raw_forecast_weights", instrument_code,  _get_raw_forecast_weights, self)
+
+        forecast_weights = self.parent.calc_or_cache(
+            "get_raw_forecast_weights", instrument_code, _get_raw_forecast_weights, self)
         return forecast_weights
 
     def get_forecast_weights(self, instrument_code):
         """
         Get the forecast weights
-        
-        We forward fill all forecasts. We then adjust forecast weights so that they are 1.0 in every
-          period; after setting to zero when no forecast is available. 
 
-        :param instrument_code: 
-        :type str: 
-        
-        :returns: TxK pd.DataFrame containing weights, columns are trading rule variation names, T covers all 
-        
+        We forward fill all forecasts. We then adjust forecast weights so that they are 1.0 in every
+          period; after setting to zero when no forecast is available.
+
+        :param instrument_code:
+        :type str:
+
+        :returns: TxK pd.DataFrame containing weights, columns are trading rule variation names, T covers all
+
         KEY OUTPUT
 
         >>> from systems.tests.testdata import get_test_object_futures_with_rules_and_capping
         >>> from systems.basesystem import System
         >>> (fcs, rules, rawdata, data, config)=get_test_object_futures_with_rules_and_capping()
         >>> system=System([rawdata, rules, fcs, ForecastCombineFixed()], data, config)
-        >>> 
+        >>>
         >>> ## from config
         >>> system.combForecast.get_forecast_weights("EDOLLAR").tail(2)
                     ewmac16  ewmac8
@@ -273,37 +278,41 @@ class ForecastCombineFixed(SystemStage):
                     ewmac16  ewmac8
         2015-12-10      0.5     0.5
         2015-12-11      0.5     0.5
-        """                    
-        def _get_forecast_weights(system,  instrument_code,  this_stage ):
-            
-            forecast_weights=this_stage.get_raw_forecast_weights(instrument_code)
-            rule_variation_list=list(forecast_weights.columns)
-            forecasts=[this_stage.get_capped_forecast(instrument_code, rule_variation_name) for rule_variation_name in rule_variation_list]
+        """
+        def _get_forecast_weights(system, instrument_code, this_stage):
 
-            forecasts=pd.concat(forecasts, axis=1)
-                
-            ## adjust weights for missing data
-            forecast_weights=fix_weights_vs_pdm(forecast_weights, forecasts)
+            forecast_weights = this_stage.get_raw_forecast_weights(
+                instrument_code)
+            rule_variation_list = list(forecast_weights.columns)
+            forecasts = [
+                this_stage.get_capped_forecast(
+                    instrument_code,
+                    rule_variation_name) for rule_variation_name in rule_variation_list]
+
+            forecasts = pd.concat(forecasts, axis=1)
+
+            # adjust weights for missing data
+            forecast_weights = fix_weights_vs_pdm(forecast_weights, forecasts)
 
             return forecast_weights
-        
-        forecast_weights=self.parent.calc_or_cache( 'get_forecast_weights', instrument_code,  _get_forecast_weights, self)
-        return forecast_weights
 
+        forecast_weights = self.parent.calc_or_cache(
+            'get_forecast_weights', instrument_code, _get_forecast_weights, self)
+        return forecast_weights
 
     def get_combined_forecast(self, instrument_code):
         """
         Get a combined forecast, linear combination of individual forecasts with FDM applied
-        
+
         We forward fill all forecasts. We then adjust forecast weights so that they are 1.0 in every
           period; after setting to zero when no forecast is available. Finally we multiply up, and
           apply the FDM. Then we cap.
 
-        :param instrument_code: 
-        :type str: 
-        
+        :param instrument_code:
+        :type str:
+
         :returns: Tx1 pd.DataFrame
-        
+
         KEY OUTPUT
 
 
@@ -311,7 +320,7 @@ class ForecastCombineFixed(SystemStage):
         >>> from systems.basesystem import System
         >>> (fcs, rules, rawdata, data, config)=get_test_object_futures_with_rules_and_capping()
         >>> system=System([rawdata, rules, fcs, ForecastCombineFixed()], data, config)
-        >>> 
+        >>>
         >>> system.combForecast.get_combined_forecast("EDOLLAR").tail(2)
                     comb_forecast
         2015-12-10      -0.324461
@@ -323,36 +332,43 @@ class ForecastCombineFixed(SystemStage):
                     comb_forecast
         2015-12-10            -21
         2015-12-11             21
-        """                    
-        def _get_combined_forecast(system,  instrument_code,  this_stage ):
-            
-            forecast_weights=this_stage.get_forecast_weights(instrument_code)
-            rule_variation_list=list(forecast_weights.columns)
-            forecasts=[this_stage.get_capped_forecast(instrument_code, rule_variation_name) for rule_variation_name in rule_variation_list]
-            forecast_div_multiplier=this_stage.get_forecast_diversification_multiplier(instrument_code)
-            forecast_cap=this_stage.get_forecast_cap()
+        """
+        def _get_combined_forecast(system, instrument_code, this_stage):
 
-            forecasts=pd.concat(forecasts, axis=1)
+            forecast_weights = this_stage.get_forecast_weights(instrument_code)
+            rule_variation_list = list(forecast_weights.columns)
+            forecasts = [
+                this_stage.get_capped_forecast(
+                    instrument_code,
+                    rule_variation_name) for rule_variation_name in rule_variation_list]
+            forecast_div_multiplier = this_stage.get_forecast_diversification_multiplier(
+                instrument_code)
+            forecast_cap = this_stage.get_forecast_cap()
 
-            ## multiply weights by forecasts
+            forecasts = pd.concat(forecasts, axis=1)
 
-            combined_forecast=multiply_df(forecast_weights, forecasts)
-            
-            ## sum
-            combined_forecast=combined_forecast.sum(axis=1).to_frame("comb_forecast") 
-            
-            ## apply fdm
-            ## (note in this simple version we aren't adjusting FDM if forecast_weights change)
-            forecast_div_multiplier=forecast_div_multiplier.reindex(forecasts.index, method="ffill")
-            raw_combined_forecast=multiply_df(combined_forecast,forecast_div_multiplier)
-            
-            combined_forecast=apply_cap(raw_combined_forecast, forecast_cap)
-            
+            # multiply weights by forecasts
+
+            combined_forecast = multiply_df(forecast_weights, forecasts)
+
+            # sum
+            combined_forecast = combined_forecast.sum(
+                axis=1).to_frame("comb_forecast")
+
+            # apply fdm
+            # (note in this simple version we aren't adjusting FDM if forecast_weights change)
+            forecast_div_multiplier = forecast_div_multiplier.reindex(
+                forecasts.index, method="ffill")
+            raw_combined_forecast = multiply_df(
+                combined_forecast, forecast_div_multiplier)
+
+            combined_forecast = apply_cap(raw_combined_forecast, forecast_cap)
+
             return combined_forecast
-        
-        combined_forecast=self.parent.calc_or_cache( 'get_combined_forecast', instrument_code,  _get_combined_forecast, self)
-        return combined_forecast
 
+        combined_forecast = self.parent.calc_or_cache(
+            'get_combined_forecast', instrument_code, _get_combined_forecast, self)
+        return combined_forecast
 
 
 if __name__ == '__main__':
