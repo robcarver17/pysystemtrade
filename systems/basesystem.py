@@ -17,6 +17,7 @@ class System(object):
 
        take a data, and optionally a config object
 
+    The system only has one method 'of its own' which is get_instrument_list
 
     '''
 
@@ -105,6 +106,23 @@ class System(object):
     def __repr__(self):
         sslist = ", ".join(self._stage_names)
         return "System with stages: " + sslist
+    
+    def get_instrument_list(self):
+        """
+        Get the instrument list
+
+        :returns: list of instrument_code str
+        """
+        try:
+            ## if instrument weights specified in config ...
+            instrument_list = self.config.instrument_weights.keys()
+        except:
+            ## okay maybe not, must be in data
+            instrument_list = self.data.get_instrument_list()
+
+        return instrument_list
+
+
 
     """
     A cache lives inside each system object, storing preliminary results

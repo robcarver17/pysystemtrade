@@ -13,10 +13,23 @@ volatility_calculation:
   floor_days: 500
 #
 # forecast capping and scaling
+# fixed values
 #
 forecast_scalar: 1.0
+#
+# with varying stuff
+#
+forecast_scalar_estimate:
+   pool_instruments: True
+   func: "syscore.algos.forecast_scalar_pooled"
+   window: 250000
+   min_periods: 500
+   backfill: True
+#
+# capping
 forecast_cap: 20.0
 average_absolute_forecast: 10.0
+#
 #
 # forecast combination
 #

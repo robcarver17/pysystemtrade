@@ -75,7 +75,14 @@ my_system = System([empty_rules], data, my_config)
 my_system.rules.get_raw_forecast("EDOLLAR", "ewmac32").tail(5)
 
 
-from systems.forecast_scale_cap import ForecastScaleCapFixed
+from systems.forecast_scale_cap import ForecastScaleCapFixed, ForecastScaleCapEstimated
+
+## we can estimate these ourselves
+fce=ForecastScaleCapEstimated()
+my_system = System([fce, my_rules], data, my_config)
+print(my_system.forecastScaleCap.get_forecast_scalar("EDOLLAR", "ewmac32").tail(5))
+
+## or we can use the values from the book
 my_config.forecast_scalars = dict(ewmac8=5.3, ewmac32=2.65)
 fcs = ForecastScaleCapFixed()
 my_system = System([fcs, my_rules], data, my_config)

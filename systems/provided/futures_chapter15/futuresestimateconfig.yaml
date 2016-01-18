@@ -1,0 +1,141 @@
+#YAML
+#
+# Raw data
+#
+volatility_calculation:
+  func: "syscore.algos.robust_vol_calc"
+  days: 35
+#
+# Trading rules
+#
+trading_rules:
+  ewmac2_8:
+     function: systems.provided.futures_chapter15.rules.ewmac
+     data:
+         - "rawdata.daily_prices"
+         - "rawdata.daily_returns_volatility"
+     other_args: 
+         Lfast: 2
+         Lslow: 8
+  ewmac4_16:
+     function: systems.provided.futures_chapter15.rules.ewmac
+     data:
+         - "rawdata.daily_prices"
+         - "rawdata.daily_returns_volatility"
+     other_args: 
+         Lfast: 4
+         Lslow: 16
+  ewmac8_32:
+     function: systems.provided.futures_chapter15.rules.ewmac
+     data:
+         - "rawdata.daily_prices"
+         - "rawdata.daily_returns_volatility"
+     other_args: 
+         Lfast: 8
+         Lslow: 32
+  ewmac16_64:
+     function: systems.provided.futures_chapter15.rules.ewmac
+     data:
+         - "rawdata.daily_prices"
+         - "rawdata.daily_returns_volatility"
+     other_args: 
+         Lfast: 16
+         Lslow: 64
+  ewmac32_128:
+     function: systems.provided.futures_chapter15.rules.ewmac
+     data:
+         - "rawdata.daily_prices"
+         - "rawdata.daily_returns_volatility"
+     other_args: 
+         Lfast: 32
+         Lslow: 128
+  ewmac64_256:
+     function: systems.provided.futures_chapter15.rules.ewmac
+     data:
+         - "rawdata.daily_prices"
+         - "rawdata.daily_returns_volatility"
+     other_args: 
+         Lfast: 64
+         Lslow: 256
+  carry:
+     function: systems.provided.futures_chapter15.rules.carry
+     data:
+         - "rawdata.daily_annualised_roll"
+         - "rawdata.daily_returns_volatility"
+     other_args:
+         smooth_days: 90
+#
+forecast_scalar_estimate:
+   pool_instruments: True
+   func: "syscore.algos.forecast_scalar_pooled"
+   window: 250000
+   min_periods: 500
+   backfill: True
+#
+forecast_cap: 20.0
+#
+# forecast combination
+#
+forecast_weights:
+     ewmac16_64: 0.21
+     ewmac32_128: 0.08
+     ewmac64_256: 0.21
+     carry: 0.50
+forecast_div_multiplier: 1.31
+#
+# Capital correction
+#
+percentage_vol_target: 20.0
+notional_trading_capital: 250000
+base_currency: "USD"
+#
+# Portfolio creation
+#
+instrument_weights:
+    EDOLLAR: 0.117
+    US10: 0.117
+    EUROSTX: 0.20
+    V2X: 0.098
+    MXP: 0.233
+    CORN: 0.233
+instrument_div_multiplier: 1.89
+rule_groups:
+    ewmac_fast:
+       - ewmac2_8
+       - ewmac4_16
+    ewmac_medium:
+       - ewmac8_32
+       - ewmac16_64
+    ewmac_slow:
+       - ewmac32_128
+       - ewmac64_256
+    carry:
+       - carry
+style_groups:
+    trend:
+        - ewmac_fast
+        - ewmac_medium
+        - ewmac_slow
+    carry:
+        - carry
+countries:
+    US:
+      - EDOLLAR
+      - US10
+    Europe:
+      - EUROSTX
+      - V2X
+    Other:
+    - MXP
+    - CORN
+asset_classes:
+    Rates:
+      - EDOLLAR
+      - US10
+    Risky:
+      - EUROSTX
+      - V2X
+      - MXP
+    Other:
+      - CORN
+

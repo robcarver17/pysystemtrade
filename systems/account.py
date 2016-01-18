@@ -15,7 +15,7 @@ class Account(SystemStage):
         system.forecastScaleCap.get_capped_forecast()
             found in self.get_capped_forecast()
 
-        system.portfolio.get_instrument_list()
+        system.get_instrument_list()
             found in self.get_instrument_list()
 
         system.positionSize.get_daily_cash_vol_target()
@@ -169,7 +169,7 @@ class Account(SystemStage):
         KEY INPUT
 
         """
-        return self.parent.portfolio.get_instrument_list()
+        return self.parent.get_instrument_list()
 
     def get_rule_groups(self):
         """

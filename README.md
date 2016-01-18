@@ -2,9 +2,9 @@
 
 Systematic Trading in python
 
-Version 0.1.1
+Version 0.1.2
 
-201512..
+20160118
 
 Rob Carver
 
@@ -50,8 +50,6 @@ A setup.py file is provided, however as the installation is trivial this shouldn
 [Introduction (start here)](docs/introduction.md)
 
 [User guide](docs/userguide.md)
-
-[Frequently asked questions](docs/FAQ.md)
 
 
 ### A note on support

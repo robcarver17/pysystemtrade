@@ -833,7 +833,10 @@ system=System([Account(), PortfoliosFixed(), PositionSizing(), FuturesRawData(),
 
 ### Using the system object
 
-The system object doesn't do very much in itself, except provide access to it's 'child' stages. The child stages are all attributes of the parent system.
+The system object doesn't do very much in itself, except provide access to it's 'child' stages, and a limited number of methods. The child stages are all attributes of the parent system.
+
+#### Accessing child stages, data, and config within a system
+
 
 For example to get the final portfolio level 'notional' position, which is in the child stage named `portfolio`:
 
@@ -855,6 +858,10 @@ We can also access or change elements of the config object:
 system.config.trading_rules
 system.config.instrument_div_multiplier=1.2
 ```
+
+#### System methods
+
+Currently system only has one method of it's own: `system.get_instrument_list()` This will get the list of instruments in the system, eithier from the config object if it contains instrument weights, or from the data object.
 
 
 <a name="caching">
@@ -2136,10 +2143,41 @@ YAML:
 forecast_cap: 20.0
 ```
 
+<a name="scalar_estimate">
+#### Calculating forecasting scaling on the fly with [ForecastScaleCapEstimated class](/systems/forecast_scale_cap.py)
+</a>
+
+You may prefer to estimate your forecast scales from the available data. This is often neccessary if you have a new trading rule and have no idea at all what the scaling should be. To do this you need to use the `ForecastScaleCapEstimated` child class, rather than the fixed flavour. This inherits from the fixed base class, so capping works in exactly the same way, but replaces the method for get_forecast_scalar. 
+
+For example if working with the chapter 15 futures system, here is a pre-baked version that estimates forecast scalars:
+
+```python
+from systems.provided.futures_chapter15.estimatedsystem import futures_system
+system=futures_system()
+```
+
+All the config parameters needed are stored in `config.forecast_scalar_estimate`.
+
+You can eithier estimate scalars for individual instruments, or using data pooled across instruments. The config parameter `pool_instruments` determines which option is used.
+
+##### Pooled forecast scale estimate (default) 
+
+
+We do this if `pool_instruments=True`. This defaults to using the function "syscore.algos.forecast_scalar_pooled", but this is configurable using the parameter `func`. 
+
+I strongly recommend using pooling, since it's always good to get more data. The only reason not to use it is if you've been an idiot and designed a forecast for which the scale is naturally different across instruments (see chapter 7 of my book). 
+
+This function calculates a cross sectional median of absolute values, then works out the scalar to get it 10, using a rolling moving average (so always out of sample). 
+
+I also recommend using the defaults, a `window` size of 250000 (essentially long enough so you're estimating with an expanding window) and `min_periods` of 500 (a couple of years of daily data; less than this and we'll get something too unstable especially for a slower trading rule, more and we'll have to wait too long to get a value). The other parameter of interest is `backfill` which is boolean and defaults to True. This backfills the first scalar value found back into the past so we don't lose any data; strictly speaking this is cheating but we're not selecting the parameter for performance reasons so I for one can sleep at night. 
+
+##### Individiual instrument forecast scale estimate (default) 
+
+We do this if `pool_instruments=False`. The default function I recommend is "syscore.algos.forecast_scalar", which you *need* to configure using the parameter `func`.
+
+Other parameters work in the same way.
 
 #### New or modified forecast scaling and capping
-
-I plan to introduce automatically calculated forecast scalars in a future project (on a rolling out of sample basis).
 
 Possible changes here could include putting in response functions (as described in [this AHL paper](http://papers.ssrn.com/sol3/papers.cfm?abstract_id=2695101) ).
 
@@ -2331,7 +2369,7 @@ The tables in this section list all the methods that can be used to get data out
 
 ### Explanation of columns
 
-For brevity the name of the system instance is omitted from the 'call' column. So for example to get the instrument price for Eurodollar from the data object, which is marked as *`data.get_instrument_price`* we would do something like this:
+For brevity the name of the system instance is omitted from the 'call' column (except where it's the actual system object we're calling directly). So for example to get the instrument price for Eurodollar from the data object, which is marked as *`data.get_instrument_price`* we would do something like this:
 
 ```python
 from systems.futures.basesystem import futures_system
@@ -2355,13 +2393,20 @@ Types are one or more of D, I, O:
 Private methods are excluded from this table.
 
 
+### System object
+
+| Call                              | Standard?| Arguments       | Type | Description                                                    |
+|:-------------------------:|:---------:|:---------------:|:----:|:--------------------------------------------------------------:|
+| `system.get_instrument_list`  | Standard  |                        |  D,O   | List of instruments available; eithier from config instrument weights, or from data set|
+
+
 ### Data object
 
 
 | Call                              | Standard?| Arguments       | Type | Description                                                    |
 |:-------------------------:|:---------:|:---------------:|:----:|:--------------------------------------------------------------:|
 | `data.get_instrument_price` | Standard  | `instrument_code`        | D,O  | Price used for trading rule analysis (backadjusted if relevant)|
-| `data.get_instrument_list`  | Standard  |                        |  D   | List of instruments available in data set (not all will be used for backtest)|
+| `data.get_instrument_list`  | Standard  |                        |  D,O   | List of instruments available in data set (not all will be used for backtest)|
 | `data.get_value_of_block_price_move`| Standard | `instrument_code` | D,O  | How much does a $1 (or whatever) move in the price of an instrument block affect it's value? |
 | `data.get_instrument_currency`|Standard | `instrument_code` | D,O | What currency does this instrument trade in? |
 | `data.get_fx_for_instrument`  |Standard | `instrument_code, base_currency` | D, O | What is the exchange rate between the currency of this instrument, and some base currency? |
@@ -2448,7 +2493,7 @@ Private methods are excluded from this table.
 | Call                              | Standard?| Arguments       | Type | Description                                                    |
 |:-------------------------:|:---------:|:---------------:|:----:|:--------------------------------------------------------------:|
 | `portfolio.get_subsystem_position`| Standard | `instrument_code` | I |`positionSize.get_subsystem_position` |
-| `portfolio.get_instrument_list`| Standard |  | D,O |List of instruments in system |
+| `portfolio.get_instrument_list`| Standard |  | I | `system.get_instrument_list` |
 | `portfolio.get_instrument_weights`| Standard |  | D |Get instrument weights |
 | `portfolio.get_instrument_diversification_multiplier`| Standard |  | D |Get instrument div. multiplier |
 | `portfolio.get_notional_position`| Standard | `instrument_code` | D,O |Get the *notional* position (with constant risk capital; doesn't allow for adjustments when profits or losses are made) |
@@ -2580,7 +2625,7 @@ config.trading_rules=dict(ewmac2_8=dict(function="systems.futures.rules.ewmac", 
 
 ### Forecast scaling and capping stage
 
-#### Forecast scalar
+#### Forecast scalar (fixed - using `class ForecastScaleCapFixed`)
 Represented as: dict of floats. Keywords: trading rule variation names.
 Default: 1.0
 
@@ -2615,7 +2660,43 @@ Python (example)
 config.forecast_scalars=dict(rule_name=10.6)
 ```
 
-#### Forecast cap
+#### Forecast scalar estimation (using `class ForecastScaleCapEstimated`)
+Represented as: dict of str, float and int. Keywords: parameter names
+Default: see below
+
+The method used to estimate forecast scalars on a rolling out of sample basis. Compulsory arguments are pool_instruments (determines if we pool estimate over multiple instruments) and func (str function pointer to use for estimation). The remaining arguments are passed to the estimation function. 
+
+See [forecast scale estimation](#scalar_estimate] for more detail.
+
+YAML: 
+```
+# Here is how we do the estimation. These are also the *defaults*.
+forecast_scalar_estimate:
+   pool_instruments: True
+   func: "syscore.algos.forecast_scalar_pooled"
+   window: 250000
+   min_periods: 500
+   backfill: True
+
+# Here's how we'd do without pooling
+
+forecast_scalar_estimate:
+   pool_instruments: False
+   func: "syscore.algos.forecast_scalar"
+
+```
+
+Python (example)
+```python
+## pooled example
+config.trading_rules=dict(pool_instruments=True, func="syscore.algos.forecast_scalar_pooled", window=250000, min_periods=500, backfill=True)
+
+## not pooled
+config.trading_rules=dict(pool_instruments=False, func="syscore.algos.forecast_scalar", window=250000, min_periods=500, backfill=True)
+```
+
+
+#### Forecast cap (fixed - all classes)
 Represented as: float
 
 The forecast cap to apply to a trading rule. If undefined the default value of 20.0 will be used.

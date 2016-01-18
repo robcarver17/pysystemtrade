@@ -2,8 +2,12 @@
 
 ## Version: 0.0.1
 
-
 Basic backtesting enviroment with example futures data.
+
+## Version: 0.0.2
+
+Added rolling estimate of forecast scalars; try System([rawdata, rules, *ForecastScaleCapEstimated()*], data, config)
+Moved .get_instrument_list from portfolio object to parent system
 
 
 # Bugs to fix
@@ -21,7 +25,6 @@ system cleaning
   * add account object to portfolio stage for ease of use
   * estimated trades; with buffering of trades
   * vol targeting with capital adjustment
-  * Rolling estimate of forecast scalars
   * Rolling optimisation of forecast and instrument weights
   * Rolling estimate of fcast_div_mult and instr_div_mult
   * quandl data
@@ -29,7 +32,7 @@ system cleaning
   * database data
   * stitch futures contracts 
   * add new data from unstitched contracts (with explanatory post, include explanation for Nth contract stitching)
-  * check systems have correct attributes; check turnover, minimum size etc
+  * check systems have correct attributes; check turnover, minimum size, right forecast scalars (distribution across instruments) etc
 
 * Live trading:
 

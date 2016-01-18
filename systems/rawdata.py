@@ -10,7 +10,8 @@ class RawData(SystemStage):
 
     """
         A SystemStage that does some fairly common calculations before we do
-        forecasting
+        forecasting and which gives access to some widely used methods.
+         
             This is optional; forecasts can go straight to system.data
             The advantages of using RawData are:
                    - preliminary calculations that are reused can be cached, to
@@ -270,6 +271,7 @@ class RawData(SystemStage):
         perc_vol = self.parent.calc_or_cache(
             "daily_percentage_volatility", instrument_code, _get_daily_percentage_volatility, self)
         return perc_vol
+
 
     def norm_returns(self, instrument_code):
         """

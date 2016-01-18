@@ -330,7 +330,29 @@ Notice the differences from before:
 
 *Note if you'd passed the dict of trading rules into Rules()* **and** *into the config, only the former would be used*
 
-Now these trading rules aren't producing forecasts that are correctly scaled (with an average absolute value of 10), and they don't have the cap of 20 that I recommend. In future versions of this project we'll be able to estimate forecast scalars on a rolling out of sample basis; but for now we'll just use the fixed values from Appendix B of my book ["Systematic Trading"](http:/www.systematictrading.org). To fix this we need to add another stage to our system: forecast scaling and capping. 
+Now these trading rules aren't producing forecasts that are correctly scaled (with an average absolute value of 10), and they don't have the cap of 20 that I recommend. To fix this we need to add another stage to our system: forecast scaling and capping. 
+
+We could estimate these on a rolling out of sample basis:
+
+```python
+from systems.forecast_scale_cap import ForecastScaleCapEstimated
+fce=ForecastScaleCapEstimated()
+my_system = System([fce, my_rules], data, my_config)
+
+my_system.forecastScaleCap.get_forecast_scalar("EDOLLAR", "ewmac32").tail(5)
+```
+
+```
+                     scale_factor
+2015-12-11 19:33:39      3.133106
+2015-12-11 19:37:11      3.133112
+2015-12-11 19:39:40      3.133130
+2015-12-11 19:42:56      3.133102
+2015-12-11 23:00:00      3.133106
+```
+
+
+Alternatively we can use the fixed values from Appendix B of my book ["Systematic Trading"](http:/www.systematictrading.org). 
 
 
 ```python
