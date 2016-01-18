@@ -55,7 +55,7 @@ def futures_system(data=None, config=None, trading_rules=None):
 
     if config is None:
         config = Config(
-            "systems.provided.futures_chapter15.futuresestimatedconfig.yaml")
+            "systems.provided.futures_chapter15.futuresestimateconfig.yaml")
 
     rules = Rules(trading_rules)
 

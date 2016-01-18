@@ -2171,11 +2171,15 @@ This function calculates a cross sectional median of absolute values, then works
 
 I also recommend using the defaults, a `window` size of 250000 (essentially long enough so you're estimating with an expanding window) and `min_periods` of 500 (a couple of years of daily data; less than this and we'll get something too unstable especially for a slower trading rule, more and we'll have to wait too long to get a value). The other parameter of interest is `backfill` which is boolean and defaults to True. This backfills the first scalar value found back into the past so we don't lose any data; strictly speaking this is cheating but we're not selecting the parameter for performance reasons so I for one can sleep at night. 
 
-##### Individiual instrument forecast scale estimate (default) 
+Note: The pooled estimate is [cached](#caching)cached as an 'across system', non instrument specific, item.
+
+##### Individual instrument forecast scale estimate (default) 
 
 We do this if `pool_instruments=False`. The default function I recommend is "syscore.algos.forecast_scalar", which you *need* to configure using the parameter `func`.
 
 Other parameters work in the same way.
+
+Note: The estimate is [cached](#caching) seperately for each instrument.
 
 #### New or modified forecast scaling and capping
 
