@@ -9,6 +9,7 @@ class System(object):
     '''
     system objects are used for signal processing in a 'tree' like framework
 
+
     This is the base class which all systems inherit
 
     Systems are:
