@@ -11,7 +11,7 @@ trading_rules - a specification of the trading rules for a system
 """
 import yaml
 from syscore.fileutils import get_filename_for_package
-
+from systems.defaults import get_system_defaults
 
 class Config(object):
 
@@ -80,6 +80,50 @@ class Config(object):
         new_elements = list(set(existing_elements + attr_names))
 
         setattr(self, "_elements", new_elements)
+
+    def item_with_defaults(self, element_name):
+        """
+        Returns config.element_name unless missing when replaced with system defaults
+        
+        >>> config=Config(dict(forecast_scalar=3.0))
+        >>> config.item_with_defaults("forecast_scalar")
+        3.0
+        >>> config.item_with_defaults("forecast_cap")
+        20.0
+        >>> config.item_with_defaults("wibble")
+        """
+        ans=getattr(self, element_name, get_system_defaults().get(element_name, None))
+        
+        if ans is None:
+            raise Exception("Element %s not in defaults or config" % element_name)
+        
+        return ans
+
+
+    def dict_with_defaults(self, element_name, required=[]):
+        """
+        Returns config.element_name with any keys in required replaced with system defaults
+        
+        Only works for configs where the element is a dict
+        >>> config=Config(dict(volatility_calculation=dict(days=34)))
+        >>> config.dict_with_defaults("volatility_calculation", ["func", "days"])["days"]
+        34
+        >>> config.dict_with_defaults("volatility_calculation", ["func", "days"])["func"]
+        'syscore.algos.robust_vol_calc'
+        >>> config.dict_with_defaults("forecast_scalar_estimate", ["pool_instruments"])["pool_instruments"]
+        True
+        """
+        if len(required)>0:
+            default_dict=get_system_defaults().get(element_name, dict())
+            config_dict=getattr(self, element_name, dict())
+            
+            for dict_key in required:
+                if dict_key not in config_dict:
+                    if dict_key not in default_dict:
+                        raise Exception("Compulsory key %s missing from %s (both config and default)" % (element_name, dict_key))
+                    config_dict[dict_key]=default_dict[dict_key]
+            
+            return config_dict
 
     def __repr__(self):
         element_names = sorted(getattr(self, "_elements", []))

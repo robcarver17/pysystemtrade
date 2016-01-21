@@ -1,3 +1,4 @@
 Instrument,Pointsize,AssetClass,Currency
 EDOLLAR,2500,STIR,USD
 US10,1000,Bond,USD
+BUND,1000,Bond,EUR

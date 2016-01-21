@@ -4,6 +4,10 @@ Utilities I can't put anywhere else...
 
 from math import copysign
 
+def str2Bool(x):
+    if type(x) is bool:
+        return x
+    return x.lower() in ("t", "true")
 
 def TorF(x):
     if x:

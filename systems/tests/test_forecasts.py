@@ -39,7 +39,7 @@ class Test(unittest.TestCase):
         rules = Rules()
         system = System([rules, rawdata], data, config)
         ans = system.rules.get_raw_forecast("EDOLLAR", "ewmac8")
-        self.assertAlmostEqual(ans.iloc[-1][0], 0.0293768275)
+        self.assertAlmostEqual(ans.iloc[-1][0], 0.16438313875, 5)
 
     def testinitTradingRules(self):
         rule = TradingRule((ewmac_forecast_with_defaults, [], {}))

@@ -3,7 +3,6 @@ import pandas as pd
 from systems.stage import SystemStage
 from systems.basesystem import ALL_KEYNAME
 from syscore.pdutils import multiply_df_single_column, fix_weights_vs_pdm
-from systems.defaults import system_defaults
 
 
 class PortfoliosFixed(SystemStage):
@@ -57,8 +56,8 @@ class PortfoliosFixed(SystemStage):
         >>> ## from config
         >>> system.portfolio.get_subsystem_position("EDOLLAR").tail(2)
                     ss_position
-        2015-12-09    -0.033593
-        2015-12-10    -0.363003
+        2015-12-09     2.722596
+        2015-12-10     1.811465
 
         """
 
@@ -90,10 +89,10 @@ class PortfoliosFixed(SystemStage):
         >>> del(config.instrument_weights)
         >>> system2=System([rawdata, rules, posobject, combobject, capobject,PortfoliosFixed()], data, config)
         >>> system2.portfolio.get_instrument_weights().tail(2)
-        WARNING: No instrument weights  - using equal weights of 0.5000 over all 2 instruments in data
-                    EDOLLAR  US10
-        2015-12-09      0.5   0.5
-        2015-12-10      0.5   0.5
+        WARNING: No instrument weights  - using equal weights of 0.3333 over all 3 instruments in data
+                        BUND   EDOLLAR      US10
+        2015-12-09  0.333333  0.333333  0.333333
+        2015-12-10  0.333333  0.333333  0.333333
         """
         def _get_instrument_weights(system, an_ignored_variable, this_stage):
 
@@ -196,13 +195,7 @@ class PortfoliosFixed(SystemStage):
         def _get_instrument_div_multiplier(
                 system, an_ignored_variable, this_stage):
 
-            if hasattr(system.config, "instrument_div_multiplier"):
-                div_mult = system.config.instrument_div_multiplier
-            elif "instrument_div_multiplier" in system_defaults:
-                div_mult = system_defaults["instrument_div_multiplier"]
-            else:
-                raise Exception(
-                    "Instrument div. multiplier must be in system.config or system_defaults")
+            div_mult=system.config.item_with_defaults("instrument_div_multiplier")
 
             # Now we have a fixed weight
             # Need to turn into a timeseries covering the range of forecast
@@ -241,8 +234,8 @@ class PortfoliosFixed(SystemStage):
         >>> ## from config
         >>> system.portfolio.get_notional_position("EDOLLAR").tail(2)
                          pos
-        2015-12-09 -0.020156
-        2015-12-10 -0.217802
+        2015-12-09  1.633557
+        2015-12-10  1.086879
 
         """
         def _get_notional_position(system, instrument_code, this_stage):

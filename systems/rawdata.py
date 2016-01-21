@@ -1,5 +1,4 @@
 from systems.stage import SystemStage
-from systems.defaults import system_defaults
 from copy import copy
 
 from syscore.objects import resolve_function
@@ -212,17 +211,9 @@ class RawData(SystemStage):
         def _daily_returns_volatility(system, instrument_code, this_stage):
             dailyreturns = this_stage.daily_returns(instrument_code)
 
-            try:
-                volconfig = copy(system.config.volatility_calculation)
-                identify_error = "inherited from config object"
-            except:
-                volconfig = copy(system_defaults['volatility_calculation'])
-                identify_error = "found in system.defaults.py"
-
-            if "func" not in volconfig:
-
-                raise Exception(
-                    "The volconfig dict (%s) needs to have a 'func' key" % identify_error)
+            volconfig=system.config.dict_with_defaults('volatility_calculation', 
+                ['func','days','min_periods','vol_abs_min','vol_floor','floor_min_quant',
+                 'floor_min_periods','floor_days'])
 
             # volconfig contains 'func' and some other arguments
             # we turn func which could be a string into a function, and then

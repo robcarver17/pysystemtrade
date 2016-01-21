@@ -64,9 +64,8 @@ class PositionSizing(SystemStage):
         >>>
         >>> system.positionSize.get_combined_forecast("EDOLLAR").tail(2)
                     comb_forecast
-        2015-12-10      -0.324461
-        2015-12-11       0.206813
-
+        2015-12-10       1.619134
+        2015-12-11       2.462610
         """
 
         return self.parent.combForecast.get_combined_forecast(instrument_code)
@@ -206,23 +205,12 @@ class PositionSizing(SystemStage):
 
         def _get_vol_target(system, an_ignored_variable, this_stage):
 
-            try:
-                percentage_vol_target = system.config.percentage_vol_target
-            except:
-                percentage_vol_target = system_defaults[
-                    'percentage_vol_target']
+            percentage_vol_target = system.config.item_with_defaults('percentage_vol_target')
 
-            try:
-                notional_trading_capital = float(
-                    system.config.notional_trading_capital)
-            except:
-                notional_trading_capital = float(system_defaults[
-                    'notional_trading_capital'])
+            notional_trading_capital = float(
+                    system.config.item_with_defaults('notional_trading_capital'))
 
-            try:
-                base_currency = system.config.base_currency
-            except:
-                base_currency = system_defaults['base_currency']
+            base_currency = system.config.item_with_defaults('base_currency')
 
             annual_cash_vol_target = notional_trading_capital * percentage_vol_target / 100.0
             daily_cash_vol_target = annual_cash_vol_target / ROOT_BDAYS_INYEAR
@@ -455,14 +443,14 @@ class PositionSizing(SystemStage):
         >>>
         >>> system.positionSize.get_subsystem_position("EDOLLAR").tail(2)
                     ss_position
-        2015-12-09    -0.033593
-        2015-12-10    -0.363003
+        2015-12-09     2.722596
+        2015-12-10     1.811465
         >>>
         >>> system2=System([rawdata, rules, fcs, comb, PositionSizing()], data, config)
         >>> system2.positionSize.get_subsystem_position("EDOLLAR").tail(2)
                     ss_position
-        2015-12-09    -0.033593
-        2015-12-10    -0.363003
+        2015-12-09     2.722596
+        2015-12-10     1.811465
 
         """
         def _get_subsystem_position(system, instrument_code, this_stage):

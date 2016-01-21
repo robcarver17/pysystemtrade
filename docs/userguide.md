@@ -54,7 +54,7 @@ For more information on what statistics are available, see the [relevant guide s
 The backtest looks for its configuration information in the following places:
 
 1. Elements in the configuration object
-2. Project defaults 
+2. If not found, in: Project defaults 
 
 Configuration objects can be loaded from [yaml](http://pyyaml.org/) files, or created with a dictionary. This suggests that you can modify the systems behaviour in any of the following ways:
 
@@ -655,6 +655,29 @@ Many (but not all) configuration parameters have defaults which are used by the 
 
 I recommend that you do not change these defaults. It's better to use the settings you want in each system configuration file. 
 
+<a name="config_function_defaults">
+#### Handling defaults when you change certain functions
+</a>
+
+In certain places you can change the function used to do a particular calculation, eg volatility estimation (This does *not* include trading rules). This is straightforward if you're going to use the same arguments as the original argument. However if you change the arguments you'll need to do a little more work.
+
+Firstly you need to change the project defaults .yaml file. Secondly you'll need to change the actual code. For example if you replace the vol_floor parameter with a vol_ceiling (stupid idea by the way) you'd change the rawdata.py file from:
+
+```python
+volconfig=system.config.dict_with_defaults('volatility_calculation', 
+	['func','days','min_periods','vol_abs_min','vol_floor','floor_min_quant',
+ 	'floor_min_periods','floor_days'])
+```
+
+to:
+
+```python
+volconfig=system.config.dict_with_defaults('volatility_calculation', 
+	['func','days','min_periods','vol_abs_min','vol_ceiling','floor_min_quant',
+ 	'floor_min_periods','floor_days'])
+```
+
+
 ### Viewing configuration parameters
 
 Regardless of whether we create the dictionary using a yaml file or interactively, we'll end up with a dictionary. The keys in the top level dictionary will become attributes of the config. We can then use dictionary keys or list positions to access any nested data. For example using the simple config above:
@@ -706,28 +729,30 @@ If you develop your own stages or modify existing ones you might want to include
 
 
 ```python
-from systems.defaults import system_defaults
 
 ## Then assuming your config item is called my_config_item; in the relevant method:
 
 	parameter=system.config.my_config_item
 
-	## Or if you've created a default
-	try:
-	   parameter=system.config.my_config_item
-	except:
-           ## Notice that the system_defaults is a dict, not a config object
-	   parameter=system_defaults['my_config_item']
+	## Or if you've created a default, use this pattern:
+        
+        parameter=system.config.item_with_defaults("my_config_item")
 
 	## You can also use nested configuration items, eg dict keyed by instrument_code
-
 	parameter=system.config.my_config_dict[instrument_code]
+
+        ## Where you have several configuration parameters in a dict, of which some are neccessary
+        ## As in 'volatility_calculation' where 'func' is compulsory, so we have to get from defaults if missing
+        parameter_dict=system.config.dict_with_defaults("volatility_calculation", required=["func"]) # required can have multiple keys
+        parameter_dict['func'] ## gives the func from the config, or from defaults if missing
+        parameter_dict['days']     ## must have come from the config
 
 	## Lists also work. 
 
 	parameter=system.config.my_config_list[1]
 
 	## (Note: it's possible to do tuples, but the YAML is quite messy. So I don't encourage it.)
+        
 
 ```
 
@@ -1489,7 +1514,7 @@ class ForecastScaleCapFixed(SystemStage):
     
         In this simple version it's the same for all instruments, and fixed
 
-        We get the scalars from: (a) configuration file in parent system
+        We get the scalars from: (a) configuration file in parent system, eithier under trading_rules or seperately
                                  (b) or if missing: uses the scalar from systems.defaults.py
 
         :param instrument_code: 
@@ -1763,6 +1788,8 @@ volatility_calculation:
   floor_days: 500
 
 ```
+
+If you're considering using your own function please see [configuring defaults for your own functions](#config_function_defaults)
 
 
 #### Using the [FuturesRawData class](/systems/futures/rawdata.py)
@@ -2163,7 +2190,7 @@ You can eithier estimate scalars for individual instruments, or using data poole
 ##### Pooled forecast scale estimate (default) 
 
 
-We do this if `pool_instruments=True`. This defaults to using the function "syscore.algos.forecast_scalar_pooled", but this is configurable using the parameter `func`. 
+We do this if `pool_instruments=True`. This defaults to using the function "syscore.algos.forecast_scalar", but this is configurable using the parameter `func`. If you're changing this please see [configuring defaults for your own functions](#config_function_defaults).
 
 I strongly recommend using pooling, since it's always good to get more data. The only reason not to use it is if you've been an idiot and designed a forecast for which the scale is naturally different across instruments (see chapter 7 of my book). 
 
@@ -2173,11 +2200,9 @@ I also recommend using the defaults, a `window` size of 250000 (essentially long
 
 Note: The pooled estimate is [cached](#caching)cached as an 'across system', non instrument specific, item.
 
-##### Individual instrument forecast scale estimate (default) 
+##### Individual instrument forecast scale estimate
 
-We do this if `pool_instruments=False`. The default function I recommend is "syscore.algos.forecast_scalar", which you *need* to configure using the parameter `func`.
-
-Other parameters work in the same way.
+We do this if `pool_instruments=False`. Other parameters work in the same way.
 
 Note: The estimate is [cached](#caching) seperately for each instrument.
 
@@ -2381,7 +2406,7 @@ name_of_system=futures_system()
 name_of_system.data.get_instrument_price("EDOLLAR")
 ```
 
-Standard methods are in all systems. Non standard methods are for stage classes inherited from the standard class, eg the raw data method specific to futures.
+Standard methods are in all systems. Non standard methods are for stage classes inherited from the standard class, eg the raw data method specific to *futures*; or the *estimate* classes which estimate parameters rather than use fixed versions.
 
 Common arguments are:
 
@@ -2443,7 +2468,7 @@ Private methods are excluded from this table.
 
 | Call                              | Standard?| Arguments       | Type | Description                                                    |
 |:-------------------------:|:---------:|:---------------:|:----:|:--------------------------------------------------------------:|
-| `rules.trading_rules` | Standard  |         | D  | List of trading rule variations |
+| `rules.trading_rules` | Standard  |         | D,O  | List of trading rule variations |
 | `rules.get_raw_forecast` | Standard | `instrument_code`, `rule_variation_name` | D,O| Get forecast (unscaled, uncapped) |
 
 
@@ -2465,9 +2490,12 @@ Private methods are excluded from this table.
 | Call                              | Standard?| Arguments       | Type | Description                                                    |
 |:-------------------------:|:---------:|:---------------:|:----:|:--------------------------------------------------------------:|
 | `combForecast.get_capped_forecast` | Standard  | `instrument_code`, `rule_variation_name`        | I  | `forecastScaleCap.get_capped_forecast` |
+| `combForecast.get_trading_rule_list` | Standard  | `instrument_code`        | I | List of trading rules from config or prior stage |
+| `combForecast.get_all_forecasts` | Standard  | `instrument_code`, (`rule_variation_name`)        | D | pd.DataFrame of forecast values |
 | `combForecast.get_forecast_cap` | Standard | `instrument_code`, `rule_variation_name`        | I  | `forecastScaleCap.get_forecast_cap` |
 | `combForecast.get_raw_forecast_weights` | Standard  | `instrument_code`        | D  | Forecast weights |
 | `combForecast.get_forecast_weights` | Standard  | `instrument_code`        | D  | Forecast weights, adjusted for missing forecasts|
+| `combForecast.get_forecast_correlation_matrices` | Estimate  | `instrument_code`       | D  | Correlations of forecasts |
 | `combForecast.get_forecast_diversification_multiplier` | Standard  | `instrument_code`        | D  | Get diversification multiplier |
 | `combForecast.get_combined_forecast` | Standard  | `instrument_code`        | D,O  | Get weighted average of forecasts for instrument |
 
@@ -2522,6 +2550,9 @@ Private methods are excluded from this table.
 | `accounts.portfolio`| Standard |  | O,D | P&l for whole system |
 
 
+
+
+
 <a name="Configuration_options">
 ## Configuration options
 </a>
@@ -2573,9 +2604,9 @@ If you do this make sure the rest of the config is consistent with what you've d
 Represented as: dict of str, int, or float. Keywords: Parameter names
 Defaults: As below
 
-The function used to calculate volatility, and any keyword arguments passed to it. Note if any elements are missing the system won't fallback on the project defaults, instead the function's own defaults will be used. The project defaults are only used if there is a missing volatility_calculation attribute in the configuration. See ['volatility calculation'](#vol_calc) for more information. 
+The function used to calculate volatility, and any keyword arguments passed to it. Note if any keyword is missing then the project defaults will be used. See ['volatility calculation'](#vol_calc) for more information. 
 
-*func* is required, other keywords are optional. The following shows how to modify the configuration, and also the default values:
+The following shows how to modify the configuration, and also the default values:
 
 YAML: 
 ```
@@ -2595,6 +2626,9 @@ Python
 ```python
 config.volatility_calculation=dict(func="syscore.algos.robust.vol.calc", days=35, min_periods=10, vol_abs_min= 0.0000000001, vol_floor=True, floor_min_quant=0.05, floor_min_periods=100, floor_days=500)
 ```
+
+If you're considering using your own function please see [configuring defaults for your own functions](#config_function_defaults)
+
 
 ### Rules stage
 
@@ -2668,9 +2702,12 @@ config.forecast_scalars=dict(rule_name=10.6)
 Represented as: dict of str, float and int. Keywords: parameter names
 Default: see below
 
-The method used to estimate forecast scalars on a rolling out of sample basis. Compulsory arguments are pool_instruments (determines if we pool estimate over multiple instruments) and func (str function pointer to use for estimation). The remaining arguments are passed to the estimation function. 
+The method used to estimate forecast scalars on a rolling out of sample basis. Any missing config elements are pulled from the project defaults. Compulsory arguments are pool_instruments (determines if we pool estimate over multiple instruments) and func (str function pointer to use for estimation). The remaining arguments are passed to the estimation function. 
 
 See [forecast scale estimation](#scalar_estimate] for more detail.
+
+If you're considering using your own function please see [configuring defaults for your own functions](#config_function_defaults)
+
 
 YAML: 
 ```
@@ -2703,7 +2740,7 @@ config.trading_rules=dict(pool_instruments=False, func="syscore.algos.forecast_s
 #### Forecast cap (fixed - all classes)
 Represented as: float
 
-The forecast cap to apply to a trading rule. If undefined the default value of 20.0 will be used.
+The forecast cap to apply to a trading rule. If undefined the project default value of 20.0 will be used.
 
 
 YAML: 
@@ -2718,10 +2755,10 @@ config.forecast_cap=20.0
 
 ### Forecast combination stage
 
-#### Forecast weights
+#### Forecast weights (fixed using `ForecastCombinedFixed`)
 Represented as: (a) dict of floats. Keywords: trading rule variation names.
                 (b) dict of dicts, each representing the weights for an instrument. Keywords: instrument names
-Default: Equal weights
+Default: Equal weights, across all trading rules in the system
 
 The forecast weights to be used to combine forecasts from different trading rule variations. These can be (a) common across instruments, or (b) specified differently for each instrument.
 
@@ -2756,9 +2793,46 @@ Python (b)
 ```python
 config.forecast_weights=dict(SP500=dict(ewmac=0.5, carry=0.5), US10=dict(ewmac=0.10, carry=0.90))
 ```
+#### Forecast weights (estimated using `ForecastCombinedFixed`)
+
+##### List of trading rules to get forecasts for
+
+Represented as: (a) list of str, each a rule variation name
+                (b) dict of list of str, each representing the rules for an instrument. Keywords: instrument names
+Default: Using all trading rules in the system
+
+The forecast weights to be used to combine forecasts from different trading rule variations. These can be (a) common across instruments, or (b) specified differently for each instrument.
+
+YAML: (a)  
+```
+rule_variations:
+     - "ewmac"
+     - "carry"
+
+```
+
+Python (a)
+```python
+config.rule_variations=["ewmac", "carry"]
+```
+
+YAML: (b)  
+```
+rule_variations:
+     SP500:
+	  - "ewmac"
+	  - "carry"
+     US10:
+	  - "ewmac"
+```
+
+Python (b)
+```python
+config.forecast_weights=dict(SP500=["ewmac","carry"], US10=["ewmac"])
+```
 
 
-#### Forecast diversification multiplier
+#### Forecast diversification multiplier  (fixed using `ForecastCombinedFixed`)
 Represented as: (a) float or (b) dict of floats with keywords: instrument_codes
 Default: 1.0
 
@@ -2787,6 +2861,37 @@ Python (b)
 ```python
 config.forecast_div_multiplier=dict(SP500=1.4, US10=1.0)
 ```
+
+
+#### Forecast diversification multiplier  (estimated using `ForecastCombinedFixed`)
+
+##### Forecast correlation calculation
+Represented as: dict of str, float and int. Keywords: parameter names
+Default: see below
+
+The method used to estimate forecast correlations on a rolling out of sample basis. Compulsory arguments are pool_instruments (determines if we pool estimate over multiple instruments) and func (str function pointer to use for estimation). The remaining arguments are passed to the estimation function. Any missing items will be pulled from the project defaults file.
+
+See [forecast scale estimation](#scalar_estimate] for more detail.
+
+YAML: 
+```
+# Here is how we do the estimation. These are also the *defaults*.
+forecast_correlation_estimate:
+   pool_instruments: True
+   func: syscore.correlations.CorrelationEstimator ## function to use for estimation. This handles both pooled and non pooled data
+   frequency: "W"   # frequency to downsample to before estimating correlations
+   date_method: "expanding" # what kind of window to use in backtest
+   using_exponent: True  # use an exponentially weighted correlation, or all the values equally
+   ew_lookback: 250 ## lookback when using exponential weighting
+   min_periods: 20  # min_periods     
+   cleaning: True  # Replace missing values so we don't lose data early on
+```
+
+Python (example)
+```python
+```
+
+If you're considering using your own function please see [configuring defaults for your own functions](#config_function_defaults)
 
 ### Position sizing stage
 

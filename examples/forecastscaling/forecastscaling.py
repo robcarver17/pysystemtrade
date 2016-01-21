@@ -11,9 +11,6 @@ system=futures_system()
 ## don't pool
 system.config.forecast_scalar_estimate['pool_instruments']=False
 
-## need a different function
-system.config.forecast_scalar_estimate['func']="syscore.algos.forecast_scalar"
-
 instrument_list=system.get_instrument_list()
 print(instrument_list)
 
@@ -59,9 +56,6 @@ system.config.forecast_scalar_estimate['min_periods']=50
 
 ## don't pool
 system.config.forecast_scalar_estimate['pool_instruments']=False
-
-## need a different function
-system.config.forecast_scalar_estimate['func']="syscore.algos.forecast_scalar"
 
 
 system.forecastScaleCap.get_forecast_scalar("EDOLLAR", "ewmac64_256").plot()

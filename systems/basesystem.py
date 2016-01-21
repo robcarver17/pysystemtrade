@@ -121,7 +121,7 @@ class System(object):
             ## okay maybe not, must be in data
             instrument_list = self.data.get_instrument_list()
 
-        return instrument_list
+        return list(instrument_list)
 
 
 

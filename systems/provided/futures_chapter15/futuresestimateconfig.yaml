@@ -67,7 +67,7 @@ trading_rules:
 #
 forecast_scalar_estimate:
    pool_instruments: True
-   func: "syscore.algos.forecast_scalar_pooled"
+   func: "syscore.algos.forecast_scalar"
    window: 250000
    min_periods: 500
    backfill: True
@@ -76,12 +76,26 @@ forecast_cap: 20.0
 #
 # forecast combination
 #
-forecast_weights:
-     ewmac16_64: 0.21
-     ewmac32_128: 0.08
-     ewmac64_256: 0.21
-     carry: 0.50
-forecast_div_multiplier: 1.31
+rule_variations:
+     EDOLLAR: ['ewmac16_64','ewmac32_128', 'ewmac64_256', 'carry']
+     US10: ['ewmac16_64','ewmac32_128', 'ewmac64_256', 'carry']
+     EUROSTX: ['ewmac4_16','ewmac8_32','ewmac16_64','ewmac32_128', 'ewmac64_256', 'carry']
+     MXP: ['ewmac16_64','ewmac32_128', 'ewmac64_256', 'carry']
+     CORN: ['ewmac16_64','ewmac32_128', 'ewmac64_256', 'carry']
+     V2X: ['ewmac16_64','ewmac32_128', 'ewmac64_256', 'carry']
+#
+#
+forecast_correlation_estimate:
+   pool_instruments: True
+   func: syscore.correlations.CorrelationEstimator
+   frequency: "W"
+   date_method: "expanding"
+   using_exponent: True
+   ew_lookback: 250
+   min_periods: 20     
+   cleaning: True 
+#
+#
 #
 # Capital correction
 #

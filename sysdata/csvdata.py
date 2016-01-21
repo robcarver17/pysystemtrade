@@ -128,6 +128,7 @@ class csvFuturesData(FuturesData):
         Instrument                                          
         EDOLLAR       EDOLLAR       2500       STIR      USD
         US10             US10       1000       Bond      USD
+        BUND             BUND       1000       Bond      EUR
         """
 
         filename = os.path.join(self._datapath, "instrumentconfig.csv")
@@ -144,9 +145,9 @@ class csvFuturesData(FuturesData):
 
         >>> data=csvFuturesData("sysdata.tests")
         >>> data.get_instrument_list()
-        ['EDOLLAR', 'US10']
+        ['EDOLLAR', 'US10', 'BUND']
         >>> data.keys()
-        ['EDOLLAR', 'US10']
+        ['EDOLLAR', 'US10', 'BUND']
         """
 
         instr_data = self._get_instrument_data()
@@ -162,6 +163,7 @@ class csvFuturesData(FuturesData):
         Instrument
         EDOLLAR    STIR
         US10       Bond
+        BUND       Bond
         Name: AssetClass, dtype: object
         """
         instr_data = self._get_instrument_data()

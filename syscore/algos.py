@@ -5,6 +5,8 @@ Basic building blocks of trading rules, like volatility measurement and crossove
 
 """
 import pandas as pd
+
+from syscore.genutils import str2Bool
 from systems.defaults import system_defaults
 
 
@@ -62,7 +64,7 @@ def robust_vol_calc(x, days=35, min_periods=10, vol_abs_min=0.0000000001, vol_fl
     return vol_floored
 
 
-def forecast_scalar_pooled(xcross, window=250000, min_periods=500, backfill=True):
+def forecast_scalar(xcross, window=250000, min_periods=500, backfill=True):
     """
     Work out the scaling factor for xcross such that T*x has an abs value of 10
     
@@ -77,7 +79,7 @@ def forecast_scalar_pooled(xcross, window=250000, min_periods=500, backfill=True
     
     :returns: pd.DataFrame 
     """
-    backfill=bool(backfill) ## in yaml will come in as text
+    backfill=str2Bool(backfill) ## in yaml will come in as text
     ##We don't allow this to be changed in config
     target_abs_forecast = system_defaults['average_absolute_forecast']
 
@@ -96,30 +98,14 @@ def forecast_scalar_pooled(xcross, window=250000, min_periods=500, backfill=True
 
     return scaling_factor
 
-def forecast_scalar(x, window=250000, min_periods=500, backfill=True):
+
+def diversification_multiplier():
     """
-    Work out the scaling factor for x such that 1*x has an abs value of 10
-    :param x: 
-    :type x: pd.DataFrame 1xT
+    Given N assets with a correlation matrix of H and  weights W summing to 1, 
+    the diversification multiplier will be 1 / [ ( W x H x WT ) 1/2 ]
     
-    :param span:
-    :type span: int
+    We start with a pre cleaned (returns indexed and differenced, fcasts ffilled) of TxN
+    We take weekly slices from this, and calculate correlation matrices
+    We calculate correlations annually
     
-    :param min_periods:
-    
-    
-    :returns: pd.DataFrame 
     """
-    backfill=bool(backfill) ## in yaml will come in as text
-    ##We don't allow this to be changed in config
-    target_abs_forecast = system_defaults['average_absolute_forecast']
-
-    avg_abs_value=pd.rolling_median(x.abs(), window=window, min_periods=min_periods)
-    scaling_factor=target_abs_forecast/avg_abs_value
-
-    scaling_factor.columns=['scale_factor']
-    
-    if backfill:
-        scaling_factor=scaling_factor.fillna(method="bfill")
-
-    return scaling_factor

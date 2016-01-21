@@ -1,13 +1,25 @@
 # Release notes
 
-## Version: 0.0.1
+## Version: 0.0.3
 
-Basic backtesting enviroment with example futures data.
+Created ForecastCombineEstimated, with get_forecast_correlation_matrices
+Added get_trading_rule_list and get_all_forecasts to forecast_combine
+Added rule_variations config option
+Added Bund data to test suite; had to fix some tests
+Pooling for forecast scalar doesn't need it's own function anymore
+Changed the way config defaults are handled
+Fixed bugs: wrong use of bool to convert str
+Fixed bugs: some test configs had wrong trading rule parameter setup; had to fix slew of tests as a result
 
 ## Version: 0.0.2
 
 Added rolling estimate of forecast scalars; try System([rawdata, rules, *ForecastScaleCapEstimated()*], data, config)
 Moved .get_instrument_list from portfolio object to parent system
+
+## Version: 0.0.1
+
+Basic backtesting enviroment with example futures data.
+
 
 
 # Bugs to fix
@@ -22,7 +34,6 @@ system cleaning
 
 * Simulation:
 
-  * add account object to portfolio stage for ease of use
   * estimated trades; with buffering of trades
   * vol targeting with capital adjustment
   * Rolling optimisation of forecast and instrument weights
