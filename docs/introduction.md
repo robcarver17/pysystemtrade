@@ -398,8 +398,26 @@ WARNING: No forecast weights  - using equal weights of 0.5000 over all 2 trading
 2015-04-22       8.842466
 ```
 
+Alternatively you can estimate div. multipliers (and in future releases, weights):
 
-Let's come up with some arbitrary forecast weights and diversification multiplier for now:
+```python
+from systems.forecast_combine import ForecastCombineEstimated
+combiner=ForecastCombineEstimated()
+my_system=System([fcs, empty_rules, combiner], data, my_config)
+my_system.combForecast.get_forecast_diversification_multiplier("EDOLLAR").tail(5)
+```
+
+```
+                          FDM
+2015-12-11 12:00:25  1.110897
+2015-12-11 14:11:34  1.110897
+2015-12-11 15:39:37  1.110897
+2015-12-11 17:08:14  1.110897
+2015-12-11 19:33:39  1.110897
+```
+
+
+Let's use some arbitrary forecast weights and diversification multiplier for now:
 
 
 ```python

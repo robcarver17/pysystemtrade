@@ -2,13 +2,21 @@
 
 Systematic Trading in python
 
-Version 0.0.3
-
-20160121
-
 Rob Carver
 
 [http://qoppac.blogspot.co.uk/p/pysystemtrade.html](http://qoppac.blogspot.co.uk/p/pysystemtrade.html)
+
+
+Version 0.1.0
+
+
+20160121
+
+
+## Release notes
+
+See [DONE_TO_DO](DONE_TO_DO.md) for release notes, and future plans.
+
 
 ## Description
 
@@ -64,9 +72,6 @@ However I can't guarantee that I will reply immediately, or at all. If you need 
 
 I'll try and incorporate any feedback into the code, but this is a part time venture for me, and it will be competing with my other interests (writing books, blogging and research). But if you occasionally check github you will hopefully find it gradually improving. Offers to contribute will of course be gratefully accepted.
 
-## Release notes
-
-See [DONE_TO_DO](DONE_TO_DO.md) for release notes, and future plans.
 
 ## Licensing and legal stuff
 

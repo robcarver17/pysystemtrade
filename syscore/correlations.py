@@ -255,6 +255,7 @@ class CorrelationList(object):
         setattr(self, "corr_list", corr_list)
         setattr(self, "columns", column_names)
         setattr(self, "fit_dates", fit_dates)
+     
         
     def __repr__(self):
         return "%d correlation estimates for %s" % (len(self.corr_list), ",".join(self.columns))

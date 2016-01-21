@@ -102,13 +102,8 @@ def forecast_scalar(xcross, window=250000, min_periods=500, backfill=True):
     return scaling_factor
 
 
-def diversification_multiplier():
-    """
-    Given N assets with a correlation matrix of H and  weights W summing to 1, 
-    the diversification multiplier will be 1 / [ ( W x H x WT ) 1/2 ]
-    
-    We start with a pre cleaned (returns indexed and differenced, fcasts ffilled) of TxN
-    We take weekly slices from this, and calculate correlation matrices
-    We calculate correlations annually
-    
-    """
+
+
+if __name__ == '__main__':
+    import doctest
+    doctest.testmod()

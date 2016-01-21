@@ -35,15 +35,21 @@ average_absolute_forecast: 10.0
 #
 forecast_div_multiplier: 1.0
 #
+#
 forecast_correlation_estimate:
    pool_instruments: True
    func: syscore.correlations.CorrelationEstimator
    frequency: "W"
    date_method: "expanding"
    using_exponent: True
-   ew_lookback: 250
+   ew_lookback: 500
    min_periods: 20      
    cleaning: True
+#
+forecast_div_mult_estimate:
+   func: syscore.divmultipliers.diversification_multiplier_from_list
+   ewma_span: 125
+   floor_at_zero: True
 #
 # Capital correction
 #

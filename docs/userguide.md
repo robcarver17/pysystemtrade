@@ -18,6 +18,21 @@ from systems.provided.futures_chapter15.basesystem import futures_system
 system=futures_system()
 system.portfolio.get_notional_position("EDOLLAR")
 ```
+See [standard futures system](#futures_system) for more.
+
+
+## How do I....Create a futures backtest which estimates parameters
+
+This creates the staunch systems trader example defined in chapter 15 of my book, using the csv data that is provided, and estimates forecast scalars and forecast diversification multiplier (future versions will also estimate other fixed parameters):
+
+```python
+from systems.provided.futures_chapter15.estimatedsystem import futures_system
+system=futures_system()
+system.portfolio.get_notional_position("EDOLLAR")
+```
+
+See [estimated futures system](#futures_system).
+
 
 ## How do I....See intermediate results from a backtest
 
@@ -147,7 +162,7 @@ instrument_weights:
 instrument_div_multiplier: 1.89
 ```
 
-*At this stage you'd also need to recalculate the diversification multiplier (see chapter 11 of my book). The ability to do this automatically will be included in a future version of the code*
+*At this stage you'd also need to recalculate the diversification multiplier (see chapter 11 of my book). See [estimating the forecast diversification multiplier](#forecast_dm_estimate).
 
 You should then create a new system which points to the new config file:
 
@@ -235,7 +250,7 @@ Also note that the list of data for the rule will also be in the form of string 
 
 If no data is included, then the system will default to passing a single data item - the price of the instrument. Finally if any or all the `other_arg` keyword arguments are missing then the function will use it's own defaults.
  
-At this stage we can also remove any trading rules that we don't want. We also ought to modify the forecast scalars, forecast weights and probably the forecast diversification multiplier. 
+At this stage we can also remove any trading rules that we don't want. We also ought to modify the forecast scalars (See [forecast scale estimation](#scalar_estimate]), forecast weights and probably the forecast diversification multiplier ( see [estimating the forecast diversification multiplier](#forecast_dm_estimate)). 
 
 *If you don't include a forecast scalar for the rule, it will use a value of 1.0. If you don't include forecast weights in your config then the system will default to equally weighting. But if you include forecast weights, but miss out the new rule, then it won't be used to calculate the combined forecast.*
 
@@ -833,7 +848,10 @@ system=futures_system(trading_rules=my_rules) ## we probably need a new configur
 ```
 
 
-#### [Futures system for chapter 15](/systems/provided/futures_chapter15)
+
+<a name="futures_system">
+#### [Futures system for chapter 15](/systems/provided/futures_chapter15/basesystem.py)
+</a>
 
 This system implements the framework in chapter 15 of my book.
 
@@ -855,6 +873,35 @@ config=Config("systems.provided.futures_chapter15.futuresconfig.yaml") ## or the
 system=System([Account(), PortfoliosFixed(), PositionSizing(), FuturesRawData(), ForecastCombineFixed(), 
                    ForecastScaleCapFixed(), Rules(trading_rules)], data, config)
 ```
+
+<a name="estimated_system">
+#### [Futures system for chapter 15](/systems/provided/futures_chapter15/estimatedsystem.py)
+</a>
+
+
+This system implements the framework in chapter 15 of my book, but includes estimation of forecast scalars and forecast diversification multiplier.
+
+Currently it uses fixed forecast weights, instrument div. mult, and instrument weights; but this will change.
+
+```python
+from systems.provided.futures_chapter15.estimatedsystem import futures_system
+system=futures_system()
+```
+
+
+Effectively it implements the following; 
+
+```python
+data=csvFuturesData() ## or the data object that has been passed
+config=Config("systems.provided.futures_chapter15.futuresconfig.yaml") ## or the config object that is passed
+
+## Optionally the user can provide trading_rules (something which can be parsed as a set of trading rules); however this defaults to None in which case
+##     the rules in the config will be used.
+
+system=System([Account(), PortfoliosFixed(), PositionSizing(), FuturesRawData(), ForecastCombineEstimated(), 
+                   ForecastScaleCapEstimated(), Rules(trading_rules)], data, config)
+```
+
 
 ### Using the system object
 
@@ -1063,7 +1110,8 @@ Think carefully about wether your method should create data that is protected fr
 - Forecast scalars
 - Forecast weights
 - Forecast diversification multiplier
-- Forecast diversification multiplier
+- Forecast correlations
+- Instrument diversification multiplier
 - Instrument weights
 
 To this list I'd add any cross sectional data, and anything that measures portfolio risk (not yet implemented in this project).
@@ -1250,7 +1298,7 @@ It's worth creating a new pre-baked system if you're likely to want to repeat a 
 
 The elements of a new pre-baked system will be:
 
-1. New stages, or a difference choice of existing stages.
+1. New stages, or a different choice of existing stages.
 2. A set of data (eithier new or existing)
 3. A configuration file
 4. A python function that loads the above elements, and returns a system object
@@ -1412,9 +1460,10 @@ This approach (which you can also think of as the stage "API") is used to make i
 
 ### Using a different set of stages
 
-In future versions of this project there will be different versions of each stage available; for example there will be options to use portfolio optimisation to work out weights. Additionally you can add new kinds of stages if desired (see below), and remove stages you don't need (though you can't remove intermediate stages that a remaining stage would need to work out it's results).
+There are different versions of certain stages available; for example we can use eithier `ForecastScaleCapFixed` or `ForecastScaleCapEstimated`. Additionally you can add new kinds of stages if desired (see below), and remove stages you don't need (though you can't remove intermediate stages that a remaining stage would need to work out it's results).
 
 It's best to create a new 'pre-baked' system by copying and modifying a file such as [this](/systems/provided/futures_chapter_15/basesystem.py). You need to import the new stages you require and then put them into the system, like so:
+
 
 ```python
 from systems.provided.futures_chapter15 import *
@@ -1450,6 +1499,7 @@ If you're going to write a new stage (completely new, or to replace an existing 
 11. The doc string for input and output methods should clearly identify them as such. This is to make viewing the wiring easier.
 12. The doc string at the head of the stage should specify the input methods (and where they take their input from), and the output methods
 13. The doc string should also explain what the stage does, and the name of the stage
+14. It can make sense to blend methods from existing stages, for example if you want to use fixed forecast weights but estimate the forecast div. multiplier dynamically you can create a copy of `ForecastCombineEstimated` which does not override the get_raw_forecast_weights method.
 
 Here's an example of a base class, to use as a template for new classes (annotated extract):
 
@@ -2124,7 +2174,7 @@ system.rules._trading_rules['ewmac2_8']=modified_rule
 
 #############
 ## delete a rule (not recommended)
-## Removing the rule from the set of forecast weights would have the same effect - and you need to do this anyway
+## Removing the rule from the set of fixed forecast_weights or rule_variations (used for estimating forecast_weights) would have the same effect - and you need to do this anyway
 system.rules._trading_rules.pop("ewmac2_8")
 #############
 
@@ -2143,7 +2193,10 @@ This is a simple stage that performs two steps:
 
 #### Using the standard [ForecastScaleCapFixed class](/systems/forecast_scale_cap.py)
 
-The standard 'fixed' class uses fixed scaling and caps. 
+The standard 'fixed' class uses fixed scaling and caps. It is included in [standard futures system](#futures_system).
+
+
+
 
 Forecast scalars are specific to each rule. Scalars can eithier be included in the `trading_rules` or `forecast_scalars` part of the config. The former takes precedence if both are included:
 
@@ -2174,21 +2227,13 @@ forecast_cap: 20.0
 #### Calculating forecasting scaling on the fly with [ForecastScaleCapEstimated class](/systems/forecast_scale_cap.py)
 </a>
 
-You may prefer to estimate your forecast scales from the available data. This is often neccessary if you have a new trading rule and have no idea at all what the scaling should be. To do this you need to use the `ForecastScaleCapEstimated` child class, rather than the fixed flavour. This inherits from the fixed base class, so capping works in exactly the same way, but replaces the method for get_forecast_scalar. 
-
-For example if working with the chapter 15 futures system, here is a pre-baked version that estimates forecast scalars:
-
-```python
-from systems.provided.futures_chapter15.estimatedsystem import futures_system
-system=futures_system()
-```
+You may prefer to estimate your forecast scales from the available data. This is often neccessary if you have a new trading rule and have no idea at all what the scaling should be. To do this you need to use the `ForecastScaleCapEstimated` child class, rather than the fixed flavour. This inherits from the fixed base class, so capping works in exactly the same way, but replaces the method for get_forecast_scalar. It is included in the pre-baked [estimated futures system](#futures_system).
 
 All the config parameters needed are stored in `config.forecast_scalar_estimate`.
 
 You can eithier estimate scalars for individual instruments, or using data pooled across instruments. The config parameter `pool_instruments` determines which option is used.
 
 ##### Pooled forecast scale estimate (default) 
-
 
 We do this if `pool_instruments=True`. This defaults to using the function "syscore.algos.forecast_scalar", but this is configurable using the parameter `func`. If you're changing this please see [configuring defaults for your own functions](#config_function_defaults).
 
@@ -2218,7 +2263,9 @@ We now take a weighted average of forecasts using instrument weights, and multip
 
 #### Using the standard [ForecastCombineFixed class](/systems/forecast_combine.py)
 
-The current standard 'fixed' class uses fixed weights and a fixed multiplier. All are configurable.
+The current standard 'fixed' class uses fixed weights and a fixed multiplier. It is included in the pre-baked [standard futures system](#futures_system).
+
+Both weights and multiplier are configurable.
 
 Forecast weights can be (a) common across instruments, or (b) specified differently for each instrument. If not included equal weights will be used.
 
@@ -2260,10 +2307,18 @@ forecast_div_multiplier:
 
 Note that the `get_combined_forecast` method in the standard fixed base class automatically adjusts forecast weights if different trading rules have different start dates for their forecasts. It does not adjust the multiplier. This means that in the past the multiplier will probably be too high. 
 
+#### Using the [ForecastCombineEstimated class](/systems/forecast_combine.py)
+
+This class currently estimates the correct diversification multiplier 'on the fly' (in future it will also estimate forecast weights). It is included in the pre-baked [estimated futures system](#futures_system).
+
+<a name="forecast_dm_estimate">
+##### Estimating the forecast diversification multiplier
+</a>
+
 
 #### Writing new or modified forecast combination stages
 
-I plan to create a stage that will optimise forecast weights and calculate multipliers automatically.
+I plan to create a stage that will optimise forecast weights.
 
 <a name="position_scale">
 ### Stage: Position scaling
@@ -2478,7 +2533,7 @@ Private methods are excluded from this table.
 | Call                              | Standard?| Arguments       | Type | Description                                                    |
 |:-------------------------:|:---------:|:---------------:|:----:|:--------------------------------------------------------------:|
 | `forecastScaleCap.get_raw_forecast` | Standard  | `instrument_code`, `rule_variation_name`        | I  | `rules.get_raw_forecast` |
-| `forecastScaleCap.get_forecast_scalar` | Standard | `instrument_code`, `rule_variation_name`        | D  | Get the scalar to use for a forecast |
+| `forecastScaleCap.get_forecast_scalar` | Standard / Estimate | `instrument_code`, `rule_variation_name`        | D  | Get the scalar to use for a forecast |
 | `forecastScaleCap.get_forecast_cap` | Standard | `instrument_code`, `rule_variation_name`        | D,O  | Get the maximum allowable forecast |
 | `forecastScaleCap.get_scaled_forecast` | Standard | `instrument_code`, `rule_variation_name`        | D  | Get the forecast after scaling (after capping) |
 | `forecastScaleCap.get_capped_forecast` | Standard | `instrument_code`, `rule_variation_name`        | D, O  | Get the forecast after scaling (after capping) |
@@ -2496,7 +2551,7 @@ Private methods are excluded from this table.
 | `combForecast.get_raw_forecast_weights` | Standard  | `instrument_code`        | D  | Forecast weights |
 | `combForecast.get_forecast_weights` | Standard  | `instrument_code`        | D  | Forecast weights, adjusted for missing forecasts|
 | `combForecast.get_forecast_correlation_matrices` | Estimate  | `instrument_code`       | D  | Correlations of forecasts |
-| `combForecast.get_forecast_diversification_multiplier` | Standard  | `instrument_code`        | D  | Get diversification multiplier |
+| `combForecast.get_forecast_diversification_multiplier` | Standard / Estimate  | `instrument_code`        | D  | Get diversification multiplier |
 | `combForecast.get_combined_forecast` | Standard  | `instrument_code`        | D,O  | Get weighted average of forecasts for instrument |
 
 
@@ -2865,13 +2920,15 @@ config.forecast_div_multiplier=dict(SP500=1.4, US10=1.0)
 
 #### Forecast diversification multiplier  (estimated using `ForecastCombinedFixed`)
 
+To calculate the diversification multiplier we need to have correlations.
+
 ##### Forecast correlation calculation
 Represented as: dict of str, float and int. Keywords: parameter names
 Default: see below
 
 The method used to estimate forecast correlations on a rolling out of sample basis. Compulsory arguments are pool_instruments (determines if we pool estimate over multiple instruments) and func (str function pointer to use for estimation). The remaining arguments are passed to the estimation function. Any missing items will be pulled from the project defaults file.
 
-See [forecast scale estimation](#scalar_estimate] for more detail.
+See [estimating the forecast diversification multiplier](#forecast_dm_estimate).
 
 YAML: 
 ```
@@ -2889,9 +2946,37 @@ forecast_correlation_estimate:
 
 Python (example)
 ```python
+config.forecast_correlation_estimate=dict(pool_instruments=False)
 ```
 
 If you're considering using your own function please see [configuring defaults for your own functions](#config_function_defaults)
+
+
+##### Estimate of forecast diversification multiplier
+Represented as: dict of str, float and int. Keywords: parameter names
+Default: see below
+
+The method used to estimate forecast div. multipliers on a rolling out of sample basis. Any missing config elements are pulled from the project defaults. Compulsory arguments are: func (str function pointer to use for estimation). The remaining arguments are passed to the estimation function. 
+
+See [estimating the forecast diversification multiplier](#forecast_dm_estimate) for more detail.
+
+
+YAML: 
+```
+# Here is how we do the estimation. These are also the *defaults*.
+forecast_div_mult_estimate:
+   func: syscore.divmultipliers.diversification_multiplier_from_list
+   ewma_span: 125   ## smooth to apply 
+   floor_at_zero: True ## floor negative correlations
+```
+
+Python (example)
+```python
+config.forecast_div_mult_estimate=dict(ewma_span=125)
+```
+
+If you're considering using your own function please see [configuring defaults for your own functions](#config_function_defaults)
+
 
 ### Position sizing stage
 

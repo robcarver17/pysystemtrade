@@ -86,6 +86,36 @@ def apply_cap(pd_dataframe, capvalue):
     joined_ts[np.isnan(pd_dataframe)] = np.nan
     return joined_ts
 
+def align_to_joint(x,y, ffill):
+    """
+    Align x and y to their joint index
+    
+    
+    
+    :param x: Tx1 pandas data frame
+    :type x: pd.DataFrame
+
+    :param y: Tx1 pandas data frame
+    :type y: pd.DataFrame
+
+    :param ffill: should we ffill x and y respectively
+    :type ffill: 2-tuple (bool, bool)
+    
+    """
+    jointindex=list(set(list(x.index)+list(y.index) ))
+    
+    x=x.reindex(jointindex)
+    y=y.reindex(jointindex)
+    
+    (ffill_x, ffill_y) = ffill
+    
+    if ffill_x:
+        x=x.ffill()
+    
+    if ffill_y:
+        y=y.ffill()
+    
+    return (x,y)
 
 def index_match(x, y, ffill):
     """

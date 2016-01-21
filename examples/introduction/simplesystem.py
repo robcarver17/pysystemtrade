@@ -93,7 +93,7 @@ print(my_system.forecastScaleCap.get_capped_forecast(
 combine some rules
 """
 
-from systems.forecast_combine import ForecastCombineFixed
+from systems.forecast_combine import ForecastCombineFixed, ForecastCombineEstimated
 # forecast_weights=dict(ewmac8=0.5, ewmac32=0.5), forecast_div_multiplier=1.1
 combiner = ForecastCombineFixed()
 my_system = System([fcs, my_rules, combiner], data, my_config)
@@ -103,6 +103,11 @@ my_config.forecast_weights = dict(ewmac8=0.5, ewmac32=0.5)
 my_config.forecast_div_multiplier = 1.1
 my_system = System([fcs, empty_rules, combiner], data, my_config)
 my_system.combForecast.get_combined_forecast("EDOLLAR").tail(5)
+
+### estimated...
+combiner = ForecastCombineEstimated()
+my_system = System([fcs, my_rules, combiner], data, my_config)
+print(my_system.combForecast.get_forecast_diversification_multiplier("EDOLLAR").tail(5))
 
 # size positions
 

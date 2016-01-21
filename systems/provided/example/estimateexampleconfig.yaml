@@ -47,8 +47,9 @@ forecast_scalar_estimate:
 # forecast combination
 #
 forecast_weights:
-     ewmac8: 0.50
-     ewmac16: 0.50
+     ewmac8: 0.25
+     ewmac16: 0.25
+     carry: 0.50
 #
 rule_variations:
      EDOLLAR: ['ewmac8','ewmac16', 'carry']
@@ -62,9 +63,15 @@ forecast_correlation_estimate:
    frequency: "W"
    date_method: "expanding"
    using_exponent: True
-   ew_lookback: 250
+   ew_lookback: 500
    min_periods: 20      
    cleaning: True
+#
+#
+forecast_div_mult_estimate:
+   func: syscore.divmultipliers.diversification_multiplier_from_list
+   ewma_span: 125
+   floor_at_zero: True
 #
 #
 # Capital correction

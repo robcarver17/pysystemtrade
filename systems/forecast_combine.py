@@ -4,7 +4,7 @@ from copy import copy
 
 from syscore.genutils import str2Bool
 from syscore.pdutils import multiply_df, fix_weights_vs_pdm, apply_cap
-from syscore.objects import resolve_function
+from syscore.objects import resolve_function, update_recalc
 
 from systems.defaults import system_defaults
 from systems.stage import SystemStage
@@ -32,6 +32,7 @@ class ForecastCombineFixed(SystemStage):
         """
         Create a SystemStage for combining forecasts
 
+        FIX ME ADD CORRELATIONS NEED TO BE NESTED
 
         """
 
@@ -463,6 +464,21 @@ class ForecastCombineEstimated(ForecastCombineFixed):
 
     Name: combForecast
     """
+
+    def __init__(self):
+        """
+        """
+        super(ForecastCombineEstimated, self).__init__()
+
+        """
+        if you add another method to this you also need to add its blank dict here
+        """
+
+        protected = ['get_forecast_correlation_matrices']
+        update_recalc(self, protected)
+    
+    
+    
     def get_trading_rule_list(self, instrument_code):
         """
         Get list of all trading rule names
@@ -557,13 +573,13 @@ class ForecastCombineEstimated(ForecastCombineFixed):
         >>> system=System([rawdata, rules, fcs, ForecastCombineEstimated()], data, config)
         >>> ans=system.combForecast.get_forecast_correlation_matrices("EDOLLAR")
         >>> print(ans.corr_list[-1])
-        [[ 1.          0.03850942  0.05401426]
-         [ 0.03850942  1.          0.85892831]
-         [ 0.05401426  0.85892831  1.        ]]
+        [[ 1.          0.11430003  0.08520746]
+         [ 0.11430003  1.          0.86476074]
+         [ 0.08520746  0.86476074  1.        ]]
         >>> print(ans.columns)
         ['carry', 'ewmac16', 'ewmac8']
         """
-        def _get_forecast_correlation_matrices(system, instrument_code, this_stage, 
+        def _get_forecast_correlation_matrices(system, instrument_code, NotUsed, this_stage, 
                                                codes_to_use, corr_func, **corr_params):
 
             forecast_data=[this_stage.get_all_forecasts(code) for code in codes_to_use]
@@ -592,12 +608,12 @@ class ForecastCombineEstimated(ForecastCombineFixed):
             instrument_code_ref=ALL_KEYNAME
             
             ## We 
-            label='get_forecast_correlation_matrices'+'_'.join(codes_to_use)
+            label='_'.join(codes_to_use)
             
         else:
 
             codes_to_use=[instrument_code]
-            label='get_forecast_correlation_matrices'
+            label=instrument_code
             instrument_code_ref=instrument_code
         ##
         ## label: how we identify this thing in the cache
@@ -608,13 +624,59 @@ class ForecastCombineEstimated(ForecastCombineFixed):
         ## func: function to call to calculate correlations
         ## **corr_params: parameters to pass to correlation function
         ##
-        forecast_corr_list = self.parent.calc_or_cache(
-            label, instrument_code_ref, _get_forecast_correlation_matrices,
+
+        forecast_corr_list = self.parent.calc_or_cache_nested(
+            'get_forecast_correlation_matrices', instrument_code_ref, label, 
+            _get_forecast_correlation_matrices,
              self, codes_to_use, corr_func, **corr_params)
         
         return forecast_corr_list
 
+    def get_forecast_diversification_multiplier(self, instrument_code):
+        """
 
+        Get the diversification multiplier for this instrument
+        
+        Estimated from correlations and weights
+
+        :param instrument_code: instrument to get multiplier for
+        :type instrument_code: str
+
+        :returns: Tx1 pd.DataFrame
+
+
+
+        >>> from systems.tests.testdata import get_test_object_futures_with_rules_and_capping_estimate
+        >>> from systems.basesystem import System
+        >>> (fcs, rules, rawdata, data, config)=get_test_object_futures_with_rules_and_capping_estimate()
+        >>> system=System([rawdata, rules, fcs, ForecastCombineEstimated()], data, config)
+        >>> system.combForecast.get_forecast_diversification_multiplier("EDOLLAR").tail(3)
+                         FDM
+        2015-12-09  1.370531
+        2015-12-10  1.370519
+        2015-12-11  1.370508
+        """
+        def _get_forecast_div_multiplier(system, instrument_code, this_stage):
+            
+            ## Get some useful stuff from the config
+            div_mult_params=self.parent.config.dict_with_defaults("forecast_div_mult_estimate", 
+                 ['func', 'ewma_span','floor_at_zero'])
+            
+            idm_func=resolve_function(div_mult_params.pop("func"))
+            
+            correlation_list_object=this_stage.get_forecast_correlation_matrices(instrument_code)
+            weight_df=this_stage.get_forecast_weights(instrument_code)
+
+            ts_fdm=idm_func(correlation_list_object, weight_df, **div_mult_params)
+
+            ts_fdm.columns=['FDM']
+
+            return ts_fdm
+
+        forecast_div_multiplier = self.parent.calc_or_cache(
+            'get_forecast_diversification_multiplier', instrument_code, _get_forecast_div_multiplier, 
+            self)
+        return forecast_div_multiplier
 
 
 
