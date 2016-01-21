@@ -2,9 +2,9 @@
 
 Systematic Trading in python
 
-Version 0.1.2
+Version 0.0.3
 
-20160118
+20160121
 
 Rob Carver
 
