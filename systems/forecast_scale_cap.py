@@ -329,8 +329,8 @@ class ForecastScaleCapEstimated(ForecastScaleCapFixed):
 
 
         ## Get some useful stuff from the config
-        forecast_scalar_config=self.parent.config.dict_with_defaults('forecast_scalar_estimate', 
-            ['func', 'pool_instruments', 'window', 'min_periods', 'backfill'])
+        forecast_scalar_config=copy(self.parent.config.dict_with_defaults('forecast_scalar_estimate', 
+            ['func', 'pool_instruments', 'window', 'min_periods', 'backfill']))
 
         # The config contains 'func' and some other arguments
         # we turn func which could be a string into a function, and then

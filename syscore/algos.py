@@ -85,7 +85,10 @@ def forecast_scalar(xcross, window=250000, min_periods=500, backfill=True):
 
     ## Take CS average first
     ## we do this before we get the final TS average otherwise get jumps in scalar
-    x=xcross.abs().median(axis=1).to_frame()
+    if xcross.shape[1]==1:
+        x=xcross.abs()
+    else:
+        x=xcross.abs().median(axis=1).to_frame()
     
     ## now the TS 
     avg_abs_value=pd.rolling_mean(x, window=window, min_periods=min_periods)

@@ -9,6 +9,8 @@ parameters - a dict of values which override those in system.defaults
 trading_rules - a specification of the trading rules for a system
 
 """
+from copy import copy
+
 import yaml
 from syscore.fileutils import get_filename_for_package
 from systems.defaults import get_system_defaults
@@ -97,7 +99,7 @@ class Config(object):
         if ans is None:
             raise Exception("Element %s not in defaults or config" % element_name)
         
-        return ans
+        return copy(ans)
 
 
     def dict_with_defaults(self, element_name, required=[]):
@@ -115,7 +117,7 @@ class Config(object):
         """
         if len(required)>0:
             default_dict=get_system_defaults().get(element_name, dict())
-            config_dict=getattr(self, element_name, dict())
+            config_dict=copy(getattr(self, element_name, dict()))
             
             for dict_key in required:
                 if dict_key not in config_dict:
