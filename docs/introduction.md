@@ -35,12 +35,12 @@ data.get_instrument_price("EDOLLAR").tail(5)
 ```
 
 ```
-              price
-2015-04-16  97.9350
-2015-04-17  97.9400
-2015-04-20  97.9250
-2015-04-21  97.9050
-2015-04-22  97.8325
+                       price
+2015-12-11 12:00:25  97.9125
+2015-12-11 14:11:34  97.9525
+2015-12-11 15:39:37  97.9425
+2015-12-11 17:08:14  97.9675
+2015-12-11 19:33:39  97.9875
 ```
 
 This is old data, but it's sufficient for playing with.  
@@ -59,16 +59,18 @@ data['SP500'] ## equivalent to data.get_instrument_price
 Price data is useful, but is there any other data available? For futures, yes, we can get the data we need to implement a carry rule:
 
 ```python
-data.get_instrument_raw_carry_data("US10").tail(5)
+data.get_instrument_raw_carry_data("EDOLLAR").tail(6)
+
 ```
 
 ```
-                 PRICE       CARRY CARRY_CONTRACT PRICE_CONTRACT
-2015-04-16  129.250000  129.656250         201509         201506
-2015-04-17  129.437500  129.718750         201509         201506
-2015-04-20  129.109375  129.562500         201509         201506
-2015-04-21  129.000000  129.390625         201509         201506
-2015-04-22         NaN  128.867188         201509         201506
+                       PRICE  CARRY CARRY_CONTRACT PRICE_CONTRACT
+2015-12-10 23:00:00  97.8800  97.95         201812         201903
+2015-12-11 12:00:25  97.9125    NaN         201812         201903
+2015-12-11 14:11:34  97.9525    NaN         201812         201903
+2015-12-11 15:39:37  97.9425    NaN         201812         201903
+2015-12-11 17:08:14  97.9675    NaN         201812         201903
+2015-12-11 19:33:39  97.9875    NaN         201812         201903
 ```
 
 Let's create a simple trading rule. 
@@ -86,12 +88,12 @@ def calc_ewmac_forecast(price, Lfast, Lslow=None):
     """
     Calculate the ewmac trading fule forecast, given a price and EWMA speeds Lfast, Lslow and vol_lookback
     
-    Assumes that 'price' is daily data
     """
     ## price: This is the stitched price series
     ## We can't use the price of the contract we're trading, or the volatility will be jumpy
     ## And we'll miss out on the rolldown. See http://qoppac.blogspot.co.uk/2015/05/systems-building-futures-rolling.html
 
+    price = price.resample("1B")
     if Lslow is None:
         Lslow=4*Lfast
     
@@ -112,6 +114,7 @@ Let's run it and look at the output
 instrument_code='EDOLLAR'
 price=data.get_instrument_price(instrument_code)
 ewmac=calc_ewmac_forecast(price, 32, 128)
+ewmac.columns=['forecast']
 ewmac.tail(5)
 
 from matplotlib.pyplot import show
@@ -120,19 +123,19 @@ show()
 ```
 
 ```
-               price
-2015-04-16  3.742889
-2015-04-17  3.918523
-2015-04-20  4.062661
-2015-04-21  4.179868
-2015-04-22  4.041079
+            forecast
+2015-12-07  2.303484
+2015-12-08  2.345404
+2015-12-09  2.398515
+2015-12-10  2.289017
+2015-12-11  2.138422
 ```
 
 Did we make any money?
 
 ```python
 from syscore.accounting import pandl
-account=pandl(price, forecast=ewmac)
+account=pandl(price, forecast=ewmac, capital=0.0) ## capital=0.0 gives % returns
 account.stats()
 ```
 
@@ -241,11 +244,11 @@ my_system.rules.get_raw_forecast("EDOLLAR", "ewmac").tail(5)
 
 ```
                ewmac
-2015-04-16  3.742889
-2015-04-17  3.918523
-2015-04-20  4.062661
-2015-04-21  4.179868
-2015-04-22  4.041079
+2015-12-07  2.303484
+2015-12-08  2.345404
+2015-12-09  2.398515
+2015-12-10  2.289017
+2015-12-11  2.138422
 ```
 
 This is exactly what we got in the simple example above; but with far more work. Don't worry, it will be worth it.
@@ -282,7 +285,7 @@ my_rules.trading_rules()['ewmac32']
 TradingRule; function: <function ewmac_forecast_with_defaults at 0xb7252a4c>, data:  and other_args: Lfast, Lslow
 ```
 
-Again, let's check that `ewmac32` is the same as the `ewmac` we have before (it should be, since 32, 128 are the default arguments for the underlying trading rule function):
+Again, let's check that `ewmac32` is the same as the `ewmac` we have before (it should be, since 32, 128 are the default arguments for the underlying trading rule function). 
 
 ```python
 my_system=System([my_rules], data)
@@ -290,12 +293,12 @@ my_system.rules.get_raw_forecast("EDOLLAR", "ewmac32").tail(5)
 ```
 
 ```
-               ewmac
-2015-04-16  3.742889
-2015-04-17  3.918523
-2015-04-20  4.062661
-2015-04-21  4.179868
-2015-04-22  4.041079
+             ewmac32
+2015-12-07  2.303484
+2015-12-08  2.345404
+2015-12-09  2.398515
+2015-12-10  2.289017
+2015-12-11  2.138422
 ```
 
 
@@ -335,6 +338,10 @@ Now these trading rules aren't producing forecasts that are correctly scaled (wi
 We could estimate these on a rolling out of sample basis:
 
 ```python
+## By default we pool esimates across instruments. It's worth telling the system what instruments we want to use:
+#
+my_config.instruments=["EDOLLAR", "US10", "EDOLLAR", "CORN", "SP500"]
+
 from systems.forecast_scale_cap import ForecastScaleCapEstimated
 fce=ForecastScaleCapEstimated()
 my_system = System([fce, my_rules], data, my_config)
@@ -343,12 +350,12 @@ my_system.forecastScaleCap.get_forecast_scalar("EDOLLAR", "ewmac32").tail(5)
 ```
 
 ```
-                     scale_factor
-2015-12-11 19:33:39      3.133106
-2015-12-11 19:37:11      3.133112
-2015-12-11 19:39:40      3.133130
-2015-12-11 19:42:56      3.133102
-2015-12-11 23:00:00      3.133106
+            scale_factor
+2015-12-07      2.839170
+2015-12-08      2.839321
+2015-12-09      2.839475
+2015-12-10      2.839633
+2015-12-11      2.839804
 ```
 
 
@@ -369,12 +376,12 @@ my_system.forecastScaleCap.get_capped_forecast("EDOLLAR", "ewmac32")
 
 
 ```
-              ewmac32
-2015-04-16   9.918656
-2015-04-17  10.384086
-2015-04-20  10.766051
-2015-04-21  11.076651
-2015-04-22  10.708858
+             ewmac32
+2015-12-07  6.104233
+2015-12-08  6.215322
+2015-12-09  6.356065
+2015-12-10  6.065894
+2015-12-11  5.666819
 ```
 
 *We didn't have to pass the forecast cap of 20.0, since the system was happy to use the default value (this is defined in the system defaults file, which the full [users guide](userguide.md) will tell you more about).*
@@ -385,39 +392,67 @@ Since we have two trading rule variations we're naturally going to want to combi
 from systems.forecast_combine import ForecastCombineFixed
 combiner=ForecastCombineFixed()
 my_system=System([fcs, empty_rules, combiner], data, my_config)
-my_system.combForecast.get_combined_forecast("EDOLLAR").tail(5)
+my_system.combForecast.get_forecast_weights("EDOLLAR").tail(5)
+my_system.combForecast.get_forecast_diversification_multiplier("EDOLLAR").tail(5)
+
 ```
 
 ```
 WARNING: No forecast weights  - using equal weights of 0.5000 over all 2 trading rules in system
-            comb_forecast
-2015-04-16       9.162660
-2015-04-17       9.668552
-2015-04-20       9.907909
-2015-04-21       9.906067
-2015-04-22       8.842466
+                     ewmac32  ewmac8
+2015-12-11 12:00:25      0.5     0.5
+2015-12-11 14:11:34      0.5     0.5
+2015-12-11 15:39:37      0.5     0.5
+2015-12-11 17:08:14      0.5     0.5
+2015-12-11 19:33:39      0.5     0.5
+                     fdm
+2015-12-11 12:00:25    1
+2015-12-11 14:11:34    1
+2015-12-11 15:39:37    1
+2015-12-11 17:08:14    1
+2015-12-11 19:33:39    1
 ```
 
-Alternatively you can estimate div. multipliers (and in future releases, weights):
+Alternatively you can estimate div. multipliers, and weights. 
+
+Note: Since we need to know the performance of different trading rules, we need to include an Accounts stage to calculate these:
 
 ```python
-from systems.forecast_combine import ForecastCombineEstimated
-combiner=ForecastCombineEstimated()
-my_system=System([fcs, empty_rules, combiner], data, my_config)
-my_system.combForecast.get_forecast_diversification_multiplier("EDOLLAR").tail(5)
+from systems.account import Account
+my_account = Account()
+
+## let's use naive markowitz to get more interesting results...
+my_config.forecast_weight_estimate=dict(method="one_period") 
+
+combiner_estimated = ForecastCombineEstimated()
+my_system = System([my_account, fcs, my_rules, combiner_estimated], data, my_config)
+
+## this is a bit slow, better to know what's going on
+my_system.set_logging_level("on")
+
+print(my_system.combForecast.get_forecast_weights("EDOLLAR").tail(5))
+print(my_system.combForecast.get_forecast_diversification_multiplier("EDOLLAR").tail(5))
+
 ```
 
 ```
-                          FDM
-2015-12-11 12:00:25  1.110897
-2015-12-11 14:11:34  1.110897
-2015-12-11 15:39:37  1.110897
-2015-12-11 17:08:14  1.110897
-2015-12-11 19:33:39  1.110897
+             ewmac32    ewmac8
+2015-12-07  0.067186  0.932814
+2015-12-08  0.067330  0.932670
+2015-12-09  0.067474  0.932526
+2015-12-10  0.067616  0.932384
+2015-12-11  0.067757  0.932243
+
+                 FDM
+2015-12-07  1.015229
+2015-12-08  1.015365
+2015-12-09  1.015499
+2015-12-10  1.015630
+2015-12-11  1.015760
 ```
 
 
-Let's use some arbitrary forecast weights and diversification multiplier for now:
+Let's use some arbitrary fixed forecast weights and diversification multiplier for now:
 
 
 ```python
@@ -430,11 +465,12 @@ my_system.combForecast.get_combined_forecast("EDOLLAR").tail(5)
 
 ```
             comb_forecast
-2015-04-16      10.078925
-2015-04-17      10.635408
-2015-04-20      10.898699
-2015-04-21      10.896673
-2015-04-22       9.726712
+2015-12-07       3.322884
+2015-12-08       3.535802
+2015-12-09       3.817531
+2015-12-10       3.231421
+2015-12-11       3.595927
+
 ```
 
 If you're working through my book you'd know the next stage is deciding what level of risk to target (chapter 9) and position sizing (chapter 10). 
@@ -458,16 +494,52 @@ my_system.positionSize.get_subsystem_position("EDOLLAR").tail(5)
 
 ```
             ss_position
-2015-04-16    75.048813
-2015-04-17    82.175489
-2015-04-20    86.984346
-2015-04-21    89.209027
-2015-04-22    77.713056
+2015-12-04    27.088860
+2015-12-07    27.781050
+2015-12-08    30.295935
+2015-12-09    33.692504
+2015-12-10    28.225567
 ```
 
-We're almost there. The final stage we need to get positions is to combine everything into a portfolio (chapter 11). Again I'm going to make up some instrument weights, and diversification multiplier.
+We're almost there. The final stage we need to get positions is to combine everything into a portfolio (chapter 11). 
 
-*Again if we couldn't be bothered, this would default to equal weights and 1.0 respectively*
+We can estimate these:
+
+```python
+from systems.portfolio import PortfoliosEstimated
+portfolio_estimate = PortfoliosEstimated()
+
+## this will speed things but - but I don't recommend it for actual trading...
+my_config.instrument_weight_estimate=dict(method="shrinkage", date_method="in_sample") ## speeds things up
+
+my_system = System([my_account, fcs, my_rules, combiner, possizer,
+                    portfolio_estimate], data, my_config)
+
+my_system.set_logging_level("on")
+
+print(my_system.portfolio.get_instrument_weights())
+print(my_system.portfolio.get_instrument_diversification_multiplier())
+```
+
+```
+                CORN  EDOLLAR     SP500     US10
+2015-12-04  0.122233  0.34819  0.320227  0.20935
+2015-12-07  0.122233  0.34819  0.320227  0.20935
+2015-12-08  0.122233  0.34819  0.320227  0.20935
+2015-12-09  0.122233  0.34819  0.320227  0.20935
+2015-12-10  0.122233  0.34819  0.320227  0.20935
+
+                 IDM
+2015-12-04  1.554428
+2015-12-07  1.554383
+2015-12-08  1.554339
+2015-12-09  1.554296
+2015-12-10  1.554253
+```
+
+Alternatively we can just make up some instrument weights, and diversification multiplier.
+
+*Again if we really couldn't be bothered, this would default to equal weights and 1.0 respectively*
 
 ```python
 from systems.portfolio import PortfoliosFixed
@@ -481,11 +553,11 @@ my_system.portfolio.get_notional_position("EDOLLAR").tail(5)
 
 ```                 
                   pos
-2015-04-16  45.029288
-2015-04-17  49.305294
-2015-04-20  52.190608
-2015-04-21  53.525416
-2015-04-22  46.627833
+2015-12-04  16.253316
+2015-12-07  16.668630
+2015-12-08  18.177561
+2015-12-09  20.215503
+2015-12-10  16.935340
 ```
 
 Although this is fine and dandy, we're probably going to be curious about whether this made money or not. So we'll need to add just one more stage, to count our virtual profits:
@@ -591,13 +663,21 @@ system.portfolio.get_notional_position("EUROSTX").tail(5)
 
 ```
                  pos
-2015-04-16  2.929976
-2015-04-17  2.038499
-2015-04-20  1.897126
-2015-04-21  1.981541
-2015-04-22  2.119637
+2015-12-04  0.624183
+2015-12-07  0.629924
+2015-12-08  0.538517
+2015-12-09  0.451322
+2015-12-10  0.385892
+
 ```
 
 It's worth looking at the config for this system [here](/systems/provided/futures_chapter15/futuresconfig.yaml), and comparing it to what you see in chapter 15.
+
+You can also get a similar system where forecast scalars are estimated; as well as forecast / instrument diversification multipliers and weights. Because estimation takes a while, it's worth turning logging on full to keep track of what's going on.
+
+```python
+from systems.provided.futures_chapter15.estimatedsystem import futures_system
+system = futures_system(log_level="on")
+```
 
 You'll probably want to read the [users guide](userguide.md) next.

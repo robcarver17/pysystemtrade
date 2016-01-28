@@ -16,12 +16,12 @@ class PositionSizing(SystemStage):
                 b) system.rawdata.get_daily_percentage_volatility(instrument_code)
                  found in self.get_price_volatility(instrument_code)
 
-                 If not found, uses system.data.get_instrument_price to calculate
+                 If not found, uses system.data.daily_prices to calculate
 
                 c) system.rawdata.daily_denominator_price((instrument_code)
                  found in self.get_instrument_sizing_data(instrument_code)
 
-                If not found, uses system.data.get_instrument_price
+                If not found, uses system.data.daily_prices
 
                 d)  system.data.get_value_of_block_price_move(instrument_code)
                  found in self.get_instrument_sizing_data(instrument_code)
@@ -106,8 +106,7 @@ class PositionSizing(SystemStage):
                 daily_perc_vol = system.rawdata.get_daily_percentage_volatility(
                     instrument_code)
             else:
-                price = system.data.get_instrument_price(instrument_code)
-                price = price.resample("1B", how="last")
+                price = system.data.daily_prices(instrument_code)
                 return_vol = robust_vol_calc(price.diff())
                 daily_perc_vol = 100.0 * \
                     divide_df_single_column(return_vol, price)
@@ -164,9 +163,8 @@ class PositionSizing(SystemStage):
                 instrument_code)
 
         else:
-            underlying_price = self.parent.data.get_instrument_price(
+            underlying_price = self.parent.data.daily_prices(
                 instrument_code)
-            underlying_price = underlying_price.resample("1B", how="last")
 
         value_of_price_move = self.parent.data.get_value_of_block_price_move(
             instrument_code)
@@ -195,7 +193,7 @@ class PositionSizing(SystemStage):
         'GBP'
         >>>
         >>> ## from defaults
-        >>> del(config.base_currency)
+        >>> config.delete("base_currency")
         >>> system=System([rawdata, rules, fcs, comb, PositionSizing()], data, config)
         >>> system.positionSize.get_daily_cash_vol_target()['base_currency']
         'USD'
@@ -204,13 +202,14 @@ class PositionSizing(SystemStage):
         """
 
         def _get_vol_target(system, an_ignored_variable, this_stage):
+            this_stage.log.msg("Getting vol target")
 
-            percentage_vol_target = system.config.item_with_defaults('percentage_vol_target')
+            percentage_vol_target = float(system.config.percentage_vol_target)
 
             notional_trading_capital = float(
-                    system.config.item_with_defaults('notional_trading_capital'))
+                    system.config.notional_trading_capital)
 
-            base_currency = system.config.item_with_defaults('base_currency')
+            base_currency = system.config.base_currency
 
             annual_cash_vol_target = notional_trading_capital * percentage_vol_target / 100.0
             daily_cash_vol_target = annual_cash_vol_target / ROOT_BDAYS_INYEAR
@@ -249,6 +248,9 @@ class PositionSizing(SystemStage):
         """
 
         def _get_fx_rate(system, instrument_code, this_stage):
+            this_stage.log.msg("Getting fx rates for %s" % instrument_code,
+                               instrument_code=instrument_code)
+
             base_currency = this_stage.get_daily_cash_vol_target()[
                 'base_currency']
             fx_rate = system.data.get_fx_for_instrument(
@@ -288,6 +290,8 @@ class PositionSizing(SystemStage):
 
         """
         def _get_block_value(system, instrument_code, this_stage):
+            this_stage.log.msg("Getting block value for %s" % instrument_code,
+                               instrument_code=instrument_code)
 
             (underlying_price, value_of_price_move) = this_stage.get_instrument_sizing_data(
                 instrument_code)
@@ -327,6 +331,9 @@ class PositionSizing(SystemStage):
 
         """
         def _get_instrument_currency_vol(system, instrument_code, this_stage):
+
+            this_stage.log.msg("Calculating instrument currency vol for %s" % instrument_code,
+                               instrument_code=instrument_code)
 
             block_value = this_stage.get_block_value(instrument_code)
             daily_perc_vol = this_stage.get_price_volatility(instrument_code)
@@ -369,6 +376,9 @@ class PositionSizing(SystemStage):
         """
         def _get_instrument_value_vol(system, instrument_code, this_stage):
 
+            this_stage.log.msg("Calculating instrument value vol for %s" % instrument_code,
+                               instrument_code=instrument_code)
+
             instr_ccy_vol = this_stage.get_instrument_currency_vol(
                 instrument_code)
             fx_rate = this_stage.get_fx_rate(instrument_code)
@@ -410,6 +420,9 @@ class PositionSizing(SystemStage):
         2015-12-10   11.180444
         """
         def _get_volatility_scalar(system, instrument_code, this_stage):
+
+            this_stage.log.msg("Calculating volatility scalar for %s" % instrument_code,
+                               instrument_code=instrument_code)
 
             instr_value_vol = this_stage.get_instrument_value_vol(
                 instrument_code)
@@ -454,6 +467,10 @@ class PositionSizing(SystemStage):
 
         """
         def _get_subsystem_position(system, instrument_code, this_stage):
+
+            this_stage.log.msg("Calculating subsystem position for %s" % instrument_code,
+                               instrument_code=instrument_code)
+
             """
             We don't allow this to be changed in config
             """

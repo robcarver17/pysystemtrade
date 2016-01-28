@@ -5,7 +5,7 @@ base_currency: "GBP"
 trading_rules:
   ewmac8:
      function: systems.provided.example.rules.ewmac_forecast_with_defaults
-     data: data.get_instrument_price
+     data: data.daily_prices
      other_args: 
          Lfast: 8
          Lslow: 32

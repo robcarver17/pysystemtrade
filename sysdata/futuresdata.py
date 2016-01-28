@@ -34,8 +34,9 @@ class FuturesData(Data):
         """
         # Default method to get instrument price
         # Will usually be overriden when inherited with specific data source
-        raise Exception(
-            "You have created a FuturesData() object or you probably need to replace this method to do anything useful")
+        error_msg="You have created a FuturesData() object or you probably need to replace this method to do anything useful"
+        self.log.critical(error_msg)
+
 
 
 if __name__ == '__main__':

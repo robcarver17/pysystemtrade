@@ -114,6 +114,9 @@ def generate_fitting_dates(data, date_method, rollyears=20):
     
     if 'rolling' then use rollyears variable  
     """
+
+    if date_method not in ["in_sample","rolling", "expanding"]:
+        raise Exception("don't recognise date_method %s should be one of in_sample, expanding, rolling" % date_method)
     
     if type(data) is list:
         start_date=min([dataitem.index[0] for dataitem in data])
@@ -121,6 +124,11 @@ def generate_fitting_dates(data, date_method, rollyears=20):
     else:
         start_date=data.index[0]
         end_date=data.index[-1]
+
+    ## now generate the dates we use to fit
+    if date_method=="in_sample":
+        ## single period
+        return [fit_dates_object(start_date, end_date, start_date, end_date)]
     
     ## generate list of dates, one year apart, including the final date
     yearstarts=list(pd.date_range(start_date, end_date, freq="12M"))+[end_date]
@@ -133,19 +141,15 @@ def generate_fitting_dates(data, date_method, rollyears=20):
         period_end=yearstarts[tidx+1]
 
         ## now generate the dates we use to fit
-        if date_method=="in_sample":
-            fit_start=start_date
-        elif date_method=="expanding":
+        if date_method=="expanding":
             fit_start=start_date
         elif date_method=="rolling":
             yearidx_to_use=max(0, tidx-rollyears)
             fit_start=yearstarts[yearidx_to_use]
         else:
-            raise Exception("don't recognise date_method %s" % date_method)
+            raise Exception("don't recognise date_method %s should be one of in_sample, expanding, rolling" % date_method)
             
-        if date_method=="in_sample":
-            fit_end=end_date
-        elif date_method in ['rolling', 'expanding']:
+        if date_method in ['rolling', 'expanding']:
             fit_end=period_start
         else:
             raise Exception("don't recognise date_method %s " % date_method)

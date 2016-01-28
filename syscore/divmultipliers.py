@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from syscore.genutils import str2Bool
     
-def diversification_mult_single_period(corrmatrix, weights, floor_at_zero=True):
+def diversification_mult_single_period(corrmatrix, weights):
     """
     Given N assets with a correlation matrix of H and  weights W summing to 1, 
     the diversification multiplier will be 1 / [ ( W x H x WT ) 1/2 ]
@@ -15,9 +15,6 @@ def diversification_mult_single_period(corrmatrix, weights, floor_at_zero=True):
     :param weights: Weights of assets
     :type weights: list of floats (aligned with corrmatrix)
 
-    :param floor_at_zero: remove negative correlations before proceeding
-    :type floor_at_zero: bool or str
-    
     :returns: float 
 
     >>> corrmatrix=np.array([[1.0,0.0], [0.0,1.0]])
@@ -25,18 +22,20 @@ def diversification_mult_single_period(corrmatrix, weights, floor_at_zero=True):
     >>> diversification_mult_single_period(corrmatrix, weights)
     1.414213562373095
     """
-    floor_at_zero=str2Bool(floor_at_zero)
+
+    ## edge cases...
+    if all([x==0.0 for x in list(weights)]) or np.all(np.isnan(weights)):
+        return 1.0
+
     weights=np.array(weights, ndmin=2)
 
-    if floor_at_zero:
-        corrmatrix=copy(corrmatrix)
-        corrmatrix[corrmatrix<0]=0.0
     
-    return 1.0 / (
+    dm=1.0 / (
          float(
                 np.dot(np.dot(weights, corrmatrix), weights.transpose()))
                   **.5)
 
+    return dm
 
 def diversification_multiplier_from_list(correlation_list_object, weight_df_raw, ewma_span=125, **kwargs):
     """
@@ -79,7 +78,7 @@ def diversification_multiplier_from_list(correlation_list_object, weight_df_raw,
     div_mult_df=pd.DataFrame(div_mult_vector, columns=["DivMult"], index=ref_periods)
     div_mult_df=div_mult_df.reindex(weight_df.index, method="ffill")
     
-    div_mult_df=pd.ewma(div_mult_df, span=125)
+    div_mult_df=pd.ewma(div_mult_df, span=ewma_span)
     
     return div_mult_df
     

@@ -1,5 +1,20 @@
 # Release notes
 
+## Version: 0.2.0
+
+* Calculating forecast weights in ForecastCombineEstimated
+* Created PortfoliosEstimated
+   * Calculating instrument weights 
+   * Calculating instrument diversification multiplier 
+* Added a logging function 
+* Modified system.get_instruments so will check config.instruments (useful if estimating instrument weights)
+* Included daily_prices method in data; raw data method just points to it; replaced most uses of (intraday) data.get_instrument_price with daily prices
+* Added some new methods to account stage
+* Cleaned up the way pooling works in correlation estimation
+* Finished clean_correlation function so now deals with incomplete matricies
+* Changed the way defaults feed into config objects
+
+
 ## Version: 0.1.0
 
 * Added estimation of forecast diversification multiplier to ForecastCombineEstimated
@@ -41,6 +56,9 @@ system cleaning
 
 * Simulation:
 
+  * Speed up optimisation and correlation estimates
+  * Costs
+  * autodetect if need to estimate parameters or not
   * estimated trades; with buffering of trades
   * vol targeting with capital adjustment
   * Rolling optimisation of forecast and instrument weights

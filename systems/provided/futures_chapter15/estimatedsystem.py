@@ -13,11 +13,11 @@ from systems.forecast_combine import ForecastCombineEstimated
 from systems.forecast_scale_cap import ForecastScaleCapEstimated
 from systems.futures.rawdata import FuturesRawData
 from systems.positionsizing import PositionSizing
-from systems.portfolio import PortfoliosFixed
+from systems.portfolio import PortfoliosEstimated
 from systems.account import Account
 
 
-def futures_system(data=None, config=None, trading_rules=None):
+def futures_system(data=None, config=None, trading_rules=None, log_level="terse"):
     """
 
     :param data: data object (defaults to reading from csv files)
@@ -29,25 +29,9 @@ def futures_system(data=None, config=None, trading_rules=None):
     :param trading_rules: Set of trading rules to use (defaults to set specified in config object)
     :param trading_rules: list or dict of TradingRules, or something that can be parsed to that
 
-    >>> system=futures_system()
-    >>> system
-    System with stages: accounts, portfolio, positionSize, rawdata, combForecast, forecastScaleCap, rules
-    >>> system.rules.get_raw_forecast("EDOLLAR", "ewmac2_8").dropna().head(2)
-                ewmac2_8
-    1983-10-10  0.695929
-    1983-10-11 -0.604704
+    :param log_level: Set of trading rules to use (defaults to set specified in config object)
+    :type log_level: str
 
-                ewmac2_8
-    2015-04-21  0.172416
-    2015-04-22 -0.477559
-    >>> system.rules.get_raw_forecast("EDOLLAR", "carry").dropna().head(2)
-                   carry
-    1983-10-10  0.952297
-    1983-10-11  0.854075
-
-                   carry
-    2015-04-21  0.350892
-    2015-04-22  0.350892
     """
 
     if data is None:
@@ -59,7 +43,7 @@ def futures_system(data=None, config=None, trading_rules=None):
 
     rules = Rules(trading_rules)
 
-    system = System([Account(), PortfoliosFixed(), PositionSizing(), FuturesRawData(), ForecastCombineEstimated(),
+    system = System([Account(), PortfoliosEstimated(), PositionSizing(), FuturesRawData(), ForecastCombineEstimated(),
                      ForecastScaleCapEstimated(), rules], data, config)
 
     return system

@@ -12,7 +12,7 @@ trading_rules:
   ewmac2_8:
      function: systems.provided.futures_chapter15.rules.ewmac
      data:
-         - "rawdata.daily_prices"
+         - "rawdata.get_daily_prices"
          - "rawdata.daily_returns_volatility"
      other_args: 
          Lfast: 2
@@ -21,7 +21,7 @@ trading_rules:
   ewmac4_16:
      function: systems.provided.futures_chapter15.rules.ewmac
      data:
-         - "rawdata.daily_prices"
+         - "rawdata.get_daily_prices"
          - "rawdata.daily_returns_volatility"
      other_args: 
          Lfast: 4
@@ -30,7 +30,7 @@ trading_rules:
   ewmac8_32:
      function: systems.provided.futures_chapter15.rules.ewmac
      data:
-         - "rawdata.daily_prices"
+         - "rawdata.get_daily_prices"
          - "rawdata.daily_returns_volatility"
      other_args: 
          Lfast: 8
@@ -39,7 +39,7 @@ trading_rules:
   ewmac16_64:
      function: systems.provided.futures_chapter15.rules.ewmac
      data:
-         - "rawdata.daily_prices"
+         - "rawdata.get_daily_prices"
          - "rawdata.daily_returns_volatility"
      other_args: 
          Lfast: 16
@@ -48,7 +48,7 @@ trading_rules:
   ewmac32_128:
      function: systems.provided.futures_chapter15.rules.ewmac
      data:
-         - "rawdata.daily_prices"
+         - "rawdata.get_daily_prices"
          - "rawdata.daily_returns_volatility"
      other_args: 
          Lfast: 32
@@ -57,7 +57,7 @@ trading_rules:
   ewmac64_256:
      function: systems.provided.futures_chapter15.rules.ewmac
      data:
-         - "rawdata.daily_prices"
+         - "rawdata.get_daily_prices"
          - "rawdata.daily_returns_volatility"
      other_args: 
          Lfast: 64

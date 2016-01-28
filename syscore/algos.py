@@ -5,9 +5,81 @@ Basic building blocks of trading rules, like volatility measurement and crossove
 
 """
 import pandas as pd
+import numpy as np
 
 from syscore.genutils import str2Bool
 from systems.defaults import system_defaults
+
+LARGE_NUMBER_OF_DAYS=250*100*100
+
+def apply_with_min_periods(xcol, my_func=np.nanmean, min_periods=0):
+    """
+    :param x: data
+    :type x: Tx1 pd.DataFrame
+
+    :param func: Function to apply, if min periods met
+    :type func: function
+
+    :param min_periods: The minimum number of observations (*default* 10)
+    :type min_periods: int
+
+    :returns: pd.DataFrame Tx 1 
+    """
+    not_nan=sum([not np.isnan(xelement) for xelement in xcol])
+    
+    if not_nan>=min_periods:
+    
+        return my_func(xcol)
+    else:
+        return np.nan
+
+
+def vol_estimator(x, using_exponent=True, min_periods=20, ew_lookback=250):
+    """
+    Generic vol estimator used for optimisation, works on data frames, produces a single answer
+
+    :param x: data
+    :type x: Tx1 pd.DataFrame
+
+    :param using_exponent: Use exponential or normal vol (latter recommended for bootstrapping)
+    :type using_exponent: bool
+
+    :param min_periods: The minimum number of observations (*default* 10)
+    :type min_periods: int
+
+
+    :returns: pd.DataFrame -- volatility measure
+
+    """
+    if using_exponent:
+        vol = pd.ewmstd(x, span=ew_lookback, min_periods=min_periods).iloc[-1,:].values[0]
+        
+    else:
+        vol=x.apply(apply_with_min_periods,axis=0,min_periods=min_periods, my_func=np.nanstd) 
+    
+    stdev_list=list(vol)
+    
+    return stdev_list
+
+def mean_estimator(x, using_exponent=True, min_periods=20, ew_lookback=500):
+    """
+    Generic mean estimator used for optimisation, works on data frames
+
+    :param using_exponent: Use exponential or normal vol (latter recommended for bootstrapping)
+    :type using_exponent: bool
+
+    """
+    if using_exponent:
+        means=pd.ewma(x, span=ew_lookback, min_periods=min_periods).iloc[-1,:].values[0]
+        
+    else:
+        means=x.apply(apply_with_min_periods,axis=0,min_periods=min_periods, my_func=np.nanmean)
+            
+    mean_list=list(means)
+    
+    return mean_list
+
+
 
 
 def robust_vol_calc(x, days=35, min_periods=10, vol_abs_min=0.0000000001, vol_floor=True,
@@ -18,8 +90,12 @@ def robust_vol_calc(x, days=35, min_periods=10, vol_abs_min=0.0000000001, vol_fl
     We apply an absolute minimum level of vol (absmin);
     and a volfloor based on lowest vol over recent history
 
+    :param x: data
+    :type x: Tx1 pd.DataFrame
+
     :param days: Number of days in lookback (*default* 35)
     :type days: int
+
     :param min_periods: The minimum number of observations (*default* 10)
     :type min_periods: int
 

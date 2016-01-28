@@ -2,17 +2,13 @@
 #
 # Raw data
 #
-volatility_calculation:
-   func: "syscore.algos.robust_vol_calc"
-   days: 35
-#
 # Trading rules
 #
 trading_rules:
   ewmac8:
      function: systems.provided.example.rules.ewmac_forecast_with_defaults_no_vol
      data:
-         - "rawdata.daily_prices"
+         - "rawdata.get_daily_prices"
          - "rawdata.daily_returns_volatility"
      other_args: 
          Lfast: 8
@@ -20,7 +16,7 @@ trading_rules:
   ewmac16:
      function: systems.provided.example.rules.ewmac_forecast_with_defaults_no_vol
      data:
-         - "rawdata.daily_prices"
+         - "rawdata.get_daily_prices"
          - "rawdata.daily_returns_volatility"
      other_args: 
          Lfast: 16
@@ -35,43 +31,17 @@ trading_rules:
 #
 # forecast capping and scaling
 #
+# weird value to test if config is coming through
 forecast_cap: 21.0
-#
-forecast_scalar_estimate:
-   pool_instruments: True
-   func: "syscore.algos.forecast_scalar"
-   window: 250000
-   min_periods: 500
-   backfill: True
 #
 # forecast combination
 #
-forecast_weights:
-     ewmac8: 0.25
-     ewmac16: 0.25
-     carry: 0.50
 #
 rule_variations:
      EDOLLAR: ['ewmac8','ewmac16', 'carry']
      US10: ['ewmac8','ewmac16', 'carry']
      BUND: ['ewmac8','ewmac16']
 #
-#
-forecast_correlation_estimate:
-   pool_instruments: True
-   func: syscore.correlations.CorrelationEstimator
-   frequency: "W"
-   date_method: "expanding"
-   using_exponent: True
-   ew_lookback: 500
-   min_periods: 20      
-   cleaning: True
-#
-#
-forecast_div_mult_estimate:
-   func: syscore.divmultipliers.diversification_multiplier_from_list
-   ewma_span: 125
-   floor_at_zero: True
 #
 #
 # Capital correction
@@ -82,9 +52,6 @@ base_currency: "GBP"
 #
 # Portfolio creation
 #
-instrument_weights:
-     EDOLLAR: 0.333
-     US10: 0.333
-     BUND: 0.333
-instrument_div_multiplier: 1.2
+instruments: ['EDOLLAR','US10','BUND']
+##
 

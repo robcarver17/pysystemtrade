@@ -1,5 +1,5 @@
 import pandas as pd
-
+from syslogdiag.log import logtoscreen
 
 class Data(object):
 
@@ -25,12 +25,29 @@ class Data(object):
         """
         Data socket base class
         """
+        ## this will normally be overriden by the base system
+        setattr(self, "log", logtoscreen( stage="data"))
 
     def __repr__(self):
         return "Data object with %d instruments" % len(
             self.get_instrument_list())
 
-    def get_instrument_price(self, instrument_code):
+    def daily_prices(self, instrument_code):
+        """
+        Gets daily prices
+
+        :param instrument_code: Instrument to get prices for
+        :type trading_rules: str
+
+        :returns: Tx1 pd.DataFrame
+
+        """
+        instrprice = self.get_daily_price(instrument_code)
+        dailyprice = instrprice.resample("1B", how="last")
+
+        return dailyprice
+
+    def get_daily_price(self, instrument_code):
         """
         Default method to get instrument price
         Will usually be overriden when inherited with specific data source
@@ -41,8 +58,9 @@ class Data(object):
         :returns: pd.DataFrame
 
         """
-        raise Exception(
-            "You have created a Data() object; you might need to use a more specific data object" % instrument_code)
+        error_msg="You have created a Data() object; you might need to use a more specific data object" % instrument_code
+        self.log.critical(error_msg)
+
 
     def __getitem__(self, keyname):
         """
@@ -53,7 +71,7 @@ class Data(object):
 
         :returns: pd.DataFrame
         """
-        price = self.get_instrument_price(keyname)
+        price = self.get_daily_price(keyname)
 
         return price
 

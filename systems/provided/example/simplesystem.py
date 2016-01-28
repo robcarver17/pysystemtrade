@@ -10,7 +10,7 @@ from systems.portfolio import PortfoliosFixed
 from systems.account import Account
 
 
-def simplesystem(data=None, config=None):
+def simplesystem(data=None, config=None, log_level="on"):
     """
     Example of how to 'wrap' a complete system
     """
@@ -21,5 +21,7 @@ def simplesystem(data=None, config=None):
 
     my_system = System([Account(), PortfoliosFixed(), PositionSizing(), ForecastCombineFixed(), ForecastScaleCapFixed(), Rules()
                         ], data, config)
+    
+    my_system.set_logging_level(log_level)
 
     return my_system

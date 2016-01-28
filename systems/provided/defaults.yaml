@@ -45,11 +45,44 @@ forecast_correlation_estimate:
    ew_lookback: 500
    min_periods: 20      
    cleaning: True
+   rollyears: 20
+   floor_at_zero: True
 #
 forecast_div_mult_estimate:
    func: syscore.divmultipliers.diversification_multiplier_from_list
+   ewma_span: 125   
+#
+forecast_weight_estimate:
+   func: syscore.optimisation.GenericOptimiser
+   method: shrinkage
+   pool_instruments: True
+   frequency: "W"
+   date_method: "expanding"
+   rollyears: 20
+   cleaning: True
+   equalise_means: True
+   equalise_vols: True
+   shrinkage_SR: 0.90
+   shrinkage_corr: 0.50
+   monte_runs: 100
+   bootstrap_length: 50
    ewma_span: 125
-   floor_at_zero: True
+   correlation_estimate:
+     func: syscore.correlations.correlation_single_period
+     using_exponent: False
+     ew_lookback: 500
+     min_periods: 20      
+     floor_at_zero: True
+   mean_estimate:
+     func: syscore.algos.mean_estimator
+     using_exponent: False
+     ew_lookback: 500
+     min_periods: 20      
+   vol_estimate:
+     func: syscore.algos.vol_estimator
+     using_exponent: False
+     ew_lookback: 500
+     min_periods: 20      
 #
 # Capital correction
 #
@@ -60,4 +93,50 @@ base_currency: "USD"
 # Portfolio creation
 #
 instrument_div_multiplier: 1.0
-
+#
+instrument_correlation_estimate:
+   func: syscore.correlations.CorrelationEstimator
+   frequency: "W"
+   date_method: "expanding"
+   using_exponent: True
+   ew_lookback: 500
+   min_periods: 20      
+   cleaning: True
+   rollyears: 20
+   floor_at_zero: True
+#
+instrument_div_mult_estimate:
+   func: syscore.divmultipliers.diversification_multiplier_from_list
+   ewma_span: 125
+#
+instrument_weight_estimate:
+   func: syscore.optimisation.GenericOptimiser
+   method: "bootstrap"
+   frequency: "W"
+   date_method: "expanding"
+   rollyears: 20
+   cleaning: True
+   equalise_means: True
+   equalise_vols: True
+   shrinkage_mean: 0.90
+   shrinkage_corr: 0.50
+   monte_runs: 100
+   bootstrap_length: 50
+   ewma_span: 125
+   correlation_estimate:
+     func: syscore.correlations.correlation_single_period
+     using_exponent: False
+     ew_lookback: 500
+     min_periods: 20      
+     floor_at_zero: True
+   mean_estimate:
+     func: syscore.algos.mean_estimator
+     using_exponent: False
+     ew_lookback: 500
+     min_periods: 20      
+   vol_estimate:
+     func: syscore.algos.vol_estimator
+     using_exponent: False
+     ew_lookback: 500
+     min_periods: 20      
+#

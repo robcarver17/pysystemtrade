@@ -77,9 +77,11 @@ my_system.rules.get_raw_forecast("EDOLLAR", "ewmac32").tail(5)
 
 from systems.forecast_scale_cap import ForecastScaleCapFixed, ForecastScaleCapEstimated
 
+
 ## we can estimate these ourselves
-fce=ForecastScaleCapEstimated()
-my_system = System([fce, my_rules], data, my_config)
+my_config.instruments=[ "US10", "EDOLLAR", "CORN", "SP500"]
+fcs_estimate=ForecastScaleCapEstimated()
+my_system = System([fcs_estimate, my_rules], data, my_config)
 print(my_system.forecastScaleCap.get_forecast_scalar("EDOLLAR", "ewmac32").tail(5))
 
 ## or we can use the values from the book
@@ -94,20 +96,35 @@ combine some rules
 """
 
 from systems.forecast_combine import ForecastCombineFixed, ForecastCombineEstimated
-# forecast_weights=dict(ewmac8=0.5, ewmac32=0.5), forecast_div_multiplier=1.1
-combiner = ForecastCombineFixed()
-my_system = System([fcs, my_rules, combiner], data, my_config)
-print(my_system.combForecast.get_combined_forecast("EDOLLAR").tail(5))
 
+## defaults
+fixed_combiner = ForecastCombineFixed()
+my_system = System([fcs, my_rules, fixed_combiner], data, my_config)
+print(my_system.combForecast.get_forecast_weights("EDOLLAR").tail(5))
+print(my_system.combForecast.get_forecast_diversification_multiplier("EDOLLAR").tail(5))
+
+## estimates:
+from systems.account import Account
+my_account = Account()
+
+my_config.forecast_weight_estimate=dict(method="one_period")
+
+combiner_estimated = ForecastCombineEstimated()
+my_system = System([my_account, fcs, my_rules, combiner_estimated], data, my_config)
+
+## this is a bit slow, better to know what's going on
+my_system.set_logging_level("on")
+
+print(my_system.combForecast.get_forecast_weights("EDOLLAR").tail(5))
+print(my_system.combForecast.get_forecast_diversification_multiplier("EDOLLAR").tail(5))
+
+
+## fixed:
 my_config.forecast_weights = dict(ewmac8=0.5, ewmac32=0.5)
 my_config.forecast_div_multiplier = 1.1
-my_system = System([fcs, empty_rules, combiner], data, my_config)
+my_system = System([fcs, empty_rules, fixed_combiner], data, my_config)
 my_system.combForecast.get_combined_forecast("EDOLLAR").tail(5)
 
-### estimated...
-combiner = ForecastCombineEstimated()
-my_system = System([fcs, my_rules, combiner], data, my_config)
-print(my_system.combForecast.get_forecast_diversification_multiplier("EDOLLAR").tail(5))
 
 # size positions
 
@@ -117,7 +134,7 @@ my_config.percentage_vol_target = 25
 my_config.notional_trading_capital = 500000
 my_config.base_currency = "GBP"
 
-my_system = System([fcs, my_rules, combiner, possizer], data, my_config)
+my_system = System([fcs, my_rules, fixed_combiner, possizer], data, my_config)
 
 print(my_system.positionSize.get_price_volatility("EDOLLAR").tail(5))
 print(my_system.positionSize.get_block_value("EDOLLAR").tail(5))
@@ -127,13 +144,27 @@ print(my_system.positionSize.get_volatility_scalar("EDOLLAR").tail(5))
 print(my_system.positionSize.get_daily_cash_vol_target())
 print(my_system.positionSize.get_subsystem_position("EDOLLAR").tail(5))
 
-# portfolio
+# portfolio - estimated
+from systems.portfolio import PortfoliosEstimated
+portfolio_estimate = PortfoliosEstimated()
+
+my_config.instrument_weight_estimate=dict(method="shrinkage", date_method="in_sample")
+
+my_system = System([my_account, fcs, my_rules, fixed_combiner, possizer,
+                    portfolio_estimate], data, my_config)
+
+my_system.set_logging_level("on")
+
+print(my_system.portfolio.get_instrument_weights().tail(5))
+print(my_system.portfolio.get_instrument_diversification_multiplier().tail(5))
+
+## or fixed
 from systems.portfolio import PortfoliosFixed
 portfolio = PortfoliosFixed()
 my_config.instrument_weights = dict(US10=.1, EDOLLAR=.4, CORN=.3, SP500=.2)
 my_config.instrument_div_multiplier = 1.5
 
-my_system = System([fcs, my_rules, combiner, possizer,
+my_system = System([fcs, my_rules, fixed_combiner, possizer,
                     portfolio], data, my_config)
 
 print(my_system.portfolio.get_notional_position("EDOLLAR").tail(5))
@@ -142,9 +173,7 @@ print(my_system.portfolio.get_notional_position("EDOLLAR").tail(5))
 Have we made some dosh?
 """
 
-from systems.account import Account
-my_account = Account()
-my_system = System([fcs, my_rules, combiner, possizer,
+my_system = System([fcs, my_rules, fixed_combiner, possizer,
                     portfolio, my_account], data, my_config)
 profits = my_system.accounts.portfolio()
 print(profits.stats())

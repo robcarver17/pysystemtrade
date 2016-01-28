@@ -18,8 +18,11 @@ class RawData(SystemStage):
                    - preliminary calculations are available for inspection when
                      diagnosing what is going on
 
-    KEY INPUT: system.data.get_instrument_price(instrument_code)
-               found in self.get_instrument_price
+    KEY INPUTS: system.data.get_daily_price(instrument_code)
+               found in self.get_daily_price
+
+               system.data.daily_prices(instrument_code)
+               found in self.get_daily_prices
 
     KEY OUTPUTS: system.rawdata.... several
 
@@ -34,7 +37,7 @@ class RawData(SystemStage):
 
         setattr(self, "name", "rawdata")
 
-    def get_instrument_price(self, instrument_code):
+    def get_daily_price(self, instrument_code):
         """
         Gets the instrument price from the parent system.data object
 
@@ -50,13 +53,13 @@ class RawData(SystemStage):
         >>>
         >>> (rawdata, data, config)=get_test_object()
         >>> system=System([rawdata], data)
-        >>> system.rawdata.get_instrument_price("EDOLLAR").tail(2)
+        >>> system.rawdata.get_daily_price("EDOLLAR").tail(2)
                                price
         2015-12-11 17:08:14  97.9675
         2015-12-11 19:33:39  97.9875
         """
         def _get_instrument_price(system, instrument_code):
-            instrprice = system.data.get_instrument_price(instrument_code)
+            instrprice = system.data.get_daily_price(instrument_code)
             return instrprice
 
         instrprice = self.parent.calc_or_cache("instrument_price",
@@ -65,7 +68,8 @@ class RawData(SystemStage):
 
         return instrprice
 
-    def daily_prices(self, instrument_code):
+
+    def get_daily_prices(self, instrument_code):
         """
         Gets daily prices
 
@@ -75,28 +79,18 @@ class RawData(SystemStage):
         :returns: Tx1 pd.DataFrame
 
         KEY OUTPUT
-
-        >>> from systems.tests.testdata import get_test_object
-        >>> from systems.basesystem import System
-        >>>
-        >>> (rawdata, data, config)=get_test_object()
-
-        >>> system=System([rawdata], data)
-        >>> system.rawdata.daily_prices("EDOLLAR").tail(2)
-                      price
-        2015-12-10  97.8800
-        2015-12-11  97.9875
-
         """
         def _daily_prices(system, instrument_code, this_stage):
-            instrprice = this_stage.get_instrument_price(instrument_code)
-            dailyprice = instrprice.resample("1B", how="last")
+            this_stage.log.msg("Calculating daily prices for %s" % instrument_code, instrument_code=instrument_code)
+            dailyprice = system.data.daily_prices(instrument_code)
             return dailyprice
 
         dailyprice = self.parent.calc_or_cache(
             "daily_price", instrument_code, _daily_prices, self)
 
         return dailyprice
+        
+
 
     def daily_denominator_price(self, instrument_code):
         """
@@ -123,7 +117,7 @@ class RawData(SystemStage):
         """
         def _daily_denominator_returns(system, instrument_code, this_stage):
 
-            dem_returns = this_stage.daily_prices(instrument_code)
+            dem_returns = this_stage.get_daily_prices(instrument_code)
             return dem_returns
 
         dem_returns = self.parent.calc_or_cache(
@@ -153,7 +147,7 @@ class RawData(SystemStage):
         2015-12-11  0.1075
         """
         def _daily_returns(system, instrument_code, this_stage):
-            instrdailyprice = this_stage.daily_prices(instrument_code)
+            instrdailyprice = this_stage.get_daily_prices(instrument_code)
             dailyreturns = instrdailyprice.diff()
             return dailyreturns
 
@@ -209,11 +203,11 @@ class RawData(SystemStage):
 
         """
         def _daily_returns_volatility(system, instrument_code, this_stage):
+            this_stage.log.msg("Calculating daily volatility for %s" % instrument_code, instrument_code=instrument_code)
+
             dailyreturns = this_stage.daily_returns(instrument_code)
 
-            volconfig=system.config.dict_with_defaults('volatility_calculation', 
-                ['func','days','min_periods','vol_abs_min','vol_floor','floor_min_quant',
-                 'floor_min_periods','floor_days'])
+            volconfig=copy(system.config.volatility_calculation)
 
             # volconfig contains 'func' and some other arguments
             # we turn func which could be a string into a function, and then
@@ -287,6 +281,8 @@ class RawData(SystemStage):
         2015-12-11     1.985413
         """
         def _norm_returns(system, instrument_code, this_stage):
+            this_stage.log.msg("Calculating normalised prices for %s" % instrument_code, instrument_code=instrument_code)
+
             returnvol = this_stage.daily_returns_volatility(
                 instrument_code).shift(1)
             dailyreturns = this_stage.daily_returns(instrument_code)

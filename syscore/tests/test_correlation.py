@@ -15,8 +15,8 @@ class Test(unittest.TestCase):
 
 
     def setUp(self):
-        (fcs, rules, rawdata, data, config)=get_test_object_futures_with_rules_and_capping_estimate()
-        system=System([rawdata, rules, fcs, ForecastCombineEstimated()], data, config)
+        (accounts, fcs, rules, rawdata, data, config)=get_test_object_futures_with_rules_and_capping_estimate()
+        system=System([accounts, rawdata, rules, fcs, ForecastCombineEstimated()], data, config)
         setattr(self, "system", system)
 
 
@@ -33,7 +33,7 @@ class Test(unittest.TestCase):
 
         instrument_code="US10"
         ans=self.system.combForecast.get_forecast_correlation_matrices(instrument_code)
-        self.assertAlmostEqual(ans.corr_list[-1][0][1], 0.11430003, places=5)
+        self.assertAlmostEqual(ans.corr_list[-1][0][1], 0.0860245, places=5)
         print(ans.columns)
         
         instrument_code="BUND"
@@ -49,6 +49,7 @@ class Test(unittest.TestCase):
         ans=self.system.combForecast.get_forecast_correlation_matrices(instrument_code)
         self.assertAlmostEqual(ans.corr_list[-1][0][1], 0.0744089835, places=5)
         print(ans.columns)
+
         instrument_code="US10"
         
         ans=self.system.combForecast.get_forecast_correlation_matrices(instrument_code)
@@ -58,17 +59,18 @@ class Test(unittest.TestCase):
     def testFrequency(self):
 
         self.system.config.forecast_correlation_estimate['frequency']="D"
+        self.system.config.forecast_correlation_estimate['floor_at_zero']=False
         instrument_code="US10"
         
         ans=self.system.combForecast.get_forecast_correlation_matrices(instrument_code)
-        self.assertAlmostEqual(ans.corr_list[-1][0][1], 0.02092418, places=5)
+        self.assertAlmostEqual(ans.corr_list[-1][0][1], -0.0043327674, places=5)
         
     def testDatemethod(self):
         self.system.config.forecast_correlation_estimate['date_method']="rolling"
         instrument_code="US10"
         
         ans=self.system.combForecast.get_forecast_correlation_matrices(instrument_code)
-        self.assertAlmostEqual(ans.corr_list[-1][0][1], 0.11429231, places=5)
+        self.assertAlmostEqual(ans.corr_list[-1][0][1], 0.0838213638, places=5)
         
     def testExponent(self):
         self.system.config.forecast_correlation_estimate['using_exponent']="False"
@@ -76,14 +78,14 @@ class Test(unittest.TestCase):
         
         ans=self.system.combForecast.get_forecast_correlation_matrices(instrument_code)
         print(ans)
-        self.assertAlmostEqual(ans.corr_list[-1][0][1], 0.12906539, places=5)
+        self.assertAlmostEqual(ans.corr_list[-1][0][1], 0.11150705, places=5)
 
     def testExponentLookback(self):
         self.system.config.forecast_correlation_estimate['ew_lookback']=50
         instrument_code="US10"
         
         ans=self.system.combForecast.get_forecast_correlation_matrices(instrument_code)
-        self.assertAlmostEqual(ans.corr_list[-1][0][1], 0.12842128, places=5)
+        self.assertAlmostEqual(ans.corr_list[-1][0][1], 0.102878322, places=5)
 
     def testminperiods(self):
         self.system.config.forecast_correlation_estimate['pool_instruments']="False"

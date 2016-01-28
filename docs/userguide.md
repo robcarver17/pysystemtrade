@@ -1,5 +1,5 @@
 
-This guide is divided into three parts. The first ['How do I?'](#how_do_i) explains how to do many common tasks. The second part ['Guide'](#guide) details the relevant parts of the code, and explains how to modify or create new parts. The final part ['Reference'](#reference) includes lists of methods and parameters.
+This guide is divided into four parts. The first ['How do I?'](#how_do_i) explains how to do many common tasks. The second part ['Guide'](#guide) details the relevant parts of the code, and explains how to modify or create new parts. The third part ['Processes'](#Processes) discusses certain processes that cut across multiple parts of the code in more detail. The final part ['Reference'](#reference) includes lists of methods and parameters.
 
 <a name="how_do_i">
 # How do I?
@@ -23,7 +23,7 @@ See [standard futures system](#futures_system) for more.
 
 ## How do I....Create a futures backtest which estimates parameters
 
-This creates the staunch systems trader example defined in chapter 15 of my book, using the csv data that is provided, and estimates forecast scalars and forecast diversification multiplier (future versions will also estimate other fixed parameters):
+This creates the staunch systems trader example defined in chapter 15 of my book, using the csv data that is provided, and estimates forecast scalars, instrument and forecast weights, and instrument and forecast diversification multipliers:
 
 ```python
 from systems.provided.futures_chapter15.estimatedsystem import futures_system
@@ -39,7 +39,7 @@ See [estimated futures system](#futures_system).
 This will give you the raw forecast (before scaling and capping) of one of the EWMAC rules for Eurodollar futures in the standard futures backtest:
 
 ```python
-from systems.futures.basesystem import futures_system
+from systems.provided.futures_chapter15.basesystem import futures_system
 system=futures_system()
 system.rules.get_raw_forecast("EDOLLAR", "ewmac64_256")
 ```
@@ -50,7 +50,7 @@ For a complete list of possible intermediate results, see [this table](#table_sy
 ## How do I....See how profitable a backtest was
 
 ```python
-from systems.futures.basesystem import futures_system
+from systems.provided.futures_chapter15.basesystem import futures_system
 system=futures_system()
 system.accounts.portfolio().stats() ## see some statistics
 system.accounts.portfolio().curve().plot() ## plot an account curve
@@ -92,7 +92,7 @@ You should then create a new system which points to the new config file:
 
 ```python
 from sysdata.configdata import Config
-from systems.futures.basesystem import futures_system
+from systems.provided.futures_chapter15.basesystem import futures_system
 
 my_config=Config("private.this_system_name.config.yaml"))
 system=futures_system(config=my_config)
@@ -100,16 +100,25 @@ system=futures_system(config=my_config)
 
 ### Option 2: Change the configuration object; create a new system
 
-We can also modify the configuration object in the system directly:
+We can also modify a configuration object from a loaded system directly, and then create a new system with it:
 
 ```python
-from systems.futures.basesystem import futures_system
+from systems.provided.futures_chapter15.basesystem import futures_system
 system=futures_system()
 new_config=system.config
 
 new_idm=1.1 ## new IDM
 
 new_config.instrument_div_multiplier=new_idm
+
+## Heres an example of how you'd change a nested parameter
+## If the element doesn't yet exist in your config:
+
+system.config.volatility_calculation=dict(days=20)
+
+## If it does exist:
+system.config.volatility_calculation['days']=20
+
 
 system=futures_system(config=new_config)
 ```
@@ -119,16 +128,25 @@ This is useful if you're experimenting interactively 'on the fly'.
 
 ### Option 3: Change the configuration object within an existing system (not recommended - advanced)
 
-If you opt for (3) you will need to understand about [system caching](#caching). To modify the configuration object in the system directly:
+If you opt for (3) you will need to understand about [system caching](#caching) and [how defaults are handled](#defaults_how). To modify the configuration object in the system directly:
 
 ```python
-from systems.futures.basesystem import futures_system
+from systems.provided.futures_chapter15.basesystem import futures_system
 system=futures_system()
 
 ## Anything we do with the system may well be cached and will need to be cleared before it sees the new value...
 
+
 new_idm=1.1 ## new IDM
 system.config.instrument_div_multiplier=new_idm
+
+## If we change anything that is nested, we need to change just one element to avoid clearing the defaults:
+# So, do this:
+system.config.volatility_calculation['days']=20
+
+# Do NOT do this:
+# system.config.volatility_calculation=dict(days=20)
+
 
 ## The config is updated, but to reiterate anything that uses it will need to be cleared from the cache
 ```
@@ -142,14 +160,17 @@ I don't recommend changing the defaults, but should you want to more information
 
 ## How do I....Run a backtest on a different set of instruments
 
-You need to change the instrument weights in the configuration. Only instruments with weights have positions produced for them. There are two easy ways to do this - change the config file, or the config object already in the system (for more on changing config parameters see ['change backtest parameters'](#change_backtest_parameters) ). You also need to ensure that you have the data you need for any new instruments. See ['use my own data'](#create_my_own_data) below.
+Fixed instrument weights: You need to change the instrument weights in the configuration. Only instruments with weights have positions produced for them. 
+Estimated instrument weights: You need to change the instruments section of the configuration.
+
+There are two easy ways to do this - change the config file, or the config object already in the system (for more on changing config parameters see ['change backtest parameters'](#change_backtest_parameters) ). You also need to ensure that you have the data you need for any new instruments. See ['use my own data'](#create_my_own_data) below.
 
 
 ### Change instruments: Change the configuration file
 
 You should make a new config file by copying this [one](/systems/provided/futures_chapter15/futuresconfig.yaml). Best practice is to save this as `pysystemtrade/private/this_system_name/config.yaml` (you'll need to create this directory).
 
-You can then change this section of the config:
+For fixed weights, you can then change this section of the config:
 
 ```
 instrument_weights:
@@ -162,7 +183,34 @@ instrument_weights:
 instrument_div_multiplier: 1.89
 ```
 
-*At this stage you'd also need to recalculate the diversification multiplier (see chapter 11 of my book). See [estimating the forecast diversification multiplier](#forecast_dm_estimate).
+You may also have to change the forecast_weights, if they're instrument specific:
+
+```
+forecast_weights:
+   EDOLLAR:
+     ewmac16_64: 0.21
+     ewmac32_128: 0.08
+     ewmac64_256: 0.21
+     carry: 0.50
+```
+
+
+*At this stage you'd also need to recalculate the diversification multiplier (see chapter 11 of my book). See [estimating the forecast diversification multiplier](#divmult).
+
+For estimated instrument weights you'd change this section:
+
+```
+instruments: ["EDOLLAR", "US10", "EUROSTX", "V2X", "MXP", "CORN"]
+```
+
+(The IDM will be re-estimated automatically)
+
+You may also need to change this section, if you have different rules for each instrument:
+
+```
+rule_variations:
+     EDOLLAR: ['ewmac16_64','ewmac32_128', 'ewmac64_256', 'carry']
+```
 
 You should then create a new system which points to the new config file:
 
@@ -171,7 +219,7 @@ from sysdata.configdata import Config
 
 my_config=Config("private.this_system_name.config.yaml")
 
-from systems.futures.basesystem import futures_system
+from systems.provided.futures_chapter15.basesystem import futures_system
 system=futures_system(config=my_config)
 ```
 
@@ -179,8 +227,10 @@ system=futures_system(config=my_config)
 
 We can also modify the configuration object in the system directly:
 
+For fixed weights:
+
 ```python
-from systems.futures.basesystem import futures_system
+from systems.provided.futures_chapter15.basesystem import futures_system
 system=futures_system()
 new_config=system.config
 
@@ -189,6 +239,24 @@ new_idm=1.1 ## new IDM
 
 new_config.instrument_weights=new_weights
 new_config.instrument_div_multiplier=new_idm
+
+system=futures_system(config=new_config)
+
+```
+
+For estimated weights:
+
+```python
+from systems.provided.futures_chapter15.estimatedsystem import futures_system
+system=futures_system()
+new_config=system.config
+
+new_config.instruments=["SP500", "KR10"]
+
+del(new_config.rule_variations) ## means all instruments will use all trading rules
+
+# this stage is optional if we want to give different instruments different sets of rules
+new_config.rule_variations=dict(SP500=['ewmac16_64','carry'], KR10=['ewmac32_128', 'ewmac64_256', 'carry']
 
 system=futures_system(config=new_config)
 
@@ -250,9 +318,9 @@ Also note that the list of data for the rule will also be in the form of string 
 
 If no data is included, then the system will default to passing a single data item - the price of the instrument. Finally if any or all the `other_arg` keyword arguments are missing then the function will use it's own defaults.
  
-At this stage we can also remove any trading rules that we don't want. We also ought to modify the forecast scalars (See [forecast scale estimation](#scalar_estimate]), forecast weights and probably the forecast diversification multiplier ( see [estimating the forecast diversification multiplier](#forecast_dm_estimate)). 
+At this stage we can also remove any trading rules that we don't want. We also ought to modify the forecast scalars (See [forecast scale estimation](#scalar_estimate]), forecast weights and probably the forecast diversification multiplier ( see [estimating the forecast diversification multiplier](#divmult)). If you're using `ForecastScaleCapEstimated` (i.e. in the pre-baked estimated futures system provided) this will be automatic.
 
-*If you don't include a forecast scalar for the rule, it will use a value of 1.0. If you don't include forecast weights in your config then the system will default to equally weighting. But if you include forecast weights, but miss out the new rule, then it won't be used to calculate the combined forecast.*
+*If you're using the stage `ForecastScaleCapFixed` (the default) then if you don't include a forecast scalar for the rule, it will use a value of 1.0. If you don't include forecast weights in your config then the system will default to equally weighting. But if you include forecast weights, but miss out the new rule, then it won't be used to calculate the combined forecast.*
 
 Here's an example for a new variation of the EWMAC rule. This rule uses two types of data - the price (stitched for futures), and a precalculated estimate of volatility.
 
@@ -269,6 +337,9 @@ trading_rules:
          Lfast: 10
          Lslow: 40
 #
+#
+## Following section is for fixed scalars, weights and div. multiplier:
+#
 forecast_scalars: 
   ..... existing rules ....
   new_rule=10.6
@@ -278,6 +349,17 @@ forecast_weights:
   new_rule=0.10
 #
 forecast_div_multiplier=1.5
+#
+#
+## Alternatively if you're estimating these quantities use this section:
+#
+rule_variations:
+     EDOLLAR: ['ewmac16_64','ewmac32_128', 'ewmac64_256', 'new_rule']
+#
+# OR if all variations are the same for all instruments
+#
+rule_variations: ['ewmac16_64','ewmac32_128', 'ewmac64_256', 'new_rule']
+#
 ```
 
 
@@ -296,9 +378,18 @@ new_rule=TradingRule(dict(function=ewmac, data=["rawdata.daily_prices", "rawdata
 
 ## both methods - modify the configuration
 config.trading_rules['new_rule']=new_rule
+
+## If you're using fixed weights and scalars
+
 config.forecast_scalars['new_rule']=7.0
 config.forecast_weights=dict(.... , new_rule=0.10)  ## all existing forecast weights will need to be updated
 config.forecast_div_multiplier=1.5
+
+## If you're using estimates
+
+config.rule_variations=['ewmac16_64','ewmac32_128', 'ewmac64_256', 'new_rule']
+# or
+config.rule_variations=dict(SP500=['ewmac16_64','ewmac32_128', 'ewmac64_256', 'new_rule'], ....)
 ```
 
 Once we've got the new config, by which ever method, we just use it in our system, eg:
@@ -330,7 +421,7 @@ You can create your own directory for .csv files such as `pysystemtrade/private/
 
 ```python
 from sysdata.csvdata import csvFuturesData
-from systems.futures.basesystem import futures_system
+from systems.provided.futures_chapter15.basesystem import futures_system
 
 data=csvFuturesData("private.system_name.data"))
 system=futures_system(data=data)
@@ -351,7 +442,7 @@ To remain organised it's good practice to save any work into a directory like `p
 Because instances of **System()** encapsulate the data and functions you need, you can *pickle* them (but you might want to read about [system caching](#caching) before you reload them). 
 
 ```python
-from systems.futures.basesystem import futures_system
+from systems.provided.futures_chapter15.basesystem import futures_system
 import pickle
 from syscore.fileutils import get_filename_for_package
 
@@ -416,7 +507,7 @@ Or within a system:
 
 ```python
 ## using with a system
-from systems.futures.basesystem import futures_system
+from systems.provided.futures_chapter15.basesystem import futures_system
 system=futures_system(data=data)
 
 system.data.get_instrument_currency(instrument_code) # and so on
@@ -445,7 +536,7 @@ data=csvFuturesData("private.system_name.data")  ## assuming you've created data
 data.get_instrument_raw_carry_data(instrument_code) ## specific data for futures
 
 ## using with a system
-from systems.futures.basesystem import futures_system
+from systems.provided.futures_chapter15.basesystem import futures_system
 system=futures_system(data=data)
 system.data.get_instrument_raw_carry_data(instrument_code)
 ```
@@ -487,6 +578,8 @@ Methods that you'll probably want to override:
 - `_get_fx_data(currency1, currency2)`  Returns Tx1 pandas data frame of exchange rates
 
 You should not override `get_fx_for_instrument`, or any of the other private fx related methods. Once you've created a `_get_fx_data method`, then the methods in the `Data` base class will interact to give the correct fx rate when external objects call `get_fx_for_instrument()`; handling cross rates and working them out as needed.
+
+Neither should you override 'daily_prices'.
  
 Finally data methods should not do any caching. [Caching](#caching) is done within the system.
 
@@ -631,7 +724,9 @@ from sysdata.configdata import Config
 my_config=Config("private.filename.yaml") ## assuming the file is in "pysystemtrade/private/filename.yaml"
 ```
 
-There are no restrictions on what is nested in the dictionary (but the top level must be a dict); although it is easier to use str, float, int, lists and dicts, and the standard project code only requires those (if you're a PyYAML expert you can do other python objects like tuples, but it won't be pretty). 
+In theory there are no restrictions on what is nested in the dictionary (but the top level must be a dict); although it is easier to use str, float, int, lists and dicts, and the standard project code only requires those (if you're a PyYAML expert you can do other python objects like tuples, but it won't be pretty).
+
+You should respect the structure of the config with respect to nesting, as otherwise [the defaults](#defaults_how) won't be properly filled in. 
 
 The section on [configuration options](#Configuration_options) explains what configuration options are available.
 
@@ -639,12 +734,14 @@ The section on [configuration options](#Configuration_options) explains what con
 #### 3) Creating a configuration object from a pre-baked system
 
 ```python
-from systems.futures.basesystem import futures_system
+from systems.provided.futures_chapter15.basesystem import futures_system
 system=futures_system()
 new_config=system.config
 ```
 
 Under the hood this is effectively getting a configuration from a .yaml file - [this one](/systems/provided/futures_chapter15/futuresconfig.yaml).
+
+Configs created in this way will include all [the defaults populated](#defaults_how).
 
 
 #### 4) Creating a configuration object from a list
@@ -674,23 +771,20 @@ I recommend that you do not change these defaults. It's better to use the settin
 #### Handling defaults when you change certain functions
 </a>
 
-In certain places you can change the function used to do a particular calculation, eg volatility estimation (This does *not* include trading rules). This is straightforward if you're going to use the same arguments as the original argument. However if you change the arguments you'll need to do a little more work.
+In certain places you can change the function used to do a particular calculation, eg volatility estimation (This does *not* include trading rules). This is straightforward if you're going to use the same arguments as the original argument. However if you change the arguments you'll need to change the project defaults .yaml file. I recommend keeping the original parameters, and adding new ones with different names, to avoid accidentally breaking the system.
 
-Firstly you need to change the project defaults .yaml file. Secondly you'll need to change the actual code. For example if you replace the vol_floor parameter with a vol_ceiling (stupid idea by the way) you'd change the rawdata.py file from:
 
-```python
-volconfig=system.config.dict_with_defaults('volatility_calculation', 
-	['func','days','min_periods','vol_abs_min','vol_floor','floor_min_quant',
- 	'floor_min_periods','floor_days'])
-```
+<a name="defaults_how">
+#### How the defaults work
+</a>
 
-to:
 
-```python
-volconfig=system.config.dict_with_defaults('volatility_calculation', 
-	['func','days','min_periods','vol_abs_min','vol_ceiling','floor_min_quant',
- 	'floor_min_periods','floor_days'])
-```
+When added to a system the config class fills in parameters that are missing from the original config object, but are present in the default .yaml file. For example if forecast_scalar is missing from the config, then the default value of 1.0 will be used. This works in a similar way for top level config items that are lists, str, int and float. 
+
+This will also happen if you miss anything from a dict within the config (eg if `config.forecast_div_mult_estimate` is a dict, then any keys present in this dict in the default .yaml, but not in the config will be added). Finally it will work for nested dicts, eg if any keys are missing from `config.instrument_weight_estimate['correlation_estimate']` then they'll filled in from the default file. If something is a dict, or a nested dict, in the config but not in the default (or vice versa) then values won't be replaced and bad things could happen. It's better to keep your config files, and the default file, with matching structures. Again this is a good argument for adding new parameters, and retaining the original ones.
+
+This stops at two levels, and only works for dicts and nested dicts.
+
 
 
 ### Viewing configuration parameters
@@ -727,15 +821,44 @@ Or remove them:
 del(my_config.optionone)
 ```
 
+With real configs you need to be careful with nested parameters:
+
+
+```python
+config.instrument_div_multiplier=1.1 ## not nested, no problem
+
+## Heres an example of how you'd change a nested parameter
+## If the element doesn't yet exist in your config:
+
+config.volatility_calculation=dict(days=20)
+
+## If it does exist do this instead:
+config.volatility_calculation['days']=20
+```
+
+This is especially true if you're changing the config within a system, which will already include all the defaults:
+
+```python
+system.config.instrument_div_multiplier=1.1 ## not nested, no problem
+
+## If we change anything that is nested, we need to change just one element to avoid clearing the defaults:
+# So, do this:
+system.config.volatility_calculation['days']=20
+
+# Do NOT do this:
+# system.config.volatility_calculation=dict(days=20)
+```
+
 
 ### Using configuration in a system
 
 Once we're happy with our configuration we can use it in a system:
 
 ```python
-from systems.futures.basesystem import futures_system
+from systems.provided.futures_chapter15.basesystem import futures_system
 system=futures_system(config=my_config)
 ```
+Note it's only when a config is included in a system that the defaults are populated.
 
 
 ### Including your own configuration options
@@ -749,18 +872,8 @@ If you develop your own stages or modify existing ones you might want to include
 
 	parameter=system.config.my_config_item
 
-	## Or if you've created a default, use this pattern:
-        
-        parameter=system.config.item_with_defaults("my_config_item")
-
-	## You can also use nested configuration items, eg dict keyed by instrument_code
+	## You can also use nested configuration items, eg dict keyed by instrument_code (or nested lists)
 	parameter=system.config.my_config_dict[instrument_code]
-
-        ## Where you have several configuration parameters in a dict, of which some are neccessary
-        ## As in 'volatility_calculation' where 'func' is compulsory, so we have to get from defaults if missing
-        parameter_dict=system.config.dict_with_defaults("volatility_calculation", required=["func"]) # required can have multiple keys
-        parameter_dict['func'] ## gives the func from the config, or from defaults if missing
-        parameter_dict['days']     ## must have come from the config
 
 	## Lists also work. 
 
@@ -783,7 +896,7 @@ my_config_list:
    - "second item"
 ```
 
-Similarly if you wanted to use project defaults for your new parameters you'll also need to include them in the [defaults.yaml file](/systems/provided/defaults.yaml).
+Similarly if you wanted to use project defaults for your new parameters you'll also need to include them in the [defaults.yaml file](/systems/provided/defaults.yaml). Make sure you understand [how the defaults work](#defaults_how).
 
 
 <a name="save_config">
@@ -793,7 +906,7 @@ Similarly if you wanted to use project defaults for your new parameters you'll a
 You can also save a config object into a yaml file:
 
 ```python
-from systems.futures.basesystem import futures_system
+from systems.provided.futures_chapter15.basesystem import futures_system
 import yaml
 from syscore.fileutils import get_filename_for_package
 
@@ -879,9 +992,8 @@ system=System([Account(), PortfoliosFixed(), PositionSizing(), FuturesRawData(),
 </a>
 
 
-This system implements the framework in chapter 15 of my book, but includes estimation of forecast scalars and forecast diversification multiplier.
+This system implements the framework in chapter 15 of my book, but includes estimation of forecast scalars, instrument and forecast diversification multiplier, instrument and forecast weights.
 
-Currently it uses fixed forecast weights, instrument div. mult, and instrument weights; but this will change.
 
 ```python
 from systems.provided.futures_chapter15.estimatedsystem import futures_system
@@ -898,7 +1010,7 @@ config=Config("systems.provided.futures_chapter15.futuresconfig.yaml") ## or the
 ## Optionally the user can provide trading_rules (something which can be parsed as a set of trading rules); however this defaults to None in which case
 ##     the rules in the config will be used.
 
-system=System([Account(), PortfoliosFixed(), PositionSizing(), FuturesRawData(), ForecastCombineEstimated(), 
+system=System([Account(), PortfoliosEsimated(), PositionSizing(), FuturesRawData(), ForecastCombineEstimated(), 
                    ForecastScaleCapEstimated(), Rules(trading_rules)], data, config)
 ```
 
@@ -933,8 +1045,11 @@ system.config.instrument_div_multiplier=1.2
 
 #### System methods
 
-Currently system only has one method of it's own: `system.get_instrument_list()` This will get the list of instruments in the system, eithier from the config object if it contains instrument weights, or from the data object.
+Currently system only has two methods of it's own: 
 
+`system.get_instrument_list()` This will get the list of instruments in the system, eithier from the config object if it contains instrument weights, or from the data object.
+
+`system.log` provides access to the system's log. See [logging][#logging] for more details.
 
 <a name="caching">
 ### System Caching
@@ -981,7 +1096,7 @@ There are four attributes of data stored in the cache:
 1. Unprotected data that is deleted from the cache on request
 2. Protected data that wouldn't normally be deletable
 3. Data specific to a particular instrument (can be protected or unprotected)
-4. Data which applies to the whole system (can be protected or unprotected)
+4. Data which applies to the whole system; or at least to multiple instruments (can be protected or unprotected)
 
 Protected items and items common across the system wouldn't normally be deleted since they are usually the slowest things to calculate.
 
@@ -993,7 +1108,7 @@ system.portfolio.get_notional_position("EDOLLAR")
 system.get_items_with_data() ## this list everything
 system.get_protected_items() ## lists protected items
 system.get_items_for_instrument("EDOLLAR") ## list items with data for an instrument
-system.get_items_across_system() ## list items that run across the whole system
+system.get_items_across_system() ## list items that run across the whole system or multiple instruments
 
 system.get_instrument_codes_for_item("capped_forecast") ## lists all instruments with a capped forecast
 
@@ -1019,12 +1134,12 @@ system.delete_all_items(delete_protected=True) ## deletes all items relating to 
 
 #### Advanced Caching when backtesting.
 
-Creating a new system might be very slow. For example in future version of this project the forecast scalars, and instrument and forecast weights can be optimised from scratch. This will take time. For this reason they're protected from cache deletion.
+Creating a new system might be very slow. For example estimating the forecast scalars, and instrument and forecast weights from scratch will take time, especially if you're bootstrapping. For this reason they're protected from cache deletion.
 
 A possible workflow might be:
 
 1. Create a basic version of the system, with all the instruments and trading rules that you need.
-2. Run a backtest. This will optimise the instrument and forecast weights, and estimate forecast scalars
+2. Run a backtest. This will optimise the instrument and forecast weights, and estimate forecast scalars (to really speed things up here you could use a faster method like shrinkage. See the section on (optimisation)[#optimisation] for more information.).
 3. Change and modify the system as desired. Make sure you change the config object that is embedded within the system. Don't create a new system object.
 4. After each change, run `system.delete_all_items()` before backtesting the system again. Anything that is protected won't be re-estimated, speeding up the process.
 5. Back to step 3, until you're happy with the results (but beware of implicit overfitting!)
@@ -1041,7 +1156,7 @@ Another reason to use caching would be if you want to do your initial exploratio
 Here's a simple example of using caching in system development:
 
 ```python
-from systems.futures.basesystem import futures_system
+from systems.provided.futures_chapter15.basesystem import futures_system
 system=futures_system()
 
 # step 2
@@ -1110,9 +1225,10 @@ Think carefully about wether your method should create data that is protected fr
 - Forecast scalars
 - Forecast weights
 - Forecast diversification multiplier
-- Forecast correlations
+- Forecast correlations 
 - Instrument diversification multiplier
 - Instrument weights
+- Instrument correlations
 
 To this list I'd add any cross sectional data, and anything that measures portfolio risk (not yet implemented in this project).
 
@@ -1324,7 +1440,7 @@ from systems.portfolio import PortfoliosFixed
 from systems.account import Account
 
 
-def futures_system( data=None, config=None, trading_rules=None):
+def futures_system( data=None, config=None, trading_rules=None,  log_level="on"):
     """
     
     :param data: data object (defaults to reading from csv files)
@@ -1335,7 +1451,10 @@ def futures_system( data=None, config=None, trading_rules=None):
     
     :param trading_rules: Set of trading rules to use (defaults to set specified in config object)
     :param trading_rules: list or dict of TradingRules, or something that can be parsed to that
-    
+
+    :param log_level: How much logging to do
+    :type log_level: str
+
     """
     
     if data is None:
@@ -1350,7 +1469,9 @@ def futures_system( data=None, config=None, trading_rules=None):
     ## build the system
     system=System([Account(), PortfoliosFixed(), PositionSizing(), FuturesRawData(), ForecastCombineFixed(), 
                    ForecastScaleCapFixed(), rules], data, config)
-    
+
+    system.set_logging_level(log_level) 
+
     return system
 ```
 
@@ -1364,7 +1485,7 @@ It shouldn't be neccessary to modify the `System()` class or create new ones.
 ## Stages
 </a>
 
-A stage within a system does part of the multiple steps of calculation that are needed to ultimately come up with the optimal positions, and hence the account curve, for the system. So the backtesting or live trading process effectively happens within the stage objects.
+A *stage* within a system does part of the multiple steps of calculation that are needed to ultimately come up with the optimal positions, and hence the account curve, for the system. So the backtesting or live trading process effectively happens within the stage objects.
 
 We define the stages in a system when we create it, by passing a list of stage objects as the first argument:
 
@@ -1418,6 +1539,9 @@ system.rawdata.get_instrument_price("EDOLLAR").tail(5)
 2015-04-22  97.8325
 ```
 
+`system.rawdata.log` provides access to the log for the stage rawdata, and so on. See [logging][#logging] for more details.
+
+
 <a name="stage_wiring">
 ### Stage 'wiring'
 </a>
@@ -1458,6 +1582,7 @@ For example consider the first few items in the list above. Let's label them app
 
 This approach (which you can also think of as the stage "API") is used to make it easier to modify the code -  we can change the way a stage works internally, or replace it with a new stage with the same name, but as long as we keep the output method intact we don't need to mess around with any other stage.
 
+
 ### Using a different set of stages
 
 There are different versions of certain stages available; for example we can use eithier `ForecastScaleCapFixed` or `ForecastScaleCapEstimated`. Additionally you can add new kinds of stages if desired (see below), and remove stages you don't need (though you can't remove intermediate stages that a remaining stage would need to work out it's results).
@@ -1467,7 +1592,7 @@ It's best to create a new 'pre-baked' system by copying and modifying a file suc
 
 ```python
 from systems.provided.futures_chapter15 import *
-from somewhere.thiswontworkyet import ForecastCombinedOptimised, PortfoliosOptimised
+from systems.combForecast import ForecastCombinedEstimated
 
 def futures_system( data=None, config=None, trading_rules=None):
     """
@@ -1475,7 +1600,7 @@ def futures_system( data=None, config=None, trading_rules=None):
     """
 
     ## build the system with different stages
-    system=System([Account(), PortfoliosOptimised(), PositionSizing(), FuturesRawData(), ForecastCombineOptimised(), 
+    system=System([Account(), PortfoliosFixed(), PositionSizing(), FuturesRawData(), ForecastCombineEstimated(), 
                    ForecastScaleCapFixed(), rules], data, config)
     
     return system
@@ -1579,6 +1704,7 @@ class ForecastScaleCapFixed(SystemStage):
         
         def _get_forecast_scalar(system,  instrument_code, rule_variation_name, this_stage):
             ## Try the config file
+            ## the way we deal with defaults is a little more complex than normal
             try:
                 scalar=system.config.trading_rules[rule_variation_name]['forecast_scalar']
             except:
@@ -1795,7 +1921,7 @@ The raw data stage is used to pre-process data for calculating trading rules, sc
  
 #### Using the standard [RawData class](/systems/rawdata.py)
 
-The base RawData class includes methods to get instrument prices, daily prices, daily returns, volatility, and normalised returns (return over volatility).
+The base RawData class includes methods to get instrument prices, daily returns, volatility, and normalised returns (return over volatility).
 
 <a name="vol_calc">
 ##### Volatility calculation
@@ -1900,7 +2026,7 @@ At a minimum we need to know the function, since other arguments are optional, a
 
 In this project there is a specific [`TradingRule` class](/systems/forecasting.py). A `TradingRule` instance contains 3 elements - a function, a list of any data the function needs, and a dict of any other arguments that can be passed to the function.
 
-The function can eithier be the actual function, or a relative reference to it eg "systems.provided.futures_chapter15.rules.ewmac" (this is useful when a  configuration is created from a file). Data must always be in the form of references to attributes and methods of the system object, eg 'data.get_instrument_price' or 'rawdata.get_daily_prices'. Eithier a single data item, or a list must be passed. Other arguments are in the form a dictionary. 
+The function can eithier be the actual function, or a relative reference to it eg "systems.provided.futures_chapter15.rules.ewmac" (this is useful when a  configuration is created from a file). Data must always be in the form of references to attributes and methods of the system object, eg 'data.daily_prices' or 'rawdata.get_daily_prices'. Eithier a single data item, or a list must be passed. Other arguments are in the form a dictionary. 
 
 We can create trading rules in a number of different ways. I've noticed that different people find different ways of defining rules more natural than others, hence the deliberate flexibility here.
 
@@ -1947,7 +2073,7 @@ trading_rules:
   ewmac2_8:
      function: systems.futures.rules.ewmac
      data:
-         - "rawdata.daily_prices"
+         - "data.daily_prices"
          - "rawdata.daily_returns_volatility"
      other_args: 
          Lfast: 2
@@ -2112,7 +2238,7 @@ system=System([rules, FuturesRawData()], data, config)
 
 ```
 
-It's generally a good idea to put new fixed forecast scalars (see [forecasting scaling and capping](#stage_scale) ) and forecast weights into the config (see [the combining stage](#stage_combine) ); although in future versions when forecast weights are optimised this won't be a problem. Or if you're just playing with ideas you can live with the default forecast scale of 1.0, and you can delete the forecast weights so that the system will default to using equal weights:
+It's generally a good idea to put new fixed forecast scalars (see [forecasting scaling and capping](#stage_scale) ) and forecast weights into the config (see [the combining stage](#stage_combine) ); although if you're estimating these parameters automatically this won't be a problem. Or if you're just playing with ideas you can live with the default forecast scale of 1.0, and you can delete the forecast weights so that the system will default to using equal weights:
 
 ```python
 del(config.forecast_weights)
@@ -2195,9 +2321,6 @@ This is a simple stage that performs two steps:
 
 The standard 'fixed' class uses fixed scaling and caps. It is included in [standard futures system](#futures_system).
 
-
-
-
 Forecast scalars are specific to each rule. Scalars can eithier be included in the `trading_rules` or `forecast_scalars` part of the config. The former takes precedence if both are included:
 
 YAML: (example) 
@@ -2226,6 +2349,8 @@ forecast_cap: 20.0
 <a name="scalar_estimate">
 #### Calculating forecasting scaling on the fly with [ForecastScaleCapEstimated class](/systems/forecast_scale_cap.py)
 </a>
+
+See (this blog post)[http://qoppac.blogspot.co.uk/2016/01/pysystemtrader-estimated-forecast.html].
 
 You may prefer to estimate your forecast scales from the available data. This is often neccessary if you have a new trading rule and have no idea at all what the scaling should be. To do this you need to use the `ForecastScaleCapEstimated` child class, rather than the fixed flavour. This inherits from the fixed base class, so capping works in exactly the same way, but replaces the method for get_forecast_scalar. It is included in the pre-baked [estimated futures system](#futures_system).
 
@@ -2309,23 +2434,28 @@ Note that the `get_combined_forecast` method in the standard fixed base class au
 
 #### Using the [ForecastCombineEstimated class](/systems/forecast_combine.py)
 
-This class currently estimates the correct diversification multiplier 'on the fly' (in future it will also estimate forecast weights). It is included in the pre-baked [estimated futures system](#futures_system).
+This class currently estimates the correct diversification multiplier 'on the fly', and also estimate forecast weights. It is included in the pre-baked [estimated futures system](#futures_system).
 
-<a name="forecast_dm_estimate">
+##### Estimating the forecast weights
+
+See [optimisation](#optimisation) for more information.
+
+
 ##### Estimating the forecast diversification multiplier
-</a>
 
+See [estimating diversification multipliers](#divmult).
 
 #### Writing new or modified forecast combination stages
 
-I plan to create a stage that will optimise forecast weights.
+I have no plans to write new stages here.
+
 
 <a name="position_scale">
 ### Stage: Position scaling
 </a>
 
 <a name="notional">
-We now scale our positions according to our percentage volatility target. At this stage we treat our target, and therefore our account size, as fixed. So we ignore any compounding of losses and profits. It's for this reason the I refer to the 'notional' position. In a later version of the project I'll deal with this problem.
+We now scale our positions according to our percentage volatility target (chapters 9 and 10 of my book). At this stage we treat our target, and therefore our account size, as fixed. So we ignore any compounding of losses and profits. It's for this reason the I refer to the 'notional' position. In a later version of the project I'll deal with this problem.
 </a>
 
 #### Using the standard [PositionSizing class](/systems/positionsizing.py)
@@ -2344,13 +2474,13 @@ Note that the stage code tries to get the percentage volatility of an instrument
 
 #### New or modified position scaling stages
 
-This is not recommended.
+In the future I'll update this stage to allow for variable capital.
 
 <a name="stage_portfolio">
 ### Stage: Creating portfolios
 </a>
 
-The instrument weights used to combine different instruments together into the final portfolio. 
+The instrument weights are used to combine different instruments together into the final portfolio (chapter eleven of my book). 
 
 #### Using the standard[PortfoliosFixed class](/systems/portfolio.py)
 
@@ -2369,10 +2499,23 @@ instrument_div_multiplier: 1.2
 
 Note that the `get_instrument_weights` method in the standard fixed base class automatically adjusts raw forecast weights if different instruments have different start dates for their price history and forecasts. It does not adjust the multiplier. This means that in the past the multiplier will probably be too high. 
 
+#### Using the [PortfoliosEstimated class](/systems/portfolio.py)
+
+This class currently estimates the correct instrument diversification multiplier 'on the fly', and also estimates instrument weights. It is included in the pre-baked [estimated futures system](#futures_system).
+
+##### Estimating the instrument weights
+
+See [optimisation](#optimisation) for more information.
+
+##### Estimating the forecast diversification multiplier
+
+See [estimating diversification multipliers](#divmult).
+
+
 
 #### Writing new or modified portfolio stages
 
-I plan to create a stage that will optimise instrument weights and calculate multipliers automatically.
+I'll update this to allow for variable capital.
 
 <a name="accounts_stage">
 ### Stage: Accounting
@@ -2384,11 +2527,12 @@ The final stage is the all important accounting stage, which calculates p&l.
 #### Using the standard [Account class](/systems/account.py)
 </a>
 
-The standard accounting class includes three useful methods:
+The standard accounting class includes several useful methods:
 
 - `portfolio`: works out the p&l for the whole system
 - `pandl_for_instrument`: the contribution of a particular instrument to the p&l
 - `pandl_for_instrument_forecast`: work out how well a particular trading rule variation has done with a particular instrument
+- 'pandl_for_subsystem': work out how an instrument has done in isolation
 
 These classes share some useful arguments (all boolean):
 
@@ -2399,7 +2543,7 @@ These classes share some useful arguments (all boolean):
 All p&l methods return an object of type `accountCurve`. This inherits from a pandas data frame, so it can be plotted, averaged and so on. It also has some special methods. To see what they are use the `stats` method:
 
 ```python
-from systems.futures.basesystem import futures_system
+from systems.provided.futures_chapter15.basesystem import futures_system
 system=futures_system()
 system.accounts.portfolio().stats() 
 ```
@@ -2437,7 +2581,219 @@ The `stats` method lists three kinds of output:
 
 #### Writing new or modified accounting stages
 
-I plan to include costs in the accounting stage, to generate lists of simulated trades and to provide the data needed to optimise forecast and instrument weights. I also plan to extend the `accountCurve` object to handle multiple columns, and to give statistics over different periods.
+I plan to include costs in the accounting stage, and to generate lists of simulated trades. I also plan to extend the `accountCurve` object to handle multiple columns, and to give statistics over different periods. I also plan to include methods for summarising p&l in different ways.
+
+<a name="Processes">
+# Processes
+</a>
+
+This section gives much more detail on certain important processes that span multiple stages: logging, estimating correlations and diversification multipliers, and optimisation.
+
+<a name="logging">
+## Logging
+</a>
+
+### Basic logging
+
+The system, data, config and each stage object all have a .log attribute, to allow the system to report to the user; as do the functions provided to estimate correlations and do optimisations.
+
+In the current version this just prints to screen, although in future logging will be able to write to databases and files, and send emails if critical events are happening. 
+
+The pre-baked systems I've included all include a parameter log_level. This can be one of the following:
+
+- Off: No logging, except for warnings and errors
+- Terse: Print
+- On: Print everything.
+
+Alternatively you can set this yourself:
+
+```python
+system.set_logging_level(log_level)
+```
+
+If you're writing your own code, and want to inform the user that something is happening you should do one of the following:
+
+```python
+## self could be a system, stage, config or data object
+#
+self.log.msg("this is a normal message, will only be printed if logging is On")
+self.log.terse("this message will only be printed if logging is Terse or On")
+self.log.warn("this message will always be printed")
+self.log.error("this message will always be printed, and an exception will be raised")
+```
+
+I strongly encourage the use of logging, rather than printing, since printing on a 'headless' automated trading server will not be visible.
+As you can see the log is also currently used for very basic error handling. 
+
+
+### Advanced logging
+
+In my experience wading through long log files is a rather time consuming experience. On the other hand it's ofen more useful to use a logging approach to monitor system behaviour than to try and create quantitative diagnostics. For this reason I'm a big fan of logging with *attributes*. Every time a log method is called, it will typically know one or more of the following:
+
+- which 'type' of process owns the logger. For example if it's part of a base_system object, it's type will be 'base_system'. Future types will probably include price collection, execution and so on.
+- which 'stage' or sub process is involved, such as 'rawdata'.
+- which instrument code is involved
+- which trading rule variation is involved
+- which specific futures contract we're looking at (for the future)
+- which order id  (for the future)
+
+Then we'll be able to save the log message with it's attributes in a database (in future). We can then query the database to get, for example, all the log activity relating to a particular instrument code or trade, for particular dates.
+
+You do need to keep track of what attributes your logger has. Generally speaking you should use this kind of pattern to write a log item 
+
+```python
+# this is from the ForecastScaleCapFixed code
+#
+# This log will already have type=base_system, and stage=forecastScaleCap
+#
+this_stage.log.msg("Calculating scaled forecast for %s %s" % (instrument_code, rule_variation_name),
+                               instrument_code=instrument_code, rule_variation_name=rule_variation_name)
+```
+This has the advantage of keeping the original log attributes intact. If you want to do something more complex it's worth looking at the doc string for the logger class [here](/syslogdiag/log.py) which shows how attributes are inherited and added to log instances.
+
+<a name="divmult">
+## Estimating correlations and diversification multipliers
+</a>
+
+You can estimate diversification multipliers for both instruments (IDM - see chapter 11) and forecasts (FDM - see chapter 8). 
+
+The first step is to estimate *correlations*. The process is the same, except that for forecasts you have the option to pool instruments together. As the following YAML extract shows I recommend estimating these with an exponential moving average on weekly data:
+
+```
+forecast_correlation_estimate:
+   pool_instruments: True ## not available for IDM estimation
+   func: syscore.correlations.CorrelationEstimator ## function to use for estimation. This handles both pooled and non pooled data
+   frequency: "W"   # frequency to downsample to before estimating correlations
+   date_method: "expanding" # what kind of window to use in backtest
+   using_exponent: True  # use an exponentially weighted correlation, or all the values equally
+   ew_lookback: 250 ## lookback when using exponential weighting
+   min_periods: 20  # min_periods, used for both exponential, and non exponential weighting
+   cleaning: True  # Replace missing values so we don't lose data early on
+```
+
+Once we have correlations, and the forecast or instrument weights, it's a trivial calculation. 
+
+```
+instrument_div_mult_estimate:
+   func: syscore.divmultipliers.diversification_multiplier_from_list ## function to use
+   ewma_span: 125   ## smooth to apply 
+   floor_at_zero: True ## floor negative correlations
+```
+
+I've included a smoothing function, other wise jumps in the multiplier will cause trading in the backtest. Note that the FDM is calculated on an instrument by instrument basis, but if instruments have had their forecast weights and correlations estimated on a pooled basis they'll have the same FDM. It's also a good idea to floor negative correlations at zero to avoid inflation the DM to very high values.
+
+
+<a name="optimisation">
+## Optimisation
+</a>
+
+I use an optimiser to calculate both forecast and instrument weights. The process is almost identical for both. 
+
+### The optimisation function, and data
+
+From the config
+```
+forecast_weight_estimate:
+   func: syscore.optimisation.GenericOptimiser
+   pool_instruments: True ##
+   frequency: "W" ## other options: D, M, Y
+
+```
+
+I recommend using weekly data, since it speeds things up and doesn't affect out of sample performance. Pooling instruments also makes sense, although in a future version I'll modify this to allow for different costs.
+
+### Time periods
+
+
+There are three options available for the fitting period - expanding (recommended), in sample (never!) and rolling. See Chapter 3 of my book.
+
+From the config
+```
+   date_method: expanding ## other options: in_sample, rolling
+   rollyears: 20
+```
+
+### Moment estimation
+
+To do an optimisation we need estimates of correlations, means, and standard deviations. 
+
+From the config
+
+```
+   correlation_estimate:
+     func: syscore.correlations.correlation_single_period
+     using_exponent: False
+     ew_lookback: 500
+     min_periods: 20      
+     floor_at_zero: True
+
+   mean_estimate:
+     func: syscore.algos.mean_estimator
+     using_exponent: False
+     ew_lookback: 500
+     min_periods: 20      
+
+   vol_estimate:
+     func: syscore.algos.vol_estimator
+     using_exponent: False
+     ew_lookback: 500
+     min_periods: 20      
+```
+
+If you're using shrinkage or single period optimisation I'd suggest using an exponential weight for correlations, means, and volatility.
+
+### Methods
+
+There are three methods provided to optimise with in the function I've included. Personally I'd use shrinkage if I wanted a quick answer, then bootstrapping.
+
+
+#### One period (not recommend)
+
+This is the classic Markowitz optimisation with the option to equalise means (makes things more stable) and volatilities. Since we're dealing with things that should have the same volatility anyway this is something I recommend doing.
+
+```
+   method: one_period
+   equalise_means: True
+   equalise_vols: True
+```
+
+#### Bootstrapping (recommended, but slow)
+
+Here we're bootstrapping, by default drawing 50 weeks of data at a time, 100 times.
+
+For greater stability I recommend equalising the means, although this shouldn't be done once you're working with post cost returns.
+
+```
+method: bootstrap
+   monte_runs: 100
+   bootstrap_length: 50
+   equalise_means: True
+   equalise_vols: True
+
+```
+
+#### Shrinkage
+
+This is a basic shrinkage towards a prior of equal sharpe ratios, and equal correlations; with priors equal to the average of estimates from the data.
+
+```
+   method: shrinkage 
+   shrinkage_SR: 0.90
+   shrinkage_corr: 0.50
+```
+
+
+### Post processing
+
+If weights are *cleaned*, then in a fitting period when we need a weight, but none has been calculated (due to insufficient data for example), an instrument is given a share of the weight.
+
+We also smooth weights with an EWMA to avoid trading when they change.
+
+```
+   ewma_span: 125
+   cleaning: True
+```
+
 
 <a name="reference">
 # Reference
@@ -2456,7 +2812,7 @@ The tables in this section list all the methods that can be used to get data out
 For brevity the name of the system instance is omitted from the 'call' column (except where it's the actual system object we're calling directly). So for example to get the instrument price for Eurodollar from the data object, which is marked as *`data.get_instrument_price`* we would do something like this:
 
 ```python
-from systems.futures.basesystem import futures_system
+from systems.provided.futures_chapter15.basesystem import futures_system
 name_of_system=futures_system()
 name_of_system.data.get_instrument_price("EDOLLAR")
 ```
@@ -2481,7 +2837,7 @@ Private methods are excluded from this table.
 
 | Call                              | Standard?| Arguments       | Type | Description                                                    |
 |:-------------------------:|:---------:|:---------------:|:----:|:--------------------------------------------------------------:|
-| `system.get_instrument_list`  | Standard  |                        |  D,O   | List of instruments available; eithier from config instrument weights, or from data set|
+| `system.get_instrument_list`  | Standard  |                        |  D,O   | List of instruments available; eithier from config.instrument weights, config.instruments, or from data set|
 
 
 ### Data object
@@ -2489,7 +2845,8 @@ Private methods are excluded from this table.
 
 | Call                              | Standard?| Arguments       | Type | Description                                                    |
 |:-------------------------:|:---------:|:---------------:|:----:|:--------------------------------------------------------------:|
-| `data.get_instrument_price` | Standard  | `instrument_code`        | D,O  | Price used for trading rule analysis (backadjusted if relevant)|
+| `data.get_instrument_price` | Standard  | `instrument_code`        | D,O  | Intraday prices if available (backadjusted if relevant)|
+| `data.daily_prices` | Standard  | `instrument_code`        | D,O  | Default price used for trading rule analysis (backadjusted if relevant)|
 | `data.get_instrument_list`  | Standard  |                        |  D,O   | List of instruments available in data set (not all will be used for backtest)|
 | `data.get_value_of_block_price_move`| Standard | `instrument_code` | D,O  | How much does a $1 (or whatever) move in the price of an instrument block affect it's value? |
 | `data.get_instrument_currency`|Standard | `instrument_code` | D,O | What currency does this instrument trade in? |
@@ -2504,7 +2861,7 @@ Private methods are excluded from this table.
 | Call                              | Standard?| Arguments       | Type | Description                                                    |
 |:-------------------------:|:---------:|:---------------:|:----:|:--------------------------------------------------------------:|
 | `rawdata.get_instrument_price` | Standard  | `instrument_code`        | I  | `data.get_instrument_price`|
-| `rawdata.daily_prices` | Standard |     `instrument_code`     | D,O | Price resampled to end of day |
+| `rawdata.get_daily_prices` | Standard |     `instrument_code`     | I |  `data.daily_prices`|
 | `rawdata.daily_denominator_price` | Standard | `instrument_code`  |  O | Price used to calculate % volatility (for futures the current contract price) |
 | `rawdata.daily_returns` | Standard | `instrument_code` | D, O | Daily returns in price units|
 | `rawdata.daily_returns_volatility` | Standard | `instrument_code` | D,O | Daily standard deviation of returns in price units |
@@ -2548,8 +2905,9 @@ Private methods are excluded from this table.
 | `combForecast.get_trading_rule_list` | Standard  | `instrument_code`        | I | List of trading rules from config or prior stage |
 | `combForecast.get_all_forecasts` | Standard  | `instrument_code`, (`rule_variation_name`)        | D | pd.DataFrame of forecast values |
 | `combForecast.get_forecast_cap` | Standard | `instrument_code`, `rule_variation_name`        | I  | `forecastScaleCap.get_forecast_cap` |
-| `combForecast.get_raw_forecast_weights` | Standard  | `instrument_code`        | D  | Forecast weights |
-| `combForecast.get_forecast_weights` | Standard  | `instrument_code`        | D  | Forecast weights, adjusted for missing forecasts|
+| `combForecast.calculation_of_raw_forecast_weights | Estimate | `instrument_code`        | D  | Forecast weight calculation objects |
+| `combForecast.get_raw_forecast_weights` | Standard / Estimate | `instrument_code`        | D  | Forecast weights |
+| `combForecast.get_forecast_weights` | Standard  / Estimate| `instrument_code`        | D  | Forecast weights, adjusted for missing forecasts|
 | `combForecast.get_forecast_correlation_matrices` | Estimate  | `instrument_code`       | D  | Correlations of forecasts |
 | `combForecast.get_forecast_diversification_multiplier` | Standard / Estimate  | `instrument_code`        | D  | Get diversification multiplier |
 | `combForecast.get_combined_forecast` | Standard  | `instrument_code`        | D,O  | Get weighted average of forecasts for instrument |
@@ -2562,8 +2920,8 @@ Private methods are excluded from this table.
 | Call                              | Standard?| Arguments       | Type | Description                                                    |
 |:-------------------------:|:---------:|:---------------:|:----:|:--------------------------------------------------------------:|
 | `positionSize.get_combined_forecast` | Standard  | `instrument_code`        | I  | `combForecast.get_combined_forecast` |
-| `positionSize.get_price_volatility` | Standard | `instrument_code`        | I  | `rawdata.get_daily_percentage_volatility` (or `data.get_instrument_price`) |
-| `positionSize.get_instrument_sizing_data` | Standard | `instrument_code`        | I  | `rawdata.get_rawdata.daily_denominator_price( (or `data.get_instrument_price`); `data.get_value_of_block_price_move` |
+| `positionSize.get_price_volatility` | Standard | `instrument_code`        | I  | `rawdata.get_daily_percentage_volatility` (or `data.daily_prices`) |
+| `positionSize.get_instrument_sizing_data` | Standard | `instrument_code`        | I  | `rawdata.get_rawdata.daily_denominator_price( (or `data.daily_prices`); `data.get_value_of_block_price_move` |
 | `positionSize.get_fx_rate` | Standard | `instrument_code` | I | `data.get_fx_for_instrument` |
 | `positionSize.get_daily_cash_vol_target` | Standard |  | D | Dictionary of base_currency, percentage_vol_target, notional_trading_capital, annual_cash_vol_target, daily_cash_vol_target |
 | `positionSize.get_block_value` | Standard | `instrument_code` | D | Get value of a 1% move in the price |
@@ -2581,9 +2939,13 @@ Private methods are excluded from this table.
 |:-------------------------:|:---------:|:---------------:|:----:|:--------------------------------------------------------------:|
 | `portfolio.get_subsystem_position`| Standard | `instrument_code` | I |`positionSize.get_subsystem_position` |
 | `portfolio.get_instrument_list`| Standard |  | I | `system.get_instrument_list` |
-| `portfolio.get_instrument_weights`| Standard |  | D |Get instrument weights |
-| `portfolio.get_instrument_diversification_multiplier`| Standard |  | D |Get instrument div. multiplier |
+| `portfolio.pandl_for_subsystem`| Estimate |  `instrument_code` | I | `accounts.pandl_for_subsystem`|
+| `calculation_of_raw_instrument_weights`| Estimate |   | D | Instrument weight calculation objects |
+| `portfolio.get_raw_instrument_weights`| Standard / Estimate|  | D |Get instrument weights |
+| `portfolio.get_instrument_weights`| Standard / Estimate|  | D |Get instrument weights, adjusted for missing instruments |
+| `portfolio.get_instrument_diversification_multiplier`| Standard / Estimate |  | D |Get instrument div. multiplier |
 | `portfolio.get_notional_position`| Standard | `instrument_code` | D,O |Get the *notional* position (with constant risk capital; doesn't allow for adjustments when profits or losses are made) |
+
 
 
 
@@ -2597,11 +2959,13 @@ Private methods are excluded from this table.
 | `accounts.get_instrument_list`| Standard |  | I | `portfolio.get_instrument_list`|
 | `accounts.get_notional_capital`| Standard |  | I | `positionSize.get_daily_cash_vol_target`|
 | `accounts.get_fx_rate`| Standard |  `instrument_code` | I | `positionSize.get_fx_rate`|
-| `accounts.get_instrument_price`| Standard |  `instrument_code` | I | `data.get_instrument_price`|
+| `accounts.get_instrument_price`| Standard |  `instrument_code` | I | `data.daily_prices`|
 | `accounts.get_value_of_price_move`| Standard |  `instrument_code` | I | `positionSize.get_instrument_sizing_data`|
-| `accounts.get_daily_returns_volatility`| Standard |  `instrument_code` | I | `rawdata.daily_returns_volatility` or `data.get_instrument_price`|
-| `accounts.pandl_for_instrument`| Standard |  `instrument_code` | O,D | P&l for an instrument within a system|
-| `accounts.pandl_for_instrument_forecast`| Standard | `instrument_code`, `rule_variation_name` | O,D | P&l for a trading rule and instrument |
+| `accounts.get_daily_returns_volatility`| Standard |  `instrument_code` | I | `rawdata.daily_returns_volatility` or `data.daily_prices`|
+| `accounts.pandl_for_subsystem`| Standard |  `instrument_code` | O,D | P&l for an instrument outright|
+| `accounts.pandl_for_instrument`| Standard |  `instrument_code` | D | P&l for an instrument within a system|
+| `accounts.pandl_for_instrument_forecast`| Standard | `instrument_code`, `rule_variation_name` | D | P&l for a trading rule and instrument |
+| `accounts.pandl_for_instrument_rules`| Standard | `instrument_code` | D,O | P&l for all trading rules in an instrument |
 | `accounts.portfolio`| Standard |  | O,D | P&l for whole system |
 
 
@@ -2617,7 +2981,7 @@ Below is a list of all configuration options for the system. The 'Yaml' section 
 
 ```python
 ## Method one: from an existing system
-from systems.futures.basesystem import futures_system
+from systems.provided.futures_chapter15.basesystem import futures_system
 system=futures_system()
 new_config=system.config
 
@@ -2641,15 +3005,13 @@ new_config.instrument_weights=dict(SP500=0.5, US10=0.5))
 new_config
 ```
 
-If you do this make sure that the config element you've replaced has all the keys it requires.
-
 Or just in part:
 
 ```python
 new_config.instrument_weights['SP500']=0.2
 new_config
 ```
-If you do this make sure the rest of the config is consistent with what you've done. In eithier case, it's a good idea to display the modified config and make sure you're happy with it.
+If you do this make sure the rest of the config is consistent with what you've done. In eithier case, it's a good idea to examine the modified config once it's part of the system (since that will include any defaults) and make sure you're happy with it.
 
 
 
@@ -2769,26 +3131,18 @@ YAML:
 # Here is how we do the estimation. These are also the *defaults*.
 forecast_scalar_estimate:
    pool_instruments: True
-   func: "syscore.algos.forecast_scalar_pooled"
+   func: "syscore.algos.forecast_scalar"
    window: 250000
    min_periods: 500
    backfill: True
 
-# Here's how we'd do without pooling
-
-forecast_scalar_estimate:
-   pool_instruments: False
-   func: "syscore.algos.forecast_scalar"
 
 ```
 
 Python (example)
 ```python
 ## pooled example
-config.trading_rules=dict(pool_instruments=True, func="syscore.algos.forecast_scalar_pooled", window=250000, min_periods=500, backfill=True)
-
-## not pooled
-config.trading_rules=dict(pool_instruments=False, func="syscore.algos.forecast_scalar", window=250000, min_periods=500, backfill=True)
+config.trading_rules=dict(pool_instruments=True, func="syscore.algos.forecast_scalar", window=250000, min_periods=500, backfill=True)
 ```
 
 
@@ -2850,13 +3204,15 @@ config.forecast_weights=dict(SP500=dict(ewmac=0.5, carry=0.5), US10=dict(ewmac=0
 ```
 #### Forecast weights (estimated using `ForecastCombinedFixed`)
 
+To estimate forecast weights we need to define which trading rule variations we're using.
+
 ##### List of trading rules to get forecasts for
 
 Represented as: (a) list of str, each a rule variation name
                 (b) dict of list of str, each representing the rules for an instrument. Keywords: instrument names
 Default: Using all trading rules in the system
 
-The forecast weights to be used to combine forecasts from different trading rule variations. These can be (a) common across instruments, or (b) specified differently for each instrument.
+The rules for which forecast weights are to be calculated. These can be (a) common across instruments, or (b) specified differently for each instrument. If not specified will use all the rules defined in the system.
 
 YAML: (a)  
 ```
@@ -2885,6 +3241,66 @@ Python (b)
 ```python
 config.forecast_weights=dict(SP500=["ewmac","carry"], US10=["ewmac"])
 ```
+##### Parameters for estimating forecast weights
+
+Represented as: dict of str, or dict, each representing parameters.
+Defaults: See below
+
+To estimate the forecast weights we call the function defined in the `func` config element. If `pool_instruments` is True, then we use the returns of all instruments with the same set of trading rules to work out the forecast weights. All other parameters are passed to the optimisation function.
+
+The defaults given below are for the default generic optimiser function. See the section on (optimisation)[#optimisation] for more information.
+
+YAML, showing defaults
+```
+forecast_weight_estimate:
+   func: syscore.optimisation.GenericOptimiser
+   method: shrinkage ## other options: one_period, bootstrap
+   pool_instruments: True
+   frequency: "W" ## other options: D, M, Y
+   date_method: expanding ## other options: in_sample, rolling
+   rollyears: 20
+   cleaning: True
+   equalise_means: True
+   equalise_vols: True
+   shrinkage_SR: 0.90
+   shrinkage_corr: 0.50
+   monte_runs: 100
+   bootstrap_length: 50
+   ewma_span: 125
+   correlation_estimate:
+     func: syscore.correlations.correlation_single_period
+     using_exponent: False
+     ew_lookback: 500
+     min_periods: 20      
+     floor_at_zero: True
+   mean_estimate:
+     func: syscore.algos.mean_estimator
+     using_exponent: False
+     ew_lookback: 500
+     min_periods: 20      
+   vol_estimate:
+     func: syscore.algos.vol_estimator
+     using_exponent: False
+     ew_lookback: 500
+     min_periods: 20      
+```
+
+Python, example of how to change certain parameters:
+
+```python
+config.forecast_weight_estimate=dict()
+config.forecast_weight_estimate['method']='one_period'
+config.forecast_weight_estimate['mean_estimate']=dict(min_periods=30)
+```
+
+Note: if you are changing the config in situ within the system you should use the following to avoid overwriting the defaults within the system:
+
+```python
+config=system.config
+config.forecast_weight_estimate['method']='one_period'
+config.forecast_weight_estimate['mean_estimate']['min_periods']=30
+```
+
 
 
 #### Forecast diversification multiplier  (fixed using `ForecastCombinedFixed`)
@@ -2928,7 +3344,7 @@ Default: see below
 
 The method used to estimate forecast correlations on a rolling out of sample basis. Compulsory arguments are pool_instruments (determines if we pool estimate over multiple instruments) and func (str function pointer to use for estimation). The remaining arguments are passed to the estimation function. Any missing items will be pulled from the project defaults file.
 
-See [estimating the forecast diversification multiplier](#forecast_dm_estimate).
+See [estimating correlations and the forecast diversification multiplier](#divmult).
 
 YAML: 
 ```
@@ -2952,13 +3368,13 @@ config.forecast_correlation_estimate=dict(pool_instruments=False)
 If you're considering using your own function please see [configuring defaults for your own functions](#config_function_defaults)
 
 
-##### Estimate of forecast diversification multiplier
+##### Parameters for estimation of forecast diversification multiplier
 Represented as: dict of str, float and int. Keywords: parameter names
 Default: see below
 
 The method used to estimate forecast div. multipliers on a rolling out of sample basis. Any missing config elements are pulled from the project defaults. Compulsory arguments are: func (str function pointer to use for estimation). The remaining arguments are passed to the estimation function. 
 
-See [estimating the forecast diversification multiplier](#forecast_dm_estimate) for more detail.
+See [estimating the forecast diversification multiplier](#divmult) for more detail.
 
 
 YAML: 
@@ -3004,7 +3420,7 @@ config.base_currency="USD"
 
 ### Portfolio combination stage
 
-#### Instrument weights
+#### Instrument weights (fixed, using `PortfoliosFixed`)
 Represented as: dict of floats. Keywords: instrument_codes
 Default: Equal weights
 
@@ -3024,7 +3440,68 @@ Python
 config.instrument_weights=dict(EDOLLAR=0.5, US10=0.5)
 ```
 
-#### Instrument diversification multiplier
+#### Instrument weights (estimated, using `PortfoliosEstimated`)
+
+Represented as: dict of str, or dict, each representing parameters.
+Defaults: See below
+
+To estimate the instrument weights we call the function defined in the `func` config element. All other parameters are passed to the optimisation function.
+
+The defaults given below are for the default generic optimiser function. See the section on (optimisation)[#optimisation] for more information.
+
+YAML, showing defaults
+```
+instrument_weight_estimate:
+   func: syscore.optimisation.GenericOptimiser
+   method: shrinkage ## other options: one_period, bootstrap
+   frequency: "W" ## other options: D, M, Y
+   date_method: expanding ## other options: in_sample, rolling
+   rollyears: 20
+   cleaning: True
+   equalise_means: True
+   equalise_vols: True
+   shrinkage_SR: 0.90
+   shrinkage_corr: 0.50
+   monte_runs: 100
+   bootstrap_length: 50
+   ewma_span: 125
+   correlation_estimate:
+     func: syscore.correlations.correlation_single_period
+     using_exponent: False
+     ew_lookback: 500
+     min_periods: 20      
+     floor_at_zero: True
+   mean_estimate:
+     func: syscore.algos.mean_estimator
+     using_exponent: False
+     ew_lookback: 500
+     min_periods: 20      
+   vol_estimate:
+     func: syscore.algos.vol_estimator
+     using_exponent: False
+     ew_lookback: 500
+     min_periods: 20      
+```
+
+Python, example of how to change certain parameters:
+
+```python
+config.instrument_weight_estimate=dict()
+config.instrument_weight_estimate['method']='one_period'
+config.instrument_weight_estimate['mean_estimate']=dict(min_periods=30)
+```
+
+Note: if you are changing the config in situ within the system you should use the following to avoid overwriting the defaults within the system:
+
+```python
+config=system.config
+config.instrument_weight_estimate['method']='one_period'
+config.instrument_weight_estimate['mean_estimate']['min_periods']=30
+```
+
+
+
+#### Instrument diversification multiplier (fixed, using `PortfoliosFixed`)
 Represented as: float
 Default: 1.0
 
@@ -3038,4 +3515,64 @@ Python
 ```python
 config.instrument_div_multiplier=1.0
 ```
+
+#### Instrument diversification multiplier (estimated, using `PortfoliosEstimated`)
+
+To calculate the diversification multiplier we need to have correlations.
+
+##### Instrument corrrelations
+Represented as: dict of str, float and int. Keywords: parameter names
+Default: see below
+
+The method used to estimate instrument correlations on a rolling out of sample basis. Compulsory arguments are func (str function pointer to use for estimation). The remaining arguments are passed to the estimation function. Any missing items will be pulled from the project defaults file.
+
+See [estimating correlations](#divmult).
+
+YAML: 
+```
+# Here is how we do the estimation. These are also the *defaults*.
+instrument_correlation_estimate:
+   func: syscore.correlations.CorrelationEstimator ## function to use for estimation. This handles both pooled and non pooled data
+   frequency: "W"   # frequency to downsample to before estimating correlations
+   date_method: "expanding" # what kind of window to use in backtest
+   using_exponent: True  # use an exponentially weighted correlation, or all the values equally
+   ew_lookback: 250 ## lookback when using exponential weighting
+   min_periods: 20  # min_periods     
+   cleaning: True  # Replace missing values so we don't lose data early on
+```
+
+Python (example)
+```python
+config.instrument_correlation_estimate=dict(cleaning=False)
+```
+
+If you're considering using your own function please see [configuring defaults for your own functions](#config_function_defaults)
+
+
+
+##### Parameters for estimation of instrument diversification multiplier
+Represented as: dict of str, float and int. Keywords: parameter names
+Default: see below
+
+The method used to estimate the instrument div. multiplier on a rolling out of sample basis. Any missing config elements are pulled from the project defaults. Compulsory arguments are: func (str function pointer to use for estimation). The remaining arguments are passed to the estimation function. 
+
+See [estimating diversification multipliers](#divmult).
+
+
+YAML: 
+```
+# Here is how we do the estimation. These are also the *defaults*.
+instrument_div_mult_estimate:
+   func: syscore.divmultipliers.diversification_multiplier_from_list
+   ewma_span: 125   ## smooth to apply 
+   floor_at_zero: True ## floor negative correlations
+```
+
+Python (example)
+```python
+config.instrument_div_mult_estimate=dict(ewma_span=125)
+```
+
+If you're considering using your own function please see [configuring defaults for your own functions](#config_function_defaults)
+
 

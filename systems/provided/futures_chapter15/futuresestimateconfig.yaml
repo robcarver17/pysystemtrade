@@ -2,17 +2,13 @@
 #
 # Raw data
 #
-volatility_calculation:
-  func: "syscore.algos.robust_vol_calc"
-  days: 35
-#
 # Trading rules
 #
 trading_rules:
   ewmac2_8:
      function: systems.provided.futures_chapter15.rules.ewmac
      data:
-         - "rawdata.daily_prices"
+         - "rawdata.get_daily_prices"
          - "rawdata.daily_returns_volatility"
      other_args: 
          Lfast: 2
@@ -20,7 +16,7 @@ trading_rules:
   ewmac4_16:
      function: systems.provided.futures_chapter15.rules.ewmac
      data:
-         - "rawdata.daily_prices"
+         - "rawdata.get_daily_prices"
          - "rawdata.daily_returns_volatility"
      other_args: 
          Lfast: 4
@@ -28,7 +24,7 @@ trading_rules:
   ewmac8_32:
      function: systems.provided.futures_chapter15.rules.ewmac
      data:
-         - "rawdata.daily_prices"
+         - "rawdata.get_daily_prices"
          - "rawdata.daily_returns_volatility"
      other_args: 
          Lfast: 8
@@ -36,7 +32,7 @@ trading_rules:
   ewmac16_64:
      function: systems.provided.futures_chapter15.rules.ewmac
      data:
-         - "rawdata.daily_prices"
+         - "rawdata.get_daily_prices"
          - "rawdata.daily_returns_volatility"
      other_args: 
          Lfast: 16
@@ -44,7 +40,7 @@ trading_rules:
   ewmac32_128:
      function: systems.provided.futures_chapter15.rules.ewmac
      data:
-         - "rawdata.daily_prices"
+         - "rawdata.get_daily_prices"
          - "rawdata.daily_returns_volatility"
      other_args: 
          Lfast: 32
@@ -52,7 +48,7 @@ trading_rules:
   ewmac64_256:
      function: systems.provided.futures_chapter15.rules.ewmac
      data:
-         - "rawdata.daily_prices"
+         - "rawdata.get_daily_prices"
          - "rawdata.daily_returns_volatility"
      other_args: 
          Lfast: 64
@@ -67,14 +63,11 @@ trading_rules:
 #
 forecast_scalar_estimate:
    pool_instruments: True
-   func: "syscore.algos.forecast_scalar"
-   window: 250000
-   min_periods: 500
-   backfill: True
-#
-forecast_cap: 20.0
 #
 # forecast combination
+#
+forecast_weight_estimate:
+   method: shrinkage
 #
 rule_variations:
      EDOLLAR: ['ewmac16_64','ewmac32_128', 'ewmac64_256', 'carry']
@@ -87,20 +80,9 @@ rule_variations:
 #
 forecast_correlation_estimate:
    pool_instruments: True
-   func: syscore.correlations.CorrelationEstimator
-   frequency: "W"
-   date_method: "expanding"
-   using_exponent: True
-   ew_lookback: 500
-   min_periods: 20     
-   cleaning: True 
 #
-#
-forecast_div_mult_estimate:
-   func: syscore.divmultipliers.diversification_multiplier_from_list
-   ewma_span: 125
-   floor_at_zero: True
-#
+instrument_weight_estimate:
+   method: "shrinkage"
 #
 #
 # Capital correction
@@ -111,51 +93,5 @@ base_currency: "USD"
 #
 # Portfolio creation
 #
-instrument_weights:
-    EDOLLAR: 0.117
-    US10: 0.117
-    EUROSTX: 0.20
-    V2X: 0.098
-    MXP: 0.233
-    CORN: 0.233
-instrument_div_multiplier: 1.89
-rule_groups:
-    ewmac_fast:
-       - ewmac2_8
-       - ewmac4_16
-    ewmac_medium:
-       - ewmac8_32
-       - ewmac16_64
-    ewmac_slow:
-       - ewmac32_128
-       - ewmac64_256
-    carry:
-       - carry
-style_groups:
-    trend:
-        - ewmac_fast
-        - ewmac_medium
-        - ewmac_slow
-    carry:
-        - carry
-countries:
-    US:
-      - EDOLLAR
-      - US10
-    Europe:
-      - EUROSTX
-      - V2X
-    Other:
-    - MXP
-    - CORN
-asset_classes:
-    Rates:
-      - EDOLLAR
-      - US10
-    Risky:
-      - EUROSTX
-      - V2X
-      - MXP
-    Other:
-      - CORN
+instruments: ['EDOLLAR','US10','EUROSTX', 'MXP', 'CORN', 'V2X']
 

@@ -17,7 +17,7 @@ from systems.portfolio import PortfoliosFixed
 from systems.account import Account
 
 
-def futures_system(data=None, config=None, trading_rules=None):
+def futures_system(data=None, config=None, trading_rules=None, log_level="on"):
     """
 
     :param data: data object (defaults to reading from csv files)
@@ -27,9 +27,13 @@ def futures_system(data=None, config=None, trading_rules=None):
     :type config: sysdata.configdata.Config
 
     :param trading_rules: Set of trading rules to use (defaults to set specified in config object)
-    :param trading_rules: list or dict of TradingRules, or something that can be parsed to that
+    :type trading_rules: list or dict of TradingRules, or something that can be parsed to that
 
-    >>> system=futures_system()
+    :param log_level: How much logging to do
+    :type log_level: str
+
+
+    >>> system=futures_system(log_level="off")
     >>> system
     System with stages: accounts, portfolio, positionSize, rawdata, combForecast, forecastScaleCap, rules
     >>> system.rules.get_raw_forecast("EDOLLAR", "ewmac2_8").dropna().head(2)
@@ -61,6 +65,8 @@ def futures_system(data=None, config=None, trading_rules=None):
 
     system = System([Account(), PortfoliosFixed(), PositionSizing(), FuturesRawData(), ForecastCombineFixed(),
                      ForecastScaleCapFixed(), rules], data, config)
+    
+    system.set_logging_level(log_level) 
 
     return system
 

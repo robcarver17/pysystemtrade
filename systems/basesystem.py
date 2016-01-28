@@ -1,4 +1,5 @@
 from sysdata.configdata import Config
+from syslogdiag.log import logtoscreen
 """
 This is used for items which affect an entire system, not just one instrument
 """
@@ -22,7 +23,7 @@ class System(object):
 
     '''
 
-    def __init__(self, stage_list, data, config=None):
+    def __init__(self, stage_list, data, config=None, log=logtoscreen("base_system")):
         """
         Create a system object for doing simulations or live trading
 
@@ -50,8 +51,14 @@ class System(object):
             # Default - for very dull systems this is sufficient
             config = Config()
 
+        config.fill_with_defaults()
+        
         setattr(self, "data", data)
         setattr(self, "config", config)
+        setattr(self, "log", log)
+        
+        setattr(data, "log", log.setup(stage="data"))
+        setattr(config, "log", log.setup(stage="config"))
 
         protected = []
         stage_names = []
@@ -65,12 +72,16 @@ class System(object):
 
             """
 
-            # Each stage has a link back to the parent system
-            setattr(stage, "parent", self)
-
             # Stages have names, which are also how we find them in the system
             # attributes
             sub_name = stage.name
+
+            # Each stage has a link back to the parent system
+            setattr(stage, "parent", self)
+            
+            # and a log
+            log=log.setup(stage=sub_name)
+            setattr(stage, "log", log)
 
             if sub_name in stage_names:
                 raise Exception(
@@ -108,6 +119,13 @@ class System(object):
         sslist = ", ".join(self._stage_names)
         return "System with stages: " + sslist
     
+
+    def set_logging_level(self, new_log_level):
+        self.log.set_logging_level(new_log_level)
+        for stage_name in self._stage_names:
+            stage=getattr(self, stage_name)
+            stage.log.set_logging_level(new_log_level)
+        
     def get_instrument_list(self):
         """
         Get the instrument list
@@ -118,10 +136,16 @@ class System(object):
             ## if instrument weights specified in config ...
             instrument_list = self.config.instrument_weights.keys()
         except:
-            ## okay maybe not, must be in data
-            instrument_list = self.data.get_instrument_list()
+            try:
+                ## alternative place if 
+                instrument_list = self.config.instruments
+            except:
+                ## okay maybe not, must be in data
+                instrument_list = self.data.get_instrument_list()
 
-        return list(instrument_list)
+        instrument_list=list(set(list(instrument_list)))
+        instrument_list.sort()
+        return instrument_list
 
 
 
@@ -174,6 +198,7 @@ class System(object):
 
         Will kill protected things as well
         """
+        self.log.msg("Deleting %s from cache" % itemname)
 
         if itemname not in self._cache:
             return None
@@ -233,7 +258,7 @@ class System(object):
 
         deleted_values = [self.delete_item(itemname) for itemname in item_list]
 
-        return deleted_values
+        
 
     def get_item_from_cache(
             self, itemname, instrument_code=ALL_KEYNAME, keyname=None):

@@ -3,6 +3,49 @@ Utilities I can't put anywhere else...
 """
 
 from math import copysign
+from copy import copy
+
+def group_dict_from_natural(dict_group):
+    """
+    If we're passed a natural grouping dict (eg dict(bonds=["US10", "KR3", "DE10"], equity=["SP500"])) 
+    Returns the dict optimised for algo eg dict(US10=["KR3", "DE10"], SP500=[], ..)
+
+    :param dict_group: dictionary of groupings
+    :type dict_group: dict
+
+    :returns: dict
+
+    
+    >>> a=dict(bonds=["US10", "KR3", "DE10"], equity=["SP500"])
+    >>> group_dict_from_natural(a)['KR3']
+    ['US10', 'DE10']
+    """
+    if len(dict_group)==0:
+        return dict()
+    
+    all_names=list(set(sum([dict_group[groupname] for groupname in dict_group.keys()], [])))
+    all_names.sort()
+    
+    def _return_without(name, group):
+        if name in group:
+            g2=copy(group)
+            g2.remove(name)
+            return g2
+        else:
+            return None
+
+    def _return_group(name, dict_group):
+        ans=[_return_without(name, dict_group[groupname]) for groupname in dict_group.keys()]
+        ans=[x for x in ans if x is not None]
+        if len(ans)==0:
+            return []
+        
+        ans=ans[0]
+        return ans
+    
+    gdict=dict([(name, _return_group(name, dict_group)) for name in all_names])
+    
+    return gdict
 
 def str2Bool(x):
     if type(x) is bool:

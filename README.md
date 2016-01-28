@@ -7,7 +7,7 @@ Rob Carver
 [http://qoppac.blogspot.co.uk/p/pysystemtrade.html](http://qoppac.blogspot.co.uk/p/pysystemtrade.html)
 
 
-Version 0.1.0
+Version 0.2.0
 
 
 20160121

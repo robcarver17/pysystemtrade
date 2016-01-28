@@ -150,7 +150,7 @@ class ForecastScaleCapFixed(SystemStage):
         21.0
         >>>
         >>> ## default
-        >>> del(config.forecast_cap)
+        >>> config.delete("forecast_cap")
         >>> system3=System([rawdata, rules, ForecastScaleCapFixed()], data, config)
         >>> system3.forecastScaleCap.get_forecast_cap()
         20.0
@@ -160,7 +160,7 @@ class ForecastScaleCapFixed(SystemStage):
         def _get_forecast_cap(system, not_used):
             # Try the config file else defaults
             
-            return system.config.item_with_defaults("forecast_cap")
+            return system.config.forecast_cap
 
         forecast_cap = self.parent.calc_or_cache(
             "get_forecast_cap", ALL_KEYNAME, _get_forecast_cap)
@@ -191,6 +191,8 @@ class ForecastScaleCapFixed(SystemStage):
 
         def _get_scaled_forecast(
                 system, instrument_code, rule_variation_name, this_stage):
+            
+
             raw_forecast = this_stage.get_raw_forecast(
                 instrument_code, rule_variation_name)
             scale = this_stage.get_forecast_scalar(
@@ -238,6 +240,9 @@ class ForecastScaleCapFixed(SystemStage):
 
         def _get_capped_forecast(
                 system, instrument_code, rule_variation_name, this_stage):
+
+            this_stage.log.msg("Calculating capped forecast for %s %s" % (instrument_code, rule_variation_name),
+                               instrument_code=instrument_code, rule_variation_name=rule_variation_name)
 
             scaled_forecast = this_stage.get_scaled_forecast(
                 instrument_code, rule_variation_name)
@@ -315,7 +320,8 @@ class ForecastScaleCapEstimated(ForecastScaleCapFixed):
             """
             If instrument_list contains multiple things, pools everything across all instruments
             """
-            
+            this_stage.log.msg("Getting forecast scalar for %s over %s" % (rule_variation_name, ", ".join(instrument_list)),
+                               rule_variation_name=rule_variation_name)
             ## Get forecasts for each instrument
             forecast_list=[
                    this_stage.get_raw_forecast(instrument_code, rule_variation_name) 
@@ -329,8 +335,7 @@ class ForecastScaleCapEstimated(ForecastScaleCapFixed):
 
 
         ## Get some useful stuff from the config
-        forecast_scalar_config=copy(self.parent.config.dict_with_defaults('forecast_scalar_estimate', 
-            ['func', 'pool_instruments', 'window', 'min_periods', 'backfill']))
+        forecast_scalar_config=copy(self.parent.config.forecast_scalar_estimate)
 
         # The config contains 'func' and some other arguments
         # we turn func which could be a string into a function, and then

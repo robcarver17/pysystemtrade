@@ -6,6 +6,54 @@ import pandas as pd
 import numpy as np
 from syscore.fileutils import get_filename_for_package
 
+def df_from_list(data):
+    """
+    data frame from list
+    """
+    if type(data) is list:        
+        column_names=list(set(sum([list(data_item.columns) for data_item in data],[])))
+        column_names.sort()
+        ## ensure all are properly aligned
+        ## note we don't check that all the columns match here
+        data=[data_item[column_names] for data_item in data]
+    
+        ## pooled
+        ## stack everything up
+        data=pd.concat(data, axis=0)
+        data=data.sort_index()
+            
+    return data
+
+
+def must_haves_from_list(data):
+    must_haves_list=[must_have_item(data_item) 
+                     for data_item in data]
+    must_haves=list(set(sum(must_haves_list,[])))
+    
+    return must_haves
+
+
+def must_have_item(slice_data):
+    """
+    Returns the columns of slice_data for which we have at least one non nan value  
+    
+    :param slice_data: Data to get correlations from
+    :type slice_data: pd.DataFrame
+
+    :returns: list of bool
+
+    >>>
+    """
+        
+    def _any_data(xseries):
+        data_present=[not np.isnan(x) for x in xseries]
+        
+        return any(data_present)
+    
+    some_data=slice_data.apply(_any_data, axis=0)
+    some_data_flags=list(some_data.values)
+    
+    return some_data_flags
 
 def pd_readcsv_frompackage(filename):
     """

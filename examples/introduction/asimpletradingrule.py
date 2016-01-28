@@ -25,7 +25,7 @@ We get stuff out of data with methods
 
 """
 print(data.get_instrument_list())
-print(data.get_instrument_price("EDOLLAR"))
+print(data.get_daily_price("EDOLLAR").tail(5))
 
 """
 data can also behave in a dict like manner (though it's not a dict)
@@ -43,7 +43,7 @@ We have extra futures data here
 
 """
 
-print(data.get_instrument_raw_carry_data("US10"))
+print(data.get_instrument_raw_carry_data("EDOLLAR").tail(6))
 
 """
 Technical note: csvFuturesData inherits from FuturesData which itself inherits from Data
@@ -71,12 +71,13 @@ def calc_ewmac_forecast(price, Lfast, Lslow=None):
     """
     Calculate the ewmac trading fule forecast, given a price and EWMA speeds Lfast, Lslow and vol_lookback
 
-    Assumes that 'price' is daily data
     """
     # price: This is the stitched price series
     # We can't use the price of the contract we're trading, or the volatility will be jumpy
     # And we'll miss out on the rolldown. See
     # http://qoppac.blogspot.co.uk/2015/05/systems-building-futures-rolling.html
+
+    price=price.resample("1B", how="last")
 
     if Lslow is None:
         Lslow = 4 * Lfast
@@ -98,8 +99,9 @@ Try it out
 (this isn't properly scaled at this stage of course)
 """
 instrument_code = 'EDOLLAR'
-price = data.get_instrument_price(instrument_code)
+price = data.get_daily_price(instrument_code)
 ewmac = calc_ewmac_forecast(price, 32, 128)
+ewmac.columns=['forecast']
 print(ewmac.tail(5))
 
 from matplotlib.pyplot import show
@@ -111,6 +113,8 @@ Did we make money?
 """
 
 from syscore.accounting import pandl
-account = pandl(price, forecast=ewmac)
+account = pandl(price, forecast=ewmac, capital=0.0)
 account.curve().plot()
 show()
+
+print(account.stats())

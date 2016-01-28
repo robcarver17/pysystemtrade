@@ -47,6 +47,8 @@ class csvFuturesData(FuturesData):
 
         """
 
+        super().__init__()
+
         if datapath is None:
             datapath = LEGACY_DATA_PATH
 
@@ -56,8 +58,10 @@ class csvFuturesData(FuturesData):
         Here it's a directory
         """
         setattr(self, "_datapath", datapath)
+        
 
-    def get_instrument_price(self, instrument_code):
+
+    def get_daily_price(self, instrument_code):
         """
         Get instrument price
 
@@ -67,7 +71,7 @@ class csvFuturesData(FuturesData):
         :returns: pd.DataFrame
 
         >>> data=csvFuturesData("sysdata.tests")
-        >>> data.get_instrument_price("EDOLLAR").tail(2)
+        >>> data.get_daily_price("EDOLLAR").tail(2)
                                price
         2015-12-11 17:08:14  97.9675
         2015-12-11 19:33:39  97.9875
@@ -78,6 +82,7 @@ class csvFuturesData(FuturesData):
         """
 
         # Read from .csv
+        self.log.msg("Loading csv data for %s" % instrument_code, instrument_code=instrument_code)
         filename = os.path.join(self._datapath, instrument_code + "_price.csv")
         instrpricedata = pd_readcsv(filename)
         instrpricedata.columns = ["price"]
@@ -103,6 +108,8 @@ class csvFuturesData(FuturesData):
         2015-12-11 16:06:35  126.914062    NaN         201606         201603
         2015-12-11 17:24:06  126.945312    NaN         201606         201603
         """
+
+        self.log.msg("Loading csv carry data for %s" % instrument_code, instrument_code=instrument_code)
 
         filename = os.path.join(
             self._datapath, instrument_code + "_carrydata.csv")
@@ -130,6 +137,8 @@ class csvFuturesData(FuturesData):
         US10             US10       1000       Bond      USD
         BUND             BUND       1000       Bond      EUR
         """
+
+        self.log.msg("Loading csv instrument config")
 
         filename = os.path.join(self._datapath, "instrumentconfig.csv")
         instr_data = pd.read_csv(filename)
@@ -232,6 +241,8 @@ class csvFuturesData(FuturesData):
         2015-12-09  0.724663
         2015-12-10  0.724463
         """
+
+        self.log.msg("Loading csv fx data", fx="%s%s" % (currency1, currency2))
 
         if currency1 == currency2:
             return self._get_default_series()

@@ -32,11 +32,9 @@ class ForecastCombineFixed(SystemStage):
         """
         Create a SystemStage for combining forecasts
 
-        FIX ME ADD CORRELATIONS NEED TO BE NESTED
-
         """
 
-        protected = ['get_forecast_weights',
+        protected = ['get_forecast_weights', 'get_raw_forecast_weights',
                      'get_forecast_diversification_multiplier']
         setattr(self, "_protected", protected)
 
@@ -198,7 +196,7 @@ class ForecastCombineFixed(SystemStage):
         2015-12-10      0.1     0.9
         2015-12-11      0.1     0.9
         >>>
-        >>> del(config.forecast_weights)
+        >>> config.delete("forecast_weights")
         >>> system3=System([rawdata, rules, fcs, ForecastCombineFixed()], data, config)
         >>> system3.combForecast.get_raw_forecast_weights("EDOLLAR").tail(2)
         WARNING: No forecast weights  - using equal weights of 0.5000 over all 2 trading rules in system
@@ -207,6 +205,8 @@ class ForecastCombineFixed(SystemStage):
         2015-12-11      0.5     0.5
         """
         def _get_raw_forecast_weights(system, instrument_code, this_stage):
+            this_stage.log.msg("Calculating raw forecast weights for %s" % (instrument_code),
+                               instrument_code=instrument_code)
 
             # Let's try the config
             if "forecast_weights" in dir(system.config):
@@ -222,9 +222,10 @@ class ForecastCombineFixed(SystemStage):
                 rules = this_stage.get_trading_rule_list(instrument_code)
                 weight = 1.0 / len(rules)
 
-                print(
-                    "WARNING: No forecast weights  - using equal weights of %.4f over all %d trading rules in system" %
-                    (weight, len(rules)))
+                warn_msg="WARNING: No forecast weights  - using equal weights of %.4f over all %d trading rules in system" %(weight, len(rules))
+
+                this_stage.log.warn(warn_msg, instrument_code=instrument_code)
+
                 fixed_weights = dict([(rule_name, weight)
                                       for rule_name in rules])
 
@@ -287,7 +288,7 @@ class ForecastCombineFixed(SystemStage):
         2015-12-10      0.1     0.9
         2015-12-11      0.1     0.9
         >>>
-        >>> del(config.forecast_weights)
+        >>> config.delete("forecast_weights")
         >>> system3=System([rawdata, rules, fcs, ForecastCombineFixed()], data, config)
         >>> system3.combForecast.get_forecast_weights("EDOLLAR").tail(2)
         WARNING: No forecast weights  - using equal weights of 0.5000 over all 2 trading rules in system
@@ -296,6 +297,9 @@ class ForecastCombineFixed(SystemStage):
         2015-12-11      0.5     0.5
         """
         def _get_forecast_weights(system, instrument_code, this_stage):
+
+            this_stage.log.msg("Calculating forecast weights for %s" % (instrument_code),
+                               instrument_code=instrument_code)
 
             forecast_weights = this_stage.get_raw_forecast_weights(
                 instrument_code)
@@ -344,7 +348,7 @@ class ForecastCombineFixed(SystemStage):
         2015-12-11    2
         >>>
         >>> ## defaults
-        >>> del(config.forecast_div_multiplier)
+        >>> config.delete("forecast_div_multiplier")
         >>> system3=System([rawdata, rules, fcs, ForecastCombineFixed()], data, config)
         >>> system3.combForecast.get_forecast_diversification_multiplier("EDOLLAR").tail(2)
                     fdm
@@ -352,6 +356,8 @@ class ForecastCombineFixed(SystemStage):
         2015-12-11    1
         """
         def _get_forecast_div_multiplier(system, instrument_code, this_stage):
+            this_stage.log.msg("Calculating diversification multiplier for %s" % (instrument_code),
+                               instrument_code=instrument_code)
 
             # Let's try the config
             if hasattr(system.config, "forecast_div_multiplier"):
@@ -363,15 +369,15 @@ class ForecastCombineFixed(SystemStage):
                     fixed_div_mult = system.config.forecast_div_multiplier[
                         instrument_code]
                 else:
-                    raise Exception(
-                        "FDM in config needs to be eithier float, or dict with instrument_code keys")
+                    error_msg="FDM in config needs to be eithier float, or dict with instrument_code keys"
+                    this_stage.log.critical(error_msg, instrument_code=instrument_code)
 
             elif "forecast_div_multiplier" in system_defaults:
                 # try defaults
                 fixed_div_mult = system_defaults['forecast_div_multiplier']
             else:
-                raise Exception(
-                    "Need to specify FDM in config or system_defaults")
+                error_msg="Need to specify FDM in config or system_defaults"
+                this_stage.log.critical(error_msg, instrument_code=instrument_code)
 
             # Now we have a dict, fixed_weights.
             # Need to turn into a timeseries covering the range of forecast dates
@@ -424,6 +430,8 @@ class ForecastCombineFixed(SystemStage):
         2015-12-11             21
         """
         def _get_combined_forecast(system, instrument_code, this_stage):
+            this_stage.log.msg("Calculating combined forecast for %s" % (instrument_code),
+                               instrument_code=instrument_code)
 
             forecast_weights = this_stage.get_forecast_weights(instrument_code)
             rule_variation_list = list(forecast_weights.columns)
@@ -463,6 +471,17 @@ class ForecastCombineEstimated(ForecastCombineFixed):
     Estimates forecast diversification multiplier
 
     Name: combForecast
+    
+    KEY INPUTS: as per parent class, plus:
+     
+                system.rules.trading_rules()
+                found in: self.get_trading_rule_list
+                
+                system.accounts.pandl_for_instrument_rules()
+                found in: self.pandl_for_instrument_rules()
+   
+    KEY OUTPUTS: No additional outputs
+    
     """
 
     def __init__(self):
@@ -474,7 +493,7 @@ class ForecastCombineEstimated(ForecastCombineFixed):
         if you add another method to this you also need to add its blank dict here
         """
 
-        protected = ['get_forecast_correlation_matrices']
+        protected = ['get_forecast_correlation_matrices', 'calculation_of_forecast_weights']
         update_recalc(self, protected)
     
     
@@ -494,8 +513,8 @@ class ForecastCombineEstimated(ForecastCombineFixed):
 
         >>> from systems.tests.testdata import get_test_object_futures_with_rules_and_capping_estimate
         >>> from systems.basesystem import System
-        >>> (fcs, rules, rawdata, data, config)=get_test_object_futures_with_rules_and_capping_estimate()
-        >>> system=System([rawdata, rules, fcs, ForecastCombineEstimated()], data, config)
+        >>> (accounts, fcs, rules, rawdata, data, config)=get_test_object_futures_with_rules_and_capping_estimate()
+        >>> system=System([accounts, rawdata, rules, fcs, ForecastCombineEstimated()], data, config)
         >>> system.combForecast.get_trading_rule_list("EDOLLAR")
         ['carry', 'ewmac16', 'ewmac8']
         >>> system.config.rule_variations=dict(EDOLLAR=["ewmac8"])
@@ -535,8 +554,8 @@ class ForecastCombineEstimated(ForecastCombineFixed):
 
         >>> from systems.tests.testdata import get_test_object_futures_with_rules_and_capping_estimate
         >>> from systems.basesystem import System
-        >>> (fcs, rules, rawdata, data, config)=get_test_object_futures_with_rules_and_capping_estimate()
-        >>> system=System([rawdata, rules, fcs, ForecastCombineEstimated()], data, config)
+        >>> (accounts, fcs, rules, rawdata, data, config)=get_test_object_futures_with_rules_and_capping_estimate()
+        >>> system=System([accounts, rawdata, rules, fcs, ForecastCombineEstimated()], data, config)
         >>> system.combForecast._has_same_rules_as_code("EDOLLAR")
         ['EDOLLAR', 'US10']
         >>> system.combForecast._has_same_rules_as_code("BUND")
@@ -569,32 +588,29 @@ class ForecastCombineEstimated(ForecastCombineFixed):
 
         >>> from systems.tests.testdata import get_test_object_futures_with_rules_and_capping_estimate
         >>> from systems.basesystem import System
-        >>> (fcs, rules, rawdata, data, config)=get_test_object_futures_with_rules_and_capping_estimate()
-        >>> system=System([rawdata, rules, fcs, ForecastCombineEstimated()], data, config)
+        >>> (accounts, fcs, rules, rawdata, data, config)=get_test_object_futures_with_rules_and_capping_estimate()
+        >>> system=System([rawdata, rules, fcs, accounts, ForecastCombineEstimated()], data, config)
         >>> ans=system.combForecast.get_forecast_correlation_matrices("EDOLLAR")
-        >>> print(ans.corr_list[-1])
-        [[ 1.          0.11430003  0.08520746]
-         [ 0.11430003  1.          0.86476074]
-         [ 0.08520746  0.86476074  1.        ]]
+        >>> ans.corr_list[-1]
+        array([[ 1.        ,  0.0860245 ,  0.05514179],
+               [ 0.0860245 ,  1.        ,  0.86788878],
+               [ 0.05514179,  0.86788878,  1.        ]])
         >>> print(ans.columns)
         ['carry', 'ewmac16', 'ewmac8']
         """
-        def _get_forecast_correlation_matrices(system, instrument_code, NotUsed, this_stage, 
+        def _get_forecast_correlation_matrices(system, NotUsed1, NotUsed2, this_stage, 
                                                codes_to_use, corr_func, **corr_params):
+            this_stage.log.terse("Calculating forecast correlations over %s" % ", ".join(codes_to_use))
 
             forecast_data=[this_stage.get_all_forecasts(code) for code in codes_to_use]
+            
+            ## if we're not pooling passes a list of one
             forecast_data=[forecast_ts.ffill() for forecast_ts in forecast_data]
 
-            if len(forecast_data)==1:
-                ## not pooling use just one set of data
-                forecast_data=forecast_data[0]
-                
-            return corr_func(forecast_data, **corr_params)
+            return corr_func(forecast_data, log=self.log.setup(call="correlation"), **corr_params)
                             
         ## Get some useful stuff from the config
-        corr_params=self.parent.config.dict_with_defaults("forecast_correlation_estimate", 
-             ['func', 'pool_instruments', 'frequency', 'date_method', 'using_exponent',
-              'ew_lookback','min_periods','cleaning'])
+        corr_params=copy(self.parent.config.forecast_correlation_estimate)
 
         ## do we pool our estimation?
         pooling=str2Bool(corr_params.pop("pool_instruments"))
@@ -648,19 +664,22 @@ class ForecastCombineEstimated(ForecastCombineFixed):
 
         >>> from systems.tests.testdata import get_test_object_futures_with_rules_and_capping_estimate
         >>> from systems.basesystem import System
-        >>> (fcs, rules, rawdata, data, config)=get_test_object_futures_with_rules_and_capping_estimate()
-        >>> system=System([rawdata, rules, fcs, ForecastCombineEstimated()], data, config)
+        >>> (accounts, fcs, rules, rawdata, data, config)=get_test_object_futures_with_rules_and_capping_estimate()
+        >>> system=System([accounts, rawdata, rules, fcs, ForecastCombineEstimated()], data, config)
+        >>> system.config.forecast_weight_estimate['method']="shrinkage"
         >>> system.combForecast.get_forecast_diversification_multiplier("EDOLLAR").tail(3)
                          FDM
-        2015-12-09  1.370531
-        2015-12-10  1.370519
-        2015-12-11  1.370508
+        2015-12-09  1.387137
+        2015-12-10  1.387118
+        2015-12-11  1.387100
         """
         def _get_forecast_div_multiplier(system, instrument_code, this_stage):
+
+            this_stage.log.terse("Calculating forecast div multiplier for %s" % instrument_code,
+                                 instrument_code=instrument_code)
             
             ## Get some useful stuff from the config
-            div_mult_params=self.parent.config.dict_with_defaults("forecast_div_mult_estimate", 
-                 ['func', 'ewma_span','floor_at_zero'])
+            div_mult_params=copy(system.config.forecast_div_mult_estimate)
             
             idm_func=resolve_function(div_mult_params.pop("func"))
             
@@ -677,6 +696,193 @@ class ForecastCombineEstimated(ForecastCombineFixed):
             'get_forecast_diversification_multiplier', instrument_code, _get_forecast_div_multiplier, 
             self)
         return forecast_div_multiplier
+
+    def pandl_for_instrument_rules(self, instrument_code):
+        """
+        Get pandl for instrument rules
+        
+        KEY INPUT
+        
+        :param instrument_code:
+        :type str:
+
+        :returns: TxK pd.DataFrame containing pandl, columns are trading rule variation names
+        
+        """
+        
+        return self.parent.accounts.pandl_for_instrument_rules(instrument_code)
+
+    def calculation_of_raw_forecast_weights(self, instrument_code):
+        """
+        Estimate the forecast weights for this instrument
+
+        We store this intermediate step to expose the calculation object
+        
+        :param instrument_code:
+        :type str:
+
+        :returns: TxK pd.DataFrame containing weights, columns are trading rule variation names, T covers all
+        """
+
+        def _calculation_of_raw_forecast_weights(system, NotUsed1, NotUsed2, this_stage, 
+                                      codes_to_use, weighting_func, **weighting_params):
+
+            this_stage.log.terse("Calculating raw forecast weights over %s" % ", ".join(codes_to_use))
+
+            if hasattr(system, "accounts"):
+                pandl_forecasts=[this_stage.pandl_for_instrument_rules(code)
+                        for code in codes_to_use]
+                
+            else:
+                error_msg="You need an accounts stage in the system to estimate forecast weights"
+                this_stage.log.critical(error_msg)
+
+            output=weighting_func(pandl_forecasts,  log=self.log.setup(call="weighting"), **weighting_params)
+
+            return output
+
+
+        ## Get some useful stuff from the config
+        weighting_params=copy(self.parent.config.forecast_weight_estimate)  
+
+        ## do we pool our estimation?
+        pooling=str2Bool(weighting_params.pop("pool_instruments"))
+        
+        ## which function to use for calculation
+        weighting_func=resolve_function(weighting_params.pop("func"))
+        
+        if pooling:
+            ## find set of instruments with same trading rules as I have
+            codes_to_use=self._has_same_rules_as_code(instrument_code)
+            instrument_code_ref=ALL_KEYNAME
+            
+            ## We 
+            label='_'.join(codes_to_use)
+            
+        else:
+
+            codes_to_use=[instrument_code]
+            label=instrument_code
+            instrument_code_ref=instrument_code
+            
+        ##
+        ## label: how we identify this thing in the cache
+        ## instrument_code_ref: eithier the instrument code, or 'all markets' if pooling
+        ## _get_raw_forecast_weights: function to call if we don't find in cache
+        ## self: this_system stage object
+        ## codes_to_use: instrument codes to get data for 
+        ## weighting_func: function to call to calculate weights
+        ## **weighting_params: parameters to pass to weighting function
+        ##
+        raw_forecast_weights_calcs = self.parent.calc_or_cache_nested(
+            'calculation_of_raw_forecast_weights', instrument_code_ref, label, 
+            _calculation_of_raw_forecast_weights,
+             self, codes_to_use, weighting_func, **weighting_params)
+
+        return raw_forecast_weights_calcs
+
+
+    def get_raw_forecast_weights(self, instrument_code):
+        """
+        Estimate the forecast weights for this instrument
+
+        :param instrument_code:
+        :type str:
+
+        :returns: TxK pd.DataFrame containing weights, columns are trading rule variation names, T covers all
+
+        >>> from systems.tests.testdata import get_test_object_futures_with_rules_and_capping_estimate
+        >>> from systems.basesystem import System
+        >>> (accounts, fcs, rules, rawdata, data, config)=get_test_object_futures_with_rules_and_capping_estimate()
+        >>> system=System([accounts, rawdata, rules, fcs, ForecastCombineEstimated()], data, config)
+        >>> system.config.forecast_weight_estimate['method']="shrinkage"
+        >>> system.combForecast.get_raw_forecast_weights("EDOLLAR").tail(3)
+                       carry   ewmac16    ewmac8
+        2015-05-30  0.439863  0.255848  0.304288
+        2015-06-01  0.438398  0.257190  0.304412
+        2015-12-12  0.438398  0.257190  0.304412
+        >>> system.delete_all_items(True)
+        >>> system.config.forecast_weight_estimate['method']="one_period"
+        >>> system.combForecast.get_raw_forecast_weights("EDOLLAR").tail(3)
+                       carry       ewmac16    ewmac8
+        2015-05-30  0.482938  2.127387e-17  0.517062
+        2015-06-01  0.508093  0.000000e+00  0.491907
+        2015-12-12  0.508093  0.000000e+00  0.491907
+        >>> system.delete_all_items(True)
+        >>> system.config.forecast_weight_estimate['method']="bootstrap"
+        >>> system.config.forecast_weight_estimate['monte_runs']=50
+        >>> system.combForecast.get_raw_forecast_weights("EDOLLAR").tail(3)
+                           carry   ewmac16    ewmac8
+                       carry   ewmac16    ewmac8
+        2015-05-30  0.439863  0.255848  0.304288
+        2015-06-01  0.438398  0.257190  0.304412
+        2015-12-12  0.438398  0.257190  0.304412
+        """
+
+        def _get_raw_forecast_weights(system, instrument_code, this_stage):
+            this_stage.log.msg("Calculating raw forecast weights for %s" % instrument_code,
+                               instrument_code=instrument_code)
+
+            return this_stage.calculation_of_raw_forecast_weights(instrument_code).weights
+
+        ##
+        raw_forecast_weights = self.parent.calc_or_cache(
+            'get_raw_forecast_weights',  instrument_code,
+            _get_raw_forecast_weights,
+             self)
+
+                
+        return raw_forecast_weights
+
+    def get_forecast_weights(self, instrument_code):
+        """
+        Get the forecast weights
+
+        We forward fill all forecasts. We then adjust forecast weights so that they sum to 1.0 in every
+          period; after setting to zero when no forecast is available. we then take a smooth
+
+        :param instrument_code:
+        :type str:
+
+        :returns: TxK pd.DataFrame containing weights, columns are trading rule variation names, T covers all
+
+        KEY OUTPUT
+
+        >>> from systems.tests.testdata import get_test_object_futures_with_rules_and_capping_estimate
+        >>> from systems.basesystem import System
+        >>> (accounts, fcs, rules, rawdata, data, config)=get_test_object_futures_with_rules_and_capping_estimate()
+        >>> system=System([accounts, rawdata, rules, fcs, ForecastCombineEstimated()], data, config)
+        >>> system.config.forecast_weight_estimate['method']="shrinkage"
+        >>> system.combForecast.get_forecast_weights("EDOLLAR").tail(3)
+                       carry   ewmac16    ewmac8
+        2015-12-09  0.439291  0.256467  0.304243
+        2015-12-10  0.439283  0.256472  0.304244
+        2015-12-11  0.439276  0.256478  0.304245
+        """
+        def _get_forecast_weights(system, instrument_code, this_stage):
+            this_stage.log.msg("Calculating forecast weights for %s" % instrument_code,
+                               instrument_code=instrument_code)
+
+            ## Get some useful stuff from the config
+            weighting_params=copy(system.config.forecast_weight_estimate)  
+
+            forecast_weights = this_stage.get_raw_forecast_weights(
+                instrument_code)
+            rule_variation_list = list(forecast_weights.columns)
+            forecasts = this_stage.get_all_forecasts(instrument_code, rule_variation_list)
+
+            # adjust weights for missing data
+            forecast_weights = fix_weights_vs_pdm(forecast_weights, forecasts)
+            
+            # smooth
+            forecast_weights = pd.ewma(forecast_weights, weighting_params['ewma_span']) 
+
+            return forecast_weights
+
+
+        forecast_weights = self.parent.calc_or_cache(
+            'get_forecast_weights', instrument_code, _get_forecast_weights, self)
+        return forecast_weights
 
 
 

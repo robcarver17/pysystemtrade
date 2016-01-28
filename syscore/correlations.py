@@ -4,107 +4,32 @@ Correlations are important and used a lot
 import numpy as np
 import pandas as pd
 
-from copy import copy
 
-from syscore.genutils import str2Bool
-from syscore.dateutils import generate_fitting_dates, fit_dates_object
+from syscore.genutils import str2Bool, group_dict_from_natural
+from syscore.dateutils import generate_fitting_dates
+from syscore.pdutils import df_from_list
 
-def nearPSD(A,epsilon=0):
-    """
-    Find the nearest PSD matrix to A
-    
-    http://www.quarchome.org/correlationmatrix.pdf 
-    via http://stackoverflow.com/questions/10939213/how-can-i-calculate-the-nearest-positive-semi-definite-matrix
+from syslogdiag.log import logtoscreen
 
-    :param A: matrix
-    :type A: Square 2-dim np.array
-
-    :param epsilon: control error on nearest
-    :type epsilon: float
-
-    :returns: Square 2-dim np.array
-
-    
-    """ 
-        
-    n = A.shape[0]
-    eigval, eigvec = np.linalg.eig(A)
-    val = np.matrix(np.maximum(eigval,epsilon))
-    vec = np.matrix(eigvec)
-    T = 1/(np.multiply(vec,vec) * val.T)
-    T = np.matrix(np.sqrt(np.diag(np.array(T).reshape((n)) )))
-    B = T * vec * np.diag(np.array(np.sqrt(val)).reshape((n)))
-    out = B*B.T
-    
-    return(out)
-
-def group_dict_from_natural(dict_group):
-    """
-    If we're passed a natural grouping dict (eg dict(bonds=["US10", "KR3", "DE10"], equity=["SP500"])) 
-    Returns the dict optimised for algo eg dict(US10=["KR3", "DE10"], SP500=[], ..)
-
-    :param dict_group: dictionary of groupings
-    :type dict_group: dict
-
-    :returns: dict
-
-    
-    >>> a=dict(bonds=["US10", "KR3", "DE10"], equity=["SP500"])
-    >>> group_dict_from_natural(a)['KR3']
-    ['US10', 'DE10']
-    """
-    if len(dict_group)==0:
-        return dict()
-    
-    all_names=list(set(sum([dict_group[groupname] for groupname in dict_group.keys()], [])))
-    all_names.sort()
-    
-    def _return_without(name, group):
-        if name in group:
-            g2=copy(group)
-            g2.remove(name)
-            return g2
-        else:
-            return None
-
-    def _return_group(name, dict_group):
-        ans=[_return_without(name, dict_group[groupname]) for groupname in dict_group.keys()]
-        ans=[x for x in ans if x is not None]
-        if len(ans)==0:
-            return []
-        
-        ans=ans[0]
-        return ans
-    
-    gdict=dict([(name, _return_group(name, dict_group)) for name in all_names])
-    
-    return gdict
-
-def clean_correlation(corrmat, corr_with_no_data, column_names, must_haves, group_dict):
+def clean_correlation(corrmat, corr_with_no_data, boring_offdiag):
     """
     Make's sure we *always* have some kind of correlation matrix
     
     If corrmat is all nans, return corr_with_no_data
     
-    FIX ME - OTHER STUFF FOR FUTURE PROOFING
-
     :param corrmat: The correlation matrix to clea
     :type corrmat: 2-dim square np.array
 
     :param corr_with_no_data: The correlation matrix to use if this one all nans
     :type corr_with_no_data: 2-dim square np.array
 
-    :param column_names: The column labels for the matrix
-    :type column_names: List of str
-
-    :param must_haves: Columns we must have data for
-    :type must_haves: List of str
-
-    :param group_dict: dictionary of groupings; used to replace missing values
-    :type group_dict: dict
+    :param boring_offdiag: Value used when no data
+    :type boring_offdiag: float 
 
     :returns: 2-dim square np.array
 
+    FIX ME - this code is inefficient; especially if you use exponential weighting
+             (since we'll be recalculating the same rolling correlations multiple times)
     
     """
     ### 
@@ -113,22 +38,29 @@ def clean_correlation(corrmat, corr_with_no_data, column_names, must_haves, grou
         return corrmat
 
     if np.all(np.isnan(corrmat)):
-        ## this guy guaranteed to be PSD
         return corr_with_no_data
+
     
-    raise Exception("Can't handle incomplete matrix! Need to write code for this")
-    
-    ## If we're filling in need to get to nearest PSD
-    corrmat=nearPSD(corrmat)
-    
-    
+    size_range=range(corrmat.shape[0])
+
+    def _good_correlation(value, boring_offdiag):
+        if np.isnan(value):
+            return boring_offdiag
+        else:
+            return value
+
+    corrmat=np.array([[_good_correlation(corrmat[i][j], boring_offdiag) 
+                       for i in size_range] for j in size_range], ndmin=2)
+
+    ## makes life easier and we'll deal with this later
+    np.fill_diagonal(corrmat,1.0)
     
     return corrmat
 
 
-def correlation_single_period(data_for_estimate, corr_with_no_data, must_haves=[], group_dict=dict(),
-                              cleaning=True, 
-                              using_exponent=True, min_periods=20, ew_lookback=250):
+def correlation_single_period(data_for_estimate, 
+                              using_exponent=True, min_periods=20, ew_lookback=250,
+                              floor_at_zero=True):
     """
     We generate a correlation from eithier a pd.DataFrame, or a list of them if we're pooling
     
@@ -139,15 +71,6 @@ def correlation_single_period(data_for_estimate, corr_with_no_data, must_haves=[
     :param data_for_estimate: Data to get correlations from
     :type data_for_estimate: pd.DataFrame
 
-    :param corr_with_no_data: The correlation matrix to use if this one all nans
-    :type corr_with_no_data: 2-dim square np.array
-
-    :param must_haves: Columns we must have data for
-    :type must_haves: List of str
-
-    :param group_dict: dictionary of groupings; used to replace missing values
-    :type group_dict: dict
-
     :param using_exponent: Should we use exponential weighting?
     :type using_exponent: bool 
 
@@ -157,22 +80,16 @@ def correlation_single_period(data_for_estimate, corr_with_no_data, must_haves=[
     :param min_periods: Minimum periods before we get a correlation
     :type min_periods: int 
 
-    :param cleaning: Should we clean the matrix so it always has a value?
-    :type cleaning: bool 
-
+    :param floor_at_zero: remove negative correlations before proceeding
+    :type floor_at_zero: bool or str
+    
     :returns: 2-dim square np.array
 
     
     """
     ## These may come from config as str
     using_exponent=str2Bool(using_exponent)
-    
-    if type(data_for_estimate) is list:
-        ## pooled
-        ## stack everything up
-        data_for_estimate=pd.concat(data_for_estimate, axis=0)
-        data_for_estimate=data_for_estimate.sort_index()
-        
+            
     if using_exponent:
         ## If we stack there will be duplicate dates
         ## So we massage the span so it's correct
@@ -190,35 +107,12 @@ def correlation_single_period(data_for_estimate, corr_with_no_data, must_haves=[
         ## Usual use for bootstrapping when only have sub sample
         corrmat=data_for_estimate.corr(min_periods=min_periods)
         corrmat=corrmat.values
-    
-    ## must_haves: filling in values with average using group_dict
-    # use corr_with_no_data if completely empty
-    if cleaning:
-        corrmat=clean_correlation(corrmat, corr_with_no_data, data_for_estimate.columns, must_haves, group_dict)
+
+    if floor_at_zero:
+        corrmat[corrmat<0]=0.0
     
     return corrmat
 
-def must_have_item(slice_data):
-    """
-    Returns the columns of slice_data for which we have at least one non nan value  
-    
-    :param slice_data: Data to get correlations from
-    :type slice_data: pd.DataFrame
-
-    :returns: list of str
-
-    """
-        
-    def _any_data(xseries):
-        data_present=[not np.isnan(x) for x in xseries]
-        
-        return any(data_present)
-    
-    some_data=slice_data.apply(_any_data, axis=0)
-    some_data_names=list(some_data.index)
-    some_data_flags=list(some_data.values)
-    
-    return [name for name,flag in zip(some_data_names, some_data_flags) if flag]
 
 def boring_corr_matrix(size, offdiag=0.99, diag=1.0):
     size_index=range(size)
@@ -274,7 +168,7 @@ class CorrelationEstimator(CorrelationList):
     '''
 
 
-    def __init__(self, data, frequency="W", date_method="expanding", rollyears=20, 
+    def __init__(self, data, log=logtoscreen("optimiser"), frequency="W", date_method="expanding", rollyears=20, 
                  dict_group=dict(), boring_offdiag=0.99, cleaning=True, **kwargs):
         """
     
@@ -283,7 +177,7 @@ class CorrelationEstimator(CorrelationList):
         Its important that forward filling, or index / ffill / diff has been done before we begin
                 
         :param data: Data to get correlations from
-        :type data: pd.DataFrame
+        :type data: pd.DataFrame or list if pooling
     
         :param frequency: Downsampling frequency. Must be "D", "W" or bigger
         :type frequency: str
@@ -307,25 +201,13 @@ class CorrelationEstimator(CorrelationList):
 
         cleaning=str2Bool(cleaning)
     
-        if type(data) is list:
-            ## pooled estimate
-            pooled=True
-        else:
-            pooled=False
-        
         ## grouping dictionary, convert to faster, algo friendly, form
         group_dict=group_dict_from_natural(dict_group)
-        
-        if pooled:
-            data=[data_item.resample(frequency, how="last") for data_item in data]
-            column_names=list(set(sum([list(data_item.columns) for data_item in data],[])))
-            column_names.sort()
-            ## ensure all are properly aligned
-            ## note we don't check that all the columns match here
-            data=[data_item[column_names] for data_item in data]
-        else:
-            data=data.resample(frequency, how="last")
-            column_names=data.columns
+
+        data=df_from_list(data)    
+        column_names=list(data.columns)
+
+        data=data.resample(frequency, how="last")
             
         ### Generate time periods
         fit_dates = generate_fitting_dates(data, date_method=date_method, rollyears=rollyears)
@@ -336,49 +218,29 @@ class CorrelationEstimator(CorrelationList):
         ## create a list of correlation matrices
         corr_list=[]
         
+        log.terse("Correlation estimate")
+        
         ## Now for each time period, estimate correlation
         for fit_period in fit_dates:
+            log.msg("Fitting from %s to %s" % (fit_period.period_start, fit_period.period_end))
             
             if fit_period.no_data:
                 ## no data to fit with
-                if cleaning:
-                    corr_list.append(corr_with_no_data)
-                    continue
-                else:
-                    corr_with_nan=boring_corr_matrix(size, offdiag=np.nan, diag=np.nan)
-                    corr_list.append(corr_with_nan)
-                    continue
-            
-            ### Generate 'must have'
-            ### note when we use the correlation code for fitting the 'must haves' will come in seperately
-            ###  because if we're bootstrapping could be completely different periods
-            if pooled:
-                ## slice each one individually
-                slice_data=[dataitem[fit_period.period_start:fit_period.period_end] 
-                            for dataitem in data]
-                
-                ## 'must have' will be superset of what we need for each individual thing
-                must_haves_list=[must_have_item(slice_data_item) 
-                                 for slice_data_item in slice_data]
-                must_haves=list(set(sum(must_haves_list,[])))
-                
-                data_for_estimate=[dataitem[fit_period.fit_start:fit_period.fit_end] 
-                                   for dataitem in data]
+                corr_with_nan=boring_corr_matrix(size, offdiag=np.nan, diag=np.nan)
+                corrmat=corr_with_nan
                 
             else:
-                ## not pooled
-                slice_data=data[fit_period.period_start:fit_period.period_end]
-                must_haves=must_have_item(slice_data)
-                data_for_estimate=data[fit_period.fit_start:fit_period.fit_end]
-            
-            corrmatrix=correlation_single_period(data_for_estimate, 
-                                                 corr_with_no_data,
-                                                 must_haves=must_haves, 
-                                                 group_dict=group_dict,
-                                                 cleaning=cleaning,
-                                                 **kwargs)
-        
-            corr_list.append(corrmatrix)
+                
+                data_for_estimate=data[fit_period.fit_start:fit_period.fit_end] 
+                
+                corrmat=correlation_single_period(data_for_estimate, 
+                                                     **kwargs)
+
+            if cleaning:
+                # means we can use earlier correlations with sensible values
+                corrmat=clean_correlation(corrmat, corr_with_no_data, boring_offdiag) 
+
+            corr_list.append(corrmat)
         
         setattr(self, "corr_list", corr_list)
         setattr(self, "columns", column_names)
