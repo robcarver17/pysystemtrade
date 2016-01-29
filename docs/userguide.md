@@ -2656,7 +2656,7 @@ This has the advantage of keeping the original log attributes intact. If you wan
 ## Optimisation
 </a>
 
-See (my blog post)[http://qoppac.blogspot.co.uk/2016/01/correlations-weights-multipliers.html]
+See [my blog post](http://qoppac.blogspot.co.uk/2016/01/correlations-weights-multipliers.html)
 
 I use an optimiser to calculate both forecast and instrument weights. The process is almost identical for both. 
 
@@ -2771,7 +2771,7 @@ We also smooth weights with an EWMA to avoid trading when they change.
 ## Estimating correlations and diversification multipliers
 </a>
 
-See (my blog post)[http://qoppac.blogspot.co.uk/2016/01/correlations-weights-multipliers.html]
+See [my blog post](http://qoppac.blogspot.co.uk/2016/01/correlations-weights-multipliers.html)
 
 
 You can estimate diversification multipliers for both instruments (IDM - see chapter 11) and forecasts (FDM - see chapter 8). 
