@@ -4,6 +4,7 @@
 ## Version: 0.2.1
 
 * Fixed bug with bootstrapping with missing values
+* Changed clean correlations so it replaces with an average
 * Fixed some documentation SNAFU's
 * Added reference to latest blog post
 

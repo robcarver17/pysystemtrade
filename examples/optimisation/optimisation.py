@@ -117,7 +117,11 @@ show()
 system.portfolio.get_instrument_diversification_multiplier().plot()
 show()
 
-system.portfolio.get_notional_position("EUROSTOXX").plot()
+print(system.portfolio.get_instrument_correlation_matrix().corr_list[16])
+print(system.portfolio.get_instrument_correlation_matrix().corr_list[25])
+
+
+system.portfolio.get_notional_position("EUROSTX").plot()
 show()
 
 print(system.accounts.portfolio().stats())

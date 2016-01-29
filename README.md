@@ -32,6 +32,13 @@ For a longer explanation of the motivation and point of this project see my [blo
 - Code to run the present, and future, examples on my blog qoppac.blogspot.co.uk
 
 
+## Use and documentation
+
+[Introduction (start here)](docs/introduction.md)
+
+[User guide](docs/userguide.md)
+
+
 ## Dependencies
 
 Python 3.x, pandas, matplotlib, pyyaml, numpy, scipy
@@ -53,11 +60,6 @@ git clone https://github.com/robcarver17/pysystemtrade.git
 
 A setup.py file is provided, however as the installation is trivial this shouldn't be neccessary. Just add the relevant ibsystemtrade directory to the path that python searches in, and off you go.
 
-## Use and documentation
-
-[Introduction (start here)](docs/introduction.md)
-
-[User guide](docs/userguide.md)
 
 
 ### A note on support

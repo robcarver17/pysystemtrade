@@ -2656,6 +2656,8 @@ This has the advantage of keeping the original log attributes intact. If you wan
 ## Optimisation
 </a>
 
+See (my blog post)[http://qoppac.blogspot.co.uk/2016/01/correlations-weights-multipliers.html]
+
 I use an optimiser to calculate both forecast and instrument weights. The process is almost identical for both. 
 
 ### The optimisation function, and data
@@ -2769,6 +2771,9 @@ We also smooth weights with an EWMA to avoid trading when they change.
 ## Estimating correlations and diversification multipliers
 </a>
 
+See (my blog post)[http://qoppac.blogspot.co.uk/2016/01/correlations-weights-multipliers.html]
+
+
 You can estimate diversification multipliers for both instruments (IDM - see chapter 11) and forecasts (FDM - see chapter 8). 
 
 The first step is to estimate *correlations*. The process is the same, except that for forecasts you have the option to pool instruments together. As the following YAML extract shows I recommend estimating these with an exponential moving average on weekly data:
@@ -2782,7 +2787,7 @@ forecast_correlation_estimate:
    using_exponent: True  # use an exponentially weighted correlation, or all the values equally
    ew_lookback: 250 ## lookback when using exponential weighting
    min_periods: 20  # min_periods, used for both exponential, and non exponential weighting
-   cleaning: True  # Replace missing values so we don't lose data early on
+   cleaning: True  # Replace missing values with an average so we don't lose data early on
 ```
 
 Once we have correlations, and the forecast or instrument weights, it's a trivial calculation. 

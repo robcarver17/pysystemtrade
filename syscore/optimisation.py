@@ -12,7 +12,7 @@ from copy import copy
 import random
 
 from syscore.algos import vol_estimator, mean_estimator
-from syscore.correlations import correlation_single_period, boring_corr_matrix
+from syscore.correlations import correlation_single_period, boring_corr_matrix, get_avg_corr
 from syscore.dateutils import generate_fitting_dates, BUSINESS_DAYS_IN_YEAR, WEEKS_IN_YEAR, MONTHS_IN_YEAR
 from syscore.genutils import str2Bool
 from syscore.pdutils import df_from_list, must_have_item
@@ -290,23 +290,6 @@ def opt_shrinkage(period_subset_data, moments_estimator,
     
     return (weights, diag)
 
-def get_avg_corr(sigma):
-    """
-    >>> sigma=np.array([[1.0,0.0,0.5], [0.0, 1.0, 0.75],[0.5, 0.75, 1.0]])
-    >>> get_avg_corr(sigma) 
-    0.41666666666666669
-    >>> sigma=np.array([[1.0,np.nan], [np.nan, 1.0]])
-    >>> get_avg_corr(sigma)
-    nan
-    """
-    new_sigma=copy(sigma)
-    np.fill_diagonal(new_sigma,np.nan)
-    if np.all(np.isnan(new_sigma)):
-        return np.nan
-    
-    avg_corr=np.nanmean(new_sigma)
-
-    return avg_corr
 
 def shrink_corr(corrmatrix, shrinkage_corr):
     """

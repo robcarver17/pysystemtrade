@@ -1,9 +1,11 @@
 '''
 Correlations are important and used a lot
 '''
+from copy import copy
+
+
 import numpy as np
 import pandas as pd
-
 
 from syscore.genutils import str2Bool, group_dict_from_natural
 from syscore.dateutils import generate_fitting_dates
@@ -11,7 +13,26 @@ from syscore.pdutils import df_from_list
 
 from syslogdiag.log import logtoscreen
 
-def clean_correlation(corrmat, corr_with_no_data, boring_offdiag):
+def get_avg_corr(sigma):
+    """
+    >>> sigma=np.array([[1.0,0.0,0.5], [0.0, 1.0, 0.75],[0.5, 0.75, 1.0]])
+    >>> get_avg_corr(sigma) 
+    0.41666666666666669
+    >>> sigma=np.array([[1.0,np.nan], [np.nan, 1.0]])
+    >>> get_avg_corr(sigma)
+    nan
+    """
+    new_sigma=copy(sigma)
+    np.fill_diagonal(new_sigma,np.nan)
+    if np.all(np.isnan(new_sigma)):
+        return np.nan
+    
+    avg_corr=np.nanmean(new_sigma)
+
+    return avg_corr
+
+
+def clean_correlation(corrmat, corr_with_no_data):
     """
     Make's sure we *always* have some kind of correlation matrix
     
@@ -22,9 +43,6 @@ def clean_correlation(corrmat, corr_with_no_data, boring_offdiag):
 
     :param corr_with_no_data: The correlation matrix to use if this one all nans
     :type corr_with_no_data: 2-dim square np.array
-
-    :param boring_offdiag: Value used when no data
-    :type boring_offdiag: float 
 
     :returns: 2-dim square np.array
 
@@ -43,13 +61,15 @@ def clean_correlation(corrmat, corr_with_no_data, boring_offdiag):
     
     size_range=range(corrmat.shape[0])
 
-    def _good_correlation(value, boring_offdiag):
+    avgcorr=get_avg_corr(corrmat)
+
+    def _good_correlation(value, avgcorr):
         if np.isnan(value):
-            return boring_offdiag
+            return avgcorr
         else:
             return value
 
-    corrmat=np.array([[_good_correlation(corrmat[i][j], boring_offdiag) 
+    corrmat=np.array([[_good_correlation(corrmat[i][j], avgcorr) 
                        for i in size_range] for j in size_range], ndmin=2)
 
     ## makes life easier and we'll deal with this later
@@ -238,7 +258,7 @@ class CorrelationEstimator(CorrelationList):
 
             if cleaning:
                 # means we can use earlier correlations with sensible values
-                corrmat=clean_correlation(corrmat, corr_with_no_data, boring_offdiag) 
+                corrmat=clean_correlation(corrmat, corr_with_no_data) 
 
             corr_list.append(corrmat)
         
