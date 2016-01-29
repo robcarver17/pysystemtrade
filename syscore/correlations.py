@@ -222,7 +222,7 @@ class CorrelationEstimator(CorrelationList):
         
         ## Now for each time period, estimate correlation
         for fit_period in fit_dates:
-            log.msg("Fitting from %s to %s" % (fit_period.period_start, fit_period.period_end))
+            log.msg("Estimating from %s to %s" % (fit_period.period_start, fit_period.period_end))
             
             if fit_period.no_data:
                 ## no data to fit with

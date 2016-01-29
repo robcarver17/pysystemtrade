@@ -1,5 +1,13 @@
 # Release notes
 
+
+## Version: 0.2.1
+
+* Fixed bug with bootstrapping with missing values
+* Fixed some documentation SNAFU's
+* Added reference to latest blog post
+
+
 ## Version: 0.2.0
 
 * Calculating forecast weights in ForecastCombineEstimated

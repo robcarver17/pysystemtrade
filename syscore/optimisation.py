@@ -444,9 +444,6 @@ def clean_weights(weights,  must_haves=None, fraction=0.5):
     [0.0, 0.0, 0.0]
     """
     ### 
-    if not any(np.isnan(weights)):
-        ## no cleaning required
-        return weights
 
     if must_haves is None:
         must_haves=[True]*len(weights)
@@ -550,8 +547,68 @@ def neg_SR(weights, sigma, mus):
     
     return -estreturn/std_dev
 
+FLAG_BAD_RETURN=-99999.0
+
+def fix_mus(mean_list):
+    """
+    Replace nans with unfeasibly large negatives
+    
+    result will be zero weights for these assets
+    """
+    
+    def _fixit(x):
+        if np.isnan(x):
+            return FLAG_BAD_RETURN
+        else:
+            return x
+    
+    mean_list=[_fixit(x) for x in mean_list]
+    
+    return mean_list
+
+def un_fix_weights(mean_list, weights):
+    """
+    When mean has been replaced, use nan weight
+    """
+    
+    def _unfixit(xmean, xweight):
+        if xmean==FLAG_BAD_RETURN:
+            return np.nan
+        else:
+            return xweight
+    
+    fixed_weights=[_unfixit(xmean, xweight) for (xmean, xweight) in zip(mean_list, weights)]
+    
+    return fixed_weights
+
+
+def fix_sigma(sigma):
+    """
+    Replace nans with zeros
+    
+    """
+    
+    def _fixit(x):
+        if np.isnan(x):
+            return 0.0
+        else:
+            return x
+    
+    sigma=[[_fixit(x) for x in sigma_row] for sigma_row in sigma]
+    
+    sigma=np.array(sigma)
+    
+    return sigma
+
+
 
 def optimise( sigma, mean_list):
+    
+    ## will replace nans with big negatives
+    mean_list=fix_mus(mean_list)
+    
+    ## replaces nans with zeros
+    sigma=fix_sigma(sigma)
     
     mus=np.array(mean_list, ndmin=2).transpose()
     number_assets=sigma.shape[1]
@@ -562,7 +619,13 @@ def optimise( sigma, mean_list):
     cdict=[{'type':'eq', 'fun':addem}]
     ans=minimize(neg_SR, start_weights, (sigma, mus), method='SLSQP', bounds=bounds, constraints=cdict, tol=0.00001)
 
-    return ans['x']
+    ## anything that had a nan will now have a zero weight
+    weights=ans['x']
+    
+    ## put back the nans
+    weights=un_fix_weights(mean_list, weights)
+    
+    return weights
 
 
 def sigma_from_corr_and_std(stdev_list, corrmatrix):

@@ -69,13 +69,7 @@ forecast_scalar_estimate:
 forecast_weight_estimate:
    method: shrinkage
 #
-rule_variations:
-     EDOLLAR: ['ewmac16_64','ewmac32_128', 'ewmac64_256', 'carry']
-     US10: ['ewmac16_64','ewmac32_128', 'ewmac64_256', 'carry']
-     EUROSTX: ['ewmac4_16','ewmac8_32','ewmac16_64','ewmac32_128', 'ewmac64_256', 'carry']
-     MXP: ['ewmac16_64','ewmac32_128', 'ewmac64_256', 'carry']
-     CORN: ['ewmac16_64','ewmac32_128', 'ewmac64_256', 'carry']
-     V2X: ['ewmac16_64','ewmac32_128', 'ewmac64_256', 'carry']
+rule_variations: ['ewmac16_64','ewmac32_128', 'ewmac64_256', 'carry']
 #
 #
 forecast_correlation_estimate:

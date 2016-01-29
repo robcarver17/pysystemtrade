@@ -1049,7 +1049,7 @@ Currently system only has two methods of it's own:
 
 `system.get_instrument_list()` This will get the list of instruments in the system, eithier from the config object if it contains instrument weights, or from the data object.
 
-`system.log` provides access to the system's log. See [logging][#logging] for more details.
+`system.log` provides access to the system's log. See [logging](#logging) for more details.
 
 <a name="caching">
 ### System Caching
@@ -1139,7 +1139,7 @@ Creating a new system might be very slow. For example estimating the forecast sc
 A possible workflow might be:
 
 1. Create a basic version of the system, with all the instruments and trading rules that you need.
-2. Run a backtest. This will optimise the instrument and forecast weights, and estimate forecast scalars (to really speed things up here you could use a faster method like shrinkage. See the section on (optimisation)[#optimisation] for more information.).
+2. Run a backtest. This will optimise the instrument and forecast weights, and estimate forecast scalars (to really speed things up here you could use a faster method like shrinkage. See the section on [optimisation](#optimisation) for more information.).
 3. Change and modify the system as desired. Make sure you change the config object that is embedded within the system. Don't create a new system object.
 4. After each change, run `system.delete_all_items()` before backtesting the system again. Anything that is protected won't be re-estimated, speeding up the process.
 5. Back to step 3, until you're happy with the results (but beware of implicit overfitting!)
@@ -2350,7 +2350,7 @@ forecast_cap: 20.0
 #### Calculating forecasting scaling on the fly with [ForecastScaleCapEstimated class](/systems/forecast_scale_cap.py)
 </a>
 
-See (this blog post)[http://qoppac.blogspot.co.uk/2016/01/pysystemtrader-estimated-forecast.html].
+See [this blog post](http://qoppac.blogspot.co.uk/2016/01/pysystemtrader-estimated-forecast.html).
 
 You may prefer to estimate your forecast scales from the available data. This is often neccessary if you have a new trading rule and have no idea at all what the scaling should be. To do this you need to use the `ForecastScaleCapEstimated` child class, rather than the fixed flavour. This inherits from the fixed base class, so capping works in exactly the same way, but replaces the method for get_forecast_scalar. It is included in the pre-baked [estimated futures system](#futures_system).
 
@@ -2651,37 +2651,6 @@ this_stage.log.msg("Calculating scaled forecast for %s %s" % (instrument_code, r
 ```
 This has the advantage of keeping the original log attributes intact. If you want to do something more complex it's worth looking at the doc string for the logger class [here](/syslogdiag/log.py) which shows how attributes are inherited and added to log instances.
 
-<a name="divmult">
-## Estimating correlations and diversification multipliers
-</a>
-
-You can estimate diversification multipliers for both instruments (IDM - see chapter 11) and forecasts (FDM - see chapter 8). 
-
-The first step is to estimate *correlations*. The process is the same, except that for forecasts you have the option to pool instruments together. As the following YAML extract shows I recommend estimating these with an exponential moving average on weekly data:
-
-```
-forecast_correlation_estimate:
-   pool_instruments: True ## not available for IDM estimation
-   func: syscore.correlations.CorrelationEstimator ## function to use for estimation. This handles both pooled and non pooled data
-   frequency: "W"   # frequency to downsample to before estimating correlations
-   date_method: "expanding" # what kind of window to use in backtest
-   using_exponent: True  # use an exponentially weighted correlation, or all the values equally
-   ew_lookback: 250 ## lookback when using exponential weighting
-   min_periods: 20  # min_periods, used for both exponential, and non exponential weighting
-   cleaning: True  # Replace missing values so we don't lose data early on
-```
-
-Once we have correlations, and the forecast or instrument weights, it's a trivial calculation. 
-
-```
-instrument_div_mult_estimate:
-   func: syscore.divmultipliers.diversification_multiplier_from_list ## function to use
-   ewma_span: 125   ## smooth to apply 
-   floor_at_zero: True ## floor negative correlations
-```
-
-I've included a smoothing function, other wise jumps in the multiplier will cause trading in the backtest. Note that the FDM is calculated on an instrument by instrument basis, but if instruments have had their forecast weights and correlations estimated on a pooled basis they'll have the same FDM. It's also a good idea to floor negative correlations at zero to avoid inflation the DM to very high values.
-
 
 <a name="optimisation">
 ## Optimisation
@@ -2749,7 +2718,7 @@ There are three methods provided to optimise with in the function I've included.
 
 #### One period (not recommend)
 
-This is the classic Markowitz optimisation with the option to equalise means (makes things more stable) and volatilities. Since we're dealing with things that should have the same volatility anyway this is something I recommend doing.
+This is the classic Markowitz optimisation with the option to equalise means (makes things more stable) and volatilities. Since we're dealing with things that should have the same volatility anyway the latter is something I recommend doing.
 
 ```
    method: one_period
@@ -2780,6 +2749,8 @@ This is a basic shrinkage towards a prior of equal sharpe ratios, and equal corr
    method: shrinkage 
    shrinkage_SR: 0.90
    shrinkage_corr: 0.50
+   equalise_vols: True
+
 ```
 
 
@@ -2793,6 +2764,38 @@ We also smooth weights with an EWMA to avoid trading when they change.
    ewma_span: 125
    cleaning: True
 ```
+
+<a name="divmult">
+## Estimating correlations and diversification multipliers
+</a>
+
+You can estimate diversification multipliers for both instruments (IDM - see chapter 11) and forecasts (FDM - see chapter 8). 
+
+The first step is to estimate *correlations*. The process is the same, except that for forecasts you have the option to pool instruments together. As the following YAML extract shows I recommend estimating these with an exponential moving average on weekly data:
+
+```
+forecast_correlation_estimate:
+   pool_instruments: True ## not available for IDM estimation
+   func: syscore.correlations.CorrelationEstimator ## function to use for estimation. This handles both pooled and non pooled data
+   frequency: "W"   # frequency to downsample to before estimating correlations
+   date_method: "expanding" # what kind of window to use in backtest
+   using_exponent: True  # use an exponentially weighted correlation, or all the values equally
+   ew_lookback: 250 ## lookback when using exponential weighting
+   min_periods: 20  # min_periods, used for both exponential, and non exponential weighting
+   cleaning: True  # Replace missing values so we don't lose data early on
+```
+
+Once we have correlations, and the forecast or instrument weights, it's a trivial calculation. 
+
+```
+instrument_div_mult_estimate:
+   func: syscore.divmultipliers.diversification_multiplier_from_list ## function to use
+   ewma_span: 125   ## smooth to apply 
+   floor_at_zero: True ## floor negative correlations
+```
+
+I've included a smoothing function, other wise jumps in the multiplier will cause trading in the backtest. Note that the FDM is calculated on an instrument by instrument basis, but if instruments have had their forecast weights and correlations estimated on a pooled basis they'll have the same FDM. It's also a good idea to floor negative correlations at zero to avoid inflation the DM to very high values.
+
 
 
 <a name="reference">
