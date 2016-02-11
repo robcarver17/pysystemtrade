@@ -1,0 +1,68 @@
+# Trading rules
+#
+trading_rules:
+  ewmac16_64:
+     function: systems.provided.futures_chapter15.rules.ewmac
+     data:
+         - "rawdata.get_daily_prices"
+         - "rawdata.daily_returns_volatility"
+     other_args: 
+         Lfast: 16
+         Lslow: 64
+     forecast_scalar: 3.75
+  ewmac32_128:
+     function: systems.provided.futures_chapter15.rules.ewmac
+     data:
+         - "rawdata.get_daily_prices"
+         - "rawdata.daily_returns_volatility"
+     other_args: 
+         Lfast: 32
+         Lslow: 128
+     forecast_scalar: 2.65
+  ewmac64_256:
+     function: systems.provided.futures_chapter15.rules.ewmac
+     data:
+         - "rawdata.get_daily_prices"
+         - "rawdata.daily_returns_volatility"
+     other_args: 
+         Lfast: 64
+         Lslow: 256
+     forecast_scalar: 1.87
+  carry:
+     function: systems.provided.futures_chapter15.rules.carry
+     data:
+         - "rawdata.daily_annualised_roll"
+         - "rawdata.daily_returns_volatility"
+     other_args:
+         smooth_days: 90
+     forecast_scalar: 30
+
+#
+forecast_weights:
+     ewmac16_64: 0.42
+     ewmac32_128: 0.16
+     ewmac64_256: 0.42
+     carry: .25
+# 
+forecast_div_multiplier: 1.07
+#
+# Capital correction
+#
+percentage_vol_target: 20.0
+notional_trading_capital: 250000
+base_currency: "USD"
+#
+# Portfolio creation
+#
+instrument_weights:
+    WHEAT: 0.08
+    CRUDE_W: 0.08
+    COPPER: 0.04
+    GOLD: 0.04
+    US20: 0.13
+    US5: 0.13
+    EUROSTX: 0.13
+    SP500: 0.13
+    GBP: 0.13
+instrument_div_multiplier: 2.5
+#

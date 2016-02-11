@@ -65,18 +65,16 @@ system cleaning
 
 * Simulation:
 
-  * Speed up optimisation and correlation estimates
-  * Costs
   * autodetect if need to estimate parameters or not
+  * Costs
   * estimated trades; with buffering of trades
   * vol targeting with capital adjustment
-  * Rolling optimisation of forecast and instrument weights
-  * Rolling estimate of instr_div_mult
   * quandl data
-  * Create live config from a system object (Put final value of estimates into a yaml file) 
-  * database data
   * stitch futures contracts 
   * add new data from unstitched contracts (with explanatory post, include explanation for Nth contract stitching)
+  * Create live config from a system object (Put final value of estimates into a yaml file) 
+  * Speed up optimisation and correlation estimates
+  * database data
   * check systems have correct attributes; check turnover, minimum size, right forecast scalars (distribution across instruments) etc
 
 * Live trading:

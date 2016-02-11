@@ -11,6 +11,7 @@ from sysdata.configdata import Config
 Now loading config and data
 """
 
+
 my_config = Config("systems.provided.example.simplesystemconfig.yaml")
 my_data = csvFuturesData()
 my_system = simplesystem(config=my_config, data=my_data)
