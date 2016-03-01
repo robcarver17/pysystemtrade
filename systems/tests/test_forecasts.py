@@ -24,7 +24,7 @@ class Test(unittest.TestCase):
         system = System([rules], data)
 
         ans = system.rules.get_raw_forecast("EDOLLAR", "rule0")
-        self.assertAlmostEqual(ans.iloc[-1][0], 0.542369955, 5)
+        self.assertAlmostEqual(ans.iloc[-1][0], 2.1384223788141838, 5)
 
         config = Config(dict(trading_rules=dict(ewmac=dict(
             function="systems.provided.example.rules.ewmac_forecast_with_defaults"))))
@@ -117,7 +117,7 @@ class Test(unittest.TestCase):
         # Call with default data and config
         rule = TradingRule(ewmac_forecast_with_defaults)
         ans = rule.call(system, "EDOLLAR")
-        self.assertAlmostEqual(ans.iloc[-1][0], 0.5423699557, 5)
+        self.assertAlmostEqual(ans.iloc[-1][0], 2.1384223788141838, 5)
 
         # Change the data source
         rule = TradingRule(("systems.provided.example.rules.ewmac_forecast_with_defaults_no_vol",

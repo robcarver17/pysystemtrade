@@ -22,6 +22,7 @@ ROOT_WEEKS_IN_YEAR = WEEKS_IN_YEAR**.5
 MONTHS_IN_YEAR = 12.0
 ROOT_MONTHS_IN_YEAR = MONTHS_IN_YEAR**.5
 
+ARBITRARY_START=pd.datetime(1900,1,1)
 
 def expiry_date(expiry_ident):
     """

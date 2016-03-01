@@ -23,26 +23,27 @@ class Test(unittest.TestCase):
                          pd.date_range(pd.datetime(2015, 1, 1), periods=5))
         y = pd.DataFrame(dict(b=[2.0, 3.5, np.nan, np.nan, -3.5]),
                          pd.date_range(pd.datetime(2015, 1, 2), periods=5))
-
+        
         ans = list(divide_df_single_column(x, y).iloc[:, 0])
+        
 
         self.assertTrue(np.isnan(ans[0]))
-        self.assertTrue(np.isnan(ans[2]))
+        self.assertTrue(np.isnan(ans[1]))
         self.assertTrue(np.isnan(ans[3]))
 
-        self.assertEqual(ans[1], -2.0)
+        self.assertEqual(ans[2], -2.0)
 
         ans = list(divide_df_single_column(
             x, y, ffill=(True, False)).iloc[:, 0])
-        self.assertEqual(ans[0], 1.0)
+        self.assertEqual(ans[1], 1.0)
 
         ans = list(divide_df_single_column(
             x, y, ffill=(False, True)).iloc[:, 0])
-        self.assertEqual(ans[3], 1.0)
+        self.assertEqual(ans[4], 1.0)
 
         ans = list(divide_df_single_column(
             x, y, ffill=(True, True)).iloc[:, 0])
-        self.assertEqual(list(ans), [1., -2., -2.0, 1.])
+        self.assertEqual(list(ans)[1:], [1., -2., -2.0, 1., -1.])
 
     def multiply_df_single_column(self):
         pass

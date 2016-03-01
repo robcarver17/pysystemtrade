@@ -11,21 +11,30 @@ import numpy as np
 from scipy.stats import skew
 
 from syscore.algos import robust_vol_calc
-from syscore.pdutils import multiply_df_single_column, divide_df_single_column, drawdown
-from syscore.dateutils import BUSINESS_DAYS_IN_YEAR, ROOT_BDAYS_INYEAR
+from syscore.pdutils import add_df_single_column, multiply_df_single_column, divide_df_single_column, drawdown, index_match
+from syscore.dateutils import BUSINESS_DAYS_IN_YEAR, ROOT_BDAYS_INYEAR, WEEKS_IN_YEAR, ROOT_WEEKS_IN_YEAR
+from syscore.dateutils import MONTHS_IN_YEAR, ROOT_MONTHS_IN_YEAR
+
 
 """
 some defaults
 """
 CAPITAL = 10000000.0
 ANN_RISK_TARGET = 0.16
-DAILY_CAPITAL = CAPITAL * ANN_RISK_TARGET / ROOT_BDAYS_INYEAR
+DAILY_CAPITAL=CAPITAL * ANN_RISK_TARGET / ROOT_BDAYS_INYEAR
+
+"""
 
 
-def pandl(price=None, trades=None, marktomarket=True, positions=None,
+"""
+
+
+def pandl_with_data(price, trades=None, marktomarket=True, positions=None,
           delayfill=True, roundpositions=False,
           get_daily_returns_volatility=None, forecast=None, fx=None,
-          value_of_price_point=1.0, return_all=False, capital=None):
+          capital=None, ann_risk_target=None,
+          value_of_price_point=1.0):
+    
     """
     Calculate pandl for an individual position
 
@@ -49,11 +58,6 @@ def pandl(price=None, trades=None, marktomarket=True, positions=None,
     If value_of_price_point is not provided, assume is 1.0 (block size is value
     of 1 price point, eg 100 if you're buying 100 shares for one instrument
     block)
-
-    If capital is provided (eithier as a float, or dataframe) then % returns
-    will be calculated.
-
-    If capital is zero will use default values
 
     :param price: price series
     :type price: Tx1 pd.DataFrame
@@ -91,13 +95,8 @@ def pandl(price=None, trades=None, marktomarket=True, positions=None,
     :param roundpositions: If calculating trades, should we round positions first?
     :type roundpositions: bool
 
-    :param capital: notional capital. If None not used. Works out % returns. If
-        0.0 uses default
-    :type capital: None, 0.0, float or Tx1 timeseries
-
-    :returns: if return_all : 4- Tuple (positions, trades, instr_ccy_returns,
-                            base_ccy_returns) all Tx1 pd.DataFrames is "": Tx1
-                            accountCurve
+    :returns: 5- Tuple (positions, trades, instr_ccy_returns,
+                            base_ccy_returns, fx) all Tx1 pd.DataFrames
 
     """
     if price is None:
@@ -116,7 +115,9 @@ def pandl(price=None, trades=None, marktomarket=True, positions=None,
                                            get_daily_returns_volatility,
                                            forecast,
                                            fx,
-                                           value_of_price_point)
+                                           value_of_price_point,
+                                           capital,
+                                           ann_risk_target)
 
     if marktomarket:
         # want to have both kinds of price
@@ -143,32 +144,18 @@ def pandl(price=None, trades=None, marktomarket=True, positions=None,
 
     instr_ccy_returns = multiply_df_single_column(
         cum_trades.shift(1), price_returns) * value_of_price_point
-    fx = fx.reindex(trades_to_use.index, method="ffill")
+    
+    instr_ccy_returns=instr_ccy_returns.resample("1B", how="sum")
+        
+    fx = fx.reindex(instr_ccy_returns.index, method="ffill")
     base_ccy_returns = multiply_df_single_column(instr_ccy_returns, fx)
 
     instr_ccy_returns.columns = ["pandl_ccy"]
     base_ccy_returns.columns = ["pandl_base"]
     cum_trades.columns = ["cum_trades"]
 
-    if return_all:
-        return (cum_trades, trades, instr_ccy_returns,
-                base_ccy_returns, capital)
-    else:
-        if capital is not None:
-            if isinstance(capital, float):
-                if capital == 0.0:
-                    # use default. Good for forecasts when no meaningful
-                    # capital
-                    capital = CAPITAL
-                base_ccy_returns = base_ccy_returns / capital
-            else:
-                # time series
-                capital = capital.reindex(
-                    base_ccy_returns.index, method="ffill")
-                base_ccy_returns = divide_df_single_column(
-                    base_ccy_returns, capital)
-
-        return accountCurve(base_ccy_returns)
+    return (cum_trades, trades, instr_ccy_returns,
+            base_ccy_returns, fx)
 
 
 def get_trades_from_positions(price,
@@ -178,7 +165,9 @@ def get_trades_from_positions(price,
                               get_daily_returns_volatility,
                               forecast,
                               fx,
-                              value_of_price_point):
+                              value_of_price_point,
+                              capital,
+                              ann_risk_target):
     """
     Work out trades implied by a series of positions
        If delayfill is True, assume we get filled at the next price after the
@@ -225,7 +214,9 @@ def get_trades_from_positions(price,
                                                  get_daily_returns_volatility,
                                                  forecast,
                                                  fx,
-                                                 value_of_price_point)
+                                                 value_of_price_point,
+                                                 capital,
+                                                 ann_risk_target)
 
     if roundpositions:
         # round to whole positions
@@ -248,7 +239,7 @@ def get_trades_from_positions(price,
         trades.index = trades.index + pd.DateOffset(1)
 
     # put prices on to correct timestamp
-    ans = pd.concat([trades, price], axis=1, join='outer')
+    ans = index_match(trades, price, ffill=(False, True))
     ans.columns = ['trades', 'fill_price']
 
     # fill will happen at next valid price if it happens to be missing
@@ -262,7 +253,8 @@ def get_trades_from_positions(price,
 
 
 def get_positions_from_forecasts(price, get_daily_returns_volatility, forecast,
-                                 fx, value_of_price_point, **kwargs):
+                                 fx, value_of_price_point, capital,
+                                 ann_risk_target, **kwargs):
     """
     Work out position using forecast, volatility, fx, value_of_price_point
     (this will be for an arbitrary daily risk target)
@@ -308,7 +300,7 @@ def get_positions_from_forecasts(price, get_daily_returns_volatility, forecast,
              = forecast x instrument weight x instrument_div_mult x daily cash vol target / (10.0 x instr value volatility)
              = forecast x instrument weight x instrument_div_mult x daily cash vol target / (10.0 x instr ccy volatility x fx rate)
              = forecast x instrument weight x instrument_div_mult x daily cash vol target / (10.0 x block value x % price volatility x fx rate)
-             = forecast x instrument weight x instrument_div_mult x daily cash vol target / (10.0 x underlying price x 0.01 x value of price move x 100 x price diff volatility/(underlying price) x fx rate)
+             = forecast x instrument weight x instrument_div_mult x daily cash vol target / (10.0 x underlying price x 0.01 x value of price move x 100 x price change volatility/(underlying price) x fx rate)
              = forecast x instrument weight x instrument_div_mult x daily cash vol target / (10.0 x value of price move x price change volatility x fx rate)
 
     Making some arbitrary assumptions (one instrument, 100% of capital, daily target DAILY_CAPITAL):
@@ -316,7 +308,8 @@ def get_positions_from_forecasts(price, get_daily_returns_volatility, forecast,
              = forecast x 1.0 x 1.0 x DAILY_CAPITAL / (10.0 x value of price move x price diff volatility x fx rate)
              = forecast x  multiplier / (value of price move x price change volatility x fx rate)
     """
-    multiplier = DAILY_CAPITAL * 1.0 * 1.0 / 10.0
+    (Unused_capital, daily_capital) = resolve_capital(forecast, capital, ann_risk_target)
+    multiplier = daily_capital * 1.0 * 1.0 / 10.0
     fx = fx.reindex(get_daily_returns_volatility.index, method="ffill")
 
     denominator = (value_of_price_point *
@@ -324,40 +317,57 @@ def get_positions_from_forecasts(price, get_daily_returns_volatility, forecast,
                                              fx,
                                              ffill=(False, True)))
 
-    position = divide_df_single_column(forecast * multiplier,
+    numerator = multiply_df_single_column(forecast, multiplier, ffill=(False,True))
+
+    position = divide_df_single_column(numerator,
                                        denominator,
                                        ffill=(True, True))
     position.columns = ['position']
     return position
 
+    
 
-class accountCurve(pd.DataFrame):
+class accountCurveSingleElementOneFreq(pd.DataFrame):
+    """
+    A single account curve for one asset (instrument / trading rule variation, ...)
+     and one part of it (gross, net, costs)
+     and for one frequency (daily, weekly, monthly...)
+    
+    Inherits from data frame
 
-    def __init__(self, returns=None, **kwargs):
+    We never init these directly but only as part of accountCurveSingleElement
+    
+    """
+    def __init__(self, returns_df, frequency="D", name="account"):
         """
-        Create an account curve; from which many lovely statistics can be gathered
+        :param returns_df: series of returns
+        :type returns_df: Tx1 pd.DataFrame
 
-        We create eithier by passing returns (a dataframe of returns), or **kwargs which will be used by the pandl function
-
-        :param returns: series of returns
-        :type price: Tx1 pd.DataFrame
+        :param frequency: Frequency D days, W weeks, M months, Y years
+        :type frequency: str
 
         """
+        returns_df.columns=[name]
+        super().__init__(returns_df)
+        
+        try:
+            returns_scalar=dict(D=BUSINESS_DAYS_IN_YEAR, W=WEEKS_IN_YEAR,
+                                M=MONTHS_IN_YEAR, Y=1)[frequency]
+                                
+            vol_scalar=dict(D=ROOT_BDAYS_INYEAR, W=ROOT_WEEKS_IN_YEAR,
+                                M=ROOT_MONTHS_IN_YEAR, Y=1)[frequency]
+            
+        except KeyError:
+            raise Exception("Not a frequency %s" % frequency)
+        
+        setattr(self, "frequency", frequency)
+        setattr(self, "_returns_scalar", returns_scalar)
+        setattr(self, "_vol_scalar", vol_scalar)
+        setattr(self, "_account_name", name)
+        setattr(self, "_returns_df", returns_df)
 
-        if returns is None:
-            returns = pandl(**kwargs)
-
-        super(accountCurve, self).__init__(returns)
-
-    def daily(self):
-        # we cache this since it's used so much
-
-        if hasattr(self, "_daily_series"):
-            return self._daily_series
-        else:
-            daily_returns = self.resample("1B", how="sum")
-            setattr(self, "_daily_series", daily_returns)
-            return daily_returns
+    def as_df(self):
+        return pd.DataFrame(self._returns_df)
 
     def curve(self):
         # we cache this since it's used so much
@@ -368,30 +378,26 @@ class accountCurve(pd.DataFrame):
             setattr(self, "_curve", curve)
             return curve
 
-    def weekly(self):
-        return self.resample("W", how="sum")
+    def mean(self):
+        return float(self.as_df().mean())
+    
+    def std(self):
+        return float(self.as_df().std())
 
-    def monthly(self):
-        return self.resample("MS", how="sum")
+    def ann_mean(self):
+        avg = self.mean()
 
-    def annual(self):
-        return self.resample("A", how="sum")
+        return avg * self._returns_scalar
 
-    def ann_daily_mean(self):
-        x = self.daily()
-        avg = float(x.mean())
+    def ann_std(self):
+        period_std = self.std()
 
-        return avg * BUSINESS_DAYS_IN_YEAR
+        return period_std * self._vol_scalar
 
-    def ann_daily_std(self):
-        x = self.daily()
-        daily_std = float(x.std())
-
-        return daily_std * ROOT_BDAYS_INYEAR
 
     def sharpe(self):
-        mean_return = self.ann_daily_mean()
-        vol = self.ann_daily_std()
+        mean_return = self.ann_mean()
+        vol = self.ann_std()
 
         return mean_return / vol
 
@@ -414,23 +420,21 @@ class accountCurve(pd.DataFrame):
         return in_dd / float(len(dd))
 
     def calmar(self):
-        return self.ann_daily_mean() / -self.worst_drawdown()
+        return self.ann_mean() / -self.worst_drawdown()
 
     def avg_return_to_drawdown(self):
-        return self.ann_daily_mean() / -self.avg_drawdown()
+        return self.ann_mean() / -self.avg_drawdown()
 
     def sortino(self):
-        daily_stddev = np.std(self.losses())
-        daily_mean = self.mean()
+        period_stddev = np.std(self.losses())
 
-        ann_stdev = daily_stddev * ROOT_BDAYS_INYEAR
-        ann_mean = daily_mean * BUSINESS_DAYS_IN_YEAR
+        ann_stdev = period_stddev * self._vol_scalar
+        ann_mean = self.ann_mean()
 
         return ann_mean / ann_stdev
 
     def vals(self):
-        x = self.daily()
-        x = [z[0] for z in x.values if not np.isnan(z[0])]
+        x = [z[0] for z in self.values if not np.isnan(z[0])]
         return x
 
     def min(self):
@@ -445,14 +449,6 @@ class accountCurve(pd.DataFrame):
 
     def skew(self):
         return skew(self.vals())
-
-    def mean(self):
-        x = self.daily()
-        return np.nanmean(x)
-
-    def std(self):
-        x = self.daily()
-        return np.nanstd(x)
 
     def losses(self):
         x = self.vals()
@@ -480,14 +476,13 @@ class accountCurve(pd.DataFrame):
         return no_gains / (no_losses + no_gains)
 
     def rolling_ann_std(self, window=40):
-        x = self.daily()
-        y = pd.rolling_std(x, window, min_periods=4, center=True)
-        return y * ROOT_BDAYS_INYEAR
+        y = pd.rolling_std(self[self._account_name], window, min_periods=4, center=True).to_frame()
+        return y * self._vol_scalar
 
     def stats(self):
 
         stats_list = ["min", "max", "median", "mean", "std", "skew",
-                      "ann_daily_mean", "ann_daily_std", "sharpe", "sortino",
+                      "ann_mean", "ann_std", "sharpe", "sortino",
                       "avg_drawdown", "time_in_drawdown",
                       "calmar", "avg_return_to_drawdown",
                       "avg_loss", "avg_gain", "gaintolossratio", "profitfactor", "hitrate"]
@@ -500,9 +495,433 @@ class accountCurve(pd.DataFrame):
 
         comment1 = ("You can also plot:", [
                     "rolling_ann_std", "drawdown", "curve"])
-        comment2 = ("You can also print:", ["weekly", "monthly", "annual"])
 
-        return [build_stats, comment1, comment2]
+        return [build_stats, comment1]
+
+    def __repr__(self):
+        return super().__repr__()+"\n Account curve; use object.stats() to see methods"
+
+
+class accountCurveSingleElement(accountCurveSingleElementOneFreq):
+    """
+    A single account curve for one asset (instrument / trading rule variation, ...)
+     and one part of it (gross, net, costs)
+    
+    Inherits from data frame
+
+    We never init these directly but only as part of accountCurveSingle
+    
+    """
+    
+    def __init__(self, returns_df, name="account"):
+        """
+        :param returns_df: series of returns
+        :type returns_df: Tx1 pd.DataFrame
+
+        """
+        ## We often want to use  
+        daily_returns = returns_df.resample("1B", how="sum")
+        weekly_returns=returns_df.resample("W", how="sum")
+        monthly_returns=returns_df.resample("MS", how="sum")
+        annual_returns=returns_df.resample("A", how="sum")
+        
+        super().__init__(daily_returns)
+
+        setattr(self, "daily", accountCurveSingleElementOneFreq(daily_returns, "D", name))
+        setattr(self, "weekly", accountCurveSingleElementOneFreq(weekly_returns, "W", name))
+        setattr(self, "monthly", accountCurveSingleElementOneFreq(monthly_returns, "M", name))
+        setattr(self, "annual", accountCurveSingleElementOneFreq(annual_returns, "Y", name))
+
+    def __repr__(self):
+        return super().__repr__()+ "\n Use object.freq.method() to access periods (freq=daily, weekly, monthly, annual) default: daily"
+
+
+class accountCurveSingle(accountCurveSingleElement):
+    """
+    A single account curve for one asset (instrument / trading rule variation, ...)
+    
+    Inherits from data frame
+    
+    On the surface we see the 'net' but there's also a gross and cost part included
+    
+    """
+    def __init__(self, gross_returns, net_returns, costs):
+
+        
+        super().__init__(net_returns)
+        
+        setattr(self, "net", accountCurveSingleElement(net_returns, "net"))
+        setattr(self, "gross", accountCurveSingleElement(gross_returns, "gross"))
+        setattr(self, "costs", accountCurveSingleElement(costs, "costs"))
+
+    def __repr__(self):
+        return super().__repr__()+"\n Use object.curve_type.freq.method() (freq=net, gross, costs) default: net"
+                
+
+
+class accountCurve(accountCurveSingle):
+
+    def __init__(self, price,  percentage=False, cost_per_block=None, SR_cost=None, 
+                 capital=None, ann_risk_target=None, 
+                 **kwargs):
+        """
+        Create an account curve; from which many lovely statistics can be gathered
+        
+        
+        We create by passing **kwargs which will be used by the pandl function
+        
+        :param percentage: Return % returns, or base currency if False
+        :type percentage: bool
+        
+        :param cost_per_block: Cost in local currency units per instrument block 
+        :type cost_per_block: float
+        
+        :param SR_cost: Cost in annualised Sharpe Ratio units (0.01 = 0.01 SR)
+        :type SR_cost: float
+        
+        Note if both are included then cost_per_block will be disregarded
+        
+        :param capital: Capital at risk. Used for % returns, and calculating daily risk for SR costs  
+        :type capital: float or Tx1 
+        
+        :param ann_risk_target: Annual risk target, as % of capital. Used to calculate daily risk for SR costs
+        :type ann_risk_target: float
+        
+        **kwargs  passed to profit and loss calculation
+         (price, trades, marktomarket, positions,
+          delayfill, roundpositions,
+          get_daily_returns_volatility, forecast, fx,
+          value_of_price_point)
+        
+        """
+
+        returns_data=pandl_with_data(price,  capital=capital, ann_risk_target=ann_risk_target, **kwargs)
+
+        (cum_trades, trades, instr_ccy_returns,
+            base_ccy_returns, fx)=returns_data
+            
+        gross_returns=base_ccy_returns
+
+        ## always returns a time series
+        (capital, daily_capital)=resolve_capital(gross_returns, capital, ann_risk_target)
+
+        (costs_base_ccy, costs_instr_ccy)=calc_costs(returns_data, cost_per_block, SR_cost, daily_capital)
+
+        net_returns=add_df_single_column(gross_returns,costs_base_ccy) ## costs are negative returns
+        
+        perc_gross_returns = divide_df_single_column(
+            gross_returns, capital)
+        
+        perc_costs=divide_df_single_column(
+            costs_base_ccy, capital)
+
+        perc_net_returns=add_df_single_column(perc_gross_returns, perc_costs)
+
+        if percentage:
+            super().__init__(perc_gross_returns, perc_net_returns, perc_costs)
+        else:
+            super().__init__(gross_returns, net_returns, costs_base_ccy)
+            
+        setattr(self, "cum_trades", cum_trades)
+        setattr(self, "trades", trades)
+        setattr(self, "instr_ccy_returns", instr_ccy_returns)
+        setattr(self, "base_ccy_returns", base_ccy_returns)
+        setattr(self, "fx", fx)
+        
+        setattr(self, "capital", capital)
+        setattr(self, "daily_capital", daily_capital)
+        
+        setattr(self, "costs_instr_ccy", costs_instr_ccy)
+        setattr(self, "costs_base_ccy", costs_base_ccy)
+            
+        setattr(self, "ccy_returns", 
+                accountCurveSingle(gross_returns, net_returns, costs_base_ccy))
+        setattr(self, "perc_returns", 
+                accountCurveSingle(perc_gross_returns, perc_net_returns, perc_costs))
+
+    def __repr__(self):
+        return super().__repr__()+ "\n Use object.calc_data() to see calculation details"
+
+    def calc_data(self):
+        calc_items=["cum_trades",  "trades",  "instr_ccy_returns",  "base_ccy_returns",  
+                    "fx", "capital",  "daily_capital", "costs_instr_ccy",  "costs_base_ccy", 
+                     "ccy_returns",  "perc_returns"]
+        
+        calc_dict=dict([(calc_name, getattr(self, calc_name)) for calc_name in calc_items])
+        
+        return calc_dict
+        
+def calc_costs(returns_data, cost_per_block, SR_cost, daily_capital):
+    """
+    Calculate costs
+    
+    :param returns_data: returns data
+    :type returns_data: 4 tuple returned by pandl data function
+    
+    :param cost_per_block: Cost in local currency units per instrument block 
+    :type cost_per_block: float
+    
+    :param SR_cost: Cost in annualised Sharpe Ratio units (0.01 = 0.01 SR)
+    :type SR_cost: float
+
+    If both included use SR_cost
+    
+    :param daily_capital: Capital at risk each day. Used for SR calculations
+    :type daily_capital: Tx1 pd.DataFrame
+    
+    :returns : Tx1 pd.DataFrame of costs. Minus numbers are losses
+    
+    """
+
+    (cum_trades, trades, instr_ccy_returns,
+        base_ccy_returns, fx)=returns_data
+
+    if SR_cost is not None:
+        ## use SR_cost
+        ann_risk = daily_capital*ROOT_BDAYS_INYEAR
+        ann_cost = -SR_cost*ann_risk
+        costs_instr_ccy = ann_cost/BUSINESS_DAYS_IN_YEAR
+    
+    elif cost_per_block is not None:
+        ## use cost per blocks
+        trades_in_blocks=trades['trades'].abs().resample("1B", how="sum")
+        costs_instr_ccy= - trades_in_blocks*cost_per_block
+        
+    else:
+        ## set costs to zero
+        costs_instr_ccy=pd.DataFrame([0.0]*base_ccy_returns.shape[0], index=base_ccy_returns.index)
+    
+    costs_base_ccy=multiply_df_single_column(costs_instr_ccy, fx, ffill=(False, True))
+
+    return (costs_base_ccy, costs_instr_ccy)
+
+def resolve_capital(ts_to_scale_to, capital, ann_risk_target):
+    """
+    Resolve and setup capital
+    We need capital for % returns and possibly for SR stuff
+
+    :param ts_to_scale_to: If capital is fixed, what to scale it o  
+    :type capital: Tx1 pd.DataFrame
+    
+    :param capital: Capital at risk. Used for % returns, and calculating daily risk for SR costs  
+    :type capital: int, float or Tx1 pd.DataFrame
+    
+    :param ann_risk_target: Annual risk target, as % of capital. Used to calculate daily risk for SR costs
+    :type ann_risk_target: float
+    
+    :returns tuple: 2 tuple of Tx1 pd.DataFrame
+
+    """
+    if capital is None:
+        capital=CAPITAL
+        
+    if type(capital) is float or type(capital) is int:
+        capital=pd.DataFrame([capital]*ts_to_scale_to.shape[0], index=ts_to_scale_to.index)
+    
+    if ann_risk_target is None:
+        ann_risk_target=ANN_RISK_TARGET
+        
+    daily_capital = capital * ann_risk_target / ROOT_BDAYS_INYEAR
+    
+    return (capital, daily_capital)
+
+
+def acc_list_to_pd_frame(list_of_ac_curves, columns):
+    """
+    
+    Returns a pandas data frame
+    """
+    list_of_df=[acc.as_df() for acc in list_of_ac_curves]
+    ans=pd.concat(list_of_df, axis=1,  join="outer")
+    ans.columns=columns
+    
+    return ans
+
+
+def total_from_list(list_of_ac_curves, columns, name):
+    """
+    
+    Return a single accountCurveSingleElement whose returns are the total across the portfolio
+    """
+    pdframe=acc_list_to_pd_frame(list_of_ac_curves, columns)
+    
+    ## all on daily freq so just add up
+    totalac=pdframe.sum(axis=1)
+    ans=accountCurveSingleElement(totalac, name)
+    
+    return ans
+    
+
+class accountCurveGroupForType(accountCurveSingleElement):
+    """
+    an accountCurveGroup for one cost type (gross, net, costs)
+    """
+    def __init__(self, acc_curve_for_type_list, asset_columns, curve_type="net"):
+        """
+        Create a group of account curves from a list and some column names
+        
+        looks like accountCurveSingleElement; outward facing is the total p&L
+        
+        so acc=accountCurveGroupForType()
+        acc.mean() ## for the total
+        
+        Also you can access a instrument (gives an accountCurveSingleElement for an instrument): 
+           acc[instrument_code].mean(), acc[instrument_code].mean()
+           acc.instrument_code.gross.daily.stats()  
+        
+        acc.to_frame() ## returns a data frame 
+
+        If you want the original list back:
+        
+        acc.to_list
+
+        Also: eg acc.get_stats("mean", freq="daily")
+        ... Returns a dict of stats 
+        
+        """
+        acc_total=total_from_list(acc_curve_for_type_list, asset_columns, name="total_%s" % curve_type)
+        
+        super().__init__(acc_total)
+        
+        setattr(self, "to_list", acc_curve_for_type_list)
+        setattr(self, "asset_columns", asset_columns)
+        setattr(self, "curve_type", curve_type)
+
+
+
+    def _getitem_column(self, colname):
+        """
+        Overriding this method to access individual curves
+        
+        Returns an object of type accountCurve
+        """
+
+        try:
+            ans=self.to_list[self.asset_columns.index(colname)]
+        except ValueError:
+            raise Exception("%s not found in account curve" % colname)
+        
+        return ans
+
+    def to_frame(self):
+        """
+        Returns as a data frame
+        """
+        
+        return acc_list_to_pd_frame(self.to_list, self.asset_columns)
+
+
+    def get_stats(self, stat_method, freq="daily"):
+        """
+        Returns a dict of stats, one per asset
+        """
+        column_names=self.asset_columns
+        
+        def _get_stat_from_acobject(acobject, stat_method, freq):
+            
+            freq_obj=getattr(acobject, freq)
+            stat_method_function=getattr(freq_obj, stat_method)
+            
+            return stat_method_function()
+        
+        ans=dict([(col_name, _get_stat_from_acobject(self[col_name], stat_method, freq)) 
+                  for col_name in column_names])
+        
+        return ans
+
+class accountCurveGroup(accountCurveSingleElement):
+    def __init__(self, acc_curve_list, asset_columns):
+        """
+        Create a group of account curves from a list and some column names
+        
+        looks like accountCurve, so outward facing is the total p&L
+        FIXME: (need a way to pass the total into accountCurve,
+        as series of accountCurveSingle)
+        
+        so acc=accountCurveGroup()
+        acc.mean() 
+        acc.net.mean()
+        acc.net.daily.mean()
+        
+        Also you can access a instrument: 
+           acc[instrument_code].mean(), acc[instrument_code].net.mean()
+           acc.instrument_code.gross.daily.stats()  
+        
+        acc.to_frame() ## returns a data frame
+        acc.to_frame("gross") ## returns a data frame
+        acc.costs.to_frame() ## returns a data frame
+
+        If you want the original list back:
+        
+        acc.to_list
+
+        Also: eg acc.get_stats("mean", curve_type="net", freq="daily")
+        acc.net.get_stats("sharpe", freq="weekly") 
+        ... Returns a list of stats 
+        
+        """
+        
+        net_list=[getattr(x, "net") for x in acc_curve_list]
+        gross_list=[getattr(x, "gross") for x in acc_curve_list]
+        costs_list=[getattr(x, "costs") for x in acc_curve_list]
+        
+        acc_list_net=accountCurveGroupForType(net_list, asset_columns=asset_columns, 
+                                              curve_type="net")
+
+        acc_list_gross=accountCurveGroupForType(gross_list, asset_columns=asset_columns, 
+                                                curve_type="gross")
+
+        acc_list_costs=accountCurveGroupForType(costs_list, asset_columns=asset_columns, 
+                                                curve_type="costs")
+
+        acc_total=total_from_list(net_list, asset_columns, "total")
+        
+        super().__init__(acc_total)
+        
+        setattr(self, "net", acc_list_net)
+        setattr(self, "gross", acc_list_gross)
+        setattr(self, "costs", acc_list_costs)
+
+        setattr(self, "to_list", acc_curve_list)
+        setattr(self, "asset_columns", asset_columns)
+
+    def __repr__(self):
+        return super().__repr__()+"\n Multiple curves. Use object.curve_type (curve_type= net, gross, costs)" +              "\n Useful methods: to_list, asset_columns(), get_stats(), to_frame()"
+
+
+    def _getitem_column(self, colname):
+        """
+        Overriding this method to access individual curves
+        
+        Returns an object of type accountCurve
+        """
+        try:
+            ans=self.to_list[self.asset_columns.index(colname)]
+        except ValueError:
+            raise Exception("%s not found in account curve" % colname)
+        
+        return ans
+
+    def get_stats(self, stat_method, curve_type="net", freq="daily"):
+        """
+        Returns a dict of stats, one per asset
+        """
+        
+        subobject=getattr(self, curve_type)
+        
+        return subobject.get_stats(stat_method, freq=freq)
+
+    def to_frame(self, curve_type="net"):
+        """
+        Returns as a data frame
+        
+        Defaults to net
+        """
+        
+        actype=getattr(self, curve_type)
+        
+        return actype.to_frame()
+
 
 if __name__ == '__main__':
     import doctest

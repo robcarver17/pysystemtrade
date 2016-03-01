@@ -6,6 +6,14 @@ import pandas as pd
 import numpy as np
 from syscore.fileutils import get_filename_for_package
 
+def uniquets(x):
+    """
+    Makes x unique
+    """
+    x=x.groupby(level=0).last()
+    return x
+
+
 def df_from_list(data):
     """
     data frame from list
@@ -186,23 +194,20 @@ def index_match(x, y, ffill):
 
     (ffill_x, ffill_y) = ffill
 
-    ans = pd.concat([x, y], axis=1, join='inner')
+    jointts = list(set(list(x.index)+list(y.index)))
+    jointts.sort()
 
-    if ffill_x or ffill_y:
+    xnew = x.reindex(jointts)
+    ynew = y.reindex(jointts)
 
-        jointts = ans.index
 
-        if ffill_x:
-            xnew = x.ffill().reindex(jointts)
-        else:
-            xnew = x.reindex(jointts)
+    if ffill_x:
+        xnew = xnew.ffill()
 
-        if ffill_y:
-            ynew = y.ffill().reindex(jointts)
-        else:
-            ynew = y.reindex(jointts)
+    if ffill_y:
+        ynew = ynew.ffill()
 
-        ans = pd.concat([xnew, ynew], axis=1)
+    ans = pd.concat([xnew, ynew], axis=1)
 
     return ans
 
@@ -243,6 +248,38 @@ def divide_df_single_column(x, y, ffill=(False, False)):
 
     return ans
 
+
+def add_df_single_column(x, y, ffill=(False, False)):
+    """
+    Add Tx1 dataframe to Tx1 dataframe; time indicies don't have to match
+
+    :param x: Tx1 pandas data frame
+    :type x: pd.DataFrame
+
+    :param y: Tx1 pandas data frame
+    :type y: pd.DataFrame
+
+    :returns: pd.DataFrame Tx1
+
+    >>> x=pd.DataFrame(dict(a=range(10)), pd.date_range(pd.datetime(2015,1,1), periods=10))
+    >>> y=pd.DataFrame(dict(b=range(10)), pd.date_range(pd.datetime(2015,1,5), periods=10))
+    >>> add_df_single_column(x,y)
+                 a
+    2015-01-05   4
+    2015-01-06   6
+    2015-01-07   8
+    2015-01-08  10
+    2015-01-09  12
+    2015-01-10  14
+
+    """
+
+    ans = index_match(x, y, ffill)
+
+    ans = ans.iloc[:, 0] + ans.iloc[:, 1]
+    ans = ans.to_frame(x.columns[0])
+
+    return ans
 
 def multiply_df_single_column(x, y, ffill=(False, False)):
     """

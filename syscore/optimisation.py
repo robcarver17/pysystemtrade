@@ -338,7 +338,7 @@ def shrink_SR(mean_list, stdev_list, shrinkage_SR):
 
 def markosolver(period_subset_data, moments_estimator,
                  cleaning, must_haves,
-                  equalise_SR=False , equalise_vols=False,
+                  equalise_SR=False , equalise_vols=True,
                   **ignored_args): 
     """
     Returns the optimal portfolio for the returns data

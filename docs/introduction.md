@@ -134,33 +134,32 @@ show()
 Did we make any money?
 
 ```python
-from syscore.accounting import pandl
-account=pandl(price, forecast=ewmac, capital=0.0) ## capital=0.0 gives % returns
+from syscore.accounting import accountCurve
+account = accountCurve(price, forecast=ewmac, percentage=True)
 account.stats()
 ```
 
 ```
-[[('min', '-0.07944'),
-  ('max', '0.05662'),
+[[('min', '-0.08167'),
+  ('max', '0.05601'),
   ('median', '0'),
-  ('mean', '0.0001884'),
-  ('std', '0.005823'),
-  ('skew', '-0.8771'),
-  ('ann_daily_mean', '0.04823'),
-  ('ann_daily_std', '0.09317'),
-  ('sharpe', '0.5177'),
-  ('sortino', '0.5248'),
-  ('avg_drawdown', '-0.1392'),
-  ('time_in_drawdown', '0.9703'),
-  ('calmar', '0.1221'),
-  ('avg_return_to_drawdown', '0.3465'),
-  ('avg_loss', '-0.003849'),
-  ('avg_gain', '0.003871'),
-  ('gaintolossratio', '1.006'),
-  ('profitfactor', '1.135'),
-  ('hitrate', '0.5302')],
- ('You can also plot:', ['rolling_ann_std', 'drawdown', 'curve']),
- ('You can also print:', ['weekly', 'monthly', 'annual'])]
+  ('mean', '0.0001694'),
+  ('std', '0.005542'),
+  ('skew', '-0.9312'),
+  ('ann_mean', '0.04337'),
+  ('ann_std', '0.08866'),
+  ('sharpe', '0.4891'),
+  ('sortino', '0.4924'),
+  ('avg_drawdown', '-0.1367'),
+  ('time_in_drawdown', '0.9706'),
+  ('calmar', '0.1122'),
+  ('avg_return_to_drawdown', '0.3172'),
+  ('avg_loss', '-0.003635'),
+  ('avg_gain', '0.003666'),
+  ('gaintolossratio', '1.009'),
+  ('profitfactor', '1.129'),
+  ('hitrate', '0.5281')],
+ ('You can also plot:', ['rolling_ann_std', 'drawdown', 'curve'])]
 ```
 
 
@@ -170,7 +169,7 @@ Looks like we did make a few bucks. `account`, by the way inherits from a pandas
 account.sharpe() ## get the Sharpe Ratio (annualised), and any other statistic which is in the stats list
 account.curve().plot() ## plot the cumulative account curve (equivalent to account.cumsum().plot() inicidentally)
 account.drawdown().plot() ## see the drawdowns
-account.weekly() ## weekly returns (also monthly, annual)
+account.weekly ## weekly returns (also daily [default], monthly, annual)
 ```
 
 
@@ -436,19 +435,19 @@ print(my_system.combForecast.get_forecast_diversification_multiplier("EDOLLAR").
 ```
 
 ```
-             ewmac32    ewmac8
-2015-12-07  0.067186  0.932814
-2015-12-08  0.067330  0.932670
-2015-12-09  0.067474  0.932526
-2015-12-10  0.067616  0.932384
-2015-12-11  0.067757  0.932243
+            ewmac32    ewmac8
+2015-12-07  0.256209  0.743791
+2015-12-08  0.256409  0.743591
+2015-12-09  0.256607  0.743393
+2015-12-10  0.256804  0.743196
+2015-12-11  0.256999  0.743001
 
                  FDM
-2015-12-07  1.015229
-2015-12-08  1.015365
-2015-12-09  1.015499
-2015-12-10  1.015630
-2015-12-11  1.015760
+2015-12-07  1.076779
+2015-12-08  1.076940
+2015-12-09  1.077098
+2015-12-10  1.077254
+2015-12-11  1.077408
 ```
 
 
@@ -494,11 +493,11 @@ my_system.positionSize.get_subsystem_position("EDOLLAR").tail(5)
 
 ```
             ss_position
-2015-12-04    27.088860
 2015-12-07    27.781050
 2015-12-08    30.295935
 2015-12-09    33.692504
 2015-12-10    28.225567
+2015-12-11    29.060370
 ```
 
 We're almost there. The final stage we need to get positions is to combine everything into a portfolio (chapter 11). 
@@ -522,19 +521,20 @@ print(my_system.portfolio.get_instrument_diversification_multiplier())
 ```
 
 ```
-                CORN  EDOLLAR     SP500     US10
-2015-12-04  0.122233  0.34819  0.320227  0.20935
-2015-12-07  0.122233  0.34819  0.320227  0.20935
-2015-12-08  0.122233  0.34819  0.320227  0.20935
-2015-12-09  0.122233  0.34819  0.320227  0.20935
-2015-12-10  0.122233  0.34819  0.320227  0.20935
+               CORN   EDOLLAR     SP500      US10
+2015-12-07  0.27708  0.250536  0.263795  0.208589
+2015-12-08  0.27708  0.250536  0.263795  0.208589
+2015-12-09  0.27708  0.250536  0.263795  0.208589
+2015-12-10  0.27708  0.250536  0.263795  0.208589
+2015-12-11  0.27708  0.250536  0.263795  0.208589
 
                  IDM
-2015-12-04  1.554428
-2015-12-07  1.554383
-2015-12-08  1.554339
-2015-12-09  1.554296
-2015-12-10  1.554253
+2015-12-07  1.678384
+2015-12-08  1.678354
+2015-12-09  1.678325
+2015-12-10  1.678297
+2015-12-11  1.678268
+
 ```
 
 Alternatively we can just make up some instrument weights, and diversification multiplier.
@@ -553,11 +553,11 @@ my_system.portfolio.get_notional_position("EDOLLAR").tail(5)
 
 ```                 
                   pos
-2015-12-04  16.253316
 2015-12-07  16.668630
 2015-12-08  18.177561
 2015-12-09  20.215503
 2015-12-10  16.935340
+2015-12-11  17.436222
 ```
 
 Although this is fine and dandy, we're probably going to be curious about whether this made money or not. So we'll need to add just one more stage, to count our virtual profits:
@@ -571,9 +571,7 @@ profits.stats()
 ```
 
 ```
-[
-('std', '0.0191'), ('skew', '-0.1369'), ('ann_daily_mean', '0.1738'), ('ann_daily_std', '0.3056'), 
-('sharpe', '0.5687'), ('sortino', '0.645'), ('avg_drawdown', '-0.2062')]
+[[('mean', '0.0006612'), ('std', '0.01786'), ('skew', '-0.1644'), ('ann_mean', '0.1693'), ('ann_std', '0.2857'), ('sharpe', '0.5925'), .... ('hitrate', '0.5181')], ('You can also plot:', ['rolling_ann_std', 'drawdown', 'curve'])]
 
 ```
 

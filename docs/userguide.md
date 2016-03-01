@@ -2532,7 +2532,7 @@ The standard accounting class includes several useful methods:
 - `portfolio`: works out the p&l for the whole system
 - `pandl_for_instrument`: the contribution of a particular instrument to the p&l
 - `pandl_for_instrument_forecast`: work out how well a particular trading rule variation has done with a particular instrument
-- 'pandl_for_subsystem': work out how an instrument has done in isolation
+- `pandl_for_subsystem`: work out how an instrument has done in isolation
 
 These classes share some useful arguments (all boolean):
 
@@ -2540,7 +2540,7 @@ These classes share some useful arguments (all boolean):
 - `roundpositions`: Round positions to nearest instrument block. defaults to False. Not used in `pandl_for_instrument_forecast`
 - `percentage`: Return the p&l as a percentage of notional capital. defaults to False. 
 
-All p&l methods return an object of type `accountCurve`. This inherits from a pandas data frame, so it can be plotted, averaged and so on. It also has some special methods. To see what they are use the `stats` method:
+All p&l methods return an object of type `accountCurve` (for instruments, subsystems and instrument forecasts) or `accountCurveGroup` (for portfolio). This inherits from a pandas data frame, so it can be plotted, averaged and so on. It also has some special methods. To see what they are use the `stats` method:
 
 ```python
 from systems.provided.futures_chapter15.basesystem import futures_system
@@ -2576,12 +2576,126 @@ The `stats` method lists three kinds of output:
 
 1. Statistics which can also be extracted with their own methods eg to extract sortino use `system.accounts.portfolio().sortino()`
 2. Methods which can be used to do interesting plots eg `system.accounts.portfolio().drawdown()`
-3. Methods which can be used to get returns over different periods, eg `systems.accounts.portfolio().annual()`
+3. Attributes which can be used to get returns over different periods, eg `systems.accounts.portfolio().annual`
+
+
+#### `accountCurve` 
  
+There is a lot more to `accountCurve` and group objects than meets the eye. 
+
+Let's start with `accountCurve`, which is the output you get from `systems.account.pandl_for_subsystem` amongst other things  
+
+```python
+acc_curve=system.accounts.pandl_for_subsystem("EDOLLAR", percentage=True)
+```
+
+This *looks* like a pandas data frame, where each day is a different return. However it's actually a bit more interesting than that. There's actually three different account curves buried inside this; *gross* p&l without costs, *costs*, and *net* including costs. We can access any of them like so:
+
+```python
+acc_curve.gross
+acc_curve.net
+acc_curve.costs
+```
+
+The *net* version is identical to acc_curve; this is deliberate to encourage you to look at net returns. Each curve defaults to displaying daily returns, however we can also access different frequencies (daily, weekly, monthly, annual):
+
+```python
+acc_curve.gross.daily ## equivalent to acc_curve.gross
+acc_curve.net.daily ## equivalent to acc_curve and acc_curve.net
+acc_curve.net.weekly ## or also acc_curve.weekly
+acc_curve.costs.monthly
+```
+
+Once you have the frequency you require you can then use any of the statistical methods:
+
+```python
+acc_curve.gross.daily.stats() ## Get a list of methods. equivalent to acc_curve.gross.stats()
+acc_curve.monthly.sharpe() ## Sharpe ratio based on annual 
+acc_curve.gross.weekly.std() ## standard deviation of weekly returns
+acc_curve.daily.ann_std() ## annualised std. deviation of daily (net) returns
+acc_curve.costs.annual.median() ## median of annual costs
+
+```
+
+... or other interesting methods:
+
+```python
+acc_curve.rolling_ann_std() ## rolling annual standard deviation of daily (net) returns
+acc_curve.gross.curve() ## cumulated returns = account curve of gross daily returns
+acc_curve.net.monthly.drawdown() ## drawdown of monthly net returns
+acc_curve.costs.weekly.curve() ## cumulated weekly costs
+```
+
+You probably won't need it but acc_curve.calc_data() returns a dict of all the information used to calculate a particular account curve. For example:
+
+```python
+acc_curve.calc_data()['trades'] ## simulated trades
+```
+
+#### `accountCurveGroup` in more detail
+
+`accountCurveGroup`, is the output you get from `systems.account.portfolio` (and some other methods I haven't discussed that return data for multiple assets):
+
+```python
+acc_curve_group=system.accounts.portfolio(percentage=True)
+```
+
+Again this *looks* like a pandas data frame, or indeed like an ordinary account curve object. So for example these all work:
+
+```python
+acc_curve_group.gross.daily.stats() ## Get a list of methods. equivalent to acc_curve.gross.stats()
+acc_curve_group.monthly.sharpe() ## Sharpe ratio based on annual 
+acc_curve_group.gross.weekly.std() ## standard deviation of weekly returns
+acc_curve_group.daily.ann_std() ## annualised std. deviation of daily (net) returns
+acc_curve_group.costs.annual.median() ## median of annual costs
+
+```
+
+These are in fact all giving the p&l for the entire portfolio (the sum of individual account curves across all assets); defaulting to giving the net, daily curve. To find out which assets we use acc_curve_group.asset_columns; to access a particular asset we use acc_curve_group['assetName'].
+
+```python
+acc_curve_group.asset_columns
+acc_curve_group['US10']
+```
+
+The second command returns the account curves *just* for US 10 year bonds. So we can do things like:
+
+```python
+acc_curve_group['US10'].gross.daily.stats() ## Get a list of methods. equivalent to acc_curve.gross.stats()
+acc_curve_group['US10'].monthly.sharpe() ## Sharpe ratio based on annual 
+acc_curve_group['US10'].gross.weekly.std() ## standard deviation of weekly returns
+acc_curve_group['US10'].daily.ann_std() ## annualised std. deviation of daily (net) returns
+acc_curve_group['US10'].costs.annual.median() ## median of annual costs
+acc_curve_group['US10'].calc_data()['trades'] ## list of trades
+
+acc_curve_group.gross['US10'].weekly.std() ## notice equivalent way of getting account curves
+```
+
+Sometimes it's nicer to plot all the individual account curves, so we can get a data frame.
+
+
+```python
+acc_curve_group.to_frame() ## returns net account curves all assets in a frame
+acc_curve_group.net.to_frame() ## returns net account curves all assets in a frame
+acc_curve_group.gross.to_frame() ## returns net account curves all assets in a frame
+acc_curve_group.costs.to_frame() ## returns net account curves all assets in a frame
+```
+
+
+The other thing you can do is get a dictionary of any statistical method, measured across all assets:
+
+```python
+acc_curve_group.get_stats("sharpe", "net", "daily") ## get all annualised sharpe ratios using daily data
+acc_curve_group.get_stats("sharpe", freq="daily") ## equivalent
+acc_curve_group.get_stats("sharpe", curve_type="net") ## equivalent
+acc_curve_group.net.get_stats("sharpe", freq="daily") ## equivalent
+```
+
+
 
 #### Writing new or modified accounting stages
 
-I plan to include costs in the accounting stage, and to generate lists of simulated trades. I also plan to extend the `accountCurve` object to handle multiple columns, and to give statistics over different periods. I also plan to include methods for summarising p&l in different ways.
+I plan to include ways of summarising profits over groups of assets (trading rules and instruments) in the account stage.
 
 <a name="Processes">
 # Processes
@@ -2913,6 +3027,7 @@ Private methods are excluded from this table.
 | `combForecast.get_trading_rule_list` | Standard  | `instrument_code`        | I | List of trading rules from config or prior stage |
 | `combForecast.get_all_forecasts` | Standard  | `instrument_code`, (`rule_variation_name`)        | D | pd.DataFrame of forecast values |
 | `combForecast.get_forecast_cap` | Standard | `instrument_code`, `rule_variation_name`        | I  | `forecastScaleCap.get_forecast_cap` |
+| combForecast.pandl_for_instrument_rules| Estimate | `instrument_code`        | I  | `accounts.pandl_for_instrument_rules` |
 | `combForecast.calculation_of_raw_forecast_weights | Estimate | `instrument_code`        | D  | Forecast weight calculation objects |
 | `combForecast.get_raw_forecast_weights` | Standard / Estimate | `instrument_code`        | D  | Forecast weights |
 | `combForecast.get_forecast_weights` | Standard  / Estimate| `instrument_code`        | D  | Forecast weights, adjusted for missing forecasts|
@@ -2947,7 +3062,7 @@ Private methods are excluded from this table.
 |:-------------------------:|:---------:|:---------------:|:----:|:--------------------------------------------------------------:|
 | `portfolio.get_subsystem_position`| Standard | `instrument_code` | I |`positionSize.get_subsystem_position` |
 | `portfolio.get_instrument_list`| Standard |  | I | `system.get_instrument_list` |
-| `portfolio.pandl_for_subsystem`| Estimate |  `instrument_code` | I | `accounts.pandl_for_subsystem`|
+| `portfolio.pandl_across_subsystems`| Estimate |  `instrument_code` | I | `accounts.pandl_across_subsystems`|
 | `calculation_of_raw_instrument_weights`| Estimate |   | D | Instrument weight calculation objects |
 | `portfolio.get_raw_instrument_weights`| Standard / Estimate|  | D |Get instrument weights |
 | `portfolio.get_instrument_weights`| Standard / Estimate|  | D |Get instrument weights, adjusted for missing instruments |
@@ -2970,7 +3085,8 @@ Private methods are excluded from this table.
 | `accounts.get_instrument_price`| Standard |  `instrument_code` | I | `data.daily_prices`|
 | `accounts.get_value_of_price_move`| Standard |  `instrument_code` | I | `positionSize.get_instrument_sizing_data`|
 | `accounts.get_daily_returns_volatility`| Standard |  `instrument_code` | I | `rawdata.daily_returns_volatility` or `data.daily_prices`|
-| `accounts.pandl_for_subsystem`| Standard |  `instrument_code` | O,D | P&l for an instrument outright|
+| `accounts.pandl_for_subsystem`| Standard |  `instrument_code` | D | P&l for an instrument outright|
+| `accounts.pandl_across_subsystems`| Standard |  `instrument_code` | O,D | P&l across instruments, outright|
 | `accounts.pandl_for_instrument`| Standard |  `instrument_code` | D | P&l for an instrument within a system|
 | `accounts.pandl_for_instrument_forecast`| Standard | `instrument_code`, `rule_variation_name` | D | P&l for a trading rule and instrument |
 | `accounts.pandl_for_instrument_rules`| Standard | `instrument_code` | D,O | P&l for all trading rules in an instrument |

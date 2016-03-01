@@ -286,9 +286,9 @@ class PortfoliosEstimated(PortfoliosFixed):
 
     KEY INPUTS: as per parent class, plus:
      
-                system.accounts.pandl_for_subsystem
-                found in: self.pandl_for_subsystem
-   
+                system.accounts.pandl_across_subsystems
+                found in: self.pandl_across_subsystems
+ 
     KEY OUTPUTS: No additional outputs
 
 
@@ -343,14 +343,11 @@ class PortfoliosEstimated(PortfoliosFixed):
             instrument_codes=system.get_instrument_list()
 
             if hasattr(system, "accounts"):
-                pandl_subsystems=[system.accounts.pandl_for_subsystem(code, percentage=True)
-                        for code in instrument_codes]
+                pandl=this_stage.pandl_across_subsystems()
             else:
                 error_msg="You need an accounts stage in the system to estimate instrument correlations"
                 this_stage.log.critical(error_msg)
                 
-            pandl=pd.concat(pandl_subsystems, axis=1)
-            pandl.columns=instrument_codes
 
             ## Need to resample here, because the correlation function won't do it properly            
             frequency=corr_params['frequency']
@@ -521,7 +518,7 @@ class PortfoliosEstimated(PortfoliosFixed):
         return instrument_weights
 
 
-    def pandl_for_subsystem(self, instrument_code): 
+    def pandl_across_subsystems(self): 
         """
         Return profitability of each instrument
         
@@ -530,10 +527,10 @@ class PortfoliosEstimated(PortfoliosFixed):
         :param instrument_code:
         :type str:
 
-        :returns: Tx1 pd.DataFrame
+        :returns: TxN pd.DataFrame
         """
         
-        return self.parent.accounts.pandl_for_subsystem(instrument_code, percentage=True)
+        return self.parent.accounts.pandl_across_subsystems(percentage=True).to_frame()
 
     def calculation_of_raw_instrument_weights(self):
         """
@@ -552,14 +549,10 @@ class PortfoliosEstimated(PortfoliosFixed):
 
             instrument_codes=system.get_instrument_list()
             if hasattr(system, "accounts"):
-                pandl_subsystems=[this_stage.pandl_for_subsystem(code)
-                        for code in instrument_codes]
+                pandl=this_stage.pandl_across_subsystems()
             else:
                 error_msg="You need an accounts stage in the system to estimate instrument weights"
                 this_stage.log.critical(error_msg)
-
-            pandl=pd.concat(pandl_subsystems, axis=1)
-            pandl.columns=instrument_codes
 
             instrument_weight_results=weighting_func(pandl,  log=self.log.setup(call="weighting"), **weighting_params)
         

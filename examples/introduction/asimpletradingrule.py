@@ -112,8 +112,8 @@ show()
 Did we make money?
 """
 
-from syscore.accounting import pandl
-account = pandl(price, forecast=ewmac, capital=0.0)
+from syscore.accounting import accountCurve
+account = accountCurve(price, forecast=ewmac, percentage=True)
 account.curve().plot()
 show()
 

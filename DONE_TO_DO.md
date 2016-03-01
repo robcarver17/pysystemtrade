@@ -1,6 +1,10 @@
 # Release notes
 
 
+## Version: 0.3.0
+
+  * Account curve improvements: generate lists of simulated trades, extend the `accountCurve` object to handle multiple columns, statistics over different periods. 
+
 ## Version: 0.2.1
 
 * Fixed bug with bootstrapping with missing values
@@ -65,9 +69,9 @@ system cleaning
 
 * Simulation:
 
-  * autodetect if need to estimate parameters or not
-  * Costs
+  * costs
   * estimated trades; with buffering of trades
+  * autodetect if need to estimate parameters or not
   * vol targeting with capital adjustment
   * quandl data
   * stitch futures contracts 

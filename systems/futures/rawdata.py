@@ -3,7 +3,7 @@ import numpy as np
 from systems.rawdata import RawData
 from syscore.objects import update_recalc
 from syscore.dateutils import expiry_diff
-from syscore.pdutils import divide_df_single_column
+from syscore.pdutils import divide_df_single_column, uniquets
 
 
 class FuturesRawData(RawData):
@@ -45,10 +45,11 @@ class FuturesRawData(RawData):
 
         KEY INPUT
 
-        >>> from systems.tests.testdata import get_test_object_futures
+
+        >>> from systems.tests.testfuturesrawdata import get_test_object_futures
         >>> from systems.basesystem import System
-        >>> (rawdata, data, config)=get_test_object_futures()
-        >>> system=System([rawdata], data)
+        >>> (data, config)=get_test_object_futures()
+        >>> system=System([FuturesRawData()], data)
         >>> system.rawdata.get_instrument_raw_carry_data("EDOLLAR").tail(2)
                                PRICE  CARRY CARRY_CONTRACT PRICE_CONTRACT
         2015-12-11 17:08:14  97.9675    NaN         201812         201903
@@ -75,10 +76,10 @@ class FuturesRawData(RawData):
 
         :returns: Tx4 pd.DataFrame
 
-        >>> from systems.tests.testdata import get_test_object_futures
+        >>> from systems.tests.testfuturesrawdata import get_test_object_futures
         >>> from systems.basesystem import System
-        >>> (rawdata, data, config)=get_test_object_futures()
-        >>> system=System([rawdata], data)
+        >>> (data, config)=get_test_object_futures()
+        >>> system=System([FuturesRawData()], data)
         >>> system.rawdata.raw_futures_roll("EDOLLAR").ffill().tail(2)
                              raw_roll
         2015-12-11 17:08:14     -0.07
@@ -94,6 +95,9 @@ class FuturesRawData(RawData):
             raw_roll[raw_roll == 0] = np.nan
 
             raw_roll = raw_roll.to_frame('raw_roll')
+            
+            raw_roll=uniquets(raw_roll)
+            
             return raw_roll
 
         raw_roll = self.parent.calc_or_cache(
@@ -110,10 +114,10 @@ class FuturesRawData(RawData):
 
         :returns: Tx4 pd.DataFrame
 
-        >>> from systems.tests.testdata import get_test_object_futures
+        >>> from systems.tests.testfuturesrawdata import get_test_object_futures
         >>> from systems.basesystem import System
-        >>> (rawdata, data, config)=get_test_object_futures()
-        >>> system=System([rawdata], data)
+        >>> (data, config)=get_test_object_futures()
+        >>> system=System([FuturesRawData()], data)
         >>> system.rawdata.roll_differentials("EDOLLAR").ffill().tail(2)
                              roll_diff
         2015-12-11 17:08:14  -0.246407
@@ -125,6 +129,8 @@ class FuturesRawData(RawData):
             roll_diff = carrydata.apply(expiry_diff, 1)
 
             roll_diff = roll_diff.to_frame('roll_diff')
+            
+            roll_diff = uniquets(roll_diff)
 
             return roll_diff
 
@@ -142,14 +148,18 @@ class FuturesRawData(RawData):
 
         :returns: Tx4 pd.DataFrame
 
-        >>> from systems.tests.testdata import get_test_object_futures
+        >>> from systems.tests.testfuturesrawdata import get_test_object_futures
         >>> from systems.basesystem import System
-        >>> (rawdata, data, config)=get_test_object_futures()
-        >>> system=System([rawdata], data)
+        >>> (data, config)=get_test_object_futures()
+        >>> system=System([FuturesRawData()], data)
         >>> system.rawdata.annualised_roll("EDOLLAR").ffill().tail(2)
                              annualised_roll
         2015-12-11 17:08:14         0.284083
         2015-12-11 19:33:39         0.284083
+        >>> system.rawdata.annualised_roll("US10").ffill().tail(2)
+                             annualised_roll
+        2015-12-11 16:06:35         2.320441
+        2015-12-11 17:24:06         2.320441
 
         """
 
@@ -180,10 +190,10 @@ class FuturesRawData(RawData):
 
         KEY OUTPUT
 
-        >>> from systems.tests.testdata import get_test_object_futures
+        >>> from systems.tests.testfuturesrawdata import get_test_object_futures
         >>> from systems.basesystem import System
-        >>> (rawdata, data, config)=get_test_object_futures()
-        >>> system=System([rawdata], data)
+        >>> (data, config)=get_test_object_futures()
+        >>> system=System([FuturesRawData()], data)
         >>> system.rawdata.daily_annualised_roll("EDOLLAR").ffill().tail(2)
                     annualised_roll_daily
         2015-12-10               0.284083
@@ -214,10 +224,10 @@ class FuturesRawData(RawData):
 
         KEY OUTPUT
 
-        >>> from systems.tests.testdata import get_test_object_futures
+        >>> from systems.tests.testfuturesrawdata import get_test_object_futures
         >>> from systems.basesystem import System
-        >>> (rawdata, data, config)=get_test_object_futures()
-        >>> system=System([rawdata], data)
+        >>> (data, config)=get_test_object_futures()
+        >>> system=System([FuturesRawData()], data)
         >>>
         >>> system.rawdata.daily_denominator_price("EDOLLAR").ffill().tail(2)
                       price
