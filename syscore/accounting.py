@@ -155,7 +155,7 @@ def pandl_with_data(price, trades=None, marktomarket=True, positions=None,
     cum_trades.columns = ["cum_trades"]
 
     return (cum_trades, trades, instr_ccy_returns,
-            base_ccy_returns, fx)
+            base_ccy_returns, fx, value_of_price_point)
 
 
 def get_trades_from_positions(price,
@@ -398,8 +398,10 @@ class accountCurveSingleElementOneFreq(pd.DataFrame):
     def sharpe(self):
         mean_return = self.ann_mean()
         vol = self.ann_std()
-
-        return mean_return / vol
+        sharpe=mean_return / vol
+        if np.isinf(sharpe):
+            sharpe=np.nan
+        return sharpe
 
     def drawdown(self):
         x = self.curve()
@@ -431,7 +433,11 @@ class accountCurveSingleElementOneFreq(pd.DataFrame):
         ann_stdev = period_stddev * self._vol_scalar
         ann_mean = self.ann_mean()
 
-        return ann_mean / ann_stdev
+        sortino=ann_mean / ann_stdev
+        if np.isinf(sortino):
+            sortino=np.nan
+
+        return sortino
 
     def vals(self):
         x = [z[0] for z in self.values if not np.isnan(z[0])]
@@ -561,7 +567,7 @@ class accountCurveSingle(accountCurveSingleElement):
 
 class accountCurve(accountCurveSingle):
 
-    def __init__(self, price,  percentage=False, cost_per_block=None, SR_cost=None, 
+    def __init__(self, price,  percentage=False, cash_costs=None, SR_cost=None, 
                  capital=None, ann_risk_target=None, 
                  **kwargs):
         """
@@ -573,13 +579,13 @@ class accountCurve(accountCurveSingle):
         :param percentage: Return % returns, or base currency if False
         :type percentage: bool
         
-        :param cost_per_block: Cost in local currency units per instrument block 
-        :type cost_per_block: float
+        :param cash_cost: Cost in local currency units per instrument block 
+        :type cash_cost: float
         
         :param SR_cost: Cost in annualised Sharpe Ratio units (0.01 = 0.01 SR)
         :type SR_cost: float
         
-        Note if both are included then cost_per_block will be disregarded
+        Note if both are included then cash_cost will be disregarded
         
         :param capital: Capital at risk. Used for % returns, and calculating daily risk for SR costs  
         :type capital: float or Tx1 
@@ -598,14 +604,14 @@ class accountCurve(accountCurveSingle):
         returns_data=pandl_with_data(price,  capital=capital, ann_risk_target=ann_risk_target, **kwargs)
 
         (cum_trades, trades, instr_ccy_returns,
-            base_ccy_returns, fx)=returns_data
+            base_ccy_returns, fx, value_of_price_point)=returns_data
             
         gross_returns=base_ccy_returns
 
         ## always returns a time series
         (capital, daily_capital)=resolve_capital(gross_returns, capital, ann_risk_target)
 
-        (costs_base_ccy, costs_instr_ccy)=calc_costs(returns_data, cost_per_block, SR_cost, daily_capital)
+        (costs_base_ccy, costs_instr_ccy)=calc_costs(returns_data, cash_costs, SR_cost, daily_capital)
 
         net_returns=add_df_single_column(gross_returns,costs_base_ccy) ## costs are negative returns
         
@@ -651,20 +657,20 @@ class accountCurve(accountCurveSingle):
         
         return calc_dict
         
-def calc_costs(returns_data, cost_per_block, SR_cost, daily_capital):
+def calc_costs(returns_data, cash_costs, SR_cost, daily_capital):
     """
     Calculate costs
     
     :param returns_data: returns data
-    :type returns_data: 4 tuple returned by pandl data function
+    :type returns_data: 5 tuple returned by pandl data function
     
-    :param cost_per_block: Cost in local currency units per instrument block 
-    :type cost_per_block: float
+    :param cash_costs: Cost in local currency units per instrument block 
+    :type cash_costs: 3 tuple of floats; value_total_per_block, value_of_pertrade_commission, percentage_cost
     
     :param SR_cost: Cost in annualised Sharpe Ratio units (0.01 = 0.01 SR)
     :type SR_cost: float
 
-    If both included use SR_cost
+    Set to None if not using. If both included use SR_cost
     
     :param daily_capital: Capital at risk each day. Used for SR calculations
     :type daily_capital: Tx1 pd.DataFrame
@@ -674,7 +680,7 @@ def calc_costs(returns_data, cost_per_block, SR_cost, daily_capital):
     """
 
     (cum_trades, trades, instr_ccy_returns,
-        base_ccy_returns, fx)=returns_data
+        base_ccy_returns, fx, value_of_price_point)=returns_data
 
     if SR_cost is not None:
         ## use SR_cost
@@ -682,10 +688,27 @@ def calc_costs(returns_data, cost_per_block, SR_cost, daily_capital):
         ann_cost = -SR_cost*ann_risk
         costs_instr_ccy = ann_cost/BUSINESS_DAYS_IN_YEAR
     
-    elif cost_per_block is not None:
+    elif cash_costs is not None:
         ## use cost per blocks
-        trades_in_blocks=trades['trades'].abs().resample("1B", how="sum")
-        costs_instr_ccy= - trades_in_blocks*cost_per_block
+        
+        (value_total_per_block, value_of_pertrade_commission, percentage_cost)=cash_costs
+
+        trades=trades['trades'].abs()
+        trades_in_blocks=trades.resample("1B", how="sum").to_frame()
+        costs_blocks = - trades_in_blocks*value_total_per_block
+
+        value_of_trades=trades_in_blocks * value_of_price_point
+        costs_percentage = percentage_cost * value_of_trades
+        
+        traded=trades[trades>0]
+        costs_pertrade = pd.DataFrame([value_of_pertrade_commission]*len(traded.index), traded.index)
+        costs_pertrade = costs_pertrade.reindex(trades.index)
+        
+        print(type(costs_blocks))
+        print(type(costs_percentage))
+        print(type(costs_pertrade))
+        
+        costs_instr_ccy = add_df_single_column(costs_blocks, add_df_single_column(costs_percentage, costs_pertrade))
         
     else:
         ## set costs to zero

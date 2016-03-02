@@ -170,6 +170,7 @@ account.sharpe() ## get the Sharpe Ratio (annualised), and any other statistic w
 account.curve().plot() ## plot the cumulative account curve (equivalent to account.cumsum().plot() inicidentally)
 account.drawdown().plot() ## see the drawdowns
 account.weekly ## weekly returns (also daily [default], monthly, annual)
+acccount.costs.ann_mean() ## annual mean for costs
 ```
 
 
@@ -576,6 +577,15 @@ profits.stats()
 ```
 
 Once again we have the now familiar accounting object. Some results have been removed, in the interests of staying awake.
+
+These are profits net of tax. You can see the gross profits and costs:
+
+```python
+profits.gross.stats() ## all other things work eg profits.gross.sharpe()
+profits.costs.stats()
+```
+
+For more see the costs and accountCurve section of the userguide.
 
 
 ## Getting config from dictionaries and files

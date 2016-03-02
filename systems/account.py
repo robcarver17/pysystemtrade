@@ -5,7 +5,7 @@ from systems.stage import SystemStage
 from systems.basesystem import ALL_KEYNAME
 from syscore.algos import robust_vol_calc
 from syscore.genutils import TorF
-
+from syscore.dateutils import ROOT_BDAYS_INYEAR
 
 class Account(SystemStage):
     """
@@ -33,7 +33,7 @@ class Account(SystemStage):
         system.data.daily_prices(instrument_code)
             found in self.get_daily_price()
 
-        system.positionSize.get_instrument_sizing_data()
+        system.data.get_value_of_block_price_move
             found in self.get_value_of_price_move()
 
         system.rawdata.daily_returns_volatility() or system.data.daily_prices(instrument_code)
@@ -301,10 +301,43 @@ class Account(SystemStage):
         2500
         """
 
-        (not_used, value_of_price_move) = self.parent.positionSize.get_instrument_sizing_data(
+        value_of_price_move = self.parent.data.get_value_of_block_price_move(
             instrument_code)
 
         return value_of_price_move
+
+    def get_raw_cost_data(self, instrument_code):
+        """
+        Get the cost tuple for an instrument
+        
+        We cache this, because its coming from data so hasn't been cached yet
+        
+        KEY INPUT
+        
+        Execution slippage [half spread] price units
+        Commission (local currency) per block
+        Commission - percentage of value (0.01 is 1%)
+        Commission (local currency) per block    
+        
+        :param instrument_code: instrument to value for
+        :type instrument_code: str
+
+        >>> from systems.basesystem import System
+        >>> from systems.tests.testdata import get_test_object_futures_with_portfolios
+        >>> (portfolio, posobject, combobject, capobject, rules, rawdata, data, config)=get_test_object_futures_with_portfolios()
+        >>> system=System([portfolio, posobject, combobject, capobject, rules, rawdata, Account()], data, config)
+        >>>
+        >>> system.accounts.get_raw_cost_data("EDOLLAR")
+        (0.0025000000000000001, 2.1099999999999999, 0, 0)
+        
+        """
+        def _get_raw_cost_data(system, instrument_code):
+            return system.data.get_raw_cost_data(instrument_code)
+
+        raw_cost_data = self.parent.calc_or_cache(
+            'get_raw_cost_data', instrument_code, _get_raw_cost_data)
+        
+        return raw_cost_data
 
     def get_daily_returns_volatility(self, instrument_code):
         """
@@ -335,6 +368,125 @@ class Account(SystemStage):
         return price_volatility
 
     
+    def get_SR_cost(self, instrument_code):
+        """
+        Get the vol normalised SR costs for an instrument
+        
+        :param instrument_code: instrument to value for
+        :type instrument_code: str
+
+        :returns: float
+
+        >>> from systems.basesystem import System
+        >>> from systems.tests.testdata import get_test_object_futures_with_portfolios
+        >>> (portfolio, posobject, combobject, capobject, rules, rawdata, data, config)=get_test_object_futures_with_portfolios()
+        >>> system=System([portfolio, posobject, combobject, capobject, rules, rawdata, Account()], data, config)
+        >>>
+        >>> system.accounts.get_SR_cost("EDOLLAR")
+        0.0065584086244069775
+        """
+
+        def _get_SR_cost(
+                system, instrument_code, this_stage):
+            
+            
+            raw_costs=this_stage.get_raw_cost_data(instrument_code)
+            block_value=this_stage.get_value_of_price_move(instrument_code)
+
+            price_slippage=raw_costs[0]
+            value_of_block_commission=raw_costs[1]
+            percentage_cost=raw_costs[2]
+            value_of_pertrade_commission=raw_costs[3]
+            
+            
+            daily_vol=this_stage.get_daily_returns_volatility(instrument_code)
+            daily_price=this_stage.get_daily_price(instrument_code)
+
+            last_date=daily_price.index[-1]
+            start_date=last_date-pd.DateOffset(years=1)
+            average_price=float(daily_price[start_date:].mean())
+            average_vol=float(daily_vol[start_date:].mean())
+        
+            ## Cost in Sharpe Ratio terms
+            ## First work out costs in price terms
+            price_block_commission=value_of_block_commission/block_value
+            price_percentage_cost=average_price*percentage_cost
+            price_per_trade_cost=value_of_pertrade_commission/block_value ## assume one trade per contract
+
+            price_total=price_slippage+price_block_commission+price_percentage_cost+price_per_trade_cost
+            
+            avg_annual_vol = average_vol * ROOT_BDAYS_INYEAR
+            
+            SR_cost = 2.0 * price_total / ( avg_annual_vol )
+
+            return SR_cost
+            
+        SR_cost = self.parent.calc_or_cache(
+            "get_SR_cost", instrument_code, _get_SR_cost, self)
+
+        return SR_cost
+    
+
+    def get_cash_costs(self, instrument_code):
+        """
+        Get the cash costs for an instrument
+        
+        :param instrument_code: instrument to value for
+        :type instrument_code: str
+
+        :returns: 3 tuple of floats: value_total_per_block, value_of_pertrade_commission, percentage_cost
+
+        >>> from systems.basesystem import System
+        >>> from systems.tests.testdata import get_test_object_futures_with_portfolios
+        >>> (portfolio, posobject, combobject, capobject, rules, rawdata, data, config)=get_test_object_futures_with_portfolios()
+        >>> system=System([portfolio, posobject, combobject, capobject, rules, rawdata, Account()], data, config)
+        >>>
+        >>> system.accounts.get_cash_costs("EDOLLAR")        
+        (8.3599999999999994, 0, 0)
+        """
+
+        def _get_cash_costs(
+                system, instrument_code, this_stage):
+            
+            
+            raw_costs=this_stage.get_raw_cost_data(instrument_code)
+            block_value=this_stage.get_value_of_price_move(instrument_code)
+
+            price_slippage=raw_costs[0]
+            value_of_block_commission=raw_costs[1]
+            percentage_cost=raw_costs[2]
+            value_of_pertrade_commission=raw_costs[3]
+            
+            ## Cost in actual terms in local currency
+            value_of_slippage=price_slippage*block_value
+            value_total_per_block=value_of_block_commission+value_of_slippage
+            
+            cash_costs=(value_total_per_block, value_of_pertrade_commission, percentage_cost)
+
+            return cash_costs
+
+        cash_costs = self.parent.calc_or_cache(
+            "get_cash_costs", instrument_code, _get_cash_costs, self)
+
+        return cash_costs
+
+    def get_costs(self, instrument_code):
+        """
+        Get the relevant kinds of cost for an instrument
+        
+        :param instrument_code: instrument to value for
+        :type instrument_code: str
+
+        :returns: 2 tuple
+        """
+        
+        use_SR_costs=bool(self.parent.config.use_SR_costs)
+        
+        if use_SR_costs:
+            return (self.get_SR_cost(instrument_code), None)
+        else:
+            return (None, self.get_cash_costs(instrument_code))
+        
 
     def pandl_for_subsystem(
 
@@ -371,6 +523,7 @@ class Account(SystemStage):
             this_stage.log.msg("Calculating pandl for subsystem for instrument %s" % instrument_code,
                                instrument_code=instrument_code)
 
+
             price = this_stage.get_daily_price(instrument_code)
             positions = this_stage.get_subsystem_position(instrument_code)
             fx = this_stage.get_fx_rate(instrument_code)
@@ -379,9 +532,7 @@ class Account(SystemStage):
             get_daily_returns_volatility = this_stage.get_daily_returns_volatility(
                 instrument_code)
 
-            ## FIX ME place holder
-            cost_per_block=None
-            SR_cost=0.0
+            (SR_cost, cash_costs)=this_stage.get_costs(instrument_code)
             
             capital = this_stage.get_notional_capital()
             ann_risk_target = this_stage.get_ann_risk_target()
@@ -389,7 +540,7 @@ class Account(SystemStage):
             instr_pandl = accountCurve(price, positions=positions, delayfill=delayfill, 
                                        roundpositions=roundpositions,
                                 fx=fx, value_of_price_point=value_of_price_point, capital=capital,
-                                percentage=percentage, SR_cost=SR_cost, cost_per_block=cost_per_block,
+                                percentage=percentage, SR_cost=SR_cost,  cash_costs = cash_costs,
                                 get_daily_returns_volatility=get_daily_returns_volatility,
                                 ann_risk_target = ann_risk_target)
 
@@ -487,7 +638,7 @@ class Account(SystemStage):
 
             this_stage.log.msg("Calculating pandl for instrument for %s" % instrument_code,
                                instrument_code=instrument_code)
-            
+
             price = this_stage.get_daily_price(instrument_code)
             positions = this_stage.get_notional_position(instrument_code)
             fx = this_stage.get_fx_rate(instrument_code)
@@ -499,16 +650,13 @@ class Account(SystemStage):
             capital = this_stage.get_notional_capital()
             ann_risk_target = this_stage.get_ann_risk_target()
 
-
-            ## FIX ME place holder
-            cost_per_block=None
-            SR_cost=0.0
+            (SR_cost, cash_costs)=this_stage.get_costs(instrument_code)
 
             instr_pandl = accountCurve(price, positions=positions, delayfill=delayfill, 
                                        roundpositions=roundpositions,
                                 fx=fx, value_of_price_point=value_of_price_point, capital=capital,
                                 ann_risk_target = ann_risk_target,
-                                percentage=percentage, SR_cost=SR_cost, cost_per_block=cost_per_block,
+                                percentage=percentage, SR_cost=SR_cost, cash_costs = cash_costs,
                                 get_daily_returns_volatility=get_daily_returns_volatility)
 
             return instr_pandl
@@ -607,19 +755,22 @@ class Account(SystemStage):
             this_stage.log.msg("Calculating pandl for instrument forecast for %s %s" % (instrument_code, rule_variation_name),
                                instrument_code=instrument_code, rule_variation_name=rule_variation_name)
 
+            #use_SR_costs=bool(system.config.use_SR_costs)
+
             price = this_stage.get_daily_price(instrument_code)
             forecast = this_stage.get_capped_forecast(
                 instrument_code, rule_variation_name)
             get_daily_returns_volatility = this_stage.get_daily_returns_volatility(
                 instrument_code)
 
-            ## FIX ME place holder
-            SR_cost=0.0
-
+            ## We NEVER use cash costs for forecasts ...
+            
+            SR_cost=this_stage.get_SR_cost(instrument_code)
+                        
             pandl_fcast = accountCurve(price, forecast=forecast, delayfill=delayfill, 
                                        roundpositions=False,
                                 value_of_price_point=1.0, capital=None,
-                                percentage=True, SR_cost=SR_cost, cost_per_block=None,
+                                percentage=True, SR_cost=SR_cost, cash_costs=None,
                                 get_daily_returns_volatility=get_daily_returns_volatility)
 
             return pandl_fcast

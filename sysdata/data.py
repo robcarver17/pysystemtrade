@@ -110,6 +110,25 @@ class Data(object):
 
         return 1.0
 
+    def get_raw_cost_data(self, instrument_code):
+        """
+        Get cost data
+        
+        Execution slippage [half spread] price units
+        Commission (local currency) per block
+        Commission - percentage of value (0.01 is 1%)
+        Commission (local currency) per block    
+        
+        :param instrument_code: instrument to value for
+        :type instrument_code: str
+
+        :returns: 4 tuple of floats
+
+        """
+        
+        return (0.0, 0.0, 0.0, 0.0)
+
+
     def _get_default_currency(self):
         """
         We assume we always have rates for the default currency vs others to use in getting cross rates

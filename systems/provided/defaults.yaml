@@ -140,3 +140,6 @@ instrument_weight_estimate:
      ew_lookback: 500
      min_periods: 20      
 #
+# costs and accounting
+use_SR_costs: True
+#

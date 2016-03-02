@@ -58,8 +58,72 @@ class csvFuturesData(FuturesData):
         Here it's a directory
         """
         setattr(self, "_datapath", datapath)
-        
 
+    def _get_all_cost_data(self):
+        """
+        Get a data frame of cost data
+
+        :returns: pd.DataFrame
+
+        >>> data=csvFuturesData("sysdata.tests")
+        >>> data._get_all_cost_data()
+                   Instrument  Slippage  PerBlock  Percentage  PerTrade
+        Instrument                                                     
+        BUND             BUND    0.0050      2.00           0         0
+        US10             US10    0.0080      1.51           0         0
+        EDOLLAR       EDOLLAR    0.0025      2.11           0         0
+        """
+
+        self.log.msg("Loading csv cost file")
+
+        filename = os.path.join(self._datapath, "costs_analysis.csv")
+        try:
+            instr_data = pd.read_csv(filename)
+            instr_data.index = instr_data.Instrument
+
+            return instr_data
+        except OSError:
+            self.log.warn("Cost file not found %s" % filename)
+            return None
+
+        
+    def get_raw_cost_data(self, instrument_code):
+        """
+        Get's cost data for an instrument
+
+        Get cost data
+        
+        Execution slippage [half spread] price units
+        Commission (local currency) per block
+        Commission - percentage of value (0.01 is 1%)
+        Commission (local currency) per block    
+        
+        :param instrument_code: instrument to value for
+        :type instrument_code: str
+
+        :returns: 4 tuple of floats
+
+        >>> data=csvFuturesData("sysdata.tests")
+        >>> data.get_raw_cost_data("EDOLLAR")
+        (0.0025000000000000001, 2.1099999999999999, 0, 0)
+        """
+
+        default_costs = (0.,0.,0.,0.)
+        
+        cost_data = self._get_all_cost_data()
+        
+        if cost_data is None:
+            ## 
+            return default_costs
+        
+        try:
+            block_move_value = cost_data.loc[instrument_code, ['Slippage', 'PerBlock', 'Percentage', 'PerTrade']]
+        except KeyError:
+            self.log.warn("Cost data not found for %s, using zero" % instrument_code)
+            return default_costs
+
+        return tuple(block_move_value)
+        
 
     def get_daily_price(self, instrument_code):
         """

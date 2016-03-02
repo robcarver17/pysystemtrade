@@ -547,6 +547,7 @@ The pathname must contain .csv files of the following four types (where code is 
 2. Price data- `code_price.csv` (eg SP500_price.csv) headings: DATETIME, PRICE
 3. Futures data - `code_carrydata.csv` (eg AEX_carrydata.csv): headings: DATETIME, PRICE,CARRY,CARRY_CONTRACT PRICE_CONTRACT
 4. Currency data - `ccy1ccy2fx.csv` (eg AUDUSDfx.csv) headings: DATETIME, FXRATE
+5. Cost data - 'costs_analysis.csv' headings: Instrument, Slippage, PerBlock, Percentage, PerTrade
 
 DATETIME should be something that `pandas.to_datetime` can parse. Note that the price in (2) is the continously stitched price (see [volatility calculation](#vol_calc) ), whereas the price in (3) is the price of the contract we're currently trading. 
 
@@ -574,6 +575,7 @@ Methods that you'll probably want to override:
 - `get_instrument_price` Returns Tx1 pandas data frame
 - `get_instrument_list` Returns list of str
 - `get_value_of_block_price_move` Returns float
+- 'get_raw_cost_data' Returns 4 tuple of cost data
 - `get_instrument_currency`: Returns str
 - `_get_fx_data(currency1, currency2)`  Returns Tx1 pandas data frame of exchange rates
 
@@ -581,7 +583,7 @@ You should not override `get_fx_for_instrument`, or any of the other private fx 
 
 Neither should you override 'daily_prices'.
  
-Finally data methods should not do any caching. [Caching](#caching) is done within the system.
+Finally data methods should not do any caching. [Caching](#caching) is done within the system class.
 
 #### Creating a new type of data (or extending an existing one)
 
@@ -2691,7 +2693,19 @@ acc_curve_group.get_stats("sharpe", curve_type="net") ## equivalent
 acc_curve_group.net.get_stats("sharpe", freq="daily") ## equivalent
 ```
 
+<a name="costs">
+#### Costs
+</a>
 
+I work out costs in two different ways:
+
+- by applying a constant drag calculated according to the standardised cost in Sharpe ratio terms (see chapter 12 of my book)
+- using the
+
+The former method is always used for costs derived from forecasts (`pandl_for_instrument_forecast`)
+
+The latter method is optional. Set `config.use_SR_costs = False
+```
 
 #### Writing new or modified accounting stages
 
@@ -2974,6 +2988,7 @@ Private methods are excluded from this table.
 | `data.get_instrument_currency`|Standard | `instrument_code` | D,O | What currency does this instrument trade in? |
 | `data.get_fx_for_instrument`  |Standard | `instrument_code, base_currency` | D, O | What is the exchange rate between the currency of this instrument, and some base currency? |
 | `data.get_instrument_raw_carry_data` | Futures | `instrument_code` | D, O | Returns a dataframe with the 4 columns PRICE, CARRY, PRICE_CONTRACT, CARRY_CONTRACT |
+| `data.get_raw_cost_data`| Standard | `instrument_code` | D,O  | Cost data (slippage and different types of commission) |
 
 
 
@@ -3085,6 +3100,7 @@ Private methods are excluded from this table.
 | `accounts.get_instrument_price`| Standard |  `instrument_code` | I | `data.daily_prices`|
 | `accounts.get_value_of_price_move`| Standard |  `instrument_code` | I | `positionSize.get_instrument_sizing_data`|
 | `accounts.get_daily_returns_volatility`| Standard |  `instrument_code` | I | `rawdata.daily_returns_volatility` or `data.daily_prices`|
+| `accounts.get_raw_cost_data`| Standard | `instrument_code` | I  | `data.get_raw_cost_data` |
 | `accounts.pandl_for_subsystem`| Standard |  `instrument_code` | D | P&l for an instrument outright|
 | `accounts.pandl_across_subsystems`| Standard |  `instrument_code` | O,D | P&l across instruments, outright|
 | `accounts.pandl_for_instrument`| Standard |  `instrument_code` | D | P&l for an instrument within a system|
@@ -3698,5 +3714,19 @@ config.instrument_div_mult_estimate=dict(ewma_span=125)
 ```
 
 If you're considering using your own function please see [configuring defaults for your own functions](#config_function_defaults)
+
+### Accounting stage
+
+#### Costs
+
+Should we use normalised Sharpe Ratio costs, or the actual costs?
+
+Represented as: bool
+Default: True
+
+YAML: 
+```
+use_SR_costs: True
+```
 
 

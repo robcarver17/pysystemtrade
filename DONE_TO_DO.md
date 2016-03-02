@@ -1,6 +1,10 @@
 # Release notes
 
 
+## Version: 0.4.0
+
+  * Included cost data and calculations.
+
 ## Version: 0.3.0
 
   * Account curve improvements: generate lists of simulated trades, extend the `accountCurve` object to handle multiple columns, statistics over different periods. 
@@ -69,7 +73,6 @@ system cleaning
 
 * Simulation:
 
-  * costs
   * estimated trades; with buffering of trades
   * autodetect if need to estimate parameters or not
   * vol targeting with capital adjustment
