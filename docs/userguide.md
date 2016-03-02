@@ -547,7 +547,7 @@ The pathname must contain .csv files of the following four types (where code is 
 2. Price data- `code_price.csv` (eg SP500_price.csv) headings: DATETIME, PRICE
 3. Futures data - `code_carrydata.csv` (eg AEX_carrydata.csv): headings: DATETIME, PRICE,CARRY,CARRY_CONTRACT PRICE_CONTRACT
 4. Currency data - `ccy1ccy2fx.csv` (eg AUDUSDfx.csv) headings: DATETIME, FXRATE
-5. Cost data - 'costs_analysis.csv' headings: Instrument, Slippage, PerBlock, Percentage, PerTrade
+5. Cost data - 'costs_analysis.csv' headings: Instrument, Slippage, PerBlock, Percentage, PerTrade. See ['costs'](#costs) for more detail.
 
 DATETIME should be something that `pandas.to_datetime` can parse. Note that the price in (2) is the continously stitched price (see [volatility calculation](#vol_calc) ), whereas the price in (3) is the price of the contract we're currently trading. 
 
@@ -2700,12 +2700,18 @@ acc_curve_group.net.get_stats("sharpe", freq="daily") ## equivalent
 I work out costs in two different ways:
 
 - by applying a constant drag calculated according to the standardised cost in Sharpe ratio terms (see chapter 12 of my book)
-- using the
+- using the actual costs for each trade.
 
 The former method is always used for costs derived from forecasts (`pandl_for_instrument_forecast`)
 
-The latter method is optional. Set `config.use_SR_costs = False
-```
+The latter method is optional. Set `config.use_SR_costs = False` to use it. It is useful for comparing with live trading history, but I do not recommend it for historical purposes as I don't think it is accurate in the past.
+
+Costs that can be included are:
+
+- Slippage, in price points. Half the bid-ask spread, unless trading in large size or with a long history of trading at a better cost.
+- Cost per instrument block, in local currency. This is used for most futures.
+- Percentage of value costs (0.01 is 1%). Used for US equities. 
+- Per trade costs, in local currency. Common for UK brokers. This won't be applied correctly unless `roundpositions=True` in the accounts call.
 
 #### Writing new or modified accounting stages
 
