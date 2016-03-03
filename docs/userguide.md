@@ -2513,7 +2513,43 @@ See [optimisation](#optimisation) for more information.
 
 See [estimating diversification multipliers](#divmult).
 
+<a name="buffer">
+#### Buffering and position intertia
+</a>
 
+Position inertia, or buffering, is a way of reducing trading costs. The idea is that we avoid trading if our optimal position changes only slightly by applying a 'no trade' buffer around the current position. There is more on this subject in chapter 11 of my book.
+
+There are two methods that I use. *Position* buffering is the same as the position inertia method used in my book. We compare the current position to the optimal position. If it's not within 10% (the 'buffer') then we trade to the optimal position, otherwise we don't bother.
+
+This configuration will implement position intertia as in my book.
+
+YAML: 
+```
+buffer_trade_to_edge: False
+buffer_method: position
+buffer_size: 0.10
+```
+
+The second method is *forecast* buffering. Here we take a proportion of the average absolute position (what we get with a forecast of 10), and use that to size the buffer width. This is more theoretically correct; since the buffer doesn't shrink as we get to zero. Secondly if outside the buffer we trade to the nearest edge of the buffer, rather than going to the optimal position. This further reduces transaction costs. Here are my recommended settings for forecast buffering:
+
+YAML: 
+```
+buffer_trade_to_edge: True
+buffer_method: forecast
+buffer_size: 0.10
+```
+
+Note that buffering can work on both rounded and unrounded positions. In the case of rounded positions we round the lower limit of the buffer down, and the upper limit up, and also round the optimal position. So a buffer will always be at least one instrument block wide.
+
+These python methods allow you to see buffering in action.
+
+```
+system.portfolio.get_notional_position("US10") ## get the position before buffering
+system.portfolio.get_buffers_for_position("US10") ## get the upper and lower edges of the buffer
+system.accounts.get_buffered_position("US10", roundpositions=True) ## get the buffered position.
+```
+
+Note that in a live trading system buffering should be done downstream of the system module, in a process which can also see the actual current positions we hold.
 
 #### Writing new or modified portfolio stages
 
@@ -2536,11 +2572,13 @@ The standard accounting class includes several useful methods:
 - `pandl_for_instrument_forecast`: work out how well a particular trading rule variation has done with a particular instrument
 - `pandl_for_subsystem`: work out how an instrument has done in isolation
 
+(Note that [buffered](#buffer) positions are only used at the final portfolio stage; the positions for forecasts and subsystems are not buffered. So their trading costs may be a little overstated).
+
 These classes share some useful arguments (all boolean):
 
-- `delayfill`: Assume we trade at the next days closing price. defaults to True (more conservative)
-- `roundpositions`: Round positions to nearest instrument block. defaults to False. Not used in `pandl_for_instrument_forecast`
-- `percentage`: Return the p&l as a percentage of notional capital. defaults to False. 
+- `delayfill`: Assume we trade at the next days closing price. Always defaults to True (more conservative)
+- `roundpositions`: Round positions to nearest instrument block. defaults to True for portfolios and instruments, defaults to False for subsystems. Not used in `pandl_for_instrument_forecast`
+- `percentage`: Return the p&l as a percentage of notional capital, rather than in cash amounts. Defaults to True. 
 
 All p&l methods return an object of type `accountCurve` (for instruments, subsystems and instrument forecasts) or `accountCurveGroup` (for portfolio). This inherits from a pandas data frame, so it can be plotted, averaged and so on. It also has some special methods. To see what they are use the `stats` method:
 
@@ -3089,7 +3127,7 @@ Private methods are excluded from this table.
 | `portfolio.get_instrument_weights`| Standard / Estimate|  | D |Get instrument weights, adjusted for missing instruments |
 | `portfolio.get_instrument_diversification_multiplier`| Standard / Estimate |  | D |Get instrument div. multiplier |
 | `portfolio.get_notional_position`| Standard | `instrument_code` | D,O |Get the *notional* position (with constant risk capital; doesn't allow for adjustments when profits or losses are made) |
-
+| `portfolio.get_buffers_for_position`| Standard | `instrument_code` | D,O |Get the buffers around the position |
 
 
 
@@ -3109,6 +3147,8 @@ Private methods are excluded from this table.
 | `accounts.get_raw_cost_data`| Standard | `instrument_code` | I  | `data.get_raw_cost_data` |
 | `accounts.pandl_for_subsystem`| Standard |  `instrument_code` | D | P&l for an instrument outright|
 | `accounts.pandl_across_subsystems`| Standard |  `instrument_code` | O,D | P&l across instruments, outright|
+| `accounts.get_buffers_for_position`| Standard |  `instrument_code` | I | `portfolio.get_buffers_for_position`|
+| `accounts.get_buffered_position`| Standard |  `instrument_code` | D | Buffered position at portfolio level|
 | `accounts.pandl_for_instrument`| Standard |  `instrument_code` | D | P&l for an instrument within a system|
 | `accounts.pandl_for_instrument_forecast`| Standard | `instrument_code`, `rule_variation_name` | D | P&l for a trading rule and instrument |
 | `accounts.pandl_for_instrument_rules`| Standard | `instrument_code` | D,O | P&l for all trading rules in an instrument |
@@ -3721,17 +3761,48 @@ config.instrument_div_mult_estimate=dict(ewma_span=125)
 
 If you're considering using your own function please see [configuring defaults for your own functions](#config_function_defaults)
 
+
+#### Buffering
+
+Represented as: bool
+Default: see below
+
+Which [buffering or position inertia method](#buffer) should we use? 'position': based on optimal position (position inertia), 'forecast': based on position with a forecast of +10; or 'none': do not use a buffer. What size should the buffer be, as a proportion of the position or average forecast position? 0.1 is 10%.
+
+YAML: 
+```
+buffer_method: position
+buffer_size: 0.10
+```
+
+
+
 ### Accounting stage
 
-#### Costs
+#### Buffering and position intertia
 
-Should we use normalised Sharpe Ratio costs, or the actual costs?
+To work out the portfolio positions should we trade to the edge of the [buffer](#buffer), or to the optimal position?
 
 Represented as: bool
 Default: True
 
 YAML: 
 ```
+buffer_trade_to_edge: True
+```
+
+ 
+
+#### Costs
+
+Should we use normalised Sharpe Ratio [costs](#costs), or the actual costs?
+
+Represented as: bool
+Default: True
+
+YAML: 
+```
+
 use_SR_costs: True
 ```
 

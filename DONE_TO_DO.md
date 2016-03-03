@@ -1,5 +1,9 @@
 # Release notes
 
+## Version: 0.5.0
+
+  * Include buffering / position intertia
+
 
 ## Version: 0.4.0
 
@@ -63,8 +67,7 @@
 
 # Bugs to fix
 
-None that I know of
-
+  * A lot of tests failing in portfolio object - portfolio optimisation looks screwed up
 
 # Features to add - later releases
 
@@ -73,7 +76,6 @@ system cleaning
 
 * Simulation:
 
-  * estimated trades; with buffering of trades
   * autodetect if need to estimate parameters or not
   * vol targeting with capital adjustment
   * quandl data

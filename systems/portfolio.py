@@ -3,7 +3,7 @@ from copy import copy
 
 from systems.stage import SystemStage
 from systems.basesystem import ALL_KEYNAME
-from syscore.pdutils import multiply_df_single_column, fix_weights_vs_pdm
+from syscore.pdutils import multiply_df_single_column, fix_weights_vs_pdm, add_df_single_column
 from syscore.objects import update_recalc, resolve_function
 from syscore.genutils import str2Bool
 
@@ -18,10 +18,14 @@ class PortfoliosFixed(SystemStage):
     Note: At this stage we're dealing with a notional, fixed, amount of capital.
          We'll need to work out p&l to scale positions properly
 
-    KEY INPUT: system.positionSize.get_subsystem_position(instrument_code)
+    KEY INPUTS: system.positionSize.get_subsystem_position(instrument_code)
                 found in self.get_subsystem_position(instrument_code)
+                
+                system.positionSize.get_volatility_scalar(instrument_code)
+                found in self.get_volatility_scalar
 
-    KEY OUTPUT: system.portfolio.get_notional_position(instrument_code)
+    KEY OUTPUTS: system.portfolio.get_notional_position(instrument_code)
+                system.portfolio.get_buffers_for_position(instrument_code)
 
     Name: portfolio
     """
@@ -64,6 +68,32 @@ class PortfoliosFixed(SystemStage):
         """
 
         return self.parent.positionSize.get_subsystem_position(instrument_code)
+
+    def get_volatility_scalar(self, instrument_code):
+        """
+        Get the vol scalar, from a previous module
+
+        :param instrument_code: instrument to get values for
+        :type instrument_code: str
+
+        :returns: Tx1 pd.DataFrame
+
+        KEY INPUT
+
+        >>> from systems.tests.testdata import get_test_object_futures_with_pos_sizing
+        >>> from systems.basesystem import System
+        >>> (posobject, combobject, capobject, rules, rawdata, data, config)=get_test_object_futures_with_pos_sizing()
+        >>> system=System([rawdata, rules, posobject, combobject, capobject,PortfoliosFixed()], data, config)
+        >>>
+        >>> ## from config
+        >>> system.portfolio.get_volatility_scalar("EDOLLAR").tail(2)
+                    vol_scalar
+        2015-12-10   11.187869
+        2015-12-11   10.332930
+        """
+
+        return self.parent.positionSize.get_volatility_scalar(instrument_code)
+
 
     def get_raw_instrument_weights(self):
         """
@@ -274,6 +304,150 @@ class PortfoliosFixed(SystemStage):
         notional_position = self.parent.calc_or_cache(
             "get_notional_position", instrument_code, _get_notional_position, self)
         return notional_position
+
+    def get_position_method_buffer(self, instrument_code):
+        """
+        Gets the buffers for positions, using proportion of position method 
+
+        :param instrument_code: instrument to get values for
+        :type instrument_code: str
+
+        :returns: Tx1 pd.DataFrame
+
+        >>> from systems.tests.testdata import get_test_object_futures_with_pos_sizing
+        >>> from systems.basesystem import System
+        >>> (posobject, combobject, capobject, rules, rawdata, data, config)=get_test_object_futures_with_pos_sizing()
+        >>> system=System([rawdata, rules, posobject, combobject, capobject,PortfoliosFixed()], data, config)
+        >>>
+        >>> ## from config
+        >>> system.portfolio.get_positionmethod_buffer("EDOLLAR").tail(2)
+                         pos
+        2015-12-10  0.108688
+        2015-12-11  0.152676
+        """
+        def _get_position_method_buffer(system, instrument_code, this_stage):
+            
+            this_stage.log.msg("Calculating position method buffer for %s" % instrument_code,
+                               instrument_code=instrument_code)
+            
+            buffer_size=system.config.buffer_size
+            
+            position = this_stage.get_notional_position(instrument_code)
+            
+            buffer = position * buffer_size
+
+            return buffer
+
+        buffer = self.parent.calc_or_cache(
+            "get_position_method_buffer", instrument_code, _get_position_method_buffer, self)
+        
+        return buffer
+
+    def get_forecast_method_buffer(self, instrument_code):
+        """
+        Gets the buffers for positions, using proportion of average forecast method 
+
+
+        :param instrument_code: instrument to get values for
+        :type instrument_code: str
+
+        :returns: Tx1 pd.DataFrame
+
+        >>> from systems.tests.testdata import get_test_object_futures_with_pos_sizing
+        >>> from systems.basesystem import System
+        >>> (posobject, combobject, capobject, rules, rawdata, data, config)=get_test_object_futures_with_pos_sizing()
+        >>> system=System([rawdata, rules, posobject, combobject, capobject,PortfoliosFixed()], data, config)
+        >>>
+        >>> ## from config
+        >>> system.portfolio.get_forecast_method_buffer("EDOLLAR").tail(2)
+        wibble
+        """
+        def _get_forecast_method_buffer(system, instrument_code, this_stage):
+            
+            this_stage.log.msg("Calculating forecast method buffers for %s" % instrument_code,
+                               instrument_code=instrument_code)
+            
+            buffer_size=system.config.buffer_size
+            
+            idm = this_stage.get_instrument_diversification_multiplier()
+            instr_weights = this_stage.get_instrument_weights()
+            vol_scalar = this_stage.get_volatility_scalar(
+                instrument_code)
+
+            inst_weight_this_code = instr_weights[
+                instrument_code].to_frame("weight")
+
+            inst_weight_this_code = inst_weight_this_code.reindex(
+                vol_scalar.index).ffill()
+            idm = idm.reindex(vol_scalar.index).ffill()
+
+            multiplier = multiply_df_single_column(inst_weight_this_code, idm)
+            average_position = multiply_df_single_column(
+                vol_scalar, multiplier)
+            
+            buffer = average_position * buffer_size
+
+            return buffer
+
+        buffer = self.parent.calc_or_cache(
+            "get_forecast_method_buffer", instrument_code, _get_forecast_method_buffer, self)
+        
+        return buffer
+
+    def get_buffers_for_position(self, instrument_code):
+        """
+        Gets the buffers for positions, using method depending on config.buffer_method 
+
+        KEY OUTPUT
+
+        :param instrument_code: instrument to get values for
+        :type instrument_code: str
+
+        :returns: Tx2 pd.DataFrame
+
+        >>> from systems.tests.testdata import get_test_object_futures_with_pos_sizing
+        >>> from systems.basesystem import System
+        >>> (posobject, combobject, capobject, rules, rawdata, data, config)=get_test_object_futures_with_pos_sizing()
+        >>> system=System([rawdata, rules, posobject, combobject, capobject,PortfoliosFixed()], data, config)
+        >>>
+        >>> ## from config
+        >>> system.portfolio.get_buffers_for_position("EDOLLAR").tail(2)
+        wibble
+        """
+        def _get_buffers_for_position(system, instrument_code, this_stage):
+            
+            this_stage.log.msg("Calculating buffers for %s" % instrument_code,
+                               instrument_code=instrument_code)
+            
+            buffer_method=system.config.buffer_method
+            
+            if buffer_method=="forecast":
+                buffer = this_stage.get_forecast_method_buffer(instrument_code)
+            elif buffer_method=="position":
+                buffer = this_stage.get_position_method_buffer(instrument_code)
+            else:
+                this_stage.log.critical("Buffer method %s not recognised - not buffering" % buffer_method)
+                position = this_stage.get_notional_position(instrument_code)
+                max_max_position= float(position.abs().max())*10.0
+                buffer = pd.DataFrame([max_max_position] * position.shape[0], index=position.index)
+            
+            position = this_stage.get_notional_position(instrument_code)
+            
+            top_position = add_df_single_column(position, buffer, ffill=(False, True))
+            
+            bottom_position = add_df_single_column(position, -buffer, ffill=(False,True))
+
+            pos_buffers = pd.concat([top_position, bottom_position], axis=1)
+            pos_buffers.columns = ["top_pos", "bot_pos"]
+
+            return pos_buffers
+
+        pos_buffers = self.parent.calc_or_cache(
+            "get_buffers_for_position", instrument_code, _get_buffers_for_position, self)
+        
+        return pos_buffers
+
+
 
 
 class PortfoliosEstimated(PortfoliosFixed):

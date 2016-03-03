@@ -178,7 +178,98 @@ def forecast_scalar(xcross, window=250000, min_periods=500, backfill=True):
     return scaling_factor
 
 
+def apply_buffer_single_period(last_position, optimal_position, top_pos, bot_pos, trade_to_edge):
+    """
+    Apply a buffer to a position, single period
+    
+    If position is outside the buffer, we eithier trade to the edge of the buffer, or to the optimal 
+    
+    :param last_position: last position we had 
+    :type last_position: float
 
+    :param optimal_position: ideal position 
+    :type optimal_position: float
+
+    :param top_pos: top of buffer 
+    :type top_pos: float
+
+    :param bot_pos: bottom of buffer 
+    :type bot_pos: float
+    
+    :param trade_to_edge: Trade to the edge (TRue) or the optimal (False)
+    :type trade_to_edge: bool
+    
+    :returns: float 
+    """
+
+    if np.isnan(top_pos) or np.isnan(bot_pos) or np.isnan(optimal_position):
+        return last_position
+    
+    if last_position>top_pos:
+        if trade_to_edge:
+            return top_pos
+        else:
+            return optimal_position
+    elif last_position<bot_pos:
+        if trade_to_edge:
+            return bot_pos
+        else:
+            return optimal_position
+    else:
+        return last_position
+
+
+def apply_buffer(optimal_position, pos_buffers, trade_to_edge=False, roundpositions=False):
+    """
+    Apply a buffer to a position
+    
+    If position is outside the buffer, we eithier trade to the edge of the buffer, or to the optimal 
+    
+    If we're rounding positions, then we floor and ceiling the buffers.
+    
+    :param position: optimal position 
+    :type position: pd.DataFrame 1xT
+    
+    :param pos_buffers: 
+    :type pos_buffers: Tx2 pd.dataframe, top_pos and bot_pos
+    
+    :param trade_to_edge: Trade to the edge (TRue) or the optimal (False)
+    :type trade_to_edge: bool
+
+    :param round_positions: Produce rounded positions
+    :type round_positions: bool
+
+    
+    :returns: pd.DataFrame 
+    """
+        
+    pos_buffers=pos_buffers.ffill()
+    use_optimal_position = optimal_position.iloc[:,0].ffill()
+    
+    top_pos=pos_buffers.top_pos
+    bot_pos=pos_buffers.bot_pos
+    
+    if roundpositions:
+        use_optimal_position=use_optimal_position.round()
+        top_pos=np.ceil(top_pos)
+        bot_pos=np.floor(bot_pos)
+
+    current_position=use_optimal_position.values[0]
+    if np.isnan(current_position):
+        current_position=0.0
+
+    buffered_position_list=[current_position]
+    
+    for idx in range(optimal_position.shape[0])[1:]:       
+        current_position=apply_buffer_single_period(
+                            current_position, float(use_optimal_position.values[idx]), 
+                            float(top_pos.values[idx]), float(bot_pos.values[idx]), 
+                            trade_to_edge)
+        buffered_position_list.append(current_position)
+    
+    buffered_position = pd.DataFrame(buffered_position_list, index = optimal_position.index)
+    
+    return buffered_position
 
 if __name__ == '__main__':
     import doctest

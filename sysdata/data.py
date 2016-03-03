@@ -146,7 +146,7 @@ class Data(object):
         What we return if currency rates match
         """
         DEFAULT_DATES = pd.date_range(start=pd.datetime(
-            1970, 1, 1), end=pd.datetime(2050, 1, 1))
+            1970, 1, 1), end=pd.datetime(2015, 1, 1))
         DEFAULT_RATE_SERIES = pd.DataFrame(
             dict(fx=[1.0] * len(DEFAULT_DATES)), index=DEFAULT_DATES)
 
@@ -239,8 +239,8 @@ class Data(object):
         >>> data=Data()
         >>> data.get_fx_for_instrument("wibble", "USD").tail(2)
                     fx
-        2049-12-31   1
-        2050-01-01   1
+        2014-12-31   1
+        2015-01-01   1
         """
 
         instrument_currency = self.get_instrument_currency(instrument_code)

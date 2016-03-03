@@ -438,6 +438,7 @@ class PositionSizing(SystemStage):
             'get_volatility_scalar', instrument_code, _get_volatility_scalar, self)
         return vol_scalar
 
+
     def get_subsystem_position(self, instrument_code):
         """
         Get scaled position (assuming for now we trade our entire capital for one instrument)

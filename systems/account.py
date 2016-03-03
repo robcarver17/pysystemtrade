@@ -3,7 +3,7 @@ import pandas as pd
 from syscore.accounting import accountCurve, accountCurveGroup
 from systems.stage import SystemStage
 from systems.basesystem import ALL_KEYNAME
-from syscore.algos import robust_vol_calc
+from syscore.algos import robust_vol_calc, apply_buffer
 from syscore.genutils import TorF
 from syscore.dateutils import ROOT_BDAYS_INYEAR
 
@@ -38,6 +38,9 @@ class Account(SystemStage):
 
         system.rawdata.daily_returns_volatility() or system.data.daily_prices(instrument_code)
             found in self.get_daily_returns_volatility()
+            
+        system.portfolio.get_buffers_for_position(instrument_code)
+            found in self.get_buffers_for_position
 
     KEY OUTPUTS: Used for optimisation:
                  system.accounts.pandl_for_instrument_rules
@@ -260,6 +263,21 @@ class Account(SystemStage):
         >>>
         """
         return self.parent.portfolio.get_notional_position(instrument_code)
+
+
+    def get_buffers_for_position(self, instrument_code):
+        """
+        Get the buffered position from a previous module
+
+        :param instrument_code: instrument to get values for
+        :type instrument_code: str
+
+        :returns: Tx2 pd.DataFrame: columns top_pos, bot_pos
+
+        KEY INPUT
+        """
+        
+        return self.parent.portfolio.get_buffers_for_position(instrument_code)
 
     def get_daily_price(self, instrument_code):
         """
@@ -487,6 +505,7 @@ class Account(SystemStage):
         else:
             return (None, self.get_cash_costs(instrument_code))
         
+        
 
     def pandl_for_subsystem(
 
@@ -526,6 +545,7 @@ class Account(SystemStage):
 
             price = this_stage.get_daily_price(instrument_code)
             positions = this_stage.get_subsystem_position(instrument_code)
+
             fx = this_stage.get_fx_rate(instrument_code)
             value_of_price_point = this_stage.get_value_of_price_move(
                 instrument_code)
@@ -537,8 +557,8 @@ class Account(SystemStage):
             capital = this_stage.get_notional_capital()
             ann_risk_target = this_stage.get_ann_risk_target()
 
-            instr_pandl = accountCurve(price, positions=positions, delayfill=delayfill, 
-                                       roundpositions=roundpositions,
+            instr_pandl = accountCurve(price, positions = positions,
+                                       delayfill = delayfill, roundpositions = roundpositions, 
                                 fx=fx, value_of_price_point=value_of_price_point, capital=capital,
                                 percentage=percentage, SR_cost=SR_cost,  cash_costs = cash_costs,
                                 get_daily_returns_volatility=get_daily_returns_volatility,
@@ -606,8 +626,49 @@ class Account(SystemStage):
         return instr_pandl
 
 
+    def get_buffered_position(self, instrument_code, roundpositions=True):
+        """
+        Get the buffered position
+
+        :param instrument_code: instrument to get
+        :type percentage: bool
+
+        :param roundpositions: Round positions to whole contracts
+        :type roundpositions: bool
+
+        :returns: Tx1 pd.DataFrame
+
+        >>> from systems.basesystem import System
+        >>> from systems.tests.testdata import get_test_object_futures_with_portfolios
+        >>> (portfolio, posobject, combobject, capobject, rules, rawdata, data, config)=get_test_object_futures_with_portfolios()
+        >>> system=System([portfolio, posobject, combobject, capobject, rules, rawdata, Account()], data, config)
+        >>>
+        >>> system.accounts.get_buffered_position("EDOLLAR")
+        wibble
+        """
+
+        def _get_buffered_position(
+                system, instrument_code, this_stage,  roundpositions):
+
+            this_stage.log.msg("Calculating buffered positions")
+            optimal_position=this_stage.get_notional_position(instrument_code)
+            pos_buffers=this_stage.get_buffers_for_position(instrument_code)
+            trade_to_edge=system.config.buffer_trade_to_edge
+    
+            buffered_position = apply_buffer(optimal_position, pos_buffers, 
+                                             trade_to_edge=trade_to_edge, roundpositions=roundpositions)
+            
+            return buffered_position
+
+        itemname = "get_buffered_position__roundpositions%s" %  TorF(roundpositions)
+
+        buffered_position = self.parent.calc_or_cache(
+            itemname, instrument_code, _get_buffered_position, self, roundpositions)
+
+        return buffered_position
+
     def pandl_for_instrument(
-            self, instrument_code, percentage=True, delayfill=True, roundpositions=False):
+            self, instrument_code, percentage=True, delayfill=True, roundpositions=True):
         """
         Get the p&l for one instrument
 
@@ -640,7 +701,7 @@ class Account(SystemStage):
                                instrument_code=instrument_code)
 
             price = this_stage.get_daily_price(instrument_code)
-            positions = this_stage.get_notional_position(instrument_code)
+            positions = this_stage.get_buffered_position(instrument_code, roundpositions = roundpositions)
             fx = this_stage.get_fx_rate(instrument_code)
             value_of_price_point = this_stage.get_value_of_price_move(
                 instrument_code)
@@ -652,8 +713,8 @@ class Account(SystemStage):
 
             (SR_cost, cash_costs)=this_stage.get_costs(instrument_code)
 
-            instr_pandl = accountCurve(price, positions=positions, delayfill=delayfill, 
-                                       roundpositions=roundpositions,
+            instr_pandl = accountCurve(price, positions = positions,
+                                       delayfill = delayfill, roundpositions = roundpositions, 
                                 fx=fx, value_of_price_point=value_of_price_point, capital=capital,
                                 ann_risk_target = ann_risk_target,
                                 percentage=percentage, SR_cost=SR_cost, cash_costs = cash_costs,
@@ -767,6 +828,8 @@ class Account(SystemStage):
             
             SR_cost=this_stage.get_SR_cost(instrument_code)
                         
+            ## We use percentage returns (as no 'capital') and don't round positions
+            
             pandl_fcast = accountCurve(price, forecast=forecast, delayfill=delayfill, 
                                        roundpositions=False,
                                 value_of_price_point=1.0, capital=None,
@@ -784,7 +847,7 @@ class Account(SystemStage):
 
         return pandl_fcast
 
-    def portfolio(self, percentage=True, delayfill=True, roundpositions=False):
+    def portfolio(self, percentage=True, delayfill=True, roundpositions=True):
         """
         Get the p&l for entire portfolio
 
