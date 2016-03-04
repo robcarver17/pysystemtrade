@@ -18,11 +18,9 @@ class RawData(SystemStage):
                    - preliminary calculations are available for inspection when
                      diagnosing what is going on
 
-    KEY INPUTS: system.data.get_daily_price(instrument_code)
-               found in self.get_daily_price
-
-               system.data.daily_prices(instrument_code)
+    KEY INPUTS: system.data.get_daily_prices(instrument_code)
                found in self.get_daily_prices
+
 
     KEY OUTPUTS: system.rawdata.... several
 
@@ -37,36 +35,6 @@ class RawData(SystemStage):
 
         setattr(self, "name", "rawdata")
 
-    def get_daily_price(self, instrument_code):
-        """
-        Gets the instrument price from the parent system.data object
-
-        KEY INPUT
-
-        :param instrument_code: Instrument to get prices for
-        :type trading_rules: str
-
-        :returns: Tx1 pd.DataFrame
-
-        >>> from systems.tests.testdata import get_test_object
-        >>> from systems.basesystem import System
-        >>>
-        >>> (rawdata, data, config)=get_test_object()
-        >>> system=System([rawdata], data)
-        >>> system.rawdata.get_daily_price("EDOLLAR").tail(2)
-                               price
-        2015-12-11 17:08:14  97.9675
-        2015-12-11 19:33:39  97.9875
-        """
-        def _get_instrument_price(system, instrument_code):
-            instrprice = system.data.get_daily_price(instrument_code)
-            return instrprice
-
-        instrprice = self.parent.calc_or_cache("instrument_price",
-                                               instrument_code,
-                                               _get_instrument_price)
-
-        return instrprice
 
 
     def get_daily_prices(self, instrument_code):

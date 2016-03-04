@@ -196,7 +196,7 @@ class ForecastCombineFixed(SystemStage):
         2015-12-10      0.1     0.9
         2015-12-11      0.1     0.9
         >>>
-        >>> config.delete("forecast_weights")
+        >>> del(config.forecast_weights)
         >>> system3=System([rawdata, rules, fcs, ForecastCombineFixed()], data, config)
         >>> system3.combForecast.get_raw_forecast_weights("EDOLLAR").tail(2)
         WARNING: No forecast weights  - using equal weights of 0.5000 over all 2 trading rules in system
@@ -288,7 +288,7 @@ class ForecastCombineFixed(SystemStage):
         2015-12-10      0.1     0.9
         2015-12-11      0.1     0.9
         >>>
-        >>> config.delete("forecast_weights")
+        >>> del(config.forecast_weights)
         >>> system3=System([rawdata, rules, fcs, ForecastCombineFixed()], data, config)
         >>> system3.combForecast.get_forecast_weights("EDOLLAR").tail(2)
         WARNING: No forecast weights  - using equal weights of 0.5000 over all 2 trading rules in system
@@ -348,7 +348,7 @@ class ForecastCombineFixed(SystemStage):
         2015-12-11    2
         >>>
         >>> ## defaults
-        >>> config.delete("forecast_div_multiplier")
+        >>> del(config.forecast_div_multiplier)
         >>> system3=System([rawdata, rules, fcs, ForecastCombineFixed()], data, config)
         >>> system3.combForecast.get_forecast_diversification_multiplier("EDOLLAR").tail(2)
                     fdm
@@ -592,9 +592,9 @@ class ForecastCombineEstimated(ForecastCombineFixed):
         >>> system=System([rawdata, rules, fcs, accounts, ForecastCombineEstimated()], data, config)
         >>> ans=system.combForecast.get_forecast_correlation_matrices("EDOLLAR")
         >>> ans.corr_list[-1]
-        array([[ 1.        ,  0.0860245 ,  0.05514179],
-               [ 0.0860245 ,  1.        ,  0.86788878],
-               [ 0.05514179,  0.86788878,  1.        ]])
+        array([[ 1.        ,  0.1168699 ,  0.08038547],
+               [ 0.1168699 ,  1.        ,  0.86907623],
+               [ 0.08038547,  0.86907623,  1.        ]])
         >>> print(ans.columns)
         ['carry', 'ewmac16', 'ewmac8']
         """
@@ -669,9 +669,16 @@ class ForecastCombineEstimated(ForecastCombineFixed):
         >>> system.config.forecast_weight_estimate['method']="shrinkage"
         >>> system.combForecast.get_forecast_diversification_multiplier("EDOLLAR").tail(3)
                          FDM
-        2015-12-09  1.387137
-        2015-12-10  1.387118
-        2015-12-11  1.387100
+        2015-12-09  1.367351
+        2015-12-10  1.367349
+        2015-12-11  1.367347
+        >>> system.config.forecast_div_mult_estimate['dm_max']=1.1
+        >>> system=System([accounts, rawdata, rules, fcs, ForecastCombineEstimated()], data, system.config)
+        >>> system.combForecast.get_forecast_diversification_multiplier("EDOLLAR").tail(3)
+                    FDM
+        2015-12-09  1.1
+        2015-12-10  1.1
+        2015-12-11  1.1
         """
         def _get_forecast_div_multiplier(system, instrument_code, this_stage):
 
@@ -798,25 +805,23 @@ class ForecastCombineEstimated(ForecastCombineFixed):
         >>> system.config.forecast_weight_estimate['method']="shrinkage"
         >>> system.combForecast.get_raw_forecast_weights("EDOLLAR").tail(3)
                        carry   ewmac16    ewmac8
-        2015-05-30  0.439863  0.255848  0.304288
-        2015-06-01  0.438398  0.257190  0.304412
-        2015-12-12  0.438398  0.257190  0.304412
+        2015-05-30  0.437915  0.258300  0.303785
+        2015-06-01  0.442438  0.256319  0.301243
+        2015-12-12  0.442438  0.256319  0.301243
         >>> system.delete_all_items(True)
         >>> system.config.forecast_weight_estimate['method']="one_period"
         >>> system.combForecast.get_raw_forecast_weights("EDOLLAR").tail(3)
-                       carry       ewmac16    ewmac8
-        2015-05-30  0.482938  2.127387e-17  0.517062
-        2015-06-01  0.508093  0.000000e+00  0.491907
-        2015-12-12  0.508093  0.000000e+00  0.491907
+        2015-05-30  0.484279  8.867313e-17  0.515721
+        2015-06-01  0.515626  7.408912e-17  0.484374
+        2015-12-12  0.515626  7.408912e-17  0.484374
         >>> system.delete_all_items(True)
         >>> system.config.forecast_weight_estimate['method']="bootstrap"
         >>> system.config.forecast_weight_estimate['monte_runs']=50
         >>> system.combForecast.get_raw_forecast_weights("EDOLLAR").tail(3)
-                           carry   ewmac16    ewmac8
                        carry   ewmac16    ewmac8
-        2015-05-30  0.439863  0.255848  0.304288
-        2015-06-01  0.438398  0.257190  0.304412
-        2015-12-12  0.438398  0.257190  0.304412
+        2015-05-30  0.446446  0.222678  0.330876
+        2015-06-01  0.464240  0.192962  0.342798
+        2015-12-12  0.464240  0.192962  0.342798
         """
 
         def _get_raw_forecast_weights(system, instrument_code, this_stage):
@@ -855,9 +860,9 @@ class ForecastCombineEstimated(ForecastCombineFixed):
         >>> system.config.forecast_weight_estimate['method']="shrinkage"
         >>> system.combForecast.get_forecast_weights("EDOLLAR").tail(3)
                        carry   ewmac16    ewmac8
-        2015-12-09  0.439291  0.256467  0.304243
-        2015-12-10  0.439283  0.256472  0.304244
-        2015-12-11  0.439276  0.256478  0.304245
+        2015-12-09  0.441002  0.256888  0.302111
+        2015-12-10  0.441013  0.256883  0.302104
+        2015-12-11  0.441024  0.256879  0.302097
         """
         def _get_forecast_weights(system, instrument_code, this_stage):
             this_stage.log.msg("Calculating forecast weights for %s" % instrument_code,

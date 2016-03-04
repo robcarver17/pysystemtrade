@@ -62,8 +62,8 @@ class PortfoliosFixed(SystemStage):
         >>> ## from config
         >>> system.portfolio.get_subsystem_position("EDOLLAR").tail(2)
                     ss_position
-        2015-12-09     2.722596
         2015-12-10     1.811465
+        2015-12-11     2.544598
 
         """
 
@@ -115,16 +115,17 @@ class PortfoliosFixed(SystemStage):
         >>> ## from config
         >>> system.portfolio.get_instrument_weights().tail(2)
                     EDOLLAR  US10
-        2015-12-09      0.1   0.9
         2015-12-10      0.1   0.9
+        2015-12-11      0.1   0.9
         >>>
-        >>> config.delete("instrument_weights")
+        >>> del(config.instrument_weights)
         >>> system2=System([rawdata, rules, posobject, combobject, capobject,PortfoliosFixed()], data, config)
         >>> system2.portfolio.get_instrument_weights().tail(2)
         WARNING: No instrument weights  - using equal weights of 0.3333 over all 3 instruments in data
                         BUND   EDOLLAR      US10
-        2015-12-09  0.333333  0.333333  0.333333
         2015-12-10  0.333333  0.333333  0.333333
+        2015-12-11  0.333333  0.333333  0.333333
+
         """
         def _get_raw_instrument_weights(system, an_ignored_variable, this_stage):
             this_stage.log.msg("Calculating raw instrument weights")
@@ -218,16 +219,16 @@ class PortfoliosFixed(SystemStage):
         >>> ## from config
         >>> system.portfolio.get_instrument_diversification_multiplier().tail(2)
                     idm
-        2015-12-09  1.2
         2015-12-10  1.2
+        2015-12-11  1.2
         >>>
         >>> ## from defaults
-        >>> config.delete("instrument_div_multiplier")
+        >>> del(config.instrument_div_multiplier)
         >>> system2=System([rawdata, rules, posobject, combobject, capobject,PortfoliosFixed()], data, config)
         >>> system2.portfolio.get_instrument_diversification_multiplier().tail(2)
                     idm
-        2015-12-09    1
         2015-12-10    1
+        2015-12-11    1
         """
         def _get_instrument_div_multiplier(
                 system, an_ignored_variable, this_stage):
@@ -273,8 +274,8 @@ class PortfoliosFixed(SystemStage):
         >>> ## from config
         >>> system.portfolio.get_notional_position("EDOLLAR").tail(2)
                          pos
-        2015-12-09  1.633557
         2015-12-10  1.086879
+        2015-12-11  1.526759
 
         """
         def _get_notional_position(system, instrument_code, this_stage):
@@ -320,8 +321,8 @@ class PortfoliosFixed(SystemStage):
         >>> system=System([rawdata, rules, posobject, combobject, capobject,PortfoliosFixed()], data, config)
         >>>
         >>> ## from config
-        >>> system.portfolio.get_positionmethod_buffer("EDOLLAR").tail(2)
-                         pos
+        >>> system.portfolio.get_position_method_buffer("EDOLLAR").tail(2)
+                      buffer
         2015-12-10  0.108688
         2015-12-11  0.152676
         """
@@ -335,6 +336,8 @@ class PortfoliosFixed(SystemStage):
             position = this_stage.get_notional_position(instrument_code)
             
             buffer = position * buffer_size
+
+            buffer.columns=["buffer"]
 
             return buffer
 
@@ -360,7 +363,9 @@ class PortfoliosFixed(SystemStage):
         >>>
         >>> ## from config
         >>> system.portfolio.get_forecast_method_buffer("EDOLLAR").tail(2)
-        wibble
+                      buffer
+        2015-12-10  0.671272
+        2015-12-11  0.619976
         """
         def _get_forecast_method_buffer(system, instrument_code, this_stage):
             
@@ -386,6 +391,8 @@ class PortfoliosFixed(SystemStage):
                 vol_scalar, multiplier)
             
             buffer = average_position * buffer_size
+            
+            buffer.columns=["buffer"]
 
             return buffer
 
@@ -412,7 +419,9 @@ class PortfoliosFixed(SystemStage):
         >>>
         >>> ## from config
         >>> system.portfolio.get_buffers_for_position("EDOLLAR").tail(2)
-        wibble
+                     top_pos   bot_pos
+        2015-12-10  1.195567  0.978191
+        2015-12-11  1.679435  1.374083
         """
         def _get_buffers_for_position(system, instrument_code, this_stage):
             
@@ -496,17 +505,17 @@ class PortfoliosEstimated(PortfoliosFixed):
         >>> system.config.instrument_weight_estimate["method"]="shrinkage" ## speed things up 
         >>> ans=system.portfolio.get_instrument_correlation_matrix()
         >>> ans.corr_list[-1]
-        array([[ 1.        ,  0.50156603,  0.56866684],
-               [ 0.50156603,  1.        ,  0.88358678],
-               [ 0.56866684,  0.88358678,  1.        ]])
+        array([[ 1.        ,  0.56981346,  0.62458477],
+               [ 0.56981346,  1.        ,  0.88087893],
+               [ 0.62458477,  0.88087893,  1.        ]])
         >>> print(ans.corr_list[0])
         [[ 1.    0.99  0.99]
          [ 0.99  1.    0.99]
          [ 0.99  0.99  1.  ]]
         >>> print(ans.corr_list[10]) 
         [[ 1.          0.99        0.99      ]
-         [ 0.99        1.          0.76599709]
-         [ 0.99        0.76599709  1.        ]]
+         [ 0.99        1.          0.78858156]
+         [ 0.99        0.78858156  1.        ]]
         """
         
         def _get_instrument_correlation_matrix(system, NotUsed,  this_stage, 
@@ -568,9 +577,9 @@ class PortfoliosEstimated(PortfoliosFixed):
         >>> system.config.instrument_weight_estimate["method"]="shrinkage" ## speed things up 
         >>> system.portfolio.get_instrument_diversification_multiplier().tail(3)
                          IDM
-        2015-12-08  1.161699
-        2015-12-09  1.161539
-        2015-12-10  1.161382
+        2015-12-09  1.133220
+        2015-12-10  1.133186
+        2015-12-11  1.133153
         """
         def _get_instrument_div_multiplier(system,  NotUsed, this_stage):
 

@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from syscore.genutils import str2Bool
     
-def diversification_mult_single_period(corrmatrix, weights):
+def diversification_mult_single_period(corrmatrix, weights, dm_max=2.5):
     """
     Given N assets with a correlation matrix of H and  weights W summing to 1, 
     the diversification multiplier will be 1 / [ ( W x H x WT ) 1/2 ]
@@ -14,6 +14,9 @@ def diversification_mult_single_period(corrmatrix, weights):
     
     :param weights: Weights of assets
     :type weights: list of floats (aligned with corrmatrix)
+
+    :param dm_max: Max value
+    :type dm_max: float
 
     :returns: float 
 
@@ -30,14 +33,17 @@ def diversification_mult_single_period(corrmatrix, weights):
     weights=np.array(weights, ndmin=2)
 
     
-    dm=1.0 / (
+    dm=np.min([
+               1.0 / (
          float(
                 np.dot(np.dot(weights, corrmatrix), weights.transpose()))
-                  **.5)
+                  **.5),
+               dm_max])
 
     return dm
 
-def diversification_multiplier_from_list(correlation_list_object, weight_df_raw, ewma_span=125, **kwargs):
+def diversification_multiplier_from_list(correlation_list_object, weight_df_raw, 
+                                         ewma_span=125,  **kwargs):
     """
     Given a CorrelationList object, and a dataframe of weights, work out the div multiplier
 
@@ -49,6 +55,9 @@ def diversification_multiplier_from_list(correlation_list_object, weight_df_raw,
 
     :param ewma_span: Smoothing parameter to use on output (1= no smoothing)
     :type ewma_span: int
+
+    :param max: Maximum allowable value
+    :type max: float
 
     :param **kwargs: Used for single period calculation 
     
@@ -71,7 +80,7 @@ def diversification_multiplier_from_list(correlation_list_object, weight_df_raw,
             continue
         
         weights=list(weight_slice.iloc[-1,:].values)
-        div_multiplier=diversification_mult_single_period(corrmatrix, weights, **kwargs)
+        div_multiplier=diversification_mult_single_period(corrmatrix, weights,  **kwargs)
         
         div_mult_vector.append(div_multiplier)
     

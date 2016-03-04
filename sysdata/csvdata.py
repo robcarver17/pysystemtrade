@@ -125,7 +125,7 @@ class csvFuturesData(FuturesData):
         return tuple(block_move_value)
         
 
-    def get_daily_price(self, instrument_code):
+    def get_raw_price(self, instrument_code):
         """
         Get instrument price
 
@@ -135,7 +135,7 @@ class csvFuturesData(FuturesData):
         :returns: pd.DataFrame
 
         >>> data=csvFuturesData("sysdata.tests")
-        >>> data.get_daily_price("EDOLLAR").tail(2)
+        >>> data.get_raw_price("EDOLLAR").tail(2)
                                price
         2015-12-11 17:08:14  97.9675
         2015-12-11 19:33:39  97.9875
@@ -304,6 +304,14 @@ class csvFuturesData(FuturesData):
                           fx
         2015-12-09  0.724663
         2015-12-10  0.724463
+        >>> data._get_fx_cross("USD", "GBP").tail(2)
+                          fx
+        2015-12-09  0.664311
+        2015-12-10  0.660759
+        >>> data._get_fx_cross( "GBP", "USD").tail(2)
+                     GBPUSD
+        2015-12-09  1.50532
+        2015-12-10  1.51341
         """
 
         self.log.msg("Loading csv fx data", fx="%s%s" % (currency1, currency2))

@@ -2969,6 +2969,7 @@ instrument_div_mult_estimate:
    func: syscore.divmultipliers.diversification_multiplier_from_list ## function to use
    ewma_span: 125   ## smooth to apply 
    floor_at_zero: True ## floor negative correlations
+   div_mult: 2.5 ## maximum allowable multiplier
 ```
 
 I've included a smoothing function, other wise jumps in the multiplier will cause trading in the backtest. Note that the FDM is calculated on an instrument by instrument basis, but if instruments have had their forecast weights and correlations estimated on a pooled basis they'll have the same FDM. It's also a good idea to floor negative correlations at zero to avoid inflation the DM to very high values.
@@ -3570,6 +3571,7 @@ forecast_div_mult_estimate:
    func: syscore.divmultipliers.diversification_multiplier_from_list
    ewma_span: 125   ## smooth to apply 
    floor_at_zero: True ## floor negative correlations
+   dm_max: 2.5 ## maximum
 ```
 
 Python (example)
@@ -3752,6 +3754,7 @@ instrument_div_mult_estimate:
    func: syscore.divmultipliers.diversification_multiplier_from_list
    ewma_span: 125   ## smooth to apply 
    floor_at_zero: True ## floor negative correlations
+   dm_max: 2.5 ## maximum
 ```
 
 Python (example)

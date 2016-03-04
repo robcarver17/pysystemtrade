@@ -51,7 +51,7 @@ def ewmac(price, vol, Lfast, Lslow):
     slow_ewma = pd.ewma(price, span=Lslow)
     raw_ewmac = fast_ewma - slow_ewma
 
-    return divide_df_single_column(raw_ewmac, vol)
+    return divide_df_single_column(raw_ewmac, vol, ffill=(False, True))
 
 
 def carry(daily_ann_roll, vol, smooth_days=90):
@@ -78,7 +78,7 @@ def carry(daily_ann_roll, vol, smooth_days=90):
     """
 
     ann_stdev = vol * ROOT_BDAYS_INYEAR
-    raw_carry = divide_df_single_column(daily_ann_roll, ann_stdev)
+    raw_carry = divide_df_single_column(daily_ann_roll, ann_stdev, ffill=(False, True))
     smooth_carry = pd.ewma(raw_carry, smooth_days)
 
     return smooth_carry

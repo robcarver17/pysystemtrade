@@ -1,5 +1,6 @@
 import pandas as pd
 from syslogdiag.log import logtoscreen
+from syscore.pdutils import divide_df_single_column
 
 class Data(object):
 
@@ -42,12 +43,12 @@ class Data(object):
         :returns: Tx1 pd.DataFrame
 
         """
-        instrprice = self.get_daily_price(instrument_code)
+        instrprice = self.get_raw_price(instrument_code)
         dailyprice = instrprice.resample("1B", how="last")
 
         return dailyprice
 
-    def get_daily_price(self, instrument_code):
+    def get_raw_price(self, instrument_code):
         """
         Default method to get instrument price
         Will usually be overriden when inherited with specific data source
@@ -71,7 +72,7 @@ class Data(object):
 
         :returns: pd.DataFrame
         """
-        price = self.get_daily_price(keyname)
+        price = self.get_raw_price(keyname)
 
         return price
 
@@ -216,11 +217,9 @@ class Data(object):
             currency2_vs_default = self._get_fx_data(
                 currency2, default_currency).resample("1B", how="last")
 
-            together = pd.concat(
-                [currency1_vs_default, currency2_vs_default], axis=1, join='inner').ffill()
-
-            fx_rate_series = together.iloc[:, 0] / together.iloc[:, 1]
-            fx_rate_series = fx_rate_series.to_frame("fx")
+            fx_rate_series=divide_df_single_column(currency1_vs_default, currency2_vs_default, ffill=(True, True))
+            
+            fx_rate_series.columns=['fx']
 
         return fx_rate_series
 

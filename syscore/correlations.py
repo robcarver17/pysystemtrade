@@ -9,7 +9,7 @@ import pandas as pd
 
 from syscore.genutils import str2Bool, group_dict_from_natural
 from syscore.dateutils import generate_fitting_dates
-from syscore.pdutils import df_from_list
+from syscore.pdutils import df_from_list, must_have_item
 
 from syslogdiag.log import logtoscreen
 
@@ -32,25 +32,62 @@ def get_avg_corr(sigma):
     return avg_corr
 
 
-def clean_correlation(corrmat, corr_with_no_data):
+def clean_correlation(corrmat, corr_with_no_data, must_haves=None):
     """
     Make's sure we *always* have some kind of correlation matrix
     
     If corrmat is all nans, return corr_with_no_data
     
+    Note nans must be replaced with 'some' value even if not used or things will go pair shaped
+         
     :param corrmat: The correlation matrix to clea
     :type corrmat: 2-dim square np.array
 
     :param corr_with_no_data: The correlation matrix to use if this one all nans
     :type corr_with_no_data: 2-dim square np.array
 
+    :param must_haves: The indices of things we must have weights for
+    :type must_haves: list of bool
+
     :returns: 2-dim square np.array
 
-    FIX ME - this code is inefficient; especially if you use exponential weighting
+    FIXME - this code is inefficient; especially if you use exponential weighting
              (since we'll be recalculating the same rolling correlations multiple times)
-    
+
+    >>> corr_with_no_data=boring_corr_matrix(3, offdiag=0.99, diag=1.0)
+    >>> sigma=np.array([[1.0,0.0,0.5], [0.0, 1.0, 0.75],[0.5, 0.75, 1.0]])
+    >>> clean_correlation(sigma, corr_with_no_data)
+    array([[ 1.  ,  0.  ,  0.5 ],
+           [ 0.  ,  1.  ,  0.75],
+           [ 0.5 ,  0.75,  1.  ]])
+    >>> sigma=np.array([[1.0,np.nan,0.5], [np.nan, 1.0, 0.75],[0.5, 0.75, 1.0]])
+    >>> clean_correlation(sigma, corr_with_no_data)
+    array([[ 1.   ,  0.625,  0.5  ],
+           [ 0.625,  1.   ,  0.75 ],
+           [ 0.5  ,  0.75 ,  1.   ]])
+    >>> clean_correlation(sigma, corr_with_no_data, [True, True, True])
+    array([[ 1.   ,  0.625,  0.5  ],
+           [ 0.625,  1.   ,  0.75 ],
+           [ 0.5  ,  0.75 ,  1.   ]])
+    >>> clean_correlation(sigma, corr_with_no_data, [False, False, True])
+    array([[ 1.  ,  0.99,  0.5 ],
+           [ 0.99,  1.  ,  0.75],
+           [ 0.5 ,  0.75,  1.  ]])
+    >>> clean_correlation(sigma, corr_with_no_data, [False, True, True])
+    array([[ 1.  ,  0.99,  0.5 ],
+           [ 0.99,  1.  ,  0.75],
+           [ 0.5 ,  0.75,  1.  ]])
+    >>> sigma=np.array([[np.nan]*3]*3)
+    >>> clean_correlation(sigma, corr_with_no_data)
+    array([[ 1.  ,  0.99,  0.99],
+           [ 0.99,  1.  ,  0.99],
+           [ 0.99,  0.99,  1.  ]])
     """
     ### 
+
+    if must_haves is None:
+        must_haves=[True]*corrmat.shape[0]
+
     if not np.any(np.isnan(corrmat)):
         ## no cleaning required
         return corrmat
@@ -63,13 +100,19 @@ def clean_correlation(corrmat, corr_with_no_data):
 
     avgcorr=get_avg_corr(corrmat)
 
-    def _good_correlation(value, avgcorr):
+    def _good_correlation(i,j,corrmat, avgcorr, must_haves, corr_with_no_data):
+        value=corrmat[i][j]
+        must_have_value=must_haves[i] and must_haves[j]
+        
         if np.isnan(value):
-            return avgcorr
+            if must_have_value:
+                return avgcorr
+            else:
+                return corr_with_no_data[i][j]
         else:
             return value
 
-    corrmat=np.array([[_good_correlation(corrmat[i][j], avgcorr) 
+    corrmat=np.array([[_good_correlation(i,j, corrmat, avgcorr, must_haves,corr_with_no_data) 
                        for i in size_range] for j in size_range], ndmin=2)
 
     ## makes life easier and we'll deal with this later
@@ -188,7 +231,8 @@ class CorrelationEstimator(CorrelationList):
     '''
 
 
-    def __init__(self, data, log=logtoscreen("optimiser"), frequency="W", date_method="expanding", rollyears=20, 
+    def __init__(self, data, log=logtoscreen("optimiser"), frequency="W", date_method="expanding", 
+                 rollyears=20, 
                  dict_group=dict(), boring_offdiag=0.99, cleaning=True, **kwargs):
         """
     
@@ -257,8 +301,11 @@ class CorrelationEstimator(CorrelationList):
                                                      **kwargs)
 
             if cleaning:
+                current_period_data=data[fit_period.fit_start:fit_period.fit_end] 
+                must_haves=must_have_item(current_period_data)
+
                 # means we can use earlier correlations with sensible values
-                corrmat=clean_correlation(corrmat, corr_with_no_data) 
+                corrmat=clean_correlation(corrmat, corr_with_no_data, must_haves) 
 
             corr_list.append(corrmat)
         

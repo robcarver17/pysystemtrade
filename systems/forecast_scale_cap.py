@@ -150,7 +150,7 @@ class ForecastScaleCapFixed(SystemStage):
         21.0
         >>>
         >>> ## default
-        >>> config.delete("forecast_cap")
+        >>> del(config.forecast_cap)
         >>> system3=System([rawdata, rules, ForecastScaleCapFixed()], data, config)
         >>> system3.forecastScaleCap.get_forecast_cap()
         20.0

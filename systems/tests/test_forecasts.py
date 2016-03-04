@@ -8,9 +8,11 @@ from systems.provided.example.rules import ewmac_forecast_with_defaults
 from systems.forecasting import TradingRule, Rules, process_trading_rules, create_variations, create_variations_oneparameter
 from systems.basesystem import System
 from systems.rawdata import RawData
+from systems.futures.rawdata import FuturesRawData 
+from systems.provided.futures_chapter15.rules import carry 
 from sysdata.configdata import Config
 from sysdata.csvdata import csvFuturesData
-
+import matplotlib.pyplot as plt
 
 class Test(unittest.TestCase):
 
@@ -31,7 +33,7 @@ class Test(unittest.TestCase):
         rules = Rules()
         system = System([rules], data, config)
         ans = system.rules.get_raw_forecast("EDOLLAR", "ewmac")
-        self.assertAlmostEqual(ans.iloc[-1][0], 0.542369955, 5)
+        self.assertAlmostEqual(ans.iloc[-1][0], 2.1384223788141838, 5)
 
         config = Config("systems.provided.example.exampleconfig.yaml")
         rawdata = RawData()
@@ -119,19 +121,30 @@ class Test(unittest.TestCase):
         ans = rule.call(system, "EDOLLAR")
         self.assertAlmostEqual(ans.iloc[-1][0], 2.1384223788141838, 5)
 
+
         # Change the data source
         rule = TradingRule(("systems.provided.example.rules.ewmac_forecast_with_defaults_no_vol",
-                            ["rawdata.daily_prices", "rawdata.daily_returns_volatility"], dict()))
+                            ["rawdata.get_daily_prices", "rawdata.daily_returns_volatility"], dict()))
 
         ans = rule.call(system, "EDOLLAR")
         self.assertAlmostEqual(ans.iloc[-1][0], 0.029376, 5)
 
         rule = TradingRule(dict(function="systems.provided.example.rules.ewmac_forecast_with_defaults_no_vol",
-                                data=["rawdata.daily_prices",
+                                data=["rawdata.get_daily_prices",
                                       "rawdata.daily_returns_volatility"],
                                 other_args=dict(Lfast=50, Lslow=200)))
         ans = rule.call(system, "EDOLLAR")
         self.assertAlmostEqual(ans.iloc[-1][0], 3.84426755)
+
+    def testCarryRule(self):
+        data = csvFuturesData("sysdata.tests")
+
+        rawdata = FuturesRawData()
+        rules = Rules()
+        system = System([rawdata, rules], data)
+        rule=TradingRule(carry, ["rawdata.daily_annualised_roll", "rawdata.daily_returns_volatility"], dict(smooth_days=90))
+        ans = rule.call(system, "EDOLLAR")
+        self.assertAlmostEqual(ans.iloc[-1][0], 0.411686026, 5)
 
     def testProcessTradingRuleSpec(self):
 

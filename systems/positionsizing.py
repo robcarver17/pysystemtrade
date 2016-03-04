@@ -193,7 +193,7 @@ class PositionSizing(SystemStage):
         'GBP'
         >>>
         >>> ## from defaults
-        >>> config.delete("base_currency")
+        >>> del(config.base_currency)
         >>> system=System([rawdata, rules, fcs, comb, PositionSizing()], data, config)
         >>> system.positionSize.get_daily_cash_vol_target()['base_currency']
         'USD'
@@ -363,15 +363,15 @@ class PositionSizing(SystemStage):
         >>> system=System([rawdata, rules, fcs, comb, PositionSizing()], data, config)
         >>>
         >>> system.positionSize.get_instrument_value_vol("EDOLLAR").tail(2)
-                         ivv
-        2015-12-09  88.52861
-        2015-12-10  89.38253
+                          ivv
+        2015-12-10  89.382530
+        2015-12-11  96.777975
         >>>
         >>> system2=System([rawdata, rules, fcs, comb, PositionSizing()], data, config)
         >>> system2.positionSize.get_instrument_value_vol("EDOLLAR").tail(2)
-                         ivv
-        2015-12-09  88.52861
-        2015-12-10  89.38253
+                          ivv
+        2015-12-10  89.382530
+        2015-12-11  96.777975
 
         """
         def _get_instrument_value_vol(system, instrument_code, this_stage):
@@ -409,15 +409,15 @@ class PositionSizing(SystemStage):
         >>>
         >>> system.positionSize.get_volatility_scalar("EDOLLAR").tail(2)
                     vol_scalar
-        2015-12-09   11.295783
         2015-12-10   11.187869
+        2015-12-11   10.332930
         >>>
         >>> ## without raw data
         >>> system2=System([ rules, fcs, comb, PositionSizing()], data, config)
         >>> system2.positionSize.get_volatility_scalar("EDOLLAR").tail(2)
                     vol_scalar
-        2015-12-09   11.296937
         2015-12-10   11.180444
+        2015-12-11   10.344278
         """
         def _get_volatility_scalar(system, instrument_code, this_stage):
 
@@ -457,14 +457,14 @@ class PositionSizing(SystemStage):
         >>>
         >>> system.positionSize.get_subsystem_position("EDOLLAR").tail(2)
                     ss_position
-        2015-12-09     2.722596
         2015-12-10     1.811465
+        2015-12-11     2.544598
         >>>
         >>> system2=System([rawdata, rules, fcs, comb, PositionSizing()], data, config)
         >>> system2.positionSize.get_subsystem_position("EDOLLAR").tail(2)
                     ss_position
-        2015-12-09     2.722596
         2015-12-10     1.811465
+        2015-12-11     2.544598
 
         """
         def _get_subsystem_position(system, instrument_code, this_stage):

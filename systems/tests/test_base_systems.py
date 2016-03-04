@@ -6,16 +6,17 @@ Created on 14 Dec 2015
 import unittest
 from systems.stage import SystemStage
 from systems.basesystem import System, ALL_KEYNAME
-
+from sysdata.data import Data
 
 class Test(unittest.TestCase):
 
     def testName(self):
         stage = SystemStage()
         stage.name = "test"
+        data=Data()
         stage._protected = ["protected"]
 
-        system = System([stage], None, None)
+        system = System([stage], data, None)
         print(system._cache)
 
         system.set_item_in_cache(3, "a", "US10")

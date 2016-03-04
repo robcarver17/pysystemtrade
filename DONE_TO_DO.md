@@ -1,17 +1,26 @@
 # Release notes
 
+## Version: 0.5.1
+
+* Introduced maximum cap on IDM and FDM of 2.5, as per the book.
+* Correlation cleaning wasn't working as documented - now does.
+* cleaning up:
+  * renamed misleading 'get_daily_price' method to 'get_raw_price', to fix some tests that hadn't realised the difference
+  * fixed a bunch of tests
+  * changed the way cross rates are calculated to ensure data isn't lost 
+
 ## Version: 0.5.0
 
-  * Include buffering / position intertia
+* Include buffering / position intertia
 
 
 ## Version: 0.4.0
 
-  * Included cost data and calculations.
+* Included cost data and calculations.
 
 ## Version: 0.3.0
 
-  * Account curve improvements: generate lists of simulated trades, extend the `accountCurve` object to handle multiple columns, statistics over different periods. 
+* Account curve improvements: generate lists of simulated trades, extend the `accountCurve` object to handle multiple columns, statistics over different periods. 
 
 ## Version: 0.2.1
 
