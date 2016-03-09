@@ -5,6 +5,23 @@ Utilities to help with pandas
 import pandas as pd
 import numpy as np
 from syscore.fileutils import get_filename_for_package
+from syscore.dateutils import BUSINESS_DAYS_IN_YEAR
+
+def turnover(x, y):
+    """
+    Gives the turnover of x, once normalised for y
+    
+    Returned in annualised terms
+    """
+    
+    if type(y) is float:
+        y=pd.DataFrame([y]*len(x.index) , x.index)
+    
+    norm_x=divide_df_single_column(x, y, ffill=(False, True))
+    
+    avg_daily=float(norm_x.diff().abs().resample("1B", how="sum").mean())
+
+    return avg_daily*BUSINESS_DAYS_IN_YEAR
 
 def uniquets(x):
     """

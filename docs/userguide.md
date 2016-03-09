@@ -452,6 +452,8 @@ with open(filename, 'wb') as outfile:
    pickle.dump(system)    
 ```
 
+[This is the theory. In practice pickling complex objects seems to cause bad things to happen...]
+
 You can also save a config object into a yaml file - see [saving configuration](#save_config).
 
 
@@ -2539,7 +2541,7 @@ buffer_method: forecast
 buffer_size: 0.10
 ```
 
-Note that buffering can work on both rounded and unrounded positions. In the case of rounded positions we round the lower limit of the buffer down, and the upper limit up, and also round the optimal position. So a buffer will always be at least one instrument block wide.
+Note that buffering can work on both rounded and unrounded positions. In the case of rounded positions we round the lower limit of the buffer, and the upper limit. 
 
 These python methods allow you to see buffering in action.
 
@@ -2737,10 +2739,10 @@ acc_curve_group.net.get_stats("sharpe", freq="daily") ## equivalent
 
 I work out costs in two different ways:
 
-- by applying a constant drag calculated according to the standardised cost in Sharpe ratio terms (see chapter 12 of my book)
+- by applying a constant drag calculated according to the standardised cost in Sharpe ratio terms and the estimated turnover (see chapter 12 of my book)
 - using the actual costs for each trade.
 
-The former method is always used for costs derived from forecasts (`pandl_for_instrument_forecast`)
+The former method is always used for costs derived from forecasts (`pandl_for_instrument_forecast`).
 
 The latter method is optional. Set `config.use_SR_costs = False` to use it. It is useful for comparing with live trading history, but I do not recommend it for historical purposes as I don't think it is accurate in the past.
 
@@ -2750,6 +2752,15 @@ Costs that can be included are:
 - Cost per instrument block, in local currency. This is used for most futures.
 - Percentage of value costs (0.01 is 1%). Used for US equities. 
 - Per trade costs, in local currency. Common for UK brokers. This won't be applied correctly unless `roundpositions=True` in the accounts call.
+
+To see the turnover that has been estimated use:
+
+```
+system.accounts.subsystem_turnover(instrument_code) ### Annualised turnover of subsystem
+system.accounts.instrument_turnover(instrument_code) ### Annualised turnover of portfolio level position
+system.accounts.forecast_turnover(instrument_code, rule_variation_name) ## Annualised turnover of forecast
+```
+
 
 #### Writing new or modified accounting stages
 
@@ -3150,12 +3161,17 @@ Private methods are excluded from this table.
 | `accounts.pandl_across_subsystems`| Standard |  `instrument_code` | O,D | P&l across instruments, outright|
 | `accounts.get_buffers_for_position`| Standard |  `instrument_code` | I | `portfolio.get_buffers_for_position`|
 | `accounts.get_buffered_position`| Standard |  `instrument_code` | D | Buffered position at portfolio level|
+| `accounts.get_instrument_diversification_multiplier`| Standard |   | I | `portfolio.get_instrument_diversification_multiplier`|
+| `accounts.get_instrument_weights`| Standard |   | I | `portfolio.get_instrument_weights`|
+| `accounts.get_trading_rules_used`| Standard |   | I | `combForecast.get_trading_rule_list`|
+| `accounts.get_instrument_scaling_factor`| Standard | `instrument_code`  | D | IDM * instrument weight|
+| `accounts.subsystem_turnover`| Standard | `instrument_code`  | D | Annualised turnover of subsystem|
+| `accounts.instrument_turnover`| Standard | `instrument_code`  | D | Annualised turnover of instrument position at portfolio level|
+| `accounts.forecast_turnover`| Standard | `instrument_code`, `rule_variation_name`  | D | Annualised turnover of forecast|
 | `accounts.pandl_for_instrument`| Standard |  `instrument_code` | D | P&l for an instrument within a system|
 | `accounts.pandl_for_instrument_forecast`| Standard | `instrument_code`, `rule_variation_name` | D | P&l for a trading rule and instrument |
 | `accounts.pandl_for_instrument_rules`| Standard | `instrument_code` | D,O | P&l for all trading rules in an instrument |
 | `accounts.portfolio`| Standard |  | O,D | P&l for whole system |
-
-
 
 
 

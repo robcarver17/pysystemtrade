@@ -3,9 +3,12 @@ import pandas as pd
 from syscore.accounting import accountCurve, accountCurveGroup
 from systems.stage import SystemStage
 from systems.basesystem import ALL_KEYNAME
+from systems.defaults import system_defaults
 from syscore.algos import robust_vol_calc, apply_buffer
 from syscore.genutils import TorF
 from syscore.dateutils import ROOT_BDAYS_INYEAR
+from syscore.pdutils import multiply_df_single_column, turnover
+from dis import Instruction
 
 class Account(SystemStage):
     """
@@ -41,6 +44,15 @@ class Account(SystemStage):
             
         system.portfolio.get_buffers_for_position(instrument_code)
             found in self.get_buffers_for_position
+
+        system.portfolio.get_instrument_diversification_multiplier
+            found in self.portfolio.get_instrument_diversification_multiplier
+            
+        system.portfolio.get_instrument_weights
+            found in self.get_instrument_weights()
+
+        system.combForecast.get_trading_rule_list
+            found in self.get_trading_rule_list
 
     KEY OUTPUTS: Used for optimisation:
                  system.accounts.pandl_for_instrument_rules
@@ -99,14 +111,13 @@ class Account(SystemStage):
         """
         return self.parent.combForecast.get_forecast_weights(instrument_code)
 
-    def get_instrument_div_multiplier(self):
+    def get_instrument_diversification_multiplier(self):
         """
         Get instrument div mult
 
         :returns: Tx1 pd.DataFrame
 
-        NOT USED YET
-
+        KEY INPUT
 
         """
 
@@ -131,10 +142,9 @@ class Account(SystemStage):
         """
         Get instrument weights
 
+        KEY INPUT
 
         :returns: Tx1 pd.DataFrame
-
-        NOT USED YET
 
 
         """
@@ -156,16 +166,16 @@ class Account(SystemStage):
         return self.parent.positionSize.get_subsystem_position(instrument_code)
 
 
-    def get_trading_rules(self):
+    def get_trading_rule_list(self, instrument_code):
         """
         Get the trading rules for this instrument, from a previous module
 
+        KEY INPUT
 
         :returns: list of str
 
-        NOT USED YET
         """
-        return list(self.parent.rules.trading_rules().keys())
+        return self.parent.combForecast.get_trading_rule_list(instrument_code)
 
     def get_instrument_list(self):
         """
@@ -370,6 +380,7 @@ class Account(SystemStage):
 
         """
 
+
         def _get_daily_returns_volatility(system, instrument_code):
             if hasattr(system, "rawdata"):
                 returns_vol = system.rawdata.daily_returns_volatility(
@@ -385,6 +396,48 @@ class Account(SystemStage):
 
         return price_volatility
 
+    def get_volatility_scalar(self, instrument_code):
+        """
+        Get the volatility scalar
+        
+        KEY INPUT
+        
+        :param instrument_code: instrument to value for
+        :type instrument_code: str
+
+        :returns: Tx1 pd.DataFrame
+        
+        """
+        
+        return self.parent.positionSize.get_volatility_scalar(instrument_code)
+    
+    def get_instrument_scaling_factor(self, instrument_code):
+        
+        """
+        Get instrument weight * IDM
+        
+        The number we multiply subsystem by to get position
+        
+        Used to calculate SR costs
+        
+        :param instrument_code: instrument to value for
+        :type instrument_code: str
+
+        :returns: Tx1 pd.DataFrame
+        
+        """
+        
+        idm = self.get_instrument_diversification_multiplier()
+        instr_weights = self.get_instrument_weights()
+
+        inst_weight_this_code = instr_weights[
+            instrument_code].to_frame("weight")
+
+        multiplier = multiply_df_single_column(inst_weight_this_code, idm, ffill=(True, True))
+
+        return multiplier
+    
+    
     
     def get_SR_cost(self, instrument_code):
         """
@@ -436,6 +489,7 @@ class Account(SystemStage):
             avg_annual_vol = average_vol * ROOT_BDAYS_INYEAR
             
             SR_cost = 2.0 * price_total / ( avg_annual_vol )
+            
 
             return SR_cost
             
@@ -505,6 +559,30 @@ class Account(SystemStage):
         else:
             return (None, self.get_cash_costs(instrument_code))
         
+    def subsystem_turnover(self, instrument_code, roundpositions):
+        """
+        Get the annualised turnover for an instrument subsystem
+
+        :param instrument_code: instrument to get values for
+        :type instrument_code: str
+
+        :returns: float
+
+
+        """
+        def _subsystem_turnover(
+                system, instrument_code,  this_stage, roundpositions):
+
+            positions = this_stage.get_subsystem_position(instrument_code)
+            average_position_for_turnover=this_stage.get_volatility_scalar(instrument_code)
+            
+            return turnover(positions, average_position_for_turnover)
+
+        subsys_turnover = self.parent.calc_or_cache(
+            "subsystem_turnover_%s" % TorF(roundpositions), instrument_code,
+            _subsystem_turnover, self, roundpositions)
+
+        return subsys_turnover
         
 
     def pandl_for_subsystem(
@@ -533,7 +611,7 @@ class Account(SystemStage):
         >>> system=System([portfolio, posobject, combobject, capobject, rules, rawdata, Account()], data, config)
         >>>
         >>> system.accounts.pandl_for_subsystem("US10", percentage=True).ann_std()
-        0.23486418072398296
+        0.23422378634127036
         """
 
         def _pandl_for_subsystem(
@@ -542,7 +620,7 @@ class Account(SystemStage):
             this_stage.log.msg("Calculating pandl for subsystem for instrument %s" % instrument_code,
                                instrument_code=instrument_code)
 
-
+            
             price = this_stage.get_daily_price(instrument_code)
             positions = this_stage.get_subsystem_position(instrument_code)
 
@@ -552,7 +630,12 @@ class Account(SystemStage):
             get_daily_returns_volatility = this_stage.get_daily_returns_volatility(
                 instrument_code)
 
+
             (SR_cost, cash_costs)=this_stage.get_costs(instrument_code)
+            
+            if SR_cost is not None:
+                turnover_for_SR = this_stage.subsystem_turnover(instrument_code, roundpositions = roundpositions)
+                SR_cost = SR_cost * turnover_for_SR
             
             capital = this_stage.get_notional_capital()
             ann_risk_target = this_stage.get_ann_risk_target()
@@ -643,8 +726,11 @@ class Account(SystemStage):
         >>> (portfolio, posobject, combobject, capobject, rules, rawdata, data, config)=get_test_object_futures_with_portfolios()
         >>> system=System([portfolio, posobject, combobject, capobject, rules, rawdata, Account()], data, config)
         >>>
-        >>> system.accounts.get_buffered_position("EDOLLAR")
-        wibble
+        >>> system.accounts.get_buffered_position("EDOLLAR").tail(3)
+                    position
+        2015-12-09         1
+        2015-12-10         1
+        2015-12-11         1
         """
 
         def _get_buffered_position(
@@ -658,6 +744,8 @@ class Account(SystemStage):
             buffered_position = apply_buffer(optimal_position, pos_buffers, 
                                              trade_to_edge=trade_to_edge, roundpositions=roundpositions)
             
+            buffered_position.columns=["position"]
+            
             return buffered_position
 
         itemname = "get_buffered_position__roundpositions%s" %  TorF(roundpositions)
@@ -666,6 +754,37 @@ class Account(SystemStage):
             itemname, instrument_code, _get_buffered_position, self, roundpositions)
 
         return buffered_position
+
+    def instrument_turnover(self, instrument_code, roundpositions=True):
+        """
+        Get the annualised turnover for an instrument
+
+        :param instrument_code: instrument to get values for
+        :type instrument_code: str
+
+        :param rule_variation_name: rule to get values for
+        :type rule_variation_name: str
+
+        :returns: float
+
+
+        """
+        def _instrument_turnover(
+                system, instrument_code,  this_stage, roundpositions):
+
+            average_position_for_turnover=multiply_df_single_column( this_stage.get_volatility_scalar(instrument_code), 
+                                                                     this_stage.get_instrument_scaling_factor(instrument_code),
+                                                                     ffill=(True, True))
+            
+            positions = this_stage.get_buffered_position(instrument_code, roundpositions = roundpositions)
+            
+            return turnover(positions, average_position_for_turnover)
+
+        instr_turnover = self.parent.calc_or_cache(
+            "instrument_turnover_%s" % TorF(roundpositions), instrument_code,
+            _instrument_turnover, self, roundpositions)
+
+        return instr_turnover
 
     def pandl_for_instrument(
             self, instrument_code, percentage=True, delayfill=True, roundpositions=True):
@@ -691,7 +810,7 @@ class Account(SystemStage):
         >>> (portfolio, posobject, combobject, capobject, rules, rawdata, data, config)=get_test_object_futures_with_portfolios()
         >>> system=System([portfolio, posobject, combobject, capobject, rules, rawdata, Account()], data, config)
         >>> system.accounts.pandl_for_instrument("US10", percentage=True).ann_std()
-        0.14091850843438977
+        0.13908407620762306
         """
 
         def _pandl_for_instrument(
@@ -708,10 +827,15 @@ class Account(SystemStage):
             get_daily_returns_volatility = this_stage.get_daily_returns_volatility(
                 instrument_code)
 
+
             capital = this_stage.get_notional_capital()
             ann_risk_target = this_stage.get_ann_risk_target()
 
             (SR_cost, cash_costs)=this_stage.get_costs(instrument_code)
+            
+            if SR_cost is not None:
+                turnover_for_SR=this_stage.instrument_turnover(instrument_code, roundpositions = roundpositions)
+                SR_cost = SR_cost * turnover_for_SR
 
             instr_pandl = accountCurve(price, positions = positions,
                                        delayfill = delayfill, roundpositions = roundpositions, 
@@ -754,7 +878,7 @@ class Account(SystemStage):
         >>> system=System([portfolio, posobject, combobject, capobject, rules, rawdata, Account()], data, config)
         >>>
         >>> system.accounts.pandl_for_instrument_rules("EDOLLAR").get_stats("sharpe")
-        {'ewmac16': 0.6714147968308808, 'ewmac8': 0.681350200882741}
+        {'ewmac16': 0.6799720823590352, 'ewmac8': 0.69594671177102}
         """
         def _pandl_for_instrument_rules(
                 system, instrument_code,  this_stage, delayfill):
@@ -762,7 +886,7 @@ class Account(SystemStage):
             this_stage.log.terse("Calculating pandl for instrument rules for %s" % instrument_code,
                                  instrument_code=instrument_code)
             
-            forecast_rules=system.combForecast.get_trading_rule_list(instrument_code
+            forecast_rules=this_stage.get_trading_rule_list(instrument_code
                                                                      )
             pandl_rules=[this_stage.pandl_for_instrument_forecast(
                                             instrument_code, rule_variation_name, delayfill)
@@ -781,6 +905,38 @@ class Account(SystemStage):
             _pandl_for_instrument_rules, self, delayfill)
 
         return pandl_rules
+
+
+    def forecast_turnover(self, instrument_code, rule_variation_name):
+        """
+        Get the annualised turnover for a forecast/rule combination
+
+        :param instrument_code: instrument to get values for
+        :type instrument_code: str
+
+        :param rule_variation_name: rule to get values for
+        :type rule_variation_name: str
+
+        :returns: float
+
+
+        """
+        def _forecast_turnover(
+                system, instrument_code, rule_variation_name, this_stage):
+
+            forecast = this_stage.get_capped_forecast(
+                instrument_code, rule_variation_name)
+
+            average_forecast_for_turnover=system_defaults['average_absolute_forecast']
+            turnover_for_SR=turnover(forecast, average_forecast_for_turnover)
+            
+            return turnover_for_SR
+
+        fcast_turnover = self.parent.calc_or_cache_nested(
+            "forecast_turnover", instrument_code, rule_variation_name,
+            _forecast_turnover, self)
+
+        return fcast_turnover
 
 
     def pandl_for_instrument_forecast(
@@ -807,7 +963,7 @@ class Account(SystemStage):
         >>> system=System([portfolio, posobject, combobject, capobject, rules, rawdata, Account()], data, config)
         >>>
         >>> system.accounts.pandl_for_instrument_forecast("EDOLLAR", "ewmac8").ann_std()
-        0.20644187486463425
+        0.20270495775586916
 
         """
         def _pandl_for_instrument_forecast(
@@ -816,8 +972,6 @@ class Account(SystemStage):
             this_stage.log.msg("Calculating pandl for instrument forecast for %s %s" % (instrument_code, rule_variation_name),
                                instrument_code=instrument_code, rule_variation_name=rule_variation_name)
 
-            #use_SR_costs=bool(system.config.use_SR_costs)
-
             price = this_stage.get_daily_price(instrument_code)
             forecast = this_stage.get_capped_forecast(
                 instrument_code, rule_variation_name)
@@ -825,8 +979,8 @@ class Account(SystemStage):
                 instrument_code)
 
             ## We NEVER use cash costs for forecasts ...
-            
-            SR_cost=this_stage.get_SR_cost(instrument_code)
+            turnover_for_SR=this_stage.forecast_turnover(instrument_code, rule_variation_name)
+            SR_cost=this_stage.get_SR_cost(instrument_code)* turnover_for_SR
                         
             ## We use percentage returns (as no 'capital') and don't round positions
             
@@ -868,7 +1022,7 @@ class Account(SystemStage):
         >>> system=System([portfolio, posobject, combobject, capobject, rules, rawdata, Account()], data, config)
         >>>
         >>> system.accounts.portfolio(percentage=True).ann_std()
-        0.2783243050399967
+        0.2638225179274214
         """
         def _portfolio(system, not_used, this_stage,
                        percentage, delayfill, roundpositions):

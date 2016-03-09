@@ -46,6 +46,8 @@ def futures_system(data=None, config=None, trading_rules=None, log_level="terse"
     system = System([Account(), PortfoliosEstimated(), PositionSizing(), FuturesRawData(), ForecastCombineEstimated(),
                      ForecastScaleCapEstimated(), rules], data, config)
 
+    system.set_logging_level(log_level) 
+
     return system
 
 

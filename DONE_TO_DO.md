@@ -1,5 +1,15 @@
 # Release notes
 
+
+
+## Version 0.5.2
+
+* Correlation tests failing - fixed up
+* Costs SR didn't get turnover - duh! Now fixed. Added a bunch of input methods to accounts object to calculate them
+* tweak to account curve grouping to data frame to remove nans
+* cost calculation no longer fails if no trades for an instrument
+* changed buffering rounding so consistent with my own system
+
 ## Version: 0.5.1
 
 * Introduced maximum cap on IDM and FDM of 2.5, as per the book.
@@ -76,16 +86,16 @@
 
 # Bugs to fix
 
-  * A lot of tests failing in portfolio object - portfolio optimisation looks screwed up
+* none
 
 # Features to add - later releases
 
-logging / error catching
-system cleaning
-
 * Simulation:
 
-  * autodetect if need to estimate parameters or not
+  * add stage name to cache reference, always pass stage to caching function. add methods to system which understand stages
+  * add stage description
+  * add cross sectional carry rule and breakout rule
+  * autodetect if need to estimate parameters or not (need init within system method)
   * vol targeting with capital adjustment
   * quandl data
   * stitch futures contracts 

@@ -33,12 +33,12 @@ class Test(unittest.TestCase):
 
         instrument_code="US10"
         ans=self.system.combForecast.get_forecast_correlation_matrices(instrument_code)
-        self.assertAlmostEqual(ans.corr_list[-1][0][1], 0.0860245, places=5)
+        self.assertAlmostEqual(ans.corr_list[-1][0][1], 0.11686990, places=5)
         print(ans.columns)
         
         instrument_code="BUND"
         ans=self.system.combForecast.get_forecast_correlation_matrices(instrument_code)
-        self.assertAlmostEqual(ans.corr_list[-1][0][1], 0.88964681535, places=5)
+        self.assertAlmostEqual(ans.corr_list[-1][0][1], 0.9014138496, places=5)
         print(ans.columns)
 
     def testPooling(self):
@@ -47,7 +47,7 @@ class Test(unittest.TestCase):
         instrument_code="EDOLLAR"
         
         ans=self.system.combForecast.get_forecast_correlation_matrices(instrument_code)
-        self.assertAlmostEqual(ans.corr_list[-1][0][1], 0.0744089835, places=5)
+        self.assertAlmostEqual(ans.corr_list[-1][0][1], 0.080792737, places=5)
         print(ans.columns)
 
         instrument_code="US10"
@@ -63,14 +63,14 @@ class Test(unittest.TestCase):
         instrument_code="US10"
         
         ans=self.system.combForecast.get_forecast_correlation_matrices(instrument_code)
-        self.assertAlmostEqual(ans.corr_list[-1][0][1], -0.0043327674, places=5)
+        self.assertAlmostEqual(ans.corr_list[-1][0][1], 0.012915602974, places=5)
         
     def testDatemethod(self):
         self.system.config.forecast_correlation_estimate['date_method']="rolling"
         instrument_code="US10"
         
         ans=self.system.combForecast.get_forecast_correlation_matrices(instrument_code)
-        self.assertAlmostEqual(ans.corr_list[-1][0][1], 0.0838213638, places=5)
+        self.assertAlmostEqual(ans.corr_list[-1][0][1], 0.1152719945526076, places=5)
         
     def testExponent(self):
         self.system.config.forecast_correlation_estimate['using_exponent']="False"
@@ -78,14 +78,14 @@ class Test(unittest.TestCase):
         
         ans=self.system.combForecast.get_forecast_correlation_matrices(instrument_code)
         print(ans)
-        self.assertAlmostEqual(ans.corr_list[-1][0][1], 0.11150705, places=5)
+        self.assertAlmostEqual(ans.corr_list[-1][0][1], 0.127147, places=5)
 
     def testExponentLookback(self):
         self.system.config.forecast_correlation_estimate['ew_lookback']=50
         instrument_code="US10"
         
         ans=self.system.combForecast.get_forecast_correlation_matrices(instrument_code)
-        self.assertAlmostEqual(ans.corr_list[-1][0][1], 0.102878322, places=5)
+        self.assertAlmostEqual(ans.corr_list[-1][0][1], 0.0764327959, places=5)
 
     def testminperiods(self):
         self.system.config.forecast_correlation_estimate['pool_instruments']="False"

@@ -251,8 +251,8 @@ def apply_buffer(optimal_position, pos_buffers, trade_to_edge=False, roundpositi
     
     if roundpositions:
         use_optimal_position=use_optimal_position.round()
-        top_pos=np.ceil(top_pos)
-        bot_pos=np.floor(bot_pos)
+        top_pos=top_pos.round()
+        bot_pos=bot_pos.round()
 
     current_position=use_optimal_position.values[0]
     if np.isnan(current_position):

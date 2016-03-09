@@ -717,7 +717,7 @@ class ForecastCombineEstimated(ForecastCombineFixed):
         
         """
         
-        return self.parent.accounts.pandl_for_instrument_rules(instrument_code).to_frame()
+        return self.parent.accounts.pandl_for_instrument_rules(instrument_code, percentage=True).to_frame()
 
     def calculation_of_raw_forecast_weights(self, instrument_code):
         """

@@ -398,8 +398,9 @@ class accountCurveSingleElementOneFreq(pd.DataFrame):
     def sharpe(self):
         mean_return = self.ann_mean()
         vol = self.ann_std()
-        sharpe=mean_return / vol
-        if np.isinf(sharpe):
+        try:
+            sharpe=mean_return / vol
+        except ZeroDivisionError:
             sharpe=np.nan
         return sharpe
 
@@ -433,8 +434,9 @@ class accountCurveSingleElementOneFreq(pd.DataFrame):
         ann_stdev = period_stddev * self._vol_scalar
         ann_mean = self.ann_mean()
 
-        sortino=ann_mean / ann_stdev
-        if np.isinf(sortino):
+        try:
+            sortino=ann_mean / ann_stdev
+        except ZeroDivisionError:
             sortino=np.nan
 
         return sortino
@@ -482,7 +484,7 @@ class accountCurveSingleElementOneFreq(pd.DataFrame):
         return no_gains / (no_losses + no_gains)
 
     def rolling_ann_std(self, window=40):
-        y = pd.rolling_std(self[self._account_name], window, min_periods=4, center=True).to_frame()
+        y = pd.rolling_std(self.as_df, window, min_periods=4, center=True).to_frame()
         return y * self._vol_scalar
 
     def stats(self):
@@ -686,6 +688,7 @@ def calc_costs(returns_data, cash_costs, SR_cost, daily_capital):
         ## use SR_cost
         ann_risk = daily_capital*ROOT_BDAYS_INYEAR
         ann_cost = -SR_cost*ann_risk
+        
         costs_instr_ccy = ann_cost/BUSINESS_DAYS_IN_YEAR
     
     elif cash_costs is not None:
@@ -701,12 +704,12 @@ def calc_costs(returns_data, cash_costs, SR_cost, daily_capital):
         costs_percentage = percentage_cost * value_of_trades
         
         traded=trades[trades>0]
-        costs_pertrade = pd.DataFrame([value_of_pertrade_commission]*len(traded.index), traded.index)
-        costs_pertrade = costs_pertrade.reindex(trades.index)
         
-        print(type(costs_blocks))
-        print(type(costs_percentage))
-        print(type(costs_pertrade))
+        if len(traded)==0:
+            costs_pertrade = pd.DataFrame([0.0]*len(cum_trades.index), cum_trades.index)
+        else:
+            costs_pertrade = pd.DataFrame([value_of_pertrade_commission]*len(traded.index), traded.index)
+            costs_pertrade = costs_pertrade.reindex(trades.index)
         
         costs_instr_ccy = add_df_single_column(costs_blocks, add_df_single_column(costs_percentage, costs_pertrade))
         
@@ -715,6 +718,7 @@ def calc_costs(returns_data, cash_costs, SR_cost, daily_capital):
         costs_instr_ccy=pd.DataFrame([0.0]*base_ccy_returns.shape[0], index=base_ccy_returns.index)
     
     costs_base_ccy=multiply_df_single_column(costs_instr_ccy, fx, ffill=(False, True))
+    costs_base_ccy[np.isnan(costs_base_ccy)]=0.0
 
     return (costs_base_ccy, costs_instr_ccy)
 
@@ -756,7 +760,9 @@ def acc_list_to_pd_frame(list_of_ac_curves, columns):
     """
     list_of_df=[acc.as_df() for acc in list_of_ac_curves]
     ans=pd.concat(list_of_df, axis=1,  join="outer")
+    
     ans.columns=columns
+    ans=ans.cumsum().ffill().diff()
     
     return ans
 
