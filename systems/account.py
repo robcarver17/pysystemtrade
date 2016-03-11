@@ -75,6 +75,8 @@ class Account(SystemStage):
         setattr(self, "_protected", protected)
 
         setattr(self, "name", "accounts")
+        setattr(self, "description", "Account()")
+
 
     def get_capped_forecast(self, instrument_code, rule_variation_name):
         """
@@ -301,11 +303,11 @@ class Account(SystemStage):
         :returns: Tx1 pd.DataFrames
 
         """
-        def _get_daily_price(system, instrument_code):
+        def _get_daily_price(system, instrument_code, this_stage):
             return system.data.daily_prices(instrument_code)
 
         instrument_price = self.parent.calc_or_cache(
-            'get_daily_price', instrument_code, _get_daily_price)
+            'get_daily_price', instrument_code, _get_daily_price, self)
 
         return instrument_price
 
@@ -359,11 +361,11 @@ class Account(SystemStage):
         (0.0025000000000000001, 2.1099999999999999, 0, 0)
         
         """
-        def _get_raw_cost_data(system, instrument_code):
+        def _get_raw_cost_data(system, instrument_code, this_stage):
             return system.data.get_raw_cost_data(instrument_code)
 
         raw_cost_data = self.parent.calc_or_cache(
-            'get_raw_cost_data', instrument_code, _get_raw_cost_data)
+            'get_raw_cost_data', instrument_code, _get_raw_cost_data, self)
         
         return raw_cost_data
 
@@ -381,7 +383,7 @@ class Account(SystemStage):
         """
 
 
-        def _get_daily_returns_volatility(system, instrument_code):
+        def _get_daily_returns_volatility(system, instrument_code, this_stage):
             if hasattr(system, "rawdata"):
                 returns_vol = system.rawdata.daily_returns_volatility(
                     instrument_code)
@@ -392,7 +394,7 @@ class Account(SystemStage):
             return returns_vol
 
         price_volatility = self.parent.calc_or_cache(
-            'get_daily_returns_volatility', instrument_code, _get_daily_returns_volatility)
+            'get_daily_returns_volatility', instrument_code, _get_daily_returns_volatility, self)
 
         return price_volatility
 

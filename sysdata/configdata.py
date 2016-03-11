@@ -15,6 +15,7 @@ import yaml
 from syscore.fileutils import get_filename_for_package
 from systems.defaults import get_system_defaults
 from syslogdiag.log import logtoscreen
+from syscore.objects import get_methods
 
 RESERVED_NAMES=["log", "_elements"]
 
@@ -130,8 +131,6 @@ class Config(object):
             if element_name not in elements:
                 elements.append(element_name)
         
-
-
     def fill_with_defaults(self):
         """
         Fills with defaults

@@ -61,10 +61,14 @@ trading_rules:
      other_args:
          smooth_days: 90
 #
+use_forecast_scale_estimates: True
+#
 forecast_scalar_estimate:
    pool_instruments: True
 #
 # forecast combination
+#
+use_forecast_weight_estimates: True
 #
 forecast_weight_estimate:
    method: shrinkage
@@ -74,6 +78,8 @@ rule_variations: ['ewmac16_64','ewmac32_128', 'ewmac64_256', 'carry']
 #
 forecast_correlation_estimate:
    pool_instruments: True
+#
+use_instrument_weight_estimates: True
 #
 instrument_weight_estimate:
    method: "shrinkage"

@@ -31,7 +31,7 @@ data.get_instrument_list()
 And what kind of data can we get for them?
 
 ```python
-data.get_instrument_price("EDOLLAR").tail(5)
+data.get_raw_price("EDOLLAR").tail(5)
 ```
 
 ```
@@ -112,7 +112,7 @@ Let's run it and look at the output
 
 ```python
 instrument_code='EDOLLAR'
-price=data.get_instrument_price(instrument_code)
+price=data.daily_prices(instrument_code)
 ewmac=calc_ewmac_forecast(price, 32, 128)
 ewmac.columns=['forecast']
 ewmac.tail(5)
@@ -338,15 +338,19 @@ Now these trading rules aren't producing forecasts that are correctly scaled (wi
 We could estimate these on a rolling out of sample basis:
 
 ```python
+from systems.forecast_scale_cap import ForecastScaleCap
+
+
 ## By default we pool esimates across instruments. It's worth telling the system what instruments we want to use:
 #
 my_config.instruments=["EDOLLAR", "US10", "EDOLLAR", "CORN", "SP500"]
 
-from systems.forecast_scale_cap import ForecastScaleCapEstimated
-fce=ForecastScaleCapEstimated()
-my_system = System([fce, my_rules], data, my_config)
+## this parameter ensures we estimate:
+my_config.use_forecast_scale_estimates=True
 
-my_system.forecastScaleCap.get_forecast_scalar("EDOLLAR", "ewmac32").tail(5)
+fcs=ForecastScaleCap()
+my_system = System([fcs, my_rules], data, my_config)
+print(my_system.forecastScaleCap.get_forecast_scalar("EDOLLAR", "ewmac32").tail(5))
 ```
 
 ```
@@ -365,9 +369,12 @@ Alternatively we can use the fixed values from Appendix B of my book ["Systemati
 ```python
 my_config.forecast_scalars=dict(ewmac8=5.3, ewmac32=2.65)
 
-from systems.forecast_scale_cap import ForecastScaleCapFixed
+## this parameter ensures we don't estimate:
+my_config.use_forecast_scale_estimates=False
 
-fcs=ForecastScaleCapFixed()
+## we need a new object
+fcs=ForecastScaleCap()
+
 my_system=System([fcs, empty_rules], data, my_config)
 my_system.forecastScaleCap.get_capped_forecast("EDOLLAR", "ewmac32")
 ```
@@ -389,8 +396,8 @@ my_system.forecastScaleCap.get_capped_forecast("EDOLLAR", "ewmac32")
 Since we have two trading rule variations we're naturally going to want to combine them (chapter 8 of my book). For a very quick and dirty exercise running this code will use equal forecast weights across instruments, and use no diversification multiplier:
 
 ```python
-from systems.forecast_combine import ForecastCombineFixed
-combiner=ForecastCombineFixed()
+from systems.forecast_combine import ForecastCombine
+combiner=ForecastCombine()
 my_system=System([fcs, empty_rules, combiner], data, my_config)
 my_system.combForecast.get_forecast_weights("EDOLLAR").tail(5)
 my_system.combForecast.get_forecast_diversification_multiplier("EDOLLAR").tail(5)
@@ -423,9 +430,10 @@ my_account = Account()
 
 ## let's use naive markowitz to get more interesting results...
 my_config.forecast_weight_estimate=dict(method="one_period") 
+my_config.use_forecast_weight_estimates=True
 
-combiner_estimated = ForecastCombineEstimated()
-my_system = System([my_account, fcs, my_rules, combiner_estimated], data, my_config)
+combiner = ForecastCombine()
+my_system = System([my_account, fcs, my_rules, combiner], data, my_config)
 
 ## this is a bit slow, better to know what's going on
 my_system.set_logging_level("on")
@@ -599,6 +607,8 @@ my_config=Config(dict(trading_rules=dict(ewmac8=ewmac_8, ewmac32=ewmac_32), inst
 my_config
 ```
 
+Note we don't need to tell the config that we're not using estimation for forecast scalars, forecast weights and instrument weights; this is the default behaviour.
+
 ```
 Config with elements: base_currency, forecast_div_multiplier, forecast_scalars, forecast_weights, instrument_div_multiplier, instrument_weights, notional_trading_capital, percentage_vol_target, trading_rules
 ```
@@ -613,7 +623,7 @@ my_config=Config("systems.provided.example.simplesystemconfig.yaml")
 
 If you look at the YAML file you'll notice that the trading rule function has been specified as a string `systems.provided.example.rules.ewmac_forecast_with_defaults`. This is because we can't easily create a function in a YAML text file (*we can in theory; but it's quite a bit of work and creates a potential security risk*). Instead we specify where the relevant function can be found in the project directory structure. 
 
-Similarly for the ewmac8 rule we've specified a data source `data.get_instrument_price` which points to `system.data.get_instrument_price()`. This is the default, which is why we haven't needed to specify it before, and it isn't included in the specification for the ewmac32 rule. Equally we could specify any attribute and method within the system object, as long as it takes the argument `instrument_code`. We can also have a list of data inputs. This means you can configure almost any trading rule quite easily through configuration changes.
+Similarly for the ewmac8 rule we've specified a data source `data.daily_prices` which points to `system.data.daily_prices()`. This is the default, which is why we haven't needed to specify it before, and it isn't included in the specification for the ewmac32 rule. Equally we could specify any attribute and method within the system object, as long as it takes the argument `instrument_code`. We can also have a list of data inputs. This means you can configure almost any trading rule quite easily through configuration changes.
 
 
 

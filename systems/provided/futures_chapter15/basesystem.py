@@ -9,8 +9,8 @@ from sysdata.configdata import Config
 
 from systems.forecasting import Rules
 from systems.basesystem import System
-from systems.forecast_combine import ForecastCombineFixed
-from systems.forecast_scale_cap import ForecastScaleCapFixed
+from systems.forecast_combine import ForecastCombine
+from systems.forecast_scale_cap import ForecastScaleCap
 from systems.futures.rawdata import FuturesRawData
 from systems.positionsizing import PositionSizing
 from systems.portfolio import PortfoliosFixed
@@ -63,8 +63,8 @@ def futures_system(data=None, config=None, trading_rules=None, log_level="on"):
 
     rules = Rules(trading_rules)
 
-    system = System([Account(), PortfoliosFixed(), PositionSizing(), FuturesRawData(), ForecastCombineFixed(),
-                     ForecastScaleCapFixed(), rules], data, config)
+    system = System([Account(), PortfoliosFixed(), PositionSizing(), FuturesRawData(), ForecastCombine(),
+                     ForecastScaleCap(), rules], data, config)
     
     system.set_logging_level(log_level) 
 

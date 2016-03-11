@@ -10,6 +10,40 @@ from systems.defaults import system_defaults
 from systems.stage import SystemStage
 from systems.basesystem import ALL_KEYNAME
 
+class ForecastCombine(SystemStage):
+    """
+    Stage for combining forecasts (already capped and scaled)
+
+    This is a 'switching' class which selects eithier the fixed or the estimated flavours
+    
+    """
+    
+    def __init__(self):
+        setattr(self, "name", "combForecast")
+        setattr(self, "description", "unswitched")
+        
+    def _system_init(self, system):
+        """
+        When we add this stage object to a system, this code will be run
+        
+        It will determine if we use an estimate or a fixed class of object
+        """
+        if str2Bool(system.config.use_forecast_weight_estimates):
+            fixed_flavour=False
+        else:
+            fixed_flavour=True    
+        
+        if fixed_flavour:
+            self.__class__=ForecastCombineFixed
+            self.__init__()
+            setattr(self, "parent", system)
+
+        else:
+            self.__class__=ForecastCombineEstimated
+            self.__init__()
+            setattr(self, "parent", system)
+
+
 class ForecastCombineFixed(SystemStage):
     """
     Stage for combining forecasts (already capped and scaled)
@@ -39,6 +73,8 @@ class ForecastCombineFixed(SystemStage):
         setattr(self, "_protected", protected)
 
         setattr(self, "name", "combForecast")
+        setattr(self, "description", "Fixed")
+
 
     def get_forecast_cap(self):
         """
@@ -495,6 +531,8 @@ class ForecastCombineEstimated(ForecastCombineFixed):
 
         protected = ['get_forecast_correlation_matrices', 'calculation_of_forecast_weights']
         update_recalc(self, protected)
+
+        setattr(self, "description", "Estimated")
     
     
     
@@ -717,7 +755,7 @@ class ForecastCombineEstimated(ForecastCombineFixed):
         
         """
         
-        return self.parent.accounts.pandl_for_instrument_rules(instrument_code, percentage=True).to_frame()
+        return self.parent.accounts.pandl_for_instrument_rules(instrument_code).to_frame()
 
     def calculation_of_raw_forecast_weights(self, instrument_code):
         """

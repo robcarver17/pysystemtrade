@@ -19,6 +19,9 @@ forecast_scalar: 1.0
 #
 # with varying stuff
 #
+#
+use_forecast_scale_estimates: False
+#
 forecast_scalar_estimate:
    pool_instruments: True
    func: "syscore.algos.forecast_scalar"
@@ -52,6 +55,8 @@ forecast_div_mult_estimate:
    func: syscore.divmultipliers.diversification_multiplier_from_list
    ewma_span: 125   
    dm_max: 2.5
+#
+use_forecast_weight_estimates: False
 #
 forecast_weight_estimate:
    func: syscore.optimisation.GenericOptimiser
@@ -110,6 +115,8 @@ instrument_div_mult_estimate:
    func: syscore.divmultipliers.diversification_multiplier_from_list
    ewma_span: 125
    dm_max: 2.5
+#
+use_instrument_weight_estimates: False
 #
 instrument_weight_estimate:
    func: syscore.optimisation.GenericOptimiser

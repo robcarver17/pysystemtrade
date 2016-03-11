@@ -1,6 +1,10 @@
 # Release notes
 
+## Version 0.6.0
 
+  * dynamically change class depending on config flag to estimate parameters or not 
+  * add stage description field, and stage.methods() method
+  * add stage name to cache reference, always pass stage to caching function. Added cache methods to system which understand stages
 
 ## Version 0.5.2
 
@@ -92,16 +96,12 @@
 
 * Simulation:
 
-  * add stage name to cache reference, always pass stage to caching function. add methods to system which understand stages
-  * add stage description
   * add cross sectional carry rule and breakout rule
-  * autodetect if need to estimate parameters or not (need init within system method)
   * vol targeting with capital adjustment
   * quandl data
   * stitch futures contracts 
   * add new data from unstitched contracts (with explanatory post, include explanation for Nth contract stitching)
   * Create live config from a system object (Put final value of estimates into a yaml file) 
-  * Speed up optimisation and correlation estimates
   * database data
   * check systems have correct attributes; check turnover, minimum size, right forecast scalars (distribution across instruments) etc
 

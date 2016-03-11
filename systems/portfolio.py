@@ -7,6 +7,42 @@ from syscore.pdutils import multiply_df_single_column, fix_weights_vs_pdm, add_d
 from syscore.objects import update_recalc, resolve_function
 from syscore.genutils import str2Bool
 
+class Portfolios(SystemStage):
+    """
+    Stage for portfolios
+    
+    This is a 'switching' class which selects eithier the fixed or the estimated flavours
+    
+    """
+    
+    def __init__(self):
+        setattr(self, "name", "portfolio")
+        setattr(self, "description", "unswitched")
+        
+    def _system_init(self, system):
+        """
+        When we add this stage object to a system, this code will be run
+        
+        It will determine if we use an estimate or a fixed class of object
+        """
+        if str2Bool(system.config.use_instrument_weight_estimates):
+            fixed_flavour=False
+        else:
+            fixed_flavour=True    
+        
+        if fixed_flavour:
+            self.__class__= PortfoliosFixed
+            self.__init__()
+            setattr(self, "parent", system)
+
+        else:
+            self.__class__= PortfoliosEstimated
+            self.__init__()
+            setattr(self, "parent", system)
+
+
+
+
 class PortfoliosFixed(SystemStage):
     """
     Stage for portfolios
@@ -42,6 +78,7 @@ class PortfoliosFixed(SystemStage):
         setattr(self, "_protected", protected)
 
         setattr(self, "name", "portfolio")
+        setattr(self, "description", "fixed")
 
     def get_subsystem_position(self, instrument_code):
         """
@@ -487,6 +524,8 @@ class PortfoliosEstimated(PortfoliosFixed):
 
         protected = ['get_instrument_correlation_matrix']
         update_recalc(self, protected)
+
+        setattr(self, "description", "Estimated")
     
     
     def get_instrument_correlation_matrix(self):

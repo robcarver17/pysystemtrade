@@ -21,7 +21,7 @@ assetclasses=system.data.get_instrument_asset_classes()
 all_assets=list(set(assetclasses.values))
 
 #corrmat=system.portfolio.get_instrument_correlation_matrix().corr_list[-1]
-instruments=system.portfolio.get_instrument_correlation_matrix().columns
+instruments=system.get_instrument_list()
 max_positions=dict([(instrument_code, 2*float(system.positionSize.get_volatility_scalar(instrument_code)[-250:].mean())) 
                     for instrument_code in instruments]) 
 
@@ -127,7 +127,7 @@ suitable_instruments.pop(suitable_instruments.index("SHATZ"))
 while len(suitable_instruments)>0:
     suitable_asset_classes=which_asset_classes_next(my_portfolio, suitable_instruments, all_assets, assetclasses)
     best=choose_best_instrument(suitable_asset_classes,  suitable_instruments, assetclasses, max_positions)
-    print(best)
+    print('{0: <12} '.format(best), max_positions[best])
     
     my_portfolio.append(best)
     suitable_instruments.pop(suitable_instruments.index(best))

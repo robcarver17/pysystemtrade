@@ -4,6 +4,18 @@ Do fun things with objects and classes
 
 import importlib
 
+def get_methods(an_object):
+    dir_list = dir(an_object)
+    
+    ## remove "_"
+    
+    dir_list = [method_name for method_name in dir_list if method_name[0]!="_"]
+    
+    ## remove special
+    special_list=["log", "name", "parent", "description"]
+    dir_list = [method_name for method_name in dir_list if method_name not in special_list]
+    
+    return dir_list
 
 def resolve_function(func_or_func_name):
     """

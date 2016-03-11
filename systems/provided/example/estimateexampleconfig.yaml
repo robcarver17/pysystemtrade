@@ -1,4 +1,8 @@
 #YAML
+
+use_forecast_scale_estimates: True
+use_forecast_weight_estimates: True
+use_instrument_weight_estimates: True
 #
 # Raw data
 #

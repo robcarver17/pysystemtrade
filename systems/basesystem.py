@@ -77,7 +77,7 @@ class System(object):
             sub_name = stage.name
 
             # Each stage has a link back to the parent system
-            setattr(stage, "parent", self)
+            stage._system_init(self)
             
             # and a log
             log=log.setup(stage=sub_name)
@@ -94,6 +94,7 @@ class System(object):
 
             # list of attributes / methods of the stage which are protected
             stage_protected = getattr(stage, "_protected", [])
+            stage_protected = [(sub_name, protected_item) for protected_item in stage_protected]
             protected += stage_protected
 
         setattr(self, "_stage_names", stage_names)
@@ -117,7 +118,7 @@ class System(object):
 
     def __repr__(self):
         sslist = ", ".join(self._stage_names)
-        return "System with stages: " + sslist
+        return "System with .config, .data, and .stages: " + sslist
     
 
     def set_logging_level(self, new_log_level):
@@ -151,6 +152,8 @@ class System(object):
 
     """
     A cache lives inside each system object, storing preliminary results
+    
+    It's a dict, with keys that are tuples (stage name, item name)
 
     There are 3 kinds of things in a cache with different levels of persistence:
       - anything that isn't special
@@ -173,6 +176,11 @@ class System(object):
     def get_instrument_codes_for_item(self, itemname):
         item = self._cache.get(itemname, {})
         return item.keys()
+
+    def get_itemnames_for_stage(self, stagename):
+        cache_refs = [itemref for itemref in self._cache.keys() if stagename in itemref]
+
+        return cache_refs
 
     def get_items_for_instrument(self, instrument_code):
         """
@@ -198,12 +206,21 @@ class System(object):
 
         Will kill protected things as well
         """
-        self.log.msg("Deleting %s from cache" % itemname)
+        self.log.msg("Deleting %s %s from cache" % itemname)
 
         if itemname not in self._cache:
             return None
 
         return self._cache.pop(itemname)
+
+    def delete_items_for_stage(self, stagename, delete_protected=False):
+        itemnames = self.get_itemnames_for_stage( stagename)
+        
+        if not delete_protected:
+            ## want to protect stuff
+            itemnames = [iname for iname in itemnames if iname not in self.get_protected_items()]
+            
+        return [self.delete_item(iname) for iname in itemnames]
 
     def delete_items_for_instrument(self, instrument_code,
                                     delete_protected=False):
@@ -261,12 +278,12 @@ class System(object):
         
 
     def get_item_from_cache(
-            self, itemname, instrument_code=ALL_KEYNAME, keyname=None):
+            self, cache_ref, instrument_code=ALL_KEYNAME, keyname=None):
         """
         Get an item from the cache self._cache
 
-        :param itemname: The item to get
-        :type itemname: str
+        :param cache_ref: The item to get
+        :type cache_ref: 2 tuple of str
 
         :param instrument_code: The instrument to get it from
         :type instrument_code: str
@@ -277,36 +294,36 @@ class System(object):
         :returns: None or item
         """
 
-        if itemname not in self._cache:
+        if cache_ref not in self._cache:
             # no cache for this item yet
             return None
 
-        if instrument_code not in self._cache[itemname]:
+        if instrument_code not in self._cache[cache_ref]:
             return None
 
         if keyname is None:
             # one level dict, and we know we have an answer
-            return self._cache[itemname][instrument_code]
+            return self._cache[cache_ref][instrument_code]
         else:
-            if keyname not in self._cache[itemname][instrument_code]:
+            if keyname not in self._cache[cache_ref][instrument_code]:
                 # missing in nested dict
                 return None
 
             # nested dict and we have an answer
-            return self._cache[itemname][instrument_code][keyname]
+            return self._cache[cache_ref][instrument_code][keyname]
 
         # should never get here, failsafe
         return None
 
-    def _delete_item_from_cache(self, itemname, instrument_code=ALL_KEYNAME,
+    def _delete_item_from_cache(self, cache_ref, instrument_code=ALL_KEYNAME,
                                 keyname=None):
         """
         Delete an item from the cache self._cache
 
         Returns the deleted value, or None if not available
 
-        :param itemname: The item to get
-        :type itemname: str
+        :param cache_ref: The item to get
+        :type cache_ref: 2 tuple of str
 
         :param instrument_code: The instrument to get it from
         :type instrument_code: str
@@ -317,27 +334,27 @@ class System(object):
         :returns: None or item
         """
 
-        if itemname not in self._cache:
+        if cache_ref not in self._cache:
             return None
 
-        if instrument_code not in self._cache[itemname]:
+        if instrument_code not in self._cache[cache_ref]:
             return None
 
         if keyname is None:
             # one level dict, and we know we have an answer
-            return self._cache[itemname].pop(instrument_code)
+            return self._cache[cache_ref].pop(instrument_code)
         else:
-            if keyname not in self._cache[itemname][instrument_code]:
+            if keyname not in self._cache[cache_ref][instrument_code]:
                 # missing in nested dict
                 return None
 
             # nested dict and we have an answer
-            return self._cache[itemname][instrument_code].pop(keyname)
+            return self._cache[cache_ref][instrument_code].pop(keyname)
 
         # should never get here
         return None
 
-    def set_item_in_cache(self, value, itemname, instrument_code=ALL_KEYNAME,
+    def set_item_in_cache(self, value, cache_ref, instrument_code=ALL_KEYNAME,
                           keyname=None):
         """
         Set an item in a cache to a specific value
@@ -347,8 +364,8 @@ class System(object):
         :param value: The value to set to
         :type value: Anything (normally pd.frames or floats)
 
-        :param itemname: The item to set
-        :type itemname: str
+        :param cache_ref: The item to set
+        :type cache_ref: 2 tuple of str
 
         :param instrument_code: The instrument to set
         :type instrument_code: str
@@ -359,24 +376,24 @@ class System(object):
         :returns: None or item
         """
 
-        if itemname not in self._cache:
+        if cache_ref not in self._cache:
             # no cache for this item yet, let's set one up
-            self._cache[itemname] = dict()
+            self._cache[cache_ref] = dict()
 
         if keyname is None:
             # one level dict
-            self._cache[itemname][instrument_code] = value
+            self._cache[cache_ref][instrument_code] = value
         else:
             # nested
-            if instrument_code not in self._cache[itemname]:
+            if instrument_code not in self._cache[cache_ref]:
                 # missing dict let's add it
-                self._cache[itemname][instrument_code] = dict()
+                self._cache[cache_ref][instrument_code] = dict()
 
-            self._cache[itemname][instrument_code][keyname] = value
+            self._cache[cache_ref][instrument_code][keyname] = value
 
         return value
 
-    def calc_or_cache(self, itemname, instrument_code, func, *args, **kwargs):
+    def calc_or_cache(self, itemname, instrument_code, func, this_stage, *args, **kwargs):
         """
         Assumes that self._cache has an attribute itemname, and that is a dict
 
@@ -393,21 +410,26 @@ class System(object):
             instrument_code as first two args
         :type func: function
 
+        :param this_stage: stage within system that is calling us
+        :type this_stage: system stage
+
+
         :param args, kwargs: also passed to func if called
 
         :returns: contents of dict or result of calling function
 
 
         """
-        value = self.get_item_from_cache(itemname, instrument_code)
+        cache_ref=(this_stage.name, itemname)
+        value = self.get_item_from_cache(cache_ref, instrument_code)
 
         if value is None:
-            value = func(self, instrument_code, *args, **kwargs)
-            self.set_item_in_cache(value, itemname, instrument_code)
+            value = func(self, instrument_code, this_stage,  *args, **kwargs)
+            self.set_item_in_cache(value, cache_ref, instrument_code)
 
         return value
 
-    def calc_or_cache_nested(self, itemname, instrument_code, keyname, func,
+    def calc_or_cache_nested(self, itemname, instrument_code, keyname, func, this_stage, 
                              *args, **kwargs):
         """
         Assumes that self._cache has a key itemname, and that is a nested dict
@@ -433,16 +455,21 @@ class System(object):
             instrument_code, keyname as first three args
         :type func: function
 
+        :param this_stage: stage within system that is calling us
+        :type this_stage: system stage
+
         :param args, kwargs: also passed to func if called
 
         :returns: contents of dict or result of calling function
         """
 
-        value = self.get_item_from_cache(itemname, instrument_code, keyname)
+        cache_ref=(this_stage.name, itemname)
+
+        value = self.get_item_from_cache(cache_ref, instrument_code, keyname)
 
         if value is None:
-            value = func(self, instrument_code, keyname, *args, **kwargs)
-            self.set_item_in_cache(value, itemname, instrument_code, keyname)
+            value = func(self, instrument_code, keyname, this_stage, *args, **kwargs)
+            self.set_item_in_cache(value, cache_ref, instrument_code, keyname)
 
         return value
 

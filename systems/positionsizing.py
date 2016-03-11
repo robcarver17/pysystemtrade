@@ -45,6 +45,12 @@ class PositionSizing(SystemStage):
         setattr(self, "_protected", protected)
 
         setattr(self, "name", "positionSize")
+        setattr(self, "description", "")
+
+    def _system_init(self, system):
+        ## method called once we have a system
+        setattr(self, "parent", system)
+
 
     def get_combined_forecast(self, instrument_code):
         """
@@ -101,7 +107,7 @@ class PositionSizing(SystemStage):
         2015-12-11  0.059724
         """
 
-        def _get_price_volatility(system, instrument_code):
+        def _get_price_volatility(system, instrument_code, this_stage_notused):
             if hasattr(system, "rawdata"):
                 daily_perc_vol = system.rawdata.get_daily_percentage_volatility(
                     instrument_code)
@@ -114,7 +120,7 @@ class PositionSizing(SystemStage):
             return daily_perc_vol
 
         price_volatility = self.parent.calc_or_cache(
-            'get_price_volatility', instrument_code, _get_price_volatility)
+            'get_price_volatility', instrument_code, _get_price_volatility, self)
 
         return price_volatility
 

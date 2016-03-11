@@ -46,12 +46,18 @@ class Rules(SystemStage):
 
         """
         setattr(self, "name", "rules")
+        setattr(self, "description", "")
 
         # We won't have trading rules we can use until we've parsed them
         setattr(self, "_trading_rules", None)
 
         # ... store the ones we've been passed for now
         setattr(self, "_passed_trading_rules", trading_rules)
+        
+    def _system_init(self, system):
+        ## method called once we have a system
+        setattr(self, "parent", system)
+
 
     def __repr__(self):
         trading_rules = self._trading_rules

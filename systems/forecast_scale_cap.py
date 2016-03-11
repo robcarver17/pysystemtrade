@@ -10,6 +10,41 @@ from syscore.genutils import str2Bool
 from syscore.pdutils import apply_cap, multiply_df_single_column
 from syscore.objects import resolve_function
 
+class ForecastScaleCap(SystemStage):
+    """
+    Stage for scaling and capping
+
+    This is a 'switching' class which selects eithier the fixed or the estimated flavours
+    
+    """
+    
+    def __init__(self):
+        setattr(self, "name", "forecastScaleCap")
+        setattr(self, "description", "unswitched")
+        
+    def _system_init(self, system):
+        """
+        When we add this stage object to a system, this code will be run
+        
+        It will determine if we use an estimate or a fixed class of object
+        """
+        if str2Bool(system.config.use_forecast_scale_estimates):
+            fixed_flavour=False
+        else:
+            fixed_flavour=True    
+        
+        if fixed_flavour:
+            self.__class__=ForecastScaleCapFixed
+            self.__init__()
+            setattr(self, "parent", system)
+
+        else:
+            self.__class__=ForecastScaleCapEstimated
+            self.__init__()
+            setattr(self, "parent", system)
+
+
+
 class ForecastScaleCapFixed(SystemStage):
     """
     Create a SystemStage for scaling and capping forecasting
@@ -40,6 +75,7 @@ class ForecastScaleCapFixed(SystemStage):
         setattr(self, "_protected", protected)
 
         setattr(self, "name", "forecastScaleCap")
+        setattr(self, "description", "fixed")
 
     def get_raw_forecast(self, instrument_code, rule_variation_name):
         """
@@ -131,7 +167,7 @@ class ForecastScaleCapFixed(SystemStage):
 
         return float(forecast_scalar)
 
-    def get_forecast_cap(self,):
+    def get_forecast_cap(self):
         """
         Get forecast cap
 
@@ -157,13 +193,13 @@ class ForecastScaleCapFixed(SystemStage):
 
         """
 
-        def _get_forecast_cap(system, not_used):
+        def _get_forecast_cap(system, not_used, this_stage_not_used):
             # Try the config file else defaults
             
             return system.config.forecast_cap
 
         forecast_cap = self.parent.calc_or_cache(
-            "get_forecast_cap", ALL_KEYNAME, _get_forecast_cap)
+            "get_forecast_cap", ALL_KEYNAME, _get_forecast_cap, self)
 
         return forecast_cap
 
@@ -267,6 +303,19 @@ class ForecastScaleCapEstimated(ForecastScaleCapFixed):
 
     Name: forecastScaleCap
     """
+
+    def __init__(self):
+        """
+        Create a SystemStage for scaling and capping forecasting
+
+        Using Fixed capping and scaling
+
+        :returns: None
+
+        """
+        super(ForecastScaleCapEstimated, self).__init__()
+
+        setattr(self, "description", "Estimated")
 
 
     def get_forecast_scalar(self, instrument_code, rule_variation_name):

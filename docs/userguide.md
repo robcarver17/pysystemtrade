@@ -33,6 +33,8 @@ system.portfolio.get_notional_position("EDOLLAR")
 
 See [estimated futures system](#futures_system).
 
+Warning: Be careful about changing a system from estimated to non estimated 'on the fly' by varying the estimation parameters (in the form use_*_estimates). See [persistence of 'switched' stage objects](#switch_persistence) for more information.
+
 
 ## How do I....See intermediate results from a backtest
 
@@ -44,7 +46,7 @@ system=futures_system()
 system.rules.get_raw_forecast("EDOLLAR", "ewmac64_256")
 ```
 
-For a complete list of possible intermediate results, see [this table](#table_system_stage_methods) and look for rows marked with **D** for diagnostic.
+For a complete list of possible intermediate results, see [this table](#table_system_stage_methods) and look for rows marked with **D** for diagnostic. Alternatively type `system` to get a list of stages, and `system.stagename.methods()` to get a list of methods for a stage (insert the name of the stage, not stagename).
 
 
 ## How do I....See how profitable a backtest was
@@ -267,7 +269,7 @@ system=futures_system(config=new_config)
 ## How do I....Create my own trading rule
 </a>
 
-At some point you should read the relevant guide section ['rules'](#rules) as there is much more to this subject than I will explain briefly here.
+At some point you should read the relevant guide section ['rules'](#TradingRules) as there is much more to this subject than I will explain briefly here.
 
 
 ### Writing the function
@@ -314,13 +316,13 @@ from systems.futures.rules import ewmac
 
 Can also be referenced like so: `systems.futures.rules.ewmac`
 
-Also note that the list of data for the rule will also be in the form of string references to methods in the system object. So for example to get the daily price we'd use the method `system.rawdata.daily_prices(instrument_code)` (for a list of all the data methods in a system see [stage methods](#table_system_stage_methods) ). In the trading rule specification this would be shown as "rawdata.daily_prices". 
+Also note that the list of data for the rule will also be in the form of string references to methods in the system object. So for example to get the daily price we'd use the method `system.rawdata.daily_prices(instrument_code)` (for a list of all the data methods in a system see [stage methods](#table_system_stage_methods) or type `system.rawdata.methods()` and `system.rawdata.methods()). In the trading rule specification this would be shown as "rawdata.daily_prices". 
 
 If no data is included, then the system will default to passing a single data item - the price of the instrument. Finally if any or all the `other_arg` keyword arguments are missing then the function will use it's own defaults.
  
-At this stage we can also remove any trading rules that we don't want. We also ought to modify the forecast scalars (See [forecast scale estimation](#scalar_estimate]), forecast weights and probably the forecast diversification multiplier ( see [estimating the forecast diversification multiplier](#divmult)). If you're using `ForecastScaleCapEstimated` (i.e. in the pre-baked estimated futures system provided) this will be automatic.
+At this stage we can also remove any trading rules that we don't want. We also ought to modify the forecast scalars (See [forecast scale estimation](#scalar_estimate]), forecast weights and probably the forecast diversification multiplier ( see [estimating the forecast diversification multiplier](#divmult)). If you're estimating weights and scalars (i.e. in the pre-baked estimated futures system provided) this will be automatic.
 
-*If you're using the stage `ForecastScaleCapFixed` (the default) then if you don't include a forecast scalar for the rule, it will use a value of 1.0. If you don't include forecast weights in your config then the system will default to equally weighting. But if you include forecast weights, but miss out the new rule, then it won't be used to calculate the combined forecast.*
+*If you're using fixed values (the default) then if you don't include a forecast scalar for the rule, it will use a value of 1.0. If you don't include forecast weights in your config then the system will default to equally weighting. But if you include forecast weights, but miss out the new rule, then it won't be used to calculate the combined forecast.*
 
 Here's an example for a new variation of the EWMAC rule. This rule uses two types of data - the price (stitched for futures), and a precalculated estimate of volatility.
 
@@ -353,6 +355,8 @@ forecast_div_multiplier=1.5
 #
 ## Alternatively if you're estimating these quantities use this section:
 #
+use_forecast_weight_estimates: True
+use_forecast_scale_estimates: True
 rule_variations:
      EDOLLAR: ['ewmac16_64','ewmac32_128', 'ewmac64_256', 'new_rule']
 #
@@ -387,6 +391,8 @@ config.forecast_div_multiplier=1.5
 
 ## If you're using estimates
 
+config.use_forecast_scale_estimates=True
+config.use_forecast_weight_estimates=True
 config.rule_variations=['ewmac16_64','ewmac32_128', 'ewmac64_256', 'new_rule']
 # or
 config.rule_variations=dict(SP500=['ewmac16_64','ewmac32_128', 'ewmac64_256', 'new_rule'], ....)
@@ -439,7 +445,7 @@ If you want to use a different set of data values (eg equity EP ratios, interest
 
 To remain organised it's good practice to save any work into a directory like `pysystemtrade/private/this_system_name/` (you'll need to create a couple of directories first). If you plan to contribute to github, just be careful to avoid adding 'private' to your commit ( [you may want to read this](https://24ways.org/2013/keeping-parts-of-your-codebase-private-on-github/) ). 
 
-Because instances of **System()** encapsulate the data and functions you need, you can *pickle* them (but you might want to read about [system caching](#caching) before you reload them). 
+Because instances of **System()** encapsulate the data and functions you need, you can *pickle* them at least in theory (but you might want to read about [system caching](#caching) before you reload them). 
 
 ```python
 from systems.provided.futures_chapter15.basesystem import futures_system
@@ -452,7 +458,7 @@ with open(filename, 'wb') as outfile:
    pickle.dump(system)    
 ```
 
-[This is the theory. In practice pickling complex objects seems to cause bad things to happen...]
+[This is the theory. In practice pickling complex objects seems to cause bad things to happen and the results may be unreliable]
 
 You can also save a config object into a yaml file - see [saving configuration](#save_config).
 
@@ -493,6 +499,8 @@ from sysdata.csvdata import csvFuturesData
 data=csvFuturesData()
 
 ## getting data out
+data.methods() ## list of methods
+
 data.get_instrument_price(instrument_code)
 data[instrument_code] ## does the same thing as get_instrument_price
 
@@ -535,6 +543,7 @@ data=csvFuturesData()
 data=csvFuturesData("private.system_name.data")  ## assuming you've created data in pysystemtrade/private/system_name/data/
 
 ## getting data out
+data.methods() ## will list any extra methods
 data.get_instrument_raw_carry_data(instrument_code) ## specific data for futures
 
 ## using with a system
@@ -775,7 +784,7 @@ I recommend that you do not change these defaults. It's better to use the settin
 #### Handling defaults when you change certain functions
 </a>
 
-In certain places you can change the function used to do a particular calculation, eg volatility estimation (This does *not* include trading rules). This is straightforward if you're going to use the same arguments as the original argument. However if you change the arguments you'll need to change the project defaults .yaml file. I recommend keeping the original parameters, and adding new ones with different names, to avoid accidentally breaking the system.
+In certain places you can change the function used to do a particular calculation, eg volatility estimation (This does *not* include trading rules - the way we change the functions for these is quite different). This is straightforward if you're going to use the same arguments as the original argument. However if you change the arguments you'll need to change the project defaults .yaml file. I recommend keeping the original parameters, and adding new ones with different names, to avoid accidentally breaking the system.
 
 
 <a name="defaults_how">
@@ -789,6 +798,42 @@ This will also happen if you miss anything from a dict within the config (eg if 
 
 This stops at two levels, and only works for dicts and nested dicts.
 
+Note this means that the config before, and after, it goes into a system object will probably be different; the latter will be populated with defaults.
+
+```python
+from sysdata.configdata import Config
+my_config_dict=Config() 
+print(my_config) ## empty config
+```
+
+```
+ Config with elements: 
+```
+
+Now within a system:
+
+```python
+from systems.provided.futures_chapter15.basesystem import futures_system
+system=futures_system(config=my_config)
+
+print(system.config) ## full of defaults. 
+print(my_config) ## same object
+```
+
+```
+ Config with elements: average_absolute_forecast, base_currency, buffer_method, buffer_size, buffer_trade_to_edge, forecast_cap, forecast_correlation_estimate, forecast_div_mult_estimate, forecast_div_multiplier, forecast_scalar, forecast_scalar_estimate, forecast_weight_estimate, instrument_correlation_estimate, instrument_div_mult_estimate, instrument_div_multiplier, instrument_weight_estimate, notional_trading_capital, percentage_vol_target, use_SR_costs, use_forecast_scale_estimates, use_forecast_weight_estimates, use_instrument_weight_estimates, volatility_calculation
+```
+
+Note this isn't enough for a working trading system as trading rules aren't populated by the defaults:
+
+
+```python
+system.accounts.portfolio()
+```
+
+```
+Exception: A system config needs to include trading_rules, unless rules are passed when object created
+```
 
 
 ### Viewing configuration parameters
@@ -937,7 +982,7 @@ It shouldn't be neccessary to modify the configuration class since it's delibera
 ## System
 </a>
 
-A instance of a system object consists of a number of **stages**, some **data**, and normally a **config** object.
+An instance of a system object consists of a number of **stages**, some **data**, and normally a **config** object.
 
 
 ### Pre-baked systems
@@ -961,9 +1006,8 @@ Finally we can also create our own [trading rules object](#rules), and pass that
 
 ```python
 my_rules=dict(rule=a_new_rule) 
-system=futures_system(trading_rules=my_rules) ## we probably need a new configuration as well here if we're changing forecast weights
+system=futures_system(trading_rules=my_rules) ## we probably need a new configuration as well here if we're using fixed forecast weights
 ```
-
 
 
 <a name="futures_system">
@@ -987,9 +1031,11 @@ config=Config("systems.provided.futures_chapter15.futuresconfig.yaml") ## or the
 ## Optionally the user can provide trading_rules (something which can be parsed as a set of trading rules); however this defaults to None in which case
 ##     the rules in the config will be used.
 
-system=System([Account(), PortfoliosFixed(), PositionSizing(), FuturesRawData(), ForecastCombineFixed(), 
-                   ForecastScaleCapFixed(), Rules(trading_rules)], data, config)
+system=System([Account(), PortfoliosFixed(), PositionSizing(), FuturesRawData(), ForecastCombine(), 
+                   ForecastScaleCap(), Rules(trading_rules)], data, config)
 ```
+
+Warning: Be careful about changing a system from estimated to non estimated 'on the fly' by varying the estimation parameters (in the form use_*_estimates). See [persistence of 'switched' stage objects](#switch_persistence) for more information.
 
 <a name="estimated_system">
 #### [Futures system for chapter 15](/systems/provided/futures_chapter15/estimatedsystem.py)
@@ -1014,9 +1060,13 @@ config=Config("systems.provided.futures_chapter15.futuresconfig.yaml") ## or the
 ## Optionally the user can provide trading_rules (something which can be parsed as a set of trading rules); however this defaults to None in which case
 ##     the rules in the config will be used.
 
-system=System([Account(), PortfoliosEsimated(), PositionSizing(), FuturesRawData(), ForecastCombineEstimated(), 
-                   ForecastScaleCapEstimated(), Rules(trading_rules)], data, config)
+system=System([Account(), PortfoliosEsimated(), PositionSizing(), FuturesRawData(), ForecastCombine(), 
+                   ForecastScaleCap(), Rules(trading_rules)], data, config)
 ```
+
+The key configuration differences from the standard system are that the estimation parameters `use_forecast_scale_estimates`, `use_forecast_weight_estimates` and `use_instrument_weight_estimates` are all set to `True`.
+
+Warning: Be careful about changing a system from estimated to non estimated 'on the fly' by varying the estimation parameters (in the form use_*_estimates). See [persistence of 'switched' stage objects](#switch_persistence) for more information.
 
 
 ### Using the system object
@@ -1038,7 +1088,14 @@ We can also access the methods in the data object that is part of every system:
 system.data.get_instrument_price("EDOLLAR")
 ```
 
-For a list of all the methods in a system and it's stages see [stage methods](#table_system_stage_methods).
+For a list of all the methods in a system and it's stages see [stage methods](#table_system_stage_methods). Alternatively:
+```python
+system ## lists all the stages
+system.accounts.methods() ## lists all the methods in a particular stage
+system.data.methods() ## also works for data
+```
+
+
 
 We can also access or change elements of the config object:
 
@@ -1049,11 +1106,11 @@ system.config.instrument_div_multiplier=1.2
 
 #### System methods
 
-Currently system only has two methods of it's own: 
+Currently system only has two methods of it's own (apart from those used for caching, described below): 
 
 `system.get_instrument_list()` This will get the list of instruments in the system, eithier from the config object if it contains instrument weights, or from the data object.
 
-`system.log` provides access to the system's log. See [logging](#logging) for more details.
+`system.log` and `system.set_logging_level()` provides access to the system's log. See [logging](#logging) for more details.
 
 <a name="caching">
 ### System Caching
@@ -1062,6 +1119,8 @@ Currently system only has two methods of it's own:
 Pulling in data and calculating all the various stages in a system can be a time consuming process. So the code supports caching. When we first ask for some data by calling a stage method, like `system.portfolio.get_notional_position("EDOLLAR")`, the system first checks to see if it has already pre-calculated this figure. If not then it will calculate the figure from scratch. This in turn may involve calculating preliminary figures that are needed for this position, unless they've already been pre-calculated. So for example to get a combined forecast, we'd already need to have all the individual forecasts from different trading rule variations for a particular instrument. Once we've calculated a particular data point, which could take some time, it is stored in the system object cache (along with any intermediate results we also calculated). The next time we ask for it will be served up immediately. 
 
 Most of the time you shouldn't need to worry about caching. If you're testing different configurations, or updating or changing your data, you just have to make sure you recreate the system object from scratch after each change. A new system object will have an empty cache.
+
+Cache labels 
 
 ```python
 from copy import copy
@@ -1072,6 +1131,8 @@ system.combForecast.get_combined_forecast("EDOLLAR")
 
 ## What's in the cache?
 system.get_items_for_instrument("EDOLLAR")
+
+## Note cache items are labelled with tuples: (stagename, itemname)
 
 ## Let's make a change to the config:
 system.config.forecast_div_multiplier=0.1
@@ -1109,12 +1170,13 @@ For example here are is how we'd check the cache after getting a notional positi
 ```python
 system.portfolio.get_notional_position("EDOLLAR")
 
-system.get_items_with_data() ## this list everything
+system.get_items_with_data() ## this list everything.
+system.get_itemnames_for_stage("portfolio") ## lists everything in a particular stage
 system.get_protected_items() ## lists protected items
 system.get_items_for_instrument("EDOLLAR") ## list items with data for an instrument
 system.get_items_across_system() ## list items that run across the whole system or multiple instruments
 
-system.get_instrument_codes_for_item("capped_forecast") ## lists all instruments with a capped forecast
+system.get_instrument_codes_for_item(('forecastScaleCap', 'get_capped_forecast')) ## lists all instruments with a capped forecast
 
 ```
 
@@ -1124,6 +1186,7 @@ Now if we want to selectively clear parts of the cache we could do one of the fo
 system.delete_items_for_instrument(instrument_code) ## deletes everything related to an instrument: NOT protected, or across system items
 system.delete_items_across_system() ## deletes everything that runs across the system; NOT protected, or instrument specific items
 system.delete_all_items() ## deletes all items relating to an instrument or across the system; NOT protected
+system.delete_items_for_stage(stagename) ## deletes all items in a particular stage, NOT protected
 
 ## Be careful with these:
 system.delete_items_for_instrument(instrument_code, delete_protected=True) ## deletes everything related to an instrument including protected; NOT across system items
@@ -1131,6 +1194,7 @@ system.delete_items_across_system(delete_protected=True) ## deletes everything i
 ## If you run these you will empty the cache completely:
 system.delete_item(itemname) ## delete everything in the cache for a paticluar item - including protected and across system items
 system.delete_all_items(delete_protected=True) ## deletes all items relating to an instrument or across the system - including protected items
+system.delete_items_for_stage(stagename, delete_protected=True) ## deletes all items in a particular stage - including protected items
 ```
 
 
@@ -1145,7 +1209,7 @@ A possible workflow might be:
 1. Create a basic version of the system, with all the instruments and trading rules that you need.
 2. Run a backtest. This will optimise the instrument and forecast weights, and estimate forecast scalars (to really speed things up here you could use a faster method like shrinkage. See the section on [optimisation](#optimisation) for more information.).
 3. Change and modify the system as desired. Make sure you change the config object that is embedded within the system. Don't create a new system object.
-4. After each change, run `system.delete_all_items()` before backtesting the system again. Anything that is protected won't be re-estimated, speeding up the process.
+4. After each change, run `system.delete_all_items()` before backtesting the system again. Anything that is protected won't be re-estimated, speeding up the process. 
 5. Back to step 3, until you're happy with the results (but beware of implicit overfitting!)
 6. run `system.delete_all_items(delete_protected=True)` or equivalently create a new system object
 7. Run a backtest. This will re-estimate everything from scratch for the final version of your system.
@@ -1216,13 +1280,13 @@ The golden rule is a particular value should only be cached once, in a single pl
 
 So the data object methods should never cache; they should just behave like 'pipes' passing data through to system stages on request. This saves the hassle of having to write methods which delete items in the data object cache as well as the system cache.
 
-Similarly most stages contain 'input' methods, which do no calculations but get the 'output' from an earlier stage and then 'serve' it to the rest of the stage. These exist to simplify changing the internal wiring of a stage and reduce the coupling between methods from different stages. These should also never cache; or again we'll be caching the same data multiple times. 
+Similarly most stages contain 'input' methods, which do no calculations but get the 'output' from an earlier stage and then 'serve' it to the rest of the stage. These exist to simplify changing the internal wiring of a stage and reduce the coupling between methods from different stages. These should also never cache; or again we'll be caching the same data multiple times ( see [stage wiring](#stage_wiring) ).
 
 You should cache as early as possible; so that all the subsequent stages that need that data item already have it. Avoid looping back, where a stage uses data from a later stage, as you may end up with infinite recursion. 
 
 The cache 'lives' in the parent system object in the attribute `system._cache`, *not* the stage with the relevant method. There are standard functions which will check to see if an item is cached in the system, and then call a function to calculate it if required (see below). To make this easier when a stage object joins a system it gains an attribute self.parent, which will be the 'parent' system. 
 
-The cache is a dictionary, whose keys are the item names. Item names should be the same as the methods that call them, eg `system.portfolio.get_notional_position()` caches to `system._cache['get_notional_position']`. Within each item element must be dictionaries, the keys of which are instrument codes. You can also nest dictionaries, as when we store forecasts for each instrument and trading rule variation.
+The cache is a dictionary, whose keys are 2 tuples of strings: (stage name, item name). Item names should be the same as the methods that call them, eg `system.portfolio.get_notional_position()` caches to `system._cache[('portfolio', 'get_notional_position')]`. Within each item element must be dictionaries, the keys of which are instrument codes. You can also nest dictionaries, as when we store forecasts for each instrument and trading rule variation.
 
 Think carefully about wether your method should create data that is protected from casual cache deletion. As a rule anything that cuts across instruments and / or changes slowly should be protected. Here are the current list of protected items:
 
@@ -1290,8 +1354,9 @@ class ForecastCombineFixed(SystemStage):
             return combined_forecast
         
         ## notice that self.parent will be the system object which contains the stage
-        ## Notice the caching method takes as arguments the item name (same as the method), instrument code, private function to call if we need to calculate
-        ##  'self' is an optional, *args argument. There can be others but it's relatively common for the private function to need access to the current stage
+        ## Notice the caching method takes as arguments the item name (same as the method), instrument code, private function to call 
+            if we need to calculate, and the system stage (self)
+        ##  There can be additional arguments
 
         combined_forecast=self.parent.calc_or_cache( 'get_combined_forecast', instrument_code,  _get_combined_forecast, self)
         return combined_forecast
@@ -1303,7 +1368,7 @@ class ForecastCombineFixed(SystemStage):
 And here is the [`calc_or_cache function`](/systems/basesystem.py). If it doesn't find the dictname as an attribute then it calls the calculation function (`_get_combined_forecast`) in this case, for which the stage object (self) is the only *arg (and which then becomes this_stage in the calculation function).
 
 ```python
-    def calc_or_cache(self, itemname, instrument_code, func, *args, **kwargs):
+    def calc_or_cache(self, itemname, instrument_code, func, this_stage, *args, **kwargs):
         """
         Assumes that self._cache has an attribute itemname, and that is a dict
         
@@ -1325,12 +1390,14 @@ And here is the [`calc_or_cache function`](/systems/basesystem.py). If it doesn'
         
         
         """
-        value=self.get_item_from_cache(itemname, instrument_code)
+        cache_ref=(this_stage.name, itemname)
+
+        value=self.get_item_from_cache(cache_ref, instrument_code)
         
         if value is None:
             
-            value=func(self, instrument_code, *args, **kwargs)
-            self.set_item_in_cache(value, itemname, instrument_code)
+            value=func(self, instrument_code, this_stage, *args, **kwargs)
+            self.set_item_in_cache(value, cache_ref, instrument_code)
         
         return value
 ```
@@ -1369,10 +1436,10 @@ Every rule variation for every instrument has a different scalar (or at least th
 
 Again if a calculation function (like `_get_forecast_scalar`) needs the current stage object (`self`) then we pass it in renaming it as `this_stage`.
 
-For reference here is [`calc_or_cache_nested`](/systems/basesystem.py). Notice that in the example above keyname is the rule_variation_name and the current stage (self) is the only *arg. 
+For reference here is [`calc_or_cache_nested`](/systems/basesystem.py). Notice that in the example above keyname is the rule_variation_name and there are no *args.
 
 ```python
-    def calc_or_cache_nested(self, itemname, instrument_code, keyname, func, *args, **kwargs):
+    def calc_or_cache_nested(self, itemname, instrument_code, keyname, func, this_stage, *args, **kwargs):
         """
         Assumes that self._cache has a key itemname, and that is a nested dict
         
@@ -1400,12 +1467,13 @@ For reference here is [`calc_or_cache_nested`](/systems/basesystem.py). Notice t
         
         
         """
-    
-        value=self.get_item_from_cache(itemname, instrument_code, keyname)
+        cache_ref=(this_stage.name, itemname)
+
+        value=self.get_item_from_cache(cache_ref, instrument_code, keyname)
         
         if value is None:        
-            value=func(self, instrument_code, keyname, *args, **kwargs)
-            self.set_item_in_cache(value, itemname, instrument_code, keyname)
+            value=func(self, instrument_code, keyname, this_stage, *args, **kwargs)
+            self.set_item_in_cache(value, cache_ref, instrument_code, keyname)
         
         return value
     
@@ -1436,11 +1504,11 @@ from sysdata.configdata import Config
 ## We now import all the stages we need
 from systems.forecasting import Rules
 from systems.basesystem import System
-from systems.forecast_combine import ForecastCombineFixed
-from systems.forecast_scale_cap import ForecastScaleCapFixed
+from systems.forecast_combine import ForecastCombine
+from systems.forecast_scale_cap import ForecastScaleCap
 from systems.futures.rawdata import FuturesRawData
 from systems.positionsizing import PositionSizing
-from systems.portfolio import PortfoliosFixed
+from systems.portfolio import Portfolios
 from systems.account import Account
 
 
@@ -1471,8 +1539,8 @@ def futures_system( data=None, config=None, trading_rules=None,  log_level="on")
     rules=Rules(trading_rules)
 
     ## build the system
-    system=System([Account(), PortfoliosFixed(), PositionSizing(), FuturesRawData(), ForecastCombineFixed(), 
-                   ForecastScaleCapFixed(), rules], data, config)
+    system=System([Account(), Portfolios(), PositionSizing(), FuturesRawData(), ForecastCombine(), 
+                   ForecastScaleCap(), rules], data, config)
 
     system.set_logging_level(log_level) 
 
@@ -1498,6 +1566,11 @@ from systems.forecasting import Rules
 from systems.basesystem import System
 data=None ## this won't do anything useful
 
+## This is preferred, except for Rules() (see [switching object persistence](#switch_persistence) )
+my_system=System([Rules()], data)
+
+
+## However this will also usually work  (see [switching object persistence](#switch_persistence) )
 my_rules=Rules() ## create an instance of this particular stage class
 my_system=System([my_rules], data)
 ```
@@ -1546,7 +1619,58 @@ system.rawdata.get_instrument_price("EDOLLAR").tail(5)
 `system.rawdata.log` provides access to the log for the stage rawdata, and so on. See [logging][#logging] for more details.
 
 
-<a name="stage_wiring">
+<a name="switch_persistence">
+### Switching classes and persistence
+</a>
+
+Mostly the system is agnostic between 
+
+```python
+from systems.provided.futures_chapter15.basesystem import *
+data = csvFuturesData()
+config = Config(
+            "systems.provided.futures_chapter15.futuresestimateconfig.yaml")
+
+## Option A:
+system = System([Account(), Portfolios(), PositionSizing(), FuturesRawData(), ForecastCombine(),
+                     ForecastScaleCap(), Rules()], data, config)
+
+## Option B:
+account=Account()
+portfolios=Portfolios()
+rawdata=FuturesRawData()
+combine=ForecastCombine()
+fcs=ForecastScaleCap()
+rules=Rules()
+psize=PositionSizing()
+
+system = System([account,portfolios, psize, rawdata, combine,
+                     fcs, rules], data, config)
+
+## Option C
+## You can also mix and match
+system = System([Account(), Portfolios(), PositionSizing(), FuturesRawData(), ForecastCombine(),
+                     ForecastScaleCap(), rules], data, config)
+
+```
+
+Indeed option B or C is often preferable when developing new [trading rules](#TradingRules).
+
+However you need to be careful with these 3 objects:
+
+```python
+## DO NOT DO THIS
+portfolios=Portfolios()
+combine=ForecastCombine()
+fcs=ForecastScaleCap()
+```
+
+I strongly recommend that you do not do this. The reason is that these objects dynamically switch into eithier an estimating or a fixed flavour once they become part of a system, depending on the value of `use_*_estimates` config paramters. If for some reasons you're switching between using fixed and estimated weights during a backtesting session, then you might expect that you just need to change the config, and of course create a new system object. However the above objects will retain their old status as fixed or estimated versions of the relevant class.
+
+So you need to remember to create brand new instances of the relevant stages (as I do in the introductory guide); or better still just create them within the system call.
+
+
+<a name="stage_wiring">'
 ### Stage 'wiring'
 </a>
 
@@ -1605,7 +1729,7 @@ def futures_system( data=None, config=None, trading_rules=None):
 
     ## build the system with different stages
     system=System([Account(), PortfoliosFixed(), PositionSizing(), FuturesRawData(), ForecastCombineEstimated(), 
-                   ForecastScaleCapFixed(), rules], data, config)
+                   ForecastScaleCapFixed(), Rules(trading_rules)], data, config)
     
     return system
 ```
@@ -1618,17 +1742,19 @@ If you're going to write a new stage (completely new, or to replace an existing 
 1. New stages should inherit from [`SystemStage`](/systems/stage/SystemStage)
 2. Modified stages should inherit from the existing stage you're modifying. For example if you create a new way of calculating forecast weights then you should inherit from [class `ForecastCombineFixed`](/systems/forecast_combine.py), and then override the `get_forecast_weights` method; whilst keeping the other methods unchanged. 
 3. New stages will need a unique name; this is stored in the object attribute `name`. They can then be accessed with `system.stage_name`
-4. Modified stages should use the same name as their parent, or the wiring will go haywire.
-5. Think about whether you need to protect part of the system cache for this stage output [system caching](#caching). To do this create a list in the attribute `_protected` with the item names you wish to protect.
-6. If you're inheriting from another stage be sure to add to it's list of protected items, rather than replacing it.
-7. Use non-cached input methods to get data from other stages. Be wary of accessing internal methods in other stages; try to stick to output methods only. 
-8. Use cached input methods to get data from the system data object (since this is the first time it will be cached). Again only access public methods of the system data object.
-9. Use cached methods for internal and output methods(see [system caching](#caching) ). Cache keys for items should be the same as the method name.
-10. Internal methods should be public if they could be used for diagnostics, otherwise prefix them with _ to make them private.
-11. The doc string for input and output methods should clearly identify them as such. This is to make viewing the wiring easier.
-12. The doc string at the head of the stage should specify the input methods (and where they take their input from), and the output methods
-13. The doc string should also explain what the stage does, and the name of the stage
-14. It can make sense to blend methods from existing stages, for example if you want to use fixed forecast weights but estimate the forecast div. multiplier dynamically you can create a copy of `ForecastCombineEstimated` which does not override the get_raw_forecast_weights method.
+4. Modified stages should use the same name as their parent, or the wiring will go haywire. They should however use a different description, which goes in the attribute `description` attribute.
+5. Consider using a [*switching*](#switch_persistence) stage like [class `ForecastCombine`](/systems/forecast_combine.py) (there are similar switches for forecast scaling and portfolios).
+6. Think about whether you need to protect part of the system cache for this stage output [system caching](#caching). To do this create a list in the attribute `_protected` with the item names you wish to protect.
+7. If you're inheriting from another stage be sure to add to it's list of protected items, rather than replacing it.
+8. Use non-cached input methods to get data from other stages. Be wary of accessing internal methods in other stages; try to stick to output methods only. 
+9. Use cached input methods to get data from the system data object (since this is the first time it will be cached). Again only access public methods of the system data object.
+10. Use cached methods for internal and output methods(see [system caching](#caching) ). Cache keys for items should be the same as the method name.
+11. If you want to store attributes within a stage, then prefix them with _ and include a method to access or change them. Otherwise the methods() method will return attributes as well as methods.
+12. Internal methods should be public if they could be used for diagnostics, otherwise prefix them with _ to make them private.
+13. The doc string for input and output methods should clearly identify them as such. This is to make viewing the wiring easier.
+14. The doc string at the head of the stage should specify the input methods (and where they take their input from), and the output methods
+15. The doc string should also explain what the stage does, and the name of the stage
+16. It can make sense to blend methods from existing stages, for example if you want to use fixed forecast weights but estimate the forecast div. multiplier dynamically you can create a copy of `ForecastCombineEstimated` which does not override the get_raw_forecast_weights method.
 
 Here's an example of a base class, to use as a template for new classes (annotated extract):
 
@@ -1664,6 +1790,8 @@ class ForecastScaleCapFixed(SystemStage):
 
         ## Set the name here
         setattr(self, "name", "forecastScaleCap")
+        setattr(self, "description", "Fixed")
+
     
     def get_raw_forecast(self, instrument_code, rule_variation_name):
         """
@@ -1793,6 +1921,10 @@ class FuturesRawData(RawData):
         
         protected=['method_to_be_protected'] ## the real class doesn't have anything here, this is just to show how it would work
         update_recalc(self,  protected)
+
+	## this will override the parent class. But the name will be the same.
+        setattr(self, "description", "Futures")
+
         
     def get_instrument_raw_carry_data(self, instrument_code):
         """
@@ -1894,8 +2026,46 @@ class FuturesRawData(RawData):
         """
 ```
                  
+Here's an example of a [switching class](#switch_persistence):
+
+class ForecastCombine(SystemStage):
+    """
+    Stage for combining forecasts (already capped and scaled)
+
+    This is a 'switching' class which selects eithier the fixed or the estimated flavours
+    
+    """
+    
+    def __init__(self):
+        setattr(self, "name", "combForecast")
+        setattr(self, "description", "unswitched") ## let the user know we don't know yet. This will be changed when we run _system_init.
+        
+    def _system_init(self, system):
+        """
+        When we add this stage object to a system, this code will be run
+        
+	It isn't required for non switched stage classes, since these will use the parent stage object method
+        This does: setattr(self, "parent", system)  and nothing else
+
+        Here it will determine if we use an estimate or a fixed class of object
+        """
+        if str2Bool(system.config.use_forecast_weight_estimates):
+            fixed_flavour=False
+        else:
+            fixed_flavour=True    
+        
+        if fixed_flavour:
+            self.__class__=ForecastCombineFixed  ## change the class
+            self.__init__()  ## init this instance. Note we could pass in arguments here from this class
+            setattr(self, "parent", system) ## required in all _system_init methods
+
+        else:
+            self.__class__=ForecastCombineEstimated
+            self.__init__()
+            setattr(self, "parent", system)
 
 
+Note that ForecastCombinedFixed and Estimated don't inherit from this class; instead the stage becomes transformed into an instance of one or the other
 
 New stage code should be included in a subdirectory of the systems package (as for [futures raw data](/systems/futures/) ) or in your [private directory](/private/).
 
@@ -1905,10 +2075,10 @@ The standard list of stages is as follows. The default class is given below, as 
 
 1. [Raw data:](#stage_rawdata) [class RawData](/systems/rawdata.py) `system.rawdata`
 2. [Forecasting:](#rules) [class Rules](/systems/forecasting.py) `system.rules` (chapter 7 of my book)
-3. [Scale and cap forecasts:](#stage_scale) [class ForecastScaleCapFixed](/systems/forecast_scale_cap.py) `system.forecastScaleCap`(chapter 7)
-4. [Combine forecasts:](#stage_combine) [class ForecastCombineFixed](/systems/forecast_combine.py) `system.combForecast` (chapter 8)
+3. [Scale and cap forecasts:](#stage_scale) [class ForecastScaleCap](/systems/forecast_scale_cap.py) `system.forecastScaleCap`(chapter 7)
+4. [Combine forecasts:](#stage_combine) [class ForecastCombine](/systems/forecast_combine.py) `system.combForecast` (chapter 8)
 5. [Calculate subsystem positions:](#position_scale) [class PositionSizing](/systems/positionsizing.py)  `system.positionSize` (chapters 9 and 10)
-6. [Create a portfolio across multiple instruments:](#stage_portfolio) [class PortfoliosFixed](/systems/portfolio.py) `system.portfolio` (chapter 11)
+6. [Create a portfolio across multiple instruments:](#stage_portfolio) [class Portfolios](/systems/portfolio.py) `system.portfolio` (chapter 11)
 7. [Calculate performance:](#accounts_stage) [class Account](/systems/account.py) `system.accounts`
 
 Each of these stages is described in more detail below.
@@ -2282,7 +2452,7 @@ system.rules.trading_rules()
 
 
 #############
-## add a rule
+## add a rule by accessing private attribute
 new_rule=TradingRule("systems.provided.futures_chapter15.rules.ewmac") ## any form of [TradingRule](#TradingRule) is fine here
 system.rules._trading_rules['new_rule']=new_rule 
 #############
@@ -2305,6 +2475,8 @@ system.rules._trading_rules['ewmac2_8']=modified_rule
 #############
 ## delete a rule (not recommended)
 ## Removing the rule from the set of fixed forecast_weights or rule_variations (used for estimating forecast_weights) would have the same effect - and you need to do this anyway
+## Rules which aren't in the list of variations or weights are not calculated, so there is no benefit in deleting a rule in terms of speed / space
+##
 system.rules._trading_rules.pop("ewmac2_8")
 #############
 
@@ -2313,13 +2485,17 @@ system.rules._trading_rules.pop("ewmac2_8")
 
 
 <a name="stage_scale">
-### Stage: Forecast scale and cap
+### Stage: Forecast scale and cap [ForecastScaleCap class](/systems/forecast_scale_cap.py)
 </a>
 
 This is a simple stage that performs two steps:
 
 1. Scale forecasts so they have the right average absolute value, by multipling raw forecasts by a forecast scalar
 2. Cap forecasts at a maximum value
+
+Warning: Be careful about changing a system from estimated to non estimated 'on the fly' by varying the estimation parameters (in the form use_*_estimates). See [persistence of 'switched' stage objects](#) for more information.
+
+This is a ["switching" class](#switch_persistence). If `config.use_forecast_scale_estimates` is False (default) we'll use the fixed flavour. Otherwise we'll use the estimated flavour.
 
 #### Using the standard [ForecastScaleCapFixed class](/systems/forecast_scale_cap.py)
 
@@ -2350,13 +2526,15 @@ YAML:
 forecast_cap: 20.0
 ```
 
+If entirely missing values of 1.0 and 20.0 are used for the scale and cap respectively.
+
 <a name="scalar_estimate">
 #### Calculating forecasting scaling on the fly with [ForecastScaleCapEstimated class](/systems/forecast_scale_cap.py)
 </a>
 
 See [this blog post](http://qoppac.blogspot.co.uk/2016/01/pysystemtrader-estimated-forecast.html).
 
-You may prefer to estimate your forecast scales from the available data. This is often neccessary if you have a new trading rule and have no idea at all what the scaling should be. To do this you need to use the `ForecastScaleCapEstimated` child class, rather than the fixed flavour. This inherits from the fixed base class, so capping works in exactly the same way, but replaces the method for get_forecast_scalar. It is included in the pre-baked [estimated futures system](#futures_system).
+You may prefer to estimate your forecast scales from the available data. This is often neccessary if you have a new trading rule and have no idea at all what the scaling should be. To do this you need to use the `ForecastScaleCapEstimated` child class, rather than the fixed flavour, by setting `config.use_forecast_scale_estimates=True`. This inherits from the fixed base class, so capping works in exactly the same way, but replaces the method for get_forecast_scalar. It is included in the pre-baked [estimated futures system](#futures_system). 
 
 All the config parameters needed are stored in `config.forecast_scalar_estimate`.
 
@@ -2385,10 +2563,13 @@ Note: The estimate is [cached](#caching) seperately for each instrument.
 Possible changes here could include putting in response functions (as described in [this AHL paper](http://papers.ssrn.com/sol3/papers.cfm?abstract_id=2695101) ).
 
 <a name="stage_combine">
-### Stage: Forecast combine
+### Stage: Forecast combine [ForecastCombine class](/systems/forecast_combine.py)
 </a>
 
 We now take a weighted average of forecasts using instrument weights, and multiply by the forecast diversification multiplier.
+
+This is a ["switching" class](#switch_persistence). If `config.use_forecast_weight_estimates` is False (default) we'll use the fixed flavour. Otherwise we'll use the estimated flavour.
+
 
 #### Using the standard [ForecastCombineFixed class](/systems/forecast_combine.py)
 
@@ -2438,7 +2619,8 @@ Note that the `get_combined_forecast` method in the standard fixed base class au
 
 #### Using the [ForecastCombineEstimated class](/systems/forecast_combine.py)
 
-This class currently estimates the correct diversification multiplier 'on the fly', and also estimate forecast weights. It is included in the pre-baked [estimated futures system](#futures_system).
+
+This class currently estimates the correct diversification multiplier 'on the fly', and also estimate forecast weights. It is included in the pre-baked [estimated futures system](#futures_system). We switch to it by setting `config.use_forecast_weight_estimates=True`.
 
 ##### Estimating the forecast weights
 
@@ -2481,12 +2663,15 @@ Note that the stage code tries to get the percentage volatility of an instrument
 In the future I'll update this stage to allow for variable capital.
 
 <a name="stage_portfolio">
-### Stage: Creating portfolios
+### Stage: Creating portfolios [Portfolios class](/systems/portfolio.py)
 </a>
 
 The instrument weights are used to combine different instruments together into the final portfolio (chapter eleven of my book). 
 
-#### Using the standard[PortfoliosFixed class](/systems/portfolio.py)
+This is a ["switching" class](#switch_persistence). If `config.use_instrument_weight_estimates` is False (default) we'll use the fixed flavour. Otherwise we'll use the estimated flavour.
+
+
+#### Using the standard [PortfoliosFixed class](/systems/portfolio.py)
 
 The standard class uses fixed weights and multiplier.
 
@@ -2503,9 +2688,12 @@ instrument_div_multiplier: 1.2
 
 Note that the `get_instrument_weights` method in the standard fixed base class automatically adjusts raw forecast weights if different instruments have different start dates for their price history and forecasts. It does not adjust the multiplier. This means that in the past the multiplier will probably be too high. 
 
+Warning: Be careful about changing a system from estimated to non estimated 'on the fly' by varying the estimation parameters (in the form use_*_estimates). See [persistence of 'switched' stage objects](#) for more information.
+
+
 #### Using the [PortfoliosEstimated class](/systems/portfolio.py)
 
-This class currently estimates the correct instrument diversification multiplier 'on the fly', and also estimates instrument weights. It is included in the pre-baked [estimated futures system](#futures_system).
+This class currently estimates the correct instrument diversification multiplier 'on the fly', and also estimates instrument weights. It is included in the pre-baked [estimated futures system](#futures_system). It is accessed by setting `config.use_instrument_weight_estimates=True`.
 
 ##### Estimating the instrument weights
 
@@ -2579,8 +2767,8 @@ The standard accounting class includes several useful methods:
 These classes share some useful arguments (all boolean):
 
 - `delayfill`: Assume we trade at the next days closing price. Always defaults to True (more conservative)
-- `roundpositions`: Round positions to nearest instrument block. defaults to True for portfolios and instruments, defaults to False for subsystems. Not used in `pandl_for_instrument_forecast`
-- `percentage`: Return the p&l as a percentage of notional capital, rather than in cash amounts. Defaults to True. 
+- `roundpositions`: Round positions to nearest instrument block. Defaults to True for portfolios and instruments, defaults to False for subsystems. Not used in `pandl_for_instrument_forecast` (always False)
+- `percentage`: Return the p&l as a percentage of notional capital, rather than in cash amounts. Defaults to True. Not used in in `pandl_for_instrument_forecast` (always False)
 
 All p&l methods return an object of type `accountCurve` (for instruments, subsystems and instrument forecasts) or `accountCurveGroup` (for portfolio). This inherits from a pandas data frame, so it can be plotted, averaged and so on. It also has some special methods. To see what they are use the `stats` method:
 
@@ -2996,8 +3184,11 @@ I've included a smoothing function, other wise jumps in the multiplier will caus
 ## Table of standard system.data and system.stage methods
 </a>
 
-The tables in this section list all the methods that can be used to get data out of a system and its 'child' stages. 
+The tables in this section list all the methods that can be used to get data out of a system and its 'child' stages. You can also use the methods() method:
 
+```python
+system.rawdata.methods() ## works for any stage or data
+```
 
 ### Explanation of columns
 
@@ -3031,6 +3222,7 @@ Private methods are excluded from this table.
 |:-------------------------:|:---------:|:---------------:|:----:|:--------------------------------------------------------------:|
 | `system.get_instrument_list`  | Standard  |                        |  D,O   | List of instruments available; eithier from config.instrument weights, config.instruments, or from data set|
 
+Other methods exist to access logging and cacheing.
 
 ### Data object
 
@@ -3283,6 +3475,20 @@ config.trading_rules=dict(ewmac2_8=dict(function="systems.futures.rules.ewmac", 
 
 ### Forecast scaling and capping stage
 
+Switch between fixed (default) and estimated versions as follows:
+
+YAML: (example) 
+```
+use_forecast_scale_estimates: True
+```
+
+Python (example)
+```python
+config.use_forecast_scale_estimates=True
+```
+
+
+
 #### Forecast scalar (fixed - using `class ForecastScaleCapFixed`)
 Represented as: dict of floats. Keywords: trading rule variation names.
 Default: 1.0
@@ -3366,6 +3572,19 @@ config.forecast_cap=20.0
 ```
 
 ### Forecast combination stage
+
+Switch between fixed (default) and estimated versions as follows:
+
+YAML: (example) 
+```
+use_forecast_weight_estimates: True
+```
+
+Python (example)
+```python
+config.use_forecast_weight_estimates=True
+```
+
 
 #### Forecast weights (fixed using `ForecastCombinedFixed`)
 Represented as: (a) dict of floats. Keywords: trading rule variation names.
@@ -3623,6 +3842,19 @@ config.base_currency="USD"
 ```
 
 ### Portfolio combination stage
+
+Switch between fixed (default) and estimated versions as follows:
+
+YAML: (example) 
+```
+use_instrument_weight_estimates: True
+```
+
+Python (example)
+```python
+config.use_instrument_weight_estimates=True
+```
+
 
 #### Instrument weights (fixed, using `PortfoliosFixed`)
 Represented as: dict of floats. Keywords: instrument_codes

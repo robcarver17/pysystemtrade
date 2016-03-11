@@ -484,7 +484,7 @@ class accountCurveSingleElementOneFreq(pd.DataFrame):
         return no_gains / (no_losses + no_gains)
 
     def rolling_ann_std(self, window=40):
-        y = pd.rolling_std(self.as_df, window, min_periods=4, center=True).to_frame()
+        y = pd.rolling_std(self.as_df(), window, min_periods=4, center=True).to_frame()
         return y * self._vol_scalar
 
     def stats(self):

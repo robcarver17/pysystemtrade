@@ -34,8 +34,11 @@ class RawData(SystemStage):
         """
 
         setattr(self, "name", "rawdata")
+        setattr(self, "description", "")
 
-
+    def _system_init(self, system):
+        ## method called once we have a system
+        setattr(self, "parent", system)
 
     def get_daily_prices(self, instrument_code):
         """

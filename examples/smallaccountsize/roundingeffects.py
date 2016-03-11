@@ -172,7 +172,7 @@ for instrument_code in all_instruments:
     all_accounts.append(accounts_this_instr)
     
 
-targetref=0 ## 0 is 1.0 target_max etc
+targetref=2 ## 0 is 1.0 target_max etc
 
 acc_names=["Arbitrary, unrounded", "Binary, unrounded", "Threshold, unrounded",
            "Arbitrary, round", "Binary, round", "Threshold, round"]
@@ -199,7 +199,7 @@ for accref in [1, 3, 5, 0, 2, 4]: ## 0 is system1_rounded and so on
         allresults_net.append(all_accounts[instridx][targetref][accref].net.weekly.ann_mean())
         allresults_costs.append(all_accounts[instridx][targetref][accref].costs.weekly.ann_mean())
         allresults_vol.append(all_accounts[instridx][targetref][accref].net.weekly.ann_std())
-        allresults_max_std.append(float(all_accounts[instridx][targetref][accref].net.weekly.rolling_ann_std().max()))
+        allresults_max_std.append(float(pd.rolling_std(all_accounts[instridx][targetref][accref].net.weekly.as_df(), 26, min_periods=4, center=True).max())*(52**.5))
         
         try:
             sharpe=all_accounts[instridx][targetref][accref].net.weekly.ann_mean() /                 all_accounts[instridx][targetref][accref].net.weekly.ann_std()
@@ -224,9 +224,9 @@ for accref in [1, 3, 5, 0, 2, 4]: ## 0 is system1_rounded and so on
     allaccresults['SR'].append(np.nanmean(allresults_sr))
     allaccresults['maxstd'].append(np.nanmean(allresults_max_std))
     
-    allstacknet=[x for x in allstacknet if not x==0.0]
-    allstackgross=[x for x in allstacknet if not x==0.0]
-    allstackcosts=[x for x in allstackcosts if not x==0.0]
+    #allstacknet=[x for x in allstacknet if not x==0.0]
+    #allstackgross=[x for x in allstacknet if not x==0.0]
+    #allstackcosts=[x for x in allstackcosts if not x==0.0]
     
     allstackresults['gross'].append(np.nanmean(allstackgross)*52)
     allstackresults['net'].append(np.nanmean(allstacknet)*52)

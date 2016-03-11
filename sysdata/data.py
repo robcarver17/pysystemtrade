@@ -1,6 +1,7 @@
 import pandas as pd
 from syslogdiag.log import logtoscreen
 from syscore.pdutils import divide_df_single_column
+from syscore.objects import get_methods
 
 class Data(object):
 
@@ -32,6 +33,9 @@ class Data(object):
     def __repr__(self):
         return "Data object with %d instruments" % len(
             self.get_instrument_list())
+
+    def methods(self):
+        return get_methods(self)
 
     def daily_prices(self, instrument_code):
         """
