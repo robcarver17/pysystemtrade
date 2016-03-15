@@ -8,13 +8,32 @@ from copy import copy
 import pandas as pd
 from pandas.tseries.offsets import BDay
 import numpy as np
-from scipy.stats import skew
+from scipy.stats import skew, ttest_rel
+import scipy.stats as stats
+import random
 
 from syscore.algos import robust_vol_calc
 from syscore.pdutils import add_df_single_column, multiply_df_single_column, divide_df_single_column, drawdown, index_match
 from syscore.dateutils import BUSINESS_DAYS_IN_YEAR, ROOT_BDAYS_INYEAR, WEEKS_IN_YEAR, ROOT_WEEKS_IN_YEAR
 from syscore.dateutils import MONTHS_IN_YEAR, ROOT_MONTHS_IN_YEAR
 
+def account_test(ac1, ac2):
+    """
+    Given two Account like objects performs a two sided t test
+    """
+    
+    common_ts=list(set(list(ac1.index)) & set(list(ac2.index)))
+    common_ts.sort()
+    
+    ac1_common=ac1.cumsum().reindex(common_ts, method="ffill").diff().values
+    ac2_common=ac2.cumsum().reindex(common_ts, method="ffill").diff().values
+    
+    missing_values=[idx for idx in range(len(common_ts)) 
+                    if (np.isnan(ac1_common[idx]) or np.isnan(ac2_common[idx]))]
+    ac1_common=[ac1_common[idx] for idx in range(len(common_ts)) if idx not in missing_values]
+    ac2_common=[ac2_common[idx] for idx in range(len(common_ts)) if idx not in missing_values]
+
+    return ttest_rel(ac1_common, ac2_common)
 
 """
 some defaults
@@ -327,6 +346,7 @@ def get_positions_from_forecasts(price, get_daily_returns_volatility, forecast,
 
     
 
+
 class accountCurveSingleElementOneFreq(pd.DataFrame):
     """
     A single account curve for one asset (instrument / trading rule variation, ...)
@@ -542,6 +562,8 @@ class accountCurveSingleElement(accountCurveSingleElementOneFreq):
 
     def __repr__(self):
         return super().__repr__()+ "\n Use object.freq.method() to access periods (freq=daily, weekly, monthly, annual) default: daily"
+
+
 
 
 class accountCurveSingle(accountCurveSingleElement):
@@ -842,10 +864,36 @@ class accountCurveGroupForType(accountCurveSingleElement):
 
     def get_stats(self, stat_method, freq="daily"):
         """
-        Returns a dict of stats, one per asset
+        Returns a stats_dict, one value per asset
         """
-        column_names=self.asset_columns
         
+        return statsDict(self, stat_method, freq)
+    
+    def time_weights(self):
+        """
+        Returns a dict, values are weights
+        """
+        def _len_nonzero(ac_curve):
+            return_df=ac_curve.as_df()
+            ans=len([x for x in return_df.values if not np.isnan(x)])
+            
+            return ans
+            
+        time_weights_dict=dict([(asset_name, _len_nonzero(ac_curve)) for (asset_name, ac_curve) 
+                  in zip(self.asset_columns, self.to_list)])
+        
+        total_weight=sum(time_weights_dict.values())
+        
+        time_weights_dict = dict([(asset_name, weight/total_weight) for (asset_name, weight) 
+                                  in time_weights_dict.items()])
+        
+        return time_weights_dict
+
+    
+class statsDict(dict):
+    def __init__(self, acgroup_for_type, stat_method, freq="daily"):
+        column_names=acgroup_for_type.asset_columns
+
         def _get_stat_from_acobject(acobject, stat_method, freq):
             
             freq_obj=getattr(acobject, freq)
@@ -853,11 +901,62 @@ class accountCurveGroupForType(accountCurveSingleElement):
             
             return stat_method_function()
         
-        ans=dict([(col_name, _get_stat_from_acobject(self[col_name], stat_method, freq)) 
-                  for col_name in column_names])
+        dict_values=[(col_name, _get_stat_from_acobject(acgroup_for_type[col_name], stat_method, freq)) 
+                  for col_name in column_names]
+
+        super().__init__(dict_values)
+        
+        ## We need to augment this with time weightings, in case they are needed
+                      
+        setattr(self, "time_weightings", acgroup_for_type.time_weights())
+    
+    def weightings(self, timeweighted=False):
+        """
+        Returns a dict of weightings
+        
+        Eithier equal weighting, or returns time_weightings
+        """
+        
+        if timeweighted:
+            return self.time_weightings
+        else:
+            return dict([(asset_name, 1.0/len(self.values())) for asset_name in self.keys()])
+            
+    
+    def mean(self, timeweighted=False):
+        wts=self.weightings(timeweighted)
+        ans=sum([asset_value*wts[asset_name] for (asset_name, asset_value) in self.items()])
         
         return ans
+    
+    def std(self, timeweighted=False):
+        wts=self.weightings(timeweighted)
+        avg=self.mean(timeweighted)
+        ans=sum([ wts[asset_name] * (asset_value - avg)**2 
+                 for (asset_name, asset_value) in self.items()])**.5
+        
+        return ans
+    
+    def tstat(self, timeweighted=False):
+        t_mean=self.mean(timeweighted)
+        t_std=self.std(timeweighted)
+        
+        if t_std==0.0:
+            return np.nan
+        
+        return t_mean / t_std
+    
+    def pvalue(self, timeweighted=False):
+        tstat=self.tstat(timeweighted)
+        n=len(self.values())
+        
+        if np.isnan(tstat) or n<2:
+            return np.nan
+        
+        pvalue=stats.t.sf(np.abs(tstat), n-1) ## one sided t statistic
 
+        return pvalue
+        
 class accountCurveGroup(accountCurveSingleElement):
     def __init__(self, acc_curve_list, asset_columns):
         """
@@ -950,6 +1049,101 @@ class accountCurveGroup(accountCurveSingleElement):
         actype=getattr(self, curve_type)
         
         return actype.to_frame()
+
+        
+    def stack(self):
+        """
+        Collapse instrument level data into a list of returns in a stack_returns object (pd.TimeSeries)
+        
+        We can bootstrap this or perform other statistics
+        """
+        
+        returnsStack(self.to_list)
+        
+class returnsStack(accountCurveSingle):
+    """
+    Create a stack of returns which we can bootstrap
+    """
+    def __init__(self, returns_list):
+        
+        ## Collapse indices to a single one
+        bs_index_to_use=[list(returns.index) for returns in returns_list]
+        bs_index_to_use=sum(bs_index_to_use, [])
+        bs_index_to_use=list(set(bs_index_to_use))
+        
+        bs_index_to_use.sort()
+
+        ## Collapse return lists
+        curve_type_list =["gross", "net", "costs"]
+        
+        def _collapse_one_curve_type(returns_list, curve_type):
+            collapsed_values = sum(
+               
+                           [list(getattr(returns, curve_type).iloc[:,0].values) 
+                            for returns in returns_list]
+               
+                                , [])
+            
+            
+            return collapsed_values
+        
+        collapsed_curves_values=dict([(curve_type, _collapse_one_curve_type(returns_list, curve_type))
+                                        for curve_type in curve_type_list])
+        
+        
+        ## We set this to an arbitrary index so we can make an account curve
+
+        gross_returns_df=pd.DataFrame(collapsed_curves_values["gross"], 
+                        pd.date_range(start=bs_index_to_use[0], periods=len(collapsed_curves_values["gross"]), freq="B"))
+
+        net_returns_df=pd.DataFrame(collapsed_curves_values["net"], 
+                        pd.date_range(start=bs_index_to_use[0], periods=len(collapsed_curves_values["net"]), freq="B"))
+
+        costs_returns_df=pd.DataFrame(collapsed_curves_values["costs"], 
+                        pd.date_range(start=bs_index_to_use[0], periods=len(collapsed_curves_values["costs"]), freq="B"))
+        
+        super().__init__(gross_returns_df, net_returns_df, costs_returns_df)
+
+        ## We need to store this for bootstrapping purposes
+        setattr(self, "_bs_index_to_use", bs_index_to_use)
+
+
+    def bootstrap(self, no_runs=50, length=None):
+        """
+        Create an accountCurveGroup object containing no_runs, each same length as the
+          original portfolio (unless length is set)
+        """
+        values_to_sample_from=dict(gross=list(getattr(self, "gross").iloc[:,0].values),
+                                   net=list(getattr(self, "net").iloc[:,0].values),
+                                   costs=list(getattr(self, "costs").iloc[:,0].values))
+        
+        size_of_bucket=len(self.index)
+        
+        if length is None:
+            index_to_use=self._bs_index_to_use
+            length=len(index_to_use)
+            
+        else:
+            index_to_use=pd.date_range(start=self._bs_index_to_use[0], periods=length, freq="B")
+        
+        bs_list=[]
+        for notUsed in range(no_runs):
+            sample=[int(round(random.uniform(0, size_of_bucket-1))) for notUsed2 in range(length)]
+            
+            ## each element of accountCurveGroup is an accountCurveSingle
+            bs_list.append(     
+                             accountCurveSingle(
+                               pd.DataFrame([values_to_sample_from["gross"][xidx] for xidx in sample], index=index_to_use),
+                               pd.DataFrame([values_to_sample_from["net"][xidx] for xidx in sample], index=index_to_use),
+                               pd.DataFrame([values_to_sample_from["costs"][xidx] for xidx in sample], index=index_to_use)
+
+                             )
+                           )
+        
+        asset_columns=["b%d" % idx for idx in range(no_runs)]
+        
+        return accountCurveGroup(bs_list, asset_columns)
+
 
 
 if __name__ == '__main__':

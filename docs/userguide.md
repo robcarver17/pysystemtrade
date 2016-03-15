@@ -2921,6 +2921,34 @@ acc_curve_group.get_stats("sharpe", curve_type="net") ## equivalent
 acc_curve_group.net.get_stats("sharpe", freq="daily") ## equivalent
 ```
 
+You can get summary statistics for these. These can eithier be simple averages across all assets, or time weighted by the amount of data each asset has.
+
+```python
+acc_curve_group.get_stats("sharpe").mean() ## get simple average of annualised sharpe ratios for net returns using daily data
+acc_curve_group.get_stats("sharpe").std(time_weighted=True) ## get time weighted standard deviation of sharpes across assets,  
+acc_curve_group.get_stats("sharpe").tstat(time_weighted=False) ## t tstatistic for average sharpe ratio
+acc_curve_group.get_stats("sharpe").pvalue(time_weighted=True) ## p value of t statistic of time weighted average sharpe ratio.
+
+```
+
+Sometimes it's useful to "stack" all the returns from different assets together, and perform statistical tests on those:
+
+```python
+stack=acc_curve_group.stack() ## looks like a very long history of returns for a single asset
+stack.net.weekly.sharpe() ## all this kind of stuff works
+boot=stack.bootstrap(no_runs=10) ## produce an accountCurveGroup object containing 10 bootstraps, each the same length as the original portfolio
+boot=stack.bootstrap(no_runs=10, length=250)  ## each account curve bootstrapped will be 250 business days long
+boot.net.get_stats("sharpe").pvalue() ## all this kind of stuff works. Time weighting isn't neccessary as all the same length
+```
+
+#### Comparing account curves
+
+Sometimes you might want to compare the performance of two systems, instruments or trading rules. The function `account_test(ac1, ac2)` can be used for this purpose. The two parameters can be anything that looks like an account curve, no matter where you got it from.
+
+When run it returns a two sided t-test statistic and p-value. This is done on the period of time that both objects are trading.
+
+Warning: The assumptions underlying a t-test may be violated for financial data. Use with care.
+
 <a name="costs">
 #### Costs
 </a>

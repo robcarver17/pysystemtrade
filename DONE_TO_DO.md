@@ -1,10 +1,16 @@
 # Release notes
 
+## Version 0.6.1
+
+* Added methods to accountCurveGroup.get_stats(): .mean(), .std(), .tstat(), .pvalue()
+* Added method to accountCurveGroup stack; stack object can also produce bootstrap
+* Added account_test(ac1, ac2) to produce a t-test statistic for any two account curve like objects.
+
 ## Version 0.6.0
 
-  * dynamically change class depending on config flag to estimate parameters or not 
-  * add stage description field, and stage.methods() method
-  * add stage name to cache reference, always pass stage to caching function. Added cache methods to system which understand stages
+* dynamically change class depending on config flag to estimate parameters or not 
+* add stage description field, and stage.methods() method 
+* add stage name to cache reference, always pass stage to caching function. Added cache methods to system which understand stages
 
 ## Version 0.5.2
 

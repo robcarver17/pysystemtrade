@@ -10,6 +10,7 @@ from syscore.dateutils import ROOT_BDAYS_INYEAR
 from syscore.pdutils import multiply_df_single_column, turnover
 from dis import Instruction
 
+
 class Account(SystemStage):
     """
     SystemStage for accounting

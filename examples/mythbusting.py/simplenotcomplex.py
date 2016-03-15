@@ -4,26 +4,13 @@ from matplotlib.pyplot import show, plot
 
 system=futures_system()
 
-## 
-
-price=system.data.daily_prices("BTP")
-overlay=pd.TimeSeries([float(price.values[-20]), float(price.values[-1])],index=[price.index[-20], price.index[-1]]) 
-overlay.columns=['one month return']
-ans=pd.concat([price, overlay], axis=1)
-ans.sort()
-ans.interpolate().plot()
-print(ans)
-show()
-
-from systems.forecasting import TradingRule
-from syscore.pdutils import divide_df_single_column
-
-def trading_rule_func(price, volatility, lookback):
-    ans=divide_df_single_column(price - price.shift(lookback), volatility, ffill=(False, True))
-    
-    return ans
-    
-
-draw_a_line=TradingRule(trading_rule_func, ["rawdata.get_daily_prices","rawdata.daily_returns_volatility"], other_args=dict(lookback=20))
 
 system=futures_system(trading_rules=dict(draw20=draw_a_line))
+system.config.use_forecast_scale_estimates=True
+system.config.forecast_weights=dict(draw20=1.0)
+del(system.config.instrument_weights) ## so we use all the markets we have
+del(system.config.forecast_weights) ## so we use all the trading rules we have
+system.rules.get_raw_forecast("BTP", "draw20").plot()
+show()
+
+system.accounts.forecast_turnover("BTP", "draw20")
