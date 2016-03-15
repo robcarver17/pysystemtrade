@@ -164,12 +164,12 @@ def pandl_with_data(price, trades=None, marktomarket=True, positions=None,
         trades_to_use = trades.trades.to_frame("trades")
         prices_to_use = trades.fill_price.to_frame("price").ffill()
 
+    if weighting is not None:
+        trades_to_use = multiply_df_single_column(
+            trades_to_use, weighting, ffill=(False, True))
+
     cum_trades = trades_to_use.cumsum().ffill()
     price_returns = prices_to_use.diff()
-
-    if weighting is not None:
-        cum_trades = multiply_df_single_column(
-            cum_trades, weighting, ffill=(False, True))
 
 
     instr_ccy_returns = multiply_df_single_column(

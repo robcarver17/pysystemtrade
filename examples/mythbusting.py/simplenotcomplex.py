@@ -16,13 +16,11 @@ system.config.instrument_weights=dict([(code, 1.0/len(instrument_list)) for code
 del(system.config.forecast_weights) ## not used anyway; so we have all trading rules
 
 for rule_name in trading_rules:
-    system.config.forecast_weights=dict([(rule_name, 1.0)])
     
     print(rule_name)
-    print(system.accounts.portfolio().t_test())
-    print(system.accounts.portfolio().sharpe())
-    
-    for stage_to_clear in ["accounts", "portfolio", "combForecast", "positionSize"]:
-        system.delete_items_for_stage(stage_to_clear, True)
+    print(system.accounts.pandl_for_trading_rule(rule_name).t_test())
+    print(system.accounts.pandl_for_trading_rule(rule_name).sharpe())
+    print(rule_name)
+    print("***********************")
         
         
