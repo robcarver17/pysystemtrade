@@ -54,7 +54,7 @@ def pandl_with_data(price, trades=None, marktomarket=True, positions=None,
           delayfill=True, roundpositions=False,
           get_daily_returns_volatility=None, forecast=None, fx=None,
           capital=None, ann_risk_target=None,
-          value_of_price_point=1.0):
+          value_of_price_point=1.0, weighting=None):
     
     """
     Calculate pandl for an individual position
@@ -116,6 +116,9 @@ def pandl_with_data(price, trades=None, marktomarket=True, positions=None,
     :param roundpositions: If calculating trades, should we round positions first?
     :type roundpositions: bool
 
+    :param weighting: Weighting scheme to multiply trades by (and thus returns)
+    :type weighting: pd.DataFrame 
+
     :returns: 5- Tuple (positions, trades, instr_ccy_returns,
                             base_ccy_returns, fx) all Tx1 pd.DataFrames
 
@@ -140,6 +143,7 @@ def pandl_with_data(price, trades=None, marktomarket=True, positions=None,
                                            capital,
                                            ann_risk_target)
 
+
     if marktomarket:
         # want to have both kinds of price
         prices_to_use = pd.concat(
@@ -162,6 +166,11 @@ def pandl_with_data(price, trades=None, marktomarket=True, positions=None,
 
     cum_trades = trades_to_use.cumsum().ffill()
     price_returns = prices_to_use.diff()
+
+    if weighting is not None:
+        cum_trades = multiply_df_single_column(
+            cum_trades, weighting, ffill=(False, True))
+
 
     instr_ccy_returns = multiply_df_single_column(
         cum_trades.shift(1), price_returns) * value_of_price_point

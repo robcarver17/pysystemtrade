@@ -856,6 +856,52 @@ class Account(SystemStage):
 
         return instr_pandl
 
+    def pandl_for_trading_rule(self, rule_variation_name, delayfill=True):
+        """
+        Get the p&l for one trading rule over multiple instruments; as % of arbitrary capital
+
+        Within the trading rule the instrument returns are weighted by instrument weight
+        
+        :param rule_variation_name: rule to get values for
+        :type rule_variation_name: str
+
+        :param delayfill: Lag fills by one day
+        :type delayfill: bool
+
+        :returns: accountCurve
+
+        """
+        def _pandl_for_trading_rule(
+                system, instrument_code_unused,  this_stage, rule_variation_name, delayfill):
+
+            this_stage.log.terse("Calculating pandl for trading rule %s" % rule_variation_name)
+            
+            instrument_list=system.get_instrument_list()
+            instrument_list=[instr_code for instr_code in instrument_list 
+                             if rule_variation_name in this_stage.get_trading_rule_list(instr_code)]
+            
+            instr_weights=this_stage.get_instrument_weights()
+
+            pandl_by_instrument=[this_stage.pandl_for_instrument_forecast(
+                                            instr_code, rule_variation_name, delayfill,
+                                            instr_weights[instr_code].to_frame(instr_code))
+                              for instr_code in instrument_list   
+                            ]
+            
+            pandl_rule = accountCurveGroup(pandl_by_instrument, instrument_list)
+            
+            return pandl_rule
+
+        itemname = "pandl_for_trading__rule_%s_delayfill%s" % (rule_variation_name, TorF(
+            delayfill))
+
+        pandl_trading_rule = self.parent.calc_or_cache(
+            itemname, ALL_KEYNAME, 
+            _pandl_for_trading_rule, self, rule_variation_name, delayfill)
+
+        return pandl_trading_rule
+
+
     def pandl_for_instrument_rules(self, instrument_code, delayfill=True):
         """
         Get the p&l for one instrument over multiple forecasts; as % of arbitrary capital
@@ -867,8 +913,6 @@ class Account(SystemStage):
         :param instrument_code: instrument to get values for
         :type instrument_code: str
 
-        :param rule_variation_name: rule to get values for
-        :type rule_variation_name: str
 
         :param delayfill: Lag fills by one day
         :type delayfill: bool
@@ -895,6 +939,7 @@ class Account(SystemStage):
                                             instrument_code, rule_variation_name, delayfill)
                               for rule_variation_name in forecast_rules   
                             ]
+            
             
             pandl_rules = accountCurveGroup(pandl_rules, forecast_rules)
             
@@ -943,7 +988,8 @@ class Account(SystemStage):
 
 
     def pandl_for_instrument_forecast(
-            self, instrument_code, rule_variation_name, delayfill=True):
+            self, instrument_code, rule_variation_name, delayfill=True,
+            weighting=None):
         """
         Get the p&l for one instrument and forecast; as % of arbitrary capital
 
@@ -958,6 +1004,9 @@ class Account(SystemStage):
         :param delayfill: Lag fills by one day
         :type delayfill: bool
 
+        :param weighting: Weights to use which will be multiplied by returns
+        :type weighting: pd.Dataframe
+
         :returns: accountCurve
 
         >>> from systems.basesystem import System
@@ -970,7 +1019,7 @@ class Account(SystemStage):
 
         """
         def _pandl_for_instrument_forecast(
-                system, instrument_code, rule_variation_name, this_stage, delayfill):
+                system, instrument_code, rule_variation_name, this_stage, delayfill, weighting):
 
             this_stage.log.msg("Calculating pandl for instrument forecast for %s %s" % (instrument_code, rule_variation_name),
                                instrument_code=instrument_code, rule_variation_name=rule_variation_name)
@@ -991,7 +1040,7 @@ class Account(SystemStage):
                                        roundpositions=False,
                                 value_of_price_point=1.0, capital=None,
                                 percentage=True, SR_cost=SR_cost, cash_costs=None,
-                                get_daily_returns_volatility=get_daily_returns_volatility)
+                                get_daily_returns_volatility=get_daily_returns_volatility, weighting = weighting)
 
             return pandl_fcast
 
@@ -1000,7 +1049,7 @@ class Account(SystemStage):
 
         pandl_fcast = self.parent.calc_or_cache_nested(
             itemname, instrument_code, rule_variation_name,
-            _pandl_for_instrument_forecast, self, delayfill)
+            _pandl_for_instrument_forecast, self, delayfill, weighting)
 
         return pandl_fcast
 

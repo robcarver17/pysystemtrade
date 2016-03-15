@@ -1,5 +1,10 @@
 # Release notes
 
+## Version 0.6.3
+
+* Added pandl_for_trading_rule method to accounts object.
+
+
 ## Version 0.6.2
 
 * Added t_test method to accountCurve (and all that inherit from her)

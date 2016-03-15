@@ -2761,16 +2761,17 @@ The standard accounting class includes several useful methods:
 - `pandl_for_instrument`: the contribution of a particular instrument to the p&l
 - `pandl_for_instrument_forecast`: work out how well a particular trading rule variation has done with a particular instrument
 - `pandl_for_subsystem`: work out how an instrument has done in isolation
+- `pandl_for_trading_rule`: how a trading rule has done over all instruments.
 
 (Note that [buffered](#buffer) positions are only used at the final portfolio stage; the positions for forecasts and subsystems are not buffered. So their trading costs may be a little overstated).
 
 These classes share some useful arguments (all boolean):
 
 - `delayfill`: Assume we trade at the next days closing price. Always defaults to True (more conservative)
-- `roundpositions`: Round positions to nearest instrument block. Defaults to True for portfolios and instruments, defaults to False for subsystems. Not used in `pandl_for_instrument_forecast` (always False)
-- `percentage`: Return the p&l as a percentage of notional capital, rather than in cash amounts. Defaults to True. Not used in in `pandl_for_instrument_forecast` (always False)
+- `roundpositions`: Round positions to nearest instrument block. Defaults to True for portfolios and instruments, defaults to False for subsystems. Not used in `pandl_for_instrument_forecast` or `pandl_for_trading_rule` (always False)
+- `percentage`: Return the p&l as a percentage of notional capital, rather than in cash amounts. Defaults to True. Not used in in `pandl_for_instrument_forecast` or `pandl_for_trading_rule`(always False)
 
-All p&l methods return an object of type `accountCurve` (for instruments, subsystems and instrument forecasts) or `accountCurveGroup` (for portfolio). This inherits from a pandas data frame, so it can be plotted, averaged and so on. It also has some special methods. To see what they are use the `stats` method:
+All p&l methods return an object of type `accountCurve` (for instruments, subsystems and instrument forecasts) or `accountCurveGroup` (for portfolio and trading rule). This inherits from a pandas data frame, so it can be plotted, averaged and so on. It also has some special methods. To see what they are use the `stats` method:
 
 ```python
 from systems.provided.futures_chapter15.basesystem import futures_system
@@ -2945,7 +2946,7 @@ boot.net.get_stats("sharpe").pvalue() ## all this kind of stuff works. Time weig
 
 If you want to know how significant the returns for an account curve are (no matter where you got it from), then use the method `accurve.t_test()`. This returns the two sided t-test statistic and p-value for a null hypothesis of a zero mean.
 
-Sometimes you might want to compare the performance of two systems, instruments or trading rules. The function `account_test(ac1, ac2)` can be used for this purpose. The two parameters can be anything that looks like an account curve, no matter where you got it from.
+Sometimes you might want to compare the performance of two systems, instruments or trading rules. The function `from syscore.accounting import account_test` can be used for this purpose. The two parameters can be anything that looks like an account curve, no matter where you got it from.
 
 When run it returns a two sided t-test statistic and p-value for the null hypothesis of identical means. This is done on the period of time that both objects are trading.
 
@@ -3393,6 +3394,7 @@ Other methods exist to access logging and cacheing.
 | `accounts.pandl_for_instrument`| Standard |  `instrument_code` | D | P&l for an instrument within a system|
 | `accounts.pandl_for_instrument_forecast`| Standard | `instrument_code`, `rule_variation_name` | D | P&l for a trading rule and instrument |
 | `accounts.pandl_for_instrument_rules`| Standard | `instrument_code` | D,O | P&l for all trading rules in an instrument |
+| `accounts.pandl_for_trading_rule`| Standard | `rule_variation_name` | D | P&l for a trading rule over all instruments |
 | `accounts.portfolio`| Standard |  | O,D | P&l for whole system |
 
 
