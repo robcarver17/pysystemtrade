@@ -1,5 +1,10 @@
 # Release notes
 
+## Version 0.6.2
+
+* Added t_test method to accountCurve (and all that inherit from her)
+
+
 ## Version 0.6.1
 
 * Added methods to accountCurveGroup.get_stats(): .mean(), .std(), .tstat(), .pvalue()

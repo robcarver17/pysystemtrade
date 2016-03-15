@@ -8,7 +8,7 @@ from copy import copy
 import pandas as pd
 from pandas.tseries.offsets import BDay
 import numpy as np
-from scipy.stats import skew, ttest_rel
+from scipy.stats import skew, ttest_rel, ttest_1samp
 import scipy.stats as stats
 import random
 
@@ -16,6 +16,8 @@ from syscore.algos import robust_vol_calc
 from syscore.pdutils import add_df_single_column, multiply_df_single_column, divide_df_single_column, drawdown, index_match
 from syscore.dateutils import BUSINESS_DAYS_IN_YEAR, ROOT_BDAYS_INYEAR, WEEKS_IN_YEAR, ROOT_WEEKS_IN_YEAR
 from syscore.dateutils import MONTHS_IN_YEAR, ROOT_MONTHS_IN_YEAR
+
+
 
 def account_test(ac1, ac2):
     """
@@ -506,6 +508,9 @@ class accountCurveSingleElementOneFreq(pd.DataFrame):
     def rolling_ann_std(self, window=40):
         y = pd.rolling_std(self.as_df(), window, min_periods=4, center=True).to_frame()
         return y * self._vol_scalar
+
+    def t_test(self):
+        return ttest_1samp(self.vals(), 0.0)
 
     def stats(self):
 

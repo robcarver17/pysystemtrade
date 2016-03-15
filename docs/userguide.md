@@ -2941,11 +2941,13 @@ boot=stack.bootstrap(no_runs=10, length=250)  ## each account curve bootstrapped
 boot.net.get_stats("sharpe").pvalue() ## all this kind of stuff works. Time weighting isn't neccessary as all the same length
 ```
 
-#### Comparing account curves
+#### Testing account curves
+
+If you want to know how significant the returns for an account curve are (no matter where you got it from), then use the method `accurve.t_test()`. This returns the two sided t-test statistic and p-value for a null hypothesis of a zero mean.
 
 Sometimes you might want to compare the performance of two systems, instruments or trading rules. The function `account_test(ac1, ac2)` can be used for this purpose. The two parameters can be anything that looks like an account curve, no matter where you got it from.
 
-When run it returns a two sided t-test statistic and p-value. This is done on the period of time that both objects are trading.
+When run it returns a two sided t-test statistic and p-value for the null hypothesis of identical means. This is done on the period of time that both objects are trading.
 
 Warning: The assumptions underlying a t-test may be violated for financial data. Use with care.
 
