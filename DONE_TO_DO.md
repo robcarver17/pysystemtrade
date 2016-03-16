@@ -1,5 +1,12 @@
 # Release notes
 
+
+## Version 0.6.4
+
+* Fixed weighting of account curves and introduced explicit flag for weighting
+* Added pandl_for_trading_rule_unweighted method to accounts object.
+
+
 ## Version 0.6.3
 
 * Added pandl_for_trading_rule method to accounts object.

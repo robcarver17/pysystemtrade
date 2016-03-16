@@ -54,7 +54,7 @@ def pandl_with_data(price, trades=None, marktomarket=True, positions=None,
           delayfill=True, roundpositions=False,
           get_daily_returns_volatility=None, forecast=None, fx=None,
           capital=None, ann_risk_target=None,
-          value_of_price_point=1.0, weighting=None):
+          value_of_price_point=1.0):
     
     """
     Calculate pandl for an individual position
@@ -164,13 +164,10 @@ def pandl_with_data(price, trades=None, marktomarket=True, positions=None,
         trades_to_use = trades.trades.to_frame("trades")
         prices_to_use = trades.fill_price.to_frame("price").ffill()
 
-    if weighting is not None:
-        trades_to_use = multiply_df_single_column(
-            trades_to_use, weighting, ffill=(False, True))
 
     cum_trades = trades_to_use.cumsum().ffill()
-    price_returns = prices_to_use.diff()
 
+    price_returns = prices_to_use.diff()
 
     instr_ccy_returns = multiply_df_single_column(
         cum_trades.shift(1), price_returns) * value_of_price_point
@@ -369,7 +366,7 @@ class accountCurveSingleElementOneFreq(pd.DataFrame):
     We never init these directly but only as part of accountCurveSingleElement
     
     """
-    def __init__(self, returns_df, frequency="D", name="account"):
+    def __init__(self, returns_df, weighted_flag=False, frequency="D", name="account"):
         """
         :param returns_df: series of returns
         :type returns_df: Tx1 pd.DataFrame
@@ -396,6 +393,7 @@ class accountCurveSingleElementOneFreq(pd.DataFrame):
         setattr(self, "_vol_scalar", vol_scalar)
         setattr(self, "_account_name", name)
         setattr(self, "_returns_df", returns_df)
+        setattr(self, "weighted_flag", weighted_flag)
 
     def as_df(self):
         return pd.DataFrame(self._returns_df)
@@ -541,7 +539,12 @@ class accountCurveSingleElementOneFreq(pd.DataFrame):
         return [build_stats, comment1]
 
     def __repr__(self):
-        return super().__repr__()+"\n Account curve; use object.stats() to see methods"
+        if self.weighted_flag:
+            weight_comment="Weighted"
+        else:
+            weight_comment="Unweighted"
+        return super().__repr__()+"\n %s account curve; use object.stats() to see methods" % weight_comment
+    
 
 
 class accountCurveSingleElement(accountCurveSingleElementOneFreq):
@@ -555,7 +558,7 @@ class accountCurveSingleElement(accountCurveSingleElementOneFreq):
     
     """
     
-    def __init__(self, returns_df, name="account"):
+    def __init__(self, returns_df, weighted_flag=False, name="account"):
         """
         :param returns_df: series of returns
         :type returns_df: Tx1 pd.DataFrame
@@ -567,12 +570,12 @@ class accountCurveSingleElement(accountCurveSingleElementOneFreq):
         monthly_returns=returns_df.resample("MS", how="sum")
         annual_returns=returns_df.resample("A", how="sum")
         
-        super().__init__(daily_returns)
+        super().__init__(daily_returns, frequency="D", name=name, weighted_flag=weighted_flag)
 
-        setattr(self, "daily", accountCurveSingleElementOneFreq(daily_returns, "D", name))
-        setattr(self, "weekly", accountCurveSingleElementOneFreq(weekly_returns, "W", name))
-        setattr(self, "monthly", accountCurveSingleElementOneFreq(monthly_returns, "M", name))
-        setattr(self, "annual", accountCurveSingleElementOneFreq(annual_returns, "Y", name))
+        setattr(self, "daily", accountCurveSingleElementOneFreq(daily_returns, frequency="D", name=name, weighted_flag=weighted_flag))
+        setattr(self, "weekly", accountCurveSingleElementOneFreq(weekly_returns, frequency="W", name=name, weighted_flag=weighted_flag))
+        setattr(self, "monthly", accountCurveSingleElementOneFreq(monthly_returns, frequency="M", name=name, weighted_flag=weighted_flag))
+        setattr(self, "annual", accountCurveSingleElementOneFreq(annual_returns, frequency="Y", name=name, weighted_flag=weighted_flag))
 
     def __repr__(self):
         return super().__repr__()+ "\n Use object.freq.method() to access periods (freq=daily, weekly, monthly, annual) default: daily"
@@ -589,24 +592,29 @@ class accountCurveSingle(accountCurveSingleElement):
     On the surface we see the 'net' but there's also a gross and cost part included
     
     """
-    def __init__(self, gross_returns, net_returns, costs):
+    def __init__(self, gross_returns, net_returns, costs, weighted_flag=False):
 
         
-        super().__init__(net_returns)
+        super().__init__(net_returns, name="net", weighted_flag=weighted_flag)
         
-        setattr(self, "net", accountCurveSingleElement(net_returns, "net"))
-        setattr(self, "gross", accountCurveSingleElement(gross_returns, "gross"))
-        setattr(self, "costs", accountCurveSingleElement(costs, "costs"))
+        setattr(self, "net", accountCurveSingleElement(net_returns, name="net", weighted_flag=weighted_flag))
+        setattr(self, "gross", accountCurveSingleElement(gross_returns, name="gross", weighted_flag=weighted_flag))
+        setattr(self, "costs", accountCurveSingleElement(costs, name="costs", weighted_flag=weighted_flag))
 
     def __repr__(self):
         return super().__repr__()+"\n Use object.curve_type.freq.method() (freq=net, gross, costs) default: net"
                 
-
+    def to_ncg_frame(self):
+        
+        ans=pd.concat([self.net.as_df(), self.gross.as_df(), self.costs.as_df()], axis=1)
+        ans.columns=["net", "gross", "costs"]
+        
+        return ans
 
 class accountCurve(accountCurveSingle):
 
     def __init__(self, price,  percentage=False, cash_costs=None, SR_cost=None, 
-                 capital=None, ann_risk_target=None, 
+                 capital=None, ann_risk_target=None, weighting=None, weighted_flag=False,
                  **kwargs):
         """
         Create an account curve; from which many lovely statistics can be gathered
@@ -653,6 +661,16 @@ class accountCurve(accountCurveSingle):
 
         net_returns=add_df_single_column(gross_returns,costs_base_ccy) ## costs are negative returns
         
+        if weighting is not None:
+            net_returns = multiply_df_single_column(
+                net_returns, weighting, ffill=(False, True))
+            
+            gross_returns = multiply_df_single_column(
+                gross_returns, weighting, ffill=(False, True))
+            
+            costs_base_ccy = multiply_df_single_column(
+                costs_base_ccy, weighting, ffill=(False, True))
+            
         perc_gross_returns = divide_df_single_column(
             gross_returns, capital)
         
@@ -662,9 +680,9 @@ class accountCurve(accountCurveSingle):
         perc_net_returns=add_df_single_column(perc_gross_returns, perc_costs)
 
         if percentage:
-            super().__init__(perc_gross_returns, perc_net_returns, perc_costs)
+            super().__init__(perc_gross_returns, perc_net_returns, perc_costs, weighted_flag=weighted_flag)
         else:
-            super().__init__(gross_returns, net_returns, costs_base_ccy)
+            super().__init__(gross_returns, net_returns, costs_base_ccy, weighted_flag=weighted_flag)
             
         setattr(self, "cum_trades", cum_trades)
         setattr(self, "trades", trades)
@@ -682,6 +700,7 @@ class accountCurve(accountCurveSingle):
                 accountCurveSingle(gross_returns, net_returns, costs_base_ccy))
         setattr(self, "perc_returns", 
                 accountCurveSingle(perc_gross_returns, perc_net_returns, perc_costs))
+        
 
     def __repr__(self):
         return super().__repr__()+ "\n Use object.calc_data() to see calculation details"
@@ -821,7 +840,7 @@ class accountCurveGroupForType(accountCurveSingleElement):
     """
     an accountCurveGroup for one cost type (gross, net, costs)
     """
-    def __init__(self, acc_curve_for_type_list, asset_columns, curve_type="net"):
+    def __init__(self, acc_curve_for_type_list, asset_columns, weighted_flag=False, curve_type="net"):
         """
         Create a group of account curves from a list and some column names
         
@@ -846,7 +865,7 @@ class accountCurveGroupForType(accountCurveSingleElement):
         """
         acc_total=total_from_list(acc_curve_for_type_list, asset_columns, name="total_%s" % curve_type)
         
-        super().__init__(acc_total)
+        super().__init__(acc_total, weighted_flag=weighted_flag)
         
         setattr(self, "to_list", acc_curve_for_type_list)
         setattr(self, "asset_columns", asset_columns)
@@ -972,7 +991,7 @@ class statsDict(dict):
         return pvalue
         
 class accountCurveGroup(accountCurveSingleElement):
-    def __init__(self, acc_curve_list, asset_columns):
+    def __init__(self, acc_curve_list, asset_columns, weighted_flag=False):
         """
         Create a group of account curves from a list and some column names
         
@@ -1007,18 +1026,18 @@ class accountCurveGroup(accountCurveSingleElement):
         gross_list=[getattr(x, "gross") for x in acc_curve_list]
         costs_list=[getattr(x, "costs") for x in acc_curve_list]
         
-        acc_list_net=accountCurveGroupForType(net_list, asset_columns=asset_columns, 
+        acc_list_net=accountCurveGroupForType(net_list, asset_columns=asset_columns, weighted_flag=weighted_flag, 
                                               curve_type="net")
 
-        acc_list_gross=accountCurveGroupForType(gross_list, asset_columns=asset_columns, 
+        acc_list_gross=accountCurveGroupForType(gross_list, asset_columns=asset_columns,  weighted_flag=weighted_flag, 
                                                 curve_type="gross")
 
-        acc_list_costs=accountCurveGroupForType(costs_list, asset_columns=asset_columns, 
+        acc_list_costs=accountCurveGroupForType(costs_list, asset_columns=asset_columns,  weighted_flag=weighted_flag,
                                                 curve_type="costs")
 
         acc_total=total_from_list(net_list, asset_columns, "total")
         
-        super().__init__(acc_total)
+        super().__init__(acc_total,  weighted_flag=weighted_flag)
         
         setattr(self, "net", acc_list_net)
         setattr(self, "gross", acc_list_gross)
@@ -1073,6 +1092,16 @@ class accountCurveGroup(accountCurveSingleElement):
         """
         
         returnsStack(self.to_list)
+
+
+    def to_ncg_frame(self):
+
+        ans=pd.concat([self.net.as_df(), self.gross.as_df(), self.costs.as_df()], axis=1)
+        ans.columns=["net", "gross", "costs"]
+        
+        return ans
+        
+
         
 class returnsStack(accountCurveSingle):
     """

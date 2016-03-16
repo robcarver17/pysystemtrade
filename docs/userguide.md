@@ -2761,9 +2761,14 @@ The standard accounting class includes several useful methods:
 - `pandl_for_instrument`: the contribution of a particular instrument to the p&l
 - `pandl_for_instrument_forecast`: work out how well a particular trading rule variation has done with a particular instrument
 - `pandl_for_subsystem`: work out how an instrument has done in isolation
-- `pandl_for_trading_rule`: how a trading rule has done over all instruments.
+- `pandl_across_subsystems`: group together all subsystem p&l (not the same as portfolio!)
+- `pandl_for_trading_rule`: how a trading rule has done over all instruments, using instrument weights and IDM
+- `pandl_for_trading_rule_unweighted`: how a trading rule has done over all instruments, unweighted
+- `pandl_for_instrument_rules`: how all trading rules have done over all instruments.
 
 (Note that [buffered](#buffer) positions are only used at the final portfolio stage; the positions for forecasts and subsystems are not buffered. So their trading costs may be a little overstated).
+
+(Warning: see [weighted and unweighted account curve groups](#weighted_acg) )
 
 These classes share some useful arguments (all boolean):
 
@@ -2823,9 +2828,10 @@ acc_curve=system.accounts.pandl_for_subsystem("EDOLLAR", percentage=True)
 This *looks* like a pandas data frame, where each day is a different return. However it's actually a bit more interesting than that. There's actually three different account curves buried inside this; *gross* p&l without costs, *costs*, and *net* including costs. We can access any of them like so:
 
 ```python
-acc_curve.gross
+acc_curve.gross 
 acc_curve.net
 acc_curve.costs
+acc_curve.to_ncg_frame() ## this method returns a data frame with all 3 elements as columns
 ```
 
 The *net* version is identical to acc_curve; this is deliberate to encourage you to look at net returns. Each curve defaults to displaying daily returns, however we can also access different frequencies (daily, weekly, monthly, annual):
@@ -2865,7 +2871,7 @@ acc_curve.calc_data()['trades'] ## simulated trades
 
 #### `accountCurveGroup` in more detail
 
-`accountCurveGroup`, is the output you get from `systems.account.portfolio` (and some other methods I haven't discussed that return data for multiple assets):
+`accountCurveGroup`, is the output you get from `systems.account.portfolio`, `systems.account.pandl_across_subsystems`, pandl_for_instrument_rules`, `pandl_for_trading_rule` and `pandl_for_trading_rule_unweighted`. For example:
 
 ```python
 acc_curve_group=system.accounts.portfolio(percentage=True)
@@ -2889,6 +2895,8 @@ acc_curve_group.asset_columns
 acc_curve_group['US10']
 ```
 
+*Warning see [weighted and unweighted account curve groups](#weighted_acg)*
+
 The second command returns the account curves *just* for US 10 year bonds. So we can do things like:
 
 ```python
@@ -2911,6 +2919,7 @@ acc_curve_group.net.to_frame() ## returns net account curves all assets in a fra
 acc_curve_group.gross.to_frame() ## returns net account curves all assets in a frame
 acc_curve_group.costs.to_frame() ## returns net account curves all assets in a frame
 ```
+*Warning see [weighted and unweighted account curve groups](#weighted_acg)*
 
 
 The other thing you can do is get a dictionary of any statistical method, measured across all assets:
@@ -2921,6 +2930,8 @@ acc_curve_group.get_stats("sharpe", freq="daily") ## equivalent
 acc_curve_group.get_stats("sharpe", curve_type="net") ## equivalent
 acc_curve_group.net.get_stats("sharpe", freq="daily") ## equivalent
 ```
+
+*Warning see [weighted and unweighted account curve groups](#weighted_acg)
 
 You can get summary statistics for these. These can eithier be simple averages across all assets, or time weighted by the amount of data each asset has.
 
@@ -2941,6 +2952,38 @@ boot=stack.bootstrap(no_runs=10) ## produce an accountCurveGroup object containi
 boot=stack.bootstrap(no_runs=10, length=250)  ## each account curve bootstrapped will be 250 business days long
 boot.net.get_stats("sharpe").pvalue() ## all this kind of stuff works. Time weighting isn't neccessary as all the same length
 ```
+
+Note if you have a large number of instruments this code will probably fail. It's more useful when you have a small number, and are concerned about statistical robustness.
+
+<a name="weighted_acg">
+##### Weighted and unweighted account curve groups
+</a>
+
+There are two types of account curve; weighted and unweighted. Weighted curves include returns for each instrument (or trading rule) as a proportion of the total capital at risk. Unweighted curves show each instrument or trading rule in isolation. 
+
+1- `portfolio`: works out the p&l for the whole system (weighted group - elements are `pandl_for_instrument`)
+2- `pandl_for_instrument`: the contribution of a particular instrument to the p&l  (weighted individual curve for one instrument)
+3- `pandl_across_subsystems`: works out the p&l for all subsystems (unweighted group - elements are `pandl_for_subsystem`)
+4- `pandl_for_subsystem`: work out how an instrument has done in isolation (unweighted individual curve for one instrument)
+
+5- `pandl_for_trading_rule`: how a trading rule has done over all instruments (weighted group -elements are `pandl_for_instrument_forecast` across instruments)
+6- `pandl_for_instrument_rules`: how all trading rules have done for a particular instrument (unweighted group -elements are `pandl_for_instrument_forecast` across trading rules) 
+7- `pandl_for_trading_rule_unweighted`: how a trading rule has done over all instruments (unweighted group -elements are `pandl_for_instrument_forecast` across instruments)
+8- `pandl_for_instrument_forecast`: work out how well a particular trading rule variation has done with a particular instrument (unweighted individual curve)
+
+The difference is important for a few reasons.
+
+- Firstly the return and risk of individual weighted curves will be lower than the target 
+- The returns of individual weighted curves will also be highly non stationary, at least for instruments. This is because the weightings of instruments within a portfolio, or a trading rule, will change over time. Usually there are fewer instruments. This means that the risk profile will show much higher returns earlier in the series. Statistics such as sharpe ratio may be highly misleading. 
+- The portfolio level aggregate returns of unweighted group curves will make no sense. They will be equally weighted, whereas we'd normally have different weights. 
+- Also for portfolios of unweighted groups risk will usually fall over time as markets are added and diversification effects appear. Again this is more problematic for groups of instruments (within a portfolio, or within a trading rule)
+
+To summarise:
+
+- Individual account curves eithier in, or outside, a weighted group should be treated with caution. But the entire portfolio curve is fine.
+- The portfolio level account curve for an unweighted group should be treated with caution. But the individual curves are fine.
+
+The attribute `weighted_flag` is set to eithier True (for weighted curves) or False (otherwise). All curve __repr__ methods also show eithier weighted or unweighted status.
 
 #### Testing account curves
 
@@ -3380,8 +3423,6 @@ Other methods exist to access logging and cacheing.
 | `accounts.get_value_of_price_move`| Standard |  `instrument_code` | I | `positionSize.get_instrument_sizing_data`|
 | `accounts.get_daily_returns_volatility`| Standard |  `instrument_code` | I | `rawdata.daily_returns_volatility` or `data.daily_prices`|
 | `accounts.get_raw_cost_data`| Standard | `instrument_code` | I  | `data.get_raw_cost_data` |
-| `accounts.pandl_for_subsystem`| Standard |  `instrument_code` | D | P&l for an instrument outright|
-| `accounts.pandl_across_subsystems`| Standard |  `instrument_code` | O,D | P&l across instruments, outright|
 | `accounts.get_buffers_for_position`| Standard |  `instrument_code` | I | `portfolio.get_buffers_for_position`|
 | `accounts.get_buffered_position`| Standard |  `instrument_code` | D | Buffered position at portfolio level|
 | `accounts.get_instrument_diversification_multiplier`| Standard |   | I | `portfolio.get_instrument_diversification_multiplier`|
@@ -3395,7 +3436,12 @@ Other methods exist to access logging and cacheing.
 | `accounts.pandl_for_instrument_forecast`| Standard | `instrument_code`, `rule_variation_name` | D | P&l for a trading rule and instrument |
 | `accounts.pandl_for_instrument_rules`| Standard | `instrument_code` | D,O | P&l for all trading rules in an instrument |
 | `accounts.pandl_for_trading_rule`| Standard | `rule_variation_name` | D | P&l for a trading rule over all instruments |
+| `accounts.pandl_for_trading_rule_unweighted`| Standard | `rule_variation_name` | D | P&l for a trading rule over all instruments, unweighted |
+| `accounts.pandl_for_subsystem`| Standard |  `instrument_code` | D | P&l for an instrument outright|
+| `accounts.pandl_across_subsystems`| Standard |  `instrument_code` | O,D | P&l across instruments, outright|
 | `accounts.portfolio`| Standard |  | O,D | P&l for whole system |
+
+
 
 
 

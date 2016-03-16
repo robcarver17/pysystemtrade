@@ -648,7 +648,7 @@ class Account(SystemStage):
                                 fx=fx, value_of_price_point=value_of_price_point, capital=capital,
                                 percentage=percentage, SR_cost=SR_cost,  cash_costs = cash_costs,
                                 get_daily_returns_volatility=get_daily_returns_volatility,
-                                ann_risk_target = ann_risk_target)
+                                ann_risk_target = ann_risk_target, weighted_flag=False)
 
             return instr_pandl
 
@@ -700,7 +700,7 @@ class Account(SystemStage):
                     delayfill=delayfill,
                     roundpositions=roundpositions) for instrument_code in instruments]
             
-            pandl = accountCurveGroup(pandl_across_subsys, instruments)
+            pandl = accountCurveGroup(pandl_across_subsys, instruments, weighted_flag=False)
             
             return pandl
 
@@ -845,7 +845,8 @@ class Account(SystemStage):
                                 fx=fx, value_of_price_point=value_of_price_point, capital=capital,
                                 ann_risk_target = ann_risk_target,
                                 percentage=percentage, SR_cost=SR_cost, cash_costs = cash_costs,
-                                get_daily_returns_volatility=get_daily_returns_volatility)
+                                get_daily_returns_volatility=get_daily_returns_volatility
+                                , weighted_flag=True)
 
             return instr_pandl
 
@@ -880,15 +881,13 @@ class Account(SystemStage):
             instrument_list=[instr_code for instr_code in instrument_list 
                              if rule_variation_name in this_stage.get_trading_rule_list(instr_code)]
             
-            instr_weights=this_stage.get_instrument_weights()
-
             pandl_by_instrument=[this_stage.pandl_for_instrument_forecast(
                                             instr_code, rule_variation_name, delayfill,
-                                            instr_weights[instr_code].to_frame(instr_code))
+                                            this_stage.get_instrument_scaling_factor(instr_code))
                               for instr_code in instrument_list   
                             ]
             
-            pandl_rule = accountCurveGroup(pandl_by_instrument, instrument_list)
+            pandl_rule = accountCurveGroup(pandl_by_instrument, instrument_list, weighted_flag=True)
             
             return pandl_rule
 
@@ -900,6 +899,49 @@ class Account(SystemStage):
             _pandl_for_trading_rule, self, rule_variation_name, delayfill)
 
         return pandl_trading_rule
+
+    def pandl_for_trading_rule_unweighted(self, rule_variation_name, delayfill=True):
+        """
+        Get the p&l for one trading rule over multiple instruments; as % of arbitrary capital
+
+        Within the trading rule the instrument returns are NOT weighted by instrument weight
+        
+        :param rule_variation_name: rule to get values for
+        :type rule_variation_name: str
+
+        :param delayfill: Lag fills by one day
+        :type delayfill: bool
+
+        :returns: accountCurve
+
+        """
+        def _pandl_for_trading_rule_unweighted(
+                system, instrument_code_unused,  this_stage, rule_variation_name, delayfill):
+
+            this_stage.log.terse("Calculating pandl for trading rule (unweighted) %s" % rule_variation_name)
+            
+            instrument_list=system.get_instrument_list()
+            instrument_list=[instr_code for instr_code in instrument_list 
+                             if rule_variation_name in this_stage.get_trading_rule_list(instr_code)]
+            
+            pandl_by_instrument=[this_stage.pandl_for_instrument_forecast(
+                                            instr_code, rule_variation_name, delayfill)
+                              for instr_code in instrument_list   
+                            ]
+            
+            pandl_rule = accountCurveGroup(pandl_by_instrument, instrument_list, weighted_flag=True)
+            
+            return pandl_rule
+
+        itemname = "pandl_for_trading_rule_unweighted_%s_delayfill%s" % (rule_variation_name, TorF(
+            delayfill))
+
+        pandl_trading_rule_unweighted = self.parent.calc_or_cache(
+            itemname, ALL_KEYNAME, 
+            _pandl_for_trading_rule_unweighted, self, rule_variation_name, delayfill)
+
+        return pandl_trading_rule_unweighted
+
 
 
     def pandl_for_instrument_rules(self, instrument_code, delayfill=True):
@@ -941,7 +983,7 @@ class Account(SystemStage):
                             ]
             
             
-            pandl_rules = accountCurveGroup(pandl_rules, forecast_rules)
+            pandl_rules = accountCurveGroup(pandl_rules, forecast_rules, weighted_flag=False)
             
             return pandl_rules
 
@@ -1036,11 +1078,14 @@ class Account(SystemStage):
                         
             ## We use percentage returns (as no 'capital') and don't round positions
             
+            weighted_flag=weighting is not None
+            
             pandl_fcast = accountCurve(price, forecast=forecast, delayfill=delayfill, 
                                        roundpositions=False,
                                 value_of_price_point=1.0, capital=None,
                                 percentage=True, SR_cost=SR_cost, cash_costs=None,
-                                get_daily_returns_volatility=get_daily_returns_volatility, weighting = weighting)
+                                get_daily_returns_volatility=get_daily_returns_volatility, weighting = weighting,
+                                weighted_flag=weighted_flag)
 
             return pandl_fcast
 
@@ -1089,7 +1134,7 @@ class Account(SystemStage):
                     delayfill=delayfill,
                     roundpositions=roundpositions) for instrument_code in instruments]
             
-            port_pandl = accountCurveGroup(port_pandl, instruments)
+            port_pandl = accountCurveGroup(port_pandl, instruments, weighted_flag=True)
 
             return port_pandl
 
