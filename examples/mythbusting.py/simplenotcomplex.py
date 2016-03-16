@@ -8,10 +8,10 @@ system.set_logging_level("on")
 
 trading_rules=system.rules.trading_rules()
 
-#del(system.config.instrument_weights) ## so we use all the markets we have, equal weighted
+del(system.config.instrument_weights) ## so we use all the markets we have, equal weighted
 
-#instrument_list=system.get_instrument_list()
-#system.config.instrument_weights=dict([(code, 1.0/len(instrument_list)) for code in instrument_list])
+instrument_list=system.get_instrument_list()
+system.config.instrument_weights=dict([(code, 1.0/len(instrument_list)) for code in instrument_list])
 
 del(system.config.forecast_weights) ## not used anyway; so we have all trading rules
 

@@ -595,7 +595,7 @@ class accountCurveSingle(accountCurveSingleElement):
     def __init__(self, gross_returns, net_returns, costs, weighted_flag=False):
 
         
-        super().__init__(net_returns, name="net", weighted_flag=weighted_flag)
+        super().__init__(net_returns,  weighted_flag=weighted_flag)
         
         setattr(self, "net", accountCurveSingleElement(net_returns, name="net", weighted_flag=weighted_flag))
         setattr(self, "gross", accountCurveSingleElement(gross_returns, name="gross", weighted_flag=weighted_flag))
