@@ -1,5 +1,10 @@
 # Release notes
 
+## Version 0.6.6
+
+* Added method accounts.pandl_for_instrument_rules
+
+
 ## Version 0.6.5
 
 * Renamed method accounts.pandl_for_instrument_rules to pandl_for_instrument_rules.unweighted

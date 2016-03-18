@@ -2,7 +2,8 @@ from systems.provided.futures_chapter15.basesystem import *
 import pandas as pd
 import numpy as np
 from matplotlib.pyplot import show, plot, scatter, gca
-from syscore.pdutils import align_to_joint
+from syscore.pdutils import align_to_joint, uniquets
+from syscore.dateutils import generate_fitting_dates
 
 
 
@@ -26,12 +27,20 @@ def clean_data(x, y, maxstd=6.0):
     return (x,y)
 
 
-def bin_fit(x, y):
-    xstd=np.nanstd(x)
-    steps=xstd/4.0
-    binlimits=np.arange(-xstd*3.0, xstd*3.0, steps)
+def bin_fit(x, y, buckets=3):
+     
+    assert buckets in [3,25]
 
-    binlimits=[np.nanmin(x)]+list(binlimits)+[np.nanmax(x)]
+    xstd=np.nanstd(x)
+    
+    if buckets==3:
+        binlimits=[np.nanmin(x), -xstd/2.0,xstd/2.0 , np.nanmax(x)]
+    elif buckets==25:
+    
+        steps=xstd/4.0
+        binlimits=np.arange(-xstd*3.0, xstd*3.0, steps)
+    
+        binlimits=[np.nanmin(x)]+list(binlimits)+[np.nanmax(x)]
     
     fit_y=[]
     err_y=[]
@@ -64,7 +73,7 @@ def get_scatter_data_for_code_forecast(system, instrument_code, rule_name, start
     if enddate is None:
         enddate=forecast.index[-1]
 
-    (forecast, norm_data) = align_to_joint(forecast, norm_data, ffill=(True, False))
+    (forecast, norm_data) = align_to_joint(forecast[startdate:enddate], norm_data[startdate:enddate], ffill=(True, False))
     
     ## work out return for the N days after the forecast
     period_returns = pd.rolling_sum(norm_data, return_period, min_periods=1)
@@ -95,16 +104,34 @@ def do_a_little_plot(system):
     ax.errorbar(x_values_to_plot, fit_y, yerr=err_y)
     show()
     
-
-def fit_a_filter(system, rule_name, instrument_code=None,  start_date=None, end_date=None, return_period=5):
+def fit_a_filter_datewise(system, rule_name, instrument_code=None, return_period=5, date_method="expanding", rollyears=999, buckets=3):
     """
     
     if instrument_code is None, fits across all instruments
     """
+
     if instrument_code is None:
         instrument_list=system.get_instrument_list()
     else:
         instrument_list=[instrument_code]
+    
+    fit_dates=generate_fitting_dates([system.rules.get_raw_forecast(instrument_code, rule_name) for instrument_code in instrument_list], date_method, rollyears)                        
+
+    filter_data=[]
+    for fit_period in fit_dates:
+        system.log.msg("Estimating fitting from %s to %s" % (fit_period.period_start, fit_period.period_end))
+        
+        if fit_period.no_data:
+            data=[None, None]
+        else:
+        
+            data=fit_a_filter(system, rule_name, instrument_list, fit_period.fit_start, fit_period.fit_end, return_period, buckets)
+
+        filter_data.append(data)
+
+    return (fit_dates, filter_data)
+
+def fit_a_filter(system, rule_name, instrument_list,  start_date=None, end_date=None, return_period=5, buckets=3):
         
     all_scatter=dict(returns=[], forecast=[])
     for instrument_code in instrument_list:
@@ -114,7 +141,7 @@ def fit_a_filter(system, rule_name, instrument_code=None,  start_date=None, end_
 
     (returns, forecast)=clean_data(all_scatter['returns'], all_scatter['forecast'])
     
-    (binlimits, x_values_to_plot, fit_y, err_y)=bin_fit(forecast, returns)
+    (binlimits, x_values_to_plot, fit_y, err_y)=bin_fit(forecast, returns, buckets)
 
     return (x_values_to_plot, fit_y)
 
@@ -171,11 +198,17 @@ class newfsc(ForecastScaleCapEstimated):
             raw_forecast = this_stage.get_actual_raw_forecast(
                 instrument_code, rule_variation_name)
 
-            (x_bins, fit_y)=this_stage.get_fitted_values(instrument_code, rule_variation_name)
-
-            filtered_forecast=filtering_function(raw_forecast, x_bins, fit_y) 
-
-            return filtered_forecast
+            (fit_dates, filter_data)=this_stage.get_fitted_values(instrument_code, rule_variation_name)
+            
+            filtered_list=[]
+            for (fit_period, data_this_period) in zip(fit_dates, filter_data):
+                (x_bins, fit_y)=data_this_period
+                
+                filtered_list.append(filtering_function(raw_forecast, startdate=fit_period.period_start, enddate=fit_period.period_end, x_bins=x_bins, fit_y=fit_y)) 
+           
+            filtered_forecast=pd.concat(filtered_list, axis=0) 
+            
+            return uniquets(filtered_forecast)
 
         filtered_forecast = self.parent.calc_or_cache_nested(
             "get_filtered_forecast", instrument_code, rule_variation_name, _get_filtered_forecast, self)
@@ -185,17 +218,14 @@ class newfsc(ForecastScaleCapEstimated):
     
     def get_fitted_values(self, instrument_code, rule_variation_name):
         def _get_fitted_values(
-                system, instrument_code, rule_variation_name, this_stage, return_period, fit_data):
+                system, instrument_code, rule_variation_name, this_stage,  **kwargs):
             this_stage.log.terse("Fitting mapping for %s %s " % (instrument_code, rule_variation_name))
             if instrument_code==ALL_KEYNAME:
                 instrument_code=None
 
-            if not str2Bool(fit_data):
-                return (None, None)
-                
-            (x_values_to_plot, fit_y)=fit_a_filter(system, rule_variation_name, instrument_code, return_period)            
+            (fit_dates, filter_data)=fit_a_filter_datewise(system, rule_variation_name, instrument_code, **kwargs)            
             
-            return (x_values_to_plot, fit_y)
+            return (fit_dates, filter_data)
 
         instrument_fit_config=copy(system.config.instrument_fit)
         pool_instruments=str2Bool(instrument_fit_config.pop("pool_instruments"))
@@ -233,7 +263,8 @@ from systems.portfolio import Portfolios
 config=Config("systems.provided.futures_chapter15.futuresconfig.yaml")
 
 config.use_forecast_scale_estimates=True
-config.instrument_fit=dict(fit_data=True, pool_instruments=False, return_period=return_period)
+config.instrument_fit=dict(pool_instruments=True, return_period=return_period, buckets=25,
+                           date_method="expanding")
 config.forecast_weights=dict([(rule,1.0) for rule in [rulename]])
 del(config.instrument_weights) ## so we use all the markets we have, equal weighted
 config.notional_trading_capital=10000000
