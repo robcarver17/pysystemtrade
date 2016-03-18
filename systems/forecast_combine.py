@@ -513,8 +513,8 @@ class ForecastCombineEstimated(ForecastCombineFixed):
                 system.rules.trading_rules()
                 found in: self.get_trading_rule_list
                 
-                system.accounts.pandl_for_instrument_rules()
-                found in: self.pandl_for_instrument_rules()
+                system.accounts.pandl_for_instrument_rules_unweighted()
+                found in: self.pandl_for_instrument_rules_unweighted()
    
     KEY OUTPUTS: No additional outputs
     
@@ -742,7 +742,7 @@ class ForecastCombineEstimated(ForecastCombineFixed):
             self)
         return forecast_div_multiplier
 
-    def pandl_for_instrument_rules(self, instrument_code):
+    def pandl_for_instrument_rules_unweighted(self, instrument_code):
         """
         Get pandl for instrument rules
         
@@ -755,7 +755,7 @@ class ForecastCombineEstimated(ForecastCombineFixed):
         
         """
         
-        return self.parent.accounts.pandl_for_instrument_rules(instrument_code).to_frame()
+        return self.parent.accounts.pandl_for_instrument_rules_unweighted(instrument_code).to_frame()
 
     def calculation_of_raw_forecast_weights(self, instrument_code):
         """
@@ -775,7 +775,7 @@ class ForecastCombineEstimated(ForecastCombineFixed):
             this_stage.log.terse("Calculating raw forecast weights over %s" % ", ".join(codes_to_use))
 
             if hasattr(system, "accounts"):
-                pandl_forecasts=[this_stage.pandl_for_instrument_rules(code)
+                pandl_forecasts=[this_stage.pandl_for_instrument_rules_unweighted(code)
                         for code in codes_to_use]
                 
             else:

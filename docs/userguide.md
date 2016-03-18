@@ -2759,12 +2759,14 @@ The standard accounting class includes several useful methods:
 
 - `portfolio`: works out the p&l for the whole system
 - `pandl_for_instrument`: the contribution of a particular instrument to the p&l
-- `pandl_for_instrument_forecast`: work out how well a particular trading rule variation has done with a particular instrument
 - `pandl_for_subsystem`: work out how an instrument has done in isolation
-- `pandl_across_subsystems`: group together all subsystem p&l (not the same as portfolio!)
-- `pandl_for_trading_rule`: how a trading rule has done over all instruments, using instrument weights and IDM
+- `pandl_across_subsystems`: group together all subsystem p&l (not the same as portfolio! Instrument weights aren't used)
+- `pandl_for_trading_rule`: how a trading rule has done agggregated over all instruments, using instrument weights and IDM to weight.
 - `pandl_for_trading_rule_unweighted`: how a trading rule has done over all instruments, unweighted
-- `pandl_for_instrument_rules`: how all trading rules have done over all instruments.
+
+- `pandl_for_instrument_rules_unweighted`: how all trading rules have done for one instrument, unweighted
+- `pandl_for_instrument_forecast`: work out how well a particular trading rule variation has done with a particular instrument
+
 
 (Note that [buffered](#buffer) positions are only used at the final portfolio stage; the positions for forecasts and subsystems are not buffered. So their trading costs may be a little overstated).
 
@@ -2871,7 +2873,7 @@ acc_curve.calc_data()['trades'] ## simulated trades
 
 #### `accountCurveGroup` in more detail
 
-`accountCurveGroup`, is the output you get from `systems.account.portfolio`, `systems.account.pandl_across_subsystems`, pandl_for_instrument_rules`, `pandl_for_trading_rule` and `pandl_for_trading_rule_unweighted`. For example:
+`accountCurveGroup`, is the output you get from `systems.account.portfolio`, `systems.account.pandl_across_subsystems`, pandl_for_instrument_rules_unweighted`, `pandl_for_trading_rule` and `pandl_for_trading_rule_unweighted`. For example:
 
 ```python
 acc_curve_group=system.accounts.portfolio(percentage=True)
@@ -2967,7 +2969,7 @@ There are two types of account curve; weighted and unweighted. Weighted curves i
 4- `pandl_for_subsystem`: work out how an instrument has done in isolation (unweighted individual curve for one instrument)
 
 5- `pandl_for_trading_rule`: how a trading rule has done over all instruments (weighted group -elements are `pandl_for_instrument_forecast` across instruments)
-6- `pandl_for_instrument_rules`: how all trading rules have done for a particular instrument (unweighted group -elements are `pandl_for_instrument_forecast` across trading rules) 
+6- `pandl_for_instrument_rules_unweighted`: how all trading rules have done for a particular instrument (unweighted group -elements are `pandl_for_instrument_forecast` across trading rules) 
 7- `pandl_for_trading_rule_unweighted`: how a trading rule has done over all instruments (unweighted group -elements are `pandl_for_instrument_forecast` across instruments)
 8- `pandl_for_instrument_forecast`: work out how well a particular trading rule variation has done with a particular instrument (unweighted individual curve)
 
@@ -3004,7 +3006,7 @@ I work out costs in two different ways:
 - by applying a constant drag calculated according to the standardised cost in Sharpe ratio terms and the estimated turnover (see chapter 12 of my book)
 - using the actual costs for each trade.
 
-The former method is always used for costs derived from forecasts (`pandl_for_instrument_forecast`).
+The former method is always used for costs derived from forecasts (`pandl_for_instrument_forecast`, `pandl_for_trading_rule`, `pandl_for_trading_rule_unweighted`, `pandl_for_instrument_rules_unweighted`).
 
 The latter method is optional. Set `config.use_SR_costs = False` to use it. It is useful for comparing with live trading history, but I do not recommend it for historical purposes as I don't think it is accurate in the past.
 
@@ -3364,7 +3366,7 @@ Other methods exist to access logging and cacheing.
 | `combForecast.get_trading_rule_list` | Standard  | `instrument_code`        | I | List of trading rules from config or prior stage |
 | `combForecast.get_all_forecasts` | Standard  | `instrument_code`, (`rule_variation_name`)        | D | pd.DataFrame of forecast values |
 | `combForecast.get_forecast_cap` | Standard | `instrument_code`, `rule_variation_name`        | I  | `forecastScaleCap.get_forecast_cap` |
-| combForecast.pandl_for_instrument_rules| Estimate | `instrument_code`        | I  | `accounts.pandl_for_instrument_rules` |
+| combForecast.pandl_for_instrument_rules_unweighted| Estimate | `instrument_code`        | I  | `accounts.pandl_for_instrument_rules_unweighted` |
 | `combForecast.calculation_of_raw_forecast_weights | Estimate | `instrument_code`        | D  | Forecast weight calculation objects |
 | `combForecast.get_raw_forecast_weights` | Standard / Estimate | `instrument_code`        | D  | Forecast weights |
 | `combForecast.get_forecast_weights` | Standard  / Estimate| `instrument_code`        | D  | Forecast weights, adjusted for missing forecasts|
@@ -3434,13 +3436,12 @@ Other methods exist to access logging and cacheing.
 | `accounts.forecast_turnover`| Standard | `instrument_code`, `rule_variation_name`  | D | Annualised turnover of forecast|
 | `accounts.pandl_for_instrument`| Standard |  `instrument_code` | D | P&l for an instrument within a system|
 | `accounts.pandl_for_instrument_forecast`| Standard | `instrument_code`, `rule_variation_name` | D | P&l for a trading rule and instrument |
-| `accounts.pandl_for_instrument_rules`| Standard | `instrument_code` | D,O | P&l for all trading rules in an instrument |
+| `accounts.pandl_for_instrument_rules_unweighted`| Standard | `instrument_code` | D,O | P&l for all trading rules in an instrument, unweighted |
 | `accounts.pandl_for_trading_rule`| Standard | `rule_variation_name` | D | P&l for a trading rule over all instruments |
 | `accounts.pandl_for_trading_rule_unweighted`| Standard | `rule_variation_name` | D | P&l for a trading rule over all instruments, unweighted |
 | `accounts.pandl_for_subsystem`| Standard |  `instrument_code` | D | P&l for an instrument outright|
 | `accounts.pandl_across_subsystems`| Standard |  `instrument_code` | O,D | P&l across instruments, outright|
 | `accounts.portfolio`| Standard |  | O,D | P&l for whole system |
-
 
 
 

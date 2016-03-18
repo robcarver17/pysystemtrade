@@ -648,7 +648,7 @@ class Account(SystemStage):
                                 fx=fx, value_of_price_point=value_of_price_point, capital=capital,
                                 percentage=percentage, SR_cost=SR_cost,  cash_costs = cash_costs,
                                 get_daily_returns_volatility=get_daily_returns_volatility,
-                                ann_risk_target = ann_risk_target, weighted_flag=False)
+                                ann_risk_target = ann_risk_target)
 
             return instr_pandl
 
@@ -700,7 +700,7 @@ class Account(SystemStage):
                     delayfill=delayfill,
                     roundpositions=roundpositions) for instrument_code in instruments]
             
-            pandl = accountCurveGroup(pandl_across_subsys, instruments, weighted_flag=False)
+            pandl = accountCurveGroup(pandl_across_subsys, instruments)
             
             return pandl
 
@@ -837,16 +837,26 @@ class Account(SystemStage):
             (SR_cost, cash_costs)=this_stage.get_costs(instrument_code)
             
             if SR_cost is not None:
+                ## Note that SR cost is done as a proportion of capital
+                ## Since we're only using part of the capital we need to correct for this
                 turnover_for_SR=this_stage.instrument_turnover(instrument_code, roundpositions = roundpositions)
                 SR_cost = SR_cost * turnover_for_SR
+                weighting = this_stage.get_instrument_scaling_factor(instrument_code)
+                apply_weight_to_costs_only=True
+            else:
+                ## Costs wil be correct
+                ## We don't need to do anything
+                weighting = None
+                apply_weight_to_costs_only=False
 
             instr_pandl = accountCurve(price, positions = positions,
                                        delayfill = delayfill, roundpositions = roundpositions, 
                                 fx=fx, value_of_price_point=value_of_price_point, capital=capital,
                                 ann_risk_target = ann_risk_target,
                                 percentage=percentage, SR_cost=SR_cost, cash_costs = cash_costs,
-                                get_daily_returns_volatility=get_daily_returns_volatility
-                                , weighted_flag=True)
+                                get_daily_returns_volatility=get_daily_returns_volatility,
+                                 weighting = weighting,
+                                apply_weight_to_costs_only=apply_weight_to_costs_only)
 
             return instr_pandl
 
@@ -887,7 +897,7 @@ class Account(SystemStage):
                               for instr_code in instrument_list   
                             ]
             
-            pandl_rule = accountCurveGroup(pandl_by_instrument, instrument_list, weighted_flag=True)
+            pandl_rule = accountCurveGroup(pandl_by_instrument, instrument_list)
             
             return pandl_rule
 
@@ -929,7 +939,7 @@ class Account(SystemStage):
                               for instr_code in instrument_list   
                             ]
             
-            pandl_rule = accountCurveGroup(pandl_by_instrument, instrument_list, weighted_flag=True)
+            pandl_rule = accountCurveGroup(pandl_by_instrument, instrument_list)
             
             return pandl_rule
 
@@ -944,7 +954,7 @@ class Account(SystemStage):
 
 
 
-    def pandl_for_instrument_rules(self, instrument_code, delayfill=True):
+    def pandl_for_instrument_rules_unweighted(self, instrument_code, delayfill=True):
         """
         Get the p&l for one instrument over multiple forecasts; as % of arbitrary capital
         
@@ -966,10 +976,10 @@ class Account(SystemStage):
         >>> (portfolio, posobject, combobject, capobject, rules, rawdata, data, config)=get_test_object_futures_with_portfolios()
         >>> system=System([portfolio, posobject, combobject, capobject, rules, rawdata, Account()], data, config)
         >>>
-        >>> system.accounts.pandl_for_instrument_rules("EDOLLAR").get_stats("sharpe")
+        >>> system.accounts.pandl_for_instrument_rules_unweighted("EDOLLAR").get_stats("sharpe")
         {'ewmac16': 0.6799720823590352, 'ewmac8': 0.69594671177102}
         """
-        def _pandl_for_instrument_rules(
+        def _pandl_for_instrument_rules_unweighted(
                 system, instrument_code,  this_stage, delayfill):
 
             this_stage.log.terse("Calculating pandl for instrument rules for %s" % instrument_code,
@@ -983,16 +993,16 @@ class Account(SystemStage):
                             ]
             
             
-            pandl_rules = accountCurveGroup(pandl_rules, forecast_rules, weighted_flag=False)
+            pandl_rules = accountCurveGroup(pandl_rules, forecast_rules)
             
             return pandl_rules
 
-        itemname = "pandl_for_instrument__rules_delayfill%s" % TorF(
+        itemname = "pandl_for_instrument__rules_unweighted_delayfill%s" % TorF(
             delayfill)
 
         pandl_rules = self.parent.calc_or_cache(
             itemname, instrument_code, 
-            _pandl_for_instrument_rules, self, delayfill)
+            _pandl_for_instrument_rules_unweighted, self, delayfill)
 
         return pandl_rules
 
@@ -1078,14 +1088,12 @@ class Account(SystemStage):
                         
             ## We use percentage returns (as no 'capital') and don't round positions
             
-            weighted_flag=weighting is not None
             
             pandl_fcast = accountCurve(price, forecast=forecast, delayfill=delayfill, 
                                        roundpositions=False,
                                 value_of_price_point=1.0, capital=None,
                                 percentage=True, SR_cost=SR_cost, cash_costs=None,
-                                get_daily_returns_volatility=get_daily_returns_volatility, weighting = weighting,
-                                weighted_flag=weighted_flag)
+                                get_daily_returns_volatility=get_daily_returns_volatility, weighting = weighting)
 
             return pandl_fcast
 
@@ -1134,7 +1142,7 @@ class Account(SystemStage):
                     delayfill=delayfill,
                     roundpositions=roundpositions) for instrument_code in instruments]
             
-            port_pandl = accountCurveGroup(port_pandl, instruments, weighted_flag=True)
+            port_pandl = accountCurveGroup(port_pandl, instruments)
 
             return port_pandl
 

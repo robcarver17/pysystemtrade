@@ -1,5 +1,10 @@
 # Release notes
 
+## Version 0.6.5
+
+* Renamed method accounts.pandl_for_instrument_rules to pandl_for_instrument_rules.unweighted
+* Fixed bug with portfolio and instrument account curves overstating costs by adding cost weightings
+
 
 ## Version 0.6.4
 

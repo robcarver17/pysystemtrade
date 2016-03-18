@@ -176,6 +176,7 @@ def align_to_joint(x,y, ffill):
     
     """
     jointindex=list(set(list(x.index)+list(y.index) ))
+    jointindex.sort()
     
     x=x.reindex(jointindex)
     y=y.reindex(jointindex)

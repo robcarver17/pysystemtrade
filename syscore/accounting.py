@@ -21,7 +21,15 @@ from syscore.dateutils import MONTHS_IN_YEAR, ROOT_MONTHS_IN_YEAR
 
 def account_test(ac1, ac2):
     """
-    Given two Account like objects performs a two sided t test
+    Given two Account like objects performs a two sided t test of normalised returns
+
+    :param ac1: first set of returns
+    :type ac1: accountCurve or pd.DataFrame of returns
+
+    :param ac2: second set of returns
+    :type ac2: accountCurve or pd.DataFrame of returns
+
+    :returns: 2 tuple: difference in means, t-test results
     """
     
     common_ts=list(set(list(ac1.index)) & set(list(ac2.index)))
@@ -30,12 +38,18 @@ def account_test(ac1, ac2):
     ac1_common=ac1.cumsum().reindex(common_ts, method="ffill").diff().values
     ac2_common=ac2.cumsum().reindex(common_ts, method="ffill").diff().values
     
+    
     missing_values=[idx for idx in range(len(common_ts)) 
                     if (np.isnan(ac1_common[idx]) or np.isnan(ac2_common[idx]))]
     ac1_common=[ac1_common[idx] for idx in range(len(common_ts)) if idx not in missing_values]
     ac2_common=[ac2_common[idx] for idx in range(len(common_ts)) if idx not in missing_values]
 
-    return ttest_rel(ac1_common, ac2_common)
+    ac1_common=ac1_common/np.nanstd(ac1_common)
+    ac2_common=ac2_common/np.nanstd(ac2_common)
+
+    diff=np.mean(ac1_common) - np.mean(ac2_common)
+
+    return (diff, ttest_rel(ac1_common, ac2_common))
 
 """
 some defaults
@@ -44,10 +58,6 @@ CAPITAL = 10000000.0
 ANN_RISK_TARGET = 0.16
 DAILY_CAPITAL=CAPITAL * ANN_RISK_TARGET / ROOT_BDAYS_INYEAR
 
-"""
-
-
-"""
 
 
 def pandl_with_data(price, trades=None, marktomarket=True, positions=None,
@@ -306,6 +316,12 @@ def get_positions_from_forecasts(price, get_daily_returns_volatility, forecast,
     :param value_of_price_point: value of one unit movement in price
     :type value_of_price_point: float
 
+    :param capital: Capital at risk
+    :type capital: float or Tx1 pd.DataFrame
+
+    :param ann_risk_target: Percentage of capital at risk each year 0.1 is 10%
+    :type ann_risk_target: float
+
     **kwargs: passed to vol calculation
 
     :returns: Tx1 pd dataframe of positions
@@ -371,8 +387,14 @@ class accountCurveSingleElementOneFreq(pd.DataFrame):
         :param returns_df: series of returns
         :type returns_df: Tx1 pd.DataFrame
 
+        :param weighted_flag: Does this curve have weighted returns?
+        :type weighted: bool
+
         :param frequency: Frequency D days, W weeks, M months, Y years
         :type frequency: str
+
+        :param name: Name to give the account
+        :type name: str
 
         """
         returns_df.columns=[name]
@@ -519,13 +541,21 @@ class accountCurveSingleElementOneFreq(pd.DataFrame):
     def t_test(self):
         return ttest_1samp(self.vals(), 0.0)
 
+    def t_stat(self):
+        return float(self.t_test()[0])
+
+    def p_value(self):
+        return float(self.t_test()[1])
+
+
     def stats(self):
 
         stats_list = ["min", "max", "median", "mean", "std", "skew",
                       "ann_mean", "ann_std", "sharpe", "sortino",
                       "avg_drawdown", "time_in_drawdown",
                       "calmar", "avg_return_to_drawdown",
-                      "avg_loss", "avg_gain", "gaintolossratio", "profitfactor", "hitrate"]
+                      "avg_loss", "avg_gain", "gaintolossratio", "profitfactor", "hitrate",
+                      "t_stat", "p_value"]
 
         build_stats = []
         for stat_name in stats_list:
@@ -563,6 +593,12 @@ class accountCurveSingleElement(accountCurveSingleElementOneFreq):
         :param returns_df: series of returns
         :type returns_df: Tx1 pd.DataFrame
 
+        :param weighted_flag: Is this account curve of weighted returns?
+        :type weighted_flag: bool
+
+        :param name: Name of account curve
+        :type name: str
+
         """
         ## We often want to use  
         daily_returns = returns_df.resample("1B", how="sum")
@@ -593,7 +629,20 @@ class accountCurveSingle(accountCurveSingleElement):
     
     """
     def __init__(self, gross_returns, net_returns, costs, weighted_flag=False):
+        """
+        :param gross_returns: series of returns, no costs applied
+        :type gross_returns: Tx1 pd.DataFrame
 
+        :param costs: series of costs (minus is a cost)
+        :type costs: Tx1 pd.DataFrame
+
+        :param net_returns: series of costs (minus is a cost)
+        :type net_returns: Tx1 pd.DataFrame
+
+        :param weighted_flag: Is this account curve of weighted returns?
+        :type weighted_flag: bool
+        
+        """
         
         super().__init__(net_returns,  weighted_flag=weighted_flag)
         
@@ -605,6 +654,11 @@ class accountCurveSingle(accountCurveSingleElement):
         return super().__repr__()+"\n Use object.curve_type.freq.method() (freq=net, gross, costs) default: net"
                 
     def to_ncg_frame(self):
+        """
+        View net gross and costs together
+        
+        :returns: Tx3 pd.DataFrame
+        """
         
         ans=pd.concat([self.net.as_df(), self.gross.as_df(), self.costs.as_df()], axis=1)
         ans.columns=["net", "gross", "costs"]
@@ -614,7 +668,8 @@ class accountCurveSingle(accountCurveSingleElement):
 class accountCurve(accountCurveSingle):
 
     def __init__(self, price,  percentage=False, cash_costs=None, SR_cost=None, 
-                 capital=None, ann_risk_target=None, weighting=None, weighted_flag=False,
+                 capital=None, ann_risk_target=None, weighting=None,
+                 apply_weight_to_costs_only=False, 
                  **kwargs):
         """
         Create an account curve; from which many lovely statistics can be gathered
@@ -634,10 +689,16 @@ class accountCurve(accountCurveSingle):
         Note if both are included then cash_cost will be disregarded
         
         :param capital: Capital at risk. Used for % returns, and calculating daily risk for SR costs  
-        :type capital: float or Tx1 
+        :type capital: None, float, int, or Tx1 
         
         :param ann_risk_target: Annual risk target, as % of capital. Used to calculate daily risk for SR costs
-        :type ann_risk_target: float
+        :type ann_risk_target: None or float
+
+        :param weighting: Weighting scheme to apply to returns
+        :type weighting: Tx1 pd.DataFrame or None
+
+        :param apply_weight_to_costs_only: Apply weights only to costs, not gross returns
+        :type apply_weight_to_costs_only: bool
         
         **kwargs  passed to profit and loss calculation
          (price, trades, marktomarket, positions,
@@ -659,17 +720,24 @@ class accountCurve(accountCurveSingle):
 
         (costs_base_ccy, costs_instr_ccy)=calc_costs(returns_data, cash_costs, SR_cost, daily_capital)
 
-        net_returns=add_df_single_column(gross_returns,costs_base_ccy) ## costs are negative returns
         
         if weighting is not None:
-            net_returns = multiply_df_single_column(
-                net_returns, weighting, ffill=(False, True))
             
-            gross_returns = multiply_df_single_column(
-                gross_returns, weighting, ffill=(False, True))
+            weighted_flag = True
             
+            if not apply_weight_to_costs_only:
+                ## only apply to gross returns if they aren't already weighted
+                gross_returns = multiply_df_single_column(
+                    gross_returns, weighting, ffill=(False, True))
+            
+            ## Always apply to costs
             costs_base_ccy = multiply_df_single_column(
                 costs_base_ccy, weighting, ffill=(False, True))
+        else:
+            ## not weighting
+            weighted_flag = False
+
+        net_returns=add_df_single_column(gross_returns,costs_base_ccy) ## costs are negative returns
             
         perc_gross_returns = divide_df_single_column(
             gross_returns, capital)
@@ -684,6 +752,7 @@ class accountCurve(accountCurveSingle):
         else:
             super().__init__(gross_returns, net_returns, costs_base_ccy, weighted_flag=weighted_flag)
             
+        ## Save all kinds of useful statistics
         setattr(self, "cum_trades", cum_trades)
         setattr(self, "trades", trades)
         setattr(self, "instr_ccy_returns", instr_ccy_returns)
@@ -706,6 +775,11 @@ class accountCurve(accountCurveSingle):
         return super().__repr__()+ "\n Use object.calc_data() to see calculation details"
 
     def calc_data(self):
+        """
+        Returns detailed calculation information
+        
+        :returns: dictionary of float
+        """
         calc_items=["cum_trades",  "trades",  "instr_ccy_returns",  "base_ccy_returns",  
                     "fx", "capital",  "daily_capital", "costs_instr_ccy",  "costs_base_ccy", 
                      "ccy_returns",  "perc_returns"]
@@ -788,7 +862,7 @@ def resolve_capital(ts_to_scale_to, capital, ann_risk_target):
     :param capital: Capital at risk. Used for % returns, and calculating daily risk for SR costs  
     :type capital: int, float or Tx1 pd.DataFrame
     
-    :param ann_risk_target: Annual risk target, as % of capital. Used to calculate daily risk for SR costs
+    :param ann_risk_target: Annual risk target, as % of capital 0.10 is 10%. Used to calculate daily risk for SR costs
     :type ann_risk_target: float
     
     :returns tuple: 2 tuple of Tx1 pd.DataFrame
@@ -808,26 +882,45 @@ def resolve_capital(ts_to_scale_to, capital, ann_risk_target):
     return (capital, daily_capital)
 
 
-def acc_list_to_pd_frame(list_of_ac_curves, columns):
+def acc_list_to_pd_frame(list_of_ac_curves, asset_columns):
     """
     
     Returns a pandas data frame
+
+    :param list_of_ac_curves: Elements to include
+    :type list_of_ac_curves: list of any accountcurve like object
+
+    :param asset_columns: Names of each asset
+    :type asset_columns: list of str 
+
+    :returns: TxN pd.DataFrame
     """
     list_of_df=[acc.as_df() for acc in list_of_ac_curves]
     ans=pd.concat(list_of_df, axis=1,  join="outer")
     
-    ans.columns=columns
+    ans.columns=asset_columns
     ans=ans.cumsum().ffill().diff()
     
     return ans
 
 
-def total_from_list(list_of_ac_curves, columns, name):
+def total_from_list(list_of_ac_curves, asset_columns, name):
     """
     
     Return a single accountCurveSingleElement whose returns are the total across the portfolio
+
+    :param acc_curve_for_type_list: Elements to include in group
+    :type acc_curve_for_type_list: list of accountCurveSingleElement
+
+    :param asset_columns: Names of each asset
+    :type asset_columns: list of str 
+
+    :param name: name of total group
+    :type name: str
+    
+    :returns: accountCurveSingleElement
     """
-    pdframe=acc_list_to_pd_frame(list_of_ac_curves, columns)
+    pdframe=acc_list_to_pd_frame(list_of_ac_curves, asset_columns)
     
     ## all on daily freq so just add up
     totalac=pdframe.sum(axis=1)
@@ -861,6 +954,18 @@ class accountCurveGroupForType(accountCurveSingleElement):
 
         Also: eg acc.get_stats("mean", freq="daily")
         ... Returns a dict of stats 
+
+        :param acc_curve_for_type_list: Elements to include in group
+        :type acc_curve_for_type_list: list of accountCurveSingleElement
+
+        :param asset_columns: Names of each asset
+        :type asset_columns: list of str 
+        
+        :param curve_type: Net, gross or costs?
+        :type curve_type: str
+
+        :param weighted_flag: Is this account curve of weighted returns?
+        :type weighted_flag: bool
         
         """
         acc_total=total_from_list(acc_curve_for_type_list, asset_columns, name="total_%s" % curve_type)
@@ -876,8 +981,8 @@ class accountCurveGroupForType(accountCurveSingleElement):
     def _getitem_column(self, colname):
         """
         Overriding this method to access individual curves
-        
-        Returns an object of type accountCurve
+
+        :returns: accountCurveSingleElement
         """
 
         try:
@@ -889,7 +994,9 @@ class accountCurveGroupForType(accountCurveSingleElement):
 
     def to_frame(self):
         """
-        Returns as a data frame
+        Returns as a data frame, one column is an assets returns
+        
+        :returns: TxN pd.DataFrame
         """
         
         return acc_list_to_pd_frame(self.to_list, self.asset_columns)
@@ -897,14 +1004,24 @@ class accountCurveGroupForType(accountCurveSingleElement):
 
     def get_stats(self, stat_method, freq="daily"):
         """
-        Returns a stats_dict, one value per asset
+        Create a dictionary summarising statistics across a group of account curves
+        
+        :param stat_method: Any method of accountCurveSingleElementOneFreq
+        :type stat_method: str
+        
+        :param freq: frequency; daily, weekly, monthly or annual
+        :type freq: str 
+        
+        :returns: statsDict
         """
         
         return statsDict(self, stat_method, freq)
     
     def time_weights(self):
         """
-        Returns a dict, values are weights
+        Returns a dict, values are weights according to how much data we have
+        
+        :returns: dict of floats
         """
         def _len_nonzero(ac_curve):
             return_df=ac_curve.as_df()
@@ -925,6 +1042,20 @@ class accountCurveGroupForType(accountCurveSingleElement):
     
 class statsDict(dict):
     def __init__(self, acgroup_for_type, stat_method, freq="daily"):
+        """
+        Create a dictionary summarising statistics across a group of account curves
+        
+        :param acgroup_for_type: Account curve group to analyse
+        :type acgroup_for_type: accountCurveGroupForType
+        
+        :param stat_method: Any method of accountCurveSingleElementOneFreq
+        :type stat_method: str
+        
+        :param freq: frequency; daily, weekly, monthly or annual
+        :type freq: str 
+        """
+
+        
         column_names=acgroup_for_type.asset_columns
 
         def _get_stat_from_acobject(acobject, stat_method, freq):
@@ -948,7 +1079,13 @@ class statsDict(dict):
         Returns a dict of weightings
         
         Eithier equal weighting, or returns time_weightings
+        
+        :param timeweighted: Time weight statistics or use simple average
+        :type: timeweighted: bool
+
+        :returns: dict of floats
         """
+
         
         if timeweighted:
             return self.time_weightings
@@ -957,12 +1094,29 @@ class statsDict(dict):
             
     
     def mean(self, timeweighted=False):
+        """
+        Return cross sectional mean of statistics
+        
+        :param timeweighted: Time weight statistics or use simple average
+        :type: timeweighted: bool
+
+        :returns: float
+        """
         wts=self.weightings(timeweighted)
         ans=sum([asset_value*wts[asset_name] for (asset_name, asset_value) in self.items()])
         
         return ans
     
     def std(self, timeweighted=False):
+        """
+        Return cross sectional standard deviation of statistics
+        
+        :param timeweighted: Time weight statistics or use simple average
+        :type: timeweighted: bool
+
+        :returns: float
+        """
+
         wts=self.weightings(timeweighted)
         avg=self.mean(timeweighted)
         ans=sum([ wts[asset_name] * (asset_value - avg)**2 
@@ -971,6 +1125,17 @@ class statsDict(dict):
         return ans
     
     def tstat(self, timeweighted=False):
+        """
+        Determine if cross section of statistics is significantly different from zero
+        
+        High t statistic = yes
+        
+        :param timeweighted: Time weight statistics or use simple average
+        :type: timeweighted: bool
+
+        :returns: float
+        """
+        
         t_mean=self.mean(timeweighted)
         t_std=self.std(timeweighted)
         
@@ -980,6 +1145,16 @@ class statsDict(dict):
         return t_mean / t_std
     
     def pvalue(self, timeweighted=False):
+        """
+        Determine if cross section of statistics is significantly different from zero
+        
+        Low p value = yes
+        
+        :param timeweighted: Time weight statistics or use simple average
+        :type: timeweighted: bool
+        
+        :returns: float
+        """
         tstat=self.tstat(timeweighted)
         n=len(self.values())
         
@@ -991,13 +1166,13 @@ class statsDict(dict):
         return pvalue
         
 class accountCurveGroup(accountCurveSingleElement):
-    def __init__(self, acc_curve_list, asset_columns, weighted_flag=False):
+    def __init__(self, acc_curve_list, asset_columns):
         """
         Create a group of account curves from a list and some column names
         
         looks like accountCurve, so outward facing is the total p&L
-        FIXME: (need a way to pass the total into accountCurve,
-        as series of accountCurveSingle)
+        
+        No weighting is done, so returns of the total will be simple addition
         
         so acc=accountCurveGroup()
         acc.mean() 
@@ -1019,8 +1194,24 @@ class accountCurveGroup(accountCurveSingleElement):
         Also: eg acc.get_stats("mean", curve_type="net", freq="daily")
         acc.net.get_stats("sharpe", freq="weekly") 
         ... Returns a list of stats 
+
+        :param acc_curve_list: Curves to group together
+        :type acc_curve_list: list of accountCurve() objects
+
+        :param asset_columns: Names of each asset (same order as acc_curve_list) 
+        :type asset_columns: list of str
+
         
         """
+        
+        isweighted=[x.weighted_flag for x in acc_curve_list]
+        if any(isweighted):
+            if not(all(isweighted)):
+                raise Exception("Can't mix weighted and unweighted account curves")
+            else:
+                weighted_flag = True
+        else:
+            weighted_flag = False
         
         net_list=[getattr(x, "net") for x in acc_curve_list]
         gross_list=[getattr(x, "gross") for x in acc_curve_list]
@@ -1055,6 +1246,7 @@ class accountCurveGroup(accountCurveSingleElement):
         Overriding this method to access individual curves
         
         Returns an object of type accountCurve
+        
         """
         try:
             ans=self.to_list[self.asset_columns.index(colname)]
@@ -1066,6 +1258,17 @@ class accountCurveGroup(accountCurveSingleElement):
     def get_stats(self, stat_method, curve_type="net", freq="daily"):
         """
         Returns a dict of stats, one per asset
+        
+        :param stat_method: Any method of accountCurveSingleElementOneFreq
+        :type stat_method: str
+        
+        :param curve_type: gross, net or costs
+        :type curve_type: str
+        
+        :param freq: frequency; daily, weekly, monthly or annual
+        :type freq: str 
+        
+        :returns: statsDict, dict like object 
         """
         
         subobject=getattr(self, curve_type)
@@ -1074,9 +1277,12 @@ class accountCurveGroup(accountCurveSingleElement):
 
     def to_frame(self, curve_type="net"):
         """
-        Returns as a data frame
+        Returns individual return curves as a data frame
+
+        :param curve_type: gross, net or costs
+        :type curve_type: str
         
-        Defaults to net
+        :returns: pd.Dataframe TxN
         """
         
         actype=getattr(self, curve_type)
@@ -1089,12 +1295,19 @@ class accountCurveGroup(accountCurveSingleElement):
         Collapse instrument level data into a list of returns in a stack_returns object (pd.TimeSeries)
         
         We can bootstrap this or perform other statistics
+        
+        :returns: returnStack
         """
         
         returnsStack(self.to_list)
 
 
     def to_ncg_frame(self):
+        """
+        Returns total account curves for net, gross and costs in a dataframe
+        
+        :returns: Tx3 pd.Dataframe
+        """
 
         ans=pd.concat([self.net.as_df(), self.gross.as_df(), self.costs.as_df()], axis=1)
         ans.columns=["net", "gross", "costs"]
@@ -1108,6 +1321,13 @@ class returnsStack(accountCurveSingle):
     Create a stack of returns which we can bootstrap
     """
     def __init__(self, returns_list):
+        """
+        Create a stack of returns which we can bootstrap
+        
+        :param returns_list: returns to be bootstrapped
+        :type returns_list: List of accountCurve() objects
+        """
+
         
         ## Collapse indices to a single one
         bs_index_to_use=[list(returns.index) for returns in returns_list]
@@ -1155,6 +1375,14 @@ class returnsStack(accountCurveSingle):
         """
         Create an accountCurveGroup object containing no_runs, each same length as the
           original portfolio (unless length is set)
+          
+        :param no_runs: Number of runs to do 
+        :type no_runs: int
+        
+        :param length: Length of each run
+        :type length: int
+        
+        :returns: accountCurveGroup, one element for each of no_runs
         """
         values_to_sample_from=dict(gross=list(getattr(self, "gross").iloc[:,0].values),
                                    net=list(getattr(self, "net").iloc[:,0].values),
