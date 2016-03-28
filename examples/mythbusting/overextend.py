@@ -263,8 +263,8 @@ from systems.portfolio import Portfolios
 config=Config("systems.provided.futures_chapter15.futuresconfig.yaml")
 
 config.use_forecast_scale_estimates=True
-config.instrument_fit=dict(pool_instruments=True, return_period=return_period, buckets=25,
-                           date_method="expanding")
+config.instrument_fit=dict(pool_instruments=True, return_period=return_period, buckets=3,
+                           date_method="in_sample")
 config.forecast_weights=dict([(rule,1.0) for rule in [rulename]])
 del(config.instrument_weights) ## so we use all the markets we have, equal weighted
 config.notional_trading_capital=10000000

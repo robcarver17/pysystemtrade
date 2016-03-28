@@ -151,7 +151,7 @@ class Data(object):
         What we return if currency rates match
         """
         DEFAULT_DATES = pd.date_range(start=pd.datetime(
-            1970, 1, 1), end=pd.datetime(2015, 1, 1))
+            1970, 1, 1), freq="B", end=pd.datetime(2015, 1, 1))
         DEFAULT_RATE_SERIES = pd.DataFrame(
             dict(fx=[1.0] * len(DEFAULT_DATES)), index=DEFAULT_DATES)
 

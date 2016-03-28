@@ -129,6 +129,7 @@
 
 * Simulation:
 
+  * pickle and unpickle cache
   * add cross sectional carry rule and breakout rule
   * vol targeting with capital adjustment
   * quandl data
@@ -136,6 +137,7 @@
   * add new data from unstitched contracts (with explanatory post, include explanation for Nth contract stitching)
   * Create live config from a system object (Put final value of estimates into a yaml file) 
   * database data
+  * Exogenous risk model
   * check systems have correct attributes; check turnover, minimum size, right forecast scalars (distribution across instruments) etc
 
 * Live trading:
