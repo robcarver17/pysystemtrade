@@ -129,6 +129,7 @@
 
 * Simulation:
 
+  * remove weighting from instrument forecast pandl so can be cached
   * pickle and unpickle cache
   * add cross sectional carry rule and breakout rule
   * vol targeting with capital adjustment

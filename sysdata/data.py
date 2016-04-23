@@ -240,8 +240,11 @@ class Data(object):
         :returns: Tx1 pd.DataFrame
 
         >>> data=Data()
-        >>> data.get_fx_for_instrument("wibble", "USD").tail(2)
+        >>> data.get_fx_for_instrument("wibble", "USD").tail(5)
                     fx
+        2014-12-26   1
+        2014-12-29   1
+        2014-12-30   1
         2014-12-31   1
         2015-01-01   1
         """
