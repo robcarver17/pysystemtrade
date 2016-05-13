@@ -101,7 +101,7 @@ class csvFuturesData(FuturesData):
         :param instrument_code: instrument to value for
         :type instrument_code: str
 
-        :returns: 4 tuple of floats
+        :returns: dict of floats
 
         >>> data=csvFuturesData("sysdata.tests")
         >>> data.get_raw_cost_data("EDOLLAR")
@@ -122,7 +122,11 @@ class csvFuturesData(FuturesData):
             self.log.warn("Cost data not found for %s, using zero" % instrument_code)
             return default_costs
 
-        return tuple(block_move_value)
+        return dict(price_slippage=block_move_value[0],
+                    value_of_block_commission=block_move_value[1],
+                    percentage_cost=block_move_value[2],
+                    value_of_pertrade_commission=block_move_value[3])
+
         
 
     def get_raw_price(self, instrument_code):

@@ -534,6 +534,11 @@ class ForecastCombineEstimated(ForecastCombineFixed):
 
         setattr(self, "description", "Estimated")
     
+        nopickle=["calculation_of_raw_forecast_weights"]
+
+        setattr(self, "_nopickle", nopickle)
+
+
     
     
     def get_trading_rule_list(self, instrument_code):

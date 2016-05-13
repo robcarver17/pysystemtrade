@@ -445,20 +445,22 @@ If you want to use a different set of data values (eg equity EP ratios, interest
 
 To remain organised it's good practice to save any work into a directory like `pysystemtrade/private/this_system_name/` (you'll need to create a couple of directories first). If you plan to contribute to github, just be careful to avoid adding 'private' to your commit ( [you may want to read this](https://24ways.org/2013/keeping-parts-of-your-codebase-private-on-github/) ). 
 
-Because instances of **System()** encapsulate the data and functions you need, you can *pickle* them at least in theory (but you might want to read about [system caching](#caching) before you reload them). 
+You can save the contents of a system cache to avoid having to redo calculations when you come to work on the system again (but you might want to read about [system caching and pickling](#caching) before you reload them). 
 
 ```python
 from systems.provided.futures_chapter15.basesystem import futures_system
-import pickle
-from syscore.fileutils import get_filename_for_package
 
-filename=get_filename_for_package("systems.private.this_system_name.system.pck")
+system = futures_system(log_level="on")
+system.accounts.portfolio().sharpe() ## does a whole bunch of calculations that will be saved in the cache
 
-with open(filename, 'wb') as outfile:
-   pickle.dump(system)    
+system.pickle_cache("systems.private.this_system_name.system.pck") ## use any file extension you like
+
+## In a new session
+system = futures_system(log_level="on")
+system.unpickle_cache("systems.private.this_system_name.system.pck")
+system.accounts.portfolio().sharpe() ## this will run much faster and reuse previous calculations
+
 ```
-
-[This is the theory. In practice pickling complex objects seems to cause bad things to happen and the results may be unreliable]
 
 You can also save a config object into a yaml file - see [saving configuration](#save_config).
 
@@ -586,7 +588,7 @@ Methods that you'll probably want to override:
 - `get_instrument_price` Returns Tx1 pandas data frame
 - `get_instrument_list` Returns list of str
 - `get_value_of_block_price_move` Returns float
-- 'get_raw_cost_data' Returns 4 tuple of cost data
+- 'get_raw_cost_data' Returns a dict cost data
 - `get_instrument_currency`: Returns str
 - `_get_fx_data(currency1, currency2)`  Returns Tx1 pandas data frame of exchange rates
 
@@ -1113,7 +1115,7 @@ Currently system only has two methods of it's own (apart from those used for cac
 `system.log` and `system.set_logging_level()` provides access to the system's log. See [logging](#logging) for more details.
 
 <a name="caching">
-### System Caching
+### System Caching and pickling
 </a>
 
 Pulling in data and calculating all the various stages in a system can be a time consuming process. So the code supports caching. When we first ask for some data by calling a stage method, like `system.portfolio.get_notional_position("EDOLLAR")`, the system first checks to see if it has already pre-calculated this figure. If not then it will calculate the figure from scratch. This in turn may involve calculating preliminary figures that are needed for this position, unless they've already been pre-calculated. So for example to get a combined forecast, we'd already need to have all the individual forecasts from different trading rule variations for a particular instrument. Once we've calculated a particular data point, which could take some time, it is stored in the system object cache (along with any intermediate results we also calculated). The next time we ask for it will be served up immediately. 
@@ -1132,7 +1134,7 @@ system.combForecast.get_combined_forecast("EDOLLAR")
 ## What's in the cache?
 system.get_items_for_instrument("EDOLLAR")
 
-## Note cache items are labelled with tuples: (stagename, itemname)
+## Note cache items are labelled with tuples: (stagename, itemname, flags). Flags are used when we can have more than one kind of data for a particular item, eg accounting data as a percentage or not.
 
 ## Let's make a change to the config:
 system.config.forecast_div_multiplier=0.1
@@ -1151,6 +1153,43 @@ system.combForecast.get_combined_forecast("EDOLLAR")
 
 
 ```
+
+### Pickling and unpickling saved cache data
+
+It can take a while to backtest a large system. It's quite useful to be able to save the contents of the cache and reload it later. I use the python pickle module to do this.
+
+For boring python related reasons not all elements in the cache will be saved. The accounting information, and the optimisation functions used when estimating weights, will be excluded and won't be reloaded.
+
+
+```python
+from systems.provided.futures_chapter15.basesystem import futures_system
+
+system = futures_system(log_level="on")
+system.accounts.portfolio().sharpe() ## does a whole bunch of calculations that will be saved in the cache. A bit slow...
+
+system.get_itemnames_for_stage("accounts") ## includes ('accounts', 'portfolio', 'percentageTdelayfillTroundpositionsT')
+
+## To see what won't be saved down in the cache
+system.get_no_pickle_items() ## includes ('accounts', 'portfolio', 'percentageTdelayfillTroundpositionsT'); this won't be pickled
+
+## save it down
+system.pickle_cache("systems.private.this_system_name.system.pck") ## Using the 'dot' method to identify files in the workspace. use any file extension you like
+
+
+## Now in a new session
+system = futures_system(log_level="on")
+system.get_items_with_data() ## check empty cache
+
+system.unpickle_cache("systems.private.this_system_name.system.pck")
+
+system.get_items_with_data() ## Cache is now populated. Any existing data would have been removed.
+system.get_itemnames_for_stage("accounts") ## now doesn't include ('accounts', 'portfolio', 'percentageTdelayfillTroundpositionsT')
+
+system.accounts.portfolio().sharpe() ## this will run much faster and reuse previous calculations
+
+```
+
+
 
 ### Advanced caching
 
@@ -1286,7 +1325,8 @@ You should cache as early as possible; so that all the subsequent stages that ne
 
 The cache 'lives' in the parent system object in the attribute `system._cache`, *not* the stage with the relevant method. There are standard functions which will check to see if an item is cached in the system, and then call a function to calculate it if required (see below). To make this easier when a stage object joins a system it gains an attribute self.parent, which will be the 'parent' system. 
 
-The cache is a dictionary, whose keys are 2 tuples of strings: (stage name, item name). Item names should be the same as the methods that call them, eg `system.portfolio.get_notional_position()` caches to `system._cache[('portfolio', 'get_notional_position')]`. Within each item element must be dictionaries, the keys of which are instrument codes. You can also nest dictionaries, as when we store forecasts for each instrument and trading rule variation.
+The cache is a dictionary, whose keys are 3 tuples of strings: (stage name, item name, flags). Item names should be the same as the methods that call them, eg `system.portfolio.get_notional_position()` caches to `system._cache[('portfolio', 'get_notional_position')]`. The flags element defaults to an empty string, but is used mainly by the accounts .
+Within each item element must be dictionaries, the keys of which are instrument codes. You can also nest dictionaries, as when we store forecasts for each instrument and trading rule variation. 
 
 Think carefully about wether your method should create data that is protected from casual cache deletion. As a rule anything that cuts across instruments and / or changes slowly should be protected. Here are the current list of protected items:
 
@@ -1299,6 +1339,8 @@ Think carefully about wether your method should create data that is protected fr
 - Instrument correlations
 
 To this list I'd add any cross sectional data, and anything that measures portfolio risk (not yet implemented in this project).
+
+Also think about whether you're going to cache any complex objects that `pickle` might have trouble with, like class instances. You need to flag these up as problematic.
 
 Let's look at the [`forecast_combine.py`](/systems/forecast_combine.py) file for an example of how to write caching code. This code is an annotated extract:
 
@@ -1326,8 +1368,17 @@ class ForecastCombineFixed(SystemStage):
         protected=['_forecast_weights','_forecast_div_multiplier']
         
         setattr(self, "_protected", protected)
-	
-    
+
+	"""
+	We also include anything that can't be pickled
+
+	Here it's the complex calculation methods
+	"""	
+        
+        nopickle=["calculation_of_raw_forecast_weights"]
+
+        setattr(self, "_nopickle", nopickle)
+
     def get_capped_forecast(self, instrument_code, rule_variation_name):
         """
         Get the capped forecast from the previous module
@@ -1357,6 +1408,7 @@ class ForecastCombineFixed(SystemStage):
         ## Notice the caching method takes as arguments the item name (same as the method), instrument code, private function to call 
             if we need to calculate, and the system stage (self)
         ##  There can be additional arguments
+        ## note if we want to identify something with a flag we'd also included flags="flagname". Look at 
 
         combined_forecast=self.parent.calc_or_cache( 'get_combined_forecast', instrument_code,  _get_combined_forecast, self)
         return combined_forecast
@@ -1367,38 +1419,45 @@ class ForecastCombineFixed(SystemStage):
 
 And here is the [`calc_or_cache function`](/systems/basesystem.py). If it doesn't find the dictname as an attribute then it calls the calculation function (`_get_combined_forecast`) in this case, for which the stage object (self) is the only *arg (and which then becomes this_stage in the calculation function).
 
-```python
-    def calc_or_cache(self, itemname, instrument_code, func, this_stage, *args, **kwargs):
+```python 	
+    def calc_or_cache(self, itemname, instrument_code, func, this_stage,  *args, flags="", **kwargs):
         """
         Assumes that self._cache has an attribute itemname, and that is a dict
-        
-        If self._cache.itemname[instrument_code] exists return it. Else call func with *args and **kwargs
-        if the latter updates the dictionary
-    
-        :param itemname: attribute of object containing a dict 
-        :type itemname: str
-    
-        :param instrument_code: keyname to look for in dict 
-        :type instrument_code: str
-        
-        :param func: function to call if missing from cache. will take self and instrument_code as first two args
-        :type func: function
-    
-        :param args, kwargs: also passed to func if called
-        
-        :returns: contents of dict or result of calling function
-        
-        
-        """
-        cache_ref=(this_stage.name, itemname)
 
-        value=self.get_item_from_cache(cache_ref, instrument_code)
-        
-        if value is None:
+        If self._cache.itemname[instrument_code] exists return it. Else call
+        func with *args and **kwargs if the latter updates the dictionary
+
+        :param itemname: attribute of object containing a dict
+        :type itemname: str
+
+        :param instrument_code: keyname to look for in dict
+        :type instrument_code: str
+
+        :param func: function to call if missing from cache. will take self and
+            instrument_code as first two args
+        :type func: function
+
+        :param this_stage: stage within system that is calling us
+        :type this_stage: system stage
+
+        :param flags: Optional further descriptor for cache item (included in kwargs)
+        :type flags: str
+
+        :param args, kwargs: also passed to func if called
+
+        :returns: contents of dict or result of calling function
+
+
+        """
+        #flags=kwargs.pop("flags", "")
             
-            value=func(self, instrument_code, this_stage, *args, **kwargs)
+        cache_ref=(this_stage.name, itemname, flags)
+        value = self.get_item_from_cache(cache_ref, instrument_code)
+
+        if value is None:
+            value = func(self, instrument_code, this_stage,  *args, **kwargs)
             self.set_item_in_cache(value, cache_ref, instrument_code)
-        
+
         return value
 ```
 
@@ -1439,44 +1498,50 @@ Again if a calculation function (like `_get_forecast_scalar`) needs the current 
 For reference here is [`calc_or_cache_nested`](/systems/basesystem.py). Notice that in the example above keyname is the rule_variation_name and there are no *args.
 
 ```python
-    def calc_or_cache_nested(self, itemname, instrument_code, keyname, func, this_stage, *args, **kwargs):
+    def calc_or_cache_nested(self, itemname, instrument_code, keyname, func, this_stage, 
+                             *args, **kwargs):
         """
         Assumes that self._cache has a key itemname, and that is a nested dict
-        
-        If itemname[instrument_code][keyname] exists return it. 
-        Else call func with arguments: self, instrument_code, keyname, *args and **kwargs
-        if we have to call the func updates the dictionary with it's value
-    
-        Used for cache within various kinds of objects like config, price, data, system...
-    
-        :param itemname: cache item to look for 
-        :type itemname: str
-    
-        :param instrument_code: keyname to look for in dict 
-        :type instrument_code: str
-    
-        :param keyname: keyname to look for in nested dict 
-        :type keyname: valid dict key
-    
-        :param func: function to call if missing from cache. will take self and instrument_code, keyname as first three args
-        :type func: function
-    
-        :param args, kwargs: also passed to func if called
-        
-        :returns: contents of dict or result of calling function
-        
-        
-        """
-        cache_ref=(this_stage.name, itemname)
 
-        value=self.get_item_from_cache(cache_ref, instrument_code, keyname)
-        
-        if value is None:        
-            value=func(self, instrument_code, keyname, this_stage, *args, **kwargs)
+        If itemname[instrument_code][keyname] exists return it.
+        Else call func with arguments: self, instrument_code, keyname, *args
+        and **kwargs if we have to call the func updates the dictionary with
+        it's value
+
+        Used for cache within various kinds of objects like config, price,
+        data, system...
+
+        :param itemname: cache item to look for
+        :type itemname: str
+
+        :param instrument_code: keyname to look for in dict
+        :type instrument_code: str
+
+        :param keyname: keyname to look for in nested dict
+        :type keyname: valid dict key
+
+        :param func: function to call if missing from cache. will take self and
+            instrument_code, keyname as first three args
+        :type func: function
+
+        :param this_stage: stage within system that is calling us
+        :type this_stage: system stage
+
+        :param args, kwargs: also passed to func if called
+
+        :returns: contents of dict or result of calling function
+        """
+        flags=kwargs.pop("flags", "")
+
+        cache_ref=(this_stage.name, itemname, flags)
+
+        value = self.get_item_from_cache(cache_ref, instrument_code, keyname)
+
+        if value is None:
+            value = func(self, instrument_code, keyname, this_stage, *args, **kwargs)
             self.set_item_in_cache(value, cache_ref, instrument_code, keyname)
-        
+
         return value
-    
 
 ```
 
@@ -1745,6 +1810,7 @@ If you're going to write a new stage (completely new, or to replace an existing 
 4. Modified stages should use the same name as their parent, or the wiring will go haywire. They should however use a different description, which goes in the attribute `description` attribute.
 5. Consider using a [*switching*](#switch_persistence) stage like [class `ForecastCombine`](/systems/forecast_combine.py) (there are similar switches for forecast scaling and portfolios).
 6. Think about whether you need to protect part of the system cache for this stage output [system caching](#caching). To do this create a list in the attribute `_protected` with the item names you wish to protect.
+6a. Similarly if you're going to cache complex objects that won't pickle easily (like accountCurve objects) you need to add the item name to the attribute '_nopickle'.
 7. If you're inheriting from another stage be sure to add to it's list of protected items, rather than replacing it.
 8. Use non-cached input methods to get data from other stages. Be wary of accessing internal methods in other stages; try to stick to output methods only. 
 9. Use cached input methods to get data from the system data object (since this is the first time it will be cached). Again only access public methods of the system data object.

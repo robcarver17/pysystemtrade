@@ -3,7 +3,7 @@ Suite of things to work out p&l, and statistics thereof
 
 """
 
-from copy import copy
+from copy import copy, deepcopy
 
 import pandas as pd
 from pandas.tseries.offsets import BDay
@@ -16,6 +16,7 @@ from syscore.algos import robust_vol_calc
 from syscore.pdutils import add_df_single_column, multiply_df_single_column, divide_df_single_column, drawdown, index_match
 from syscore.dateutils import BUSINESS_DAYS_IN_YEAR, ROOT_BDAYS_INYEAR, WEEKS_IN_YEAR, ROOT_WEEKS_IN_YEAR
 from syscore.dateutils import MONTHS_IN_YEAR, ROOT_MONTHS_IN_YEAR
+from itertools import accumulate
 
 
 
@@ -667,9 +668,8 @@ class accountCurveSingle(accountCurveSingleElement):
 
 class accountCurve(accountCurveSingle):
 
-    def __init__(self, price,  percentage=False, cash_costs=None, SR_cost=None, 
-                 capital=None, ann_risk_target=None, weighting=None,
-                 apply_weight_to_costs_only=False, 
+    def __init__(self, price=None,  percentage=False, cash_costs=None, SR_cost=None, 
+                 capital=None, ann_risk_target=None, pre_calc_data=None,
                  **kwargs):
         """
         Create an account curve; from which many lovely statistics can be gathered
@@ -694,11 +694,10 @@ class accountCurve(accountCurveSingle):
         :param ann_risk_target: Annual risk target, as % of capital. Used to calculate daily risk for SR costs
         :type ann_risk_target: None or float
 
-        :param weighting: Weighting scheme to apply to returns
-        :type weighting: Tx1 pd.DataFrame or None
+        :param pre_calc_data: Used by the weighting function, to speed things up and inherit pre-calculated
+                            stuff from an existing account curve
+        :type pre_calc_data: None or a big tuple
 
-        :param apply_weight_to_costs_only: Apply weights only to costs, not gross returns
-        :type apply_weight_to_costs_only: bool
         
         **kwargs  passed to profit and loss calculation
          (price, trades, marktomarket, positions,
@@ -707,24 +706,75 @@ class accountCurve(accountCurveSingle):
           value_of_price_point)
         
         """
-
-        returns_data=pandl_with_data(price,  capital=capital, ann_risk_target=ann_risk_target, **kwargs)
-
-        (cum_trades, trades, instr_ccy_returns,
-            base_ccy_returns, fx, value_of_price_point)=returns_data
+        if pre_calc_data:
+            (returns_data, resolved_capital, daily_capital, costs_base_ccy, costs_instr_ccy)=pre_calc_data
             
-        gross_returns=base_ccy_returns
+            (cum_trades, trades, instr_ccy_returns,
+                base_ccy_returns, fx, value_of_price_point)=returns_data
 
-        ## always returns a time series
-        (capital, daily_capital)=resolve_capital(gross_returns, capital, ann_risk_target)
+        else:
+            returns_data=pandl_with_data(price,  capital=capital, ann_risk_target=ann_risk_target, **kwargs)
+    
+            (cum_trades, trades, instr_ccy_returns,
+                base_ccy_returns, fx, value_of_price_point)=returns_data
+                
+            ## always returns a time series
+            (resolved_capital, daily_capital)=resolve_capital(base_ccy_returns, capital, ann_risk_target)
+    
+            (costs_base_ccy, costs_instr_ccy)=calc_costs(returns_data, cash_costs, SR_cost, daily_capital)
 
-        (costs_base_ccy, costs_instr_ccy)=calc_costs(returns_data, cash_costs, SR_cost, daily_capital)
+        ## Initially we have an unweighted version
+        weighted_flag = False
+
+        self._calc_and_set_returns(base_ccy_returns, costs_base_ccy, resolved_capital, 
+                                   percentage=percentage, weighted_flag=weighted_flag)
+        
+        ## Save all kinds of useful statistics
+        setattr(self, "cum_trades", cum_trades)
+        setattr(self, "trades", trades)
+        setattr(self, "instr_ccy_returns", instr_ccy_returns)
+        setattr(self, "base_ccy_returns", base_ccy_returns)
+        setattr(self, "fx", fx)
+        setattr(self, "value_of_price_point", value_of_price_point)
+        setattr(self, "capital", resolved_capital)
+        setattr(self, "daily_capital", daily_capital)
+        setattr(self, "costs_instr_ccy", costs_instr_ccy)
+        setattr(self, "percentage", percentage)
+
+
+    def _calc_and_set_returns(self, gross_returns, costs_base_ccy, capital, 
+                              percentage=False, weighted_flag=False, weighting=None, 
+                              apply_weight_to_costs_only=False):
+        """
+        This hidden method is called when we setup the account curve, to 
+        
+        Also called again if we get a weighted version of this account curve
+
+        :param gross_returns: Pre-cost returns in base currency terms
+        :type gross_returns: Tx1 pd.DataFrame
+
+        :param costs_base_ccy: Costs in base currency terms
+        :type costs_base_ccy: Tx1 pd.DataFrame
+
+        :param capital: Capital in base currency terms
+        :type capital: Tx1 pd.DataFrame
+        
+        :param percentage: Return % returns, or base currency if False
+        :type percentage: bool
+
+        :param weighted_flag: Apply a weighting scheme, or not
+        :type weighted_flag: bool
+
+        :param weighting: Weighting scheme to apply to returns
+        :type weighting: Tx1 pd.DataFrame or None
+
+        :param apply_weight_to_costs_only: Apply weights only to costs, not gross returns
+        :type apply_weight_to_costs_only: bool
+
+        """
 
         
-        if weighting is not None:
-            
-            weighted_flag = True
-            
+        if weighted_flag:
             if not apply_weight_to_costs_only:
                 ## only apply to gross returns if they aren't already weighted
                 gross_returns = multiply_df_single_column(
@@ -733,9 +783,6 @@ class accountCurve(accountCurveSingle):
             ## Always apply to costs
             costs_base_ccy = multiply_df_single_column(
                 costs_base_ccy, weighting, ffill=(False, True))
-        else:
-            ## not weighting
-            weighted_flag = False
 
         net_returns=add_df_single_column(gross_returns,costs_base_ccy) ## costs are negative returns
             
@@ -752,27 +799,22 @@ class accountCurve(accountCurveSingle):
         else:
             super().__init__(gross_returns, net_returns, costs_base_ccy, weighted_flag=weighted_flag)
             
-        ## Save all kinds of useful statistics
-        setattr(self, "cum_trades", cum_trades)
-        setattr(self, "trades", trades)
-        setattr(self, "instr_ccy_returns", instr_ccy_returns)
-        setattr(self, "base_ccy_returns", base_ccy_returns)
-        setattr(self, "fx", fx)
+        ## save useful stats
+        ## have to do this after super() call
         
-        setattr(self, "capital", capital)
-        setattr(self, "daily_capital", daily_capital)
-        
-        setattr(self, "costs_instr_ccy", costs_instr_ccy)
         setattr(self, "costs_base_ccy", costs_base_ccy)
-            
+        setattr(self, "gross_returns", gross_returns)
         setattr(self, "ccy_returns", 
                 accountCurveSingle(gross_returns, net_returns, costs_base_ccy))
         setattr(self, "perc_returns", 
                 accountCurveSingle(perc_gross_returns, perc_net_returns, perc_costs))
-        
+        setattr(self, "weighted_flag", weighted_flag)
+
 
     def __repr__(self):
         return super().__repr__()+ "\n Use object.calc_data() to see calculation details"
+
+        
 
     def calc_data(self):
         """
@@ -787,6 +829,51 @@ class accountCurve(accountCurveSingle):
         calc_dict=dict([(calc_name, getattr(self, calc_name)) for calc_name in calc_items])
         
         return calc_dict
+
+def weighted(account_curve,  weighting, apply_weight_to_costs_only=False):
+        """
+        Creates a copy of account curve with weights applied 
+
+        :param account_curve: Curve to copy from
+        :type account_curve: accountCurve
+        
+        :param weighting: Weighting scheme to apply to returns
+        :type weighting: Tx1 pd.DataFrame or None
+
+        :param apply_weight_to_costs_only: Apply weights only to costs, not gross returns
+        :type apply_weight_to_costs_only: bool
+
+        :returns: accountCurve
+        
+        """
+        if account_curve.weighted_flag:
+            raise Exception("You can't reweight weighted returns!")
+
+        ## very clunky but I can't make copy, deepcopy or inheritance work for this use case...
+        capital=copy(account_curve.capital)
+        percentage=copy(account_curve.percentage)
+        gross_returns=copy(account_curve.gross_returns)
+        costs_base_ccy=copy(account_curve.costs_base_ccy)
+        costs_instr_ccy=copy(account_curve.costs_instr_ccy)
+        daily_capital=copy(account_curve.daily_capital)
+        
+        returns_data=(account_curve.cum_trades, account_curve.trades, account_curve.instr_ccy_returns,
+                account_curve.base_ccy_returns, account_curve.fx, account_curve.value_of_price_point)
+
+        pre_calc_data=(returns_data, capital, daily_capital, costs_base_ccy, costs_instr_ccy)
+        
+        ## Create a cloned account curve with the pre calculated data 
+        new_account_curve=accountCurve(pre_calc_data=pre_calc_data)
+        
+        ## recalculate the returns with weighting applied
+        new_account_curve._calc_and_set_returns(gross_returns, 
+                                       costs_base_ccy, capital,
+                                       percentage=percentage, weighted_flag=True,
+                                       weighting=weighting, 
+                                       apply_weight_to_costs_only=apply_weight_to_costs_only)
+        
+        return new_account_curve
+
         
 def calc_costs(returns_data, cash_costs, SR_cost, daily_capital):
     """
@@ -872,14 +959,14 @@ def resolve_capital(ts_to_scale_to, capital, ann_risk_target):
         capital=CAPITAL
         
     if type(capital) is float or type(capital) is int:
-        capital=pd.DataFrame([capital]*ts_to_scale_to.shape[0], index=ts_to_scale_to.index)
+        resolved_capital=pd.DataFrame([capital]*ts_to_scale_to.shape[0], index=ts_to_scale_to.index)
     
     if ann_risk_target is None:
         ann_risk_target=ANN_RISK_TARGET
         
-    daily_capital = capital * ann_risk_target / ROOT_BDAYS_INYEAR
+    daily_capital = resolved_capital * ann_risk_target / ROOT_BDAYS_INYEAR
     
-    return (capital, daily_capital)
+    return (resolved_capital, daily_capital)
 
 
 def acc_list_to_pd_frame(list_of_ac_curves, asset_columns):

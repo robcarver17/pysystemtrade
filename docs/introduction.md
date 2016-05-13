@@ -696,6 +696,19 @@ You can also get a similar system where forecast scalars are estimated; as well 
 ```python
 from systems.provided.futures_chapter15.estimatedsystem import futures_system
 system = futures_system(log_level="on")
+system.portfolio.get_notional_position("EUROSTX").tail(5)
+```
+
+Because this runs quite slowly you might want to save the system data. This lives in a cache attribute.
+
+```python
+system.pickle_cache("systems.private.this_system_name.pck") ## use any file extension you like
+
+## In a new session
+from systems.provided.futures_chapter15.estimatedsystem import futures_system
+system = futures_system(log_level="on")
+system.unpickle_cache("systems.private.this_system_name.pck")
+system.accounts.portfolio().sharpe() ## this will run much faster and reuse previous calculations
 ```
 
 You'll probably want to read the [users guide](userguide.md) next.

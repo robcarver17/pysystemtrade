@@ -527,6 +527,9 @@ class PortfoliosEstimated(PortfoliosFixed):
 
         setattr(self, "description", "Estimated")
     
+        nopickle=["calculation_of_raw_instrument_weights"]
+        setattr(self, "_nopickle", nopickle)
+
     
     def get_instrument_correlation_matrix(self):
         """

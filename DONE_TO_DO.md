@@ -1,5 +1,16 @@
 # Release notes
 
+## Version 0.7.0 
+
+* ability to pickle and unpickle cache
+* included breakout rule
+* seperate out weighting calculation so instrument forecast pandl can be cached
+* csv data is now daily and updated to present day
+* Fixed bug with loading data from private module
+* Changed raw cost data so returns dict not tuple
+* Added 'flags' to cache identifier to replace horrors like 'portfolio__percentageTdelayfillTroundpositionsT'
+* p&l for trading rules now nested in caches rather than using special identifier
+
 ## Version 0.6.6
 
 * Added method accounts.pandl_for_instrument_rules
@@ -128,11 +139,9 @@
 # Features to add - later releases
 
 * Simulation:
-
-  * remove weighting from instrument forecast pandl so can be cached
-  * pickle and unpickle cache
-  * add cross sectional carry rule and breakout rule
+   
   * vol targeting with capital adjustment
+  * add other trading rules
   * quandl data
   * stitch futures contracts 
   * add new data from unstitched contracts (with explanatory post, include explanation for Nth contract stitching)
