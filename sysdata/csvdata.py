@@ -108,7 +108,10 @@ class csvFuturesData(FuturesData):
         (0.0025000000000000001, 2.1099999999999999, 0, 0)
         """
 
-        default_costs = (0.,0.,0.,0.)
+        default_costs = dict(price_slippage=0.0,
+                    value_of_block_commission=0.0,
+                    percentage_cost=0.0,
+                    value_of_pertrade_commission=0.0)
         
         cost_data = self._get_all_cost_data()
         

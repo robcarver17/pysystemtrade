@@ -1,6 +1,7 @@
 import pandas as pd
+import numpy as np
 
-def breakout(price, lookback):
+def breakout(price, lookback, smooth=None):
     """
     :param price: The price or other series to use (assumed Tx1)
     :type price: pd.DataFrame
@@ -8,17 +9,27 @@ def breakout(price, lookback):
     :param lookback: Lookback in days
     :type lookback: int
 
+    :param lookback: Smooth to apply in days. Must be less than lookback! Defaults to smooth/4
+    :type lookback: int
+
     :returns: pd.DataFrame -- unscaled, uncapped forecast
 
+    With thanks to nemo4242 on elitetrader.com for vectorisation
+
     """
-    roll_max = pd.rolling_max(price, lookback, min_periods=min(len(price), int(lookback/2)))
-    roll_min = pd.rolling_min(price, lookback, min_periods=min(len(price), int(lookback/2)))
+    if smooth is None:
+        smooth=max(int(lookback/4.0), 1)
+        
+    assert smooth<lookback
+        
+    roll_max = pd.rolling_max(price, lookback, min_periods=min(len(price), np.ceil(lookback/2.0)))
+    roll_min = pd.rolling_min(price, lookback, min_periods=min(len(price), np.ceil(lookback/2.0)))
     
     roll_mean = (roll_max+roll_min)/2.0
 
     ## gives a nice natural scaling
     output = 40.0*((price - roll_mean) / (roll_max - roll_min))
-    smoothed_output = pd.ewma(output, span=max(int(lookback/4.0), 1), min_periods=int(lookback/8.0))
+    smoothed_output = pd.ewma(output, span=smooth, min_periods=np.ceil(smooth/2.0))
 
     return smoothed_output
 

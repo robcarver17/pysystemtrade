@@ -2,7 +2,7 @@
 
 ## Version 0.7.0 
 
-* ability to pickle and unpickle cache
+* ability to pickle and unpickle cache (system.pickle_cache, system.unpickle_cache)
 * included breakout rule
 * seperate out weighting calculation so instrument forecast pandl can be cached
 * csv data is now daily and updated to present day

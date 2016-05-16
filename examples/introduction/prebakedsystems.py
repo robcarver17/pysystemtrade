@@ -40,3 +40,8 @@ system = futures_system(log_level="on")
 print(system.accounts.portfolio().sharpe())
 system.accounts.portfolio().curve().plot()
 show()
+
+del(system) ## just to make sure
+system = futures_system(log_level="on")
+system.unpickle_cache("systems.private.this_system_name.pck")
+system.accounts.portfolio().sharpe() ## this will run much faster and reuse previous calculations
