@@ -1,0 +1,97 @@
+#YAML
+#
+# Raw data
+#
+# Trading rules
+#
+trading_rules:
+  ewmac2_8:
+     function: systems.provided.futures_chapter15.rules.ewmac
+     data:
+         - "rawdata.get_daily_prices"
+         - "rawdata.daily_returns_volatility"
+     other_args: 
+         Lfast: 2
+         Lslow: 8
+  ewmac4_16:
+     function: systems.provided.futures_chapter15.rules.ewmac
+     data:
+         - "rawdata.get_daily_prices"
+         - "rawdata.daily_returns_volatility"
+     other_args: 
+         Lfast: 4
+         Lslow: 16
+  ewmac8_32:
+     function: systems.provided.futures_chapter15.rules.ewmac
+     data:
+         - "rawdata.get_daily_prices"
+         - "rawdata.daily_returns_volatility"
+     other_args: 
+         Lfast: 8
+         Lslow: 32
+  ewmac16_64:
+     function: systems.provided.futures_chapter15.rules.ewmac
+     data:
+         - "rawdata.get_daily_prices"
+         - "rawdata.daily_returns_volatility"
+     other_args: 
+         Lfast: 16
+         Lslow: 64
+  ewmac32_128:
+     function: systems.provided.futures_chapter15.rules.ewmac
+     data:
+         - "rawdata.get_daily_prices"
+         - "rawdata.daily_returns_volatility"
+     other_args: 
+         Lfast: 32
+         Lslow: 128
+  ewmac64_256:
+     function: systems.provided.futures_chapter15.rules.ewmac
+     data:
+         - "rawdata.get_daily_prices"
+         - "rawdata.daily_returns_volatility"
+     other_args: 
+         Lfast: 64
+         Lslow: 256
+  carry:
+     function: systems.provided.futures_chapter15.rules.carry
+     data:
+         - "rawdata.daily_annualised_roll"
+         - "rawdata.daily_returns_volatility"
+     other_args:
+         smooth_days: 90
+#
+use_forecast_scale_estimates: True
+#
+forecast_scalar_estimate:
+   pool_instruments: True
+#
+# forecast combination
+#
+use_forecast_weight_estimates: True
+#
+forecast_weight_estimate:
+   method: shrinkage
+#
+rule_variations: ['ewmac16_64','ewmac32_128', 'ewmac64_256', 'carry']
+#
+#
+forecast_correlation_estimate:
+   pool_instruments: True
+#
+use_instrument_weight_estimates: True
+#
+instrument_weight_estimate:
+   method: "shrinkage"
+#
+#
+# Capital correction
+#
+percentage_vol_target: 20.0
+notional_trading_capital: 250000
+base_currency: "USD"
+#
+# Portfolio creation
+#
+instruments: ['EDOLLAR','US10','EUROSTX', 'MXP', 'CORN', 'V2X']
+
