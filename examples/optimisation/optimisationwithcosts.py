@@ -4,7 +4,7 @@ from systems.provided.futures_chapter15.estimatedsystem import futures_system
 
 rule_variations=['carry', 'ewmac2_8', 'ewmac4_16', 'ewmac8_32', 'ewmac16_64','ewmac32_128', 'ewmac64_256']
 
-
+"""
 ## pool everything, no costs
 system=futures_system()
 system.set_logging_level("on")
@@ -244,7 +244,7 @@ show()
 print(system.combForecast.get_forecast_weights("V2X").tail(1)) ## expensive market
 system.combForecast.get_forecast_weights("V2X").iloc[-1,:].loc[rule_variations].plot(kind="barh")
 show()
-
+"""
 
 
 ## shrinkage
@@ -273,7 +273,7 @@ print(system.combForecast.get_forecast_weights("V2X").tail(1)) ## expensive mark
 system.combForecast.get_forecast_weights("V2X").iloc[-1,:].loc[rule_variations].plot(kind="barh")
 show()
 
-
+"""
 ## instruments
 system=futures_system()
 system.set_logging_level("on")
@@ -302,3 +302,4 @@ print(system.portfolio.get_instrument_weights())
 system.portfolio.get_instrument_weights().iloc[-1,:].plot(kind="barh")
 show()
 
+"""

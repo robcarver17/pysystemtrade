@@ -491,7 +491,7 @@ def shrink_corr(corrmatrix, shrinkage_corr):
 def shrink_SR(mean_list, stdev_list, shrinkage_SR, target_SR=.5):
     """
     >>> shrink_SR([.0,1.], [1.,2.], .5)
-    [0.125, 0.75]
+    [0.25, 1.0]
     >>> shrink_SR([np.nan, np.nan], [1.,2.], .5)
     [nan, nan]
     """
@@ -500,10 +500,10 @@ def shrink_SR(mean_list, stdev_list, shrinkage_SR, target_SR=.5):
     if np.all(np.isnan(SR_estimates)):
         return [np.nan]*len(mean_list)
 
-    post_SR=[(shrinkage_SR*target_SR)+(1-shrinkage_SR)*estimatedSR
+    post_SR_list=[(shrinkage_SR*target_SR)+(1-shrinkage_SR)*estimatedSR
                 for estimatedSR in SR_estimates] 
 
-    post_means=[post_SR * asset_stdev for (post_SR, asset_stdev) in zip (post_SR, stdev_list)]
+    post_means=[asset_SR * asset_stdev for (asset_SR, asset_stdev) in zip (post_SR_list, stdev_list)]
 
     return post_means
 
@@ -669,10 +669,10 @@ def SR_equaliser(stdev_list, target_SR):
     """
     Normalises returns so they have the same SR
     
-    >>> SR_equaliser([1., 2.],[2.,3.])
+    >>> SR_equaliser([1., 2.],.5)
     [1.1666666666666665, 1.7499999999999998]
-    >>> SR_equaliser([np.nan, 2.],[2.,np.nan])
-    [nan, nan]
+    >>> SR_equaliser([np.nan, 2.],.5)
+    [nan, 1.0]
     """
     return [target_SR * asset_stdev for asset_stdev in stdev_list]
 

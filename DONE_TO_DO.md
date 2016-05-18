@@ -1,8 +1,13 @@
 # Release notes
 
+## Version 0.8.1 
+
+* Fixed small bug with shrinkage
+* Added references to blog post on costs
+
 ## Version 0.8.0 
 
-* introduced methods for optimisation with costs. See this blog post for more (TBC).
+* introduced methods for optimisation with costs. See [this blog post for more](http://qoppac.blogspot.co.uk/2016/05/optimising-weights-with-costs.html)
 * made a lot of tweaks to optimisation code; mainly shrinkage now shrinks towards target Sharpe ratio, equalising SR does the same; consistent annualisation 
 * introduced new parameter for optimisation ann_target_SR
 * system.combForecast.calculation_of_raw_forecast_weights (estimated version) no longer stores nested weights.

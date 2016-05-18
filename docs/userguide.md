@@ -3172,7 +3172,7 @@ This has the advantage of keeping the original log attributes intact. If you wan
 ## Optimisation
 </a>
 
-See my blog posts on optimisation: [without](http://qoppac.blogspot.co.uk/2016/01/correlations-weights-multipliers.html) and [with costs](FIX ME LINK).
+See my blog posts on optimisation: [without](http://qoppac.blogspot.co.uk/2016/01/correlations-weights-multipliers.html) and [with costs](http://qoppac.blogspot.co.uk/2016/05/optimising-weights-with-costs.html).
 
 I use an optimiser to calculate both forecast and instrument weights. The process is almost identical for both. 
 
@@ -3191,7 +3191,7 @@ I recommend using weekly data, since it speeds things up and doesn't affect out 
 
 ### Pooling
 
-Pooling across instruments is only available when calculating forecast weights. Again I recommend you check out this blog post FIX ME LINK. 
+Pooling across instruments is only available when calculating forecast weights. Again I recommend you check out this [blog post](http://qoppac.blogspot.co.uk/2016/05/optimising-weights-with-costs.html). 
 
 
 ```
@@ -3204,13 +3204,13 @@ forecast_weight_estimate:
 
 ### Working out net costs
 
-Again I recommend you check out this blog post FIX ME LINK. 
+Again I recommend you check out this [blog post](http://qoppac.blogspot.co.uk/2016/05/optimising-weights-with-costs.html). 
 
 ```
 forecast_weight_estimate:  ## can also be applied to instrument weights
-   equalise_gross: False
-   cost_multiplier: 0.0
-   ceiling_cost_SR: 0.13 ## defaults to 999 for instrument weight estimation since I recommend you don't use it
+   equalise_gross: False ## equalise gross returns so that only costs are used for optimisation
+   cost_multiplier: 0.0 ## multiply costs by this number. Zero means grosss returns used. Higher than 1 means costs will be inflated. Use zero if apply_cost_weight=True
+   ceiling_cost_SR: 0.13 ## Max cost to allow for assets, annual SR units. Defaults to 999 for instrument weight estimation since I recommend you don't use it
 ```
 
 Because the interaction of these things is complex, warnings are printed if you try and do anything weird.
@@ -3309,7 +3309,7 @@ Notice that if you equalise Sharpe by shrinking with a factor of 1.0, then this 
 
 ### Post processing
 
-If we haven't accounted for costs earlier (eg by setting `cost_multiplier=0`) then we can adjust our portfolio weights according to costs after they've been calculated. See this blog post FIXME
+If we haven't accounted for costs earlier (eg by setting `cost_multiplier=0`) then we can adjust our portfolio weights according to costs after they've been calculated. See this blog post [blog post](http://qoppac.blogspot.co.uk/2016/05/optimising-weights-with-costs.html). 
 
 If weights are *cleaned*, then in a fitting period when we need a weight, but none has been calculated (due to insufficient data for example), an instrument is given a share of the weight.
 
