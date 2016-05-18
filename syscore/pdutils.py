@@ -41,6 +41,10 @@ def df_from_list(data):
         ## ensure all are properly aligned
         ## note we don't check that all the columns match here
         data=[data_item[column_names] for data_item in data]
+        
+        ## add on an offset
+        for (offset_value, data_item) in enumerate(data):
+            data_item.index=data_item.index + pd.Timedelta("%ds" % offset_value)
     
         ## pooled
         ## stack everything up

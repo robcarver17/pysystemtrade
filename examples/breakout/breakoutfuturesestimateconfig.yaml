@@ -60,6 +60,42 @@ trading_rules:
          - "rawdata.daily_returns_volatility"
      other_args:
          smooth_days: 90
+  breakout10:
+     function: systems.provided.moretradingrules.morerules.breakout
+     data:
+         - "rawdata.get_daily_prices"
+     other_args:
+         lookback: 10
+  breakout20:
+     function: systems.provided.moretradingrules.morerules.breakout
+     data:
+         - "rawdata.get_daily_prices"
+     other_args:
+         lookback: 20
+  breakout40:
+     function: systems.provided.moretradingrules.morerules.breakout
+     data:
+         - "rawdata.get_daily_prices"
+     other_args:
+         lookback: 40
+  breakout80:
+     function: systems.provided.moretradingrules.morerules.breakout
+     data:
+         - "rawdata.get_daily_prices"
+     other_args:
+         lookback: 80
+  breakout160:
+     function: systems.provided.moretradingrules.morerules.breakout
+     data:
+         - "rawdata.get_daily_prices"
+     other_args:
+         lookback: 160
+  breakout320:
+     function: systems.provided.moretradingrules.morerules.breakout
+     data:
+         - "rawdata.get_daily_prices"
+     other_args:
+         lookback: 320
 #
 use_forecast_scale_estimates: True
 #
@@ -73,7 +109,7 @@ use_forecast_weight_estimates: True
 forecast_weight_estimate:
    method: shrinkage
 #
-rule_variations: ['ewmac16_64','ewmac32_128', 'ewmac64_256', 'carry']
+# 
 #
 #
 forecast_correlation_estimate:
@@ -85,13 +121,8 @@ instrument_weight_estimate:
    method: "shrinkage"
 #
 #
-# Capital correction
-#
-percentage_vol_target: 20.0
-notional_trading_capital: 250000
-base_currency: "USD"
-#
 # Portfolio creation
 #
-instruments: ['EDOLLAR','US10','EUROSTX', 'MXP', 'CORN', 'V2X']
+# commenting out the next line means we default to using all instruments
+#instruments: ['EDOLLAR','US10','EUROSTX', 'MXP', 'CORN', 'V2X']
 

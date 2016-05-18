@@ -3172,7 +3172,7 @@ This has the advantage of keeping the original log attributes intact. If you wan
 ## Optimisation
 </a>
 
-See [my blog post](http://qoppac.blogspot.co.uk/2016/01/correlations-weights-multipliers.html)
+See my blog posts on optimisation: [without](http://qoppac.blogspot.co.uk/2016/01/correlations-weights-multipliers.html) and [with costs](FIX ME LINK).
 
 I use an optimiser to calculate both forecast and instrument weights. The process is almost identical for both. 
 
@@ -3180,14 +3180,40 @@ I use an optimiser to calculate both forecast and instrument weights. The proces
 
 From the config
 ```
-forecast_weight_estimate:
-   func: syscore.optimisation.GenericOptimiser
-   pool_instruments: True ##
+forecast_weight_estimate: ## can also be applied to instrument weights
+   func: syscore.optimisation.GenericOptimiser ## this is the only function provided
+   pool_instruments: True ## not used for instrument weights
    frequency: "W" ## other options: D, M, Y
 
 ```
 
-I recommend using weekly data, since it speeds things up and doesn't affect out of sample performance. Pooling instruments also makes sense, although in a future version I'll modify this to allow for different costs.
+I recommend using weekly data, since it speeds things up and doesn't affect out of sample performance. 
+
+### Pooling
+
+Pooling across instruments is only available when calculating forecast weights. Again I recommend you check out this blog post FIX ME LINK. 
+
+
+```
+forecast_weight_estimate:
+   pool_instruments: True ## pool gross returns
+   pool_costs: False ## pool costs across instruments
+
+```
+
+
+### Working out net costs
+
+Again I recommend you check out this blog post FIX ME LINK. 
+
+```
+forecast_weight_estimate:  ## can also be applied to instrument weights
+   equalise_gross: False
+   cost_multiplier: 0.0
+   ceiling_cost_SR: 0.13 ## defaults to 999 for instrument weight estimation since I recommend you don't use it
+```
+
+Because the interaction of these things is complex, warnings are printed if you try and do anything weird.
 
 ### Time periods
 
@@ -3207,6 +3233,7 @@ To do an optimisation we need estimates of correlations, means, and standard dev
 From the config
 
 ```
+forecast_weight_estimate:  ## can also be applied to instrument weights
    correlation_estimate:
      func: syscore.correlations.correlation_single_period
      using_exponent: False
@@ -3236,51 +3263,64 @@ There are three methods provided to optimise with in the function I've included.
 
 #### One period (not recommend)
 
-This is the classic Markowitz optimisation with the option to equalise means (makes things more stable) and volatilities. Since we're dealing with things that should have the same volatility anyway the latter is something I recommend doing.
+This is the classic Markowitz optimisation with the option to equalise Sharpe Ratios (makes things more stable) and volatilities. Since we're dealing with things that should have the same volatility anyway the latter is something I recommend doing.
 
 ```
    method: one_period
-   equalise_means: True
+   equalise_SR: True
+   ann_target_SR: 0.5  ## Sharpe we head to if we're equalising
    equalise_vols: True
 ```
+
+Notice that if you equalise Sharpe then this will override the effect of any pooling or changes to cost calculation.
 
 #### Bootstrapping (recommended, but slow)
 
 Here we're bootstrapping, by default drawing 50 weeks of data at a time, 100 times.
 
-For greater stability I recommend equalising the means, although this shouldn't be done once you're working with post cost returns.
 
 ```
 method: bootstrap
    monte_runs: 100
    bootstrap_length: 50
-   equalise_means: True
+   equalise_SR: False
+   ann_target_SR: 0.5  ## Sharpe we head to if we're shrinking or equalising
    equalise_vols: True
 
 ```
 
+Notice that if you equalise Sharpe then this will override the effect of any pooling or changes to cost calculation.
+
 #### Shrinkage
 
-This is a basic shrinkage towards a prior of equal sharpe ratios, and equal correlations; with priors equal to the average of estimates from the data.
+This is a basic shrinkage towards a prior of equal sharpe ratios, and equal correlations; with priors equal to the average of estimates from the data. Shrinkage of 1.0 means we use the priors, 0.0 means we use the empirical estimates.
 
 ```
    method: shrinkage 
    shrinkage_SR: 0.90
+   ann_target_SR: 0.5  ## Sharpe we head to if we're shrinking 
    shrinkage_corr: 0.50
    equalise_vols: True
 
 ```
 
+Notice that if you equalise Sharpe by shrinking with a factor of 1.0, then this will override the effect of any pooling or changes to cost calculation.
+
 
 ### Post processing
+
+If we haven't accounted for costs earlier (eg by setting `cost_multiplier=0`) then we can adjust our portfolio weights according to costs after they've been calculated. See this blog post FIXME
 
 If weights are *cleaned*, then in a fitting period when we need a weight, but none has been calculated (due to insufficient data for example), an instrument is given a share of the weight.
 
 We also smooth weights with an EWMA to avoid trading when they change.
 
 ```
+   apply_cost_weight: True
    ewma_span: 125
    cleaning: True
+```
+
 ```
 
 <a name="divmult">
@@ -3833,11 +3873,17 @@ forecast_weight_estimate:
    func: syscore.optimisation.GenericOptimiser
    method: shrinkage ## other options: one_period, bootstrap
    pool_instruments: True
+   pool_costs: False
+   equalise_gross: False
+   cost_multiplier: 1.0
+   ceiling_cost_SR: 0.13
+   apply_cost_weight: True
    frequency: "W" ## other options: D, M, Y
    date_method: expanding ## other options: in_sample, rolling
    rollyears: 20
    cleaning: True
-   equalise_means: True
+   equalise_SR: True
+   ann_target_SR: 0.5  ## Sharpe we head to if we're shrinking or equalising
    equalise_vols: True
    shrinkage_SR: 0.90
    shrinkage_corr: 0.50
@@ -4046,10 +4092,15 @@ instrument_weight_estimate:
    func: syscore.optimisation.GenericOptimiser
    method: shrinkage ## other options: one_period, bootstrap
    frequency: "W" ## other options: D, M, Y
+   equalise_gross: False
+   cost_multiplier: 1.0
+   apply_cost_weight: True
+   ceiling_cost_SR: 999 ## this means we don't apply ceiling costs at all
    date_method: expanding ## other options: in_sample, rolling
    rollyears: 20
    cleaning: True
-   equalise_means: True
+   equalise_SR: True
+   ann_target_SR: 0.5  ## Sharpe we head to if we're shrinking or equalising
    equalise_vols: True
    shrinkage_SR: 0.90
    shrinkage_corr: 0.50

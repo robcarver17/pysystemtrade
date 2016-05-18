@@ -62,11 +62,17 @@ forecast_weight_estimate:
    func: syscore.optimisation.GenericOptimiser
    method: shrinkage
    pool_instruments: True
+   pool_costs: False
+   equalise_gross: False
+   cost_multiplier: 0.0
+   apply_cost_weight: True
+   ceiling_cost_SR: 0.13
    frequency: "W"
    date_method: "expanding"
    rollyears: 20
    cleaning: True
-   equalise_means: True
+   equalise_SR: False
+   ann_target_SR: 0.5
    equalise_vols: True
    shrinkage_SR: 0.90
    shrinkage_corr: 0.50
@@ -120,14 +126,19 @@ use_instrument_weight_estimates: False
 #
 instrument_weight_estimate:
    func: syscore.optimisation.GenericOptimiser
-   method: "bootstrap"
+   method: shrinkage
    frequency: "W"
+   equalise_gross: False
+   cost_multiplier: 0.0
+   apply_cost_weight: False
+   ceiling_cost_SR: 999.0
    date_method: "expanding"
    rollyears: 20
    cleaning: True
-   equalise_means: True
+   equalise_SR: True
+   ann_target_SR: 0.5
    equalise_vols: True
-   shrinkage_mean: 0.90
+   shrinkage_mean: 1.00
    shrinkage_corr: 0.50
    monte_runs: 100
    bootstrap_length: 50

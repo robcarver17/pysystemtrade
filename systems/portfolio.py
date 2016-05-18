@@ -1,6 +1,8 @@
 import pandas as pd
 from copy import copy
 
+from syscore.accounting import decompose_group_pandl
+
 from systems.stage import SystemStage
 from systems.basesystem import ALL_KEYNAME
 from syscore.pdutils import multiply_df_single_column, fix_weights_vs_pdm, add_df_single_column
@@ -568,7 +570,7 @@ class PortfoliosEstimated(PortfoliosFixed):
             instrument_codes=system.get_instrument_list()
 
             if hasattr(system, "accounts"):
-                pandl=this_stage.pandl_across_subsystems()
+                pandl=this_stage.pandl_across_subsystems().to_frame()
             else:
                 error_msg="You need an accounts stage in the system to estimate instrument correlations"
                 this_stage.log.critical(error_msg)
@@ -752,10 +754,10 @@ class PortfoliosEstimated(PortfoliosFixed):
         :param instrument_code:
         :type str:
 
-        :returns: TxN pd.DataFrame
+        :returns: accountCurveGroup object
         """
         
-        return self.parent.accounts.pandl_across_subsystems(percentage=True).to_frame()
+        return self.parent.accounts.pandl_across_subsystems(percentage=True)
 
     def calculation_of_raw_instrument_weights(self):
         """
@@ -779,7 +781,9 @@ class PortfoliosEstimated(PortfoliosFixed):
                 error_msg="You need an accounts stage in the system to estimate instrument weights"
                 this_stage.log.critical(error_msg)
 
-            instrument_weight_results=weighting_func(pandl,  log=self.log.setup(call="weighting"), **weighting_params)
+            (pandl_gross, pandl_costs) = decompose_group_pandl([pandl])
+
+            instrument_weight_results=weighting_func(pandl_gross, pandl_costs,  log=self.log.setup(call="weighting"), **weighting_params)
         
             return instrument_weight_results
 

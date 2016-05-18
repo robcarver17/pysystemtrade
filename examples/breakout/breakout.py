@@ -13,6 +13,7 @@ my_config = Config("examples.breakout.breakoutfuturesestimateconfig.yaml")
 
 system = futures_system(config=my_config, log_level="on")
 
+"""
 price=system.data.daily_prices("CRUDE_W")
 
 price.plot()
@@ -79,3 +80,56 @@ outputall.iloc[:,[6, 8, 12, 16, 21, 26]].round(2)
 
 matshow(outputall.iloc[:,[6, 8, 12, 16, 21, 26]].corr())
 show()
+
+system.rules.get_raw_forecast("CRUDE_W", "breakout160").plot()
+show()
+"""
+
+
+my_config = Config("examples.breakout.breakoutfuturesestimateconfig.yaml")
+my_config.forecast_scalar_estimate['pool_instruments']=False
+
+## logging off as printing results
+system = futures_system(config=my_config, log_level="off")
+
+instr_list=system.get_instrument_list()
+variations=["breakout"+str(ws) for ws in [10, 20, 40, 80, 160, 320]]
+
+for rule_name in variations:
+    all_scalars=[]
+    for instrument in instr_list:
+        scalar=float(system.forecastScaleCap.get_forecast_scalar(instrument, rule_name).tail(1).values)
+        all_scalars.append((instrument, scalar))
+    all_scalars=sorted(all_scalars, key=lambda x: x[1])
+    print("%s: %s %s" % (rule_name, str(all_scalars[0]), str(all_scalars[-1])))
+    all_scalar_values=[x[1] for x in all_scalars]
+    print("mean %.3f std %.3f min %.3f max %.3f" % (np.nanmean(all_scalar_values), np.nanstd(all_scalar_values),
+                                                    np.nanmin(all_scalar_values), np.nanmax(all_scalar_values)))
+    
+## reload config so we get scalars estimated with pooling behaviour
+my_config = Config("examples.breakout.breakoutfuturesestimateconfig.yaml")
+
+## logging off as printing results
+system = futures_system(config=my_config, log_level="off" )
+for rule_name in variations:
+    instrument="CRUDE_W" ## doesn't matter
+    scalar=float(system.forecastScaleCap.get_forecast_scalar(instrument, rule_name).tail(1).values)
+    print("%s: %.3f" % (rule_name, scalar))
+
+## now turnovers    
+for rule_name in variations:
+    all_turnovers=[]
+    for instrument in instr_list:
+        turnover_value=system.accounts.forecast_turnover(instrument, rule_name)
+        all_turnovers.append((instrument, turnover_value))
+    all_turnovers=sorted(all_turnovers, key=lambda x: x[1])
+    print("%s: %s %s" % (rule_name, str(all_turnovers[0]), str(all_turnovers[-1])))
+    all_turnover_values=[x[1] for x in all_turnovers]
+    print("mean %.3f std %.3f" % (np.nanmean(all_turnover_values), np.nanstd(all_turnover_values)))
+    
+    
+## limit the rules to just breakout for now
+my_config = Config("examples.breakout.breakoutfuturesestimateconfig.yaml")
+my_config.trading_rules = dict([(rule_name, my_config.trading_rules[rule_name]) for rule_name in variations])
+
+system = futures_system(config=my_config, log_level="on")

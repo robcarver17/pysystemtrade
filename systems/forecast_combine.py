@@ -1,7 +1,7 @@
 import pandas as pd
 from copy import copy
 
-
+from syscore.accounting import decompose_group_pandl
 from syscore.genutils import str2Bool
 from syscore.pdutils import multiply_df, fix_weights_vs_pdm, apply_cap
 from syscore.objects import resolve_function, update_recalc
@@ -756,11 +756,12 @@ class ForecastCombineEstimated(ForecastCombineFixed):
         :param instrument_code:
         :type str:
 
-        :returns: TxK pd.DataFrame containing pandl, columns are trading rule variation names
+        :returns: accountCurveGroup object
         
         """
         
-        return self.parent.accounts.pandl_for_instrument_rules_unweighted(instrument_code).to_frame()
+        return self.parent.accounts.pandl_for_instrument_rules_unweighted(instrument_code)
+    
 
     def calculation_of_raw_forecast_weights(self, instrument_code):
         """
@@ -774,20 +775,30 @@ class ForecastCombineEstimated(ForecastCombineFixed):
         :returns: TxK pd.DataFrame containing weights, columns are trading rule variation names, T covers all
         """
 
-        def _calculation_of_raw_forecast_weights(system, NotUsed1, NotUsed2, this_stage, 
-                                      codes_to_use, weighting_func, **weighting_params):
+        def _calculation_of_raw_forecast_weights(system, instrument_code, this_stage, 
+                                      codes_to_use, weighting_func, pool_costs=False, **weighting_params):
 
             this_stage.log.terse("Calculating raw forecast weights over %s" % ", ".join(codes_to_use))
 
             if hasattr(system, "accounts"):
+                ## returns a list of accountCurveGroups
                 pandl_forecasts=[this_stage.pandl_for_instrument_rules_unweighted(code)
                         for code in codes_to_use]
+                
+                ## the current curve is special
+                pandl_forecasts_this_code=this_stage.pandl_for_instrument_rules_unweighted(instrument_code)
+                
+                ## have to decode these
+                ## returns two lists of pd.DataFrames
+                (pandl_forecasts_gross, pandl_forecasts_costs) = decompose_group_pandl(pandl_forecasts, pandl_forecasts_this_code, pool_costs=pool_costs)
                 
             else:
                 error_msg="You need an accounts stage in the system to estimate forecast weights"
                 this_stage.log.critical(error_msg)
 
-            output=weighting_func(pandl_forecasts,  log=self.log.setup(call="weighting"), **weighting_params)
+            ## The weighting function requires two lists of pd.DataFrames, one gross, one for costs
+            output=weighting_func(pandl_forecasts_gross, pandl_forecasts_costs,  
+                                  log=self.log.setup(call="weighting"), **weighting_params)
 
             return output
 
@@ -804,28 +815,20 @@ class ForecastCombineEstimated(ForecastCombineFixed):
         if pooling:
             ## find set of instruments with same trading rules as I have
             codes_to_use=self._has_same_rules_as_code(instrument_code)
-            instrument_code_ref=ALL_KEYNAME
-            
-            ## We 
-            label='_'.join(codes_to_use)
             
         else:
 
             codes_to_use=[instrument_code]
-            label=instrument_code
-            instrument_code_ref=instrument_code
             
         ##
-        ## label: how we identify this thing in the cache
-        ## instrument_code_ref: eithier the instrument code, or 'all markets' if pooling
         ## _get_raw_forecast_weights: function to call if we don't find in cache
         ## self: this_system stage object
         ## codes_to_use: instrument codes to get data for 
         ## weighting_func: function to call to calculate weights
         ## **weighting_params: parameters to pass to weighting function
         ##
-        raw_forecast_weights_calcs = self.parent.calc_or_cache_nested(
-            'calculation_of_raw_forecast_weights', instrument_code_ref, label, 
+        raw_forecast_weights_calcs = self.parent.calc_or_cache(
+            'calculation_of_raw_forecast_weights', instrument_code, 
             _calculation_of_raw_forecast_weights,
              self, codes_to_use, weighting_func, **weighting_params)
 

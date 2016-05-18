@@ -1503,6 +1503,46 @@ class returnsStack(accountCurveSingle):
         return accountCurveGroup(bs_list, asset_columns)
 
 
+def decompose_group_pandl(pandl_list, pandl_this_code=None, pool_costs=True, backfillavgcosts=True):
+    """
+    Given a pand_list (list of accountCurveGroup objects) return a 2-tuple of two pandas data frames;
+      one is the gross costs and one is the net costs. 
+      
+      Single element case is trivial
+      
+      If pool_costs is True, then the costs from pandl_list are used without any changes. 
+      
+      If pool_costs is False, then the costs from pandl_this_code are used and applied to the other curves.
+      
+      Assumes everything has same vol target, otherwise results will be weird
+       
+    """
+    if len(pandl_list)==1:
+        return ([pandl_list[0].gross.to_frame()], [pandl_list[0].costs.to_frame()])
+    
+    pandl_gross = [pandl_item.gross.to_frame() for pandl_item in pandl_list]
+    
+    if pool_costs:
+        pandl_costs = [pandl_item.costs.to_frame() for pandl_item in pandl_list]
+    else:
+        assert pandl_this_code is not None
+        
+        def _fit_cost_to_gross_frame(cost_to_fit, frame_gross_pandl, backfillavgcosts=True):
+            ## fit, and backfill, some costs
+            costs_fitted = cost_to_fit.reindex(frame_gross_pandl.index)
+            
+            if backfillavgcosts:
+                avg_cost=cost_to_fit.mean()
+                costs_fitted.iloc[0,:]=avg_cost
+                costs_fitted=costs_fitted.ffill()
+                
+            return costs_fitted
+        
+        pandl_costs = [_fit_cost_to_gross_frame(pandl_this_code.costs.to_frame(), frame_gross_pandl, 
+                            backfillavgcosts) for frame_gross_pandl in pandl_gross]
+                                
+
+    return (pandl_gross, pandl_costs)
 
 if __name__ == '__main__':
     import doctest

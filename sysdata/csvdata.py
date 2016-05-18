@@ -105,7 +105,6 @@ class csvFuturesData(FuturesData):
 
         >>> data=csvFuturesData("sysdata.tests")
         >>> data.get_raw_cost_data("EDOLLAR")
-        (0.0025000000000000001, 2.1099999999999999, 0, 0)
         """
 
         default_costs = dict(price_slippage=0.0,

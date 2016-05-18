@@ -77,22 +77,3 @@ if __name__ == '__main__':
     import doctest
     doctest.testmod()
 
-
-itemlist=system.get_items_with_data()
-all_items=system.get_items_across_system()
-for itemname in itemlist:
-    if itemname in all_items:
-        thing=system.get_item_from_cache(itemname,"all")
-    else:
-        thing=system.get_item_from_cache(itemname,"US10")
-    type_thing=type(thing)
-
-    if type_thing==dict:
-        thing=system.get_item_from_cache(itemname,"US10", "carry")
-        type_thing=type(thing)
-        print ("%s nested: %s" % (str(itemname), str(type_thing)))
-    else:
-        print ("%s %s" % (str(itemname), str(type_thing)))
-
-
-"""

@@ -1,9 +1,16 @@
 # Release notes
 
+## Version 0.8.0 
+
+* introduced methods for optimisation with costs. See this blog post for more (TBC).
+* made a lot of tweaks to optimisation code; mainly shrinkage now shrinks towards target Sharpe ratio, equalising SR does the same; consistent annualisation 
+* introduced new parameter for optimisation ann_target_SR
+* system.combForecast.calculation_of_raw_forecast_weights (estimated version) no longer stores nested weights.
+
 ## Version 0.7.0 
 
 * ability to pickle and unpickle cache (system.pickle_cache, system.unpickle_cache)
-* included breakout rule
+* included breakout rule (example is being written)
 * seperate out weighting calculation so instrument forecast pandl can be cached
 * csv data is now daily and updated to present day
 * Fixed bug with loading data from private module
@@ -141,7 +148,7 @@
 * Simulation:
    
   * vol targeting with capital adjustment
-  * add other trading rules
+  * add other trading rules (some in private...?)
   * quandl data
   * stitch futures contracts 
   * add new data from unstitched contracts (with explanatory post, include explanation for Nth contract stitching)

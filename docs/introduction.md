@@ -699,7 +699,7 @@ system = futures_system(log_level="on")
 system.portfolio.get_notional_position("EUROSTX").tail(5)
 ```
 
-Because this runs quite slowly you might want to save the system data. This lives in a cache attribute.
+Because this runs quite slowly you might want to save the system data. This lives in the cache attribute.
 
 ```python
 system.pickle_cache("systems.private.this_system_name.pck") ## use any file extension you like

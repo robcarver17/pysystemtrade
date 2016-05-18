@@ -992,7 +992,7 @@ class Account(SystemStage):
         :param delayfill: Lag fills by one day
         :type delayfill: bool
 
-        :returns: accountCurve
+        :returns: accountCurveGroup
 
         >>> from systems.basesystem import System
         >>> from systems.tests.testdata import get_test_object_futures_with_portfolios
