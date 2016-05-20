@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 from syscore.accounting import accountCurve, accountCurveGroup, weighted
 from systems.stage import SystemStage
@@ -187,6 +188,21 @@ class Account(SystemStage):
 
         """
         return self.parent.combForecast.get_trading_rule_list(instrument_code)
+
+    def get_entire_trading_rule_list(self):
+        """
+        Get the trading rules for all instruments
+
+
+        :returns: list of str
+
+        """
+        instrument_list=self.get_instrument_list()
+        rules=[self.get_trading_rule_list(instrument_code) for instrument_code in instrument_list]
+        rules=sum(rules, [])
+        rules.sort()
+        
+        return list(set(rules))
 
     def get_instrument_list(self):
         """
@@ -437,6 +453,9 @@ class Account(SystemStage):
         :param instrument_code: instrument to value for
         :type instrument_code: str
 
+        :param rule_variation_name: trading rule
+        :type rule_variation_name: str
+
         :returns: Tx1 pd.DataFrame
         
         """
@@ -451,7 +470,44 @@ class Account(SystemStage):
 
         return multiplier
 
+
+    def get_instrument_forecast_scaling_factor(self, instrument_code, rule_variation_name):
+        """
+        Get forecast weight * FDM  *instrument_weight * IDM
+        
+        :param instrument_code: instrument to value for
+        :type instrument_code: str
+
+        :param rule_variation_name: trading rule
+        :type rule_variation_name: str
+
+        :returns: Tx1 pd.DataFrame
+        
+        """
+
+        fsf=self.get_forecast_scaling_factor(instrument_code, rule_variation_name)
+        isf=self.get_instrument_scaling_factor(instrument_code)
+        
+        return multiply_df_single_column(fsf, isf, ffill=(True, True))
     
+    def get_capital_in_rule(self, rule_variation_name):
+        """
+        Get sum of forecast weight * FDM  *instrument_weight * IDM for a given rule
+        
+        :param rule_variation_name: trading rule
+        :type rule_variation_name: str
+
+        :returns: Tx1 pd.DataFrame
+        
+        """
+    
+        instrument_list = self.get_instrument_list()
+        all_risk_allocations = [self.get_instrument_forecast_scaling_factor(instrument_code, rule_variation_name) for 
+                                instrument_code in instrument_list]
+        all_risk_allocations=pd.concat(all_risk_allocations, axis=1)
+        
+        return all_risk_allocations.sum(axis=1).to_frame()
+        
     def get_SR_cost(self, instrument_code):
         """
         Get the vol normalised SR costs for an instrument
@@ -674,7 +730,7 @@ class Account(SystemStage):
     def pandl_across_subsystems(
                                 self, percentage=True, delayfill=True, roundpositions=False):
         """
-        Get the p&l across subsystems
+        Get the p&l across subsystems (unweighted)
 
         :param percentage: Return results as % of total notional capital
         :type percentage: bool
@@ -711,7 +767,7 @@ class Account(SystemStage):
                     delayfill=delayfill,
                     roundpositions=roundpositions) for instrument_code in instruments]
             
-            pandl = accountCurveGroup(pandl_across_subsys, instruments)
+            pandl = accountCurveGroup(pandl_across_subsys, instruments, weighted_flag=False)
             
             return pandl
 
@@ -887,7 +943,7 @@ class Account(SystemStage):
 
     def pandl_for_trading_rule(self, rule_variation_name, delayfill=True):
         """
-        Get the p&l for one trading rule over multiple instruments; as % of arbitrary capital
+        Get the p&l for one trading rule over multiple instruments; as % of it's risk contribution
 
         Within the trading rule the instrument returns are weighted by instrument weight
         
@@ -905,26 +961,37 @@ class Account(SystemStage):
 
             this_stage.log.terse("Calculating pandl for trading rule %s" % rule_variation_name)
             
+            this_stage.log.terse("Calculating pandl for trading rule %s" % rule_variation_name)
+            
             instrument_list=system.get_instrument_list()
             instrument_list=[instr_code for instr_code in instrument_list 
                              if rule_variation_name in this_stage.get_trading_rule_list(instr_code)]
             
-            pandl_by_instrument_unweighted=[this_stage.pandl_for_instrument_forecast(
+            ## already weighted
+            pandl_by_instrument_weighted=[this_stage.pandl_for_instrument_forecast_weighted(
                                             instr_code, rule_variation_name, delayfill)
                               for instr_code in instrument_list   
                             ]
+            
+            ## now we weight so total capital is correct
+            capital_this_rule=this_stage.get_capital_in_rule(rule_variation_name)
+            
+            def _cleanweightelement( capelement):
+                if np.isnan(capelement):
+                    return 0.0
+                if capelement==0.0:
+                    return 0.0
+                else:
+                    return 1.0/capelement
 
-            pandl_by_instrument=[weighted(
-                                 pandl_this_instrument, 
-                                 weighting=this_stage.get_instrument_scaling_factor(instr_code))
-                                 
-                              for (instr_code, pandl_this_instrument) in zip(
-                                                                    instrument_list,
-                                                                    pandl_by_instrument_unweighted)   
-                            ]
+            weight=[_cleanweightelement(capelement[0]) for capelement in list(capital_this_rule.values)]
+            weight=pd.DataFrame(weight, index=capital_this_rule.index)
             
-            
-            pandl_rule = accountCurveGroup(pandl_by_instrument, instrument_list)
+            pandl_by_instrument_reweighted=[weighted(pandl_for_instrument, weight,
+                                                     allow_reweighting=True) for 
+                                             pandl_for_instrument in pandl_by_instrument_weighted]
+
+            pandl_rule = accountCurveGroup(pandl_by_instrument_reweighted, instrument_list, weighted_flag=True)
             
             return pandl_rule
 
@@ -935,6 +1002,50 @@ class Account(SystemStage):
             flags = "delayfill%s" % TorF(delayfill))
 
         return pandl_trading_rule
+
+    def pandl_for_trading_rule_weighted(self, rule_variation_name, delayfill=True):
+        """
+        Get the p&l for one trading rule over multiple instruments; as % of total capital
+
+        Within the trading rule the instrument returns are weighted by risk contribution
+        
+        :param rule_variation_name: rule to get values for
+        :type rule_variation_name: str
+
+        :param delayfill: Lag fills by one day
+        :type delayfill: bool
+
+        :returns: accountCurveGroup
+
+        """
+        def _pandl_for_trading_rule_weighted(
+                system, instrument_code_unused,  rule_variation_name, this_stage,  delayfill):
+
+            this_stage.log.terse("Calculating pandl for trading rule %s" % rule_variation_name)
+            
+            instrument_list=system.get_instrument_list()
+            instrument_list=[instr_code for instr_code in instrument_list 
+                             if rule_variation_name in this_stage.get_trading_rule_list(instr_code)]
+            
+            ## already weighted, don't need to do again
+            pandl_by_instrument_weighted=[this_stage.pandl_for_instrument_forecast_weighted(
+                                            instr_code, rule_variation_name, delayfill)
+                              for instr_code in instrument_list   
+                            ]
+
+            pandl_rule = accountCurveGroup(pandl_by_instrument_weighted, instrument_list, weighted_flag=True)
+            
+            return pandl_rule
+
+
+        pandl_trading_rule_weighted = self.parent.calc_or_cache_nested(
+            "pandl_for_trading_rule_weighted", ALL_KEYNAME, rule_variation_name, 
+            _pandl_for_trading_rule_weighted, self, delayfill,
+            flags = "delayfill%s" % TorF(delayfill))
+
+        return pandl_trading_rule_weighted
+
+
 
     def pandl_for_trading_rule_unweighted(self, rule_variation_name, delayfill=True):
         """
@@ -965,7 +1076,7 @@ class Account(SystemStage):
                               for instr_code in instrument_list   
                             ]
             
-            pandl_rule = accountCurveGroup(pandl_by_instrument, instrument_list)
+            pandl_rule = accountCurveGroup(pandl_by_instrument, instrument_list, weighted_flag=False)
             
             return pandl_rule
 
@@ -1016,7 +1127,7 @@ class Account(SystemStage):
                             ]
             
             
-            pandl_rules = accountCurveGroup(pandl_rules, forecast_rules)
+            pandl_rules = accountCurveGroup(pandl_rules, forecast_rules, weighted_flag=False)
             
             return pandl_rules
 
@@ -1075,7 +1186,7 @@ class Account(SystemStage):
                             ]
             
             
-            pandl_rules = accountCurveGroup(pandl_rules, forecast_rules)
+            pandl_rules = accountCurveGroup(pandl_rules, forecast_rules, weighted_flag=True)
             
             return pandl_rules
 
@@ -1121,12 +1232,51 @@ class Account(SystemStage):
         return fcast_turnover
 
 
+    def pandl_for_instrument_forecast_weighted(
+            self, instrument_code, rule_variation_name, delayfill=True):
+        """
+        Get the p&l for one instrument and forecast; as % of total capital
+
+
+        :param instrument_code: instrument to get values for
+        :type instrument_code: str
+
+        :param rule_variation_name: rule to get values for
+        :type rule_variation_name: str
+
+        :param delayfill: Lag fills by one day
+        :type delayfill: bool
+
+        :returns: accountCurve
+
+
+        """
+        
+        def _pandl_for_instrument_forecast_weighted(system, instrument_code, 
+                                           rule_variation_name, this_stage, delayfill):
+                    
+            this_stage.log.msg("Calculating pandl for instrument forecast weighted for %s %s" % (instrument_code, rule_variation_name),
+                               instrument_code=instrument_code, rule_variation_name=rule_variation_name)
+
+            pandl = this_stage.pandl_for_instrument_forecast(instrument_code, rule_variation_name, delayfill=delayfill)    
+            weight = this_stage.get_instrument_forecast_scaling_factor( instrument_code, rule_variation_name)            
+            pandl = weighted(pandl, weight)
+
+            return pandl
+        
+        pandl_fcast = self.parent.calc_or_cache_nested(
+            "pandl_for_instrument_forecast_weighted", instrument_code, rule_variation_name,
+            _pandl_for_instrument_forecast_weighted, self, delayfill,
+            flags="delayfill%s" %   TorF(delayfill))
+
+
+        return pandl_fcast
+
+
     def pandl_for_instrument_forecast(
             self, instrument_code, rule_variation_name, delayfill=True):
         """
         Get the p&l for one instrument and forecast; as % of arbitrary capital
-
-        This is not cached as it is calculated with different weighting schemes
 
         :param instrument_code: instrument to get values for
         :type instrument_code: str
@@ -1184,6 +1334,78 @@ class Account(SystemStage):
 
         return pandl_fcast
 
+    def pandl_for_all_trading_rules(self, delayfill=True):
+        """
+        Get the p&l for all trading rules; as % of total capital
+
+        Each trading rule is weighted as a proportion of total capital
+        
+        :param delayfill: Lag fills by one day
+        :type delayfill: bool
+
+        :returns: accountCurveGroup
+
+        """
+        def _pandl_for_all_trading_rules(
+                system, instrument_code_unused,   this_stage,  delayfill):
+
+            this_stage.log.terse("Calculating pandl for all trading rules")
+
+            variations=this_stage.get_entire_trading_rule_list()            
+            
+            ## already weighted, don't need to do again
+            pandl_by_trading_rule_weighted=[this_stage.pandl_for_trading_rule_weighted(rulename, delayfill)
+                                            for rulename in variations]
+
+            ## this is a group of groups... will it work?
+            pandl_all_rules = accountCurveGroup(pandl_by_trading_rule_weighted, variations, weighted_flag=True)
+            
+            return pandl_all_rules
+
+
+        pandl_for_all_trading_rules = self.parent.calc_or_cache(
+            "pandl_for_all_trading_rules", ALL_KEYNAME,  
+            _pandl_for_all_trading_rules, self, delayfill,
+            flags = "delayfill%s" % TorF(delayfill))
+
+        return pandl_for_all_trading_rules
+
+    def pandl_for_all_trading_rules_unweighted(self, delayfill=True):
+        """
+        Get the p&l for all trading rules; unweighted
+
+        Each trading rule has capital in isolation
+        
+        :param delayfill: Lag fills by one day
+        :type delayfill: bool
+
+        :returns: accountCurveGroup
+
+        """
+        def _pandl_for_all_trading_rules_unweighted(
+                system, instrument_code_unused,   this_stage,  delayfill):
+
+            this_stage.log.terse("Calculating pandl for all trading rules unweighted")
+
+            variations=this_stage.get_entire_trading_rule_list()            
+            
+            ## already weighted, don't need to do again
+            pandl_by_trading_rule_unweighted=[this_stage.pandl_for_trading_rule(rulename, delayfill)
+                                            for rulename in variations]
+
+            ## this is a group of groups... will it work?
+            pandl_all_rules = accountCurveGroup(pandl_by_trading_rule_unweighted, variations, weighted_flag=False)
+            
+            return pandl_all_rules
+
+
+        pandl_for_all_trading_rules_unweighted = self.parent.calc_or_cache(
+            "pandl_for_all_trading_rules_unweighted", ALL_KEYNAME,  
+            _pandl_for_all_trading_rules_unweighted, self, delayfill,
+            flags = "delayfill%s" % TorF(delayfill))
+
+        return pandl_for_all_trading_rules_unweighted
+
 
     def portfolio(self, percentage=True, delayfill=True, roundpositions=True):
         """
@@ -1221,7 +1443,7 @@ class Account(SystemStage):
                     delayfill=delayfill,
                     roundpositions=roundpositions) for instrument_code in instruments]
             
-            port_pandl = accountCurveGroup(port_pandl, instruments)
+            port_pandl = accountCurveGroup(port_pandl, instruments, weighted_flag=True)
 
             return port_pandl
 

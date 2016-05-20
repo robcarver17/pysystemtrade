@@ -1,5 +1,12 @@
 # Release notes
 
+## Version 0.9.0 
+
+* Changed / added the following methods to `system.accounts`: `pandl_for_instrument_forecast_weighted`, `pandl_for_trading_rule_weighted`, `pandl_for_all_trading_rules`, `pandl_for_trading_rule`, `pandl_for_trading_rule_unweighted`, `pandl_for_all_trading_rules_unweighted` See [/docs/userguide.md#weighted_acg] for more detail.
+* Added `get_capital_in_rule`, `get_instrument_forecast_scaling_factor` to help calculate these.
+* fixed error in user guide
+
+
 ## Version 0.8.1 
 
 * Fixed small bug with shrinkage
@@ -9,12 +16,12 @@
 
 * introduced methods for optimisation with costs. See [this blog post for more](http://qoppac.blogspot.co.uk/2016/05/optimising-weights-with-costs.html)
 * made a lot of tweaks to optimisation code; mainly shrinkage now shrinks towards target Sharpe ratio, equalising SR does the same; consistent annualisation 
-* introduced new parameter for optimisation ann_target_SR
-* system.combForecast.calculation_of_raw_forecast_weights (estimated version) no longer stores nested weights.
+* introduced new parameter for optimisation `ann_target_SR`
+* `system.combForecast.calculation_of_raw_forecast_weights` (estimated version) no longer stores nested weights.
 
 ## Version 0.7.0 
 
-* ability to pickle and unpickle cache (system.pickle_cache, system.unpickle_cache)
+* ability to pickle and unpickle cache (`system.pickle_cache`, `system.unpickle_cache`)
 * included breakout rule (example is being written)
 * seperate out weighting calculation so instrument forecast pandl can be cached
 * csv data is now daily and updated to present day
@@ -25,29 +32,29 @@
 
 ## Version 0.6.6
 
-* Added method accounts.pandl_for_instrument_rules
+* Added method `accounts.pandl_for_instrument_rules`
 
 
 ## Version 0.6.5
 
-* Renamed method accounts.pandl_for_instrument_rules to pandl_for_instrument_rules.unweighted
+* Renamed method `accounts.pandl_for_instrument_rules` to `pandl_for_instrument_rules.unweighted`
 * Fixed bug with portfolio and instrument account curves overstating costs by adding cost weightings
 
 
 ## Version 0.6.4
 
 * Fixed weighting of account curves and introduced explicit flag for weighting
-* Added pandl_for_trading_rule_unweighted method to accounts object.
+* Added `pandl_for_trading_rule_unweighted` method to accounts object.
 
 
 ## Version 0.6.3
 
-* Added pandl_for_trading_rule method to accounts object.
+* Added `pandl_for_trading_rule` method to accounts object.
 
 
 ## Version 0.6.2
 
-* Added t_test method to accountCurve (and all that inherit from her)
+* Added t_test method to `accountCurve` (and all that inherit from her)
 
 
 ## Version 0.6.1
@@ -146,7 +153,7 @@
 
 # Bugs to fix
 
-* none
+* none are known
 
 # Features to add - later releases
 

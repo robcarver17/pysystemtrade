@@ -1,3 +1,5 @@
+from syscore.accounting import account_test
+
 from syscore.pdutils import turnover
 from sysdata.configdata import Config
 
@@ -8,12 +10,11 @@ import pandas as pd
 import numpy as np
 from matplotlib.pyplot import show, legend, matshow
 
-
+"""
 my_config = Config("examples.breakout.breakoutfuturesestimateconfig.yaml")
 
 system = futures_system(config=my_config, log_level="on")
 
-"""
 price=system.data.daily_prices("CRUDE_W")
 
 price.plot()
@@ -83,14 +84,16 @@ show()
 
 system.rules.get_raw_forecast("CRUDE_W", "breakout160").plot()
 show()
-"""
+
 
 
 my_config = Config("examples.breakout.breakoutfuturesestimateconfig.yaml")
 my_config.forecast_scalar_estimate['pool_instruments']=False
+del(my_config.instruments)
 
 ## logging off as printing results
 system = futures_system(config=my_config, log_level="off")
+
 
 instr_list=system.get_instrument_list()
 variations=["breakout"+str(ws) for ws in [10, 20, 40, 80, 160, 320]]
@@ -133,3 +136,107 @@ my_config = Config("examples.breakout.breakoutfuturesestimateconfig.yaml")
 my_config.trading_rules = dict([(rule_name, my_config.trading_rules[rule_name]) for rule_name in variations])
 
 system = futures_system(config=my_config, log_level="on")
+
+print(system.combForecast.get_forecast_weights("EUROSTX").irow(-1))
+print(system.combForecast.get_forecast_weights("V2X").irow(-1))
+
+## now include other rules
+"""
+
+my_config = Config("examples.breakout.breakoutfuturesestimateconfig.yaml")
+#my_config.forecast_weight_estimate["method"]="bootstrap"
+
+system = futures_system(config=my_config, log_level="on")
+bvariations=["breakout"+str(ws) for ws in [10, 20, 40, 80, 160, 320]]
+
+
+#cProfile.run("system.accounts.pandl_for_all_trading_rules_unweighted().to_frame()","restats")
+system.accounts.pandl_for_all_trading_rules_unweighted().to_frame().loc[:, bvariations].cumsum().plot()
+show()
+
+"""
+variations=["breakout"+str(ws) for ws in [10, 20, 40, 80, 160, 320]]+[
+            "ewmac%d_%d" % (fast, fast*4) for fast in [2,4,8,16,32, 64]]+["carry"]
+
+corr_result=system.combForecast.get_forecast_correlation_matrices("US10")
+matrix=corr_result.corr_list[-1]
+matrix=pd.DataFrame(matrix, columns=corr_result.columns)
+matrix=matrix.round(2)
+matrix.index=corr_result.columns
+matrix=matrix.loc[variations][variations]
+short_names=["brk"+str(ws) for ws in [10, 20, 40, 80, 160, 320]]+[
+            "ewm%d" % fast for fast in [2,4,8,16,32, 64]]+["carry"]
+matrix.index=matrix.columns=short_names
+
+matrix.to_csv("correlations.csv")
+
+
+system.combForecast.get_forecast_weights("V2X").iloc[-1,][variations].plot(kind="barh")
+show()
+
+
+allpandl=[]
+for rule_variation_name in variations:
+    
+    allpandl.append(system.accounts.pandl_for_trading_rule(rule_variation_name).as_df())
+    
+allpandl=pd.concat(allpandl, axis=1)
+allpandl.columns=variations
+
+allpandl.cumsum().plot()
+show()
+
+
+allpandl=[]
+for rule_variation_name in bvariations:
+    
+    allpandl.append(system.accounts.pandl_for_trading_rule_unweighted(rule_variation_name).as_df())
+    
+allpandl=pd.concat(allpandl, axis=1)
+allpandl.columns=bvariations
+
+allpandl.cumsum().plot()
+show()
+
+allpandl=[]
+for rule_variation_name in bvariations:
+    
+    allpandl.append(system.accounts.pandl_for_trading_rule(rule_variation_name).as_df())
+    
+allpandl=pd.concat(allpandl, axis=1)
+
+allpandl.cumsum().sum(axis=1).plot()
+show()
+
+
+## full backtest 37 instruments
+
+my_config = Config("examples.breakout.breakoutfuturesestimateconfig.yaml")
+
+## will do all instruments we have data for
+del(my_config.instruments)
+
+## temporarily remove breakout rules
+my_config.rule_variations=["ewmac%d_%d" % (fast, fast*4) for fast in [2,4,8,16,32, 64]]+["carry"]
+
+system_old = futures_system(config=my_config, log_level="on")
+
+## new system has all trading rules
+new_config = Config("examples.breakout.breakoutfuturesestimateconfig.yaml")
+del(new_config.instruments)
+
+system_new = futures_system(config=new_config, log_level="on")
+
+curve1=system_old.accounts.portfolio()
+curve2=system_new.accounts.portfolio()
+
+print(curve1.stats())
+print(curve2.stats())
+
+print(account_test(curve2, curve1))
+
+curves_to_plot=pd.concat([curve1.as_df(), curve2.as_df()], axis=1)
+curves_to_plot.columns=["no breakout", "with breakout"]
+curves_to_plot.cumsum().plot()
+show()
+"""

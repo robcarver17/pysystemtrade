@@ -830,7 +830,7 @@ class accountCurve(accountCurveSingle):
         
         return calc_dict
 
-def weighted(account_curve,  weighting, apply_weight_to_costs_only=False):
+def weighted(account_curve,  weighting, apply_weight_to_costs_only=False, allow_reweighting=False):
         """
         Creates a copy of account curve with weights applied 
 
@@ -843,11 +843,17 @@ def weighted(account_curve,  weighting, apply_weight_to_costs_only=False):
         :param apply_weight_to_costs_only: Apply weights only to costs, not gross returns
         :type apply_weight_to_costs_only: bool
 
+        :param allow_reweighting: Apply weights only to costs, not gross returns
+        :type allow_reweighting: bool
+
         :returns: accountCurve
         
         """
         if account_curve.weighted_flag:
-            raise Exception("You can't reweight weighted returns!")
+            if allow_reweighting:
+                pass
+            else:
+                raise Exception("You can't reweight weighted returns!")
 
         ## very clunky but I can't make copy, deepcopy or inheritance work for this use case...
         capital=copy(account_curve.capital)
@@ -863,7 +869,7 @@ def weighted(account_curve,  weighting, apply_weight_to_costs_only=False):
         pre_calc_data=(returns_data, capital, daily_capital, costs_base_ccy, costs_instr_ccy)
         
         ## Create a cloned account curve with the pre calculated data 
-        new_account_curve=accountCurve(pre_calc_data=pre_calc_data)
+        new_account_curve=accountCurve(pre_calc_data=pre_calc_data, percentage=percentage)
         
         ## recalculate the returns with weighting applied
         new_account_curve._calc_and_set_returns(gross_returns, 
@@ -1253,7 +1259,7 @@ class statsDict(dict):
         return pvalue
         
 class accountCurveGroup(accountCurveSingleElement):
-    def __init__(self, acc_curve_list, asset_columns):
+    def __init__(self, acc_curve_list, asset_columns, weighted_flag=None):
         """
         Create a group of account curves from a list and some column names
         
@@ -1288,17 +1294,22 @@ class accountCurveGroup(accountCurveSingleElement):
         :param asset_columns: Names of each asset (same order as acc_curve_list) 
         :type asset_columns: list of str
 
+        :param weighted_flag: Is this a weighted_flag account curve? If None then inherits from list. 
+        :type weighted_flag: None or bool
+
         
         """
         
-        isweighted=[x.weighted_flag for x in acc_curve_list]
-        if any(isweighted):
-            if not(all(isweighted)):
-                raise Exception("Can't mix weighted and unweighted account curves")
+        if weighted_flag is None:
+            weighted_flag=[x.weighted_flag for x in acc_curve_list]
+            if any(weighted_flag):
+                if not(all(weighted_flag)):
+                    raise Exception("Can't mix weighted_flag and unweighted account curves")
+                else:
+                    weighted_flag = True
             else:
-                weighted_flag = True
-        else:
-            weighted_flag = False
+                weighted_flag = False
+            
         
         net_list=[getattr(x, "net") for x in acc_curve_list]
         gross_list=[getattr(x, "gross") for x in acc_curve_list]

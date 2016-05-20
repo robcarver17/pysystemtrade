@@ -2823,15 +2823,19 @@ The final stage is the all important accounting stage, which calculates p&l.
 
 The standard accounting class includes several useful methods:
 
-- `portfolio`: works out the p&l for the whole system
-- `pandl_for_instrument`: the contribution of a particular instrument to the p&l
-- `pandl_for_subsystem`: work out how an instrument has done in isolation
-- `pandl_across_subsystems`: group together all subsystem p&l (not the same as portfolio! Instrument weights aren't used)
-- `pandl_for_trading_rule`: how a trading rule has done agggregated over all instruments, using instrument weights and IDM to weight.
-- `pandl_for_trading_rule_unweighted`: how a trading rule has done over all instruments, unweighted
-- `pandl_for_instrument_rules`: how all trading rules have done for a particular instrument 
-- `pandl_for_instrument_rules_unweighted`: how all trading rules have done for one instrument, unweighted
-- `pandl_for_instrument_forecast`: work out how well a particular trading rule variation has done with a particular instrument
+- `portfolio`: works out the p&l for the whole system (returns accountCurve)
+- `pandl_for_instrument`: the contribution of a particular instrument to the p&l (returns accountCurve)
+- `pandl_for_subsystem`: work out how an instrument has done in isolation (returns accountCurve)
+- `pandl_across_subsystems`: group together all subsystem p&l (not the same as portfolio! Instrument weights aren't used)  (returns accountCurveGroup)
+- `pandl_for_trading_rule`: how a trading rule has done agggregated over all instruments (returns accountCurveGroup)
+- `pandl_for_trading_rule_weighted`: how a trading rule has done over all instruments as a proportion of total capital  (returns accountCurveGroup)
+- `pandl_for_trading_rule_unweighted`: how a trading rule has done over all instruments, unweighted  (returns accountCurveGroup)
+- `pandl_for_all_trading_rules`: how all trading rules have done over all instruments (returns nested accountCurveGroup)
+- `pandl_for_all_trading_rules_unweighted`: how all trading rules have done over all instruments, unweighted (returns nested accountCurveGroup)
+- `pandl_for_instrument_rules`: how all trading rules have done for a particular instrument  (returns accountCurveGroup)
+- `pandl_for_instrument_rules_unweighted`: how all trading rules have done for one instrument, unweighted (returns accountCurveGroup)
+- `pandl_for_instrument_forecast`: work out how well a particular trading rule variation has done with a particular instrument (returns accountCurve)
+- `pandl_for_instrument_forecast_weighted`: work out how well a particular trading rule variation has done with a particular instrument as a proportion of total capital (returns accountCurve)
 
 
 (Note that [buffered](#buffer) positions are only used at the final portfolio stage; the positions for forecasts and subsystems are not buffered. So their trading costs may be a little overstated).
@@ -2844,7 +2848,7 @@ These classes share some useful arguments (all boolean):
 - `roundpositions`: Round positions to nearest instrument block. Defaults to True for portfolios and instruments, defaults to False for subsystems. Not used in `pandl_for_instrument_forecast` or `pandl_for_trading_rule` (always False)
 - `percentage`: Return the p&l as a percentage of notional capital, rather than in cash amounts. Defaults to True. Not used in in `pandl_for_instrument_forecast` or `pandl_for_trading_rule`(always False)
 
-All p&l methods return an object of type `accountCurve` (for instruments, subsystems and instrument forecasts) or `accountCurveGroup` (for portfolio and trading rule). This inherits from a pandas data frame, so it can be plotted, averaged and so on. It also has some special methods. To see what they are use the `stats` method:
+All p&l methods return an object of type `accountCurve` (for instruments, subsystems and instrument forecasts) or `accountCurveGroup` (for portfolio and trading rule), or even nested `accountCurveGroup` (`pandl_for_all_trading_rules`, `pandl_for_all_trading_rules_unweighted`). This inherits from a pandas data frame, so it can be plotted, averaged and so on. It also has some special methods. To see what they are use the `stats` method:
 
 ```python
 from systems.provided.futures_chapter15.basesystem import futures_system
@@ -3023,22 +3027,54 @@ boot.net.get_stats("sharpe").pvalue() ## all this kind of stuff works. Time weig
 
 Note if you have a large number of instruments this code will probably fail. It's more useful when you have a small number, and are concerned about statistical robustness.
 
+
+#### A nested `accountCurveGroup` 
+
+A nested `accountCurveGroup`, is the output you get from `pandl_for_all_trading_rules` and `pandl_for_all_trading_rules_unweighted`. For example:
+
+```python
+nested_acc_curve_group=system.accounts.pandl_for_all_trading_rules()
+```
+
+This is an account curve group, whose elements are the performance of each trading rule eg this kind of thing works:
+
+```python
+ewmac64_acc=system.accounts.pandl_for_all_trading_rules()['ewmac64_256']
+```
+
+However this is also an accountCurveGroup! So you can, for example display how each instrument within this trading rule contributed to performance as a data frame:
+
+```python
+ewmac64_acc.to_frame()
+```
+
+
 <a name="weighted_acg">
 ##### Weighted and unweighted account curve groups
 </a>
 
 There are two types of account curve; weighted and unweighted. Weighted curves include returns for each instrument (or trading rule) as a proportion of the total capital at risk. Unweighted curves show each instrument or trading rule in isolation. 
 
-- `portfolio`: works out the p&l for the whole system (weighted group - elements are `pandl_for_instrument`)
-- `pandl_for_instrument`: the contribution of a particular instrument to the p&l  (weighted individual curve for one instrument)
-- `pandl_for_trading_rule`: how a trading rule has done over all instruments (weighted group -elements are `pandl_for_instrument_forecast` across instruments)
--`pandl_for_instrument_rules`: how all trading rules have done for a particular instrument (weighted group - elements are `pandl_for_instrument_forecast` across trading rules)  
+Weighted:
+- `portfolio`: works out the p&l for the whole system (weighted group - elements are `pandl_for_instrument` - effective weights are instrument weights * IDM)
+- `pandl_for_instrument`: the contribution of a particular instrument to the p&l  (weighted individual curve for one instrument - effective weight is instrument weight * IDM)
+-`pandl_for_instrument_rules`: how all trading rules have done for a particular instrument (weighted group - elements are `pandl_for_instrument_forecast` across trading rules; effective weights are forecast weights * FDM)  
+- `pandl_for_instrument_forecast_weighted`: work out how well a particular trading rule variation has done with a particular instrument as a proportion of total capital (weighted individual curve - weights are forecast weight * FDM * instrument weight * IDM)
+- `pandl_for_trading_rule_weighted`: how a trading rule has done over all instruments as a proportion of total capital (weighted group -elements are `pandl_for_instrument_forecast_weighted` across instruments - effective weights are risk contribution of instrument to trading rule)
+- `pandl_for_all_trading_rules`: how all trading rules have done over all instruments (weighted group -elements are `pandl_for_trading_rule_weighted` across variations - effective weight is risk contribution of each trading rule) 
 
+Partially weighted (see below):
+- `pandl_for_trading_rule`: how a trading rule has done over all instruments (weighted group -elements are `pandl_for_instrument_forecast_weighted` across instruments, weights are risk contribution of each instrument to trading rule)
+
+Unweighted:
 - `pandl_across_subsystems`: works out the p&l for all subsystems (unweighted group - elements are `pandl_for_subsystem`)
 - `pandl_for_subsystem`: work out how an instrument has done in isolation (unweighted individual curve for one instrument)
-- `pandl_for_instrument_rules_unweighted`: how all trading rules have done for a particular instrument (unweighted group - elements are `pandl_for_instrument_forecast` across trading rules) 
-- `pandl_for_trading_rule_unweighted`: how a trading rule has done over all instruments (unweighted group -elements are `pandl_for_instrument_forecast` across instruments)
 - `pandl_for_instrument_forecast`: work out how well a particular trading rule variation has done with a particular instrument (unweighted individual curve)
+- `pandl_for_instrument_rules_unweighted`: how all trading rules have done for a particular instrument (unweighted group - elements are `pandl_for_instrument_forecast` across trading rules) 
+- `pandl_for_trading_rule_unweighted`: how a trading rule has done over all instruments (unweighted group -elements are `pandl_for_instrument_forecast` 
+across instruments)
+- `pandl_for_all_trading_rules_unweighted`: how all trading rules have done over all instruments (unweighted group -elements are `pandl_for_trading_rule` across instruments - effective weight is risk contribution of each trading rule) 
+
 
 Note that `pandl_across_subsystems` / `pandl_for_subsystem`  are effectively the unweighted versions of `portfolio` / `pandl_for_instrument`.
 
@@ -3049,12 +3085,28 @@ The difference is important for a few reasons.
 - The portfolio level aggregate returns of unweighted group curves will make no sense. They will be equally weighted, whereas we'd normally have different weights. 
 - Also for portfolios of unweighted groups risk will usually fall over time as markets are added and diversification effects appear. Again this is more problematic for groups of instruments (within a portfolio, or within a trading rule)
 
+Weighting for trading rules p&l is a *little* complicated. 
+
+*`pandl_for_instrument_forecast`:* If I want the p&l of a single trading rule for one instrument in isolation, then I use `pandl_for_instrument_forecast`. *`pandl_for_trading_rule_unweighted`*: If I aggregate these across instruments then I get `pandl_for_trading_rule_unweighted`. The individiual unweighted curves are instrument p&l for each instrument and forecast.
+
+*`pandl_for_instrument_forecast_weighted`:* The weighted p&l of a single trading rule for one instrument, as a proportion of the *entire system's capital*, will be it's individual p&l in isolation (`pandl_for_instrument_forecast`) multiplied by the product of the instrument and forecast weights, and the IDM and FDM (this ignores the effect of total forecast capping and position buffering or inertia). 
+
+*`pandl_for_trading_rule_weighted`:* The weighted p&l of a single trading rule across individual instruments, as a proportion of the *entire system's capital*, will be the group of `pandl_for_instrument_forecast_weighted` of these for a given rule. You can get this with `pandl_for_trading_rule_weighted`. The individual curves within this will be instrument p&l for the relevant trading rule, effectively weighted by the product of instrument, forecast weights, FDM and IDM. The risk of the total curve will be equal to the risk of the rule as part of the total capital, so will be lower than you'd expect. 
+
+*`pandl_for_all_trading_rules`:* If I group the resulting curves across trading rules, then I get `pandl_for_all_trading_rules`. The individual curves will be individual trading rules, weighted by their contribution to total risk. The total curve is the entire system; it will look close to but not exactly like a `portfolio` account curve because of the non linear effects of combined forecast capping, and position buffering or inertia, and rounding if that's used for the portfolio curve.
+
+*`pandl_for_trading_rule`:*  If I want the performance of a given trading rule across individual instruments in isolation, then I need to take `pandl_for_trading_rule_weighted` and normalise it so that the returns are as a proportion of the sum of all the relevant forecast weight * FDM * instrument weight * IDM; this is equivalent to the rules risk contribution within the system. . This is an unweighted curve in one sense (it's not a proportion of total capital), but it's weighted in another (the indiviaul curves when added up give the group curve). The total account curve will have the same target risk as the entire system. The individual curves within it are for each instrument, weighted by their contribution to risk. 
+
+*`pandl_for_all_trading_rules_unweighted`:* If I group *these* curves together, then I get `pandl_for_all_trading_rules_unweighted`. The individual curves will be individual trading rules but not weighted; so each will have it's own risk target. This is an unweighted group in the truest sense; the total curve won't make sense.
+
+
 To summarise:
 
 - Individual account curves eithier in, or outside, a weighted group should be treated with caution. But the entire portfolio curve is fine.
 - The portfolio level account curve for an unweighted group should be treated with caution. But the individual curves are fine.
+- With the exception of `pandl_for_trading_rule` the portfolio level curve for a weighted group is a proportion of the entire system capital.
 
-The attribute `weighted_flag` is set to eithier True (for weighted curves) or False (otherwise). All curve __repr__ methods also show eithier weighted or unweighted status.
+The attribute `weighted_flag` is set to eithier True (for weighted curves including `pandl_for_trading_rule`) or False (otherwise). All curve __repr__ methods also show eithier weighted or unweighted status.
 
 #### Testing account curves
 
@@ -3321,7 +3373,6 @@ We also smooth weights with an EWMA to avoid trading when they change.
    cleaning: True
 ```
 
-```
 
 <a name="divmult">
 ## Estimating correlations and diversification multipliers
@@ -3540,25 +3591,35 @@ Inputs:
 | `accounts.get_instrument_weights`| Standard |   | I | `portfolio.get_instrument_weights`|
 | `accounts.get_trading_rules_used`| Standard |   | I | `combForecast.get_trading_rule_list`|
 
-Diagnostics / Outputs:
+Diagnostics:
 
 | Call                              | Standard?| Arguments       | Type | Description                                                    |
 |:-------------------------:|:---------:|:---------------:|:----:|:--------------------------------------------------------------:|
 | `accounts.get_instrument_scaling_factor`| Standard | `instrument_code`  | D | IDM * instrument weight|
+| `accounts.get_forecast_scaling_factor`| Standard | `instrument_code`, `rule_variation_name`  | D | FDM * forecast weight|
+| `accounts.get_instrument_forecast_scaling_factor`| Standard | `instrument_code`, `rule_variation_name`  | D | IDM * instrument weight * FDM * forecast weight|
+| `accounts.get_capital_in_rule`| Standard |  `rule_variation_name`  | D | Sum of `get_instrument_forecast_scaling_factor` for a given trading rule|
 | `accounts.get_buffered_position`| Standard |  `instrument_code` | D | Buffered position at portfolio level|
 | `accounts.subsystem_turnover`| Standard | `instrument_code`  | D | Annualised turnover of subsystem|
 | `accounts.instrument_turnover`| Standard | `instrument_code`  | D | Annualised turnover of instrument position at portfolio level|
 | `accounts.forecast_turnover`| Standard | `instrument_code`, `rule_variation_name`  | D | Annualised turnover of forecast|
+
+
+Accounting outputs:
+
 | `accounts.pandl_for_instrument`| Standard |  `instrument_code` | D | P&l for an instrument within a system|
 | `accounts.pandl_for_instrument_forecast`| Standard | `instrument_code`, `rule_variation_name` | D | P&l for a trading rule and instrument |
+| `accounts.pandl_for_instrument_forecast_weighted`| Standard | `instrument_code`, `rule_variation_name` | D | P&l for a trading rule and instrument as a % of total capital |
 | `accounts.pandl_for_instrument_rules`| Standard | `instrument_code` | D,O | P&l for all trading rules in an instrument, weighted |
 | `accounts.pandl_for_instrument_rules_unweighted`| Standard | `instrument_code` | D,O | P&l for all trading rules in an instrument, unweighted |
 | `accounts.pandl_for_trading_rule`| Standard | `rule_variation_name` | D | P&l for a trading rule over all instruments |
+| `accounts.pandl_for_trading_rule_weighted`| Standard | `rule_variation_name` | D | P&l for a trading rule over all instruments as % of total capital |
 | `accounts.pandl_for_trading_rule_unweighted`| Standard | `rule_variation_name` | D | P&l for a trading rule over all instruments, unweighted |
 | `accounts.pandl_for_subsystem`| Standard |  `instrument_code` | D | P&l for an instrument outright|
 | `accounts.pandl_across_subsystems`| Standard |  `instrument_code` | O,D | P&l across instruments, outright|
+| `accounts.pandl_for_all_trading_rules`| Standard |  | D | P&l for trading rules across whole system |
+| `accounts.pandl_for_all_trading_rules_unweighted`| Standard |  | D | P&l for trading rules across whole system |
 | `accounts.portfolio`| Standard |  | O,D | P&l for whole system |
-
 
 
 
