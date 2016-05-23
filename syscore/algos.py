@@ -91,7 +91,7 @@ def robust_vol_calc(x, days=35, min_periods=10, vol_abs_min=0.0000000001, vol_fl
     and a volfloor based on lowest vol over recent history
 
     :param x: data
-    :type x: Tx1 pd.DataFrame
+    :type x: Tx1 pd.Series
 
     :param days: Number of days in lookback (*default* 35)
     :type days: int
@@ -127,16 +127,15 @@ def robust_vol_calc(x, days=35, min_periods=10, vol_abs_min=0.0000000001, vol_fl
             vol, floor_days, floor_min_quant, floor_min_periods)
         # set this to zero for the first value then propogate forward, ensures
         # we always have a value
-        vol_min.set_value(vol_min.index[0], vol_min.columns[0], 0.0)
+        vol_min.set_value(vol_min.index[0], 0.0)
         vol_min = vol_min.ffill()
 
         # apply the vol floor
         vol_with_min = pd.concat([vol, vol_min], axis=1)
-        vol_floored = vol_with_min.max(axis=1, skipna=False).to_frame()
+        vol_floored = vol_with_min.max(axis=1, skipna=False)
     else:
         vol_floored = vol
 
-    vol_floored.columns = ["vol"]
     return vol_floored
 
 
@@ -145,7 +144,7 @@ def forecast_scalar(xcross, window=250000, min_periods=500, backfill=True):
     Work out the scaling factor for xcross such that T*x has an abs value of 10
     
     :param x: 
-    :type x: pd.DataFrame 1xT
+    :type x: pd.DataFrame TxN
     
     :param span:
     :type span: int
@@ -162,15 +161,14 @@ def forecast_scalar(xcross, window=250000, min_periods=500, backfill=True):
     ## Take CS average first
     ## we do this before we get the final TS average otherwise get jumps in scalar
     if xcross.shape[1]==1:
-        x=xcross.abs()
+        x=xcross.abs().iloc[:,0]
     else:
-        x=xcross.abs().median(axis=1).to_frame()
+        x=xcross.ffill().abs().median(axis=1)
     
     ## now the TS 
     avg_abs_value=pd.rolling_mean(x, window=window, min_periods=min_periods)
     scaling_factor=target_abs_forecast/avg_abs_value
 
-    scaling_factor.columns=['scale_factor']
     
     if backfill:
         scaling_factor=scaling_factor.fillna(method="bfill")
@@ -228,7 +226,7 @@ def apply_buffer(optimal_position, pos_buffers, trade_to_edge=False, roundpositi
     If we're rounding positions, then we floor and ceiling the buffers.
     
     :param position: optimal position 
-    :type position: pd.DataFrame 1xT
+    :type position: pd.Series
     
     :param pos_buffers: 
     :type pos_buffers: Tx2 pd.dataframe, top_pos and bot_pos
@@ -240,11 +238,11 @@ def apply_buffer(optimal_position, pos_buffers, trade_to_edge=False, roundpositi
     :type round_positions: bool
 
     
-    :returns: pd.DataFrame 
+    :returns: pd.Series 
     """
         
     pos_buffers=pos_buffers.ffill()
-    use_optimal_position = optimal_position.iloc[:,0].ffill()
+    use_optimal_position = optimal_position.ffill()
     
     top_pos=pos_buffers.top_pos
     bot_pos=pos_buffers.bot_pos
@@ -260,14 +258,14 @@ def apply_buffer(optimal_position, pos_buffers, trade_to_edge=False, roundpositi
 
     buffered_position_list=[current_position]
     
-    for idx in range(optimal_position.shape[0])[1:]:       
+    for idx in range(len(optimal_position.index))[1:]:       
         current_position=apply_buffer_single_period(
                             current_position, float(use_optimal_position.values[idx]), 
                             float(top_pos.values[idx]), float(bot_pos.values[idx]), 
                             trade_to_edge)
         buffered_position_list.append(current_position)
     
-    buffered_position = pd.DataFrame(buffered_position_list, index = optimal_position.index)
+    buffered_position = pd.Series(buffered_position_list, index = optimal_position.index)
     
     return buffered_position
 

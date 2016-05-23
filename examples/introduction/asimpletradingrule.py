@@ -64,7 +64,6 @@ No capping or scaling
 
 import pandas as pd
 from syscore.algos import robust_vol_calc
-from syscore.pdutils import divide_df_single_column
 
 
 def calc_ewmac_forecast(price, Lfast, Lslow=None):
@@ -91,7 +90,7 @@ def calc_ewmac_forecast(price, Lfast, Lslow=None):
 
     vol = robust_vol_calc(price.diff())
 
-    return divide_df_single_column(raw_ewmac, vol)
+    return raw_ewmac /  vol
 
 """
 Try it out
@@ -114,6 +113,8 @@ Did we make money?
 
 from syscore.accounting import accountCurve
 account = accountCurve(price, forecast=ewmac, percentage=True)
+account.curve()
+
 account.curve().plot()
 show()
 

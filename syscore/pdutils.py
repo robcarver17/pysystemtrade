@@ -15,9 +15,9 @@ def turnover(x, y):
     """
     
     if type(y) is float:
-        y=pd.DataFrame([y]*len(x.index) , x.index)
+        y=pd.Series([y]*len(x.index) , x.index)
     
-    norm_x=divide_df_single_column(x, y, ffill=(False, True))
+    norm_x= x / y.ffill()
     
     avg_daily=float(norm_x.diff().abs().resample("1B", how="sum").mean())
 
@@ -125,12 +125,12 @@ def pd_readcsv(filename, date_index_name="DATETIME"):
     return ans
 
 
-def apply_cap(pd_dataframe, capvalue):
+def apply_cap(pd_series, capvalue):
     """
-    Applies a cap to the values in a Tx1 pandas dataframe
+    Applies a cap to the values in a Tx1 pandas series
 
-    :param pd_dataframe: Tx1 pandas data frame
-    :type pd_dataframe: pd.DataFrame
+    :param pd_series: Tx1 pandas series
+    :type pd_dataframe: pd.Series
 
     :param capvalue: Maximum absolute value allowed
     :type capvlue: int or float
@@ -138,240 +138,34 @@ def apply_cap(pd_dataframe, capvalue):
 
     :returns: pd.DataFrame Tx1
 
-    >>> x=pd.DataFrame(dict(a=[2.0, 7.0, -7.0, -6.99]), pd.date_range(pd.datetime(2015,1,1), periods=4))
+    >>> x=pd.Series([2.0, 7.0, -7.0, -6.99], pd.date_range(pd.datetime(2015,1,1), periods=4))
     >>> apply_cap(x, 5.0)
-                a
     2015-01-01  2
     2015-01-02  5
     2015-01-03 -5
     2015-01-04 -5
-
+    Freq: D, dtype: float64
     """
-    pd.date_range
     # Will do weird things otherwise
     assert capvalue > 0
 
     # create max and min columns
-    max_ts = pd.Series([capvalue] * pd_dataframe.shape[0], pd_dataframe.index)
-    min_ts = pd.Series([-capvalue] * pd_dataframe.shape[0], pd_dataframe.index)
+    max_ts = pd.Series([capvalue] * len(pd_series), pd_series.index)
+    min_ts = pd.Series([-capvalue] * len(pd_series), pd_series.index)
 
-    joined_ts = pd.concat([pd_dataframe, max_ts], axis=1)
+    joined_ts = pd.concat([pd_series, max_ts], axis=1)
     joined_ts = joined_ts.min(axis=1)
     joined_ts = pd.concat([joined_ts, min_ts], axis=1)
-    joined_ts = joined_ts.max(axis=1).to_frame(pd_dataframe.columns[0])
+    joined_ts = joined_ts.max(axis=1)
 
-    joined_ts[np.isnan(pd_dataframe)] = np.nan
+    joined_ts[np.isnan(pd_series)] = np.nan
     return joined_ts
 
-def align_to_joint(x,y, ffill):
-    """
-    Align x and y to their joint index
-    
-    
-    
-    :param x: Tx1 pandas data frame
-    :type x: pd.DataFrame
-
-    :param y: Tx1 pandas data frame
-    :type y: pd.DataFrame
-
-    :param ffill: should we ffill x and y respectively
-    :type ffill: 2-tuple (bool, bool)
-    
-    """
-    jointindex=list(set(list(x.index)+list(y.index) ))
-    jointindex.sort()
-    
-    x=x.reindex(jointindex)
-    y=y.reindex(jointindex)
-    
-    (ffill_x, ffill_y) = ffill
-    
-    if ffill_x:
-        x=x.ffill()
-    
-    if ffill_y:
-        y=y.ffill()
-    
-    return (x,y)
-
-def index_match(x, y, ffill):
-    """
-    Join together two pd.DataFrames into a 2xT
-
-    timestamps don't have to match
-    The tuple ffill determines if we fill one, or the other before joining
-
-    :param x: Tx1 pandas data frame
-    :type x: pd.DataFrame
-
-    :param y: Tx1 pandas data frame
-    :type y: pd.DataFrame
-
-    :param ffill: should we ffill x and y respectively
-    :type ffill: 2-tuple (bool, bool)
-
-    :returns: pd.DataFrame Tx2
-    """
-
-    (ffill_x, ffill_y) = ffill
-
-    jointts = list(set(list(x.index)+list(y.index)))
-    jointts.sort()
-
-    xnew = x.reindex(jointts)
-    ynew = y.reindex(jointts)
 
 
-    if ffill_x:
-        xnew = xnew.ffill()
-
-    if ffill_y:
-        ynew = ynew.ffill()
-
-    ans = pd.concat([xnew, ynew], axis=1)
-
-    return ans
 
 
-def divide_df_single_column(x, y, ffill=(False, False)):
-    """
-    Divide Tx1 dataframe by Tx1 dataframe
 
-    timestamps don't have to match
-    The tuple ffill determines if we fill before dividing
-
-    :param x: Tx1 pandas data frame
-    :type x: pd.DataFrame
-
-    :param y: Tx1 pandas data frame
-    :type y: pd.DataFrame
-
-    :param ffill: should we ffill x and y respectively
-    :type ffill: 2-tuple (bool, bool)
-
-    :returns: pd.DataFrame Tx1
-
-    >>> x=pd.DataFrame(dict(a=[2.0, 7.0, -7.0, -7.00]), pd.date_range(pd.datetime(2015,1,1), periods=4))
-    >>> y=pd.DataFrame(dict(b=[2.0, 3.5, 2.0, -3.5]), pd.date_range(pd.datetime(2015,1,1), periods=4))
-    >>> divide_df_single_column(x,y)
-                  a
-    2015-01-01  1.0
-    2015-01-02  2.0
-    2015-01-03 -3.5
-    2015-01-04  2.0
-
-
-    """
-    ans = index_match(x, y, ffill)
-
-    ans = ans.iloc[:, 0] / ans.iloc[:, 1]
-    ans = ans.to_frame(x.columns[0])
-
-    return ans
-
-
-def add_df_single_column(x, y, ffill=(False, False)):
-    """
-    Add Tx1 dataframe to Tx1 dataframe; time indicies don't have to match
-
-    :param x: Tx1 pandas data frame
-    :type x: pd.DataFrame
-
-    :param y: Tx1 pandas data frame
-    :type y: pd.DataFrame
-
-    :returns: pd.DataFrame Tx1
-
-    >>> x=pd.DataFrame(dict(a=range(10)), pd.date_range(pd.datetime(2015,1,1), periods=10))
-    >>> y=pd.DataFrame(dict(b=range(10)), pd.date_range(pd.datetime(2015,1,5), periods=10))
-    >>> add_df_single_column(x,y)
-                 a
-    2015-01-05   4
-    2015-01-06   6
-    2015-01-07   8
-    2015-01-08  10
-    2015-01-09  12
-    2015-01-10  14
-
-    """
-
-    ans = index_match(x, y, ffill)
-
-    ans = ans.iloc[:, 0] + ans.iloc[:, 1]
-    ans = ans.to_frame(x.columns[0])
-
-    return ans
-
-def multiply_df_single_column(x, y, ffill=(False, False)):
-    """
-    Multiply Tx1 dataframe by Tx1 dataframe; time indicies don't have to match
-
-    :param x: Tx1 pandas data frame
-    :type x: pd.DataFrame
-
-    :param y: Tx1 pandas data frame
-    :type y: pd.DataFrame
-
-    :returns: pd.DataFrame Tx1
-
-    >>> x=pd.DataFrame(dict(a=range(10)), pd.date_range(pd.datetime(2015,1,1), periods=10))
-    >>> y=pd.DataFrame(dict(b=range(10)), pd.date_range(pd.datetime(2015,1,5), periods=10))
-    >>> multiply_df_single_column(x,y)
-                 a
-    2015-01-05   0
-    2015-01-06   5
-    2015-01-07  12
-    2015-01-08  21
-    2015-01-09  32
-    2015-01-10  45
-
-    """
-
-    ans = index_match(x, y, ffill)
-
-    ans = ans.iloc[:, 0] * ans.iloc[:, 1]
-    ans = ans.to_frame(x.columns[0])
-
-    return ans
-
-
-def multiply_df(x, y):
-    """
-    Multiply TxN dataframe by TxN dataframe
-
-    :param x: Tx1 pandas data frame
-    :type x: pd.DataFrame
-
-    :param y: Tx1 pandas data frame
-    :type y: pd.DataFrame
-
-    :returns: pd.DataFrame Tx1
-
-    >>> x=pd.DataFrame(dict(a=[2.0, 7.0, -7.0, -7.00]), pd.date_range(pd.datetime(2015,1,1), periods=4))
-    >>> y=pd.DataFrame(dict(b=[2.0, 3.0, 2.0, -3.0]), pd.date_range(pd.datetime(2015,1,1), periods=4))
-    >>> multiply_df(x,y)
-                 a
-    2015-01-01   4
-    2015-01-02  21
-    2015-01-03 -14
-    2015-01-04  21
-    >>>
-    >>> x=pd.DataFrame(dict(a=[2.0, 7.0],b=[ -7.0, -7.00]), pd.date_range(pd.datetime(2015,1,1), periods=2))
-    >>> y=pd.DataFrame(dict(c=[-2.0, 2.0],d=[ -3.0, -3.00]), pd.date_range(pd.datetime(2015,1,1), periods=2))
-    >>> multiply_df(x,y)
-                 a   b
-    2015-01-01  -4  21
-    2015-01-02  14  21
-
-    """
-
-    assert x.shape == y.shape
-    ans = pd.concat([x.iloc[:, cidx] * y.iloc[:, cidx]
-                     for cidx in range(x.shape[1])], axis=1)
-    ans.columns = x.columns
-
-    return ans
 
 
 def fix_weights_vs_pdm(weights, pdm):
@@ -428,6 +222,8 @@ def drawdown(x):
     """
     maxx = pd.rolling_max(x, 99999999, min_periods=1)
     return x - maxx
+
+
 
 
 if __name__ == '__main__':

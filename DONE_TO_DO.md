@@ -1,5 +1,14 @@
 # Release notes
 
+## Version 0.10.0 
+
+* Optimisation: 
+   * Replaced slow divide, multiply methods in syscore.pdutils with straightforward division; also means:
+      * Replaced Tx1 pd.DataFrames with pd.Series except where stricly necessary
+      * Removed a lot of defensive reindexing code where things should already be on same timestamp
+      * Replaced remaining reindexing code with pandas native .align methods
+   * accounting p&l doesn't have to work out trades, then go back to positions, if no trades provided.
+
 ## Version 0.9.0 
 
 * Changed / added the following methods to `system.accounts`: `pandl_for_instrument_forecast_weighted`, `pandl_for_trading_rule_weighted`, `pandl_for_all_trading_rules`, `pandl_for_trading_rule`, `pandl_for_trading_rule_unweighted`, `pandl_for_all_trading_rules_unweighted` See [/docs/userguide.md#weighted_acg] for more detail.
@@ -160,7 +169,7 @@
 * Simulation:
    
   * vol targeting with capital adjustment
-  * add other trading rules (some in private...?)
+  * add other trading rules (some in private...?) - cross sectional carry
   * quandl data
   * stitch futures contracts 
   * add new data from unstitched contracts (with explanatory post, include explanation for Nth contract stitching)

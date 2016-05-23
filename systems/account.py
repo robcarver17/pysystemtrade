@@ -8,7 +8,7 @@ from systems.defaults import system_defaults
 from syscore.algos import robust_vol_calc, apply_buffer
 from syscore.genutils import TorF
 from syscore.dateutils import ROOT_BDAYS_INYEAR
-from syscore.pdutils import multiply_df_single_column, turnover
+from syscore.pdutils import  turnover
 from dis import Instruction
 
 
@@ -92,6 +92,7 @@ class Account(SystemStage):
         """
         Get the capped forecast from the previous module
 
+
         KEY INPUT
 
         :param instrument_code:
@@ -105,6 +106,38 @@ class Account(SystemStage):
         """
         return self.parent.forecastScaleCap.get_capped_forecast(
             instrument_code, rule_variation_name)
+
+    def get_aligned_forecast(self, instrument_code, rule_variation_name):
+        """
+        Get the capped forecast aligned to daily prices
+
+
+        KEY INPUT
+
+        :param instrument_code:
+        :type str:
+
+        :param rule_variation_name:
+        :type str: name of the trading rule variation
+
+        :returns: Tx1 pd.DataFrames
+
+        """
+        def _get_aligned_forecast(system, instrument_code, rule_variation_name, this_stage):
+            price=self.get_daily_price(instrument_code)
+            forecast=self.get_capped_forecast(instrument_code, rule_variation_name)
+            
+            forecast=forecast.reindex(price.index).ffill()
+            
+            return forecast
+        
+        aligned_forecast = self.parent.calc_or_cache_nested(
+            'get_aligned_forecast', instrument_code, rule_variation_name,
+            _get_aligned_forecast, self)
+
+        return aligned_forecast
+
+
 
     def get_forecast_weights(self, instrument_code):
         """
@@ -176,6 +209,32 @@ class Account(SystemStage):
 
         """
         return self.parent.positionSize.get_subsystem_position(instrument_code)
+
+
+    def get_aligned_subsystem_position(self, instrument_code):
+        """
+        Get the position assuming all capital in one instruments, aligned to price
+
+        :param instrument_code: instrument to get values for
+        :type instrument_code: str
+
+        :returns: Tx1 pd.DataFrame
+
+
+        """
+        def _get_aligned_subsystem_position(system, instrument_code,  this_stage):
+            price=this_stage.get_daily_price(instrument_code)
+            sspos=this_stage.get_subsystem_position(instrument_code)
+            
+            sspos = sspos.reindex(price.index).ffill()
+            
+            return sspos
+        
+        aligned_subsys_pos= self.parent.calc_or_cache(
+            'get_aligned_subsystem_position', instrument_code, 
+            _get_aligned_subsystem_position, self)
+
+        return aligned_subsys_pos
 
 
     def get_trading_rule_list(self, instrument_code):
@@ -262,6 +321,23 @@ class Account(SystemStage):
 
         return self.parent.positionSize.get_fx_rate(instrument_code)
 
+    def get_aligned_fx(self, instrument_code):
+        
+        def _get_aligned_fx(system, instrument_code,  this_stage):
+            price=self.get_daily_price(instrument_code)
+            fx=self.get_fx_rate(instrument_code)
+            
+            fx=fx.reindex(price.index).ffill()
+            
+            return fx
+        
+        aligned_fx = self.parent.calc_or_cache(
+            'get_aligned_fx', instrument_code, 
+            _get_aligned_fx, self)
+
+
+        return aligned_fx
+
     def get_notional_position(self, instrument_code):
         """
         Get the notional position from a previous module
@@ -298,7 +374,7 @@ class Account(SystemStage):
 
     def get_daily_price(self, instrument_code):
         """
-        Get the daily instrument price from rawdata
+        Get the instrument price from rawdata
 
         KEY INPUT
 
@@ -318,7 +394,7 @@ class Account(SystemStage):
 
     def get_value_of_price_move(self, instrument_code):
         """
-        Get the value of a price move from the previous module
+        Get the value of a price move from raw data
 
         KEY INPUT
 
@@ -336,8 +412,13 @@ class Account(SystemStage):
         2500
         """
 
-        value_of_price_move = self.parent.data.get_value_of_block_price_move(
-            instrument_code)
+        def _get_value_of_price_move(system, instrument_code, this_stage):
+            return  system.data.get_value_of_block_price_move(
+                                                        instrument_code)
+
+        value_of_price_move = self.parent.calc_or_cache(
+            'get_value_of_price_move', instrument_code, _get_value_of_price_move, self)
+
 
         return value_of_price_move
 
@@ -420,6 +501,35 @@ class Account(SystemStage):
         
         return self.parent.positionSize.get_volatility_scalar(instrument_code)
     
+    def get_aligned_volatility_scalar(self, instrument_code):
+        """
+        Get the volatility scalar aligned to price
+        
+        KEY INPUT
+        
+        :param instrument_code: instrument to value for
+        :type instrument_code: str
+
+        :returns: Tx1 pd.DataFrame
+        
+        """
+        
+        def _get_aligned_vol_scalar(system, instrument_code,  this_stage):
+            price=this_stage.get_daily_price(instrument_code)
+            vs=this_stage.get_volatility_scalar(instrument_code)
+            
+            vs = vs.reindex(price.index).ffill()
+            
+            return vs
+        
+        aligned_vs= self.parent.calc_or_cache(
+            'get_aligned_vol_scalar', instrument_code, 
+            _get_aligned_vol_scalar, self)
+
+        return aligned_vs
+
+    
+    
     def get_instrument_scaling_factor(self, instrument_code):
         
         """
@@ -435,16 +545,17 @@ class Account(SystemStage):
         :returns: Tx1 pd.DataFrame
         
         """
-        
         idm = self.get_instrument_diversification_multiplier()
         instr_weights = self.get_instrument_weights()
 
         inst_weight_this_code = instr_weights[
-            instrument_code].to_frame("weight")
+            instrument_code]
 
-        multiplier = multiply_df_single_column(inst_weight_this_code, idm, ffill=(True, True))
-
-        return multiplier
+        multiplier = inst_weight_this_code * idm
+        
+        price = self.get_daily_price(instrument_code)
+        
+        return multiplier.reindex(price.index).ffill()
     
     def get_forecast_scaling_factor(self, instrument_code, rule_variation_name):
         """
@@ -464,9 +575,9 @@ class Account(SystemStage):
         forecast_weights = self.get_forecast_weights(instrument_code)
 
         fcast_weight_this_code = forecast_weights[
-            rule_variation_name].to_frame("weight")
+            rule_variation_name]
 
-        multiplier = multiply_df_single_column(fcast_weight_this_code, fdm, ffill=(True, True))
+        multiplier = fcast_weight_this_code* fdm
 
         return multiplier
 
@@ -484,11 +595,13 @@ class Account(SystemStage):
         :returns: Tx1 pd.DataFrame
         
         """
-
+        
         fsf=self.get_forecast_scaling_factor(instrument_code, rule_variation_name)
         isf=self.get_instrument_scaling_factor(instrument_code)
+
+        (fsf, isf)= fsf.align(isf, join="inner")
         
-        return multiply_df_single_column(fsf, isf, ffill=(True, True))
+        return fsf*isf
     
     def get_capital_in_rule(self, rule_variation_name):
         """
@@ -506,7 +619,7 @@ class Account(SystemStage):
                                 instrument_code in instrument_list]
         all_risk_allocations=pd.concat(all_risk_allocations, axis=1)
         
-        return all_risk_allocations.sum(axis=1).to_frame()
+        return all_risk_allocations.sum(axis=1)
         
     def get_SR_cost(self, instrument_code):
         """
@@ -642,8 +755,8 @@ class Account(SystemStage):
         def _subsystem_turnover(
                 system, instrument_code,  this_stage, roundpositions):
 
-            positions = this_stage.get_subsystem_position(instrument_code)
-            average_position_for_turnover=this_stage.get_volatility_scalar(instrument_code)
+            positions = this_stage.get_aligned_subsystem_position(instrument_code)
+            average_position_for_turnover=this_stage.get_aligned_volatility_scalar(instrument_code)
             
             return turnover(positions, average_position_for_turnover)
 
@@ -691,9 +804,9 @@ class Account(SystemStage):
 
             
             price = this_stage.get_daily_price(instrument_code)
-            positions = this_stage.get_subsystem_position(instrument_code)
+            positions = this_stage.get_aligned_subsystem_position(instrument_code)
 
-            fx = this_stage.get_fx_rate(instrument_code)
+            fx = this_stage.get_aligned_fx(instrument_code)
             value_of_price_point = this_stage.get_value_of_price_move(
                 instrument_code)
             get_daily_returns_volatility = this_stage.get_daily_returns_volatility(
@@ -843,9 +956,7 @@ class Account(SystemStage):
         def _instrument_turnover(
                 system, instrument_code,  this_stage, roundpositions):
 
-            average_position_for_turnover=multiply_df_single_column( this_stage.get_volatility_scalar(instrument_code), 
-                                                                     this_stage.get_instrument_scaling_factor(instrument_code),
-                                                                     ffill=(True, True))
+            average_position_for_turnover=this_stage.get_aligned_volatility_scalar(instrument_code)  *  this_stage.get_instrument_scaling_factor(instrument_code)
             
             positions = this_stage.get_buffered_position(instrument_code, roundpositions = roundpositions)
             
@@ -893,7 +1004,7 @@ class Account(SystemStage):
 
             price = this_stage.get_daily_price(instrument_code)
             positions = this_stage.get_buffered_position(instrument_code, roundpositions = roundpositions)
-            fx = this_stage.get_fx_rate(instrument_code)
+            fx = this_stage.get_aligned_fx(instrument_code)
             value_of_price_point = this_stage.get_value_of_price_move(
                 instrument_code)
             get_daily_returns_volatility = this_stage.get_daily_returns_volatility(
@@ -984,8 +1095,8 @@ class Account(SystemStage):
                 else:
                     return 1.0/capelement
 
-            weight=[_cleanweightelement(capelement[0]) for capelement in list(capital_this_rule.values)]
-            weight=pd.DataFrame(weight, index=capital_this_rule.index)
+            weight=[_cleanweightelement(capelement) for capelement in list(capital_this_rule.values)]
+            weight=pd.Series(weight, index=capital_this_rule.index)
             
             pandl_by_instrument_reweighted=[weighted(pandl_for_instrument, weight,
                                                      allow_reweighting=True) for 
@@ -1305,8 +1416,9 @@ class Account(SystemStage):
             this_stage.log.msg("Calculating pandl for instrument forecast for %s %s" % (instrument_code, rule_variation_name),
                                instrument_code=instrument_code, rule_variation_name=rule_variation_name)
     
+            ## by construction all these things are aligned
             price = this_stage.get_daily_price(instrument_code)
-            forecast = this_stage.get_capped_forecast(
+            forecast = this_stage.get_aligned_forecast(
                 instrument_code, rule_variation_name)
             get_daily_returns_volatility = this_stage.get_daily_returns_volatility(
                 instrument_code)

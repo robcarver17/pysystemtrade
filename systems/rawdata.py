@@ -2,7 +2,6 @@ from systems.stage import SystemStage
 from copy import copy
 
 from syscore.objects import resolve_function
-from syscore.pdutils import divide_df_single_column
 
 
 class RawData(SystemStage):
@@ -219,8 +218,9 @@ class RawData(SystemStage):
                 system, instrument_code, this_stage):
             denom_price = this_stage.daily_denominator_price(instrument_code)
             return_vol = this_stage.daily_returns_volatility(instrument_code)
+            (denom_price, return_vol) = denom_price.align(return_vol, join="right")
             perc_vol = 100.0 * \
-                divide_df_single_column(return_vol, denom_price.shift(1))
+                (return_vol /  denom_price.shift(1))
 
             return perc_vol
 
@@ -257,8 +257,7 @@ class RawData(SystemStage):
             returnvol = this_stage.daily_returns_volatility(
                 instrument_code).shift(1)
             dailyreturns = this_stage.daily_returns(instrument_code)
-            norm_return = divide_df_single_column(dailyreturns, returnvol)
-            norm_return.columns = ["norm_return"]
+            norm_return = dailyreturns / returnvol
             return norm_return
 
         norm_returns = self.parent.calc_or_cache(

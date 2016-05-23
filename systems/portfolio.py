@@ -5,7 +5,7 @@ from syscore.accounting import decompose_group_pandl
 
 from systems.stage import SystemStage
 from systems.basesystem import ALL_KEYNAME
-from syscore.pdutils import multiply_df_single_column, fix_weights_vs_pdm, add_df_single_column
+from syscore.pdutils import  fix_weights_vs_pdm
 from syscore.objects import update_recalc, resolve_function
 from syscore.genutils import str2Bool
 
@@ -284,7 +284,7 @@ class PortfoliosFixed(SystemStage):
             weight_ts = this_stage.get_instrument_weights().index
 
             ts_idm = pd.Series([div_mult] * len(weight_ts),
-                               index=weight_ts).to_frame("idm")
+                               index=weight_ts)
 
             return ts_idm
 
@@ -328,16 +328,13 @@ class PortfoliosFixed(SystemStage):
                 instrument_code)
 
             inst_weight_this_code = instr_weights[
-                instrument_code].to_frame("weight")
+                instrument_code]
 
             inst_weight_this_code = inst_weight_this_code.reindex(
                 subsys_position.index).ffill()
             idm = idm.reindex(subsys_position.index).ffill()
 
-            multiplier = multiply_df_single_column(inst_weight_this_code, idm)
-            notional_position = multiply_df_single_column(
-                subsys_position, multiplier)
-            notional_position.columns = ['pos']
+            notional_position = subsys_position * inst_weight_this_code * idm
 
             return notional_position
 
@@ -412,6 +409,7 @@ class PortfoliosFixed(SystemStage):
                                instrument_code=instrument_code)
             
             buffer_size=system.config.buffer_size
+            position = this_stage.get_notional_position(instrument_code)
             
             idm = this_stage.get_instrument_diversification_multiplier()
             instr_weights = this_stage.get_instrument_weights()
@@ -419,20 +417,17 @@ class PortfoliosFixed(SystemStage):
                 instrument_code)
 
             inst_weight_this_code = instr_weights[
-                instrument_code].to_frame("weight")
+                instrument_code]
 
             inst_weight_this_code = inst_weight_this_code.reindex(
-                vol_scalar.index).ffill()
-            idm = idm.reindex(vol_scalar.index).ffill()
-
-            multiplier = multiply_df_single_column(inst_weight_this_code, idm)
-            average_position = multiply_df_single_column(
-                vol_scalar, multiplier)
+                position.index).ffill()
+            idm = idm.reindex(position.index).ffill()
+            vol_scalar = vol_scalar.reindex(position.index).ffill()
+        
+            average_position =  vol_scalar * inst_weight_this_code * idm
             
             buffer = average_position * buffer_size
             
-            buffer.columns=["buffer"]
-
             return buffer
 
         buffer = self.parent.calc_or_cache(
@@ -477,13 +472,13 @@ class PortfoliosFixed(SystemStage):
                 this_stage.log.critical("Buffer method %s not recognised - not buffering" % buffer_method)
                 position = this_stage.get_notional_position(instrument_code)
                 max_max_position= float(position.abs().max())*10.0
-                buffer = pd.DataFrame([max_max_position] * position.shape[0], index=position.index)
+                buffer = pd.Series([max_max_position] * position.shape[0], index=position.index)
             
             position = this_stage.get_notional_position(instrument_code)
             
-            top_position = add_df_single_column(position, buffer, ffill=(False, True))
+            top_position = position + buffer.ffill()
             
-            bottom_position = add_df_single_column(position, -buffer, ffill=(False,True))
+            bottom_position = position - buffer.ffill()
 
             pos_buffers = pd.concat([top_position, bottom_position], axis=1)
             pos_buffers.columns = ["top_pos", "bot_pos"]
@@ -638,8 +633,6 @@ class PortfoliosEstimated(PortfoliosFixed):
             weight_df=this_stage.get_instrument_weights()
 
             ts_idm=idm_func(correlation_list_object, weight_df, **div_mult_params)
-
-            ts_idm.columns=['IDM']
 
             return ts_idm
 

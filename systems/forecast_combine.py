@@ -3,7 +3,7 @@ from copy import copy
 
 from syscore.accounting import decompose_group_pandl
 from syscore.genutils import str2Bool
-from syscore.pdutils import multiply_df, fix_weights_vs_pdm, apply_cap
+from syscore.pdutils import  fix_weights_vs_pdm, apply_cap
 from syscore.objects import resolve_function, update_recalc
 
 from systems.defaults import system_defaults
@@ -152,7 +152,7 @@ class ForecastCombineFixed(SystemStage):
 
     def get_all_forecasts(self, instrument_code, rule_variation_list=None):
         """
-        Returns a time series of forecasts for a particular instrument
+        Returns a data frame of forecasts for a particular instrument
 
         KEY INPUT
 
@@ -343,6 +343,7 @@ class ForecastCombineFixed(SystemStage):
             forecasts = this_stage.get_all_forecasts(instrument_code, rule_variation_list)
 
             # adjust weights for missing data
+            # also aligns them together
             forecast_weights = fix_weights_vs_pdm(forecast_weights, forecasts)
 
             return forecast_weights
@@ -423,7 +424,6 @@ class ForecastCombineFixed(SystemStage):
 
             ts_fdm = pd.Series([fixed_div_mult] *
                                len(weight_ts), index=weight_ts)
-            ts_fdm = ts_fdm.to_frame("fdm")
 
             return ts_fdm
 
@@ -478,18 +478,17 @@ class ForecastCombineFixed(SystemStage):
             forecast_cap = this_stage.get_forecast_cap()
 
             # multiply weights by forecasts
-            combined_forecast = multiply_df(forecast_weights, forecasts)
+            #NOT NEEDED: (forecast_weights, forecasts) = forecast_weights.align(forecasts, join="right") 
+            combined_forecast = forecast_weights.ffill()* forecasts
 
             # sum
             combined_forecast = combined_forecast.sum(
-                axis=1).to_frame("comb_forecast")
+                axis=1)
 
             # apply fdm
             # (note in this simple version we aren't adjusting FDM if forecast_weights change)
-            forecast_div_multiplier = forecast_div_multiplier.reindex(
-                forecasts.index, method="ffill")
-            raw_combined_forecast = multiply_df(
-                combined_forecast, forecast_div_multiplier)
+
+            raw_combined_forecast = combined_forecast * forecast_div_multiplier.ffill()
 
             combined_forecast = apply_cap(raw_combined_forecast, forecast_cap)
 
@@ -738,8 +737,6 @@ class ForecastCombineEstimated(ForecastCombineFixed):
 
             ts_fdm=idm_func(correlation_list_object, weight_df, **div_mult_params)
 
-            ts_fdm.columns=['FDM']
-
             return ts_fdm
 
         forecast_div_multiplier = self.parent.calc_or_cache(
@@ -941,3 +938,20 @@ class ForecastCombineEstimated(ForecastCombineFixed):
 if __name__ == '__main__':
     import doctest
     doctest.testmod()
+
+"""
+from systems.tests.testdata import get_test_object_futures_with_rules_and_capping_estimate
+from systems.basesystem import System
+from systems.forecast_combine import *
+(accounts, fcs, rules, rawdata, data, config)=get_test_object_futures_with_rules_and_capping_estimate()
+system=System([accounts, rawdata, rules, fcs, ForecastCombineEstimated()], data, config)
+
+
+from syscore.accounting import *
+
+this_stage=self=system.accounts
+
+instrument_code="EDOLLAR"
+rule_variation_name="ewmac8"
+
+"""

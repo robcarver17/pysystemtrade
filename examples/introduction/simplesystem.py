@@ -190,7 +190,7 @@ print(profits.stats())
 
 ## have costs data now
 print(profits.gross.stats())
-print(profits.costs.stats())
+print(profits.net.stats())
 
 """
 Another approach is to create a config object

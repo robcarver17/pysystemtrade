@@ -148,6 +148,7 @@ class System(object):
         for stage_name in self._stage_names:
             stage=getattr(self, stage_name)
             stage.log.set_logging_level(new_log_level)
+    
         
     def get_instrument_list(self):
         """

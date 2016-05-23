@@ -35,17 +35,15 @@ data.get_raw_price("EDOLLAR").tail(5)
 ```
 
 ```
-                       price
-2015-12-11 12:00:25  97.9125
-2015-12-11 14:11:34  97.9525
-2015-12-11 15:39:37  97.9425
-2015-12-11 17:08:14  97.9675
-2015-12-11 19:33:39  97.9875
+2016-05-05    98.6400
+2016-05-06    98.6050
+2016-05-09    98.6550
+2016-05-10    98.6500
+2016-05-11    98.6675
+Name: price, dtype: float64
 ```
 
-This is old data, but it's sufficient for playing with.  
-
-*I'll update the data at some point, as well as including methods for you to get your own data from different sources*
+*I'll update the data regularly, as well as including methods for you to get your own data from different sources*
 
 *Technical note: This is the 'back-adjusted' price for the future, formed from stiching adjacent contracts together using the 'panama' method*
 
@@ -64,13 +62,13 @@ data.get_instrument_raw_carry_data("EDOLLAR").tail(6)
 ```
 
 ```
-                       PRICE  CARRY CARRY_CONTRACT PRICE_CONTRACT
-2015-12-10 23:00:00  97.8800  97.95         201812         201903
-2015-12-11 12:00:25  97.9125    NaN         201812         201903
-2015-12-11 14:11:34  97.9525    NaN         201812         201903
-2015-12-11 15:39:37  97.9425    NaN         201812         201903
-2015-12-11 17:08:14  97.9675    NaN         201812         201903
-2015-12-11 19:33:39  97.9875    NaN         201812         201903
+              PRICE   CARRY CARRY_CONTRACT PRICE_CONTRACT
+2016-05-04  98.5800  98.645         201903         201906
+2016-05-05  98.6400  98.700         201903         201906
+2016-05-06  98.6050  98.665         201903         201906
+2016-05-09  98.6550  98.715         201903         201906
+2016-05-10  98.6500  98.705         201903         201906
+2016-05-11  98.6675     NaN         201903         201906
 ```
 
 Let's create a simple trading rule. 
@@ -80,7 +78,6 @@ Let's create a simple trading rule.
 
 import pandas as pd
 from syscore.algos import robust_vol_calc
-from syscore.pdutils import divide_df_single_column
 
 def calc_ewmac_forecast(price, Lfast, Lslow=None):
     
@@ -105,7 +102,7 @@ def calc_ewmac_forecast(price, Lfast, Lslow=None):
     
     vol=robust_vol_calc(price.diff())    
     
-    return divide_df_single_column(raw_ewmac, vol)
+    return raw_ewmac / vol
 
 ```
 Let's run it and look at the output
@@ -123,12 +120,12 @@ show()
 ```
 
 ```
-            forecast
-2015-12-07  2.303484
-2015-12-08  2.345404
-2015-12-09  2.398515
-2015-12-10  2.289017
-2015-12-11  2.138422
+2016-05-05    4.602536
+2016-05-06    4.649790
+2016-05-09    4.726840
+2016-05-10    4.896521
+2016-05-11    5.083896
+Freq: B, dtype: float64
 ```
 
 Did we make any money?
@@ -140,25 +137,27 @@ account.stats()
 ```
 
 ```
-[[('min', '-0.08167'),
-  ('max', '0.05601'),
+[[('min', '-0.07911'),
+  ('max', '0.0522'),
   ('median', '0'),
-  ('mean', '0.0001694'),
-  ('std', '0.005542'),
-  ('skew', '-0.9312'),
-  ('ann_mean', '0.04337'),
-  ('ann_std', '0.08866'),
-  ('sharpe', '0.4891'),
-  ('sortino', '0.4924'),
-  ('avg_drawdown', '-0.1367'),
-  ('time_in_drawdown', '0.9706'),
-  ('calmar', '0.1122'),
-  ('avg_return_to_drawdown', '0.3172'),
-  ('avg_loss', '-0.003635'),
-  ('avg_gain', '0.003666'),
-  ('gaintolossratio', '1.009'),
-  ('profitfactor', '1.129'),
-  ('hitrate', '0.5281')],
+  ('mean', '0.0001644'),
+  ('std', '0.005173'),
+  ('skew', '-0.5757'),
+  ('ann_mean', '0.04208'),
+  ('ann_std', '0.08276'),
+  ('sharpe', '0.5084'),
+  ('sortino', '0.569'),
+  ('avg_drawdown', '-0.1193'),
+  ('time_in_drawdown', '0.9731'),
+  ('calmar', '0.1269'),
+  ('avg_return_to_drawdown', '0.3526'),
+  ('avg_loss', '-0.003307'),
+  ('avg_gain', '0.003418'),
+  ('gaintolossratio', '1.034'),
+  ('profitfactor', '1.12'),
+  ('hitrate', '0.5201'),
+  ('t_stat', '2.929'),
+  ('p_value', '0.003405')],
  ('You can also plot:', ['rolling_ann_std', 'drawdown', 'curve'])]
 ```
 
@@ -170,7 +169,7 @@ account.sharpe() ## get the Sharpe Ratio (annualised), and any other statistic w
 account.curve().plot() ## plot the cumulative account curve (equivalent to account.cumsum().plot() inicidentally)
 account.drawdown().plot() ## see the drawdowns
 account.weekly ## weekly returns (also daily [default], monthly, annual)
-acccount.costs.ann_mean() ## annual mean for costs
+account.costs.ann_mean() ## annual mean for costs (there are none in this simple example)
 ```
 
 
@@ -243,12 +242,12 @@ my_system.rules.get_raw_forecast("EDOLLAR", "ewmac").tail(5)
 ```
 
 ```
-               ewmac
-2015-12-07  2.303484
-2015-12-08  2.345404
-2015-12-09  2.398515
-2015-12-10  2.289017
-2015-12-11  2.138422
+2016-05-05    4.602536
+2016-05-06    4.649790
+2016-05-09    4.726840
+2016-05-10    4.896521
+2016-05-11    5.083896
+Freq: B, dtype: float64
 ```
 
 This is exactly what we got in the simple example above; but with far more work. Don't worry, it will be worth it.
@@ -293,12 +292,12 @@ my_system.rules.get_raw_forecast("EDOLLAR", "ewmac32").tail(5)
 ```
 
 ```
-             ewmac32
-2015-12-07  2.303484
-2015-12-08  2.345404
-2015-12-09  2.398515
-2015-12-10  2.289017
-2015-12-11  2.138422
+2016-05-05    4.602536
+2016-05-06    4.649790
+2016-05-09    4.726840
+2016-05-10    4.896521
+2016-05-11    5.083896
+Freq: B, dtype: float64
 ```
 
 
@@ -354,12 +353,12 @@ print(my_system.forecastScaleCap.get_forecast_scalar("EDOLLAR", "ewmac32").tail(
 ```
 
 ```
-            scale_factor
-2015-12-07      2.839170
-2015-12-08      2.839321
-2015-12-09      2.839475
-2015-12-10      2.839633
-2015-12-11      2.839804
+2016-05-05    2.846447
+2016-05-06    2.846448
+2016-05-09    2.846442
+2016-05-10    2.846438
+2016-05-11    2.846425
+Freq: B, dtype: float64
 ```
 
 
@@ -383,12 +382,12 @@ my_system.forecastScaleCap.get_capped_forecast("EDOLLAR", "ewmac32")
 
 
 ```
-             ewmac32
-2015-12-07  6.104233
-2015-12-08  6.215322
-2015-12-09  6.356065
-2015-12-10  6.065894
-2015-12-11  5.666819
+2016-05-05    12.196721
+2016-05-06    12.321943
+2016-05-09    12.526127
+2016-05-10    12.975781
+2016-05-11    13.472323
+Freq: B, dtype: float64
 ```
 
 *We didn't have to pass the forecast cap of 20.0, since the system was happy to use the default value (this is defined in the system defaults file, which the full [users guide](userguide.md) will tell you more about).*
@@ -406,18 +405,21 @@ my_system.combForecast.get_forecast_diversification_multiplier("EDOLLAR").tail(5
 
 ```
 WARNING: No forecast weights  - using equal weights of 0.5000 over all 2 trading rules in system
-                     ewmac32  ewmac8
-2015-12-11 12:00:25      0.5     0.5
-2015-12-11 14:11:34      0.5     0.5
-2015-12-11 15:39:37      0.5     0.5
-2015-12-11 17:08:14      0.5     0.5
-2015-12-11 19:33:39      0.5     0.5
-                     fdm
-2015-12-11 12:00:25    1
-2015-12-11 14:11:34    1
-2015-12-11 15:39:37    1
-2015-12-11 17:08:14    1
-2015-12-11 19:33:39    1
+#weights
+            ewmac32  ewmac8
+2016-05-05      0.5     0.5
+2016-05-06      0.5     0.5
+2016-05-09      0.5     0.5
+2016-05-10      0.5     0.5
+2016-05-11      0.5     0.5
+
+#fdm
+2016-05-05    1
+2016-05-06    1
+2016-05-09    1
+2016-05-10    1
+2016-05-11    1
+Freq: B, dtype: float64
 ```
 
 Alternatively you can estimate div. multipliers, and weights. 
@@ -444,23 +446,25 @@ print(my_system.combForecast.get_forecast_diversification_multiplier("EDOLLAR").
 ```
 
 ```
-            ewmac32    ewmac8
-2015-12-07  0.256209  0.743791
-2015-12-08  0.256409  0.743591
-2015-12-09  0.256607  0.743393
-2015-12-10  0.256804  0.743196
-2015-12-11  0.256999  0.743001
 
-                 FDM
-2015-12-07  1.076779
-2015-12-08  1.076940
-2015-12-09  1.077098
-2015-12-10  1.077254
-2015-12-11  1.077408
+            ewmac32  ewmac8
+2016-05-05        1       0
+2016-05-06        1       0
+2016-05-09        1       0
+2016-05-10        1       0
+2016-05-11        1       0
+
+## FDM
+2016-05-05    1
+2016-05-06    1
+2016-05-09    1
+2016-05-10    1
+2016-05-11    1
+Freq: B, dtype: float64
 ```
 
 
-Let's use some arbitrary fixed forecast weights and diversification multiplier for now:
+A little extreme, I feel. Let's use some arbitrary fixed forecast weights and diversification multiplier for now:
 
 
 ```python
@@ -472,12 +476,12 @@ my_system.combForecast.get_combined_forecast("EDOLLAR").tail(5)
 
 
 ```
-            comb_forecast
-2015-12-07       3.322884
-2015-12-08       3.535802
-2015-12-09       3.817531
-2015-12-10       3.231421
-2015-12-11       3.595927
+2016-05-05     8.316347
+2016-05-06     8.906937
+2016-05-09     9.856458
+2016-05-10    10.714341
+2016-05-11    11.613205
+Freq: B, dtype: float64
 
 ```
 
@@ -501,12 +505,12 @@ my_system.positionSize.get_subsystem_position("EDOLLAR").tail(5)
 
 
 ```
-            ss_position
-2015-12-07    27.781050
-2015-12-08    30.295935
-2015-12-09    33.692504
-2015-12-10    28.225567
-2015-12-11    29.060370
+2016-05-05     76.093317
+2016-05-06     81.825564
+2016-05-09     90.915309
+2016-05-10    101.814765
+2016-05-11    110.356363
+Freq: B, dtype: float64
 ```
 
 We're almost there. The final stage we need to get positions is to combine everything into a portfolio (chapter 11). 
@@ -530,19 +534,20 @@ print(my_system.portfolio.get_instrument_diversification_multiplier())
 ```
 
 ```
-               CORN   EDOLLAR     SP500      US10
-2015-12-07  0.27708  0.250536  0.263795  0.208589
-2015-12-08  0.27708  0.250536  0.263795  0.208589
-2015-12-09  0.27708  0.250536  0.263795  0.208589
-2015-12-10  0.27708  0.250536  0.263795  0.208589
-2015-12-11  0.27708  0.250536  0.263795  0.208589
+                CORN   EDOLLAR     SP500      US10
+2016-05-05  0.273715  0.245994  0.281982  0.198309
+2016-05-06  0.273715  0.245994  0.281982  0.198309
+2016-05-09  0.273715  0.245994  0.281982  0.198309
+2016-05-10  0.273715  0.245994  0.281982  0.198309
+2016-05-11  0.273715  0.245994  0.281982  0.198309
 
-                 IDM
-2015-12-07  1.678384
-2015-12-08  1.678354
-2015-12-09  1.678325
-2015-12-10  1.678297
-2015-12-11  1.678268
+## idm
+2016-05-05    1.679175
+2016-05-06    1.679169
+2016-05-09    1.679163
+2016-05-10    1.679157
+2016-05-11    1.679151
+Freq: B, dtype: float64
 
 ```
 
@@ -561,12 +566,13 @@ my_system.portfolio.get_notional_position("EDOLLAR").tail(5)
 ```
 
 ```                 
-                  pos
-2015-12-07  16.668630
-2015-12-08  18.177561
-2015-12-09  20.215503
-2015-12-10  16.935340
-2015-12-11  17.436222
+2016-05-05    45.655990
+2016-05-06    49.095339
+2016-05-09    54.549186
+2016-05-10    61.088859
+2016-05-11    66.213818
+Freq: B, dtype: float64
+
 ```
 
 Although this is fine and dandy, we're probably going to be curious about whether this made money or not. So we'll need to add just one more stage, to count our virtual profits:
@@ -580,7 +586,7 @@ profits.stats()
 ```
 
 ```
-[[('mean', '0.0006612'), ('std', '0.01786'), ('skew', '-0.1644'), ('ann_mean', '0.1693'), ('ann_std', '0.2857'), ('sharpe', '0.5925'), .... ('hitrate', '0.5181')], ('You can also plot:', ['rolling_ann_std', 'drawdown', 'curve'])]
+[[('min', '-0.1349'), ('max', '0.1313'), ('median', '-4.308e-06'), ('mean', '0.0005715'), ('std', '0.01726'), ('skew', '-0.1568'), ('ann_mean', '0.1463'), ('ann_std', '0.2762'), ('sharpe', '0.5297'), ...)]
 
 ```
 
@@ -702,12 +708,12 @@ system.portfolio.get_notional_position("EUROSTX").tail(5)
 Because this runs quite slowly you might want to save the system data. This lives in the cache attribute.
 
 ```python
-system.pickle_cache("systems.private.this_system_name.pck") ## use any file extension you like
+system.pickle_cache("private.this_system_name.pck") ## use any file extension you like
 
 ## In a new session
 from systems.provided.futures_chapter15.estimatedsystem import futures_system
 system = futures_system(log_level="on")
-system.unpickle_cache("systems.private.this_system_name.pck")
+system.unpickle_cache("private.this_system_name.pck")
 system.accounts.portfolio().sharpe() ## this will run much faster and reuse previous calculations
 ```
 

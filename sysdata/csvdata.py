@@ -41,9 +41,10 @@ class csvFuturesData(FuturesData):
 
         :returns: new csvFuturesData object
 
-        >>> data = csvFuturesData()
+        >>> data=csvFuturesData("sysdata.tests")
         >>> data
-        FuturesData object with 38 instruments
+        FuturesData object with 3 instruments
+
 
         """
 
@@ -104,7 +105,8 @@ class csvFuturesData(FuturesData):
         :returns: dict of floats
 
         >>> data=csvFuturesData("sysdata.tests")
-        >>> data.get_raw_cost_data("EDOLLAR")
+        >>> data.get_raw_cost_data("EDOLLAR")['price_slippage']
+        0.0025000000000000001
         """
 
         default_costs = dict(price_slippage=0.0,
@@ -142,13 +144,13 @@ class csvFuturesData(FuturesData):
 
         >>> data=csvFuturesData("sysdata.tests")
         >>> data.get_raw_price("EDOLLAR").tail(2)
-                               price
-        2015-12-11 17:08:14  97.9675
-        2015-12-11 19:33:39  97.9875
+        2015-12-11 17:08:14    97.9675
+        2015-12-11 19:33:39    97.9875
+        Name: price, dtype: float64
         >>> data["US10"].tail(2)
-                                  price
-        2015-12-11 16:06:35  126.914062
-        2015-12-11 17:24:06  126.945312
+        2015-12-11 16:06:35    126.914062
+        2015-12-11 17:24:06    126.945312
+        Name: price, dtype: float64
         """
 
         # Read from .csv
@@ -157,6 +159,7 @@ class csvFuturesData(FuturesData):
         instrpricedata = pd_readcsv(filename)
         instrpricedata.columns = ["price"]
         instrpricedata = instrpricedata.groupby(level=0).last()
+        instrpricedata = pd.Series(instrpricedata.iloc[:,0])
         return instrpricedata
 
     def get_instrument_raw_carry_data(self, instrument_code):
@@ -300,24 +303,22 @@ class csvFuturesData(FuturesData):
 
         :returns: Tx1 pd.DataFrame, or None if not available
 
-        >>> data=csvFuturesData()
-        >>> # datapath="tests/"
+        >>> data=csvFuturesData("sysdata.tests")
         >>> data._get_fx_data("EUR", "USD").tail(2)
-                     EURUSD
-        2015-12-09  1.09085
-        2015-12-10  1.09641
+        2015-12-09    1.09085
+        2015-12-10    1.09641
+        Name: FX, dtype: float64
         >>> data._get_fx_cross("EUR", "GBP").tail(2)
-                          fx
-        2015-12-09  0.724663
-        2015-12-10  0.724463
-        >>> data._get_fx_cross("USD", "GBP").tail(2)
-                          fx
-        2015-12-09  0.664311
-        2015-12-10  0.660759
+        2015-12-09    0.724663
+        2015-12-10    0.724463
+        Freq: B, Name: FX, dtype: float64
+        2015-12-09    0.664311
+        2015-12-10    0.660759
+        dtype: float64
         >>> data._get_fx_cross( "GBP", "USD").tail(2)
-                     GBPUSD
-        2015-12-09  1.50532
-        2015-12-10  1.51341
+        2015-12-09    1.50532
+        2015-12-10    1.51341
+        Name: FX, dtype: float64
         """
 
         self.log.msg("Loading csv fx data", fx="%s%s" % (currency1, currency2))
@@ -332,7 +333,7 @@ class csvFuturesData(FuturesData):
         except:
             return None
 
-        fxdata.columns = ["%s%s" % (currency1, currency2)]
+        fxdata = pd.Series(fxdata.iloc[:,0])
 
         return fxdata
 

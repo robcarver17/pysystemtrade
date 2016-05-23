@@ -7,7 +7,7 @@ from systems.stage import SystemStage
 from systems.defaults import system_defaults
 
 from syscore.genutils import str2Bool
-from syscore.pdutils import apply_cap, multiply_df_single_column
+from syscore.pdutils import apply_cap
 from syscore.objects import resolve_function
 
 class ForecastScaleCap(SystemStage):
@@ -238,7 +238,7 @@ class ForecastScaleCapFixed(SystemStage):
                 scaled_forecast = raw_forecast * scale
             else: 
                 ## time series
-                scaled_forecast = multiply_df_single_column(raw_forecast, scale, ffill=(False,True))
+                scaled_forecast = raw_forecast * scale
 
             return scaled_forecast
 
@@ -246,6 +246,7 @@ class ForecastScaleCapFixed(SystemStage):
             "get_scaled_forecast", instrument_code, rule_variation_name, _get_scaled_forecast, self)
 
         return scaled_forecast
+
 
     def get_capped_forecast(self, instrument_code, rule_variation_name):
         """
@@ -285,7 +286,6 @@ class ForecastScaleCapFixed(SystemStage):
             cap = this_stage.get_forecast_cap()
 
             capped_forecast = apply_cap(scaled_forecast, cap)
-            capped_forecast.columns = scaled_forecast.columns
 
             return capped_forecast
 
@@ -367,7 +367,7 @@ class ForecastScaleCapEstimated(ForecastScaleCapFixed):
                 system, Not_Used, rule_variation_name, this_stage, instrument_list, 
                 scalar_function, forecast_scalar_config):
             """
-            If instrument_list contains multiple things, pools everything across all instruments
+            instrument_list contains multiple things, pools everything across all instruments
             """
             this_stage.log.msg("Getting forecast scalar for %s over %s" % (rule_variation_name, ", ".join(instrument_list)),
                                rule_variation_name=rule_variation_name)

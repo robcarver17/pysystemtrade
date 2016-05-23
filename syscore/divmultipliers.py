@@ -61,7 +61,7 @@ def diversification_multiplier_from_list(correlation_list_object, weight_df_raw,
 
     :param **kwargs: Used for single period calculation 
     
-    :returns: Tx1 pd.DataFrame 
+    :returns: Tx1 pd.Series
     
     """
     ## align weights to corr list
@@ -84,7 +84,7 @@ def diversification_multiplier_from_list(correlation_list_object, weight_df_raw,
         
         div_mult_vector.append(div_multiplier)
     
-    div_mult_df=pd.DataFrame(div_mult_vector, columns=["DivMult"], index=ref_periods)
+    div_mult_df=pd.Series(div_mult_vector,  index=ref_periods)
     div_mult_df=div_mult_df.reindex(weight_df.index, method="ffill")
     
     div_mult_df=pd.ewma(div_mult_df, span=ewma_span)
