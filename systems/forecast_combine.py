@@ -843,7 +843,7 @@ class ForecastCombineEstimated(ForecastCombineFixed):
             return xlist==ylist
         
         matching_instruments=[other_code for other_code in instrument_list 
-                           if _matches(my_rules, self.get_trading_rule_list(other_code))]
+                           if _matches(my_rules, self.apply_cost_weighting(other_code))]
         
         matching_instruments.sort()
         
@@ -891,21 +891,17 @@ class ForecastCombineEstimated(ForecastCombineFixed):
 
             this_stage.log.terse("Calculating raw forecast weights for %s, over %s" % (instrument_code, ", ".join(codes_to_use)))
 
-            if hasattr(system, "accounts"):
-                ## returns a list of accountCurveGroups
-                pandl_forecasts=[this_stage.get_returns_for_optimisation(code)
-                        for code in codes_to_use]
+            ## returns a list of accountCurveGroups
+            pandl_forecasts=[this_stage.get_returns_for_optimisation(code)
+                    for code in codes_to_use]
+            
+            ## the current curve is special
+            pandl_forecasts_this_code=this_stage.get_returns_for_optimisation(instrument_code)
+            
+            ## have to decode these
+            ## returns two lists of pd.DataFrames
+            (pandl_forecasts_gross, pandl_forecasts_costs) = decompose_group_pandl(pandl_forecasts, pandl_forecasts_this_code, pool_costs=pool_costs)
                 
-                ## the current curve is special
-                pandl_forecasts_this_code=this_stage.get_returns_for_optimisation(instrument_code)
-                
-                ## have to decode these
-                ## returns two lists of pd.DataFrames
-                (pandl_forecasts_gross, pandl_forecasts_costs) = decompose_group_pandl(pandl_forecasts, pandl_forecasts_this_code, pool_costs=pool_costs)
-                
-            else:
-                error_msg="You need an accounts stage in the system to estimate forecast weights"
-                this_stage.log.critical(error_msg)
 
             ## The weighting function requires two lists of pd.DataFrames, one gross, one for costs
             output=weighting_func(pandl_forecasts_gross, pandl_forecasts_costs,  
@@ -926,7 +922,7 @@ class ForecastCombineEstimated(ForecastCombineFixed):
         
         if pooling_returns:
             ## find set of instruments with same trading rules as I have
-            codes_to_use=self.has_same_rules_as_code(instrument_code)
+            codes_to_use=self.has_same_cheap_rules_as_code(instrument_code)
         else:
             codes_to_use=[instrument_code]
             

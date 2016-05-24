@@ -1,5 +1,8 @@
 # Release notes
 
+## Version 0.10.01
+* Fixed bug with trading rule cost ceiling code
+
 ## Version 0.10.0 
 * Refactored optimisation with costs code, changed configuration slightly (read [this revised blog post for more](http://qoppac.blogspot.co.uk/2016/05/optimising-weights-with-costs.html) )
 * Introduced method to cope with pooling on both costs and gross returns, so doesn't recalculate several times

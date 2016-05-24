@@ -591,6 +591,9 @@ def clean_weights(weights,  must_haves=None, fraction=0.5):
     needs_replacing=[(np.isnan(x) or x==0.0) and must_haves[i] for (i,x) in enumerate(weights)]
     keep_empty=[(np.isnan(x) or x==0.0) and not must_haves[i] for (i,x) in enumerate(weights)]
     no_replacement_needed=[(not keep_empty[i]) and (not needs_replacing[i]) for (i,x) in enumerate(weights)]
+
+    if not any(needs_replacing):
+        return weights
     
     missing_weights=sum(needs_replacing)
 
@@ -793,7 +796,7 @@ def equal_weights(period_subset_data, moments_estimator,
         if isvalid:
             return weight
         else:
-            return 0.0
+            return np.nan
     
     unclean_weights=[_weightit(isvalid, weight) for isvalid in index_valid]
     
