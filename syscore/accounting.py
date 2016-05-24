@@ -189,8 +189,6 @@ def pandl_with_data(price, trades=None, marktomarket=True, positions=None,
 
     instr_ccy_returns = cum_trades.shift(1)* price_returns * value_of_price_point
     
-    instr_ccy_returns=instr_ccy_returns.resample("1B", how="sum")
-
     instr_ccy_returns=instr_ccy_returns.cumsum().ffill().reindex(price.index).diff()
     base_ccy_returns = instr_ccy_returns * fx
     

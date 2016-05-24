@@ -255,6 +255,7 @@ system.set_logging_level("on")
 
 system.config.rule_variations=rule_variations
 system.config.forecast_weight_estimate['method']="shrinkage"
+system.config.forecast_weight_estimate['equalise_gross']=False
 
 
 print(system.combForecast.get_forecast_weights("EUROSTX").tail(1)) ## cheap market
@@ -266,6 +267,24 @@ system.combForecast.get_forecast_weights("V2X").iloc[-1,:].loc[rule_variations].
 show()
 
 ## equal weights
+system=futures_system()
+system.set_logging_level("on")
+del(system.config.rule_variations)
+
+system=futures_system()
+system.set_logging_level("on")
+
+system.config.rule_variations=rule_variations
+system.config.forecast_weight_estimate['method']="equal_weights"
+
+
+print(system.combForecast.get_forecast_weights("EUROSTX").tail(1)) ## cheap market
+system.combForecast.get_forecast_weights("EUROSTX").iloc[-1,:].loc[rule_variations].plot(kind="barh")
+show()
+
+print(system.combForecast.get_forecast_weights("V2X").tail(1)) ## expensive market
+system.combForecast.get_forecast_weights("V2X").iloc[-1,:].loc[rule_variations].plot(kind="barh")
+show()
 
 
 
@@ -278,13 +297,7 @@ system=futures_system()
 system.set_logging_level("on")
 
 system.config.rule_variations=rule_variations
-system.config.forecast_weight_estimate['apply_cost_weight']=True
-system.config.forecast_cost_estimates['use_pooled_costs']=False
-system.config.forecast_weight_estimate['pool_gross_returns']=True
-system.config.forecast_weight_estimate['cost_multiplier']=0.0
-system.config.forecast_weight_estimate['ceiling_cost_SR']=0.13
-system.config.forecast_weight_estimate['method']="bootstrap"
-system.config.forecast_weight_estimate['equalise_gross']=False
+system.config.forecast_weight_estimate['method']="equal_weights"
 
 system.config.instrument_weight_estimate['method']="bootstrap"
 system.config.instrument_weight_estimate['apply_cost_weight']=True

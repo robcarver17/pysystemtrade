@@ -141,22 +141,22 @@ print(system.combForecast.get_forecast_weights("EUROSTX").irow(-1))
 print(system.combForecast.get_forecast_weights("V2X").irow(-1))
 
 ## now include other rules
-"""
+
 
 my_config = Config("examples.breakout.breakoutfuturesestimateconfig.yaml")
 #my_config.forecast_weight_estimate["method"]="bootstrap"
 
 system = futures_system(config=my_config, log_level="on")
 bvariations=["breakout"+str(ws) for ws in [10, 20, 40, 80, 160, 320]]
-
+evariations=[
+            "ewmac%d_%d" % (fast, fast*4) for fast in [2,4,8,16,32, 64]]
 
 #cProfile.run("system.accounts.pandl_for_all_trading_rules_unweighted().to_frame()","restats")
 system.accounts.pandl_for_all_trading_rules_unweighted().to_frame().loc[:, bvariations].cumsum().plot()
 show()
 
-"""
-variations=["breakout"+str(ws) for ws in [10, 20, 40, 80, 160, 320]]+[
-            "ewmac%d_%d" % (fast, fast*4) for fast in [2,4,8,16,32, 64]]+["carry"]
+
+variations=bvariations+evariation+["carry"]
 
 corr_result=system.combForecast.get_forecast_correlation_matrices("US10")
 matrix=corr_result.corr_list[-1]
@@ -208,13 +208,30 @@ allpandl=pd.concat(allpandl, axis=1)
 allpandl.cumsum().sum(axis=1).plot()
 show()
 
+"""
+### show grouped courves
+my_config = Config("examples.breakout.breakoutfuturesestimateconfig.yaml")
+my_config.forecast_weight_estimate["method"]="equal_weights"
+system=futures_system(config=my_config, log_level="on")
 
+allrulespandl=system.accounts.pandl_for_all_trading_rules()
+
+## 
+ewmac_all=allrulespandl.to_frame().loc[:,evariations].sum(axis=1)
+break_all=allrulespandl.to_frame().loc[:,evariations].sum(axis=1)
+
+both_plot=pd.concat(ewmac_all, break_all)
+both_plot.corr()
+both_plot.plot()
+show()
+
+"""
 ## full backtest 37 instruments
 
 my_config = Config("examples.breakout.breakoutfuturesestimateconfig.yaml")
 
 ## will do all instruments we have data for
-del(my_config.instruments)
+#del(my_config.instruments)
 
 ## temporarily remove breakout rules
 my_config.rule_variations=["ewmac%d_%d" % (fast, fast*4) for fast in [2,4,8,16,32, 64]]+["carry"]
@@ -223,7 +240,7 @@ system_old = futures_system(config=my_config, log_level="on")
 
 ## new system has all trading rules
 new_config = Config("examples.breakout.breakoutfuturesestimateconfig.yaml")
-del(new_config.instruments)
+#del(new_config.instruments)
 
 system_new = futures_system(config=new_config, log_level="on")
 

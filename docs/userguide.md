@@ -3249,19 +3249,19 @@ forecast_weight_estimate: ## can also be applied to instrument weights
 
 I recommend using weekly data, since it speeds things up and doesn't affect out of sample performance. 
 
-### Removing expensive assets (forecasts only)
+### Removing expensive assets (forecast weights only)
 
 Again I recommend you check out this [blog post](http://qoppac.blogspot.co.uk/2016/05/optimising-weights-with-costs.html). 
 
 ```
 forecast_weight_estimate:
-   ceiling_cost_SR: 0.13 ## Max cost to allow for assets, annual SR units. Defaults to 999 for instrument weight estimation since I recommend you don't use it
+   ceiling_cost_SR: 0.13 ## Max cost to allow for assets, annual SR units.  
 ```
 
 See ['costs'](#costs) to see how to configure pooling when estimating the costs of forecasts.
 
 
-### Pooling gross returns
+### Pooling gross returns (forecast weights only)
 
 Pooling across instruments is only available when calculating forecast weights. Again I recommend you check out this [blog post](http://qoppac.blogspot.co.uk/2016/05/optimising-weights-with-costs.html). Only instruments whose rules have survived the application of a ceiling cost will be included in the pooling process.
 
@@ -3270,14 +3270,14 @@ Pooling across instruments is only available when calculating forecast weights. 
 forecast_weight_estimate:
    pool_gross_returns: True ## pool gross returns for estimation
 forecast_cost_estimate:
-   use_pooled_costs: False  ### use weighted average of SR cost * turnover across instruments with the same set of trading rules
+   use_pooled_costs: False  ### use weighted average of [SR cost * turnover] across instruments with the same set of trading rules
    use_pooled_turnover: True ### Use weighted average of turnover across instruments with the same set of trading rules
 ```
 
 See ['costs'](#costs) to see how to configure pooling when estimating the costs of forecasts. Notice if pool_gross_returns is True, and use_pooled_costs is True, then a single optimisation will be run across all instruments with a common set of trading rules. Otherwise each instrument is optimised individually, which is slower.
 
 
-### Working out net costs
+### Working out net costs (both instrument and forecast weights)
 
 Again I recommend you check out this [blog post](http://qoppac.blogspot.co.uk/2016/05/optimising-weights-with-costs.html). 
 

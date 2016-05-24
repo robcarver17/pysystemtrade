@@ -648,7 +648,7 @@ class ForecastCombineEstimated(ForecastCombineFixed):
                                                codes_to_use, corr_func, **corr_params):
             this_stage.log.terse("Calculating forecast correlations over %s" % ", ".join(codes_to_use))
 
-            forecast_data=[this_stage.get_all_forecasts(code) for code in codes_to_use]
+            forecast_data=[this_stage.get_all_forecasts(instrument_code, this_stage.apply_cost_weighting(code)) for code in codes_to_use]
             
             ## if we're not pooling passes a list of one
             forecast_data=[forecast_ts.ffill() for forecast_ts in forecast_data]
@@ -666,7 +666,7 @@ class ForecastCombineEstimated(ForecastCombineFixed):
         
         if pooling:
             ## find set of instruments with same trading rules as I have
-            codes_to_use=self.has_same_rules_as_code(instrument_code)
+            codes_to_use=self.has_same_cheap_rules_as_code(instrument_code)
             instrument_code_ref=ALL_KEYNAME
             
             ## We 

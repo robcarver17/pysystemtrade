@@ -592,9 +592,14 @@ class Account(SystemStage):
         
         fdm = self.get_forecast_diversification_multiplier(instrument_code)
         forecast_weights = self.get_forecast_weights(instrument_code)
-
-        fcast_weight_this_code = forecast_weights[
-            rule_variation_name]
+        
+        if rule_variation_name in forecast_weights.columns:
+            
+            fcast_weight_this_code = forecast_weights[
+                rule_variation_name]
+        else:
+            fcast_weight_this_code = self.get_aligned_forecast(instrument_code, rule_variation_name)
+            fcast_weight_this_code[:]=0.0
 
         multiplier = fcast_weight_this_code* fdm
 
