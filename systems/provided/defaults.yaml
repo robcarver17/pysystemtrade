@@ -58,11 +58,14 @@ forecast_div_mult_estimate:
 #
 use_forecast_weight_estimates: False
 #
+forecast_cost_estimates:
+   use_pooled_costs: False
+   use_pooled_turnover: True
+#
 forecast_weight_estimate:
    func: syscore.optimisation.GenericOptimiser
    method: shrinkage
-   pool_instruments: True
-   pool_costs: False
+   pool_gross_returns: True
    equalise_gross: False
    cost_multiplier: 0.0
    apply_cost_weight: True
@@ -131,7 +134,6 @@ instrument_weight_estimate:
    equalise_gross: False
    cost_multiplier: 0.0
    apply_cost_weight: False
-   ceiling_cost_SR: 999.0
    date_method: "expanding"
    rollyears: 20
    cleaning: True

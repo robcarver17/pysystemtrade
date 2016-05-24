@@ -1,6 +1,13 @@
 # Release notes
 
 ## Version 0.10.0 
+* Refactored optimisation with costs code, changed configuration slightly (read [this revised blog post for more](http://qoppac.blogspot.co.uk/2016/05/optimising-weights-with-costs.html) )
+* Introduced method to cope with pooling on both costs and gross returns, so doesn't recalculate several times
+* Moved pre-screening for expensive assets to an earlier stage
+* New optimisation method "equal_weights" for equal weights; means that eg expensive forecasts can be removed and then take an equal weight on the rest
+
+
+## Version 0.10.0 
 
 * Optimisation: 
    * Replaced slow divide, multiply methods in syscore.pdutils with straightforward division; also means:

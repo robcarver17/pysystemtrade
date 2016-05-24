@@ -26,7 +26,7 @@ class GenericOptimiser(object):
 
     def __init__(self, data_gross, data_costs, log=logtoscreen("optimiser"), frequency="W", date_method="expanding", 
                          rollyears=20, fit_method="bootstrap", cleaning=True, equalise_gross=False,
-                         cost_multiplier=1.0, apply_cost_weight=True, ceiling_cost_SR=0.13,
+                         cost_multiplier=1.0, apply_cost_weight=True, 
                          ann_target_SR=TARGET_ANN_SR,
                          **passed_params):
         
@@ -61,9 +61,6 @@ class GenericOptimiser(object):
         :param apply_cost_weight: Should we adjust our weightings to reflect costs?
         :type apply_cost_weight: bool
 
-        :param ceiling_cost_SR: What is the maximum SR cost beyond which I don't allocate to an asset. Set to 999 to avoid using.
-        :type ceiling_cost_SR: float
-    
         :param *_estimate_params: dicts of **kwargs to pass to moments estimation, and optimisation functions
         
         :returns: pd.DataFrame of weights
@@ -80,7 +77,6 @@ class GenericOptimiser(object):
         annualisation=ann_dict.get(frequency, 1.0)
 
         period_target_SR=ann_target_SR/(annualisation**.5)
-        ceiling_cost_SR_period=ceiling_cost_SR/(annualisation**.5)
         
         ## A moments estimator works out the mean, vol, correlation
         ## Also stores annualisation factor and target SR (used for shrinkage and equalising)
@@ -110,7 +106,6 @@ class GenericOptimiser(object):
         
         data = work_out_net(data_gross, data_costs, annualisation=annualisation,
                             equalise_gross=equalise_gross, cost_multiplier=cost_multiplier,
-                            ceiling_cost_ann_SR=ceiling_cost_SR, 
                             period_target_SR=period_target_SR)
             
         fit_dates = generate_fitting_dates(data, date_method=date_method, rollyears=rollyears)
@@ -155,7 +150,7 @@ class GenericOptimiser(object):
         setattr(self, "weights", weight_df)
         setattr(self, "raw_weights", raw_weight_df)
 
-def display_warnings(log, cost_multiplier, equalise_gross, apply_cost_weight, equalise_SR=False, **passed_params):
+def display_warnings(log, cost_multiplier, equalise_gross, apply_cost_weight, equalise_SR=False, **ignored_passed_params):
     """
     Warn people when parameters are in conflict 
     """
@@ -187,7 +182,7 @@ def display_warnings(log, cost_multiplier, equalise_gross, apply_cost_weight, eq
     return None
 
 def work_out_net(data_gross, data_costs, annualisation=BUSINESS_DAYS_IN_YEAR,   
-                 equalise_gross=False, cost_multiplier=1.0, ceiling_cost_ann_SR=999.0,
+                 equalise_gross=False, cost_multiplier=1.0,
                  period_target_SR=TARGET_ANN_SR/(BUSINESS_DAYS_IN_YEAR**.5)):
     """
     Work out the net from a dataframe of gross and costs
@@ -216,24 +211,8 @@ def work_out_net(data_gross, data_costs, annualisation=BUSINESS_DAYS_IN_YEAR,
         ## no adjustment
         use_gross = data_gross
     
-    ## remove anything for which the costs are too high by setting gross returns to be negative
-    asset_costs = data_costs.mean().values 
-    asset_std = np.mean(data_gross.std().values) ## all should have same vol
 
-    ## These are expressed in annualised terms
-    ann_SR_costs = list((annualisation**.5)*asset_costs / asset_std)
-
-    def _remove_factor(SR_cost, ceiling_cost_ann_SR):
-        if SR_cost< -ceiling_cost_ann_SR:
-            return np.nan
-        else:
-            return 1.0
-
-    remove_high_cost_matrix = [_remove_factor(SR_cost, ceiling_cost_ann_SR) for SR_cost in ann_SR_costs]
-    remove_high_cost_matrix = np.array([list(remove_high_cost_matrix)]*len(data_costs.index))
-    remove_high_cost_matrix = pd.DataFrame(remove_high_cost_matrix, index=data_costs.index, columns=data_costs.columns)
-
-    use_costs = data_costs * cost_multiplier * remove_high_cost_matrix
+    use_costs = data_costs * cost_multiplier 
 
     net = use_gross + use_costs ## costs are negative
     
@@ -345,7 +324,7 @@ class optimiserWithParams(object):
         """
         fit_method=optimise_params.pop("method")
         fit_method_dict=dict(one_period=markosolver, bootstrap=bootstrap_portfolio, 
-                             shrinkage=opt_shrinkage)
+                             shrinkage=opt_shrinkage, equal_weights=equal_weights)
 
         try:        
             opt_func=fit_method_dict[fit_method]
@@ -779,6 +758,54 @@ def sigma_from_corr_and_std(stdev_list, corrmatrix):
     sigma=stdev*corrmatrix*stdev
 
     return sigma
+
+
+
+def equal_weights(period_subset_data, moments_estimator,
+                cleaning, must_haves,                  **other_opt_args_ignored):
+    """
+    Given dataframe of returns; returns equal weights
+    
+    
+    :param subset_data: The data to optimise over
+    :type subset_data: pd.DataFrame TxN
+
+    :param cleaning: Should we clean correlations so can use incomplete data?
+    :type cleaning: bool
+
+    :param must_haves: The indices of things we must have weights for when cleaning
+    :type must_haves: list of bool
+
+
+    **other_opt_args_ignored passed to single period optimiser
+
+    :returns: float
+    
+    """
+
+    mean_list=moments_estimator.means(period_subset_data) ## need to identify missing values 
+    
+    index_valid = [not np.isnan(item) for item in mean_list]
+    total_valid = sum(index_valid)
+    weight = 1.0 / total_valid
+    
+    def _weightit(isvalid, weight):
+        if isvalid:
+            return weight
+        else:
+            return 0.0
+    
+    unclean_weights=[_weightit(isvalid, weight) for isvalid in index_valid]
+    
+    if cleaning:
+        weights=clean_weights(unclean_weights, must_haves)
+    else:
+        weights=unclean_weights
+    
+    diag=dict(raw=None, sigma=None, mean_list=mean_list, 
+              unclean=unclean_weights, weights=weights)
+    
+    return (weights, diag)
 
 
 

@@ -56,6 +56,9 @@ class Account(SystemStage):
         system.combForecast.get_trading_rule_list
             found in self.get_trading_rule_list
 
+        system.combForecast.has_same_rules_as_code
+            found in self.has_same_rules_as_code
+
     KEY OUTPUTS: Used for optimisation:
                  system.accounts.pandl_for_instrument_rules_unweighted
                  system.accounts.accounts.pandl_across_subsystems
@@ -85,6 +88,7 @@ class Account(SystemStage):
                   ]
 
         setattr(self, "_nopickle", nopickle)
+
 
 
 
@@ -136,6 +140,21 @@ class Account(SystemStage):
             _get_aligned_forecast, self)
 
         return aligned_forecast
+
+
+    def has_same_rules_as_code(self, instrument_code):
+        """
+        Return instruments with same trading rules as this instrument
+    
+        KEY INPUT
+
+        :param instrument_code:
+        :type str:
+
+        :returns: list of str
+
+        """
+        return self.parent.combForecast.has_same_rules_as_code(instrument_code)
 
 
 
@@ -1199,7 +1218,7 @@ class Account(SystemStage):
         return pandl_trading_rule_unweighted
 
 
-    def pandl_for_instrument_rules_unweighted(self, instrument_code, delayfill=True):
+    def pandl_for_instrument_rules_unweighted(self, instrument_code, rule_list=None, delayfill=True):
         """
         Get the p&l for one instrument over multiple forecasts; as % of arbitrary capital
         
@@ -1225,26 +1244,27 @@ class Account(SystemStage):
         {'ewmac16': 0.6799720823590352, 'ewmac8': 0.69594671177102}
         """
         def _pandl_for_instrument_rules_unweighted(
-                system, instrument_code,  this_stage, delayfill):
+                system, instrument_code,  this_stage, delayfill, rule_list):
 
             this_stage.log.terse("Calculating pandl for instrument rules for %s" % instrument_code,
                                  instrument_code=instrument_code)
             
-            forecast_rules=this_stage.get_trading_rule_list(instrument_code
+            if rule_list is None:
+                rule_list=this_stage.get_trading_rule_list(instrument_code
                                                                      )
             pandl_rules=[this_stage.pandl_for_instrument_forecast(
                                             instrument_code, rule_variation_name, delayfill = delayfill)
-                              for rule_variation_name in forecast_rules   
+                              for rule_variation_name in rule_list   
                             ]
             
             
-            pandl_rules = accountCurveGroup(pandl_rules, forecast_rules, weighted_flag=False)
+            pandl_rules = accountCurveGroup(pandl_rules, rule_list, weighted_flag=False)
             
             return pandl_rules
 
         pandl_rules = self.parent.calc_or_cache(
             "pandl_for_instrument_rules_unweighted", instrument_code, 
-            _pandl_for_instrument_rules_unweighted, self, delayfill,
+            _pandl_for_instrument_rules_unweighted, self, delayfill, rule_list, 
             flags="_delayfill%s" % TorF(
             delayfill))
 
@@ -1311,6 +1331,54 @@ class Account(SystemStage):
         return pandl_rules
 
 
+    def forecast_turnover_for_list(self, instrument_code_list, rule_variation_name):
+        """
+        Get the average turnover for a rule, over instrument_code_list
+
+        :param instrument_code_list: instruments to get values for
+        :type instrument_code_list: list of str
+
+        :param rule_variation_name: rule to get values for
+        :type rule_variation_name: str
+
+        :returns: float
+        
+        """
+
+        def _forecast_turnover_for_list(
+                system, NOTUSEDinstrument_code_ref, rule_variation_name, this_stage,
+                instrument_code_list):
+
+            average_forecast_for_turnover=system_defaults['average_absolute_forecast']
+
+            forecast_list=[this_stage.get_capped_forecast(
+                instrument_code, rule_variation_name)
+                        for instrument_code in instrument_code_list]
+            
+            turnovers=[turnover(forecast, average_forecast_for_turnover) for forecast in forecast_list]
+
+            if len(instrument_code_list)==1:
+                return turnovers[0]
+            
+            ## weight by length
+            forecast_lengths=[len(forecast.index) for forecast in forecast_list]
+            total_length=sum(forecast_lengths)
+            weighted_turnovers=[tover*fc_length/total_length for (tover, fc_length) in zip(turnovers, forecast_lengths)]
+            
+            avg_turnover = sum(weighted_turnovers)
+            
+            return avg_turnover
+
+        ## 
+        instrument_code_ref = "_".join(instrument_code_list) 
+        
+        fcast_turnover = self.parent.calc_or_cache_nested(
+            "forecast_turnover_for_list", instrument_code_ref, rule_variation_name,
+            _forecast_turnover_for_list, self, instrument_code_list)
+
+        return fcast_turnover
+        
+
     def forecast_turnover(self, instrument_code, rule_variation_name):
         """
         Get the annualised turnover for a forecast/rule combination
@@ -1326,21 +1394,113 @@ class Account(SystemStage):
 
         """
         def _forecast_turnover(
-                system, instrument_code, rule_variation_name, this_stage):
+                system, instrument_code, rule_variation_name, this_stage, use_pooled_turnover):
+            
+            if use_pooled_turnover:
+                instrument_code_list = this_stage.has_same_rules_as_code(instrument_code)
+            else:
+                instrument_code_list = [instrument_code]
 
-            forecast = this_stage.get_capped_forecast(
-                instrument_code, rule_variation_name)
-
-            average_forecast_for_turnover=system_defaults['average_absolute_forecast']
-            turnover_for_SR=turnover(forecast, average_forecast_for_turnover)
+            turnover_for_SR=this_stage.forecast_turnover_for_list(instrument_code_list, rule_variation_name)
             
             return turnover_for_SR
 
+        use_pooled_turnover = self.parent.config.forecast_cost_estimates['use_pooled_turnover']
+        
         fcast_turnover = self.parent.calc_or_cache_nested(
             "forecast_turnover", instrument_code, rule_variation_name,
-            _forecast_turnover, self)
+            _forecast_turnover, self, use_pooled_turnover)
 
         return fcast_turnover
+
+    def get_SR_cost_instr_forecast_for_list(self, instrument_code_list, rule_variation_name):
+        """
+        Get the SR cost for a forecast/rule combination, averaged across multiple instruments
+
+        :param instrument_code_list: instrument to get values for
+        :type instrument_code: str
+
+        :param rule_variation_name: rule to get values for
+        :type rule_variation_name: str
+
+        :returns: float
+
+
+        """
+
+        def _get_SR_cost_instr_forecast_for_list(
+                system, NOTUSEDinstrument_code_ref, rule_variation_name, this_stage,
+                instrument_code_list):
+            
+            turnover_list=[this_stage.forecast_turnover(instrument_code, rule_variation_name)
+                        for instrument_code in instrument_code_list]
+            
+            SR_cost_per_turnover=[this_stage.get_SR_cost(instrument_code) for instrument_code in instrument_code_list]
+
+            forecast_list=[this_stage.get_capped_forecast(
+                instrument_code, rule_variation_name)
+                        for instrument_code in instrument_code_list]
+
+            SR_cost = [tover * SRcpt for (tover, SRcpt) in zip(turnover_list, SR_cost_per_turnover)]
+            
+            ## weight by length
+            forecast_lengths=[len(forecast.index) for forecast in forecast_list]
+            total_length=sum(forecast_lengths)
+            weighted_SR_costs=[SRc*fc_length/total_length for (SRc, fc_length) in zip(SR_cost, forecast_lengths)]
+            
+            avg_SR_cost = sum(weighted_SR_costs)
+            
+            return avg_SR_cost
+            
+        instrument_code_ref = "_".join(instrument_code_list) 
+
+        SR_cost_for_instr_fcast_list = self.parent.calc_or_cache_nested(
+            "get_SR_cost_instr_forecast_for_list", instrument_code_ref, rule_variation_name,
+            _get_SR_cost_instr_forecast_for_list, self, instrument_code_list)
+
+        return SR_cost_for_instr_fcast_list
+        
+
+
+
+
+
+    def get_SR_cost_for_instrument_forecast(self, instrument_code, rule_variation_name):
+        """
+        Get the SR cost for a forecast/rule combination
+
+        :param instrument_code: instrument to get values for
+        :type instrument_code: str
+
+        :param rule_variation_name: rule to get values for
+        :type rule_variation_name: str
+
+        :returns: float
+
+        KEY OUTPUT
+        """
+
+        def _get_SR_cost_for_instrument_forecast(
+                system, instrument_code, rule_variation_name, this_stage, use_pooled_costs):
+            
+            if use_pooled_costs:
+                instrument_code_list = this_stage.has_same_rules_as_code(instrument_code)
+                SR_cost=this_stage.get_SR_cost_instr_forecast_for_list(instrument_code_list, rule_variation_name)
+
+            else:
+                ## note the turnover may still be pooled..
+                SR_cost = this_stage.forecast_turnover(instrument_code, rule_variation_name)*this_stage.get_SR_cost(instrument_code)
+            
+            return SR_cost
+
+        use_pooled_costs = self.parent.config.forecast_cost_estimates['use_pooled_costs']
+        
+        SR_cost_for_instr_fcast = self.parent.calc_or_cache_nested(
+            "SR_cost_for_instrument_forecast", instrument_code, rule_variation_name,
+            _get_SR_cost_for_instrument_forecast, self, use_pooled_costs)
+
+        return SR_cost_for_instr_fcast
+        
 
 
     def pandl_for_instrument_forecast_weighted(
@@ -1424,12 +1584,9 @@ class Account(SystemStage):
                 instrument_code)
     
             ## We NEVER use cash costs for forecasts ...
-            turnover_for_SR=this_stage.forecast_turnover(instrument_code, rule_variation_name)
-            SR_cost=this_stage.get_SR_cost(instrument_code)* turnover_for_SR
+            SR_cost = this_stage.get_SR_cost_for_instrument_forecast(instrument_code, rule_variation_name)
                         
             ## We use percentage returns (as no 'capital') and don't round positions
-            
-            
             pandl_fcast = accountCurve(price, forecast=forecast, delayfill=delayfill, 
                                        roundpositions=False,
                                 value_of_price_point=1.0, capital=None,

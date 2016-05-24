@@ -3127,9 +3127,9 @@ I work out costs in two different ways:
 - by applying a constant drag calculated according to the standardised cost in Sharpe ratio terms and the estimated turnover (see chapter 12 of my book)
 - using the actual costs for each trade.
 
-The former method is always used for costs derived from forecasts (`pandl_for_instrument_forecast`, `pandl_for_trading_rule`, `pandl_for_trading_rule_unweighted`, `pandl_for_instrument_rules_unweighted`, and `pandl_for_instrument_rules`).
+The former method is always used for costs derived from forecasts (`pandl_for_instrument_forecast`, `pandl_for_instrument_forecast_weighted`, `pandl_for_trading_rule`, `pandl_for_all_trading_rules`, `pandl_for_all_trading_rules_unweighted`, `pandl_for_trading_rule_unweighted`, `pandl_for_trading_rule_weighted`, `pandl_for_instrument_rules_unweighted`, and `pandl_for_instrument_rules`).
 
-The latter method is optional for costs derived from actual positions. Set `config.use_SR_costs = False` to use it. It is useful for comparing with live trading history, but I do not recommend it for historical purposes as I don't think it is accurate in the past.
+The latter method is optional for costs derived from actual positions (everything else). Set `config.use_SR_costs = False` to use it for these methods. It is useful for comparing with live trading history, but I do not recommend it for historical purposes as I don't think it is accurate in the past.
 
 Costs that can be included are:
 
@@ -3144,6 +3144,14 @@ To see the turnover that has been estimated use:
 system.accounts.subsystem_turnover(instrument_code) ### Annualised turnover of subsystem
 system.accounts.instrument_turnover(instrument_code) ### Annualised turnover of portfolio level position
 system.accounts.forecast_turnover(instrument_code, rule_variation_name) ## Annualised turnover of forecast
+```
+
+For calculating forecast costs (`pandl_for_instrument_forecast`... and so on. Note these are used for estimating forecast weights) I offer the option to pool costs across instruments. You can eithier pool the estimate of turnovers (which I recommend), or pool the average of cost * turnover (which I don't recommend). Averaging in the pooling process is always done with more weight given to instruments that have more history.
+
+```
+forecast_cost_estimate:
+   use_pooled_costs: False
+   use_pooled_turnover: True
 ```
 
 
@@ -3241,17 +3249,32 @@ forecast_weight_estimate: ## can also be applied to instrument weights
 
 I recommend using weekly data, since it speeds things up and doesn't affect out of sample performance. 
 
-### Pooling
+### Removing expensive assets (forecasts only)
 
-Pooling across instruments is only available when calculating forecast weights. Again I recommend you check out this [blog post](http://qoppac.blogspot.co.uk/2016/05/optimising-weights-with-costs.html). 
+Again I recommend you check out this [blog post](http://qoppac.blogspot.co.uk/2016/05/optimising-weights-with-costs.html). 
+
+```
+forecast_weight_estimate:
+   ceiling_cost_SR: 0.13 ## Max cost to allow for assets, annual SR units. Defaults to 999 for instrument weight estimation since I recommend you don't use it
+```
+
+See ['costs'](#costs) to see how to configure pooling when estimating the costs of forecasts.
+
+
+### Pooling gross returns
+
+Pooling across instruments is only available when calculating forecast weights. Again I recommend you check out this [blog post](http://qoppac.blogspot.co.uk/2016/05/optimising-weights-with-costs.html). Only instruments whose rules have survived the application of a ceiling cost will be included in the pooling process.
 
 
 ```
 forecast_weight_estimate:
-   pool_instruments: True ## pool gross returns
-   pool_costs: False ## pool costs across instruments
-
+   pool_gross_returns: True ## pool gross returns for estimation
+forecast_cost_estimate:
+   use_pooled_costs: False  ### use weighted average of SR cost * turnover across instruments with the same set of trading rules
+   use_pooled_turnover: True ### Use weighted average of turnover across instruments with the same set of trading rules
 ```
+
+See ['costs'](#costs) to see how to configure pooling when estimating the costs of forecasts. Notice if pool_gross_returns is True, and use_pooled_costs is True, then a single optimisation will be run across all instruments with a common set of trading rules. Otherwise each instrument is optimised individually, which is slower.
 
 
 ### Working out net costs
@@ -3261,11 +3284,10 @@ Again I recommend you check out this [blog post](http://qoppac.blogspot.co.uk/20
 ```
 forecast_weight_estimate:  ## can also be applied to instrument weights
    equalise_gross: False ## equalise gross returns so that only costs are used for optimisation
-   cost_multiplier: 0.0 ## multiply costs by this number. Zero means grosss returns used. Higher than 1 means costs will be inflated. Use zero if apply_cost_weight=True
-   ceiling_cost_SR: 0.13 ## Max cost to allow for assets, annual SR units. Defaults to 999 for instrument weight estimation since I recommend you don't use it
+   cost_multiplier: 0.0 ## multiply costs by this number. Zero means grosss returns used. Higher than 1 means costs will be inflated. Use zero if apply_cost_weight=True (see later)
 ```
+Notice if equalise_gross is True, and use_pooled_costs is True, then a single optimisation will be run across all instruments with a common set of trading rules (regardless of the value of pool_gross_returns).
 
-Because the interaction of these things is complex, warnings are printed if you try and do anything weird.
 
 ### Time periods
 
@@ -3310,7 +3332,17 @@ If you're using shrinkage or single period optimisation I'd suggest using an exp
 
 ### Methods
 
-There are three methods provided to optimise with in the function I've included. Personally I'd use shrinkage if I wanted a quick answer, then bootstrapping.
+There are four methods provided to optimise with in the function I've included. Personally I'd use shrinkage if I wanted a quick answer, then bootstrapping.
+
+#### Equal weights
+
+This will give everything in the optimisation equal weights.
+
+```
+   method: equal_weights
+```
+
+This differs from the "fixed" flavour of forecast combination which gives equal weight to all trading rules; because here any trading rules that are too expensive for a particular instrument will not be included, and effectively have a zero weight.
 
 
 #### One period (not recommend)
@@ -3589,12 +3621,15 @@ Inputs:
 | `accounts.get_buffers_for_position`| Standard |  `instrument_code` | I | `portfolio.get_buffers_for_position`|
 | `accounts.get_instrument_diversification_multiplier`| Standard |   | I | `portfolio.get_instrument_diversification_multiplier`|
 | `accounts.get_instrument_weights`| Standard |   | I | `portfolio.get_instrument_weights`|
-| `accounts.get_trading_rules_used`| Standard |   | I | `combForecast.get_trading_rule_list`|
+| `accounts.get_trading_rules_list`| Standard | `instrument_code`  | I | `combForecast.get_trading_rule_list`|
+| `accounts.has_same_rules_as_code`| Standard |  `instrument_code` | I | `combForecast._has_same_rules_as_code`|
+
 
 Diagnostics:
 
 | Call                              | Standard?| Arguments       | Type | Description                                                    |
 |:-------------------------:|:---------:|:---------------:|:----:|:--------------------------------------------------------------:|
+| `accounts.get_entire_trading_rule_list`| Standard |   | D | All trading rules across instruments|
 | `accounts.get_instrument_scaling_factor`| Standard | `instrument_code`  | D | IDM * instrument weight|
 | `accounts.get_forecast_scaling_factor`| Standard | `instrument_code`, `rule_variation_name`  | D | FDM * forecast weight|
 | `accounts.get_instrument_forecast_scaling_factor`| Standard | `instrument_code`, `rule_variation_name`  | D | IDM * instrument weight * FDM * forecast weight|
@@ -3603,6 +3638,7 @@ Diagnostics:
 | `accounts.subsystem_turnover`| Standard | `instrument_code`  | D | Annualised turnover of subsystem|
 | `accounts.instrument_turnover`| Standard | `instrument_code`  | D | Annualised turnover of instrument position at portfolio level|
 | `accounts.forecast_turnover`| Standard | `instrument_code`, `rule_variation_name`  | D | Annualised turnover of forecast|
+| `accounts.get_SR_cost_for_instrument_forecast`| Standard | `instrument_code`, `rule_variation_name`  | D | SR cost * turnover for forecast|
 
 
 Accounting outputs:
@@ -3924,7 +3960,7 @@ config.forecast_weights=dict(SP500=["ewmac","carry"], US10=["ewmac"])
 Represented as: dict of str, or dict, each representing parameters.
 Defaults: See below
 
-To estimate the forecast weights we call the function defined in the `func` config element. If `pool_instruments` is True, then we use the returns of all instruments with the same set of trading rules to work out the forecast weights. All other parameters are passed to the optimisation function.
+To estimate the forecast weights we call the function defined in the `func` config element. 
 
 The defaults given below are for the default generic optimiser function. See the section on (optimisation)[#optimisation] for more information.
 
@@ -3932,9 +3968,8 @@ YAML, showing defaults
 ```
 forecast_weight_estimate:
    func: syscore.optimisation.GenericOptimiser
-   method: shrinkage ## other options: one_period, bootstrap
-   pool_instruments: True
-   pool_costs: False
+   method: shrinkage ## other options: one_period, bootstrap, equal_weights
+   pool_gross_returns: True
    equalise_gross: False
    cost_multiplier: 1.0
    ceiling_cost_SR: 0.13
@@ -4151,7 +4186,7 @@ YAML, showing defaults
 ```
 instrument_weight_estimate:
    func: syscore.optimisation.GenericOptimiser
-   method: shrinkage ## other options: one_period, bootstrap
+   method: shrinkage ## other options: one_period, bootstrap, equal_weights
    frequency: "W" ## other options: D, M, Y
    equalise_gross: False
    cost_multiplier: 1.0
@@ -4313,10 +4348,8 @@ buffer_trade_to_edge: True
 
 #### Costs
 
-Should we use normalised Sharpe Ratio [costs](#costs), or the actual costs?
+Should we use normalised Sharpe Ratio [costs](#costs), or the actual costs for instrument level p&l (we always use SR costs for forecasts)?
 
-Represented as: bool
-Default: True
 
 YAML: 
 ```
@@ -4324,4 +4357,12 @@ YAML:
 use_SR_costs: True
 ```
 
+Should we pool SR costs across instruments when working out forecast p&L?
+
+YAML:
+```
+forecast_cost_estimate:
+   use_pooled_costs: False  ### use weighted average of SR cost * turnover across instruments with the same set of trading rules
+   use_pooled_turnover: True ### Use weighted average of turnover across instruments with the same set of trading rules
+```
 

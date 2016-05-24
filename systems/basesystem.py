@@ -358,7 +358,7 @@ class System(object):
         WARNING: Will kill protected things as well
         """
         
-        self.log.msg("Deleting %s %s from cache" % itemname)
+        self.log.msg("Deleting %s from cache" % str(itemname))
 
         if itemname not in self._cache:
             return None

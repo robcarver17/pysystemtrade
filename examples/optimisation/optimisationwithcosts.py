@@ -14,8 +14,8 @@ system.set_logging_level("on")
 
 system.config.rule_variations=rule_variations
 system.config.forecast_weight_estimate['apply_cost_weight']=False
-system.config.forecast_weight_estimate['pool_costs']=True
-system.config.forecast_weight_estimate['pool_instruments']=True
+system.config.forecast_cost_estimates['use_pooled_costs']=True
+system.config.forecast_weight_estimate['pool_gross_returns']=True
 system.config.forecast_weight_estimate['cost_multiplier']=0.0
 system.config.forecast_weight_estimate['ceiling_cost_SR']=999.0
 system.config.forecast_weight_estimate['method']="bootstrap"
@@ -39,8 +39,8 @@ system.set_logging_level("on")
 
 system.config.rule_variations=rule_variations
 system.config.forecast_weight_estimate['apply_cost_weight']=False
-system.config.forecast_weight_estimate['pool_costs']=True
-system.config.forecast_weight_estimate['pool_instruments']=True
+system.config.forecast_cost_estimates['use_pooled_costs']=True
+system.config.forecast_weight_estimate['pool_gross_returns']=True
 system.config.forecast_weight_estimate['cost_multiplier']=1.0
 system.config.forecast_weight_estimate['ceiling_cost_SR']=999.0
 system.config.forecast_weight_estimate['method']="bootstrap"
@@ -67,8 +67,8 @@ system.set_logging_level("on")
 system.config.rule_variations=rule_variations
 
 system.config.forecast_weight_estimate['apply_cost_weight']=False
-system.config.forecast_weight_estimate['pool_costs']=False
-system.config.forecast_weight_estimate['pool_instruments']=False
+system.config.forecast_cost_estimates['use_pooled_costs']=False
+system.config.forecast_weight_estimate['pool_gross_returns']=False
 system.config.forecast_weight_estimate['cost_multiplier']=1.0
 system.config.forecast_weight_estimate['ceiling_cost_SR']=999.0
 system.config.forecast_weight_estimate['method']="bootstrap"
@@ -93,8 +93,8 @@ system.set_logging_level("on")
 
 system.config.rule_variations=rule_variations
 system.config.forecast_weight_estimate['apply_cost_weight']=False
-system.config.forecast_weight_estimate['pool_costs']=False
-system.config.forecast_weight_estimate['pool_instruments']=True
+system.config.forecast_cost_estimates['use_pooled_costs']=False
+system.config.forecast_weight_estimate['pool_gross_returns']=True
 system.config.forecast_weight_estimate['cost_multiplier']=1.0
 system.config.forecast_weight_estimate['ceiling_cost_SR']=999.0
 system.config.forecast_weight_estimate['method']="bootstrap"
@@ -121,7 +121,8 @@ system.set_logging_level("on")
 system.config.rule_variations=rule_variations
 system.config.forecast_weight_estimate['apply_cost_weight']=False
 system.config.forecast_weight_estimate['pool_costs']=False
-system.config.forecast_weight_estimate['pool_instruments']=True
+system.config.forecast_cost_estimates['use_pooled_costs']=False
+system.config.forecast_weight_estimate['pool_gross_returns']=True
 system.config.forecast_weight_estimate['cost_multiplier']=1.0
 system.config.forecast_weight_estimate['ceiling_cost_SR']=999.0
 system.config.forecast_weight_estimate['method']="bootstrap"
@@ -148,8 +149,8 @@ system.set_logging_level("on")
 
 system.config.rule_variations=rule_variations
 system.config.forecast_weight_estimate['apply_cost_weight']=False
-system.config.forecast_weight_estimate['pool_costs']=False
-system.config.forecast_weight_estimate['pool_instruments']=True
+system.config.forecast_cost_estimates['use_pooled_costs']=False
+system.config.forecast_weight_estimate['pool_gross_returns']=True
 system.config.forecast_weight_estimate['cost_multiplier']=3.0
 system.config.forecast_weight_estimate['ceiling_cost_SR']=999.0
 system.config.forecast_weight_estimate['method']="bootstrap"
@@ -174,8 +175,8 @@ system.set_logging_level("on")
 
 system.config.rule_variations=rule_variations
 system.config.forecast_weight_estimate['apply_cost_weight']=True
-system.config.forecast_weight_estimate['pool_costs']=False
-system.config.forecast_weight_estimate['pool_instruments']=True
+system.config.forecast_cost_estimates['use_pooled_costs']=False
+system.config.forecast_weight_estimate['pool_gross_returns']=True
 system.config.forecast_weight_estimate['cost_multiplier']=0.0
 system.config.forecast_weight_estimate['ceiling_cost_SR']=999.0
 system.config.forecast_weight_estimate['method']="bootstrap"
@@ -200,8 +201,8 @@ system.set_logging_level("on")
 
 system.config.rule_variations=rule_variations
 system.config.forecast_weight_estimate['apply_cost_weight']=False
-system.config.forecast_weight_estimate['pool_costs']=False
-system.config.forecast_weight_estimate['pool_instruments']=True
+system.config.forecast_cost_estimates['use_pooled_costs']=False
+system.config.forecast_weight_estimate['pool_gross_returns']=True
 system.config.forecast_weight_estimate['cost_multiplier']=1.0
 system.config.forecast_weight_estimate['ceiling_cost_SR']=.13
 system.config.forecast_weight_estimate['method']="bootstrap"
@@ -228,8 +229,8 @@ system.set_logging_level("on")
 
 system.config.rule_variations=rule_variations
 system.config.forecast_weight_estimate['apply_cost_weight']=True
-system.config.forecast_weight_estimate['pool_costs']=False
-system.config.forecast_weight_estimate['pool_instruments']=True
+system.config.forecast_cost_estimates['use_pooled_costs']=False
+system.config.forecast_weight_estimate['pool_gross_returns']=True
 system.config.forecast_weight_estimate['cost_multiplier']=0.0
 system.config.forecast_weight_estimate['ceiling_cost_SR']=0.13
 system.config.forecast_weight_estimate['method']="bootstrap"
@@ -255,8 +256,8 @@ system.set_logging_level("on")
 
 system.config.rule_variations=rule_variations
 system.config.forecast_weight_estimate['apply_cost_weight']=True
-system.config.forecast_weight_estimate['pool_costs']=False
-system.config.forecast_weight_estimate['pool_instruments']=True
+system.config.forecast_cost_estimates['use_pooled_costs']=False
+system.config.forecast_weight_estimate['pool_gross_returns']=True
 system.config.forecast_weight_estimate['cost_multiplier']=0.0
 system.config.forecast_weight_estimate['ceiling_cost_SR']=0.13
 system.config.forecast_weight_estimate['method']="shrinkage"
@@ -281,8 +282,8 @@ system.set_logging_level("on")
 
 system.config.rule_variations=rule_variations
 system.config.forecast_weight_estimate['apply_cost_weight']=True
-system.config.forecast_weight_estimate['pool_costs']=False
-system.config.forecast_weight_estimate['pool_instruments']=True
+system.config.forecast_cost_estimates['use_pooled_costs']=False
+system.config.forecast_weight_estimate['pool_gross_returns']=True
 system.config.forecast_weight_estimate['cost_multiplier']=0.0
 system.config.forecast_weight_estimate['ceiling_cost_SR']=0.13
 system.config.forecast_weight_estimate['method']="bootstrap"
