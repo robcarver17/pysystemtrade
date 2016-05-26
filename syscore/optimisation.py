@@ -726,13 +726,13 @@ def addem(weights):
 
 def variance(weights, sigma):
     ## returns the variance (NOT standard deviation) given weights and sigma
-    return (np.matrix(weights)*sigma*np.matrix(weights).transpose())[0,0]
+    return (weights*sigma*weights.transpose())[0,0]
 
 
 def neg_SR(weights, sigma, mus):
     ## Returns minus the Sharpe Ratio (as we're minimising)
-
-    estreturn=(np.matrix(weights)*mus)[0,0]
+    weights=np.matrix(weights)
+    estreturn=(weights*mus)[0,0]
     std_dev=(variance(weights,sigma)**.5)
     
     return -estreturn/std_dev

@@ -1,5 +1,10 @@
 # Release notes
 
+## Version 0.10.3
+
+* More speed up, couple of tweaks...
+
+
 ## Version 0.10.2
 
 * Split up optimiser class so can selectively check if need data for equal weights; speed up
@@ -182,7 +187,6 @@
 
 * Simulation:
    
-  * equal weights optimisation - don't bother with p&l
   * vol targeting with capital adjustment
   * add other trading rules (some in private...?) - cross sectional carry
   * quandl data

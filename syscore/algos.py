@@ -25,7 +25,7 @@ def apply_with_min_periods(xcol, my_func=np.nanmean, min_periods=0):
 
     :returns: pd.DataFrame Tx 1 
     """
-    not_nan=sum([not np.isnan(xelement) for xelement in xcol])
+    not_nan=sum(np.isnan(xcol))
     
     if not_nan>=min_periods:
     
