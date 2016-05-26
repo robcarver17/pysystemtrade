@@ -789,6 +789,36 @@ class Account(SystemStage):
             _subsystem_turnover, self, roundpositions, flags="%s" % TorF(roundpositions))
 
         return subsys_turnover
+
+    def subsystem_SR_costs(self, instrument_code, roundpositions=False):
+        """
+        Get the annualised SR costs for an instrument subsystem
+
+        :param instrument_code: instrument to get values for
+        :type instrument_code: str
+
+        :returns: float
+        
+        KEY OUTPUT (used for portfolio optimisation)
+        
+        
+
+        """
+        def _subsystem_SR_costs(
+                system, instrument_code,  this_stage, roundpositions):
+            
+            SR_cost_per_turnover=this_stage.get_SR_cost(instrument_code)
+                
+            turnover_for_SR = this_stage.subsystem_turnover(instrument_code, roundpositions = roundpositions)
+            SR_cost = SR_cost_per_turnover * turnover_for_SR
+            
+            return SR_cost
+
+        subsystem_SR_costs = self.parent.calc_or_cache(
+            "subsystem_SR_costs", instrument_code,
+            _subsystem_SR_costs, self, roundpositions, flags="%s" % TorF(roundpositions))
+
+        return subsystem_SR_costs
         
 
     def pandl_for_subsystem(
@@ -837,12 +867,11 @@ class Account(SystemStage):
                 instrument_code)
 
 
-            (SR_cost, cash_costs)=this_stage.get_costs(instrument_code)
+            (SR_cost_per_turnover, cash_costs)=this_stage.get_costs(instrument_code)
             
-            if SR_cost is not None:
-                turnover_for_SR = this_stage.subsystem_turnover(instrument_code, roundpositions = roundpositions)
-                SR_cost = SR_cost * turnover_for_SR
-            
+            if SR_cost_per_turnover is not None:
+                SR_cost = self.subsystem_SR_costs(instrument_code, roundpositions)
+                
             capital = this_stage.get_notional_capital()
             ann_risk_target = this_stage.get_ann_risk_target()
 

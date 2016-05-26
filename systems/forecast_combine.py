@@ -891,23 +891,38 @@ class ForecastCombineEstimated(ForecastCombineFixed):
 
             this_stage.log.terse("Calculating raw forecast weights for %s, over %s" % (instrument_code, ", ".join(codes_to_use)))
 
-            ## returns a list of accountCurveGroups
-            pandl_forecasts=[this_stage.get_returns_for_optimisation(code)
-                    for code in codes_to_use]
-            
-            ## the current curve is special
-            pandl_forecasts_this_code=this_stage.get_returns_for_optimisation(instrument_code)
-            
-            ## have to decode these
-            ## returns two lists of pd.DataFrames
-            (pandl_forecasts_gross, pandl_forecasts_costs) = decompose_group_pandl(pandl_forecasts, pandl_forecasts_this_code, pool_costs=pool_costs)
+            rule_list = self.apply_cost_weighting(instrument_code)
+
+            weight_func=weighting_func(log=self.log.setup(call="weighting"), **weighting_params)
+
+            if weight_func.need_data():
+    
+                ## returns a list of accountCurveGroups
+                pandl_forecasts=[this_stage.get_returns_for_optimisation(code)
+                        for code in codes_to_use]
                 
+                ## the current curve is special
+                pandl_forecasts_this_code=this_stage.get_returns_for_optimisation(instrument_code)
+                
+                ## have to decode these
+                ## returns two lists of pd.DataFrames
+                (pandl_forecasts_gross, pandl_forecasts_costs) = decompose_group_pandl(pandl_forecasts, pandl_forecasts_this_code, pool_costs=pool_costs)
 
-            ## The weighting function requires two lists of pd.DataFrames, one gross, one for costs
-            output=weighting_func(pandl_forecasts_gross, pandl_forecasts_costs,  
-                                  log=self.log.setup(call="weighting"), **weighting_params)
+                ## The weighting function requires two lists of pd.DataFrames, one gross, one for costs
+                
+                weight_func.set_up_data(data_gross = pandl_forecasts_gross, data_costs = pandl_forecasts_costs)
+            else:
+                ## in the case of equal weights, don't need data
+                
+                forecasts = this_stage.get_all_forecasts(instrument_code, rule_list)
+                weight_func.set_up_data(weight_matrix=forecasts)
 
-            return output
+            SR_cost_list = [this_stage.get_SR_cost_for_instrument_forecast(instrument_code, rule_variation_name)
+                             for rule_variation_name in rule_list]
+            
+            weight_func.optimise(ann_SR_costs=SR_cost_list)
+
+            return weight_func
 
 
         ## Get some useful stuff from the config
@@ -960,21 +975,37 @@ class ForecastCombineEstimated(ForecastCombineFixed):
 
             this_stage.log.terse("Calculating pooled raw forecast weights over instruments: %s" % instrument_code_ref)
 
-            ## returns a list of accountCurveGroups
-            ## cost pooling will already have been applied
-            
-            pandl_forecasts=[this_stage.get_returns_for_optimisation(code)
-                    for code in codes_to_use]
-            
-            ## have to decode these
-            ## returns two lists of pd.DataFrames
-            (pandl_forecasts_gross, pandl_forecasts_costs) = decompose_group_pandl(pandl_forecasts, pool_costs=True)
-                
-            ## The weighting function requires two lists of pd.DataFrames, one gross, one for costs
-            output=weighting_func(pandl_forecasts_gross, pandl_forecasts_costs,  
-                                  log=self.log.setup(call="weighting"), **weighting_params)
 
-            return output
+            rule_list = self.apply_cost_weighting(instrument_code)
+
+            weight_func=weighting_func(log=self.log.setup(call="weighting"), **weighting_params)
+            if weight_func.need_data():
+    
+                ## returns a list of accountCurveGroups
+                ## cost pooling will already have been applied
+
+                pandl_forecasts=[this_stage.get_returns_for_optimisation(code)
+                        for code in codes_to_use]
+                
+                ## have to decode these
+                ## returns two lists of pd.DataFrames
+                (pandl_forecasts_gross, pandl_forecasts_costs) = decompose_group_pandl(pandl_forecasts, pool_costs=True)
+
+                ## The weighting function requires two lists of pd.DataFrames, one gross, one for costs
+                
+                weight_func.set_up_data(data_gross = pandl_forecasts_gross, data_costs = pandl_forecasts_costs)
+            else:
+                ## in the case of equal weights, don't need data
+                
+                forecasts = this_stage.get_all_forecasts(instrument_code, rule_list)
+                weight_func.set_up_data(weight_matrix=forecasts)
+
+            SR_cost_list = [this_stage.get_SR_cost_for_instrument_forecast(instrument_code, rule_variation_name)
+                             for rule_variation_name in rule_list]
+            
+            weight_func.optimise(ann_SR_costs=SR_cost_list)
+
+            return weight_func
 
 
         ## Get some useful stuff from the config

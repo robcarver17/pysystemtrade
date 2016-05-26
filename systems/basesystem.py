@@ -271,7 +271,7 @@ class System(object):
         actual_list=[]
         for pr in putative_list:
             if pr[2]=="*": ## wildcard
-                matched_items=[item for item in itemswithdata if item[0]==pr[0] & item[1]==pr[1]]
+                matched_items=[item for item in itemswithdata if (item[0]==pr[0]) & (item[1]==pr[1])]
                 actual_list=actual_list+matched_items
             else:
                 actual_list.append(pr)

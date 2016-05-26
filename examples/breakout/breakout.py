@@ -10,6 +10,10 @@ import pandas as pd
 import numpy as np
 from matplotlib.pyplot import show, legend, matshow
 
+bvariations=["breakout"+str(ws) for ws in [10, 20, 40, 80, 160, 320]]
+evariations=[
+            "ewmac%d_%d" % (fast, fast*4) for fast in [2,4,8,16,32, 64]]
+
 """
 my_config = Config("examples.breakout.breakoutfuturesestimateconfig.yaml")
 
@@ -147,9 +151,6 @@ my_config = Config("examples.breakout.breakoutfuturesestimateconfig.yaml")
 #my_config.forecast_weight_estimate["method"]="bootstrap"
 
 system = futures_system(config=my_config, log_level="on")
-bvariations=["breakout"+str(ws) for ws in [10, 20, 40, 80, 160, 320]]
-evariations=[
-            "ewmac%d_%d" % (fast, fast*4) for fast in [2,4,8,16,32, 64]]
 
 #cProfile.run("system.accounts.pandl_for_all_trading_rules_unweighted().to_frame()","restats")
 system.accounts.pandl_for_all_trading_rules_unweighted().to_frame().loc[:, bvariations].cumsum().plot()
@@ -208,39 +209,40 @@ allpandl=pd.concat(allpandl, axis=1)
 allpandl.cumsum().sum(axis=1).plot()
 show()
 
-"""
 ### show grouped courves
 my_config = Config("examples.breakout.breakoutfuturesestimateconfig.yaml")
 my_config.forecast_weight_estimate["method"]="equal_weights"
 system=futures_system(config=my_config, log_level="on")
 
+
 allrulespandl=system.accounts.pandl_for_all_trading_rules()
 
 ## 
 ewmac_all=allrulespandl.to_frame().loc[:,evariations].sum(axis=1)
-break_all=allrulespandl.to_frame().loc[:,evariations].sum(axis=1)
+break_all=allrulespandl.to_frame().loc[:,bvariations].sum(axis=1)
 
-both_plot=pd.concat(ewmac_all, break_all)
-both_plot.corr()
+both_plot=pd.concat([ewmac_all, break_all], axis=1)
+print(both_plot.corr())
 both_plot.plot()
 show()
 
 """
-## full backtest 37 instruments
+## full backtest compare
 
 my_config = Config("examples.breakout.breakoutfuturesestimateconfig.yaml")
-
 ## will do all instruments we have data for
-#del(my_config.instruments)
+del(my_config.instruments)
 
 ## temporarily remove breakout rules
-my_config.rule_variations=["ewmac%d_%d" % (fast, fast*4) for fast in [2,4,8,16,32, 64]]+["carry"]
-
+my_config.rule_variations=evariations
+my_config.forecast_weight_estimate["method"]="equal_weights"
 system_old = futures_system(config=my_config, log_level="on")
 
 ## new system has all trading rules
 new_config = Config("examples.breakout.breakoutfuturesestimateconfig.yaml")
-#del(new_config.instruments)
+new_config.rule_variations=bvariations
+new_config.forecast_weight_estimate["method"]="equal_weights"
+del(new_config.instruments)
 
 system_new = futures_system(config=new_config, log_level="on")
 
@@ -252,8 +254,10 @@ print(curve2.stats())
 
 print(account_test(curve2, curve1))
 
+
 curves_to_plot=pd.concat([curve1.as_df(), curve2.as_df()], axis=1)
-curves_to_plot.columns=["no breakout", "with breakout"]
+curves_to_plot.columns=["ewmac", "breakout"]
+
+print(curves_to_plot.corr())
 curves_to_plot.cumsum().plot()
 show()
-"""

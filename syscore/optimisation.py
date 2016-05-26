@@ -24,22 +24,16 @@ FLAG_BAD_RETURN=-9999999.9
 
 class GenericOptimiser(object):
 
-    def __init__(self, data_gross, data_costs, log=logtoscreen("optimiser"), frequency="W", date_method="expanding", 
-                         rollyears=20, fit_method="bootstrap", cleaning=True, equalise_gross=False,
+    def __init__(self,  log=logtoscreen("optimiser"), frequency="W", date_method="expanding", 
+                         rollyears=20, method="bootstrap", cleaning=True, 
                          cost_multiplier=1.0, apply_cost_weight=True, 
-                         ann_target_SR=TARGET_ANN_SR,
+                         ann_target_SR=TARGET_ANN_SR, equalise_gross=False,
                          **passed_params):
         
         """
     
-        Optimise weights over some returns data
-        
-        :param data_gross: Returns data for gross returns
-        :type data_gross: pd.DataFrame or list if pooling
-
-        :param data_net: Returns data for costs
-        :type data_net: pd.DataFrame or list if pooling
-    
+        Set up optimiser
+                
         :param frequency: Downsampling frequency. Must be "D", "W" or bigger
         :type frequency: str
     
@@ -49,8 +43,8 @@ class GenericOptimiser(object):
         :param roll_years: If date_method is "rolling", number of years in window
         :type roll_years: int
     
-        :param fit_method: Method used for fitting, one of 'bootstrap', 'shrinkage', 'one_period'
-        :type fit_method: str
+        :param method: Method used for fitting, one of 'bootstrap', 'shrinkage', 'one_period'
+        :type method: str
     
         :param equalise_gross: Should we equalise expected gross returns so that only costs affect weightings?
         :type equalise_gross: bool
@@ -67,7 +61,7 @@ class GenericOptimiser(object):
         """
 
         ## Because interaction of parameters is complex, display warnings         
-        display_warnings(log, cost_multiplier, equalise_gross, apply_cost_weight, **passed_params)
+        display_warnings(log, cost_multiplier, equalise_gross, apply_cost_weight, method, **passed_params)
         
         cleaning=str2Bool(cleaning)
         optimise_params=copy(passed_params)
@@ -83,9 +77,54 @@ class GenericOptimiser(object):
         moments_estimator=momentsEstimator(optimise_params, annualisation,  ann_target_SR)
 
         ## The optimiser instance will do the optimation once we have the appropriate data
-        optimiser=optimiserWithParams(optimise_params, moments_estimator)
+        optimiser=optimiserWithParams(method, optimise_params, moments_estimator)
+
+        setattr(self, "optimiser", optimiser)
+        setattr(self, "log", log)
+        setattr(self, "frequency", frequency)
+        setattr(self, "method", method)
+        setattr(self, "equalise_gross", equalise_gross)
+        setattr(self, "cost_multiplier", cost_multiplier)
+        setattr(self, "annualisation", annualisation)
+        setattr(self, "period_target_SR", period_target_SR)
+        setattr(self, "date_method", date_method)
+        setattr(self, "rollyears", rollyears)
+        setattr(self, "cleaning", cleaning)
+        setattr(self, "apply_cost_weight", apply_cost_weight)
+
+    def need_data(self):
+        if self.method=="equal_weights":
+            return False
+        else:
+            return True
+
+    def set_up_data(self, data_gross=None, data_costs=None, weight_matrix=None):
+
+        """
     
-    
+        Optimise weights over some returns data
+        
+        :param data_gross: Returns data for gross returns
+        :type data_gross: pd.DataFrame or list if pooling
+
+        :param data_net: Returns data for costs
+        :type data_net: pd.DataFrame or list if pooling
+
+        :param weight_matrix: some weight_matrix, used if equal weights and so don't need returns data
+        :type weight_matrix: pd.DataFrame or list if pooling
+
+        """
+        if weight_matrix is not None:
+            setattr(self, "data", weight_matrix.ffill())
+            return None
+        
+        log=self.log
+        frequency=self.frequency
+        equalise_gross = self.equalise_gross
+        cost_multiplier = self.cost_multiplier
+        annualisation = self.annualisation
+        period_target_SR = self.period_target_SR
+        
         ## resample, indexing before and differencing after (returns, remember)
         data_gross = [data_item.cumsum().resample(frequency, how="last").diff() for
                        data_item in data_gross]
@@ -108,6 +147,28 @@ class GenericOptimiser(object):
                             equalise_gross=equalise_gross, cost_multiplier=cost_multiplier,
                             period_target_SR=period_target_SR)
             
+        
+        setattr(self, "data", data)
+
+
+    def optimise(self, ann_SR_costs=None):
+
+        """
+    
+        Optimise weights over some returns data
+        
+        """
+        log=self.log
+        date_method = self.date_method
+        rollyears = self.rollyears
+        optimiser = self.optimiser
+        cleaning = self.cleaning
+        apply_cost_weight = self.apply_cost_weight
+        
+        data=getattr(self, "data", None)
+        if data is None:
+            log.critical("You need to run .set_up_data() before .optimise()")
+        
         fit_dates = generate_fitting_dates(data, date_method=date_method, rollyears=rollyears)
         setattr(self, "fit_dates", fit_dates)
     
@@ -140,9 +201,11 @@ class GenericOptimiser(object):
         ## Stack everything up    
         raw_weight_df=pd.concat(weight_list, axis=0)
 
+
+        
         if apply_cost_weight:
             log.terse("Applying cost weighting to optimisation results")
-            weight_df = apply_cost_weighting(raw_weight_df, data_gross, data_costs, annualisation)
+            weight_df = apply_cost_weighting(raw_weight_df, ann_SR_costs)
         else:
             weight_df =raw_weight_df 
         
@@ -150,10 +213,15 @@ class GenericOptimiser(object):
         setattr(self, "weights", weight_df)
         setattr(self, "raw_weights", raw_weight_df)
 
-def display_warnings(log, cost_multiplier, equalise_gross, apply_cost_weight, equalise_SR=False, **ignored_passed_params):
+
+def display_warnings(log, cost_multiplier, equalise_gross, apply_cost_weight,  method, equalise_SR, **ignored_passed_params):
     """
     Warn people when parameters are in conflict 
     """
+    if method=="equal_weights" and (equalise_SR or cost_multiplier!=1.0 or equalise_gross or apply_cost_weight):
+        log.warn("Using equal weights, all other config will be ignored")
+        return None
+    
     if equalise_SR and cost_multiplier!=1.0:
         log.warn("Cost multiplier of %.1f will be ignored as equalising SR in optimisation (equalise_SR=True)" % cost_multiplier)
 
@@ -222,7 +290,7 @@ def work_out_net(data_gross, data_costs, annualisation=BUSINESS_DAYS_IN_YEAR,
 adj_factors=([-.5, -.4, -.3, -25, -.2, -.15, -.1, -0.05, 0.0, .05, .1,   .15,  .2,  .25,   .3,   .4,   .5],
              [.32, .42, .55,  .6, .66,  .77,  .85, .94,  1.0, 1.11, 1.19, 1.3, 1.37, 1.48, 1.56, 1.72, 1.83])
 
-def apply_cost_weighting(raw_weight_df, data_gross, data_costs, annualisation):
+def apply_cost_weighting(raw_weight_df, ann_SR_costs):
     """
     Apply cost weighting to the raw optimisation results
     """
@@ -230,12 +298,6 @@ def apply_cost_weighting(raw_weight_df, data_gross, data_costs, annualisation):
     ## Work out average costs, in annualised sharpe ratio terms
     ## In sample for vol estimation, but shouldn't matter much since target vol should be the same
     
-    ## These figures aren't annualised
-    avg_cost = data_costs.mean().values 
-    asset_std = np.mean(data_gross.std().values) ## all should have same vol
-
-    ## annualised SR
-    ann_SR_costs = list((annualisation**.5)*avg_cost / asset_std)
     
     avg_cost = np.mean(ann_SR_costs) 
     relative_SR_costs = [cost - avg_cost for cost in ann_SR_costs]
@@ -310,7 +372,7 @@ class momentsEstimator(object):
 
 
 class optimiserWithParams(object):
-    def __init__(self, optimise_params, moments_estimator):
+    def __init__(self, method, optimise_params, moments_estimator):
         """
         Create an object which does an optimisation for a single period, according to the parameters
         
@@ -322,15 +384,14 @@ class optimiserWithParams(object):
     
         
         """
-        fit_method=optimise_params.pop("method")
         fit_method_dict=dict(one_period=markosolver, bootstrap=bootstrap_portfolio, 
                              shrinkage=opt_shrinkage, equal_weights=equal_weights)
 
         try:        
-            opt_func=fit_method_dict[fit_method]
+            opt_func=fit_method_dict[method]
     
         except KeyError:
-            raise Exception("Fitting method %s unknown; try one of: %s " % (fit_method, ", ".join(fit_method_dict.keys())))
+            raise Exception("Fitting method %s unknown; try one of: %s " % (method, ", ".join(fit_method_dict.keys())))
 
         setattr(self, "opt_func", resolve_function(opt_func))
         
@@ -786,27 +847,12 @@ def equal_weights(period_subset_data, moments_estimator,
     
     """
 
-    mean_list=moments_estimator.means(period_subset_data) ## need to identify missing values 
+    ## when we call this we'll have a matrix of positions, or forecases, not returns
+    asset_count = period_subset_data.shape[1]
+    weights= [1.0 / asset_count for i in range(asset_count)]
     
-    index_valid = [not np.isnan(item) for item in mean_list]
-    total_valid = sum(index_valid)
-    weight = 1.0 / total_valid
-    
-    def _weightit(isvalid, weight):
-        if isvalid:
-            return weight
-        else:
-            return np.nan
-    
-    unclean_weights=[_weightit(isvalid, weight) for isvalid in index_valid]
-    
-    if cleaning:
-        weights=clean_weights(unclean_weights, must_haves)
-    else:
-        weights=unclean_weights
-    
-    diag=dict(raw=None, sigma=None, mean_list=mean_list, 
-              unclean=unclean_weights, weights=weights)
+    diag=dict(raw=None, sigma=None, mean_list=None, 
+              unclean=weights, weights=weights)
     
     return (weights, diag)
 

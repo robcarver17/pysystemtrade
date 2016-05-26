@@ -1,7 +1,11 @@
 # Release notes
 
+## Version 0.10.2
+
+* Split up optimiser class so can selectively check if need data for equal weights; speed up
+
 ## Version 0.10.01
-* Fixed bug with trading rule cost ceiling code
+* Fixed bugs introduced in last version
 
 ## Version 0.10.0 
 * Refactored optimisation with costs code, changed configuration slightly (read [this revised blog post for more](http://qoppac.blogspot.co.uk/2016/05/optimising-weights-with-costs.html) )
@@ -178,6 +182,7 @@
 
 * Simulation:
    
+  * equal weights optimisation - don't bother with p&l
   * vol targeting with capital adjustment
   * add other trading rules (some in private...?) - cross sectional carry
   * quandl data
