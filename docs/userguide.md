@@ -56,7 +56,8 @@ from systems.provided.futures_chapter15.basesystem import futures_system
 system=futures_system()
 system.accounts.portfolio().stats() ## see some statistics
 system.accounts.portfolio().curve().plot() ## plot an account curve
-system.accounts.portfolio().pandl_for_instrument("US10").stats() ## produce statistics for a 10 year bond
+system.accounts.portfolio().percent().curve().plot() ## plot an account curve in percentage terms
+system.accounts.portfolio().pandl_for_instrument("US10").percent().stats() ## produce % statistics for a 10 year bond
 system.accounts.pandl_for_instrument_forecast("EDOLLAR", "carry").sharpe() ## Sharpe for a specific trading rule variation
 ```
 
@@ -2846,7 +2847,6 @@ These classes share some useful arguments (all boolean):
 
 - `delayfill`: Assume we trade at the next days closing price. Always defaults to True (more conservative)
 - `roundpositions`: Round positions to nearest instrument block. Defaults to True for portfolios and instruments, defaults to False for subsystems. Not used in `pandl_for_instrument_forecast` or `pandl_for_trading_rule` (always False)
-- `percentage`: Return the p&l as a percentage of notional capital, rather than in cash amounts. Defaults to True. Not used in in `pandl_for_instrument_forecast` or `pandl_for_trading_rule`(always False)
 
 All p&l methods return an object of type `accountCurve` (for instruments, subsystems and instrument forecasts) or `accountCurveGroup` (for portfolio and trading rule), or even nested `accountCurveGroup` (`pandl_for_all_trading_rules`, `pandl_for_all_trading_rules_unweighted`). This inherits from a pandas data frame, so it can be plotted, averaged and so on. It also has some special methods. To see what they are use the `stats` method:
 
@@ -2857,27 +2857,29 @@ system.accounts.portfolio().stats()
 ```
 
 ```
-[[('min', '-0.764'),
-  ('max', '0.1589'),
-  ('median', '0'),
-  ('mean', '0.0006711'),
-  ('std', '0.02224'),
-  ('skew', '-5.726'),
-  ('ann_daily_mean', '0.1718'),
-  ('ann_daily_std', '0.3559'),
-  ('sharpe', '0.4827'),
-  ('sortino', '0.4677'),
-  ('avg_drawdown', '-0.339'),
-  ('time_in_drawdown', '0.9864'),
-  ('calmar', '0.1109'),
-  ('avg_return_to_drawdown', '0.5068'),
-  ('avg_loss', '-0.01581'),
-  ('avg_gain', '0.01534'),
-  ('gaintolossratio', '0.9702'),
-  ('profitfactor', '1.113'),
-  ('hitrate', '0.5343')],
- ('You can also plot:', ['rolling_ann_std', 'drawdown', 'curve']),
- ('You can also print:', ['weekly', 'monthly', 'annual'])]
+[[('min', '-1.997e+05'),
+  ('max', '4.083e+04'),
+  ('median', '-1.631'),
+  ('mean', '156.9'),
+  ('std', '5226'),
+  ('skew', '-7.054'),
+  ('ann_mean', '4.016e+04'),
+  ('ann_std', '8.361e+04'),
+  ('sharpe', '0.4803'),
+  ('sortino', '0.5193'),
+  ('avg_drawdown', '-1.017e+05'),
+  ('time_in_drawdown', '0.9621'),
+  ('calmar', '0.1199'),
+  ('avg_return_to_drawdown', '0.395'),
+  ('avg_loss', '-3016'),
+  ('avg_gain', '3371'),
+  ('gaintolossratio', '1.118'),
+  ('profitfactor', '1.103'),
+  ('hitrate', '0.4968'),
+  ('t_stat', '2.852'),
+  ('p_value', '0.004349')],
+ ('You can also plot / print:',
+  ['rolling_ann_std', 'drawdown', 'curve', 'as_percent', 'as_cumulative'])]
 ```
 
 The `stats` method lists three kinds of output:
@@ -2941,6 +2943,50 @@ You probably won't need it but acc_curve.calc_data() returns a dict of all the i
 acc_curve.calc_data()['trades'] ## simulated trades
 ```
 
+Personally I prefer looking at statistics in percentage terms. This is easy. Just use the .percent() method before you use any statistical method:
+
+```python
+acc_curve.capital ## tells me the capital I will use to calculate %
+acc_curve.percent()
+acc_curve.gross.daily.percent()
+acc_curve.net.daily.percent() 
+acc_curve.costs.monthly.percent()
+acc_curve.gross.daily.percent().stats() 
+acc_curve.monthly.percent().sharpe() 
+acc_curve.gross.weekly.percent().std() 
+acc_curve.daily.percent().ann_std() 
+acc_curve.costs.annual.percent().median() 
+acc_curve.percent().rolling_ann_std() 
+acc_curve.gross.percent().curve() 
+acc_curve.net.monthly.percent().drawdown() 
+acc_curve.costs.weekly.percent().curve() 
+```
+
+
+You may also want to use *cumulated* returns, which use compound interest rather than the simple addition I normally use. See this blog for more information FIX ME
+
+```python
+acc_curve.cumulative()
+acc_curve.gross.daily.cumulative() 
+acc_curve.net.daily.cumulative() 
+acc_curve.costs.monthly.cumulative()
+acc_curve.gross.daily.cumulative().stats() 
+acc_curve.monthly.cumulative().sharpe() 
+acc_curve.gross.weekly.cumulative().std() 
+acc_curve.daily.cumulative().ann_std() 
+acc_curve.costs.annual.cumulative().median() 
+acc_curve.cumulative().rolling_ann_std() 
+acc_curve.gross.cumulative().curve() 
+acc_curve.net.monthly.cumulative().drawdown() 
+acc_curve.costs.weekly.cumulative().curve() 
+```
+
+Or both
+```python
+acc_curve.cumulative().percent().stats()
+acc_curve.percent().cumulative().stats() ## these are equivalent
+```
+
 #### `accountCurveGroup` in more detail
 
 `accountCurveGroup`, is the output you get from `systems.account.portfolio`, `systems.account.pandl_across_subsystems`, pandl_for_instrument_rules_unweighted`, `pandl_for_trading_rule` and `pandl_for_trading_rule_unweighted`. For example:
@@ -3001,6 +3047,8 @@ acc_curve_group.get_stats("sharpe", "net", "daily") ## get all annualised sharpe
 acc_curve_group.get_stats("sharpe", freq="daily") ## equivalent
 acc_curve_group.get_stats("sharpe", curve_type="net") ## equivalent
 acc_curve_group.net.get_stats("sharpe", freq="daily") ## equivalent
+acc_curve_group.net.get_stats("sharpe", percent=False) ## defaults to giving stats in % terms, this turns it off
+
 ```
 
 *Warning see [weighted and unweighted account curve groups](#weighted_acg)

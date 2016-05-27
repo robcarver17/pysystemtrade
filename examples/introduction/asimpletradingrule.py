@@ -112,10 +112,10 @@ Did we make money?
 """
 
 from syscore.accounting import accountCurve
-account = accountCurve(price, forecast=ewmac, percentage=True)
+account = accountCurve(price, forecast=ewmac)
 account.curve()
 
 account.curve().plot()
 show()
 
-print(account.stats())
+print(account.percent().stats())

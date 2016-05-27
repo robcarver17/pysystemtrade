@@ -1,5 +1,13 @@
 # Release notes
 
+## Version 0.11.0
+
+* Included option to show account curves as cumulative (compounding): somecurve.cumulative()
+* removed percentage options, now a method for account curves: somecurve.percent()
+* Incorporated capital into account curves: anycurve.capital
+* General clean up of the way capital dealt with in accounting
+
+
 ## Version 0.10.3
 
 * More speed up, couple of tweaks...
@@ -187,7 +195,6 @@
 
 * Simulation:
    
-  * vol targeting with capital adjustment
   * add other trading rules (some in private...?) - cross sectional carry
   * quandl data
   * stitch futures contracts 

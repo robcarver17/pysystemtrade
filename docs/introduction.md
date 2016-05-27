@@ -133,43 +133,43 @@ Did we make any money?
 ```python
 from syscore.accounting import accountCurve
 account = accountCurve(price, forecast=ewmac, percentage=True)
-account.stats()
+account.percent().stats()
 ```
 
-```
-[[('min', '-0.07911'),
-  ('max', '0.0522'),
+
+[[('min', '-7.911'),
+  ('max', '5.22'),
   ('median', '0'),
-  ('mean', '0.0001644'),
-  ('std', '0.005173'),
+  ('mean', '0.01644'),
+  ('std', '0.5173'),
   ('skew', '-0.5757'),
-  ('ann_mean', '0.04208'),
-  ('ann_std', '0.08276'),
+  ('ann_mean', '4.208'),
+  ('ann_std', '8.276'),
   ('sharpe', '0.5084'),
   ('sortino', '0.569'),
-  ('avg_drawdown', '-0.1193'),
+  ('avg_drawdown', '-11.93'),
   ('time_in_drawdown', '0.9731'),
   ('calmar', '0.1269'),
   ('avg_return_to_drawdown', '0.3526'),
-  ('avg_loss', '-0.003307'),
-  ('avg_gain', '0.003418'),
+  ('avg_loss', '-0.3307'),
+  ('avg_gain', '0.3418'),
   ('gaintolossratio', '1.034'),
   ('profitfactor', '1.12'),
   ('hitrate', '0.5201'),
   ('t_stat', '2.929'),
   ('p_value', '0.003405')],
- ('You can also plot:', ['rolling_ann_std', 'drawdown', 'curve'])]
-```
-
+ ('You can also plot / print:',
+  ['rolling_ann_std', 'drawdown', 'curve', 'percent', 'cumulative'])]
 
 Looks like we did make a few bucks. `account`, by the way inherits from a pandas data frame. Here are some other things we can do with it:
 
 ```python
 account.sharpe() ## get the Sharpe Ratio (annualised), and any other statistic which is in the stats list
 account.curve().plot() ## plot the cumulative account curve (equivalent to account.cumsum().plot() inicidentally)
-account.drawdown().plot() ## see the drawdowns
+account.curve().percent() ## gives a % curve
+account.percent().drawdown().plot() ## see the drawdowns as a percentage
 account.weekly ## weekly returns (also daily [default], monthly, annual)
-account.costs.ann_mean() ## annual mean for costs (there are none in this simple example)
+account.gross.ann_mean() ## annual mean for gross returns, also costs (there are none in this simple example)
 ```
 
 
@@ -582,7 +582,7 @@ from systems.account import Account
 account=Account()
 my_system=System([ fcs, empty_rules, combiner, possizer, portfolio, account], data, my_config)
 profits=my_system.account.portfolio()
-profits.stats()
+profits.percent().stats()
 ```
 
 ```
@@ -595,8 +595,8 @@ Once again we have the now familiar accounting object. Some results have been re
 These are profits net of tax. You can see the gross profits and costs:
 
 ```python
-profits.gross.stats() ## all other things work eg profits.gross.sharpe()
-profits.costs.stats()
+profits.gross.percent().stats() ## all other things work eg profits.gross.sharpe()
+profits.costs.percent().stats()
 ```
 
 For more see the costs and accountCurve section of the userguide.

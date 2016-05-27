@@ -11,6 +11,7 @@ from syscore.dateutils import ROOT_BDAYS_INYEAR
 from syscore.pdutils import  turnover
 from dis import Instruction
 
+ARBITRARY_FORECAST_CAPITAL=100.0
 
 class Account(SystemStage):
     """
@@ -823,15 +824,12 @@ class Account(SystemStage):
 
     def pandl_for_subsystem(
 
-            self, instrument_code, percentage=True, delayfill=True, roundpositions=False):
+            self, instrument_code,  delayfill=True, roundpositions=False):
         """
         Get the p&l for one instrument
 
         :param instrument_code: instrument to get values for
         :type instrument_code: str
-
-        :param percentage: Return results as % of total notional capital
-        :type percentage: bool
 
         :param delayfill: Lag fills by one day
         :type delayfill: bool
@@ -851,7 +849,7 @@ class Account(SystemStage):
         """
 
         def _pandl_for_subsystem(
-                system, instrument_code, this_stage, percentage, delayfill, roundpositions):
+                system, instrument_code, this_stage, delayfill, roundpositions):
 
             this_stage.log.msg("Calculating pandl for subsystem for instrument %s" % instrument_code,
                                instrument_code=instrument_code)
@@ -878,7 +876,7 @@ class Account(SystemStage):
             instr_pandl = accountCurve(price, positions = positions,
                                        delayfill = delayfill, roundpositions = roundpositions, 
                                 fx=fx, value_of_price_point=value_of_price_point, capital=capital,
-                                percentage=percentage, SR_cost=SR_cost,  cash_costs = cash_costs,
+                                 SR_cost=SR_cost,  cash_costs = cash_costs,
                                 get_daily_returns_volatility=get_daily_returns_volatility,
                                 ann_risk_target = ann_risk_target)
 
@@ -886,20 +884,17 @@ class Account(SystemStage):
 
         instr_pandl = self.parent.calc_or_cache(
             "pandl_for_subsystem", instrument_code, _pandl_for_subsystem, 
-            self, percentage, delayfill, roundpositions,
-            flags="__percentage%sdelayfill%sroundpositions%s" % (
-            TorF(percentage), TorF(delayfill), TorF(roundpositions)))
+            self,  delayfill, roundpositions,
+            flags="__delayfill%sroundpositions%s" % (
+             TorF(delayfill), TorF(roundpositions)))
 
         return instr_pandl
 
 
     def pandl_across_subsystems(
-                                self, percentage=True, delayfill=True, roundpositions=False):
+                                self,  delayfill=True, roundpositions=False):
         """
         Get the p&l across subsystems (unweighted)
-
-        :param percentage: Return results as % of total notional capital
-        :type percentage: bool
 
         :param delayfill: Lag fills by one day
         :type delayfill: bool
@@ -914,7 +909,7 @@ class Account(SystemStage):
         >>> (portfolio, posobject, combobject, capobject, rules, rawdata, data, config)=get_test_object_futures_with_portfolios()
         >>> system=System([portfolio, posobject, combobject, capobject, rules, rawdata, Account()], data, config)
         >>>
-        >>> system.accounts.pandl_across_subsystems(percentage=True).to_frame().tail(5)
+        >>> system.accounts.pandl_across_subsystems().to_frame().tail(5)
                      EDOLLAR      US10
         2015-12-07  0.001191 -0.005012
         2015-12-08  0.000448 -0.002395
@@ -923,25 +918,29 @@ class Account(SystemStage):
         2015-12-11  0.004835 -0.007594
         """
         def _pandl_across_subsystems(
-                system, instrumentCodeNotUsed, this_stage, percentage, delayfill, roundpositions):
+                system, instrumentCodeNotUsed, this_stage,  delayfill, roundpositions):
 
+            ## Subsystems use entire capital
+            capital = this_stage.get_notional_capital()
+            
             instruments = this_stage.get_instrument_list()
             pandl_across_subsys = [
                 this_stage.pandl_for_subsystem(
                     instrument_code,
-                    percentage=percentage,
                     delayfill=delayfill,
                     roundpositions=roundpositions) for instrument_code in instruments]
             
-            pandl = accountCurveGroup(pandl_across_subsys, instruments, weighted_flag=False)
+            pandl = accountCurveGroup(pandl_across_subsys, instruments, 
+                                      capital=capital,
+                                      weighted_flag=False)
             
             return pandl
 
         instr_pandl = self.parent.calc_or_cache(
             "pandl_across_subsystems", ALL_KEYNAME, _pandl_across_subsystems, self, 
-            percentage, delayfill, roundpositions,
-                    flags = "percentage%sdelayfill%sroundpositions%s" % (
-            TorF(percentage), TorF(delayfill), TorF(roundpositions)))
+             delayfill, roundpositions,
+                    flags = "delayfill%sroundpositions%s" % (
+             TorF(delayfill), TorF(roundpositions)))
 
         return instr_pandl
 
@@ -951,7 +950,6 @@ class Account(SystemStage):
         Get the buffered position
 
         :param instrument_code: instrument to get
-        :type percentage: bool
 
         :param roundpositions: Round positions to whole contracts
         :type roundpositions: bool
@@ -1023,15 +1021,12 @@ class Account(SystemStage):
         return instr_turnover
 
     def pandl_for_instrument(
-            self, instrument_code, percentage=True, delayfill=True, roundpositions=True):
+            self, instrument_code,  delayfill=True, roundpositions=True):
         """
         Get the p&l for one instrument
 
         :param instrument_code: instrument to get values for
         :type instrument_code: str
-
-        :param percentage: Return results as % of total notional capital
-        :type percentage: bool
 
         :param delayfill: Lag fills by one day
         :type delayfill: bool
@@ -1045,12 +1040,12 @@ class Account(SystemStage):
         >>> from systems.tests.testdata import get_test_object_futures_with_portfolios
         >>> (portfolio, posobject, combobject, capobject, rules, rawdata, data, config)=get_test_object_futures_with_portfolios()
         >>> system=System([portfolio, posobject, combobject, capobject, rules, rawdata, Account()], data, config)
-        >>> system.accounts.pandl_for_instrument("US10", percentage=True).ann_std()
+        >>> system.accounts.pandl_for_instrument("US10").ann_std()
         0.13908407620762306
         """
 
         def _pandl_for_instrument(
-                system, instrument_code, this_stage, percentage, delayfill, roundpositions):
+                system, instrument_code, this_stage,  delayfill, roundpositions):
 
             this_stage.log.msg("Calculating pandl for instrument for %s" % instrument_code,
                                instrument_code=instrument_code)
@@ -1074,7 +1069,7 @@ class Account(SystemStage):
                                        delayfill = delayfill, roundpositions = roundpositions, 
                                 fx=fx, value_of_price_point=value_of_price_point, capital=capital,
                                 ann_risk_target = ann_risk_target,
-                                percentage=percentage, SR_cost=SR_cost, cash_costs = cash_costs,
+                                 SR_cost=SR_cost, cash_costs = cash_costs,
                                 get_daily_returns_volatility=get_daily_returns_volatility)
 
             if SR_cost is not None:
@@ -1099,9 +1094,9 @@ class Account(SystemStage):
 
         instr_pandl = self.parent.calc_or_cache(
             "pandl_for_instrument", instrument_code, _pandl_for_instrument, self, 
-            percentage, delayfill, roundpositions,
-            flags="percentage%sdelayfill%sroundpositions%s" % (
-            TorF(percentage), TorF(delayfill), TorF(roundpositions)))
+             delayfill, roundpositions,
+            flags="delayfill%sroundpositions%s" % (
+             TorF(delayfill), TorF(roundpositions)))
 
         return instr_pandl
 
@@ -1132,6 +1127,7 @@ class Account(SystemStage):
                              if rule_variation_name in this_stage.get_trading_rule_list(instr_code)]
             
             ## already weighted
+            ## capital on these will be the default
             pandl_by_instrument_weighted=[this_stage.pandl_for_instrument_forecast_weighted(
                                             instr_code, rule_variation_name, delayfill)
                               for instr_code in instrument_list   
@@ -1139,6 +1135,7 @@ class Account(SystemStage):
             
             ## now we weight so total capital is correct
             capital_this_rule=this_stage.get_capital_in_rule(rule_variation_name)
+            
             
             def _cleanweightelement( capelement):
                 if np.isnan(capelement):
@@ -1155,7 +1152,9 @@ class Account(SystemStage):
                                                      allow_reweighting=True) for 
                                              pandl_for_instrument in pandl_by_instrument_weighted]
 
-            pandl_rule = accountCurveGroup(pandl_by_instrument_reweighted, instrument_list, weighted_flag=True)
+            pandl_rule = accountCurveGroup(pandl_by_instrument_reweighted, instrument_list, 
+                                           capital=ARBITRARY_FORECAST_CAPITAL,
+                                           weighted_flag=True)
             
             return pandl_rule
 
@@ -1197,7 +1196,9 @@ class Account(SystemStage):
                               for instr_code in instrument_list   
                             ]
 
-            pandl_rule = accountCurveGroup(pandl_by_instrument_weighted, instrument_list, weighted_flag=True)
+            pandl_rule = accountCurveGroup(pandl_by_instrument_weighted, instrument_list, 
+                                           capital= ARBITRARY_FORECAST_CAPITAL, 
+                                           weighted_flag=True)
             
             return pandl_rule
 
@@ -1240,7 +1241,8 @@ class Account(SystemStage):
                               for instr_code in instrument_list   
                             ]
             
-            pandl_rule = accountCurveGroup(pandl_by_instrument, instrument_list, weighted_flag=False)
+            pandl_rule = accountCurveGroup(pandl_by_instrument, instrument_list, 
+                                           capital= ARBITRARY_FORECAST_CAPITAL, weighted_flag=False)
             
             return pandl_rule
 
@@ -1292,7 +1294,8 @@ class Account(SystemStage):
                             ]
             
             
-            pandl_rules = accountCurveGroup(pandl_rules, rule_list, weighted_flag=False)
+            pandl_rules = accountCurveGroup(pandl_rules, rule_list, capital=ARBRITARY_FORECAST_CAPITAL,
+                                             weighted_flag=False)
             
             return pandl_rules
 
@@ -1351,7 +1354,9 @@ class Account(SystemStage):
                             ]
             
             
-            pandl_rules = accountCurveGroup(pandl_rules, forecast_rules, weighted_flag=True)
+            pandl_rules = accountCurveGroup(pandl_rules, forecast_rules, 
+                                            capital=ARBITRARY_FORECAST_CAPITAL,
+                                            weighted_flag=True)
             
             return pandl_rules
 
@@ -1623,8 +1628,8 @@ class Account(SystemStage):
             ## We use percentage returns (as no 'capital') and don't round positions
             pandl_fcast = accountCurve(price, forecast=forecast, delayfill=delayfill, 
                                        roundpositions=False,
-                                value_of_price_point=1.0, capital=None,
-                                percentage=True, SR_cost=SR_cost, cash_costs=None,
+                                value_of_price_point=1.0, capital=ARBITRARY_FORECAST_CAPITAL,
+                                SR_cost=SR_cost, cash_costs=None,
                                 get_daily_returns_volatility=get_daily_returns_volatility)
             
             return pandl_fcast
@@ -1661,7 +1666,9 @@ class Account(SystemStage):
                                             for rulename in variations]
 
             ## this is a group of groups... will it work?
-            pandl_all_rules = accountCurveGroup(pandl_by_trading_rule_weighted, variations, weighted_flag=True)
+            pandl_all_rules = accountCurveGroup(pandl_by_trading_rule_weighted, variations, 
+                                                capital = ARBITRARY_FORECAST_CAPITAL,
+                                                weighted_flag=True)
             
             return pandl_all_rules
 
@@ -1697,7 +1704,9 @@ class Account(SystemStage):
                                             for rulename in variations]
 
             ## this is a group of groups... will it work?
-            pandl_all_rules = accountCurveGroup(pandl_by_trading_rule_unweighted, variations, weighted_flag=False)
+            pandl_all_rules = accountCurveGroup(pandl_by_trading_rule_unweighted, variations, 
+                                                capital=ARBITRARY_FORECAST_CAPITAL,
+                                                weighted_flag=False)
             
             return pandl_all_rules
 
@@ -1710,12 +1719,9 @@ class Account(SystemStage):
         return pandl_for_all_trading_rules_unweighted
 
 
-    def portfolio(self, percentage=True, delayfill=True, roundpositions=True):
+    def portfolio(self, delayfill=True, roundpositions=True):
         """
         Get the p&l for entire portfolio
-
-        :param percentage: Return results as % of total notional capital
-        :type percentage: bool
 
         :param delayfill: Lag fills by one day
         :type delayfill: bool
@@ -1730,31 +1736,32 @@ class Account(SystemStage):
         >>> (portfolio, posobject, combobject, capobject, rules, rawdata, data, config)=get_test_object_futures_with_portfolios()
         >>> system=System([portfolio, posobject, combobject, capobject, rules, rawdata, Account()], data, config)
         >>>
-        >>> system.accounts.portfolio(percentage=True).ann_std()
+        >>> system.accounts.portfolio().ann_std()
         0.2638225179274214
         """
         def _portfolio(system, not_used, this_stage,
-                       percentage, delayfill, roundpositions):
+                        delayfill, roundpositions):
 
             this_stage.log.terse("Calculating pandl for portfolio")
-
+            capital=this_stage.get_notional_capital()
             instruments = this_stage.get_instrument_list()
             port_pandl = [
                 this_stage.pandl_for_instrument(
                     instrument_code,
-                    percentage=percentage,
                     delayfill=delayfill,
                     roundpositions=roundpositions) for instrument_code in instruments]
             
-            port_pandl = accountCurveGroup(port_pandl, instruments, weighted_flag=True)
+            port_pandl = accountCurveGroup(port_pandl, instruments,
+                                           capital=capital, 
+                                           weighted_flag=True)
 
             return port_pandl
 
         port_pandl = self.parent.calc_or_cache(
-            "portfolio", ALL_KEYNAME, _portfolio, self, percentage, delayfill,
+            "portfolio", ALL_KEYNAME, _portfolio, self,  delayfill,
             roundpositions,
-            flags="percentage%sdelayfill%sroundpositions%s" % (
-            TorF(percentage), TorF(delayfill), TorF(roundpositions)))
+            flags="delayfill%sroundpositions%s" % (
+             TorF(delayfill), TorF(roundpositions)))
 
         return port_pandl
 

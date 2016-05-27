@@ -186,11 +186,11 @@ Have we made some dosh?
 my_system = System([fcs, my_rules, combiner, possizer,
                     portfolio, my_account], data, my_config)
 profits = my_system.accounts.portfolio()
-print(profits.stats())
+print(profits.percent().stats())
 
 ## have costs data now
-print(profits.gross.stats())
-print(profits.net.stats())
+print(profits.gross.percent().stats())
+print(profits.net.percent().stats())
 
 """
 Another approach is to create a config object
