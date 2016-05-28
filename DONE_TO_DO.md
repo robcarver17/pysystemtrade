@@ -1,5 +1,12 @@
 # Release notes
 
+## Version 0.11.1
+
+* Added extra methods to support capital scaling, but not implemented yet.
+* fixed couple of bugs in getting subsystem p&l to calculate instrument weights
+* removed aligned fx method, doesn't speed up and adds complexity
+* solved issue #16
+
 ## Version 0.11.0
 
 * Included option to show account curves as cumulative (compounding): somecurve.cumulative()

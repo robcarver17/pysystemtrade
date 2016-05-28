@@ -490,7 +490,66 @@ class PortfoliosFixed(SystemStage):
         
         return pos_buffers
 
+    def capital_multiplier(self):
+        return self.accounts.capital_multiplier()
+        
+    def get_actual_position(self, instrument_code):
+        """
+        Gets the actual position, accounting for cap multiplier
 
+        :param instrument_code: instrument to get values for
+        :type instrument_code: str
+
+        :returns: Tx1 pd.Series
+
+        KEY OUTPUT
+        """
+        def _get_actual_position(system, instrument_code, this_stage):
+            
+            this_stage.log.msg("Calculating actual position for %s" % instrument_code,
+                               instrument_code=instrument_code)
+            
+            notional_position = this_stage.get_notional_position(instrument_code)
+            cap_multiplier = this_stage.capital_multiplier()
+            cap_multiplier = cap_multiplier.reindex(notional_position.index).fill()
+            
+            actual_position = notional_position * cap_multiplier
+
+            return actual_position
+
+        actual_position = self.parent.calc_or_cache(
+            "get_actual_position", instrument_code, _get_actual_position, self)
+        return actual_position
+
+    def get_actual_buffers_for_position(self, instrument_code):
+        """
+        Gets the actual buffers for a position, accounting for cap multiplier
+
+        :param instrument_code: instrument to get values for
+        :type instrument_code: str
+
+        :returns: Tx1 pd.Series
+
+        KEY OUTPUT
+        """
+        def _get_actual_buffers_for_position(system, instrument_code, this_stage):
+            
+            this_stage.log.msg("Calculating actual buffers for position for %s" % instrument_code,
+                               instrument_code=instrument_code)
+            
+            buffers = this_stage.get_buffers_for_position(instrument_code)
+            cap_multiplier = this_stage.capital_multiplier()
+            cap_multiplier = cap_multiplier.reindex(buffers.index).ffill()
+            cap_multiplier=pd.concat([cap_multiplier, cap_multiplier],axis=1)
+            cap_multiplier.columns=buffers.columns
+            
+            actual_buffers_for_position = buffers * cap_multiplier
+
+            return actual_buffers_for_position
+
+        actual_position = self.parent.calc_or_cache(
+            "get_actual_buffers_for_position", instrument_code, _get_actual_buffers_for_position, self)
+        return actual_position
 
 
 class PortfoliosEstimated(PortfoliosFixed):
@@ -764,7 +823,7 @@ class PortfoliosEstimated(PortfoliosFixed):
         :returns: accountCurveGroup object
         """
         
-        return self.parent.accounts.pandl_across_subsystems(percentage=True)
+        return self.parent.accounts.pandl_across_subsystems()
 
     def _get_all_subsystem_positions(self):
         instrument_codes=self.parent.get_instrument_list()

@@ -7,10 +7,10 @@ Rob Carver
 [http://qoppac.blogspot.co.uk/p/pysystemtrade.html](http://qoppac.blogspot.co.uk/p/pysystemtrade.html)
 
 
-Version 0.11.0
+Version 0.11.1
 
 
-20160527
+20160528
 
 
 ## Release notes
@@ -26,7 +26,7 @@ For a longer explanation of the motivation and point of this project see my [blo
 
 *Eventually* pysystemtrade will include the following:
 
-- Backtesting enviroment that will work out of the box for the three examples in "Systematic Trading" 
+- Backtesting enviroment that will work "out of the box" for the three examples in "Systematic Trading" 
 - Implement all the optimisation and system design principles in the book.
 - Complete implementation of a fully automated system for futures trading (for interactive brokers only), including regularly updated data
 - Code to run the present, and future, examples on my blog qoppac.blogspot.co.uk

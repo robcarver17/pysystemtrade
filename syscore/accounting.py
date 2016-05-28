@@ -134,10 +134,10 @@ def pandl_with_data(price, trades=None, marktomarket=True, positions=None,
 
     if fx is None:
         # assume it's 1.0
-        fx = pd.Series([1.0] * len(price.index),
+        use_fx = pd.Series([1.0] * len(price.index),
                        index=price.index)
     else:
-        fx = fx.reindex(price.index, method="ffill")
+        use_fx = fx.reindex(price.index, method="ffill")
 
 
 
@@ -148,7 +148,7 @@ def pandl_with_data(price, trades=None, marktomarket=True, positions=None,
                 positions = get_positions_from_forecasts(price,
                                                          get_daily_returns_volatility,
                                                          forecast,
-                                                         fx,
+                                                         use_fx,
                                                          value_of_price_point,
                                                          daily_risk_capital)
         if roundpositions:
@@ -161,6 +161,7 @@ def pandl_with_data(price, trades=None, marktomarket=True, positions=None,
             
                     
         cum_trades = use_positions.ffill()
+        trades_to_use=cum_trades.diff()
         
     else:
         ## have some trades data
@@ -193,19 +194,19 @@ def pandl_with_data(price, trades=None, marktomarket=True, positions=None,
     instr_ccy_returns = cum_trades.shift(1)* price_returns * value_of_price_point
     
     instr_ccy_returns=instr_ccy_returns.cumsum().ffill().reindex(price.index).diff()
-    base_ccy_returns = instr_ccy_returns * fx
+    base_ccy_returns = instr_ccy_returns * use_fx
     
-    return (cum_trades, trades, instr_ccy_returns,
-            base_ccy_returns, fx, value_of_price_point)
+    return (cum_trades, trades_to_use, instr_ccy_returns,
+            base_ccy_returns, use_fx, value_of_price_point)
 
 
 
 
 def get_positions_from_forecasts(price, get_daily_returns_volatility, forecast,
-                                 fx, value_of_price_point, daily_risk_capital,
+                                 use_fx, value_of_price_point, daily_risk_capital,
                                   **kwargs):
     """
-    Work out position using forecast, volatility, fx, value_of_price_point
+    Work out position using forecast, volatility, use_fx, value_of_price_point
     (this will be for an arbitrary daily risk target)
 
     If volatility is not provided, work out from price (uses a standard method
@@ -221,9 +222,9 @@ def get_positions_from_forecasts(price, get_daily_returns_volatility, forecast,
     :param forecast: series of forecasts, needed to work out positions, MATCHED to price
     :type forecast: Tx1 pd.Series
 
-    :param fx: series of fx rates from instrument currency to base currency, to
+    :param use_fx: series of fx rates from instrument currency to base currency, to
     work out p&l in base currency, MATCHED to price
-    :type fx: Tx1 pd.Series
+    :type use_fx: Tx1 pd.Series
 
     :param value_of_price_point: value of one unit movement in price
     :type value_of_price_point: float
@@ -266,7 +267,7 @@ def get_positions_from_forecasts(price, get_daily_returns_volatility, forecast,
         
     multiplier = daily_risk_capital * 1.0 * 1.0 / 10.0
 
-    denominator = (value_of_price_point * get_daily_returns_volatility* fx)
+    denominator = (value_of_price_point * get_daily_returns_volatility* use_fx)
 
     numerator = forecast *  multiplier
 
@@ -660,15 +661,15 @@ class accountCurve(accountCurveSingle):
         **kwargs  passed to profit and loss calculation
          (price, trades, marktomarket, positions,
           delayfill, roundpositions,
-          get_daily_returns_volatility, forecast, fx,
+          get_daily_returns_volatility, forecast, use_fx,
           value_of_price_point)
         
         """
         if pre_calc_data:
-            (returns_data, capital, costs_base_ccy, unweighted_instr_ccy_pandl)=pre_calc_data
+            (returns_data, base_capital, costs_base_ccy, unweighted_instr_ccy_pandl)=pre_calc_data
             
-            (cum_trades, trades, instr_ccy_returns,
-                base_ccy_returns, fx, value_of_price_point)=returns_data
+            (cum_trades, trades_to_use, instr_ccy_returns,
+                base_ccy_returns, use_fx, value_of_price_point)=returns_data
 
         else:
             """
@@ -676,14 +677,14 @@ class accountCurve(accountCurveSingle):
             
               - going from forecast to position in profit and loss calculation (fixed or a time series): daily_risk_capital
               - calculating costs from SR costs (always a time series): ann_risk
-              - calculating percentage returns (maybe fixed or variable time series): capital
+              - calculating percentage returns (maybe fixed or variable time series): base_capital
             """
-            (capital, ann_risk, daily_risk_capital)=resolve_capital(price, capital, ann_risk_target)
+            (base_capital, ann_risk, daily_risk_capital)=resolve_capital(price, capital, ann_risk_target)
 
             returns_data=pandl_with_data(price, daily_risk_capital=daily_risk_capital,  **kwargs)
     
-            (cum_trades, trades, instr_ccy_returns,
-                base_ccy_returns, fx, value_of_price_point)=returns_data
+            (cum_trades, trades_to_use, instr_ccy_returns,
+                base_ccy_returns, use_fx, value_of_price_point)=returns_data
                 
             ## always returns a time series
             (costs_base_ccy, costs_instr_ccy)=calc_costs(returns_data, cash_costs, SR_cost, ann_risk)
@@ -696,7 +697,7 @@ class accountCurve(accountCurveSingle):
         ## Initially we have an unweighted version
         
 
-        self._calc_and_set_returns(base_ccy_returns, costs_base_ccy, capital, 
+        self._calc_and_set_returns(base_ccy_returns, costs_base_ccy, base_capital, 
                                     weighted_flag=weighted_flag, weighting=weighting,
                                     apply_weight_to_costs_only=apply_weight_to_costs_only)
         
@@ -704,13 +705,13 @@ class accountCurve(accountCurveSingle):
 
         setattr(self, "unweighted_instr_ccy_pandl", unweighted_instr_ccy_pandl)
         setattr(self, "cum_trades", cum_trades)
-        setattr(self, "trades", trades)
-        setattr(self, "capital", capital)
-        setattr(self, "fx", fx)
+        setattr(self, "trades_to_use", trades_to_use)
+        setattr(self, "capital", base_capital)
+        setattr(self, "fx", use_fx)
         setattr(self, "value_of_price_point", value_of_price_point)
 
 
-    def _calc_and_set_returns(self, base_ccy_returns, costs_base_ccy, capital, 
+    def _calc_and_set_returns(self, base_ccy_returns, costs_base_ccy, base_capital, 
                               weighted_flag=False, weighting=None, 
                               apply_weight_to_costs_only=False):
         """
@@ -724,8 +725,8 @@ class accountCurve(accountCurveSingle):
         :param costs_base_ccy: Costs in base currency terms, aligned to base_ccy_returns (unweighted)
         :type costs_base_ccy: Tx1 pd.Series
 
-        :param capital: Capital in base currency terms
-        :type capital: Tx1 pd.Series (aligned to base_ccy_returns) or float
+        :param base_capital: base_capital in base currency terms
+        :type base_capital: Tx1 pd.Series (aligned to base_ccy_returns) or float
         
         :param weighted_flag: Apply a weighting scheme, or not
         :type weighted_flag: bool
@@ -740,22 +741,24 @@ class accountCurve(accountCurveSingle):
 
         
         if weighted_flag:
-            weighting = weighting.reindex(base_ccy_returns.index).ffill()
+            use_weighting = weighting.reindex(base_ccy_returns.index).ffill()
             if not apply_weight_to_costs_only:
                 ## only apply to gross returns if they aren't already weighted
-                base_ccy_returns = base_ccy_returns* weighting
+                base_ccy_returns = base_ccy_returns* use_weighting
             
             ## Always apply to costs
-            costs_base_ccy = costs_base_ccy* weighting
+            costs_base_ccy = costs_base_ccy* use_weighting
+        else:
+            use_weighting = None
 
         net_base_returns=base_ccy_returns + costs_base_ccy ## costs are negative returns
         
-        super().__init__(base_ccy_returns, net_base_returns, costs_base_ccy, capital, weighted_flag=weighted_flag)
+        super().__init__(base_ccy_returns, net_base_returns, costs_base_ccy, base_capital, weighted_flag=weighted_flag)
             
         ## save useful stats
         ## have to do this after super() call
         setattr(self, "weighted_flag", weighted_flag)
-        setattr(self, "weighting", weighting)
+        setattr(self, "weighting", use_weighting)
 
     def __repr__(self):
         return super().__repr__()+ "\n Use object.calc_data() to see calculation details"
@@ -768,7 +771,7 @@ class accountCurve(accountCurveSingle):
         
         :returns: dictionary of float
         """
-        calc_items=["cum_trades",  "trades",    "unweighted_instr_ccy_pandl",
+        calc_items=["cum_trades",  "trades_to_use",    "unweighted_instr_ccy_pandl",
                      "capital",  "weighting", "fx","value_of_price_point"]
         
         calc_dict=dict([(calc_name, getattr(self, calc_name)) for calc_name in calc_items])
@@ -805,16 +808,16 @@ def weighted(account_curve,  weighting, apply_weight_to_costs_only=False, allow_
                 raise Exception("You can't reweight weighted returns!")
 
         ## very clunky but I can't make copy, deepcopy or inheritance work for this use case...
-        capital=copy(account_curve.capital)
+        base_capital=copy(account_curve.capital)
         gross_returns=copy(account_curve.gross.as_ts())
         costs_base_ccy=copy(account_curve.costs.as_ts())
         unweighted_instr_ccy_pandl=copy(account_curve.unweighted_instr_ccy_pandl)
 
-        returns_data=(account_curve.cum_trades, account_curve.trades, 
+        returns_data=(account_curve.cum_trades, account_curve.trades_to_use, 
                       unweighted_instr_ccy_pandl["gross"],
                 gross_returns, account_curve.fx, account_curve.value_of_price_point)
 
-        pre_calc_data=(returns_data, capital, costs_base_ccy, unweighted_instr_ccy_pandl)
+        pre_calc_data=(returns_data, base_capital, costs_base_ccy, unweighted_instr_ccy_pandl)
         
         ## Create a cloned account curve with the pre calculated data
         ## recalculate the returns with weighting applied
@@ -849,8 +852,8 @@ def calc_costs(returns_data, cash_costs, SR_cost, ann_risk):
     
     """
 
-    (cum_trades, trades, instr_ccy_returns,
-        base_ccy_returns, fx, value_of_price_point)=returns_data
+    (cum_trades, trades_to_use, instr_ccy_returns,
+        base_ccy_returns, use_fx, value_of_price_point)=returns_data
 
     if SR_cost is not None:
         ## use SR_cost
@@ -863,32 +866,32 @@ def calc_costs(returns_data, cash_costs, SR_cost, ann_risk):
         
         (value_total_per_block, value_of_pertrade_commission, percentage_cost)=cash_costs
 
-        trades_in_blocks=trades['trades'].abs()
+        trades_in_blocks=trades_to_use.abs()
         costs_blocks = - trades_in_blocks*value_total_per_block
 
         value_of_trades=trades_in_blocks * value_of_price_point
         costs_percentage = percentage_cost * value_of_trades
         
-        traded=trades[trades>0]
+        traded=trades_to_use[trades_to_use>0]
         
         if len(traded)==0:
             costs_pertrade = pd.Series([0.0]*len(cum_trades.index), cum_trades.index)
         else:
             costs_pertrade = pd.Series([value_of_pertrade_commission]*len(traded.index), traded.index)
-            costs_pertrade = costs_pertrade.reindex(trades.index)
+            costs_pertrade = costs_pertrade.reindex(trades_to_use.index)
 
         ## everything on the trades index, so can do this:s        
         costs_instr_ccy = costs_blocks+costs_percentage+costs_pertrade
 
     else:
         ## set costs to zero
-        costs_instr_ccy=pd.Series([0.0]*len(fx), index=fx.index)
+        costs_instr_ccy=pd.Series([0.0]*len(use_fx), index=use_fx.index)
 
     ## fx is on master (price timestamp)
     ## costs_instr_ccy needs downsampling
-    costs_instr_ccy=costs_instr_ccy.cumsum().ffill().reindex(fx.index).diff()
+    costs_instr_ccy=costs_instr_ccy.cumsum().ffill().reindex(use_fx.index).diff()
     
-    costs_base_ccy=costs_instr_ccy *  fx.ffill()
+    costs_base_ccy=costs_instr_ccy *  use_fx.ffill()
     costs_base_ccy[np.isnan(costs_base_ccy)]=0.0
 
     return (costs_base_ccy, costs_instr_ccy)
@@ -919,23 +922,25 @@ def resolve_capital(ts_to_scale_to, capital=None, ann_risk_target=None):
     """
     if capital is None:
         capital=DEFAULT_CAPITAL
+    else:
+        base_capital = copy(capital)
         
     if ann_risk_target is None:
         ann_risk_target=DEFAULT_ANN_RISK_TARGET
         
     ## might be a float or a Series, depending on capital
-    daily_risk_capital = capital * ann_risk_target / ROOT_BDAYS_INYEAR
+    daily_risk_capital = base_capital * ann_risk_target / ROOT_BDAYS_INYEAR
 
-    if type(capital) is float or type(capital) is int:
-        ts_capital=pd.Series([capital]*len(ts_to_scale_to), index=ts_to_scale_to.index)
-        capital = float(capital)
+    if type(base_capital) is float or type(base_capital) is int:
+        ts_capital=pd.Series([base_capital]*len(ts_to_scale_to), index=ts_to_scale_to.index)
+        base_capital = float(base_capital)
     else:
-        ts_capital=copy(capital)
+        ts_capital=copy(base_capital)
     
     ## always a time series
     ann_risk = ts_capital * ann_risk_target
     
-    return (capital, ann_risk, daily_risk_capital)
+    return (base_capital, ann_risk, daily_risk_capital)
 
 def acc_list_to_pd_frame(list_of_ac_curves, asset_columns):
     """

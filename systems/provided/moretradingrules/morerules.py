@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+from systems.defaults import system_defaults
+from copy import copy
 
 def breakout(price, lookback, smooth=None):
     """
@@ -32,4 +34,37 @@ def breakout(price, lookback, smooth=None):
     smoothed_output = pd.ewma(output, span=smooth, min_periods=np.ceil(smooth/2.0))
 
     return smoothed_output
+
+
+def longonly(price, shortonly):
+    """
+    Long or short only
+
+    To work requires a second data item "data.shortonly" which returns a bool
+    
+    :param price: The price or other series to use (assumed Tx1)
+    :type price: pd.DataFrame
+
+    :param shortonly: Go short, or long
+    :type shortonly: bool
+
+
+    :returns: pd.Series -- unscaled, uncapped forecast
+
+    """
+    
+    assert shortonly is bool
+    
+    avg_abs_forecast = system_defaults['average_absolute_forecast']
+
+    if shortonly:
+        forecast=-1.0*avg_abs_forecast
+    else:
+        forecast=avg_abs_forecast
+    
+    
+    forecast_ts = copy(price)
+    forecast_ts[:]=forecast
+    
+    return forecast_ts
 

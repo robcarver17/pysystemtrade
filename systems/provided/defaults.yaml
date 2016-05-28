@@ -169,3 +169,6 @@ buffer_trade_to_edge: False
 # costs and accounting
 use_SR_costs: True
 #
+capital_multiplier:
+   func: syscore.capital.fixed_capital
+
