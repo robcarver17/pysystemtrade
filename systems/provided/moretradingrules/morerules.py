@@ -24,8 +24,8 @@ def breakout(price, lookback, smooth=None):
         
     assert smooth<lookback
         
-    roll_max = pd.rolling_max(price, lookback, min_periods=min(len(price), np.ceil(lookback/2.0)))
-    roll_min = pd.rolling_min(price, lookback, min_periods=min(len(price), np.ceil(lookback/2.0)))
+    roll_max = pd.rolling_max(price, lookback, min_periods=int(min(len(price), np.ceil(lookback/2.0))))
+    roll_min = pd.rolling_min(price, lookback, min_periods=int(min(len(price), np.ceil(lookback/2.0))))
     
     roll_mean = (roll_max+roll_min)/2.0
 
