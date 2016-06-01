@@ -1768,7 +1768,7 @@ class Account(SystemStage):
         def _capital_multiplier(system, not_used, this_stage,
                         delayfill, roundpositions):
 
-            capmult_params=copy(system.parent.capital_multiplier)
+            capmult_params=copy(system.config.capital_multiplier)
             capmult_func=resolve_function(capmult_params.pop("func"))
 
             capmult = capmult_func(system, **capmult_params)
