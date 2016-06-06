@@ -220,10 +220,10 @@ class PortfoliosFixed(SystemStage):
 
 
         """
-        def _get_clean_instrument_weights(
+        def _get_instrument_weights(
                 system, an_ignored_variable, this_stage):
 
-            this_stage.log.terse("Calculating clean instrument weights")
+            this_stage.log.terse("Calculating instrument weights")
 
             raw_instr_weights = this_stage.get_raw_instrument_weights()
             instrument_list = list(raw_instr_weights.columns)
@@ -237,10 +237,15 @@ class PortfoliosFixed(SystemStage):
             instrument_weights = fix_weights_vs_pdm(
                 raw_instr_weights, subsys_positions)
 
+            weighting=system.config.instrument_weight_ewma_span  
+
+            # smooth
+            instrument_weights = pd.ewma(instrument_weights, weighting) 
+
             return instrument_weights
 
         instrument_weights = self.parent.calc_or_cache(
-            "get_instrument_weights", ALL_KEYNAME, _get_clean_instrument_weights, self)
+            "get_instrument_weights", ALL_KEYNAME, _get_instrument_weights, self)
         return instrument_weights
 
 
@@ -491,7 +496,7 @@ class PortfoliosFixed(SystemStage):
         return pos_buffers
 
     def capital_multiplier(self):
-        return self.accounts.capital_multiplier()
+        return self.parent.accounts.capital_multiplier()
         
     def get_actual_position(self, instrument_code):
         """
@@ -511,7 +516,7 @@ class PortfoliosFixed(SystemStage):
             
             notional_position = this_stage.get_notional_position(instrument_code)
             cap_multiplier = this_stage.capital_multiplier()
-            cap_multiplier = cap_multiplier.reindex(notional_position.index).fill()
+            cap_multiplier = cap_multiplier.reindex(notional_position.index).ffill()
             
             actual_position = notional_position * cap_multiplier
 
@@ -749,61 +754,6 @@ class PortfoliosEstimated(PortfoliosFixed):
                 
         return raw_instrument_weights
 
-    def get_instrument_weights(self):
-        """
-        Get the instrument weights
-
-        We forward fill all forecasts. We then adjust forecast weights so that they sum to 1.0 in every
-          period; after setting to zero when no forecast is available. we then take a smooth
-
-        :param instrument_code:
-        :type str:
-
-        :returns: TxK pd.DataFrame containing weights, columns are trading rule variation names, T covers all
-
-        KEY OUTPUT
-
-        >>> from systems.tests.testdata import get_test_object_futures_with_pos_sizing_estimates
-        >>> from systems.basesystem import System
-        >>> (account, posobject, combobject, capobject, rules, rawdata, data, config)=get_test_object_futures_with_pos_sizing_estimates()
-        >>> system=System([rawdata, rules, posobject, combobject, capobject,PortfoliosEstimated(), account], data, config)
-        >>> system.config.forecast_weight_estimate["method"]="shrinkage" ## speed things up
-        >>> system.config.forecast_weight_estimate["date_method"]="in_sample" ## speed things up
-        >>> system.config.instrument_weight_estimate["method"]="shrinkage" ## speed things up 
-        >>> system.portfolio.get_instrument_weights().tail(3)
-                        BUND   EDOLLAR      US10
-        2015-12-08  0.387229  0.306034  0.306737
-        2015-12-09  0.388637  0.305331  0.306032
-        2015-12-10  0.390033  0.304634  0.305334
-        >>> system.config.instrument_weight_estimate["method"]="bootstrap"  
-        >>> system.portfolio.get_instrument_weights().tail(3)
-                        BUND   EDOLLAR      US10
-        2015-12-08  0.387229  0.306034  0.306737
-        2015-12-09  0.388637  0.305331  0.306032
-        2015-12-10  0.390033  0.304634  0.305334
-        """
-        def _get_instrument_weights(system, notUsed, this_stage):
-
-            this_stage.log.msg("Getting instrument weights")
-
-            raw_instr_weights = this_stage.get_raw_instrument_weights()
-            instrument_list = list(raw_instr_weights.columns)
-
-            subsys_positions = [this_stage.get_subsystem_position(code)
-                                for code in instrument_list]
-
-            subsys_positions = pd.concat(subsys_positions, axis=1).ffill()
-            subsys_positions.columns = instrument_list
-
-            instrument_weights = fix_weights_vs_pdm(
-                raw_instr_weights, subsys_positions)
-
-            weighting_params=copy(system.config.instrument_weight_estimate)  
-
-            # smooth
-            instrument_weights = pd.ewma(instrument_weights, weighting_params['ewma_span']) 
-
-            return instrument_weights
 
 
         instrument_weights = self.parent.calc_or_cache(

@@ -1803,10 +1803,14 @@ class Account(SystemStage):
                         delayfill, roundpositions):
 
             capmult = this_stage.capital_multiplier()
-            notional = this_stage.get_notional_capital()            
-            notional = notional.reindex(capmult.index).ffill()
+            notional = this_stage.get_notional_capital()
             
-            capital = capmult*notional
+            if type(notional) is not pd.core.series.Series:
+                notional_ts = pd.Series([notional]*len(capmult), capmult.index)
+            else:              
+                notional_ts = notional.reindex(capmult.index).ffill()
+            
+            capital = capmult*notional_ts
             
             return capital
 

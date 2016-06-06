@@ -1,5 +1,7 @@
 """
 Functions to calculate capital multiplier
+
+Change to pass what is needed
 """
 
 def fixed_capital(system, **ignored_args):
@@ -9,7 +11,9 @@ def fixed_capital(system, **ignored_args):
     return pandl
 
 def full_compounding(system, **ignored_args):
-    pass
+    pandl  = system.accounts.portfolio().percent().curve()
+    pandl = pandl / 100.0
+    return pandl
 
 def half_compounding(system, **ignored_args):
     pass

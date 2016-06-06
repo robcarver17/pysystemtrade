@@ -1,5 +1,10 @@
 # Release notes
 
+## Version 0.11.2
+
+* Smooth fixed weights as well as variable: removed ewma_span and moved to new config item forecast_weight_ewma_span and same for instruments. Removed override of get_instrument_weights, get_forecast_weights method from estimated classes.
+
+
 ## Version 0.11.1
 
 * Added extra methods to support capital scaling, but not implemented yet.

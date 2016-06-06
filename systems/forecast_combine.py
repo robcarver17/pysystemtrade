@@ -381,6 +381,11 @@ class ForecastCombineFixed(SystemStage):
             # also aligns them together
             forecast_weights = fix_weights_vs_pdm(forecast_weights, forecasts)
 
+            weighting=system.config.forecast_weight_ewma_span  
+
+            # smooth
+            forecast_weights = pd.ewma(forecast_weights, weighting) 
+
             return forecast_weights
 
         forecast_weights = self.parent.calc_or_cache(
@@ -1089,50 +1094,6 @@ class ForecastCombineEstimated(ForecastCombineFixed):
                 
         return raw_forecast_weights
 
-    def get_forecast_weights(self, instrument_code):
-        """
-        Get the forecast weights
-
-        We forward fill all forecasts. We then adjust forecast weights so that they sum to 1.0 in every
-          period; after setting to zero when no forecast is available. we then take a smooth
-
-        :param instrument_code:
-        :type str:
-
-        :returns: TxK pd.DataFrame containing weights, columns are trading rule variation names, T covers all
-
-        KEY OUTPUT
-
-        >>> from systems.tests.testdata import get_test_object_futures_with_rules_and_capping_estimate
-        >>> from systems.basesystem import System
-        >>> (accounts, fcs, rules, rawdata, data, config)=get_test_object_futures_with_rules_and_capping_estimate()
-        >>> system=System([accounts, rawdata, rules, fcs, ForecastCombineEstimated()], data, config)
-        >>> system.config.forecast_weight_estimate['method']="shrinkage"
-        >>> system.combForecast.get_forecast_weights("EDOLLAR").tail(3)
-                       carry   ewmac16    ewmac8
-        2015-12-09  0.441002  0.256888  0.302111
-        2015-12-10  0.441013  0.256883  0.302104
-        2015-12-11  0.441024  0.256879  0.302097
-        """
-        def _get_forecast_weights(system, instrument_code, this_stage):
-            this_stage.log.msg("Calculating forecast weights for %s" % instrument_code,
-                               instrument_code=instrument_code)
-
-            ## Get some useful stuff from the config
-            weighting_params=copy(system.config.forecast_weight_estimate)  
-
-            forecast_weights = this_stage.get_raw_forecast_weights(
-                instrument_code)
-            rule_variation_list = list(forecast_weights.columns)
-            forecasts = this_stage.get_all_forecasts(instrument_code, rule_variation_list)
-
-            # adjust weights for missing data
-            forecast_weights = fix_weights_vs_pdm(forecast_weights, forecasts)
-            
-            # smooth
-            forecast_weights = pd.ewma(forecast_weights, weighting_params['ewma_span']) 
-
-            return forecast_weights
 
 
         forecast_weights = self.parent.calc_or_cache(

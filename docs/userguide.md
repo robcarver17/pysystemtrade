@@ -3445,11 +3445,9 @@ If we haven't accounted for costs earlier (eg by setting `cost_multiplier=0`) th
 
 If weights are *cleaned*, then in a fitting period when we need a weight, but none has been calculated (due to insufficient data for example), an instrument is given a share of the weight.
 
-We also smooth weights with an EWMA to avoid trading when they change.
 
 ```
    apply_cost_weight: True
-   ewma_span: 125
    cleaning: True
 ```
 
@@ -3925,6 +3923,13 @@ Python (example)
 config.use_forecast_weight_estimates=True
 ```
 
+Change smoothing used for both fixed and variable weights:
+
+YAML: (example) 
+```
+forecast_weight_ewma_span: 125
+```
+
 
 #### Forecast weights (fixed using `ForecastCombinedFixed`)
 Represented as: (a) dict of floats. Keywords: trading rule variation names.
@@ -4033,7 +4038,6 @@ forecast_weight_estimate:
    shrinkage_corr: 0.50
    monte_runs: 100
    bootstrap_length: 50
-   ewma_span: 125
    correlation_estimate:
      func: syscore.correlations.correlation_single_period
      using_exponent: False
@@ -4200,6 +4204,13 @@ Python (example)
 config.use_instrument_weight_estimates=True
 ```
 
+Change smoothing used for both fixed and variable weights:
+
+YAML: (example) 
+```
+instrument_weight_ewma_span: 125
+```
+
 
 #### Instrument weights (fixed, using `PortfoliosFixed`)
 Represented as: dict of floats. Keywords: instrument_codes
@@ -4250,7 +4261,6 @@ instrument_weight_estimate:
    shrinkage_corr: 0.50
    monte_runs: 100
    bootstrap_length: 50
-   ewma_span: 125
    correlation_estimate:
      func: syscore.correlations.correlation_single_period
      using_exponent: False
