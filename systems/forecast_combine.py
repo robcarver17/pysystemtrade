@@ -811,9 +811,14 @@ class ForecastCombineEstimated(ForecastCombineFixed):
             
             cheap_rule_list = [rule_name for (rule_name, rule_cost) in zip(rule_list, SR_cost_list) 
                                if rule_cost<=ceiling_cost_SR]
+
+            if len(cheap_rule_list)==0:
+                this_stage.log.critical("No rules are cheap enough for %s with threshold %.3f SR units! Raise threshold, add rules, or drop instrument." % (instrument_code, ceiling_cost_SR))
+                
             
             this_stage.log.msg("Only this set of rules %s is cheap enough to trade for %s" % (str(cheap_rule_list), instrument_code),
                                instrument_code=instrument_code)
+            
 
             return cheap_rule_list
 
