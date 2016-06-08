@@ -2725,9 +2725,6 @@ base_currency: "USD"
 Note that the stage code tries to get the percentage volatility of an instrument from the rawdata stage. Since a rawdata stage might be omitted, it can also fall back to calculating this from scratch using the data object and the default volatility calculation method.
 
 
-#### New or modified position scaling stages
-
-In the future I'll update this stage to allow for variable capital.
 
 <a name="stage_portfolio">
 ### Stage: Creating portfolios [Portfolios class](/systems/portfolio.py)
@@ -2963,7 +2960,7 @@ acc_curve.costs.weekly.percent().curve()
 ```
 
 
-You may also want to use *cumulated* returns, which use compound interest rather than the simple addition I normally use. See this blog for more information FIX ME
+You may also want to use *cumulated* returns, which use compound interest rather than the simple addition I normally use. See this [blog post](http://qoppac.blogspot.co.uk/2016/06/capital-correction-pysystemtrade.html).
 
 ```python
 acc_curve.cumulative()
@@ -3211,7 +3208,7 @@ I plan to include ways of summarising profits over groups of assets (trading rul
 # Processes
 </a>
 
-This section gives much more detail on certain important processes that span multiple stages: logging, estimating correlations and diversification multipliers, and optimisation.
+This section gives much more detail on certain important processes that span multiple stages: logging, estimating correlations and diversification multipliers, optimisation, and capital correction.
 
 <a name="logging">
 ## Logging
@@ -3488,6 +3485,36 @@ instrument_div_mult_estimate:
 I've included a smoothing function, other wise jumps in the multiplier will cause trading in the backtest. Note that the FDM is calculated on an instrument by instrument basis, but if instruments have had their forecast weights and correlations estimated on a pooled basis they'll have the same FDM. It's also a good idea to floor negative correlations at zero to avoid inflation the DM to very high values.
 
 
+<a name="capcorrection">
+## Capital correction: Varying capital
+</a>
+
+Capital correction is the process by which we change the capital we have at risk, and thus our positions, according to any profits or losses made. Most of pysystemtrade assumes that capital is *fixed*. This has the advantage that risk is stable over time, and account curves can more easily be interpreted. However a more common method is to use *compounded* capital, where profits are added to capital and losses deducted. If we make money then our capital, and the risk we're taking, and the size of our positions, will all increase over time.
+
+There is much more in this [blog post](http://qoppac.blogspot.co.uk/2016/06/capital-correction-pysystemtrade.html). Capital correction is controlled by the following config parameter which selects the function used for correction using the normal dot argument (the default here being the function `fixed_capital` in the module `syscore.capital`)
+
+YAML:
+``` 
+capital_multiplier:
+   func: syscore.capital.fixed_capital
+```
+
+Other functions I've written are `full_compounding` and `half_compounding`. Again see the blog post [blog post](http://qoppac.blogspot.co.uk/2016/06/capital-correction-pysystemtrade.html) for more detail.
+
+To get the varying capital multiplier which the chosen method calculates use `system.accounts.capital_multiplier()`. The multiplier will be 1.0 at a given time if the variable capital is identical to the fixed capital.
+
+Here's a list of methods with their counterparts for both fixed and variable capital:
+
+|                             | Fixed capital | Variable capital       | 
+|:-------------------------:|:---------:|:---------------:|
+| Get capital at risk | `positionSize.get_daily_cash_vol_target()['notional_trading_capital']`  |  `accounts.get_actual_capital()` |  
+| Get position in a system portfolio | `portfolio.get_notional_position` | `portfolio.get_actual_position` |
+| Get buffers for a position | `portfolio.get_buffers_for_position` | `portfolio.get_actual_buffers_for_position` |
+| Get buffered position | `accounts.get_buffered_position`| `accounts.get_buffered_position_with_multiplier`| 
+| Get p&l for instrument at system level |  `accounts.pandl_for_instrument`|  `accounts.pandl_for_instrument_with_multiplier`|
+| P&L for whole system |  `accounts.portfolio`|  `accounts.portfolio_with_multiplier`| 
+
+All other methods in pysystemtrade use fixed capital.
 
 <a name="reference">
 # Reference
@@ -3646,6 +3673,8 @@ Other methods exist to access logging and cacheing.
 | `portfolio.get_instrument_diversification_multiplier`| Standard / Estimate |  | D |Get instrument div. multiplier |
 | `portfolio.get_notional_position`| Standard | `instrument_code` | D,O |Get the *notional* position (with constant risk capital; doesn't allow for adjustments when profits or losses are made) |
 | `portfolio.get_buffers_for_position`| Standard | `instrument_code` | D,O |Get the buffers around the position |
+| `portfolio.get_actual_position`| Standard |  `instrument_code` | D,O | Get position accounting for capital multiplier|
+| `portfolio.get_actual_buffers_for_position`| Standard | `instrument_code` | D,O |Get the buffers around the position, accounting for capital multiplier |
 
 
 
@@ -3656,6 +3685,7 @@ Inputs:
 | Call                              | Standard?| Arguments       | Type | Description                                                    |
 |:-------------------------:|:---------:|:---------------:|:----:|:--------------------------------------------------------------:|
 | `accounts.get_notional_position`| Standard |  `instrument_code` | I | `portfolio.get_notional_position`|
+| `accounts.get_actual_position`| Standard |  `instrument_code` | I | `portfolio.get_actual_position`|
 | `accounts.get_capped_forecast`| Standard | `instrument_code`, `rule_variation_name`  | I | `forecastScaleCap.get_capped_forecast`|
 | `accounts.get_instrument_list`| Standard |  | I | `portfolio.get_instrument_list`|
 | `accounts.get_notional_capital`| Standard |  | I | `positionSize.get_daily_cash_vol_target`|
@@ -3665,6 +3695,7 @@ Inputs:
 | `accounts.get_daily_returns_volatility`| Standard |  `instrument_code` | I | `rawdata.daily_returns_volatility` or `data.daily_prices`|
 | `accounts.get_raw_cost_data`| Standard | `instrument_code` | I  | `data.get_raw_cost_data` |
 | `accounts.get_buffers_for_position`| Standard |  `instrument_code` | I | `portfolio.get_buffers_for_position`|
+| `accounts.get_actual_buffers_for_position`| Standard |  `instrument_code` | I | `portfolio.get_actual_buffers_for_position`|
 | `accounts.get_instrument_diversification_multiplier`| Standard |   | I | `portfolio.get_instrument_diversification_multiplier`|
 | `accounts.get_instrument_weights`| Standard |   | I | `portfolio.get_instrument_weights`|
 | `accounts.get_trading_rules_list`| Standard | `instrument_code`  | I | `combForecast.get_trading_rule_list`|
@@ -3681,15 +3712,21 @@ Diagnostics:
 | `accounts.get_instrument_forecast_scaling_factor`| Standard | `instrument_code`, `rule_variation_name`  | D | IDM * instrument weight * FDM * forecast weight|
 | `accounts.get_capital_in_rule`| Standard |  `rule_variation_name`  | D | Sum of `get_instrument_forecast_scaling_factor` for a given trading rule|
 | `accounts.get_buffered_position`| Standard |  `instrument_code` | D | Buffered position at portfolio level|
+| `accounts.get_buffered_position_with_multiplier`| Standard |  `instrument_code` | D | Buffered position at portfolio level, including capital multiplier|
 | `accounts.subsystem_turnover`| Standard | `instrument_code`  | D | Annualised turnover of subsystem|
 | `accounts.instrument_turnover`| Standard | `instrument_code`  | D | Annualised turnover of instrument position at portfolio level|
 | `accounts.forecast_turnover`| Standard | `instrument_code`, `rule_variation_name`  | D | Annualised turnover of forecast|
 | `accounts.get_SR_cost_for_instrument_forecast`| Standard | `instrument_code`, `rule_variation_name`  | D | SR cost * turnover for forecast|
+| `accounts.capital_multiplier`| Standard |   | D, O | Capital multiplier, ratio of actual to fixed notional capital|
+| `accounts.get_actual_capital`| Standard |  | D | Actual capital (fixed notional capital times multiplier)|
 
 
 Accounting outputs:
 
+| Call                              | Standard?| Arguments       | Type | Description                                                    |
+|:-------------------------:|:---------:|:---------------:|:----:|:--------------------------------------------------------------:|
 | `accounts.pandl_for_instrument`| Standard |  `instrument_code` | D | P&l for an instrument within a system|
+| `accounts.pandl_for_instrument_with_multiplier`| Standard |  `instrument_code` | D | P&l for an instrument within a system, using multiplied capital|
 | `accounts.pandl_for_instrument_forecast`| Standard | `instrument_code`, `rule_variation_name` | D | P&l for a trading rule and instrument |
 | `accounts.pandl_for_instrument_forecast_weighted`| Standard | `instrument_code`, `rule_variation_name` | D | P&l for a trading rule and instrument as a % of total capital |
 | `accounts.pandl_for_instrument_rules`| Standard | `instrument_code` | D,O | P&l for all trading rules in an instrument, weighted |
@@ -3702,6 +3739,7 @@ Accounting outputs:
 | `accounts.pandl_for_all_trading_rules`| Standard |  | D | P&l for trading rules across whole system |
 | `accounts.pandl_for_all_trading_rules_unweighted`| Standard |  | D | P&l for trading rules across whole system |
 | `accounts.portfolio`| Standard |  | O,D | P&l for whole system |
+| `accounts.portfolio_with_multiplier`| Standard |  | D | P&l for whole system using multiplied capital|
 
 
 
@@ -4423,4 +4461,16 @@ forecast_cost_estimate:
    use_pooled_costs: False  ### use weighted average of SR cost * turnover across instruments with the same set of trading rules
    use_pooled_turnover: True ### Use weighted average of turnover across instruments with the same set of trading rules
 ```
+
+#### Capital correction
+
+Which capital correction method should we use?
+
+YAML:
+```
+capital_multiplier:
+   func: syscore.capital.fixed_capital
+```
+
+Other valid functions include full_compounding and half_compounding.
 

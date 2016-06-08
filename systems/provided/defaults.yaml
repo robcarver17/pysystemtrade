@@ -104,6 +104,8 @@ forecast_weight_estimate:
 percentage_vol_target: 16.0
 notional_trading_capital: 1000000
 base_currency: "USD"
+capital_multiplier:
+   func: syscore.capital.fixed_capital
 #
 # Portfolio creation
 #
@@ -169,6 +171,4 @@ buffer_trade_to_edge: False
 # costs and accounting
 use_SR_costs: True
 #
-capital_multiplier:
-   func: syscore.capital.fixed_capital
 
