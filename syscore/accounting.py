@@ -917,7 +917,7 @@ def resolve_capital(ts_to_scale_to, capital=None, ann_risk_target=None):
 
     """
     if capital is None:
-        base_capital=DEFAULT_CAPITAL
+        base_capital=copy(DEFAULT_CAPITAL)
     else:
         base_capital = copy(capital)
         
