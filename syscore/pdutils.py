@@ -219,8 +219,9 @@ def drawdown(x):
     :param x: pd.DataFrame or Series
 
     :returns: pd.DataFrame or Series
+    
     """
-    maxx = pd.rolling_max(x, 99999999, min_periods=1)
+    maxx = pd.rolling_max(x, len(x), min_periods=1)
     return x - maxx
 
 
