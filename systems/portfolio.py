@@ -757,7 +757,7 @@ class PortfoliosEstimated(PortfoliosFixed):
 
 
         instrument_weights = self.parent.calc_or_cache(
-            'get_instrument_weights', ALL_KEYNAME, _get_instrument_weights, self)
+            'get_instrument_weights', ALL_KEYNAME, _get_raw_instrument_weights, self)
         return instrument_weights
 
 
