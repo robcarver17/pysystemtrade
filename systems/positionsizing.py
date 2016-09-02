@@ -47,9 +47,8 @@ class PositionSizing(SystemStage):
         setattr(self, "description", "")
 
     def _system_init(self, system):
-        ## method called once we have a system
+        # method called once we have a system
         setattr(self, "parent", system)
-
 
     def get_combined_forecast(self, instrument_code):
         """
@@ -211,7 +210,7 @@ class PositionSizing(SystemStage):
             percentage_vol_target = float(system.config.percentage_vol_target)
 
             notional_trading_capital = float(
-                    system.config.notional_trading_capital)
+                system.config.notional_trading_capital)
 
             base_currency = system.config.base_currency
 
@@ -341,10 +340,11 @@ class PositionSizing(SystemStage):
 
             block_value = this_stage.get_block_value(instrument_code)
             daily_perc_vol = this_stage.get_price_volatility(instrument_code)
-            
-            (block_value, daily_perc_vol) = block_value.align(daily_perc_vol, join="inner")
 
-            instr_ccy_vol =  block_value * daily_perc_vol
+            (block_value, daily_perc_vol) = block_value.align(
+                daily_perc_vol, join="inner")
+
+            instr_ccy_vol = block_value * daily_perc_vol
 
             return instr_ccy_vol
 
@@ -386,10 +386,10 @@ class PositionSizing(SystemStage):
             instr_ccy_vol = this_stage.get_instrument_currency_vol(
                 instrument_code)
             fx_rate = this_stage.get_fx_rate(instrument_code)
-            
+
             (instr_ccy_vol, fx_rate) = instr_ccy_vol.align(fx_rate)
 
-            instr_value_vol = instr_ccy_vol *  fx_rate
+            instr_value_vol = instr_ccy_vol * fx_rate
 
             return instr_value_vol
 
@@ -441,7 +441,6 @@ class PositionSizing(SystemStage):
             'get_volatility_scalar', instrument_code, _get_volatility_scalar, self)
         return vol_scalar
 
-
     def get_subsystem_position(self, instrument_code):
         """
         Get scaled position (assuming for now we trade our entire capital for one instrument)
@@ -485,7 +484,7 @@ class PositionSizing(SystemStage):
 
             vol_scalar = vol_scalar.reindex(forecast.index).ffill()
 
-            subsystem_position =  vol_scalar *  forecast / avg_abs_forecast
+            subsystem_position = vol_scalar * forecast / avg_abs_forecast
 
             return subsystem_position
 

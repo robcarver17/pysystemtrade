@@ -42,7 +42,8 @@ system.accounts.portfolio().curve().plot()
 system.pickle_cache("private.this_system_name.pck")
 show()
 
-del(system) ## just to make sure
+del(system)  # just to make sure
 system = futures_system(log_level="on")
 system.unpickle_cache("private.this_system_name.pck")
-system.accounts.portfolio().sharpe() ## this will run much faster and reuse previous calculations
+# this will run much faster and reuse previous calculations
+system.accounts.portfolio().sharpe()

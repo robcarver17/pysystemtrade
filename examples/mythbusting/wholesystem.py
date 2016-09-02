@@ -7,49 +7,54 @@ from syscore.dateutils import generate_fitting_dates
 from syscore.algos import robust_vol_calc
 
 from systems.portfolio import Portfolios
-config=Config("systems.provided.futures_chapter15.futuresconfig.yaml")
+config = Config("systems.provided.futures_chapter15.futuresconfig.yaml")
 
-del(config.instrument_weights) ## so we use all the markets we have, equal weighted
-config.notional_trading_capital=10000000
-config.use_instrument_weight_estimates=True
-config.use_forecast_weight_estimates=True
+# so we use all the markets we have, equal weighted
+del(config.instrument_weights)
+config.notional_trading_capital = 10000000
+config.use_instrument_weight_estimates = True
+config.use_forecast_weight_estimates = True
 
 system = System([Account(), Portfolios(), PositionSizing(), FuturesRawData(), ForecastCombine(),
-                 ForecastScaleCap(), Rules()], csvFuturesData(), 
+                 ForecastScaleCap(), Rules()], csvFuturesData(),
                 config)
 system.set_logging_level("on")
 
-## avgs
-instrument_list=system.get_instrument_list()
-trading_rules=system.rules.trading_rules().keys()
+# avgs
+instrument_list = system.get_instrument_list()
+trading_rules = system.rules.trading_rules().keys()
 
-ans=dict()
+ans = dict()
 for instrument_code in instrument_list:
-    ans[instrument_code]=dict()
+    ans[instrument_code] = dict()
     for rule in trading_rules:
-        ans[instrument_code][rule]=system.accounts.pandl_for_instrument_forecast(instrument_code, rule).sharpe()
+        ans[instrument_code][rule] = system.accounts.pandl_for_instrument_forecast(
+            instrument_code, rule).sharpe()
 
-## average rule / instrument
-ans=[]
+# average rule / instrument
+ans = []
 for instrument_code in instrument_list:
     for rule in trading_rules:
-        ans.append(system.accounts.pandl_for_instrument_forecast(instrument_code, rule).sharpe())
+        ans.append(
+            system.accounts.pandl_for_instrument_forecast(
+                instrument_code,
+                rule).sharpe())
 
 np.mean(ans)
 
-## average Rule
-ans=[]
+# average Rule
+ans = []
 for rule in trading_rules:
     ans.append(system.accounts.pandl_for_trading_rule(rule).sharpe())
 
 print(ans)
 
-## average instrument
-ans=[]
+# average instrument
+ans = []
 for instrument_code in instrument_list:
     ans.append(system.accounts.pandl_for_subsystem(instrument_code).sharpe())
 
 print(ans)
 
-## portfolio
+# portfolio
 system.accounts.portfolio().sharpe()

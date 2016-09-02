@@ -69,7 +69,7 @@ class csvFuturesData(FuturesData):
         >>> data=csvFuturesData("sysdata.tests")
         >>> data._get_all_cost_data()
                    Instrument  Slippage  PerBlock  Percentage  PerTrade
-        Instrument                                                     
+        Instrument
         BUND             BUND    0.0050      2.00           0         0
         US10             US10    0.0080      1.51           0         0
         EDOLLAR       EDOLLAR    0.0025      2.11           0         0
@@ -87,18 +87,17 @@ class csvFuturesData(FuturesData):
             self.log.warn("Cost file not found %s" % filename)
             return None
 
-        
     def get_raw_cost_data(self, instrument_code):
         """
         Get's cost data for an instrument
 
         Get cost data
-        
+
         Execution slippage [half spread] price units
         Commission (local currency) per block
         Commission - percentage of value (0.01 is 1%)
-        Commission (local currency) per block    
-        
+        Commission (local currency) per block
+
         :param instrument_code: instrument to value for
         :type instrument_code: str
 
@@ -110,28 +109,29 @@ class csvFuturesData(FuturesData):
         """
 
         default_costs = dict(price_slippage=0.0,
-                    value_of_block_commission=0.0,
-                    percentage_cost=0.0,
-                    value_of_pertrade_commission=0.0)
-        
+                             value_of_block_commission=0.0,
+                             percentage_cost=0.0,
+                             value_of_pertrade_commission=0.0)
+
         cost_data = self._get_all_cost_data()
-        
+
         if cost_data is None:
-            ## 
+            ##
             return default_costs
-        
+
         try:
-            block_move_value = cost_data.loc[instrument_code, ['Slippage', 'PerBlock', 'Percentage', 'PerTrade']]
+            block_move_value = cost_data.loc[instrument_code, [
+                'Slippage', 'PerBlock', 'Percentage', 'PerTrade']]
         except KeyError:
-            self.log.warn("Cost data not found for %s, using zero" % instrument_code)
+            self.log.warn(
+                "Cost data not found for %s, using zero" %
+                instrument_code)
             return default_costs
 
         return dict(price_slippage=block_move_value[0],
                     value_of_block_commission=block_move_value[1],
                     percentage_cost=block_move_value[2],
                     value_of_pertrade_commission=block_move_value[3])
-
-        
 
     def get_raw_price(self, instrument_code):
         """
@@ -154,12 +154,15 @@ class csvFuturesData(FuturesData):
         """
 
         # Read from .csv
-        self.log.msg("Loading csv data for %s" % instrument_code, instrument_code=instrument_code)
+        self.log.msg(
+            "Loading csv data for %s" %
+            instrument_code,
+            instrument_code=instrument_code)
         filename = os.path.join(self._datapath, instrument_code + "_price.csv")
         instrpricedata = pd_readcsv(filename)
         instrpricedata.columns = ["price"]
         instrpricedata = instrpricedata.groupby(level=0).last()
-        instrpricedata = pd.Series(instrpricedata.iloc[:,0])
+        instrpricedata = pd.Series(instrpricedata.iloc[:, 0])
         return instrpricedata
 
     def get_instrument_raw_carry_data(self, instrument_code):
@@ -182,7 +185,10 @@ class csvFuturesData(FuturesData):
         2015-12-11 17:24:06  126.945312    NaN         201606         201603
         """
 
-        self.log.msg("Loading csv carry data for %s" % instrument_code, instrument_code=instrument_code)
+        self.log.msg(
+            "Loading csv carry data for %s" %
+            instrument_code,
+            instrument_code=instrument_code)
 
         filename = os.path.join(
             self._datapath, instrument_code + "_carrydata.csv")
@@ -205,7 +211,7 @@ class csvFuturesData(FuturesData):
         >>> data=csvFuturesData("sysdata.tests")
         >>> data._get_instrument_data()
                    Instrument  Pointsize AssetClass Currency
-        Instrument                                          
+        Instrument
         EDOLLAR       EDOLLAR       2500       STIR      USD
         US10             US10       1000       Bond      USD
         BUND             BUND       1000       Bond      EUR
@@ -333,7 +339,7 @@ class csvFuturesData(FuturesData):
         except:
             return None
 
-        fxdata = pd.Series(fxdata.iloc[:,0])
+        fxdata = pd.Series(fxdata.iloc[:, 0])
 
         return fxdata
 

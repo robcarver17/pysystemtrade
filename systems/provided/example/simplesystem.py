@@ -21,7 +21,7 @@ def simplesystem(data=None, config=None, log_level="on"):
 
     my_system = System([Account(), PortfoliosFixed(), PositionSizing(), ForecastCombineFixed(), ForecastScaleCapFixed(), Rules()
                         ], data, config)
-    
+
     my_system.set_logging_level(log_level)
 
     return my_system

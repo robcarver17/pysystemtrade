@@ -78,17 +78,20 @@ my_system.rules.get_raw_forecast("EDOLLAR", "ewmac32").tail(5)
 from systems.forecast_scale_cap import ForecastScaleCap
 
 
-## we can estimate these ourselves
-my_config.instruments=[ "US10", "EDOLLAR", "CORN", "SP500"]
-my_config.use_forecast_scale_estimates=True
-fcs=ForecastScaleCap()
+# we can estimate these ourselves
+my_config.instruments = ["US10", "EDOLLAR", "CORN", "SP500"]
+my_config.use_forecast_scale_estimates = True
+fcs = ForecastScaleCap()
 my_system = System([fcs, my_rules], data, my_config)
-print(my_system.forecastScaleCap.get_forecast_scalar("EDOLLAR", "ewmac32").tail(5))
+print(
+    my_system.forecastScaleCap.get_forecast_scalar(
+        "EDOLLAR",
+        "ewmac32").tail(5))
 
-## or we can use the values from the book
+# or we can use the values from the book
 my_config.forecast_scalars = dict(ewmac8=5.3, ewmac32=2.65)
-my_config.use_forecast_scale_estimates=False
-fcs=ForecastScaleCap()
+my_config.use_forecast_scale_estimates = False
+fcs = ForecastScaleCap()
 my_system = System([fcs, my_rules], data, my_config)
 print(my_system.forecastScaleCap.get_capped_forecast(
     "EDOLLAR", "ewmac32").tail(5))
@@ -99,36 +102,34 @@ combine some rules
 
 from systems.forecast_combine import ForecastCombine
 
-## defaults
+# defaults
 combiner = ForecastCombine()
 my_system = System([fcs, my_rules, combiner], data, my_config)
 print(my_system.combForecast.get_forecast_weights("EDOLLAR").tail(5))
 print(my_system.combForecast.get_forecast_diversification_multiplier("EDOLLAR").tail(5))
 
 
-## estimates:
+# estimates:
 from systems.account import Account
 my_account = Account()
 combiner = ForecastCombine()
 
-my_config.forecast_weight_estimate=dict(method="one_period")
-my_config.use_forecast_weight_estimates=True
+my_config.forecast_weight_estimate = dict(method="one_period")
+my_config.use_forecast_weight_estimates = True
 
 my_system = System([my_account, fcs, my_rules, combiner], data, my_config)
 
-## this is a bit slow, better to know what's going on
+# this is a bit slow, better to know what's going on
 my_system.set_logging_level("on")
 
 print(my_system.combForecast.get_forecast_weights("EDOLLAR").tail(5))
 print(my_system.combForecast.get_forecast_diversification_multiplier("EDOLLAR").tail(5))
 
 
-
-
-## fixed:
+# fixed:
 my_config.forecast_weights = dict(ewmac8=0.5, ewmac32=0.5)
 my_config.forecast_div_multiplier = 1.1
-my_config.use_forecast_weight_estimates=False
+my_config.use_forecast_weight_estimates = False
 
 combiner = ForecastCombine()
 my_system = System([fcs, empty_rules, combiner], data, my_config)
@@ -155,10 +156,11 @@ print(my_system.positionSize.get_subsystem_position("EDOLLAR").tail(5))
 
 # portfolio - estimated
 from systems.portfolio import Portfolios
-portfolio= Portfolios()
+portfolio = Portfolios()
 
-my_config.use_instrument_weight_estimates=True
-my_config.instrument_weight_estimate=dict(method="shrinkage", date_method="in_sample")
+my_config.use_instrument_weight_estimates = True
+my_config.instrument_weight_estimate = dict(
+    method="shrinkage", date_method="in_sample")
 
 my_system = System([my_account, fcs, my_rules, combiner, possizer,
                     portfolio], data, my_config)
@@ -168,9 +170,9 @@ my_system.set_logging_level("on")
 print(my_system.portfolio.get_instrument_weights().tail(5))
 print(my_system.portfolio.get_instrument_diversification_multiplier().tail(5))
 
-## or fixed
+# or fixed
 portfolio = Portfolios()
-my_config.use_instrument_weight_estimates=False
+my_config.use_instrument_weight_estimates = False
 my_config.instrument_weights = dict(US10=.1, EDOLLAR=.4, CORN=.3, SP500=.2)
 my_config.instrument_div_multiplier = 1.5
 
@@ -188,7 +190,7 @@ my_system = System([fcs, my_rules, combiner, possizer,
 profits = my_system.accounts.portfolio()
 print(profits.percent().stats())
 
-## have costs data now
+# have costs data now
 print(profits.gross.percent().stats())
 print(profits.net.percent().stats())
 

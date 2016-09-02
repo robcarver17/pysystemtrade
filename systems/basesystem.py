@@ -26,7 +26,8 @@ class System(object):
 
     '''
 
-    def __init__(self, stage_list, data, config=None, log=logtoscreen("base_system")):
+    def __init__(self, stage_list, data, config=None,
+                 log=logtoscreen("base_system")):
         """
         Create a system object for doing simulations or live trading
 
@@ -55,16 +56,16 @@ class System(object):
             config = Config()
 
         config.fill_with_defaults()
-        
+
         setattr(self, "data", data)
         setattr(self, "config", config)
         setattr(self, "log", log)
-        
+
         setattr(data, "log", log.setup(stage="data"))
         setattr(config, "log", log.setup(stage="config"))
 
         protected = []
-        nopickle=[]
+        nopickle = []
         stage_names = []
 
         assert isinstance(stage_list, list)
@@ -82,9 +83,9 @@ class System(object):
 
             # Each stage has a link back to the parent system
             stage._system_init(self)
-            
+
             # and a log
-            log=log.setup(stage=sub_name)
+            log = log.setup(stage=sub_name)
             setattr(stage, "log", log)
 
             if sub_name in stage_names:
@@ -98,13 +99,14 @@ class System(object):
 
             # list of attributes / methods of the stage which are protected
             stage_protected = getattr(stage, "_protected", [])
-            stage_protected = [(sub_name, protected_item, "*") for protected_item in stage_protected]
+            stage_protected = [(sub_name, protected_item, "*")
+                               for protected_item in stage_protected]
             protected += stage_protected
-            
-            stage_nopickle=getattr(stage, "_nopickle", [])
-            stage_nopickle = [(sub_name, protected_item, "*") for protected_item in stage_nopickle]
+
+            stage_nopickle = getattr(stage, "_nopickle", [])
+            stage_nopickle = [(sub_name, protected_item, "*")
+                              for protected_item in stage_nopickle]
             nopickle += stage_nopickle
-            
 
         setattr(self, "_stage_names", stage_names)
 
@@ -127,17 +129,15 @@ class System(object):
         setattr(self, "_protected", protected)
         setattr(self, "_nopickle", nopickle)
 
-
     def __repr__(self):
         sslist = ", ".join(self._stage_names)
         return "System with .config, .data, and .stages: " + sslist
-    
 
     def set_logging_level(self, new_log_level):
         """
-        
+
         Set the log level for the system
-        
+
         :param new_log_level: one of ["off", "terse", "on"]
         :type new_log_level: str
 
@@ -146,10 +146,9 @@ class System(object):
 
         self.log.set_logging_level(new_log_level)
         for stage_name in self._stage_names:
-            stage=getattr(self, stage_name)
+            stage = getattr(self, stage_name)
             stage.log.set_logging_level(new_log_level)
-    
-        
+
     def get_instrument_list(self):
         """
         Get the instrument list
@@ -157,25 +156,22 @@ class System(object):
         :returns: list of instrument_code str
         """
         try:
-            ## if instrument weights specified in config ...
+            # if instrument weights specified in config ...
             instrument_list = self.config.instrument_weights.keys()
         except:
             try:
-                ## alternative place if 
+                # alternative place if
                 instrument_list = self.config.instruments
             except:
-                ## okay maybe not, must be in data
+                # okay maybe not, must be in data
                 instrument_list = self.data.get_instrument_list()
 
-        instrument_list=list(set(list(instrument_list)))
-        instrument_list.sort()
+        instrument_list = sorted(set(list(instrument_list)))
         return instrument_list
-
-
 
     """
     A cache lives inside each system object, storing preliminary results
-    
+
     It's a dict, with keys that are tuples (stage name, item name)
 
     There are 3 kinds of things in a cache with different levels of persistence:
@@ -196,14 +192,15 @@ class System(object):
     def partial_cache(self, itemsubset):
         """
         Returns the cache with only some items included
-        
+
         :param itemsubset: the items to include
         :type itemsubset: list of 3 tuples of str
 
         :returns: None
         """
-        
-        return dict([(itemname, self._cache[itemname]) for itemname in itemsubset])
+
+        return dict([(itemname, self._cache[itemname])
+                     for itemname in itemsubset])
 
     def pickle_cache(self, filename):
         """
@@ -217,24 +214,25 @@ class System(object):
         :returns: None
 
         """
-        
-        itemstopickle=self.get_items_with_data()
-        dont_pickle=self.get_nopickle_items()
-        
-        itemstopickle=[itemname for itemname in itemstopickle if itemname not in dont_pickle]
 
-        cache_to_pickle=self.partial_cache(itemstopickle)
+        itemstopickle = self.get_items_with_data()
+        dont_pickle = self.get_nopickle_items()
+
+        itemstopickle = [
+            itemname for itemname in itemstopickle if itemname not in dont_pickle]
+
+        cache_to_pickle = self.partial_cache(itemstopickle)
 
         with open(get_filename_for_package(filename), "wb") as fhandle:
             pickle.dump(cache_to_pickle, fhandle)
 
     def unpickle_cache(self, filename, clearcache=True):
         """
-        Loads the saved cache 
-        
+        Loads the saved cache
+
         Note that certain elements (accountCurve objects and optimisers) won't be pickled, and so won't
            be loaded. You will need to regenerate these.
-        
+
         If clearcache is True then we clear the entire cache first. Otherwise we end up with a 'mix'
            - not advised so do at your peril
 
@@ -245,65 +243,70 @@ class System(object):
         :type clearcache: bool
 
         :returns: None
-             
+
         """
 
         with open(get_filename_for_package(filename), "rb") as fhandle:
-            cache_from_pickled= pickle.load(fhandle)
+            cache_from_pickled = pickle.load(fhandle)
 
         if clearcache:
-            self._cache=dict()
-        
+            self._cache = dict()
+
         for itemname in cache_from_pickled.keys():
-            self._cache[itemname]=cache_from_pickled[itemname]
+            self._cache[itemname] = cache_from_pickled[itemname]
 
     def get_protected_items(self):
         """
         Return items in the cache which are protected
         Resolves wildcards for 3rd position in tuple
-         
+
         :returns: list of 3 tuple str
         """
-        
-        putative_list=self._protected
-        itemswithdata=self.get_items_with_data()
-        
-        actual_list=[]
+
+        putative_list = self._protected
+        itemswithdata = self.get_items_with_data()
+
+        actual_list = []
         for pr in putative_list:
-            if pr[2]=="*": ## wildcard
-                matched_items=[item for item in itemswithdata if (item[0]==pr[0]) & (item[1]==pr[1])]
-                actual_list=actual_list+matched_items
+            if pr[2] == "*":  # wildcard
+                matched_items = [
+                    item for item in itemswithdata if (
+                        item[0] == pr[0]) & (
+                        item[1] == pr[1])]
+                actual_list = actual_list + matched_items
             else:
                 actual_list.append(pr)
-                
+
         return actual_list
 
     def get_nopickle_items(self):
         """
         Return items in the cache which can't be pickled
         Resolves wildcards for 3rd position in tuple
-         
+
         :returns: list of 3 tuple str
         """
-        
-        putative_list=self._nopickle
-        itemswithdata=self.get_items_with_data()
-        
-        actual_list=[]
+
+        putative_list = self._nopickle
+        itemswithdata = self.get_items_with_data()
+
+        actual_list = []
         for pr in putative_list:
-            if pr[2]=="*": ## wildcard
-                matched_items=[item for item in itemswithdata if (item[0]==pr[0]) & (item[1]==pr[1])]
-                actual_list=actual_list+matched_items
+            if pr[2] == "*":  # wildcard
+                matched_items = [
+                    item for item in itemswithdata if (
+                        item[0] == pr[0]) & (
+                        item[1] == pr[1])]
+                actual_list = actual_list + matched_items
             else:
                 actual_list.append(pr)
-                
-        return actual_list
 
+        return actual_list
 
     def get_instrument_codes_for_item(self, itemname):
         """
         Return all the instruments with cache data for a particular itemname
-        
+
         :param itemname: cache location
         :type itemname: 3 tuple of str: stage name, item identifier, flags eg ("rawdata", "get_fx_rate", "")
 
@@ -316,14 +319,15 @@ class System(object):
     def get_itemnames_for_stage(self, stagename):
         """
         Returns cache itemnames relevant to a particular stage
-        
+
         :param stagename: stage name eg rawdata
         :type stagename: str
 
         :returns: list of 3 tuples of str: stage name, item identifier, flags eg ("rawdata", "get_fx_rate", "")
-             
+
         """
-        cache_refs = [itemref for itemref in self._cache.keys() if stagename in itemref]
+        cache_refs = [itemref for itemref in self._cache.keys()
+                      if stagename in itemref]
 
         return cache_refs
 
@@ -357,7 +361,7 @@ class System(object):
 
         WARNING: Will kill protected things as well
         """
-        
+
         self.log.msg("Deleting %s from cache" % str(itemname))
 
         if itemname not in self._cache:
@@ -368,7 +372,7 @@ class System(object):
     def delete_items_for_stage(self, stagename, delete_protected=False):
         """
         Delete all items with data for a particular stage
-        
+
         :param stagename: stage name eg rawdata
         :type stagename: str
 
@@ -379,12 +383,13 @@ class System(object):
 
         """
 
-        itemnames = self.get_itemnames_for_stage( stagename)
-        
+        itemnames = self.get_itemnames_for_stage(stagename)
+
         if not delete_protected:
-            ## want to protect stuff
-            itemnames = [iname for iname in itemnames if iname not in self.get_protected_items()]
-            
+            # want to protect stuff
+            itemnames = [
+                iname for iname in itemnames if iname not in self.get_protected_items()]
+
         return [self.delete_item(iname) for iname in itemnames]
 
     def delete_items_for_instrument(self, instrument_code,
@@ -425,23 +430,23 @@ class System(object):
 
     def get_items_across_system(self):
         """
-        Returns cross market cache itemnames 
-        
+        Returns cross market cache itemnames
+
         :returns: list of 3 tuples of str: stage name, item identifier, flags eg ("rawdata", "get_fx_rate", "")
-             
+
         """
 
         return self.get_items_for_instrument(ALL_KEYNAME)
 
     def delete_items_across_system(self, delete_protected=False):
         """
-        Deletes cross market cache itemnames 
+        Deletes cross market cache itemnames
 
         :param deleted_protected: Delete everything, even stuff in self.protected?
         :type delete_protected: bool
-        
+
         :returns: deleted data
-             
+
         """
 
         return self.delete_items_for_instrument(
@@ -449,13 +454,13 @@ class System(object):
 
     def delete_all_items(self, delete_protected=False):
         """
-        Delete everything in the cache 
+        Delete everything in the cache
 
         :param deleted_protected: Delete everything, even stuff in self.protected?
         :type delete_protected: bool
-        
+
         :returns: deleted data
-             
+
         """
 
         item_list = self.get_items_with_data()
@@ -467,7 +472,6 @@ class System(object):
 
         deleted_values = [self.delete_item(itemname) for itemname in item_list]
 
-        
     def get_item_from_cache(
             self, cache_ref, instrument_code=ALL_KEYNAME, keyname=None):
         """
@@ -484,9 +488,9 @@ class System(object):
 
         :returns: None or item
         """
-        if len(cache_ref)==2:
-            cache_ref=(cache_ref[0],cache_ref[1],"")
-        
+        if len(cache_ref) == 2:
+            cache_ref = (cache_ref[0], cache_ref[1], "")
+
         if cache_ref not in self._cache:
             # no cache for this item yet
             return None
@@ -527,8 +531,8 @@ class System(object):
         :returns: None or item
         """
 
-        if len(cache_ref)==2:
-            cache_ref=(cache_ref[0],cache_ref[1],"")
+        if len(cache_ref) == 2:
+            cache_ref = (cache_ref[0], cache_ref[1], "")
 
         if cache_ref not in self._cache:
             return None
@@ -572,8 +576,8 @@ class System(object):
         :returns: None or item
         """
 
-        if len(cache_ref)==2:
-            cache_ref=(cache_ref[0],cache_ref[1],"")
+        if len(cache_ref) == 2:
+            cache_ref = (cache_ref[0], cache_ref[1], "")
 
         if cache_ref not in self._cache:
             # no cache for this item yet, let's set one up
@@ -592,7 +596,8 @@ class System(object):
 
         return value
 
-    def calc_or_cache(self, itemname, instrument_code, func, this_stage,  *args, flags="", **kwargs):
+    def calc_or_cache(self, itemname, instrument_code, func,
+                      this_stage, *args, flags="", **kwargs):
         """
         Assumes that self._cache has an attribute itemname, and that is a dict
 
@@ -622,17 +627,17 @@ class System(object):
 
         """
         #flags=kwargs.pop("flags", "")
-            
-        cache_ref=(this_stage.name, itemname, flags)
+
+        cache_ref = (this_stage.name, itemname, flags)
         value = self.get_item_from_cache(cache_ref, instrument_code)
 
         if value is None:
-            value = func(self, instrument_code, this_stage,  *args, **kwargs)
+            value = func(self, instrument_code, this_stage, *args, **kwargs)
             self.set_item_in_cache(value, cache_ref, instrument_code)
 
         return value
 
-    def calc_or_cache_nested(self, itemname, instrument_code, keyname, func, this_stage, 
+    def calc_or_cache_nested(self, itemname, instrument_code, keyname, func, this_stage,
                              *args, **kwargs):
         """
         Assumes that self._cache has a key itemname, and that is a nested dict
@@ -665,14 +670,20 @@ class System(object):
 
         :returns: contents of dict or result of calling function
         """
-        flags=kwargs.pop("flags", "")
+        flags = kwargs.pop("flags", "")
 
-        cache_ref=(this_stage.name, itemname, flags)
+        cache_ref = (this_stage.name, itemname, flags)
 
         value = self.get_item_from_cache(cache_ref, instrument_code, keyname)
 
         if value is None:
-            value = func(self, instrument_code, keyname, this_stage, *args, **kwargs)
+            value = func(
+                self,
+                instrument_code,
+                keyname,
+                this_stage,
+                *args,
+                **kwargs)
             self.set_item_in_cache(value, cache_ref, instrument_code, keyname)
 
         return value

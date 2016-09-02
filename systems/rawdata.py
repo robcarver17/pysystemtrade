@@ -9,7 +9,7 @@ class RawData(SystemStage):
     """
         A SystemStage that does some fairly common calculations before we do
         forecasting and which gives access to some widely used methods.
-         
+
             This is optional; forecasts can go straight to system.data
             The advantages of using RawData are:
                    - preliminary calculations that are reused can be cached, to
@@ -36,7 +36,7 @@ class RawData(SystemStage):
         setattr(self, "description", "")
 
     def _system_init(self, system):
-        ## method called once we have a system
+        # method called once we have a system
         setattr(self, "parent", system)
 
     def get_daily_prices(self, instrument_code):
@@ -51,7 +51,10 @@ class RawData(SystemStage):
         KEY OUTPUT
         """
         def _daily_prices(system, instrument_code, this_stage):
-            this_stage.log.msg("Calculating daily prices for %s" % instrument_code, instrument_code=instrument_code)
+            this_stage.log.msg(
+                "Calculating daily prices for %s" %
+                instrument_code,
+                instrument_code=instrument_code)
             dailyprice = system.data.daily_prices(instrument_code)
             return dailyprice
 
@@ -59,8 +62,6 @@ class RawData(SystemStage):
             "daily_price", instrument_code, _daily_prices, self)
 
         return dailyprice
-        
-
 
     def daily_denominator_price(self, instrument_code):
         """
@@ -173,11 +174,14 @@ class RawData(SystemStage):
 
         """
         def _daily_returns_volatility(system, instrument_code, this_stage):
-            this_stage.log.msg("Calculating daily volatility for %s" % instrument_code, instrument_code=instrument_code)
+            this_stage.log.msg(
+                "Calculating daily volatility for %s" %
+                instrument_code,
+                instrument_code=instrument_code)
 
             dailyreturns = this_stage.daily_returns(instrument_code)
 
-            volconfig=copy(system.config.volatility_calculation)
+            volconfig = copy(system.config.volatility_calculation)
 
             # volconfig contains 'func' and some other arguments
             # we turn func which could be a string into a function, and then
@@ -218,16 +222,16 @@ class RawData(SystemStage):
                 system, instrument_code, this_stage):
             denom_price = this_stage.daily_denominator_price(instrument_code)
             return_vol = this_stage.daily_returns_volatility(instrument_code)
-            (denom_price, return_vol) = denom_price.align(return_vol, join="right")
+            (denom_price, return_vol) = denom_price.align(
+                return_vol, join="right")
             perc_vol = 100.0 * \
-                (return_vol /  denom_price.shift(1))
+                (return_vol / denom_price.shift(1))
 
             return perc_vol
 
         perc_vol = self.parent.calc_or_cache(
             "daily_percentage_volatility", instrument_code, _get_daily_percentage_volatility, self)
         return perc_vol
-
 
     def norm_returns(self, instrument_code):
         """
@@ -252,7 +256,10 @@ class RawData(SystemStage):
         2015-12-11     1.985413
         """
         def _norm_returns(system, instrument_code, this_stage):
-            this_stage.log.msg("Calculating normalised prices for %s" % instrument_code, instrument_code=instrument_code)
+            this_stage.log.msg(
+                "Calculating normalised prices for %s" %
+                instrument_code,
+                instrument_code=instrument_code)
 
             returnvol = this_stage.daily_returns_volatility(
                 instrument_code).shift(1)

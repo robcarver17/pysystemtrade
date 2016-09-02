@@ -76,7 +76,7 @@ def calc_ewmac_forecast(price, Lfast, Lslow=None):
     # And we'll miss out on the rolldown. See
     # http://qoppac.blogspot.co.uk/2015/05/systems-building-futures-rolling.html
 
-    price=price.resample("1B", how="last")
+    price = price.resample("1B", how="last")
 
     if Lslow is None:
         Lslow = 4 * Lfast
@@ -90,7 +90,7 @@ def calc_ewmac_forecast(price, Lfast, Lslow=None):
 
     vol = robust_vol_calc(price.diff())
 
-    return raw_ewmac /  vol
+    return raw_ewmac / vol
 
 """
 Try it out
@@ -100,7 +100,7 @@ Try it out
 instrument_code = 'EDOLLAR'
 price = data.daily_prices(instrument_code)
 ewmac = calc_ewmac_forecast(price, 32, 128)
-ewmac.columns=['forecast']
+ewmac.columns = ['forecast']
 print(ewmac.tail(5))
 
 from matplotlib.pyplot import show

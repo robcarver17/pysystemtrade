@@ -17,7 +17,8 @@ from systems.defaults import get_system_defaults
 from syslogdiag.log import logtoscreen
 from syscore.objects import get_methods
 
-RESERVED_NAMES=["log", "_elements"]
+RESERVED_NAMES = ["log", "_elements"]
+
 
 class Config(object):
 
@@ -44,8 +45,8 @@ class Config(object):
         Config with elements: another_thing, parameters, trading_rules
 
         """
-        setattr(self, "_elements", []) ## will be populated later
-        
+        setattr(self, "_elements", [])  # will be populated later
+
         if isinstance(config_object, list):
             # multiple configs
             for config_item in config_object:
@@ -53,9 +54,8 @@ class Config(object):
         else:
             self._create_config_from_item(config_object)
 
-        ## this will normally be overriden by the base system
-        setattr(self, "log", logtoscreen( stage="config"))
-
+        # this will normally be overriden by the base system
+        setattr(self, "log", logtoscreen(stage="config"))
 
     def _create_config_from_item(self, config_item):
         if isinstance(config_item, dict):
@@ -71,7 +71,7 @@ class Config(object):
             self._create_config_from_dict(dict_to_parse)
 
         else:
-            error_msg="Can only create a config with a nested dict or the string of a 'yamable' filename, or a list comprising these things"
+            error_msg = "Can only create a config with a nested dict or the string of a 'yamable' filename, or a list comprising these things"
             self.log.critical(error_msg)
 
     def _create_config_from_dict(self, config_object):
@@ -100,20 +100,18 @@ class Config(object):
         >>> del(config.another_thing)
         >>> config
         Config with elements: parameters
-        >>> 
+        >>>
         """
-        ## to avoid recursion, we must first avoid recursion
+        # to avoid recursion, we must first avoid recursion
         super().__delattr__(element_name)
 
-        elements=self._elements
+        elements = self._elements
         elements.remove(element_name)
-
-        
 
     def __setattr__(self, element_name, value):
         """
         Add / replace element_name in config
-        
+
         >>> config=Config(dict(parameters=dict(p1=3, p2=4.6), another_thing=[]))
         >>> config.another_thing="test"
         >>> config.another_thing
@@ -121,16 +119,16 @@ class Config(object):
         >>> config.yet_another_thing="more testing"
         >>> config
         Config with elements: another_thing, parameters, yet_another_thing
-        >>> 
+        >>>
         """
-        ## to avoid recursion, we must first avoid recursion
+        # to avoid recursion, we must first avoid recursion
         super().__setattr__(element_name, value)
 
-        if element_name not in RESERVED_NAMES:        
-            elements=self._elements
+        if element_name not in RESERVED_NAMES:
+            elements = self._elements
             if element_name not in elements:
                 elements.append(element_name)
-        
+
     def fill_with_defaults(self):
         """
         Fills with defaults
@@ -152,97 +150,95 @@ class Config(object):
         500
         """
         self.log.msg("Adding config defaults")
-        
-        existing_elements=self._elements
-        default_elements=list(get_system_defaults().keys())
-        
-        new_elements=list(set(existing_elements+default_elements))
-        [self.element_fill_with_defaults(element_name) for element_name in new_elements]
+
+        existing_elements = self._elements
+        default_elements = list(get_system_defaults().keys())
+
+        new_elements = list(set(existing_elements + default_elements))
+        [self.element_fill_with_defaults(element_name)
+         for element_name in new_elements]
 
         setattr(self, "_elements", new_elements)
-
 
     def element_fill_with_defaults(self, element_name):
         """
         Fills the config with any defaults for element_name
 
         If item is a dict, then calls dict_with_defaults
-        
+
         """
 
-
-        config_item=getattr(self, element_name, None)
-        default_item=get_system_defaults().get(element_name, None)
+        config_item = getattr(self, element_name, None)
+        default_item = get_system_defaults().get(element_name, None)
 
         if config_item is None:
             if default_item is None:
-                error_msg="Element %s not in defaults or config" % element_name
+                error_msg = "Element %s not in defaults or config" % element_name
                 self.log.critical(error_msg)
 
             else:
-                config_item=default_item
-        
-        if type(config_item) is dict:
-            if type(default_item) is dict:
-                config_item=self.dict_with_defaults(element_name)
+                config_item = default_item
+
+        if isinstance(config_item, dict):
+            if isinstance(default_item, dict):
+                config_item = self.dict_with_defaults(element_name)
         else:
-            if type(default_item) is dict:
-                error_msg="Config item %s is not a dict, but it is in the default!" % element_name    
+            if isinstance(default_item, dict):
+                error_msg = "Config item %s is not a dict, but it is in the default!" % element_name
                 self.log.critical(error_msg)
 
-            
         setattr(self, element_name, config_item)
-        
 
     def dict_with_defaults(self, element_name):
         """
         Returns config.element_name with any keys missing replaced with system defaults
-        
+
         Only works for configs where the element is a dict
         """
-        config_dict=copy(getattr(self, element_name, dict()))
-        
-        default_dict=get_system_defaults().get(element_name, dict())
-        required=default_dict.keys()
-            
+        config_dict = copy(getattr(self, element_name, dict()))
+
+        default_dict = get_system_defaults().get(element_name, dict())
+        required = default_dict.keys()
+
         for dict_key in required:
-            ## key automatically in default...
+            # key automatically in default...
             if dict_key not in config_dict:
-                config_dict[dict_key]=default_dict[dict_key]
-        
-            if type(config_dict[dict_key]) is dict:
-                if type(default_dict[dict_key]) is dict:
-                    config_dict[dict_key]=self.nested_dict_with_defaults(element_name, dict_key)
+                config_dict[dict_key] = default_dict[dict_key]
+
+            if isinstance(config_dict[dict_key], dict):
+                if isinstance(default_dict[dict_key], dict):
+                    config_dict[dict_key] = self.nested_dict_with_defaults(
+                        element_name, dict_key)
             else:
-                if type(default_dict[dict_key]) is dict:
-                    error_msg="You've created a config where %s.%s is not a dict, but it is in the default config!"%(element_name, dict_key)
+                if isinstance(default_dict[dict_key], dict):
+                    error_msg = "You've created a config where %s.%s is not a dict, but it is in the default config!" % (
+                        element_name, dict_key)
                     self.log.critical(error_msg)
-                
+
         return config_dict
 
     def nested_dict_with_defaults(self, element_name, dict_name):
         """
         Returns config.element_name[dict_name] with any keys required replaced with system defaults
-        
+
         Only works for configs where the element is a nested dict
         """
-        element_in_config=copy(getattr(self, element_name, dict()))
-        nested_config_dict=element_in_config.get(dict_name,dict())
+        element_in_config = copy(getattr(self, element_name, dict()))
+        nested_config_dict = element_in_config.get(dict_name, dict())
 
-        element_in_default=get_system_defaults().get(element_name, dict())
-        nested_default_dict=element_in_default.get(dict_name, dict())
+        element_in_default = get_system_defaults().get(element_name, dict())
+        nested_default_dict = element_in_default.get(dict_name, dict())
 
-        required=nested_default_dict.keys()
+        required = nested_default_dict.keys()
 
-        if len(required)>0:
-            
+        if len(required) > 0:
+
             for dict_key in required:
                 if dict_key not in nested_config_dict:
-                    nested_config_dict[dict_key]=nested_default_dict[dict_key]
-                
-            
-        return nested_config_dict
+                    nested_config_dict[
+                        dict_key] = nested_default_dict[dict_key]
 
+        return nested_config_dict
 
     def __repr__(self):
         element_names = sorted(getattr(self, "_elements", []))

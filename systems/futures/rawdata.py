@@ -3,7 +3,7 @@ import numpy as np
 from systems.rawdata import RawData
 from syscore.objects import update_recalc
 from syscore.dateutils import expiry_diff
-from syscore.pdutils import  uniquets
+from syscore.pdutils import uniquets
 
 
 class FuturesRawData(RawData):
@@ -33,9 +33,8 @@ class FuturesRawData(RawData):
 
         protected = []
         update_recalc(self, protected)
-        
-        setattr(self, "description", "futures")
 
+        setattr(self, "description", "futures")
 
     def get_instrument_raw_carry_data(self, instrument_code):
         """
@@ -97,8 +96,8 @@ class FuturesRawData(RawData):
 
             raw_roll[raw_roll == 0] = np.nan
 
-            raw_roll=uniquets(raw_roll)
-            
+            raw_roll = uniquets(raw_roll)
+
             return raw_roll
 
         raw_roll = self.parent.calc_or_cache(
@@ -166,7 +165,7 @@ class FuturesRawData(RawData):
             rolldiffs = this_stage.roll_differentials(instrument_code)
             rawrollvalues = this_stage.raw_futures_roll(instrument_code)
 
-            annroll = rawrollvalues /  rolldiffs
+            annroll = rawrollvalues / rolldiffs
 
             return annroll
 

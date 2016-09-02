@@ -11,7 +11,8 @@ import warnings
 from syscore.genutils import str2Bool
 from systems.defaults import system_defaults
 
-LARGE_NUMBER_OF_DAYS=250*100*100
+LARGE_NUMBER_OF_DAYS = 250 * 100 * 100
+
 
 def apply_with_min_periods(xcol, my_func=np.nanmean, min_periods=0):
     """
@@ -24,12 +25,12 @@ def apply_with_min_periods(xcol, my_func=np.nanmean, min_periods=0):
     :param min_periods: The minimum number of observations (*default* 10)
     :type min_periods: int
 
-    :returns: pd.DataFrame Tx 1 
+    :returns: pd.DataFrame Tx 1
     """
-    not_nan=sum(~np.isnan(xcol))
-    
-    if not_nan>=min_periods:
-    
+    not_nan = sum(~np.isnan(xcol))
+
+    if not_nan >= min_periods:
+
         return my_func(xcol)
     else:
         return np.nan
@@ -53,16 +54,22 @@ def vol_estimator(x, using_exponent=True, min_periods=20, ew_lookback=250):
 
     """
     if using_exponent:
-        vol = pd.ewmstd(x, span=ew_lookback, min_periods=min_periods).iloc[-1,:].values[0]
-        
+        vol = pd.ewmstd(x, span=ew_lookback,
+                        min_periods=min_periods).iloc[-1, :].values[0]
+
     else:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", category=RuntimeWarning)
-            vol=x.apply(apply_with_min_periods,axis=0,min_periods=min_periods, my_func=np.nanstd) 
-    
-    stdev_list=list(vol)
-    
+            vol = x.apply(
+                apply_with_min_periods,
+                axis=0,
+                min_periods=min_periods,
+                my_func=np.nanstd)
+
+    stdev_list = list(vol)
+
     return stdev_list
+
 
 def mean_estimator(x, using_exponent=True, min_periods=20, ew_lookback=500):
     """
@@ -73,19 +80,22 @@ def mean_estimator(x, using_exponent=True, min_periods=20, ew_lookback=500):
 
     """
     if using_exponent:
-        means=pd.ewma(x, span=ew_lookback, min_periods=min_periods).iloc[-1,:].values[0]
-        
+        means = pd.ewma(x, span=ew_lookback,
+                        min_periods=min_periods).iloc[-1, :].values[0]
+
     else:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", category=RuntimeWarning)
 
-            means=x.apply(apply_with_min_periods,axis=0,min_periods=min_periods, my_func=np.nanmean)
-            
-    mean_list=list(means)
-    
+            means = x.apply(
+                apply_with_min_periods,
+                axis=0,
+                min_periods=min_periods,
+                my_func=np.nanmean)
+
+    mean_list = list(means)
+
     return mean_list
-
-
 
 
 def robust_vol_calc(x, days=35, min_periods=10, vol_abs_min=0.0000000001, vol_floor=True,
@@ -148,73 +158,74 @@ def robust_vol_calc(x, days=35, min_periods=10, vol_abs_min=0.0000000001, vol_fl
 def forecast_scalar(xcross, window=250000, min_periods=500, backfill=True):
     """
     Work out the scaling factor for xcross such that T*x has an abs value of 10
-    
-    :param x: 
+
+    :param x:
     :type x: pd.DataFrame TxN
-    
+
     :param span:
     :type span: int
-    
+
     :param min_periods:
-    
-    
-    :returns: pd.DataFrame 
+
+
+    :returns: pd.DataFrame
     """
-    backfill=str2Bool(backfill) ## in yaml will come in as text
-    ##We don't allow this to be changed in config
+    backfill = str2Bool(backfill)  # in yaml will come in as text
+    # We don't allow this to be changed in config
     target_abs_forecast = system_defaults['average_absolute_forecast']
 
-    ## Take CS average first
-    ## we do this before we get the final TS average otherwise get jumps in scalar
-    if xcross.shape[1]==1:
-        x=xcross.abs().iloc[:,0]
+    # Take CS average first
+    # we do this before we get the final TS average otherwise get jumps in
+    # scalar
+    if xcross.shape[1] == 1:
+        x = xcross.abs().iloc[:, 0]
     else:
-        x=xcross.ffill().abs().median(axis=1)
-    
-    ## now the TS 
-    avg_abs_value=pd.rolling_mean(x, window=window, min_periods=min_periods)
-    scaling_factor=target_abs_forecast/avg_abs_value
+        x = xcross.ffill().abs().median(axis=1)
 
-    
+    # now the TS
+    avg_abs_value = pd.rolling_mean(x, window=window, min_periods=min_periods)
+    scaling_factor = target_abs_forecast / avg_abs_value
+
     if backfill:
-        scaling_factor=scaling_factor.fillna(method="bfill")
+        scaling_factor = scaling_factor.fillna(method="bfill")
 
     return scaling_factor
 
 
-def apply_buffer_single_period(last_position, optimal_position, top_pos, bot_pos, trade_to_edge):
+def apply_buffer_single_period(
+        last_position, optimal_position, top_pos, bot_pos, trade_to_edge):
     """
     Apply a buffer to a position, single period
-    
-    If position is outside the buffer, we eithier trade to the edge of the buffer, or to the optimal 
-    
-    :param last_position: last position we had 
+
+    If position is outside the buffer, we eithier trade to the edge of the buffer, or to the optimal
+
+    :param last_position: last position we had
     :type last_position: float
 
-    :param optimal_position: ideal position 
+    :param optimal_position: ideal position
     :type optimal_position: float
 
-    :param top_pos: top of buffer 
+    :param top_pos: top of buffer
     :type top_pos: float
 
-    :param bot_pos: bottom of buffer 
+    :param bot_pos: bottom of buffer
     :type bot_pos: float
-    
+
     :param trade_to_edge: Trade to the edge (TRue) or the optimal (False)
     :type trade_to_edge: bool
-    
-    :returns: float 
+
+    :returns: float
     """
 
     if np.isnan(top_pos) or np.isnan(bot_pos) or np.isnan(optimal_position):
         return last_position
-    
-    if last_position>top_pos:
+
+    if last_position > top_pos:
         if trade_to_edge:
             return top_pos
         else:
             return optimal_position
-    elif last_position<bot_pos:
+    elif last_position < bot_pos:
         if trade_to_edge:
             return bot_pos
         else:
@@ -223,56 +234,59 @@ def apply_buffer_single_period(last_position, optimal_position, top_pos, bot_pos
         return last_position
 
 
-def apply_buffer(optimal_position, pos_buffers, trade_to_edge=False, roundpositions=False):
+def apply_buffer(optimal_position, pos_buffers,
+                 trade_to_edge=False, roundpositions=False):
     """
     Apply a buffer to a position
-    
-    If position is outside the buffer, we eithier trade to the edge of the buffer, or to the optimal 
-    
+
+    If position is outside the buffer, we eithier trade to the edge of the buffer, or to the optimal
+
     If we're rounding positions, then we floor and ceiling the buffers.
-    
-    :param position: optimal position 
+
+    :param position: optimal position
     :type position: pd.Series
-    
-    :param pos_buffers: 
+
+    :param pos_buffers:
     :type pos_buffers: Tx2 pd.dataframe, top_pos and bot_pos
-    
+
     :param trade_to_edge: Trade to the edge (TRue) or the optimal (False)
     :type trade_to_edge: bool
 
     :param round_positions: Produce rounded positions
     :type round_positions: bool
 
-    
-    :returns: pd.Series 
+
+    :returns: pd.Series
     """
-        
-    pos_buffers=pos_buffers.ffill()
+
+    pos_buffers = pos_buffers.ffill()
     use_optimal_position = optimal_position.ffill()
-    
-    top_pos=pos_buffers.top_pos
-    bot_pos=pos_buffers.bot_pos
-    
+
+    top_pos = pos_buffers.top_pos
+    bot_pos = pos_buffers.bot_pos
+
     if roundpositions:
-        use_optimal_position=use_optimal_position.round()
-        top_pos=top_pos.round()
-        bot_pos=bot_pos.round()
+        use_optimal_position = use_optimal_position.round()
+        top_pos = top_pos.round()
+        bot_pos = bot_pos.round()
 
-    current_position=use_optimal_position.values[0]
+    current_position = use_optimal_position.values[0]
     if np.isnan(current_position):
-        current_position=0.0
+        current_position = 0.0
 
-    buffered_position_list=[current_position]
-    
-    for idx in range(len(optimal_position.index))[1:]:       
-        current_position=apply_buffer_single_period(
-                            current_position, float(use_optimal_position.values[idx]), 
-                            float(top_pos.values[idx]), float(bot_pos.values[idx]), 
-                            trade_to_edge)
+    buffered_position_list = [current_position]
+
+    for idx in range(len(optimal_position.index))[1:]:
+        current_position = apply_buffer_single_period(
+            current_position, float(use_optimal_position.values[idx]),
+            float(top_pos.values[idx]), float(bot_pos.values[idx]),
+            trade_to_edge)
         buffered_position_list.append(current_position)
-    
-    buffered_position = pd.Series(buffered_position_list, index = optimal_position.index)
-    
+
+    buffered_position = pd.Series(
+        buffered_position_list,
+        index=optimal_position.index)
+
     return buffered_position
 
 if __name__ == '__main__':

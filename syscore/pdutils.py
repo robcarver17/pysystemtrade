@@ -7,27 +7,29 @@ import numpy as np
 from syscore.fileutils import get_filename_for_package
 from syscore.dateutils import BUSINESS_DAYS_IN_YEAR
 
+
 def turnover(x, y):
     """
     Gives the turnover of x, once normalised for y
-    
+
     Returned in annualised terms
     """
-    
-    if type(y) is float:
-        y=pd.Series([y]*len(x.index) , x.index)
-    
-    norm_x= x / y.ffill()
-    
-    avg_daily=float(norm_x.diff().abs().resample("1B", how="sum").mean())
 
-    return avg_daily*BUSINESS_DAYS_IN_YEAR
+    if isinstance(y, float):
+        y = pd.Series([y] * len(x.index), x.index)
+
+    norm_x = x / y.ffill()
+
+    avg_daily = float(norm_x.diff().abs().resample("1B", how="sum").mean())
+
+    return avg_daily * BUSINESS_DAYS_IN_YEAR
+
 
 def uniquets(x):
     """
     Makes x unique
     """
-    x=x.groupby(level=0).last()
+    x = x.groupby(level=0).last()
     return x
 
 
@@ -35,37 +37,38 @@ def df_from_list(data):
     """
     data frame from list
     """
-    if type(data) is list:        
-        column_names=list(set(sum([list(data_item.columns) for data_item in data],[])))
-        column_names.sort()
-        ## ensure all are properly aligned
-        ## note we don't check that all the columns match here
-        data=[data_item[column_names] for data_item in data]
-        
-        ## add on an offset
+    if isinstance(data, list):
+        column_names = sorted(
+            set(sum([list(data_item.columns) for data_item in data], [])))
+        # ensure all are properly aligned
+        # note we don't check that all the columns match here
+        data = [data_item[column_names] for data_item in data]
+
+        # add on an offset
         for (offset_value, data_item) in enumerate(data):
-            data_item.index=data_item.index + pd.Timedelta("%ds" % offset_value)
-    
-        ## pooled
-        ## stack everything up
-        data=pd.concat(data, axis=0)
-        data=data.sort_index()
-            
+            data_item.index = data_item.index + \
+                pd.Timedelta("%ds" % offset_value)
+
+        # pooled
+        # stack everything up
+        data = pd.concat(data, axis=0)
+        data = data.sort_index()
+
     return data
 
 
 def must_haves_from_list(data):
-    must_haves_list=[must_have_item(data_item) 
-                     for data_item in data]
-    must_haves=list(set(sum(must_haves_list,[])))
-    
+    must_haves_list = [must_have_item(data_item)
+                       for data_item in data]
+    must_haves = list(set(sum(must_haves_list, [])))
+
     return must_haves
 
 
 def must_have_item(slice_data):
     """
-    Returns the columns of slice_data for which we have at least one non nan value  
-    
+    Returns the columns of slice_data for which we have at least one non nan value
+
     :param slice_data: Data to get correlations from
     :type slice_data: pd.DataFrame
 
@@ -73,16 +76,17 @@ def must_have_item(slice_data):
 
     >>>
     """
-        
+
     def _any_data(xseries):
-        data_present=[not np.isnan(x) for x in xseries]
-        
+        data_present = [not np.isnan(x) for x in xseries]
+
         return any(data_present)
-    
-    some_data=slice_data.apply(_any_data, axis=0)
-    some_data_flags=list(some_data.values)
-    
+
+    some_data = slice_data.apply(_any_data, axis=0)
+    some_data_flags = list(some_data.values)
+
     return some_data_flags
+
 
 def pd_readcsv_frompackage(filename):
     """
@@ -162,12 +166,6 @@ def apply_cap(pd_series, capvalue):
     return joined_ts
 
 
-
-
-
-
-
-
 def fix_weights_vs_pdm(weights, pdm):
     """
     Take a matrix of weights and positions/forecasts (pdm)
@@ -219,12 +217,10 @@ def drawdown(x):
     :param x: pd.DataFrame or Series
 
     :returns: pd.DataFrame or Series
-    
+
     """
     maxx = pd.rolling_max(x, len(x), min_periods=1)
     return x - maxx
-
-
 
 
 if __name__ == '__main__':

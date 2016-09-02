@@ -23,7 +23,8 @@ class Test(unittest.TestCase):
             [100, 103, 105, 106, 110, 105, np.nan, 106, 120, np.nan, 142],
             dt_range2)
         forecast = pd.DataFrame(
-            [np.nan, np.nan, np.nan, np.nan, 10.0, 10.0, 15.0, 15.0, 5.0, 0.0, -5.0],
+            [np.nan, np.nan, np.nan, np.nan, 10.0,
+                10.0, 15.0, 15.0, 5.0, 0.0, -5.0],
             dt_range2)
         value_of_price_point = 150.0
 
@@ -73,7 +74,6 @@ class Test(unittest.TestCase):
                                            fx,
                                            value_of_price_point)
 
-
         np.testing.assert_almost_equal(
             trades.trades,
             [2.0, 1.0, -1.0, 1.0, 1.0, -1.0, 2.0, 2.0])
@@ -95,7 +95,7 @@ class Test(unittest.TestCase):
 
         np.testing.assert_almost_equal(
             trades.trades,
-            [ 2.0, 1.0, -1.0, 1.0, 1.0, -1.0, 2.0, 2.0])
+            [2.0, 1.0, -1.0, 1.0, 1.0, -1.0, 2.0, 2.0])
 
         np.testing.assert_almost_equal(
             trades.fill_price,
