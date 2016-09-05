@@ -144,10 +144,10 @@ def apply_cap(pd_series, capvalue):
 
     >>> x=pd.Series([2.0, 7.0, -7.0, -6.99], pd.date_range(pd.datetime(2015,1,1), periods=4))
     >>> apply_cap(x, 5.0)
-    2015-01-01  2
-    2015-01-02  5
-    2015-01-03 -5
-    2015-01-04 -5
+    2015-01-01  2.0
+    2015-01-02  5.0
+    2015-01-03 -5.0
+    2015-01-04 -5.0
     Freq: D, dtype: float64
     """
     # Will do weird things otherwise
