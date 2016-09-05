@@ -65,15 +65,12 @@ def futures_system(data=None, config=None, trading_rules=None, log_level="on"):
 
     system = System([Account(), PortfoliosFixed(), PositionSizing(), FuturesRawData(), ForecastCombine(),
                      ForecastScaleCap(), rules], data, config)
-    
-    system.set_logging_level(log_level) 
+
+    system.set_logging_level(log_level)
 
     return system
-
-
 
 
 if __name__ == '__main__':
     import doctest
     doctest.testmod()
-

@@ -15,10 +15,10 @@ def ewmac_forecast_with_defaults(price, Lfast=32, Lslow=128):
 
     :param price: The price or other series to use (assumed Tx1)
     :type price: pd.Series
-    
+
     :param Lfast: Lookback for fast in days
     :type Lfast: int
-    
+
     :param Lslow: Lookback for slow in days
     :type Lslow: int
 
@@ -56,7 +56,7 @@ def ewmac_forecast_with_defaults_no_vol(price, vol, Lfast=16, Lslow=32):
 
     :param vol: The vol of the price
     :type vol: pd.Series
-    
+
     :param Lfast: Lookback for fast in days
     :type Lfast: int
     :param Lslow: Lookback for slow in days
@@ -78,7 +78,6 @@ def ewmac_forecast_with_defaults_no_vol(price, vol, Lfast=16, Lslow=32):
     slow_ewma = pd.ewma(price, span=Lslow)
     raw_ewmac = fast_ewma - slow_ewma
 
-
-    ans=raw_ewmac / vol
+    ans = raw_ewmac / vol
 
     return ans

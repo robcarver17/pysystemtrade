@@ -2,9 +2,9 @@ from matplotlib.pyplot import show
 from systems.provided.futures_chapter15.basesystem import futures_system
 
 system = futures_system(log_level="on")
-system.config.instrument_weights=dict(EDOLLAR=1.0)
+system.config.instrument_weights = dict(EDOLLAR=1.0)
 
-system.config.capital_multiplier['func']='syscore.capital.fixed_capital'
+system.config.capital_multiplier['func'] = 'syscore.capital.fixed_capital'
 """
 system.accounts.portfolio().curve().plot()
 show()
@@ -17,7 +17,7 @@ show()
 system.accounts.portfolio().cumulative().curve().plot()
 show()
 """
-pandl_fixed=system.accounts.portfolio()
+pandl_fixed = system.accounts.portfolio()
 
 print(system.accounts.portfolio().capital)
 
@@ -45,8 +45,8 @@ show()
 """
 
 system = futures_system(log_level="on")
-system.config.instrument_weights=dict(EDOLLAR=1.0)
-system.config.capital_multiplier['func']='syscore.capital.half_compounding'
+system.config.instrument_weights = dict(EDOLLAR=1.0)
+system.config.capital_multiplier['func'] = 'syscore.capital.half_compounding'
 
 """
 system.accounts.capital_multiplier().plot()
@@ -65,8 +65,7 @@ system.accounts.get_buffered_position("EDOLLAR", False).plot()
 show()
 """
 
-pandl_variable=system.accounts.portfolio_with_multiplier()
+pandl_variable = system.accounts.portfolio_with_multiplier()
 pandl_fixed.curve().plot()
 pandl_variable.curve().plot()
 show()
-

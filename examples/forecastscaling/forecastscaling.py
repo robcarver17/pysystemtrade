@@ -6,22 +6,34 @@ from systems.provided.futures_chapter15.estimatedsystem import futures_system
   cross sectional
 """
 
-system=futures_system()
+system = futures_system()
 
-## don't pool
-system.config.forecast_scalar_estimate['pool_instruments']=False
+# don't pool
+system.config.forecast_scalar_estimate['pool_instruments'] = False
 
-instrument_list=system.get_instrument_list()
+instrument_list = system.get_instrument_list()
 print(instrument_list)
 
-results=[]
+results = []
 for instrument_code in instrument_list:
-    results.append(round(float(system.forecastScaleCap.get_forecast_scalar(instrument_code, "ewmac2_8").tail(1).values),2))
+    results.append(
+        round(
+            float(
+                system.forecastScaleCap.get_forecast_scalar(
+                    instrument_code,
+                    "ewmac2_8").tail(1).values),
+            2))
 print(results)
 
-results=[]
+results = []
 for instrument_code in instrument_list:
-    results.append(round(float(system.forecastScaleCap.get_forecast_scalar(instrument_code, "carry").tail(1).values),2))
+    results.append(
+        round(
+            float(
+                system.forecastScaleCap.get_forecast_scalar(
+                    instrument_code,
+                    "carry").tail(1).values),
+            2))
 print(results)
 
 
@@ -29,17 +41,15 @@ print(results)
  Use an expanding window
 """
 
-system=futures_system()
+system = futures_system()
 
-## Let's use a one year rolling window instead
-system.config.forecast_scalar_estimate['window']=250
-system.config.forecast_scalar_estimate['min_periods']=250
+# Let's use a one year rolling window instead
+system.config.forecast_scalar_estimate['window'] = 250
+system.config.forecast_scalar_estimate['min_periods'] = 250
 
 
 system.forecastScaleCap.get_forecast_scalar("EDOLLAR", "ewmac64_256").plot()
 show()
-
-
 
 
 """
@@ -47,15 +57,13 @@ show()
 """
 
 
+system = futures_system()
 
+# stupidly small number of min periods
+system.config.forecast_scalar_estimate['min_periods'] = 50
 
-system=futures_system()
-
-## stupidly small number of min periods
-system.config.forecast_scalar_estimate['min_periods']=50
-
-## don't pool
-system.config.forecast_scalar_estimate['pool_instruments']=False
+# don't pool
+system.config.forecast_scalar_estimate['pool_instruments'] = False
 
 
 system.forecastScaleCap.get_forecast_scalar("EDOLLAR", "ewmac64_256").plot()

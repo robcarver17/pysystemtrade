@@ -2,7 +2,7 @@ from matplotlib.pyplot import show, title
 
 from systems.provided.futures_chapter15.estimatedsystem import futures_system
 
-system=futures_system()
+system = futures_system()
 system.set_logging_level("on")
 
 """
@@ -18,7 +18,7 @@ show()
 
 
 system.config.forecast_weight_estimate["pool_instruments"]=False
-system.config.forecast_weight_estimate["method"]="bootstrap" ## speed things up 
+system.config.forecast_weight_estimate["method"]="bootstrap" ## speed things up
 system.config.forecast_weight_estimate["equalise_means"]=False
 system.config.forecast_weight_estimate["monte_runs"]=200
 system.config.forecast_weight_estimate["bootstrap_length"]=104
@@ -37,13 +37,13 @@ title("EDOLLAR")
 show()
 """
 
-## reset the config
-system=futures_system()
-system.config.forecast_weight_estimate["pool_instruments"]=True
-system.config.forecast_weight_estimate["method"]="bootstrap"  
-system.config.forecast_weight_estimate["equalise_means"]=False
-system.config.forecast_weight_estimate["monte_runs"]=200
-system.config.forecast_weight_estimate["bootstrap_length"]=104
+# reset the config
+system = futures_system()
+system.config.forecast_weight_estimate["pool_instruments"] = True
+system.config.forecast_weight_estimate["method"] = "bootstrap"
+system.config.forecast_weight_estimate["equalise_means"] = False
+system.config.forecast_weight_estimate["monte_runs"] = 200
+system.config.forecast_weight_estimate["bootstrap_length"] = 104
 
 """
 system=futures_system(config=system.config)
@@ -106,10 +106,11 @@ show()
 
 """
 
-system.config.instrument_weight_estimate["method"]="bootstrap" ## speed things up 
-system.config.instrument_weight_estimate["equalise_means"]=False
-system.config.instrument_weight_estimate["monte_runs"]=200
-system.config.instrument_weight_estimate["bootstrap_length"]=104
+system.config.instrument_weight_estimate[
+    "method"] = "bootstrap"  # speed things up
+system.config.instrument_weight_estimate["equalise_means"] = False
+system.config.instrument_weight_estimate["monte_runs"] = 200
+system.config.instrument_weight_estimate["bootstrap_length"] = 104
 
 system.portfolio.get_instrument_weights().plot()
 show()

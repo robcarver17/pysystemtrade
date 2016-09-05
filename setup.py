@@ -9,6 +9,7 @@ if StrictVersion(platform.python_version()) < StrictVersion('3.4.3'):
     print('pysystemtrade requires Python 3.4.3 or later. Exiting.', file=sys.stderr)
     sys.exit(1)
 
+
 def read(fname):
     '''Utility function to read the README file.'''
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
@@ -24,8 +25,8 @@ setup(
     url="http://qoppac.blogspot.co.uk/p/pysystemtrade.html",
     packages=['examples', 'syscore', 'sysdata', 'systems', 'syssims'],
     long_description=read('README.md'),
-    install_requires=["pandas >= 0.17.0", "numpy >= 1.10.1", 
-        "matplotlib > 1.4.3", "PyYAML>=3.11", "scipy>=0.17"],
+    install_requires=["pandas >= 0.17.0", "numpy >= 1.10.1",
+                      "matplotlib > 1.4.3", "PyYAML>=3.11", "scipy>=0.17"],
     extras_require=dict(),
     include_package_data=True
 )

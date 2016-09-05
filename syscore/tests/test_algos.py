@@ -16,7 +16,7 @@ class Test(ut.TestCase):
     def test_robust_vol_calc(self):
         prices = pd_readcsv_frompackage(
             "syscore.tests.pricetestdata.csv")
-        
+
         returns = prices.diff()
         vol = robust_vol_calc(returns, days=35)
 

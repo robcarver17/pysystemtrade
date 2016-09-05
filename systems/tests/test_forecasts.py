@@ -8,11 +8,12 @@ from systems.provided.example.rules import ewmac_forecast_with_defaults
 from systems.forecasting import TradingRule, Rules, process_trading_rules, create_variations, create_variations_oneparameter
 from systems.basesystem import System
 from systems.rawdata import RawData
-from systems.futures.rawdata import FuturesRawData 
-from systems.provided.futures_chapter15.rules import carry 
+from systems.futures.rawdata import FuturesRawData
+from systems.provided.futures_chapter15.rules import carry
 from sysdata.configdata import Config
 from sysdata.csvdata import csvFuturesData
 import matplotlib.pyplot as plt
+
 
 class Test(unittest.TestCase):
 
@@ -121,7 +122,6 @@ class Test(unittest.TestCase):
         ans = rule.call(system, "EDOLLAR")
         self.assertAlmostEqual(ans.iloc[-1][0], 2.1384223788141838, 5)
 
-
         # Change the data source
         rule = TradingRule(("systems.provided.example.rules.ewmac_forecast_with_defaults_no_vol",
                             ["rawdata.get_daily_prices", "rawdata.daily_returns_volatility"], dict()))
@@ -142,7 +142,10 @@ class Test(unittest.TestCase):
         rawdata = FuturesRawData()
         rules = Rules()
         system = System([rawdata, rules], data)
-        rule=TradingRule(carry, ["rawdata.daily_annualised_roll", "rawdata.daily_returns_volatility"], dict(smooth_days=90))
+        rule = TradingRule(carry,
+                           ["rawdata.daily_annualised_roll",
+                            "rawdata.daily_returns_volatility"],
+                           dict(smooth_days=90))
         ans = rule.call(system, "EDOLLAR")
         self.assertAlmostEqual(ans.iloc[-1][0], 0.411686026, 5)
 

@@ -6,6 +6,7 @@ import systems
 import examples
 import private
 
+
 def get_filename_for_package(name_with_dots):
     """
     Returns the filename of part of a package
