@@ -196,8 +196,8 @@ def pandl_with_data(price, trades=None, marktomarket=True, positions=None,
 
 
 def get_positions_from_forecasts(price, get_daily_returns_volatility, forecast,
-                                 use_fx, value_of_price_point,
-                                 daily_risk_capital, **kwargs):
+                                 use_fx, value_of_price_point, daily_risk_capital,
+                                 **kwargs):
     """
     Work out position using forecast, volatility, use_fx, value_of_price_point
     (this will be for an arbitrary daily risk target)
