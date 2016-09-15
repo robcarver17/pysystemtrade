@@ -128,6 +128,8 @@ def robust_vol_calc(x, days=35, min_periods=10, vol_abs_min=0.0000000001, vol_fl
     :type floor_min_periods: int
 
     :returns: pd.DataFrame -- volatility measure
+
+
     """
 
     # Standard deviation will be nan for first 10 non nan values
@@ -141,10 +143,7 @@ def robust_vol_calc(x, days=35, min_periods=10, vol_abs_min=0.0000000001, vol_fl
             vol, floor_days, floor_min_quant, floor_min_periods)
         # set this to zero for the first value then propogate forward, ensures
         # we always have a value
-
-        # TODO vol_min as series?
-        target_col = vol_min.columns[0]
-        vol_min.set_value(vol_min.index[0], target_col, 0.0)
+        vol_min.set_value(vol_min.index[0], 0.0)
         vol_min = vol_min.ffill()
 
         # apply the vol floor
@@ -153,8 +152,6 @@ def robust_vol_calc(x, days=35, min_periods=10, vol_abs_min=0.0000000001, vol_fl
     else:
         vol_floored = vol
 
-    if isinstance(vol_floored, pd.Series):
-        vol_floored = vol_floored.to_frame()
     return vol_floored
 
 
