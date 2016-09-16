@@ -863,11 +863,7 @@ class Account(SystemStage):
             get_daily_returns_volatility = this_stage.get_daily_returns_volatility(
                 instrument_code)
 
-            (SR_cost_per_turnover, cash_costs) = this_stage.get_costs(instrument_code)
-
-            if SR_cost_per_turnover is not None:
-                SR_cost = self.subsystem_SR_costs(
-                    instrument_code, roundpositions)
+            (SR_cost, cash_costs) = this_stage.get_costs(instrument_code)
 
             capital = this_stage.get_notional_capital()
             ann_risk_target = this_stage.get_ann_risk_target()
