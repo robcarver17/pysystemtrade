@@ -187,8 +187,10 @@ def fix_weights_vs_pdm(weights, pdm):
     # forward fill forecasts/positions
     pdm_ffill = pdm.ffill()
 
+    adj_weights = uniquets(weights)
+
     # resample weights
-    adj_weights = weights.reindex(pdm_ffill.index, method='ffill')
+    adj_weights = adj_weights.reindex(pdm_ffill.index, method='ffill')
 
     # ensure columns are aligned
     adj_weights = adj_weights[pdm.columns]
