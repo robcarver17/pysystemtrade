@@ -1137,7 +1137,7 @@ class ForecastCombineEstimated(ForecastCombineFixed):
         return raw_forecast_weights
 
         forecast_weights = self.parent.calc_or_cache(
-            'get_forecast_weights', instrument_code, _get_forecast_weights, self)
+            'get_forecast_weights', instrument_code, _get_raw_forecast_weights, self)
         return forecast_weights
 
 
