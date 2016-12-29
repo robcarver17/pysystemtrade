@@ -56,8 +56,7 @@ def vol_estimator(x, using_exponent=True, min_periods=20, ew_lookback=250):
 
     """
     if using_exponent:
-        vol = pd.ewmstd(x, span=ew_lookback,
-                        min_periods=min_periods).iloc[-1, :].values[0]
+        vol = x.ewm(span=ew_lookback, min_periods=min_periods).std().iloc[-1, :].values[0]
 
     else:
         with warnings.catch_warnings():

@@ -25,20 +25,19 @@ def breakout(price, lookback, smooth=None):
 
     assert smooth < lookback
 
-    roll_max = pd.rolling_max(price, lookback, min_periods=int(
-        min(len(price), np.ceil(lookback / 2.0))))
-    roll_min = pd.rolling_min(price, lookback, min_periods=int(
-        min(len(price), np.ceil(lookback / 2.0))))
+    roll_max = price.rolling(lookback, min_periods=int(
+        min(len(price), np.ceil(lookback / 2.0)))).max()
+    roll_min = price.rolling(lookback, min_periods=int(
+        min(len(price), np.ceil(lookback / 2.0)))).min()
 
     roll_mean = (roll_max + roll_min) / 2.0
 
     # gives a nice natural scaling
     output = 40.0 * ((price - roll_mean) / (roll_max - roll_min))
-    smoothed_output = pd.ewma(
-        output,
+    smoothed_output = output.ewm(
         span=smooth,
         min_periods=np.ceil(
-            smooth / 2.0))
+            smooth / 2.0)).mean()
 
     return smoothed_output
 

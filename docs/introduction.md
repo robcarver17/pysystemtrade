@@ -90,14 +90,14 @@ def calc_ewmac_forecast(price, Lfast, Lslow=None):
     ## We can't use the price of the contract we're trading, or the volatility will be jumpy
     ## And we'll miss out on the rolldown. See http://qoppac.blogspot.co.uk/2015/05/systems-building-futures-rolling.html
 
-    price = price.resample("1B")
+    price = price.resample("1B").last()
     if Lslow is None:
         Lslow=4*Lfast
     
     ## We don't need to calculate the decay parameter, just use the span directly
     
-    fast_ewma=pd.ewma(price, span=Lfast)
-    slow_ewma=pd.ewma(price, span=Lslow)
+    fast_ewma=price.ewm(span=Lfast).mean()
+    slow_ewma=price.ewm(span=Lslow).mean()
     raw_ewmac=fast_ewma - slow_ewma
     
     vol=robust_vol_calc(price.diff())    

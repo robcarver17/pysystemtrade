@@ -26,8 +26,8 @@ show()
 
 lookback=250
 
-roll_max = pd.rolling_max(price, lookback, min_periods=min(len(price), np.ceil(lookback/2.0)))
-roll_min = pd.rolling_min(price, lookback, min_periods=min(len(price), np.ceil(lookback/2.0)))
+roll_max = price.rolling(lookback, min_periods=min(len(price), np.ceil(lookback/2.0))).max()
+roll_min = price.rolling(lookback, min_periods=min(len(price), np.ceil(lookback/2.0))).min()
 
 
 all=pd.concat([price, roll_max, roll_min], axis=1)
@@ -55,7 +55,7 @@ show()
 print(turnover(output, 10.0))
 
 smooth=int(250/4.0)
-smoothed_output = pd.ewma(output, span=smooth, min_periods=np.ceil(smooth/2.0))
+smoothed_output = output.ewm(span=smooth, min_periods=np.ceil(smooth/2.0)).mean()
 print(turnover(smoothed_output, 10.0))
 
 smoothed_output.plot()

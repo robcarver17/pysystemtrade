@@ -74,8 +74,8 @@ def ewmac_forecast_with_defaults_no_vol(price, vol, Lfast=16, Lslow=32):
     # We don't need to calculate the decay parameter, just use the span
     # directly
 
-    fast_ewma = pd.ewma(price, span=Lfast)
-    slow_ewma = pd.ewma(price, span=Lslow)
+    fast_ewma = price.ewm(span=Lfast).mean()
+    slow_ewma = price.ewm(span=Lslow).mean()
     raw_ewmac = fast_ewma - slow_ewma
 
     ans = raw_ewmac / vol
