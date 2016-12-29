@@ -133,14 +133,13 @@ def robust_vol_calc(x, days=35, min_periods=10, vol_abs_min=0.0000000001, vol_fl
     """
 
     # Standard deviation will be nan for first 10 non nan values
-    vol = pd.ewmstd(x, span=days, min_periods=min_periods)
+    vol = x.ewm(span=days, min_periods=min_periods).std()
 
     vol[vol < vol_abs_min] = vol_abs_min
 
     if vol_floor:
         # Find the rolling 5% quantile point to set as a minimum
-        vol_min = pd.rolling_quantile(
-            vol, floor_days, floor_min_quant, floor_min_periods)
+        vol_min = vol.rolling(floor_days, min_periods=floor_min_periods).quantile(floor_min_quant)
         # set this to zero for the first value then propogate forward, ensures
         # we always have a value
         vol_min.set_value(vol_min.index[0], 0.0)
