@@ -470,6 +470,7 @@ A little extreme, I feel. Let's use some arbitrary fixed forecast weights and di
 ```python
 my_config.forecast_weights=dict(ewmac8=0.5, ewmac32=0.5)
 my_config.forecast_div_multiplier=1.1
+my_config.use_forecast_weight_estimates = False
 my_system=System([fcs, empty_rules, combiner], data, my_config)
 my_system.combForecast.get_combined_forecast("EDOLLAR").tail(5)
 ```
@@ -522,6 +523,7 @@ from systems.portfolio import PortfoliosEstimated
 portfolio_estimate = PortfoliosEstimated()
 
 ## this will speed things but - but I don't recommend it for actual trading...
+my_config.use_instrument_weight_estimates = True
 my_config.instrument_weight_estimate=dict(method="shrinkage", date_method="in_sample") ## speeds things up
 
 my_system = System([my_account, fcs, my_rules, combiner, possizer,
@@ -560,6 +562,8 @@ from systems.portfolio import PortfoliosFixed
 portfolio=PortfoliosFixed()
 my_config.instrument_weights=dict(US10=.1, EDOLLAR=.4, CORN=.3, SP500=.8)
 my_config.instrument_div_multiplier=1.5
+my_config.use_instrument_weight_estimates = False
+
 my_system=System([ fcs, empty_rules, combiner, possizer, portfolio], data, my_config)
 
 my_system.portfolio.get_notional_position("EDOLLAR").tail(5)
