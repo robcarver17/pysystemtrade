@@ -1,7 +1,8 @@
 """
 Algos.py
 
-Basic building blocks of trading rules, like volatility measurement and crossovers
+Basic building blocks of trading rules, like volatility measurement and
+crossovers
 
 """
 import pandas as pd
@@ -38,17 +39,18 @@ def apply_with_min_periods(xcol, my_func=np.nanmean, min_periods=0):
 
 def vol_estimator(x, using_exponent=True, min_periods=20, ew_lookback=250):
     """
-    Generic vol estimator used for optimisation, works on data frames, produces a single answer
+    Generic vol estimator used for optimisation, works on data frames, produces
+    a single answer
 
     :param x: data
     :type x: Tx1 pd.DataFrame
 
-    :param using_exponent: Use exponential or normal vol (latter recommended for bootstrapping)
+    :param using_exponent: Use exponential or normal vol (latter recommended
+    for bootstrapping)
     :type using_exponent: bool
 
     :param min_periods: The minimum number of observations (*default* 10)
     :type min_periods: int
-
 
     :returns: pd.DataFrame -- volatility measure
 
@@ -75,7 +77,8 @@ def mean_estimator(x, using_exponent=True, min_periods=20, ew_lookback=500):
     """
     Generic mean estimator used for optimisation, works on data frames
 
-    :param using_exponent: Use exponential or normal vol (latter recommended for bootstrapping)
+    :param using_exponent: Use exponential or normal vol (latter recommended
+    for bootstrapping)
     :type using_exponent: bool
 
     """
@@ -98,9 +101,9 @@ def mean_estimator(x, using_exponent=True, min_periods=20, ew_lookback=500):
     return mean_list
 
 
-def robust_vol_calc(x, days=35, min_periods=10, vol_abs_min=0.0000000001, vol_floor=True,
-                    floor_min_quant=0.05, floor_min_periods=100,
-                    floor_days=500):
+def robust_vol_calc(x, days=35, min_periods=10, vol_abs_min=0.0000000001,
+                    vol_floor=True, floor_min_quant=0.05,
+                    floor_min_periods=100, floor_days=500):
     """
     Robust exponential volatility calculation, assuming daily series of prices
     We apply an absolute minimum level of vol (absmin);
@@ -115,20 +118,26 @@ def robust_vol_calc(x, days=35, min_periods=10, vol_abs_min=0.0000000001, vol_fl
     :param min_periods: The minimum number of observations (*default* 10)
     :type min_periods: int
 
-    :param vol_abs_min: The size of absolute minimum (*default* =0.0000000001) 0.0= not used
+    :param vol_abs_min: The size of absolute minimum (*default* =0.0000000001)
+      0.0= not used
     :type absmin: float or None
 
     :param vol_floor Apply a floor to volatility (*default* True)
     :type vol_floor: bool
-    :param floor_min_quant: The quantile to use for volatility floor (eg 0.05 means we use 5% vol) (*default 0.05)
+
+    :param floor_min_quant: The quantile to use for volatility floor (eg 0.05
+      means we use 5% vol) (*default 0.05)
     :type floor_min_quant: float
-    :param floor_days: The lookback for calculating volatility floor, in days (*default* 500)
+
+    :param floor_days: The lookback for calculating volatility floor, in days
+      (*default* 500)
     :type floor_days: int
-    :param floor_min_periods: Minimum observations for floor - until reached floor is zero (*default* 100)
+
+    :param floor_min_periods: Minimum observations for floor - until reached
+      floor is zero (*default* 100)
     :type floor_min_periods: int
 
     :returns: pd.DataFrame -- volatility measure
-
 
     """
 
@@ -197,7 +206,8 @@ def apply_buffer_single_period(
     """
     Apply a buffer to a position, single period
 
-    If position is outside the buffer, we eithier trade to the edge of the buffer, or to the optimal
+    If position is outside the buffer, we eithier trade to the edge of the
+    buffer, or to the optimal
 
     :param last_position: last position we had
     :type last_position: float
@@ -239,7 +249,8 @@ def apply_buffer(optimal_position, pos_buffers,
     """
     Apply a buffer to a position
 
-    If position is outside the buffer, we eithier trade to the edge of the buffer, or to the optimal
+    If position is outside the buffer, we eithier trade to the edge of the
+    buffer, or to the optimal
 
     If we're rounding positions, then we floor and ceiling the buffers.
 
@@ -254,7 +265,6 @@ def apply_buffer(optimal_position, pos_buffers,
 
     :param round_positions: Produce rounded positions
     :type round_positions: bool
-
 
     :returns: pd.Series
     """

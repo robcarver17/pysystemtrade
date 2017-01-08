@@ -12,6 +12,7 @@ trading_rules:
          Lfast: 2
          Lslow: 8
      forecast_scalar: 10.6
+
   ewmac4_16:
      function: systems.provided.futures_chapter15.rules.ewmac
      data:
@@ -21,6 +22,7 @@ trading_rules:
          Lfast: 4
          Lslow: 16
      forecast_scalar: 7.5
+
   ewmac8_32:
      function: systems.provided.futures_chapter15.rules.ewmac
      data:
@@ -30,6 +32,7 @@ trading_rules:
          Lfast: 8
          Lslow: 32
      forecast_scalar: 5.3
+
   ewmac16_64:
      function: systems.provided.futures_chapter15.rules.ewmac
      data:
@@ -39,6 +42,7 @@ trading_rules:
          Lfast: 16
          Lslow: 64
      forecast_scalar: 3.75
+
   ewmac32_128:
      function: systems.provided.futures_chapter15.rules.ewmac
      data:
@@ -48,6 +52,7 @@ trading_rules:
          Lfast: 32
          Lslow: 128
      forecast_scalar: 2.65
+
   ewmac64_256:
      function: systems.provided.futures_chapter15.rules.ewmac
      data:

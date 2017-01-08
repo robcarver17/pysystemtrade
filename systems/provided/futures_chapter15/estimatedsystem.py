@@ -1,5 +1,6 @@
 '''
-This is a variation of the chapter 15 system which estimates rather than uses fixed parameters
+This is a variation of the chapter 15 system which estimates rather than uses
+fixed parameters
 
 A system consists of a system, plus a config
 
@@ -44,8 +45,9 @@ def futures_system(data=None, config=None,
 
     rules = Rules(trading_rules)
 
-    system = System([Account(), Portfolios(), PositionSizing(), FuturesRawData(), ForecastCombine(),
-                     ForecastScaleCap(), rules], data, config)
+    system = System([Account(), Portfolios(), PositionSizing(),
+                     FuturesRawData(), ForecastCombine(), ForecastScaleCap(),
+                     rules], data, config)
 
     system.set_logging_level(log_level)
 

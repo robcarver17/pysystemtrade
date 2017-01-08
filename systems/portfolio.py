@@ -14,7 +14,8 @@ class Portfolios(SystemStage):
     """
     Stage for portfolios
 
-    This is a 'switching' class which selects eithier the fixed or the estimated flavours
+    This is a 'switching' class which selects eithier the fixed or the
+    estimated flavours
 
     """
 
@@ -48,7 +49,8 @@ class PortfoliosFixed(SystemStage):
     """
     Stage for portfolios
 
-    Gets the position, accounts for instrument weights and diversification multiplier
+    Gets the position, accounts for instrument weights and diversification
+    multiplier
 
     This version involves fixed weights and multipliers.
 
@@ -70,11 +72,10 @@ class PortfoliosFixed(SystemStage):
     def __init__(self):
         """
         Create a SystemStage for creating portfolios
-
-
         """
         protected = ["get_instrument_weights",
-                     "get_instrument_diversification_multiplier", "get_raw_instrument_weights"]
+                     "get_instrument_diversification_multiplier",
+                     "get_raw_instrument_weights"]
 
         setattr(self, "_protected", protected)
 
@@ -83,7 +84,8 @@ class PortfoliosFixed(SystemStage):
 
     def get_subsystem_position(self, instrument_code):
         """
-        Get the position assuming all capital in one position, from a previous module
+        Get the position assuming all capital in one position, from a previous
+        module
 
         :param instrument_code: instrument to get values for
         :type instrument_code: str

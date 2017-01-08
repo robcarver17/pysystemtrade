@@ -92,7 +92,8 @@ def pd_readcsv_frompackage(filename):
     """
     Run pd_readcsv on a file in python
 
-    :param args: List showing location in project directory of file eg systems, provided, tests.csv
+    :param args: List showing location in project directory of file eg systems,
+      provided, tests.csv
     :type args: str
 
     :returns: pd.DataFrame
