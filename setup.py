@@ -26,7 +26,7 @@ setup(
     url="http://qoppac.blogspot.co.uk/p/pysystemtrade.html",
     packages=find_packages(),
     long_description=read('README.md'),
-    install_requires=["pandas >= 0.17.0", "numpy >= 1.10.1",
+    install_requires=["pandas >= 0.18.0", "numpy >= 1.10.1",
                       "matplotlib > 1.4.3", "PyYAML>=3.11", "scipy>=0.17"],
     extras_require=dict(),
     include_package_data=True

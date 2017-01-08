@@ -54,14 +54,19 @@ class Test(ut.TestCase):
         prices = get_data(
             "syscore.tests.pricetestdata_vol_floor.csv")
         returns = prices.diff()
+
         vol = robust_vol_calc(returns)
         self.assertAlmostEqual(vol.iloc[-1], 0.54492982003602064)
+
         vol = robust_vol_calc(returns, vol_floor=False)
         self.assertAlmostEqual(vol.iloc[-1], 0.42134038479240132)
+
         vol = robust_vol_calc(returns, floor_min_quant=.5)
         self.assertAlmostEqual(vol.iloc[-1], 1.6582199589924964)
+
         vol = robust_vol_calc(returns, floor_min_periods=500)
         self.assertAlmostEqual(vol.iloc[-1], 0.42134038479240132)
+
         vol = robust_vol_calc(returns, floor_days=10, floor_min_periods=5)
         self.assertAlmostEqual(vol.iloc[-1], 0.42134038479240132)
 
@@ -74,6 +79,7 @@ class Test(ut.TestCase):
         self.assertAlmostEqual(fcast.iloc[-1][0],20.914172249098829)
         self.assertEqual(fcast.shape, (528,1))
 """
+
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.test_robust_vol_calc']

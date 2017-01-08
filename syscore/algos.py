@@ -97,7 +97,6 @@ def mean_estimator(x, using_exponent=True, min_periods=20, ew_lookback=500):
                 my_func=np.nanmean)
 
     mean_list = list(means)
-
     return mean_list
 
 
@@ -138,18 +137,18 @@ def robust_vol_calc(x, days=35, min_periods=10, vol_abs_min=0.0000000001,
     :type floor_min_periods: int
 
     :returns: pd.DataFrame -- volatility measure
-
     """
 
     # Standard deviation will be nan for first 10 non nan values
-    vol = pd.ewmstd(x, span=days, min_periods=min_periods)
-
+    vol = x.ewm(adjust=True, span=days, min_periods=min_periods).std()
     vol[vol < vol_abs_min] = vol_abs_min
 
     if vol_floor:
         # Find the rolling 5% quantile point to set as a minimum
-        vol_min = pd.rolling_quantile(
-            vol, floor_days, floor_min_quant, floor_min_periods)
+        vol_min = vol.rolling(
+            min_periods=floor_min_periods,
+            window=floor_days).quantile(quantile=floor_min_quant)
+
         # set this to zero for the first value then propogate forward, ensures
         # we always have a value
         vol_min.set_value(vol_min.index[0], 0.0)
@@ -201,8 +200,8 @@ def forecast_scalar(xcross, window=250000, min_periods=500, backfill=True):
     return scaling_factor
 
 
-def apply_buffer_single_period(
-        last_position, optimal_position, top_pos, bot_pos, trade_to_edge):
+def apply_buffer_single_period(last_position, optimal_position, top_pos,
+                               bot_pos, trade_to_edge):
     """
     Apply a buffer to a position, single period
 
