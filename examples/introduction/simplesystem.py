@@ -14,10 +14,11 @@ Okay, I wonder how this would work for a number of instruments?
 
 For this we need to build a system
 
-A system is made up of SystemStages - essentially stages in the process, and it needs data, and perhaps a configuration
+A system is made up of SystemStages - essentially stages in the process, and it
+needs data, and perhaps a configuration
 
-
-The minimum stage you would have would be Rules - which is where you put trading rules
+The minimum stage you would have would be Rules - which is where you put
+trading rules
 """
 
 
