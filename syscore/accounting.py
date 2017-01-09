@@ -552,10 +552,10 @@ class accountCurveSingleElement(accountCurveSingleElementOneFreq):
 
         """
         # We often want to use
-        daily_returns = returns_df.resample("1B", how="sum")
-        weekly_returns = returns_df.resample("W", how="sum")
-        monthly_returns = returns_df.resample("MS", how="sum")
-        annual_returns = returns_df.resample("A", how="sum")
+        daily_returns = returns_df.resample("1B").sum()
+        weekly_returns = returns_df.resample("W").sum()
+        monthly_returns = returns_df.resample("MS").sum()
+        annual_returns = returns_df.resample("A").sum()
 
         super().__init__(
             daily_returns,
