@@ -200,7 +200,7 @@ class FuturesRawData(RawData):
         def _calc_daily_ann_roll(system, instrument_code, this_stage):
 
             annroll = this_stage.annualised_roll(instrument_code)
-            annroll = annroll.resample("1B", how="mean")
+            annroll = annroll.resample("1B").mean()
             return annroll
 
         ann_daily_roll = self.parent.calc_or_cache(
@@ -233,7 +233,7 @@ class FuturesRawData(RawData):
         def _daily_denominator_prices(system, instrument_code, this_stage):
             prices = this_stage.get_instrument_raw_carry_data(
                 instrument_code).PRICE
-            daily_prices = prices.resample("1B", how="last")
+            daily_prices = prices.resample("1B").last()
             return daily_prices
 
         daily_dem_prices = self.parent.calc_or_cache(

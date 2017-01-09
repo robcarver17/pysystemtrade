@@ -83,8 +83,8 @@ def mean_estimator(x, using_exponent=True, min_periods=20, ew_lookback=500):
 
     """
     if using_exponent:
-        means = pd.ewma(x, span=ew_lookback,
-                        min_periods=min_periods).iloc[-1, :].values[0]
+        means = x.ewm(x, span=ew_lookback,
+                        min_periods=min_periods).mean().iloc[-1, :].values[0]
 
     else:
         with warnings.catch_warnings():
@@ -191,7 +191,7 @@ def forecast_scalar(xcross, window=250000, min_periods=500, backfill=True):
         x = xcross.ffill().abs().median(axis=1)
 
     # now the TS
-    avg_abs_value = pd.rolling_mean(x, window=window, min_periods=min_periods)
+    avg_abs_value = x.rolling(window=window, min_periods=min_periods).mean()
     scaling_factor = target_abs_forecast / avg_abs_value
 
     if backfill:

@@ -91,7 +91,7 @@ def diversification_multiplier_from_list(correlation_list_object, weight_df_raw,
     div_mult_df = pd.Series(div_mult_vector, index=ref_periods)
     div_mult_df = div_mult_df.reindex(weight_df.index, method="ffill")
 
-    div_mult_df = pd.ewma(div_mult_df, span=ewma_span)
+    div_mult_df = div_mult_df.ewm( span=ewma_span).mean()
 
     return div_mult_df
 

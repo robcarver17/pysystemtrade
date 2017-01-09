@@ -386,7 +386,7 @@ class ForecastCombineFixed(SystemStage):
             weighting = system.config.forecast_weight_ewma_span
 
             # smooth
-            forecast_weights = pd.ewma(forecast_weights, weighting)
+            forecast_weights = forecast_weights.ewm(weighting).mean()
 
             return forecast_weights
 

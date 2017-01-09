@@ -162,12 +162,12 @@ def correlation_single_period(data_for_estimate,
         dindex = data_for_estimate.index
         dlenadj = float(len(dindex)) / len(set(list(dindex)))
         # Usual use for IDM, FDM calculation when whole data set is used
-        corrmat = pd.ewmcorr(
-            data_for_estimate,
+        corrmat = data_for_estimate.ewm(
+            
             span=int(
                 ew_lookback *
                 dlenadj),
-            min_periods=min_periods)
+            min_periods=min_periods).corr(pairwise=True)
 
         # only want the final one
         corrmat = corrmat.values[-1]
@@ -277,7 +277,7 @@ class CorrelationEstimator(CorrelationList):
         data = df_from_list(data)
         column_names = list(data.columns)
 
-        data = data.resample(frequency, how="last")
+        data = data.resample(frequency).last()
 
         # Generate time periods
         fit_dates = generate_fitting_dates(

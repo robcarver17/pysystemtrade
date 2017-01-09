@@ -46,8 +46,8 @@ def ewmac(price, vol, Lfast, Lslow):
     # We don't need to calculate the decay parameter, just use the span
     # directly
 
-    fast_ewma = pd.ewma(price, span=Lfast)
-    slow_ewma = pd.ewma(price, span=Lslow)
+    fast_ewma = price.ewm(span=Lfast).mean()
+    slow_ewma = price.ewm(span=Lslow).mean()
     raw_ewmac = fast_ewma - slow_ewma
 
     return raw_ewmac / vol.ffill()
@@ -78,7 +78,7 @@ def carry(daily_ann_roll, vol, smooth_days=90):
 
     ann_stdev = vol * ROOT_BDAYS_INYEAR
     raw_carry = daily_ann_roll / ann_stdev
-    smooth_carry = pd.ewma(raw_carry, smooth_days)
+    smooth_carry = raw_carry.ewm(smooth_days).mean()
 
     return smooth_carry
 

@@ -140,10 +140,10 @@ class GenericOptimiser(object):
         period_target_SR = self.period_target_SR
 
         # resample, indexing before and differencing after (returns, remember)
-        data_gross = [data_item.cumsum().resample(frequency, how="last").diff() for
+        data_gross = [data_item.cumsum().resample(frequency).last().diff() for
                       data_item in data_gross]
 
-        data_costs = [data_item.cumsum().resample(frequency, how="last").diff() for
+        data_costs = [data_item.cumsum().resample(frequency).last().diff() for
                       data_item in data_costs]
 
         # stack de-pool pooled data

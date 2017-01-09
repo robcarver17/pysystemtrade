@@ -242,7 +242,7 @@ class PortfoliosFixed(SystemStage):
             weighting = system.config.instrument_weight_ewma_span
 
             # smooth
-            instrument_weights = pd.ewma(instrument_weights, weighting)
+            instrument_weights = instrument_weights.ewm(weighting).mean()
 
             return instrument_weights
 
