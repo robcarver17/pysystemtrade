@@ -55,7 +55,7 @@ class Data(object):
 
         """
         instrprice = self.get_raw_price(instrument_code)
-        dailyprice = instrprice.resample("1B", how="last")
+        dailyprice = instrprice.resample("1B").last()
 
         return dailyprice
 

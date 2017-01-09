@@ -222,7 +222,7 @@ def drawdown(x):
     :returns: pd.DataFrame or Series
 
     """
-    maxx = pd.rolling_max(x, len(x), min_periods=1)
+    maxx = x.expanding(min_periods=1).max()
     return x - maxx
 
 
