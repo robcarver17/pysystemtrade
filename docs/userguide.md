@@ -2066,7 +2066,7 @@ class FuturesRawData(RawData):
         def _calc_daily_ann_roll(system, instrument_code, this_subsystem):
         
             annroll=this_subsystem.annualised_roll(instrument_code)
-            annroll=annroll.resample("1B", how="mean")
+            annroll=annroll.resample("1B").mean()
             annroll.columns=['annualised_roll_daily']
             return annroll
         
