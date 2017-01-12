@@ -24,10 +24,12 @@ setup(
     license="GNU GPL v3",
     keywords="systematic trading interactive brokers",
     url="http://qoppac.blogspot.co.uk/p/pysystemtrade.html",
-    packages=find_packages(),
+    packages=find_packages() + ['systems'],
     long_description=read('README.md'),
     install_requires=["pandas >= 0.19.0", "numpy >= 1.10.1",
                       "matplotlib > 1.4.3", "PyYAML>=3.11", "scipy>=0.17"],
+    tests_requires=['nose'],
+    test_suite='nose.collect',
     extras_require=dict(),
     include_package_data=True
 )
