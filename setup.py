@@ -31,6 +31,6 @@ setup(
     tests_requires=['nose'],
     test_suite='nose.collect',
     extras_require=dict(),
-    test_requires=['pytest', 'coverage', 'pytest-cov'],
+    test_suite='nose.collector',
     include_package_data=True
 )
