@@ -15,8 +15,8 @@ class ForecastScaleCap(SystemStage):
     """
     Stage for scaling and capping
 
-    This is a 'switching' class which selects eithier the fixed or the estimated flavours
-
+    This is a 'switching' class which selects eithier the fixed or the
+    estimated flavours
     """
 
     def __init__(self):
@@ -51,12 +51,12 @@ class ForecastScaleCapFixed(SystemStage):
 
     This simple variation uses Fixed capping and scaling
 
-    KEY INPUT: system.rules.get_raw_forecast(instrument_code, rule_variation_name)
-                found in self.get_raw_forecast(instrument_code, rule_variation_name)
+    KEY INPUT: system.rules.get_raw_forecast(instrument_code,
+      rule_variation_name) found in self.get_raw_forecast(instrument_code,
+      rule_variation_name)
 
-    KEY OUTPUT: system.forecastScaleCap.get_capped_forecast(instrument_code, rule_variation_name)
-
-                system.forecastScaleCap.get_forecast_cap()
+    KEY OUTPUT: system.forecastScaleCap.get_capped_forecast(instrument_code,
+      rule_variation_name) system.forecastScaleCap.get_forecast_cap()
 
     Name: forecastScaleCap
     """
@@ -113,7 +113,8 @@ class ForecastScaleCapFixed(SystemStage):
         In this simple version it's the same for all instruments, and fixed
 
         We get the scalars from: (a) configuration file in parent system
-                                 (b) or if missing: uses the scalar from systems.defaults.py
+                                 (b) or if missing: uses the scalar from
+                                   systems.defaults.py
 
         :param instrument_code:
         :type str:
@@ -163,7 +164,8 @@ class ForecastScaleCapFixed(SystemStage):
             return scalar
 
         forecast_scalar = self.parent.calc_or_cache_nested(
-            "get_forecast_scalar", instrument_code, rule_variation_name, _get_forecast_scalar, self)
+            "get_forecast_scalar", instrument_code, rule_variation_name,
+            _get_forecast_scalar, self)
 
         return float(forecast_scalar)
 
@@ -173,7 +175,8 @@ class ForecastScaleCapFixed(SystemStage):
 
         We get the cap from:
                                  (a)  configuration object in parent system
-                                 (c) or if missing: uses the forecast_cap from systems.default.py
+                                 (c) or if missing: uses the forecast_cap from
+                                   systems.default.py
         :returns: float
 
         >>> from systems.tests.testdata import get_test_object_futures_with_rules
