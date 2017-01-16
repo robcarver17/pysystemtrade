@@ -16,7 +16,8 @@ class ForecastScaleCap(SystemStage):
     Stage for scaling and capping
 
     This is a 'switching' class which selects eithier the fixed or the
-    estimated flavours
+      estimated flavours
+
     """
 
     def __init__(self):
@@ -45,37 +46,12 @@ class ForecastScaleCap(SystemStage):
             setattr(self, "parent", system)
 
 
-class ForecastScaleCapFixed(SystemStage):
-    """
-    Create a SystemStage for scaling and capping forecasting
-
-    This simple variation uses Fixed capping and scaling
-
-    KEY INPUT: system.rules.get_raw_forecast(instrument_code,
-      rule_variation_name) found in self.get_raw_forecast(instrument_code,
-      rule_variation_name)
-
-    KEY OUTPUT: system.forecastScaleCap.get_capped_forecast(instrument_code,
-      rule_variation_name) system.forecastScaleCap.get_forecast_cap()
-
-    Name: forecastScaleCap
-    """
-
+class BaseForecastScaleCap(SystemStage):
     def __init__(self):
-        """
-        Create a SystemStage for scaling and capping forecasting
-
-        Using Fixed capping and scaling
-
-        :returns: None
-
-        """
 
         protected = ["get_forecast_scalars"]
         setattr(self, "_protected", protected)
-
         setattr(self, "name", "forecastScaleCap")
-        setattr(self, "description", "fixed")
 
     def get_raw_forecast(self, instrument_code, rule_variation_name):
         """
@@ -106,77 +82,13 @@ class ForecastScaleCapFixed(SystemStage):
 
         return raw_forecast
 
-    def get_forecast_scalar(self, instrument_code, rule_variation_name):
-        """
-        Get the scalar to apply to raw forecasts
-
-        In this simple version it's the same for all instruments, and fixed
-
-        We get the scalars from: (a) configuration file in parent system
-                                 (b) or if missing: uses the scalar from
-                                   systems.defaults.py
-
-        :param instrument_code:
-        :type str:
-
-        :param rule_variation_name:
-        :type str: name of the trading rule variation
-
-        :returns: float
-
-        >>> from systems.tests.testdata import get_test_object_futures_with_rules
-        >>> from systems.basesystem import System
-        >>> (rules, rawdata, data, config)=get_test_object_futures_with_rules()
-        >>> system1=System([rawdata, rules, ForecastScaleCapFixed()], data, config)
-        >>>
-        >>> ## From config
-        >>> system1.forecastScaleCap.get_forecast_scalar("EDOLLAR", "ewmac8")
-        5.3
-        >>>
-        >>> ## default
-        >>> unused=config.trading_rules['ewmac8'].pop('forecast_scalar')
-        >>> system3=System([rawdata, rules, ForecastScaleCapFixed()], data, config)
-        >>> system3.forecastScaleCap.get_forecast_scalar("EDOLLAR", "ewmac8")
-        1.0
-        >>>
-        >>> ## other config location
-        >>> setattr(config, 'forecast_scalars', dict(ewmac8=11.0))
-        >>> system4=System([rawdata, rules, ForecastScaleCapFixed()], data, config)
-        >>> system4.forecastScaleCap.get_forecast_scalar("EDOLLAR", "ewmac8")
-        11.0
-        """
-
-        def _get_forecast_scalar(
-                system, instrument_code, rule_variation_name, this_stage):
-            # Try the config file
-            try:
-                scalar = system.config.trading_rules[
-                    rule_variation_name]['forecast_scalar']
-            except:
-                try:
-                    # can also put somewhere else ...
-                    scalar = system.config.forecast_scalars[
-                        rule_variation_name]
-                except:
-                    # go with defaults
-                    scalar = system_defaults['forecast_scalar']
-
-            return scalar
-
-        forecast_scalar = self.parent.calc_or_cache_nested(
-            "get_forecast_scalar", instrument_code, rule_variation_name,
-            _get_forecast_scalar, self)
-
-        return float(forecast_scalar)
-
     def get_forecast_cap(self):
         """
         Get forecast cap
 
         We get the cap from:
                                  (a)  configuration object in parent system
-                                 (c) or if missing: uses the forecast_cap from
-                                   systems.default.py
+                                 (c) or if missing: uses the forecast_cap from systems.default.py
         :returns: float
 
         >>> from systems.tests.testdata import get_test_object_futures_with_rules
@@ -296,11 +208,18 @@ class ForecastScaleCapFixed(SystemStage):
         return capped_forecast
 
 
-class ForecastScaleCapEstimated(ForecastScaleCapFixed):
+class ForecastScaleCapFixed(BaseForecastScaleCap):
     """
-    This variation will estimate the scaling parameter
+    Create a SystemStage for scaling and capping forecasting
 
-    See the base class for inputs, outputs, etc
+    This simple variation uses Fixed capping and scaling
+
+    KEY INPUT: system.rules.get_raw_forecast(instrument_code, rule_variation_name)
+                found in self.get_raw_forecast(instrument_code, rule_variation_name)
+
+    KEY OUTPUT: system.forecastScaleCap.get_capped_forecast(instrument_code, rule_variation_name)
+
+                system.forecastScaleCap.get_forecast_cap()
 
     Name: forecastScaleCap
     """
@@ -314,8 +233,91 @@ class ForecastScaleCapEstimated(ForecastScaleCapFixed):
         :returns: None
 
         """
-        super(ForecastScaleCapEstimated, self).__init__()
+        super(ForecastScaleCapFixed, self).__init__()
+        setattr(self, "description", "fixed")
 
+
+    def get_forecast_scalar(self, instrument_code, rule_variation_name):
+        """
+        Get the scalar to apply to raw forecasts
+
+        In this simple version it's the same for all instruments, and fixed
+
+        We get the scalars from: (a) configuration file in parent system
+                                 (b) or if missing: uses the scalar from systems.defaults.py
+
+        :param instrument_code:
+        :type str:
+
+        :param rule_variation_name:
+        :type str: name of the trading rule variation
+
+        :returns: float
+
+        >>> from systems.tests.testdata import get_test_object_futures_with_rules
+        >>> from systems.basesystem import System
+        >>> (rules, rawdata, data, config)=get_test_object_futures_with_rules()
+        >>> system1=System([rawdata, rules, ForecastScaleCapFixed()], data, config)
+        >>>
+        >>> ## From config
+        >>> system1.forecastScaleCap.get_forecast_scalar("EDOLLAR", "ewmac8")
+        5.3
+        >>>
+        >>> ## default
+        >>> unused=config.trading_rules['ewmac8'].pop('forecast_scalar')
+        >>> system3=System([rawdata, rules, ForecastScaleCapFixed()], data, config)
+        >>> system3.forecastScaleCap.get_forecast_scalar("EDOLLAR", "ewmac8")
+        1.0
+        >>>
+        >>> ## other config location
+        >>> setattr(config, 'forecast_scalars', dict(ewmac8=11.0))
+        >>> system4=System([rawdata, rules, ForecastScaleCapFixed()], data, config)
+        >>> system4.forecastScaleCap.get_forecast_scalar("EDOLLAR", "ewmac8")
+        11.0
+        """
+
+        def _get_forecast_scalar(
+                system, instrument_code, rule_variation_name, this_stage):
+            # Try the config file
+            try:
+                scalar = system.config.trading_rules[
+                    rule_variation_name]['forecast_scalar']
+            except:
+                try:
+                    # can also put somewhere else ...
+                    scalar = system.config.forecast_scalars[
+                        rule_variation_name]
+                except:
+                    # go with defaults
+                    scalar = system_defaults['forecast_scalar']
+
+            return scalar
+
+        forecast_scalar = self.parent.calc_or_cache_nested(
+            "get_forecast_scalar", instrument_code, rule_variation_name, _get_forecast_scalar, self)
+
+        return float(forecast_scalar)
+
+
+class ForecastScaleCapEstimated(BaseForecastScaleCap):
+    """
+    This variation will estimate the scaling parameter
+
+    See the base class for inputs, outputs, etc
+
+    Name: forecastScaleCap
+    """
+
+    def __init__(self):
+        """
+        Create a SystemStage for scaling and capping forecasting
+
+        Using Estimated capping and scaling
+
+        :returns: None
+
+        """
+        super(ForecastScaleCapEstimated, self).__init__()
         setattr(self, "description", "Estimated")
 
     def get_forecast_scalar(self, instrument_code, rule_variation_name):
@@ -324,7 +326,8 @@ class ForecastScaleCapEstimated(ForecastScaleCapFixed):
 
         If not cached, these are estimated from past forecasts
 
-        If configuration variable pool_forecasts_for_scalar is "True", then we do this across instruments.
+        If configuration variable pool_forecasts_for_scalar is "True", then we
+          do this across instruments.
 
         :param instrument_code:
         :type str:
@@ -363,11 +366,12 @@ class ForecastScaleCapEstimated(ForecastScaleCapFixed):
         >>>
         """
 
-        def _get_forecast_scalar(
-                system, Not_Used, rule_variation_name, this_stage, instrument_list,
-                scalar_function, forecast_scalar_config):
+        def _get_forecast_scalar(system, Not_Used, rule_variation_name,
+                                 this_stage, instrument_list, scalar_function,
+                                 forecast_scalar_config):
             """
-            instrument_list contains multiple things, pools everything across all instruments
+            instrument_list contains multiple things, pools everything across
+              all instruments
             """
             this_stage.log.msg("Getting forecast scalar for %s over %s" % (rule_variation_name, ", ".join(instrument_list)),
                                rule_variation_name=rule_variation_name)
