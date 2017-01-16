@@ -22,8 +22,8 @@ some defaults
 """
 DEFAULT_CAPITAL = 10000000.0
 DEFAULT_ANN_RISK_TARGET = 0.16
-DEFAULT_DAILY_CAPITAL = DEFAULT_CAPITAL * \
-    DEFAULT_ANN_RISK_TARGET / ROOT_BDAYS_INYEAR
+DEFAULT_DAILY_CAPITAL = (DEFAULT_CAPITAL *
+                         DEFAULT_ANN_RISK_TARGET / ROOT_BDAYS_INYEAR)
 
 
 def account_test(ac1, ac2):
@@ -94,7 +94,8 @@ def pandl_with_data(price, trades=None, marktomarket=True, positions=None,
     :param trades: set of trades done  NOT always aligned to price
     :type trades: Tx2 pd.DataFrame columns ['trades', 'fill_price'] or None
 
-    :param marktomarket: If trades provided: Should we mark to market, or just use traded prices?
+    :param marktomarket: If trades provided: Should we mark to market, or just
+      use traded prices?
     :type marktomarket: bool
 
     :param positions: series of positions NOT ALWAYS aligned to price
@@ -103,28 +104,30 @@ def pandl_with_data(price, trades=None, marktomarket=True, positions=None,
     :param delayfill: If no trades provided: should we delay fills?
     :type delayfill: bool
 
-    :param roundpositions: If no trades provided, should we round positions when calculating trades?
+    :param roundpositions: If no trades provided, should we round positions
+      when calculating trades?
     :type roundpositions: bool
 
     :param get_daily_returns_volatility: series of volatility estimates, used
-        for calculation of positions  aligned to price
+        for calculation of positions aligned to price
     :type get_daily_returns_volatility: Tx1 pd.Series  or None
 
     :param forecast: series of forecasts, needed to work out positions if missing
     :type forecast: Tx1 pd.Series  or None
 
-    :param daily_risk_capital: needed to work out forecasts. If a time series must be aligned to price
+    :param daily_risk_capital: needed to work out forecasts. If a time series
+      must be aligned to price
     :type daily_risk_capital: Tx1 pd.Series  or None or float
 
     :param fx: series of fx rates from instrument currency to base currency, to
-        work out p&l in base currency  aligned to price
+      work out p&l in base currency  aligned to price
     :type fx: Tx1 pd.Series  or None
 
     :param value_of_price_point: value of one unit movement in price
     :type value_of_price_point: float
 
-    :returns: 5- Tuple (positions, trades, instr_ccy_returns,
-                            base_ccy_returns, fx) all Tx1 pd.DataFrames
+    :returns: 5- Tuple (positions, trades, instr_ccy_returns, base_ccy_returns,
+                        fx) all Tx1 pd.DataFrames
 
     """
     if price is None:
@@ -531,8 +534,8 @@ class accountCurveSingleElementOneFreq(pd.Series):
 
 class accountCurveSingleElement(accountCurveSingleElementOneFreq):
     """
-    A single account curve for one asset (instrument / trading rule variation, ...)
-     and one part of it (gross, net, costs)
+    A single account curve for one asset (instrument / trading rule variation,
+     ...) and one part of it (gross, net, costs)
 
     Inherits from data frame
 
@@ -678,7 +681,6 @@ class accountCurve(accountCurveSingle):
         """
         Create an account curve; from which many lovely statistics can be gathered
 
-
         We create by passing **kwargs which will be used by the pandl function
 
         :param cash_cost: Cost in local currency units per instrument block
@@ -689,14 +691,16 @@ class accountCurve(accountCurveSingle):
 
         Note if both are included then cash_cost will be disregarded
 
-        :param capital: Capital at risk. Used for % returns, and calculating daily risk for SR costs
+        :param capital: Capital at risk. Used for % returns, and calculating
+          daily risk for SR costs
         :type capital: None, float, int, or Tx1
 
-        :param ann_risk_target: Annual risk target, as % of capital. Used to calculate daily risk for SR costs
+        :param ann_risk_target: Annual risk target, as % of capital. Used to
+          calculate daily risk for SR costs
         :type ann_risk_target: None or float
 
-        :param pre_calc_data: Used by the weighting function, to speed things up and inherit pre-calculated
-                            stuff from an existing account curve
+        :param pre_calc_data: Used by the weighting function, to speed things
+          up and inherit pre-calculated stuff from an existing account curve
         :type pre_calc_data: None or a big tuple
 
 
@@ -718,9 +722,11 @@ class accountCurve(accountCurveSingle):
             """
             Capital is used for:
 
-              - going from forecast to position in profit and loss calculation (fixed or a time series): daily_risk_capital
+              - going from forecast to position in profit and loss calculation
+                (fixed or a time series): daily_risk_capital
               - calculating costs from SR costs (always a time series): ann_risk
-              - calculating percentage returns (maybe fixed or variable time series): base_capital
+              - calculating percentage returns (maybe fixed or variable time
+                series): base_capital
             """
             (base_capital, ann_risk, daily_risk_capital) = resolve_capital(
                 price, capital, ann_risk_target)
@@ -746,7 +752,6 @@ class accountCurve(accountCurveSingle):
                                    apply_weight_to_costs_only=apply_weight_to_costs_only)
 
         # Save all kinds of useful statistics
-
         setattr(self, "unweighted_instr_ccy_pandl", unweighted_instr_ccy_pandl)
         setattr(self, "cum_trades", cum_trades)
         setattr(self, "trades_to_use", trades_to_use)
@@ -957,17 +962,21 @@ def resolve_capital(ts_to_scale_to, capital=None, ann_risk_target=None):
 
     Capital is used for:
 
-      - going from forecast to position in profit and loss calculation (fixed or a time series): daily_risk_capital
+      - going from forecast to position in profit and loss calculation (fixed
+        or a time series): daily_risk_capital
       - calculating costs from SR costs (always a time series): ann_risk
-      - calculating percentage returns (maybe fixed or variable time series): capital
+      - calculating percentage returns (maybe fixed or variable time series):
+        capital
 
     :param ts_to_scale_to: If capital is fixed, what time series to scale it to
     :type capital: Tx1 pd.DataFrame
 
-    :param capital: Capital at risk. Used for % returns, and calculating daily risk for SR costs
+    :param capital: Capital at risk. Used for % returns, and calculating daily
+      risk for SR costs
     :type capital: None, int, float or Tx1 pd.DataFrame
 
-    :param ann_risk_target: Annual risk target, as % of capital 0.10 is 10%. Used to calculate daily risk for SR costs
+    :param ann_risk_target: Annual risk target, as % of capital 0.10 is 10%.
+      Used to calculate daily risk for SR costs
     :type ann_risk_target: None or float
 
     :returns tuple: 3 tuple of Tx1 pd.Series / float, pd.Series, pd.Series or float

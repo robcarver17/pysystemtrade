@@ -68,7 +68,8 @@ def expiry_date(expiry_ident):
 
 def expiry_diff(carry_row, floor_date_diff=20):
     """
-    Given a pandas row containing CARRY_CONTRACT and PRICE_CONTRACT, both of which represent dates
+    Given a pandas row containing CARRY_CONTRACT and PRICE_CONTRACT, both of
+    which represent dates
 
     Return the annualised difference between the dates
 

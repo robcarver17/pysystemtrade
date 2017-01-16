@@ -16,10 +16,11 @@ class Rules(SystemStage):
 
     forecasting([trading_rule1, trading_rule2, ..])
 
-    Note that trading rules can be created using the TradingRule class, or you can just pass in the
-      name of a function, or a function.
+    Note that trading rules can be created using the TradingRule class, or you
+      can just pass in the name of a function, or a function.
 
-    We can also use a generate_variations method to create a list of multiple rules
+    We can also use a generate_variations method to create a list of multiple
+      rules
 
     b) or we can create from a system config
 
@@ -35,13 +36,15 @@ class Rules(SystemStage):
         """
         Create a SystemStage for forecasting
 
-        We eithier pass a dict or a list of trading rules (functions, strings specifying a function, or objects of class TradingRule)
-          ... or we'll get it from the overall system config (trading_rules=None)
+        We eithier pass a dict or a list of trading rules (functions, strings
+          specifying a function, or objects of class TradingRule)
+          ... or we'll get it from the overall system config
+          (trading_rules=None)
 
         :param trading_rules: Set of trading rules
-        :type trading_rules:    None       (rules will be inherited from self.parent system)
-                                TradingRule, str, callable function, or tuple (single rule)
-                                list or dict  (multiple rules)
+        :type trading_rules: None (rules will be inherited from self.parent
+          system) TradingRule, str, callable function, or tuple (single rule)
+          list or dict (multiple rules)
 
         :returns: Rules object
 
@@ -156,7 +159,6 @@ class TradingRule(object):
     Container for trading rules
 
     Can be called manually or will be called when configuring a system
-
     """
 
     def __init__(self, rule, data=list(), other_args=dict()):
@@ -193,8 +195,6 @@ class TradingRule(object):
         :type other_args: dict
 
         :returns: single Tradingrule object
-
-
         """
 
         if hasallattr(rule, ["function", "data", "other_args"]):
