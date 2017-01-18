@@ -1,3 +1,4 @@
+[run]
 omit =
     */test_*
     *__init__.py
@@ -5,7 +6,6 @@ omit =
     */.virtualenvs/*
     test/*
 
-[paths]
 source = 
     examples/
     syscore/
