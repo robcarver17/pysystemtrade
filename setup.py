@@ -29,7 +29,6 @@ setup(
     install_requires=["pandas >= 0.19.0", "numpy >= 1.10.1",
                       "matplotlib > 1.4.3", "PyYAML>=3.11", "scipy>=0.17"],
     tests_requires=['nose'],
-    test_suite='nose.collect',
     extras_require=dict(),
     test_suite='nose.collector',
     include_package_data=True
