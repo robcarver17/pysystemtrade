@@ -1,0 +1,23 @@
+[run]
+omit =
+    */test_*
+    *__init__.py
+    */.tox/*
+    */.virtualenvs/*
+    test/*
+
+source = 
+    examples/
+    syscore/
+    syslogdiag/
+    syssims/
+    systems/
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    raise NotImplementedError
+    raise AssertionError
+    if 0:
+    if __name__ == .__main__.:

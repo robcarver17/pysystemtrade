@@ -2,4 +2,13 @@
 __pycache__
 *.egg-info
 .ipynb_checkpoints
+*.pyc
+*.pyo
+.tox
+dist
+build
 private
+
+# Coverage reports
+.coverage
+.coverage.*
