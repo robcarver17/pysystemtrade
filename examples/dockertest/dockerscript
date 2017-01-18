@@ -1,0 +1,1 @@
+sudo docker run -t -i -v /home/rob/results:/results robcarver17/pysystemtrade
