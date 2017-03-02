@@ -8,6 +8,7 @@ __pycache__
 dist
 build
 private
+.idea
 
 # Coverage reports
 .coverage
