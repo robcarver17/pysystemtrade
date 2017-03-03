@@ -504,8 +504,8 @@ data=csvFuturesData()
 ## getting data out
 data.methods() ## list of methods
 
-data.get_instrument_price(instrument_code)
-data[instrument_code] ## does the same thing as get_instrument_price
+data.get_raw_price(instrument_code)
+data[instrument_code] ## does the same thing as get_raw_price
 
 data.get_instrument_list()
 data.keys() ## also gets the instrument list
@@ -526,7 +526,7 @@ system=futures_system(data=data)
 system.data.get_instrument_currency(instrument_code) # and so on
 ```
 
-(Note that when specifying a data item within a trading [rule](#rules) you should omit the system eg `data.get_instrument_price`)
+(Note that when specifying a data item within a trading [rule](#rules) you should omit the system eg `data.get_raw_price`)
 
 
 
@@ -586,7 +586,7 @@ This might seem a hassle, and it's tempting to skip and just inherit from `Data(
 
 Methods that you'll probably want to override:
 
-- `get_instrument_price` Returns Tx1 pandas data frame
+- `get_raw_price` Returns Tx1 pandas data frame
 - `get_instrument_list` Returns list of str
 - `get_value_of_block_price_move` Returns float
 - 'get_raw_cost_data' Returns a dict cost data
@@ -647,7 +647,7 @@ class csvFuturesData(FuturesData):
         setattr(self, "_datapath", datapath)
     
     
-    def get_instrument_price(self, instrument_code):
+    def get_raw_price(self, instrument_code):
         """
         Get instrument price. Overrides Data() method
         """
@@ -1088,7 +1088,7 @@ system.portfolio.get_notional_position("EDOLLAR")
 We can also access the methods in the data object that is part of every system:
 
 ```python
-system.data.get_instrument_price("EDOLLAR")
+system.data.get_raw_price("EDOLLAR")
 ```
 
 For a list of all the methods in a system and it's stages see [stage methods](#table_system_stage_methods). Alternatively:
@@ -1670,7 +1670,7 @@ SystemStage 'rawdata'
 So we can access the data methods of each stage:
 
 ```python
-system.rawdata.get_instrument_price("EDOLLAR").tail(5)
+system.rawdata.get_raw_price("EDOLLAR").tail(5)
 ```
 
 ```
@@ -1754,7 +1754,7 @@ What actually happens when we call `system.combForecast.get_combined_forecast("E
         - `system.forecastScaleCap.get_forecast_scalar("EDOLLAR",  "ewmac2_8")` etc
         - `system.forecastScaleCap.get_raw_forecast("EDOLLAR",  "ewmac2_8")` etc
           - `system.rules.get_raw_forecast("EDOLLAR",  "ewmac2_8")` etc
-            - `system.data.get_instrument_price("EDOLLAR")`
+            - `system.data.get_raw_price("EDOLLAR")`
             - `system.rawdata.get_daily_returns_volatility("EDOLLAR")`
               - (further stages to calculate volatility omitted)
 
@@ -2289,19 +2289,19 @@ TradingRule(ewmac, data='rawdata.get_daily_prices', other_args=dict(Lfast=2, Lsl
 Multiple data is fine, and it's okay to omit data or other_args:
 
 ```python
-TradingRule(some_rule, data=['rawdata.get_daily_prices','data.get_instrument_price'])
+TradingRule(some_rule, data=['rawdata.get_daily_prices','data.get_raw_price'])
 ```
 
 Sometimes it's easier to specify the rule 'en bloc'. You can do this with a 3 tuple. Notice here we're specifying the function with a string, and listing multiple data items:
 
 ```python
-TradingRule(("systems.provided.futures_chapter15.rules.ewmac", ['rawdata.get_daily_prices','data.get_instrument_price'], dict(Lfast=3, Lslow=12)))
+TradingRule(("systems.provided.futures_chapter15.rules.ewmac", ['rawdata.get_daily_prices','data.get_raw_price'], dict(Lfast=3, Lslow=12)))
 ```
 
 Or with a dict. If using a dict keywords can be omitted (but not `function`). 
 
 ```python
-TradingRule(dict(function="systems.provided.futures_chapter15.rules.ewmac", data=['rawdata.get_daily_prices','data.get_instrument_price']))
+TradingRule(dict(function="systems.provided.futures_chapter15.rules.ewmac", data=['rawdata.get_daily_prices','data.get_raw_price']))
 ```
 
 Note if you use an 'en bloc' method, and also include the `data` or `other_args` arguments in your call to `TradingRule`, you'll get a warning.
@@ -2532,7 +2532,7 @@ modified_rule.other_args['Lfast']=10
 
 ## We can also do:
 ## modified_rule.function=new_function
-## modified_rule.data='data.get_instrument_price'
+## modified_rule.data='data.get_raw_price'
 ##
 
 system.rules._trading_rules['ewmac2_8']=modified_rule 
@@ -3533,12 +3533,12 @@ system.rawdata.methods() ## works for any stage or data
 
 ### Explanation of columns
 
-For brevity the name of the system instance is omitted from the 'call' column (except where it's the actual system object we're calling directly). So for example to get the instrument price for Eurodollar from the data object, which is marked as *`data.get_instrument_price`* we would do something like this:
+For brevity the name of the system instance is omitted from the 'call' column (except where it's the actual system object we're calling directly). So for example to get the instrument price for Eurodollar from the data object, which is marked as *`data.get_raw_price`* we would do something like this:
 
 ```python
 from systems.provided.futures_chapter15.basesystem import futures_system
 name_of_system=futures_system()
-name_of_system.data.get_instrument_price("EDOLLAR")
+name_of_system.data.get_raw_price("EDOLLAR")
 ```
 
 Standard methods are in all systems. Non standard methods are for stage classes inherited from the standard class, eg the raw data method specific to *futures*; or the *estimate* classes which estimate parameters rather than use fixed versions.
@@ -3570,7 +3570,7 @@ Other methods exist to access logging and cacheing.
 
 | Call                              | Standard?| Arguments       | Type | Description                                                    |
 |:-------------------------:|:---------:|:---------------:|:----:|:--------------------------------------------------------------:|
-| `data.get_instrument_price` | Standard  | `instrument_code`        | D,O  | Intraday prices if available (backadjusted if relevant)|
+| `data.get_raw_price` | Standard  | `instrument_code`        | D,O  | Intraday prices if available (backadjusted if relevant)|
 | `data.daily_prices` | Standard  | `instrument_code`        | D,O  | Default price used for trading rule analysis (backadjusted if relevant)|
 | `data.get_instrument_list`  | Standard  |                        |  D,O   | List of instruments available in data set (not all will be used for backtest)|
 | `data.get_value_of_block_price_move`| Standard | `instrument_code` | D,O  | How much does a $1 (or whatever) move in the price of an instrument block affect it's value? |
@@ -3586,7 +3586,6 @@ Other methods exist to access logging and cacheing.
         
 | Call                              | Standard?| Arguments       | Type | Description                                                    |
 |:-------------------------:|:---------:|:---------------:|:----:|:--------------------------------------------------------------:|
-| `rawdata.get_instrument_price` | Standard  | `instrument_code`        | I  | `data.get_instrument_price`|
 | `rawdata.get_daily_prices` | Standard |     `instrument_code`     | I |  `data.daily_prices`|
 | `rawdata.daily_denominator_price` | Standard | `instrument_code`  |  O | Price used to calculate % volatility (for futures the current contract price) |
 | `rawdata.daily_returns` | Standard | `instrument_code` | D, O | Daily returns in price units|
@@ -3690,7 +3689,6 @@ Inputs:
 | `accounts.get_instrument_list`| Standard |  | I | `portfolio.get_instrument_list`|
 | `accounts.get_notional_capital`| Standard |  | I | `positionSize.get_daily_cash_vol_target`|
 | `accounts.get_fx_rate`| Standard |  `instrument_code` | I | `positionSize.get_fx_rate`|
-| `accounts.get_instrument_price`| Standard |  `instrument_code` | I | `data.daily_prices`|
 | `accounts.get_value_of_price_move`| Standard |  `instrument_code` | I | `positionSize.get_instrument_sizing_data`|
 | `accounts.get_daily_returns_volatility`| Standard |  `instrument_code` | I | `rawdata.daily_returns_volatility` or `data.daily_prices`|
 | `accounts.get_raw_cost_data`| Standard | `instrument_code` | I  | `data.get_raw_cost_data` |

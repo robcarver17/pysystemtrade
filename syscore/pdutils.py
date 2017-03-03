@@ -145,10 +145,10 @@ def apply_cap(pd_series, capvalue):
 
     >>> x=pd.Series([2.0, 7.0, -7.0, -6.99], pd.date_range(pd.datetime(2015,1,1), periods=4))
     >>> apply_cap(x, 5.0)
-    2015-01-01  2
-    2015-01-02  5
-    2015-01-03 -5
-    2015-01-04 -5
+    2015-01-01    2.0
+    2015-01-02    5.0
+    2015-01-03   -5.0
+    2015-01-04   -5.0
     Freq: D, dtype: float64
     """
     # Will do weird things otherwise
@@ -217,13 +217,42 @@ def drawdown(x):
     Returns a ts of drawdowns for a time series x
 
     :param x: account curve (cumulated returns)
-    :param x: pd.DataFrame or Series
+    :type x: pd.DataFrame or Series
 
     :returns: pd.DataFrame or Series
 
     """
     maxx = x.expanding(min_periods=1).max()
     return x - maxx
+
+
+def create_arbitrary_pdseries(data_list, date_start=pd.datetime(1980,1,1), freq="B"):
+    """
+    Return a pandas Series with an arbitrary date index
+
+    :param data_list: Data
+    :type data_list: list of floats or ints
+
+    :param date_start: First date to use in index
+    :type date_start: datetime
+
+    :param freq: Frequency of date index
+    :type freq: str of a type that pd.date_range will recognise
+
+    :returns: pd.Series  (same length as Data)
+
+    >>> create_arbitrary_pdseries([1,2,3])
+    1980-01-01    1
+    1980-01-02    2
+    1980-01-03    3
+    Freq: D, dtype: int64
+    """
+
+    date_index=pd.date_range(start=date_start, periods=len(data_list), freq=freq)
+
+    pdseries=pd.Series(data_list, index=date_index)
+
+    return pdseries
 
 
 if __name__ == '__main__':

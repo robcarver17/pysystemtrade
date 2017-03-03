@@ -28,7 +28,7 @@ class csvFuturesData(FuturesData):
 
     """
 
-    def __init__(self, datapath=None):
+    def __init__(self, datapath=None, absolute_datapath=None):
         """
         Create a FuturesData object for reading .csv files from datapath
         inherits from FuturesData
@@ -36,8 +36,12 @@ class csvFuturesData(FuturesData):
         We look for data in .csv files
 
 
-        :param datapath: path to find .csv files (defaults to LEGACY_DATA_MODULE/LEGACY_DATA_DIR
+        :param datapath: relative path to find .csv files (defaults to LEGACY_DATA_MODULE/LEGACY_DATA_DIR
         :type datapath: None or str
+
+        :param absolute_datapath: absolute path to find .csv files (not used if datapath specified)
+        :type datapath: None or str
+
 
         :returns: new csvFuturesData object
 
@@ -50,15 +54,22 @@ class csvFuturesData(FuturesData):
 
         super().__init__()
 
-        if datapath is None:
-            datapath = LEGACY_DATA_PATH
+        ## Use (1) provided relative datapath, (2) absolute_datapath, (3) default relative datapath
 
-        datapath = get_pathname_for_package(datapath)
+        if datapath is not None:
+            resolved_datapath=get_pathname_for_package(datapath)
+        else:
+            if absolute_datapath is not None:
+                resolved_datapath = absolute_datapath
+            else:
+                resolved_datapath = get_pathname_for_package(LEGACY_DATA_PATH)
+
+
         """
         Most Data objects that read data from a specific place have a 'source' of some kind
         Here it's a directory
         """
-        setattr(self, "_datapath", datapath)
+        setattr(self, "_datapath", resolved_datapath)
 
     def _get_all_cost_data(self):
         """

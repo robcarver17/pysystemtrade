@@ -202,18 +202,27 @@ class System(object):
         return dict([(itemname, self._cache[itemname])
                      for itemname in itemsubset])
 
-    def pickle_cache(self, filename):
+    def pickle_cache(self, relativefilename, fullfilename=None):
         """
         Save everything in the cache to a pickle
 
         EXCEPT 'nopickle' items
 
-        :param filename: cache location
-        :type filename: filename in 'dot' format eg 'systems.basesystem.py' is this file
+        :param relativefilename: cache location filename in 'dot' format eg 'systems.basesystem.py' is this file
+        :type relativefilename: str
+
+        :param fullfilename: full filename
+        :type fullfilename: str
+
 
         :returns: None
 
         """
+
+        if fullfilename is None:
+            filename=get_filename_for_package(relativefilename)
+        else:
+            filename=fullfilename
 
         itemstopickle = self.get_items_with_data()
         dont_pickle = self.get_nopickle_items()
@@ -223,10 +232,10 @@ class System(object):
 
         cache_to_pickle = self.partial_cache(itemstopickle)
 
-        with open(get_filename_for_package(filename), "wb") as fhandle:
+        with open(filename, "wb") as fhandle:
             pickle.dump(cache_to_pickle, fhandle)
 
-    def unpickle_cache(self, filename, clearcache=True):
+    def unpickle_cache(self, relativefilename, fullfilename=None, clearcache=True):
         """
         Loads the saved cache
 
@@ -246,7 +255,12 @@ class System(object):
 
         """
 
-        with open(get_filename_for_package(filename), "rb") as fhandle:
+        if fullfilename is None:
+            filename=get_filename_for_package(relativefilename)
+        else:
+            filename=fullfilename
+
+        with open(filename, "rb") as fhandle:
             cache_from_pickled = pickle.load(fhandle)
 
         if clearcache:
