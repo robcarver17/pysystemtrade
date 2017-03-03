@@ -1,9 +1,11 @@
 """
 Configuration is used to control the behaviour of a system
 
-Config can be passed as a dict, a filename from which a YAML spec is read in and then parsed
+Config can be passed as a dict, a filename from which a YAML spec is read in
+and then parsed
 
-There are no set elements for configurations, although typically they will contain:
+There are no set elements for configurations, although typically they will
+contain:
 
 parameters - a dict of values which override those in system.defaults
 trading_rules - a specification of the trading rules for a system
@@ -29,7 +31,9 @@ class Config(object):
         :param config_object: Eithier:
                         a string (which points to a YAML filename)
                         or a dict (which may nest many things)
-                        or a list of strings or dicts (build config from multiple elements, latter elements will overwrite earlier oness)
+                        or a list of strings or dicts (build config from
+                        multiple elements, latter elements will overwrite
+                        earlier oness)
 
         :type config_object: str or dict
 
@@ -71,7 +75,9 @@ class Config(object):
             self._create_config_from_dict(dict_to_parse)
 
         else:
-            error_msg = "Can only create a config with a nested dict or the string of a 'yamable' filename, or a list comprising these things"
+            error_msg = ("Can only create a config with a nested dict or the "
+                         "string of a 'yamable' filename, or a list "
+                         "comprising these things")
             self.log.critical(error_msg)
 
     def _create_config_from_dict(self, config_object):
@@ -82,8 +88,11 @@ class Config(object):
 
         So if config_objec=dict(a=2, b=2)
         Then this object will become self.a=2, self.b=2
-
         """
+        base_config = config_object.get('base_config')
+        if base_config is not None:
+           self._create_config_from_item(base_config)
+
         attr_names = list(config_object.keys())
         [setattr(self, keyname, config_object[keyname])
          for keyname in config_object]
@@ -219,7 +228,8 @@ class Config(object):
 
     def nested_dict_with_defaults(self, element_name, dict_name):
         """
-        Returns config.element_name[dict_name] with any keys required replaced with system defaults
+        Returns config.element_name[dict_name] with any keys required replaced
+        with system defaults
 
         Only works for configs where the element is a nested dict
         """
