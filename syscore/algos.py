@@ -204,7 +204,7 @@ def apply_buffer_single_period(last_position, optimal_position, top_pos,
     """
     Apply a buffer to a position, single period
 
-    If position is outside the buffer, we eithier trade to the edge of the
+    If position is outside the buffer, we either trade to the edge of the
     buffer, or to the optimal
 
     :param last_position: last position we had
@@ -247,7 +247,7 @@ def apply_buffer(optimal_position, pos_buffers,
     """
     Apply a buffer to a position
 
-    If position is outside the buffer, we eithier trade to the edge of the
+    If position is outside the buffer, we either trade to the edge of the
     buffer, or to the optimal
 
     If we're rounding positions, then we floor and ceiling the buffers.

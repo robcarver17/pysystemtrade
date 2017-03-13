@@ -15,7 +15,7 @@ class ForecastCombine(SystemStage):
     """
     Stage for combining forecasts (already capped and scaled)
 
-    This is a 'switching' class which selects eithier the fixed or the estimated flavours
+    This is a 'switching' class which selects either the fixed or the estimated flavours
 
     """
 
@@ -448,7 +448,7 @@ class ForecastCombineFixed(SystemStage):
                     fixed_div_mult = system.config.forecast_div_multiplier[
                         instrument_code]
                 else:
-                    error_msg = "FDM in config needs to be eithier float, or dict with instrument_code keys"
+                    error_msg = "FDM in config needs to be either float, or dict with instrument_code keys"
                     this_stage.log.critical(
                         error_msg, instrument_code=instrument_code)
 
@@ -693,7 +693,7 @@ class ForecastCombineEstimated(ForecastCombineFixed):
             instrument_code_ref = instrument_code
         ##
         # label: how we identify this thing in the cache
-        # instrument_code_ref: eithier the instrument code, or 'all markets' if pooling
+        # instrument_code_ref: either the instrument code, or 'all markets' if pooling
         # _get_forecast_correlation_matrices: function to call if we don't find in cache
         # self: this_system stage object
         # codes_to_use: instrument codes

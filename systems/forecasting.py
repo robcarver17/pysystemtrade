@@ -36,7 +36,7 @@ class Rules(SystemStage):
         """
         Create a SystemStage for forecasting
 
-        We eithier pass a dict or a list of trading rules (functions, strings
+        We either pass a dict or a list of trading rules (functions, strings
           specifying a function, or objects of class TradingRule)
           ... or we'll get it from the overall system config
           (trading_rules=None)
@@ -187,11 +187,11 @@ class TradingRule(object):
                 "systems.provide.example.rules.ewmac_forecast_with_defaults")
 
         :param data: (list of) str pointing to location of inputs in a system method call (eg "data.get_instrument_price")
-                     (Eithier passed in separately, or as part of a TradingRule, 3-tuple, or dict object)
+                     (Either passed in separately, or as part of a TradingRule, 3-tuple, or dict object)
         :type data: single str, or list of str
 
         :param other_args: Other named arguments to be passed to trading rule function
-                     (Eithier passed in separately , or as part of a TradingRule, 3-tuple, or dict object)
+                     (Either passed in separately , or as part of a TradingRule, 3-tuple, or dict object)
         :type other_args: dict
 
         :returns: single Tradingrule object
