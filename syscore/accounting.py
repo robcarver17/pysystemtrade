@@ -1243,7 +1243,7 @@ class statsDict(dict):
         """
         Returns a dict of weightings
 
-        Eithier equal weighting, or returns time_weightings
+        Either equal weighting, or returns time_weightings
 
         :param timeweighted: Time weight statistics or use simple average
         :type: timeweighted: bool

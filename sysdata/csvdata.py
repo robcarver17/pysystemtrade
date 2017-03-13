@@ -214,7 +214,7 @@ class csvFuturesData(FuturesData):
 
     def _get_instrument_data(self):
         """
-        Get a data frame of interesting information about instruments, eithier
+        Get a data frame of interesting information about instruments, either
         from a file or cached
 
         :returns: pd.DataFrame

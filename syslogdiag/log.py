@@ -187,12 +187,12 @@ class logtoscreen(logger):
         if msglevel == 0:
             if log_level == "on":
                 print(text)
-                # otherwise do nothing - eithier terse or off
+                # otherwise do nothing - either terse or off
 
         elif msglevel == 1:
             if log_level in ["on", "terse"]:
                 print(text)
-                # otherwise do nothing - eithier terse or off
+                # otherwise do nothing - either terse or off
         else:
             print(text)
 

@@ -28,7 +28,7 @@ class Config(object):
         """
         Config objects control the behaviour of systems
 
-        :param config_object: Eithier:
+        :param config_object: Either:
                         a string (which points to a YAML filename)
                         or a dict (which may nest many things)
                         or a list of strings or dicts (build config from

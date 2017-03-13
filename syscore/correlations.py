@@ -126,7 +126,7 @@ def correlation_single_period(data_for_estimate,
                               using_exponent=True, min_periods=20, ew_lookback=250,
                               floor_at_zero=True):
     """
-    We generate a correlation from eithier a pd.DataFrame, or a list of them if we're pooling
+    We generate a correlation from either a pd.DataFrame, or a list of them if we're pooling
 
     It's important that forward filling, or index / ffill / diff has been done before we begin
 
@@ -228,7 +228,7 @@ class CorrelationList(object):
 class CorrelationEstimator(CorrelationList):
     '''
 
-    We generate a correlation list from eithier a pd.DataFrame, or a list of them if we're pooling
+    We generate a correlation list from either a pd.DataFrame, or a list of them if we're pooling
 
     The default is to generate correlations annually, from weekly
 
@@ -242,7 +242,7 @@ class CorrelationEstimator(CorrelationList):
                  dict_group=dict(), boring_offdiag=0.99, cleaning=True, **kwargs):
         """
 
-        We generate a correlation from eithier a pd.DataFrame, or a list of them if we're pooling
+        We generate a correlation from either a pd.DataFrame, or a list of them if we're pooling
 
         Its important that forward filling, or index / ffill / diff has been done before we begin
 

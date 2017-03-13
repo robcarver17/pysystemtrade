@@ -307,7 +307,7 @@ Functions must return a Tx1 pandas dataframe.
  
 ### Adding the trading rule to a configuration
 
-We can eithier modify the YAML file or the configuration object we've already loaded into memory. See ['changing backtest parameters'](change_backtest_parameters) for more details. If you want to use a YAML file you need to first save the function into a .py module, so it can be referenced by a string (we can also use this method for a config object in memory).
+We can either modify the YAML file or the configuration object we've already loaded into memory. See ['changing backtest parameters'](change_backtest_parameters) for more details. If you want to use a YAML file you need to first save the function into a .py module, so it can be referenced by a string (we can also use this method for a config object in memory).
 
 For example the rule imported like this:
 
@@ -695,7 +695,7 @@ class csvFuturesData(FuturesData):
 ## Configuration
 </a>
 
-Configuration (`config`) objects determine how a system behaves. Configuration objects are very simple; they have attributes which contain eithier parameters, or nested groups of parameters.
+Configuration (`config`) objects determine how a system behaves. Configuration objects are very simple; they have attributes which contain either parameters, or nested groups of parameters.
 
 ### Creating a configuration object
 
@@ -1111,7 +1111,7 @@ system.config.instrument_div_multiplier=1.2
 
 Currently system only has two methods of it's own (apart from those used for caching, described below): 
 
-`system.get_instrument_list()` This will get the list of instruments in the system, eithier from the config object if it contains instrument weights, or from the data object.
+`system.get_instrument_list()` This will get the list of instruments in the system, either from the config object if it contains instrument weights, or from the data object.
 
 `system.log` and `system.set_logging_level()` provides access to the system's log. See [logging](#logging) for more details.
 
@@ -1194,7 +1194,7 @@ system.accounts.portfolio().sharpe() ## this will run much faster and reuse prev
 
 ### Advanced caching
 
-It's also possible to selectively delete certain cached items, whilst keeping the rest of the system intact. You shouldn't do this without understanding  [stage wiring](#stage_wiring). You need to have a good knowledge of the various methods in each stage, to understand the downstream implications of eithier deleting or keeping a particular data value.
+It's also possible to selectively delete certain cached items, whilst keeping the rest of the system intact. You shouldn't do this without understanding  [stage wiring](#stage_wiring). You need to have a good knowledge of the various methods in each stage, to understand the downstream implications of either deleting or keeping a particular data value.
 
 There are four attributes of data stored in the cache:
 
@@ -1553,7 +1553,7 @@ It's worth creating a new pre-baked system if you're likely to want to repeat a 
 The elements of a new pre-baked system will be:
 
 1. New stages, or a different choice of existing stages.
-2. A set of data (eithier new or existing)
+2. A set of data (either new or existing)
 3. A configuration file
 4. A python function that loads the above elements, and returns a system object
 
@@ -1731,7 +1731,7 @@ combine=ForecastCombine()
 fcs=ForecastScaleCap()
 ```
 
-I strongly recommend that you do not do this. The reason is that these objects dynamically switch into eithier an estimating or a fixed flavour once they become part of a system, depending on the value of `use_*_estimates` config paramters. If for some reasons you're switching between using fixed and estimated weights during a backtesting session, then you might expect that you just need to change the config, and of course create a new system object. However the above objects will retain their old status as fixed or estimated versions of the relevant class.
+I strongly recommend that you do not do this. The reason is that these objects dynamically switch into either an estimating or a fixed flavour once they become part of a system, depending on the value of `use_*_estimates` config paramters. If for some reasons you're switching between using fixed and estimated weights during a backtesting session, then you might expect that you just need to change the config, and of course create a new system object. However the above objects will retain their old status as fixed or estimated versions of the relevant class.
 
 So you need to remember to create brand new instances of the relevant stages (as I do in the introductory guide); or better still just create them within the system call.
 
@@ -1779,7 +1779,7 @@ This approach (which you can also think of as the stage "API") is used to make i
 
 ### Using a different set of stages
 
-There are different versions of certain stages available; for example we can use eithier `ForecastScaleCapFixed` or `ForecastScaleCapEstimated`. Additionally you can add new kinds of stages if desired (see below), and remove stages you don't need (though you can't remove intermediate stages that a remaining stage would need to work out it's results).
+There are different versions of certain stages available; for example we can use either `ForecastScaleCapFixed` or `ForecastScaleCapEstimated`. Additionally you can add new kinds of stages if desired (see below), and remove stages you don't need (though you can't remove intermediate stages that a remaining stage would need to work out it's results).
 
 It's best to create a new 'pre-baked' system by copying and modifying a file such as [this](/systems/provided/futures_chapter_15/basesystem.py). You need to import the new stages you require and then put them into the system, like so:
 
@@ -1888,7 +1888,7 @@ class ForecastScaleCapFixed(SystemStage):
     
         In this simple version it's the same for all instruments, and fixed
 
-        We get the scalars from: (a) configuration file in parent system, eithier under trading_rules or seperately
+        We get the scalars from: (a) configuration file in parent system, either under trading_rules or seperately
                                  (b) or if missing: uses the scalar from systems.defaults.py
 
         :param instrument_code: 
@@ -2099,7 +2099,7 @@ class ForecastCombine(SystemStage):
     """
     Stage for combining forecasts (already capped and scaled)
 
-    This is a 'switching' class which selects eithier the fixed or the estimated flavours
+    This is a 'switching' class which selects either the fixed or the estimated flavours
     
     """
     
@@ -2267,7 +2267,7 @@ At a minimum we need to know the function, since other arguments are optional, a
 
 In this project there is a specific [`TradingRule` class](/systems/forecasting.py). A `TradingRule` instance contains 3 elements - a function, a list of any data the function needs, and a dict of any other arguments that can be passed to the function.
 
-The function can eithier be the actual function, or a relative reference to it eg "systems.provided.futures_chapter15.rules.ewmac" (this is useful when a  configuration is created from a file). Data must always be in the form of references to attributes and methods of the system object, eg 'data.daily_prices' or 'rawdata.get_daily_prices'. Eithier a single data item, or a list must be passed. Other arguments are in the form a dictionary. 
+The function can either be the actual function, or a relative reference to it eg "systems.provided.futures_chapter15.rules.ewmac" (this is useful when a  configuration is created from a file). Data must always be in the form of references to attributes and methods of the system object, eg 'data.daily_prices' or 'rawdata.get_daily_prices'. Either a single data item, or a list must be passed. Other arguments are in the form a dictionary. 
 
 We can create trading rules in a number of different ways. I've noticed that different people find different ways of defining rules more natural than others, hence the deliberate flexibility here.
 
@@ -2504,7 +2504,7 @@ system=futures_system(trading_rules=dict(ewmac2_8=trading_rule1, ewmac4_16=tradi
 
 #### Changing the trading rules in a system on the fly (advanced)
 
-The workflow above has been to create a `Rules` instance (eithier empty, or passing in a set of trading rules), then create a system that uses it. However sometimes we might want to modify the list of trading rules in the system object. For example you may have loaded a pre-baked system in (which will have an empty `Rules()` instance and so be using the rules from the config). Rather than replace that wholesale, you might want to drop one of the rules, add an additional one, or change a rule that already exists.
+The workflow above has been to create a `Rules` instance (either empty, or passing in a set of trading rules), then create a system that uses it. However sometimes we might want to modify the list of trading rules in the system object. For example you may have loaded a pre-baked system in (which will have an empty `Rules()` instance and so be using the rules from the config). Rather than replace that wholesale, you might want to drop one of the rules, add an additional one, or change a rule that already exists.
 
 To do this we need to directly access the private `_trading_rules` attribute that stores **processed** trading rules in a dict. This means we can't pass in any old rubbish that can be parsed into a trading rule as we did above; we need to pass in actual `TradingRule` objects.
 
@@ -2568,7 +2568,7 @@ This is a ["switching" class](#switch_persistence). If `config.use_forecast_scal
 
 The standard 'fixed' class uses fixed scaling and caps. It is included in [standard futures system](#futures_system).
 
-Forecast scalars are specific to each rule. Scalars can eithier be included in the `trading_rules` or `forecast_scalars` part of the config. The former takes precedence if both are included:
+Forecast scalars are specific to each rule. Scalars can either be included in the `trading_rules` or `forecast_scalars` part of the config. The former takes precedence if both are included:
 
 YAML: (example) 
 ```
@@ -2605,7 +2605,7 @@ You may prefer to estimate your forecast scales from the available data. This is
 
 All the config parameters needed are stored in `config.forecast_scalar_estimate`.
 
-You can eithier estimate scalars for individual instruments, or using data pooled across instruments. The config parameter `pool_instruments` determines which option is used.
+You can either estimate scalars for individual instruments, or using data pooled across instruments. The config parameter `pool_instruments` determines which option is used.
 
 ##### Pooled forecast scale estimate (default) 
 
@@ -3050,7 +3050,7 @@ acc_curve_group.net.get_stats("sharpe", percent=False) ## defaults to giving sta
 
 *Warning see [weighted and unweighted account curve groups](#weighted_acg)
 
-You can get summary statistics for these. These can eithier be simple averages across all assets, or time weighted by the amount of data each asset has.
+You can get summary statistics for these. These can either be simple averages across all assets, or time weighted by the amount of data each asset has.
 
 ```python
 acc_curve_group.get_stats("sharpe").mean() ## get simple average of annualised sharpe ratios for net returns using daily data
@@ -3147,11 +3147,11 @@ Weighting for trading rules p&l is a *little* complicated.
 
 To summarise:
 
-- Individual account curves eithier in, or outside, a weighted group should be treated with caution. But the entire portfolio curve is fine.
+- Individual account curves either in, or outside, a weighted group should be treated with caution. But the entire portfolio curve is fine.
 - The portfolio level account curve for an unweighted group should be treated with caution. But the individual curves are fine.
 - With the exception of `pandl_for_trading_rule` the portfolio level curve for a weighted group is a proportion of the entire system capital.
 
-The attribute `weighted_flag` is set to eithier True (for weighted curves including `pandl_for_trading_rule`) or False (otherwise). All curve __repr__ methods also show eithier weighted or unweighted status.
+The attribute `weighted_flag` is set to either True (for weighted curves including `pandl_for_trading_rule`) or False (otherwise). All curve __repr__ methods also show either weighted or unweighted status.
 
 #### Testing account curves
 
@@ -3191,7 +3191,7 @@ system.accounts.instrument_turnover(instrument_code) ### Annualised turnover of 
 system.accounts.forecast_turnover(instrument_code, rule_variation_name) ## Annualised turnover of forecast
 ```
 
-For calculating forecast costs (`pandl_for_instrument_forecast`... and so on. Note these are used for estimating forecast weights) I offer the option to pool costs across instruments. You can eithier pool the estimate of turnovers (which I recommend), or pool the average of cost * turnover (which I don't recommend). Averaging in the pooling process is always done with more weight given to instruments that have more history.
+For calculating forecast costs (`pandl_for_instrument_forecast`... and so on. Note these are used for estimating forecast weights) I offer the option to pool costs across instruments. You can either pool the estimate of turnovers (which I recommend), or pool the average of cost * turnover (which I don't recommend). Averaging in the pooling process is always done with more weight given to instruments that have more history.
 
 ```
 forecast_cost_estimate:
@@ -3561,7 +3561,7 @@ Private methods are excluded from this table.
 
 | Call                              | Standard?| Arguments       | Type | Description                                                    |
 |:-------------------------:|:---------:|:---------------:|:----:|:--------------------------------------------------------------:|
-| `system.get_instrument_list`  | Standard  |                        |  D,O   | List of instruments available; eithier from config.instrument weights, config.instruments, or from data set|
+| `system.get_instrument_list`  | Standard  |                        |  D,O   | List of instruments available; either from config.instrument weights, config.instruments, or from data set|
 
 Other methods exist to access logging and cacheing.
 
@@ -3780,7 +3780,7 @@ Or just in part:
 new_config.instrument_weights['SP500']=0.2
 new_config
 ```
-If you do this make sure the rest of the config is consistent with what you've done. In eithier case, it's a good idea to examine the modified config once it's part of the system (since that will include any defaults) and make sure you're happy with it.
+If you do this make sure the rest of the config is consistent with what you've done. In either case, it's a good idea to examine the modified config once it's part of the system (since that will include any defaults) and make sure you're happy with it.
 
 
 

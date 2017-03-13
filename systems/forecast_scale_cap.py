@@ -15,7 +15,7 @@ class ForecastScaleCap(SystemStage):
     """
     Stage for scaling and capping
 
-    This is a 'switching' class which selects eithier the fixed or the
+    This is a 'switching' class which selects either the fixed or the
       estimated flavours
 
     """
