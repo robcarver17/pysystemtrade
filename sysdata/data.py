@@ -109,7 +109,7 @@ class Data(object):
 
     def get_value_of_block_price_move(self, instrument_code):
         """
-        How much does a $1 (or whatever) move in the price of an instrument block affect it's value?
+        How much does a $1 (or whatever) move in the price of an instrument block affect its value?
         eg 100.0 for 100 shares
 
         :param instrument_code: instrument to value for

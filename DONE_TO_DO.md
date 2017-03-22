@@ -192,7 +192,7 @@
 * Added get_trading_rule_list and get_all_forecasts to forecast_combine
 * Added rule_variations config option
 * Added Bund data to test suite; had to fix some tests
-* Pooling for forecast scalar doesn't need it's own function anymore
+* Pooling for forecast scalar doesn't need its own function anymore
 * Changed the way config defaults are handled
 * Fixed bugs: use of bool to convert str
 * Fixed bugs: some test configs had wrong trading rule parameter setup; had to fix slew of tests as a result

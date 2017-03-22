@@ -659,7 +659,7 @@ class System(object):
         If itemname[instrument_code][keyname] exists return it.
         Else call func with arguments: self, instrument_code, keyname, *args
         and **kwargs if we have to call the func updates the dictionary with
-        it's value
+        its value
 
         Used for cache within various kinds of objects like config, price,
         data, system...

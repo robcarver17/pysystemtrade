@@ -319,7 +319,7 @@ Can also be referenced like so: `systems.futures.rules.ewmac`
 
 Also note that the list of data for the rule will also be in the form of string references to methods in the system object. So for example to get the daily price we'd use the method `system.rawdata.daily_prices(instrument_code)` (for a list of all the data methods in a system see [stage methods](#table_system_stage_methods) or type `system.rawdata.methods()` and `system.rawdata.methods()). In the trading rule specification this would be shown as "rawdata.daily_prices". 
 
-If no data is included, then the system will default to passing a single data item - the price of the instrument. Finally if any or all the `other_arg` keyword arguments are missing then the function will use it's own defaults.
+If no data is included, then the system will default to passing a single data item - the price of the instrument. Finally if any or all the `other_arg` keyword arguments are missing then the function will use its own defaults.
  
 At this stage we can also remove any trading rules that we don't want. We also ought to modify the forecast scalars (See [forecast scale estimation](#scalar_estimate]), forecast weights and probably the forecast diversification multiplier ( see [estimating the forecast diversification multiplier](#divmult)). If you're estimating weights and scalars (i.e. in the pre-baked estimated futures system provided) this will be automatic.
 
@@ -1074,7 +1074,7 @@ Warning: Be careful about changing a system from estimated to non estimated 'on 
 
 ### Using the system object
 
-The system object doesn't do very much in itself, except provide access to it's 'child' stages, and a limited number of methods. The child stages are all attributes of the parent system.
+The system object doesn't do very much in itself, except provide access to its 'child' stages, and a limited number of methods. The child stages are all attributes of the parent system.
 
 #### Accessing child stages, data, and config within a system
 
@@ -1507,7 +1507,7 @@ For reference here is [`calc_or_cache_nested`](/systems/basesystem.py). Notice t
         If itemname[instrument_code][keyname] exists return it.
         Else call func with arguments: self, instrument_code, keyname, *args
         and **kwargs if we have to call the func updates the dictionary with
-        it's value
+        its value
 
         Used for cache within various kinds of objects like config, price,
         data, system...
@@ -1779,7 +1779,7 @@ This approach (which you can also think of as the stage "API") is used to make i
 
 ### Using a different set of stages
 
-There are different versions of certain stages available; for example we can use either `ForecastScaleCapFixed` or `ForecastScaleCapEstimated`. Additionally you can add new kinds of stages if desired (see below), and remove stages you don't need (though you can't remove intermediate stages that a remaining stage would need to work out it's results).
+There are different versions of certain stages available; for example we can use either `ForecastScaleCapFixed` or `ForecastScaleCapEstimated`. Additionally you can add new kinds of stages if desired (see below), and remove stages you don't need (though you can't remove intermediate stages that a remaining stage would need to work out its results).
 
 It's best to create a new 'pre-baked' system by copying and modifying a file such as [this](/systems/provided/futures_chapter_15/basesystem.py). You need to import the new stages you require and then put them into the system, like so:
 
@@ -1812,7 +1812,7 @@ If you're going to write a new stage (completely new, or to replace an existing 
 5. Consider using a [*switching*](#switch_persistence) stage like [class `ForecastCombine`](/systems/forecast_combine.py) (there are similar switches for forecast scaling and portfolios).
 6. Think about whether you need to protect part of the system cache for this stage output [system caching](#caching). To do this create a list in the attribute `_protected` with the item names you wish to protect.
 6a. Similarly if you're going to cache complex objects that won't pickle easily (like accountCurve objects) you need to add the item name to the attribute '_nopickle'.
-7. If you're inheriting from another stage be sure to add to it's list of protected items, rather than replacing it.
+7. If you're inheriting from another stage be sure to add to its list of protected items, rather than replacing it.
 8. Use non-cached input methods to get data from other stages. Be wary of accessing internal methods in other stages; try to stick to output methods only. 
 9. Use cached input methods to get data from the system data object (since this is the first time it will be cached). Again only access public methods of the system data object.
 10. Use cached methods for internal and output methods(see [system caching](#caching) ). Cache keys for items should be the same as the method name.
@@ -2514,7 +2514,7 @@ from systems.forecasting import TradingRule
 
 system=futures_system()
 
-## Parse the existing rules in the config (not required if you're going to backtest first as this will call this method doing it's normal business)
+## Parse the existing rules in the config (not required if you're going to backtest first as this will call this method doing its normal business)
 system.rules.trading_rules()
 
 
@@ -3142,7 +3142,7 @@ Weighting for trading rules p&l is a *little* complicated.
 
 *`pandl_for_trading_rule`:*  If I want the performance of a given trading rule across individual instruments in isolation, then I need to take `pandl_for_trading_rule_weighted` and normalise it so that the returns are as a proportion of the sum of all the relevant forecast weight * FDM * instrument weight * IDM; this is equivalent to the rules risk contribution within the system. . This is an unweighted curve in one sense (it's not a proportion of total capital), but it's weighted in another (the indiviaul curves when added up give the group curve). The total account curve will have the same target risk as the entire system. The individual curves within it are for each instrument, weighted by their contribution to risk. 
 
-*`pandl_for_all_trading_rules_unweighted`:* If I group *these* curves together, then I get `pandl_for_all_trading_rules_unweighted`. The individual curves will be individual trading rules but not weighted; so each will have it's own risk target. This is an unweighted group in the truest sense; the total curve won't make sense.
+*`pandl_for_all_trading_rules_unweighted`:* If I group *these* curves together, then I get `pandl_for_all_trading_rules_unweighted`. The individual curves will be individual trading rules but not weighted; so each will have its own risk target. This is an unweighted group in the truest sense; the total curve won't make sense.
 
 
 To summarise:
@@ -3249,16 +3249,16 @@ As you can see the log is also currently used for very basic error handling.
 
 ### Advanced logging
 
-In my experience wading through long log files is a rather time consuming experience. On the other hand it's ofen more useful to use a logging approach to monitor system behaviour than to try and create quantitative diagnostics. For this reason I'm a big fan of logging with *attributes*. Every time a log method is called, it will typically know one or more of the following:
+In my experience wading through long log files is a rather time consuming experience. On the other hand it's often more useful to use a logging approach to monitor system behaviour than to try and create quantitative diagnostics. For this reason I'm a big fan of logging with *attributes*. Every time a log method is called, it will typically know one or more of the following:
 
-- which 'type' of process owns the logger. For example if it's part of a base_system object, it's type will be 'base_system'. Future types will probably include price collection, execution and so on.
+- which 'type' of process owns the logger. For example if it's part of a base_system object, its type will be 'base_system'. Future types will probably include price collection, execution and so on.
 - which 'stage' or sub process is involved, such as 'rawdata'.
 - which instrument code is involved
 - which trading rule variation is involved
 - which specific futures contract we're looking at (for the future)
 - which order id  (for the future)
 
-Then we'll be able to save the log message with it's attributes in a database (in future). We can then query the database to get, for example, all the log activity relating to a particular instrument code or trade, for particular dates.
+Then we'll be able to save the log message with its attributes in a database (in future). We can then query the database to get, for example, all the log activity relating to a particular instrument code or trade, for particular dates.
 
 You do need to keep track of what attributes your logger has. Generally speaking you should use this kind of pattern to write a log item 
 

@@ -1099,7 +1099,7 @@ class Account(SystemStage):
 
     def pandl_for_trading_rule(self, rule_variation_name, delayfill=True):
         """
-        Get the p&l for one trading rule over multiple instruments; as % of it's risk contribution
+        Get the p&l for one trading rule over multiple instruments; as % of its risk contribution
 
         Within the trading rule the instrument returns are weighted by instrument weight
 
