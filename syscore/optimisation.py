@@ -329,13 +329,17 @@ def apply_cost_weighting(raw_weight_df, ann_SR_costs):
     # In sample for vol estimation, but shouldn't matter much since target vol
     # should be the same
 
-    avg_cost = np.mean(ann_SR_costs)
-    relative_SR_costs = [cost - avg_cost for cost in ann_SR_costs]
+    ## costs are positive, so convert to returns
+
+    ann_returns = [-cost for cost in ann_SR_costs]
+
+    avg_return = np.mean(ann_returns)
+    relative_SR_returns = [asset_return - avg_return for asset_return in ann_returns]
 
     # Find adjustment factors
     weight_adj = list(
         np.interp(
-            relative_SR_costs,
+            relative_SR_returns,
             adj_factors[0],
             adj_factors[1]))
     weight_adj = np.array([list(weight_adj)] * len(raw_weight_df.index))
