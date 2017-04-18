@@ -45,9 +45,8 @@ class PositionSizing(SystemStage):
         protected = ['get_daily_cash_vol_target']
         setattr(self, "_protected", protected)
 
-        setattr(self, "name", "positionSize")
-        setattr(self, "description", "")
-
+    def _name(self):
+        return "positionSize"
 
     def get_combined_forecast(self, instrument_code):
         """

@@ -81,9 +81,6 @@ class Account(SystemStage):
         """
         super().__init__()
 
-        setattr(self, "name", "accounts")
-        setattr(self, "description", "Account()")
-
         protected = []
         setattr(self, "_protected", protected)
 
@@ -94,6 +91,13 @@ class Account(SystemStage):
                     ]
 
         setattr(self, "_nopickle", nopickle)
+
+    def _name(self):
+        return "accounts"
+
+    def _description(self):
+        ## normally overriden
+        return "Account()"
 
     def get_capped_forecast(self, instrument_code, rule_variation_name):
         """

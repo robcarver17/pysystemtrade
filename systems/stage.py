@@ -25,13 +25,20 @@ class SystemStage(object):
         # We set these to empty lists but in the inherited object they'll be
         # overriden
         setattr(self, "_protected", [])
-        setattr(self, "name", "unnamed")
-        setattr(self, "description", "")
+        setattr(self, "name", self._name())
+        setattr(self, "description", self._description())
+
+    def _name(self):
+        ## normally overriden
+        return "unnamed"
+
+    def _description(self):
+        ## normally overriden
+        return ""
 
     def __repr__(self):
         return "SystemStage '%s' %s Try objectname.methods()" % (self.name,
                                                                  self.description)
-
     def methods(self):
         return get_methods(self)
 

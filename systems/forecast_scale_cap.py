@@ -10,6 +10,7 @@ from syscore.genutils import str2Bool
 from syscore.pdutils import apply_cap
 from syscore.objects import resolve_function
 
+FCAST_SCALE_CAP_STAGE_NAME = "forecastScaleCap"
 
 class ForecastScaleCap(SystemStage):
     """
@@ -20,11 +21,12 @@ class ForecastScaleCap(SystemStage):
 
     """
 
-    def __init__(self):
-        super().__init__()
+    def _name(self):
+        return FCAST_SCALE_CAP_STAGE_NAME
 
-        setattr(self, "name", "forecastScaleCap")
-        setattr(self, "description", "unswitched")
+    def _description(self):
+        return "unswitched"
+
 
     def _system_init(self, system):
         """
@@ -58,7 +60,12 @@ class BaseForecastScaleCap(SystemStage):
 
         protected = ["get_forecast_scalars"]
         setattr(self, "_protected", protected)
-        setattr(self, "name", "forecastScaleCap")
+
+    def _description(self):
+        return "base_do_not_use"
+
+    def _name(self):
+        return FCAST_SCALE_CAP_STAGE_NAME
 
     def get_raw_forecast(self, instrument_code, rule_variation_name):
         """
@@ -231,17 +238,9 @@ class ForecastScaleCapFixed(BaseForecastScaleCap):
     Name: forecastScaleCap
     """
 
-    def __init__(self):
-        """
-        Create a SystemStage for scaling and capping forecasting
 
-        Using Fixed capping and scaling
-
-        :returns: None
-
-        """
-        super(ForecastScaleCapFixed, self).__init__()
-        setattr(self, "description", "fixed")
+    def _description(self):
+        return "fixed"
 
 
     def get_forecast_scalar(self, instrument_code, rule_variation_name):
@@ -315,18 +314,9 @@ class ForecastScaleCapEstimated(BaseForecastScaleCap):
     Name: forecastScaleCap
     """
 
-    def __init__(self):
-        """
-        Create a SystemStage for scaling and capping forecasting
 
-        Using Estimated capping and scaling
-
-        :returns: None
-
-        """
-
-        super(ForecastScaleCapEstimated, self).__init__()
-        setattr(self, "description", "Estimated")
+    def _description(self):
+        return "Estimated"
 
     def get_forecast_scalar(self, instrument_code, rule_variation_name):
         """

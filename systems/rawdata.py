@@ -26,15 +26,9 @@ class RawData(SystemStage):
     Name: rawdata
     """
 
-    def __init__(self):
-        """
-        Create a new stage: raw data object
 
-        """
-        super().__init__()
-
-        setattr(self, "name", "rawdata")
-        setattr(self, "description", "")
+    def _name(self):
+        return "rawdata"
 
 
     def get_daily_prices(self, instrument_code):

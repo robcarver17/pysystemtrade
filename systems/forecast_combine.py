@@ -10,6 +10,7 @@ from systems.defaults import system_defaults
 from systems.stage import SystemStage
 from systems.basesystem import ALL_KEYNAME
 
+FCAST_COMBINE_STAGE_NAME = "combForecast"
 
 class ForecastCombine(SystemStage):
     """
@@ -19,11 +20,14 @@ class ForecastCombine(SystemStage):
 
     """
 
-    def __init__(self):
-        super().__init__()
+    def _name(self):
+        ## normally overriden
+        return FCAST_COMBINE_STAGE_NAME
 
-        setattr(self, "name", "combForecast")
-        setattr(self, "description", "unswitched")
+    def _description(self):
+        ## normally overriden
+        return "unswitched"
+
 
     def _system_init(self, system):
         """
@@ -67,6 +71,15 @@ class ForecastCombineFixed(SystemStage):
     Name: combForecast
     """
 
+    def _description(self):
+        ## normally overriden
+        return "Fixed"
+
+    def _name(self):
+        ## normally overriden
+        return FCAST_COMBINE_STAGE_NAME
+
+
     def __init__(self):
         """
         Create a SystemStage for combining forecasts
@@ -78,8 +91,6 @@ class ForecastCombineFixed(SystemStage):
                      'get_forecast_diversification_multiplier']
         setattr(self, "_protected", protected)
 
-        setattr(self, "name", "combForecast")
-        setattr(self, "description", "Fixed")
 
     def get_forecast_cap(self):
         """
@@ -586,11 +597,16 @@ class ForecastCombineEstimated(ForecastCombineFixed):
             'calculation_of_forecast_weights']
         update_recalc(self, protected)
 
-        setattr(self, "description", "Estimated")
-
         nopickle = ["calculation_of_raw_forecast_weights"]
 
         setattr(self, "_nopickle", nopickle)
+
+    def _description(self):
+        return "Estimated"
+
+    def _name(self):
+        return FCAST_COMBINE_STAGE_NAME
+
 
     def get_trading_rule_list(self, instrument_code):
         """

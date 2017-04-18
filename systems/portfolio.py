@@ -9,6 +9,7 @@ from syscore.pdutils import fix_weights_vs_pdm
 from syscore.objects import update_recalc, resolve_function
 from syscore.genutils import str2Bool
 
+PORTFOLIO_STAGE_NAME = "portfolio"
 
 class Portfolios(SystemStage):
     """
@@ -19,12 +20,13 @@ class Portfolios(SystemStage):
 
     """
 
-    def __init__(self):
+    def _name(self):
+        return PORTFOLIO_STAGE_NAME
 
-        super().__init__()
+    def _description(self):
+        ## normally overriden
+        return "unswitched"
 
-        setattr(self, "name", "portfolio")
-        setattr(self, "description", "unswitched")
 
     def _system_init(self, system):
         """
@@ -87,8 +89,12 @@ class PortfoliosFixed(SystemStage):
 
         setattr(self, "_protected", protected)
 
-        setattr(self, "name", "portfolio")
-        setattr(self, "description", "fixed")
+    def _name(self):
+        return PORTFOLIO_STAGE_NAME
+
+    def _description(self):
+        ## normally overriden
+        return "fixed"
 
     def get_subsystem_position(self, instrument_code):
         """
@@ -604,10 +610,13 @@ class PortfoliosEstimated(PortfoliosFixed):
         protected = ['get_instrument_correlation_matrix']
         update_recalc(self, protected)
 
-        setattr(self, "description", "Estimated")
-
         nopickle = ["calculation_of_raw_instrument_weights"]
         setattr(self, "_nopickle", nopickle)
+
+
+    def _description(self):
+        ## normally overriden
+        return "Estimated"
 
     def get_instrument_subsystem_SR_cost(self, instrument_code):
         """
