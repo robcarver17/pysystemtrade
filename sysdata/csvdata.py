@@ -13,7 +13,6 @@ from syscore.pdutils import pd_readcsv
 from syscore.genutils import str_of_int
 
 from sysdata.futuresdata import FuturesData
-
 """
 Static variables to store location of data
 """
@@ -57,14 +56,12 @@ class csvFuturesData(FuturesData):
         ## Use (1) provided relative datapath, (2) absolute_datapath, (3) default relative datapath
 
         if datapath is not None:
-            resolved_datapath=get_pathname_for_package(datapath)
+            resolved_datapath = get_pathname_for_package(datapath)
         else:
             if absolute_datapath is not None:
                 resolved_datapath = absolute_datapath
             else:
                 resolved_datapath = get_pathname_for_package(LEGACY_DATA_PATH)
-
-
         """
         Most Data objects that read data from a specific place have a 'source' of some kind
         Here it's a directory
@@ -119,10 +116,11 @@ class csvFuturesData(FuturesData):
         0.0025000000000000001
         """
 
-        default_costs = dict(price_slippage=0.0,
-                             value_of_block_commission=0.0,
-                             percentage_cost=0.0,
-                             value_of_pertrade_commission=0.0)
+        default_costs = dict(
+            price_slippage=0.0,
+            value_of_block_commission=0.0,
+            percentage_cost=0.0,
+            value_of_pertrade_commission=0.0)
 
         cost_data = self._get_all_cost_data()
 
@@ -132,17 +130,18 @@ class csvFuturesData(FuturesData):
 
         try:
             block_move_value = cost_data.loc[instrument_code, [
-                'Slippage', 'PerBlock', 'Percentage', 'PerTrade']]
+                'Slippage', 'PerBlock', 'Percentage', 'PerTrade'
+            ]]
         except KeyError:
-            self.log.warn(
-                "Cost data not found for %s, using zero" %
-                instrument_code)
+            self.log.warn("Cost data not found for %s, using zero" %
+                          instrument_code)
             return default_costs
 
-        return dict(price_slippage=block_move_value[0],
-                    value_of_block_commission=block_move_value[1],
-                    percentage_cost=block_move_value[2],
-                    value_of_pertrade_commission=block_move_value[3])
+        return dict(
+            price_slippage=block_move_value[0],
+            value_of_block_commission=block_move_value[1],
+            percentage_cost=block_move_value[2],
+            value_of_pertrade_commission=block_move_value[3])
 
     def get_raw_price(self, instrument_code):
         """
@@ -165,10 +164,8 @@ class csvFuturesData(FuturesData):
         """
 
         # Read from .csv
-        self.log.msg(
-            "Loading csv data for %s" %
-            instrument_code,
-            instrument_code=instrument_code)
+        self.log.msg("Loading csv data for %s" % instrument_code,
+                     instrument_code=instrument_code)
         filename = os.path.join(self._datapath, instrument_code + "_price.csv")
         instrpricedata = pd_readcsv(filename)
         instrpricedata.columns = ["price"]
@@ -196,13 +193,11 @@ class csvFuturesData(FuturesData):
         2015-12-11 17:24:06  126.945312    NaN         201606         201603
         """
 
-        self.log.msg(
-            "Loading csv carry data for %s" %
-            instrument_code,
-            instrument_code=instrument_code)
+        self.log.msg("Loading csv carry data for %s" % instrument_code,
+                     instrument_code=instrument_code)
 
-        filename = os.path.join(
-            self._datapath, instrument_code + "_carrydata.csv")
+        filename = os.path.join(self._datapath,
+                                instrument_code + "_carrydata.csv")
         instrcarrydata = pd_readcsv(filename)
 
         instrcarrydata.CARRY_CONTRACT = instrcarrydata.CARRY_CONTRACT.apply(
@@ -343,8 +338,8 @@ class csvFuturesData(FuturesData):
         if currency1 == currency2:
             return self._get_default_series()
 
-        filename = os.path.join(
-            self._datapath, "%s%sfx.csv" % (currency1, currency2))
+        filename = os.path.join(self._datapath,
+                                "%s%sfx.csv" % (currency1, currency2))
         try:
             fxdata = pd_readcsv(filename)
         except:
@@ -353,6 +348,7 @@ class csvFuturesData(FuturesData):
         fxdata = pd.Series(fxdata.iloc[:, 0])
 
         return fxdata
+
 
 if __name__ == '__main__':
     import doctest
