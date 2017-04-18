@@ -20,6 +20,9 @@ class Portfolios(SystemStage):
     """
 
     def __init__(self):
+
+        super().__init__()
+
         setattr(self, "name", "portfolio")
         setattr(self, "description", "unswitched")
 
@@ -29,6 +32,8 @@ class Portfolios(SystemStage):
 
         It will determine if we use an estimate or a fixed class of object
         """
+        super()._system_init(system)
+
         if str2Bool(system.config.use_instrument_weight_estimates):
             fixed_flavour = False
         else:
@@ -73,6 +78,9 @@ class PortfoliosFixed(SystemStage):
         """
         Create a SystemStage for creating portfolios
         """
+
+        super().__init__()
+
         protected = ["get_instrument_weights",
                      "get_instrument_diversification_multiplier",
                      "get_raw_instrument_weights"]

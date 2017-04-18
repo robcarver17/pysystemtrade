@@ -1,6 +1,5 @@
 from syscore.objects import get_methods
 
-
 class SystemStage(object):
     """
     Default stage object:  we inherit from this, rather than use 'in the raw'
@@ -39,3 +38,8 @@ class SystemStage(object):
     def _system_init(self, system):
         # method called once we have a system
         setattr(self, "parent", system)
+
+        # and a log
+        log = system.log.setup(stage=self.name)
+        setattr(self, "log", log)
+

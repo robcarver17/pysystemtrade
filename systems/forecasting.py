@@ -49,6 +49,8 @@ class Rules(SystemStage):
         :returns: Rules object
 
         """
+        super().__init__()
+
         setattr(self, "name", "rules")
         setattr(self, "description", "")
 
@@ -58,9 +60,6 @@ class Rules(SystemStage):
         # ... store the ones we've been passed for now
         setattr(self, "_passed_trading_rules", trading_rules)
 
-    def _system_init(self, system):
-        # method called once we have a system
-        setattr(self, "parent", system)
 
     def __repr__(self):
         trading_rules = self._trading_rules

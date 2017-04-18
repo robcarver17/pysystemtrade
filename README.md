@@ -56,11 +56,9 @@ This package isn't hosted on pip. So to get the code the easiest way is to use g
 
 ```
 git clone https://github.com/robcarver17/pysystemtrade.git
+python3 setup.py develop
 ```
-
-A setup.py file is provided, however as the installation is trivial this shouldn't be neccessary. Just add the relevant ibsystemtrade directory to the path that python searches in, and off you go.
-
-
+Notice that develop mode is required so that ipython sessions can see files inside subdirectories which would otherwise be inaccessible.
 
 ### A note on support
 

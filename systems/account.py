@@ -79,6 +79,8 @@ class Account(SystemStage):
 
 
         """
+        super().__init__()
+
         setattr(self, "name", "accounts")
         setattr(self, "description", "Account()")
 

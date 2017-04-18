@@ -20,6 +20,8 @@ class ForecastCombine(SystemStage):
     """
 
     def __init__(self):
+        super().__init__()
+
         setattr(self, "name", "combForecast")
         setattr(self, "description", "unswitched")
 
@@ -29,6 +31,8 @@ class ForecastCombine(SystemStage):
 
         It will determine if we use an estimate or a fixed class of object
         """
+        super()._system_init(system)
+
         if str2Bool(system.config.use_forecast_weight_estimates):
             fixed_flavour = False
         else:
@@ -68,6 +72,7 @@ class ForecastCombineFixed(SystemStage):
         Create a SystemStage for combining forecasts
 
         """
+        super().__init__()
 
         protected = ['get_forecast_weights', 'get_raw_forecast_weights',
                      'get_forecast_diversification_multiplier']

@@ -21,6 +21,8 @@ class ForecastScaleCap(SystemStage):
     """
 
     def __init__(self):
+        super().__init__()
+
         setattr(self, "name", "forecastScaleCap")
         setattr(self, "description", "unswitched")
 
@@ -30,6 +32,8 @@ class ForecastScaleCap(SystemStage):
 
         It will determine if we use an estimate or a fixed class of object
         """
+        super()._system_init(system)
+
         if str2Bool(system.config.use_forecast_scale_estimates):
             fixed_flavour = False
         else:
@@ -48,6 +52,9 @@ class ForecastScaleCap(SystemStage):
 
 class BaseForecastScaleCap(SystemStage):
     def __init__(self):
+
+        super().__init__()
+
 
         protected = ["get_forecast_scalars"]
         setattr(self, "_protected", protected)
@@ -317,6 +324,7 @@ class ForecastScaleCapEstimated(BaseForecastScaleCap):
         :returns: None
 
         """
+
         super(ForecastScaleCapEstimated, self).__init__()
         setattr(self, "description", "Estimated")
 

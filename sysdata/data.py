@@ -41,6 +41,18 @@ class Data(object):
         return "Data object with %d instruments" % len(
             self.get_instrument_list())
 
+    def _system_init(self, base_system):
+        """
+        This is run when added to a base system
+
+        :param base_system
+        :return: nothing
+        """
+
+        ## inherit the log
+        setattr(self, "log", base_system.log.setup(stage="data"))
+
+
     def methods(self):
         return get_methods(self)
 

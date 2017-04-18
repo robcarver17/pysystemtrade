@@ -40,15 +40,14 @@ class PositionSizing(SystemStage):
 
 
         """
+        super().__init__()
+
         protected = ['get_daily_cash_vol_target']
         setattr(self, "_protected", protected)
 
         setattr(self, "name", "positionSize")
         setattr(self, "description", "")
 
-    def _system_init(self, system):
-        # method called once we have a system
-        setattr(self, "parent", system)
 
     def get_combined_forecast(self, instrument_code):
         """

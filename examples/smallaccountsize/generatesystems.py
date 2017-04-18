@@ -18,7 +18,7 @@ for idx in range(9)[1:]:
 for idx in [15, 20, 25, 38]:
     instrument_sets.append(instrument_list[:idx])
 
-from systems.provided.futures_chapter15.estimatedsystem import PortfoliosEstimated
+from systems.portfolio import PortfoliosEstimated
 from systems.provided.futures_chapter15.basesystem import *
 from syscore.correlations import get_avg_corr
 from copy import copy

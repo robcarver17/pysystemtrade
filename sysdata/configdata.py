@@ -51,6 +51,9 @@ class Config(object):
         """
         setattr(self, "_elements", [])  # will be populated later
 
+        # this will normally be overriden by the base system
+        setattr(self, "log", logtoscreen(stage="config"))
+
         if isinstance(config_object, list):
             # multiple configs
             for config_item in config_object:
@@ -58,8 +61,21 @@ class Config(object):
         else:
             self._create_config_from_item(config_object)
 
-        # this will normally be overriden by the base system
-        setattr(self, "log", logtoscreen(stage="config"))
+
+    def _system_init(self, base_system):
+        """
+        This is run when added to a base system
+
+        :param base_system
+        :return: nothing
+        """
+
+        ## inherit the log
+        setattr(self, "log", base_system.log.setup(stage="config"))
+
+        ## fill with defaults
+        self.fill_with_defaults()
+
 
     def _create_config_from_item(self, config_item):
         if isinstance(config_item, dict):

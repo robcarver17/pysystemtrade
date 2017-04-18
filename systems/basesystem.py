@@ -55,20 +55,21 @@ class System(object):
             # Default - for very dull systems this is sufficient
             config = Config()
 
-        config.fill_with_defaults()
-
         setattr(self, "data", data)
         setattr(self, "config", config)
         setattr(self, "log", log)
 
-        setattr(data, "log", log.setup(stage="data"))
-        setattr(config, "log", log.setup(stage="config"))
+        self.config._system_init(self)
+        self.data._system_init(self)
 
         protected = []
         nopickle = []
         stage_names = []
 
-        assert isinstance(stage_list, list)
+        try:
+            iter(stage_list)
+        except AssertionError:
+            raise Exception("You didn't pass a list into this System instance; even just one stage should be System([stage_instance])")
 
         for stage in stage_list:
 
@@ -82,11 +83,8 @@ class System(object):
             sub_name = stage.name
 
             # Each stage has a link back to the parent system
+            # This init sets this, and also passes the log
             stage._system_init(self)
-
-            # and a log
-            log = log.setup(stage=sub_name)
-            setattr(stage, "log", log)
 
             if sub_name in stage_names:
                 raise Exception(
@@ -98,6 +96,7 @@ class System(object):
             stage_names.append(sub_name)
 
             # list of attributes / methods of the stage which are protected
+            # FIXME more graceful way of doing this
             stage_protected = getattr(stage, "_protected", [])
             stage_protected = [(sub_name, protected_item, "*")
                                for protected_item in stage_protected]
