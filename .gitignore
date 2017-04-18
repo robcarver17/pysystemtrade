@@ -9,6 +9,7 @@ dist
 build
 private
 .idea
+.pydevproject
 
 # Coverage reports
 .coverage

@@ -2,7 +2,6 @@ import pickle
 from sysdata.configdata import Config
 from syslogdiag.log import logtoscreen
 from syscore.fileutils import get_filename_for_package
-
 """
 This is used for items which affect an entire system, not just one instrument
 """
@@ -13,26 +12,26 @@ class System(object):
     '''
     system objects are used for signal processing in a 'tree' like framework
 
-
     This is the base class which all systems inherit
 
     Systems are:
-
-        made up of stages
-
-       take a data, and optionally a config object
+      made up of stages
+      take a data, and optionally a config object
 
     The system only has one method 'of its own' which is get_instrument_list
-
     '''
 
-    def __init__(self, stage_list, data, config=None,
+    def __init__(self,
+                 stage_list,
+                 data,
+                 config=None,
                  log=logtoscreen("base_system")):
         """
         Create a system object for doing simulations or live trading
 
         :param stage_list: A list of stages
-        :type stage_list: list of systems.stage.SystemStage (or anything that inherits from it)
+        :type stage_list: list of systems.stage.SystemStage (or anything that
+          inherits from it)
 
         :param data: data for doing simulations
         :type data: sysdata.data.Data (or anything that inherits from that)
@@ -69,13 +68,14 @@ class System(object):
         try:
             iter(stage_list)
         except AssertionError:
-            raise Exception("You didn't pass a list into this System instance; even just one stage should be System([stage_instance])")
+            raise Exception("You didn't pass a list into this "
+                            "System instance; even just one stage should be "
+                            "System([stage_instance])")
 
         for stage in stage_list:
-
             """
-            This is where we put the methods to store various stages of the process
-
+            This is where we put the methods to store various stages of the
+            process
             """
 
             # Stages have names, which are also how we find them in the system
@@ -108,7 +108,6 @@ class System(object):
             nopickle += stage_nopickle
 
         setattr(self, "_stage_names", stage_names)
-
         """
         The cache hides all intermediate results
 
@@ -116,12 +115,12 @@ class System(object):
         data we need
 
         The results are then cached in the object. Should we call
-            delete_instrument_data (in base class system) then everything
-            related to a particular instrument is removed from these 'nodes'
-            except for protected items
+        delete_instrument_data (in base class system) then everything related
+        to a particular instrument is removed from these 'nodes' except for
+        protected items
 
         This is very useful in live trading when we don't want to update eg
-            cross sectional data every sample
+        cross sectional data every sample
         """
 
         setattr(self, "_cache", dict())
@@ -134,7 +133,6 @@ class System(object):
 
     def set_logging_level(self, new_log_level):
         """
-
         Set the log level for the system
 
         :param new_log_level: one of ["off", "terse", "on"]
@@ -173,7 +171,8 @@ class System(object):
 
     It's a dict, with keys that are tuples (stage name, item name)
 
-    There are 3 kinds of things in a cache with different levels of persistence:
+    There are 3 kinds of things in a cache with different levels of
+    persistence:
       - anything that isn't special
       - things that have an 'all' key -
       - _protected - that wouldn't normally be deleted
@@ -207,7 +206,8 @@ class System(object):
 
         EXCEPT 'nopickle' items
 
-        :param relativefilename: cache location filename in 'dot' format eg 'systems.basesystem.py' is this file
+        :param relativefilename: cache location filename in 'dot' format eg
+          'systems.basesystem.py' is this file
         :type relativefilename: str
 
         :param fullfilename: full filename
@@ -219,27 +219,33 @@ class System(object):
         """
 
         if fullfilename is None:
-            filename=get_filename_for_package(relativefilename)
+            filename = get_filename_for_package(relativefilename)
         else:
-            filename=fullfilename
+            filename = fullfilename
 
         itemstopickle = self.get_items_with_data()
         dont_pickle = self.get_nopickle_items()
 
         itemstopickle = [
-            itemname for itemname in itemstopickle if itemname not in dont_pickle]
+            itemname for itemname in itemstopickle
+            if itemname not in dont_pickle
+        ]
 
         cache_to_pickle = self.partial_cache(itemstopickle)
 
         with open(filename, "wb") as fhandle:
             pickle.dump(cache_to_pickle, fhandle)
 
-    def unpickle_cache(self, relativefilename, fullfilename=None, clearcache=True):
+    def unpickle_cache(self,
+                       relativefilename,
+                       fullfilename=None,
+                       clearcache=True):
         """
         Loads the saved cache
 
-        Note that certain elements (accountCurve objects and optimisers) won't be pickled, and so won't
-           be loaded. You will need to regenerate these.
+        Note that certain elements (accountCurve objects and optimisers) won't
+          be pickled, and so won't be loaded. You will need to regenerate
+          these.
 
         If clearcache is True then we clear the entire cache first. Otherwise we end up with a 'mix'
            - not advised so do at your peril
@@ -255,9 +261,9 @@ class System(object):
         """
 
         if fullfilename is None:
-            filename=get_filename_for_package(relativefilename)
+            filename = get_filename_for_package(relativefilename)
         else:
-            filename=fullfilename
+            filename = fullfilename
 
         with open(filename, "rb") as fhandle:
             cache_from_pickled = pickle.load(fhandle)
@@ -283,9 +289,9 @@ class System(object):
         for pr in putative_list:
             if pr[2] == "*":  # wildcard
                 matched_items = [
-                    item for item in itemswithdata if (
-                        item[0] == pr[0]) & (
-                        item[1] == pr[1])]
+                    item for item in itemswithdata
+                    if (item[0] == pr[0]) & (item[1] == pr[1])
+                ]
                 actual_list = actual_list + matched_items
             else:
                 actual_list.append(pr)
@@ -307,9 +313,9 @@ class System(object):
         for pr in putative_list:
             if pr[2] == "*":  # wildcard
                 matched_items = [
-                    item for item in itemswithdata if (
-                        item[0] == pr[0]) & (
-                        item[1] == pr[1])]
+                    item for item in itemswithdata
+                    if (item[0] == pr[0]) & (item[1] == pr[1])
+                ]
                 actual_list = actual_list + matched_items
             else:
                 actual_list.append(pr)
@@ -339,8 +345,9 @@ class System(object):
         :returns: list of 3 tuples of str: stage name, item identifier, flags eg ("rawdata", "get_fx_rate", "")
 
         """
-        cache_refs = [itemref for itemref in self._cache.keys()
-                      if stagename in itemref]
+        cache_refs = [
+            itemref for itemref in self._cache.keys() if stagename in itemref
+        ]
 
         return cache_refs
 
@@ -356,10 +363,15 @@ class System(object):
         """
 
         items_with_data = self.get_items_with_data()
-        items_code_list = [self.get_instrument_codes_for_item(itemname) for
-                           itemname in items_with_data]
-        items_with_instrument_data = [itemname for (itemname, code_list) in zip(
-            items_with_data, items_code_list) if instrument_code in code_list]
+        items_code_list = [
+            self.get_instrument_codes_for_item(itemname)
+            for itemname in items_with_data
+        ]
+        items_with_instrument_data = [
+            itemname
+            for (itemname, code_list) in zip(items_with_data, items_code_list)
+            if instrument_code in code_list
+        ]
 
         return items_with_instrument_data
 
@@ -401,11 +413,14 @@ class System(object):
         if not delete_protected:
             # want to protect stuff
             itemnames = [
-                iname for iname in itemnames if iname not in self.get_protected_items()]
+                iname for iname in itemnames
+                if iname not in self.get_protected_items()
+            ]
 
         return [self.delete_item(iname) for iname in itemnames]
 
-    def delete_items_for_instrument(self, instrument_code,
+    def delete_items_for_instrument(self,
+                                    instrument_code,
                                     delete_protected=False):
         """
         Delete everything in the system relating to an instrument_code
@@ -433,11 +448,15 @@ class System(object):
         item_list = self.get_items_for_instrument(instrument_code)
         if not delete_protected:
             protected_items = self.get_protected_items()
-            item_list = [itemname for itemname in item_list if itemname not in
-                         protected_items]
+            item_list = [
+                itemname for itemname in item_list
+                if itemname not in protected_items
+            ]
 
-        deleted_values = [self._delete_item_from_cache(itemname, instrument_code) for
-                          itemname in item_list]
+        deleted_values = [
+            self._delete_item_from_cache(itemname, instrument_code)
+            for itemname in item_list
+        ]
 
         return deleted_values
 
@@ -481,12 +500,16 @@ class System(object):
         if not delete_protected:
             protected_items = self.get_protected_items()
             item_list = [
-                itemname for itemname in item_list if itemname not in protected_items]
+                itemname for itemname in item_list
+                if itemname not in protected_items
+            ]
 
         deleted_values = [self.delete_item(itemname) for itemname in item_list]
 
-    def get_item_from_cache(
-            self, cache_ref, instrument_code=ALL_KEYNAME, keyname=None):
+    def get_item_from_cache(self,
+                            cache_ref,
+                            instrument_code=ALL_KEYNAME,
+                            keyname=None):
         """
         Get an item from the cache self._cache
 
@@ -525,7 +548,9 @@ class System(object):
         # should never get here, failsafe
         return None
 
-    def _delete_item_from_cache(self, cache_ref, instrument_code=ALL_KEYNAME,
+    def _delete_item_from_cache(self,
+                                cache_ref,
+                                instrument_code=ALL_KEYNAME,
                                 keyname=None):
         """
         Delete an item from the cache self._cache
@@ -567,7 +592,10 @@ class System(object):
         # should never get here
         return None
 
-    def set_item_in_cache(self, value, cache_ref, instrument_code=ALL_KEYNAME,
+    def set_item_in_cache(self,
+                          value,
+                          cache_ref,
+                          instrument_code=ALL_KEYNAME,
                           keyname=None):
         """
         Set an item in a cache to a specific value
@@ -609,8 +637,14 @@ class System(object):
 
         return value
 
-    def calc_or_cache(self, itemname, instrument_code, func,
-                      this_stage, *args, flags="", **kwargs):
+    def calc_or_cache(self,
+                      itemname,
+                      instrument_code,
+                      func,
+                      this_stage,
+                      *args,
+                      flags="",
+                      **kwargs):
         """
         Assumes that self._cache has an attribute itemname, and that is a dict
 
@@ -650,8 +684,8 @@ class System(object):
 
         return value
 
-    def calc_or_cache_nested(self, itemname, instrument_code, keyname, func, this_stage,
-                             *args, **kwargs):
+    def calc_or_cache_nested(self, itemname, instrument_code, keyname, func,
+                             this_stage, *args, **kwargs):
         """
         Assumes that self._cache has a key itemname, and that is a nested dict
 
@@ -690,13 +724,8 @@ class System(object):
         value = self.get_item_from_cache(cache_ref, instrument_code, keyname)
 
         if value is None:
-            value = func(
-                self,
-                instrument_code,
-                keyname,
-                this_stage,
-                *args,
-                **kwargs)
+            value = func(self, instrument_code, keyname, this_stage, *args,
+                         **kwargs)
             self.set_item_in_cache(value, cache_ref, instrument_code, keyname)
 
         return value

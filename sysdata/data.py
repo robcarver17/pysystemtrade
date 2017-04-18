@@ -4,14 +4,13 @@ from syscore.objects import get_methods
 
 DEFAULT_CURRENCY = "USD"
 
-DEFAULT_DATES = pd.date_range(start=pd.datetime(
-    1970, 1, 1), freq="B", end=pd.datetime(2040, 12, 10))
+DEFAULT_DATES = pd.date_range(
+    start=pd.datetime(1970, 1, 1), freq="B", end=pd.datetime(2040, 12, 10))
 DEFAULT_RATE_SERIES = pd.Series(
     [1.0] * len(DEFAULT_DATES), index=DEFAULT_DATES)
 
 
 class Data(object):
-
     """
     Core data object - Base class
 
@@ -41,6 +40,12 @@ class Data(object):
         return "Data object with %d instruments" % len(
             self.get_instrument_list())
 
+    def _name(self):
+        return "data"
+
+    def _description(self):
+        return ""
+
     def _system_init(self, base_system):
         """
         This is run when added to a base system
@@ -51,7 +56,6 @@ class Data(object):
 
         ## inherit the log
         setattr(self, "log", base_system.log.setup(stage="data"))
-
 
     def methods(self):
         return get_methods(self)
@@ -149,10 +153,11 @@ class Data(object):
 
         """
 
-        return dict(price_slippage=0.0,
-                    value_of_block_commission=0.0,
-                    percentage_cost=0.0,
-                    value_of_pertrade_commission=0.0)
+        return dict(
+            price_slippage=0.0,
+            value_of_block_commission=0.0,
+            percentage_cost=0.0,
+            value_of_pertrade_commission=0.0)
 
     def _get_default_currency(self):
         """
@@ -249,10 +254,10 @@ class Data(object):
         if fx_rate_series is None:
             # missing; have to get get cross rates
             default_currency = self._get_default_currency()
-            currency1_vs_default = self._get_fx_data(
-                currency1, default_currency)
-            currency2_vs_default = self._get_fx_data(
-                currency2, default_currency)
+            currency1_vs_default = self._get_fx_data(currency1,
+                                                     default_currency)
+            currency2_vs_default = self._get_fx_data(currency2,
+                                                     default_currency)
 
             (aligned_c1, aligned_c2) = currency1_vs_default.align(
                 currency2_vs_default, join="outer")

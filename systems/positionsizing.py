@@ -48,6 +48,9 @@ class PositionSizing(SystemStage):
     def _name(self):
         return "positionSize"
 
+    def _description(self):
+        return ""
+
     def get_combined_forecast(self, instrument_code):
         """
         Get the combined forecast from previous module
@@ -115,7 +118,8 @@ class PositionSizing(SystemStage):
             return daily_perc_vol
 
         price_volatility = self.parent.calc_or_cache(
-            'get_price_volatility', instrument_code, _get_price_volatility, self)
+            'get_price_volatility', instrument_code, _get_price_volatility,
+            self)
 
         return price_volatility
 
@@ -164,8 +168,7 @@ class PositionSizing(SystemStage):
                 instrument_code)
 
         else:
-            underlying_price = self.parent.data.daily_prices(
-                instrument_code)
+            underlying_price = self.parent.data.daily_prices(instrument_code)
 
         value_of_price_move = self.parent.data.get_value_of_block_price_move(
             instrument_code)
@@ -215,9 +218,12 @@ class PositionSizing(SystemStage):
             annual_cash_vol_target = notional_trading_capital * percentage_vol_target / 100.0
             daily_cash_vol_target = annual_cash_vol_target / ROOT_BDAYS_INYEAR
 
-            vol_target_dict = dict(base_currency=base_currency, percentage_vol_target=percentage_vol_target,
-                                   notional_trading_capital=notional_trading_capital, annual_cash_vol_target=annual_cash_vol_target,
-                                   daily_cash_vol_target=daily_cash_vol_target)
+            vol_target_dict = dict(
+                base_currency=base_currency,
+                percentage_vol_target=percentage_vol_target,
+                notional_trading_capital=notional_trading_capital,
+                annual_cash_vol_target=annual_cash_vol_target,
+                daily_cash_vol_target=daily_cash_vol_target)
 
             return vol_target_dict
 
@@ -254,13 +260,13 @@ class PositionSizing(SystemStage):
 
             base_currency = this_stage.get_daily_cash_vol_target()[
                 'base_currency']
-            fx_rate = system.data.get_fx_for_instrument(
-                instrument_code, base_currency)
+            fx_rate = system.data.get_fx_for_instrument(instrument_code,
+                                                        base_currency)
 
             return fx_rate
 
-        fx_rate = self.parent.calc_or_cache(
-            'get_fx_rate', instrument_code, _get_fx_rate, self)
+        fx_rate = self.parent.calc_or_cache('get_fx_rate', instrument_code,
+                                            _get_fx_rate, self)
 
         return fx_rate
 
@@ -290,12 +296,13 @@ class PositionSizing(SystemStage):
         2015-12-11  2449.6875
 
         """
+
         def _get_block_value(system, instrument_code, this_stage):
             this_stage.log.msg("Getting block value for %s" % instrument_code,
                                instrument_code=instrument_code)
 
-            (underlying_price, value_of_price_move) = this_stage.get_instrument_sizing_data(
-                instrument_code)
+            (underlying_price, value_of_price_move
+             ) = this_stage.get_instrument_sizing_data(instrument_code)
             block_value = 0.01 * underlying_price * value_of_price_move
             block_value.columns = ["bvalue"]
 
@@ -331,9 +338,11 @@ class PositionSizing(SystemStage):
         2015-12-11  146.304072
 
         """
+
         def _get_instrument_currency_vol(system, instrument_code, this_stage):
 
-            this_stage.log.msg("Calculating instrument currency vol for %s" % instrument_code,
+            this_stage.log.msg("Calculating instrument currency vol for %s" %
+                               instrument_code,
                                instrument_code=instrument_code)
 
             block_value = this_stage.get_block_value(instrument_code)
@@ -347,7 +356,8 @@ class PositionSizing(SystemStage):
             return instr_ccy_vol
 
         instr_ccy_vol = self.parent.calc_or_cache(
-            'get_instrument_currency_vol', instrument_code, _get_instrument_currency_vol, self)
+            'get_instrument_currency_vol', instrument_code,
+            _get_instrument_currency_vol, self)
         return instr_ccy_vol
 
     def get_instrument_value_vol(self, instrument_code):
@@ -376,9 +386,11 @@ class PositionSizing(SystemStage):
         2015-12-11  96.777975
 
         """
+
         def _get_instrument_value_vol(system, instrument_code, this_stage):
 
-            this_stage.log.msg("Calculating instrument value vol for %s" % instrument_code,
+            this_stage.log.msg("Calculating instrument value vol for %s" %
+                               instrument_code,
                                instrument_code=instrument_code)
 
             instr_ccy_vol = this_stage.get_instrument_currency_vol(
@@ -392,7 +404,8 @@ class PositionSizing(SystemStage):
             return instr_value_vol
 
         instr_value_vol = self.parent.calc_or_cache(
-            'get_instrument_value_vol', instrument_code, _get_instrument_value_vol, self)
+            'get_instrument_value_vol', instrument_code,
+            _get_instrument_value_vol, self)
         return instr_value_vol
 
     def get_volatility_scalar(self, instrument_code):
@@ -421,9 +434,11 @@ class PositionSizing(SystemStage):
         2015-12-10   11.180444
         2015-12-11   10.344278
         """
+
         def _get_volatility_scalar(system, instrument_code, this_stage):
 
-            this_stage.log.msg("Calculating volatility scalar for %s" % instrument_code,
+            this_stage.log.msg("Calculating volatility scalar for %s" %
+                               instrument_code,
                                instrument_code=instrument_code)
 
             instr_value_vol = this_stage.get_instrument_value_vol(
@@ -435,8 +450,9 @@ class PositionSizing(SystemStage):
 
             return vol_scalar
 
-        vol_scalar = self.parent.calc_or_cache(
-            'get_volatility_scalar', instrument_code, _get_volatility_scalar, self)
+        vol_scalar = self.parent.calc_or_cache('get_volatility_scalar',
+                                               instrument_code,
+                                               _get_volatility_scalar, self)
         return vol_scalar
 
     def get_subsystem_position(self, instrument_code):
@@ -467,11 +483,12 @@ class PositionSizing(SystemStage):
         2015-12-11     2.544598
 
         """
+
         def _get_subsystem_position(system, instrument_code, this_stage):
 
-            this_stage.log.msg("Calculating subsystem position for %s" % instrument_code,
+            this_stage.log.msg("Calculating subsystem position for %s" %
+                               instrument_code,
                                instrument_code=instrument_code)
-
             """
             We don't allow this to be changed in config
             """
@@ -487,8 +504,10 @@ class PositionSizing(SystemStage):
             return subsystem_position
 
         subsystem_position = self.parent.calc_or_cache(
-            'get_subsystem_position', instrument_code, _get_subsystem_position, self)
+            'get_subsystem_position', instrument_code, _get_subsystem_position,
+            self)
         return subsystem_position
+
 
 if __name__ == '__main__':
     import doctest
