@@ -5,7 +5,6 @@ from syscore.objects import resolve_function
 
 
 class RawData(SystemStage):
-
     """
         A SystemStage that does some fairly common calculations before we do
         forecasting and which gives access to some widely used methods.
@@ -26,10 +25,11 @@ class RawData(SystemStage):
     Name: rawdata
     """
 
-
     def _name(self):
         return "rawdata"
 
+    def _description(self):
+        return ""
 
     def get_daily_prices(self, instrument_code):
         """
@@ -42,16 +42,16 @@ class RawData(SystemStage):
 
         KEY OUTPUT
         """
+
         def _daily_prices(system, instrument_code, this_stage):
-            this_stage.log.msg(
-                "Calculating daily prices for %s" %
-                instrument_code,
-                instrument_code=instrument_code)
+            this_stage.log.msg("Calculating daily prices for %s" %
+                               instrument_code,
+                               instrument_code=instrument_code)
             dailyprice = system.data.daily_prices(instrument_code)
             return dailyprice
 
-        dailyprice = self.parent.calc_or_cache(
-            "daily_price", instrument_code, _daily_prices, self)
+        dailyprice = self.parent.calc_or_cache("daily_price", instrument_code,
+                                               _daily_prices, self)
 
         return dailyprice
 
@@ -78,13 +78,15 @@ class RawData(SystemStage):
         1983-09-26  71.241192
         1983-09-27  71.131192
         """
+
         def _daily_denominator_returns(system, instrument_code, this_stage):
 
             dem_returns = this_stage.get_daily_prices(instrument_code)
             return dem_returns
 
         dem_returns = self.parent.calc_or_cache(
-            "daily_denominator_price", instrument_code, _daily_denominator_returns, self)
+            "daily_denominator_price", instrument_code,
+            _daily_denominator_returns, self)
 
         return dem_returns
 
@@ -109,6 +111,7 @@ class RawData(SystemStage):
         2015-12-10 -0.0650
         2015-12-11  0.1075
         """
+
         def _daily_returns(system, instrument_code, this_stage):
             instrdailyprice = this_stage.get_daily_prices(instrument_code)
             dailyreturns = instrdailyprice.diff()
@@ -165,11 +168,11 @@ class RawData(SystemStage):
         2015-12-11  0.058626
 
         """
+
         def _daily_returns_volatility(system, instrument_code, this_stage):
-            this_stage.log.msg(
-                "Calculating daily volatility for %s" %
-                instrument_code,
-                instrument_code=instrument_code)
+            this_stage.log.msg("Calculating daily volatility for %s" %
+                               instrument_code,
+                               instrument_code=instrument_code)
 
             dailyreturns = this_stage.daily_returns(instrument_code)
 
@@ -183,8 +186,9 @@ class RawData(SystemStage):
 
             return vol
 
-        vol = self.parent.calc_or_cache(
-            "daily_returns_volatility", instrument_code, _daily_returns_volatility, self)
+        vol = self.parent.calc_or_cache("daily_returns_volatility",
+                                        instrument_code,
+                                        _daily_returns_volatility, self)
 
         return vol
 
@@ -210,8 +214,9 @@ class RawData(SystemStage):
         2015-12-10  0.055281
         2015-12-11  0.059789
         """
-        def _get_daily_percentage_volatility(
-                system, instrument_code, this_stage):
+
+        def _get_daily_percentage_volatility(system, instrument_code,
+                                             this_stage):
             denom_price = this_stage.daily_denominator_price(instrument_code)
             return_vol = this_stage.daily_returns_volatility(instrument_code)
             (denom_price, return_vol) = denom_price.align(
@@ -222,7 +227,8 @@ class RawData(SystemStage):
             return perc_vol
 
         perc_vol = self.parent.calc_or_cache(
-            "daily_percentage_volatility", instrument_code, _get_daily_percentage_volatility, self)
+            "daily_percentage_volatility", instrument_code,
+            _get_daily_percentage_volatility, self)
         return perc_vol
 
     def norm_returns(self, instrument_code):
@@ -247,11 +253,11 @@ class RawData(SystemStage):
         2015-12-10    -1.219510
         2015-12-11     1.985413
         """
+
         def _norm_returns(system, instrument_code, this_stage):
-            this_stage.log.msg(
-                "Calculating normalised prices for %s" %
-                instrument_code,
-                instrument_code=instrument_code)
+            this_stage.log.msg("Calculating normalised prices for %s" %
+                               instrument_code,
+                               instrument_code=instrument_code)
 
             returnvol = this_stage.daily_returns_volatility(
                 instrument_code).shift(1)

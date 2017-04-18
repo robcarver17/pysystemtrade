@@ -34,13 +34,13 @@ class csvFuturesData(FuturesData):
 
         We look for data in .csv files
 
-
-        :param datapath: relative path to find .csv files (defaults to LEGACY_DATA_MODULE/LEGACY_DATA_DIR
+        :param datapath: relative path to find .csv files (defaults to
+          LEGACY_DATA_MODULE/LEGACY_DATA_DIR
         :type datapath: None or str
 
-        :param absolute_datapath: absolute path to find .csv files (not used if datapath specified)
+        :param absolute_datapath: absolute path to find .csv files (not used if
+          datapath specified)
         :type datapath: None or str
-
 
         :returns: new csvFuturesData object
 
