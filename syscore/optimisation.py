@@ -14,7 +14,7 @@ import random
 from syscore.algos import vol_estimator, mean_estimator
 from syscore.correlations import correlation_single_period, boring_corr_matrix, get_avg_corr
 from syscore.dateutils import generate_fitting_dates, BUSINESS_DAYS_IN_YEAR, WEEKS_IN_YEAR, MONTHS_IN_YEAR
-from syscore.genutils import str2Bool
+from syscore.genutils import str2Bool, progressBar
 from syscore.pdutils import df_from_list, must_have_item
 from syscore.objects import resolve_function
 from syslogdiag.log import logtoscreen
@@ -203,11 +203,9 @@ class GenericOptimiser(object):
         # create a class object for each period
         opt_results = []
 
-        log.terse("Optimising...")
+        progress=progressBar(len(fit_dates), "Optimising")
 
         for fit_period in fit_dates:
-            log.msg("Optimising for data from %s to %s" %
-                    (str(fit_period.period_start), str(fit_period.period_end)))
             # Do the optimisation for one period, using a particular optimiser
             # instance
             results_this_period = optSinglePeriod(
@@ -225,6 +223,7 @@ class GenericOptimiser(object):
             weight_row = pd.DataFrame(
                 [weights] * 2, index=dindex, columns=data.columns)
             weight_list.append(weight_row)
+            progress.iterate()
 
         # Stack everything up
         raw_weight_df = pd.concat(weight_list, axis=0)

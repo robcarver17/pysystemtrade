@@ -7,7 +7,7 @@ from copy import copy
 import numpy as np
 import pandas as pd
 
-from syscore.genutils import str2Bool, group_dict_from_natural
+from syscore.genutils import str2Bool, group_dict_from_natural, progressBar
 from syscore.dateutils import generate_fitting_dates
 from syscore.pdutils import df_from_list, must_have_item
 
@@ -289,13 +289,10 @@ class CorrelationEstimator(CorrelationList):
         # create a list of correlation matrices
         corr_list = []
 
-        log.terse("Correlation estimate")
-
+        progress=progressBar(len(fit_dates), "Estimating correlations")
         # Now for each time period, estimate correlation
         for fit_period in fit_dates:
-            log.msg("Estimating from %s to %s" %
-                    (fit_period.period_start, fit_period.period_end))
-
+            progress.iterate()
             if fit_period.no_data:
                 # no data to fit with
                 corr_with_nan = boring_corr_matrix(

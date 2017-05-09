@@ -4,6 +4,9 @@ Utilities I can't put anywhere else...
 
 from math import copysign
 from copy import copy
+import time
+import sys
+
 
 
 def group_dict_from_natural(dict_group):
@@ -115,6 +118,38 @@ def sign(x):
 
     """
     return copysign(1, x)
+
+
+class progressBar(object):
+    """
+    toolbar_width = 40
+
+    # setup toolbar
+
+
+    """
+    def __init__(self, toolbar_width, suffix="Progress"):
+        self.toolbar_width = toolbar_width
+        self.current_iter=0
+        self.suffix = suffix
+        self.display_bar()
+
+    def iterate(self):
+        self.current_iter+=1
+        self.display_bar()
+
+        if self.current_iter==self.toolbar_width:
+            self.finished()
+
+    def display_bar(self):
+        percents = round(100.0 * self.current_iter / float(self.toolbar_width), 1)
+        bar = '=' * self.current_iter + '-' * (self.toolbar_width - self.current_iter)
+        progress_string = '\0\r [%s] %s%s %s' % (bar, percents, '%', self.suffix)
+        sys.stdout.write(progress_string)
+        sys.stdout.flush()
+
+    def finished(self):
+        sys.stdout.write("\n")
 
 if __name__ == '__main__':
     import doctest
