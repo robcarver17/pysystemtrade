@@ -4,6 +4,7 @@ This guide is divided into four parts. The first ['How do I?'](#how_do_i) explai
 
 <a name="how_do_i">
 </a>
+
 # How do I?
 
 ## How do I.... Experiment with a single trading rule and instrument
