@@ -136,7 +136,7 @@ account = accountCurve(price, forecast=ewmac)
 account.percent().stats()
 ```
 
-
+```
 [[('min', '-7.911'),
   ('max', '5.22'),
   ('median', '0'),
@@ -160,6 +160,7 @@ account.percent().stats()
   ('p_value', '0.003405')],
  ('You can also plot / print:',
   ['rolling_ann_std', 'drawdown', 'curve', 'percent', 'cumulative'])]
+```
 
 Looks like we did make a few bucks. `account`, by the way inherits from a pandas data frame. Here are some other things we can do with it:
 
