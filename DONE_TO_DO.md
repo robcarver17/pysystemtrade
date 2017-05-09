@@ -1,5 +1,22 @@
 # Release notes
 
+## Version 0.14.0
+
+* Stages now have _names and _description defined in __init__
+* log values now passed in when __init__ of stage; hence baseystem.__init__ is much cleaner
+* Caching:
+   * Cache is now accessed via a seperate object in system; so system.cache.* rather than system.* for cache methods
+   * Caching now done through decorators: from systems.system_cache import input, dont_cache, diagnostic, output
+   * Use protected=True and/or not_cached=True within decorators
+* Got rid of 'switching' stages for estimating forecast scalars, forecast weights, instrument weights.
+   * Explicit import of a Fixed or Estimated version of a class won't work; use the generic version.
+   * Added seperate fields to .yaml file to switch between IDM and FDM estimation or fixed values
+* Split ultra-massive accounts.py into multiple files and classes
+* Split unwieldy ForecastCombine into several classes
+* Added a bunch more unit tests as I went through the above refactoring exercise
+* some refactoring of optimisation code - more to come
+* fixed up examples and documentation accordingly
+
 ## Version 0.13.0
 
 * Now requires pandas version > 0.19.0

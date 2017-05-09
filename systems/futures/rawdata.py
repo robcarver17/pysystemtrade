@@ -4,16 +4,11 @@ from systems.rawdata import RawData
 from syscore.objects import update_recalc
 from syscore.dateutils import expiry_diff
 from syscore.pdutils import uniquets
-
+from systems.system_cache import input, diagnostic, output
 
 class FuturesRawData(RawData):
     """
     A SubSystem that does futures specific raw data calculations
-
-    KEY INPUT: system.data.get_instrument_raw_carry_data(instrument_code) found
-               in self.get_instrument_raw_carry_data(self, instrument_code)
-
-    KEY OUTPUT: system.rawdata.daily_annualised_roll(instrument_code)
 
     Name: rawdata
     """
@@ -27,15 +22,9 @@ class FuturesRawData(RawData):
         """
         super(FuturesRawData, self).__init__()
 
-        """
-        if you add another method to this you also need to add its blank dict here
-        """
-
-        protected = []
-        update_recalc(self, protected)
-
         setattr(self, "description", "futures")
 
+    @input
     def get_instrument_raw_carry_data(self, instrument_code):
         """
         Returns the 4 columns PRICE, CARRY, PRICE_CONTRACT, CARRY_CONTRACT
@@ -58,17 +47,12 @@ class FuturesRawData(RawData):
         2015-12-11 19:33:39  97.9875    NaN         201812         201903
         """
 
-        def _calc_raw_carry(system, instrument_code, this_stage_notused):
-            instrcarrydata = system.data.get_instrument_raw_carry_data(
-                instrument_code)
-            return instrcarrydata
 
-        raw_carry = self.parent.calc_or_cache("instrument_raw_carry_data",
-                                              instrument_code,
-                                              _calc_raw_carry, self)
+        instrcarrydata = self.parent.data.get_instrument_raw_carry_data(
+            instrument_code)
+        return instrcarrydata
 
-        return raw_carry
-
+    @diagnostic()
     def raw_futures_roll(self, instrument_code):
         """
         Returns the raw difference between price and carry
@@ -88,23 +72,18 @@ class FuturesRawData(RawData):
         dtype: float64
         """
 
-        def _calc_raw_futures_roll(system, instrument_code, this_stage):
 
-            carrydata = this_stage.get_instrument_raw_carry_data(
-                instrument_code)
-            raw_roll = carrydata.PRICE - carrydata.CARRY
+        carrydata = self.get_instrument_raw_carry_data(
+            instrument_code)
+        raw_roll = carrydata.PRICE - carrydata.CARRY
 
-            raw_roll[raw_roll == 0] = np.nan
+        raw_roll[raw_roll == 0] = np.nan
 
-            raw_roll = uniquets(raw_roll)
-
-            return raw_roll
-
-        raw_roll = self.parent.calc_or_cache(
-            "raw_futures_roll", instrument_code, _calc_raw_futures_roll, self)
+        raw_roll = uniquets(raw_roll)
 
         return raw_roll
 
+    @diagnostic()
     def roll_differentials(self, instrument_code):
         """
         Work out the annualisation factor
@@ -123,20 +102,15 @@ class FuturesRawData(RawData):
         2015-12-11 19:33:39   -0.246407
         dtype: float64
         """
-        def _calc_roll_differentials(system, instrument_code, this_stage):
-            carrydata = this_stage.get_instrument_raw_carry_data(
-                instrument_code)
-            roll_diff = carrydata.apply(expiry_diff, 1)
+        carrydata = self.get_instrument_raw_carry_data(
+            instrument_code)
+        roll_diff = carrydata.apply(expiry_diff, 1)
 
-            roll_diff = uniquets(roll_diff)
-
-            return roll_diff
-
-        roll_diff = self.parent.calc_or_cache(
-            "roll_differentials", instrument_code, _calc_roll_differentials, self)
+        roll_diff = uniquets(roll_diff)
 
         return roll_diff
 
+    @diagnostic()
     def annualised_roll(self, instrument_code):
         """
         Work out annualised futures roll
@@ -161,19 +135,14 @@ class FuturesRawData(RawData):
 
         """
 
-        def _calc_annualised_roll(system, instrument_code, this_stage):
-            rolldiffs = this_stage.roll_differentials(instrument_code)
-            rawrollvalues = this_stage.raw_futures_roll(instrument_code)
+        rolldiffs = self.roll_differentials(instrument_code)
+        rawrollvalues = self.raw_futures_roll(instrument_code)
 
-            annroll = rawrollvalues / rolldiffs
-
-            return annroll
-
-        annroll = self.parent.calc_or_cache(
-            "annualised_roll", instrument_code, _calc_annualised_roll, self)
+        annroll = rawrollvalues / rolldiffs
 
         return annroll
 
+    @output()
     def daily_annualised_roll(self, instrument_code):
         """
         Resample annualised roll to daily frequency
@@ -197,17 +166,13 @@ class FuturesRawData(RawData):
         Freq: B, dtype: float64
         """
 
-        def _calc_daily_ann_roll(system, instrument_code, this_stage):
 
-            annroll = this_stage.annualised_roll(instrument_code)
-            annroll = annroll.resample("1B").mean()
-            return annroll
+        annroll = self.annualised_roll(instrument_code)
+        annroll = annroll.resample("1B").mean()
+        return annroll
 
-        ann_daily_roll = self.parent.calc_or_cache(
-            "daily_annualised_roll", instrument_code, _calc_daily_ann_roll, self)
 
-        return ann_daily_roll
-
+    @output()
     def daily_denominator_price(self, instrument_code):
         """
         Gets daily prices for use with % volatility
@@ -230,16 +195,10 @@ class FuturesRawData(RawData):
         2015-12-11    97.9875
         Freq: B, Name: PRICE, dtype: float64
         """
-        def _daily_denominator_prices(system, instrument_code, this_stage):
-            prices = this_stage.get_instrument_raw_carry_data(
-                instrument_code).PRICE
-            daily_prices = prices.resample("1B").last()
-            return daily_prices
-
-        daily_dem_prices = self.parent.calc_or_cache(
-            "daily_denominator_price", instrument_code, _daily_denominator_prices, self)
-
-        return daily_dem_prices
+        prices = self.get_instrument_raw_carry_data(
+            instrument_code).PRICE
+        daily_prices = prices.resample("1B").last()
+        return daily_prices
 
 
 if __name__ == '__main__':

@@ -69,6 +69,7 @@ forecast_scalar_estimate:
 # forecast combination
 #
 use_forecast_weight_estimates: True
+use_forecast_div_mult_estimates: True
 #
 forecast_weight_estimate:
    method: shrinkage
@@ -80,6 +81,7 @@ forecast_correlation_estimate:
    pool_instruments: True
 #
 use_instrument_weight_estimates: True
+use_instrument_div_mult_estimates: True
 #
 instrument_weight_estimate:
    method: "shrinkage"

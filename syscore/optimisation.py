@@ -22,6 +22,7 @@ from syslogdiag.log import logtoscreen
 TARGET_ANN_SR = 0.5
 FLAG_BAD_RETURN = -9999999.9
 
+# FIXME: some pretty horrible code here needs a rethink
 
 class GenericOptimiser(object):
 
@@ -107,10 +108,8 @@ class GenericOptimiser(object):
         setattr(self, "apply_cost_weight", apply_cost_weight)
 
     def need_data(self):
-        if self.method == "equal_weights":
-            return False
-        else:
-            return True
+        self.log.critical("** USED OUT-DATED METHOD NEED_DATA **")
+        # FIXME remove in a couple of releases time
 
     def set_up_data(self, data_gross=None, data_costs=None,
                     weight_matrix=None):
@@ -124,13 +123,7 @@ class GenericOptimiser(object):
         :param data_net: Returns data for costs
         :type data_net: pd.DataFrame or list if pooling
 
-        :param weight_matrix: some weight_matrix, used if equal weights and so don't need returns data
-        :type weight_matrix: pd.DataFrame or list if pooling
-
         """
-        if weight_matrix is not None:
-            setattr(self, "data", weight_matrix.ffill())
-            return None
 
         log = self.log
         frequency = self.frequency
@@ -150,6 +143,8 @@ class GenericOptimiser(object):
         data_gross = df_from_list(data_gross)
         data_costs = df_from_list(data_costs)
 
+        self.unmultiplied_costs = data_costs
+
         # net gross and costs
         if equalise_gross:
             log.terse(
@@ -165,12 +160,27 @@ class GenericOptimiser(object):
 
         setattr(self, "data", data)
 
-    def optimise(self, ann_SR_costs=None):
+
+    def calculate_ann_SR_costs(self):
+        """
+        Must be calculated from costs data without the multiplier, but may be pooled
+
+        :return: float
+        """
+
+        return self.unmultiplied_costs.mean()*self.annualisation
+
+    def optimise(self):
         """
 
         Optimise weights over some returns data
 
+
+
         """
+
+
+
         log = self.log
         date_method = self.date_method
         rollyears = self.rollyears
@@ -221,6 +231,9 @@ class GenericOptimiser(object):
 
         if apply_cost_weight:
             log.terse("Applying cost weighting to optimisation results")
+            # ann_SR_costs must be calculated before a cost multiplier is applied
+            ann_SR_costs = self.calculate_ann_SR_costs()
+
             weight_df = apply_cost_weighting(raw_weight_df, ann_SR_costs)
         else:
             weight_df = raw_weight_df

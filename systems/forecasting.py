@@ -2,6 +2,7 @@ from copy import copy
 
 from systems.stage import SystemStage
 from syscore.objects import resolve_function, resolve_data_method, hasallattr
+from systems.system_cache import input, diagnostic, output
 
 DEFAULT_PRICE_SOURCE = "data.daily_prices"
 
@@ -121,6 +122,7 @@ class Rules(SystemStage):
         setattr(self, "_trading_rules", new_rules)
         return(new_rules)
 
+    @output()
     def get_raw_forecast(self, instrument_code, rule_variation_name):
         """
         Does what it says on the tin - pulls the forecast for the trading rule
@@ -131,25 +133,18 @@ class Rules(SystemStage):
 
         """
 
-        def _get_raw_forecast(system, instrument_code,
-                              rule_variation_name, rules_stage):
-            # This function gets called if we haven't cached the forecast
-            rules_stage.log.msg("Calculating raw forecast %s for %s" % (instrument_code, rule_variation_name),
-                                instrument_code=instrument_code, rule_variation_name=rule_variation_name)
+        system = self.parent
 
-            trading_rule = rules_stage.trading_rules()[rule_variation_name]
+        self.log.msg("Calculating raw forecast %s for %s" % (instrument_code, rule_variation_name),
+                            instrument_code=instrument_code, rule_variation_name=rule_variation_name)
 
-            result = trading_rule.call(system, instrument_code)
-            result.columns = [rule_variation_name]
+        trading_rule = self.trading_rules()[rule_variation_name]
 
-            return result
+        result = trading_rule.call(system, instrument_code)
+        result.columns = [rule_variation_name]
 
-        forecast = self.parent.calc_or_cache_nested("get_raw_forecast",
-                                                    instrument_code,
-                                                    rule_variation_name,
-                                                    _get_raw_forecast,
-                                                    self)
-        return forecast
+        return result
+
 
 
 class TradingRule(object):

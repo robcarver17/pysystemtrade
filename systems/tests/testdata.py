@@ -1,14 +1,13 @@
 
 from systems.account import Account
-from systems.portfolio import PortfoliosFixed, PortfoliosEstimated
+from systems.portfolio import Portfolios
 from systems.futures.rawdata import FuturesRawData
 from systems.rawdata import RawData
 from sysdata.csvdata import csvFuturesData
 from sysdata.configdata import Config
 from systems.forecasting import Rules
-from systems.forecast_scale_cap import ForecastScaleCapFixed,\
-    ForecastScaleCapEstimated
-from systems.forecast_combine import ForecastCombineFixed, ForecastCombineEstimated
+from systems.forecast_scale_cap import ForecastScaleCap
+from systems.forecast_combine import ForecastCombine
 from systems.positionsizing import PositionSizing
 
 
@@ -51,7 +50,7 @@ def get_test_object_futures_with_rules_and_capping():
     rawdata = FuturesRawData()
     rules = Rules()
     config = Config("systems.provided.example.exampleconfig.yaml")
-    capobject = ForecastScaleCapFixed()
+    capobject = ForecastScaleCap()
     return (capobject, rules, rawdata, data, config)
 
 
@@ -63,8 +62,8 @@ def get_test_object_futures_with_comb_forecasts():
     rawdata = FuturesRawData()
     rules = Rules()
     config = Config("systems.provided.example.exampleconfig.yaml")
-    capobject = ForecastScaleCapFixed()
-    combobject = ForecastCombineFixed()
+    capobject = ForecastScaleCap()
+    combobject = ForecastCombine()
     return (combobject, capobject, rules, rawdata, data, config)
 
 
@@ -76,8 +75,8 @@ def get_test_object_futures_with_pos_sizing():
     rawdata = FuturesRawData()
     rules = Rules()
     config = Config("systems.provided.example.exampleconfig.yaml")
-    capobject = ForecastScaleCapFixed()
-    combobject = ForecastCombineFixed()
+    capobject = ForecastScaleCap()
+    combobject = ForecastCombine()
     posobject = PositionSizing()
     return (posobject, combobject, capobject, rules, rawdata, data, config)
 
@@ -90,10 +89,10 @@ def get_test_object_futures_with_portfolios():
     rawdata = FuturesRawData()
     rules = Rules()
     config = Config("systems.provided.example.exampleconfig.yaml")
-    capobject = ForecastScaleCapFixed()
-    combobject = ForecastCombineFixed()
+    capobject = ForecastScaleCap()
+    combobject = ForecastCombine()
     posobject = PositionSizing()
-    portfolio = PortfoliosFixed()
+    portfolio = Portfolios()
     return (portfolio, posobject, combobject,
             capobject, rules, rawdata, data, config)
 
@@ -106,7 +105,7 @@ def get_test_object_futures_with_rules_and_capping_estimate():
     rawdata = FuturesRawData()
     rules = Rules()
     config = Config("systems.provided.example.estimateexampleconfig.yaml")
-    capobject = ForecastScaleCapEstimated()
+    capobject = ForecastScaleCap()
     account = Account()
     return (account, capobject, rules, rawdata, data, config)
 
@@ -119,8 +118,8 @@ def get_test_object_futures_with_pos_sizing_estimates():
     rawdata = FuturesRawData()
     rules = Rules()
     config = Config("systems.provided.example.estimateexampleconfig.yaml")
-    capobject = ForecastScaleCapEstimated()
-    combobject = ForecastCombineEstimated()
+    capobject = ForecastScaleCap()
+    combobject = ForecastCombine()
     posobject = PositionSizing()
     account = Account()
     return (account, posobject, combobject,

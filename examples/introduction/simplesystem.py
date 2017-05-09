@@ -82,6 +82,7 @@ from systems.forecast_scale_cap import ForecastScaleCap
 # we can estimate these ourselves
 my_config.instruments = ["US10", "EDOLLAR", "CORN", "SP500"]
 my_config.use_forecast_scale_estimates = True
+
 fcs = ForecastScaleCap()
 my_system = System([fcs, my_rules], data, my_config)
 print(
@@ -117,23 +118,25 @@ combiner = ForecastCombine()
 
 my_config.forecast_weight_estimate = dict(method="one_period")
 my_config.use_forecast_weight_estimates = True
+my_config.use_forecast_div_mult_estimates= True
 
 my_system = System([my_account, fcs, my_rules, combiner], data, my_config)
 
 # this is a bit slow, better to know what's going on
 my_system.set_logging_level("on")
 
-print(my_system.combForecast.get_forecast_weights("EDOLLAR").tail(5))
-print(my_system.combForecast.get_forecast_diversification_multiplier("EDOLLAR").tail(5))
+print(my_system.combForecast.get_forecast_weights("US10").tail(5))
+print(my_system.combForecast.get_forecast_diversification_multiplier("US10").tail(5))
 
 
 # fixed:
 my_config.forecast_weights = dict(ewmac8=0.5, ewmac32=0.5)
 my_config.forecast_div_multiplier = 1.1
 my_config.use_forecast_weight_estimates = False
+my_config.use_forecast_div_mult_estimates= False
 
 combiner = ForecastCombine()
-my_system = System([fcs, empty_rules, combiner], data, my_config)
+my_system = System([fcs, empty_rules, combiner], data, my_config) # no need for accounts if no estimation done
 my_system.combForecast.get_combined_forecast("EDOLLAR").tail(5)
 
 
@@ -160,6 +163,7 @@ from systems.portfolio import Portfolios
 portfolio = Portfolios()
 
 my_config.use_instrument_weight_estimates = True
+my_config.use_instrument_div_mult_estimates = True
 my_config.instrument_weight_estimate = dict(
     method="shrinkage", date_method="in_sample")
 
@@ -174,6 +178,7 @@ print(my_system.portfolio.get_instrument_diversification_multiplier().tail(5))
 # or fixed
 portfolio = Portfolios()
 my_config.use_instrument_weight_estimates = False
+my_config.use_instrument_div_mult_estimates = False
 my_config.instrument_weights = dict(US10=.1, EDOLLAR=.4, CORN=.3, SP500=.2)
 my_config.instrument_div_multiplier = 1.5
 

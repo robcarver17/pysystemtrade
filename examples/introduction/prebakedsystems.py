@@ -39,11 +39,11 @@ from systems.provided.futures_chapter15.estimatedsystem import futures_system
 system = futures_system(log_level="on")
 print(system.accounts.portfolio().sharpe())
 system.accounts.portfolio().curve().plot()
-system.pickle_cache("private.this_system_name.pck")
+system.cache.pickle("private.this_system_name.pck")
 show()
 
 del(system)  # just to make sure
 system = futures_system(log_level="on")
-system.unpickle_cache("private.this_system_name.pck")
+system.cache.unpickle("private.this_system_name.pck")
 # this will run much faster and reuse previous calculations
 system.accounts.portfolio().sharpe()

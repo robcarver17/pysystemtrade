@@ -57,6 +57,7 @@ forecast_div_mult_estimate:
    dm_max: 2.5
 #
 use_forecast_weight_estimates: False
+use_forecast_div_mult_estimates: False
 #
 forecast_cost_estimates:
    use_pooled_costs: False
@@ -110,6 +111,8 @@ capital_multiplier:
 # Portfolio creation
 #
 instrument_div_multiplier: 1.0
+#
+use_instrument_div_mult_estimates: False
 #
 instrument_correlation_estimate:
    func: syscore.correlations.CorrelationEstimator

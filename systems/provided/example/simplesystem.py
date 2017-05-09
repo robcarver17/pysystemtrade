@@ -3,10 +3,10 @@ from sysdata.configdata import Config
 
 from systems.forecasting import Rules
 from systems.basesystem import System
-from systems.forecast_combine import ForecastCombineFixed
-from systems.forecast_scale_cap import ForecastScaleCapFixed
+from systems.forecast_combine import ForecastCombine
+from systems.forecast_scale_cap import ForecastScaleCap
 from systems.positionsizing import PositionSizing
-from systems.portfolio import PortfoliosFixed
+from systems.portfolio import Portfolios
 from systems.account import Account
 
 
@@ -19,7 +19,7 @@ def simplesystem(data=None, config=None, log_level="on"):
     if data is None:
         data = csvFuturesData()
 
-    my_system = System([Account(), PortfoliosFixed(), PositionSizing(), ForecastCombineFixed(), ForecastScaleCapFixed(), Rules()
+    my_system = System([Account(), Portfolios(), PositionSizing(), ForecastCombine(), ForecastScaleCap(), Rules()
                         ], data, config)
 
     my_system.set_logging_level(log_level)

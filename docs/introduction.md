@@ -132,7 +132,7 @@ Did we make any money?
 
 ```python
 from syscore.accounting import accountCurve
-account = accountCurve(price, forecast=ewmac, percentage=True)
+account = accountCurve(price, forecast=ewmac)
 account.percent().stats()
 ```
 
@@ -322,6 +322,7 @@ So far, not exciting. Let's see how we'd use a `config` to define our trading ru
 empty_rules=Rules()
 my_config.trading_rules=dict(ewmac8=ewmac_8, ewmac32=ewmac_32)
 my_system=System([empty_rules], data, my_config)
+print(my_system.rules.get_raw_forecast("EDOLLAR", "ewmac8")
 ```
 
 Notice the differences from before:
@@ -329,10 +330,12 @@ Notice the differences from before:
 1. We pass in an 'empty' instance of rules that contains no arguments
 2. We create an element in `config`: `trading_rules`, that contains our dictionary of trading rules
 3. The system uses the `config.trading_rules`
+4. We access the `empty_rules` object via the `System`. The attribute names of different kinds of objects are fixed, and aren't affected by what the instance or class is called (it will always be `rules`, not `Rules` or `empty_rules`)
 
 *Note if you'd passed the dict of trading rules into Rules()* **and** *into the config, only the former would be used*
 
-Now these trading rules aren't producing forecasts that are correctly scaled (with an average absolute value of 10), and they don't have the cap of 20 that I recommend. To fix this we need to add another stage to our system: forecast scaling and capping. 
+Now these trading rules aren't producing forecasts that are correctly scaled (with an average absolute value of 10), and they don't have the cap of 20 that I recommend. To fix this we need to add another *stage* to our system: forecast scaling and capping.
+Stages are added by including extra objects in the list which is the first argument passed to `System`. The order of these doesn't matter.
 
 We could estimate these on a rolling out of sample basis:
 
@@ -371,10 +374,11 @@ my_config.forecast_scalars=dict(ewmac8=5.3, ewmac32=2.65)
 ## this parameter ensures we don't estimate:
 my_config.use_forecast_scale_estimates=False
 
-## we need a new object
-fcs=ForecastScaleCap()
-
 my_system=System([fcs, empty_rules], data, my_config)
+
+print(my_system.forecastScaleCap.get_forecast_scalar("EDOLLAR", "ewmac32"))
+2.65 # now a single float value
+
 my_system.forecastScaleCap.get_capped_forecast("EDOLLAR", "ewmac32")
 ```
 
@@ -433,6 +437,7 @@ my_account = Account()
 ## let's use naive markowitz to get more interesting results...
 my_config.forecast_weight_estimate=dict(method="one_period") 
 my_config.use_forecast_weight_estimates=True
+my_config.use_forecast_div_mult_estimates = True
 
 combiner = ForecastCombine()
 my_system = System([my_account, fcs, my_rules, combiner], data, my_config)
@@ -440,26 +445,26 @@ my_system = System([my_account, fcs, my_rules, combiner], data, my_config)
 ## this is a bit slow, better to know what's going on
 my_system.set_logging_level("on")
 
-print(my_system.combForecast.get_forecast_weights("EDOLLAR").tail(5))
-print(my_system.combForecast.get_forecast_diversification_multiplier("EDOLLAR").tail(5))
+print(my_system.combForecast.get_forecast_weights("US10").tail(5))
+print(my_system.combForecast.get_forecast_diversification_multiplier("US10").tail(5))
 
 ```
 
 ```
-
-            ewmac32  ewmac8
-2016-05-05        1       0
-2016-05-06        1       0
-2016-05-09        1       0
-2016-05-10        1       0
-2016-05-11        1       0
+# results may differ with other data
+             ewmac32    ewmac8
+2016-11-07  0.131591  0.868409
+2016-11-08  0.131753  0.868247
+2016-11-09  0.131913  0.868087
+2016-11-10  0.132072  0.867928
+2016-11-11  0.132230  0.867770
 
 ## FDM
-2016-05-05    1
-2016-05-06    1
-2016-05-09    1
-2016-05-10    1
-2016-05-11    1
+2016-11-07    1.048816
+2016-11-08    1.048927
+2016-11-09    1.049036
+2016-11-10    1.049144
+2016-11-11    1.049250
 Freq: B, dtype: float64
 ```
 
@@ -471,6 +476,7 @@ A little extreme, I feel. Let's use some arbitrary fixed forecast weights and di
 my_config.forecast_weights=dict(ewmac8=0.5, ewmac32=0.5)
 my_config.forecast_div_multiplier=1.1
 my_config.use_forecast_weight_estimates = False
+my_config.use_forecast_div_mult_estimates = False
 my_system=System([fcs, empty_rules, combiner], data, my_config)
 my_system.combForecast.get_combined_forecast("EDOLLAR").tail(5)
 ```
@@ -519,15 +525,16 @@ We're almost there. The final stage we need to get positions is to combine every
 We can estimate these:
 
 ```python
-from systems.portfolio import PortfoliosEstimated
-portfolio_estimate = PortfoliosEstimated()
+from systems.portfolio import Portfolios
+portfolio = Portfolios()
 
-## this will speed things but - but I don't recommend it for actual trading...
+## Using shrinkage will speed things but - but I don't recommend it for actual trading...
 my_config.use_instrument_weight_estimates = True
+my_config.use_instrument_div_mult_estimates = True
 my_config.instrument_weight_estimate=dict(method="shrinkage", date_method="in_sample") ## speeds things up
 
 my_system = System([my_account, fcs, my_rules, combiner, possizer,
-                    portfolio_estimate], data, my_config)
+                    portfolio], data, my_config)
 
 my_system.set_logging_level("on")
 
@@ -558,11 +565,10 @@ Alternatively we can just make up some instrument weights, and diversification m
 *Again if we really couldn't be bothered, this would default to equal weights and 1.0 respectively*
 
 ```python
-from systems.portfolio import PortfoliosFixed
-portfolio=PortfoliosFixed()
 my_config.instrument_weights=dict(US10=.1, EDOLLAR=.4, CORN=.3, SP500=.8)
 my_config.instrument_div_multiplier=1.5
 my_config.use_instrument_weight_estimates = False
+my_config.use_instrument_div_mult_estimates = False
 
 my_system=System([ fcs, empty_rules, combiner, possizer, portfolio], data, my_config)
 
@@ -583,9 +589,9 @@ Although this is fine and dandy, we're probably going to be curious about whethe
 
 ```python
 from systems.account import Account
-account=Account()
-my_system=System([ fcs, empty_rules, combiner, possizer, portfolio, account], data, my_config)
-profits=my_system.account.portfolio()
+accounts=Account()
+my_system=System([ fcs, empty_rules, combiner, possizer, portfolio, accounts], data, my_config)
+profits=my_system.accounts.portfolio()
 profits.percent().stats()
 ```
 
@@ -712,12 +718,12 @@ system.portfolio.get_notional_position("EUROSTX").tail(5)
 Because this runs quite slowly you might want to save the system data. This lives in the cache attribute.
 
 ```python
-system.pickle_cache("private.this_system_name.pck") ## use any file extension you like
+system.cache.pickle("private.this_system_name.pck") ## use any file extension you like
 
 ## In a new session
 from systems.provided.futures_chapter15.estimatedsystem import futures_system
 system = futures_system(log_level="on")
-system.unpickle_cache("private.this_system_name.pck")
+system.cache.unpickle("private.this_system_name.pck")
 system.accounts.portfolio().sharpe() ## this will run much faster and reuse previous calculations
 ```
 
