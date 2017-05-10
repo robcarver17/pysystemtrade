@@ -1,5 +1,9 @@
 # Release notes
 
+## Version 0.14.1
+
+* Added progress bar (issue 51)
+
 ## Version 0.14.0
 
 * Stages now have _names and _description defined in __init__

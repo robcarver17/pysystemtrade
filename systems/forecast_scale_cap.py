@@ -201,6 +201,7 @@ class ForecastScaleCap(SystemStage):
         cs_forecasts = pd.concat(forecast_list, axis=1)
 
         # an example of a scaling function is syscore.algos.forecast_scalar
+        # must return thing the same size as cs_forecasts
         scaling_factor = scalar_function(
             cs_forecasts, **forecast_scalar_config)
 
@@ -263,12 +264,18 @@ class ForecastScaleCap(SystemStage):
 
         if pool_instruments:
             # pooled, same for all instruments
-            instrument_code = ALL_KEYNAME
+            instrument_code_to_pass = ALL_KEYNAME
+        else:
+            instrument_code_to_pass = copy(instrument_code)
 
-        scaling_factor = self._get_forecast_scalar_estimated_from_instrument_list(instrument_code, rule_variation_name,
+        scaling_factor = self._get_forecast_scalar_estimated_from_instrument_list(instrument_code_to_pass, rule_variation_name,
                                                                                   forecast_scalar_config)
+        forecast = self.get_raw_forecast(instrument_code, rule_variation_name)
+
+        scaling_factor = scaling_factor.reindex(forecast.index, method="ffill")
 
         return scaling_factor
+
 
     @dont_cache
     def _use_estimated_weights(self):
@@ -308,13 +315,9 @@ class ForecastScaleCap(SystemStage):
         raw_forecast = self.get_raw_forecast(
             instrument_code, rule_variation_name)
         scale = self.get_forecast_scalar(
-            instrument_code, rule_variation_name)
+            instrument_code, rule_variation_name) ## will eithier be a scalar or a timeseries
 
-        if isinstance(scale, float):
-            scaled_forecast = raw_forecast * scale
-        else:
-            # time series
-            scaled_forecast = raw_forecast * scale
+        scaled_forecast = raw_forecast * scale
 
         return scaled_forecast
 

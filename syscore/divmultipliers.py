@@ -23,7 +23,7 @@ def diversification_mult_single_period(corrmatrix, weights, dm_max=2.5):
 
     >>> corrmatrix=np.array([[1.0,0.0], [0.0,1.0]])
     >>> weights=[.5,.5]
-    >>> diversification_mult_single_period(corrmatrix, weights)
+    >>> diversification_mult_single_period(corrmatrix, weights) # square root of two
     1.414213562373095
     """
 

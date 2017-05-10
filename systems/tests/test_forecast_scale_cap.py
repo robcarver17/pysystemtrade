@@ -56,7 +56,7 @@ class Test(unittest.TestCase):
 
         system2 = System([self.rawdata, self.rules, self.forecast_scale_cap()], self.data, config)
         ## From default
-        self.assertAlmostEqual(system2.forecastScaleCap.get_forecast_scalar("EDOLLAR", "ewmac8").tail(1).values[0],  5.85109081)
+        self.assertAlmostEqual(system2.forecastScaleCap.get_forecast_scalar("EDOLLAR", "ewmac8").tail(1).values[0],  5.8, places=1)
 
         ## From config
         scale_config=dict(pool_instruments=False)
@@ -80,7 +80,7 @@ class Test(unittest.TestCase):
         config.use_forecast_scale_estimates = True
 
         system2 = System([self.rawdata, self.rules, self.forecast_scale_cap()], self.data, config)
-        self.assertAlmostEqual(system2.forecastScaleCap.get_forecast_scalar("EDOLLAR", "ewmac8").tail(1).values[0],  5.85109081)
+        self.assertAlmostEqual(system2.forecastScaleCap.get_forecast_scalar("EDOLLAR", "ewmac8").tail(1).values[0],  5.8, places=1)
 
         # binding cap
         config.use_forecast_scale_estimates = False

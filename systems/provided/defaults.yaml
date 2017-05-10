@@ -38,6 +38,7 @@ average_absolute_forecast: 10.0
 #
 forecast_div_multiplier: 1.0
 #
+use_forecast_div_mult_estimates: False
 #
 forecast_correlation_estimate:
    pool_instruments: True
@@ -57,7 +58,6 @@ forecast_div_mult_estimate:
    dm_max: 2.5
 #
 use_forecast_weight_estimates: False
-use_forecast_div_mult_estimates: False
 #
 forecast_cost_estimates:
    use_pooled_costs: False
