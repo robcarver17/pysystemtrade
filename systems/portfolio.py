@@ -389,7 +389,6 @@ class _PortfoliosCalculateIDM(_PortfoliosInputs):
         self.log.terse("Calculating instrument correlations")
 
         system = self.parent
-        instrument_codes = system.get_instrument_list()
 
         # Get some useful stuff from the config
         corr_params = copy(system.config.instrument_correlation_estimate)
@@ -404,12 +403,13 @@ class _PortfoliosCalculateIDM(_PortfoliosInputs):
             self.log.critical(error_msg)
 
         # Need to resample here, because the correlation function won't do
-        # it properly
+        # it properly (doesn't know it's dealing with returns data)
         frequency = corr_params['frequency']
-        pandl = pandl.cumsum().resample(frequency).diff()
+        pandl = pandl.cumsum().resample(frequency).last().diff()
 
-        return corr_func(pandl, log=self.log.setup(
-            call="correlation"), **corr_params)
+        # The subsequent resample inside the correlation function will have no effect
+
+        return corr_func(pandl, **corr_params)
 
 
 

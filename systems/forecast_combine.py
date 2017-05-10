@@ -481,8 +481,8 @@ class _ForecastCombineCalculateWeights(_ForecastCombinePreCalculate):
         self.log.terse(
             "Calculating raw forecast weights for %s, over %s" %
             (instrument_code, ", ".join(codes_to_use)))
-
-        rule_list = self.cheap_trading_rules(instrument_code)
+        # FIXME: doesn't appear to be used
+        cheap_rule_list = self.cheap_trading_rules(instrument_code)
 
         # FIXME: change the way log is passed to a 'parent' style
         weight_func = weighting_func(
@@ -860,8 +860,7 @@ class _ForecastCombineCalculateDivMult(_ForecastCombinePreCalculate):
         forecast_data = [forecast_ts.ffill()
                          for forecast_ts in forecast_data]
 
-        return corr_func(forecast_data, log=self.log.setup(
-            call="correlation"), **corr_params)
+        return corr_func(forecast_data, **corr_params)
 
 
 

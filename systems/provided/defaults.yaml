@@ -46,7 +46,7 @@ forecast_correlation_estimate:
    frequency: "W"
    date_method: "expanding"
    using_exponent: True
-   ew_lookback: 500
+   ew_lookback: 250
    min_periods: 20      
    cleaning: True
    rollyears: 20
@@ -119,7 +119,7 @@ instrument_correlation_estimate:
    frequency: "W"
    date_method: "expanding"
    using_exponent: True
-   ew_lookback: 500
+   ew_lookback: 250
    min_periods: 20      
    cleaning: True
    rollyears: 20

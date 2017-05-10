@@ -79,9 +79,11 @@ def diversification_multiplier_from_list(correlation_list_object, weight_df_raw,
 
         weight_slice = weight_df[:start_of_period]
         if weight_slice.shape[0] == 0:
+            # empty space
             div_mult_vector.append(1.0)
             continue
 
+        # take the current weights and work out the DM
         weights = list(weight_slice.iloc[-1, :].values)
         div_multiplier = diversification_mult_single_period(
             corrmatrix, weights, **kwargs)
@@ -91,6 +93,7 @@ def diversification_multiplier_from_list(correlation_list_object, weight_df_raw,
     div_mult_df = pd.Series(div_mult_vector, index=ref_periods)
     div_mult_df = div_mult_df.reindex(weight_df.index, method="ffill")
 
+    # take a moving average to smooth the jumps
     div_mult_df = div_mult_df.ewm(span=ewma_span).mean()
 
     return div_mult_df
