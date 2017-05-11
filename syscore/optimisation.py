@@ -402,7 +402,6 @@ class momentsEstimator(object):
     def correlation(self, data_for_estimate):
         params = self.corr_estimate_params
         corrmatrix = self.corr_estimate_func(data_for_estimate, **params)
-        # FIX ME - FLOOR AT ZERO NOT APPLIED HERE - SHOULD BE
         return corrmatrix
 
     def means(self, data_for_estimate):

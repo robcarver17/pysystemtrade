@@ -126,10 +126,131 @@ def clean_correlation(corrmat, corr_with_no_data, must_haves=None):
 
     return corrmat
 
-
+# FIXME: OLd fashioned way of doing correlation, kept so optimisation doesn't break
 def correlation_single_period(data_for_estimate,
                               using_exponent=True, min_periods=20, ew_lookback=250,
                               floor_at_zero=False):
+    """
+    We generate a correlation from a pd.DataFrame, which could have been stacked up
+    :param data_for_estimate: Data to get correlations from
+    :type data_for_estimate: pd.DataFrame
+    :param using_exponent: Should we use exponential weighting? If not every item is weighted equally
+    :type using_exponent: bool
+    :param ew_lookback: Lookback, in periods, for exp. weighting
+    :type ew_lookback: int
+    :param min_periods: Minimum periods before we get a correlation
+    :type min_periods: int
+    :returns: 2-dim square np.array
+    FIX ME floor_at_zero IS NO LONGER USED KEPT TO STOP STUFF BREAKING
+    """
+    # These may come from config as str
+    using_exponent = str2Bool(using_exponent)
+
+    if using_exponent:
+        # If we have stacked there will be duplicate dates
+        # So we massage the span so it's correct
+        # This assumes the index is at least daily and on same timestamp
+        # This is an artifact of how we prepare the data
+        # Usual use for IDM, FDM calculation when whole data set is used
+        corrmat = data_for_estimate.ewm(
+            span=ew_lookback,
+            min_periods=min_periods).corr(pairwise=True)
+
+        # only want the final one
+        corrmat = corrmat.values[-1]
+    else:
+        # Use normal correlation
+        # Usual use for bootstrapping when only have sub sample
+        corrmat = data_for_estimate.corr(min_periods=min_periods)
+        corrmat = corrmat.values
+
+    return corrmat
+
+class correlationSinglePeriod(object):
+
+    def __init__(self, data_as_df, length_of_data =1, ew_lookback=250, boring_offdiag=0.99,
+                                   cleaning=True, floor_at_zero=True,
+                                    **kwargs):
+        """
+        Create an object to calculate correlations
+
+        We set up one of these with a set of data and parameters, and then call repeatedly
+
+        :param data_as_df: The dataframe of correlations
+        :param boring_offdiag: The off diagonal element to put into the matrix if data is absent
+        :param cleaning: Should we include fake values in the matrix so we don't need a warm up period?
+        :param floor_at_zero: Should we remove negative correlations?
+        :param ew_lookback: Lookback to use if exponential calculation used
+        :param length_of_data: Original length of data passed in (to correct for stacking of dataframe)
+
+        :return: np.array of correlation matrix
+        """
+
+        self.cleaning = str2Bool(cleaning)
+        self.floor_at_zero = str2Bool(floor_at_zero)
+
+        ## correct the lookback if we're jamming stuff together
+        self.ew_lookback_corrected = length_of_data * ew_lookback
+
+        size = data_as_df.shape[1]
+        self.corr_with_no_data = boring_corr_matrix(size, offdiag=np.nan)
+        self.corr_for_cleaning = boring_corr_matrix(size, offdiag=boring_offdiag)
+
+        self.kwargs = kwargs
+        self.data_as_df = data_as_df
+
+
+    def calculate(self, fit_period):
+        """
+        Work out the correlation for a single period
+
+        :param fit_period: Specification of the period we're calculating the correlation for
+
+        :return: np.array of correlation matrix
+        """
+
+        cleaning = self.cleaning
+
+        corr_with_no_data = self.corr_with_no_data
+        corr_for_cleaning = self.corr_for_cleaning
+
+        data_as_df = self.data_as_df
+        kwargs = self.kwargs
+        ew_lookback_corrected = self.ew_lookback_corrected
+        floor_at_zero = self.floor_at_zero
+
+        if fit_period.no_data:
+            # no data to fit with
+            corrmat = corr_with_no_data
+        else:
+
+            data_for_estimate = data_as_df[
+                                fit_period.fit_start:fit_period.fit_end]
+
+            corrmat = correlation_calculator(data_for_estimate, ew_lookback=ew_lookback_corrected,
+                                             **kwargs)
+
+        if cleaning:
+            current_period_data = data_as_df[
+                                  fit_period.fit_start:fit_period.fit_end]
+
+            # must_haves are items with data in this period, so we need some kind of correlation
+            must_haves = must_have_item(current_period_data)
+
+            # means we can use earlier correlations with sensible values
+            corrmat = clean_correlation(
+                corrmat, corr_for_cleaning, must_haves)
+
+            # can't do this earlier as might have nans
+            if floor_at_zero:
+                corrmat[corrmat < 0] = 0.0
+
+        return corrmat
+
+
+def correlation_calculator(data_for_estimate,
+                              using_exponent=True, min_periods=20, ew_lookback=250):
+
     """
     We generate a correlation from a pd.DataFrame, which could have been stacked up
 
@@ -147,10 +268,9 @@ def correlation_single_period(data_for_estimate,
 
     :returns: 2-dim square np.array
 
-    FIX ME floor_at_zero IS NO LONGER USED KEPT TO STOP STUFF BREAKING
-
     """
     # These may come from config as str
+
     using_exponent = str2Bool(using_exponent)
 
     if using_exponent:
@@ -240,9 +360,8 @@ class CorrelationEstimator(CorrelationList):
     '''
 
     def __init__(self, data, frequency="W", date_method="expanding",
-                 rollyears=20,
-                 dict_group=dict(), boring_offdiag=0.99, cleaning=True, ew_lookback=250,
-                 floor_at_zero=True, **kwargs):
+                 rollyears=20, **kwargs):
+
         """
 
         We generate a correlation from either a pd.DataFrame, or a list of them if we're pooling
@@ -261,28 +380,10 @@ class CorrelationEstimator(CorrelationList):
         :param roll_years: If date_method is "rolling", number of years in window
         :type roll_years: int
 
-        :param dict_group: dictionary of groupings; used to replace missing values
-        :type dict_group: dict
-
-        :param boring_offdiag: Value used in creating 'boring' matrix, for when no data
-        :type boring_offdiag: float
-
-        :param ew_lookback: if using exponential weighting, the lookback (in units of frequency)
-        :type ew_lookback: int
-
-        :param floor_at_zero: remove negative correlations before proceeding
-        :type floor_at_zero: bool or str
-
-        :param **kwargs: passed to correlation_single_period
+        :param **kwargs: passed to correlationSinglePeriod
 
         :returns: CorrelationList
         """
-
-        cleaning = str2Bool(cleaning)
-
-        # grouping dictionary, convert to faster, algo friendly, form
-        # note: groups not used
-        group_dict = group_dict_from_natural(dict_group)
 
         if type(data) is list:
 
@@ -298,16 +399,15 @@ class CorrelationEstimator(CorrelationList):
             length_of_data = 1
             data_as_df = data.resample(frequency).last()
 
-        ew_lookback_corrected = length_of_data * ew_lookback
         column_names = list(data_as_df.columns)
 
         # Generate time periods
         fit_dates = generate_fitting_dates(
             data_as_df, date_method=date_method, rollyears=rollyears)
 
-        size = data_as_df.shape[1]
-        corr_with_no_data = boring_corr_matrix(size, offdiag=np.nan)
-        corr_for_cleaning = boring_corr_matrix(size, offdiag=boring_offdiag)
+        # create a single period correlation estimator
+        correlation_estimator_for_one_period = correlationSinglePeriod(data_as_df, length_of_data =1,
+                                    **kwargs)
 
         # create a list of correlation matrices
         corr_list = []
@@ -315,33 +415,9 @@ class CorrelationEstimator(CorrelationList):
         progress=progressBar(len(fit_dates), "Estimating correlations")
         # Now for each time period, estimate correlation
         for fit_period in fit_dates:
+
             progress.iterate()
-            if fit_period.no_data:
-                # no data to fit with
-                corrmat = corr_with_no_data
-            else:
-
-                data_for_estimate = data_as_df[
-                    fit_period.fit_start:fit_period.fit_end]
-
-                corrmat = correlation_single_period(data_for_estimate, ew_lookback=ew_lookback_corrected,
-                                                    **kwargs)
-
-            if cleaning:
-                current_period_data = data_as_df[
-                    fit_period.fit_start:fit_period.fit_end]
-
-                # must_haves are items with data in this period, so we need some kind of correlation
-                must_haves = must_have_item(current_period_data)
-
-                # means we can use earlier correlations with sensible values
-                corrmat = clean_correlation(
-                    corrmat, corr_for_cleaning, must_haves)
-
-                # can't do this earlier as might have nans
-                if floor_at_zero:
-                    corrmat[corrmat < 0] = 0.0
-
+            corrmat = correlation_estimator_for_one_period.calculate(fit_period)
             corr_list.append(corrmat)
 
         setattr(self, "corr_list", corr_list)
