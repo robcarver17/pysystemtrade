@@ -1,4 +1,3 @@
-
 from systems.account import Account
 from systems.portfolio import Portfolios
 from systems.futures.rawdata import FuturesRawData
@@ -93,8 +92,8 @@ def get_test_object_futures_with_portfolios():
     combobject = ForecastCombine()
     posobject = PositionSizing()
     portfolio = Portfolios()
-    return (portfolio, posobject, combobject,
-            capobject, rules, rawdata, data, config)
+    return (portfolio, posobject, combobject, capobject, rules, rawdata, data,
+            config)
 
 
 def get_test_object_futures_with_rules_and_capping_estimate():
@@ -122,5 +121,5 @@ def get_test_object_futures_with_pos_sizing_estimates():
     combobject = ForecastCombine()
     posobject = PositionSizing()
     account = Account()
-    return (account, posobject, combobject,
-            capobject, rules, rawdata, data, config)
+    return (account, posobject, combobject, capobject, rules, rawdata, data,
+            config)

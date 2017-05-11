@@ -23,7 +23,6 @@ RESERVED_NAMES = ["log", "_elements"]
 
 
 class Config(object):
-
     def __init__(self, config_object=dict()):
         """
         Config objects control the behaviour of systems
@@ -61,7 +60,6 @@ class Config(object):
         else:
             self._create_config_from_item(config_object)
 
-
     def _system_init(self, base_system):
         """
         This is run when added to a base system
@@ -75,7 +73,6 @@ class Config(object):
 
         ## fill with defaults
         self.fill_with_defaults()
-
 
     def _create_config_from_item(self, config_item):
         if isinstance(config_item, dict):
@@ -107,11 +104,13 @@ class Config(object):
         """
         base_config = config_object.get('base_config')
         if base_config is not None:
-           self._create_config_from_item(base_config)
+            self._create_config_from_item(base_config)
 
         attr_names = list(config_object.keys())
-        [setattr(self, keyname, config_object[keyname])
-         for keyname in config_object]
+        [
+            setattr(self, keyname, config_object[keyname])
+            for keyname in config_object
+        ]
         existing_elements = getattr(self, "_elements", [])
         new_elements = list(set(existing_elements + attr_names))
 
@@ -180,8 +179,10 @@ class Config(object):
         default_elements = list(get_system_defaults().keys())
 
         new_elements = list(set(existing_elements + default_elements))
-        [self.element_fill_with_defaults(element_name)
-         for element_name in new_elements]
+        [
+            self.element_fill_with_defaults(element_name)
+            for element_name in new_elements
+        ]
 
         setattr(self, "_elements", new_elements)
 
@@ -261,8 +262,8 @@ class Config(object):
 
             for dict_key in required:
                 if dict_key not in nested_config_dict:
-                    nested_config_dict[
-                        dict_key] = nested_default_dict[dict_key]
+                    nested_config_dict[dict_key] = nested_default_dict[
+                        dict_key]
 
         return nested_config_dict
 

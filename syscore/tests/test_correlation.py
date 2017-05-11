@@ -13,12 +13,12 @@ from systems.forecast_combine import ForecastCombineEstimated
 
 
 class Test(unittest.TestCase):
-
     def setUp(self):
         (accounts, fcs, rules, rawdata, data,
          config) = get_test_object_futures_with_rules_and_capping_estimate()
-        system = System([accounts, rawdata, rules, fcs,
-                         ForecastCombineEstimated()], data, config)
+        system = System(
+            [accounts, rawdata, rules, fcs,
+             ForecastCombineEstimated()], data, config)
         setattr(self, "system", system)
 
     def tearDown(self):
@@ -124,6 +124,7 @@ class Test(unittest.TestCase):
             instrument_code)
         self.assertTrue(np.isnan(ans.corr_list[0][0][0]))
         self.assertTrue(np.isnan(ans.corr_list[1][0][0]))
+
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']

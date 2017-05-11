@@ -1,15 +1,10 @@
-instrument_list = ['KR3', 'V2X', 'EDOLLAR', 'MXP', 'CORN', 'EUROSTX', 'GAS_US', 'PLAT',
-                   'US2', 'LEANHOG', 'GBP', 'VIX', 'CAC', 'COPPER', 'CRUDE_W',
-                   'BOBL', 'WHEAT', 'JPY', 'NASDAQ', 'GOLD',
-                   'US5', 'SOYBEAN', 'AUD', 'SP500', 'PALLAD',
-                   'KR10', 'LIVECOW', 'NZD', 'KOSPI',
-                   'US10', 'SMI', 'EUR',
-                   'OAT', 'AEX',
-                   'BUND',
-
-                   'BTP',
-
-                   'US20']
+instrument_list = [
+    'KR3', 'V2X', 'EDOLLAR', 'MXP', 'CORN', 'EUROSTX', 'GAS_US', 'PLAT', 'US2',
+    'LEANHOG', 'GBP', 'VIX', 'CAC', 'COPPER', 'CRUDE_W', 'BOBL', 'WHEAT',
+    'JPY', 'NASDAQ', 'GOLD', 'US5', 'SOYBEAN', 'AUD', 'SP500', 'PALLAD',
+    'KR10', 'LIVECOW', 'NZD', 'KOSPI', 'US10', 'SMI', 'EUR', 'OAT', 'AEX',
+    'BUND', 'BTP', 'US20'
+]
 
 instrument_sets = []
 for idx in range(9)[1:]:
@@ -35,8 +30,10 @@ roll_acc = []
 
 for (idx, instr_set) in enumerate(instrument_sets):
     config.instruments = instr_set
-    system = System([Account(), PortfoliosEstimated(), PositionSizing(), FuturesRawData(), ForecastCombineFixed(),
-                     ForecastScaleCapFixed(), Rules()], csvFuturesData(), config)
+    system = System([
+        Account(), PortfoliosEstimated(), PositionSizing(), FuturesRawData(),
+        ForecastCombineFixed(), ForecastScaleCapFixed(), Rules()
+    ], csvFuturesData(), config)
 
     system.config.instrument_div_mult_estimate['dm_max'] = 100.0
     system.set_logging_level("on")
@@ -53,8 +50,9 @@ import pandas as pd
 roll_acc = []
 mkt_counters = []
 for acc in acc_curve:
-    y = pd.rolling_std(acc.weekly.as_df(), 20, min_periods=4,
-                       center=True) * acc.weekly._vol_scalar
+    y = pd.rolling_std(
+        acc.weekly.as_df(), 20, min_periods=4,
+        center=True) * acc.weekly._vol_scalar
 
     roll_acc.append(y)
 

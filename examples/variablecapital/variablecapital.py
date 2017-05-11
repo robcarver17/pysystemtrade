@@ -20,7 +20,6 @@ show()
 pandl_fixed = system.accounts.portfolio()
 
 print(system.accounts.portfolio().capital)
-
 """
 system = futures_system(log_level="on")
 system.config.instrument_weights=dict(EDOLLAR=1.0)
@@ -47,7 +46,6 @@ show()
 system = futures_system(log_level="on")
 system.config.instrument_weights = dict(EDOLLAR=1.0)
 system.config.capital_multiplier['func'] = 'syscore.capital.half_compounding'
-
 """
 system.accounts.capital_multiplier().plot()
 show()

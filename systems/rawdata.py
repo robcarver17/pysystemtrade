@@ -5,7 +5,6 @@ from systems.system_cache import input, diagnostic, output
 
 
 class RawData(SystemStage):
-
     """
         A SystemStage that does some fairly common calculations before we do
         forecasting and which gives access to some widely used methods.
@@ -19,7 +18,6 @@ class RawData(SystemStage):
 
     Name: rawdata
     """
-
 
     def _name(self):
         return "rawdata"
@@ -37,8 +35,7 @@ class RawData(SystemStage):
         KEY OUTPUT
         """
         self.log.msg(
-            "Calculating daily prices for %s" %
-            instrument_code,
+            "Calculating daily prices for %s" % instrument_code,
             instrument_code=instrument_code)
         dailyprice = self.parent.data.daily_prices(instrument_code)
 
@@ -142,8 +139,7 @@ class RawData(SystemStage):
 
         """
         self.log.msg(
-            "Calculating daily volatility for %s" %
-            instrument_code,
+            "Calculating daily volatility for %s" % instrument_code,
             instrument_code=instrument_code)
 
         system = self.parent
@@ -183,8 +179,7 @@ class RawData(SystemStage):
         """
         denom_price = self.daily_denominator_price(instrument_code)
         return_vol = self.daily_returns_volatility(instrument_code)
-        (denom_price, return_vol) = denom_price.align(
-            return_vol, join="right")
+        (denom_price, return_vol) = denom_price.align(return_vol, join="right")
         perc_vol = 100.0 * \
             (return_vol / denom_price.shift(1))
 
@@ -214,16 +209,13 @@ class RawData(SystemStage):
         2015-12-11     1.985413
         """
         self.log.msg(
-            "Calculating normalised prices for %s" %
-            instrument_code,
+            "Calculating normalised prices for %s" % instrument_code,
             instrument_code=instrument_code)
 
-        returnvol = self.daily_returns_volatility(
-            instrument_code).shift(1)
+        returnvol = self.daily_returns_volatility(instrument_code).shift(1)
         dailyreturns = self.daily_returns(instrument_code)
         norm_return = dailyreturns / returnvol
         return norm_return
-
 
 
 if __name__ == '__main__':

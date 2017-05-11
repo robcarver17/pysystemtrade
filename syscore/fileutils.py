@@ -61,10 +61,11 @@ def get_pathname_for_package_from_list(path_as_list):
         return d
 
     last_item_in_list = path_as_list.pop()
-    pathname = os.path.join(get_pathname_for_package_from_list(
-        path_as_list), last_item_in_list)
+    pathname = os.path.join(
+        get_pathname_for_package_from_list(path_as_list), last_item_in_list)
 
     return pathname
+
 
 if __name__ == '__main__':
     import doctest

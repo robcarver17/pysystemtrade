@@ -24,12 +24,19 @@ FLAG_BAD_RETURN = -9999999.9
 
 # FIXME: some pretty horrible code here needs a rethink
 
-class GenericOptimiser(object):
 
-    def __init__(self, log=logtoscreen("optimiser"), frequency="W", date_method="expanding",
-                 rollyears=20, method="bootstrap", cleaning=True,
-                 cost_multiplier=1.0, apply_cost_weight=True,
-                 ann_target_SR=TARGET_ANN_SR, equalise_gross=False,
+class GenericOptimiser(object):
+    def __init__(self,
+                 log=logtoscreen("optimiser"),
+                 frequency="W",
+                 date_method="expanding",
+                 rollyears=20,
+                 method="bootstrap",
+                 cleaning=True,
+                 cost_multiplier=1.0,
+                 apply_cost_weight=True,
+                 ann_target_SR=TARGET_ANN_SR,
+                 equalise_gross=False,
                  **passed_params):
         """
 
@@ -62,23 +69,15 @@ class GenericOptimiser(object):
         """
 
         # Because interaction of parameters is complex, display warnings
-        display_warnings(
-            log,
-            cost_multiplier,
-            equalise_gross,
-            apply_cost_weight,
-            method,
-            **passed_params)
+        display_warnings(log, cost_multiplier, equalise_gross,
+                         apply_cost_weight, method, **passed_params)
 
         cleaning = str2Bool(cleaning)
         optimise_params = copy(passed_params)
 
         # annualisation
         ann_dict = dict(
-            D=BUSINESS_DAYS_IN_YEAR,
-            W=WEEKS_IN_YEAR,
-            M=MONTHS_IN_YEAR,
-            Y=1.0)
+            D=BUSINESS_DAYS_IN_YEAR, W=WEEKS_IN_YEAR, M=MONTHS_IN_YEAR, Y=1.0)
         annualisation = ann_dict.get(frequency, 1.0)
 
         period_target_SR = ann_target_SR / (annualisation**.5)
@@ -86,13 +85,13 @@ class GenericOptimiser(object):
         # A moments estimator works out the mean, vol, correlation
         # Also stores annualisation factor and target SR (used for shrinkage
         # and equalising)
-        moments_estimator = momentsEstimator(
-            optimise_params, annualisation, ann_target_SR)
+        moments_estimator = momentsEstimator(optimise_params, annualisation,
+                                             ann_target_SR)
 
         # The optimiser instance will do the optimation once we have the
         # appropriate data
-        optimiser = optimiserWithParams(
-            method, optimise_params, moments_estimator)
+        optimiser = optimiserWithParams(method, optimise_params,
+                                        moments_estimator)
 
         setattr(self, "optimiser", optimiser)
         setattr(self, "log", log)
@@ -133,11 +132,15 @@ class GenericOptimiser(object):
         period_target_SR = self.period_target_SR
 
         # resample, indexing before and differencing after (returns, remember)
-        data_gross = [data_item.cumsum().resample(frequency).last().diff() for
-                      data_item in data_gross]
+        data_gross = [
+            data_item.cumsum().resample(frequency).last().diff()
+            for data_item in data_gross
+        ]
 
-        data_costs = [data_item.cumsum().resample(frequency).last().diff() for
-                      data_item in data_costs]
+        data_costs = [
+            data_item.cumsum().resample(frequency).last().diff()
+            for data_item in data_costs
+        ]
 
         # stack de-pool pooled data
         data_gross = df_from_list(data_gross)
@@ -148,18 +151,21 @@ class GenericOptimiser(object):
         # net gross and costs
         if equalise_gross:
             log.terse(
-                "Setting all gross returns to be identical - optimisation driven only by costs")
+                "Setting all gross returns to be identical - optimisation driven only by costs"
+            )
         if cost_multiplier != 1.0:
-            log.terse(
-                "Using cost multiplier on optimisation of %.2f" %
-                cost_multiplier)
+            log.terse("Using cost multiplier on optimisation of %.2f" %
+                      cost_multiplier)
 
-        data = work_out_net(data_gross, data_costs, annualisation=annualisation,
-                            equalise_gross=equalise_gross, cost_multiplier=cost_multiplier,
-                            period_target_SR=period_target_SR)
+        data = work_out_net(
+            data_gross,
+            data_costs,
+            annualisation=annualisation,
+            equalise_gross=equalise_gross,
+            cost_multiplier=cost_multiplier,
+            period_target_SR=period_target_SR)
 
         setattr(self, "data", data)
-
 
     def calculate_ann_SR_costs(self):
         """
@@ -168,7 +174,7 @@ class GenericOptimiser(object):
         :return: float
         """
 
-        return self.unmultiplied_costs.mean()*self.annualisation
+        return self.unmultiplied_costs.mean() * self.annualisation
 
     def optimise(self):
         """
@@ -178,8 +184,6 @@ class GenericOptimiser(object):
 
 
         """
-
-
 
         log = self.log
         date_method = self.date_method
@@ -203,21 +207,23 @@ class GenericOptimiser(object):
         # create a class object for each period
         opt_results = []
 
-        progress=progressBar(len(fit_dates), "Optimising")
+        progress = progressBar(len(fit_dates), "Optimising")
 
         for fit_period in fit_dates:
             # Do the optimisation for one period, using a particular optimiser
             # instance
-            results_this_period = optSinglePeriod(
-                self, data, fit_period, optimiser, cleaning)
+            results_this_period = optSinglePeriod(self, data, fit_period,
+                                                  optimiser, cleaning)
 
             opt_results.append(results_this_period)
 
             weights = results_this_period.weights
 
             # We adjust dates slightly to ensure no overlaps
-            dindex = [fit_period.period_start + datetime.timedelta(days=1),
-                      fit_period.period_end - datetime.timedelta(days=1)]
+            dindex = [
+                fit_period.period_start + datetime.timedelta(days=1),
+                fit_period.period_end - datetime.timedelta(days=1)
+            ]
 
             # create a double row to delineate start and end of test period
             weight_row = pd.DataFrame(
@@ -242,20 +248,20 @@ class GenericOptimiser(object):
         setattr(self, "raw_weights", raw_weight_df)
 
 
-def display_warnings(log, cost_multiplier, equalise_gross,
-                     apply_cost_weight, method, equalise_SR, **ignored_passed_params):
+def display_warnings(log, cost_multiplier, equalise_gross, apply_cost_weight,
+                     method, equalise_SR, **ignored_passed_params):
     """
     Warn people when parameters are in conflict
     """
-    if method == "equal_weights" and (
-            equalise_SR or cost_multiplier != 1.0 or equalise_gross or apply_cost_weight):
+    if method == "equal_weights" and (equalise_SR or cost_multiplier != 1.0 or
+                                      equalise_gross or apply_cost_weight):
         log.warn("Using equal weights, all other config will be ignored")
         return None
 
     if equalise_SR and cost_multiplier != 1.0:
         log.warn(
-            "Cost multiplier of %.1f will be ignored as equalising SR in optimisation (equalise_SR=True)" %
-            cost_multiplier)
+            "Cost multiplier of %.1f will be ignored as equalising SR in optimisation (equalise_SR=True)"
+            % cost_multiplier)
 
     if equalise_gross and cost_multiplier == 0.0:
         log.critical(
@@ -263,33 +269,40 @@ def display_warnings(log, cost_multiplier, equalise_gross,
 
     if equalise_SR and equalise_gross:
         log.warn(
-            "equalise_gross = True will be ignored as equalising SR in optimisation (equalise_SR=True)")
+            "equalise_gross = True will be ignored as equalising SR in optimisation (equalise_SR=True)"
+        )
 
     if cost_multiplier == 0.0 and not apply_cost_weight:
         log.warn(
-            "Zero cost multiplier and not applying cost weightings - so costs won't be used at all")
+            "Zero cost multiplier and not applying cost weightings - so costs won't be used at all"
+        )
 
     if cost_multiplier < 0.0:
         log.critical(
-            "Can't have a negative cost multiplier of %.2f! At least zero please." %
-            cost_multiplier)
+            "Can't have a negative cost multiplier of %.2f! At least zero please."
+            % cost_multiplier)
 
     if cost_multiplier < 1.0 and not apply_cost_weight:
-        log.warn("Cost multiplier of %2.f is less than one and not applying cost weightings - effect of costs may be underestimated")
+        log.warn(
+            "Cost multiplier of %2.f is less than one and not applying cost weightings - effect of costs may be underestimated"
+        )
 
     if cost_multiplier > 5.0:
         log.warn("Cost multiplier of %.1f is blooming high" % cost_multiplier)
 
     if cost_multiplier > 0.0 and apply_cost_weight:
         log.warn(
-            "Applying cost multiplier of %.2f AND applying a cost weight - effect of costs will be overestimated - did you mean to do this?" %
-            cost_multiplier)
+            "Applying cost multiplier of %.2f AND applying a cost weight - effect of costs will be overestimated - did you mean to do this?"
+            % cost_multiplier)
 
     return None
 
 
-def work_out_net(data_gross, data_costs, annualisation=BUSINESS_DAYS_IN_YEAR,
-                 equalise_gross=False, cost_multiplier=1.0,
+def work_out_net(data_gross,
+                 data_costs,
+                 annualisation=BUSINESS_DAYS_IN_YEAR,
+                 equalise_gross=False,
+                 cost_multiplier=1.0,
                  period_target_SR=TARGET_ANN_SR / (BUSINESS_DAYS_IN_YEAR**.5)):
     """
     Work out the net from a dataframe of gross and costs
@@ -311,9 +324,7 @@ def work_out_net(data_gross, data_costs, annualisation=BUSINESS_DAYS_IN_YEAR,
         shifts = target_mean - actual_period_mean
         shifts = np.array([list(shifts)] * len(data_gross.index))
         shifts = pd.DataFrame(
-            shifts,
-            index=data_gross.index,
-            columns=data_gross.columns)
+            shifts, index=data_gross.index, columns=data_gross.columns)
 
         use_gross = data_gross + shifts
 
@@ -327,9 +338,15 @@ def work_out_net(data_gross, data_costs, annualisation=BUSINESS_DAYS_IN_YEAR,
 
     return net
 
+
 # factors .First element of tuple is SR difference, second is adjustment
-adj_factors = ([-.5, -.4, -.3, -25, -.2, -.15, -.1, -0.05, 0.0, .05, .1, .15, .2, .25, .3, .4, .5],
-               [.32, .42, .55, .6, .66, .77, .85, .94, 1.0, 1.11, 1.19, 1.3, 1.37, 1.48, 1.56, 1.72, 1.83])
+adj_factors = ([
+    -.5, -.4, -.3, -25, -.2, -.15, -.1, -0.05, 0.0, .05, .1, .15, .2, .25, .3,
+    .4, .5
+], [
+    .32, .42, .55, .6, .66, .77, .85, .94, 1.0, 1.11, 1.19, 1.3, 1.37, 1.48,
+    1.56, 1.72, 1.83
+])
 
 
 def apply_cost_weighting(raw_weight_df, ann_SR_costs):
@@ -346,26 +363,24 @@ def apply_cost_weighting(raw_weight_df, ann_SR_costs):
     ann_returns = [-cost for cost in ann_SR_costs]
 
     avg_return = np.mean(ann_returns)
-    relative_SR_returns = [asset_return - avg_return for asset_return in ann_returns]
+    relative_SR_returns = [
+        asset_return - avg_return for asset_return in ann_returns
+    ]
 
     # Find adjustment factors
     weight_adj = list(
-        np.interp(
-            relative_SR_returns,
-            adj_factors[0],
-            adj_factors[1]))
+        np.interp(relative_SR_returns, adj_factors[0], adj_factors[1]))
     weight_adj = np.array([list(weight_adj)] * len(raw_weight_df.index))
     weight_adj = pd.DataFrame(
-        weight_adj,
-        index=raw_weight_df.index,
-        columns=raw_weight_df.columns)
+        weight_adj, index=raw_weight_df.index, columns=raw_weight_df.columns)
 
     return raw_weight_df * weight_adj
 
 
 class momentsEstimator(object):
-
-    def __init__(self, optimise_params, annualisation=BUSINESS_DAYS_IN_YEAR,
+    def __init__(self,
+                 optimise_params,
+                 annualisation=BUSINESS_DAYS_IN_YEAR,
                  ann_target_SR=.5):
         """
         Create an object which estimates the moments for a single period of data, according to the parameters
@@ -421,15 +436,13 @@ class momentsEstimator(object):
         return stdev_list
 
     def moments(self, data_for_estimate):
-        ans = (
-            self.means(data_for_estimate),
-            self.correlation(data_for_estimate),
-            self.vol(data_for_estimate))
+        ans = (self.means(data_for_estimate),
+               self.correlation(data_for_estimate),
+               self.vol(data_for_estimate))
         return ans
 
 
 class optimiserWithParams(object):
-
     def __init__(self, method, optimise_params, moments_estimator):
         """
         Create an object which does an optimisation for a single period, according to the parameters
@@ -442,17 +455,18 @@ class optimiserWithParams(object):
 
 
         """
-        fit_method_dict = dict(one_period=markosolver, bootstrap=bootstrap_portfolio,
-                               shrinkage=opt_shrinkage, equal_weights=equal_weights)
+        fit_method_dict = dict(
+            one_period=markosolver,
+            bootstrap=bootstrap_portfolio,
+            shrinkage=opt_shrinkage,
+            equal_weights=equal_weights)
 
         try:
             opt_func = fit_method_dict[method]
 
         except KeyError:
-            raise Exception(
-                "Fitting method %s unknown; try one of: %s " %
-                (method, ", ".join(
-                    fit_method_dict.keys())))
+            raise Exception("Fitting method %s unknown; try one of: %s " %
+                            (method, ", ".join(fit_method_dict.keys())))
 
         setattr(self, "opt_func", resolve_function(opt_func))
 
@@ -463,20 +477,19 @@ class optimiserWithParams(object):
     def call(self, optimise_data, cleaning, must_haves):
 
         params = self.params
-        return self.opt_func(
-            optimise_data, self.moments_estimator, cleaning, must_haves, **params)
+        return self.opt_func(optimise_data, self.moments_estimator, cleaning,
+                             must_haves, **params)
 
 
 class optSinglePeriod(object):
-
     def __init__(self, parent, data, fit_period, optimiser, cleaning):
 
         if cleaning:
             # Generate 'must have' from the period we need
             # because if we're bootstrapping could be completely different
             # periods
-            current_period_data = data[
-                fit_period.period_start:fit_period.period_end]
+            current_period_data = data[fit_period.period_start:
+                                       fit_period.period_end]
             must_haves = must_have_item(current_period_data)
 
         else:
@@ -498,16 +511,18 @@ class optSinglePeriod(object):
             # we have data
             subset_fitting_data = data[fit_period.fit_start:fit_period.fit_end]
 
-            (weights, diag) = optimiser.call(
-                subset_fitting_data, cleaning, must_haves)
+            (weights, diag) = optimiser.call(subset_fitting_data, cleaning,
+                                             must_haves)
 
         ##
         setattr(self, "diag", diag)
         setattr(self, "weights", weights)
 
 
-def opt_shrinkage(period_subset_data, moments_estimator,
-                  cleaning, must_haves,
+def opt_shrinkage(period_subset_data,
+                  moments_estimator,
+                  cleaning,
+                  must_haves,
                   shrinkage_SR=.9,
                   shrinkage_corr=.5,
                   equalise_vols=False,
@@ -562,8 +577,12 @@ def opt_shrinkage(period_subset_data, moments_estimator,
     else:
         weights = unclean_weights
 
-    diag = dict(raw=rawmoments, sigma=sigma, mean_list=mean_list,
-                unclean=unclean_weights, weights=weights)
+    diag = dict(
+        raw=rawmoments,
+        sigma=sigma,
+        mean_list=mean_list,
+        unclean=unclean_weights,
+        weights=weights)
 
     return (weights, diag)
 
@@ -602,33 +621,31 @@ def shrink_SR(mean_list, stdev_list, shrinkage_SR, target_SR=.5):
     [nan, nan]
     """
     SR_estimates = [
-        asset_mean /
-        asset_stdev for (
-            asset_mean,
-            asset_stdev) in zip(
-            mean_list,
-            stdev_list)]
+        asset_mean / asset_stdev
+        for (asset_mean, asset_stdev) in zip(mean_list, stdev_list)
+    ]
 
     if np.all(np.isnan(SR_estimates)):
         return [np.nan] * len(mean_list)
 
-    post_SR_list = [(shrinkage_SR * target_SR) + (1 - shrinkage_SR) * estimatedSR
+    post_SR_list = [(shrinkage_SR * target_SR) +
+                    (1 - shrinkage_SR) * estimatedSR
                     for estimatedSR in SR_estimates]
 
     post_means = [
-        asset_SR *
-        asset_stdev for (
-            asset_SR,
-            asset_stdev) in zip(
-            post_SR_list,
-            stdev_list)]
+        asset_SR * asset_stdev
+        for (asset_SR, asset_stdev) in zip(post_SR_list, stdev_list)
+    ]
 
     return post_means
 
 
-def markosolver(period_subset_data, moments_estimator,
-                cleaning, must_haves,
-                equalise_SR=False, equalise_vols=True,
+def markosolver(period_subset_data,
+                moments_estimator,
+                cleaning,
+                must_haves,
+                equalise_SR=False,
+                equalise_vols=True,
                 **ignored_args):
     """
     Returns the optimal portfolio for the returns data
@@ -684,8 +701,12 @@ def markosolver(period_subset_data, moments_estimator,
     else:
         weights = unclean_weights
 
-    diag = dict(raw=rawmoments, sigma=sigma, mean_list=mean_list,
-                unclean=unclean_weights, weights=weights)
+    diag = dict(
+        raw=rawmoments,
+        sigma=sigma,
+        mean_list=mean_list,
+        unclean=unclean_weights,
+        weights=weights)
 
     return (weights, diag)
 
@@ -731,10 +752,8 @@ def clean_weights(weights, must_haves=None, fraction=0.5):
                        for (i, x) in enumerate(weights)]
     keep_empty = [(np.isnan(x) or x == 0.0) and not must_haves[i]
                   for (i, x) in enumerate(weights)]
-    no_replacement_needed = [
-        (not keep_empty[i]) and (
-            not needs_replacing[i]) for (
-            i, x) in enumerate(weights)]
+    no_replacement_needed = [(not keep_empty[i]) and (not needs_replacing[i])
+                             for (i, x) in enumerate(weights)]
 
     if not any(needs_replacing):
         return weights
@@ -758,9 +777,11 @@ def clean_weights(weights, must_haves=None, fraction=0.5):
         else:
             return value * adjustment_on_rest
 
-    weights = [_good_weight(value, idx, needs_replacing, keep_empty,
-                            each_missing_weight, adjustment_on_rest)
-               for (idx, value) in enumerate(weights)]
+    weights = [
+        _good_weight(value, idx, needs_replacing, keep_empty,
+                     each_missing_weight, adjustment_on_rest)
+        for (idx, value) in enumerate(weights)
+    ]
 
     # This process will screw up weights - let's fix them
     xsum = sum(weights)
@@ -785,10 +806,13 @@ def vol_equaliser(mean_list, stdev_list):
 
     norm_factor = [asset_stdev / avg_stdev for asset_stdev in stdev_list]
 
-    norm_means = [mean_list[i] / norm_factor[i]
-                  for (i, notUsed) in enumerate(mean_list)]
-    norm_stdev = [stdev_list[i] / norm_factor[i]
-                  for (i, notUsed) in enumerate(stdev_list)]
+    norm_means = [
+        mean_list[i] / norm_factor[i] for (i, notUsed) in enumerate(mean_list)
+    ]
+    norm_stdev = [
+        stdev_list[i] / norm_factor[i]
+        for (i, notUsed) in enumerate(stdev_list)
+    ]
 
     return (norm_means, norm_stdev)
 
@@ -854,13 +878,9 @@ def un_fix_weights(mean_list, weights):
             return xweight
 
     fixed_weights = [
-        _unfixit(
-            xmean,
-            xweight) for (
-            xmean,
-            xweight) in zip(
-                mean_list,
-            weights)]
+        _unfixit(xmean, xweight)
+        for (xmean, xweight) in zip(mean_list, weights)
+    ]
 
     return fixed_weights
 
@@ -901,9 +921,7 @@ def optimise(sigma, mean_list):
     cdict = [{'type': 'eq', 'fun': addem}]
     ans = minimize(
         neg_SR,
-        start_weights,
-        (sigma,
-         mus),
+        start_weights, (sigma, mus),
         method='SLSQP',
         bounds=bounds,
         constraints=cdict,
@@ -925,8 +943,8 @@ def sigma_from_corr_and_std(stdev_list, corrmatrix):
     return sigma
 
 
-def equal_weights(period_subset_data, moments_estimator,
-                  cleaning, must_haves, **other_opt_args_ignored):
+def equal_weights(period_subset_data, moments_estimator, cleaning, must_haves,
+                  **other_opt_args_ignored):
     """
     Given dataframe of returns; returns equal weights
 
@@ -952,15 +970,18 @@ def equal_weights(period_subset_data, moments_estimator,
     asset_count = period_subset_data.shape[1]
     weights = [1.0 / asset_count for i in range(asset_count)]
 
-    diag = dict(raw=None, sigma=None, mean_list=None,
-                unclean=weights, weights=weights)
+    diag = dict(
+        raw=None, sigma=None, mean_list=None, unclean=weights, weights=weights)
 
     return (weights, diag)
 
 
-def bootstrap_portfolio(subset_data, moments_estimator,
-                        cleaning, must_haves,
-                        monte_runs=100, bootstrap_length=50,
+def bootstrap_portfolio(subset_data,
+                        moments_estimator,
+                        cleaning,
+                        must_haves,
+                        monte_runs=100,
+                        bootstrap_length=50,
                         **other_opt_args):
     """
     Given dataframe of returns; returns_to_bs, performs a bootstrap optimisation
@@ -994,11 +1015,11 @@ def bootstrap_portfolio(subset_data, moments_estimator,
 
     """
 
-    all_results = [bs_one_time(subset_data, moments_estimator,
-                               cleaning, must_haves,
-                               bootstrap_length,
-                               **other_opt_args)
-                   for unused_index in range(monte_runs)]
+    all_results = [
+        bs_one_time(subset_data, moments_estimator, cleaning, must_haves,
+                    bootstrap_length, **other_opt_args)
+        for unused_index in range(monte_runs)
+    ]
 
     # We can take an average here; only because our weights always add up to 1. If that isn't true
     # then you will need to some kind of renormalisation
@@ -1013,11 +1034,8 @@ def bootstrap_portfolio(subset_data, moments_estimator,
     return (theweights_mean, diag)
 
 
-def bs_one_time(subset_data, moments_estimator,
-                cleaning, must_haves,
-                bootstrap_length,
-                **other_opt_args
-                ):
+def bs_one_time(subset_data, moments_estimator, cleaning, must_haves,
+                bootstrap_length, **other_opt_args):
     """
     Given dataframe of returns; does a single run of the bootstrap optimisation
 
@@ -1048,13 +1066,15 @@ def bs_one_time(subset_data, moments_estimator,
     """
 
     # choose the data
-    bs_idx = [int(random.uniform(0, 1) * len(subset_data))
-              for notUsed in range(bootstrap_length)]
+    bs_idx = [
+        int(random.uniform(0, 1) * len(subset_data))
+        for notUsed in range(bootstrap_length)
+    ]
 
     returns = subset_data.iloc[bs_idx, :]
 
-    (weights, diag) = markosolver(returns, moments_estimator, cleaning, must_haves,
-                                  **other_opt_args)
+    (weights, diag) = markosolver(returns, moments_estimator, cleaning,
+                                  must_haves, **other_opt_args)
 
     return (weights, diag)
 

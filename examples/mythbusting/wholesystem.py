@@ -10,14 +10,15 @@ from systems.portfolio import Portfolios
 config = Config("systems.provided.futures_chapter15.futuresconfig.yaml")
 
 # so we use all the markets we have, equal weighted
-del(config.instrument_weights)
+del (config.instrument_weights)
 config.notional_trading_capital = 10000000
 config.use_instrument_weight_estimates = True
 config.use_forecast_weight_estimates = True
 
-system = System([Account(), Portfolios(), PositionSizing(), FuturesRawData(), ForecastCombine(),
-                 ForecastScaleCap(), Rules()], csvFuturesData(),
-                config)
+system = System([
+    Account(), Portfolios(), PositionSizing(), FuturesRawData(),
+    ForecastCombine(), ForecastScaleCap(), Rules()
+], csvFuturesData(), config)
 system.set_logging_level("on")
 
 # avgs
@@ -28,8 +29,9 @@ ans = dict()
 for instrument_code in instrument_list:
     ans[instrument_code] = dict()
     for rule in trading_rules:
-        ans[instrument_code][rule] = system.accounts.pandl_for_instrument_forecast(
-            instrument_code, rule).sharpe()
+        ans[instrument_code][
+            rule] = system.accounts.pandl_for_instrument_forecast(
+                instrument_code, rule).sharpe()
 
 # average rule / instrument
 ans = []
@@ -37,8 +39,7 @@ for instrument_code in instrument_list:
     for rule in trading_rules:
         ans.append(
             system.accounts.pandl_for_instrument_forecast(
-                instrument_code,
-                rule).sharpe())
+                instrument_code, rule).sharpe())
 
 np.mean(ans)
 

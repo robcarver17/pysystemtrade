@@ -151,8 +151,7 @@ class PositionSizing(SystemStage):
                 instrument_code)
 
         else:
-            underlying_price = self.parent.data.daily_prices(
-                instrument_code)
+            underlying_price = self.parent.data.daily_prices(instrument_code)
 
         value_of_price_move = self.parent.data.get_value_of_block_price_move(
             instrument_code)
@@ -204,10 +203,12 @@ class PositionSizing(SystemStage):
         daily_cash_vol_target = annual_cash_vol_target / ROOT_BDAYS_INYEAR
 
         # FIXME this thing ain't too pretty
-        vol_target_dict = dict(base_currency=base_currency, percentage_vol_target=percentage_vol_target,
-                               notional_trading_capital=notional_trading_capital,
-                               annual_cash_vol_target=annual_cash_vol_target,
-                               daily_cash_vol_target=daily_cash_vol_target)
+        vol_target_dict = dict(
+            base_currency=base_currency,
+            percentage_vol_target=percentage_vol_target,
+            notional_trading_capital=notional_trading_capital,
+            annual_cash_vol_target=annual_cash_vol_target,
+            daily_cash_vol_target=daily_cash_vol_target)
 
         return vol_target_dict
 
@@ -235,14 +236,11 @@ class PositionSizing(SystemStage):
 
         """
 
-
-        base_currency = self.get_daily_cash_vol_target()[
-            'base_currency']
+        base_currency = self.get_daily_cash_vol_target()['base_currency']
         fx_rate = self.parent.data.get_fx_for_instrument(
             instrument_code, base_currency)
 
         return fx_rate
-
 
     @diagnostic()
     def get_block_value(self, instrument_code):
@@ -272,8 +270,8 @@ class PositionSizing(SystemStage):
 
         """
 
-        (underlying_price, value_of_price_move) = self.get_instrument_sizing_data(
-            instrument_code)
+        (underlying_price, value_of_price_move
+         ) = self.get_instrument_sizing_data(instrument_code)
         block_value = 0.01 * underlying_price * value_of_price_move
         block_value.columns = ["bvalue"]
 
@@ -307,8 +305,9 @@ class PositionSizing(SystemStage):
 
         """
 
-        self.log.msg("Calculating instrument currency vol for %s" % instrument_code,
-                           instrument_code=instrument_code)
+        self.log.msg(
+            "Calculating instrument currency vol for %s" % instrument_code,
+            instrument_code=instrument_code)
 
         block_value = self.get_block_value(instrument_code)
         daily_perc_vol = self.get_price_volatility(instrument_code)
@@ -348,11 +347,11 @@ class PositionSizing(SystemStage):
 
         """
 
-        self.log.msg("Calculating instrument value vol for %s" % instrument_code,
-                           instrument_code=instrument_code)
+        self.log.msg(
+            "Calculating instrument value vol for %s" % instrument_code,
+            instrument_code=instrument_code)
 
-        instr_ccy_vol = self.get_instrument_currency_vol(
-            instrument_code)
+        instr_ccy_vol = self.get_instrument_currency_vol(instrument_code)
         fx_rate = self.get_fx_rate(instrument_code)
 
         (instr_ccy_vol, fx_rate) = instr_ccy_vol.align(fx_rate)
@@ -389,11 +388,11 @@ class PositionSizing(SystemStage):
         2015-12-11   10.344278
         """
 
-        self.log.msg("Calculating volatility scalar for %s" % instrument_code,
-                           instrument_code=instrument_code)
+        self.log.msg(
+            "Calculating volatility scalar for %s" % instrument_code,
+            instrument_code=instrument_code)
 
-        instr_value_vol = self.get_instrument_value_vol(
-            instrument_code)
+        instr_value_vol = self.get_instrument_value_vol(instrument_code)
         cash_vol_target = self.get_daily_cash_vol_target()[
             'daily_cash_vol_target']
 
@@ -430,9 +429,9 @@ class PositionSizing(SystemStage):
         2015-12-11     2.544598
 
         """
-        self.log.msg("Calculating subsystem position for %s" % instrument_code,
-                           instrument_code=instrument_code)
-
+        self.log.msg(
+            "Calculating subsystem position for %s" % instrument_code,
+            instrument_code=instrument_code)
         """
         We don't allow this to be changed in config
         """

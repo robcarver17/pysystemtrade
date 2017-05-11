@@ -120,7 +120,7 @@ class Rules(SystemStage):
             new_rules = process_trading_rules(passed_rules)
 
         setattr(self, "_trading_rules", new_rules)
-        return(new_rules)
+        return (new_rules)
 
     @output()
     def get_raw_forecast(self, instrument_code, rule_variation_name):
@@ -135,8 +135,11 @@ class Rules(SystemStage):
 
         system = self.parent
 
-        self.log.msg("Calculating raw forecast %s for %s" % (instrument_code, rule_variation_name),
-                            instrument_code=instrument_code, rule_variation_name=rule_variation_name)
+        self.log.msg(
+            "Calculating raw forecast %s for %s" % (instrument_code,
+                                                    rule_variation_name),
+            instrument_code=instrument_code,
+            rule_variation_name=rule_variation_name)
 
         trading_rule = self.trading_rules()[rule_variation_name]
 
@@ -144,7 +147,6 @@ class Rules(SystemStage):
         result.columns = [rule_variation_name]
 
         return result
-
 
 
 class TradingRule(object):
@@ -192,29 +194,33 @@ class TradingRule(object):
 
         if hasallattr(rule, ["function", "data", "other_args"]):
             # looks like it is already a trading rule
-            (rule_function, data, other_args) = (
-                rule.function, rule.data, rule.other_args)
+            (rule_function, data, other_args) = (rule.function, rule.data,
+                                                 rule.other_args)
 
         elif isinstance(rule, tuple):
             if len(data) > 0 or len(other_args) > 0:
                 print(
-                    "WARNING: Creating trade rule with 'rule' tuple argument, ignoring data and/or other args")
+                    "WARNING: Creating trade rule with 'rule' tuple argument, ignoring data and/or other args"
+                )
 
             if len(rule) != 3:
                 raise Exception(
-                    "Creating trading rule with a tuple, must be length 3 exactly (function/name, data [...], args dict(...))")
+                    "Creating trading rule with a tuple, must be length 3 exactly (function/name, data [...], args dict(...))"
+                )
             (rule_function, data, other_args) = rule
 
         elif isinstance(rule, dict):
             if len(data) > 0 or len(other_args) > 0:
                 print(
-                    "WARNING: Creating trade rule with 'rule' dict argument, ignoring data and/or other args")
+                    "WARNING: Creating trade rule with 'rule' dict argument, ignoring data and/or other args"
+                )
 
             try:
                 rule_function = rule['function']
             except KeyError:
                 raise Exception(
-                    "If you specify a TradingRule as a dict it has to contain a 'function' keyname")
+                    "If you specify a TradingRule as a dict it has to contain a 'function' keyname"
+                )
 
             if "data" in rule:
                 data = rule['data']
@@ -261,8 +267,10 @@ class TradingRule(object):
         else:
             datalist = self.data
 
-        data_methods = [resolve_data_method(
-            system, data_string) for data_string in datalist]
+        data_methods = [
+            resolve_data_method(system, data_string)
+            for data_string in datalist
+        ]
         data = [data_method(instrument_code) for data_method in data_methods]
 
         other_args = self.other_args
@@ -312,8 +320,10 @@ def process_trading_rules(trading_rules):
     return process_trading_rules([trading_rules])
 
 
-def create_variations_oneparameter(
-        baseRule, list_of_args, argname, nameformat="%s_%s"):
+def create_variations_oneparameter(baseRule,
+                                   list_of_args,
+                                   argname,
+                                   nameformat="%s_%s"):
     """
     Returns a dict of trading rule variations, varying only one named parameter
 
@@ -345,14 +355,19 @@ def create_variations_oneparameter(
         thisdict[argname] = arg_value
         list_of_args_dict.append(thisdict)
 
-    ans = create_variations(baseRule, list_of_args_dict,
-                            key_argname=argname, nameformat=nameformat)
+    ans = create_variations(
+        baseRule,
+        list_of_args_dict,
+        key_argname=argname,
+        nameformat=nameformat)
 
     return ans
 
 
-def create_variations(baseRule, list_of_args_dict,
-                      key_argname=None, nameformat="%s_%s"):
+def create_variations(baseRule,
+                      list_of_args_dict,
+                      key_argname=None,
+                      nameformat="%s_%s"):
     """
     Returns a dict of trading rule variations
 
@@ -401,13 +416,14 @@ def create_variations(baseRule, list_of_args_dict,
     for args_dict in list_of_args_dict:
         if key_argname not in args_dict.keys():
             raise Exception(
-                "Argname %s missing from at least one set of argument values" % key_argname)
+                "Argname %s missing from at least one set of argument values" %
+                key_argname)
 
         for arg_name in args_dict.keys():
             baseRuleargs[arg_name] = args_dict[arg_name]
 
-        rule_variation = TradingRule(
-            baseRulefunction, baseRuledata, baseRuleargs)
+        rule_variation = TradingRule(baseRulefunction, baseRuledata,
+                                     baseRuleargs)
         var_name = nameformat % (key_argname, str(args_dict[key_argname]))
 
         variations[var_name] = rule_variation

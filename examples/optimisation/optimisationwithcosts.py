@@ -3,14 +3,9 @@ from matplotlib.pyplot import show, title
 from systems.provided.futures_chapter15.estimatedsystem import futures_system
 
 rule_variations = [
-    'carry',
-    'ewmac2_8',
-    'ewmac4_16',
-    'ewmac8_32',
-    'ewmac16_64',
-    'ewmac32_128',
-    'ewmac64_256']
-
+    'carry', 'ewmac2_8', 'ewmac4_16', 'ewmac8_32', 'ewmac16_64', 'ewmac32_128',
+    'ewmac64_256'
+]
 """
 ## pool everything, no costs
 system=futures_system()
@@ -321,7 +316,7 @@ show()
 # instruments - equal weights
 system = futures_system()
 system.set_logging_level("on")
-del(system.config.rule_variations)
+del (system.config.rule_variations)
 
 system = futures_system()
 system.set_logging_level("on")
@@ -334,7 +329,6 @@ system.config.instrument_weight_estimate['apply_cost_weight'] = True
 system.config.instrument_weight_estimate['cost_multiplier'] = 0.0
 system.config.instrument_weight_estimate['ceiling_cost_SR'] = 0.13
 system.config.instrument_weight_estimate['equalise_gross'] = False
-
 
 print(system.portfolio.get_instrument_weights())
 system.portfolio.get_instrument_weights().iloc[-1, :].plot(kind="barh")

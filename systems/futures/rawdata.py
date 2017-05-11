@@ -6,6 +6,7 @@ from syscore.dateutils import expiry_diff
 from syscore.pdutils import uniquets
 from systems.system_cache import input, diagnostic, output
 
+
 class FuturesRawData(RawData):
     """
     A SubSystem that does futures specific raw data calculations
@@ -47,7 +48,6 @@ class FuturesRawData(RawData):
         2015-12-11 19:33:39  97.9875    NaN         201812         201903
         """
 
-
         instrcarrydata = self.parent.data.get_instrument_raw_carry_data(
             instrument_code)
         return instrcarrydata
@@ -72,9 +72,7 @@ class FuturesRawData(RawData):
         dtype: float64
         """
 
-
-        carrydata = self.get_instrument_raw_carry_data(
-            instrument_code)
+        carrydata = self.get_instrument_raw_carry_data(instrument_code)
         raw_roll = carrydata.PRICE - carrydata.CARRY
 
         raw_roll[raw_roll == 0] = np.nan
@@ -102,8 +100,7 @@ class FuturesRawData(RawData):
         2015-12-11 19:33:39   -0.246407
         dtype: float64
         """
-        carrydata = self.get_instrument_raw_carry_data(
-            instrument_code)
+        carrydata = self.get_instrument_raw_carry_data(instrument_code)
         roll_diff = carrydata.apply(expiry_diff, 1)
 
         roll_diff = uniquets(roll_diff)
@@ -166,11 +163,9 @@ class FuturesRawData(RawData):
         Freq: B, dtype: float64
         """
 
-
         annroll = self.annualised_roll(instrument_code)
         annroll = annroll.resample("1B").mean()
         return annroll
-
 
     @output()
     def daily_denominator_price(self, instrument_code):
@@ -195,8 +190,7 @@ class FuturesRawData(RawData):
         2015-12-11    97.9875
         Freq: B, Name: PRICE, dtype: float64
         """
-        prices = self.get_instrument_raw_carry_data(
-            instrument_code).PRICE
+        prices = self.get_instrument_raw_carry_data(instrument_code).PRICE
         daily_prices = prices.resample("1B").last()
         return daily_prices
 
