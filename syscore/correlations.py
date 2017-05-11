@@ -350,13 +350,7 @@ class CorrelationEstimator(CorrelationList):
 
     We generate a correlation list from either a pd.DataFrame, or a list of them if we're pooling
 
-    The default is to generate correlations annually, from weekly
 
-    It's important that forward filling, or index / ffill / diff has been done before we begin
-
-
-    # FIXME this is still quite ugly, in particular a proper 'single purpose' single period correlation class
-    #   would look nicer
     '''
 
     def __init__(self, data, frequency="W", date_method="expanding",
@@ -406,7 +400,7 @@ class CorrelationEstimator(CorrelationList):
             data_as_df, date_method=date_method, rollyears=rollyears)
 
         # create a single period correlation estimator
-        correlation_estimator_for_one_period = correlationSinglePeriod(data_as_df, length_of_data =1,
+        correlation_estimator_for_one_period = correlationSinglePeriod(data_as_df, length_of_data = length_of_data,
                                     **kwargs)
 
         # create a list of correlation matrices
