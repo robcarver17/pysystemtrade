@@ -23,6 +23,7 @@ def get_system_defaults():
 
     return default_dict
 
+
 system_defaults = get_system_defaults()
 
 if __name__ == '__main__':

@@ -1,7 +1,6 @@
 from sysdata.configdata import Config
 from syslogdiag.log import logtoscreen
 from systems.system_cache import systemCache, base_system_cache
-
 """
 This is used for items which affect an entire system, not just one instrument
 """
@@ -25,7 +24,10 @@ class System(object):
 
     '''
 
-    def __init__(self, stage_list, data, config=None,
+    def __init__(self,
+                 stage_list,
+                 data,
+                 config=None,
                  log=logtoscreen("base_system")):
         """
         Create a system object for doing simulations or live trading
@@ -66,10 +68,11 @@ class System(object):
         try:
             iter(stage_list)
         except AssertionError:
-            raise Exception("You didn't pass a list into this System instance; even just one stage should be System([stage_instance])")
+            raise Exception(
+                "You didn't pass a list into this System instance; even just one stage should be System([stage_instance])"
+            )
 
         for stage in stage_list:
-
             """
             This is where we put the methods to store various stages of the process
 
@@ -92,9 +95,7 @@ class System(object):
 
             stage_names.append(sub_name)
 
-
         setattr(self, "_stage_names", stage_names)
-
         """
         The cache hides all intermediate results
 
@@ -111,7 +112,7 @@ class System(object):
         """
 
         setattr(self, "cache", systemCache(self))
-        self.name = "base_system" # makes caching work and for general consistency
+        self.name = "base_system"  # makes caching work and for general consistency
 
     def __repr__(self):
         sslist = ", ".join(self._stage_names)
@@ -156,10 +157,15 @@ class System(object):
         return instrument_list
 
     def calc_or_cache_nested(self, *args, **kwargs):
-        raise Exception("You are using old style caching: rewrite your functions with decorators @input, @output, @diagnostic")
+        raise Exception(
+            "You are using old style caching: rewrite your functions with decorators @input, @output, @diagnostic"
+        )
 
     def calc_or_cache(self, *args, **kwargs):
-        raise Exception("You are using old style caching: rewrite your functions with decorators @input, @output, @diagnostic")
+        raise Exception(
+            "You are using old style caching: rewrite your functions with decorators @input, @output, @diagnostic"
+        )
+
 
 if __name__ == '__main__':
     import doctest

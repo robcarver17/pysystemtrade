@@ -81,7 +81,6 @@ class ForecastScaleCap(SystemStage):
 
         return self.parent.config.forecast_cap
 
-
     @dont_cache
     def _use_fixed_weights(self):
         if str2Bool(self.parent.config.use_forecast_scale_estimates):
@@ -90,7 +89,6 @@ class ForecastScaleCap(SystemStage):
             fixed_flavour = False
 
         return fixed_flavour
-
 
     @diagnostic()
     def _get_forecast_scalar_fixed(self, instrument_code, rule_variation_name):
@@ -134,24 +132,23 @@ class ForecastScaleCap(SystemStage):
 
         system = self.parent
         try:
-            scalar = system.config.trading_rules[
-                rule_variation_name]['forecast_scalar']
+            scalar = system.config.trading_rules[rule_variation_name][
+                'forecast_scalar']
         except:
             try:
                 # can also put somewhere else ...
-                scalar = system.config.forecast_scalars[
-                    rule_variation_name]
+                scalar = system.config.forecast_scalars[rule_variation_name]
             except:
                 # go with defaults
                 scalar = system_defaults['forecast_scalar']
 
         return scalar
 
-
     # protected in cache as slow to estimate
     @diagnostic(protected=True)
-    def _get_forecast_scalar_estimated_from_instrument_list(self, instrument_code, rule_variation_name,
-                                                            forecast_scalar_config):
+    def _get_forecast_scalar_estimated_from_instrument_list(
+            self, instrument_code, rule_variation_name,
+            forecast_scalar_config):
         """
         Get the scalar to apply to raw forecasts
 
@@ -175,13 +172,12 @@ class ForecastScaleCap(SystemStage):
         # we turn func which could be a string into a function, and then
         # call it with the other ags
         scalar_function = resolve_function(forecast_scalar_config.pop('func'))
-
         """
         instrument_list contains multiple things, might pool everything across
           all instruments
         """
 
-        if instrument_code==ALL_KEYNAME:
+        if instrument_code == ALL_KEYNAME:
             # pooled, same for all instruments
             instrument_list = self.parent.get_instrument_list()
 
@@ -189,27 +185,30 @@ class ForecastScaleCap(SystemStage):
             ## not pooled
             instrument_list = [instrument_code]
 
-        self.log.msg("Getting forecast scalar for %s over %s" % (rule_variation_name, ", ".join(instrument_list)),
-                           rule_variation_name=rule_variation_name)
+        self.log.msg(
+            "Getting forecast scalar for %s over %s" %
+            (rule_variation_name, ", ".join(instrument_list)),
+            rule_variation_name=rule_variation_name)
 
         # Get forecasts for each instrument
         forecast_list = [
-            self.get_raw_forecast(
-                instrument_code, rule_variation_name)
-            for instrument_code in instrument_list]
+            self.get_raw_forecast(instrument_code, rule_variation_name)
+            for instrument_code in instrument_list
+        ]
 
         cs_forecasts = pd.concat(forecast_list, axis=1)
 
         # an example of a scaling function is syscore.algos.forecast_scalar
         # must return thing the same size as cs_forecasts
-        scaling_factor = scalar_function(
-            cs_forecasts, **forecast_scalar_config)
+        scaling_factor = scalar_function(cs_forecasts,
+                                         **forecast_scalar_config)
 
         return scaling_factor
 
     # protected in cache as slow to estimate
     @diagnostic(protected=True)
-    def _get_forecast_scalar_estimated(self, instrument_code, rule_variation_name):
+    def _get_forecast_scalar_estimated(self, instrument_code,
+                                       rule_variation_name):
         """
         Get the scalar to apply to raw forecasts
 
@@ -268,26 +267,27 @@ class ForecastScaleCap(SystemStage):
         else:
             instrument_code_to_pass = copy(instrument_code)
 
-        scaling_factor = self._get_forecast_scalar_estimated_from_instrument_list(instrument_code_to_pass, rule_variation_name,
-                                                                                  forecast_scalar_config)
+        scaling_factor = self._get_forecast_scalar_estimated_from_instrument_list(
+            instrument_code_to_pass, rule_variation_name,
+            forecast_scalar_config)
         forecast = self.get_raw_forecast(instrument_code, rule_variation_name)
 
         scaling_factor = scaling_factor.reindex(forecast.index, method="ffill")
 
         return scaling_factor
 
-
     @dont_cache
     def _use_estimated_weights(self):
         return str2Bool(self.parent.config.use_forecast_scale_estimates)
 
-
     @dont_cache
     def get_forecast_scalar(self, instrument_code, rule_variation_name):
         if self._use_estimated_weights():
-            return self._get_forecast_scalar_estimated(instrument_code, rule_variation_name)
+            return self._get_forecast_scalar_estimated(instrument_code,
+                                                       rule_variation_name)
         else:
-            return self._get_forecast_scalar_fixed(instrument_code, rule_variation_name)
+            return self._get_forecast_scalar_fixed(instrument_code,
+                                                   rule_variation_name)
 
     @diagnostic()
     def get_scaled_forecast(self, instrument_code, rule_variation_name):
@@ -312,15 +312,15 @@ class ForecastScaleCap(SystemStage):
         2015-12-11  0.871231
         """
 
-        raw_forecast = self.get_raw_forecast(
-            instrument_code, rule_variation_name)
+        raw_forecast = self.get_raw_forecast(instrument_code,
+                                             rule_variation_name)
         scale = self.get_forecast_scalar(
-            instrument_code, rule_variation_name) ## will eithier be a scalar or a timeseries
+            instrument_code,
+            rule_variation_name)  ## will eithier be a scalar or a timeseries
 
         scaled_forecast = raw_forecast * scale
 
         return scaled_forecast
-
 
     @output()
     def get_capped_forecast(self, instrument_code, rule_variation_name):
@@ -350,11 +350,14 @@ class ForecastScaleCap(SystemStage):
         2015-12-11  0.200000
         """
 
-        self.log.msg("Calculating capped forecast for %s %s" % (instrument_code, rule_variation_name),
-                           instrument_code=instrument_code, rule_variation_name=rule_variation_name)
+        self.log.msg(
+            "Calculating capped forecast for %s %s" % (instrument_code,
+                                                       rule_variation_name),
+            instrument_code=instrument_code,
+            rule_variation_name=rule_variation_name)
 
-        scaled_forecast = self.get_scaled_forecast(
-            instrument_code, rule_variation_name)
+        scaled_forecast = self.get_scaled_forecast(instrument_code,
+                                                   rule_variation_name)
         cap = self.get_forecast_cap()
 
         capped_forecast = apply_cap(scaled_forecast, cap)

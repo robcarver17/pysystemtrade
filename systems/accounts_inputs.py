@@ -87,7 +87,8 @@ class _AccountInput(SystemStage):
 
         """
 
-        return self.parent.portfolio.get_instrument_diversification_multiplier()
+        return self.parent.portfolio.get_instrument_diversification_multiplier(
+        )
 
     @input
     def get_forecast_diversification_multiplier(self, instrument_code):
@@ -171,8 +172,10 @@ class _AccountInput(SystemStage):
 
         """
         instrument_list = self.get_instrument_list()
-        rules = [self.get_trading_rule_list(
-            instrument_code) for instrument_code in instrument_list]
+        rules = [
+            self.get_trading_rule_list(instrument_code)
+            for instrument_code in instrument_list
+        ]
         rules = sorted(sum(rules, []))
 
         return list(set(rules))
@@ -321,7 +324,6 @@ class _AccountInput(SystemStage):
         """
         return self.parent.data.daily_prices(instrument_code)
 
-
     @diagnostic()
     def get_aligned_forecast(self, instrument_code, rule_variation_name):
         """
@@ -340,8 +342,8 @@ class _AccountInput(SystemStage):
 
         """
         price = self.get_daily_price(instrument_code)
-        forecast = self.get_capped_forecast(
-            instrument_code, rule_variation_name)
+        forecast = self.get_capped_forecast(instrument_code,
+                                            rule_variation_name)
 
         forecast = forecast.reindex(price.index).ffill()
 
@@ -366,7 +368,6 @@ class _AccountInput(SystemStage):
 
         return sspos
 
-
     @input
     def get_value_of_price_move(self, instrument_code):
         """
@@ -388,8 +389,7 @@ class _AccountInput(SystemStage):
         2500
         """
 
-        return self.parent.data.get_value_of_block_price_move(
-            instrument_code)
+        return self.parent.data.get_value_of_block_price_move(instrument_code)
 
     @diagnostic()
     def get_raw_cost_data(self, instrument_code):
@@ -420,7 +420,6 @@ class _AccountInput(SystemStage):
 
         """
         return self.parent.data.get_raw_cost_data(instrument_code)
-
 
     @diagnostic()
     def get_daily_returns_volatility(self, instrument_code):
@@ -467,7 +466,6 @@ class _AccountInput(SystemStage):
 
         return vs
 
-
     @diagnostic()
     def get_instrument_scaling_factor(self, instrument_code):
         """
@@ -486,8 +484,7 @@ class _AccountInput(SystemStage):
         idm = self.get_instrument_diversification_multiplier()
         instr_weights = self.get_instrument_weights()
 
-        inst_weight_this_code = instr_weights[
-            instrument_code]
+        inst_weight_this_code = instr_weights[instrument_code]
 
         multiplier = inst_weight_this_code * idm
 
@@ -496,8 +493,8 @@ class _AccountInput(SystemStage):
         return multiplier.reindex(price.index).ffill()
 
     @diagnostic()
-    def get_forecast_scaling_factor(
-            self, instrument_code, rule_variation_name):
+    def get_forecast_scaling_factor(self, instrument_code,
+                                    rule_variation_name):
         """
         Get forecast weight * FDM
 
@@ -516,8 +513,7 @@ class _AccountInput(SystemStage):
 
         if rule_variation_name in forecast_weights.columns:
 
-            fcast_weight_this_code = forecast_weights[
-                rule_variation_name]
+            fcast_weight_this_code = forecast_weights[rule_variation_name]
         else:
             fcast_weight_this_code = self.get_aligned_forecast(
                 instrument_code, rule_variation_name)
@@ -528,8 +524,8 @@ class _AccountInput(SystemStage):
         return multiplier
 
     @diagnostic()
-    def get_instrument_forecast_scaling_factor(
-            self, instrument_code, rule_variation_name):
+    def get_instrument_forecast_scaling_factor(self, instrument_code,
+                                               rule_variation_name):
         """
         Get forecast weight * FDM  *instrument_weight * IDM
 
@@ -543,8 +539,8 @@ class _AccountInput(SystemStage):
 
         """
 
-        fsf = self.get_forecast_scaling_factor(
-            instrument_code, rule_variation_name)
+        fsf = self.get_forecast_scaling_factor(instrument_code,
+                                               rule_variation_name)
         isf = self.get_instrument_scaling_factor(instrument_code)
 
         (fsf, isf) = fsf.align(isf, join="inner")
@@ -564,8 +560,11 @@ class _AccountInput(SystemStage):
         """
 
         instrument_list = self.get_instrument_list()
-        all_risk_allocations = [self.get_instrument_forecast_scaling_factor(instrument_code, rule_variation_name) for
-                                instrument_code in instrument_list]
+        all_risk_allocations = [
+            self.get_instrument_forecast_scaling_factor(
+                instrument_code, rule_variation_name)
+            for instrument_code in instrument_list
+        ]
         all_risk_allocations = pd.concat(all_risk_allocations, axis=1)
 
         return all_risk_allocations.sum(axis=1)
@@ -595,13 +594,15 @@ class _AccountInput(SystemStage):
         """
 
         self.log.msg("Calculating buffered positions")
-        optimal_position = self.get_notional_position(
-            instrument_code)
+        optimal_position = self.get_notional_position(instrument_code)
         pos_buffers = self.get_buffers_for_position(instrument_code)
         trade_to_edge = self.parent.config.buffer_trade_to_edge
 
-        buffered_position = apply_buffer(optimal_position, pos_buffers,
-                                         trade_to_edge=trade_to_edge, roundpositions=roundpositions)
+        buffered_position = apply_buffer(
+            optimal_position,
+            pos_buffers,
+            trade_to_edge=trade_to_edge,
+            roundpositions=roundpositions)
 
         buffered_position.columns = ["position"]
 

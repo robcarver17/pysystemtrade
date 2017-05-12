@@ -11,12 +11,15 @@ def get_methods(an_object):
     # remove "_"
 
     dir_list = [
-        method_name for method_name in dir_list if method_name[0] != "_"]
+        method_name for method_name in dir_list if method_name[0] != "_"
+    ]
 
     # remove special
     special_list = ["log", "name", "parent", "description"]
     dir_list = [
-        method_name for method_name in dir_list if method_name not in special_list]
+        method_name for method_name in dir_list
+        if method_name not in special_list
+    ]
 
     return dir_list
 
@@ -46,8 +49,9 @@ def resolve_function(func_or_func_name):
         return func_or_func_name
 
     if not isinstance(func_or_func_name, str):
-        raise Exception("Called resolve_function with non string or callable object %s" % str(
-            func_or_func_name))
+        raise Exception(
+            "Called resolve_function with non string or callable object %s" %
+            str(func_or_func_name))
 
     if "." in func_or_func_name:
         # it's another module, have to get it
@@ -57,7 +61,8 @@ def resolve_function(func_or_func_name):
 
     else:
         raise Exception(
-            "Need full module file name string: %s isn't good enough" % func_or_func_name)
+            "Need full module file name string: %s isn't good enough" %
+            func_or_func_name)
 
     return func
 
@@ -154,6 +159,7 @@ def hasallattr(some_object, attrlist=[]):
 
     """
     return all([hasattr(some_object, attrname) for attrname in attrlist])
+
 
 if __name__ == '__main__':
     import doctest

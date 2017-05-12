@@ -17,7 +17,6 @@ from syscore.objects import resolve_function
 ARBITRARY_FORECAST_CAPITAL = 100.0
 
 
-
 class _AccountCosts(_AccountInput):
     """
     Partial SystemStage for accounting
@@ -58,8 +57,7 @@ class _AccountCosts(_AccountInput):
         value_of_pertrade_commission = raw_costs[
             'value_of_pertrade_commission']
 
-        daily_vol = self.get_daily_returns_volatility(
-            instrument_code)
+        daily_vol = self.get_daily_returns_volatility(instrument_code)
         daily_price = self.get_daily_price(instrument_code)
 
         last_date = daily_price.index[-1]
@@ -83,7 +81,6 @@ class _AccountCosts(_AccountInput):
 
         return SR_cost
 
-
     @diagnostic()
     def get_cash_costs(self, instrument_code):
         """
@@ -103,7 +100,6 @@ class _AccountCosts(_AccountInput):
         (8.3599999999999994, 0, 0)
         """
 
-
         raw_costs = self.get_raw_cost_data(instrument_code)
         block_value = self.get_value_of_price_move(instrument_code)
 
@@ -117,13 +113,10 @@ class _AccountCosts(_AccountInput):
         value_of_slippage = price_slippage * block_value
         value_total_per_block = value_of_block_commission + value_of_slippage
 
-        cash_costs = (
-            value_total_per_block,
-            value_of_pertrade_commission,
-            percentage_cost)
+        cash_costs = (value_total_per_block, value_of_pertrade_commission,
+                      percentage_cost)
 
         return cash_costs
-
 
     @dont_cache
     def get_costs(self, instrument_code):
@@ -156,13 +149,11 @@ class _AccountCosts(_AccountInput):
 
         """
 
-        positions = self.get_aligned_subsystem_position(
-            instrument_code)
+        positions = self.get_aligned_subsystem_position(instrument_code)
         average_position_for_turnover = self.get_aligned_volatility_scalar(
             instrument_code)
 
         return turnover(positions, average_position_for_turnover)
-
 
     @diagnostic()
     def subsystem_SR_costs(self, instrument_code, roundpositions=False):
@@ -203,7 +194,8 @@ class _AccountCosts(_AccountInput):
 
         """
         average_position_for_turnover = self.get_aligned_volatility_scalar(
-            instrument_code) * self.get_instrument_scaling_factor(instrument_code)
+            instrument_code) * self.get_instrument_scaling_factor(
+                instrument_code)
 
         positions = self.get_buffered_position(
             instrument_code, roundpositions=roundpositions)
@@ -211,8 +203,8 @@ class _AccountCosts(_AccountInput):
         return turnover(positions, average_position_for_turnover)
 
     @diagnostic()
-    def forecast_turnover_for_list(
-            self, instrument_code_list, rule_variation_name):
+    def forecast_turnover_for_list(self, instrument_code_list,
+                                   rule_variation_name):
         """
         Get the average turnover for a rule, over instrument_code_list
 
@@ -226,39 +218,33 @@ class _AccountCosts(_AccountInput):
 
         """
 
-
         average_forecast_for_turnover = system_defaults[
             'average_absolute_forecast']
 
-        forecast_list = [self.get_capped_forecast(
-            instrument_code, rule_variation_name)
-            for instrument_code in instrument_code_list]
+        forecast_list = [
+            self.get_capped_forecast(instrument_code, rule_variation_name)
+            for instrument_code in instrument_code_list
+        ]
 
         turnovers = [
-            turnover(
-                forecast,
-                average_forecast_for_turnover) for forecast in forecast_list]
+            turnover(forecast, average_forecast_for_turnover)
+            for forecast in forecast_list
+        ]
 
         if len(instrument_code_list) == 1:
             return turnovers[0]
 
         # weight by length
-        forecast_lengths = [len(forecast.index)
-                            for forecast in forecast_list]
+        forecast_lengths = [len(forecast.index) for forecast in forecast_list]
         total_length = sum(forecast_lengths)
         weighted_turnovers = [
-            tover *
-            fc_length /
-            total_length for (
-                tover,
-                fc_length) in zip(
-                turnovers,
-                forecast_lengths)]
+            tover * fc_length / total_length
+            for (tover, fc_length) in zip(turnovers, forecast_lengths)
+        ]
 
         avg_turnover = sum(weighted_turnovers)
 
         return avg_turnover
-
 
     @diagnostic()
     def forecast_turnover(self, instrument_code, rule_variation_name):
@@ -276,12 +262,11 @@ class _AccountCosts(_AccountInput):
 
         """
 
-        use_pooled_turnover = str2Bool(self.parent.config.forecast_cost_estimates[
-            'use_pooled_turnover'])
+        use_pooled_turnover = str2Bool(
+            self.parent.config.forecast_cost_estimates['use_pooled_turnover'])
 
         if use_pooled_turnover:
-            instrument_code_list = self.has_same_rules_as_code(
-                instrument_code)
+            instrument_code_list = self.has_same_rules_as_code(instrument_code)
         else:
             instrument_code_list = [instrument_code]
 
@@ -290,10 +275,9 @@ class _AccountCosts(_AccountInput):
 
         return turnover_for_SR
 
-
     @diagnostic()
-    def get_SR_cost_instr_forecast_for_list(
-            self, instrument_code_list, rule_variation_name):
+    def get_SR_cost_instr_forecast_for_list(self, instrument_code_list,
+                                            rule_variation_name):
         """
         Get the SR cost for a forecast/rule combination, averaged across multiple instruments
 
@@ -308,45 +292,41 @@ class _AccountCosts(_AccountInput):
 
         """
 
-        turnover_list = [self.forecast_turnover(instrument_code, rule_variation_name)
-                         for instrument_code in instrument_code_list]
+        turnover_list = [
+            self.forecast_turnover(instrument_code, rule_variation_name)
+            for instrument_code in instrument_code_list
+        ]
 
-        SR_cost_per_turnover = [self.get_SR_cost(
-            instrument_code) for instrument_code in instrument_code_list]
+        SR_cost_per_turnover = [
+            self.get_SR_cost(instrument_code)
+            for instrument_code in instrument_code_list
+        ]
 
-        forecast_list = [self.get_capped_forecast(
-            instrument_code, rule_variation_name)
-            for instrument_code in instrument_code_list]
+        forecast_list = [
+            self.get_capped_forecast(instrument_code, rule_variation_name)
+            for instrument_code in instrument_code_list
+        ]
 
         SR_cost = [
-            tover *
-            SRcpt for (
-                tover,
-                SRcpt) in zip(
-                turnover_list,
-                SR_cost_per_turnover)]
+            tover * SRcpt
+            for (tover, SRcpt) in zip(turnover_list, SR_cost_per_turnover)
+        ]
 
         # weight by length
-        forecast_lengths = [len(forecast.index)
-                            for forecast in forecast_list]
+        forecast_lengths = [len(forecast.index) for forecast in forecast_list]
         total_length = sum(forecast_lengths)
         weighted_SR_costs = [
-            SRc *
-            fc_length /
-            total_length for (
-                SRc,
-                fc_length) in zip(
-                SR_cost,
-                forecast_lengths)]
+            SRc * fc_length / total_length
+            for (SRc, fc_length) in zip(SR_cost, forecast_lengths)
+        ]
 
         avg_SR_cost = sum(weighted_SR_costs)
 
         return avg_SR_cost
 
-
     @diagnostic()
-    def get_SR_cost_for_instrument_forecast(
-            self, instrument_code, rule_variation_name):
+    def get_SR_cost_for_instrument_forecast(self, instrument_code,
+                                            rule_variation_name):
         """
         Get the SR cost for a forecast/rule combination
 
@@ -361,22 +341,22 @@ class _AccountCosts(_AccountInput):
         KEY OUTPUT
         """
 
-
         use_pooled_costs = self.parent.config.forecast_cost_estimates[
             'use_pooled_costs']
 
         if use_pooled_costs:
-            instrument_code_list = self.has_same_rules_as_code(
-                instrument_code)
+            instrument_code_list = self.has_same_rules_as_code(instrument_code)
             SR_cost = self.get_SR_cost_instr_forecast_for_list(
                 instrument_code_list, rule_variation_name)
 
         else:
             # note the turnover may still be pooled..
             SR_cost = self.forecast_turnover(
-                instrument_code, rule_variation_name) * self.get_SR_cost(instrument_code)
+                instrument_code,
+                rule_variation_name) * self.get_SR_cost(instrument_code)
 
         return SR_cost
+
 
 class _AccountInstrumentForecast(_AccountCosts):
     """
@@ -388,8 +368,10 @@ class _AccountInstrumentForecast(_AccountCosts):
     """
 
     @diagnostic(not_pickable=True)
-    def pandl_for_instrument_forecast(
-            self, instrument_code, rule_variation_name, delayfill=True):
+    def pandl_for_instrument_forecast(self,
+                                      instrument_code,
+                                      rule_variation_name,
+                                      delayfill=True):
         """
         Get the p&l for one instrument and forecast; as % of arbitrary capital
 
@@ -414,13 +396,16 @@ class _AccountInstrumentForecast(_AccountCosts):
 
         """
 
-        self.log.msg("Calculating pandl for instrument forecast for %s %s" % (instrument_code, rule_variation_name),
-                           instrument_code=instrument_code, rule_variation_name=rule_variation_name)
+        self.log.msg(
+            "Calculating pandl for instrument forecast for %s %s" %
+            (instrument_code, rule_variation_name),
+            instrument_code=instrument_code,
+            rule_variation_name=rule_variation_name)
 
         # by construction all these things are aligned
         price = self.get_daily_price(instrument_code)
-        forecast = self.get_aligned_forecast(
-            instrument_code, rule_variation_name)
+        forecast = self.get_aligned_forecast(instrument_code,
+                                             rule_variation_name)
         get_daily_returns_volatility = self.get_daily_returns_volatility(
             instrument_code)
 
@@ -430,17 +415,24 @@ class _AccountInstrumentForecast(_AccountCosts):
 
         # We use percentage returns (as no 'capital') and don't round
         # positions
-        pandl_fcast = accountCurve(price, forecast=forecast, delayfill=delayfill,
-                                   roundpositions=False,
-                                   value_of_price_point=1.0, capital=ARBITRARY_FORECAST_CAPITAL,
-                                   SR_cost=SR_cost, cash_costs=None,
-                                   get_daily_returns_volatility=get_daily_returns_volatility)
+        pandl_fcast = accountCurve(
+            price,
+            forecast=forecast,
+            delayfill=delayfill,
+            roundpositions=False,
+            value_of_price_point=1.0,
+            capital=ARBITRARY_FORECAST_CAPITAL,
+            SR_cost=SR_cost,
+            cash_costs=None,
+            get_daily_returns_volatility=get_daily_returns_volatility)
 
         return pandl_fcast
 
     @diagnostic(not_pickable=True)
-    def pandl_for_instrument_forecast_weighted(
-            self, instrument_code, rule_variation_name, delayfill=True):
+    def pandl_for_instrument_forecast_weighted(self,
+                                               instrument_code,
+                                               rule_variation_name,
+                                               delayfill=True):
         """
         Get the p&l for one instrument and forecast; as % of total capital
 
@@ -459,8 +451,11 @@ class _AccountInstrumentForecast(_AccountCosts):
 
         """
 
-        self.log.msg("Calculating pandl for instrument forecast weighted for %s %s" % (instrument_code, rule_variation_name),
-                           instrument_code=instrument_code, rule_variation_name=rule_variation_name)
+        self.log.msg(
+            "Calculating pandl for instrument forecast weighted for %s %s" %
+            (instrument_code, rule_variation_name),
+            instrument_code=instrument_code,
+            rule_variation_name=rule_variation_name)
 
         pandl = self.pandl_for_instrument_forecast(
             instrument_code, rule_variation_name, delayfill=delayfill)
@@ -469,7 +464,6 @@ class _AccountInstrumentForecast(_AccountCosts):
         pandl = weighted(pandl, weight)
 
         return pandl
-
 
 
 class _AccountInstruments(_AccountInstrumentForecast):
@@ -484,11 +478,11 @@ class _AccountInstruments(_AccountInstrumentForecast):
     def _name(self):
         return "*do not use independently*"
 
-
     @diagnostic(not_pickable=True)
-    def pandl_for_subsystem(
-
-            self, instrument_code, delayfill=True, roundpositions=False):
+    def pandl_for_subsystem(self,
+                            instrument_code,
+                            delayfill=True,
+                            roundpositions=False):
         """
         Get the p&l for one instrument
 
@@ -512,17 +506,17 @@ class _AccountInstruments(_AccountInstrumentForecast):
         0.23422378634127036
         """
 
-        self.log.msg("Calculating pandl for subsystem for instrument %s" % instrument_code,
-                           instrument_code=instrument_code)
+        self.log.msg(
+            "Calculating pandl for subsystem for instrument %s" %
+            instrument_code,
+            instrument_code=instrument_code)
 
         price = self.get_daily_price(instrument_code)
-        positions = self.get_aligned_subsystem_position(
-            instrument_code)
+        positions = self.get_aligned_subsystem_position(instrument_code)
 
         fx = self.get_fx_rate(instrument_code)
 
-        value_of_price_point = self.get_value_of_price_move(
-            instrument_code)
+        value_of_price_point = self.get_value_of_price_move(instrument_code)
         get_daily_returns_volatility = self.get_daily_returns_volatility(
             instrument_code)
 
@@ -531,19 +525,23 @@ class _AccountInstruments(_AccountInstrumentForecast):
         capital = self.get_notional_capital()
         ann_risk_target = self.get_ann_risk_target()
 
-        instr_pandl = accountCurve(price, positions=positions,
-                                   delayfill=delayfill, roundpositions=roundpositions,
-                                   fx=fx, value_of_price_point=value_of_price_point, capital=capital,
-                                   SR_cost=SR_cost, cash_costs=cash_costs,
-                                   get_daily_returns_volatility=get_daily_returns_volatility,
-                                   ann_risk_target=ann_risk_target)
+        instr_pandl = accountCurve(
+            price,
+            positions=positions,
+            delayfill=delayfill,
+            roundpositions=roundpositions,
+            fx=fx,
+            value_of_price_point=value_of_price_point,
+            capital=capital,
+            SR_cost=SR_cost,
+            cash_costs=cash_costs,
+            get_daily_returns_volatility=get_daily_returns_volatility,
+            ann_risk_target=ann_risk_target)
 
         return instr_pandl
 
-
     @output(not_pickable=True)
-    def pandl_across_subsystems(
-            self, delayfill=True, roundpositions=False):
+    def pandl_across_subsystems(self, delayfill=True, roundpositions=False):
         """
         Get the p&l across subsystems (unweighted)
 
@@ -577,18 +575,23 @@ class _AccountInstruments(_AccountInstrumentForecast):
             self.pandl_for_subsystem(
                 instrument_code,
                 delayfill=delayfill,
-                roundpositions=roundpositions) for instrument_code in instruments]
+                roundpositions=roundpositions)
+            for instrument_code in instruments
+        ]
 
-        pandl = accountCurveGroup(pandl_across_subsys, instruments,
-                                  capital=capital,
-                                  weighted_flag=False)
+        pandl = accountCurveGroup(
+            pandl_across_subsys,
+            instruments,
+            capital=capital,
+            weighted_flag=False)
 
         return pandl
 
-
     @diagnostic(not_pickable=True)
-    def pandl_for_instrument(
-            self, instrument_code, delayfill=True, roundpositions=True):
+    def pandl_for_instrument(self,
+                             instrument_code,
+                             delayfill=True,
+                             roundpositions=True):
         """
         Get the p&l for one instrument
 
@@ -611,15 +614,15 @@ class _AccountInstruments(_AccountInstrumentForecast):
         0.13908407620762306
         """
 
-        self.log.msg("Calculating pandl for instrument for %s" % instrument_code,
-                           instrument_code=instrument_code)
+        self.log.msg(
+            "Calculating pandl for instrument for %s" % instrument_code,
+            instrument_code=instrument_code)
 
         price = self.get_daily_price(instrument_code)
         positions = self.get_buffered_position(
             instrument_code, roundpositions=roundpositions)
         fx = self.get_fx_rate(instrument_code)
-        value_of_price_point = self.get_value_of_price_move(
-            instrument_code)
+        value_of_price_point = self.get_value_of_price_move(instrument_code)
         get_daily_returns_volatility = self.get_daily_returns_volatility(
             instrument_code)
 
@@ -628,12 +631,18 @@ class _AccountInstruments(_AccountInstrumentForecast):
 
         (SR_cost, cash_costs) = self.get_costs(instrument_code)
 
-        instr_pandl = accountCurve(price, positions=positions,
-                                   delayfill=delayfill, roundpositions=roundpositions,
-                                   fx=fx, value_of_price_point=value_of_price_point, capital=capital,
-                                   ann_risk_target=ann_risk_target,
-                                   SR_cost=SR_cost, cash_costs=cash_costs,
-                                   get_daily_returns_volatility=get_daily_returns_volatility)
+        instr_pandl = accountCurve(
+            price,
+            positions=positions,
+            delayfill=delayfill,
+            roundpositions=roundpositions,
+            fx=fx,
+            value_of_price_point=value_of_price_point,
+            capital=capital,
+            ann_risk_target=ann_risk_target,
+            SR_cost=SR_cost,
+            cash_costs=cash_costs,
+            get_daily_returns_volatility=get_daily_returns_volatility)
 
         if SR_cost is not None:
             # Note that SR cost is done as a proportion of capital
@@ -642,13 +651,13 @@ class _AccountInstruments(_AccountInstrumentForecast):
             turnover_for_SR = self.instrument_turnover(
                 instrument_code, roundpositions=roundpositions)
             SR_cost = SR_cost * turnover_for_SR
-            weighting = self.get_instrument_scaling_factor(
-                instrument_code)
+            weighting = self.get_instrument_scaling_factor(instrument_code)
             apply_weight_to_costs_only = True
 
-            instr_pandl = weighted(instr_pandl,
-                                   weighting=weighting,
-                                   apply_weight_to_costs_only=apply_weight_to_costs_only)
+            instr_pandl = weighted(
+                instr_pandl,
+                weighting=weighting,
+                apply_weight_to_costs_only=apply_weight_to_costs_only)
 
         else:
             # Costs wil be correct
@@ -656,9 +665,6 @@ class _AccountInstruments(_AccountInstrumentForecast):
             pass
 
         return instr_pandl
-
-
-
 
     @output(not_pickable=True)
     def pandl_for_instrument_rules(self, instrument_code, delayfill=True):
@@ -687,30 +693,33 @@ class _AccountInstruments(_AccountInstrumentForecast):
         {'ewmac16': 0.6799720823590352, 'ewmac8': 0.69594671177102}
         """
 
-        self.log.terse("Calculating pandl for instrument rules for %s" % instrument_code,
-                             instrument_code=instrument_code)
+        self.log.terse(
+            "Calculating pandl for instrument rules for %s" % instrument_code,
+            instrument_code=instrument_code)
 
-        forecast_rules = self.get_trading_rule_list(instrument_code
-                                                          )
-        pandl_rules_unweighted = [self.pandl_for_instrument_forecast(
-            instrument_code, rule_variation_name, delayfill=delayfill)
+        forecast_rules = self.get_trading_rule_list(instrument_code)
+        pandl_rules_unweighted = [
+            self.pandl_for_instrument_forecast(
+                instrument_code, rule_variation_name, delayfill=delayfill)
             for rule_variation_name in forecast_rules
         ]
 
-        pandl_rules = [weighted(
-            pandl_this_rule,
-            weighting=self.get_forecast_scaling_factor(instrument_code, rule_variation_name))
-            for (pandl_this_rule, rule_variation_name) in zip(
-            pandl_rules_unweighted,
-            forecast_rules)
+        pandl_rules = [
+            weighted(
+                pandl_this_rule,
+                weighting=self.get_forecast_scaling_factor(
+                    instrument_code, rule_variation_name))
+            for (pandl_this_rule, rule_variation_name
+                 ) in zip(pandl_rules_unweighted, forecast_rules)
         ]
 
-        pandl_rules = accountCurveGroup(pandl_rules, forecast_rules,
-                                        capital=ARBITRARY_FORECAST_CAPITAL,
-                                        weighted_flag=True)
+        pandl_rules = accountCurveGroup(
+            pandl_rules,
+            forecast_rules,
+            capital=ARBITRARY_FORECAST_CAPITAL,
+            weighted_flag=True)
 
         return pandl_rules
-
 
 
 class _AccountTradingRules(_AccountInstrumentForecast):
@@ -724,8 +733,6 @@ class _AccountTradingRules(_AccountInstrumentForecast):
 
     def _name(self):
         return "*do not use independently*"
-
-
 
     @diagnostic(not_pickable=True)
     def pandl_for_all_trading_rules(self, delayfill=True):
@@ -746,16 +753,19 @@ class _AccountTradingRules(_AccountInstrumentForecast):
         variations = self.get_entire_trading_rule_list()
 
         # already weighted, don't need to do again
-        pandl_by_trading_rule_weighted = [self.pandl_for_trading_rule_weighted(rulename, delayfill)
-                                          for rulename in variations]
+        pandl_by_trading_rule_weighted = [
+            self.pandl_for_trading_rule_weighted(rulename, delayfill)
+            for rulename in variations
+        ]
 
         # this is a group of groups... will it work?
-        pandl_all_rules = accountCurveGroup(pandl_by_trading_rule_weighted, variations,
-                                            capital=ARBITRARY_FORECAST_CAPITAL,
-                                            weighted_flag=True)
+        pandl_all_rules = accountCurveGroup(
+            pandl_by_trading_rule_weighted,
+            variations,
+            capital=ARBITRARY_FORECAST_CAPITAL,
+            weighted_flag=True)
 
         return pandl_all_rules
-
 
     @diagnostic(not_pickable=True)
     def pandl_for_all_trading_rules_unweighted(self, delayfill=True):
@@ -771,26 +781,29 @@ class _AccountTradingRules(_AccountInstrumentForecast):
 
         """
 
-        self.log.terse(
-            "Calculating pandl for all trading rules unweighted")
+        self.log.terse("Calculating pandl for all trading rules unweighted")
 
         variations = self.get_entire_trading_rule_list()
 
         # already weighted, don't need to do again
-        pandl_by_trading_rule_unweighted = [self.pandl_for_trading_rule(rulename, delayfill)
-                                            for rulename in variations]
+        pandl_by_trading_rule_unweighted = [
+            self.pandl_for_trading_rule(rulename, delayfill)
+            for rulename in variations
+        ]
 
         # this is a group of groups... will it work?
-        pandl_all_rules = accountCurveGroup(pandl_by_trading_rule_unweighted, variations,
-                                            capital=ARBITRARY_FORECAST_CAPITAL,
-                                            weighted_flag=False)
+        pandl_all_rules = accountCurveGroup(
+            pandl_by_trading_rule_unweighted,
+            variations,
+            capital=ARBITRARY_FORECAST_CAPITAL,
+            weighted_flag=False)
 
         return pandl_all_rules
 
-
     @diagnostic(not_pickable=True)
-    def pandl_for_trading_rule_unweighted(
-            self, rule_variation_name, delayfill=True):
+    def pandl_for_trading_rule_unweighted(self,
+                                          rule_variation_name,
+                                          delayfill=True):
         """
         Get the p&l for one trading rule over multiple instruments; as % of arbitrary capital
 
@@ -806,24 +819,28 @@ class _AccountTradingRules(_AccountInstrumentForecast):
 
         """
 
-        self.log.terse(
-            "Calculating pandl for trading rule (unweighted) %s" %
-            rule_variation_name)
+        self.log.terse("Calculating pandl for trading rule (unweighted) %s" %
+                       rule_variation_name)
 
         instrument_list = self.parent.get_instrument_list()
-        instrument_list = [instr_code for instr_code in instrument_list
-                           if rule_variation_name in self.get_trading_rule_list(instr_code)]
+        instrument_list = [
+            instr_code for instr_code in instrument_list
+            if rule_variation_name in self.get_trading_rule_list(instr_code)
+        ]
 
-        pandl_by_instrument = [self.pandl_for_instrument_forecast(
-            instr_code, rule_variation_name, delayfill)
+        pandl_by_instrument = [
+            self.pandl_for_instrument_forecast(instr_code, rule_variation_name,
+                                               delayfill)
             for instr_code in instrument_list
         ]
 
-        pandl_rule = accountCurveGroup(pandl_by_instrument, instrument_list,
-                                       capital=ARBITRARY_FORECAST_CAPITAL, weighted_flag=False)
+        pandl_rule = accountCurveGroup(
+            pandl_by_instrument,
+            instrument_list,
+            capital=ARBITRARY_FORECAST_CAPITAL,
+            weighted_flag=False)
 
         return pandl_rule
-
 
     @diagnostic(not_pickable=True)
     def pandl_for_trading_rule(self, rule_variation_name, delayfill=True):
@@ -842,29 +859,29 @@ class _AccountTradingRules(_AccountInstrumentForecast):
 
         """
 
-        self=0
+        self = 0
         self.log.terse(
-            "Calculating pandl for trading rule %s" %
-            rule_variation_name)
+            "Calculating pandl for trading rule %s" % rule_variation_name)
 
         self.log.terse(
-            "Calculating pandl for trading rule %s" %
-            rule_variation_name)
+            "Calculating pandl for trading rule %s" % rule_variation_name)
 
         instrument_list = self.parent.get_instrument_list()
-        instrument_list = [instr_code for instr_code in instrument_list
-                           if rule_variation_name in self.get_trading_rule_list(instr_code)]
+        instrument_list = [
+            instr_code for instr_code in instrument_list
+            if rule_variation_name in self.get_trading_rule_list(instr_code)
+        ]
 
         # already weighted
         # capital on these will be the default
-        pandl_by_instrument_weighted = [self.pandl_for_instrument_forecast_weighted(
-            instr_code, rule_variation_name, delayfill)
+        pandl_by_instrument_weighted = [
+            self.pandl_for_instrument_forecast_weighted(
+                instr_code, rule_variation_name, delayfill)
             for instr_code in instrument_list
         ]
 
         # now we weight so total capital is correct
-        capital_this_rule = self.get_capital_in_rule(
-            rule_variation_name)
+        capital_this_rule = self.get_capital_in_rule(rule_variation_name)
 
         def _cleanweightelement(capelement):
             if np.isnan(capelement):
@@ -875,23 +892,28 @@ class _AccountTradingRules(_AccountInstrumentForecast):
                 return 1.0 / capelement
 
         weight = [
-            _cleanweightelement(capelement) for capelement in list(
-                capital_this_rule.values)]
+            _cleanweightelement(capelement)
+            for capelement in list(capital_this_rule.values)
+        ]
         weight = pd.Series(weight, index=capital_this_rule.index)
 
-        pandl_by_instrument_reweighted = [weighted(pandl_for_instrument, weight,
-                                                   allow_reweighting=True) for
-                                          pandl_for_instrument in pandl_by_instrument_weighted]
+        pandl_by_instrument_reweighted = [
+            weighted(pandl_for_instrument, weight, allow_reweighting=True)
+            for pandl_for_instrument in pandl_by_instrument_weighted
+        ]
 
-        pandl_rule = accountCurveGroup(pandl_by_instrument_reweighted, instrument_list,
-                                       capital=ARBITRARY_FORECAST_CAPITAL,
-                                       weighted_flag=True)
+        pandl_rule = accountCurveGroup(
+            pandl_by_instrument_reweighted,
+            instrument_list,
+            capital=ARBITRARY_FORECAST_CAPITAL,
+            weighted_flag=True)
 
         return pandl_rule
 
     @diagnostic(not_pickable=True)
-    def pandl_for_trading_rule_weighted(
-            self, rule_variation_name, delayfill=True):
+    def pandl_for_trading_rule_weighted(self,
+                                        rule_variation_name,
+                                        delayfill=True):
         """
         Get the p&l for one trading rule over multiple instruments; as % of total capital
 
@@ -907,30 +929,34 @@ class _AccountTradingRules(_AccountInstrumentForecast):
 
         """
         self.log.terse(
-            "Calculating pandl for trading rule %s" %
-            rule_variation_name)
+            "Calculating pandl for trading rule %s" % rule_variation_name)
 
         instrument_list = self.parent.get_instrument_list()
-        instrument_list = [instr_code for instr_code in instrument_list
-                           if rule_variation_name in self.get_trading_rule_list(instr_code)]
+        instrument_list = [
+            instr_code for instr_code in instrument_list
+            if rule_variation_name in self.get_trading_rule_list(instr_code)
+        ]
 
         # already weighted, don't need to do again
-        pandl_by_instrument_weighted = [self.pandl_for_instrument_forecast_weighted(
-            instr_code, rule_variation_name, delayfill)
+        pandl_by_instrument_weighted = [
+            self.pandl_for_instrument_forecast_weighted(
+                instr_code, rule_variation_name, delayfill)
             for instr_code in instrument_list
         ]
 
-        pandl_rule = accountCurveGroup(pandl_by_instrument_weighted, instrument_list,
-                                       capital=ARBITRARY_FORECAST_CAPITAL,
-                                       weighted_flag=True)
+        pandl_rule = accountCurveGroup(
+            pandl_by_instrument_weighted,
+            instrument_list,
+            capital=ARBITRARY_FORECAST_CAPITAL,
+            weighted_flag=True)
 
         return pandl_rule
 
-
-
     @output(not_pickable=True)
-    def pandl_for_instrument_rules_unweighted(
-            self, instrument_code, rule_list=None, delayfill=True):
+    def pandl_for_instrument_rules_unweighted(self,
+                                              instrument_code,
+                                              rule_list=None,
+                                              delayfill=True):
         """
         Get the p&l for one instrument over multiple forecasts; as % of arbitrary capital
 
@@ -956,23 +982,25 @@ class _AccountTradingRules(_AccountInstrumentForecast):
         {'ewmac16': 0.6799720823590352, 'ewmac8': 0.69594671177102}
         """
 
-        self.log.terse("Calculating pandl for instrument rules for %s" % instrument_code,
-                             instrument_code=instrument_code)
+        self.log.terse(
+            "Calculating pandl for instrument rules for %s" % instrument_code,
+            instrument_code=instrument_code)
 
         if rule_list is None:
-            rule_list = self.get_trading_rule_list(instrument_code
-                                                         )
-        pandl_rules = [self.pandl_for_instrument_forecast(
-            instrument_code, rule_variation_name, delayfill=delayfill)
+            rule_list = self.get_trading_rule_list(instrument_code)
+        pandl_rules = [
+            self.pandl_for_instrument_forecast(
+                instrument_code, rule_variation_name, delayfill=delayfill)
             for rule_variation_name in rule_list
         ]
 
-        pandl_rules = accountCurveGroup(pandl_rules, rule_list, capital=ARBITRARY_FORECAST_CAPITAL,
-                                        weighted_flag=False)
+        pandl_rules = accountCurveGroup(
+            pandl_rules,
+            rule_list,
+            capital=ARBITRARY_FORECAST_CAPITAL,
+            weighted_flag=False)
 
         return pandl_rules
-
-
 
 
 class _AccountActual(_AccountCosts):
@@ -1012,7 +1040,6 @@ class _AccountActual(_AccountCosts):
 
         return capmult
 
-
     @diagnostic()
     def get_actual_capital(self, delayfill=True, roundpositions=False):
         """
@@ -1032,8 +1059,7 @@ class _AccountActual(_AccountCosts):
         notional = self.get_notional_capital()
 
         if not isinstance(notional, pd.core.series.Series):
-            notional_ts = pd.Series(
-                [notional] * len(capmult), capmult.index)
+            notional_ts = pd.Series([notional] * len(capmult), capmult.index)
         else:
             notional_ts = notional.reindex(capmult.index).ffill()
 
@@ -1041,10 +1067,10 @@ class _AccountActual(_AccountCosts):
 
         return capital
 
-
     @diagnostic()
-    def get_buffered_position_with_multiplier(
-            self, instrument_code, roundpositions=True):
+    def get_buffered_position_with_multiplier(self,
+                                              instrument_code,
+                                              roundpositions=True):
         """
         Get the buffered position
 
@@ -1057,24 +1083,26 @@ class _AccountActual(_AccountCosts):
 
         """
 
-        self.log.msg(
-            "Calculating buffered positions with multiplier")
+        self.log.msg("Calculating buffered positions with multiplier")
         optimal_position = self.get_actual_position(instrument_code)
-        pos_buffers = self.get_actual_buffers_for_position(
-            instrument_code)
+        pos_buffers = self.get_actual_buffers_for_position(instrument_code)
         trade_to_edge = self.parent.config.buffer_trade_to_edge
 
-        buffered_position = apply_buffer(optimal_position, pos_buffers,
-                                         trade_to_edge=trade_to_edge, roundpositions=roundpositions)
+        buffered_position = apply_buffer(
+            optimal_position,
+            pos_buffers,
+            trade_to_edge=trade_to_edge,
+            roundpositions=roundpositions)
 
         buffered_position.columns = ["position"]
 
         return buffered_position
 
-
     @diagnostic(not_pickable=True)
-    def pandl_for_instrument_with_multiplier(
-            self, instrument_code, delayfill=True, roundpositions=True):
+    def pandl_for_instrument_with_multiplier(self,
+                                             instrument_code,
+                                             delayfill=True,
+                                             roundpositions=True):
         """
         Get the p&l for one instrument, using variable capital
 
@@ -1091,15 +1119,16 @@ class _AccountActual(_AccountCosts):
 
         """
 
-        self.log.msg("Calculating pandl for instrument for %s with capital multiplier" % instrument_code,
-                           instrument_code=instrument_code)
+        self.log.msg(
+            "Calculating pandl for instrument for %s with capital multiplier" %
+            instrument_code,
+            instrument_code=instrument_code)
 
         price = self.get_daily_price(instrument_code)
         positions = self.get_buffered_position_with_multiplier(
             instrument_code, roundpositions=roundpositions)
         fx = self.get_fx_rate(instrument_code)
-        value_of_price_point = self.get_value_of_price_move(
-            instrument_code)
+        value_of_price_point = self.get_value_of_price_move(instrument_code)
         get_daily_returns_volatility = self.get_daily_returns_volatility(
             instrument_code)
 
@@ -1110,12 +1139,18 @@ class _AccountActual(_AccountCosts):
 
         (SR_cost, cash_costs) = self.get_costs(instrument_code)
 
-        instr_pandl = accountCurve(price, positions=positions,
-                                   delayfill=delayfill, roundpositions=roundpositions,
-                                   fx=fx, value_of_price_point=value_of_price_point, capital=capital,
-                                   ann_risk_target=ann_risk_target,
-                                   SR_cost=SR_cost, cash_costs=cash_costs,
-                                   get_daily_returns_volatility=get_daily_returns_volatility)
+        instr_pandl = accountCurve(
+            price,
+            positions=positions,
+            delayfill=delayfill,
+            roundpositions=roundpositions,
+            fx=fx,
+            value_of_price_point=value_of_price_point,
+            capital=capital,
+            ann_risk_target=ann_risk_target,
+            SR_cost=SR_cost,
+            cash_costs=cash_costs,
+            get_daily_returns_volatility=get_daily_returns_volatility)
 
         if SR_cost is not None:
             # Note that SR cost is done as a proportion of capital
@@ -1124,13 +1159,13 @@ class _AccountActual(_AccountCosts):
             turnover_for_SR = self.instrument_turnover(
                 instrument_code, roundpositions=roundpositions)
             SR_cost = SR_cost * turnover_for_SR
-            weighting = self.get_instrument_scaling_factor(
-                instrument_code)
+            weighting = self.get_instrument_scaling_factor(instrument_code)
             apply_weight_to_costs_only = True
 
-            instr_pandl = weighted(instr_pandl,
-                                   weighting=weighting,
-                                   apply_weight_to_costs_only=apply_weight_to_costs_only)
+            instr_pandl = weighted(
+                instr_pandl,
+                weighting=weighting,
+                apply_weight_to_costs_only=apply_weight_to_costs_only)
 
         else:
             # Costs wil be correct
@@ -1138,7 +1173,6 @@ class _AccountActual(_AccountCosts):
             pass
 
         return instr_pandl
-
 
     @diagnostic(not_pickable=True)
     def portfolio_with_multiplier(self, delayfill=True, roundpositions=True):
@@ -1162,11 +1196,12 @@ class _AccountActual(_AccountCosts):
             self.pandl_for_instrument_with_multiplier(
                 instrument_code,
                 delayfill=delayfill,
-                roundpositions=roundpositions) for instrument_code in instruments]
+                roundpositions=roundpositions)
+            for instrument_code in instruments
+        ]
 
-        port_pandl = accountCurveGroup(port_pandl, instruments,
-                                       capital=capital,
-                                       weighted_flag=True)
+        port_pandl = accountCurveGroup(
+            port_pandl, instruments, capital=capital, weighted_flag=True)
 
         return port_pandl
 
@@ -1212,11 +1247,12 @@ class Account(_AccountActual, _AccountTradingRules, _AccountInstruments):
             self.pandl_for_instrument(
                 instrument_code,
                 delayfill=delayfill,
-                roundpositions=roundpositions) for instrument_code in instruments]
+                roundpositions=roundpositions)
+            for instrument_code in instruments
+        ]
 
-        port_pandl = accountCurveGroup(port_pandl, instruments,
-                                       capital=capital,
-                                       weighted_flag=True)
+        port_pandl = accountCurveGroup(
+            port_pandl, instruments, capital=capital, weighted_flag=True)
 
         return port_pandl
 

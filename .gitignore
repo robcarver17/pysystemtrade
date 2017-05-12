@@ -8,8 +8,13 @@ __pycache__
 dist
 build
 private
-.idea
+restats
 
 # Coverage reports
 .coverage
 .coverage.*
+
+# editor 
+.idea
+.project
+.pydevproject

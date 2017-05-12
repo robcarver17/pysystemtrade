@@ -12,8 +12,10 @@ import numpy as np
 
 config = Config("examples.smallaccountsize.smallaccount.yaml")
 
-system = System([Account(), PortfoliosEstimated(), PositionSizing(), FuturesRawData(), ForecastCombineFixed(),
-                 ForecastScaleCapFixed(), Rules()], csvFuturesData(), config)
+system = System([
+    Account(), PortfoliosEstimated(), PositionSizing(), FuturesRawData(),
+    ForecastCombineFixed(), ForecastScaleCapFixed(), Rules()
+], csvFuturesData(), config)
 
 system.set_logging_level("on")
 
@@ -22,7 +24,8 @@ all_assets = list(set(assetclasses.values))
 
 # corrmat=system.portfolio.get_instrument_correlation_matrix().corr_list[-1]
 instruments = system.get_instrument_list()
-max_positions = dict([(instrument_code, 2 * float(system.positionSize.get_volatility_scalar(instrument_code)[-250:].mean()))
+max_positions = dict([(instrument_code, 2 * float(
+    system.positionSize.get_volatility_scalar(instrument_code)[-250:].mean()))
                       for instrument_code in instruments])
 
 
@@ -32,53 +35,64 @@ def instr_asset_class(instrument_code, assetclasses):
 
 def asset_class_count(portfolio, all_assets, assetclasess):
     # for a particular, return how many of each asset class
-    assets_in_portfolio = [instr_asset_class(
-        code, assetclasses) for code in portfolio]
+    assets_in_portfolio = [
+        instr_asset_class(code, assetclasses) for code in portfolio
+    ]
     ans = dict([(asset_class, assets_in_portfolio.count(asset_class))
                 for asset_class in all_assets])
 
     return ans
 
 
-def which_asset_classes_next(
-        my_portfolio, suitable_instruments, all_assets, assetclasses):
+def which_asset_classes_next(my_portfolio, suitable_instruments, all_assets,
+                             assetclasses):
     # returns a list of asset classes we wish to stock up on
     # will be those for which my_portfolio is short and suitable_instruments
     # have to spare
     if len(my_portfolio) == 0:
         return all_assets
 
-    assets_in_my_portfolio = asset_class_count(
-        my_portfolio, all_assets, assetclasses)
-    suitable_assets = asset_class_count(
-        suitable_instruments, all_assets, assetclasses)
+    assets_in_my_portfolio = asset_class_count(my_portfolio, all_assets,
+                                               assetclasses)
+    suitable_assets = asset_class_count(suitable_instruments, all_assets,
+                                        assetclasses)
 
-    available = [asset_class for asset_class in all_assets
-                 if suitable_assets[asset_class] > 0]
+    available = [
+        asset_class for asset_class in all_assets
+        if suitable_assets[asset_class] > 0
+    ]
 
     largest_asset_class_size_in_portfolio = max(
         [assets_in_my_portfolio[asset_class] for asset_class in available])
 
-    if all([assets_in_my_portfolio[asset_class] == largest_asset_class_size_in_portfolio
-            for asset_class in available]):
+    if all([
+            assets_in_my_portfolio[asset_class] ==
+            largest_asset_class_size_in_portfolio for asset_class in available
+    ]):
         return available
 
-    underweight = [asset_class for asset_class in all_assets
-                   if assets_in_my_portfolio[asset_class] < largest_asset_class_size_in_portfolio and
-                   suitable_assets[asset_class] > 0]
+    underweight = [
+        asset_class for asset_class in all_assets
+        if assets_in_my_portfolio[asset_class] <
+        largest_asset_class_size_in_portfolio and
+        suitable_assets[asset_class] > 0
+    ]
 
     return underweight
 
 
-def rank_within_asset_class(
-        asset_class, suitable_instruments, assetclasses, max_positions):
+def rank_within_asset_class(asset_class, suitable_instruments, assetclasses,
+                            max_positions):
     # returns the largest of a list of instrument codes, ordered by maximum
     # position size
-    instruments_to_check = [code for code in suitable_instruments
-                            if instr_asset_class(code, assetclasses) == asset_class]
+    instruments_to_check = [
+        code for code in suitable_instruments
+        if instr_asset_class(code, assetclasses) == asset_class
+    ]
 
-    instrument_max_positions = [max_positions[code]
-                                for code in instruments_to_check]
+    instrument_max_positions = [
+        max_positions[code] for code in instruments_to_check
+    ]
 
     order = np.array(instrument_max_positions).argsort()
 
@@ -87,23 +101,29 @@ def rank_within_asset_class(
     return instruments_to_check[highest_max_idx]
 
 
-def choose_best_instrument(suitable_asset_classes,
-                           suitable_instruments, assetclasses, max_positions):
+def choose_best_instrument(suitable_asset_classes, suitable_instruments,
+                           assetclasses, max_positions):
     # select the instrument with the best max position across asset classes
-    best_max_by_class = [rank_within_asset_class(asset_class,
-                                                 suitable_instruments, assetclasses, max_positions)
-                         for asset_class in suitable_asset_classes]
+    best_max_by_class = [
+        rank_within_asset_class(asset_class, suitable_instruments,
+                                assetclasses, max_positions)
+        for asset_class in suitable_asset_classes
+    ]
 
-    instrument_max_positions = [max_positions[code]
-                                for code in best_max_by_class]
+    instrument_max_positions = [
+        max_positions[code] for code in best_max_by_class
+    ]
     order = np.array(instrument_max_positions).argsort()
     highest_max_idx = order[-1]
 
     return best_max_by_class[highest_max_idx]
 
 
-def average_correlation(instrument_code, corrmat,
-                        max_positions, instruments, portfolio=[]):
+def average_correlation(instrument_code,
+                        corrmat,
+                        max_positions,
+                        instruments,
+                        portfolio=[]):
     # returns the avg correlation of instrument_code with portfolio
 
     if len(portfolio) == 0:
@@ -112,9 +132,8 @@ def average_correlation(instrument_code, corrmat,
         portfolio.pop(portfolio.index(instrument_code))
 
     portfolio_index = [portfolio.index(code) for code in portfolio]
-    sub_corrmat = corrmat[
-        :, [portfolio_index]][
-        instruments.index(instrument_code), :]
+    sub_corrmat = corrmat[:, [portfolio_index]][instruments.index(
+        instrument_code), :]
     avg_corr = np.mean(sub_corrmat)
 
     return avg_corr
@@ -144,15 +163,11 @@ my_portfolio = []
 suitable_instruments = copy(instruments)
 suitable_instruments.pop(suitable_instruments.index("SHATZ"))
 
-
 while len(suitable_instruments) > 0:
     suitable_asset_classes = which_asset_classes_next(
         my_portfolio, suitable_instruments, all_assets, assetclasses)
-    best = choose_best_instrument(
-        suitable_asset_classes,
-        suitable_instruments,
-        assetclasses,
-        max_positions)
+    best = choose_best_instrument(suitable_asset_classes, suitable_instruments,
+                                  assetclasses, max_positions)
     print('{0: <12} '.format(best), max_positions[best])
 
     my_portfolio.append(best)

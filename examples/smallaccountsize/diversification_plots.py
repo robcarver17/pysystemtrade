@@ -12,20 +12,18 @@ idm_for_scatter = []
 roll_acc_for_scatter = []
 risk_for_scatter = []
 
-for (roll_acc_item, idm_item, mkt_count_item) in zip(
-        roll_acc, idm, mkt_counters):
+for (roll_acc_item, idm_item, mkt_count_item) in zip(roll_acc, idm,
+                                                     mkt_counters):
 
     (roll_acc_item, mkt_count_item) = align_to_joint(
         roll_acc_item, mkt_count_item, ffill=(True, True))
     (idm_item, mkt_count_item) = align_to_joint(
         idm_item, mkt_count_item, ffill=(True, True))
-    norm_risk = .2 / (roll_acc_item.resample("A").mean().iloc[
-                      :, 0] / idm_item.resample("A").mean().iloc[:, 0])
+    norm_risk = .2 / (roll_acc_item.resample("A").mean(
+    ).iloc[:, 0] / idm_item.resample("A").mean().iloc[:, 0])
 
     roll_acc_item_rs = list(
-        roll_acc_item.resample(
-            "A").mean().iloc[
-            :, 0].values)
+        roll_acc_item.resample("A").mean().iloc[:, 0].values)
     idm_item_rs = list(idm_item.resample("A").mean().iloc[:, 0].values)
     mktcount_item_rs = list(mkt_count_item.resample("A").mean().values)
 

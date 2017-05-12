@@ -64,7 +64,8 @@ class logger(object):
 
         else:
             raise Exception(
-                "Can only create a logger from another logger, or a str identifier")
+                "Can only create a logger from another logger, or a str identifier"
+            )
 
         setattr(self, "attributes", log_attributes)
         self.set_logging_level(log_level)
@@ -85,8 +86,9 @@ class logger(object):
         attributes = self.attributes
         attr_keys = sorted(attributes.keys())
 
-        attribute_desc = [keyname + ": " +
-                          str(attributes[keyname]) for keyname in attr_keys]
+        attribute_desc = [
+            keyname + ": " + str(attributes[keyname]) for keyname in attr_keys
+        ]
         return "Logger (%s) attributes- %s" % (self._log_level,
                                                ", ".join(attribute_desc))
 
@@ -97,8 +99,8 @@ class logger(object):
         log_attributes = new_log.attributes
         passed_attributes = kwargs
 
-        new_attributes = get_update_attributes_list(
-            log_attributes, passed_attributes)
+        new_attributes = get_update_attributes_list(log_attributes,
+                                                    passed_attributes)
 
         setattr(new_log, "attributes", new_attributes)
         setattr(new_log, "_log_level", self.logging_level())
@@ -109,8 +111,8 @@ class logger(object):
         log_attributes = self.attributes
         passed_attributes = kwargs
 
-        new_attributes = get_update_attributes_list(
-            log_attributes, passed_attributes)
+        new_attributes = get_update_attributes_list(log_attributes,
+                                                    passed_attributes)
 
         setattr(self, "attributes", new_attributes)
 
@@ -133,14 +135,15 @@ class logger(object):
         log_attributes = self.attributes
         passed_attributes = kwargs
 
-        use_attributes = get_update_attributes_list(
-            log_attributes, passed_attributes)
+        use_attributes = get_update_attributes_list(log_attributes,
+                                                    passed_attributes)
 
         self.log_handle_caller(msglevel, text, use_attributes)
 
     def log_handle_caller(self, msglevel, text, use_attributes):
         raise Exception(
-            "You're using a base class for logger - you need to use an inherited class like logtoscreen()")
+            "You're using a base class for logger - you need to use an inherited class like logtoscreen()"
+        )
 
 
 def get_update_attributes_list(parent_attributes, new_attributes):
@@ -201,6 +204,7 @@ class logtoscreen(logger):
 
         if msglevel == 4:
             raise Exception(text)
+
 
 if __name__ == '__main__':
     import doctest

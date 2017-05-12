@@ -22,7 +22,6 @@ def get_data(path):
 
 
 class Test(ut.TestCase):
-
     def test_robust_vol_calc(self):
         prices = get_data("syscore.tests.pricetestdata.csv")
         returns = prices.diff()
@@ -34,8 +33,7 @@ class Test(ut.TestCase):
         self.assertAlmostEqual(vol.iloc[-1], 0.43906619578902956)
 
     def test_robust_vol_calc_min_period(self):
-        prices = get_data(
-            "syscore.tests.pricetestdata_min_period.csv")
+        prices = get_data("syscore.tests.pricetestdata_min_period.csv")
 
         returns = prices.diff()
         vol = robust_vol_calc(returns, min_periods=9)
@@ -44,15 +42,13 @@ class Test(ut.TestCase):
         self.assertTrue(np.isnan(vol.iloc[-1]))
 
     def test_robust_vol_calc_min_value(self):
-        prices = get_data(
-            "syscore.tests.pricetestdata_zero_vol.csv")
+        prices = get_data("syscore.tests.pricetestdata_zero_vol.csv")
         returns = prices.diff()
         vol = robust_vol_calc(returns, vol_abs_min=0.01)
         self.assertEqual(vol.iloc[-1], 0.01)
 
     def test_robust_vol_calc_floor(self):
-        prices = get_data(
-            "syscore.tests.pricetestdata_vol_floor.csv")
+        prices = get_data("syscore.tests.pricetestdata_vol_floor.csv")
         returns = prices.diff()
 
         vol = robust_vol_calc(returns)
@@ -70,6 +66,7 @@ class Test(ut.TestCase):
         vol = robust_vol_calc(returns, floor_days=10, floor_min_periods=5)
         self.assertAlmostEqual(vol.iloc[-1], 0.42134038479240132)
 
+
 """
     def test_calc_ewmac_forecast(self):
         prices=pd_readcsv_frompackage("syscore", "pricetestdata.csv", ["tests"])
@@ -79,7 +76,6 @@ class Test(ut.TestCase):
         self.assertAlmostEqual(fcast.iloc[-1][0],20.914172249098829)
         self.assertEqual(fcast.shape, (528,1))
 """
-
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.test_robust_vol_calc']

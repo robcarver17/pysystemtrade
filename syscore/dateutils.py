@@ -6,7 +6,6 @@ import numpy as np
 import pandas as pd
 
 from syscore.genutils import sign
-
 """
 First some constants
 """
@@ -24,14 +23,15 @@ ROOT_MONTHS_IN_YEAR = MONTHS_IN_YEAR**.5
 
 ARBITRARY_START = pd.datetime(1900, 1, 1)
 
-HOURS_PER_DAY=24
-MINUTES_PER_HOUR=60
-SECONDS_PER_HOUR=60
+HOURS_PER_DAY = 24
+MINUTES_PER_HOUR = 60
+SECONDS_PER_HOUR = 60
 
 SECONDS_IN_YEAR = CALENDAR_DAYS_IN_YEAR * HOURS_PER_DAY * MINUTES_PER_HOUR * SECONDS_PER_HOUR
 UNIXTIME_CONVERTER = 1e9
 
 UNIXTIME_IN_YEAR = UNIXTIME_CONVERTER * SECONDS_IN_YEAR
+
 
 def expiry_date(expiry_ident):
     """
@@ -63,7 +63,8 @@ def expiry_date(expiry_ident):
         else:
             raise Exception("")
 
-    elif isinstance(expiry_ident, datetime.datetime) or isinstance(expiry_ident, datetime.date):
+    elif isinstance(expiry_ident, datetime.datetime) or isinstance(
+            expiry_ident, datetime.date):
         expiry_date = expiry_ident
 
     else:
@@ -103,9 +104,12 @@ def expiry_diff(carry_row, floor_date_diff=20):
 
 
 class fit_dates_object(object):
-
-    def __init__(self, fit_start, fit_end, period_start,
-                 period_end, no_data=False):
+    def __init__(self,
+                 fit_start,
+                 fit_end,
+                 period_start,
+                 period_end,
+                 no_data=False):
         setattr(self, "fit_start", fit_start)
         setattr(self, "fit_end", fit_end)
         setattr(self, "period_start", period_start)
@@ -114,11 +118,13 @@ class fit_dates_object(object):
 
     def __repr__(self):
         if self.no_data:
-            return "Fit without data, use from %s to %s" % (
-                self.period_start, self.period_end)
+            return "Fit without data, use from %s to %s" % (self.period_start,
+                                                            self.period_end)
         else:
-            return "Fit from %s to %s, use in %s to %s" % (
-                self.fit_start, self.fit_end, self.period_start, self.period_end)
+            return "Fit from %s to %s, use in %s to %s" % (self.fit_start,
+                                                           self.fit_end,
+                                                           self.period_start,
+                                                           self.period_end)
 
 
 def generate_fitting_dates(data, date_method, rollyears=20):
@@ -134,8 +140,8 @@ def generate_fitting_dates(data, date_method, rollyears=20):
 
     if date_method not in ["in_sample", "rolling", "expanding"]:
         raise Exception(
-            "don't recognise date_method %s should be one of in_sample, expanding, rolling" %
-            date_method)
+            "don't recognise date_method %s should be one of in_sample, expanding, rolling"
+            % date_method)
 
     if isinstance(data, list):
         start_date = min([dataitem.index[0] for dataitem in data])
@@ -150,11 +156,9 @@ def generate_fitting_dates(data, date_method, rollyears=20):
         return [fit_dates_object(start_date, end_date, start_date, end_date)]
 
     # generate list of dates, one year apart, including the final date
-    yearstarts = list(
-        pd.date_range(
-            start_date,
-            end_date,
-            freq="12M")) + [end_date]
+    yearstarts = list(pd.date_range(start_date, end_date, freq="12M")) + [
+        end_date
+    ]
 
     # loop through each period
     periods = []
@@ -171,8 +175,8 @@ def generate_fitting_dates(data, date_method, rollyears=20):
             fit_start = yearstarts[yearidx_to_use]
         else:
             raise Exception(
-                "don't recognise date_method %s should be one of in_sample, expanding, rolling" %
-                date_method)
+                "don't recognise date_method %s should be one of in_sample, expanding, rolling"
+                % date_method)
 
         if date_method in ['rolling', 'expanding']:
             fit_end = period_start
@@ -180,11 +184,7 @@ def generate_fitting_dates(data, date_method, rollyears=20):
             raise Exception("don't recognise date_method %s " % date_method)
 
         periods.append(
-            fit_dates_object(
-                fit_start,
-                fit_end,
-                period_start,
-                period_end))
+            fit_dates_object(fit_start, fit_end, period_start, period_end))
 
     if date_method in ['rolling', 'expanding']:
         # add on a dummy date for the first year, when we have no data
@@ -194,7 +194,8 @@ def generate_fitting_dates(data, date_method, rollyears=20):
                 start_date,
                 start_date,
                 yearstarts[1],
-                no_data=True)] + periods
+                no_data=True)
+        ] + periods
 
     return periods
 

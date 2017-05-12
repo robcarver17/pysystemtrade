@@ -4,6 +4,7 @@ import numpy as np
 from syscore.pdutils import create_arbitrary_pdseries
 import pandas as pd
 
+
 class RandomData(Data):
     """
     Generates random data for testing with a saw tooth pattern
@@ -56,11 +57,18 @@ class RandomData(Data):
             ## must have been cached
             return self._price_cache_random_data[instrument_code]
 
-        error_msg = "No price found for %s you need to run .generate_random_data(instrument_code=%s....)" % (instrument_code, instrument_code)
+        error_msg = "No price found for %s you need to run .generate_random_data(instrument_code=%s....)" % (
+            instrument_code, instrument_code)
         self.log.critical(error_msg)
 
-    def generate_random_data(self, instrument_code, Nlength, Tlength, Xamplitude, Volscale,
-                             sines=False, date_start=pd.datetime(1980, 1, 1)):
+    def generate_random_data(self,
+                             instrument_code,
+                             Nlength,
+                             Tlength,
+                             Xamplitude,
+                             Volscale,
+                             sines=False,
+                             date_start=pd.datetime(1980, 1, 1)):
         """
         Generates a trend of length N amplitude X, plus gaussian noise mean zero std. dev (vol scale * amplitude)
         With an arbitrary datetime index
@@ -94,9 +102,15 @@ class RandomData(Data):
 
         """
 
-        random_data=generate_trendy_pdseries(Nlength, Tlength, Xamplitude, Volscale, sines=sines, date_start=date_start)
+        random_data = generate_trendy_pdseries(
+            Nlength,
+            Tlength,
+            Xamplitude,
+            Volscale,
+            sines=sines,
+            date_start=date_start)
 
-        self._price_cache_random_data[instrument_code]=random_data
+        self._price_cache_random_data[instrument_code] = random_data
 
         return None
 
@@ -127,7 +141,10 @@ def generate_siney_trends(Nlength, Tlength, Xamplitude):
     cycles_as_pi = cycles * np.pi
     increment = cycles_as_pi / Nlength
 
-    alltrends = [np.sin(x) * halfAmplitude for x in np.arange(0.0, cycles_as_pi, increment)]
+    alltrends = [
+        np.sin(x) * halfAmplitude
+        for x in np.arange(0.0, cycles_as_pi, increment)
+    ]
     alltrends = alltrends[:Nlength]
 
     return alltrends
@@ -155,8 +172,10 @@ def generate_trends(Nlength, Tlength, Xamplitude):
 
     cycles = int(np.ceil(Nlength / Tlength))
 
-    trendup = list(np.arange(start=-halfAmplitude, stop=halfAmplitude, step=trend_step))
-    trenddown = list(np.arange(start=halfAmplitude, stop=-halfAmplitude, step=-trend_step))
+    trendup = list(
+        np.arange(start=-halfAmplitude, stop=halfAmplitude, step=trend_step))
+    trenddown = list(
+        np.arange(start=halfAmplitude, stop=-halfAmplitude, step=-trend_step))
     alltrends = [trendup + trenddown] * int(np.ceil(cycles))
     alltrends = sum(alltrends, [])
     alltrends = alltrends[:Nlength]
@@ -181,7 +200,12 @@ def generate_noise(Nlength, stdev):
     return [gauss(0.0, stdev) for Unused in range(Nlength)]
 
 
-def generate_trendy_pdseries(Nlength, Tlength, Xamplitude, Volscale, sines=False, date_start=pd.datetime(1980, 1, 1)):
+def generate_trendy_pdseries(Nlength,
+                             Tlength,
+                             Xamplitude,
+                             Volscale,
+                             sines=False,
+                             date_start=pd.datetime(1980, 1, 1)):
     """
     Generates a trend of length N amplitude X, plus gaussian noise mean zero std. dev (vol scale * amplitude)
     With an arbitrary datetime index
@@ -244,20 +268,21 @@ def generate_trendy_pdseries(Nlength, Tlength, Xamplitude, Volscale, sines=False
     else:
         process_as_list = generate_trends(Nlength, Tlength, Xamplitude)
 
-    pd_process = create_arbitrary_pdseries(process_as_list, date_start=date_start)
-    noise_returns = create_arbitrary_pdseries(noise_returns_as_list, date_start=date_start)
+    pd_process = create_arbitrary_pdseries(
+        process_as_list, date_start=date_start)
+    noise_returns = create_arbitrary_pdseries(
+        noise_returns_as_list, date_start=date_start)
 
     process_returns = pd_process.diff()
     combined_returns = noise_returns + process_returns
 
-    combined_returns[0]=0
+    combined_returns[0] = 0
     combined_price = combined_returns.cumsum()
 
     return combined_price
 
-
-
     return pdseries
+
 
 if __name__ == '__main__':
     import doctest

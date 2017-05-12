@@ -18,8 +18,10 @@ from systems.portfolio import Portfolios
 from systems.account import Account
 
 
-def futures_system(data=None, config=None,
-                   trading_rules=None, log_level="terse"):
+def futures_system(data=None,
+                   config=None,
+                   trading_rules=None,
+                   log_level="terse"):
     """
 
     :param data: data object (defaults to reading from csv files)
@@ -45,9 +47,10 @@ def futures_system(data=None, config=None,
 
     rules = Rules(trading_rules)
 
-    system = System([Account(), Portfolios(), PositionSizing(),
-                     FuturesRawData(), ForecastCombine(), ForecastScaleCap(),
-                     rules], data, config)
+    system = System([
+        Account(), Portfolios(), PositionSizing(), FuturesRawData(),
+        ForecastCombine(), ForecastScaleCap(), rules
+    ], data, config)
 
     system.set_logging_level(log_level)
 

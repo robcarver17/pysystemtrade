@@ -1,6 +1,7 @@
 from syscore.objects import get_methods
 from syslogdiag.log import logtoscreen
 
+
 class SystemStage(object):
     """
     Default stage object:  we inherit from this, rather than use 'in the raw'
@@ -32,7 +33,6 @@ class SystemStage(object):
         # this will normally be overriden by the base system when we call _system_init
         setattr(self, "log", logtoscreen(stage="config"))
 
-
     def _name(self):
         ## normally overriden
         return "unnamed"
@@ -43,7 +43,9 @@ class SystemStage(object):
 
     def __repr__(self):
         return "SystemStage '%s' %s Try %s.methods()" % (self.name,
-                                                                 self.description, self.name)
+                                                         self.description,
+                                                         self.name)
+
     def methods(self):
         return get_methods(self)
 
@@ -54,4 +56,3 @@ class SystemStage(object):
         # and a log
         log = system.log.setup(stage=self.name)
         setattr(self, "log", log)
-

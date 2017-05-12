@@ -56,7 +56,9 @@ def vol_estimator(x, using_exponent=True, min_periods=20, ew_lookback=250):
 
     """
     if using_exponent:
-        vol = x.ewm(span=ew_lookback, min_periods=min_periods).std().iloc[-1, :].values[0]
+        vol = x.ewm(
+            span=ew_lookback,
+            min_periods=min_periods).std().iloc[-1, :].values[0]
 
     else:
         with warnings.catch_warnings():
@@ -82,8 +84,9 @@ def mean_estimator(x, using_exponent=True, min_periods=20, ew_lookback=500):
 
     """
     if using_exponent:
-        means = x.ewm(x, span=ew_lookback,
-                        min_periods=min_periods).mean().iloc[-1, :].values[0]
+        means = x.ewm(
+            x, span=ew_lookback,
+            min_periods=min_periods).mean().iloc[-1, :].values[0]
 
     else:
         with warnings.catch_warnings():
@@ -99,9 +102,14 @@ def mean_estimator(x, using_exponent=True, min_periods=20, ew_lookback=500):
     return mean_list
 
 
-def robust_vol_calc(x, days=35, min_periods=10, vol_abs_min=0.0000000001,
-                    vol_floor=True, floor_min_quant=0.05,
-                    floor_min_periods=100, floor_days=500):
+def robust_vol_calc(x,
+                    days=35,
+                    min_periods=10,
+                    vol_abs_min=0.0000000001,
+                    vol_floor=True,
+                    floor_min_quant=0.05,
+                    floor_min_periods=100,
+                    floor_days=500):
     """
     Robust exponential volatility calculation, assuming daily series of prices
     We apply an absolute minimum level of vol (absmin);
@@ -145,8 +153,8 @@ def robust_vol_calc(x, days=35, min_periods=10, vol_abs_min=0.0000000001,
     if vol_floor:
         # Find the rolling 5% quantile point to set as a minimum
         vol_min = vol.rolling(
-            min_periods=floor_min_periods,
-            window=floor_days).quantile(quantile=floor_min_quant)
+            min_periods=floor_min_periods, window=floor_days).quantile(
+                quantile=floor_min_quant)
 
         # set this to zero for the first value then propogate forward, ensures
         # we always have a value
@@ -242,8 +250,10 @@ def apply_buffer_single_period(last_position, optimal_position, top_pos,
         return last_position
 
 
-def apply_buffer(optimal_position, pos_buffers,
-                 trade_to_edge=False, roundpositions=False):
+def apply_buffer(optimal_position,
+                 pos_buffers,
+                 trade_to_edge=False,
+                 roundpositions=False):
     """
     Apply a buffer to a position
 
@@ -286,16 +296,17 @@ def apply_buffer(optimal_position, pos_buffers,
 
     for idx in range(len(optimal_position.index))[1:]:
         current_position = apply_buffer_single_period(
-            current_position, float(use_optimal_position.values[idx]),
-            float(top_pos.values[idx]), float(bot_pos.values[idx]),
-            trade_to_edge)
+            current_position,
+            float(use_optimal_position.values[idx]),
+            float(top_pos.values[idx]),
+            float(bot_pos.values[idx]), trade_to_edge)
         buffered_position_list.append(current_position)
 
     buffered_position = pd.Series(
-        buffered_position_list,
-        index=optimal_position.index)
+        buffered_position_list, index=optimal_position.index)
 
     return buffered_position
+
 
 if __name__ == '__main__':
     import doctest

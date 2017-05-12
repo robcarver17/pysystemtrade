@@ -16,21 +16,25 @@ import matplotlib.pyplot as plt
 
 
 class Test(unittest.TestCase):
-
     def testRules(self):
 
         # config=Config(dict(trading_rules=dict(ewmac=dict(function="systems.provided.example.rules.ewmac_forecast_with_defaults"))))
         data = csvFuturesData("sysdata.tests")
 
         rules = Rules(
-            dict(function="systems.provided.example.rules.ewmac_forecast_with_defaults"))
+            dict(
+                function=
+                "systems.provided.example.rules.ewmac_forecast_with_defaults"))
         system = System([rules], data)
 
         ans = system.rules.get_raw_forecast("EDOLLAR", "rule0")
         self.assertAlmostEqual(ans.tail(1).values[0], 2.1384223788141838, 5)
 
-        config = Config(dict(trading_rules=dict(ewmac=dict(
-            function="systems.provided.example.rules.ewmac_forecast_with_defaults"))))
+        config = Config(
+            dict(trading_rules=dict(ewmac=dict(
+                function=
+                "systems.provided.example.rules.ewmac_forecast_with_defaults"))
+                 ))
         rules = Rules()
         system = System([rules], data, config)
         ans = system.rules.get_raw_forecast("EDOLLAR", "ewmac")
@@ -52,13 +56,15 @@ class Test(unittest.TestCase):
         assert (rule.function, rule.data, rule.other_args) == (
             rule2.function, rule2.data, rule2.other_args)
 
-        rule3 = TradingRule(ewmac_forecast_with_defaults, [
-                            "data.get_instrument_price"], dict(Lfast=50, Lslow=200))
+        rule3 = TradingRule(ewmac_forecast_with_defaults,
+                            ["data.get_instrument_price"],
+                            dict(Lfast=50, Lslow=200))
 
         assert rule3.data == ["data.get_instrument_price"]
 
         rule4 = TradingRule(ewmac_forecast_with_defaults,
-                            "data.get_instrument_price", dict(Lfast=50, Lslow=200))
+                            "data.get_instrument_price",
+                            dict(Lfast=50, Lslow=200))
 
         assert rule4.data == ["data.get_instrument_price"]
 
@@ -71,13 +77,15 @@ class Test(unittest.TestCase):
         except:
             pass
 
-        rule7 = TradingRule("systems.provided.example.rules.ewmac_forecast_with_defaults", [
-        ], dict(Lfast=50, Lslow=200))
+        rule7 = TradingRule(
+            "systems.provided.example.rules.ewmac_forecast_with_defaults", [],
+            dict(Lfast=50, Lslow=200))
         assert rule7.function == rule.function
 
         try:
-            rule8 = TradingRule("not.a.real.rule.just.a.string.of.arbitrary.text", [
-            ], dict(Lfast=50, Lslow=200))
+            rule8 = TradingRule(
+                "not.a.real.rule.just.a.string.of.arbitrary.text", [],
+                dict(Lfast=50, Lslow=200))
             raise Exception("Should have failed with non existent rule")
         except:
             pass
@@ -91,13 +99,18 @@ class Test(unittest.TestCase):
         except:
             pass
 
-        rule11 = TradingRule(dict(function="systems.provided.example.rules.ewmac_forecast_with_defaults",
-                                  other_args=dict(Lfast=50), data=[]))
+        rule11 = TradingRule(
+            dict(
+                function=
+                "systems.provided.example.rules.ewmac_forecast_with_defaults",
+                other_args=dict(Lfast=50),
+                data=[]))
 
-        rule12 = TradingRule(ewmac_forecast_with_defaults,
-                             other_args=dict(Lfast=30))
+        rule12 = TradingRule(
+            ewmac_forecast_with_defaults, other_args=dict(Lfast=30))
         rule13 = TradingRule(
-            "systems.provided.example.rules.ewmac_forecast_with_defaults", data="data.get_pricedata")
+            "systems.provided.example.rules.ewmac_forecast_with_defaults",
+            data="data.get_pricedata")
         assert rule13.data == ["data.get_pricedata"]
 
         rule14 = TradingRule(ewmac_forecast_with_defaults)
@@ -123,16 +136,23 @@ class Test(unittest.TestCase):
         self.assertAlmostEqual(ans.tail(1).values[0], 2.1384223788141838, 5)
 
         # Change the data source
-        rule = TradingRule(("systems.provided.example.rules.ewmac_forecast_with_defaults_no_vol",
-                            ["rawdata.get_daily_prices", "rawdata.daily_returns_volatility"], dict()))
+        rule = TradingRule((
+            "systems.provided.example.rules.ewmac_forecast_with_defaults_no_vol",
+            ["rawdata.get_daily_prices",
+             "rawdata.daily_returns_volatility"], dict()))
 
         ans = rule.call(system, "EDOLLAR")
         self.assertAlmostEqual(ans.tail(1).values[0], 0.029376, 5)
 
-        rule = TradingRule(dict(function="systems.provided.example.rules.ewmac_forecast_with_defaults_no_vol",
-                                data=["rawdata.get_daily_prices",
-                                      "rawdata.daily_returns_volatility"],
-                                other_args=dict(Lfast=50, Lslow=200)))
+        rule = TradingRule(
+            dict(
+                function=
+                "systems.provided.example.rules.ewmac_forecast_with_defaults_no_vol",
+                data=[
+                    "rawdata.get_daily_prices",
+                    "rawdata.daily_returns_volatility"
+                ],
+                other_args=dict(Lfast=50, Lslow=200)))
         ans = rule.call(system, "EDOLLAR")
         self.assertAlmostEqual(ans.tail(1).values[0], 3.84426755)
 
@@ -142,20 +162,25 @@ class Test(unittest.TestCase):
         rawdata = FuturesRawData()
         rules = Rules()
         system = System([rawdata, rules], data)
-        rule = TradingRule(carry,
-                           ["rawdata.daily_annualised_roll",
-                            "rawdata.daily_returns_volatility"],
-                           dict(smooth_days=90))
+        rule = TradingRule(
+            carry, [
+                "rawdata.daily_annualised_roll",
+                "rawdata.daily_returns_volatility"
+            ],
+            dict(smooth_days=90))
         ans = rule.call(system, "EDOLLAR")
         self.assertAlmostEqual(ans.tail(1).values[0], 0.411686026, 5)
 
     def testProcessTradingRuleSpec(self):
 
         ruleA = TradingRule(ewmac_forecast_with_defaults)
-        ruleB = TradingRule(dict(function="systems.provided.example.rules.ewmac_forecast_with_defaults_no_vol",
-                                 data=["rawdata.daily_prices",
-                                       "rawdata.daily_returns_volatility"],
-                                 other_args=dict(Lfast=50, Lslow=200)))
+        ruleB = TradingRule(
+            dict(
+                function=
+                "systems.provided.example.rules.ewmac_forecast_with_defaults_no_vol",
+                data=
+                ["rawdata.daily_prices", "rawdata.daily_returns_volatility"],
+                other_args=dict(Lfast=50, Lslow=200)))
 
         trading_rules = dict(ruleA=ruleA, ruleB=ruleB)
         ans = process_trading_rules(trading_rules)
@@ -172,10 +197,15 @@ class Test(unittest.TestCase):
         ans = process_trading_rules(ewmac_forecast_with_defaults)
         assert ans['rule0'].function == ewmac_forecast_with_defaults
 
-        ans = process_trading_rules([dict(function="systems.provided.example.rules.ewmac_forecast_with_defaults_no_vol",
-                                          data=["rawdata.daily_prices",
-                                                "rawdata.daily_returns_volatility"],
-                                          other_args=dict(Lfast=50, Lslow=200))])
+        ans = process_trading_rules([
+            dict(
+                function=
+                "systems.provided.example.rules.ewmac_forecast_with_defaults_no_vol",
+                data=[
+                    "rawdata.daily_prices", "rawdata.daily_returns_volatility"
+                ],
+                other_args=dict(Lfast=50, Lslow=200))
+        ])
         assert ans['rule0'].other_args['Lfast'] == 50
 
 

@@ -2,8 +2,8 @@ import pandas as pd
 import numpy as np
 from syscore.dateutils import UNIXTIME_IN_YEAR
 
-def my_regr(df, idx=None, timewindow=None, min_periods=10):
 
+def my_regr(df, idx=None, timewindow=None, min_periods=10):
     """
     Runs a single regression at point idx, using window length window, returning gradient / beta
 
@@ -25,29 +25,39 @@ def my_regr(df, idx=None, timewindow=None, min_periods=10):
 
     ## default to regressing from last point in data
     if idx is None:
-        idx= len(df.index) - 1
+        idx = len(df.index) - 1
 
     ## default to using entire data frame for regression
     if timewindow is None:
         timewindow = len(df.index)
 
-    data_start=max(idx - timewindow + 1, 0)
+    data_start = max(idx - timewindow + 1, 0)
 
-
-    df_subset= df[data_start:idx]
+    df_subset = df[data_start:idx]
 
     ## remove nans in both x andd y
-    clean_x=[xvalue for (xvalue, yvalue) in zip(df_subset["x"].values, df_subset["y"].values) if not (np.isnan(xvalue) or np.isnan(yvalue))]
-    clean_y=[yvalue for (xvalue, yvalue) in zip(df_subset["x"].values, df_subset["y"].values) if not (np.isnan(xvalue) or np.isnan(yvalue))]
+    clean_x = [
+        xvalue
+        for (xvalue,
+             yvalue) in zip(df_subset["x"].values, df_subset["y"].values)
+        if not (np.isnan(xvalue) or np.isnan(yvalue))
+    ]
+    clean_y = [
+        yvalue
+        for (xvalue,
+             yvalue) in zip(df_subset["x"].values, df_subset["y"].values)
+        if not (np.isnan(xvalue) or np.isnan(yvalue))
+    ]
 
     ## enforce minimum amount of data
-    if len(clean_x)<min_periods:
+    if len(clean_x) < min_periods:
         return np.nan
 
     ## do the regression
     gradient, intercept = np.polyfit(clean_x, clean_y, 1)
 
     return gradient
+
 
 def regression_rule(price, volatility, timewindow=256, min_periods=10):
     """
@@ -72,20 +82,22 @@ def regression_rule(price, volatility, timewindow=256, min_periods=10):
     ## internal pandas implementation of date time is unix time
 
     rawx = list(price.index.astype(np.int64))
-    x=[(xvalue - rawx[0])/UNIXTIME_IN_YEAR for xvalue in rawx]
-    x=pd.Series(x, price.index)
+    x = [(xvalue - rawx[0]) / UNIXTIME_IN_YEAR for xvalue in rawx]
+    x = pd.Series(x, price.index)
 
     ## For regression y=mx + b, where y is price, m is gradient or forecast value
-    df=pd.concat([price, x], axis=1)
-    df.columns=["y", "x"]
+    df = pd.concat([price, x], axis=1)
+    df.columns = ["y", "x"]
 
     ## Rolling regression, returns gradient which is also forecast
-    ols_ans=[my_regr(df, idx=idx_start, timewindow=timewindow, min_periods=min_periods) for idx_start in range(len(df.index))]
+    ols_ans = [
+        my_regr(
+            df, idx=idx_start, timewindow=timewindow, min_periods=min_periods)
+        for idx_start in range(len(df.index))
+    ]
 
-    ols_ans=pd.Series(ols_ans, index=price.index)
+    ols_ans = pd.Series(ols_ans, index=price.index)
 
     ols_ans = ols_ans / volatility
 
-    return(ols_ans)
-
-
+    return (ols_ans)

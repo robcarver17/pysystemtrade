@@ -13,15 +13,16 @@ rulename = ["ewmac64_256"]
 rule_name = rulename[0]
 
 # so we use all the markets we have, equal weighted
-del(config.instrument_weights)
+del (config.instrument_weights)
 config.notional_trading_capital = 10000000
 config.forecast_weights = dict([(rule, 1.0) for rule in rulename])
 config.use_instrument_weight_estimates = True
 config.notional_trading_capital = 10000000
 
-system = System([Account(), Portfolios(), PositionSizing(), FuturesRawData(), ForecastCombine(),
-                 ForecastScaleCap(), Rules()], csvFuturesData(),
-                config)
+system = System([
+    Account(), Portfolios(), PositionSizing(), FuturesRawData(),
+    ForecastCombine(), ForecastScaleCap(), Rules()
+], csvFuturesData(), config)
 system.set_logging_level("on")
 
 a2 = system.accounts.portfolio()
@@ -37,8 +38,11 @@ return_period = int((250 / 7.5))
 days = 256
 
 
-def get_scatter_data_for_code_vol(
-        system, instrument_code, rule_name, return_period=5, days=64):
+def get_scatter_data_for_code_vol(system,
+                                  instrument_code,
+                                  rule_name,
+                                  return_period=5,
+                                  days=64):
 
     denom_price = system.rawdata.daily_denominator_price(instrument_code)
     x = system.rawdata.daily_returns(instrument_code)
@@ -61,8 +65,8 @@ def get_scatter_data_for_code_vol(
     ex_post_returns = period_returns.shift(-return_period)
     lagged_vol = vol_qq.shift(1)
 
-    return (list(ex_post_returns.iloc[:, 0].values), list(
-        lagged_vol.iloc[:, 0].values))
+    return (list(ex_post_returns.iloc[:, 0].values),
+            list(lagged_vol.iloc[:, 0].values))
 
 
 def clean_data(x, y, maxstd=6.0):
@@ -109,8 +113,10 @@ def bin_fit(x, y, buckets=3):
 
         x_values_to_plot.append(np.mean([lower_bin_x, upper_bin_x]))
 
-        y_in_bin = [y[idx] for idx in range(len(y)) if x[idx] >= lower_bin_x and x[
-            idx] < upper_bin_x]
+        y_in_bin = [
+            y[idx] for idx in range(len(y))
+            if x[idx] >= lower_bin_x and x[idx] < upper_bin_x
+        ]
 
         fit_y.append(np.nanmedian(y_in_bin))
         err_y.append(np.nanstd(y_in_bin))
@@ -119,10 +125,10 @@ def bin_fit(x, y, buckets=3):
 
     return (binlimits, x_values_to_plot, fit_y, err_y)
 
+
 instrument_list = system.get_instrument_list()
 
 all_scatter = dict(returns=[], vol=[])
-
 
 for instrument_code in instrument_list:
     this_instrument_data = get_scatter_data_for_code_vol(
@@ -133,6 +139,5 @@ for instrument_code in instrument_list:
 (returns, forecast) = clean_data(all_scatter['returns'], all_scatter['vol'])
 
 (binlimits, x_values_to_plot, fit_y, err_y) = bin_fit(forecast, returns)
-
 
 # this time we multiply the forecast by the fitted Value

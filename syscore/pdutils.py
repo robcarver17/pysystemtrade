@@ -69,8 +69,7 @@ def df_from_list(data):
 
 
 def must_haves_from_list(data):
-    must_haves_list = [must_have_item(data_item)
-                       for data_item in data]
+    must_haves_list = [must_have_item(data_item) for data_item in data]
     must_haves = list(set(sum(must_haves_list, [])))
 
     return must_haves
@@ -237,7 +236,7 @@ def drawdown(x):
     return x - maxx
 
 
-def from_dict_of_values_to_df(data_dict, ts_index, columns = None):
+def from_dict_of_values_to_df(data_dict, ts_index, columns=None):
     """
     Turn a set of fixed values into a pd.dataframe
 
@@ -248,17 +247,21 @@ def from_dict_of_values_to_df(data_dict, ts_index, columns = None):
     """
 
     if columns is None:
-        columns=data_dict.keys()
+        columns = data_dict.keys()
 
     columns_as_list = list(columns)
 
-    numeric_values = dict([(keyname, [data_dict[keyname]]*len(ts_index)) for keyname in columns_as_list])
+    numeric_values = dict([(keyname, [data_dict[keyname]] * len(ts_index))
+                           for keyname in columns_as_list])
 
     pd_dataframe = pd.DataFrame(numeric_values, ts_index)
 
     return pd_dataframe
 
-def create_arbitrary_pdseries(data_list, date_start=pd.datetime(1980,1,1), freq="B"):
+
+def create_arbitrary_pdseries(data_list,
+                              date_start=pd.datetime(1980, 1, 1),
+                              freq="B"):
     """
     Return a pandas Series with an arbitrary date index
 
@@ -280,11 +283,13 @@ def create_arbitrary_pdseries(data_list, date_start=pd.datetime(1980,1,1), freq=
     Freq: D, dtype: int64
     """
 
-    date_index=pd.date_range(start=date_start, periods=len(data_list), freq=freq)
+    date_index = pd.date_range(
+        start=date_start, periods=len(data_list), freq=freq)
 
-    pdseries=pd.Series(data_list, index=date_index)
+    pdseries = pd.Series(data_list, index=date_index)
 
     return pdseries
+
 
 def dataframe_pad(starting_df, column_list, padwith=0.0):
     """
@@ -300,14 +305,18 @@ def dataframe_pad(starting_df, column_list, padwith=0.0):
         if column_name in starting_df.columns:
             return starting_df[column_name]
         else:
-            return pd.Series([0.0]*len(starting_df.index), starting_df.index)
+            return pd.Series([0.0] * len(starting_df.index), starting_df.index)
 
-    new_data = [_pad_column(column_name, starting_df, padwith) for column_name in column_list]
+    new_data = [
+        _pad_column(column_name, starting_df, padwith)
+        for column_name in column_list
+    ]
 
     new_df = pd.concat(new_data, axis=1)
     new_df.columns = column_list
 
     return new_df
+
 
 if __name__ == '__main__':
     import doctest

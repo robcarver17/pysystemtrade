@@ -9,7 +9,6 @@ from syscore.pdutils import fix_weights_vs_pdm
 from syscore.objects import update_recalc, resolve_function
 from syscore.genutils import str2Bool
 from systems.system_cache import input, dont_cache, diagnostic, output
-
 """
 Stage for portfolios
 
@@ -20,6 +19,7 @@ multiplier
 Note: At this stage we're dealing with a notional, fixed, amount of capital.
      We'll need to work out p&l to scale positions properly
 """
+
 
 class _PortfoliosInputs(SystemStage):
     """
@@ -35,8 +35,9 @@ class _PortfoliosInputs(SystemStage):
         if hasattr(self.parent, "accounts"):
             return self.parent.accounts.capital_multiplier()
         else:
-            self.log.critical("If using capital_multiplier to work out actual positions, need an accounts module")
-
+            self.log.critical(
+                "If using capital_multiplier to work out actual positions, need an accounts module"
+            )
 
     @input
     def use_estimated_instrument_weights(self):
@@ -51,7 +52,6 @@ class _PortfoliosInputs(SystemStage):
         It will determine if we use an estimate or a fixed class of object
         """
         return str2Bool(self.parent.config.use_instrument_div_mult_estimates)
-
 
     @input
     def get_subsystem_position(self, instrument_code):
@@ -89,8 +89,10 @@ class _PortfoliosInputs(SystemStage):
         """
         instrument_codes = self.parent.get_instrument_list()
 
-        positions = [self.get_subsystem_position(
-            instr_code) for instr_code in instrument_codes]
+        positions = [
+            self.get_subsystem_position(instr_code)
+            for instr_code in instrument_codes
+        ]
         positions = pd.concat(positions, axis=1)
         positions.columns = instrument_codes
 
@@ -175,7 +177,6 @@ class _PortfoliosCalculateWeights(_PortfoliosInputs):
 
         """
 
-
         # Get some useful stuff from the config
         weighting_params = copy(self.parent.config.instrument_weight_estimate)
 
@@ -189,9 +190,7 @@ class _PortfoliosCalculateWeights(_PortfoliosInputs):
         instrument_codes = system.get_instrument_list()
 
         weight_func = weighting_func(
-            log=self.log.setup(
-                call="weighting"),
-            **weighting_params)
+            log=self.log.setup(call="weighting"), **weighting_params)
 
         if hasattr(system, "accounts"):
             pandl = self.pandl_across_subsystems()
@@ -204,13 +203,14 @@ class _PortfoliosCalculateWeights(_PortfoliosInputs):
             error_msg = "You need an accounts stage in the system to estimate instrument weights"
             self.log.critical(error_msg)
 
-        SR_cost_list = [self.get_instrument_subsystem_SR_cost(
-            instr_code) for instr_code in instrument_codes]
+        SR_cost_list = [
+            self.get_instrument_subsystem_SR_cost(instr_code)
+            for instr_code in instrument_codes
+        ]
 
         weight_func.optimise()
 
         return weight_func
-
 
     @diagnostic()
     def get_raw_estimated_instrument_weights(self):
@@ -278,8 +278,8 @@ class _PortfoliosCalculateWeights(_PortfoliosInputs):
 
             self.log.warn(warn_msg)
 
-            instrument_weights = dict(
-                [(instrument_code, weight) for instrument_code in instruments])
+            instrument_weights = dict([(instrument_code, weight)
+                                       for instrument_code in instruments])
 
         # Now we have a dict, fixed_weights.
         # Need to turn into a timeseries covering the range of forecast
@@ -288,7 +288,8 @@ class _PortfoliosCalculateWeights(_PortfoliosInputs):
 
         subsys_ts = [
             self.get_subsystem_position(instrument_code).index
-            for instrument_code in instrument_list]
+            for instrument_code in instrument_list
+        ]
 
         earliest_date = min([min(fts) for fts in subsys_ts])
         latest_date = max([max(fts) for fts in subsys_ts])
@@ -296,11 +297,9 @@ class _PortfoliosCalculateWeights(_PortfoliosInputs):
         # this will be daily, but will be resampled later
         weight_ts = pd.date_range(start=earliest_date, end=latest_date)
 
-        instrument_weights_weights = dict([
-                                              (instrument_code, pd.Series([instrument_weights[
-                                                                               instrument_code]] * len(weight_ts),
-                                                                          index=weight_ts))
-                                              for instrument_code in instrument_list])
+        instrument_weights_weights = dict([(instrument_code, pd.Series(
+            [instrument_weights[instrument_code]] * len(weight_ts),
+            index=weight_ts)) for instrument_code in instrument_list])
 
         instrument_weights_weights = pd.concat(
             instrument_weights_weights, axis=1)
@@ -327,14 +326,16 @@ class _PortfoliosCalculateWeights(_PortfoliosInputs):
 
         instrument_list = list(raw_instr_weights.columns)
 
-        subsys_positions = [self.get_subsystem_position(instrument_code)
-                            for instrument_code in instrument_list]
+        subsys_positions = [
+            self.get_subsystem_position(instrument_code)
+            for instrument_code in instrument_list
+        ]
 
         subsys_positions = pd.concat(subsys_positions, axis=1).ffill()
         subsys_positions.columns = instrument_list
 
-        instrument_weights = fix_weights_vs_pdm(
-            raw_instr_weights, subsys_positions)
+        instrument_weights = fix_weights_vs_pdm(raw_instr_weights,
+                                                subsys_positions)
 
         smooth_weighting = self.parent.config.instrument_weight_ewma_span
 
@@ -342,8 +343,6 @@ class _PortfoliosCalculateWeights(_PortfoliosInputs):
         instrument_weights = instrument_weights.ewm(smooth_weighting).mean()
 
         return instrument_weights
-
-
 
 
 class _PortfoliosCalculateIDM(_PortfoliosInputs):
@@ -354,7 +353,6 @@ class _PortfoliosCalculateIDM(_PortfoliosInputs):
 
     def _name(self):
         return "*DO NOT USE INDEPENDENTLY USED INSIDE PORTFOLIOS CLASS*"
-
 
     @diagnostic(protected=True, not_pickable=True)
     def get_instrument_correlation_matrix(self):
@@ -411,8 +409,6 @@ class _PortfoliosCalculateIDM(_PortfoliosInputs):
 
         return corr_func(pandl, **corr_params)
 
-
-
     @diagnostic()
     def get_estimated_instrument_diversification_multiplier(self):
         """
@@ -448,13 +444,10 @@ class _PortfoliosCalculateIDM(_PortfoliosInputs):
         correlation_list_object = self.get_instrument_correlation_matrix()
         weight_df = self.get_instrument_weights()
 
-        ts_idm = idm_func(
-            correlation_list_object,
-            weight_df,
-            **div_mult_params)
+        ts_idm = idm_func(correlation_list_object, weight_df,
+                          **div_mult_params)
 
         return ts_idm
-
 
     @diagnostic()
     def get_fixed_instrument_diversification_multiplier(self):
@@ -494,8 +487,7 @@ class _PortfoliosCalculateIDM(_PortfoliosInputs):
         # this will be daily, but will be resampled later
         weight_ts = self.get_instrument_weights().index
 
-        ts_idm = pd.Series([div_mult] * len(weight_ts),
-                           index=weight_ts)
+        ts_idm = pd.Series([div_mult] * len(weight_ts), index=weight_ts)
 
         return ts_idm
 
@@ -509,7 +501,6 @@ class _PortfoliosCalculateIDM(_PortfoliosInputs):
 
 
 class Portfolios(_PortfoliosCalculateIDM, _PortfoliosCalculateWeights):
-
     def _name(self):
         return "portfolio"
 
@@ -540,16 +531,15 @@ class Portfolios(_PortfoliosCalculateIDM, _PortfoliosCalculateWeights):
 
         """
 
-        self.log.msg("Calculating notional position for %s" % instrument_code,
-                           instrument_code=instrument_code)
+        self.log.msg(
+            "Calculating notional position for %s" % instrument_code,
+            instrument_code=instrument_code)
 
         idm = self.get_instrument_diversification_multiplier()
         instr_weights = self.get_instrument_weights()
-        subsys_position = self.get_subsystem_position(
-            instrument_code)
+        subsys_position = self.get_subsystem_position(instrument_code)
 
-        inst_weight_this_code = instr_weights[
-            instrument_code]
+        inst_weight_this_code = instr_weights[instrument_code]
 
         inst_weight_this_code = inst_weight_this_code.reindex(
             subsys_position.index).ffill()
@@ -581,8 +571,9 @@ class Portfolios(_PortfoliosCalculateIDM, _PortfoliosCalculateWeights):
         2015-12-11  0.152676
         """
 
-        self.log.msg("Calculating position method buffer for %s" % instrument_code,
-                           instrument_code=instrument_code)
+        self.log.msg(
+            "Calculating position method buffer for %s" % instrument_code,
+            instrument_code=instrument_code)
 
         buffer_size = self.parent.config.buffer_size
 
@@ -617,19 +608,18 @@ class Portfolios(_PortfoliosCalculateIDM, _PortfoliosCalculateWeights):
         2015-12-11  0.619976
         """
 
-        self.log.msg("Calculating forecast method buffers for %s" % instrument_code,
-                           instrument_code=instrument_code)
+        self.log.msg(
+            "Calculating forecast method buffers for %s" % instrument_code,
+            instrument_code=instrument_code)
 
         buffer_size = self.parent.config.buffer_size
         position = self.get_notional_position(instrument_code)
 
         idm = self.get_instrument_diversification_multiplier()
         instr_weights = self.get_instrument_weights()
-        vol_scalar = self.get_volatility_scalar(
-            instrument_code)
+        vol_scalar = self.get_volatility_scalar(instrument_code)
 
-        inst_weight_this_code = instr_weights[
-            instrument_code]
+        inst_weight_this_code = instr_weights[instrument_code]
 
         inst_weight_this_code = inst_weight_this_code.reindex(
             position.index).ffill()
@@ -666,8 +656,9 @@ class Portfolios(_PortfoliosCalculateIDM, _PortfoliosCalculateWeights):
         2015-12-11  1.679435  1.374083
         """
         system = self.parent
-        self.log.msg("Calculating buffers for %s" % instrument_code,
-                           instrument_code=instrument_code)
+        self.log.msg(
+            "Calculating buffers for %s" % instrument_code,
+            instrument_code=instrument_code)
 
         buffer_method = system.config.buffer_method
 
@@ -676,15 +667,12 @@ class Portfolios(_PortfoliosCalculateIDM, _PortfoliosCalculateWeights):
         elif buffer_method == "position":
             buffer = self.get_position_method_buffer(instrument_code)
         else:
-            self.log.critical(
-                "Buffer method %s not recognised - not buffering" %
-                buffer_method)
+            self.log.critical("Buffer method %s not recognised - not buffering"
+                              % buffer_method)
             position = self.get_notional_position(instrument_code)
             max_max_position = float(position.abs().max()) * 10.0
             buffer = pd.Series(
-                [max_max_position] *
-                position.shape[0],
-                index=position.index)
+                [max_max_position] * position.shape[0], index=position.index)
 
         position = self.get_notional_position(instrument_code)
 
@@ -710,11 +698,11 @@ class Portfolios(_PortfoliosCalculateIDM, _PortfoliosCalculateWeights):
         KEY OUTPUT
         """
 
-        self.log.msg("Calculating actual position for %s" % instrument_code,
-                           instrument_code=instrument_code)
+        self.log.msg(
+            "Calculating actual position for %s" % instrument_code,
+            instrument_code=instrument_code)
 
-        notional_position = self.get_notional_position(
-            instrument_code)
+        notional_position = self.get_notional_position(instrument_code)
         cap_multiplier = self.capital_multiplier()
         cap_multiplier = cap_multiplier.reindex(
             notional_position.index).ffill()
@@ -736,21 +724,19 @@ class Portfolios(_PortfoliosCalculateIDM, _PortfoliosCalculateWeights):
         KEY OUTPUT
         """
 
-        self.log.msg("Calculating actual buffers for position for %s" % instrument_code,
-                           instrument_code=instrument_code)
+        self.log.msg(
+            "Calculating actual buffers for position for %s" % instrument_code,
+            instrument_code=instrument_code)
 
         buffers = self.get_buffers_for_position(instrument_code)
         cap_multiplier = self.capital_multiplier()
         cap_multiplier = cap_multiplier.reindex(buffers.index).ffill()
-        cap_multiplier = pd.concat(
-            [cap_multiplier, cap_multiplier], axis=1)
+        cap_multiplier = pd.concat([cap_multiplier, cap_multiplier], axis=1)
         cap_multiplier.columns = buffers.columns
 
         actual_buffers_for_position = buffers * cap_multiplier
 
         return actual_buffers_for_position
-
-
 
 
 if __name__ == '__main__':
