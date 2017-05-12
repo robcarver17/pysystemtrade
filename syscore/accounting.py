@@ -1666,6 +1666,7 @@ class returnsStack(accountCurveSingle):
 def decompose_group_pandl(pandl_list,
                           pandl_this_code=None,
                           pool_costs=True,
+                          pool_gross=False,
                           backfillavgcosts=True):
     """
     Given a pand_list (list of accountCurveGroup objects) return a 2-tuple of two pandas data frames;
@@ -1684,7 +1685,12 @@ def decompose_group_pandl(pandl_list,
         return ([pandl_list[0].gross.to_frame()],
                 [pandl_list[0].costs.to_frame()])
 
-    pandl_gross = [pandl_item.gross.to_frame() for pandl_item in pandl_list]
+    if pool_gross:
+        pandl_gross = [pandl_item.gross.to_frame() for pandl_item in pandl_list]
+    else:
+        assert pandl_this_code is not None
+        # FIX ME HORRIBLY INEFFICIENT JUST GETTING THIS REFACTOR TO WORK
+        pandl_gross = [pandl_this_code.gross.to_frame()]*len(pandl_list)
 
     if pool_costs:
         pandl_costs = [

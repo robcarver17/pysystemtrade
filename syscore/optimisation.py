@@ -22,8 +22,6 @@ from syslogdiag.log import logtoscreen
 TARGET_ANN_SR = 0.5
 FLAG_BAD_RETURN = -9999999.9
 
-# FIXME: some pretty horrible code here needs a rethink
-
 
 class GenericOptimiser(object):
     def __init__(self,
@@ -39,12 +37,21 @@ class GenericOptimiser(object):
                  apply_cost_weight=True,
                  ann_target_SR=TARGET_ANN_SR,
                  equalise_gross=False,
+                 pool_gross_returns=False,
                  use_pooled_costs=False,
                  use_pooled_turnover=None, # not used
                  **passed_params):
         """
 
         Set up optimiser
+        :param data: A dict of account curve dataframes, if not pooled data will only have one entry
+        :type data: dict
+
+        :param identifier: A dictionary key which refers to the element in data which we're optimising for
+        :type identifier: str
+
+        :param parent: The parent object, probably a system stage, which we get the log attribute from
+        :type parent: systemStage
 
         :param frequency: Downsampling frequency. Must be "D", "W" or bigger
         :type frequency: str
@@ -58,8 +65,17 @@ class GenericOptimiser(object):
         :param method: Method used for fitting, one of 'bootstrap', 'shrinkage', 'one_period'
         :type method: str
 
+        :param cleaning: Do we clean weights so we don't need a warmup period?
+        :type cleaning: bool
+
         :param equalise_gross: Should we equalise expected gross returns so that only costs affect weightings?
         :type equalise_gross: bool
+
+        :param pool_gross_returns: Should we pool gross returns together?
+        :type pool_gross_returns: bool
+
+        :param use_pooled_costs: Should we pool costs together?
+        :type use_pooled_costs: bool
 
         :param cost_multiplier: Multiply costs by this number
         :type cost_multiplier: float
@@ -80,21 +96,22 @@ class GenericOptimiser(object):
         setattr(self, "log", log)
 
         # Because interaction of parameters is complex, display warnings
-        display_warnings(log, cost_multiplier, equalise_gross,
+        self.display_warnings(cost_multiplier, equalise_gross,
                          apply_cost_weight, method, **passed_params)
 
         cleaning = str2Bool(cleaning)
         optimise_params = copy(passed_params)
 
         # annualisation
-        ann_dict = dict(
+        ANN_DICT = dict(
             D=BUSINESS_DAYS_IN_YEAR, W=WEEKS_IN_YEAR, M=MONTHS_IN_YEAR, Y=1.0)
-        annualisation = ann_dict.get(frequency, 1.0)
+        annualisation = ANN_DICT.get(frequency, 1.0)
 
         self.set_up_data(data, frequency=frequency, equalise_gross=equalise_gross,
                     cost_multiplier=cost_multiplier, annualisation=annualisation,
                     ann_target_SR=TARGET_ANN_SR,
-                    use_pooled_costs=use_pooled_costs, identifier=identifier)
+                    use_pooled_costs=use_pooled_costs,pool_gross_returns=pool_gross_returns,
+                         identifier=identifier)
 
         # A moments estimator works out the mean, vol, correlation
         # Also stores annualisation factor and target SR (used for shrinkage
@@ -121,7 +138,8 @@ class GenericOptimiser(object):
     def set_up_data(self, data, frequency = "W", equalise_gross = False,
                     cost_multiplier = 1.0, annualisation = BUSINESS_DAYS_IN_YEAR,
                     ann_target_SR = TARGET_ANN_SR,
-                    use_pooled_costs = False, identifier=None):
+                    use_pooled_costs = False, pool_gross_returns = False,
+                    identifier=None):
         """
 
         Optimise weights over some returns data
@@ -147,7 +165,8 @@ class GenericOptimiser(object):
 
         data_as_list = [data[code] for code in data.keys()]
         (data_gross, data_costs) = decompose_group_pandl(
-            data_as_list, data[identifier], pool_costs=use_pooled_costs)
+            data_as_list, data[identifier], pool_costs=use_pooled_costs,
+            pool_gross = pool_gross_returns)
 
         period_target_SR = ann_target_SR / (annualisation ** .5)
 
@@ -269,54 +288,55 @@ class GenericOptimiser(object):
         setattr(self, "raw_weights", raw_weight_df)
 
 
-def display_warnings(log, cost_multiplier, equalise_gross, apply_cost_weight,
-                     method, equalise_SR, **ignored_passed_params):
-    """
-    Warn people when parameters are in conflict
-    """
-    if method == "equal_weights" and (equalise_SR or cost_multiplier != 1.0 or
-                                      equalise_gross or apply_cost_weight):
-        log.warn("Using equal weights, all other config will be ignored")
+    def display_warnings(self, cost_multiplier, equalise_gross, apply_cost_weight,
+                         method, equalise_SR, **ignored_passed_params):
+        """
+        Warn people when parameters are in conflict
+        """
+        log=self.log
+        if method == "equal_weights" and (equalise_SR or cost_multiplier != 1.0 or
+                                          equalise_gross or apply_cost_weight):
+            log.warn("Using equal weights, all other config will be ignored")
+            return None
+
+        if equalise_SR and cost_multiplier != 1.0:
+            log.warn(
+                "Cost multiplier of %.1f will be ignored as equalising SR in optimisation (equalise_SR=True)"
+                % cost_multiplier)
+
+        if equalise_gross and cost_multiplier == 0.0:
+            log.critical(
+                "Cost multiplier of zero AND equalising gross_SR - can't do both! ")
+
+        if equalise_SR and equalise_gross:
+            log.warn(
+                "equalise_gross = True will be ignored as equalising SR in optimisation (equalise_SR=True)"
+            )
+
+        if cost_multiplier == 0.0 and not apply_cost_weight:
+            log.warn(
+                "Zero cost multiplier and not applying cost weightings - so costs won't be used at all"
+            )
+
+        if cost_multiplier < 0.0:
+            log.critical(
+                "Can't have a negative cost multiplier of %.2f! At least zero please."
+                % cost_multiplier)
+
+        if cost_multiplier < 1.0 and not apply_cost_weight:
+            log.warn(
+                "Cost multiplier of %2.f is less than one and not applying cost weightings - effect of costs may be underestimated" % cost_multiplier
+            )
+
+        if cost_multiplier > 5.0:
+            log.warn("Cost multiplier of %.1f is blooming high" % cost_multiplier)
+
+        if cost_multiplier > 0.0 and apply_cost_weight:
+            log.warn(
+                "Applying cost multiplier of %.2f AND applying a cost weight - effect of costs will be overestimated - did you mean to do this?"
+                % cost_multiplier)
+
         return None
-
-    if equalise_SR and cost_multiplier != 1.0:
-        log.warn(
-            "Cost multiplier of %.1f will be ignored as equalising SR in optimisation (equalise_SR=True)"
-            % cost_multiplier)
-
-    if equalise_gross and cost_multiplier == 0.0:
-        log.critical(
-            "Cost multiplier of zero AND equalising gross_SR - can't do both! ")
-
-    if equalise_SR and equalise_gross:
-        log.warn(
-            "equalise_gross = True will be ignored as equalising SR in optimisation (equalise_SR=True)"
-        )
-
-    if cost_multiplier == 0.0 and not apply_cost_weight:
-        log.warn(
-            "Zero cost multiplier and not applying cost weightings - so costs won't be used at all"
-        )
-
-    if cost_multiplier < 0.0:
-        log.critical(
-            "Can't have a negative cost multiplier of %.2f! At least zero please."
-            % cost_multiplier)
-
-    if cost_multiplier < 1.0 and not apply_cost_weight:
-        log.warn(
-            "Cost multiplier of %2.f is less than one and not applying cost weightings - effect of costs may be underestimated"
-        )
-
-    if cost_multiplier > 5.0:
-        log.warn("Cost multiplier of %.1f is blooming high" % cost_multiplier)
-
-    if cost_multiplier > 0.0 and apply_cost_weight:
-        log.warn(
-            "Applying cost multiplier of %.2f AND applying a cost weight - effect of costs will be overestimated - did you mean to do this?"
-            % cost_multiplier)
-
-    return None
 
 
 def work_out_net(data_gross,
