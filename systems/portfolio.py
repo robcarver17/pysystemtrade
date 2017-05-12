@@ -189,24 +189,18 @@ class _PortfoliosCalculateWeights(_PortfoliosInputs):
 
         instrument_codes = system.get_instrument_list()
 
-        weight_func = weighting_func(
-            log=self.log.setup(call="weighting"), **weighting_params)
-
         if hasattr(system, "accounts"):
             pandl = self.pandl_across_subsystems()
-            (pandl_gross, pandl_costs) = decompose_group_pandl([pandl])
-
-            weight_func.set_up_data(
-                data_gross=pandl_gross, data_costs=pandl_costs)
 
         else:
             error_msg = "You need an accounts stage in the system to estimate instrument weights"
             self.log.critical(error_msg)
 
-        SR_cost_list = [
-            self.get_instrument_subsystem_SR_cost(instr_code)
-            for instr_code in instrument_codes
-        ]
+        # The optimiser is set up for pooling, but we're not going to do that
+        # Create a single fake set of return data
+        data = dict(instrument_pandl = pandl)
+        weight_func = weighting_func(data, identifier ="instrument_pandl", parent=self,
+             **weighting_params)
 
         weight_func.optimise()
 

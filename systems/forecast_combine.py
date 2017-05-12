@@ -1,7 +1,6 @@
 import pandas as pd
 from copy import copy
 
-from syscore.accounting import decompose_group_pandl
 from syscore.genutils import str2Bool
 from syscore.pdutils import fix_weights_vs_pdm, apply_cap, from_dict_of_values_to_df, dataframe_pad
 from syscore.objects import resolve_function, update_recalc
@@ -15,6 +14,7 @@ class _ForecastCombinePreCalculate(SystemStage):
     """
     Don't use - forms part of ForecastCombine
     """
+
 
     def _name(self):
         return "*DO NOT USE*"
@@ -63,6 +63,7 @@ class _ForecastCombinePreCalculate(SystemStage):
         return self.parent.forecastScaleCap.get_capped_forecast(
             instrument_code, rule_variation_name)
 
+
     @diagnostic()
     def get_trading_rule_list_estimated_weights(self, instrument_code):
         """
@@ -94,7 +95,8 @@ class _ForecastCombinePreCalculate(SystemStage):
             ###
             if instrument_code in system.config.rule_variations:
                 # nested dict of lists
-                rules = system.config.rule_variations[instrument_code]
+                rules = system.config.rule_variations[
+                    instrument_code]
             else:
                 # assume it's a non nested list
                 # this will break if you have put an incomplete list of instruments into a nested dict
@@ -130,7 +132,8 @@ class _ForecastCombinePreCalculate(SystemStage):
             # a dict of weights, nested or un nested
             if instrument_code in system.config.forecast_weights:
                 # nested dict
-                rules = system.config.forecast_weights[instrument_code].keys()
+                rules = system.config.forecast_weights[
+                    instrument_code].keys()
             else:
                 # assume it's a non nested dict
                 rules = system.config.forecast_weights.keys()
@@ -154,8 +157,7 @@ class _ForecastCombinePreCalculate(SystemStage):
 
         if self._use_estimated_weights():
             # Note for estimated weights we apply the 'is this cheap enough' rule, but not here
-            return self.get_trading_rule_list_estimated_weights(
-                instrument_code)
+            return self.get_trading_rule_list_estimated_weights(instrument_code)
         else:
             return self._get_trading_rule_list_fixed_weights(instrument_code)
 
@@ -188,10 +190,8 @@ class _ForecastCombinePreCalculate(SystemStage):
             ylist.sort()
             return xlist == ylist
 
-        matching_instruments = sorted([
-            other_code for other_code in instrument_list
-            if _matches(my_rules, self.get_trading_rule_list(other_code))
-        ])
+        matching_instruments = sorted([other_code for other_code in instrument_list
+                                       if _matches(my_rules, self.get_trading_rule_list(other_code))])
 
         return matching_instruments
 
@@ -227,12 +227,13 @@ class _ForecastCombinePreCalculate(SystemStage):
         """
 
         if rule_variation_list is None:
-            rule_variation_list = self.get_trading_rule_list(instrument_code)
+            rule_variation_list = self.get_trading_rule_list(
+                instrument_code)
 
         forecasts = [
-            self.get_capped_forecast(instrument_code, rule_variation_name)
-            for rule_variation_name in rule_variation_list
-        ]
+            self.get_capped_forecast(
+                instrument_code,
+                rule_variation_name) for rule_variation_name in rule_variation_list]
 
         forecasts = pd.concat(forecasts, axis=1)
 
@@ -243,13 +244,18 @@ class _ForecastCombinePreCalculate(SystemStage):
         return forecasts
 
 
+
+
 class _ForecastCombineCalculateWeights(_ForecastCombinePreCalculate):
     """
     Don't use - forms part of ForecastCombine
     """
 
+
+
     def _name(self):
         return "*DO NOT USE*"
+
 
     def get_raw_fixed_forecast_weights(self, instrument_code):
         """
@@ -296,7 +302,8 @@ class _ForecastCombineCalculateWeights(_ForecastCombinePreCalculate):
 
             if instrument_code in system.config.forecast_weights:
                 # nested dict
-                fixed_weights = system.config.forecast_weights[instrument_code]
+                fixed_weights = system.config.forecast_weights[
+                    instrument_code]
             else:
                 # assume it's a non nested dict
                 fixed_weights = system.config.forecast_weights
@@ -317,17 +324,16 @@ class _ForecastCombineCalculateWeights(_ForecastCombinePreCalculate):
         # dates
         rule_variation_list = sorted(fixed_weights.keys())
 
-        forecasts_ts = self.get_all_forecasts(instrument_code,
-                                              rule_variation_list)
+        forecasts_ts = self.get_all_forecasts(
+            instrument_code, rule_variation_list)
 
-        forecast_weights = from_dict_of_values_to_df(
-            fixed_weights, forecasts_ts.index, columns=forecasts_ts.columns)
+        forecast_weights = from_dict_of_values_to_df(fixed_weights, forecasts_ts.index, columns = forecasts_ts.columns)
 
         return forecast_weights
 
     @input
-    def get_SR_cost_for_instrument_forecast(self, instrument_code,
-                                            rule_variation_name):
+    def get_SR_cost_for_instrument_forecast(
+            self, instrument_code, rule_variation_name):
         """
 
         Get the cost in SR units per year of trading this instrument / rule
@@ -364,29 +370,23 @@ class _ForecastCombineCalculateWeights(_ForecastCombinePreCalculate):
             'ceiling_cost_SR']
 
         rule_list = self.get_trading_rule_list(instrument_code)
-        SR_cost_list = [
-            self.get_SR_cost_for_instrument_forecast(instrument_code,
-                                                     rule_variation_name)
-            for rule_variation_name in rule_list
-        ]
+        SR_cost_list = [self.get_SR_cost_for_instrument_forecast(instrument_code, rule_variation_name)
+                        for rule_variation_name in rule_list]
 
-        cheap_rule_list = [
-            rule_name
-            for (rule_name, rule_cost) in zip(rule_list, SR_cost_list)
-            if rule_cost <= ceiling_cost_SR
-        ]
+        cheap_rule_list = [rule_name for (rule_name, rule_cost) in zip(rule_list, SR_cost_list)
+                           if rule_cost <= ceiling_cost_SR]
 
         if len(cheap_rule_list) == 0:
             self.log.critical(
-                "No rules are cheap enough for %s with threshold %.3f SR units! Raise threshold (system.config.forecast_weight_estimate['ceiling_cost_SR']), add rules, or drop instrument."
-                % (instrument_code, ceiling_cost_SR))
+                "No rules are cheap enough for %s with threshold %.3f SR units! Raise threshold (system.config.forecast_weight_estimate['ceiling_cost_SR']), add rules, or drop instrument." %
+                (instrument_code, ceiling_cost_SR))
 
-        self.log.msg(
-            "Only this set of rules %s is cheap enough to trade for %s" %
-            (str(cheap_rule_list), instrument_code),
-            instrument_code=instrument_code)
+        self.log.msg("Only this set of rules %s is cheap enough to trade for %s" % (str(cheap_rule_list), instrument_code),
+                           instrument_code=instrument_code)
 
         return cheap_rule_list
+
+
 
     @input
     def get_returns_for_optimisation(self, instrument_code):
@@ -410,6 +410,7 @@ class _ForecastCombineCalculateWeights(_ForecastCombinePreCalculate):
         return self.parent.accounts.pandl_for_instrument_rules_unweighted(
             instrument_code, cheap_rule_list)
 
+
     @dont_cache
     def has_same_cheap_rules_as_code(self, instrument_code):
         """
@@ -430,15 +431,14 @@ class _ForecastCombineCalculateWeights(_ForecastCombinePreCalculate):
             ylist.sort()
             return xlist == ylist
 
-        matching_instruments = sorted([
-            other_code for other_code in instrument_list
-            if _matches(my_rules, self.cheap_trading_rules(other_code))
-        ])
+        matching_instruments = sorted([other_code for other_code in instrument_list
+                                       if _matches(my_rules, self.cheap_trading_rules(other_code))])
 
         return matching_instruments
 
+
     @diagnostic()
-    def calculation_of_raw_forecast_weights_for_instrument(
+    def calculation_of_raw_estimated_forecast_weights(
             self, instrument_code):
         """
         Does an optimisation for a single instrument
@@ -455,142 +455,36 @@ class _ForecastCombineCalculateWeights(_ForecastCombinePreCalculate):
         :returns: TxK pd.DataFrame containing weights, columns are trading rule variation names, T covers all
         """
 
-        # usual pool fix
-        # Get some useful stuff from the config
-        weighting_params = copy(self.parent.config.forecast_weight_estimate)
-
-        # do we pool our estimation? (note if both are pooled would better calling the function for full pooling
-        # eithier gross returns or costs can be pooled
-        pooling_returns = str2Bool(
-            self.parent.config.forecast_weight_estimate["pool_gross_returns"])
-        pool_costs = str2Bool(
-            self.parent.config.forecast_cost_estimates["use_pooled_costs"])
-
-        # which function to use for calculation
-        weighting_func = resolve_function(weighting_params.pop("func"))
-
-        # FIXME: Returns and costs are pooled in different places, very confusing
-        if pooling_returns:
-            # find set of instruments with same trading rules as I have
-            codes_to_use = self.has_same_cheap_rules_as_code(instrument_code)
-        else:
-            codes_to_use = [instrument_code]
-
-        self.log.terse("Calculating raw forecast weights for %s, over %s" %
-                       (instrument_code, ", ".join(codes_to_use)))
-        # FIXME: doesn't appear to be used
-        cheap_rule_list = self.cheap_trading_rules(instrument_code)
-
-        # FIXME: change the way log is passed to a 'parent' style
-        weight_func = weighting_func(
-            log=self.log.setup(call="weighting"), **weighting_params)
-
-        # returns a list of accountCurveGroups
-        pandl_forecasts = [
-            self.get_returns_for_optimisation(code) for code in codes_to_use
-        ]
-
-        # the current curve is special
-        # FIXME couldn't the optimiser do this?:
-        pandl_forecasts_this_code = self.get_returns_for_optimisation(
+        self.log.terse(
+            "Calculating raw forecast weights for %s" %
             instrument_code)
 
-        # have to decode these
-        # returns two lists of pd.DataFrames
-        # FIXME: WHY do this? Instead get the optimiser to do it??
-
-        (pandl_forecasts_gross, pandl_forecasts_costs) = decompose_group_pandl(
-            pandl_forecasts, pandl_forecasts_this_code, pool_costs=pool_costs)
-
-        # The weighting function requires two lists of pd.DataFrames,
-        # one gross, one for costs
-
-        weight_func.set_up_data(
-            data_gross=pandl_forecasts_gross, data_costs=pandl_forecasts_costs)
-
-        weight_func.optimise()
-
-        return weight_func
-
-    @diagnostic()
-    def calculation_of_fully_pooled_raw_forecast_weights(self, codes_to_use):
-        """
-        Estimate forecast weights for several instruments, using returns that are pooled
-        (both costs and gross returns)
-
-        :param codes_to_use: list of instrument_code
-
-        :returns: TxK pd.DataFrame containing weights, columns are trading rule variation names, T covers all
-        """
-
         # Get some useful stuff from the config
         weighting_params = copy(self.parent.config.forecast_weight_estimate)
+        cost_param = copy(self.parent.config.forecast_cost_estimates)
+        weighting_params.update(cost_param)
 
         # which function to use for calculation
         weighting_func = resolve_function(weighting_params.pop("func"))
 
-        instrument_code_ref = "_".join(codes_to_use)
+        # Because we might be pooling, we get a stack of p&l data
+        codes_to_use = self.has_same_cheap_rules_as_code(instrument_code)
 
-        self.log.terse(
-            "Calculating pooled raw forecast weights over instruments: %s" %
-            instrument_code_ref)
+        # returns a dict of accountCurveGroups
+        # Note that the config.forecast_cost_estimates parameters will affect the costs shown in these returns
+        # They could all be equal, or
+        pandl_forecasts = dict([(code, self.get_returns_for_optimisation(code))
+                           for code in codes_to_use])
 
-        # an example of a weighting function is syscore.optimisation.GenericOptimiser
-        # FIXME: change the way log is passed to a 'parent' style
-        weight_func = weighting_func(
-            log=self.log.setup(call="weighting"), **weighting_params)
-
-        # returns a list of accountCurveGroups
-        # cost pooling will already have been applied - huh?
-
-        pandl_forecasts = [
-            self.get_returns_for_optimisation(code) for code in codes_to_use
-        ]
-
-        # have to split these into gross and net costs
-        # returns two lists of pd.DataFrames
-
-        # FIXME: WHY do this? Instead get the optimiser to do it??
-        (pandl_forecasts_gross, pandl_forecasts_costs) = decompose_group_pandl(
-            pandl_forecasts, pool_costs=True)
-
-        # The weighting function requires two lists of pd.DataFrames,
-        # one gross, one for costs
-
-        weight_func.set_up_data(
-            data_gross=pandl_forecasts_gross, data_costs=pandl_forecasts_costs)
+        weight_func = weighting_func(pandl_forecasts, identifier = instrument_code,
+            parent=self, **weighting_params)
 
         weight_func.optimise()
 
         return weight_func
 
-    @dont_cache
-    def calculation_of_raw_estimated_forecast_weights(self, instrument_code):
-        """
-        returns the forecast weights for a given instrument code
 
-        Checks to see if there are pooled forecasts
-        """
 
-        # Get some useful stuff from the config
-        # can we pool our estimation?
-        # Yes: only if both returns and costs are pooled
-        pooling_returns = str2Bool(
-            self.parent.config.forecast_weight_estimate["pool_gross_returns"])
-        pooling_costs = str2Bool(
-            self.parent.config.forecast_cost_estimates["use_pooled_costs"])
-
-        if (pooling_returns & pooling_costs):
-            # ensures we don't repeat optimisation
-            codes_to_use = self.has_same_cheap_rules_as_code(instrument_code)
-
-            return self.calculation_of_fully_pooled_raw_forecast_weights(
-                codes_to_use)
-        else:
-            # could still be using pooled returns OR costs, but have to do optimisations differently since
-            #   will be different net returns for each instrument
-            return self.calculation_of_raw_forecast_weights_for_instrument(
-                instrument_code)
 
     def get_raw_forecast_weights_estimated(self, instrument_code):
         """
@@ -627,8 +521,9 @@ class _ForecastCombineCalculateWeights(_ForecastCombinePreCalculate):
         2015-12-12  0.464240  0.192962  0.342798
         """
 
+
         return self.calculation_of_raw_estimated_forecast_weights(
-            instrument_code).weights
+                instrument_code).weights
 
     @dont_cache
     def get_raw_forecast_weights(self, instrument_code):
@@ -641,11 +536,9 @@ class _ForecastCombineCalculateWeights(_ForecastCombinePreCalculate):
 
         # get raw weights
         if self._use_estimated_weights():
-            forecast_weights = self.get_raw_forecast_weights_estimated(
-                instrument_code)
+            forecast_weights = self.get_raw_forecast_weights_estimated(instrument_code)
         else:
-            forecast_weights = self.get_raw_fixed_forecast_weights(
-                instrument_code)
+            forecast_weights = self.get_raw_fixed_forecast_weights(instrument_code)
 
         return forecast_weights
 
@@ -691,9 +584,8 @@ class _ForecastCombineCalculateWeights(_ForecastCombinePreCalculate):
         2015-12-11      0.5     0.5
         """
 
-        self.log.msg(
-            "Calculating forecast weights for %s" % (instrument_code),
-            instrument_code=instrument_code)
+        self.log.msg("Calculating forecast weights for %s" % (instrument_code),
+                           instrument_code=instrument_code)
 
         # note these might include missing weights, eg too expensive, or absent from fixed weights
         forecast_weights = self.get_raw_forecast_weights(instrument_code)
@@ -701,8 +593,8 @@ class _ForecastCombineCalculateWeights(_ForecastCombinePreCalculate):
         # we get the rule variations from forecast_weight columns, as if we've dropped
         #   expensive rules (when estimating) then get_trading_rules will give the wrong answer
         rule_variation_list = list(forecast_weights.columns)
-        forecasts = self.get_all_forecasts(instrument_code,
-                                           rule_variation_list)
+        forecasts = self.get_all_forecasts(
+            instrument_code, rule_variation_list)
 
         # adjust weights for missing data
         # also aligns them together with forecasts
@@ -720,6 +612,8 @@ class _ForecastCombineCalculateDivMult(_ForecastCombinePreCalculate):
     """
     Don't use - forms part of ForecastCombine
     """
+
+
 
     def _name(self):
         return "*DO NOT USE*"
@@ -765,31 +659,30 @@ class _ForecastCombineCalculateDivMult(_ForecastCombinePreCalculate):
         2015-12-11    1
         """
         system = self.parent
-        self.log.msg(
-            "Calculating diversification multiplier for %s" %
-            (instrument_code),
-            instrument_code=instrument_code)
+        self.log.msg("Calculating diversification multiplier for %s" % (instrument_code),
+                           instrument_code=instrument_code)
 
         # Let's try the config
         if hasattr(system.config, "forecast_div_multiplier"):
             if isinstance(system.config.forecast_div_multiplier, float):
                 fixed_div_mult = system.config.forecast_div_multiplier
 
-            elif instrument_code in system.config.forecast_div_multiplier.keys(
-            ):
+            elif instrument_code in system.config.forecast_div_multiplier.keys():
                 # dict
                 fixed_div_mult = system.config.forecast_div_multiplier[
                     instrument_code]
             else:
                 error_msg = "FDM in config needs to be either float, or dict with instrument_code keys"
-                self.log.critical(error_msg, instrument_code=instrument_code)
+                self.log.critical(
+                    error_msg, instrument_code=instrument_code)
 
         elif "forecast_div_multiplier" in system_defaults:
             # try defaults
             fixed_div_mult = system_defaults['forecast_div_multiplier']
         else:
             error_msg = "Need to specify FDM in config or system_defaults"
-            self.log.critical(error_msg, instrument_code=instrument_code)
+            self.log.critical(
+                error_msg, instrument_code=instrument_code)
 
         # Now we have a dict, fixed_weights.
         # Need to turn into a timeseries covering the range of forecast dates
@@ -797,9 +690,12 @@ class _ForecastCombineCalculateDivMult(_ForecastCombinePreCalculate):
         forecast_weights = self.get_forecast_weights(instrument_code)
         weight_ts = forecast_weights.index
 
-        ts_fdm = pd.Series([fixed_div_mult] * len(weight_ts), index=weight_ts)
+        ts_fdm = pd.Series([fixed_div_mult] *
+                           len(weight_ts), index=weight_ts)
 
         return ts_fdm
+
+
 
     @diagnostic(protected=True, not_pickable=True)
     def get_forecast_correlation_matrices_from_code_list(self, codes_to_use):
@@ -833,19 +729,22 @@ class _ForecastCombineCalculateDivMult(_ForecastCombinePreCalculate):
         # which function to use for calculation
         corr_func = resolve_function(corr_params.pop("func"))
 
-        self.log.terse("Calculating forecast correlations over %s" %
-                       ", ".join(codes_to_use))
+        self.log.terse(
+            "Calculating forecast correlations over %s" %
+            ", ".join(codes_to_use))
 
         forecast_data = [
-            self.get_all_forecasts(instr_code,
-                                   self.get_trading_rule_list(instr_code))
-            for instr_code in codes_to_use
-        ]
+            self.get_all_forecasts(
+                instr_code,
+                self.get_trading_rule_list(instr_code)) for instr_code in codes_to_use]
 
         # if we're not pooling passes a list of one
-        forecast_data = [forecast_ts.ffill() for forecast_ts in forecast_data]
+        forecast_data = [forecast_ts.ffill()
+                         for forecast_ts in forecast_data]
 
         return corr_func(forecast_data, **corr_params)
+
+
 
     @diagnostic(protected=True, not_pickable=True)
     def get_forecast_correlation_matrices(self, instrument_code):
@@ -882,14 +781,13 @@ class _ForecastCombineCalculateDivMult(_ForecastCombinePreCalculate):
         else:
             codes_to_use = [instrument_code]
 
-        forecast_corr_list = self.get_forecast_correlation_matrices_from_code_list(
-            codes_to_use)
+        forecast_corr_list = self.get_forecast_correlation_matrices_from_code_list(codes_to_use)
 
         return forecast_corr_list
 
+
     @diagnostic(protected=True)
-    def get_forecast_diversification_multiplier_estimated(
-            self, instrument_code):
+    def get_forecast_diversification_multiplier_estimated(self, instrument_code):
         """
 
         Get the diversification multiplier for this instrument
@@ -921,9 +819,8 @@ class _ForecastCombineCalculateDivMult(_ForecastCombinePreCalculate):
         2015-12-10  1.1
         2015-12-11  1.1
         """
-        self.log.terse(
-            "Calculating forecast div multiplier for %s" % instrument_code,
-            instrument_code=instrument_code)
+        self.log.terse("Calculating forecast div multiplier for %s" % instrument_code,
+                             instrument_code=instrument_code)
 
         # Get some useful stuff from the config
         div_mult_params = copy(self.parent.config.forecast_div_mult_estimate)
@@ -940,11 +837,12 @@ class _ForecastCombineCalculateDivMult(_ForecastCombinePreCalculate):
         #    matrices, because the forecast weights could have rules removed for being too expensive
         # To deal with this we pad the weights data frame so it is exactly aligned with the correlations
 
-        weight_df = dataframe_pad(
-            weight_df, correlation_list_object.columns, padwith=0.0)
+        weight_df = dataframe_pad(weight_df, correlation_list_object.columns, padwith=0.0)
 
-        ts_fdm = idm_func(correlation_list_object, weight_df,
-                          **div_mult_params)
+        ts_fdm = idm_func(
+            correlation_list_object,
+            weight_df,
+            **div_mult_params)
 
         return ts_fdm
 
@@ -955,15 +853,13 @@ class _ForecastCombineCalculateDivMult(_ForecastCombinePreCalculate):
     @dont_cache
     def get_forecast_diversification_multiplier(self, instrument_code):
         if self.use_estimated_div_mult():
-            return self.get_forecast_diversification_multiplier_estimated(
-                instrument_code)
+            return self.get_forecast_diversification_multiplier_estimated(instrument_code)
         else:
-            return self.get_forecast_diversification_multiplier_fixed(
-                instrument_code)
+            return self.get_forecast_diversification_multiplier_fixed(instrument_code)
 
 
-class ForecastCombine(_ForecastCombineCalculateWeights,
-                      _ForecastCombineCalculateDivMult):
+
+class ForecastCombine(_ForecastCombineCalculateWeights, _ForecastCombineCalculateDivMult):
     """
     Stage for combining forecasts (already capped and scaled)
 
@@ -1006,34 +902,32 @@ class ForecastCombine(_ForecastCombineCalculateWeights,
         2015-12-10             21
         2015-12-11             21
         """
-        self.log.msg(
-            "Calculating combined forecast for %s" % (instrument_code),
-            instrument_code=instrument_code)
+        self.log.msg("Calculating combined forecast for %s" % (instrument_code),
+                           instrument_code=instrument_code)
 
         # We take our list of rule variations from the forecasts, since it might be that some rules were omitted in the
         #     weight calculation
         forecast_weights = self.get_forecast_weights(instrument_code)
         rule_variation_list = list(forecast_weights.columns)
 
-        forecasts = self.get_all_forecasts(instrument_code,
-                                           rule_variation_list)
+        forecasts = self.get_all_forecasts(
+            instrument_code, rule_variation_list)
         forecast_div_multiplier = self.get_forecast_diversification_multiplier(
             instrument_code)
 
         weighted_forecasts = forecast_weights.ffill() * forecasts
 
         # sum
-        raw_combined_forecast = weighted_forecasts.sum(axis=1)
+        raw_combined_forecast = weighted_forecasts.sum(
+            axis=1)
 
         # apply fdm
 
-        raw_multiplied_combined_forecast = raw_combined_forecast * forecast_div_multiplier.ffill(
-        )
+        raw_multiplied_combined_forecast = raw_combined_forecast * forecast_div_multiplier.ffill()
 
         # apply cap
         forecast_cap = self.get_forecast_cap()
-        combined_forecast = apply_cap(raw_multiplied_combined_forecast,
-                                      forecast_cap)
+        combined_forecast = apply_cap(raw_multiplied_combined_forecast, forecast_cap)
 
         return combined_forecast
 
@@ -1041,3 +935,4 @@ class ForecastCombine(_ForecastCombineCalculateWeights,
 if __name__ == '__main__':
     import doctest
     doctest.testmod()
+

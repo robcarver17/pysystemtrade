@@ -11,8 +11,8 @@ from scipy.optimize import minimize
 from copy import copy
 import random
 
-from syscore.algos import vol_estimator, mean_estimator
-from syscore.correlations import correlation_single_period, boring_corr_matrix, get_avg_corr
+from syscore.accounting import decompose_group_pandl
+from syscore.correlations import boring_corr_matrix, get_avg_corr
 from syscore.dateutils import generate_fitting_dates, BUSINESS_DAYS_IN_YEAR, WEEKS_IN_YEAR, MONTHS_IN_YEAR
 from syscore.genutils import str2Bool, progressBar
 from syscore.pdutils import df_from_list, must_have_item
@@ -27,7 +27,9 @@ FLAG_BAD_RETURN = -9999999.9
 
 class GenericOptimiser(object):
     def __init__(self,
-                 log=logtoscreen("optimiser"),
+                 data,
+                 identifier=None,
+                 parent = None,
                  frequency="W",
                  date_method="expanding",
                  rollyears=20,
@@ -37,6 +39,8 @@ class GenericOptimiser(object):
                  apply_cost_weight=True,
                  ann_target_SR=TARGET_ANN_SR,
                  equalise_gross=False,
+                 use_pooled_costs=False,
+                 use_pooled_turnover=None, # not used
                  **passed_params):
         """
 
@@ -68,6 +72,13 @@ class GenericOptimiser(object):
         :returns: pd.DataFrame of weights
         """
 
+        if parent is None:
+            log = logtoscreen("optimiser")
+        else:
+            log = parent.log
+
+        setattr(self, "log", log)
+
         # Because interaction of parameters is complex, display warnings
         display_warnings(log, cost_multiplier, equalise_gross,
                          apply_cost_weight, method, **passed_params)
@@ -80,7 +91,10 @@ class GenericOptimiser(object):
             D=BUSINESS_DAYS_IN_YEAR, W=WEEKS_IN_YEAR, M=MONTHS_IN_YEAR, Y=1.0)
         annualisation = ann_dict.get(frequency, 1.0)
 
-        period_target_SR = ann_target_SR / (annualisation**.5)
+        self.set_up_data(data, frequency=frequency, equalise_gross=equalise_gross,
+                    cost_multiplier=cost_multiplier, annualisation=annualisation,
+                    ann_target_SR=TARGET_ANN_SR,
+                    use_pooled_costs=use_pooled_costs, identifier=identifier)
 
         # A moments estimator works out the mean, vol, correlation
         # Also stores annualisation factor and target SR (used for shrinkage
@@ -94,24 +108,20 @@ class GenericOptimiser(object):
                                         moments_estimator)
 
         setattr(self, "optimiser", optimiser)
-        setattr(self, "log", log)
         setattr(self, "frequency", frequency)
         setattr(self, "method", method)
         setattr(self, "equalise_gross", equalise_gross)
         setattr(self, "cost_multiplier", cost_multiplier)
         setattr(self, "annualisation", annualisation)
-        setattr(self, "period_target_SR", period_target_SR)
         setattr(self, "date_method", date_method)
         setattr(self, "rollyears", rollyears)
         setattr(self, "cleaning", cleaning)
         setattr(self, "apply_cost_weight", apply_cost_weight)
 
-    def need_data(self):
-        self.log.critical("** USED OUT-DATED METHOD NEED_DATA **")
-        # FIXME remove in a couple of releases time
-
-    def set_up_data(self, data_gross=None, data_costs=None,
-                    weight_matrix=None):
+    def set_up_data(self, data, frequency = "W", equalise_gross = False,
+                    cost_multiplier = 1.0, annualisation = BUSINESS_DAYS_IN_YEAR,
+                    ann_target_SR = TARGET_ANN_SR,
+                    use_pooled_costs = False, identifier=None):
         """
 
         Optimise weights over some returns data
@@ -125,11 +135,21 @@ class GenericOptimiser(object):
         """
 
         log = self.log
-        frequency = self.frequency
-        equalise_gross = self.equalise_gross
-        cost_multiplier = self.cost_multiplier
-        annualisation = self.annualisation
-        period_target_SR = self.period_target_SR
+
+        # have to decode these
+        # returns two lists of pd.DataFrames
+        # The weighting function requires two lists of pd.DataFrames,
+        # one gross, one for costs
+
+        if identifier is None:
+            log.warning("No identifier passed to optimisation code - using arbitary code - results may be weird")
+            identifier = data.keys()[0]
+
+        data_as_list = [data[code] for code in data.keys()]
+        (data_gross, data_costs) = decompose_group_pandl(
+            data_as_list, data[identifier], pool_costs=use_pooled_costs)
+
+        period_target_SR = ann_target_SR / (annualisation ** .5)
 
         # resample, indexing before and differencing after (returns, remember)
         data_gross = [
@@ -157,7 +177,7 @@ class GenericOptimiser(object):
             log.terse("Using cost multiplier on optimisation of %.2f" %
                       cost_multiplier)
 
-        data = work_out_net(
+        net_return_data = work_out_net(
             data_gross,
             data_costs,
             annualisation=annualisation,
@@ -165,7 +185,8 @@ class GenericOptimiser(object):
             cost_multiplier=cost_multiplier,
             period_target_SR=period_target_SR)
 
-        setattr(self, "data", data)
+        setattr(self, "data", net_return_data)
+        setattr(self, "period_target_SR", period_target_SR)
 
     def calculate_ann_SR_costs(self):
         """
