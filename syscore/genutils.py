@@ -4,8 +4,8 @@ Utilities I can't put anywhere else...
 
 from math import copysign
 from copy import copy
-import time
 import sys
+import numpy as np
 
 
 def group_dict_from_natural(dict_group):
@@ -125,31 +125,44 @@ def sign(x):
 
 class progressBar(object):
     """
-    toolbar_width = 40
+    Example (not docstring as won't work)
 
-    # setup toolbar
-
+    import time
+    thing=progressBar(10000)
+    for i in range(10000):
+         # do something
+         time.sleep(0.001)
+         thing.iterate()
+     thing.finished()
 
     """
 
-    def __init__(self, toolbar_width, suffix="Progress"):
+    def __init__(self, range_to_iter, suffix="Progress", toolbar_width=80):
         self.toolbar_width = toolbar_width
         self.current_iter = 0
         self.suffix = suffix
+        self.range_to_iter = range_to_iter
+        self.range_per_block = range_to_iter / np.float(toolbar_width)
         self.display_bar()
+
 
     def iterate(self):
         self.current_iter += 1
         self.display_bar()
 
-        if self.current_iter == self.toolbar_width:
+        if self.current_iter == self.range_to_iter:
             self.finished()
 
+    def how_many_blocks_had(self):
+        return int(self.current_iter / self.range_per_block)
+
+    def how_many_blocks_left(self):
+        return int((self.range_to_iter - self.current_iter) / self.range_per_block)
+
     def display_bar(self):
-        percents = round(100.0 * self.current_iter / float(self.toolbar_width),
+        percents = round(100.0 * self.current_iter / float(self.range_to_iter),
                          1)
-        bar = '=' * self.current_iter + '-' * (
-            self.toolbar_width - self.current_iter)
+        bar = '=' * self.how_many_blocks_had() + '-' * self.how_many_blocks_left()
         progress_string = '\0\r [%s] %s%s %s' % (bar, percents, '%',
                                                  self.suffix)
         sys.stdout.write(progress_string)

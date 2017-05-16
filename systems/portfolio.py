@@ -1,8 +1,6 @@
 import pandas as pd
 from copy import copy
 
-from syscore.accounting import decompose_group_pandl
-
 from systems.stage import SystemStage
 from systems.basesystem import ALL_KEYNAME
 from syscore.pdutils import fix_weights_vs_pdm

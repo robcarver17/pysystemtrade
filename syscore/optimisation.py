@@ -11,7 +11,6 @@ from scipy.optimize import minimize
 from copy import copy
 import random
 
-from syscore.accounting import decompose_group_pandl
 from syscore.correlations import boring_corr_matrix, get_avg_corr
 from syscore.dateutils import generate_fitting_dates, BUSINESS_DAYS_IN_YEAR, WEEKS_IN_YEAR, MONTHS_IN_YEAR
 from syscore.genutils import str2Bool, progressBar
@@ -110,7 +109,8 @@ class GenericOptimiser(object):
         self.set_up_data(data, frequency=frequency, equalise_gross=equalise_gross,
                     cost_multiplier=cost_multiplier, annualisation=annualisation,
                     ann_target_SR=TARGET_ANN_SR,
-                    use_pooled_costs=use_pooled_costs,pool_gross_returns=pool_gross_returns,
+                    use_pooled_costs=use_pooled_costs,
+                         pool_gross_returns=pool_gross_returns,
                          identifier=identifier)
 
         # A moments estimator works out the mean, vol, correlation
@@ -159,16 +159,14 @@ class GenericOptimiser(object):
         # The weighting function requires two lists of pd.DataFrames,
         # one gross, one for costs
 
-        if identifier is None:
-            log.warning("No identifier passed to optimisation code - using arbitary code - results may be weird")
+        if identifier is None and len(data.keys()) > 1:
+            log.warning(
+                "No identifier passed to optimisation code with pooled data passed - using arbitary code - results may be weird")
             identifier = data.keys()[0]
 
-        data_as_list = [data[code] for code in data.keys()]
         (data_gross, data_costs) = decompose_group_pandl(
-            data_as_list, data[identifier], pool_costs=use_pooled_costs,
+            data, identifier, pool_costs=use_pooled_costs,
             pool_gross = pool_gross_returns)
-
-        period_target_SR = ann_target_SR / (annualisation ** .5)
 
         # resample, indexing before and differencing after (returns, remember)
         data_gross = [
@@ -181,28 +179,34 @@ class GenericOptimiser(object):
             for data_item in data_costs
         ]
 
-        # stack de-pool pooled data
-        data_gross = df_from_list(data_gross)
-        data_costs = df_from_list(data_costs)
-
-        self.unmultiplied_costs = data_costs
+        # for diagnostic purposes
+        # FIXME: HACK TO GET THIS REFACTOR WORKING
+        self.unmultiplied_costs = df_from_list(data_costs)
 
         # net gross and costs
+        # first some warnings
         if equalise_gross:
             log.terse(
                 "Setting all gross returns to be identical - optimisation driven only by costs"
             )
+
         if cost_multiplier != 1.0:
             log.terse("Using cost multiplier on optimisation of %.2f" %
                       cost_multiplier)
 
+        # Will be needed if we equalise_gross returns
+        period_target_SR = ann_target_SR / (annualisation ** .5)
+
+        # now work out the net
         net_return_data = work_out_net(
             data_gross,
             data_costs,
-            annualisation=annualisation,
             equalise_gross=equalise_gross,
             cost_multiplier=cost_multiplier,
             period_target_SR=period_target_SR)
+
+        # FIXME: I STILL HAVE CONCERNS THAT THIS PREMATURE, SO DIVE INTO OPTIMISATION CODE AT NEXT REFACTOR
+        net_return_data = df_from_list(net_return_data)
 
         setattr(self, "data", net_return_data)
         setattr(self, "period_target_SR", period_target_SR)
@@ -233,6 +237,8 @@ class GenericOptimiser(object):
         apply_cost_weight = self.apply_cost_weight
 
         data = getattr(self, "data", None)
+
+
         if data is None:
             log.critical("You need to run .set_up_data() before .optimise()")
 
@@ -339,43 +345,139 @@ class GenericOptimiser(object):
         return None
 
 
+# Mini function to copy costs across
+def _fit_cost_to_gross_frame(cost_to_fit,
+                             frame_gross_pandl,
+                             backfillavgcosts=True):
+    # fit, and backfill, some costs
+    costs_fitted = cost_to_fit.reindex(frame_gross_pandl.index)
+
+    if backfillavgcosts:
+        avg_cost = cost_to_fit.mean()
+        costs_fitted.iloc[0, :] = avg_cost
+        costs_fitted = costs_fitted.ffill()
+
+    return costs_fitted
+
+def decompose_group_pandl(data,
+                          identifier,
+                          pool_costs=False,
+                          pool_gross=False,
+                          backfillavgcosts=True):
+    """
+    Given a pand_list (list of accountCurveGroup objects) return a 2-tuple of two pandas data frames;
+      one is the gross costs and one is the net costs.
+
+    """
+    assert identifier in data.keys()
+
+    # This is the tuple we pass if no pooling is neccessary
+    unpooled_data  =([data[identifier].gross.to_frame()], [data[identifier].costs.to_frame()])
+
+    # Trivial case
+    if len(data) == 1:
+        return unpooled_data
+
+    assert type(pool_gross) is bool
+    assert type(pool_costs) is bool
+
+    # Unpooled
+    if (not pool_gross) and (not pool_costs):
+        return unpooled_data
+
+    # Fully pooled
+    if pool_costs and pool_gross:
+        pandl_gross = [pandl_item.gross.to_frame() for pandl_item in data.values()]
+        pandl_costs = [pandl_item.costs.to_frame() for pandl_item in data.values()]
+
+        return (pandl_gross, pandl_costs)
+
+    # Only pool costs, don't pool gross
+    if (not pool_gross) and pool_costs:
+        gross_this_instrument = data[identifier].gross.to_frame()
+        pandl_gross = [gross_this_instrument for notUsed in data.values()]
+        pandl_costs = [_fit_cost_to_gross_frame(pandl_item.costs.to_frame(),
+                             gross_this_instrument,
+                             backfillavgcosts=backfillavgcosts)
+             for pandl_item in data.values()]
+
+        return (pandl_gross, pandl_costs)
+
+    # Pool gross, don't pool costs
+    # This is the most complicated option
+    # We need to copy across the cost curves for this instrument to all other instruments
+    # That might involve backfilling our costs
+
+    if pool_gross and (not pool_costs):
+        costs_this_instrument = data[identifier].costs.to_frame()
+        pandl_gross = [pandl_item.gross.to_frame() for pandl_item in data.values()]
+
+        # Fit the
+        pandl_costs = [
+            _fit_cost_to_gross_frame(costs_this_instrument,
+                                     frame_gross_pandl, backfillavgcosts)
+            for frame_gross_pandl in pandl_gross
+            ]
+
+        return (pandl_gross, pandl_costs)
+
+    raise Exception("Impossible combination of pool_gross and pool_costs bool variables")
+
+def _set_equal_SR_returns(account_curve, period_target_SR):
+    """
+    Set all the returns in an account curve to be equal to a given Sharpe Ratio, whilst preserving correlation structure
+
+    :param account_curve: Starting curve, pd.DataFrame
+    :param period_target_SR: float, Sharpe we want to end up with
+    :return: pd.DataFrame
+    """
+
+    target_vols = account_curve.std().values
+    target_mean = period_target_SR * target_vols
+
+    actual_period_mean = account_curve.mean().values
+
+    # adjustments to make to get equal mean
+    shifts = target_mean - actual_period_mean
+    shifts = np.array([list(shifts)] * len(account_curve.index))
+    shifts = pd.DataFrame(
+        shifts, index=account_curve.index, columns=account_curve.columns)
+
+    new_curve = account_curve + shifts
+
+    return new_curve
+
 def work_out_net(data_gross,
                  data_costs,
-                 annualisation=BUSINESS_DAYS_IN_YEAR,
                  equalise_gross=False,
                  cost_multiplier=1.0,
                  period_target_SR=TARGET_ANN_SR / (BUSINESS_DAYS_IN_YEAR**.5)):
     """
-    Work out the net from a dataframe of gross and costs
+    Work out the net from a list of dataframes of gross and costs
+    Columns in each dataframe are different assets
+
+    If equalise gross then we equalise the returns of all assets across columns of the dataframe, to be equal to period_target_SR
+
+    We multiply costs by cost_multiplier
     """
 
     if equalise_gross:
         # Set gross returns to be equal, whilst preserving correlation structure
-        # This is in sample but doesn't matter
-        # sharpe has to be high enough so we don't get badly negative costs
+        # sharpe has to be high enough so we don't get badly negative net returns
 
         # Note data adn SR is already in appropriate time period
         # assumes all have same vol
-        target_vol = np.mean(data_gross.std().values)
-        target_mean = period_target_SR * (target_vol)
 
-        actual_period_mean = data_gross.mean().values
-
-        # adjustments to make to get equal mean
-        shifts = target_mean - actual_period_mean
-        shifts = np.array([list(shifts)] * len(data_gross.index))
-        shifts = pd.DataFrame(
-            shifts, index=data_gross.index, columns=data_gross.columns)
-
-        use_gross = data_gross + shifts
+        use_gross = [_set_equal_SR_returns(gross_curve, period_target_SR) for gross_curve in data_gross]
 
     else:
         # no adjustment
-        use_gross = data_gross
+        use_gross = [copy(gross_curve) for gross_curve in data_gross]
 
-    use_costs = data_costs * cost_multiplier
+    use_costs = [costs_curve * cost_multiplier for costs_curve in data_costs]
 
-    net = use_gross + use_costs  # costs are negative
+    # costs are negative, so add them on
+    net = [use_gross_curve + use_costs_curve for (use_gross_curve, use_costs_curve) in zip(use_gross, use_costs)]
 
     return net
 
