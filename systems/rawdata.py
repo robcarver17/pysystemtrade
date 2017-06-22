@@ -1,5 +1,8 @@
-from systems.stage import SystemStage
 from copy import copy
+
+import pandas as pd
+
+from systems.stage import SystemStage
 from syscore.objects import resolve_function
 from systems.system_cache import input, diagnostic, output
 
@@ -209,13 +212,87 @@ class RawData(SystemStage):
         2015-12-11     1.985413
         """
         self.log.msg(
-            "Calculating normalised prices for %s" % instrument_code,
+            "Calculating normalised return for %s" % instrument_code,
             instrument_code=instrument_code)
 
         returnvol = self.daily_returns_volatility(instrument_code).shift(1)
         dailyreturns = self.daily_returns(instrument_code)
         norm_return = dailyreturns / returnvol
         return norm_return
+
+    @diagnostic()
+    def cumulative_norm_return(self, instrument_code):
+        """
+        Returns a cumulative normalised return. This is like a price, but with equal expected vol
+        Used for a few different trading rules
+
+        :param instrument_code: str
+        :return: pd.Series
+        """
+
+        self.log.msg(
+            "Calculating cumulative normalised return for %s" % instrument_code,
+            instrument_code=instrument_code)
+
+        norm_returns = self.norm_returns(instrument_code)
+
+        cum_norm_returns = norm_returns.cumsum()
+
+        return cum_norm_returns
+
+    @diagnostic()
+    def _aggregate_normalised_returns_for_asset_class(self, asset_class):
+        """
+        Average normalised returns across an asset class
+
+        :param asset_class: str
+        :return: pd.Series
+        """
+
+        instruments_in_asset_class = self.parent.data.all_instruments_in_asset_class(asset_class)
+
+        aggregate_returns_across_asset_class = [self.norm_returns(instrument_code)
+                                             for instrument_code in instruments_in_asset_class]
+
+        aggregate_returns_across_asset_class = pd.concat(aggregate_returns_across_asset_class, axis=1)
+
+        # we don't ffill before working out the median as this could lead to bad data
+        median_returns = aggregate_returns_across_asset_class.median(axis=1)
+
+        return median_returns
+
+    @diagnostic()
+    def _by_asset_class_normalised_price_for_asset_class_(self, asset_class):
+        """
+        Price for an asset class, built up from cumulative returns
+
+        :param asset_class: str
+        :return: pd.Series
+        """
+
+        norm_returns = self._aggregate_normalised_returns_for_asset_class(asset_class)
+        norm_price = norm_returns.cumsum()
+
+        return norm_price
+
+    @output()
+    def normalised_price_for_asset_class(self, instrument_code):
+        """
+
+        :param instrument_code:
+        :return:
+        """
+
+        asset_class = self.parent.data.asset_class_for_instrument(instrument_code)
+        normalised_price_for_asset_class = self._by_asset_class_normalised_price_for_asset_class_(asset_class)
+        normalised_price_this_instrument = self.cumulative_norm_return(instrument_code)
+
+        # Align for an easy life
+        # As usual forward fill at last moment
+        normalised_price_for_asset_class = normalised_price_for_asset_class.reindex\
+            (normalised_price_this_instrument.index).ffill()
+
+        return normalised_price_for_asset_class
 
 
 if __name__ == '__main__':

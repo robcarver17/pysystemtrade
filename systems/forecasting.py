@@ -400,16 +400,13 @@ def create_variations(baseRule,
 
         if all([len(args_dict) == 1 for args_dict in list_of_args_dict]):
             # okay to use argname as only seems to be one of them
-            key_argname = args_dict[0].keys()[0]
+            key_argname = list_of_args_dict[0].keys()[0]
         else:
             raise Exception(
                 "need to specify argname if more than one possibility")
 
     baseRulefunction = baseRule.function
     baseRuledata = baseRule.data
-
-    # these will be overwritten as we run through
-    baseRuleargs = copy(baseRule.other_args)
 
     variations = dict()
 
@@ -418,6 +415,9 @@ def create_variations(baseRule,
             raise Exception(
                 "Argname %s missing from at least one set of argument values" %
                 key_argname)
+
+        # these will be overwritten or added to as we run through
+        baseRuleargs = copy(baseRule.other_args)
 
         for arg_name in args_dict.keys():
             baseRuleargs[arg_name] = args_dict[arg_name]

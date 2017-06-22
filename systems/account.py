@@ -859,10 +859,6 @@ class _AccountTradingRules(_AccountInstrumentForecast):
 
         """
 
-        self = 0
-        self.log.terse(
-            "Calculating pandl for trading rule %s" % rule_variation_name)
-
         self.log.terse(
             "Calculating pandl for trading rule %s" % rule_variation_name)
 

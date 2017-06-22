@@ -75,9 +75,34 @@ def carry(daily_ann_roll, vol, smooth_days=90):
     2015-12-11    0.411686
     Freq: B, dtype: float64
     """
-
+    print("DEPRECATED: USE carry2")
     ann_stdev = vol * ROOT_BDAYS_INYEAR
     raw_carry = daily_ann_roll / ann_stdev
+    smooth_carry = raw_carry.ewm(smooth_days).mean()
+
+    return smooth_carry
+
+
+def carry2(raw_carry, smooth_days=90):
+    """
+    Calculate carry forecast, given that there exists a raw_carry() in rawdata
+
+    Assumes that everything is daily data
+
+    :param raw_carry: The annualised sharpe ratio of rolldown
+    :type raw_carry: pd.DataFrame (assumed Tx1)
+
+    >>> from systems.tests.testdata import get_test_object_futures
+    >>> from systems.basesystem import System
+    >>> (rawdata, data, config)=get_test_object_futures()
+    >>> system=System( [rawdata], data, config)
+    >>>
+    >>> carry2(rawdata.raw_carry("EDOLLAR")).tail(2)
+    2015-12-10    0.411686
+    2015-12-11    0.411686
+    Freq: B, dtype: float64
+    """
+
     smooth_carry = raw_carry.ewm(smooth_days).mean()
 
     return smooth_carry

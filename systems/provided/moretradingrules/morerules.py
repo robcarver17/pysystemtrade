@@ -42,33 +42,60 @@ def breakout(price, lookback, smooth=None):
     return smoothed_output
 
 
-def longonly(price, shortonly):
+def short_bias(price):
     """
-    Long or short only
-
-    To work requires a second data item "data.shortonly" which returns a bool
 
     :param price: The price or other series to use (assumed Tx1)
     :type price: pd.DataFrame
-
-    :param shortonly: Go short, or long
-    :type shortonly: bool
-
 
     :returns: pd.Series -- unscaled, uncapped forecast
 
     """
 
-    assert shortonly is bool
-
     avg_abs_forecast = system_defaults['average_absolute_forecast']
 
-    if shortonly:
-        forecast = -1.0 * avg_abs_forecast
-    else:
-        forecast = avg_abs_forecast
+    forecast = -1.0 * avg_abs_forecast
 
     forecast_ts = copy(price)
     forecast_ts[:] = forecast
 
     return forecast_ts
+
+def relative_carry(smoothed_carry_this_instrument, median_carry_for_asset_class):
+    """
+    Relative carry rule
+    Suggested inputs: rawdata.smoothed_carry, rawdata.median_carry_for_asset_class
+
+    :param smoothed_carry_this_instrument: pd.Series
+    :param median_carry_for_asset_class: pd.Series aligned to smoothed_carry_this_instrument
+    :return: forecast pd.Series
+    """
+
+    # should already be aligned
+    relative_carry_forecast = smoothed_carry_this_instrument - median_carry_for_asset_class
+
+    return relative_carry_forecast
+
+
+def cross_sectional_mean_reversion(normalised_price_this_instrument, normalised_price_for_asset_class, horizon=250, ewma_span=None):
+    """
+    Cross sectional mean reversion within asset class
+
+    :param normalised_price_this_instrument: pd.Series
+    :param normalised_price_for_asset_class: pd.Series
+    :return: pd.Series
+    """
+
+    if ewma_span is None:
+        ewma_span = int(horizon / 4.0)
+
+    ewma_span = max(ewma_span, 2)
+
+    outperformance = normalised_price_this_instrument.ffill() - normalised_price_for_asset_class.ffill()
+    relative_return = outperformance.diff()
+    outperformance_over_horizon = pd.rolling_mean(relative_return, horizon)
+
+    forecast = - pd.ewma(outperformance_over_horizon, span=ewma_span)
+
+    return forecast
+
