@@ -6,7 +6,7 @@ volatility_calculation:
   func: "syscore.algos.robust_vol_calc"
   days: 35
   min_periods: 10
-  vol_abs_min: 0.0000000001 
+  vol_abs_min: 0.0000000001
   vol_floor: True
   floor_min_quant: 0.05
   floor_min_periods: 100
@@ -20,6 +20,7 @@ forecast_scalar: 1.0
 # with varying stuff
 #
 #
+instruments_with_threshold: []
 use_forecast_scale_estimates: False
 #
 forecast_scalar_estimate:
@@ -47,14 +48,14 @@ forecast_correlation_estimate:
    date_method: "expanding"
    using_exponent: True
    ew_lookback: 250
-   min_periods: 20      
+   min_periods: 20
    cleaning: True
    rollyears: 20
    floor_at_zero: True
 #
 forecast_div_mult_estimate:
    func: syscore.divmultipliers.diversification_multiplier_from_list
-   ewma_span: 125   
+   ewma_span: 125
    dm_max: 2.5
 #
 use_forecast_weight_estimates: False
@@ -87,18 +88,18 @@ forecast_weight_estimate:
      func: syscore.correlations.correlation_single_period
      using_exponent: False
      ew_lookback: 500
-     min_periods: 20      
+     min_periods: 20
      floor_at_zero: True
    mean_estimate:
      func: syscore.algos.mean_estimator
      using_exponent: False
      ew_lookback: 500
-     min_periods: 20      
+     min_periods: 20
    vol_estimate:
      func: syscore.algos.vol_estimator
      using_exponent: False
      ew_lookback: 500
-     min_periods: 20      
+     min_periods: 20
 #
 # Capital correction
 #
@@ -120,7 +121,7 @@ instrument_correlation_estimate:
    date_method: "expanding"
    using_exponent: True
    ew_lookback: 250
-   min_periods: 20      
+   min_periods: 20
    cleaning: True
    rollyears: 20
    floor_at_zero: True
@@ -154,18 +155,18 @@ instrument_weight_estimate:
      func: syscore.correlations.correlation_single_period
      using_exponent: False
      ew_lookback: 500
-     min_periods: 20      
+     min_periods: 20
      floor_at_zero: True
    mean_estimate:
      func: syscore.algos.mean_estimator
      using_exponent: False
      ew_lookback: 500
-     min_periods: 20      
+     min_periods: 20
    vol_estimate:
      func: syscore.algos.vol_estimator
      using_exponent: False
      ew_lookback: 500
-     min_periods: 20      
+     min_periods: 20
 #
 # buffering / position inertia
 buffer_method: position
@@ -174,4 +175,3 @@ buffer_trade_to_edge: False
 # costs and accounting
 use_SR_costs: True
 #
-
