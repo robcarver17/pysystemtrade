@@ -5,9 +5,10 @@ Basic building blocks of trading rules, like volatility measurement and
 crossovers
 
 """
-import pandas as pd
-import numpy as np
 import warnings
+
+import numpy as np
+import pandas as pd
 
 from syscore.genutils import str2Bool
 from systems.defaults import system_defaults
@@ -158,7 +159,7 @@ def robust_vol_calc(x,
 
         # set this to zero for the first value then propogate forward, ensures
         # we always have a value
-        vol_min.set_value(vol_min.index[0], 0.0)
+        vol_min.at[vol_min.index[0]] =  0.0
         vol_min = vol_min.ffill()
 
         # apply the vol floor
