@@ -1,13 +1,15 @@
-import pandas as pd
 from copy import copy
 
-from syscore.genutils import str2Bool
-from syscore.pdutils import fix_weights_vs_pdm, apply_cap, from_dict_of_values_to_df, dataframe_pad
-from syscore.objects import resolve_function, update_recalc
+import numpy as np
+import pandas as pd
 
+from syscore.genutils import str2Bool
+from syscore.objects import resolve_function, update_recalc
+from syscore.pdutils import (apply_cap, dataframe_pad, fix_weights_vs_pdm,
+                             from_dict_of_values_to_df)
 from systems.defaults import system_defaults
 from systems.stage import SystemStage
-from systems.system_cache import input, dont_cache, diagnostic, output
+from systems.system_cache import diagnostic, dont_cache, input, output
 
 
 class _ForecastCombinePreCalculate(SystemStage):
@@ -244,18 +246,13 @@ class _ForecastCombinePreCalculate(SystemStage):
         return forecasts
 
 
-
-
 class _ForecastCombineCalculateWeights(_ForecastCombinePreCalculate):
     """
     Don't use - forms part of ForecastCombine
     """
 
-
-
     def _name(self):
         return "*DO NOT USE*"
-
 
     def get_raw_fixed_forecast_weights(self, instrument_code):
         """
@@ -438,12 +435,12 @@ class _ForecastCombineCalculateWeights(_ForecastCombinePreCalculate):
 
 
     @diagnostic()
-    def calculation_of_raw_estimated_forecast_weights(
-            self, instrument_code):
+    def calculation_of_raw_estimated_forecast_weights(self, instrument_code):
         """
         Does an optimisation for a single instrument
 
-        We do this if we can't do the special case of a fully pooled optimisation (both costs and returns pooled)
+        We do this if we can't do the special case of a fully pooled
+        optimisation (both costs and returns pooled)
 
         Estimate the forecast weights for this instrument
 
@@ -454,7 +451,6 @@ class _ForecastCombineCalculateWeights(_ForecastCombinePreCalculate):
 
         :returns: TxK pd.DataFrame containing weights, columns are trading rule variation names, T covers all
         """
-
         self.log.terse(
             "Calculating raw forecast weights for %s" %
             instrument_code)
@@ -471,20 +467,18 @@ class _ForecastCombineCalculateWeights(_ForecastCombinePreCalculate):
         codes_to_use = self.has_same_cheap_rules_as_code(instrument_code)
 
         # returns a dict of accountCurveGroups
-        # Note that the config.forecast_cost_estimates parameters will affect the costs shown in these returns
+        # Note that the config.forecast_cost_estimates parameters will affect
+        # the costs shown in these returns
         # They could all be equal, or
         pandl_forecasts = dict([(code, self.get_returns_for_optimisation(code))
                            for code in codes_to_use])
 
-        weight_func = weighting_func(pandl_forecasts, identifier = instrument_code,
-            parent=self, **weighting_params)
+        weight_func = weighting_func(pandl_forecasts,
+                                     identifier=instrument_code,
+                                     parent=self, **weighting_params)
 
         weight_func.optimise()
-
         return weight_func
-
-
-
 
     def get_raw_forecast_weights_estimated(self, instrument_code):
         """
@@ -520,15 +514,14 @@ class _ForecastCombineCalculateWeights(_ForecastCombinePreCalculate):
         2015-06-01  0.464240  0.192962  0.342798
         2015-12-12  0.464240  0.192962  0.342798
         """
-
-
         return self.calculation_of_raw_estimated_forecast_weights(
                 instrument_code).weights
 
     @dont_cache
     def get_raw_forecast_weights(self, instrument_code):
         """
-        Get forecast weights depending on whether we are estimating these or not
+        Get forecast weights depending on whether we are estimating these or
+        not
 
         :param instrument_code: str
         :return: forecast weights
@@ -547,8 +540,9 @@ class _ForecastCombineCalculateWeights(_ForecastCombinePreCalculate):
         """
         Get the forecast weights
 
-        We forward fill all forecasts. We then adjust forecast weights so that they are 1.0 in every
-          period; after setting to zero when no forecast is available.
+        We forward fill all forecasts. We then adjust forecast weights so that
+          they are 1.0 in every period; after setting to zero when no forecast
+          is available.
 
         :param instrument_code:
         :type str:
@@ -583,11 +577,11 @@ class _ForecastCombineCalculateWeights(_ForecastCombinePreCalculate):
         2015-12-10      0.5     0.5
         2015-12-11      0.5     0.5
         """
-
         self.log.msg("Calculating forecast weights for %s" % (instrument_code),
-                           instrument_code=instrument_code)
+        instrument_code=instrument_code)
 
-        # note these might include missing weights, eg too expensive, or absent from fixed weights
+        # note these might include missing weights, eg too expensive, or absent
+        # from fixed weights
         forecast_weights = self.get_raw_forecast_weights(instrument_code)
 
         # we get the rule variations from forecast_weight columns, as if we've dropped
@@ -604,7 +598,6 @@ class _ForecastCombineCalculateWeights(_ForecastCombinePreCalculate):
 
         # smooth
         forecast_weights = forecast_weights.ewm(weighting).mean()
-
         return forecast_weights
 
 
@@ -858,11 +851,10 @@ class _ForecastCombineCalculateDivMult(_ForecastCombinePreCalculate):
             return self.get_forecast_diversification_multiplier_fixed(instrument_code)
 
 
-
-class ForecastCombine(_ForecastCombineCalculateWeights, _ForecastCombineCalculateDivMult):
+class ForecastCombine(_ForecastCombineCalculateWeights,
+                      _ForecastCombineCalculateDivMult):
     """
     Stage for combining forecasts (already capped and scaled)
-
     """
 
     def _name(self):
@@ -871,11 +863,12 @@ class ForecastCombine(_ForecastCombineCalculateWeights, _ForecastCombineCalculat
     @output()
     def get_combined_forecast(self, instrument_code):
         """
-        Get a combined forecast, linear combination of individual forecasts with FDM applied
+        Get a combined forecast, linear combination of individual forecasts
+        with FDM applied
 
-        We forward fill all forecasts. We then adjust forecast weights so that they are 1.0 in every
-          period; after setting to zero when no forecast is available. Finally we multiply up, and
-          apply the FDM. Then we cap.
+        We forward fill all forecasts. We then adjust forecast weights so that
+          they are 1.0 in every period; after setting to zero when no forecast
+          is available. Finally we multiply up, and apply the FDM. Then we cap.
 
         :param instrument_code:
         :type str:
@@ -883,7 +876,6 @@ class ForecastCombine(_ForecastCombineCalculateWeights, _ForecastCombineCalculat
         :returns: Tx1 pd.DataFrame
 
         KEY OUTPUT
-
 
         >>> from systems.tests.testdata import get_test_object_futures_with_rules_and_capping
         >>> from systems.basesystem import System
@@ -904,9 +896,15 @@ class ForecastCombine(_ForecastCombineCalculateWeights, _ForecastCombineCalculat
         """
         self.log.msg("Calculating combined forecast for %s" % (instrument_code),
                            instrument_code=instrument_code)
+        raw_multiplied_combined_forecast = self._get_raw_combined_forecast(instrument_code)
 
-        # We take our list of rule variations from the forecasts, since it might be that some rules were omitted in the
-        #     weight calculation
+        # apply cap
+        combined_forecast = self._cap_forecast(raw_multiplied_combined_forecast)
+        return combined_forecast
+
+    def _get_raw_combined_forecast(self, instrument_code):
+        # We take our list of rule variations from the forecasts, since it
+        # might be that some rules were omitted in the weight calculation
         forecast_weights = self.get_forecast_weights(instrument_code)
         rule_variation_list = list(forecast_weights.columns)
 
@@ -918,21 +916,61 @@ class ForecastCombine(_ForecastCombineCalculateWeights, _ForecastCombineCalculat
         weighted_forecasts = forecast_weights.ffill() * forecasts
 
         # sum
-        raw_combined_forecast = weighted_forecasts.sum(
-            axis=1)
+        raw_combined_forecast = weighted_forecasts.sum(axis=1)
 
         # apply fdm
+        raw_multiplied_combined_forecast = (raw_combined_forecast *
+                                            forecast_div_multiplier.ffill())
+        return raw_multiplied_combined_forecast
 
-        raw_multiplied_combined_forecast = raw_combined_forecast * forecast_div_multiplier.ffill()
+
+    def _cap_forecast(self, raw_multiplied_combined_forecast):
+        forecast_cap = self.get_forecast_cap()
+        combined_forecast = apply_cap(raw_multiplied_combined_forecast,
+                                      forecast_cap)
+        return combined_forecast
+
+
+class ForecastCombineMaybeThreshold(ForecastCombine):
+
+    def get_combined_forecast(self, instrument_code):
+
+        if instrument_code in self.parent.config.instruments_with_threshold:
+            post_process_func = self._threshold_forecast
+        else:
+            post_process_func = self._cap_forecast
+
+        self.log.msg("Calculating combined forecast for %s with %s" % (instrument_code, post_process_func.__name__),
+                           instrument_code=instrument_code)
+
+        raw_multiplied_combined_forecast = self._get_raw_combined_forecast(instrument_code)
 
         # apply cap
-        forecast_cap = self.get_forecast_cap()
-        combined_forecast = apply_cap(raw_multiplied_combined_forecast, forecast_cap)
+        combined_forecast = post_process_func(raw_multiplied_combined_forecast)
+        return combined_forecast
 
+    def _threshold_forecast(self, raw_multiplied_combined_forecast):
+        'returns: thresholded forecast'
+        def map_forecast_value(x):
+            if np.isnan(x):
+                return x
+            x = float(x)
+            if x < -20.0:
+                return -30.0
+            if x >= -20.0 and x < -10.0:
+                return -(abs(x) - 10.0) * 3
+            if x >= -10.0 and x <= 10.0:
+                return 0.0
+            if x > 10.0 and x <= 20.0:
+                return (abs(x) - 10.0) * 3
+            return 30.0
+
+        combined_forecast = pd.Series(
+            [map_forecast_value(x)
+                for x in raw_multiplied_combined_forecast.values], raw_multiplied_combined_forecast.index)
         return combined_forecast
 
 
 if __name__ == '__main__':
     import doctest
     doctest.testmod()
-
