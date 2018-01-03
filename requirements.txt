@@ -2,8 +2,8 @@ Requirements:
 *************
 
 python >= 3.4.3
-pandas >= 0.18.0
+pandas >= 0.20.3
 matplotlib > 1.4.3
 pyyaml >= 3.11
-numpy >= 1.10.1
-scipy >= 0.16.1
+numpy >= 1.13.1
+scipy >= 0.18.1
