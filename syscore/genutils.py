@@ -133,7 +133,7 @@ class progressBar(object):
          # do something
          time.sleep(0.001)
          thing.iterate()
-     thing.finished()
+    thing.finished()
 
     """
 
@@ -144,11 +144,12 @@ class progressBar(object):
         self.range_to_iter = range_to_iter
         self.range_per_block = range_to_iter / np.float(toolbar_width)
         self.display_bar()
-
+        self._how_many_blocks_displayed=-1 # will always display first time
 
     def iterate(self):
         self.current_iter += 1
-        self.display_bar()
+        if self.number_of_blocks_changed():
+            self.display_bar()
 
         if self.current_iter == self.range_to_iter:
             self.finished()
@@ -159,6 +160,15 @@ class progressBar(object):
     def how_many_blocks_left(self):
         return int((self.range_to_iter - self.current_iter) / self.range_per_block)
 
+    def number_of_blocks_changed(self):
+        original_blocks = self._how_many_blocks_displayed
+        new_blocks = self.how_many_blocks_had()
+
+        if new_blocks>original_blocks:
+            return True
+        else:
+            return False
+
     def display_bar(self):
         percents = round(100.0 * self.current_iter / float(self.range_to_iter),
                          1)
@@ -167,6 +177,7 @@ class progressBar(object):
                                                  self.suffix)
         sys.stdout.write(progress_string)
         sys.stdout.flush()
+        self._how_many_blocks_displayed = self.how_many_blocks_had()
 
     def finished(self):
         sys.stdout.write("\n")

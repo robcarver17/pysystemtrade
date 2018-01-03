@@ -1,5 +1,9 @@
 # Release notes
 
+## Version 0.15.0
+
+* Now supports pandas 0.20.3 (earlier pandas will break)
+
 ## Version 0.14.1
 
 * Added progress bar (issue 51)

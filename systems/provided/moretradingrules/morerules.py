@@ -61,6 +61,26 @@ def short_bias(price):
 
     return forecast_ts
 
+def long_bias(price):
+    """
+
+    :param price: The price or other series to use (assumed Tx1)
+    :type price: pd.DataFrame
+
+    :returns: pd.Series -- unscaled, uncapped forecast
+
+    """
+
+    avg_abs_forecast = system_defaults['average_absolute_forecast']
+
+    forecast = 1.0 * avg_abs_forecast
+
+    forecast_ts = copy(price)
+    forecast_ts[:] = forecast
+
+    return forecast_ts
+
+
 def relative_carry(smoothed_carry_this_instrument, median_carry_for_asset_class):
     """
     Relative carry rule
