@@ -7,10 +7,10 @@ Rob Carver
 [http://qoppac.blogspot.co.uk/p/pysystemtrade.html](http://qoppac.blogspot.co.uk/p/pysystemtrade.html)
 
 
-Version 0.14.1
+Version 0.16.0
 
 
-20170509
+20180102
 
 
 ## Release notes
@@ -78,6 +78,9 @@ If you don't include the information above I will close the issue and then ignor
 
 I'll try and incorporate any feedback into the code, but this is a part time (and unpaid!) venture for me, and it will be competing with my other interests (writing books, blogging and research). But if you occasionally check github you will hopefully find it gradually improving. Offers to contribute will of course be gratefully accepted.
 
+## Examples
+
+A series of examples using pysystemtrade for my blog posts can be found [here](https://github.com/robcarver17/pysystemtrade_examples).
 
 ## Licensing and legal stuff
 
