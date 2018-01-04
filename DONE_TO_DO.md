@@ -1,5 +1,12 @@
 # Release notes
 
+## Version 0.16.1
+Updated to pandas 0.22.0
+Fixed issue #64, #68, #70 and other issues relating to pandas API update breaking correlation matrices
+
+## Version 0.16.0
+Moved most examples except core to seperate git [here](https://github.com/robcarver17/pysystemtrade_examples)
+
 ## Version 0.15.0
 
 * Now supports pandas 0.20.3 (earlier pandas will break)

@@ -292,8 +292,9 @@ def correlation_calculator(data_for_estimate,
         corrmat = data_for_estimate.ewm(
             span=ew_lookback, min_periods=min_periods).corr(pairwise=True)
 
+        number_of_items=data_for_estimate.shape[1]
         # only want the final one
-        corrmat = corrmat.values[-1]
+        corrmat = corrmat.iloc[-number_of_items:,].values
     else:
         # Use normal correlation
         # Usual use for bootstrapping when only have sub sample
