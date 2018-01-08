@@ -219,10 +219,12 @@ class systemCache(dict):
         """
         Loads the saved cache
 
-        Note that certain elements (accountCurve objects and optimisers) won't be pickled, and so won't
-           be loaded. You will need to regenerate these.
+        Note that certain elements (accountCurve objects and optimisers) won't
+           be pickled, and so won't be loaded. You will need to regenerate
+           these.
 
-        If clearcache is True then we clear the entire cache first. Otherwise we end up with a 'mix'
+        If clearcache is True then we clear the entire cache first. Otherwise
+          we end up with a 'mix'
            - not advised so do at your peril
 
         :param filename: cache location
