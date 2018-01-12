@@ -64,10 +64,9 @@ trading_rules:
          Lslow: 256
      forecast_scalar: 1.87
   carry:
-     function: systems.provided.futures_chapter15.rules.carry
+     function: systems.provided.futures_chapter15.rules.carry2
      data:
          - "rawdata.daily_annualised_roll"
-         - "rawdata.daily_returns_volatility"
      other_args:
          smooth_days: 90
      forecast_scalar: 30

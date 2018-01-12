@@ -26,10 +26,9 @@ trading_rules:
          Lfast: 16
          Lslow: 64
   carry:
-     function: systems.provided.futures_chapter15.rules.carry
+     function: systems.provided.futures_chapter15.rules.carry2
      data:
          - "rawdata.daily_annualised_roll"
-         - "rawdata.daily_returns_volatility"
      other_args:
          smooth_days: 90
 #

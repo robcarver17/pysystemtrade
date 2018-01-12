@@ -1,5 +1,8 @@
 # Release notes
 
+## Version 0.16.3
+Removed uses of old carry function which was deprecated
+
 ## Version 0.16.2
 Fixed incorrect calculation of returns over weekends
 Forecast scalars now only pool across the set of instruments using a given trading rule

@@ -9,7 +9,7 @@ from systems.forecasting import TradingRule, Rules, process_trading_rules, creat
 from systems.basesystem import System
 from systems.rawdata import RawData
 from systems.futures.rawdata import FuturesRawData
-from systems.provided.futures_chapter15.rules import carry
+from systems.provided.futures_chapter15.rules import carry2
 from sysdata.configdata import Config
 from sysdata.csvdata import csvFuturesData
 import matplotlib.pyplot as plt
@@ -163,13 +163,12 @@ class Test(unittest.TestCase):
         rules = Rules()
         system = System([rawdata, rules], data)
         rule = TradingRule(
-            carry, [
+            carry2, [
                 "rawdata.daily_annualised_roll",
-                "rawdata.daily_returns_volatility"
             ],
             dict(smooth_days=90))
         ans = rule.call(system, "EDOLLAR")
-        self.assertAlmostEqual(ans.tail(1).values[0], 0.411686026, 5)
+        self.assertAlmostEqual(ans.tail(1).values[0], 0.37666175, 5)
 
     def testProcessTradingRuleSpec(self):
 
