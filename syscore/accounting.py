@@ -193,7 +193,7 @@ def pandl_with_data(price,
 
         cum_trades = trades_to_use.cumsum().ffill()
 
-    price_returns = prices_to_use.cumsum().ffill().diff()
+    price_returns = prices_to_use.ffill().diff()
 
     instr_ccy_returns = cum_trades.shift(
         1) * price_returns * value_of_price_point

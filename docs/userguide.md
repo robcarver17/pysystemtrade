@@ -1,6 +1,64 @@
 
 This guide is divided into four parts. The first ['How do I?'](#how_do_i) explains how to do many common tasks. The second part ['Guide'](#guide) details the relevant parts of the code, and explains how to modify or create new parts. The third part ['Processes'](#Processes) discusses certain processes that cut across multiple parts of the code in more detail. The final part ['Reference'](#reference) includes lists of methods and parameters.
 
+Table of Contents
+=================
+
+   * [How do I?](#how-do-i)
+      * [How do I.... Experiment with a single trading rule and instrument](#how-do-i-experiment-with-a-single-trading-rule-and-instrument)
+      * [How do I....Create a standard futures backtest](#how-do-icreate-a-standard-futures-backtest)
+      * [How do I....Create a futures backtest which estimates parameters](#how-do-icreate-a-futures-backtest-which-estimates-parameters)
+      * [How do I....See intermediate results from a backtest](#how-do-isee-intermediate-results-from-a-backtest)
+      * [How do I....See how profitable a backtest was](#how-do-isee-how-profitable-a-backtest-was)
+      * [How do I....Change backtest parameters](#how-do-ichange-backtest-parameters)
+      * [How do I....Run a backtest on a different set of instruments](#how-do-irun-a-backtest-on-a-different-set-of-instruments)
+      * [How do I....Create my own trading rule](#how-do-icreate-my-own-trading-rule)
+      * [How do I....Use different data or instruments](#how-do-iuse-different-data-or-instruments)
+      * [How do I... Save my work](#how-do-i-save-my-work)
+   * [Guide](#guide)
+      * [Data](#data)
+         * [Using the standard data objects](#using-the-standard-data-objects)
+         * [Creating your own data objects](#creating-your-own-data-objects)
+      * [Configuration](#configuration)
+         * [Creating a configuration object](#creating-a-configuration-object)
+         * [Project defaults](#project-defaults)
+         * [Viewing configuration parameters](#viewing-configuration-parameters)
+         * [Modifying configuration parameters](#modifying-configuration-parameters)
+         * [Using configuration in a system](#using-configuration-in-a-system)
+         * [Including your own configuration options](#including-your-own-configuration-options)
+         * [Saving configurations](#saving-configurations)
+         * [Modifying the configuration class](#modifying-the-configuration-class)
+      * [System](#system)
+         * [Pre-baked systems](#pre-baked-systems)
+         * [Using the system object](#using-the-system-object)
+         * [System Caching and pickling](#system-caching-and-pickling)
+         * [Pickling and unpickling saved cache data](#pickling-and-unpickling-saved-cache-data)
+         * [Advanced caching](#advanced-caching)
+         * [Very advanced: Caching in new or modified code](#very-advanced-caching-in-new-or-modified-code)
+         * [Creating a new 'pre-baked' system](#creating-a-new-pre-baked-system)
+         * [Changing or making a new System class](#changing-or-making-a-new-system-class)
+      * [Stages](#stages)
+         * [Stage 'wiring'](#stage-wiring)
+         * [Writing new stages](#writing-new-stages)
+         * [Specific stages](#specific-stages)
+         * [Stage: Raw data](#stage-raw-data)
+         * [Stage: Rules](#stage-rules)
+         * [Trading rules](#trading-rules)
+         * [The Rules class, and specifying lists of trading rules](#the-rules-class-and-specifying-lists-of-trading-rules)
+         * [Stage: Forecast scale and cap <a href="/systems/forecast_scale_cap.py">ForecastScaleCap class</a>](#stage-forecast-scale-and-cap-forecastscalecap-class)
+         * [Stage: Forecast combine <a href="/systems/forecast_combine.py">ForecastCombine class</a>](#stage-forecast-combine-forecastcombine-class)
+         * [Stage: Position scaling](#stage-position-scaling)
+         * [Stage: Creating portfolios <a href="/systems/portfolio.py">Portfolios class</a>](#stage-creating-portfolios-portfolios-class)
+         * [Stage: Accounting](#stage-accounting)
+   * [Processes](#processes)
+      * [Logging](#logging)
+      * [Optimisation](#optimisation)
+      * [Estimating correlations and diversification multipliers](#estimating-correlations-and-diversification-multipliers)
+      * [Capital correction: Varying capital](#capital-correction-varying-capital)
+   * [Reference](#reference)
+      * [Table of standard system.data and system.stage methods](#table-of-standard-systemdata-and-systemstage-methods)
+      * [Configuration options](#configuration-options)
+
 
 <a name="how_do_i">
 </a>
@@ -1871,7 +1929,8 @@ rules
 ```
 
 ```
-Rules object with unknown trading rules [try Rules.tradingrules() ]
+<snip>
+Exception: A Rules stage needs to be part of a System to identify trading rules, unless rules are passed when object created
 ```
 
 ```python
@@ -1903,14 +1962,14 @@ rules.trading_rules()
 What actually happens when we run this? (this is a little complex but worth understanding).
 
 1. The `Rules` class is created with no arguments.
-2. We create the `system` object. This means that all the stages can see the system, in particular they can see the configuration
-3. When the `Rules` object is first created it is 'empty' - it doesn't have a list of valid *processed* trading rules.
-3. `get_raw_forecast` is called, and looks for the trading rule "ewmac2_8". It gets this by calling the method `get_trading_rules`
-4. When the method `get_trading_rules` is called it looks to see if there is a *processed* dict of trading rules
-5. The first time the method `get_trading_rules` is called there won't be a processed list. So it looks for something to process
-6. First it will look to see if anything was passed when the instance rules of the `Rules()` class was created
-7. Since we didn't pass anything instead it processes what it finds in `system.config.trading_rules` - a nested dict, keynames rule variation names. 
-8. The `Rules` instance now has processed rule names in the form of a dict, keynames rule variation names, each element containing a valid `TradingRule` object
+2. When the `Rules` object is first created it is 'empty' - it doesn't have a list of valid *processed* trading rules.
+3. We create the `system` object. This means that all the stages can see the system, in particular they can see the configuration
+4. `get_raw_forecast` is called, and looks for the trading rule "ewmac2_8". It gets this by calling the method `get_trading_rules`
+5. When the method `get_trading_rules` is called it looks to see if there is a *processed* dict of trading rules
+6. The first time the method `get_trading_rules` is called there won't be a processed list. So it looks for something to process
+7. First it will look to see if anything was passed when the instance rules of the `Rules()` class was created
+8. Since we didn't pass anything instead it processes what it finds in `system.config.trading_rules` - a nested dict, keynames rule variation names. 
+9. The `Rules` instance now has processed rule names in the form of a dict, keynames rule variation names, each element containing a valid `TradingRule` object
 
 
 

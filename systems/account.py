@@ -137,7 +137,7 @@ class _AccountCosts(_AccountInput):
             return (None, self.get_cash_costs(instrument_code))
 
     @diagnostic()
-    def subsystem_turnover(self, instrument_code, roundpositions=True):
+    def subsystem_turnover(self, instrument_code):
         """
         Get the annualised turnover for an instrument subsystem
 
@@ -156,7 +156,7 @@ class _AccountCosts(_AccountInput):
         return turnover(positions, average_position_for_turnover)
 
     @diagnostic()
-    def subsystem_SR_costs(self, instrument_code, roundpositions=False):
+    def subsystem_SR_costs(self, instrument_code):
         """
         Get the annualised SR costs for an instrument subsystem
 

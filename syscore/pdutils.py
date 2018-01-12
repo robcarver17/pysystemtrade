@@ -15,6 +15,8 @@ def turnover(x, y):
     Gives the turnover of x, once normalised for y
 
     Returned in annualised terms
+
+    Assumes both x and y are daily business days
     """
 
     if isinstance(y, float):

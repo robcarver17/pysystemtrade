@@ -62,14 +62,12 @@ class Rules(SystemStage):
         return "rules"
 
     def __repr__(self):
-        trading_rules = self._trading_rules
+        trading_rules = self.trading_rules()
 
-        if trading_rules is not None:
-            rule_names = ", ".join(self._trading_rules.keys())
-            return "Rules object with rules " + rule_names
+        rule_names = ", ".join(self._trading_rules.keys())
 
-        else:
-            return "Rules object with unknown trading rules [try Rules.tradingrules() ]"
+        return "Rules object with rules " + rule_names
+
 
     def trading_rules(self):
         """

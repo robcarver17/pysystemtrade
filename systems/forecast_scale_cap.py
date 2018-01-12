@@ -11,6 +11,8 @@ from syscore.genutils import str2Bool
 from syscore.pdutils import apply_cap
 from syscore.objects import resolve_function
 
+MISSING_ELEMENT = object()
+
 
 class ForecastScaleCap(SystemStage):
     """
@@ -51,6 +53,40 @@ class ForecastScaleCap(SystemStage):
             instrument_code, rule_variation_name)
 
         return raw_forecast
+
+    @input
+    def _get_trading_rule_list(self, instrument_code):
+        """
+        Get a list of trading rules which apply to a particular instrument
+
+        :param instrument_code:
+        :return: list of trading rules
+        """
+
+        if getattr(self.parent, "combForecast", MISSING_ELEMENT) is MISSING_ELEMENT:
+            return []
+        else:
+            return self.parent.combForecast.get_trading_rule_list(instrument_code)
+
+    @diagnostic()
+    def _list_of_instruments_for_trading_rule(self, rule_variation_name):
+        """
+        Return the list of instruments associated with a given rule
+
+        If we don't have a combForecast this will be all of our instruments
+
+        :param rule_variation_name:
+        :return: list
+        """
+
+        instrument_list = self.parent.get_instrument_list()
+        instruments_with_rule=[instrument_code for instrument_code in instrument_list
+                        if rule_variation_name in self._get_trading_rule_list(instrument_code)]
+
+        if len(instruments_with_rule)==1:
+            return instrument_list
+        else:
+            return instruments_with_rule
 
     @diagnostic()
     def get_forecast_cap(self):
@@ -178,8 +214,8 @@ class ForecastScaleCap(SystemStage):
         """
 
         if instrument_code == ALL_KEYNAME:
-            # pooled, same for all instruments
-            instrument_list = self.parent.get_instrument_list()
+            # pool data across all instruments using this trading rule
+            instrument_list = self._list_of_instruments_for_trading_rule(rule_variation_name)
 
         else:
             ## not pooled

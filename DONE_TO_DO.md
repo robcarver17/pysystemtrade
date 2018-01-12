@@ -1,5 +1,11 @@
 # Release notes
 
+## Version 0.16.2
+Fixed incorrect calculation of returns over weekends
+Forecast scalars now only pool across the set of instruments using a given trading rule
+Changed error handling for empty Rules() objects
+Added TOC to userguide.md file
+
 ## Version 0.16.1
 Updated to pandas 0.22.0
 Fixed issue #64, #68, #70 and other issues relating to pandas API update breaking correlation matrices
