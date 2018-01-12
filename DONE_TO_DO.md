@@ -1,5 +1,8 @@
 # Release notes
 
+## Version 0.16.4
+Added quandl data (but only for individual futures contracts right now so useless)
+
 ## Version 0.16.3
 Removed uses of old carry function which was deprecated
 
@@ -257,8 +260,6 @@ Moved most examples except core to seperate git [here](https://github.com/robcar
 
 * Simulation:
    
-  * add other trading rules (some in private...?) - cross sectional carry
-  * quandl data
   * stitch futures contracts 
   * add new data from unstitched contracts (with explanatory post, include explanation for Nth contract stitching)
   * Create live config from a system object (Put final value of estimates into a yaml file) 

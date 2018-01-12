@@ -38,6 +38,31 @@ class FuturesData(Data):
         self.log.critical(error_msg)
 
 
+class FuturesContract(object):
+    """
+    Define an individual futures contract
+
+    Must be a monthly expiry
+
+    """
+    def __init__(self, instrument_code, contract_month):
+
+        assert type(instrument_code) is str
+
+        try:
+            assert type(contract_month) is str
+            assert len(contract_month)==6
+            assert int(contract_month)
+            assert int(contract_month[4:])>0 & int(contract_month[4:])<13
+        except:
+            raise Exception("contract_month needs to be defined as a str, yyyymm")
+
+        self.instrument_code = instrument_code
+        self.contract_month = contract_month
+
+    def __repr__(self):
+        return self.instrument_code + " "+ self.contract_month
+
 if __name__ == '__main__':
     import doctest
     doctest.testmod()

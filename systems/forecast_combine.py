@@ -478,6 +478,7 @@ class _ForecastCombineCalculateWeights(_ForecastCombinePreCalculate):
                                      parent=self, **weighting_params)
 
         weight_func.optimise()
+
         return weight_func
 
     def get_raw_forecast_weights_estimated(self, instrument_code):
