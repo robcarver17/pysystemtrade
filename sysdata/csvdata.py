@@ -16,7 +16,7 @@ from sysdata.futuresdata import FuturesData
 """
 Static variables to store location of data
 """
-LEGACY_DATA_PATH = "sysdata.legacycsv"
+LEGACY_DATA_PATH = "data.futures.legacycsv"
 
 
 class csvFuturesData(FuturesData):

@@ -1,5 +1,8 @@
 # Release notes
 
+## Version 0.16.5
+Updated .csv data and moved to seperate section
+
 ## Version 0.16.4
 Added quandl data (but only for individual futures contracts right now so useless)
 
