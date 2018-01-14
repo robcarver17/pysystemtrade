@@ -63,7 +63,8 @@ class csvFuturesData(FuturesData):
                 resolved_datapath = absolute_datapath
             else:
                 pyst_dir = os.path.dirname(os.path.dirname(sysdata.__file__) )
-                resolved_datapath = os.path.join(pyst_dir, 'futures','legacycsv')
+                resolved_datapath = os.path.join(pyst_dir,'data', 'futures','legacycsv')
+                print ('using ' + resolved_datapath)
                # resolved_datapath = get_pathname_for_package(LEGACY_DATA_PATH)
         """
         Most Data objects that read data from a specific place have a 'source' of some kind
