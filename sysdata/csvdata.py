@@ -13,6 +13,7 @@ from syscore.pdutils import pd_readcsv
 from syscore.genutils import str_of_int
 
 from sysdata.futuresdata import FuturesData
+import sysdata
 """
 Static variables to store location of data
 """
@@ -61,7 +62,9 @@ class csvFuturesData(FuturesData):
             if absolute_datapath is not None:
                 resolved_datapath = absolute_datapath
             else:
-                resolved_datapath = get_pathname_for_package(LEGACY_DATA_PATH)
+                pyst_dir = os.path.dirname(os.path.dirname(sysdata.__file__) )
+                resolved_datapath = os.path.join(pyst_dir, 'futures','legacycsv')
+               # resolved_datapath = get_pathname_for_package(LEGACY_DATA_PATH)
         """
         Most Data objects that read data from a specific place have a 'source' of some kind
         Here it's a directory
