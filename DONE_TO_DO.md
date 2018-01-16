@@ -1,7 +1,7 @@
 # Release notes
 
 ## Version 0.16.5
-Updated .csv data and moved to seperate section
+Updated .csv data and moved to seperate section - now stored under Github LFS
 
 ## Version 0.16.4
 Added quandl data (but only for individual futures contracts right now so useless)

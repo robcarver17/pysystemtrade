@@ -49,6 +49,43 @@ class FuturesContract(object):
 
         assert type(instrument_code) is str
 
+        contract_month = contractDate(contract_month)
+
+        self.instrument_code = instrument_code
+        self.contract_month = contract_month
+
+    def __repr__(self):
+        return self.instrument_code + " "+ self.contract_month
+
+class listOfFuturesContracts(list):
+    """
+    An ordered list of contracts
+    """
+
+    pass
+
+class rollCycle(object):
+    """
+    A
+    """
+
+    pass
+
+
+class rollDateList(list):
+    """
+
+    """
+
+    pass
+
+class contractDate(object):
+    """
+    A single contract date; eithier in the form YYYYMM or YYYYMMDD
+    """
+
+    def __init__(self, contract_month):
+
         try:
             assert type(contract_month) is str
             assert len(contract_month)==6
@@ -57,11 +94,9 @@ class FuturesContract(object):
         except:
             raise Exception("contract_month needs to be defined as a str, yyyymm")
 
-        self.instrument_code = instrument_code
-        self.contract_month = contract_month
 
     def __repr__(self):
-        return self.instrument_code + " "+ self.contract_month
+        pass
 
 if __name__ == '__main__':
     import doctest
