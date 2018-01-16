@@ -949,13 +949,14 @@ def vol_equaliser(mean_list, stdev_list):
 
     norm_factor = [asset_stdev / avg_stdev for asset_stdev in stdev_list]
 
-    norm_means = [
-        mean_list[i] / norm_factor[i] for (i, notUsed) in enumerate(mean_list)
-    ]
-    norm_stdev = [
-        stdev_list[i] / norm_factor[i]
-        for (i, notUsed) in enumerate(stdev_list)
-    ]
+    with np.errstate(invalid='ignore'):
+        norm_means = [
+            mean_list[i] / norm_factor[i] for (i, notUsed) in enumerate(mean_list)
+        ]
+        norm_stdev = [
+            stdev_list[i] / norm_factor[i]
+            for (i, notUsed) in enumerate(stdev_list)
+        ]
 
     return (norm_means, norm_stdev)
 

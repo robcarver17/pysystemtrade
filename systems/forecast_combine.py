@@ -936,8 +936,10 @@ class ForecastCombineMaybeThreshold(ForecastCombine):
 
     def get_combined_forecast(self, instrument_code):
 
+        print(self.parent.config.instruments_with_threshold)
         if instrument_code in self.parent.config.instruments_with_threshold:
             post_process_func = self._threshold_forecast
+            self.log.msg('threshold: {}'.format(instrument_code))
         else:
             post_process_func = self._cap_forecast
 
