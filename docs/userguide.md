@@ -592,6 +592,14 @@ brokers and quandl data in the future.
 If you want to use a different set of data values (eg equity EP ratios,
 interest rates...) you'll need to [create your own Data object](#create_data).
 
+*WORK IN PROGRESS*
+I'm currently working on including support so that you can:
+
+- Get futures data from Quandl
+- Store it individually in a database
+- Stitch contracts together to make an adjusted price
+
+See [working with futures data](/docs/futures.md)
 
 ## How do I... Save my work
 
@@ -657,6 +665,15 @@ particular **source** (for example .csv files, databases and so on).
 
 Only one kind of specific data object is provided with the system in the
 current version - `csvFutures`.
+
+*WORK IN PROGRESS*
+I'm currently working on including support so that you can:
+
+- Get futures data from Quandl
+- Store it individually in a database
+- Stitch contracts together to make an adjusted price
+
+See [working with futures data](/docs/futures.md)
 
 #### Generic data objects
 

@@ -1,5 +1,8 @@
 # Release notes
 
+## Version 0.16.6
+Created classses for individual futures contracts, and included example of how to use Quandl to get them
+
 ## Version 0.16.5
 Updated .csv data and moved to seperate section - now stored under Github LFS
 

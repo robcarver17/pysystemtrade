@@ -3,12 +3,10 @@ Get data from quandl
 
 """
 
-from sysdata.futuresdata import FuturesContract
-from syscore.dateutils import contract_month_from_number
+from sysdata.futuresdata import futuresContract, listOfFuturesContracts, futuresData
 from syscore.fileutils import get_filename_for_package
 
 import quandl
-import os
 import pandas as pd
 
 QUANDL_FUTURES_CONFIG_FILE = get_filename_for_package("sysdata.quandl.QuandlFuturesConfig.csv")
@@ -25,11 +23,41 @@ def quandl_get_futures_contract_historic_data(futures_contract):
 
     quandl_contract = quandlFuturesContract(futures_contract)
 
-    return quandl.get(quandl_contract.quandl_identifier())
+    contract_data = quandl.get(quandl_contract.quandl_identifier())
+
+    return quandlFuturesContract(futures_contract, contract_data)
+
+class quandlFuturesData(futuresData):
+    """
+    Parses Quandl format into our format
+
+    Does any transformations needed to price etc
+    """
+    def __init__(self, futures_contract, contract_data):
+
+        new_data = pd.DataFrame(dict(OPEN = contract_data.Open,
+                                     CLOSE = contract_data.Close,
+                                     HIGH = contract_data.High,
+                                     LOW = contract_data.Low,
+                                     SETTLE = contract_data.Settle,
+                                     VOLUME = contract_data.Volume,
+                                     OPEN_INTEREST = contract_data['Prev. Day Open Interest']))
+
+        super().__init__(self, new_data)
 
 
+class listOfQuandlFuturesContracts(listOfFuturesContracts):
 
-class quandlFuturesContract(FuturesContract):
+    def __init__(self, list_of_contracts):
+        """
+        We always create from a list of normal contracts
+        """
+
+        list_of_contracts = [quandlFuturesContract(contract) for contract in list_of_contracts]
+
+        super().__init__(list_of_contracts)
+
+class quandlFuturesContract(futuresContract):
     """
     An individual futures contract, with additional Quandl methods
     """
@@ -41,7 +69,7 @@ class quandlFuturesContract(FuturesContract):
         :param futures_contract: of type FuturesContract
         """
 
-        super().__init__(futures_contract.instrument_code, futures_contract.contract_month)
+        super().__init__(futures_contract.instrument, futures_contract.date)
 
     def quandl_identifier(self):
         """
@@ -50,8 +78,8 @@ class quandlFuturesContract(FuturesContract):
         :return: str
         """
 
-        quandl_year = self.contract_month[:4]
-        quandl_month = contract_month_from_number(int(self.contract_month[4:]))
+        quandl_year = str(self.date.year())
+        quandl_month = self.date.letter_month()
 
         quandl_date_id = quandl_month + quandl_year
 

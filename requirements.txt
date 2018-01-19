@@ -3,3 +3,4 @@ matplotlib>=1.4.3
 pyyaml>=3.11
 numpy>=1.13.3
 scipy>=1.0.0
+quandl>=3.3.0

@@ -38,10 +38,12 @@ For a longer explanation of the motivation and point of this project see my [blo
 
 [User guide](docs/userguide.md)
 
+[Working with futures data](/docs/futures.md)
 
 ## Dependencies
 
-Python 3.x, pandas, matplotlib, pyyaml, numpy, scipy
+Python 3.x, pandas, matplotlib, pyyaml, numpy, scipy, quandl
+
 See [requirements.txt](requirements.txt) for full details.
 
 Make sure you get the python3 versions of the relevant packages, i.e. use:

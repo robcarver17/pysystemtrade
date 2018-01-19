@@ -32,6 +32,25 @@ UNIXTIME_CONVERTER = 1e9
 
 UNIXTIME_IN_YEAR = UNIXTIME_CONVERTER * SECONDS_IN_YEAR
 
+MONTH_LIST = ["F", "G", "H", "J", "K", "M", "N", "Q", "U", "V", "X", "Z"]
+
+
+def month_from_contract_letter(contract_letter):
+    """
+    Returns month number (1 is January) from contract letter
+
+    :param contract_letter:
+    :return:
+    """
+
+    try:
+        month_number = MONTH_LIST.index(contract_letter)
+    except ValueError:
+        return None
+
+    return month_number+1
+
+
 def contract_month_from_number(month_number):
     """
     Returns standard month letters used in futures land
@@ -40,7 +59,6 @@ def contract_month_from_number(month_number):
     :return: str
     """
 
-    MONTH_LIST=["F", "G", "H", "J", "K", "M", "N", "Q", "U", "V", "X", "Z"]
     return MONTH_LIST[month_number-1]
 
 def expiry_date(expiry_ident):
