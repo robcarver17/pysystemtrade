@@ -3,7 +3,7 @@ Get data from quandl
 
 """
 
-from sysdata.futuresdata import futuresContract, listOfFuturesContracts, futuresData
+from sysdata.futures.contracts import listOfFuturesContracts
 from syscore.fileutils import get_filename_for_package
 
 import quandl
