@@ -74,6 +74,7 @@ my_config.use_forecast_scale_estimates = True
 
 fcs = ForecastScaleCap()
 my_system = System([fcs, my_rules], data, my_config)
+my_config.forecast_scalar_estimate["pool_instruments"] = False
 print(
     my_system.forecastScaleCap.get_forecast_scalar("EDOLLAR", "ewmac32").tail(
         5))
