@@ -509,7 +509,7 @@ class listOfFuturesContracts(list):
 
         return listOfFuturesContracts(list_of_contracts)
 
-class futuresData(pd.dataFrame):
+class futuresData(pd.DataFrame):
     """
     Data frame in specific format
     """

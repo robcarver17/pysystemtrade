@@ -5,7 +5,7 @@ import pandas as pd
 
 from syscore.genutils import str2Bool
 from syscore.objects import resolve_function, update_recalc
-from syscore.pdutils import (apply_cap, dataframe_pad, fix_weights_vs_pdm,
+from syscore.pdutils import (dataframe_pad, fix_weights_vs_pdm,
                              from_dict_of_values_to_df)
 from systems.defaults import system_defaults
 from systems.stage import SystemStage
@@ -927,9 +927,9 @@ class ForecastCombine(_ForecastCombineCalculateWeights,
 
     def _cap_forecast(self, raw_multiplied_combined_forecast):
         forecast_cap = self.get_forecast_cap()
-        combined_forecast = apply_cap(raw_multiplied_combined_forecast,
-                                      forecast_cap)
-        return combined_forecast
+        capped_combined_forecast = raw_multiplied_combined_forecast.clip(
+            lower=-forecast_cap, upper=forecast_cap)
+        return capped_combined_forecast
 
 
 class ForecastCombineMaybeThreshold(ForecastCombine):

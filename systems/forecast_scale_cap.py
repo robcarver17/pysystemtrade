@@ -8,7 +8,6 @@ from systems.defaults import system_defaults
 from systems.system_cache import input, dont_cache, diagnostic, output
 
 from syscore.genutils import str2Bool
-from syscore.pdutils import apply_cap
 from syscore.objects import resolve_function
 
 MISSING_ELEMENT = object()
@@ -396,9 +395,9 @@ class ForecastScaleCap(SystemStage):
                                                    rule_variation_name)
         cap = self.get_forecast_cap()
 
-        capped_forecast = apply_cap(scaled_forecast, cap)
+        capped_scaled_forecast = scaled_forecast.clip(upper=cap, lower=-cap)
 
-        return capped_forecast
+        return capped_scaled_forecast
 
 
 if __name__ == '__main__':
