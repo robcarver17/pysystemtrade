@@ -4,7 +4,7 @@ This is a futures system
 A system consists of a system, plus a config
 
 '''
-from sysdata.csvdata import csvFuturesData
+from sysdata.csv.csvfuturesdata import csvFuturesData
 from sysdata.configdata import Config
 
 from systems.forecasting import Rules

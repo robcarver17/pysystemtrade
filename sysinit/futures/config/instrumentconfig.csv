@@ -1,0 +1,78 @@
+Instrument,Description,Exchange,Pointsize,Currency,Assetclass
+COCOA_LDN,Cocoa London,LIFFE_NF,10,GBP,Ags
+COCOA_NY,Cocoa  NY,NYMEX,10,USD,Ags
+COTTON,Cotton,NYMEX,50000,USD,Ags
+FEEDCOW,Feeder cattle,GLOBEX,500,USD,Ags
+LEANHOG,Lean hogs,GLOBEX,400,USD,Ags
+COFFEE,Coffee,NYMEX,37500,USD,Ags
+LIVECOW,Live cattle,GLOBEX,400,USD,Ags
+OJ,Orange Juice,ECBOT,15000,USD,Ags
+SUGAR,Sugar,ECBOT,112000,USD,Ags
+CORN,Corn,ECBOT,50,USD,Ags
+SOYMEAL,Soymeal,ECBOT,100,USD,Ags
+SOYOIL,Soyoil,ECBOT,600,USD,Ags
+SOYBEAN,Soybean,ECBOT,50,USD,Ags
+WHEAT,Wheat,ECBOT,50,USD,Ags
+AUS10,Australian 10 year bond,SNFE,9062,AUD,Bond
+AUS3,Australian 3 year bond,SNFE,3011,AUD,Bond
+CAD10,Canadian 10 year bond,CDE,1000,CAD,Bond
+OAT,French 10 year bond OAT,DTB,1000,EUR,Bond
+BUND,German 10 year bond Bund,DTB,1000,EUR,Bond
+SHATZ,German 2 year bond Schatz,DTB,1000,EUR,Bond
+BUXL,German 30 year bond Buxl,DTB,1000,EUR,Bond
+BOBL,German 5 year bond Bobl,DTB,1000,EUR,Bond
+BTP,Italian 10 year bond BTP,DTB,1000,EUR,Bond
+JGB,Japanese 10 year bond mini JGB,SGX,100000,JPY,Bond
+KR10,Korean 10 year bond,KSE,1000000,KRW,Bond
+KR3,Korean 3 year bond,KSE,1000000,KRW,Bond
+GILT,UK 10 year bonds Long Gilt,LIFFE,1000,GBP,Bond
+US10,US 10 year bond note,ECBOT,1000,USD,Bond
+US2,US 2 year bond note,ECBOT,2000,USD,Bond
+US20,US 20 year bond,ECBOT,1000,USD,Bond
+US30,US 30 year bond ultrabond,ECBOT,1000,USD,Bond
+US5,US 5 year bond note,ECBOT,1000,USD,Bond
+ASX,Australian equity index ASX200,SNFE,25,AUD,Equity
+BOVESPA,Brazilian equity index BOVESPA,GLOBEX,1,USD,Equity
+TSX,Canadian equity index TSX composite,CDE,5,CAD,Equity
+XINA,Chinese equity index,SGX,1,USD,Equity
+EUROSTX,European equity index EUROSTOXX50,DTB,10,EUR,Equity
+FOX,Finnish equity index,DTB,10,EUR,Equity
+CAC,French equity index CAC40,MONEP,10,EUR,Equity
+DAX,German equity index DAX30,DTB,25,EUR,Equity
+HANG,Hong Kong equity index Hang Seng,HKFE,50,HKD,Equity
+NIFTY,Indian equity index Nifty50,SGX,2,USD,Equity
+NIKKEI,Japanese equity index Nikkei,SGX,500,JPY,Equity
+KOSPI,Korean equity index KOSPI,KSE,500000,KRW,Equity
+AEX,Netherlands equity index AEX,FTA,200,EUR,Equity
+IBXEX,Spanish equity index IBEX,MEFFRV,10,EUR,Equity
+SMI,Swiss equity index SMI,SOFFEX,10,CHF,Equity
+FTSE,UK Equity index FTSE100,LIFFE,10,GBP,Equity
+NASDAQ,US equity index Nasdaq ,GLOBEX,20,USD,Equity
+SP500,US equity index S&P500 ,GLOBEX,50,USD,Equity
+V2X,Vol European equity V2X,DTB,100,EUR,Vol
+VIX,Vol US equity VIX,CFE,1000,USD,Vol
+AUD,AUDUSD currency,GLOBEX,100000,USD,FX
+CAD,CADUSD currency,GLOBEX,100000,USD,FX
+CHF,CHFUSD currency,GLOBEX,125000,USD,FX
+EUR,EURUSD currency,GLOBEX,125000,USD,FX
+GBP,GBPUSD currency,GLOBEX,62500,USD,FX
+JPY,JPYUSD currency,GLOBEX,12500000,USD,FX
+MXP,MEXUSD currency,GLOBEX,500000,USD,FX
+NZD,NZDUSD currency,GLOBEX,100000,USD,FX
+GOLD,Gold,NYMEX,100,USD,Metals
+COPPER,Copper,NYMEX,25000,USD,Metals
+PALLAD,Palladium,NYMEX,100,USD,Metals
+PLAT,Platinum,NYMEX,50,USD,Metals
+SILVER,Silver,NYMEX,5000,USD,Metals
+CRUDE_W,Light sweet crude Winter,NYMEX,1000,USD,OilGas
+BRENT_W,Brent crude summer,IPE,1000,USD,OilGas
+GASOIL_W,Gas oil winter,IPE,100,USD,OilGas
+HEAT_S,Heating oil Summer,NYMEX,42000,USD,OilGas
+GAS_US,Natural gas US,NYMEX,10000,USD,OilGas
+GAS_UK,Natural gas UK,IPE,31000,GBP,OilGas
+GASOILINE,Gasoline,NYMEX,42000,USD,OilGas
+CADSTIR,Canadian STIR Bank acceptance,CDE,25,CAD,STIR
+EDOLLAR,US STIR Eurodollar,GLOBEX,2500,USD,STIR
+EURIBOR,European STIR Euribor,LIFFE,2500,EUR,STIR
+AUSSTIR,Australian STIR Bills,SNFE,2414,AUD,STIR
+SSTERL,UK STIR Short Sterling,LIFFE,1250,GBP,STIR

@@ -574,7 +574,7 @@ You can create your own directory for .csv files such as
 `pysystemtrade/private/system_name/data/'. Here is how you'd use it:
 
 ```python
-from sysdata.csvdata import csvFuturesData
+from sysdata.csv.csvfuturesdata import csvFuturesData
 from systems.provided.futures_chapter15.basesystem import futures_system
 
 data=csvFuturesData("private.system_name.data"))
@@ -683,7 +683,7 @@ You can get use data objects directly:
 used as an example.*
 
 ```python
-from sysdata.csvdata import csvFuturesData
+from sysdata.csv.csvfuturesdata import csvFuturesData
 
 data=csvFuturesData()
 
@@ -724,7 +724,7 @@ should omit the system eg `data.get_raw_price`)
 The `csvFuturesData` object works like this:
 
 ```python
-from sysdata.csvdata import csvFuturesData
+from sysdata.csv.csvfuturesdata import csvFuturesData
 
 ## with the default folder
 data=csvFuturesData()
@@ -774,7 +774,7 @@ See [pysystem/sysdata/legacycsv](/sysdata/legacycsv) for files you can modify.
 You should be familiar with the python object orientated idiom before reading
 this section.
 
-The [`Data()`](/sysdata/data) object is the base class for data. From that we
+The [`Data()`](/sysdata/data) object is the base class for data used in simulations. From that we
 inherit data type specific classes such as the
 [`FuturesData`](/sysdata/futuresdata) object. These in turn are inherited from
 for specific data sources, such as [`csvFuturesData`](/sysdata/csvdata).
@@ -1838,7 +1838,7 @@ Then it's a case of creating the python function. Here is an extract from the
 ```python
 ## We probably need these to get our data
 
-from sysdata.csvdata import csvFuturesData
+from sysdata.csv.csvfuturesdata import csvFuturesData
 from sysdata.configdata import Config
 
 ## We now import all the stages we need
@@ -2341,7 +2341,7 @@ a look at an incomplete version of the pre-baked chapter 15 futures system.
 ```python
 ## We probably need these to get our data
 
-from sysdata.csvdata import csvFuturesData
+from sysdata.csv.csvfuturesdata import csvFuturesData
 from sysdata.configdata import Config
 from systems.basesystem import System
 

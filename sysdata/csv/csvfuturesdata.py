@@ -12,7 +12,7 @@ from syscore.fileutils import get_pathname_for_package
 from syscore.pdutils import pd_readcsv
 from syscore.genutils import str_of_int
 
-from sysdata.futuresdata import FuturesData
+from sysdata.futures.futuresDataForSim import FuturesData
 import sysdata
 """
 Static variables to store location of data

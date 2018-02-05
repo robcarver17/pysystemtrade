@@ -6,7 +6,7 @@ Work up a minimum example of a trend following system
 
 # Get some data
 
-from sysdata.csvdata import csvFuturesData
+from sysdata.csv.csvfuturesdata import csvFuturesData
 """"
 Let's get some data
 

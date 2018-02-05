@@ -28,7 +28,7 @@ setup(
     keywords="systematic trading interactive brokers",
     url="http://qoppac.blogspot.co.uk/p/pysystemtrade.html",
     packages=find_packages(),
-    package_data={'data': ['futures/legacycsv/*.csv'],
+    package_data={'data': ['futures/legacycsv/*.csv'], 'sysinit': ['/config/*.csv'],
                                  'systems':['provided/*.yaml','provided/*/*.yaml']},
     long_description=read('README.md'),
     install_requires=[

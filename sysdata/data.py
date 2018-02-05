@@ -10,20 +10,22 @@ DEFAULT_RATE_SERIES = pd.Series(
     [1.0] * len(DEFAULT_DATES), index=DEFAULT_DATES)
 
 
-class Data(object):
+class baseData(object):
     """
     Core data object - Base class
 
     Data objects are used to get data from a particular source, and give certain information about it
 
-    The bare Data class isn't much good and holds only price data
+    The baseData class is highly generic
 
-    Normally we'd inherit from this for specific asset classes (eg carry data for futures), and then for a
+    Normally we'd inherit from this for specific implementations (eg simulation, production for different data types),
+      specific asset classes (eg carry data for futures), and then for a
       specific source of data (eg csv files, databases, ...)
 
     The inheritance is:
 
     Base generic class: Data
+    -> implementation specific eg Data for simulation
     -> asset class specific eg futuresdata.FuturesData
     -> source specific eg legacy.csvFuturesData
 
@@ -32,13 +34,16 @@ class Data(object):
     def __init__(self):
         """
         Data socket base class
+
+        >>> data = baseData()
+        >>> data
+        Data object
         """
         # this will normally be overriden by the base system
         setattr(self, "log", logtoscreen(stage="data"))
 
     def __repr__(self):
-        return "Data object with %d instruments" % len(
-            self.get_instrument_list())
+        return "Data object"
 
     def _system_init(self, base_system):
         """
@@ -53,6 +58,57 @@ class Data(object):
 
     def methods(self):
         return get_methods(self)
+
+    def __getitem__(self, keyname):
+        """
+         convenience method to get the price, make it look like a dict
+
+        :param keyname: instrument to get prices for
+        :type keyname: str
+
+        :returns: pd.DataFrame
+        """
+
+        raise Exception("__getitem__ not defined for baseData class: use a class where it has been overriden")
+
+
+    def keys(self):
+        """
+        list of things in this data set (futures contracts, instruments...)
+
+        :returns: list of str
+
+        >>> data=Data()
+        >>> data.keys()
+        []
+        """
+        return []
+
+
+class Data(baseData):
+    """
+    Core data object - Base class for simulation
+
+    Data objects are used to get data from a particular source, and give certain information about it
+
+    The bare Data class isn't much good and holds only price and fx data
+
+    Normally we'd inherit from this for specific asset classes (eg carry data for futures), and then for a
+      specific source of data (eg csv files, databases, ...)
+
+    The inheritance is:
+
+    Base generic class: Data
+    -> implementation specific eg Data for simulation
+    -> asset class specific eg futuresdata.FuturesData
+    -> source specific eg legacy.csvFuturesData
+
+    """
+
+    def __repr__(self):
+        return "Data object with %d instruments" % len(
+            self.get_instrument_list())
+
 
     def daily_prices(self, instrument_code):
         """
@@ -171,12 +227,11 @@ class Data(object):
 
         >>> data=Data()
         >>> data._get_default_series().tail(5)
-        Expected:
-        2014-12-26   1
-        2014-12-29   1
-        2014-12-30   1
-        2014-12-31   1
-        2015-01-01   1
+        2040-12-04    1.0
+        2040-12-05    1.0
+        2040-12-06    1.0
+        2040-12-07    1.0
+        2040-12-10    1.0
         Freq: B, dtype: float64
         """
 
@@ -234,11 +289,11 @@ class Data(object):
 
         >>> data=Data()
         >>> data._get_fx_cross("USD", "USD").tail(5)
-        2014-12-26   1
-        2014-12-29   1
-        2014-12-30   1
-        2014-12-31   1
-        2015-01-01   1
+        2040-12-04    1.0
+        2040-12-05    1.0
+        2040-12-06    1.0
+        2040-12-07    1.0
+        2040-12-10    1.0
         Freq: B, dtype: float64
         """
 
@@ -274,11 +329,11 @@ class Data(object):
 
         >>> data=Data()
         >>> data.get_fx_for_instrument("wibble", "USD").tail(5)
-        2014-12-26    1
-        2014-12-29    1
-        2014-12-30    1
-        2014-12-31    1
-        2015-01-01    1
+        2040-12-04    1.0
+        2040-12-05    1.0
+        2040-12-06    1.0
+        2040-12-07    1.0
+        2040-12-10    1.0
         Freq: B, dtype: float64
         """
 

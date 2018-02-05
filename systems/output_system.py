@@ -5,8 +5,6 @@ class outputSystem(System):
     """
     An output system is similar to a simulation system, except it has an additional output stage; and a name used for log identifier
 
-    Doing system.run() will call output.run()
-
     This is the pattern for production systems that will always have some output
     """
     def __init__(self, stage_list, data, output, system_name = "output_system",
@@ -23,7 +21,7 @@ class outputSystem(System):
 
         >>> from systems.stage import SystemStage
         >>> stage=SystemStage()
-        >>> from sysdata.csvdata import csvFuturesData
+        >>> from sysdata.csv.csvfuturesdata import csvFuturesData
         >>> data=csvFuturesData()
         using /home/rob/workspace3/pysystemtrade/data/futures/legacycsv
         >>> outputSystem([stage], data, data, "test_system")
@@ -40,16 +38,6 @@ class outputSystem(System):
         self.name = system_name
 
 
-    def run(self):
-        """
-        We run the output stages own run method as we would do in production
-
-        No arguments - everything should be in config
-
-        :return: None
-        """
-
-        self.output.run()
 
 
 if __name__ == '__main__':

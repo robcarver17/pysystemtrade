@@ -1,11 +1,16 @@
 import unittest
 import datetime
-from sysdata.futuresdata import rollCycle, futuresInstrument, contractDate, NO_DAY_DEFINED, NO_ROLL_CYCLE, NO_EXPIRY_DATE, futuresContract, listOfFuturesContracts
+from sysdata.futures.rolls import rollCycle, rollParameters, contractDateWithRollParameters
+from sysdata.futures.contract_dates_and_expiries import contractDate
+from sysdata.futures.contracts import futuresContract, listOfFuturesContracts
+from sysdata.futures.instruments import futuresInstrument
+
 
 class MyTestCase(unittest.TestCase):
     def test_rollcycle(self):
 
         cycle1 = rollCycle("HMUZ")
+        self.assertEqual(cycle1.__repr__(), "HMUZ")
 
         self.assertEqual(cycle1.as_list(), [3,6,9,12])
 
@@ -35,16 +40,100 @@ class MyTestCase(unittest.TestCase):
 
         self.assertRaises(Exception, cycle1.month_is_first, "J")
 
+        self.assertEqual(cycle1.previous_year_month(2002, "M"), (2002, "H"))
+        self.assertEqual(cycle1.previous_year_month(2002, "H"), (2001, "Z"))
+
+        self.assertEqual(cycle1.next_year_month(2002, "M"), (2002, "U"))
+        self.assertEqual(cycle1.next_year_month(2002, "Z"), (2003, "H"))
+
+        self.assertEqual(cycle1.yearmonth_inrollcycle_after_date(datetime.datetime(2002,1,1)), (2002, 3))
+        self.assertEqual(cycle1.yearmonth_inrollcycle_after_date(datetime.datetime(2002,12,1)), (2003, 3))
+        self.assertEqual(cycle1.yearmonth_inrollcycle_after_date(datetime.datetime(2002,12,31)), (2003, 3))
+        self.assertEqual(cycle1.yearmonth_inrollcycle_after_date(datetime.datetime(2002,3,1)), (2002, 6))
+        self.assertEqual(cycle1.yearmonth_inrollcycle_after_date(datetime.datetime(2002,5,31)), (2002, 6))
+
+        self.assertEqual(cycle1.yearmonth_inrollcycle_before_date(datetime.datetime(2002,1,1)), (2001, 12))
+        self.assertEqual(cycle1.yearmonth_inrollcycle_before_date(datetime.datetime(2002,3,1)), (2001, 12))
+        self.assertEqual(cycle1.yearmonth_inrollcycle_before_date(datetime.datetime(2002,4,1)), (2002, 3))
+        self.assertEqual(cycle1.yearmonth_inrollcycle_before_date(datetime.datetime(2002,5,31)), (2002, 3))
+
+    def test_rolldata(self):
+        roll_data_blank = rollParameters()
+
+        self.assertRaises(Exception, roll_data_blank.check_for_price_cycle)
+        self.assertRaises(Exception, roll_data_blank.check_for_hold_cycle)
+
+        roll_data_empty = rollParameters.create_empty()
+        self.assertEqual(roll_data_empty.empty(), True)
+
+        roll_data = rollParameters(priced_rollcycle="HMUZ", hold_rollcycle="Z", contract_offset=1, approx_expiry_offset=15)
+
+        contract_date = roll_data.approx_first_priced_contractDate_after_date(datetime.datetime(2008,1,1))
+        self.assertEqual(contract_date.contract_date, "20080300")
+        self.assertEqual(contract_date.expiry_date, datetime.datetime(2008,3,16))
+
+        contract_date_held = roll_data.approx_first_held_contractDate_after_date(datetime.datetime(2008,1,1))
+        self.assertEqual(contract_date_held.contract_date, "20091200")
+        self.assertEqual(contract_date_held.expiry_date, datetime.datetime(2009,12,16))
+
+    def test_roll_with_date(self):
+        roll_data = rollParameters(priced_rollcycle="HMUZ", hold_rollcycle="Z", contract_offset=1, approx_expiry_offset=15)
+        rollwithdate = contractDateWithRollParameters(roll_data, "201801")
+
+        self.assertRaises(Exception, rollwithdate.next_priced_contract)
+
+        roll_data_no_price_cycle = rollParameters(hold_rollcycle="F", contract_offset=1, approx_expiry_offset=15)
+        rollwithdate = contractDateWithRollParameters(roll_data, "201801")
+
+        self.assertRaises(Exception, rollwithdate.next_priced_contract)
+
+        roll_data = rollParameters(priced_rollcycle="HMUZ", hold_rollcycle="MZ", contract_offset=1, approx_expiry_offset=15)
+        rollwithdate = contractDateWithRollParameters(roll_data, "201806")
+
+        self.assertEqual(rollwithdate.contract_date, "20180600")
+        self.assertEqual(rollwithdate.expiry_date, datetime.datetime(2018,6,16))
+        self.assertEqual(rollwithdate.check_if_expiry_after_date(datetime.datetime(2018,1,1)), True)
+
+        next_held = rollwithdate.next_held_contract()
+        prior_held = rollwithdate.previous_held_contract()
+
+        next_priced = rollwithdate.next_priced_contract()
+        prior_priced = rollwithdate.previous_priced_contract()
+
+        self.assertEqual(next_held.contract_date, "20181200")
+        self.assertEqual(prior_held.contract_date, "20171200")
+        self.assertEqual(next_priced.contract_date, "20180900")
+        self.assertEqual(prior_priced.contract_date, "20180300")
+
     def test_futuresInstrument(self):
 
         instrument = futuresInstrument("EDOLLAR")
         self.assertEqual(instrument.instrument_code, "EDOLLAR")
+
+        instrument_dict = instrument.as_dict()
+        print(instrument_dict)
+        self.assertEqual(instrument_dict['instrument_code'], "EDOLLAR")
+
+        new_instrument = instrument.create_from_dict(instrument_dict)
+        self.assertEqual(new_instrument.instrument_code, "EDOLLAR")
 
     def test_contractDate(self):
 
         contract_date201801=contractDate("201801")
         contract_date20180115=contractDate("20180115")
 
+        # dictionary
+        contract_date_dict_201801 = contract_date201801.as_dict()
+        self.assertEqual(contract_date_dict_201801, dict(expiry_date=(2018,1,1), contract_date="201801", approx_expiry_offset=0))
+
+        contract_date_dict_20180115 = contract_date20180115.as_dict()
+        self.assertEqual(contract_date_dict_20180115, dict(expiry_date=(2018,1,15),
+                                                                                   contract_date="20180115",
+                                                           approx_expiry_offset=0))
+
+        new_contractdate20801=contractDate.create_from_dict(contract_date_dict_201801)
+        self.assertEqual(contract_date201801.contract_date, new_contractdate20801.contract_date)
+        self.assertEqual(contract_date201801.expiry_date.year, new_contractdate20801.expiry_date.year)
 
         # basic functionality
         self.assertEqual(contract_date201801.contract_date, "20180100")
@@ -52,17 +141,18 @@ class MyTestCase(unittest.TestCase):
 
         self.assertEqual(contract_date201801.year(), 2018)
         self.assertEqual(contract_date201801.month(), 1)
-        self.assertEqual(contract_date201801.day(), NO_DAY_DEFINED)
+        self.assertEqual(contract_date201801._only_has_month, True)
 
         self.assertEqual(contract_date20180115.day(), 15)
+
 
         self.assertEqual(contract_date201801.letter_month(), "F")
         self.assertEqual(contract_date201801.as_date(), datetime.datetime(2018,1,1))
         self.assertEqual(contract_date20180115.as_date(), datetime.datetime(2018,1,15))
 
         # check date comparision
-        self.assertEqual(contract_date201801.check_if_contract_signature_after_date(datetime.datetime(2018,2,1)), False)
-        self.assertEqual(contract_date201801.check_if_contract_signature_after_date(datetime.datetime(2017,12,31)), True)
+        self.assertEqual(contract_date201801.check_if_expiry_after_date(datetime.datetime(2018,2,1)), False)
+        self.assertEqual(contract_date201801.check_if_expiry_after_date(datetime.datetime(2017,12,31)), True)
 
         # alternative method to define contracts
         contract_date201801b = contractDate.contract_date_from_numbers(2018,1)
@@ -72,102 +162,73 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(contract_date20180115b.contract_date, "20180115")
 
         # check expiry dates
-        contract_date201803_withexpiry=contractDate("201803", expiry_date=datetime.datetime(2008,3,15))
+        contract_date201803_withexpiry=contractDate("201803", expiry_date=(2008,3,15))
         contract_date201801b_withexpiry = contractDate.contract_date_from_numbers(2018,1,
-                                                                                  expiry_date = datetime.datetime(2008,1,16))
+                                                                                  expiry_date = (2008,1,16))
 
         self.assertEqual(contract_date201803_withexpiry.expiry_date, datetime.datetime(2008,3,15))
         self.assertEqual(contract_date201801b_withexpiry.expiry_date, datetime.datetime(2008,1,16))
 
-        # check roll cycles
-        self.assertEqual(contract_date201801.rollcycle, NO_ROLL_CYCLE)
-        contract_date201803_withrolls = contractDate("201803", rollcycle_string="HMUZ")
-        self.assertEqual(contract_date201803_withrolls.rollcycle.as_list(), [3,6,9,12])
+        # check expiry dates with contract offset
+        contract_date201803_withexpiry_offset=contractDate("201803", approx_expiry_offset=40)
+        contract_date201801b_withexpiry_offset = contractDate.contract_date_from_numbers(2018,1,
+                                                                                  approx_expiry_offset=-20)
 
-        # can add roll cycle as property
-        contract_date201801.rollcycle = "F"
-        self.assertEqual(contract_date201801.rollcycle.as_list(), [1])
-
-        # can't include date that doesn't fit in roll cycle
-        self.assertRaises(Exception, contractDate, "201801", rollcycle_string="HMUZ")
-
-        # check we can move forward
-        contract_date201806_withrolls = contract_date201803_withrolls.next_contract_date()
-        self.assertEqual(contract_date201806_withrolls.contract_date, "20180600")
-        self.assertEqual(contract_date201806_withrolls.rollcycle.as_list(), contract_date201803_withrolls.rollcycle.as_list())
-
-        # check we can move back
-        contract_date201803_withrolls_derived = contract_date201806_withrolls.previous_contract_date()
-        self.assertEqual(contract_date201803_withrolls_derived.contract_date, "20180300")
-        self.assertEqual(contract_date201803_withrolls_derived.rollcycle.as_list(),
-                         contract_date201803_withrolls.rollcycle.as_list())
-
-        ## EXPIRY DATE should vanish on moving forward
-        contract_date201803_withexpiry.rollcycle = "HMUZ"
-        self.assertEqual(contract_date201803_withexpiry.expiry_date, datetime.datetime(2008,3,15))
-
-        contract_date201806_withrolls_expiry = contract_date201803_withexpiry.next_contract_date()
-        self.assertEqual(contract_date201806_withrolls_expiry.expiry_date, NO_EXPIRY_DATE)
-
-        # moving forward corner case
-        contract_date201812 = contractDate("201812", rollcycle_string="HMUZ")
-        contract_date201903 = contract_date201812.next_contract_date()
-        self.assertEqual(contract_date201903.contract_date, "20190300")
-
-        # moving back corner case
-        contract_date201903 = contractDate("201903", rollcycle_string="HMUZ")
-        contract_date201812_derived = contract_date201903.previous_contract_date()
-        self.assertEqual(contract_date201812_derived.contract_date, "20181200")
-
-        # moving forward with day attached
-        contract_date20181215 = contractDate("20181215", rollcycle_string="HMUZ")
-        contract_date20190315 = contract_date20181215.next_contract_date()
-        self.assertEqual(contract_date20190315.contract_date, "20190315")
-
-        # first contract date,
-        contract_date197003=contractDate.approx_first_contractDate_after_date(datetime.datetime(1970, 1, 1), "HMUZ")
-        self.assertEqual(contract_date197003.contract_date, "19700300")
-
-        # check expiry date vanishes
-        self.assertEqual(contract_date197003.expiry_date, NO_EXPIRY_DATE)
-
-        # corner cases
-        contract_date197003=contractDate.approx_first_contractDate_after_date(datetime.datetime(1970, 12, 1), "HMUZ")
-        self.assertEqual(contract_date197003.contract_date, "19710300")
-
-        contract_date197102=contractDate.approx_first_contractDate_after_date(datetime.datetime(1970, 12, 1), "GHMUZ")
-        self.assertEqual(contract_date197102.contract_date, "19710200")
-
-
-
+        self.assertEqual(contract_date201803_withexpiry_offset.expiry_date, datetime.datetime(2018,4,10))
+        self.assertEqual(contract_date201801b_withexpiry_offset.expiry_date, datetime.datetime(2017,12,12))
 
     def test_futuresContract(self):
 
-        contract1 = futuresContract.simple("EDOLLAR", "201812", rollcycle_string = "HMUZ")
+        contract0 = futuresContract(futuresInstrument.create_empty(), "201801")
 
-        self.assertEqual(contract1.date.rollcycle.cyclestring, "HMUZ")
-        self.assertEqual(contract1.contract_date, "20181200")
+        contract1 = futuresContract.simple("EDOLLAR", "201812")
+
+        self.assertEqual(contract1.date, "20181200")
         self.assertEqual(contract1.instrument_code, "EDOLLAR")
-        self.assertEqual(contract1.expiry_date, NO_EXPIRY_DATE)
-        self.assertEqual(contract1.rollcycle_string, "HMUZ")
+        self.assertTrue(contract1.expiry_date, datetime.datetime(2018,12,1))
 
-        contract2 = futuresContract.simple("EDOLLAR", "20181215", expiry_date=datetime.datetime(2018,12,15))
+        # dictionaries
+        contract1_as_dict = contract1.as_dict()
+        self.assertEqual(contract1_as_dict, dict(instrument_code = "EDOLLAR", expiry_date = (2018,12,1),
+                                                 contract_date = "201812", approx_expiry_offset=0))
+
+        contract1_fromdict = futuresContract.create_from_dict(contract1_as_dict)
+
+        self.assertEqual(contract1_fromdict.instrument_code, "EDOLLAR")
+        self.assertEqual(contract1_fromdict.expiry_date, datetime.datetime(2018,12,1))
+        self.assertEqual(contract1_fromdict.date, "20181200")
+
+        contract2 = futuresContract.simple("EDOLLAR", "20181215", expiry_date=(2018,12,15))
         self.assertEqual(contract2.expiry_date, datetime.datetime(2018,12,15))
-        self.assertEqual(contract2.contract_date, "20181215")
-        self.assertEqual(contract2.date.rollcycle, NO_ROLL_CYCLE)
+        self.assertEqual(contract2.date, "20181215")
 
-        contract1a=contract1.next_contract()
-        self.assertEqual(contract1a.contract_date, "20190300")
+        contract3 = futuresContract.simple("EDOLLAR", "20181215", approx_expiry_offset = 4)
+        self.assertEqual(contract3.expiry_date, datetime.datetime(2018,12,19))
 
-        contract1b=contract1.previous_contract()
-        self.assertEqual(contract1b.contract_date, "20180900")
+        # rolling
+        contract1_with_roll_data = futuresContract.create_from_dict_with_rolldata(dict(instrument_code = "EDOLLAR",
+                                                                                       contract_date = "201812"),
+                                                                                  dict(priced_rollcycle = "HMUZ"))
 
-        contract3=futuresContract.approx_first_futuresContract_after_date("EDOLLAR", datetime.datetime(1970, 12, 1), "HMUZ")
-        self.assertEqual(contract3.contract_date, "19710300")
+        contract1a=contract1_with_roll_data.next_priced_contract()
+        self.assertEqual(contract1a.date, "20190300")
 
-        list_of_contracts = listOfFuturesContracts.series_of_contracts_within_daterange("EDOLLAR",
-                                                                datetime.datetime(2016,1,1), datetime.datetime(2018,1,1),
-                                                                rollcycle_string="HMUZ")
+        contract1b=contract1_with_roll_data.previous_priced_contract()
+        self.assertEqual(contract1b.date, "20180900")
+
+        contract3=futuresContract.approx_first_priced_futuresContract_after_date(futuresInstrument("EDOLLAR"),
+                                                                                 rollParameters(priced_rollcycle="HMUZ"),
+                                                                                 datetime.datetime(1970, 12, 1))
+        self.assertEqual(contract3.date, "19710300")
+
+        list_of_contracts = listOfFuturesContracts.series_of_price_contracts_within_daterange(futuresInstrument("EDOLLAR"),
+                                                                                              rollParameters(priced_rollcycle="HMUZ"),
+                                                                                              datetime.datetime(2016,1,1), datetime.datetime(2018,1,1))
+        self.assertEqual(list_of_contracts[0].date, "20160300")
+        self.assertEqual(list_of_contracts[-1].date, "20180300")
+
+        contract_ident = futuresContract.identGivenCodeAndContractDate("EDOLLAR", "201801")
+        self.assertEqual(contract_ident, "EDOLLAR/20180100")
 
 
 if __name__ == '__main__':

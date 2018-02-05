@@ -45,10 +45,10 @@ class System(object):
 
         >>> from systems.stage import SystemStage
         >>> stage=SystemStage()
-        >>> from sysdata.csvdata import csvFuturesData
+        >>> from sysdata.csv.csvfuturesdata import csvFuturesData
         >>> data=csvFuturesData()
         >>> System([stage], data)
-        System with stages: unnamed
+        System base_system with .config, .data, and .stages: unnamed
 
         """
 
@@ -116,7 +116,9 @@ class System(object):
 
     def __repr__(self):
         sslist = ", ".join(self._stage_names)
-        return "System with .config, .data, and .stages: " + sslist
+        description = "System %s with .config, .data, and .stages: " % self.name
+
+        return description+sslist
 
     def set_logging_level(self, new_log_level):
         """
@@ -147,24 +149,18 @@ class System(object):
             instrument_list = self.config.instrument_weights.keys()
         except:
             try:
-                # alternative place if
+                # alternative place if no instrument weights
                 instrument_list = self.config.instruments
             except:
-                # okay maybe not, must be in data
-                instrument_list = self.data.get_instrument_list()
+                try:
+                    # okay maybe not, must be in data
+                    instrument_list = self.data.get_instrument_list()
+                except:
+                    raise Exception("Can't find instrument_list anywhere!")
 
         instrument_list = sorted(set(list(instrument_list)))
         return instrument_list
 
-    def calc_or_cache_nested(self, *args, **kwargs):
-        raise Exception(
-            "You are using old style caching: rewrite your functions with decorators @input, @output, @diagnostic"
-        )
-
-    def calc_or_cache(self, *args, **kwargs):
-        raise Exception(
-            "You are using old style caching: rewrite your functions with decorators @input, @output, @diagnostic"
-        )
 
 
 if __name__ == '__main__':
