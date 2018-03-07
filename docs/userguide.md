@@ -555,7 +555,7 @@ system=futures_system(config=config)
 
 The default data used for the simulation is .csv files for futures stitched
 prices, fx and contract related data. It's my intention to update
-this and try to keep it reasonably current with each release.
+this and try to keep it reasonably current with each release. The data is stored in the [data/futures directory](/data/futures/)
 
 You can update that data, if you wish. Be careful to save it as a .csv with the
 right formatting, or pandas will complain. Check that a file is correctly
@@ -568,24 +568,22 @@ test
 ```
 You can also add new files for new instruments. Be sure to keep the file format and header names consistent.
 
-You can create your own directory for .csv files such as
-`pysystemtrade/private/system_name/data/'. Here is how you'd use it:
+You can create your own directory for .csv files. For example supposed you wanted to get your adjusted prices from
+`pysystemtrade/private/system_name/adjusted_price_data'. Here is how you'd use it:
 
 ```python
 from sysdata.csv.csvfuturesdata import csvFuturesData
 from systems.provided.futures_chapter15.basesystem import futures_system
 
-data=csvFuturesData("private.system_name.data"))
+data=csvFuturesData(datapath_dict=dict(adjusted_prices = "private.system_name.adjusted_price_data"))
 system=futures_system(data=data)
 ```
-Notice that we use python style "." internal references within a project, we don't give actual path names.
+Notice that we use python style "." internal references within a project, we don't give actual path names. The full list of keys that you can use in the `datapath_dict` are `config_data` (configuration and costs), `multiple_price_data` (prices for current, next and carry contracts), and `spot_fx_data` (for FX prices). Note that you can't put adjusted prices and carry data in the same directory since they use the same file format.
 
 There is more detail about using .csv files [here](#csv).
 
 If you want to get data from a different place (eg a database, yahoo finance,
 broker, quandl...) you'll need to [create your own Data object](#create_data).
-Note that I intend to add support for sqlite database, HDF5, Interactive
-brokers and quandl data in the future.
 
 If you want to use a different set of data values (eg equity EP ratios,
 interest rates...) you'll need to [create your own Data object](#create_data).
@@ -661,7 +659,7 @@ particular **source** (for example .csv files, databases and so on).
 
 ### Using the standard data objects
 
-Only one kind of specific data object is provided with the system in the
+Only one kind of specific data object is currently provided with the system in the
 current version - `csvFutures`.
 
 *WORK IN PROGRESS*
@@ -724,11 +722,22 @@ The `csvFuturesData` object works like this:
 ```python
 from sysdata.csv.csvfuturesdata import csvFuturesData
 
-## with the default folder
+## with the default folders
 data=csvFuturesData()
 
-## OR with a particular folder
-data=csvFuturesData("private.system_name.data")  ## assuming you've created data in pysystemtrade/private/system_name/data/
+## OR with provided folders, by providing a dict containing the folder(s) to use
+data=csvFuturesData(datapath_dict = dict(key_name = "pathtodata.with.dots")) 
+
+# Permissible key names are 'spot_fx_data' (FX prices), 'multiple_price_data' (for carry and forward prices), 
+# 'adjusted_prices' and 'config_data' (configuration and costs). 
+# If a keyname is not present then the system defaults will be used
+
+# An example to override with FX data stored in /psystemtrade/private/data/fxdata/:
+
+data=csvFuturesData(datapath_dict = dict(spot_fx_data="private.data.fxdata")) 
+
+# WARNING: Do not store multiple_price_data and adjusted_price_data in the same directory
+#          They use the same file names!
 
 ## getting data out
 data.methods() ## will list any extra methods
@@ -740,14 +749,14 @@ system=futures_system(data=data)
 system.data.get_instrument_raw_carry_data(instrument_code)
 ```
 
-The pathname must contain .csv files of the following four types (where code is
+Each relevant pathname must contain .csv files of the following four types (where code is
 the instrument_code):
 
-1. Static data- `instrument_config.csv` headings: Instrument, Pointsize,
+1. Static configuration data- `instrument_config.csv` headings: Instrument, Pointsize,
    AssetClass, Currency
-2. Price data- `code_price.csv` (eg SP500_price.csv) headings: DATETIME, PRICE
-3. Futures data - `code_carrydata.csv` (eg AEX_carrydata.csv): headings:
-   DATETIME, PRICE,CARRY,CARRY_CONTRACT PRICE_CONTRACT
+2. Adjusted price data- `code.csv` (eg SP500.csv) headings: DATETIME, PRICE
+3. Carry and forward data - `code.csv` (eg AEX.csv): headings:
+   DATETIME, PRICE,CARRY,FORWARD,CARRY_CONTRACT PRICE_CONTRACT, FORWARD_CONTRACT
 4. Currency data - `ccy1ccy2fx.csv` (eg AUDUSDfx.csv) headings: DATETIME,
    FXRATE
 5. Cost data - 'costs_analysis.csv' headings: Instrument, Slippage, PerBlock,
@@ -755,7 +764,7 @@ the instrument_code):
 
 DATETIME should be something that `pandas.to_datetime` can parse. Note that the
 price in (2) is the continously stitched price (see [volatility
-calculation](#vol_calc) ), whereas the price in (3) is the price of the
+calculation](#vol_calc) ), whereas the price column in (3) is the price of the
 contract we're currently trading.
 
 At a minimum we need to have a currency file for each instrument's currency
@@ -764,7 +773,12 @@ we're trading in (i.e. for a UK investor you'd need a `GBPUSDfx.csv` file). If
 cross rate files are available they will be used; otherwise the USD rates will
 be used to work out implied cross rates.
 
-See [pysystem/sysdata/legacycsv](/sysdata/legacycsv) for files you can modify.
+See data in subdirectories [pysystemtrade/data/futures](/data/futures) for files you can modify: 
+
+- [adjusted prices](/data/futures/adjusted_prices_csv),
+- [configuration and costs](/data/futures/csvconfig), 
+- [Futures specific carry and forward prices](/data/futures/multiple_prices_csv)
+- [Spot FX prices](/data/futures/fx_prices_csv)
 
 
 ### Creating your own data objects
@@ -772,27 +786,27 @@ See [pysystem/sysdata/legacycsv](/sysdata/legacycsv) for files you can modify.
 You should be familiar with the python object orientated idiom before reading
 this section.
 
-The [`Data()`](/sysdata/data) object is the base class for data used in simulations. From that we
-inherit data type specific classes such as the
-[`FuturesData`](/sysdata/futuresdata) object. These in turn are inherited from
-for specific data sources, such as [`csvFuturesData`](/sysdata/csvdata).
+The [`simData()`](/sysdata/data) object is the base class for data used in simulations. From that we
+inherit data type specific classes such as those 
+[for futures](/sysdata/futuresdata) object. These in turn are inherited from
+for specific data sources, such as [csv files, csvFuturesSimData()](/sysdata/csv/csv_sim_futures_data).
 
-So the FuturesData object is defined `class FuturesData(Data)`, and
-csvFuturesData as `class csvFuturesData(FuturesData)`. It would also be helpful
-if this naming scheme was adhered to: sourceTypeData. For example if we had
+It is helpful if this naming scheme was adhered to: sourceTypeSimData. For example if we had
 some single equity data stored in a database we'd do `class
-EquitiesData(Data)`, and `class dbEquitiesData(EquitiesData)`.
+EquitiesSimData(simData)`, and `class dbEquitiesSimData(EquitiesSimData)`.
 
 So, you should consider whether you need a new type of data, a new source of
 data or both. You may also wish to extend an existing class. For example if you
 wished to add some fundamental data for futures you might define: `class
-FundamentalFutures(FuturesData)`. You'd then need to inherit from that for a
+fundamentalFuturesSimData(futuresSimData)`. You'd then need to inherit from that for a
 specific source.
 
 This might seem a hassle, and it's tempting to skip and just inherit from
-`Data()` directly, however once your system is up and running it is very
+`simData()` directly, however once your system is up and running it is very
 convenient to have the possibility of multiple data sources and this process
 ensures they keep a consistent API for a given data type.
+
+It's worth reading the [documentation on futures data](/docs/futures.md) to understand how [csvFuturesSimData()](/sysdata/csv/csv_sim_futures_data) is constructed before modifying it or creating your own data objects.
 
 #### The Data() class
 
@@ -817,85 +831,6 @@ Neither should you override 'daily_prices'.
 Finally data methods should not do any caching. [Caching](#caching) is done
 within the system class.
 
-#### Creating a new type of data (or extending an existing one)
-
-Here is an annotated extract of the `FuturesData` class illustrating how it
-extends `Data`:
-
-```python
-
-class FuturesData(Data):
-
-    def get_instrument_raw_carry_data(self, instrument_code):
-    ### a method to get data specific for this asset class
-        ### normally we'd override this in the inherited method for a particular data source
-        ###
-
-        raise Exception("You have created a FuturesData() object; you probably need to replace this method to do anything useful")
-
-
-
-    def __repr__(self):
-        ### modify this method so we can tell what type of data we have
-        return "FuturesData object with %d instruments" % len(self.get_instrument_list())
-```
-
-#### Creating a new data source (or extending an existing one)
-
-Here is an annotated extract of the `csvFuturesData` class, illustrating how it
-extends `FuturesData` and `Data` for a specific source:
-
-```python
-class csvFuturesData(FuturesData):
-    """
-        Get futures specific data from legacy csv files
-
-        Extends the FuturesData class for a specific data source
-
-    """
-
-    def __init__(self, datapath=None):
-
-        if datapath is None:
-            datapath=get_pathname_for_package(LEGACY_DATA_MODULE, LEGACY_DATA_DIR)
-
-        simData
-        setattr(self, "_datapath", datapath)
-
-
-    def get_raw_price(self, instrument_code):
-        simData
-
-        ### This method will get the instrument price from self._datapath, for a specific
-
-    def get_instrument_raw_carry_data(self, instrument_code):
-        """
-        Returns a pd. dataframe with the 4 columns PRICE, CARRY, PRICE_CONTRACT, CARRY_CONTRACT
-
-    Overrides FuturesData method
-        """
-
-    def _get_instrument_data(self):
-        """
-        Get a data frame of interesting information about instruments
-        Private method used by other methods wanting static data
-        """
-
-    def get_instrument_list(self):
-        simData
-
-
-    def get_value_of_block_price_move(self, instrument_code):
-        simData
-
-    def get_instrument_currency(self, instrument_code):
-        simData
-
-
-    def _get_fx_data(self, currency1, currency2):
-        simData
-    ## Note that we don't include any other fx methods here; the one's in the data class should do just fine
-```
 
 <a name="config"> </a>
 
