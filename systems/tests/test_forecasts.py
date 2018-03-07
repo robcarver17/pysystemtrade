@@ -11,7 +11,8 @@ from systems.rawdata import RawData
 from systems.futures.rawdata import FuturesRawData
 from systems.provided.futures_chapter15.rules import carry2
 from sysdata.configdata import Config
-from sysdata.csv.csvfuturesdata import csvFuturesData
+from sysdata.csv.csv_sim_futures_data import csvFuturesSimData
+from systems.tests.testdata import get_test_object
 import matplotlib.pyplot as plt
 
 
@@ -19,7 +20,7 @@ class Test(unittest.TestCase):
     def testRules(self):
 
         # config=Config(dict(trading_rules=dict(ewmac=dict(function="systems.provided.example.rules.ewmac_forecast_with_defaults"))))
-        data = csvFuturesData("sysdata.tests")
+        NOTUSEDrawdata, data, NOTUSEDconfig = get_test_object()
 
         rules = Rules(
             dict(
@@ -28,7 +29,7 @@ class Test(unittest.TestCase):
         system = System([rules], data)
 
         ans = system.rules.get_raw_forecast("EDOLLAR", "rule0")
-        self.assertAlmostEqual(ans.tail(1).values[0], 2.1384223788141838, 5)
+        self.assertAlmostEqual(ans.tail(1).values[0], -3.280028, 5)
 
         config = Config(
             dict(trading_rules=dict(ewmac=dict(
@@ -38,7 +39,7 @@ class Test(unittest.TestCase):
         rules = Rules()
         system = System([rules], data, config)
         ans = system.rules.get_raw_forecast("EDOLLAR", "ewmac")
-        self.assertAlmostEqual(ans.tail(1).values[0], 2.1384223788141838, 5)
+        self.assertAlmostEqual(ans.tail(1).values[0], -3.28002839, 5)
 
         config = Config("systems.provided.example.exampleconfig.yaml")
         rawdata = RawData()
@@ -46,7 +47,7 @@ class Test(unittest.TestCase):
         rules = Rules()
         system = System([rules, rawdata], data, config)
         ans = system.rules.get_raw_forecast("EDOLLAR", "ewmac8")
-        self.assertAlmostEqual(ans.tail(1).values[0], 0.16438313875, 5)
+        self.assertAlmostEqual(ans.tail(1).values[0], -2.158634, 5)
 
     def testinitTradingRules(self):
         rule = TradingRule((ewmac_forecast_with_defaults, [], {}))
@@ -124,7 +125,7 @@ class Test(unittest.TestCase):
     def testCallingTradingRule(self):
 
         # config=Config(dict(trading_rules=dict(ewmac=dict(function="systems.provided.example.rules.ewmac_forecast_with_defaults"))))
-        data = csvFuturesData("sysdata.tests")
+        NOTUSEDrawdata, data, NOTUSEDconfig = get_test_object()
 
         rawdata = RawData()
         rules = Rules()
@@ -133,7 +134,7 @@ class Test(unittest.TestCase):
         # Call with default data and config
         rule = TradingRule(ewmac_forecast_with_defaults)
         ans = rule.call(system, "EDOLLAR")
-        self.assertAlmostEqual(ans.tail(1).values[0], 2.1384223788141838, 5)
+        self.assertAlmostEqual(ans.tail(1).values[0], -3.280028, 5)
 
         # Change the data source
         rule = TradingRule((
@@ -142,7 +143,7 @@ class Test(unittest.TestCase):
              "rawdata.daily_returns_volatility"], dict()))
 
         ans = rule.call(system, "EDOLLAR")
-        self.assertAlmostEqual(ans.tail(1).values[0], 0.029376, 5)
+        self.assertAlmostEqual(ans.tail(1).values[0], -1.24349, 5)
 
         rule = TradingRule(
             dict(
@@ -154,10 +155,10 @@ class Test(unittest.TestCase):
                 ],
                 other_args=dict(Lfast=50, Lslow=200)))
         ans = rule.call(system, "EDOLLAR")
-        self.assertAlmostEqual(ans.tail(1).values[0], 3.84426755)
+        self.assertAlmostEqual(ans.tail(1).values[0], -3.025001057146)
 
     def testCarryRule(self):
-        data = csvFuturesData("sysdata.tests")
+        NOTUSEDrawdata, data, NOTUSEDconfig = get_test_object()
 
         rawdata = FuturesRawData()
         rules = Rules()
@@ -168,7 +169,7 @@ class Test(unittest.TestCase):
             ],
             dict(smooth_days=90))
         ans = rule.call(system, "EDOLLAR")
-        self.assertAlmostEqual(ans.tail(1).values[0], 0.37666175, 5)
+        self.assertAlmostEqual(ans.tail(1).values[0], 0.138302, 5)
 
     def testProcessTradingRuleSpec(self):
 

@@ -21,8 +21,8 @@ class outputSystem(System):
 
         >>> from systems.stage import SystemStage
         >>> stage=SystemStage()
-        >>> from sysdata.csv.csvfuturesdata import csvFuturesData
-        >>> data=csvFuturesData()
+        >>> from sysdata.csv.csv_sim_futures_data import csvFuturesSimData
+        >>> data=csvFuturesSimData()
         using /home/rob/workspace3/pysystemtrade/data/futures/legacycsv
         >>> outputSystem([stage], data, data, "test_system")
         System test_system with .config, .data, and .stages: unnamed

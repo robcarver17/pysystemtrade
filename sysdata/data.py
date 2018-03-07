@@ -14,7 +14,7 @@ class baseData(object):
     """
     Core data object - Base class
 
-    Data objects are used to get data from a particular source, and give certain information about it
+    simData objects are used to get data from a particular source, and give certain information about it
 
     The baseData class is highly generic
 
@@ -24,26 +24,26 @@ class baseData(object):
 
     The inheritance is:
 
-    Base generic class: Data
-    -> implementation specific eg Data for simulation
+    Base generic class: simData
+    -> implementation specific eg simData for simulation
     -> asset class specific eg futuresdata.FuturesData
-    -> source specific eg legacy.csvFuturesData
+    -> source specific eg legacy.csvFuturesSimData
 
     """
 
     def __init__(self):
         """
-        Data socket base class
+        simData socket base class
 
         >>> data = baseData()
         >>> data
-        Data object
+        simData object
         """
         # this will normally be overriden by the base system
         setattr(self, "log", logtoscreen(stage="data"))
 
     def __repr__(self):
-        return "Data object"
+        return "simData object"
 
     def _system_init(self, base_system):
         """
@@ -78,35 +78,35 @@ class baseData(object):
 
         :returns: list of str
 
-        >>> data=Data()
+        >>> data=simData()
         >>> data.keys()
         []
         """
         return []
 
 
-class Data(baseData):
+class simData(baseData):
     """
     Core data object - Base class for simulation
 
-    Data objects are used to get data from a particular source, and give certain information about it
+    simData objects are used to get a collection of data
 
-    The bare Data class isn't much good and holds only price and fx data
+    The bare simData class isn't much good and holds only price and fx data
 
     Normally we'd inherit from this for specific asset classes (eg carry data for futures), and then for a
       specific source of data (eg csv files, databases, ...)
 
     The inheritance is:
 
-    Base generic class: Data
-    -> implementation specific eg Data for simulation
     -> asset class specific eg futuresdata.FuturesData
-    -> source specific eg legacy.csvFuturesData
+    -> source specific eg legacy.csvFuturesSimData
+
+    We can plug in different sources if desired
 
     """
 
     def __repr__(self):
-        return "Data object with %d instruments" % len(
+        return "simData object with %d instruments" % len(
             self.get_instrument_list())
 
 
@@ -136,7 +136,7 @@ class Data(baseData):
         :returns: pd.Series
 
         """
-        error_msg = "You have created a Data() object; you might need to use a more specific data object" % instrument_code
+        error_msg = "You have created a simData() object; you might need to use a more specific data object" % instrument_code
         self.log.critical(error_msg)
 
     def __getitem__(self, keyname):
@@ -167,7 +167,7 @@ class Data(baseData):
 
         :returns: list of str
 
-        >>> data=Data()
+        >>> data=simData()
         >>> data.keys()
         []
         """
@@ -225,7 +225,7 @@ class Data(baseData):
         """
         What we return if currency rates match
 
-        >>> data=Data()
+        >>> data=simData()
         >>> data._get_default_series().tail(5)
         2040-12-04    1.0
         2040-12-05    1.0
@@ -258,14 +258,6 @@ class Data(baseData):
 
         (Normally we'd over ride this with a specific source)
 
-        :param instrument_code: instrument to value for
-        :type instrument_code: str
-
-        :param base_currency: instrument to value for
-        :type instrument_code: str
-
-        :returns: Tx1 pd.Series, or None if not found
-
 
         """
 
@@ -279,15 +271,9 @@ class Data(baseData):
         """
         Get the FX rate between two currencies, using crosses with DEFAULT_CURRENCY if neccessary
 
-        :param instrument_code: instrument to value for
-        :type instrument_code: str
-
-        :param base_currency: instrument to value for
-        :type instrument_code: str
-
         :returns: Tx1 pd.Series
 
-        >>> data=Data()
+        >>> data=simData()
         >>> data._get_fx_cross("USD", "USD").tail(5)
         2040-12-04    1.0
         2040-12-05    1.0
@@ -327,7 +313,7 @@ class Data(baseData):
 
         :returns: Tx1 pd.Series
 
-        >>> data=Data()
+        >>> data=simData()
         >>> data.get_fx_for_instrument("wibble", "USD").tail(5)
         2040-12-04    1.0
         2040-12-05    1.0
@@ -347,7 +333,7 @@ class Data(baseData):
 
         :return: A pd.Series, row names are instruments, content is asset class
         """
-        error_msg = "You have created a Data() object; you need to use a more specific data object to use .get_instrument_asset_classes"
+        error_msg = "You have created a simData() object; you need to use a more specific data object to use .get_instrument_asset_classes"
         self.log.critical(error_msg)
 
     def all_instruments_in_asset_class(self, asset_class):

@@ -1,14 +1,14 @@
 import datetime
 import pandas as pd
 
-from sysdata.data import Data
+from sysdata.data import simData
 from syscore.dateutils import contract_month_from_number, month_from_contract_letter
 
-class FuturesData(Data):
+class FuturesData(simData):
     """
         Get futures specific data
 
-        Extends the Data class to add additional features for asset specific
+        Extends the simData class to add additional features for asset specific
 
         Will normally be overriden by a method for a specific data source
         See legacy.py
@@ -511,7 +511,7 @@ class listOfFuturesContracts(list):
 
 class futuresData(pd.DataFrame):
     """
-    Data frame in specific format
+    simData frame in specific format
     """
 
     def __init__(self, data):

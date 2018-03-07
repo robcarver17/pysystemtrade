@@ -74,6 +74,9 @@ def expiry_date(expiry_ident):
     >>> expiry_date('201503')
     datetime.datetime(2015, 3, 1, 0, 0)
 
+    >>> expiry_date('20150300')
+    datetime.datetime(2015, 3, 1, 0, 0)
+
     >>> expiry_date('20150305')
     datetime.datetime(2015, 3, 5, 0, 0)
 
@@ -87,6 +90,9 @@ def expiry_date(expiry_ident):
         if len(expiry_ident) == 6:
             expiry_date = datetime.datetime.strptime(expiry_ident, "%Y%m")
         elif len(expiry_ident) == 8:
+            if expiry_ident[6:8]=="00":
+                expiry_ident = expiry_ident[:6]+"01"
+
             expiry_date = datetime.datetime.strptime(expiry_ident, "%Y%m%d")
         else:
             raise Exception("")

@@ -36,7 +36,7 @@ class System(object):
         :type stage_list: list of systems.stage.SystemStage (or anything that inherits from it)
 
         :param data: data for doing simulations
-        :type data: sysdata.data.Data (or anything that inherits from that)
+        :type data: sysdata.data.simData (or anything that inherits from that)
 
         :param config: Optional configuration
         :type config: sysdata.configdata.Config
@@ -45,8 +45,8 @@ class System(object):
 
         >>> from systems.stage import SystemStage
         >>> stage=SystemStage()
-        >>> from sysdata.csv.csvfuturesdata import csvFuturesData
-        >>> data=csvFuturesData()
+        >>> from sysdata.csv.csv_sim_futures_data import csvFuturesSimData
+        >>> data=csvFuturesSimData()
         >>> System([stage], data)
         System base_system with .config, .data, and .stages: unnamed
 

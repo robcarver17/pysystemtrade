@@ -162,7 +162,7 @@ class systemCache(dict):
     def __repr__(self):
         if self.are_we_caching():
             list_of_elements = ", ".join([
-                cache_ref.__repr__()
+                cache_ref.__repr__
                 for cache_ref in self.get_items_with_data()
             ])
             return "Cache, elements: " + list_of_elements

@@ -553,10 +553,8 @@ system=futures_system(config=config)
 
 ## How do I....Use different data or instruments
 
-Currently the only data that is supported is .csv files for futures stitched
-prices (eg US10_price.csv), fx (eg AUDUSDfx.csv), and futures specific (eg
-AEX_carrydata.csv), data. A set of data is provided in
-[pysystem/sys/data/legacycsv](/sysdata/legacycsv). It's my intention to update
+The default data used for the simulation is .csv files for futures stitched
+prices, fx and contract related data. It's my intention to update
 this and try to keep it reasonably current with each release.
 
 You can update that data, if you wish. Be careful to save it as a .csv with the
@@ -861,18 +859,12 @@ class csvFuturesData(FuturesData):
         if datapath is None:
             datapath=get_pathname_for_package(LEGACY_DATA_MODULE, LEGACY_DATA_DIR)
 
-        """
-        Most Data objects that read data from a specific place have a 'source' of some kind
-        Here it's a directory
-    We need to store it for future reference
-        """
+        simData
         setattr(self, "_datapath", datapath)
 
 
     def get_raw_price(self, instrument_code):
-        """
-        Get instrument price. Overrides Data() method
-        """
+        simData
 
         ### This method will get the instrument price from self._datapath, for a specific
 
@@ -890,26 +882,18 @@ class csvFuturesData(FuturesData):
         """
 
     def get_instrument_list(self):
-        """
-        list of instruments in this data set. Overrides Data() method
-        """
+        simData
 
 
     def get_value_of_block_price_move(self, instrument_code):
-        """
-        How much is a $1 move worth in value terms?
-        Overrides Data() method
-        """
+        simData
 
     def get_instrument_currency(self, instrument_code):
-        """
-        What is the currency that this instrument is priced in?
-        Overrides Data() method
-        """
+        simData
 
 
     def _get_fx_data(self, currency1, currency2):
-        ##Overrides Data() method
+        simData
     ## Note that we don't include any other fx methods here; the one's in the data class should do just fine
 ```
 
@@ -1853,21 +1837,12 @@ from systems.account import Account
 
 
 def futures_system( data=None, config=None, trading_rules=None,  log_level="on"):
-    """
+    simD
+ata
 
-    :param data: data object (defaults to reading from csv files)
-    :type data: sysdata.data.Data, or anything that inherits from it
 
-    :param config: Configuration object (defaults to futuresconfig.yaml in this directory)
-    :type config: sysdata.configdata.Config
 
-    :param trading_rules: Set of trading rules to use (defaults to set specified in config object)
-    :param trading_rules: list or dict of TradingRules, or something that can be parsed to that
 
-    :param log_level: How much logging to do
-    :type log_level: str
-
-    """
 
     if data is None:
         data=csvFuturesData()

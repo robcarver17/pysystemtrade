@@ -7,36 +7,32 @@ Write list of futures contracts to mongodb database
 
 from sysdata.quandl.quandl_futures import quandlFuturesConfiguration, quandlFuturesContractPriceData
 from sysdata.futures.contracts import listOfFuturesContracts
+from sysdata.futures.instruments import futuresInstrument
 from sysdata.mongodb.mongo_futures_instruments import mongoFuturesInstrumentData
 from sysdata.mongodb.mongo_roll_data import mongoRollParametersData
 from sysdata.arctic.arctic_futures_per_contract_prices import arcticFuturesContractPriceData
 
-def get_instrument_spec_from_mongo(instrument_code):
+def get_roll_parameters_from_mongo(instrument_code):
 
-    mongo_instruments = mongoFuturesInstrumentData()
-    mongo_roll_data = mongoRollParametersData()
+    mongo_roll_parameters = mongoRollParametersData()
 
-    instrument_object = mongo_instruments.get_instrument_data(instrument_code)
-
-    if instrument_object.empty():
-        raise Exception("Instrument %s missing from %s" % (instrument_code, mongo_instruments))
-
-    roll_parameters = mongo_roll_data.get_roll_parameters(instrument_code)
+    roll_parameters = mongo_roll_parameters.get_roll_parameters(instrument_code)
     if roll_parameters.empty():
-        raise Exception("Instrument %s missing from %s" % (instrument_code, mongo_roll_data))
+        raise Exception("Instrument %s missing from %s" % (instrument_code, mongo_roll_parameters))
 
-    return (instrument_object, roll_parameters)
+    return roll_parameters
 
 def get_first_contract_date_from_quandl(instrument_code):
     config = quandlFuturesConfiguration()
     return config.get_first_contract_date(instrument_code)
 
-def create_list_of_contracts(instrument_object, roll_data):
-    instrument_code = instrument_object.instrument_code
+def create_list_of_contracts(instrument_code):
+    instrument_object = futuresInstrument(instrument_code)
     print(instrument_code)
+    roll_parameters = get_roll_parameters_from_mongo(instrument_code)
     first_contract_date = get_first_contract_date_from_quandl(instrument_code)
 
-    list_of_contracts = listOfFuturesContracts.historical_price_contracts(instrument_object, roll_data, first_contract_date)
+    list_of_contracts = listOfFuturesContracts.historical_price_contracts(instrument_object, roll_parameters, first_contract_date)
 
     return list_of_contracts
 
@@ -45,7 +41,7 @@ def get_and_write_prices_for_contract_list_from_quandl_to_arctic(list_of_contrac
     arctic_prices_data =  arcticFuturesContractPriceData()
 
     for contract_object in list_of_contracts:
-        print("Processing %s" % contract_object.ident)
+        print("Processing %s" % contract_object.ident())
         quandl_price = quandl_prices_data.get_prices_for_contract_object(contract_object)
 
         if quandl_price.empty():
@@ -60,8 +56,7 @@ def get_and_write_prices_for_contract_list_from_quandl_to_arctic(list_of_contrac
 
 if __name__ == '__main__':
     instrument_code = "EDOLLAR"
-    (instrument_object, roll_parameters) = get_instrument_spec_from_mongo(instrument_code)
-    list_of_contracts = create_list_of_contracts(instrument_object, roll_parameters)
+    list_of_contracts = create_list_of_contracts(instrument_code)
 
     print("Generated %d contracts" % len(list_of_contracts))
 

@@ -3,8 +3,8 @@ Let's recap:
 
 We got some data and created a trading rule
 """
-from sysdata.csv.csvfuturesdata import csvFuturesData
-data = csvFuturesData()
+from sysdata.csv.csv_sim_futures_data import csvFuturesSimData
+data = csvFuturesSimData()
 
 from systems.provided.example.rules import ewmac_forecast_with_defaults as ewmac
 """

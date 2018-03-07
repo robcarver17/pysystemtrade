@@ -1,3 +1,4 @@
+import pandas as pd
 import unittest
 import datetime
 from sysdata.futures.rolls import rollCycle, rollParameters, contractDateWithRollParameters
@@ -66,28 +67,30 @@ class MyTestCase(unittest.TestCase):
         roll_data_empty = rollParameters.create_empty()
         self.assertEqual(roll_data_empty.empty(), True)
 
-        roll_data = rollParameters(priced_rollcycle="HMUZ", hold_rollcycle="Z", contract_offset=1, approx_expiry_offset=15)
+        roll_data = rollParameters(priced_rollcycle="HMUZ", hold_rollcycle="Z",  approx_expiry_offset=15)
 
-        contract_date = roll_data.approx_first_priced_contractDate_after_date(datetime.datetime(2008,1,1))
-        self.assertEqual(contract_date.contract_date, "20080300")
-        self.assertEqual(contract_date.expiry_date, datetime.datetime(2008,3,16))
+        contract_date = roll_data.approx_first_held_contractDate_at_date(datetime.datetime(2008,1,1))
+        self.assertEqual(contract_date.contract_date, "20081200")
+        self.assertEqual(contract_date.expiry_date, datetime.datetime(2008,12,16))
 
-        contract_date_held = roll_data.approx_first_held_contractDate_after_date(datetime.datetime(2008,1,1))
-        self.assertEqual(contract_date_held.contract_date, "20091200")
-        self.assertEqual(contract_date_held.expiry_date, datetime.datetime(2009,12,16))
+        roll_data = rollParameters(priced_rollcycle="HMUZ", hold_rollcycle="HMUZ",   roll_offset_day=-365)
+
+        contract_date_held = roll_data.approx_first_held_contractDate_at_date(datetime.datetime(2008,1,1))
+        self.assertEqual(contract_date_held.contract_date, "20090300")
+        self.assertEqual(contract_date_held.expiry_date, datetime.datetime(2009,3,1))
 
     def test_roll_with_date(self):
-        roll_data = rollParameters(priced_rollcycle="HMUZ", hold_rollcycle="Z", contract_offset=1, approx_expiry_offset=15)
+        roll_data = rollParameters(priced_rollcycle="HMUZ", hold_rollcycle="Z",  approx_expiry_offset=15)
         rollwithdate = contractDateWithRollParameters(roll_data, "201801")
 
         self.assertRaises(Exception, rollwithdate.next_priced_contract)
 
-        roll_data_no_price_cycle = rollParameters(hold_rollcycle="F", contract_offset=1, approx_expiry_offset=15)
+        roll_data_no_price_cycle = rollParameters(hold_rollcycle="F", approx_expiry_offset=15)
         rollwithdate = contractDateWithRollParameters(roll_data, "201801")
 
         self.assertRaises(Exception, rollwithdate.next_priced_contract)
 
-        roll_data = rollParameters(priced_rollcycle="HMUZ", hold_rollcycle="MZ", contract_offset=1, approx_expiry_offset=15)
+        roll_data = rollParameters(priced_rollcycle="HMUZ", hold_rollcycle="MZ",  approx_expiry_offset=15)
         rollwithdate = contractDateWithRollParameters(roll_data, "201806")
 
         self.assertEqual(rollwithdate.contract_date, "20180600")
@@ -121,6 +124,9 @@ class MyTestCase(unittest.TestCase):
 
         contract_date201801=contractDate("201801")
         contract_date20180115=contractDate("20180115")
+
+        contract_date20180100=contractDate("20180100")
+        self.assertEqual(contract_date20180100.contract_date, "20180100")
 
         # dictionary
         contract_date_dict_201801 = contract_date201801.as_dict()
@@ -208,7 +214,9 @@ class MyTestCase(unittest.TestCase):
         # rolling
         contract1_with_roll_data = futuresContract.create_from_dict_with_rolldata(dict(instrument_code = "EDOLLAR",
                                                                                        contract_date = "201812"),
-                                                                                  dict(priced_rollcycle = "HMUZ"))
+                                                                                  dict(priced_rollcycle = "HMUZ",
+                                                                                       hold_rollcycle = "Z",
+                                                                                  carry_offset = 1))
 
         contract1a=contract1_with_roll_data.next_priced_contract()
         self.assertEqual(contract1a.date, "20190300")
@@ -216,20 +224,32 @@ class MyTestCase(unittest.TestCase):
         contract1b=contract1_with_roll_data.previous_priced_contract()
         self.assertEqual(contract1b.date, "20180900")
 
-        contract3=futuresContract.approx_first_priced_futuresContract_after_date(futuresInstrument("EDOLLAR"),
-                                                                                 rollParameters(priced_rollcycle="HMUZ"),
-                                                                                 datetime.datetime(1970, 12, 1))
-        self.assertEqual(contract3.date, "19710300")
+        contract1c = contract1_with_roll_data.carry_contract()
+        self.assertEqual(contract1c.date, "20190300")
 
-        list_of_contracts = listOfFuturesContracts.series_of_price_contracts_within_daterange(futuresInstrument("EDOLLAR"),
-                                                                                              rollParameters(priced_rollcycle="HMUZ"),
-                                                                                              datetime.datetime(2016,1,1), datetime.datetime(2018,1,1))
-        self.assertEqual(list_of_contracts[0].date, "20160300")
-        self.assertEqual(list_of_contracts[-1].date, "20180300")
+        contract1d = contract1_with_roll_data.next_held_contract()
+        self.assertEqual(contract1d.date, "20191200")
+
+        contract1e = contract1_with_roll_data.previous_held_contract()
+        self.assertEqual(contract1e.date, "20171200")
+
+
 
         contract_ident = futuresContract.identGivenCodeAndContractDate("EDOLLAR", "201801")
         self.assertEqual(contract_ident, "EDOLLAR/20180100")
 
+    def test_list_of_futures_contracts(self):
+        instrument_object = futuresInstrument("EDOLLAR")
+        roll_parameters = rollParameters(priced_rollcycle="HMUZ",
+                                         hold_rollcycle="MZ",
+                                         approx_expiry_offset=15, roll_offset_day=-70)
+        flist = listOfFuturesContracts.historical_price_contracts(instrument_object,
+                                                                  roll_parameters,
+                                                                  "200003", pd.datetime(2001,1,1))
+
+        self.assertEqual(len(flist), 5)
+        self.assertEqual(flist[0].date, "20000300")
+        self.assertEqual(flist[-1].date, "20010300")
 
 if __name__ == '__main__':
     unittest.main()

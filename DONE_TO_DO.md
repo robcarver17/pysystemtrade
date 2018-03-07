@@ -1,5 +1,8 @@
 # Release notes
 
+## Version 0.17
+Massive refactoring of sim data objects, to support alternative data sources and backadjusting
+
 ## Version 0.16.6
 Created classses for individual futures contracts, and included example of how to use Quandl to get them
 

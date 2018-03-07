@@ -151,8 +151,11 @@ class contractDate(object):
         :return: None
         """
 
-        self.contract_date=contract_date
-        self._only_has_month=False
+        if contract_date[DAY_SLICE]=="00":
+            self._init_with_month(contract_date[YYYYMM_SLICE])
+        else:
+            self.contract_date=contract_date
+            self._only_has_month=False
 
     def __repr__(self):
         return self.contract_date

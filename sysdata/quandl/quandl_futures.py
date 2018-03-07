@@ -70,12 +70,12 @@ class quandlFuturesConfiguration(object):
         config = self.get_instrument_config(instrument_code)
         return config.MARKET
 
-    def get_start_date(self, instrument_code):
+    def get_first_contract_date(self, instrument_code):
 
         config = self.get_instrument_config(instrument_code)
-        start_date = config.StartDate
+        start_date = config.FIRST_CONTRACT
 
-        return datetime.datetime.strptime(start_date, "%d/%m/%y")
+        return "%d" % start_date
 
 
 USE_DEFAULT = object()
@@ -144,7 +144,7 @@ class quandlFuturesContractPriceData(futuresContractPriceData):
 
         super().__init__()
 
-        self.name = "Data connection for individual futures contracts prices, Quandl"
+        self.name = "simData connection for individual futures contracts prices, Quandl"
 
     def __repr__(self):
         return self.name

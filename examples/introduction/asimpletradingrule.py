@@ -6,7 +6,7 @@ Work up a minimum example of a trend following system
 
 # Get some data
 
-from sysdata.csv.csvfuturesdata import csvFuturesData
+from sysdata.csv.csv_sim_futures_data import csvFuturesSimData
 """"
 Let's get some data
 
@@ -14,7 +14,7 @@ We can get data from various places; however for now we're going to use
 prepackaged 'legacy' data stored in csv files
 """
 
-data = csvFuturesData()
+data = csvFuturesSimData()
 
 print(data)
 """
@@ -39,21 +39,15 @@ We have extra futures data here
 
 print(data.get_instrument_raw_carry_data("EDOLLAR").tail(6))
 """
-Technical note: csvFuturesData inherits from FuturesData which itself inherits
-from Data
+Technical note: csvFuturesSimData inherits from FuturesData which itself inherits
+from simData
 The chain is 'data specific' <- 'asset class specific' <- 'generic'
 
-So there are also
-
-In principal there could be an equities data
-"""
-"""
 Let's create a simple trading rule
 
 No capping or scaling
 """
 
-import pandas as pd
 from syscore.algos import robust_vol_calc
 
 

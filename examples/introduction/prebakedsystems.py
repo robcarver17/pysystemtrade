@@ -4,14 +4,14 @@ my_system = simplesystem(log_level="on")
 print(my_system)
 print(my_system.portfolio.get_notional_position("EDOLLAR").tail(5))
 
-from sysdata.csv.csvfuturesdata import csvFuturesData
+from sysdata.csv.csv_sim_futures_data import csvFuturesSimData
 from sysdata.configdata import Config
 """
 Now loading config and data
 """
 
 my_config = Config("systems.provided.example.simplesystemconfig.yaml")
-my_data = csvFuturesData()
+my_data = csvFuturesSimData()
 my_system = simplesystem(config=my_config, data=my_data)
 print(my_system.portfolio.get_notional_position("EDOLLAR").tail(5))
 """

@@ -7,7 +7,7 @@ PRICE_DATA_COLUMNS.sort() # needed for pattern matching
 
 class futuresContractPrices(pd.DataFrame):
     """
-    Data frame in specific format containing per contract information
+    simData frame in specific format containing per contract information
     """
 
     def __init__(self, data):
@@ -41,6 +41,63 @@ class futuresContractPrices(pd.DataFrame):
 
     def empty(self):
         return
+
+    @property
+    def settlement_prices(self):
+        return self.SETTLE
+
+class dictFuturesContractPrices(dict):
+    """
+    A dict of futures contract prices
+
+    Keys are contract_objects
+
+    We can use standard dict methods, but convenience methods are included
+    """
+
+    def settlement_prices(self):
+        """
+
+        :return: dict of settlement prices
+        """
+
+        all_contract_ids = self.keys()
+        settle_price_dict = dictFuturesContractPrices([(contract_id, self[contract_id].settlement_prices)
+                                                       for contract_id in all_contract_ids])
+
+        return settle_price_dict
+
+    def sorted_contract_ids(self):
+        """
+        Time sorted contract ids
+        :return:
+        """
+
+        all_contract_ids = list(self.keys())
+        all_contract_ids.sort()
+
+        return all_contract_ids
+
+    def earliest_contract_id(self):
+        """
+        First contract id
+        :return: str
+        """
+
+        return self.sorted_contract_ids()[0]
+
+    def earliest_date_in_earliest_contract_id(self):
+        """
+        Oldest data in earliest contract (may not be the same as oldest data universally)
+
+        :return: datetime
+        """
+
+        earliest_contract_id = self.earliest_contract_id()
+        earliest_contract_data = self[earliest_contract_id]
+        earliest_date_in_data = earliest_contract_data.index[0].to_pydatetime()
+
+        return earliest_date_in_data
 
 BASE_CLASS_ERROR = "You have used a base class for futures price data; you need to use a class that inherits with a specific data source"
 
@@ -131,6 +188,21 @@ class futuresContractPriceData(baseData):
         else:
             return futuresContractPrices.create_empty()
 
+    def get_all_prices_for_instrument(self, instrument_code):
+        """
+        Get all the prices for this code, returned as dict
+
+        :param instrument_code: str
+        :return: dictFuturesContractPrices
+        """
+
+        contract_list = self.contracts_with_price_data_for_instrument_code(instrument_code)
+        dict_of_prices = dictFuturesContractPrices([(contractid,
+                         self.get_prices_for_instrument_code_and_contract_date(instrument_code, contractid))
+
+                         for contractid in contract_list])
+
+        return dict_of_prices
 
     def _get_prices_for_contract_object_no_checking(self, contract_object):
         """
@@ -172,14 +244,4 @@ class futuresContractPriceData(baseData):
     def _delete_prices_for_contract_object_with_no_checks_be_careful(self, futures_contract_object):
         raise NotImplementedError(BASE_CLASS_ERROR)
 
-
-class dictFuturesContractPrices(dict):
-    """
-    A dict of futures contract prices
-
-    Keys are contract_objects
-
-    We can use standard dict methods, but convenience methods are included
-    """
-    pass
 

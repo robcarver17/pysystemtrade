@@ -3,7 +3,7 @@ import unittest
 from systems.stage import SystemStage
 from systems.basesystem import System
 from systems.system_cache import input, diagnostic, output, ALL_KEYNAME
-from sysdata.data import Data
+from sysdata.data import simData
 from sysdata.configdata import Config
 
 
@@ -66,7 +66,7 @@ class TestCache(unittest.TestCase):
 
         system = System(
             [testStage1(), testStage2()],
-            Data(),
+            simData(),
             Config(dict(instruments=["code", "another_code"])))
         self.system = system
 

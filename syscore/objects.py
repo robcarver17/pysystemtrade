@@ -79,18 +79,18 @@ def resolve_data_method(some_object, data_string):
 
     :returns: method in some_object
 
-    >>> from sysdata.data import Data
+    >>> from sysdata.data import simData
     >>>
-    >>> data=Data()
+    >>> data=simData()
     >>> resolve_data_method(data, "get_instrument_price")
     <bound method Data.get_instrument_price of Data object with 0 instruments>
     >>>
-    >>> meta_data=Data()
+    >>> meta_data=simData()
     >>> setattr(meta_data, "meta", data)
     >>> resolve_data_method(meta_data, "meta.get_instrument_price")
     <bound method Data.get_instrument_price of Data object with 0 instruments>
     >>>
-    >>> meta_meta_data=Data()
+    >>> meta_meta_data=simData()
     >>> setattr(meta_meta_data, "moremeta", meta_data)
     >>> resolve_data_method(meta_meta_data, "moremeta.meta.get_instrument_price")
     <bound method Data.get_instrument_price of Data object with 0 instruments>
@@ -146,8 +146,8 @@ def hasallattr(some_object, attrlist=[]):
 
     :returns: bool
 
-    >>> from sysdata.data import Data
-    >>> data=Data()
+    >>> from sysdata.data import simData
+    >>> data=simData()
     >>> setattr(data, "one", 1)
     >>> setattr(data, "two", 2)
     >>> hasallattr(data, ["one", "two"])

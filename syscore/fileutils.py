@@ -1,11 +1,13 @@
 import os
 import sys
+
+# all these are unused: but are required to get the filename padding to work
 import syscore
 import sysdata
 import systems
 import examples
 import private
-
+import data
 
 def get_filename_for_package(name_with_dots):
     """
@@ -65,6 +67,17 @@ def get_pathname_for_package_from_list(path_as_list):
         get_pathname_for_package_from_list(path_as_list), last_item_in_list)
 
     return pathname
+
+
+def files_with_extension_in_pathname(pathname_with_dots, extension=".csv"):
+
+    pathname = get_pathname_for_package(pathname_with_dots)
+
+    file_list = os.listdir(pathname)
+    file_list = [filename for filename in file_list if filename.endswith(extension)]
+    file_list_no_extension = [filename.split('.')[0] for filename in file_list]
+
+    return file_list_no_extension
 
 
 if __name__ == '__main__':

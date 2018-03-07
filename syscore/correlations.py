@@ -138,7 +138,7 @@ def correlation_single_period(data_for_estimate,
                               floor_at_zero=False):
     """
     We generate a correlation from a pd.DataFrame, which could have been stacked up
-    :param data_for_estimate: Data to get correlations from
+    :param data_for_estimate: simData to get correlations from
     :type data_for_estimate: pd.DataFrame
     :param using_exponent: Should we use exponential weighting? If not every item is weighted equally
     :type using_exponent: bool
@@ -264,7 +264,7 @@ def correlation_calculator(data_for_estimate,
     """
     We generate a correlation from a pd.DataFrame, which could have been stacked up
 
-    :param data_for_estimate: Data to get correlations from
+    :param data_for_estimate: simData to get correlations from
     :type data_for_estimate: pd.DataFrame
 
     :param using_exponent: Should we use exponential weighting? If not every item is weighted equally
@@ -375,7 +375,7 @@ class CorrelationEstimator(CorrelationList):
 
         Its important that forward filling, or index / ffill / diff has been done before we begin
 
-        :param data: Data to get correlations from
+        :param data: simData to get correlations from
         :type data: pd.DataFrame or list if pooling
 
         :param frequency: Downsampling frequency. Must be "D", "W" or bigger

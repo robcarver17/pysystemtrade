@@ -1,11 +1,11 @@
-from sysdata.data import Data
+from sysdata.data import simData
 from random import gauss
 import numpy as np
 from syscore.pdutils import create_arbitrary_pdseries
 import pandas as pd
 
 
-class RandomData(Data):
+class RandomData(simData):
     """
     Generates random data for testing with a saw tooth pattern
 

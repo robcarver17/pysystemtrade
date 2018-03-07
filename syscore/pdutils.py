@@ -81,7 +81,7 @@ def must_have_item(slice_data):
     """
     Returns the columns of slice_data for which we have at least one non nan value
 
-    :param slice_data: Data to get correlations from
+    :param slice_data: simData to get correlations from
     :type slice_data: pd.DataFrame
 
     :returns: list of bool
@@ -230,7 +230,7 @@ def create_arbitrary_pdseries(data_list,
     """
     Return a pandas Series with an arbitrary date index
 
-    :param data_list: Data
+    :param data_list: simData
     :type data_list: list of floats or ints
 
     :param date_start: First date to use in index
@@ -239,7 +239,7 @@ def create_arbitrary_pdseries(data_list,
     :param freq: Frequency of date index
     :type freq: str of a type that pd.date_range will recognise
 
-    :returns: pd.Series  (same length as Data)
+    :returns: pd.Series  (same length as simData)
 
     >>> create_arbitrary_pdseries([1,2,3])
     1980-01-01    1

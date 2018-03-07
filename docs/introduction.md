@@ -1,6 +1,7 @@
  
 
 Here is a whistlestop tour of what pysystemtrade can currently do. You'll probably want to read the [users guide](userguide.md) after this.
+Notice that you will see different results than shown here, as you will be using more up to date data.
 
 ## A simple trading rule
 

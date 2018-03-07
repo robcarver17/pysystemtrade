@@ -23,7 +23,7 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
 
         self._arctic = articConnection(database_name, collection_name=CONTRACT_COLLECTION)
 
-        self.name = "Data connection for individual futures contracts prices, arctic %s/%s @ %s " % (
+        self.name = "simData connection for individual futures contracts prices, arctic %s/%s @ %s " % (
             self._arctic.database_name, self._arctic.collection_name, self._arctic.host)
 
     def __repr__(self):

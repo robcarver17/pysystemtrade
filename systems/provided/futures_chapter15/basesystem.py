@@ -4,7 +4,7 @@ This is a futures system
 A system consists of a system, plus a config
 
 '''
-from sysdata.csv.csvfuturesdata import csvFuturesData
+from sysdata.csv.csv_sim_futures_data import csvFuturesSimData
 from sysdata.configdata import Config
 
 from systems.forecasting import Rules
@@ -21,7 +21,7 @@ def futures_system(data=None, config=None, trading_rules=None, log_level="on"):
     """
 
     :param data: data object (defaults to reading from csv files)
-    :type data: sysdata.data.Data, or anything that inherits from it
+    :type data: sysdata.data.simData, or anything that inherits from it
 
     :param config: Configuration object (defaults to futuresconfig.yaml in this directory)
     :type config: sysdata.configdata.Config
@@ -55,7 +55,7 @@ def futures_system(data=None, config=None, trading_rules=None, log_level="on"):
     """
 
     if data is None:
-        data = csvFuturesData()
+        data = csvFuturesSimData()
 
     if config is None:
         config = Config(

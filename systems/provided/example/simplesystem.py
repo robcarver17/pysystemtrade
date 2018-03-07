@@ -1,4 +1,4 @@
-from sysdata.csv.csvfuturesdata import csvFuturesData
+from sysdata.csv.csv_sim_futures_data import csvFuturesSimData
 from sysdata.configdata import Config
 
 from systems.forecasting import Rules
@@ -17,7 +17,7 @@ def simplesystem(data=None, config=None, log_level="on"):
     if config is None:
         config = Config("systems.provided.example.simplesystemconfig.yaml")
     if data is None:
-        data = csvFuturesData()
+        data = csvFuturesSimData()
 
     my_system = System([
         Account(), Portfolios(), PositionSizing(), ForecastCombine(),

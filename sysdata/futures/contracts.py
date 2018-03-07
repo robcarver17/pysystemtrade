@@ -131,12 +131,6 @@ class futuresContract(object):
 
         return futuresContract(futuresInstrument(instrument_code), contractDate(contract_date, **kwargs))
 
-    @classmethod
-    def approx_first_priced_futuresContract_after_date(futuresContract, instrument_object, roll_data, first_date):
-
-        contract_date_object = roll_data.approx_first_priced_contractDate_after_date(first_date)
-
-        return futuresContract(instrument_object, contract_date_object)
 
     @classmethod
     def identGivenCodeAndContractDate(futuresContract, instrument_code, contract_date):
@@ -182,6 +176,31 @@ class futuresContract(object):
 
         return futuresContract(self.instrument, previous_contract_date)
 
+    def carry_contract(self):
+
+        try:
+            carry_contract = self.contract_date.carry_contract()
+        except AttributeError:
+            raise Exception("You can only do this if contract_date_object is contractDateWithRollParameters")
+
+        return futuresContract(self.instrument, carry_contract)
+
+    def next_held_contract(self):
+        try:
+            next_held_date = self.contract_date.next_held_contract()
+        except AttributeError:
+            raise Exception("You can only do this if contract_date_object is contractDateWithRollParameters")
+
+        return futuresContract(self.instrument, next_held_date)
+
+    def previous_held_contract(self):
+        try:
+            previous_held_date = self.contract_date.previous_held_contract()
+        except AttributeError:
+            raise Exception("You can only do this if contract_date_object is contractDateWithRollParameters")
+
+        return futuresContract(self.instrument, previous_held_date)
+
 
 MAX_CONTRACT_SIZE = 10000
 
@@ -194,11 +213,11 @@ class listOfFuturesContracts(list):
     def historical_price_contracts(listOfFuturesContracts, instrument_object, roll_parameters, first_contract_date,
                                    end_date=datetime.datetime.now()):
         """
-        We want to get all the contracts that fit in the roll cycle, bearing in mind the contractOffset
+        We want to get all the contracts that fit in the roll cycle, bearing in mind the RollOffsetDays (in roll_parameters)
           So for example suppose we want all contracts since 1st January 1980, to the present day, for
-          Eurodollar; where the rollcycle = "HMUZ" (quarterly IMM) and where the contractOffset is 12
-          (we want to be around 12 contracts in the future; eg 3 years). If it's current 1st January 2018
-          then we'd get all contracts with expiries between 1st January 1980 to 1st January 2021 (2018+3 = 2021)
+          Eurodollar; where the rollcycle = "HMUZ" (quarterly IMM) and where the rollOffSetDays is 1100
+          (we want to be around 3 years in the future; eg 12 contracts). If it's current 1st January 2018
+          then we'd get all contracts with expiries between 1st January 1980 to approx 1st January 2021
 
         This uses the 'priceRollCycle' rollCycle in instrument_object, which is a superset of the heldRollCycle
 
@@ -211,38 +230,9 @@ class listOfFuturesContracts(list):
         :return: list of futuresContracts
         """
 
-        ## If it's now current_date which contract would we hold bearing in mind contractOffset (which is in
-        ##    instrument object
+        first_contract = futuresContract(instrument_object, contractDateWithRollParameters(roll_parameters, first_contract_date))
 
-
-        last_contract_required = roll_parameters.approx_first_held_contractDate_at_date(end_date)
-        last_date = last_contract_required.expiry_date
-
-        return listOfFuturesContracts.series_of_price_contracts_within_daterange(instrument_object, roll_parameters,
-                                                                                 first_contract_date, last_date)
-
-    @classmethod
-    def series_of_price_contracts_within_daterange(listOfFuturesContracts, instrument_object, roll_parameters,
-                                                   first_contract_date, last_date):
-        """
-        We want to get all the contracts that fit in the roll cycle between two dates
-          So for example suppose we want all contracts since 1st January 1980, to the present day, for
-          Eurodollar; where the rollcycle = "HMUZ" (quarterly IMM) and last_date is 1st January 2021
-          then we'd get all quarterly contracts with expiries between 1st January 1980 to 1st January 2021
-
-        This uses the pricing rollCycle in roll data
-
-        :param instrument_object: An instrument object, containing roll information
-        :param roll_parameters: rollParameters
-        :param first_contract_date: The first contract date
-        :param current_date: The date when we want to stop getting contracts  datetime.datetime
-        :return: list of futuresContracts
-        """
-
-
-        first_contract = futuresContract(instrument_object, contractDate(first_contract_date))
-
-        assert last_date > first_contract.expiry_date
+        assert end_date > first_contract.expiry_date
 
         list_of_contracts = [first_contract]
 
@@ -253,7 +243,7 @@ class listOfFuturesContracts(list):
         while date_still_valid:
             next_contract = current_contract.next_priced_contract()
 
-            if current_contract.contract_date.stop_holding()>last_date:
+            if current_contract.contract_date.want_to_roll()>end_date:
                 date_still_valid = False
             else:
                 list_of_contracts.append(next_contract)
