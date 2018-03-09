@@ -245,7 +245,7 @@ Each row shows when we'd roll from holding current_contract (and using carry_con
 [This file](#/sysdata/futures/multiple_prices.py)
 
 <a name="futuresAdjustedPrices"></a>
-### [Adjusted prices](#/sysdata/futures/adjusted_prices.py): futuresAdjustedPrices() and futuresAdjustedPricesData()
+### [Adjusted prices](/sysdata/futures/adjusted_prices.py): futuresAdjustedPrices() and futuresAdjustedPricesData()
 
 
 
