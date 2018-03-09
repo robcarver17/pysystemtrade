@@ -166,16 +166,12 @@ The paradigm for data storage is that we have a bunch of [data objects](#generic
 ## Futures data objects and their generic data storage objects
 
 <a name="futuresInstrument"></a>
-### Instruments: futuresInstrument() and futuresInstrumentData()
-
-[This file](#/sysdata/futures/instruments.py)
+### [Instruments](/sysdata/futures/instruments.py): futuresInstrument() and futuresInstrumentData()
 
 Futures instruments are the things we actually trade, eg Eurodollar futures, but not specific contracts. Apart from the instrument code we can store metadata about them. This isn't hard wired into the class, but currently includes things like the asset class and so on.
 
 <a name="contractDate"></a>
-### Contract dates: contractDate()
-
-[This file](#/sysdata/futures/contract_dates_and_expiries.py)
+### [Contract dates](/sysdata/futures/contract_dates_and_expiries.py): contractDate()
 
 Note: There is no data storage for contract dates, they are stored only as part of [futures contracts](#futuresContracts).
 
@@ -184,17 +180,14 @@ A contract date allows us to identify a specific [futures contract](#futures_con
 We can also store expiry dates in contract dates. This can be done eithier by passing the exact date (which we'd do if we were getting the contract specs from our broker) or an approximate expiry offset, where 0 (the default) means the expiry is on day 1 of the relevant contract month.
 
 <a name="rollCycle"></a>
-### Roll cycles: rollCycle()
-
-[This file](#/sysdata/futures/rolls.py)
+### [Roll cycles](/sysdata/futures/rolls.py): rollCycle()
 
 Note: There is no data storage for roll cycles, they are stored only as part of [roll parameters](#rollParameters).
 
 Roll cycles are the mechanism by which we know how to move forwards and backwards between contracts as they expire, or when working out carry trading rule forecasts. Roll cycles use the usual definition for futures months (January is F, February G, March H, and the rest of the year is JKMNQUVX, with December Z). 
 
 <a name="rollParameters"></a>
-### Roll parameters: rollParameters() and rollParametersData()
-[This file](#/sysdata/futures/rolls.py)
+### [Roll parameters](/sysdata/futures/rolls.py): rollParameters() and rollParametersData()
 
 The roll parameters include all the information we need about how a given instrument rolls:
 
@@ -204,8 +197,7 @@ The roll parameters include all the information we need about how a given instru
 - `approx_expiry_offset`: How many days to shift the expiry date in a month, eg (the day of the month that a contract expires)-1. These values are just here so we can build roughly correct roll calendars (of which more later). In live trading you'd get the actual expiry date for each contract.
 
 <a name="contractDateWithRollParameters"></a>
-### Contract date with roll parameters: contractDateWithRollParameters()
-[This file](#/sysdata/futures/rolls.py)
+### [Contract date with roll parameters](/sysdata/futures/rolls.py): contractDateWithRollParameters()
 
 Note: There is no data storage for contract dates, they are stored only as part of [futures contracts](#futuresContracts).
 
@@ -213,24 +205,24 @@ Combining a contract date with some roll parameters means we can answer importan
 
 <a name="listOfFuturesContracts"></a>
 <a name="futuresContracts"></a>
-### Futures contracts: futuresContracts() and futuresContractData()
-[This file](#/sysdata/futures/contracts.py)
+### [Futures contracts](/sysdata/futures/contracts.py): futuresContracts() and futuresContractData()
+
 
 The combination of a specific [instrument](#futuresInstrument) and a [contract date](#contractDate) (possibly [with roll parameters](#contractDateWithRollParameters)) is a `futuresContract`. 
 
 `listOfFuturesContracts`: This dull class exists purely so we can generate a series of historical contracts from some roll parameters.
 
 <a name="futuresContractPrices"></a>
-### Prices for individual futures contracts: futuresContractPrices(), dictFuturesContractPrices() and futuresContractPriceData()
-[This file](#/sysdata/futures/futures_per_contract_prices.py)
+### [Prices for individual futures contracts](/sysdata/futures/futures_per_contract_prices.py): futuresContractPrices(), dictFuturesContractPrices() and futuresContractPriceData()
+
 
 The price data for a given contract is just stored as a DataFrame with specific column names. Notice that we store Open, High, Low, Close and Settle prices; but currently in the rest of pysystemtrade we effectively throw away everything except Settle.
 
 `dictFuturesContractPrices`: When calculating roll calendars we work with prices from multiple contracts at once.
 
 <a name="rollCalendar"></a>
-### Roll calendars: rollCalendar() and rollCalendarData()
-[This file](#https://github.com/robcarver17/pysystemtrade/blob/master/sysdata/futures/roll_calendars.py)
+### [Roll calendars](/sysdata/futures/roll_calendars.py): rollCalendar() and rollCalendarData()
+
 
 A roll calendar is a pandas DataFrame with columns for: 
 
@@ -241,15 +233,15 @@ A roll calendar is a pandas DataFrame with columns for:
 Each row shows when we'd roll from holding current_contract (and using carry_contract) on to next_contract. As discussed [earlier](#roll_calendars) they can be created from a set of [roll parameters](#rollParameters) and [price data](#futuresContractPrices), or inferred from existing [multiple price data](#futuresMultiplePrices).
 
 <a name="futuresMultiplePrices"></a>
-### Multiple prices: futuresMultiplePrices() and futuresMultiplePricesData()
-[This file](#/sysdata/futures/multiple_prices.py)
+### [Multiple prices](/sysdata/futures/multiple_prices.py): futuresMultiplePrices() and futuresMultiplePricesData()
+
 
 <a name="futuresAdjustedPrices"></a>
 ### [Adjusted prices](/sysdata/futures/adjusted_prices.py): futuresAdjustedPrices() and futuresAdjustedPricesData()
 
 
-
-### Spot FX data
+<a name="fxPrices"></a>
+### [Spot FX data](/sysdata/fx/spotfx.py): fxPrices() and fxPricesData()
 
 Technically bugger all to do with futures, but implemented in pysystemtrade as it's required for position scaling.
 
