@@ -28,7 +28,7 @@ In future versions of pysystemtrade there will be code to keep your prices up to
 
 The first step is to store some instrument configuration information. In principal this can be done in any way, but we are going to *read* from .csv files, and *write* to a [Mongo Database](https://www.mongodb.com/). There are two kinds of configuration; instrument configuration and roll configuration. Instrument configuration consists of static information that enables us to map from the instrument code like EDOLLAR.
 
-The relevant script to setup *information configuration* is in sysinit - the part of pysystemtrade used to initialise a new system. Here is the script you need to run [instruments_csv_mongo](/sysinit/futures/instruments_csv_mongo.py). Notice it uses two types of data objects: the object we write to [mongoFuturesInstrumentData](#mongoFuturesInstrumentData) and the object we read from [initCsvFuturesInstrumentData](#initCsvFuturesInstrumentData). These objects both inherit from the more generic futuresInstrumentData, and are specialist versions of that. You'll see this pattern again and again, and I describe it further in [part two of this document](#storing_futures_data). 
+The relevant script to setup *information configuration* is in sysinit - the part of pysystemtrade used to initialise a new system. Here is the script you need to run [instruments_csv_mongo.py](/sysinit/futures/instruments_csv_mongo.py). Notice it uses two types of data objects: the object we write to [`mongoFuturesInstrumentData`](#mongoFuturesInstrumentData) and the object we read from [`initCsvFuturesInstrumentData`](#initCsvFuturesInstrumentData). These objects both inherit from the more generic futuresInstrumentData, and are specialist versions of that. You'll see this pattern again and again, and I describe it further in [part two of this document](#storing_futures_data). 
 
 Make sure you are running a [Mongo Database](#mongoDB) before running this.
 
@@ -37,7 +37,7 @@ The information is sucked out of [this file](/sysinit/futures/config/instrumentc
 <a name="set_up_roll_parameter_config"></a>
 ## Roll parameter configuration
 
-For *roll configuration* we need to initialise by running the code in this file [roll_parameters_csv_mongo.py](/sysinit/futures/roll_parameters_csv_mongo.py). Again it uses two types of data objects: we read from [a csv file](/sysinit/futures/config/rollconfig.csv) with [initCsvFuturesRollData](#initCsvFuturesRollData), and write to a mongo db [mongoRollParametersData](#mongoRollParametersData). Again you need to make sure you are running a [Mongo Database](#mongoDB) before executing this script.
+For *roll configuration* we need to initialise by running the code in this file [roll_parameters_csv_mongo.py](/sysinit/futures/roll_parameters_csv_mongo.py). Again it uses two types of data objects: we read from [a csv file](/sysinit/futures/config/rollconfig.csv) with [`initCsvFuturesRollData`](#initCsvFuturesRollData), and write to a mongo db with [`mongoRollParametersData`](#mongoRollParametersData). Again you need to make sure you are running a [Mongo Database](#mongoDB) before executing this script.
 
 It's worth explaining the available options for roll configuration. First of all we have two *roll cycles*: 'priced' and 'hold'. Roll cycles use the usual definition for futures months (January is F, February G, March H, and the rest of the year is JKMNQUVX, with December Z). The 'priced' contracts are those that we can get prices for, whereas the 'hold' cycle contracts are those we actually hold. We may hold all the priced contracts (like for equities), or only only some because of liquidity issues (eg Gold), or to keep a consistent seasonal position (i.e. CRUDEW is Winter Crude, so we only hold December).
 
@@ -54,11 +54,11 @@ It might be helpful to read [my blog post](qoppac.blogspot.co.uk/2015/05/systems
 <a name="get_historical_data"></a>
 ## Getting historical data for individual futures contracts
 
-Now let's turn our attention to getting prices for individual futures contracts. We could get this from anywhere, but we'll use [Quandl](wwww.quandl.com). Obviously you will need to [get the python quandl library](#getQuandlPythonAPI), and you may want to [set a Quandl key](#setQuandlKey). 
+Now let's turn our attention to getting prices for individual futures contracts. We could get this from anywhere, but we'll use [Quandl](wwww.quandl.com). Obviously you will need to [get the python Quandl library](#getQuandlPythonAPI), and you may want to [set a Quandl key](#setQuandlKey). 
 
 We can also store it, in principal, anywhere but I will be using the open source [Arctic library](https://github.com/manahl/arctic) which was released by my former employers [AHL](ahl.com). This sits on top of Mongo DB (so we don't need yet another database) but provides straightforward and fast storage of pandas DataFrames.
 
-We'll be using [this code](/sysinit/futures/historical_contract_prices_quandl_mongo.py). Unlike the first two initialisation scripts this is set up to run for a single market. 
+We'll be using [this script](/sysinit/futures/historical_contract_prices_quandl_mongo.py). Unlike the first two initialisation scripts this is set up to run for a single market. 
 
 By the way I can't just pull down this data myself and put it on github to save you time. Storing large amounts of data in github isn't a good idea regardless of whether it is in .csv or Mongo files, and there would also be licensing issues with basically just copying and pasting raw data from Quandl. You have to get, and then store, this stuff yourself. And of course at some point in a live system you would be updating this yourself.
 
@@ -159,23 +159,46 @@ FIXME: TO BE IMPLEMENTED
 
 # Storing futures data
 
-All data objects in pysystemtrade inherit from ...
+The paradigm for data storage is that we have a bunch of [data objects](#generic_objects) for specific types of data, i.e. futuresInstrument is the generic class for storing static information about instruments. Each of those objects then has a matching *data storage object* which accesses data for that object, i.e. futuresInstrumentData. Then we have [specific instances of those for different data sources](*specific_data_storage), i.e. mongoFuturesInstrumentData for storing instrument data in a mongo DB database. 
 
-Specific instances 
 
-## Types of data: generic objects
+<a name="generic_objects"></a>
+## Futures data objects and their generic data storage objects
 
 <a name="futuresInstrument"></a>
-### Instruments: futuresInstrument
+### Instruments: futuresInstrument and futuresInstrumentData
 
-### Contract dates
+[This file](#/sysdata/futures/instruments.py)
 
+Futures instruments are the things we actually trade, eg Eurodollar futures, but not specific contracts. Apart from the instrument code we can store metadata about them. This isn't hard wired into the class, but currently includes things like the asset class and so on.
+
+<a name="contractDate"></a>
+### Contract dates: contractDate
+
+[This file](#/sysdata/futures/contract_dates_and_expiries.py)
+
+Note: There is no data storage for contract dates, they are stored only as part of [futures contracts](#futuresContracts).
+
+A contract date allows us to identify a specific [futures contract](#futures_contract) for a given [instrument](#futuresInstrument). Futures contracts can eithier be for a specific month (eg '201709') or for a specific day (eg '20170903'). The latter is required to support weekly VIX contracts. A monthly date will be represented with trailing zeros, eg '20170900'.
+
+We can also store expiry dates in contract dates. This can be done eithier by passing the exact date (which we'd do if we were getting the contract specs from our broker) or an approximate expiry offset, where 0 (the default) means the expiry is on day 1 of the relevant contract month.
+
+<a name="rollCycle"></a>
 ### Roll cycles
 
-### Roll parameters
+[This file](#/sysdata/futures/rolls.py)
+
+Note: There is no data storage for roll cycles, they are stored only as part of [roll parameters](#rollParameters).
+
+<a name="rollParameters"></a>
+### Roll parameters: rollParameters and rollParametersData
+[This file](#/sysdata/futures/rolls.py)
+
+
 
 ### Contract date with roll parameters
 
+<a name="futuresContracts"></a>
 ### Futures contracts: 
 
 <a name="listOfFuturesContracts"></a>
@@ -191,7 +214,39 @@ Specific instances
 
 ### Spot FX data
 
-## Data sources
+## Creating your own data objects, and data storage objects; a few pointers
+
+A few pointers. You should store your objects in [this directory](#/sysdata/futures) (for futures) or a new subdirectory of the [sysdata](#/sysdata/) directory (for new asset classes). Data objects and data storage objects should live in the same file. Data objects may inherit from other objects (for example for options you might want to inherit from the underlying future), but they don't have to. Data storage objects should all inherit from [baseData](#/sysdata/data.py). 
+
+Data objects should be prefixed with the asset class, i.e. futuresInstrument, equitiesInstrument. Data storage objects should have the same name as their data object, but with a Data suffix, eg futuresInstrumentData.
+
+Methods you'd probably want to include in a data object:
+
+- `create_from_dict` (`@classmethod`): Useful when reading data from a source
+- `as_dict`: Useful when writing data to a source
+- `create_empty` (`@classmethod`): Useful when reading data from a source if the object is unavailable, better to return one of these
+- `empty`: returns True if this is an empty object
+
+Methods you'd probably want to include in a data storage object:
+ 
+- `keys()` and `__getitem__`. It's nice if data storage objects look like dicts. `keys()` should be mapped to `get_list_of_things_with_data`. `__getitem__` should be mapped to `get_some_data`
+- `get_list_of_things_with_data`, i.e. the list of instrument codes with valid data. Should `raise NotImplementedError`
+- `get_some_data`: Check to see if `is_thing_in_data` is True, then call `_get_some_data_without_checking`. If not in data, return an empty instance of the data object.
+- `is_thing_in_data` i.e. is a particular instrument code in the list of codes with valid data
+- `_get_some_data_without_checking`: `raise NotImplementedError`
+- `delete_data_for_thing`: Check that a 'are you sure' flag is set, and that `is_thing_in_data` is True, then call `_delete_data_for_thing_without_checking`
+- `_delete_data_for_thing_without_checking`: `raise NotImplementedError`
+- `add_data_for_thing`: Check to see if `is_thing_in_data` is False (or that an ignore duplicates flag is set), then call `_add_data_for_thing_without_checking`
+- `_add_data_for_thing_without_checking`: `raise NotImplementedError`
+
+By the way you shouldn't really use method names like `get_list_of_things_with_data`, that's just plain silly. Instead use '`get_list_of_instruments` or what not.
+
+Notice the use of private methods to interact with the data inside public methods that perform standard checks; these methods that actually interact with the data (rather than just mapping to other methods, or performing checks) should raise a NotImplementedError; this will then be overriden in the [data storage object for a specific data source](#specific_data_storage).
+
+<a name="specific_data_storage"></a>
+## Data storage objects for specific sources
+
+This esction 
 
 ### Static csv files used for initialisation
 
@@ -234,15 +289,15 @@ https://github.com/robcarver17/pysystemtrade/blob/master/sysdata/mongodb/mongo_c
 <a name="getQuandlPythonAPI"></a>
 #### Getting the Quandl python API
 
-At the time of writing you get this from here.
+At the time of writing you get this from [here](https://docs.quandl.com/docs/python-installation) (external link, may fail).
 
 <a name="setQuandlKey"></a>
 #### Setting a Quandl API key
 
-In [this file](/sysdata/quandl/quandl_futures.py), add this command after the import statements:
+Having a Quandl API key means you can download a fair amount of data for free. If you have one then you should first create a file 'private_config.yaml' in the private directory of [pysystemtrade](#/private). Then add this line:
 
-```python
-quandl.ApiConfig.api_key = 'your_key_goes_here'
+```
+quandl_key: 'your_key_goes_here'
 ```
 
 <a name="quandlFuturesContractPriceData"></a>
@@ -264,6 +319,19 @@ FIXME: TO BE IMPLEMENTED
 
 #### arcticFxPricesData()
 FIXME: TO BE IMPLEMENTED
+
+## Creating your own data storage objects for a new source
+
+Creating your own data storage objects is trivial, assuming they are for an existing kind of data object. 
+
+They should live in a subdirectory of [sysdata](#/sysdata), named for the data source i.e. [sysdata/arctic](#/sysdata/arctic).
+
+Look at an existing data storage object for a different source to see which methods you'd need to implement, and to see the generic data storage object you should inherit from. Normally you'd need to override all the methods in the generic object which return `NotImplementedError`; the exception is if you have a read-only source like Quandl, or if you're working with .csv or similar files in which case I wouldn't recommend implementing delete methods.
+
+Use the naming convention sourceNameOfGenericDataObject, i.e. `class arcticFuturesContractPriceData(futuresContractPriceData)`. 
+
+For databases you may want to create connection objects (like [this](#/sysdata/arctic/arctic_connection.py) for Arctic) 
+
 
 <a name="simData_objects">
 </a>

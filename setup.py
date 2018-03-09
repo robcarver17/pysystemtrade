@@ -34,7 +34,8 @@ setup(
                   'sysdata': ['*.csv','tests/adjtestdata/*.csv', 'tests/configtestdata/*.csv',
                               'tests/fxtestdata/*.csv', 'multiplepricestestdata/*.csv',
                               ],
-                                 'systems':['provided/*.yaml','provided/*/*.yaml']},
+                                 'systems':['provided/*.yaml','provided/*/*.yaml'],
+                  'private': ['*.yaml']},
     long_description=read('README.md'),
     install_requires=[
         "pandas >= 0.19.0", "numpy >= 1.10.1", "matplotlib > 1.4.3",
