@@ -49,7 +49,8 @@ class initCsvFuturesRollData(rollParametersData):
         roll_parameters_object = rollParameters(hold_rollcycle= config_for_this_instrument.HoldRollCycle,
                                                   roll_offset_day = config_for_this_instrument.RollOffsetDays,
                                                   carry_offset = config_for_this_instrument.CarryOffset,
-                                                  priced_rollcycle = config_for_this_instrument.PricedRollCycle)
+                                                  priced_rollcycle = config_for_this_instrument.PricedRollCycle,
+                                                  approx_expiry_offset=config_for_this_instrument.ExpiryOffset)
 
         return roll_parameters_object
 
