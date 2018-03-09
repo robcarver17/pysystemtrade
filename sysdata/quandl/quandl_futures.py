@@ -13,7 +13,6 @@ import  datetime
 
 QUANDL_FUTURES_CONFIG_FILE = get_filename_for_package("sysdata.quandl.QuandlFuturesConfig.csv")
 
-quandl.ApiConfig.api_key = 'qWXuZcdwzwQ2GJQ88sNb'
 
 
 class quandlFuturesConfiguration(object):
