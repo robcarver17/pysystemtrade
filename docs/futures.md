@@ -244,10 +244,14 @@ Each row shows when we'd roll from holding current_contract (and using carry_con
 ### Multiple prices: futuresMultiplePrices() and futuresMultiplePricesData()
 [This file](#/sysdata/futures/multiple_prices.py)
 
-### Adjusted prices
+<a name="futuresAdjustedPrices"></a>
+### [Adjusted prices](#/sysdata/futures/adjusted_prices.py): futuresAdjustedPrices() and futuresAdjustedPricesData()
+
 
 
 ### Spot FX data
+
+Technically bugger all to do with futures, but implemented in pysystemtrade as it's required for position scaling.
 
 ## Creating your own data objects, and data storage objects; a few pointers
 
