@@ -197,7 +197,7 @@ class csvFuturesAdjustedPriceData(csvPaths, futuresAdjustedPriceData):
 
         return adj_prices_data
 
-class csvMultiplePriceData(csvPaths, futuresMultiplePriceData):
+class csvFuturesMultiplePriceData(csvPaths, futuresMultiplePriceData):
 
     def _get_all_price_data(self, instrument_code):
         """
@@ -307,7 +307,7 @@ You could modify this to mix and match csv and non csv data
 But you might need a custom __init__
 """
 
-class csvFuturesSimData(csvFXData, csvFuturesAdjustedPriceData, csvFuturesConfigDataForSim, csvMultiplePriceData):
+class csvFuturesSimData(csvFXData, csvFuturesAdjustedPriceData, csvFuturesConfigDataForSim, csvFuturesMultiplePriceData):
     """
         Get futures specific data from legacy csv files
 

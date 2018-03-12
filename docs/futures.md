@@ -73,7 +73,7 @@ This uses quite a few data objects:
 The script does two things:
 
 1. Generate a list of futures contracts, starting with the first contract defined in [this .csv](/sysdata/quandl/QuandlFuturesConfig.csv) and following the *price cycle*. The last contract in that series is the contract we'll currently hold, given the 'ExpiryOffset' parameter.
-2. For each contract, get the prices from Quandl and write them into Mongo DB.
+2. For each contract, get the prices from Quandl and write them into Arctic / Mongo DB.
 
 <a name="roll_calendars"></a>
 ## Roll calendars
@@ -155,9 +155,13 @@ FIXME: TO BE IMPLEMENTED
 
 FIXME: TO BE IMPLEMENTED
 
+## Backadjusting 'on the fly'
+
+It's also possible to implement the back-adjustment 'on the fly' within your backtest. More details later in this document, [here](#back_adjust_on_the_fly).
+
 <a name="storing_futures_data"></a>
 
-# Storing futures data
+# Storing and repersenting futures data
 
 The paradigm for data storage is that we have a bunch of [data objects](#generic_objects) for specific types of data, i.e. futuresInstrument is the generic class for storing static information about instruments. Each of those objects then has a matching *data storage object* which accesses data for that object, i.e. futuresInstrumentData. Then we have [specific instances of those for different data sources](*specific_data_storage), i.e. mongoFuturesInstrumentData for storing instrument data in a mongo DB database. 
 
@@ -223,7 +227,6 @@ The price data for a given contract is just stored as a DataFrame with specific 
 <a name="rollCalendar"></a>
 ### [Roll calendars](/sysdata/futures/roll_calendars.py): rollCalendar() and rollCalendarData()
 
-
 A roll calendar is a pandas DataFrame with columns for: 
 
 - current_contract
@@ -235,10 +238,17 @@ Each row shows when we'd roll from holding current_contract (and using carry_con
 <a name="futuresMultiplePrices"></a>
 ### [Multiple prices](/sysdata/futures/multiple_prices.py): futuresMultiplePrices() and futuresMultiplePricesData()
 
+A multiple prices object is a pandas DataFrame with columns for:PRICE, CARRY, PRICE_CONTRACT, CARRY_CONTRACT, FORWARD, and FORWARD_CONTRACT. 
+
+We'd normally create these from scratch using a roll calendar, and some individual futures contract prices (as discussed here). Once created they can be stored and reloaded.
+
 
 <a name="futuresAdjustedPrices"></a>
 ### [Adjusted prices](/sysdata/futures/adjusted_prices.py): futuresAdjustedPrices() and futuresAdjustedPricesData()
 
+The representation of adjusted prices is boring beyond words; they are a pandas Series. More interesting are the methods you can use to do the back adjustment process given a [multiple prices object](#futuresMultiplePrices).
+
+FIXME: Need to implement
 
 <a name="fxPrices"></a>
 ### [Spot FX data](/sysdata/fx/spotfx.py): fxPrices() and fxPricesData()
@@ -270,52 +280,89 @@ Methods you'd probably want to include in a data storage object:
 - `add_data_for_thing`: Check to see if `is_thing_in_data` is False (or that an ignore duplicates flag is set), then call `_add_data_for_thing_without_checking`
 - `_add_data_for_thing_without_checking`: `raise NotImplementedError`
 
-By the way you shouldn't really use method names like `get_list_of_things_with_data`, that's just plain silly. Instead use '`get_list_of_instruments` or what not.
+By the way you shouldn't actually use method names like `get_list_of_things_with_data`, that's just plain silly. Instead use '`get_list_of_instruments` or what not.
 
 Notice the use of private methods to interact with the data inside public methods that perform standard checks; these methods that actually interact with the data (rather than just mapping to other methods, or performing checks) should raise a NotImplementedError; this will then be overriden in the [data storage object for a specific data source](#specific_data_storage).
 
 <a name="specific_data_storage"></a>
 ## Data storage objects for specific sources
 
-This esction 
+This section covers the various sources for reading and writing [data objects](#storing_futures_data) I've implemented in pysystemtrade. 
 
 ### Static csv files used for initialisation
 
+In the initialisation part of the workflow (in [section one](#futures_data_workflow) of this document) I copied some information from .csv files to initialise a database. To acheive this we need to create some read-only access methods to the relevant .csv files (which are stored [here](/sysinit/futures/config/)).
+
 <a name="initCsvFuturesInstrumentData"></a>
-#### initCsvFuturesInstrumentData()
+#### [initCsvFuturesInstrumentData()](/sysinit/futures/csv_data_readers/instruments_from_csv.py) inherits from [futuresInstrumentData](#futuresInstrumentData)
+
+Reads instrument object data from [here](/sysinit/futures/config/instruments_from_csv.py))
 
 <a name="initCsvFuturesRollData"></a>
-#### initCsvFuturesRollData()
+#### initCsvFuturesRollData()](/sysinit/futures/csv_data_readers/rolldata_from_csv.py) inherits from [rollParametersData](#rollParametersData)
+
+Reads roll parameters for each instrument from [here](/sysinit/futures/config/rolldata_from_csv.py))
 
 ### Csv files
 
+Storing data in .csv files has some obvious disadvantages, and doesn't feel like the sort of thing a 21st century trading system ought to be doing. However it's good for roll calendars, which sometimes need manual hacking when they're created. It's also good for the data required to run backtests that lives as part of the github repo for pysystemtrade (storing large binary files in git is not a great idea, although various workarounds exist I haven't yet found one that works satisfactorily).
+
+For obvious (?) reasons we only implement get and read methods for .csv files.
 
 <a name="csvRollCalendarData"></a>
-#### csvRollCalendarData()
+#### [csvRollCalendarData()](/sysdata/csv/csv_roll_calendars.py) inherits from [rollParametersData](#rollParametersData)
 
-#### csvFuturesMultiplePricesData()
+Reads roll calendars from [here](/data/futures/roll_calendars_csv). File names are just instrument names. File format is index DATE_TIME; columns: current_contract, next_contract, carry_contract. Contract identifiers should be in yyyymmdd format, with dd='00' for monthly contracts (currently weekly contracts aren't supported).
 
-#### csvFuturesAdjustedPricesData()
+<a name="csvFuturesMultiplePricesData"></a>
+#### [csvFuturesMultiplePricesData()](/sysdata/csv/csv_multiple_prices.py) inherits from [futuresMultiplePricesData](#futuresMultiplePricesData)
 
-#### csvFxPricesData()
+Reads multiple prices (the prices of contracts that are currently interesting) from [here](/data/futures/multiple_prices_csv). File names are just instrument names. File format is index DATETIME; columns: PRICE, CARRY, FORWARD, CARRY_CONTRACT, PRICE_CONTRACT, FORWARD_CONTRACT. Prices are floats. Contract identifiers should be in yyyymmdd format, with dd='00' for monthly contracts (currently weekly contracts aren't supported). 
 
+
+
+<a name="csvFuturesAdjustedPriceData"></a>
+#### [csvFuturesAdjustedPricesData()](/sysdata/csv/csv_adjusted_prices.py) inherits from [futuresAdjustedPricesData](#futuresAdjustedPricesData)
+
+Reads back adjusted prices from [here](/data/futures/adjusted_prices_csv). File names are just instrument names. File format is index DATETIME; columns: PRICE.
+
+
+<a name="csvFxPricesData"></a>
+#### [csvFxPricesData()](/sysdata/csv/csv_spot_fx.py) inherits from [fxPricesData](#fxPricesData)
+
+Reads back adjusted prices from [here](/data/futures/fx_prices_csv). File names are CC1CC2, where CC1 and CC12 are three letter ISO currency abbreviations (eg  GBPEUR). Cross rates do not have to be stored, they will be calculated on the fly. File format is index DATETIME; columns: FX.
 
 
 <a name="mongoDB"></a>
 ### mongo DB
 
-https://github.com/robcarver17/pysystemtrade/blob/master/sysdata/mongodb/mongo_connection.py
+For production code, and storing large amounts of data (eg for individual futures contracts) we probably need something more robust than .csv files. [MongoDB](/mongodb.com) is a no-sql database which is rather fashionable at the moment, though the main reason I selected it for this purpose is that it is used by [Arctic](#arctic). 
+
+Obviously you will need to make sure you already have a Mongo DB instance running. The only error I have encountered with this is FIX ME ....
+
+All Mongo code uses the connection information defined in [this class](/sysdata/mongodb/mongo_connection.py). Personally I like to keep my Mongo data in this [pysystemtrade subdirectory](/data/futures/mongodb); that is achieved by FIXME. Of course this isn't compulsory.
+
 
 <a name="mongoFuturesInstrumentData"></a>
-#### mongoFuturesInstrumentData()
+#### [mongoFuturesInstrumentData()](/sysdata/mongodb/mongo_futures_instruments.py) inherits from [futuresInstrumentData](#futuresInstrumentData)
+
+This stores instrument static data in a dictionary format.
 
 
 <a name="mongoRollParametersData"></a>
-#### mongoRollParametersData()
+#### [mongoRollParametersData()](/sysdata/mongodb/mongo_roll_data.py) inherits from [rollParametersData](#rollParametersData)
 
+This stores roll parameters in a dictionary format.
+
+<a name="mongoFuturesContractData"></a>
+#### [mongoFuturesContractData()](/sysdata/mongodb/mongo_futures_contracts.py) inherits from [futuresContractData](#futuresContractData)
+
+This stores futures contract data in a dictionary format.
 
 
 ### Quandl
+
+[Quandl](quandl.com) is an awesome way of getting data, much of which is free, via a simple Python API. 
 
 <a name="getQuandlPythonAPI"></a>
 #### Getting the Quandl python API
@@ -331,16 +378,37 @@ Having a Quandl API key means you can download a fair amount of data for free. I
 quandl_key: 'your_key_goes_here'
 ```
 
-<a name="quandlFuturesContractPriceData"></a>
 <a name="quandlFuturesConfiguration"></a>
 
-#### quandlFuturesContractPriceData() and quandlFuturesConfiguration()
+#### [quandlFuturesConfiguration()](/sysdata/quandl/quandl_futures.py)
+
+Acceses [this .csv file](/sysdata/quandl/QuandlFuturesConfig.csv) which contains the codes and markets required to get data from Quandl.
+
+FIXME - this file needs completing.
+
+<a name="quandlFuturesContractPriceData"></a>
+#### [quandlFuturesContractPriceData()](/sysdata/quandl/quandl_futures.py) inherits from [futuresContractPriceData](#futuresContractPriceData)
+
+Reads data and returns in the form of [futuresContractPrices](#futuresContractPrices) objects. Notice that as this is purely a source of data we don't implement write methods.
 
 
+#### quandlFxPricesData()
+
+FIXME: To be implemented
+
+<a name="arctic"></a>
 ### Arctic 
 
+[Arctic](https://github.com/manahl/arctic) is a superb open source time series database which sits on top of [Mongo DB](#mongoDB) and provides straightforward and fast storage of pandas DataFrames. It was created by my former colleagues at [Man AHL](ahl.com) (in fact I beta tested a very early version of Arctic), and then very generously released as open source. You don't need to run multiple instances of Mongo DB when using my data objects for Mongo DB and Arctic, they use the same one. However we configure them seperately; the configuration for Arctic objects is [here](/sysdata/arctic/arctic_connection.py) (so in theory you could use two instances on different machines with seperate host names).
+
+Basically my mongo DB objects are for storing static information, whilst Arctic is for time series.
+
+NOTE ABOUT THE WAY ARCTIC STORES STUFF
+
 <a name="arcticFuturesContractPriceData"></a>
-#### arcticFuturesContractPriceData()
+#### [arcticFuturesContractPriceData()](/sysdata/arctic/arctic_futures_per_contract_prices.py) inherits from [futuresContractPriceData](#futuresContractPriceData)
+
+Read and writes per contract futures price data.
 
 #### arcticFuturesMultiplePricesData()
 FIXME: TO BE IMPLEMENTED
@@ -367,29 +435,127 @@ For databases you may want to create connection objects (like [this](#/sysdata/a
 <a name="simData_objects">
 </a>
 # simData objects
-
+/
 The `simData` object is a compulsory part of the psystemtrade system object which runs simulations (or in live trading generates desired positions). The API required for that is laid out in the userguide, [here](#/docs/userguide.md#using-the-standard-data-objects). For maximum flexibility as of version 0.17 these objects are in turn constructed of methods that hook into data storage objects for specific sources. So for example in the default [`csvFuturesSimData`](/sysdata/csv/csv_sim_futures_data.py) the compulsory method (for futures) get_backadjusted_futures_price is hooked into an instance of [`csvFuturesAdjustedPricesData`](#csvFuturesAdjustedPricesData).
 
 This modularity allows us to easily replace the data objects, so we could load our adjusted prices from mongo DB, or do 'back adjustment' of futures prices 'on the fly'.
 
+For futures simData objects need to know the source of:
+
+- back adjusted prices
+- multiple price data
+- spot FX prices
+- instrument configuration and cost information
+
+Direct access to other kinds of information isn't neccessary for simulations.
+
 ## Provided simData objects
 
-### csvSimData
+I've provided two complete simData objects which get their data from different sources: [csvSimData](#csvSimData) and [mongoSimData](#mongoSimData).
 
-### mongoSimData
+<a name="csvFuturesSimData">
+</a>
+### [csvFuturesSimData()](/sysdata/csv/csv_sim_futures_data.py)
 
+The simplest simData object gets all of its data from .csv files, making it ideal for simulations if you haven't built a process yet to get your own data. It's essentially a like for like process for the simpler csvSimData objects that pysystemtrade used in versions before 0.17.0.
+
+
+
+<a name="mongoSimData">
+</a>
+### [arcticFuturesSimData()](/sysdata/arctic/arctic_and_mongo_sim_futures_data.py)
+
+This is a simData object which gets it's data out of Mongo DB (static) and Arctic (time series) (*Yes the class name should include both terms. Yes I shortened it so it isn't ridiculously long, and most of the interesting stuff comes from Arctic*). It is better for live trading.
+
+FIX ME NOT IMPLEMENTED
+
+
+
+<a name="modify_SimData">
+</a>
 ## Modifying simData objects
+
+Constructing simData objects in the way I've done makes it relatively easy to modify them. Here are a few examples.
 
 ### Getting data from another source
 
+Let's suppose you want to use Arctic and Mongo DB data, but get your spot FX prices from a .csv file. OK this is a silly example, but hopefully it will be easy to generalise this to doing more sensible things.
+
+FIX ME NOT IMPLEMENTED
+
+<a name="back_adjust_on_the_fly"></a>
 ### Back-adjustment 'on the fly'
 
-## Detailed internals of simData objects
+This is a modification to csvSimData which calculates back adjustment prices 'on the fly', rather than getting them pre-loaded from another database. This would allow you to use different back adjustments and see what effects they had. Note that this will work 'out of the box' for any 'single point' back adjustment where the roll happens on a single day, and where you can use multiple price data (which we already have). For any back adjustment where the process happens over several days you'd need to add extra methods to access individual futures contract prices and roll calendars. This is explained [in the next section](#back_adjust_on_the_fly_multiple_days).
+
+FIX ME NOT IMPLEMENTED
+
+
+<a name="back_adjust_on_the_fly_multiple_days"></a>
+### Back-adjustment 'on the fly' over several days
+For any back adjustment where the process happens over multiple days you'd need to add extra methods to access individual futures contract prices and roll calendars. Let's suppose we want to get these from Arctic (prices) and .csv files (roll calendars).
+
+FIX ME NOT IMPLEMENTED
+
+## Constructing your own simData objects
+
+If you want to construct your own simData objects it's worth understanding their detailed internals in a bit more detail.
 
 ### Naming convention and inheritance
 
-### Construction from multiple parent classes
+The base class is [simData](/sysdata/data.py). This in turn inherits from baseData, which is also the parent class for the [data storage objects](#storing_futures_data described) earlier in this document. simData implements a number of compulsory methods that we need to run simulations. These are described in more detail in the main [user guide](/docs/userguide.md#data) for pysystemtrade.
 
-### Use of _get_object methods
+We then inherit from simData for a specific asset class implementation, i.e. for futures we have the method futuresSimData in [futuresDataForSim.py](/sysdata/futures/futuresDataForSim.py). This adds methods for additional types of data (eg carry) but can also override methods (eg get_raw_price is overriden so it gets backadjusted futures prices).
 
+We then inherit for specific data source implementations. For .csv files we have the method csvSimFuturesData in [csv_sim_futures_data.py](/sysdata/csv/csv_sim_futures_data.py).
+
+Notice the naming convention: sourceAssetclassSimData.
+
+### Multiple inheritance
+
+Because they are quite complex I've broken down the futures simData objects into sub-classes, bringing everything back together with multiple inheritance in the final simData classes we actually use.
+
+So for futures we have the following classes in [futuresDataForSim.py](/sysdata/futures/futuresDataForSim.py), which are generic regardless of source (all inheriting from simData):
+
+1. futuresAdjustedPriceData(simData)
+2. futuresMultiplePriceData(simData)
+3. futuresConfigDataForSim(simData)
+4. futuresSimData: This class is redundant for reasons that will become obvious below
+
+Then for csv files we have the following in [csv_sim_futures_data.py](/sysdata/csv/csv_sim_futures_data.py):
+
+1. csvPaths(simData): To ensure consistent resolution of path names when locating .csv files
+2. csvFXData(csvPaths, simData): Covers methods unrelated to futures, so directly inherits from the base simData class
+3. csvFuturesConfigDataForSim(csvPaths, futuresConfigDataForSim)
+4. csvFuturesAdjustedPriceData(csvPaths, futuresAdjustedPriceData)
+5. csvMultiplePriceData(csvPaths, futuresMultiplePriceData)
+6. csvFuturesSimData(csvFXData, csvFuturesAdjustedPriceData, csvFuturesConfigDataForSim, csvMultiplePriceData)
+
+Classes 3,4 and 5 each inherit from one of the futures sub classes (class 2 bypasses the futures specific classes and inherits directly from simData). Then class 6 ties all these together. Notice that futuresSimData isn't referenced anywhere; it is included only as a template to show how you should do this 'gluing' together.
+
+### Hooks into data storage objects
+
+The methods we write for specific sources to override the methods in simData or simFuturesData type objects should all 'hook' into a [data storage object for the appropriate source](#specific_data_storage). I suggest using common methods to get the relevant data storage object, and to look up path names or otherwise configure the storage options (eg database hostname).
+
+Eg here is the code for csvFuturesMultiplePriceData in [csv_sim_futures_data.py](/sysdata/csv/csv_sim_futures_data.py), with additional annotations:
+
+```python
+class csvMultiplePriceData(csvPaths, futuresMultiplePriceData):
+    def _get_all_price_data(self, instrument_code): # overides a method in futuresMultiplePriceData
+        csv_multiple_prices_data = self._get_all_prices_data_object() # get a data storage object (see method below)
+        instr_all_price_data = csv_multiple_prices_data.get_multiple_prices(instrument_code) # Call relevant method of data storage object
+
+        return instr_all_price_data
+
+    def _get_all_prices_data_object(self): # data storage object
+
+        pathname = self._resolve_path("multiple_price_data") # call to csvPaths class method to get path
+
+        csv_multiple_prices_data = csvFuturesMultiplePricesData(datapath=pathname) # create a data storage object for .csv files with the pathname
+        csv_multiple_prices_data.log = self.log # ensure logging is consistent
+
+        return csv_multiple_prices_data # return the data storage object instance
+
+
+```
 

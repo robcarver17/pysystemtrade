@@ -222,7 +222,9 @@ class futuresConfigDataForSim(simData):
 
 
 
-
+class futuresSimData(futuresAdjustedPriceData, futuresConfigDataForSim, futuresMultiplePriceData):
+    def __repr__(self):
+        raise Exception(OVERIDE_ERROR)
 
 
 if __name__ == '__main__':

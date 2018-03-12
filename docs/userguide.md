@@ -572,10 +572,10 @@ You can create your own directory for .csv files. For example supposed you wante
 `pysystemtrade/private/system_name/adjusted_price_data'. Here is how you'd use it:
 
 ```python
-from sysdata.csv.csvfuturesdata import csvFuturesData
+from sysdata.csv.csv_sim_futures_data import csvFuturesSimData
 from systems.provided.futures_chapter15.basesystem import futures_system
 
-data=csvFuturesData(datapath_dict=dict(adjusted_prices = "private.system_name.adjusted_price_data"))
+data=csvFuturesSimData(datapath_dict=dict(adjusted_prices = "private.system_name.adjusted_price_data"))
 system=futures_system(data=data)
 ```
 Notice that we use python style "." internal references within a project, we don't give actual path names. The full list of keys that you can use in the `datapath_dict` are `config_data` (configuration and costs), `multiple_price_data` (prices for current, next and carry contracts), and `spot_fx_data` (for FX prices). Note that you can't put adjusted prices and carry data in the same directory since they use the same file format.
@@ -588,20 +588,13 @@ broker, quandl...) you'll need to [create your own Data object](#create_data).
 If you want to use a different set of data values (eg equity EP ratios,
 interest rates...) you'll need to [create your own Data object](#create_data).
 
-*WORK IN PROGRESS*
-I'm currently working on including support so that you can:
-
-- Get futures data from Quandl
-- Store it individually in a database
-- Stitch contracts together to make an adjusted price
-
-See [working with futures data](/docs/futures.md)
+If you want to delve deeper into data storage see the document [working with futures data](/docs/futures.md)
 
 ## How do I... Save my work
 
 To remain organised it's good practice to save any work into a directory like
-`pysystemtrade/private/this_system_name/` (you'll need to create a couple of
-directories first). If you plan to contribute to github, just be careful to
+`pysystemtrade/private/this_system_name/` (you'll need to create the
+directory first). If you plan to contribute to github, just be careful to
 avoid adding 'private' to your commit ( [you may want to read
 this](https://24ways.org/2013/keeping-parts-of-your-codebase-private-on-github/)
 ).
@@ -659,29 +652,23 @@ particular **source** (for example .csv files, databases and so on).
 
 ### Using the standard data objects
 
-Only one kind of specific data object is currently provided with the system in the
-current version - `csvFutures`.
-
-*WORK IN PROGRESS*
-I'm currently working on including support so that you can:
-
-- Get futures data from Quandl
-- Store it individually in a database
-- Stitch contracts together to make an adjusted price
+Two kinds of specific data object is currently provided with the system in the
+current version - `csvFuturesSimData` (.csv files) and `arcticFuturesSimData` (database storage)
 
 See [working with futures data](/docs/futures.md)
 
+
 #### Generic data objects
 
-You can get use data objects directly:
+You can import and use data objects directly:
 
-*These commands will work with all data objects - the `csvFutures` version is
+*These commands will work with all data objects - the `csvFuturesSimData` version is
 used as an example.*
 
 ```python
-from sysdata.csv.csvfuturesdata import csvFuturesData
+from sysdata.csv.csv_sim_futures_data import csvFuturesSimData
 
-data=csvFuturesData()
+data=csvFuturesSimData()
 
 ## getting data out
 data.methods() ## list of methods
@@ -715,17 +702,17 @@ should omit the system eg `data.get_raw_price`)
 
 <a name="csvdata"> </a>
 
-#### The [csvFuturesData](/sysdata/csvdata.py) object
+#### The [csvFuturesSimData](/sysdata/csv/csv_sim_futures_data.py) object
 
-The `csvFuturesData` object works like this:
+The `csvFuturesSimData` object works like this:
 
 ```python
-from sysdata.csv.csvfuturesdata import csvFuturesData
+from sysdata.csv.csv_sim_futures_data import csvFuturesSimData
 
 ## with the default folders
 data=csvFuturesData()
 
-## OR with provided folders, by providing a dict containing the folder(s) to use
+## OR with different folders, by providing a dict containing the folder(s) to use
 data=csvFuturesData(datapath_dict = dict(key_name = "pathtodata.with.dots")) 
 
 # Permissible key names are 'spot_fx_data' (FX prices), 'multiple_price_data' (for carry and forward prices), 
@@ -734,7 +721,7 @@ data=csvFuturesData(datapath_dict = dict(key_name = "pathtodata.with.dots"))
 
 # An example to override with FX data stored in /psystemtrade/private/data/fxdata/:
 
-data=csvFuturesData(datapath_dict = dict(spot_fx_data="private.data.fxdata")) 
+data=csvFuturesSimData(datapath_dict = dict(spot_fx_data="private.data.fxdata")) 
 
 # WARNING: Do not store multiple_price_data and adjusted_price_data in the same directory
 #          They use the same file names!
@@ -780,6 +767,12 @@ See data in subdirectories [pysystemtrade/data/futures](/data/futures) for files
 - [Futures specific carry and forward prices](/data/futures/multiple_prices_csv)
 - [Spot FX prices](/data/futures/fx_prices_csv)
 
+For more information see the [futures data document](/docs/futures.md#csvFuturesSimData).
+
+
+#### The [arcticSimData] object
+
+FIXME: Not implemented
 
 ### Creating your own data objects
 
@@ -789,7 +782,7 @@ this section.
 The [`simData()`](/sysdata/data) object is the base class for data used in simulations. From that we
 inherit data type specific classes such as those 
 [for futures](/sysdata/futuresdata) object. These in turn are inherited from
-for specific data sources, such as [csv files, csvFuturesSimData()](/sysdata/csv/csv_sim_futures_data).
+for specific data sources, such as for csv files:[csvFuturesSimData()](/sysdata/csv/csv_sim_futures_data.py).
 
 It is helpful if this naming scheme was adhered to: sourceTypeSimData. For example if we had
 some single equity data stored in a database we'd do `class
@@ -806,7 +799,7 @@ This might seem a hassle, and it's tempting to skip and just inherit from
 convenient to have the possibility of multiple data sources and this process
 ensures they keep a consistent API for a given data type.
 
-It's worth reading the [documentation on futures data](/docs/futures.md) to understand how [csvFuturesSimData()](/sysdata/csv/csv_sim_futures_data) is constructed before modifying it or creating your own data objects.
+It's worth reading the [documentation on futures data](/docs/futures.md#modify_SimData) to understand how [csvFuturesSimData()](/sysdata/csv/csv_sim_futures_data.py) is constructed before modifying it or creating your own data objects.
 
 #### The Data() class
 
@@ -815,7 +808,7 @@ Methods that you'll probably want to override:
 - `get_raw_price` Returns Tx1 pandas data frame
 - `get_instrument_list` Returns list of str
 - `get_value_of_block_price_move` Returns float
-- 'get_raw_cost_data' Returns a dict cost data
+- `get_raw_cost_data` Returns a dict cost data
 - `get_instrument_currency`: Returns str
 - `_get_fx_data(currency1, currency2)` Returns Tx1 pandas data frame of
   exchange rates
@@ -1237,7 +1230,7 @@ system=futures_system()
 Effectively it implements the following;
 
 ```python
-data=csvFuturesData() ## or the data object that has been passed
+data=csvFuturesSimData() ## or the data object that has been passed
 config=Config("systems.provided.futures_chapter15.futuresconfig.yaml") ## or the config object that is passed
 
 ## Optionally the user can provide trading_rules (something which can be parsed as a set of trading rules); however this defaults to None in which case
@@ -1266,7 +1259,7 @@ system=futures_system()
 Effectively it implements the following;
 
 ```python
-data=csvFuturesData() ## or the data object that has been passed
+data=csvFuturesSimData() ## or the data object that has been passed
 config=Config("systems.provided.futures_chapter15.futuresconfig.yaml") ## or the config object that is passed
 
 ## Optionally the user can provide trading_rules (something which can be parsed as a set of trading rules); however this defaults to None in which case
@@ -1757,7 +1750,7 @@ Then it's a case of creating the python function. Here is an extract from the
 ```python
 ## We probably need these to get our data
 
-from sysdata.csv.csvfuturesdata import csvFuturesData
+from sysdata.csv.csv_sim_futures_data import csvFuturesSimData
 from sysdata.configdata import Config
 
 ## We now import all the stages we need
@@ -1780,7 +1773,7 @@ ata
 
 
     if data is None:
-        data=csvFuturesData()
+        data=csvFuturesSimData()
 
     if config is None:
         config=Config("systems.provided.futures_chapter15.futuresconfig.yaml")
@@ -2251,7 +2244,7 @@ a look at an incomplete version of the pre-baked chapter 15 futures system.
 ```python
 ## We probably need these to get our data
 
-from sysdata.csv.csvfuturesdata import csvFuturesData
+from sysdata.csv.csv_sim_futures_data import csvFuturesSimData
 from sysdata.configdata import Config
 from systems.basesystem import System
 
@@ -2259,7 +2252,7 @@ from systems.basesystem import System
 from systems.forecasting import Rules
 from systems.futures.rawdata import FuturesRawData
 
-data=csvFuturesData()
+data=csvFuturesSimData()
 config=Config("systems.provided.futures_chapter15.futuresconfig.yaml")
 
 rules=Rules()
@@ -3792,7 +3785,7 @@ All other methods in pysystemtrade use fixed capital.
 
 ## Table of standard system.data and system.stage methods
 
-The tables in this section list all the methods that can be used to get data
+The tables in this section list all the public methods that can be used to get data
 out of a system and its 'child' stages. You can also use the methods() method:
 
 ```python

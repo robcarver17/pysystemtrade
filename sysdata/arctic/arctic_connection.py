@@ -11,7 +11,7 @@ DEFAULT_MONGO_HOST = 'localhost'
 
 class articConnection(object):
     """
-    All of our mongo connections use this class (for static data, not time series which goes via artic)
+    All of our ARCTIC mongo connections use this class (not static data which goes directly via mongo DB)
 
     """
     def __init__(self, database_name, collection_name, host = DEFAULT_MONGO_HOST):

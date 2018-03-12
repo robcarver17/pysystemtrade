@@ -196,7 +196,7 @@ A full list of stages would include:
 For now let's start with the simplest possible system, one which contains only a trading rules stage. Let's just setup our enviroment again:
 
 ```python
-from sysdata.csv.csvfuturesdata import csvFuturesData
+from sysdata.csv.csv_sim_futures_data import csvFuturesSimData
 data=csvFuturesData()
 
 from systems.provided.example.rules import ewmac_forecast_with_defaults as ewmac
@@ -673,10 +673,10 @@ By default this has loaded the same data and read the config from the same yaml 
 
 ```python
 from sysdata.configdata import Config
-from sysdata.csv.csvfuturesdata import csvFuturesData
+from sysdata.csv.csv_sim_futures_data import csvFuturesSimData
 
 my_config=Config("systems.provided.example.simplesystemconfig.yaml")
-my_data=csvFuturesData()
+my_data=csvFuturesSimData()
 
 ## I could change my_config, and my_data here if I wanted to
 my_system=simplesystem(config=my_config, data=my_data)
