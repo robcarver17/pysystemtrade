@@ -42,7 +42,7 @@ class csvFuturesAdjustedPricesData(futuresAdjustedPricesData):
 
         return instrpricedata
 
-    def _delete_adjusted_prices_without_any_warning_be_careful(instrument_code):
+    def _delete_adjusted_prices_without_any_warning_be_careful(self, instrument_code):
         raise NotImplementedError("You can't delete adjusted prices stored as a csv - Add to overwrite existing or delete file manually")
 
     def _add_adjusted_prices_without_checking_for_existing_entry(self, instrument_code, adjusted_price_data):

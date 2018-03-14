@@ -6,31 +6,13 @@ Get data from quandl for futures
 from sysdata.futures.contracts import futuresContract
 from sysdata.futures.futures_per_contract_prices import futuresContractPriceData, futuresContractPrices
 from syscore.fileutils import get_filename_for_package
-import yaml
+from sysdata.quandl.quandl_utils import load_private_key
 
 import quandl
 import pandas as pd
-import  datetime
+
 
 QUANDL_FUTURES_CONFIG_FILE = get_filename_for_package("sysdata.quandl.QuandlFuturesConfig.csv")
-QUANDL_PRIVATE_KEY_FILE = get_filename_for_package("private.private_config.yaml")
-
-def load_private_key(key_file =QUANDL_PRIVATE_KEY_FILE , dict_key = 'quandl_key'):
-    """
-    Tries to load a private key
-
-    :return: key
-    """
-
-    try:
-        with open(key_file) as file_to_parse:
-            yaml_dict = yaml.load(file_to_parse)
-        key = yaml_dict[dict_key]
-    except:
-        # no private key
-        key = None
-
-    return key
 
 
 quandl.ApiConfig.api_key = load_private_key()

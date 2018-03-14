@@ -81,7 +81,7 @@ class fxPricesData(baseData):
         else:
             self.log.error("You need to call delete_fx_prices with a flag to be sure")
 
-    def _delete_fx_prices_without_any_warning_be_careful(code):
+    def _delete_fx_prices_without_any_warning_be_careful(self, code):
         raise NotImplementedError(USE_CHILD_CLASS_ERROR)
 
     def is_code_in_data(self, code):

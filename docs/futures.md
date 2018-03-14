@@ -83,6 +83,7 @@ This section describes a typical workflow for setting up futures data from scrat
 3. Build, and store, [roll calendars](#roll_calendars)
 4. Create and store ['multiple' price series](create_multiple_prices) containing the relevant contracts we need for any given time period
 5. Create and store [back-adjusted prices](#back_adjusted_prices)
+6. Get, and store, [spot FX prices](#create_fx_data)
 
 In future versions of pysystemtrade there will be code to keep your prices up to date.
 
@@ -210,23 +211,26 @@ We can store these prices in eithier Arctic or .csv files. The [relevant script 
 <a name="back_adjusted_prices"></a>
 ## Creating and storing back adjusted prices
 
-FIXME: TO BE IMPLEMENTED
+Once we have multiple prices we can then create a backadjusted price series. The [relevant script](/sysinit/futures/multipleprices_from_arcticprices_and_csv_calendars_to_arctic.py) will read multiple prices from Arctic, do the backadjustment, and then write the prices to Arctic. It's easy to modify this to read/write to/from different sources.
 
-### From Arctic prices
-
-FIXME: TO BE IMPLEMENTED
-
-### From existing 'multiple prices' .csv files
-
-FIXME: TO BE IMPLEMENTED
 
 ## Backadjusting 'on the fly'
 
 It's also possible to implement the back-adjustment 'on the fly' within your backtest. More details later in this document, [here](#back_adjust_on_the_fly).
 
+## Changing the stitching method
+
+If you don't like panama stitching then you can modify the method. More details later in this document, [here](#futuresAdjustedPrices).
+
 <a name="storing_futures_data"></a>
 
-# Storing and repersenting futures data
+
+<a name="create_fx_data"></a>
+## Getting and storing FX data
+
+Although strictly not futures prices we also need spot FX prices to run our simulation. Again we'll get these from Quandl, and in [this simple script](/sysinit/futures/spotfx_from_quandl_to_arctic.py) they are written to Arctic and/or .csv files.
+
+# Storing and representing futures data
 
 The paradigm for data storage is that we have a bunch of [data objects](#generic_objects) for specific types of data, i.e. futuresInstrument is the generic class for storing static information about instruments. Each of those objects then has a matching *data storage object* which accesses data for that object, i.e. futuresInstrumentData. Then we have [specific instances of those for different data sources](*specific_data_storage), i.e. mongoFuturesInstrumentData for storing instrument data in a mongo DB database. 
 
@@ -311,9 +315,21 @@ We'd normally create these from scratch using a roll calendar, and some individu
 <a name="futuresAdjustedPrices"></a>
 ### [Adjusted prices](/sysdata/futures/adjusted_prices.py): futuresAdjustedPrices() and futuresAdjustedPricesData()
 
-The representation of adjusted prices is boring beyond words; they are a pandas Series. More interesting are the methods you can use to do the back adjustment process given a [multiple prices object](#futuresMultiplePrices).
+The representation of adjusted prices is boring beyond words; they are a pandas Series. More interesting is the fact you can create one with a back adjustment process given a [multiple prices object](#futuresMultiplePrices):
 
-FIXME: Need to implement
+```python
+from sysdata.futures.adjusted_prices import futuresAdjustedPrices
+from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesData
+
+# assuming we have some multiple prices
+arctic_multiple_prices = arcticFuturesMultiplePricesData()
+multiple_prices = arctic_multiple_prices.get_multiple_prices("EDOLLAR")
+
+adjusted_prices = futuresAdjustedPrices.stich_multiple_prices(multiple_prices)
+```
+
+The adjustment defaults to the panama method. If you want to use your own stitching method then override the method `futuresAdjustedPrices.stich_multiple_prices`.
+
 
 <a name="fxPrices"></a>
 ### [Spot FX data](/sysdata/fx/spotfx.py): fxPrices() and fxPricesData()
@@ -457,9 +473,10 @@ FIXME - this file needs completing.
 Reads data and returns in the form of [futuresContractPrices](#futuresContractPrices) objects. Notice that as this is purely a source of data we don't implement write methods.
 
 
-#### quandlFxPricesData()
+#### quandlFxPricesData()(/sysdata/quandl/quandl_spotfx_prices.py) inherits from [fxPricesData](#fxPricesData)
 
-FIXME: To be implemented
+Reads FX spot prices from QUANDL. Acceses [this .csv file](/sysdata/quandl/QuandlFXConfig.csv) which contains the codes required to get data from Quandl for a specific currency.
+
 
 <a name="arctic"></a>
 ### Arctic 
@@ -483,7 +500,7 @@ Read and writes multiple price data for each instrument.
 
 Read and writes adjusted price data for each instrument.
 
-#### arcticFxPricesData()(/sysdata/arctic/arctic_spotfx_prices.py) inherits from [futuresFxPricesData()](#futuresFxPricesData)
+#### arcticFxPricesData()(/sysdata/arctic/arctic_spotfx_prices.py) inherits from [fxPricesData()](#fxPricesData)
 
 Read and writes spot FX data for each instrument.
 
@@ -525,7 +542,7 @@ I've provided two complete simData objects which get their data from different s
 </a>
 ### [csvFuturesSimData()](/sysdata/csv/csv_sim_futures_data.py)
 
-The simplest simData object gets all of its data from .csv files, making it ideal for simulations if you haven't built a process yet to get your own data. It's essentially a like for like process for the simpler csvSimData objects that pysystemtrade used in versions before 0.17.0.
+The simplest simData object gets all of its data from .csv files, making it ideal for simulations if you haven't built a process yet to get your own data. It's essentially a like for like replacement for the simpler csvSimData objects that pysystemtrade used in versions before 0.17.0.
 
 
 
@@ -535,7 +552,7 @@ The simplest simData object gets all of its data from .csv files, making it idea
 
 This is a simData object which gets it's data out of Mongo DB (static) and Arctic (time series) (*Yes the class name should include both terms. Yes I shortened it so it isn't ridiculously long, and most of the interesting stuff comes from Arctic*). It is better for live trading.
 
-FIX ME NOT IMPLEMENTED
+FIXME NOT IMPLEMENTED
 
 
 
@@ -556,14 +573,95 @@ FIX ME NOT IMPLEMENTED
 
 This is a modification to csvSimData which calculates back adjustment prices 'on the fly', rather than getting them pre-loaded from another database. This would allow you to use different back adjustments and see what effects they had. Note that this will work 'out of the box' for any 'single point' back adjustment where the roll happens on a single day, and where you can use multiple price data (which we already have). For any back adjustment where the process happens over several days you'd need to add extra methods to access individual futures contract prices and roll calendars. This is explained [in the next section](#back_adjust_on_the_fly_multiple_days).
 
-FIX ME NOT IMPLEMENTED
+Create a new class:
+```python
+from sysdata.futures.futuresDataForSim import futuresAdjustedPriceData, futuresAdjustedPrice
+from sysdata.futures.adjusted_prices import futuresAdjustedPrices
+
+class backAdjustOnTheFly(futuresAdjustedPriceData):
+    def get_backadjusted_futures_price(self, instrument_code):
+        multiple_prices = self._get_all_price_data(instrument_code)
+        adjusted_prices = futuresAdjustedPrices.stitch_multiple_prices(multiple_prices)
+
+        return adjusted_prices
+```
+
+In the file [csv_sim_futures_data](/sysdata/csv/csv_sim_futures_data.py) replace: 
+
+```python
+class csvFuturesSimData(csvFXData, csvFuturesAdjustedPriceData, csvFuturesConfigDataForSim, csvFuturesMultiplePriceData):
+```
+
+with:
+
+```python
+class csvFuturesSimData(csvFXData, backAdjustOnTheFly, csvFuturesConfigDataForSim, csvFuturesMultiplePriceData):
+```
+
+If you want to test different adjustment techniques other than the default 'Panama stich', then you need to override `futuresAdjustedPrices.stitch_multiple_prices()`.
 
 
 <a name="back_adjust_on_the_fly_multiple_days"></a>
 ### Back-adjustment 'on the fly' over several days
 For any back adjustment where the process happens over multiple days you'd need to add extra methods to access individual futures contract prices and roll calendars. Let's suppose we want to get these from Arctic (prices) and .csv files (roll calendars).
 
-FIX ME NOT IMPLEMENTED
+
+You'll need to override `futuresAdjustedPrices.stitch_multiple_prices()` so it uses roll calendars and individual contract; I assume you inherit from futuresAdjustedPrices and have a new class with the override: `futuresAdjustedPricesExtraData`. Then create the following classes:
+
+```python
+from sysdata.futures.futuresDataForSim import futuresAdjustedPriceData, futuresAdjustedPrice
+from somewhere import futuresAdjustedPricesExtraData # you need to provide this yourself
+from sysdata.arctic.arctic_futures_per_contract_prices import arcticFuturesContractPriceData
+from sysdata.csv.csv_roll_calendars import csvRollCalendarData
+
+class backAdjustOnTheFlyExtraData(futuresAdjustedPriceData):
+    def get_backadjusted_futures_price(self, instrument_code):
+        individual_contract_prices = self._get_individual_contract_prices(instrument_code)
+        roll_calendar = self._get_roll_calendar(instrument_code)
+        adjusted_prices = futuresAdjustedPricesExtraData.stich_multiple_prices(roll_calendar, individual_contract_prices)
+
+        return adjusted_prices
+
+class arcticContractPricesForSim():
+    def _get_individual_contract_prices(instrument_code):
+        arctic_contract_prices_data_object = self._get_arctic_contract_prices_data_object()
+        
+        return arctic_contract_prices_data_object.get_all_prices_for_instrument(instrument_code)
+
+    def _get_arctic_contract_prices_data_object(self):
+        # this will just use the default connection but you change if you like
+        arctic_contract_prices_data_object = arcticFuturesContractPriceData()
+        arctic_contract_prices_data_object.log = self.log
+        return arctic_contract_prices_data_object
+
+class csvRollCalendarForSim():
+    def _get_roll_calendar(self, instrument_code):
+        roll_calendar_data_object = self.__get_csv_roll_calendar_data_object()
+        
+        return roll_calendar_data_object.get_roll_calendar(instrument_code)
+
+    def _get_csv_roll_calendar_data_object(self):
+        pathname =self._resolve_path("roll_calendars")
+        roll_calendar_data_object  = csvRollCalendarData(data_path)
+        roll_calendar_data_object.log = self.log
+
+        return roll_calendar_data_object 
+
+```
+
+
+In the file [csv_sim_futures_data](/sysdata/csv/csv_sim_futures_data.py) replace: 
+
+```python
+class csvFuturesSimData(csvFXData, csvFuturesAdjustedPriceData, csvFuturesConfigDataForSim, csvFuturesMultiplePriceData):
+```
+
+with:
+
+```python
+class csvFuturesSimData(csvFXData, backAdjustOnTheFlyExtraData, csvRollCalendarForSim, arcticContractPricesForSim, csvFuturesConfigDataForSim, csvFuturesMultiplePriceData):
+```
+
 
 ## Constructing your own simData objects
 

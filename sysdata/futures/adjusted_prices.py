@@ -7,8 +7,50 @@ Adjusted prices:
 """
 
 import pandas as pd
+import numpy as np
 from sysdata.data import baseData
 
+def panama_stitch(multiple_prices):
+    """
+    Do a panama stich for adjusted prices
+
+    :param multiple_prices:  futuresMultiplePrices
+    :return: pd.Series of adjusted prices
+    """
+    previous_row = multiple_prices.iloc[0, :]
+    adjusted_prices_values = [previous_row.PRICE]
+
+    for dateindex in multiple_prices.index[1:]:
+        current_row = multiple_prices.loc[dateindex, :]
+
+        if current_row.PRICE_CONTRACT == previous_row.PRICE_CONTRACT:
+            # no roll has occured
+            # we just append the price
+            adjusted_prices_values.append(current_row.PRICE)
+        else:
+            # A roll has occured
+            # This is the sort of code you will need to change to adjust the roll logic
+            # The roll differential is from the previous_row
+            roll_differential = previous_row.FORWARD - previous_row.PRICE
+            if np.isnan(roll_differential):
+                raise Exception(
+                    "On this day %s which should be a roll date we don't have prices for both %s and %s contracts"
+                    % (str(dateindex), previous_row.PRICE_CONTRACT, previous_row.FORWARD_CONTRACT))
+
+            # We add the roll differential to all previous prices
+            adjusted_prices_values = [adj_price + roll_differential for adj_price in adjusted_prices_values]
+
+            # note this includes the price for the previous row, which will now be equal to the forward price
+            # We now add todays price. This will be for the new contract
+
+            adjusted_prices_values.append(current_row.PRICE)
+
+        previous_row = current_row
+
+    # it's ok to return a DataFrame since the calling object will change the type
+    adjusted_prices = pd.Series(adjusted_prices_values, index = multiple_prices.index)
+
+    return adjusted_prices
 
 class futuresAdjustedPrices(pd.Series):
     """
@@ -37,6 +79,21 @@ class futuresAdjustedPrices(pd.Series):
     def empty(self):
         return
 
+
+    @classmethod
+    def stich_multiple_prices(futuresAdjustedPrices, multiple_prices):
+        """
+        Do backstitching of multiple prices using panama method
+
+        If you want to change then override this method
+
+        :param multiple_prices:
+        :return: futuresAdjustedPrices
+        """
+
+        adjusted_prices = panama_stitch(multiple_prices)
+
+        return futuresAdjustedPrices(adjusted_prices)
 
 USE_CHILD_CLASS_ERROR = "You need to use a child class of futuresAdjustedPricesData"
 
