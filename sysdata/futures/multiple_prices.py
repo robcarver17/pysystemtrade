@@ -53,16 +53,18 @@ class futuresMultiplePrices(pd.DataFrame):
             # Between these dates is where we are populating prices
             last_roll_date = roll_calendar.index[rolling_row_index-1]
             next_roll_date = roll_calendar.index[rolling_row_index]
-            end_of_roll_period = next_roll_date- pd.DateOffset(seconds=1) # to avoid overlaps
+
+            end_of_roll_period = next_roll_date
+            start_of_roll_period = last_roll_date + pd.DateOffset(seconds=1) # to avoid overlaps
 
             contracts_now = roll_calendar.loc[next_roll_date, :]
             current_contract = contracts_now.current_contract
             next_contract = contracts_now.next_contract
             carry_contract = contracts_now.carry_contract
 
-            current_price_data = dict_of_futures_contract_prices[str(current_contract)][last_roll_date:end_of_roll_period]
-            next_price_data = dict_of_futures_contract_prices[str(next_contract)][last_roll_date:end_of_roll_period]
-            carry_price_data = dict_of_futures_contract_prices[str(carry_contract)][last_roll_date:end_of_roll_period]
+            current_price_data = dict_of_futures_contract_prices[str(current_contract)][start_of_roll_period:end_of_roll_period]
+            next_price_data = dict_of_futures_contract_prices[str(next_contract)][start_of_roll_period:end_of_roll_period]
+            carry_price_data = dict_of_futures_contract_prices[str(carry_contract)][start_of_roll_period:end_of_roll_period]
 
             all_price_data = pd.concat([current_price_data, next_price_data, carry_price_data], axis=1)
             all_price_data.columns = ["PRICE", "FORWARD", "CARRY"]

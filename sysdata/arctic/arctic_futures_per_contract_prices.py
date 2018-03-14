@@ -5,6 +5,7 @@ Read and write data from mongodb for individual futures contracts
 
 from sysdata.arctic.arctic_connection import articConnection
 from sysdata.futures.futures_per_contract_prices import futuresContractPriceData, futuresContractPrices
+from sysdata.futures.contracts import futuresContract
 
 import pandas as pd
 
@@ -42,6 +43,8 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
     def _contract_tuple_given_keyname(self, keyname):
         """
         Extract the two parts of a keyname
+
+        We keep control of how we represent stuff inside the class
 
         :param keyname: str
         :return: tuple instrument_code, contract_date
@@ -87,21 +90,6 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
         self.log.msg("Wrote %s lines of prices for %s to %s" % (len(futures_price_data), futures_contract_object.ident(), self.name))
 
 
-    def contracts_with_price_data_for_instrument_code(self, instrument_code):
-        """
-        Valid contract_dates for a given instrument code
-
-        :param instrument_code: str
-        :return: list
-        """
-
-        all_keynames = self._all_keynames_in_library()
-        all_keynames_as_tuples = [self._contract_tuple_given_keyname(keyname) for keyname in all_keynames]
-
-        all_keynames_for_code = [keyname_tuple[1] for keyname_tuple in all_keynames_as_tuples if keyname_tuple[0]==instrument_code]
-
-        return all_keynames_for_code
-
     def _all_keynames_in_library(self):
         return self._arctic.library.list_symbols()
 
@@ -119,3 +107,26 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
         ident = self._keyname_given_contract_object(futures_contract_object)
         self._arctic.library.delete(ident)
         self.log.msg("Deleted all prices for %s from %s" % (futures_contract_object.ident(), self.name))
+
+    def _get_contract_tuples_with_price_data(self):
+        """
+
+        :return: list of futures contracts as tuples
+        """
+
+        all_keynames = self._all_keynames_in_library()
+        list_of_contract_tuples = [self._contract_tuple_given_keyname(keyname) for keyname in all_keynames]
+
+        return list_of_contract_tuples
+
+    def get_contracts_with_price_data(self):
+        """
+
+        :return: list of contracts
+        """
+
+        list_of_contract_tuples = self._get_contract_tuples_with_price_data()
+        list_of_contracts = [futuresContract.simple(contract_tuple[0], contract_tuple[1]) for contract_tuple in list_of_contract_tuples]
+
+        return list_of_contracts
+

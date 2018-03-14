@@ -141,7 +141,7 @@ The script does two things:
 <a name="roll_calendars"></a>
 ## Roll calendars
 
-We're now reading to set up a *roll calendar*. A roll calendar is the series of dates on which we roll from one futures contract to the next. It might be helpful to read [my blog post](qoppac.blogspot.co.uk/2015/05/systems-building-futures-rolling.html) on rolling futures contracts (though bear in mind some of the details relate to my current trading system and do no reflect how pysystemtrade works).
+We're now ready to set up a *roll calendar*. A roll calendar is the series of dates on which we roll from one futures contract to the next. It might be helpful to read [my blog post](qoppac.blogspot.co.uk/2015/05/systems-building-futures-rolling.html) on rolling futures contracts (though bear in mind some of the details relate to my current trading system and do no reflect how pysystemtrade works).
 
 You can see a roll calendar for Eurodollar futures, [here](/data/futures/roll_calendars_csv/EDOLLAR.csv). It is just a pandas DataFrame. On each date we roll from the current_contract shown to the next_contract. We also see the current carry_contract; we use the differential between this and the current_contract to calculate forecasts for carry trading rules.
 
@@ -203,7 +203,9 @@ We run [this script](#/sysinit/futures/rollcalendars_from_providedcsv_prices.py)
 <a name="create_multiple_prices"></a>
 ## Creating and storing multiple prices
 
-FIXME: TO BE IMPLEMENTED
+The next stage is to store *multiple prices*. Multiple prices are the price and contract identifier for the current contract we're holding, the next contract we'll hold, and the carry contract we compare with the current contract for the carry trading rule. They are required for the next stage, calculating back-adjusted prices, but are also used directly by the carry trading rule in a backtest. Constructing them requires a roll calendar, and prices for individual futures contracts.
+
+We can store these prices in eithier Arctic or .csv files. The [relevant script ](/sysinit/futures/multipleprices_from_arcticprices_and_csv_calendars_to_arctic.py) gives you the option of doing eithier or both of these. 
 
 <a name="back_adjusted_prices"></a>
 ## Creating and storing back adjusted prices
@@ -370,7 +372,7 @@ Reads roll parameters for each instrument from [here](/sysinit/futures/config/ro
 
 Storing data in .csv files has some obvious disadvantages, and doesn't feel like the sort of thing a 21st century trading system ought to be doing. However it's good for roll calendars, which sometimes need manual hacking when they're created. It's also good for the data required to run backtests that lives as part of the github repo for pysystemtrade (storing large binary files in git is not a great idea, although various workarounds exist I haven't yet found one that works satisfactorily).
 
-For obvious (?) reasons we only implement get and read methods for .csv files.
+For obvious (?) reasons we only implement get and read methods for .csv files (So... you want to delete the .csv file? Do it through the filesystem. Don't get python to do your dirty work for you).
 
 <a name="csvRollCalendarData"></a>
 #### [csvRollCalendarData()](/sysdata/csv/csv_roll_calendars.py) inherits from [rollParametersData](#rollParametersData)
@@ -401,9 +403,9 @@ Reads back adjusted prices from [here](/data/futures/fx_prices_csv). File names 
 
 For production code, and storing large amounts of data (eg for individual futures contracts) we probably need something more robust than .csv files. [MongoDB](/mongodb.com) is a no-sql database which is rather fashionable at the moment, though the main reason I selected it for this purpose is that it is used by [Arctic](#arctic). 
 
-Obviously you will need to make sure you already have a Mongo DB instance running. The only error I have encountered with this is FIX ME ....
+Obviously you will need to make sure you already have a Mongo DB instance running. You might find you already have one running, in Linux use `ps wuax | grep mongo` and then kill the relevant process.
 
-All Mongo code uses the connection information defined in [this class](/sysdata/mongodb/mongo_connection.py). Personally I like to keep my Mongo data in this [pysystemtrade subdirectory](/data/futures/mongodb); that is achieved by FIXME. Of course this isn't compulsory.
+All Mongo code uses the connection information defined in [this class](/sysdata/mongodb/mongo_connection.py). Personally I like to keep my Mongo data in this [pysystemtrade subdirectory](/data/futures/mongodb); that is achieved by starting up with `mongod --dbpath ~/pysystemtrade/data/futures/mongodb/` (in Linux). Of course this isn't compulsory.
 
 
 <a name="mongoFuturesInstrumentData"></a>
@@ -466,21 +468,24 @@ FIXME: To be implemented
 
 Basically my mongo DB objects are for storing static information, whilst Arctic is for time series.
 
-NOTE ABOUT THE WAY ARCTIC STORES STUFF
+Arctic has several *storage engines*, in my code I use the default VersionStore. 
 
 <a name="arcticFuturesContractPriceData"></a>
 #### [arcticFuturesContractPriceData()](/sysdata/arctic/arctic_futures_per_contract_prices.py) inherits from [futuresContractPriceData](#futuresContractPriceData)
 
 Read and writes per contract futures price data.
 
-#### arcticFuturesMultiplePricesData()
-FIXME: TO BE IMPLEMENTED
+#### [arcticFuturesMultiplePricesData()](/sysdata/arctic/arctic_multiple_prices.py) inherits from [futuresMultiplePricesData()](#futuresMultiplePricesData)
 
-#### arcticFuturesAdjustedPricesData()
-FIXME: TO BE IMPLEMENTED
+Read and writes multiple price data for each instrument.
 
-#### arcticFxPricesData()
-FIXME: TO BE IMPLEMENTED
+#### arcticFuturesAdjustedPricesData()(/sysdata/arctic/arctic_adjusted_prices.py) inherits from [futuresAdjustedPricesData()](#futuresAdjustedPricesData)
+
+Read and writes adjusted price data for each instrument.
+
+#### arcticFxPricesData()(/sysdata/arctic/arctic_spotfx_prices.py) inherits from [futuresFxPricesData()](#futuresFxPricesData)
+
+Read and writes spot FX data for each instrument.
 
 ## Creating your own data storage objects for a new source
 

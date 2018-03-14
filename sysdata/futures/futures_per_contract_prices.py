@@ -55,6 +55,10 @@ class dictFuturesContractPrices(dict):
     We can use standard dict methods, but convenience methods are included
     """
 
+    def __repr__(self):
+        object_repr = "Dict of futures contract prices with %d contracts" % len(self.keys())
+        return object_repr
+
     def settlement_prices(self):
         """
 
@@ -114,18 +118,58 @@ class futuresContractPriceData(baseData):
     def __repr__(self):
         return "Individual futures contract price data - DO NOT USE"
 
-    def __getitem__(self, contract_tuple):
+
+    def __getitem__(self, contract_object):
         """
         convenience method to get the price, make it look like a dict
 
         """
 
-        instrument_code, contract_date = contract_tuple
-        return self.get_prices_for_instrument_code_and_contract_date(instrument_code, contract_date)
 
+        return self.get_prices_for_contract_object(contract_object)
 
-    def contracts_with_price_data_for_instrument_code(self, instrument_code):
+    def keys(self):
+        """
+        list of things in this data set (futures contracts, instruments...)
+
+        :returns: list of str
+
+        """
+        return self.get_contracts_with_price_data()
+
+    def get_contracts_with_price_data(self):
+        """
+
+        :return: list of futuresContact
+        """
         raise NotImplementedError(BASE_CLASS_ERROR)
+
+    def get_instruments_with_price_data(self):
+        """
+
+        :return: list of str
+        """
+
+        list_of_contracts_with_price_data = self.get_contracts_with_price_data()
+        list_of_instruments = [contract.instrument_code for contract in list_of_contracts_with_price_data]
+
+        # will contain duplicates, make unique
+        list_of_instruments = list(set(list_of_instruments))
+
+        return list_of_instruments
+
+    def contractids_with_price_data_for_instrument_code(self, instrument_code):
+        """
+
+        :param instrument_code:
+        :return: list of str
+        """
+
+        list_of_contracts_with_price_data = self.get_contracts_with_price_data()
+        contractids = [contract.contract_date for contract in list_of_contracts_with_price_data if contract.instrument_code == instrument_code]
+
+        return contractids
+
 
     def has_data_for_instrument_code_and_contract_date(self, instrument_code, contract_date):
         """
@@ -244,4 +288,19 @@ class futuresContractPriceData(baseData):
     def _delete_prices_for_contract_object_with_no_checks_be_careful(self, futures_contract_object):
         raise NotImplementedError(BASE_CLASS_ERROR)
 
+
+    def contracts_with_price_data_for_instrument_code(self, instrument_code):
+        """
+        Valid contract_dates for a given instrument code
+
+        :param instrument_code: str
+        :return: list
+        """
+
+        all_keynames = self._all_keynames_in_library()
+        all_keynames_as_tuples = [self._contract_tuple_given_keyname(keyname) for keyname in all_keynames]
+
+        all_keynames_for_code = [keyname_tuple[1] for keyname_tuple in all_keynames_as_tuples if keyname_tuple[0]==instrument_code]
+
+        return all_keynames_for_code
 
