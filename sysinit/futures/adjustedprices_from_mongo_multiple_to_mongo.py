@@ -13,7 +13,7 @@ from sysdata.futures.adjusted_prices import futuresAdjustedPrices
 
 if __name__ == '__main__':
     arctic_multiple_prices = arcticFuturesMultiplePricesData()
-    artic_adjusted_prices = arcticFuturesAdjustedPricesData
+    artic_adjusted_prices = arcticFuturesAdjustedPricesData()
 
     instrument_list = arctic_multiple_prices.get_list_of_instruments()
 
