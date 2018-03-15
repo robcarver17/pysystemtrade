@@ -1,5 +1,11 @@
 # Release notes
 
+## Version 0.18
+See [futures documentation](#/docs/futures.md) for more details.
+New data sources: Quandl. Data storage in mongodb and arctic is now supported.
+Back-adjustment is possible and can be done 'on the fly' or from scratch with new data. 
+Further refactoring of sim data objects to support the above.
+
 ## Version 0.17
 Massive refactoring of sim data objects, to support alternative data sources and backadjusting
 
@@ -269,10 +275,7 @@ Moved most examples except core to seperate git [here](https://github.com/robcar
 
 * Simulation:
    
-  * stitch futures contracts 
-  * add new data from unstitched contracts (with explanatory post, include explanation for Nth contract stitching)
   * Create live config from a system object (Put final value of estimates into a yaml file) 
-  * database data
   * Exogenous risk model
   * check systems have correct attributes; check turnover, minimum size, right forecast scalars (distribution across instruments) etc
 

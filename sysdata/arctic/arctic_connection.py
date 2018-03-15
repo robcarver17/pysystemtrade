@@ -8,6 +8,7 @@ This connection won't fail if mongo missing, but will hang
 """
 
 DEFAULT_MONGO_HOST = 'localhost'
+DEFAULT_DB = 'production'
 
 class articConnection(object):
     """
@@ -15,6 +16,9 @@ class articConnection(object):
 
     """
     def __init__(self, database_name, collection_name, host = DEFAULT_MONGO_HOST):
+
+        if database_name is None:
+            database_name = DEFAULT_DB
 
         store = Arctic(host)
         library_name = database_name+"."+collection_name

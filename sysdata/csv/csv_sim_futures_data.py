@@ -16,8 +16,6 @@ from sysdata.csv.csv_adjusted_prices import csvFuturesAdjustedPricesData
 from sysdata.csv.csv_spot_fx import csvFxPricesData
 from sysdata.csv.csv_instrument_config import csvFuturesInstrumentData
 
-DEFAULT_SIM_CONFIG_FILENAME = "instrumentconfig.csv"
-DEFAULT_SIM_COSTS_FILENAME = "costs_analysis.csv"
 """
 Static variables to store location of data
 """
@@ -101,7 +99,7 @@ class csvFuturesConfigDataForSim(csvPaths, futuresConfigDataForSim):
 
         data_object = self._get_config_data_object()
 
-        all_instr_dataframe= data_object.get_config_information()
+        all_instr_dataframe= data_object.get_all_instrument_data()
 
         return all_instr_dataframe
 
@@ -111,18 +109,10 @@ class csvFuturesConfigDataForSim(csvPaths, futuresConfigDataForSim):
 
         return instr_data
 
-    def get_instrument_list(self):
-        data_object = self._get_config_data_object()
-        instr_list = data_object.get_list_of_instruments()
-
-        return instr_list
-
     def _get_config_data_object(self):
 
         pathname = self._resolve_path("config_data")
-        filename = DEFAULT_SIM_CONFIG_FILENAME
-
-        data_object = csvFuturesInstrumentData(config_path=pathname, config_file_name=filename)
+        data_object = csvFuturesInstrumentData(pathname)
 
         return data_object
 
@@ -137,20 +127,10 @@ class csvFuturesConfigDataForSim(csvPaths, futuresConfigDataForSim):
         0.0025000000000000001
         """
 
-        csv_data_object = self._get_cost_data_object()
+        csv_data_object = self._get_config_data_object()
         instrument_object = csv_data_object.get_instrument_data(instrument_code)
 
         return instrument_object
-
-
-    def _get_cost_data_object(self):
-
-        pathname = self._resolve_path("config_data")
-        filename = DEFAULT_SIM_COSTS_FILENAME
-
-        data_object = csvFuturesInstrumentData(config_path=pathname, config_file_name=filename)
-
-        return data_object
 
 
 

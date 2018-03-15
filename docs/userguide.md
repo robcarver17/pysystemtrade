@@ -5,7 +5,6 @@ The third part ['Processes'](#Processes) discusses certain processes that cut
 across multiple parts of the code in more detail. The final part
 ['Reference'](#reference) includes lists of methods and parameters.
 
-
 Table of Contents
 =================
 
@@ -16,17 +15,34 @@ Table of Contents
       * [How do I....See intermediate results from a backtest](#how-do-isee-intermediate-results-from-a-backtest)
       * [How do I....See how profitable a backtest was](#how-do-isee-how-profitable-a-backtest-was)
       * [How do I....Change backtest parameters](#how-do-ichange-backtest-parameters)
+         * [Option 1: Change the configuration file](#option-1-change-the-configuration-file)
+         * [Option 2: Change the configuration object; create a new system](#option-2-change-the-configuration-object-create-a-new-system)
+         * [Option 3: Change the configuration object within an existing system (not recommended - advanced)](#option-3-change-the-configuration-object-within-an-existing-system-not-recommended---advanced)
+         * [Option 4: Change the project defaults (definitely not recommended)](#option-4-change-the-project-defaults-definitely-not-recommended)
       * [How do I....Run a backtest on a different set of instruments](#how-do-irun-a-backtest-on-a-different-set-of-instruments)
+         * [Change instruments: Change the configuration file](#change-instruments-change-the-configuration-file)
+         * [Change instruments: Change the configuration object](#change-instruments-change-the-configuration-object)
       * [How do I....Create my own trading rule](#how-do-icreate-my-own-trading-rule)
+         * [Writing the function](#writing-the-function)
       * [How do I....Use different data or instruments](#how-do-iuse-different-data-or-instruments)
       * [How do I... Save my work](#how-do-i-save-my-work)
    * [Guide](#guide)
       * [Data](#data)
          * [Using the standard data objects](#using-the-standard-data-objects)
+            * [Generic data objects](#generic-data-objects)
+            * [The <a href="/sysdata/csv/csv_sim_futures_data.py">csvFuturesSimData</a> object](#the-csvfuturessimdata-object)
+            * [The [arcticSimData] object](#the-arcticsimdata-object)
          * [Creating your own data objects](#creating-your-own-data-objects)
+            * [The Data() class](#the-data-class)
       * [Configuration](#configuration)
          * [Creating a configuration object](#creating-a-configuration-object)
+            * [1) Creating a configuration object with a dictionary](#1-creating-a-configuration-object-with-a-dictionary)
+            * [2) Creating a configuration object from a file](#2-creating-a-configuration-object-from-a-file)
+            * [3) Creating a configuration object from a pre-baked system](#3-creating-a-configuration-object-from-a-pre-baked-system)
+            * [4) Creating a configuration object from a list](#4-creating-a-configuration-object-from-a-list)
          * [Project defaults](#project-defaults)
+            * [Handling defaults when you change certain functions](#handling-defaults-when-you-change-certain-functions)
+            * [How the defaults work](#how-the-defaults-work)
          * [Viewing configuration parameters](#viewing-configuration-parameters)
          * [Modifying configuration parameters](#modifying-configuration-parameters)
          * [Using configuration in a system](#using-configuration-in-a-system)
@@ -35,10 +51,16 @@ Table of Contents
          * [Modifying the configuration class](#modifying-the-configuration-class)
       * [System](#system)
          * [Pre-baked systems](#pre-baked-systems)
+            * [<a href="/systems/provided/futures_chapter15/basesystem.py">Futures system for chapter 15</a>](#futures-system-for-chapter-15)
+            * [<a href="/systems/provided/futures_chapter15/estimatedsystem.py">Futures system for chapter 15</a>](#futures-system-for-chapter-15-1)
          * [Using the system object](#using-the-system-object)
+            * [Accessing child stages, data, and config within a system](#accessing-child-stages-data-and-config-within-a-system)
+            * [System methods](#system-methods)
          * [System Caching and pickling](#system-caching-and-pickling)
          * [Pickling and unpickling saved cache data](#pickling-and-unpickling-saved-cache-data)
          * [Advanced caching](#advanced-caching)
+            * [Advanced Caching when backtesting.](#advanced-caching-when-backtesting)
+            * [Advanced caching behaviour with a live trading system](#advanced-caching-behaviour-with-a-live-trading-system)
          * [Very advanced: Caching in new or modified code](#very-advanced-caching-in-new-or-modified-code)
          * [Creating a new 'pre-baked' system](#creating-a-new-pre-baked-system)
          * [Changing or making a new System class](#changing-or-making-a-new-system-class)
@@ -47,28 +69,133 @@ Table of Contents
          * [Writing new stages](#writing-new-stages)
          * [Specific stages](#specific-stages)
          * [Stage: Raw data](#stage-raw-data)
+            * [Using the standard <a href="/systems/rawdata.py">RawData class</a>](#using-the-standard-rawdata-class)
+               * [Volatility calculation](#volatility-calculation)
+            * [Using the <a href="/systems/futures/rawdata.py">FuturesRawData class</a>](#using-the-futuresrawdata-class)
+            * [New or modified raw data classes](#new-or-modified-raw-data-classes)
          * [Stage: Rules](#stage-rules)
          * [Trading rules](#trading-rules)
          * [The Rules class, and specifying lists of trading rules](#the-rules-class-and-specifying-lists-of-trading-rules)
+            * [Creating lists of rules from a configuration object](#creating-lists-of-rules-from-a-configuration-object)
+            * [Interactively passing a list of trading rules](#interactively-passing-a-list-of-trading-rules)
+            * [Creating variations on a single trading rule](#creating-variations-on-a-single-trading-rule)
+            * [Using a newly created Rules() instance](#using-a-newly-created-rules-instance)
+            * [Passing trading rules to a pre-baked system function](#passing-trading-rules-to-a-pre-baked-system-function)
+            * [Changing the trading rules in a system on the fly (advanced)](#changing-the-trading-rules-in-a-system-on-the-fly-advanced)
          * [Stage: Forecast scale and cap <a href="/systems/forecast_scale_cap.py">ForecastScaleCap class</a>](#stage-forecast-scale-and-cap-forecastscalecap-class)
+            * [Using fixed weights (/systems/forecast_scale_cap.py)](#using-fixed-weights-systemsforecast_scale_cappy)
+            * [Calculating estimated forecasting scaling on the fly(/systems/forecast_scale_cap.py)](#calculating-estimated-forecasting-scaling-on-the-flysystemsforecast_scale_cappy)
+               * [Pooled forecast scale estimate (default)](#pooled-forecast-scale-estimate-default)
+               * [Individual instrument forecast scale estimate](#individual-instrument-forecast-scale-estimate)
+            * [New or modified forecast scaling and capping](#new-or-modified-forecast-scaling-and-capping)
          * [Stage: Forecast combine <a href="/systems/forecast_combine.py">ForecastCombine class</a>](#stage-forecast-combine-forecastcombine-class)
+            * [Using fixed weights and multipliers(/systems/forecast_combine.py)](#using-fixed-weights-and-multiplierssystemsforecast_combinepy)
+            * [Using estimated weights and diversification multiplier(/systems/forecast_combine.py)](#using-estimated-weights-and-diversification-multipliersystemsforecast_combinepy)
+               * [Estimating the forecast weights](#estimating-the-forecast-weights)
+               * [Estimating the forecast diversification multiplier](#estimating-the-forecast-diversification-multiplier)
+            * [Writing new or modified forecast combination stages](#writing-new-or-modified-forecast-combination-stages)
          * [Stage: Position scaling](#stage-position-scaling)
+            * [Using the standard <a href="/systems/positionsizing.py">PositionSizing class</a>](#using-the-standard-positionsizing-class)
          * [Stage: Creating portfolios <a href="/systems/portfolio.py">Portfolios class</a>](#stage-creating-portfolios-portfolios-class)
+            * [Using fixed weights and instrument diversification multiplier(/systems/portfolio.py)](#using-fixed-weights-and-instrument-diversification-multipliersystemsportfoliopy)
+            * [Using estimated weights and instrument diversification multiplier(/systems/portfolio.py)](#using-estimated-weights-and-instrument-diversification-multipliersystemsportfoliopy)
+               * [Estimating the instrument weights](#estimating-the-instrument-weights)
+               * [Estimating the forecast diversification multiplier](#estimating-the-forecast-diversification-multiplier-1)
+            * [Buffering and position intertia](#buffering-and-position-intertia)
+            * [Capital correction](#capital-correction)
+            * [Writing new or modified portfolio stages](#writing-new-or-modified-portfolio-stages)
          * [Stage: Accounting](#stage-accounting)
+            * [Using the standard <a href="/systems/account.py">Account class</a>](#using-the-standard-account-class)
+            * [accountCurve](#accountcurve)
+            * [accountCurveGroup in more detail](#accountcurvegroup-in-more-detail)
+            * [A nested accountCurveGroup](#a-nested-accountcurvegroup)
+               * [Weighted and unweighted account curve groups](#weighted-and-unweighted-account-curve-groups)
+            * [Testing account curves](#testing-account-curves)
+            * [Costs](#costs)
+            * [Writing new or modified accounting stages](#writing-new-or-modified-accounting-stages)
    * [Processes](#processes)
       * [Logging](#logging)
+         * [Basic logging](#basic-logging)
+         * [Advanced logging](#advanced-logging)
       * [Optimisation](#optimisation)
+         * [The optimisation function, and data](#the-optimisation-function-and-data)
+         * [Removing expensive assets (forecast weights only)](#removing-expensive-assets-forecast-weights-only)
+         * [Pooling gross returns (forecast weights only)](#pooling-gross-returns-forecast-weights-only)
+         * [Working out net costs (both instrument and forecast weights)](#working-out-net-costs-both-instrument-and-forecast-weights)
+         * [Time periods](#time-periods)
+         * [Moment estimation](#moment-estimation)
+         * [Methods](#methods)
+            * [Equal weights](#equal-weights)
+            * [One period (not recommend)](#one-period-not-recommend)
+            * [Bootstrapping (recommended, but slow)](#bootstrapping-recommended-but-slow)
+            * [Shrinkage](#shrinkage)
+         * [Post processing](#post-processing)
       * [Estimating correlations and diversification multipliers](#estimating-correlations-and-diversification-multipliers)
       * [Capital correction: Varying capital](#capital-correction-varying-capital)
    * [Reference](#reference)
       * [Table of standard system.data and system.stage methods](#table-of-standard-systemdata-and-systemstage-methods)
+         * [Explanation of columns](#explanation-of-columns)
+         * [System object](#system-object)
+         * [Data object](#data-object)
+         * [<a href="#stage_rawdata">Raw data stage</a>](#raw-data-stage)
+         * [<a href="#rules">Trading rules stage (chapter 7 of book)</a>](#trading-rules-stage-chapter-7-of-book)
+         * [<a href="#stage_scale">Forecast scaling and capping stage (chapter 7 of book)</a>](#forecast-scaling-and-capping-stage-chapter-7-of-book)
+         * [<a href="#stage_combine">Combine forecasts stage (chapter 8 of book)</a>](#combine-forecasts-stage-chapter-8-of-book)
+         * [<a href="#position_scale">Position sizing stage (chapters 9 and 10 of book)</a>](#position-sizing-stage-chapters-9-and-10-of-book)
+         * [<a href="#stage_portfolio">Portfolio stage (chapter 11 of book)</a>](#portfolio-stage-chapter-11-of-book)
+         * [<a href="#accounts_stage">Accounting stage</a>](#accounting-stage)
       * [Configuration options](#configuration-options)
+         * [Raw data stage](#raw-data-stage-1)
+            * [Volatility calculation](#volatility-calculation-1)
+         * [Rules stage](#rules-stage)
+            * [Trading rules](#trading-rules-1)
+         * [Forecast scaling and capping stage](#forecast-scaling-and-capping-stage)
+            * [Forecast scalar (fixed)](#forecast-scalar-fixed)
+            * [Forecast scalar (estimated)](#forecast-scalar-estimated)
+            * [Forecast cap (fixed - all classes)](#forecast-cap-fixed---all-classes)
+         * [Forecast combination stage](#forecast-combination-stage)
+            * [Forecast weights (fixed)](#forecast-weights-fixed)
+            * [Forecast weights (estimated)](#forecast-weights-estimated)
+               * [List of trading rules to get forecasts for](#list-of-trading-rules-to-get-forecasts-for)
+               * [Parameters for estimating forecast weights](#parameters-for-estimating-forecast-weights)
+            * [Forecast diversification multiplier  (fixed)](#forecast-diversification-multiplier--fixed)
+            * [Forecast diversification multiplier  (estimated)](#forecast-diversification-multiplier--estimated)
+               * [Forecast correlation calculation](#forecast-correlation-calculation)
+               * [Parameters for estimation of forecast diversification multiplier](#parameters-for-estimation-of-forecast-diversification-multiplier)
+         * [Position sizing stage](#position-sizing-stage)
+            * [Capital scaling parameters](#capital-scaling-parameters)
+         * [Portfolio combination stage](#portfolio-combination-stage)
+            * [Instrument weights (fixed)](#instrument-weights-fixed)
+            * [Instrument weights (estimated)](#instrument-weights-estimated)
+            * [Instrument diversification multiplier (fixed)](#instrument-diversification-multiplier-fixed)
+            * [Instrument diversification multiplier (estimated)](#instrument-diversification-multiplier-estimated)
+               * [Instrument corrrelations](#instrument-corrrelations)
+               * [Parameters for estimation of instrument diversification multiplier](#parameters-for-estimation-of-instrument-diversification-multiplier)
+            * [Buffering](#buffering)
+         * [Accounting stage](#accounting-stage-1)
+            * [Buffering and position intertia](#buffering-and-position-intertia-1)
+            * [Costs](#costs-1)
+            * [Capital correction](#capital-correction-1)
+
+TOC created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 
 
 <a name="how_do_i">
 </a>
 
 # How do I?
+
+   * [How do I.... Experiment with a single trading rule and instrument](#how-do-i-experiment-with-a-single-trading-rule-and-instrument)
+   * [How do I....Create a standard futures backtest](#how-do-icreate-a-standard-futures-backtest)
+   * [How do I....Create a futures backtest which estimates parameters](#how-do-icreate-a-futures-backtest-which-estimates-parameters)
+   * [How do I....See intermediate results from a backtest](#how-do-isee-intermediate-results-from-a-backtest)
+   * [How do I....See how profitable a backtest was](#how-do-isee-how-profitable-a-backtest-was)
+   * [How do I....Change backtest parameters](#how-do-ichange-backtest-parameters)
+   * [How do I....Run a backtest on a different set of instruments](#how-do-irun-a-backtest-on-a-different-set-of-instruments)
+   * [How do I....Create my own trading rule](#how-do-icreate-my-own-trading-rule)
+   * [How do I....Use different data or instruments](#how-do-iuse-different-data-or-instruments)
+   * [How do I... Save my work](#how-do-i-save-my-work)
+
 
 ## How do I.... Experiment with a single trading rule and instrument
 
@@ -582,6 +709,10 @@ Notice that we use python style "." internal references within a project, we don
 
 There is more detail about using .csv files [here](#csv).
 
+If you want to store your data in Mongo DB databases instead you need to [use a different data object](#arctic_data).
+
+If you want to get your data from Quandl.com, then see the document [working with futures data](/docs/futures.md)
+
 If you want to get data from a different place (eg a database, yahoo finance,
 broker, quandl...) you'll need to [create your own Data object](#create_data).
 
@@ -769,10 +900,52 @@ See data in subdirectories [pysystemtrade/data/futures](/data/futures) for files
 
 For more information see the [futures data document](/docs/futures.md#csvFuturesSimData).
 
+<a name="arctic_data"> </a>
 
-#### The [arcticSimData] object
+#### The [arcticSimData](/sysdata/arctic/arctic_and_mongo_sim_futures_data.py) object
 
-FIXME: Not implemented
+This is a simData object which gets it's data out of [Mongo DB](mongodb.com) (static) and [Arctic](https://github.com/manahl/arctic) (time series) (*Yes the class name should include both terms. Yes I shortened it so it isn't ridiculously long, and most of the interesting stuff comes from Arctic*). It is better for live trading.
+
+For production code, and storing large amounts of data (eg for individual futures contracts) we probably need something more robust than .csv files. 
+[MongoDB](/mongodb.com) is a no-sql database which is rather fashionable at the moment, though the main reason I selected it for this purpose is that it is used by [Arctic](#arctic). [Arctic](https://github.com/manahl/arctic) is a superb open source time series database which sits on top of Mongo DB) and provides straightforward and fast storage of pandas DataFrames. It was created by my former colleagues at [Man AHL](ahl.com) (in fact I beta tested a very early version of Arctic), and then very generously released as open source. 
+
+There is more detail on this in the [futures data documentation](/docs/futures.md): [Mongo DB](/docs/futures.md#mongoDB) and [Arctic](/docs/futures.md#arctic).
+
+##### Setting up your Arctic and Mongo DB databases
+
+Obviously you will need to make sure you already have a Mongo DB instance running. You might find you already have one running, in Linux use `ps wuax | grep mongo` and then kill the relevant process. You also need to get [Arctic](https://github.com/manahl/arctic).
+
+Because the mongoDB data isn't included in the github repo, before using this you need to write the required data into Mongo and Arctic.
+You can do this from scratch, as per the ['futures data workflow'](/docs/futures.md#a-futures-data-workflow). Alternatively you can run the following scripts which will copy the data from the existing github .csv files:
+
+- [Instrument configuration and cost data](/sysinit/futures/repocsv_instrument_config.py)
+- [Adjusted prices](/sysinit/futures/repocsv_adjusted_prices.py)
+- [Multiple prices](/sysinit/futures/repocsv_multiple_prices.py)
+- [Spot FX prices](/sysinit/futures/repocsv_spotfx_prices.py)
+
+Of course it's also possible to mix these two methods. 
+
+##### Using arcticFuturesSimData
+
+Once you have the data it's just a matter of replacing the default csv data object:
+
+```python
+from systems.provided.futures_chapter15.basesystem import futures_system
+from sysdata.arctic.arctic_and_mongo_sim_futures_data import arcticFuturesSimData
+
+# with the default database
+data = arcticFuturesSimData()
+
+# OR with an alternative database (if you've populated your data into it already)
+data = arcticFuturesSimData(database_name="alternative")
+
+# using with a system
+
+system = futures_system(, log_level="on")
+print(system.accounts.portfolio().sharpe())
+```
+
+
 
 ### Creating your own data objects
 

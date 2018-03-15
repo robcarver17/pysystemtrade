@@ -1,5 +1,5 @@
 """
-Get FX prices from Quandl and write to
+Get FX prices from Quandl and write to Arctic
 """
 from sysdata.quandl.quandl_spotfx_prices import quandlFxPricesData
 from sysdata.arctic.arctic_spotfx_prices import arcticFxPricesData

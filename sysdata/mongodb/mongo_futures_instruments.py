@@ -1,6 +1,7 @@
+import pandas as pd
+
 from sysdata.futures.instruments import futuresInstrumentData, futuresInstrument
 from sysdata.mongodb.mongo_connection import mongoConnection, MONGO_ID_KEY, mongo_clean_ints
-from copy import copy
 
 INSTRUMENT_COLLECTION = 'futures_instruments'
 DEFAULT_DB = 'production'
@@ -16,7 +17,6 @@ class mongoFuturesInstrumentData(futuresInstrumentData):
     def __init__(self, database_name = DEFAULT_DB):
 
         super().__init__()
-
         self._mongo = mongoConnection(database_name, INSTRUMENT_COLLECTION)
 
         # this won't create the index if it already exists
@@ -33,6 +33,30 @@ class mongoFuturesInstrumentData(futuresInstrumentData):
         codes = [db_entry['instrument_code'] for db_entry in cursor]
 
         return codes
+
+    def get_all_instrument_data(self):
+        """
+        Gets information about all instruments
+
+        Returns dataframe of meta data, indexed by instrument code
+
+        :return: pd.DataFrame
+        """
+
+        all_instrument_codes = self.get_list_of_instruments()
+        all_instrument_objects = [self.get_instrument_data(instrument_code) for instrument_code in all_instrument_codes]
+
+        meta_data_keys = [instrument_object.meta_data.keys() for instrument_object in all_instrument_objects]
+        meta_data_keys_flattened = [item for sublist in meta_data_keys for item in sublist]
+        meta_data_keys_unique = list(set(meta_data_keys_flattened))
+
+        meta_data_as_lists = dict([(metadata_name,
+                                    [instrument_object.meta_data[metadata_name] for instrument_object in all_instrument_objects]
+                                    ) for metadata_name in meta_data_keys_unique])
+
+        meta_data_as_dataframe = pd.DataFrame(meta_data_as_lists, index = all_instrument_codes)
+
+        return meta_data_as_dataframe
 
     def _get_instrument_data_without_checking(self, instrument_code):
 

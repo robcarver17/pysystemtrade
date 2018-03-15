@@ -13,6 +13,10 @@ from sysdata.data import simData
 from sysdata.futures.futuresDataForSim import futuresAdjustedPriceData, futuresConfigDataForSim, futuresMultiplePriceData
 
 from sysdata.arctic.arctic_adjusted_prices import arcticFuturesAdjustedPricesData
+from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesData
+from sysdata.arctic.arctic_spotfx_prices import arcticFxPricesData
+from sysdata.mongodb.mongo_futures_instruments import mongoFuturesInstrumentData
+
 
 """
 Static variables to store location of data
@@ -20,7 +24,7 @@ Static variables to store location of data
 
 
 class dbconnections(simData):
-    def __init__(self, database_name):
+    def __init__(self, database_name=None):
         """
 
         Use a different database
@@ -39,91 +43,50 @@ The next two sub classes are unusual in that they directly access the relevant f
   iii) specified in this file as DEFAULT_SIM_CONFIG_PATH
 """
 
-class mongoFuturesConfigDataForSim():
-    pass
-
-class csvFuturesConfigDataForSim(csvPaths, futuresConfigDataForSim):
-    """
-    Get futures specific data from legacy csv files
-
-    """
-
-
-    def _get_instrument_data(self):
+class mongoFuturesConfigDataForSim(dbconnections, futuresConfigDataForSim):
+    def get_all_instrument_data(self):
         """
         Get a data frame of interesting information about instruments, either
         from a file or cached
 
         :returns: pd.DataFrame
 
-        >>> data=csvFuturesConfigDataForSim(datapath_dict=dict(config_data = "sysdata.tests.configtestdata"))
-        >>> data._get_instrument_data()
-                   Instrument  Pointsize AssetClass Currency  Shortonly
-        Instrument
-        EDOLLAR       EDOLLAR       2500       STIR      USD      False
-        US10             US10       1000       Bond      USD      False
-        BUND             BUND       1000       Bond      EUR      False
-        >>> data.get_instrument_asset_classes()
-        Instrument
-        EDOLLAR    STIR
-        US10       Bond
-        BUND       Bond
-        Name: AssetClass, dtype: object
-        >>> data.get_value_of_block_price_move("EDOLLAR")
-        2500
-        >>> data.get_instrument_currency("US10")
-        'USD'
         """
 
-        self.log.msg("Loading csv instrument config")
+        data_object = self._get_config_data_object()
 
-        pathname = get_pathname_for_package(self._resolve_path("config_data", DEFAULT_SIM_CONFIG_PATH))
+        all_instr_dataframe= data_object.get_all_instrument_data()
 
-        filename = os.path.join(pathname, "instrumentconfig.csv")
-        instr_data = pd.read_csv(filename)
-        instr_data.index = instr_data.Instrument
+        return all_instr_dataframe
+
+    def get_instrument_object(self, instrument_code):
+        data_object = self._get_config_data_object()
+        instr_data = data_object.get_instrument_data(instrument_code)
 
         return instr_data
 
 
-    def _get_all_cost_data(self):
+    def _get_config_data_object(self):
+
+        database_name = self._database_name
+        data_object = mongoFuturesInstrumentData(database_name)
+
+        return data_object
+
+    def _get_instrument_object_with_cost_data(self, instrument_code):
         """
         Get a data frame of cost data
 
         :returns: pd.DataFrame
 
-        >>> data=csvFuturesConfigDataForSim(datapath_dict=dict(config_data = "sysdata.tests.configtestdata"))
-        >>> data._get_all_cost_data()
-                   Instrument  Slippage  PerBlock  Percentage  PerTrade
-        Instrument
-        BUND             BUND    0.0050      2.00           0         0
-        US10             US10    0.0080      1.51           0         0
-        EDOLLAR       EDOLLAR    0.0025      2.11           0         0
-        >>> data.get_raw_cost_data("EDOLLAR")['price_slippage']
-        0.0025000000000000001
         """
 
-        self.log.msg("Loading csv cost file")
+        mongo_configdata_object = self._get_config_data_object()
+        instrument_object = mongo_configdata_object.get_instrument_data(instrument_code)
 
-        pathname = get_pathname_for_package(self._resolve_path("config_data", DEFAULT_SIM_CONFIG_PATH))
-        filename = os.path.join(pathname, "costs_analysis.csv")
-        try:
-            instr_data = pd.read_csv(filename)
-            instr_data.index = instr_data.Instrument
+        return instrument_object
 
-            return instr_data
-        except OSError:
-            self.log.warn("Cost file not found %s" % filename)
-            return None
 
-"""
-The rest of these sub classes all follow the pattern of accessing a data object specific to the type of data being read
-The directory they look in will be eithier be
-  (i) specified as override_data_path on __init__ (via csvPaths init),
-  ii) specified in the datapath_dict with the relevant keyname on __init__ (via csvPaths init),
-  iii) default specified in the file of the specific data object
-
-"""
 
 
 class arcticFuturesAdjustedPriceSimData(dbconnections, futuresAdjustedPriceData):
@@ -190,7 +153,7 @@ class arcticFuturesMultiplePriceSimData(dbconnections, futuresMultiplePriceData)
 
     def _get_all_prices_data_object(self):
 
-        multiple_prices_data_object = arcticFuturesMultiplePriceSimData(self._database_name)
+        multiple_prices_data_object = arcticFuturesMultiplePricesData(self._database_name)
         multiple_prices_data_object.log = self.log
 
         return multiple_prices_data_object
@@ -234,7 +197,7 @@ class arcticFXSimData(dbconnections, simData):
 
     def _get_fx_data_object(self):
 
-        fx_prices_data_object = arcticFXSimData(self._database_name)
+        fx_prices_data_object = arcticFxPricesData(self._database_name)
         fx_prices_data_object.log = self.log
 
         return fx_prices_data_object

@@ -1,17 +1,14 @@
 """
 Populate a mongo DB collection with instrument data from a csv
 
-NOTE: THIS DIFFERS FROM 'INSTRUMENTS_CSV_MONGO' AS IT USES THE CONFIG FILE IN  'sysinit.futures.config' rather than the default
- in 'data...'
+NOTE: THIS DIFFERS FROM 'INSTRUMENTS_CSV_MONGO' AS IT USES THE CONFIG FILE IN 'data...' rather than in 'sysinit.futures.config'
 """
 
 from sysdata.mongodb.mongo_futures_instruments import mongoFuturesInstrumentData
 from sysdata.csv.csv_instrument_config import csvFuturesInstrumentData
 
-INSTRUMENT_CONFIG_PATH = "sysinit.futures.config"
-
 data_out = mongoFuturesInstrumentData()
-data_in = csvFuturesInstrumentData(config_path=INSTRUMENT_CONFIG_PATH)
+data_in = csvFuturesInstrumentData()
 print(data_in)
 instrument_list = data_in.get_list_of_instruments()
 

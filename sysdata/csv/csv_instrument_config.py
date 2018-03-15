@@ -10,14 +10,17 @@ class csvFuturesInstrumentData(futuresInstrumentData):
     Get data about instruments from a special configuration used for initialising the system
 
     """
-    def __init__(self, config_path = INSTRUMENT_CONFIG_PATH, config_file_name = CONFIG_FILE_NAME):
+    def __init__(self, config_path = INSTRUMENT_CONFIG_PATH):
 
         super().__init__()
 
-        self._config_file = get_filename_for_package(config_path+"."+config_file_name)
-        self.name = "Instruments data for initialising system config"
+        if config_path is None:
+            config_path = INSTRUMENT_CONFIG_PATH
 
-    def get_config_information(self):
+        self._config_file = get_filename_for_package(config_path+"."+CONFIG_FILE_NAME)
+        self.name = "Instruments data from %s" % self._config_file
+
+    def get_all_instrument_data(self):
         """
         Get configuration information as a dataframe
 
@@ -43,17 +46,15 @@ class csvFuturesInstrumentData(futuresInstrumentData):
         return self.name
 
     def get_list_of_instruments(self):
-        return list(self.get_config_information().index)
+        return list(self.get_all_instrument_data().index)
 
     def _get_instrument_data_without_checking(self, instrument_code):
-        config_for_this_instrument = self.get_config_information().loc[instrument_code]
+        all_instrument_data = self.get_all_instrument_data()
+        config_for_this_instrument = all_instrument_data.loc[instrument_code]
+        config_items = all_instrument_data.columns
 
-        instrument_object = futuresInstrument(instrument_code,
-                                              description = config_for_this_instrument.Description,
-                                                  exchange = config_for_this_instrument.Exchange,
-                                                  point_size = config_for_this_instrument.Pointsize,
-                                                  currency = config_for_this_instrument.Currency,
-                                                  asset_class = config_for_this_instrument.Assetclass)
+        meta_data = dict([(item_name, getattr(config_for_this_instrument, item_name)) for item_name in config_items])
+        instrument_object = futuresInstrument(instrument_code, **meta_data)
         print(instrument_object)
 
         return instrument_object

@@ -32,6 +32,16 @@ class futuresAdjustedPriceData(simData):
 
         self.log.critical(OVERIDE_ERROR)
 
+    def get_instrument_list(self):
+        """
+        list of instruments in this data set
+
+        :returns: list of str
+        """
+
+        self.log.critical(OVERIDE_ERROR)
+
+
 class futuresMultiplePriceData(simData):
     """
     Futures specific stuff related to carry, and optionally getting forward prices for back adjusting from scratch
@@ -172,15 +182,6 @@ class futuresConfigDataForSim(simData):
 
         :param instrument_code:
         :return: futuresInstrument object
-        """
-
-        self.log.critical(OVERIDE_ERROR)
-
-    def get_instrument_list(self):
-        """
-        list of instruments in this data set
-
-        :returns: list of str
         """
 
         self.log.critical(OVERIDE_ERROR)

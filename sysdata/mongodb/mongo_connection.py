@@ -2,6 +2,7 @@ from pymongo import MongoClient, ASCENDING, IndexModel
 from copy import copy
 import numpy as np
 
+DEFAULT_DB = 'production'
 DEFAULT_MONGO_HOST = 'localhost'
 DEFAULT_MONGO_PORT = 27017
 MONGO_ID_STR = '_id_'
@@ -13,6 +14,9 @@ class mongoConnection(object):
 
     """
     def __init__(self, database_name, collection_name, host = DEFAULT_MONGO_HOST, port = DEFAULT_MONGO_PORT):
+
+        if database_name is None:
+            database_name = DEFAULT_DB
 
         client = MongoClient(host=host, port=port)
         db = client[database_name]

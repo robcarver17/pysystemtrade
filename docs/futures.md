@@ -1,13 +1,11 @@
-THIS DOCUMENT IS NOT FINISHED AND CONTAINS MANY GAPS AND 'TO DO'!
-
 This document is specifically about *futures data*. It is broken into three sections. The first, [A futures data workflow](#futures_data_workflow), gives an overview of how data is typically processed. It describes how you would get some data from quandl, store it, and create back-adjusted prices. The next section [Storing futures data](#storing_futures_data) then describes in detail each of the components of the API for storing futures data. In the third and final section [simData objects](#simData_objects) you will see how we hook together individual data components to create a `simData` object that is used by the main simulation system.
 
 Although this document is about futures data, parts two and three are necessary reading if you are trying to create or modify any data objects.
 
-
 Table of Contents
 =================
 
+   * [Table of Contents](#table-of-contents)
    * [A futures data workflow](#a-futures-data-workflow)
       * [Setting up some instrument configuration](#setting-up-some-instrument-configuration)
       * [Roll parameter configuration](#roll-parameter-configuration)
@@ -20,10 +18,10 @@ Table of Contents
          * [Roll calendars from existing 'multiple prices' .csv files](#roll-calendars-from-existing-multiple-prices-csv-files)
       * [Creating and storing multiple prices](#creating-and-storing-multiple-prices)
       * [Creating and storing back adjusted prices](#creating-and-storing-back-adjusted-prices)
-         * [From Arctic prices](#from-arctic-prices)
-         * [From existing 'multiple prices' .csv files](#from-existing-multiple-prices-csv-files)
       * [Backadjusting 'on the fly'](#backadjusting-on-the-fly)
-   * [Storing and repersenting futures data](#storing-and-repersenting-futures-data)
+      * [Changing the stitching method](#changing-the-stitching-method)
+      * [Getting and storing FX data](#getting-and-storing-fx-data)
+   * [Storing and representing futures data](#storing-and-representing-futures-data)
       * [Futures data objects and their generic data storage objects](#futures-data-objects-and-their-generic-data-storage-objects)
          * [<a href="/sysdata/futures/instruments.py">Instruments</a>: futuresInstrument() and futuresInstrumentData()](#instruments-futuresinstrument-and-futuresinstrumentdata)
          * [<a href="/sysdata/futures/contract_dates_and_expiries.py">Contract dates</a>: contractDate()](#contract-dates-contractdate)
@@ -39,9 +37,10 @@ Table of Contents
       * [Creating your own data objects, and data storage objects; a few pointers](#creating-your-own-data-objects-and-data-storage-objects-a-few-pointers)
       * [Data storage objects for specific sources](#data-storage-objects-for-specific-sources)
          * [Static csv files used for initialisation](#static-csv-files-used-for-initialisation)
-            * [<a href="/sysinit/futures/csv_data_readers/instruments_from_csv.py">initCsvFuturesInstrumentData()</a> inherits from <a href="#futuresInstrumentData">futuresInstrumentData</a>](#initcsvfuturesinstrumentdata-inherits-from-futuresinstrumentdata)
+            * [[csvFuturesInstrumentData()]](#csvfuturesinstrumentdata)
             * [initCsvFuturesRollData()](/sysinit/futures/csv_data_readers/rolldata_from_csv.py) inherits from <a href="#rollParametersData">rollParametersData</a>](#initcsvfuturesrolldatasysinitfuturescsv_data_readersrolldata_from_csvpy-inherits-from-rollparametersdata)
          * [Csv files](#csv-files)
+            * [<a href="/sysdata/csv/instrument_config.py">csvFuturesInstrumentData()</a> inherits from <a href="#csvFuturesInstrumentData">csvFuturesInstrumentData</a>](#csvfuturesinstrumentdata-inherits-from-csvfuturesinstrumentdata)
             * [<a href="/sysdata/csv/csv_roll_calendars.py">csvRollCalendarData()</a> inherits from <a href="#rollParametersData">rollParametersData</a>](#csvrollcalendardata-inherits-from-rollparametersdata)
             * [<a href="/sysdata/csv/csv_multiple_prices.py">csvFuturesMultiplePricesData()</a> inherits from <a href="#futuresMultiplePricesData">futuresMultiplePricesData</a>](#csvfuturesmultiplepricesdata-inherits-from-futuresmultiplepricesdata)
             * [<a href="/sysdata/csv/csv_adjusted_prices.py">csvFuturesAdjustedPricesData()</a> inherits from <a href="#futuresAdjustedPricesData">futuresAdjustedPricesData</a>](#csvfuturesadjustedpricesdata-inherits-from-futuresadjustedpricesdata)
@@ -55,12 +54,12 @@ Table of Contents
             * [Setting a Quandl API key](#setting-a-quandl-api-key)
             * [<a href="/sysdata/quandl/quandl_futures.py">quandlFuturesConfiguration()</a>](#quandlfuturesconfiguration)
             * [<a href="/sysdata/quandl/quandl_futures.py">quandlFuturesContractPriceData()</a> inherits from <a href="#futuresContractPriceData">futuresContractPriceData</a>](#quandlfuturescontractpricedata-inherits-from-futurescontractpricedata)
-            * [quandlFxPricesData()](#quandlfxpricesdata)
+            * [quandlFxPricesData()(/sysdata/quandl/quandl_spotfx_prices.py) inherits from <a href="#fxPricesData">fxPricesData</a>](#quandlfxpricesdatasysdataquandlquandl_spotfx_pricespy-inherits-from-fxpricesdata)
          * [Arctic](#arctic)
             * [<a href="/sysdata/arctic/arctic_futures_per_contract_prices.py">arcticFuturesContractPriceData()</a> inherits from <a href="#futuresContractPriceData">futuresContractPriceData</a>](#arcticfuturescontractpricedata-inherits-from-futurescontractpricedata)
-            * [arcticFuturesMultiplePricesData()](#arcticfuturesmultiplepricesdata)
-            * [arcticFuturesAdjustedPricesData()](#arcticfuturesadjustedpricesdata)
-            * [arcticFxPricesData()](#arcticfxpricesdata)
+            * [<a href="/sysdata/arctic/arctic_multiple_prices.py">arcticFuturesMultiplePricesData()</a> inherits from <a href="#futuresMultiplePricesData">futuresMultiplePricesData()</a>](#arcticfuturesmultiplepricesdata-inherits-from-futuresmultiplepricesdata)
+            * [arcticFuturesAdjustedPricesData()(/sysdata/arctic/arctic_adjusted_prices.py) inherits from <a href="#futuresAdjustedPricesData">futuresAdjustedPricesData()</a>](#arcticfuturesadjustedpricesdatasysdataarcticarctic_adjusted_pricespy-inherits-from-futuresadjustedpricesdata)
+            * [arcticFxPricesData()(/sysdata/arctic/arctic_spotfx_prices.py) inherits from <a href="#fxPricesData">fxPricesData()</a>](#arcticfxpricesdatasysdataarcticarctic_spotfx_pricespy-inherits-from-fxpricesdata)
       * [Creating your own data storage objects for a new source](#creating-your-own-data-storage-objects-for-a-new-source)
       * [Provided simData objects](#provided-simdata-objects)
          * [Getting data from another source](#getting-data-from-another-source)
@@ -71,6 +70,7 @@ Table of Contents
          * [Multiple inheritance](#multiple-inheritance)
          * [Hooks into data storage objects](#hooks-into-data-storage-objects)
 
+Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 
 
 <a name="futures_data_workflow"></a>
@@ -557,9 +557,29 @@ The simplest simData object gets all of its data from .csv files, making it idea
 
 This is a simData object which gets it's data out of Mongo DB (static) and Arctic (time series) (*Yes the class name should include both terms. Yes I shortened it so it isn't ridiculously long, and most of the interesting stuff comes from Arctic*). It is better for live trading.
 
-FIXME NOT IMPLEMENTED
+Because the mongoDB data isn't included in the github repo, before using this you need to write the required data into Mongo and Arctic.
+You can do this from scratch, as per the ['futures data workflow'](#a-futures-data-workflow) at the start of this document:
 
-Because the mongoDB data isnt included in the github repo, before using this you need to .
+- [Instrument configuration and cost data](#setting-up-some-instrument-configuration)
+- [Adjusted prices](#creating-and-storing-back-adjusted-prices)
+- [Multiple prices](#creating-and-storing-multiple-prices)
+- [Spot FX prices](#create_fx_data)
+
+Alternatively you can run the following scripts which will copy the data from the existing github .csv files:
+
+- [Instrument configuration and cost data](/sysinit/futures/repocsv_instrument_config.py)
+- [Adjusted prices](/sysinit/futures/repocsv_adjusted_prices.py)
+- [Multiple prices](/sysinit/futures/repocsv_multiple_prices.py)
+- [Spot FX prices](/sysinit/futures/repocsv_spotfx_prices.py)
+
+Of course it's also possible to mix these two methods. Once you have the data it's just a matter of replacing the default csv data object:
+
+```python
+from systems.provided.futures_chapter15.basesystem import futures_system
+from sysdata.arctic.arctic_and_mongo_sim_futures_data import arcticFuturesSimData
+system = futures_system(data = arcticFuturesSimData(), log_level="on")
+print(system.accounts.portfolio().sharpe())
+```
 
 
 <a name="modify_SimData">
@@ -570,9 +590,25 @@ Constructing simData objects in the way I've done makes it relatively easy to mo
 
 ### Getting data from another source
 
-Let's suppose you want to use Arctic and Mongo DB data, but get your spot FX prices from a .csv file. OK this is a silly example, but hopefully it will be easy to generalise this to doing more sensible things.
+Let's suppose you want to use Arctic and Mongo DB data, but get your spot FX prices from a .csv file. OK this is a silly example, but hopefully it will be easy to generalise this to doing more sensible things. Modify the file [arctic_and_mongo_sim_futures_data.py](/sysdata/arctic/arctic_and_mongo_sim_futures_data.py):
 
-FIX ME NOT IMPLEMENTED
+```python
+# add import
+from sysdata.csv.csv_sim_futures_data import csvFXData
+
+# replace this class: class arcticFuturesSimData()
+# with:
+
+class arcticFuturesSimData(csvFXData, arcticFuturesAdjustedPriceSimData,
+                           mongoFuturesConfigDataForSim, arcticFuturesMultiplePriceSimData):
+
+    def __repr__(self):
+        return "arcticFuturesSimData for %d instruments getting FX data from csv land" % len(self.get_instrument_list())
+
+
+```
+
+If you want to specify a custom .csv directory or you'll also need to write a special __init__ class to achieve that (bearing in mind that these are specified in the __init__ for `csvPaths` and `dbconnections`, which ultimately are both inherited by `arcticFuturesSimData`)- I haven't tried it myself.
 
 <a name="back_adjust_on_the_fly"></a>
 ### Back-adjustment 'on the fly'

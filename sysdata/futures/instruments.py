@@ -4,9 +4,6 @@ Read / write and represent instrument data
 
 from sysdata.data import baseData
 
-
-NO_ROLL_DATA_PASSED = {}
-
 class futuresInstrument(object):
     """
     Define a generic instrument
@@ -69,6 +66,10 @@ class futuresInstrumentData(baseData):
 
     def keys(self):
         return self.get_list_of_instruments()
+
+    def get_all_instrument_data(self):
+        # returns all instrument data as a pd.DataFrame
+        raise NotImplementedError(USE_CHILD_CLASS_ERROR)
 
     def get_list_of_instruments(self):
         raise NotImplementedError(USE_CHILD_CLASS_ERROR)

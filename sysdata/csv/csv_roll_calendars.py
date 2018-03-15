@@ -14,13 +14,21 @@ class csvRollCalendarData(rollCalendarData):
 
     Class for roll calendars write / to from csv
     """
+    def __init__(self, datapath=None):
+
+        super().__init__()
+
+        if datapath is None:
+            datapath = CSV_ROLL_CALENDAR_DIRECTORY
+
+        self._datapath = datapath
 
     def __repr__(self):
-        return "csvRollCalendarData accessing %s" % CSV_ROLL_CALENDAR_DIRECTORY
+        return "csvRollCalendarData accessing %s" % self._datapath
 
     def get_list_of_instruments(self):
 
-        return files_with_extension_in_pathname(CSV_ROLL_CALENDAR_DIRECTORY, ".csv")
+        return files_with_extension_in_pathname(self._datapath, ".csv")
 
     def _get_roll_calendar_without_checking(self, instrument_code):
 
@@ -41,4 +49,4 @@ class csvRollCalendarData(rollCalendarData):
         roll_calendar.to_csv(filename, index_label = DATE_INDEX_NAME)
 
     def _filename_given_instrument_code(self, instrument_code):
-        return get_filename_for_package("%s.%s.csv" %(CSV_ROLL_CALENDAR_DIRECTORY,instrument_code))
+        return get_filename_for_package("%s.%s.csv" %(self._datapath,instrument_code))
