@@ -99,11 +99,25 @@ class futuresConfigDataForSim(simData):
     Futures specific configuration data, eg costs etc
     """
 
-    def _get_all_cost_data(self):
+    def _get_default_costs(self):
         """
-        Get a data frame of cost data
+        Default costs, if we don't find any
 
-        :returns: pd.DataFrame
+        :return: dict
+        """
+        default_costs = dict(
+            price_slippage=0.0,
+            value_of_block_commission=0.0,
+            percentage_cost=0.0,
+            value_of_pertrade_commission=0.0)
+
+        return default_costs
+
+    def _get_instrument_object_with_cost_data(self, instrument_code):
+        """
+        Get a futures instrument where the meta data is cost data
+
+        :returns: futuresInstrument
 
         """
         self.log.critical(OVERIDE_ERROR)
@@ -127,33 +141,18 @@ class futuresConfigDataForSim(simData):
 
         """
 
-        default_costs = dict(
-            price_slippage=0.0,
-            value_of_block_commission=0.0,
-            percentage_cost=0.0,
-            value_of_pertrade_commission=0.0)
+        cost_data_object = self._get_instrument_object_with_cost_data(instrument_code)
 
-        cost_data = self._get_all_cost_data()
+        if cost_data_object.empty():
+            return self._get_default_costs()
 
-        if cost_data is None:
-            ##
-            return default_costs
+        cost_dict = dict(
+            price_slippage=cost_data_object.meta_data['Slippage'],
+            value_of_block_commission=cost_data_object.meta_data['PerBlock'],
+            percentage_cost=cost_data_object.meta_data['Percentage'],
+            value_of_pertrade_commission=cost_data_object.meta_data['PerTrade'])
 
-        try:
-            block_move_value = cost_data.loc[instrument_code, [
-                'Slippage', 'PerBlock', 'Percentage', 'PerTrade'
-            ]]
-        except KeyError:
-            self.log.warn(
-                "Cost data not found for %s, using zero" % instrument_code)
-            return default_costs
-
-        return dict(
-            price_slippage=block_move_value[0],
-            value_of_block_commission=block_move_value[1],
-            percentage_cost=block_move_value[2],
-            value_of_pertrade_commission=block_move_value[3])
-
+        return cost_dict
 
 
     def get_all_instrument_data(self):

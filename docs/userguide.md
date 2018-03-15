@@ -746,7 +746,7 @@ the instrument_code):
    DATETIME, PRICE,CARRY,FORWARD,CARRY_CONTRACT PRICE_CONTRACT, FORWARD_CONTRACT
 4. Currency data - `ccy1ccy2fx.csv` (eg AUDUSDfx.csv) headings: DATETIME,
    FXRATE
-5. Cost data - 'costs_analysis.csv' headings: Instrument, Slippage, PerBlock,
+5. Cost data - `costs_analysis.csv` headings: Instrument, Slippage, PerBlock,
    Percentage, PerTrade. See ['costs'](#costs) for more detail.
 
 DATETIME should be something that `pandas.to_datetime` can parse. Note that the

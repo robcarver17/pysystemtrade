@@ -16,8 +16,8 @@ from sysdata.csv.csv_adjusted_prices import csvFuturesAdjustedPricesData
 from sysdata.csv.csv_spot_fx import csvFxPricesData
 from sysdata.csv.csv_instrument_config import csvFuturesInstrumentData
 
-DEFAULT_SIM_CONFIG_PATH = "data.futures.csvconfig"
-
+DEFAULT_SIM_CONFIG_FILENAME = "instrumentconfig.csv"
+DEFAULT_SIM_COSTS_FILENAME = "costs_analysis.csv"
 """
 Static variables to store location of data
 """
@@ -56,6 +56,15 @@ class csvPaths(simData):
 
         return fallback_path
 
+
+"""
+The rest of these sub classes all follow the pattern of accessing a data object specific to the type of data being read
+The directory they look in will be eithier be
+  (i) specified as override_data_path on __init__ (via csvPaths init),
+  ii) specified in the datapath_dict with the relevant keyname on __init__ (via csvPaths init),
+  iii) default specified in the file of the specific data object
+
+"""
 
 class csvFuturesConfigDataForSim(csvPaths, futuresConfigDataForSim):
     """
@@ -111,48 +120,39 @@ class csvFuturesConfigDataForSim(csvPaths, futuresConfigDataForSim):
     def _get_config_data_object(self):
 
         pathname = self._resolve_path("config_data")
-        data_object = csvFuturesInstrumentData(pathname)
+        filename = DEFAULT_SIM_CONFIG_FILENAME
+
+        data_object = csvFuturesInstrumentData(config_path=pathname, config_file_name=filename)
 
         return data_object
 
-    def _get_all_cost_data(self):
+    def _get_instrument_object_with_cost_data(self, instrument_code):
         """
         Get a data frame of cost data
 
         :returns: pd.DataFrame
 
         >>> data=csvFuturesConfigDataForSim(datapath_dict=dict(config_data = "sysdata.tests.configtestdata"))
-        >>> data._get_all_cost_data()
-                   Instrument  Slippage  PerBlock  Percentage  PerTrade
-        Instrument
-        BUND             BUND    0.0050      2.00           0         0
-        US10             US10    0.0080      1.51           0         0
-        EDOLLAR       EDOLLAR    0.0025      2.11           0         0
         >>> data.get_raw_cost_data("EDOLLAR")['price_slippage']
         0.0025000000000000001
         """
 
-        self.log.msg("Loading csv cost file")
+        csv_data_object = self._get_cost_data_object()
+        instrument_object = csv_data_object.get_instrument_data(instrument_code)
 
-        pathname = get_pathname_for_package(self._resolve_path("config_data", DEFAULT_SIM_CONFIG_PATH))
-        filename = os.path.join(pathname, "costs_analysis.csv")
-        try:
-            instr_data = pd.read_csv(filename)
-            instr_data.index = instr_data.Instrument
+        return instrument_object
 
-            return instr_data
-        except OSError:
-            self.log.warn("Cost file not found %s" % filename)
-            return None
 
-"""
-The rest of these sub classes all follow the pattern of accessing a data object specific to the type of data being read
-The directory they look in will be eithier be
-  (i) specified as override_data_path on __init__ (via csvPaths init),
-  ii) specified in the datapath_dict with the relevant keyname on __init__ (via csvPaths init),
-  iii) default specified in the file of the specific data object
+    def _get_cost_data_object(self):
 
-"""
+        pathname = self._resolve_path("config_data")
+        filename = DEFAULT_SIM_COSTS_FILENAME
+
+        data_object = csvFuturesInstrumentData(config_path=pathname, config_file_name=filename)
+
+        return data_object
+
+
 
 
 class csvFuturesAdjustedPriceData(csvPaths, futuresAdjustedPriceData):

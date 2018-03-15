@@ -33,7 +33,12 @@ class csvFuturesAdjustedPricesData(futuresAdjustedPricesData):
     def _get_adjusted_prices_without_checking(self, instrument_code):
         filename = self._filename_given_instrument_code(instrument_code)
 
-        instrpricedata = pd_readcsv(filename)
+        try:
+            instrpricedata = pd_readcsv(filename)
+        except OSError:
+            self.log.warning("Can't find adjusted price file %s" % filename)
+            return futuresAdjustedPrices.create_empty()
+
         instrpricedata.columns = ["price"]
         instrpricedata = instrpricedata.groupby(level=0).last()
         instrpricedata = pd.Series(instrpricedata.iloc[:, 0])

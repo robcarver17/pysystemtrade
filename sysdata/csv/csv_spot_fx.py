@@ -32,7 +32,13 @@ class csvFxPricesData(fxPricesData):
 
     def _get_fx_prices_without_checking(self, code):
         filename = self._filename_given_fx_code(code)
-        fx_data = pd_readcsv(filename)
+        try:
+            filename = self._filename_given_instrument_code(code)
+            fx_data = pd_readcsv(filename)
+        except OSError:
+            self.log.warning("Can't find currency price file %s" % filename)
+            return fxPrices.create_empty()
+
         fx_data = pd.Series(fx_data.iloc[:, 0])
 
         fx_data = fxPrices(fx_data)

@@ -1,4 +1,4 @@
-from sysdata.futures.roll_calendars import rollCalendarData
+from sysdata.futures.roll_calendars import rollCalendarData, rollCalendar
 from syscore.fileutils import get_filename_for_package, files_with_extension_in_pathname
 from syscore.pdutils import pd_readcsv
 
@@ -24,8 +24,14 @@ class csvRollCalendarData(rollCalendarData):
 
     def _get_roll_calendar_without_checking(self, instrument_code):
 
-        filename = self._filename_given_instrument_code(instrument_code)
-        return pd_readcsv(filename, date_index_name=DATE_INDEX_NAME)
+        try:
+            filename = self._filename_given_instrument_code(instrument_code)
+            roll_calendar = pd_readcsv(filename, date_index_name=DATE_INDEX_NAME)
+        except OSError:
+            self.log.warning("Can't find roll calendar file %s" % filename)
+            return rollCalendar.create_empty()
+
+        return roll_calendar
 
     def _delete_roll_calendar_data_without_any_warning_be_careful(instrument_code):
         raise NotImplementedError("You can't delete a roll calendar stored as a csv - Add to overwrite existing or delete file manually")

@@ -92,7 +92,7 @@ In future versions of pysystemtrade there will be code to keep your prices up to
 
 The first step is to store some instrument configuration information. In principal this can be done in any way, but we are going to *read* from .csv files, and *write* to a [Mongo Database](https://www.mongodb.com/). There are two kinds of configuration; instrument configuration and roll configuration. Instrument configuration consists of static information that enables us to map from the instrument code like EDOLLAR.
 
-The relevant script to setup *information configuration* is in sysinit - the part of pysystemtrade used to initialise a new system. Here is the script you need to run [instruments_csv_mongo.py](/sysinit/futures/instruments_csv_mongo.py). Notice it uses two types of data objects: the object we write to [`mongoFuturesInstrumentData`](#mongoFuturesInstrumentData) and the object we read from [`initCsvFuturesInstrumentData`](#initCsvFuturesInstrumentData). These objects both inherit from the more generic futuresInstrumentData, and are specialist versions of that. You'll see this pattern again and again, and I describe it further in [part two of this document](#storing_futures_data). 
+The relevant script to setup *information configuration* is in sysinit - the part of pysystemtrade used to initialise a new system. Here is the script you need to run [instruments_csv_mongo.py](/sysinit/futures/instruments_csv_mongo.py). Notice it uses two types of data objects: the object we write to [`mongoFuturesInstrumentData`](#mongoFuturesInstrumentData) and the object we read from [`csvFuturesInstrumentData`](#csvFuturesInstrumentData). These objects both inherit from the more generic futuresInstrumentData, and are specialist versions of that. You'll see this pattern again and again, and I describe it further in [part two of this document](#storing_futures_data). 
 
 Make sure you are running a [Mongo Database](#mongoDB) before running this.
 
@@ -374,10 +374,10 @@ This section covers the various sources for reading and writing [data objects](#
 
 In the initialisation part of the workflow (in [section one](#futures_data_workflow) of this document) I copied some information from .csv files to initialise a database. To acheive this we need to create some read-only access methods to the relevant .csv files (which are stored [here](/sysinit/futures/config/)).
 
-<a name="initCsvFuturesInstrumentData"></a>
-#### [initCsvFuturesInstrumentData()](/sysinit/futures/csv_data_readers/instruments_from_csv.py) inherits from [futuresInstrumentData](#futuresInstrumentData)
+<a name="init_instrument_config"></a>
+#### [csvFuturesInstrumentData()]
 
-Reads instrument object data from [here](/sysinit/futures/config/instruments_from_csv.py))
+Reads instrument object data from [here](/sysinit/futures/config/instruments_from_csv.py) using [csvFuturesInstrumentData](#csvFuturesInstrumentData)
 
 <a name="initCsvFuturesRollData"></a>
 #### initCsvFuturesRollData()](/sysinit/futures/csv_data_readers/rolldata_from_csv.py) inherits from [rollParametersData](#rollParametersData)
@@ -389,6 +389,11 @@ Reads roll parameters for each instrument from [here](/sysinit/futures/config/ro
 Storing data in .csv files has some obvious disadvantages, and doesn't feel like the sort of thing a 21st century trading system ought to be doing. However it's good for roll calendars, which sometimes need manual hacking when they're created. It's also good for the data required to run backtests that lives as part of the github repo for pysystemtrade (storing large binary files in git is not a great idea, although various workarounds exist I haven't yet found one that works satisfactorily).
 
 For obvious (?) reasons we only implement get and read methods for .csv files (So... you want to delete the .csv file? Do it through the filesystem. Don't get python to do your dirty work for you).
+
+<a name="csvFuturesInstrumentData"></a>
+#### [csvFuturesInstrumentData()](/sysdata/csv/instrument_config.py) inherits from [csvFuturesInstrumentData](#csvFuturesInstrumentData)
+
+Reads futures configuration information from [here](/data/futures/roll_calendars_csv) (note this is a seperate file from the one used to initialise the mongoDB database [earlier](#init_instrument_config) although this uses the same class method to get the data). Columns currently used by the simulation engine are: Instrument, Pointsize, AssetClass, Currency. Extraneous columns don't affect functionality. 
 
 <a name="csvRollCalendarData"></a>
 #### [csvRollCalendarData()](/sysdata/csv/csv_roll_calendars.py) inherits from [rollParametersData](#rollParametersData)
@@ -554,6 +559,7 @@ This is a simData object which gets it's data out of Mongo DB (static) and Arcti
 
 FIXME NOT IMPLEMENTED
 
+Because the mongoDB data isnt included in the github repo, before using this you need to .
 
 
 <a name="modify_SimData">
@@ -697,7 +703,7 @@ Then for csv files we have the following in [csv_sim_futures_data.py](/sysdata/c
 5. csvMultiplePriceData(csvPaths, futuresMultiplePriceData)
 6. csvFuturesSimData(csvFXData, csvFuturesAdjustedPriceData, csvFuturesConfigDataForSim, csvMultiplePriceData)
 
-Classes 3,4 and 5 each inherit from one of the futures sub classes (class 2 bypasses the futures specific classes and inherits directly from simData). Then class 6 ties all these together. Notice that futuresSimData isn't referenced anywhere; it is included only as a template to show how you should do this 'gluing' together.
+Classes 3,4 and 5 each inherit from one of the futures sub classes (class 2 bypasses the futures specific classes and inherits directly from simData - strictly speaking we should probably have an fxSimData class in between these). Then class 6 ties all these together. Notice that futuresSimData isn't referenced anywhere; it is included only as a template to show how you should do this 'gluing' together.
 
 ### Hooks into data storage objects
 

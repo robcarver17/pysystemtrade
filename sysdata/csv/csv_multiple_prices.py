@@ -32,7 +32,11 @@ class csvFuturesMultiplePricesData(futuresMultiplePricesData):
     def _get_multiple_prices_without_checking(self, instrument_code):
         filename = self._filename_given_instrument_code(instrument_code)
 
-        instr_all_price_data = pd_readcsv(filename, date_index_name=DATE_INDEX_NAME)
+        try:
+            instr_all_price_data = pd_readcsv(filename, date_index_name=DATE_INDEX_NAME)
+        except OSError:
+            self.log.warning("Can't find multiple price file %s" % filename)
+            return futuresMultiplePrices.create_empty()
 
         instr_all_price_data.CARRY_CONTRACT = instr_all_price_data.CARRY_CONTRACT.apply(
             str_of_int)
