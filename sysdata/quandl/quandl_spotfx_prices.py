@@ -15,7 +15,12 @@ class quandlFxPricesData(fxPricesData):
 
     def _get_fx_prices_without_checking(self, currency_code):
         qcode = self._get_qcode(currency_code)
-        fx_prices = quandl.get(qcode)
+        try:
+            fx_prices = quandl.get(qcode)
+        except Exception as exception:
+            self.log.warn("Can't get QUANDL data for %s error %s" % (qcode, exception))
+            return fxPrices.create_empty()
+
         fx_prices = fx_prices.Rate
 
         return fxPrices(fx_prices)

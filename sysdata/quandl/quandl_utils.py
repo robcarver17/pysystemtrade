@@ -15,6 +15,7 @@ def load_private_key(key_file =QUANDL_PRIVATE_KEY_FILE , dict_key = 'quandl_key'
         key = yaml_dict[dict_key]
     except:
         # no private key
+        print("No private key found for QUANDL - you will be subject to data limits")
         key = None
 
     return key

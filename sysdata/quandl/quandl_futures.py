@@ -173,8 +173,8 @@ class quandlFuturesContractPriceData(futuresContractPriceData):
 
         try:
             contract_data = quandl.get(quandl_contract.quandl_identifier())
-        except:
-            self.log.warn("Can't get QUANDL data for %s" % quandl_contract.quandl_identifier())
+        except Exception as exception:
+            self.log.warn("Can't get QUANDL data for %s error %s" % (quandl_contract.quandl_identifier(), exception))
             return futuresContractPrices.create_empty()
 
         try:

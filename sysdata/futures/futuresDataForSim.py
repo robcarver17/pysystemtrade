@@ -156,13 +156,23 @@ class futuresConfigDataForSim(simData):
 
 
 
-    def _get_instrument_data(self):
+    def get_all_instrument_data(self):
         """
         Get a data frame of interesting information about instruments, either
         from a file or cached
 
         :returns: pd.DataFrame
 
+        """
+
+        self.log.critical(OVERIDE_ERROR)
+
+    def get_instrument_object(self, instrument_code):
+        """
+        Get data about an instrument, as a futuresInstrument
+
+        :param instrument_code:
+        :return: futuresInstrument object
         """
 
         self.log.critical(OVERIDE_ERROR)
@@ -174,15 +184,13 @@ class futuresConfigDataForSim(simData):
         :returns: list of str
         """
 
-        instr_data = self._get_instrument_data()
-
-        return list(instr_data.Instrument)
+        self.log.critical(OVERIDE_ERROR)
 
     def get_instrument_asset_classes(self):
         """
         Returns dataframe with index of instruments, column AssetClass
         """
-        instr_data = self._get_instrument_data()
+        instr_data = self.get_instrument_data()
         instr_assets = instr_data.AssetClass
 
         return instr_assets
@@ -198,8 +206,8 @@ class futuresConfigDataForSim(simData):
 
         """
 
-        instr_data = self._get_instrument_data()
-        block_move_value = instr_data.loc[instrument_code, 'Pointsize']
+        instr_object = self.get_instrument_object(instrument_code)
+        block_move_value = instr_object.meta_data['Pointsize']
 
         return block_move_value
 
@@ -213,15 +221,18 @@ class futuresConfigDataForSim(simData):
         :returns: str
 
         """
-
-        instr_data = self._get_instrument_data()
-        currency = instr_data.loc[instrument_code, 'Currency']
+        instr_object = self.get_instrument_object(instrument_code)
+        currency = instr_object.meta_data['Currency']
 
         return currency
 
 
 
+"""
+This class isn't used; instead it shows the pattern for creating source specific versions of futuresSimData
 
+These would inherit directly from source specific versions of futuresAdjustedPriceData... etc
+"""
 class futuresSimData(futuresAdjustedPriceData, futuresConfigDataForSim, futuresMultiplePriceData):
     def __repr__(self):
         raise Exception(OVERIDE_ERROR)

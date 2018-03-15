@@ -2,23 +2,24 @@ from syscore.fileutils import get_filename_for_package
 from sysdata.futures.instruments import futuresInstrumentData, futuresInstrument
 import pandas as pd
 
-INSTRUMENT_CONFIG_FILE = "sysinit.futures.config.instrumentconfig.csv"
+INSTRUMENT_CONFIG_PATH = "data.futures.csvconfig"
+CONFIG_FILE_NAME = "instrumentconfig.csv"
 
-class initCsvFuturesInstrumentData(futuresInstrumentData):
+class csvFuturesInstrumentData(futuresInstrumentData):
     """
     Get data about instruments from a special configuration used for initialising the system
 
     """
-    def __init__(self, config_file=INSTRUMENT_CONFIG_FILE):
+    def __init__(self, config_path = INSTRUMENT_CONFIG_PATH, config_file_name = CONFIG_FILE_NAME):
 
         super().__init__()
 
-        self._config_file = get_filename_for_package(config_file)
+        self._config_file = get_filename_for_package(config_path+"."+config_file_name)
         self.name = "Instruments data for initialising system config"
 
-    def _get_config_information(self):
+    def get_config_information(self):
         """
-        Get configuration information
+        Get configuration information as a dataframe
 
         :return: dict of config information
         """
@@ -42,10 +43,10 @@ class initCsvFuturesInstrumentData(futuresInstrumentData):
         return self.name
 
     def get_list_of_instruments(self):
-        return list(self._get_config_information().index)
+        return list(self.get_config_information().index)
 
     def _get_instrument_data_without_checking(self, instrument_code):
-        config_for_this_instrument = self._get_config_information().loc[instrument_code]
+        config_for_this_instrument = self.get_config_information().loc[instrument_code]
 
         instrument_object = futuresInstrument(instrument_code,
                                               description = config_for_this_instrument.Description,

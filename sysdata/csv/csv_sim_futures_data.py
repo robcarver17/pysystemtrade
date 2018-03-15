@@ -14,6 +14,7 @@ from sysdata.futures.futuresDataForSim import futuresAdjustedPriceData, futuresC
 from sysdata.csv.csv_multiple_prices import csvFuturesMultiplePricesData
 from sysdata.csv.csv_adjusted_prices import csvFuturesAdjustedPricesData
 from sysdata.csv.csv_spot_fx import csvFxPricesData
+from sysdata.csv.csv_instrument_config import csvFuturesInstrumentData
 
 DEFAULT_SIM_CONFIG_PATH = "data.futures.csvconfig"
 
@@ -55,13 +56,6 @@ class csvPaths(simData):
 
         return fallback_path
 
-"""
-The next two sub classes are unusual in that they directly access the relevant files rather than going by another data object
-
-  (i) specified as override_data_path on __init__ (via csvPaths init),
-  ii) specified in the datapath_dict with the relevant keyname on __init__ (via csvPaths init),
-  iii) specified in this file as DEFAULT_SIM_CONFIG_PATH
-"""
 
 class csvFuturesConfigDataForSim(csvPaths, futuresConfigDataForSim):
     """
@@ -70,7 +64,7 @@ class csvFuturesConfigDataForSim(csvPaths, futuresConfigDataForSim):
     """
 
 
-    def _get_instrument_data(self):
+    def get_all_instrument_data(self):
         """
         Get a data frame of interesting information about instruments, either
         from a file or cached
@@ -96,16 +90,30 @@ class csvFuturesConfigDataForSim(csvPaths, futuresConfigDataForSim):
         'USD'
         """
 
-        self.log.msg("Loading csv instrument config")
+        data_object = self._get_config_data_object()
 
-        pathname = get_pathname_for_package(self._resolve_path("config_data", DEFAULT_SIM_CONFIG_PATH))
+        all_instr_dataframe= data_object.get_config_information()
 
-        filename = os.path.join(pathname, "instrumentconfig.csv")
-        instr_data = pd.read_csv(filename)
-        instr_data.index = instr_data.Instrument
+        return all_instr_dataframe
+
+    def get_instrument_object(self, instrument_code):
+        data_object = self._get_config_data_object()
+        instr_data = data_object.get_instrument_data(instrument_code)
 
         return instr_data
 
+    def get_instrument_list(self):
+        data_object = self._get_config_data_object()
+        instr_list = data_object.get_list_of_instruments()
+
+        return instr_list
+
+    def _get_config_data_object(self):
+
+        pathname = self._resolve_path("config_data")
+        data_object = csvFuturesInstrumentData(pathname)
+
+        return data_object
 
     def _get_all_cost_data(self):
         """
