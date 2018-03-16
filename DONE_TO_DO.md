@@ -1,7 +1,11 @@
 # Release notes
 
+## Version 0.18.1
+Finished populating configuration files for Quandl and roll configuration.
+Debugged futures.md documentation file.
+
 ## Version 0.18
-See [futures documentation](#/docs/futures.md) for more details.
+See [futures documentation](/docs/futures.md) for more details.
 New data sources: Quandl. Data storage in mongodb and arctic is now supported.
 Back-adjustment is possible and can be done 'on the fly' or from scratch with new data. 
 Further refactoring of sim data objects to support the above.

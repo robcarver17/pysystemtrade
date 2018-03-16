@@ -78,6 +78,13 @@ class quandlFuturesConfiguration(object):
 
         return "%d" % start_date
 
+    def get_quandl_dividing_factor(self, instrument_code):
+
+        config = self.get_instrument_config(instrument_code)
+        factor = config.FACTOR
+
+        return float(factor)
+
 
 USE_DEFAULT = object()
 
@@ -134,7 +141,9 @@ class _quandlFuturesContract(futuresContract):
 
         return self._quandl_instrument_data.get_start_date(self.instrument_code)
 
+    def get_dividing_factor(self):
 
+        return self._quandl_instrument_data.get_quandl_dividing_factor(instrument_code)
 
 class quandlFuturesContractPriceData(futuresContractPriceData):
     """
@@ -183,6 +192,10 @@ class quandlFuturesContractPriceData(futuresContractPriceData):
             self.log.error(
                 "Quandl API error: data fields are not as expected %s" % ",".join(list(contract_data.columns)))
             return futuresContractPrices.create_empty()
+
+        # apply multiplier
+        factor = quandl_contract.get_dividing_factor()
+        data = data / factor
 
         return data
 

@@ -90,7 +90,7 @@ In future versions of pysystemtrade there will be code to keep your prices up to
 <a name="set_up_instrument_config"></a>
 ## Setting up some instrument configuration
 
-The first step is to store some instrument configuration information. In principal this can be done in any way, but we are going to *read* from .csv files, and *write* to a [Mongo Database](https://www.mongodb.com/). There are two kinds of configuration; instrument configuration and roll configuration. Instrument configuration consists of static information that enables us to map from the instrument code like EDOLLAR.
+The first step is to store some instrument configuration information. In principal this can be done in any way, but we are going to *read* from .csv files, and *write* to a [Mongo Database](https://www.mongodb.com/). There are two kinds of configuration; instrument configuration and roll configuration. Instrument configuration consists of static information that enables us to map from the instrument code like EDOLLAR (it also includes cost levels, that are required in the simulation environment).
 
 The relevant script to setup *information configuration* is in sysinit - the part of pysystemtrade used to initialise a new system. Here is the script you need to run [instruments_csv_mongo.py](/sysinit/futures/instruments_csv_mongo.py). Notice it uses two types of data objects: the object we write to [`mongoFuturesInstrumentData`](#mongoFuturesInstrumentData) and the object we read from [`csvFuturesInstrumentData`](#csvFuturesInstrumentData). These objects both inherit from the more generic futuresInstrumentData, and are specialist versions of that. You'll see this pattern again and again, and I describe it further in [part two of this document](#storing_futures_data). 
 
@@ -111,8 +111,6 @@ It's worth explaining the available options for roll configuration. First of all
 
 'ExpiryOffset': How many days to shift the expiry date in a month, eg (the day of the month that a contract expires)-1. These values are just here so we can build roughly correct roll calendars (of which more later). In live trading you'd get the actual expiry date for each contract.
 
-*FIXME: not all of these parameters are completed accurately (especially ExpiryOffset and RollOffsetDays): I intend to update it properly for everything I actually trade.*
-
 It might be helpful to read [my blog post](qoppac.blogspot.co.uk/2015/05/systems-building-futures-rolling.html) on rolling futures contracts (though bear in mind some of the details relate to my current trading system and do no reflect how pysystemtrade works). 
 
 <a name="get_historical_data"></a>
@@ -129,7 +127,7 @@ By the way I can't just pull down this data myself and put it on github to save 
 This uses quite a few data objects:
 
 - Price data for individual futures contracts: [quandlFuturesContractPriceData](#quandlFuturesContractPriceData) and [arcticFuturesContractPriceData](#arcticFuturesContractPriceData)
-- Configuration needed when dealing with Quandl: [quandlFuturesConfiguration](#quandlFuturesConfiguration) - this reads [this .csv](/sysdata/quandl/QuandlFuturesConfig.csv) and defines the code and market; but also the first contract in Quandl's database (*FIXME: these values aren't defined except for Eurodollar*)
+- Configuration needed when dealing with Quandl: [quandlFuturesConfiguration](#quandlFuturesConfiguration) - this reads [this .csv](/sysdata/quandl/QuandlFuturesConfig.csv) and defines the code and market; but also the first contract in Quandl's database.
 - Instrument data (that we prepared earlier): [mongoFuturesInstrumentData](#mongoFuturesInstrumentData)
 - Roll parameters data (that we prepared earlier): [mongoRollParametersData](#mongoRollParametersData)
 - Two generic data objects (not for a specific source):  [listOfFuturesContracts](#listOfFuturesContracts), [futuresInstrument](#futuresInstrument)
@@ -241,7 +239,7 @@ The paradigm for data storage is that we have a bunch of [data objects](#generic
 <a name="futuresInstrument"></a>
 ### [Instruments](/sysdata/futures/instruments.py): futuresInstrument() and futuresInstrumentData()
 
-Futures instruments are the things we actually trade, eg Eurodollar futures, but not specific contracts. Apart from the instrument code we can store metadata about them. This isn't hard wired into the class, but currently includes things like the asset class and so on.
+Futures instruments are the things we actually trade, eg Eurodollar futures, but not specific contracts. Apart from the instrument code we can store *metadata* about them. This isn't hard wired into the class, but currently includes things like the asset class, cost parameters, and so on.
 
 <a name="contractDate"></a>
 ### [Contract dates](/sysdata/futures/contract_dates_and_expiries.py): contractDate()
@@ -470,8 +468,6 @@ quandl_key: 'your_key_goes_here'
 
 Acceses [this .csv file](/sysdata/quandl/QuandlFuturesConfig.csv) which contains the codes and markets required to get data from Quandl.
 
-FIXME - this file needs completing.
-
 <a name="quandlFuturesContractPriceData"></a>
 #### [quandlFuturesContractPriceData()](/sysdata/quandl/quandl_futures.py) inherits from [futuresContractPriceData](#futuresContractPriceData)
 
@@ -549,8 +545,6 @@ I've provided two complete simData objects which get their data from different s
 
 The simplest simData object gets all of its data from .csv files, making it ideal for simulations if you haven't built a process yet to get your own data. It's essentially a like for like replacement for the simpler csvSimData objects that pysystemtrade used in versions before 0.17.0.
 
-
-
 <a name="mongoSimData">
 </a>
 ### [arcticFuturesSimData()](/sysdata/arctic/arctic_and_mongo_sim_futures_data.py)
@@ -580,7 +574,17 @@ from sysdata.arctic.arctic_and_mongo_sim_futures_data import arcticFuturesSimDat
 system = futures_system(data = arcticFuturesSimData(), log_level="on")
 print(system.accounts.portfolio().sharpe())
 ```
+### A note about multiple configuration files
 
+Configuration information about futures instruments is stored in a number of different places:
+
+- Instrument configuration and cost levels in this [.csv file](/data/futures/csvconfig/instrument_config.csv), used by default with `csvFuturesSimData` or will be copied to the database with [this script](/sysinit/futures/repocsv_instrument_config.py)
+- Instrument configuration and cost levels in the sysinit module in [this .csv file](/sysinit/futures/config/instrumentconfig.csv), which will be copied to Mongo DB with [this script](/sysinit/futures/instruments_csv_mongo.py)
+- Roll configuration information in [this .csv file](/sysinit/futures/config/rollconfig.csv), which will be copied to Mongo DB with [this script](/sysinit/futures/roll_parameters_csv_mongo.py)
+
+The instruments in these lists won't neccessarily match up; not all contracts have prices available in Quandl, and in some places I've included information for contracts that I don't currently trade (so which aren't included in the main simulation .csv configuration file).
+
+The `system.get_instrument_list()` method is used by the simulation to decide which markets to trade; if no explicit list of instruments is included then it will fall back on the method `system.data.get_instrument_list()`. In both the provided simData objects this will resolve to the method `get_instrument_list` in the class which gets back adjusted prices, or in whatever overrides it for a given data source (.csv or Mongo DB). In practice this means it's okay if your instrument configuration (or roll configuration, when used) is a superset of the instruments you have adjusted prices for. But it's not okay if you have adjusted prices for an instrument, but no configuration information.
 
 <a name="modify_SimData">
 </a>

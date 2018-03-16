@@ -870,15 +870,14 @@ system.data.get_instrument_raw_carry_data(instrument_code)
 Each relevant pathname must contain .csv files of the following four types (where code is
 the instrument_code):
 
-1. Static configuration data- `instrument_config.csv` headings: Instrument, Pointsize,
-   AssetClass, Currency
+1. Static configuration and cost data- `instrument_config.csv` headings: Instrument, Pointsize,
+   AssetClass, Currency. Additional headings for costs: Slippage, PerBlock,
+   Percentage, PerTrade. See ['costs'](#costs) for more detail.
 2. Adjusted price data- `code.csv` (eg SP500.csv) headings: DATETIME, PRICE
 3. Carry and forward data - `code.csv` (eg AEX.csv): headings:
    DATETIME, PRICE,CARRY,FORWARD,CARRY_CONTRACT PRICE_CONTRACT, FORWARD_CONTRACT
 4. Currency data - `ccy1ccy2fx.csv` (eg AUDUSDfx.csv) headings: DATETIME,
    FXRATE
-5. Cost data - `costs_analysis.csv` headings: Instrument, Slippage, PerBlock,
-   Percentage, PerTrade. See ['costs'](#costs) for more detail.
 
 DATETIME should be something that `pandas.to_datetime` can parse. Note that the
 price in (2) is the continously stitched price (see [volatility
