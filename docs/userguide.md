@@ -31,7 +31,7 @@ Table of Contents
          * [Using the standard data objects](#using-the-standard-data-objects)
             * [Generic data objects](#generic-data-objects)
             * [The <a href="/sysdata/csv/csv_sim_futures_data.py">csvFuturesSimData</a> object](#the-csvfuturessimdata-object)
-            * [The [arcticSimData] object](#the-arcticsimdata-object)
+            * [The arcticSimData object](#the-arcticsimdata-object)
          * [Creating your own data objects](#creating-your-own-data-objects)
             * [The Data() class](#the-data-class)
       * [Configuration](#configuration)
@@ -903,10 +903,10 @@ For more information see the [futures data document](/docs/futures.md#csvFutures
 
 #### The [arcticSimData](/sysdata/arctic/arctic_and_mongo_sim_futures_data.py) object
 
-This is a simData object which gets it's data out of [Mongo DB](mongodb.com) (static) and [Arctic](https://github.com/manahl/arctic) (time series) (*Yes the class name should include both terms. Yes I shortened it so it isn't ridiculously long, and most of the interesting stuff comes from Arctic*). It is better for live trading.
+This is a simData object which gets it's data out of [Mongo DB](https://mongodb.com) (static) and [Arctic](https://github.com/manahl/arctic) (time series) (*Yes the class name should include both terms. Yes I shortened it so it isn't ridiculously long, and most of the interesting stuff comes from Arctic*). It is better for live trading.
 
 For production code, and storing large amounts of data (eg for individual futures contracts) we probably need something more robust than .csv files. 
-[MongoDB](/mongodb.com) is a no-sql database which is rather fashionable at the moment, though the main reason I selected it for this purpose is that it is used by [Arctic](#arctic). [Arctic](https://github.com/manahl/arctic) is a superb open source time series database which sits on top of Mongo DB) and provides straightforward and fast storage of pandas DataFrames. It was created by my former colleagues at [Man AHL](ahl.com) (in fact I beta tested a very early version of Arctic), and then very generously released as open source. 
+[MongoDB](https://mongodb.com) is a no-sql database which is rather fashionable at the moment, though the main reason I selected it for this purpose is that it is used by Arctic. [Arctic](https://github.com/manahl/arctic) is a superb open source time series database which sits on top of Mongo DB) and provides straightforward and fast storage of pandas DataFrames. It was created by my former colleagues at [Man AHL](https://ahl.com) (in fact I beta tested a very early version of Arctic), and then very generously released as open source. 
 
 There is more detail on this in the [futures data documentation](/docs/futures.md): [Mongo DB](/docs/futures.md#mongoDB) and [Arctic](/docs/futures.md#arctic).
 

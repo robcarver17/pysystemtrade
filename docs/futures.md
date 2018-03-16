@@ -557,7 +557,7 @@ print(system.accounts.portfolio().sharpe())
 
 Configuration information about futures instruments is stored in a number of different places:
 
-- Instrument configuration and cost levels in this [.csv file](/data/futures/csvconfig/instrument_config.csv), used by default with `csvFuturesSimData` or will be copied to the database with [this script](/sysinit/futures/repocsv_instrument_config.py)
+- Instrument configuration and cost levels in this [.csv file](/data/futures/csvconfig/instrumentconfig.csv), used by default with `csvFuturesSimData` or will be copied to the database with [this script](/sysinit/futures/repocsv_instrument_config.py)
 - Instrument configuration and cost levels in the sysinit module in [this .csv file](/sysinit/futures/config/instrumentconfig.csv), which will be copied to Mongo DB with [this script](/sysinit/futures/instruments_csv_mongo.py)
 - Roll configuration information in [this .csv file](/sysinit/futures/config/rollconfig.csv), which will be copied to Mongo DB with [this script](/sysinit/futures/roll_parameters_csv_mongo.py)
 
