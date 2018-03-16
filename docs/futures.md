@@ -503,7 +503,7 @@ For databases you may want to create connection objects (like [this](#/sysdata/a
 <a name="simData_objects"></a>
 # simData objects
 
-The `simData` object is a compulsory part of the psystemtrade system object which runs simulations (or in live trading generates desired positions). The API required for that is laid out in the userguide, [here](#/docs/userguide.md#using-the-standard-data-objects). For maximum flexibility as of version 0.17 these objects are in turn constructed of methods that hook into data storage objects for specific sources. So for example in the default [`csvFuturesSimData`](/sysdata/csv/csv_sim_futures_data.py) the compulsory method (for futures) get_backadjusted_futures_price is hooked into an instance of [`csvFuturesAdjustedPricesData`](#csvFuturesAdjustedPricesData).
+The `simData` object is a compulsory part of the psystemtrade system object which runs simulations (or in live trading generates desired positions). The API required for that is laid out in the userguide, [here](/docs/userguide.md#using-the-standard-data-objects). For maximum flexibility as of version 0.17 these objects are in turn constructed of methods that hook into data storage objects for specific sources. So for example in the default [`csvFuturesSimData`](/sysdata/csv/csv_sim_futures_data.py) the compulsory method (for futures) get_backadjusted_futures_price is hooked into an instance of `csvFuturesAdjustedPricesData`.
 
 This modularity allows us to easily replace the data objects, so we could load our adjusted prices from mongo DB, or do 'back adjustment' of futures prices 'on the fly'.
 
@@ -520,14 +520,12 @@ Direct access to other kinds of information isn't neccessary for simulations.
 
 I've provided two complete simData objects which get their data from different sources: [csvSimData](#csvSimData) and [mongoSimData](#mongoSimData).
 
-<a name="csvFuturesSimData">
-</a>
+<a name="csvFuturesSimData"></a>
 ### [csvFuturesSimData()](/sysdata/csv/csv_sim_futures_data.py)
 
 The simplest simData object gets all of its data from .csv files, making it ideal for simulations if you haven't built a process yet to get your own data. It's essentially a like for like replacement for the simpler csvSimData objects that pysystemtrade used in versions before 0.17.0.
 
-<a name="mongoSimData">
-</a>
+<a name="mongoSimData"></a>
 ### [arcticFuturesSimData()](/sysdata/arctic/arctic_and_mongo_sim_futures_data.py)
 
 This is a simData object which gets it's data out of Mongo DB (static) and Arctic (time series) (*Yes the class name should include both terms. Yes I shortened it so it isn't ridiculously long, and most of the interesting stuff comes from Arctic*). It is better for live trading.
@@ -567,8 +565,7 @@ The instruments in these lists won't neccessarily match up; not all contracts ha
 
 The `system.get_instrument_list()` method is used by the simulation to decide which markets to trade; if no explicit list of instruments is included then it will fall back on the method `system.data.get_instrument_list()`. In both the provided simData objects this will resolve to the method `get_instrument_list` in the class which gets back adjusted prices, or in whatever overrides it for a given data source (.csv or Mongo DB). In practice this means it's okay if your instrument configuration (or roll configuration, when used) is a superset of the instruments you have adjusted prices for. But it's not okay if you have adjusted prices for an instrument, but no configuration information.
 
-<a name="modify_SimData">
-</a>
+<a name="modify_SimData"></a>
 ## Modifying simData objects
 
 Constructing simData objects in the way I've done makes it relatively easy to modify them. Here are a few examples.
