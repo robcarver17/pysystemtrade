@@ -62,7 +62,7 @@ This section describes a typical workflow for setting up futures data from scrat
 1. [Set up some static configuration information](#set_up_instrument_config) for instruments, and [roll parameters](#set_up_roll_parameter_config)
 2. Get, and store, [some historical data](#get_historical_data)
 3. Build, and store, [roll calendars](#roll_calendars)
-4. Create and store ['multiple' price series](create_multiple_prices) containing the relevant contracts we need for any given time period
+4. Create and store ['multiple' price series](#create_multiple_prices) containing the relevant contracts we need for any given time period
 5. Create and store [back-adjusted prices](#back_adjusted_prices)
 6. Get, and store, [spot FX prices](#create_fx_data)
 
@@ -88,7 +88,7 @@ It's worth explaining the available options for roll configuration. First of all
 
 'RollOffsetDays': This indicates how many calendar days before a contract expires that we'd normally like to roll it. These vary from zero (Korean bonds KR3 and KR10 which you can't roll until the expiry date) up to -1100 (Eurodollar where I like to stay several years out on the curve).
 
-'CarryOffset': Whether we take carry from an earlier dated contract (-1, which is preferable) or a later dated contract (+1, which isn't ideal but if we hold the front contract we have no choice). This calculation is done based on the *priced* roll cycle, so for example for winter crude where the *hold* roll cycle is just 'Z' (we hold December), and the carry offset is -1 we take the previous month in the *priced* roll cycle (which is a full year FGHJKMNQUVXZ) i.e. November (whose code is 'X'). You read more in Appendix B of [my first book](www.systematicmoney.org/systematic-trading).
+'CarryOffset': Whether we take carry from an earlier dated contract (-1, which is preferable) or a later dated contract (+1, which isn't ideal but if we hold the front contract we have no choice). This calculation is done based on the *priced* roll cycle, so for example for winter crude where the *hold* roll cycle is just 'Z' (we hold December), and the carry offset is -1 we take the previous month in the *priced* roll cycle (which is a full year FGHJKMNQUVXZ) i.e. November (whose code is 'X'). You read more in Appendix B of [my first book](http://www.systematicmoney.org/systematic-trading).
 
 'ExpiryOffset': How many days to shift the expiry date in a month, eg (the day of the month that a contract expires)-1. These values are just here so we can build roughly correct roll calendars (of which more later). In live trading you'd get the actual expiry date for each contract.
 
