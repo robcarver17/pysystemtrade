@@ -37,28 +37,10 @@ Table of Contents
       * [Creating your own data objects, and data storage objects; a few pointers](#creating-your-own-data-objects-and-data-storage-objects-a-few-pointers)
       * [Data storage objects for specific sources](#data-storage-objects-for-specific-sources)
          * [Static csv files used for initialisation](#static-csv-files-used-for-initialisation)
-            * [[csvFuturesInstrumentData()]](#csvfuturesinstrumentdata)
-            * [initCsvFuturesRollData()](/sysinit/futures/csv_data_readers/rolldata_from_csv.py) 
-            * [<a href="/sysdata/csv/instrument_config.py">csvFuturesInstrumentData()</a> inherits from <a href="#csvFuturesInstrumentData">csvFuturesInstrumentData</a>](#csvfuturesinstrumentdata-inherits-from-csvfuturesinstrumentdata)
-            * [<a href="/sysdata/csv/csv_roll_calendars.py">csvRollCalendarData()</a> inherits from <a href="#rollParametersData">rollParametersData</a>](#csvrollcalendardata-inherits-from-rollparametersdata)
-            * [<a href="/sysdata/csv/csv_multiple_prices.py">csvFuturesMultiplePricesData()</a> inherits from <a href="#futuresMultiplePricesData">futuresMultiplePricesData</a>](#csvfuturesmultiplepricesdata-inherits-from-futuresmultiplepricesdata)
-            * [<a href="/sysdata/csv/csv_adjusted_prices.py">csvFuturesAdjustedPricesData()</a> inherits from <a href="#futuresAdjustedPricesData">futuresAdjustedPricesData</a>](#csvfuturesadjustedpricesdata-inherits-from-futuresadjustedpricesdata)
-            * [<a href="/sysdata/csv/csv_spot_fx.py">csvFxPricesData()</a> inherits from <a href="#fxPricesData">fxPricesData</a>](#csvfxpricesdata-inherits-from-fxpricesdata)
+         * [CSV data](#csv_files)
          * [mongo DB](#mongo-db)
-            * [<a href="/sysdata/mongodb/mongo_futures_instruments.py">mongoFuturesInstrumentData()</a> inherits from <a href="#futuresInstrumentData">futuresInstrumentData</a>](#mongofuturesinstrumentdata-inherits-from-futuresinstrumentdata)
-            * [<a href="/sysdata/mongodb/mongo_roll_data.py">mongoRollParametersData()</a> inherits from <a href="#rollParametersData">rollParametersData</a>](#mongorollparametersdata-inherits-from-rollparametersdata)
-            * [<a href="/sysdata/mongodb/mongo_futures_contracts.py">mongoFuturesContractData()</a> inherits from <a href="#futuresContractData">futuresContractData</a>](#mongofuturescontractdata-inherits-from-futurescontractdata)
          * [Quandl](#quandl)
-            * [Getting the Quandl python API](#getting-the-quandl-python-api)
-            * [Setting a Quandl API key](#setting-a-quandl-api-key)
-            * [<a href="/sysdata/quandl/quandl_futures.py">quandlFuturesConfiguration()</a>](#quandlfuturesconfiguration)
-            * [<a href="/sysdata/quandl/quandl_futures.py">quandlFuturesContractPriceData()</a> inherits from <a href="#futuresContractPriceData">futuresContractPriceData</a>](#quandlfuturescontractpricedata-inherits-from-futurescontractpricedata)
-            * [quandlFxPricesData()(/sysdata/quandl/quandl_spotfx_prices.py) inherits from <a href="#fxPricesData">fxPricesData</a>](#quandlfxpricesdatasysdataquandlquandl_spotfx_pricespy-inherits-from-fxpricesdata)
          * [Arctic](#arctic)
-            * [<a href="/sysdata/arctic/arctic_futures_per_contract_prices.py">arcticFuturesContractPriceData()</a> inherits from <a href="#futuresContractPriceData">futuresContractPriceData</a>](#arcticfuturescontractpricedata-inherits-from-futurescontractpricedata)
-            * [<a href="/sysdata/arctic/arctic_multiple_prices.py">arcticFuturesMultiplePricesData()</a> inherits from <a href="#futuresMultiplePricesData">futuresMultiplePricesData()</a>](#arcticfuturesmultiplepricesdata-inherits-from-futuresmultiplepricesdata)
-            * [arcticFuturesAdjustedPricesData()(/sysdata/arctic/arctic_adjusted_prices.py) inherits from <a href="#futuresAdjustedPricesData">futuresAdjustedPricesData()</a>](#arcticfuturesadjustedpricesdatasysdataarcticarctic_adjusted_pricespy-inherits-from-futuresadjustedpricesdata)
-            * [arcticFxPricesData()](/sysdata/arctic/arctic_spotfx_prices.py) inherits from <a href="#fxPricesData">fxPricesData()</a>(#arcticfxpricesdatasysdataarcticarctic_spotfx_pricespy-inherits-from-fxpricesdata)
       * [Creating your own data storage objects for a new source](#creating-your-own-data-storage-objects-for-a-new-source)
       * [Provided simData objects](#provided-simdata-objects)
          * [Getting data from another source](#getting-data-from-another-source)
@@ -381,7 +363,8 @@ Reads instrument object data from [here](/sysinit/futures/config/instruments_fro
 
 Reads roll parameters for each instrument from [here](/sysinit/futures/config/rolldata_from_csv.py))
 
-### Csv files
+<a name="csv_files"></a>
+### Csv files for time series data
 
 Storing data in .csv files has some obvious disadvantages, and doesn't feel like the sort of thing a 21st century trading system ought to be doing. However it's good for roll calendars, which sometimes need manual hacking when they're created. It's also good for the data required to run backtests that lives as part of the github repo for pysystemtrade (storing large binary files in git is not a great idea, although various workarounds exist I haven't yet found one that works satisfactorily).
 
