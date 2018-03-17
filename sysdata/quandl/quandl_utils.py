@@ -1,3 +1,5 @@
+import yaml
+
 from syscore.fileutils import get_filename_for_package
 
 QUANDL_PRIVATE_KEY_FILE = get_filename_for_package("private.private_config.yaml")
