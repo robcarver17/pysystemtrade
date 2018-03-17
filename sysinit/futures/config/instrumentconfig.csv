@@ -1,4 +1,4 @@
-Instrument,Description,Exchange,Pointsize,Currency,Assetclass,Slippage,PerBlock,Percentage,PerTrade
+Instrument,Description,Exchange,Pointsize,Currency,AssetClass,Slippage,PerBlock,Percentage,PerTrade
 AEX,Netherlands equity index AEX,FTA,200,EUR,Equity,0.0282686043,2,0,0
 ASX,Australian equity index ASX200,SNFE,25,AUD,Equity,N/A,N/A,N/A,N/A
 AUD,AUDUSD currency,GLOBEX,100000,USD,FX,0.00005,2.46,0,0
