@@ -143,7 +143,7 @@ class _quandlFuturesContract(futuresContract):
 
     def get_dividing_factor(self):
 
-        return self._quandl_instrument_data.get_quandl_dividing_factor(instrument_code)
+        return self._quandl_instrument_data.get_quandl_dividing_factor(self.instrument_code)
 
 class quandlFuturesContractPriceData(futuresContractPriceData):
     """

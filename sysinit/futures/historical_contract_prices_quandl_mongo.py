@@ -22,9 +22,11 @@ def get_roll_parameters_from_mongo(instrument_code):
 
     return roll_parameters
 
+
 def get_first_contract_date_from_quandl(instrument_code):
     config = quandlFuturesConfiguration()
     return config.get_first_contract_date(instrument_code)
+
 
 def create_list_of_contracts(instrument_code):
     instrument_object = futuresInstrument(instrument_code)
@@ -32,19 +34,21 @@ def create_list_of_contracts(instrument_code):
     roll_parameters = get_roll_parameters_from_mongo(instrument_code)
     first_contract_date = get_first_contract_date_from_quandl(instrument_code)
 
-    list_of_contracts = listOfFuturesContracts.historical_price_contracts(instrument_object, roll_parameters, first_contract_date)
+    list_of_contracts = listOfFuturesContracts.historical_price_contracts(instrument_object, roll_parameters,
+                                                                          first_contract_date)
 
     return list_of_contracts
 
+
 def get_and_write_prices_for_contract_list_from_quandl_to_arctic(list_of_contracts):
     quandl_prices_data = quandlFuturesContractPriceData()
-    arctic_prices_data =  arcticFuturesContractPriceData()
+    arctic_prices_data = arcticFuturesContractPriceData()
 
     for contract_object in list_of_contracts:
         print("Processing %s" % contract_object.ident())
         quandl_price = quandl_prices_data.get_prices_for_contract_object(contract_object)
 
-        if quandl_price.empty():
+        if quandl_price.empty:
             print("Problem reading price data this contract - skipping")
         else:
             print("Read ok, trying to write to arctic")
