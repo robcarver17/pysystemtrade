@@ -157,7 +157,7 @@ def robust_vol_calc(x,
             min_periods=floor_min_periods, window=floor_days).quantile(
                 quantile=floor_min_quant)
 
-        # set this to zero for the first value then propogate forward, ensures
+        # set this to zero for the first value then propagate forward, ensures
         # we always have a value
         vol_min.at[vol_min.index[0]] =  0.0
         vol_min = vol_min.ffill()
