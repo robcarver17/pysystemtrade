@@ -5,4 +5,4 @@ numpy>=1.13.3
 scipy>=1.0.0
 quandl>=3.3.0
 pymongo>=3.6.0
-git+git://github.com/manahl/arctic.git
+arctic>=1.62.0
