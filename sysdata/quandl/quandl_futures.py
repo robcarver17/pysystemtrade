@@ -214,8 +214,22 @@ class quandlFuturesContractPrices(futuresContractPrices):
                                          HIGH=contract_data.High,
                                          LOW=contract_data.Low,
                                          SETTLE=contract_data.Settle))
-        except:
-            raise Exception(
-                "Quandl API error: data fields are not as expected %s" % ",".join(list(contract_data.columns)))
+        except AttributeError:
+            try:
+                new_data = pd.DataFrame(dict(OPEN=contract_data.Open,
+                                         CLOSE=contract_data.Close,
+                                         HIGH=contract_data.High,
+                                         LOW=contract_data.Low,
+                                         SETTLE=contract_data.Settle))
+            except AttributeError:
+                try:
+                    new_data = pd.DataFrame(dict(OPEN=contract_data.Open,
+                                                 CLOSE=contract_data.Settle,
+                                                 HIGH=contract_data.High,
+                                                 LOW=contract_data.Low,
+                                                 SETTLE=contract_data.Settle))
+                except:
+                    raise Exception(
+                        "Quandl API error: data fields %s are not as expected" % ",".join(list(contract_data.columns)))
 
         super().__init__(new_data)
