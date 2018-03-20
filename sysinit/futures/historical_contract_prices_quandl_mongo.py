@@ -35,7 +35,7 @@ def create_list_of_contracts(instrument_code):
     first_contract_date = get_first_contract_date_from_quandl(instrument_code)
 
     list_of_contracts = listOfFuturesContracts.historical_price_contracts(instrument_object, roll_parameters,
-                                                                          first_contract_date)
+                                                                      first_contract_date)
 
     return list_of_contracts
 
@@ -59,8 +59,9 @@ def get_and_write_prices_for_contract_list_from_quandl_to_arctic(list_of_contrac
 
 
 if __name__ == '__main__':
-    instrument_code = "EDOLLAR"
+    instrument_code = "US10"
     list_of_contracts = create_list_of_contracts(instrument_code)
+    print(list_of_contracts)
 
     print("Generated %d contracts" % len(list_of_contracts))
 

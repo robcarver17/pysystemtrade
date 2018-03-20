@@ -242,12 +242,17 @@ class listOfFuturesContracts(list):
 
         while date_still_valid:
             next_contract = current_contract.next_priced_contract()
+            next_carry_contract = next_contract.carry_contract()
 
-            if current_contract.contract_date.want_to_roll()>end_date:
+            list_of_contracts.append(next_contract)
+            current_contract = next_contract
+
+            if next_contract.contract_date.want_to_roll()>end_date and \
+                            next_carry_contract.contract_date.want_to_roll()>end_date:
                 date_still_valid = False
-            else:
-                list_of_contracts.append(next_contract)
-                current_contract = next_contract
+                one_more_for_luck =next_contract.next_priced_contract()
+                list_of_contracts.append(one_more_for_luck)
+                # will now terminate
 
             if len(list_of_contracts)>MAX_CONTRACT_SIZE:
                 raise Exception("Too many contracts - check your inputs")
