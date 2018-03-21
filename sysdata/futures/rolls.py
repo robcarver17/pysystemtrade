@@ -318,19 +318,51 @@ class rollParameters(object):
         """
         self.check_for_hold_cycle()
 
+        self.check_for_price_cycle()
+
+        current_date_as_contract_with_roll_data = self._approx_first_contractDate_at_date(reference_date, "hold_rollcycle")
+
+        return current_date_as_contract_with_roll_data
+
+    def approx_first_priced_contractDate_at_date(self, reference_date):
+        """
+        What contract would be pricing on first_date?
+
+        Returns a contractDate object with a date after first_date, taking into account RollOffsetDays
+          as well as the priced roll cycle.
+
+        :param reference_date:
+        :return: contractDate object
+        """
+        self.check_for_price_cycle()
+
+        current_date_as_contract_with_roll_data = self._approx_first_contractDate_at_date(reference_date, "priced_rollcycle")
+
+        return current_date_as_contract_with_roll_data
+
+    def _approx_first_contractDate_at_date(self, reference_date, rollcycle_name):
+        """
+        What contract would be pricing or holding on first_date?
+
+        Returns a contractDate object with a date after first_date, taking into account RollOffsetDays
+          as well as the priced roll cycle.
+
+        :param reference_date:
+        :return: contractDate object
+        """
+
         # first held contract after current date
-        hold_cycle = self.hold_rollcycle
+        roll_cycle = getattr(self, rollcycle_name)
 
         adjusted_date = reference_date + pd.DateOffset(days = -self.roll_offset_day + self.approx_expiry_offset)
 
-        relevant_year_int, relevant_month_int = hold_cycle.yearmonth_inrollcycle_after_date(adjusted_date)
+        relevant_year_int, relevant_month_int = roll_cycle.yearmonth_inrollcycle_after_date(adjusted_date)
 
         current_date_as_contract_with_roll_data = contractDateWithRollParameters.contract_date_from_numbers(self, relevant_year_int,
                                                                                                             relevant_month_int,
                                                                                                             approx_expiry_offset=self.approx_expiry_offset)
 
         return current_date_as_contract_with_roll_data
-
 
 
 
@@ -467,6 +499,7 @@ class contractDateWithRollParameters(contractDate):
 
     def want_to_roll(self):
         return self.expiry_date+ datetime.timedelta(days = self.roll_parameters.roll_offset_day)
+
 
 USE_CHILD_CLASS_ROLL_PARAMS_ERROR = "You need to use a child class of rollParametersData"
 

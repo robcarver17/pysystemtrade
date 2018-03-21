@@ -158,6 +158,25 @@ class futuresContract(object):
     def expiry_date(self):
         return self.contract_date.expiry_date
 
+    @classmethod
+    def approx_first_held_futuresContract_at_date(futuresContract, instrument_object, roll_parameters, reference_date):
+        try:
+            first_contract_date = roll_parameters.approx_first_held_contractDate_at_date(reference_date)
+        except AttributeError:
+            raise Exception("You can only do this if contract_date_object is contractDateWithRollParameters")
+
+        return futuresContract(instrument_object, first_contract_date)
+
+    @classmethod
+    def approx_first_priced_futuresContract_at_date(futuresContract, instrument_object, roll_parameters, reference_date):
+        try:
+            first_contract_date = roll_parameters.approx_first_priced_contractDate_at_date(reference_date)
+        except AttributeError:
+            raise Exception("You can only do this if contract_date_object is contractDateWithRollParameters")
+
+        return futuresContract(instrument_object, first_contract_date)
+
+
     def next_priced_contract(self):
         try:
             next_contract_date = self.contract_date.next_priced_contract()
@@ -232,12 +251,16 @@ class listOfFuturesContracts(list):
 
         first_contract = futuresContract(instrument_object, contractDateWithRollParameters(roll_parameters, first_contract_date))
 
-        held_contract_date = str(roll_parameters.approx_first_held_contractDate_at_date(end_date))
-        held_contract = futuresContract(instrument_object,
-                                        contractDateWithRollParameters(roll_parameters, held_contract_date))
-        last_contract_date = str(held_contract.next_priced_contract().contract_date)
-
         assert end_date > first_contract.expiry_date
+
+        current_held_contract = futuresContract.approx_first_held_futuresContract_at_date(instrument_object, roll_parameters,
+                                                                                              end_date)
+        current_priced_contract = futuresContract.approx_first_priced_futuresContract_at_date(instrument_object, roll_parameters,
+                                                                                              end_date)
+        current_carry_contract = current_held_contract.carry_contract()
+
+        # these are all str thats okay
+        last_contract_date = max([current_held_contract.date, current_priced_contract.date, current_carry_contract.date])
 
         list_of_contracts = [first_contract]
 
@@ -249,14 +272,14 @@ class listOfFuturesContracts(list):
             next_contract = current_contract.next_priced_contract()
 
             list_of_contracts.append(next_contract)
-            current_contract = next_contract
 
-            if str(next_contract.contract_date) >= last_contract_date:
+            if next_contract.date >= last_contract_date:
                 date_still_valid = False
                 # will now terminate
-
             if len(list_of_contracts)>MAX_CONTRACT_SIZE:
                 raise Exception("Too many contracts - check your inputs")
+
+            current_contract = next_contract
 
         return listOfFuturesContracts(list_of_contracts)
 
