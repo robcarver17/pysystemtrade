@@ -1,8 +1,10 @@
 from copy import copy
+from concurrent.futures import ProcessPoolExecutor
+from functools import partial
 
 from systems.stage import SystemStage
 from syscore.objects import resolve_function, resolve_data_method, hasallattr
-from systems.system_cache import input, diagnostic, output
+from systems.system_cache import input, diagnostic, output, dont_cache
 
 DEFAULT_PRICE_SOURCE = "data.daily_prices"
 
@@ -33,7 +35,7 @@ class Rules(SystemStage):
     Name: rules
     """
 
-    def __init__(self, trading_rules=None):
+    def __init__(self, trading_rules = None, pre_calc_rules = True):
         """
         Create a SystemStage for forecasting
 
@@ -46,6 +48,7 @@ class Rules(SystemStage):
         :type trading_rules: None (rules will be inherited from self.parent
           system) TradingRule, str, callable function, or tuple (single rule)
           list or dict (multiple rules)
+        :param pre_calc_rules: bool, if True then the first call to get a rule will calculate the values for all markets
 
         :returns: Rules object
 
@@ -58,6 +61,10 @@ class Rules(SystemStage):
         # ... store the ones we've been passed for now
         setattr(self, "_passed_trading_rules", trading_rules)
 
+        self.pre_calc_rules= pre_calc_rules
+        self._pre_calculation_not_yet_done = True
+
+
     def _name(self):
         return "rules"
 
@@ -68,7 +75,7 @@ class Rules(SystemStage):
 
         return "Rules object with rules " + rule_names
 
-
+    @dont_cache
     def trading_rules(self):
         """
         Ensure self.trading_rules is actually a properly specified list of trading rules
@@ -118,6 +125,17 @@ class Rules(SystemStage):
             new_rules = process_trading_rules(passed_rules)
 
         setattr(self, "_trading_rules", new_rules)
+
+        if self.pre_calc_rules and self._pre_calculation_not_yet_done:
+            # Pre calculate all values for all rules, and drop into the cache
+            # This is especially fast if we're using parallel processing
+            all_rule_names = new_rules.keys()
+            for rule_name in all_rule_names:
+                self._precalc_forecasts_for_rule_all_instruments_and_cache(rule_name)
+
+            # so we don't do this again
+            self._pre_calculation_not_yet_done = False
+
         return (new_rules)
 
     @output()
@@ -133,6 +151,7 @@ class Rules(SystemStage):
 
         system = self.parent
 
+
         self.log.msg(
             "Calculating raw forecast %s for %s" % (instrument_code,
                                                     rule_variation_name),
@@ -145,6 +164,65 @@ class Rules(SystemStage):
         result.columns = [rule_variation_name]
 
         return result
+
+    @dont_cache
+    def _precalc_forecasts_for_rule_all_instruments_and_cache(self, rule_variation_name):
+        """
+        Pre calculate all values for all instrument, and drop into the cache
+        This is especially fast if we're using parallel processing
+
+        :param rule_variation_name: str
+        :return: None (results dumped into the cache)
+        """
+
+        self.log.msg("Pre-calculating forecast rule values")
+
+        trading_rule = self.trading_rules()[rule_variation_name]
+        system = self.parent
+        parallel_processing = system.process_pool
+        max_workers = system.process_pool_max_workers
+
+        rule_function = trading_rule.function
+        instrument_list = system.get_instrument_list()
+
+        rule_data_as_list_across_instruments = [trading_rule.get_data_from_system(system, instrument_code)
+                                                for instrument_code in instrument_list]
+        other_args_as_dict = trading_rule.other_args
+
+        partial_function = partial(_function_call_with_args, function=rule_function, other_args_as_dict=other_args_as_dict)
+
+        if parallel_processing:
+            # Parallel version
+            # FIXME: NOT WORKING
+
+            """
+            with ProcessPoolExecutor(max_workers=max_workers) as executor:
+                instrument_forecasts = executor.map(partial_function, rule_data_as_list_across_instruments)
+            """
+            # FIXME USE NON PARALLEL INSTEAD FOR NOW
+            instrument_forecasts = [partial_function(this_instrument_data)
+                                    for this_instrument_data in rule_data_as_list_across_instruments]
+
+        else:
+
+            # Non parallel version
+            instrument_forecasts = [partial_function(this_instrument_data)
+                                    for this_instrument_data in rule_data_as_list_across_instruments]
+
+        # Add to cache
+        for instrument_code, forecast_this_instrument in zip(instrument_list, instrument_forecasts):
+            cache_ref = system.cache.cache_ref(
+                    self.get_raw_forecast,
+                      self,
+                      instrument_code, rule_variation_name)
+
+            system.cache.set_item_in_cache(
+                          forecast_this_instrument,
+                          cache_ref)
+
+def _function_call_with_args(data_as_list, function=None, other_args_as_dict={}):
+    # convenience function to make creating a parital easier
+    return function(*data_as_list, **other_args_as_dict)
 
 
 class TradingRule(object):
@@ -257,6 +335,20 @@ class TradingRule(object):
         To do this we need some data from the system
         """
 
+        data = self.get_data_from_system(system, instrument_code)
+        result = self.call_with_data(data)
+
+        return result
+
+    def get_data_from_system(self, system, instrument_code):
+        """
+        Prepare the data for a function call
+
+        :param system: A system
+        :param instrument_code: str
+        :return: list of data
+        """
+
         assert isinstance(self.data, list)
 
         if len(self.data) == 0:
@@ -271,10 +363,12 @@ class TradingRule(object):
         ]
         data = [data_method(instrument_code) for data_method in data_methods]
 
+        return data
+
+    def call_with_data(self, data):
         other_args = self.other_args
 
         return self.function(*data, **other_args)
-
 
 def process_trading_rules(trading_rules):
     """

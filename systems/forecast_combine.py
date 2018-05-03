@@ -7,6 +7,7 @@ from syscore.genutils import str2Bool
 from syscore.objects import resolve_function, update_recalc
 from syscore.pdutils import (dataframe_pad, fix_weights_vs_pdm,
                              from_dict_of_values_to_df)
+from syscore.algos import map_forecast_value
 from systems.defaults import system_defaults
 from systems.stage import SystemStage
 from systems.system_cache import diagnostic, dont_cache, input, output
@@ -861,6 +862,35 @@ class ForecastCombine(_ForecastCombineCalculateWeights,
     def _name(self):
         return "combForecast"
 
+    @diagnostic(not_pickable=True)
+    def _get_forecast_mapping_function(self, instrument_code):
+        """
+        Get the function to apply non linear forecast mapping, and any parameters
+
+        :param instrument_code: instrument code
+        :return: (function, kwargs) to do the mapping, with arguments
+        """
+
+        forecast_cap = self.get_forecast_cap()
+        if "forecast_mapping" in self.parent.config:
+
+            if instrument_code in self.parent.config.forecast_mapping:
+                configuration = self.parent.config.forecast_mapping[instrument_code]
+                post_process_func = map_forecast_value
+                kwargs = dict(threshold=configuration['threshold'], a_param=configuration['a_param'],
+                              b_param=configuration['b_param'],
+                              capped_value=forecast_cap)
+                self.log.msg('Applying threshold mapping for %s threshold %.2f' % (instrument_code, configuration['threshold']),
+                             instrument_code = instrument_code)
+                return post_process_func, kwargs
+
+        # just use the default, applying capping
+        post_process_func = self._cap_forecast
+        kwargs = dict(forecast_cap = forecast_cap)
+        self.log.msg('No mapping applied for %s' % instrument_code, instrument_code=instrument_code)
+
+        return post_process_func, kwargs
+
     @output()
     def get_combined_forecast(self, instrument_code):
         """
@@ -899,8 +929,11 @@ class ForecastCombine(_ForecastCombineCalculateWeights,
                            instrument_code=instrument_code)
         raw_multiplied_combined_forecast = self._get_raw_combined_forecast(instrument_code)
 
-        # apply cap
-        combined_forecast = self._cap_forecast(raw_multiplied_combined_forecast)
+        # apply cap and /or any non linear mapping
+        mapping_and_capping_function, mapping_and_capping_kwargs = self._get_forecast_mapping_function(instrument_code)
+
+        combined_forecast = mapping_and_capping_function(raw_multiplied_combined_forecast,**mapping_and_capping_kwargs)
+
         return combined_forecast
 
     def _get_raw_combined_forecast(self, instrument_code):
@@ -925,52 +958,13 @@ class ForecastCombine(_ForecastCombineCalculateWeights,
         return raw_multiplied_combined_forecast
 
 
-    def _cap_forecast(self, raw_multiplied_combined_forecast):
-        forecast_cap = self.get_forecast_cap()
+    def _cap_forecast(self, raw_multiplied_combined_forecast, forecast_cap=20.0):
+
         capped_combined_forecast = raw_multiplied_combined_forecast.clip(
             lower=-forecast_cap, upper=forecast_cap)
         return capped_combined_forecast
 
 
-class ForecastCombineMaybeThreshold(ForecastCombine):
-
-    def get_combined_forecast(self, instrument_code):
-
-        if instrument_code in self.parent.config.instruments_with_threshold:
-            post_process_func = self._threshold_forecast
-            self.log.msg('threshold: {}'.format(instrument_code))
-        else:
-            post_process_func = self._cap_forecast
-
-        self.log.msg("Calculating combined forecast for %s with %s" % (instrument_code, post_process_func.__name__),
-                           instrument_code=instrument_code)
-
-        raw_multiplied_combined_forecast = self._get_raw_combined_forecast(instrument_code)
-
-        # apply cap
-        combined_forecast = post_process_func(raw_multiplied_combined_forecast)
-        return combined_forecast
-
-    def _threshold_forecast(self, raw_multiplied_combined_forecast):
-        'returns: thresholded forecast'
-        def map_forecast_value(x):
-            if np.isnan(x):
-                return x
-            x = float(x)
-            if x < -20.0:
-                return -30.0
-            if x >= -20.0 and x < -10.0:
-                return -(abs(x) - 10.0) * 3
-            if x >= -10.0 and x <= 10.0:
-                return 0.0
-            if x > 10.0 and x <= 20.0:
-                return (abs(x) - 10.0) * 3
-            return 30.0
-
-        combined_forecast = pd.Series(
-            [map_forecast_value(x)
-                for x in raw_multiplied_combined_forecast.values], raw_multiplied_combined_forecast.index)
-        return combined_forecast
 
 
 if __name__ == '__main__':

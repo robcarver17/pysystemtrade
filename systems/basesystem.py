@@ -1,11 +1,16 @@
 from sysdata.configdata import Config
 from syslogdiag.log import logtoscreen
 from systems.system_cache import systemCache, base_system_cache
+
+NOT_PASSED= object()
+
 """
 This is used for items which affect an entire system, not just one instrument
 """
 ALL_KEYNAME = "all"
 
+# Used for process pooling
+DEFAULT_MAX_WORKERS = 50
 
 class System(object):
     '''
@@ -135,6 +140,28 @@ class System(object):
         for stage_name in self._stage_names:
             stage = getattr(self, stage_name)
             stage.log.set_logging_level(new_log_level)
+
+    @property
+    def process_pool(self):
+        # apply process pooling to get certain results in parallel
+        process_pool = getattr(self, "_process_pool", True)
+        return process_pool
+
+    @process_pool.setter
+    def process_pool(self, process_pool):
+        assert type(process_pool) is bool
+        self._process_pool = process_pool
+
+    @property
+    def process_pool_max_workers(self):
+        # max_workers when apply process pooling to get certain results in parallel
+        max_workers = getattr(self, "_process_pool_max_workers", DEFAULT_MAX_WORKERS)
+        return max_workers
+
+    @process_pool_max_workers.setter
+    def process_pool_max_workers(self, max_workers):
+        assert type(max_workers) is int
+        self._process_pool_max_workers = max_workers
 
     # note we have to use this special cache here, or we get recursion problems
     @base_system_cache()

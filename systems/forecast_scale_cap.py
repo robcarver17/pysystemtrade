@@ -225,7 +225,6 @@ class ForecastScaleCap(SystemStage):
             (rule_variation_name, ", ".join(instrument_list)),
             rule_variation_name=rule_variation_name)
 
-        # Get forecasts for each instrument
         forecast_list = [
             self.get_raw_forecast(instrument_code, rule_variation_name)
             for instrument_code in instrument_list

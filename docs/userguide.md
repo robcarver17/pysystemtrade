@@ -1101,6 +1101,19 @@ list of configs will override earlier versions.
 This can be useful if, for example, we wanted to change the instrument weights
 'on the fly' but keep the rest of the configuration unchanged.
 
+#### 5) Creating configuration files from .csv files
+
+Sometimes it is more convenient to specify certain parameters in a .csv file, then push them into a .yaml file. If you want to use this method then you can use these two functions:
+
+```python
+from sysinit.configtools.csvweights_to_yaml import instr_weights_csv_to_yaml  # for instrument weights
+from sysinit.configtools.csvweights_to_yaml import forecast_weights_by_instrument_csv_to_yaml  # forecast weights for each instrument
+from sysinit.configtools.csvweights_to_yaml import forecast_mapping_csv_to_yaml # Forecast mapping for each instrument
+```
+
+These will create .yaml files which can then be pasted into your existing configuration files.
+
+
 <a name="defaults"> </a>
 
 ### Project defaults
@@ -2842,10 +2855,71 @@ See [optimisation](#optimisation) for more information.
 
 See [estimating diversification multipliers](#divmult).
 
+#### Forecast mapping
+
+A new feature introduced in version 0.18.2 is *forecast mapping*. This is the non linear mapping discussed in [this blog post](http://qoppac.blogspot.co.uk/2016/03/diversification-and-small-account-size.html) whereby we do not take a forecast until it has reached some threshold. Because this will reduce the standard deviation of our forecasts we compensate by ramping up the forecast more quickly until the raw forecast reaches the existing cap (which defaults to 20). This is probably illustrated better if we look at the non-linear mapping function:
+
+```python
+#This is syscore.algos.map_forecast_value
+def map_forecast_value_scalar(x, threshold, capped_value, a_param, b_param):
+    """
+    Non linear mapping of x value; replaces forecast capping; with defaults will map 1 for 1
+
+    We want to end up with a function like this, for raw forecast x and mapped forecast m,
+        capped_value c and threshold_value t:
+
+    if -t < x < +t: m=0
+    if abs(x)>c: m=sign(x)*c*a
+    if c < x < -t:   (x+t)*b
+    if t < x < +c:   (x-t)*b
+
+    :param x: value to map
+    :param threshold: value below which map to zero
+    :param capped_value: maximum value we want x to take (without non linear mapping)
+    :param a_param: multiple at capped value
+    :param b_param: slope
+    :return: mapped x
+    """
+    x = float(x)
+    if np.isnan(x):
+        return x
+    if abs(x)<threshold:
+        return 0.0
+    if x >= -capped_value and x <= -threshold:
+        return b_param*(x+threshold)
+    if x >= threshold and x <= capped_value:
+        return b_param*(x-threshold)
+    if abs(x)>capped_value:
+        return sign(x)*capped_value*a_param
+
+    raise Exception("This should cover all conditions!")
+
+```
+
+What values should we use for a,b and threshold (t)? We want to satisfy the following rules:
+
+- a_param should be set so that we typically hold four contracts when the raw_forecast is at capped_value (see chapter 12 of my book, "Systematic Trading")
+- We require b = (c*a)/(c-t)
+- Given our parameters, and the distribution of the raw forecast (assumed to be Gaussian), the average absolute value of the final distribution should be unchanged.
+
+The function `syscore.algos.return_mapping_params` will return values of b_param and threshold, assuming capped_value = 20. This uses results from a regression that gives the right parameters values for a_param in an interval 1.2 < a < 1.7
+
+Parameters are specified by market as follows:
+
+YAML: 
+```
+forecast_mapping:
+  AEX:
+    a_param: 2.0
+    b_param: 8.0
+    threshold: 15.0
+```
+
+If the forecast_mapping key is missing from the configuration object, or the instrument is missing from the dict, then no mapping will be done (the raw forecast will remain unchanged). Also note that if a_param = b_param = 1, and threshold=0, then this is equivalent to no mapping.
+
 #### Writing new or modified forecast combination stages
 
 I have no plans to write new stages here.
-
 
 <a name="position_scale"> </a>
 
@@ -4691,6 +4765,31 @@ config.forecast_div_mult_estimate=dict(ewma_span=125)
 
 If you're considering using your own function please see [configuring defaults
 for your own functions](#config_function_defaults)
+
+##### Forecast mapping
+
+Represented as: dict (key names instrument names) of dict (key names: a_param,b_param, threshold). Defaults: dict(a_param = 1.0, b_param = 1.0, threshold = 0.0) equivalent to no mapping
+
+
+
+YAML, showing defaults
+```
+forecast_mapping:
+  AUD:
+    a_param: 1.0
+    b_param: 1.0
+    threshold: 0.0
+# etc
+```
+
+Python, example of how to change certain parameters:
+
+```python
+config.forecast_mapping = dict()
+config.forecast_maping['AUD'] = dict(a_param=1.0, b_param=1.0, threshold = 0.0)
+config.forecast_maping['AUD']['a_param'] = 1.0
+```
+
 
 
 ### Position sizing stage

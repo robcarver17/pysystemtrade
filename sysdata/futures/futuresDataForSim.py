@@ -190,7 +190,7 @@ class futuresConfigDataForSim(simData):
         """
         Returns dataframe with index of instruments, column AssetClass
         """
-        instr_data = self.get_instrument_data()
+        instr_data = self.get_all_instrument_data()
         instr_assets = instr_data.AssetClass
 
         return instr_assets

@@ -4,7 +4,7 @@ from systems.defaults import system_defaults
 from copy import copy
 
 
-def breakout(price, lookback, smooth=None):
+def breakout(price, lookback=10, smooth=None):
     """
     :param price: The price or other series to use (assumed Tx1)
     :type price: pd.DataFrame

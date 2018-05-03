@@ -1,5 +1,12 @@
 # Release notes
 
+## Version 0.18.2
+Added methods to read weight data from csv files
+Put generalised non linear mapping into forecast combination
+Added flag option to use process pools for parallel processing - but not actually used yet
+Cleaned up setup.py file now finds data files recursively
+Fixed bug in getting asset class data from csv config files
+
 ## Version 0.18.1
 Finished populating configuration files for Quandl and roll configuration.
 Debugged futures.md documentation file.
@@ -273,12 +280,19 @@ Moved most examples except core to seperate git [here](https://github.com/robcar
 
 # Bugs to fix
 
-* none are known
+* If you use a non USD currency then you get a flat spot earlier in the account curve. It should be NAN
+
+# Features to add -next release
+
+* Check does 'cheap rules' not work when fixed instrument rules, know about weight==0
+* Refactor yaml code to drop pyyaml (no long supported)
+* Add risk overlay
 
 # Features to add - later releases
 
 * Simulation:
-   
+
+  * Parallel processing of - getting data, trading rules, p&l calculation, optimisation
   * Create live config from a system object (Put final value of estimates into a yaml file) 
   * Exogenous risk model
   * check systems have correct attributes; check turnover, minimum size, right forecast scalars (distribution across instruments) etc

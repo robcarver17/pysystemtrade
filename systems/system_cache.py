@@ -473,13 +473,13 @@ class systemCache(dict):
         if cache_ref in self:
             del self[cache_ref]
 
-    def _set_item_in_cache(self,
-                           value,
-                           cache_ref,
-                           protected=False,
-                           not_pickable=False):
+    def set_item_in_cache(self,
+                          value,
+                          cache_ref,
+                          protected=False,
+                          not_pickable=False):
         """
-        Set an item in a cache to a specific value. Only ever called as part of calc_or_cache
+        Set an item in a cache to a specific value.
 
         :param value: The value to set to
         :type value: Anything (normally pd.frames or floats)
@@ -554,6 +554,44 @@ class systemCache(dict):
             return value
 
         ## Turn all the arguments into things we can use to identify the cache element uniquely
+        cache_ref = self.cache_ref(func, this_stage, *args, instrument_classify=instrument_classify, **kwargs)
+
+        value = self._get_item_from_cache(cache_ref)
+
+        if value is MISSING_FROM_CACHE:
+            # call the function. Note in the original function 'this_stage' was 'self'
+            value = func(this_stage, *args, **kwargs)
+            self.set_item_in_cache(
+                value,
+                cache_ref,
+                protected=protected,
+                not_pickable=not_pickable)
+
+        return value
+
+    def cache_ref(self,
+                    func,
+                      this_stage,
+                      *args,
+                      instrument_classify=True,
+                      **kwargs
+                      ):
+        """
+        Return cache key
+
+        :param func: function we're calling
+
+        :param this_stage: stage within system that is calling us
+        :type this_stage: system stage
+
+        :param instrument_classify: if True then we find an argument that is an instrument code, and add as a cache key
+
+        :returns: str
+
+
+        """
+
+        ## Turn all the arguments into things we can use to identify the cache element uniquely
         itemname = func.__name__  ## use name of function as reference in cache
         stage_name = this_stage.name  # use stage_name in case same function used across multiple stages
 
@@ -577,19 +615,7 @@ class systemCache(dict):
             flags=flags,
             keyname=keyname)
 
-        value = self._get_item_from_cache(cache_ref)
-
-        if value is MISSING_FROM_CACHE:
-            # call the function. Note in the original function 'this_stage' was 'self'
-            value = func(this_stage, *args, **kwargs)
-            self._set_item_in_cache(
-                value,
-                cache_ref,
-                protected=protected,
-                not_pickable=not_pickable)
-
-        return value
-
+        return cache_ref
 
 def resolve_args_to_code_and_key(args, list_of_codes):
     """
