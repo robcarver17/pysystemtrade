@@ -126,6 +126,7 @@ class Rules(SystemStage):
 
         setattr(self, "_trading_rules", new_rules)
 
+        """
         if self.pre_calc_rules and self._pre_calculation_not_yet_done:
             # Pre calculate all values for all rules, and drop into the cache
             # This is especially fast if we're using parallel processing
@@ -135,6 +136,7 @@ class Rules(SystemStage):
 
             # so we don't do this again
             self._pre_calculation_not_yet_done = False
+        """
 
         return (new_rules)
 

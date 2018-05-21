@@ -56,7 +56,7 @@ trading_rules:
   carry:
      function: systems.provided.futures_chapter15.rules.carry2
      data:
-         - "rawdata.daily_annualised_roll"
+         - "rawdata.raw_carry"
      other_args:
          smooth_days: 90
 #
