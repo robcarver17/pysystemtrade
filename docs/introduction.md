@@ -11,7 +11,7 @@ As systematic traders we believe that the future will be at least a bit like the
 
 ```python
 from sysdata.csv.csv_sim_futures_data import csvFuturesSimData
-data=csvFuturesData()
+data=csvFuturesSimData()
 data
 ```
 
