@@ -137,7 +137,7 @@ class progressBar(object):
 
     """
 
-    def __init__(self, range_to_iter, suffix="Progress", toolbar_width=80):
+    def __init__(self, range_to_iter, suffix="Progress", toolbar_width=80, show_each_time=False):
         self.toolbar_width = toolbar_width
         self.current_iter = 0
         self.suffix = suffix
@@ -145,10 +145,11 @@ class progressBar(object):
         self.range_per_block = range_to_iter / np.float(toolbar_width)
         self.display_bar()
         self._how_many_blocks_displayed=-1 # will always display first time
+        self._show_each_time = show_each_time
 
     def iterate(self):
         self.current_iter += 1
-        if self.number_of_blocks_changed():
+        if self.number_of_blocks_changed() or self._show_each_time:
             self.display_bar()
 
         if self.current_iter == self.range_to_iter:

@@ -111,7 +111,8 @@ def robust_vol_calc(x,
                     vol_floor=True,
                     floor_min_quant=0.05,
                     floor_min_periods=100,
-                    floor_days=500):
+                    floor_days=500,
+                    backfill = False):
     """
     Robust exponential volatility calculation, assuming daily series of prices
     We apply an absolute minimum level of vol (absmin);
@@ -169,7 +170,14 @@ def robust_vol_calc(x,
     else:
         vol_floored = vol
 
-    return vol_floored
+    if backfill:
+        # have to fill forwards first, as it's only the start we want to backfill, eg before any value available
+        vol_forward_fill = vol_floored.fillna(method = "ffill")
+        vol_backfilled = vol_forward_fill.fillna(method = "bfill")
+    else:
+        vol_backfilled = vol
+
+    return vol_backfilled
 
 
 def forecast_scalar(cs_forecasts, window=250000, min_periods=500, backfill=True):

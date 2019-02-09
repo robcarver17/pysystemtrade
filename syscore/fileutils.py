@@ -1,5 +1,8 @@
 import os
 import sys
+import matplotlib.pylab as plt
+from PIL import Image
+from functools import partial
 
 # all these are unused: but are required to get the filename padding to work
 import syscore
@@ -79,6 +82,28 @@ def files_with_extension_in_pathname(pathname_with_dots, extension=".csv"):
     file_list_no_extension = [filename.split('.')[0] for filename in file_list]
 
     return file_list_no_extension
+
+def file_in_home_dir(filename):
+    pathname = os.path.expanduser("~")
+
+    return os.path.join(pathname, filename)
+
+def image_process(filename):
+    """
+    Dumps the current plot to a low res and high res grayscale .jpg in the current users home directory
+    Used by Rob for writing yet another of his dull books on trading
+
+    :param filename: filename to write
+    :return: None
+    """
+
+    fig = plt.gcf()
+    fig.set_size_inches(18.5, 10.5)
+    fig.savefig(file_in_home_dir("%s.png" % filename), dpi=300)
+    fig.savefig(file_in_home_dir("%sLOWRES.png" % filename), dpi=50)
+
+    Image.open(file_in_home_dir("%s.png" % filename)).convert('L').save(file_in_home_dir("%s.jpg" % filename))
+    Image.open(file_in_home_dir("%sLOWRES.png" % filename)).convert('L').save(file_in_home_dir("%sLOWRES.jpg" % filename))
 
 
 if __name__ == '__main__':

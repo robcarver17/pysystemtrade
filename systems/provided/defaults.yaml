@@ -67,11 +67,11 @@ forecast_cost_estimates:
 forecast_weight_ewma_span: 125
 forecast_weight_estimate:
    func: syscore.optimisation.GenericOptimiser
-   method: shrinkage
+   method: handcraft
    pool_gross_returns: True
    equalise_gross: False
-   cost_multiplier: 0.0
-   apply_cost_weight: True
+   cost_multiplier: 2.0
+   apply_cost_weight: False
    ceiling_cost_SR: 0.13
    frequency: "W"
    date_method: "expanding"
@@ -136,7 +136,7 @@ use_instrument_weight_estimates: False
 instrument_weight_ewma_span: 125
 instrument_weight_estimate:
    func: syscore.optimisation.GenericOptimiser
-   method: shrinkage
+   method: handcraft
    frequency: "W"
    equalise_gross: False
    cost_multiplier: 0.0

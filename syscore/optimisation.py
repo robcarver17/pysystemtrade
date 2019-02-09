@@ -17,6 +17,7 @@ from syscore.genutils import str2Bool, progressBar
 from syscore.pdutils import df_from_list, must_have_item
 from syscore.objects import resolve_function
 from syslogdiag.log import logtoscreen
+from syscore.handcrafting import Portfolio
 
 TARGET_ANN_SR = 0.5
 FLAG_BAD_RETURN = -9999999.9
@@ -501,9 +502,8 @@ def apply_cost_weighting(raw_weight_df, ann_SR_costs):
     # In sample for vol estimation, but shouldn't matter much since target vol
     # should be the same
 
-    ## costs are positive, so convert to returns
 
-    ann_returns = [-cost for cost in ann_SR_costs]
+    ann_returns = [cost for cost in ann_SR_costs]
 
     avg_return = np.mean(ann_returns)
     relative_SR_returns = [
@@ -602,7 +602,8 @@ class optimiserWithParams(object):
             one_period=markosolver,
             bootstrap=bootstrap_portfolio,
             shrinkage=opt_shrinkage,
-            equal_weights=equal_weights)
+            equal_weights=equal_weights,
+            handcraft=handcraft)
 
         try:
             opt_func = fit_method_dict[method]
@@ -782,6 +783,83 @@ def shrink_SR(mean_list, stdev_list, shrinkage_SR, target_SR=.5):
 
     return post_means
 
+
+def handcraft(period_subset_data,
+                moments_estimator,
+                cleaning,
+                must_haves,
+                equalise_SR=False,
+                equalise_vols=True,
+                **ignored_args):
+    """
+    Returns the optimal portfolio for the returns data, using handcrafting
+
+    If equalise_SR=True then assumes all assets have SR if False uses the asset natural SR
+
+    If equalise_vols=True then normalises returns to have same standard deviation; the weights returned
+       will be 'risk weightings'
+
+    :param subset_data: The data to optimise over
+    :type subset_data: pd.DataFrame TxN
+
+    :param cleaning: Should we clean correlations so can use incomplete data?
+    :type cleaning: bool
+
+    :param must_haves: The indices of things we must have weights for, used for cleaning
+    :type must_haves: list of bool
+
+
+    :param equalise_SR: Set all means equal before optimising (makes more stable)
+    :type equalise_SR: bool
+
+    :param equalise_vols: Set all vols equal before optimising (makes more stable)
+    :type equalise_vols: bool
+
+    Other arguments are kept so we can use **kwargs with other optimisation functions
+
+    *_params passed through to data estimation functions
+
+
+    :returns: float
+
+    """
+
+    rawmoments = moments_estimator.moments(period_subset_data)
+    (mean_list, corrmatrix, stdev_list) = copy(rawmoments)
+
+    # equalise vols first
+    if equalise_vols:
+        (mean_list, stdev_list) = vol_equaliser(mean_list, stdev_list)
+
+    if equalise_SR:
+        # moments are annualised
+        ann_target_SR = moments_estimator.ann_target_SR
+        mean_list = SR_equaliser(stdev_list, ann_target_SR)
+
+    sigma = sigma_from_corr_and_std(stdev_list, corrmatrix)
+
+    portfolio = Portfolio(period_subset_data, allow_leverage = False,
+                          use_SR_estimates = not equalise_SR)
+
+    if equalise_vols:
+        unclean_weights = portfolio.volatility_weights_with_missing_data()
+    else:
+        unclean_weights = portfolio.cash_weights_with_missing_data()
+
+    if cleaning:
+        weights = clean_weights(unclean_weights, must_haves)
+    else:
+        weights = unclean_weights
+
+    diag = dict(
+        raw=rawmoments,
+        sigma=sigma,
+        mean_list=mean_list,
+        unclean=unclean_weights,
+        weights=weights,
+        hc_portfolio = portfolio)
+
+    return (weights, diag)
 
 def markosolver(period_subset_data,
                 moments_estimator,
