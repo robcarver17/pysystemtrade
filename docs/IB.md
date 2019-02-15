@@ -55,6 +55,7 @@ You need to download eithier the gateway or TWS software from the IB website. I 
 These links may break or become outdated - use google to find the appropriate page on IB's website.
 
 [For Windows](https://www.interactivebrokers.co.uk/en/index.php?f=1341)
+
 [For Linux](https://www.interactivebrokers.co.uk/en/index.php?f=16454)
 
 
@@ -73,13 +74,13 @@ The directory required may vary, and you might need to prefix the second command
 
 Before you run any python code you'll need to launch the Gateway software. Current versions of the Gateway do this via a desktop icon. You will need to use eithier:
 
-- A demo account, such as username: fdemo, password: demouser. IB seem to be phasing out their demo accounts.
+- A demo account, such as username: `fdemo`, password: `demouser`. IB seem to be phasing out their demo accounts.
 - A paper trading account
 - A live trading account (*Make sure you know what you are doing. I can take no responsibility for any losses caused by live trading using pysystemtrade. Use at your own risk!!!*)
 
 You will also need to configure the Gateway:
 
-- Socket port: Should be 4001, unless you want to change this HERE 
+- Socket port: Should be 4001. If you use a different port you'll need to change your connection calls [here](#making-a-connection) and [here](#creating-and-closing-connection-objects)
 - White list for trusted IP addresses: Should include 127.0.0.1. If you are going to be running the Gateway on one machine, and accessing it via another, then you need to add the IP address of your other machines here.
 - If you are going to be trading, then 'Read only API' should be turned off
 - You may also need to change precautions and preset options
@@ -96,13 +97,17 @@ Out[13]: ibconnection(ipaddress='127.0.0.1', portid=4001, client=1)
 
 ```
 
+See [here](#creating-and-closing-connection-objects) for more details.
+
 ## Get some data
 
-FX data: `conn.broker_get_fx_data("GBP")`
+Currently we can only get spot FX prices.
+
+[FX data](#get-spot-fx-prices): `conn.broker_get_fx_data("GBP")`
 
 # How to...
 
-## Connections
+## Deal with connections
 
 ### Creating and closing connection objects
 
