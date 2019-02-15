@@ -1,3 +1,12 @@
+This is the main userguide for pysystemtrade. Before reading this you should have gone through the [introduction.](/docs/introduction.md)
+
+Related documents:
+
+- [Storing futures and spot FX data](/docs/futures.md)
+- [Using pysystemtrade as a production trading environment](/docs/production.md)
+- [Connecting pysystemtrade to interactive brokers](/docs/IB.md)
+
+
 This guide is divided into four parts. The first ['How do I?'](#how_do_i)
 explains how to do many common tasks. The second part ['Guide'](#guide) details
 the relevant parts of the code, and explains how to modify or create new parts.

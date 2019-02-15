@@ -1,3 +1,5 @@
+from sysbrokers.baseServer import finishableQueue
+
 class brokerClient(object):
     """
 
@@ -7,8 +9,7 @@ class brokerClient(object):
 
     """
 
-    def __init__(self):
-        pass
 
-    def speakingClock(self):
-        print("Method needs to be overriden to do anything interesting")
+    def broker_get_fx_data(self, ccy1, ccy2="USD"):
+        raise NotImplementedError
+

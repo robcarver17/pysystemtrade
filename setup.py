@@ -44,7 +44,10 @@ init_csv_files = package_files(init_csv_path, "csv")
 test_data_csv_path = os.path.join(dir_this_file(), "sysdata")
 test_data_csv_files = package_files(test_data_csv_path, "csv")
 
-package_data = {'': private_yaml_files+provided_yaml_files+data_csv_files+test_data_csv_files}
+brokers_csv_path = os.path.join(dir_this_file(), "sysbrokers")
+brokers_csv_files = package_files(brokers_csv_path, "csv")
+
+package_data = {'': private_yaml_files+provided_yaml_files+data_csv_files+test_data_csv_files+brokers_csv_files}
 
 print(package_data)
 
