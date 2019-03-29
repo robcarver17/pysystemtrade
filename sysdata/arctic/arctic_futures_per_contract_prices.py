@@ -10,7 +10,6 @@ from sysdata.futures.contracts import futuresContract
 import pandas as pd
 
 CONTRACT_COLLECTION = 'futures_contract_prices'
-DEFAULT_DB = 'production'
 
 
 class arcticFuturesContractPriceData(futuresContractPriceData):
@@ -18,11 +17,11 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
     Class to read / write futures price data to and from arctic
     """
 
-    def __init__(self, database_name= DEFAULT_DB):
+    def __init__(self,  database_name= None, host = None, port=None):
 
         super().__init__()
 
-        self._arctic = articConnection(database_name, collection_name=CONTRACT_COLLECTION)
+        self._arctic = articConnection(CONTRACT_COLLECTION, database_name=database_name, host=host, port=port)
 
         self.name = "simData connection for individual futures contracts prices, arctic %s/%s @ %s " % (
             self._arctic.database_name, self._arctic.collection_name, self._arctic.host)

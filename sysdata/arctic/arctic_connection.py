@@ -1,4 +1,5 @@
 from arctic import Arctic
+from sysdata.mongodb.mongo_connection import mongo_defaults
 
 """
 IMPORTANT NOTE: Make sure you have a mongodb running eg mongod --dbpath /home/yourusername/pysystemtrade/data/futures/arctic
@@ -7,18 +8,18 @@ This connection won't fail if mongo missing, but will hang
 
 """
 
-DEFAULT_MONGO_HOST = 'localhost'
-DEFAULT_DB = 'production'
+
 
 class articConnection(object):
     """
     All of our ARCTIC mongo connections use this class (not static data which goes directly via mongo DB)
 
     """
-    def __init__(self, database_name, collection_name, host = DEFAULT_MONGO_HOST):
+    def __init__(self, collection_name, database_name= None, host = None, port=None):
 
-        if database_name is None:
-            database_name = DEFAULT_DB
+        database_name, host, _port_not_used = mongo_defaults(db=database_name, host=host, port=port)
+
+        # Arctic doesn't accept a port
 
         store = Arctic(host)
         library_name = database_name+"."+collection_name

@@ -1,8 +1,7 @@
 from sysdata.fx.spotfx import fxPrices, fxPricesData
 from sysdata.arctic.arctic_connection import articConnection
 
-CONTRACT_COLLECTION = 'spotfx_prices'
-DEFAULT_DB = 'production'
+SPOTFX_COLLECTION = 'spotfx_prices'
 
 
 class arcticFxPricesData(fxPricesData):
@@ -10,11 +9,11 @@ class arcticFxPricesData(fxPricesData):
     Class to read / write fx prices
     """
 
-    def __init__(self, database_name= DEFAULT_DB):
+    def __init__(self, database_name= None, host = None, port=None):
 
         super().__init__()
 
-        self._arctic = articConnection(database_name, collection_name=CONTRACT_COLLECTION)
+        self._arctic = articConnection(SPOTFX_COLLECTION, database_name=database_name, host=host, port=port)
 
         self.name = "Arctic connection for spotfx prices, %s/%s @ %s " % (
             self._arctic.database_name, self._arctic.collection_name, self._arctic.host)

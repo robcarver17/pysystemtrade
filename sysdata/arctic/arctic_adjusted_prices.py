@@ -1,8 +1,7 @@
 from sysdata.futures.adjusted_prices import futuresAdjustedPricesData, futuresAdjustedPrices
 from sysdata.arctic.arctic_connection import articConnection
 
-CONTRACT_COLLECTION = 'futures_adjusted_prices'
-DEFAULT_DB = 'production'
+ADJPRICE_COLLECTION = 'futures_adjusted_prices'
 
 
 class arcticFuturesAdjustedPricesData(futuresAdjustedPricesData):
@@ -10,11 +9,11 @@ class arcticFuturesAdjustedPricesData(futuresAdjustedPricesData):
     Class to read / write multiple futures price data to and from arctic
     """
 
-    def __init__(self, database_name= DEFAULT_DB):
+    def __init__(self, database_name= None, host = None, port=None):
 
         super().__init__()
 
-        self._arctic = articConnection(database_name, collection_name=CONTRACT_COLLECTION)
+        self._arctic = articConnection(ADJPRICE_COLLECTION, database_name=database_name, host=host, port=port)
 
         self.name = "simData connection for adjusted futures prices, arctic %s/%s @ %s " % (
             self._arctic.database_name, self._arctic.collection_name, self._arctic.host)

@@ -6,10 +6,8 @@ Read and write data from mongodb for 'multiple prices'
 from sysdata.arctic.arctic_connection import articConnection
 from sysdata.futures.multiple_prices import futuresMultiplePricesData, futuresMultiplePrices
 
-import pandas as pd
 
-CONTRACT_COLLECTION = 'futures_multiple_prices'
-DEFAULT_DB = 'production'
+MULTIPLE_COLLECTION = 'futures_multiple_prices'
 
 
 class arcticFuturesMultiplePricesData(futuresMultiplePricesData):
@@ -17,11 +15,11 @@ class arcticFuturesMultiplePricesData(futuresMultiplePricesData):
     Class to read / write multiple futures price data to and from arctic
     """
 
-    def __init__(self, database_name= DEFAULT_DB):
+    def __init__(self, database_name= None, host = None, port=None):
 
         super().__init__()
 
-        self._arctic = articConnection(database_name, collection_name=CONTRACT_COLLECTION)
+        self._arctic = articConnection(MULTIPLE_COLLECTION, database_name=database_name, host=host, port=port)
 
         self.name = "simData connection for multiple futures prices, arctic %s/%s @ %s " % (
             self._arctic.database_name, self._arctic.collection_name, self._arctic.host)

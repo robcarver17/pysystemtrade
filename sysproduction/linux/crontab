@@ -1,0 +1,9 @@
+################## The big daily show #######################
+# @reboot
+#
+#
+# Daily sample FX Prices at 6 am
+#
+# Use environment variable for directories?
+0 6  * * 1-5 $HOME/workspace3/systematic_engine/syscontrol/scripts/samplefx  LIVE >> $HOME/echos/samplefxpricesLIVE 2>&1
+#

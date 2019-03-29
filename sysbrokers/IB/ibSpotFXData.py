@@ -15,8 +15,13 @@ class ibFxPricesData(fxPricesData):
         return "IB FX price data"
 
     def _get_fx_prices_without_checking(self, currency_code):
-        ccy1, ccy2 = self._get_ibfxcode(currency_code)
-        fx_prices = self.ibconnection.broker_get_fx_data(ccy1, ccy2=ccy2)
+        ccy1, ccy2,invert = self._get_ibfxcode(currency_code)
+        raw_fx_prices = self.ibconnection.broker_get_fx_data(ccy1, ccy2=ccy2)
+
+        if invert:
+            fx_prices = 1.0/raw_fx_prices
+        else:
+            fx_prices = raw_fx_prices
 
         return fx_prices
 
@@ -28,8 +33,9 @@ class ibFxPricesData(fxPricesData):
         config_data = self._get_ib_fx_config()
         ccy1 = config_data[config_data.CODE == currency_code].CCY1.values[0]
         ccy2 = config_data[config_data.CODE == currency_code].CCY2.values[0]
+        invert = config_data[config_data.CODE == currency_code].INVERT.values[0] == "YES"
 
-        return ccy1, ccy2
+        return ccy1, ccy2,invert
 
     def _get_ib_fx_config(self):
         try:

@@ -88,12 +88,12 @@ You will also need to configure the Gateway:
 ## Making a connection
 
 ```
-from sysbrokers.connections import connectionIB, ibConnectionConfig
-config = ibConnectionConfig(ipaddress = "127.0.0.1", portid=4001, client = 1)
+from sysbrokers.IB.ibConnection import  connectionIB
+config = connectionIB(ipaddress = "127.0.0.1", port=4001, client = 1) # these are the default values and can be ommitted
 conn = connectionIB(config)
 conn
 
-Out[13]: ibconnection(ipaddress='127.0.0.1', portid=4001, client=1)
+Out[13]: ibconnection(ipaddress='127.0.0.1', port=4001, client=1)
 
 ```
 
@@ -112,11 +112,24 @@ Currently we can only get spot FX prices.
 ### Creating and closing connection objects
 
 ```
-from sysbrokers.IB.ibConnection import connectionIB, ibConnectionConfig
-config = ibConnectionConfig(ipaddress = "127.0.0.1", portid=4001, client = 1)
+from sysbrokers.IB.ibConnection import  connectionIB
+config = connectionIB(ipaddress = "127.0.0.1", portid=4001, client = 1) # these are the default values and can be ommitted
+conn = connectionIB(config)
 ```
 
 Portid should match that in the Gateway configuration. Client ids must not be duplicated by an already connected python process (even if it's hung...). The IP address shown means 'this machine'; only change this if you are planning to run the Gateway on a different network machine.
+
+If values for ipaddress and port are not passed here, they will default to:
+
+1- values supplied in file 'private_config.yaml' (see below)
+2- default hardcoded values 
+
+You should first create a file 'private_config.yaml' in the private directory of [pysystemtrade](#/private). Then add one or both of these line:
+
+```
+ib_ipaddress: 192.168.0.10
+ib_port: 4001
+```
 
 ```
 conn = connectionIB(config)
@@ -168,13 +181,13 @@ Client objects make calls and requests to the broker.
 
 #### Generic client object
 
-The generic client object, [`brokerClient`](/sysbrokers/baseClient.py), contains a series of methods which need to be 
+The generic client object, [`brokerClient`](/sysbrokers/baseClient.py), contains a series of methods which need to be overriden to do anything useful.
 
 These methods include:
 
-- `broker_get_fx_data`: Returns an [`fxPrices`](/sysdata/fx/spotfx.py) object given a currency pair (NOTE: STRICTLY SPEAKING THIS SHOULD THEN BE WRAPPED in AN fxPricesData object...)
+- `broker_get_fx_data`: Returns an [`fxPrices`](/sysdata/fx/spotfx.py) object given a currency pair.
 
-All methods are prefixed with `broker_` to reduce the chances of a conflict with the brokers own code.
+All methods are prefixed with `broker_` to eliminate the chances of a conflict with the brokers own methods.
 
 
 #### IB client object

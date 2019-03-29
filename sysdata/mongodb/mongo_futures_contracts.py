@@ -16,11 +16,11 @@ class mongoFuturesContractData(futuresContractData):
     If you want more information about a given instrument you have to read it in using mongoFuturesInstrumentData
     """
 
-    def __init__(self, database_name= DEFAULT_DB):
+    def __init__(self, database_name = None, host = None, port = None):
 
         super().__init__()
 
-        self._mongo = mongoConnection(database_name, CONTRACT_COLLECTION)
+        self._mongo = mongoConnection(CONTRACT_COLLECTION, database_name = database_name, host = host, port = port)
 
         # this won't create the index if it already exists
         self._mongo.create_multikey_index("instrument_code", "contract_date")

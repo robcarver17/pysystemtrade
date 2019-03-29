@@ -1,22 +1,58 @@
 from pymongo import MongoClient, ASCENDING, IndexModel
 from copy import copy
 import numpy as np
+import yaml
 
-DEFAULT_DB = 'production'
+from syscore.fileutils import get_filename_for_package
+
+DEFAULT_MONGO_DB = 'production'
 DEFAULT_MONGO_HOST = 'localhost'
 DEFAULT_MONGO_PORT = 27017
+
 MONGO_ID_STR = '_id_'
 MONGO_ID_KEY = '_id'
+
+PRIVATE_CONFIG_FILE = get_filename_for_package("private.private_config.yaml")
+
+def mongo_defaults(config_file =PRIVATE_CONFIG_FILE, **kwargs):
+    """
+    Returns mongo configuration with following precedence
+
+    1- if passed in arguments: db, host, port - use that
+    2- if defined in private_config file, use that. mongo_database_name, mongo_host, mongo_port
+    3- otherwise use defaults DEFAULT_MONGO_DB, DEFAULT_MONGO_HOST, DEFAULT_MONGOT_PORT
+
+    :return: mongo db, hostname, port
+    """
+
+    try:
+        with open(config_file) as file_to_parse:
+            yaml_dict = yaml.load(file_to_parse)
+    except:
+        yaml_dict={}
+
+    # Overwrite with passed arguments - these will take precedence over values in config file
+    for arg_name in ['db', 'host', 'port']:
+        arg_value = kwargs.get(arg_name, None)
+        if arg_value is not None:
+            yaml_dict['mongo_'+arg_name] = arg_value
+
+    # Get from dictionary
+    mongo_db = yaml_dict.get('mongo_db', DEFAULT_MONGO_DB)
+    hostname = yaml_dict.get('mongo_host', DEFAULT_MONGO_HOST)
+    port = yaml_dict.get('mongo_port', DEFAULT_MONGO_PORT)
+
+    return mongo_db, hostname, port
+
 
 class mongoConnection(object):
     """
     All of our mongo connections use this class (for static data, not time series which goes via artic)
 
     """
-    def __init__(self, database_name, collection_name, host = DEFAULT_MONGO_HOST, port = DEFAULT_MONGO_PORT):
+    def __init__(self,  collection_name, database_name = None, host = None, port = None):
 
-        if database_name is None:
-            database_name = DEFAULT_DB
+        database_name, host, port = mongo_defaults(db=database_name, host=host, port=port)
 
         client = MongoClient(host=host, port=port)
         db = client[database_name]
@@ -36,7 +72,7 @@ class mongoConnection(object):
 
     def __repr__(self):
         return "Mongodb connection: host %s, port %d, db name %s, collection %s" % \
-               self.host, self.port, self.database_name, self.collection_name
+               (self.host, self.port, self.database_name, self.collection_name)
 
     def get_indexes(self):
 

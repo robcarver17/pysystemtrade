@@ -24,7 +24,7 @@ Static variables to store location of data
 
 
 class dbconnections(simData):
-    def __init__(self, database_name=None):
+    def __init__(self, database_name = None, host = None, port = None):
         """
 
         Use a different database
@@ -33,6 +33,8 @@ class dbconnections(simData):
         super().__init__()
 
         setattr(self, "_database_name", database_name)
+        setattr(self, "_host", host)
+        setattr(self, "_port", port)
 
 
 """
@@ -69,7 +71,9 @@ class mongoFuturesConfigDataForSim(dbconnections, futuresConfigDataForSim):
     def _get_config_data_object(self):
 
         database_name = self._database_name
-        data_object = mongoFuturesInstrumentData(database_name)
+        host = self._host
+        port = self._port
+        data_object = mongoFuturesInstrumentData(database_name=database_name, host=host, port=port)
 
         return data_object
 
@@ -122,7 +126,12 @@ class arcticFuturesAdjustedPriceSimData(dbconnections, futuresAdjustedPriceData)
         return instrument_list
 
     def _get_adj_prices_data_object(self):
-        adj_prices_data = arcticFuturesAdjustedPricesData(self._database_name)
+
+        database_name = self._database_name
+        host = self._host
+        port = self._port
+
+        adj_prices_data = arcticFuturesAdjustedPricesData(database_name=database_name, host=host, port=port)
         adj_prices_data.log = self.log
 
         return adj_prices_data
@@ -152,8 +161,11 @@ class arcticFuturesMultiplePriceSimData(dbconnections, futuresMultiplePriceData)
         return instr_all_price_data
 
     def _get_all_prices_data_object(self):
+        database_name = self._database_name
+        host = self._host
+        port = self._port
 
-        multiple_prices_data_object = arcticFuturesMultiplePricesData(self._database_name)
+        multiple_prices_data_object = arcticFuturesMultiplePricesData(database_name=database_name, host=host, port=port)
         multiple_prices_data_object.log = self.log
 
         return multiple_prices_data_object
@@ -197,7 +209,11 @@ class arcticFXSimData(dbconnections, simData):
 
     def _get_fx_data_object(self):
 
-        fx_prices_data_object = arcticFxPricesData(self._database_name)
+        database_name = self._database_name
+        host = self._host
+        port = self._port
+
+        fx_prices_data_object = arcticFxPricesData(database_name=database_name, host=host, port=port)
         fx_prices_data_object.log = self.log
 
         return fx_prices_data_object
