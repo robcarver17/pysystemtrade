@@ -262,7 +262,7 @@ We treat IB as another data source, which means it has to conform to the data ob
 For spot FX we have a class `ibFxPricesData` which inherits from the generic `fxPricesData`. This needs to be initialised with an IB connection:
 
 
-```
+```python
 from sysbrokers.IB.ibSpotFXData import ibFxPricesData
 ibfxpricedata = ibFxPricesData(conn)
 ibfxpricedata.get_list_of_fxcodes()  # codes must be in .csv file /sysbrokers/IB/ibConfigSpotFx.csv

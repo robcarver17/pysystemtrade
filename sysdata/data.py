@@ -31,7 +31,7 @@ class baseData(object):
 
     """
 
-    def __init__(self):
+    def __init__(self, log=logtoscreen()):
         """
         simData socket base class
 
@@ -40,7 +40,7 @@ class baseData(object):
         simData object
         """
         # this will normally be overriden by the base system
-        setattr(self, "log", logtoscreen(stage="data"))
+        setattr(self, "log")
 
     def __repr__(self):
         return "simData object"

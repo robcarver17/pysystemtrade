@@ -1,6 +1,6 @@
-import inspect
 from copy import copy
-
+import datetime
+from sysdata.mongodb.mongo_connection import mongoConnection, MONGO_ID_KEY
 
 class logger(object):
     """
@@ -205,6 +205,122 @@ class logtoscreen(logger):
         if msglevel == 4:
             raise Exception(text)
 
+MSG_LEVEL_DICT = dict(m0="", m1="", m2="[Warning]", m3="[Error]", m4="*CRITICAL*")
+
+LEVEL_ID = "_Level" #use underscores so less chance of a conflict with labels used by users
+TIMESTAMP_ID = "_Timestamp"
+TEXT_ID = "_Text"
+LOG_COLLECTION_NAME = "Logs"
+
+class logToMongod(logger):
+    """
+    Logs to a mongodb
+
+    """
+    def __init__(self, database_name=None, host=None, port=None, thing="", log_level="Off", **kwargs):
+        self._mongo = mongoConnection(LOG_COLLECTION_NAME, database_name=database_name, host=host, port=port)
+
+        super().__init__(thing = thing, log_level = log_level, ** kwargs)
+
+        # this won't create the index if it already exists
+        self._mongo.create_multikey_index(TIMESTAMP_ID, LEVEL_ID)
+
+    def log_handle_caller(self, msglevel, text, use_attributes):
+        """
+        Ignores log_level - logs everything, just in case
+
+        Doesn't raise exceptions
+
+        """
+        log_dict = copy(use_attributes)
+
+        msg_level_text = MSG_LEVEL_DICT["m%d" % msglevel]
+
+        datetime_now = datetime.datetime.now()
+
+        log_dict[LEVEL_ID] = msg_level_text
+        log_dict[TIMESTAMP_ID] = datetime_now
+        log_dict[TEXT_ID] = text
+
+        self._mongo.collection.insert_one(log_dict)
+
+class accessLogFromMongodb(object):
+
+    def __init__(self, database_name=None, host=None, port=None):
+        self._mongo = mongoConnection(LOG_COLLECTION_NAME, database_name=database_name, host=host, port=port)
+
+    def get_log_items(self, attribute_dict=dict(), lookback_days=1):
+        """
+        Return log items as list of text
+
+        :param attribute_dict: dictionary of attributes to return logs for
+        :return: list of str
+        """
+
+        results = self.get_log_items_as_tuple(attribute_dict, lookback_days=lookback_days)
+
+        # jam together as text
+        results_as_text = ["%s %s %s %s" %
+            (str(ts_single), str(attribute_single), str(level_single), str(text_single)) for
+                   ts_single, level_single, text_single, attribute_single in
+                   results]
+
+        return results_as_text
+
+    def get_log_items_as_tuple(self, attribute_dict=dict(), lookback_days=1):
+        """
+        Return log items not as text, good for diagnostics
+
+        :param attribute_dict: dictionary of attributes to return logs for
+        :return: list of 4-typles: timestamp, level, text, attributes
+        """
+
+        cutoff_date = datetime.datetime.now() - datetime.timedelta(days=lookback_days)
+        timestamp_dict = {}
+        timestamp_dict["$lt"] = cutoff_date
+        attribute_dict[TIMESTAMP_ID] = timestamp_dict
+
+        result_dict = self._mongo.collection.find(attribute_dict)
+        result_dict = [single_log_dict for single_log_dict in result_dict]
+        _removed_ids_not_used = [single_log_dict.pop(MONGO_ID_KEY) for single_log_dict in result_dict]
+
+        # convert to tuples: timestamp, attributes, text, level
+        timestamps, levels, text_list, attribute_dict = self._from_list_of_results_to_list_of_tuples(result_dict)
+
+        # convert to list of tuples, one per record
+        results = [(ts_single, level_single, text_single, attribute_single) for
+                   ts_single, level_single, text_single, attribute_single in
+                   zip(timestamps, levels, text_list, attribute_dict)]
+
+        # sort by timestamp
+        results = sorted(results, key=lambda tup:tup[0])
+
+        return results
+
+
+
+    def _from_list_of_results_to_list_of_tuples(self, result_dict):
+        # convert to list of tuples: timestamp, attributes, text, level
+
+        timestamps = [single_log_dict.pop(TIMESTAMP_ID) for single_log_dict in result_dict]
+        levels = [single_log_dict.pop(LEVEL_ID) for single_log_dict in result_dict]
+        text_list = [single_log_dict.pop(TEXT_ID) for single_log_dict in result_dict]
+        attribute_dict = result_dict
+
+        return timestamps, levels, text_list, attribute_dict
+
+
+    def delete_log_items_from_before_n_days(self, days=365):
+
+        cutoff_date = datetime.datetime.now() - datetime.timedelta(days=days)
+        attribute_dict={}
+        timestamp_dict = {}
+        timestamp_dict["$lt"] = cutoff_date
+        attribute_dict[TIMESTAMP_ID] = timestamp_dict
+
+        self._mongo.collection.remove(attribute_dict)
+
+        # need something to delete old log records, eg more than x months ago
 
 if __name__ == '__main__':
     import doctest

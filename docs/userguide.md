@@ -3652,8 +3652,8 @@ The system, data, config and each stage object all have a .log attribute, to
 allow the system to report to the user; as do the functions provided to
 estimate correlations and do optimisations.
 
-In the current version this just prints to screen, although in future logging
-will be able to write to databases and files, and send emails if critical
+In the current version this just prints to screen, although in production systems it
+can write to databases and files (FIX ME LINK), and send emails if critical
 events are happening.
 
 The pre-baked systems I've included all include a parameter log_level. This can

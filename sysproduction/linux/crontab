@@ -1,9 +1,10 @@
 ################## The big daily show #######################
+# Use this for stuff to run on startup
+#
 # @reboot
 #
 #
 # Daily sample FX Prices at 6 am
 #
-# Use environment variable for directories?
-0 6  * * 1-5 $HOME/workspace3/systematic_engine/syscontrol/scripts/samplefx  LIVE >> $HOME/echos/samplefxpricesLIVE 2>&1
+0 6  * * 1-5 $HOME/workspace3/psystemtrade/sysproduction/linux/p run.py sysproduction.updateFxPrices.update_fx_prices >> $HOME/echos/samplefxprices 2>&1
 #

@@ -45,6 +45,7 @@ def mongo_defaults(config_file =PRIVATE_CONFIG_FILE, **kwargs):
     return mongo_db, hostname, port
 
 
+
 class mongoConnection(object):
     """
     All of our mongo connections use this class (for static data, not time series which goes via artic)

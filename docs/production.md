@@ -78,7 +78,7 @@ Pysystemtrade can be run locally in the normal way, on a single machine. But you
 If spreading your implementation across several machines bear in mind:
 
 - Interactive brokers
-   - interactive brokers Gateway will need to have the ip address of all relevant machines in the whitelist
+   - interactive brokers Gateway will need to have the ip address of all relevant machines that connect to it in the whitelist
    - you will need to modify the `private_config.yaml` system configuration file so it connects to a different IP address `ib_ipaddress: '192.168.0.10'`
 - Mongodb
    - Add an ip address the `bind_ip` line in the `/etc/mongod.conf` file to allow connections from other machines `eg bind_ip=localhost, 192.168.0.10`
@@ -188,12 +188,30 @@ Various kinds of data files are used by the pysystemtrade production system. Bro
 - prices (see [storing futures and spot FX data](/docs/futures.md))
 - positions
 - other state and control information
+- static configuration files
 
-The default option is to store these all into a mongodb database. 
+The default option is to store these all into a mongodb database, except for configuration files which are stored as .yaml files.
 
 ## Data backup
 
 Assuming that you are using the default mongob for storing, then I recommend using [mongodump](https://docs.mongodb.com/manual/reference/program/mongodump/#bin.mongodump) on a daily basis to back up your files. Other more complicated alternatives are available (see the [official mongodb man page](https://docs.mongodb.com/manual/core/backups/)). 
+
+Linux:
+```
+# dumps everything into dump directory
+# make sure a mongo-db instance is running with correct directory
+mongodump
+
+# copy dump directory to another machine or drive
+cp -rf dump /media/shared-drive/mongo_backup/
+
+# To restore:
+# FIX ME DOES THIS OVERWRITE???
+cp -rf /media/shared-drive/mongo_backup/dump/ ~
+
+# Now make sure a mongo-db instance is running with correct directory:
+mongorestore
+```
 
 To avoid conflicts you should schedule your backup during the 'deadtime' for your system (see scheduling).
 
@@ -204,6 +222,92 @@ We need to know what our system is doing, especially if it is fully automated. H
 - logging of stdout output from processes that are running
 - storage of diagnostics in a database, tagged with keys to identify them 
 - the option to run reports both scheduled and ad-hoc, which can optionally be automatically emailed
+
+## Stdout output
+
+## Logging 
+
+Logging in pysystemtrade is done via loggers. See the [userguide for more detail](/docs/userguide.md#logging).
+
+### Adding logging to your code
+
+The default for logging is to do this via mongodb. Here is an example of logging code:
+
+```python
+from syslogdiag.log import logToMongod as logger 
+
+def top_level_function():
+    """
+    This is a function that's called as the top level of a process
+    """
+
+    # can optionally pass mongodb connection attributes here
+    log=logger("top-level-function")
+
+    # note use of log.setup when passing log to other components
+    conn = connectionIB(client=100, log=log.setup(component="IB-connection"))
+    
+    ibfxpricedata = ibFxPricesData(conn, log=log.setup(component="ibFxPricesData"))
+    arcticfxdata = arcticFxPricesData(log=log.setup(component="arcticFxPricesData"))
+
+    list_of_codes_all = ibfxpricedata.get_list_of_fxcodes()  # codes must be in .csv file /sysbrokers/IB/ibConfigSpotFx.csv
+    log.msg("FX Codes: %s" % str(list_of_codes_all))
+    for fx_code in list_of_codes_all:
+
+        # Using log.label permanently adds the labelled attribute (although in this case it will be replaced on each iteration of the loop
+        log.label(currency_code = fx_code)
+        new_fx_prices = ibfxpricedata.get_fx_prices(fx_code) 
+
+        if len(new_fx_prices)==0:
+            log.error("Error trying to get data for %s" % fx_code)
+            continue
+
+
+
+```
+
+The following should be used as logging attributes (failure to do so will break reporting code):
+
+- type: the argument passed when the logger is setup. Should be the name of the top level calling function.
+- stage: Used by stages in System objects
+- component: other parts of the top level function that have their own loggers
+- currency_code: Currency code (used for fx)
+- instrument_code: Self explanatory
+
+FIX ME TO DO: CRITICAL LOGS SHOULD EMAIL THE USER
+
+### Getting log data back
+
+Python:
+```python
+from syslogdiag.log import accessLogFromMongodb
+```
+# can optionally pass mongodb connection attributes here
+mlog = accessLogFromMongodb()
+mlog.get_log_items(dict(type="top-level-function")) # any attribute directory here is fine as a filter, defaults to last days results
+mlog.get_log_items(dict(type="top-level-function"), lookback_days=7) # get last weeks worth
+mlog.get_log_items_as_tuple(dict(type="top-level-function")) # returns as list of 4-tuple, useful for reporting
+```
+
+
+### Cleaning old logs
+
+Python:
+```python
+from syslogdiag.log import accessLogFromMongodb
+```
+# can optionally pass mongodb connection attributes here
+mlog = accessLogFromMongodb()
+
+mlog.delete_log_items_from_before_n_days(days=365) # this is also the default
+```
+
+Linux script:
+TO DO
+
+FIX ME THIS SHOULD BE DONE EVERY DAY ONCE WE HAVE ENOUGH LOGS
+
+## Reporting
 
 
 # Scripts
@@ -219,6 +323,32 @@ Scripts are used to run python code which:
 - runs reports, eithier regular or ad-hoc
 
 Script are then called by schedulers (FIX ME LINK), or on an ad-hoc basis from the command line.
+
+## Production system components
+
+### Get spot FX data from interactive brokers, write to MongoDB
+
+
+Python:
+```python
+```
+
+Linux script:
+
+## Ad-hoc diagnostics
+
+### Recent FX prices
+
+FIX ME DO THIS
+
+Python:
+```python
+```
+
+Linux script:
+
+```
+```
 
 
 # Scheduling
