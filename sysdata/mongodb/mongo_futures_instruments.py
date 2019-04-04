@@ -2,9 +2,9 @@ import pandas as pd
 
 from sysdata.futures.instruments import futuresInstrumentData, futuresInstrument
 from sysdata.mongodb.mongo_connection import mongoConnection, MONGO_ID_KEY, mongo_clean_ints
+from syslogdiag.log import logtoscreen
 
 INSTRUMENT_COLLECTION = 'futures_instruments'
-DEFAULT_DB = 'production'
 
 class mongoFuturesInstrumentData(futuresInstrumentData):
     """
@@ -14,10 +14,10 @@ class mongoFuturesInstrumentData(futuresInstrumentData):
 
     """
 
-    def __init__(self, database_name = None, host = None, port = None):
+    def __init__(self, mongo_db = None, log=logtoscreen()):
 
-        super().__init__()
-        self._mongo = mongoConnection(INSTRUMENT_COLLECTION, database_name = database_name, host = host, port = port)
+        super().__init__(log=log)
+        self._mongo = mongoConnection(INSTRUMENT_COLLECTION, mongo_db=mongo_db)
 
         # this won't create the index if it already exists
         self._mongo.create_index("instrument_code")

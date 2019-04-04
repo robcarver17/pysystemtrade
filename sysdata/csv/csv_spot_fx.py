@@ -3,7 +3,7 @@ import pandas as pd
 from sysdata.fx.spotfx import fxPricesData, fxPrices
 from syscore.fileutils import get_filename_for_package, files_with_extension_in_pathname
 from syscore.pdutils import pd_readcsv
-
+from syslogdiag.log import logtoscreen
 
 FX_PRICES_DIRECTORY = "data.futures.fx_prices_csv"
 DATE_INDEX_NAME = "DATETIME"
@@ -15,9 +15,9 @@ class csvFxPricesData(fxPricesData):
     Class for fx prices write / to from csv
     """
 
-    def __init__(self, datapath=None):
+    def __init__(self, datapath=None, log=logtoscreen()):
 
-        super().__init__()
+        super().__init__(log=log)
 
         if datapath is None:
             datapath = FX_PRICES_DIRECTORY

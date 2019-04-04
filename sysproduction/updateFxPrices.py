@@ -3,6 +3,7 @@ Update spot FX prices using interactive brokers data, dump into mongodb
 """
 
 from sysbrokers.IB.ibConnection import connectionIB
+from sysdata.mongodb.mongo_connection import mongoDb
 from sysbrokers.IB.ibSpotFXData import ibFxPricesData
 from sysdata.arctic.arctic_spotfx_prices import arcticFxPricesData
 from syslogdiag.log import logToMongod as logger
@@ -18,11 +19,11 @@ def update_fx_prices():
 
     log=logger("Update-FX-prices")
 
-    # avoid unique ids
-    conn = connectionIB(client=100, log=log.setup(component="IB-connection"))
+    ib_conn = connectionIB(log=log.setup(component="IB-connection")) # will use default port, host
+    mongo_db = mongoDb() # will use default database, host unles specified here
 
-    ibfxpricedata = ibFxPricesData(conn, log=log.setup(component="ibFxPricesData"))
-    arcticfxdata = arcticFxPricesData(log=log.setup(component="arcticFxPricesData"))
+    ibfxpricedata = ibFxPricesData(ib_conn, mongo_db = mongo_db, log=log.setup(component="ibFxPricesData"))
+    arcticfxdata = arcticFxPricesData(mongo_db=mongo_db, log=log.setup(component="arcticFxPricesData"))
 
     list_of_codes_all = ibfxpricedata.get_list_of_fxcodes()  # codes must be in .csv file /sysbrokers/IB/ibConfigSpotFx.csv
     log.msg("FX Codes: %s" % str(list_of_codes_all))
@@ -50,7 +51,3 @@ def update_fx_prices():
 
         # write
         arcticfxdata.add_fx_prices(fx_code, fx_prices, ignore_duplication=True)
-
-        # consider: reporting, pacing, clientids, private directory
-        # code to write to csv
-        # keep track of client ids

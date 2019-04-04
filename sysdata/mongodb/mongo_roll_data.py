@@ -1,9 +1,9 @@
 from sysdata.futures.rolls import rollParametersData, rollParameters
 
 from sysdata.mongodb.mongo_connection import mongoConnection, MONGO_ID_KEY, mongo_clean_ints
+from syslogdiag.log import logtoscreen
 
 ROLL_COLLECTION = 'futures_roll_parameters'
-DEFAULT_DB = 'production'
 
 class mongoRollParametersData(rollParametersData):
     """
@@ -12,11 +12,11 @@ class mongoRollParametersData(rollParametersData):
 
     """
 
-    def __init__(self, database_name = None, host = None, port = None):
+    def __init__(self, mongo_db = None, log=logtoscreen()):
 
-        super().__init__()
+        super().__init__(log=log)
 
-        self._mongo = mongoConnection(ROLL_COLLECTION, database_name = database_name, host = host, port = port)
+        self._mongo = mongoConnection(ROLL_COLLECTION, mongo_db=mongo_db)
 
         # this won't create the index if it already exists
         self._mongo.create_index("instrument_code")

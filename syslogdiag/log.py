@@ -217,8 +217,8 @@ class logToMongod(logger):
     Logs to a mongodb
 
     """
-    def __init__(self, database_name=None, host=None, port=None, thing="", log_level="Off", **kwargs):
-        self._mongo = mongoConnection(LOG_COLLECTION_NAME, database_name=database_name, host=host, port=port)
+    def __init__(self, mongo_db = None, thing="", log_level="Off", **kwargs):
+        self._mongo = mongoConnection(LOG_COLLECTION_NAME, mongo_db=mongo_db)
 
         super().__init__(thing = thing, log_level = log_level, ** kwargs)
 
@@ -244,10 +244,12 @@ class logToMongod(logger):
 
         self._mongo.collection.insert_one(log_dict)
 
+        print("%s %s %s %s" % (datetime_now, str(use_attributes), text))
+
 class accessLogFromMongodb(object):
 
-    def __init__(self, database_name=None, host=None, port=None):
-        self._mongo = mongoConnection(LOG_COLLECTION_NAME, database_name=database_name, host=host, port=port)
+    def __init__(self, mongo_db=None):
+        self._mongo = mongoConnection(LOG_COLLECTION_NAME, mongo_db=mongo_db)
 
     def get_log_items(self, attribute_dict=dict(), lookback_days=1):
         """

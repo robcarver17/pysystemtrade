@@ -414,7 +414,28 @@ For production code, and storing large amounts of data (eg for individual future
 
 Obviously you will need to make sure you already have a Mongo DB instance running. You might find you already have one running, in Linux use `ps wuax | grep mongo` and then kill the relevant process.
 
-All Mongo code uses the connection information defined in [this class](/sysdata/mongodb/mongo_connection.py). Personally I like to keep my Mongo data in a specific subdirectory; that is achieved by starting up with `mongod --dbpath ~/pysystemtrade/data/futures/mongodb/` (in Linux). Of course this isn't compulsory.
+Personally I like to keep my Mongo data in a specific subdirectory; that is achieved by starting up with `mongod --dbpath ~/data/mongodb/` (in Linux). Of course this isn't compulsory.
+
+#### Specifying a mongoDB connection
+
+You need to specify an IP address (host), and database name when you connect to MongoDB. These are set with the following priority:
+
+- Firstly, arguments passed to a `mongoDb()` instance, which is then optionally passed to any data object with the argument `mongo_db=mongoDb(host='localhost', database_name='production')` All arguments are optional. 
+- Then, variables set in the [private `.yaml` configuration file](private.private_config.yaml): mongo_host, mongo_db
+- Finally, default arguments hardcoded [in mongo_connection.py](/sysdata/mongodb/mongo_connection.py): DEFAULT_MONGO_DB, DEFAULT_MONGO_HOST, DEFAULT_MONGO_PORT
+
+Note that 'localhost' is equivalent to '127.0.0.1', i.e. this machine. Note also that no port can be specified. This is because the port is hard coded in Arctic. You should stick to the default port 27017.
+
+If your mongoDB is running on your local machine then you can stick with the defaults (assuming you are happy with the database name 'production'). If you have different requirements, eg mongo running on another machine or you want a different database name, then you should set them in the private .yaml file. If you have highly bespoke needs, eg you want to use a different database or different host for different types of data, then you will need to add code like this:
+
+```python
+# Instead of:
+mfidata=mongoFuturesInstrumentData()
+
+# Do this
+from sysdata.mongodb import mongoDb
+mfidata=mongoFuturesInstrumentData(mongo_db = mongoDb(database_name='another database')) # could also change host
+```
 
 
 <a name="mongoFuturesInstrumentData"></a>
@@ -476,7 +497,35 @@ Reads FX spot prices from QUANDL. Acceses [this .csv file](/sysdata/quandl/Quand
 
 Basically my mongo DB objects are for storing static information, whilst Arctic is for time series.
 
-Arctic has several *storage engines*, in my code I use the default VersionStore. 
+Arctic has several *storage engines*, in my code I use the default VersionStore.
+
+#### Specifying an arctic connection
+
+You need to specify an IP address (host), and database name when you connect to Arctic. Usually Arctic data objects will default to using the same settings as Mongo data objects.
+
+Note:
+- No port is specified - Arctic can only use the default port. For this reason I strongly discourage changing the port used when connecting to other mongo databases.
+- In actual use Arctic prepends 'arctic-' to the database name. So instead of 'production' it specifies 'arctic-production'. This shouldn't be an issue unless you are connecting directly to the mongo database.
+
+These are set with the following priority:
+
+- Firstly, arguments passed to a `mongoDb()` instance, which is then optionally passed to any Arctic data object with the argument `mongo_db=mongoDb(host='localhost', database_name='production')` All arguments are optional. 
+- Then, arguments set in the [private `.yaml` configuration file](private.private_config.yaml): mongo_host, mongo_db
+- Finally, default arguments hardcoded [in mongo_connection.py](/sysdata/mongodb/mongo_connection.py): DEFAULT_MONGO_DB, DEFAULT_MONGO_HOST, DEFAULT_MONGO_PORT
+
+Note that 'localhost' is equivalent to '127.0.0.1', i.e. this machine.
+
+If your mongoDB is running on your local machine with the standard port settings, then you can stick with the defaults (assuming you are happy with the database name 'production'). If you have different requirements, eg mongo running on another machine, then you should code them up in the private .yaml file. If you have highly bespoke needs, eg you want to use a different database for different types of data, then you will need to add code like this:
+
+```python
+# Instead of:
+afcpdata=arcticFuturesContractPriceData()
+
+# Do this
+from sysdata.mongodb import mongoDb
+afcpdata=arcticFuturesContractPriceData(mongo_db = mongoDb(database_name='another database')) # could also change host
+```
+
 
 <a name="arcticFuturesContractPriceData"></a>
 #### [arcticFuturesContractPriceData()](/sysdata/arctic/arctic_futures_per_contract_prices.py) inherits from [futuresContractPriceData](#futuresContractPriceData)
@@ -756,4 +805,10 @@ class csvMultiplePriceData(csvPaths, futuresMultiplePriceData):
 
 
 ```
+
+# Updating the provided .csv data from a production system
+
+If you have set up pysystemtrade as a [production trading environment](/docs/production.md) you may wish to continue storing your backtest data in .csv files rather than in databases (this step is also required for the [BDFL](https://en.wikipedia.org/wiki/Benevolent_dictator_for_life) of pysystemtrade to ensure the data provided on github is up to date). The following functions will allow you to update the .csv files:
+
+- [For spot FX data](/sysinit/futures/spotfx_from_arctic_to_csv.py) 
 

@@ -171,6 +171,9 @@ class ibClient(brokerClient, EClient):
         if log is None:
             log = self.log
 
+        # PACING VIOLATIONS ARE NOT HANDLED HERE
+        # CALLING CODE SHOULD NOT VIOLATE RULE: Making more than 60 requests within any ten minute period.
+
         tickerid = self.ib_next_req_id()
         ## Make a place to store the data we're going to return
         historic_data_queue = finishableQueue(self.init_historicprices(tickerid))

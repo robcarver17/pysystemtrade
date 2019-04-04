@@ -5,7 +5,7 @@ Read and write data from mongodb for 'multiple prices'
 
 from sysdata.arctic.arctic_connection import articConnection
 from sysdata.futures.multiple_prices import futuresMultiplePricesData, futuresMultiplePrices
-
+from syslogdiag.log import logtoscreen
 
 MULTIPLE_COLLECTION = 'futures_multiple_prices'
 
@@ -15,11 +15,11 @@ class arcticFuturesMultiplePricesData(futuresMultiplePricesData):
     Class to read / write multiple futures price data to and from arctic
     """
 
-    def __init__(self, database_name= None, host = None, port=None):
+    def __init__(self, mongo_db=None, log=logtoscreen()):
 
-        super().__init__()
+        super().__init__(log=log)
 
-        self._arctic = articConnection(MULTIPLE_COLLECTION, database_name=database_name, host=host, port=port)
+        self._arctic = articConnection(MULTIPLE_COLLECTION, mongo_db=mongo_db)
 
         self.name = "simData connection for multiple futures prices, arctic %s/%s @ %s " % (
             self._arctic.database_name, self._arctic.collection_name, self._arctic.host)

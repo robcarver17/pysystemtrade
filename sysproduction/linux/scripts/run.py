@@ -8,6 +8,8 @@ import inspect
 import importlib
 import sys
 
+# import of system libraries required to make this work
+import sysproduction
 
 def resolve_func(func_reference_name):
     split_func = func_reference_name.rsplit('.', 1)

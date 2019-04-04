@@ -40,7 +40,7 @@ class baseData(object):
         simData object
         """
         # this will normally be overriden by the base system
-        setattr(self, "log")
+        setattr(self, "log", log)
 
     def __repr__(self):
         return "simData object"

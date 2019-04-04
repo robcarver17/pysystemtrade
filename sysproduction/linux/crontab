@@ -1,4 +1,8 @@
-################## The big daily show #######################
+# set environment variables
+# Note you may have to change the directory references if your code does not reside in $HOME/workspace3/psystemtrade/
+
+SCRIPT_PATH="$HOME:/workspace3/psystemtrade/sysproduction/linux/scripts"
+ECHO_PATH="$HOME:/echos"
 # Use this for stuff to run on startup
 #
 # @reboot
@@ -6,5 +10,5 @@
 #
 # Daily sample FX Prices at 6 am
 #
-0 6  * * 1-5 $HOME/workspace3/psystemtrade/sysproduction/linux/p run.py sysproduction.updateFxPrices.update_fx_prices >> $HOME/echos/samplefxprices 2>&1
+0 6  * * 1-5 $SCRIPT_PATH/updatefxprices  >> $ECHO_PATH/updatefxprices.echo 2>&1
 #

@@ -1,5 +1,13 @@
 # Release notes
 
+## Version 0.20.0
+
+Started documenting 'how to run a production system'
+Created logging to mongo database
+Refactoring of mongo and arctic connections
+Started creating crontab and scripts for various production functions (read and write FX prices)
+Added code to ensure unique client ID for IB
+
 ## Version 0.19.0
 
 Added connection code for Interactive Brokers. See [connecting pysystemtrade to interactive brokers](/docs/IB.md) for more details.

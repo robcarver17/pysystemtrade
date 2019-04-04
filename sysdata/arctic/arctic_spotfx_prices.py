@@ -10,11 +10,11 @@ class arcticFxPricesData(fxPricesData):
     Class to read / write fx prices
     """
 
-    def __init__(self, database_name= None, host = None, port=None, log=logtoscreen):
+    def __init__(self, mongo_db=None, log=logtoscreen()):
 
         super().__init__(log=log)
 
-        self._arctic = articConnection(SPOTFX_COLLECTION, database_name=database_name, host=host, port=port)
+        self._arctic = articConnection(SPOTFX_COLLECTION, mongodb=mongo_db)
 
         self.name = "Arctic connection for spotfx prices, %s/%s @ %s " % (
             self._arctic.database_name, self._arctic.collection_name, self._arctic.host)
