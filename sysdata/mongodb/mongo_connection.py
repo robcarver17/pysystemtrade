@@ -87,7 +87,7 @@ class mongoConnection(object):
         database_name = mongo_db.database_name
         host = mongo_db.host
         port = mongo_db.port
-        db = mongo_db.self
+        db = mongo_db.db
         client = mongo_db.client
 
         collection = db[collection_name]
