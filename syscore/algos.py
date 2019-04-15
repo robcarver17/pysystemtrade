@@ -175,7 +175,7 @@ def robust_vol_calc(x,
         vol_forward_fill = vol_floored.fillna(method = "ffill")
         vol_backfilled = vol_forward_fill.fillna(method = "bfill")
     else:
-        vol_backfilled = vol
+        vol_backfilled = vol_floored
 
     return vol_backfilled
 
