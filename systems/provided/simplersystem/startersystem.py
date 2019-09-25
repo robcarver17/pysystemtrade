@@ -343,13 +343,13 @@ long_mav = price.rolling(64, min_periods=1).mean()
 together = pd.concat([price, short_mav, long_mav], axis=1)
 together.columns = ["Price", "16 day MA", "64 day MA"]
 
-together[pd.datetime(2018,6,1):pd.datetime(2018,11,18)].ffill().plot(lw=4, style=["-","--","-."])
-#together[pd.datetime(2018,1,1):pd.datetime(2018,6,18)].ffill().plot(lw=4, style=["-","--","-."])
+#together[pd.datetime(2018,9,1):pd.datetime(2018,10,26)].ffill().plot(lw=4, style=["-","--","-."])
+together[pd.datetime(2018,6,18):pd.datetime(2018,11,8)].ffill().plot(lw=4, style=["-","--","-."])
 frame=plt.gca()
 #frame.annotate("Sell", xy=(pd.datetime(2008,6,16), 1075.0),xytext=(pd.datetime(2008,4,1), 800.0), arrowprops=dict(facecolor='black', shrink=0.05))
 #frame.annotate("Buy", xy=(pd.datetime(2009,4,3), price[pd.datetime(2009,4,3)]),xytext=(pd.datetime(2009,2,1), 850.0), arrowprops=dict(facecolor='black', shrink=0.05))
 plt.rcParams.update({'font.size': 24})
-image_process("AUD_trend2")
+image_process("AUDUSD_trend2")
 
 
 ## Generate profits for a bunch of MAV, stacked average across instruments
