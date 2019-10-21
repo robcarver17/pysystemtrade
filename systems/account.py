@@ -156,7 +156,7 @@ class _AccountCosts(_AccountInput):
         return turnover(positions, average_position_for_turnover)
 
     @diagnostic()
-    def subsystem_SR_costs(self, instrument_code):
+    def subsystem_SR_costs(self, instrument_code, roundpositions=False):
         """
         Get the annualised SR costs for an instrument subsystem
 
@@ -521,6 +521,7 @@ class _AccountInstruments(_AccountInstrumentForecast):
             instrument_code)
 
         (SR_cost, cash_costs) = self.get_costs(instrument_code)
+        SR_cost = SR_cost * self.subsystem_turnover(instrument_code)
 
         capital = self.get_notional_capital()
         ann_risk_target = self.get_ann_risk_target()
@@ -630,6 +631,7 @@ class _AccountInstruments(_AccountInstrumentForecast):
         ann_risk_target = self.get_ann_risk_target()
 
         (SR_cost, cash_costs) = self.get_costs(instrument_code)
+
 
         instr_pandl = accountCurve(
             price,
