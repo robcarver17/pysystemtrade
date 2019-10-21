@@ -4115,6 +4115,7 @@ Other methods exist to access logging and caching.
 | `rawdata.get_daily_prices` | Standard | `instrument_code` | I | `data.daily_prices`|
 | `rawdata.daily_denominator_price` | Standard | `instrument_code` | O | Price used to calculate % volatility (for futures the current contract price) |
 | `rawdata.daily_returns` | Standard | `instrument_code` | D, O | Daily returns in price units|
+| `rawdata.get_percentage_returns` | Standard | `instrument_code` | D | Daily returns as a percentage. |
 | `rawdata.daily_returns_volatility` | Standard | `instrument_code` | D,O | Daily standard deviation of returns in price units |
 | `rawdata.get_daily_percentage_volatility` | Standard | `instrument_code` | D,O | Daily standard deviation of returns in % (10.0 = 10%) |
 | `rawdata.norm_returns` | Standard | `instrument_code` | D | Daily returns normalised by vol (1.0 = 1 sigma) |
