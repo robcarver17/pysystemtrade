@@ -772,7 +772,10 @@ class _ForecastCombineCalculateDivMult(_ForecastCombinePreCalculate):
 
         if pooling:
             # find set of instruments with same trading rules as I have
-            codes_to_use = self.has_same_cheap_rules_as_code(instrument_code)
+            if self._use_estimated_weights():
+                codes_to_use = self.has_same_cheap_rules_as_code(instrument_code)
+            else:
+                codes_to_use = self.has_same_rules_as_code(instrument_code)
         else:
             codes_to_use = [instrument_code]
 
