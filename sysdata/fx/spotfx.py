@@ -56,12 +56,34 @@ class fxPricesData(baseData):
         raise NotImplementedError(USE_CHILD_CLASS_ERROR)
 
     def get_fx_prices(self, code):
+        """
+        Get a historical series of FX prices
+
+        :param code: currency code, in the form EURUSD
+        :return: fxData object
+        """
         if self.is_code_in_data(code):
             return self._get_fx_prices_without_checking(code)
         else:
             return fxPrices.create_empty()
 
+    def get_current_fx_price(self, code):
+        """
+        Get a snapshot of the latest FX price for a currency
+
+        :param code: str
+        :return: float
+        """
+        if self.is_code_in_data(code):
+            return self._get_current_fx_price_without_checking()
+        else:
+            return np.nan
+
+
     def _get_fx_prices_without_checking(self, code):
+        raise NotImplementedError(USE_CHILD_CLASS_ERROR)
+
+    def _get_current_fx_price_without_checking(self, code):
         raise NotImplementedError(USE_CHILD_CLASS_ERROR)
 
     def __getitem__(self, code):

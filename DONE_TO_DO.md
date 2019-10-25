@@ -1,5 +1,11 @@
 # Release notes
 
+
+## Version 0.21.0
+
+Removed dependency on Quandl currency for setting up spot FX, now uses investing.com
+Fixed issues relating to robust vol calc, date offset in roll calendars
+
 ## Version 0.20.0
 
 Started documenting 'how to run a production system'

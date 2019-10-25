@@ -9,6 +9,7 @@ from copy import copy
 from syscore.fileutils import get_filename_for_package
 from syscore.dateutils import BUSINESS_DAYS_IN_YEAR
 
+DEFAULT_DATE_FORMAT = "%Y-%m-%d"
 
 def turnover(x, y):
     """
@@ -116,7 +117,7 @@ def pd_readcsv_frompackage(filename):
     return pd_readcsv(full_filename)
 
 
-def pd_readcsv(filename, date_index_name="DATETIME"):
+def pd_readcsv(filename, date_index_name="DATETIME", date_format=DEFAULT_DATE_FORMAT):
     """
     Reads a pandas data frame, with time index labelled
     package_name(/path1/path2.., filename
@@ -127,13 +128,15 @@ def pd_readcsv(filename, date_index_name="DATETIME"):
     :param date_index_name: Column name of date index
     :type date_index_name: list of str
 
+    :param DEFAULT_DATE_FORMAT: https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior
+    :type DEFAULT DATE_FORMAT: str
 
     :returns: pd.DataFrame
 
     """
 
     ans = pd.read_csv(filename)
-    ans.index = pd.to_datetime(ans[date_index_name]).values
+    ans.index = pd.to_datetime(ans[date_index_name], format=date_format).values
 
     del ans[date_index_name]
 

@@ -1,3 +1,7 @@
+"""
+DEPRECATED: DOESN'T WORK ANY MORE
+"""
+
 import quandl
 import pandas as pd
 from sysdata.quandl.quandl_utils import load_private_key

@@ -102,6 +102,8 @@ Using these two dates together will indicate when we'd ideally roll an instrumen
 
 For example for Bund futures, the ExpiryOffset is 6; the contract notionally expires on day 1+6 = 7th of the month. The RollOffsetDays is -5, so we roll 5 days before this. So we'd normally roll on the 1+6-5 = 2nd day of the month.
 
+Let's take a more extreme example, Eurodollar. The ExpiryOffset is 18, and the roll offset is -1100 (no not a typo!). We'd roll this product 1100 days before it expired on the 19th day of the month.
+
 'CarryOffset': Whether we take carry from an earlier dated contract (-1, which is preferable) or a later dated contract (+1, which isn't ideal but if we hold the front contract we have no choice). This calculation is done based on the *priced* roll cycle, so for example for winter crude where the *hold* roll cycle is just 'Z' (we hold December), and the carry offset is -1 we take the previous month in the *priced* roll cycle (which is a full year FGHJKMNQUVXZ) i.e. November (whose code is 'X'). You read more in Appendix B of [my first book](http://www.systematicmoney.org/systematic-trading).
 
 
@@ -213,14 +215,24 @@ It's also possible to implement the back-adjustment 'on the fly' within your bac
 
 If you don't like panama stitching then you can modify the method. More details later in this document, [here](#futuresAdjustedPrices).
 
-<a name="storing_futures_data"></a>
 
 
 <a name="create_fx_data"></a>
 ## Getting and storing FX data
 
-Although strictly not futures prices we also need spot FX prices to run our simulation. Again we'll get these from Quandl, and in [this simple script](/sysinit/futures/spotfx_from_quandl_to_arctic_and_csv.py) they are written to Arctic and/or .csv files.
+Although strictly not futures prices we also need spot FX prices to run our simulation. The github for pysystemtrade contains spot FX data, but you will probably wish to update it. In live trading we'd use interactive brokers, but for now I'm going to use one of the many free data websites: [investing.com](investing.com)
 
+You need to register and then download enough history. To see how much FX data there already is:
+
+```python
+from sysdata.csv.csv_spot_fx import *
+data=csvFxPricesData()
+data.get_fx_prices("GBPUSD")
+```
+
+Save the files in a directory with no other content, using the filename format "GBPUSD.csv". Using [this simple script](/sysinit/futures/spotfx_from_csvAndInvestingDotCom_to_arctic.py) they are written to Arctic and/or .csv files. You will need to modify the script to point to the right directory, and you can also change the column and formatting parameters to use data from other sources.
+
+<a name="storing_futures_data"></a>
 # Storing and representing futures data
 
 The paradigm for data storage is that we have a bunch of [data objects](#generic_objects) for specific types of data, i.e. futuresInstrument is the generic class for storing static information about instruments. Each of those objects then has a matching *data storage object* which accesses data for that object, i.e. futuresInstrumentData. Then we have [specific instances of those for different data sources](#specific_data_storage), i.e. mongoFuturesInstrumentData for storing instrument data in a mongo DB database. 
@@ -491,7 +503,9 @@ Reads price data and returns in the form of [futuresContractPrices](#futuresCont
 
 #### [quandlFxPricesData()](/sysdata/quandl/quandl_spotfx_prices.py) inherits from [fxPricesData](#fxPricesData)
 
+DEPRECATE THIS: NO LONGER WORKS
 Reads FX spot prices from QUANDL. Acceses [this .csv file](/sysdata/quandl/QuandlFXConfig.csv) which contains the codes required to get data from Quandl for a specific currency.
+
 
 
 <a name="arctic"></a>

@@ -1,5 +1,5 @@
 """
-Get FX prices from csv repo files and write to arctic
+Get FX prices from arctic and write to csv
 
 WARNING WILL OVERWRITE EXISTING!
 """
