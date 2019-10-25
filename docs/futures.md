@@ -112,6 +112,8 @@ Let's take a more extreme example, Eurodollar. The ExpiryOffset is 18, and the r
 
 Now let's turn our attention to getting prices for individual futures contracts. We could get this from anywhere, but we'll use [Quandl](https://wwww.quandl.com). Obviously you will need to [get the python Quandl library](#getQuandlPythonAPI), and you may want to [set a Quandl key](#setQuandlKey). 
 
+NOTE: Quandl are no longer supporting free futures data except for a limited number of instruments. I am looking for alternatives, but the most likely outcome is that I will use IB to get historical data although this will only go back one year and excludes closed contracts.
+
 We can also store it, in principal, anywhere but I will be using the open source [Arctic library](https://github.com/manahl/arctic) which was released by my former employers [AHL](https://ahl.com). This sits on top of Mongo DB (so we don't need yet another database) but provides straightforward and fast storage of pandas DataFrames.
 
 We'll be using [this script](/sysinit/futures/historical_contract_prices_quandl_mongo.py). Unlike the first two initialisation scripts this is set up to run for a single market. 
