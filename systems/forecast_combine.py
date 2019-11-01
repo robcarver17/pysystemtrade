@@ -599,7 +599,7 @@ class _ForecastCombineCalculateWeights(_ForecastCombinePreCalculate):
         weighting = self.parent.config.forecast_weight_ewma_span
 
         # smooth
-        forecast_weights = forecast_weights.ewm(weighting).mean()
+        forecast_weights = forecast_weights.ewm(span=weighting).mean()
         return forecast_weights
 
 

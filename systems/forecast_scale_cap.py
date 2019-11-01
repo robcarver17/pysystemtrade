@@ -116,6 +116,23 @@ class ForecastScaleCap(SystemStage):
 
         return self.parent.config.forecast_cap
 
+    @diagnostic()
+    def get_forecast_floor(self):
+        """
+        Get forecast floor
+
+        We get the cap from:
+                                 (a)  configuration object in parent system
+                                 (c) or if missing: uses the the cap with a minus sign in front of it
+        :returns: float
+
+        """
+
+        forecast_cap = self.get_forecast_cap()
+        forecast_floor = getattr(self.parent.config, "forecast_floor", -forecast_cap)
+
+        return forecast_floor
+
     @dont_cache
     def _use_fixed_weights(self):
         if str2Bool(self.parent.config.use_forecast_scale_estimates):
@@ -392,9 +409,10 @@ class ForecastScaleCap(SystemStage):
 
         scaled_forecast = self.get_scaled_forecast(instrument_code,
                                                    rule_variation_name)
-        cap = self.get_forecast_cap()
+        upper_cap = self.get_forecast_cap()
+        lower_floor = self.get_forecast_floor()
 
-        capped_scaled_forecast = scaled_forecast.clip(upper=cap, lower=-cap)
+        capped_scaled_forecast = scaled_forecast.clip(upper=upper_cap, lower=lower_floor)
 
         return capped_scaled_forecast
 
