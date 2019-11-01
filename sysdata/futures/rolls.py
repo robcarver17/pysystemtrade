@@ -360,7 +360,7 @@ class rollParameters(object):
         #    We want to roll 90 days ahead of that
         #    With thanks to https://github.com/tgibson11 for helping me get this right
 
-        adjusted_date = reference_date + pd.DateOffset(days = - (- self.roll_offset_day + self.approx_expiry_offset))
+        adjusted_date = reference_date - pd.DateOffset(days = (self.roll_offset_day + self.approx_expiry_offset))
 
         relevant_year_int, relevant_month_int = roll_cycle.yearmonth_inrollcycle_after_date(adjusted_date)
 
