@@ -45,6 +45,9 @@ class arcticFuturesMultiplePricesData(futuresMultiplePricesData):
         self.log.msg("Deleted multiple prices for %s from %s" % (instrument_code, self.name))
 
     def _add_multiple_prices_without_checking_for_existing_entry(self, instrument_code, multiple_price_data):
+        multiple_price_data['PRICE_CONTRACT'] = multiple_price_data['PRICE_CONTRACT'].astype(str)
+        multiple_price_data['FORWARD_CONTRACT'] = multiple_price_data['FORWARD_CONTRACT'].astype(str)
+        multiple_price_data['CARRY_CONTRACT'] = multiple_price_data['CARRY_CONTRACT'].astype(str)
         self.log.label(instument_code = instrument_code)
         self._arctic.library.write(instrument_code, multiple_price_data)
         self.log.msg("Wrote %s lines of prices for %s to %s" % (len(multiple_price_data), instrument_code, self.name))
