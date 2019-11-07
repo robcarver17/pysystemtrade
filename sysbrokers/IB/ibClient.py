@@ -21,7 +21,7 @@ class ibClient(brokerClient, EClient):
 
     """
 
-    def __init__(self, wrapper, reqIDoffset, log=logtoscreen()):
+    def __init__(self, wrapper, reqIDoffset, log=logtoscreen("ibClient")):
         ## Set up with a wrapper inside
         EClient.__init__(self, wrapper)
         self.ib_init_request_id_factory(reqIDoffset)

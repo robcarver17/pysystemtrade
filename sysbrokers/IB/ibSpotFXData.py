@@ -7,7 +7,7 @@ IB_CCY_CONFIG_FILE = get_filename_for_package("sysbrokers.IB.ibConfigSpotFX.csv"
 
 class ibFxPricesData(fxPricesData):
 
-    def __init__(self, ibconnection, log=logtoscreen):
+    def __init__(self, ibconnection, log=logtoscreen("ibFxPricesData")):
         setattr(self, "ibconnection", ibconnection)
         setattr(self, "log", log)
 

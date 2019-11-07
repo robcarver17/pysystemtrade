@@ -5,9 +5,9 @@ import platform
 from setuptools import setup, find_packages
 from distutils.version import StrictVersion
 
-if StrictVersion(platform.python_version()) < StrictVersion('3.4.3'):
+if StrictVersion(platform.python_version()) < StrictVersion('3.6.0'):
     print(
-        'pysystemtrade requires Python 3.4.3 or later. Exiting.',
+        'pysystemtrade requires Python 3.6.0 or later. Exiting.',
         file=sys.stderr)
     sys.exit(1)
 

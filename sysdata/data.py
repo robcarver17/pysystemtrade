@@ -31,7 +31,7 @@ class baseData(object):
 
     """
 
-    def __init__(self, log=logtoscreen()):
+    def __init__(self, log=logtoscreen("baseData")):
         """
         simData socket base class
 

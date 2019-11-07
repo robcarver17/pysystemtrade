@@ -1,5 +1,13 @@
 # Release notes
 
+## Version 0.22.0
+
+*Now requires python 3.6.0, pandas 0.25.2*
+Fixed a few bugs in production functions for FX prices
+Logging now requires an explicit labelling argument, eg `log=logtoscreen("String required here")
+Changed mongodb logging so now indexes on unique ID
+Generally cleaned up logging code
+Moved update fx price logic inside generic fx price object
 
 ## Version 0.21.0
 

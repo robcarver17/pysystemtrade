@@ -58,7 +58,7 @@ class connectionIB(ibClient, ibServer):
     (A database plug in will need to be added for streaming prices)
     """
 
-    def __init__(self, client=None, ipaddress=None, port=None, log=logtoscreen(),
+    def __init__(self, client=None, ipaddress=None, port=None, log=logtoscreen("connectionIB"),
                  mongo_db=None):
 
         """
@@ -120,7 +120,7 @@ class mongoIBclientIDtracker(object):
 
     """
 
-    def __init__(self, mongo_db=None, idoffset=None, log=logtoscreen()):
+    def __init__(self, mongo_db=None, idoffset=None, log=logtoscreen("mongoIDTracker")):
 
         if idoffset is None:
             _notused_ipaddress, _notused_port, idoffset = ib_defaults()

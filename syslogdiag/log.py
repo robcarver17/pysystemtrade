@@ -1,6 +1,9 @@
 from copy import copy
 import datetime
+from collections import UserList
+
 from sysdata.mongodb.mongo_connection import mongoConnection, MONGO_ID_KEY
+from syscore.dateutils import long_to_datetime, datetime_to_long
 
 class logger(object):
     """
@@ -15,7 +18,7 @@ class logger(object):
 
     """
 
-    def __init__(self, thing="", log_level="Off", **kwargs):
+    def __init__(self, type, log_level="Off", **kwargs):
         """
         Base class for logging.
 
@@ -46,18 +49,18 @@ class logger(object):
         >>>
         """
 
-        if isinstance(thing, str):
+        if isinstance(type, str):
             # been passed a label, so not inheriting anything
-            log_attributes = dict(type=thing)
+            log_attributes = dict(type=type)
             other_attributes = kwargs
 
             log_attributes = get_update_attributes_list(
                 log_attributes, other_attributes)
 
-        elif hasattr(thing, "attributes"):
+        elif hasattr(type, "attributes"):
             # probably a log
             new_attributes = kwargs
-            parent_attributes = thing.attributes
+            parent_attributes = type.attributes
 
             log_attributes = get_update_attributes_list(
                 parent_attributes, new_attributes)
@@ -117,30 +120,66 @@ class logger(object):
         setattr(self, "attributes", new_attributes)
 
     def msg(self, text, **kwargs):
-        self.log(text, msglevel=0, **kwargs)
+        return self.log(text, msglevel=0, **kwargs)
 
     def terse(self, text, **kwargs):
-        self.log(text, msglevel=1, **kwargs)
+        return self.log(text, msglevel=1, **kwargs)
 
     def warn(self, text, **kwargs):
-        self.log(text, msglevel=2, **kwargs)
+        return self.log(text, msglevel=2, **kwargs)
 
     def error(self, text, **kwargs):
-        self.log(text, msglevel=3, **kwargs)
+        return self.log(text, msglevel=3, **kwargs)
 
     def critical(self, text, **kwargs):
-        self.log(text, msglevel=4, **kwargs)
+        return self.log(text, msglevel=4, **kwargs)
+
+    def get_last_used_log_id(self):
+        """
+        Get last log id used. This should be stored in the underlying database.
+
+        If no last log id, return None
+
+        :return: int
+        """
+        raise NotImplementedError("You need to implement this method in an inherited class or use an inherited claass eg logToMongod")
+
+    def update_log_id(self):
+        """
+        Update the current stored log id
+
+        :return: None
+        """
+        raise NotImplementedError("You need to implement this method in an inherited class or use an inherited claass eg logToMongod")
+
+
+    def get_next_log_id(self):
+        """
+        Get next log id
+
+        :return: int
+        """
+        last_id = self.get_last_used_log_id()
+        if last_id is None:
+            last_id = -1
+
+        next_id = last_id+1
+
+        self.update_log_id(next_id)
+
+        return next_id
 
     def log(self, text, msglevel=0, **kwargs):
         log_attributes = self.attributes
         passed_attributes = kwargs
 
+        log_id = self.get_next_log_id()
         use_attributes = get_update_attributes_list(log_attributes,
                                                     passed_attributes)
 
-        self.log_handle_caller(msglevel, text, use_attributes)
+        return self.log_handle_caller(msglevel, text, use_attributes, log_id)
 
-    def log_handle_caller(self, msglevel, text, use_attributes):
+    def log_handle_caller(self, msglevel, text, use_attributes, log_id):
         raise Exception(
             "You're using a base class for logger - you need to use an inherited class like logtoscreen()"
         )
@@ -168,7 +207,7 @@ class logtoscreen(logger):
 
     """
 
-    def log_handle_caller(self, msglevel, text, use_attributes):
+    def log_handle_caller(self, msglevel, text, use_attributes, log_id_NOT_USED):
         """
         >>> log=logtoscreen("base_system", log_level="off") ## this won't do anything
         >>> log.log("this wont print")
@@ -205,11 +244,81 @@ class logtoscreen(logger):
         if msglevel == 4:
             raise Exception(text)
 
+    def get_last_used_log_id(self):
+        return getattr(self, "_log_id", None)
+
+    def update_log_id(self, log_id):
+        self._log_id = log_id
+
 MSG_LEVEL_DICT = dict(m0="", m1="", m2="[Warning]", m3="[Error]", m4="*CRITICAL*")
+TEXTMSG_LEVEL_DICT = {"": 0, }
 
 LEVEL_ID = "_Level" #use underscores so less chance of a conflict with labels used by users
 TIMESTAMP_ID = "_Timestamp"
 TEXT_ID = "_Text"
+LOG_RECORD_ID ="_Log_Record_id"
+
+class logEntry(object):
+    """
+    Abstraction for database log entries
+    """
+    def __init__(self, text, log_timestamp = None, msglevel=0, input_attributes={}, log_id=0):
+
+        use_attributes = copy(input_attributes)
+        log_dict = copy(use_attributes)
+
+        msg_level_text = MSG_LEVEL_DICT["m%d" % msglevel]
+
+        if log_timestamp is None:
+            log_timestamp = datetime.datetime.now()
+        log_timestamp_aslong = datetime_to_long(log_timestamp)
+
+        log_dict[LEVEL_ID] = msglevel
+        log_dict[TIMESTAMP_ID] = log_timestamp_aslong
+        log_dict[TEXT_ID] = text
+        log_dict[LOG_RECORD_ID] = log_id
+
+        self._log_dict = log_dict
+
+        self._use_attributes = use_attributes
+        self._text = text
+        self._msglevel = msglevel
+        self._msglevel_text = msg_level_text
+        self._timestamp_as_long = log_timestamp_aslong
+        self._timestamp = log_timestamp
+        self._log_id = log_id
+
+    @classmethod
+    def log_entry_from_dict(logEntry, log_dict_input):
+        """
+        Starting with the dictionary representation, recover the original logEntry
+
+        :param log_dict: dict, as per logEntry.log_dict()
+        :return: logEntry object
+        """
+        log_dict = copy(log_dict_input)
+        log_dict.pop(MONGO_ID_KEY)
+        log_timestamp_aslong = log_dict.pop(TIMESTAMP_ID)
+        msg_level = log_dict.pop(LEVEL_ID)
+        text = log_dict.pop(TEXT_ID)
+        log_id = log_dict.pop(LOG_RECORD_ID)
+        input_attributes = log_dict
+
+        log_timestamp = long_to_datetime(log_timestamp_aslong)
+
+        log_entry = logEntry(text, log_timestamp=log_timestamp,
+                             msglevel=msg_level, input_attributes=input_attributes, log_id=log_id)
+
+        return log_entry
+
+    def __repr__(self):
+        return "%s %s %s %s" % (self._timestamp.strftime("%Y-%m-%d:%H%M.%S"),
+                                str(self._use_attributes), self._msglevel_text, self._text)
+
+    def log_dict(self):
+        return self._log_dict
+
+
 LOG_COLLECTION_NAME = "Logs"
 
 class logToMongod(logger):
@@ -217,34 +326,46 @@ class logToMongod(logger):
     Logs to a mongodb
 
     """
-    def __init__(self, mongo_db = None, thing="", log_level="Off", **kwargs):
+    def __init__(self, type, mongo_db = None, log_level="Off", **kwargs):
         self._mongo = mongoConnection(LOG_COLLECTION_NAME, mongo_db=mongo_db)
 
-        super().__init__(thing = thing, log_level = log_level, ** kwargs)
+        super().__init__(type= type, log_level = log_level, ** kwargs)
 
         # this won't create the index if it already exists
-        self._mongo.create_multikey_index(TIMESTAMP_ID, LEVEL_ID)
+        self._mongo.create_multikey_index(LOG_RECORD_ID, LEVEL_ID)
 
-    def log_handle_caller(self, msglevel, text, use_attributes):
+    def get_last_used_log_id(self):
+        """
+        Get last used log id. Returns None if not present
+
+        :return: int or None
+        """
+        attribute_dict = dict(_meta_data="log_id")
+        last_id_dict=self._mongo.collection.find_one(attribute_dict)
+        if last_id_dict is None:
+            return None
+        return last_id_dict['next_id']
+
+    def update_log_id(self, next_id):
+        attribute_dict = dict(_meta_data="log_id")
+        next_id_dict = dict(_meta_data="log_id", next_id=next_id)
+        self._mongo.collection.replace_one(attribute_dict, next_id_dict, True)
+
+        return None
+
+    def log_handle_caller(self, msglevel, text, input_attributes, log_id):
         """
         Ignores log_level - logs everything, just in case
 
         Doesn't raise exceptions
 
         """
-        log_dict = copy(use_attributes)
+        log_entry = logEntry(text, msglevel=msglevel, input_attributes=input_attributes, log_id=log_id)
+        print(log_entry)
 
-        msg_level_text = MSG_LEVEL_DICT["m%d" % msglevel]
+        self._mongo.collection.insert_one(log_entry.log_dict())
 
-        datetime_now = datetime.datetime.now()
-
-        log_dict[LEVEL_ID] = msg_level_text
-        log_dict[TIMESTAMP_ID] = datetime_now
-        log_dict[TEXT_ID] = text
-
-        self._mongo.collection.insert_one(log_dict)
-
-        print("%s %s %s %s" % (datetime_now, str(use_attributes), text))
+        return log_entry
 
 class accessLogFromMongodb(object):
 
@@ -259,17 +380,25 @@ class accessLogFromMongodb(object):
         :return: list of str
         """
 
-        results = self.get_log_items_as_tuple(attribute_dict, lookback_days=lookback_days)
+        results = self.get_log_items_as_entries(attribute_dict, lookback_days=lookback_days)
 
         # jam together as text
-        results_as_text = ["%s %s %s %s" %
-            (str(ts_single), str(attribute_single), str(level_single), str(text_single)) for
-                   ts_single, level_single, text_single, attribute_single in
-                   results]
+        results_as_text = [str(log_entry) for log_entry in results]
 
         return results_as_text
 
-    def get_log_items_as_tuple(self, attribute_dict=dict(), lookback_days=1):
+    def print_log_items(self, attribute_dict=dict(), lookback_days=1):
+        """
+        Print log items as list of text
+
+        :param attribute_dict: dictionary of attributes to return logs for
+        :return: list of str
+        """
+
+        results_as_text = self.get_log_items(attribute_dict=attribute_dict, lookback_days=lookback_days)
+        print("\n".join(results_as_text))
+
+    def get_log_items_as_entries(self, attribute_dict=dict(), lookback_days=1):
         """
         Return log items not as text, good for diagnostics
 
@@ -279,50 +408,34 @@ class accessLogFromMongodb(object):
 
         cutoff_date = datetime.datetime.now() - datetime.timedelta(days=lookback_days)
         timestamp_dict = {}
-        timestamp_dict["$lt"] = cutoff_date
+        timestamp_dict["$gt"] = datetime_to_long(cutoff_date)
         attribute_dict[TIMESTAMP_ID] = timestamp_dict
 
         result_dict = self._mongo.collection.find(attribute_dict)
-        result_dict = [single_log_dict for single_log_dict in result_dict]
-        _removed_ids_not_used = [single_log_dict.pop(MONGO_ID_KEY) for single_log_dict in result_dict]
+        # from cursor to list...
+        results_list = [single_log_dict for single_log_dict in result_dict]
 
-        # convert to tuples: timestamp, attributes, text, level
-        timestamps, levels, text_list, attribute_dict = self._from_list_of_results_to_list_of_tuples(result_dict)
+        # ... to list of log entries
+        results = [logEntry.log_entry_from_dict(single_log_dict)
+                                           for single_log_dict in results_list]
 
-        # convert to list of tuples, one per record
-        results = [(ts_single, level_single, text_single, attribute_single) for
-                   ts_single, level_single, text_single, attribute_single in
-                   zip(timestamps, levels, text_list, attribute_dict)]
-
-        # sort by timestamp
-        results = sorted(results, key=lambda tup:tup[0])
+        # sort by log ID
+        results.sort(key=lambda x: x._log_id)
 
         return results
 
 
-
-    def _from_list_of_results_to_list_of_tuples(self, result_dict):
-        # convert to list of tuples: timestamp, attributes, text, level
-
-        timestamps = [single_log_dict.pop(TIMESTAMP_ID) for single_log_dict in result_dict]
-        levels = [single_log_dict.pop(LEVEL_ID) for single_log_dict in result_dict]
-        text_list = [single_log_dict.pop(TEXT_ID) for single_log_dict in result_dict]
-        attribute_dict = result_dict
-
-        return timestamps, levels, text_list, attribute_dict
-
-
     def delete_log_items_from_before_n_days(self, days=365):
+        # need something to delete old log records, eg more than x months ago
 
         cutoff_date = datetime.datetime.now() - datetime.timedelta(days=days)
         attribute_dict={}
         timestamp_dict = {}
-        timestamp_dict["$lt"] = cutoff_date
+        timestamp_dict["$lt"] = datetime_to_long(cutoff_date)
         attribute_dict[TIMESTAMP_ID] = timestamp_dict
 
         self._mongo.collection.remove(attribute_dict)
 
-        # need something to delete old log records, eg more than x months ago
 
 if __name__ == '__main__':
     import doctest

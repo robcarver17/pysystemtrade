@@ -12,7 +12,7 @@ class ibServer(wrapper.EWrapper, brokerServer):
 
     """
 
-    def __init__(self, log=logtoscreen()):
+    def __init__(self, log=logtoscreen("IBserver")):
         self._my_contract_details = {}
         self._my_historic_data_dict = {}
 

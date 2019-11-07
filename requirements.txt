@@ -1,4 +1,4 @@
-pandas>=0.22.0
+pandas>=0.25.2
 matplotlib>=1.4.3
 pyyaml>=3.11
 numpy>=1.13.3

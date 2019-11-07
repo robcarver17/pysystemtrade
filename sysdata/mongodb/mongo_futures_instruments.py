@@ -14,7 +14,7 @@ class mongoFuturesInstrumentData(futuresInstrumentData):
 
     """
 
-    def __init__(self, mongo_db = None, log=logtoscreen()):
+    def __init__(self, mongo_db = None, log=logtoscreen("mongoFuturesInstrumentData")):
 
         super().__init__(log=log)
         self._mongo = mongoConnection(INSTRUMENT_COLLECTION, mongo_db=mongo_db)

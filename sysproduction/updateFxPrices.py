@@ -7,8 +7,9 @@ from sysdata.mongodb.mongo_connection import mongoDb
 from sysbrokers.IB.ibSpotFXData import ibFxPricesData
 from sysdata.arctic.arctic_spotfx_prices import arcticFxPricesData
 from syslogdiag.log import logToMongod as logger
+mongo_db = mongoDb() # will use default database, host unles specified here
+log=logger("Update-FX-prices", mongo_db=mongo_db)
 
-import pandas as pd
 
 def update_fx_prices():
     """
@@ -17,12 +18,13 @@ def update_fx_prices():
     :return: Nothing
     """
 
-    log=logger("Update-FX-prices")
-
-    ib_conn = connectionIB(log=log.setup(component="IB-connection")) # will use default port, host
     mongo_db = mongoDb() # will use default database, host unles specified here
 
-    ibfxpricedata = ibFxPricesData(ib_conn, mongo_db = mongo_db, log=log.setup(component="ibFxPricesData"))
+    log=logger("Update-FX-prices", mongo_db=mongo_db)
+
+    ib_conn = connectionIB(log=log.setup(component="IB-connection")) # will use default port, host
+
+    ibfxpricedata = ibFxPricesData(ib_conn, log=log.setup(component="ibFxPricesData"))
     arcticfxdata = arcticFxPricesData(mongo_db=mongo_db, log=log.setup(component="arcticFxPricesData"))
 
     list_of_codes_all = ibfxpricedata.get_list_of_fxcodes()  # codes must be in .csv file /sysbrokers/IB/ibConfigSpotFx.csv
@@ -31,23 +33,4 @@ def update_fx_prices():
         log.label(currency_code = fx_code)
         new_fx_prices = ibfxpricedata.get_fx_prices(fx_code) # returns fxPrices object
 
-        if len(new_fx_prices)==0:
-            log.error("Error trying to get data for %s" % fx_code)
-            continue
-
-        old_fx_prices = arcticfxdata.get_fx_prices(fx_code)
-
-        new_fx_prices = new_fx_prices[new_fx_prices.index>old_fx_prices.index[-1]]
-
-        if len(new_fx_prices)==0:
-            log.msg("No additional data for %s" % fx_code)
-            continue
-
-        fx_prices = pd.concat([old_fx_prices, new_fx_prices], axis=0)
-        fx_prices = fx_prices.sort_index()
-
-        # remove duplicates
-        fx_prices = fx_prices[~fx_prices.index.duplicated(keep='first')]
-
-        # write
-        arcticfxdata.add_fx_prices(fx_code, fx_prices, ignore_duplication=True)
+        arcticfxdata.update_fx_prices(fx_code, new_fx_prices)

@@ -31,7 +31,7 @@ class SystemStage(object):
         setattr(self, "description", self._description())
 
         # this will normally be overriden by the base system when we call _system_init
-        setattr(self, "log", logtoscreen(stage="config"))
+        setattr(self, "log", logtoscreen("generic_stage", stage="config"))
 
     def _name(self):
         ## normally overriden

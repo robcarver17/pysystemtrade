@@ -32,13 +32,13 @@ You need to:
 - Install [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git), install or update [python3](https://docs.python-guide.org/starting/install3/linux/). You may also find a simple text editor (like emacs) is useful for fine tuning, and if you are using a headless server then [x11vnc](http://www.karlrunge.com/x11vnc/) is helpful.
 - Add the following environment variables to your .profile: (feel free to use other directories):
    - MONGO_DATA=/home/user_name/data/mongodb/
-   - PYSYS_CODE=/home/user_name/data/workspace3/pysystemtrade
-   - SCRIPT_PATH=/home/user_name/data/workspace3/pysystemtrade/sysproduction/linux/scripts
+   - PYSYS_CODE=/home/user_name/pysystemtrade
+   - SCRIPT_PATH=/home/user_name/pysystemtrade/sysproduction/linux/scripts
    - ECHO_PATH=/home/user/echos
 - Create the following directories (again use other directories, but you must modify the .profile above and crontab below)
    - '/data/mongodb/'
    - '/echos/'
-   - '/workspace3/
+   - '/pysystemtrade/
 - Install the pysystemtrade package, and install or update, any dependencies in directory $PYSYS_CODE (it's possible to put it elsewhere, but you will need to modify the environment variables listed above)
 - [Set up interactive brokers](/docs/IB.md), download and install their python code, and get a gateway running.
 - [Install mongodb](https://docs.mongodb.com/manual/administration/install-on-linux/) 
@@ -46,7 +46,8 @@ You need to:
 - [check a mongodb server is running with the right data directory](/docs/futures.md#mongo-db) command line: `mongod --dbpath $MONGO_DATA`
 - launch an IB gateway (this could be done automatically depending on your security setup)
 - [Initialise the spot FX data in MongoDB from .csv files](/sysinit/futures/repocsv_spotfx_prices.py) (this will be out of date, but you will update it in a moment)
-- Update the FX price data in MongoDB using interactive brokers: command line:`. /home/your_user_name/workspace3/pysystemtrade/sysproduction/linux/scripts/read_fx_prices`
+- Check that you have got spot FX data present: command line:`. /pysystemtrade/sysproduction/linux/scripts/read_fx_prices`
+- Update the FX price data in MongoDB using interactive brokers: command line:`. /home/your_user_name/workspace3/pysystemtrade/sysproduction/linux/scripts/update_fx_prices`
 - Initialise the [supplied crontab](/sysproduction/linux/crontab). Note if you have put your code or echos somewhere else you will need to modify the directory references at the top of the crontab.
 - All scripts executable by the crontab need to be executable, so do the following: `cd $SCRIPT_PATH` ; `sudo chmod +x update*` ;`sudo chmod +x truncate*` FIX ME ADD FURTHER FILES AS REQUIRED
 
@@ -321,9 +322,12 @@ from syslogdiag.log import accessLogFromMongodb
 ```
 # can optionally pass mongodb connection attributes here
 mlog = accessLogFromMongodb()
+# Return a list of strings per log line
 mlog.get_log_items(dict(type="top-level-function")) # any attribute directory here is fine as a filter, defaults to last days results
-mlog.get_log_items(dict(type="top-level-function"), lookback_days=7) # get last weeks worth
-mlog.get_log_items_as_tuple(dict(type="top-level-function")) # returns as list of 4-tuple, useful for reporting
+# Printout log entries
+mlog.print_log_items(dict(type="top-level-function"), lookback_days=7) # get last weeks worth
+# Return a list of logEntry objects, useful for dissecting
+mlog.get_log_items_as_entries(dict(type="top-level-function"))
 ```
 
 

@@ -16,7 +16,7 @@ def read_fx_prices(currency_code: str, tail_size:int = 20):
     :return: None, but print results
     """
 
-    log=logger()
+    log=logger("read_fx_prices")
 
     arcticfxdata = arcticFxPricesData(log=log.setup(component="arcticFxPricesData"))
 

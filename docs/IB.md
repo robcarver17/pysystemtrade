@@ -89,11 +89,10 @@ You will also need to configure the Gateway:
 
 ```
 from sysbrokers.IB.ibConnection import  connectionIB
-config = connectionIB(ipaddress = "127.0.0.1", port=4001, client = 1) # these are the default values and can be ommitted
-conn = connectionIB(config)
+conn = connectionIB(ipaddress = "127.0.0.1", port=4001, client = 1) # these are the default values and can be ommitted
 conn
 
-Out[13]: ibconnection(ipaddress='127.0.0.1', port=4001, client=1)
+Out[13]: IB broker connection{'ipaddress': '127.0.0.1', 'port': 4001, 'client': 1}
 
 ```
 

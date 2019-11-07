@@ -12,7 +12,7 @@ class mongoRollParametersData(rollParametersData):
 
     """
 
-    def __init__(self, mongo_db = None, log=logtoscreen()):
+    def __init__(self, mongo_db = None, log=logtoscreen("mongoRollParametersData")):
 
         super().__init__(log=log)
 

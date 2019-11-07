@@ -17,7 +17,7 @@ class mongoFuturesContractData(futuresContractData):
     If you want more information about a given instrument you have to read it in using mongoFuturesInstrumentData
     """
 
-    def __init__(self, mongo_db = None, log=logtoscreen()):
+    def __init__(self, mongo_db = None, log=logtoscreen("mongoFuturesContractData")):
 
         super().__init__(log=log)
 
