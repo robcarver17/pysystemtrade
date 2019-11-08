@@ -7,7 +7,6 @@ import os
 
 import pandas as pd
 
-from syscore.fileutils import get_pathname_for_package
 
 from sysdata.data import simData
 from sysdata.futures.futuresDataForSim import futuresAdjustedPriceData, futuresConfigDataForSim, futuresMultiplePriceData

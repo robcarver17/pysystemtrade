@@ -57,4 +57,6 @@ class csvFuturesMultiplePricesData(futuresMultiplePricesData):
         multiple_price_data.to_csv(filename, index_label = DATE_INDEX_NAME)
 
     def _filename_given_instrument_code(self, instrument_code):
-        return get_filename_for_package("%s.%s.csv" %(self._datapath,instrument_code))
+        filename = get_filename_for_package(self._datapath, "%s.csv" %(instrument_code))
+
+        return filename

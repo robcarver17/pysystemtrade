@@ -1,9 +1,11 @@
 import pandas as pd
 from sysdata.data import baseData
 from sysdata.futures.contracts import futuresContract
+import numpy as np
 
 PRICE_DATA_COLUMNS = ['OPEN', 'CLOSE', 'HIGH', 'LOW', 'SETTLE']
 PRICE_DATA_COLUMNS.sort() # needed for pattern matching
+CLOSE_COLUMN = 'CLOSE'
 
 class futuresContractPrices(pd.DataFrame):
     """
@@ -11,8 +13,6 @@ class futuresContractPrices(pd.DataFrame):
     """
 
     def __init__(self, data):
-
-        print(data)
 
         data_present = list(data.columns)
         data_present.sort()
@@ -38,6 +38,13 @@ class futuresContractPrices(pd.DataFrame):
 
         futures_contract_prices._is_empty = True
         return futures_contract_prices
+
+    @classmethod
+    def closing_only(futuresContractPrices, data):
+        data = pd.DataFrame(data, columns = [CLOSE_COLUMN])
+        data=data.reindex(columns=PRICE_DATA_COLUMNS)
+
+        return futuresContractPrices(data)
 
     def empty(self):
         return

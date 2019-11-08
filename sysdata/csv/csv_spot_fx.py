@@ -75,7 +75,7 @@ class csvFxPricesData(fxPricesData):
 
 
     def _filename_given_fx_code(self, code):
-        return get_filename_for_package("%s.%s.csv" %(self._datapath,code))
+        return get_filename_for_package(self._datapath, "%s.csv" %(code))
 
 
 

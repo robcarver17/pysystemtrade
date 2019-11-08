@@ -17,7 +17,7 @@ class csvFuturesInstrumentData(futuresInstrumentData):
         if config_path is None:
             config_path = INSTRUMENT_CONFIG_PATH
 
-        self._config_file = get_filename_for_package(config_path+"."+CONFIG_FILE_NAME)
+        self._config_file = get_filename_for_package(config_path, CONFIG_FILE_NAME)
         self.name = "Instruments data from %s" % self._config_file
 
     def get_all_instrument_data(self):

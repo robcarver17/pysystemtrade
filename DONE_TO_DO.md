@@ -1,5 +1,10 @@
 # Release notes
 
+## Version 0.23.0
+
+'get_filename_for_package' can now take absolute as well as relative paths, and can cope with seperate file names
+Updated legacy .csv files
+
 ## Version 0.22.0
 
 *Now requires python 3.6.0, pandas 0.25.2*
