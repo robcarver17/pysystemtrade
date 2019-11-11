@@ -65,7 +65,7 @@ setup(
     package_data=package_data,
     long_description=read('README.md'),
     install_requires=[
-        "pandas >= 0.19.0", "numpy >= 1.10.1", "matplotlib > 1.4.3",
+        "pandas >= 0.25.2", "numpy >= 1.13.3", "matplotlib > 1.4.3",
         "PyYAML>=3.11", "scipy>=0.17"
     ],
     tests_requires=['nose', 'flake8'],
