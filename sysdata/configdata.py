@@ -51,7 +51,7 @@ class Config(object):
         setattr(self, "_elements", [])  # will be populated later
 
         # this will normally be overriden by the base system
-        setattr(self, "log", logtoscreen(stage="config"))
+        setattr(self, "log", logtoscreen(type="config", stage="config"))
 
         if isinstance(config_object, list):
             # multiple configs
