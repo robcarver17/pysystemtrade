@@ -261,6 +261,18 @@ class rollCalendar(pd.DataFrame):
 
         return checks_okay
 
+    def last_current_contract(self):
+        """
+        Returns the oldest contract in the final row of the row calendar
+
+        :return: contractDate
+        """
+
+        final_row = self.tail(1).values
+        last_contract_numeric = final_row.max()
+        last_contract = contractDate(str(last_contract_numeric))
+
+        return last_contract
 
 USE_CHILD_CLASS_ROLL_CALENDAR_ERROR = "You need to use a child class of rollCalendarData"
 

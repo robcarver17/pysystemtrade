@@ -2,6 +2,7 @@ from bisect import bisect_left, bisect_right
 
 import datetime
 import pandas as pd
+from copy import copy
 
 from syscore.dateutils import contract_month_from_number, month_from_contract_letter
 from sysdata.futures.contract_dates_and_expiries import contractDate, from_contract_numbers_to_contract_string, NO_DAY_PASSED, NO_EXPIRY_DATE_PASSED
@@ -506,6 +507,22 @@ class contractDateWithRollParameters(contractDate):
     def want_to_roll(self):
         return self.expiry_date+ datetime.timedelta(days = self.roll_parameters.roll_offset_day)
 
+    def get_unexpired_contracts_from_now_to_contract_date(self):
+        """
+        Returns all the unexpired contracts between now and the contract date
+
+        :return: list of contractDate
+        """
+
+        datetime_now = datetime.datetime.now()
+        contract_dates = []
+        current_contract = copy(self)
+
+        while current_contract.as_date() >= datetime_now:
+            contract_dates.append(current_contract)
+            current_contract = current_contract.previous_priced_contract()
+
+        return contract_dates
 
 USE_CHILD_CLASS_ROLL_PARAMS_ERROR = "You need to use a child class of rollParametersData"
 

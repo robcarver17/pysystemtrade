@@ -4,6 +4,8 @@
 
 'get_filename_for_package' can now take absolute as well as relative paths, and can cope with seperate file names
 Updated legacy .csv files
+Fixed a few bugs
+Can now get unexpired contracts for a given instrument using 'contractDateWithRollParameters.get_unexpired_contracts_from_now_to_contract_date()'
 
 ## Version 0.22.0
 
