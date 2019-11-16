@@ -34,3 +34,5 @@ def update_fx_prices():
         new_fx_prices = ibfxpricedata.get_fx_prices(fx_code) # returns fxPrices object
 
         arcticfxdata.update_fx_prices(fx_code, new_fx_prices)
+
+    ib_conn.disconnect()
