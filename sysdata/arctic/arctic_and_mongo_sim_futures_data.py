@@ -14,6 +14,7 @@ from sysdata.futures.futuresDataForSim import futuresAdjustedPriceData, futuresC
 from sysdata.arctic.arctic_adjusted_prices import arcticFuturesAdjustedPricesData
 from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesData
 from sysdata.arctic.arctic_spotfx_prices import arcticFxPricesData
+from sysdata.mongodb.mongo_connection import mongoDb
 from sysdata.mongodb.mongo_futures_instruments import mongoFuturesInstrumentData
 
 
@@ -72,7 +73,7 @@ class mongoFuturesConfigDataForSim(dbconnections, futuresConfigDataForSim):
         database_name = self._database_name
         host = self._host
         port = self._port
-        data_object = mongoFuturesInstrumentData(database_name=database_name, host=host, port=port)
+        data_object = mongoFuturesInstrumentData(mongoDb(database_name=database_name, host=host))
 
         return data_object
 
@@ -130,7 +131,7 @@ class arcticFuturesAdjustedPriceSimData(dbconnections, futuresAdjustedPriceData)
         host = self._host
         port = self._port
 
-        adj_prices_data = arcticFuturesAdjustedPricesData(database_name=database_name, host=host, port=port)
+        adj_prices_data = arcticFuturesAdjustedPricesData(mongoDb(database_name=database_name, host=host))
         adj_prices_data.log = self.log
 
         return adj_prices_data
@@ -164,7 +165,7 @@ class arcticFuturesMultiplePriceSimData(dbconnections, futuresMultiplePriceData)
         host = self._host
         port = self._port
 
-        multiple_prices_data_object = arcticFuturesMultiplePricesData(database_name=database_name, host=host, port=port)
+        multiple_prices_data_object = arcticFuturesMultiplePricesData(mongoDb(database_name=database_name, host=host))
         multiple_prices_data_object.log = self.log
 
         return multiple_prices_data_object
@@ -212,7 +213,7 @@ class arcticFXSimData(dbconnections, simData):
         host = self._host
         port = self._port
 
-        fx_prices_data_object = arcticFxPricesData(database_name=database_name, host=host, port=port)
+        fx_prices_data_object = arcticFxPricesData(mongoDb(database_name=database_name, host=host))
         fx_prices_data_object.log = self.log
 
         return fx_prices_data_object
