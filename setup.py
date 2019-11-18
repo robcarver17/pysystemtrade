@@ -68,7 +68,7 @@ setup(
         "pandas >= 0.25.2", "numpy >= 1.13.3", "matplotlib > 1.4.3",
         "PyYAML>=3.11", "scipy>=0.17"
     ],
-    tests_requires=['nose', 'flake8'],
+    tests_require=['nose', 'flake8'],
     extras_require=dict(),
     test_suite='nose.collector',
     include_package_data=True)
