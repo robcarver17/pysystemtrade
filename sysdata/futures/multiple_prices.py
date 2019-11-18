@@ -2,7 +2,7 @@
 A multiple price object is a:
 
 pd. dataframe with the 6 columns PRICE, CARRY, PRICE_CONTRACT, CARRY_CONTRACT, FORWARD, FORWARD_CONTRACT
-
+s
 All contracts are in yyyymm format
 
 We require these to calculate back adjusted prices and also to work out carry
@@ -62,9 +62,24 @@ class futuresMultiplePrices(pd.DataFrame):
             next_contract = contracts_now.next_contract
             carry_contract = contracts_now.carry_contract
 
-            current_price_data = dict_of_futures_contract_prices[str(current_contract)][start_of_roll_period:end_of_roll_period]
-            next_price_data = dict_of_futures_contract_prices[str(next_contract)][start_of_roll_period:end_of_roll_period]
-            carry_price_data = dict_of_futures_contract_prices[str(carry_contract)][start_of_roll_period:end_of_roll_period]
+            current_contract_str = str(current_contract)
+            next_contract_str = str(next_contract)
+            carry_contract_str = str(carry_contract)
+
+            if (current_contract_str not in dict_of_futures_contract_prices.keys()) or \
+                (next_contract_str not in dict_of_futures_contract_prices.keys()) or \
+                (carry_contract_str not in dict_of_futures_contract_prices.keys()):
+
+                    # missing, this is okay if we haven't started properly yet
+                    if len(all_price_data_stack)==0:
+                        print("Missing contracts at start of roll calendar not in price data, ignoring")
+                        continue
+                    else:
+                        raise Exception("Missing contracts in middle of roll calendar %s, not in price data!" % str(next_roll_date))
+
+            current_price_data = dict_of_futures_contract_prices[current_contract_str][start_of_roll_period:end_of_roll_period]
+            next_price_data = dict_of_futures_contract_prices[next_contract_str][start_of_roll_period:end_of_roll_period]
+            carry_price_data = dict_of_futures_contract_prices[carry_contract_str][start_of_roll_period:end_of_roll_period]
 
             all_price_data = pd.concat([current_price_data, next_price_data, carry_price_data], axis=1)
             all_price_data.columns = ["PRICE", "FORWARD", "CARRY"]

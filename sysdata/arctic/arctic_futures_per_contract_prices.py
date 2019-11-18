@@ -69,7 +69,7 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
         ## What if not found? CHECK
 
         ## Returns a data frame which should have the right format
-        data = item.data
+        data = pd.DataFrame(item.data)
 
         return futuresContractPrices(data)
 

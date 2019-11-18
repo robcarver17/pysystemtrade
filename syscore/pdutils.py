@@ -117,7 +117,8 @@ def pd_readcsv_frompackage(filename):
     return pd_readcsv(full_filename)
 
 
-def pd_readcsv(filename, date_index_name="DATETIME", date_format=DEFAULT_DATE_FORMAT):
+def pd_readcsv(filename, date_index_name="DATETIME", date_format=DEFAULT_DATE_FORMAT,
+               input_column_mapping = None, skiprows=0, skipfooter=0):
     """
     Reads a pandas data frame, with time index labelled
     package_name(/path1/path2.., filename
@@ -128,22 +129,34 @@ def pd_readcsv(filename, date_index_name="DATETIME", date_format=DEFAULT_DATE_FO
     :param date_index_name: Column name of date index
     :type date_index_name: list of str
 
-    :param DEFAULT_DATE_FORMAT: https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior
-    :type DEFAULT DATE_FORMAT: str
+    :param date_format: https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior
+    :type date_format: str
+
+    :param input_column_mapping: If supplied remaps column names in .csv file
+    :type input_column_mapping: dict or None
+
+    :param skiprows, skipfooter: passed to pd.read_csv
 
     :returns: pd.DataFrame
 
     """
 
-    ans = pd.read_csv(filename)
+    ans = pd.read_csv(filename, skiprows=skiprows, skipfooter=skipfooter)
     ans.index = pd.to_datetime(ans[date_index_name], format=date_format).values
 
     del ans[date_index_name]
 
     ans.index.name = None
 
-    return ans
+    if input_column_mapping is None:
+        return ans
 
+    # Have to remap
+    new_ans = pd.DataFrame(index=ans.index)
+    for new_col_name, old_col_name in input_column_mapping.items():
+        new_ans[new_col_name] = ans[old_col_name]
+
+    return new_ans
 
 def fix_weights_vs_pdm(weights, pdm):
     """
@@ -286,6 +299,37 @@ def dataframe_pad(starting_df, column_list, padwith=0.0):
     return new_df
 
 
+def full_merge_of_existing_data(old_data, new_data):
+    """
+    Merges old data with new data.
+    Any Nan in the existing data will be replaced (be careful!)
+
+    :param old_data: pd.DataFrame
+    :param new_data: pd.DataFrame
+
+    :returns: pd.DataFrame
+    """
+
+    old_columns = old_data.columns
+    merged_data = {}
+    for colname in old_columns:
+        old_series = copy(old_data[colname])
+        try:
+            new_series = copy(new_data[colname])
+        except KeyError:
+            # missing from new data, so we just take the old
+            merged_data[colname] = old_data
+            continue
+
+        concat_series = pd.concat([old_series, new_series], axis=0)
+        merged_series = concat_series.loc[~concat_series.index.duplicated(keep="first")]
+
+        merged_data[colname] = merged_series
+
+    merged_data_as_df = pd.DataFrame(merged_data)
+    merged_data_as_df = merged_data_as_df.sort_index()
+
+    return merged_data_as_df
 
 if __name__ == '__main__':
     import doctest

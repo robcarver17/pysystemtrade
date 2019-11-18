@@ -9,16 +9,21 @@ Adjusted prices:
 import pandas as pd
 import numpy as np
 from sysdata.data import baseData
+from copy import copy
 
-def panama_stitch(multiple_prices):
+def panama_stitch(multiple_prices_input, forward_fill = False):
     """
     Do a panama stich for adjusted prices
 
     :param multiple_prices:  futuresMultiplePrices
     :return: pd.Series of adjusted prices
     """
+    multiple_prices = copy(multiple_prices_input)
+
     previous_row = multiple_prices.iloc[0, :]
     adjusted_prices_values = [previous_row.PRICE]
+
+    roll_differential_series = multiple_prices.FORWARD - multiple_prices.PRICE
 
     for dateindex in multiple_prices.index[1:]:
         current_row = multiple_prices.loc[dateindex, :]
@@ -81,17 +86,20 @@ class futuresAdjustedPrices(pd.Series):
 
 
     @classmethod
-    def stich_multiple_prices(futuresAdjustedPrices, multiple_prices):
+    def stich_multiple_prices(futuresAdjustedPrices, multiple_prices, forward_fill=False):
         """
         Do backstitching of multiple prices using panama method
 
         If you want to change then override this method
 
-        :param multiple_prices:
+        :param multiple_prices: multiple prices object
+        :param forward_fill: forward fill prices and forwards before stitching
+
         :return: futuresAdjustedPrices
+
         """
 
-        adjusted_prices = panama_stitch(multiple_prices)
+        adjusted_prices = panama_stitch(multiple_prices, forward_fill = forward_fill)
 
         return futuresAdjustedPrices(adjusted_prices)
 

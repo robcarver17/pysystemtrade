@@ -3,6 +3,7 @@ import pandas as pd
 from sysdata.futures.adjusted_prices import futuresAdjustedPricesData, futuresAdjustedPrices
 from syscore.fileutils import get_filename_for_package, files_with_extension_in_pathname
 from syscore.pdutils import pd_readcsv
+from syslogdiag.log import logtoscreen
 
 
 ADJUSTED_PRICES_DIRECTORY = "data.futures.adjusted_prices_csv"
@@ -14,14 +15,15 @@ class csvFuturesAdjustedPricesData(futuresAdjustedPricesData):
     Class for adjusted prices write / to from csv
     """
 
-    def __init__(self, datapath=None):
+    def __init__(self, datapath=None, log=logtoscreen("csvFuturesContractPriceData")):
 
-        super().__init__()
+        super().__init__(log=log)
 
         if datapath is None:
             datapath = ADJUSTED_PRICES_DIRECTORY
 
         self._datapath = datapath
+
 
     def __repr__(self):
         return "csvFuturesAdjustedPricesData accessing %s" % self._datapath

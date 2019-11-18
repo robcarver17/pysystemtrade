@@ -1,7 +1,7 @@
 import pandas as pd
 from sysdata.data import baseData
 from sysdata.futures.contracts import futuresContract
-import numpy as np
+from syscore.pdutils import full_merge_of_existing_data
 
 PRICE_DATA_COLUMNS = ['OPEN', 'CLOSE', 'HIGH', 'LOW', 'SETTLE']
 PRICE_DATA_COLUMNS.sort() # needed for pattern matching
@@ -51,7 +51,50 @@ class futuresContractPrices(pd.DataFrame):
 
     @property
     def settlement_prices(self):
-        return self.SETTLE
+        settlement_prices = self._return_or_replace("SETTLE", "CLOSE")
+        return settlement_prices
+
+    @property
+    def closing_prices(self):
+        closing_prices = self._return_or_replace("CLOSE", "SETTLE")
+        return closing_prices
+
+    def _check_if_all_missing(self, col_name):
+        return self[col_name].isna().all()
+
+    def _return_or_replace(self, col_name_required, col_name_replace):
+        if self._check_if_all_missing(col_name_required):
+            return self[col_name_replace]
+        else:
+            return self[col_name_required]
+
+    def merge_with_other_prices(self, new_futures_per_contract_prices, only_add_rows=True):
+        """
+        Merges self with new data.
+        If only_add_rows is True,
+        Otherwise: Any Nan in the existing data will be replaced (be careful!)
+
+        :param new_futures_per_contract_prices: another futures per contract prices object
+
+        :return: merged futures_per_contract object
+        """
+        if only_add_rows:
+            return self.add_rows_to_existing_data(new_futures_per_contract_prices)
+        else:
+            return self._full_merge_of_existing_data(new_futures_per_contract_prices)
+
+    def _full_merge_of_existing_data(self, new_futures_per_contract_prices):
+        """
+        Merges self with new data.
+        Any Nan in the existing data will be replaced (be careful!)
+
+        :param new_futures_per_contract_prices: the new data
+        :return: updated data, doesn't update self
+        """
+
+        merged_data = full_merge_of_existing_data(self, new_futures_per_contract_prices)
+
+        return futuresContractPrices(merged_data)
 
 class dictFuturesContractPrices(dict):
     """
@@ -77,6 +120,19 @@ class dictFuturesContractPrices(dict):
                                                        for contract_id in all_contract_ids])
 
         return settle_price_dict
+
+    def closing_prices(self):
+        """
+
+        :return: dict of closing prices
+        """
+
+        all_contract_ids = self.keys()
+        close_price_dict = dictFuturesContractPrices([(contract_id, self[contract_id].closing_prices)
+                                                       for contract_id in all_contract_ids])
+
+        return close_price_dict
+
 
     def sorted_contract_ids(self):
         """
@@ -165,17 +221,6 @@ class futuresContractPriceData(baseData):
 
         return list_of_instruments
 
-    def contractids_with_price_data_for_instrument_code(self, instrument_code):
-        """
-
-        :param instrument_code:
-        :return: list of str
-        """
-
-        list_of_contracts_with_price_data = self.get_contracts_with_price_data()
-        contractids = [contract.contract_date for contract in list_of_contracts_with_price_data if contract.instrument_code == instrument_code]
-
-        return contractids
 
 
     def has_data_for_instrument_code_and_contract_date(self, instrument_code, contract_date):
@@ -195,7 +240,7 @@ class futuresContractPriceData(baseData):
         contract_date = contract_object.date
         instrument_code = contract_object.instrument_code
 
-        if contract_date in self.contracts_with_price_data_for_instrument_code(instrument_code):
+        if contract_date in self.contract_dates_with_price_data_for_instrument_code(instrument_code):
             return True
         else:
             return False
@@ -247,11 +292,11 @@ class futuresContractPriceData(baseData):
         :return: dictFuturesContractPrices
         """
 
-        contract_list = self.contracts_with_price_data_for_instrument_code(instrument_code)
-        dict_of_prices = dictFuturesContractPrices([(contractid,
-                         self.get_prices_for_instrument_code_and_contract_date(instrument_code, contractid))
+        contractid_list = self.contract_dates_with_price_data_for_instrument_code(instrument_code)
+        dict_of_prices = dictFuturesContractPrices([(contract_date,
+                         self.get_prices_for_instrument_code_and_contract_date(instrument_code, contract_date))
 
-                         for contractid in contract_list])
+                         for contract_date in contractid_list])
 
         return dict_of_prices
 
@@ -298,16 +343,25 @@ class futuresContractPriceData(baseData):
 
     def contracts_with_price_data_for_instrument_code(self, instrument_code):
         """
-        Valid contract_dates for a given instrument code
+        Valid contracts
 
         :param instrument_code: str
-        :return: list
+        :return: list of contract_date
         """
 
-        all_keynames = self._all_keynames_in_library()
-        all_keynames_as_tuples = [self._contract_tuple_given_keyname(keyname) for keyname in all_keynames]
+        list_of_contracts_with_price_data = self.get_contracts_with_price_data()
+        list_of_contracts = [contract for contract in list_of_contracts_with_price_data if contract.instrument_code==instrument_code]
 
-        all_keynames_for_code = [keyname_tuple[1] for keyname_tuple in all_keynames_as_tuples if keyname_tuple[0]==instrument_code]
+        return list_of_contracts
 
-        return all_keynames_for_code
+    def contract_dates_with_price_data_for_instrument_code(self, instrument_code):
+        """
 
+        :param instrument_code:
+        :return: list of str
+        """
+
+        list_of_contracts_with_price_data = self.contracts_with_price_data_for_instrument_code(instrument_code)
+        contract_dates = [str(contract.contract_date) for contract in list_of_contracts_with_price_data if contract.instrument_code == instrument_code]
+
+        return contract_dates

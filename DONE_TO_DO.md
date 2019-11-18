@@ -1,5 +1,10 @@
 # Release notes
 
+## Version 0.24.0 ACTIVE
+
+Fixed bugs relating to building multiple and adjusted prices
+Slight refactoring of futuresContractPrices objects
+
 ## Version 0.23.0
 
 'get_filename_for_package' can now take absolute as well as relative paths, and can cope with seperate file names

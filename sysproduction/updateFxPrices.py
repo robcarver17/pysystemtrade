@@ -7,8 +7,7 @@ from sysdata.mongodb.mongo_connection import mongoDb
 from sysbrokers.IB.ibSpotFXData import ibFxPricesData
 from sysdata.arctic.arctic_spotfx_prices import arcticFxPricesData
 from syslogdiag.log import logToMongod as logger
-mongo_db = mongoDb() # will use default database, host unles specified here
-log=logger("Update-FX-prices", mongo_db=mongo_db)
+
 
 
 def update_fx_prices():
