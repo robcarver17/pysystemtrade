@@ -30,19 +30,19 @@ if __name__ == '__main__':
     csv_multiple_prices = csvFuturesMultiplePricesData()
 
     instrument_list = arctic_individual_futures_prices.get_instruments_with_price_data()
-    instrument_code="EDOLLAR"
-     #   for instrument_code in ["EDOLLAR"]:
-    print(instrument_code)
-    roll_calendar = csv_roll_calendars.get_roll_calendar(instrument_code)
-    dict_of_futures_contract_prices = arctic_individual_futures_prices.get_all_prices_for_instrument(instrument_code)
-    dict_of_futures_contract_closing_prices = dict_of_futures_contract_prices.closing_prices()
+    #instrument_list=["AUD"]
+    for instrument_code in instrument_list:
+        print(instrument_code)
+        roll_calendar = csv_roll_calendars.get_roll_calendar(instrument_code)
+        dict_of_futures_contract_prices = arctic_individual_futures_prices.get_all_prices_for_instrument(instrument_code)
+        dict_of_futures_contract_closing_prices = dict_of_futures_contract_prices.closing_prices()
 
-    multiple_prices = futuresMultiplePrices.create_from_raw_data(roll_calendar, dict_of_futures_contract_closing_prices)
+        multiple_prices = futuresMultiplePrices.create_from_raw_data(roll_calendar, dict_of_futures_contract_closing_prices)
 
-    print(multiple_prices)
+        print(multiple_prices)
 
-    if ADD_TO_ARCTIC:
-        arctic_multiple_prices.add_multiple_prices(instrument_code, multiple_prices, ignore_duplication=True)
-    if ADD_TO_CSV:
-        csv_multiple_prices.add_multiple_prices(instrument_code, multiple_prices, ignore_duplication=True)
+        if ADD_TO_ARCTIC:
+            arctic_multiple_prices.add_multiple_prices(instrument_code, multiple_prices, ignore_duplication=True)
+        if ADD_TO_CSV:
+            csv_multiple_prices.add_multiple_prices(instrument_code, multiple_prices, ignore_duplication=True)
 
