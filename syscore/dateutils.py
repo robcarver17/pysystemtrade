@@ -32,8 +32,34 @@ UNIXTIME_CONVERTER = 1e9
 
 UNIXTIME_IN_YEAR = UNIXTIME_CONVERTER * SECONDS_IN_YEAR
 
-MONTH_LIST = ["F", "G", "H", "J", "K", "M", "N", "Q", "U", "V", "X", "Z"]
 
+CLOSING_OFFSET = pd.DateOffset(hours=23, minutes=0, seconds=0)
+
+def index_to_closing(data_object):
+    """
+    If index is daily, add an offset. By convention this is 23:00 exactly
+    Allows us to mix daily and intraday prices and seperate if required
+
+    :param data_object:
+    :return:
+    """
+    new_index = []
+    for index_entry in data_object.index:
+        # Check for genuine daily data to add notional timestamp to, or weird legacy data issue (FIX ME REMOVE WHEN DONE)
+        if (index_entry.hour==0 and index_entry.minute==0 and index_entry.second==0) or \
+                (index_entry.hour==23 and index_entry.minute==23 and index_entry.second==32):
+
+            new_index_entry = index_entry.date() + CLOSING_OFFSET
+        else:
+            new_index_entry = index_entry
+
+        new_index.append(new_index_entry)
+
+    new_data_object=pd.DataFrame(data_object.values, index=new_index, columns=data_object.columns)
+
+    return new_data_object
+
+MONTH_LIST = ["F", "G", "H", "J", "K", "M", "N", "Q", "U", "V", "X", "Z"]
 
 def month_from_contract_letter(contract_letter):
     """

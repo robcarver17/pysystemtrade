@@ -36,11 +36,11 @@ class futuresMultiplePrices(pd.DataFrame):
 
 
     @classmethod
-    def create_from_raw_data(futuresMultiplePrices, roll_calendar, dict_of_futures_contract_prices):
+    def create_from_raw_data(futuresMultiplePrices, roll_calendar, dict_of_futures_contract_closing_prices):
         """
 
         :param roll_calendar: rollCalendar
-        :param dict_of_futures_contract_prices: dictFuturesContractPrices with only one column
+        :param dict_of_futures_closing_contract_prices: dictFuturesContractPrices with only one column
 
         :return: pd.DataFrame with the 6 columns PRICE, CARRY, FORWARD, PRICE_CONTRACT, CARRY_CONTRACT, FORWARD_CONTRACT
         """
@@ -48,6 +48,7 @@ class futuresMultiplePrices(pd.DataFrame):
         # We need the carry contracts
 
         all_price_data_stack=[]
+        contract_keys = dict_of_futures_contract_closing_prices.keys()
 
         for rolling_row_index in range(len(roll_calendar.index))[1:]:
             # Between these dates is where we are populating prices
@@ -66,9 +67,9 @@ class futuresMultiplePrices(pd.DataFrame):
             next_contract_str = str(next_contract)
             carry_contract_str = str(carry_contract)
 
-            if (current_contract_str not in dict_of_futures_contract_prices.keys()) or \
-                (next_contract_str not in dict_of_futures_contract_prices.keys()) or \
-                (carry_contract_str not in dict_of_futures_contract_prices.keys()):
+            if (current_contract_str not in contract_keys) or \
+                (next_contract_str not in contract_keys) or \
+                (carry_contract_str not in contract_keys):
 
                     # missing, this is okay if we haven't started properly yet
                     if len(all_price_data_stack)==0:
@@ -77,9 +78,9 @@ class futuresMultiplePrices(pd.DataFrame):
                     else:
                         raise Exception("Missing contracts in middle of roll calendar %s, not in price data!" % str(next_roll_date))
 
-            current_price_data = dict_of_futures_contract_prices[current_contract_str][start_of_roll_period:end_of_roll_period]
-            next_price_data = dict_of_futures_contract_prices[next_contract_str][start_of_roll_period:end_of_roll_period]
-            carry_price_data = dict_of_futures_contract_prices[carry_contract_str][start_of_roll_period:end_of_roll_period]
+            current_price_data = dict_of_futures_contract_closing_prices[current_contract_str][start_of_roll_period:end_of_roll_period]
+            next_price_data = dict_of_futures_contract_closing_prices[next_contract_str][start_of_roll_period:end_of_roll_period]
+            carry_price_data = dict_of_futures_contract_closing_prices[carry_contract_str][start_of_roll_period:end_of_roll_period]
 
             all_price_data = pd.concat([current_price_data, next_price_data, carry_price_data], axis=1)
             all_price_data.columns = ["PRICE", "FORWARD", "CARRY"]
@@ -90,6 +91,7 @@ class futuresMultiplePrices(pd.DataFrame):
 
             all_price_data_stack.append(all_price_data)
 
+        # end of loop
         all_price_data_stack = pd.concat(all_price_data_stack, axis=0)
 
         multiple_prices = futuresMultiplePrices(all_price_data_stack)

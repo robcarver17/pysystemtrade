@@ -29,8 +29,8 @@ if __name__ == '__main__':
     arctic_multiple_prices = arcticFuturesMultiplePricesData()
     csv_multiple_prices = csvFuturesMultiplePricesData()
 
-    instrument_list = arctic_individual_futures_prices.get_instruments_with_price_data()
-    #instrument_list=["AUD"]
+    #instrument_list = arctic_individual_futures_prices.get_instruments_with_price_data()
+    instrument_list=["LIVECOW"]
     for instrument_code in instrument_list:
         print(instrument_code)
         roll_calendar = csv_roll_calendars.get_roll_calendar(instrument_code)
