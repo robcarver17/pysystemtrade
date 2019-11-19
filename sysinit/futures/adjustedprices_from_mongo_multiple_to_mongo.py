@@ -10,13 +10,12 @@ from sysdata.arctic.arctic_adjusted_prices import arcticFuturesAdjustedPricesDat
 
 from sysdata.futures.adjusted_prices import futuresAdjustedPrices
 
-
 if __name__ == '__main__':
     arctic_multiple_prices = arcticFuturesMultiplePricesData()
     artic_adjusted_prices = arcticFuturesAdjustedPricesData()
 
     #instrument_list = arctic_multiple_prices.get_list_of_instruments()
-    instrument_list = ["LIVECOW"]
+    instrument_list = ["SOYBEAN"]
 
     for instrument_code in instrument_list:
         print(instrument_code)
