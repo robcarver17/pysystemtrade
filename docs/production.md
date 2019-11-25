@@ -145,7 +145,7 @@ Since the private directory is excluded from the git system (since you don't wan
 ```
 # pass commit quote as an argument
 # For example:
-# . commit 'this is a commit description string'
+# . commit "this is a commit description string"
 #
 # copy the contents of the private directory to another, git controlled, directory
 #
@@ -155,14 +155,14 @@ cp -R ~/pysystemtrade/private/ ~/private/
 #
 cd ~/pysystemtrade/
 git add *
-git commit -m $1
+git commit -m "$1"
 git push
 #
 # git add/commit/push cycle on the copied private directory
 #
 cd ~/private/
 git add *
-git commit -m $1
+git commit -m "$1"
 git push
 ```
 

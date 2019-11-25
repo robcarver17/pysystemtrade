@@ -294,9 +294,19 @@ The combination of a specific [instrument](#futuresInstrument) and a [contract d
 ### [Prices for individual futures contracts](/sysdata/futures/futures_per_contract_prices.py): futuresContractPrices(), dictFuturesContractPrices() and futuresContractPriceData()
 
 
-The price data for a given contract is just stored as a DataFrame with specific column names. Notice that we store Open, High, Low, Close and Settle prices; but currently in the rest of pysystemtrade we effectively throw away everything except Settle.
+The price data for a given contract is just stored as a DataFrame with specific column names. Notice that we store Open, High, Low, and Final prices; but currently in the rest of pysystemtrade we effectively throw away everything except Final.
+
+(A 'final' price is eithier a close or a settlement price depending on how the data has been parsed from it's underlying source)
 
 `dictFuturesContractPrices`: When calculating roll calendars we work with prices from multiple contracts at once.
+
+<a name="futuresContractFinalPrices"></a>
+### [Final prices for individual futures contracts](/sysdata/futures/futures_per_contract_final_prices.py): futuresContractFinalPrices(), dictFuturesContractFinalPrices()
+
+This is just the final prices alone. There is no data storage required for these since we don't need to store them seperately, just extract them from eithier `futuresContractPrices` or `dictFuturesContractPrices` objects.
+
+`dictFuturesContractFinalPrices`: When calculating roll calendars we work with prices from multiple contracts at once.
+
 
 <a name="rollCalendar"></a>
 ### [Roll calendars](/sysdata/futures/roll_calendars.py): rollCalendar() and rollCalendarData()
@@ -400,6 +410,21 @@ For obvious (?) reasons we only implement get and read methods for .csv files (S
 #### [csvFuturesInstrumentData()](/sysdata/csv/csv_instrument_config.py) inherits from [futuresInstrumentData](#futuresInstrumentData)
 
 Reads futures configuration information from [here](/data/futures/csvconfig/instrumentconfig.csv) (note this is a seperate file from the one used to initialise the mongoDB database [earlier](#init_instrument_config) although this uses the same class method to get the data). Columns currently used by the simulation engine are: Instrument, Pointsize, AssetClass, Currency, Slippage, PerBlock, Percentage, PerTrade. Extraneous columns don't affect functionality. 
+
+<a name="csvFuturesContractPriceData"></a>
+#### [csvFxPricesData()](/sysdata/csv/csv_spot_fx.py) inherits from [futuresContractPriceData](#futuresContractPriceData)
+
+Reads prices for individual futures contracts. There is no default directory for these as this is provided as a convenience method if you have acquired .csv contract level data and wish to put it into your system. For this reason there is a lot of flexibility in the arguments to allow different formats to be included. As an example, this code will read data downloaded from `barcharts.com` (with files renamed in the format `EDOLLAR_201509.csv`):
+
+```python
+csv_futures_contract_prices = csvFuturesContractPriceData(datapath="/home/username/data/barcharts_csv",
+                                                          input_date_index_name="Date Time",
+                                                          input_skiprows=1, input_skipfooter=1,
+                                                          input_column_mapping=dict(OPEN='Open',
+                                                                                    HIGH='High',
+                                                                                    LOW='Low',
+                                                                                    FINAL='Close'))
+```
 
 <a name="csvRollCalendarData"></a>
 #### [csvRollCalendarData()](/sysdata/csv/csv_roll_calendars.py) inherits from [rollParametersData](#rollParametersData)

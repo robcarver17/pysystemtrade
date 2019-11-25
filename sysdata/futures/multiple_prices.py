@@ -12,7 +12,11 @@ They can be stored, or worked out 'on the fly'
 
 
 import pandas as pd
+import numpy as np
 
+from copy import copy
+
+from syscore.pdutils import create_arbitrary_pdseries
 from sysdata.data import baseData
 
 MULTIPLE_DATA_COLUMNS = ['PRICE', 'CARRY', 'FORWARD', 'PRICE_CONTRACT', 'CARRY_CONTRACT', 'FORWARD_CONTRACT']
@@ -68,8 +72,7 @@ class futuresMultiplePrices(pd.DataFrame):
             carry_contract_str = str(carry_contract)
 
             if (current_contract_str not in contract_keys) or \
-                (next_contract_str not in contract_keys) or \
-                (carry_contract_str not in contract_keys):
+                 (carry_contract_str not in contract_keys):
 
                     # missing, this is okay if we haven't started properly yet
                     if len(all_price_data_stack)==0:
@@ -79,8 +82,21 @@ class futuresMultiplePrices(pd.DataFrame):
                         raise Exception("Missing contracts in middle of roll calendar %s, not in price data!" % str(next_roll_date))
 
             current_price_data = dict_of_futures_contract_closing_prices[current_contract_str][start_of_roll_period:end_of_roll_period]
-            next_price_data = dict_of_futures_contract_closing_prices[next_contract_str][start_of_roll_period:end_of_roll_period]
             carry_price_data = dict_of_futures_contract_closing_prices[carry_contract_str][start_of_roll_period:end_of_roll_period]
+
+            if (next_contract_str not in contract_keys):
+
+                if rolling_row_index == len(roll_calendar.index):
+                    # Last entry, this is fine
+                    print("Next contract %s missing in last row of roll calendar - this is okay" % next_contract_str)
+                    next_price_data = pd.Series(np.nan, current_price_data.index)
+                    next_price_data.iloc[:]=np.nan
+                else:
+                    raise Exception("Missing contract %s in middle of roll calendar on %s" % (next_contract_str, str(next_roll_date)))
+            else:
+                next_price_data = dict_of_futures_contract_closing_prices[next_contract_str][
+                                  start_of_roll_period:end_of_roll_period]
+
 
             all_price_data = pd.concat([current_price_data, next_price_data, carry_price_data], axis=1)
             all_price_data.columns = ["PRICE", "FORWARD", "CARRY"]

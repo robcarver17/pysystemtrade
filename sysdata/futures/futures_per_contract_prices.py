@@ -3,9 +3,9 @@ from sysdata.data import baseData
 from sysdata.futures.contracts import futuresContract
 from syscore.pdutils import full_merge_of_existing_data
 
-PRICE_DATA_COLUMNS = ['OPEN', 'CLOSE', 'HIGH', 'LOW', 'SETTLE']
+PRICE_DATA_COLUMNS = ['OPEN', 'HIGH', 'LOW', 'FINAL']
 PRICE_DATA_COLUMNS.sort() # needed for pattern matching
-CLOSE_COLUMN = 'CLOSE'
+FINAL_COLUMN = 'FINAL'
 
 class futuresContractPrices(pd.DataFrame):
     """
@@ -40,33 +40,22 @@ class futuresContractPrices(pd.DataFrame):
         return futures_contract_prices
 
     @classmethod
-    def closing_only(futuresContractPrices, data):
-        data = pd.DataFrame(data, columns = [CLOSE_COLUMN])
-        data=data.reindex(columns=PRICE_DATA_COLUMNS)
+    def only_have_final_prices(futuresContractPrices, data):
+        data = pd.DataFrame(data, columns=[FINAL_COLUMN])
+        data = data.reindex(columns = PRICE_DATA_COLUMNS)
 
-        return futuresContractPrices(data)
+        futures_contract_prices = futuresContractPrices(data)
+
+        return futures_contract_prices
+
+    def return_final_prices(self):
+        data = self[FINAL_COLUMN]
+
+        return futuresContractFinalPrices(data)
+
 
     def empty(self):
         return
-
-    @property
-    def settlement_prices(self):
-        settlement_prices = self._return_or_replace("SETTLE", "CLOSE")
-        return settlement_prices
-
-    @property
-    def closing_prices(self):
-        closing_prices = self._return_or_replace("CLOSE", "SETTLE")
-        return closing_prices
-
-    def _check_if_all_missing(self, col_name):
-        return self[col_name].isna().all()
-
-    def _return_or_replace(self, col_name_required, col_name_replace):
-        if self._check_if_all_missing(col_name_required):
-            return self[col_name_replace]
-        else:
-            return self[col_name_required]
 
     def merge_with_other_prices(self, new_futures_per_contract_prices, only_add_rows=True):
         """
@@ -96,6 +85,17 @@ class futuresContractPrices(pd.DataFrame):
 
         return futuresContractPrices(merged_data)
 
+    def add_rows_to_existing_data(self, new_futures_per_contract_prices):
+        raise Exception("NOT IMPLEMENTED YET")
+
+class futuresContractFinalPrices(pd.Series):
+    """
+    Just the final prices from a futures contract
+    """
+    def __init__(self, data):
+        super().__init__(data)
+
+
 class dictFuturesContractPrices(dict):
     """
     A dict of futures contract prices
@@ -109,29 +109,17 @@ class dictFuturesContractPrices(dict):
         object_repr = "Dict of futures contract prices with %d contracts" % len(self.keys())
         return object_repr
 
-    def settlement_prices(self):
+    def final_prices(self):
         """
 
-        :return: dict of settlement prices
-        """
-
-        all_contract_ids = self.keys()
-        settle_price_dict = dictFuturesContractPrices([(contract_id, self[contract_id].settlement_prices)
-                                                       for contract_id in all_contract_ids])
-
-        return settle_price_dict
-
-    def closing_prices(self):
-        """
-
-        :return: dict of closing prices
+        :return: dict of final prices
         """
 
         all_contract_ids = self.keys()
-        close_price_dict = dictFuturesContractPrices([(contract_id, self[contract_id].closing_prices)
+        final_price_dict = dictFuturesContractFinalPrices([(contract_id, self[contract_id].return_final_prices())
                                                        for contract_id in all_contract_ids])
 
-        return close_price_dict
+        return final_price_dict
 
 
     def sorted_contract_ids(self):
@@ -165,6 +153,12 @@ class dictFuturesContractPrices(dict):
         earliest_date_in_data = earliest_contract_data.index[0].to_pydatetime()
 
         return earliest_date_in_data
+
+class dictFuturesContractFinalPrices(dict):
+    def __repr__(self):
+        object_repr = "Dict of final futures contract prices with %d contracts" % len(self.keys())
+        return object_repr
+
 
 BASE_CLASS_ERROR = "You have used a base class for futures price data; you need to use a class that inherits with a specific data source"
 
