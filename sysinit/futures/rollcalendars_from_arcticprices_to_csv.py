@@ -10,18 +10,20 @@ Generate a 'best guess' roll calendar based on some price data for individual co
 
 """
 
+output_datapath = "/home/rob/data/csv_temp/roll_calendars"
+
 if __name__ == '__main__':
 
     #instrument_code = sys.argv[1]
-    instrument_code="EDOLLAR"
+    instrument_code="BOBL"
 
     ##
     artic_prices = arcticFuturesContractPriceData()
     mongo_rollparameters = mongoRollParametersData()
-    csv_roll_calendars = csvRollCalendarData()
+    csv_roll_calendars = csvRollCalendarData(output_datapath)
 
-    dict_of_futures_contract_prices =artic_prices.get_all_prices_for_instrument(instrument_code)
-    dict_of_futures_contract_prices = dict_of_futures_contract_prices.settlement_prices()
+    dict_of_all_futures_contract_prices = artic_prices.get_all_prices_for_instrument(instrument_code)
+    dict_of_futures_contract_prices = dict_of_all_futures_contract_prices.final_prices()
 
     roll_parameters = mongo_rollparameters.get_roll_parameters(instrument_code)
 

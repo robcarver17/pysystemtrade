@@ -6,8 +6,9 @@ import pandas as pd
 import numpy as np
 from copy import copy
 
+
 from syscore.fileutils import get_filename_for_package
-from syscore.dateutils import BUSINESS_DAYS_IN_YEAR
+from syscore.dateutils import BUSINESS_DAYS_IN_YEAR, time_matches
 
 DEFAULT_DATE_FORMAT = "%Y-%m-%d"
 
@@ -330,6 +331,44 @@ def full_merge_of_existing_data(old_data, new_data):
     merged_data_as_df = merged_data_as_df.sort_index()
 
     return merged_data_as_df
+
+def proportion_pd_object_intraday(data, closing_time = pd.DateOffset(hours=23, minutes=0, seconds=0)):
+    """
+    Return the proportion of intraday data in a pd.Series or DataFrame
+
+    :param data: the underlying data
+    :param closing_time: the time which we are using as a closing time
+    :return: float, the proportion of the data.index that matches an intraday timestamp
+
+    So 0 = All daily data, 1= All intraday data
+    """
+
+    data_index = data.index
+    length_index = len(data_index)
+
+    count_matches = [time_matches(index_entry, closing_time) for index_entry in data_index]
+    total_matches = sum(count_matches)
+    proportion_matching_close = float(total_matches) / float(length_index)
+    proportion_intraday = 1 - proportion_matching_close
+
+    return proportion_intraday
+
+def strip_out_intraday(data,  closing_time = pd.DateOffset(hours=23, minutes=0, seconds=0)):
+    """
+    Return a pd.Series or DataFrame with only the times matching closing_time
+    Used when we have a mix of daily and intraday data, where the daily data has been given a nominal timestamp
+
+    :param data: pd object
+    :param closing_time: pdDateOffset with
+    :return: pd object
+    """
+
+    data_index = data.index
+    length_index = len(data_index)
+
+    daily_matches = [time_matches(index_entry, closing_time) for index_entry in data_index]
+
+    return data[daily_matches]
 
 if __name__ == '__main__':
     import doctest

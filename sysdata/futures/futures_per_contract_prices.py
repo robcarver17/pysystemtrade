@@ -1,7 +1,7 @@
 import pandas as pd
 from sysdata.data import baseData
 from sysdata.futures.contracts import futuresContract
-from syscore.pdutils import full_merge_of_existing_data
+from syscore.pdutils import full_merge_of_existing_data, proportion_pd_object_intraday
 
 PRICE_DATA_COLUMNS = ['OPEN', 'HIGH', 'LOW', 'FINAL']
 PRICE_DATA_COLUMNS.sort() # needed for pattern matching
@@ -13,6 +13,10 @@ class futuresContractPrices(pd.DataFrame):
     """
 
     def __init__(self, data):
+        """
+
+        :param data: pd.DataFrame or something that could be passed to it
+        """
 
         data_present = list(data.columns)
         data_present.sort()
@@ -25,6 +29,7 @@ class futuresContractPrices(pd.DataFrame):
         super().__init__(data)
 
         self._is_empty=False
+
 
     @classmethod
     def create_empty(futuresContractPrices):
@@ -115,11 +120,17 @@ class dictFuturesContractPrices(dict):
         :return: dict of final prices
         """
 
-        all_contract_ids = self.keys()
-        final_price_dict = dictFuturesContractFinalPrices([(contract_id, self[contract_id].return_final_prices())
-                                                       for contract_id in all_contract_ids])
+        all_contract_ids = list(self.keys())
+        final_price_dict_as_list = []
+        for contract_id in all_contract_ids:
+            final_prices = self[contract_id].return_final_prices()
+            # for this to work return_final_prices must be a pd.Series type object
+            final_prices.name = contract_id
+            final_price_dict_as_list.append((contract_id, final_prices))
 
-        return final_price_dict
+        final_prices_dict = dictFuturesContractFinalPrices(final_price_dict_as_list)
+
+        return final_prices_dict
 
 
     def sorted_contract_ids(self):
@@ -158,6 +169,17 @@ class dictFuturesContractFinalPrices(dict):
     def __repr__(self):
         object_repr = "Dict of final futures contract prices with %d contracts" % len(self.keys())
         return object_repr
+
+    def sorted_contract_ids(self):
+        """
+        Time sorted contract ids
+        :return:
+        """
+
+        all_contract_ids = list(self.keys())
+        all_contract_ids.sort()
+
+        return all_contract_ids
 
 
 BASE_CLASS_ERROR = "You have used a base class for futures price data; you need to use a class that inherits with a specific data source"

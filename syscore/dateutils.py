@@ -234,6 +234,14 @@ def generate_fitting_dates(data, date_method, rollyears=20):
 
     return periods
 
+def time_matches(index_entry, closing_time=pd.DateOffset(hours=12, minutes=0, seconds=0)):
+    if index_entry.hour == closing_time.hours and \
+        index_entry.minute == closing_time.minutes and \
+        index_entry.second == closing_time.seconds:
+
+        return True
+    else:
+        return False
 
 """
 Convert date into a float, and back again
