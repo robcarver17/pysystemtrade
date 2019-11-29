@@ -4,6 +4,7 @@
 
 Fixed bugs relating to building multiple and adjusted prices
 Slight refactoring of futuresContractPrices objects. These only have FINAL, not CLOSE or SETTLE prices now.
+Added more data
 
 ## Version 0.23.0
 

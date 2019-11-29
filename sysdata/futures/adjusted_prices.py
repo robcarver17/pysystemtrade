@@ -20,6 +20,9 @@ def panama_stitch(multiple_prices_input, forward_fill = False):
     """
     multiple_prices = copy(multiple_prices_input)
 
+    if multiple_prices.empty:
+        raise Exception("Can't stitch an empty multiple prices object")
+
     previous_row = multiple_prices.iloc[0, :]
     adjusted_prices_values = [previous_row.PRICE]
 

@@ -353,6 +353,15 @@ class futuresContractPriceData(baseData):
         else:
             self.log.warn("Tried to delete non existent contract")
 
+    def delete_all_prices_for_instrument_code(self, instrument_code, areyousure=False):
+        ## We don't pass areyousure, otherwise if we weren't sure would get multiple exceptions
+        if not areyousure:
+            raise Exception("You have to be sure to delete_all_prices_for_instrument!")
+
+        all_contracts_to_delete = self.contracts_with_price_data_for_instrument_code(instrument_code)
+        for contract in all_contracts_to_delete:
+            self.delete_prices_for_contract_object(contract, areyousure=True)
+
     def _delete_prices_for_contract_object_with_no_checks_be_careful(self, futures_contract_object):
         raise NotImplementedError(BASE_CLASS_ERROR)
 

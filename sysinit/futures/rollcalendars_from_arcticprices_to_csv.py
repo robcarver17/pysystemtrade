@@ -10,14 +10,9 @@ Generate a 'best guess' roll calendar based on some price data for individual co
 
 """
 
-output_datapath = "/home/rob/data/csv_temp/roll_calendars"
 
-if __name__ == '__main__':
+def build_and_write_roll_calendar(instrument_code, output_datapath=None, check_before_writing=True):
 
-    #instrument_code = sys.argv[1]
-    instrument_code="BOBL"
-
-    ##
     artic_prices = arcticFuturesContractPriceData()
     mongo_rollparameters = mongoRollParametersData()
     csv_roll_calendars = csvRollCalendarData(output_datapath)
@@ -40,8 +35,14 @@ if __name__ == '__main__':
     # Write to csv
     # Will not work if an existing calendar exists
 
-    check_happy_to_write = input("Are you ok to write this csv? [might be worth writing and hacking manually] (yes/other)?")
+    if check_before_writing:
+        check_happy_to_write = input("Are you ok to write this csv? [might be worth writing and hacking manually] (yes/other)?")
+    else:
+        check_happy_to_write = "yes"
+
     if check_happy_to_write == "yes":
-        csv_roll_calendars.add_roll_calendar(roll_calendar, instrument_code)
+        csv_roll_calendars.add_roll_calendar(roll_calendar, instrument_code, ignore_duplication=True)
     else:
         print("Not writing")
+
+    return roll_calendar
