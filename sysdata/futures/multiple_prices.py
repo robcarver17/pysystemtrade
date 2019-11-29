@@ -86,7 +86,7 @@ class futuresMultiplePrices(pd.DataFrame):
 
             if (next_contract_str not in contract_keys):
 
-                if rolling_row_index == len(roll_calendar.index):
+                if rolling_row_index == len(roll_calendar.index) - 1:
                     # Last entry, this is fine
                     print("Next contract %s missing in last row of roll calendar - this is okay" % next_contract_str)
                     next_price_data = pd.Series(np.nan, current_price_data.index)
