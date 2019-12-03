@@ -7,4 +7,5 @@
 #
 0 6  * * 1-5 $SCRIPT_PATH/updatefxprices  >> $ECHO_PATH/updatefxprices.echo 2>&1
 #
-@reboot mongodb --dbpath $MONGO_DATA
+# Note: $MONGO_DATA must be accessible at boot; this won't work if it's in an encrypted home folder
+@reboot mongod --dbpath $MONGO_DATA
