@@ -1,8 +1,3 @@
-# set environment variables
-# Note you may have to change the directory references if your code does not reside in $HOME/workspace3/psystemtrade/
-
-SCRIPT_PATH="$HOME:/workspace3/psystemtrade/sysproduction/linux/scripts"
-ECHO_PATH="$HOME:/echos"
 # Use this for stuff to run on startup
 #
 # @reboot
@@ -12,3 +7,5 @@ ECHO_PATH="$HOME:/echos"
 #
 0 6  * * 1-5 $SCRIPT_PATH/updatefxprices  >> $ECHO_PATH/updatefxprices.echo 2>&1
 #
+# Note: $MONGO_DATA must be accessible at boot; this won't work if it's in an encrypted home folder
+@reboot mongod --dbpath $MONGO_DATA
