@@ -8,7 +8,7 @@ from copy import copy
 
 
 from syscore.fileutils import get_filename_for_package
-from syscore.dateutils import BUSINESS_DAYS_IN_YEAR, time_matches
+from syscore.dateutils import BUSINESS_DAYS_IN_YEAR, time_matches, CALENDAR_DAYS_IN_YEAR
 
 DEFAULT_DATE_FORMAT = "%Y-%m-%d"
 
@@ -369,6 +369,42 @@ def strip_out_intraday(data,  closing_time = pd.DateOffset(hours=23, minutes=0, 
     daily_matches = [time_matches(index_entry, closing_time) for index_entry in data_index]
 
     return data[daily_matches]
+
+def minimum_many_years_of_data_in_dataframe(data):
+    years_of_data_dict = how_many_years_of_data_in_dataframe(data)
+    years_of_data_values = years_of_data_dict.values()
+    min_years_of_data = min(years_of_data_values)
+
+    return min_years_of_data
+
+def how_many_years_of_data_in_dataframe(data):
+    """
+    How many years of non NA data do we have?
+    Assumes daily timestamp
+
+    :param data: pd.DataFrame with labelled columns
+    :return: dict of floats,
+    """
+    result_dict = dict(data.apply(how_many_years_of_data_in_pd_series, axis=0))
+
+    return result_dict
+
+def how_many_years_of_data_in_pd_series(data_series):
+    """
+    How many years of actual data do we have
+    Assume daily timestamp which is fairly regular
+
+    :param data_series:
+    :return: float
+    """
+    first_valid_date = data_series.first_valid_index()
+    last_valid_date = data_series.last_valid_index()
+
+    date_difference = last_valid_date - first_valid_date
+    date_difference_days = date_difference.days
+    date_difference_years = float(date_difference_days) / CALENDAR_DAYS_IN_YEAR
+
+    return date_difference_years
 
 if __name__ == '__main__':
     import doctest

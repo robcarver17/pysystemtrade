@@ -11,8 +11,11 @@ This is 'self contained code' which requires wrapping before using in pysystemtr
 import numpy as np
 import pandas as pd
 import scipy.cluster.hierarchy as sch
-from scipy.interpolate import interp1d
+import scipy.stats as stats
 
+from syscore.pdutils import minimum_many_years_of_data_in_dataframe
+from syscore.optimisation_utils import optimise, sigma_from_corr_and_std
+from syscore.correlations import get_avg_corr, boring_corr_matrix
 
 WEEKS_IN_YEAR = 365.25/7.0
 MAX_CLUSTER_SIZE = 3 # Do not change
@@ -162,38 +165,122 @@ def get_weights_using_candidate_method(cmatrix):
 SR adjustment
 """
 
-relative_SR_adjustment_list= [
-[-0.5,	0.65],
-[-0.4,	0.75],
-[-0.3,	0.83],
-[-0.25,	0.85],
-[-0.2,	0.88],
-[-0.15,	0.92],
-[-0.1,	0.95],
-[-0.05,	0.98],
-[0,	      1],
-[0.05,	1.03],
-[0.1,	1.06],
-[0.15,	1.09],
-[0.2,	1.13],
-[0.25,	1.15],
-[0.3,	1.17],
-[0.4,	1.25],
-[0.5,	1.35],
-]
 
-x_values = [i[0] for i in relative_SR_adjustment_list]
-y_values = [i[1] for i in relative_SR_adjustment_list]
+def multiplier_from_relative_SR(relative_SR,  avg_correlation,years_of_data):
+    # Return a multiplier
+    # 1 implies no adjustment required
+    ratio = mini_bootstrap_ratio_given_SR_diff(relative_SR, avg_correlation, years_of_data)
 
-multiplier_from_relative_SR=interp1d(x_values, y_values, bounds_error=False, fill_value=(y_values[0], y_values[-1]))
+    return ratio
 
-
-def adjust_weights_for_SR(weights, SR_list):
+def mini_bootstrap_ratio_given_SR_diff(SR_diff,  avg_correlation, years_of_data, avg_SR=0.5, std=0.15, how_many_assets=2,
+                                       p_step=0.01):
     """
-    Adjust weights according to method in table 12 of 'Systematic Trading'
+    Do a parametric bootstrap of portfolio weights to tell you what the ratio should be between an asset which
+       has a higher backtested SR (by SR_diff) versus another asset(s) with average Sharpe Ratio (avg_SR)
 
-    :param weights: List of starting weights
+    All assets are assumed to have same standard deviation and correlation
+
+    :param SR_diff: Difference in performance in Sharpe Ratio (SR) units between one asset and the rest
+    :param avg_correlation: Average correlation across portfolio
+    :param years_of_data: How many years of data do you have (can be float for partial years)
+    :param avg_SR: Should be realistic for your type of trading
+    :param std: Standard deviation (doesn't affect results, just a scaling parameter)
+    :param how_many_assets: How many assets in the imaginary portfolio
+    :param p_step: Step size to go through in the CDF of the mean estimate
+    :return: float, ratio of weight of asset with different SR to 1/n weight
+    """
+    dist_points = np.arange(p_step, stop=(1-p_step)+0.00000001, step=p_step)
+    list_of_weights = [weights_given_SR_diff(SR_diff,  avg_correlation,
+                                          confidence_interval, years_of_data, avg_SR=avg_SR, std=std,
+                                             how_many_assets=how_many_assets)
+                     for confidence_interval in dist_points]
+
+    array_of_weights = np.array(list_of_weights)
+    average_weights = np.nanmean(array_of_weights, axis=0)
+    ratio_of_weights = weight_ratio(average_weights)
+
+    if np.sign(ratio_of_weights-1.0)!=np.sign(SR_diff):
+        # This shouldn't happen, and only occurs because weight distributions get curtailed at zero
+        return 1.0
+
+    return ratio_of_weights
+
+def weight_ratio(weights):
+    """
+    Return the ratio of weight of first asset to other weights
+
+    :param weights:
+    :return: float
+    """
+
+    one_over_N_weight = 1.0/len(weights)
+    weight_first_asset = weights[0]
+
+    return weight_first_asset/one_over_N_weight
+
+def weights_given_SR_diff(SR_diff,  avg_correlation,  confidence_interval, years_of_data,
+                          avg_SR=0.5, std=0.15, how_many_assets=2):
+    """
+    Return the ratio of weight to 1/N weight for an asset with unusual SR
+
+    :param SR_diff: Difference between the SR and the average SR. 0.0 indicates same as average
+    :param avg_correlation: Average correlation amongst assets
+    :param years_of_data: How long has this been going one
+    :param avg_SR: Average SR to use for other asset
+    :param confidence_interval: How confident are we about our mean estimate (i.e. cdf point)
+    :param how_many_assets: .... are we optimising over (I only consider 2, but let's keep it general)
+    :param std: Standard deviation to use
+
+    :return: Ratio of weight, where 1.0 means no difference
+    """
+
+    average_mean = avg_SR * std
+    asset1_mean = (SR_diff + avg_SR)*std
+
+    mean_difference = asset1_mean - average_mean
+
+    ## Work out what the mean is with appropriate confidence
+    confident_mean_difference = calculate_confident_mean_difference(std, years_of_data, mean_difference, confidence_interval, avg_correlation)
+
+    confident_asset1_mean = confident_mean_difference + average_mean
+
+    mean_list = [confident_asset1_mean]+[average_mean]*(how_many_assets-1)
+
+    weights = optimise_using_correlation(mean_list, avg_correlation, std)
+
+    return list(weights)
+
+def optimise_using_correlation(mean_list, avg_correlation, std):
+    corr_matrix = boring_corr_matrix(len(mean_list), offdiag=avg_correlation)
+    stdev_list = [std]*len(mean_list)
+    sigma = sigma_from_corr_and_std(stdev_list, corr_matrix)
+
+    return optimise(sigma, mean_list)
+
+
+def calculate_confident_mean_difference(std, years_of_data, mean_difference, confidence_interval, avg_correlation):
+    omega_difference = calculate_omega_difference(std, years_of_data, avg_correlation)
+    confident_mean_difference = stats.norm(mean_difference, omega_difference).ppf(confidence_interval)
+
+    return confident_mean_difference
+
+def calculate_omega_difference(std, years_of_data, avg_correlation):
+    omega_one_asset = std / (years_of_data)**.5
+    omega_variance_difference = 2*(omega_one_asset**2)*(1- avg_correlation)
+    omega_difference = omega_variance_difference**.5
+
+    return omega_difference
+
+
+
+def adjust_weights_for_SR(weights, SR_list, years_of_data, avg_correlation):
+    """
+    Adjust weights according to heuristic method
+
+    :param weights: List of float, starting weights
     :param SR_list: np.array of Sharpe Ratios
+    :param years_of_data: float
     :return: list of adjusted weights
     """
 
@@ -201,7 +288,8 @@ def adjust_weights_for_SR(weights, SR_list):
 
     avg_SR = np.nanmean(SR_list)
     relative_SR_list = SR_list -avg_SR
-    multipliers = [float(multiplier_from_relative_SR(relative_SR)) for relative_SR in relative_SR_list]
+    multipliers = [float(multiplier_from_relative_SR(relative_SR, avg_correlation, years_of_data))
+                   for relative_SR in relative_SR_list]
 
     new_weights = list(np.array(weights)*np.array(multipliers))
 
@@ -237,6 +325,8 @@ class Portfolio():
         self.vol_vector = np.array(instrument_returns.std() * (WEEKS_IN_YEAR ** .5))
         self.returns_vector = np.array(instrument_returns.mean() * WEEKS_IN_YEAR)
         self.sharpe_ratio = self.returns_vector / self.vol_vector
+
+        self.years_of_data = minimum_many_years_of_data_in_dataframe(instrument_returns)
 
         self.allow_leverage = allow_leverage
         self.risk_target = risk_target
@@ -539,7 +629,9 @@ class Portfolio():
 
         if use_SR_estimates:
             SR_list = self.sharpe_ratio
-            adjusted_weights = adjust_weights_for_SR(raw_weights, SR_list)
+            years_of_data = self.years_of_data
+            avg_correlation = get_avg_corr(self.corr_matrix.values)
+            adjusted_weights = adjust_weights_for_SR(raw_weights, SR_list, years_of_data, avg_correlation)
         else:
             adjusted_weights = raw_weights
 
