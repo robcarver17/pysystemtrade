@@ -36,6 +36,7 @@ You need to:
         - PYSYS_CODE=/home/user_name/pysystemtrade
         - SCRIPT_PATH=/home/user_name/pysystemtrade/sysproduction/linux/scripts
         - ECHO_PATH=/home/user/echos
+        - MONGO_BACKUP_PATH=/media/shared_network/drive/mongo_backup
     - Create the following directories (again use other directories, but you must modify the .profile above and crontab below)
         - '/data/mongodb/'
         - '/echos/'
@@ -66,7 +67,7 @@ You need to:
 
 Before trading, and each time you restart the machine you should:
 
-- [check a mongodb server is running with the right data directory](/docs/futures.md#mongo-db) command line: `mongod --dbpath $MONGO_DATA`
+- [check a mongodb server is running with the right data directory](/docs/futures.md#mongo-db) command line: `mongod --dbpath $MONGO_DATA` (the supplied crontab should do this)
 - launch an IB gateway (this could [be done automatically](https://github.com/ib-controller/ib-controller) depending on your security setup)
 
 
@@ -149,7 +150,9 @@ Since the private directory is excluded from the git system (since you don't wan
 #
 # copy the contents of the private directory to another, git controlled, directory
 #
-cp -R ~/pysystemtrade/private/ ~/private/
+# we use rsync so we can exclude the git directory; which will screw things up as there is already one there
+#
+rsync -av ~/pysystemtrade/private/ ~/private --exclude .git
 #
 # git add/commit/push cycle on the main pysystemtrade directory
 #
@@ -173,7 +176,8 @@ A second script is run instead of a git pull:
 cd ~/private/
 git pull
 # copy the updated contents of the private directory to pysystemtrade private directory
-cp -R ~/private/ ~/pysystemtrade/
+# use rsync to avoid overwriting git metadata
+rsync -av ~/private/ ~/pysystemtrade/private --exclude .git
 # git pull from main pysystemtrade github repo
 cd ~/pysystemtrade/
 git pull
@@ -229,16 +233,18 @@ The default option is to store these all into a mongodb database, except for con
 
 ## Data backup
 
+### Mongo data
+
 Assuming that you are using the default mongob for storing, then I recommend using [mongodump](https://docs.mongodb.com/manual/reference/program/mongodump/#bin.mongodump) on a daily basis to back up your files. Other more complicated alternatives are available (see the [official mongodb man page](https://docs.mongodb.com/manual/core/backups/)). 
 
 Linux:
 ```
 # dumps everything into dump directory
 # make sure a mongo-db instance is running with correct directory, but ideally without any load; command line: `mongod --dbpath $MONGO_DATA`
-mongodump
+mongodump -o ~/dump/
 
-# copy dump directory to another machine or drive, here we assume there is a shared network drive mounted on all local machine
-cp -rf dump /media/shared-drive/mongo_backup/
+# copy dump directory to another machine or drive
+cp -rf ~/dump/* $MONGO_BACKUP_PATH
 
 # To restore:
 # FIX ME DOES THIS OVERWRITE???
@@ -249,6 +255,11 @@ mongorestore
 ```
 
 To avoid conflicts you should schedule your backup during the 'deadtime' for your system (see scheduling FIX ME LINK).
+
+### Mongo / csv data
+
+As I am super paranoid, I also like to output all my mongo_db data into .csv files, which I then regularly backup. This will allow a system recovery, should the mongo files be corrupted.
+*FIX ME NEED TO WRITE THIS FUNCTIONALITY*
 
 # Echoes, Logging, diagnostics and reporting
 

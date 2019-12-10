@@ -47,19 +47,40 @@ def _generate_approximate_calendar(list_of_contract_dates, roll_parameters_objec
 
     :return: data frame ready to be rollCalendar
     """
+    list_of_contract_dates.sort()
+    earliest_contract_date = list_of_contract_dates[0]
+    final_contract_date = list_of_contract_dates[-1]
 
-    contracts_with_roll_data = [contractDateWithRollParameters(roll_parameters_object, contract_date)
-                                     for contract_date in list_of_contract_dates]
+    earliest_contract_with_roll_data = contractDateWithRollParameters(roll_parameters_object, earliest_contract_date)
+    final_contract_with_roll_data = contractDateWithRollParameters(roll_parameters_object, final_contract_date)
+    final_roll_date = final_contract_with_roll_data.want_to_roll()
 
-    theoretical_roll_dates=[contract_date.want_to_roll() for contract_date in
-                            contracts_with_roll_data]
+    current_contract = earliest_contract_with_roll_data
+    theoretical_roll_dates=[]
+    contracts_to_hold_on_each_roll = []
 
     # On the roll date we stop holding the current contract, and end up holding the next one
-    contracts_to_hold_on_each_roll = contracts_with_roll_data[:-1]
-    contract_dates_to_hold_on_each_roll = [contract.contract_date for contract in contracts_to_hold_on_each_roll]
+    # The roll date is the last day we hold the current contract
+    while current_contract.want_to_roll() <= final_roll_date:
+
+        # No point adding a non existent contract
+        try:
+            assert current_contract.contract_date in list_of_contract_dates
+        except:
+            raise Exception("Missing roll date %s from data when building roll calendar using hold calendar %s" % current_contract.contract_date, str(roll_parameters_object.hold_rollcycle))
+
+        current_roll_date = current_contract.want_to_roll()
+        theoretical_roll_dates.append(current_roll_date)
+        contracts_to_hold_on_each_roll.append(current_contract)
+        current_contract = current_contract.next_held_contract()
+
+
+
+    # We don't know what the next contract will be so we drop the final one
+    contract_dates_to_hold_on_each_roll = [contract.contract_date for contract in contracts_to_hold_on_each_roll[:-1]]
 
     # We also need a list of the next contract along
-    next_contract_along = contracts_with_roll_data[1:]
+    next_contract_along = contracts_to_hold_on_each_roll[1:]
     contract_dates_next_contact_along = [contract.contract_date for contract in next_contract_along]
 
     # we don't know what the next contract will be, so we drop the last roll date
@@ -118,9 +139,9 @@ def _add_carry_calendar(roll_calendar, roll_parameters_object):
     contracts_with_roll_data = [contractDateWithRollParameters(roll_parameters_object, str(contract_date))
                                      for contract_date in list_of_contract_dates]
 
-    carry_contracts = [contract.carry_contract().contract_date for contract in contracts_with_roll_data]
+    carry_contract_dates = [contract.carry_contract().contract_date for contract in contracts_with_roll_data]
 
-    roll_calendar['carry_contract'] = carry_contracts
+    roll_calendar['carry_contract'] = carry_contract_dates
 
     return roll_calendar
 
