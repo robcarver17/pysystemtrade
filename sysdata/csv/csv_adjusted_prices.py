@@ -54,8 +54,12 @@ class csvFuturesAdjustedPricesData(futuresAdjustedPricesData):
 
     def _add_adjusted_prices_without_checking_for_existing_entry(self, instrument_code, adjusted_price_data):
 
+        # Ensures the file will be written with a column header
+        adjusted_price_data_as_dataframe = pd.DataFrame(adjusted_price_data)
+        adjusted_price_data_as_dataframe.columns = ["price"]
+
         filename = self._filename_given_instrument_code(instrument_code)
-        adjusted_price_data.to_csv(filename, index_label = DATE_INDEX_NAME)
+        adjusted_price_data_as_dataframe.to_csv(filename, index_label = DATE_INDEX_NAME)
 
     def _filename_given_instrument_code(self, instrument_code):
         return get_filename_for_package(self._datapath, "%s.csv" %(instrument_code))
