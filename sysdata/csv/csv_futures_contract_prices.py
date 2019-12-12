@@ -49,6 +49,15 @@ class csvFuturesContractPriceData(futuresContractPriceData):
         :return: tuple instrument_code, contract_date
         """
         keyname_as_list = keyname.split("_")
+
+        # It's possible to have GAS_US_20090700.csv, so we only take the second
+        if len(keyname_as_list)==3:
+            keyname_as_list = ["%s_%s" % (keyname_as_list[0], keyname_as_list[1]), keyname_as_list[2]]
+
+        try:
+            assert len(keyname_as_list)==2
+        except:
+            self.log.error("Keyname (filename) %s in wrong format should be instrument_contractid" % keyname)
         instrument_code, contract_date = tuple(keyname_as_list)
 
         return instrument_code, contract_date
