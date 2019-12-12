@@ -33,9 +33,11 @@ def process_multiple_prices_all_instruments(csv_multiple_data_path=None,
 
     for instrument_code in instrument_list:
         print(instrument_code)
-        process_multiple_prices_single_instrument(csv_multiple_data_path=csv_multiple_data_path,
-                                 csv_roll_data_path=csv_roll_data_path, ADD_TO_ARCTIC = ADD_TO_ARCTIC,
-                                   ADD_TO_CSV = ADD_TO_CSV)
+        process_multiple_prices_single_instrument(instrument_code,
+                                                  csv_multiple_data_path=csv_multiple_data_path,
+                                                  csv_roll_data_path=csv_roll_data_path,
+                                                  ADD_TO_ARCTIC=ADD_TO_ARCTIC,
+                                                  ADD_TO_CSV=ADD_TO_CSV)
 
 def process_multiple_prices_single_instrument(instrument_code,
         csv_multiple_data_path=None, csv_roll_data_path=None, ADD_TO_ARCTIC = True, ADD_TO_CSV = False):
