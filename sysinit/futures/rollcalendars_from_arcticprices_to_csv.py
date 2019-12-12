@@ -20,11 +20,11 @@ def build_and_write_roll_calendar(instrument_code, output_datapath=None, check_b
     dict_of_all_futures_contract_prices = artic_prices.get_all_prices_for_instrument(instrument_code)
     dict_of_futures_contract_prices = dict_of_all_futures_contract_prices.final_prices()
 
-    roll_parameters = mongo_rollparameters.get_roll_parameters(instrument_code)
+    roll_parameters_object = mongo_rollparameters.get_roll_parameters(instrument_code)
 
     ## might take a few seconds
     print("Prepping roll calendar... might take a few seconds")
-    roll_calendar = rollCalendar.create_from_prices(dict_of_futures_contract_prices, roll_parameters)
+    roll_calendar = rollCalendar.create_from_prices(dict_of_futures_contract_prices, roll_parameters_object)
 
     ## checks - this might fail
     check_monotonic = roll_calendar.check_if_date_index_monotonic()
