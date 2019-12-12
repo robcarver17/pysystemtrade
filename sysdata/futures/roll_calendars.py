@@ -48,10 +48,13 @@ def _generate_approximate_calendar(list_of_contract_dates, roll_parameters_objec
     :return: data frame ready to be rollCalendar
     """
     list_of_contract_dates.sort()
-    earliest_contract_date = list_of_contract_dates[0]
-    final_contract_date = list_of_contract_dates[-1]
+    plausible_earliest_contract_date = list_of_contract_dates[0]
+    plausible_earliest_contract_with_roll_data = contractDateWithRollParameters(roll_parameters_object, plausible_earliest_contract_date)
 
-    earliest_contract_with_roll_data = contractDateWithRollParameters(roll_parameters_object, earliest_contract_date)
+    # We do this in case the first contract in the data isn't in the roll cycle
+    earliest_contract_with_roll_data = plausible_earliest_contract_with_roll_data.first_valid_held_contract()
+
+    final_contract_date = list_of_contract_dates[-1]
     final_contract_with_roll_data = contractDateWithRollParameters(roll_parameters_object, final_contract_date)
     final_roll_date = final_contract_with_roll_data.want_to_roll()
 
