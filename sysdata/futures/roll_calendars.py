@@ -6,42 +6,6 @@ import pandas as pd
 import numpy as np
 
 
-def _find_best_matching_roll_date(roll_date, current_prices, next_prices, avoid_date=None):
-    """
-    Find the closest valid roll date for which we have overlapping prices
-    If avoid_date is passed, get the next date after that
-
-    :param roll_date: datetime.datetime
-    :param current_prices: pd.Series
-    :param next_prices: pd.Series
-    :param avoid_date: datetime.datetime
-
-    :return: datetime.datetime or
-    """
-
-    # Get the list of dates for which a roll is possible
-    paired_prices = pd.concat([current_prices, next_prices], axis=1)
-    paired_prices_check_match = paired_prices.apply(lambda xlist: not any(np.isnan(xlist)), axis=1)
-    paired_prices_matching = paired_prices_check_match[paired_prices_check_match]
-    matching_dates = paired_prices_matching.index
-    matching_dates.sort_values()
-
-    if avoid_date is not None:
-        # Remove matching dates before avoid dates
-        matching_dates = matching_dates[matching_dates>avoid_date]
-
-    if len(matching_dates)==0:
-        # no matching prices
-        raise LookupError("No date with a matching price for current and next contract")
-
-    # Find closest distance
-    distance_to_roll = matching_dates - roll_date
-    distance_to_roll_days = [abs(distance_item.days) for distance_item in distance_to_roll]
-    closest_date_index = distance_to_roll_days.index(min(distance_to_roll_days))
-    closest_date = matching_dates[closest_date_index]
-
-
-    return closest_date
 
 def _generate_approximate_calendar(list_of_contract_dates, roll_parameters_object):
     """
@@ -78,7 +42,7 @@ def _generate_approximate_calendar(list_of_contract_dates, roll_parameters_objec
         try:
             assert current_contract.contract_date in list_of_contract_dates
         except:
-            raise Exception("Missing roll date %s from data when building roll calendar using hold calendar %s" % current_contract.contract_date, str(roll_parameters_object.hold_rollcycle))
+            raise Exception("Missing roll date %s from data when building roll calendar using hold calendar %s" % (current_contract.contract_date, str(roll_parameters_object.hold_rollcycle)))
 
         current_roll_date = current_contract.want_to_roll()
         theoretical_roll_dates.append(current_roll_date)
@@ -151,6 +115,43 @@ def _adjust_to_price_series(approx_calendar, dict_of_futures_contract_prices):
                                 index = adjusted_date_list)
 
     return new_calendar
+
+def _find_best_matching_roll_date(roll_date, current_prices, next_prices, avoid_date=None):
+    """
+    Find the closest valid roll date for which we have overlapping prices
+    If avoid_date is passed, get the next date after that
+
+    :param roll_date: datetime.datetime
+    :param current_prices: pd.Series
+    :param next_prices: pd.Series
+    :param avoid_date: datetime.datetime
+
+    :return: datetime.datetime or
+    """
+
+    # Get the list of dates for which a roll is possible
+    paired_prices = pd.concat([current_prices, next_prices], axis=1)
+    paired_prices_check_match = paired_prices.apply(lambda xlist: not any(np.isnan(xlist)), axis=1)
+    paired_prices_matching = paired_prices_check_match[paired_prices_check_match]
+    matching_dates = paired_prices_matching.index
+    matching_dates.sort_values()
+
+    if avoid_date is not None:
+        # Remove matching dates before avoid dates
+        matching_dates = matching_dates[matching_dates>avoid_date]
+
+    if len(matching_dates)==0:
+        # no matching prices
+        raise LookupError("No date with a matching price for current and next contract")
+
+    # Find closest distance
+    distance_to_roll = matching_dates - roll_date
+    distance_to_roll_days = [abs(distance_item.days) for distance_item in distance_to_roll]
+    closest_date_index = distance_to_roll_days.index(min(distance_to_roll_days))
+    closest_date = matching_dates[closest_date_index]
+
+
+    return closest_date
 
 def _add_carry_calendar(roll_calendar, roll_parameters_object, dict_of_futures_contract_prices):
     """
