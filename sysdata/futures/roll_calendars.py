@@ -37,19 +37,18 @@ def _generate_approximate_calendar(list_of_contract_dates, roll_parameters_objec
     # On the roll date we stop holding the current contract, and end up holding the next one
     # The roll date is the last day we hold the current contract
     while current_contract.want_to_roll() <= final_roll_date:
-
-        # No point adding a non existent contract
-        try:
-            assert current_contract.contract_date in list_of_contract_dates
-        except:
-            raise Exception("Missing roll date %s from data when building roll calendar using hold calendar %s" % (current_contract.contract_date, str(roll_parameters_object.hold_rollcycle)))
-
+        print(current_contract)
         current_roll_date = current_contract.want_to_roll()
         theoretical_roll_dates.append(current_roll_date)
         contracts_to_hold_on_each_roll.append(current_contract)
-        current_contract = current_contract.next_held_contract()
 
-
+        if current_contract.contract_date==final_contract_date:
+            break
+        else:
+            next_contract = find_next_held_contract_with_price_data(current_contract, list_of_contract_dates)
+            if next_contract is None:
+                raise Exception("Missing roll date %s from data when building roll calendar using hold calendar %s" % (current_contract.contract_date, str(roll_parameters_object.hold_rollcycle)))
+        current_contract = next_contract
 
     # We don't know what the next contract will be so we drop the final one
     contract_dates_to_hold_on_each_roll = [contract.contract_date for contract in contracts_to_hold_on_each_roll[:-1]]
@@ -65,6 +64,25 @@ def _generate_approximate_calendar(list_of_contract_dates, roll_parameters_objec
                                       next_contract = contract_dates_next_contact_along), index = theoretical_roll_dates)
 
     return roll_calendar
+
+
+def find_next_held_contract_with_price_data(current_contract_with_roll_parameters, list_of_contract_dates):
+    """
+    Finds the first contract in list_of_contract_dates after current_contract, within the roll cycle
+       defined by roll parameters
+
+    :param current_contract_with_roll_data:
+    :param list_of_contract_dates:
+    :return: a contract object with roll data, or None if we can't find one
+    """
+    try_contract = current_contract_with_roll_parameters.next_held_contract()
+    while try_contract.contract_date<=list_of_contract_dates[-1]:
+        if try_contract.contract_date in list_of_contract_dates:
+            return try_contract
+        try_contract = try_contract.next_held_contract()
+
+    # Nothing found
+    return None
 
 
 def _adjust_to_price_series(approx_calendar, dict_of_futures_contract_prices):
