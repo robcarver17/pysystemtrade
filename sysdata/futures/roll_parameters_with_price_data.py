@@ -1,4 +1,5 @@
 from sysdata.futures.contracts import contractDateWithRollParameters
+from copy import copy
 
 class rollParametersWithPriceData(object):
     def __init__(self, roll_parameters, dict_of_final_price_data):
@@ -71,8 +72,8 @@ class contractWithRollParametersAndPrices(object):
         return self.contract.want_to_roll
 
     def next_held_contract(self):
-        next_held_contract_with_roll_parameters = self.contract.next_held_contract()
-        return contractWithRollParametersAndPrices(next_held_contract_with_roll_parameters, self.prices)
+        next_contract_with_roll_parameters = self.next_held_contract()
+        return contractWithRollParametersAndPrices(next_contract_with_roll_parameters, self.prices)
 
     def next_priced_contract(self):
         next_priced_contract_with_roll_parameters = self.contract.next_priced_contract()
