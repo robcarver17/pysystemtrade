@@ -181,6 +181,10 @@ class dictFuturesContractFinalPrices(dict):
 
         return all_contract_ids
 
+    def last_contract_id(self):
+        sorted_contract_ids = self.sorted_contract_ids()
+
+        return sorted_contract_ids[-1]
 
 BASE_CLASS_ERROR = "You have used a base class for futures price data; you need to use a class that inherits with a specific data source"
 
