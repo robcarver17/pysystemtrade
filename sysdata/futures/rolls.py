@@ -510,28 +510,28 @@ class contractDateWithRollParameters(contractDate):
         # returns current contract if a valid priced contract, or next one in cycle that is
         valid_contract_to_return = self
         while not valid_contract_to_return.valid_date_in_priced_rollcycle():
-            valid_contract_to_return.next_month_contract()
+            valid_contract_to_return = valid_contract_to_return.next_month_contract()
         return valid_contract_to_return
 
     def closest_previous_valid_priced_contract(self):
         # returns current contract if a valid priced contract, or previous one in cycle that is
         valid_contract_to_return = self
         while not valid_contract_to_return.valid_date_in_priced_rollcycle():
-            valid_contract_to_return.previous_month_contract()
+            valid_contract_to_return = valid_contract_to_return.previous_month_contract()
         return valid_contract_to_return
 
     def closest_next_valid_held_contract(self):
         # returns current contract if a valid held contract, or next one in cycle that is
         valid_contract_to_return = self
         while not valid_contract_to_return.valid_date_in_hold_rollcycle():
-            valid_contract_to_return.next_month_contract()
+            valid_contract_to_return = valid_contract_to_return.next_month_contract()
         return valid_contract_to_return
 
     def closest_previous_held_priced_contract(self):
         # returns current contract if a valid held contract, or previous one in cycle that is
         valid_contract_to_return = self
         while not valid_contract_to_return.valid_date_in_hold_rollcycle():
-            valid_contract_to_return.previous_month_contract()
+            valid_contract_to_return = valid_contract_to_return.previous_month_contract()
         return valid_contract_to_return
 
     def next_month_contract(self):
