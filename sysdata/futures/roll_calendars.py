@@ -5,6 +5,7 @@ from sysdata.futures.rolls import contractDateWithRollParameters
 
 import pandas as pd
 import numpy as np
+import datetime
 
 class rollCalendar(pd.DataFrame):
     """
@@ -226,17 +227,22 @@ def _adjust_to_price_series(approx_calendar, dict_of_futures_contract_prices):
     """
 
     adjusted_date_list = []
+    carry_contracts = []
+    current_contracts = []
+    next_contracts = []
 
-    for row_number in range(len(approx_calendar.index)):
+    for row_number in range(len(approx_calendar.index))[:-1]:
         calendar_row = approx_calendar.iloc[row_number,:]
+        next_calendar_row = approx_calendar.iloc[row_number+1,:]
         current_contract = calendar_row.current_contract
-        next_contract = calendar_row.next_contract
-        carry_contract = calendar_row.carry_contract
+        current_carry_contract = calendar_row.carry_contract
+        next_contract = next_calendar_row.current_contract
+        next_carry_contract = next_calendar_row.carry_contract
 
         roll_date = approx_calendar.index[row_number]
         current_prices = dict_of_futures_contract_prices[current_contract]
         next_prices = dict_of_futures_contract_prices[next_contract]
-        carry_prices = dict_of_futures_contract_prices[carry_contract]
+        next_carry_prices = dict_of_futures_contract_prices[next_carry_contract]
 
         # This is needed to avoid double rolls
         if row_number>0:
@@ -246,23 +252,21 @@ def _adjust_to_price_series(approx_calendar, dict_of_futures_contract_prices):
 
         try:
             # We use avoid here so that we don't get duplicate dates
-            adjusted_date = _find_best_matching_roll_date(roll_date, current_prices, next_prices, carry_prices,
+            adjusted_date = _find_best_matching_roll_date(roll_date, current_prices, next_prices, next_carry_prices,
                                                           avoid_date=last_adjusted_roll_date)
         except LookupError:
-            if row_number == (len(approx_calendar.index)-1):
-                # We're done anyway most likely this is from a double roll on the last day
-                # Lose the last roll or will misalign the output
-                approx_calendar = approx_calendar.drop(approx_calendar.index[-1])
-                break
-            else:
-                # Happened in the middle somewhere
-                raise Exception("Couldn't find matching roll date for contracts %s and %s" % (current_contract, next_contract))
+            print("Couldn't find matching roll date for contracts %s, %s and %s" % (current_contract, next_contract, next_carry_contract))
+            print("OK if happens at the end of a roll calendar, otherwise problematic")
+            break
 
         adjusted_date_list.append(adjusted_date)
+        current_contracts.append(current_contract)
+        carry_contracts.append(current_carry_contract)
+        next_contracts.append(next_contract)
 
-    new_calendar = pd.DataFrame(dict(current_contract = approx_calendar.current_contract.values,
-                                     next_contract = approx_calendar.next_contract.values,
-                                     carry_contract = approx_calendar.carry_contract.values),
+    new_calendar = pd.DataFrame(dict(current_contract = current_contracts,
+                                     next_contract = next_contracts,
+                                     carry_contract = carry_contracts),
                                 index = adjusted_date_list)
 
     return new_calendar
@@ -293,7 +297,7 @@ def _find_best_matching_roll_date(roll_date, current_prices, next_prices, carry_
 
     if len(matching_dates)==0:
         # no matching prices
-        raise LookupError("No date with a matching price for current and next contract")
+        raise LookupError("No date with a matching price")
 
     # Find closest distance
     distance_to_roll = matching_dates - roll_date
