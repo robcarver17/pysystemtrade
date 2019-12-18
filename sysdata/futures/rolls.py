@@ -235,7 +235,9 @@ class rollParameters(object):
 
         self.hold_rollcycle = hold_rollcycle
         self.priced_rollcycle = priced_rollcycle
-        self.global_rollcycle="".join(MONTH_LIST)
+
+        # Special roll cycle consisting of all months in the year
+        self.global_rollcycle=rollCycle("".join(MONTH_LIST))
         self.roll_offset_day = roll_offset_day
         self.carry_offset = carry_offset
         self.approx_expiry_offset = approx_expiry_offset
@@ -521,14 +523,14 @@ class contractDateWithRollParameters(contractDate):
     def closest_next_valid_held_contract(self):
         # returns current contract if a valid held contract, or next one in cycle that is
         valid_contract_to_return = self
-        while not valid_contract_to_return.valid_date_in_held_rollcycle():
+        while not valid_contract_to_return.valid_date_in_hold_rollcycle():
             valid_contract_to_return.next_month_contract()
         return valid_contract_to_return
 
     def closest_previous_held_priced_contract(self):
         # returns current contract if a valid held contract, or previous one in cycle that is
         valid_contract_to_return = self
-        while not valid_contract_to_return.valid_date_in_held_rollcycle():
+        while not valid_contract_to_return.valid_date_in_hold_rollcycle():
             valid_contract_to_return.previous_month_contract()
         return valid_contract_to_return
 

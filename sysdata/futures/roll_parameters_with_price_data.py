@@ -72,8 +72,8 @@ class contractWithRollParametersAndPrices(object):
         return self.contract.want_to_roll
 
     def next_held_contract(self):
-        next_contract_with_roll_parameters = self.contract.next_held_contract()
-        return contractWithRollParametersAndPrices(next_contract_with_roll_parameters, self.prices)
+        next_held_contract_with_roll_parameters = self.contract.next_held_contract()
+        return contractWithRollParametersAndPrices(next_held_contract_with_roll_parameters, self.prices)
 
     def next_priced_contract(self):
         next_priced_contract_with_roll_parameters = self.contract.next_priced_contract()
