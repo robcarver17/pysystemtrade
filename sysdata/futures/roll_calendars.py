@@ -1,6 +1,7 @@
 from sysdata.data import baseData
 from sysdata.futures.contract_dates_and_expiries import contractDate
 from sysdata.futures.roll_parameters_with_price_data import rollParametersWithPriceData, contractWithRollParametersAndPrices
+from sysdata.futures.rolls import contractDateWithRollParameters
 
 import pandas as pd
 import numpy as np
@@ -69,8 +70,6 @@ class rollCalendar(pd.DataFrame):
         roll_calendar_object = rollCalendar(roll_calendar_with_carry)
 
         return roll_calendar_object
-
-
 
     def check_if_date_index_monotonic(self):
         if not self.index._is_strictly_monotonic_increasing:
@@ -185,7 +184,14 @@ def _generate_approximate_calendar(roll_parameters_object, dict_of_futures_contr
 
         next_contract = current_contract.find_next_held_contract_with_price_data()
         if next_contract is None:
-            raise Exception("Can't find good next contract date %s from data when building roll calendar using hold calendar %s" % (carry_contract.contract_date, str(roll_parameters_object.hold_rollcycle)))
+            # This is a problem UNLESS for the corner case where:
+            # The current contract isn't the last contract
+            # But the remaining contracts aren't held contracts
+            if current_contract.next_held_contract().contract_date>final_contract_date:
+                # We are done
+                break
+            else:
+                raise Exception("Can't find good next contract date %s from data when building roll calendar using hold calendar %s" % (carry_contract.contract_date, str(roll_parameters_object.hold_rollcycle)))
 
         carry_contract = current_contract.find_best_carry_contract_with_price_data()
         if carry_contract is None:
@@ -298,6 +304,33 @@ def _find_best_matching_roll_date(roll_date, current_prices, next_prices, carry_
 
     return closest_date
 
+
+def _add_carry_calendar(roll_calendar, roll_parameters_object, dict_of_futures_contract_prices):
+    """
+    :param roll_calendar: pdDataFrame with current_contract and next_contract
+    :param roll_parameters_object: rollData
+    :return: data frame ready to be rollCalendar
+    """
+
+    list_of_contract_dates = list(roll_calendar.current_contract.values)
+    contracts_with_roll_data = [contractDateWithRollParameters(roll_parameters_object, str(contract_date))
+                                for contract_date in list_of_contract_dates]
+
+    carry_contract_dates = [contract.carry_contract().contract_date for contract in contracts_with_roll_data]
+
+    ## Special case if first carry contract missing with a negative offset
+    first_carry_contract = carry_contract_dates[0]
+    if first_carry_contract not in dict_of_futures_contract_prices:
+        # drop the first roll entirely
+        carry_contract_dates.pop(0)
+
+        # do the same with the calendar or will misalign
+        first_roll_date = roll_calendar.index[0]
+        roll_calendar = roll_calendar.drop(first_roll_date)
+
+    roll_calendar['carry_contract'] = carry_contract_dates
+
+    return roll_calendar
 
 
 USE_CHILD_CLASS_ROLL_CALENDAR_ERROR = "You need to use a child class of rollCalendarData"
