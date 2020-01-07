@@ -7,10 +7,10 @@ Rob Carver
 [http://qoppac.blogspot.co.uk/p/pysystemtrade.html](http://qoppac.blogspot.co.uk/p/pysystemtrade.html)
 
 
-Version 0.23.0
+Version 0.24.0
 
 
-20191112
+20200107
 
 
 ## Release notes
@@ -28,16 +28,14 @@ Currently pysystemtrade can do the following:
 - Backtesting enviroment that will work "out of the box" for chapter 15 of my book ["Systematic Trading"](systematicmoney.org/systematic-trading)
 - Implement all the optimisation and system design principles in the book and on my website.
 
-*Eventually* pysystemtrade will also include the following:
-
-- Complete implementation of a fully automated system for futures trading (for interactive brokers only), including regularly updated data
+*Eventually* pysystemtrade will also be a complete implementation of a fully automated system for futures trading (for interactive brokers only), including regularly updated data
 
 
 ## Use and documentation
 
 [Introduction (start here)](docs/introduction.md)
 
-[User guide](docs/userguide.md)
+[Backtesting user guide](docs/userguide.md)
 
 [Working with futures data](/docs/futures.md)
 

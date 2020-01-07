@@ -2424,6 +2424,60 @@ Note that *`forecast_scalar`* isn't strictly part of the trading rule
 definition, but if included here will be used instead of the seperate
 `config.forecast_scalar` parameter (see the [next stage](#stage_scale) ).
 
+#### Data and data arguments
+
+All the items in the `data` list passed to a trading rule are string references to methods in the system object that (usually) take a single argument, the instrument code. In theory these could be anywhere in the system object, but by convention they should only be in `system.rawdata` or `system.data` (if they are in stages that call the rules stage, you will get infinite recursion and things will break), with perhaps occasional reference to `system.get_instrument_list()`. The advantage of using methods in `rawdata` is that these are cached, and can be re-used. It's strongly recommended that you use methods in `rawdata` for trading rules.
+
+What if you want to pass arguments to the data method? For example, you might want to pre-calculate the moving averages of different lengths in `rawdata` and then reuse them to save time. Or you might want to calculate skew over a given time period for all markets and then take a cross sectional average to use in a relative value rule. 
+
+We can do this by passing special kinds of `other_args` which are pre-fixed with underscores, eg "_". If an element in the other_ags dictionary has no underscores, then it is passed to the trading rule function as a keyword argument. If it has one leading underscore eg "_argname", then it is passed to the first method in the data list as a keyword argument. If it has two underscores eg "__argname", then it is passed to the second method in the data list, and so on.
+
+Let's see how we could implement the moving average example:
+
+
+```python
+from systems.provided.futures_chapter15.basesystem import *
+from systems.forecasting import TradingRule
+
+data = csvFuturesSimData()
+config = Config(
+        "systems.provided.futures_chapter15.futuresconfig.yaml")
+
+# First let's add a new method to our rawdata
+# As well as the usual instrument_code this has a keyword argument, span, which we are going to access in our trading rule definitions
+class newRawData(FuturesRawData):
+    def moving_average(self, instrument_code, span=8):
+        price = self.get_daily_prices(instrument_code)
+        return price.ewm(span=span).mean()
+
+# Now for our new trading rule. Multiplier is a trivial variable, included to show you can mix other arguments and data arguments
+def new_ewma(fast_ewma, slow_ewma, vol, multiplier=1):
+    raw_ewmac = fast_ewma - slow_ewma
+
+    raw_ewmac = raw_ewmac * multiplier
+    
+    return raw_ewmac / vol.ffill()
+
+# Now we define our first trading rule. Notice that data gets two kinds of moving average, but the first one will have span 2 and the second span 8
+trading_rule1 = TradingRule(dict(function=new_ewma, data = ['rawdata.moving_average', 'rawdata.moving_average', 'rawdata.daily_returns_volatility'], other_args = dict(_span=2, __span=8, multiplier=1)))
+
+# The second trading rule reuses one of the ewma, but uses a default value for the multiplier and the first ewma span (not great practice, but illustrates what is possible)
+trading_rule2 = TradingRule(dict(function=new_ewma, data = ['rawdata.moving_average', 'rawdata.moving_average', 'rawdata.daily_returns_volatility'], other_args = dict(__span=32)))
+
+rules=Rules(dict(ewmac2_8 = trading_rule1, ewmac8_32 = trading_rule2))
+
+system = System([
+    Account(), Portfolios(), PositionSizing(), newRawData(),
+    ForecastCombine(), ForecastScaleCap(), rules
+], data, config)
+
+# This will now work in the usual way
+system.rules.get_raw_forecast("EDOLLAR", "ewmac8_32")
+system.rules.get_raw_forecast("EDOLLAR", "ewmac2_8")
+```
+
+Notes: methods passed as data pointers must only have a single argument plus optionally keyword arguments. Multiple non keyword arguments will break. Also in specifying the other arguments you don't have to provide keyword arguments for all data elements, or for the trading rule: all are optional.
+
 
 ### The Rules class, and specifying lists of trading rules
 

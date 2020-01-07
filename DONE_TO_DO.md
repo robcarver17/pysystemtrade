@@ -1,7 +1,8 @@
 # Release notes
 
-## Version 0.24.0 ACTIVE
+## Version 0.24.0
 
+Can now pass keyword arguments to data methods when creating a trading rule (Enhancement # 141)
 Fixed bugs relating to building multiple and adjusted prices
 Slight refactoring of futuresContractPrices objects. These only have FINAL, not CLOSE or SETTLE prices now.
 Added more data
