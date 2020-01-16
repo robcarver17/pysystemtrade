@@ -5,7 +5,7 @@
 #
 # Daily sample FX Prices at 6 am
 #
-0 6  * * 1-5 $SCRIPT_PATH/updatefxprices  >> $ECHO_PATH/updatefxprices.echo 2>&1
+0 6  * * 1-5 $HOME/.profile; $SCRIPT_PATH/updatefxprices  >> $ECHO_PATH/updatefxprices.echo 2>&1
 #
 # Note: $MONGO_DATA must be accessible at boot; this won't work if it's in an encrypted home folder
-@reboot mongod --dbpath $MONGO_DATA
+@reboot $HOME/.profile; mongod --dbpath $MONGO_DATA
