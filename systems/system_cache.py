@@ -193,7 +193,7 @@ class systemCache(dict):
 
         return new_cache
 
-    def pickle(self, relativefilename):
+    def pickle(self, relativefilename, fullfilename=None):
         """
         Save everything in the cache to a pickle
 
@@ -206,7 +206,10 @@ class systemCache(dict):
 
         """
 
-        filename = get_filename_for_package(relativefilename)
+        if fullfilename is None:
+            filename = get_filename_for_package(relativefilename)
+        else:
+            filename = fullfilename
 
         pickable_cache_refs = self._get_pickable_items()
 

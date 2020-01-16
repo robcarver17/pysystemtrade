@@ -283,6 +283,7 @@ class FuturesRawData(RawData):
         """
         Return skew over a given time period
 
+
         :param instrument_code:
         :param lookback_days: int
         :return: rolling estimator of skew
@@ -292,6 +293,21 @@ class FuturesRawData(RawData):
         skew = perc_returns.rolling(lookback).skew()
 
         return skew
+
+    @output()
+    def neg_skew(self, instrument_code, lookback_days=365):
+        """
+        Return negative skew over a given time period
+
+
+        :param instrument_code:
+        :param lookback_days: int
+        :return: rolling estimator of skew
+        """
+        skew = self.skew(instrument_code, lookback_days=lookback_days)
+        neg_skew = -skew
+
+        return neg_skew
 
     @output()
     def kurtosis(self, instrument_code, lookback_days = 365):
