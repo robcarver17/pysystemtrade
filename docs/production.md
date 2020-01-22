@@ -37,7 +37,7 @@ You need to:
         - SCRIPT_PATH=/home/user_name/pysystemtrade/sysproduction/linux/scripts
         - ECHO_PATH=/home/user/echos
         - MONGO_BACKUP_PATH=/media/shared_network/drive/mongo_backup
-    - Create the following directories (again use other directories, but you must modify the .profile above and crontab below)
+    - Create the following directories (again use other directories if you like, but you must modify the .profile above)
         - '/data/mongodb/'
         - '/echos/'
         - '/pysystemtrade/
