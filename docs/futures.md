@@ -253,7 +253,7 @@ Futures instruments are the things we actually trade, eg Eurodollar futures, but
 
 Note: There is no data storage for contract dates, they are stored only as part of [futures contracts](#futuresContracts).
 
-A contract date allows us to identify a specific [futures contract](#futuresContracts) for a given [instrument](#futuresInstrument). Futures contracts can eithier be for a specific month (eg '201709') or for a specific day (eg '20170903'). The latter is required to support weekly VIX contracts (although in practice I haven't actually written the code to support them fully yet). A monthly date will be represented with trailing zeros, eg '20170900'.
+A contract date allows us to identify a specific [futures contract](#futuresContracts) for a given [instrument](#futuresInstrument). Futures contracts can eithier be for a specific month (eg '201709') or for a specific day (eg '20170903'). The latter is required to support weekly futures contracts, or if we already know the exact expiry date of a given contract. A monthly date will be represented with trailing zeros, eg '20170900'.
 
 We can also store expiry dates in contract dates. This can be done eithier by passing the exact date (which we'd do if we were getting the contract specs from our broker) or an approximate expiry offset, where 0 (the default) means the expiry is on day 1 of the relevant contract month.
 
@@ -660,10 +660,10 @@ print(system.accounts.portfolio().sharpe())
 Configuration information about futures instruments is stored in a number of different places:
 
 - Instrument configuration and cost levels in this [.csv file](/data/futures/csvconfig/instrumentconfig.csv), used by default with `csvFuturesSimData` or will be copied to the database with [this script](/sysinit/futures/repocsv_instrument_config.py)
-- Instrument configuration and cost levels in the sysinit module in [this .csv file](/sysinit/futures/config/instrumentconfig.csv), which will be copied to Mongo DB with [this script](/sysinit/futures/instruments_csv_mongo.py)
 - Roll configuration information in [this .csv file](/sysinit/futures/config/rollconfig.csv), which will be copied to Mongo DB with [this script](/sysinit/futures/roll_parameters_csv_mongo.py)
+- Interactive brokers configuration in [this file]() and [this file]()
 
-The instruments in these lists won't neccessarily match up; not all contracts have prices available in Quandl, and in some places I've included information for contracts that I don't currently trade (so which aren't included in the main simulation .csv configuration file).
+The instruments in these lists won't neccessarily match up, however under DRY there shouldn't be duplicated column headings across files.
 
 The `system.get_instrument_list()` method is used by the simulation to decide which markets to trade; if no explicit list of instruments is included then it will fall back on the method `system.data.get_instrument_list()`. In both the provided simData objects this will resolve to the method `get_instrument_list` in the class which gets back adjusted prices, or in whatever overrides it for a given data source (.csv or Mongo DB). In practice this means it's okay if your instrument configuration (or roll configuration, when used) is a superset of the instruments you have adjusted prices for. But it's not okay if you have adjusted prices for an instrument, but no configuration information.
 

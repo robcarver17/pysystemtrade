@@ -114,8 +114,8 @@ class _quandlFuturesContract(futuresContract):
         :return: str
         """
 
-        quandl_year = str(self.contract_date.year())
-        quandl_month = self.contract_date.letter_month()
+        quandl_year = str(self.contract.year())
+        quandl_month = self.contract.letter_month()
 
         try:
             quandl_date_id = quandl_month + quandl_year

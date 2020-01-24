@@ -16,15 +16,25 @@ class futuresContract(object):
     This is a combination of an instrument_object and contract_date object
 
     """
-    def __init__(self, instrument_object, contract_date_object):
+    def __init__(self, instrument_object, contract_date_object, **kwargs):
+        """
+        futuresContract(futuresInstrument, contractDate)
+        OR
+        futuresContract("instrument_code", "yyyymm")
+
+        :param instrument_object: str or futuresInstrument
+        :param contract_date_object: contractDate or contractDateWithRollParameters or str
         """
 
-        :param instrument_object:
-        :param contract_date_object: contractDate or contractDateWithRollParameters
-        """
+        if type(instrument_object) is str and type(contract_date_object) is str:
+            # create a simple object
+            self.instrument = futuresInstrument(instrument_object)
+            self.contract_date = contractDate(contract_date_object, **kwargs)
 
-        self.instrument = instrument_object
-        self.contract_date = contract_date_object
+        else:
+            self.instrument = instrument_object
+            self.contract_date = contract_date_object
+
         self._is_empty = False
 
 
@@ -128,23 +138,10 @@ class futuresContract(object):
 
     @classmethod
     def simple(futuresContract, instrument_code, contract_date, **kwargs):
-
+        DeprecationWarning("futuresContract.simple(x,y) will be depreciated, use futuresContract(x,y) instead")
         return futuresContract(futuresInstrument(instrument_code), contractDate(contract_date, **kwargs))
 
 
-    @classmethod
-    def identGivenCodeAndContractDate(futuresContract, instrument_code, contract_date):
-        """
-        Return an identification given a code and contract date
-
-        :param instrument_code: str
-        :param contract_date: str, following contract date rules
-        :return: str
-        """
-
-        futures_contract = futuresContract.simple(instrument_code, contract_date)
-
-        return futures_contract.ident()
 
     @property
     def instrument_code(self):
@@ -220,6 +217,12 @@ class futuresContract(object):
 
         return futuresContract(self.instrument, previous_held_date)
 
+    def new_contract_with_replaced_instrument_object(self, new_instrument_object):
+        contract_date_object = self.contract_date
+
+        return futuresContract(new_instrument_object, contract_date_object)
+
+
 
 MAX_CONTRACT_SIZE = 10000
 
@@ -282,6 +285,7 @@ class listOfFuturesContracts(list):
             current_contract = next_contract
 
         return listOfFuturesContracts(list_of_contracts)
+
 
 
 USE_CHILD_CLASS_ERROR = "You need to use a child class of futuresContractData"

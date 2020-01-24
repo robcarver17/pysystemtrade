@@ -7,6 +7,11 @@ from copy import copy
 import sys
 import numpy as np
 
+class not_required_flag(object):
+    def __repr__(self):
+        return "Not required"
+
+NOT_REQUIRED = not_required_flag()
 
 def group_dict_from_natural(dict_group):
     """
@@ -122,6 +127,39 @@ def sign(x):
     """
     return copysign(1, x)
 
+def value_or_npnan(x, return_value = None):
+    """
+    If x is np.nan return return_value
+    else return x
+
+    :param x: np.nan or other
+    :return: x or return_value
+
+    >>> value_or_npnan(np.nan)
+
+    >>> value_or_npnan(np.nan, -1)
+    -1
+
+    >>> value_or_npnan("thing")
+    'thing'
+
+    >>> value_or_npnan(42)
+    42
+
+    """
+
+    try:
+        if np.isnan(x):
+            return return_value
+        else:
+            pass
+            ## Not a nan will return x
+    except:
+        ## Not something that can be compared to a nan
+        pass
+
+    # Eithier wrong type, or not a nan
+    return x
 
 class progressBar(object):
     """

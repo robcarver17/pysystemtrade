@@ -34,4 +34,4 @@ def update_fx_prices():
 
         arcticfxdata.update_fx_prices(fx_code, new_fx_prices)
 
-    ib_conn.disconnect()
+    ib_conn.terminate()

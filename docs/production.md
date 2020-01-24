@@ -38,10 +38,9 @@ You need to:
         - ECHO_PATH=/home/user/echos
         - MONGO_BACKUP_PATH=/media/shared_network/drive/mongo_backup
     - Create the following directories (again use other directories if you like, but you must modify the .profile above)
-        - '/data/mongodb/'
-        - '/echos/'
-        - '/pysystemtrade/
-    - Install the pysystemtrade package, and install or update, any dependencies in directory $PYSYS_CODE (it's possible to put it elsewhere, but you will need to modify the environment variables listed above)
+        - '/home/user_name/data/mongodb/'
+        - '/home/user_name/echos/'
+    - Install the pysystemtrade package, and install or update, any dependencies in directory $PYSYS_CODE (it's possible to put it elsewhere, but you will need to modify the environment variables listed above). If using git clone from your home directory this should create the directory '/home/user_name/pysystemtrade/'
     - [Set up interactive brokers](/docs/IB.md), download and install their python code, and get a gateway running.
     - [Install mongodb](https://docs.mongodb.com/manual/administration/install-on-linux/)
     - create a file 'private_config.yaml' in the private directory of [pysystemtrade](#/private)
@@ -229,13 +228,18 @@ Various kinds of data files are used by the pysystemtrade production system. Bro
 - other state and control information
 - static configuration files
 
-The default option is to store these all into a mongodb database, except for configuration files which are stored as .yaml files.
+The default option is to store these all into a mongodb database, except for configuration files which are stored as .yaml and .csv files.
 
 ## Data backup
 
 ### Mongo data
 
-Assuming that you are using the default mongob for storing, then I recommend using [mongodump](https://docs.mongodb.com/manual/reference/program/mongodump/#bin.mongodump) on a daily basis to back up your files. Other more complicated alternatives are available (see the [official mongodb man page](https://docs.mongodb.com/manual/core/backups/)). 
+Assuming that you are using the default mongob for storing, then I recommend using [mongodump](https://docs.mongodb.com/manual/reference/program/mongodump/#bin.mongodump) on a daily basis to back up your files. Other more complicated alternatives are available (see the [official mongodb man page](https://docs.mongodb.com/manual/core/backups/)). You may also want to do this if you're transferring your data to e.g. a new machine.
+
+To avoid conflicts you should [schedule](#scheduling) your backup during the 'deadtime' for your system (see scheduling).
+
+FIX ME ADD BACKUP TO CRONTAB
+
 
 Linux:
 ```
@@ -243,18 +247,34 @@ Linux:
 # make sure a mongo-db instance is running with correct directory, but ideally without any load; command line: `mongod --dbpath $MONGO_DATA`
 mongodump -o ~/dump/
 
-# copy dump directory to another machine or drive
+# copy dump directory to another machine or drive. This will create a directory $MONGO_BACKUP_PATH/dump/
 cp -rf ~/dump/* $MONGO_BACKUP_PATH
+```
 
-# To restore:
-# FIX ME DOES THIS OVERWRITE???
-cp -rf /media/shared-drive/mongo_backup/dump/ ~
-
+Then to restore, from a linux command line:
+```
+cp -rf $MONGO_BACKUP_PATH/dump/ ~
 # Now make sure a mongo-db instance is running with correct directory
+# If required delete any existing instances of the databases. If you don't do this the results may be unpredictable...
+mongo
+# This starts a mongo client 
+> show dbs
+admin              0.000GB
+arctic_production  0.083GB
+config             0.000GB
+local              0.000GB
+meta_db            0.000GB
+production         0.000GB
+# Most likely we want to remove 'production' and 'arctic_production'
+> use production
+> db.dropDatabase()
+> use arctic_production
+> db.dropDatabase()
+> exit
+# Now we run the restore (back on the linux command line)
 mongorestore 
 ```
 
-To avoid conflicts you should schedule your backup during the 'deadtime' for your system (see scheduling FIX ME LINK).
 
 ### Mongo / csv data
 
@@ -285,7 +305,7 @@ The above line will run the script `updatefxprices`, but instead of outputting t
 
 ### Cleaning old echo files
 
-Over time echo files can get... large. To avoid this a regularly scheduled crontab script [FIX ME LINK AND ADD TO CRON] chops them down to the last 20,000 lines.
+Over time echo files can get... large. To avoid this you can run [this linux script](/sysproduction/linux/scripts/truncate_echo_files) which chops them down to the last 20,000 lines (FIX ME ADD TO CRONTAB)
 
 ## Logging 
 
@@ -335,6 +355,7 @@ The following should be used as logging attributes (failure to do so will break 
 - component: other parts of the top level function that have their own loggers
 - currency_code: Currency code (used for fx)
 - instrument_code: Self explanatory
+- contract_date: Self explanatory
 
 FIX ME TO DO: CRITICAL LOGS SHOULD EMAIL THE USER
 
@@ -392,7 +413,7 @@ Scripts are used to run python code which:
    - get accounting data
 - runs reports, eithier regular or ad-hoc
 
-Script are then called by schedulers (FIX ME LINK), or on an ad-hoc basis from the command line.
+Script are then called by [schedulers](#scheduling), or on an ad-hoc basis from the command line.
 
 ## Production system components
 
@@ -451,21 +472,23 @@ Things to consider when constructing a schedule include:
 
 Here is the schedule I use for my own trading system. Since I trade US, European, and Asian markets, I trade between midnight (9am in Asia) and 8pm (4pm in New York) local UK time. This reduces the 'dead time' when reporting and backups can take place to between 8pm and midnight.
 
-- Midnight: Launch processes for monitoring account value, executing trades, and gathering intraday prices
+- Midnight: If you are restarting IB Gateway on a daily basis, do it now
+- Midnight: Launch processes for monitoring account value, executing trades, generating trades, and gathering intraday prices
 - 6am: Get daily spot FX prices
 - 6am: Run some lightweight morning reports
 - 8pm: Stop processes for monitoring account value, executing trades, and gathering intraday prices
 - 8pm: Clear client id tracker used by IB to avoid conflicts
 - 8:30pm: Get daily 'closing' prices (some of these may not be technically closes if markets have not yet closed)
 - 9:00pm: Run daily reports, and any computationally intensive processes (like running a backtest based on new prices)
+- 11pm: If you are restarting IB Gateway on a daily basis, close it now.
 - 11pm: Run backups
-- 11pm: Truncate echo files, discard log file entries more than one year old, 
+- 11pm: Truncate echo files, discard log file entries more than one year old, clear IB locked client IDs
 
 There will be flexibility in this schedule depending on how long different processes take. Notice that I don't shut down and then launch a new interactive brokers gateway daily. Some people may prefer to do this, but I am using an authentication protocol which requires manual intervention. [This product](https://github.com/ib-controller/ib-controller/) is popular for automating the lauch of the IB gateway.
 
 ## Choice of scheduling systems
 
-You need some sort of scheduling system to kick off the various processes.
+You need some sort of scheduling system to kick off the various top level processes.
 
 ### Linux cron
 
@@ -481,6 +504,5 @@ You can use python itself as a scheduler, using something like [this](https://gi
 
 ### Manual system
 
-It's possible to run pysystemtrade without any scheduling, by manually starting the neccessary processes as required. This option might make sense for traders who are not running a fully automated system (see FIX ME REF). 
-
+It's possible to run pysystemtrade without any scheduling, by manually starting the neccessary processes as required. This option might make sense for traders who are not running a fully automated system.
 

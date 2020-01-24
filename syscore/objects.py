@@ -161,6 +161,27 @@ def hasallattr(some_object, attrlist=[]):
     return all([hasattr(some_object, attrname) for attrname in attrlist])
 
 
+
+
+class _missing_contract():
+    def __repr__(self):
+        return "Missing contract"
+
+
+missing_contract =_missing_contract()
+
+class _missing_instrument():
+    def __repr__(self):
+        return "Missing instrument"
+
+missing_instrument = _missing_instrument()
+
+class _missing_file():
+    def __repr__(self):
+        return "Missing file"
+
+missing_file = _missing_file()
+
 if __name__ == '__main__':
     import doctest
     doctest.testmod()

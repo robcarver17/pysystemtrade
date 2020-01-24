@@ -299,6 +299,30 @@ def dataframe_pad(starting_df, column_list, padwith=0.0):
 
     return new_df
 
+def merge_newer_data(old_data, new_data):
+    """
+    Merge new data, with old data. Any new data that is older than the newest old data will be ignored
+
+    :param old_data: pd.Series or DataFrame
+    :param new_data: pd.Series or DataFrame
+    :return:  pd.Series or DataFrame
+    """
+    last_date_in_old_data = old_data.index[-1]
+    new_data.sort_index()
+    actually_new_data = new_data[new_data.index > last_date_in_old_data]
+
+    if len(actually_new_data) == 0:
+        # No additional data
+        return old_data
+
+    merged_data = pd.concat([old_data, actually_new_data], axis=0)
+    merged_data = merged_data.sort_index()
+
+    # remove duplicates (shouldn't be any, but...)
+    merged_data = merged_data[~merged_data.index.duplicated(keep='first')]
+
+    return merged_data
+
 
 def full_merge_of_existing_data(old_data, new_data):
     """

@@ -1,7 +1,7 @@
 import pandas as pd
 from sysdata.data import baseData
 from sysdata.futures.contracts import futuresContract
-from syscore.pdutils import full_merge_of_existing_data, proportion_pd_object_intraday
+from syscore.pdutils import full_merge_of_existing_data, merge_newer_data
 
 PRICE_DATA_COLUMNS = ['OPEN', 'HIGH', 'LOW', 'FINAL']
 PRICE_DATA_COLUMNS.sort() # needed for pattern matching
@@ -91,7 +91,20 @@ class futuresContractPrices(pd.DataFrame):
         return futuresContractPrices(merged_data)
 
     def add_rows_to_existing_data(self, new_futures_per_contract_prices):
-        raise Exception("NOT IMPLEMENTED YET")
+        """
+        Merges self with new data.
+        Only newer data will be added
+
+        :param new_futures_per_contract_prices: another futures per contract prices object
+
+        :return: merged futures_per_contract object
+        """
+
+        merged_futures_prices = merge_newer_data(self, new_futures_per_contract_prices)
+        merged_futures_prices = futuresContractPrices(merged_futures_prices)
+
+        return merged_futures_prices
+
 
 class futuresContractFinalPrices(pd.Series):
     """
@@ -250,9 +263,9 @@ class futuresContractPriceData(baseData):
         :return: data
         """
 
-        contract_object = self._object_given_instrumentCode_and_contractDate(instrument_code, contract_date)
+        ans = self._perform_contract_method_for_instrument_code_and_contract_date( instrument_code, contract_date, "has_data_for_contract")
 
-        return self.has_data_for_contract(contract_object)
+        return ans
 
 
     def has_data_for_contract(self, contract_object):
@@ -264,45 +277,6 @@ class futuresContractPriceData(baseData):
             return True
         else:
             return False
-
-
-    def _object_given_instrumentCode_and_contractDate(self, instrument_code, contract_date):
-        """
-        Quickly go from eg "EDOLLAR" "201801" to an object
-
-        :param instrument_code: str
-        :param contract_date: str
-        :return: futuresContract
-        """
-
-        contract_object = futuresContract.simple(instrument_code, contract_date)
-
-        return contract_object
-
-
-    def get_prices_for_instrument_code_and_contract_date(self, instrument_code, contract_date):
-        """
-        Convenience method for when we have a code and date str, and don't want to build an object
-
-        :return: data
-        """
-
-        contract_object = self._object_given_instrumentCode_and_contractDate(instrument_code, contract_date)
-
-        return self.get_prices_for_contract_object(contract_object)
-
-    def get_prices_for_contract_object(self, contract_object):
-        """
-        get some prices
-
-        :param contract_object:  futuresContract
-        :return: data
-        """
-
-        if self.has_data_for_contract(contract_object):
-            return self._get_prices_for_contract_object_no_checking(contract_object)
-        else:
-            return futuresContractPrices.create_empty()
 
     def get_all_prices_for_instrument(self, instrument_code):
         """
@@ -320,6 +294,73 @@ class futuresContractPriceData(baseData):
 
         return dict_of_prices
 
+
+    def get_prices_for_instrument_code_and_contract_date(self, instrument_code, contract_date):
+        """
+        Convenience method for when we have a code and date str, and don't want to build an object
+
+        :return: data
+        """
+
+        ans = self._perform_contract_method_for_instrument_code_and_contract_date( instrument_code, contract_date, "get_prices_for_contract_object")
+
+        return ans
+
+
+    def get_prices_for_contract_object(self, contract_object):
+        """
+        get some prices
+
+        :param contract_object:  futuresContract
+        :return: data
+        """
+
+        if self.has_data_for_contract(contract_object):
+            return self._get_prices_for_contract_object_no_checking(contract_object)
+        else:
+            return futuresContractPrices.create_empty()
+
+    def get_prices_at_frequency_for_instrument_code_and_contract_date(self, instrument_code, contract_date, freq="D"):
+        """
+        Convenience method for when we have a code and date str, and don't want to build an object
+
+        :param freq: str; one of D, H, M5, M, 10S, S
+        :return: data
+        """
+
+        ans = self._perform_contract_method_for_instrument_code_and_contract_date(instrument_code, contract_date,
+                                                                                  "get_prices_at_frequency_for_contract_object", freq=freq)
+
+        return ans
+
+    def get_prices_at_frequency_for_contract_object(self, contract_object, freq="D"):
+        """
+        get some prices
+
+        :param contract_object:  futuresContract
+        :param freq: str; one of D, H, 5M, M, 10S, S
+        :return: data
+        """
+
+        if self.has_data_for_contract(contract_object):
+            return self._get_prices_at_frequency_for_contract_object_no_checking(contract_object, freq=freq)
+        else:
+            return futuresContractPrices.create_empty()
+
+
+    def _get_prices_at_frequency_for_contract_object_no_checking(self, contract_object, freq):
+        """
+        get some prices
+
+        :param contract_object:  futuresContract
+        :param freq: str; one of D, H, 5M, M, 10S, S
+        :return: data
+        """
+
+        raise NotImplementedError(BASE_CLASS_ERROR)
+
+
+
     def _get_prices_for_contract_object_no_checking(self, contract_object):
         """
         get some prices
@@ -330,17 +371,110 @@ class futuresContractPriceData(baseData):
 
         raise NotImplementedError(BASE_CLASS_ERROR)
 
-    def write_prices_for_contract_object(self, futures_contract_object, futures_price_data):
+    def write_prices_for_instrument_code_and_contract_date(self, instrument_code, contract_date, futures_price_data,
+                                                           ignore_duplication=False):
         """
         Write some prices
 
-        We don't check to see if we've already written some, since overwriting is okay.
+        :param futures_price_data:
+        :param ignore_duplication: bool, to stop us overwriting existing prices
+        :return: None
+        """
 
+        ans = self._perform_contract_method_for_instrument_code_and_contract_date( instrument_code, contract_date, "write_prices_for_contract_object",
+                                                                                   ignore_duplication=ignore_duplication)
+
+        return ans
+
+
+    def write_prices_for_contract_object(self, futures_contract_object, futures_price_data, ignore_duplication=False):
+        """
+        Write some prices
+
+        :param futures_contract_object:
+        :param futures_price_data:
+        :param ignore_duplication: bool, to stop us overwriting existing prices
+        :return: None
+        """
+
+        new_log = self.log.setup(instrument_code=futures_contract_object.instrument_code,
+                                 contract_date=futures_contract_object.date)
+        if self.has_data_for_contract(futures_contract_object):
+            if ignore_duplication:
+                pass
+            else:
+                new_log.warn("There is already existing data, you have to delete it first")
+                return None
+
+        self._write_prices_for_contract_object_no_checking(futures_contract_object, futures_price_data)
+
+
+    def _write_prices_for_contract_object_no_checking(self, futures_contract_object, futures_price_data):
+        """
+        Write some prices
+
+        We don't check to see if we've already written some, so only call directly with care
         :param futures_contract_object:
         :param futures_price_data:
         :return: None
         """
+
         raise NotImplementedError(BASE_CLASS_ERROR)
+
+    def get_actual_expiry_date_for_instrument_code_and_contract_date(self, instrument_code, contract_date):
+        """
+        Convenience method for when we have a code and date str, and don't want to build an object
+
+        :return: data
+        """
+
+        ans = self._perform_contract_method_for_instrument_code_and_contract_date( instrument_code, contract_date, "get_actual_expiry_date_for_contract")
+
+        return ans
+
+    def get_actual_expiry_date_for_contract(self, futures_contract_object):
+        raise NotImplementedError(BASE_CLASS_ERROR)
+
+    def update_prices_for_for_instrument_code_and_contract_date(self, instrument_code, contract_date,
+                                                                new_futures_per_contract_prices):
+        """
+        Convenience method for when we have a code and date str, and don't want to build an object
+
+        :new futures prices: futuresPrices object
+        :return: int, number of rows added
+        """
+
+        ans = self._perform_contract_method_for_instrument_code_and_contract_date( instrument_code, contract_date,
+                                                            "update_prices_for_contract",
+                                                            new_futures_per_contract_prices = new_futures_per_contract_prices)
+
+        return ans
+
+    def update_prices_for_contract(self, futures_contract_object, new_futures_per_contract_prices):
+        """
+        Reads existing data, merges with new_futures_prices, writes merged data
+
+        :param new_futures_prices:
+        :return: int, number of rows
+        """
+        new_log = self.log.setup(instrument_code=futures_contract_object.instrument_code,
+                                 contract_date=futures_contract_object.date)
+
+        old_prices = self.get_prices_for_contract_object(futures_contract_object)
+        merged_prices = old_prices.add_rows_to_existing_data(new_futures_per_contract_prices)
+
+        rows_added = len(merged_prices) - len(old_prices)
+
+        if rows_added==0:
+            new_log.msg("No additional data since %s " % str(old_prices.index[-1]))
+            return 0
+
+        # We have guaranteed no duplication
+        self.write_prices_for_contract_object(futures_contract_object, merged_prices, ignore_duplication=True)
+
+        new_log.msg("Added %d additional rows of data")
+
+        return rows_added
 
     def delete_prices_for_contract_object(self, futures_contract_object, areyousure=False):
         """
@@ -394,3 +528,22 @@ class futuresContractPriceData(baseData):
         contract_dates = [str(contract.contract_date) for contract in list_of_contracts_with_price_data if contract.instrument_code == instrument_code]
 
         return contract_dates
+
+    def _perform_contract_method_for_instrument_code_and_contract_date(self, instrument_code, contract_date, method_name, **kwargs):
+        contract_object = self._object_given_instrumentCode_and_contractDate(instrument_code, contract_date)
+        method = getattr(self, method_name)
+
+        return method(contract_object, **kwargs)
+
+    def _object_given_instrumentCode_and_contractDate(self, instrument_code, contract_date):
+        """
+        Quickly go from eg "EDOLLAR" "201801" to an object
+
+        :param instrument_code: str
+        :param contract_date: str
+        :return: futuresContract
+        """
+
+        contract_object = futuresContract(instrument_code, contract_date)
+
+        return contract_object

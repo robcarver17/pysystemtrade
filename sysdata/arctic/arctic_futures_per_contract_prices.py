@@ -73,7 +73,7 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
 
         return futuresContractPrices(data)
 
-    def write_prices_for_contract_object(self, futures_contract_object, futures_price_data):
+    def _write_prices_for_contract_object_no_checking(self, futures_contract_object, futures_price_data):
         """
         Write prices
         CHECK prices are overriden on second write
@@ -126,7 +126,7 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
         """
 
         list_of_contract_tuples = self._get_contract_tuples_with_price_data()
-        list_of_contracts = [futuresContract.simple(contract_tuple[0], contract_tuple[1]) for contract_tuple in list_of_contract_tuples]
+        list_of_contracts = [futuresContract(contract_tuple[0], contract_tuple[1]) for contract_tuple in list_of_contract_tuples]
 
         return list_of_contracts
 

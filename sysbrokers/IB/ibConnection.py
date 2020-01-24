@@ -73,22 +73,18 @@ class connectionIB(ibClient, ibServer):
         # resolve defaults
         ipaddress, port, idoffset = ib_defaults(ipaddress=ipaddress, port=port)
 
+        # The client id is pulled from a mongo database
+        # If for example you want to use a different database you could do something like:
+        # connectionIB(mongo_ib_tracker = mongoIBclientIDtracker(database_name="another")
+
+        # You can pass a client id yourself, or let IB find one
+
+        self.db_id_tracker = mongoIBclientIDtracker(mongo_db = mongo_db, log=log, idoffset=idoffset)
+        client = self.db_id_tracker.return_valid_client_id(client)
+
         # If you copy for another broker include this line
         log.label(broker="IB", clientid = client)
         self._ib_connection_config = dict(ipaddress = ipaddress, port = port, client = client)
-
-        # You can pass a client id yourself, or let IB find one
-        if client is None:
-            # The client id is pulled from a mongo database
-            # If for example you want to use a different database you could do something like:
-            # connectionIB(mongo_ib_tracker = mongoIBclientIDtracker(database_name="another")
-            #
-
-            db_id_tracker = mongoIBclientIDtracker(mongo_db = mongo_db, log=log, idoffset=idoffset)
-
-            # get and lock a client id
-            client = db_id_tracker.get_next_clientid()
-            # client IDs are not released; assume we clean them daily
 
         # IB specific - this is to ensure we don't get reqID conflicts between different processes
         reqIDoffset = client*1000
@@ -109,6 +105,15 @@ class connectionIB(ibClient, ibServer):
     def __repr__(self):
         return "IB broker connection"+str(self._ib_connection_config)
 
+    def terminate(self):
+        self.log.msg("Terminating %s" % str(self._ib_connection_config))
+        try:
+            ## Try and disconnect IB client
+            self.disconnect()
+        except:
+            self.log.warn("Trying to disconnect IB client failed... ensure process is killed")
+        finally:
+            self.db_id_tracker.release_clientid(self._ib_connection_config['client'])
 
 IB_CLIENT_COLLECTION = 'IBClientTracker'
 
@@ -139,6 +144,41 @@ class mongoIBclientIDtracker(object):
     def __repr__(self):
         return self.name
 
+    def _is_clientid_used(self, clientid):
+        """
+        Checks if a clientis is in use
+
+        :param clientid: int
+        :return: bool
+        """
+        current_ids = self._get_list_of_clientids()
+        if clientid in current_ids:
+            return True
+        else:
+            return False
+
+    def return_valid_client_id(self, clientid_to_try=None):
+        """
+        If clientid_to_try is None, return the next free ID
+        If clientid_to_try is being used, return the next free ID, otherwise allow that to be used
+
+        :param clientid_to_try: int or None
+        :return: int
+        """
+        if clientid_to_try is None:
+            clientid_to_use = self.get_next_clientid()
+
+        elif self.is_clientid_used(clientid_to_try):
+            # being used, get another one
+            # this will also lock it
+            clientid_to_use = self.get_next_clientid()
+        else:
+            # okay it's been passed, and we can use it. So let's lock and use it
+            clientid_to_use = clientid_to_try
+            self._add_clientid(clientid_to_use) # lock
+
+        return clientid_to_use
+
     def get_next_clientid(self):
         """
         Returns a client id which will be locked so no other use can use it
@@ -152,7 +192,7 @@ class mongoIBclientIDtracker(object):
         if len(current_list)==0:
             next_id = self._idoffset
         else:
-            full_set = set(range(0, max(current_list) + 2)) # includes next value up in case no space
+            full_set = set(range(self._idoffset, max(current_list) + 2)) # includes next value up in case no space
             missing_values = full_set - set(current_list)
             next_id = min(missing_values)
 

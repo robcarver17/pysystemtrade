@@ -89,20 +89,15 @@ You will also need to configure the Gateway:
 
 ```
 from sysbrokers.IB.ibConnection import  connectionIB
-conn = connectionIB(ipaddress = "127.0.0.1", port=4001, client = 1) # these are the default values and can be ommitted
+conn = connectionIB(ipaddress = "127.0.0.1", port=4001) # these are the default values and can be ommitted
 conn
 
-Out[13]: IB broker connection{'ipaddress': '127.0.0.1', 'port': 4001, 'client': 1}
+Out[13]: IB broker connection{'ipaddress': '127.0.0.1', 'port': 4001, 'client': 1} # client id may be different
 
 ```
 
 See [here](#creating-and-closing-connection-objects) for more details.
 
-## Get some data
-
-Currently we can only get spot FX prices.
-
-[FX data](#get-spot-fx-prices): `conn.broker_get_fx_data("GBP")`
 
 # How to...
 
@@ -112,8 +107,7 @@ Currently we can only get spot FX prices.
 
 ```
 from sysbrokers.IB.ibConnection import  connectionIB
-config = connectionIB(ipaddress = "127.0.0.1", portid=4001, client = 1) # these are the default values and can be ommitted
-conn = connectionIB(config)
+conn = connectionIB(ipaddress = "127.0.0.1", port=4001) # these are the default values and can be ommitted
 ```
 
 Portid should match that in the Gateway configuration. Client ids must not be duplicated by an already connected python process (even if it's hung...). The IP address shown means 'this machine'; only change this if you are planning to run the Gateway on a different network machine.
@@ -138,28 +132,41 @@ Connection objects immediately try and connect to IB, and kick off a server thre
 
 ### Make multiple connections
 
-It's possible to have multiple connections to the IB Gateway, each from it's own process, but each connection must have a unique clientid (NOTE: NEED TO ADD FUNCTIONALITY TO ENFORCE THIS). 
+It's possible to have multiple connections to the IB Gateway, each from it's own process, but each connection must have a unique clientid. Used clientid's are stored in a the active database (usually mongoDB) to ensure we don't re-use active clientids.
 
 ## Deal with errors
 
 The IB and broker objects don't raise exceptions caused by IB reported errors, or any issues, but they do log them. Generally the pattern is for a call to a client method to return an empty object, which the calling function can decide how to deal with.
 
-NOTE: NEED TO ADD FUNCTIONALITY AROUND A HEIRARCHY OF ERRORS (MESSAGE, WARNING, ERROR...)
 
-## Get spot FX prices
+## Data
 
-We treat IB as another data source, which means it has to conform to the data object API (see [storing futures and spot FX data](/docs/futures.md)) for spot FX. 
+We treat IB as another data source, which means it has to conform to the data object API (see [storing futures and spot FX data](/docs/futures.md)). However we can't delete or write to IB.
+
+### FX Data
 
 ```
 from sysbrokers.IB.ibSpotFXData import ibFxPricesData
 ibfxpricedata = ibFxPricesData(conn)
+
 ibfxpricedata.get_list_of_fxcodes()  # codes must be in .csv file /sysbrokers/IB/ibConfigSpotFx.csv
 ibfxpricedata.get_fx_prices("GBPUSD") # returns fxPrices object 
 ```
 
-It's also possible to directly access the IB client for 'quick and dirty' work:
 
-`conn.broker_get_fx_data("GBP", "USD")`
+
+## Futures data
+
+
+```
+from sysbrokers.IB.ibFuturesContractPriceData import ibFuturesContractPriceData
+ibfuturesdata = ibFuturesContractPriceData(conn)
+
+ibfuturesdata.get_instruments_with_price_data() # returns list of instruments defined in [futures config file](/sysbrokers/IB/ibConfigFutures.csv)
+ibfuturesdata.contract_dates_with_price_data_for_instrument_code("EDOLLAR") # returns list of contract dates
+ibfuturesdata.get_prices_for_instrument_code_and_contract_date("EDOLLAR", "201203") # returns futuresContractPrices
+ibfuturesdata.get_prices_for_contract_object(futuresContract("EDOLLAR", "201203")) # equivalent, allows us to pass richer contract objects eg if we know expiry date
+```
 
 
 <a name="futures_data_workflow"></a>
@@ -184,7 +191,10 @@ The generic client object, [`brokerClient`](/sysbrokers/baseClient.py), contains
 
 These methods include:
 
-- `broker_get_fx_data`: Returns an [`fxPrices`](/sysdata/fx/spotfx.py) object given a currency pair.
+- `broker_get_daily_fx_data`: Returns a pd.Series of fx data
+- `broker_get_historical_daily_futures_data_for_contract`: Returns a pd.Series of futures data, given a contract definition. The contract definition can be "YYYMM" or "YYYYMMDD" if the exact expiry date is known.
+- `broker_get_futures_contract_list`: For a given instrument, returns a list of "YYYMMDD" contract ID's which are the expiry dates of the given contracts
+- `broker_get_contract_expiry_date`: For a given instrument, return "YYYMMDD" which is the expiry dates of the given contract.
 
 All methods are prefixed with `broker_` to eliminate the chances of a conflict with the brokers own methods.
 
@@ -195,14 +205,18 @@ The IB client object, [`ibClient`](/sysbrokers/IB/ibClient.py), inherits from `b
 
 The overriden methods are:
 
-- `broker_get_fx_data`: Returns an [`fxPrices`](/sysdata/fx/spotfx.py) object given a currency pair (NOTE: STRICTLY SPEAKING THIS SHOULD THEN BE WRAPPED in AN fxPricesData object...)
+- `broker_get_fx_data`: Returns a pd.Series of fx data given a currency pair definition
+- `broker_get_historical_daily_futures_data_for_contract`: Returns a pd.Series of futures data, given a contract definition (including broker metadata added by the ibFuturesContractPriceData layer). The contract definition can be "YYYMM" or "YYYYMMDD" if the exact expiry date is known.
+- `broker_get_futures_contract_list`: For a given instrument (including metadata), returns a list of "YYYMMDD" contract ID's which are the expiry dates of the given contracts
+- `broker_get_contract_expiry_date`: For a given instrument (including metadata), return "YYYMMDD" which is the expiry dates of the given contract.
+
 
 The extra methods include:
 
 - `__init__`: Does the weird magical stuff required to get an IB client operating, and initialises the log, and request ID factory.
 - `ib_init_request_id_factory`, `ib_next_req_id`, `ib_clear_req_id`: make sure request ID's are parcelled out and shared nicely
-- `ib_resolve_spotfx_contract`, `ib_resolve_futures_contract`: Translate pysystemtrade depictions of an instrument into IB objects
-- `ib_resolve_contract`: Called by individual resolve methods, to go to IB and ensure we have the 'full' IB object.
+- `ib_spotfx_contract`, `ib_futures_contract`, `ib_resolve_futures_contract`: Translate pysystemtrade depictions of an instrument into IB objects
+- `ib_resolve_contract`, `ib_get_contract_chain`: Called by individual resolve methods, to go to IB and ensure we have the 'full' IB object.
 - `ib_get_historical_data`: Called by specific methods to get historical data 
 
 If you are going to connect to a new broker, then your main job is to ensure that you provide working methods to override those in `brokerClient`.
@@ -241,7 +255,7 @@ It also includes functions to help manage the queues which store data coming fro
 
 ### Connection objects
 
-A connection object inherits from both a client and a server (NOTE: in the future we would need to add a data connection object to receive streamed prices, fills etc). 
+A connection object inherits from both a client and a server (NOTE: in the future we would need to add a database connection object to receive streamed prices, fills etc). 
 
 No generic connection object is provided, since they are likely to be highly bespoke to a particular broker. See [connectionIB](/sysbrokers/IB/ibConnection.py) for an example. At a minimum, connection objects must do the following:
 
