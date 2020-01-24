@@ -1,5 +1,17 @@
 # Release notes
 
+## Version 0.25.0
+
+Can now get individual futures prices from IB, both historical daily and intraday (with get_prices_at_frequency_for_* methods)
+Added code to deal with VIX weekly expiries - they can now be ignored
+Caching IB contract objects in IB client as rather expensive
+IB client will now avoid pacing violations
+Removed futuresContract.simple() method; you can now just do futuresContract("AUDUSD", "yyyymmdd")
+Cleaned up IB client code, error handling is now consistent
+Added  broker_get_contract_expiry_date method to brokerClient and ibClient
+IB connection will now check to see if a clientid is being used even if one is passed. Has '.terminate' method which will try and clear clientid.
+.csv config files are cached in IB price API objects
+
 ## Version 0.24.0
 
 Can now pass keyword arguments to data methods when creating a trading rule (Enhancement # 141)

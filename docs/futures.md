@@ -661,7 +661,7 @@ Configuration information about futures instruments is stored in a number of dif
 
 - Instrument configuration and cost levels in this [.csv file](/data/futures/csvconfig/instrumentconfig.csv), used by default with `csvFuturesSimData` or will be copied to the database with [this script](/sysinit/futures/repocsv_instrument_config.py)
 - Roll configuration information in [this .csv file](/sysinit/futures/config/rollconfig.csv), which will be copied to Mongo DB with [this script](/sysinit/futures/roll_parameters_csv_mongo.py)
-- Interactive brokers configuration in [this file]() and [this file]()
+- Interactive brokers configuration in [this file]() and [this file](https://github.com/robcarver17/pysystemtrade/blob/master/sysbrokers/IB/ibConfigSpotFX.csv) and [this file](https://github.com/robcarver17/pysystemtrade/blob/master/sysbrokers/IB/ibConfigFutures.csv).
 
 The instruments in these lists won't neccessarily match up, however under DRY there shouldn't be duplicated column headings across files.
 
