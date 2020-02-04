@@ -326,7 +326,7 @@ class futuresContractFinalPricesWithContractID(pd.DataFrame):
 
         joint_price_data_filled_across = joint_price_data_to_merge_to_use.bfill(1)
         merged_price_data = joint_price_data_filled_across[price_column]
-        merged_contract_id =
+        merged_contract_id = merged_price_data## HERE
 
         # for older data, keep older data
         original_data_to_use = original_data[:last_false_date]
