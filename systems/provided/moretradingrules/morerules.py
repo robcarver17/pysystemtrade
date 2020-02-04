@@ -113,9 +113,9 @@ def cross_sectional_mean_reversion(normalised_price_this_instrument, normalised_
 
     outperformance = normalised_price_this_instrument.ffill() - normalised_price_for_asset_class.ffill()
     relative_return = outperformance.diff()
-    outperformance_over_horizon = pd.rolling_mean(relative_return, horizon)
+    outperformance_over_horizon = relative_return.rolling(horizon).mean()
 
-    forecast = - pd.ewma(outperformance_over_horizon, span=ewma_span)
+    forecast = - outperformance_over_horizon.ewm(span=ewma_span).mean()
 
     return forecast
 
