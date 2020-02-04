@@ -4,6 +4,19 @@ Do fun things with objects and classes
 
 import importlib
 
+class _named_object():
+    def __init__(self, name):
+        self._name= str(name)
+    def __repr__(self):
+        return self._name
+
+missing_contract = _named_object("missing contract")
+missing_instrument = _named_object("missing instrument")
+missing_file = _named_object("missing file")
+success = _named_object("success")
+failure = _named_object("failure")
+arg_not_supplied = _named_object("arg not supplied")
+
 
 def get_methods(an_object):
     dir_list = dir(an_object)
@@ -162,25 +175,6 @@ def hasallattr(some_object, attrlist=[]):
 
 
 
-
-class _missing_contract():
-    def __repr__(self):
-        return "Missing contract"
-
-
-missing_contract =_missing_contract()
-
-class _missing_instrument():
-    def __repr__(self):
-        return "Missing instrument"
-
-missing_instrument = _missing_instrument()
-
-class _missing_file():
-    def __repr__(self):
-        return "Missing file"
-
-missing_file = _missing_file()
 
 if __name__ == '__main__':
     import doctest

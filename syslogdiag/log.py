@@ -184,6 +184,16 @@ class logger(object):
             "You're using a base class for logger - you need to use an inherited class like logtoscreen()"
         )
 
+    """
+    Following two methods implement context manager
+    """
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        pass
+
+
 
 def get_update_attributes_list(parent_attributes, new_attributes):
     """
@@ -366,6 +376,9 @@ class logToMongod(logger):
         self._mongo.collection.insert_one(log_entry.log_dict())
 
         return log_entry
+
+
+
 
 class accessLogFromMongodb(object):
 

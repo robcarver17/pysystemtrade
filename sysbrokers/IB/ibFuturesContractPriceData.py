@@ -7,6 +7,7 @@ from syscore.genutils import value_or_npnan, NOT_REQUIRED
 from sysdata.futures.futures_per_contract_prices import futuresContractPriceData, futuresContractPrices
 from sysdata.futures.contracts import futuresContract, listOfFuturesContracts
 from sysdata.futures.instruments import futuresInstrument
+from sysdata.futures.contract_dates_and_expiries import expiryDate
 from syslogdiag.log import logtoscreen
 from syscore.objects import missing_contract, missing_instrument, missing_file
 
@@ -101,6 +102,8 @@ class ibFuturesContractPriceData(futuresContractPriceData):
 
         if expiry_date is missing_contract:
             new_log.msg("No IB expiry date found")
+        else:
+            expiry_date = expiryDate.from_str(expiry_date, date_format="%Y%m%d")
 
         return expiry_date
 

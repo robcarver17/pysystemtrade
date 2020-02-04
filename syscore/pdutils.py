@@ -21,8 +21,8 @@ def turnover(x, y):
     Assumes both x and y are daily business days
     """
 
-    if isinstance(y, float):
-        y = pd.Series([y] * len(x.index), x.index)
+    if isinstance(y, float) or isinstance(y, int):
+        y = pd.Series([float(y)] * len(x.index), x.index)
 
     norm_x = x / y.ffill()
 
@@ -307,6 +307,11 @@ def merge_newer_data(old_data, new_data):
     :param new_data: pd.Series or DataFrame
     :return:  pd.Series or DataFrame
     """
+    if len(old_data.index)==0:
+        return new_data
+    if len(new_data.index)==0:
+        return old_data
+
     last_date_in_old_data = old_data.index[-1]
     new_data.sort_index()
     actually_new_data = new_data[new_data.index > last_date_in_old_data]

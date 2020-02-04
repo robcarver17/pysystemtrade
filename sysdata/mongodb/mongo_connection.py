@@ -73,6 +73,17 @@ class mongoDb(object):
         return "Mongodb database: host %s, port %d, db name %s" % \
                (self.host, self.port, self.database_name)
 
+    def close(self):
+        self.client.close()
+
+    """
+    Following two methods implement context manager
+    """
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
 
 class mongoConnection(object):
     """
@@ -159,5 +170,17 @@ def mongo_clean_ints(dict_to_clean):
             key_value = float(key_value)
 
         new_dict[key_name] = key_value
+
+    return new_dict
+
+def create_update_dict(mongo_record_dict):
+    """
+    Mongo needs $key names to do updates
+
+    :param mongo_record_dict: dict
+    :return: dict
+    """
+
+    new_dict = [("$%s" % key, value) for key,value in mongo_record_dict.items()]
 
     return new_dict

@@ -375,6 +375,8 @@ class ibClient(brokerClient, EClient):
 
         return historic_data
 
+
+
 def get_barsize_and_duration_from_frequency(bar_freq):
 
     barsize_lookup = dict([('D', "1 day"), ('H', "1 hour"), ('5M', '5 mins'), ('M', '1 min'),

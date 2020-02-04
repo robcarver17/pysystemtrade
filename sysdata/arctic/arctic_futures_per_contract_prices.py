@@ -83,11 +83,11 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
         :return: None
         """
 
-        self.log.label(instument_code = futures_contract_object.instrument_code,
-                       contract_date = futures_contract_object.contract_date)
+        self.log.label(instrument_code = futures_contract_object.instrument_code,
+                       contract_date = futures_contract_object.date)
         ident = self._keyname_given_contract_object(futures_contract_object)
         self._arctic.library.write(ident, futures_price_data)
-        self.log.msg("Wrote %s lines of prices for %s to %s" % (len(futures_price_data), futures_contract_object.ident(), self.name))
+        self.log.msg("Wrote %s lines of prices for %s to %s" % (len(futures_price_data), str(futures_contract_object.ident()), self.name))
 
 
     def _all_keynames_in_library(self):
@@ -101,8 +101,8 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
         :param futures_contract_object:
         :return: None
         """
-        self.log.label(instument_code = futures_contract_object.instrument_code,
-                       contract_date = futures_contract_object.contract_date)
+        self.log.label(instrument_code = futures_contract_object.instrument_code,
+                       contract_date = futures_contract_object.date)
 
         ident = self._keyname_given_contract_object(futures_contract_object)
         self._arctic.library.delete(ident)
