@@ -504,6 +504,43 @@ Linux script:
 . $SCRIPT_PATH/update_historical_prices
 ```
 
+FIXME: An intraday sampling would be good
+
+### Update sampled contracts (Daily)
+
+This ensures that we are currently sampling active contracts, and updates contract expiry dates.
+
+Python:
+```python
+from sysproduction.update_sampled_contracts import updated_sampled_contracts
+update_sampled_prices()
+```
+
+Linux script:
+```
+. $SCRIPT_PATH/update_sampled_contracts
+```
+
+
+### Update multiple and adjusted prices (Daily)
+
+This 
+
+It should be scheduled to run once the daily prices for individual contracts have been updated.
+
+Python:
+```python
+from sysproduction.update_multiple_adjusted_prices import update_multiple_adjusted_prices_daily
+update_multiple_adjusted_prices_daily()
+```
+
+Linux script:
+```
+. $SCRIPT_PATH/update_multiple_adjusted_prices
+```
+
+
+FIXME: An intraday sampling would be good
 
 
 ## Ad-hoc diagnostics

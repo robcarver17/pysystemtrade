@@ -259,3 +259,15 @@ def long_to_datetime(float_to_convert):
 if __name__ == '__main__':
     import doctest
     doctest.testmod()
+
+
+def adjust_timestamp(index_entry, actual_close = pd.DateOffset(hours = 23, minutes=0, seconds=0),
+                     original_close = pd.DateOffset(hours = 23, minutes=0, seconds=0), time_offset =pd.DateOffset(hours=0)):
+    if (index_entry.hour == 0 and index_entry.minute == 0 and index_entry.second == 0):
+        new_index_entry = index_entry.date() + actual_close
+    elif time_matches(index_entry, original_close):
+        new_index_entry = index_entry.date() + actual_close
+    else:
+        new_index_entry = index_entry + time_offset
+
+    return new_index_entry

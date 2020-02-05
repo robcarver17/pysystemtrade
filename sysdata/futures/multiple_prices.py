@@ -16,15 +16,22 @@ import numpy as np
 
 from copy import copy
 
-from syscore.pdutils import create_arbitrary_pdseries
 from sysdata.data import baseData
-from sysdata.futures.futures_per_contract_prices import dictFuturesContractFinalPricesWithContractID
+from sysdata.futures.futures_per_contract_prices import dictFuturesContractFinalPricesWithContractID,\
+                                                        futuresContractFinalPricesWithContractID
 
-MULTIPLE_DATA_COLUMNS = ['PRICE', 'CARRY', 'FORWARD', 'PRICE_CONTRACT', 'CARRY_CONTRACT', 'FORWARD_CONTRACT']
-MULTIPLE_DATA_COLUMNS.sort()
 
-MULTIPLE_DATA_DICT_DEF = dict(PRICE=['PRICE_CONTRACT', 'PRICE'], CARRY=['CARRY_CONTRACT', 'CARRY'],
-                FORWARD=['FORWARD_CONTRACT', 'FORWARD'])
+
+price_column_names = dict(PRICE ='PRICE', CARRY ='CARRY', FORWARD='FORWARD')
+contract_suffix = '_CONTRACT'
+contract_column_names = dict([(key, column_name + contract_suffix)
+                              for key, column_name in price_column_names.items()])
+
+list_of_contract_column_names = list(contract_column_names.values())
+list_of_price_column_names = list(price_column_names)
+
+multiple_data_columns = list_of_price_column_names + list_of_contract_column_names
+multiple_data_columns.sort()
 
 
 class futuresMultiplePrices(pd.DataFrame):
@@ -35,7 +42,7 @@ class futuresMultiplePrices(pd.DataFrame):
         data_present.sort()
 
         try:
-            assert data_present == MULTIPLE_DATA_COLUMNS
+            assert data_present == multiple_data_columns
         except AssertionError:
             raise Exception("futuresMultiplePrices has to conform to pattern")
 
@@ -68,7 +75,7 @@ class futuresMultiplePrices(pd.DataFrame):
         Our graceful fail is to return an empty, but valid, dataframe
         """
 
-        data = pd.DataFrame(columns=MULTIPLE_DATA_COLUMNS)
+        data = pd.DataFrame(columns=multiple_data_columns)
 
         multiple_prices = futuresMultiplePrices(data)
         multiple_prices._is_empty = True
@@ -81,9 +88,8 @@ class futuresMultiplePrices(pd.DataFrame):
 
     def current_contract_dict(self):
         final_row = self.iloc[-1]
-        contract_dict = dict(PRICE = final_row.PRICE_CONTRACT,
-                             FORWARD = final_row.FORWARD_CONTRACT,
-                             CARRY = final_row.CARRY_CONTRACT)
+        contract_dict = dict([(key, final_row[value]) for key, value in contract_column_names.items()])
+
         return contract_dict
 
     def as_dict(self):
@@ -94,8 +100,11 @@ class futuresMultiplePrices(pd.DataFrame):
         """
 
         self_as_dict = {}
-        for key, column_names in MULTIPLE_DATA_DICT_DEF.items():
-            self_as_dict[key] = self[column_names]
+        for key in price_column_names.keys():
+            column_names = [price_column_names[key], contract_column_names[key]]
+            self_as_dict[key] = futuresContractFinalPricesWithContractID(self[column_names],
+                                                                         price_column=price_column_names[key],
+                                                                         contract_suffix=contract_suffix)
 
         self_as_dict = dictFuturesContractFinalPricesWithContractID(self_as_dict)
 
@@ -111,7 +120,7 @@ class futuresMultiplePrices(pd.DataFrame):
         """
 
         multiple_prices_list = []
-        for key_name in MULTIPLE_DATA_DICT_DEF:
+        for key_name in price_column_names.keys():
             try:
                 relevant_data = prices_dict[key_name]
             except KeyError:
@@ -120,6 +129,10 @@ class futuresMultiplePrices(pd.DataFrame):
             multiple_prices_list.append(relevant_data)
 
         multiple_prices_data_frame = pd.concat(multiple_prices_list, axis=1)
+
+        ## Now it's possible we have more price data for some things than others
+        ## so we forward fill contract_ids; not prices
+        multiple_prices_data_frame[list_of_contract_column_names] = multiple_prices_data_frame[list_of_contract_column_names].ffill()
 
         multiple_prices_object = futuresMultiplePrices(multiple_prices_data_frame)
 
@@ -145,7 +158,12 @@ class futuresMultiplePrices(pd.DataFrame):
 
         current_prices_dict = self.as_dict()
 
-        merged_data = current_prices_dict.merge_data(new_prices_dict)
+        try:
+            merged_data_as_dict = current_prices_dict.merge_data(new_prices_dict)
+        except Exception as e:
+            raise e
+
+        merged_data = futuresMultiplePrices.from_dict(merged_data_as_dict)
 
         return merged_data
 
@@ -209,11 +227,11 @@ def create_multiple_price_stack_from_raw_data(roll_calendar, dict_of_futures_con
 
 
         all_price_data = pd.concat([current_price_data, next_price_data, carry_price_data], axis=1)
-        all_price_data.columns = ["PRICE", "FORWARD", "CARRY"]
+        all_price_data.columns = [price_column_names['PRICE'], price_column_names['FORWARD'], price_column_names['CARRY']]
 
-        all_price_data['PRICE_CONTRACT'] = current_contract
-        all_price_data['FORWARD_CONTRACT'] = next_contract
-        all_price_data['CARRY_CONTRACT'] = carry_contract
+        all_price_data[contract_column_names['PRICE']] = current_contract
+        all_price_data[contract_column_names['FORWARD']] = next_contract
+        all_price_data[contract_column_names['CARRY']] = carry_contract
 
         all_price_data_stack.append(all_price_data)
 

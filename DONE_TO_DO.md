@@ -1,5 +1,9 @@
 # Release notes
 
+## Version 0.26.0
+
+Added production code to get daily futures prices from IB, update sampled contracts, update multiple and adjusted prices.
+
 ## Version 0.25.0
 
 Can now get individual futures prices from IB, both historical daily and intraday (with get_prices_at_frequency_for_* methods)

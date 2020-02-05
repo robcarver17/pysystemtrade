@@ -10,6 +10,7 @@ from sysbrokers.baseClient import brokerClient
 from sysbrokers.baseServer import finishableQueue
 from syscore.genutils import NOT_REQUIRED
 from syscore.objects import missing_contract
+from syscore.dateutils import adjust_timestamp
 from syslogdiag.log import logtoscreen
 
 
@@ -470,8 +471,21 @@ def avoid_pacing_violation(last_call_datetime, log=logtoscreen("")):
             printed_warning_already = True
         pass
 
-
 def ib_timestamp_to_datetime(timestamp_str):
+    """
+    Turns IB timestamp into datetime and adjusts yyyymm to closing vector
+    Eithier yyyymmdd or 'yyyymmdd  hh:mm:ss'
+
+    :param timestamp_str: str
+    :return: datetime.datetime
+    """
+    timestamp = ib_timestamp_to_date_or_datetime(timestamp_str)
+
+    adjusted_ts = adjust_timestamp(timestamp)
+
+    return adjusted_ts
+
+def ib_timestamp_to_date_or_datetime(timestamp_str):
     """
     Turns IB timestamp into datetime
     Eithier yyyymmdd or 'yyyymmdd  hh:mm:ss'

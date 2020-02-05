@@ -1,4 +1,8 @@
 import pandas as pd
+import numpy as np
+
+from syscore.pdutils import merge_data_series_with_label_column
+
 from sysdata.data import baseData
 from sysdata.futures.contracts import futuresContract
 from syscore.pdutils import full_merge_of_existing_data, merge_newer_data
@@ -206,7 +210,25 @@ class futuresContractFinalPricesWithContractID(pd.DataFrame):
     Just the final prices from a futures contract, plus
     Columns are named 'NAME' and 'NAME_CONTRACT'
     """
-    def __init__(self, price_data, contractid, column_name = 'PRICE', contract_suffix="_CONTRACT"):
+    def __init__(self, price_and_contract_data, price_column = 'PRICE', contract_suffix="_CONTRACT"):
+        """
+
+        :param price_and_contract_data: pd.DataFrame with two columns
+        :param column_name: column name for price
+        :param contract_suffix: column name for contract
+        """
+
+        super().__init__(price_and_contract_data)
+
+        contract_name = price_column+contract_suffix
+
+        self._price_column = price_column
+        self._contract_column = contract_name
+
+    @classmethod
+    def create_with_single_contractid(futuresContractFinalPricesWithContractID,
+                                      price_data, contractid,
+                                      price_column = 'PRICE', contract_suffix="_CONTRACT"):
         """
 
         :param price_data: futuresContractFinalPrices
@@ -216,24 +238,17 @@ class futuresContractFinalPricesWithContractID(pd.DataFrame):
         """
 
         contract_data = [contractid]*len(price_data)
-        data = pd.DataFrame(dict(px=list(price_data.values), contracts=contract_data),
+        data = pd.DataFrame(np.array([list(price_data.values), contract_data]).transpose(),
                             index = price_data.index)
 
-        contract_name = column_name+contract_suffix
-        data.columns=[column_name, contract_name]
-        super().__init__(data)
+        contract_name = price_column+contract_suffix
+        data.columns=[price_column, contract_name]
 
-        self._price_column = column_name
-        self._contract_column = contract_name
+        object = futuresContractFinalPricesWithContractID(data,
+                                                          price_column=price_column,
+                                                          contract_suffix=contract_suffix)
 
-    def merge_with_new_data(self, new_data):
-        """
-
-        :param new_data: same object type, columns must match, first contractid in new data must match last in old data
-        :return: new object
-        """
-
-        pass
+        return object
 
     def contract_ids(self):
         contract_column = self._contract_column
@@ -250,6 +265,7 @@ class futuresContractFinalPricesWithContractID(pd.DataFrame):
 
         return contract_ids[-1]
 
+
     def check_all_contracts_equal_to(self, test_contractid):
         """
         Check to see if all contracts are the same as contractid
@@ -264,72 +280,37 @@ class futuresContractFinalPricesWithContractID(pd.DataFrame):
 
         return all(check_equality)
 
-    def merge(self, new_price_data):
+    def merge_data(self, new_data):
         """
         Assuming that contracts all match,
 
         merge the data series together
 
-        WHAT IF WE HAVE MIXED DATA....?
-
-        :param new_price_data: object of same type
+        :param new_data: object of same type
         :return: object of same type
         """
+        if len(new_data)==0:
+            return self
+
         original_data = self
-        new_format = "new_%s"
-        new_price_data.columns = [new_format % colname for colname in new_price_data.columns]
 
-        contract_column = self._contract_column
-        price_column = self._price_column
+        last_contract_in_original_data = original_data.final_contract()
 
-        new_contract_column = new_format % contract_column
-        new_price_column = new_format % price_column
+        try:
+            assert new_data.check_all_contracts_equal_to(last_contract_in_original_data)
+        except:
+            raise Exception("When merging data, final contractid in original data must match all new data")
+        try:
+            assert new_data._price_column == original_data._price_column
+            assert new_data._contract_column == original_data._contract_column
+        except:
+            raise Exception("When merging data, column names must match")
 
-        joint_data_contractids = pd.concat([original_data[contract_column],
-                                            new_price_data[new_contract_column]], axis=1)
+        col_names = dict(data=original_data._price_column, label = original_data._contract_column)
 
+        merged_data = merge_data_series_with_label_column(original_data, new_data, col_names=col_names)
 
-        new_data_start = new_price_data.index[0]
-
-        joint_data_contractids = joint_data_contractids.sort_index()
-
-        existing_contract_ids_in_new_period = joint_data_contractids[contract_column][new_data_start:].ffill()
-        new_contract_ids_in_new_period = joint_data_contractids[new_contract_column][new_data_start:].ffill()
-
-        # Only interested in data once the existing and new are matching
-        # Before this, was probably a roll
-        # Data is same length, and timestamp matched, so equality of values is sufficient
-        period_equal = [x==y for x,y in zip(new_contract_ids_in_new_period.values,
-                                             existing_contract_ids_in_new_period.values)]
-
-        # Want last False value
-        period_equal.reverse()
-        first_false_in_reversed_list = period_equal.index(False)
-
-        last_true_before_first_false_in_reversed_list = first_false_in_reversed_list-1
-
-        reversed_time_index = new_contract_ids_in_new_period.index[::-1]
-        last_true_before_first_false_in_reversed_list_date = reversed_time_index[last_true_before_first_false_in_reversed_list]
-        first_false_in_reversed_list_date = reversed_time_index[first_false_in_reversed_list]
-
-        first_true_after_last_false_date = last_true_before_first_false_in_reversed_list_date
-        last_false_date = first_false_in_reversed_list_date
-
-        # From the date after this, can happily merge new and old data
-
-        # Concat the two price series together, fill to the left
-        # This will replace any NA values in existing prices with new ones
-
-        joint_price_data_to_merge = pd.concat([original_data[price_column],
-                                               new_price_data[new_price_column]], axis=1)
-        joint_price_data_to_merge_to_use = joint_price_data_to_merge[first_true_after_last_false_date:]
-
-        joint_price_data_filled_across = joint_price_data_to_merge_to_use.bfill(1)
-        merged_price_data = joint_price_data_filled_across[price_column]
-        merged_contract_id = merged_price_data## HERE
-
-        # for older data, keep older data
-        original_data_to_use = original_data[:last_false_date]
+        return merged_data
 
 
 class dictFuturesContractFinalPricesWithContractID(dict):
@@ -360,8 +341,8 @@ class dictFuturesContractFinalPricesWithContractID(dict):
             except KeyError:
                 raise Exception("key value %s missing from dict_of_contract_ids" % key)
 
-            prices_with_contractid = futuresContractFinalPricesWithContractID(price_series, contract_id,
-                                                                              column_name = key)
+            prices_with_contractid = futuresContractFinalPricesWithContractID.\
+                create_with_single_contractid(price_series, contract_id, price_column = key)
             new_dict[key] = prices_with_contractid
 
         return dictFuturesContractFinalPricesWithContractID(new_dict)
@@ -383,8 +364,10 @@ class dictFuturesContractFinalPricesWithContractID(dict):
                 new_data = new_price_dict[key_name]
             except KeyError:
                 raise Exception("Key name mismatch when merging price data, %s missing from new data" % key_name)
-
-            merged_data = current_data.merge(new_data)
+            try:
+                merged_data = current_data.merge_data(new_data)
+            except Exception as e:
+                raise e
 
             merged_dict[key_name] = merged_data
 

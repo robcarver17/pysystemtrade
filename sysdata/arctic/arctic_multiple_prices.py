@@ -2,7 +2,7 @@
 Read and write data from mongodb for 'multiple prices'
 
 """
-
+import pandas as pd
 from sysdata.arctic.arctic_connection import articConnection
 from sysdata.futures.multiple_prices import futuresMultiplePricesData, futuresMultiplePrices
 from syslogdiag.log import logtoscreen
@@ -44,7 +44,10 @@ class arcticFuturesMultiplePricesData(futuresMultiplePricesData):
         self._arctic.library.delete(instrument_code)
         self.log.msg("Deleted multiple prices for %s from %s" % (instrument_code, self.name))
 
-    def _add_multiple_prices_without_checking_for_existing_entry(self, instrument_code, multiple_price_data):
+    def _add_multiple_prices_without_checking_for_existing_entry(self, instrument_code, multiple_price_data_object):
+
+        multiple_price_data = pd.DataFrame(multiple_price_data_object)
+
         multiple_price_data['PRICE_CONTRACT'] = multiple_price_data['PRICE_CONTRACT'].astype(str)
         multiple_price_data['FORWARD_CONTRACT'] = multiple_price_data['FORWARD_CONTRACT'].astype(str)
         multiple_price_data['CARRY_CONTRACT'] = multiple_price_data['CARRY_CONTRACT'].astype(str)

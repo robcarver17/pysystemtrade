@@ -8,8 +8,14 @@ Adjusted prices:
 
 import pandas as pd
 import numpy as np
-from sysdata.data import baseData
 from copy import copy
+
+from syscore.objects import _named_object
+from syscore.pdutils import full_merge_of_existing_series
+from sysdata.data import baseData
+from sysdata.futures.multiple_prices import price_column_names
+from sysdata.futures.multiple_prices import contract_column_names
+from sysdata.futures.futures_per_contract_prices import futuresContractFinalPricesWithContractID
 
 def panama_stitch(multiple_prices_input, forward_fill = False):
     """
@@ -105,6 +111,53 @@ class futuresAdjustedPrices(pd.Series):
         adjusted_prices = panama_stitch(multiple_prices, forward_fill = forward_fill)
 
         return futuresAdjustedPrices(adjusted_prices)
+
+    def update_with_multiple_prices_no_roll(self, updated_multiple_prices):
+        """
+        Update adjusted prices assuming no roll has happened
+
+        :param updated_multiple_prices: futuresMultiplePrices
+        :return: updated adjusted prices
+        """
+
+        updated_adj = update_adjusted_prices_from_multiple_no_roll(self, updated_multiple_prices)
+
+        return updated_adj
+
+no_update_roll_has_occured = _named_object("Roll has occured")
+
+def update_adjusted_prices_from_multiple_no_roll(existing_adjusted_prices, updated_multiple_prices):
+    """
+    Update adjusted prices assuming no roll has happened
+
+    :param existing_adjusted_prices: futuresAdjustedPrices
+    :param updated_multiple_prices: futuresMultiplePrices
+    :return: updated adjusted prices
+    """
+
+    last_date_in_adj = existing_adjusted_prices.index[-1]
+    multiple_prices_as_dict = updated_multiple_prices.as_dict()
+
+    prices_in_multiple_prices = multiple_prices_as_dict['PRICE']
+    price_column = price_column_names['PRICE']
+    contract_column = contract_column_names['PRICE']
+
+    last_contract_in_price_data = prices_in_multiple_prices[contract_column][:last_date_in_adj][-1]
+    new_price_data = futuresContractFinalPricesWithContractID(prices_in_multiple_prices[last_date_in_adj:])
+
+    has_roll_occured = not new_price_data.check_all_contracts_equal_to(last_contract_in_price_data)
+
+    if has_roll_occured:
+        return no_update_roll_has_occured
+
+    new_adjusted_prices = new_price_data[price_column]
+    new_adjusted_prices = new_adjusted_prices.dropna()
+
+    merged_adjusted_prices = full_merge_of_existing_series(existing_adjusted_prices, new_adjusted_prices)
+    merged_adjusted_prices = futuresAdjustedPrices(merged_adjusted_prices)
+
+    return merged_adjusted_prices
+
 
 USE_CHILD_CLASS_ERROR = "You need to use a child class of futuresAdjustedPricesData"
 

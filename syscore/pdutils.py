@@ -9,6 +9,7 @@ from copy import copy
 
 from syscore.fileutils import get_filename_for_package
 from syscore.dateutils import BUSINESS_DAYS_IN_YEAR, time_matches, CALENDAR_DAYS_IN_YEAR
+from syscore.objects import _named_object
 
 DEFAULT_DATE_FORMAT = "%Y-%m-%d"
 
@@ -262,7 +263,7 @@ def create_arbitrary_pdseries(data_list,
     1980-01-01    1
     1980-01-02    2
     1980-01-03    3
-    Freq: D, dtype: int64
+    Freq: B, dtype: int64
     """
 
     date_index = pd.date_range(
@@ -351,8 +352,7 @@ def full_merge_of_existing_data(old_data, new_data):
             merged_data[colname] = old_data
             continue
 
-        concat_series = pd.concat([old_series, new_series], axis=0)
-        merged_series = concat_series.loc[~concat_series.index.duplicated(keep="first")]
+        merged_series = full_merge_of_existing_series(old_series, new_series)
 
         merged_data[colname] = merged_series
 
@@ -360,6 +360,253 @@ def full_merge_of_existing_data(old_data, new_data):
     merged_data_as_df = merged_data_as_df.sort_index()
 
     return merged_data_as_df
+
+def full_merge_of_existing_series(old_series, new_series):
+    """
+    Merges old data with new data.
+    Any Nan in the existing data will be replaced (be careful!)
+
+    :param old_data: pd.Series
+    :param new_data: pd.Series
+
+    :returns: pd.Series
+    """
+    if len(old_series)==0:
+        return  new_series
+    if len(new_series)==0:
+        return old_series
+
+    joint_data = pd.concat([old_series, new_series], axis=1)
+    joint_data.columns = ['original', 'new']
+
+    # fill to the left
+    joint_data_filled_across = joint_data.bfill(1)
+    merged_data = joint_data_filled_across['original']
+
+    return merged_data
+
+
+all_labels_match = _named_object("all labels match")
+mismatch_on_last_day = _named_object("mismatch_on_last_day")
+original_index_matches_new = _named_object("original index matches new")
+
+def merge_data_series_with_label_column(original_data, new_data, col_names=dict(data='PRICE',
+                                                                                        label='PRICE_CONTRACT')):
+    """
+    For two pd.DataFrames with 2 columns, including a label column, update the data when the labels
+      start consistently matching
+
+    >>> s1=pd.DataFrame(dict(PRICE=[1,2,3,np.nan], PRICE_CONTRACT = ["a", "a", "b", "b"]), index=['a1','a2','a3','a4'])
+    >>> s2=pd.DataFrame(dict(PRICE=[  7,3,4], PRICE_CONTRACT = [          "b", "b", "b"]), index=['a2','a3','a4'])
+    >>> merge_data_series_with_label_column(s1,s2)
+        PRICE PRICE_CONTRACT
+    a1    1.0              a
+    a2    2.0              a
+    a3    3.0              b
+    a4    4.0              b
+    >>> s2=pd.DataFrame(dict(PRICE=[  2,5,4], PRICE_CONTRACT = [          "b", "b", "b"]), index=['a2','a3','a4'])
+    >>> merge_data_series_with_label_column(s1,s2)
+        PRICE PRICE_CONTRACT
+    a1    1.0              a
+    a2    2.0              a
+    a3    3.0              b
+    a4    4.0              b
+    >>> s2=pd.DataFrame(dict(PRICE=[  2,3,np.nan], PRICE_CONTRACT = [          "b", "b", "b"]), index=['a2','a3','a4'])
+    >>> merge_data_series_with_label_column(s1,s2)
+        PRICE PRICE_CONTRACT
+    a1    1.0              a
+    a2    2.0              a
+    a3    3.0              b
+    a4    NaN              b
+    >>> s1=pd.DataFrame(dict(PRICE=[1,np.nan,3,np.nan], PRICE_CONTRACT = ["a", "a", "b", "b"]), index=['a1','a2','a3','a4'])
+    >>> s2=pd.DataFrame(dict(PRICE=[  2,     3,4], PRICE_CONTRACT = [      "a", "b", "b"]), index=['a2','a3','a4'])
+    >>> merge_data_series_with_label_column(s1,s2)
+        PRICE PRICE_CONTRACT
+    a1    1.0              a
+    a2    2.0              a
+    a3    3.0              b
+    a4    4.0              b
+    >>> s1=pd.DataFrame(dict(PRICE=[1,np.nan,np.nan], PRICE_CONTRACT = ["a", "a", "b"]), index=['a1','a2','a3'])
+    >>> s2=pd.DataFrame(dict(PRICE=[  2,     3,4], PRICE_CONTRACT = [      "b", "b", "b"]), index=['a2','a3','a4'])
+    >>> merge_data_series_with_label_column(s1,s2)
+        PRICE PRICE_CONTRACT
+    a1    1.0              a
+    a2    NaN              a
+    a3    3.0              b
+    a4    4.0              b
+    >>> s2=pd.DataFrame(dict(PRICE=[  2,     3,4], PRICE_CONTRACT = [      "b", "c", "c"]), index=['a2','a3','a4'])
+    >>> merge_data_series_with_label_column(s1,s2)
+        PRICE PRICE_CONTRACT
+    a1    1.0              a
+    a2    NaN              a
+    a3    NaN              b
+
+
+    :param original_data: a pd.DataFrame with two columns, equal to col_names
+    :param new_data: a pd.DataFrame with the same two columns
+    :param col_names: dict of str
+    :return: pd.DataFrame with two columns
+    """
+
+    if len(new_data)==0:
+        return original_data
+
+    if len(original_data)==0:
+        return new_data
+
+    # From the date after this, can happily merge new and old data
+    match_data = find_dates_when_label_changes(original_data, new_data, col_names=col_names)
+
+    if match_data is mismatch_on_last_day:
+        # No matching is possible
+        return original_data
+    elif match_data is original_index_matches_new:
+        first_date_after_series_mismatch = original_data.index[0]
+        last_date_when_series_mismatch = original_index_matches_new
+    else:
+        first_date_after_series_mismatch, last_date_when_series_mismatch =match_data
+
+    # Concat the two price series together, fill to the left
+    # This will replace any NA values in existing prices with new ones
+    label_column = col_names['label']
+    data_column = col_names['data']
+
+    merged_data = full_merge_of_existing_series(original_data[data_column][first_date_after_series_mismatch:],
+                                           new_data[data_column][first_date_after_series_mismatch:])
+
+    labels_in_merged_data = new_data[first_date_after_series_mismatch:][label_column]
+    labels_in_merged_data_reindexed = labels_in_merged_data.reindex(merged_data.index)
+
+    labelled_merged_data = pd.concat([labels_in_merged_data_reindexed, merged_data], axis=1)
+    labelled_merged_data.columns = [label_column, data_column]
+
+    # for older data, keep older data
+    if last_date_when_series_mismatch is original_index_matches_new:
+        current_and_merged_data = labelled_merged_data
+    else:
+        original_data_to_use = original_data[:last_date_when_series_mismatch]
+
+        # Merged data is the old data, and then the new data
+        current_and_merged_data = pd.concat([original_data_to_use, labelled_merged_data], axis=0)
+
+    return current_and_merged_data
+
+
+def find_dates_when_label_changes(original_data, new_data, col_names=dict(data='PRICE',
+                                                                                        label='PRICE_CONTRACT')):
+    """
+    For two pd.DataFrames with 2 columns, including a label column, find the date after which the labelling
+     is consistent across columns
+
+    >>> s1=pd.DataFrame(dict(PRICE=[1,2,3,np.nan], PRICE_CONTRACT = ["a", "a", "b", "b"]), index=['a1','a2','a3','a4'])
+    >>> s2=pd.DataFrame(dict(PRICE=[  2,3,4], PRICE_CONTRACT = [          "b", "b", "b"]), index=['a2','a3','a4'])
+    >>> find_dates_when_label_changes(s1, s2)
+    ('a3', 'a2')
+    >>> s2=pd.DataFrame(dict(PRICE=[  2,3,4], PRICE_CONTRACT = [          "a", "b", "b"]), index=['a2','a3','a4'])
+    >>> find_dates_when_label_changes(s1, s2)
+    ('a2', 'a1')
+    >>> s2=pd.DataFrame(dict(PRICE=[  2,3,4], PRICE_CONTRACT = [          "c", "c", "c"]), index=['a2','a3','a4'])
+    >>> find_dates_when_label_changes(s1, s2)
+    mismatch_on_last_day
+    >>> find_dates_when_label_changes(s1, s1)
+    original index matches new
+    >>> s2=pd.DataFrame(dict(PRICE=[1, 2,3,4], PRICE_CONTRACT = ["a","c", "c", "c"]), index=['a1','a2','a3','a4'])
+    >>> find_dates_when_label_changes(s1, s2)
+    mismatch_on_last_day
+
+    :param original_data: some data
+    :param new_data: some new data
+    :param col_names: dict of str
+    :return: tuple or object if match didn't work out
+    """
+    label_column = col_names['label']
+
+    joint_labels = pd.concat([original_data[label_column],
+                                        new_data[label_column]], axis=1)
+    joint_labels.columns = ['current', 'new']
+    joint_labels = joint_labels.sort_index()
+
+    new_data_start = new_data.index[0]
+
+    existing_labels_in_new_period = joint_labels['current'][new_data_start:].ffill()
+    new_labels_in_new_period = joint_labels['new'][new_data_start:].ffill()
+
+    # Find the last date when the labels didn't match, and the first date after that
+    match_data=\
+        find_dates_when_series_starts_matching(existing_labels_in_new_period, new_labels_in_new_period)
+
+    if match_data is mismatch_on_last_day:
+        ## Can't use any of new data
+        return mismatch_on_last_day
+
+    elif match_data is all_labels_match:
+        ## Can use entire series becuase all match
+        if new_data.index[0] == original_data.index[0]:
+            # They are same size, so have to use whole of original data
+            return original_index_matches_new
+        else:
+            ## All the new data matches
+            first_date_after_series_mismatch = new_data_start
+            last_date_when_series_mismatch = original_data.index[original_data.index < new_data_start][-1]
+    else:
+        first_date_after_series_mismatch, last_date_when_series_mismatch = match_data
+
+    return first_date_after_series_mismatch, last_date_when_series_mismatch
+
+def find_dates_when_series_starts_matching(series1, series2):
+    """
+    Find the last index value when series1 and series 2 didn't match, and the next index after that
+
+    series must be matched for index and same length
+
+    >>> s1=pd.Series(["a", "b", "b", "b"], index=[1,2,3,4])
+    >>> s2=pd.Series(["c", "b", "b", "b"], index=[1,2,3,4])
+    >>> find_dates_when_series_starts_matching(s1, s2)
+    (2, 1)
+    >>> s2=pd.Series(["a", "a", "b", "b"], index=[1,2,3,4])
+    >>> find_dates_when_series_starts_matching(s1, s2)
+    (3, 2)
+    >>> s2=pd.Series(["a", "b", "a", "b"], index=[1,2,3,4])
+    >>> find_dates_when_series_starts_matching(s1, s2)
+    (4, 3)
+    >>> s2=pd.Series(["a", "b", "b", "b"], index=[1,2,3,4])
+    >>> find_dates_when_series_starts_matching(s1, s2)
+    all labels match
+    >>> s2=pd.Series(["a", "b", "b", "c"], index=[1,2,3,4])
+    >>> find_dates_when_series_starts_matching(s1, s2)
+    mismatch_on_last_day
+
+    :param series1: pd.Series
+    :param series2: pd.Series
+    :return: 2-tuple of index values
+    """
+
+    # Data is same length, and timestamp matched, so equality of values is sufficient
+    period_equal = [x == y for x, y in zip(series1.values,
+                                           series2.values)]
+
+    if all(period_equal):
+        return all_labels_match
+
+    if not period_equal[-1]:
+        return mismatch_on_last_day
+
+    # Want last False value
+    period_equal.reverse()
+    first_false_in_reversed_list = period_equal.index(False)
+
+    last_true_before_first_false_in_reversed_list = first_false_in_reversed_list - 1
+
+    reversed_time_index = series1.index[::-1]
+    last_true_before_first_false_in_reversed_list_date = reversed_time_index[
+        last_true_before_first_false_in_reversed_list]
+    first_false_in_reversed_list_date = reversed_time_index[first_false_in_reversed_list]
+
+    first_date_after_series_mismatch = last_true_before_first_false_in_reversed_list_date
+    last_date_when_series_mismatch = first_false_in_reversed_list_date
+
+    return first_date_after_series_mismatch, last_date_when_series_mismatch
+
 
 def proportion_pd_object_intraday(data, closing_time = pd.DateOffset(hours=23, minutes=0, seconds=0)):
     """
