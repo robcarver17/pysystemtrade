@@ -400,7 +400,6 @@ class contractDateWithRollParameters(contractDate):
         super().__init__(*args, **kwargs)
         self.roll_parameters = roll_parameters
 
-
     @classmethod
     def contract_date_from_numbers(contractDateWithRollData, rolldata_object,
                             new_year_number, new_month_number, new_day_number=NO_DAY_PASSED, **kwargs):

@@ -1,7 +1,7 @@
 """
 Do fun things with objects and classes
 """
-
+from collections import  namedtuple
 import importlib
 
 class _named_object():
@@ -16,6 +16,11 @@ missing_file = _named_object("missing file")
 success = _named_object("success")
 failure = _named_object("failure")
 arg_not_supplied = _named_object("arg not supplied")
+
+report_config = namedtuple("config", "title function output")
+table = namedtuple("table", "Heading Body")
+header = namedtuple("header", "Heading")
+body_text = namedtuple("bodytext", "Text")
 
 
 def get_methods(an_object):

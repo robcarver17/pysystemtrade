@@ -13,6 +13,7 @@ import examples
 import private
 import data
 import sysbrokers
+import sysproduction
 
 def get_filename_for_package(pathname, filename=None):
     """

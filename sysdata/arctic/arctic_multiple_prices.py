@@ -4,7 +4,8 @@ Read and write data from mongodb for 'multiple prices'
 """
 import pandas as pd
 from sysdata.arctic.arctic_connection import articConnection
-from sysdata.futures.multiple_prices import futuresMultiplePricesData, futuresMultiplePrices
+from sysdata.futures.multiple_prices import futuresMultiplePricesData, futuresMultiplePrices, \
+    list_of_contract_column_names, list_of_price_column_names
 from syslogdiag.log import logtoscreen
 
 MULTIPLE_COLLECTION = 'futures_multiple_prices'
@@ -46,12 +47,15 @@ class arcticFuturesMultiplePricesData(futuresMultiplePricesData):
 
     def _add_multiple_prices_without_checking_for_existing_entry(self, instrument_code, multiple_price_data_object):
 
-        multiple_price_data = pd.DataFrame(multiple_price_data_object)
+        multiple_price_data_aspd = pd.DataFrame(multiple_price_data_object)
 
-        multiple_price_data['PRICE_CONTRACT'] = multiple_price_data['PRICE_CONTRACT'].astype(str)
-        multiple_price_data['FORWARD_CONTRACT'] = multiple_price_data['FORWARD_CONTRACT'].astype(str)
-        multiple_price_data['CARRY_CONTRACT'] = multiple_price_data['CARRY_CONTRACT'].astype(str)
+        for contract_column in list_of_contract_column_names:
+            multiple_price_data_aspd[contract_column] = multiple_price_data_aspd[contract_column].astype(str)
+
+        for price_column in list_of_price_column_names:
+            multiple_price_data_aspd[price_column] = multiple_price_data_aspd[price_column].astype(float)
+
         self.log.label(instument_code = instrument_code)
-        self._arctic.library.write(instrument_code, multiple_price_data)
-        self.log.msg("Wrote %s lines of prices for %s to %s" % (len(multiple_price_data), instrument_code, self.name))
+        self._arctic.library.write(instrument_code, multiple_price_data_aspd)
+        self.log.msg("Wrote %s lines of prices for %s to %s" % (len(multiple_price_data_aspd), instrument_code, self.name))
 

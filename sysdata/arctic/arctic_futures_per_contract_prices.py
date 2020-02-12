@@ -86,7 +86,8 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
         self.log.label(instrument_code = futures_contract_object.instrument_code,
                        contract_date = futures_contract_object.date)
         ident = self._keyname_given_contract_object(futures_contract_object)
-        self._arctic.library.write(ident, futures_price_data)
+        futures_price_data_aspd = pd.DataFrame(futures_price_data)
+        self._arctic.library.write(ident, futures_price_data_aspd)
         self.log.msg("Wrote %s lines of prices for %s to %s" % (len(futures_price_data), str(futures_contract_object.ident()), self.name))
 
 

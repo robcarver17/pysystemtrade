@@ -1,24 +1,18 @@
-
-from collections import namedtuple
-
 from syscore.objects import missing_contract
 
 from sysbrokers.IB.ibConnection import connectionIB
-from sysbrokers.IB.ibFuturesContractPriceData import ibFuturesContractPriceData
 
 from sysdata.mongodb.mongo_connection import mongoDb
-from sysdata.mongodb.mongo_futures_contracts import mongoFuturesContractData
-from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesData
-from sysdata.mongodb.mongo_roll_data import mongoRollParametersData
 
 from sysdata.futures.rolls import contractDateWithRollParameters
 from sysdata.futures.contracts import futuresContract, listOfFuturesContracts
 from sysdata.futures.instruments import futuresInstrument
 
+from sysproduction.data.get_data import dataBlob
+
 from syslogdiag.log import logToMongod as logger
 from syslogdiag.log import logtoscreen
 
-dataBlob = namedtuple("DataBlob", "arctic_multiple_prices ib_futures_prices mongo_contract_data mongo_roll_data ib_conn")
 
 def update_sampled_contracts():
     """
@@ -49,24 +43,15 @@ def update_sampled_contracts():
         logger("Update-Sampled_Contracts", mongo_db=mongo_db) as log,\
         connectionIB(log=log.setup(component="IB-connection")) as ib_conn:
 
-        data = setup_data(mongo_db, ib_conn, log=log)
+        data = dataBlob("arcticFuturesMultiplePricesData ibFuturesContractPriceData\
+                        mongoFuturesContractData mongoRollParametersData",
+                        mongo_db, ib_conn, log=log)
 
-        list_of_codes_all = data.arctic_multiple_prices.get_list_of_instruments()
-        for instrument_code in list_of_codes_all:
+        list_of_codes_all = data.arctic_futures_multiple_prices.get_list_of_instruments()
+        for instrument_code in ['CRUDE_W']:
             new_log = log.setup(instrument_code = instrument_code)
             update_active_contracts_for_instrument(instrument_code, data, log=new_log)
 
-
-def setup_data(mongo_db, ib_conn, log=logtoscreen("")):
-
-    arctic_multiple_prices = arcticFuturesMultiplePricesData(mongo_db, log=log.setup(component="arcticMultiplePricesData"))
-    ib_futures_prices = ibFuturesContractPriceData(ib_conn, log=log.setup(component="ibFuturesContractPriceData"))
-    mongo_contract_data = mongoFuturesContractData(mongo_db, log=log.setup(component="mongoFuturesContractData"))
-    mongo_roll_data = mongoRollParametersData(mongo_db, log=log.setup(component="mongoRollParametersData"))
-
-    data=dataBlob(arctic_multiple_prices, ib_futures_prices, mongo_contract_data, mongo_roll_data, ib_conn)
-
-    return data
 
 def update_active_contracts_for_instrument(instrument_code, data, log=logtoscreen("")):
     # Get the list of contracts we'd want to get prices for, given current roll calendar
@@ -82,10 +67,10 @@ def update_active_contracts_for_instrument(instrument_code, data, log=logtoscree
 
 def get_contract_chain(instrument_code, data):
 
-    roll_parameters = data.mongo_roll_data.get_roll_parameters(instrument_code)
+    roll_parameters = data.mongo_roll_parameters.get_roll_parameters(instrument_code)
 
     # Get the last contract currently being used
-    multiple_prices = data.arctic_multiple_prices.get_multiple_prices(instrument_code)
+    multiple_prices = data.arctic_futures_multiple_prices.get_multiple_prices(instrument_code)
     current_contract_dict = multiple_prices.current_contract_dict()
     current_contract_list = list(current_contract_dict.values())
     furthest_out_contract_date = max(current_contract_list)
@@ -117,7 +102,7 @@ def update_contract_database_with_contract_chain( instrument_code, required_cont
     """
 
     # Get list of contracts in the database
-    all_contracts_in_db = data.mongo_contract_data.get_all_contract_objects_for_instrument_code(instrument_code)
+    all_contracts_in_db = data.mongo_futures_contract.get_all_contract_objects_for_instrument_code(instrument_code)
     current_contract_chain = all_contracts_in_db.currently_sampling()
 
     #Is something in required_contract_chain, but not in the database?
@@ -147,14 +132,14 @@ def add_missing_contracts_to_database(instrument_code, missing_from_db, data, lo
     for contract_to_add in missing_from_db:
         contract_date = contract_to_add.date
         if data.mongo_contract_data.is_contract_in_data(instrument_code, contract_date):
-            contract_to_add = data.mongo_contract_data.get_contract_data(instrument_code, contract_date)
+            contract_to_add = data.mongo_futures_contract.get_contract_data(instrument_code, contract_date)
 
         # Mark it as sampling
         contract_to_add.sampling_on()
 
         #Add it to the database
         #We are happy to overwrite
-        data.mongo_contract_data.add_contract_data(contract_to_add, ignore_duplication=True)
+        data.mongo_futures_contract.add_contract_data(contract_to_add, ignore_duplication=True)
 
         log.msg("Contract %s now added to database and sampling" % str(contract_to_add))
 
@@ -172,10 +157,10 @@ def mark_contracts_as_stopped_sampling(instrument_code, contracts_not_sampling, 
         contract_date = contract_date_object.date
 
         #Mark it as stop sampling in the database
-        contract = data.mongo_contract_data.get_contract_data(instrument_code, contract_date)
+        contract = data.mongo_futures_contract.get_contract_data(instrument_code, contract_date)
         if contract.currently_sampling:
             contract.sampling_off()
-            data.mongo_contract_data.add_contract_data(contract, ignore_duplication=True)
+            data.mongo_futures_contract.add_contract_data(contract, ignore_duplication=True)
 
             log.msg("Contract %s has now stopped sampling" % str(contract), contract_date=contract.date)
         else:
@@ -196,7 +181,7 @@ def update_expiries_of_sampled_contracts(instrument_code, data, log=logtoscreen(
     :return: None
     """
 
-    all_contracts_in_db = data.mongo_contract_data.get_all_contract_objects_for_instrument_code(instrument_code)
+    all_contracts_in_db = data.mongo_futures_contract.get_all_contract_objects_for_instrument_code(instrument_code)
     currently_sampling_contracts = all_contracts_in_db.currently_sampling()
 
     for contract_object in currently_sampling_contracts:
@@ -217,11 +202,11 @@ def update_expiry_for_contract(contract_object, data, log=logtoscreen("")):
     contract_date = contract_object.date
     instrument_code = contract_object.instrument_code
 
-    db_contract = data.mongo_contract_data.get_contract_data(instrument_code, contract_date)
+    db_contract = data.mongo_futures_contract.get_contract_data(instrument_code, contract_date)
 
     # Both should be in format expiryDate(yyyy,mm,dd)
     db_expiry_date = db_contract.contract_date.expiry_date
-    ib_expiry_date = data.ib_futures_prices.\
+    ib_expiry_date = data.ib_futures_contract_price.\
         get_actual_expiry_date_for_instrument_code_and_contract_date(instrument_code, contract_date)
 
     if ib_expiry_date is missing_contract:
@@ -236,10 +221,11 @@ def update_expiry_for_contract(contract_object, data, log=logtoscreen("")):
 
     # Different!
     contract_object.contract_date.expiry_date = ib_expiry_date.as_tuple()
-    data.mongo_contract_data.add_contract_data(contract_object, ignore_duplication=True)
+    data.mongo_futures_contract.add_contract_data(contract_object, ignore_duplication=True)
 
     log.msg("Updated expiry of contract %s to %s" % (str(contract_object), str(ib_expiry_date)),
             contract_date = contract_object.date)
 
     return None
 
+update_sampled_contracts()

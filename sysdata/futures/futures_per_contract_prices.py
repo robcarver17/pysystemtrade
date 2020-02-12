@@ -7,9 +7,10 @@ from sysdata.data import baseData
 from sysdata.futures.contracts import futuresContract
 from syscore.pdutils import full_merge_of_existing_data, merge_newer_data
 
-PRICE_DATA_COLUMNS = ['OPEN', 'HIGH', 'LOW', 'FINAL']
+PRICE_DATA_COLUMNS = ['OPEN', 'HIGH', 'LOW', 'FINAL', 'VOLUME']
 PRICE_DATA_COLUMNS.sort() # needed for pattern matching
 FINAL_COLUMN = 'FINAL'
+VOLUME_COLUMN = 'VOLUME'
 
 class futuresContractPrices(pd.DataFrame):
     """
@@ -62,6 +63,16 @@ class futuresContractPrices(pd.DataFrame):
 
         return futuresContractFinalPrices(data)
 
+    def volumes(self):
+        data=self[VOLUME_COLUMN]
+
+        return data
+
+    def daily_volumes(self):
+        volumes = self.volumes()
+        daily_volumes = volumes.resample("1B", how="sum")
+
+        return daily_volumes
 
     def empty(self):
         return
@@ -110,6 +121,7 @@ class futuresContractPrices(pd.DataFrame):
         return merged_futures_prices
 
 
+
 class futuresContractFinalPrices(pd.Series):
     """
     Just the final prices from a futures contract
@@ -150,6 +162,24 @@ class dictFuturesContractPrices(dict):
         final_prices_dict = dictFuturesContractFinalPrices(final_price_dict_as_list)
 
         return final_prices_dict
+
+    def daily_volumes(self):
+        """
+
+        :return: dict of daily volumes
+        """
+
+        all_contract_ids = list(self.keys())
+        volume_dict_as_list = []
+        for contract_id in all_contract_ids:
+            volumes = self[contract_id].daily_volumes()
+            # for this to work return_final_prices must be a pd.Series type object
+            volumes.name = contract_id
+            volume_dict_as_list.append((contract_id, volumes))
+
+        volumes_dict = dictFuturesContractVolumes(volume_dict_as_list)
+
+        return volumes_dict
 
 
     def sorted_contract_ids(self):
@@ -204,6 +234,22 @@ class dictFuturesContractFinalPrices(dict):
         sorted_contract_ids = self.sorted_contract_ids()
 
         return sorted_contract_ids[-1]
+
+    def matched_prices(self):
+        # Return pd.DataFrame where we only have prices in all contracts
+
+        joint_data = [pd.Series(prices, name=contractid) for contractid, prices in self.items()]
+        joint_data = pd.concat(joint_data, axis=1)
+
+        matched_data = joint_data.dropna()
+
+        return matched_data
+
+def dictFuturesContractVolumes(dictFuturesContractFinalPrices):
+    def __repr__(self):
+        object_repr = "Dict of futures contract volumes with %d contracts" % len(self.keys())
+        return object_repr
+
 
 class futuresContractFinalPricesWithContractID(pd.DataFrame):
     """

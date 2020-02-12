@@ -133,7 +133,7 @@ class ibFuturesContractPriceData(futuresContractPriceData):
             new_log.msg("No IB price data found for %s" % str(contract_object))
             data = futuresContractPrices.create_empty()
         else:
-            data = futuresContractPrices.only_have_final_prices(price_data)
+            data = futuresContractPrices(price_data)
 
         return data
 

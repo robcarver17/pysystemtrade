@@ -1,33 +1,14 @@
-# Import smtplib for the actual sending function
 import smtplib
+import yaml
 
-# Import the email modules we'll need
 from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 
-# Open a plain text file for reading.  For this example, assume that
-# the text file contains only ASCII characters.
+from syscore.fileutils import get_filename_for_package
 
+PRIVATE_CONFIG_FILE = get_filename_for_package("private.private_config.yaml")
 
-
-def _send_msg(msg):
-    """
-    Send a message composed by other things
-
-    """
-
-    me = MYEMAIL
-    you = MYEMAIL
-    msg['From'] = me
-    msg['To'] = you
-
-    # Send the message via our own SMTP server, but don't include the
-    # envelope header.
-    s = smtplib.SMTP(MYSERVER, 25)
-    s.login(MYEMAIL, MYPWD)
-    s.sendmail(me, [you], msg.as_string())
-    s.quit()
 
 
 def send_mail_file(textfile, subject):
@@ -60,7 +41,6 @@ def send_mail_msg(body, subject):
 
     _send_msg(msg)
 
-
 def send_mail_pdfs(preamble, filelist, subject):
     """
     Sends an email of files with preamble and subject line
@@ -82,7 +62,39 @@ def send_mail_pdfs(preamble, filelist, subject):
     _send_msg(msg)
 
 
+
+def _send_msg(msg):
+    """
+    Send a message composed by other things
+
+    """
+
+    email_server, email_address, email_pwd = get_email_details()
+
+    me = email_address
+    you = email_address
+    msg['From'] = me
+    msg['To'] = you
+
+    # Send the message via our own SMTP server, but don't include the
+    # envelope header.
+    s = smtplib.SMTP(email_server, 587)
+    s.login(email_address, email_pwd)
+    s.sendmail(me, [you], msg.as_string())
+    s.quit()
+
+
+def get_email_details(file_to_parse=PRIVATE_CONFIG_FILE):
+    with open(file_to_parse) as file_handle:
+        yaml_dict = yaml.load(file_handle)
+
+    email_address = yaml_dict['email_address']
+    email_pwd = yaml_dict['email_pwd']
+    email_server = yaml_dict['email_server']
+
+    return email_server, email_address, email_pwd
+
+
+
 if __name__ == "__main__":
-    send_mail_file("/home/rsc/workspace/systematic_engine/examplecode/eg.txt", "test")
     send_mail_msg("testing", "test subject")
-    send_mail_pdfs("testing", ["/home/rsc/Documents/plan view of log store.pdf"], "test subject")

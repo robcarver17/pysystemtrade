@@ -67,9 +67,10 @@ class ibClient(brokerClient, EClient):
         if ibcontract is missing_contract:
             specific_log.warn("Can't find IB contract for %s%s" % (ccy1, ccy2))
 
-        fx_data_as_series = self._get_generic_data_for_contract(ibcontract, log=specific_log, bar_freq=bar_freq)
+        fx_data = self._get_generic_data_for_contract(ibcontract, log=specific_log, bar_freq=bar_freq,
+                                                      whatToShow='MIDPOINT')
 
-        return fx_data_as_series
+        return fx_data
 
     def broker_get_historical_futures_data_for_contract(self, contract_object_with_ib_broker_config, bar_freq="D"):
         """
@@ -87,11 +88,12 @@ class ibClient(brokerClient, EClient):
         if ibcontract is missing_contract:
             specific_log.warn("Can't resolve IB contract %s" % str(contract_object_with_ib_broker_config))
 
-        price_data_as_series = self._get_generic_data_for_contract(ibcontract, log=specific_log, bar_freq=bar_freq)
+        price_data = self._get_generic_data_for_contract(ibcontract, log=specific_log, bar_freq=bar_freq,
+                                                         whatToShow='TRADES')
 
-        return price_data_as_series
+        return price_data
 
-    def _get_generic_data_for_contract(self, ibcontract, log=None, bar_freq="D"):
+    def _get_generic_data_for_contract(self, ibcontract, log=None, bar_freq="D", whatToShow='TRADES'):
         """
         Get historical daily data
 
@@ -114,7 +116,7 @@ class ibClient(brokerClient, EClient):
 
         price_data_raw = self.ib_get_historical_data(ibcontract, durationStr=durationStr,
                                                      barSizeSetting=barSizeSetting,
-                                              whatToShow = "MIDPOINT", log=log)
+                                              whatToShow = whatToShow, log=log)
         # Format is (bar.date, bar.open, bar.high, bar.low, bar.close, bar.volume)
         # turn into a pd.Series with daily timestamps
         try:
@@ -124,10 +126,19 @@ class ibClient(brokerClient, EClient):
             log.warn(exception.args[0])
             return pd.Series()
 
+        opening_prices = [price_row[1] for price_row in price_data_raw]
+        high_prices = [price_row[2] for price_row in price_data_raw]
+        low_prices = [price_row[3] for price_row in price_data_raw]
         closing_prices = [price_row[4] for price_row in price_data_raw]
-        price_data_as_series = pd.Series(closing_prices, index = date_index)
+        volume = [price_row[5] for price_row in price_data_raw]
 
-        return price_data_as_series
+        price_data_as_df = pd.DataFrame(dict(OPEN = opening_prices,
+                                             HIGH = high_prices,
+                                             LOW = low_prices,
+                                             FINAL = closing_prices,
+                                             VOLUME = volume), index = date_index)
+
+        return price_data_as_df
 
 
     def broker_get_contract_expiry_date(self, contract_object_with_ib_broker_config):

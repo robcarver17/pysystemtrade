@@ -24,7 +24,8 @@ class ibFxPricesData(fxPricesData):
             return fxPrices.create_empty()
 
         ccy1, ccy2,invert = ibfxcode
-        raw_fx_prices_as_series = self.ibconnection.broker_get_daily_fx_data(ccy1, ccy2=ccy2, bar_freq="D")
+        raw_fx_prices = self.ibconnection.broker_get_daily_fx_data(ccy1, ccy2=ccy2, bar_freq="D")
+        raw_fx_prices_as_series = raw_fx_prices['FINAL']
 
         if len(raw_fx_prices_as_series)==0:
             new_log.warn("No available IB prices for %s" % currency_code)
