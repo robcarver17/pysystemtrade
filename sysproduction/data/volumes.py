@@ -1,11 +1,15 @@
 import datetime as datetime
-from syscore.objects import missing_contract
+from sysproduction.data.get_data import dataBlob
+
+from syscore.objects import missing_contract, arg_not_supplied
 ### Get volume data for the contract we're currently trading, plus what we might roll into, plus the previous one
 ### This is handy for working out whether to roll
 
 class diagVolumes(object):
-    def __init__(self, data):
+    def __init__(self, data=arg_not_supplied):
         # Check data has the right elements to do this
+        if data is arg_not_supplied:
+            data = dataBlob()
 
         data.add_class_list("arcticFuturesContractPriceData")
         self.data = data

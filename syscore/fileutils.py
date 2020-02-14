@@ -15,6 +15,7 @@ import data
 import sysbrokers
 import sysproduction
 
+
 def get_filename_for_package(pathname, filename=None):
     """
     Get a full filename given path and filename OR relative path+filename
@@ -32,6 +33,7 @@ def get_filename_for_package(pathname, filename=None):
     resolved_pathname = get_pathname_for_package(pathname)
 
     return resolved_pathname+"/"+filename
+
 
 
 def get_pathname_for_package(pathname):
@@ -77,6 +79,8 @@ def get_pathname_for_package_from_list(path_as_list):
         get_pathname_for_package_from_list(path_as_list), last_item_in_list)
 
     return pathname
+
+PRIVATE_CONFIG_FILE = get_filename_for_package("private.private_config.yaml")
 
 
 def files_with_extension_in_pathname(pathname, extension=".csv"):

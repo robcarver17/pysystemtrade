@@ -2,9 +2,9 @@ import yaml
 
 from syscore.fileutils import get_filename_for_package
 
-QUANDL_PRIVATE_KEY_FILE = get_filename_for_package("private.private_config.yaml")
+from syscore.fileutils import PRIVATE_KEY_FILE as QUANDL_PRIVATE_KEY_FILE
 
-def load_private_key(key_file =QUANDL_PRIVATE_KEY_FILE , dict_key = 'quandl_key'):
+def load_private_key(key_file =QUANDL_PRIVATE_KEY_FILE, dict_key = 'quandl_key'):
     """
     Tries to load a private key
 

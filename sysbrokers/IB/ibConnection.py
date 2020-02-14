@@ -12,9 +12,8 @@ from sysbrokers.IB.ibServer import ibServer
 from syslogdiag.log import logtoscreen
 from sysdata.mongodb.mongo_connection import mongoConnection, MONGO_ID_KEY
 
-from syscore.fileutils import get_filename_for_package
+from syscore.fileutils import PRIVATE_CONFIG_FILE
 
-PRIVATE_CONFIG_FILE = get_filename_for_package("private.private_config.yaml")
 
 DEFAULT_IB_IPADDRESS='127.0.0.1'
 DEFAULT_IB_PORT = 4001

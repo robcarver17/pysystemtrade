@@ -1,7 +1,7 @@
 
 import pandas as pd
 
-from syscore.objects import  resolve_function, success
+from syscore.objects import  resolve_function, success, failure
 from syscore.objects import header, table, body_text
 
 from sysdata.mongodb.mongo_connection import mongoDb
@@ -24,36 +24,44 @@ def run_report(report_config, **kwargs):
     :param report_config:
     :return:
     """
-    """
-    mongo_db=mongoDb()
-    log=logger("Reporting", mongo_db=mongo_db)
-    data = dataBlob(mongo_db = mongo_db, log = log)
-
-    """
     with mongoDb() as mongo_db,\
-        logger("Reporting", mongo_db=mongo_db) as log:
+        logger("Reporting %s" % report_config.title, mongo_db=mongo_db) as log:
 
         data = dataBlob(mongo_db = mongo_db, log = log)
 
-        report_function = resolve_function(report_config.function)
+        report_result = run_report_with_data_blob(report_config, data, **kwargs)
 
-        try:
-            report_results = report_function(data, **kwargs)
-        except Exception as e:
-            report_results = [header("Report %s failed to process with error %s" % (report_config.title, e))]
+        return report_result
 
-        try:
-            parsed_report = parse_report_results(report_results)
-        except Exception as e:
-            parsed_report = "Report failed to parse %s with error %s\n" % (report_config.title, str(e))
+def run_report_with_data_blob(report_config, data, **kwargs):
 
-        # We eithier print or email
-        if report_config.output is "console":
-            print(parsed_report)
-        elif report_config.output is "email":
-            send_mail_msg(parsed_report, subject = report_config.title)
+    """
 
-        return success
+    :param report_config:
+    :return:
+    """
+
+    report_function = resolve_function(report_config.function)
+    report_result = success
+    try:
+        report_results = report_function(data, **kwargs)
+    except Exception as e:
+        report_results = [header("Report %s failed to process with error %s" % (report_config.title, e))]
+        report_result = failure
+    try:
+        parsed_report = parse_report_results(report_results)
+    except Exception as e:
+        parsed_report = "Report failed to parse %s with error %s\n" % (report_config.title, str(e))
+        report_result = failure
+
+    # We eithier print or email
+    if report_config.output is "console":
+        print(parsed_report)
+    elif report_config.output is "email":
+        send_mail_msg(parsed_report, subject = report_config.title)
+
+    return report_result
+
 
 def parse_report_results(report_results):
     """

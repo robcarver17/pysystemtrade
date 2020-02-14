@@ -5,10 +5,7 @@ from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 
-from syscore.fileutils import get_filename_for_package
-
-PRIVATE_CONFIG_FILE = get_filename_for_package("private.private_config.yaml")
-
+from syscore.fileutils import PRIVATE_CONFIG_FILE
 
 
 def send_mail_file(textfile, subject):

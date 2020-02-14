@@ -85,6 +85,9 @@ def get_roll_data_for_instrument(instrument_code, data):
     s_data = diagState(data)
     roll_status = s_data.get_roll_state(instrument_code)
 
+    # Positions
+    positions = s_data.get_positions_for_instrument_and_contract_list(instrument_code, relevant_contracts)
+
     results_dict_code=dict(
                 code=instrument_code,
                  status = roll_status,
@@ -93,7 +96,8 @@ def get_roll_data_for_instrument(instrument_code, data):
                  carry_expiry = carry_expiry_days,
                  contract_labels = contract_labels,
                  volumes = volumes,
-                 curve = last_matched_prices)
+                 curve = last_matched_prices,
+                 positions = positions)
 
     return results_dict_code
 
@@ -131,6 +135,8 @@ def format_roll_data_for_instrument(results_dict):
     ## will always be 6 wide
     width_contract_columns = len(results_dict[instrument_codes[0]]['contract_labels'])
 
+
+
     table2_dict={}
     for col_number in range(width_contract_columns):
          table2_dict["C%d" % col_number] = [str(results_dict[code]['contract_labels'][col_number])
@@ -140,6 +146,16 @@ def format_roll_data_for_instrument(results_dict):
     table2 = table('List of contracts', table2_df)
     formatted_output.append(table2)
     formatted_output.append(body_text("Suffix: p=price, f=forward, c=carry"))
+
+    table2b_dict={}
+    for col_number in range(width_contract_columns):
+         table2b_dict["Pos%d" % col_number] = [results_dict[code]['positions'][col_number]
+                                        for code in instrument_codes]
+
+    table2b_df = pd.DataFrame(table2b_dict, index=instrument_codes)
+
+    table2b = table('Positions', table2b_df)
+    formatted_output.append(table2b)
 
 
     table3_dict={}
@@ -169,5 +185,4 @@ def format_roll_data_for_instrument(results_dict):
     formatted_output.append(header("END OF ROLL REPORT"))
 
     return formatted_output
-
 

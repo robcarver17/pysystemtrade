@@ -10,7 +10,12 @@ from sysdata.arctic.arctic_adjusted_prices import arcticFuturesAdjustedPricesDat
 from sysdata.mongodb.mongo_futures_contracts import mongoFuturesContractData
 from sysdata.mongodb.mongo_roll_data import mongoRollParametersData
 from sysdata.mongodb.mongo_roll_state_storage import mongoRollStateData
+from sysdata.mongodb.mongo_position_by_contract_state import mongoPositionByContractData
+
+from sysdata.mongodb.mongo_connection import mongoDb
+
 from sysdata.arctic.arctic_spotfx_prices import arcticFxPricesData
+
 
 from sysdata.mongodb.mongo_connection import mongoDb
 
@@ -42,6 +47,8 @@ class dataBlob(object):
         :param log: logger
 
         """
+        if mongo_db is arg_not_supplied:
+            mongo_db = mongoDb()
 
         self.mongo_db = mongo_db
         self.ib_conn = ib_conn

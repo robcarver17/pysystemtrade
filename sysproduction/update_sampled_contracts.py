@@ -228,4 +228,3 @@ def update_expiry_for_contract(contract_object, data, log=logtoscreen("")):
 
     return None
 
-update_sampled_contracts()

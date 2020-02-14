@@ -4,10 +4,12 @@ import numpy as np
 import yaml
 
 from syscore.fileutils import get_filename_for_package
+MONGO_CONFIG_FILE = get_filename_for_package('sysproduction.config.mongo_config.yaml')
 
-# CHANGE THESE IN THE PRIVATE CONFIG FILE, NOT HERE
-DEFAULT_MONGO_DB = 'production'
-DEFAULT_MONGO_HOST = 'localhost'
+LIST_OF_MONGO_PARAMS = ['db', 'host']
+
+# CHANGE THESE IN THE PRIVATE CONFIG FILE, NOT HERE. SEE THE PRECEDENCE IN MONGO DEFAULTS
+DEFAULT_MONGO_PARAMS = dict(db = 'production', host = 'localhost')
 
 # DO NOT CHANGE THIS VALUE!!!! IT WILL SCREW UP ARCTIC
 DEFAULT_MONGO_PORT = 27017
@@ -15,34 +17,53 @@ DEFAULT_MONGO_PORT = 27017
 MONGO_ID_STR = '_id_'
 MONGO_ID_KEY = '_id'
 
-PRIVATE_CONFIG_FILE = get_filename_for_package("private.private_config.yaml")
+from syscore.fileutils import PRIVATE_CONFIG_FILE
 
-def mongo_defaults(config_file =PRIVATE_CONFIG_FILE, **kwargs):
+
+def mongo_defaults(mongo_config_file = MONGO_CONFIG_FILE, private_config_file =PRIVATE_CONFIG_FILE, **kwargs):
     """
     Returns mongo configuration with following precedence
 
-    1- if passed in arguments: db, host, port - use that
-    2- if defined in private_config file, use that. mongo_db, mongo_host, mongo_port
-    3- otherwise use defaults DEFAULT_MONGO_DB, DEFAULT_MONGO_HOST, DEFAULT_MONGOT_PORT
+    1- if passed in arguments: db, host, port, data_map, collection_suffix - use that
+    2- if defined in private_config file, use that. mongo_db, mongo_host, mongo_port,
+    3- if defined in mongo_config file, use that.
+    3- otherwise use defaults from DEFAULT_MONGO_SPECS
 
-    :return: mongo db, hostname, port
+    :return: mongo db, hostname, port, data_map, collection_suffix
     """
+    defaults_dict = DEFAULT_MONGO_PARAMS
 
     try:
-        with open(config_file) as file_to_parse:
-            yaml_dict = yaml.load(file_to_parse)
+        with open(mongo_config_file) as file_to_parse:
+            yaml_dict_mongo_config = yaml.load(file_to_parse)
     except:
-        yaml_dict={}
+        yaml_dict_mongo_config={}
 
-    # Overwrite with passed arguments - these will take precedence over values in config file
-    for arg_name in ['db', 'host']:
-        arg_value = kwargs.get(arg_name, None)
-        if arg_value is not None:
-            yaml_dict['mongo_'+arg_name] = arg_value
+    try:
+        with open(private_config_file) as file_to_parse:
+            yaml_dict_private_config = yaml.load(file_to_parse)
+    except:
+        yaml_dict_private_config={}
+
+    yaml_dict = {}
+    for arg_name in LIST_OF_MONGO_PARAMS:
+        yaml_arg_name = 'mongo_'+arg_name
+
+        # Start with defaults
+        arg_value = defaults_dict[arg_name]
+        # Overwrite with mongo config
+        arg_value = yaml_dict_mongo_config.get(yaml_arg_name, arg_value)
+        # Overwrite with private config
+        arg_value = yaml_dict_private_config.get(yaml_arg_name, arg_value)
+        # Overwrite with kwargs
+        arg_value = kwargs.get(arg_name, arg_value)
+
+        # Write
+        yaml_dict[arg_name] = arg_value
 
     # Get from dictionary
-    mongo_db = yaml_dict.get('mongo_db', DEFAULT_MONGO_DB)
-    hostname = yaml_dict.get('mongo_host', DEFAULT_MONGO_HOST)
+    mongo_db = yaml_dict['db']
+    hostname = yaml_dict['host']
     port = DEFAULT_MONGO_PORT
 
     return mongo_db, hostname, port
@@ -55,9 +76,9 @@ class mongoDb(object):
     But requires adding a collection with mongoConnection before useful
     """
 
-    def __init__(self,  database_name = None, host = None):
+    def __init__(self,  **kwargs):
 
-        database_name, host, port = mongo_defaults(db=database_name, host=host)
+        database_name, host, port = mongo_defaults(**kwargs)
 
         self.database_name = database_name
         self.host = host
@@ -72,6 +93,7 @@ class mongoDb(object):
     def __repr__(self):
         return "Mongodb database: host %s, port %d, db name %s" % \
                (self.host, self.port, self.database_name)
+
 
     def close(self):
         self.client.close()

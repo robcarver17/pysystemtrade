@@ -10,7 +10,7 @@ We require these to calculate back adjusted prices and also to work out carry
 They can be stored, or worked out 'on the fly'
 """
 
-
+import datetime as datetime
 import pandas as pd
 import numpy as np
 
@@ -33,6 +33,8 @@ list_of_price_column_names = list(price_column_names)
 multiple_data_columns = list_of_price_column_names + list_of_contract_column_names
 multiple_data_columns.sort()
 
+## These are used when inferring prices in an incomplete series
+preferred_columns = dict(PRICE = ['FORWARD', 'CARRY'], FORWARD = ['PRICE', 'CARRY'], CARRY = ['PRICE', 'FORWARD'])
 
 class futuresMultiplePrices(pd.DataFrame):
 
@@ -138,6 +140,12 @@ class futuresMultiplePrices(pd.DataFrame):
 
         return multiple_prices_object
 
+    def sort_index(self):
+        df = pd.DataFrame(self)
+        sorted_df = df.sort_index()
+
+        return futuresMultiplePrices(sorted_df)
+
     def update_multiple_prices_with_dict(self, new_prices_dict):
         """
         Given a dict containing prices, forward, carry prices; update existing multiple prices
@@ -167,6 +175,64 @@ class futuresMultiplePrices(pd.DataFrame):
 
         return merged_data
 
+    def drop_trailing_nan(self):
+        """
+        Drop rows where all values are NaN
+
+        :return: new futuresMultiplePrices
+        """
+        new_multiple_prices = copy(self)
+        found_zeros=True
+
+        while found_zeros and len(new_multiple_prices)>0:
+            last_prices_nan_values = new_multiple_prices.isna().iloc[-1][list_of_price_column_names].values
+            if all(last_prices_nan_values):
+                ## drop the last row
+                new_multiple_prices = new_multiple_prices[:-1]
+                # Should still be true but let's be careful
+                found_zeros = True
+
+            else:
+                # Terminate loop
+                found_zeros = False
+                # Should terminate anyway let's be sure
+                break
+
+        return futuresMultiplePrices(new_multiple_prices)
+
+    def add_one_row_with_time_delta(self, prices_dict, timedelta_seconds=1):
+        """
+        Add a row with a slightly different timestamp
+
+        :param prices_dict: dict of scalars, keys are one or more of 'price','forward','carry','*_contract'
+                            If a contract column is missing, we forward fill
+                            If a price column is missing, we include nans
+        :return: new multiple prices
+        """
+
+        alignment_dict = dict(price=price_column_names['PRICE'],
+                              forward=price_column_names['FORWARD'],
+                              carry=price_column_names['CARRY'],
+                              price_contract = contract_column_names['PRICE'],
+                              carry_contract = contract_column_names['CARRY'],
+                              forward_contract = contract_column_names['FORWARD']
+                              )
+
+        new_time_index = self.index[-1]+datetime.timedelta(seconds=1)
+
+        new_dict={}
+        for keyname, value in prices_dict.items():
+            new_key = alignment_dict[keyname]
+            new_dict[new_key] = value
+
+        new_df = pd.DataFrame(new_dict, index=[new_time_index])
+
+        combined_df = pd.concat([pd.DataFrame(self), new_df], axis=0)
+
+        for colname in list_of_contract_column_names:
+            combined_df[colname] = combined_df[colname].ffill()
+
+        return futuresMultiplePrices(combined_df)
 
 def create_multiple_price_stack_from_raw_data(roll_calendar, dict_of_futures_contract_closing_prices):
     """

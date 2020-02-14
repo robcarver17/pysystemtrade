@@ -1,5 +1,5 @@
 from sysdata.production.roll_state_storage import rollStateData, no_state_available
-
+from syscore.objects import success
 from sysdata.mongodb.mongo_connection import mongoConnection, MONGO_ID_KEY, mongo_clean_ints
 from syslogdiag.log import logtoscreen
 
@@ -47,7 +47,8 @@ class mongoRollStateData(rollStateData):
     def _set_roll_state_without_checking(self, instrument_code, new_roll_state):
         find_object_dict = dict(instrument_code = instrument_code)
         new_values_dict = {"$set": {"roll_state": new_roll_state}}
-        self._mongo.collection.update_one(find_object_dict, new_values_dict)
+        self._mongo.collection.update_one(find_object_dict, new_values_dict, upsert=True)
         self.log.terse("Updated roll state of %s to %s in %s" % (instrument_code, new_roll_state, self.name))
 
+        return success
 

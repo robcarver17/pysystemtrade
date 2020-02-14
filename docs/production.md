@@ -159,14 +159,19 @@ If you are running your implementation locally, or on a remote server that is no
 
 ## Multiple systems
 
-You may want to run multiple trading systems. Common use cases are:
+You may want to run multiple trading systems on a single machine. Common use cases are:
 
 - You want different systems for different asset classes
-- You want different systems for different time frames (eg intra day and slower trading). This is a specific use case with it's own problems, namely executing the aggregated orders from both systems, which I'll be specifically considering in future versions of pysystemtrade.
-- You want to run the same system, but in different trading accounts
+- You want to run relative value systems *
+- You want different systems for different time frames (eg intra day and slower trading) *
+- You want to run the same system, but for different trading accounts
 - You want a paper trading and live trading system
 
-To handle this I suggest having multiple copies of the pysystemtrade environment. You will have a single crontab, but you will need multiple script, echos (AND FIX ME REPORTS?) directories. You will need to change the [private config file](private.private_config.yaml) so it points to different `mongo_db` database names. If you don't want multiple copies of certain data (eg prices) then you should hardcode the `database_name` in the relevant files whenever a connection is made eg `mongo_db = mongoDb(database_name='whatever')`. See [storing futures and spot FX data](/docs/futures.md#mongo-db) for more detail. Finally you should set the field `ib_idoffset` in the [private config file](private.private_config.yaml) so that there is no chance of duplicate clientid connections; setting one system to have an id offset of 1, the next offset 1000, and so on should be sufficient.
+* for these cases I plan to implement functionality in pysystemtrade so that it can handle them in the same system.
+
+To handle this I suggest having multiple copies of the pysystemtrade environment. You will have a single crontab, but you will need multiple script, echos (AND FIX ME REPORTS?) directories. You will need to change the private config file so it points to different mongo_db database names. If you don't want multiple copies of certain data (eg prices) then you should hardcode the database_name in the relevant files whenever a connection is made eg mongo_db = mongoDb(database_name='whatever'). See storing futures and spot FX data for more detail. Finally you should set the field ib_idoffset in the private config file so that there is no chance of duplicate clientid connections; setting one system to have an id offset of 1, the next offset 1000, and so on should be sufficient.
+
+Finally you should set the field `ib_idoffset` in the [private config file](private.private_config.yaml) so that there is no chance of duplicate clientid connections; setting one system to have an id offset of 1, the next offset 1000, and so on should be sufficient.
 
 # Code and configuration management
 
@@ -524,7 +529,7 @@ Linux script:
 
 ### Update multiple and adjusted prices (Daily)
 
-This 
+This will update both multiple and adjusted prices with new futures per contract price data.
 
 It should be scheduled to run once the daily prices for individual contracts have been updated.
 
@@ -541,6 +546,20 @@ Linux script:
 
 
 FIXME: An intraday sampling would be good
+
+### Roll adjusted prices (whenever required)
+
+
+Python:
+```python
+from sysproduction.update_multiple_adjusted_prices import update_multiple_adjusted_prices_daily
+update_multiple_adjusted_prices_daily()
+```
+
+Linux script:
+```
+. $SCRIPT_PATH/update_multiple_adjusted_prices
+```
 
 
 ## Ad-hoc diagnostics

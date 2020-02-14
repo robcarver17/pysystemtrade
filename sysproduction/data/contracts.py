@@ -1,13 +1,16 @@
 import datetime
 
 from sysdata.futures.rolls import contractDateWithRollParameters
-from syscore.objects import missing_contract
+from sysproduction.data.get_data import dataBlob
+from syscore.objects import missing_contract, arg_not_supplied
 
 missing_expiry = datetime.datetime(1900,1,1)
 
 class diagContracts(object):
-    def __init__(self, data):
+    def __init__(self, data=arg_not_supplied):
         # Check data has the right elements to do this
+        if data is arg_not_supplied:
+            data = dataBlob()
 
         data.add_class_list("arcticFuturesContractPriceData mongoRollParametersData \
                             arcticFuturesMultiplePricesData mongoFuturesContractData")
@@ -104,12 +107,19 @@ class diagContracts(object):
 
     def when_to_roll_priced_contract(self, instrument_code):
         priced_contract_id = self.get_priced_contract_id(instrument_code)
+
+        contract_date_with_roll_parameters = self.get_contract_date_object_with_roll_parameters(instrument_code, priced_contract_id)
+
+        return contract_date_with_roll_parameters.want_to_roll()
+
+    def get_contract_date_object_with_roll_parameters(self, instrument_code, contract_date_id):
         roll_parameters = self.get_roll_parameters(instrument_code)
 
         contract_date_with_roll_parameters = contractDateWithRollParameters(roll_parameters,
-                                                                            priced_contract_id)
+                                                                            contract_date_id)
 
-        return contract_date_with_roll_parameters.want_to_roll()
+        return contract_date_with_roll_parameters
+
 
 
 def label_up_contracts(contract_date_list, current_contracts):

@@ -1,0 +1,7 @@
+# Configure mongo connections
+#
+# Note these will affect both the backtesting and production services, unless overriden
+#
+# All config will be overriden if also appears in private_config.yaml file
+mongo_host: 127.0.0.1
+mongo_db: 'production'
