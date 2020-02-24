@@ -131,7 +131,7 @@ def add_missing_contracts_to_database(instrument_code, missing_from_db, data, lo
 
     for contract_to_add in missing_from_db:
         contract_date = contract_to_add.date
-        if data.mongo_contract_data.is_contract_in_data(instrument_code, contract_date):
+        if data.mongo_futures_contract.is_contract_in_data(instrument_code, contract_date):
             contract_to_add = data.mongo_futures_contract.get_contract_data(instrument_code, contract_date)
 
         # Mark it as sampling
