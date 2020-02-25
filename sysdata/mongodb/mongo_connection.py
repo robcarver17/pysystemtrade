@@ -4,6 +4,7 @@ import numpy as np
 import yaml
 
 from syscore.fileutils import get_filename_for_package
+from syscore.genutils import get_safe_from_dict
 MONGO_CONFIG_FILE = get_filename_for_package('sysproduction.config.mongo_config.yaml')
 
 LIST_OF_MONGO_PARAMS = ['db', 'host']
@@ -52,11 +53,11 @@ def mongo_defaults(mongo_config_file = MONGO_CONFIG_FILE, private_config_file =P
         # Start with defaults
         arg_value = defaults_dict[arg_name]
         # Overwrite with mongo config
-        arg_value = yaml_dict_mongo_config.get(yaml_arg_name, arg_value)
+        arg_value = get_safe_from_dict(yaml_dict_mongo_config, arg_name, arg_value)
         # Overwrite with private config
-        arg_value = yaml_dict_private_config.get(yaml_arg_name, arg_value)
+        arg_value = get_safe_from_dict(yaml_dict_private_config, arg_name, arg_value)
         # Overwrite with kwargs
-        arg_value = kwargs.get(arg_name, arg_value)
+        arg_value = get_safe_from_dict(kwargs, arg_name, arg_value)
 
         # Write
         yaml_dict[arg_name] = arg_value

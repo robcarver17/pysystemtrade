@@ -161,6 +161,15 @@ def value_or_npnan(x, return_value = None):
     # Eithier wrong type, or not a nan
     return x
 
+def get_safe_from_dict(some_dict, some_arg_name, some_default):
+    arg_from_dict = some_dict.get(some_arg_name, None)
+    if arg_from_dict is None:
+        return some_default
+    else:
+        return arg_from_dict
+
+
+
 class progressBar(object):
     """
     Example (not docstring as won't work)

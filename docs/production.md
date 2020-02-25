@@ -549,16 +549,17 @@ FIXME: An intraday sampling would be good
 
 ### Roll adjusted prices (whenever required)
 
+Allows you to change the roll state (FIX ME DISCUSSION) and roll from one priced contract to the next.
 
 Python:
 ```python
-from sysproduction.update_multiple_adjusted_prices import update_multiple_adjusted_prices_daily
-update_multiple_adjusted_prices_daily()
+from sysproduction.update_roll_adjusted_prices import update_roll_adjusted_prices
+update_multiple_adjusted_prices_daily(instrument_code)
 ```
 
 Linux script:
 ```
-. $SCRIPT_PATH/update_multiple_adjusted_prices
+. $SCRIPT_PATH/update_roll_adjusted_prices
 ```
 
 
