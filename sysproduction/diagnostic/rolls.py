@@ -63,13 +63,16 @@ def get_roll_data_for_instrument(instrument_code, data):
     relevant_contract_dict = c_data.get_labelled_list_of_relevant_contracts(instrument_code)
     relevant_contracts = relevant_contract_dict['contracts']
     contract_labels = relevant_contract_dict['labels']
+    current_contracts = relevant_contract_dict['current_contracts']
 
     v_data = diagVolumes(data)
     volumes = v_data.get_normalised_smoothed_volumes_of_contract_list(instrument_code,  relevant_contracts)
 
     # price curve
     p_data = diagPrices(data)
-    last_matched_prices = p_data.get_last_matched_prices_for_contract_list(instrument_code, relevant_contracts)
+    contracts_to_match = [current_contracts[k] for k in ('PRICE', 'FORWARD')]
+    last_matched_prices = p_data.get_last_matched_prices_for_contract_list(instrument_code, relevant_contracts,
+                                                                           contracts_to_match=contracts_to_match)
 
     # length to expiries / length to suggested roll
     price_expiry = c_data.get_priced_expiry(instrument_code)

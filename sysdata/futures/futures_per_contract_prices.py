@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 
 from syscore.pdutils import merge_data_series_with_label_column
+from syscore.objects import arg_not_supplied, missing_data
 
 from sysdata.data import baseData
 from sysdata.futures.contracts import futuresContract
@@ -236,13 +237,27 @@ class dictFuturesContractFinalPrices(dict):
 
         return sorted_contract_ids[-1]
 
-    def matched_prices(self):
-        # Return pd.DataFrame where we only have prices in all contracts
+    def joint_data(self):
 
         joint_data = [pd.Series(prices, name=contractid) for contractid, prices in self.items()]
         joint_data = pd.concat(joint_data, axis=1)
 
-        matched_data = joint_data.dropna()
+        return joint_data
+
+    def matched_prices(self, contracts_to_match = arg_not_supplied):
+        # Return pd.DataFrame where we only have prices in all contracts
+
+        if contracts_to_match is arg_not_supplied:
+            contracts_to_match = self.keys()
+
+        joint_data = self.joint_data()
+        joint_data_to_match = joint_data[contracts_to_match]
+
+        matched_data = joint_data_to_match.dropna()
+
+        if len(matched_data)==0:
+            ## This will happen if there are no matches
+            return missing_data
 
         return matched_data
 

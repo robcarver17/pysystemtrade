@@ -27,7 +27,8 @@ class diagContracts(object):
         labelled_contracts = label_up_contracts(contract_date_list,
                                                 current_contracts)
 
-        ans_as_dict = dict(contracts = contract_date_list, labels = labelled_contracts)
+        ans_as_dict = dict(contracts = contract_date_list, labels = labelled_contracts,
+                           current_contracts = current_contracts)
 
         return ans_as_dict
 

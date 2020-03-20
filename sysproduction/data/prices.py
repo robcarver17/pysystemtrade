@@ -1,6 +1,6 @@
 from sysdata.futures.futures_per_contract_prices import dictFuturesContractPrices
 from sysproduction.data.get_data import dataBlob
-from syscore.objects import missing_contract, arg_not_supplied
+from syscore.objects import missing_contract, arg_not_supplied, missing_data
 import numpy as np
 
 class diagPrices(object):
@@ -12,37 +12,28 @@ class diagPrices(object):
         data.add_class_list("arcticFuturesContractPriceData")
         self.data = data
 
-    def get_last_matched_prices_for_contract_list(self, instrument_code, contract_list):
+    def get_last_matched_prices_for_contract_list(self, instrument_code, contract_list,
+                                                  contracts_to_match = arg_not_supplied):
         """
-        Get a list of matched prices; i.e. from a date when we had all the prices
+        Get a list of matched prices; i.e. from a date when we had both forward and current prices
         If we don't have all the prices, will do the best it can
 
         :param instrument_code:
-        :param contract_list:
-        :return:
+        :param contract_list: contracts to get prices for
+        :param contracts_to_match: (default: contract_list) contracts to match against each other
+        :return: list of prices, in same order as contract_list
         """
+        if contracts_to_match is arg_not_supplied:
+            contracts_to_match = contract_list
+
         dict_of_prices = self.get_dict_of_prices_for_contract_list(instrument_code, contract_list)
         dict_of_final_prices = dict_of_prices.final_prices()
-        matched_final_prices =  dict_of_final_prices.matched_prices()
+        matched_final_prices =  dict_of_final_prices.matched_prices(contracts_to_match=contracts_to_match)
 
-        last_matched_prices = list(matched_final_prices.iloc[-1].values)
-
-        # pad
-        last_matched_prices = last_matched_prices + [np.nan] * (len(contract_list) - len(last_matched_prices))
-
-        return last_matched_prices
-
-    def get_last_matched_prices_for_contract_list(self, instrument_code, contract_list):
-        """
-        Get a list of matched prices; i.e.
-
-        :param instrument_code:
-        :param contract_list:
-        :return:
-        """
-        dict_of_prices = self.get_dict_of_prices_for_contract_list(instrument_code, contract_list)
-        dict_of_final_prices = dict_of_prices.final_prices()
-        matched_final_prices =  dict_of_final_prices.matched_prices()
+        if matched_final_prices is missing_data:
+            ## This will happen if there are no matching prices
+            ## We just return the last row
+            matched_final_prices = dict_of_final_prices.joint_data()
 
         last_matched_prices = list(matched_final_prices.iloc[-1].values)
 
