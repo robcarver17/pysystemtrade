@@ -14,8 +14,9 @@ class fxPrices(pd.Series):
     def __init__(self, data):
 
         super().__init__(data)
-
+        data.index.name=""
         self._is_empty=False
+        data.name = ""
 
     @classmethod
     def create_empty(fxPrices):
@@ -109,7 +110,7 @@ class fxPricesData(baseData):
         if self.is_code_in_data(code):
             return self._get_fx_prices_without_checking(code)
         else:
-            self.log.warn("Code %s is missing from list of FX data", currency_code=code)
+            self.log.warn("Code %s is missing from list of FX data" % code, currency_code=code)
             return fxPrices.create_empty()
 
 

@@ -448,6 +448,12 @@ FIX ME THIS SHOULD BE DONE EVERY DAY ONCE WE HAVE ENOUGH LOGS ADD TO CRONTAB
 
 ## Reporting
 
+Reports are run regularly to allow you to monitor the system and decide if any action should be taken.
+
+### Roll report (Daily)
+
+
+
 
 # Scripts
 
@@ -554,7 +560,7 @@ Allows you to change the roll state (FIX ME DISCUSSION) and roll from one priced
 Python:
 ```python
 from sysproduction.update_roll_adjusted_prices import update_roll_adjusted_prices
-update_multiple_adjusted_prices_daily(instrument_code)
+update_roll_adjusted_prices(instrument_code)
 ```
 
 Linux script:

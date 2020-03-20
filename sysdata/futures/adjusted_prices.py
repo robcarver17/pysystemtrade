@@ -77,6 +77,9 @@ class futuresAdjustedPrices(pd.Series):
 
         self._is_empty=False
 
+        data.index.name="index" # arctic compatible
+        data.name=""
+
     @classmethod
     def create_empty(futuresContractPrices):
         """

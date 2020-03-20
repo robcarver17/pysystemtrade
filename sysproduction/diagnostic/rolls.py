@@ -6,7 +6,7 @@ from sysproduction.data.contracts import diagContracts
 from sysproduction.data.prices import diagPrices
 from sysproduction.data.state import diagState
 
-from syscore.objects import header, table, body_text, report_config
+from syscore.objects import header, table, body_text
 
 ## We want a roll report (We could merge this into another kind of report)
 ## We want to be able to have it emailed, or run it offline

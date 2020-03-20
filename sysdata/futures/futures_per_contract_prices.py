@@ -34,6 +34,7 @@ class futuresContractPrices(pd.DataFrame):
         super().__init__(data)
 
         self._is_empty=False
+        data.index.name="index" # for arctic compatibility
 
 
     @classmethod
@@ -603,6 +604,7 @@ class futuresContractPriceData(baseData):
         """
 
         ans = self._perform_contract_method_for_instrument_code_and_contract_date( instrument_code, contract_date, "write_prices_for_contract_object",
+                                                                                   futures_price_data,
                                                                                    ignore_duplication=ignore_duplication)
 
         return ans
@@ -750,11 +752,11 @@ class futuresContractPriceData(baseData):
 
         return contract_dates
 
-    def _perform_contract_method_for_instrument_code_and_contract_date(self, instrument_code, contract_date, method_name, **kwargs):
+    def _perform_contract_method_for_instrument_code_and_contract_date(self, instrument_code, contract_date, method_name, *args, **kwargs):
         contract_object = self._object_given_instrumentCode_and_contractDate(instrument_code, contract_date)
         method = getattr(self, method_name)
 
-        return method(contract_object, **kwargs)
+        return method(contract_object, *args, **kwargs)
 
     def _object_given_instrumentCode_and_contractDate(self, instrument_code, contract_date):
         """

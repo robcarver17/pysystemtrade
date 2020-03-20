@@ -50,6 +50,8 @@ class futuresMultiplePrices(pd.DataFrame):
 
         super().__init__(data)
 
+        data.index.name="index" # arctic compatible
+
         self._is_empty=False
 
 

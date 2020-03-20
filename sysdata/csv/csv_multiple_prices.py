@@ -3,6 +3,7 @@ from sysdata.futures.multiple_prices import futuresMultiplePricesData, futuresMu
 from syscore.fileutils import get_filename_for_package, files_with_extension_in_pathname
 from syscore.pdutils import pd_readcsv
 from syscore.genutils import str_of_int
+from syslogdiag.log import logtoscreen
 
 CSV_MULTIPLE_PRICE_DIRECTORY = "data.futures.multiple_prices_csv"
 DATE_INDEX_NAME = "DATETIME"
@@ -13,7 +14,7 @@ class csvFuturesMultiplePricesData(futuresMultiplePricesData):
     Class for roll calendars write / to from csv
     """
 
-    def __init__(self, datapath=None):
+    def __init__(self, datapath=None, log=logtoscreen("csvFuturesMultiplePricesData")):
 
         super().__init__()
 
@@ -21,6 +22,7 @@ class csvFuturesMultiplePricesData(futuresMultiplePricesData):
             datapath = CSV_MULTIPLE_PRICE_DIRECTORY
 
         self._datapath = datapath
+        self.log = log
 
     def __repr__(self):
         return "csvFuturesMultiplePricesData accessing %s" % self._datapath

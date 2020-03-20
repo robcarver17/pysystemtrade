@@ -1,7 +1,7 @@
 import datetime as datetime
 from sysproduction.data.get_data import dataBlob
 
-from syscore.objects import missing_contract, arg_not_supplied
+from syscore.objects import missing_contract, arg_not_supplied, missing_data
 ### Get volume data for the contract we're currently trading, plus what we might roll into, plus the previous one
 ### This is handy for working out whether to roll
 
@@ -25,6 +25,8 @@ class diagVolumes(object):
 
         smoothed_volumes = self.get_smoothed_volumes_of_contract_list(instrument_code,  contract_list, span=span)
         max_smoothed_volume = max(smoothed_volumes)
+        if max_smoothed_volume==0.0:
+            max_smoothed_volume = 0.0001
         normalised_volumes = [volume / max_smoothed_volume for volume in smoothed_volumes]
 
         return normalised_volumes
@@ -48,6 +50,10 @@ class diagVolumes(object):
             return 0.0
 
         volumes = self.get_daily_volumes_for_contract(instrument_code, contract_id)
+
+        if volumes is missing_data:
+            return 0.0
+
         # ignore anything more than 2 weeks old (so we don't get stale data)
         two_weeks_ago = datetime.datetime.now() - datetime.timedelta(days=14)
         recent_volumes = volumes[two_weeks_ago:]
@@ -63,6 +69,9 @@ class diagVolumes(object):
         data = self.data
 
         price_data = data.arctic_futures_contract_price.get_prices_for_instrument_code_and_contract_date(instrument_code, contract_id)
+
+        if len(price_data)==0:
+            return missing_data
 
         volumes = price_data.volumes().resample("1B").sum()
 

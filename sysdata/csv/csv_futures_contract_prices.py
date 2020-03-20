@@ -104,7 +104,7 @@ class csvFuturesContractPriceData(futuresContractPriceData):
         """
         keyname = self._keyname_given_contract_object(futures_contract_object)
         filename = self._filename_given_key_name(keyname)
-        futures_price_data.to_csv(filename)
+        futures_price_data.to_csv(filename, index_label = self._input_date_time_column)
 
     def _filename_given_key_name(self, keyname):
         return get_filename_for_package(self._datapath, "%s.csv" %(keyname))

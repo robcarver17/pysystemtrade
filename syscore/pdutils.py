@@ -3,6 +3,7 @@ Utilities to help with pandas
 """
 
 import pandas as pd
+
 import numpy as np
 from copy import copy
 
@@ -11,7 +12,7 @@ from syscore.fileutils import get_filename_for_package
 from syscore.dateutils import BUSINESS_DAYS_IN_YEAR, time_matches, CALENDAR_DAYS_IN_YEAR
 from syscore.objects import _named_object
 
-DEFAULT_DATE_FORMAT = "%Y-%m-%d"
+DEFAULT_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 def turnover(x, y):
     """
@@ -681,6 +682,21 @@ def how_many_years_of_data_in_pd_series(data_series):
     date_difference_years = float(date_difference_days) / CALENDAR_DAYS_IN_YEAR
 
     return date_difference_years
+
+def check_df_equals(x,y):
+    try:
+        pd.testing.assert_frame_equal(x,y)
+        return True
+    except AssertionError:
+        return False
+
+def check_ts_equals(x,y):
+    try:
+        pd.testing.assert_series_equal(x,y, check_names=False)
+        return True
+    except AssertionError:
+        return False
+
 
 if __name__ == '__main__':
     import doctest

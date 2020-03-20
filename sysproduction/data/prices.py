@@ -14,7 +14,8 @@ class diagPrices(object):
 
     def get_last_matched_prices_for_contract_list(self, instrument_code, contract_list):
         """
-        Get a list of matched prices; i.e.
+        Get a list of matched prices; i.e. from a date when we had all the prices
+        If we don't have all the prices, will do the best it can
 
         :param instrument_code:
         :param contract_list:
@@ -56,6 +57,7 @@ class diagPrices(object):
         for contract_date in contract_list:
             if contract_date is missing_contract:
                 continue
+            ## Could blow up here if don't have prices for a contract??
             prices = self.data.\
                 arctic_futures_contract_price.get_prices_for_instrument_code_and_contract_date(instrument_code,
                                                                                                      contract_date)
