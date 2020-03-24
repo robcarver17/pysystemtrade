@@ -1,6 +1,7 @@
 import datetime
 
 from sysdata.futures.rolls import contractDateWithRollParameters
+from sysdata.futures.contracts import futuresContract
 from sysproduction.data.get_data import dataBlob
 from syscore.objects import missing_contract, arg_not_supplied
 
@@ -75,9 +76,17 @@ class diagContracts(object):
         return roll_parameters
 
     def get_contract_object(self, instrument_code, contract_id):
+        contract_object = self._get_contract_object_from_db(instrument_code, contract_id)
+        if contract_object.empty():
+            contract_object = futuresContract(instrument_code, contract_id)
+
+        return contract_object
+
+    def _get_contract_object_from_db(self, instrument_code, contract_id):
         contract_object = self.data.mongo_futures_contract.get_contract_data(instrument_code, contract_id)
 
         return contract_object
+
 
     def get_actual_expiry(self, instrument_code, contract_id):
         contract_object = self.get_contract_object(instrument_code, contract_id)

@@ -104,8 +104,8 @@ You need to:
     - Create 'multiple prices' in Arctic. Assuming you have prices in Artic and roll calendars in csv use [this script](/sysinit/futures/multipleprices_from_arcticprices_and_csv_calendars_to_arctic.py). I recommend *not* writing the multiple prices to .csv, so that you can compare the legacy .csv data with the new prices
     - Create adjusted prices. Assuming you have multiple prices in Arctic use [this script](/sysinit/futures/adjustedprices_from_mongo_multiple_to_mongo.py)
 - Scheduling:
-- Initialise the [supplied crontab](/sysproduction/linux/crontab). Note if you have put your code or echos somewhere else you will need to modify the directory references at the top of the crontab.
-- All scripts executable by the crontab need to be executable, so do the following: `cd $SCRIPT_PATH` ; `sudo chmod +x update*` ;`sudo chmod +x truncate*` FIX ME ADD FURTHER FILES AS REQUIRED
+    - Initialise the [supplied crontab](/sysproduction/linux/crontab). Note if you have put your code or echos somewhere else you will need to modify the directory references at the top of the crontab.
+    - All scripts executable by the crontab need to be executable, so do the following: `cd $SCRIPT_PATH` ; `sudo chmod +x update*` ;`sudo chmod +x truncate*`;`sudo chmod +x email*` FIX ME ADD FURTHER FILES AS REQUIRED
 
 Before trading, and each time you restart the machine you should:
 
@@ -327,7 +327,20 @@ mongorestore
 ### Mongo / csv data
 
 As I am super paranoid, I also like to output all my mongo_db data into .csv files, which I then regularly backup. This will allow a system recovery, should the mongo files be corrupted.
-*FIX ME NEED TO WRITE THIS FUNCTIONALITY*
+
+This currently supports: FX, individual futures contract prices, multiple prices, adjusted prices.
+
+```python
+from sysproduction.update_backup_to_csv import backup_adj_to_csv
+
+backup_adj_to_csv()
+```
+
+Linux script:
+```
+. $SCRIPT_PATH/update_backup_to_csv
+```
+
 
 # Echoes, Logging, diagnostics and reporting
 
@@ -412,7 +425,7 @@ FIX ME TO DO: CRITICAL LOGS SHOULD EMAIL THE USER
 Python:
 ```python
 from syslogdiag.log import accessLogFromMongodb
-```
+
 # can optionally pass mongodb connection attributes here
 mlog = accessLogFromMongodb()
 # Return a list of strings per log line
@@ -448,11 +461,39 @@ FIX ME THIS SHOULD BE DONE EVERY DAY ONCE WE HAVE ENOUGH LOGS ADD TO CRONTAB
 
 ## Reporting
 
-Reports are run regularly to allow you to monitor the system and decide if any action should be taken.
+Reports are run regularly to allow you to monitor the system and decide if any action should be taken. You can choose to have them emailed to you.
+
+Email address, server and password can be set in `private_config.yaml`:
+
+```
+email_address: "somebloke@anemailadress.com"
+email_pwd: "h0Wm@nyLetter$ub$tiute$"
+email_server: 'smtp.anemailadress.com'
+```
 
 ### Roll report (Daily)
 
+Email version:
 
+Python:
+```python
+from sysproduction.email_roll_report import email_roll_report
+
+email_roll_report()
+
+```
+
+Linux script:
+```
+. $SCRIPT_PATH/email_roll_report
+```
+
+The ad-hoc version of this report (not emailed) is:
+
+Linux script:
+```
+. $SCRIPT_PATH/get_roll_info
+```
 
 
 # Scripts
@@ -465,7 +506,8 @@ Scripts are used to run python code which:
    - calculate positions
    - execute trades
    - get accounting data
-- runs reports, eithier regular or ad-hoc
+- runs report and diagnostics, eithier regular or ad-hoc
+- Do housekeeping duties, eg truncate log files
 
 Script are then called by [schedulers](#scheduling), or on an ad-hoc basis from the command line.
 
@@ -485,37 +527,6 @@ Linux script:
 . $SCRIPT_PATH/update_fx_prices
 ```
 
-### Update futures contract data (Daily)
-
-This makes sure that the contracts stored in MongoDB reflect what we need to sample right now. It also updates any active contract expiry dates, using IB data.
-
-Python:
-```python
-from sysproduction.updateSampledContracts import update_sampled_contracts
-update_sampled_contracts()
-```
-
-Linux script:
-```
-. $SCRIPT_PATH/update_sampled_contracts
-```
-
-### Update futures contract historical price data (Daily)
-
-This gets historical daily data from IB for all the futures contracts marked to sample in the mongoDB contracts database, and updates the Arctic futures price database.
-
-Python:
-```python
-from sysproduction.update_historical_prices import update_historical_prices
-update_historical_prices()
-```
-
-Linux script:
-```
-. $SCRIPT_PATH/update_historical_prices
-```
-
-FIXME: An intraday sampling would be good
 
 ### Update sampled contracts (Daily)
 
@@ -531,6 +542,25 @@ Linux script:
 ```
 . $SCRIPT_PATH/update_sampled_contracts
 ```
+
+
+### Update futures contract historical price data (Daily)
+
+This gets historical daily data from IB for all the futures contracts marked to sample in the mongoDB contracts database, and updates the Arctic futures price database.
+If update sampled contracts has not yet run, it may not be getting data for
+
+Python:
+```python
+from sysproduction.update_historical_prices import update_historical_prices
+update_historical_prices()
+```
+
+Linux script:
+```
+. $SCRIPT_PATH/update_historical_prices
+```
+
+FIXME: An intraday sampling would be good
 
 
 ### Update multiple and adjusted prices (Daily)
@@ -553,9 +583,10 @@ Linux script:
 
 FIXME: An intraday sampling would be good
 
+
 ### Roll adjusted prices (whenever required)
 
-Allows you to change the roll state (FIX ME DISCUSSION) and roll from one priced contract to the next.
+Allows you to change the roll state and roll from one priced contract to the next.
 
 Python:
 ```python
@@ -584,6 +615,21 @@ Linux command line: (arguments are asked for after script is run)
 cd $SCRIPT_PATH
 . read_fx_prices
 ```
+
+### Roll information
+
+Python:
+```python
+from sysproduction.get_roll_info import get_roll_info
+get_roll_info("EDOLLAR") ## Defaults to 'ALL'
+```
+
+Linux command line: (arguments are asked for after script is run)
+```
+cd $SCRIPT_PATH
+. get_roll_info
+```
+
 
 # Scheduling
 

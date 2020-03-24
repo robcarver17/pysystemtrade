@@ -14,7 +14,7 @@ class fxPrices(pd.Series):
     def __init__(self, data):
 
         super().__init__(data)
-        data.index.name=""
+        data.index.name="index"
         self._is_empty=False
         data.name = ""
 

@@ -714,6 +714,14 @@ class futuresContractPriceData(baseData):
 
         return rows_added
 
+    def _delete_all_prices_for_all_instruments(self, are_you_sure = False):
+        if are_you_sure:
+            instrument_list = self.get_instruments_with_price_data()
+            for instrument_code in instrument_list:
+                self.delete_all_prices_for_instrument_code(instrument_code, areyousure=are_you_sure)
+        else:
+            self.log.error("You need to call delete_all_prices_for_all_instruments with a flag to be sure")
+
     def delete_prices_for_contract_object(self, futures_contract_object, areyousure=False):
         """
 

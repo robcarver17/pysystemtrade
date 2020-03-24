@@ -27,7 +27,7 @@ def update_historical_prices():
                         mongo_db = mongo_db, log = log, ib_conn = ib_conn)
 
         list_of_codes_all = data.arctic_futures_multiple_prices.get_list_of_instruments()
-        for instrument_code in ["CRUDE_W"]:
+        for instrument_code in ["VIX"]:
             update_historical_prices_for_instrument(instrument_code, data, log=log.setup(instrument_code = instrument_code))
 
 

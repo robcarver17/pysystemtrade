@@ -341,6 +341,15 @@ class futuresMultiplePricesData(baseData):
     def __getitem__(self, instrument_code):
         return self.get_instrument_data(instrument_code)
 
+    def _delete_all_multiple_prices(self, are_you_sure = False):
+        if are_you_sure:
+            instrument_list = self.get_list_of_instruments()
+            for instrument_code in instrument_list:
+                self.delete_multiple_prices(instrument_code, are_you_sure = are_you_sure)
+        else:
+            self.log.error("You need to call delete_all_multiple_prices with a flag to be sure")
+
+
     def delete_multiple_prices(self, instrument_code, are_you_sure=False):
         self.log.label(instrument_code=instrument_code)
 

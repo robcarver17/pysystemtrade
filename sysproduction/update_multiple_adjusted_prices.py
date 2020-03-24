@@ -39,7 +39,7 @@ def update_multiple_adjusted_prices_daily():
                         mongo_db=mongo_db, log=log)
 
         list_of_codes_all = data.arctic_futures_multiple_prices.get_list_of_instruments()
-        for instrument_code in ['CRUDE_W']:
+        for instrument_code in list_of_codes_all:
             try:
 
                 update_multiple_adjusted_prices_for_instrument(instrument_code, data,

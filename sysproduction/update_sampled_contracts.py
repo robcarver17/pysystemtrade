@@ -48,7 +48,7 @@ def update_sampled_contracts():
                         mongo_db, ib_conn, log=log)
 
         list_of_codes_all = data.arctic_futures_multiple_prices.get_list_of_instruments()
-        for instrument_code in ['CRUDE_W']:
+        for instrument_code in list_of_codes_all:
             new_log = log.setup(instrument_code = instrument_code)
             update_active_contracts_for_instrument(instrument_code, data, log=new_log)
 
