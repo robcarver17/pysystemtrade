@@ -199,13 +199,17 @@ def forecast_scalar(cs_forecasts, window=250000, min_periods=500, backfill=True)
     # We don't allow this to be changed in config
     target_abs_forecast = system_defaults['average_absolute_forecast']
 
+    ## Remove zeros/nans
+    copy_cs_forecasts = copy(cs_forecasts)
+    copy_cs_forecasts[copy_cs_forecasts==0.0] = np.nan
+
     # Take CS average first
     # we do this before we get the final TS average otherwise get jumps in
     # scalar when new markets introduced
-    if cs_forecasts.shape[1] == 1:
-        x = cs_forecasts.abs().iloc[:, 0]
+    if copy_cs_forecasts.shape[1] == 1:
+        x = copy_cs_forecasts.abs().iloc[:, 0]
     else:
-        x = cs_forecasts.ffill().abs().median(axis=1)
+        x = copy_cs_forecasts.ffill().abs().median(axis=1)
 
     # now the TS
     avg_abs_value = x.rolling(window=window, min_periods=min_periods).mean()

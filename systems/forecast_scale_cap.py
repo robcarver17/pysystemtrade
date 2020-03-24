@@ -248,6 +248,7 @@ class ForecastScaleCap(SystemStage):
         ]
 
         cs_forecasts = pd.concat(forecast_list, axis=1)
+        cs_forecasts.columns = instrument_list
 
         # an example of a scaling function is syscore.algos.forecast_scalar
         # must return thing the same size as cs_forecasts
