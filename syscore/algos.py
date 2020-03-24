@@ -5,6 +5,7 @@ Basic building blocks of trading rules, like volatility measurement and
 crossovers
 
 """
+from copy import copy
 import warnings
 
 import numpy as np
