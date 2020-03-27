@@ -378,10 +378,13 @@ class ibClient(brokerClient, EClient):
             # WHITELIST
             log.warn(self.broker_get_error())
 
+        self.cancelHistoricalData(tickerid)
+
         if historic_data_queue.timed_out():
             log.msg("Exceeded maximum wait for wrapper to confirm finished - seems to be normal behaviour")
+            # Just make sure the queue is cleared before we go on
+            historic_data = historic_data_queue.get(timeout = MAX_WAIT_HISTORICAL_DATA_SECONDS)
 
-        self.cancelHistoricalData(tickerid)
         self.ib_clear_req_id(tickerid)
         self.last_historic_price_calltime = datetime.datetime.now()
 

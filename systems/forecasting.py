@@ -1,3 +1,5 @@
+import numpy as np
+
 from copy import copy
 from concurrent.futures import ProcessPoolExecutor
 from functools import partial
@@ -167,6 +169,13 @@ class Rules(SystemStage):
 
         result = trading_rule.call(system, instrument_code)
         result.columns = [rule_variation_name]
+
+        ## Check for all zeros
+        check_result = copy(result)
+        check_result[check_result==0.0]=np.nan
+        if all(check_result.isna()):
+            self.log.warn("Setting rule %s for %s to all NAN as all values are 0 or NAN" % (instrument_code, rule_variation_name))
+            result[:]=np.nan
 
         return result
 

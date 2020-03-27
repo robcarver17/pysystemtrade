@@ -39,6 +39,8 @@ class ibFxPricesData(fxPricesData):
         else:
             fx_prices = raw_fx_prices
 
+        new_log.msg("Downloaded %d prices" % len(fx_prices))
+
         return fx_prices
 
     def get_list_of_fxcodes(self):

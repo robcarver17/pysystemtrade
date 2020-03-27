@@ -1364,8 +1364,25 @@ to record the changes you've made. Note this will save trading rule functions
 as functions; this may not work and it will also be ugly. So you should use
 strings to define rule functions (see [rules](#rules) for more information)
 
-A future version of this project will allow you to save the final optimised
-weights for instruments and forecasts into fixed weights for live trading.
+You can also save the final optimised parameters into fixed weights for live trading:
+
+
+```python
+# Assuming system already contains a system which has estimated values
+from systems.diagoutput import systemDiag
+
+sysdiag = systemDiag(system)
+sysdiag.yaml_config_with_estimated_parameters('someyamlfile.yaml',
+                                              attr_names=['forecast_scalars',
+                                                                  'forecast_weights',
+                                                                  'forecast_div_multiplier',
+                                                                  'forecast_mapping',
+                                                                  'instrument_weights',
+                                                                  'instrument_div_multiplier'])
+
+```
+Change the list of attr_names depending on what you want to output. You can then merge the resulting .yaml file into your simulated .yaml file. Don't forget to turn off the flags for `use_forecast_div_mult_estimates`,`use_forecast_scale_estimates`,`use_forecast_weight_estimates`,`use_instrument_div_mult_estimates`, and `use_instrument_weight_estimates`.  You don't need to change flag for forecast mapping, since this isn't done by default.
+
 
 ### Modifying the configuration class
 
@@ -2965,7 +2982,15 @@ What values should we use for a,b and threshold (t)? We want to satisfy the foll
 - We require b = (c*a)/(c-t)
 - Given our parameters, and the distribution of the raw forecast (assumed to be Gaussian), the average absolute value of the final distribution should be unchanged.
 
-The function `syscore.algos.return_mapping_params` will return values of b_param and threshold, assuming capped_value = 20. This uses results from a regression that gives the right parameters values for a_param in an interval 1.2 < a < 1.7
+These values aren't estimated by default, so you can use this external function:
+
+```python
+# Assuming futures_system already contains a system which has positions
+from systems.diagoutput import systemDiag
+
+sysdiag = systemDiag(futures_system)
+sysdiag.forecast_mapping()
+```
 
 Parameters are specified by market as follows:
 
@@ -3899,8 +3924,8 @@ exponential weight for correlations, means, and volatility.
 
 ### Methods
 
-There are four methods provided to optimise with in the function I've included.
-Personally I'd use shrinkage if I wanted a quick answer, then bootstrapping.
+There are five methods provided to optimise with in the function I've included.
+Personally I'd use handcrafting, which is the default.
 
 #### Equal weights
 
@@ -3952,7 +3977,7 @@ method: bootstrap
 Notice that if you equalise Sharpe then this will override the effect of any
 pooling or changes to cost calculation.
 
-#### Shrinkage
+#### Shrinkage (okay, but trick to calibrate)
 
 This is a basic shrinkage towards a prior of equal sharpe ratios, and equal
 correlations; with priors equal to the average of estimates from the data.
@@ -3970,6 +3995,15 @@ estimates.
 
 Notice that if you equalise Sharpe by shrinking with a factor of 1.0, then this
 will override the effect of any pooling or changes to cost calculation.
+
+
+#### Handcrafting (recommended)
+
+See [my series of blog posts](https://qoppac.blogspot.com/2018/12/portfolio-construction-through.html)
+
+```
+   method: handcraft
+```
 
 
 ### Post processing

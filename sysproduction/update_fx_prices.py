@@ -42,4 +42,3 @@ def update_fx_prices_for_code(fx_code, data):
 
     return success
 
-update_fx_prices()

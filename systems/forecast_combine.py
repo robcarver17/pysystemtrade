@@ -66,6 +66,26 @@ class _ForecastCombinePreCalculate(SystemStage):
         return self.parent.forecastScaleCap.get_capped_forecast(
             instrument_code, rule_variation_name)
 
+    def get_forecasts_given_rule_list(self, instrument_code, rule_variation_list):
+        """
+        Convenience function to get a list of forecasts
+
+        :param instrument_code: str
+        :param rule_variation_list: list of str
+        :return: pd.DataFrame
+        """
+        forecasts = [
+            self.get_capped_forecast(
+                instrument_code,
+                rule_variation_name) for rule_variation_name in rule_variation_list]
+
+        forecasts = pd.concat(forecasts, axis=1)
+
+        forecasts.columns = rule_variation_list
+
+        forecasts = forecasts.ffill()
+
+        return forecasts
 
     @diagnostic()
     def get_trading_rule_list_estimated_weights(self, instrument_code):
@@ -153,6 +173,7 @@ class _ForecastCombinePreCalculate(SystemStage):
         """
         Get list of trading rules
 
+        We remove any rules with a constant zero or nan forecast
 
         :param instrument_code:
         :return: list of str
@@ -160,9 +181,13 @@ class _ForecastCombinePreCalculate(SystemStage):
 
         if self._use_estimated_weights():
             # Note for estimated weights we apply the 'is this cheap enough' rule, but not here
-            return self.get_trading_rule_list_estimated_weights(instrument_code)
+            trial_rule_list = self.get_trading_rule_list_estimated_weights(instrument_code)
         else:
-            return self._get_trading_rule_list_fixed_weights(instrument_code)
+            trial_rule_list = self._get_trading_rule_list_fixed_weights(instrument_code)
+
+
+        return trial_rule_list
+
 
     @diagnostic()
     def has_same_rules_as_code(self, instrument_code):
@@ -233,16 +258,7 @@ class _ForecastCombinePreCalculate(SystemStage):
             rule_variation_list = self.get_trading_rule_list(
                 instrument_code)
 
-        forecasts = [
-            self.get_capped_forecast(
-                instrument_code,
-                rule_variation_name) for rule_variation_name in rule_variation_list]
-
-        forecasts = pd.concat(forecasts, axis=1)
-
-        forecasts.columns = rule_variation_list
-
-        forecasts = forecasts.ffill()
+        forecasts = self.get_forecasts_given_rule_list(instrument_code, rule_variation_list)
 
         return forecasts
 

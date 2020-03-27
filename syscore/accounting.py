@@ -965,8 +965,10 @@ def calc_costs(returns_data, cash_costs, SR_cost, ann_risk):
     costs_instr_ccy = costs_instr_ccy.cumsum().ffill().reindex(
         use_fx.index).diff()
 
+    costs_instr_ccy[costs_instr_ccy.isna()] = 0.0
+
     costs_base_ccy = costs_instr_ccy * use_fx.ffill()
-    costs_base_ccy[np.isnan(costs_base_ccy)] = 0.0
+    costs_base_ccy[costs_base_ccy.isna()] = 0.0
 
     return (costs_base_ccy, costs_instr_ccy)
 

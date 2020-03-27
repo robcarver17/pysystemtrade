@@ -159,7 +159,7 @@ class GenericOptimiser(object):
         if identifier is None and len(data.keys()) > 1:
             log.warning(
                 "No identifier passed to optimisation code with pooled data passed - using arbitary code - results may be weird")
-            identifier = data.keys()[0]
+            identifier = list(data.keys())[0]
 
         (data_gross, data_costs) = decompose_group_pandl(
             data, identifier, pool_costs=use_pooled_costs,
@@ -369,7 +369,10 @@ def decompose_group_pandl(data,
     assert identifier in data.keys()
 
     # This is the tuple we pass if no pooling is neccessary
-    unpooled_data  =([data[identifier].gross.to_frame()], [data[identifier].costs.to_frame()])
+    costs_unpooled = data[identifier].costs.to_frame()
+    costs_unpooled[costs_unpooled.isna()] = 0.0
+    gross_unpooled = data[identifier].gross.to_frame()
+    unpooled_data  =([gross_unpooled], [costs_unpooled])
 
     # Trivial case
     if len(data) == 1:

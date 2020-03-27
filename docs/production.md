@@ -103,9 +103,13 @@ You need to:
 - Adjusted futures prices:
     - Create 'multiple prices' in Arctic. Assuming you have prices in Artic and roll calendars in csv use [this script](/sysinit/futures/multipleprices_from_arcticprices_and_csv_calendars_to_arctic.py). I recommend *not* writing the multiple prices to .csv, so that you can compare the legacy .csv data with the new prices
     - Create adjusted prices. Assuming you have multiple prices in Arctic use [this script](/sysinit/futures/adjustedprices_from_mongo_multiple_to_mongo.py)
+- Live production backtest:
+    - Create a yamal config file to run the live production 'backtest'. For speed I recommend you do not estimate parameters, but use fixed parameters, using the [yaml_config_with_estimated_parameters method of systemDiag](/systems/diagoutput.py) function to output these to a .yaml file.
+
 - Scheduling:
     - Initialise the [supplied crontab](/sysproduction/linux/crontab). Note if you have put your code or echos somewhere else you will need to modify the directory references at the top of the crontab.
-    - All scripts executable by the crontab need to be executable, so do the following: `cd $SCRIPT_PATH` ; `sudo chmod +x update*` ;`sudo chmod +x truncate*`;`sudo chmod +x email*` FIX ME ADD FURTHER FILES AS REQUIRED
+    - All scripts executable by the crontab need to be executable, so do the following: `cd $SCRIPT_PATH` ; `sudo chmod +x *.*`
+
 
 Before trading, and each time you restart the machine you should:
 
@@ -169,7 +173,7 @@ You may want to run multiple trading systems on a single machine. Common use cas
 
 * for these cases I plan to implement functionality in pysystemtrade so that it can handle them in the same system.
 
-To handle this I suggest having multiple copies of the pysystemtrade environment. You will have a single crontab, but you will need multiple script, echos (AND FIX ME REPORTS?) directories. You will need to change the private config file so it points to different mongo_db database names. If you don't want multiple copies of certain data (eg prices) then you should hardcode the database_name in the relevant files whenever a connection is made eg mongo_db = mongoDb(database_name='whatever'). See storing futures and spot FX data for more detail. Finally you should set the field ib_idoffset in the private config file so that there is no chance of duplicate clientid connections; setting one system to have an id offset of 1, the next offset 1000, and so on should be sufficient.
+To handle this I suggest having multiple copies of the pysystemtrade environment. You will have a single crontab, but you will need multiple script, echos and other directories. You will need to change the private config file so it points to different mongo_db database names. If you don't want multiple copies of certain data (eg prices) then you should hardcode the database_name in the relevant files whenever a connection is made eg mongo_db = mongoDb(database_name='whatever'). See storing futures and spot FX data for more detail. Finally you should set the field ib_idoffset in the private config file so that there is no chance of duplicate clientid connections; setting one system to have an id offset of 1, the next offset 1000, and so on should be sufficient.
 
 Finally you should set the field `ib_idoffset` in the [private config file](private.private_config.yaml) so that there is no chance of duplicate clientid connections; setting one system to have an id offset of 1, the next offset 1000, and so on should be sufficient.
 
@@ -237,7 +241,25 @@ I use a local git repo for my private directory. Github are now offering free pr
 
 You can just re-run a daily backtest to generate your positions. This will probably mean that you end up refitting parameters like instrument weights and forecast scalars. This is pointless, a waste of time, and potentially dangerous. Instead I'd suggest using fixed values for all fitted parameters in a live trading system.
 
-The following convenience function *FIX ME NEED TO WRITE THIS* will take your backtested system, and create a new configuration object which includes fixed values for all estimated parameters (and will turn off all optimisation flags in the config). This object can then be written to YAML.
+The following convenience function will take your backtested system, and create a dict which includes fixed values for all estimated parameters:
+
+```python
+# Assuming futures_system already contains a system which has estimated values
+from systems.diagoutput import systemDiag
+
+sysdiag = systemDiag(system)
+sysdiag.yaml_config_with_estimated_parameters('someyamlfile.yaml',
+                                              attr_names=['forecast_scalars',
+                                                                  'forecast_weights',
+                                                                  'forecast_div_multiplier',
+                                                                  'forecast_mapping',
+                                                                  'instrument_weights',
+                                                                  'instrument_div_multiplier'])
+
+```
+
+Change the list of attr_names depending on what you want to output. You can then merge the resulting .yaml file into your simulation .yaml file. Don't forget to turn off the flags for `use_forecast_div_mult_estimates`,`use_forecast_scale_estimates`,`use_forecast_weight_estimates`,`use_instrument_div_mult_estimates`, and `use_instrument_weight_estimates`.  You don't need to change flag for forecast mapping, since this isn't done by default.
+
 
 # Linking to a broker
 
@@ -616,7 +638,15 @@ cd $SCRIPT_PATH
 . read_fx_prices
 ```
 
+### Recent futures contract prices (FIX ME TO DO)
+
+### Recent multiple prices (FIX ME TO DO)
+
+### Recent adjusted prices (FIX ME TO DO)
+
 ### Roll information
+
+Get information about which markets to roll. There is also an email version of this report.
 
 Python:
 ```python
