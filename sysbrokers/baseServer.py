@@ -63,6 +63,7 @@ class finishableQueue(object):
                 # We don't put the FINISHED block in the queue, it's just a marker
                 # The finished block can sometimes be a red herring, so will keep waiting
                 self.status = FINISHED
+                break
             else:
                 contents_of_queue.append(current_element)
                 ## keep going and try and get more data
