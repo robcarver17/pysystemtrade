@@ -83,7 +83,7 @@ class Config(object):
             # must be a file YAML'able, from which we load the
             filename = get_filename_for_package(config_item)
             with open(filename) as file_to_parse:
-                dict_to_parse = yaml.load(file_to_parse)
+                dict_to_parse = yaml.load(file_to_parse, Loader=yaml.FullLoader)
 
             self._create_config_from_dict(dict_to_parse)
 

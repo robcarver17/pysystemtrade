@@ -1,3 +1,4 @@
+import datetime
 import pandas as pd
 from syslogdiag.log import logtoscreen
 from syscore.objects import get_methods
@@ -5,7 +6,7 @@ from syscore.objects import get_methods
 DEFAULT_CURRENCY = "USD"
 
 DEFAULT_DATES = pd.date_range(
-    start=pd.datetime(1970, 1, 1), freq="B", end=pd.datetime(2040, 12, 10))
+    start=datetime.datetime(1970, 1, 1), freq="B", end=datetime.datetime(2040, 12, 10))
 DEFAULT_RATE_SERIES = pd.Series(
     [1.0] * len(DEFAULT_DATES), index=DEFAULT_DATES)
 
