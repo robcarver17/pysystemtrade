@@ -1,4 +1,4 @@
-from systems.defaults import system_defaults
+from systems.defaults import get_default_config_key_value
 from systems.stage import SystemStage
 from systems.basesystem import ALL_KEYNAME
 from syscore.dateutils import ROOT_BDAYS_INYEAR
@@ -435,7 +435,7 @@ class PositionSizing(SystemStage):
         """
         We don't allow this to be changed in config
         """
-        avg_abs_forecast = system_defaults['average_absolute_forecast']
+        avg_abs_forecast = get_default_config_key_value('average_absolute_forecast')
 
         vol_scalar = self.get_volatility_scalar(instrument_code)
         forecast = self.get_combined_forecast(instrument_code)

@@ -12,9 +12,6 @@ from sysbrokers.IB.ibServer import ibServer
 from syslogdiag.log import logtoscreen
 from sysdata.mongodb.mongo_connection import mongoConnection, MONGO_ID_KEY
 
-from syscore.fileutils import PRIVATE_CONFIG_FILE
-
-
 DEFAULT_IB_IPADDRESS='127.0.0.1'
 DEFAULT_IB_PORT = 4001
 DEFAULT_IB_IDOFFSET = 1

@@ -1,5 +1,13 @@
 # Release notes
 
+## Version 0.27.0
+
+Cleaned up way defaults and private config files work
+Removed seperate mongodb config file
+Added production code to run a system backtest and save optimal position state
+Cleaned up the way path and filename resolution works
+Added production code to backup mongodb to .csv files
+
 ## Version 0.26.0
 
 Added production code to get daily futures prices from IB, update sampled contracts, update multiple and adjusted prices.

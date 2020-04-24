@@ -153,6 +153,7 @@ class Config(object):
             if element_name not in elements:
                 elements.append(element_name)
 
+
     def fill_with_defaults(self):
         """
         Fills with defaults
@@ -271,6 +272,14 @@ class Config(object):
         element_names = sorted(getattr(self, "_elements", []))
         element_names = ", ".join(element_names)
         return "Config with elements: " + element_names
+
+    def as_dict(self):
+        element_names = sorted(getattr(self, "_elements", []))
+        self_as_dict ={}
+        for element in element_names:
+            self_as_dict[element] = getattr(self, element, "")
+
+        return self_as_dict
 
 
 if __name__ == '__main__':

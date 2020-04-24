@@ -18,6 +18,8 @@ from sysdata.mongodb.mongo_futures_contracts import mongoFuturesContractData
 from sysdata.mongodb.mongo_roll_data import mongoRollParametersData
 from sysdata.mongodb.mongo_roll_state_storage import mongoRollStateData
 from sysdata.mongodb.mongo_position_by_contract_state import mongoPositionByContractData
+from sysdata.mongodb.mongo_capital import mongoCapitalData
+from sysdata.mongodb.mongo_optimal_position import mongoOptimalPositionData
 
 from sysdata.mongodb.mongo_connection import mongoDb
 

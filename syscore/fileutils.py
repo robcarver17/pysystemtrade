@@ -15,55 +15,83 @@ import data
 import sysbrokers
 import sysproduction
 
-
 def get_filename_for_package(pathname, filename=None):
     """
-    Get a full filename given path and filename OR relative path+filename
+    A way of resolving relative and absolute filenames, and dealing with akward OS specific things
 
-    :param pathname: Absolute eg "/home/rob/pysystemtrader/data/thing" or relative eg "data.thing"
-    :param filename: filename, or None if using
-    :return: full resolved path and filename
+    We can eithier have pathname = 'some.path.filename.csv' or pathname='some.path', filename='filename.csv'
+
+    An absolute filename is a full path
+
+    A relative filename sits purely within the pysystemtrade directory, eg sysbrokers.IB.config.csv resolves to
+       ..../pysystemtrade/sysbrokers/IB/config.csv
+
+    We can pass eithier:
+
+    - a relative filename demarcated with .
+    - an absolute filename demarcated with ., / or \
+
+    Absolute filenames always begin with ., / or \
+    Relative filenames do not
     """
+    dotted_pathname = add_dots_to_pathname(pathname)
     if filename is None:
         # filename will be at the end of the pathname
-        path_as_list = pathname.rsplit(".")
+        path_as_list = dotted_pathname.rsplit(".")
         filename = '.'.join(path_as_list[-2:])
-        pathname = '.'.join(path_as_list[0:-2])
+        split_pathname = '.'.join(path_as_list[0:-2])
+    else:
+        # filename is already seperate
+        split_pathname = dotted_pathname
 
-    resolved_pathname = get_pathname_for_package(pathname)
+    ## Resolve pathname
+    resolved_pathname = get_resolved_dotted_pathname(split_pathname)
 
-    return resolved_pathname+"/"+filename
+    # Glue together
+    full_path_and_file = os.path.join(resolved_pathname, filename)
 
+    return full_path_and_file
 
+def add_dots_to_pathname(pathname):
+    pathname_replaced = pathname.replace("/", ".")
+    pathname_replaced = pathname_replaced.replace("\\", ".")
 
-def get_pathname_for_package(pathname):
-    """
-    Returns the resolved pathname given a relative pathname eg "sysdata.tests"
+    return pathname_replaced
 
-    If an absolute pathname, eg "home/user/pysystemtrade/sysdata/tests" is passed, just return it
+def get_resolved_pathname(pathname):
+    ## Turn /,\ into . so system independent
+    pathname_replaced = add_dots_to_pathname(pathname)
+    resolved_pathname = get_resolved_dotted_pathname(pathname_replaced)
 
-    :param name_with_dots: Relative path name written with "." eg "sysdata.tests"
-    :type str:
+    return resolved_pathname
 
-    :returns: full pathname of package eg "../sysdata/tests/"
-
-
-    """
-    if "/" in pathname:
-        # don't need to sub in actual pathname
-        return pathname
-
+def get_resolved_dotted_pathname(pathname):
     path_as_list = pathname.rsplit(".")
 
-    return get_pathname_for_package_from_list(path_as_list)
+    ## Check for absolute or relative
+    pathname = get_pathname_from_list(path_as_list)
+
+    return pathname
+
+
+def get_pathname_from_list(path_as_list):
+    if path_as_list[0] == "":
+        #path_type_absolute
+        resolved_pathname = get_absolute_pathname_from_list(path_as_list[1:])
+    else:
+        # relativee
+        resolved_pathname = get_pathname_for_package_from_list(path_as_list)
+
+    return resolved_pathname
+
 
 
 def get_pathname_for_package_from_list(path_as_list):
     """
     Returns the filename of part of a package from a list
 
-    :param path_as_list: List of path and file name eg ["syscore","fileutils.py"]
-    :type path_as_list:
+    :param path_as_list: List of path  ["syscore","subdirector"] in pysystemtrade world
+    :type path_as_list: list of str
 
     :returns: full pathname of package
     """
@@ -80,7 +108,20 @@ def get_pathname_for_package_from_list(path_as_list):
 
     return pathname
 
-PRIVATE_CONFIG_FILE = get_filename_for_package("private.private_config.yaml")
+
+def get_absolute_pathname_from_list(path_as_list):
+    """
+    Returns the absolute pathname from a list
+
+    :param path_as_list: List of path and file name eg ["syscore","fileutils.py"]
+    :type path_as_list:
+
+    :returns: full pathname of package
+    """
+    pathname = os.path.join(*path_as_list)
+    pathname = os.path.sep + pathname
+
+    return pathname
 
 
 def files_with_extension_in_pathname(pathname, extension=".csv"):
@@ -91,7 +132,7 @@ def files_with_extension_in_pathname(pathname, extension=".csv"):
     :param extension: str
     :return: list of files, with extensions stripped off
     """
-    pathname = get_pathname_for_package(pathname)
+    pathname = get_resolved_pathname(pathname)
 
     file_list = os.listdir(pathname)
     file_list = [filename for filename in file_list if filename.endswith(extension)]

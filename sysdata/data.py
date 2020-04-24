@@ -344,9 +344,14 @@ class simData(baseData):
         :return: list of instrument codes
         """
         asset_class_data = self.get_instrument_asset_classes()
-        instrument_list = list(asset_class_data[asset_class_data==asset_class].index)
+        asset_class_instrument_list = list(asset_class_data[asset_class_data==asset_class].index)
 
-        return instrument_list
+        # Remove anything that's missing
+        instrument_list = self.get_instrument_list()
+        filtered_asset_class_instrument_list = [instrument for instrument in asset_class_instrument_list
+                                                if instrument in instrument_list]
+
+        return filtered_asset_class_instrument_list
 
     def asset_class_for_instrument(self, instrument_code):
         """

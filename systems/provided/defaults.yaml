@@ -1,5 +1,24 @@
 # YAML
 #
+#           PRODUCTION STUFF
+#
+## Where do we save backtests
+backtest_store_directory: 'private'
+#
+# And .csv backups
+csv_backup_directory: 'data.backups'
+#
+# Interactive brokers
+ib_ipaddress: 127.0.0.1
+ib_port: 4001
+ib_idoffset: 100
+#
+# Mongo DB
+mongo_host: 127.0.0.1
+mongo_db: 'production'
+#
+#           BACKTESTING STUFF
+#
 # Raw data
 #
 volatility_calculation:

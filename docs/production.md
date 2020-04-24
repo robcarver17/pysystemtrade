@@ -17,6 +17,9 @@ Related documents:
 
 *IMPORTANT: Make sure you know what you are doing. All financial trading offers the possibility of loss. Leveraged trading, such as futures trading, may result in you losing all your money, and still owing more. Backtested results are no guarantee of future performance. No warranty is offered or implied for this software. I can take no responsibility for any losses caused by live trading using pysystemtrade. Use at your own risk.*
 
+Table of Contents
+=================
+
    * [Quick start guide](#quick-start-guide)
    * [Overview of a production system](#overview-of-a-production-system)
    * [Implementation options](#implementation-options)
@@ -40,24 +43,50 @@ Related documents:
       * [Logging](#logging)
          * [Adding logging to your code](#adding-logging-to-your-code)
          * [Getting log data back](#getting-log-data-back)
-   * [can optionally pass mongodb connection attributes here](#can-optionally-pass-mongodb-connection-attributes-here)
-   * [Return a list of strings per log line](#return-a-list-of-strings-per-log-line)
-   * [Printout log entries](#printout-log-entries)
-   * [Return a list of logEntry objects, useful for dissecting](#return-a-list-of-logentry-objects-useful-for-dissecting)
+         * [Cleaning old logs](#cleaning-old-logs)
       * [Reporting](#reporting)
+         * [Roll report (Daily)](#roll-report-daily)
    * [Scripts](#scripts)
       * [Production system components](#production-system-components)
-         * [Get spot FX data from interactive brokers, write to MongoDB](#get-spot-fx-data-from-interactive-brokers-write-to-mongodb)
+         * [Get spot FX data from interactive brokers, write to MongoDB (Daily)](#get-spot-fx-data-from-interactive-brokers-write-to-mongodb-daily)
+         * [Update sampled contracts (Daily)](#update-sampled-contracts-daily)
+         * [Update futures contract historical price data (Daily)](#update-futures-contract-historical-price-data-daily)
+         * [Update multiple and adjusted prices (Daily)](#update-multiple-and-adjusted-prices-daily)
+         * [Roll adjusted prices (whenever required)](#roll-adjusted-prices-whenever-required)
+         * [Run an updated backtest system (overnight) for a single strategy](#run-an-updated-backtest-system-overnight-for-a-single-strategy)
       * [Ad-hoc diagnostics](#ad-hoc-diagnostics)
          * [Recent FX prices](#recent-fx-prices)
+         * [Recent futures contract prices (FIX ME TO DO)](#recent-futures-contract-prices-fix-me-to-do)
+         * [Recent multiple prices (FIX ME TO DO)](#recent-multiple-prices-fix-me-to-do)
+         * [Recent adjusted prices (FIX ME TO DO)](#recent-adjusted-prices-fix-me-to-do)
+         * [Roll information](#roll-information)
+         * [Examine pickled backtest state object](#examine-pickled-backtest-state-object)
+      * [Housekeeping](#housekeeping)
+         * [Delete old pickled backtest state objects](#delete-old-pickled-backtest-state-objects)
+         * [Clean up old log files](#clean-up-old-log-files)
+         * [Truncate echo log files](#truncate-echo-log-files)
    * [Scheduling](#scheduling)
       * [Issues to consider when constructing the schedule](#issues-to-consider-when-constructing-the-schedule)
       * [A suggested schedule in pseudocode](#a-suggested-schedule-in-pseudocode)
+      * [Formal list of scheduled tasks](#formal-list-of-scheduled-tasks)
       * [Choice of scheduling systems](#choice-of-scheduling-systems)
          * [Linux cron](#linux-cron)
          * [Windows task scheduler](#windows-task-scheduler)
          * [Python](#python)
          * [Manual system](#manual-system)
+   * [Production system concepts](#production-system-concepts)
+      * [Configuration files](#configuration-files)
+         * [Private config](#private-config)
+         * [System defaults](#system-defaults)
+         * [Strategy config](#strategy-config)
+      * [Strategies](#strategies)
+   * [Production system data and data flow](#production-system-data-and-data-flow)
+   * [Production system classes](#production-system-classes)
+      * [Data blobs and the classes that feed on them](#data-blobs-and-the-classes-that-feed-on-them)
+      * [Reporting and diagnostics](#reporting-and-diagnostics)
+
+Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
+
 
 
 # Quick start guide
@@ -115,6 +144,12 @@ Before trading, and each time you restart the machine you should:
 
 - [check a mongodb server is running with the right data directory](/docs/futures.md#mongo-db) command line: `mongod --dbpath $MONGO_DATA` (the supplied crontab should do this)
 - launch an IB gateway (this could [be done automatically](https://github.com/ib-controller/ib-controller) depending on your security setup)
+
+When trading you will need to do the following
+
+- Check reports TO DO LINK TO EACH
+- Roll instruments TO DO LINK
+- Ad-hoc diagnostics TO DO LINK
 
 
 # Overview of a production system
@@ -485,7 +520,7 @@ FIX ME THIS SHOULD BE DONE EVERY DAY ONCE WE HAVE ENOUGH LOGS ADD TO CRONTAB
 
 Reports are run regularly to allow you to monitor the system and decide if any action should be taken. You can choose to have them emailed to you.
 
-Email address, server and password can be set in `private_config.yaml`:
+Email address, server and password *must* be set in `private_config.yaml`:
 
 ```
 email_address: "somebloke@anemailadress.com"
@@ -529,7 +564,7 @@ Scripts are used to run python code which:
    - execute trades
    - get accounting data
 - runs report and diagnostics, eithier regular or ad-hoc
-- Do housekeeping duties, eg truncate log files
+- Do housekeeping duties, eg truncate log files and run backups
 
 Script are then called by [schedulers](#scheduling), or on an ad-hoc basis from the command line.
 
@@ -569,7 +604,7 @@ Linux script:
 ### Update futures contract historical price data (Daily)
 
 This gets historical daily data from IB for all the futures contracts marked to sample in the mongoDB contracts database, and updates the Arctic futures price database.
-If update sampled contracts has not yet run, it may not be getting data for
+If update sampled contracts has not yet run, it may not be getting data for all the contracts you need.
 
 Python:
 ```python
@@ -583,6 +618,7 @@ Linux script:
 ```
 
 FIXME: An intraday sampling would be good
+FIXME: TO DO ADD PRICE THRESHOLD CHECK
 
 
 ### Update multiple and adjusted prices (Daily)
@@ -620,6 +656,37 @@ Linux script:
 ```
 . $SCRIPT_PATH/update_roll_adjusted_prices
 ```
+
+### Run an updated backtest system (overnight) for a single strategy
+
+The paradigm for pysystemtrade is that we run a new backtest nightly, which outputs some parameters that a trading engine uses the next day. For the basic system defined in the core code those parameters are a pair of position buffers for each instrument. The trading engine will trade if the current position lies outside those buffer values.
+
+This can easily be adapted for different kinds of trading system. So for example, for a mean reversion system the nightly backtest could output the target prices for the range. For an intraday system it could output the target position sizes and entry  / exit points. This process reduces the amount of work the trading engine has to do during the day.
+
+An example script to run an udpated backtest system is provided, however you will almost certainly want to modify this, at the very least to change the configuration file and [strategy name](#strategies), and possibly the account currency.
+
+
+Python:
+```python
+from sysproduction.example_run_system import run_system
+run_system()
+```
+
+Linux script:
+```
+. $SCRIPT_PATH/update_system_example
+```
+
+
+This example script does the following:
+
+- get the amount of capital currently in your trading account. This is set by  FIX ME CAPITAL MODULE TO BE WRITTEN
+- run a backtest using that amount of capital
+- get the position buffer limits, and save these down
+- store the backtest state (pickled cache) in the directory specified by the parameter csv_backup_directory (set in your private config file, or the system defaults file), subdirectory strategy name, filename date and time generated. It also copies the config file used to generate this backtest with a similar naming pattern.
+
+FIX ME TO DO: COULD HAVE GLOBAL YAML FILE WITH LIST OF STRATEGIES AND SCRIPTS TO RUN, ALSO CURRENCY
+
 
 
 ## Ad-hoc diagnostics
@@ -660,6 +727,44 @@ cd $SCRIPT_PATH
 . get_roll_info
 ```
 
+### Examine pickled backtest state object
+
+FIX ME TO DO
+
+Python:
+```python
+```
+
+
+## Housekeeping
+
+### Delete old pickled backtest state objects
+
+TO DO
+
+### Clean up old log files
+
+
+Python:
+```python
+from sysproduction.truncateLogFiles import truncate_log_files
+truncate_log_files()
+```
+
+Linux command line: 
+```
+cd $SCRIPT_PATH
+. truncate_log_files
+```
+
+### Truncate echo log files
+
+
+Linux command line: 
+```
+cd $SCRIPT_PATH
+. truncate_echo_files
+```
 
 # Scheduling
 
@@ -698,6 +803,11 @@ Here is the schedule I use for my own trading system. Since I trade US, European
 
 There will be flexibility in this schedule depending on how long different processes take. Notice that I don't shut down and then launch a new interactive brokers gateway daily. Some people may prefer to do this, but I am using an authentication protocol which requires manual intervention. [This product](https://github.com/ib-controller/ib-controller/) is popular for automating the lauch of the IB gateway.
 
+## Formal list of scheduled tasks
+
+TO DO
+
+
 ## Choice of scheduling systems
 
 You need some sort of scheduling system to kick off the various top level processes.
@@ -718,3 +828,41 @@ You can use python itself as a scheduler, using something like [this](https://gi
 
 It's possible to run pysystemtrade without any scheduling, by manually starting the neccessary processes as required. This option might make sense for traders who are not running a fully automated system.
 
+# Production system concepts
+
+## Configuration files
+
+### Private config
+
+TO DO
+
+### System defaults
+
+
+TO DO
+
+### Strategy config
+
+
+TO DO
+
+## Strategies
+
+TO DO
+
+# Production system data and data flow
+
+
+TO DO
+
+
+# Production system classes
+
+## Data blobs and the classes that feed on them
+
+TO DO
+
+
+## Reporting and diagnostics
+
+TO DO

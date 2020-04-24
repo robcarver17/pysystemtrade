@@ -1,9 +1,7 @@
 from sysproduction.data.get_data import dataBlob
 from syscore.pdutils import check_df_equals, check_ts_equals
-from syscore.objects import success, failure
-from syscore.fileutils import PRIVATE_CONFIG_FILE
+from sysdata.private_config import get_private_then_default_key_value
 import os
-import yaml
 
 def backup_arctic_to_csv():
     data = get_data_and_create_csv_directories()
@@ -15,7 +13,8 @@ def backup_arctic_to_csv():
 
 def get_data_and_create_csv_directories():
 
-    backup_dir= get_backup_directory()
+    backup_dir = get_private_then_default_key_value('csv_backup_directory')
+
     class_paths = dict(csvFuturesContractPriceData="contract_prices",
                        csvFuturesAdjustedPricesData="adjusted_prices",
                        csvFuturesMultiplePricesData="multiple_prices",
@@ -33,15 +32,6 @@ def get_data_and_create_csv_directories():
 
     return data
 
-def get_backup_directory(file_to_parse=PRIVATE_CONFIG_FILE):
-    try:
-        with open(file_to_parse) as file_handle:
-            yaml_dict = yaml.load(file_handle)
-
-        backup_directory = yaml_dict['csv_backup_directory']
-
-    except:
-        raise Exception("You need to have an entry %s in %s" % ('csv_backup_directory', file_to_parse))
 
 ## Write function for each thing we want to backup
 ## Think about how to check for duplicates (data frame equals?)
