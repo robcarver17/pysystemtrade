@@ -269,7 +269,7 @@ class ibClient(brokerClient, EClient):
                 resolved_contract = resolve_multiple_expiries(ibcontract_list, instrument_object_with_metadata)
             except Exception as exception:
                 self.log.warn("%s could not resolve contracts: %s" %
-                              str(instrument_object_with_metadata), exception.args[0])
+                              (str(instrument_object_with_metadata), exception.args[0]))
 
                 return missing_contract
 
