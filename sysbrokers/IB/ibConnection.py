@@ -9,6 +9,8 @@ from threading import Thread
 
 from sysbrokers.IB.ibClient import ibClient
 from sysbrokers.IB.ibServer import ibServer
+from syscore.genutils import get_safe_from_dict
+from sysdata.private_config import get_list_of_private_then_default_key_values
 from syslogdiag.log import logtoscreen
 from sysdata.mongodb.mongo_connection import mongoConnection, MONGO_ID_KEY
 
@@ -16,36 +18,41 @@ DEFAULT_IB_IPADDRESS='127.0.0.1'
 DEFAULT_IB_PORT = 4001
 DEFAULT_IB_IDOFFSET = 1
 
-def ib_defaults(config_file =PRIVATE_CONFIG_FILE, **kwargs):
+LIST_OF_IB_PARAMS = ['ipaddress', 'port', 'idoffset']
+
+
+def ib_defaults(**kwargs):
     """
     Returns ib configuration with following precedence
 
     1- if passed in arguments: ipaddress, port, idoffset - use that
     2- if defined in private_config file, use that. ib_ipaddress, ib_port, ib_idoffset
-    3- otherwise use defaults DEFAULT_MONGO_DB, DEFAULT_MONGO_HOST, DEFAULT_MONGOT_PORT
+    3- otherwise use defaults DEFAULT_IB_IPADDRESS, DEFAULT_IB_PORT, DEFAULT_IB_IDOFFSET
 
     :return: mongo db, hostname, port
     """
 
-    try:
-        with open(config_file) as file_to_parse:
-            yaml_dict = yaml.load(file_to_parse)
-    except:
-        yaml_dict={}
+    param_names_with_prefix = ['ib_' + arg_name for arg_name in LIST_OF_IB_PARAMS]
+    config_dict = get_list_of_private_then_default_key_values(param_names_with_prefix)
 
-    # Overwrite with passed arguments - these will take precedence over values in config file
-    for arg_name in ['ipaddress', 'port', 'idoffset']:
-        arg_value = kwargs.get(arg_name, None)
-        if arg_value is not None:
-            yaml_dict['ib_'+arg_name] = arg_value
+    yaml_dict = {}
+    for arg_name in LIST_OF_IB_PARAMS:
+        yaml_arg_name = 'ib_' + arg_name
+
+        # Start with config (precedence: private config, then system config)
+        arg_value = config_dict[yaml_arg_name]
+        # Overwrite with kwargs
+        arg_value = get_safe_from_dict(kwargs, arg_name, arg_value)
+
+        # Write
+        yaml_dict[arg_name] = arg_value
 
     # Get from dictionary
-    ipaddress = yaml_dict.get('ib_ipaddress', DEFAULT_IB_IPADDRESS)
-    port = yaml_dict.get('ib_port', DEFAULT_IB_PORT)
-    idoffset = yaml_dict.get('ib_idoffset', DEFAULT_IB_IDOFFSET)
+    ipaddress = yaml_dict.get('ipaddress', DEFAULT_IB_IPADDRESS)
+    port = yaml_dict.get('port', DEFAULT_IB_PORT)
+    idoffset = yaml_dict.get('idoffset', DEFAULT_IB_IDOFFSET)
 
     return ipaddress, port, idoffset
-
 
 
 class connectionIB(ibClient, ibServer):
