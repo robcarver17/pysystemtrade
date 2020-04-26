@@ -7,6 +7,6 @@ def get_capital(data, strategy_name):
         data.log.error("Capital data is missing for %s" % strategy_name)
         raise Exception("Capital data is missing for %s" % strategy_name)
 
-    data.log("Got capital of %.2f for %s" % (capital_value, strategy_name))
+    data.log.msg("Got capital of %.2f for %s" % (capital_value, strategy_name))
 
     return capital_value
