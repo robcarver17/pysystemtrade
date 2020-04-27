@@ -1,7 +1,6 @@
 from pymongo import MongoClient, ASCENDING
 from copy import copy
 import numpy as np
-import yaml
 
 from syscore.genutils import get_safe_from_dict
 from sysdata.private_config import get_list_of_private_then_default_key_values

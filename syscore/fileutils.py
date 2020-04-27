@@ -75,7 +75,7 @@ def get_resolved_dotted_pathname(pathname):
 
 
 def get_pathname_from_list(path_as_list):
-    if path_as_list[0] == "":
+    if path_as_list[0] == "" or path_as_list[0].endswith(":"):
         #path_type_absolute
         resolved_pathname = get_absolute_pathname_from_list(path_as_list[1:])
     else:
