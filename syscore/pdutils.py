@@ -3,6 +3,7 @@ Utilities to help with pandas
 """
 
 import pandas as pd
+import datetime
 
 import numpy as np
 from copy import copy
@@ -244,7 +245,7 @@ def from_dict_of_values_to_df(data_dict, ts_index, columns=None):
 
 
 def create_arbitrary_pdseries(data_list,
-                              date_start=pd.datetime(1980, 1, 1),
+                              date_start=datetime.datetime(1980, 1, 1),
                               freq="B"):
     """
     Return a pandas Series with an arbitrary date index
