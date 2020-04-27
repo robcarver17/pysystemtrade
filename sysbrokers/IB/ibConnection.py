@@ -21,10 +21,10 @@ DEFAULT_IB_IDOFFSET = 1
 LIST_OF_IB_PARAMS = ['ipaddress', 'port', 'idoffset']
 
 
+
 def ib_defaults(**kwargs):
     """
     Returns ib configuration with following precedence
-
     1- if passed in arguments: ipaddress, port, idoffset - use that
     2- if defined in private_config file, use that. ib_ipaddress, ib_port, ib_idoffset
     3- otherwise use defaults DEFAULT_IB_IPADDRESS, DEFAULT_IB_PORT, DEFAULT_IB_IDOFFSET
@@ -65,7 +65,6 @@ class connectionIB(ibClient, ibServer):
                  mongo_db=None):
 
         """
-
         :param client: client id. If not passed then will get from database specified by db_id_tracker
         :param ipaddress: IP address of machine running IB Gateway or TWS. If not passed then will get from private config file, or defaults
         :param port: Port listened to by IB Gateway or TWS
@@ -120,14 +119,13 @@ class connectionIB(ibClient, ibServer):
 
 
 
+
 IB_CLIENT_COLLECTION = 'IBClientTracker'
 
 
 class mongoIBclientIDtracker(object):
     """
     Read and write data class to get next used client id
-
-
     """
 
     def __init__(self, mongo_db=None, idoffset=None, log=logtoscreen("mongoIDTracker")):
@@ -152,7 +150,6 @@ class mongoIBclientIDtracker(object):
     def _is_clientid_used(self, clientid):
         """
         Checks if a clientis is in use
-
         :param clientid: int
         :return: bool
         """
@@ -166,7 +163,6 @@ class mongoIBclientIDtracker(object):
         """
         If clientid_to_try is None, return the next free ID
         If clientid_to_try is being used, return the next free ID, otherwise allow that to be used
-
         :param clientid_to_try: int or None
         :return: int
         """
@@ -187,9 +183,7 @@ class mongoIBclientIDtracker(object):
     def get_next_clientid(self):
         """
         Returns a client id which will be locked so no other use can use it
-
         The clientid in question is the lowest available unused value
-
         :return: clientid
         """
 
@@ -220,7 +214,6 @@ class mongoIBclientIDtracker(object):
         """
         Clear all the client ids
         Should be done daily
-
         :return:
         """
         self._mongo.collection.delete_many({})
@@ -230,7 +223,6 @@ class mongoIBclientIDtracker(object):
     def release_clientid(self, clientid):
         """
         Delete a client id lock
-
         :param clientid:
         :return: None
         """
