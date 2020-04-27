@@ -28,6 +28,8 @@ def get_system_defaults():
 def get_default_config_key_value(key_name, system_defaults_dict = arg_not_supplied):
     if system_defaults_dict is arg_not_supplied:
         default_config_dict = get_system_defaults()
+    else:
+        default_config_dict = system_defaults_dict
 
     key_value = default_config_dict.get(key_name, missing_data)
 
