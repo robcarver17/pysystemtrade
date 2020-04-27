@@ -9,7 +9,7 @@ def get_private_config():
     private_file = get_filename_for_package(PRIVATE_CONFIG_FILE)
     try:
         with open(private_file) as file_to_parse:
-            config_dict = yaml.load(file_to_parse)
+            config_dict = yaml.load(file_to_parse,  Loader=yaml.FullLoader)
     except:
         config_dict={}
 
