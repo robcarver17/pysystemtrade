@@ -6,10 +6,9 @@ from systems.defaults import get_default_config_key_value, get_system_defaults, 
 PRIVATE_CONFIG_FILE = get_filename_for_package("private.private_config.yaml")
 
 def get_private_config():
-    private_file = get_filename_for_package(PRIVATE_CONFIG_FILE)
     try:
-        with open(private_file) as file_to_parse:
-            config_dict = yaml.load(file_to_parse,  Loader=yaml.FullLoader)
+        with open(PRIVATE_CONFIG_FILE) as file_to_parse:
+            config_dict = yaml.load(file_to_parse, Loader=yaml.FullLoader)
     except:
         config_dict={}
 
