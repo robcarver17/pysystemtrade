@@ -1,18 +1,17 @@
 """
-IB connection using ib-insync https://ib-insync.readthedocs.io/api.html
+Classes to create instances of connections
 
+Connections contain plugs to data and brokers, so the two can talk to each other
 """
 
-from ib_insync import IB
+from threading import Thread
 
 from sysbrokers.IB.ibClient import ibClient
 from sysbrokers.IB.ibServer import ibServer
 from syscore.genutils import get_safe_from_dict
-from syscore.objects import arg_not_supplied
-
 from sysdata.private_config import get_list_of_private_then_default_key_values
 from syslogdiag.log import logtoscreen
-from sysdata.mongodb.mongo_connection import mongoConnection, mongoDb
+from sysdata.mongodb.mongo_connection import mongoConnection, MONGO_ID_KEY
 
 DEFAULT_IB_IPADDRESS='127.0.0.1'
 DEFAULT_IB_PORT = 4001
@@ -63,14 +62,14 @@ class connectionIB(ibClient, ibServer):
     """
 
     def __init__(self, client=None, ipaddress=None, port=None, log=logtoscreen("connectionIB"),
-                 mongo_db = arg_not_supplied):
+                 mongo_db=None):
 
         """
-        :param client: client id. If not passed then will get from database specified by mongo_db
+        :param client: client id. If not passed then will get from database specified by db_id_tracker
         :param ipaddress: IP address of machine running IB Gateway or TWS. If not passed then will get from private config file, or defaults
         :param port: Port listened to by IB Gateway or TWS
         :param log: logging object
-        :param mongo_db: mongoDB connection
+        :param db_id_tracker: Eithier none (to use the default or an object that quacks like class mongoIBclientIDtracker)
         """
 
         # resolve defaults
@@ -89,18 +88,21 @@ class connectionIB(ibClient, ibServer):
         log.label(broker="IB", clientid = client)
         self._ib_connection_config = dict(ipaddress = ipaddress, port = port, client = client)
 
+        # IB specific - this is to ensure we don't get reqID conflicts between different processes
+        reqIDoffset = client*1000
+
         #if you copy for another broker, don't forget the logs
         ibServer.__init__(self, log=log)
-        ibClient.__init__(self, log=log)
+        ibClient.__init__(self, wrapper = self, reqIDoffset=reqIDoffset, log=log)
+
+        # if you copy for another broker, don't forget to do this
+        self.broker_init_error()
 
         # this is all very IB specific
-        ib = IB()
-        ib.connect(ipaddress, port, clientId=client)
-
-        ## Add handlers, from ibServer methods
-        ib.errorEvent += self.error_handler
-
-        self.ib = ib
+        self.connect(ipaddress, port, client)
+        thread = Thread(target = self.run)
+        thread.start()
+        setattr(self, "_thread", thread)
 
     def __repr__(self):
         return "IB broker connection"+str(self._ib_connection_config)
@@ -109,7 +111,7 @@ class connectionIB(ibClient, ibServer):
         self.log.msg("Terminating %s" % str(self._ib_connection_config))
         try:
             ## Try and disconnect IB client
-            self.ib.disconnect()
+            self.disconnect()
         except:
             self.log.warn("Trying to disconnect IB client failed... ensure process is killed")
         finally:
@@ -126,12 +128,9 @@ class mongoIBclientIDtracker(object):
     Read and write data class to get next used client id
     """
 
-    def __init__(self, mongo_db = arg_not_supplied, idoffset=arg_not_supplied, log=logtoscreen("mongoIDTracker")):
+    def __init__(self, mongo_db=None, idoffset=None, log=logtoscreen("mongoIDTracker")):
 
-        if mongo_db is arg_not_supplied:
-            mongo_db = mongoDb()
-
-        if idoffset is arg_not_supplied:
+        if idoffset is None:
             _notused_ipaddress, _notused_port, idoffset = ib_defaults()
 
         self._mongo = mongoConnection(IB_CLIENT_COLLECTION, mongo_db=mongo_db)

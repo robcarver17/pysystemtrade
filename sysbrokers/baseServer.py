@@ -1,5 +1,6 @@
 import queue
 import datetime
+from syslogdiag.log import logtoscreen
 from time import sleep
 
 ## marker for when queue is finished
@@ -88,17 +89,33 @@ class brokerServer(object):
     We inherit from this and then write hooks from the servers native methods into the methods in this base class
 
     The broker_ prefix is used to avoid conflicts with broker objects
+
     """
 
-    ## error handling code
-    def broker_init_error(self):
+    def __init__(self, log=logtoscreen("brokerServer")):
+        self.log = log
+        self._broker_init_error()
+
+    """
+    Error /  message handling code
+    
+    The child server object, eg IB, emits errors which are captured by the IB specific error handler
+    The error handler decides if this is just a message or an error which might need further action
+    It also attaches a set of log kwargs
+     
+    Errors / messages are logged
+    
+    Errors are also placed on to a queue, so other processes can deal with them 
+    
+    """
+    def _broker_init_error(self):
         error_queue=queue.Queue()
         self._my_errors = error_queue
 
-    def broker_get_error(self, timeout=5):
+    def broker_get_error(self, timeout=1):
         if self.broker_is_error():
             try:
-                return self._my_errors.get(timeout=timeout)
+                return self._my_errors.get()
             except queue.Empty:
                 return None
 
@@ -108,11 +125,25 @@ class brokerServer(object):
         an_error_if=not self._my_errors.empty()
         return an_error_if
 
-    def broker_error(self, errormsg):
+    def _broker_add_error_to_queue(self, errormsg, myerror_type="", log_tags={}):
         """
-        Method called by broker server when an error appears
+        Method called by broker server when an error appears - something that needs action by a process
+        myerror_type allows different handlers to be called for different kinds of errors, when built
+        for now just put on a big queue
 
-        WHITELIST?
         """
-        self._my_errors.put(errormsg)
+        self._my_errors.put((errormsg, myerror_type,  log_tags))
 
+    def broker_message(self, errormsg, log_tags={}):
+        """
+        Method called by broker server when a warning type of message appears - no action required
+        :param errormsg: str
+        :param log_tags: dict of tags to pass to log, eg instrument
+        :return:
+        """
+        self.log.msg(errormsg, **log_tags)
+
+    def broker_error(self, errormsg, myerror_type="generic", log_tags={}):
+        ## Not an 'error' for system purposes, since these cause program termination
+        self.log.warn(errormsg, **log_tags)
+        self._broker_add_error_to_queue(errormsg, myerror_type, log_tags)

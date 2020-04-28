@@ -1,5 +1,9 @@
 # Release notes
 
+## Version 0.28.0
+
+IB now uses ib_insync, not native IB library
+
 ## Version 0.27.0
 
 Cleaned up way defaults and private config files work

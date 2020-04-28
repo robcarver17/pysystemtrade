@@ -2,11 +2,14 @@ import datetime
 import pandas as pd
 import re
 
-from ib_insync import Forex, Future, util
+
+from ibapi.client import EClient
+from ibapi.contract import Contract as IBcontract
 
 from sysbrokers.baseClient import brokerClient
+from sysbrokers.baseServer import finishableQueue
 from syscore.genutils import NOT_REQUIRED
-from syscore.objects import missing_contract, arg_not_supplied
+from syscore.objects import missing_contract
 from syscore.dateutils import adjust_timestamp
 from syslogdiag.log import logtoscreen
 
@@ -17,7 +20,7 @@ _PACING_PERIOD_LIMIT = 60
 PACING_INTERVAL_SECONDS = 1+(_PACING_PERIOD_SECONDS  / _PACING_PERIOD_LIMIT)
 
 
-class ibClient(brokerClient):
+class ibClient(brokerClient, EClient):
     """
     Client specific to interactive brokers
 
@@ -25,8 +28,10 @@ class ibClient(brokerClient):
 
     """
 
-    def __init__(self, log=logtoscreen("ibClient")):
-
+    def __init__(self, wrapper, reqIDoffset, log=logtoscreen("ibClient")):
+        ## Set up with a wrapper inside
+        EClient.__init__(self, wrapper)
+        self.ib_init_request_id_factory(reqIDoffset)
         self.log = log
         self.last_historic_price_calltime = datetime.datetime.now()
 
@@ -56,15 +61,9 @@ class ibClient(brokerClient):
         :return: pd.Series
         """
 
-        ccy_code = ccy1 + ccy2
-        specific_log = self.log.setup(currency_code = ccy_code)
+        specific_log = self.log.setup(fxrate=ccy1+"/"+ccy2)
 
         ibcontract = self.ib_spotfx_contract(ccy1, ccy2=ccy2, log=specific_log)
-        # Register the contract to make logging and error handling cleaner
-        # Two different ways of labelling
-        self.add_contract_to_register(ibcontract,
-                                      log_tags = dict(currency_code = ccy_code))
-
         if ibcontract is missing_contract:
             specific_log.warn("Can't find IB contract for %s%s" % (ccy1, ccy2))
 
@@ -118,10 +117,26 @@ class ibClient(brokerClient):
         price_data_raw = self.ib_get_historical_data(ibcontract, durationStr=durationStr,
                                                      barSizeSetting=barSizeSetting,
                                               whatToShow = whatToShow, log=log)
+        # Format is (bar.date, bar.open, bar.high, bar.low, bar.close, bar.volume)
+        # turn into a pd.Series with daily timestamps
+        try:
+            date_index = [ib_timestamp_to_datetime(price_row[0]) for price_row in price_data_raw]
+        except Exception as exception:
+            log.warn("Error in converting date index can't return price data")
+            log.warn(exception.args[0])
+            return pd.Series()
 
-        price_data_as_df = price_data_raw[['open', 'high', 'low', 'close', 'volume']]
-        price_data_as_df.columns = ['OPEN', 'HIGH', 'LOW', 'FINAL', 'VOLUME']
-        price_data_as_df.index = price_data_raw['date']
+        opening_prices = [price_row[1] for price_row in price_data_raw]
+        high_prices = [price_row[2] for price_row in price_data_raw]
+        low_prices = [price_row[3] for price_row in price_data_raw]
+        closing_prices = [price_row[4] for price_row in price_data_raw]
+        volume = [price_row[5] for price_row in price_data_raw]
+
+        price_data_as_df = pd.DataFrame(dict(OPEN = opening_prices,
+                                             HIGH = high_prices,
+                                             LOW = low_prices,
+                                             FINAL = closing_prices,
+                                             VOLUME = volume), index = date_index)
 
         return price_data_as_df
 
@@ -146,11 +161,47 @@ class ibClient(brokerClient):
         return expiry_date
 
 
+    """
+    Most things need request IDs
+    Let's make sure we don't reuse them accidentally
+    """
+    def ib_init_request_id_factory(self, reqIDoffset:int):
+        #  generate request ids make sure multiple IDs don't conflict
+        #  however if we run multiple processes this could happen
+        #  hence we add reqIDoffset
+        self._reqIDused = []
+        self._reqIDoffset = reqIDoffset
+
+    def ib_next_req_id(self):
+        current_reqs_used = self._reqIDused
+        if len(current_reqs_used)==0:
+            next_req_id = self._reqIDoffset+1
+        else:
+            next_req_id = int(max(current_reqs_used) + 1)
+
+        current_reqs_used.append(next_req_id)
+        self._reqIDused = current_reqs_used
+
+        return next_req_id
+
+    def ib_clear_req_id(self, reqId):
+        current_reqs_used = self._reqIDused
+        try:
+            current_reqs_used.remove(reqId)
+        except ValueError:
+            # not there
+            pass
+
+        return reqId
 
     # Broker specific methods
     # Called by parent class generics
-    def ib_spotfx_contract(self, ccy1, ccy2="USD", log=arg_not_supplied):
-        ibcontract = Forex(ccy1+ccy2)
+    def ib_spotfx_contract(self, ccy1, ccy2="USD", log=None):
+        ibcontract = IBcontract()
+        ibcontract.symbol = ccy1
+        ibcontract.secType = 'CASH'
+        ibcontract.exchange = 'IDEALPRO'
+        ibcontract.currency = ccy2
 
         ibcontract = self.ib_resolve_unique_contract(ibcontract)
 
@@ -187,14 +238,8 @@ class ibClient(brokerClient):
         :param futures_contract_object: contract, containing instrument metadata suitable for IB
         :return: a single ib contract object
         """
-        # Convert to IB world
         instrument_object_with_metadata = futures_contract_object.instrument
         ibcontract = ib_futures_instrument(instrument_object_with_metadata)
-
-        # Register the contract to make logging and error handling cleaner
-        self.add_contract_to_register(ibcontract,
-                                      log_tags = dict(instrument_code = instrument_object_with_metadata.instrument_code,
-                                                      contract_date = futures_contract_object.date))
 
         # The contract date might be 'yyyymm' or 'yyyymmdd'
         contract_day_passed = futures_contract_object.contract_date.is_day_defined()
@@ -267,7 +312,22 @@ class ibClient(brokerClient):
         if log is None:
             log=self.log
 
-        new_contract_details_list = self.ib.reqContractDetails(ibcontract_pattern)
+        reqId = self.ib_next_req_id()
+        ## Make a place to store the data we're going to return
+        contract_details_queue = finishableQueue(self.init_contractdetails(reqId))
+
+        self.reqContractDetails(reqId, ibcontract_pattern)
+
+        ## Run until we get a valid contract(s) or get bored waiting
+        new_contract_details_list = contract_details_queue.get(timeout=MAX_WAIT_HISTORICAL_DATA_SECONDS)
+
+        self.ib_clear_req_id(reqId)
+
+        while self.broker_is_error():
+            log.warn(self.broker_get_error()) ## WHITELIST?
+
+        if contract_details_queue.timed_out():
+            self.log.msg("Exceeded maximum wait for wrapper to confirm finished - seems to be normal behaviour")
 
         ibcontract_list = [contract_details.contract for contract_details in new_contract_details_list]
 
@@ -291,20 +351,44 @@ class ibClient(brokerClient):
         last_call = self.last_historic_price_calltime
         avoid_pacing_violation(last_call, log=log)
 
-        bars = self.ib.reqHistoricalData(
-            ibcontract,
-            endDateTime='',
-            durationStr=durationStr,
-            barSizeSetting=barSizeSetting,
-            whatToShow=whatToShow,
-            useRTH=True,
-            formatDate=1)
-        df = util.df(bars)
+        tickerid = self.ib_next_req_id()
+        ## Make a place to store the data we're going to return
+        historic_data_queue = finishableQueue(self.init_historicprices(tickerid))
 
+        # Request some historical data. Native method in EClient
+        self.reqHistoricalData(
+            tickerid,  # tickerId,
+            ibcontract,  # contract,
+            datetime.datetime.today().strftime("%Y%m%d %H:%M:%S %Z"),  # endDateTime,
+            durationStr,  # durationStr,
+            barSizeSetting,  # barSizeSetting,
+            whatToShow,  # whatToShow,
+            1,  # useRTH,
+            1,  # formatDate
+            False,  # KeepUpToDate <<==== added for api 9.73.2
+            [] ## chartoptions not used
+        )
 
+        ## Wait until we get a completed data, an error, or get bored waiting
+        log.msg("Getting historical data from the server... could take %d seconds to complete " % MAX_WAIT_HISTORICAL_DATA_SECONDS)
+
+        historic_data = historic_data_queue.get(timeout = MAX_WAIT_HISTORICAL_DATA_SECONDS)
+
+        while self.wrapper.broker_is_error():
+            # WHITELIST
+            log.warn(self.broker_get_error())
+
+        self.cancelHistoricalData(tickerid)
+
+        if historic_data_queue.timed_out():
+            log.msg("Exceeded maximum wait for wrapper to confirm finished - seems to be normal behaviour")
+            # Just make sure the queue is cleared before we go on
+            historic_data = historic_data_queue.get(timeout = MAX_WAIT_HISTORICAL_DATA_SECONDS)
+
+        self.ib_clear_req_id(tickerid)
         self.last_historic_price_calltime = datetime.datetime.now()
 
-        return df
+        return historic_data
 
 
 
@@ -335,7 +419,10 @@ def ib_futures_instrument(futures_instrument_object):
 
     meta_data = futures_instrument_object.meta_data
 
-    ibcontract = Future(meta_data['symbol'], exchange = meta_data['exchange'])
+    ibcontract = IBcontract()
+    ibcontract.secType = "FUT"
+    ibcontract.symbol = meta_data['symbol']
+    ibcontract.exchange = meta_data['exchange']
     if meta_data['ibMultiplier'] is NOT_REQUIRED:
         pass
     else:

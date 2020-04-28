@@ -1,4 +1,3 @@
-from collections import namedtuple
 
 import pandas as pd
 
@@ -112,9 +111,6 @@ class ibFuturesContractPriceData(futuresContractPriceData):
         """
         Get some prices
         (daily frequency: using IB historical data)
-
-        We override this method, rather than _get_prices_for_contract_object_no_checking
-        Because the list of dates returned by contracts_with_price_data is likely to not match (expiries)
 
         :param contract_object:  futuresContract
         :return: data
