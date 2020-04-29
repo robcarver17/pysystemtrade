@@ -6,4 +6,4 @@ scipy>=1.0.0
 quandl>=3.3.0
 pymongo>=3.6.0
 arctic>=1.62.0
-ib_insync>=0.9.59
+ib-insync>=0.9.59
