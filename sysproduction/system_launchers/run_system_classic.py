@@ -10,11 +10,8 @@ this:
 """
 
 
-from sysproduction.data.get_data import dataBlob
 from sysproduction.data.capital import get_capital
 from sysproduction.diagnostic.backtest_state import store_backtest_state
-from syslogdiag.log import logToMongod as logger
-from sysdata.mongodb.mongo_connection import mongoDb
 
 from syscore.objects import success
 
@@ -22,23 +19,20 @@ from sysdata.arctic.arctic_and_mongo_sim_futures_data import arcticFuturesSimDat
 from sysdata.production.optimal_positions import bufferedOptimalPositions
 from sysdata.configdata import Config
 
+from syslogdiag.log import logtoscreen
+
 from systems.provided.futures_chapter15.basesystem import futures_system
 
-strategy_name="example_system"
-backtest_config_filename="systems.provided.futures_chapter15.futures_config.yaml"
-account_currency = "GBP"
 
-def run_system():
+def run_system_classic(strategy_name, data,
+               backtest_config_filename="systems.provided.futures_chapter15.futures_config.yaml",
+               account_currency = "GBP"):
 
-    with mongoDb() as mongo_db, \
-            logger("runSystem", mongo_db=mongo_db, strategy = strategy_name) as log:
-
-        data = dataBlob(mongo_db=mongo_db, log=log)
 
         capital_value = get_capital(data, strategy_name)
 
-        system = production_futures_system(backtest_config_filename,
-                                            log=log, notional_trading_capital=capital_value,
+        system = production_classic_futures_system(backtest_config_filename,
+                                            log=data.log, notional_trading_capital=capital_value,
                                            base_currency=account_currency)
 
         updated_buffered_positions(data, strategy_name, system)
@@ -48,21 +42,9 @@ def run_system():
         return success
 
 
-def production_futures_system(config_filename, log=logger("futures_system"),
+def production_classic_futures_system(config_filename, log=logtoscreen("futures_system"),
                    notional_trading_capital=1000000, base_currency="USD"):
-    """
 
-    :param data: data object (defaults to reading from csv files)
-    :type data: sysdata.data.simData, or anything that inherits from it
-
-    :param config: Configuration object (defaults to futuresconfig.yaml in this directory)
-    :type config: sysdata.configdata.Config
-
-    :param log_level: How much logging to do
-    :type log_level: str
-
-
-    """
     log_level = "on"
     data = arcticFuturesSimData()
 

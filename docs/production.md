@@ -295,6 +295,9 @@ sysdiag.yaml_config_with_estimated_parameters('someyamlfile.yaml',
 
 Change the list of attr_names depending on what you want to output. You can then merge the resulting .yaml file into your simulation .yaml file. Don't forget to turn off the flags for `use_forecast_div_mult_estimates`,`use_forecast_scale_estimates`,`use_forecast_weight_estimates`,`use_instrument_div_mult_estimates`, and `use_instrument_weight_estimates`.  You don't need to change flag for forecast mapping, since this isn't done by default.
 
+# Strategy configuration
+
+FIX ME
 
 # Linking to a broker
 
@@ -717,18 +720,17 @@ Linux script:
 . $SCRIPT_PATH/update_roll_adjusted_prices
 ```
 
-### Run an updated backtest system (overnight) for a single strategy
+### Run updated backtest systems for one or more strateges
+(Usually overnight)
 
 The paradigm for pysystemtrade is that we run a new backtest nightly, which outputs some parameters that a trading engine uses the next day. For the basic system defined in the core code those parameters are a pair of position buffers for each instrument. The trading engine will trade if the current position lies outside those buffer values.
 
 This can easily be adapted for different kinds of trading system. So for example, for a mean reversion system the nightly backtest could output the target prices for the range. For an intraday system it could output the target position sizes and entry  / exit points. This process reduces the amount of work the trading engine has to do during the day.
 
-An example script to run an udpated backtest system is provided, however you will almost certainly want to modify this, at the very least to change the configuration file and [strategy name](#strategies), and possibly the account currency.
-
 
 Python:
 ```python
-from sysproduction.example_run_system import run_system
+from sysproduction.update_run_systems import update_run_systems
 run_system()
 ```
 
@@ -737,15 +739,7 @@ Linux script:
 . $SCRIPT_PATH/update_system_example
 ```
 
-
-This example script does the following:
-
-- get the amount of capital currently in your trading account. This is set by  FIX ME CAPITAL MODULE TO BE WRITTEN
-- run a backtest using that amount of capital
-- get the position buffer limits, and save these down
-- store the backtest state (pickled cache) in the directory specified by the parameter csv_backup_directory (set in your private config file, or the system defaults file), subdirectory strategy name, filename date and time generated. It also copies the config file used to generate this backtest with a similar naming pattern.
-
-FIX ME TO DO: COULD HAVE GLOBAL YAML FILE WITH LIST OF STRATEGIES AND SCRIPTS TO RUN, ALSO CURRENCY
+See [launcher functions](#launcher-functions) for more details.
 
 
 
@@ -896,20 +890,74 @@ It's possible to run pysystemtrade without any scheduling, by manually starting 
 
 TO DO
 max_price_spike
+strategy_list
 
 ### System defaults
 
 
 TO DO
 
-### Strategy config
-
-
-TO DO
 
 ## Strategies
 
-TO DO
+Each strategy is defined in the config parameter `strategy_list`, found eithier in the defaults.yaml file or overriden in private configuration. The following shows the parameters for an example strategy, named (appropriately enough) `example`.
+
+```
+strategy_list:
+  example:
+    overnight_launcher:
+      function: sysproduction.system_launchers.run_system_classic.run_system_classic
+      backtest_config_filename: systems.provided.futures_chapter15.futures_config.yaml
+      account_currency: GBP
+```
+
+
+### Launcher functions
+
+Launch functions run overnight backtests for each of the strategies you are running (see [here](#run-updated-backtest-systems-for-one-or-more-strateges) for more details.)
+
+The following shows the launch function parameters for an example strategy, named (appropriately enough) `example`.
+
+```
+strategy_list:
+  example:
+    overnight_launcher:
+      function: sysproduction.system_launchers.run_system_classic.run_system_classic
+      backtest_config_filename: systems.provided.futures_chapter15.futures_config.yaml
+      account_currency: GBP
+```
+
+The configuration for the overnight launcher includes the launcher function; the other configuration values are passed as keyword arguments to the launcher function.
+Launcher functions must include the strategy name and a data 'blob' as their first two arguments. 
+
+A launcher usually does the following:
+
+- get the amount of capital currently in your trading account. This is set by  FIX ME CAPITAL MODULE TO BE WRITTEN
+- run a backtest using that amount of capital
+- get the position buffer limits, and save these down (for the classic system, other systems may save different values down)
+- store the backtest state (pickled cache) in the directory specified by the parameter csv_backup_directory (set in your private config file, or the system defaults file), subdirectory strategy name, filename date and time generated. It also copies the config file used to generate this backtest with a similar naming pattern.
+
+As an example here is the provided 'classic' launcher function:
+
+```python
+def run_system_classic(strategy_name, data,
+               backtest_config_filename="systems.provided.futures_chapter15.futures_config.yaml",
+               account_currency = "GBP"):
+
+
+        capital_value = get_capital(data, strategy_name)
+
+        system = production_classic_futures_system(backtest_config_filename,
+                                            log=data.log, notional_trading_capital=capital_value,
+                                           base_currency=account_currency)
+
+        updated_buffered_positions(data, strategy_name, system)
+
+        store_backtest_state(data, system, strategy_name=strategy_name,
+                             backtest_config_filename=backtest_config_filename)
+        return success
+```
+
 
 # Production system data and data flow
 

@@ -2,6 +2,14 @@
 #
 #           PRODUCTION STUFF
 #
+## Strategy configuration
+strategy_list:
+  example:
+    overnight_launcher:
+      function: sysproduction.system_launchers.run_system_classic.run_system_classic
+      backtest_config_filename: systems.provided.futures_chapter15.futures_config.yaml
+      account_currency: GBP
+#
 ## Where do we save backtests
 backtest_store_directory: 'private'
 #

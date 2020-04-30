@@ -1,5 +1,7 @@
 # Release notes
 
+Strategies now run backtests from configuration file
+
 ## Version 0.29.0
 
 Added price 'spike' checker, and manual price checking service
