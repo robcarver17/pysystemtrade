@@ -17,6 +17,9 @@ ib_idoffset: 100
 mongo_host: 127.0.0.1
 mongo_db: 'production'
 #
+# Spike checker
+max_price_spike: 6
+#
 #           BACKTESTING STUFF
 #
 # Raw data

@@ -3809,8 +3809,8 @@ The system, data, config and each stage object all have a .log attribute, to
 allow the system to report to the user; as do the functions provided to
 estimate correlations and do optimisations.
 
-In the current version this just prints to screen, although in production systems it
-can write to databases and files (FIX ME LINK), and send emails if critical
+In the backtest this just prints to screen, although in [production systems it
+will write to a database](/docs/production.md#logging), and send emails if critical
 events are happening.
 
 The pre-baked systems I've included all include a parameter log_level. This can
@@ -3834,8 +3834,9 @@ happening you should do one of the following:
 #
 self.log.msg("this is a normal message, will only be printed if logging is On")
 self.log.terse("this message will only be printed if logging is Terse or On")
-self.log.warn("this message will always be printed")
-self.log.error("this message will always be printed, and an exception will be raised")
+self.log.warn("this warning message will always be printed")
+self.log.error("this error message will always be printed")
+self.log.critical("this critical message will always be printed, and an exception will be raised")
 ```
 
 I strongly encourage the use of logging, rather than printing, since printing
@@ -3851,14 +3852,14 @@ to monitor system behaviour than to try and create quantitative diagnostics.
 For this reason I'm a big fan of logging with *attributes*. Every time a log
 method is called, it will typically know one or more of the following:
 
-- which 'type' of process owns the logger. For example if it's part of a
-  base_system object, its type will be 'base_system'. Future types will
-  probably include price collection, execution and so on.
-- which 'stage' or sub process is involved, such as 'rawdata'.
-- which instrument code is involved
-- which trading rule variation is involved
-- which specific futures contract we're looking at (for the future)
-- which order id (for the future)
+- type: the argument passed when the logger is setup. Should be the name of the top level calling function. Production types include price collection, execution and so on.
+- stage: Used by stages in System objects, such as 'rawdata'
+- component: other parts of the top level function that have their own loggers
+- currency_code: Currency code (used for fx), format 'GBPUSD'
+- instrument_code: Self explanatory
+- contract_date: Self explanatory, format 'yyyymm' 
+- order_id: Self explanatory, used for live trading
+
 
 Then we'll be able to save the log message with its attributes in a database
 (in future). We can then query the database to get, for example, all the log

@@ -10,8 +10,9 @@ from copy import copy
 
 
 from syscore.fileutils import get_filename_for_package
-from syscore.dateutils import BUSINESS_DAYS_IN_YEAR, time_matches, CALENDAR_DAYS_IN_YEAR
-from syscore.objects import _named_object
+from syscore.dateutils import BUSINESS_DAYS_IN_YEAR, time_matches, CALENDAR_DAYS_IN_YEAR, SECONDS_PER_DAY
+from syscore.objects import _named_object, data_error, arg_not_supplied
+from sysdata.private_config import get_private_then_default_key_value
 
 DEFAULT_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 
@@ -302,18 +303,63 @@ def dataframe_pad(starting_df, column_list, padwith=0.0):
 
     return new_df
 
-def merge_newer_data(old_data, new_data):
+status_old_data = object()
+status_new_data = object()
+status_merged_data = object()
+
+def merge_newer_data(old_data, new_data, check_for_spike=True,  column_to_check=arg_not_supplied):
     """
     Merge new data, with old data. Any new data that is older than the newest old data will be ignored
 
+    If check_for_spike will return data_error if price moves too much on join point
+
     :param old_data: pd.Series or DataFrame
     :param new_data: pd.Series or DataFrame
+    :param check_for_spike: bool
+    :param column_to_check: column name to check for spike
+
     :return:  pd.Series or DataFrame
     """
+    merge_status, first_date_in_new_data, merged_data = merge_newer_data_no_checks(old_data, new_data)
+
+
+    # check for spike
+    if check_for_spike:
+        spike_present, _ = spike_check_merged_data(merge_status, first_date_in_new_data, merged_data,
+                                                column_to_check=column_to_check)
+        if spike_present:
+            return data_error
+
+    return merged_data
+
+def spike_check_merged_data(merge_status, first_date_in_new_data, merged_data, column_to_check=arg_not_supplied):
+    if merge_status is status_old_data:
+        ## No checking
+        return False, None
+
+    if merge_status is status_new_data:
+        ## check everything
+        first_date_in_new_data = None
+
+    spike_present, spike_date = _check_for_spike_in_data(merged_data, first_date_in_new_data, column_to_check = column_to_check)
+
+    return spike_present, spike_date
+
+def merge_newer_data_no_checks(old_data, new_data):
+    """
+    Merge new data, with old data. Any new data that is older than the newest old data will be ignored
+
+    Also returns status and possibly date of merge
+
+    :param old_data: pd.Series or DataFrame
+    :param new_data: pd.Series or DataFrame
+
+    :return:  status ,last_date_in_old_data: datetime.datetime, merged_data: pd.Series or DataFrame
+    """
     if len(old_data.index)==0:
-        return new_data
+        return status_new_data, None, new_data
     if len(new_data.index)==0:
-        return old_data
+        return status_old_data, None, old_data
 
     last_date_in_old_data = old_data.index[-1]
     new_data.sort_index()
@@ -321,7 +367,9 @@ def merge_newer_data(old_data, new_data):
 
     if len(actually_new_data) == 0:
         # No additional data
-        return old_data
+        return status_old_data, None, old_data
+
+    first_date_in_new_data = actually_new_data.index[0]
 
     merged_data = pd.concat([old_data, actually_new_data], axis=0)
     merged_data = merged_data.sort_index()
@@ -329,8 +377,68 @@ def merge_newer_data(old_data, new_data):
     # remove duplicates (shouldn't be any, but...)
     merged_data = merged_data[~merged_data.index.duplicated(keep='first')]
 
-    return merged_data
+    return status_merged_data, first_date_in_new_data, merged_data
 
+
+def _check_for_spike_in_data(merged_data, first_date_in_new_data=None, column_to_check=arg_not_supplied):
+    ## Returns tuple bool, logical date of spike (or None)
+    first_spike = _first_spike_in_data(merged_data, first_date_in_new_data, column_to_check=column_to_check)
+
+    if first_spike is None:
+        spike_exists = False
+    else:
+        spike_exists = True
+
+    return spike_exists, first_spike
+
+def _first_spike_in_data(merged_data, first_date_in_new_data=None, column_to_check=arg_not_supplied):
+    """
+    Checks to see if any data after last_date_in_old_data has spikes
+
+    :param merged_data:
+    :return: date if spike, else None
+    """
+    max_spike = get_private_then_default_key_value("max_price_spike")
+    col_list = getattr(merged_data, "columns", None)
+    if col_list is None:
+        ## already a series
+        data_to_check = merged_data
+    else:
+        if column_to_check is arg_not_supplied:
+            column_to_check = col_list[0]
+        data_to_check = merged_data[column_to_check]
+
+    ## Calculate the average change per day
+    change_pd = average_change_per_day(data_to_check)
+
+    ## absolute is what matters
+    abs_change_pd = change_pd.abs()
+    ## hard to know what span to use here as could be daily, intraday or a mixture
+    avg_abs_change = abs_change_pd.ewm(span=250).mean()
+
+    change_in_avg_units = abs_change_pd / avg_abs_change
+
+    if first_date_in_new_data is None:
+        ## No merged data so we check it all
+        data_to_check  = change_in_avg_units
+    else:
+        data_to_check = change_in_avg_units[first_date_in_new_data:]
+
+    if any(data_to_check>max_spike):
+        return data_to_check.index[data_to_check > max_spike][0]
+    else:
+        return None
+
+def average_change_per_day(data_to_check):
+    data_diff = data_to_check.diff()[1:]
+    index_diff = data_to_check.index[1:] - data_to_check.index[:-1]
+    index_diff_days = [diff.total_seconds()/SECONDS_PER_DAY for diff in index_diff]
+
+    change_per_day = [diff / diff_days for diff, diff_days in zip(data_diff.values, index_diff_days)]
+
+    change_pd = pd.Series(change_per_day, index=data_to_check.index[1:])
+
+    return change_pd
 
 def full_merge_of_existing_data(old_data, new_data):
     """

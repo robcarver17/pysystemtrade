@@ -2,13 +2,14 @@
 Update spot FX prices using interactive brokers data, dump into mongodb
 """
 
-from syscore.objects import success, failure
+from syscore.objects import success, failure, data_error
+from syslogdiag.emailing import send_mail_msg
 
 from sysbrokers.IB.ibConnection import connectionIB
 from sysdata.mongodb.mongo_connection import mongoDb
 from syslogdiag.log import logToMongod as logger
 
-from sysproduction.futures_prices.get_data import dataBlob
+from sysproduction.data.get_data import dataBlob
 
 
 def update_fx_prices():
@@ -38,7 +39,15 @@ def update_fx_prices():
 
 def update_fx_prices_for_code(fx_code, data):
     new_fx_prices = data.ib_fx_prices.get_fx_prices(fx_code) # returns fxPrices object
-    data.arctic_fx_prices.update_fx_prices(fx_code, new_fx_prices)
+    rows_added = data.arctic_fx_prices.update_fx_prices(fx_code, new_fx_prices, check_for_spike=True)
+
+    if rows_added is data_error:
+        msg = "Spike found in prices for %s: need to manually check by running update_manual_check_fx_prices" % str(fx_code)
+        data.log.warn(msg)
+        try:
+            send_mail_msg(msg, "FX Price Spike")
+        except:
+            data.log.warn("Couldn't send email about price spike")
 
     return success
 

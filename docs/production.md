@@ -423,11 +423,19 @@ The above line will run the script `updatefxprices`, but instead of outputting t
 
 ### Cleaning old echo files
 
-Over time echo files can get... large. To avoid this you can run [this linux script](/sysproduction/linux/scripts/truncate_echo_files) which chops them down to the last 20,000 lines (FIX ME ADD TO CRONTAB)
+Over time echo files can get... large (my default position for logging is verbose). To avoid this you can run [this linux script](/sysproduction/linux/scripts/truncate_echo_files) which chops them down to the last 20,000 lines (FIX ME ADD TO CRONTAB)
 
 ## Logging 
 
-Logging in pysystemtrade is done via loggers. See the [userguide for more detail](/docs/userguide.md#logging).
+Logging in pysystemtrade is done via loggers. See the [userguide for more detail](/docs/userguide.md#logging). The logging levels are:
+
+self.log.msg("this is a normal message")
+self.log.terse("not really used in production code since everything is logged")
+self.log.warn("this is a warning message means something unexpected")
+self.log.error("this error message means ")
+self.log.critical("this critical message will always be printed, and an email will be sent to the user. Use this if user action is required")
+
+The default logger in production code is to the mongo database. This method will also try and email the user if a critical message is logged.
 
 ### Adding logging to your code
 
@@ -468,14 +476,14 @@ def top_level_function():
 
 The following should be used as logging attributes (failure to do so will break reporting code):
 
-- type: the argument passed when the logger is setup. Should be the name of the top level calling function.
-- stage: Used by stages in System objects
+- type: the argument passed when the logger is setup. Should be the name of the top level calling function. Production types include price collection, execution and so on.
+- stage: Used by stages in System objects, such as 'rawdata'
 - component: other parts of the top level function that have their own loggers
-- currency_code: Currency code (used for fx)
+- currency_code: Currency code (used for fx), format 'GBPUSD'
 - instrument_code: Self explanatory
-- contract_date: Self explanatory
+- contract_date: Self explanatory, format 'yyyymm' 
+- order_id: Self explanatory, used for live trading
 
-FIX ME TO DO: CRITICAL LOGS SHOULD EMAIL THE USER
 
 ### Getting log data back
 
@@ -585,6 +593,12 @@ Linux script:
 ```
 
 
+This will check for 'spikes', unusually large movements in FX rates eithier when comparing new data to existing data, or within new data. If any spikes are found in data for a particular contract it will not be written. The system will attempt to email the user when a spike is detected. The user will then need to [manually check the data](#manual-check-of-fx-price-data).
+.
+
+The threshold for spikes is set in the default.yaml file, or overidden in the private config, using the paramater `max_price_spike`. Spikes are defined as a large multiple of the average absolute daily change. So for example if a price typically changes by 0.5 units a day, and `max_price_spike=6`, then a price change larger than 3 units will trigger a spike.
+
+
 ### Update sampled contracts (Daily)
 
 This ensures that we are currently sampling active contracts, and updates contract expiry dates.
@@ -617,8 +631,12 @@ Linux script:
 . $SCRIPT_PATH/update_historical_prices
 ```
 
+This will check for 'spikes', unusually large movements in price eithier when comparing new data to existing data, or within new data. If any spikes are found in data for a particular contract it will not be written. The system will attempt to email the user when a spike is detected. The user will then need to [manually check the data](#manual-check-of-futures-contract-historical-price-data).
+.
+
+The threshold for spikes is set in the default.yaml file, or overidden in the private config, using the paramater `max_price_spike`. Spikes are defined as a large multiple of the average absolute daily change. So for example if a price typically changes by 0.5 units a day, and `max_price_spike=6`, then a price change larger than 3 units will trigger a spike.
+
 FIXME: An intraday sampling would be good
-FIXME: TO DO ADD PRICE THRESHOLD CHECK
 
 
 ### Update multiple and adjusted prices (Daily)
@@ -638,11 +656,53 @@ Linux script:
 . $SCRIPT_PATH/update_multiple_adjusted_prices
 ```
 
+Spike checks are not carried out on multiple and adjusted prices, since they should hopefully be clean if the underlying per contract prices are clean.
 
 FIXME: An intraday sampling would be good
 
 
-### Roll adjusted prices (whenever required)
+### Manual check of futures contract historical price data 
+(Whever required)
+
+Python:
+```python
+from sysproduction.update_manual_check_historical_prices import update_manual_check_historical_prices
+update_manual_check_historical_prices(instrument_code)
+```
+
+Linux script:
+```
+. $SCRIPT_PATH/update_manual_check_historical_prices
+```
+
+The script will pull in data from interactive brokers, and the existing data, and check for spikes. If any spikes are found, then the user is interactively asked if they wish to (a) accept the spiked price, (b) use the previous time periods price instead, or (c) type a number in manually. You should check another data source to see if the spike is 'real', if so accept it, otherwise type in the correct value. Using the previous time periods value is only advisable if you are fairly sure that the price change wasn't real and you don't have a source to check with.
+
+If a new price is typed in then that is also spike checked, to avoid fat finger errors. So you may be asked to accept a price you have have just typed in manually if that still results in a spike. Accepted or previous prices are not spike checked again.
+
+Spikes are only checked on the FINAL price in each bar, and the user is only given the opportunity to correct the FINAL price. If the FINAL price is changed, then the OPEN, HIGH, and LOW prices are also modified; adding or subtracting the same adjustment that was made to the final price. The system does not currently use OHLC prices, but you should be aware of this creating potential inaccuracies. VOLUME figures are left unchanged if a price is corrected.
+
+Once all spikes are checked for a given contract then the checked data is written to the database, and the system moves on to the next contract.
+
+
+### Manual check of FX price data 
+(Whever required)
+
+Python:
+```python
+from sysproduction.update_manual_check_fx_prices import update_manual_check_fx_prices
+update_manual_check_fx_prices(fx_code)
+```
+
+Linux script:
+```
+. $SCRIPT_PATH/uupdate_manual_check_fx_prices
+```
+
+See [manual check of futures contract prices](#manual-check-of-futures-contract-historical-price-data) for more detail. Note that as the FX data is a single series, no adjustment is required for other values.
+
+
+### Roll adjusted prices 
+(Whenever required)
 
 Allows you to change the roll state and roll from one priced contract to the next.
 
@@ -835,6 +895,7 @@ It's possible to run pysystemtrade without any scheduling, by manually starting 
 ### Private config
 
 TO DO
+max_price_spike
 
 ### System defaults
 

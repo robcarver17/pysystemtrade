@@ -28,7 +28,8 @@ class ibClient(brokerClient):
     def __init__(self, log=logtoscreen("ibClient")):
 
         self.log = log
-        self.last_historic_price_calltime = datetime.datetime.now()
+        ## means our first call won't be throttled for pacing
+        self.last_historic_price_calltime = datetime.datetime.now()-  datetime.timedelta(seconds=_PACING_PERIOD_SECONDS)
 
     # Methods in parent class overriden here
     # These methods should abstract the broker completely
@@ -121,7 +122,8 @@ class ibClient(brokerClient):
 
         price_data_as_df = price_data_raw[['open', 'high', 'low', 'close', 'volume']]
         price_data_as_df.columns = ['OPEN', 'HIGH', 'LOW', 'FINAL', 'VOLUME']
-        price_data_as_df.index = price_data_raw['date']
+        date_index = [ib_timestamp_to_datetime(price_row) for price_row in price_data_raw['date']]
+        price_data_as_df.index = date_index
 
         return price_data_as_df
 
@@ -398,35 +400,16 @@ def avoid_pacing_violation(last_call_datetime, log=logtoscreen("")):
             printed_warning_already = True
         pass
 
-def ib_timestamp_to_datetime(timestamp_str):
+def ib_timestamp_to_datetime(timestamp_ib):
     """
-    Turns IB timestamp into datetime and adjusts yyyymm to closing vector
-    Eithier yyyymmdd or 'yyyymmdd  hh:mm:ss'
+    Turns IB timestamp into pd.datetime as plays better with arctic, and adjusts yyyymm to closing vector
 
-    :param timestamp_str: str
-    :return: datetime.datetime
+    :param timestamp_str: datetime.datetime
+    :return: pd.datetime
     """
-    timestamp = ib_timestamp_to_date_or_datetime(timestamp_str)
+    timestamp = pd.to_datetime(timestamp_ib)
 
     adjusted_ts = adjust_timestamp(timestamp)
 
     return adjusted_ts
 
-def ib_timestamp_to_date_or_datetime(timestamp_str):
-    """
-    Turns IB timestamp into datetime
-    Eithier yyyymmdd or 'yyyymmdd  hh:mm:ss'
-
-    :param timestamp_str: str
-    :return: datetime.datetime
-    """
-    try:
-        if len(timestamp_str)==8:
-            return datetime.datetime.strptime(timestamp_str, "%Y%m%d")
-        elif len(timestamp_str)==18:
-            return datetime.datetime.strptime(timestamp_str, "%Y%m%d  %H:%M:%S")
-        else:
-            # If we end up here something has gone wrong
-            raise Exception()
-    except:
-        raise Exception("Format of %s not recongised" % str(timestamp_str))

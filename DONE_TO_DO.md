@@ -1,5 +1,12 @@
 # Release notes
 
+## Version 0.29.0
+
+Added price 'spike' checker, and manual price checking service
+Removed PIL library (issue 161)
+Fixed ib_insync PIP issue (pull 162)
+MongoDb logs will now try to email user if a critical error is raised
+
 ## Version 0.28.0
 
 IB now uses ib_insync, not native IB library

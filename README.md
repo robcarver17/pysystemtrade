@@ -7,10 +7,10 @@ Rob Carver
 [http://qoppac.blogspot.co.uk/p/pysystemtrade.html](http://qoppac.blogspot.co.uk/p/pysystemtrade.html)
 
 
-Version 0.28.0
+Version 0.29.0
 
 
-20200428
+20200430
 
 
 ## Release notes
@@ -30,6 +30,7 @@ Currently pysystemtrade can do the following:
 
 *Eventually* pysystemtrade will also be a complete implementation of a fully automated system for futures trading (for interactive brokers only), including regularly updated data
 
+pysystemtrade uses the [IB insync library](https://ib-insync.readthedocs.io/api.html) to connect to interactive brokers.
 
 ## Use and documentation
 
@@ -41,7 +42,7 @@ Currently pysystemtrade can do the following:
 
 ## Dependencies
 
-Python 3.x, pandas, matplotlib, pyyaml, numpy, scipy, quandl
+Python 3.x, pandas, matplotlib, pyyaml, numpy, scipy, quandl, ib_insyc
 
 See [requirements.txt](requirements.txt) for full details.
 

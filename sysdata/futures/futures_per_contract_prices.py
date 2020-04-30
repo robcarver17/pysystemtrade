@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 from syscore.pdutils import merge_data_series_with_label_column
-from syscore.objects import arg_not_supplied, missing_data
+from syscore.objects import arg_not_supplied, missing_data, data_error
 
 from sysdata.data import baseData
 from sysdata.futures.contracts import futuresContract
@@ -79,7 +79,8 @@ class futuresContractPrices(pd.DataFrame):
     def empty(self):
         return
 
-    def merge_with_other_prices(self, new_futures_per_contract_prices, only_add_rows=True):
+    def merge_with_other_prices(self, new_futures_per_contract_prices, only_add_rows=True,
+                                check_for_spike=True):
         """
         Merges self with new data.
         If only_add_rows is True,
@@ -90,7 +91,7 @@ class futuresContractPrices(pd.DataFrame):
         :return: merged futures_per_contract object
         """
         if only_add_rows:
-            return self.add_rows_to_existing_data(new_futures_per_contract_prices)
+            return self.add_rows_to_existing_data(new_futures_per_contract_prices, check_for_spike=check_for_spike)
         else:
             return self._full_merge_of_existing_data(new_futures_per_contract_prices)
 
@@ -107,7 +108,7 @@ class futuresContractPrices(pd.DataFrame):
 
         return futuresContractPrices(merged_data)
 
-    def add_rows_to_existing_data(self, new_futures_per_contract_prices):
+    def add_rows_to_existing_data(self, new_futures_per_contract_prices, check_for_spike=True):
         """
         Merges self with new data.
         Only newer data will be added
@@ -117,7 +118,12 @@ class futuresContractPrices(pd.DataFrame):
         :return: merged futures_per_contract object
         """
 
-        merged_futures_prices = merge_newer_data(pd.DataFrame(self), new_futures_per_contract_prices)
+        merged_futures_prices = merge_newer_data(pd.DataFrame(self), new_futures_per_contract_prices,
+                                                 check_for_spike=check_for_spike, column_to_check=FINAL_COLUMN)
+
+        if merged_futures_prices is data_error:
+            return data_error
+
         merged_futures_prices = futuresContractPrices(merged_futures_prices)
 
         return merged_futures_prices
@@ -688,7 +694,8 @@ class futuresContractPriceData(baseData):
 
         return ans
 
-    def update_prices_for_contract(self, futures_contract_object, new_futures_per_contract_prices):
+    def update_prices_for_contract(self, futures_contract_object, new_futures_per_contract_prices,
+                                   check_for_spike=True):
         """
         Reads existing data, merges with new_futures_prices, writes merged data
 
@@ -699,7 +706,12 @@ class futuresContractPriceData(baseData):
                                  contract_date=futures_contract_object.date)
 
         old_prices = self.get_prices_for_contract_object(futures_contract_object)
-        merged_prices = old_prices.add_rows_to_existing_data(new_futures_per_contract_prices)
+        merged_prices = old_prices.add_rows_to_existing_data(new_futures_per_contract_prices,
+                                                             check_for_spike=check_for_spike)
+
+        if merged_prices is data_error:
+            new_log.msg("Price has moved too much - will need to manually check")
+            return data_error
 
         rows_added = len(merged_prices) - len(old_prices)
 
