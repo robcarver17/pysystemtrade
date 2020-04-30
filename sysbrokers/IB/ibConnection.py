@@ -170,7 +170,7 @@ class mongoIBclientIDtracker(object):
         if clientid_to_try is None:
             clientid_to_use = self.get_next_clientid()
 
-        elif self.is_clientid_used(clientid_to_try):
+        elif self._is_clientid_used(clientid_to_try):
             # being used, get another one
             # this will also lock it
             clientid_to_use = self.get_next_clientid()
