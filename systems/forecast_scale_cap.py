@@ -4,7 +4,7 @@ import pandas as pd
 
 from systems.basesystem import ALL_KEYNAME
 from systems.stage import SystemStage
-from systems.defaults import system_defaults
+from systems.defaults import get_default_config_key_value
 from systems.system_cache import input, dont_cache, diagnostic, output
 
 from syscore.genutils import str2Bool
@@ -192,7 +192,7 @@ class ForecastScaleCap(SystemStage):
                 scalar = system.config.forecast_scalars[rule_variation_name]
             except:
                 # go with defaults
-                scalar = system_defaults['forecast_scalar']
+                scalar = get_default_config_key_value('forecast_scalar')
 
         return scalar
 
@@ -248,6 +248,7 @@ class ForecastScaleCap(SystemStage):
         ]
 
         cs_forecasts = pd.concat(forecast_list, axis=1)
+        cs_forecasts.columns = instrument_list
 
         # an example of a scaling function is syscore.algos.forecast_scalar
         # must return thing the same size as cs_forecasts

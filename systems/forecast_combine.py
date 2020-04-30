@@ -4,11 +4,11 @@ import numpy as np
 import pandas as pd
 
 from syscore.genutils import str2Bool
-from syscore.objects import resolve_function, update_recalc
+from syscore.objects import resolve_function, update_recalc, missing_data
 from syscore.pdutils import (dataframe_pad, fix_weights_vs_pdm,
                              from_dict_of_values_to_df)
 from syscore.algos import map_forecast_value
-from systems.defaults import system_defaults
+from systems.defaults import get_default_config_key_value
 from systems.stage import SystemStage
 from systems.system_cache import diagnostic, dont_cache, input, output
 
@@ -66,6 +66,26 @@ class _ForecastCombinePreCalculate(SystemStage):
         return self.parent.forecastScaleCap.get_capped_forecast(
             instrument_code, rule_variation_name)
 
+    def get_forecasts_given_rule_list(self, instrument_code, rule_variation_list):
+        """
+        Convenience function to get a list of forecasts
+
+        :param instrument_code: str
+        :param rule_variation_list: list of str
+        :return: pd.DataFrame
+        """
+        forecasts = [
+            self.get_capped_forecast(
+                instrument_code,
+                rule_variation_name) for rule_variation_name in rule_variation_list]
+
+        forecasts = pd.concat(forecasts, axis=1)
+
+        forecasts.columns = rule_variation_list
+
+        forecasts = forecasts.ffill()
+
+        return forecasts
 
     @diagnostic()
     def get_trading_rule_list_estimated_weights(self, instrument_code):
@@ -153,6 +173,7 @@ class _ForecastCombinePreCalculate(SystemStage):
         """
         Get list of trading rules
 
+        We remove any rules with a constant zero or nan forecast
 
         :param instrument_code:
         :return: list of str
@@ -160,9 +181,13 @@ class _ForecastCombinePreCalculate(SystemStage):
 
         if self._use_estimated_weights():
             # Note for estimated weights we apply the 'is this cheap enough' rule, but not here
-            return self.get_trading_rule_list_estimated_weights(instrument_code)
+            trial_rule_list = self.get_trading_rule_list_estimated_weights(instrument_code)
         else:
-            return self._get_trading_rule_list_fixed_weights(instrument_code)
+            trial_rule_list = self._get_trading_rule_list_fixed_weights(instrument_code)
+
+
+        return trial_rule_list
+
 
     @diagnostic()
     def has_same_rules_as_code(self, instrument_code):
@@ -233,16 +258,7 @@ class _ForecastCombinePreCalculate(SystemStage):
             rule_variation_list = self.get_trading_rule_list(
                 instrument_code)
 
-        forecasts = [
-            self.get_capped_forecast(
-                instrument_code,
-                rule_variation_name) for rule_variation_name in rule_variation_list]
-
-        forecasts = pd.concat(forecasts, axis=1)
-
-        forecasts.columns = rule_variation_list
-
-        forecasts = forecasts.ffill()
+        forecasts = self.get_forecasts_given_rule_list(instrument_code, rule_variation_list)
 
         return forecasts
 
@@ -671,13 +687,13 @@ class _ForecastCombineCalculateDivMult(_ForecastCombinePreCalculate):
                 self.log.critical(
                     error_msg, instrument_code=instrument_code)
 
-        elif "forecast_div_multiplier" in system_defaults:
-            # try defaults
-            fixed_div_mult = system_defaults['forecast_div_multiplier']
         else:
-            error_msg = "Need to specify FDM in config or system_defaults"
-            self.log.critical(
-                error_msg, instrument_code=instrument_code)
+            # try defaults
+            fixed_div_mult = get_default_config_key_value("forecast_div_multiplier")
+            if fixed_div_mult is missing_data:
+                error_msg = "Need to specify FDM in config or system_defaults"
+                self.log.critical(
+                    error_msg, instrument_code=instrument_code)
 
         # Now we have a dict, fixed_weights.
         # Need to turn into a timeseries covering the range of forecast dates

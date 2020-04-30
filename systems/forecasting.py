@@ -1,9 +1,13 @@
+import numpy as np
+
 from copy import copy
 from concurrent.futures import ProcessPoolExecutor
 from functools import partial
 
 from systems.stage import SystemStage
 from syscore.objects import resolve_function, resolve_data_method, hasallattr
+from syscore.text import sort_dict_by_underscore_length, strip_underscores_from_dict_keys, force_args_to_same_length
+
 from systems.system_cache import input, diagnostic, output, dont_cache
 
 DEFAULT_PRICE_SOURCE = "data.daily_prices"
@@ -61,6 +65,7 @@ class Rules(SystemStage):
         # ... store the ones we've been passed for now
         setattr(self, "_passed_trading_rules", trading_rules)
 
+        # PRE CALC NOT IMPLEMENTED THESE ARE IRRELEVANT
         self.pre_calc_rules= pre_calc_rules
         self._pre_calculation_not_yet_done = True
 
@@ -71,7 +76,7 @@ class Rules(SystemStage):
     def __repr__(self):
         trading_rules = self.trading_rules()
 
-        rule_names = ", ".join(self._trading_rules.keys())
+        rule_names = ", ".join(trading_rules.keys())
 
         return "Rules object with rules " + rule_names
 
@@ -165,6 +170,13 @@ class Rules(SystemStage):
         result = trading_rule.call(system, instrument_code)
         result.columns = [rule_variation_name]
 
+        ## Check for all zeros
+        check_result = copy(result)
+        check_result[check_result==0.0]=np.nan
+        if all(check_result.isna()):
+            self.log.warn("Setting rule %s for %s to all NAN as all values are 0 or NAN" % (instrument_code, rule_variation_name))
+            result[:]=np.nan
+
         return result
 
     @dont_cache
@@ -222,10 +234,9 @@ class Rules(SystemStage):
                           forecast_this_instrument,
                           cache_ref)
 
-def _function_call_with_args(data_as_list, function=None, other_args_as_dict={}):
+def function_call_with_args(data_as_list, function=None, other_args_as_dict={}):
     # convenience function to make creating a parital easier
     return function(*data_as_list, **other_args_as_dict)
-
 
 class TradingRule(object):
     """
@@ -264,16 +275,22 @@ class TradingRule(object):
         :type data: single str, or list of str
 
         :param other_args: Other named arguments to be passed to trading rule function
+                    Any arguments that are prefixed with "_" will be passed to the first data function call
+                    Any arguments that are prefixed with "__" will be passed to the second data function call... and so on
                      (Either passed in separately , or as part of a TradingRule, 3-tuple, or dict object)
+
         :type other_args: dict
 
         :returns: single Tradingrule object
         """
 
+        data_args = None
+
         if hasallattr(rule, ["function", "data", "other_args"]):
             # looks like it is already a trading rule
-            (rule_function, data, other_args) = (rule.function, rule.data,
-                                                 rule.other_args)
+            (rule_function, data, other_args, data_args) = (rule.function, rule.data,
+                                                 rule.other_args, rule.data_args)
+
 
         elif isinstance(rule, tuple):
             if len(data) > 0 or len(other_args) > 0:
@@ -320,13 +337,23 @@ class TradingRule(object):
             # turn into a 1 item list or wont' get parsed properly
             data = [data]
 
+        if data_args is None:
+            # This will be the case if the rule was built from arguments
+            # Resolve any _ prefixed other_args
+            other_args, data_args = seperate_other_args(other_args, data)
+
+        # fill the object with data
         setattr(self, "function", rule_function)
         setattr(self, "data", data)
         setattr(self, "other_args", other_args)
+        setattr(self, "data_args", data_args)
 
     def __repr__(self):
-        data_names = ", ".join(self.data)
+        data_names = ["%s (args: %s)" % (data_name, str(data_args))
+                      for data_name, data_args in zip(self.data, self.data_args)]
+        data_names = ", ".join(data_names)
         args_names = ", ".join(self.other_args.keys())
+
         return "TradingRule; function: %s, data: %s and other_args: %s" % (
             str(self.function), data_names, args_names)
 
@@ -350,20 +377,35 @@ class TradingRule(object):
         :param instrument_code: str
         :return: list of data
         """
+        data = self.data
+        assert isinstance(data, list)
 
-        assert isinstance(self.data, list)
+        # Following is a list of additional kwargs to pass to the data functions. Can be empty dicts
+        # Use copy as can be overriden
 
-        if len(self.data) == 0:
+        if len(data) == 0:
             # if no data provided defaults to using price
             datalist = [DEFAULT_PRICE_SOURCE]
+            data_arg_list = [{}]
         else:
+            # We're provided with a list
             datalist = self.data
+            data_arg_list = copy(self.data_args)
 
+        # This is so the zip won't unexpectedly fail
+        # Should be the case given how data_args are generated
+        assert len(data_arg_list) == len(datalist)
+
+        # Turn a list of strings into a list of function objects
         data_methods = [
             resolve_data_method(system, data_string)
             for data_string in datalist
         ]
-        data = [data_method(instrument_code) for data_method in data_methods]
+
+
+        # Call the functions, providing additional data if neccesssary
+        data = [data_method(instrument_code, **data_arguments) for data_method, data_arguments in
+                zip(data_methods, data_arg_list)]
 
         return data
 
@@ -371,6 +413,41 @@ class TradingRule(object):
         other_args = self.other_args
 
         return self.function(*data, **other_args)
+
+def seperate_other_args(other_args, data):
+    """
+    Seperate out other arguments into those passed to the trading rule function, and any
+     that will be passed to the data functions (data_args)
+
+    :param other_args: dict containing args. Some may have "_" prefix of various lengths, these are data args
+    :param data: list of str pointing to where data lives. data_args has to be the same length as this
+
+    :return: tuple. First element is other_args dict to pass to main function.
+            Second element is list, each element of which is a dict to data functions
+            List is same length as data
+            Lists may consist of empty dicts to pad in case earlier data functions have no entries
+    """
+
+    # Split arguments up into groups depending on number of leading _
+    # 0 (passed as other_args to data function), 1, 2, 3 ...
+    if len(other_args)==0:
+        return ({},[{}]*len(data))
+
+    sorted_other_args = sort_dict_by_underscore_length(other_args)
+
+    # The first item in the list has no underscores, and is for the main trading rule function
+    other_args_for_trading_rule = sorted_other_args.pop(0)
+
+    # The rest are data_args. At this point the key values still have "_" so let's drop them
+    data_args = [strip_underscores_from_dict_keys(arg_dict) for arg_dict in sorted_other_args]
+
+    # Force them to be the same length so things don't break later
+    # Pad if required
+    data_args_forced_to_length = force_args_to_same_length(data_args, data)
+    assert len(data) == len(data_args_forced_to_length)
+
+    return other_args_for_trading_rule, data_args_forced_to_length
+
 
 def process_trading_rules(trading_rules):
     """

@@ -1,9 +1,10 @@
 from copy import copy
 import datetime
-from collections import UserList
 
 from sysdata.mongodb.mongo_connection import mongoConnection, MONGO_ID_KEY
 from syscore.dateutils import long_to_datetime, datetime_to_long
+from syslogdiag.emailing import send_mail_msg
+
 
 class logger(object):
     """
@@ -184,6 +185,16 @@ class logger(object):
             "You're using a base class for logger - you need to use an inherited class like logtoscreen()"
         )
 
+    """
+    Following two methods implement context manager
+    """
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        pass
+
+
 
 def get_update_attributes_list(parent_attributes, new_attributes):
     """
@@ -236,6 +247,9 @@ class logtoscreen(logger):
                 print(text)
                 # otherwise do nothing - either terse or off
         else:
+            print(text)
+
+        if msglevel == 2:
             print(text)
 
         if msglevel == 3:
@@ -320,6 +334,7 @@ class logEntry(object):
 
 
 LOG_COLLECTION_NAME = "Logs"
+EMAIL_ON_LOG_LEVEL = [4]
 
 class logToMongod(logger):
     """
@@ -365,7 +380,19 @@ class logToMongod(logger):
 
         self._mongo.collection.insert_one(log_entry.log_dict())
 
+        if msglevel in EMAIL_ON_LOG_LEVEL:
+            ## Critical, send an email
+            self.email_user(log_entry)
+
         return log_entry
+
+    def email_user(self, log_entry):
+        try:
+            send_mail_msg(log_entry, "*CRITICAL ERROR*")
+        except:
+            self.log.warn("Couldn't email user")
+
+
 
 class accessLogFromMongodb(object):
 

@@ -162,7 +162,7 @@ class systemCache(dict):
     def __repr__(self):
         if self.are_we_caching():
             list_of_elements = ", ".join([
-                cache_ref.__repr__
+                str(cache_ref)
                 for cache_ref in self.get_items_with_data()
             ])
             return "Cache, elements: " + list_of_elements
@@ -211,11 +211,19 @@ class systemCache(dict):
         pickable_cache_refs = self._get_pickable_items()
 
         cache_to_pickle = self.partial_cache(pickable_cache_refs)
+        cache_to_pickle_as_dict = self.as_dict()
 
         with open(filename, "wb+") as fhandle:
-            pickle.dump(cache_to_pickle, fhandle)
+            pickle.dump(cache_to_pickle_as_dict, fhandle)
 
-    def unpickle(self, relativefilename, fullfilename=None, clearcache=True):
+    def as_dict(self):
+        self_as_dict={}
+        for ref_name in self.get_items_with_data():
+            self_as_dict[ref_name] = self[ref_name]
+
+        return self_as_dict
+
+    def unpickle(self, relativefilename,  clearcache=True):
         """
         Loads the saved cache
 
@@ -237,10 +245,7 @@ class systemCache(dict):
 
         """
 
-        if fullfilename is None:
-            filename = get_filename_for_package(relativefilename)
-        else:
-            filename = fullfilename
+        filename = get_filename_for_package(relativefilename)
 
         with open(filename, "rb") as fhandle:
             cache_from_pickled = pickle.load(fhandle)

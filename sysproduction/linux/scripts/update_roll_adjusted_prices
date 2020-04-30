@@ -1,0 +1,3 @@
+#!/bin/bash
+. ~/.profile
+. p sysproduction.update_roll_adjusted_prices.update_roll_state

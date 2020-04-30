@@ -315,6 +315,26 @@ class RawData(SystemStage):
 
         return normalised_price_for_asset_class
 
+    @output()
+    def get_skew(self, instrument_code):
+        """
+        Get percentage returns
+
+        Useful statistic, also used for some trading rules
+
+        This is an optional subsystem; forecasts can go straight to system.data
+        :param instrument_code: Instrument to get prices for
+        :type trading_rules: str
+
+        :returns: Tx1 pd.DataFrame
+        """
+
+        denom_price = self.daily_denominator_price(instrument_code)
+        num_returns = self.daily_returns(instrument_code)
+        perc_returns = num_returns/denom_price.ffill()
+
+        return perc_returns
+
 
 if __name__ == '__main__':
     import doctest

@@ -1,55 +1,59 @@
 """
-Classes to create instances of connections
+IB connection using ib-insync https://ib-insync.readthedocs.io/api.html
 
-Connections contain plugs to data and brokers, so the two can talk to each other
 """
 
-import yaml
-from threading import Thread
+from ib_insync import IB
 
 from sysbrokers.IB.ibClient import ibClient
 from sysbrokers.IB.ibServer import ibServer
+from syscore.genutils import get_safe_from_dict
+from syscore.objects import arg_not_supplied
+
+from sysdata.private_config import get_list_of_private_then_default_key_values
 from syslogdiag.log import logtoscreen
-from sysdata.mongodb.mongo_connection import mongoConnection, MONGO_ID_KEY
-
-from syscore.fileutils import get_filename_for_package
-
-PRIVATE_CONFIG_FILE = get_filename_for_package("private.private_config.yaml")
+from sysdata.mongodb.mongo_connection import mongoConnection, mongoDb
 
 DEFAULT_IB_IPADDRESS='127.0.0.1'
 DEFAULT_IB_PORT = 4001
 DEFAULT_IB_IDOFFSET = 1
 
-def ib_defaults(config_file =PRIVATE_CONFIG_FILE, **kwargs):
+LIST_OF_IB_PARAMS = ['ipaddress', 'port', 'idoffset']
+
+
+
+def ib_defaults(**kwargs):
     """
     Returns ib configuration with following precedence
-
     1- if passed in arguments: ipaddress, port, idoffset - use that
     2- if defined in private_config file, use that. ib_ipaddress, ib_port, ib_idoffset
-    3- otherwise use defaults DEFAULT_MONGO_DB, DEFAULT_MONGO_HOST, DEFAULT_MONGOT_PORT
+    3 - if defined in system defaults file, use that
+    4- otherwise use defaults DEFAULT_IB_IPADDRESS, DEFAULT_IB_PORT, DEFAULT_IB_IDOFFSET
 
     :return: mongo db, hostname, port
     """
 
-    try:
-        with open(config_file) as file_to_parse:
-            yaml_dict = yaml.load(file_to_parse)
-    except:
-        yaml_dict={}
+    param_names_with_prefix = ['ib_' + arg_name for arg_name in LIST_OF_IB_PARAMS]
+    config_dict = get_list_of_private_then_default_key_values(param_names_with_prefix)
 
-    # Overwrite with passed arguments - these will take precedence over values in config file
-    for arg_name in ['ipaddress', 'port', 'idoffset']:
-        arg_value = kwargs.get(arg_name, None)
-        if arg_value is not None:
-            yaml_dict['ib_'+arg_name] = arg_value
+    yaml_dict = {}
+    for arg_name in LIST_OF_IB_PARAMS:
+        yaml_arg_name = 'ib_' + arg_name
+
+        # Start with config (precedence: private config, then system config)
+        arg_value = config_dict[yaml_arg_name]
+        # Overwrite with kwargs
+        arg_value = get_safe_from_dict(kwargs, arg_name, arg_value)
+
+        # Write
+        yaml_dict[arg_name] = arg_value
 
     # Get from dictionary
-    ipaddress = yaml_dict.get('ib_ipaddress', DEFAULT_IB_IPADDRESS)
-    port = yaml_dict.get('ib_port', DEFAULT_IB_PORT)
-    idoffset = yaml_dict.get('ib_idoffset', DEFAULT_IB_IDOFFSET)
+    ipaddress = yaml_dict.get('ipaddress', DEFAULT_IB_IPADDRESS)
+    port = yaml_dict.get('port', DEFAULT_IB_PORT)
+    idoffset = yaml_dict.get('idoffset', DEFAULT_IB_IDOFFSET)
 
     return ipaddress, port, idoffset
-
 
 
 class connectionIB(ibClient, ibServer):
@@ -59,55 +63,59 @@ class connectionIB(ibClient, ibServer):
     """
 
     def __init__(self, client=None, ipaddress=None, port=None, log=logtoscreen("connectionIB"),
-                 mongo_db=None):
+                 mongo_db = arg_not_supplied):
 
         """
-
-        :param client: client id. If not passed then will get from database specified by db_id_tracker
+        :param client: client id. If not passed then will get from database specified by mongo_db
         :param ipaddress: IP address of machine running IB Gateway or TWS. If not passed then will get from private config file, or defaults
         :param port: Port listened to by IB Gateway or TWS
         :param log: logging object
-        :param db_id_tracker: Eithier none (to use the default or an object that quacks like class mongoIBclientIDtracker)
+        :param mongo_db: mongoDB connection
         """
 
         # resolve defaults
         ipaddress, port, idoffset = ib_defaults(ipaddress=ipaddress, port=port)
 
+        # The client id is pulled from a mongo database
+        # If for example you want to use a different database you could do something like:
+        # connectionIB(mongo_ib_tracker = mongoIBclientIDtracker(database_name="another")
+
+        # You can pass a client id yourself, or let IB find one
+
+        self.db_id_tracker = mongoIBclientIDtracker(mongo_db = mongo_db, log=log, idoffset=idoffset)
+        client = self.db_id_tracker.return_valid_client_id(client)
+
         # If you copy for another broker include this line
         log.label(broker="IB", clientid = client)
         self._ib_connection_config = dict(ipaddress = ipaddress, port = port, client = client)
 
-        # You can pass a client id yourself, or let IB find one
-        if client is None:
-            # The client id is pulled from a mongo database
-            # If for example you want to use a different database you could do something like:
-            # connectionIB(mongo_ib_tracker = mongoIBclientIDtracker(database_name="another")
-            #
-
-            db_id_tracker = mongoIBclientIDtracker(mongo_db = mongo_db, log=log, idoffset=idoffset)
-
-            # get and lock a client id
-            client = db_id_tracker.get_next_clientid()
-            # client IDs are not released; assume we clean them daily
-
-        # IB specific - this is to ensure we don't get reqID conflicts between different processes
-        reqIDoffset = client*1000
-
         #if you copy for another broker, don't forget the logs
         ibServer.__init__(self, log=log)
-        ibClient.__init__(self, wrapper = self, reqIDoffset=reqIDoffset, log=log)
-
-        # if you copy for another broker, don't forget to do this
-        self.broker_init_error()
+        ibClient.__init__(self, log=log)
 
         # this is all very IB specific
-        self.connect(ipaddress, port, client)
-        thread = Thread(target = self.run)
-        thread.start()
-        setattr(self, "_thread", thread)
+        ib = IB()
+        ib.connect(ipaddress, port, clientId=client)
+
+        ## Add handlers, from ibServer methods
+        ib.errorEvent += self.error_handler
+
+        self.ib = ib
 
     def __repr__(self):
         return "IB broker connection"+str(self._ib_connection_config)
+
+    def close_connection(self):
+        self.log.msg("Terminating %s" % str(self._ib_connection_config))
+        try:
+            ## Try and disconnect IB client
+            self.ib.disconnect()
+        except:
+            self.log.warn("Trying to disconnect IB client failed... ensure process is killed")
+        finally:
+            self.db_id_tracker.release_clientid(self._ib_connection_config['client'])
+
+
 
 
 IB_CLIENT_COLLECTION = 'IBClientTracker'
@@ -116,13 +124,14 @@ IB_CLIENT_COLLECTION = 'IBClientTracker'
 class mongoIBclientIDtracker(object):
     """
     Read and write data class to get next used client id
-
-
     """
 
-    def __init__(self, mongo_db=None, idoffset=None, log=logtoscreen("mongoIDTracker")):
+    def __init__(self, mongo_db = arg_not_supplied, idoffset=arg_not_supplied, log=logtoscreen("mongoIDTracker")):
 
-        if idoffset is None:
+        if mongo_db is arg_not_supplied:
+            mongo_db = mongoDb()
+
+        if idoffset is arg_not_supplied:
             _notused_ipaddress, _notused_port, idoffset = ib_defaults()
 
         self._mongo = mongoConnection(IB_CLIENT_COLLECTION, mongo_db=mongo_db)
@@ -139,12 +148,43 @@ class mongoIBclientIDtracker(object):
     def __repr__(self):
         return self.name
 
+    def _is_clientid_used(self, clientid):
+        """
+        Checks if a clientis is in use
+        :param clientid: int
+        :return: bool
+        """
+        current_ids = self._get_list_of_clientids()
+        if clientid in current_ids:
+            return True
+        else:
+            return False
+
+    def return_valid_client_id(self, clientid_to_try=None):
+        """
+        If clientid_to_try is None, return the next free ID
+        If clientid_to_try is being used, return the next free ID, otherwise allow that to be used
+        :param clientid_to_try: int or None
+        :return: int
+        """
+        if clientid_to_try is None:
+            clientid_to_use = self.get_next_clientid()
+
+        elif self.is_clientid_used(clientid_to_try):
+            # being used, get another one
+            # this will also lock it
+            clientid_to_use = self.get_next_clientid()
+        else:
+            # okay it's been passed, and we can use it. So let's lock and use it
+            clientid_to_use = clientid_to_try
+            self._add_clientid(clientid_to_use) # lock
+
+        return clientid_to_use
+
     def get_next_clientid(self):
         """
         Returns a client id which will be locked so no other use can use it
-
         The clientid in question is the lowest available unused value
-
         :return: clientid
         """
 
@@ -152,7 +192,7 @@ class mongoIBclientIDtracker(object):
         if len(current_list)==0:
             next_id = self._idoffset
         else:
-            full_set = set(range(0, max(current_list) + 2)) # includes next value up in case no space
+            full_set = set(range(self._idoffset, max(current_list) + 2)) # includes next value up in case no space
             missing_values = full_set - set(current_list)
             next_id = min(missing_values)
 
@@ -175,7 +215,6 @@ class mongoIBclientIDtracker(object):
         """
         Clear all the client ids
         Should be done daily
-
         :return:
         """
         self._mongo.collection.delete_many({})
@@ -185,7 +224,6 @@ class mongoIBclientIDtracker(object):
     def release_clientid(self, clientid):
         """
         Delete a client id lock
-
         :param clientid:
         :return: None
         """

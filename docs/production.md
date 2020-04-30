@@ -17,6 +17,78 @@ Related documents:
 
 *IMPORTANT: Make sure you know what you are doing. All financial trading offers the possibility of loss. Leveraged trading, such as futures trading, may result in you losing all your money, and still owing more. Backtested results are no guarantee of future performance. No warranty is offered or implied for this software. I can take no responsibility for any losses caused by live trading using pysystemtrade. Use at your own risk.*
 
+Table of Contents
+=================
+
+   * [Quick start guide](#quick-start-guide)
+   * [Overview of a production system](#overview-of-a-production-system)
+   * [Implementation options](#implementation-options)
+      * [Automatation options](#automatation-options)
+      * [Machines, containers and clouds](#machines-containers-and-clouds)
+      * [Backup machine](#backup-machine)
+      * [Multiple systems](#multiple-systems)
+   * [Code and configuration management](#code-and-configuration-management)
+         * [Managing your seperate directories of code and configuration](#managing-your-seperate-directories-of-code-and-configuration)
+         * [Managing your private directory](#managing-your-private-directory)
+   * [Finalise your backtest configuration](#finalise-your-backtest-configuration)
+   * [Linking to a broker](#linking-to-a-broker)
+   * [Other data sources](#other-data-sources)
+   * [Data storage](#data-storage)
+      * [Data backup](#data-backup)
+         * [Mongo data](#mongo-data)
+         * [Mongo / csv data](#mongo--csv-data)
+   * [Echoes, Logging, diagnostics and reporting](#echoes-logging-diagnostics-and-reporting)
+      * [Echos: stdout output](#echos-stdout-output)
+         * [Cleaning old echo files](#cleaning-old-echo-files)
+      * [Logging](#logging)
+         * [Adding logging to your code](#adding-logging-to-your-code)
+         * [Getting log data back](#getting-log-data-back)
+         * [Cleaning old logs](#cleaning-old-logs)
+      * [Reporting](#reporting)
+         * [Roll report (Daily)](#roll-report-daily)
+   * [Scripts](#scripts)
+      * [Production system components](#production-system-components)
+         * [Get spot FX data from interactive brokers, write to MongoDB (Daily)](#get-spot-fx-data-from-interactive-brokers-write-to-mongodb-daily)
+         * [Update sampled contracts (Daily)](#update-sampled-contracts-daily)
+         * [Update futures contract historical price data (Daily)](#update-futures-contract-historical-price-data-daily)
+         * [Update multiple and adjusted prices (Daily)](#update-multiple-and-adjusted-prices-daily)
+         * [Roll adjusted prices (whenever required)](#roll-adjusted-prices-whenever-required)
+         * [Run an updated backtest system (overnight) for a single strategy](#run-an-updated-backtest-system-overnight-for-a-single-strategy)
+      * [Ad-hoc diagnostics](#ad-hoc-diagnostics)
+         * [Recent FX prices](#recent-fx-prices)
+         * [Recent futures contract prices (FIX ME TO DO)](#recent-futures-contract-prices-fix-me-to-do)
+         * [Recent multiple prices (FIX ME TO DO)](#recent-multiple-prices-fix-me-to-do)
+         * [Recent adjusted prices (FIX ME TO DO)](#recent-adjusted-prices-fix-me-to-do)
+         * [Roll information](#roll-information)
+         * [Examine pickled backtest state object](#examine-pickled-backtest-state-object)
+      * [Housekeeping](#housekeeping)
+         * [Delete old pickled backtest state objects](#delete-old-pickled-backtest-state-objects)
+         * [Clean up old log files](#clean-up-old-log-files)
+         * [Truncate echo log files](#truncate-echo-log-files)
+   * [Scheduling](#scheduling)
+      * [Issues to consider when constructing the schedule](#issues-to-consider-when-constructing-the-schedule)
+      * [A suggested schedule in pseudocode](#a-suggested-schedule-in-pseudocode)
+      * [Formal list of scheduled tasks](#formal-list-of-scheduled-tasks)
+      * [Choice of scheduling systems](#choice-of-scheduling-systems)
+         * [Linux cron](#linux-cron)
+         * [Windows task scheduler](#windows-task-scheduler)
+         * [Python](#python)
+         * [Manual system](#manual-system)
+   * [Production system concepts](#production-system-concepts)
+      * [Configuration files](#configuration-files)
+         * [Private config](#private-config)
+         * [System defaults](#system-defaults)
+         * [Strategy config](#strategy-config)
+      * [Strategies](#strategies)
+   * [Production system data and data flow](#production-system-data-and-data-flow)
+   * [Production system classes](#production-system-classes)
+      * [Data blobs and the classes that feed on them](#data-blobs-and-the-classes-that-feed-on-them)
+      * [Reporting and diagnostics](#reporting-and-diagnostics)
+
+Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
+
+
+
 # Quick start guide
 
 This quick start guide assumes the following:
@@ -36,11 +108,11 @@ You need to:
         - PYSYS_CODE=/home/user_name/pysystemtrade
         - SCRIPT_PATH=/home/user_name/pysystemtrade/sysproduction/linux/scripts
         - ECHO_PATH=/home/user/echos
-    - Create the following directories (again use other directories, but you must modify the .profile above and crontab below)
-        - '/data/mongodb/'
-        - '/echos/'
-        - '/pysystemtrade/
-    - Install the pysystemtrade package, and install or update, any dependencies in directory $PYSYS_CODE (it's possible to put it elsewhere, but you will need to modify the environment variables listed above)
+        - MONGO_BACKUP_PATH=/media/shared_network/drive/mongo_backup
+    - Create the following directories (again use other directories if you like, but you must modify the .profile above)
+        - '/home/user_name/data/mongodb/'
+        - '/home/user_name/echos/'
+    - Install the pysystemtrade package, and install or update, any dependencies in directory $PYSYS_CODE (it's possible to put it elsewhere, but you will need to modify the environment variables listed above). If using git clone from your home directory this should create the directory '/home/user_name/pysystemtrade/'
     - [Set up interactive brokers](/docs/IB.md), download and install their python code, and get a gateway running.
     - [Install mongodb](https://docs.mongodb.com/manual/administration/install-on-linux/)
     - create a file 'private_config.yaml' in the private directory of [pysystemtrade](#/private)
@@ -57,15 +129,27 @@ You need to:
     - Create roll calendars for each instrument you are trading. Assuming you are happy to infer these from the supplied data [use this script](/sysinit/futures/rollcalendars_from_providedcsv_prices.py)
 - Futures contract prices:
     - [If you have a source of individual futures prices, then backfill them into the Arctic database](/docs/futures.md#get_historical_data)
+- Adjusted futures prices:
+    - Create 'multiple prices' in Arctic. Assuming you have prices in Artic and roll calendars in csv use [this script](/sysinit/futures/multipleprices_from_arcticprices_and_csv_calendars_to_arctic.py). I recommend *not* writing the multiple prices to .csv, so that you can compare the legacy .csv data with the new prices
+    - Create adjusted prices. Assuming you have multiple prices in Arctic use [this script](/sysinit/futures/adjustedprices_from_mongo_multiple_to_mongo.py)
+- Live production backtest:
+    - Create a yamal config file to run the live production 'backtest'. For speed I recommend you do not estimate parameters, but use fixed parameters, using the [yaml_config_with_estimated_parameters method of systemDiag](/systems/diagoutput.py) function to output these to a .yaml file.
 
 - Scheduling:
-- Initialise the [supplied crontab](/sysproduction/linux/crontab). Note if you have put your code or echos somewhere else you will need to modify the directory references at the top of the crontab.
-- All scripts executable by the crontab need to be executable, so do the following: `cd $SCRIPT_PATH` ; `sudo chmod +x update*` ;`sudo chmod +x truncate*` FIX ME ADD FURTHER FILES AS REQUIRED
+    - Initialise the [supplied crontab](/sysproduction/linux/crontab). Note if you have put your code or echos somewhere else you will need to modify the directory references at the top of the crontab.
+    - All scripts executable by the crontab need to be executable, so do the following: `cd $SCRIPT_PATH` ; `sudo chmod +x *.*`
+
 
 Before trading, and each time you restart the machine you should:
 
-- [check a mongodb server is running with the right data directory](/docs/futures.md#mongo-db) command line: `mongod --dbpath $MONGO_DATA`
+- [check a mongodb server is running with the right data directory](/docs/futures.md#mongo-db) command line: `mongod --dbpath $MONGO_DATA` (the supplied crontab should do this)
 - launch an IB gateway (this could [be done automatically](https://github.com/ib-controller/ib-controller) depending on your security setup)
+
+When trading you will need to do the following
+
+- Check reports TO DO LINK TO EACH
+- Roll instruments TO DO LINK
+- Ad-hoc diagnostics TO DO LINK
 
 
 # Overview of a production system
@@ -114,14 +198,19 @@ If you are running your implementation locally, or on a remote server that is no
 
 ## Multiple systems
 
-You may want to run multiple trading systems. Common use cases are:
+You may want to run multiple trading systems on a single machine. Common use cases are:
 
 - You want different systems for different asset classes
-- You want different systems for different time frames (eg intra day and slower trading). This is a specific use case with it's own problems, namely executing the aggregated orders from both systems, which I'll be specifically considering in future versions of pysystemtrade.
-- You want to run the same system, but in different trading accounts
+- You want to run relative value systems *
+- You want different systems for different time frames (eg intra day and slower trading) *
+- You want to run the same system, but for different trading accounts
 - You want a paper trading and live trading system
 
-To handle this I suggest having multiple copies of the pysystemtrade environment. You will have a single crontab, but you will need multiple script, echos (AND FIX ME REPORTS?) directories. You will need to change the [private config file](private.private_config.yaml) so it points to different `mongo_db` database names. If you don't want multiple copies of certain data (eg prices) then you should hardcode the `database_name` in the relevant files whenever a connection is made eg `mongo_db = mongoDb(database_name='whatever')`. See [storing futures and spot FX data](/docs/futures.md#mongo-db) for more detail. Finally you should set the field `ib_idoffset` in the [private config file](private.private_config.yaml) so that there is no chance of duplicate clientid connections; setting one system to have an id offset of 1, the next offset 1000, and so on should be sufficient.
+* for these cases I plan to implement functionality in pysystemtrade so that it can handle them in the same system.
+
+To handle this I suggest having multiple copies of the pysystemtrade environment. You will have a single crontab, but you will need multiple script, echos and other directories. You will need to change the private config file so it points to different mongo_db database names. If you don't want multiple copies of certain data (eg prices) then you should hardcode the database_name in the relevant files whenever a connection is made eg mongo_db = mongoDb(database_name='whatever'). See storing futures and spot FX data for more detail. Finally you should set the field ib_idoffset in the private config file so that there is no chance of duplicate clientid connections; setting one system to have an id offset of 1, the next offset 1000, and so on should be sufficient.
+
+Finally you should set the field `ib_idoffset` in the [private config file](private.private_config.yaml) so that there is no chance of duplicate clientid connections; setting one system to have an id offset of 1, the next offset 1000, and so on should be sufficient.
 
 # Code and configuration management
 
@@ -143,24 +232,26 @@ Since the private directory is excluded from the git system (since you don't wan
 ```
 # pass commit quote as an argument
 # For example:
-# . commit 'this is a commit description string'
+# . commit "this is a commit description string"
 #
 # copy the contents of the private directory to another, git controlled, directory
 #
-cp -R ~/pysystemtrade/private/ ~/private/
+# we use rsync so we can exclude the git directory; which will screw things up as there is already one there
+#
+rsync -av ~/pysystemtrade/private/ ~/private --exclude .git
 #
 # git add/commit/push cycle on the main pysystemtrade directory
 #
 cd ~/pysystemtrade/
 git add *
-git commit -m $1
+git commit -m "$1"
 git push
 #
 # git add/commit/push cycle on the copied private directory
 #
 cd ~/private/
 git add *
-git commit -m $1
+git commit -m "$1"
 git push
 ```
 
@@ -171,7 +262,8 @@ A second script is run instead of a git pull:
 cd ~/private/
 git pull
 # copy the updated contents of the private directory to pysystemtrade private directory
-cp -R ~/private/ ~/pysystemtrade/
+# use rsync to avoid overwriting git metadata
+rsync -av ~/private/ ~/pysystemtrade/private --exclude .git
 # git pull from main pysystemtrade github repo
 cd ~/pysystemtrade/
 git pull
@@ -184,7 +276,25 @@ I use a local git repo for my private directory. Github are now offering free pr
 
 You can just re-run a daily backtest to generate your positions. This will probably mean that you end up refitting parameters like instrument weights and forecast scalars. This is pointless, a waste of time, and potentially dangerous. Instead I'd suggest using fixed values for all fitted parameters in a live trading system.
 
-The following convenience function *FIX ME NEED TO WRITE THIS* will take your backtested system, and create a new configuration object which includes fixed values for all estimated parameters (and will turn off all optimisation flags in the config). This object can then be written to YAML.
+The following convenience function will take your backtested system, and create a dict which includes fixed values for all estimated parameters:
+
+```python
+# Assuming futures_system already contains a system which has estimated values
+from systems.diagoutput import systemDiag
+
+sysdiag = systemDiag(system)
+sysdiag.yaml_config_with_estimated_parameters('someyamlfile.yaml',
+                                              attr_names=['forecast_scalars',
+                                                                  'forecast_weights',
+                                                                  'forecast_div_multiplier',
+                                                                  'forecast_mapping',
+                                                                  'instrument_weights',
+                                                                  'instrument_div_multiplier'])
+
+```
+
+Change the list of attr_names depending on what you want to output. You can then merge the resulting .yaml file into your simulation .yaml file. Don't forget to turn off the flags for `use_forecast_div_mult_estimates`,`use_forecast_scale_estimates`,`use_forecast_weight_estimates`,`use_instrument_div_mult_estimates`, and `use_instrument_weight_estimates`.  You don't need to change flag for forecast mapping, since this isn't done by default.
+
 
 # Linking to a broker
 
@@ -223,30 +333,71 @@ Various kinds of data files are used by the pysystemtrade production system. Bro
 - other state and control information
 - static configuration files
 
-The default option is to store these all into a mongodb database, except for configuration files which are stored as .yaml files.
+The default option is to store these all into a mongodb database, except for configuration files which are stored as .yaml and .csv files.
 
 ## Data backup
 
-Assuming that you are using the default mongob for storing, then I recommend using [mongodump](https://docs.mongodb.com/manual/reference/program/mongodump/#bin.mongodump) on a daily basis to back up your files. Other more complicated alternatives are available (see the [official mongodb man page](https://docs.mongodb.com/manual/core/backups/)). 
+### Mongo data
+
+Assuming that you are using the default mongob for storing, then I recommend using [mongodump](https://docs.mongodb.com/manual/reference/program/mongodump/#bin.mongodump) on a daily basis to back up your files. Other more complicated alternatives are available (see the [official mongodb man page](https://docs.mongodb.com/manual/core/backups/)). You may also want to do this if you're transferring your data to e.g. a new machine.
+
+To avoid conflicts you should [schedule](#scheduling) your backup during the 'deadtime' for your system (see scheduling).
+
+FIX ME ADD BACKUP TO CRONTAB
+
 
 Linux:
 ```
 # dumps everything into dump directory
 # make sure a mongo-db instance is running with correct directory, but ideally without any load; command line: `mongod --dbpath $MONGO_DATA`
-mongodump
+mongodump -o ~/dump/
 
-# copy dump directory to another machine or drive, here we assume there is a shared network drive mounted on all local machine
-cp -rf dump /media/shared-drive/mongo_backup/
+# copy dump directory to another machine or drive. This will create a directory $MONGO_BACKUP_PATH/dump/
+cp -rf ~/dump/* $MONGO_BACKUP_PATH
+```
 
-# To restore:
-# FIX ME DOES THIS OVERWRITE???
-cp -rf /media/shared-drive/mongo_backup/dump/ ~
-
+Then to restore, from a linux command line:
+```
+cp -rf $MONGO_BACKUP_PATH/dump/ ~
 # Now make sure a mongo-db instance is running with correct directory
+# If required delete any existing instances of the databases. If you don't do this the results may be unpredictable...
+mongo
+# This starts a mongo client 
+> show dbs
+admin              0.000GB
+arctic_production  0.083GB
+config             0.000GB
+local              0.000GB
+meta_db            0.000GB
+production         0.000GB
+# Most likely we want to remove 'production' and 'arctic_production'
+> use production
+> db.dropDatabase()
+> use arctic_production
+> db.dropDatabase()
+> exit
+# Now we run the restore (back on the linux command line)
 mongorestore 
 ```
 
-To avoid conflicts you should schedule your backup during the 'deadtime' for your system (see scheduling FIX ME LINK).
+
+### Mongo / csv data
+
+As I am super paranoid, I also like to output all my mongo_db data into .csv files, which I then regularly backup. This will allow a system recovery, should the mongo files be corrupted.
+
+This currently supports: FX, individual futures contract prices, multiple prices, adjusted prices.
+
+```python
+from sysproduction.update_backup_to_csv import backup_adj_to_csv
+
+backup_adj_to_csv()
+```
+
+Linux script:
+```
+. $SCRIPT_PATH/update_backup_to_csv
+```
+
 
 # Echoes, Logging, diagnostics and reporting
 
@@ -272,11 +423,19 @@ The above line will run the script `updatefxprices`, but instead of outputting t
 
 ### Cleaning old echo files
 
-Over time echo files can get... large. To avoid this a regularly scheduled crontab script [FIX ME LINK AND ADD TO CRON] chops them down to the last 20,000 lines.
+Over time echo files can get... large (my default position for logging is verbose). To avoid this you can run [this linux script](/sysproduction/linux/scripts/truncate_echo_files) which chops them down to the last 20,000 lines (FIX ME ADD TO CRONTAB)
 
 ## Logging 
 
-Logging in pysystemtrade is done via loggers. See the [userguide for more detail](/docs/userguide.md#logging).
+Logging in pysystemtrade is done via loggers. See the [userguide for more detail](/docs/userguide.md#logging). The logging levels are:
+
+self.log.msg("this is a normal message")
+self.log.terse("not really used in production code since everything is logged")
+self.log.warn("this is a warning message means something unexpected")
+self.log.error("this error message means ")
+self.log.critical("this critical message will always be printed, and an email will be sent to the user. Use this if user action is required")
+
+The default logger in production code is to the mongo database. This method will also try and email the user if a critical message is logged.
 
 ### Adding logging to your code
 
@@ -317,20 +476,21 @@ def top_level_function():
 
 The following should be used as logging attributes (failure to do so will break reporting code):
 
-- type: the argument passed when the logger is setup. Should be the name of the top level calling function.
-- stage: Used by stages in System objects
+- type: the argument passed when the logger is setup. Should be the name of the top level calling function. Production types include price collection, execution and so on.
+- stage: Used by stages in System objects, such as 'rawdata'
 - component: other parts of the top level function that have their own loggers
-- currency_code: Currency code (used for fx)
+- currency_code: Currency code (used for fx), format 'GBPUSD'
 - instrument_code: Self explanatory
+- contract_date: Self explanatory, format 'yyyymm' 
+- order_id: Self explanatory, used for live trading
 
-FIX ME TO DO: CRITICAL LOGS SHOULD EMAIL THE USER
 
 ### Getting log data back
 
 Python:
 ```python
 from syslogdiag.log import accessLogFromMongodb
-```
+
 # can optionally pass mongodb connection attributes here
 mlog = accessLogFromMongodb()
 # Return a list of strings per log line
@@ -366,6 +526,40 @@ FIX ME THIS SHOULD BE DONE EVERY DAY ONCE WE HAVE ENOUGH LOGS ADD TO CRONTAB
 
 ## Reporting
 
+Reports are run regularly to allow you to monitor the system and decide if any action should be taken. You can choose to have them emailed to you.
+
+Email address, server and password *must* be set in `private_config.yaml`:
+
+```
+email_address: "somebloke@anemailadress.com"
+email_pwd: "h0Wm@nyLetter$ub$tiute$"
+email_server: 'smtp.anemailadress.com'
+```
+
+### Roll report (Daily)
+
+Email version:
+
+Python:
+```python
+from sysproduction.email_roll_report import email_roll_report
+
+email_roll_report()
+
+```
+
+Linux script:
+```
+. $SCRIPT_PATH/email_roll_report
+```
+
+The ad-hoc version of this report (not emailed) is:
+
+Linux script:
+```
+. $SCRIPT_PATH/get_roll_info
+```
+
 
 # Scripts
 
@@ -377,14 +571,14 @@ Scripts are used to run python code which:
    - calculate positions
    - execute trades
    - get accounting data
-- runs reports, eithier regular or ad-hoc
+- runs report and diagnostics, eithier regular or ad-hoc
+- Do housekeeping duties, eg truncate log files and run backups
 
-Script are then called by schedulers (FIX ME LINK), or on an ad-hoc basis from the command line.
+Script are then called by [schedulers](#scheduling), or on an ad-hoc basis from the command line.
 
 ## Production system components
 
-### Get spot FX data from interactive brokers, write to MongoDB
-
+### Get spot FX data from interactive brokers, write to MongoDB (Daily)
 
 Python:
 ```python
@@ -397,6 +591,162 @@ Linux script:
 ```
 . $SCRIPT_PATH/update_fx_prices
 ```
+
+
+This will check for 'spikes', unusually large movements in FX rates eithier when comparing new data to existing data, or within new data. If any spikes are found in data for a particular contract it will not be written. The system will attempt to email the user when a spike is detected. The user will then need to [manually check the data](#manual-check-of-fx-price-data).
+.
+
+The threshold for spikes is set in the default.yaml file, or overidden in the private config, using the paramater `max_price_spike`. Spikes are defined as a large multiple of the average absolute daily change. So for example if a price typically changes by 0.5 units a day, and `max_price_spike=6`, then a price change larger than 3 units will trigger a spike.
+
+
+### Update sampled contracts (Daily)
+
+This ensures that we are currently sampling active contracts, and updates contract expiry dates.
+
+Python:
+```python
+from sysproduction.update_sampled_contracts import updated_sampled_contracts
+update_sampled_prices()
+```
+
+Linux script:
+```
+. $SCRIPT_PATH/update_sampled_contracts
+```
+
+
+### Update futures contract historical price data (Daily)
+
+This gets historical daily data from IB for all the futures contracts marked to sample in the mongoDB contracts database, and updates the Arctic futures price database.
+If update sampled contracts has not yet run, it may not be getting data for all the contracts you need.
+
+Python:
+```python
+from sysproduction.update_historical_prices import update_historical_prices
+update_historical_prices()
+```
+
+Linux script:
+```
+. $SCRIPT_PATH/update_historical_prices
+```
+
+This will check for 'spikes', unusually large movements in price eithier when comparing new data to existing data, or within new data. If any spikes are found in data for a particular contract it will not be written. The system will attempt to email the user when a spike is detected. The user will then need to [manually check the data](#manual-check-of-futures-contract-historical-price-data).
+.
+
+The threshold for spikes is set in the default.yaml file, or overidden in the private config, using the paramater `max_price_spike`. Spikes are defined as a large multiple of the average absolute daily change. So for example if a price typically changes by 0.5 units a day, and `max_price_spike=6`, then a price change larger than 3 units will trigger a spike.
+
+FIXME: An intraday sampling would be good
+
+
+### Update multiple and adjusted prices (Daily)
+
+This will update both multiple and adjusted prices with new futures per contract price data.
+
+It should be scheduled to run once the daily prices for individual contracts have been updated.
+
+Python:
+```python
+from sysproduction.update_multiple_adjusted_prices import update_multiple_adjusted_prices_daily
+update_multiple_adjusted_prices_daily()
+```
+
+Linux script:
+```
+. $SCRIPT_PATH/update_multiple_adjusted_prices
+```
+
+Spike checks are not carried out on multiple and adjusted prices, since they should hopefully be clean if the underlying per contract prices are clean.
+
+FIXME: An intraday sampling would be good
+
+
+### Manual check of futures contract historical price data 
+(Whever required)
+
+Python:
+```python
+from sysproduction.update_manual_check_historical_prices import update_manual_check_historical_prices
+update_manual_check_historical_prices(instrument_code)
+```
+
+Linux script:
+```
+. $SCRIPT_PATH/update_manual_check_historical_prices
+```
+
+The script will pull in data from interactive brokers, and the existing data, and check for spikes. If any spikes are found, then the user is interactively asked if they wish to (a) accept the spiked price, (b) use the previous time periods price instead, or (c) type a number in manually. You should check another data source to see if the spike is 'real', if so accept it, otherwise type in the correct value. Using the previous time periods value is only advisable if you are fairly sure that the price change wasn't real and you don't have a source to check with.
+
+If a new price is typed in then that is also spike checked, to avoid fat finger errors. So you may be asked to accept a price you have have just typed in manually if that still results in a spike. Accepted or previous prices are not spike checked again.
+
+Spikes are only checked on the FINAL price in each bar, and the user is only given the opportunity to correct the FINAL price. If the FINAL price is changed, then the OPEN, HIGH, and LOW prices are also modified; adding or subtracting the same adjustment that was made to the final price. The system does not currently use OHLC prices, but you should be aware of this creating potential inaccuracies. VOLUME figures are left unchanged if a price is corrected.
+
+Once all spikes are checked for a given contract then the checked data is written to the database, and the system moves on to the next contract.
+
+
+### Manual check of FX price data 
+(Whever required)
+
+Python:
+```python
+from sysproduction.update_manual_check_fx_prices import update_manual_check_fx_prices
+update_manual_check_fx_prices(fx_code)
+```
+
+Linux script:
+```
+. $SCRIPT_PATH/uupdate_manual_check_fx_prices
+```
+
+See [manual check of futures contract prices](#manual-check-of-futures-contract-historical-price-data) for more detail. Note that as the FX data is a single series, no adjustment is required for other values.
+
+
+### Roll adjusted prices 
+(Whenever required)
+
+Allows you to change the roll state and roll from one priced contract to the next.
+
+Python:
+```python
+from sysproduction.update_roll_adjusted_prices import update_roll_adjusted_prices
+update_roll_adjusted_prices(instrument_code)
+```
+
+Linux script:
+```
+. $SCRIPT_PATH/update_roll_adjusted_prices
+```
+
+### Run an updated backtest system (overnight) for a single strategy
+
+The paradigm for pysystemtrade is that we run a new backtest nightly, which outputs some parameters that a trading engine uses the next day. For the basic system defined in the core code those parameters are a pair of position buffers for each instrument. The trading engine will trade if the current position lies outside those buffer values.
+
+This can easily be adapted for different kinds of trading system. So for example, for a mean reversion system the nightly backtest could output the target prices for the range. For an intraday system it could output the target position sizes and entry  / exit points. This process reduces the amount of work the trading engine has to do during the day.
+
+An example script to run an udpated backtest system is provided, however you will almost certainly want to modify this, at the very least to change the configuration file and [strategy name](#strategies), and possibly the account currency.
+
+
+Python:
+```python
+from sysproduction.example_run_system import run_system
+run_system()
+```
+
+Linux script:
+```
+. $SCRIPT_PATH/update_system_example
+```
+
+
+This example script does the following:
+
+- get the amount of capital currently in your trading account. This is set by  FIX ME CAPITAL MODULE TO BE WRITTEN
+- run a backtest using that amount of capital
+- get the position buffer limits, and save these down
+- store the backtest state (pickled cache) in the directory specified by the parameter csv_backup_directory (set in your private config file, or the system defaults file), subdirectory strategy name, filename date and time generated. It also copies the config file used to generate this backtest with a similar naming pattern.
+
+FIX ME TO DO: COULD HAVE GLOBAL YAML FILE WITH LIST OF STRATEGIES AND SCRIPTS TO RUN, ALSO CURRENCY
+
 
 
 ## Ad-hoc diagnostics
@@ -413,6 +763,67 @@ Linux command line: (arguments are asked for after script is run)
 ```
 cd $SCRIPT_PATH
 . read_fx_prices
+```
+
+### Recent futures contract prices (FIX ME TO DO)
+
+### Recent multiple prices (FIX ME TO DO)
+
+### Recent adjusted prices (FIX ME TO DO)
+
+### Roll information
+
+Get information about which markets to roll. There is also an email version of this report.
+
+Python:
+```python
+from sysproduction.get_roll_info import get_roll_info
+get_roll_info("EDOLLAR") ## Defaults to 'ALL'
+```
+
+Linux command line: (arguments are asked for after script is run)
+```
+cd $SCRIPT_PATH
+. get_roll_info
+```
+
+### Examine pickled backtest state object
+
+FIX ME TO DO
+
+Python:
+```python
+```
+
+
+## Housekeeping
+
+### Delete old pickled backtest state objects
+
+TO DO
+
+### Clean up old log files
+
+
+Python:
+```python
+from sysproduction.truncateLogFiles import truncate_log_files
+truncate_log_files()
+```
+
+Linux command line: 
+```
+cd $SCRIPT_PATH
+. truncate_log_files
+```
+
+### Truncate echo log files
+
+
+Linux command line: 
+```
+cd $SCRIPT_PATH
+. truncate_echo_files
 ```
 
 # Scheduling
@@ -438,21 +849,28 @@ Things to consider when constructing a schedule include:
 
 Here is the schedule I use for my own trading system. Since I trade US, European, and Asian markets, I trade between midnight (9am in Asia) and 8pm (4pm in New York) local UK time. This reduces the 'dead time' when reporting and backups can take place to between 8pm and midnight.
 
-- Midnight: Launch processes for monitoring account value, executing trades, and gathering intraday prices
+- Midnight: If you are restarting IB Gateway on a daily basis, do it now
+- Midnight: Launch processes for monitoring account value, executing trades, generating trades, and gathering intraday prices
 - 6am: Get daily spot FX prices
 - 6am: Run some lightweight morning reports
 - 8pm: Stop processes for monitoring account value, executing trades, and gathering intraday prices
 - 8pm: Clear client id tracker used by IB to avoid conflicts
 - 8:30pm: Get daily 'closing' prices (some of these may not be technically closes if markets have not yet closed)
 - 9:00pm: Run daily reports, and any computationally intensive processes (like running a backtest based on new prices)
+- 11pm: If you are restarting IB Gateway on a daily basis, close it now.
 - 11pm: Run backups
-- 11pm: Truncate echo files, discard log file entries more than one year old, 
+- 11pm: Truncate echo files, discard log file entries more than one year old, clear IB locked client IDs
 
 There will be flexibility in this schedule depending on how long different processes take. Notice that I don't shut down and then launch a new interactive brokers gateway daily. Some people may prefer to do this, but I am using an authentication protocol which requires manual intervention. [This product](https://github.com/ib-controller/ib-controller/) is popular for automating the lauch of the IB gateway.
 
+## Formal list of scheduled tasks
+
+TO DO
+
+
 ## Choice of scheduling systems
 
-You need some sort of scheduling system to kick off the various processes.
+You need some sort of scheduling system to kick off the various top level processes.
 
 ### Linux cron
 
@@ -468,6 +886,44 @@ You can use python itself as a scheduler, using something like [this](https://gi
 
 ### Manual system
 
-It's possible to run pysystemtrade without any scheduling, by manually starting the neccessary processes as required. This option might make sense for traders who are not running a fully automated system (see FIX ME REF). 
+It's possible to run pysystemtrade without any scheduling, by manually starting the neccessary processes as required. This option might make sense for traders who are not running a fully automated system.
+
+# Production system concepts
+
+## Configuration files
+
+### Private config
+
+TO DO
+max_price_spike
+
+### System defaults
 
 
+TO DO
+
+### Strategy config
+
+
+TO DO
+
+## Strategies
+
+TO DO
+
+# Production system data and data flow
+
+
+TO DO
+
+
+# Production system classes
+
+## Data blobs and the classes that feed on them
+
+TO DO
+
+
+## Reporting and diagnostics
+
+TO DO

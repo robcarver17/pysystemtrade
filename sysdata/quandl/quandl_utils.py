@@ -1,21 +1,16 @@
-import yaml
+from sysdata.private_config import get_private_config_key_value
+from syscore.objects import missing_data
 
-from syscore.fileutils import get_filename_for_package
-
-QUANDL_PRIVATE_KEY_FILE = get_filename_for_package("private.private_config.yaml")
-
-def load_private_key(key_file =QUANDL_PRIVATE_KEY_FILE , dict_key = 'quandl_key'):
+def load_private_key():
     """
     Tries to load a private key
 
     :return: key
     """
+    dict_key = 'quandl_key'
 
-    try:
-        with open(key_file) as file_to_parse:
-            yaml_dict = yaml.load(file_to_parse)
-        key = yaml_dict[dict_key]
-    except:
+    key = get_private_config_key_value(dict_key)
+    if key is missing_data:
         # no private key
         print("No private key found for QUANDL - you will be subject to data limits")
         key = None

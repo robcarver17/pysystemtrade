@@ -1,8 +1,31 @@
 """
 Do fun things with objects and classes
 """
-
+from collections import  namedtuple
 import importlib
+
+class _named_object():
+    def __init__(self, name):
+        self._name= str(name)
+    def __repr__(self):
+        return self._name
+
+missing_contract = _named_object("missing contract")
+missing_instrument = _named_object("missing instrument")
+missing_file = _named_object("missing file")
+missing_data = _named_object("missing data")
+
+data_error = _named_object("data error")
+
+success = _named_object("success")
+failure = _named_object("failure")
+
+arg_not_supplied = _named_object("arg not supplied")
+
+report_config = namedtuple("config", "title function output")
+table = namedtuple("table", "Heading Body")
+header = namedtuple("header", "Heading")
+body_text = namedtuple("bodytext", "Text")
 
 
 def get_methods(an_object):
@@ -159,6 +182,8 @@ def hasallattr(some_object, attrlist=[]):
 
     """
     return all([hasattr(some_object, attrname) for attrname in attrlist])
+
+
 
 
 if __name__ == '__main__':

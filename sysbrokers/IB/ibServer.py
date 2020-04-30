@@ -1,78 +1,88 @@
-from sysbrokers.baseServer import brokerServer
-from ibapi import wrapper
-import queue
-from sysbrokers.baseServer import FINISHED
+"""
+Handlers used by https://ib-insync.readthedocs.io/api.html flavour
+
+"""
+
 from syslogdiag.log import logtoscreen
+from syscore.objects import success
+from sysbrokers.baseServer import brokerServer
 
-class ibServer(wrapper.EWrapper, brokerServer):
-    """
-    Server specific to interactive brokers
+## List of IB error codes that are blacklisted eg serious and require action
+IB_IS_ERROR = [200]
 
-    Overrides the methods in the base class specifically for IB
+## For each IB error code, map to one of my error types
+## Useful for deciding which process should handle it
+IB_ERROR_TYPES = {200:'invalid_contract'}
 
-    """
+def from_ibcontract_to_tuple(ibcontract):
+    return (ibcontract.symbol, ibcontract.lastTradeDateOrContractMonth)
 
-    def __init__(self, log=logtoscreen("IBserver")):
-        self._my_contract_details = {}
-        self._my_historic_data_dict = {}
+class ibServer(brokerServer):
 
-        self.log = log
+    def __init__(self, log=logtoscreen("ibServer")):
+        self._contract_register = dict()
+        super().__init__(log=log)
 
+    def add_contract_to_register(self, ibcontract, log_tags={}):
+        """
+        The contract register is used to map IB contracts back to instrument and contractid
+        This makes logging cleaner
 
-    def error(self, id, errorCode, errorString):
-        ## Overriden method
-        ## Uses method in brokerServer to actually handle the error
-        ## WHITELIST?
+        :param ibcontract: an IB contract tuple (
+        :param log_tags: dict of keywords that will pass to log
+        :return:
+        """
+        contract_register = self._contract_register
+        contract_tuple = from_ibcontract_to_tuple(ibcontract)
+        contract_register[contract_tuple] = log_tags
 
-        errormsg = "IB error id %d errorcode %d string %s" % (id, errorCode, errorString)
-        self.broker_error(errormsg)
+        return success
 
-    ## get contract details code
-    def init_contractdetails(self, reqId):
-        contract_details_queue = self._my_contract_details[reqId] = queue.Queue()
+    def get_contract_log_tags_from_register(self, ibcontract):
+        """
+         The contract register is used to map IB contracts back to instrument and contractid
+        This makes logging cleaner
 
-        return contract_details_queue
+        :param contract: IB contract
+        :return: log_tags, dict
+        """
+        if ibcontract is None:
+            return {}
+        contract_register = self._contract_register
+        contract_tuple = from_ibcontract_to_tuple(ibcontract)
+        log_tags = contract_register.get(contract_tuple, {})
 
-    def contractDetails(self, reqId, contractDetails):
-        ## overridden method
+        return log_tags
 
-        if reqId not in self._my_contract_details.keys():
-            self.init_contractdetails(reqId)
+    def error_handler(self, reqid, error_code, error_string, contract):
+        """
+        Error handler called from server
+        Needs to be attached to ib connection
 
-        self._my_contract_details[reqId].put(contractDetails)
+        :param reqid: IB reqid
+        :param error_code: IB error code
+        :param error_string: IB error string
+        :param contract: IB contract or None
+        :return: success
+        """
+        if contract is None:
+            contract_str = ""
+        else:
+            contract_str = " (%s/%s)" % (contract.symbol, contract.lastTradeDateOrContractMonth)
 
-    def contractDetailsEnd(self, reqId):
-        ## overriden method
-        if reqId not in self._my_contract_details.keys():
-            self.init_contractdetails(reqId)
+        msg = "Reqid %d: %d %s %s" % (reqid, error_code, error_string, contract_str)
 
-        self._my_contract_details[reqId].put(FINISHED)
+        # Associate a contract with tags eg my instrument and contract id
+        log_tags = self.get_contract_log_tags_from_register(contract)
 
-    ## Historic data code
-    def init_historicprices(self, tickerid):
-        historic_data_queue = self._my_historic_data_dict[tickerid] = queue.Queue()
+        iserror = error_code in IB_IS_ERROR
+        if iserror:
+            ## Serious requires some action
+            myerror_type = IB_ERROR_TYPES.get(error_code, "generic")
+            self.broker_error(msg, myerror_type, log_tags)
 
-        return historic_data_queue
+        else:
+            ## just a warning / general message
+            self.broker_message(msg, log_tags)
 
-
-    def historicalData(self, tickerid , bar):
-
-        ## Overriden method
-        ## Note I'm choosing to ignore barCount, WAP and hasGaps but you could use them if you like
-        bardata=(bar.date, bar.open, bar.high, bar.low, bar.close, bar.volume)
-
-        historic_data_dict=self._my_historic_data_dict
-
-        ## Add on to the current data
-        if tickerid not in historic_data_dict.keys():
-            self.init_historicprices(tickerid)
-
-        historic_data_dict[tickerid].put(bardata)
-
-    def historicalDataEnd(self, tickerid, start:str, end:str):
-        ## overriden method
-
-        if tickerid not in self._my_historic_data_dict.keys():
-            self.init_historicprices(tickerid)
-
-        self._my_historic_data_dict[tickerid].put(FINISHED)
+        return success

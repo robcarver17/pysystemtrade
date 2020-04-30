@@ -1,6 +1,7 @@
 from sysdata.fx.spotfx import fxPrices, fxPricesData
 from sysdata.arctic.arctic_connection import articConnection
 from syslogdiag.log import logtoscreen
+import pandas as pd
 
 SPOTFX_COLLECTION = 'spotfx_prices'
 
@@ -42,6 +43,6 @@ class arcticFxPricesData(fxPricesData):
 
     def _add_fx_prices_without_checking_for_existing_entry(self, currency_code, fx_price_data):
         self.log.label(currency_code = currency_code)
-        self._arctic.library.write(currency_code, fx_price_data)
+        self._arctic.library.write(currency_code, pd.Series(fx_price_data))
         self.log.msg("Wrote %s lines of prices for %s to %s" % (len(fx_price_data), currency_code, self.name))
 

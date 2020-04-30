@@ -69,11 +69,11 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
         ## What if not found? CHECK
 
         ## Returns a data frame which should have the right format
-        data = item.data
+        data = pd.DataFrame(item.data)
 
         return futuresContractPrices(data)
 
-    def write_prices_for_contract_object(self, futures_contract_object, futures_price_data):
+    def _write_prices_for_contract_object_no_checking(self, futures_contract_object, futures_price_data):
         """
         Write prices
         CHECK prices are overriden on second write
@@ -83,11 +83,12 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
         :return: None
         """
 
-        self.log.label(instument_code = futures_contract_object.instrument_code,
-                       contract_date = futures_contract_object.contract_date)
+        self.log.label(instrument_code = futures_contract_object.instrument_code,
+                       contract_date = futures_contract_object.date)
         ident = self._keyname_given_contract_object(futures_contract_object)
-        self._arctic.library.write(ident, futures_price_data)
-        self.log.msg("Wrote %s lines of prices for %s to %s" % (len(futures_price_data), futures_contract_object.ident(), self.name))
+        futures_price_data_aspd = pd.DataFrame(futures_price_data)
+        self._arctic.library.write(ident, futures_price_data_aspd)
+        self.log.msg("Wrote %s lines of prices for %s to %s" % (len(futures_price_data), str(futures_contract_object.ident()), self.name))
 
 
     def _all_keynames_in_library(self):
@@ -101,8 +102,8 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
         :param futures_contract_object:
         :return: None
         """
-        self.log.label(instument_code = futures_contract_object.instrument_code,
-                       contract_date = futures_contract_object.contract_date)
+        self.log.label(instrument_code = futures_contract_object.instrument_code,
+                       contract_date = futures_contract_object.date)
 
         ident = self._keyname_given_contract_object(futures_contract_object)
         self._arctic.library.delete(ident)
@@ -126,7 +127,7 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
         """
 
         list_of_contract_tuples = self._get_contract_tuples_with_price_data()
-        list_of_contracts = [futuresContract.simple(contract_tuple[0], contract_tuple[1]) for contract_tuple in list_of_contract_tuples]
+        list_of_contracts = [futuresContract(contract_tuple[0], contract_tuple[1]) for contract_tuple in list_of_contract_tuples]
 
         return list_of_contracts
 

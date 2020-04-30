@@ -190,6 +190,7 @@ class _PortfoliosCalculateWeights(_PortfoliosInputs):
         if hasattr(system, "accounts"):
             pandl = self.pandl_across_subsystems()
 
+
         else:
             error_msg = "You need an accounts stage in the system to estimate instrument weights"
             self.log.critical(error_msg)

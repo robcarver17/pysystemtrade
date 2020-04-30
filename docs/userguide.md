@@ -40,7 +40,9 @@ Table of Contents
          * [Using the standard data objects](#using-the-standard-data-objects)
             * [Generic data objects](#generic-data-objects)
             * [The <a href="/sysdata/csv/csv_sim_futures_data.py">csvFuturesSimData</a> object](#the-csvfuturessimdata-object)
-            * [The arcticSimData object](#the-arcticsimdata-object)
+            * [The <a href="/sysdata/arctic/arctic_and_mongo_sim_futures_data.py">arcticSimData</a> object](#the-arcticsimdata-object)
+               * [Setting up your Arctic and Mongo DB databases](#setting-up-your-arctic-and-mongo-db-databases)
+               * [Using arcticFuturesSimData](#using-arcticfuturessimdata)
          * [Creating your own data objects](#creating-your-own-data-objects)
             * [The Data() class](#the-data-class)
       * [Configuration](#configuration)
@@ -49,6 +51,7 @@ Table of Contents
             * [2) Creating a configuration object from a file](#2-creating-a-configuration-object-from-a-file)
             * [3) Creating a configuration object from a pre-baked system](#3-creating-a-configuration-object-from-a-pre-baked-system)
             * [4) Creating a configuration object from a list](#4-creating-a-configuration-object-from-a-list)
+            * [5) Creating configuration files from .csv files](#5-creating-configuration-files-from-csv-files)
          * [Project defaults](#project-defaults)
             * [Handling defaults when you change certain functions](#handling-defaults-when-you-change-certain-functions)
             * [How the defaults work](#how-the-defaults-work)
@@ -84,6 +87,7 @@ Table of Contents
             * [New or modified raw data classes](#new-or-modified-raw-data-classes)
          * [Stage: Rules](#stage-rules)
          * [Trading rules](#trading-rules)
+            * [Data and data arguments](#data-and-data-arguments)
          * [The Rules class, and specifying lists of trading rules](#the-rules-class-and-specifying-lists-of-trading-rules)
             * [Creating lists of rules from a configuration object](#creating-lists-of-rules-from-a-configuration-object)
             * [Interactively passing a list of trading rules](#interactively-passing-a-list-of-trading-rules)
@@ -102,6 +106,7 @@ Table of Contents
             * [Using estimated weights and diversification multiplier(/systems/forecast_combine.py)](#using-estimated-weights-and-diversification-multipliersystemsforecast_combinepy)
                * [Estimating the forecast weights](#estimating-the-forecast-weights)
                * [Estimating the forecast diversification multiplier](#estimating-the-forecast-diversification-multiplier)
+            * [Forecast mapping](#forecast-mapping)
             * [Writing new or modified forecast combination stages](#writing-new-or-modified-forecast-combination-stages)
          * [Stage: Position scaling](#stage-position-scaling)
             * [Using the standard <a href="/systems/positionsizing.py">PositionSizing class</a>](#using-the-standard-positionsizing-class)
@@ -123,6 +128,7 @@ Table of Contents
             * [Costs](#costs)
             * [Writing new or modified accounting stages](#writing-new-or-modified-accounting-stages)
    * [Processes](#processes)
+      * [File names](#file-names)
       * [Logging](#logging)
          * [Basic logging](#basic-logging)
          * [Advanced logging](#advanced-logging)
@@ -137,7 +143,8 @@ Table of Contents
             * [Equal weights](#equal-weights)
             * [One period (not recommend)](#one-period-not-recommend)
             * [Bootstrapping (recommended, but slow)](#bootstrapping-recommended-but-slow)
-            * [Shrinkage](#shrinkage)
+            * [Shrinkage (okay, but trick to calibrate)](#shrinkage-okay-but-trick-to-calibrate)
+            * [Handcrafting (recommended)](#handcrafting-recommended)
          * [Post processing](#post-processing)
       * [Estimating correlations and diversification multipliers](#estimating-correlations-and-diversification-multipliers)
       * [Capital correction: Varying capital](#capital-correction-varying-capital)
@@ -171,6 +178,7 @@ Table of Contents
             * [Forecast diversification multiplier  (estimated)](#forecast-diversification-multiplier--estimated)
                * [Forecast correlation calculation](#forecast-correlation-calculation)
                * [Parameters for estimation of forecast diversification multiplier](#parameters-for-estimation-of-forecast-diversification-multiplier)
+               * [Forecast mapping](#forecast-mapping-1)
          * [Position sizing stage](#position-sizing-stage)
             * [Capital scaling parameters](#capital-scaling-parameters)
          * [Portfolio combination stage](#portfolio-combination-stage)
@@ -186,7 +194,7 @@ Table of Contents
             * [Costs](#costs-1)
             * [Capital correction](#capital-correction-1)
 
-TOC created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
+Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 
 
 <a name="how_do_i">
@@ -327,6 +335,8 @@ from systems.provided.futures_chapter15.basesystem import futures_system
 my_config=Config("private.this_system_name.config.yaml"))
 system=futures_system(config=my_config)
 ```
+
+See [here](#filenames) for how to specify filenames in pysystemtrade.
 
 ### Option 2: Change the configuration object; create a new system
 
@@ -471,6 +481,8 @@ my_config=Config("private.this_system_name.config.yaml")
 from systems.provided.futures_chapter15.basesystem import futures_system
 system=futures_system(config=my_config)
 ```
+
+See [here](#filenames) for how to specify filenames in pysystemtrade.
 
 ### Change instruments: Change the configuration object
 
@@ -714,7 +726,9 @@ from systems.provided.futures_chapter15.basesystem import futures_system
 data=csvFuturesSimData(datapath_dict=dict(adjusted_prices = "private.system_name.adjusted_price_data"))
 system=futures_system(data=data)
 ```
-Notice that we use python style "." internal references within a project, we don't give actual path names. The full list of keys that you can use in the `datapath_dict` are `config_data` (configuration and costs), `multiple_price_data` (prices for current, next and carry contracts), and `spot_fx_data` (for FX prices). Note that you can't put adjusted prices and carry data in the same directory since they use the same file format.
+Notice that we use python style "." internal references within a project, we don't give actual path names. See [here](#filenames) for how to specify filenames in pysystemtrade.
+
+The full list of keys that you can use in the `datapath_dict` are `config_data` (configuration and costs), `multiple_price_data` (prices for current, next and carry contracts), and `spot_fx_data` (for FX prices). Note that you can't put adjusted prices and carry data in the same directory since they use the same file format.
 
 There is more detail about using .csv files [here](#csv).
 
@@ -1063,6 +1077,9 @@ from sysdata.configdata import Config
 my_config=Config("private.filename.yaml") ## assuming the file is in "pysystemtrade/private/filename.yaml"
 ```
 
+See [here](#filenames) for how to specify filenames in pysystemtrade.
+
+
 In theory there are no restrictions on what is nested in the dictionary (but
 the top level must be a dict); although it is easier to use str, float, int,
 lists and dicts, and the standard project code only requires those (if you're a
@@ -1364,8 +1381,25 @@ to record the changes you've made. Note this will save trading rule functions
 as functions; this may not work and it will also be ugly. So you should use
 strings to define rule functions (see [rules](#rules) for more information)
 
-A future version of this project will allow you to save the final optimised
-weights for instruments and forecasts into fixed weights for live trading.
+You can also save the final optimised parameters into fixed weights for live trading:
+
+
+```python
+# Assuming system already contains a system which has estimated values
+from systems.diagoutput import systemDiag
+
+sysdiag = systemDiag(system)
+sysdiag.yaml_config_with_estimated_parameters('someyamlfile.yaml',
+                                              attr_names=['forecast_scalars',
+                                                                  'forecast_weights',
+                                                                  'forecast_div_multiplier',
+                                                                  'forecast_mapping',
+                                                                  'instrument_weights',
+                                                                  'instrument_div_multiplier'])
+
+```
+Change the list of attr_names depending on what you want to output. You can then merge the resulting .yaml file into your simulated .yaml file. Don't forget to turn off the flags for `use_forecast_div_mult_estimates`,`use_forecast_scale_estimates`,`use_forecast_weight_estimates`,`use_instrument_div_mult_estimates`, and `use_instrument_weight_estimates`.  You don't need to change flag for forecast mapping, since this isn't done by default.
+
 
 ### Modifying the configuration class
 
@@ -1644,6 +1678,7 @@ system.accounts.portfolio().sharpe() ## Not coming from the cache, but this will
 
 ```
 
+See [here](#filenames) for how to specify filenames in pysystemtrade.
 
 
 ### Advanced caching
@@ -2424,6 +2459,60 @@ Note that *`forecast_scalar`* isn't strictly part of the trading rule
 definition, but if included here will be used instead of the seperate
 `config.forecast_scalar` parameter (see the [next stage](#stage_scale) ).
 
+#### Data and data arguments
+
+All the items in the `data` list passed to a trading rule are string references to methods in the system object that (usually) take a single argument, the instrument code. In theory these could be anywhere in the system object, but by convention they should only be in `system.rawdata` or `system.data` (if they are in stages that call the rules stage, you will get infinite recursion and things will break), with perhaps occasional reference to `system.get_instrument_list()`. The advantage of using methods in `rawdata` is that these are cached, and can be re-used. It's strongly recommended that you use methods in `rawdata` for trading rules.
+
+What if you want to pass arguments to the data method? For example, you might want to pre-calculate the moving averages of different lengths in `rawdata` and then reuse them to save time. Or you might want to calculate skew over a given time period for all markets and then take a cross sectional average to use in a relative value rule. 
+
+We can do this by passing special kinds of `other_args` which are pre-fixed with underscores, eg "_". If an element in the other_ags dictionary has no underscores, then it is passed to the trading rule function as a keyword argument. If it has one leading underscore eg "_argname", then it is passed to the first method in the data list as a keyword argument. If it has two underscores eg "__argname", then it is passed to the second method in the data list, and so on.
+
+Let's see how we could implement the moving average example:
+
+
+```python
+from systems.provided.futures_chapter15.basesystem import *
+from systems.forecasting import TradingRule
+
+data = csvFuturesSimData()
+config = Config(
+        "systems.provided.futures_chapter15.futuresconfig.yaml")
+
+# First let's add a new method to our rawdata
+# As well as the usual instrument_code this has a keyword argument, span, which we are going to access in our trading rule definitions
+class newRawData(FuturesRawData):
+    def moving_average(self, instrument_code, span=8):
+        price = self.get_daily_prices(instrument_code)
+        return price.ewm(span=span).mean()
+
+# Now for our new trading rule. Multiplier is a trivial variable, included to show you can mix other arguments and data arguments
+def new_ewma(fast_ewma, slow_ewma, vol, multiplier=1):
+    raw_ewmac = fast_ewma - slow_ewma
+
+    raw_ewmac = raw_ewmac * multiplier
+    
+    return raw_ewmac / vol.ffill()
+
+# Now we define our first trading rule. Notice that data gets two kinds of moving average, but the first one will have span 2 and the second span 8
+trading_rule1 = TradingRule(dict(function=new_ewma, data = ['rawdata.moving_average', 'rawdata.moving_average', 'rawdata.daily_returns_volatility'], other_args = dict(_span=2, __span=8, multiplier=1)))
+
+# The second trading rule reuses one of the ewma, but uses a default value for the multiplier and the first ewma span (not great practice, but illustrates what is possible)
+trading_rule2 = TradingRule(dict(function=new_ewma, data = ['rawdata.moving_average', 'rawdata.moving_average', 'rawdata.daily_returns_volatility'], other_args = dict(__span=32)))
+
+rules=Rules(dict(ewmac2_8 = trading_rule1, ewmac8_32 = trading_rule2))
+
+system = System([
+    Account(), Portfolios(), PositionSizing(), newRawData(),
+    ForecastCombine(), ForecastScaleCap(), rules
+], data, config)
+
+# This will now work in the usual way
+system.rules.get_raw_forecast("EDOLLAR", "ewmac8_32")
+system.rules.get_raw_forecast("EDOLLAR", "ewmac2_8")
+```
+
+Notes: methods passed as data pointers must only have a single argument plus optionally keyword arguments. Multiple non keyword arguments will break. Also in specifying the other arguments you don't have to provide keyword arguments for all data elements, or for the trading rule: all are optional.
+
 
 ### The Rules class, and specifying lists of trading rules
 
@@ -2911,7 +3000,15 @@ What values should we use for a,b and threshold (t)? We want to satisfy the foll
 - We require b = (c*a)/(c-t)
 - Given our parameters, and the distribution of the raw forecast (assumed to be Gaussian), the average absolute value of the final distribution should be unchanged.
 
-The function `syscore.algos.return_mapping_params` will return values of b_param and threshold, assuming capped_value = 20. This uses results from a regression that gives the right parameters values for a_param in an interval 1.2 < a < 1.7
+These values aren't estimated by default, so you can use this external function:
+
+```python
+# Assuming futures_system already contains a system which has positions
+from systems.diagoutput import systemDiag
+
+sysdiag = systemDiag(futures_system)
+sysdiag.forecast_mapping()
+```
 
 Parameters are specified by market as follows:
 
@@ -3642,6 +3739,66 @@ This section gives much more detail on certain important processes that span
 multiple stages: logging, estimating correlations and diversification
 multipliers, optimisation, and capital correction.
 
+<a name="filenames"> </a>
+
+## File names
+
+There are a number of different ways one might want to specify path and file names. Firstly, we could use a *relative* pathname. A relative pathname Secondly, we might want to use an *absolute* path, which is the actual full pathname. This is useful if we want to access something outside the pysystemtrade directory structure. Finally we have the issue of OS differences; are you a '\' or a '/' person?
+
+For convenience I have written some functions that translate betweeen these different formats, and the underlying OS representation.
+
+```python
+from syscore.fileutils import get_resolved_pathname, get_filename_for_package
+
+# Resolve both filename and pathname jointly. Useful when writing the name of eg a configuration file
+## Absolute format
+### Windows (note use of double backslash in str) Make sure you include the initial backslash, or will be treated as relative format
+get_filename_for_package("\\home\\rob\\file.csv")
+
+### Unix. Make sure you include the initial forward slash, 
+get_filename_for_package("/home/rob/file.csv")
+
+## Relative format to find a file in the installed pysystemtrade 
+### Dot format. Notice there is no initial 'dot' and we don't need to include 'pysystemtrade' 
+get_filename_for_package("syscore.tests.pricedata.csv")
+
+# Specify the path and filename seperately
+get_filename_for_package("\\home\\rob","file.csv")
+get_filename_for_package("/home/rob","file.csv")
+get_filename_for_package("syscore.tests","pricedata.csv")
+
+# Resolve just the pathname
+get_resolved_pathname("/home/rob")
+get_resolved_pathname("\\home\\rob")
+get_resolved_pathname("syscore.tests")
+
+## DON'T USE THESE:-
+### It's possible to use Unix or Windows for relative filenames, but I prefer not to, so there is a clearer disctinction between absolute and relative. 
+### However this works:
+get_filename_for_package("syscore/tests/pricedata.csv")
+
+### Similarly, I prefer not to use dot format for absolute filenames but it will work
+get_filename_for_package(".home.rob.file.csv")
+
+### Finally, You can mix and match the above formats in a single string, but it won't make the code very readable!
+get_filename_for_package("\\home/rob.file.csv")
+
+```
+
+
+These functions are used internally whenever a file name is passed in, so feel free to use any of these file formats when specifying eg a configuration filename.
+```
+### Absolute: Windows (note use of double backslash in str)
+"\\home\\rob\\file.csv"
+
+### Absolute: Unix.
+"/home/rob/file.csv"
+
+## Relative: Dot format to find a file in the installed pysystemtrade 
+"syscore.tests.pricedata.csv"
+```
+
+
 <a name="logging"> </a>
 
 ## Logging
@@ -3652,8 +3809,8 @@ The system, data, config and each stage object all have a .log attribute, to
 allow the system to report to the user; as do the functions provided to
 estimate correlations and do optimisations.
 
-In the current version this just prints to screen, although in production systems it
-can write to databases and files (FIX ME LINK), and send emails if critical
+In the backtest this just prints to screen, although in [production systems it
+will write to a database](/docs/production.md#logging), and send emails if critical
 events are happening.
 
 The pre-baked systems I've included all include a parameter log_level. This can
@@ -3677,8 +3834,9 @@ happening you should do one of the following:
 #
 self.log.msg("this is a normal message, will only be printed if logging is On")
 self.log.terse("this message will only be printed if logging is Terse or On")
-self.log.warn("this message will always be printed")
-self.log.error("this message will always be printed, and an exception will be raised")
+self.log.warn("this warning message will always be printed")
+self.log.error("this error message will always be printed")
+self.log.critical("this critical message will always be printed, and an exception will be raised")
 ```
 
 I strongly encourage the use of logging, rather than printing, since printing
@@ -3694,14 +3852,14 @@ to monitor system behaviour than to try and create quantitative diagnostics.
 For this reason I'm a big fan of logging with *attributes*. Every time a log
 method is called, it will typically know one or more of the following:
 
-- which 'type' of process owns the logger. For example if it's part of a
-  base_system object, its type will be 'base_system'. Future types will
-  probably include price collection, execution and so on.
-- which 'stage' or sub process is involved, such as 'rawdata'.
-- which instrument code is involved
-- which trading rule variation is involved
-- which specific futures contract we're looking at (for the future)
-- which order id (for the future)
+- type: the argument passed when the logger is setup. Should be the name of the top level calling function. Production types include price collection, execution and so on.
+- stage: Used by stages in System objects, such as 'rawdata'
+- component: other parts of the top level function that have their own loggers
+- currency_code: Currency code (used for fx), format 'GBPUSD'
+- instrument_code: Self explanatory
+- contract_date: Self explanatory, format 'yyyymm' 
+- order_id: Self explanatory, used for live trading
+
 
 Then we'll be able to save the log message with its attributes in a database
 (in future). We can then query the database to get, for example, all the log
@@ -3845,8 +4003,8 @@ exponential weight for correlations, means, and volatility.
 
 ### Methods
 
-There are four methods provided to optimise with in the function I've included.
-Personally I'd use shrinkage if I wanted a quick answer, then bootstrapping.
+There are five methods provided to optimise with in the function I've included.
+Personally I'd use handcrafting, which is the default.
 
 #### Equal weights
 
@@ -3898,7 +4056,7 @@ method: bootstrap
 Notice that if you equalise Sharpe then this will override the effect of any
 pooling or changes to cost calculation.
 
-#### Shrinkage
+#### Shrinkage (okay, but trick to calibrate)
 
 This is a basic shrinkage towards a prior of equal sharpe ratios, and equal
 correlations; with priors equal to the average of estimates from the data.
@@ -3916,6 +4074,15 @@ estimates.
 
 Notice that if you equalise Sharpe by shrinking with a factor of 1.0, then this
 will override the effect of any pooling or changes to cost calculation.
+
+
+#### Handcrafting (recommended)
+
+See [my series of blog posts](https://qoppac.blogspot.com/2018/12/portfolio-construction-through.html)
+
+```
+   method: handcraft
+```
 
 
 ### Post processing

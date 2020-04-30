@@ -25,3 +25,4 @@ if __name__ == '__main__':
 
         ## We ignore duplicates since this is run regularly
         csv_roll_calendars.add_roll_calendar(roll_calendar, instrument_code, ignore_duplication=True)
+        mongo_rollparameters

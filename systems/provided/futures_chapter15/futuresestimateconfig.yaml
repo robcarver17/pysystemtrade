@@ -70,8 +70,6 @@ forecast_scalar_estimate:
 use_forecast_weight_estimates: True
 use_forecast_div_mult_estimates: True
 #
-forecast_weight_estimate:
-   method: shrinkage
 #
 rule_variations: ['ewmac16_64','ewmac32_128', 'ewmac64_256', 'carry']
 #
@@ -82,8 +80,6 @@ forecast_correlation_estimate:
 use_instrument_weight_estimates: True
 use_instrument_div_mult_estimates: True
 #
-instrument_weight_estimate:
-   method: "shrinkage"
 #
 #
 # Capital correction

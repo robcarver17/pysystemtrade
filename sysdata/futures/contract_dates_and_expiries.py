@@ -34,6 +34,11 @@ class expiryDate(datetime.datetime):
     def as_tuple(self):
         return (self.year, self.month, self.day)
 
+    @classmethod
+    def from_str(expiryDate, date_as_str, date_format="%Y%m%d"):
+        as_date = datetime.datetime.strptime(date_as_str, date_format)
+
+        return expiryDate(as_date.year, as_date.month, as_date.day)
 
 class contractDate(object):
     """

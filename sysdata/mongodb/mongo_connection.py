@@ -1,13 +1,11 @@
-from pymongo import MongoClient, ASCENDING, IndexModel
+from pymongo import MongoClient, ASCENDING
 from copy import copy
 import numpy as np
-import yaml
 
-from syscore.fileutils import get_filename_for_package
+from syscore.genutils import get_safe_from_dict
+from sysdata.private_config import get_list_of_private_then_default_key_values
 
-# CHANGE THESE IN THE PRIVATE CONFIG FILE, NOT HERE
-DEFAULT_MONGO_DB = 'production'
-DEFAULT_MONGO_HOST = 'localhost'
+LIST_OF_MONGO_PARAMS = ['db', 'host']
 
 # DO NOT CHANGE THIS VALUE!!!! IT WILL SCREW UP ARCTIC
 DEFAULT_MONGO_PORT = 27017
@@ -15,34 +13,36 @@ DEFAULT_MONGO_PORT = 27017
 MONGO_ID_STR = '_id_'
 MONGO_ID_KEY = '_id'
 
-PRIVATE_CONFIG_FILE = get_filename_for_package("private.private_config.yaml")
 
-def mongo_defaults(config_file =PRIVATE_CONFIG_FILE, **kwargs):
+
+def mongo_defaults(**kwargs):
     """
     Returns mongo configuration with following precedence
 
-    1- if passed in arguments: db, host, port - use that
-    2- if defined in private_config file, use that. mongo_db, mongo_host, mongo_port
-    3- otherwise use defaults DEFAULT_MONGO_DB, DEFAULT_MONGO_HOST, DEFAULT_MONGOT_PORT
+    1- if passed in arguments: db, host - use that
+    2- if defined in private_config file, use that. mongo_db, mongo_host
+    3- if defined in system defaults file, use that: mongo_db, mongo_host
 
     :return: mongo db, hostname, port
     """
+    param_names_with_prefix = ['mongo_'+arg_name for arg_name in LIST_OF_MONGO_PARAMS]
+    config_dict = get_list_of_private_then_default_key_values(param_names_with_prefix)
 
-    try:
-        with open(config_file) as file_to_parse:
-            yaml_dict = yaml.load(file_to_parse)
-    except:
-        yaml_dict={}
+    yaml_dict = {}
+    for arg_name in LIST_OF_MONGO_PARAMS:
+        yaml_arg_name = 'mongo_'+arg_name
 
-    # Overwrite with passed arguments - these will take precedence over values in config file
-    for arg_name in ['db', 'host']:
-        arg_value = kwargs.get(arg_name, None)
-        if arg_value is not None:
-            yaml_dict['mongo_'+arg_name] = arg_value
+        # Start with config (precedence: private config, then system config)
+        arg_value = config_dict[yaml_arg_name]
+        # Overwrite with kwargs
+        arg_value = get_safe_from_dict(kwargs, arg_name, arg_value)
+
+        # Write
+        yaml_dict[arg_name] = arg_value
 
     # Get from dictionary
-    mongo_db = yaml_dict.get('mongo_db', DEFAULT_MONGO_DB)
-    hostname = yaml_dict.get('mongo_host', DEFAULT_MONGO_HOST)
+    mongo_db = yaml_dict['db']
+    hostname = yaml_dict['host']
     port = DEFAULT_MONGO_PORT
 
     return mongo_db, hostname, port
@@ -55,9 +55,9 @@ class mongoDb(object):
     But requires adding a collection with mongoConnection before useful
     """
 
-    def __init__(self,  database_name = None, host = None):
+    def __init__(self,  **kwargs):
 
-        database_name, host, port = mongo_defaults(db=database_name, host=host)
+        database_name, host, port = mongo_defaults(**kwargs)
 
         self.database_name = database_name
         self.host = host
@@ -73,6 +73,18 @@ class mongoDb(object):
         return "Mongodb database: host %s, port %d, db name %s" % \
                (self.host, self.port, self.database_name)
 
+
+    def close(self):
+        self.client.close()
+
+    """
+    Following two methods implement context manager
+    """
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
 
 class mongoConnection(object):
     """
@@ -159,5 +171,17 @@ def mongo_clean_ints(dict_to_clean):
             key_value = float(key_value)
 
         new_dict[key_name] = key_value
+
+    return new_dict
+
+def create_update_dict(mongo_record_dict):
+    """
+    Mongo needs $key names to do updates
+
+    :param mongo_record_dict: dict
+    :return: dict
+    """
+
+    new_dict = [("$%s" % key, value) for key,value in mongo_record_dict.items()]
 
     return new_dict

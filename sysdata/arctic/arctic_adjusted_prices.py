@@ -1,6 +1,7 @@
 from sysdata.futures.adjusted_prices import futuresAdjustedPricesData, futuresAdjustedPrices
 from sysdata.arctic.arctic_connection import articConnection
 from syslogdiag.log import logtoscreen
+import pandas as pd
 
 ADJPRICE_COLLECTION = 'futures_adjusted_prices'
 
@@ -42,6 +43,8 @@ class arcticFuturesAdjustedPricesData(futuresAdjustedPricesData):
 
     def _add_adjusted_prices_without_checking_for_existing_entry(self, instrument_code, adjusted_price_data):
         self.log.label(instument_code = instrument_code)
-        self._arctic.library.write(instrument_code, adjusted_price_data)
+        adjusted_price_data_aspd = pd.Series(adjusted_price_data)
+        adjusted_price_data_aspd = adjusted_price_data_aspd.astype(float)
+        self._arctic.library.write(instrument_code, adjusted_price_data_aspd)
         self.log.msg("Wrote %s lines of prices for %s to %s" % (len(adjusted_price_data), instrument_code, self.name))
 

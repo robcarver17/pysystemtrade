@@ -1,10 +1,10 @@
 . ~/.profile
-#mkdir $ECHOPATH/temp
-cd $ECHOPATH
+#mkdir $ECHO_PATH/temp
+cd $ECHO_PATH
 for filename in *.echo
 do
-   tail "$ECHOPATH/$filename" -n 20000 >> "$ECHOPATH/temp/$filename" 2>&1
-   mv -f "$ECHOPATH/temp/$filename" "$ECHOPATH/$filename"
+   tail "$ECHO_PATH/$filename" -n 20000 >> "$ECHO_PATH/temp/$filename" 2>&1
+   mv -f "$ECHO_PATH/temp/$filename" "$ECHO_PATH/$filename"
    echo "Truncation finished $filename"
 done
-echo "Truncation finished for all files in $ECHOPATH"
+echo "Truncation finished for all files in $ECHO_PATH"

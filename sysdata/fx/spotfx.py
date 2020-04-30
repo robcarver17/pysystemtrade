@@ -4,6 +4,9 @@ Spot fx prices
 
 import pandas as pd
 from sysdata.data import baseData
+from syscore.pdutils import merge_newer_data, full_merge_of_existing_data
+from syscore.objects import data_error
+
 
 
 class fxPrices(pd.Series):
@@ -14,8 +17,9 @@ class fxPrices(pd.Series):
     def __init__(self, data):
 
         super().__init__(data)
-
+        data.index.name="index"
         self._is_empty=False
+        data.name = ""
 
     @classmethod
     def create_empty(fxPrices):
@@ -31,9 +35,59 @@ class fxPrices(pd.Series):
 
         return fx_prices
 
+    @classmethod
+    def from_data_frame(fxPrices, data_frame):
+        return fxPrices(data_frame.T.squeeze())
+
     @property
     def empty(self):
         return self._is_empty
+
+    def merge_with_other_prices(self, new_fx_prices, only_add_rows=True, check_for_spike=True):
+        """
+        Merges self with new data.
+        If only_add_rows is True,
+        Otherwise: Any Nan in the existing data will be replaced (be careful!)
+
+        :param new_fx_prices:
+
+        :return: merged fx prices: doesn't update self
+        """
+        if only_add_rows:
+            return self.add_rows_to_existing_data(new_fx_prices, check_for_spike=check_for_spike)
+        else:
+            return self._full_merge_of_existing_data(new_fx_prices)
+
+    def _full_merge_of_existing_data(self, new_fx_prices):
+        """
+        Merges self with new data.
+        Any Nan in the existing data will be replaced (be careful!)
+        We make this private so not called accidentally
+
+        :param new_fx_prices: the new data
+        :return: updated data, doesn't update self
+        """
+
+        merged_data = full_merge_of_existing_data(self, new_fx_prices)
+
+        return fxPrices(merged_data)
+
+    def add_rows_to_existing_data(self, new_fx_prices, check_for_spike=True):
+        """
+        Merges self with new data.
+        Only newer data will be added
+
+        :param new_fx_prices:
+
+        :return: merged fxPrices
+        """
+
+        merged_fx_prices = merge_newer_data(self, new_fx_prices, check_for_spike=check_for_spike)
+        if merged_fx_prices is data_error:
+            return data_error
+        merged_fx_prices = fxPrices(merged_fx_prices)
+
+        return merged_fx_prices
 
 
 USE_CHILD_CLASS_ERROR = "You need to use a child class of fxPricesData"
@@ -65,26 +119,14 @@ class fxPricesData(baseData):
         if self.is_code_in_data(code):
             return self._get_fx_prices_without_checking(code)
         else:
+            self.log.warn("Code %s is missing from list of FX data" % code, currency_code=code)
             return fxPrices.create_empty()
 
-    def get_current_fx_price(self, code):
-        """
-        Get a snapshot of the latest FX price for a currency
-
-        :param code: str
-        :return: float
-        """
-        if self.is_code_in_data(code):
-            return self._get_current_fx_price_without_checking()
-        else:
-            return np.nan
 
 
     def _get_fx_prices_without_checking(self, code):
         raise NotImplementedError(USE_CHILD_CLASS_ERROR)
 
-    def _get_current_fx_price_without_checking(self, code):
-        raise NotImplementedError(USE_CHILD_CLASS_ERROR)
 
     def __getitem__(self, code):
         return self.get_fx_prices(code)
@@ -101,7 +143,7 @@ class fxPricesData(baseData):
                 ## doesn't exist anyway
                 self.log.warn("Tried to delete non existent fx prices for %s" % code)
         else:
-            self.log.error("You need to call delete_fx_prices with a flag to be sure")
+            self.log.warn("You need to call delete_fx_prices with a flag to be sure")
 
     def _delete_fx_prices_without_any_warning_be_careful(self, code):
         raise NotImplementedError(USE_CHILD_CLASS_ERROR)
@@ -118,7 +160,8 @@ class fxPricesData(baseData):
             if ignore_duplication:
                 pass
             else:
-                self.log.error("There is already %s in the data, you have to delete it first" % code)
+                self.log.warn("There is already %s in the data, you have to delete it first" % code)
+                return None
 
         self._add_fx_prices_without_checking_for_existing_entry(code, fx_price_data)
 
@@ -127,7 +170,7 @@ class fxPricesData(baseData):
     def _add_fx_prices_without_checking_for_existing_entry(self, code, fx_price_data):
         raise NotImplementedError(USE_CHILD_CLASS_ERROR)
 
-    def update_fx_prices(self, code, new_fx_prices):
+    def update_fx_prices(self, code, new_fx_prices, check_for_spike=True):
         """
         Checks existing data, adds any new data with a timestamp greater than the existing data
 
@@ -135,22 +178,22 @@ class fxPricesData(baseData):
         :param new_fx_prices: fxPrices object
         :return: int, number of rows added
         """
-        self.log.label(fx_code=code)
+        new_log = self.log.setup(fx_code=code)
 
         old_fx_prices = self.get_fx_prices(code)
-        last_date_in_old_price = old_fx_prices.index[-1]
+        merged_fx_prices = old_fx_prices.add_rows_to_existing_data(new_fx_prices, check_for_spike=check_for_spike)
 
-        new_fx_prices = new_fx_prices[new_fx_prices.index>last_date_in_old_price]
+        if merged_fx_prices is data_error:
+            return data_error
 
-        if len(new_fx_prices)==0:
-            self.log.msg("No additional data since %s for %s" % (str(last_date_in_old_price), code))
+        rows_added = len(merged_fx_prices) - len(old_fx_prices)
+
+        if rows_added==0:
+            new_log.msg("No additional data since %s for %s" % (str(old_fx_prices.index[-1]), code))
             return 0
 
-        fx_prices = pd.concat([old_fx_prices, new_fx_prices], axis=0)
-        fx_prices = fx_prices.sort_index()
+        self.add_fx_prices(code, merged_fx_prices, ignore_duplication=True)
 
-        # remove duplicates (shouldn't be any, but...)
-        fx_prices = fx_prices[~fx_prices.index.duplicated(keep='first')]
+        new_log.msg("Added %d additional rows for %s" % (rows_added, code))
 
-        # write sum of both prices
-        self.add_fx_prices(code, fx_prices, ignore_duplication=True)
+        return rows_added
