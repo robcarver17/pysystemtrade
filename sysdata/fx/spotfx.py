@@ -129,7 +129,13 @@ class fxPricesData(baseData):
         :param code: currency code, in the form EURUSD
         :return: fxData object
         """
+        currency1=code[:3]
         currency2=code[3:]
+
+        if currency1 == currency2:
+            ## Trivial
+            return DEFAULT_RATE_SERIES
+
         if currency2==DEFAULT_CURRENCY:
             # We ought to have data
             fx_data = self._get_fx_prices_vs_default(code)
@@ -138,6 +144,7 @@ class fxPricesData(baseData):
             fx_data = self._get_fx_cross(code)
 
         return fx_data
+
 
     def _get_fx_prices_vs_default(self, code):
         """
@@ -155,24 +162,16 @@ class fxPricesData(baseData):
         return fx_data
 
 
-    def _get_fx_cross(self, code):
+    def _get_fx_cross(self, currency1, currency2):
         """
         Get a currency cross rate, eg not XXXUSD
 
-        :param code: str eg GBPMXP
         :return: fxPrices
         """
 
-        currency1=code[:3]
-        currency2=code[3:]
-
-        if currency1 == currency2:
-            ## Trivial
-            return DEFAULT_RATE_SERIES
-
         default_currency = DEFAULT_CURRENCY
         first_code = currency1 + default_currency
-        second_code = currency2 +default_currency
+        second_code = currency2 + default_currency
         currency1_vs_default = self._get_fx_prices_without_checking(first_code)
         currency2_vs_default = self._get_fx_prices_without_checking(second_code)
 
