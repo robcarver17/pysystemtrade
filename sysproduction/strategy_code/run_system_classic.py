@@ -17,6 +17,8 @@ from syscore.objects import success
 
 from sysdata.arctic.arctic_and_mongo_sim_futures_data import arcticFuturesSimData
 from sysdata.production.optimal_positions import bufferedOptimalPositions
+from sysproduction.data.currency_data import currencyData
+
 from sysdata.configdata import Config
 
 from syslogdiag.log import logtoscreen
@@ -30,10 +32,12 @@ def run_system_classic(strategy_name, data,
 
 
         capital_value = get_capital(data, strategy_name)
+        currency_data = currencyData(data)
+        base_currency = currency_data.get_base_currency()
 
         system = production_classic_futures_system(backtest_config_filename,
                                             log=data.log, notional_trading_capital=capital_value,
-                                           base_currency=account_currency)
+                                           base_currency=base_currency)
 
         updated_buffered_positions(data, strategy_name, system)
 

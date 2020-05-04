@@ -3,9 +3,22 @@ Spot fx prices
 """
 
 import pandas as pd
+import datetime
+
 from sysdata.data import baseData
 from syscore.pdutils import merge_newer_data, full_merge_of_existing_data
 from syscore.objects import data_error
+from collections import namedtuple
+
+currencyValue = namedtuple("currencyValue", "currency, value")
+
+# by convention we always get prices vs the dollar
+DEFAULT_CURRENCY = "USD"
+
+DEFAULT_DATES = pd.date_range(
+    start=datetime.datetime(1970, 1, 1), freq="B", end=datetime.datetime.now())
+DEFAULT_RATE_SERIES = pd.Series(
+    [1.0] * len(DEFAULT_DATES), index=DEFAULT_DATES)
 
 
 
@@ -116,11 +129,67 @@ class fxPricesData(baseData):
         :param code: currency code, in the form EURUSD
         :return: fxData object
         """
-        if self.is_code_in_data(code):
-            return self._get_fx_prices_without_checking(code)
+        currency2=code[3:]
+        if currency2==DEFAULT_CURRENCY:
+            # We ought to have data
+            fx_data = self._get_fx_prices_vs_default(code)
         else:
-            self.log.warn("Code %s is missing from list of FX data" % code, currency_code=code)
+            ## Try a cross rate
+            fx_data = self._get_fx_cross(code)
+
+        return fx_data
+
+    def _get_fx_prices_vs_default(self, code):
+        """
+        Get a historical series of FX prices, must be XXXUSD
+
+        :param code: currency code, in the form EURUSD
+        :return: fxData object
+        """
+        if code in self.get_list_of_fxcodes():
+            fx_data = self._get_fx_prices_without_checking(code)
+        else:
+            self.log.warn("Currency %s is missing from list of FX data" % code)
+            fx_data = fxPrices.create_empty()
+
+        return fx_data
+
+
+    def _get_fx_cross(self, code):
+        """
+        Get a currency cross rate, eg not XXXUSD
+
+        :param code: str eg GBPMXP
+        :return: fxPrices
+        """
+
+        currency1=code[:3]
+        currency2=code[3:]
+
+        if currency1 == currency2:
+            ## Trivial
+            return DEFAULT_RATE_SERIES
+
+        default_currency = DEFAULT_CURRENCY
+        first_code = currency1 + default_currency
+        second_code = currency2 +default_currency
+        currency1_vs_default = self._get_fx_prices_without_checking(first_code)
+        currency2_vs_default = self._get_fx_prices_without_checking(second_code)
+
+        if currency1_vs_default.empty:
+            self.log.warn("Couldn't get FX data %s needed for cross rate %s" % (first_code, code), currency_code=code)
             return fxPrices.create_empty()
+
+        if currency2_vs_default.empty:
+            self.log.warn("Couldn't get FX data %s needed for cross rate %s" % (second_code, code), currency_code=code)
+            return fxPrices.create_empty()
+
+        (aligned_c1, aligned_c2) = currency1_vs_default.align(
+            currency2_vs_default, join="outer")
+
+        fx_rate_series = aligned_c1.ffill() / aligned_c2.ffill()
+
+        return fx_rate_series
 
 
 

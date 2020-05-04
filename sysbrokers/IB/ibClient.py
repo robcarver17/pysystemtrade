@@ -3,6 +3,7 @@ import pandas as pd
 import re
 
 from ib_insync import Forex, Future, util
+from sysdata.fx.spotfx import currencyValue
 
 from sysbrokers.baseClient import brokerClient
 from syscore.genutils import NOT_REQUIRED
@@ -11,11 +12,11 @@ from syscore.dateutils import adjust_timestamp
 from syslogdiag.log import logtoscreen
 
 
-MAX_WAIT_HISTORICAL_DATA_SECONDS = 30
 _PACING_PERIOD_SECONDS = 10*60
 _PACING_PERIOD_LIMIT = 60
 PACING_INTERVAL_SECONDS = 1+(_PACING_PERIOD_SECONDS  / _PACING_PERIOD_LIMIT)
 
+STALE_SECONDS_ALLOWED_ACCOUNT_SUMMARY = 600
 
 class ibClient(brokerClient):
     """
@@ -95,6 +96,70 @@ class ibClient(brokerClient):
 
         return price_data
 
+
+    def broker_get_account_value_across_currency_across_accounts(self, account_id=arg_not_supplied):
+        list_of_currencies = self.get_list_of_currencies_for_liquidation_values()
+        list_of_values_per_currency = list([
+            currencyValue(currency, self.get_liquidation_value_for_currency_across_accounts(currency))
+            for currency in list_of_currencies])
+
+        return list_of_values_per_currency
+
+
+    def get_liquidation_value_for_currency_across_accounts(self, currency):
+        liquidiation_values_across_accounts_dict = self.get_net_liquidation_value_across_accounts()
+        list_of_account_ids = liquidiation_values_across_accounts_dict.keys()
+        values_for_currency = [liquidiation_values_across_accounts_dict[account_id].get(currency, 0.0)
+                                for account_id in list_of_account_ids]
+
+        return sum(values_for_currency)
+
+    def get_list_of_currencies_for_liquidation_values(self):
+        liquidiation_values_across_accounts_dict = self.get_net_liquidation_value_across_accounts()
+        currencies = [list(account_dict.keys()) for account_dict in liquidiation_values_across_accounts_dict.values()]
+        currencies = sum(currencies, []) # flatten
+
+        return list(set(currencies))
+
+    def get_net_liquidation_value_across_accounts(self):
+        ## returns a dict, accountid as keys, of dicts, currencies as keys
+        account_summary_dict = self.ib_get_account_summary()
+        accounts = account_summary_dict.keys()
+        liquidiation_values_across_accounts_dict = dict([(account_id, self.get_liquidation_values_for_single_account(account_id))
+                                         for account_id in accounts])
+
+        return liquidiation_values_across_accounts_dict
+
+    def get_liquidation_values_for_single_account(self, account_id):
+        ## returns a dict, with currencies as keys
+        account_summary_dict = self.ib_get_account_summary()
+        return account_summary_dict[account_id]['NetLiquidation']
+
+
+    def broker_get_contract_expiry_date(self, contract_object_with_ib_broker_config):
+        """
+        Return the exact expiry date for a given contract
+
+        :param contract_object_with_ib_broker_config:  contract where instrument has ib metadata
+        :return: YYYYMMDD str
+        """
+        specific_log = self.log.setup(instrument_code = contract_object_with_ib_broker_config.instrument_code,
+                                      contract_date = contract_object_with_ib_broker_config.date)
+
+        ibcontract = self.ib_futures_contract(contract_object_with_ib_broker_config)
+        if ibcontract is missing_contract:
+            specific_log.warn("Can't get contract expiry from IB for %s" % str(contract_object_with_ib_broker_config))
+            return missing_contract
+
+        expiry_date = ibcontract.lastTradeDateOrContractMonth
+
+        return expiry_date
+
+
+
+    # IB specific methods
+    # Called by parent class generics
+
     def _get_generic_data_for_contract(self, ibcontract, log=None, bar_freq="D", whatToShow='TRADES'):
         """
         Get historical daily data
@@ -128,29 +193,6 @@ class ibClient(brokerClient):
         return price_data_as_df
 
 
-    def broker_get_contract_expiry_date(self, contract_object_with_ib_broker_config):
-        """
-        Return the exact expiry date for a given contract
-
-        :param contract_object_with_ib_broker_config:  contract where instrument has ib metadata
-        :return: YYYYMMDD str
-        """
-        specific_log = self.log.setup(instrument_code = contract_object_with_ib_broker_config.instrument_code,
-                                      contract_date = contract_object_with_ib_broker_config.date)
-
-        ibcontract = self.ib_futures_contract(contract_object_with_ib_broker_config)
-        if ibcontract is missing_contract:
-            specific_log.warn("Can't get contract expiry from IB for %s" % str(contract_object_with_ib_broker_config))
-            return missing_contract
-
-        expiry_date = ibcontract.lastTradeDateOrContractMonth
-
-        return expiry_date
-
-
-
-    # Broker specific methods
-    # Called by parent class generics
     def ib_spotfx_contract(self, ccy1, ccy2="USD", log=arg_not_supplied):
         ibcontract = Forex(ccy1+ccy2)
 
@@ -308,6 +350,65 @@ class ibClient(brokerClient):
 
         return df
 
+    def ib_get_account_summary(self):
+        data_stale = self._ib_get_account_summary_if_cache_stale()
+        if data_stale:
+            account_summary_data =  self._ib_get_account_summary_if_cache_stale()
+        else:
+            account_summary_data = self._account_summary_data
+
+        return account_summary_data
+
+    def _ib_get_account_summary_check_for_stale_cache(self):
+        account_summary_data_update = getattr(self, "_account_summary_data_update", None)
+        account_summary_data = getattr(self, "_account_summary_data", None)
+
+        if account_summary_data_update is None or account_summary_data is None:
+            return True
+        elapsed_seconds = (account_summary_data_update - datetime.datetime.now()).total_seconds()
+
+        if elapsed_seconds>STALE_SECONDS_ALLOWED_ACCOUNT_SUMMARY:
+            return True
+        else:
+            return False
+
+    def _ib_get_account_summary_if_cache_stale(self):
+
+        account_summary_rawdata = self.ib.accountSummary()
+
+        ## Weird format let's clean it up
+        account_summary_dict = clean_up_account_summary(account_summary_rawdata)
+
+        self._account_summary_data = account_summary_dict
+        self._account_summary_data_update = datetime.datetime.now()
+
+        return account_summary_dict
+
+
+
+def clean_up_account_summary(account_summary_rawdata):
+    list_of_accounts = _unique_list_from_total(account_summary_rawdata, 'account')
+    list_of_tags = _unique_list_from_total(account_summary_rawdata, 'tag')
+
+    account_summary_dict = {}
+    for account_id in list_of_accounts:
+        account_summary_dict[account_id]={}
+        for tag in list_of_tags:
+            account_summary_dict[account_id][tag] = {}
+
+    for account_item in account_summary_rawdata:
+        try:
+            value = float(account_item.value)
+        except ValueError:
+            value = account_item.value
+        account_summary_dict[account_item.account][account_item.tag][account_item.currency] = value
+
+    return account_summary_dict
+
+def _unique_list_from_total(account_summary_data, tag_name):
+    list_of_items = [getattr(account_value, tag_name) for account_value in account_summary_data]
+    list_of_items = list(set(list_of_items))
+    return list_of_items
 
 
 def get_barsize_and_duration_from_frequency(bar_freq):

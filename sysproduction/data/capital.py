@@ -10,3 +10,4 @@ def get_capital(data, strategy_name):
     data.log.msg("Got capital of %.2f for %s" % (capital_value, strategy_name))
 
     return capital_value
+

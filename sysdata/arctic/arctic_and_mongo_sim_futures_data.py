@@ -3,10 +3,6 @@ Get data from mongo and arctic used for futures trading
 
 """
 
-import os
-
-import pandas as pd
-
 
 from sysdata.data import simData
 from sysdata.futures.futuresDataForSim import futuresAdjustedPriceData, futuresConfigDataForSim, futuresMultiplePriceData
@@ -193,9 +189,6 @@ class arcticFXSimData(dbconnections, simData):
         """
 
         self.log.msg("Loading arctic fx data", fx="%s%s" % (currency1, currency2))
-
-        if currency1 == currency2:
-            return self._get_default_series()
 
         fx_prices_data_object = self._get_fx_data_object()
         currency_code = currency1+currency2

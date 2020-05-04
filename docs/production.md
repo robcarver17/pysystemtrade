@@ -891,6 +891,7 @@ It's possible to run pysystemtrade without any scheduling, by manually starting 
 TO DO
 max_price_spike
 strategy_list
+base_currency
 
 ### System defaults
 
@@ -908,7 +909,6 @@ strategy_list:
     overnight_launcher:
       function: sysproduction.system_launchers.run_system_classic.run_system_classic
       backtest_config_filename: systems.provided.futures_chapter15.futures_config.yaml
-      account_currency: GBP
 ```
 
 
@@ -924,7 +924,6 @@ strategy_list:
     overnight_launcher:
       function: sysproduction.system_launchers.run_system_classic.run_system_classic
       backtest_config_filename: systems.provided.futures_chapter15.futures_config.yaml
-      account_currency: GBP
 ```
 
 The configuration for the overnight launcher includes the launcher function; the other configuration values are passed as keyword arguments to the launcher function.
@@ -942,14 +941,14 @@ As an example here is the provided 'classic' launcher function:
 ```python
 def run_system_classic(strategy_name, data,
                backtest_config_filename="systems.provided.futures_chapter15.futures_config.yaml",
-               account_currency = "GBP"):
+               ):
 
 
         capital_value = get_capital(data, strategy_name)
 
         system = production_classic_futures_system(backtest_config_filename,
                                             log=data.log, notional_trading_capital=capital_value,
-                                           base_currency=account_currency)
+                                           )
 
         updated_buffered_positions(data, strategy_name, system)
 

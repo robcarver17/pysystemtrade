@@ -3,13 +3,6 @@ import pandas as pd
 from syslogdiag.log import logtoscreen
 from syscore.objects import get_methods
 
-DEFAULT_CURRENCY = "USD"
-
-DEFAULT_DATES = pd.date_range(
-    start=datetime.datetime(1970, 1, 1), freq="B", end=datetime.datetime(2040, 12, 10))
-DEFAULT_RATE_SERIES = pd.Series(
-    [1.0] * len(DEFAULT_DATES), index=DEFAULT_DATES)
-
 
 class baseData(object):
     """
@@ -210,39 +203,11 @@ class simData(baseData):
             percentage_cost=0.0,
             value_of_pertrade_commission=0.0)
 
-    def _get_default_currency(self):
-        """
-        We assume we always have rates for the default currency vs others to use in getting cross rates
-        eg if default is USD assume we always know GBPUSD, AUDUSD...
 
-        :returns: str
-
-
-        """
-
-        return DEFAULT_CURRENCY
-
-    def _get_default_series(self):
-        """
-        What we return if currency rates match
-
-        >>> data=simData()
-        >>> data._get_default_series().tail(5)
-        2040-12-04    1.0
-        2040-12-05    1.0
-        2040-12-06    1.0
-        2040-12-07    1.0
-        2040-12-10    1.0
-        Freq: B, dtype: float64
-        """
-
-        return DEFAULT_RATE_SERIES
 
     def get_instrument_currency(self, instrument_code):
         """
         Get the currency for a particular instrument
-
-        Since we don't have any actual data unless we overload this object, just return the default
 
         :param instrument_code: instrument to value for
         :type instrument_code: str
@@ -250,7 +215,8 @@ class simData(baseData):
         :returns: str
 
         """
-        return self._get_default_currency()
+        raise NotImplementedError("Need to inherit from base class for specific data source")
+
 
     def _get_fx_data(self, currency1, currency2):
         """
@@ -261,46 +227,8 @@ class simData(baseData):
 
 
         """
+        raise NotImplementedError("Need to inherit for a specific data source")
 
-        if currency1 == currency2:
-            return self._get_default_series()
-
-        # no data available
-        return None
-
-    def _get_fx_cross(self, currency1, currency2):
-        """
-        Get the FX rate between two currencies, using crosses with DEFAULT_CURRENCY if neccessary
-
-        :returns: Tx1 pd.Series
-
-        >>> data=simData()
-        >>> data._get_fx_cross("USD", "USD").tail(5)
-        2040-12-04    1.0
-        2040-12-05    1.0
-        2040-12-06    1.0
-        2040-12-07    1.0
-        2040-12-10    1.0
-        Freq: B, dtype: float64
-        """
-
-        # try and get from raw data
-        fx_rate_series = self._get_fx_data(currency1, currency2)
-
-        if fx_rate_series is None:
-            # missing; have to get get cross rates
-            default_currency = self._get_default_currency()
-            currency1_vs_default = self._get_fx_data(currency1,
-                                                     default_currency)
-            currency2_vs_default = self._get_fx_data(currency2,
-                                                     default_currency)
-
-            (aligned_c1, aligned_c2) = currency1_vs_default.align(
-                currency2_vs_default, join="outer")
-
-            fx_rate_series = aligned_c1.ffill() / aligned_c2.ffill()
-
-        return fx_rate_series
 
     def get_fx_for_instrument(self, instrument_code, base_currency):
         """
@@ -325,7 +253,7 @@ class simData(baseData):
         """
 
         instrument_currency = self.get_instrument_currency(instrument_code)
-        fx_rate_series = self._get_fx_cross(instrument_currency, base_currency)
+        fx_rate_series = self._get_fx_data(instrument_currency, base_currency)
 
         return fx_rate_series
 

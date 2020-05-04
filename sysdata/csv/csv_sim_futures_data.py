@@ -255,20 +255,9 @@ class csvFXData(csvPaths, simData):
         2018-01-09    1.197046
         2018-01-10    1.192933
         Name: FX, dtype: float64
-        >>> data._get_fx_cross("EUR", "GBP").tail(2)
-        2018-01-09    0.882043
-        2018-01-10    0.881542
-        Name: FX, dtype: float64
-        >>> data._get_fx_cross( "GBP", "USD").tail(2)
-        2018-01-09    1.357128
-        2018-01-10    1.353235
-        Name: FX, dtype: float64
         """
 
         self.log.msg("Loading csv fx data", fx="%s%s" % (currency1, currency2))
-
-        if currency1 == currency2:
-            return self._get_default_series()
 
         csv_fx_prices_data = self._get_fx_data_object()
         code = currency1+currency2
