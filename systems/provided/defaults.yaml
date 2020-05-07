@@ -204,3 +204,8 @@ buffer_trade_to_edge: False
 # costs and accounting
 use_SR_costs: True
 #
+# risk overlay
+risk_overlay:
+  max_risk_fraction_normal_risk: 2.0
+  max_risk_fraction_correlation_risk: 4.0
+  max_risk_fraction_stdev_risk: 6.0
