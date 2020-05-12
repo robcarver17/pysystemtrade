@@ -212,6 +212,17 @@ class listOfEntriesData(baseData):
         super().__init__(log=log)
         self.name = self._name()
 
+    def _delete_all_data_for_args_dict(self, args_dict, are_you_really_sure=False):
+        if not are_you_really_sure:
+            self.log.warn("To delete all data, need to set are_you_really_sure=True")
+            return failure
+
+        data_class_name = self._data_class_name()
+        data_class = resolve_function(data_class_name)
+        entry_series = data_class.as_empty()
+
+        self._write_series_for_args_dict(args_dict, entry_series)
+
     def _update_entry_for_args_dict(self, new_entry, args_dict):
 
         data_class_new_entry = new_entry._containing_data_class_name()

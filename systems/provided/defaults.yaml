@@ -27,6 +27,9 @@ mongo_db: 'production'
 # Spike checker
 max_price_spike: 6
 #
+# Capital calculation
+production_capital_method: 'full'
+#
 #           BACKTESTING STUFF
 #
 # Raw data

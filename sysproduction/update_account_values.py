@@ -5,11 +5,11 @@ Update historical data per contract from interactive brokers data, dump into mon
 
 from sysbrokers.IB.ibConnection import connectionIB
 
-from syscore.objects import success, failure, data_error
+from syscore.objects import success
 
 from sysdata.mongodb.mongo_connection import mongoDb
 from sysproduction.data.get_data import dataBlob
-from sysproduction.data.currency_data import currencyData
+from sysproduction.data.capital import dataCapital
 from syslogdiag.log import logToMongod as logger
 from syslogdiag.emailing import send_mail_msg
 
@@ -56,19 +56,26 @@ cancelPnLSingle
     :return: Nothing
     """
     with mongoDb() as mongo_db,\
-        logger("Update-Historical-prices", mongo_db=mongo_db) as log,\
+        logger("Update-Account-Values", mongo_db=mongo_db) as log,\
         connectionIB(mongo_db = mongo_db, log=log.setup(component="IB-connection")) as ib_conn:
 
-        data = dataBlob("ibFuturesContractPriceData arcticFuturesContractPriceData \
-         arcticFuturesMultiplePricesData mongoFuturesContractData",
-                        mongo_db = mongo_db, log = log, ib_conn = ib_conn)
+        data = dataBlob(mongo_db = mongo_db, log = log, ib_conn = ib_conn)
 
-
-
-        currency_data = currencyData(data)
-        values_across_accounts = data.ib_conn.broker_get_account_value_across_currency_across_accounts()
+        capital_data = dataCapital(data)
 
         ## This assumes that each account only reports eithier in one currency or for each currency, i.e. no double counting
-        total_account_value_in_base_currency = currency_data.total_of_list_of_currency_values_in_base(values_across_accounts)
+        total_account_value_in_base_currency = capital_data.get_ib_total_capital_value()
+
+        # Update total capital
+        try:
+            new_capital = capital_data.total_capital_calculator.\
+                get_total_capital_with_new_broker_account_value(total_account_value_in_base_currency)
+        except Exception as e:
+            ## Problem, most likely spike
+            log.error(e)
+            send_mail_msg("Error %s whilst updating total capital; you may have to use update_capital_manual script or function")
+
+        # Update capital per strategy
+        # FIX ME TO DO
 
     return success

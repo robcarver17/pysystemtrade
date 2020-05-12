@@ -1,13 +1,49 @@
-from syscore.objects import missing_data
+from syscore.objects import missing_data, arg_not_supplied
 
-def get_capital(data, strategy_name):
-    data.add_class_list("mongoCapitalData")
-    capital_value = data.mongo_capital.get_current_capital_for_strategy(strategy_name)
-    if capital_value is missing_data:
-        data.log.error("Capital data is missing for %s" % strategy_name)
-        raise Exception("Capital data is missing for %s" % strategy_name)
+from sysdata.production.capital import totalCapitalCalculationData
+from sysdata.private_config import get_private_then_default_key_value
 
-    data.log.msg("Got capital of %.2f for %s" % (capital_value, strategy_name))
+from sysproduction.data.get_data import dataBlob
+from sysproduction.data.currency_data import currencyData
 
-    return capital_value
 
+class dataCapital(object):
+    def __init__(self, data=arg_not_supplied):
+        # Check data has the right elements to do this
+        if data is arg_not_supplied:
+            data = dataBlob()
+
+        data.add_class_list("mongoCapitalData")
+        self.data = data
+
+    @property
+    def capital_data(self):
+        return self.data.mongo_capital
+
+    @property
+    def total_capital_calculator(self):
+        # cache because could be slow getting calculation method from yaml
+        if getattr(self, '_total_capital_calculator', None) is None:
+            calc_method = get_private_then_default_key_value('production_capital_method')
+            self._total_capital_calculator = totalCapitalCalculationData(self.data.mongo_capital, calc_method=calc_method)
+
+        return self._total_capital_calculator
+
+    def get_capital_for_strategy(self, strategy_name):
+        capital_value = self.data.mongo_capital.get_current_capital_for_strategy(strategy_name)
+        if capital_value is missing_data:
+            self.data.log.error("Capital data is missing for %s" % strategy_name)
+            return missing_data
+
+        return capital_value
+
+
+    def get_ib_total_capital_value(self):
+        currency_data = currencyData(self.data)
+        values_across_accounts = self.data.ib_conn.broker_get_account_value_across_currency_across_accounts()
+
+        ## This assumes that each account only reports eithier in one currency or for each currency, i.e. no double counting
+        total_account_value_in_base_currency = currency_data.total_of_list_of_currency_values_in_base(
+            values_across_accounts)
+
+        return total_account_value_in_base_currency

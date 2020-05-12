@@ -10,16 +10,18 @@ this:
 """
 
 
-from sysproduction.data.capital import get_capital
-from sysproduction.diagnostic.backtest_state import store_backtest_state
 
-from syscore.objects import success
+
+from syscore.objects import success, missing_data
 
 from sysdata.arctic.arctic_and_mongo_sim_futures_data import arcticFuturesSimData
-from sysdata.production.optimal_positions import bufferedOptimalPositions
-from sysproduction.data.currency_data import currencyData
-
 from sysdata.configdata import Config
+from sysdata.production.optimal_positions import bufferedOptimalPositions
+
+from sysproduction.data.currency_data import currencyData
+from sysproduction.data.capital import dataCapital
+from sysproduction.diagnostic.backtest_state import store_backtest_state
+
 
 from syslogdiag.log import logtoscreen
 
@@ -27,11 +29,16 @@ from systems.provided.futures_chapter15.basesystem import futures_system
 
 
 def run_system_classic(strategy_name, data,
-               backtest_config_filename="systems.provided.futures_chapter15.futures_config.yaml",
-               account_currency = "GBP"):
+               backtest_config_filename="systems.provided.futures_chapter15.futures_config.yaml"):
 
+        capital_data = dataCapital()
+        capital_value = dataCapital.get_capital_for_strategy(strategy_name)
+        if capital_data is missing_data:
+            ## critical log will send email
+            error_msg = "Capital data is missing for %s: can't run backtest" % strategy_name
+            data.log.critical(error_msg)
+            raise Exception(error_msg)
 
-        capital_value = get_capital(data, strategy_name)
         currency_data = currencyData(data)
         base_currency = currency_data.get_base_currency()
 
