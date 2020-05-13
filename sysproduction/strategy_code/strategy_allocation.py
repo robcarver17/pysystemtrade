@@ -1,0 +1,61 @@
+"""
+NOTES:
+
+Uses capital already obtained and available through data.
+
+*Could* also get various other capital information from IB
+
+accountValues
+accountSummary
+portfolio
+positions
+
+reqPnL
+pnl
+cancelPnL
+
+reqPnLSingle
+pnlSingle
+cancelPnLSingle
+
+    All of this is passed to a single capital allocator function that calculates how much capital each strategy should be allocated
+      and works out the p&l for each strategy
+
+    This can be done in various ways, eg by instrument, by asset class, as a % of total account value
+       ... allow each strategy to keep it's p&l, or redistribute
+
+
+"""
+
+from sysproduction.data.capital import dataCapital
+from syscore.objects import missing_data
+
+def weighted_strategy_allocation(data, strategy_weights):
+    """
+    Used to allocate capital to strategies
+
+    To use another function; change configuration item 'strategy_capital_allocation.function'
+    All other elements in that configuration are passed as *kwargs to this function
+
+    :param data: A data blob
+    :param strategy_weights: dict of float
+    :return: dict of capital values per strategy
+    """
+    sum_of_weights = sum(strategy_weights.values())
+    total_capital = get_total_current_capital(data)
+    output_dict = {}
+    for strategy_name, weight in strategy_weights.items():
+        strategy_capital = (weight/sum_of_weights)* total_capital
+        output_dict[strategy_name] = strategy_capital
+
+    return output_dict
+
+def get_total_current_capital(data):
+    data_capital = dataCapital(data)
+    total_capital = data_capital.get_current_total_capital()
+
+    if total_capital is missing_data:
+        data.log.critical("Can't allocate strategy capital without total capital")
+        raise Exception()
+
+    return total_capital

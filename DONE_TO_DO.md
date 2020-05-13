@@ -1,5 +1,10 @@
 # Release notes
 
+## Version 0.30.0
+
+Introduced capital model for production
+Fixed bug in implementation of correlation to covariance
+Added optional code for risk overlay [see blog](https://qoppac.blogspot.com/2020/05/when-endogenous-risk-management-isnt.html)
 Moved fx cross logic out of sim data into fxPricesData
 Strategies now run backtests from configuration file
 

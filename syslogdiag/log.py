@@ -388,9 +388,9 @@ class logToMongod(logger):
 
     def email_user(self, log_entry):
         try:
-            send_mail_msg(log_entry, "*CRITICAL ERROR*")
+            send_mail_msg(str(log_entry), "*CRITICAL ERROR*")
         except:
-            self.log.warn("Couldn't email user")
+            self.error("Couldn't email user")
 
 
 

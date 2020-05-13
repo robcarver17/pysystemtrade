@@ -1,11 +1,7 @@
-"""
-Update historical data per contract from interactive brokers data, dump into mongodb
-"""
-
 
 from sysbrokers.IB.ibConnection import connectionIB
 
-from syscore.objects import success
+from syscore.objects import success, failure
 
 from sysdata.mongodb.mongo_connection import mongoDb
 from sysproduction.data.get_data import dataBlob
@@ -26,31 +22,6 @@ def update_account_values():
 
     Does spike checking: large changes in account value are checked before writing
 
-    Also get various other capital information
-
-accountValues
-accountSummary
-portfolio
-positions
-
-reqPnL
-pnl
-cancelPnL
-
-reqPnLSingle
-pnlSingle
-cancelPnLSingle
-
-    All of this is passed to a single capital allocator function that calculates how much capital each strategy should be allocated
-      and works out the p&l for each strategy
-
-    This can be done in various ways, eg by instrument, by asset class, as a % of total account value
-       ... allow each strategy to keep it's p&l, or redistribute
-
-    What about margin? Might need to know 'in real time' what the margin is per strategy, if when
-       using whatif trades need to check. However better doing this on a global basis for account
-
-
     If your strategy has very high risk you may wish to do this more frequently than daily
 
     :return: Nothing
@@ -65,6 +36,7 @@ cancelPnLSingle
 
         ## This assumes that each account only reports eithier in one currency or for each currency, i.e. no double counting
         total_account_value_in_base_currency = capital_data.get_ib_total_capital_value()
+        log.msg("Broker account value is %f" % total_account_value_in_base_currency)
 
         # Update total capital
         try:
@@ -72,10 +44,10 @@ cancelPnLSingle
                 get_total_capital_with_new_broker_account_value(total_account_value_in_base_currency)
         except Exception as e:
             ## Problem, most likely spike
-            log.error(e)
-            send_mail_msg("Error %s whilst updating total capital; you may have to use update_capital_manual script or function")
+            log.critical("Error %s whilst updating total capital; you may have to use update_capital_manual script or function" % e)
+            return failure
 
-        # Update capital per strategy
-        # FIX ME TO DO
+        log.msg("New capital is %f" % new_capital)
+
 
     return success

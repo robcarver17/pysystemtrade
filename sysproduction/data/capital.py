@@ -30,13 +30,15 @@ class dataCapital(object):
         return self._total_capital_calculator
 
     def get_capital_for_strategy(self, strategy_name):
-        capital_value = self.data.mongo_capital.get_current_capital_for_strategy(strategy_name)
+        capital_value = self.capital_data.get_current_capital_for_strategy(strategy_name)
         if capital_value is missing_data:
             self.data.log.error("Capital data is missing for %s" % strategy_name)
             return missing_data
 
         return capital_value
 
+    def update_capital_value_for_strategy(self, strategy_name, new_capital_value, date=arg_not_supplied):
+        self.capital_data.update_capital_value_for_strategy(strategy_name, new_capital_value, date=arg_not_supplied)
 
     def get_ib_total_capital_value(self):
         currency_data = currencyData(self.data)
@@ -47,3 +49,6 @@ class dataCapital(object):
             values_across_accounts)
 
         return total_account_value_in_base_currency
+
+    def get_current_total_capital(self):
+        return self.capital_data.get_current_total_capital()

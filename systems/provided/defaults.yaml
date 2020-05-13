@@ -9,6 +9,12 @@ strategy_list:
       function: sysproduction.strategy_code.run_system_classic.run_system_classic
       backtest_config_filename: systems.provided.futures_chapter15.futures_config.yaml
 #
+# Allocate capital to strategies
+strategy_capital_allocation:
+  function: sysproduction.strategy_code.strategy_allocation.weighted_strategy_allocation
+  strategy_weights:
+    example: 100.0
+#
 ## Where do we save backtests
 backtest_store_directory: 'private'
 #
