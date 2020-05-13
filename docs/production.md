@@ -134,7 +134,6 @@ You need to:
     - Create adjusted prices. Assuming you have multiple prices in Arctic use [this script](/sysinit/futures/adjustedprices_from_mongo_multiple_to_mongo.py)
 - Live production backtest:
     - Create a yamal config file to run the live production 'backtest'. For speed I recommend you do not estimate parameters, but use fixed parameters, using the [yaml_config_with_estimated_parameters method of systemDiag](/systems/diagoutput.py) function to output these to a .yaml file.
-
 - Scheduling:
     - Initialise the [supplied crontab](/sysproduction/linux/crontab). Note if you have put your code or echos somewhere else you will need to modify the directory references at the top of the crontab.
     - All scripts executable by the crontab need to be executable, so do the following: `cd $SCRIPT_PATH` ; `sudo chmod +x *.*`
@@ -144,6 +143,7 @@ Before trading, and each time you restart the machine you should:
 
 - [check a mongodb server is running with the right data directory](/docs/futures.md#mongo-db) command line: `mongod --dbpath $MONGO_DATA` (the supplied crontab should do this)
 - launch an IB gateway (this could [be done automatically](https://github.com/ib-controller/ib-controller) depending on your security setup)
+- startup housekeeping sergices (FIX ME TO DO BUT WILL INCLUDE CLEARING IB TICKERS)
 
 When trading you will need to do the following
 
@@ -389,6 +389,9 @@ mongorestore
 As I am super paranoid, I also like to output all my mongo_db data into .csv files, which I then regularly backup. This will allow a system recovery, should the mongo files be corrupted.
 
 This currently supports: FX, individual futures contract prices, multiple prices, adjusted prices.
+
+FIX ME: Add capital data, Position by contract, roll states, optimal positions
+
 
 ```python
 from sysproduction.update_backup_to_csv import backup_adj_to_csv
@@ -704,7 +707,7 @@ Linux script:
 See [manual check of futures contract prices](#manual-check-of-futures-contract-historical-price-data) for more detail. Note that as the FX data is a single series, no adjustment is required for other values.
 
 
-### Roll adjusted prices 
+### Interactively roll adjusted prices 
 (Whenever required)
 
 Allows you to change the roll state and roll from one priced contract to the next.
@@ -740,6 +743,52 @@ Linux script:
 ```
 
 See [launcher functions](#launcher-functions) for more details.
+
+### Update capital and p&l by polling brokerage account 
+(daily)
+
+FIX ME ADD TO CRON / REGULAR STUFF
+
+See [capital](#capital) to understand how capital works. On a daily basis we need to check how our brokerage account value has changed. This will be used to update our total available capital, and allocate that to individual strategies.
+
+Python:
+```python
+from sysproduction.update_account_values
+update_account_values()
+```
+
+Linux script:
+```
+. $SCRIPT_PATH/update_account_values
+```
+
+If the brokers account value changes by more than 10% then capital will not be adjusted, and you will be sent an email. You will then need to run `modify_account_values`. This will repeat the poll of the brokerage account, and ask you to confirm if a large change is real. The next time `update_account_values` is run there will be no error, and all adjustments will go ahead as normal.
+
+
+### Interactively modify capital values
+
+See [capital](#capital) to understand how capital works.
+This function is used interactively to control total capital allocation in any of the following scenarios:
+
+- You want to initialise the total capital available in the account. If this isn't done, it will be done automatically when `update_account_values` runs with default values). The default values are brokerage account value = total capital available = maximum capital available (i.e. you start at HWM), with accumulated profits = 0. If you don't like any of these values then you can initialise them differently.
+- You have made a withdrawal or deposit in your brokerage account, which would otherwise cause the apparent available capital available to drop, and needs to be ignored
+- There has been a large change in the value of your brokerage account. A filter has caught this as a possible error, and you need to manually confirm it is ok.
+- You want to delete capital entries for some recent period of time (perhaps because you missed a withdrawal and it screwed up your capital)
+- You want to delete all capital entries (and then probably reinitialise). This is useful if, for example, you've been running a test account and want to move to production.
+- You want to make some other modification to one or more capital entries. Only do this if you know exactly what you are doing!
+
+Python:
+```python
+from sysproduction.update_capital_manual import update_capital_manual
+update_capital_manual()
+```
+
+Linux script:
+```
+. $SCRIPT_PATH/update_capital_manual
+```
+
+It does not affect individual strategies capital FIX ME HOW TO DO THIS
 
 
 
@@ -820,6 +869,12 @@ cd $SCRIPT_PATH
 . truncate_echo_files
 ```
 
+#### Clear IB client IDs
+
+Do this when the machine restarts and IB is definitely not running.
+
+FIX ME TO DO
+
 # Scheduling
 
 Running a fully or partially automated trading system requires the use of scheduling software that can launch new scripts at regular intervals, for example:
@@ -892,12 +947,29 @@ TO DO
 max_price_spike
 strategy_list
 base_currency
+production_capital_method
 
 ### System defaults
 
 
 TO DO
 
+## Capital
+
+*Capital* is how much we have 'at risk' in our trading account. This total capital is then allocated to trading strategies; see [strategy-capita](#strategy-capital) on a [daily basis](#update-capital-and-p&l-by-polling-brokerage-account).
+
+
+ 
+The simplest possible case is that your capital at risk is equal to what is in your trading account. If you do nothing else, that is how the system will behave. For all other cases, the behaviour of capital will depend on the interaction between stored capital values and the parameter value `production_capital_method` (defaults to *full* unless set in private yaml config). If you want to do things differently, you should consider modifying that parameter and/or using the [interactive tool](#interactively-modify-capital-values) to modify or initialise capital.
+
+On initialising capital you can choose what the following values are:
+
+- Brokerage account value (defaults to value from brokerage API). You might want to change this if you have stitched in some capital from another system, otherwise usually leave as the default
+- Current capital allocated (defaults to brokerage account value). 
+- Maximum capital allocated (defaults to current capital). This is only used if `production_capital_method='half'`. It's effectively the 'high water mark' for your strategy. You might want to set this higher than current capital if for example you have already been running the strategy elsewhere, and it's accumulated losses. Although you can set it lower than current capital, there is no logical reason for doing that.
+- Accumulated profits and losses (defaults to zero). Doesn't affect, but is nice to know. You may want to set this if you've already been running the strategy elsewhere.
+
+It's possible to change the method for capital calculation, the maximum capital or anything you wish using `production_capital_method`. Unless you delete capital values 
 
 ## Strategies
 
@@ -910,6 +982,23 @@ strategy_list:
       function: sysproduction.system_launchers.run_system_classic.run_system_classic
       backtest_config_filename: systems.provided.futures_chapter15.futures_config.yaml
 ```
+### Strategy capital
+
+Strategy capital is allocated from [total capital](#capital). 
+
+#### Risk target
+
+The actual risk a strategy will take depends on both it's capital and it's risk target.
+
+FIX ME CONFIGURATION
+
+#### Changing risk targets and/or capital
+
+Strategy capital can be changed at any time, and indeed will usually change daily since it depends on the total capital allocated. You can also . A history of a strategies capital is stored, allowing
+
+We do not store a history of the risk target of a strategy, so if you change the risk target this will make it difficult to compare
+
+
 
 
 ### Launcher functions
@@ -931,7 +1020,7 @@ Launcher functions must include the strategy name and a data 'blob' as their fir
 
 A launcher usually does the following:
 
-- get the amount of capital currently in your trading account. This is set by  FIX ME CAPITAL MODULE TO BE WRITTEN
+- get the amount of capital currently in your trading account. See [strategy-capita](#strategy-capital).
 - run a backtest using that amount of capital
 - get the position buffer limits, and save these down (for the classic system, other systems may save different values down)
 - store the backtest state (pickled cache) in the directory specified by the parameter csv_backup_directory (set in your private config file, or the system defaults file), subdirectory strategy name, filename date and time generated. It also copies the config file used to generate this backtest with a similar naming pattern.
