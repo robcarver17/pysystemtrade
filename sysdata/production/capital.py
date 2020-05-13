@@ -231,7 +231,7 @@ class totalCapitalCalculationData(object):
         prev_broker_account_value = self._capital_data.get_broker_account_value()
         if prev_broker_account_value is missing_data:
             ## No previous capital, need to set everything up
-            self.create_initial_capital(broker_account_value)
+            self.create_initial_capital(broker_account_value, are_you_really_sure=True)
             prev_broker_account_value = broker_account_value
 
         profit_and_loss = broker_account_value - prev_broker_account_value
