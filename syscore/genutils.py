@@ -6,6 +6,8 @@ from math import copysign
 from copy import copy
 import sys
 import numpy as np
+import datetime
+
 
 class not_required_flag(object):
     def __repr__(self):
@@ -168,6 +170,16 @@ def get_safe_from_dict(some_dict, some_arg_name, some_default):
     else:
         return arg_from_dict
 
+def are_dicts_equal(d1, d2):
+    d1_keys = set(d1.keys())
+    d2_keys = set(d2.keys())
+    intersect_keys = d1_keys.intersection(d2_keys)
+    if len(intersect_keys)!=len(d1_keys):
+        return False
+    same = set(o for o in intersect_keys if d1[o] == d2[o])
+    if len(same)!=len(d1_keys):
+        return False
+    return True
 
 
 class progressBar(object):
@@ -229,6 +241,41 @@ class progressBar(object):
 
     def finished(self):
         sys.stdout.write("\n")
+
+class timerClass(object):
+    @property
+    def frequency_minutes(self):
+        return 60.0
+
+    def when_last_run(self):
+        when_last_run = getattr(self, "_last_run", None)
+        if when_last_run is None:
+            when_last_run = datetime.datetime(1970,1,1)
+            self._last_run = when_last_run
+
+        return when_last_run
+
+    def set_last_run(self):
+        self._last_run = datetime.datetime.now()
+
+        return None
+
+    def minutes_since_last_run(self):
+        when_last_run = self.when_last_run()
+        time_now = datetime.datetime.now()
+        delta = time_now - when_last_run
+        delta_minutes = delta.total_seconds()/60.0
+
+        return delta_minutes
+
+    def check_if_ready_for_another_run(self):
+        time_since_run = self.minutes_since_last_run()
+        minutes_between_runs = self.frequency_minutes
+        if time_since_run > minutes_between_runs:
+            return True
+        else:
+            return False
+
 
 
 if __name__ == '__main__':

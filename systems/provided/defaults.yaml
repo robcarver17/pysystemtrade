@@ -8,6 +8,10 @@ strategy_list:
     overnight_launcher:
       function: sysproduction.strategy_code.run_system_classic.run_system_classic
       backtest_config_filename: systems.provided.futures_chapter15.futures_config.yaml
+    order_handling:
+      function: sysexecution.strategies.classic_buffered_positions.orderGeneratorForBufferedPositions
+      frequency_minutes: 60
+
 #
 # Allocate capital to strategies
 strategy_capital_allocation:

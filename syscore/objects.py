@@ -15,10 +15,18 @@ missing_instrument = _named_object("missing instrument")
 missing_file = _named_object("missing file")
 missing_data = _named_object("missing data")
 
+missing_order = _named_object("missing order")
+locked_order = _named_object("locked order")
+duplicate_order = _named_object("duplicate order")
+
+
 data_error = _named_object("data error")
+not_updated = _named_object("not updated")
 
 success = _named_object("success")
 failure = _named_object("failure")
+
+
 
 arg_not_supplied = _named_object("arg not supplied")
 

@@ -19,7 +19,7 @@ from syslogdiag.log import logToMongod as logger
 from sysdata.mongodb.mongo_connection import mongoDb
 from sysproduction.data.get_data import dataBlob
 
-def update_run_systems():
+def run_systems():
     with mongoDb() as mongo_db, \
             logger("update_run_systems", mongo_db=mongo_db) as log:
 

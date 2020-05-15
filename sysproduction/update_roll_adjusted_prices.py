@@ -16,7 +16,7 @@ from sysdata.production.roll_state_storage import \
 
 from sysproduction.get_roll_info import roll_report_config
 from sysproduction.diagnostic.reporting import run_report_with_data_blob, landing_strip
-from sysproduction.data.state import diagState
+from sysproduction.data.positions import diagPositions
 from sysproduction.data.contracts import diagContracts
 from sysproduction.data.get_data import dataBlob
 
@@ -70,7 +70,7 @@ def update_roll_state(instrument_code: str):
 
 def get_required_roll_state(data, instrument_code):
     data.add_class_list("mongoRollStateData")
-    diag_state = diagState(data)
+    diag_state = diagPositions(data)
     diag_contracts = diagContracts(data)
 
     current_roll_status = data.mongo_roll_state.get_roll_state(instrument_code)

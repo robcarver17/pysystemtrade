@@ -4,7 +4,7 @@ import pandas as pd
 from sysproduction.data.volumes import diagVolumes
 from sysproduction.data.contracts import diagContracts
 from sysproduction.data.prices import diagPrices
-from sysproduction.data.state import diagState
+from sysproduction.data.positions import diagPositions
 
 from syscore.objects import header, table, body_text
 
@@ -84,7 +84,7 @@ def get_roll_data_for_instrument(instrument_code, data):
     when_to_roll_days = (when_to_roll - now).days
 
     # roll status
-    s_data = diagState(data)
+    s_data = diagPositions(data)
     roll_status = s_data.get_roll_state(instrument_code)
 
     # Positions
