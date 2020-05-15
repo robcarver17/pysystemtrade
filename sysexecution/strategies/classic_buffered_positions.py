@@ -11,7 +11,7 @@ Desired virtual orders have to be labelled with the desired type: limit, market,
 """
 
 from sysexecution.instrument_orders import instrumentOrder
-from sysexecution.strategies.strategy_order_handling import orderGeneratorForStrategy
+from sysexecution.strategy_order_handling import orderGeneratorForStrategy
 
 
 class orderGeneratorForBufferedPositions(orderGeneratorForStrategy):
@@ -48,6 +48,7 @@ def list_of_trades_given_optimal_and_actual_positions(strategy_name, optimal_pos
     list_of_instruments = upper_positions.keys()
     trade_list = [trade_given_optimal_and_actual_positions(strategy_name, instrument_code, optimal_positions, actual_positions)
                        for instrument_code in list_of_instruments]
+    trade_list = [order for order in trade_list if order.trade != 0]
 
     return trade_list
 
@@ -60,8 +61,10 @@ def trade_given_optimal_and_actual_positions(strategy_name, instrument_code, opt
 
     if actual_for_instrument<lower_for_instrument:
         required_position = round(lower_for_instrument)
-    if actual_for_instrument>upper_for_instrument:
+    elif actual_for_instrument>upper_for_instrument:
         required_position = round(upper_for_instrument)
+    else:
+        required_position = actual_for_instrument
 
     trade_required = required_position - actual_for_instrument
 
