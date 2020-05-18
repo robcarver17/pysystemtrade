@@ -29,7 +29,10 @@ def manual_price_checker(old_data_passed, new_data_passed,
                                                                 column_to_check=column_to_check,
                                                                 delta_columns=delta_columns)
 
-    original_last_date_of_old_data = old_data.index[-1]
+    if len(old_data) > 0:
+        original_last_date_of_old_data = old_data.index[-1]
+    else:
+        original_last_date_of_old_data = new_data.index[0]
 
     # Iterate:
     data_iterating = True
