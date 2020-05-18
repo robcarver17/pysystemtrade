@@ -18,23 +18,39 @@ class instrumentTradeableObject(tradeableObject):
         return "/".join([self._definition['strategy_name'],self._definition['instrument_code']])
 
 class instrumentOrder(Order):
-    def __init__(self,trade, *args, locked=False, type="best"):
+    def __init__(self,*args, order_id=0, locked=False, type="best"):
         """
-        instrumentOrder(strategy, instrument, trade, type) or 'strategy/instrument', trade, type)
+        instrumentOrder(strategy, instrument, trade,  **kwargs) or 'strategy/instrument', trade, type, **kwargs)
         :param trade: float
         :param args: Eithier 2: strategy, instrument; or 1: instrumentTradeableObject
         :param type: str
         """
-        if len(args)==1:
+        if len(args)==2:
             self._tradeable_object = instrumentTradeableObject.from_key(args[0])
+            trade = args[1]
         else:
             strategy=args[0]
             instrument = args[1]
+            trade = args[2]
             self._tradeable_object = instrumentTradeableObject(strategy, instrument)
 
         self.trade = trade
         self._locked = locked
+        self.order_id = order_id
         self.order_info = dict(type=type)
+
+    @classmethod
+    def from_dict(instrumentOrder, order_as_dict):
+        trade = order_as_dict.pop('trade')
+        key = order_as_dict.pop('key')
+        locked = order_as_dict.pop('locked')
+        order_id = order_as_dict.pop('order_id')
+        order_info = order_as_dict
+
+        order = instrumentOrder(key, trade, locked = locked, order_id = order_id, **order_info)
+
+        return order
+
 
     @property
     def strategy_name(self):
@@ -43,18 +59,6 @@ class instrumentOrder(Order):
     @property
     def instrument_code(self):
         return self._tradeable_object._definition['instrument_code']
-
-    @classmethod
-    def from_dict(instrumentOrder, order_as_dict):
-        ## will need modifying in child classes
-        trade = order_as_dict.pop('trade')
-        instrument_strategy_key = order_as_dict.pop('key')
-        locked = order_as_dict.pop('locked')
-        order_info = order_as_dict
-
-        order = instrumentOrder( trade, instrument_strategy_key, locked=locked, **order_info)
-
-        return order
 
     @property
     def type(self):

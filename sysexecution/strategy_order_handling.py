@@ -58,11 +58,13 @@ class orderHandlerAcrossStrategies(object):
         for strategy_name, order_generator in generator_dict.items():
             order_list = order_generator.required_orders_if_updated()
             if order_list is not_updated:
+                # next strategy
                 continue
-            ## Handle the orders
-            result = self.submit_order_list(order_list)
-            if result is success:
-                generator_dict[strategy_name].set_last_run()
+            else:
+                ## Handle the orders
+                result = self.submit_order_list(order_list)
+                if result is success:
+                    generator_dict[strategy_name].set_last_run()
 
         return success
 
@@ -82,7 +84,7 @@ class orderHandlerAcrossStrategies(object):
 
             except Exception as e:
                 # serious error, abandon everything
-                log.critical("Problem %e adding order %s to stack %s" % (str(order), str(self.order_stack)))
+                log.critical("Problem %s adding order %s to stack %s" % (e, str(order), str(self.order_stack)))
                 return failure
 
         return success

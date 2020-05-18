@@ -21,5 +21,8 @@ def run_strategy_order_generator():
         data = dataBlob(mongo_db=mongo_db, log=log)
 
         # FIX ME CODE TO RUN MULTIPLE TIMES
+        # FOR NOW JUST RUN ONCE A DAY
         order_handler = orderHandlerAcrossStrategies(data)
         order_handler.check_for_orders_across_strategies()
+
+    return None

@@ -39,26 +39,42 @@ class Order(object):
     """
 
 
-    def __init__(self, object_name, trade: int, locked=False, **kwargs):
+    def __init__(self, object_name, trade: int, locked=False, order_id=0, **kwargs):
         self._tradeable_object = tradeableObject(object_name)
 
         self.trade = trade
         self._locked = locked
         self.order_info = kwargs
+        self._order_id = order_id
 
     def __repr__(self):
         return "Order %s %f" % (str(self.key), self.trade)
+
+
+    @property
+    def order_id(self):
+        return self._order_id
+
+    @order_id.setter
+    def order_id(self, order_id):
+        assert type(order_id) is int
+        current_id = getattr(self, '_order_id', None)
+        if current_id is None:
+            self._order_id = order_id
+        elif current_id==0:
+            self._order_id = order_id
+        else:
+            raise Exception("Can't change order id once set")
 
     def as_dict(self):
         object_dict = dict(key = self.key)
         object_dict['trade'] = self.trade
         object_dict['locked'] = self._locked
+        object_dict['order_id'] = self._order_id
         for info_key, info_value in self.order_info.items():
             object_dict[info_key] = info_value
 
         return object_dict
-
-
 
     @classmethod
     def from_dict(Order, order_as_dict):
@@ -66,9 +82,10 @@ class Order(object):
         trade = order_as_dict.pop('trade')
         object_name = order_as_dict.pop('key')
         locked = order_as_dict.pop('locked')
+        order_id = order_as_dict.pop('order_id')
         order_info = order_as_dict
 
-        order = Order(object_name, trade, locked = locked, **order_info)
+        order = Order(object_name, trade, locked = locked, order_id = order_id, **order_info)
 
         return order
 
@@ -156,6 +173,7 @@ class orderStackData(object):
 
         if existing_order is missing_order:
             # No existing order
+            new_order.order_id= self._get_next_order_id()
             result = self._put_order_on_stack_no_checking(new_order)
             return result
 
@@ -210,6 +228,20 @@ class orderStackData(object):
         order_key = order.key
         self._stack[order_key] = order
         return success
+
+    def _get_next_order_id(self):
+        ## MUST override in data implementation
+        ## The maximum orderid should ideally live on in permanent storage
+        ## Otherwise we rely on this stack persisting while downstream stacks rely on mapping orderids
+
+        order_keys_on_stack = self.get_list_of_order_keys()
+        if len(order_keys_on_stack)==0:
+            return 1
+        orders_on_stack = [self.get_order_with_key_from_stack(key) for key in order_keys_on_stack]
+        order_id_on_stack = [order.order_id for order in orders_on_stack]
+        max_order_id_on_stack = max(order_id_on_stack)
+
+        return max_order_id_on_stack+1
 
     def _modify_order_on_stack_no_checking(self, order):
         # probably will be overriden in data implementation

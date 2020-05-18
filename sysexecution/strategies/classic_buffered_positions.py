@@ -48,7 +48,6 @@ def list_of_trades_given_optimal_and_actual_positions(strategy_name, optimal_pos
     list_of_instruments = upper_positions.keys()
     trade_list = [trade_given_optimal_and_actual_positions(strategy_name, instrument_code, optimal_positions, actual_positions)
                        for instrument_code in list_of_instruments]
-    trade_list = [order for order in trade_list if order.trade != 0]
 
     return trade_list
 
@@ -66,8 +65,10 @@ def trade_given_optimal_and_actual_positions(strategy_name, instrument_code, opt
     else:
         required_position = actual_for_instrument
 
+    # Might seem weird to have a zero order, but since orders can be updated it makes sense
+
     trade_required = required_position - actual_for_instrument
 
-    order_required = instrumentOrder(trade_required, strategy_name,instrument_code,  type="best")
+    order_required = instrumentOrder(strategy_name,instrument_code, trade_required,  type="best")
 
     return order_required

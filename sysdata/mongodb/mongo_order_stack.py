@@ -5,6 +5,7 @@ from syslogdiag.log import logtoscreen
 from sysexecution.order_stack import orderStackData, Order, missing_order
 from sysexecution.instrument_orders import instrumentOrder, instrumentOrderStackData
 
+ORDER_ID_STORE_KEY = "_ORDER_ID_STORE_KEY"
 
 class mongoOrderStackData(orderStackData):
     """
@@ -40,6 +41,33 @@ class mongoOrderStackData(orderStackData):
         self._mongo.collection.update_one(dict(key = order.key), {'$set':order.as_dict()})
         return success
 
+    def _get_next_order_id(self):
+        max_orderid = self._get_current_max_order_id()
+        new_orderid = max_orderid + 1
+        self._update_max_order_id(new_orderid)
+
+        return new_orderid
+
+    def _get_current_max_order_id(self):
+        result_dict = self._mongo.collection.find_one(dict(key=ORDER_ID_STORE_KEY))
+        if result_dict is None:
+            return self._create_max_order_id()
+
+        result_dict.pop(MONGO_ID_KEY)
+        order_id = result_dict['max_order_id']
+
+        return order_id
+
+    def _update_max_order_id(self, max_order_id):
+        self._mongo.collection.update_one(dict(key=ORDER_ID_STORE_KEY), {'$set': dict(max_order_id=max_order_id)})
+
+        return success
+
+    def _create_max_order_id(self):
+        first_order_id = 1
+        self._mongo.collection.insert_one(dict(key=ORDER_ID_STORE_KEY, max_order_id=first_order_id))
+        return first_order_id
+
     def _put_order_on_stack_no_checking(self, order):
         mongo_record = order.as_dict()
         self._mongo.collection.insert_one(mongo_record)
@@ -62,6 +90,7 @@ class mongoOrderStackData(orderStackData):
     def get_list_of_order_keys(self):
         cursor = self._mongo.collection.find()
         codes = [db_entry['key'] for db_entry in cursor]
+        codes.remove(ORDER_ID_STORE_KEY)
 
         return codes
 
