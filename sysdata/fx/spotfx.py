@@ -134,25 +134,47 @@ class fxPricesData(baseData):
 
         if currency1 == currency2:
             ## Trivial
-            return DEFAULT_RATE_SERIES
+            fx_data = DEFAULT_RATE_SERIES
 
-        if currency2==DEFAULT_CURRENCY:
+        elif currency2==DEFAULT_CURRENCY:
             # We ought to have data
-            fx_data = self._get_fx_prices_vs_default(code)
+            fx_data = self._get_fx_prices_vs_default(currency1)
+
+        elif currency1 == DEFAULT_CURRENCY:
+            # inversion
+            fx_data = self._get_fx_prices_for_inversion(currency2)
+
         else:
             ## Try a cross rate
-            fx_data = self._get_fx_cross(code)
+            fx_data = self._get_fx_cross(currency1, currency2)
 
         return fx_data
 
+    def _get_fx_prices_for_inversion(self, currency2):
+        """
+        Get a historical series of FX prices, must be USDXXX
 
-    def _get_fx_prices_vs_default(self, code):
+        :param currency2:
+        :return: fxData
+        """
+
+        raw_fx_data = self._get_fx_prices_vs_default(currency2)
+        if raw_fx_data.empty:
+            self.log.warn("Code %s is missing, needed to get %s" %currency2+DEFAULT_CURRENCY, DEFAULT_CURRENCY+currency2 )
+            return raw_fx_data
+
+        inverted_fx_data = 1.0 / raw_fx_data
+
+        return inverted_fx_data
+
+    def _get_fx_prices_vs_default(self, currency1):
         """
         Get a historical series of FX prices, must be XXXUSD
 
-        :param code: currency code, in the form EURUSD
+        :param code: currency code, in the form EUR
         :return: fxData object
         """
+        code = currency1 + DEFAULT_CURRENCY
         if code in self.get_list_of_fxcodes():
             fx_data = self._get_fx_prices_without_checking(code)
         else:
@@ -164,7 +186,7 @@ class fxPricesData(baseData):
 
     def _get_fx_cross(self, currency1, currency2):
         """
-        Get a currency cross rate, eg not XXXUSD
+        Get a currency cross rate XXXYYY, eg not XXXUSD or USDXXX or XXXXXX
 
         :return: fxPrices
         """
@@ -176,10 +198,12 @@ class fxPricesData(baseData):
         currency2_vs_default = self._get_fx_prices_without_checking(second_code)
 
         if currency1_vs_default.empty:
+            code = currency1+currency2
             self.log.warn("Couldn't get FX data %s needed for cross rate %s" % (first_code, code), currency_code=code)
             return fxPrices.create_empty()
 
         if currency2_vs_default.empty:
+            code = currency1+currency2
             self.log.warn("Couldn't get FX data %s needed for cross rate %s" % (second_code, code), currency_code=code)
             return fxPrices.create_empty()
 

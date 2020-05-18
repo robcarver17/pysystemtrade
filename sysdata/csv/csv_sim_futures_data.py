@@ -265,7 +265,7 @@ class csvFXData(csvPaths, simData):
         fx_prices = csv_fx_prices_data.get_fx_prices(code)
 
         if fx_prices.empty:
-            return None
+            raise Exception("No FX data for %s" % code)
 
         return fx_prices
 
