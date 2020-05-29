@@ -20,8 +20,8 @@ def get_private_config_key_value(key_name, private_config_dict = arg_not_supplie
     key_value = private_config_dict.get(key_name, missing_data)
 
     if key_value is missing_data and raise_error:
-        raise KeyError("Can't find key %s in private config .yaml files" %
-                       (key_value, PRIVATE_CONFIG_FILE))
+        raise KeyError("Can't find key '%s' in private config file '%s'" %
+                       (key_name, PRIVATE_CONFIG_FILE))
 
     return key_value
 
@@ -36,8 +36,8 @@ def get_private_then_default_key_value(key_name,
         key_value = get_default_config_key_value(key_name, system_defaults_dict = system_defaults_dict)
 
     if key_value is missing_data and raise_error:
-        raise KeyError("Can't find key %s in private %s or default %s config .yaml files" %
-                       (key_value, PRIVATE_CONFIG_FILE, DEFAULT_FILENAME))
+        raise KeyError("Can't find key '%s' in private '%s' or default '%s' config .yaml files" %
+                       (key_name, PRIVATE_CONFIG_FILE, DEFAULT_FILENAME))
 
     return key_value
 
