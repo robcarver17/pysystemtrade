@@ -207,7 +207,7 @@ So we first generate an approximate calendar, for when we'd ideally want to roll
 
 We then check that the roll calendar is monotonic and valid.
 
-A *monotonic* roll calendar will have increasing datestamps in the index. It's possible, if your data is messy, to get non-monotonic calendars. Unfortunately there is no automatic way to fix this, you need to dive in and rebuild the  (this is why I store the calendars as .csv files to make such hacking easy).
+A *monotonic* roll calendar will have increasing datestamps in the index. It's possible, if your data is messy, to get non-monotonic calendars. Unfortunately there is no automatic way to fix this, you need to dive in and rebuild the data (this is why I store the calendars as .csv files to make such hacking easy).
 
 A *valid* roll calendar will have current and next contract prices on the roll date. Since this is how we generate the roll calendars they should always pass this test (if we couldn't find a date when we have aligned prices then the calendar generation would have failed with an exception).
 
@@ -218,7 +218,7 @@ Roll calendars are stored in .csv format [here](/data/futures/roll_calendars_csv
 <a name="roll_calendars_from_multiple"></a>
 ### Roll calendars from existing 'multiple prices' .csv files
 
-In the next section we learn how to use roll calendars, and price data for individual contracts, to create DataFrames of *multiple prices*: the series of prices for the current, forward and carry contracts; as well as the identify of those contracts. But it's also possible to reverse this operation: work out roll calendars from multiple prices.
+In the next section we learn how to use roll calendars, and price data for individual contracts, to create DataFrames of *multiple prices*: the series of prices for the current, forward and carry contracts; as well as the identity of those contracts. But it's also possible to reverse this operation: work out roll calendars from multiple prices.
 
 Of course you can only do this if you've already got these prices, which means you already need to have a roll calendar: a catch 22. Fortunately there are sets of multiple prices provided in pysystemtrade, and have been for some time, [here](/data/futures/multiple_prices_csv). These are copies of the data in my legacy trading system, for which I had to generate historic roll calendars, and for the data since early 2014 include the actual dates when I rolled.
 
@@ -230,7 +230,7 @@ We run [this script](/sysinit/futures/rollcalendars_from_providedcsv_prices.py) 
 
 The next stage is to store *multiple prices*. Multiple prices are the price and contract identifier for the current contract we're holding, the next contract we'll hold, and the carry contract we compare with the current contract for the carry trading rule. They are required for the next stage, calculating back-adjusted prices, but are also used directly by the carry trading rule in a backtest. Constructing them requires a roll calendar, and prices for individual futures contracts.
 
-We can store these prices in eithier Arctic or .csv files. The [relevant script ](/sysinit/futures/multipleprices_from_arcticprices_and_csv_calendars_to_arctic.py) gives you the option of doing eithier or both of these. 
+We can store these prices in either Arctic or .csv files. The [relevant script ](/sysinit/futures/multipleprices_from_arcticprices_and_csv_calendars_to_arctic.py) gives you the option of doing either or both of these.
 
 <a name="back_adjusted_prices"></a>
 ## Creating and storing back adjusted prices
@@ -282,9 +282,9 @@ Futures instruments are the things we actually trade, eg Eurodollar futures, but
 
 Note: There is no data storage for contract dates, they are stored only as part of [futures contracts](#futuresContracts).
 
-A contract date allows us to identify a specific [futures contract](#futuresContracts) for a given [instrument](#futuresInstrument). Futures contracts can eithier be for a specific month (eg '201709') or for a specific day (eg '20170903'). The latter is required to support weekly futures contracts, or if we already know the exact expiry date of a given contract. A monthly date will be represented with trailing zeros, eg '20170900'.
+A contract date allows us to identify a specific [futures contract](#futuresContracts) for a given [instrument](#futuresInstrument). Futures contracts can either be for a specific month (eg '201709') or for a specific day (eg '20170903'). The latter is required to support weekly futures contracts, or if we already know the exact expiry date of a given contract. A monthly date will be represented with trailing zeros, eg '20170900'.
 
-We can also store expiry dates in contract dates. This can be done eithier by passing the exact date (which we'd do if we were getting the contract specs from our broker) or an approximate expiry offset, where 0 (the default) means the expiry is on day 1 of the relevant contract month.
+We can also store expiry dates in contract dates. This can be done either by passing the exact date (which we'd do if we were getting the contract specs from our broker) or an approximate expiry offset, where 0 (the default) means the expiry is on day 1 of the relevant contract month.
 
 <a name="rollCycle"></a>
 ### [Roll cycles](/sysdata/futures/rolls.py): rollCycle()
@@ -325,14 +325,14 @@ The combination of a specific [instrument](#futuresInstrument) and a [contract d
 
 The price data for a given contract is just stored as a DataFrame with specific column names. Notice that we store Open, High, Low, and Final prices; but currently in the rest of pysystemtrade we effectively throw away everything except Final.
 
-(A 'final' price is eithier a close or a settlement price depending on how the data has been parsed from it's underlying source)
+(A 'final' price is either a close or a settlement price depending on how the data has been parsed from it's underlying source)
 
 `dictFuturesContractPrices`: When calculating roll calendars we work with prices from multiple contracts at once.
 
 <a name="futuresContractFinalPrices"></a>
 ### [Final prices for individual futures contracts](/sysdata/futures/futures_per_contract_final_prices.py): futuresContractFinalPrices(), dictFuturesContractFinalPrices()
 
-This is just the final prices alone. There is no data storage required for these since we don't need to store them seperately, just extract them from eithier `futuresContractPrices` or `dictFuturesContractPrices` objects.
+This is just the final prices alone. There is no data storage required for these since we don't need to store them seperately, just extract them from either `futuresContractPrices` or `dictFuturesContractPrices` objects.
 
 `dictFuturesContractFinalPrices`: When calculating roll calendars we work with prices from multiple contracts at once.
 
@@ -753,7 +753,7 @@ with:
 class csvFuturesSimData(csvFXData, backAdjustOnTheFly, csvFuturesConfigDataForSim, csvFuturesMultiplePriceData):
 ```
 
-If you want to test different adjustment techniques other than the default 'Panama stich', then you need to override `futuresAdjustedPrices.stitch_multiple_prices()`.
+If you want to test different adjustment techniques other than the default 'Panama stitch', then you need to override `futuresAdjustedPrices.stitch_multiple_prices()`.
 
 
 <a name="back_adjust_on_the_fly_multiple_days"></a>

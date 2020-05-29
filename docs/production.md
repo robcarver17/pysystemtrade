@@ -1,6 +1,6 @@
 This document is specifically about using pysystemtrade for *live production trading*. 
 
-*This is NOT a complete document, and is currently a work in progress - any in many cases a series of thoughts about design intent rather than a fully featured specificiation. It is not possible to run a full production system with pysystemtrade at present*
+*This is NOT a complete document, and is currently a work in progress - and in many cases a series of thoughts about design intent rather than a fully featured specification. It is not possible to run a full production system with pysystemtrade at present*
 
 Ultimately this will include:
 
@@ -23,7 +23,7 @@ Table of Contents
    * [Quick start guide](#quick-start-guide)
    * [Overview of a production system](#overview-of-a-production-system)
    * [Implementation options](#implementation-options)
-      * [Automatation options](#automatation-options)
+      * [Automation options](#automation-options)
       * [Machines, containers and clouds](#machines-containers-and-clouds)
       * [Backup machine](#backup-machine)
       * [Multiple systems](#multiple-systems)
@@ -174,7 +174,7 @@ Standard implementation for pysystemtrade is a fully automated system running on
 
 My own implementation runs on a Linux machine, and some of the implementation details in this document are Linux specific. Windows and Mac users are welcome to contribute with respect to any differences.
 
-## Automatation options
+## Automation options
 
 You can run pysystemtrade as a fully automated system, which does everything from getting prices through to executing orders. But other patterns make sense. In particular you may wish to do your trading manually, after pulling in prices and generating optimal positions manually. It will also possible to trade manually, but allow pysystemtrade to pick up your fills from the broker rather than entering them manually.
 
@@ -214,7 +214,7 @@ Finally you should set the field `ib_idoffset` in the [private config file](priv
 
 # Code and configuration management
 
-Your trading strategy will consist of pysystemtrade, plus some specific configuration files, plus possibly some bespoke code. You can eithier implement this as:
+Your trading strategy will consist of pysystemtrade, plus some specific configuration files, plus possibly some bespoke code. You can either implement this as:
 
 - seperate environment, pulling in pysystemtrade as a 'yet another library'
 - everything in pysystemtrade, with all specific code and configuration in the 'private' directory that is excluded from git uploads.
@@ -574,7 +574,7 @@ Scripts are used to run python code which:
    - calculate positions
    - execute trades
    - get accounting data
-- runs report and diagnostics, eithier regular or ad-hoc
+- runs report and diagnostics, either regular or ad-hoc
 - Do housekeeping duties, eg truncate log files and run backups
 
 Script are then called by [schedulers](#scheduling), or on an ad-hoc basis from the command line.
@@ -596,7 +596,7 @@ Linux script:
 ```
 
 
-This will check for 'spikes', unusually large movements in FX rates eithier when comparing new data to existing data, or within new data. If any spikes are found in data for a particular contract it will not be written. The system will attempt to email the user when a spike is detected. The user will then need to [manually check the data](#manual-check-of-fx-price-data).
+This will check for 'spikes', unusually large movements in FX rates either when comparing new data to existing data, or within new data. If any spikes are found in data for a particular contract it will not be written. The system will attempt to email the user when a spike is detected. The user will then need to [manually check the data](#manual-check-of-fx-price-data).
 .
 
 The threshold for spikes is set in the default.yaml file, or overidden in the private config, using the paramater `max_price_spike`. Spikes are defined as a large multiple of the average absolute daily change. So for example if a price typically changes by 0.5 units a day, and `max_price_spike=6`, then a price change larger than 3 units will trigger a spike.
@@ -634,7 +634,7 @@ Linux script:
 . $SCRIPT_PATH/update_historical_prices
 ```
 
-This will check for 'spikes', unusually large movements in price eithier when comparing new data to existing data, or within new data. If any spikes are found in data for a particular contract it will not be written. The system will attempt to email the user when a spike is detected. The user will then need to [manually check the data](#manual-check-of-futures-contract-historical-price-data).
+This will check for 'spikes', unusually large movements in price either when comparing new data to existing data, or within new data. If any spikes are found in data for a particular contract it will not be written. The system will attempt to email the user when a spike is detected. The user will then need to [manually check the data](#manual-check-of-futures-contract-historical-price-data).
 .
 
 The threshold for spikes is set in the default.yaml file, or overidden in the private config, using the paramater `max_price_spike`. Spikes are defined as a large multiple of the average absolute daily change. So for example if a price typically changes by 0.5 units a day, and `max_price_spike=6`, then a price change larger than 3 units will trigger a spike.
@@ -720,7 +720,7 @@ Linux script:
 . $SCRIPT_PATH/update_roll_adjusted_prices
 ```
 
-### Run updated backtest systems for one or more strateges
+### Run updated backtest systems for one or more strategies
 (Usually overnight)
 
 The paradigm for pysystemtrade is that we run a new backtest nightly, which outputs some parameters that a trading engine uses the next day. For the basic system defined in the core code those parameters are a pair of position buffers for each instrument. The trading engine will trade if the current position lies outside those buffer values.
@@ -778,7 +778,7 @@ Linux script:
 See [capital](#capital) to understand how capital works.
 This function is used interactively to control total capital allocation in any of the following scenarios:
 
-- You want to initialise the total capital available in the account. If this isn't done, it will be done automatically when `update_account_values` runs with default values). The default values are brokerage account value = total capital available = maximum capital available (i.e. you start at HWM), with accumulated profits = 0. If you don't like any of these values then you can initialise them differently.
+- You want to initialise the total capital available in the account. If this isn't done, it will be done automatically when `update_account_values` runs with default values. The default values are brokerage account value = total capital available = maximum capital available (i.e. you start at HWM), with accumulated profits = 0. If you don't like any of these values then you can initialise them differently.
 - You have made a withdrawal or deposit in your brokerage account, which would otherwise cause the apparent available capital available to drop, and needs to be ignored
 - There has been a large change in the value of your brokerage account. A filter has caught this as a possible error, and you need to manually confirm it is ok.
 - You want to delete capital entries for some recent period of time (perhaps because you missed a withdrawal and it screwed up your capital)
@@ -1025,7 +1025,7 @@ You can also change other values in the interactive tool, but be careful and mak
 
 ## Strategies
 
-Each strategy is defined in the config parameter `strategy_list`, found eithier in the defaults.yaml file or overriden in private yaml configuration. The following shows the parameters for an example strategy, named (appropriately enough) `example`.
+Each strategy is defined in the config parameter `strategy_list`, found either in the defaults.yaml file or overriden in private yaml configuration. The following shows the parameters for an example strategy, named (appropriately enough) `example`.
 
 ```
 strategy_list:
