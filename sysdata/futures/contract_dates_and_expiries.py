@@ -42,7 +42,7 @@ class expiryDate(datetime.datetime):
 
 class contractDate(object):
     """
-    A single contract date; eithier in the form YYYYMM or YYYYMMDD
+    A single contract date; either in the form YYYYMM or YYYYMMDD
 
     Use cases:
     - normal contract eg 201712 and expiry date like 20171214

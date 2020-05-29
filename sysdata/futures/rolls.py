@@ -275,7 +275,7 @@ class rollParameters(object):
         """
         Check to see if a rollcycle is empty
 
-        :param rollcycle_name: str, attribute of self, eithier 'priced_rollcycle' or 'hold_rollcycle'
+        :param rollcycle_name: str, attribute of self, either 'priced_rollcycle' or 'hold_rollcycle'
         :return: nothing or exception
         """
 
@@ -457,8 +457,8 @@ class contractDateWithRollParameters(contractDate):
         """
         Used for going backward or forwards
 
-        :param direction_function_name: str, attribute method of a roll cycle, eithier 'next_year_month' or 'previous_year_month'
-        :param rollcycle_name: str, attribute method of self.roll_parameters, eithier 'priced_rollcycle' or 'held_rollcycle'
+        :param direction_function_name: str, attribute method of a roll cycle, either 'next_year_month' or 'previous_year_month'
+        :param rollcycle_name: str, attribute method of self.roll_parameters, either 'priced_rollcycle' or 'held_rollcycle'
         :return: new contractDate object
         """
         rollcycle_to_use = getattr(self.roll_parameters, rollcycle_name)

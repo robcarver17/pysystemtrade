@@ -34,7 +34,7 @@ def update_account_values():
 
         capital_data = dataCapital(data)
 
-        ## This assumes that each account only reports eithier in one currency or for each currency, i.e. no double counting
+        ## This assumes that each account only reports either in one currency or for each currency, i.e. no double counting
         total_account_value_in_base_currency = capital_data.get_ib_total_capital_value()
         log.msg("Broker account value is %f" % total_account_value_in_base_currency)
 

@@ -1,7 +1,7 @@
 """
 Run overnight backtest of systems to generate optimal positions
 
-These are defined in eithier the defaults.yaml file or overriden in private config
+These are defined in either the defaults.yaml file or overriden in private config
 strategy_list:
   example:
     overnight_launcher:

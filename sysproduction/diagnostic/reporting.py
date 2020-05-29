@@ -54,7 +54,7 @@ def run_report_with_data_blob(report_config, data, **kwargs):
         parsed_report = "Report failed to parse %s with error %s\n" % (report_config.title, str(e))
         report_result = failure
 
-    # We eithier print or email
+    # We either print or email
     if report_config.output is "console":
         print(parsed_report)
     elif report_config.output is "email":

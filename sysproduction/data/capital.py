@@ -44,7 +44,7 @@ class dataCapital(object):
         currency_data = currencyData(self.data)
         values_across_accounts = self.data.ib_conn.broker_get_account_value_across_currency_across_accounts()
 
-        ## This assumes that each account only reports eithier in one currency or for each currency, i.e. no double counting
+        ## This assumes that each account only reports either in one currency or for each currency, i.e. no double counting
         total_account_value_in_base_currency = currency_data.total_of_list_of_currency_values_in_base(
             values_across_accounts)
 

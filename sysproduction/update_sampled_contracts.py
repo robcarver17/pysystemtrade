@@ -113,7 +113,7 @@ def update_contract_database_with_contract_chain( instrument_code, required_cont
     add_missing_contracts_to_database(instrument_code, missing_from_db, data, log=log)
 
     #Is something in the database, but not in required_contract_chain?
-    #Then it's eithier expired or weirdly very far in the future (maybe we changed the roll parameters)
+    #Then it's either expired or weirdly very far in the future (maybe we changed the roll parameters)
     #Eithier way, we stop sampling it (if it hasn't expired, will be added in the future)
     contracts_not_sampling = current_contract_chain.difference(required_contract_chain)
     mark_contracts_as_stopped_sampling(instrument_code, contracts_not_sampling, data, log=log)
