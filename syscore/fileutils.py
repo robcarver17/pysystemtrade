@@ -16,14 +16,14 @@ def get_filename_for_package(pathname, filename=None):
     """
     A way of resolving relative and absolute filenames, and dealing with akward OS specific things
 
-    We can eithier have pathname = 'some.path.filename.csv' or pathname='some.path', filename='filename.csv'
+    We can either have pathname = 'some.path.filename.csv' or pathname='some.path', filename='filename.csv'
 
     An absolute filename is a full path
 
     A relative filename sits purely within the pysystemtrade directory, eg sysbrokers.IB.config.csv resolves to
        ..../pysystemtrade/sysbrokers/IB/config.csv
 
-    We can pass eithier:
+    We can pass either:
 
     - a relative filename demarcated with .
     - an absolute filename demarcated with ., / or \
