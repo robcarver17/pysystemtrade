@@ -206,10 +206,13 @@ def update_expiry_for_contract(contract_object, data, log=logtoscreen("")):
 
     # Both should be in format expiryDate(yyyy,mm,dd)
     db_expiry_date = db_contract.contract_date.expiry_date
-    ib_expiry_date = data.ib_futures_contract_price.\
-        get_actual_expiry_date_for_instrument_code_and_contract_date(instrument_code, contract_date)
+    try:
+        ib_expiry_date = data.ib_futures_contract_price.\
+            get_actual_expiry_date_for_instrument_code_and_contract_date(instrument_code, contract_date)
 
-    if ib_expiry_date is missing_contract:
+        if ib_expiry_date is missing_contract:
+            raise Exception()
+    except:
         # We can do nothing with that...
         log.warn("Couldn't get expiry date for %s" % str(contract_object), contract_date=contract_object.date)
         return None

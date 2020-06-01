@@ -20,6 +20,8 @@ from sysdata.production.optimal_positions import bufferedOptimalPositions
 
 from sysproduction.data.currency_data import currencyData
 from sysproduction.data.capital import dataCapital
+from sysproduction.data.contracts import diagContracts
+
 from sysproduction.diagnostic.backtest_state import store_backtest_state
 
 
@@ -79,16 +81,19 @@ def updated_buffered_positions(data, strategy_name, system):
     data.add_class_list("mongoOptimalPositionData")
     optimal_position_data = data.mongo_optimal_position
 
+    diag_contracts = diagContracts()
+
     list_of_instruments = system.get_instrument_list()
     for instrument_code in list_of_instruments:
         try:
-            position_entry = get_position_buffers_from_system(system, instrument_code)
+            lower_buffer, upper_buffer = get_position_buffers_from_system(system, instrument_code)
+            position_entry = construct_position_entry(diag_contracts, system, instrument_code, lower_buffer, upper_buffer)
             optimal_position_data.update_optimal_position_for_strategy_and_instrument(strategy_name, instrument_code, position_entry)
             data.log.msg("New buffered positions %.3f %.3f" %
                          (position_entry.lower_position,
                           position_entry.upper_position), instrument_code=instrument_code)
         except Exception as e:
-            data.log.warn("Couldn't get or update buffered positions error %s" % e, instrument_code=instrument_code)
+            data.log.critical("Couldn't get or update buffered positions error %s" % e, instrument_code=instrument_code)
 
     return success
 
@@ -98,8 +103,12 @@ def get_position_buffers_from_system(system, instrument_code):
     lower_buffer = buffers.iloc[-1].bot_pos
     upper_buffer = buffers.iloc[-1].top_pos
 
-    position_entry = bufferedOptimalPositions(lower_buffer, upper_buffer)
+    return lower_buffer, upper_buffer
+
+def construct_position_entry(diag_contracts, system, instrument_code, lower_buffer, upper_buffer):
+    reference_price = system.rawdata.get_daily_prices(instrument_code).iloc[-1]
+    reference_contract = diag_contracts.get_priced_contract_id(instrument_code)
+    position_entry = bufferedOptimalPositions(lower_buffer, upper_buffer, reference_price, reference_contract)
 
     return position_entry
-
 

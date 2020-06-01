@@ -107,6 +107,12 @@ class diagContracts(object):
         carry_contract = contract_dict['CARRY']
         return carry_contract
 
+    def get_forward_contract_id(self, instrument_code):
+        contract_dict = self.get_current_contract_dict( instrument_code)
+        carry_contract = contract_dict['FORWARD']
+        return carry_contract
+
+
     def get_priced_expiry(self, instrument_code):
         contract_id = self.get_priced_contract_id(instrument_code)
         return self.get_actual_expiry(instrument_code, contract_id)

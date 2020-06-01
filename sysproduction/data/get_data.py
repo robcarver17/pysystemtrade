@@ -21,7 +21,8 @@ from sysdata.mongodb.mongo_position_by_contract import mongoContractPositionData
 from sysdata.mongodb.mongo_capital import mongoCapitalData
 from sysdata.mongodb.mongo_optimal_position import mongoOptimalPositionData
 from sysdata.mongodb.mongo_positions_by_strategy import mongoStrategyPositionData
-from sysdata.mongodb.mongo_order_stack import mongoInstrumentOrderStackData
+from sysdata.mongodb.mongo_order_stack import mongoInstrumentOrderStackData, mongoContractOrderStackData
+
 
 from sysdata.mongodb.mongo_connection import mongoDb
 
@@ -62,6 +63,8 @@ class dataBlob(object):
         """
         if mongo_db is arg_not_supplied:
             mongo_db = mongoDb()
+
+        log.set_logging_level("on")
 
         self.mongo_db = mongo_db
         self.ib_conn = ib_conn

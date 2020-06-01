@@ -413,9 +413,9 @@ def _unique_list_from_total(account_summary_data, tag_name):
 
 def get_barsize_and_duration_from_frequency(bar_freq):
 
-    barsize_lookup = dict([('D', "1 day"), ('H', "1 hour"), ('5M', '5 mins'), ('M', '1 min'),
+    barsize_lookup = dict([('D', "1 day"), ('H', "1 hour"), ('15M', '15 mins'), ('5M', '5 mins'), ('M', '1 min'),
                            ('10S', '10 secs'), ('S', '1 secs')])
-    duration_lookup = dict([('D', "1 Y"), ('H', "1 M"), ('5M', "1 W"), ('M', '1 D'),
+    duration_lookup = dict([('D', "1 Y"), ('H', "1 M"), ('15M', '1 W'), ('5M', "1 W"), ('M', '1 D'),
                             ('10S', '14400 S'), ('S', '1800 S')])
     try:
         assert bar_freq in barsize_lookup.keys() and bar_freq in duration_lookup.keys()

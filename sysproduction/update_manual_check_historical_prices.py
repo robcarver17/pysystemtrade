@@ -14,7 +14,7 @@ from sysproduction.data.get_data import dataBlob
 from sysdata.futures.manual_price_checker import manual_price_checker
 from sysdata.futures.futures_per_contract_prices import futuresContractPrices
 from syslogdiag.log import logToMongod as logger
-
+from sysdata.private_config import get_private_then_default_key_value
 
 def update_manual_check_historical_prices(instrument_code:str):
     """
@@ -75,20 +75,46 @@ def update_historical_prices_with_checks_for_instrument_and_contract(contract_ob
     :param log: logger
     :return: None
     """
-    ib_prices = data.ib_futures_contract_price.get_prices_for_contract_object(contract_object)
-    if len(ib_prices)==0:
-        log.warn("No IB prices found for %s" % str(contract_object))
-        return failure
-    old_prices = data.arctic_futures_contract_price.get_prices_for_contract_object(contract_object)
+    intraday_frequency = get_private_then_default_key_value("intraday_frequency")
 
-    print("\n\n Manually checking prices for %s \n\n" % str(contract_object))
-    new_prices_checked = manual_price_checker(old_prices, ib_prices,
-                         column_to_check = 'FINAL',
-                         delta_columns = ['OPEN','HIGH','LOW'],
-                         type_new_data = futuresContractPrices
-                         )
-    rows_added = data.arctic_futures_contract_price.update_prices_for_contract(contract_object, new_prices_checked,
-                                                                               check_for_spike=False)
+    try:
+        ib_prices = data.ib_futures_contract_price.get_prices_at_frequency_for_contract_object(contract_object, intraday_frequency)
+        if len(ib_prices) == 0:
+            raise Exception("No IB prices found for %s" % str(contract_object))
+
+        old_prices = data.arctic_futures_contract_price.get_prices_for_contract_object(contract_object)
+
+        print("\n\n Manually checking prices for %s \n\n" % str(contract_object))
+        new_prices_checked = manual_price_checker(old_prices, ib_prices,
+                                                  column_to_check='FINAL',
+                                                  delta_columns=['OPEN', 'HIGH', 'LOW'],
+                                                  type_new_data=futuresContractPrices
+                                                  )
+        rows_added = data.arctic_futures_contract_price.update_prices_for_contract(contract_object, new_prices_checked,
+                                                                                   check_for_spike=False)
+
+    except Exception as e:
+        log.warn("Error %s when getting daily prices for %s" % (e, str(contract_object)))
+
+    try:
+        ib_prices = data.ib_futures_contract_price.get_prices_for_contract_object(contract_object)
+        if len(ib_prices) == 0:
+            log.warn("No IB prices found for %s" % str(contract_object))
+            return failure
+        old_prices = data.arctic_futures_contract_price.get_prices_for_contract_object(contract_object)
+
+        print("\n\n Manually checking prices for %s \n\n" % str(contract_object))
+        new_prices_checked = manual_price_checker(old_prices, ib_prices,
+                                                  column_to_check='FINAL',
+                                                  delta_columns=['OPEN', 'HIGH', 'LOW'],
+                                                  type_new_data=futuresContractPrices
+                                                  )
+        rows_added = data.arctic_futures_contract_price.update_prices_for_contract(contract_object, new_prices_checked,
+                                                                                   check_for_spike=False)
+
+    except Exception as e:
+        log.warn("Error %s when getting daily prices for %s" % (e, str(contract_object)))
+
 
     return success
 

@@ -1,8 +1,10 @@
 
 import pandas as pd
-
+import datetime
 from syscore.fileutils import get_filename_for_package
 from syscore.genutils import value_or_npnan, NOT_REQUIRED
+
+
 from sysdata.futures.futures_per_contract_prices import futuresContractPriceData, futuresContractPrices
 from sysdata.futures.contracts import futuresContract, listOfFuturesContracts
 from sysdata.futures.instruments import futuresInstrument
@@ -131,6 +133,9 @@ class ibFuturesContractPriceData(futuresContractPriceData):
         else:
             data = futuresContractPrices(price_data)
 
+        data = futuresContractPrices(data[data.index<datetime.datetime.now()])
+        data = data.remove_zero_volumes()
+
         return data
 
     def get_prices_at_frequency_for_contract_object(self, contract_object, freq="D"):
@@ -141,7 +146,7 @@ class ibFuturesContractPriceData(futuresContractPriceData):
         Because the list of dates returned by contracts_with_price_data is likely to not match (expiries)
 
         :param contract_object:  futuresContract
-        :param freq: str; one of D, H, 5M, M, 10S, S
+        :param freq: str; one of D, H, 15M, 5M, M, 10S, S
         :return: data
         """
         new_log = self.log.setup(instrument_code=contract_object.instrument_code, contract_date=contract_object.date)
@@ -158,7 +163,10 @@ class ibFuturesContractPriceData(futuresContractPriceData):
             new_log.warn("No IB price data found for %s" % str(contract_object))
             data = futuresContractPrices.create_empty()
         else:
-            data = futuresContractPrices.only_have_final_prices(price_data)
+            data = futuresContractPrices(price_data)
+
+        data = futuresContractPrices(data[data.index<datetime.datetime.now()])
+        data = data.remove_zero_volumes()
 
         return data
 

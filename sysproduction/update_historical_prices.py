@@ -11,7 +11,7 @@ from sysdata.mongodb.mongo_connection import mongoDb
 from sysproduction.data.get_data import dataBlob
 from syslogdiag.log import logToMongod as logger
 from syslogdiag.emailing import send_mail_msg
-
+from sysdata.private_config import get_private_then_default_key_value
 
 def update_historical_prices():
     """
@@ -67,15 +67,27 @@ def update_historical_prices_for_instrument_and_contract(contract_object, data, 
     :param log: logger
     :return: None
     """
-    ib_prices = data.ib_futures_contract_price.get_prices_for_contract_object(contract_object)
-    if len(ib_prices)==0:
-        log.warn("No IB prices found for %s" % str(contract_object))
-        return failure
+    intraday_frequency = get_private_then_default_key_value("intraday_frequency")
+    try:
+        ib_intraday_prices = data.ib_futures_contract_price.get_prices_at_frequency_for_contract_object(contract_object, intraday_frequency)
+        rows_added_intraday = data.arctic_futures_contract_price.update_prices_for_contract(contract_object, ib_intraday_prices,
+                                                                                   check_for_spike=True)
 
-    rows_added = data.arctic_futures_contract_price.update_prices_for_contract(contract_object, ib_prices,
+    except Exception as e:
+        log.warn("Exception %s when getting intraday data for %s" % (e, str(contract_object)))
+        rows_added_intraday = 0
+
+    try:
+        ib_daily_prices = data.ib_futures_contract_price.get_prices_for_contract_object(contract_object)
+        rows_added_daily = data.arctic_futures_contract_price.update_prices_for_contract(contract_object, ib_daily_prices,
                                                                                check_for_spike=True)
 
-    if rows_added is data_error:
+    except Exception as e:
+        log.warn("Exception %s when getting daily data for %s" % (e, str(contract_object)))
+        rows_added_daily = 0
+
+
+    if rows_added_intraday is data_error or rows_added_daily is data_error:
         ## SPIKE
         ## Need to email user about this as will need manually checking
         msg = "Spike found in prices for %s: need to manually check by running update_manual_check_historical_prices" % str(contract_object)

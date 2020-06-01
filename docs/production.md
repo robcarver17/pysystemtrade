@@ -484,8 +484,9 @@ The following should be used as logging attributes (failure to do so will break 
 - component: other parts of the top level function that have their own loggers
 - currency_code: Currency code (used for fx), format 'GBPUSD'
 - instrument_code: Self explanatory
-- contract_date: Self explanatory, format 'yyyymm' 
-- order_id: Self explanatory, used for live trading
+- contract_date: Self explanatory, format 'yyyymmdd' 
+- instrument_order_id, contract_order_id, broker_order_id: Self explanatory, used for live trading
+- strategy_name: Self explanatory
 
 
 ### Getting log data back

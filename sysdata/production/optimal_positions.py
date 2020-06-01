@@ -40,7 +40,7 @@ class bufferedOptimalPositions(timedEntry):
 
     """
     def _setup_args_data(self):
-        self._star_args = ['lower_position', 'upper_position'] # compulsory args
+        self._star_args = ['lower_position', 'upper_position', 'reference_price', 'reference_contract'] # compulsory args
 
     def _name_(self):
         return "bufferedOptimalPosition"

@@ -108,6 +108,10 @@ class futuresContractPrices(pd.DataFrame):
 
         return futuresContractPrices(merged_data)
 
+    def remove_zero_volumes(self):
+        self[self[VOLUME_COLUMN] > 0]
+        return futuresContractPrices(self)
+
     def add_rows_to_existing_data(self, new_futures_per_contract_prices, check_for_spike=True):
         """
         Merges self with new data.

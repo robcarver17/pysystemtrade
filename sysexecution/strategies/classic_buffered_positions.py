@@ -10,6 +10,8 @@ These are 'virtual' orders, because they are per instrument. We translate that t
 Desired virtual orders have to be labelled with the desired type: limit, market,best-execution
 """
 
+from syscore.objects import missing_order
+
 from sysexecution.instrument_orders import instrumentOrder
 from sysexecution.strategy_order_handling import orderGeneratorForStrategy
 
@@ -21,7 +23,7 @@ class orderGeneratorForBufferedPositions(orderGeneratorForStrategy):
         optimal_positions = self.get_optimal_positions()
         actual_positions = self.get_actual_positions_for_strategy()
 
-        list_of_trades = list_of_trades_given_optimal_and_actual_positions(strategy_name, optimal_positions, actual_positions)
+        list_of_trades = list_of_trades_given_optimal_and_actual_positions(self.data, strategy_name, optimal_positions, actual_positions)
 
         return list_of_trades
 
@@ -40,22 +42,30 @@ class orderGeneratorForBufferedPositions(orderGeneratorForStrategy):
         lower_positions = dict([(instrument_code, opt_position.lower_position)
                                 for instrument_code, opt_position in optimal_positions.items()])
 
-        return upper_positions, lower_positions
+        reference_prices = dict([(instrument_code, opt_position.reference_price)
+                                for instrument_code, opt_position in optimal_positions.items()])
+
+        reference_contracts = dict([(instrument_code, opt_position.reference_contract)
+                                for instrument_code, opt_position in optimal_positions.items()])
 
 
-def list_of_trades_given_optimal_and_actual_positions(strategy_name, optimal_positions, actual_positions):
-    upper_positions, _ = optimal_positions
+        return upper_positions, lower_positions, reference_prices, reference_contracts
+
+
+def list_of_trades_given_optimal_and_actual_positions(data, strategy_name, optimal_positions, actual_positions):
+    upper_positions, _, _, _ = optimal_positions
     list_of_instruments = upper_positions.keys()
-    trade_list = [trade_given_optimal_and_actual_positions(strategy_name, instrument_code, optimal_positions, actual_positions)
+    trade_list = [trade_given_optimal_and_actual_positions(data, strategy_name, instrument_code, optimal_positions, actual_positions)
                        for instrument_code in list_of_instruments]
 
     return trade_list
 
-def trade_given_optimal_and_actual_positions(strategy_name, instrument_code, optimal_positions, actual_positions):
-    upper_positions, lower_positions = optimal_positions
+def trade_given_optimal_and_actual_positions(data, strategy_name, instrument_code, optimal_positions, actual_positions):
+    log = data.log.setup(strategy_name = strategy_name, instrument_code = instrument_code)
+    upper_positions, lower_positions,  reference_prices, reference_contracts = optimal_positions
 
-    upper_for_instrument = upper_positions.get(instrument_code, 0.0)
-    lower_for_instrument = lower_positions.get(instrument_code, 0.0)
+    upper_for_instrument = upper_positions[instrument_code]
+    lower_for_instrument = lower_positions[instrument_code]
     actual_for_instrument = actual_positions.get(instrument_code, 0.0)
 
     if actual_for_instrument<lower_for_instrument:
@@ -69,6 +79,16 @@ def trade_given_optimal_and_actual_positions(strategy_name, instrument_code, opt
 
     trade_required = required_position - actual_for_instrument
 
-    order_required = instrumentOrder(strategy_name,instrument_code, trade_required,  type="best")
+    reference_contract = reference_contracts[instrument_code]
+    reference_price = reference_prices[instrument_code]
+
+    log.msg("Trade %d Upper %d Lower %d Actual %d Reference price %f  for contract %s"
+             % (trade_required, upper_for_instrument, lower_for_instrument, actual_for_instrument,
+                reference_price,  reference_contract))
+
+    # No limit orders, just best execution
+    order_required = instrumentOrder(strategy_name,instrument_code, trade_required,  order_type="best",
+                                     reference_price = reference_price, reference_contract = reference_contract
+                                     )
 
     return order_required

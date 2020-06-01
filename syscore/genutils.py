@@ -276,6 +276,20 @@ class timerClass(object):
         else:
             return False
 
+# avoids encoding problems with mongo
+_none = ""
+
+def none_to_object(x, object):
+    if x is _none:
+        return object
+    else:
+        return x
+
+def object_to_none(x, object, y=_none):
+    if x is object:
+        return y
+    else:
+        return x
 
 
 if __name__ == '__main__':

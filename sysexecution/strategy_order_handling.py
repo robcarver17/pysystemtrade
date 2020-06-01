@@ -18,6 +18,8 @@ class orderHandlerAcrossStrategies(object):
     def __init__(self, data):
         data.add_class_list("mongoInstrumentOrderStackData")
         self.data = data
+        self.log = data.log
+
         self._create_strategy_generators()
 
     @property
@@ -28,7 +30,7 @@ class orderHandlerAcrossStrategies(object):
         strategy_dict = get_private_then_default_key_value('strategy_list')
         generator_dict = {}
         for strategy_name, strategy_config in strategy_dict.items():
-            self.data.log.label(strategy_name = strategy_name)
+            self.log.label(strategy_name = strategy_name)
             config_dict = get_private_then_default_key_value('strategy_list')
             try:
                 config_for_strategy = config_dict[strategy_name]
@@ -37,7 +39,7 @@ class orderHandlerAcrossStrategies(object):
                 strategy_handler_class = resolve_function(strategy_handler_class_name)
 
             except:
-                self.data.log.critical("No handler found for strategy %s, won't do order handling" % strategy_name)
+                self.log.critical("No handler found for strategy %s, won't do order handling" % strategy_name)
                 strategy_handler_class = orderGeneratorForStrategy
 
             strategy_handler = strategy_handler_class(self.data, strategy_name)
@@ -70,21 +72,23 @@ class orderHandlerAcrossStrategies(object):
 
     def submit_order_list(self, order_list):
         for order in order_list:
-            log = self.data.log.setup(strategy_name=order.strategy_name, instrument_code = order.instrument_code)
             try:
-                result = self.order_stack.put_order_on_stack(order)
-                if result is success:
-                    log.msg("Added order %s to instrument order stack" % str(order))
-                elif result is duplicate_order:
-                    log.msg("Order %s already on instrument order stack" % str(order))
-                elif result is locked_order:
-                    log.msg("Order %s is locked in instrument order stack can't modify" % str(order))
+                # we allow existing orders to be modified
+                order_id = self.order_stack.put_order_on_stack(order, modify_existing_order = True)
+                if type(order_id) is int:
+                    self.log.msg("Added order %s to instrument order stack with order id %d" % (str(order), order_id),
+                            instrument_order_id = order_id, strategy_name = order.strategy_name,
+                                 instrument_code = order.instrument_code)
                 else:
-                    log.msg("Order %s won't update with status %s" % (str(order), str(result)))
+                    self.log.warn("Could not put order %s on instrument order stack" % str(order),
+                                 strategy_name = order.strategy_name,
+                                 instrument_code = order.instrument_code)
 
             except Exception as e:
                 # serious error, abandon everything
-                log.critical("Problem %s adding order %s to stack %s" % (e, str(order), str(self.order_stack)))
+                self.log.critical("Error %s putting %s on instrument order stack" % (str(e), str(order)),
+                              strategy_name=order.strategy_name,
+                              instrument_code=order.instrument_code)
                 return failure
 
         return success
@@ -99,6 +103,7 @@ class orderGeneratorForStrategy(timerClass):
     def __init__(self, data, strategy_name):
         self.data = data
         self.strategy_name = strategy_name
+        self.log = data.log
 
     @property
     def strategy_config(self):
@@ -109,7 +114,7 @@ class orderGeneratorForStrategy(timerClass):
                 config_for_strategy = config_dict[self.strategy_name]
                 config = config_for_strategy['order_handling']
             except Exception as e:
-                self.data.log.critical("Can't find order_handling configuration for strategy in .strategy_list config element error %s" % e)
+                self.log.critical("Can't find order_handling configuration for strategy in .strategy_list config element error %s" % e)
                 return {}
 
             self._strategy_config = config
