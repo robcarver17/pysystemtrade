@@ -214,7 +214,7 @@ Moved most examples except core to seperate git [here](https://github.com/robcar
 
 ## Version 0.9.0 
 
-* Changed / added the following methods to `system.accounts`: `pandl_for_instrument_forecast_weighted`, `pandl_for_trading_rule_weighted`, `pandl_for_all_trading_rules`, `pandl_for_trading_rule`, `pandl_for_trading_rule_unweighted`, `pandl_for_all_trading_rules_unweighted` See [/docs/userguide.md#weighted_acg] for more detail.
+* Changed / added the following methods to `system.accounts`: `pandl_for_instrument_forecast_weighted`, `pandl_for_trading_rule_weighted`, `pandl_for_all_trading_rules`, `pandl_for_trading_rule`, `pandl_for_trading_rule_unweighted`, `pandl_for_all_trading_rules_unweighted` See [Weighted and unweighted account curve groups](/docs/userguide.md#weighted_acg) for more detail.
 * Added `get_capital_in_rule`, `get_instrument_forecast_scaling_factor` to help calculate these.
 * fixed error in user guide
 
@@ -354,7 +354,7 @@ Moved most examples except core to seperate git [here](https://github.com/robcar
 
 ## Version: 0.0.2
 
-* Added rolling estimate of forecast scalars; try System([rawdata, rules, *ForecastScaleCapEstimated()*], data, config)
+* Added rolling estimate of forecast scalars; try `System([rawdata, rules, ForecastScaleCapEstimated()], data, config)`
 * Moved .get_instrument_list from portfolio object to parent system
 
 ## Version: 0.0.1

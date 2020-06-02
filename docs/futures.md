@@ -251,7 +251,7 @@ If you don't like panama stitching then you can modify the method. More details 
 <a name="create_fx_data"></a>
 ## Getting and storing FX data
 
-Although strictly not futures prices we also need spot FX prices to run our simulation. The github for pysystemtrade contains spot FX data, but you will probably wish to update it. In live trading we'd use interactive brokers, but for now I'm going to use one of the many free data websites: [investing.com](investing.com)
+Although strictly not futures prices we also need spot FX prices to run our simulation. The github for pysystemtrade contains spot FX data, but you will probably wish to update it. In live trading we'd use interactive brokers, but for now I'm going to use one of the many free data websites: [investing.com](https://www.investing.com)
 
 You need to register and then download enough history. To see how much FX data there already is:
 
@@ -330,7 +330,7 @@ The price data for a given contract is just stored as a DataFrame with specific 
 `dictFuturesContractPrices`: When calculating roll calendars we work with prices from multiple contracts at once.
 
 <a name="futuresContractFinalPrices"></a>
-### [Final prices for individual futures contracts](/sysdata/futures/futures_per_contract_final_prices.py): futuresContractFinalPrices(), dictFuturesContractFinalPrices()
+### [Final prices for individual futures contracts](/sysdata/futures/futures_per_contract_prices.py): futuresContractFinalPrices(), dictFuturesContractFinalPrices()
 
 This is just the final prices alone. There is no data storage required for these since we don't need to store them seperately, just extract them from either `futuresContractPrices` or `dictFuturesContractPrices` objects.
 
@@ -421,7 +421,7 @@ In the initialisation part of the workflow (in [section one](#futures_data_workf
 <a name="init_instrument_config"></a>
 #### csvFuturesInstrumentData()(/sysdata/csv/csv_instrument_config.py) inherits from [futuresInstrumentData](#futuresInstrumentData)
 
-Using this script, [instruments_csv_mongo.py](/sysinit/futures/instruments_csv_mongo.py), reads instrument object data from [here](/sysinit/futures/config/instrumentconfig.csv) using [csvFuturesInstrumentData](#csvFuturesInstrumentData). This class is not specific for initialising the database, and is also used later [for simulation data](#csvFuturesSimData).
+Using this script, [instruments_csv_mongo.py](/sysinit/futures/instruments_csv_mongo.py), reads instrument object data from [here](/data/futures/csvconfig/instrumentconfig.csv) using [csvFuturesInstrumentData](#csvFuturesInstrumentData). This class is not specific for initialising the database, and is also used later [for simulation data](#csvFuturesSimData).
 
 <a name="initCsvFuturesRollData"></a>
 #### [initCsvFuturesRollData()](/sysinit/futures/csv_data_readers/rolldata_from_csv.py) inherits from [rollParametersData](#rollParametersData)
@@ -493,8 +493,8 @@ Personally I like to keep my Mongo data in a specific subdirectory; that is achi
 You need to specify an IP address (host), and database name when you connect to MongoDB. These are set with the following priority:
 
 - Firstly, arguments passed to a `mongoDb()` instance, which is then optionally passed to any data object with the argument `mongo_db=mongoDb(host='localhost', database_name='production')` All arguments are optional. 
-- Then, variables set in the [private `.yaml` configuration file](private.private_config.yaml): mongo_host, mongo_db
-- Finally, default arguments in the [system defaults configuration file](systems/provided/defaults.yaml): mongo_host, mongo_db
+- Then, variables set in the [private `.yaml` configuration file](/private/private_config.yaml): mongo_host, mongo_db
+- Finally, default arguments in the [system defaults configuration file](/systems/provided/defaults.yaml): mongo_host, mongo_db
 
 Note that 'localhost' is equivalent to '127.0.0.1', i.e. this machine. Note also that no port can be specified. This is because the port is hard coded in Arctic. You should stick to the default port 27017.
 
@@ -584,7 +584,7 @@ Note:
 These are set with the following priority:
 
 - Firstly, arguments passed to a `mongoDb()` instance, which is then optionally passed to any Arctic data object with the argument `mongo_db=mongoDb(host='localhost', database_name='production')` All arguments are optional. 
-- Then, arguments set in the [private `.yaml` configuration file](private.private_config.yaml): mongo_host, mongo_db
+- Then, arguments set in the [private `.yaml` configuration file](/private/private_config.yaml): mongo_host, mongo_db
 - Finally, default arguments hardcoded [in mongo_connection.py](/sysdata/mongodb/mongo_connection.py): DEFAULT_MONGO_DB, DEFAULT_MONGO_HOST, DEFAULT_MONGO_PORT
 
 Note that 'localhost' is equivalent to '127.0.0.1', i.e. this machine.
@@ -824,7 +824,7 @@ If you want to construct your own simData objects it's worth understanding their
 
 ### Naming convention and inheritance
 
-The base class is [simData](/sysdata/data.py). This in turn inherits from baseData, which is also the parent class for the [data storage objects](#storing_futures_data described) earlier in this document. simData implements a number of compulsory methods that we need to run simulations. These are described in more detail in the main [user guide](/docs/userguide.md#data) for pysystemtrade.
+The base class is [simData](/sysdata/data.py). This in turn inherits from baseData, which is also the parent class for the [data storage objects](#storing_futures_data) described earlier in this document. simData implements a number of compulsory methods that we need to run simulations. These are described in more detail in the main [user guide](/docs/userguide.md#data) for pysystemtrade.
 
 We then inherit from simData for a specific asset class implementation, i.e. for futures we have the method futuresSimData in [futuresDataForSim.py](/sysdata/futures/futuresDataForSim.py). This adds methods for additional types of data (eg carry) but can also override methods (eg get_raw_price is overriden so it gets backadjusted futures prices).
 

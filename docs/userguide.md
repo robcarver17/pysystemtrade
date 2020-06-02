@@ -974,10 +974,10 @@ print(system.accounts.portfolio().sharpe())
 You should be familiar with the python object orientated idiom before reading
 this section.
 
-The [`simData()`](/sysdata/data) object is the base class for data used in simulations. From that we
+The [`simData()`](/sysdata/data.py) object is the base class for data used in simulations. From that we
 inherit data type specific classes such as those 
-[for futures](/sysdata/futuresdata) object. These in turn are inherited from
-for specific data sources, such as for csv files:[csvFuturesSimData()](/sysdata/csv/csv_sim_futures_data.py).
+[for futures](/sysdata/futures/futuresDataForSim.py) object. These in turn are inherited from
+for specific data sources, such as for csv files: [csvFuturesSimData()](/sysdata/csv/csv_sim_futures_data.py).
 
 It is helpful if this naming scheme was adhered to: sourceTypeSimData. For example if we had
 some single equity data stored in a database we'd do `class
@@ -2087,7 +2087,7 @@ system.rawdata.get_raw_price("EDOLLAR").tail(5)
 ```
 
 `system.rawdata.log` provides access to the log for the stage rawdata, and so
-on. See [logging][#logging] for more details.
+on. See [logging](#logging) for more details.
 
 
 
@@ -2162,7 +2162,7 @@ output method intact we don't need to mess around with any other stage.
 If you're going to write a new stage (completely new, or to replace an existing
 stage) you need to keep the following in mind:
 
-1. New stages should inherit from [`SystemStage`](/systems/stage/SystemStage)
+1. New stages should inherit from [`SystemStage`](/systems/stage.py)
 2. Modified stages should inherit from the existing stage you're modifying. For
    example if you create a new way of calculating forecast weights then you
    should inherit from [class `ForecastCombine`](/systems/forecast_combine.py),
@@ -3408,7 +3408,7 @@ acc_curve_group.costs.annual.median() ## median of annual costs
 These are in fact all giving the p&l for the entire portfolio (the sum of
 individual account curves across all assets); defaulting to giving the net,
 daily curve. To find out which assets we use acc_curve_group.asset_columns; to
-access a particular asset we use acc_curve_group['assetName'].
+access a particular asset we use `acc_curve_group['assetName']`.
 
 ```python
 acc_curve_group.asset_columns
@@ -4620,7 +4620,7 @@ arguments are pool_instruments (determines if we pool estimate over multiple
 instruments) and func (str function pointer to use for estimation). The
 remaining arguments are passed to the estimation function.
 
-See [forecast scale estimation](#scalar_estimate] for more detail.
+See [forecast scale estimation](#scalar_estimate) for more detail.
 
 If you're considering using your own function please see [configuring defaults
 for your own functions](#config_function_defaults)
@@ -4779,7 +4779,7 @@ To estimate the forecast weights we call the function defined in the `func`
 config element.
 
 The defaults given below are for the default generic optimiser function. See
-the section on (optimisation)[#optimisation] for more information.
+the section on [optimisation](#optimisation) for more information.
 
 YAML, showing defaults
 ```
@@ -5047,7 +5047,7 @@ To estimate the instrument weights we call the function defined in the `func`
 config element. All other parameters are passed to the optimisation function.
 
 The defaults given below are for the default generic optimiser function. See
-the section on (optimisation)[#optimisation] for more information.
+the section on [optimisation](#optimisation) for more information.
 
 YAML, showing defaults
 ```
