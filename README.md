@@ -4,7 +4,7 @@ Systematic Trading in python
 
 Rob Carver
 
-[http://qoppac.blogspot.co.uk/p/pysystemtrade.html](http://qoppac.blogspot.co.uk/p/pysystemtrade.html)
+[http://qoppac.blogspot.co.uk/p/pysystemtrade.html](https://qoppac.blogspot.com/p/pysystemtrade.html)
 
 
 Version 0.30.0
@@ -20,12 +20,12 @@ See [DONE_TO_DO](DONE_TO_DO.md) for release notes, and future plans.
 
 ## Description
 
-**pysystem** trade is the open source version of my own backtesting engine that implements systems according to the framework outlined in my book ["Systematic Trading"](http://www.systematictrading.org), which is further developed on [my blog](http://qoppac.blogspot.com).
+**pysystemtrade** is the open source version of my own backtesting engine that implements systems according to the framework outlined in my book ["Systematic Trading"](https://www.systematicmoney.org/systematic-trading), which is further developed on [my blog](https://qoppac.blogspot.com).
 
-For a longer explanation of the motivation and point of this project see my [blog post.](http://qoppac.blogspot.co.uk/2015/12/pysystemtrade.html)
+For a longer explanation of the motivation and point of this project see my [blog post.](https://qoppac.blogspot.com/2015/12/pysystemtrade.html)
 
 Currently pysystemtrade can do the following:
-- Backtesting enviroment that will work "out of the box" for chapter 15 of my book ["Systematic Trading"](systematicmoney.org/systematic-trading)
+- Backtesting environment that will work "out of the box" for chapter 15 of my book ["Systematic Trading"](https://www.systematicmoney.org/systematic-trading)
 - Implement all the optimisation and system design principles in the book and on my website.
 
 *Eventually* pysystemtrade will also be a complete implementation of a fully automated system for futures trading (for interactive brokers only), including regularly updated data

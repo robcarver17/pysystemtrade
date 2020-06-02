@@ -193,7 +193,7 @@ A full list of stages would include:
 6. Creating a portfolio of instruments
 7. Working out the p&l
 
-For now let's start with the simplest possible system, one which contains only a trading rules stage. Let's just setup our enviroment again:
+For now let's start with the simplest possible system, one which contains only a trading rules stage. Let's just setup our environment again:
 
 ```python
 from sysdata.csv.csv_sim_futures_data import csvFuturesSimData

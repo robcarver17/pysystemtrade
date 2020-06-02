@@ -161,7 +161,7 @@ Moved most examples except core to seperate git [here](https://github.com/robcar
 
 ## Version 0.12.0
 
-* Capital correction now works. New methods: system.accounts.capital_multiplier, system.accounts.portfolio_with_multiplier, system.portfolio.get_actual_positon, system.portfolio.get_actual_buffers_with_position, system.accounts.get_buffered_position_with_multiplier. See this [blog post](http://qoppac.blogspot.co.uk/2016/06/capital-correction-pysystemtrade.html)  and [the guide](https://github.com/robcarver17/pysystemtrade/blob/master/docs/userguide.md#capcorrection)
+* Capital correction now works. New methods: system.accounts.capital_multiplier, system.accounts.portfolio_with_multiplier, system.portfolio.get_actual_positon, system.portfolio.get_actual_buffers_with_position, system.accounts.get_buffered_position_with_multiplier. See this [blog post](https://qoppac.blogspot.com/2016/06/capital-correction-pysystemtrade.html) and [the guide](https://github.com/robcarver17/pysystemtrade/blob/master/docs/userguide.md#capcorrection)
 
 
 ## Version 0.11.2
@@ -197,7 +197,7 @@ Moved most examples except core to seperate git [here](https://github.com/robcar
 * Fixed bugs introduced in last version
 
 ## Version 0.10.0 
-* Refactored optimisation with costs code, changed configuration slightly (read [this revised blog post for more](http://qoppac.blogspot.co.uk/2016/05/optimising-weights-with-costs.html) )
+* Refactored optimisation with costs code, changed configuration slightly (read [this revised blog post for more](https://qoppac.blogspot.com/2016/05/optimising-weights-with-costs.html) )
 * Introduced method to cope with pooling on both costs and gross returns, so doesn't recalculate several times
 * Moved pre-screening for expensive assets to an earlier stage
 * New optimisation method "equal_weights" for equal weights; means that eg expensive forecasts can be removed and then take an equal weight on the rest
@@ -226,7 +226,7 @@ Moved most examples except core to seperate git [here](https://github.com/robcar
 
 ## Version 0.8.0 
 
-* introduced methods for optimisation with costs. See [this blog post for more](http://qoppac.blogspot.co.uk/2016/05/optimising-weights-with-costs.html)
+* introduced methods for optimisation with costs. See [this blog post for more](https://qoppac.blogspot.com/2016/05/optimising-weights-with-costs.html)
 * made a lot of tweaks to optimisation code; mainly shrinkage now shrinks towards target Sharpe ratio, equalising SR does the same; consistent annualisation 
 * introduced new parameter for optimisation `ann_target_SR`
 * `system.combForecast.calculation_of_raw_forecast_weights` (estimated version) no longer stores nested weights.
@@ -359,7 +359,7 @@ Moved most examples except core to seperate git [here](https://github.com/robcar
 
 ## Version: 0.0.1
 
-* Basic backtesting enviroment with example futures data.
+* Basic backtesting environment with example futures data.
 
 
 
