@@ -114,7 +114,7 @@ The relevant script to setup *information configuration* is in sysinit - the par
 
 Make sure you are running a [Mongo Database](#mongoDB) before running this.
 
-The information is sucked out of [this file](/sysinit/futures/config/instrumentconfig.csv) and into the mongo database whose connections are defined [here](/sysdata/mongodb/mongo_connection.py). The file includes a number of futures contracts that I don't actually trade or get prices for. Any configuration information for these may not be accurate and you use it at your own risk.
+The information is sucked out of [this file](/data/futures/csvconfig/instrumentconfig.csv) and into the mongo database whose connections are defined [here](/sysdata/mongodb/mongo_connection.py). The file includes a number of futures contracts that I don't actually trade or get prices for. Any configuration information for these may not be accurate and you use it at your own risk.
 
 <a name="set_up_roll_parameter_config"></a>
 ## Roll parameter configuration
