@@ -4,7 +4,7 @@ Systematic Trading in python
 
 Rob Carver
 
-[http://qoppac.blogspot.co.uk/p/pysystemtrade.html](https://qoppac.blogspot.com/p/pysystemtrade.html)
+[https://qoppac.blogspot.com/p/pysystemtrade.html](https://qoppac.blogspot.com/p/pysystemtrade.html)
 
 
 Version 0.30.0
