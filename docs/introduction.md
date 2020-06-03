@@ -324,7 +324,7 @@ So far, not exciting. Let's see how we'd use a `config` to define our trading ru
 empty_rules=Rules()
 my_config.trading_rules=dict(ewmac8=ewmac_8, ewmac32=ewmac_32)
 my_system=System([empty_rules], data, my_config)
-print(my_system.rules.get_raw_forecast("EDOLLAR", "ewmac8")
+print(my_system.rules.get_raw_forecast("EDOLLAR", "ewmac8"))
 ```
 
 Notice the differences from before:
