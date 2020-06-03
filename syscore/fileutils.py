@@ -38,7 +38,7 @@ def get_filename_for_package(pathname, filename=None):
         filename = '.'.join(path_as_list[-2:])
         split_pathname = '.'.join(path_as_list[0:-2])
     else:
-        # filename is already seperate
+        # filename is already separate
         split_pathname = dotted_pathname
 
     ## Resolve pathname

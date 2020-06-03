@@ -22,7 +22,7 @@ class instrumentOrder(Order):
         """
         instrumentOrder(strategy, instrument, trade,  **kwargs) or 'strategy/instrument', trade, type, **kwargs)
         :param trade: float
-        :param args: Eithier 2: strategy, instrument; or 1: instrumentTradeableObject
+        :param args: Either 2: strategy, instrument; or 1: instrumentTradeableObject
         :param type: str
         """
         if len(args)==2:

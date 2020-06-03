@@ -49,9 +49,9 @@ class contractDate(object):
     - VIX where contract needs to be defined as 20171214 because of weekly expiries
     - Gas where contract month and expiry date are in different months
 
-    We store the expiry date seperately
+    We store the expiry date separately
 
-    Eithier:
+    Either:
 
     - we know the expiry date precisely and it's passed when we create the object
     - OR we have to approximate by using the 1st of the month when the object is created

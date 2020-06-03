@@ -22,7 +22,7 @@ IB now uses ib_insync, not native IB library
 ## Version 0.27.0
 
 Cleaned up way defaults and private config files work
-Removed seperate mongodb config file
+Removed separate mongodb config file
 Added production code to run a system backtest and save optimal position state
 Cleaned up the way path and filename resolution works
 Added production code to backup mongodb to .csv files
@@ -52,7 +52,7 @@ Added more data
 
 ## Version 0.23.0
 
-'get_filename_for_package' can now take absolute as well as relative paths, and can cope with seperate file names
+'get_filename_for_package' can now take absolute as well as relative paths, and can cope with separate file names
 Updated legacy .csv files
 Fixed a few bugs
 Can now get unexpired contracts for a given instrument using 'contractDateWithRollParameters.get_unexpired_contracts_from_now_to_contract_date()'
@@ -109,7 +109,7 @@ Massive refactoring of sim data objects, to support alternative data sources and
 Created classses for individual futures contracts, and included example of how to use Quandl to get them
 
 ## Version 0.16.5
-Updated .csv data and moved to seperate section - now stored under Github LFS
+Updated .csv data and moved to separate section - now stored under Github LFS
 
 ## Version 0.16.4
 Added quandl data (but only for individual futures contracts right now so useless)
@@ -128,7 +128,7 @@ Updated to pandas 0.22.0
 Fixed issue #64, #68, #70 and other issues relating to pandas API update breaking correlation matrices
 
 ## Version 0.16.0
-Moved most examples except core to seperate git [here](https://github.com/robcarver17/pysystemtrade_examples)
+Moved most examples except core to separate git [here](https://github.com/robcarver17/pysystemtrade_examples)
 
 ## Version 0.15.0
 
@@ -143,12 +143,12 @@ Moved most examples except core to seperate git [here](https://github.com/robcar
 * Stages now have _names and _description defined in __init__
 * log values now passed in when __init__ of stage; hence baseystem.__init__ is much cleaner
 * Caching:
-   * Cache is now accessed via a seperate object in system; so system.cache.* rather than system.* for cache methods
+   * Cache is now accessed via a separate object in system; so system.cache.* rather than system.* for cache methods
    * Caching now done through decorators: from systems.system_cache import input, dont_cache, diagnostic, output
    * Use protected=True and/or not_cached=True within decorators
 * Got rid of 'switching' stages for estimating forecast scalars, forecast weights, instrument weights.
    * Explicit import of a Fixed or Estimated version of a class won't work; use the generic version.
-   * Added seperate fields to .yaml file to switch between IDM and FDM estimation or fixed values
+   * Added separate fields to .yaml file to switch between IDM and FDM estimation or fixed values
 * Split ultra-massive accounts.py into multiple files and classes
 * Split unwieldy ForecastCombine into several classes
 * Added a bunch more unit tests as I went through the above refactoring exercise
@@ -235,7 +235,7 @@ Moved most examples except core to seperate git [here](https://github.com/robcar
 
 * ability to pickle and unpickle cache (`system.pickle_cache`, `system.unpickle_cache`)
 * included breakout rule (example is being written)
-* seperate out weighting calculation so instrument forecast pandl can be cached
+* separate out weighting calculation so instrument forecast pandl can be cached
 * csv data is now daily and updated to present day
 * Fixed bug with loading data from private module
 * Changed raw cost data so returns dict not tuple
