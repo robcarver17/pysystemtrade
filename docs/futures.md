@@ -332,7 +332,7 @@ The price data for a given contract is just stored as a DataFrame with specific 
 <a name="futuresContractFinalPrices"></a>
 ### [Final prices for individual futures contracts](/sysdata/futures/futures_per_contract_prices.py): futuresContractFinalPrices(), dictFuturesContractFinalPrices()
 
-This is just the final prices alone. There is no data storage required for these since we don't need to store them seperately, just extract them from either `futuresContractPrices` or `dictFuturesContractPrices` objects.
+This is just the final prices alone. There is no data storage required for these since we don't need to store them separately, just extract them from either `futuresContractPrices` or `dictFuturesContractPrices` objects.
 
 `dictFuturesContractFinalPrices`: When calculating roll calendars we work with prices from multiple contracts at once.
 
@@ -438,7 +438,7 @@ For obvious (?) reasons we only implement get and read methods for .csv files (S
 <a name="csvFuturesInstrumentData"></a>
 #### [csvFuturesInstrumentData()](/sysdata/csv/csv_instrument_config.py) inherits from [futuresInstrumentData](#futuresInstrumentData)
 
-Reads futures configuration information from [here](/data/futures/csvconfig/instrumentconfig.csv) (note this is a seperate file from the one used to initialise the mongoDB database [earlier](#init_instrument_config) although this uses the same class method to get the data). Columns currently used by the simulation engine are: Instrument, Pointsize, AssetClass, Currency, Slippage, PerBlock, Percentage, PerTrade. Extraneous columns don't affect functionality. 
+Reads futures configuration information from [here](/data/futures/csvconfig/instrumentconfig.csv) (note this is a separate file from the one used to initialise the mongoDB database [earlier](#init_instrument_config) although this uses the same class method to get the data). Columns currently used by the simulation engine are: Instrument, Pointsize, AssetClass, Currency, Slippage, PerBlock, Percentage, PerTrade. Extraneous columns don't affect functionality.
 
 <a name="csvFuturesContractPriceData"></a>
 #### [csvFxPricesData()](/sysdata/csv/csv_spot_fx.py) inherits from [futuresContractPriceData](#futuresContractPriceData)
@@ -567,7 +567,7 @@ Reads FX spot prices from QUANDL. Acceses [this .csv file](/sysdata/quandl/Quand
 <a name="arctic"></a>
 ### Arctic 
 
-[Arctic](https://github.com/manahl/arctic) is a superb open source time series database which sits on top of [Mongo DB](#mongoDB) and provides straightforward and fast storage of pandas DataFrames. It was created by my former colleagues at [Man AHL](https://ahl.com) (in fact I beta tested a very early version of Arctic), and then very generously released as open source. You don't need to run multiple instances of Mongo DB when using my data objects for Mongo DB and Arctic, they use the same one. However we configure them seperately; the configuration for Arctic objects is [here](/sysdata/arctic/arctic_connection.py) (so in theory you could use two instances on different machines with seperate host names).
+[Arctic](https://github.com/manahl/arctic) is a superb open source time series database which sits on top of [Mongo DB](#mongoDB) and provides straightforward and fast storage of pandas DataFrames. It was created by my former colleagues at [Man AHL](https://ahl.com) (in fact I beta tested a very early version of Arctic), and then very generously released as open source. You don't need to run multiple instances of Mongo DB when using my data objects for Mongo DB and Arctic, they use the same one. However we configure them separately; the configuration for Arctic objects is [here](/sysdata/arctic/arctic_connection.py) (so in theory you could use two instances on different machines with separate host names).
 
 Basically my mongo DB objects are for storing static information, whilst Arctic is for time series.
 

@@ -687,7 +687,7 @@ For the vast majority of the time this will be how you create new systems.
 
 ## A complete pre-baked system
 
-Let's now see how we might use another 'pre-baked' system, in this case the staunch systems trader example definied in chapter 15 of my book. Here again we default to using csv data.
+Let's now see how we might use another 'pre-baked' system, in this case the staunch systems trader example defined in chapter 15 of my book. Here again we default to using csv data.
 
 (Code is [here](/examples/introduction/prebakedsystems.py) )
 

@@ -28,7 +28,7 @@ Table of Contents
       * [Backup machine](#backup-machine)
       * [Multiple systems](#multiple-systems)
    * [Code and configuration management](#code-and-configuration-management)
-         * [Managing your seperate directories of code and configuration](#managing-your-seperate-directories-of-code-and-configuration)
+         * [Managing your separate directories of code and configuration](#managing-your-separate-directories-of-code-and-configuration)
          * [Managing your private directory](#managing-your-private-directory)
    * [Finalise your backtest configuration](#finalise-your-backtest-configuration)
    * [Linking to a broker](#linking-to-a-broker)
@@ -210,24 +210,24 @@ You may want to run multiple trading systems on a single machine. Common use cas
 
 To handle this I suggest having multiple copies of the pysystemtrade environment. You will have a single crontab, but you will need multiple script, echos and other directories. You will need to change the private config file so it points to different mongo_db database names. If you don't want multiple copies of certain data (eg prices) then you should hardcode the database_name in the relevant files whenever a connection is made eg mongo_db = mongoDb(database_name='whatever'). See storing futures and spot FX data for more detail. Finally you should set the field ib_idoffset in the private config file so that there is no chance of duplicate clientid connections; setting one system to have an id offset of 1, the next offset 1000, and so on should be sufficient.
 
-Finally you should set the field `ib_idoffset` in the [private config file](private.private_config.yaml) so that there is no chance of duplicate clientid connections; setting one system to have an id offset of 1, the next offset 1000, and so on should be sufficient.
+Finally you should set the field `ib_idoffset` in the [private config file](/private/private_config.yaml) so that there is no chance of duplicate clientid connections; setting one system to have an id offset of 1, the next offset 1000, and so on should be sufficient.
 
 # Code and configuration management
 
 Your trading strategy will consist of pysystemtrade, plus some specific configuration files, plus possibly some bespoke code. You can either implement this as:
 
-- seperate environment, pulling in pysystemtrade as a 'yet another library'
+- separate environment, pulling in pysystemtrade as a 'yet another library'
 - everything in pysystemtrade, with all specific code and configuration in the 'private' directory that is excluded from git uploads.
 
 Personally I prefer the latter as it makes a neat self contained unit, but this is up to you.
 
-### Managing your seperate directories of code and configuration
+### Managing your separate directories of code and configuration
 
-I strongly recommend that you use a code repo system or similar to manage your non pysystemtrade code and configuration. Since code and configuration will mostly be in text (or text like) yaml files a code repo system like git will work just fine. I do not recommend storing configuration in database files that will need to be backed up seperately, because this makes it more complex to store old configuration data that can be archived and retrieved if required. 
+I strongly recommend that you use a code repo system or similar to manage your non pysystemtrade code and configuration. Since code and configuration will mostly be in text (or text like) yaml files a code repo system like git will work just fine. I do not recommend storing configuration in database files that will need to be backed up separately, because this makes it more complex to store old configuration data that can be archived and retrieved if required.
 
 ### Managing your private directory
 
-Since the private directory is excluded from the git system (since you don't want it appearing on github!), you need to ensure it is managed seperately. I use a script which I run in lieu of a normal git add/ commit / push cycle:
+Since the private directory is excluded from the git system (since you don't want it appearing on github!), you need to ensure it is managed separately. I use a script which I run in lieu of a normal git add/ commit / push cycle:
 
 ```
 # pass commit quote as an argument
