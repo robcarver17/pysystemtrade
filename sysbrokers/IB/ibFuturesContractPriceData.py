@@ -197,7 +197,7 @@ class ibFuturesContractPriceData(futuresContractPriceData):
             new_log.warn("Can't get config for instrument %s as IB configuration file missing" % instrument_code)
             return missing_instrument
 
-        instrument_object = get_instrument_object_from_config(config, instrument_code)
+        instrument_object = get_instrument_object_from_config( instrument_code, config=config)
 
         return instrument_object
 
@@ -212,7 +212,7 @@ class ibFuturesContractPriceData(futuresContractPriceData):
     def _get_and_set_ib_config_from_file(self):
 
         try:
-            config_data=pd.read_csv(IB_FUTURES_CONFIG_FILE)
+            config_data=get_ib_config()
         except:
             self.log.warn("Can't read file %s" % IB_FUTURES_CONFIG_FILE)
             config_data = missing_file
@@ -239,7 +239,9 @@ class ibFuturesContractPriceData(futuresContractPriceData):
 
 
 
-def get_instrument_object_from_config(config, instrument_code):
+def get_instrument_object_from_config( instrument_code, config = None):
+    if config is None:
+        config = get_ib_config()
     config_row = config[config.Instrument == instrument_code]
     symbol = config_row.IBSymbol.values[0]
     exchange = config_row.IBExchange.values[0]
@@ -255,3 +257,5 @@ def get_instrument_object_from_config(config, instrument_code):
 
     return instrument_config
 
+def get_ib_config():
+    return pd.read_csv(IB_FUTURES_CONFIG_FILE)

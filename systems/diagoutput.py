@@ -1,6 +1,7 @@
 """
 Suite of functions to analyse a system, and produce configuration that can be saved to a yaml file
 """
+from syscore.dateutils import ROOT_BDAYS_INYEAR
 from syscore.algos import return_mapping_params
 import yaml
 
@@ -233,6 +234,94 @@ class systemDiag(object):
         output_dict = self.output_config_with_estimated_parameters(attr_names = attr_names)
         with open(yaml_filename, "w") as f:
             yaml.dump(output_dict, f, default_flow_style=False)
+
+    def calculation_details(self, instrument_code):
+        """
+        Explain how the position is calculated for a given instrument
+        :return: pd.Series
+        """
+
+        system = self.system
+        attributes_last_ts = ['combForecast.get_combined_forecast',
+                      'rawdata.daily_denominator_price',
+                      'rawdata.daily_returns_volatility',
+                      'positionSize.get_price_volatility',
+                              'positionSize.get_block_value',
+                              'positionSize.get_instrument_currency_vol',
+                      'positionSize.get_fx_rate',
+                      'positionSize.get_instrument_value_vol',
+                      'positionSize.get_volatility_scalar',
+                      'positionSize.get_subsystem_position',
+                      'portfolio.get_notional_position'
+                      ]
+        attributes_names = ['Fcast','Price','S(P_d)','S(%daily)','Blck val','ICV','FX','IVV','Vol scalar','SS Pos',
+                            'Pos.']
+
+        results = dict()
+        for attribute, name in zip(attributes_last_ts, attributes_names):
+            stage, method = attribute.split(".")
+            stage_object = getattr(system, stage)
+            stage_method = getattr(stage_object, method)
+            result = stage_method(instrument_code).ffill().iloc[-1]
+            results[name] = result
+
+        attributes_dict = ['portfolio.get_instrument_weights']
+        attributes_names = ['Instr.Wt']
+        for attribute, name in zip(attributes_dict, attributes_names):
+            stage, method = attribute.split(".")
+            stage_object = getattr(system, stage)
+            stage_method = getattr(stage_object, method)
+            result_dict = stage_method()
+            result = result_dict[instrument_code].ffill().iloc[-1]
+            results[name] = result
+
+        attributes_all = ['portfolio.get_instrument_diversification_multiplier']
+        attributes_names = ['IDM']
+        for attribute, name in zip(attributes_all, attributes_names):
+            stage, method = attribute.split(".")
+            stage_object = getattr(system, stage)
+            stage_method = getattr(stage_object, method)
+            result = stage_method().ffill().iloc[-1]
+            results[name] = result
+
+        attributes_scalar = [ 'data.get_value_of_block_price_move']
+        attributes_names = ['Blc size']
+        for attribute, name in zip(attributes_scalar, attributes_names):
+            stage, method = attribute.split(".")
+            stage_object = getattr(system, stage)
+            stage_method = getattr(stage_object, method)
+            result = stage_method(instrument_code)
+            results[name] = result
+
+        results['Daily VolTgt'] = system.positionSize.get_daily_cash_vol_target()[
+            'daily_cash_vol_target']
+
+        buffers = system.portfolio.get_buffers_for_position(instrument_code).iloc[-1]
+        results['Bfr+'], results['Bfr-'] = buffers.values
+
+        return results
+
+    def explain_calculator_for_code(self, instrument_code):
+        results = self.calculation_details(instrument_code)
+        explainers = [
+            "Position  = Subsystem position * Instrument weight * IDM = %.2f * %.4f * %.2f = %.1f" %\
+                      ( results['SS Pos'], results['Instr.Wt'], results['IDM'], results['Pos.']),
+            "Subsystem position = Combined forecast * Vol scalar / 10 = %.2f * %.2f / 10.0 = %.2f" % \
+            (results['Fcast'], results['Vol scalar'], results['SS Pos']),
+            "Vol scalar = Daily cash vol target / Instrument value vol = %.1f / %.1f = %.2f" % \
+            (results['Daily VolTgt'], results['IVV'], results['Vol scalar']),
+            "Instrument Value Vol = Instrument currency vol * FX rate = %.2f * %.6f = %.2f" % \
+            (results['ICV'], results['FX'], results['IVV']),
+            "Instrument currency vol = Block value * Daily %% Price vol = %.2f * %.4f = %.2f" % \
+            (results['Blck val'], results['S(%daily)'], results['ICV']),
+            "Daily %% Price vol = 100* Return difference vol / Price = %.6f / %.6f = %.4f (%.2f%% per year)" % \
+            (results['S(P_d)'], results['Price'], results['S(%daily)'], results['S(%daily)']*ROOT_BDAYS_INYEAR),
+            "Block value = Price * Block size * 0.01 = %.6f * %.1f * 0.01 = %.2f" % \
+            (results['Price'], results['Blc size'], results['Blck val']),
+            "OR Instrument currency vol = Return difference vol * Block size = %.6f * %.1f = %.2f" % \
+            (results['S(P_d)'], results['Blc size'], results['ICV'])
+        ]
+        return explainers
 
 def forecast_error(forecast, target_forecast_value):
     abs_size = forecast.abs().mean()

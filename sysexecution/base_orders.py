@@ -1,4 +1,4 @@
-
+import datetime
 from syscore.genutils import are_dicts_equal, none_to_object, object_to_none
 from syscore.objects import  success,  no_order_id, no_children, no_parent
 from syscore.objects import order_is_in_status_finished, order_is_in_status_not_modified, order_is_in_status_modified, order_is_in_status_reject_modification
@@ -47,7 +47,7 @@ class Order(object):
     """
 
 
-    def __init__(self, object_name, trade: int, fill=0,
+    def __init__(self, object_name, trade: int, fill=0, filled_price = None, fill_datetime = None,
                  locked=False, order_id=no_order_id,
                  modification_status = MODIFICATION_STATUS_NO_MODIFICATION,
                  modification_quantity = None, parent=no_parent,
@@ -58,6 +58,8 @@ class Order(object):
         :param object_name: name for a tradeableObject, str
         :param trade: trade we want to do, int
         :param fill: fill done so far, int
+        :param fill_datetime: when fill done (if multiple, is last one)
+        :param fill_price: price of fill (if multiple, is last one)
         :param locked: if locked an order can't be modified, bool
         :param order_id: ID given to orders once in the stack, do not use when creating order
         :param modification_status: whether the order is being modified, str
@@ -71,6 +73,8 @@ class Order(object):
 
         self._trade = trade
         self._fill = fill
+        self._fill_datetime = fill_datetime
+        self._filled_price = filled_price
         self._locked = locked
         self._order_id = order_id
         self._modification_status = modification_status
@@ -102,17 +106,34 @@ class Order(object):
     def fill(self):
         return self._fill
 
-    def fill_order(self, fill_qty):
+    @property
+    def filled_price(self):
+        return self._filled_price
+
+    @property
+    def fill_datetime(self):
+        return self._fill_datetime
+
+
+    def fill_order(self, fill_qty, filled_price = None, fill_datetime = None):
         # Fill qty is cumulative, eg this is the new amount filled
         try:
-            assert self.fill_less_than_or_equal_to_desired_trade()
+            assert self.fill_less_than_or_equal_to_desired_trade(fill_qty)
         except:
             raise Exception("Can't fill order for more than trade quantity")
 
         self._fill = fill_qty
+        if filled_price is not None:
+            self._filled_price = filled_price
+        if fill_datetime is None:
+            fill_datetime = datetime.datetime.now()
 
-    def fill_less_than_or_equal_to_desired_trade(self):
-        return self.fill<=self.trade
+        self._fill_datetime = fill_datetime
+
+
+    def fill_less_than_or_equal_to_desired_trade(self, proposed_fill
+                                                 ):
+        return proposed_fill<=self.trade
 
     def fill_equals_zero(self):
         return self.fill==0
@@ -285,7 +306,10 @@ class Order(object):
 
     def as_dict(self):
         object_dict = dict(key = self.key)
-        object_dict['trade'] = self.trade
+        object_dict['trade'] = self._trade
+        object_dict['fill'] = self._fill
+        object_dict['fill_datetime'] = self._fill_datetime
+        object_dict['filled_price'] = self._filled_price
         object_dict['locked'] = self._locked
         object_dict['order_id'] = object_to_none(self._order_id, no_order_id)
         object_dict['modification_status'] = self._modification_status
@@ -304,6 +328,9 @@ class Order(object):
         trade = order_as_dict.pop('trade')
         object_name = order_as_dict.pop('key')
         locked = order_as_dict.pop('locked')
+        fill = order_as_dict.pop('fill')
+        filled_price = order_as_dict.pop('filled_price')
+        fill_datetime = order_as_dict.pop('fill_datetime')
         order_id = none_to_object(order_as_dict.pop('order_id'), no_order_id)
         modification_status = order_as_dict.pop('modification_status')
         modification_quantity = order_as_dict.pop('modification_quantity')
@@ -313,7 +340,9 @@ class Order(object):
 
         order_info = order_as_dict
 
-        order = Order(object_name, trade, locked = locked, order_id = order_id,
+        order = Order(object_name, trade,
+                      fill = fill, fill_datetime = fill_datetime, filled_price = filled_price,
+                      locked = locked, order_id = order_id,
                       modification_status = modification_status,
                       modification_quantity = modification_quantity,
                       parent = parent, children = children,

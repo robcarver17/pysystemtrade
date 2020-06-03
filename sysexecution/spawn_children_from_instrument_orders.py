@@ -172,7 +172,8 @@ def contract_order_for_direct_instrument_child_date_and_trade(instrument_order, 
     strategy = instrument_order.strategy_name
     instrument = instrument_order.instrument_code
 
-    child_contract_order = contractOrder(strategy, instrument, child_contract, child_trade, parent=parent_id)
+    child_contract_order = contractOrder(strategy, instrument, child_contract, child_trade, parent=parent_id,
+                                         )
 
     return child_contract_order
 

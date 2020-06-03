@@ -68,34 +68,36 @@ def update_historical_prices_for_instrument_and_contract(contract_object, data, 
     :return: None
     """
     intraday_frequency = get_private_then_default_key_value("intraday_frequency")
+    result = get_and_add_prices_for_frequency(data, log, contract_object, frequency=intraday_frequency)
+    if result is failure:
+        # Skip daily data if intraday not working
+        return failure
+
+    result = get_and_add_prices_for_frequency(data, log, contract_object, frequency="D")
+
+    return result
+
+def get_and_add_prices_for_frequency(data, log, contract_object, frequency="D"):
     try:
-        ib_intraday_prices = data.ib_futures_contract_price.get_prices_at_frequency_for_contract_object(contract_object, intraday_frequency)
-        rows_added_intraday = data.arctic_futures_contract_price.update_prices_for_contract(contract_object, ib_intraday_prices,
+        ib_prices = data.ib_futures_contract_price.get_prices_at_frequency_for_contract_object(contract_object, frequency)
+        rows_added = data.arctic_futures_contract_price.update_prices_for_contract(contract_object, ib_prices,
                                                                                    check_for_spike=True)
+        if rows_added is data_error:
+            ## SPIKE
+            ## Need to email user about this as will need manually checking
+            msg = "Spike found in prices for %s: need to manually check by running update_manual_check_historical_prices" % str(
+                contract_object)
+            log.warn(msg)
+            try:
+                send_mail_msg(msg, "Price Spike")
+            except:
+                log.warn("Couldn't send email about price spike for %s" % str(contract_object))
+
+            return failure
+
+        log.msg("Added %d rows at frequency %s for %s" % (rows_added, frequency, str(contract_object)))
+        return success
 
     except Exception as e:
-        log.warn("Exception %s when getting intraday data for %s" % (e, str(contract_object)))
-        rows_added_intraday = 0
-
-    try:
-        ib_daily_prices = data.ib_futures_contract_price.get_prices_for_contract_object(contract_object)
-        rows_added_daily = data.arctic_futures_contract_price.update_prices_for_contract(contract_object, ib_daily_prices,
-                                                                               check_for_spike=True)
-
-    except Exception as e:
-        log.warn("Exception %s when getting daily data for %s" % (e, str(contract_object)))
-        rows_added_daily = 0
-
-
-    if rows_added_intraday is data_error or rows_added_daily is data_error:
-        ## SPIKE
-        ## Need to email user about this as will need manually checking
-        msg = "Spike found in prices for %s: need to manually check by running update_manual_check_historical_prices" % str(contract_object)
-        log.warn(msg)
-        try:
-            send_mail_msg(msg, "Price Spike")
-        except:
-            log.warn("Couldn't send email about price spike")
-
-    return success
-
+        log.warn("Exception %s when getting data at frequency %s for %s" % (e, frequency, str(contract_object)))
+        return failure

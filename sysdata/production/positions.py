@@ -6,6 +6,7 @@ from sysdata.futures.contracts import futuresContract
 
 from sysdata.production.generic_timed_storage import timedEntry, listOfEntries, listOfEntriesData
 from syscore.objects import failure
+import pandas as pd
 
 class Position(timedEntry):
     """
@@ -72,16 +73,20 @@ class instrumentPositionData(listOfEntriesData):
                                                                     instrument_code, str(position_entry)))
             return failure
 
-    def get_list_of_strategies_and_instruments_with_positions(self):
+    def get_list_of_strategies_and_instruments_with_positions(self, ignore_zero_positions=True):
         list_of_args_dict = self._get_list_of_args_dict()
         strat_instr_tuples =[]
         for arg_entry in list_of_args_dict:
+            position = self.get_current_position_for_strategy_and_instrument(arg_entry['strategy_name'], arg_entry['instrument_code'])
+            if position==0 and ignore_zero_positions:
+                continue
             strat_instr_tuples.append((arg_entry['strategy_name'], arg_entry['instrument_code']))
 
         return strat_instr_tuples
 
-    def get_list_of_instruments_for_strategy_with_position(self, strategy_name):
-        list_of_all_positions = self.get_list_of_strategies_and_instruments_with_positions()
+    def get_list_of_instruments_for_strategy_with_position(self, strategy_name, ignore_zero_positions=True):
+        list_of_all_positions = self.\
+            get_list_of_strategies_and_instruments_with_positions(ignore_zero_positions=ignore_zero_positions)
         list_of_instruments = [position[1] for position in list_of_all_positions if position[0]==strategy_name]
 
         return list_of_instruments
@@ -90,6 +95,26 @@ class instrumentPositionData(listOfEntriesData):
         self._delete_last_entry_for_args_dict(dict(strategy_name=strategy_name,
                                                    instrument_code = instrument_code),
                                                 are_you_sure=are_you_sure)
+
+    def get_all_current_positions_as_df(self):
+        all_positions_dict = self._get_list_of_args_dict()
+        current_positions = []
+        list_instruments = []
+        list_strategies = []
+        for dict_entry in all_positions_dict:
+            instrument_code = dict_entry['instrument_code']
+            strategy_name = dict_entry['strategy_name']
+            position = self.get_current_position_for_strategy_and_instrument(strategy_name, instrument_code).position
+            if position==0:
+                continue
+            current_positions.append(position)
+            list_strategies.append(strategy_name)
+            list_instruments.append(instrument_code)
+
+        ans = pd.DataFrame(dict(strategy = list_strategies, instrument = list_instruments,
+                                position = current_positions))
+
+        return ans.sort_values(["strategy", "instrument"])
 
 class contractPositionData(listOfEntriesData):
     """
@@ -200,3 +225,24 @@ class contractPositionData(listOfEntriesData):
         instrument_list = [self._contract_tuple_given_keyname(entry['contractid'])[0] for entry in all_positions_dict]
 
         return list(set(instrument_list))
+
+    def get_all_current_positions_as_df(self):
+        all_positions_dict = self._get_list_of_args_dict()
+        current_positions = []
+        list_instruments = []
+        list_contract_dates = []
+        for dict_entry in all_positions_dict:
+            contractid = self._contract_tuple_given_keyname(dict_entry['contractid'])
+            instrument_code = contractid[0]
+            contract_date = contractid[1]
+            position = self.get_current_position_for_instrument_and_contract_date(instrument_code, contract_date).position
+            if position==0:
+                continue
+            current_positions.append(position)
+            list_contract_dates.append(contract_date)
+            list_instruments.append(instrument_code)
+
+        ans = pd.DataFrame(dict(instrument = list_instruments, contract_date = list_contract_dates,
+                                position = current_positions))
+
+        return ans.sort_values(["instrument", "contract_date"])

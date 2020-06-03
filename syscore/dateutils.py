@@ -273,3 +273,29 @@ def adjust_timestamp(index_entry, actual_close = pd.DateOffset(hours = 23, minut
         new_index_entry = index_entry + time_offset
 
     return new_index_entry
+
+def get_datetime_input(prompt, allow_default = True):
+    invalid_input = True
+    input_str = prompt+": Enter date and time in format %Y%-%m-%d eg '2020-05-30' OR '%Y-%m-%d %H:%M:%S' eg '2020-05-30 14:04:11'"
+    if allow_default:
+        input_str = input_str+" <RETURN for now>"
+    while invalid_input:
+        ans = input(input_str)
+        if ans=="" and allow_default:
+            return datetime.datetime.now()
+        try:
+            if len(ans)==10:
+                ans = datetime.datetime.strptime(ans, "%Y-%m-%d")
+            elif len(ans)==19:
+                ans = datetime.datetime.strptime(ans, "%Y-%m-%d %H:%M:%S")
+            else:
+                ## problems formatting will also raise value error
+                raise ValueError
+            invalid_input=False
+            break
+
+        except ValueError:
+            print("%s is not a valid datetime string" % ans)
+            continue
+
+    return ans

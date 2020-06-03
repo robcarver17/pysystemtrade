@@ -119,7 +119,7 @@ class mongoOrderStackData(orderStackData):
         return success
 
     def _create_max_order_id(self):
-        first_order_id = 1
+        first_order_id = 30000
         self._mongo.collection.insert_one(dict(order_id=ORDER_ID_STORE_KEY, max_order_id=first_order_id))
         return first_order_id
 

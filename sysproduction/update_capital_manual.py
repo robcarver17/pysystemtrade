@@ -1,9 +1,10 @@
 
-import datetime
 
 from sysbrokers.IB.ibConnection import connectionIB
 
 from syscore.objects import success, failure,  missing_data, arg_not_supplied
+from syscore.dateutils import get_datetime_input
+from syscore.genutils import get_and_convert
 
 from sysdata.mongodb.mongo_connection import mongoDb
 from sysproduction.data.get_data import dataBlob
@@ -104,35 +105,16 @@ def setup_initial_capital(data_capital):
     return success
 
 def get_initial_capital_values_from_user(data_capital):
-        broker_account_value = get_float_from_input("Broker account value (<return> for default, get from IB")
+        broker_account_value = get_and_convert("Broker account value", type_expected=float, default_str="get from IB", default_value=arg_not_supplied)
         if broker_account_value is arg_not_supplied:
             broker_account_value = data_capital.get_ib_total_capital_value()
             print("Got broker account value of %f from IB" % broker_account_value)
-        total_capital = get_float_from_input("Total capital at risk (<return> for default, %f)" % broker_account_value, if_empty_return=broker_account_value)
-        maximum_capital = get_float_from_input("Max capital, only used for half compounding (<return for default, %f)" % total_capital, if_empty_return = total_capital)
-        acc_pandl = get_float_from_input("Accumulated profit (<return for default: 0)", if_empty_return=0.0)
+        total_capital = get_and_convert("Total capital at risk", type_expected=float, default_value=broker_account_value)
+        maximum_capital = get_and_convert("Max capital, only used for half compounding", type_expected=float, default_value = total_capital)
+        acc_pandl = get_and_convert("Accumulated profit", type_expected=float, default_value=0.0)
 
         return broker_account_value, total_capital, maximum_capital, acc_pandl
 
-def get_float_from_input(prompt, allow_empty=True, if_empty_return=arg_not_supplied):
-    err_msg = "%s is not a valid input, needs to be a float"
-    if allow_empty:
-        err_msg = err_msg + " or <return> for default"
-    invalid_input = True
-    while invalid_input:
-        value = input(prompt)
-        if value=='':
-            if allow_empty:
-                return if_empty_return
-        try:
-            value = float(value)
-        except:
-            print(err_msg % str(value))
-            continue
-
-        invalid_input = False
-
-    return value
 
 def update_capital_from_ib(data_capital):
     broker_account_value = data_capital.get_ib_total_capital_value()
@@ -150,7 +132,8 @@ def update_capital_from_ib(data_capital):
     print("New total capital is %s" % total_capital)
 
 def adjust_capital_for_delta(data_capital):
-    capital_delta = get_float_from_input("What change have you made to brokerage account that will not change capital +ve deposit, -ve withdrawal", allow_empty=False)
+    capital_delta = get_and_convert("What change have you made to brokerage account that will not change capital +ve deposit, -ve withdrawal",
+                                    type_expected=float)
     old_capital = data_capital.capital_data.get_current_total_capital()
     new_capital = old_capital + capital_delta
     ans = input("New brokerage capital will be %f, are you sure? Yes/<anything else for no>"% new_capital)
@@ -175,17 +158,20 @@ def modify_any_value(data_capital):
     return success
 
 def get_values_from_user_to_modify():
-    broker_account_value = get_float_from_input("Broker account value (<return> for default, unchanged")
-    total_capital = get_float_from_input("Total capital at risk (<return> for default, unchanged)")
-    maximum_capital = get_float_from_input("Max capital, only used for half compounding (<return for default, unchanged)")
-    acc_pandl = get_float_from_input("Accumulated profit (<return for default: 0)", if_empty_return=0.0)
+    broker_account_value = get_and_convert("Broker account value", type_expected=float,
+                                           default_value=arg_not_supplied, default_str="Unchanged")
+    total_capital = get_and_convert("Total capital at risk", type_expected=float,
+                                           default_value=arg_not_supplied, default_str="Unchanged")
+    maximum_capital = get_and_convert("Max capital, only used for half compounding", type_expected=float,
+                                           default_value=arg_not_supplied, default_str="Unchanged")
+    acc_pandl = get_and_convert("Accumulated profit", type_expected=float,
+                                           default_value=arg_not_supplied, default_str="Unchanged")
 
     return broker_account_value, total_capital, maximum_capital, acc_pandl
 
 
 def delete_capital_since_time(data_capital):
-    print("Delete capital from when?")
-    start_date = get_datetime_input()
+    start_date = get_datetime_input("Delete capital from when?")
     ans = input("Are you sure about this? Can't be undone Yes/<other for no>")
     if ans=="Yes":
         data_capital.total_capital_calculator.delete_recent_capital(start_date, are_you_sure=True)
@@ -194,26 +180,6 @@ def delete_capital_since_time(data_capital):
 
     return success
 
-def get_datetime_input():
-    invalid_input = True
-    while invalid_input:
-        ans = input("Enter date and time in format %Y%-%m-%d eg '2020-05-30' OR '%Y-%m-%d %H:%M:%S' eg '2020-05-30 14:04:11'")
-        try:
-            if len(ans)==10:
-                ans = datetime.datetime.strptime(ans, "%Y-%m-%d")
-            elif len(ans)==19:
-                ans = datetime.datetime.strptime(ans, "%Y-%m-%d %H:%M:%S")
-            else:
-                ## problems formatting will also raise value error
-                raise ValueError
-            invalid_input=False
-            break
-
-        except ValueError:
-            print("%s is not a valid datetime string" % ans)
-            continue
-
-    return ans
 
 def delete_all_capital(data_capital):
     ans = input("Will delete all capital history (though not for individual strategies). Really sure this is a good idea? Can't be recovered from: Yes/<anything else for no>")

@@ -19,7 +19,7 @@ def create_force_roll_orders(data, instrument_code):
 
     strategy = ROLL_PSEUDO_STRATEGY
     trade = 0
-    instrument_order = instrumentOrder(strategy, instrument_code, trade)
+    instrument_order = instrumentOrder(strategy, instrument_code, trade, roll_order=True, order_type="Zero-roll-order")
 
     diag_contracts = diagContracts(data)
     priced_contract_id = diag_contracts.get_priced_contract_id(instrument_code)
@@ -43,9 +43,11 @@ def create_contract_orders_outright(data, instrument_code,
             instrument_code, [priced_contract_id, forward_contract_id]))
     strategy = ROLL_PSEUDO_STRATEGY
     first_order = contractOrder(strategy, instrument_code, priced_contract_id, -position_in_priced,
-                                reference_price=reference_price_priced_contract)
+                                reference_price=reference_price_priced_contract, roll_order=True,
+                                inter_spread_order=True)
     second_order = contractOrder(strategy, instrument_code, forward_contract_id, position_in_priced,
-                                 reference_price=reference_price_forward_contract)
+                                 reference_price=reference_price_forward_contract, roll_order=True,
+                                 inter_spread_order=True)
 
     return [first_order, second_order]
 
@@ -63,6 +65,6 @@ def create_contract_orders_spread(data, instrument_code,
     spread_reference_price = reference_price_priced_contract - reference_price_forward_contract
 
     spread_order = contractOrder(strategy, instrument_code, contract_id_list, trade_list,
-                                reference_price=spread_reference_price)
+                                reference_price=spread_reference_price, roll_order=True)
 
     return [spread_order]

@@ -1,8 +1,10 @@
+import datetime
+
 from sysexecution.order_stack import orderStackData
 from sysexecution.base_orders import Order, tradeableObject, no_order_id, no_children, no_parent, MODIFICATION_STATUS_NO_MODIFICATION
 from syscore.genutils import  none_to_object, object_to_none
 
-possible_order_types = ['best', 'market', 'limit']
+possible_order_types = ['best', 'market', 'limit', 'Zero-roll-order']
 
 class instrumentTradeableObject(tradeableObject):
     def __init__(self, strategy_name, instrument_code):
@@ -36,8 +38,11 @@ class instrumentOrder(Order):
                  modification_quantity = None, parent=no_parent,
                  children=no_children, active=True,
                  order_type="best", limit_price = None, limit_contract = None,
+                 reference_datetime = None,
                  reference_price = None, reference_contract = None,
-                 filled_price = None, fill_datetime = None):
+                 generated_datetime = None,
+                 filled_price = None, fill_datetime = None,
+                 manual_trade =False, roll_order = False):
         """
 
         :param args: Eithier a single argument 'strategy/instrument' str, or strategy, instrument; followed by trade
@@ -57,7 +62,12 @@ class instrumentOrder(Order):
         :param reference_price: float, used for execution calculations
         :param reference_contract: YYYYMM string, contract that relates to reference price
         :param filled_price: float, used for execution calculations and p&l
+        :param reference_datetime: datetime, when reference price captured
         :param fill_datetime: datetime used for p&l
+        :param generated_datetime: when order generated
+        :param manual_trade: bool, was trade iniated manually
+        :param roll_order: bool, is this a roll order
+
         """
 
         """
@@ -75,8 +85,13 @@ class instrumentOrder(Order):
             trade = args[2]
             self._tradeable_object = instrumentTradeableObject(strategy, instrument)
 
+        if generated_datetime is None:
+            generated_datetime = datetime.datetime.now()
+
         self._trade = trade
         self._fill = fill
+        self._fill_datetime = fill_datetime
+        self._filled_price = filled_price
         self._locked = locked
         self._order_id = order_id
         self._modification_status = modification_status
@@ -88,19 +103,30 @@ class instrumentOrder(Order):
         assert order_type in possible_order_types
         self._order_info = dict(order_type=order_type, limit_contract = limit_contract, limit_price = limit_price,
                                reference_contract = reference_contract, reference_price = reference_price,
-                                filled_price = filled_price, fill_datetime = fill_datetime)
+                                manual_trade = manual_trade,
+                                roll_order = roll_order, reference_datetime = reference_datetime,
+                                generated_datetime = generated_datetime)
 
 
     def __repr__(self):
-        order_repr = super().__repr__()
-        my_repr = order_repr+" %s" % str(self._order_info)
+        my_repr = super().__repr__()
+        if self.filled_price is not None and self.fill_datetime is not None:
+            my_repr = my_repr + "Fill %.2f on %s" % (self.filled_price, self.fill_datetime)
+        my_repr = my_repr+" %s" % str(self._order_info)
 
         return my_repr
+
+    def terse_repr(self):
+        order_repr = super().__repr__()
+        return order_repr
 
     @classmethod
     def from_dict(instrumentOrder, order_as_dict):
         trade = order_as_dict.pop('trade')
         key = order_as_dict.pop('key')
+        fill = order_as_dict.pop('fill')
+        filled_price = order_as_dict.pop('filled_price')
+        fill_datetime = order_as_dict.pop('fill_datetime')
         locked = order_as_dict.pop('locked')
         order_id = none_to_object(order_as_dict.pop('order_id'), no_order_id)
         modification_status = order_as_dict.pop('modification_status')
@@ -111,10 +137,11 @@ class instrumentOrder(Order):
 
         order_info = order_as_dict
 
-        order = instrumentOrder(key, trade, locked = locked, order_id = order_id,
+        order = instrumentOrder(key, trade, fill=fill, locked = locked, order_id = order_id,
                       modification_status = modification_status,
                       modification_quantity = modification_quantity,
                       parent = parent, children = children,
+                                fill_datetime = fill_datetime, filled_price=filled_price,
                       active = active,
                       **order_info)
 
@@ -168,22 +195,22 @@ class instrumentOrder(Order):
     def reference_price(self, reference_price):
         self._order_info['reference_price'] = reference_price
 
-    @property
-    def filled_price(self):
-        return self._order_info['filled_price']
-
-    @filled_price.setter
-    def filled_price(self, filled_price):
-        self._order_info['filled_price'] = filled_price
 
     @property
-    def fill_datetime(self):
-        return self._order_info['fill_datetime']
+    def reference_datetime(self):
+        return self._order_info['reference_datetime']
 
-    @fill_datetime.setter
-    def fill_datetime(self, fill_datetime):
-        self._order_info['fill_datetime'] = fill_datetime
+    @property
+    def generated_datetime(self):
+        return self._order_info['reference_datetime']
 
+    @property
+    def manual_trade(self):
+        return self._order_info['manual_trade']
+
+    @property
+    def roll_order(self):
+        return self._order_info['roll_order']
 
 
 class instrumentOrderStackData(orderStackData):

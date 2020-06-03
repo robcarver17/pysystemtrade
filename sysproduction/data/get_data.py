@@ -22,7 +22,7 @@ from sysdata.mongodb.mongo_capital import mongoCapitalData
 from sysdata.mongodb.mongo_optimal_position import mongoOptimalPositionData
 from sysdata.mongodb.mongo_positions_by_strategy import mongoStrategyPositionData
 from sysdata.mongodb.mongo_order_stack import mongoInstrumentOrderStackData, mongoContractOrderStackData
-
+from sysdata.mongodb.mongo_historic_orders import mongoStrategyHistoricOrdersData, mongoContractHistoricOrdersData
 
 from sysdata.mongodb.mongo_connection import mongoDb
 

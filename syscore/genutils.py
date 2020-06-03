@@ -292,6 +292,58 @@ def object_to_none(x, object, y=_none):
         return x
 
 
+def get_and_convert(prompt, type_expected=int, allow_default=True, default_value = 0, default_str=None):
+    invalid = True
+    input_str = prompt + " "
+    if allow_default:
+        if default_str is None:
+            input_str = input_str + "<RETURN for default %s> " % str(default_value)
+        else:
+            input_str = input_str + "<RETURN for %s> " % default_str
+
+    while invalid:
+        ans = input(input_str)
+
+        if ans == "" and allow_default:
+            return default_value
+        try:
+            result = type_expected(ans)
+            return result
+        except:
+            print("%s is not of expected type %s" % (ans, type_expected.__name__))
+            continue
+
+
+def print_menu_and_get_response(menu_of_options, default_option = None):
+    """
+
+    :param menu_of_options: A dict, keys are ints, values are str
+    :param default_option: None, or one of the keys
+    :return: int menu chosen
+    """
+    if default_option is None:
+        allow_default = False
+    else:
+        allow_default = True
+
+    menu_options_list = list(menu_of_options.keys())
+    menu_options_list.sort()
+    for option in menu_options_list:
+        print("%d: %s" % (option, menu_of_options[option]))
+    print("\n")
+    computer_says_no = True
+    while computer_says_no:
+        ans = get_and_convert("Your choice?", default_value=default_option, type_expected=int, allow_default=allow_default)
+        if ans not in menu_options_list:
+            print("Not a valid option")
+            continue
+        else:
+            computer_says_no = False
+            break
+
+    return ans
+
+
 if __name__ == '__main__':
     import doctest
     doctest.testmod()

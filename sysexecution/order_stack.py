@@ -367,7 +367,7 @@ class orderStackData(object):
 
 
     # FILLS
-    def change_fill_quantity_for_order(self, order_id, fill_qty):
+    def change_fill_quantity_for_order(self, order_id, fill_qty, filled_price = None, fill_datetime=None):
         existing_order = self.get_order_with_id_from_stack(order_id)
         if existing_order is missing_order:
             self.log.warn("Can't apply fill to non existent order %d" % order_id)
@@ -379,7 +379,7 @@ class orderStackData(object):
 
         new_order = copy(existing_order)
         try:
-            new_order.fill_order(fill_qty)
+            new_order.fill_order(fill_qty, filled_price=filled_price, fill_datetime=fill_datetime)
         except Exception as e:
             log.warn(e)
             return failure

@@ -29,6 +29,7 @@ from sysproduction.data.positions import diagPositions, updatePositions
 class instrument_to_contract_stack_handler(object):
     def __init__(self, data):
         data.add_class_list("mongoInstrumentOrderStackData mongoContractOrderStackData")
+        data.add_class_list("mongoContractHistoricOrdersData mongoStrategyHistoricOrdersData")
 
         instrument_stack = data.mongo_instrument_order_stack
         contract_stack = data.mongo_contract_order_stack
@@ -55,6 +56,7 @@ class instrument_to_contract_stack_handler(object):
         self.clear_completed_modifications_from_instrument_and_contract_stacks()
         self.clear_rejected_modifications_from_instrument_and_contract_stacks()
         self.pass_fills_from_children_up_to_parents()
+        self.handle_completed_orders()
 
 
     def spawn_children_from_new_instrument_orders(self):
@@ -495,9 +497,13 @@ class instrument_to_contract_stack_handler(object):
 
     def apply_contract_fill_to_parent_order_single_child(self, contract_order, instrument_order):
         fill_for_contract = contract_order.fill
+        filled_price = contract_order.filled_price
+        fill_datetime = contract_order.fill_datetime
         if len(fill_for_contract)==1:
             ## Not a spread order, trivial
-            result = self.instrument_stack.change_fill_quantity_for_order(instrument_order.order_id, fill_for_contract[0])
+            result = self.instrument_stack.\
+                change_fill_quantity_for_order(instrument_order.order_id, fill_for_contract[0], filled_price=filled_price,
+                                               fill_datetime=fill_datetime)
         else:
             ## Spread order
             ## Instrument order quantity is eithier zero (for a roll) or non zero (for a spread)
@@ -543,15 +549,11 @@ class instrument_to_contract_stack_handler(object):
 
         # If we have got this far then all our children are filled, and the parent is filled
 
-        # Make orders inactive
-        # A subsequent process will delete them
-        self.instrument_stack.deactivate_order(instrument_order_id)
         list_of_contract_orders = []
         for contract_order_id in list_of_contract_order_id:
             list_of_contract_orders.append(self.contract_stack.get_order_with_id_from_stack(contract_order_id))
-            self.contract_stack.deactivate_order(contract_order_id)
 
-        position_updater = updatePositions()
+        position_updater = updatePositions(self.data)
         # Update strategy position table
         position_updater.update_strategy_position_table_with_instrument_order(instrument_order)
 
@@ -559,7 +561,15 @@ class instrument_to_contract_stack_handler(object):
         for contract_order in list_of_contract_orders:
             position_updater.update_contract_position_table_with_contract_order(contract_order)
 
-        # Update master order database
-        #   Each record is a contract order plus additional information
+        # Update historic order database
+        self.data.mongo_strategy_historic_orders.add_order_to_data(instrument_order)
+        for contract_order in list_of_contract_orders:
+            self.data.mongo_contract_historic_orders.add_order_to_data(contract_order)
+
+        # Make orders inactive
+        # A subsequent process will delete them
+        self.instrument_stack.deactivate_order(instrument_order_id)
+        for contract_order_id in list_of_contract_order_id:
+            self.contract_stack.deactivate_order(contract_order_id)
 
         return success

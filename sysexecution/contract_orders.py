@@ -1,3 +1,4 @@
+import datetime
 
 from sysexecution.order_stack import orderStackData
 from sysexecution.base_orders import Order, tradeableObject, no_order_id, no_children, no_parent, MODIFICATION_STATUS_NO_MODIFICATION
@@ -48,13 +49,20 @@ class contractTradeableObject(tradeableObject):
 
 class contractOrder(Order):
 
-    def __init__(self, *args, fill=0,
+    def __init__(self, *args, fill=None,
                  locked=False, order_id=no_order_id,
                  modification_status = MODIFICATION_STATUS_NO_MODIFICATION,
                  modification_quantity = None, parent=no_parent,
                  children=no_children, active=True,
                  algo_to_use="", reference_price=None,
-                 limit_price = None):
+                 limit_price = None, filled_price = None,
+                 fill_datetime = None,
+                 generated_datetime = None,
+                 manual_fill = False, manual_trade = False,
+                 roll_order = False,
+                 inter_spread_order = False,
+                 calendar_spread_order = None
+                 ):
 
         """
         :param args: Eithier a single argument 'strategy/instrument/contract_id' str, or strategy, instrument, contract_id; followed by trade
@@ -81,32 +89,35 @@ class contractOrder(Order):
         :param reference_price: float, used to benchmark order (usually price from previous days close)
         :param filled_price: float, used for execution calculations and p&l
         :param fill_datetime: datetime used for p&l
-                         manual_fill = False,
-                 manual_trade = False,
-                 roll_order = False,
-                 inter_spread_order = False,
-                 calendar_spread_order = False,
-                 linked_spread_orders = [],
-
-
-
+        :param generated_datetime: datetime order generated
+        :param manual_fill: bool, fill entered manually
+        :param manual_trade: bool, trade entered manually
+        :param roll_order: bool, part of a (or if a spread an entire) roll order. Passive rolls will be False
+        :param calendar_spread_order: bool, a calendar spread (intra-market) order
+        :param inter_spread_order: bool, part of an instrument order that is a spread across multiple markets
         """
-        if len(args)==2:
-            self._tradeable_object = contractTradeableObject.from_key(args[0])
-            trade = args[1]
-        elif len(args)==4:
-            strategy=args[0]
-            instrument = args[1]
-            contract_id = args[2]
-            trade = args[3]
-            self._tradeable_object = contractTradeableObject(strategy, instrument, contract_id)
-        else:
-            raise Exception("contractOrder(strategy, instrument, contractid, trade,  **kwargs) or ('strategy/instrument/contract_id', trade, **kwargs) ")
 
-        if type(trade) is int:
-            trade = [trade]
+        tradeable_object, trade = self._resolve_args(args)
+        self._tradeable_object = tradeable_object
+
+        if type(trade) is int or type(trade) is float:
+            trade = [int(trade)]
+
+        if fill is None:
+            fill = [0]*len(trade)
+
+        if len(trade)==1:
+            calendar_spread_order = False
+        else:
+            calendar_spread_order = True
+
+        if generated_datetime is None:
+            generated_datetime = datetime.datetime.now()
+
         self._trade = trade
         self._fill = fill
+        self._fill_datetime = fill_datetime
+        self._filled_price = filled_price
         self._locked = locked
         self._order_id = order_id
         self._modification_status = modification_status
@@ -115,18 +126,47 @@ class contractOrder(Order):
         self._children = children
         self._active = active
         self._order_info = dict(algo_to_use=algo_to_use, reference_price=reference_price,
-                 limit_price = limit_price)
+                 limit_price = limit_price,
+                                manual_trade = manual_trade, manual_fill = manual_fill,
+                                roll_order = roll_order, calendar_spread_order = calendar_spread_order,
+                                inter_spread_order = inter_spread_order, generated_datetime = generated_datetime)
+
+    def _resolve_args(self, args):
+        if len(args)==2:
+            tradeable_object = contractTradeableObject.from_key(args[0])
+            trade = args[1]
+        elif len(args)==4:
+            strategy=args[0]
+            instrument = args[1]
+            contract_id = args[2]
+            trade = args[3]
+            tradeable_object = contractTradeableObject(strategy, instrument, contract_id)
+        else:
+            raise Exception("contractOrder(strategy, instrument, contractid, trade,  **kwargs) or ('strategy/instrument/contract_id', trade, **kwargs) ")
+
+        return tradeable_object, trade
 
     def __repr__(self):
-        order_repr = super().__repr__()
-        my_repr = order_repr+" %s" % str(self._order_info)
+        my_repr = super().__repr__()
+        if self.filled_price is not None and self.fill_datetime is not None:
+            my_repr = my_repr + "Fill %.2f on %s" % (self.filled_price, self.fill_datetime)
+        my_repr = my_repr+" %s" % str(self._order_info)
 
         return my_repr
+
+    def terse_repr(self):
+        order_repr = super().__repr__()
+        return order_repr
+
 
     @classmethod
     def from_dict(instrumentOrder, order_as_dict):
         trade = order_as_dict.pop('trade')
         key = order_as_dict.pop('key')
+        fill = order_as_dict.pop('fill')
+        filled_price = order_as_dict.pop('filled_price')
+        fill_datetime = order_as_dict.pop('fill_datetime')
+
         locked = order_as_dict.pop('locked')
         order_id = none_to_object(order_as_dict.pop('order_id'), no_order_id)
         modification_status = order_as_dict.pop('modification_status')
@@ -137,11 +177,11 @@ class contractOrder(Order):
 
         order_info = order_as_dict
 
-        order = contractOrder(key, trade, locked = locked, order_id = order_id,
+        order = contractOrder(key, trade, fill=fill, locked = locked, order_id = order_id,
                       modification_status = modification_status,
                       modification_quantity = modification_quantity,
                       parent = parent, children = children,
-                      active = active,
+                      active = active, fill_datetime = fill_datetime, filled_price = filled_price,
                       **order_info)
 
         return order
@@ -171,6 +211,10 @@ class contractOrder(Order):
         self._order_info['algo_to_use'] = algo_to_use
 
     @property
+    def generated_datetime(self):
+        return self._order_info['reference_datetime']
+
+    @property
     def reference_price(self):
         return self._order_info['reference_price']
 
@@ -186,8 +230,35 @@ class contractOrder(Order):
     def limit_price(self, limit_price):
         self._order_info['limit_price'] = limit_price
 
-    def fill_less_than_or_equal_to_desired_trade(self):
-        return all([x<=y for x,y in zip(self.fill, self.trade)])
+    @property
+    def manual_trade(self):
+        return self._order_info['manual_trade']
+
+    @property
+    def manual_fill(self):
+        return self._order_info['manual_fill']
+
+    @manual_fill.setter
+    def manual_fill(self, manual_fill):
+        self._order_info['manual_fill'] = manual_fill
+
+
+    @property
+    def roll_order(self):
+        return self._order_info['roll_order']
+
+    @property
+    def calendar_spread_order(self):
+        return self._order_info['calendar_spread_order']
+
+    @property
+    def inter_spread_order(self):
+        return self._order_info['inter_spread_order']
+
+    def fill_less_than_or_equal_to_desired_trade(self, proposed_fill
+
+                                                 ):
+        return all([x<=y for x,y in zip(proposed_fill, self.trade)])
 
     def fill_equals_zero(self):
         return all([x==0 for x in self.fill])
@@ -281,6 +352,19 @@ class contractOrderStackData(orderStackData):
             self._unlock_order_on_stack(order_id)
 
         return success
+
+    def manual_fill_for_contract_id(self, contract_order_id, fill_qty, filled_price=None, fill_datetime=None):
+        result = self.change_fill_quantity_for_order(contract_order_id, fill_qty, filled_price=filled_price,
+                                            fill_datetime=fill_datetime)
+        if result is failure:
+            return failure
+
+        # all good need to show it was a manual fill
+        order = self.get_order_with_id_from_stack(contract_order_id)
+        order.manual_fill = True
+        result = self._change_order_on_stack(contract_order_id, order, check_if_orders_being_modified=False)
+
+        return result
 
 def log_attributes_from_contract_order(log, contract_order):
     """

@@ -33,7 +33,7 @@ from systems.provided.futures_chapter15.basesystem import futures_system
 def run_system_classic(strategy_name, data,
                backtest_config_filename="systems.provided.futures_chapter15.futures_config.yaml"):
 
-        capital_data = dataCapital()
+        capital_data = dataCapital(data)
         capital_value = capital_data.get_capital_for_strategy(strategy_name)
         if capital_data is missing_data:
             ## critical log will send email

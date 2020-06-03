@@ -205,7 +205,7 @@ class RawData(SystemStage):
         return_vol = self.daily_returns_volatility(instrument_code)
         (denom_price, return_vol) = denom_price.align(return_vol, join="right")
         perc_vol = 100.0 * \
-            (return_vol / denom_price.shift(1))
+            (return_vol / denom_price.ffill())
 
         return perc_vol
 

@@ -45,6 +45,22 @@ class diagPositions(object):
     def get_list_of_instruments_with_any_position(self):
         return self.data.mongo_contract_position.get_list_of_instruments_with_any_position()
 
+    def get_list_of_strategies_with_positions(self):
+        list_of_strat_instrument_tuples = self.data.mongo_strategy_position.get_list_of_strategies_and_instruments_with_positions(ignore_zero_positions=True)
+        strats = list(set([x[0] for x in list_of_strat_instrument_tuples]))
+
+        return strats
+
+    def get_list_of_positions_for_strategy(self, strategy_name):
+        return self.data.mongo_strategy_position.get_list_of_instruments_for_strategy_with_position(strategy_name)
+
+    def get_all_current_contract_positions_as_df(self):
+        return self.data.mongo_contract_position.get_all_current_positions_as_df()
+
+    def get_all_current_instrument_positions_as_df(self):
+        return self.data.mongo_strategy_position.get_all_current_positions_as_df()
+
+
 class updatePositions(object):
     def __init__(self, data = arg_not_supplied):
         # Check data has the right elements to do this
@@ -53,6 +69,7 @@ class updatePositions(object):
 
         data.add_class_list("mongoContractPositionData mongoStrategyPositionData")
         self.data = data
+        self.log = data.log
 
     def update_strategy_position_table_with_instrument_order(self, instrument_order):
         """
@@ -64,13 +81,19 @@ class updatePositions(object):
 
         strategy_name = instrument_order.strategy_name
         instrument_code = instrument_order.instrument_code
-        current_position = self.data.mongo_strategy_position.\
+        current_position_object = self.data.mongo_strategy_position.\
             get_current_position_for_strategy_and_instrument(strategy_name, instrument_code)
         trade_done = instrument_order.fill
+        if current_position_object is missing_data:
+            current_position = 0
+        else:
+            current_position = current_position_object.position
+
         new_position = current_position + trade_done
 
         self.data.mongo_strategy_position.\
-            update_position_for_strategy_and_instrument(strategy_name, instrument_code, new_position)
+            update_position_for_strategy_and_instrument(strategy_name, instrument_code, new_position,
+                                                        )
 
         self.log.msg("Updated position of %s/%s from %d to %d because of trade %s %d" %
                      (strategy_name, instrument_code, current_position, new_position, str(instrument_order),
@@ -91,8 +114,13 @@ class updatePositions(object):
         fill_list = contract_order.fill
 
         for trade_done, contract_id in zip(fill_list, contract_id_list):
-            current_position = self.data.mongo_contract_position.\
+            current_position_object = self.data.mongo_contract_position.\
                 get_current_position_for_instrument_and_contract_date(instrument_code, contract_id)
+            if current_position_object is missing_data:
+                current_position = 0
+            else:
+                current_position = current_position_object.position
+
             new_position = current_position + trade_done
 
             self.data.mongo_contract_position.\
