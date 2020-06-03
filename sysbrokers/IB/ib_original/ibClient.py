@@ -488,7 +488,7 @@ def avoid_pacing_violation(last_call_datetime, log=logtoscreen("")):
 def ib_timestamp_to_datetime(timestamp_str):
     """
     Turns IB timestamp into datetime and adjusts yyyymm to closing vector
-    Eithier yyyymmdd or 'yyyymmdd  hh:mm:ss'
+    Either yyyymmdd or 'yyyymmdd  hh:mm:ss'
 
     :param timestamp_str: str
     :return: datetime.datetime
@@ -502,7 +502,7 @@ def ib_timestamp_to_datetime(timestamp_str):
 def ib_timestamp_to_date_or_datetime(timestamp_str):
     """
     Turns IB timestamp into datetime
-    Eithier yyyymmdd or 'yyyymmdd  hh:mm:ss'
+    Either yyyymmdd or 'yyyymmdd  hh:mm:ss'
 
     :param timestamp_str: str
     :return: datetime.datetime
