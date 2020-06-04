@@ -28,8 +28,8 @@ Table of Contents
       * [Backup machine](#backup-machine)
       * [Multiple systems](#multiple-systems)
    * [Code and configuration management](#code-and-configuration-management)
-         * [Managing your separate directories of code and configuration](#managing-your-separate-directories-of-code-and-configuration)
-         * [Managing your private directory](#managing-your-private-directory)
+      * [Managing your separate directories of code and configuration](#managing-your-separate-directories-of-code-and-configuration)
+      * [Managing your private directory](#managing-your-private-directory)
    * [Finalise your backtest configuration](#finalise-your-backtest-configuration)
    * [Linking to a broker](#linking-to-a-broker)
    * [Other data sources](#other-data-sources)
@@ -143,7 +143,7 @@ Before trading, and each time you restart the machine you should:
 
 - [check a mongodb server is running with the right data directory](/docs/futures.md#mongo-db) command line: `mongod --dbpath $MONGO_DATA` (the supplied crontab should do this)
 - launch an IB gateway (this could [be done automatically](https://github.com/ib-controller/ib-controller) depending on your security setup)
-- startup housekeeping sergices (FIX ME TO DO BUT WILL INCLUDE CLEARING IB TICKERS)
+- startup housekeeping services (FIX ME TO DO BUT WILL INCLUDE CLEARING IB TICKERS)
 
 When trading you will need to do the following
 
@@ -188,7 +188,7 @@ If spreading your implementation across several machines bear in mind:
    - interactive brokers Gateway will need to have the ip address of all relevant machines that connect to it in the whitelist
    - you will need to modify the `private_config.yaml` system configuration file so it connects to a different IP address `ib_ipaddress: '192.168.0.10'`
 - Mongodb
-   - Add an ip address the `bind_ip` line in the `/etc/mongod.conf` file to allow connections from other machines `eg bind_ip=localhost, 192.168.0.10`
+   - Add an ip address to the `bind_ip` line in the `/etc/mongod.conf` file to allow connections from other machines `eg bind_ip=localhost, 192.168.0.10`
    - you will need to modify the `private_config.yaml` system configuration file so it connects to a different IP address `mongo_host: 192.168.0.13`
    - you may want to enforce [further security protocol](https://docs.mongodb.com/manual/administration/security-checklist/)
 
@@ -206,7 +206,8 @@ You may want to run multiple trading systems on a single machine. Common use cas
 - You want to run the same system, but for different trading accounts
 - You want a paper trading and live trading system
 
-* for these cases I plan to implement functionality in pysystemtrade so that it can handle them in the same system.
+
+*for these cases I plan to implement functionality in pysystemtrade so that it can handle them in the same system.
 
 To handle this I suggest having multiple copies of the pysystemtrade environment. You will have a single crontab, but you will need multiple script, echos and other directories. You will need to change the private config file so it points to different mongo_db database names. If you don't want multiple copies of certain data (eg prices) then you should hardcode the database_name in the relevant files whenever a connection is made eg mongo_db = mongoDb(database_name='whatever'). See storing futures and spot FX data for more detail. Finally you should set the field ib_idoffset in the private config file so that there is no chance of duplicate clientid connections; setting one system to have an id offset of 1, the next offset 1000, and so on should be sufficient.
 
@@ -432,11 +433,13 @@ Over time echo files can get... large (my default position for logging is verbos
 
 Logging in pysystemtrade is done via loggers. See the [userguide for more detail](/docs/userguide.md#logging). The logging levels are:
 
+```
 self.log.msg("this is a normal message")
 self.log.terse("not really used in production code since everything is logged")
 self.log.warn("this is a warning message means something unexpected")
 self.log.error("this error message means ")
 self.log.critical("this critical message will always be printed, and an email will be sent to the user. Use this if user action is required")
+```
 
 The default logger in production code is to the mongo database. This method will also try and email the user if a critical message is logged.
 
