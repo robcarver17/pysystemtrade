@@ -37,12 +37,12 @@ class arcticFuturesAdjustedPricesData(futuresAdjustedPricesData):
         return instrpricedata
 
     def _delete_adjusted_prices_without_any_warning_be_careful(self, instrument_code):
-        self.log.label(instument_code = instrument_code)
+        self.log.label(instrument_code = instrument_code)
         self._arctic.library.delete(instrument_code)
         self.log.msg("Deleted adjusted prices for %s from %s" % (instrument_code, self.name))
 
     def _add_adjusted_prices_without_checking_for_existing_entry(self, instrument_code, adjusted_price_data):
-        self.log.label(instument_code = instrument_code)
+        self.log.label(instrument_code = instrument_code)
         adjusted_price_data_aspd = pd.Series(adjusted_price_data)
         adjusted_price_data_aspd = adjusted_price_data_aspd.astype(float)
         self._arctic.library.write(instrument_code, adjusted_price_data_aspd)
