@@ -33,6 +33,9 @@ class ibFuturesContractPriceData(futuresContractPriceData):
     def __repr__(self):
         return "IB Futures per contract price data %s" % str(self.ibconnection)
 
+    def get_brokers_instrument_code(self, instrument_code):
+        return get_instrument_object_from_config(instrument_code).meta_data['symbol']
+
     def has_data_for_contract(self, contract_object):
         """
         Does IB have data for a given contract?

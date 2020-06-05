@@ -16,22 +16,37 @@ FIX ME FUTURE:
 
 """
 
-import datetime
-
-from sysbrokers.IB.ibConnection import connectionIB
-from sysbrokers.IB.ibFuturesContractPriceData import get_instrument_object_from_config
 from syscore.dateutils import get_datetime_input
 from syscore.genutils import get_and_convert, print_menu_and_get_response
 
-from sysdata.mongodb.mongo_connection import mongoDb
 from sysproduction.data.get_data import dataBlob
 from sysproduction.data.positions import diagPositions
-from syslogdiag.log import logToMongod as logger
+from sysproduction.data.broker import dataBroker
 
 from sysexecution.instrument_to_contract_stack_handler import instrument_to_contract_stack_handler
 
 
-menu_of_options = {0: 'Exit',
+
+
+
+def update_order_stack():
+    with dataBlob(log_name = "Update-Order-Stack") as data:
+
+            stack_handler = instrument_to_contract_stack_handler(data)
+
+            still_running = True
+            while still_running:
+                option_chosen = print_menu_and_get_response(menu_of_options, default_option=-1, default_str = "EXIT")
+                if option_chosen ==-1:
+                    print("FINISHED")
+                    return None
+
+                method_chosen = dict_of_functions[option_chosen]
+                method_chosen(stack_handler)
+
+
+
+menu_of_options = {0: 'View specific order',
                    1: 'View instrument order stack',
                    2: 'View contract order stack',
                    3: 'Spawn contract orders from instrument orders',
@@ -40,27 +55,12 @@ menu_of_options = {0: 'Exit',
                    6: 'Pass fills upwards',
                    7: 'Handle completed orders',
                    8: 'Lock/unlock order',
-                   9: 'View positions'}
-
-
-
-def update_order_stack():
-    with mongoDb() as mongo_db,\
-        logger("Update-Order-Stack", mongo_db=mongo_db) as log:
-
-            data = dataBlob(mongo_db = mongo_db, log = log)
-
-            stack_handler = instrument_to_contract_stack_handler(data)
-
-            still_running = True
-            while still_running:
-                option_chosen = print_menu_and_get_response(menu_of_options, default_option=0)
-                if option_chosen ==0:
-                    print("FINISHED")
-                    return None
-
-                method_chosen = dict_of_functions[option_chosen]
-                method_chosen(stack_handler)
+                   9: 'View positions',
+                   10: 'Modify or cancel instrument order',
+                   11: 'Pass modification from instrument to contract',
+                   12: 'Complete modification for contract',
+                   13: 'Pass modification complete from contract to instrument',
+                   14: 'Clear completed modifications'}
 
 
 def generate_manual_contract_fill(stack_handler):
@@ -102,24 +102,24 @@ def view_instrument_stack(stack_handler):
 def view_contract_stack(stack_handler):
     order_ids = stack_handler.contract_stack.get_list_of_order_ids()
     print("\nCONTRACT STACK \n")
-
+    broker_data = dataBroker(stack_handler.data)
     for order_id in order_ids:
         order = stack_handler.contract_stack.get_order_with_id_from_stack(order_id)
-        IB_code = get_instrument_object_from_config(order.instrument_code).meta_data['symbol']
+        IB_code = broker_data.get_brokers_instrument_code(order.instrument_code)
         print("%s:%s" % (IB_code, order.terse_repr()))
 
 def spawn_contracts_from_instrument_orders(stack_handler):
     print("This will create contract orders for any instrument orders that don't have them")
-    ans = input("Are you sure? (Y/other)")
-    if ans !="Y":
-        return None
+
     try:
-        ans = get_and_convert("Which instrument order ID", default_value="ALL", default_str="All", type_expected=int)
-        if ans =="ALL":
+        order_id = get_and_convert("Which instrument order ID", default_value="ALL", default_str="All", type_expected=int)
+        check_ans = input("Are you sure? (Y/other)")
+        if check_ans != "Y":
+            return None
+        if order_id =="ALL":
             stack_handler.spawn_children_from_new_instrument_orders()
         else:
-            instrument_order_id = int(ans)
-            stack_handler.spawn_children_from_instrument_order_id(instrument_order_id)
+            stack_handler.spawn_children_from_instrument_order_id(order_id)
     except Exception as e:
             print("Something went wrong! %s" % e)
 
@@ -128,10 +128,10 @@ def spawn_contracts_from_instrument_orders(stack_handler):
 
 def pass_fills_upwards(stack_handler):
     print("This will process any fills applied to child orders")
+    contract_order_id = get_and_convert("Which order ID?", default_value="ALL", default_str="for all", type_expected=int)
     ans = input("Are you sure? (Y/other)")
     if ans !="Y":
         return None
-    contract_order_id = get_and_convert("Which order ID?", default_value="ALL", default_str="for all", type_expected=int)
     try:
         if contract_order_id=="ALL":
             stack_handler.pass_fills_from_children_up_to_parents()
@@ -146,27 +146,28 @@ def pass_fills_upwards(stack_handler):
 
 def generate_force_roll_orders(stack_handler):
     print("This will generate force roll orders")
+    instrument_code = input("Which instrument? <RETURN for default: All instruments>")
     ans = input("Are you sure? (Y/other)")
     if ans != "Y":
         return None
-    ans = input("Which instrument? <RETURN for default: All>")
     try:
-        if ans == "":
+        if instrument_code == "":
             stack_handler.generate_force_roll_orders()
         else:
-            stack_handler.generate_force_roll_orders_for_instrument(ans)
+            stack_handler.generate_force_roll_orders_for_instrument(instrument_code)
     except Exception as e:
         print("Something went wrong! %s" % e)
 
 
 def handle_completed_orders(stack_handler):
     print("This will process any completed orders (all fills present)")
-    ans = input("Are you sure? (Y/other)")
-    if ans != "Y":
-        return None
     try:
         instrument_order_id = get_and_convert("Which instrument order ID?", default_str="All", default_value="ALL",
                               type_expected=int)
+        ans = input("Are you sure? (Y/other)")
+        if ans != "Y":
+            return None
+
         if instrument_order_id == "ALL":
             stack_handler.handle_completed_orders()
         else:
@@ -175,17 +176,21 @@ def handle_completed_orders(stack_handler):
     except Exception as e:
         print("Something went wrong! %s" % e)
 
+def order_view(stack_handler):
+    stack = resolve_stack(stack_handler)
+    if stack is None:
+        return None
+    order_id = get_and_convert("Order ID?", type_expected=int, allow_default=False)
+    order = stack.get_order_with_id_from_stack(order_id)
+    print("%s" % order)
+
+    return None
+
 def order_locking(stack_handler):
 
-    ans = get_and_convert("Contract stack [1] or instrument stack [2]?", type_expected=int,
-                          default_str="Exit", default_value=0)
-    if ans==1:
-        stack = stack_handler.contract_stack
-    elif ans==2:
-        stack = stack_handler.instrument_stack
-    else:
+    stack = resolve_stack(stack_handler)
+    if stack is None:
         return None
-
     try:
         order_id = get_and_convert("Order ID ", type_expected=int, allow_default=False)
         order = stack.get_order_with_id_from_stack(order_id)
@@ -209,6 +214,17 @@ def order_locking(stack_handler):
 
     return None
 
+def resolve_stack(stack_handler):
+    ans = get_and_convert("Contract stack [1] or instrument stack [2]?", type_expected=int,
+                          default_str="Exit", default_value=0)
+    if ans==1:
+        stack = stack_handler.contract_stack
+    elif ans==2:
+        stack = stack_handler.instrument_stack
+    else:
+        return None
+    return stack
+
 def view_positions(stack_handler):
     data = stack_handler.data
     diag_positions = diagPositions(data)
@@ -220,7 +236,80 @@ def view_positions(stack_handler):
     print(ans2)
     return None
 
-dict_of_functions = {1: view_instrument_stack,
+def modify_instrument_order(stack_handler):
+
+    order_id = get_and_convert("Enter order ID", type_expected=int, default_str="Cancel", default_value=0)
+    if order_id ==0:
+        return None
+    try:
+        order = stack_handler.instrument_stack.get_order_with_id_from_stack(order_id)
+        print("Existing order %s" % str(order))
+        new_qty = get_and_convert("New quantity (zero to cancel)", type_expected=int, default_value = order.trade)
+        stack_handler.instrument_stack.modify_order_on_stack(order_id, new_qty)
+        print("You will probably want to push modifications down to contract orders next, if not running on auto")
+    except Exception as e:
+        print("%s went wrong!" % e)
+
+def pass_modifications_down_to_contracts(stack_handler):
+    print("This will pass a parent instrument order modification downwards")
+
+    try:
+        order_id = get_and_convert("Which instrument order ID", default_value="ALL", default_str="All", type_expected=int)
+        check_ans = input("Are you sure? (Y/other)")
+        if check_ans != "Y":
+            return None
+        if order_id =="ALL":
+            stack_handler.pass_on_modification_from_instrument_to_contract_orders()
+        else:
+            stack_handler.pass_modification_from_parent_to_children(order_id)
+    except Exception as e:
+            print("Something went wrong! %s" % e)
+
+    print("If you are trading manually, you will now want to mark contract modifications as complete")
+
+def complete_modification_for_contract(stack_handler):
+
+    try:
+        order_id = get_and_convert("Which contract order ID", default_value=0, default_str="CANCEL", type_expected=int)
+        if order_id ==0:
+            return None
+        else:
+            stack_handler.contract_stack.completed_modifying_order_on_stack(order_id)
+    except Exception as e:
+            print("Something went wrong! %s" % e)
+
+    print("If you are trading manually, you will now want to pass the modification complete from contract to instruments")
+
+
+def pass_on_modification_complete_from_contract_to_instrument_orders(stack_handler):
+    print("This will mark all orders ")
+
+    try:
+        order_id = get_and_convert("Which contract order ID", default_value="ALL", default_str="All", type_expected=int)
+        check_ans = input("Are you sure? (Y/other)")
+        if check_ans != "Y":
+            return None
+        if order_id =="ALL":
+            stack_handler.pass_on_modification_from_instrument_to_contract_orders()
+        else:
+            stack_handler.pass_modification_complete_from_child_to_parent_orders(order_id)
+    except Exception as e:
+            print("Something went wrong! %s" % e)
+
+    print("If you are trading manually, you will now want to clear modifications")
+
+def clear_completed_modifications_from_instrument_and_contract_stacks(stack_handler):
+    ans = input("Clear all completed modifications from instrument and contract stacks, sure? (Y/other")
+    if ans =="Y":
+        try:
+            stack_handler.clear_completed_modifications_from_instrument_and_contract_stacks()
+        except Exception as e:
+            print("%s went wrong")
+
+    return None
+
+dict_of_functions = {0: order_view,
+                         1: view_instrument_stack,
                      2: view_contract_stack,
                      3: spawn_contracts_from_instrument_orders,
                      4: generate_force_roll_orders,
@@ -228,4 +317,9 @@ dict_of_functions = {1: view_instrument_stack,
                      6: pass_fills_upwards,
                      7: handle_completed_orders,
                      8: order_locking,
-                     9: view_positions}
+                     9: view_positions,
+                     10: modify_instrument_order,
+                     11: pass_modifications_down_to_contracts,
+                     12: complete_modification_for_contract,
+                     13: pass_on_modification_complete_from_contract_to_instrument_orders,
+                     14: clear_completed_modifications_from_instrument_and_contract_stacks}

@@ -18,14 +18,14 @@ class dataCapital(object):
 
     @property
     def capital_data(self):
-        return self.data.mongo_capital
+        return self.data.db_capital
 
     @property
     def total_capital_calculator(self):
         # cache because could be slow getting calculation method from yaml
         if getattr(self, '_total_capital_calculator', None) is None:
             calc_method = get_private_then_default_key_value('production_capital_method')
-            self._total_capital_calculator = totalCapitalCalculationData(self.data.mongo_capital, calc_method=calc_method)
+            self._total_capital_calculator = totalCapitalCalculationData(self.data.db_capital, calc_method=calc_method)
 
         return self._total_capital_calculator
 

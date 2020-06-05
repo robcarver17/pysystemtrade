@@ -26,13 +26,10 @@ def update_account_values():
 
     :return: Nothing
     """
-    with mongoDb() as mongo_db,\
-        logger("Update-Account-Values", mongo_db=mongo_db) as log,\
-        connectionIB(mongo_db = mongo_db, log=log.setup(component="IB-connection")) as ib_conn:
-
-        data = dataBlob(mongo_db = mongo_db, log = log, ib_conn = ib_conn)
+    with dataBlob(log_name="Update-Account-Values") as data:
 
         capital_data = dataCapital(data)
+        log = data.log
 
         ## This assumes that each account only reports eithier in one currency or for each currency, i.e. no double counting
         total_account_value_in_base_currency = capital_data.get_ib_total_capital_value()

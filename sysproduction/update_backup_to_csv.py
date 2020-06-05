@@ -26,7 +26,8 @@ def get_data_and_create_csv_directories():
         if not os.path.exists(dir_name):
             os.mkdir(dir_name)
 
-    data = dataBlob(csv_data_paths=class_paths)
+    data = dataBlob(csv_data_paths=class_paths, keep_original_prefix=True)
+
     data.add_class_list("csvFuturesContractPriceData csvFuturesAdjustedPricesData csvFuturesMultiplePricesData csvFxPricesData")
     data.add_class_list("arcticFuturesContractPriceData arcticFuturesMultiplePricesData arcticFuturesAdjustedPricesData arcticFxPricesData")
 

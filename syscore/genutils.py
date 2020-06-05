@@ -314,17 +314,13 @@ def get_and_convert(prompt, type_expected=int, allow_default=True, default_value
             continue
 
 
-def print_menu_and_get_response(menu_of_options, default_option = None):
+def print_menu_and_get_response(menu_of_options, default_option = None, default_str=""):
     """
 
     :param menu_of_options: A dict, keys are ints, values are str
     :param default_option: None, or one of the keys
     :return: int menu chosen
     """
-    if default_option is None:
-        allow_default = False
-    else:
-        allow_default = True
 
     menu_options_list = list(menu_of_options.keys())
     menu_options_list.sort()
@@ -332,8 +328,15 @@ def print_menu_and_get_response(menu_of_options, default_option = None):
         print("%d: %s" % (option, menu_of_options[option]))
     print("\n")
     computer_says_no = True
+    if default_option is None:
+        allow_default = False
+    else:
+        allow_default = True
+        menu_options_list = [default_option]+menu_options_list
+
     while computer_says_no:
-        ans = get_and_convert("Your choice?", default_value=default_option, type_expected=int, allow_default=allow_default)
+        ans = get_and_convert("Your choice?", default_value=default_option, type_expected=int, allow_default=allow_default,
+                              default_str=default_str)
         if ans not in menu_options_list:
             print("Not a valid option")
             continue

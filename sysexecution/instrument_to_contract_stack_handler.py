@@ -25,18 +25,18 @@ from sysexecution.contract_orders import log_attributes_from_contract_order
 from sysexecution.instrument_orders import log_attributes_from_instrument_order
 
 from sysproduction.data.positions import diagPositions, updatePositions
+from sysproduction.data.orders import dataOrders
 
 class instrument_to_contract_stack_handler(object):
     def __init__(self, data):
-        data.add_class_list("mongoInstrumentOrderStackData mongoContractOrderStackData")
-        data.add_class_list("mongoContractHistoricOrdersData mongoStrategyHistoricOrdersData")
-
-        instrument_stack = data.mongo_instrument_order_stack
-        contract_stack = data.mongo_contract_order_stack
+        order_data = dataOrders(data)
+        instrument_stack = order_data.instrument_stack()
+        contract_stack = order_data.contract_stack()
 
         self.instrument_stack = instrument_stack
         self.contract_stack = contract_stack
 
+        self.order_data = order_data
         self.data = data
         self.log = data.log
 
@@ -218,10 +218,17 @@ class instrument_to_contract_stack_handler(object):
 
     def _modify_single_child_order(self, child_id, instrument_order):
         child_order = self.contract_stack.get_order_with_id_from_stack(child_id)
-        child_log = log_attributes_from_contract_order(self.log, child_order)
+        if len(child_order.trade) ==1:
+            self._modify_single_child_order_where_child_is_single_contract(child_id, instrument_order)
+        else:
+            raise Exception("I don't know how to deal with modifying a multiple length child order yet!")
 
+    def _modify_single_child_order_where_child_is_single_contract(self, child_id, instrument_order):
+        child_order = self.contract_stack.get_order_with_id_from_stack(child_id)
+        child_log = log_attributes_from_contract_order(self.log, child_order)
         modification_quantity = instrument_order.modification_quantity
-        result = self.contract_stack.modify_order_on_stack(child_id, modification_quantity)
+
+        result = self.contract_stack.modify_order_on_stack(child_id, [modification_quantity])
 
         if result is success:
             # fine
@@ -261,7 +268,7 @@ class instrument_to_contract_stack_handler(object):
         for child_id in child_order_ids:
             child_order = self.contract_stack.get_order_with_id_from_stack(child_id)
             if child_order is missing_order:
-                log.warn("Child order orderid % is missing for instrument order %s, can't pass on modification" % str(instrument_order))
+                log.warn("Child order orderid % is missing for instrument order %s, can't pass on modification" % (child_id, str(instrument_order)))
                 return failure
             child_log = log_attributes_from_contract_order(self.log, child_order)
             result = self.contract_stack.cancel_order(child_id)
@@ -561,10 +568,11 @@ class instrument_to_contract_stack_handler(object):
         for contract_order in list_of_contract_orders:
             position_updater.update_contract_position_table_with_contract_order(contract_order)
 
+        order_data = dataOrders(self.data)
         # Update historic order database
-        self.data.mongo_strategy_historic_orders.add_order_to_data(instrument_order)
+        order_data.add_historic_instrument_order_to_data(instrument_order)
         for contract_order in list_of_contract_orders:
-            self.data.mongo_contract_historic_orders.add_order_to_data(contract_order)
+            order_data.add_historic_contract_order_to_data(contract_order)
 
         # Make orders inactive
         # A subsequent process will delete them

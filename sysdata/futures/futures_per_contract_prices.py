@@ -683,6 +683,9 @@ class futuresContractPriceData(baseData):
     def get_actual_expiry_date_for_contract(self, futures_contract_object):
         raise NotImplementedError(BASE_CLASS_ERROR)
 
+    def get_brokers_instrument_code(self, instrument_code):
+        raise NotImplementedError(BASE_CLASS_ERROR)
+
     def update_prices_for_for_instrument_code_and_contract_date(self, instrument_code, contract_date,
                                                                 new_futures_per_contract_prices):
         """

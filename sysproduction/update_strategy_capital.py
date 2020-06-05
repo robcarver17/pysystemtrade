@@ -1,14 +1,10 @@
 
 import datetime
 
-from sysbrokers.IB.ibConnection import connectionIB
-
 from syscore.objects import success
 
-from sysdata.mongodb.mongo_connection import mongoDb
 from sysproduction.data.get_data import dataBlob
 from sysproduction.data.capital import dataCapital
-from syslogdiag.log import logToMongod as logger
 
 from sysdata.private_config import get_private_then_default_key_value
 from syscore.objects import resolve_function
@@ -20,17 +16,13 @@ def update_strategy_capital():
 
     :return: Nothing
     """
-    with mongoDb() as mongo_db,\
-        logger("Update-Strategy-Capital", mongo_db=mongo_db) as log,\
-        connectionIB(mongo_db = mongo_db, log=log.setup(component="IB-connection")) as ib_conn:
-
-        data = dataBlob(mongo_db = mongo_db, log = log, ib_conn = ib_conn)
+    with dataBlob(log_name="Update-Strategy-Capital") as data:
 
         try:
             strategy_allocation(data)
         except Exception as e:
             ## Problem, will send email
-            log.critical("Error %s whilst allocating strategy capital" % e)
+            data.log.critical("Error %s whilst allocating strategy capital" % e)
 
     return success
 

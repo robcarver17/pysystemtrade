@@ -108,7 +108,7 @@ def get_required_contract_trade_for_instrument(data, instrument_order):
     elif roll_state=="Passive":
         return passive_roll_child_order(position_current_contract, current_contract, next_contract, trade, log, instrument_order)
     else:
-        log.critical("Roll state %s not understood: can't generate trade for %s" % str(instrument_order))
+        log.critical("Roll state %s not understood: can't generate trade for %s" % (roll_state, str(instrument_order)))
         return missing_contract
 
 def passive_roll_child_order(position_current_contract, current_contract, next_contract, trade, log, instrument_order):

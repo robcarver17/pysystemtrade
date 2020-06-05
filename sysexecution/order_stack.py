@@ -1,5 +1,6 @@
 from copy import copy
-from syscore.objects import missing_order, success, failure, locked_order, duplicate_order, no_order_id, no_children, no_parent, order_is_in_status_finished
+from syscore.objects import missing_order, success, failure, locked_order, duplicate_order, no_order_id, no_children, no_parent, order_is_in_status_finished, zero_order
+from syscore.objects import missing_order, success, failure, locked_order, duplicate_order, no_order_id, no_children, no_parent, order_is_in_status_finished, zero_order
 from syscore.objects import order_is_in_status_modified, order_is_in_status_reject_modification, order_is_in_status_finished
 
 from syslogdiag.log import logtoscreen
@@ -53,7 +54,7 @@ class orderStackData(object):
         :return: order_id or failure condition: duplicate_order, failure
         """
         if new_order.is_zero_trade() and not allow_zero_orders:
-            return failure
+            return zero_order
 
         log = self.log.setup(strategy_name=new_order.strategy_name, instrument_code=new_order.instrument_code)
 

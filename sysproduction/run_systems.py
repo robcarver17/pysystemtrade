@@ -20,14 +20,11 @@ from sysdata.mongodb.mongo_connection import mongoDb
 from sysproduction.data.get_data import dataBlob
 
 def run_systems():
-    with mongoDb() as mongo_db, \
-            logger("update_run_systems", mongo_db=mongo_db) as log:
-
-        data = dataBlob(mongo_db=mongo_db, log=log)
-
+    with dataBlob(log_name="update_run_systems") as data:
+        log = data.log
         strategy_dict = get_private_then_default_key_value('strategy_list')
         for strategy_name in strategy_dict:
-            data.log.label(strategy = strategy_name)
+            log.label(strategy = strategy_name)
             try:
                 launch_function, launch_args = _get_launch_config(strategy_dict[strategy_name])
             except Exception as e:

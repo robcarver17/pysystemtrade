@@ -5,7 +5,7 @@ It then passes these to the 'virtual' order queue
 So called because it deals with instrument level trades, not contract implementation
 """
 
-from syscore.objects import missing_order,  success, failure, locked_order, duplicate_order
+from syscore.objects import missing_order,  success, failure, locked_order, duplicate_order, zero_order
 
 from syscore.genutils import timerClass
 from syscore.objects import resolve_function, not_updated, success, failure
@@ -13,18 +13,21 @@ from syscore.objects import resolve_function, not_updated, success, failure
 from sysdata.private_config import get_private_then_default_key_value
 
 from sysproduction.data.positions import diagPositions
+from sysproduction.data.orders import dataOrders
 
 class orderHandlerAcrossStrategies(object):
     def __init__(self, data):
-        data.add_class_list("mongoInstrumentOrderStackData")
+        data_orders = dataOrders(data)
+
         self.data = data
+        self.data_orders = data_orders
         self.log = data.log
 
         self._create_strategy_generators()
 
     @property
     def order_stack(self):
-        return self.data.mongo_instrument_order_stack
+        return self.data_orders.instrument_stack()
 
     def _create_strategy_generators(self):
         strategy_dict = get_private_then_default_key_value('strategy_list')
@@ -80,9 +83,27 @@ class orderHandlerAcrossStrategies(object):
                             instrument_order_id = order_id, strategy_name = order.strategy_name,
                                  instrument_code = order.instrument_code)
                 else:
-                    self.log.warn("Could not put order %s on instrument order stack" % str(order),
-                                 strategy_name = order.strategy_name,
-                                 instrument_code = order.instrument_code)
+                    order_error_object = order_id
+                    if order_error_object is zero_order:
+                        # To be expected unless modifying an existing order
+                        self.log.msg(
+                            "Ignoring zero order %s" % str(
+                                order),
+                            strategy_name=order.strategy_name,
+                            instrument_code=order.instrument_code)
+
+                    elif order_error_object is duplicate_order:
+                        # Order already exists so that's fine too
+                        self.log.msg(
+                            "Ignoring duplicate order %s" % str(
+                                order),
+                            strategy_name=order.strategy_name,
+                            instrument_code=order.instrument_code)
+                    else:
+                        self.log.warn("Could not put order %s on instrument order stack, error: %s" %
+                                      (str(order), str(order_error_object)),
+                                     strategy_name = order.strategy_name,
+                                     instrument_code = order.instrument_code)
 
             except Exception as e:
                 # serious error, abandon everything

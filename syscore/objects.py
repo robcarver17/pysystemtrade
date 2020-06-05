@@ -18,6 +18,7 @@ missing_data = _named_object("missing data")
 missing_order = _named_object("missing order")
 locked_order = _named_object("locked order")
 duplicate_order = _named_object("duplicate order")
+zero_order = _named_object("zero order")
 
 order_is_in_status_finished = _named_object("order status is modification finished")
 order_is_in_status_modified = _named_object("order status is being modified")

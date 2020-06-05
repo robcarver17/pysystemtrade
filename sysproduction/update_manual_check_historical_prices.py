@@ -5,12 +5,12 @@ Apply a check to each price series
 """
 
 
-from sysbrokers.IB.ibConnection import connectionIB
-
 from syscore.objects import success, failure
 
-from sysdata.mongodb.mongo_connection import mongoDb
 from sysproduction.data.get_data import dataBlob
+from sysproduction.data.prices import diagPrices, updatePrices
+from sysproduction.data.broker import dataBroker
+from sysproduction.data.contracts import diagContracts
 from sysdata.futures.manual_price_checker import manual_price_checker
 from sysdata.futures.futures_per_contract_prices import futuresContractPrices
 from syslogdiag.log import logToMongod as logger
@@ -24,19 +24,13 @@ def update_manual_check_historical_prices(instrument_code:str):
 
     :return: Nothing
     """
-    with mongoDb() as mongo_db,\
-        logger("Update-Historical-prices-manually", mongo_db=mongo_db) as log,\
-        connectionIB(mongo_db = mongo_db, log=log.setup(component="IB-connection")) as ib_conn:
-
-        data = dataBlob("ibFuturesContractPriceData arcticFuturesContractPriceData \
-         arcticFuturesMultiplePricesData mongoFuturesContractData",
-                        mongo_db = mongo_db, log = log, ib_conn = ib_conn)
-
-        list_of_codes_all = data.arctic_futures_contract_price.get_instruments_with_price_data()
+    with dataBlob(log_name="Update-Historical-prices-manually") as data:
+        diag_prices = diagPrices(data)
+        list_of_codes_all = diag_prices.get_list_of_instruments_with_contract_prices()
         if instrument_code not in list_of_codes_all:
             print("\n\n\ %s is not an instrument with price data \n\n" % instrument_code)
             raise Exception()
-        update_historical_prices_with_checks_for_instrument(instrument_code, data, log=log.setup(instrument_code = instrument_code))
+        update_historical_prices_with_checks_for_instrument(instrument_code, data, log=data.log.setup(instrument_code = instrument_code))
 
     return success
 
@@ -52,8 +46,8 @@ def update_historical_prices_with_checks_for_instrument(instrument_code, data, l
     :param log: logger
     :return: None
     """
-
-    all_contracts_list = data.mongo_futures_contract.get_all_contract_objects_for_instrument_code(instrument_code)
+    diag_contracts = diagContracts(data)
+    all_contracts_list = diag_contracts.get_all_contract_objects_for_instrument_code(instrument_code)
     contract_list = all_contracts_list.currently_sampling()
 
     if len(contract_list)==0:
@@ -82,9 +76,13 @@ def update_historical_prices_with_checks_for_instrument_and_contract(contract_ob
     return success
 
 def get_and_check_prices_for_frequency(data, log, contract_object, frequency="D"):
+    broker_data  = dataBroker(data)
+    price_data = diagPrices(data)
+    price_updater = updatePrices(data)
+
     try:
-        old_prices = data.arctic_futures_contract_price.get_prices_for_contract_object(contract_object)
-        ib_prices = data.ib_futures_contract_price.get_prices_at_frequency_for_contract_object(contract_object, frequency)
+        old_prices = price_data.get_prices_for_contract_object(contract_object)
+        ib_prices = broker_data.get_prices_at_frequency_for_contract_object(contract_object, frequency)
         if len(ib_prices) == 0:
             raise Exception("No IB prices found for %s nothing to check" % str(contract_object))
 
@@ -94,7 +92,7 @@ def get_and_check_prices_for_frequency(data, log, contract_object, frequency="D"
                                                   delta_columns=['OPEN', 'HIGH', 'LOW'],
                                                   type_new_data=futuresContractPrices
                                                   )
-        result = data.arctic_futures_contract_price.update_prices_for_contract(contract_object, new_prices_checked,
+        result = price_updater.update_prices_for_contract(contract_object, new_prices_checked,
                                                                                    check_for_spike=False)
         return result
 
