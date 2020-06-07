@@ -2952,7 +2952,7 @@ See [estimating diversification multipliers](#divmult).
 
 #### Forecast mapping
 
-A new feature introduced in version 0.18.2 is *forecast mapping*. This is the non linear mapping discussed in [this blog post](http://qoppac.blogspot.co.uk/2016/03/diversification-and-small-account-size.html) whereby we do not take a forecast until it has reached some threshold. Because this will reduce the standard deviation of our forecasts we compensate by ramping up the forecast more quickly until the raw forecast reaches the existing cap (which defaults to 20). This is probably illustrated better if we look at the non-linear mapping function:
+A new feature introduced in version 0.18.2 is *forecast mapping*. This is the non linear mapping discussed in [this blog post](https://qoppac.blogspot.com/2016/03/diversification-and-small-account-size.html) whereby we do not take a forecast until it has reached some threshold. Because this will reduce the standard deviation of our forecasts we compensate by ramping up the forecast more quickly until the raw forecast reaches the existing cap (which defaults to 20). This is probably illustrated better if we look at the non-linear mapping function:
 
 ```python
 #This is syscore.algos.map_forecast_value
@@ -3355,7 +3355,7 @@ acc_curve.costs.weekly.percent().curve()
 
 You may also want to use *cumulated* returns, which use compound interest
 rather than the simple addition I normally use. See this [blog
-post](http://qoppac.blogspot.co.uk/2016/06/capital-correction-pysystemtrade.html).
+post](https://qoppac.blogspot.com/2016/06/capital-correction-pysystemtrade.html).
 
 ```python
 acc_curve.cumulative()
@@ -3882,9 +3882,9 @@ This has the advantage of keeping the original log attributes intact. If you wan
 ## Optimisation
 
 See my blog posts on optimisation:
-[without](http://qoppac.blogspot.co.uk/2016/01/correlations-weights-multipliers.html)
+[without](https://qoppac.blogspot.com/2016/01/correlations-weights-multipliers.html)
 and [with
-costs](http://qoppac.blogspot.co.uk/2016/05/optimising-weights-with-costs.html).
+costs](https://qoppac.blogspot.com/2016/05/optimising-weights-with-costs.html).
 
 I use an optimiser to calculate both forecast and instrument weights. The
 process is almost identical for both.
@@ -3906,7 +3906,7 @@ of sample performance.
 ### Removing expensive assets (forecast weights only)
 
 Again I recommend you check out this [blog
-post](http://qoppac.blogspot.co.uk/2016/05/optimising-weights-with-costs.html).
+post](https://qoppac.blogspot.com/2016/05/optimising-weights-with-costs.html).
 
 ```
 forecast_weight_estimate:
@@ -3921,7 +3921,7 @@ of forecasts.
 
 Pooling across instruments is only available when calculating forecast weights.
 Again I recommend you check out this [blog
-post](http://qoppac.blogspot.co.uk/2016/05/optimising-weights-with-costs.html).
+post](https://qoppac.blogspot.com/2016/05/optimising-weights-with-costs.html).
 Only instruments whose rules have survived the application of a ceiling cost
 will be included in the pooling process.
 
@@ -3944,7 +3944,7 @@ individually, which is slower.
 ### Working out net costs (both instrument and forecast weights)
 
 Again I recommend you check out this [blog
-post](http://qoppac.blogspot.co.uk/2016/05/optimising-weights-with-costs.html).
+post](https://qoppac.blogspot.com/2016/05/optimising-weights-with-costs.html).
 
 ```
 forecast_weight_estimate:  ## can also be applied to instrument weights
@@ -4087,7 +4087,7 @@ See [my series of blog posts](https://qoppac.blogspot.com/2018/12/portfolio-cons
 If we haven't accounted for costs earlier (eg by setting `cost_multiplier=0`)
 then we can adjust our portfolio weights according to costs after they've been
 calculated. See this blog post [blog
-post](http://qoppac.blogspot.co.uk/2016/05/optimising-weights-with-costs.html).
+post](https://qoppac.blogspot.com/2016/05/optimising-weights-with-costs.html).
 
 If weights are *cleaned*, then in a fitting period when we need a weight, but
 none has been calculated (due to insufficient data for example), an instrument
@@ -4105,7 +4105,7 @@ is given a share of the weight.
 ## Estimating correlations and diversification multipliers
 
 See [my blog
-post](http://qoppac.blogspot.co.uk/2016/01/correlations-weights-multipliers.html)
+post](https://qoppac.blogspot.com/2016/01/correlations-weights-multipliers.html)
 
 
 You can estimate diversification multipliers for both instruments (IDM - see
@@ -4160,7 +4160,7 @@ capital and losses deducted. If we make money then our capital, and the risk
 we're taking, and the size of our positions, will all increase over time.
 
 There is much more in this [blog
-post](http://qoppac.blogspot.co.uk/2016/06/capital-correction-pysystemtrade.html).
+post](https://qoppac.blogspot.com/2016/06/capital-correction-pysystemtrade.html).
 Capital correction is controlled by the following config parameter which
 selects the function used for correction using the normal dot argument (the
 default here being the function `fixed_capital` in the module
@@ -4174,7 +4174,7 @@ capital_multiplier:
 
 Other functions I've written are `full_compounding` and `half_compounding`.
 Again see the blog post [blog
-post](http://qoppac.blogspot.co.uk/2016/06/capital-correction-pysystemtrade.html)
+post](https://qoppac.blogspot.com/2016/06/capital-correction-pysystemtrade.html)
 for more detail.
 
 To get the varying capital multiplier which the chosen method calculates use

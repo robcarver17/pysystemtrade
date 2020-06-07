@@ -89,7 +89,7 @@ def calc_ewmac_forecast(price, Lfast, Lslow=None):
     """
     ## price: This is the stitched price series
     ## We can't use the price of the contract we're trading, or the volatility will be jumpy
-    ## And we'll miss out on the rolldown. See http://qoppac.blogspot.co.uk/2015/05/systems-building-futures-rolling.html
+    ## And we'll miss out on the rolldown. See https://qoppac.blogspot.com/2015/05/systems-building-futures-rolling.html
 
     price = price.resample("1B").last()
     if Lslow is None:

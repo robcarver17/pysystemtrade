@@ -32,7 +32,7 @@ def ewmac_forecast_with_defaults(price, Lfast=32, Lslow=128):
     # We can't use the price of the contract we're trading, or the volatility
     # will be jumpy
     # And we'll miss out on the rolldown. See
-    # http://qoppac.blogspot.co.uk/2015/05/systems-building-futures-rolling.html
+    # https://qoppac.blogspot.com/2015/05/systems-building-futures-rolling.html
 
     # We don't need to calculate the decay parameter, just use the span
     # directly
@@ -74,7 +74,7 @@ def ewmac_forecast_with_defaults_no_vol(price, vol, Lfast=16, Lslow=32):
     # price: This is the stitched price series
     # We can't use the price of the contract we're trading, or the volatility will be jumpy
     # And we'll miss out on the rolldown. See
-    # http://qoppac.blogspot.co.uk/2015/05/systems-building-futures-rolling.html
+    # https://qoppac.blogspot.com/2015/05/systems-building-futures-rolling.html
 
     # We don't need to calculate the decay parameter, just use the span
     # directly
