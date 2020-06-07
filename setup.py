@@ -57,10 +57,10 @@ setup(
     author="Robert Carver",
     description=
     ("Python framework for running systems as in Robert Carver's book Systematic Trading"
-     " (www.systematictrading.org)"),
+     " (https://www.systematicmoney.org/systematic-trading)"),
     license="GNU GPL v3",
     keywords="systematic trading interactive brokers",
-    url="http://qoppac.blogspot.co.uk/p/pysystemtrade.html",
+    url="https://qoppac.blogspot.com/p/pysystemtrade.html",
     packages=find_packages(),
     package_data=package_data,
     long_description=read('README.md'),
