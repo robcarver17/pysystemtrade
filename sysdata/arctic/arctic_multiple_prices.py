@@ -41,7 +41,7 @@ class arcticFuturesMultiplePricesData(futuresMultiplePricesData):
 
 
     def _delete_multiple_prices_without_any_warning_be_careful(self, instrument_code):
-        self.log.label(instument_code = instrument_code)
+        self.log.label(instrument_code = instrument_code)
         self._arctic.library.delete(instrument_code)
         self.log.msg("Deleted multiple prices for %s from %s" % (instrument_code, self.name))
 
@@ -55,7 +55,7 @@ class arcticFuturesMultiplePricesData(futuresMultiplePricesData):
         for price_column in list_of_price_column_names:
             multiple_price_data_aspd[price_column] = multiple_price_data_aspd[price_column].astype(float)
 
-        self.log.label(instument_code = instrument_code)
+        self.log.label(instrument_code = instrument_code)
         self._arctic.library.write(instrument_code, multiple_price_data_aspd)
         self.log.msg("Wrote %s lines of prices for %s to %s" % (len(multiple_price_data_aspd), instrument_code, self.name))
 
