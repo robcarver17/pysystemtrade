@@ -35,3 +35,7 @@ class brokerClient(object):
 
     def close_connection(self):
         pass
+
+    def broker_get_positions(self):
+        raise NotImplementedError
+

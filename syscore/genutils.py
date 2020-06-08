@@ -313,6 +313,43 @@ def get_and_convert(prompt, type_expected=int, allow_default=True, default_value
             print("%s is not of expected type %s" % (ans, type_expected.__name__))
             continue
 
+TOP_LEVEL = -1
+class run_interactive_menu(object):
+    def __init__(self, top_level_menu_of_options, nested_menu_of_options, exit_option = -1, another_menu = -2):
+        """
+
+        :param top_level_menu_of_options: A dict of top level options
+        :param nested_menu_of_options: A dict of nested dicts, top levels keys are keys in top_level
+        :return: object
+        """
+
+        self._top_level = top_level_menu_of_options
+        self._nested = nested_menu_of_options
+        self._location = TOP_LEVEL
+        self._exit_option = exit_option
+        self._another_menu = another_menu
+
+    def propose_options_and_get_input(self):
+        is_top_level = self._location == TOP_LEVEL
+        if is_top_level:
+            top_level_menu = self._top_level
+            result = print_menu_and_get_response(top_level_menu, default_option=-1, default_str="EXIT")
+            if result==-1:
+                return self._exit_option
+            else:
+                self._location = result
+                return self._another_menu
+        else:
+            sub_menu = self._nested[self._location]
+            result = print_menu_and_get_response(sub_menu, default_option=-1, default_str="Back")
+            if result==-1:
+                self._location = -1
+                return self._another_menu
+            else:
+                return result
+
+
+
 
 def print_menu_and_get_response(menu_of_options, default_option = None, default_str=""):
     """

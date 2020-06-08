@@ -13,7 +13,9 @@ class dataBroker(object):
         if data is arg_not_supplied:
             data = dataBlob()
 
-        data.add_class_list("ibFxPricesData ibFuturesContractPriceData")
+        data.add_class_list("ibFxPricesData ibFuturesContractPriceData ibFuturesContractData\
+        ibContractPositionData"
+                            )
         self.data = data
 
     def get_fx_prices(self, fx_code):
@@ -29,8 +31,11 @@ class dataBroker(object):
         return self.data.broker_futures_contract_price.get_prices_at_frequency_for_contract_object(contract_object, frequency)
 
     def get_actual_expiry_date_for_instrument_code_and_contract_date(self, instrument_code, contract_date):
-        return self.data.broker_futures_contract_price. \
+        return self.data.broker_futures_contract. \
             get_actual_expiry_date_for_instrument_code_and_contract_date(instrument_code, contract_date)
 
     def get_brokers_instrument_code(self, instrument_code):
-        return self.data.broker_futures_contract_price.get_brokers_instrument_code(instrument_code)
+        return self.data.broker_futures_contract.get_brokers_instrument_code(instrument_code)
+
+    def get_all_current_contract_positions_as_df(self):
+        return self.data.broker_contract_position.get_all_current_positions_as_df()

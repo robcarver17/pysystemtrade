@@ -2,6 +2,7 @@ from syscore.dateutils import month_from_contract_letter
 from sysdata.futures.contract_dates_and_expiries import contractDate
 from sysdata.futures.rolls import contractDateWithRollParameters
 from sysdata.futures.instruments import futuresInstrument
+
 from sysdata.data import baseData
 from copy import copy
 import datetime
@@ -416,6 +417,12 @@ class futuresContractData(baseData):
     def _add_contract_object_without_checking_for_existing_entry(self, contract_object):
         raise NotImplementedError(USE_CHILD_CLASS_ERROR)
 
+    def get_actual_expiry_date_for_instrument_code_and_contract_date(self, instrument_code, contract_date):
+        contract_object = futuresContract(instrument_code, contract_date)
 
+        return self.get_actual_expiry_date_for_contract(contract_object)
+
+    def get_actual_expiry_date_for_contract(self, contract_object):
+        raise NotImplementedError(USE_CHILD_CLASS_ERROR)
 
 

@@ -669,19 +669,6 @@ class futuresContractPriceData(baseData):
 
         raise NotImplementedError(BASE_CLASS_ERROR)
 
-    def get_actual_expiry_date_for_instrument_code_and_contract_date(self, instrument_code, contract_date):
-        """
-        Convenience method for when we have a code and date str, and don't want to build an object
-
-        :return: data
-        """
-
-        ans = self._perform_contract_method_for_instrument_code_and_contract_date( instrument_code, contract_date, "get_actual_expiry_date_for_contract")
-
-        return ans
-
-    def get_actual_expiry_date_for_contract(self, futures_contract_object):
-        raise NotImplementedError(BASE_CLASS_ERROR)
 
     def get_brokers_instrument_code(self, instrument_code):
         raise NotImplementedError(BASE_CLASS_ERROR)
