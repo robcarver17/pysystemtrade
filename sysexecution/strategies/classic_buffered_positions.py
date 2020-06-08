@@ -73,14 +73,14 @@ def trade_given_optimal_and_actual_positions(data, strategy_name, instrument_cod
     log = data.log.setup(strategy_name = strategy_name, instrument_code = instrument_code)
     upper_positions, lower_positions,  reference_prices, reference_contracts, ref_dates = optimal_positions
 
-    upper_for_instrument = upper_positions[instrument_code]
-    lower_for_instrument = lower_positions[instrument_code]
+    upper_for_instrument = round(upper_positions[instrument_code])
+    lower_for_instrument = round(lower_positions[instrument_code])
     actual_for_instrument = actual_positions.get(instrument_code, 0.0)
 
     if actual_for_instrument<lower_for_instrument:
-        required_position = round(lower_for_instrument)
+        required_position = lower_for_instrument
     elif actual_for_instrument>upper_for_instrument:
-        required_position = round(upper_for_instrument)
+        required_position = upper_for_instrument
     else:
         required_position = actual_for_instrument
 
