@@ -1,16 +1,11 @@
-from pymongo import MongoClient, ASCENDING, IndexModel
+from pymongo import MongoClient, ASCENDING
 from copy import copy
 import numpy as np
-import yaml
 
-from syscore.fileutils import get_filename_for_package
 from syscore.genutils import get_safe_from_dict
-MONGO_CONFIG_FILE = get_filename_for_package('sysproduction.config.mongo_config.yaml')
+from sysdata.private_config import get_list_of_private_then_default_key_values
 
 LIST_OF_MONGO_PARAMS = ['db', 'host']
-
-# CHANGE THESE IN THE PRIVATE CONFIG FILE, NOT HERE. SEE THE PRECEDENCE IN MONGO DEFAULTS
-DEFAULT_MONGO_PARAMS = dict(db = 'production', host = 'localhost')
 
 # DO NOT CHANGE THIS VALUE!!!! IT WILL SCREW UP ARCTIC
 DEFAULT_MONGO_PORT = 27017
@@ -18,44 +13,27 @@ DEFAULT_MONGO_PORT = 27017
 MONGO_ID_STR = '_id_'
 MONGO_ID_KEY = '_id'
 
-from syscore.fileutils import PRIVATE_CONFIG_FILE
 
 
-def mongo_defaults(mongo_config_file = MONGO_CONFIG_FILE, private_config_file =PRIVATE_CONFIG_FILE, **kwargs):
+def mongo_defaults(**kwargs):
     """
     Returns mongo configuration with following precedence
 
-    1- if passed in arguments: db, host, port, data_map, collection_suffix - use that
-    2- if defined in private_config file, use that. mongo_db, mongo_host, mongo_port,
-    3- if defined in mongo_config file, use that.
-    3- otherwise use defaults from DEFAULT_MONGO_SPECS
+    1- if passed in arguments: db, host - use that
+    2- if defined in private_config file, use that. mongo_db, mongo_host
+    3- if defined in system defaults file, use that: mongo_db, mongo_host
 
-    :return: mongo db, hostname, port, data_map, collection_suffix
+    :return: mongo db, hostname, port
     """
-    defaults_dict = DEFAULT_MONGO_PARAMS
-
-    try:
-        with open(mongo_config_file) as file_to_parse:
-            yaml_dict_mongo_config = yaml.load(file_to_parse)
-    except:
-        yaml_dict_mongo_config={}
-
-    try:
-        with open(private_config_file) as file_to_parse:
-            yaml_dict_private_config = yaml.load(file_to_parse)
-    except:
-        yaml_dict_private_config={}
+    param_names_with_prefix = ['mongo_'+arg_name for arg_name in LIST_OF_MONGO_PARAMS]
+    config_dict = get_list_of_private_then_default_key_values(param_names_with_prefix)
 
     yaml_dict = {}
     for arg_name in LIST_OF_MONGO_PARAMS:
         yaml_arg_name = 'mongo_'+arg_name
 
-        # Start with defaults
-        arg_value = defaults_dict[arg_name]
-        # Overwrite with mongo config
-        arg_value = get_safe_from_dict(yaml_dict_mongo_config, arg_name, arg_value)
-        # Overwrite with private config
-        arg_value = get_safe_from_dict(yaml_dict_private_config, arg_name, arg_value)
+        # Start with config (precedence: private config, then system config)
+        arg_value = config_dict[yaml_arg_name]
         # Overwrite with kwargs
         arg_value = get_safe_from_dict(kwargs, arg_name, arg_value)
 
@@ -99,14 +77,6 @@ class mongoDb(object):
     def close(self):
         self.client.close()
 
-    """
-    Following two methods implement context manager
-    """
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.close()
 
 class mongoConnection(object):
     """

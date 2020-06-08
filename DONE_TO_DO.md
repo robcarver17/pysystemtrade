@@ -1,5 +1,32 @@
 # Release notes
 
+## Version 0.30.0
+
+Introduced capital model for production
+Fixed bug in implementation of correlation to covariance
+Added optional code for risk overlay [see blog](https://qoppac.blogspot.com/2020/05/when-endogenous-risk-management-isnt.html)
+Moved fx cross logic out of sim data into fxPricesData
+Strategies now run backtests from configuration file
+
+## Version 0.29.0
+
+Added price 'spike' checker, and manual price checking service
+Removed PIL library (issue 161)
+Fixed ib_insync PIP issue (pull 162)
+MongoDb logs will now try to email user if a critical error is raised
+
+## Version 0.28.0
+
+IB now uses ib_insync, not native IB library
+
+## Version 0.27.0
+
+Cleaned up way defaults and private config files work
+Removed seperate mongodb config file
+Added production code to run a system backtest and save optimal position state
+Cleaned up the way path and filename resolution works
+Added production code to backup mongodb to .csv files
+
 ## Version 0.26.0
 
 Added production code to get daily futures prices from IB, update sampled contracts, update multiple and adjusted prices.

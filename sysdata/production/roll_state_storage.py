@@ -2,14 +2,15 @@ from syscore.objects import _named_object
 from sysdata.data import baseData
 from syslogdiag.log import logtoscreen
 
-roll_states = ['No_Roll', 'Passive', 'Force', 'Roll_Adjusted']
+roll_states = ['No_Roll', 'Passive', 'Force', 'Force_Outright', 'Roll_Adjusted']
 
 default_state = roll_states[0]
-roll_adj_state = roll_states[3]
+roll_adj_state = roll_states[4]
 
 roll_explanations = dict(No_Roll='No rolling happens. Will only trade priced contract.',
                      Passive='Allow the contract to roll naturally (closing trades in priced contract, opening trades in forward contract)',
-                     Force='Force the contract to roll ASAP',
+                     Force='Force the contract to roll ASAP using spread order',
+                     Force_Outright = 'Force the contract to roll ASAP using two outright orders',
                      Roll_Adjusted='Roll adjusted prices from existing priced to new forward contract (after adjusted prices have been changed, will automatically move state to no roll')
 
 def explain_roll_state(roll_state):
@@ -30,11 +31,13 @@ def allowable_roll_state_from_current_and_position(current_roll_state, priced_po
         raise Exception("Current roll state %s not in allowable list %s" % (current_roll_state, str(roll_states)))
     ## Transition matrix: First option is recommended
     allowed_transition = dict(No_Roll0=['Roll_Adjusted', 'Passive','No_Roll'],
-                              No_Roll1=['Passive', 'Force', 'No_Roll'],
-                              Passive0=['Roll_Adjusted', 'Passive'],
-                              Passive1=['Force','Passive','No_Roll'],
+                              No_Roll1=['Passive', 'Force', 'Force_Outright','No_Roll'],
+                              Passive0=['Roll_Adjusted', 'Passive', 'No_Roll'],
+                              Passive1=['Force', 'Force_Outright','Passive','No_Roll'],
                               Force0=['Roll_Adjusted', 'Passive'],
-                              Force1=['Force', 'Passive', 'No_Roll'],
+                              Force1=['Force', 'Force_Outright', 'Passive', 'No_Roll'],
+                              Force_Outright0 = ['Roll_Adjusted', 'Passive'],
+                              Force_Outright1 = ['Force', 'Force_Outright', 'Passive', 'No_Roll'],
                               Roll_Adjusted0=['No_Roll'],
                               Roll_Adjusted1=['Roll_Adjusted'])
 

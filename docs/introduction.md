@@ -168,7 +168,7 @@ Looks like we did make a few bucks. `account`, by the way inherits from a pandas
 ```python
 account.sharpe() ## get the Sharpe Ratio (annualised), and any other statistic which is in the stats list
 account.curve().plot() ## plot the cumulative account curve (equivalent to account.cumsum().plot() inicidentally)
-account.curve().percent() ## gives a % curve
+account.percent() ## gives a % curve
 account.percent().drawdown().plot() ## see the drawdowns as a percentage
 account.weekly ## weekly returns (also daily [default], monthly, annual)
 account.gross.ann_mean() ## annual mean for gross returns, also costs (there are none in this simple example)
@@ -197,7 +197,7 @@ For now let's start with the simplest possible system, one which contains only a
 
 ```python
 from sysdata.csv.csv_sim_futures_data import csvFuturesSimData
-data=csvFuturesData()
+data=csvFuturesSimData()
 
 from systems.provided.example.rules import ewmac_forecast_with_defaults as ewmac
 ```

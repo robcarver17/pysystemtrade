@@ -50,7 +50,7 @@ class csvFxPricesData(fxPricesData):
         try:
             fx_data = pd_readcsv(filename, date_format = date_format, date_index_name=date_column)
         except OSError:
-            self.log.warning("Can't find currency price file %s" % filename)
+            self.log.warn("Can't find currency price file %s" % filename)
             return fxPrices.create_empty()
 
         fx_data = pd.Series(fx_data[price_column])

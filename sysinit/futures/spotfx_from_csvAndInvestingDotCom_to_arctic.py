@@ -5,7 +5,7 @@ from sysdata.arctic.arctic_spotfx_prices import arcticFxPricesData
 from sysdata.csv.csv_spot_fx import csvFxPricesData
 import pandas as pd
 
-ADD_TO_ARCTIC = False
+ADD_TO_ARCTIC = True
 ADD_TO_CSV = True
 
 # You may need to change this!

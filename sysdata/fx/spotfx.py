@@ -3,8 +3,24 @@ Spot fx prices
 """
 
 import pandas as pd
+import datetime
+
 from sysdata.data import baseData
 from syscore.pdutils import merge_newer_data, full_merge_of_existing_data
+from syscore.objects import data_error
+from collections import namedtuple
+
+currencyValue = namedtuple("currencyValue", "currency, value")
+
+# by convention we always get prices vs the dollar
+DEFAULT_CURRENCY = "USD"
+
+DEFAULT_DATES = pd.date_range(
+    start=datetime.datetime(1970, 1, 1), freq="B", end=datetime.datetime.now())
+DEFAULT_RATE_SERIES = pd.Series(
+    [1.0] * len(DEFAULT_DATES), index=DEFAULT_DATES)
+
+
 
 class fxPrices(pd.Series):
     """
@@ -32,11 +48,15 @@ class fxPrices(pd.Series):
 
         return fx_prices
 
+    @classmethod
+    def from_data_frame(fxPrices, data_frame):
+        return fxPrices(data_frame.T.squeeze())
+
     @property
     def empty(self):
         return self._is_empty
 
-    def merge_with_other_prices(self, new_fx_prices, only_add_rows=True):
+    def merge_with_other_prices(self, new_fx_prices, only_add_rows=True, check_for_spike=True):
         """
         Merges self with new data.
         If only_add_rows is True,
@@ -47,7 +67,7 @@ class fxPrices(pd.Series):
         :return: merged fx prices: doesn't update self
         """
         if only_add_rows:
-            return self.add_rows_to_existing_data(new_fx_prices)
+            return self.add_rows_to_existing_data(new_fx_prices, check_for_spike=check_for_spike)
         else:
             return self._full_merge_of_existing_data(new_fx_prices)
 
@@ -65,7 +85,7 @@ class fxPrices(pd.Series):
 
         return fxPrices(merged_data)
 
-    def add_rows_to_existing_data(self, new_fx_prices):
+    def add_rows_to_existing_data(self, new_fx_prices, check_for_spike=True):
         """
         Merges self with new data.
         Only newer data will be added
@@ -75,7 +95,9 @@ class fxPrices(pd.Series):
         :return: merged fxPrices
         """
 
-        merged_fx_prices = merge_newer_data(self, new_fx_prices)
+        merged_fx_prices = merge_newer_data(self, new_fx_prices, check_for_spike=check_for_spike)
+        if merged_fx_prices is data_error:
+            return data_error
         merged_fx_prices = fxPrices(merged_fx_prices)
 
         return merged_fx_prices
@@ -107,11 +129,90 @@ class fxPricesData(baseData):
         :param code: currency code, in the form EURUSD
         :return: fxData object
         """
-        if self.is_code_in_data(code):
-            return self._get_fx_prices_without_checking(code)
+        currency1=code[:3]
+        currency2=code[3:]
+
+        if currency1 == currency2:
+            ## Trivial
+            fx_data = DEFAULT_RATE_SERIES
+
+        elif currency2==DEFAULT_CURRENCY:
+            # We ought to have data
+            fx_data = self._get_fx_prices_vs_default(currency1)
+
+        elif currency1 == DEFAULT_CURRENCY:
+            # inversion
+            fx_data = self._get_fx_prices_for_inversion(currency2)
+
         else:
-            self.log.warn("Code %s is missing from list of FX data" % code, currency_code=code)
+            ## Try a cross rate
+            fx_data = self._get_fx_cross(currency1, currency2)
+
+        return fx_data
+
+    def _get_fx_prices_for_inversion(self, currency2):
+        """
+        Get a historical series of FX prices, must be USDXXX
+
+        :param currency2:
+        :return: fxData
+        """
+
+        raw_fx_data = self._get_fx_prices_vs_default(currency2)
+        if raw_fx_data.empty:
+            self.log.warn("Code %s is missing, needed to get %s" %currency2+DEFAULT_CURRENCY, DEFAULT_CURRENCY+currency2 )
+            return raw_fx_data
+
+        inverted_fx_data = 1.0 / raw_fx_data
+
+        return inverted_fx_data
+
+    def _get_fx_prices_vs_default(self, currency1):
+        """
+        Get a historical series of FX prices, must be XXXUSD
+
+        :param code: currency code, in the form EUR
+        :return: fxData object
+        """
+        code = currency1 + DEFAULT_CURRENCY
+        if code in self.get_list_of_fxcodes():
+            fx_data = self._get_fx_prices_without_checking(code)
+        else:
+            self.log.warn("Currency %s is missing from list of FX data" % code)
+            fx_data = fxPrices.create_empty()
+
+        return fx_data
+
+
+    def _get_fx_cross(self, currency1, currency2):
+        """
+        Get a currency cross rate XXXYYY, eg not XXXUSD or USDXXX or XXXXXX
+
+        :return: fxPrices
+        """
+
+        default_currency = DEFAULT_CURRENCY
+        first_code = currency1 + default_currency
+        second_code = currency2 + default_currency
+        currency1_vs_default = self._get_fx_prices_without_checking(first_code)
+        currency2_vs_default = self._get_fx_prices_without_checking(second_code)
+
+        if currency1_vs_default.empty:
+            code = currency1+currency2
+            self.log.warn("Couldn't get FX data %s needed for cross rate %s" % (first_code, code), currency_code=code)
             return fxPrices.create_empty()
+
+        if currency2_vs_default.empty:
+            code = currency1+currency2
+            self.log.warn("Couldn't get FX data %s needed for cross rate %s" % (second_code, code), currency_code=code)
+            return fxPrices.create_empty()
+
+        (aligned_c1, aligned_c2) = currency1_vs_default.align(
+            currency2_vs_default, join="outer")
+
+        fx_rate_series = aligned_c1.ffill() / aligned_c2.ffill()
+
+        return fx_rate_series
 
 
 
@@ -161,7 +262,7 @@ class fxPricesData(baseData):
     def _add_fx_prices_without_checking_for_existing_entry(self, code, fx_price_data):
         raise NotImplementedError(USE_CHILD_CLASS_ERROR)
 
-    def update_fx_prices(self, code, new_fx_prices):
+    def update_fx_prices(self, code, new_fx_prices, check_for_spike=True):
         """
         Checks existing data, adds any new data with a timestamp greater than the existing data
 
@@ -172,7 +273,10 @@ class fxPricesData(baseData):
         new_log = self.log.setup(fx_code=code)
 
         old_fx_prices = self.get_fx_prices(code)
-        merged_fx_prices = old_fx_prices.add_rows_to_existing_data(new_fx_prices)
+        merged_fx_prices = old_fx_prices.add_rows_to_existing_data(new_fx_prices, check_for_spike=check_for_spike)
+
+        if merged_fx_prices is data_error:
+            return data_error
 
         rows_added = len(merged_fx_prices) - len(old_fx_prices)
 

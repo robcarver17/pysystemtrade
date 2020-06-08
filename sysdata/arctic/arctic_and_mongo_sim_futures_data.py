@@ -3,11 +3,7 @@ Get data from mongo and arctic used for futures trading
 
 """
 
-import os
-
-import pandas as pd
-
-
+from syscore.objects import arg_not_supplied
 from sysdata.data import simData
 from sysdata.futures.futuresDataForSim import futuresAdjustedPriceData, futuresConfigDataForSim, futuresMultiplePriceData
 
@@ -17,6 +13,7 @@ from sysdata.arctic.arctic_spotfx_prices import arcticFxPricesData
 from sysdata.mongodb.mongo_connection import mongoDb
 from sysdata.mongodb.mongo_futures_instruments import mongoFuturesInstrumentData
 
+from syslogdiag.log import logtoscreen as logger
 
 """
 Static variables to store location of data
@@ -24,18 +21,18 @@ Static variables to store location of data
 
 
 class dbconnections(simData):
-    def __init__(self, database_name = None, host = None, port = None):
+    def __init__(self, mongo_db = arg_not_supplied, log = logger("arcticSimData")):
         """
 
         Use a different database
         """
 
         super().__init__()
+        if mongo_db is arg_not_supplied:
+            mongo_db = mongoDb()
 
-        setattr(self, "_database_name", database_name)
-        setattr(self, "_host", host)
-        setattr(self, "_port", port)
-
+        self.log = log
+        self.mongo_db = mongo_db
 
 """
 The next two sub classes are unusual in that they directly access the relevant files rather than going by another data object
@@ -70,10 +67,7 @@ class mongoFuturesConfigDataForSim(dbconnections, futuresConfigDataForSim):
 
     def _get_config_data_object(self):
 
-        database_name = self._database_name
-        host = self._host
-        port = self._port
-        data_object = mongoFuturesInstrumentData(mongoDb(database_name=database_name, host=host))
+        data_object = mongoFuturesInstrumentData(self.mongo_db)
 
         return data_object
 
@@ -127,11 +121,7 @@ class arcticFuturesAdjustedPriceSimData(dbconnections, futuresAdjustedPriceData)
 
     def _get_adj_prices_data_object(self):
 
-        database_name = self._database_name
-        host = self._host
-        port = self._port
-
-        adj_prices_data = arcticFuturesAdjustedPricesData(mongoDb(database_name=database_name, host=host))
+        adj_prices_data = arcticFuturesAdjustedPricesData(self.mongo_db)
         adj_prices_data.log = self.log
 
         return adj_prices_data
@@ -161,11 +151,8 @@ class arcticFuturesMultiplePriceSimData(dbconnections, futuresMultiplePriceData)
         return instr_all_price_data
 
     def _get_all_prices_data_object(self):
-        database_name = self._database_name
-        host = self._host
-        port = self._port
 
-        multiple_prices_data_object = arcticFuturesMultiplePricesData(mongoDb(database_name=database_name, host=host))
+        multiple_prices_data_object = arcticFuturesMultiplePricesData(self.mongo_db)
         multiple_prices_data_object.log = self.log
 
         return multiple_prices_data_object
@@ -194,9 +181,6 @@ class arcticFXSimData(dbconnections, simData):
 
         self.log.msg("Loading arctic fx data", fx="%s%s" % (currency1, currency2))
 
-        if currency1 == currency2:
-            return self._get_default_series()
-
         fx_prices_data_object = self._get_fx_data_object()
         currency_code = currency1+currency2
 
@@ -209,11 +193,7 @@ class arcticFXSimData(dbconnections, simData):
 
     def _get_fx_data_object(self):
 
-        database_name = self._database_name
-        host = self._host
-        port = self._port
-
-        fx_prices_data_object = arcticFxPricesData(mongoDb(database_name=database_name, host=host))
+        fx_prices_data_object = arcticFxPricesData(self.mongo_db)
         fx_prices_data_object.log = self.log
 
         return fx_prices_data_object

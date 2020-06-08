@@ -68,7 +68,7 @@ class diagVolumes(object):
     def get_daily_volumes_for_contract(self, instrument_code, contract_id):
         data = self.data
 
-        price_data = data.arctic_futures_contract_price.get_prices_for_instrument_code_and_contract_date(instrument_code, contract_id)
+        price_data = data.db_futures_contract_price.get_prices_for_instrument_code_and_contract_date(instrument_code, contract_id)
 
         if len(price_data)==0:
             return missing_data

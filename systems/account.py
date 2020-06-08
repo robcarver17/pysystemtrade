@@ -4,7 +4,7 @@ import numpy as np
 
 from syscore.accounting import accountCurve, accountCurveGroup, weighted
 from systems.basesystem import ALL_KEYNAME
-from systems.defaults import system_defaults
+from systems.defaults import get_default_config_key_value
 from systems.system_cache import input, dont_cache, diagnostic, output
 from systems.accounts_inputs import _AccountInput
 
@@ -15,7 +15,6 @@ from syscore.pdutils import turnover
 from syscore.objects import resolve_function
 
 ARBITRARY_FORECAST_CAPITAL = 100.0
-
 
 class _AccountCosts(_AccountInput):
     """
@@ -218,8 +217,8 @@ class _AccountCosts(_AccountInput):
 
         """
 
-        average_forecast_for_turnover = system_defaults[
-            'average_absolute_forecast']
+        average_forecast_for_turnover = get_default_config_key_value(
+            'average_absolute_forecast')
 
         forecast_list = [
             self.get_capped_forecast(instrument_code, rule_variation_name)

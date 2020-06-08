@@ -4,11 +4,11 @@ import numpy as np
 import pandas as pd
 
 from syscore.genutils import str2Bool
-from syscore.objects import resolve_function, update_recalc
+from syscore.objects import resolve_function, update_recalc, missing_data
 from syscore.pdutils import (dataframe_pad, fix_weights_vs_pdm,
                              from_dict_of_values_to_df)
 from syscore.algos import map_forecast_value
-from systems.defaults import system_defaults
+from systems.defaults import get_default_config_key_value
 from systems.stage import SystemStage
 from systems.system_cache import diagnostic, dont_cache, input, output
 
@@ -687,13 +687,13 @@ class _ForecastCombineCalculateDivMult(_ForecastCombinePreCalculate):
                 self.log.critical(
                     error_msg, instrument_code=instrument_code)
 
-        elif "forecast_div_multiplier" in system_defaults:
-            # try defaults
-            fixed_div_mult = system_defaults['forecast_div_multiplier']
         else:
-            error_msg = "Need to specify FDM in config or system_defaults"
-            self.log.critical(
-                error_msg, instrument_code=instrument_code)
+            # try defaults
+            fixed_div_mult = get_default_config_key_value("forecast_div_multiplier")
+            if fixed_div_mult is missing_data:
+                error_msg = "Need to specify FDM in config or system_defaults"
+                self.log.critical(
+                    error_msg, instrument_code=instrument_code)
 
         # Now we have a dict, fixed_weights.
         # Need to turn into a timeseries covering the range of forecast dates

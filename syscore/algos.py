@@ -11,9 +11,9 @@ import warnings
 import numpy as np
 import pandas as pd
 
-from syscore.genutils import str2Bool
-from systems.defaults import system_defaults
-from syscore.genutils import sign
+from syscore.genutils import str2Bool, sign
+from systems.defaults import get_default_config_key_value
+from syscore.objects import missing_data
 
 LARGE_NUMBER_OF_DAYS = 250 * 100 * 100
 
@@ -198,7 +198,9 @@ def forecast_scalar(cs_forecasts, window=250000, min_periods=500, backfill=True)
     """
     backfill = str2Bool(backfill)  # in yaml will come in as text
     # We don't allow this to be changed in config
-    target_abs_forecast = system_defaults['average_absolute_forecast']
+    target_abs_forecast = get_default_config_key_value('average_absolute_forecast')
+    if target_abs_forecast is missing_data:
+        raise Exception("average_absolute_forecast not defined in system defaults file")
 
     ## Remove zeros/nans
     copy_cs_forecasts = copy(cs_forecasts)

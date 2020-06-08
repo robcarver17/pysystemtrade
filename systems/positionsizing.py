@@ -1,4 +1,4 @@
-from systems.defaults import system_defaults
+from systems.defaults import get_default_config_key_value
 from systems.stage import SystemStage
 from systems.basesystem import ALL_KEYNAME
 from syscore.dateutils import ROOT_BDAYS_INYEAR
@@ -272,7 +272,7 @@ class PositionSizing(SystemStage):
 
         (underlying_price, value_of_price_move
          ) = self.get_instrument_sizing_data(instrument_code)
-        block_value = 0.01 * underlying_price * value_of_price_move
+        block_value = 0.01 * underlying_price.ffill() * value_of_price_move
         block_value.columns = ["bvalue"]
 
         return block_value
@@ -315,7 +315,7 @@ class PositionSizing(SystemStage):
         (block_value, daily_perc_vol) = block_value.align(
             daily_perc_vol, join="inner")
 
-        instr_ccy_vol = block_value * daily_perc_vol
+        instr_ccy_vol = block_value.ffill() * daily_perc_vol
 
         return instr_ccy_vol
 
@@ -354,9 +354,9 @@ class PositionSizing(SystemStage):
         instr_ccy_vol = self.get_instrument_currency_vol(instrument_code)
         fx_rate = self.get_fx_rate(instrument_code)
 
-        (instr_ccy_vol, fx_rate) = instr_ccy_vol.align(fx_rate)
+        fx_rate = fx_rate.reindex(instr_ccy_vol.index)
 
-        instr_value_vol = instr_ccy_vol * fx_rate
+        instr_value_vol = instr_ccy_vol.ffill() * fx_rate.ffill()
 
         return instr_value_vol
 
@@ -435,7 +435,7 @@ class PositionSizing(SystemStage):
         """
         We don't allow this to be changed in config
         """
-        avg_abs_forecast = system_defaults['average_absolute_forecast']
+        avg_abs_forecast = get_default_config_key_value('average_absolute_forecast')
 
         vol_scalar = self.get_volatility_scalar(instrument_code)
         forecast = self.get_combined_forecast(instrument_code)

@@ -1,12 +1,10 @@
 import smtplib
-import yaml
 
 from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 
-from syscore.fileutils import PRIVATE_CONFIG_FILE
-
+from sysdata.private_config import get_list_of_private_config_values
 
 def send_mail_file(textfile, subject):
     """
@@ -81,9 +79,8 @@ def _send_msg(msg):
     s.quit()
 
 
-def get_email_details(file_to_parse=PRIVATE_CONFIG_FILE):
-    with open(file_to_parse) as file_handle:
-        yaml_dict = yaml.load(file_handle)
+def get_email_details():
+    yaml_dict = get_list_of_private_config_values(['email_address', 'email_pwd', 'email_server'])
 
     email_address = yaml_dict['email_address']
     email_pwd = yaml_dict['email_pwd']

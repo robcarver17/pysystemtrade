@@ -4,7 +4,7 @@ import pandas as pd
 from sysproduction.data.volumes import diagVolumes
 from sysproduction.data.contracts import diagContracts
 from sysproduction.data.prices import diagPrices
-from sysproduction.data.state import diagState
+from sysproduction.data.positions import diagPositions
 
 from syscore.objects import header, table, body_text
 
@@ -33,10 +33,10 @@ def roll_info(data, instrument_code="ALL"):
     :param: data blob
     :return: list of pd.DataFrame
     """
-    data.add_class_list("arcticFuturesMultiplePricesData")
+    diag_prices = diagPrices(data)
 
     if instrument_code=="ALL":
-        list_of_instruments = data.arctic_futures_multiple_prices.get_list_of_instruments()
+        list_of_instruments = diag_prices.get_list_of_instruments_in_multiple_prices()
 
     else:
         list_of_instruments=[instrument_code]
@@ -84,7 +84,7 @@ def get_roll_data_for_instrument(instrument_code, data):
     when_to_roll_days = (when_to_roll - now).days
 
     # roll status
-    s_data = diagState(data)
+    s_data = diagPositions(data)
     roll_status = s_data.get_roll_state(instrument_code)
 
     # Positions

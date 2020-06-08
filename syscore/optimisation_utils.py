@@ -231,7 +231,5 @@ def optimise(sigma, mean_list):
 
 
 def sigma_from_corr_and_std(stdev_list, corrmatrix):
-    stdev = np.array(stdev_list, ndmin=2).transpose()
-    sigma = stdev * corrmatrix * stdev
-
+    sigma = np.diag(stdev_list).dot(corrmatrix).dot(np.diag(stdev_list))
     return sigma

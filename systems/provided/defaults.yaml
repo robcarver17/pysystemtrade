@@ -1,5 +1,50 @@
 # YAML
 #
+#           PRODUCTION STUFF
+#
+## Strategy configuration
+strategy_list:
+  example:
+    overnight_launcher:
+      function: sysproduction.strategy_code.run_system_classic.run_system_classic
+      backtest_config_filename: systems.provided.futures_chapter15.futures_config.yaml
+    order_handling:
+      function: sysexecution.strategies.classic_buffered_positions.orderGeneratorForBufferedPositions
+      frequency_minutes: 60
+
+#
+# Allocate capital to strategies
+strategy_capital_allocation:
+  function: sysproduction.strategy_code.strategy_allocation.weighted_strategy_allocation
+  strategy_weights:
+    example: 100.0
+#
+## Where do we save backtests
+backtest_store_directory: 'private'
+#
+# And .csv backups
+csv_backup_directory: 'data.backups'
+#
+# Interactive brokers
+ib_ipaddress: 127.0.0.1
+ib_port: 4001
+ib_idoffset: 100
+#
+# Mongo DB
+mongo_host: 127.0.0.1
+mongo_db: 'production'
+#
+# Spike checker
+max_price_spike: 8
+#
+# Price frequency (we collect daily data, and seperately this frequency
+intraday_frequency: H
+#
+# Capital calculation
+production_capital_method: 'full'
+#
+#           BACKTESTING STUFF
+#
 # Raw data
 #
 volatility_calculation:
@@ -175,3 +220,8 @@ buffer_trade_to_edge: False
 # costs and accounting
 use_SR_costs: True
 #
+# risk overlay
+risk_overlay:
+  max_risk_fraction_normal_risk: 2.0
+  max_risk_fraction_correlation_risk: 4.0
+  max_risk_fraction_stdev_risk: 6.0

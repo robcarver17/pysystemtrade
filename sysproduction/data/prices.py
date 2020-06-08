@@ -9,8 +9,24 @@ class diagPrices(object):
         if data is arg_not_supplied:
             data = dataBlob()
 
-        data.add_class_list("arcticFuturesContractPriceData")
+        data.add_class_list("arcticFuturesContractPriceData arcticFuturesAdjustedPricesData \
+         arcticFuturesMultiplePricesData mongoFuturesContractData ")
         self.data = data
+
+    def get_adjusted_prices(self, instrument_code):
+        return self.data.db_futures_adjusted_prices.get_adjusted_prices(instrument_code)
+
+    def get_list_of_instruments_in_multiple_prices(self):
+        return self.data.db_futures_multiple_prices.get_list_of_instruments()
+
+    def get_multiple_prices(self, instrument_code):
+        return self.data.db_futures_multiple_prices.get_multiple_prices(instrument_code)
+
+    def get_prices_for_contract_object(self, contract_object):
+        return self.data.db_futures_contract_price.get_prices_for_contract_object(contract_object)
+
+    def get_list_of_instruments_with_contract_prices(self):
+        return self.data.db_futures_contract_price.get_instruments_with_price_data()
 
     def get_last_matched_prices_for_contract_list(self, instrument_code, contract_list,
                                                   contracts_to_match = arg_not_supplied):
@@ -49,11 +65,36 @@ class diagPrices(object):
             if contract_date is missing_contract:
                 continue
             ## Could blow up here if don't have prices for a contract??
-            prices = self.data.\
-                arctic_futures_contract_price.get_prices_for_instrument_code_and_contract_date(instrument_code,
-                                                                                                     contract_date)
+            prices = self.get_prices_for_instrument_code_and_contract_date(instrument_code, contract_date)
             dict_of_prices[contract_date] = prices
 
         dict_of_prices = dictFuturesContractPrices(dict_of_prices)
 
         return dict_of_prices
+
+    def get_prices_for_instrument_code_and_contract_date(self, instrument_code, contract_date):
+
+        return self.data.db_futures_contract_price. \
+            get_prices_for_instrument_code_and_contract_date(instrument_code, contract_date)
+
+
+class updatePrices(object):
+    def __init__(self, data=arg_not_supplied):
+        # Check data has the right elements to do this
+        if data is arg_not_supplied:
+            data = dataBlob()
+
+        data.add_class_list("arcticFuturesContractPriceData arcticFuturesMultiplePricesData \
+         mongoFuturesContractData arcticFuturesAdjustedPricesData")
+        self.data = data
+
+    def update_prices_for_contract(self, contract_object, ib_prices,check_for_spike=True):
+
+        return self.data.db_futures_contract_price.update_prices_for_contract(contract_object, ib_prices,
+                                                                  check_for_spike=True)
+
+    def add_multiple_prices(self, instrument_code, updated_multiple_prices, ignore_duplication=True):
+        return self.data.db_futures_multiple_prices.add_multiple_prices(instrument_code, updated_multiple_prices, ignore_duplication=True)
+
+    def add_adjusted_prices(self, instrument_code, updated_adjusted_prices, ignore_duplication=True):
+        return self.data.db_futures_adjusted_prices.add_adjusted_prices(instrument_code, updated_adjusted_prices, ignore_duplication=True)

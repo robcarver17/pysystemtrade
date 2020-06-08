@@ -2,25 +2,23 @@ import datetime
 import pandas as pd
 import re
 
-
-from ibapi.client import EClient
-from ibapi.contract import Contract as IBcontract
+from ib_insync import Forex, Future, util
+from sysdata.fx.spotfx import currencyValue
 
 from sysbrokers.baseClient import brokerClient
-from sysbrokers.baseServer import finishableQueue
 from syscore.genutils import NOT_REQUIRED
-from syscore.objects import missing_contract
+from syscore.objects import missing_contract, arg_not_supplied
 from syscore.dateutils import adjust_timestamp
 from syslogdiag.log import logtoscreen
 
 
-MAX_WAIT_HISTORICAL_DATA_SECONDS = 30
 _PACING_PERIOD_SECONDS = 10*60
 _PACING_PERIOD_LIMIT = 60
 PACING_INTERVAL_SECONDS = 1+(_PACING_PERIOD_SECONDS  / _PACING_PERIOD_LIMIT)
 
+STALE_SECONDS_ALLOWED_ACCOUNT_SUMMARY = 600
 
-class ibClient(brokerClient, EClient):
+class ibClient(brokerClient):
     """
     Client specific to interactive brokers
 
@@ -28,12 +26,11 @@ class ibClient(brokerClient, EClient):
 
     """
 
-    def __init__(self, wrapper, reqIDoffset, log=logtoscreen("ibClient")):
-        ## Set up with a wrapper inside
-        EClient.__init__(self, wrapper)
-        self.ib_init_request_id_factory(reqIDoffset)
+    def __init__(self, log=logtoscreen("ibClient")):
+
         self.log = log
-        self.last_historic_price_calltime = datetime.datetime.now()
+        ## means our first call won't be throttled for pacing
+        self.last_historic_price_calltime = datetime.datetime.now()-  datetime.timedelta(seconds=_PACING_PERIOD_SECONDS)
 
     # Methods in parent class overriden here
     # These methods should abstract the broker completely
@@ -61,9 +58,15 @@ class ibClient(brokerClient, EClient):
         :return: pd.Series
         """
 
-        specific_log = self.log.setup(fxrate=ccy1+"/"+ccy2)
+        ccy_code = ccy1 + ccy2
+        specific_log = self.log.setup(currency_code = ccy_code)
 
         ibcontract = self.ib_spotfx_contract(ccy1, ccy2=ccy2, log=specific_log)
+        # Register the contract to make logging and error handling cleaner
+        # Two different ways of labelling
+        self.add_contract_to_register(ibcontract,
+                                      log_tags = dict(currency_code = ccy_code))
+
         if ibcontract is missing_contract:
             specific_log.warn("Can't find IB contract for %s%s" % (ccy1, ccy2))
 
@@ -93,6 +96,70 @@ class ibClient(brokerClient, EClient):
 
         return price_data
 
+
+    def broker_get_account_value_across_currency_across_accounts(self, account_id=arg_not_supplied):
+        list_of_currencies = self.get_list_of_currencies_for_liquidation_values()
+        list_of_values_per_currency = list([
+            currencyValue(currency, self.get_liquidation_value_for_currency_across_accounts(currency))
+            for currency in list_of_currencies])
+
+        return list_of_values_per_currency
+
+
+    def get_liquidation_value_for_currency_across_accounts(self, currency):
+        liquidiation_values_across_accounts_dict = self.get_net_liquidation_value_across_accounts()
+        list_of_account_ids = liquidiation_values_across_accounts_dict.keys()
+        values_for_currency = [liquidiation_values_across_accounts_dict[account_id].get(currency, 0.0)
+                                for account_id in list_of_account_ids]
+
+        return sum(values_for_currency)
+
+    def get_list_of_currencies_for_liquidation_values(self):
+        liquidiation_values_across_accounts_dict = self.get_net_liquidation_value_across_accounts()
+        currencies = [list(account_dict.keys()) for account_dict in liquidiation_values_across_accounts_dict.values()]
+        currencies = sum(currencies, []) # flatten
+
+        return list(set(currencies))
+
+    def get_net_liquidation_value_across_accounts(self):
+        ## returns a dict, accountid as keys, of dicts, currencies as keys
+        account_summary_dict = self.ib_get_account_summary()
+        accounts = account_summary_dict.keys()
+        liquidiation_values_across_accounts_dict = dict([(account_id, self.get_liquidation_values_for_single_account(account_id))
+                                         for account_id in accounts])
+
+        return liquidiation_values_across_accounts_dict
+
+    def get_liquidation_values_for_single_account(self, account_id):
+        ## returns a dict, with currencies as keys
+        account_summary_dict = self.ib_get_account_summary()
+        return account_summary_dict[account_id]['NetLiquidation']
+
+
+    def broker_get_contract_expiry_date(self, contract_object_with_ib_broker_config):
+        """
+        Return the exact expiry date for a given contract
+
+        :param contract_object_with_ib_broker_config:  contract where instrument has ib metadata
+        :return: YYYYMMDD str
+        """
+        specific_log = self.log.setup(instrument_code = contract_object_with_ib_broker_config.instrument_code,
+                                      contract_date = contract_object_with_ib_broker_config.date)
+
+        ibcontract = self.ib_futures_contract(contract_object_with_ib_broker_config)
+        if ibcontract is missing_contract:
+            specific_log.warn("Can't get contract expiry from IB for %s" % str(contract_object_with_ib_broker_config))
+            return missing_contract
+
+        expiry_date = ibcontract.lastTradeDateOrContractMonth
+
+        return expiry_date
+
+
+
+    # IB specific methods
+    # Called by parent class generics
+
     def _get_generic_data_for_contract(self, ibcontract, log=None, bar_freq="D", whatToShow='TRADES'):
         """
         Get historical daily data
@@ -117,91 +184,17 @@ class ibClient(brokerClient, EClient):
         price_data_raw = self.ib_get_historical_data(ibcontract, durationStr=durationStr,
                                                      barSizeSetting=barSizeSetting,
                                               whatToShow = whatToShow, log=log)
-        # Format is (bar.date, bar.open, bar.high, bar.low, bar.close, bar.volume)
-        # turn into a pd.Series with daily timestamps
-        try:
-            date_index = [ib_timestamp_to_datetime(price_row[0]) for price_row in price_data_raw]
-        except Exception as exception:
-            log.warn("Error in converting date index can't return price data")
-            log.warn(exception.args[0])
-            return pd.Series()
 
-        opening_prices = [price_row[1] for price_row in price_data_raw]
-        high_prices = [price_row[2] for price_row in price_data_raw]
-        low_prices = [price_row[3] for price_row in price_data_raw]
-        closing_prices = [price_row[4] for price_row in price_data_raw]
-        volume = [price_row[5] for price_row in price_data_raw]
-
-        price_data_as_df = pd.DataFrame(dict(OPEN = opening_prices,
-                                             HIGH = high_prices,
-                                             LOW = low_prices,
-                                             FINAL = closing_prices,
-                                             VOLUME = volume), index = date_index)
+        price_data_as_df = price_data_raw[['open', 'high', 'low', 'close', 'volume']]
+        price_data_as_df.columns = ['OPEN', 'HIGH', 'LOW', 'FINAL', 'VOLUME']
+        date_index = [ib_timestamp_to_datetime(price_row) for price_row in price_data_raw['date']]
+        price_data_as_df.index = date_index
 
         return price_data_as_df
 
 
-    def broker_get_contract_expiry_date(self, contract_object_with_ib_broker_config):
-        """
-        Return the exact expiry date for a given contract
-
-        :param contract_object_with_ib_broker_config:  contract where instrument has ib metadata
-        :return: YYYYMMDD str
-        """
-        specific_log = self.log.setup(instrument_code = contract_object_with_ib_broker_config.instrument_code,
-                                      contract_date = contract_object_with_ib_broker_config.date)
-
-        ibcontract = self.ib_futures_contract(contract_object_with_ib_broker_config)
-        if ibcontract is missing_contract:
-            specific_log.warn("Can't get contract expiry from IB for %s" % str(contract_object_with_ib_broker_config))
-            return missing_contract
-
-        expiry_date = ibcontract.lastTradeDateOrContractMonth
-
-        return expiry_date
-
-
-    """
-    Most things need request IDs
-    Let's make sure we don't reuse them accidentally
-    """
-    def ib_init_request_id_factory(self, reqIDoffset:int):
-        #  generate request ids make sure multiple IDs don't conflict
-        #  however if we run multiple processes this could happen
-        #  hence we add reqIDoffset
-        self._reqIDused = []
-        self._reqIDoffset = reqIDoffset
-
-    def ib_next_req_id(self):
-        current_reqs_used = self._reqIDused
-        if len(current_reqs_used)==0:
-            next_req_id = self._reqIDoffset+1
-        else:
-            next_req_id = int(max(current_reqs_used) + 1)
-
-        current_reqs_used.append(next_req_id)
-        self._reqIDused = current_reqs_used
-
-        return next_req_id
-
-    def ib_clear_req_id(self, reqId):
-        current_reqs_used = self._reqIDused
-        try:
-            current_reqs_used.remove(reqId)
-        except ValueError:
-            # not there
-            pass
-
-        return reqId
-
-    # Broker specific methods
-    # Called by parent class generics
-    def ib_spotfx_contract(self, ccy1, ccy2="USD", log=None):
-        ibcontract = IBcontract()
-        ibcontract.symbol = ccy1
-        ibcontract.secType = 'CASH'
-        ibcontract.exchange = 'IDEALPRO'
-        ibcontract.currency = ccy2
+    def ib_spotfx_contract(self, ccy1, ccy2="USD", log=arg_not_supplied):
+        ibcontract = Forex(ccy1+ccy2)
 
         ibcontract = self.ib_resolve_unique_contract(ibcontract)
 
@@ -238,8 +231,14 @@ class ibClient(brokerClient, EClient):
         :param futures_contract_object: contract, containing instrument metadata suitable for IB
         :return: a single ib contract object
         """
+        # Convert to IB world
         instrument_object_with_metadata = futures_contract_object.instrument
         ibcontract = ib_futures_instrument(instrument_object_with_metadata)
+
+        # Register the contract to make logging and error handling cleaner
+        self.add_contract_to_register(ibcontract,
+                                      log_tags = dict(instrument_code = instrument_object_with_metadata.instrument_code,
+                                                      contract_date = futures_contract_object.date))
 
         # The contract date might be 'yyyymm' or 'yyyymmdd'
         contract_day_passed = futures_contract_object.contract_date.is_day_defined()
@@ -269,7 +268,7 @@ class ibClient(brokerClient, EClient):
                 resolved_contract = resolve_multiple_expiries(ibcontract_list, instrument_object_with_metadata)
             except Exception as exception:
                 self.log.warn("%s could not resolve contracts: %s" %
-                              str(instrument_object_with_metadata), exception.args[0])
+                              (str(instrument_object_with_metadata), exception.args[0]))
 
                 return missing_contract
 
@@ -312,22 +311,7 @@ class ibClient(brokerClient, EClient):
         if log is None:
             log=self.log
 
-        reqId = self.ib_next_req_id()
-        ## Make a place to store the data we're going to return
-        contract_details_queue = finishableQueue(self.init_contractdetails(reqId))
-
-        self.reqContractDetails(reqId, ibcontract_pattern)
-
-        ## Run until we get a valid contract(s) or get bored waiting
-        new_contract_details_list = contract_details_queue.get(timeout=MAX_WAIT_HISTORICAL_DATA_SECONDS)
-
-        self.ib_clear_req_id(reqId)
-
-        while self.broker_is_error():
-            log.warn(self.broker_get_error()) ## WHITELIST?
-
-        if contract_details_queue.timed_out():
-            self.log.msg("Exceeded maximum wait for wrapper to confirm finished - seems to be normal behaviour")
+        new_contract_details_list = self.ib.reqContractDetails(ibcontract_pattern)
 
         ibcontract_list = [contract_details.contract for contract_details in new_contract_details_list]
 
@@ -351,52 +335,87 @@ class ibClient(brokerClient, EClient):
         last_call = self.last_historic_price_calltime
         avoid_pacing_violation(last_call, log=log)
 
-        tickerid = self.ib_next_req_id()
-        ## Make a place to store the data we're going to return
-        historic_data_queue = finishableQueue(self.init_historicprices(tickerid))
+        bars = self.ib.reqHistoricalData(
+            ibcontract,
+            endDateTime='',
+            durationStr=durationStr,
+            barSizeSetting=barSizeSetting,
+            whatToShow=whatToShow,
+            useRTH=True,
+            formatDate=1)
+        df = util.df(bars)
 
-        # Request some historical data. Native method in EClient
-        self.reqHistoricalData(
-            tickerid,  # tickerId,
-            ibcontract,  # contract,
-            datetime.datetime.today().strftime("%Y%m%d %H:%M:%S %Z"),  # endDateTime,
-            durationStr,  # durationStr,
-            barSizeSetting,  # barSizeSetting,
-            whatToShow,  # whatToShow,
-            1,  # useRTH,
-            1,  # formatDate
-            False,  # KeepUpToDate <<==== added for api 9.73.2
-            [] ## chartoptions not used
-        )
 
-        ## Wait until we get a completed data, an error, or get bored waiting
-        log.msg("Getting historical data from the server... could take %d seconds to complete " % MAX_WAIT_HISTORICAL_DATA_SECONDS)
-
-        historic_data = historic_data_queue.get(timeout = MAX_WAIT_HISTORICAL_DATA_SECONDS)
-
-        while self.wrapper.broker_is_error():
-            # WHITELIST
-            log.warn(self.broker_get_error())
-
-        self.cancelHistoricalData(tickerid)
-
-        if historic_data_queue.timed_out():
-            log.msg("Exceeded maximum wait for wrapper to confirm finished - seems to be normal behaviour")
-            # Just make sure the queue is cleared before we go on
-            historic_data = historic_data_queue.get(timeout = MAX_WAIT_HISTORICAL_DATA_SECONDS)
-
-        self.ib_clear_req_id(tickerid)
         self.last_historic_price_calltime = datetime.datetime.now()
 
-        return historic_data
+        return df
 
+    def ib_get_account_summary(self):
+        data_stale = self._ib_get_account_summary_if_cache_stale()
+        if data_stale:
+            account_summary_data =  self._ib_get_account_summary_if_cache_stale()
+        else:
+            account_summary_data = self._account_summary_data
+
+        return account_summary_data
+
+    def _ib_get_account_summary_check_for_stale_cache(self):
+        account_summary_data_update = getattr(self, "_account_summary_data_update", None)
+        account_summary_data = getattr(self, "_account_summary_data", None)
+
+        if account_summary_data_update is None or account_summary_data is None:
+            return True
+        elapsed_seconds = (account_summary_data_update - datetime.datetime.now()).total_seconds()
+
+        if elapsed_seconds>STALE_SECONDS_ALLOWED_ACCOUNT_SUMMARY:
+            return True
+        else:
+            return False
+
+    def _ib_get_account_summary_if_cache_stale(self):
+
+        account_summary_rawdata = self.ib.accountSummary()
+
+        ## Weird format let's clean it up
+        account_summary_dict = clean_up_account_summary(account_summary_rawdata)
+
+        self._account_summary_data = account_summary_dict
+        self._account_summary_data_update = datetime.datetime.now()
+
+        return account_summary_dict
+
+
+
+def clean_up_account_summary(account_summary_rawdata):
+    list_of_accounts = _unique_list_from_total(account_summary_rawdata, 'account')
+    list_of_tags = _unique_list_from_total(account_summary_rawdata, 'tag')
+
+    account_summary_dict = {}
+    for account_id in list_of_accounts:
+        account_summary_dict[account_id]={}
+        for tag in list_of_tags:
+            account_summary_dict[account_id][tag] = {}
+
+    for account_item in account_summary_rawdata:
+        try:
+            value = float(account_item.value)
+        except ValueError:
+            value = account_item.value
+        account_summary_dict[account_item.account][account_item.tag][account_item.currency] = value
+
+    return account_summary_dict
+
+def _unique_list_from_total(account_summary_data, tag_name):
+    list_of_items = [getattr(account_value, tag_name) for account_value in account_summary_data]
+    list_of_items = list(set(list_of_items))
+    return list_of_items
 
 
 def get_barsize_and_duration_from_frequency(bar_freq):
 
-    barsize_lookup = dict([('D', "1 day"), ('H', "1 hour"), ('5M', '5 mins'), ('M', '1 min'),
+    barsize_lookup = dict([('D', "1 day"), ('H', "1 hour"), ('15M', '15 mins'), ('5M', '5 mins'), ('M', '1 min'),
                            ('10S', '10 secs'), ('S', '1 secs')])
-    duration_lookup = dict([('D', "1 Y"), ('H', "1 M"), ('5M', "1 W"), ('M', '1 D'),
+    duration_lookup = dict([('D', "1 Y"), ('H', "1 M"), ('15M', '1 W'), ('5M', "1 W"), ('M', '1 D'),
                             ('10S', '14400 S'), ('S', '1800 S')])
     try:
         assert bar_freq in barsize_lookup.keys() and bar_freq in duration_lookup.keys()
@@ -419,10 +438,7 @@ def ib_futures_instrument(futures_instrument_object):
 
     meta_data = futures_instrument_object.meta_data
 
-    ibcontract = IBcontract()
-    ibcontract.secType = "FUT"
-    ibcontract.symbol = meta_data['symbol']
-    ibcontract.exchange = meta_data['exchange']
+    ibcontract = Future(meta_data['symbol'], exchange = meta_data['exchange'])
     if meta_data['ibMultiplier'] is NOT_REQUIRED:
         pass
     else:
@@ -485,35 +501,16 @@ def avoid_pacing_violation(last_call_datetime, log=logtoscreen("")):
             printed_warning_already = True
         pass
 
-def ib_timestamp_to_datetime(timestamp_str):
+def ib_timestamp_to_datetime(timestamp_ib):
     """
-    Turns IB timestamp into datetime and adjusts yyyymm to closing vector
-    Eithier yyyymmdd or 'yyyymmdd  hh:mm:ss'
+    Turns IB timestamp into pd.datetime as plays better with arctic, and adjusts yyyymm to closing vector
 
-    :param timestamp_str: str
-    :return: datetime.datetime
+    :param timestamp_str: datetime.datetime
+    :return: pd.datetime
     """
-    timestamp = ib_timestamp_to_date_or_datetime(timestamp_str)
+    timestamp = pd.to_datetime(timestamp_ib)
 
     adjusted_ts = adjust_timestamp(timestamp)
 
     return adjusted_ts
 
-def ib_timestamp_to_date_or_datetime(timestamp_str):
-    """
-    Turns IB timestamp into datetime
-    Eithier yyyymmdd or 'yyyymmdd  hh:mm:ss'
-
-    :param timestamp_str: str
-    :return: datetime.datetime
-    """
-    try:
-        if len(timestamp_str)==8:
-            return datetime.datetime.strptime(timestamp_str, "%Y%m%d")
-        elif len(timestamp_str)==18:
-            return datetime.datetime.strptime(timestamp_str, "%Y%m%d  %H:%M:%S")
-        else:
-            # If we end up here something has gone wrong
-            raise Exception()
-    except:
-        raise Exception("Format of %s not recongised" % str(timestamp_str))

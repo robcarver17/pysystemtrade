@@ -63,12 +63,18 @@ class rollCalendar(pd.DataFrame):
 
         current_contracts = [contractDate(current_and_forward_unique.loc[date_index].PRICE_CONTRACT).contract_date for date_index in days_before]
         next_contracts = [contractDate(current_and_forward_unique.loc[date_index].PRICE_CONTRACT).contract_date for date_index in roll_dates]
+        carry_contracts = [contractDate(current_and_forward_unique.loc[date_index].CARRY_CONTRACT).contract_date for date_index in days_before]
 
         roll_calendar = pd.DataFrame(dict(current_contract = current_contracts,
-                                          next_contract = next_contracts), index = roll_dates)
+                                          next_contract = next_contracts,
+                                          carry_contract = carry_contracts), index = roll_dates)
 
-        roll_calendar_with_carry = _add_carry_calendar(roll_calendar, roll_parameters_object)
-        roll_calendar_object = rollCalendar(roll_calendar_with_carry)
+        extra_row = pd.DataFrame(dict(current_contract = [contractDate(current_and_forward_data.iloc[-1].PRICE_CONTRACT).contract_date],
+                                          next_contract = [contractDate(current_and_forward_data.iloc[-1].FORWARD_CONTRACT).contract_date],
+                                          carry_contract = [contractDate(current_and_forward_data.iloc[-1].CARRY_CONTRACT).contract_date]),
+                                 index = [current_and_forward_data.index[-1]])
+        roll_calendar = pd.concat([roll_calendar, extra_row], axis=0)
+        roll_calendar_object = rollCalendar(roll_calendar)
 
         return roll_calendar_object
 
