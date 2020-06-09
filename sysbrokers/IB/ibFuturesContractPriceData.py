@@ -15,7 +15,7 @@ IB_FUTURES_CONFIG_FILE = get_filename_for_package("sysbrokers.IB.ibConfigFutures
 
 
 
-class ibFuturesContractPriceData(futuresContractPriceData, ibFuturesContractData):
+class ibFuturesContractPriceData(futuresContractPriceData):
     """
     Extends the baseData object to a data source that reads in and writes prices for specific futures contracts
 
@@ -31,7 +31,9 @@ class ibFuturesContractPriceData(futuresContractPriceData, ibFuturesContractData
     def __repr__(self):
         return "IB Futures per contract price data %s" % str(self.ibconnection)
 
-
+    @property
+    def futures_contract_data(self):
+        return  ibFuturesContractData(self.ibconnection)
 
     def has_data_for_contract(self, contract_object):
         """
@@ -41,8 +43,7 @@ class ibFuturesContractPriceData(futuresContractPriceData, ibFuturesContractData
         :param contract_object:
         :return: bool
         """
-
-        expiry_date = self.get_actual_expiry_date_for_contract(contract_object)
+        expiry_date = self.futures_contract_data.get_actual_expiry_date_for_contract(contract_object)
         if expiry_date is missing_contract:
             return False
         else:
@@ -56,7 +57,7 @@ class ibFuturesContractPriceData(futuresContractPriceData, ibFuturesContractData
         :return: list of str
         """
 
-        return self.get_instruments_with_config_data()
+        return self.futures_contract_data.get_instruments_with_config_data()
 
 
 
@@ -84,7 +85,7 @@ class ibFuturesContractPriceData(futuresContractPriceData, ibFuturesContractData
         """
         new_log = self.log.setup(instrument_code=contract_object.instrument_code, contract_date=contract_object.date)
 
-        contract_object_with_ib_data = self._get_contract_object_with_IB_metadata(contract_object)
+        contract_object_with_ib_data = self.futures_contract_data.get_contract_object_with_IB_metadata(contract_object)
         if contract_object_with_ib_data is missing_contract:
             new_log.warn("Can't get data for %s" % str(contract_object))
             return futuresContractPrices.create_empty()

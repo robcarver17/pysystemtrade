@@ -1,14 +1,13 @@
-from syscore.objects import _named_object, success, arg_not_supplied
-from sysdata.data import baseData
-from syslogdiag.log import logtoscreen
+from syscore.objects import success, arg_not_supplied
 from sysdata.futures.contracts import futuresContract
 
 
 from sysdata.production.generic_timed_storage import timedEntry, listOfEntries, listOfEntriesData
+from sysdata.production.current_positions import contractPosition, listOfContractPositions, instrumentStrategyPosition, listOfInstrumentStrategyPositions
 from syscore.objects import failure
 import pandas as pd
 
-class Position(timedEntry):
+class historicPosition(timedEntry):
     """
     Position, could be for an instrument or a contract
 
@@ -32,7 +31,7 @@ class listPositions(listOfEntries):
     """
 
     def _entry_class(self):
-        return Position
+        return historicPosition
 
 
 
@@ -46,7 +45,7 @@ class instrumentPositionData(listOfEntriesData):
         return "instrumentPositionData"
 
     def _data_class_name(self):
-        return "sysdata.production.positions.listPositions"
+        return "sysdata.production.historic_positions.listPositions"
 
     def get_position_as_df_for_strategy_and_instrument(self, strategy_name, instrument_code):
         position_series = self._get_series_for_args_dict(dict(strategy_name = strategy_name,
@@ -63,7 +62,7 @@ class instrumentPositionData(listOfEntriesData):
     def update_position_for_strategy_and_instrument(self, strategy_name, instrument_code, position,
                                                     date = arg_not_supplied):
 
-        position_entry = Position(position, date=date)
+        position_entry = historicPosition(position, date=date)
         try:
             self._update_entry_for_args_dict(position_entry, dict(strategy_name = strategy_name,
                                                                  instrument_code = instrument_code))
@@ -96,25 +95,32 @@ class instrumentPositionData(listOfEntriesData):
                                                    instrument_code = instrument_code),
                                                 are_you_sure=are_you_sure)
 
-    def get_all_current_positions_as_df(self):
+
+    def get_all_current_positions_as_list_with_instrument_objects(self):
+        """
+        Current positions are returned in a different class
+
+        :return: listOfInstrumentStrategyPositions
+        """
+
+
         all_positions_dict = self._get_list_of_args_dict()
         current_positions = []
-        list_instruments = []
-        list_strategies = []
         for dict_entry in all_positions_dict:
             instrument_code = dict_entry['instrument_code']
             strategy_name = dict_entry['strategy_name']
             position = self.get_current_position_for_strategy_and_instrument(strategy_name, instrument_code).position
             if position==0:
                 continue
-            current_positions.append(position)
-            list_strategies.append(strategy_name)
-            list_instruments.append(instrument_code)
+            position_object = instrumentStrategyPosition(position, strategy_name, instrument_code)
+            current_positions.append(position_object)
 
-        ans = pd.DataFrame(dict(strategy = list_strategies, instrument = list_instruments,
-                                position = current_positions))
+        list_of_current_position_objects = listOfInstrumentStrategyPositions(current_positions)
 
-        return ans.sort_values(["strategy", "instrument"])
+        return list_of_current_position_objects
+
+    def get_all_current_positions_as_df(self):
+        return self.get_all_current_positions_as_list_with_instrument_objects().as_pd_df()
 
 class contractPositionData(listOfEntriesData):
     """
@@ -205,7 +211,7 @@ class contractPositionData(listOfEntriesData):
 
     def update_position_for_contract_object(self, contract_object, position, date=arg_not_supplied):
         contractid = self._keyname_given_contract_object(contract_object)
-        position_entry = Position(position, date=date)
+        position_entry = historicPosition(position, date=date)
         try:
             self._update_entry_for_args_dict(position_entry, dict(contractid=contractid))
         except Exception as e:
@@ -226,11 +232,9 @@ class contractPositionData(listOfEntriesData):
 
         return list(set(instrument_list))
 
-    def get_all_current_positions_as_df(self):
+    def get_all_current_positions_as_list_with_contract_objects(self):
         all_positions_dict = self._get_list_of_args_dict()
         current_positions = []
-        list_instruments = []
-        list_contract_dates = []
         for dict_entry in all_positions_dict:
             contractid = self._contract_tuple_given_keyname(dict_entry['contractid'])
             instrument_code = contractid[0]
@@ -238,11 +242,13 @@ class contractPositionData(listOfEntriesData):
             position = self.get_current_position_for_instrument_and_contract_date(instrument_code, contract_date).position
             if position==0:
                 continue
-            current_positions.append(position)
-            list_contract_dates.append(contract_date)
-            list_instruments.append(instrument_code)
+            position_object = contractPosition(position, instrument_code, contract_date)
+            current_positions.append(position_object)
 
-        ans = pd.DataFrame(dict(instrument = list_instruments, contract_date = list_contract_dates,
-                                position = current_positions))
+        list_of_current_positions = listOfContractPositions(current_positions)
 
-        return ans.sort_values(["instrument", "contract_date"])
+        return list_of_current_positions
+
+    def get_all_current_positions_as_df(self):
+        return self.get_all_current_positions_as_list_with_contract_objects().as_pd_df()
+

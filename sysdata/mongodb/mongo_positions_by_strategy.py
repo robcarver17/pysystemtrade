@@ -1,5 +1,5 @@
 
-from sysdata.production.positions import instrumentPositionData
+from sysdata.production.historic_positions import instrumentPositionData
 from sysdata.mongodb.mongo_generic_timed_storage import mongoListOfEntriesData
 
 POSITION_STRATEGY_COLLECTION = 'futures_position_by_strategy'

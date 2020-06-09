@@ -75,7 +75,7 @@ class ibFuturesContractData(futuresContractData):
         """
         new_log = self.log.setup(instrument_code=contract_object.instrument_code, contract_date=contract_object.date)
 
-        contract_object_with_ib_data = self._get_contract_object_with_IB_metadata(contract_object)
+        contract_object_with_ib_data = self.get_contract_object_with_IB_metadata(contract_object)
         if contract_object_with_ib_data is missing_contract:
             new_log.msg("Can't resolve contract so can't find expiry date")
             return missing_contract
@@ -89,9 +89,9 @@ class ibFuturesContractData(futuresContractData):
 
         return expiry_date
 
-    def _get_contract_object_with_IB_metadata(self, contract_object):
+    def get_contract_object_with_IB_metadata(self, contract_object):
 
-        new_instrument_object = self._get_instrument_object_with_IB_metadata(contract_object.instrument_code)
+        new_instrument_object = self.get_instrument_object_with_IB_metadata(contract_object.instrument_code)
         if new_instrument_object is missing_instrument:
             return missing_contract
 
@@ -100,7 +100,7 @@ class ibFuturesContractData(futuresContractData):
 
         return contract_object_with_ib_data
 
-    def _get_instrument_object_with_IB_metadata(self, instrument_code):
+    def get_instrument_object_with_IB_metadata(self, instrument_code):
         new_log = self.log.setup(instrument_code=instrument_code)
 
         try:
