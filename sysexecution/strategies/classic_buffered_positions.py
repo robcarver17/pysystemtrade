@@ -91,8 +91,8 @@ def trade_given_optimal_and_actual_positions(data, strategy_name, instrument_cod
     reference_contract = reference_contracts[instrument_code]
     reference_price = reference_prices[instrument_code]
 
-    log.msg("Trade %d Upper %d Lower %d Actual %d Reference price %f  for contract %s"
-             % (trade_required, upper_for_instrument, lower_for_instrument, actual_for_instrument,
+    log.msg("Upper %.2f Lower %.2f Current %d Required position %d Required trade %d Reference price %f  for contract %s"
+             % ( upper_for_instrument, lower_for_instrument, actual_for_instrument, required_position, trade_required,
                 reference_price,  reference_contract))
 
     ref_date = ref_dates[instrument_code]
