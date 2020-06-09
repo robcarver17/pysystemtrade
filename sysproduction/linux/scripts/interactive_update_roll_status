@@ -1,0 +1,3 @@
+#!/bin/bash
+. ~/.profile
+. p sysproduction.interactive_update_roll_status.interactive_update_roll_status

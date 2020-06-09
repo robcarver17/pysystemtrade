@@ -12,13 +12,13 @@ from sysproduction.data.capital import dataCapital
 from syslogdiag.log import logToMongod as logger
 
 
-def update_capital_manual():
+def interactive_update_capital_manual():
     """
     Interactive session that allows you to manipulate capital manually
 
     :return: Nothing
     """
-    with dataBlob(log_name="Update-Capital-Manual") as data:
+    with dataBlob(log_name="Interactive-Update-Capital-Manual") as data:
 
         data_capital = dataCapital(data)
 

@@ -27,8 +27,8 @@ from sysexecution.instrument_to_contract_stack_handler import instrument_to_cont
 
 
 
-def update_order_stack():
-    with dataBlob(log_name = "Update-Order-Stack") as data:
+def interactive_order_stack():
+    with dataBlob(log_name = "Interactive-Order-Stack") as data:
         menu =  run_interactive_menu(top_level_menu_of_options, nested_menu_of_options,
                                                      exit_option = -1, another_menu = -2)
     still_running = True
@@ -249,15 +249,25 @@ def view_positions(data):
     data_broker = dataBroker(data)
 
     diag_positions = diagPositions(data)
-    ans1=diag_positions.get_all_current_instrument_positions_as_df()
-    ans2 = diag_positions.get_all_current_contract_positions_as_df()
-    ans3 = data_broker.get_all_current_contract_positions_as_df()
+    ans1=diag_positions.get_all_current_strategy_instrument_positions()
+    ans2 = diag_positions.get_all_current_contract_positions()
+    ans3 = data_broker.get_all_current_contract_positions()
     print("Strategy positions")
     print(ans1)
     print("\n Contract level positions")
     print(ans2)
+    breaks = diag_positions.get_list_of_breaks_between_contract_and_strategy_positions()
+    if len(breaks)>0:
+        print("\nBREAKS between strategy and contract positions: %s\n" % str(breaks))
+    else:
+        print("(No breaks positions consistent)")
     print("\n Broker positions")
     print(ans3)
+    breaks = data_broker.get_list_of_breaks_between_broker_and_db_contract_positions()
+    if len(breaks)>0:
+        print("\nBREAKS between broker and DB stored contract positions: %s\n" % str(breaks))
+    else:
+        print("(No breaks positions consistent)")
     return None
 
 def modify_instrument_order(data):

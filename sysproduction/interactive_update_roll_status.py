@@ -30,7 +30,7 @@ from sysproduction.data.prices import diagPrices, updatePrices
 
 
 
-def update_roll_state(instrument_code: str):
+def interactive_update_roll_status(instrument_code: str):
     """
     Update the roll state for a particular instrument
     This includes the option, where possible, to switch the adjusted price series on to a new contract
@@ -39,7 +39,7 @@ def update_roll_state(instrument_code: str):
     :return: None
     """
 
-    with dataBlob(log_name="Update-Roll-Adjusted-Prices") as data:
+    with dataBlob(log_name="Interactive_Update-Roll-Status") as data:
 
         ## First get the roll info
         # This will also update to console

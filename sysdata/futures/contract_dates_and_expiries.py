@@ -40,6 +40,9 @@ class expiryDate(datetime.datetime):
 
         return expiryDate(as_date.year, as_date.month, as_date.day)
 
+    def as_str(self):
+        return self.strftime("%Y%m%d")
+
 class contractDate(object):
     """
     A single contract date; eithier in the form YYYYMM or YYYYMMDD

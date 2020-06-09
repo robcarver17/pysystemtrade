@@ -9,7 +9,7 @@ roll_report_config = report_config(title="Roll report",
                                    output="console")
 
 
-def get_roll_info(instrument_code: str = "ALL"):
+def interactive_roll_info(instrument_code: str = "ALL"):
     """
 
     Print information about whether futures contracts should be rolled

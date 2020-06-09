@@ -20,7 +20,7 @@ from sysdata.mongodb.mongo_connection import mongoDb
 from sysproduction.data.get_data import dataBlob
 
 def run_systems():
-    with dataBlob(log_name="update_run_systems") as data:
+    with dataBlob(log_name="Run-Systems") as data:
         log = data.log
         strategy_dict = get_private_then_default_key_value('strategy_list')
         for strategy_name in strategy_dict:

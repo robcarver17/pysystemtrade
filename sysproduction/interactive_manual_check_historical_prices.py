@@ -16,7 +16,7 @@ from sysdata.futures.futures_per_contract_prices import futuresContractPrices
 from syslogdiag.log import logToMongod as logger
 from sysdata.private_config import get_private_then_default_key_value
 
-def update_manual_check_historical_prices(instrument_code:str):
+def interactive_manual_check_historical_prices(instrument_code:str):
     """
     Do a daily update for futures contract prices, using IB historical data
 

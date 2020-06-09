@@ -54,14 +54,24 @@ class diagPositions(object):
     def get_list_of_positions_for_strategy(self, strategy_name):
         return self.data.db_strategy_position.get_list_of_instruments_for_strategy_with_position(strategy_name)
 
-    def get_all_current_contract_positions_as_df(self):
-        return self.data.db_contract_position.get_all_current_positions_as_df()
+    def get_all_current_contract_positions(self):
+        return self.data.db_contract_position.\
+            get_all_current_positions_as_list_with_contract_objects()
 
-    def get_all_current_instrument_positions_as_df(self):
-        return self.data.db_strategy_position.get_all_current_positions_as_df()
+    def get_all_current_strategy_instrument_positions(self):
+        return self.data.db_strategy_position.get_all_current_positions_as_list_with_instrument_objects()
+
+    def get_list_of_breaks_between_contract_and_strategy_positions(self):
+        contract_positions = self.get_all_current_contract_positions()
+        instrument_positions_from_contract = contract_positions.sum_for_instrument()
+        strategy_instrument_positions = self.get_all_current_strategy_instrument_positions()
+        instrument_positions_from_strategies = strategy_instrument_positions.sum_for_instrument()
+
+        return instrument_positions_from_contract.return_list_of_breaks(instrument_positions_from_strategies)
 
     def optimal_position_data(self):
         return self.data.db_optimal_position
+
 
 class updatePositions(object):
     def __init__(self, data = arg_not_supplied):

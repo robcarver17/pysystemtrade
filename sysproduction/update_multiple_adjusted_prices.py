@@ -20,14 +20,14 @@ from sysproduction.data.get_data import dataBlob
 from sysproduction.data.prices import diagPrices, updatePrices
 
 
-def update_multiple_adjusted_prices_daily():
+def update_multiple_adjusted_prices():
     """
     Do a daily update for multiple and adjusted prices
 
     :return: Nothing
     """
 
-    with dataBlob(log_name="Update-multiple-adjusted-prices(daily)") as data:
+    with dataBlob(log_name="Update-Multiple-Adjusted-Prices") as data:
         diag_prices = diagPrices(data)
 
         list_of_codes_all = diag_prices.get_list_of_instruments_in_multiple_prices()

@@ -291,6 +291,14 @@ def object_to_none(x, object, y=_none):
     else:
         return x
 
+def get_unique_list(somelist):
+    uniquelist = []
+
+    for letter in somelist:
+        if letter not in uniquelist:
+            uniquelist.append(letter)
+
+    return uniquelist
 
 def get_and_convert(prompt, type_expected=int, allow_default=True, default_value = 0, default_str=None):
     invalid = True

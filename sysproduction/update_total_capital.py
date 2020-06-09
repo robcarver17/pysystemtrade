@@ -10,7 +10,7 @@ from syslogdiag.log import logToMongod as logger
 from syslogdiag.emailing import send_mail_msg
 
 
-def update_account_values():
+def update_total_capital():
     """
     Do a daily update of accounting information
 
@@ -26,7 +26,7 @@ def update_account_values():
 
     :return: Nothing
     """
-    with dataBlob(log_name="Update-Account-Values") as data:
+    with dataBlob(log_name="Update-Total-Capital") as data:
 
         capital_data = dataCapital(data)
         log = data.log

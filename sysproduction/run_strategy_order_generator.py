@@ -15,7 +15,7 @@ from sysdata.mongodb.mongo_connection import mongoDb
 from sysproduction.data.get_data import dataBlob
 
 def run_strategy_order_generator():
-    with dataBlob(log_name="run_strategy_order_generator") as data:
+    with dataBlob(log_name="Run-Strategy-Order-Generator") as data:
 
         # FIX ME CODE TO RUN MULTIPLE TIMES
         # FOR NOW JUST RUN ONCE A DAY

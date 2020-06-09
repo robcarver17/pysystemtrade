@@ -42,6 +42,13 @@ class futuresContract(object):
     def __repr__(self):
         return self.ident()
 
+    def __eq__(self, other):
+        if self.instrument_code!=other.instrument_code:
+            return False
+        if self.date!=other.date:
+            return False
+        return True
+
     @classmethod
     def create_empty(futuresContract):
         fake_instrument = futuresInstrument("EMPTY")

@@ -1,0 +1,3 @@
+#!/bin/bash
+. ~/.profile
+. p sysproduction.clean_truncate_log_files.clean_truncate_log_files

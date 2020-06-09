@@ -14,14 +14,14 @@ from sysproduction.data.get_data import dataBlob
 from sysproduction.data.currency_data import currencyData
 from sysproduction.data.broker import dataBroker
 
-def update_manual_check_fx_prices(fx_code):
+def interactive_manual_check_fx_prices(fx_code):
     """
     Update FX prices stored in Arctic (Mongo) with interactive brokers prices (usually going back about a year)
 
     :return: Nothing
     """
 
-    with dataBlob("Update-FX-prices") as data:
+    with dataBlob(log_name = "Interactive-Manual-Check-FX-prices") as data:
         data_broker = dataBroker(data)
         list_of_codes_all = data_broker.get_list_of_fxcodes()  # codes must be in .csv file /sysbrokers/IB/ibConfigSpotFx.csv
 
