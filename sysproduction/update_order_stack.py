@@ -196,9 +196,7 @@ def handle_completed_orders(data):
         print("Something went wrong! %s" % e)
 
 def order_view(data):
-    stack_handler = instrument_to_contract_stack_handler(data)
-
-    stack = resolve_stack(stack_handler)
+    stack = resolve_stack(data)
     if stack is None:
         return None
     order_id = get_and_convert("Order ID?", type_expected=int, allow_default=False)
@@ -208,9 +206,7 @@ def order_view(data):
     return None
 
 def order_locking(data):
-    stack_handler = instrument_to_contract_stack_handler(data)
-
-    stack = resolve_stack(stack_handler)
+    stack = resolve_stack(data)
     if stack is None:
         return None
     try:
