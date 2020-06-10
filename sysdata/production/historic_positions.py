@@ -20,7 +20,7 @@ class historicPosition(timedEntry):
         return "Position"
 
     def _containing_data_class_name(self):
-        return "sysdata.production.positions.listPositions"
+        return "sysdata.production.historic_positions.listPositions"
 
 
 
@@ -134,7 +134,7 @@ class contractPositionData(listOfEntriesData):
         return "contractPositionData"
 
     def _data_class_name(self):
-        return "sysdata.production.positions.listPositions"
+        return "sysdata.production.historic_positions.listPositions"
 
     def _keyname_given_contract_object(self, futures_contract_object):
         """
