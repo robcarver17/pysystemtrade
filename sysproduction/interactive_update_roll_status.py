@@ -20,7 +20,7 @@ from syscore.objects import success, failure
 from sysdata.production.roll_state_storage import \
     allowable_roll_state_from_current_and_position, explain_roll_state, roll_adj_state, no_state_available, default_state
 
-from sysproduction.get_roll_info import roll_report_config
+from sysproduction.interactive_roll_info import roll_report_config
 from sysproduction.diagnostic.reporting import run_report_with_data_blob, landing_strip
 
 from sysproduction.data.positions import diagPositions, updatePositions
