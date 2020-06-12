@@ -82,7 +82,7 @@ def get_and_add_prices_for_frequency(data, log, contract_object, frequency="D"):
         if rows_added is data_error:
             ## SPIKE
             ## Need to email user about this as will need manually checking
-            msg = "Spike found in prices for %s: need to manually check by running update_manual_check_historical_prices" % str(
+            msg = "Spike found in prices for %s: need to manually check by running interactive_manual_check_historical_prices" % str(
                 contract_object)
             log.warn(msg)
             try:

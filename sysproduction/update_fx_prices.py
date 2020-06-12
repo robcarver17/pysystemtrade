@@ -39,7 +39,7 @@ def update_fx_prices_for_code(fx_code, data):
     rows_added = db_fx_data.update_fx_prices(fx_code, new_fx_prices, check_for_spike=True)
 
     if rows_added is data_error:
-        msg = "Spike found in prices for %s: need to manually check by running update_manual_check_fx_prices" % str(fx_code)
+        msg = "Spike found in prices for %s: need to manually check by running interactive_manual_check_fx_prices" % str(fx_code)
         data.log.warn(msg)
         try:
             send_mail_msg(msg, "FX Price Spike")
