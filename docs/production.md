@@ -670,13 +670,13 @@ FIXME: An intraday sampling would be good
 
 Python:
 ```python
-from sysproduction.update_manual_check_historical_prices import update_manual_check_historical_prices
-update_manual_check_historical_prices(instrument_code)
+from sysproduction.interactive_manual_check_historical_prices import interactive_manual_check_historical_prices
+interactive_manual_check_historical_prices(instrument_code)
 ```
 
 Linux script:
 ```
-. $SCRIPT_PATH/update_manual_check_historical_prices
+. $SCRIPT_PATH/interactive_manual_check_historical_prices
 ```
 
 The script will pull in data from interactive brokers, and the existing data, and check for spikes. If any spikes are found, then the user is interactively asked if they wish to (a) accept the spiked price, (b) use the previous time periods price instead, or (c) type a number in manually. You should check another data source to see if the spike is 'real', if so accept it, otherwise type in the correct value. Using the previous time periods value is only advisable if you are fairly sure that the price change wasn't real and you don't have a source to check with.
@@ -693,13 +693,13 @@ Once all spikes are checked for a given contract then the checked data is writte
 
 Python:
 ```python
-from sysproduction.update_manual_check_fx_prices import update_manual_check_fx_prices
-update_manual_check_fx_prices(fx_code)
+from sysproduction.interactive_manual_check_fx_prices import interactive_manual_check_fx_prices
+interactive_manual_check_fx_prices(fx_code)
 ```
 
 Linux script:
 ```
-. $SCRIPT_PATH/uupdate_manual_check_fx_prices
+. $SCRIPT_PATH/interactive_manual_check_fx_prices
 ```
 
 See [manual check of futures contract prices](#manual-check-of-futures-contract-historical-price-data) for more detail. Note that as the FX data is a single series, no adjustment is required for other values.
