@@ -16,7 +16,6 @@ class orderStackData(object):
     What kind of stuff do we do in stacks:
      - put an order on the stack, where no order existed
      - modify: put an order on the stack which replaces an existing order
-     - put an identical order on the stack, does nothing
      - view an order with certain characteristics from the stack
      - get an order from the stack with the intention of executing it. This also locks the order.
      - 'lock' an order so it can't be modified, 'gotten' or removed
@@ -42,49 +41,15 @@ class orderStackData(object):
 
     def put_order_on_stack(self, new_order, modify_existing_order = False, allow_zero_orders=False):
         """
-        Put an order on the stack, or at least try to:
-        - if no existing order, add
-        - if an existing order exists:
-            - and locked, don't allow
-            - if unlocked:
-                 - order is identical, do nothing
-                 - order is not identical, update
+        Put an order on the stack
 
         :param new_order: Order
         :return: order_id or failure condition: duplicate_order, failure
         """
-        if new_order.is_zero_trade() and not allow_zero_orders:
-            return zero_order
+        order_id_or_error = self._put_order_on_stack_and_get_order_id(new_order)
 
-        log = self.log.setup(strategy_name=new_order.strategy_name, instrument_code=new_order.instrument_code)
+        return order_id_or_error
 
-        existing_order = self._get_order_with_same_tradeable_object_on_stack(new_order)
-        if existing_order is duplicate_order:
-            # Do nothing, pointless
-            log.msg("Order %s already on %s" % (str(new_order), self.__repr__()))
-            return duplicate_order
-
-        if existing_order is missing_order:
-            log.msg("New order %s putting on %s" % (str(new_order), self.__repr__()))
-            order_id_or_error = self._put_order_on_stack_and_get_order_id(new_order)
-            return order_id_or_error
-
-        existing_order_id = existing_order.order_id
-        if not modify_existing_order:
-            log.msg("Order %s matches existing order_id %d on %s: " %
-                    (str(new_order), existing_order_id, self.__repr__()))
-            return duplicate_order
-
-        # Existing order needs modifying
-        log.msg("Order %s matches existing order_id %d on %s, trying to modify" %
-                (str(new_order), existing_order_id, self.__repr__()))
-
-        result = self.modify_order_on_stack(existing_order_id, new_order.trade)
-
-        if result is success:
-            return existing_order_id
-        else:
-            return result
 
     def cancel_order(self, order_id):
         """
@@ -219,6 +184,22 @@ class orderStackData(object):
             # can't do this, already have children
             return failure
 
+        new_order = copy(existing_order)
+        new_order.children = new_children
+
+        result = self._change_order_on_stack(order_id, new_order)
+
+        return result
+
+    def add_another_child_to_order(self, order_id, new_child):
+        existing_order = self.get_order_with_id_from_stack(order_id)
+        if existing_order is missing_order:
+            return missing_order
+
+        if existing_order.children is no_children:
+            new_children = [new_child]
+        else:
+            new_children = existing_order.children + [new_child]
 
         new_order = copy(existing_order)
         new_order.children = new_children
@@ -226,6 +207,7 @@ class orderStackData(object):
         result = self._change_order_on_stack(order_id, new_order)
 
         return result
+
 
     def remove_children_from_order(self, order_id):
         existing_order = self.get_order_with_id_from_stack(order_id)
@@ -479,11 +461,7 @@ class orderStackData(object):
             if not existing_order.active:
                 log.warn("Can't change order %s as inactive" % str(existing_order))
 
-        try:
-            self._lock_order_on_stack(order_id)
-            result = self._change_order_on_stack_no_checking(order_id, new_order)
-        finally:
-            self._unlock_order_on_stack(order_id)
+        result = self._change_order_on_stack_no_checking(order_id, new_order)
 
         return result
 
@@ -593,10 +571,12 @@ class orderStackData(object):
         # probably will be overriden in data implementation
 
         self._stack.pop(order_id)
-
+        return success
 
     def _delete_entire_stack_without_checking(self):
-        # probably will be overriden in data implementation
-        self._stack = {}
+        order_id_list = self.get_list_of_order_ids(exclude_inactive_orders=False)
+        for order_id in order_id_list:
+            self._remove_order_with_id_from_stack_no_checking(order_id)
+
         return success
 

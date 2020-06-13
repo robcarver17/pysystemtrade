@@ -1,3 +1,5 @@
+import datetime
+
 from syscore.objects import arg_not_supplied, missing_data, success, failure
 
 from sysproduction.data.contracts import missing_contract
@@ -15,6 +17,9 @@ class diagPositions(object):
 
     def get_roll_state(self, instrument_code):
         return self.data.db_roll_state.get_roll_state(instrument_code)
+
+    def get_position_df_for_instrument_and_contract_id(self, instrument_code, contract_id):
+        return self.data.db_contract_position.get_position_as_df_for_instrument_and_contract_date(instrument_code, contract_id)
 
     def get_positions_for_instrument_and_contract_list(self, instrument_code, contract_list):
         list_of_positions = [self.get_position_for_instrument_and_contract_date(instrument_code, contract_date)
@@ -72,6 +77,20 @@ class diagPositions(object):
     def optimal_position_data(self):
         return self.data.db_optimal_position
 
+    def get_list_of_contracts_with_any_contract_position_for_instrument(self, instrument_code):
+        return self.data.\
+            db_contract_position.get_list_of_contracts_with_any_position_for_instrument(instrument_code)
+
+    def get_list_of_contracts_with_any_contract_position_for_instrument_in_date_range(self,
+                                                                    instrument_code, start_date,
+                                                                                      end_date = arg_not_supplied):
+        if end_date is arg_not_supplied:
+            end_date = datetime.datetime.now()
+
+        return self.data.\
+            db_contract_position.\
+            get_list_of_contracts_with_any_position_for_instrument_in_date_range(instrument_code,
+                                                                             start_date, end_date)
 
 class updatePositions(object):
     def __init__(self, data = arg_not_supplied):
@@ -99,6 +118,7 @@ class updatePositions(object):
         current_position_object = self.data.db_strategy_position.\
             get_current_position_for_strategy_and_instrument(strategy_name, instrument_code)
         trade_done = instrument_order.fill
+        time_date = instrument_order.fill_datetime
         if current_position_object is missing_data:
             current_position = 0
         else:
@@ -108,7 +128,7 @@ class updatePositions(object):
 
         self.data.db_strategy_position.\
             update_position_for_strategy_and_instrument(strategy_name, instrument_code, new_position,
-                                                        )
+                                                        date = time_date)
 
         self.log.msg("Updated position of %s/%s from %d to %d because of trade %s %d" %
                      (strategy_name, instrument_code, current_position, new_position, str(instrument_order),
@@ -127,6 +147,7 @@ class updatePositions(object):
         instrument_code = contract_order.instrument_code
         contract_id_list = contract_order.contract_id
         fill_list = contract_order.fill
+        time_date = contract_order.fill_datetime
 
         for trade_done, contract_id in zip(fill_list, contract_id_list):
             current_position_object = self.data.db_contract_position.\
@@ -139,7 +160,8 @@ class updatePositions(object):
             new_position = current_position + trade_done
 
             self.data.db_contract_position.\
-                update_position_for_instrument_and_contract_date(instrument_code, contract_id, new_position)
+                update_position_for_instrument_and_contract_date(instrument_code, contract_id, new_position,
+                                                                 date = time_date)
 
             self.log.msg("Updated position of %s/%s from %d to %d because of trade %s %d" %
                          (instrument_code, contract_id, current_position, new_position, str(contract_order),

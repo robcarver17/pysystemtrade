@@ -231,9 +231,10 @@ class listOfEntriesData(baseData):
         if len(entry_series)>0:
             ## Check types match
             existing_data_class_name = self._get_data_class_name_for_args_dict(args_dict)
-
+            new_data_class = data_class_new_entry.split(".")[-1]
+            existing_data_class = existing_data_class_name.split(".")[-1]
             try:
-                assert data_class_new_entry==existing_data_class_name
+                assert new_data_class==existing_data_class
             except:
                 self.log.warn("You tried to add an entry of type %s to existing data type %s" % (data_class_new_entry,
                                                                                                      existing_data_class_name))

@@ -3,6 +3,7 @@ import datetime
 from sysexecution.order_stack import orderStackData
 from sysexecution.base_orders import Order, tradeableObject, no_order_id, no_children, no_parent, MODIFICATION_STATUS_NO_MODIFICATION
 from syscore.genutils import  none_to_object, object_to_none
+from syscore.objects import missing_order, success, zero_order, duplicate_order
 
 possible_order_types = ['best', 'market', 'limit', 'Zero-roll-order']
 
@@ -216,6 +217,52 @@ class instrumentOrder(Order):
 class instrumentOrderStackData(orderStackData):
     def __repr__(self):
         return "Instrument order stack: %s" % str(self._stack)
+
+    def put_order_on_stack(self, new_order, modify_existing_order = False, allow_zero_orders=False):
+        """
+        Put an order on the stack, or at least try to:
+        - if no existing order, add
+        - if an existing order exists:
+            - and locked, don't allow
+            - if unlocked:
+                 - order is identical, do nothing
+                 - order is not identical, update
+
+        :param new_order: Order
+        :return: order_id or failure condition: duplicate_order, failure
+        """
+        if new_order.is_zero_trade() and not allow_zero_orders:
+            return zero_order
+
+        log = log_attributes_from_instrument_order(self.log, new_order)
+
+        existing_order = self._get_order_with_same_tradeable_object_on_stack(new_order)
+        if existing_order is duplicate_order:
+            # Do nothing, pointless
+            log.msg("Order %s already on %s" % (str(new_order), self.__repr__()))
+            return duplicate_order
+
+        if existing_order is missing_order:
+            log.msg("New order %s putting on %s" % (str(new_order), self.__repr__()))
+            order_id_or_error = self._put_order_on_stack_and_get_order_id(new_order)
+            return order_id_or_error
+
+        existing_order_id = existing_order.order_id
+        if not modify_existing_order:
+            log.msg("Order %s matches existing order_id %d on %s: " %
+                    (str(new_order), existing_order_id, self.__repr__()))
+            return duplicate_order
+
+        # Existing order needs modifying
+        log.msg("Order %s matches existing order_id %d on %s, trying to modify" %
+                (str(new_order), existing_order_id, self.__repr__()))
+
+        result = self.modify_order_on_stack(existing_order_id, new_order.trade)
+
+        if result is success:
+            return existing_order_id
+        else:
+            return result
 
     def view_order_for_strategy_and_instrument(self, strategy_name, instrument_code):
         tradeable_object = instrumentTradeableObject(strategy_name, instrument_code)

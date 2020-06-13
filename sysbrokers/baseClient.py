@@ -39,3 +39,10 @@ class brokerClient(object):
     def broker_get_positions(self):
         raise NotImplementedError
 
+    def broker_submit_single_leg_order(self, instrument_code, contract_id, account,
+                                                  order_type = "market",
+                                                  limit_price = None):
+        raise NotImplementedError
+
+    def broker_get_orders(self):
+        raise NotImplementedError

@@ -91,7 +91,7 @@ class updatePrices(object):
     def update_prices_for_contract(self, contract_object, ib_prices,check_for_spike=True):
 
         return self.data.db_futures_contract_price.update_prices_for_contract(contract_object, ib_prices,
-                                                                  check_for_spike=True)
+                                                                  check_for_spike=check_for_spike)
 
     def add_multiple_prices(self, instrument_code, updated_multiple_prices, ignore_duplication=True):
         return self.data.db_futures_multiple_prices.add_multiple_prices(instrument_code, updated_multiple_prices, ignore_duplication=True)

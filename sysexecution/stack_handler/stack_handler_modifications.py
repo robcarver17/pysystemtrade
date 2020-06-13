@@ -1,46 +1,13 @@
-"""
-This piece of code processes the interface between the instrument order stack and the contract order stack
-
-Tasks it needs to accomplish:
-
-- netting of parent orders FIX ME FUTURE
-- when a new order is added to the instrument stack with no child orders, create child orders in contract order stack
-- when roll status is 'force', and no parent orders, generate an 'orphan roll order (spread or outright)
-- when a roll order is happening, need to lock instrument and related instruments
-- when a parent order is moved to modification status, change child orders to modification status
-- when all child orders are in modification complete status, change parent order to modification complete
-- when a parent order and child orders are all in modification complete status, clear modification from parents and children
-- when a child order has an updated fill, give the parent order a fill
-  - if multiple child orders, give the parent order the fill min(child order fills)
+from syscore.objects import  success, failure, no_children, no_parent,  missing_order, order_is_in_status_modified
 
 
-"""
-
-from syscore.objects import missing_order, success, failure, locked_order, duplicate_order, no_order_id, no_children, no_parent, missing_contract, missing_data, rolling_cant_trade, ROLL_PSEUDO_STRATEGY, missing_order, order_is_in_status_reject_modification, order_is_in_status_finished, locked_order, order_is_in_status_modified
-
-
-from sysexecution.spawn_children_from_instrument_orders import spawn_children_from_instrument_order
-from sysexecution.roll_orders import  create_force_roll_orders
 from sysexecution.contract_orders import log_attributes_from_contract_order
 from sysexecution.instrument_orders import log_attributes_from_instrument_order
+from sysexecution.stack_handler.stackHandlerCore import stackHandlerCore
 
-from sysproduction.data.positions import diagPositions, updatePositions
-from sysproduction.data.orders import dataOrders
+class stackHandlerForModifications(stackHandlerCore):
 
-class instrument_to_contract_stack_handler(object):
-    def __init__(self, data):
-        order_data = dataOrders(data)
-        instrument_stack = order_data.instrument_stack()
-        contract_stack = order_data.contract_stack()
-
-        self.instrument_stack = instrument_stack
-        self.contract_stack = contract_stack
-
-        self.order_data = order_data
-        self.data = data
-        self.log = data.log
-
-    def process_stack(self):
+    def process_modification_stack(self):
         """
         Run a regular sweep across the stack
         Doing various things
@@ -48,124 +15,11 @@ class instrument_to_contract_stack_handler(object):
         :return: success
         """
 
-        self.spawn_children_from_new_instrument_orders()
-        self.generate_force_roll_orders()
         self.pass_on_modification_from_instrument_to_contract_orders()
         self.pass_on_modification_complete_from_contract_to_instrument_orders()
         self.pass_on_rejections_from_contract_to_instrument_orders()
         self.clear_completed_modifications_from_instrument_and_contract_stacks()
         self.clear_rejected_modifications_from_instrument_and_contract_stacks()
-        self.pass_fills_from_children_up_to_parents()
-        self.handle_completed_orders()
-
-
-    def spawn_children_from_new_instrument_orders(self):
-        new_order_ids = self.instrument_stack.list_of_new_orders()
-        for instrument_order_id in new_order_ids:
-            self.spawn_children_from_instrument_order_id(instrument_order_id)
-
-    def spawn_children_from_instrument_order_id(self, instrument_order_id):
-        instrument_order = self.instrument_stack.get_order_with_id_from_stack(instrument_order_id)
-        if instrument_order is missing_order:
-            return failure
-
-        log = log_attributes_from_instrument_order(self.log, instrument_order)
-
-        list_of_contract_orders = spawn_children_from_instrument_order(self.data, instrument_order)
-
-        log.msg("List of contract orders spawned %s" % str(list_of_contract_orders))
-
-        list_of_child_ids = self.contract_stack.put_list_of_orders_on_stack(list_of_contract_orders)
-
-        if list_of_child_ids is failure:
-            log.msg("Failed to create child orders %s from parent order %s" % (str(list_of_contract_orders),
-                                                                                          str(instrument_order)))
-            return failure
-
-
-        for contract_order, child_id in zip(list_of_contract_orders, list_of_child_ids):
-            child_log = log_attributes_from_contract_order(log, contract_order)
-            child_log.msg("Put child order %s on contract_stack with ID %d from parent order %s" % (str(contract_order),
-                                                                                          child_id,
-                                                                                          str(instrument_order)))
-        result = self.instrument_stack.add_children_to_order(instrument_order.order_id, list_of_child_ids)
-        if result is not success:
-            log.msg("Error %s when adding children to instrument order %s" % (str(result), str(instrument_order)))
-            return failure
-
-        return success
-
-    def generate_force_roll_orders(self):
-        diag_positions = diagPositions(self.data)
-        list_of_instruments = diag_positions.get_list_of_instruments_with_any_position()
-        for instrument_code in list_of_instruments:
-            self.generate_force_roll_orders_for_instrument(instrument_code)
-
-    def generate_force_roll_orders_for_instrument(self, instrument_code):
-        log = self.data.log.setup(instrument_code = instrument_code, strategy_name = ROLL_PSEUDO_STRATEGY)
-
-        instrument_order, contract_orders = create_force_roll_orders(self.data, instrument_code)
-        # Create a pseudo instrument order and a set of contract orders
-        # This will also prevent trying to generate more than one set of roll orders
-
-        if len(contract_orders)==0 or instrument_order is missing_order:
-            # No orders
-            return None
-
-        # Do as a transaction: if everything doesn't go to plan can roll back
-        instrument_order.lock_order()
-        instrument_order_id = self.instrument_stack.put_order_on_stack(instrument_order, allow_zero_orders=True)
-
-        if type(instrument_order_id) is not int:
-            if instrument_order_id is duplicate_order:
-                # Probably already done this
-                return success
-            else:
-                log.msg("Couldn't put roll order %s on instrument order stack error %s" % (str(instrument_order),
-                                                                                           str(instrument_order_id)))
-            return failure
-
-        for child_order in contract_orders:
-            child_order.parent = instrument_order_id
-
-        # Do as a transaction: if everything doesn't go to plan can roll back
-        # if this try fails we will roll back the instrument commit
-        try:
-            log = log.setup(instrument_order_id= instrument_order_id)
-
-            log.msg("List of roll contract orders spawned %s" % str(contract_orders))
-            list_of_child_order_ids = self.contract_stack.put_list_of_orders_on_stack(contract_orders, unlock_when_finished=False)
-
-            if list_of_child_order_ids is failure:
-                log.msg("Failed to add roll contract orders to stack %s" % (str(contract_orders)))
-                list_of_child_order_ids = []
-                raise Exception
-
-            for roll_order, order_id in zip(contract_orders, list_of_child_order_ids):
-                child_log = log_attributes_from_contract_order(log, roll_order)
-                child_log.msg("Put roll order %s on contract_stack with ID %d from parent order %s" % (str(roll_order),
-                                                                                              order_id,
-                                                                                              str(instrument_order)))
-
-            self.instrument_stack._unlock_order_on_stack(instrument_order_id)
-            result = self.instrument_stack.add_children_to_order(instrument_order_id, list_of_child_order_ids)
-            if result is not success:
-                log.msg("Error %s when adding children to instrument roll order %s" % (str(result), str(instrument_order)))
-                raise Exception
-
-        except:
-            ## Roll back instrument order
-            self.instrument_stack._unlock_order_on_stack(instrument_order_id)
-            self.instrument_stack.deactivate_order(instrument_order_id)
-            self.instrument_stack.remove_order_with_id_from_stack(instrument_order_id)
-
-            # If any children, roll them back also
-            if len(list_of_child_order_ids)>0:
-                self.contract_stack.rollback_list_of_orders_on_stack(list_of_child_order_ids)
-
-            return failure
-
-        return success
 
     def pass_on_modification_from_instrument_to_contract_orders(self):
         # get list of orders in instrument stack where status is modified
@@ -471,113 +325,3 @@ class instrument_to_contract_stack_handler(object):
 
         return success
 
-
-    def pass_fills_from_children_up_to_parents(self):
-        list_of_child_order_ids = self.contract_stack.get_list_of_order_ids()
-        for contract_order_id in list_of_child_order_ids:
-            self.apply_contract_fill_to_parent_order(contract_order_id)
-
-    def apply_contract_fill_to_parent_order(self, contract_order_id):
-        contract_order = self.contract_stack.get_order_with_id_from_stack(contract_order_id)
-
-        if contract_order.fill_equals_zero():
-            # Nothing to do here
-            return success
-
-        contract_parent_id = contract_order.parent
-        if contract_parent_id is no_parent:
-            self.log.warn("No parent for contract order %s %d" % (str(contract_order), contract_order_id))
-            return failure
-
-        instrument_order = self.instrument_stack.get_order_with_id_from_stack(contract_parent_id)
-        list_of_contract_order_ids = instrument_order.children
-
-        # This will be a list...
-
-        if len(list_of_contract_order_ids)==1:
-            ## easy, only one child
-            result = self.apply_contract_fill_to_parent_order_single_child(contract_order, instrument_order)
-        else:
-            result = self.apply_contract_fill_to_parent_order_multiple_children(list_of_contract_order_ids, instrument_order)
-
-        return result
-
-    def apply_contract_fill_to_parent_order_single_child(self, contract_order, instrument_order):
-        fill_for_contract = contract_order.fill
-        filled_price = contract_order.filled_price
-        fill_datetime = contract_order.fill_datetime
-        if len(fill_for_contract)==1:
-            ## Not a spread order, trivial
-            result = self.instrument_stack.\
-                change_fill_quantity_for_order(instrument_order.order_id, fill_for_contract[0], filled_price=filled_price,
-                                               fill_datetime=fill_datetime)
-        else:
-            ## Spread order
-            ## Instrument order quantity is eithier zero (for a roll) or non zero (for a spread)
-            if instrument_order.is_zero_trade():
-                ## A roll; meaningless to do this
-                result = success
-            else:
-                ## A proper spread order
-                self.log.critical("Can't handle spread orders yet! Instrument order %s %s"
-                                  % (str(instrument_order), str(instrument_order.order_id)))
-                result = failure
-
-        return result
-
-    def apply_contract_fill_to_parent_order_multiple_children(self, list_of_contract_order_ids, instrument_order):
-        if instrument_order.is_zero_trade():
-            ## A roll trade
-            ## Meaningless to do this
-            return success
-        else:
-            ## A proper spread trade
-            self.log.critical("Can't handle spread orders yet! Instrument order %s %s"
-                              % (str(instrument_order), str(instrument_order.order_id)))
-            return failure
-
-    def handle_completed_orders(self):
-        list_of_completed_instrument_orders = self.instrument_stack.list_of_completed_orders()
-        for instrument_order_id in list_of_completed_instrument_orders:
-            self.handle_completed_instrument_order(instrument_order_id)
-
-    def handle_completed_instrument_order(self, instrument_order_id):
-        ## Check children all done
-        instrument_order = self.instrument_stack.get_order_with_id_from_stack(instrument_order_id)
-        list_of_contract_order_id = instrument_order.children
-        if list_of_contract_order_id is no_children:
-            list_of_contract_order_id = []
-
-        for contract_order_id in list_of_contract_order_id:
-            completely_filled = self.contract_stack.is_completed(contract_order_id)
-            if not completely_filled:
-                ## OK We can't do this unless all our children are filled
-                return success
-
-        # If we have got this far then all our children are filled, and the parent is filled
-
-        list_of_contract_orders = []
-        for contract_order_id in list_of_contract_order_id:
-            list_of_contract_orders.append(self.contract_stack.get_order_with_id_from_stack(contract_order_id))
-
-        position_updater = updatePositions(self.data)
-        # Update strategy position table
-        position_updater.update_strategy_position_table_with_instrument_order(instrument_order)
-
-        # Update contract position table
-        for contract_order in list_of_contract_orders:
-            position_updater.update_contract_position_table_with_contract_order(contract_order)
-
-        order_data = dataOrders(self.data)
-        # Update historic order database
-        order_data.add_historic_instrument_order_to_data(instrument_order)
-        for contract_order in list_of_contract_orders:
-            order_data.add_historic_contract_order_to_data(contract_order)
-
-        # Make orders inactive
-        # A subsequent process will delete them
-        self.instrument_stack.deactivate_order(instrument_order_id)
-        for contract_order_id in list_of_contract_order_id:
-            self.contract_stack.deactivate_order(contract_order_id)
-
-        return success

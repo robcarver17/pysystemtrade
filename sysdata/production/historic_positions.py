@@ -33,6 +33,33 @@ class listPositions(listOfEntries):
     def _entry_class(self):
         return historicPosition
 
+def any_positions_since_start_date(position_series, start_date, end_date):
+    """
+    Any positions held in a given date range
+
+    Eithier:
+    - position at start was non zero, and we didn't trade (return True)
+    - position at start was zero and we did change our position (return True)
+   - position at start was zero and we didn't trade (return False)
+
+    :param position_series: pd.DataFrame with one column, position
+    :param start_date: datetime
+    :param end_date: datetime
+    :return: bool
+    """
+    if len(position_series)==0:
+        return False
+    positions_before_start = position_series[:start_date]
+    if len(positions_before_start)==0:
+        position_at_start = 0
+    else:
+        position_at_start = positions_before_start.position.iloc[-1]
+    positions_during = position_series[start_date:end_date]
+
+    if position_at_start == 0 and len(positions_during) == 0:
+        return False
+    else:
+        return True
 
 
 class instrumentPositionData(listOfEntriesData):
@@ -231,6 +258,27 @@ class contractPositionData(listOfEntriesData):
         instrument_list = [self._contract_tuple_given_keyname(entry['contractid'])[0] for entry in all_positions_dict]
 
         return list(set(instrument_list))
+
+    def get_list_of_contracts_with_any_position_for_instrument(self, instrument_code):
+        all_positions_dict = self._get_list_of_args_dict()
+        contract_list = [self._contract_tuple_given_keyname(entry['contractid'])[1]
+                           for entry in all_positions_dict \
+                           if self._contract_tuple_given_keyname(entry['contractid'])[0]==instrument_code]
+
+        return list(set(contract_list))
+
+    def get_list_of_contracts_with_any_position_for_instrument_in_date_range(self, instrument_code,
+                                                                             start_date, end_date):
+        list_of_contracts =self.get_list_of_contracts_with_any_position_for_instrument(instrument_code)
+
+        contract_positions_dict = dict([(contract_date,
+            self.get_position_as_df_for_instrument_and_contract_date(instrument_code, contract_date))\
+            for contract_date in list_of_contracts])
+
+        list_of_contracts = [contract_date for contract_date in list_of_contracts
+            if any_positions_since_start_date(contract_positions_dict[contract_date], start_date, end_date)]
+
+        return list_of_contracts
 
     def get_all_current_positions_as_list_with_contract_objects(self):
         all_positions_dict = self._get_list_of_args_dict()

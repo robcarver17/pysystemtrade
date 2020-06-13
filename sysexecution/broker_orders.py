@@ -1,10 +1,11 @@
-
+import datetime
 from sysexecution.order_stack import orderStackData
 from sysexecution.base_orders import  no_order_id, no_children, no_parent, MODIFICATION_STATUS_NO_MODIFICATION
 from sysexecution.contract_orders import contractOrder
-from sysexecution.contract_orders import contractTradeableObject
+
 from syscore.genutils import  none_to_object, object_to_none
-from syscore.objects import failure, success, arg_not_supplied
+from syscore.objects import failure
+
 
 
 class brokerOrder(contractOrder):
@@ -115,7 +116,9 @@ class brokerOrder(contractOrder):
     def submit_datetime(self):
         return self._order_info['submit_datetime']
 
-
+    @submit_datetime.setter
+    def submit_datetime(self, submit_datetime):
+        self._order_info['submit_datetime'] = submit_datetime
 
     @property
     def manual_fill(self):
@@ -161,10 +164,17 @@ class brokerOrder(contractOrder):
     def broker_clientid(self):
         return self._order_info['broker_clientid']
 
+    @broker_clientid.setter
+    def broker_clientid(self, broker_clientid):
+        self._order_info['broker_clientid'] = broker_clientid
 
     @property
     def broker_tempid(self):
         return self._order_info['broker_tempid']
+
+    @broker_tempid.setter
+    def broker_tempid(self, broker_tempid):
+        self._order_info['broker_tempid'] = broker_tempid
 
     @property
     def commission(self):
@@ -225,3 +235,63 @@ class brokerOrder(contractOrder):
     @property
     def manual_trade(self):
         return False
+
+
+
+
+def create_new_broker_order_from_contract_order(contract_order, qty, order_type="market",
+                                                limit_price=None,
+                                                submit_datetime = None,
+                                                side_price = None, mid_price = None,
+                                                algo_comment = "",
+                                                broker = "", broker_account = "", broker_clientid = "",
+                                                broker_permid = "", broker_tempid = ""):
+
+    if submit_datetime is None:
+        submit_datetime = datetime.datetime.now()
+
+    broker_order = brokerOrder(contract_order.key, qty, parent=contract_order.order_id,
+                 algo_used=contract_order.algo_to_use, order_type=order_type, limit_price=limit_price,
+                 side_price=side_price, mid_price=mid_price,
+                 broker=broker, broker_account=broker_account, broker_clientid=broker_clientid,
+                submit_datetime = submit_datetime, algo_comment=algo_comment,
+                               broker_permid = broker_permid, broker_tempid = broker_tempid
+                               )
+
+    return broker_order
+
+
+class brokerOrderStackData(orderStackData):
+    def __repr__(self):
+        return "Broker order stack: %s" % str(self._stack)
+
+    def manual_fill_for_order_id(self, order_id, fill_qty, filled_price=None, fill_datetime=None):
+        result = self.change_fill_quantity_for_order(order_id, fill_qty, filled_price=filled_price,
+                                            fill_datetime=fill_datetime)
+        if result is failure:
+            return failure
+
+        # all good need to show it was a manual fill
+        order = self.get_order_with_id_from_stack(order_id)
+        order.manual_fill = True
+        result = self._change_order_on_stack(order_id, order, check_if_orders_being_modified=False)
+
+        return result
+
+
+
+def log_attributes_from_broker_order(log, broker_order):
+    """
+    Returns a new log object with broker_order attributes added
+
+    :param log: logger
+    :param instrument_order:
+    :return: log
+    """
+    new_log = log.setup(
+              strategy_name=broker_order.strategy_name,
+              instrument_code=broker_order.instrument_code,
+              contract_order_id=object_to_none(broker_order.parent, no_order_id),
+              broker_order_id = broker_order.order_id)
+
+    return new_log
