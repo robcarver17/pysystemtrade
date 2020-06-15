@@ -2,7 +2,7 @@
 from syscore.objects import missing_order, success, failure, locked_order, duplicate_order, no_order_id, no_children, no_parent, missing_contract, missing_data, rolling_cant_trade, ROLL_PSEUDO_STRATEGY, missing_order, order_is_in_status_reject_modification, order_is_in_status_finished, locked_order, order_is_in_status_modified, resolve_function
 
 from sysexecution.contract_orders import log_attributes_from_contract_order
-from sysexecution.allocate_algo_to_order import check_and_if_required_allocate_algo_to_single_contract_order
+from sysexecution.algos.allocate_algo_to_order import check_and_if_required_allocate_algo_to_single_contract_order
 
 from sysexecution.stack_handler.stackHandlerCore import stackHandlerCore
 
