@@ -66,10 +66,7 @@ DEFAULT_OVERRIDE = Override(1.0)
 class overrideData(object):
     def __init__(self, log=logtoscreen("Overrides")):
         self.log = log
-        self._strategy_overrides={}
-        self._instrument_overrides = {}
-        self._strategy_instrument_overrides = {}
-        self._contract_overrides = {}
+        self._overrides = dict(strategy={}, instrument={}, contract={}, strategy_instrument={})
 
     def default_override(self):
         return DEFAULT_OVERRIDE
@@ -93,29 +90,28 @@ class overrideData(object):
         return instrument_override * contract_id_override
 
     def get_override_for_strategy(self, strategy_name):
-        return self._strategy_overrides.get(strategy_name, self.default_override())
-
+        return self._get_override_object_for_key("strategy", strategy_name)
 
     def get_override_for_strategy_instrument(self, strategy_name, instrument_code):
         key = strategy_name+"/"+instrument_code
-        return self._strategy_instrument_overrides.get(key, self.default_override())
+        return self._get_override_object_for_key("strategy_instrument", key)
 
     def get_override_for_instrument(self, instrument_code):
-        return self._instrument_overrides.get(instrument_code, self.default_override())
+        return self._get_override_object_for_key("instrument", instrument_code)
 
     def get_override_for_contract_object(self, contract_object):
         key = contract_object.instrument_code + "/" + contract_object.date
-        return self._contract_overrides.get(key, self.default_override())
+        return self._get_override_object_for_key("contracts", key)
 
     def update_override_for_strategy(self, strategy_name, new_override):
-        self._strategy_overrides[strategy_name] = new_override
+        self._update_override("strategy", strategy_name, new_override)
 
     def update_override_for_strategy_instrument(self, strategy_name, instrument_code,  new_override):
         key = strategy_name + "/" + instrument_code
-        self._strategy_instrument_overrides[key] = new_override
+        self._update_override("strategy_instrument", key, new_override)
 
     def update_override_for_instrument(self, instrument_code, new_override):
-        self._instrument_overrides[instrument_code] = new_override
+        self._update_override("instrument", instrument_code, new_override)
 
     def update_override_for_instrument_and_contractid(self, instrument_code, contract_id, new_override):
         contract_object = futuresContract(instrument_code, contract_id)
@@ -123,18 +119,30 @@ class overrideData(object):
 
     def update_override_for_contract_object(self, contract_object, new_override):
         key = contract_object.instrument_code + "/" + contract_object.date
-        self._contract_overrides[key] = new_override
+        self._update_override("contracts", key, new_override)
 
     def get_dict_of_strategies_with_overrides(self):
-        return self._strategy_overrides
+        return self._get_dict_of_items_with_overrides("strategy")
 
     def get_dict_of_strategy_instrument_with_overrides(self):
-        return self._strategy_instrument_overrides
+        return self._get_dict_of_items_with_overrides("strategy_instrument")
 
     def get_dict_of_contracts_with_overrides(self):
-        return self._contract_overrides
+        return self._get_dict_of_items_with_overrides("contracts")
 
     def get_dict_of_instruments_with_overrides(self):
-        return self._instrument_overrides
+        return self._get_dict_of_items_with_overrides("instruments")
 
+    def _update_override(self, dict_name, key, new_override_object):
+        override_dict = self._get_dict_of_items_with_overrides(dict_name)
+        override_dict[key] = new_override_object
+
+    def _get_override_object_for_key(self, dict_name, key):
+        override_dict = self._get_dict_of_items_with_overrides(dict_name)
+        override_object = override_dict.get(key, self.default_override())
+
+        return override_object
+
+    def _get_dict_of_items_with_overrides(self, dict_name):
+        return self._overrides[dict_name]
 
