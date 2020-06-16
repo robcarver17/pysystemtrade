@@ -151,7 +151,10 @@ class dataBroker(object):
         """
 
         currency_data = currencyData(self.data)
-        base_values = [currency_data.currency_value_in_base(ccy_value) for ccy_value in broker_order.commission]
+        if isinstance(broker_order.commission, float):
+            base_values = [broker_order.commission]
+        else:
+            base_values = [currency_data.currency_value_in_base(ccy_value) for ccy_value in broker_order.commission]
 
         commission = sum(base_values)
         broker_order.commission = commission
