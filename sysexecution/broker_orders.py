@@ -124,6 +124,10 @@ class brokerOrder(contractOrder):
     def manual_fill(self):
         return self._order_info['manual_fill']
 
+    @manual_fill.setter
+    def manual_fill(self, manual_fill):
+        self._order_info['manual_fill'] = manual_fill
+
     @property
     def calendar_spread_order(self):
         return self._order_info['calendar_spread_order']
