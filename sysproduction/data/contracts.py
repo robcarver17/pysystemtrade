@@ -142,6 +142,25 @@ class diagContracts(object):
 
 
 
+def get_valid_instrument_code_and_contractid_from_user(data):
+    diag_contracts = diagContracts(data)
+    invalid_input = True
+    while invalid_input:
+        instrument_code = input("Instrument code?")
+        all_contracts = diag_contracts.get_all_contract_objects_for_instrument_code(instrument_code)
+        sampled_contract = all_contracts.currently_sampling()
+        all_dates = sampled_contract.list_of_dates()
+        if len(all_dates)==0:
+            print("%s is not an instrument with contract data (probably not even an instrument at all!)" % instrument_code)
+            continue
+        print("Contract dates %s" % str(all_dates))
+        contract_date = input("Contract date?")
+        if contract_date in all_dates:
+            return instrument_code, contract_date
+
+        print("%s is not in list %s" % (contract_date, all_dates))
+
+
 def label_up_contracts(contract_date_list, current_contracts):
     """
     Labels some contracts

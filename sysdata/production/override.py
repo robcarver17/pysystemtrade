@@ -12,6 +12,16 @@ override_reduce_only = _named_object("Reduce only")
 override_none = _named_object("No override")
 
 override_dict = {override_close:0.0, override_none: 1.0, override_no_trading:-1.0, override_reduce_only:-2.0}
+_override_lookup = []
+for key, value in override_dict.items():
+    _override_lookup.append((value, key))
+
+def lookup_value_and_return_float_or_object(value):
+    value_list = [entry[1] for entry in _override_lookup if entry[0]==value]
+    if len(value_list)==0:
+        return value
+    else:
+        return value_list[0]
 
 class Override():
     def __init__(self, value):
@@ -39,12 +49,9 @@ class Override():
 
     @classmethod
     def from_float(Override, value):
-        if type(value) is float:
-            return Override(value)
+        value_or_object = lookup_value_and_return_float_or_object(value)
 
-        value_object = list(override_dict.keys())[list(override_dict.values()).index(value)]
-
-        return Override(value_object)
+        return Override(value_or_object)
 
     def __mul__(self, another_override):
         self_value = self._override
@@ -121,6 +128,17 @@ class overrideData(object):
         key = contract_object.instrument_code + "/" + contract_object.date
         self._update_override("contracts", key, new_override)
 
+
+    def get_dict_of_all_overrides(self):
+        strategy_dict = self.get_dict_of_strategies_with_overrides()
+        strategy_instrument_dict = self.get_dict_of_strategy_instrument_with_overrides()
+        contract_dict = self.get_dict_of_contracts_with_overrides()
+        instrument_dict = self.get_dict_of_instruments_with_overrides()
+
+        all_overrides = {**strategy_dict, **strategy_instrument_dict, **contract_dict, **instrument_dict}
+
+        return all_overrides
+
     def get_dict_of_strategies_with_overrides(self):
         return self._get_dict_of_items_with_overrides("strategy")
 
@@ -134,6 +152,7 @@ class overrideData(object):
         return self._get_dict_of_items_with_overrides("instruments")
 
     def _update_override(self, dict_name, key, new_override_object):
+        self.log.msg("Updating override for %s %s to %s" % (dict_name, key, new_override_object))
         override_dict = self._get_dict_of_items_with_overrides(dict_name)
         override_dict[key] = new_override_object
 

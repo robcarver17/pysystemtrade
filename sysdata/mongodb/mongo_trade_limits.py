@@ -3,8 +3,7 @@ from sysdata.production.trade_limits import tradeLimitData, tradeLimit, listOfTr
 from sysdata.mongodb.mongo_connection import mongoConnection, MONGO_ID_KEY
 from syslogdiag.log import logtoscreen
 
-LIMIT_STATUS_COLLECTION = 'overide_status'
-
+LIMIT_STATUS_COLLECTION = 'limit_status'
 
 class mongoTradeLimitData(tradeLimitData):
     """
@@ -24,9 +23,23 @@ class mongoTradeLimitData(tradeLimitData):
     def __repr__(self):
         return self.name
 
+    def get_all_limits(self):
+        cursor = self._mongo.collection.find()
+
+        result = self._get_list_of_trade_limits_for_cursor(cursor)
+
+        return result
+
     def get_list_of_trade_limits_for_strategy_instrument(self, strategy_name, instrument_code):
         find_object_dict = dict(strategy_name=strategy_name, instrument_code=instrument_code)
         cursor = self._mongo.collection.find(find_object_dict)
+
+        result = self._get_list_of_trade_limits_for_cursor(cursor)
+
+        return result
+
+    def _get_list_of_trade_limits_for_cursor(self, cursor):
+
         list_of_dicts = [db_entry for db_entry in cursor]
         _= [db_entry.pop(MONGO_ID_KEY) for db_entry in list_of_dicts]
         trade_limits = [(tradeLimit.from_dict(db_dict)) for db_dict in list_of_dicts]
@@ -65,12 +78,16 @@ class mongoTradeLimitData(tradeLimitData):
         instrument_code = trade_limit_object.instrument_code
         period_days = trade_limit_object.period_days
 
+        self.log.msg("Updating trade limit to %s" % trade_limit_object)
+
         find_object_dict = dict(strategy_name = strategy_name, instrument_code = instrument_code,
                                 period_days = period_days)
         new_values_dict = {"$set": trade_limit_object.as_dict()}
         self._mongo.collection.update_one(find_object_dict, new_values_dict, upsert=True)
 
     def _add_new_trade_limit_object(self, trade_limit_object):
+        self.log.msg("Adding trade limit to %s" % trade_limit_object)
+
         object_dict = trade_limit_object.as_dict()
         self._mongo.collection.insert_one(object_dict)
 

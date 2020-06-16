@@ -98,3 +98,17 @@ class updatePrices(object):
 
     def add_adjusted_prices(self, instrument_code, updated_adjusted_prices, ignore_duplication=True):
         return self.data.db_futures_adjusted_prices.add_adjusted_prices(instrument_code, updated_adjusted_prices, ignore_duplication=True)
+
+
+def get_valid_instrument_code_from_user(data=arg_not_supplied):
+    if data is arg_not_supplied:
+        data = dataBlob()
+    price_data = diagPrices(data)
+    all_instruments = price_data.get_list_of_instruments_in_multiple_prices()
+    invalid_input = True
+    while invalid_input:
+        instrument_code = input("Instrument code?")
+        if instrument_code in all_instruments:
+            return instrument_code
+
+        print("%s is not in list %s" % (instrument_code, all_instruments))

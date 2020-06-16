@@ -29,7 +29,9 @@ class tradeLimit(object):
         self._last_reset_time = last_reset_time
 
     def __repr__(self):
-        return "Trade limit of %d over %d days, %d trades since last reset %s" % (self._trade_limit,
+        return "Trade limit for %s %s of %d over %d days, %d trades since last reset %s" % (self.strategy_name,
+                                                                                            self.instrument_code,
+                                                                                   self._trade_limit,
                                                                                   self.period_days,
                                                                                   self.trades_since_last_reset,
                                                                                   str(self._last_reset_time))
@@ -226,6 +228,12 @@ class tradeLimitData(object):
         trade_limit = self._get_trade_limit_object(strategy_name, instrument_code, period_days)
         trade_limit.reset()
         self._update_trade_limit_object(trade_limit)
+
+    def get_all_limits(self):
+        all_keys = self._get_all_limit_keys()
+        all_limits = [self._get_trade_limit_object(key[0], key[1], key[2]) for key in all_keys]
+
+        return all_limits
 
     def _get_all_limit_keys(self):
         return self._limits.keys()

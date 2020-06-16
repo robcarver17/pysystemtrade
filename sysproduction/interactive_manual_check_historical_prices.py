@@ -8,7 +8,7 @@ Apply a check to each price series
 from syscore.objects import success, failure
 
 from sysproduction.data.get_data import dataBlob
-from sysproduction.data.prices import diagPrices, updatePrices
+from sysproduction.data.prices import diagPrices, updatePrices, get_valid_instrument_code_from_user
 from sysproduction.data.broker import dataBroker
 from sysproduction.data.contracts import diagContracts
 from sysdata.futures.manual_price_checker import manual_price_checker

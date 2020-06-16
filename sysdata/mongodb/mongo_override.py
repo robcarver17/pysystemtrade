@@ -68,16 +68,20 @@ class mongoOverrideData(overrideData):
         return result
 
     def _add_override_value(self, dict_name, key, override_as_float):
+        self.log.msg("Add new override for %s %s to %f" % (dict_name, key, override_as_float))
         object_dict = dict(dict_name = dict_name, key = key, value = override_as_float)
         self._mongo.collection.insert_one(object_dict)
 
     def _update_existing_override_value(self, dict_name, key, override_as_float):
+        self.log.msg("Update override for %s %s to %f" % (dict_name, key, override_as_float))
 
         find_object_dict = dict(dict_name = dict_name, key = key)
         new_values_dict = {"$set": {"value": override_as_float}}
         self._mongo.collection.update_one(find_object_dict, new_values_dict, upsert=True)
 
     def _delete_existing_override_value(self, dict_name, key):
+        self.log.msg("Deleting override for %s %s" % (dict_name, key,))
+
         self._mongo.collection.remove(dict(dict_name=dict_name, key=key))
 
     def _get_dict_of_items_with_overrides(self, dict_name):
