@@ -427,7 +427,7 @@ The above line will run the script `updatefxprices`, but instead of outputting t
 
 ### Cleaning old echo files
 
-Over time echo files can get... large (my default position for logging is verbose). To avoid this you can run [this linux script](/sysproduction/linux/scripts/truncate_echo_files) which chops them down to the last 20,000 lines (FIX ME ADD TO CRONTAB)
+Over time echo files can get... large (my default position for logging is verbose). To avoid this you can run [this linux script](/sysproduction/linux/scripts/clean_truncate_echo_files) which chops them down to the last 20,000 lines (FIX ME ADD TO CRONTAB)
 
 ## Logging 
 

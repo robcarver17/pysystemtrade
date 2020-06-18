@@ -297,7 +297,7 @@ The backtest looks for its configuration information in the following places:
 1. Elements in the configuration object
 2. If not found, in: Project defaults
 
-Configuration objects can be loaded from [yaml](http://pyyaml.org/) files, or
+Configuration objects can be loaded from [yaml](https://pyyaml.org/) files, or
 created with a dictionary. This suggests that you can modify the systems
 behaviour in any of the following ways:
 
@@ -315,7 +315,7 @@ file.
 
 ### Option 1: Change the configuration file
 
-Configurations in this project are stored in [yaml](http://pyyaml.org) files.
+Configurations in this project are stored in [yaml](https://pyyaml.org) files.
 Don't worry if you're not familiar with yaml; it's just a nice way of creating
 nested dicts, lists and other python objects in plain text. Just be aware that
 indentations are important, just in like python, to create nesting.
@@ -1072,7 +1072,7 @@ optionthree:
 
 Note that as with python the indentation in a yaml file shows how things are
 nested. If you want to learn more about yaml check [this
-out](http://pyyaml.org/wiki/PyYAMLDocumentation#YAMLsyntax).
+out](https://pyyaml.org/wiki/PyYAMLDocumentation#YAMLsyntax).
 
 ```python
 from sysdata.configdata import Config
