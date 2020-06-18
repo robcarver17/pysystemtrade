@@ -24,10 +24,7 @@ def run_report(report_config, **kwargs):
     :param report_config:
     :return:
     """
-    with mongoDb() as mongo_db,\
-        logger("Reporting %s" % report_config.title, mongo_db=mongo_db) as log:
-
-        data = dataBlob(mongo_db = mongo_db, log = log)
+    with dataBlob(log_name = "Reporting %s" % report_config.title) as data:
 
         report_result = run_report_with_data_blob(report_config, data, **kwargs)
 

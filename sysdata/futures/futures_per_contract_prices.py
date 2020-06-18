@@ -108,6 +108,10 @@ class futuresContractPrices(pd.DataFrame):
 
         return futuresContractPrices(merged_data)
 
+    def remove_zero_volumes(self):
+        self = self[self[VOLUME_COLUMN] > 0]
+        return futuresContractPrices(self)
+
     def add_rows_to_existing_data(self, new_futures_per_contract_prices, check_for_spike=True):
         """
         Merges self with new data.
@@ -665,18 +669,8 @@ class futuresContractPriceData(baseData):
 
         raise NotImplementedError(BASE_CLASS_ERROR)
 
-    def get_actual_expiry_date_for_instrument_code_and_contract_date(self, instrument_code, contract_date):
-        """
-        Convenience method for when we have a code and date str, and don't want to build an object
 
-        :return: data
-        """
-
-        ans = self._perform_contract_method_for_instrument_code_and_contract_date( instrument_code, contract_date, "get_actual_expiry_date_for_contract")
-
-        return ans
-
-    def get_actual_expiry_date_for_contract(self, futures_contract_object):
+    def get_brokers_instrument_code(self, instrument_code):
         raise NotImplementedError(BASE_CLASS_ERROR)
 
     def update_prices_for_for_instrument_code_and_contract_date(self, instrument_code, contract_date,

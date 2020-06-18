@@ -33,10 +33,10 @@ def roll_info(data, instrument_code="ALL"):
     :param: data blob
     :return: list of pd.DataFrame
     """
-    data.add_class_list("arcticFuturesMultiplePricesData")
+    diag_prices = diagPrices(data)
 
     if instrument_code=="ALL":
-        list_of_instruments = data.arctic_futures_multiple_prices.get_list_of_instruments()
+        list_of_instruments = diag_prices.get_list_of_instruments_in_multiple_prices()
 
     else:
         list_of_instruments=[instrument_code]

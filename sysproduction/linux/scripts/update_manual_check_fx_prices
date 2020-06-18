@@ -1,3 +1,0 @@
-#!/bin/bash
-. ~/.profile
-. p sysproduction.update_manual_check_fx_prices.update_manual_check_fx_prices

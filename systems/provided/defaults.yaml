@@ -35,7 +35,10 @@ mongo_host: 127.0.0.1
 mongo_db: 'production'
 #
 # Spike checker
-max_price_spike: 6
+max_price_spike: 8
+#
+# Price frequency (we collect daily data, and seperately this frequency
+intraday_frequency: H
 #
 # Capital calculation
 production_capital_method: 'full'

@@ -17,7 +17,11 @@ class diagContracts(object):
                             arcticFuturesMultiplePricesData mongoFuturesContractData")
         self.data = data
 
+    def is_contract_in_data(self, instrument_code, contract_date):
+        return self.data.db_futures_contract.is_contract_in_data(instrument_code, contract_date)
 
+    def get_all_contract_objects_for_instrument_code(self, instrument_code):
+        return self.data.db_futures_contract.get_all_contract_objects_for_instrument_code(instrument_code)
 
     def get_labelled_list_of_relevant_contracts(self, instrument_code):
 
@@ -35,7 +39,7 @@ class diagContracts(object):
 
 
     def get_current_contract_dict(self, instrument_code):
-        multiple_prices = self.data.arctic_futures_multiple_prices.get_multiple_prices(instrument_code)
+        multiple_prices = self.data.db_futures_multiple_prices.get_multiple_prices(instrument_code)
         current_contracts = multiple_prices.current_contract_dict()
 
         return current_contracts
@@ -47,7 +51,6 @@ class diagContracts(object):
         forward_contract_date = current_contracts['FORWARD']
         carry_contract_date = current_contracts['CARRY']
 
-        price_contract_date, forward_contract_date, carry_contract_date
         roll_parameters = self.get_roll_parameters(instrument_code)
 
         price_contract = contractDateWithRollParameters(roll_parameters, price_contract_date)
@@ -72,20 +75,21 @@ class diagContracts(object):
         return unique_all_contract_dates
 
     def get_roll_parameters(self, instrument_code):
-        roll_parameters = self.data.mongo_roll_parameters.get_roll_parameters(instrument_code)
+        roll_parameters = self.data.db_roll_parameters.get_roll_parameters(instrument_code)
         return roll_parameters
 
     def get_contract_object(self, instrument_code, contract_id):
-        contract_object = self._get_contract_object_from_db(instrument_code, contract_id)
+        contract_object = self.get_contract_data(instrument_code, contract_id)
         if contract_object.empty():
             contract_object = futuresContract(instrument_code, contract_id)
 
         return contract_object
 
-    def _get_contract_object_from_db(self, instrument_code, contract_id):
-        contract_object = self.data.mongo_futures_contract.get_contract_data(instrument_code, contract_id)
+    def get_contract_data(self, instrument_code, contract_id):
+        contract_object = self.data.db_futures_contract.get_contract_data(instrument_code, contract_id)
 
         return contract_object
+
 
 
     def get_actual_expiry(self, instrument_code, contract_id):
@@ -106,6 +110,12 @@ class diagContracts(object):
         contract_dict = self.get_current_contract_dict( instrument_code)
         carry_contract = contract_dict['CARRY']
         return carry_contract
+
+    def get_forward_contract_id(self, instrument_code):
+        contract_dict = self.get_current_contract_dict( instrument_code)
+        carry_contract = contract_dict['FORWARD']
+        return carry_contract
+
 
     def get_priced_expiry(self, instrument_code):
         contract_id = self.get_priced_contract_id(instrument_code)
@@ -130,6 +140,25 @@ class diagContracts(object):
 
         return contract_date_with_roll_parameters
 
+
+
+def get_valid_instrument_code_and_contractid_from_user(data):
+    diag_contracts = diagContracts(data)
+    invalid_input = True
+    while invalid_input:
+        instrument_code = input("Instrument code?")
+        all_contracts = diag_contracts.get_all_contract_objects_for_instrument_code(instrument_code)
+        sampled_contract = all_contracts.currently_sampling()
+        all_dates = sampled_contract.list_of_dates()
+        if len(all_dates)==0:
+            print("%s is not an instrument with contract data (probably not even an instrument at all!)" % instrument_code)
+            continue
+        print("Contract dates %s" % str(all_dates))
+        contract_date = input("Contract date?")
+        if contract_date in all_dates:
+            return instrument_code, contract_date
+
+        print("%s is not in list %s" % (contract_date, all_dates))
 
 
 def label_up_contracts(contract_date_list, current_contracts):
@@ -161,3 +190,17 @@ def label_up_contracts(contract_date_list, current_contracts):
         contract_names.append("%s%s" % (contract, suffix))
 
     return contract_names
+
+
+
+class updateContracts(object):
+    def __init__(self, data=arg_not_supplied):
+        # Check data has the right elements to do this
+        if data is arg_not_supplied:
+            data = dataBlob()
+
+        data.add_class_list("mongoFuturesContractData")
+        self.data = data
+
+    def add_contract_data(self, contract, ignore_duplication=False):
+        return self.data.db_futures_contract.add_contract_data(contract, ignore_duplication=ignore_duplication)

@@ -1,9 +1,12 @@
 from syscore.objects import success
-from sysdata.mongodb.mongo_connection import mongoConnection, MONGO_ID_KEY, mongo_clean_ints
+from sysdata.mongodb.mongo_connection import mongoConnection, MONGO_ID_KEY
 from syslogdiag.log import logtoscreen
 
-from sysexecution.order_stack import orderStackData, Order, missing_order
+from sysexecution.order_stack import orderStackData, missing_order
+from sysexecution.base_orders import Order
 from sysexecution.instrument_orders import instrumentOrder, instrumentOrderStackData
+from sysexecution.contract_orders import contractOrder, contractOrderStackData
+from sysexecution.broker_orders import brokerOrder, brokerOrderStackData
 
 ORDER_ID_STORE_KEY = "_ORDER_ID_STORE_KEY"
 
@@ -27,7 +30,8 @@ class mongoOrderStackData(orderStackData):
         self._mongo = mongoConnection(self._collection_name(), mongo_db=mongo_db)
 
         # this won't create the index if it already exists
-        self._mongo.create_index("key")
+        self._mongo.create_index("order_id")
+        self.log = log
 
     @property
     def _name(self):
@@ -37,10 +41,62 @@ class mongoOrderStackData(orderStackData):
         return "Data connection for %s, mongodb %s/%s @ %s -p %s " % (self._name,
             self._mongo.database_name, self._mongo.collection_name, self._mongo.host, self._mongo.port)
 
-    def _modify_order_on_stack_no_checking(self, order):
-        self._mongo.collection.update_one(dict(key = order.key), {'$set':order.as_dict()})
+    def get_order_with_key_from_stack(self, order_key):
+        result_dict = self._mongo.collection.find_one(dict(key = order_key, active=True))
+        if result_dict is None:
+            return missing_order
+        result_dict.pop(MONGO_ID_KEY)
+
+        order_class = self._order_class()
+        order = order_class.from_dict(result_dict)
+        return order
+
+    def get_order_with_id_from_stack(self, order_id):
+        result_dict = self._mongo.collection.find_one(dict(order_id = order_id))
+        if result_dict is None:
+            return missing_order
+        result_dict.pop(MONGO_ID_KEY)
+
+        order_class = self._order_class()
+        order = order_class.from_dict(result_dict)
+        return order
+
+    def get_list_of_order_ids(self, exclude_inactive_orders=True):
+        if exclude_inactive_orders:
+            pass
+        else:
+            return self._get_list_of_all_order_ids()
+        cursor = self._mongo.collection.find(dict(active=True))
+        order_ids = [db_entry['order_id'] for db_entry in cursor]
+
+        return order_ids
+
+    def get_list_of_inactive_order_ids(self):
+        cursor = self._mongo.collection.find(dict(active=False))
+        order_ids = [db_entry['order_id'] for db_entry in cursor]
+
+        return order_ids
+
+    def _get_list_of_all_order_ids(self):
+        cursor = self._mongo.collection.find()
+        order_ids = [db_entry['order_id'] for db_entry in cursor]
+        order_ids.remove(ORDER_ID_STORE_KEY)
+
+        return order_ids
+
+
+    def _change_order_on_stack_no_checking(self, order_id, order):
+        self._mongo.collection.update_one(dict(order_id = order_id), {'$set':order.as_dict()})
+
         return success
 
+    def _put_order_on_stack_no_checking(self, order):
+        mongo_record = order.as_dict()
+        self._mongo.collection.insert_one(mongo_record)
+        return success
+
+
+    # ORDER ID
     def _get_next_order_id(self):
         max_orderid = self._get_current_max_order_id()
         new_orderid = max_orderid + 1
@@ -49,7 +105,7 @@ class mongoOrderStackData(orderStackData):
         return new_orderid
 
     def _get_current_max_order_id(self):
-        result_dict = self._mongo.collection.find_one(dict(key=ORDER_ID_STORE_KEY))
+        result_dict = self._mongo.collection.find_one(dict(order_id=ORDER_ID_STORE_KEY))
         if result_dict is None:
             return self._create_max_order_id()
 
@@ -59,46 +115,22 @@ class mongoOrderStackData(orderStackData):
         return order_id
 
     def _update_max_order_id(self, max_order_id):
-        self._mongo.collection.update_one(dict(key=ORDER_ID_STORE_KEY), {'$set': dict(max_order_id=max_order_id)})
+        self._mongo.collection.update_one(dict(order_id=ORDER_ID_STORE_KEY), {'$set': dict(max_order_id=max_order_id)})
 
         return success
 
     def _create_max_order_id(self):
         first_order_id = 1
-        self._mongo.collection.insert_one(dict(key=ORDER_ID_STORE_KEY, max_order_id=first_order_id))
+        self._mongo.collection.insert_one(dict(order_id=ORDER_ID_STORE_KEY, max_order_id=first_order_id))
         return first_order_id
 
-    def _put_order_on_stack_no_checking(self, order):
-        mongo_record = order.as_dict()
-        self._mongo.collection.insert_one(mongo_record)
+
+
+    def _remove_order_with_id_from_stack_no_checking(self, order_id):
+        self._mongo.collection.remove(dict(order_id = order_id))
         return success
 
-    def get_order_with_key_from_stack(self, order_key):
-        result_dict = self._mongo.collection.find_one(dict(key = order_key))
-        if result_dict is None:
-            return missing_order
-        result_dict.pop(MONGO_ID_KEY)
 
-        order_class = self._order_class()
-        order = order_class.from_dict(result_dict)
-        return order
-
-    def _remove_order_with_key_from_stack_no_checking(self, order_key):
-        self._mongo.collection.remove(dict(key=order_key))
-        return success
-
-    def get_list_of_order_keys(self):
-        cursor = self._mongo.collection.find()
-        codes = [db_entry['key'] for db_entry in cursor]
-        codes.remove(ORDER_ID_STORE_KEY)
-
-        return codes
-
-    def _empty_stack_without_checking(self):
-        # probably will be overriden in data implementation
-        self._mongo.collection.drop()
-
-        return success
 
 class mongoInstrumentOrderStackData(mongoOrderStackData, instrumentOrderStackData):
     def _collection_name(self):
@@ -111,3 +143,26 @@ class mongoInstrumentOrderStackData(mongoOrderStackData, instrumentOrderStackDat
     def _name(self):
         return "Instrument order stack"
 
+
+class mongoContractOrderStackData(mongoOrderStackData, contractOrderStackData):
+    def _collection_name(self):
+        return 'CONTRACT_ORDER_STACK'
+
+    def _order_class(self):
+        return contractOrder
+
+    @property
+    def _name(self):
+        return "Contract order stack"
+
+
+class mongoBrokerOrderStackData(mongoOrderStackData, brokerOrderStackData):
+    def _collection_name(self):
+        return 'BROKER_ORDER_STACK'
+
+    def _order_class(self):
+        return brokerOrder
+
+    @property
+    def _name(self):
+        return "Broker order stack"

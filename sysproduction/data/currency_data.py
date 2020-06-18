@@ -15,6 +15,10 @@ class currencyData(object):
         data.add_class_list("arcticFxPricesData")
         self.data = data
 
+
+    def update_fx_prices(self, fx_code, new_fx_prices, check_for_spike=True):
+        return self.data.db_fx_prices.update_fx_prices(fx_code, new_fx_prices, check_for_spike=check_for_spike)
+
     def total_of_list_of_currency_values_in_base(self, list_of_currency_values):
         value_in_base = [self.currency_value_in_base(currency_value) for currency_value in list_of_currency_values]
 
@@ -52,6 +56,20 @@ class currencyData(object):
 
         :return: float
         """
-        fx_data = self.data.arctic_fx_prices.get_fx_prices(currency_pair)
+        fx_data = self.get_fx_prices(currency_pair)
         return fx_data.values[-1]
 
+    def get_fx_prices_to_base(self, currency:str):
+        """
+
+        :param currency: eg GBP
+        :return: eg fx rate for GBPUSD if base was USD
+        """
+        base = self.get_base_currency()
+        currency_pair = currency+base
+
+        return self.get_fx_prices(currency_pair)
+
+
+    def get_fx_prices(self, fx_code):
+        return self.data.db_fx_prices.get_fx_prices(fx_code)
