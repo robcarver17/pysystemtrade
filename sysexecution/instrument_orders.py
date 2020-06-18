@@ -46,7 +46,7 @@ class instrumentOrder(Order):
                  manual_trade =False, roll_order = False):
         """
 
-        :param args: Eithier a single argument 'strategy/instrument' str, or strategy, instrument; followed by trade
+        :param args: Either a single argument 'strategy/instrument' str, or strategy, instrument; followed by trade
         i.e. instrumentOrder(strategy, instrument, trade,  **kwargs) or 'strategy/instrument', trade, type, **kwargs)
 
         :param fill: fill done so far, int

@@ -79,11 +79,11 @@ class contractOrder(Order):
                  ):
 
         """
-        :param args: Eithier a single argument 'strategy/instrument/contract_id' str, or strategy, instrument, contract_id; followed by trade
+        :param args: Either a single argument 'strategy/instrument/contract_id' str, or strategy, instrument, contract_id; followed by trade
         i.e. contractOrder(strategy, instrument, contractid, trade,  **kwargs) or 'strategy/instrument/contract_id', trade, type, **kwargs)
 
-        Contract_id can eithier be a single str or a list of str for spread orders, all YYYYMM
-        If expressed inside a longer string, seperate contract str by '_'
+        Contract_id can either be a single str or a list of str for spread orders, all YYYYMM
+        If expressed inside a longer string, separate contract str by '_'
 
         i.e. contractOrder('a strategy', 'an instrument', '201003', 6,  **kwargs)
          same as contractOrder('a strategy/an instrument/201003', 6,  **kwargs)
@@ -355,7 +355,7 @@ class contractOrderStackData(orderStackData):
             else:
                 list_of_child_ids.append(child_id)
 
-        # At this point we eithier have total failure (list_of_child_ids is empty, status failure),
+        # At this point we either have total failure (list_of_child_ids is empty, status failure),
         #    or partial failure (list of child_ids is part filled, status failure)
         #    or total success
 

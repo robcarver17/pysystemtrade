@@ -28,11 +28,11 @@ class brokerOrder(contractOrder):
                  ):
         """
 
-        :param args: Eithier a single argument 'strategy/instrument/contract_id' str, or strategy, instrument, contract_id; followed by trade
+        :param args: Either a single argument 'strategy/instrument/contract_id' str, or strategy, instrument, contract_id; followed by trade
         i.e. brokerOrder(strategy, instrument, contractid, trade,  **kwargs) or 'strategy/instrument/contract_id', trade, type, **kwargs)
 
-        Contract_id can eithier be a single str or a list of str for spread orders, all YYYYMM
-        If expressed inside a longer string, seperate contract str by '_'
+        Contract_id can either be a single str or a list of str for spread orders, all YYYYMM
+        If expressed inside a longer string, separate contract str by '_'
 
         i.e. brokerOrder('a strategy', 'an instrument', '201003', 6,  **kwargs)
          same as brokerOrder('a strategy/an instrument/201003', 6,  **kwargs)

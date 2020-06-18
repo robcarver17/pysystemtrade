@@ -144,7 +144,7 @@ class stackHandlerForFills(stackHandlerCore):
                                                fill_datetime=fill_datetime)
         else:
             ## Spread order
-            ## Instrument order quantity is eithier zero (for a roll) or non zero (for a spread)
+            ## Instrument order quantity is either zero (for a roll) or non zero (for a spread)
             if instrument_order.is_zero_trade():
                 ## A roll; meaningless to do this
                 result = success

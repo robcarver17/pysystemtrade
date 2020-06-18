@@ -2192,7 +2192,7 @@ stage) you need to keep the following in mind:
     (and where they take their input from), and the output methods
 14. The doc string should also explain what the stage does, and the name of the
     stage
-15. Really big stages should be seperated across multiple classes (and possibly
+15. Really big stages should be separated across multiple classes (and possibly
     files), using multiple inheritance to glue them together. See the [accounts
     stage](/systems/account.py) for an example.
 
