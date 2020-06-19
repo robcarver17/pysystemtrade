@@ -1,7 +1,5 @@
 from syscore.objects import missing_order, success, failure, locked_order, duplicate_order, no_order_id, no_children, no_parent, missing_contract, missing_data, rolling_cant_trade, ROLL_PSEUDO_STRATEGY, missing_order, order_is_in_status_reject_modification, order_is_in_status_finished, locked_order, order_is_in_status_modified, resolve_function, ROLL_PSEUDO_STRATEGY
 
-from sysexecution.contract_orders import log_attributes_from_contract_order
-
 from sysexecution.contract_orders import contractOrder
 from sysexecution.instrument_orders import instrumentOrder
 from sysexecution.algos.allocate_algo_to_order import allocate_algo_to_list_of_contract_orders
@@ -41,62 +39,10 @@ class stackHandlerForRolls(stackHandlerCore):
             # No orders
             return None
 
-        # Do as a transaction: if everything doesn't go to plan can roll back
-        instrument_order.lock_order()
-        instrument_order_id = self.instrument_stack.put_order_on_stack(instrument_order, allow_zero_orders=True)
+        result = self.add_parent_and_list_of_child_orders_to_stack(self.instrument_stack, self.contract_stack,
+                                                           instrument_order, contract_orders)
 
-        if type(instrument_order_id) is not int:
-            if instrument_order_id is duplicate_order:
-                # Probably already done this
-                return success
-            else:
-                log.msg("Couldn't put roll order %s on instrument order stack error %s" % (str(instrument_order),
-                                                                                           str(instrument_order_id)))
-            return failure
-
-        for child_order in contract_orders:
-            child_order.parent = instrument_order_id
-
-        # Do as a transaction: if everything doesn't go to plan can roll back
-        # if this try fails we will roll back the instrument commit
-        try:
-            log = log.setup(instrument_order_id= instrument_order_id)
-
-            log.msg("List of roll contract orders spawned %s" % str(contract_orders))
-            list_of_child_order_ids = self.contract_stack.put_list_of_orders_on_stack(contract_orders, unlock_when_finished=False)
-
-            if list_of_child_order_ids is failure:
-                log.msg("Failed to add roll contract orders to stack %s" % (str(contract_orders)))
-                list_of_child_order_ids = []
-                raise Exception
-
-            for roll_order, order_id in zip(contract_orders, list_of_child_order_ids):
-                child_log = log_attributes_from_contract_order(log, roll_order)
-                child_log.msg("Put roll order %s on contract_stack with ID %d from parent order %s" % (str(roll_order),
-                                                                                              order_id,
-                                                                                              str(instrument_order)))
-
-            self.instrument_stack._unlock_order_on_stack(instrument_order_id)
-            result = self.instrument_stack.add_children_to_order(instrument_order_id, list_of_child_order_ids)
-            if result is not success:
-                log.msg("Error %s when adding children to instrument roll order %s" % (str(result), str(instrument_order)))
-                raise Exception
-
-            self.contract_stack.unlock_list_of_orders(list_of_child_order_ids)
-
-        except:
-            ## Roll back instrument order
-            self.instrument_stack._unlock_order_on_stack(instrument_order_id)
-            self.instrument_stack.deactivate_order(instrument_order_id)
-            self.instrument_stack.remove_order_with_id_from_stack(instrument_order_id)
-
-            # If any children, roll them back also
-            if len(list_of_child_order_ids)>0:
-                self.contract_stack.rollback_list_of_orders_on_stack(list_of_child_order_ids)
-
-            return failure
-
-        return success
+        return result
 
 
 

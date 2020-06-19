@@ -2,10 +2,6 @@ import numpy as np
 
 from syscore.objects import missing_order, success, failure, locked_order, duplicate_order, no_order_id, no_children, no_parent, missing_contract, missing_data, rolling_cant_trade, ROLL_PSEUDO_STRATEGY, missing_order, order_is_in_status_reject_modification, order_is_in_status_finished, locked_order, order_is_in_status_modified, resolve_function
 
-
-from sysexecution.contract_orders import log_attributes_from_contract_order
-from sysexecution.instrument_orders import log_attributes_from_instrument_order
-
 from syscore.genutils import sign
 from syscore.objects import missing_order, missing_contract, missing_data, rolling_cant_trade
 
@@ -31,32 +27,18 @@ class stackHandlerForSpawning(stackHandlerCore):
         if instrument_order is missing_order:
             return failure
 
-        log = log_attributes_from_instrument_order(self.log, instrument_order)
+        log = instrument_order.log_with_attributes(self.log)
 
         list_of_contract_orders = spawn_children_from_instrument_order(self.data, instrument_order)
 
         log.msg("List of contract orders spawned %s" % str(list_of_contract_orders))
 
-        list_of_child_ids = self.contract_stack.put_list_of_orders_on_stack(list_of_contract_orders)
+        result = self.add_children_to_stack_and_child_id_to_parent(self.instrument_stack,
+                                                                  self.contract_stack,
+                                                                  instrument_order,
+                                                                  list_of_contract_orders)
 
-        if list_of_child_ids is failure:
-            log.msg("Failed to create child orders %s from parent order %s" % (str(list_of_contract_orders),
-                                                                                          str(instrument_order)))
-            return failure
-
-
-        for contract_order, child_id in zip(list_of_contract_orders, list_of_child_ids):
-            child_log = log_attributes_from_contract_order(log, contract_order)
-            child_log.msg("Put child order %s on contract_stack with ID %d from parent order %s" % (str(contract_order),
-                                                                                          child_id,
-                                                                                          str(instrument_order)))
-        result = self.instrument_stack.add_children_to_order(instrument_order.order_id, list_of_child_ids)
-        if result is not success:
-            log.msg("Error %s when adding children to instrument order %s" % (str(result), str(instrument_order)))
-            return failure
-
-        return success
-
+        return result
 
 def spawn_children_from_instrument_order(data, instrument_order):
     spawn_function = function_to_process_instrument(instrument_order.instrument_code)

@@ -50,10 +50,10 @@ class tradeLimit(object):
     def from_dict(tradeLimit, trade_limit_dict):
         return tradeLimit(**trade_limit_dict)
 
-    def what_abs_trade_is_possible(self, proposed_trade):
+    def what_abs_trade_is_possible(self, abs_proposed_trade):
         ## Returns proposed_trade, or a fraction thereof
         ## Sign is NOT preserved
-        abs_proposed_trade = abs(proposed_trade)
+
         spare_capacity = self.trade_capacity_remaining
         if abs_proposed_trade<= spare_capacity:
             abs_possible_trade = abs_proposed_trade
@@ -131,18 +131,19 @@ class tradeLimit(object):
 
 class listOfTradeLimits(list):
     def what_trade_is_possible(self, proposed_trade):
-        possible_abs_trade = self.what_abs_trade_is_possible(proposed_trade)
+        abs_proposed_trade = abs(proposed_trade)
+        possible_abs_trade = self.what_abs_trade_is_possible(abs(proposed_trade))
         ## convert to same sign as proposed
         possible_trade = possible_abs_trade * sign(proposed_trade)
 
         return possible_trade
 
-    def what_abs_trade_is_possible(self, proposed_trade):
+    def what_abs_trade_is_possible(self, abs_proposed_trade):
         ## returns a list of abs_possible_trades
-        list_of_abs_possible_trades = [trade_limit.what_abs_trade_is_possible(proposed_trade)
+        list_of_abs_possible_trades = [trade_limit.what_abs_trade_is_possible(abs_proposed_trade)
                                        for trade_limit in self]
         if len(list_of_abs_possible_trades)==0:
-            return proposed_trade
+            return abs_proposed_trade
 
         ## get the smallest
         possible_abs_trade = min(list_of_abs_possible_trades)

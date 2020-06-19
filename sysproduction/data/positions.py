@@ -105,6 +105,16 @@ class updatePositions(object):
     def set_roll_state(self, instrument_code, roll_state_required):
         return self.data.db_roll_state.set_roll_state(instrument_code, roll_state_required)
 
+    def update_positions_with_instrument_and_contract_orders(self, instrument_order, contract_order_list):
+        # Update strategy position table
+        self.update_strategy_position_table_with_instrument_order(instrument_order)
+
+        # Update contract position table
+        for contract_order in contract_order_list:
+            self.update_contract_position_table_with_contract_order(contract_order)
+
+        return success
+
     def update_strategy_position_table_with_instrument_order(self, instrument_order):
         """
         Alter the strategy position table according to instrument order fill value

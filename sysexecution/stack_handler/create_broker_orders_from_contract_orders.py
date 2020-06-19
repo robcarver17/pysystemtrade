@@ -1,7 +1,6 @@
 
 from syscore.objects import missing_order, success, failure, locked_order, duplicate_order, no_order_id, no_children, no_parent, missing_contract, missing_data, rolling_cant_trade, ROLL_PSEUDO_STRATEGY, missing_order, order_is_in_status_reject_modification, order_is_in_status_finished, locked_order, order_is_in_status_modified, resolve_function
 
-from sysexecution.contract_orders import log_attributes_from_contract_order
 from sysexecution.algos.allocate_algo_to_order import check_and_if_required_allocate_algo_to_single_contract_order
 
 from sysexecution.stack_handler.stackHandlerCore import stackHandlerCore
@@ -48,12 +47,11 @@ class stackHandlerCreateBrokerOrders(stackHandlerCore):
 
     def create_broker_order_for_contract_order(self, contract_order_id):
 
-        ## This next line prevents another process or algo having a go
-        TEMPORARY_ALGO_REFERENCE = 'Locked-for-writing'
-        self.contract_stack.add_controlling_algo_ref(contract_order_id, TEMPORARY_ALGO_REFERENCE)
+        original_contract_order = self.contract_stack.get_order_with_id_from_stack(contract_order_id)
+        log = original_contract_order.log_with_attributes(self.log)
 
-        contract_order = self.contract_stack.get_order_with_id_from_stack(contract_order_id)
-        log = log_attributes_from_contract_order(self.log, contract_order)
+        ## Check the order doesn't breach trade limits
+        contract_order = self.what_contract_trade_is_possible(original_contract_order)
 
         contract_order = check_and_if_required_allocate_algo_to_single_contract_order(self.data, contract_order)
 
@@ -75,6 +73,8 @@ class stackHandlerCreateBrokerOrders(stackHandlerCore):
             self.contract_stack.release_order_from_algo_control(contract_order_id)
             return None
 
+        ## update trade limits
+        self.add_trade_to_trade_limits(broker_order)
 
         broker_order_id = self.broker_stack.put_order_on_stack(broker_order)
         if type(broker_order_id) is not int:
@@ -82,17 +82,18 @@ class stackHandlerCreateBrokerOrders(stackHandlerCore):
             # Probably safest to leave the contract order locked otherwise there could be multiple
             #   broker orders issued and nobody wants that!
             log.critical("Created a broker order %s but can't add it to the order stack!! (condition %s)" %
-                         (str(broker_order), str(e)))
+                         (str(broker_order), str(broker_order_id)))
             return failure
 
-        ## Release the temporary algo lock
-        self.contract_stack.release_order_from_algo_control(contract_order_id)
-
-        # Create new algo lock
+        # ....create new algo lock
         # This means nobody else can try and execute this order until it is released
+        # Only the algo itself can release!
 
         self.contract_stack.add_controlling_algo_ref(contract_order_id, reference_of_controlling_algo)
 
+        # This broker order is a child of the parent contract order
+        # We add 'another' child since it's valid to have multiple broker orders
         self.contract_stack.add_another_child_to_order(contract_order_id, broker_order_id)
 
         return success
+

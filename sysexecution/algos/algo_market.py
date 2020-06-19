@@ -2,7 +2,6 @@
 Simplest possible execution method, one market order
 """
 from syscore.objects import missing_order
-from sysexecution.contract_orders import log_attributes_from_contract_order
 from sysproduction.data.broker import dataBroker
 
 def algo_market(data, contract_order):
@@ -15,7 +14,7 @@ def algo_market(data, contract_order):
 
     :returns: tuple, (broker_order, reference of controlling algo)
     """
-    log = log_attributes_from_contract_order(data.log, contract_order)
+    log = contract_order.log_with_attributes(data.log)
 
     if not contract_order.fill_equals_zero():
         log.warn("Simple market algo can only deal with orders that have no existing fill, not %s!" % str(contract_order))

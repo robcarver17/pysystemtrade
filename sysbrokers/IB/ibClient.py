@@ -43,9 +43,8 @@ class ibClient(brokerClient):
         :return: list
         """
         trades_in_broker_format = self.ib.trades()
-        order_list = [extract_trade_info(trade_to_process) for trade_to_process in trades_in_broker_format]
 
-        return order_list
+        return trades_in_broker_format
 
     # Methods in parent class overriden here
     # These methods should abstract the broker completely
@@ -65,12 +64,12 @@ class ibClient(brokerClient):
         """
 
         if order_type=="market":
-            trade_object = self.ib_submit_single_leg_market_order(contract_object_with_ib_data, trade, account)
+            raw_trade_object = self.ib_submit_single_leg_market_order(contract_object_with_ib_data, trade, account)
         else:
             self.log.critical("Order type %s is not supported for order on %s" % (order_type, str(contract_object_with_ib_data)))
             return missing_order
 
-        return trade_object
+        return raw_trade_object
 
     def broker_get_positions(self):
         ## Get all the positions
@@ -207,15 +206,26 @@ class ibClient(brokerClient):
     # IB specific methods
     # Called by parent class generics
 
-    def ib_submit_single_leg_market_order(self, contract_object_with_ib_data, trade, account):
+    def ib_modify_existing_order(self, modified_order_object, original_contract_object):
+        new_trade_object = self.ib.placeOrder(original_contract_object, modified_order_object)
+
+        return new_trade_object
+
+    def ib_cancel_order(self, original_order_object):
+        new_trade_object = self.ib.cancelOrder(original_order_object)
+
+        return new_trade_object
+
+    def ib_submit_single_leg_market_order(self, contract_object_with_ib_data, trade, account=""):
         ibcontract = self.ib_futures_contract(contract_object_with_ib_data)
         if ibcontract is missing_contract:
             return missing_order
-        ## account?!s
+
         ib_BS_str, ib_qty = resolveBS(trade)
         ib_order = MarketOrder(ib_BS_str, ib_qty)
         if account!='':
             ib_order.account = account
+
         trade = self.ib.placeOrder(ibcontract, ib_order)
 
         return trade
@@ -616,83 +626,4 @@ def resolveBS(trade):
     if trade<0:
         return 'SELL', abs(trade)
     return 'BUY', abs(trade)
-
-
-def sign_from_BS(action):
-    if action=="SELL":
-        return -1
-    return 1
-
-
-def extract_trade_info(trade_to_process):
-    order_info = extract_order_info(trade_to_process)
-    contract_info = extract_contract_info(trade_to_process)
-    fill_info = extract_fill_info(trade_to_process)
-
-    algo_msg = " ".join([str(log_entry) for log_entry in trade_to_process.log])
-    total_filled = trade_to_process.filled()
-    active = trade_to_process.isActive()
-
-    tradeInfo = namedtuple("tradeInfo", ['order', 'contract', 'fills','algo_msg', 'total_filled', 'active'])
-    trade_info = tradeInfo(order_info, contract_info, fill_info, algo_msg, total_filled, active)
-
-    return trade_info
-
-def extract_order_info(trade_to_process):
-    order = trade_to_process.order
-
-    account = order.account
-    perm_id = order.permId
-    limit_price = order.lmtPrice
-    order_sign = sign_from_BS(order.action)
-    order_type = resolve_order_type(order.orderType)
-    remain_qty = order.totalQuantity
-
-    orderInfo = namedtuple('orderInfo', ['account',  'perm_id', 'limit_price', 'order_sign', 'type',
-                                         'remain_qty'])
-    order_info = orderInfo(account=account, perm_id=perm_id, limit_price=limit_price,
-                order_sign=order_sign, type = order_type, remain_qty=remain_qty)
-
-    return order_info
-
-def extract_contract_info(trade_to_process):
-    contract = trade_to_process.contract
-    ib_instrument_code = contract.symbol
-    ib_contract_id = contract.lastTradeDateOrContractMonth
-    ib_sectype = contract.secType
-
-    contractInfo = namedtuple("contractInfo", ['ib_instrument_code', 'ib_contract_id', 'ib_sectype'])
-    contract_info = contractInfo(ib_instrument_code=ib_instrument_code, ib_contract_id=ib_contract_id,
-                                 ib_sectype=ib_sectype)
-
-    return contract_info
-
-def extract_fill_info(trade_to_process):
-    all_fills = trade_to_process.fills
-    fill_info = [extract_single_fill(single_fill) for single_fill in all_fills]
-
-    return fill_info
-
-def extract_single_fill(single_fill):
-    commission = single_fill.commissionReport.commission
-    commission_ccy = single_fill.commissionReport.currency
-    cum_qty = single_fill.execution.cumQty
-    price = single_fill.execution.price
-    avg_price = single_fill.execution.avgPrice
-    time = single_fill.execution.time
-    temp_id = single_fill.execution.orderId
-    client_id = single_fill.execution.clientId
-
-    singleFill = namedtuple("singleFill", ['commission','commission_ccy', 'cum_qty', 'price', 'avg_price', 'time',
-                                           'temp_id', 'client_id'])
-
-    single_fill = singleFill(commission, commission_ccy, cum_qty, price, avg_price, time, temp_id, client_id)
-
-    return single_fill
-
-def resolve_order_type(ib_order_type):
-    lookup_dict = dict(MKT='market')
-    my_order_type = lookup_dict.get(ib_order_type, "")
-
-    return my_order_type
 

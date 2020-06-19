@@ -2,9 +2,13 @@
 An override is something that affects our normal trading behaviour
 """
 
+import numpy as np
+
 from syscore.objects import _named_object
+from syscore.genutils import sign
 from sysdata.futures.contracts import futuresContract
 from syslogdiag.log import logtoscreen
+
 
 override_close = _named_object("Close")
 override_no_trading = _named_object("No trading")
@@ -53,20 +57,80 @@ class Override():
 
         return Override(value_or_object)
 
+    def apply_override(self, original_position_no_override, proposed_trade):
+        """
+        Apply an override to a position
+
+        :param original_position_no_override: int
+        :param proposed_trade: a trade object, with attr 'trade'
+        :return: a trade object, with new attr 'trade'
+        """
+
+        if type(self._override) is float or self._override is override_close or self._override is override_none:
+            new_trade = self._apply_float_override(original_position_no_override, proposed_trade)
+
+        elif self._override is override_reduce_only:
+            new_trade = self._apply_reduce_only(original_position_no_override, proposed_trade)
+
+        elif self._override is override_no_trading:
+            new_trade = proposed_trade.replace_trade_only_use_for_unsubmitted_trades(0)
+
+        else:
+            raise Exception("Override is %s don't know what to do!"% str(self._override))
+
+        return new_trade
+
+    def _apply_float_override(self, original_position_no_override, proposed_trade):
+        """
+        Works if override value is float, or override_close (float value is 0.0) or override_none (float value is 1.0)
+
+        :param original_position_no_override:
+        :param proposed_trade:
+        :return:
+        """
+
+        override_as_float = self.as_float()
+        if override_as_float==1.0:
+            return proposed_trade
+
+        desired_new_position = original_position_no_override + proposed_trade.trade
+        override_new_position = int(np.floor(desired_new_position * override_as_float))
+
+        new_trade_value = override_new_position - original_position_no_override
+
+        proposed_trade.replace_trade_only_use_for_unsubmitted_trades(new_trade_value)
+
+        return proposed_trade
+
+    def _apply_reduce_only(self, original_position_no_override, proposed_trade):
+
+        desired_new_position = original_position_no_override + proposed_trade.trade
+        if sign(desired_new_position)!=sign(original_position_no_override):
+            ## Closing trade only; don't allow sign to change
+            new_trade_value = - original_position_no_override
+
+        elif abs(desired_new_position)>abs(original_position_no_override):
+            ## Increasing trade not allowed
+            new_trade_value = 0
+        else:
+            # Reducing trade and sign not changing, we'll allow
+            new_trade_value = proposed_trade.trade
+
+        proposed_trade.replace_trade_only_use_for_unsubmitted_trades(new_trade_value)
+
+        return proposed_trade
+
     def __mul__(self, another_override):
         self_value = self._override
         another_value = another_override._override
         if another_value is override_no_trading or self_value is override_no_trading:
-            return override_no_trading
+            return Override(override_no_trading)
         if another_value is override_close or self_value is override_close:
-            return override_close
+            return Override(override_close)
         if another_value is override_reduce_only or self_value is override_reduce_only:
-            return override_reduce_only
+            return Override(override_reduce_only)
 
-        assert type(another_value) is float
-        assert type(self_value) is float
-
-        return another_value * self_value
+        return Override(another_override.as_float() * self.as_float())
 
 DEFAULT_OVERRIDE = Override(1.0)
 
@@ -83,18 +147,7 @@ class overrideData(object):
         instrument_override = self.get_override_for_instrument(instrument_code)
         strategy_instrument_override = self.get_override_for_strategy_instrument(strategy_name, instrument_code)
 
-        return Override(strategy_override * instrument_override)*strategy_instrument_override
-
-    def get_cumulative_override_for_instrument_and_contract_id(self, instrument_code, contract_id):
-        contract_object = futuresContract(instrument_code, contract_id)
-
-        return self.get_cumulative_override_for_contract_object(contract_object)
-
-    def get_cumulative_override_for_contract_object(self, contract_object):
-        instrument_override = self.get_override_for_instrument(contract_object.instrument_code)
-        contract_id_override = self.get_override_for_contract_object(contract_object)
-
-        return instrument_override * contract_id_override
+        return strategy_override * instrument_override*strategy_instrument_override
 
     def get_override_for_strategy(self, strategy_name):
         return self._get_override_object_for_key("strategy", strategy_name)
@@ -106,10 +159,6 @@ class overrideData(object):
     def get_override_for_instrument(self, instrument_code):
         return self._get_override_object_for_key("instrument", instrument_code)
 
-    def get_override_for_contract_object(self, contract_object):
-        key = contract_object.instrument_code + "/" + contract_object.date
-        return self._get_override_object_for_key("contracts", key)
-
     def update_override_for_strategy(self, strategy_name, new_override):
         self._update_override("strategy", strategy_name, new_override)
 
@@ -120,22 +169,12 @@ class overrideData(object):
     def update_override_for_instrument(self, instrument_code, new_override):
         self._update_override("instrument", instrument_code, new_override)
 
-    def update_override_for_instrument_and_contractid(self, instrument_code, contract_id, new_override):
-        contract_object = futuresContract(instrument_code, contract_id)
-        return self.update_override_for_contract_object(contract_object, new_override)
-
-    def update_override_for_contract_object(self, contract_object, new_override):
-        key = contract_object.instrument_code + "/" + contract_object.date
-        self._update_override("contracts", key, new_override)
-
-
     def get_dict_of_all_overrides(self):
         strategy_dict = self.get_dict_of_strategies_with_overrides()
         strategy_instrument_dict = self.get_dict_of_strategy_instrument_with_overrides()
-        contract_dict = self.get_dict_of_contracts_with_overrides()
         instrument_dict = self.get_dict_of_instruments_with_overrides()
 
-        all_overrides = {**strategy_dict, **strategy_instrument_dict, **contract_dict, **instrument_dict}
+        all_overrides = {**strategy_dict, **strategy_instrument_dict, **instrument_dict}
 
         return all_overrides
 
@@ -144,9 +183,6 @@ class overrideData(object):
 
     def get_dict_of_strategy_instrument_with_overrides(self):
         return self._get_dict_of_items_with_overrides("strategy_instrument")
-
-    def get_dict_of_contracts_with_overrides(self):
-        return self._get_dict_of_items_with_overrides("contracts")
 
     def get_dict_of_instruments_with_overrides(self):
         return self._get_dict_of_items_with_overrides("instruments")

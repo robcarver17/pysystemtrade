@@ -1,7 +1,5 @@
 from copy import copy
 from syscore.objects import missing_order, success, failure, locked_order, duplicate_order, no_order_id, no_children, no_parent, order_is_in_status_finished, zero_order
-from syscore.objects import missing_order, success, failure, locked_order, duplicate_order, no_order_id, no_children, no_parent, order_is_in_status_finished, zero_order
-from syscore.objects import order_is_in_status_modified, order_is_in_status_reject_modification, order_is_in_status_finished
 
 from syslogdiag.log import logtoscreen
 
@@ -39,7 +37,73 @@ class orderStackData(object):
     def __repr__(self):
         return "Order stack: %s" % str(self._stack)
 
-    def put_order_on_stack(self, new_order, modify_existing_order = False, allow_zero_orders=False):
+    def put_list_of_orders_on_stack(self, list_of_orders, unlock_when_finished=True):
+        """
+        Put a list of new orders on the stack. We lock these before placing on.
+
+        If any do not return order_id (so something has gone wrong) we remove all the relevant orders and return failure
+
+        If all work out okay, we unlock the orders
+
+        We may choose not to unlock the orders, if for example we're doing a transaction that involves
+           adding something to another stack
+
+        :param list_of_orders:
+        :return: list of order_ids or failure
+        """
+        if len(list_of_orders)==0:
+            return []
+
+        list_of_order_ids = []
+        status = success
+        for order in list_of_orders:
+            log = order.log_with_attributes(self.log)
+            order.lock_order()
+            order_id = self.put_order_on_stack(order)
+            if type(order_id) is not int:
+                log.warn("Failed to put contract order %s on stack error %s, rolling back entire transaction" %
+                         (str(order), str(order_id)))
+                status = failure
+                break
+
+            else:
+                list_of_order_ids.append(order_id)
+
+        # At this point we eithier have total failure (list_of_child_ids is empty, status failure),
+        #    or partial failure (list of child_ids is part filled, status failure)
+        #    or total success
+
+        if status is failure:
+            # rollback the orders we added
+            self.rollback_list_of_orders_on_stack(list_of_order_ids)
+            return failure
+
+        # success
+        if unlock_when_finished:
+            self.unlock_list_of_orders(list_of_order_ids)
+
+        return list_of_order_ids
+
+    def rollback_list_of_orders_on_stack(self, list_of_order_ids):
+        if len(list_of_order_ids)==0:
+            return success
+
+        self.log.warn("Rolling back addition of orders %s" % str(list_of_order_ids))
+        for order_id in list_of_order_ids:
+            self._unlock_order_on_stack(order_id)
+            self.deactivate_order(order_id)
+            self.remove_order_with_id_from_stack(order_id)
+
+        return success
+
+
+    def unlock_list_of_orders(self, list_of_order_ids):
+        for order_id in list_of_order_ids:
+            self._unlock_order_on_stack(order_id)
+
+        return success
+
+    def put_order_on_stack(self, new_order):
         """
         Put an order on the stack
 
@@ -51,24 +115,6 @@ class orderStackData(object):
         return order_id_or_error
 
 
-    def cancel_order(self, order_id):
-        """
-        Cancels an order by trying to modify quantity to zero or fill, whichever is higher
-
-        Will not cancel child orders; the modification will need to be applied to them also
-
-        :param order_id:
-        :return: success or failure
-        """
-        existing_order = self.get_order_with_id_from_stack(order_id)
-        if existing_order is missing_order:
-            self.log.msg("Can't cancel non existent order %d" % order_id)
-            return failure
-
-        filled_so_far = existing_order.fill
-        result = self.modify_order_on_stack(order_id, filled_so_far)
-
-        return result
 
     # FIND AND LIST ORDERS
     def get_order_with_key_from_stack(self, order_key):
@@ -93,6 +139,13 @@ class orderStackData(object):
         order = self._stack.get(order_id, missing_order)
 
         return order
+
+    def get_list_of_orders_from_order_id_list(self, list_of_order_ids):
+        order_list = []
+        for order_id in list_of_order_ids:
+            order = self.get_order_with_id_from_stack(order_id)
+            order_list.append(order)
+        return order_list
 
     def get_list_of_order_ids(self, exclude_inactive_orders = True):
         order_ids = self._get_list_of_all_order_ids()
@@ -121,52 +174,8 @@ class orderStackData(object):
             return False
         if not existing_order.fill_equals_zero():
             return False
-        if existing_order.is_order_in_modification_states():
-            return False
 
         return True
-
-    def list_of_being_modified_orders(self):
-        order_ids = self.get_list_of_order_ids()
-        order_ids = [order_id for order_id in order_ids if self.is_being_modified(order_id)]
-
-        return order_ids
-
-    def is_being_modified(self, order_id):
-        existing_order = self.get_order_with_id_from_stack(order_id)
-        if existing_order is missing_order:
-            return  False
-        return existing_order.is_order_being_modified()
-
-    def list_of_finished_modifiying_orders(self):
-        order_ids = self.get_list_of_order_ids()
-        order_ids = [order_id for order_id in order_ids if self.is_finished_modified(order_id)]
-
-        return order_ids
-
-    def is_finished_modified(self, order_id):
-        existing_order = self.get_order_with_id_from_stack(order_id)
-        if existing_order is missing_order:
-            return  False
-        return existing_order.is_order_finished_modifying()
-
-    def list_of_rejected_modifying_orders(self):
-        order_ids = self.get_list_of_order_ids()
-        order_ids = [order_id for order_id in order_ids if self.is_rejected_modified(order_id)]
-
-        return order_ids
-
-    def is_rejected_modified(self, order_id):
-        existing_order = self.get_order_with_id_from_stack(order_id)
-        if existing_order is missing_order:
-            return  False
-        return existing_order.is_order_modification_rejected()
-
-    def list_of_completed_orders(self):
-        order_ids = self.get_list_of_order_ids()
-        order_ids = [order_id for order_id in order_ids if self.is_completed(order_id)]
-
-        return order_ids
 
     def is_completed(self, order_id):
         existing_order = self.get_order_with_id_from_stack(order_id)
@@ -221,133 +230,6 @@ class orderStackData(object):
 
         return result
 
-    # MODIFYING ORDERS
-
-
-    def modify_order_on_stack(self, order_id, new_trade):
-        """
-        Make a change of quantity to an order on the stack
-        This is a 3 phase process
-
-        :param existing_order: an existing order, with order_id
-        :param new_trade: int
-        :return: order_id, because if we are passing up to put order on stack. or failure
-        """
-
-        existing_order = self.get_order_with_id_from_stack(order_id)
-        if existing_order is missing_order:
-            self.log.warn("Can't modify non existent order %d" % order_id)
-            return missing_order
-
-        log = self.log.setup(strategy_name=existing_order.strategy_name,
-                             instrument_code=existing_order.instrument_code
-                             )
-
-        modified_order = copy(existing_order)
-        modify_status = modified_order.modify_order(new_trade)
-        if modify_status is order_is_in_status_reject_modification:
-            log.warn("Order %s modification rejected (already filled more than modified quantity)"
-                          % (str(existing_order)))
-            return order_is_in_status_reject_modification
-
-        if modify_status in [order_is_in_status_finished, order_is_in_status_finished]:
-            log.warn("Order %s is already in the process of being modified, can't modify again until cleared"
-                          % (str(existing_order)))
-            return modify_status
-
-        result = self._change_order_on_stack(existing_order.order_id, modified_order)
-
-        return result
-
-    def completed_modifying_order_on_stack(self, order_id):
-        """
-        Make a change of quantity to an order on the stack
-        This is a 3 phase process
-        This is phase two. We can do this once all of our children have finished being modified
-
-        :param existing_order: an existing order, with order_id
-        :return:
-        """
-        existing_order = self.get_order_with_id_from_stack(order_id)
-        if existing_order is missing_order:
-            self.log.warn("Can't modify non existent order %d" % order_id)
-            return missing_order
-
-        log = self.log.setup(strategy_name=existing_order.strategy_name,
-                             instrument_code=existing_order.instrument_code
-                             )
-
-        modified_order = copy(existing_order)
-        modify_status = modified_order.modification_complete()
-        if modify_status is not success:
-            log("Can't complete a modification when order is not being modified order %d" % order_id)
-            return failure
-
-        result = self._change_order_on_stack(existing_order.order_id, modified_order,
-                                             check_if_orders_being_modified=False)
-
-        return result
-
-    def reject_order_on_stack(self, order_id):
-        """
-        Make a change of quantity to an order on the stack
-        This is a 3 phase process
-        This is phase two. Will be trigerred if children are rejected.
-
-        :param existing_order: an existing order, with order_id
-        :return:
-        """
-        existing_order = self.get_order_with_id_from_stack(order_id)
-        if existing_order is missing_order:
-            self.log.warn("Can't reject non existent order %d" % order_id)
-            return missing_order
-
-        log = self.log.setup(strategy_name=existing_order.strategy_name,
-                             instrument_code=existing_order.instrument_code,
-                             )
-
-        modified_order = copy(existing_order)
-        modify_status = modified_order.reject_modification()
-        if modify_status is not success:
-            log("Can't reject a modification unless an order is being modified but hasn't finished %d" % order_id)
-            return failure
-
-        result = self._change_order_on_stack(existing_order.order_id, modified_order,
-                                             check_if_orders_being_modified=False)
-
-        return result
-
-
-    def clear_modification_of_order_on_stack(self, order_id):
-        """
-        Make a change of quantity to an order on the stack
-        This is a 3 phase process
-        This is phase three. We can do this once all the orders in our family are completed
-
-        :param order_id:
-        :return:
-        """
-
-        existing_order = self.get_order_with_id_from_stack(order_id)
-        if existing_order is missing_order:
-            self.log.warn("Can't modify non existent order %d" % order_id)
-            return missing_order
-
-        log = self.log.setup(strategy_name=existing_order.strategy_name,
-                             instrument_code=existing_order.instrument_code,
-                             instrument_order_id = order_id)
-
-        modified_order = copy(existing_order)
-        modify_status = modified_order.clear_modification()
-        if modify_status is not success:
-            log("Need to complete modification of order %d before clearing modification" % order_id)
-            return failure
-
-        result = self._change_order_on_stack(existing_order.order_id, modified_order,
-                                             check_if_orders_being_modified=False)
-
-        return result
-
 
     # FILLS
     def change_fill_quantity_for_order(self, order_id, fill_qty, filled_price = None, fill_datetime=None):
@@ -364,10 +246,10 @@ class orderStackData(object):
         try:
             new_order.fill_order(fill_qty, filled_price=filled_price, fill_datetime=fill_datetime)
         except Exception as e:
-            log.warn(e)
+            log.warn(str(e))
             return failure
 
-        result = self._change_order_on_stack(order_id, new_order, check_if_orders_being_modified=False)
+        result = self._change_order_on_stack(order_id, new_order)
 
         log.msg("Changed fill qty from %s to %s for order %s" % (str(existing_order.fill), str(fill_qty), str(existing_order)))
 
@@ -432,7 +314,7 @@ class orderStackData(object):
 
     # CHANGING AN ORDER ON THE STACK
 
-    def _change_order_on_stack(self, order_id, new_order, check_if_orders_being_modified=True,
+    def _change_order_on_stack(self, order_id, new_order,
                                check_if_inactive = True):
         # Make any kind of general change to an order, checking for locks
         # Doesn't check for other conditions, eg beingactive or not
@@ -451,11 +333,6 @@ class orderStackData(object):
             # already locked can't change
             log.warn("Can't change locked order %s" % str(existing_order))
             return locked_order
-
-        if check_if_orders_being_modified:
-            if existing_order.is_order_in_modification_states():
-                log.warn("Can't change order %s as being modified" % str(existing_order))
-                return order_is_in_status_modified
 
         if check_if_inactive:
             if not existing_order.active:
@@ -547,9 +424,6 @@ class orderStackData(object):
         existing_order = self.get_order_with_key_from_stack(order_key)
         if existing_order is missing_order:
             return missing_order
-        are_orders_equal = order==existing_order
-        if are_orders_equal:
-            return duplicate_order
 
         return existing_order
 
