@@ -20,9 +20,10 @@ class stackHandlerForCompletions(stackHandlerCore):
 
 
     def handle_completed_orders(self):
-        list_of_completed_instrument_orders = self.instrument_stack.list_of_completed_orders()
-        for instrument_order_id in list_of_completed_instrument_orders:
-            self.handle_completed_instrument_order(instrument_order_id)
+        list_of_instrument_order_ids = self.instrument_stack.get_list_of_order_ids()
+        for instrument_order_id in list_of_instrument_order_ids:
+            if self.instrument_stack.is_completed(instrument_order_id):
+                self.handle_completed_instrument_order(instrument_order_id)
 
     def handle_completed_instrument_order(self, instrument_order_id):
         ## Check children all done
