@@ -129,6 +129,8 @@ class updatePositions(object):
             get_current_position_for_strategy_and_instrument(strategy_name, instrument_code)
         trade_done = instrument_order.fill
         time_date = instrument_order.fill_datetime
+        if time_date is None:
+            time_date  = datetime.datetime.now()
         if current_position_object is missing_data:
             current_position = 0
         else:
@@ -158,6 +160,8 @@ class updatePositions(object):
         contract_id_list = contract_order.contract_id
         fill_list = contract_order.fill
         time_date = contract_order.fill_datetime
+        if time_date is None:
+            time_date  = datetime.datetime.now()
 
         for trade_done, contract_id in zip(fill_list, contract_id_list):
             current_position_object = self.data.db_contract_position.\

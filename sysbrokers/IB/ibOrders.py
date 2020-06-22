@@ -193,6 +193,19 @@ class ibOrdersData(brokerOrderStackData):
 
         return order_list
 
+    def get_list_of_broker_orders_using_external_tempid(self):
+        """
+        We replace the field 'tempid' with a key which allows us to match more easily against external orders
+
+        :return: list of BrokerOrder objects
+        """
+
+        order_list = self.get_list_of_broker_orders()
+        for order in order_list:
+            order._order_info['broker_tempid'] = create_tempid_from_broker_details(order)
+
+        return order_list
+
     def get_dict_of_orders_from_storage(self):
         dict_of_raw_orders = self._traded_object_store
         order_dict = dict([(key, self.create_broker_order_object(raw_order))
@@ -298,6 +311,27 @@ class ibOrdersData(brokerOrderStackData):
         matched_order = match_order_on_permid(list_of_broker_orders, broker_order_to_match)
 
         return matched_order
+
+
+    def cancel_order_on_stack(self, broker_order):
+
+        matched_order = self.match_db_broker_order_to_order_from_brokers(broker_order)
+        if matched_order is missing_order:
+            return failure
+
+        original_order_object = matched_order.broker_objects['order']
+        self.ibconnection.ib_cancel_order(original_order_object)
+
+        return success
+
+    def check_order_is_cancelled(self, broker_order):
+        matched_order = self.match_db_broker_order_to_order_from_brokers(broker_order)
+        if matched_order is missing_order:
+            return failure
+        original_order_object = matched_order.broker_objects['order']
+        cancellation_status = self.ibconnection.ib_check_order_is_cancelled(original_order_object)
+
+        return cancellation_status
 
     """
     The original modification code has been abandoned

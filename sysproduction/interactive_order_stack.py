@@ -22,6 +22,8 @@ from sysproduction.data.positions import diagPositions
 from sysproduction.data.broker import dataBroker
 from sysproduction.data.sim_data import get_valid_strategy_name_from_user
 from sysproduction.data.contracts import get_valid_instrument_code_and_contractid_from_user
+from sysproduction.data.controls import dataLocks
+from sysproduction.data.prices import get_valid_instrument_code_from_user
 
 from sysexecution.stack_handler.stack_handler import stackHandler
 from sysexecution.stack_handler.balance_trades import stackHandlerCreateBalanceTrades
@@ -44,7 +46,7 @@ def interactive_order_stack():
             method_chosen(data)
 
 top_level_menu_of_options = {0:'View', 1:'Create orders', 2:'Fills and completions',
-                3:'Netting and cancellation', 4: 'Delete'}
+                3:'Netting, cancellation and locks', 4: 'Delete and clean'}
 
 nested_menu_of_options = {
                     0:{0: 'View specific order',
@@ -70,11 +72,14 @@ nested_menu_of_options = {
                    24: 'Handle completed orders'},
                     3: {
                    30: 'Cancel broker order',
-                        31: 'Net instrument orders'},
-                    4: {
-                    40 : 'Delete entire stack',
-                    41: 'Delete specific order ID',
-                    42: 'Lock/unlock order'
+                        31: 'Net instrument orders',
+                    32: 'Lock/unlock order',
+                    33: 'Lock/unlock instrument code'},
+
+    4: {
+                    40 : 'Delete entire stack (CAREFUL!)',
+                    41: 'Delete specific order ID (CAREFUL!)',
+                    42: 'End of day process (cancel orders, mark all orders as complete, delete orders)'
                     }}
 
 
@@ -98,7 +103,7 @@ def view_contract_stack(data):
 
 def view_broker_stack(data):
     stack_handler = stackHandler(data)
-    print("\nBROKER STACK \n")
+    print("\nBroker stack (from database): \n")
     view_generic_stack(stack_handler.broker_stack)
 
 def view_generic_stack(stack):
@@ -110,6 +115,7 @@ def view_generic_stack(stack):
 def view_broker_order_list(data):
     data_broker = dataBroker(data)
     broker_orders = data_broker.get_list_of_orders()
+    print("Orders received from broker API")
     for order in broker_orders:
         print(order)
     print("Stored (orders made in this session):")
@@ -405,8 +411,47 @@ def view_positions(data):
         print("(No breaks positions consistent)")
     return None
 
+def end_of_day(data):
+    print("Will cancel all broker orders, get outstanding fills, mark all orders as complete, update positions, remove everything from stack")
+    ans = input("Are you sure? (Y/other)")
+    if ans!="Y":
+        return None
+    stack_handler=  stackHandler(data)
+    stack_handler.safe_stack_removal()
+
+    return None
+
 def not_defined(data):
     print("Function not yet defined")
+
+def cancel_broker_order(data):
+    view_broker_order_list(data)
+    view_broker_stack(data)
+    stack_handler = stackHandler(data)
+    broker_order_id = get_and_convert("Which order ID?", default_value="ALL", default_str="for all", type_expected=int)
+    ans = input("Are you sure? (Y/other)")
+    if ans !="Y":
+        return None
+    if broker_order_id=="ALL":
+        stack_handler.cancel_all_broker_orders()
+    else:
+        stack_handler.cancel_broker_order(broker_order_id)
+
+def instrument_locking(data):
+    data_locks = dataLocks(data)
+    list_of_locks = data_locks.get_list_of_locked_instruments()
+    print("Locked %s" % list_of_locks)
+    instrument_code = get_valid_instrument_code_from_user(data)
+    if data_locks.is_instrument_locked(instrument_code):
+        print("Unlock (careful probably locked for a reason, position mismatch!)")
+        ans = input("[Y]es/no ?")
+        if ans=="Y":
+            data_locks.remove_lock_for_instrument(instrument_code)
+    else:
+        print("Lock (Won't create new orders until unlocked!)")
+        ans = input("[Y]es/no ?")
+        if ans=="Y":
+            data_locks.add_lock_for_instrument(instrument_code)
 
 dict_of_functions = {0: order_view,
                          1: view_instrument_stack,
@@ -426,11 +471,13 @@ dict_of_functions = {0: order_view,
                      23: pass_fills_upwards_from_contracts,
                      24: handle_completed_orders,
 
-                    30: not_defined,
+                    30: cancel_broker_order,
                      31: not_defined,
-
+                     32: order_locking,
+                     33: instrument_locking,
                      40: delete_entire_stack,
                      41: delete_specific_order,
-                     42: order_locking
+
+                     42: end_of_day,
                      }
 

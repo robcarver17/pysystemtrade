@@ -138,6 +138,14 @@ class dataBroker(object):
 
         return list_of_orders_with_commission
 
+    def get_list_of_orders_for_matching(self):
+        list_of_orders = self.data.broker_orders.get_list_of_broker_orders_using_external_tempid()
+        list_of_orders_with_commission = [self.calculate_total_commission_for_broker_order(broker_order) \
+                            for broker_order in list_of_orders]
+
+        return list_of_orders_with_commission
+
+
     def get_list_of_placed_orders(self):
         dict_of_orders = self.data.broker_orders.get_dict_of_orders_from_storage()
 
@@ -179,3 +187,12 @@ class dataBroker(object):
 
         return matched_order
 
+    def cancel_order_on_stack(self, broker_order):
+        result = self.data.broker_orders.cancel_order_on_stack(broker_order)
+
+        return result
+
+    def check_order_is_cancelled(self, broker_order):
+        result = self.data.broker_orders.check_order_is_cancelled(broker_order)
+
+        return result

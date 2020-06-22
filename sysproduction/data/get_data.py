@@ -34,6 +34,7 @@ from sysdata.mongodb.mongo_order_stack import mongoInstrumentOrderStackData, mon
 from sysdata.mongodb.mongo_historic_orders import mongoStrategyHistoricOrdersData, mongoContractHistoricOrdersData, mongoBrokerHistoricOrdersData
 from sysdata.mongodb.mongo_override import mongoOverrideData
 from sysdata.mongodb.mongo_trade_limits import mongoTradeLimitData
+from sysdata.mongodb.mongo_lock_data import mongoLockData
 
 from sysdata.mongodb.mongo_connection import mongoDb
 

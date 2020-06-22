@@ -177,11 +177,25 @@ class orderStackData(object):
 
         return True
 
-    def is_completed(self, order_id):
+    def list_of_completed_orders(self, allow_partial_completions = False, allow_zero_completions = False):
+        order_ids = self.get_list_of_order_ids()
+        completed_order_ids = [order_id for order_id in order_ids if self.is_completed(order_id,
+                                                                                       allow_partial_completions=allow_partial_completions,
+                                                                                       allow_zero_completions = allow_zero_completions)]
+
+        return completed_order_ids
+
+
+    def is_completed(self, order_id, allow_partial_completions = False, allow_zero_completions = False):
         existing_order = self.get_order_with_id_from_stack(order_id)
         if existing_order is missing_order:
-            return  False
-        return existing_order.fill_equals_desired_trade()
+            return False
+        elif allow_zero_completions:
+            return True
+        elif allow_partial_completions:
+            return not existing_order.fill_equals_zero()
+        else:
+            return existing_order.fill_equals_desired_trade()
 
     # CHILD ORDERS
     def add_children_to_order(self, order_id, new_children):

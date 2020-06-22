@@ -4,6 +4,7 @@ from syscore.objects import missing_order, success, failure, locked_order, dupli
 from sysexecution.algos.allocate_algo_to_order import check_and_if_required_allocate_algo_to_single_contract_order
 
 from sysexecution.stack_handler.stackHandlerCore import stackHandlerCore
+from sysproduction.data.controls import dataLocks
 
 class stackHandlerCreateBrokerOrders(stackHandlerCore):
 
@@ -49,6 +50,14 @@ class stackHandlerCreateBrokerOrders(stackHandlerCore):
 
         original_contract_order = self.contract_stack.get_order_with_id_from_stack(contract_order_id)
         log = original_contract_order.log_with_attributes(self.log)
+
+        data_locks = dataLocks(self.data)
+
+        instrument_locked = data_locks.is_instrument_locked(original_contract_order.instrument_code)
+        if instrument_locked:
+            log.msg("Instrument is locked, not spawning order")
+            return None
+
 
         ## Check the order doesn't breach trade limits
         contract_order = self.what_contract_trade_is_possible(original_contract_order)

@@ -4,7 +4,7 @@ from sysexecution.base_orders import  no_order_id, no_children, no_parent
 from sysexecution.contract_orders import contractOrder
 
 from syscore.genutils import  none_to_object, object_to_none
-from syscore.objects import failure
+from syscore.objects import failure, missing_order
 
 
 
@@ -327,3 +327,11 @@ class brokerOrderStackData(orderStackData):
         self._change_order_on_stack(broker_order_id, db_broker_order)
 
 
+    def find_order_with_broker_tempid(self, broker_tempid):
+        list_of_order_ids = self.get_list_of_order_ids(exclude_inactive_orders=False)
+        for order_id in list_of_order_ids:
+            order = self.get_order_with_id_from_stack(order_id)
+            if order.broker_tempid == broker_tempid:
+                return order
+
+        return missing_order

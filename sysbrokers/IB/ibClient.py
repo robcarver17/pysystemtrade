@@ -216,6 +216,9 @@ class ibClient(brokerClient):
 
         return new_trade_object
 
+    def ib_check_order_is_cancelled(self, original_order_object):
+        return original_order_object.OrderStatus == 'Cancelled'
+
     def ib_submit_single_leg_market_order(self, contract_object_with_ib_data, trade, account=""):
         ibcontract = self.ib_futures_contract(contract_object_with_ib_data)
         if ibcontract is missing_contract:

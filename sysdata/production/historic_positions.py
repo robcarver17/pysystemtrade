@@ -6,6 +6,7 @@ from sysdata.production.generic_timed_storage import timedEntry, listOfEntries, 
 from sysdata.production.current_positions import contractPosition, listOfContractPositions, instrumentStrategyPosition, listOfInstrumentStrategyPositions
 from syscore.objects import failure
 import pandas as pd
+import datetime
 
 class historicPosition(timedEntry):
     """
@@ -88,6 +89,8 @@ class instrumentPositionData(listOfEntriesData):
 
     def update_position_for_strategy_and_instrument(self, strategy_name, instrument_code, position,
                                                     date = arg_not_supplied):
+        if date is arg_not_supplied:
+            date = datetime.datetime.now()
 
         position_entry = historicPosition(position, date=date)
         try:
@@ -238,6 +241,9 @@ class contractPositionData(listOfEntriesData):
 
     def update_position_for_contract_object(self, contract_object, position, date=arg_not_supplied):
         contractid = self._keyname_given_contract_object(contract_object)
+        if date is arg_not_supplied:
+            date = datetime.datetime.now()
+
         position_entry = historicPosition(position, date=date)
         try:
             self._update_entry_for_args_dict(position_entry, dict(contractid=contractid))
