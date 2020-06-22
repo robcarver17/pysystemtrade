@@ -13,7 +13,7 @@ Desired virtual orders have to be labelled with the desired type: limit, market,
 from syscore.objects import missing_order
 
 from sysexecution.instrument_orders import instrumentOrder
-from sysexecution.strategy_order_handling import orderGeneratorForStrategy
+from sysexecution.strategies.strategy_order_handling import orderGeneratorForStrategy
 
 from sysproduction.data.positions import diagPositions
 

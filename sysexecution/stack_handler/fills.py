@@ -24,7 +24,6 @@ class stackHandlerForFills(stackHandlerCore):
             self.apply_broker_fill_to_broker_stack(broker_order_id)
 
     def apply_broker_fill_to_broker_stack(self, broker_order_id):
-        data_broker = dataBroker(self.data)
 
         db_broker_order = self.broker_stack.get_order_with_id_from_stack(broker_order_id)
 
@@ -32,53 +31,33 @@ class stackHandlerForFills(stackHandlerCore):
             ## No point
             return success
 
+        data_broker = dataBroker(self.data)
         matched_broker_order = data_broker.match_db_broker_order_to_order_from_brokers(db_broker_order)
 
         if matched_broker_order is missing_order:
             return failure
 
-        result = self.apply_updated_broker_order_info_to_broker_order(broker_order_id, matched_broker_order)
+        result = self.broker_stack.\
+            add_execution_details_from_matched_broker_order(broker_order_id, matched_broker_order)
 
         return result
 
-    def apply_updated_broker_order_info_to_broker_order(self, broker_order_id, matched_broker_order):
-        db_broker_order = self.broker_stack.get_order_with_id_from_stack(broker_order_id)
-        # fill
-        assert len(db_broker_order.fill)==1
-        assert len(matched_broker_order.fill)==1
-
-        if matched_broker_order.fill[0]>db_broker_order.fill[0]:
-            self.broker_stack.change_fill_quantity_for_order(broker_order_id, matched_broker_order.fill,
-                                                             filled_price = matched_broker_order.filled_price,
-                                                             fill_datetime=matched_broker_order.fill_datetime)
-
-        ## FIX ME OUGHT TO BE DONE WITHOUT RESORTING TO _CHANGE ORDER
-        db_broker_order.fill_order(matched_broker_order.fill,
-                                                             filled_price = matched_broker_order.filled_price,
-                                                             fill_datetime=matched_broker_order.fill_datetime)
-        db_broker_order.commission = matched_broker_order.commission
-        db_broker_order.broker_permid = matched_broker_order.broker_permid
-        db_broker_order.algo_comment = matched_broker_order.algo_comment
-
-        self.broker_stack._change_order_on_stack(broker_order_id, db_broker_order)
-
-        return success
 
     def pass_fills_from_broker_up_to_contract(self):
         list_of_child_order_ids = self.broker_stack.get_list_of_order_ids()
         for broker_order_id in list_of_child_order_ids:
-            self.apply_broker_fill_to_parent_order(broker_order_id)
+            self.apply_broker_fill_to_contract_order(broker_order_id)
 
-    def apply_broker_fill_to_parent_order(self, broker_order_id):
+    def apply_broker_fill_to_contract_order(self, broker_order_id):
         broker_order = self.broker_stack.get_order_with_id_from_stack(broker_order_id)
-
+        log = broker_order.log_with_attributes(self.log)
         if broker_order.fill_equals_zero():
             # Nothing to do here
             return success
 
         parent_id = broker_order.parent
         if parent_id is no_parent:
-            self.log.warn("No parent for broker order %s %d" % (str(broker_order), broker_order_id))
+            log.error("No contract order parent for broker order %s %d" % (str(broker_order), broker_order_id))
             return failure
 
         contract_order = self.contract_stack.get_order_with_id_from_stack(parent_id)
@@ -87,6 +66,7 @@ class stackHandlerForFills(stackHandlerCore):
         return result
 
     def apply_broker_fill_to_known_contract_order(self, broker_order, contract_order):
+        log = broker_order.log_with_attributes(self.log)
         filled_qty = broker_order.fill ## will be a list
         filled_price = broker_order.filled_price
         fill_datetime = broker_order.fill_datetime
@@ -97,7 +77,7 @@ class stackHandlerForFills(stackHandlerCore):
                                                fill_datetime=fill_datetime)
         else:
             ## Spread order
-            self.log.critical("Can't handle spread orders yet!")
+            log.critical("Can't handle spread orders yet!")
 
             result = failure
 
@@ -106,10 +86,11 @@ class stackHandlerForFills(stackHandlerCore):
     def pass_fills_from_contract_up_to_instrument(self):
         list_of_child_order_ids = self.contract_stack.get_list_of_order_ids()
         for contract_order_id in list_of_child_order_ids:
-            self.apply_contract_fill_to_parent_order(contract_order_id)
+            self.apply_contract_fill_to_instrument_order(contract_order_id)
 
-    def apply_contract_fill_to_parent_order(self, contract_order_id):
+    def apply_contract_fill_to_instrument_order(self, contract_order_id):
         contract_order = self.contract_stack.get_order_with_id_from_stack(contract_order_id)
+        log = contract_order.log_with_attributes(self.log)
 
         if contract_order.fill_equals_zero():
             # Nothing to do here
@@ -117,7 +98,7 @@ class stackHandlerForFills(stackHandlerCore):
 
         contract_parent_id = contract_order.parent
         if contract_parent_id is no_parent:
-            self.log.warn("No parent for contract order %s %d" % (str(contract_order), contract_order_id))
+            log.error("No parent for contract order %s %d" % (str(contract_order), contract_order_id))
             return failure
 
         instrument_order = self.instrument_stack.get_order_with_id_from_stack(contract_parent_id)
@@ -134,6 +115,8 @@ class stackHandlerForFills(stackHandlerCore):
         return result
 
     def apply_contract_fill_to_parent_order_single_child(self, contract_order, instrument_order):
+        log = contract_order.log_with_attributes(self.log)
+
         fill_for_contract = contract_order.fill
         filled_price = contract_order.filled_price
         fill_datetime = contract_order.fill_datetime
@@ -150,19 +133,20 @@ class stackHandlerForFills(stackHandlerCore):
                 result = success
             else:
                 ## A proper spread order
-                self.log.critical("Can't handle spread orders yet! Instrument order %s %s"
+                log.critical("Can't handle spread orders yet! Instrument order %s %s"
                                   % (str(instrument_order), str(instrument_order.order_id)))
                 result = failure
 
         return result
 
     def apply_contract_fill_to_parent_order_multiple_children(self, list_of_contract_order_ids, instrument_order):
+        log = instrument_order.log_with_attributes(self.log)
         if instrument_order.is_zero_trade():
-            ## A roll trade
+            ## Probably a roll trade
             ## Meaningless to do this
             return success
         else:
             ## A proper spread trade
-            self.log.critical("Can't handle spread orders yet! Instrument order %s %s"
+            log.critical("Can't handle spread orders yet! Instrument order %s %s"
                               % (str(instrument_order), str(instrument_order.order_id)))
             return failure

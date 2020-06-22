@@ -14,6 +14,7 @@ from sysdata.private_config import get_private_then_default_key_value
 
 from sysproduction.data.positions import diagPositions
 from sysproduction.data.orders import dataOrders
+from sysproduction.data.controls import diagOverrides
 
 class orderHandlerAcrossStrategies(object):
     def __init__(self, data):
@@ -67,52 +68,80 @@ class orderHandlerAcrossStrategies(object):
                 continue
             else:
                 ## Handle the orders
-                result = self.submit_order_list(order_list)
+                pass
+                order_list_with_overrides = self.apply_overrides(order_list)
+                result = self.submit_order_list(order_list_with_overrides)
                 if result is success:
                     generator_dict[strategy_name].set_last_run()
 
         return success
 
+
+    def apply_overrides(self, order_list):
+        new_order_list = [self.apply_overrides_for_instrument_and_strategy(proposed_order) for
+                          proposed_order in order_list]
+
+        return new_order_list
+
     def submit_order_list(self, order_list):
         for order in order_list:
-            try:
+            #try:
                 # we allow existing orders to be modified
-                order_id = self.order_stack.put_order_on_stack(order, modify_existing_order = True)
+                log = order.log_with_attributes(self.log)
+                log.msg("Required order %s" % str(order))
+                order_id = self.order_stack.put_order_on_stack(order)
                 if type(order_id) is int:
-                    self.log.msg("Added order %s to instrument order stack with order id %d" % (str(order), order_id),
-                            instrument_order_id = order_id, strategy_name = order.strategy_name,
-                                 instrument_code = order.instrument_code)
+                    log.msg("Added order %s to instrument order stack with order id %d" % (str(order), order_id),
+                            instrument_order_id = order_id)
                 else:
                     order_error_object = order_id
                     if order_error_object is zero_order:
                         # To be expected unless modifying an existing order
-                        self.log.msg(
+                        log.msg(
                             "Ignoring zero order %s" % str(
-                                order),
-                            strategy_name=order.strategy_name,
-                            instrument_code=order.instrument_code)
+                                order))
 
-                    elif order_error_object is duplicate_order:
-                        # Order already exists so that's fine too
-                        self.log.msg(
-                            "Ignoring duplicate order %s" % str(
-                                order),
-                            strategy_name=order.strategy_name,
-                            instrument_code=order.instrument_code)
                     else:
-                        self.log.warn("Could not put order %s on instrument order stack, error: %s" %
-                                      (str(order), str(order_error_object)),
-                                     strategy_name = order.strategy_name,
-                                     instrument_code = order.instrument_code)
+                        log.warn("Could not put order %s on instrument order stack, error: %s" %
+                                      (str(order), str(order_error_object)))
 
-            except Exception as e:
-                # serious error, abandon everything
-                self.log.critical("Error %s putting %s on instrument order stack" % (str(e), str(order)),
-                              strategy_name=order.strategy_name,
-                              instrument_code=order.instrument_code)
-                return failure
+            #except Exception as e:
+            #    # serious error, abandon everything
+            #    log.critical("Error %s putting %s on instrument order stack" % (str(e), str(order)))
+            #    return failure
 
         return success
+
+    def apply_overrides_for_instrument_and_strategy(self,  proposed_order):
+        """
+        Apply an override to a trade
+
+        :param strategy_name: str
+        :param instrument_code: str
+        :return: int, updated position
+        """
+
+        diag_overrides = diagOverrides(self.data)
+        diag_positions = diagPositions(self.data)
+
+        strategy_name = proposed_order.strategy_name
+        instrument_code = proposed_order.instrument_code
+
+        original_position = diag_positions.get_position_for_strategy_and_instrument(strategy_name,
+                                                                                    instrument_code)
+
+        override = diag_overrides.get_cumulative_override_for_strategy_and_instrument(strategy_name, instrument_code)
+        revised_order = override.apply_override(original_position, proposed_order)
+
+        if revised_order.trade!=proposed_order.trade:
+            self.log.msg("%s/%s trade change from %d to %d because of override %s"
+                         % (strategy_name, instrument_code, revised_order.trade, proposed_order.trade,
+                            str(override)),
+                                     strategy_name = strategy_name,
+                                     instrument_code = instrument_code)
+
+        return revised_order
+
 
 class orderGeneratorForStrategy(timerClass):
     """
@@ -184,6 +213,4 @@ class orderGeneratorForStrategy(timerClass):
     def _required_orders_no_checking(self):
         ## Would normally be overriden, we only use this class if no class is found in config
         return not_updated
-
-
 

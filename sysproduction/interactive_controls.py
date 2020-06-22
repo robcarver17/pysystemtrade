@@ -38,8 +38,7 @@ nested_menu_of_options = {
                     1: {10: 'View overrides',
                         11: 'Update / add / remove override for strategy',
                         12: 'Update / add / remove override for instrument',
-                        13: 'Update / add / remove override for contract',
-                        14: 'Update / add / remove override for strategy & instrument'
+                        13: 'Update / add / remove override for strategy & instrument'
                         },
                     2: {20: 'View process controls',
                         21: 'Change process controls',
@@ -104,39 +103,30 @@ def view_overrides(data):
     print("\n")
 
 def update_strategy_override(data):
-    diag_overrides = diagOverrides(data)
+    update_overrides = updateOverrides(data)
     strategy_name = get_valid_strategy_name_from_user()
     new_override = get_overide_object_from_user()
     ans = input("Are you sure? (y/other)")
     if ans =="y":
-        diag_overrides.update_override_for_strategy(strategy_name, new_override)
+        update_overrides.update_override_for_strategy(strategy_name, new_override)
 
 
 def update_instrument_override(data):
-    diag_overrides = diagOverrides(data)
+    update_overrides = updateOverrides(data)
     instrument_code = get_valid_instrument_code_from_user(data)
     new_override = get_overide_object_from_user()
     ans = input("Are you sure? (y/other)")
     if ans =="y":
-        diag_overrides.update_override_for_instrument(instrument_code, new_override)
-
-def update_contract_override(data):
-    diag_overrides = diagOverrides(data)
-    instrument_code, contract_id = get_valid_instrument_code_and_contractid_from_user(data)
-    new_override = get_overide_object_from_user()
-    ans = input("Are you sure? (y/other)")
-    if ans =="y":
-        diag_overrides.update_override_for_instrument_and_contractid(instrument_code, contract_id, new_override)
-        print("Won't be updated automatically when the contract expires - you will have to delete")
+        update_overrides.update_override_for_instrument(instrument_code, new_override)
 
 def update_strategy_instrument_override(data):
-    diag_overrides = diagOverrides(data)
+    update_overrides = updateOverrides(data)
     instrument_code = get_valid_instrument_code_from_user(data)
     strategy_name = get_valid_strategy_name_from_user()
     new_override = get_overide_object_from_user()
     ans = input("Are you sure? (y/other)")
     if ans =="y":
-        diag_overrides.update_override_for_strategy_instrument(strategy_name, instrument_code, new_override)
+        update_overrides.update_override_for_strategy_instrument(strategy_name, instrument_code, new_override)
 
 
 def get_overide_object_from_user():
@@ -166,8 +156,7 @@ dict_of_functions = {0: view_trade_limits,
                      10: view_overrides,
                      11: update_strategy_override,
                      12: update_instrument_override,
-                     13: update_contract_override,
-                     14: update_strategy_instrument_override,
+                     13: update_strategy_instrument_override,
 
                      20: not_defined,
                      21: not_defined,

@@ -20,10 +20,12 @@ from syscore.genutils import get_and_convert, run_interactive_menu
 from sysproduction.data.get_data import dataBlob
 from sysproduction.data.positions import diagPositions
 from sysproduction.data.broker import dataBroker
+from sysproduction.data.sim_data import get_valid_strategy_name_from_user
+from sysproduction.data.contracts import get_valid_instrument_code_and_contractid_from_user
 
 from sysexecution.stack_handler.stack_handler import stackHandler
-
-
+from sysexecution.stack_handler.balance_trades import stackHandlerCreateBalanceTrades
+from sysexecution.broker_orders import brokerOrder
 
 def interactive_order_stack():
     with dataBlob(log_name = "Interactive-Order-Stack") as data:
@@ -42,7 +44,7 @@ def interactive_order_stack():
             method_chosen(data)
 
 top_level_menu_of_options = {0:'View', 1:'Create orders', 2:'Fills and completions',
-                3:'Modify/cancel', 4: 'Delete'}
+                3:'Netting and cancellation', 4: 'Delete'}
 
 nested_menu_of_options = {
                     0:{0: 'View specific order',
@@ -65,20 +67,10 @@ nested_menu_of_options = {
                     21: 'Get broker fills from IB',
                     22: 'Pass fills upwards from broker to contract order',
                    23: 'Pass fills upwards from contract to instrument order',
-                   24: 'Handle completed orders',
-                    25: 'Do 21, 22, 23, 24 for all orders'},
+                   24: 'Handle completed orders'},
                     3: {
-                   30: 'Modify or cancel instrument order',
-                   31: 'Pass modification from instrument to contract',
-                32: 'Pass modification from contract to broker',
-                    33: 'Complete modification for broker order',
-                        34: 'Reject modification for broker order',
-                        35: 'Pass modification complete/rejected from broker to contract order',
-                   36: 'Complete modification for contract order',
-                    37: 'Reject modification for contract order',
-                   38: 'Pass modification complete/rejected from contract to instrument order',
-                   39: 'Clear completed or rejected modifications',
-                    300: 'Do 31,32,35,38,39 for all orders'},
+                   30: 'Cancel broker order',
+                        31: 'Net instrument orders'},
                     4: {
                     40 : 'Delete entire stack',
                     41: 'Delete specific order ID',
@@ -90,12 +82,8 @@ nested_menu_of_options = {
 
 def view_instrument_stack(data):
     stack_handler = stackHandler(data)
-
-    order_ids = stack_handler.instrument_stack.get_list_of_order_ids()
     print("\nINSTRUMENT STACK \n")
-    for order_id in order_ids:
-        print(stack_handler.instrument_stack.get_order_with_id_from_stack(order_id).terse_repr())
-
+    view_generic_stack(stack_handler.instrument_stack)
 
 def view_contract_stack(data):
     stack_handler = stackHandler(data)
@@ -110,15 +98,22 @@ def view_contract_stack(data):
 
 def view_broker_stack(data):
     stack_handler = stackHandler(data)
-
-    order_ids = stack_handler.broker_stack.get_list_of_order_ids()
     print("\nBROKER STACK \n")
+    view_generic_stack(stack_handler.broker_stack)
+
+def view_generic_stack(stack):
+    order_ids = stack.get_list_of_order_ids()
     for order_id in order_ids:
-        print(stack_handler.broker_stack.get_order_with_id_from_stack(order_id).terse_repr())
+        print(stack.get_order_with_id_from_stack(order_id).terse_repr())
+
 
 def view_broker_order_list(data):
     data_broker = dataBroker(data)
     broker_orders = data_broker.get_list_of_orders()
+    for order in broker_orders:
+        print(order)
+    print("Stored (orders made in this session):")
+    broker_orders = data_broker.get_list_of_placed_orders()
     for order in broker_orders:
         print(order)
 
@@ -127,7 +122,8 @@ def spawn_contracts_from_instrument_orders(data):
     stack_handler = stackHandler(data)
 
     print("This will create contract orders for any instrument orders that don't have them")
-
+    print("Instrument orders:")
+    view_instrument_stack(data)
     order_id = get_and_convert("Which instrument order ID", default_value="ALL", default_str="All", type_expected=int)
     check_ans = input("Are you sure? (Y/other)")
     if check_ans != "Y":
@@ -140,10 +136,43 @@ def spawn_contracts_from_instrument_orders(data):
     print("If you are trading manually, you should now view the contract order stack and trade.")
     print("Then create manual fills for contract orders")
 
+def create_balance_trade(data):
+    data_broker = dataBroker(data)
+    default_account = data_broker.get_broker_account()
 
+    print("Most likely use case here is that IB has closed one of your positions as close to the expiry")
+    print("Or an edge case in which an order was submitted and then filled whilst you were not monitoring fills")
+    print("Trades have to be attributed to a strategy (even roll trades)")
+    strategy_name = get_valid_strategy_name_from_user()
+    instrument_code, contract_date = get_valid_instrument_code_and_contractid_from_user(data)
+    fill_qty = get_and_convert("Quantity ", type_expected=int, allow_default=False)
+    filled_price = get_and_convert("Filled price", type_expected=float, allow_default=False)
+    fill_datetime  =get_datetime_input("Fill datetime", allow_default=True)
+    commission = get_and_convert("Commission", type_expected=float, allow_default=True, default_value=0.0)
+    broker_account = get_and_convert("Account ID", type_expected=str, allow_default=True, default_value=default_account)
+
+    broker_order = brokerOrder(strategy_name, instrument_code, contract_date, [fill_qty],
+                               fill = [fill_qty],
+                               algo_used="balance_trade",
+                               order_type="balance_trade",
+                               filled_price = filled_price,
+                               fill_datetime = fill_datetime,
+                               broker_account = broker_account,
+                               commission = commission, manual_fill=True,
+                               active = False)
+
+    print(broker_order)
+    ans = input("Are you sure? (Y/other)")
+    if ans !="Y":
+        return None
+
+    stack_handler = stackHandlerCreateBalanceTrades(data)
+
+    stack_handler.create_balance_trade(broker_order)
 
 def generate_generic_manual_fill(data):
     stack = resolve_stack(data, exclude_instrument_stack=True)
+    view_generic_stack(stack)
     order_id = get_and_convert("Enter order ID", default_str="Cancel", default_value="")
     if order_id=="":
         return None
@@ -169,6 +198,8 @@ def generate_ib_orders(data):
     stack_handler = stackHandler(data)
 
     print("This will create broker orders and submit to IB")
+    print("Contract orders:")
+    view_contract_stack(data)
     contract_order_id = get_and_convert("Which contract order ID?", default_value="ALL", default_str="for all", type_expected=int)
     ans = input("Are you sure? (Y/other)")
     if ans !="Y":
@@ -184,6 +215,8 @@ def get_fills_from_broker(data):
     stack_handler = stackHandler(data)
 
     print("This will get any fills from the broker, and write them to the broker stack")
+    print("Broker orders: (in database)")
+    view_broker_stack(data)
     broker_order_id = get_and_convert("Which broker order ID?", default_value="ALL", default_str="for all", type_expected=int)
     ans = input("Are you sure? (Y/other)")
     if ans !="Y":
@@ -200,6 +233,8 @@ def pass_fills_upwards_from_broker(data):
     stack_handler = stackHandler(data)
 
     print("This will process any fills applied to broker orders and pass them up to contract orders")
+    view_broker_stack(data)
+
     broker_order_id = get_and_convert("Which order ID?", default_value="ALL", default_str="for all", type_expected=int)
     ans = input("Are you sure? (Y/other)")
     if ans !="Y":
@@ -207,7 +242,7 @@ def pass_fills_upwards_from_broker(data):
     if broker_order_id=="ALL":
         stack_handler.pass_fills_from_broker_up_to_contract()
     else:
-        stack_handler.apply_broker_fill_to_parent_order(broker_order_id)
+        stack_handler.apply_broker_fill_to_contract_order(broker_order_id)
 
     print("If stack process not running, your next job will be to pass fills from contract to instrument")
 
@@ -217,6 +252,7 @@ def pass_fills_upwards_from_contracts(data):
     stack_handler = stackHandler(data)
 
     print("This will process any fills applied to contract orders and pass them up to instrument orders")
+    view_contract_stack(data)
     contract_order_id = get_and_convert("Which order ID?", default_value="ALL", default_str="for all", type_expected=int)
     ans = input("Are you sure? (Y/other)")
     if ans !="Y":
@@ -224,7 +260,7 @@ def pass_fills_upwards_from_contracts(data):
     if contract_order_id=="ALL":
         stack_handler.pass_fills_from_contract_up_to_instrument()
     else:
-        stack_handler.apply_contract_fill_to_parent_order(contract_order_id)
+        stack_handler.apply_contract_fill_to_instrument_order(contract_order_id)
 
 
     print("If stack process not running, your next job will be to handle completed orders")
@@ -248,6 +284,7 @@ def handle_completed_orders(data):
     stack_handler = stackHandler(data)
 
     print("This will process any completed orders (all fills present)")
+    view_instrument_stack(data)
     instrument_order_id = get_and_convert("Which instrument order ID?", default_str="All", default_value="ALL",
                           type_expected=int)
     ans = input("Are you sure? (Y/other)")
@@ -263,6 +300,7 @@ def order_view(data):
     stack = resolve_stack(data)
     if stack is None:
         return None
+    view_generic_stack(stack)
     order_id = get_and_convert("Order ID?", type_expected=int, allow_default=False)
     order = stack.get_order_with_id_from_stack(order_id)
     print("%s" % order)
@@ -273,6 +311,7 @@ def order_locking(data):
     stack = resolve_stack(data)
     if stack is None:
         return None
+    view_generic_stack(stack)
     order_id = get_and_convert("Order ID ", type_expected=int, allow_default=False)
     order = stack.get_order_with_id_from_stack(order_id)
     print(order)
@@ -316,6 +355,7 @@ def delete_specific_order(data):
     stack = resolve_stack(data)
     if stack is None:
         return None
+    view_generic_stack(stack)
     order_id = get_and_convert("Order ID ", type_expected=int, allow_default=False)
     order = stack.get_order_with_id_from_stack(order_id)
     print(order)
@@ -365,68 +405,6 @@ def view_positions(data):
         print("(No breaks positions consistent)")
     return None
 
-def modify_instrument_order(data):
-    stack_handler = stackHandler(data)
-
-    order_id = get_and_convert("Enter order ID", type_expected=int, default_str="Cancel", default_value=0)
-    if order_id ==0:
-        return None
-    order = stack_handler.instrument_stack.get_order_with_id_from_stack(order_id)
-    print("Existing order %s" % str(order))
-    new_qty = get_and_convert("New quantity (zero to cancel)", type_expected=int, default_value = order.trade)
-    stack_handler.instrument_stack.modify_order_on_stack(order_id, new_qty)
-    print("You will probably want to push modifications down to contract orders next, if not running on auto")
-
-def pass_modifications_down_to_contracts(data):
-    print("This will pass a parent instrument order modification downwards")
-    stack_handler = stackHandler(data)
-    order_id = get_and_convert("Which instrument order ID", default_value="ALL", default_str="All", type_expected=int)
-    check_ans = input("Are you sure? (Y/other)")
-    if check_ans != "Y":
-        return None
-    if order_id =="ALL":
-        stack_handler.pass_on_modification_from_instrument_to_contract_orders()
-    else:
-        stack_handler.pass_modification_from_parent_to_children(order_id)
-
-    print("If you are trading manually, you will now want to mark contract modifications as complete")
-
-def complete_modification_for_contract(data):
-    stack_handler = stackHandler(data)
-
-    order_id = get_and_convert("Which contract order ID", default_value=0, default_str="CANCEL", type_expected=int)
-    if order_id ==0:
-        return None
-    else:
-        stack_handler.contract_stack.completed_modifying_order_on_stack(order_id)
-
-    print("If you are trading manually, you will now want to pass the modification complete from contract to instruments")
-
-
-def pass_on_modification_complete_from_contract_to_instrument_orders(data):
-    print("This will mark all orders ")
-    stack_handler = stackHandler(data)
-
-    order_id = get_and_convert("Which contract order ID", default_value="ALL", default_str="All", type_expected=int)
-    check_ans = input("Are you sure? (Y/other)")
-    if check_ans != "Y":
-        return None
-    if order_id =="ALL":
-        stack_handler.pass_on_modification_from_instrument_to_contract_orders()
-    else:
-        stack_handler.pass_modification_complete_from_child_to_parent_orders(order_id)
-
-    print("If you are trading manually, you will now want to clear modifications")
-
-def clear_completed_modifications_from_instrument_and_contract_stacks(data):
-    stack_handler = stackHandler(data)
-
-    ans = input("Clear all completed modifications from instrument and contract stacks, sure? (Y/other")
-    if ans =="Y":
-        stack_handler.clear_completed_modifications_from_instrument_and_contract_stacks()
-
-    return None
-
 def not_defined(data):
     print("Function not yet defined")
 
@@ -439,7 +417,7 @@ dict_of_functions = {0: order_view,
                      10: spawn_contracts_from_instrument_orders,
                      11: generate_force_roll_orders,
                      12: generate_ib_orders,
-                     13: not_defined,
+                     13: create_balance_trade,
                      14: not_defined,
 
                      20: generate_generic_manual_fill,
@@ -447,19 +425,9 @@ dict_of_functions = {0: order_view,
                      22: pass_fills_upwards_from_broker,
                      23: pass_fills_upwards_from_contracts,
                      24: handle_completed_orders,
-                     25: not_defined,
 
-                    30: modify_instrument_order,
-                     31: pass_modifications_down_to_contracts,
-                     32: not_defined,
-                     33: not_defined,
-                     34: not_defined,
-                     35: not_defined,
-                     36: complete_modification_for_contract,
-                     37: not_defined,
-                     38: pass_on_modification_complete_from_contract_to_instrument_orders,
-                     39: clear_completed_modifications_from_instrument_and_contract_stacks,
-                     300: not_defined,
+                    30: not_defined,
+                     31: not_defined,
 
                      40: delete_entire_stack,
                      41: delete_specific_order,

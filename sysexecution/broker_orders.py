@@ -1,6 +1,6 @@
 import datetime
 from sysexecution.order_stack import orderStackData
-from sysexecution.base_orders import  no_order_id, no_children, no_parent, MODIFICATION_STATUS_NO_MODIFICATION
+from sysexecution.base_orders import  no_order_id, no_children, no_parent
 from sysexecution.contract_orders import contractOrder
 
 from syscore.genutils import  none_to_object, object_to_none
@@ -12,7 +12,7 @@ class brokerOrder(contractOrder):
 
     def __init__(self, *args, fill=None,
                  locked=False, order_id=no_order_id,
-                 modification_status = MODIFICATION_STATUS_NO_MODIFICATION,
+                 modification_status = None,
                  modification_quantity = None, parent=no_parent,
                  children=no_children, active=True,
                  algo_used="", order_type = "market", limit_price = None, filled_price = None,
@@ -24,7 +24,8 @@ class brokerOrder(contractOrder):
                  commission=0.0,
                  broker_permid="", broker_tempid="",
                  manual_fill = False,
-                 calendar_spread_order=None
+                 calendar_spread_order=None,
+                 broker_objects = dict()
                  ):
         """
 
@@ -41,8 +42,8 @@ class brokerOrder(contractOrder):
         :param fill:  fill done so far, list of int
         :param locked: bool, is order locked
         :param order_id: int, my ref number
-        :param modification_status: str, is being modified?
-        :param modification_quantity: list of int, any modification required
+        :param modification_status: NOT USED
+        :param modification_quantity: NOT USED
         :param parent: int or not supplied, parent order
         :param children: list of int or not supplied, child order ids (FUNCTIONALITY NOT USED HERE)
         :param active: bool, is order active or has been filled/cancelled
@@ -61,6 +62,7 @@ class brokerOrder(contractOrder):
         :param commission: float
         :param broker_permid: Brokers permanent ref number
         :param broker_tempid: Brokers temporary ref number
+        :param broker_objects: store brokers representation of objects
         :param manual_fill: bool, was fill entered manually rather than being picked up from IB
 
         """
@@ -102,11 +104,20 @@ class brokerOrder(contractOrder):
                                 broker_permid = broker_permid, broker_tempid = broker_tempid, broker_clientid = broker_clientid,
                                 commission=commission)
 
+        # NOTE: we do not include these in the normal order info dict
+        # This means they will NOT be saved when we do .as_dict(), i.e. they won't be saved in the mongo record
+        # This is deliberate since these objects can't be saved accordingly
+        # Instead we store them only in a single session to make it easier to match and modify orders
+
+        self._broker_objects = broker_objects
 
     @property
     def algo_used(self):
         return self._order_info['algo_used']
 
+    @property
+    def broker_objects(self):
+        return self._broker_objects
 
     @property
     def order_type(self):
@@ -240,6 +251,29 @@ class brokerOrder(contractOrder):
     def manual_trade(self):
         return False
 
+    def log_with_attributes(self, log):
+        """
+        Returns a new log object with broker_order attributes added
+
+        :param log: logger
+        :return: log
+        """
+        broker_order = self
+        new_log = log.setup(
+                  strategy_name=broker_order.strategy_name,
+                  instrument_code=broker_order.instrument_code,
+                  contract_order_id=object_to_none(broker_order.parent, no_parent),
+                  broker_order_id = object_to_none(broker_order.order_id, no_order_id))
+
+        return new_log
+
+    def add_execution_details_from_matched_broker_order(self, matched_broker_order):
+        self.fill_order(matched_broker_order.fill,
+                                                             filled_price = matched_broker_order.filled_price,
+                                                             fill_datetime=matched_broker_order.fill_datetime)
+        self.commission = matched_broker_order.commission
+        self.broker_permid = matched_broker_order.broker_permid
+        self.algo_comment = matched_broker_order.algo_comment
 
 
 
@@ -278,24 +312,18 @@ class brokerOrderStackData(orderStackData):
         # all good need to show it was a manual fill
         order = self.get_order_with_id_from_stack(order_id)
         order.manual_fill = True
-        result = self._change_order_on_stack(order_id, order, check_if_orders_being_modified=False)
+        result = self._change_order_on_stack(order_id, order)
 
         return result
 
+    def add_execution_details_from_matched_broker_order(self, broker_order_id, matched_broker_order):
+        db_broker_order = self.get_order_with_id_from_stack(broker_order_id)
+
+        # can only handle single leg orders
+        assert len(db_broker_order.fill)==1
+        assert len(matched_broker_order.fill)==1
+
+        db_broker_order.add_execution_details_from_matched_broker_order(matched_broker_order)
+        self._change_order_on_stack(broker_order_id, db_broker_order)
 
 
-def log_attributes_from_broker_order(log, broker_order):
-    """
-    Returns a new log object with broker_order attributes added
-
-    :param log: logger
-    :param instrument_order:
-    :return: log
-    """
-    new_log = log.setup(
-              strategy_name=broker_order.strategy_name,
-              instrument_code=broker_order.instrument_code,
-              contract_order_id=object_to_none(broker_order.parent, no_order_id),
-              broker_order_id = broker_order.order_id)
-
-    return new_log

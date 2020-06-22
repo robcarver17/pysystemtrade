@@ -8,7 +8,7 @@ FIX ME: At the moment it will only run once
 
 """
 
-from sysexecution.strategy_order_handling import orderHandlerAcrossStrategies
+from sysexecution.strategies.strategy_order_handling import orderHandlerAcrossStrategies
 
 from syslogdiag.log import logToMongod as logger
 from sysdata.mongodb.mongo_connection import mongoDb

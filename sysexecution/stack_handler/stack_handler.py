@@ -16,10 +16,7 @@ Tasks it needs to accomplish:
 
 """
 
-from syscore.objects import missing_order, success, failure, locked_order, duplicate_order, no_order_id, no_children, no_parent, missing_contract, missing_data, rolling_cant_trade, ROLL_PSEUDO_STRATEGY, missing_order, order_is_in_status_reject_modification, order_is_in_status_finished, locked_order, order_is_in_status_modified, resolve_function
 
-
-from sysexecution.stack_handler.stack_handler_modifications import stackHandlerForModifications
 from sysexecution.stack_handler.spawn_children_from_instrument_orders import stackHandlerForSpawning
 from sysexecution.stack_handler.roll_orders import  stackHandlerForRolls
 from sysexecution.stack_handler.create_broker_orders_from_contract_orders import stackHandlerCreateBrokerOrders
@@ -27,7 +24,7 @@ from sysexecution.stack_handler.fills import stackHandlerForFills
 from sysexecution.stack_handler.completed_orders import stackHandlerForCompletions
 
 
-class stackHandler(stackHandlerForModifications, stackHandlerForSpawning, stackHandlerForRolls,
+class stackHandler(stackHandlerForSpawning, stackHandlerForRolls,
                    stackHandlerCreateBrokerOrders, stackHandlerForFills,
                    stackHandlerForCompletions):
 
@@ -42,7 +39,6 @@ class stackHandler(stackHandlerForModifications, stackHandlerForSpawning, stackH
         self.process_spawning_stack()
         self.process_roll_stack()
         self.process_create_broker_order_stack()
-        self.process_modification_stack()
         self.process_fills_stack()
         self.process_completions_stack()
 

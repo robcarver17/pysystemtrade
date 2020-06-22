@@ -10,6 +10,15 @@ class dataTradeLimits(object):
         data.add_class_list("mongoTradeLimitData")
         self.data = data
 
+    def what_trade_is_possible(self, strategy_name, instrument_code, proposed_trade):
+        return self.data.db_trade_limit.what_trade_is_possible(strategy_name, instrument_code, proposed_trade)
+
+    def add_trade(self,  strategy_name, instrument_code, trade):
+        return self.data.db_trade_limit.add_trade(strategy_name, instrument_code, trade)
+
+    def remove_trade(self,  strategy_name, instrument_code, trade):
+        return self.data.db_trade_limit.remove_trade(strategy_name, instrument_code, trade)
+
     def get_all_limits(self):
         return self.data.db_trade_limit.get_all_limits()
 
@@ -37,6 +46,18 @@ class diagOverrides(object):
     def get_dict_of_all_overrides(self):
         return self.data.db_override.get_dict_of_all_overrides()
 
+    def get_cumulative_override_for_strategy_and_instrument(self, strategy_name, instrument_code):
+        return self.data.db_override.get_cumulative_override_for_strategy_and_instrument( strategy_name, instrument_code)
+
+class updateOverrides(object):
+    def __init__(self, data=arg_not_supplied):
+        # Check data has the right elements to do this
+        if data is arg_not_supplied:
+            data = dataBlob()
+
+        data.add_class_list("mongoOverrideData")
+        self.data = data
+
     def update_override_for_strategy(self, strategy_name, new_override):
         self.data.db_override.update_override_for_strategy(strategy_name, new_override)
 
@@ -52,13 +73,3 @@ class diagOverrides(object):
 
         self.data.\
             db_override.update_override_for_instrument_and_contractid(instrument_code, contract_id, new_override)
-
-class updateOverrides(object):
-    def __init__(self, data=arg_not_supplied):
-        # Check data has the right elements to do this
-        if data is arg_not_supplied:
-            data = dataBlob()
-
-        data.add_class_list("mongoOverrideData")
-        self.data = data
-

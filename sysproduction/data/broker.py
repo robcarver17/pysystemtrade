@@ -4,8 +4,7 @@ from syscore.objects import missing_data, arg_not_supplied, missing_order
 
 from sysdata.production.current_positions import contractPosition
 
-from sysexecution.broker_orders import create_new_broker_order_from_contract_order, log_attributes_from_broker_order
-from sysexecution.contract_orders import log_attributes_from_contract_order
+from sysexecution.broker_orders import create_new_broker_order_from_contract_order
 
 from sysproduction.data.get_data import dataBlob
 from sysproduction.data.positions import diagPositions
@@ -73,7 +72,7 @@ class dataBroker(object):
 
     def get_and_submit_broker_order_for_contract_order_as_market_order_with_quantity(self, contract_order, qty):
 
-        log = log_attributes_from_contract_order(self.data.log, contract_order)
+        log = contract_order.log_with_attributes(self.data.log)
         broker = self.get_broker_name()
         broker_account = self.get_broker_account()
         broker_clientid = self.get_broker_clientid()
@@ -86,13 +85,16 @@ class dataBroker(object):
                                                                    algo_comment="market order",
                                                                    broker=broker, broker_account=broker_account,
                                                                    broker_clientid=broker_clientid)
-
+        log.msg("Created a broker order %s (not yet submitted or written to local DB)" % str(broker_order))
         submitted_broker_order = self.\
             submit_broker_order(broker_order)
 
         if submitted_broker_order is missing_order:
+            log("Order could not be submitted")
             return missing_order
 
+        log = submitted_broker_order.log_with_attributes(log)
+        log.msg("Submitted order to IB %s" % submitted_broker_order)
 
         return submitted_broker_order
 
@@ -107,6 +109,7 @@ class dataBroker(object):
 
     def check_market_conditions_for_contract_order(self, contract_order):
         """
+        Get current prices and check of market is open
 
         :param contract_order:
         :return: tuple: side_price, mid_price OR missing_data
@@ -120,19 +123,12 @@ class dataBroker(object):
         :param broker_order: a broker_order
         :return: broker order id with information added, or missing_order if couldn't submit
         """
-        trade_object = self.data.broker_orders.put_order_on_stack(broker_order)
-        if trade_object is missing_order:
+        placed_broker_order = self.data.broker_orders.put_order_on_stack(broker_order)
+        if placed_broker_order is missing_order:
             return missing_order
 
-        orderid, permid, clientid = self.data.broker_orders.broker_id_from_trade_object(trade_object)
+        return placed_broker_order
 
-        # ADD single method to do this
-        broker_order.submit_datetime = datetime.datetime.now()
-        broker_order.broker_permid = permid
-        broker_order.broker_tempid = orderid
-        broker_order.broker_clientid = clientid
-
-        return broker_order
 
     def get_list_of_orders(self):
         list_of_orders = self.data.broker_orders.get_list_of_broker_orders()
@@ -142,6 +138,15 @@ class dataBroker(object):
 
         return list_of_orders_with_commission
 
+    def get_list_of_placed_orders(self):
+        dict_of_orders = self.data.broker_orders.get_dict_of_orders_from_storage()
+
+        list_of_orders_with_commission = [self.calculate_total_commission_for_broker_order(broker_order) \
+                            for broker_order in dict_of_orders.values()]
+
+        return list_of_orders_with_commission
+
+
     def calculate_total_commission_for_broker_order(self, broker_order):
         """
         This turns a broker_order with non-standard commission field (list of tuples) into a single figure
@@ -149,6 +154,8 @@ class dataBroker(object):
 
         :return: broker_order
         """
+        if broker_order is missing_order:
+            return broker_order
 
         currency_data = currencyData(self.data)
         if isinstance(broker_order.commission, float):
@@ -166,90 +173,9 @@ class dataBroker(object):
 
         :return: brokerOrder coming from broker
         """
+        matched_order = self.data.broker_orders.match_db_broker_order_to_order_from_brokers(broker_order_to_match)
 
-        list_of_broker_orders = self.get_list_of_orders()
-
-        ## Match on permid
-        permid_to_match = broker_order_to_match.broker_permid
-
-        if permid_to_match=='' or permid_to_match==0:
-            ## match on temp id and clientid
-            matched_order = match_order_on_tempid(list_of_broker_orders, broker_order_to_match)
-        else:
-            ## match on permid
-            matched_order = match_order_on_permid(list_of_broker_orders, broker_order_to_match)
-
-        verified = self.verify_match(broker_order_to_match, matched_order)
-        if not verified:
-            return missing_order
+        matched_order = self.calculate_total_commission_for_broker_order(matched_order)
 
         return matched_order
-
-    def verify_match(self, broker_order_to_match, matched_order):
-        if matched_order is missing_order:
-            return False
-
-        ## BETTER OFF IN BROKER ORDER CODE?
-        try:
-            assert broker_order_to_match.instrument_code == matched_order.instrument_code
-
-            ## NO spreads... yet
-            assert len(broker_order_to_match.contract_id)==1
-            assert len(matched_order.contract_id)==1
-
-            original_expiry = self.\
-                get_actual_expiry_date_for_instrument_code_and_contract_date(\
-                broker_order_to_match.instrument_code, broker_order_to_match.contract_id[0]).as_str()
-
-            matched_expiry = matched_order.contract_id[0]
-            assert original_expiry == matched_expiry
-
-            assert broker_order_to_match.trade[0] == matched_order.trade[0]
-
-            return True
-        except:
-            return False
-
-    def get_actual_expiry_for_broker_order_IB_expiries(self, original_order_list):
-        """
-        for idx in range(len(original_position_list)):
-            position_entry = original_position_list[idx]
-            actual_expiry = self.get_actual_expiry_date_for_contract(position_entry.contract_object).as_str()
-            new_entry = contractPosition(position_entry.position,
-                                         position_entry.instrument_code,
-                                         actual_expiry)
-            original_position_list[idx] = new_entry
-
-        return original_position_list
-        """
-        pass
-
-    def update_broker_order_db_stack_with_broker_fills_and_info(self, broker_order_stack):
-        pass
-
-
-def match_order_on_permid(list_of_broker_orders, broker_order_to_match):
-    permid_list = [order.broker_permid for order in list_of_broker_orders]
-    try:
-        permid_idx = permid_list.index(broker_order_to_match.broker_permid)
-    except  ValueError:
-        return missing_order
-
-    matched_order = list_of_broker_orders[permid_idx]
-
-    return matched_order
-
-
-def match_order_on_tempid(list_of_broker_orders, broker_order_to_match):
-    matched_order_list = [order for order in list_of_broker_orders
-                          if order.broker_tempid == broker_order_to_match.broker_tempid
-                          and order.broker_clientid == broker_order_to_match.broker_clientid]
-    if len(matched_order_list)>1:
-        return missing_order
-    if len(matched_order_list)==0:
-        return missing_order
-
-    matched_order = matched_order_list[0]
-
-    return matched_order
 
