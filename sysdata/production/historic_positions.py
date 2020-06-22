@@ -38,7 +38,7 @@ def any_positions_since_start_date(position_series, start_date, end_date):
     """
     Any positions held in a given date range
 
-    Eithier:
+    Either:
     - position at start was non zero, and we didn't trade (return True)
     - position at start was zero and we did change our position (return True)
    - position at start was zero and we didn't trade (return False)

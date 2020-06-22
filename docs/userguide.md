@@ -297,7 +297,7 @@ The backtest looks for its configuration information in the following places:
 1. Elements in the configuration object
 2. If not found, in: Project defaults
 
-Configuration objects can be loaded from [yaml](http://pyyaml.org/) files, or
+Configuration objects can be loaded from [yaml](https://pyyaml.org/) files, or
 created with a dictionary. This suggests that you can modify the systems
 behaviour in any of the following ways:
 
@@ -315,7 +315,7 @@ file.
 
 ### Option 1: Change the configuration file
 
-Configurations in this project are stored in [yaml](http://pyyaml.org) files.
+Configurations in this project are stored in [yaml](https://pyyaml.org) files.
 Don't worry if you're not familiar with yaml; it's just a nice way of creating
 nested dicts, lists and other python objects in plain text. Just be aware that
 indentations are important, just in like python, to create nesting.
@@ -560,7 +560,8 @@ def trading_rule_function(data1, data2, arg1=default_value, arg2=default_value):
    ## do something with data1
    ## controlled by value of arg1 and arg2
 
-``` ... and so on.
+```
+... and so on.
 
 Functions must return a Tx1 pandas dataframe.
 
@@ -568,7 +569,7 @@ Functions must return a Tx1 pandas dataframe.
 
 We can either modify the YAML file or the configuration object we've already
 loaded into memory. See ['changing backtest
-parameters'](change_backtest_parameters) for more details. If you want to use a
+parameters'](#change_backtest_parameters) for more details. If you want to use a
 YAML file you need to first save the function into a .py module, so it can be
 referenced by a string (we can also use this method for a config object in
 memory).
@@ -586,7 +587,7 @@ references to methods in the system object. So for example to get the daily
 price we'd use the method `system.rawdata.daily_prices(instrument_code)` (for a
 list of all the data methods in a system see [stage
 methods](#table_system_stage_methods) or type `system.rawdata.methods()` and
-`system.rawdata.methods()). In the trading rule specification this would be
+`system.rawdata.methods()`). In the trading rule specification this would be
 shown as "rawdata.daily_prices".
 
 If no data is included, then the system will default to passing a single data
@@ -929,7 +930,7 @@ For more information see the [futures data document](/docs/futures.md#csvFutures
 This is a simData object which gets it's data out of [Mongo DB](https://mongodb.com) (static) and [Arctic](https://github.com/manahl/arctic) (time series) (*Yes the class name should include both terms. Yes I shortened it so it isn't ridiculously long, and most of the interesting stuff comes from Arctic*). It is better for live trading.
 
 For production code, and storing large amounts of data (eg for individual futures contracts) we probably need something more robust than .csv files. 
-[MongoDB](https://mongodb.com) is a no-sql database which is rather fashionable at the moment, though the main reason I selected it for this purpose is that it is used by Arctic. [Arctic](https://github.com/manahl/arctic) is a superb open source time series database which sits on top of Mongo DB) and provides straightforward and fast storage of pandas DataFrames. It was created by my former colleagues at [Man AHL](https://ahl.com) (in fact I beta tested a very early version of Arctic), and then very generously released as open source. 
+[MongoDB](https://mongodb.com) is a no-sql database which is rather fashionable at the moment, though the main reason I selected it for this purpose is that it is used by Arctic. [Arctic](https://github.com/manahl/arctic) is a superb open source time series database which sits on top of Mongo DB) and provides straightforward and fast storage of pandas DataFrames. It was created by my former colleagues at [Man AHL](https://www.ahl.com/) (in fact I beta tested a very early version of Arctic), and then very generously released as open source.
 
 There is more detail on this in the [futures data documentation](/docs/futures.md): [Mongo DB](/docs/futures.md#mongoDB) and [Arctic](/docs/futures.md#arctic).
 
@@ -974,10 +975,10 @@ print(system.accounts.portfolio().sharpe())
 You should be familiar with the python object orientated idiom before reading
 this section.
 
-The [`simData()`](/sysdata/data) object is the base class for data used in simulations. From that we
+The [`simData()`](/sysdata/data.py) object is the base class for data used in simulations. From that we
 inherit data type specific classes such as those 
-[for futures](/sysdata/futuresdata) object. These in turn are inherited from
-for specific data sources, such as for csv files:[csvFuturesSimData()](/sysdata/csv/csv_sim_futures_data.py).
+[for futures](/sysdata/futures/futuresDataForSim.py) object. These in turn are inherited from
+for specific data sources, such as for csv files: [csvFuturesSimData()](/sysdata/csv/csv_sim_futures_data.py).
 
 It is helpful if this naming scheme was adhered to: sourceTypeSimData. For example if we had
 some single equity data stored in a database we'd do `class
@@ -1059,18 +1060,19 @@ the example above.
 ```
 optionone: 1
 optiontwo:
-   a: 3.0
-   b:
-        - "a"
-        - "b"
+  a: 3.0
+  b: "beta"
+  c:
+    - "a"
+    - "b"
 optionthree:
-   - 1.0
-   - 2.0
+  - 1.0
+  - 2.0
 ```
 
 Note that as with python the indentation in a yaml file shows how things are
 nested. If you want to learn more about yaml check [this
-out.](http://pyyaml.org/wiki/PyYAMLDocumentation#YAMLsyntax).
+out](https://pyyaml.org/wiki/PyYAMLDocumentation#YAMLsyntax).
 
 ```python
 from sysdata.configdata import Config
@@ -1181,7 +1183,7 @@ This will also happen if you miss anything from a dict within the config (eg if
 `config.forecast_div_mult_estimate` is a dict, then any keys present in this
 dict in the default .yaml, but not in the config will be added). Finally it
 will work for nested dicts, eg if any keys are missing from
-`config.instrument_weight_estimate['correlation_estimate']` then they'll filled
+`config.instrument_weight_estimate['correlation_estimate']` then they'll be filled
 in from the default file. If something is a dict, or a nested dict, in the
 config but not in the default (or vice versa) then values won't be replaced and
 bad things could happen. It's better to keep your config files, and the default
@@ -1470,7 +1472,7 @@ system=System([Account(), PortfoliosFixed(), PositionSizing(), FuturesRawData(),
 
 <a name="estimated_system"> </a>
 
-#### [Futures system for chapter 15](/systems/provided/futures_chapter15/estimatedsystem.py)
+#### [Estimated system for chapter 15](/systems/provided/futures_chapter15/estimatedsystem.py)
 
 
 This system implements the framework in chapter 15 of my book, but includes
@@ -1499,7 +1501,7 @@ system=System([Account(), PortfoliosEsimated(), PositionSizing(), FuturesRawData
 
 The key configuration differences from the standard system are that the
 estimation parameters:
- - `use_forecast_scale_estimates`,
+ - `use_forecast_scale_estimates`
  - `use_forecast_weight_estimates`
  - `use_instrument_weight_estimates`
 -  `use_forecast_div_mult_estimates`
@@ -1535,7 +1537,7 @@ We can also access the methods in the data object that is part of every system:
 system.data.get_raw_price("EDOLLAR")
 ```
 
-For a list of all the methods in a system and it's stages see [stage methods](#table_system_stage_methods). Alternatively:
+For a list of all the methods in a system and its stages see [stage methods](#table_system_stage_methods). Alternatively:
 ```python
 system ## lists all the stages
 system.accounts.methods() ## lists all the methods in a particular stage
@@ -1994,12 +1996,6 @@ from systems.account import Account
 
 
 def futures_system( data=None, config=None, trading_rules=None,  log_level="on"):
-    simD
-ata
-
-
-
-
 
     if data is None:
         data=csvFuturesSimData()
@@ -2087,11 +2083,11 @@ system.rawdata.get_raw_price("EDOLLAR").tail(5)
 ```
 
 `system.rawdata.log` provides access to the log for the stage rawdata, and so
-on. See [logging][#logging] for more details.
+on. See [logging](#logging) for more details.
 
 
 
-<a name="stage_wiring">' </a>
+<a name="stage_wiring"> </a>
 
 ### Stage 'wiring'
 
@@ -2162,7 +2158,7 @@ output method intact we don't need to mess around with any other stage.
 If you're going to write a new stage (completely new, or to replace an existing
 stage) you need to keep the following in mind:
 
-1. New stages should inherit from [`SystemStage`](/systems/stage/SystemStage)
+1. New stages should inherit from [`SystemStage`](/systems/stage.py)
 2. Modified stages should inherit from the existing stage you're modifying. For
    example if you create a new way of calculating forecast weights then you
    should inherit from [class `ForecastCombine`](/systems/forecast_combine.py),
@@ -2175,7 +2171,7 @@ stage) you need to keep the following in mind:
 5. Think about whether you need to protect part of the system cache for this
    stage output [system caching](#caching) from casual deletion.
 6. Similarly if you're going to cache complex objects that won't pickle easily
-   (like accountCurve objects) you need to put a no_pickable=True in the
+   (like accountCurve objects) you need to put a `not_pickable=True` in the
    decorator call.
 7. Use non-cached input methods to get data from other stages. Be wary of
    accessing internal methods in other stages; try to stick to output methods
@@ -2196,7 +2192,7 @@ stage) you need to keep the following in mind:
     (and where they take their input from), and the output methods
 14. The doc string should also explain what the stage does, and the name of the
     stage
-15. Really big stages should be seperated across multiple classes (and possibly
+15. Really big stages should be separated across multiple classes (and possibly
     files), using multiple inheritance to glue them together. See the [accounts
     stage](/systems/account.py) for an example.
 
@@ -2375,23 +2371,24 @@ def trading_rule_function(data1, data2, arg1=default_value, arg2=default_value):
    ## do something with data1
    ## controlled by value of arg1 and arg2
 
-``` ... and so on.
+```
+... and so on.
 
 At a minimum we need to know the function, since other arguments are optional,
 and if no data is specified the instrument price is used. A rule specified with
 only the function is a 'bare' rule. It should take only one data argument which
 is price, and have no other arguments that need new parameter values.
 
-In this project there is a specific [`TradingRule`
+In this project there is a specific [TradingRule
 class](/systems/forecasting.py). A `TradingRule` instance contains 3 elements -
 a function, a list of any data the function needs, and a dict of any other
 arguments that can be passed to the function.
 
 The function can either be the actual function, or a relative reference to it
-eg "systems.provided.futures_chapter15.rules.ewmac" (this is useful when a
+eg `systems.provided.futures_chapter15.rules.ewmac` (this is useful when a
 configuration is created from a file). Data must always be in the form of
 references to attributes and methods of the system object, eg
-'data.daily_prices' or 'rawdata.get_daily_prices'. Either a single data item,
+`data.daily_prices` or `rawdata.get_daily_prices`. Either a single data item,
 or a list must be passed. Other arguments are in the form a dictionary.
 
 We can create trading rules in a number of different ways. I've noticed that
@@ -2456,7 +2453,7 @@ trading_rules:
 ```
 
 Note that *`forecast_scalar`* isn't strictly part of the trading rule
-definition, but if included here will be used instead of the seperate
+definition, but if included here will be used instead of the separate
 `config.forecast_scalar` parameter (see the [next stage](#stage_scale) ).
 
 #### Data and data arguments
@@ -2607,13 +2604,13 @@ also pass anything that can be processed into a trading rule.
 ## We now import all the stages we need
 from systems.forecasting import Rules
 
-## Pass a single rule. Any of the following are fine. See [defining TradingRule objects](#TradingRules) for more.
+## Pass a single rule. Any of the following are fine. See 'Trading rules' for more.
 trading_rule=TradingRule(ewmac)
 trading_rule=(ewmac, 'rawdata.get_daily_prices', dict(Lfast=2, Lslow=8))
 trading_rule=dict(function=ewmac, data='rawdata.get_daily_prices', other_args=dict(Lfast=2, Lslow=8))
 
 rules=Rules(trading_rule)
-## The rulea will be given an arbitrary name
+## The rule will be given an arbitrary name
 
 ## Pass a list of rules. Each rule can be defined how you like
 trading_rule1=(ewmac, 'rawdata.get_daily_prices', dict(Lfast=2, Lslow=8))
@@ -2658,7 +2655,7 @@ dict_keys(['ewmac_Lfast_4', 'ewmac_Lfast_10', 'ewmac_Lfast_100'])
 ## Now let's vary both Lslow and Lfast
 rule=TradingRule("systems.provided.example.rules.ewmac_forecast_with_defaults")
 
-## each seperate rule is specified by a dict. We could use a lambda to produce these automatically
+## each separate rule is specified by a dict. We could use a lambda to produce these automatically
 variations=create_variations(rule, [dict(Lfast=2, Lslow=8), dict(Lfast=4, Lslow=16)], key_argname="Lfast")
 variations.keys()
    dict_keys(['ewmac_Lfast_4', 'ewmac_Lfast_2'])
@@ -2819,7 +2816,7 @@ cap respectively.
 #### Calculating estimated forecasting scaling on the fly(/systems/forecast_scale_cap.py)
 
 See [this blog
-post](http://qoppac.blogspot.co.uk/2016/01/pysystemtrader-estimated-forecast.html).
+post](https://qoppac.blogspot.com/2016/01/pysystemtrader-estimated-forecast.html).
 
 You may prefer to estimate your forecast scales from the available data. This
 is often neccessary if you have a new trading rule and have no idea at all what
@@ -2860,14 +2857,14 @@ back into the past so we don't lose any data; strictly speaking this is
 cheating but we're not selecting the parameter for performance reasons so I for
 one can sleep at night.
 
-Note: The pooled estimate is [cached](#caching)cached as an 'across system',
+Note: The pooled estimate is [cached](#caching) as an 'across system',
 non instrument specific, item.
 
 ##### Individual instrument forecast scale estimate
 
 We do this if `pool_instruments=False`. Other parameters work in the same way.
 
-Note: The estimate is [cached](#caching) seperately for each instrument.
+Note: The estimate is [cached](#caching) separately for each instrument.
 
 #### New or modified forecast scaling and capping
 
@@ -2955,7 +2952,7 @@ See [estimating diversification multipliers](#divmult).
 
 #### Forecast mapping
 
-A new feature introduced in version 0.18.2 is *forecast mapping*. This is the non linear mapping discussed in [this blog post](http://qoppac.blogspot.co.uk/2016/03/diversification-and-small-account-size.html) whereby we do not take a forecast until it has reached some threshold. Because this will reduce the standard deviation of our forecasts we compensate by ramping up the forecast more quickly until the raw forecast reaches the existing cap (which defaults to 20). This is probably illustrated better if we look at the non-linear mapping function:
+A new feature introduced in version 0.18.2 is *forecast mapping*. This is the non linear mapping discussed in [this blog post](https://qoppac.blogspot.com/2016/03/diversification-and-small-account-size.html) whereby we do not take a forecast until it has reached some threshold. Because this will reduce the standard deviation of our forecasts we compensate by ramping up the forecast more quickly until the raw forecast reaches the existing cap (which defaults to 20). This is probably illustrated better if we look at the non-linear mapping function:
 
 ```python
 #This is syscore.algos.map_forecast_value
@@ -3358,7 +3355,7 @@ acc_curve.costs.weekly.percent().curve()
 
 You may also want to use *cumulated* returns, which use compound interest
 rather than the simple addition I normally use. See this [blog
-post](http://qoppac.blogspot.co.uk/2016/06/capital-correction-pysystemtrade.html).
+post](https://qoppac.blogspot.com/2016/06/capital-correction-pysystemtrade.html).
 
 ```python
 acc_curve.cumulative()
@@ -3408,7 +3405,7 @@ acc_curve_group.costs.annual.median() ## median of annual costs
 These are in fact all giving the p&l for the entire portfolio (the sum of
 individual account curves across all assets); defaulting to giving the net,
 daily curve. To find out which assets we use acc_curve_group.asset_columns; to
-access a particular asset we use acc_curve_group['assetName'].
+access a particular asset we use `acc_curve_group['assetName']`.
 
 ```python
 acc_curve_group.asset_columns
@@ -3743,7 +3740,7 @@ multipliers, optimisation, and capital correction.
 
 ## File names
 
-There are a number of different ways one might want to specify path and file names. Firstly, we could use a *relative* pathname. A relative pathname Secondly, we might want to use an *absolute* path, which is the actual full pathname. This is useful if we want to access something outside the pysystemtrade directory structure. Finally we have the issue of OS differences; are you a '\' or a '/' person?
+There are a number of different ways one might want to specify path and file names. Firstly, we could use a *relative* pathname. A relative pathname Secondly, we might want to use an *absolute* path, which is the actual full pathname. This is useful if we want to access something outside the pysystemtrade directory structure. Finally we have the issue of OS differences; are you a '\\' or a '/' person?
 
 For convenience I have written some functions that translate betweeen these different formats, and the underlying OS representation.
 
@@ -3762,7 +3759,7 @@ get_filename_for_package("/home/rob/file.csv")
 ### Dot format. Notice there is no initial 'dot' and we don't need to include 'pysystemtrade' 
 get_filename_for_package("syscore.tests.pricedata.csv")
 
-# Specify the path and filename seperately
+# Specify the path and filename separately
 get_filename_for_package("\\home\\rob","file.csv")
 get_filename_for_package("/home/rob","file.csv")
 get_filename_for_package("syscore.tests","pricedata.csv")
@@ -3885,9 +3882,9 @@ This has the advantage of keeping the original log attributes intact. If you wan
 ## Optimisation
 
 See my blog posts on optimisation:
-[without](http://qoppac.blogspot.co.uk/2016/01/correlations-weights-multipliers.html)
+[without](https://qoppac.blogspot.com/2016/01/correlations-weights-multipliers.html)
 and [with
-costs](http://qoppac.blogspot.co.uk/2016/05/optimising-weights-with-costs.html).
+costs](https://qoppac.blogspot.com/2016/05/optimising-weights-with-costs.html).
 
 I use an optimiser to calculate both forecast and instrument weights. The
 process is almost identical for both.
@@ -3909,7 +3906,7 @@ of sample performance.
 ### Removing expensive assets (forecast weights only)
 
 Again I recommend you check out this [blog
-post](http://qoppac.blogspot.co.uk/2016/05/optimising-weights-with-costs.html).
+post](https://qoppac.blogspot.com/2016/05/optimising-weights-with-costs.html).
 
 ```
 forecast_weight_estimate:
@@ -3924,7 +3921,7 @@ of forecasts.
 
 Pooling across instruments is only available when calculating forecast weights.
 Again I recommend you check out this [blog
-post](http://qoppac.blogspot.co.uk/2016/05/optimising-weights-with-costs.html).
+post](https://qoppac.blogspot.com/2016/05/optimising-weights-with-costs.html).
 Only instruments whose rules have survived the application of a ceiling cost
 will be included in the pooling process.
 
@@ -3947,7 +3944,7 @@ individually, which is slower.
 ### Working out net costs (both instrument and forecast weights)
 
 Again I recommend you check out this [blog
-post](http://qoppac.blogspot.co.uk/2016/05/optimising-weights-with-costs.html).
+post](https://qoppac.blogspot.com/2016/05/optimising-weights-with-costs.html).
 
 ```
 forecast_weight_estimate:  ## can also be applied to instrument weights
@@ -4090,7 +4087,7 @@ See [my series of blog posts](https://qoppac.blogspot.com/2018/12/portfolio-cons
 If we haven't accounted for costs earlier (eg by setting `cost_multiplier=0`)
 then we can adjust our portfolio weights according to costs after they've been
 calculated. See this blog post [blog
-post](http://qoppac.blogspot.co.uk/2016/05/optimising-weights-with-costs.html).
+post](https://qoppac.blogspot.com/2016/05/optimising-weights-with-costs.html).
 
 If weights are *cleaned*, then in a fitting period when we need a weight, but
 none has been calculated (due to insufficient data for example), an instrument
@@ -4108,7 +4105,7 @@ is given a share of the weight.
 ## Estimating correlations and diversification multipliers
 
 See [my blog
-post](http://qoppac.blogspot.co.uk/2016/01/correlations-weights-multipliers.html)
+post](https://qoppac.blogspot.com/2016/01/correlations-weights-multipliers.html)
 
 
 You can estimate diversification multipliers for both instruments (IDM - see
@@ -4163,7 +4160,7 @@ capital and losses deducted. If we make money then our capital, and the risk
 we're taking, and the size of our positions, will all increase over time.
 
 There is much more in this [blog
-post](http://qoppac.blogspot.co.uk/2016/06/capital-correction-pysystemtrade.html).
+post](https://qoppac.blogspot.com/2016/06/capital-correction-pysystemtrade.html).
 Capital correction is controlled by the following config parameter which
 selects the function used for correction using the normal dot argument (the
 default here being the function `fixed_capital` in the module
@@ -4177,7 +4174,7 @@ capital_multiplier:
 
 Other functions I've written are `full_compounding` and `half_compounding`.
 Again see the blog post [blog
-post](http://qoppac.blogspot.co.uk/2016/06/capital-correction-pysystemtrade.html)
+post](https://qoppac.blogspot.com/2016/06/capital-correction-pysystemtrade.html)
 for more detail.
 
 To get the varying capital multiplier which the chosen method calculates use
@@ -4534,7 +4531,7 @@ There are numerous other ways to define trading rules using python code. See
 ['Rules'](#rules) for more detail.
 
 Note that *forecast_scalar* isn't strictly part of the trading rule definition,
-but if included here will be used instead of the seperate
+but if included here will be used instead of the separate
 'config.forecast_scalar' parameter (see the next section).
 
 YAML: (example)
@@ -4596,7 +4593,7 @@ Python (example)
 config.trading_rules=dict(rule_name=dict(function="systems.futures.rules.arbitrary_function", forecast_scalar=10.6))
 ```
 
-If scalars are not found there they can be put in seperately (if you do both
+If scalars are not found there they can be put in separately (if you do both
 then the scalar in the actual rule specification will take precedence):
 
 YAML: (example)
@@ -4620,7 +4617,7 @@ arguments are pool_instruments (determines if we pool estimate over multiple
 instruments) and func (str function pointer to use for estimation). The
 remaining arguments are passed to the estimation function.
 
-See [forecast scale estimation](#scalar_estimate] for more detail.
+See [forecast scale estimation](#scalar_estimate) for more detail.
 
 If you're considering using your own function please see [configuring defaults
 for your own functions](#config_function_defaults)
@@ -4779,7 +4776,7 @@ To estimate the forecast weights we call the function defined in the `func`
 config element.
 
 The defaults given below are for the default generic optimiser function. See
-the section on (optimisation)[#optimisation] for more information.
+the section on [optimisation](#optimisation) for more information.
 
 YAML, showing defaults
 ```
@@ -5047,7 +5044,7 @@ To estimate the instrument weights we call the function defined in the `func`
 config element. All other parameters are passed to the optimisation function.
 
 The defaults given below are for the default generic optimiser function. See
-the section on (optimisation)[#optimisation] for more information.
+the section on [optimisation](#optimisation) for more information.
 
 YAML, showing defaults
 ```

@@ -368,7 +368,7 @@ class ForecastScaleCap(SystemStage):
                                              rule_variation_name)
         scale = self.get_forecast_scalar(
             instrument_code,
-            rule_variation_name)  ## will eithier be a scalar or a timeseries
+            rule_variation_name)  ## will either be a scalar or a timeseries
 
         scaled_forecast = raw_forecast * scale
 

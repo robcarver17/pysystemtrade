@@ -37,7 +37,7 @@ mongo_db: 'production'
 # Spike checker
 max_price_spike: 8
 #
-# Price frequency (we collect daily data, and seperately this frequency
+# Price frequency (we collect daily data, and separately this frequency
 intraday_frequency: H
 #
 # Capital calculation

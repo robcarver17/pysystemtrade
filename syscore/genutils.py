@@ -160,7 +160,7 @@ def value_or_npnan(x, return_value = None):
         ## Not something that can be compared to a nan
         pass
 
-    # Eithier wrong type, or not a nan
+    # Either wrong type, or not a nan
     return x
 
 def get_safe_from_dict(some_dict, some_arg_name, some_default):

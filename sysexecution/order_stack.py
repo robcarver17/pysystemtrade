@@ -69,7 +69,7 @@ class orderStackData(object):
             else:
                 list_of_order_ids.append(order_id)
 
-        # At this point we eithier have total failure (list_of_child_ids is empty, status failure),
+        # At this point we either have total failure (list_of_child_ids is empty, status failure),
         #    or partial failure (list of child_ids is part filled, status failure)
         #    or total success
 

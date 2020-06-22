@@ -220,7 +220,7 @@ class Test(unittest.TestCase):
         # default - don't pool costs, pool gross
         print(system.combForecast.get_raw_forecast_weights("BUND"))
 
-        # pool neithier gross or costs
+        # pool neither gross or costs
         config = copy.copy(system.config)
         config.forecast_weight_estimate['pool_gross_returns'] = False
         config.forecast_weight_estimate['forecast_cost_estimates'] = False

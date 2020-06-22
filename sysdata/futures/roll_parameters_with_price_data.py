@@ -169,7 +169,7 @@ class contractWithRollParametersAndPrices(object):
         Finds the best carry contract in list_of_contract_dates after current_contract, within the roll cycle
            defined by roll parameters
 
-        This will eithier be the next valid contract, or the first valid preceeding contract in the price cycle
+        This will either be the next valid contract, or the first valid preceeding contract in the price cycle
 
         :return: a contract object with roll data, or None if we can't find one
         """
