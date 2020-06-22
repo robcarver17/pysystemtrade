@@ -14,7 +14,7 @@ from sysdata.private_config import get_private_then_default_key_value
 
 from sysproduction.data.positions import diagPositions
 from sysproduction.data.orders import dataOrders
-from sysproduction.data.controls import diagOverrides
+from sysproduction.data.controls import diagOverrides, dataLocks
 
 class orderHandlerAcrossStrategies(object):
     def __init__(self, data):
@@ -84,11 +84,18 @@ class orderHandlerAcrossStrategies(object):
         return new_order_list
 
     def submit_order_list(self, order_list):
+        data_lock = dataLocks(self.data)
         for order in order_list:
             #try:
                 # we allow existing orders to be modified
                 log = order.log_with_attributes(self.log)
                 log.msg("Required order %s" % str(order))
+
+                instrument_locked = data_lock.is_instrument_locked(order.instrument_code)
+                if instrument_locked:
+                    log.msg("Instrument locked, not submitting")
+                    continue
+
                 order_id = self.order_stack.put_order_on_stack(order)
                 if type(order_id) is int:
                     log.msg("Added order %s to instrument order stack with order id %d" % (str(order), order_id),

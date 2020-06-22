@@ -8,6 +8,7 @@ from syscore.objects import missing_order, missing_contract, missing_data, rolli
 from sysproduction.data.contracts import diagContracts
 from sysproduction.data.positions import diagPositions
 from sysproduction.data.prices import diagPrices
+from sysproduction.data.controls import dataLocks
 
 from sysexecution.contract_orders import contractOrder
 from sysexecution.algos.allocate_algo_to_order import allocate_algo_to_list_of_contract_orders
@@ -23,11 +24,16 @@ class stackHandlerForSpawning(stackHandlerCore):
             self.spawn_children_from_instrument_order_id(instrument_order_id)
 
     def spawn_children_from_instrument_order_id(self, instrument_order_id):
+        data_locks = dataLocks(self.data)
         instrument_order = self.instrument_stack.get_order_with_id_from_stack(instrument_order_id)
         if instrument_order is missing_order:
             return failure
 
         log = instrument_order.log_with_attributes(self.log)
+        instrument_locked = data_locks.is_instrument_locked(instrument_order.instrument_code)
+        if instrument_locked:
+            log.msg("Instrument is locked, not spawning order")
+            return failure
 
         list_of_contract_orders = spawn_children_from_instrument_order(self.data, instrument_order)
 

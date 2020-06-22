@@ -276,6 +276,24 @@ class timerClass(object):
         else:
             return False
 
+class quickTimer(object):
+    def __init__(self, seconds = 60):
+        self._started = datetime.datetime.now()
+        self._time_limit = seconds
+
+    @property
+    def unfinished(self):
+     return not self.finished
+
+    @property
+    def finished(self):
+        time_now = datetime.datetime.now()
+        elapsed = time_now - self._started
+        if elapsed.seconds>self._time_limit:
+            return True
+        else:
+            return False
+
 # avoids encoding problems with mongo
 _none = ""
 

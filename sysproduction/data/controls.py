@@ -1,6 +1,36 @@
 from sysproduction.data.get_data import dataBlob
 from syscore.objects import arg_not_supplied
 
+class dataLocks(object):
+    def __init__(self, data=arg_not_supplied):
+        # Check data has the right elements to do this
+        if data is arg_not_supplied:
+            data = dataBlob()
+
+        data.add_class_list("mongoLockData")
+        self.data = data
+
+    def is_instrument_locked(self, instrument_code):
+        return self.data.db_lock.is_instrument_locked(instrument_code)
+
+    def add_lock_for_instrument(self, instrument_code):
+        return self.data.db_lock.add_lock_for_instrument(instrument_code)
+
+    def remove_lock_for_instrument(self, instrument_code):
+        return self.data.db_lock.remove_lock_for_instrument(instrument_code)
+
+    def get_list_of_locked_instruments(self):
+        return self.data.db_lock.get_list_of_locked_instruments()
+
+    def _get_list_of_trade_limits_for_cursor(self, cursor):
+
+
+        trade_limits = [(tradeLimit.from_dict(db_dict)) for db_dict in list_of_dicts]
+
+        list_of_trade_limits = listOfTradeLimits(trade_limits)
+
+        return list_of_trade_limits
+
 class dataTradeLimits(object):
     def __init__(self, data=arg_not_supplied):
         # Check data has the right elements to do this

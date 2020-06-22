@@ -134,33 +134,7 @@ class stackHandlerCore(object):
 
         return list_of_broker_order_id, list_of_contract_order_id
 
-    def confirm_all_children_and_grandchildren_are_filled(self, list_of_broker_order_id, list_of_contract_order_id):
 
-        for contract_order_id in list_of_contract_order_id:
-            completely_filled = self.contract_stack.is_completed(contract_order_id)
-            if not completely_filled:
-                ## OK We can't do this unless all our children are filled
-                return False
-
-        for broker_order_id in list_of_broker_order_id:
-            completely_filled = self.broker_stack.is_completed(broker_order_id)
-            if not completely_filled:
-                ## OK We can't do this unless all our children are filled
-                return False
-
-        return True
-
-    def deactivate_family_of_orders(self, instrument_order_id, list_of_contract_order_id, list_of_broker_order_id):
-        # Make orders inactive
-        # A subsequent process will delete them
-        self.instrument_stack.deactivate_order(instrument_order_id)
-        for contract_order_id in list_of_contract_order_id:
-            self.contract_stack.deactivate_order(contract_order_id)
-
-        for broker_order_id in list_of_broker_order_id:
-            self.broker_stack.deactivate_order(broker_order_id)
-
-        return success
 
     def what_contract_trade_is_possible(self, proposed_order):
         log = proposed_order.log_with_attributes(self.log)
