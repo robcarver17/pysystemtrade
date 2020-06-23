@@ -1,5 +1,7 @@
 import datetime
 
+import numpy as np
+
 from syscore.objects import missing_data, arg_not_supplied, missing_order
 
 from sysdata.production.current_positions import contractPosition
@@ -34,6 +36,11 @@ class dataBroker(object):
     def get_prices_at_frequency_for_contract_object(self, contract_object, frequency):
         return self.data.broker_futures_contract_price.get_prices_at_frequency_for_contract_object(contract_object, frequency)
 
+    def get_recent_bid_ask_tick_data_for_instrument_code_and_contract_date(self, instrument_code, contract_date):
+        return self.data.broker_futures_contract_price.\
+            get_recent_bid_ask_tick_data_for_instrument_code_and_contract_date(instrument_code, contract_date)
+
+
     def get_actual_expiry_date_for_instrument_code_and_contract_date(self, instrument_code, contract_date):
         return self.data.broker_futures_contract. \
             get_actual_expiry_date_for_instrument_code_and_contract_date(instrument_code, contract_date)
@@ -43,6 +50,17 @@ class dataBroker(object):
 
     def get_brokers_instrument_code(self, instrument_code):
         return self.data.broker_futures_contract.get_brokers_instrument_code(instrument_code)
+
+    def is_instrument_code_and_contract_date_okay_to_trade(self, instrument_code, contract_id):
+        assert len(contract_id)==1
+
+        check_open = self.data.broker_futures_contract.is_instrument_code_and_contract_date_okay_to_trade(instrument_code, contract_id[0])
+        return check_open
+
+    def get_trading_hours_for_instrument_code_and_contract_date(self, instrument_code, contract_id):
+        result = self.data.broker_futures_contract.get_trading_hours_for_instrument_code_and_contract_date(instrument_code, contract_id)
+        return result
+
 
     def get_all_current_contract_positions(self):
         return self.data.broker_contract_position.get_all_current_positions_as_list_with_contract_objects()
@@ -77,7 +95,6 @@ class dataBroker(object):
         broker_account = self.get_broker_account()
         broker_clientid = self.get_broker_clientid()
 
-        # Check market closed?
         side_price, mid_price = self.check_market_conditions_for_contract_order(contract_order)
 
         broker_order = create_new_broker_order_from_contract_order(contract_order, qty, order_type="market",
@@ -109,13 +126,30 @@ class dataBroker(object):
 
     def check_market_conditions_for_contract_order(self, contract_order):
         """
-        Get current prices and check of market is open
+        Get current prices
 
         :param contract_order:
         :return: tuple: side_price, mid_price OR missing_data
         """
+        assert len(contract_order.contract_id)==1
 
-        return None, None
+        tick_data = self.get_recent_bid_ask_tick_data_for_instrument_code_and_contract_date(contract_order.instrument_code,
+                                                                                contract_order.contract_id[0])
+        if len(tick_data)==0:
+            return None, None
+
+        last_bid = tick_data.priceBid[-1]
+        last_ask = tick_data.priceAsk[-1]
+
+        mid_price = np.mean([last_ask, last_bid])
+
+        is_buy = contract_order.trade>=0
+        if is_buy:
+            side_price = last_ask
+        else:
+            side_price = last_bid
+
+        return side_price, mid_price
 
     def submit_broker_order(self, broker_order):
         """

@@ -17,6 +17,7 @@ class diagContracts(object):
                             arcticFuturesMultiplePricesData mongoFuturesContractData")
         self.data = data
 
+
     def is_contract_in_data(self, instrument_code, contract_date):
         return self.data.db_futures_contract.is_contract_in_data(instrument_code, contract_date)
 

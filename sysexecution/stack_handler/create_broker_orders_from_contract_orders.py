@@ -5,6 +5,7 @@ from sysexecution.algos.allocate_algo_to_order import check_and_if_required_allo
 
 from sysexecution.stack_handler.stackHandlerCore import stackHandlerCore
 from sysproduction.data.controls import dataLocks
+from sysproduction.data.broker import dataBroker
 
 class stackHandlerCreateBrokerOrders(stackHandlerCore):
 
@@ -18,7 +19,7 @@ class stackHandlerCreateBrokerOrders(stackHandlerCore):
 
         self.create_broker_orders_from_contract_orders()
 
-    def create_broker_orders_from_contract_orders(self):
+    def create_broker_orders_from_contract_orders(self, check_if_open=True):
         """
         Create broker orders from contract orders. These become child orders of the contract parent.
 
@@ -42,11 +43,11 @@ class stackHandlerCreateBrokerOrders(stackHandlerCore):
                 continue
             if contract_order.is_order_controlled_by_algo():
                 continue
-            self.create_broker_order_for_contract_order(contract_order_id)
+            self.create_broker_order_for_contract_order(contract_order_id, check_if_open=check_if_open)
 
         return success
 
-    def create_broker_order_for_contract_order(self, contract_order_id):
+    def create_broker_order_for_contract_order(self, contract_order_id, check_if_open=True):
 
         original_contract_order = self.contract_stack.get_order_with_id_from_stack(contract_order_id)
         log = original_contract_order.log_with_attributes(self.log)
@@ -58,6 +59,12 @@ class stackHandlerCreateBrokerOrders(stackHandlerCore):
             log.msg("Instrument is locked, not spawning order")
             return None
 
+        if check_if_open:
+            data_broker = dataBroker(self.data)
+            market_open = data_broker.is_instrument_code_and_contract_date_okay_to_trade(original_contract_order.instrument_code,
+                                                                              original_contract_order.contract_id)
+            if not market_open:
+                return None
 
         ## Check the order doesn't breach trade limits
         contract_order = self.what_contract_trade_is_possible(original_contract_order)

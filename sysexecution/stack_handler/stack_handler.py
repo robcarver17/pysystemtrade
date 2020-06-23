@@ -23,10 +23,12 @@ from sysexecution.stack_handler.create_broker_orders_from_contract_orders import
 from sysexecution.stack_handler.fills import stackHandlerForFills
 from sysexecution.stack_handler.completed_orders import stackHandlerForCompletions
 from sysexecution.stack_handler.cancel_and_modify import stackHandlerCancelAndModify
+from sysexecution.stack_handler.checks import stackHandlerChecks
 
 class stackHandler(stackHandlerForSpawning, stackHandlerForRolls,
                    stackHandlerCreateBrokerOrders, stackHandlerForFills,
-                   stackHandlerForCompletions, stackHandlerCancelAndModify):
+                   stackHandlerForCompletions, stackHandlerCancelAndModify,
+                   stackHandlerChecks):
 
     def process_stack(self):
         """

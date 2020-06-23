@@ -17,14 +17,15 @@ class stackHandlerChecks(stackHandlerCore):
         diag_positions = diagPositions(self.data)
         breaks = diag_positions.get_list_of_breaks_between_contract_and_strategy_positions()
         for tradeable_object in breaks:
-            self.log_and_lock_position_break(tradeable_object, "Internal")
-
+            self.log.critical("Internal break for %s not locking" % (str(tradeable_object)))
 
     def check_external_position_break(self):
         data_broker = dataBroker(self.data)
         breaks = data_broker.get_list_of_breaks_between_broker_and_db_contract_positions()
         for tradeable_object in breaks:
             self.log_and_lock_position_break(tradeable_object, "External")
+
+        self.clear_position_locks(breaks)
 
     def log_and_lock_position_break(self, tradeable_object, type_of_break):
         instrument_code = tradeable_object.instrument_code
@@ -33,6 +34,17 @@ class stackHandlerChecks(stackHandlerCore):
             return None
         self.log.critical("%s Break for %s: locking" % (type_of_break, str(tradeable_object)))
         data_locks.add_lock_for_instrument(instrument_code)
+
+    def clear_position_locks(self, breaks):
+        data_locks = dataLocks(self.data)
+        locked_instruments = data_locks.get_list_of_locked_instruments()
+        broken_instruments = [tradeable_object.instrument_code for tradeable_object in breaks]
+        for instrument in locked_instruments:
+            if instrument not in broken_instruments:
+                self.log.msg("Clearing lock for %s" % instrument)
+                data_locks.remove_lock_for_instrument(instrument)
+
+        return None
 
     def check_any_missing_broker_order(self):
         list_of_broker_orderids = self.broker_stack.get_list_of_order_ids()

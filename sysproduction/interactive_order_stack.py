@@ -210,10 +210,16 @@ def generate_ib_orders(data):
     ans = input("Are you sure? (Y/other)")
     if ans !="Y":
         return None
-    if contract_order_id=="ALL":
-        stack_handler.create_broker_orders_from_contract_orders()
+    ans = input("Check if market open? <return for YES / other>")
+    if ans!="":
+        check_if_open=False
     else:
-        stack_handler.create_broker_order_for_contract_order(contract_order_id)
+        check_if_open=True
+
+    if contract_order_id=="ALL":
+        stack_handler.create_broker_orders_from_contract_orders(check_if_open=check_if_open)
+    else:
+        stack_handler.create_broker_order_for_contract_order(contract_order_id, check_if_open=check_if_open)
 
     print("If stack process not running, your next job will be to get the fills from IB")
 

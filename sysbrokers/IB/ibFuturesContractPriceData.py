@@ -104,8 +104,25 @@ class ibFuturesContractPriceData(futuresContractPriceData):
 
         return data
 
+    def get_recent_bid_ask_tick_data_for_contract_object(self, contract_object):
+        """
+        Get last few price ticks
 
+        :param contract_object: futuresContract
+        :return:
+        """
+        new_log = self.log.setup(instrument_code=contract_object.instrument_code, contract_date=contract_object.date)
 
+        contract_object_with_ib_data = self.futures_contract_data.get_contract_object_with_IB_metadata(contract_object)
+        if contract_object_with_ib_data is missing_contract:
+            new_log.warn("Can't get data for %s" % str(contract_object))
+            return futuresContractPrices.create_empty()
+
+        tick_data = self.ibconnection.ib_get_recent_bid_ask_tick_data(contract_object_with_ib_data)
+
+        tick_data_as_df = from_ib_bid_ask_tick_data_to_dataframe(tick_data)
+
+        return tick_data_as_df
 
 
     def _get_prices_for_contract_object_no_checking(self, *args, **kwargs):
@@ -145,3 +162,21 @@ def get_instrument_object_from_config( instrument_code, config = None):
 
 def get_ib_config():
     return pd.read_csv(IB_FUTURES_CONFIG_FILE)
+
+def from_ib_bid_ask_tick_data_to_dataframe(tick_data):
+    """
+
+    :param tick_data: list of HistoricalTickBidAsk()
+    :return: pd.DataFrame,['priceBid', 'priceAsk', 'sizeAsk', 'sizeBid']
+    """
+    time_index = [tick_item.time for tick_item in tick_data]
+    fields = ['priceBid', 'priceAsk', 'sizeAsk', 'sizeBid']
+
+    value_dict = {}
+    for field_name in fields:
+        field_values = [getattr(tick_item, field_name) for tick_item in tick_data]
+        value_dict[field_name] = field_values
+
+    output = pd.DataFrame(value_dict, time_index)
+
+    return output

@@ -2,6 +2,7 @@ from syscore.dateutils import month_from_contract_letter
 from sysdata.futures.contract_dates_and_expiries import contractDate
 from sysdata.futures.rolls import contractDateWithRollParameters
 from sysdata.futures.instruments import futuresInstrument
+from sysdata.futures.trading_hours import manyTradingStartAndEnd
 
 from sysdata.data import baseData
 from copy import copy
@@ -432,4 +433,23 @@ class futuresContractData(baseData):
     def get_actual_expiry_date_for_contract(self, contract_object):
         raise NotImplementedError(USE_CHILD_CLASS_ERROR)
 
+    def is_instrument_code_and_contract_date_okay_to_trade(self, instrument_code, contract_date):
+        contract_object = futuresContract(instrument_code, contract_date)
+        result = self.is_contract_okay_to_trade(contract_object)
 
+        return result
+
+    def is_contract_okay_to_trade(self, contract_object):
+        trading_hours = self.get_trading_hours_for_contract(contract_object)
+        trading_hours_checker = manyTradingStartAndEnd(trading_hours)
+
+        return trading_hours_checker.okay_to_trade_now()
+
+    def get_trading_hours_for_instrument_code_and_contract_date(self, instrument_code, contract_date):
+        contract_object = futuresContract(instrument_code, contract_date)
+        result = self.get_trading_hours_for_contract(contract_object)
+
+        return result
+
+    def get_trading_hours_for_contract(self, contract_object):
+        raise NotImplementedError(USE_CHILD_CLASS_ERROR)

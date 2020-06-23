@@ -65,6 +65,27 @@ class ibFuturesContractData(futuresContractData):
         else:
             return True
 
+    def get_trading_hours_for_contract(self, contract_object):
+        """
+
+        :param contract_object:
+        :return: list of paired date times
+        """
+        new_log = self.log.setup(instrument_code=contract_object.instrument_code, contract_date=contract_object.date)
+
+        contract_object_with_ib_data = self.get_contract_object_with_IB_metadata(contract_object)
+        if contract_object_with_ib_data is missing_contract:
+            new_log.msg("Can't resolve contract so can't find expiry date")
+            return missing_contract
+
+        trading_hours = self.ibconnection.ib_get_trading_hours(contract_object_with_ib_data)
+
+        if trading_hours is missing_contract:
+            new_log.msg("No IB expiry date found")
+            trading_hours = []
+
+        return trading_hours
+
 
     def get_actual_expiry_date_for_contract(self, contract_object):
         """
