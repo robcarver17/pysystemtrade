@@ -38,8 +38,10 @@ class updateMultipleAdjustedPrices(object):
     def __init__(self,data):
         self.data = data
 
-    def update_multiple_adjusted_prices(self):
+    def update_multiple_adjusted_prices(self, method_name):
         data = self.data
+        data.log = data.log.setup(method_name = method_name)
+
         diag_prices = diagPrices(data)
 
         list_of_codes_all = diag_prices.get_list_of_instruments_in_multiple_prices()

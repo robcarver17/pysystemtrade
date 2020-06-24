@@ -39,7 +39,8 @@ class runSystemClassic(object):
 
 
 
-    def run_system_classic(self):
+    def run_system_classic(self, method_name):
+        self.data.log = self.data.log.setup(method_name = method_name)
         data = self.data
         strategy_name = self.strategy_name
         backtest_config_filename = self.backtest_config_filename

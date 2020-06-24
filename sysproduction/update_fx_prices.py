@@ -26,8 +26,10 @@ class updateFxPrices(object):
     def __init__(self, data):
         self.data = data
 
-    def update_fx_prices(self):
+    def update_fx_prices(self, method_name):
         data = self.data
+        data.log = data.log.setup(method_name = method_name)
+
         log = data.log
         broker_fx_source = dataBroker(data)
         list_of_codes_all = broker_fx_source.get_list_of_fxcodes()  # codes must be in .csv file /sysbrokers/IB/ibConfigSpotFx.csv

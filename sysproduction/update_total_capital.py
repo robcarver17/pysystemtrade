@@ -36,11 +36,13 @@ def update_total_capital():
 class totalCapitalUpdate(object):
     def __init__(self, data):
         self.data = data
-        self.log = data.log
 
-    def update_total_capital(self):
+    def update_total_capital(self, method_name):
+        data = self.data
+        data.log = data.log.setup(method_name = method_name)
         capital_data = dataCapital(self.data)
-        log = self.log
+
+        log = data.log
 
         ## This assumes that each account only reports either in one currency or for each currency, i.e. no double counting
         total_account_value_in_base_currency = capital_data.get_ib_total_capital_value()

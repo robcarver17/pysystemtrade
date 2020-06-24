@@ -250,7 +250,8 @@ def _get_list_of_timer_functions(data, process_name, list_of_timer_names_and_fun
         method_name, function_object = entry
         frequency_minutes = diag_process.frequency_for_process_and_method(process_name, method_name, use_strategy_config=use_strategy_config)
         max_executions = diag_process.max_executions_for_process_and_method(process_name, method_name, use_strategy_config=use_strategy_config)
-        timer_class = timerClassWithFunction(function_object, frequency_minutes=frequency_minutes, max_executions=max_executions)
+
+        timer_class = timerClassWithFunction(method_name, function_object, frequency_minutes=frequency_minutes, max_executions=max_executions)
         list_of_timer_functions.append(timer_class)
 
     list_of_timer_functions = listOfTimerFunctions(list_of_timer_functions)

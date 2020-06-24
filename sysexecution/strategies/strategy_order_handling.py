@@ -53,8 +53,9 @@ class orderGeneratorForStrategy(object):
                                  for instrument_code in list_of_instruments])
         return actual_positions
 
-    def get_and_place_orders(self):
+    def get_and_place_orders(self, method_name):
         ## THIS IS THE MAIN FUNCTION THAT IS RUN
+        self.data.log = self.data.log.setup(method_name = method_name)
         order_list = self.get_required_orders()
         order_list_with_overrides = self.apply_overrides(order_list)
         self.submit_order_list(order_list_with_overrides)

@@ -244,15 +244,20 @@ class progressBar(object):
 
 
 class timerClassWithFunction(object):
-    def __init__(self, function_to_execute, frequency_minutes = 60, max_executions = 1):
+    def __init__(self, name, function_to_execute, frequency_minutes = 60, max_executions = 1):
         self._function = function_to_execute # class.method to run
         self._frequency_minutes = frequency_minutes
         self._max_executions = max_executions
         self._actual_executions = 0
+        self._name = name
 
     @property
     def frequency_minutes(self):
         return self._frequency_minutes
+
+    @property
+    def name(self):
+        return self._name
 
     def check_and_run(self):
         """
@@ -300,7 +305,7 @@ class timerClassWithFunction(object):
 
     def run_function(self):
         ## Functions can't take args or kwargs or return anything; pure method
-        self._function()
+        self._function(self.name)
 
     def update_on_run(self):
         self.increment_executions()
