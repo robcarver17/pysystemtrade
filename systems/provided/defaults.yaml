@@ -18,19 +18,31 @@ process_configuration_methods:
       frequency: 60
       max_executions: 8
     strategy_capital:
-      frequency: 60
+      max_executions: 1
+  run_daily_prices_updates:
+    fx_prices:
+      max_executions: 1
+    sampled_contracts:
+      max_executions: 1
+    historical_prices:
+      max_executions: 1
+    multiple_adj_prices:
       max_executions: 1
 #previous_process: need to write these up
 #
 ## Strategy configuration
 strategy_list:
   example:
-    overnight_launcher:
-      function: sysproduction.strategy_code.run_system_classic.run_system_classic
+    run_systems:
+      object: sysproduction.strategy_code.run_system_classic.runSystemClassic
+      function: run_system_classic
       backtest_config_filename: systems.provided.futures_chapter15.futures_config.yaml
-    order_handling:
-      function: sysexecution.strategies.classic_buffered_positions.orderGeneratorForBufferedPositions
-      frequency_minutes: 60
+      max_executions: 1
+    run_strategy_order_generator:
+      object: sysexecution.strategies.classic_buffered_positions.orderGeneratorForBufferedPositions
+      function: get_and_place_orders
+      frequency: 60
+      max_executions: 1
 
 #
 # Allocate capital to strategies

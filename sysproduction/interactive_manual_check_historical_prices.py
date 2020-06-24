@@ -14,7 +14,7 @@ from sysproduction.data.contracts import diagContracts
 from sysdata.futures.manual_price_checker import manual_price_checker
 from sysdata.futures.futures_per_contract_prices import futuresContractPrices
 from syslogdiag.log import logToMongod as logger
-from sysdata.private_config import get_private_then_default_key_value
+
 
 def interactive_manual_check_historical_prices(instrument_code:str):
     """
@@ -69,7 +69,8 @@ def update_historical_prices_with_checks_for_instrument_and_contract(contract_ob
     :param log: logger
     :return: None
     """
-    intraday_frequency = get_private_then_default_key_value("intraday_frequency")
+    diag_prices = diagPrices(data)
+    intraday_frequency = diag_prices.get_intraday_frequency_for_historical_download()
     get_and_check_prices_for_frequency(data, log, contract_object, frequency=intraday_frequency)
     get_and_check_prices_for_frequency(data, log, contract_object, frequency="D")
 

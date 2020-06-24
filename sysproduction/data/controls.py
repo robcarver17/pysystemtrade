@@ -168,11 +168,11 @@ class diagProcessConfig():
         self.data = data
 
     def get_config_dict(self, process_name):
-        previous_process = previous_process_name(process_name)
-        start_time = get_start_time(process_name)
-        end_time = get_stop_time(process_name)
-        machine_name = required_machine_name(process_name)
-        method_dict = get_all_method_dict_for_process_name(process_name)
+        previous_process = self.previous_process_name(process_name)
+        start_time = self.get_start_time(process_name)
+        end_time = self.get_stop_time(process_name)
+        machine_name = self.required_machine_name(process_name)
+        method_dict = self.get_all_method_dict_for_process_name(process_name)
 
         result_dict = dict(previous_process = previous_process,
                            start_time = start_time,
@@ -182,8 +182,15 @@ class diagProcessConfig():
 
         return result_dict
 
+
+    def get_strategy_dict_for_process(self, process_name, strategy_name):
+        this_strategy_dict = self.get_strategy_dict_for_strategy(strategy_name)
+        this_process_dict = this_strategy_dict[process_name]
+
+        return this_process_dict
+
     def has_previous_process_finished_in_last_day(self, process_name):
-        previous_process = previous_process_name(process_name)
+        previous_process = self.previous_process_name(process_name)
         if previous_process is None:
             return True
         control_process = dataControlProcess(self.data)
@@ -192,8 +199,8 @@ class diagProcessConfig():
         return result
 
     def is_it_time_to_run(self, process_name):
-        start_time = get_start_time(process_name)
-        stop_time = get_stop_time(process_name)
+        start_time = self.get_start_time(process_name)
+        stop_time = self.get_stop_time(process_name)
         now_time = datetime.datetime.now().time()
 
         if now_time>=start_time and now_time<stop_time:
@@ -202,7 +209,7 @@ class diagProcessConfig():
             return False
 
     def is_this_correct_machine(self, process_name):
-        required_host = required_machine_name(process_name)
+        required_host = self.required_machine_name(process_name)
         if required_host is None:
             return True
 
@@ -214,7 +221,7 @@ class diagProcessConfig():
             return False
 
     def is_it_time_to_stop(self, process_name):
-        stop_time = get_stop_time(process_name)
+        stop_time = self.get_stop_time(process_name)
         now_time = datetime.datetime.now().time()
 
         if now_time > stop_time:
@@ -222,99 +229,129 @@ class diagProcessConfig():
         else:
             return False
 
-    def frequency_for_process_and_method(self, process_name, method_name):
-        frequency, _ = frequency_and_max_executions_for_process_and_method(process_name, method_name)
+    def frequency_for_process_and_method(self, process_name, method_name, use_strategy_config=False):
+        frequency, _ = self.frequency_and_max_executions_for_process_and_method(process_name, method_name, use_strategy_config=use_strategy_config)
         return frequency
 
-    def max_executions_for_process_and_method(self, process_name, method_name):
-        _, max_executions = frequency_and_max_executions_for_process_and_method(process_name, method_name)
+    def max_executions_for_process_and_method(self, process_name, method_name, use_strategy_config):
+        _, max_executions = self.frequency_and_max_executions_for_process_and_method(process_name, method_name, use_strategy_config=use_strategy_config)
         return max_executions
 
-def frequency_and_max_executions_for_process_and_method(process_name, method_name):
-    """
+    def frequency_and_max_executions_for_process_and_method(self, process_name, method_name, use_strategy_config=False):
+        """
 
-    :param process_name:  str
-    :param method_name:  str
-    :return: tuple of int: frequency (minutes), max executions
-    """
+        :param process_name:  str
+        :param method_name:  str
+        :return: tuple of int: frequency (minutes), max executions
+        """
 
-    this_method_dict = get_method_configuration_for_process_name(process_name, method_name)
-    frequency = this_method_dict.get("frequency", 60)
-    max_executions = this_method_dict.get("max_executions", 999)
+        if use_strategy_config:
+            # the 'method' here is actually a strategy
+            frequency, max_executions = \
+                self.frequency_and_max_executions_for_process_and_method_strategy_dict(process_name, method_name)
+        else:
+            frequency, max_executions = \
+                self.frequency_and_max_executions_for_process_and_method_process_dict(process_name, method_name)
 
-    return frequency, max_executions
-
-def get_method_configuration_for_process_name(process_name, method_name):
-    all_method_dict = get_all_method_dict_for_process_name(process_name)
-    this_method_dict = all_method_dict.get(method_name, {})
-
-    return this_method_dict
-
-def get_all_method_dict_for_process_name(process_name):
-    all_method_dict = get_configuration_item_for_process_name(process_name, "methods", default={}, use_config_default=False)
-
-    return all_method_dict
-
-def previous_process_name(process_name):
-    """
-
-    :param process_name:
-    :return: str or None
-    """
-    return get_configuration_item_for_process_name(process_name, "previous_process", default=None, use_config_default=False)
-
-def get_start_time(process_name):
-    """
-    Return time object, or 00:01 if none available
-    :param process_name:
-    :return:
-    """
-    result = get_configuration_item_for_process_name(process_name, "start_time", default=None, use_config_default=True)
-    if result is None:
-        result = "00:01"
-
-    result = datetime.datetime.strptime(result, "%H:%M").time()
-
-    return result
+        return frequency, max_executions
 
 
-def get_stop_time(process_name):
-    """
-    Return time object, or 00:01 if none available
-    :param process_name:
-    :return:
-    """
-    result = get_configuration_item_for_process_name(process_name, "stop_time", default=None, use_config_default=True)
-    if result is None:
-        result = "23:50"
+    def frequency_and_max_executions_for_process_and_method_strategy_dict(self, process_name, strategy_name):
+        this_process_dict = self.get_strategy_dict_for_process(process_name, strategy_name)
+        frequency = this_process_dict.get("frequency", 60)
+        max_executions = this_process_dict.get("max_executions", 1)
 
-    result = datetime.datetime.strptime(result, "%H:%M").time()
-
-    return result
+        return frequency, max_executions
 
 
-def required_machine_name(process_name):
-    """
+    def get_strategy_dict_for_strategy(self, strategy_name):
+        strategy_dict = self.get_all_strategy_dict()
+        this_strategy_dict = strategy_dict[strategy_name]
 
-    :param process_name:
-    :return: str or None
-    """
-    result = get_configuration_item_for_process_name(process_name, "host_name", default=None, use_config_default=False)
+        return this_strategy_dict
 
-    return result
+    def get_all_strategy_dict(self):
+        return get_private_then_default_key_value('strategy_list')
 
-def get_configuration_item_for_process_name(process_name, item_name, default=None, use_config_default = False):
-    process_config_for_item = get_process_configuration_for_item_name(item_name)
-    config_item = process_config_for_item.get(process_name, default)
-    if use_config_default and config_item is default:
-        config_item = process_config_for_item.get("default", default)
+    def frequency_and_max_executions_for_process_and_method_process_dict(self, process_name, method_name):
 
-    return config_item
+        this_method_dict = self.get_method_configuration_for_process_name(process_name, method_name)
+        frequency = this_method_dict.get("frequency", 60)
+        max_executions = this_method_dict.get("max_executions", 999)
+
+        return frequency, max_executions
+
+    def get_method_configuration_for_process_name(self, process_name, method_name):
+        all_method_dict = self.get_all_method_dict_for_process_name(process_name)
+        this_method_dict = all_method_dict.get(method_name, {})
+
+        return this_method_dict
+
+    def get_all_method_dict_for_process_name(self, process_name):
+        all_method_dict = self.get_configuration_item_for_process_name(process_name, "methods", default={}, use_config_default=False)
+
+        return all_method_dict
+
+    def previous_process_name(self, process_name):
+        """
+
+        :param process_name:
+        :return: str or None
+        """
+        return self.get_configuration_item_for_process_name(process_name, "previous_process", default=None, use_config_default=False)
+
+    def get_start_time(self, process_name):
+        """
+        Return time object, or 00:01 if none available
+        :param process_name:
+        :return:
+        """
+        result = self.get_configuration_item_for_process_name(process_name, "start_time", default=None, use_config_default=True)
+        if result is None:
+            result = "00:01"
+
+        result = datetime.datetime.strptime(result, "%H:%M").time()
+
+        return result
 
 
-def get_process_configuration_for_item_name(item_name):
-    config = get_private_then_default_key_value('process_configuration_%s' % item_name, raise_error=False)
-    if config is missing_data:
-        return {}
+    def get_stop_time(self, process_name):
+        """
+        Return time object, or 00:01 if none available
+        :param process_name:
+        :return:
+        """
+        result = self.get_configuration_item_for_process_name(process_name, "stop_time", default=None, use_config_default=True)
+        if result is None:
+            result = "23:50"
 
-    return config
+        result = datetime.datetime.strptime(result, "%H:%M").time()
+
+        return result
+
+
+    def required_machine_name(self, process_name):
+        """
+
+        :param process_name:
+        :return: str or None
+        """
+        result = self.get_configuration_item_for_process_name(process_name, "host_name", default=None, use_config_default=False)
+
+        return result
+
+    def get_configuration_item_for_process_name(self, process_name, item_name, default=None, use_config_default = False):
+        process_config_for_item = self.get_process_configuration_for_item_name(item_name)
+        config_item = process_config_for_item.get(process_name, default)
+        if use_config_default and config_item is default:
+            config_item = process_config_for_item.get("default", default)
+
+        return config_item
+
+
+    def get_process_configuration_for_item_name(self, item_name):
+        config = get_private_then_default_key_value('process_configuration_%s' % item_name, raise_error=False)
+        if config is missing_data:
+            return {}
+
+        return config

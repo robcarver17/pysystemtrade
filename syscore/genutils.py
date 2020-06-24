@@ -242,42 +242,8 @@ class progressBar(object):
     def finished(self):
         sys.stdout.write("\n")
 
-class timerClass(object):
 
-    @property
-    def frequency_minutes(self):
-        return 60.0
-
-    def when_last_run(self):
-        when_last_run = getattr(self, "_last_run", None)
-        if when_last_run is None:
-            when_last_run = datetime.datetime(1970,1,1)
-            self._last_run = when_last_run
-
-        return when_last_run
-
-    def set_last_run(self):
-        self._last_run = datetime.datetime.now()
-
-        return None
-
-    def minutes_since_last_run(self):
-        when_last_run = self.when_last_run()
-        time_now = datetime.datetime.now()
-        delta = time_now - when_last_run
-        delta_minutes = delta.total_seconds()/60.0
-
-        return delta_minutes
-
-    def check_if_ready_for_another_run(self):
-        time_since_run = self.minutes_since_last_run()
-        minutes_between_runs = self.frequency_minutes
-        if time_since_run > minutes_between_runs:
-            return True
-        else:
-            return False
-
-class timerClassWithFunction(timerClass):
+class timerClassWithFunction(object):
     def __init__(self, function_to_execute, frequency_minutes = 60, max_executions = 1):
         self._function = function_to_execute # class.method to run
         self._frequency_minutes = frequency_minutes
@@ -302,13 +268,39 @@ class timerClassWithFunction(timerClass):
 
         return None
 
-    def run_function(self):
-        ## Functions can't take args or kwargs or return anything; pure method
-        self._function()
+
+    def check_if_ready_for_another_run(self):
+        time_since_run = self.minutes_since_last_run()
+        minutes_between_runs = self.frequency_minutes
+        if time_since_run > minutes_between_runs:
+            return True
+        else:
+            return False
+
+
+    def minutes_since_last_run(self):
+        when_last_run = self.when_last_run()
+        time_now = datetime.datetime.now()
+        delta = time_now - when_last_run
+        delta_minutes = delta.total_seconds()/60.0
+
+        return delta_minutes
+
+    def when_last_run(self):
+        when_last_run = getattr(self, "_last_run", None)
+        if when_last_run is None:
+            when_last_run = datetime.datetime(1970,1,1)
+            self._last_run = when_last_run
+
+        return when_last_run
 
     def completed_max_runs(self):
         if self._actual_executions>=self._max_executions:
             return True
+
+    def run_function(self):
+        ## Functions can't take args or kwargs or return anything; pure method
+        self._function()
 
     def update_on_run(self):
         self.increment_executions()
@@ -318,6 +310,10 @@ class timerClassWithFunction(timerClass):
         self._actual_executions = self._actual_executions + 1
 
 
+    def set_last_run(self):
+        self._last_run = datetime.datetime.now()
+
+        return None
 
 class listOfTimerFunctions(list):
     def check_and_run(self):

@@ -18,7 +18,7 @@ from sysexecution.strategies.strategy_order_handling import orderGeneratorForStr
 from sysproduction.data.positions import diagPositions
 
 class orderGeneratorForBufferedPositions(orderGeneratorForStrategy):
-    def _required_orders_no_checking(self):
+    def get_required_orders(self):
         strategy_name = self.strategy_name
 
         optimal_positions = self.get_optimal_positions()

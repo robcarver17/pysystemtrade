@@ -25,11 +25,13 @@ class processToRun(object):
     """
     Create, then do main_loop
     """
-    def __init__(self, process_name, data, list_of_timer_names_and_functions):
+    def __init__(self, process_name, data, list_of_timer_names_and_functions, use_strategy_config=False):
         self.data = data
         self._process_name = process_name
         self._setup()
-        self._list_of_timer_functions = _get_list_of_timer_functions(data, process_name, list_of_timer_names_and_functions)
+        self._list_of_timer_functions = \
+            _get_list_of_timer_functions(data, process_name, list_of_timer_names_and_functions,
+                                         use_strategy_config = use_strategy_config)
 
     def _setup(self):
         self.log = self.data.log
@@ -240,13 +242,14 @@ class processToRun(object):
 
 
 
-def _get_list_of_timer_functions(data, process_name, list_of_timer_names_and_functions):
+def _get_list_of_timer_functions(data, process_name, list_of_timer_names_and_functions,
+                                 use_strategy_config = False):
     list_of_timer_functions = []
     diag_process = diagProcessConfig(data)
     for entry in list_of_timer_names_and_functions:
         method_name, function_object = entry
-        frequency_minutes = diag_process.frequency_for_process_and_method(process_name, method_name)
-        max_executions = diag_process.max_executions_for_process_and_method(process_name, method_name)
+        frequency_minutes = diag_process.frequency_for_process_and_method(process_name, method_name, use_strategy_config=use_strategy_config)
+        max_executions = diag_process.max_executions_for_process_and_method(process_name, method_name, use_strategy_config=use_strategy_config)
         timer_class = timerClassWithFunction(function_object, frequency_minutes=frequency_minutes, max_executions=max_executions)
         list_of_timer_functions.append(timer_class)
 

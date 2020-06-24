@@ -31,10 +31,18 @@ from syslogdiag.log import logtoscreen
 
 from systems.provided.futures_chapter15.basesystem import futures_system
 
+class runSystemClassic(object):
+    def __init__(self, strategy_name, data, backtest_config_filename="systems.provided.futures_chapter15.futures_config.yaml"):
+        self.data = data
+        self.strategy_name = strategy_name
+        self.backtest_config_filename = backtest_config_filename
 
-def run_system_classic(strategy_name, data,
-               backtest_config_filename="systems.provided.futures_chapter15.futures_config.yaml"):
 
+
+    def run_system_classic(self):
+        data = self.data
+        strategy_name = self.strategy_name
+        backtest_config_filename = self.backtest_config_filename
         capital_data = dataCapital(data)
         capital_value = capital_data.get_capital_for_strategy(strategy_name)
         if capital_data is missing_data:

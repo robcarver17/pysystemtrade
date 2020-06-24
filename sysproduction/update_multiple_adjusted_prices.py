@@ -28,6 +28,18 @@ def update_multiple_adjusted_prices():
     """
 
     with dataBlob(log_name="Update-Multiple-Adjusted-Prices") as data:
+        update_multiple_adjusted_prices_object = updateMultipleAdjustedPrices(data)
+        update_multiple_adjusted_prices_object.update_multiple_adjusted_prices()
+
+    return success
+
+
+class updateMultipleAdjustedPrices(object):
+    def __init__(self,data):
+        self.data = data
+
+    def update_multiple_adjusted_prices(self):
+        data = self.data
         diag_prices = diagPrices(data)
 
         list_of_codes_all = diag_prices.get_list_of_instruments_in_multiple_prices()
@@ -37,9 +49,6 @@ def update_multiple_adjusted_prices():
                 update_multiple_adjusted_prices_for_instrument(instrument_code, data)
             except Exception as e:
                 data.log.warn("ERROR: Multiple price update went wrong: %s" % str(e))
-
-
-    return success
 
 
 def update_multiple_adjusted_prices_for_instrument(instrument_code, data):
