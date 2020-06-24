@@ -17,30 +17,34 @@ def update_strategy_capital():
     :return: Nothing
     """
     with dataBlob(log_name="Update-Strategy-Capital") as data:
+        update_strategy_capital_object = updateStrategyCapital(data)
+        update_strategy_capital_object.strategy_allocation()
 
+    return success
+
+class updateStrategyCapital(object):
+    def __init__(self, data):
+        self.data = data
+
+    def strategy_allocation(self):
+        """
+        Used to allocate capital to strategies. Doesn't actually do the allocation but get's from another function,
+          defined in config.strategy_capital_allocation.function (defaults.yaml, or overide in private_config.yaml)
+
+        Writes the result to capital data, which is then picked up by run strategy
+
+        :param data: A data blob
+        :return: None
+        """
+        data = self.data
         try:
-            strategy_allocation(data)
+            strategy_capital_dict = call_allocation_function(data)
+            write_allocated_weights(data, strategy_capital_dict)
         except Exception as e:
             ## Problem, will send email
             data.log.critical("Error %s whilst allocating strategy capital" % e)
 
-    return success
-
-def strategy_allocation(data):
-    """
-    Used to allocate capital to strategies. Doesn't actually do the allocation but get's from another function,
-      defined in config.strategy_capital_allocation.function (defaults.yaml, or overide in private_config.yaml)
-
-    Writes the result to capital data, which is then picked up by run strategy
-
-    :param data: A data blob
-    :return: success or Exception
-    """
-
-    strategy_capital_dict = call_allocation_function(data)
-    write_allocated_weights(data, strategy_capital_dict)
-
-    return success
+        return None
 
 
 def call_allocation_function(data):

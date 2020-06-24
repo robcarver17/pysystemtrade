@@ -143,7 +143,7 @@ class dataBroker(object):
 
         mid_price = np.mean([last_ask, last_bid])
 
-        is_buy = contract_order.trade>=0
+        is_buy = contract_order.trade[0]>=0
         if is_buy:
             side_price = last_ask
         else:

@@ -35,6 +35,7 @@ from sysdata.mongodb.mongo_historic_orders import mongoStrategyHistoricOrdersDat
 from sysdata.mongodb.mongo_override import mongoOverrideData
 from sysdata.mongodb.mongo_trade_limits import mongoTradeLimitData
 from sysdata.mongodb.mongo_lock_data import mongoLockData
+from sysdata.mongodb.mongo_process_control import mongoControlProcessData
 
 from sysdata.mongodb.mongo_connection import mongoDb
 
@@ -113,11 +114,17 @@ class dataBlob(object):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
+    def close(self):
         if self._ib_conn is not arg_not_supplied:
             self.ib_conn.close_connection()
 
         if self._mongo_db is not arg_not_supplied:
             self.mongo_db.close()
+
+
+
 
     @property
     def ib_conn(self):

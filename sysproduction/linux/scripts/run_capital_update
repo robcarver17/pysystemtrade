@@ -1,0 +1,3 @@
+#!/bin/bash
+. ~/.profile
+. p sysproduction.run_capital_update.run_capital_update

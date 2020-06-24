@@ -243,6 +243,7 @@ class progressBar(object):
         sys.stdout.write("\n")
 
 class timerClass(object):
+
     @property
     def frequency_minutes(self):
         return 60.0
@@ -275,6 +276,62 @@ class timerClass(object):
             return True
         else:
             return False
+
+class timerClassWithFunction(timerClass):
+    def __init__(self, function_to_execute, frequency_minutes = 60, max_executions = 1):
+        self._function = function_to_execute # class.method to run
+        self._frequency_minutes = frequency_minutes
+        self._max_executions = max_executions
+        self._actual_executions = 0
+
+    @property
+    def frequency_minutes(self):
+        return self._frequency_minutes
+
+    def check_and_run(self):
+        """
+
+        :return: None
+        """
+        okay_to_run = self.check_if_ready_for_another_run()
+        exceeded_max = self.completed_max_runs()
+        if exceeded_max or not okay_to_run:
+            return None
+        self.run_function()
+        self.update_on_run()
+
+        return None
+
+    def run_function(self):
+        ## Functions can't take args or kwargs or return anything; pure method
+        self._function()
+
+    def completed_max_runs(self):
+        if self._actual_executions>=self._max_executions:
+            return True
+
+    def update_on_run(self):
+        self.increment_executions()
+        self.set_last_run()
+
+    def increment_executions(self):
+        self._actual_executions = self._actual_executions + 1
+
+
+
+class listOfTimerFunctions(list):
+    def check_and_run(self):
+        for timer_class in self:
+            timer_class.check_and_run()
+
+    def all_finished(self):
+        if len(self)==0:
+            return True
+
+        finished = [timer_class.completed_max_runs() for timer_class in self]
+        all_finished = all(finished)
+
+        return all_finished
 
 class quickTimer(object):
     def __init__(self, seconds = 60):

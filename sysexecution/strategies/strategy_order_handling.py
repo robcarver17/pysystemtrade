@@ -215,6 +215,8 @@ class orderGeneratorForStrategy(timerClass):
         ## needs updating
         orders = self._required_orders_no_checking()
 
+        self.set_last_run()
+
         return orders
 
     def _required_orders_no_checking(self):
