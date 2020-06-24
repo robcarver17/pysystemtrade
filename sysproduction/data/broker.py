@@ -107,7 +107,7 @@ class dataBroker(object):
             submit_broker_order(broker_order)
 
         if submitted_broker_order is missing_order:
-            log("Order could not be submitted")
+            log.warn("Order could not be submitted")
             return missing_order
 
         log = submitted_broker_order.log_with_attributes(log)
