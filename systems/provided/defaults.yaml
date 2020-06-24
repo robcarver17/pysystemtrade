@@ -16,7 +16,7 @@ process_configuration_methods:
   run_capital_update:
     total_capital:
       frequency: 60
-      max_executions: 8
+      max_executions: 1
     strategy_capital:
       max_executions: 1
   run_daily_prices_updates:

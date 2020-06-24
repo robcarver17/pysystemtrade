@@ -17,18 +17,13 @@ def update_fx_prices():
     """
 
     with dataBlob(log_name="Update-FX-Prices") as data:
-        update_fx_prices_object = updateFxPrices(data)
-        update_fx_prices_object.update_fx_prices()
+        update_fx_prices_object = updateFxPrices()
+        update_fx_prices_object.update_fx_prices(data)
 
     return success
 
 class updateFxPrices(object):
-    def __init__(self, data):
-        self.data = data
-
-    def update_fx_prices(self, method_name):
-        data = self.data
-        data.log = data.log.setup(method_name = method_name)
+    def update_fx_prices(self, data):
 
         log = data.log
         broker_fx_source = dataBroker(data)

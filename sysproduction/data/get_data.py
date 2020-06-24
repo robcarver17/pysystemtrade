@@ -1,6 +1,8 @@
 ### Get all the data we need to run production code
 ### Stick in a standard 'blob', so the names are common
 
+from copy import  copy
+
 from sysbrokers.IB.ibFuturesContractPriceData import ibFuturesContractPriceData
 from sysbrokers.IB.ibSpotFXData import ibFxPricesData
 from sysbrokers.IB.ibConnection import connectionIB
@@ -100,9 +102,11 @@ class dataBlob(object):
 
         if arg_string is arg_not_supplied:
             # can set up dynamically later
-            return None
+            pass
+        else:
+            self.add_class_list(arg_string)
 
-        self.add_class_list(arg_string)
+        self._original_data = copy(self)
 
     def __repr__(self):
         return "dataBlob with elements: %s" % ",".join(self.attr_list)
@@ -153,6 +157,13 @@ class dataBlob(object):
             self._log = log
 
         return log
+
+    def setup_clone(self, **kwargs):
+        new_data = self._original_data
+        new_data._log = new_data.log.setup(**kwargs)
+        new_data._original_data = self._original_data
+
+        return new_data
 
     @property
     def csv_data_paths(self):

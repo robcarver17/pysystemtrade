@@ -22,13 +22,27 @@ class orderGeneratorForStrategy(object):
 
     """
 
-    def __init__(self,  strategy_name, data):
+    def __init__(self,  strategy_name):
 
+        self.strategy_name = strategy_name
+
+    def get_and_place_orders(self, original_data):
+        ## THIS IS THE MAIN FUNCTION THAT IS RUN
+        data = original_data.setup_clone(method = 'get_and_place_orders', strategy_name = self.strategy_name)
+        self.setup_before_placing(data)
+        order_list = self.get_required_orders()
+        order_list_with_overrides = self.apply_overrides(order_list)
+        self.submit_order_list(order_list_with_overrides)
+
+
+        return None
+
+    def setup_before_placing(self, data):
         data_orders = dataOrders(data)
         self.data = data
-        self.strategy_name = strategy_name
         self.log = data.log
         self.data_orders = data_orders
+
 
     @property
     def order_stack(self):
@@ -53,14 +67,6 @@ class orderGeneratorForStrategy(object):
                                  for instrument_code in list_of_instruments])
         return actual_positions
 
-    def get_and_place_orders(self, method_name):
-        ## THIS IS THE MAIN FUNCTION THAT IS RUN
-        self.data.log = self.data.log.setup(method_name = method_name)
-        order_list = self.get_required_orders()
-        order_list_with_overrides = self.apply_overrides(order_list)
-        self.submit_order_list(order_list_with_overrides)
-
-        return None
 
     def get_required_orders(self):
         raise  Exception("Need to inherit with a specific method for your type of strategy")

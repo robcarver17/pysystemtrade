@@ -28,19 +28,15 @@ def update_multiple_adjusted_prices():
     """
 
     with dataBlob(log_name="Update-Multiple-Adjusted-Prices") as data:
-        update_multiple_adjusted_prices_object = updateMultipleAdjustedPrices(data)
-        update_multiple_adjusted_prices_object.update_multiple_adjusted_prices()
+        update_multiple_adjusted_prices_object = updateMultipleAdjustedPrices()
+        update_multiple_adjusted_prices_object.update_multiple_adjusted_prices(data)
 
     return success
 
 
 class updateMultipleAdjustedPrices(object):
-    def __init__(self,data):
-        self.data = data
 
-    def update_multiple_adjusted_prices(self, method_name):
-        data = self.data
-        data.log = data.log.setup(method_name = method_name)
+    def update_multiple_adjusted_prices(self, data):
 
         diag_prices = diagPrices(data)
 

@@ -49,7 +49,7 @@ def get_strategy_method(process_name, data, strategy_name):
 
     other_args = config_this_process
 
-    instance = object(strategy_name, data, **other_args)
+    instance = object(strategy_name, **other_args)
     method = getattr(instance, function)
 
     return method

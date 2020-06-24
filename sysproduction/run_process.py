@@ -17,9 +17,9 @@ We kick them all off in the crontab at a specific time (midnight is easiest), bu
 - how do I mark myself as FINISHED for a subsequent process to know (in database)
 
 """
+import datetime
 from sysproduction.data.controls import dataControlProcess, diagProcessConfig
 from syscore.objects import process_no_run, process_stop, process_running, success, failure, arg_not_supplied
-from syscore.genutils import timerClassWithFunction, listOfTimerFunctions
 
 class processToRun(object):
     """
@@ -177,7 +177,7 @@ class processToRun(object):
         self.data_control.start_process(self.process_name)
 
     def _do(self):
-        self._list_of_timer_functions.check_and_run()
+        self._list_of_timer_functions.check_and_run(self.data)
 
     def _check_for_stop(self):
         """
@@ -256,3 +256,97 @@ def _get_list_of_timer_functions(data, process_name, list_of_timer_names_and_fun
 
     list_of_timer_functions = listOfTimerFunctions(list_of_timer_functions)
     return list_of_timer_functions
+
+
+
+class timerClassWithFunction(object):
+    def __init__(self, name, function_to_execute, frequency_minutes = 60, max_executions = 1):
+        self._function = function_to_execute # class.method to run
+        self._frequency_minutes = frequency_minutes
+        self._max_executions = max_executions
+        self._actual_executions = 0
+        self._name = name
+
+    @property
+    def frequency_minutes(self):
+        return self._frequency_minutes
+
+    @property
+    def name(self):
+        return self._name
+
+    def check_and_run(self, data):
+        """
+
+        :return: None
+        """
+        okay_to_run = self.check_if_ready_for_another_run()
+        exceeded_max = self.completed_max_runs()
+        if exceeded_max or not okay_to_run:
+            return None
+        self.run_function(data)
+        self.update_on_run()
+
+        return None
+
+
+    def check_if_ready_for_another_run(self):
+        time_since_run = self.minutes_since_last_run()
+        minutes_between_runs = self.frequency_minutes
+        if time_since_run > minutes_between_runs:
+            return True
+        else:
+            return False
+
+
+    def minutes_since_last_run(self):
+        when_last_run = self.when_last_run()
+        time_now = datetime.datetime.now()
+        delta = time_now - when_last_run
+        delta_minutes = delta.total_seconds()/60.0
+
+        return delta_minutes
+
+    def when_last_run(self):
+        when_last_run = getattr(self, "_last_run", None)
+        if when_last_run is None:
+            when_last_run = datetime.datetime(1970,1,1)
+            self._last_run = when_last_run
+
+        return when_last_run
+
+    def completed_max_runs(self):
+        if self._actual_executions>=self._max_executions:
+            return True
+
+    def run_function(self, data):
+        new_data = data.setup_clone(method = self._name)
+        ## Functions can't take args or kwargs or return anything; pure method
+        self._function(new_data)
+
+    def update_on_run(self):
+        self.increment_executions()
+        self.set_last_run()
+
+    def increment_executions(self):
+        self._actual_executions = self._actual_executions + 1
+
+
+    def set_last_run(self):
+        self._last_run = datetime.datetime.now()
+
+        return None
+
+class listOfTimerFunctions(list):
+    def check_and_run(self, data):
+        for timer_class in self:
+            timer_class.check_and_run(data)
+
+    def all_finished(self):
+        if len(self)==0:
+            return True
+
+        finished = [timer_class.completed_max_runs() for timer_class in self]
+        all_finished = all(finished)
+
+        return all_finished
