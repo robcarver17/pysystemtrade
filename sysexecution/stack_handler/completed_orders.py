@@ -7,17 +7,6 @@ from sysproduction.data.orders import dataOrders
 
 class stackHandlerForCompletions(stackHandlerCore):
 
-    def process_completions_stack(self):
-        """
-        Run a regular sweep across the stack
-        Doing various things
-
-        :return: success
-        """
-
-        self.handle_completed_orders()
-
-
 
     def handle_completed_orders(self, allow_partial_completions = False,
                                 allow_zero_completions = False):

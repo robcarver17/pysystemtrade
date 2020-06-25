@@ -15,8 +15,6 @@ from sysexecution.algos.allocate_algo_to_order import allocate_algo_to_list_of_c
 from sysexecution.stack_handler.stackHandlerCore import stackHandlerCore
 
 class stackHandlerForSpawning(stackHandlerCore):
-    def process_spawning_stack(self):
-        self.spawn_children_from_new_instrument_orders()
 
     def spawn_children_from_new_instrument_orders(self):
         new_order_ids = self.instrument_stack.list_of_new_orders()

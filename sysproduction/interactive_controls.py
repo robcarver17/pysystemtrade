@@ -41,8 +41,8 @@ nested_menu_of_options = {
                         13: 'Update / add / remove override for strategy & instrument'
                         },
                     2: {20: 'View process controls and status',
-                        21: 'Change process controls',
-                        22: 'View process configuration (set in YAML)',
+                        21: 'Change status of process control (STOP/GO/NO RUN)',
+                        22: 'View process configuration (set in YAML, cannot change here)',
                         23: 'Mark process as finished'},
                     3: {30: '*nothing yet*'
                     }}
@@ -145,11 +145,16 @@ def get_overide_object_from_user():
             print(e)
 
 def view_process_controls(data):
-    data_process = dataControlProcess(data)
-    dict_of_controls = data_process.get_dict_of_control_processes()
+    dict_of_controls = get_dict_of_process_controls(data)
     print("\nControlled processes:\n")
     for key,value in dict_of_controls.items():
         print("%s: %s" % (str(key), str(value)))
+    return dict_of_controls
+
+def get_dict_of_process_controls(data):
+    data_process = dataControlProcess(data)
+    dict_of_controls = data_process.get_dict_of_control_processes()
+
     return dict_of_controls
 
 def change_process_control_status(data):
@@ -166,15 +171,11 @@ def change_process_control_status(data):
     return None
 
 def get_process_name(data):
-    dict_of_controls = view_process_controls(data)
-    invalid_input = True
-    while invalid_input:
-        ans = input("Process name?")
-        if ans in list(dict_of_controls.keys()):
-            break
-        else:
-            print("%s is not a valid process name [%s]" % (ans, str(dict_of_controls.keys())))
-
+    process_names = get_dict_of_process_controls(data)
+    menu_of_options = dict(list(enumerate(process_names)))
+    print("Process name?")
+    option = print_menu_and_get_response(menu_of_options, default_option=1)
+    ans = menu_of_options[option]
     return ans
 
 def view_process_config(data):

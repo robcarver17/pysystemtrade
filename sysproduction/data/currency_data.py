@@ -73,3 +73,12 @@ class currencyData(object):
 
     def get_fx_prices(self, fx_code):
         return self.data.db_fx_prices.get_fx_prices(fx_code)
+
+    def get_list_of_fxcodes(self):
+        self.data.db_fx_prices.get_list_of_fxcodes()
+
+def get_list_of_fxcodes(data = arg_not_supplied):
+    if data is arg_not_supplied:
+        data = dataBlob()
+    c = currencyData(data)
+    return c.get_list_of_fxcodes()

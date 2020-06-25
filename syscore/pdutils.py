@@ -810,6 +810,18 @@ def check_ts_equals(x,y):
         return False
 
 
+def make_df_from_list_of_named_tuple(tuple_class, list_of_tuples):
+    elements = tuple_class._fields
+    dict_of_elements = {}
+    for element_name in elements:
+        this_element_values = [getattr(list_entry, element_name) for list_entry in list_of_tuples]
+        dict_of_elements[element_name] = this_element_values
+
+    pdf = pd.DataFrame(dict_of_elements)
+
+    return pdf
+
+
 if __name__ == '__main__':
     import doctest
     doctest.testmod()

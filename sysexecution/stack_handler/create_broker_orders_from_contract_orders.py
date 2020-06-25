@@ -9,15 +9,6 @@ from sysproduction.data.broker import dataBroker
 
 class stackHandlerCreateBrokerOrders(stackHandlerCore):
 
-    def process_create_broker_order_stack(self):
-        """
-        Run a regular sweep across the stack
-        Doing various things
-
-        :return: success
-        """
-
-        self.create_broker_orders_from_contract_orders()
 
     def create_broker_orders_from_contract_orders(self, check_if_open=True):
         """

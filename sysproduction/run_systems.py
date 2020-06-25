@@ -31,13 +31,13 @@ def get_list_of_timer_functions_for_strategies(process_name, data):
     list_of_strategy_names = get_list_of_strategies()
     list_of_timer_names_and_functions = []
     for strategy_name in list_of_strategy_names:
-        method = get_strategy_method(process_name, data, strategy_name)
-        strategy_tuple = (strategy_name, method)
+        object, method = get_strategy_object_and_method(process_name, data, strategy_name)
+        strategy_tuple = (strategy_name, object, method)
         list_of_timer_names_and_functions.append(strategy_tuple)
 
     return list_of_timer_names_and_functions
 
-def get_strategy_method(process_name, data, strategy_name):
+def get_strategy_object_and_method(process_name, data, strategy_name):
     diag_config = diagProcessConfig(data)
     config_this_process = diag_config.get_strategy_dict_for_process(process_name, strategy_name)
     object = resolve_function(config_this_process.pop('object'))
@@ -52,8 +52,8 @@ def get_strategy_method(process_name, data, strategy_name):
     strategy_data = dataBlob(log_name=process_name)
     strategy_data.log.label(strategy_name = strategy_name)
 
-    instance = object(strategy_data, strategy_name, **other_args)
-    method = getattr(instance, function)
+    object = object(strategy_data, strategy_name, **other_args)
+    method = getattr(object, function)
 
-    return method
+    return object, method
 

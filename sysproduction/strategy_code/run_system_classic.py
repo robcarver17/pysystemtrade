@@ -61,7 +61,6 @@ class runSystemClassic(object):
         store_backtest_state(data, system, strategy_name=strategy_name,
                              backtest_config_filename=backtest_config_filename)
 
-        data.log_setup(strategy_name="")
         return success
 
 

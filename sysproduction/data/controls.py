@@ -4,7 +4,7 @@ import socket
 from sysproduction.data.get_data import dataBlob
 from sysdata.private_config import get_private_then_default_key_value
 from syscore.objects import arg_not_supplied, missing_data
-from sysdata.production.trade_limits import tradeLimit, listOfTradeLimits
+from syscore.genutils import str2Bool
 
 class dataLocks(object):
     def __init__(self, data=arg_not_supplied):
@@ -198,6 +198,8 @@ class diagProcessConfig():
 
         return result
 
+
+
     def is_it_time_to_run(self, process_name):
         start_time = self.get_start_time(process_name)
         stop_time = self.get_stop_time(process_name)
@@ -228,6 +230,13 @@ class diagProcessConfig():
             return True
         else:
             return False
+
+    def run_on_completion_only(self, process_name, method_name):
+        this_method_dict = self.get_method_configuration_for_process_name(process_name, method_name)
+        run_on_completion_only = this_method_dict.get("run_on_completion_only", False)
+        run_on_completion_only = str2Bool(run_on_completion_only)
+
+        return run_on_completion_only
 
     def frequency_for_process_and_method(self, process_name, method_name, use_strategy_config=False):
         frequency, _ = self.frequency_and_max_executions_for_process_and_method(process_name, method_name, use_strategy_config=use_strategy_config)
@@ -277,7 +286,7 @@ class diagProcessConfig():
 
         this_method_dict = self.get_method_configuration_for_process_name(process_name, method_name)
         frequency = this_method_dict.get("frequency", 60)
-        max_executions = this_method_dict.get("max_executions", 999)
+        max_executions = this_method_dict.get("max_executions", 1)
 
         return frequency, max_executions
 
@@ -339,6 +348,9 @@ class diagProcessConfig():
         result = self.get_configuration_item_for_process_name(process_name, "host_name", default=None, use_config_default=False)
 
         return result
+
+    def get_list_of_processes_run_over_strategies(self):
+        return self.get_process_configuration_for_item_name("run_over_strategies")
 
     def get_configuration_item_for_process_name(self, process_name, item_name, default=None, use_config_default = False):
         process_config_for_item = self.get_process_configuration_for_item_name(item_name)

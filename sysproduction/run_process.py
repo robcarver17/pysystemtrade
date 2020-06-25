@@ -20,6 +20,9 @@ We kick them all off in the crontab at a specific time (midnight is easiest), bu
 import datetime
 from sysproduction.data.controls import dataControlProcess, diagProcessConfig
 from syscore.objects import process_no_run, process_stop, process_running, success, failure, arg_not_supplied
+from syscore.dateutils import MINUTES_PER_HOUR
+
+from syslogdiag.log import logtoscreen
 
 class processToRun(object):
     """
@@ -40,6 +43,12 @@ class processToRun(object):
         diag_process = diagProcessConfig(self.data)
         self.diag_process = diag_process
         self._logged_wait_messages = False
+
+    def display_process_control(self):
+        dict_all = self.data_control.get_dict_of_control_processes()
+        dict_this_process = dict_all[self.process_name]
+
+        self.log.msg("Control for this process %s" % dict_this_process)
 
     def main_loop(self):
 
@@ -221,6 +230,7 @@ class processToRun(object):
         return self.diag_process.is_it_time_to_stop(self.process_name)
 
     def _finish(self):
+        self._list_of_timer_functions.last_run()
         self._finish_control_process()
         self.data.close()
 
@@ -247,25 +257,62 @@ def _get_list_of_timer_functions(data, process_name, list_of_timer_names_and_fun
     list_of_timer_functions = []
     diag_process = diagProcessConfig(data)
     for entry in list_of_timer_names_and_functions:
-        method_name, function_object = entry
+        if use_strategy_config:
+            strategy_name, object, function_object = entry
+            method_name = strategy_name
+            run_on_completion_only = False
+        else:
+            method_name, object = entry
+            function_object = getattr(object, method_name)
+            run_on_completion_only = diag_process.run_on_completion_only(process_name, method_name)
+
+        log = object.data.log
         frequency_minutes = diag_process.frequency_for_process_and_method(process_name, method_name, use_strategy_config=use_strategy_config)
         max_executions = diag_process.max_executions_for_process_and_method(process_name, method_name, use_strategy_config=use_strategy_config)
-
-        timer_class = timerClassWithFunction(method_name, function_object, frequency_minutes=frequency_minutes, max_executions=max_executions)
+        timer_class = timerClassWithFunction(method_name, function_object,
+                                             frequency_minutes=frequency_minutes, max_executions=max_executions,
+                                             run_on_completion_only = run_on_completion_only,
+                                             log = log)
         list_of_timer_functions.append(timer_class)
 
     list_of_timer_functions = listOfTimerFunctions(list_of_timer_functions)
     return list_of_timer_functions
 
 
+class listOfTimerFunctions(list):
+    def check_and_run(self):
+        for timer_class in self:
+            timer_class.check_and_run()
+
+    def all_finished(self):
+        if len(self) == 0:
+            return True
+
+        finished = [timer_class.completed_max_runs() for timer_class in self]
+        all_finished = all(finished)
+
+        return all_finished
+
+    def last_run(self):
+        for timer_class in self:
+            timer_class.check_and_run(last_run=True)
+
 
 class timerClassWithFunction(object):
-    def __init__(self, name, function_to_execute, frequency_minutes = 60, max_executions = 1):
+    def __init__(self, name, function_to_execute, frequency_minutes = 60, max_executions = 1,
+                 run_on_completion_only = False, log = logtoscreen(""), minutes_between_heartbeats = 10):
         self._function = function_to_execute # class.method to run
         self._frequency_minutes = frequency_minutes
         self._max_executions = max_executions
         self._actual_executions = 0
         self._name = name
+        self._run_on_completion_only = run_on_completion_only
+        self._minutes_between_heartbeats = minutes_between_heartbeats
+        self.log = log
+        if run_on_completion_only:
+            log.msg("%s will run on process completion" % name)
+        else:
+            log.msg("%s will run every %d minutes at most %d times" % (name, frequency_minutes, max_executions))
 
     @property
     def frequency_minutes(self):
@@ -275,19 +322,51 @@ class timerClassWithFunction(object):
     def name(self):
         return self._name
 
-    def check_and_run(self):
+    @property
+    def minutes_between_heartbeats(self):
+        return self._minutes_between_heartbeats
+
+    @property
+    def run_on_completion_only(self):
+        return self._run_on_completion_only
+
+    def check_and_run(self, last_run = False):
         """
 
         :return: None
         """
-        okay_to_run = self.check_if_ready_for_another_run()
-        exceeded_max = self.completed_max_runs()
-        if exceeded_max or not okay_to_run:
+        okay_to_run = self.check_if_okay_to_run(last_run=last_run)
+        if not okay_to_run:
             return None
+
         self.run_function()
         self.update_on_run()
 
         return None
+
+    def check_if_okay_to_run(self, last_run = False):
+        if self.run_on_completion_only:
+            if last_run:
+                self.log_heartbeat()
+                self.log.msg("Running %s as final run for process" % self.name, type=self.name)
+                return True
+            else:
+                return False
+        else:
+            # normal
+            self.log_heartbeat_if_required()
+
+            if last_run:
+                # don't run a normal process on last run
+                return False
+            else:
+                # okay not a last run, so check if timer elapsed enough and we haven't done too many
+                okay_to_run = self.check_if_ready_for_another_run()
+                exceeded_max = self.completed_max_runs()
+                if exceeded_max or not okay_to_run:
+                    return False
+                else:
+                    return True
 
 
     def check_if_ready_for_another_run(self):
@@ -298,6 +377,21 @@ class timerClassWithFunction(object):
         else:
             return False
 
+    def log_heartbeat_if_required(self):
+
+        time_since_run = self.minutes_since_last_heartbeat()
+        if time_since_run>self.minutes_between_heartbeats:
+            self.log_heartbeat()
+        return None
+
+    def log_heartbeat(self):
+        self.log.msg("%s still alive, done %d of %d executions every %d minutes" % (self.name,
+                                                                                    self._actual_executions,
+                                                                                    self._max_executions,
+                                                                                    self.frequency_minutes),
+                     type=self.name)
+        self._last_heartbeat = datetime.datetime.now()
+        return None
 
     def minutes_since_last_run(self):
         when_last_run = self.when_last_run()
@@ -315,9 +409,32 @@ class timerClassWithFunction(object):
 
         return when_last_run
 
+    def minutes_since_last_heartbeat(self):
+        when_last_beat = self.when_last_heartbeat()
+        time_now = datetime.datetime.now()
+        delta = time_now - when_last_beat
+        delta_minutes = delta.total_seconds()/60.0
+
+        return delta_minutes
+
+    def when_last_heartbeat(self):
+        when_last_heartbeat = getattr(self, "_last_heartbeat", None)
+        if when_last_heartbeat is None:
+            when_last_heartbeat = datetime.datetime(1970,1,1)
+            self._last_heartbeat = when_last_heartbeat
+
+        return when_last_heartbeat
+
+
     def completed_max_runs(self):
-        if self._actual_executions>=self._max_executions:
+        if self.run_on_completion_only:
+            # doesn't apply
             return True
+        elif self._actual_executions>=self._max_executions:
+            return True
+        else:
+            return False
+
 
     def run_function(self):
         ## Functions can't take args or kwargs or return anything; pure method
@@ -326,6 +443,8 @@ class timerClassWithFunction(object):
     def update_on_run(self):
         self.increment_executions()
         self.set_last_run()
+        if self.completed_max_runs():
+            self.log.msg("%s executed %d times so done" % (self.name, self._max_executions))
 
     def increment_executions(self):
         self._actual_executions = self._actual_executions + 1
@@ -336,16 +455,3 @@ class timerClassWithFunction(object):
 
         return None
 
-class listOfTimerFunctions(list):
-    def check_and_run(self):
-        for timer_class in self:
-            timer_class.check_and_run()
-
-    def all_finished(self):
-        if len(self)==0:
-            return True
-
-        finished = [timer_class.completed_max_runs() for timer_class in self]
-        all_finished = all(finished)
-
-        return all_finished

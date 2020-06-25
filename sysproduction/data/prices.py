@@ -108,8 +108,7 @@ class updatePrices(object):
 def get_valid_instrument_code_from_user(data=arg_not_supplied):
     if data is arg_not_supplied:
         data = dataBlob()
-    price_data = diagPrices(data)
-    all_instruments = price_data.get_list_of_instruments_in_multiple_prices()
+    all_instruments = get_list_of_instruments(data)
     invalid_input = True
     while invalid_input:
         instrument_code = input("Instrument code?")
@@ -117,3 +116,7 @@ def get_valid_instrument_code_from_user(data=arg_not_supplied):
             return instrument_code
 
         print("%s is not in list %s" % (instrument_code, all_instruments))
+
+def get_list_of_instruments(data= arg_not_supplied):
+    price_data = diagPrices(data)
+    return price_data.get_list_of_instruments_in_multiple_prices()

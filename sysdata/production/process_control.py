@@ -116,7 +116,7 @@ class controlProcess(object):
         end_time = self.last_end_time
         time_now = datetime.datetime.now()
         time_delta = time_now - end_time
-        if time_delta<=SECONDS_PER_DAY:
+        if time_delta.seconds<=SECONDS_PER_DAY:
             return True
         else:
             return False

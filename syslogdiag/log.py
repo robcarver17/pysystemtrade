@@ -3,6 +3,7 @@ import datetime
 
 from sysdata.mongodb.mongo_connection import mongoConnection, MONGO_ID_KEY
 from syscore.dateutils import long_to_datetime, datetime_to_long
+from syscore.objects import missing_data
 from syslogdiag.emailing import send_mail_msg
 
 
@@ -332,6 +333,14 @@ class logEntry(object):
     def log_dict(self):
         return self._log_dict
 
+    @property
+    def timestamp(self):
+        return self._timestamp
+
+    @property
+    def text(self):
+        return self._text
+
 
 LOG_COLLECTION_NAME = "Logs"
 EMAIL_ON_LOG_LEVEL = [4]
@@ -424,6 +433,13 @@ class accessLogFromMongodb(object):
 
         results_as_text = self.get_log_items(attribute_dict=attribute_dict, lookback_days=lookback_days)
         print("\n".join(results_as_text))
+
+    def find_last_entry_date(self, attribute_dict = dict(), lookback_days = 30):
+        results = self.get_log_items_as_entries(attribute_dict=attribute_dict, lookback_days=lookback_days)
+        time_stamps = [entry.timestamp for entry in results]
+        if len(time_stamps)==0:
+            return missing_data
+        return max(time_stamps)
 
     def get_log_items_as_entries(self, attribute_dict=dict(), lookback_days=1):
         """

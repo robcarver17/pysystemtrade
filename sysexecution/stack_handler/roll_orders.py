@@ -12,15 +12,6 @@ from sysexecution.stack_handler.stackHandlerCore import stackHandlerCore
 
 class stackHandlerForRolls(stackHandlerCore):
 
-    def process_roll_stack(self):
-        """
-        Run a regular sweep across the stack
-        Doing various things
-
-        :return: success
-        """
-
-        self.generate_force_roll_orders()
 
     def generate_force_roll_orders(self):
         diag_positions = diagPositions(self.data)

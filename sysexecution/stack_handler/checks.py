@@ -8,7 +8,7 @@ from sysproduction.data.broker import dataBroker
 
 class stackHandlerChecks(stackHandlerCore):
     ## Do various checks
-    ## If bad things happen we warn the user, and for some things do not allow any more trading to take place
+    ## If really bad things happen we warn the user, and for some things do not allow any more trading to take place
     ##   until fixed.
     ## We do these regularly, but also at the end of the day (daily reporting)
 
