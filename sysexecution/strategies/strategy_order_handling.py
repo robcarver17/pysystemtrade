@@ -22,13 +22,14 @@ class orderGeneratorForStrategy(object):
 
     """
 
-    def __init__(self,  strategy_name):
+    def __init__(self,  data, strategy_name):
 
         self.strategy_name = strategy_name
+        self.data = data
 
-    def get_and_place_orders(self, original_data):
+    def get_and_place_orders(self):
         ## THIS IS THE MAIN FUNCTION THAT IS RUN
-        data = original_data.setup_clone(method = 'get_and_place_orders', strategy_name = self.strategy_name)
+        data = self.data
         self.setup_before_placing(data)
         order_list = self.get_required_orders()
         order_list_with_overrides = self.apply_overrides(order_list)

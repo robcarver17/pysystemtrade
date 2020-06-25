@@ -27,14 +27,18 @@ def update_total_capital():
     :return: Nothing
     """
     with dataBlob(log_name="Update-Total-Capital") as data:
-        total_capital= totalCapitalUpdate()
-        total_capital.update_total_capital(data)
+        total_capital= totalCapitalUpdate(data)
+        total_capital.update_total_capital()
 
     return success
 
 
 class totalCapitalUpdate(object):
-    def update_total_capital(self, data):
+    def __init__(self, data):
+        self.data = data
+
+    def update_total_capital(self):
+        data = self.data
         capital_data = dataCapital(data)
 
         log = data.log

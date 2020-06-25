@@ -32,13 +32,14 @@ from syslogdiag.log import logtoscreen
 from systems.provided.futures_chapter15.basesystem import futures_system
 
 class runSystemClassic(object):
-    def __init__(self, strategy_name,backtest_config_filename="systems.provided.futures_chapter15.futures_config.yaml"):
+    def __init__(self, data, strategy_name, backtest_config_filename="systems.provided.futures_chapter15.futures_config.yaml"):
+        self.data = data
         self.strategy_name = strategy_name
         self.backtest_config_filename = backtest_config_filename
 
-    def run_system_classic(self, original_data):
+    def run_system_classic(self):
         strategy_name = self.strategy_name
-        data = original_data.setup_clone(method = 'run_system', strategy_name = self.strategy_name)
+        data = self.data
         backtest_config_filename = self.backtest_config_filename
         capital_data = dataCapital(data)
         capital_value = capital_data.get_capital_for_strategy(strategy_name)

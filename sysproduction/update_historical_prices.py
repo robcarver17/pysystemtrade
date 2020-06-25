@@ -20,14 +20,16 @@ def update_historical_prices():
     :return: Nothing
     """
     with dataBlob(log_name="Update-Historical-Prices") as data:
-        update_historical_price_object = updateHistoricalPrices()
-        update_historical_price_object.update_historical_prices(data)
+        update_historical_price_object = updateHistoricalPrices(data)
+        update_historical_price_object.update_historical_prices()
     return success
 
 class updateHistoricalPrices(object):
+    def __init__(self, data):
+        self.data = data
 
-
-    def update_historical_prices(self, data):
+    def update_historical_prices(self):
+        data = self.data
         price_data = diagPrices(data)
         log = data.log
         list_of_codes_all = price_data.get_list_of_instruments_in_multiple_prices()

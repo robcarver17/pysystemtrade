@@ -177,7 +177,7 @@ class processToRun(object):
         self.data_control.start_process(self.process_name)
 
     def _do(self):
-        self._list_of_timer_functions.check_and_run(self.data)
+        self._list_of_timer_functions.check_and_run()
 
     def _check_for_stop(self):
         """
@@ -275,7 +275,7 @@ class timerClassWithFunction(object):
     def name(self):
         return self._name
 
-    def check_and_run(self, data):
+    def check_and_run(self):
         """
 
         :return: None
@@ -284,7 +284,7 @@ class timerClassWithFunction(object):
         exceeded_max = self.completed_max_runs()
         if exceeded_max or not okay_to_run:
             return None
-        self.run_function(data)
+        self.run_function()
         self.update_on_run()
 
         return None
@@ -319,10 +319,9 @@ class timerClassWithFunction(object):
         if self._actual_executions>=self._max_executions:
             return True
 
-    def run_function(self, data):
-        new_data = data.setup_clone(method = self._name)
+    def run_function(self):
         ## Functions can't take args or kwargs or return anything; pure method
-        self._function(new_data)
+        self._function()
 
     def update_on_run(self):
         self.increment_executions()
@@ -338,9 +337,9 @@ class timerClassWithFunction(object):
         return None
 
 class listOfTimerFunctions(list):
-    def check_and_run(self, data):
+    def check_and_run(self):
         for timer_class in self:
-            timer_class.check_and_run(data)
+            timer_class.check_and_run()
 
     def all_finished(self):
         if len(self)==0:

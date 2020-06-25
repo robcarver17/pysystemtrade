@@ -17,14 +17,16 @@ def update_strategy_capital():
     :return: Nothing
     """
     with dataBlob(log_name="Update-Strategy-Capital") as data:
-        update_strategy_capital_object = updateStrategyCapital()
-        update_strategy_capital_object.strategy_allocation(data)
+        update_strategy_capital_object = updateStrategyCapital(data)
+        update_strategy_capital_object.strategy_allocation()
 
     return success
 
 class updateStrategyCapital(object):
 
-    def strategy_allocation(self, data):
+    def __init__(self, data):
+        self.data = data
+    def strategy_allocation(self):
         """
         Used to allocate capital to strategies. Doesn't actually do the allocation but get's from another function,
           defined in config.strategy_capital_allocation.function (defaults.yaml, or overide in private_config.yaml)
@@ -35,6 +37,7 @@ class updateStrategyCapital(object):
         :return: None
         """
         try:
+            data = self.data
             strategy_capital_dict = call_allocation_function(data)
             write_allocated_weights(data, strategy_capital_dict)
         except Exception as e:

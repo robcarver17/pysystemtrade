@@ -38,12 +38,14 @@ def update_sampled_contracts():
     :returns: None
     """
     with dataBlob(log_name="Update-Sampled_Contracts") as data:
-        update_contracts_object = updateSampledContracts()
-        update_contracts_object.update_sampled_contracts(data)
+        update_contracts_object = updateSampledContracts(data)
+        update_contracts_object.update_sampled_contracts()
 
 class updateSampledContracts(object):
-
-    def update_sampled_contracts(self, data):
+    def __init__(self, data):
+        self.data = data
+    def update_sampled_contracts(self):
+        data = self.data
         diag_prices =diagPrices(data)
         list_of_codes_all = diag_prices.get_list_of_instruments_in_multiple_prices()
         for instrument_code in list_of_codes_all:

@@ -49,7 +49,10 @@ def get_strategy_method(process_name, data, strategy_name):
 
     other_args = config_this_process
 
-    instance = object(strategy_name, **other_args)
+    strategy_data = dataBlob(log_name=process_name)
+    strategy_data.log.label(strategy_name = strategy_name)
+
+    instance = object(strategy_data, strategy_name, **other_args)
     method = getattr(instance, function)
 
     return method

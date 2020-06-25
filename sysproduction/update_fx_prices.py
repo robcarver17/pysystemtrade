@@ -17,14 +17,17 @@ def update_fx_prices():
     """
 
     with dataBlob(log_name="Update-FX-Prices") as data:
-        update_fx_prices_object = updateFxPrices()
-        update_fx_prices_object.update_fx_prices(data)
+        update_fx_prices_object = updateFxPrices(data)
+        update_fx_prices_object.update_fx_prices()
 
     return success
 
 class updateFxPrices(object):
-    def update_fx_prices(self, data):
+    def __init__(self, data):
+        self.data = data
 
+    def update_fx_prices(self):
+        data = self.data
         log = data.log
         broker_fx_source = dataBroker(data)
         list_of_codes_all = broker_fx_source.get_list_of_fxcodes()  # codes must be in .csv file /sysbrokers/IB/ibConfigSpotFx.csv
