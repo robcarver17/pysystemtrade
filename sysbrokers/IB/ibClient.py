@@ -1,16 +1,21 @@
 import datetime
 import pandas as pd
-import re
 
-from ib_insync import Forex, Future, util
+
+
+from ib_insync import Forex,  util
+from ib_insync.order import MarketOrder
+
 from sysdata.fx.spotfx import currencyValue
-
 from sysbrokers.baseClient import brokerClient
-from syscore.genutils import NOT_REQUIRED
-from syscore.objects import missing_contract, arg_not_supplied
+
+from syscore.objects import missing_contract, arg_not_supplied, missing_order
 from syscore.dateutils import adjust_timestamp
 from syslogdiag.log import logtoscreen
 
+from sysbrokers.IB.ib_trading_hours import get_trading_hours
+from sysbrokers.IB.ib_contracts import ib_futures_instrument, resolve_multiple_expiries
+from sysbrokers.IB.ib_positions import from_ib_positions_to_dict, resolveBS
 
 _PACING_PERIOD_SECONDS = 10*60
 _PACING_PERIOD_LIMIT = 60
@@ -32,8 +37,52 @@ class ibClient(brokerClient):
         ## means our first call won't be throttled for pacing
         self.last_historic_price_calltime = datetime.datetime.now()-  datetime.timedelta(seconds=_PACING_PERIOD_SECONDS)
 
+
+    def broker_get_orders(self):
+        """
+        Get all trades, orders and return them with the information needed
+
+        :return: list
+        """
+        trades_in_broker_format = self.ib.trades()
+
+        return trades_in_broker_format
+
     # Methods in parent class overriden here
     # These methods should abstract the broker completely
+    def broker_submit_single_leg_order(self, contract_object_with_ib_data, trade, account,
+                                                  order_type = "market",
+                                                  limit_price = None):
+        """
+
+        :param ibcontract: contract_object_with_ib_broker_config: contract where instrument has ib metadata
+        :param trade: int
+        :param account: str
+        :param order_type: str, market or limit
+        :param limit_price: None or float
+
+        :return: brokers trade object
+
+        """
+
+        if order_type=="market":
+            raw_trade_object = self.ib_submit_single_leg_market_order(contract_object_with_ib_data, trade, account)
+        else:
+            self.log.critical("Order type %s is not supported for order on %s" % (order_type, str(contract_object_with_ib_data)))
+            return missing_order
+
+        return raw_trade_object
+
+    def broker_get_positions(self):
+        ## Get all the positions
+        ## We return these as a dict of pd DataFrame
+        ## dict entries are asset classes, columns are IB symbol, contract ID, contract expiry
+
+        raw_positions = self.ib.positions()
+        dict_of_positions = from_ib_positions_to_dict(raw_positions)
+
+        return dict_of_positions
+
     def broker_get_futures_contract_list(self, instrument_object_with_ib_config):
 
         specific_log = self.log.setup(instrument_code = instrument_object_with_ib_config.instrument_code)
@@ -156,9 +205,70 @@ class ibClient(brokerClient):
         return expiry_date
 
 
-
     # IB specific methods
     # Called by parent class generics
+
+    def ib_get_recent_bid_ask_tick_data(self, contract_object_with_ib_broker_config, tick_count = 200):
+        """
+
+        :param contract_object_with_ib_broker_config:
+        :return:
+        """
+        specific_log = self.log.setup(instrument_code = contract_object_with_ib_broker_config.instrument_code,
+                                      contract_date = contract_object_with_ib_broker_config.date)
+
+        ibcontract = self.ib_futures_contract(contract_object_with_ib_broker_config)
+        if ibcontract is missing_contract:
+            specific_log.warn("Can't find matching IB contract for %s" % str(contract_object_with_ib_broker_config))
+            return missing_contract
+        recent_ib_time = self.ib.reqCurrentTime() - datetime.timedelta(seconds=60)
+
+        tick_data = self.ib.reqHistoricalTicks(ibcontract, recent_ib_time, '', tick_count, 'BID_ASK', useRth=False)
+
+        return tick_data
+
+    def ib_get_trading_hours(self, contract_object_with_ib_broker_config):
+        ib_contract = self.ib_futures_contract(contract_object_with_ib_broker_config)
+        if ib_contract is missing_contract:
+            return missing_contract
+
+        ib_contract_details = self.ib.reqContractDetails(ib_contract)[0]
+
+        try:
+            trading_hours = get_trading_hours(ib_contract_details)
+        except Exception as e:
+            self.log.critical("%s when getting trading hours!" % e)
+            return missing_contract
+
+
+        return trading_hours
+
+    def ib_modify_existing_order(self, modified_order_object, original_contract_object):
+        new_trade_object = self.ib.placeOrder(original_contract_object, modified_order_object)
+
+        return new_trade_object
+
+    def ib_cancel_order(self, original_order_object):
+        new_trade_object = self.ib.cancelOrder(original_order_object)
+
+        return new_trade_object
+
+    def ib_check_order_is_cancelled(self, original_order_object):
+        return original_order_object.OrderStatus == 'Cancelled'
+
+    def ib_submit_single_leg_market_order(self, contract_object_with_ib_data, trade, account=""):
+        ibcontract = self.ib_futures_contract(contract_object_with_ib_data)
+        if ibcontract is missing_contract:
+            return missing_order
+
+        ib_BS_str, ib_qty = resolveBS(trade)
+        ib_order = MarketOrder(ib_BS_str, ib_qty)
+        if account!='':
+            ib_order.account = account
+
+        trade = self.ib.placeOrder(ibcontract, ib_order)
+
+        return trade
 
     def _get_generic_data_for_contract(self, ibcontract, log=None, bar_freq="D", whatToShow='TRADES'):
         """
@@ -427,71 +537,6 @@ def get_barsize_and_duration_from_frequency(bar_freq):
 
     return ib_barsize, ib_duration
 
-def ib_futures_instrument(futures_instrument_object):
-    """
-    Get an IB contract which is NOT specific to a contract date
-    Used for getting expiry chains
-
-    :param futures_instrument_object: instrument with .metadata suitable for IB
-    :return: IBcontract
-    """
-
-    meta_data = futures_instrument_object.meta_data
-
-    ibcontract = Future(meta_data['symbol'], exchange = meta_data['exchange'])
-    if meta_data['ibMultiplier'] is NOT_REQUIRED:
-        pass
-    else:
-        ibcontract.multiplier = int(meta_data['ibMultiplier'])
-    if meta_data['currency'] is NOT_REQUIRED:
-        pass
-    else:
-        ibcontract.currency = meta_data['currency']
-
-    return ibcontract
-
-
-def resolve_multiple_expiries(ibcontract_list, instrument_object_with_metadata):
-    code = instrument_object_with_metadata.instrument_code
-    ignore_weekly = instrument_object_with_metadata.meta_data['ignoreWeekly']
-    if not ignore_weekly:
-        ## Can't be resolved
-        raise Exception("%s has multiple plausible contracts but is not set to ignoreWeekly in IB config file" % code)
-
-    ## It's a contract with weekly expiries (probably VIX)
-    ## Check it's the VIX
-    if not code=="VIX":
-        raise Exception("You have specified weekly expiries, but I don't have logic for %s" % code)
-
-    # Get the symbols
-    contract_symbols = [ibcontract.localSymbol for ibcontract in ibcontract_list]
-    try:
-        are_monthly = [_is_vix_symbol_monthly(symbol) for symbol in contract_symbols]
-    except Exception as exception:
-        raise Exception(exception.args[0])
-
-    if are_monthly.count(monthly):
-        index_of_monthly = are_monthly.index(monthly)
-        resolved_contract = ibcontract_list[index_of_monthly]
-    else:
-        # no matches or multiple matches
-        raise Exception("Can't find a unique monthly expiry")
-
-    return resolved_contract
-
-monthly=object()
-weekly=object()
-
-def _is_vix_symbol_monthly(symbol):
-    if re.match("VX[0-9][0-9][A-Z][0-9]", symbol):
-        # weekly
-        return weekly
-    elif re.match("VX[A-Z][0-9]", symbol):
-        # monthly
-        return monthly
-    else:
-        raise Exception("IB Local Symbol %s not recognised" % symbol)
-
 def avoid_pacing_violation(last_call_datetime, log=logtoscreen("")):
     printed_warning_already = False
     while (datetime.datetime.now() - last_call_datetime).total_seconds() < PACING_INTERVAL_SECONDS:
@@ -513,4 +558,3 @@ def ib_timestamp_to_datetime(timestamp_ib):
     adjusted_ts = adjust_timestamp(timestamp)
 
     return adjusted_ts
-

@@ -11,7 +11,7 @@ from sysproduction.data.broker import dataBroker
 from sysproduction.data.contracts import diagContracts
 from syslogdiag.log import logToMongod as logger
 from syslogdiag.emailing import send_mail_msg
-from sysdata.private_config import get_private_then_default_key_value
+
 
 def update_historical_prices():
     """
@@ -19,14 +19,22 @@ def update_historical_prices():
 
     :return: Nothing
     """
-    with dataBlob(log_name="Update-Historical-prices") as data:
+    with dataBlob(log_name="Update-Historical-Prices") as data:
+        update_historical_price_object = updateHistoricalPrices(data)
+        update_historical_price_object.update_historical_prices()
+    return success
+
+class updateHistoricalPrices(object):
+    def __init__(self, data):
+        self.data = data
+
+    def update_historical_prices(self):
+        data = self.data
         price_data = diagPrices(data)
         log = data.log
         list_of_codes_all = price_data.get_list_of_instruments_in_multiple_prices()
         for instrument_code in list_of_codes_all:
             update_historical_prices_for_instrument(instrument_code, data, log=log.setup(instrument_code = instrument_code))
-
-    return success
 
 
 def update_historical_prices_for_instrument(instrument_code, data, log=logger("")):
@@ -61,7 +69,8 @@ def update_historical_prices_for_instrument_and_contract(contract_object, data, 
     :param log: logger
     :return: None
     """
-    intraday_frequency = get_private_then_default_key_value("intraday_frequency")
+    diag_prices = diagPrices(data)
+    intraday_frequency = diag_prices.get_intraday_frequency_for_historical_download()
     result = get_and_add_prices_for_frequency(data, log, contract_object, frequency=intraday_frequency)
     if result is failure:
         # Skip daily data if intraday not working
@@ -82,7 +91,7 @@ def get_and_add_prices_for_frequency(data, log, contract_object, frequency="D"):
         if rows_added is data_error:
             ## SPIKE
             ## Need to email user about this as will need manually checking
-            msg = "Spike found in prices for %s: need to manually check by running update_manual_check_historical_prices" % str(
+            msg = "Spike found in prices for %s: need to manually check by running interactive_manual_check_historical_prices" % str(
                 contract_object)
             log.warn(msg)
             try:

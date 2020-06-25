@@ -1,6 +1,6 @@
 This document is specifically about using pysystemtrade for *live production trading*. 
 
-*This is NOT a complete document, and is currently a work in progress - any in many cases a series of thoughts about design intent rather than a fully featured specificiation. It is not possible to run a full production system with pysystemtrade at present*
+*This is NOT a complete document, and is currently a work in progress - and in many cases a series of thoughts about design intent rather than a fully featured specification. It is not possible to run a full production system with pysystemtrade at present*
 
 Ultimately this will include:
 
@@ -23,13 +23,13 @@ Table of Contents
    * [Quick start guide](#quick-start-guide)
    * [Overview of a production system](#overview-of-a-production-system)
    * [Implementation options](#implementation-options)
-      * [Automatation options](#automatation-options)
+      * [Automation options](#automation-options)
       * [Machines, containers and clouds](#machines-containers-and-clouds)
       * [Backup machine](#backup-machine)
       * [Multiple systems](#multiple-systems)
    * [Code and configuration management](#code-and-configuration-management)
-         * [Managing your seperate directories of code and configuration](#managing-your-seperate-directories-of-code-and-configuration)
-         * [Managing your private directory](#managing-your-private-directory)
+      * [Managing your separate directories of code and configuration](#managing-your-separate-directories-of-code-and-configuration)
+      * [Managing your private directory](#managing-your-private-directory)
    * [Finalise your backtest configuration](#finalise-your-backtest-configuration)
    * [Linking to a broker](#linking-to-a-broker)
    * [Other data sources](#other-data-sources)
@@ -133,7 +133,7 @@ You need to:
     - Create 'multiple prices' in Arctic. Assuming you have prices in Artic and roll calendars in csv use [this script](/sysinit/futures/multipleprices_from_arcticprices_and_csv_calendars_to_arctic.py). I recommend *not* writing the multiple prices to .csv, so that you can compare the legacy .csv data with the new prices
     - Create adjusted prices. Assuming you have multiple prices in Arctic use [this script](/sysinit/futures/adjustedprices_from_mongo_multiple_to_mongo.py)
 - Live production backtest:
-    - Create a yamal config file to run the live production 'backtest'. For speed I recommend you do not estimate parameters, but use fixed parameters, using the [yaml_config_with_estimated_parameters method of systemDiag](/systems/diagoutput.py) function to output these to a .yaml file.
+    - Create a yaml config file to run the live production 'backtest'. For speed I recommend you do not estimate parameters, but use fixed parameters, using the [yaml_config_with_estimated_parameters method of systemDiag](/systems/diagoutput.py) function to output these to a .yaml file.
 - Scheduling:
     - Initialise the [supplied crontab](/sysproduction/linux/crontab). Note if you have put your code or echos somewhere else you will need to modify the directory references at the top of the crontab.
     - All scripts executable by the crontab need to be executable, so do the following: `cd $SCRIPT_PATH` ; `sudo chmod +x *.*`
@@ -143,7 +143,7 @@ Before trading, and each time you restart the machine you should:
 
 - [check a mongodb server is running with the right data directory](/docs/futures.md#mongo-db) command line: `mongod --dbpath $MONGO_DATA` (the supplied crontab should do this)
 - launch an IB gateway (this could [be done automatically](https://github.com/ib-controller/ib-controller) depending on your security setup)
-- startup housekeeping sergices (FIX ME TO DO BUT WILL INCLUDE CLEARING IB TICKERS)
+- startup housekeeping services (FIX ME TO DO BUT WILL INCLUDE CLEARING IB TICKERS)
 
 When trading you will need to do the following
 
@@ -174,7 +174,7 @@ Standard implementation for pysystemtrade is a fully automated system running on
 
 My own implementation runs on a Linux machine, and some of the implementation details in this document are Linux specific. Windows and Mac users are welcome to contribute with respect to any differences.
 
-## Automatation options
+## Automation options
 
 You can run pysystemtrade as a fully automated system, which does everything from getting prices through to executing orders. But other patterns make sense. In particular you may wish to do your trading manually, after pulling in prices and generating optimal positions manually. It will also possible to trade manually, but allow pysystemtrade to pick up your fills from the broker rather than entering them manually.
 
@@ -188,7 +188,7 @@ If spreading your implementation across several machines bear in mind:
    - interactive brokers Gateway will need to have the ip address of all relevant machines that connect to it in the whitelist
    - you will need to modify the `private_config.yaml` system configuration file so it connects to a different IP address `ib_ipaddress: '192.168.0.10'`
 - Mongodb
-   - Add an ip address the `bind_ip` line in the `/etc/mongod.conf` file to allow connections from other machines `eg bind_ip=localhost, 192.168.0.10`
+   - Add an ip address to the `bind_ip` line in the `/etc/mongod.conf` file to allow connections from other machines `eg bind_ip=localhost, 192.168.0.10`
    - you will need to modify the `private_config.yaml` system configuration file so it connects to a different IP address `mongo_host: 192.168.0.13`
    - you may want to enforce [further security protocol](https://docs.mongodb.com/manual/administration/security-checklist/)
 
@@ -206,28 +206,29 @@ You may want to run multiple trading systems on a single machine. Common use cas
 - You want to run the same system, but for different trading accounts
 - You want a paper trading and live trading system
 
-* for these cases I plan to implement functionality in pysystemtrade so that it can handle them in the same system.
+
+*for these cases I plan to implement functionality in pysystemtrade so that it can handle them in the same system.
 
 To handle this I suggest having multiple copies of the pysystemtrade environment. You will have a single crontab, but you will need multiple script, echos and other directories. You will need to change the private config file so it points to different mongo_db database names. If you don't want multiple copies of certain data (eg prices) then you should hardcode the database_name in the relevant files whenever a connection is made eg mongo_db = mongoDb(database_name='whatever'). See storing futures and spot FX data for more detail. Finally you should set the field ib_idoffset in the private config file so that there is no chance of duplicate clientid connections; setting one system to have an id offset of 1, the next offset 1000, and so on should be sufficient.
 
-Finally you should set the field `ib_idoffset` in the [private config file](private.private_config.yaml) so that there is no chance of duplicate clientid connections; setting one system to have an id offset of 1, the next offset 1000, and so on should be sufficient.
+Finally you should set the field `ib_idoffset` in the [private config file](/private/private_config.yaml) so that there is no chance of duplicate clientid connections; setting one system to have an id offset of 1, the next offset 1000, and so on should be sufficient.
 
 # Code and configuration management
 
-Your trading strategy will consist of pysystemtrade, plus some specific configuration files, plus possibly some bespoke code. You can eithier implement this as:
+Your trading strategy will consist of pysystemtrade, plus some specific configuration files, plus possibly some bespoke code. You can either implement this as:
 
-- seperate environment, pulling in pysystemtrade as a 'yet another library'
+- separate environment, pulling in pysystemtrade as a 'yet another library'
 - everything in pysystemtrade, with all specific code and configuration in the 'private' directory that is excluded from git uploads.
 
 Personally I prefer the latter as it makes a neat self contained unit, but this is up to you.
 
-### Managing your seperate directories of code and configuration
+### Managing your separate directories of code and configuration
 
-I strongly recommend that you use a code repo system or similar to manage your non pysystemtrade code and configuration. Since code and configuration will mostly be in text (or text like) yaml files a code repo system like git will work just fine. I do not recommend storing configuration in database files that will need to be backed up seperately, because this makes it more complex to store old configuration data that can be archived and retrieved if required. 
+I strongly recommend that you use a code repo system or similar to manage your non pysystemtrade code and configuration. Since code and configuration will mostly be in text (or text like) yaml files a code repo system like git will work just fine. I do not recommend storing configuration in database files that will need to be backed up separately, because this makes it more complex to store old configuration data that can be archived and retrieved if required.
 
 ### Managing your private directory
 
-Since the private directory is excluded from the git system (since you don't want it appearing on github!), you need to ensure it is managed seperately. I use a script which I run in lieu of a normal git add/ commit / push cycle:
+Since the private directory is excluded from the git system (since you don't want it appearing on github!), you need to ensure it is managed separately. I use a script which I run in lieu of a normal git add/ commit / push cycle:
 
 ```
 # pass commit quote as an argument
@@ -426,17 +427,19 @@ The above line will run the script `updatefxprices`, but instead of outputting t
 
 ### Cleaning old echo files
 
-Over time echo files can get... large (my default position for logging is verbose). To avoid this you can run [this linux script](/sysproduction/linux/scripts/truncate_echo_files) which chops them down to the last 20,000 lines (FIX ME ADD TO CRONTAB)
+Over time echo files can get... large (my default position for logging is verbose). To avoid this you can run [this linux script](/sysproduction/linux/scripts/clean_truncate_echo_files) which chops them down to the last 20,000 lines (FIX ME ADD TO CRONTAB)
 
 ## Logging 
 
 Logging in pysystemtrade is done via loggers. See the [userguide for more detail](/docs/userguide.md#logging). The logging levels are:
 
+```
 self.log.msg("this is a normal message")
 self.log.terse("not really used in production code since everything is logged")
 self.log.warn("this is a warning message means something unexpected")
 self.log.error("this error message means ")
 self.log.critical("this critical message will always be printed, and an email will be sent to the user. Use this if user action is required")
+```
 
 The default logger in production code is to the mongo database. This method will also try and email the user if a critical message is logged.
 
@@ -575,7 +578,7 @@ Scripts are used to run python code which:
    - calculate positions
    - execute trades
    - get accounting data
-- runs report and diagnostics, eithier regular or ad-hoc
+- runs report and diagnostics, either regular or ad-hoc
 - Do housekeeping duties, eg truncate log files and run backups
 
 Script are then called by [schedulers](#scheduling), or on an ad-hoc basis from the command line.
@@ -597,7 +600,7 @@ Linux script:
 ```
 
 
-This will check for 'spikes', unusually large movements in FX rates eithier when comparing new data to existing data, or within new data. If any spikes are found in data for a particular contract it will not be written. The system will attempt to email the user when a spike is detected. The user will then need to [manually check the data](#manual-check-of-fx-price-data).
+This will check for 'spikes', unusually large movements in FX rates either when comparing new data to existing data, or within new data. If any spikes are found in data for a particular contract it will not be written. The system will attempt to email the user when a spike is detected. The user will then need to [manually check the data](#manual-check-of-fx-price-data).
 .
 
 The threshold for spikes is set in the default.yaml file, or overidden in the private config, using the paramater `max_price_spike`. Spikes are defined as a large multiple of the average absolute daily change. So for example if a price typically changes by 0.5 units a day, and `max_price_spike=6`, then a price change larger than 3 units will trigger a spike.
@@ -635,7 +638,7 @@ Linux script:
 . $SCRIPT_PATH/update_historical_prices
 ```
 
-This will check for 'spikes', unusually large movements in price eithier when comparing new data to existing data, or within new data. If any spikes are found in data for a particular contract it will not be written. The system will attempt to email the user when a spike is detected. The user will then need to [manually check the data](#manual-check-of-futures-contract-historical-price-data).
+This will check for 'spikes', unusually large movements in price either when comparing new data to existing data, or within new data. If any spikes are found in data for a particular contract it will not be written. The system will attempt to email the user when a spike is detected. The user will then need to [manually check the data](#manual-check-of-futures-contract-historical-price-data).
 .
 
 The threshold for spikes is set in the default.yaml file, or overidden in the private config, using the paramater `max_price_spike`. Spikes are defined as a large multiple of the average absolute daily change. So for example if a price typically changes by 0.5 units a day, and `max_price_spike=6`, then a price change larger than 3 units will trigger a spike.
@@ -670,13 +673,13 @@ FIXME: An intraday sampling would be good
 
 Python:
 ```python
-from sysproduction.update_manual_check_historical_prices import update_manual_check_historical_prices
-update_manual_check_historical_prices(instrument_code)
+from sysproduction.interactive_manual_check_historical_prices import interactive_manual_check_historical_prices
+interactive_manual_check_historical_prices(instrument_code)
 ```
 
 Linux script:
 ```
-. $SCRIPT_PATH/update_manual_check_historical_prices
+. $SCRIPT_PATH/interactive_manual_check_historical_prices
 ```
 
 The script will pull in data from interactive brokers, and the existing data, and check for spikes. If any spikes are found, then the user is interactively asked if they wish to (a) accept the spiked price, (b) use the previous time periods price instead, or (c) type a number in manually. You should check another data source to see if the spike is 'real', if so accept it, otherwise type in the correct value. Using the previous time periods value is only advisable if you are fairly sure that the price change wasn't real and you don't have a source to check with.
@@ -693,13 +696,13 @@ Once all spikes are checked for a given contract then the checked data is writte
 
 Python:
 ```python
-from sysproduction.update_manual_check_fx_prices import update_manual_check_fx_prices
-update_manual_check_fx_prices(fx_code)
+from sysproduction.interactive_manual_check_fx_prices import interactive_manual_check_fx_prices
+interactive_manual_check_fx_prices(fx_code)
 ```
 
 Linux script:
 ```
-. $SCRIPT_PATH/uupdate_manual_check_fx_prices
+. $SCRIPT_PATH/interactive_manual_check_fx_prices
 ```
 
 See [manual check of futures contract prices](#manual-check-of-futures-contract-historical-price-data) for more detail. Note that as the FX data is a single series, no adjustment is required for other values.
@@ -721,7 +724,7 @@ Linux script:
 . $SCRIPT_PATH/update_roll_adjusted_prices
 ```
 
-### Run updated backtest systems for one or more strateges
+### Run updated backtest systems for one or more strategies
 (Usually overnight)
 
 The paradigm for pysystemtrade is that we run a new backtest nightly, which outputs some parameters that a trading engine uses the next day. For the basic system defined in the core code those parameters are a pair of position buffers for each instrument. The trading engine will trade if the current position lies outside those buffer values.
@@ -779,7 +782,7 @@ Linux script:
 See [capital](#capital) to understand how capital works.
 This function is used interactively to control total capital allocation in any of the following scenarios:
 
-- You want to initialise the total capital available in the account. If this isn't done, it will be done automatically when `update_account_values` runs with default values). The default values are brokerage account value = total capital available = maximum capital available (i.e. you start at HWM), with accumulated profits = 0. If you don't like any of these values then you can initialise them differently.
+- You want to initialise the total capital available in the account. If this isn't done, it will be done automatically when `update_account_values` runs with default values. The default values are brokerage account value = total capital available = maximum capital available (i.e. you start at HWM), with accumulated profits = 0. If you don't like any of these values then you can initialise them differently.
 - You have made a withdrawal or deposit in your brokerage account, which would otherwise cause the apparent available capital available to drop, and needs to be ignored
 - There has been a large change in the value of your brokerage account. A filter has caught this as a possible error, and you need to manually confirm it is ok.
 - You want to delete capital entries for some recent period of time (perhaps because you missed a withdrawal and it screwed up your capital)
@@ -1026,7 +1029,7 @@ You can also change other values in the interactive tool, but be careful and mak
 
 ## Strategies
 
-Each strategy is defined in the config parameter `strategy_list`, found eithier in the defaults.yaml file or overriden in private yaml configuration. The following shows the parameters for an example strategy, named (appropriately enough) `example`.
+Each strategy is defined in the config parameter `strategy_list`, found either in the defaults.yaml file or overriden in private yaml configuration. The following shows the parameters for an example strategy, named (appropriately enough) `example`.
 
 ```
 strategy_list:

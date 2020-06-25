@@ -1,7 +1,7 @@
 """
 Run overnight backtest of systems to generate optimal positions
 
-These are defined in eithier the defaults.yaml file or overriden in private config
+These are defined in either the defaults.yaml file or overriden in private config
 strategy_list:
   example:
     overnight_launcher:
@@ -11,37 +11,49 @@ strategy_list:
 
 """
 from copy import copy
-
-from sysdata.private_config import get_private_then_default_key_value
 from syscore.objects import resolve_function
 
-from syslogdiag.log import logToMongod as logger
-from sysdata.mongodb.mongo_connection import mongoDb
 from sysproduction.data.get_data import dataBlob
+from sysproduction.data.controls import diagProcessConfig
+from sysproduction.run_process import processToRun
+from sysproduction.data.sim_data import get_list_of_strategies
+
 
 def run_systems():
-    with dataBlob(log_name="update_run_systems") as data:
-        log = data.log
-        strategy_dict = get_private_then_default_key_value('strategy_list')
-        for strategy_name in strategy_dict:
-            log.label(strategy = strategy_name)
-            try:
-                launch_function, launch_args = _get_launch_config(strategy_dict[strategy_name])
-            except Exception as e:
-                log.critical("Error %s with config in defaults or private yaml files for strategy_list:%s:overnight_launcher" % (e,strategy_name))
+    process_name = "run_systems"
+    data = dataBlob(log_name=process_name)
+    list_of_timer_names_and_functions = get_list_of_timer_functions_for_strategies(process_name, data)
+    price_process = processToRun(process_name, data, list_of_timer_names_and_functions, use_strategy_config=True)
+    price_process.main_loop()
 
-            # By convention, arg is strategy_name, data, kwargs are the rest of config
-            try:
-                launch_function(strategy_name, data, **launch_args)
-            except Exception as e:
-                log.critical("Error %s running system for %s" % (e,strategy_name))
 
-def _get_launch_config(config_for_strategy):
-    launcher_config = copy(config_for_strategy['overnight_launcher'])
-    launch_function = launcher_config.pop('function')
-    launch_function = resolve_function(launch_function)
+def get_list_of_timer_functions_for_strategies(process_name, data):
+    list_of_strategy_names = get_list_of_strategies()
+    list_of_timer_names_and_functions = []
+    for strategy_name in list_of_strategy_names:
+        method = get_strategy_method(process_name, data, strategy_name)
+        strategy_tuple = (strategy_name, method)
+        list_of_timer_names_and_functions.append(strategy_tuple)
 
-    # what's left is
-    launch_args = launcher_config
+    return list_of_timer_names_and_functions
 
-    return launch_function, launch_args
+def get_strategy_method(process_name, data, strategy_name):
+    diag_config = diagProcessConfig(data)
+    config_this_process = diag_config.get_strategy_dict_for_process(process_name, strategy_name)
+    object = resolve_function(config_this_process.pop('object'))
+    function = config_this_process.pop('function')
+
+    ## following are used by run process but not by us
+    _ = config_this_process.pop('max_executions', None)
+    _ = config_this_process.pop('frequency', None)
+
+    other_args = config_this_process
+
+    strategy_data = dataBlob(log_name=process_name)
+    strategy_data.log.label(strategy_name = strategy_name)
+
+    instance = object(strategy_data, strategy_name, **other_args)
+    method = getattr(instance, function)
+
+    return method
+

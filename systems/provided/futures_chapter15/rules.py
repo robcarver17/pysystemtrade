@@ -41,7 +41,7 @@ def ewmac(price, vol, Lfast, Lslow):
     # price: This is the stitched price series
     # We can't use the price of the contract we're trading, or the volatility will be jumpy
     # And we'll miss out on the rolldown. See
-    # http://qoppac.blogspot.co.uk/2015/05/systems-building-futures-rolling.html
+    # https://qoppac.blogspot.com/2015/05/systems-building-futures-rolling.html
 
     # We don't need to calculate the decay parameter, just use the span
     # directly
@@ -85,7 +85,7 @@ def ewmac_calc_vol(price, Lfast, Lslow, vol_days=35):
     # price: This is the stitched price series
     # We can't use the price of the contract we're trading, or the volatility will be jumpy
     # And we'll miss out on the rolldown. See
-    # http://qoppac.blogspot.co.uk/2015/05/systems-building-futures-rolling.html
+    # https://qoppac.blogspot.com/2015/05/systems-building-futures-rolling.html
 
     # We don't need to calculate the decay parameter, just use the span
     # directly

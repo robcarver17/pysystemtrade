@@ -549,10 +549,15 @@ class futuresContractPriceData(baseData):
         :return: data
         """
 
-        ans = self._perform_contract_method_for_instrument_code_and_contract_date( instrument_code, contract_date, "get_prices_for_contract_object")
+        ans = self._perform_contract_method_for_instrument_code_and_contract_date( instrument_code, contract_date,
+                                                                                   "get_prices_for_contract_object")
 
         return ans
 
+    def get_recent_bid_ask_tick_data_for_instrument_code_and_contract_date(self,instrument_code, contract_date):
+        ans = self._perform_contract_method_for_instrument_code_and_contract_date(instrument_code, contract_date,
+                                                                                  "get_recent_bid_ask_tick_data_for_contract_object")
+        return ans
 
     def get_prices_for_contract_object(self, contract_object):
         """
@@ -594,6 +599,8 @@ class futuresContractPriceData(baseData):
         else:
             return futuresContractPrices.create_empty()
 
+    def get_recent_bid_ask_tick_data_for_contract_object(self, contract_object):
+        raise NotImplementedError
 
     def _get_prices_at_frequency_for_contract_object_no_checking(self, contract_object, freq):
         """
@@ -669,19 +676,6 @@ class futuresContractPriceData(baseData):
 
         raise NotImplementedError(BASE_CLASS_ERROR)
 
-    def get_actual_expiry_date_for_instrument_code_and_contract_date(self, instrument_code, contract_date):
-        """
-        Convenience method for when we have a code and date str, and don't want to build an object
-
-        :return: data
-        """
-
-        ans = self._perform_contract_method_for_instrument_code_and_contract_date( instrument_code, contract_date, "get_actual_expiry_date_for_contract")
-
-        return ans
-
-    def get_actual_expiry_date_for_contract(self, futures_contract_object):
-        raise NotImplementedError(BASE_CLASS_ERROR)
 
     def get_brokers_instrument_code(self, instrument_code):
         raise NotImplementedError(BASE_CLASS_ERROR)

@@ -1,9 +1,15 @@
 ### Get all the data we need to run production code
 ### Stick in a standard 'blob', so the names are common
 
+from copy import  copy
+
 from sysbrokers.IB.ibFuturesContractPriceData import ibFuturesContractPriceData
 from sysbrokers.IB.ibSpotFXData import ibFxPricesData
 from sysbrokers.IB.ibConnection import connectionIB
+from sysbrokers.IB.ibFuturesContracts import ibFuturesContractData
+from sysbrokers.IB.ibPositionData import ibContractPositionData
+from sysbrokers.IB.ibOrders import ibOrdersData
+from sysbrokers.IB.ibMiscData import ibMiscData
 
 from sysdata.arctic.arctic_futures_per_contract_prices import arcticFuturesContractPriceData
 from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesData
@@ -18,7 +24,7 @@ from sysdata.csv.csv_multiple_prices import csvFuturesMultiplePricesData
 from sysdata.csv.csv_spot_fx import csvFxPricesData
 
 
-
+from sysdata.mongodb.mongo_futures_instruments import mongoFuturesInstrumentData
 from sysdata.mongodb.mongo_futures_contracts import mongoFuturesContractData
 from sysdata.mongodb.mongo_roll_data import mongoRollParametersData
 from sysdata.mongodb.mongo_roll_state_storage import mongoRollStateData
@@ -26,8 +32,12 @@ from sysdata.mongodb.mongo_position_by_contract import mongoContractPositionData
 from sysdata.mongodb.mongo_capital import mongoCapitalData
 from sysdata.mongodb.mongo_optimal_position import mongoOptimalPositionData
 from sysdata.mongodb.mongo_positions_by_strategy import mongoStrategyPositionData
-from sysdata.mongodb.mongo_order_stack import mongoInstrumentOrderStackData, mongoContractOrderStackData
-from sysdata.mongodb.mongo_historic_orders import mongoStrategyHistoricOrdersData, mongoContractHistoricOrdersData
+from sysdata.mongodb.mongo_order_stack import mongoInstrumentOrderStackData, mongoContractOrderStackData, mongoBrokerOrderStackData
+from sysdata.mongodb.mongo_historic_orders import mongoStrategyHistoricOrdersData, mongoContractHistoricOrdersData, mongoBrokerHistoricOrdersData
+from sysdata.mongodb.mongo_override import mongoOverrideData
+from sysdata.mongodb.mongo_trade_limits import mongoTradeLimitData
+from sysdata.mongodb.mongo_lock_data import mongoLockData
+from sysdata.mongodb.mongo_process_control import mongoControlProcessData
 
 from sysdata.mongodb.mongo_connection import mongoDb
 
@@ -92,9 +102,11 @@ class dataBlob(object):
 
         if arg_string is arg_not_supplied:
             # can set up dynamically later
-            return None
+            pass
+        else:
+            self.add_class_list(arg_string)
 
-        self.add_class_list(arg_string)
+        self._original_data = copy(self)
 
     def __repr__(self):
         return "dataBlob with elements: %s" % ",".join(self.attr_list)
@@ -106,11 +118,17 @@ class dataBlob(object):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
+    def close(self):
         if self._ib_conn is not arg_not_supplied:
             self.ib_conn.close_connection()
 
         if self._mongo_db is not arg_not_supplied:
             self.mongo_db.close()
+
+
+
 
     @property
     def ib_conn(self):
@@ -139,6 +157,13 @@ class dataBlob(object):
             self._log = log
 
         return log
+
+    def setup_clone(self, **kwargs):
+        new_data = self._original_data
+        new_data._log = new_data.log.setup(**kwargs)
+        new_data._original_data = self._original_data
+
+        return new_data
 
     @property
     def csv_data_paths(self):
@@ -251,4 +276,5 @@ def camel_case_split(str):
             words[-1].append(c)
 
     return [''.join(word) for word in words]
+
 

@@ -89,7 +89,7 @@ def calc_ewmac_forecast(price, Lfast, Lslow=None):
     """
     ## price: This is the stitched price series
     ## We can't use the price of the contract we're trading, or the volatility will be jumpy
-    ## And we'll miss out on the rolldown. See http://qoppac.blogspot.co.uk/2015/05/systems-building-futures-rolling.html
+    ## And we'll miss out on the rolldown. See https://qoppac.blogspot.com/2015/05/systems-building-futures-rolling.html
 
     price = price.resample("1B").last()
     if Lslow is None:
@@ -193,7 +193,7 @@ A full list of stages would include:
 6. Creating a portfolio of instruments
 7. Working out the p&l
 
-For now let's start with the simplest possible system, one which contains only a trading rules stage. Let's just setup our enviroment again:
+For now let's start with the simplest possible system, one which contains only a trading rules stage. Let's just setup our environment again:
 
 ```python
 from sysdata.csv.csv_sim_futures_data import csvFuturesSimData
@@ -324,7 +324,7 @@ So far, not exciting. Let's see how we'd use a `config` to define our trading ru
 empty_rules=Rules()
 my_config.trading_rules=dict(ewmac8=ewmac_8, ewmac32=ewmac_32)
 my_system=System([empty_rules], data, my_config)
-print(my_system.rules.get_raw_forecast("EDOLLAR", "ewmac8")
+print(my_system.rules.get_raw_forecast("EDOLLAR", "ewmac8"))
 ```
 
 Notice the differences from before:
@@ -631,7 +631,7 @@ Note we don't need to tell the config that we're not using estimation for foreca
 Config with elements: base_currency, forecast_div_multiplier, forecast_scalars, forecast_weights, instrument_div_multiplier, instrument_weights, notional_trading_capital, percentage_vol_target, trading_rules
 ```
 
-Alternatively we could get the same result from reading a [yaml](http://pyyaml.org) file ( [this one to be precise](/systems/provided/example/simplesystemconfig.yaml) ). Don't worry if you're not familiar with yaml; it's just a nice way of creating nested dicts, lists and other python objects in plain text. Just be aware that indentations are important, just in like python.
+Alternatively we could get the same result from reading a [yaml](https://pyyaml.org) file ( [this one to be precise](/systems/provided/example/simplesystemconfig.yaml) ). Don't worry if you're not familiar with yaml; it's just a nice way of creating nested dicts, lists and other python objects in plain text. Just be aware that indentations are important, just in like python.
 
 ```python
 my_config=Config("systems.provided.example.simplesystemconfig.yaml")
@@ -687,7 +687,7 @@ For the vast majority of the time this will be how you create new systems.
 
 ## A complete pre-baked system
 
-Let's now see how we might use another 'pre-baked' system, in this case the staunch systems trader example definied in chapter 15 of my book. Here again we default to using csv data.
+Let's now see how we might use another 'pre-baked' system, in this case the staunch systems trader example defined in chapter 15 of my book. Here again we default to using csv data.
 
 (Code is [here](/examples/introduction/prebakedsystems.py) )
 

@@ -1,0 +1,3 @@
+#!/bin/bash
+. ~/.profile
+. p sysproduction.email_daily_pandl_report.email_daily_pandl_report

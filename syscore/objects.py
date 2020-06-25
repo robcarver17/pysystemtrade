@@ -39,6 +39,9 @@ not_updated = _named_object("not updated")
 success = _named_object("success")
 failure = _named_object("failure")
 
+process_stop = _named_object("process stop")
+process_no_run = _named_object("process no run")
+process_running = _named_object("process running")
 
 
 arg_not_supplied = _named_object("arg not supplied")

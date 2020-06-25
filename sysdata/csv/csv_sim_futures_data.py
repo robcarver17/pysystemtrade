@@ -56,7 +56,7 @@ class csvPaths(simData):
 
 """
 The rest of these sub classes all follow the pattern of accessing a data object specific to the type of data being read
-The directory they look in will be eithier be
+The directory they look in will be either be
   (i) specified as override_data_path on __init__ (via csvPaths init),
   ii) specified in the datapath_dict with the relevant keyname on __init__ (via csvPaths init),
   iii) default specified in the file of the specific data object

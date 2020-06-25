@@ -1,4 +1,5 @@
 from sysdata.futures.futures_per_contract_prices import dictFuturesContractPrices
+from sysdata.private_config import get_private_then_default_key_value
 from sysproduction.data.get_data import dataBlob
 from syscore.objects import missing_contract, arg_not_supplied, missing_data
 import numpy as np
@@ -12,6 +13,10 @@ class diagPrices(object):
         data.add_class_list("arcticFuturesContractPriceData arcticFuturesAdjustedPricesData \
          arcticFuturesMultiplePricesData mongoFuturesContractData ")
         self.data = data
+
+    def get_intraday_frequency_for_historical_download(self):
+        intraday_frequency = get_private_then_default_key_value("intraday_frequency")
+        return intraday_frequency
 
     def get_adjusted_prices(self, instrument_code):
         return self.data.db_futures_adjusted_prices.get_adjusted_prices(instrument_code)
@@ -91,10 +96,24 @@ class updatePrices(object):
     def update_prices_for_contract(self, contract_object, ib_prices,check_for_spike=True):
 
         return self.data.db_futures_contract_price.update_prices_for_contract(contract_object, ib_prices,
-                                                                  check_for_spike=True)
+                                                                  check_for_spike=check_for_spike)
 
     def add_multiple_prices(self, instrument_code, updated_multiple_prices, ignore_duplication=True):
         return self.data.db_futures_multiple_prices.add_multiple_prices(instrument_code, updated_multiple_prices, ignore_duplication=True)
 
     def add_adjusted_prices(self, instrument_code, updated_adjusted_prices, ignore_duplication=True):
         return self.data.db_futures_adjusted_prices.add_adjusted_prices(instrument_code, updated_adjusted_prices, ignore_duplication=True)
+
+
+def get_valid_instrument_code_from_user(data=arg_not_supplied):
+    if data is arg_not_supplied:
+        data = dataBlob()
+    price_data = diagPrices(data)
+    all_instruments = price_data.get_list_of_instruments_in_multiple_prices()
+    invalid_input = True
+    while invalid_input:
+        instrument_code = input("Instrument code?")
+        if instrument_code in all_instruments:
+            return instrument_code
+
+        print("%s is not in list %s" % (instrument_code, all_instruments))

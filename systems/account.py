@@ -1007,7 +1007,7 @@ class _AccountActual(_AccountCosts):
     To avoid having one huge class built up from multiple bits
 
     This part deals with 'actual' accounts and positions, where we've applied a capital scalar
-    See blog post: http://qoppac.blogspot.co.uk/2016/06/capital-correction-pysystemtrade.html
+    See blog post: https://qoppac.blogspot.com/2016/06/capital-correction-pysystemtrade.html
     """
 
     def _name(self):

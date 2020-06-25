@@ -33,7 +33,7 @@ class capitalData(listOfEntriesData):
     """
     Store and retrieve the capital assigned to a particular strategy
 
-    A seperate process is required to map from account value to strategy capital
+    A separate process is required to map from account value to strategy capital
 
     We also store the total account value (GLOBAL STRATEGY), broker account value (BROKER_ACCOUNT_VALUE),
        and for half compounding purposes MAXIMUM_ACCOUNT_VALUE

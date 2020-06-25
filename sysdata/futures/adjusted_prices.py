@@ -19,7 +19,7 @@ from sysdata.futures.futures_per_contract_prices import futuresContractFinalPric
 
 def panama_stitch(multiple_prices_input, forward_fill = False):
     """
-    Do a panama stich for adjusted prices
+    Do a panama stitch for adjusted prices
 
     :param multiple_prices:  futuresMultiplePrices
     :return: pd.Series of adjusted prices

@@ -69,7 +69,7 @@ class connectionIB(ibClient, ibServer):
         :param ipaddress: IP address of machine running IB Gateway or TWS. If not passed then will get from private config file, or defaults
         :param port: Port listened to by IB Gateway or TWS
         :param log: logging object
-        :param db_id_tracker: Eithier none (to use the default or an object that quacks like class mongoIBclientIDtracker)
+        :param db_id_tracker: Either none (to use the default or an object that quacks like class mongoIBclientIDtracker)
         """
 
         # resolve defaults

@@ -1,0 +1,3 @@
+#!/bin/bash
+. ~/.profile
+. p sysproduction.interactive_manual_check_historical_prices.interactive_manual_check_historical_prices

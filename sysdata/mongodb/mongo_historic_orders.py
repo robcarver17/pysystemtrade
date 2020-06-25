@@ -2,6 +2,7 @@ from syscore.objects import success, missing_order, resolve_function
 from sysdata.mongodb.mongo_connection import mongoConnection, MONGO_ID_KEY
 from syslogdiag.log import logtoscreen
 from sysdata.production.historic_orders import genericOrdersData, strategyHistoricOrdersData, contractHistoricOrdersData
+from sysexecution.contract_orders import contractTradeableObject
 
 ORDER_ID_STORE_KEY = "_ORDER_ID_STORE_KEY"
 
@@ -103,11 +104,31 @@ class mongoContractHistoricOrdersData(mongoGenericHistoricOrdersData, contractHi
     def _order_class_str(self):
         return "sysexecution.broker_orders.contractOrder"
 
-    def get_list_of_orders_since_date(self, recent_datetime):
-        raise NotImplementedError
+    def get_list_of_order_ids_for_strategy_and_contract(self, strategy_name, contract_object):
+        instrument_code = contract_object.instrument_code
+        contract_id = contract_object.date
+
+        tradeable_object = contractTradeableObject(strategy_name, instrument_code, contract_id)
+        object_key = tradeable_object.key
+        result_dict = self._mongo.collection.find(dict(key = object_key))
+        list_oforder_id = [result['order_id'] for result in result_dict]
+
+        alt_key = tradeable_object.alt_key
+        result_dict = self._mongo.collection.find(dict(key=alt_key))
+        alt_list_oforder_id = [result['order_id'] for result in result_dict]
+
+        list_oforder_id = list_oforder_id + alt_list_oforder_id
+
+        return list_oforder_id
+
+    def get_list_of_all_keys(self):
+        result_dict = self._mongo.collection.find()
+        key_list = [result['key'] for result in result_dict]
+
+        return key_list
 
 
-class mongoContractBrokerOrdersData(mongoGenericHistoricOrdersData, contractHistoricOrdersData):
+class mongoBrokerHistoricOrdersData(mongoGenericHistoricOrdersData, contractHistoricOrdersData):
     def _collection_name(self):
         return "_BROKER_HISTORIC_ORDERS"
 
@@ -116,3 +137,5 @@ class mongoContractBrokerOrdersData(mongoGenericHistoricOrdersData, contractHist
 
     def get_list_of_orders_since_date(self, recent_datetime):
         raise NotImplementedError
+
+

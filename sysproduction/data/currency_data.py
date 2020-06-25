@@ -59,5 +59,17 @@ class currencyData(object):
         fx_data = self.get_fx_prices(currency_pair)
         return fx_data.values[-1]
 
+    def get_fx_prices_to_base(self, currency:str):
+        """
+
+        :param currency: eg GBP
+        :return: eg fx rate for GBPUSD if base was USD
+        """
+        base = self.get_base_currency()
+        currency_pair = currency+base
+
+        return self.get_fx_prices(currency_pair)
+
+
     def get_fx_prices(self, fx_code):
         return self.data.db_fx_prices.get_fx_prices(fx_code)

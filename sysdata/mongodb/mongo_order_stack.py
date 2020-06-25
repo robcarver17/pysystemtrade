@@ -6,6 +6,7 @@ from sysexecution.order_stack import orderStackData, missing_order
 from sysexecution.base_orders import Order
 from sysexecution.instrument_orders import instrumentOrder, instrumentOrderStackData
 from sysexecution.contract_orders import contractOrder, contractOrderStackData
+from sysexecution.broker_orders import brokerOrder, brokerOrderStackData
 
 ORDER_ID_STORE_KEY = "_ORDER_ID_STORE_KEY"
 
@@ -119,17 +120,11 @@ class mongoOrderStackData(orderStackData):
         return success
 
     def _create_max_order_id(self):
-        first_order_id = 30000
+        first_order_id = 1
         self._mongo.collection.insert_one(dict(order_id=ORDER_ID_STORE_KEY, max_order_id=first_order_id))
         return first_order_id
 
 
-
-    def _delete_entire_stack_without_checking(self):
-        # probably will be overriden in data implementation
-        self._mongo.collection.drop()
-
-        return success
 
     def _remove_order_with_id_from_stack_no_checking(self, order_id):
         self._mongo.collection.remove(dict(order_id = order_id))
@@ -159,3 +154,15 @@ class mongoContractOrderStackData(mongoOrderStackData, contractOrderStackData):
     @property
     def _name(self):
         return "Contract order stack"
+
+
+class mongoBrokerOrderStackData(mongoOrderStackData, brokerOrderStackData):
+    def _collection_name(self):
+        return 'BROKER_ORDER_STACK'
+
+    def _order_class(self):
+        return brokerOrder
+
+    @property
+    def _name(self):
+        return "Broker order stack"

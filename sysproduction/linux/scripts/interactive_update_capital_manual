@@ -1,0 +1,3 @@
+#!/bin/bash
+. ~/.profile
+. p sysproduction.interactive_update_capital_manual.interactive_update_capital_manual

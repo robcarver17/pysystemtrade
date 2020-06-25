@@ -53,7 +53,7 @@ You may want to read [my blog posts](https://qoppac.blogspot.com/2017/03/interac
 
 ### Gateway / TWS
 
-You need to download eithier the gateway or TWS software from the IB website. I recommend using the Gateway as it is much more stable and lightweight, and does not regularly reboot itself.
+You need to download either the gateway or TWS software from the IB website. I recommend using the Gateway as it is much more stable and lightweight, and does not regularly reboot itself.
 
 These links may break or become outdated - use google to find the appropriate page on IB's website.
 
@@ -75,7 +75,7 @@ The directory required may vary, and you might need to prefix the second command
 
 ## Launching and configuring the Gateway
 
-Before you run any python code you'll need to launch the Gateway software. Current versions of the Gateway do this via a desktop icon. You will need to use eithier:
+Before you run any python code you'll need to launch the Gateway software. Current versions of the Gateway do this via a desktop icon. You will need to use either:
 
 - A demo account, such as username: `fdemo`, password: `demouser`. IB seem to be phasing out their demo accounts.
 - A paper trading account
@@ -92,7 +92,7 @@ You will also need to configure the Gateway:
 
 ```
 from sysbrokers.IB.ibConnection import  connectionIB
-conn = connectionIB(ipaddress = "127.0.0.1", port=4001) # these are the default values and can be ommitted
+conn = connectionIB(ipaddress = "127.0.0.1", port=4001) # these are the default values and can be omitted
 conn
 
 Out[13]: IB broker connection{'ipaddress': '127.0.0.1', 'port': 4001, 'client': 1} # client id may be different
@@ -195,7 +195,7 @@ The generic client object, [`brokerClient`](/sysbrokers/baseClient.py), contains
 These methods include:
 
 - `broker_get_daily_fx_data`: Returns a pd.Series of fx data
-- `broker_get_historical_daily_futures_data_for_contract`: Returns a pd.Series of futures data, given a contract definition. The contract definition can be "YYYMM" or "YYYYMMDD" if the exact expiry date is known.
+- `broker_get_historical_futures_data_for_contract`: Returns a pd.Series of futures data, given a contract definition. The contract definition can be "YYYMM" or "YYYYMMDD" if the exact expiry date is known.
 - `broker_get_futures_contract_list`: For a given instrument, returns a list of "YYYMMDD" contract ID's which are the expiry dates of the given contracts
 - `broker_get_contract_expiry_date`: For a given instrument, return "YYYMMDD" which is the expiry dates of the given contract.
 
@@ -209,7 +209,7 @@ The IB client object, [`ibClient`](/sysbrokers/IB/ibClient.py), inherits from `b
 The overriden methods are:
 
 - `broker_get_fx_data`: Returns a pd.Series of fx data given a currency pair definition
-- `broker_get_historical_daily_futures_data_for_contract`: Returns a pd.Series of futures data, given a contract definition (including broker metadata added by the ibFuturesContractPriceData layer). The contract definition can be "YYYMM" or "YYYYMMDD" if the exact expiry date is known.
+- `broker_get_historical_futures_data_for_contract`: Returns a pd.Series of futures data, given a contract definition (including broker metadata added by the ibFuturesContractPriceData layer). The contract definition can be "YYYMM" or "YYYYMMDD" if the exact expiry date is known.
 - `broker_get_futures_contract_list`: For a given instrument (including metadata), returns a list of "YYYMMDD" contract ID's which are the expiry dates of the given contracts
 - `broker_get_contract_expiry_date`: For a given instrument (including metadata), return "YYYMMDD" which is the expiry dates of the given contract.
 
@@ -288,7 +288,7 @@ This is a 'read only' object; there are no methods implemented for writing or de
 
 #### Futures contract prices data
 
-For spot FX we have a class `ibFuturesContractPricesData` which inherits from the generic `ffuturesContractPriceData`. This needs to be initialised with an IB connection:
+For spot FX we have a class `ibFuturesContractPricesData` which inherits from the generic `futuresContractPriceData`. This needs to be initialised with an IB connection:
 
 
 ```python

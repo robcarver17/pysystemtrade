@@ -17,6 +17,7 @@ class diagContracts(object):
                             arcticFuturesMultiplePricesData mongoFuturesContractData")
         self.data = data
 
+
     def is_contract_in_data(self, instrument_code, contract_date):
         return self.data.db_futures_contract.is_contract_in_data(instrument_code, contract_date)
 
@@ -141,6 +142,28 @@ class diagContracts(object):
         return contract_date_with_roll_parameters
 
 
+
+def get_valid_instrument_code_and_contractid_from_user(data):
+    diag_contracts = diagContracts(data)
+    invalid_input = True
+    while invalid_input:
+        instrument_code = input("Instrument code?")
+        all_contracts = diag_contracts.get_all_contract_objects_for_instrument_code(instrument_code)
+        sampled_contract = all_contracts.currently_sampling()
+        sampled_dates = sampled_contract.list_of_dates()
+        all_dates = all_contracts.list_of_dates()
+        if len(all_dates)==0:
+            print("%s is not an instrument with contract data (probably not even an instrument at all!)" % instrument_code)
+            continue
+        print("Currently sampled contract dates %s" % str(sampled_dates))
+        contract_date = input("Contract date?")
+        if contract_date in all_dates:
+            break
+        else:
+            print("%s is not in list %s" % (contract_date, all_dates))
+            continue # not required
+
+    return instrument_code, contract_date
 
 def label_up_contracts(contract_date_list, current_contracts):
     """
