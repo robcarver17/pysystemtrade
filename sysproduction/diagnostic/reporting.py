@@ -34,6 +34,7 @@ def run_report_with_data_blob(report_config, data):
     :return:
     """
 
+    data.log.msg("Running report %s" % str(report_config))
     report_function = resolve_function(report_config.function)
     report_kwargs = report_config.kwargs
 

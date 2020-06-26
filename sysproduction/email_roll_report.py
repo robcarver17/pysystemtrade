@@ -14,5 +14,5 @@ def email_roll_report():
     """
 
     email_roll_report_config = roll_report_config.new_config_with_modified_output("email")
-    email_roll_report_config.kwargs = dict(instrument_code = "ALL")
-    run_report(roll_report_config)
+    email_roll_report_config.modify_kwargs(instrument_code = "ALL")
+    run_report(email_roll_report_config)

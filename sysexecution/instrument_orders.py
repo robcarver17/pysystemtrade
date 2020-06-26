@@ -243,6 +243,12 @@ class instrumentOrderStackData(orderStackData):
 
         return order_id_or_error
 
+    def does_strategy_and_instrument_already_have_order_on_stack(self, strategy_name, instrument_code):
+        pseudo_order = instrumentOrder(strategy_name, instrument_code, 0)
+        existing_order = self._get_order_with_same_tradeable_object_on_stack(pseudo_order)
+        if existing_order is missing_order:
+            return False
+        return True
 
     def put_order_on_stack(self, new_order, allow_zero_orders=False):
         """

@@ -44,7 +44,8 @@ def interactive_update_roll_status(instrument_code: str):
         ## First get the roll info
         # This will also update to console
         config = roll_report_config.new_config_with_modified_output("console")
-        report_results = run_report_with_data_blob(config, data, instrument_code=instrument_code)
+        config.modify_kwargs(instrument_code=instrument_code)
+        report_results = run_report_with_data_blob(config, data)
         if report_results is failure:
             print("Can't run roll report, so can't change status")
             return failure

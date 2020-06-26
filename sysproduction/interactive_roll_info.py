@@ -15,6 +15,6 @@ def interactive_roll_info(instrument_code: str = "ALL"):
     """
 
     config = roll_report_config.new_config_with_modified_output("console")
-    config.kwargs = dict(instrument_code = instrument_code)
+    config.modify_kwargs(instrument_code = instrument_code)
     run_report(roll_report_config)
 

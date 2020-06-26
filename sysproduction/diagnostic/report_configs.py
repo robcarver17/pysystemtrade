@@ -8,6 +8,9 @@ class reportConfig(object):
         self.output = output
         self.kwargs = kwargs
 
+    def __repr__(self):
+        return "%s %s %s %s" % (self.title, self.function, self.output, str(self.kwargs))
+
     def new_config_with_modified_output(self, output):
         new_config = copy(self)
         new_config.output = output
@@ -16,11 +19,15 @@ class reportConfig(object):
 
     def new_config_with_modify_kwargs(self, **kwargs):
         new_config = copy(self)
-        for key in kwargs.keys():
-            new_config.kwargs[key] = kwargs[key]
+        new_config.modify_kwargs(**kwargs)
 
         return new_config
 
+    def modify_kwargs(self, **kwargs):
+        for key in kwargs.keys():
+            self.kwargs[key] = kwargs[key]
+
+        return self
 
 status_report_config = reportConfig(title="Status report",
                                    function="sysproduction.diagnostic.system_status.system_status")
