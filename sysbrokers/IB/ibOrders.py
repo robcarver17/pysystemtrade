@@ -449,7 +449,7 @@ def extract_order_info(trade_to_process):
     limit_price = order.lmtPrice
     order_sign = sign_from_BS(order.action)
     order_type = resolve_order_type(order.orderType)
-    remain_qty = order.totalQuantity
+    remain_qty = trade_to_process.remaining()
 
     orderInfo = namedtuple('orderInfo', ['account',  'perm_id', 'limit_price', 'order_sign', 'type',
                                          'remain_qty', 'order_object'])
