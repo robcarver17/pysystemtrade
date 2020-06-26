@@ -4,7 +4,7 @@ from sysexecution.base_orders import  no_order_id, no_children, no_parent
 from sysexecution.contract_orders import contractOrder
 
 from syscore.genutils import  none_to_object, object_to_none
-from syscore.objects import failure, missing_order
+from syscore.objects import failure, missing_order, fill_exceeds_trade, success
 
 
 
@@ -268,6 +268,9 @@ class brokerOrder(contractOrder):
         return new_log
 
     def add_execution_details_from_matched_broker_order(self, matched_broker_order):
+        fill_qty_okay = self.fill_less_than_or_equal_to_desired_trade(matched_broker_order.fill)
+        if not fill_qty_okay:
+            return fill_exceeds_trade
         self.fill_order(matched_broker_order.fill,
                                                              filled_price = matched_broker_order.filled_price,
                                                              fill_datetime=matched_broker_order.fill_datetime)
@@ -275,6 +278,7 @@ class brokerOrder(contractOrder):
         self.broker_permid = matched_broker_order.broker_permid
         self.algo_comment = matched_broker_order.algo_comment
 
+        return success
 
 
 def create_new_broker_order_from_contract_order(contract_order, qty, order_type="market",

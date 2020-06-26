@@ -4,10 +4,8 @@ import pandas as pd
 from syscore.objects import  resolve_function, success, failure
 from syscore.objects import header, table, body_text
 
-from sysdata.mongodb.mongo_connection import mongoDb
 from sysproduction.data.get_data import dataBlob
 
-from syslogdiag.log import logToMongod as logger
 from syslogdiag.emailing import send_mail_msg
 
 
@@ -15,9 +13,7 @@ pd.set_option('display.width', 1000)
 pd.set_option('display.max_columns', 1000)
 pd.set_option('display.max_rows', 1000)
 
-
-
-def run_report(report_config, **kwargs):
+def run_report(report_config):
 
     """
 
@@ -26,11 +22,11 @@ def run_report(report_config, **kwargs):
     """
     with dataBlob(log_name = "Reporting %s" % report_config.title) as data:
 
-        report_result = run_report_with_data_blob(report_config, data, **kwargs)
+        report_result = run_report_with_data_blob(report_config, data)
 
         return report_result
 
-def run_report_with_data_blob(report_config, data, **kwargs):
+def run_report_with_data_blob(report_config, data):
 
     """
 
@@ -39,9 +35,11 @@ def run_report_with_data_blob(report_config, data, **kwargs):
     """
 
     report_function = resolve_function(report_config.function)
-    report_result = success
+    report_kwargs = report_config.kwargs
+
     try:
-        report_results = report_function(data, **kwargs)
+        report_results = report_function(data, **report_kwargs)
+        report_result = success
     except Exception as e:
         report_results = [header("Report %s failed to process with error %s" % (report_config.title, e))]
         report_result = failure

@@ -20,7 +20,7 @@ from syscore.objects import success, failure
 from sysdata.production.roll_state_storage import \
     allowable_roll_state_from_current_and_position, explain_roll_state, roll_adj_state, no_state_available, default_state
 
-from sysproduction.interactive_roll_info import roll_report_config
+from sysproduction.diagnostic.report_configs import roll_report_config
 from sysproduction.diagnostic.reporting import run_report_with_data_blob, landing_strip
 
 from sysproduction.data.positions import diagPositions, updatePositions
@@ -43,7 +43,8 @@ def interactive_update_roll_status(instrument_code: str):
 
         ## First get the roll info
         # This will also update to console
-        report_results = run_report_with_data_blob(roll_report_config, data, instrument_code=instrument_code)
+        config = roll_report_config.new_config_with_modified_output("console")
+        report_results = run_report_with_data_blob(config, data, instrument_code=instrument_code)
         if report_results is failure:
             print("Can't run roll report, so can't change status")
             return failure

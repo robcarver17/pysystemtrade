@@ -312,7 +312,7 @@ class timerClassWithFunction(object):
         if run_on_completion_only:
             log.msg("%s will run on process completion" % name)
         else:
-            log.msg("%s will run every %d minutes at most %d times" % (name, frequency_minutes, max_executions))
+            log.msg("%s will run every %d minutes at most %d times (-1: infinity)" % (name, frequency_minutes, max_executions))
 
     @property
     def frequency_minutes(self):
@@ -430,6 +430,9 @@ class timerClassWithFunction(object):
         if self.run_on_completion_only:
             # doesn't apply
             return True
+        elif self._max_executions==-1:
+            # unlimited
+            return False
         elif self._actual_executions>=self._max_executions:
             return True
         else:

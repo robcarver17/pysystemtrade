@@ -2,8 +2,7 @@
 ## We also have a report function to email
 
 from sysproduction.diagnostic.reporting import run_report
-from syscore.objects import report_config
-
+from sysproduction.diagnostic.report_configs import roll_report_config
 
 def email_roll_report():
     """
@@ -14,8 +13,6 @@ def email_roll_report():
     :return: None, but print results
     """
 
-    roll_report_config = report_config(title="Roll report",
-                                       function="sysproduction.diagnostic.rolls.roll_info",
-                                       output="email")
-
-    run_report(roll_report_config, instrument_code = "ALL")
+    email_roll_report_config = roll_report_config.new_config_with_modified_output("email")
+    email_roll_report_config.kwargs = dict(instrument_code = "ALL")
+    run_report(roll_report_config)

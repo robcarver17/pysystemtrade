@@ -49,7 +49,7 @@ class totalCapitalUpdate(object):
 
         # Update total capital
         try:
-            new_capital = capital_data.total_capital_calculator.\
+            new_capital = capital_data.\
                 get_total_capital_with_new_broker_account_value(total_account_value_in_base_currency)
         except Exception as e:
             ## Problem, most likely spike

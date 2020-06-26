@@ -20,7 +20,7 @@ from syscore.genutils import get_and_convert, run_interactive_menu
 from sysproduction.data.get_data import dataBlob
 from sysproduction.data.positions import diagPositions
 from sysproduction.data.broker import dataBroker
-from sysproduction.data.sim_data import get_valid_strategy_name_from_user
+from sysproduction.data.strategies import get_valid_strategy_name_from_user
 from sysproduction.data.contracts import get_valid_instrument_code_and_contractid_from_user
 from sysproduction.data.controls import dataLocks
 from sysproduction.data.prices import get_valid_instrument_code_from_user

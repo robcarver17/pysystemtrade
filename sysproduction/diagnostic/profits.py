@@ -63,16 +63,14 @@ def get_pandl_report_data(data, calendar_days_back=7):
 
 def get_total_capital_series(data):
     data_capital_object = dataCapital(data)
-    all_capital_data = data_capital_object.total_capital_calculator.get_all_capital_calcs()
 
-    return all_capital_data.Max
+    return data_capital_object.get_series_of_maximum_capital()
 
 def get_daily_perc_pandl(data):
     data_capital_object = dataCapital(data)
-    all_capital_data = data_capital_object.total_capital_calculator.get_all_capital_calcs()
 
     ## This is for 'non compounding' p&l
-    total_pandl_series = all_capital_data.Accumulated
+    total_pandl_series = data_capital_object.get_series_of_accumulated_capital()
     daily_pandl_series = total_pandl_series.ffill().diff()
 
     all_capital = get_total_capital_series(data)
@@ -134,7 +132,6 @@ def get_period_perc_pandl_for_instrument_all_strategies_in_date_range(
 
     return pandl_series.sum()
 
-# OAT BOBL BTP PLAT MXP
 
 def get_df_of_perc_pandl_series_for_instrument_all_strategies_across_contracts_in_date_range(
         data, instrument_code, start_date, end_date):

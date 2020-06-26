@@ -1,4 +1,4 @@
-from syscore.objects import missing_order, success, failure, locked_order, duplicate_order, no_order_id, no_children, no_parent, missing_contract, missing_data, rolling_cant_trade, ROLL_PSEUDO_STRATEGY, missing_order, order_is_in_status_reject_modification, order_is_in_status_finished, locked_order, order_is_in_status_modified, resolve_function
+from syscore.objects import fill_exceeds_trade, success, failure, locked_order, duplicate_order, no_order_id, no_children, no_parent, missing_contract, missing_data, rolling_cant_trade, ROLL_PSEUDO_STRATEGY, missing_order, order_is_in_status_reject_modification, order_is_in_status_finished, locked_order, order_is_in_status_modified, resolve_function
 
 
 from sysexecution.stack_handler.stackHandlerCore import stackHandlerCore
@@ -26,19 +26,30 @@ class stackHandlerForFills(stackHandlerCore):
     def apply_broker_fill_to_broker_stack(self, broker_order_id):
 
         db_broker_order = self.broker_stack.get_order_with_id_from_stack(broker_order_id)
+        if db_broker_order is missing_order:
+            return failure
+
+        log = db_broker_order.log_with_attributes(self.log)
 
         if db_broker_order.fill_equals_desired_trade():
             ## No point
+            ## We don't log or we'd be spamming like crazy
             return success
 
         data_broker = dataBroker(self.data)
         matched_broker_order = data_broker.match_db_broker_order_to_order_from_brokers(db_broker_order)
 
         if matched_broker_order is missing_order:
+            log.warn("Order %s does not match any broker orders" % db_broker_order)
             return failure
 
         result = self.broker_stack.\
             add_execution_details_from_matched_broker_order(broker_order_id, matched_broker_order)
+
+        if result is fill_exceeds_trade:
+            self.log.warn("Fill for %s exceeds trade for %s, ignoring... (hopefully will go away)" % (
+                db_broker_order, matched_broker_order
+            ))
 
         return result
 

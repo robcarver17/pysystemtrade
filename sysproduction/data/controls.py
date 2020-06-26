@@ -2,6 +2,7 @@ import datetime
 import socket
 
 from sysproduction.data.get_data import dataBlob
+from sysproduction.data.strategies import diagStrategiesConfig
 from sysdata.private_config import get_private_then_default_key_value
 from syscore.objects import arg_not_supplied, missing_data
 from syscore.genutils import str2Bool
@@ -274,13 +275,11 @@ class diagProcessConfig():
 
 
     def get_strategy_dict_for_strategy(self, strategy_name):
-        strategy_dict = self.get_all_strategy_dict()
-        this_strategy_dict = strategy_dict[strategy_name]
+        diag_strategy_config = diagStrategiesConfig(self.data)
+        strategy_dict = diag_strategy_config.get_strategy_dict_for_strategy(strategy_name)
 
-        return this_strategy_dict
+        return strategy_dict
 
-    def get_all_strategy_dict(self):
-        return get_private_then_default_key_value('strategy_list')
 
     def frequency_and_max_executions_for_process_and_method_process_dict(self, process_name, method_name):
 
@@ -362,8 +361,11 @@ class diagProcessConfig():
 
 
     def get_process_configuration_for_item_name(self, item_name):
-        config = get_private_then_default_key_value('process_configuration_%s' % item_name, raise_error=False)
-        if config is missing_data:
-            return {}
+        config = getattr(self, "_process_config_%s" % item_name, None)
+        if config is None:
+            config = get_private_then_default_key_value('process_configuration_%s' % item_name, raise_error=False)
+            if config is missing_data:
+                return {}
+            setattr(self, "_process_config_%s" % item_name, config)
 
         return config

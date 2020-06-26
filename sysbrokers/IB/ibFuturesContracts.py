@@ -161,7 +161,7 @@ class ibFuturesContractData(futuresContractData):
     def _get_ib_config(self):
         config = getattr(self, "_config", None)
         if config is None:
-            config = self._get_and_set_ib_config_from_file()
+            self._config = config = self._get_and_set_ib_config_from_file()
 
         return config
 

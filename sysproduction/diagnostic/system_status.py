@@ -2,41 +2,93 @@
 Monitor health of system by seeing when things last run
 
 We can also check: when last adjusted prices were updated, when FX was last updated, when optimal position was
-   last updated, when instrument orders were last submitted for a particular strategy,
-   wether there are any outstanding broker orders
-
+   last updated
 """
 from collections import  namedtuple
 
-import pandas as pd
+import datetime
 
-from syscore.objects import missing_data
 from syscore.pdutils import make_df_from_list_of_named_tuple
+from syscore.objects import header, table, body_text, arg_not_supplied, missing_data
+
 from sysproduction.data.get_data import dataBlob
 from sysproduction.data.controls import diagProcessConfig, dataControlProcess
-from sysproduction.data.sim_data import get_list_of_strategies
+from sysproduction.data.strategies import get_list_of_strategies
 from sysproduction.data.prices import get_list_of_instruments
-from sysproduction.data.currency_data import get_list_of_fxcodes
+from sysproduction.data.currency_data import get_list_of_fxcodes, currencyData
+from sysproduction.data.prices import diagPrices
+from sysproduction.data.positions import diagPositions
 from syslogdiag.log import accessLogFromMongodb
 
 
+def system_status(data =arg_not_supplied):
+    """
+    Report on system status
 
-pd.set_option('display.max_columns', 500)
-pd.set_option('display.width', 1000)
+    :param: data blob
+    :return: list of formatted output items
+    """
+    if data is arg_not_supplied:
+        data = dataBlob()
+
+    results_object = get_status_report_data(data)
+    formatted_output = format_status_data(results_object)
+
+    return formatted_output
+
+def get_status_report_data(data):
+
+    process = get_control_data_list_for_all_processes_as_df(data)
+    method = get_control_data_list_for_all_methods_as_df(data)
+    price = get_last_price_updates_as_df(data)
+    position = get_last_optimal_position_updates_as_df(data)
+
+    results_object = dict(process = process, method = method, price = price, position = position)
+    return results_object
+
+def format_status_data(results_object):
+    """
+    Put the results into a printable format
+
+    :param results_dict: dict, keys are different segments
+    :return:
+    """
 
 
+    formatted_output=[]
+
+    formatted_output.append(header("Status report produced on %s" % (str(datetime.datetime.now()))))
+
+    table1_df = results_object['process']
+    table1 = table('Status of processses', table1_df)
+    formatted_output.append(table1)
+
+    table2_df = results_object['method']
+    table2 = table('Status of methods', table2_df)
+    formatted_output.append(table2)
+
+    table3_df = results_object['price']
+    table3 = table('Status of adjusted price / FX price collection', table3_df)
+    formatted_output.append(table3)
+
+    table4_df = results_object['position']
+    table4 = table('Status of optimal position generation', table4_df)
+    formatted_output.append(table4)
 
 
-list_of_instruments = get_list_of_instruments()
+    formatted_output.append(header("END OF STATUS REPORT"))
 
-
-
+    return formatted_output
 
 
 
 dataForProcess = namedtuple("dataForProcess", ['name','running','start','end','status', 'finished_in_last_day',
                                                'start_time', 'end_time', 'required_machine', 'right_machine',
                                                'time_to_run', 'previous_required', 'previous_finished', 'time_to_stop'])
+
+dataForMethod = namedtuple("dataForMethod", ['method_or_strategy','process_name', 'last_run_or_heartbeat'])
+
+genericUpdate = namedtuple("genericUpdate", ["name", "last_update"])
 
 uses_instruments = ['update_sampled_contracts', 'update_historical_prices', 'update_multiple_adj_prices']
 uses_fx_codes = ['update_fx_prices']
@@ -45,14 +97,6 @@ uses_fx_codes = ['update_fx_prices']
 
 data = dataBlob()
 
-## get control list for methods that use instruments
-## get control list for methods that use fx
-
-def get_control_data_list_for_all_methods_as_df(data):
-    cd_list = get_control_data_list_for_all_methods(data)
-    pdf = make_df_from_list_of_named_tuple(dataForMethod, cd_list)
-    pdf = pdf.sort_values('last_run_or_heartbeat')
-    return pdf
 
 def get_control_data_list_for_all_processes_as_df(data):
     cd_list = get_control_data_list_for_all_processes(data)
@@ -61,6 +105,92 @@ def get_control_data_list_for_all_processes_as_df(data):
 
     return pdf
 
+
+def get_control_data_list_for_all_methods_as_df(data):
+    cd_list = get_control_data_list_for_all_methods(data)
+    pdf = make_df_from_list_of_named_tuple(dataForMethod, cd_list)
+    pdf = pdf.sort_values('last_run_or_heartbeat')
+    return pdf
+
+def get_last_price_updates_as_df(data):
+    cd_list = get_list_of_last_price_updates(data)
+    pdf = make_df_from_list_of_named_tuple(genericUpdate, cd_list)
+    pdf = pdf.sort_values('last_update')
+
+    return pdf
+
+def get_last_optimal_position_updates_as_df(data):
+    cd_list = get_list_of_last_position_updates(data)
+    pdf = make_df_from_list_of_named_tuple(genericUpdate, cd_list)
+    pdf = pdf.sort_values('last_update')
+
+    return pdf
+
+def get_list_of_last_price_updates(data):
+    list_one = get_list_of_last_futures_price_updates(data)
+    list_two = get_list_of_last_fx_price_updates(data)
+
+    return list_one+list_two
+
+def get_list_of_last_futures_price_updates(data):
+    list_of_instruments = get_list_of_instruments(data)
+    updates =[get_last_futures_price_update_for_instrument(data, instrument_code)
+              for instrument_code in list_of_instruments]
+    return updates
+
+def get_last_futures_price_update_for_instrument(data, instrument_code):
+    diag_prices = diagPrices(data)
+    px = diag_prices.get_adjusted_prices(instrument_code)
+    last_timestamp = px.index[-1]
+    update = genericUpdate(instrument_code, last_timestamp)
+
+    return update
+
+
+def get_list_of_last_fx_price_updates(data):
+    list_of_codes = get_list_of_fxcodes(data)
+    updates =[get_last_fx_price_update_for_code(data, fx_code)
+              for fx_code in list_of_codes]
+    return updates
+
+def get_last_fx_price_update_for_code(data, fx_code):
+    data_fx = currencyData(data)
+    px = data_fx.get_fx_prices(fx_code)
+    last_timestamp = px.index[-1]
+
+    update = genericUpdate(fx_code, last_timestamp)
+
+    return update
+
+def get_list_of_last_position_updates(data):
+    strategy_list = get_list_of_strategies(data)
+    list_of_updates = []
+    for strategy_name in strategy_list:
+        updates_for_strategy = get_list_of_position_updates_for_strategy(data, strategy_name)
+        list_of_updates = list_of_updates + updates_for_strategy
+
+
+    return list_of_updates
+
+def get_list_of_position_updates_for_strategy(data, strategy_name):
+    instrument_list = get_list_of_instruments(data)
+    list_of_updates = [get_last_position_update_for_strategy_instrument(data, strategy_name, instrument_code)
+                       for instrument_code in instrument_list]
+
+    list_of_updates = [update for update in list_of_updates if update is not None]
+
+    return list_of_updates
+
+def get_last_position_update_for_strategy_instrument(data, strategy_name, instrument_code):
+   diag_positions = diagPositions()
+   op = diag_positions.optimal_position_data()
+   pos_data = op.get_optimal_position_as_df_for_strategy_and_instrument(strategy_name, instrument_code)
+   if pos_data is missing_data:
+       return None
+   last_update = pos_data.index[-1]
+   key = "%s/%s" % (strategy_name, instrument_code)
+
+   return genericUpdate(key, last_update)
 
 def get_control_data_list_for_all_processes(data):
     all_processes = get_list_of_all_processes(data)
@@ -99,8 +229,6 @@ def get_control_data_for_process_name(data, process_name):
                                       previous_finished=previous_finished)
 
     return data_for_process
-
-dataForMethod = namedtuple("dataForMethod", ['method_or_strategy','process_name', 'last_run_or_heartbeat'])
 
 
 def get_control_data_list_for_all_methods(data):
@@ -184,6 +312,3 @@ def get_methods_dict(data):
 
     return all_methods_dict
 
-
-if missing_data:
-    pass

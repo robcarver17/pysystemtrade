@@ -20,6 +20,8 @@ locked_order = _named_object("locked order")
 duplicate_order = _named_object("duplicate order")
 zero_order = _named_object("zero order")
 
+fill_exceeds_trade = _named_object("fill too big for trade")
+
 order_is_in_status_finished = _named_object("order status is modification finished")
 order_is_in_status_modified = _named_object("order status is being modified")
 order_is_in_status_not_modified = _named_object("order status is not currently modified")
@@ -46,11 +48,9 @@ process_running = _named_object("process running")
 
 arg_not_supplied = _named_object("arg not supplied")
 
-report_config = namedtuple("config", "title function output")
 table = namedtuple("table", "Heading Body")
 header = namedtuple("header", "Heading")
 body_text = namedtuple("bodytext", "Text")
-
 
 def get_methods(an_object):
     dir_list = dir(an_object)

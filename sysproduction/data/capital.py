@@ -29,6 +29,21 @@ class dataCapital(object):
 
         return self._total_capital_calculator
 
+    def get_total_capital_with_new_broker_account_value(self, total_account_value_in_base_currency):
+        result = self.total_capital_calculator.get_total_capital_with_new_broker_account_value(total_account_value_in_base_currency)
+        return result
+
+    def get_series_of_maximum_capital(self):
+        all_capital_data = self.total_capital_calculator.get_all_capital_calcs()
+
+        return all_capital_data.Max
+
+    def get_series_of_accumulated_capital(self):
+        all_capital_data = self.total_capital_calculator.get_all_capital_calcs()
+
+        return all_capital_data.Accumulated
+
+
     def get_capital_for_strategy(self, strategy_name):
         capital_value = self.capital_data.get_current_capital_for_strategy(strategy_name)
         if capital_value is missing_data:

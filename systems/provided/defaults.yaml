@@ -40,27 +40,27 @@ process_configuration_methods:
       max_executions: 1
     update_historical_prices:
       max_executions: 1
-    update_multiple_adj_prices:
+    update_multiple_adjusted_prices:
       max_executions: 1
   run_stack_handler:
     check_external_position_break:
-      frequency: 10
-      max_executions: 60
+      frequency: 0
+      max_executions: -1
     spawn_children_from_new_instrument_orders:
       frequency: 0
-      max_executions: 99999
+      max_executions: -1
     generate_force_roll_orders:
       frequency: 0
-      max_executions: 99999
+      max_executions: -1
     create_broker_orders_from_contract_orders:
       frequency: 0
-      max_executions: 99999
+      max_executions: -1
     process_fills_stack:
       frequency: 0
-      max_executions: 99999
+      max_executions: -1
     handle_completed_orders:
       frequency: 0
-      max_executions: 99999
+      max_executions: -1
     safe_stack_removal:
       run_on_completion_only: True
 process_configuration_run_over_strategies:

@@ -5,7 +5,7 @@ from sysdata.production.override import override_dict, Override
 from sysproduction.data.get_data import dataBlob
 from sysproduction.data.controls import diagOverrides, updateOverrides, dataTradeLimits, diagProcessConfig, dataControlProcess
 from sysproduction.data.prices import get_valid_instrument_code_from_user
-from sysproduction.data.sim_data import get_valid_strategy_name_from_user, get_list_of_strategies
+from sysproduction.data.strategies import get_valid_strategy_name_from_user, get_list_of_strategies
 
 
 def interactive_controls():

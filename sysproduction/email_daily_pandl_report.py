@@ -2,14 +2,11 @@
 ## We also have a report function to email
 
 from sysproduction.diagnostic.reporting import run_report
-from syscore.objects import report_config
-
+from sysproduction.diagnostic.report_configs import daily_pandl_report_config
 
 def email_daily_pandl_report():
 
 
-    pandl_report_config = report_config(title="One day P&L report",
-                                       function="sysproduction.diagnostic.profits.pandl_info",
-                                       output="email")
-
-    run_report(pandl_report_config, calendar_days_back = 1)
+    config = daily_pandl_report_config.new_config_with_modified_output("email")
+    config.kwargs = dict(calendar_days_back = 1)
+    run_report(daily_pandl_report_config)

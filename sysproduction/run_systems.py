@@ -16,7 +16,7 @@ from syscore.objects import resolve_function
 from sysproduction.data.get_data import dataBlob
 from sysproduction.data.controls import diagProcessConfig
 from sysproduction.run_process import processToRun
-from sysproduction.data.sim_data import get_list_of_strategies
+from sysproduction.data.strategies import get_list_of_strategies
 
 
 def run_systems():
