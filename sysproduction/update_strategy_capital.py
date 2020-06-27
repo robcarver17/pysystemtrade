@@ -43,14 +43,14 @@ class updateStrategyCapital(object):
             write_allocated_weights(data, strategy_capital_dict)
         except Exception as e:
             ## Problem, will send email
-            self.log.critical("Error %s whilst allocating strategy capital" % e)
+            self.data.log.critical("Error %s whilst allocating strategy capital" % e)
 
         return None
 
 
 def call_allocation_function(data):
 
-    strategy_allocation_config_dict = get_strategy_allocation_config_dict()
+    strategy_allocation_config_dict = get_strategy_allocation_config_dict(data)
     strategy_allocation_function_str = strategy_allocation_config_dict.pop('function')
     strategy_allocation_function = resolve_function(strategy_allocation_function_str)
 
