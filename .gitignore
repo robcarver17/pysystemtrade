@@ -18,3 +18,11 @@ restats
 .idea
 .project
 .pydevproject
+.vscode
+
+# env folders
+[Ll]ib
+[Ss]cripts
+etc
+pyvenv.cfg
+[Ss]hare
