@@ -206,9 +206,22 @@ def get_pandl_series_in_points_for_contract(data, instrument_code, contract_id):
     price_series = get_price_series_for_contract(data, instrument_code, contract_id)
     trade_df = get_trade_df_for_contract(data, instrument_code, contract_id)
 
+    trade_df = unique_trades_df(trade_df)
+
     returns = pandl_points(price_series, trade_df, pos_series)
 
     return returns
+
+def unique_trades_df(trade_df):
+    cash_flow = trade_df.qty * trade_df.price
+    trade_df['cash_flow'] = cash_flow
+    new_df = trade_df.groupby(trade_df.index).sum()
+    # qty and cash_flow will be correct, price won't be
+    new_price = new_df.cash_flow / new_df.qty
+    new_df['price'] = new_price
+    new_df = new_df.drop('cash_flow', axis=1)
+
+    return new_df
 
 def pandl_points(price_series,
                     trade_df,
@@ -241,6 +254,7 @@ def pandl_points(price_series,
     prices_to_use = prices_to_use.price
 
     price_returns = prices_to_use.ffill().diff()
+    pos_series = pos_series.groupby(pos_series.index).last()
     pos_series = pos_series.reindex(price_returns.index, method="ffill")
 
     returns = pos_series.shift(

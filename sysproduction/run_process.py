@@ -20,8 +20,7 @@ We kick them all off in the crontab at a specific time (midnight is easiest), bu
 import datetime
 from sysproduction.data.controls import dataControlProcess, diagProcessConfig
 from syscore.objects import process_no_run, process_stop, process_running, success, failure, arg_not_supplied
-from syscore.dateutils import MINUTES_PER_HOUR
-
+from syslogdiag.echos import redirectOutput
 from syslogdiag.log import logtoscreen
 
 class processToRun(object):
@@ -44,31 +43,28 @@ class processToRun(object):
         self.diag_process = diag_process
         self._logged_wait_messages = False
 
-    def display_process_control(self):
-        dict_all = self.data_control.get_dict_of_control_processes()
-        dict_this_process = dict_all[self.process_name]
-
-        self.log.msg("Control for this process %s" % dict_this_process)
 
     def main_loop(self):
+        with redirectOutput(self.process_name):
+            result_of_starting = self._start_or_wait()
+            if result_of_starting is failure:
+                return failure
 
-        result_of_starting = self._start_or_wait()
-        if result_of_starting is failure:
-            return failure
-        self._run_on_start()
-        #try:
-        is_running= True
-        while is_running:
-            we_should_stop = self._check_for_stop()
-            if we_should_stop:
-                is_running = False
-                break
-            self._do()
-        #except Exception as e:
-        #    self.log.critical(str(e))
+            self._run_on_start()
+            try:
+                is_running= True
+                while is_running:
+                    we_should_stop = self._check_for_stop()
+                    if we_should_stop:
+                        is_running = False
+                        break
+                    self._do()
 
-        #finally:
-        self._finish()
+            except Exception as e:
+                self.log.critical(str(e))
+
+            finally:
+                self._finish()
 
         return success
 

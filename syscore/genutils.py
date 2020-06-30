@@ -376,6 +376,13 @@ def print_menu_and_get_response(menu_of_options, default_option = None, default_
     return ans
 
 
+def transfer_object_attributes(named_tuple_object, original_object):
+    kwargs = dict([(field_name, getattr(original_object, field_name)) \
+                   for field_name in named_tuple_object._fields])
+    new_object = named_tuple_object(**kwargs)
+
+    return new_object
+
 if __name__ == '__main__':
     import doctest
     doctest.testmod()

@@ -85,7 +85,6 @@ class brokerOrder(contractOrder):
         self._fill = fill
         self._fill_datetime = fill_datetime
         self._filled_price = filled_price
-
         self._locked = locked
         self._order_id = order_id
         self._modification_status = modification_status
@@ -279,6 +278,9 @@ class brokerOrder(contractOrder):
         self.algo_comment = matched_broker_order.algo_comment
 
         return success
+
+    ## calculations
+
 
 
 def create_new_broker_order_from_contract_order(contract_order, qty, order_type="market",

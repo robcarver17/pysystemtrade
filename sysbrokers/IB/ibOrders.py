@@ -6,7 +6,6 @@ import datetime
 
 from sysbrokers.IB.ibFuturesContracts import ibFuturesContractData
 from syscore.objects import missing_order, failure, success
-from syscore.genutils import sign
 from sysdata.futures.contracts import futuresContract
 from sysdata.fx.spotfx import currencyValue
 from sysexecution.broker_orders import brokerOrderStackData, brokerOrder

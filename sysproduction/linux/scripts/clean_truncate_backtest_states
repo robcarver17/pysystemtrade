@@ -1,0 +1,3 @@
+#!/bin/bash
+. ~/.profile
+. p sysproduction.clean_truncate_backtest_states.clean_truncate_backtest_states

@@ -10,14 +10,16 @@ import datetime
 
 from syscore.pdutils import make_df_from_list_of_named_tuple
 from syscore.objects import header, table, body_text, arg_not_supplied, missing_data
+from syscore.genutils import transfer_object_attributes
 
 from sysproduction.data.get_data import dataBlob
-from sysproduction.data.controls import diagProcessConfig, dataControlProcess
+from sysproduction.data.controls import diagProcessConfig, dataControlProcess, dataTradeLimits, diagOverrides
 from sysproduction.data.strategies import get_list_of_strategies
 from sysproduction.data.prices import get_list_of_instruments
 from sysproduction.data.currency_data import get_list_of_fxcodes, currencyData
 from sysproduction.data.prices import diagPrices
 from sysproduction.data.positions import diagPositions
+
 from syslogdiag.log import accessLogFromMongodb
 
 
@@ -42,8 +44,10 @@ def get_status_report_data(data):
     method = get_control_data_list_for_all_methods_as_df(data)
     price = get_last_price_updates_as_df(data)
     position = get_last_optimal_position_updates_as_df(data)
-
-    results_object = dict(process = process, method = method, price = price, position = position)
+    limits = get_trade_limits_as_df(data)
+    overrides = get_overrides_as_df(data)## NOT WORKING
+    results_object = dict(process = process, method = method, price = price, position = position,
+                          limits = limits, overrides = overrides)
     return results_object
 
 def format_status_data(results_object):
@@ -75,6 +79,14 @@ def format_status_data(results_object):
     table4 = table('Status of optimal position generation', table4_df)
     formatted_output.append(table4)
 
+    table5_df = results_object['limits']
+    table5 = table('Status of trade limits', table5_df)
+    formatted_output.append(table5)
+
+    table6_df = results_object['overrides']
+    table6 = table('Status of overrides', table6_df)
+    formatted_output.append(table6)
+
 
     formatted_output.append(header("END OF STATUS REPORT"))
 
@@ -85,17 +97,45 @@ def format_status_data(results_object):
 dataForProcess = namedtuple("dataForProcess", ['name','running','start','end','status', 'finished_in_last_day',
                                                'start_time', 'end_time', 'required_machine', 'right_machine',
                                                'time_to_run', 'previous_required', 'previous_finished', 'time_to_stop'])
+dataForLimits = namedtuple("dataForLimits", ['strategy_name',"instrument_code",'period_days','trade_limit', "trades_since_last_reset",
+                                             'trade_capacity_remaining', 'time_since_last_reset',
+                                             ])
 
 dataForMethod = namedtuple("dataForMethod", ['method_or_strategy','process_name', 'last_run_or_heartbeat'])
 
 genericUpdate = namedtuple("genericUpdate", ["name", "last_update"])
+dataOverride = namedtuple("dataOverride", ["name", "override"])
 
 uses_instruments = ['update_sampled_contracts', 'update_historical_prices', 'update_multiple_adj_prices']
 uses_fx_codes = ['update_fx_prices']
 
+def get_overrides_as_df(data):
+    diag_overrides = diagOverrides(data)
+    all_overrides = diag_overrides.get_dict_of_all_overrides()
+    all_overrides_as_list = [dataOverride(key, value) for key, value in all_overrides.items()]
+    pdf = make_df_from_list_of_named_tuple(dataOverride, all_overrides_as_list)
+
+    return pdf
+
+def get_trade_limits_as_df(data):
+    cd_list = get_list_of_trade_limits(data)
+    pdf = make_df_from_list_of_named_tuple(dataForLimits, cd_list)
+
+    return pdf
 
 
-data = dataBlob()
+def get_list_of_trade_limits(data):
+    trade_limits = dataTradeLimits(data)
+    all_limits = trade_limits.get_all_limits()
+    list_of_limits = [get_trade_limit_tuple(limit) for limit in all_limits]
+    return list_of_limits
+
+def get_trade_limit_tuple(element):
+    tuple_object = transfer_object_attributes(dataForLimits, element)
+
+    return tuple_object
+
+
 
 
 def get_control_data_list_for_all_processes_as_df(data):

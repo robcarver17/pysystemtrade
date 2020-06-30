@@ -1,10 +1,3 @@
+#!/bin/bash
 . ~/.profile
-#mkdir $ECHO_PATH/temp
-cd $ECHO_PATH
-for filename in *.echo
-do
-   tail "$ECHO_PATH/$filename" -n 20000 >> "$ECHO_PATH/temp/$filename" 2>&1
-   mv -f "$ECHO_PATH/temp/$filename" "$ECHO_PATH/$filename"
-   echo "Truncation finished $filename"
-done
-echo "Truncation finished for all files in $ECHO_PATH"
+. p sysproduction.clean_truncate_echo_files.clean_truncate_echo_files

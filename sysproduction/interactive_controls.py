@@ -24,8 +24,7 @@ def interactive_controls():
         method_chosen = dict_of_functions[option_chosen]
         method_chosen(data)
 
-top_level_menu_of_options = {0:'Trade limits', 1:'Trade control (override)', 2:'Process control and monitoring',
-                3:'Process tracking'}
+top_level_menu_of_options = {0:'Trade limits', 1:'Trade control (override)', 2:'Process control and monitoring'}
 
 nested_menu_of_options = {
                     0:{0: 'View trade limits',
@@ -43,9 +42,7 @@ nested_menu_of_options = {
                     2: {20: 'View process controls and status',
                         21: 'Change status of process control (STOP/GO/NO RUN)',
                         22: 'View process configuration (set in YAML, cannot change here)',
-                        23: 'Mark process as finished'},
-                    3: {30: '*nothing yet*'
-                    }}
+                        23: 'Mark process as finished'}}
 
 
 
@@ -218,6 +215,5 @@ dict_of_functions = {0: view_trade_limits,
                      20: view_process_controls,
                      21: change_process_control_status,
                      22: view_process_config,
-                     23: finish_process,
-                    30: not_defined}
+                     23: finish_process}
 

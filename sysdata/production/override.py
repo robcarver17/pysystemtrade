@@ -134,6 +134,10 @@ class Override():
 
 DEFAULT_OVERRIDE = Override(1.0)
 
+strategy_dict = "strategies"
+instrument_dict = "instruments"
+strategy_instruments_dict = "strategies_instruments"
+
 class overrideData(object):
     def __init__(self, log=logtoscreen("Overrides")):
         self.log = log
@@ -150,24 +154,24 @@ class overrideData(object):
         return strategy_override * instrument_override*strategy_instrument_override
 
     def get_override_for_strategy(self, strategy_name):
-        return self._get_override_object_for_key("strategy", strategy_name)
+        return self._get_override_object_for_key(strategy_dict, strategy_name)
 
     def get_override_for_strategy_instrument(self, strategy_name, instrument_code):
         key = strategy_name+"/"+instrument_code
-        return self._get_override_object_for_key("strategy_instrument", key)
+        return self._get_override_object_for_key(strategy_instruments_dict, key)
 
     def get_override_for_instrument(self, instrument_code):
-        return self._get_override_object_for_key("instrument", instrument_code)
+        return self._get_override_object_for_key(instrument_dict, instrument_code)
 
     def update_override_for_strategy(self, strategy_name, new_override):
-        self._update_override("strategy", strategy_name, new_override)
+        self._update_override(strategy_dict, strategy_name, new_override)
 
     def update_override_for_strategy_instrument(self, strategy_name, instrument_code,  new_override):
         key = strategy_name + "/" + instrument_code
-        self._update_override("strategy_instrument", key, new_override)
+        self._update_override(strategy_instruments_dict, key, new_override)
 
     def update_override_for_instrument(self, instrument_code, new_override):
-        self._update_override("instrument", instrument_code, new_override)
+        self._update_override(instrument_dict, instrument_code, new_override)
 
     def get_dict_of_all_overrides(self):
         strategy_dict = self.get_dict_of_strategies_with_overrides()
@@ -179,13 +183,13 @@ class overrideData(object):
         return all_overrides
 
     def get_dict_of_strategies_with_overrides(self):
-        return self._get_dict_of_items_with_overrides("strategy")
+        return self._get_dict_of_items_with_overrides(strategy_dict)
 
     def get_dict_of_strategy_instrument_with_overrides(self):
-        return self._get_dict_of_items_with_overrides("strategy_instrument")
+        return self._get_dict_of_items_with_overrides(strategy_instruments_dict)
 
     def get_dict_of_instruments_with_overrides(self):
-        return self._get_dict_of_items_with_overrides("instruments")
+        return self._get_dict_of_items_with_overrides(instrument_dict)
 
     def _update_override(self, dict_name, key, new_override_object):
         self.log.msg("Updating override for %s %s to %s" % (dict_name, key, new_override_object))

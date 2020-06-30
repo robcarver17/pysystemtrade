@@ -9,7 +9,7 @@ from sysdata.csv.csv_instrument_config import csvFuturesInstrumentData
 INSTRUMENT_CONFIG_PATH = "data.futures.csvconfig"
 
 data_out = mongoFuturesInstrumentData()
-data_in = csvFuturesInstrumentData(config_path=INSTRUMENT_CONFIG_PATH)
+data_in = csvFuturesInstrumentData(datapath=INSTRUMENT_CONFIG_PATH)
 print(data_in)
 instrument_list = data_in.get_list_of_instruments()
 

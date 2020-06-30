@@ -1,5 +1,6 @@
 from syscore.fileutils import get_filename_for_package
 from sysdata.futures.instruments import futuresInstrumentData, futuresInstrument
+from syslogdiag.log import logtoscreen
 import pandas as pd
 
 INSTRUMENT_CONFIG_PATH = "data.futures.csvconfig"
@@ -10,15 +11,16 @@ class csvFuturesInstrumentData(futuresInstrumentData):
     Get data about instruments from a special configuration used for initialising the system
 
     """
-    def __init__(self, config_path = INSTRUMENT_CONFIG_PATH):
+    def __init__(self, datapath = INSTRUMENT_CONFIG_PATH, log=logtoscreen("csvFuturesInstrumentData")):
 
         super().__init__()
 
-        if config_path is None:
-            config_path = INSTRUMENT_CONFIG_PATH
+        if datapath is None:
+            datapath = INSTRUMENT_CONFIG_PATH
 
-        self._config_file = get_filename_for_package(config_path, CONFIG_FILE_NAME)
+        self._config_file = get_filename_for_package(datapath, CONFIG_FILE_NAME)
         self.name = "Instruments data from %s" % self._config_file
+        self.log = logtoscreen
 
     def get_all_instrument_data(self):
         """
@@ -58,4 +60,7 @@ class csvFuturesInstrumentData(futuresInstrumentData):
         print(instrument_object)
 
         return instrument_object
+
+    def write_all_instrument_data(self, instrument_data):
+        instrument_data.to_csv(self._config_file, index_label="Instrument")
 

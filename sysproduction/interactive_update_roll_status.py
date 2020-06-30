@@ -128,6 +128,7 @@ def display_roll_query_banner(current_roll_status, position_priced_contract, all
 
     return success
 
+
 def _roll_adjusted_and_multiple_prices(data, instrument_code):
     """
     Roll multiple and adjusted prices

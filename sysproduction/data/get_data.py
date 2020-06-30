@@ -22,7 +22,14 @@ from sysdata.csv.csv_futures_contract_prices import csvFuturesContractPriceData
 from sysdata.csv.csv_adjusted_prices import csvFuturesAdjustedPricesData
 from sysdata.csv.csv_multiple_prices import csvFuturesMultiplePricesData
 from sysdata.csv.csv_spot_fx import csvFxPricesData
-
+from sysdata.csv.csv_contract_position_data import csvContractPositionData
+from sysdata.csv.csv_strategy_position_data import csvStrategyPositionData
+from sysdata.csv.csv_historic_orders import csvBrokerHistoricOrdersData, csvContractHistoricOrdersData, csvStrategyHistoricOrdersData
+from sysdata.csv.csv_capital_data import csvCapitalData
+from sysdata.csv.csv_optimal_position import csvOptimalPositionData
+from sysdata.csv.csv_instrument_config import csvFuturesInstrumentData
+from sysdata.csv.csv_roll_state_storage import csvRollStateData
+from sysdata.csv.csv_futures_contracts import csvFuturesContractData
 
 from sysdata.mongodb.mongo_futures_instruments import mongoFuturesInstrumentData
 from sysdata.mongodb.mongo_futures_contracts import mongoFuturesContractData
@@ -157,6 +164,10 @@ class dataBlob(object):
             self._log = log
 
         return log
+
+    @property
+    def log_name(self):
+        return self.log.attributes['type']
 
     def setup_clone(self, **kwargs):
         new_data = self._original_data

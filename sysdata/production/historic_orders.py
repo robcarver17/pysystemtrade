@@ -99,6 +99,9 @@ class genericOrdersData(baseData):
     def update_order_with_orderid(self, order_id, order):
         self._dict[order_id] = order
 
+    def get_orders_in_date_range(start, period_start, period_end=arg_not_supplied):
+        raise NotImplementedError
+
 
 
 

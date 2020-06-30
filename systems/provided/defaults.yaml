@@ -24,6 +24,8 @@ process_configuration_previous_process:
   run_systems: 'run_daily_prices_updates'
   run_strategy_order_generator: 'run_systems'
   run_stack_handler:  'run_strategy_order_generator'
+  run_backups: 'run_cleaners'
+  run_cleaners: 'run_daily_prices_updates'
 # we include every method to make process monitoring easier
 process_configuration_methods:
   run_capital_update:
@@ -63,6 +65,29 @@ process_configuration_methods:
       max_executions: -1
     safe_stack_removal:
       run_on_completion_only: True
+  run_reports:
+    status_report:
+      max_executions: 1
+    roll_report:
+      max_executions: 1
+    daily_pandl_report:
+      max_executions: 1
+    reconcile_report:
+      max_executions: 1
+    trade_report:
+      max_executions: 1
+  run_backups:
+    backup_arctic_to_csv:
+      max_executions: 1
+    backup_files:
+      backup_files: 1
+  run_cleaners:
+    clean_backtest_states:
+      max_executions: 1
+    clean_echo_files:
+      max_executions: 1
+    clean_log_files:
+      max_executions: 1
 process_configuration_run_over_strategies:
   - run_systems
   - run_strategy_order_generator
@@ -92,8 +117,10 @@ strategy_capital_allocation:
 ## Where do we save backtests
 backtest_store_directory: 'private'
 #
-# And .csv backups
-csv_backup_directory: 'data.backups'
+# And backups
+csv_backup_directory: 'data.backups_csv'
+mongo_dump_directory: 'data.mongo_dump'
+echo_directory: 'data.echos'
 #
 # Interactive brokers
 ib_ipaddress: 127.0.0.1

@@ -1,7 +1,7 @@
 
 import pandas as pd
 
-from syscore.objects import  resolve_function, success, failure
+from syscore.objects import  resolve_function, success, failure, arg_not_supplied
 from syscore.objects import header, table, body_text
 
 from sysproduction.data.get_data import dataBlob
@@ -13,18 +13,19 @@ pd.set_option('display.width', 1000)
 pd.set_option('display.max_columns', 1000)
 pd.set_option('display.max_rows', 1000)
 
-def run_report(report_config):
+def run_report(report_config, data= arg_not_supplied ):
 
     """
 
     :param report_config:
     :return:
     """
-    with dataBlob(log_name = "Reporting %s" % report_config.title) as data:
+    if data is arg_not_supplied:
+        data = dataBlob(log_name = "Reporting %s" % report_config.title)
 
-        report_result = run_report_with_data_blob(report_config, data)
+    report_result = run_report_with_data_blob(report_config, data)
 
-        return report_result
+    return report_result
 
 def run_report_with_data_blob(report_config, data):
 

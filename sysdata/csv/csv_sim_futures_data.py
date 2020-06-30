@@ -111,7 +111,7 @@ class csvFuturesConfigDataForSim(csvPaths, futuresConfigDataForSim):
     def _get_config_data_object(self):
 
         pathname = self._resolve_path("config_data")
-        data_object = csvFuturesInstrumentData(pathname)
+        data_object = csvFuturesInstrumentData(datapath = pathname)
 
         return data_object
 

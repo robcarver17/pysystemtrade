@@ -1,4 +1,6 @@
-from syscore.objects import success, missing_order, resolve_function
+import datetime
+
+from syscore.objects import success, missing_order, resolve_function, arg_not_supplied
 from sysdata.mongodb.mongo_connection import mongoConnection, MONGO_ID_KEY
 from syslogdiag.log import logtoscreen
 from sysdata.production.historic_orders import genericOrdersData, strategyHistoricOrdersData, contractHistoricOrdersData
@@ -82,6 +84,17 @@ class mongoGenericHistoricOrdersData(genericOrdersData):
 
         return order_ids
 
+    def get_orders_in_date_range(self, period_start, period_end = arg_not_supplied):
+        if period_end is arg_not_supplied:
+            period_end = datetime.datetime.now()
+        cursor = self._mongo.collection.find(
+            dict(fill_datetime = {'$gte': period_start, '$lt': period_end}))
+
+        order_ids = [db_entry['order_id'] for db_entry in cursor]
+
+        return order_ids
+
+
 
 
 class mongoStrategyHistoricOrdersData(mongoGenericHistoricOrdersData, strategyHistoricOrdersData):
@@ -91,11 +104,6 @@ class mongoStrategyHistoricOrdersData(mongoGenericHistoricOrdersData, strategyHi
     def _order_class_str(self):
         return "sysexecution.instrument_orders.instrumentOrder"
 
-    def get_list_of_orders_for_strategy(self, strategy_name):
-        raise NotImplementedError
-
-    def get_list_of_orders_for_strategy_and_instrument(self, strategy_name, instrument_code):
-        raise NotImplementedError
 
 class mongoContractHistoricOrdersData(mongoGenericHistoricOrdersData, contractHistoricOrdersData):
     def _collection_name(self):
@@ -134,8 +142,4 @@ class mongoBrokerHistoricOrdersData(mongoGenericHistoricOrdersData, contractHist
 
     def _order_class_str(self):
         return "sysexecution.broker_orders.brokerOrder"
-
-    def get_list_of_orders_since_date(self, recent_datetime):
-        raise NotImplementedError
-
 
