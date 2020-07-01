@@ -201,7 +201,7 @@ def backup_historical_orders(data):
 
     data.log.msg("Backing up contract orders...")
     list_of_orders = [data.mongo_contract_historic_orders.get_order_with_orderid(id) for id in data.mongo_contract_historic_orders.get_list_of_order_ids()]
-    data.csv_strategy_contract_orders.write_orders(list_of_orders)
+    data.csv_contract_historic_orders.write_orders(list_of_orders)
     data.log.msg("Done")
 
     data.log.msg("Backing up broker orders...")
