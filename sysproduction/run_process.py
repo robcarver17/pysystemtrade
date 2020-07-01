@@ -45,26 +45,25 @@ class processToRun(object):
 
 
     def main_loop(self):
-        with redirectOutput(self.process_name):
-            result_of_starting = self._start_or_wait()
-            if result_of_starting is failure:
-                return failure
+        result_of_starting = self._start_or_wait()
+        if result_of_starting is failure:
+            return failure
 
-            self._run_on_start()
-            try:
-                is_running= True
-                while is_running:
-                    we_should_stop = self._check_for_stop()
-                    if we_should_stop:
-                        is_running = False
-                        break
-                    self._do()
+        self._run_on_start()
+        try:
+            is_running= True
+            while is_running:
+                we_should_stop = self._check_for_stop()
+                if we_should_stop:
+                    is_running = False
+                    break
+                self._do()
 
-            except Exception as e:
-                self.log.critical(str(e))
+        except Exception as e:
+            self.log.critical(str(e))
 
-            finally:
-                self._finish()
+        finally:
+            self._finish()
 
         return success
 

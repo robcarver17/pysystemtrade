@@ -8,31 +8,35 @@
 #  run_capital_update: boromir
 process_configuration_start_time:
   default: '01:00'
-#  run_capital_update: '01:00'
-#  run_daily_prices_updates: '20:00'
-#  run_systems: '20:05'
-#  run_strategy_order_generator: '20:10'
-#  run_stack_handler: '00:01'
+  run_stack_handler: '00:01'
+  run_capital_update: '01:00'
+  run_daily_prices_updates: '20:00'
+  run_systems: '20:05'
+  run_strategy_order_generator: '20:10'
+  run_backups: '20:20'
+  run_cleaners: '20:15'
 process_configuration_stop_time:
   default: '21:00'
+  run_strategy_order_generator: '19:30'
+  run_stack_handler: '19:45'
   run_capital_update: '19:50'
   run_daily_prices_updates: '23:50'
   run_systems: '23:50'
-  run_strategy_order_generator: '23:50'
-  run_stack_handler: '19:45'
+  run_backups: '23:50'
+  run_cleaners: '23:50'
 process_configuration_previous_process:
+  run_daily_prices_updates: 'run_capital_update'
   run_systems: 'run_daily_prices_updates'
   run_strategy_order_generator: 'run_systems'
   run_stack_handler:  'run_strategy_order_generator'
+  run_cleaners: 'run_strategy_order_generator'
   run_backups: 'run_cleaners'
-  run_cleaners: 'run_daily_prices_updates'
 # we include every method to make process monitoring easier
 process_configuration_methods:
   run_capital_update:
     update_total_capital:
       frequency: 60
-#      max_executions: 10
-      max_executions: 1
+      max_executions: 10
     strategy_allocation:
       max_executions: 1
   run_daily_prices_updates:
@@ -53,7 +57,7 @@ process_configuration_methods:
       max_executions: -1
     generate_force_roll_orders:
       frequency: 0
-      max_executions: -1
+      max_executions: 1
     create_broker_orders_from_contract_orders:
       frequency: 0
       max_executions: -1
