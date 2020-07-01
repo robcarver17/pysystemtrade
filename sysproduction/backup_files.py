@@ -6,7 +6,7 @@ from sysdata.private_config import get_private_config_key_value, get_private_the
 from syscore.objects import missing_data
 from sysproduction.data.get_data import dataBlob
 
-from sysproduction.backup_arctic_to_csv import backup_dir as csv_backup_dir
+from sysproduction.backup_arctic_to_csv import get_backup_dir as csv_backup_dir
 from sysproduction.diagnostic.backtest_state import get_directory_store_backtests
 
 def backup_files():
