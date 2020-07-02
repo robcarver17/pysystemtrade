@@ -23,6 +23,7 @@ from syscore.objects import process_no_run, process_stop, process_running, succe
 from syslogdiag.echos import redirectOutput
 from syslogdiag.log import logtoscreen
 
+
 class processToRun(object):
     """
     Create, then do main_loop
