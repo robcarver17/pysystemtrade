@@ -248,7 +248,7 @@ def time_matches(index_entry, closing_time=pd.DateOffset(hours=12, minutes=0, se
 Convert date into a decimal, and back again
 """
 LONG_DATE_FORMAT = "%Y%m%d%H%M%S.%f"
-CONVERSION_FACTOR = 1000000
+CONVERSION_FACTOR = 10000
 
 def datetime_to_long(date_to_convert):
     as_str = date_to_convert.strftime(LONG_DATE_FORMAT)
