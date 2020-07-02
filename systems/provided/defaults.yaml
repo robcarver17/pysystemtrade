@@ -15,6 +15,7 @@ process_configuration_start_time:
   run_strategy_order_generator: '20:10'
   run_backups: '20:20'
   run_cleaners: '20:15'
+  run_reports: '00:01'
 process_configuration_stop_time:
   default: '21:00'
   run_strategy_order_generator: '19:30'
@@ -24,6 +25,7 @@ process_configuration_stop_time:
   run_systems: '23:50'
   run_backups: '23:50'
   run_cleaners: '23:50'
+  run_reports: '23:50'
 process_configuration_previous_process:
   run_daily_prices_updates: 'run_capital_update'
   run_systems: 'run_daily_prices_updates'
@@ -31,6 +33,7 @@ process_configuration_previous_process:
   run_stack_handler:  'run_strategy_order_generator'
   run_cleaners: 'run_strategy_order_generator'
   run_backups: 'run_cleaners'
+  run_reports: 'run_backups'
 # we include every method to make process monitoring easier
 process_configuration_methods:
   run_capital_update:
