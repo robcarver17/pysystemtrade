@@ -1,7 +1,6 @@
 """
 Various routines to do with dates
 """
-from decimal import Decimal
 import datetime
 import numpy as np
 import pandas as pd
@@ -249,12 +248,16 @@ def time_matches(index_entry, closing_time=pd.DateOffset(hours=12, minutes=0, se
 Convert date into a decimal, and back again
 """
 LONG_DATE_FORMAT = "%Y%m%d%H%M%S.%f"
+CONVERSION_FACTOR = 1000000
 
 def datetime_to_long(date_to_convert):
-    return Decimal(date_to_convert.strftime(LONG_DATE_FORMAT))
+    as_str = date_to_convert.strftime(LONG_DATE_FORMAT)
+    as_float = float(as_str)
+    return int(as_float*CONVERSION_FACTOR)
 
-def long_to_datetime(decimal_to_convert):
-    str_to_convert='%.6f' % decimal_to_convert
+def long_to_datetime(int_to_convert):
+    as_float = float(int_to_convert)/CONVERSION_FACTOR
+    str_to_convert='%.6f' % as_float
     converted_datetime = datetime.datetime.strptime(str_to_convert, LONG_DATE_FORMAT)
     return converted_datetime
 
