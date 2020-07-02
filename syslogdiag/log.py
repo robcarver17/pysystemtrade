@@ -355,9 +355,6 @@ class logToMongod(logger):
 
         super().__init__(type= type, log_level = log_level, ** kwargs)
 
-        # this won't create the index if it already exists
-        self._mongo.create_multikey_index(LOG_RECORD_ID, LEVEL_ID)
-
     def get_last_used_log_id(self):
         """
         Get last used log id. Returns None if not present
