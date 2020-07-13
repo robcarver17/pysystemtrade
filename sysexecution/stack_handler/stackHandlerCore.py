@@ -132,6 +132,9 @@ class stackHandlerCore(object):
             if broker_order_children is not no_children:
                 list_of_broker_order_id = list_of_broker_order_id+broker_order_children
 
+        list_of_contract_order_id = list(set(list_of_contract_order_id))
+        list_of_broker_order_id = list(set(list_of_broker_order_id))
+
         return list_of_broker_order_id, list_of_contract_order_id
 
 
@@ -142,11 +145,12 @@ class stackHandlerCore(object):
         strategy_name = proposed_order.strategy_name
         instrument_code = proposed_order.instrument_code
 
-        possible_trade_size = data_trade_limits.what_trade_is_possible(strategy_name, instrument_code, proposed_order.trade[0])
+        # proposed_order.trade.total_abs_qty() is a scalar, returns a scalar
+        possible_trade_size = data_trade_limits.what_trade_is_possible(strategy_name, instrument_code, proposed_order.trade.total_abs_qty())
 
-        revised_order = proposed_order.replace_trade_only_use_for_unsubmitted_trades([possible_trade_size])
+        revised_order = proposed_order.change_trade_size_proportionally(possible_trade_size)
 
-        if revised_order.trade[0]!=proposed_order.trade[0]:
+        if revised_order.trade!=proposed_order.trade:
             log.msg("%s/%s trade change from %s to %s because of trade limits" \
                          % (strategy_name, instrument_code, str(proposed_order.trade), str(revised_order.trade)))
 
@@ -154,7 +158,7 @@ class stackHandlerCore(object):
 
     def add_trade_to_trade_limits(self, executed_order, trade_size=arg_not_supplied):
         if trade_size is arg_not_supplied:
-            trade_size = executed_order.trade[0]
+            trade_size = executed_order.trade.total_abs_qty()
         data_trade_limits = dataTradeLimits(self.data)
         strategy_name = executed_order.strategy_name
         instrument_code = executed_order.instrument_code

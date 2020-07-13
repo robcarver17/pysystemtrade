@@ -1,5 +1,5 @@
 
-from syscore.objects import missing_order, success, failure, locked_order, duplicate_order, no_order_id, no_children, no_parent, missing_contract, missing_data, rolling_cant_trade, ROLL_PSEUDO_STRATEGY, missing_order, order_is_in_status_reject_modification, order_is_in_status_finished, locked_order, order_is_in_status_modified, resolve_function
+from syscore.objects import missing_order, success, failure, locked_order, duplicate_order, no_order_id, no_children, no_parent, missing_contract, missing_data, rolling_cant_trade, ROLL_PSEUDO_STRATEGY, missing_order, order_is_in_status_reject_modification, order_is_in_status_finished, locked_order, order_is_in_status_modified, resolve_function, arg_not_supplied
 
 from sysexecution.stack_handler.stackHandlerCore import stackHandlerCore
 from sysproduction.data.positions import diagPositions
@@ -45,6 +45,19 @@ class stackHandlerChecks(stackHandlerCore):
                 data_locks.remove_lock_for_instrument(instrument)
 
         return None
+
+    def clear_position_locks_no_checks(self, instrument_code=arg_not_supplied):
+        data_locks = dataLocks(self.data)
+        if instrument_code is arg_not_supplied:
+            locked_instruments = data_locks.get_list_of_locked_instruments()
+        else:
+            locked_instruments = [instrument_code]
+        for instrument in locked_instruments:
+            self.log.msg("Clearing lock for %s" % instrument)
+            data_locks.remove_lock_for_instrument(instrument)
+
+        return None
+
 
     def check_any_missing_broker_order(self):
         list_of_broker_orderids = self.broker_stack.get_list_of_order_ids()

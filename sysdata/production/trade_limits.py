@@ -132,7 +132,7 @@ class tradeLimit(object):
 class listOfTradeLimits(list):
     def what_trade_is_possible(self, proposed_trade):
         abs_proposed_trade = abs(proposed_trade)
-        possible_abs_trade = self.what_abs_trade_is_possible(abs(proposed_trade))
+        possible_abs_trade = self.what_abs_trade_is_possible(abs_proposed_trade)
         ## convert to same sign as proposed
         possible_trade = possible_abs_trade * sign(proposed_trade)
 

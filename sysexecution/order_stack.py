@@ -218,16 +218,9 @@ class orderStackData(object):
         existing_order = self.get_order_with_id_from_stack(order_id)
         if existing_order is missing_order:
             return missing_order
+        existing_order.add_another_child(new_child)
 
-        if existing_order.children is no_children:
-            new_children = [new_child]
-        else:
-            new_children = existing_order.children + [new_child]
-
-        new_order = copy(existing_order)
-        new_order.children = new_children
-
-        result = self._change_order_on_stack(order_id, new_order)
+        result = self._change_order_on_stack(order_id, existing_order)
 
         return result
 
@@ -269,6 +262,27 @@ class orderStackData(object):
 
         return result
 
+    def zero_out(self, order_id):
+        existing_order = self.get_order_with_id_from_stack(order_id)
+        if existing_order is missing_order:
+            self.log.warn("Can't deactivate non existent order" % order_id)
+            return missing_order
+
+        log = self.log.setup(strategy_name=existing_order.strategy_name,
+                             instrument_code=existing_order.instrument_code,
+                             instrument_order_id = order_id)
+
+        if not existing_order.active:
+            # already inactive
+            return failure
+
+        new_order = copy(existing_order)
+        new_order.zero_out()
+
+        # This will fail if being modified or locked
+        result = self._change_order_on_stack(order_id, new_order, check_if_inactive=False)
+
+        return result
 
     # DEACTIVATE ORDER (Because filled or cancelled)
 
@@ -435,11 +449,11 @@ class orderStackData(object):
         :return: Existing order or missing_order or identical_order
         """
         order_key = order.key
-        existing_order = self.get_order_with_key_from_stack(order_key)
-        if existing_order is missing_order:
+        existing_orders = self._get_list_of_orders_with_key_from_stack(order_key)
+        if len(existing_orders)==0:
             return missing_order
 
-        return existing_order
+        return existing_orders
 
     def _get_list_of_orders_with_key_from_stack(self, order_key,   exclude_inactive_orders = True):
 

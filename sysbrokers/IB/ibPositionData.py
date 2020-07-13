@@ -1,6 +1,7 @@
 from syslogdiag.log import logtoscreen
 from sysdata.futures.contracts import futuresContract
 from sysbrokers.IB.ibFuturesContracts import ibFuturesContractData
+from syscore.objects import arg_not_supplied
 from sysdata.production.historic_positions import contractPositionData
 from sysdata.production.current_positions import listOfContractPositions, contractPosition
 
@@ -24,22 +25,22 @@ class ibContractPositionData(contractPositionData):
 
         return instrument_code, contract_id
 
-    def _get_all_futures_positions_as_raw_list(self):
-        all_positions = self.ibconnection.broker_get_positions()
+    def _get_all_futures_positions_as_raw_list(self, account_id=arg_not_supplied):
+        all_positions = self.ibconnection.broker_get_positions(account_id = account_id)
+        positions = all_positions.get('FUT', [])
+        return positions
 
-        return all_positions['FUT']
-
-    def get_current_position_for_contract_object(self, contract_object):
+    def get_current_position_for_contract_object(self, contract_object, account_id=arg_not_supplied):
         instrument_code, _ = self._contract_tuple_given_contract(contract_object)
         actual_expiry = self.futures_contract_data.get_actual_expiry_date_for_contract(contract_object)
         ib_symbol = self.futures_contract_data.get_brokers_instrument_code(instrument_code)
-        all_positions = self._get_all_futures_positions_as_raw_list()
+        all_positions = self._get_all_futures_positions_as_raw_list(account_id = account_id)
         position = [position_entry['position'] for position_entry in all_positions if
                     position_entry['symbol']==ib_symbol and position_entry['expiry']==actual_expiry]
         return sum(position)
 
-    def get_list_of_instruments_with_any_position(self):
-        all_positions = self._get_all_futures_positions_as_raw_list()
+    def get_list_of_instruments_with_any_position(self, account_id=arg_not_supplied):
+        all_positions = self._get_all_futures_positions_as_raw_list(account_id=account_id)
         all_ib_symbols = [position_entry['symbol'] for position_entry in all_positions]
         unique_ib_symbols = list(set(all_ib_symbols))
         resolved_instrument_codes = [self.futures_contract_data.get_instrument_code_from_broker_code(ib_code)
@@ -48,8 +49,8 @@ class ibContractPositionData(contractPositionData):
 
         return resolved_instrument_codes
 
-    def get_all_current_positions_as_list_with_contract_objects(self):
-        all_positions = self._get_all_futures_positions_as_raw_list()
+    def get_all_current_positions_as_list_with_contract_objects(self, account_id=arg_not_supplied):
+        all_positions = self._get_all_futures_positions_as_raw_list(account_id=account_id)
         current_positions = []
         for position_entry in all_positions:
             ib_code =  position_entry['symbol']

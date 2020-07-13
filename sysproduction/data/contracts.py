@@ -2,6 +2,7 @@ import datetime
 
 from sysdata.futures.rolls import contractDateWithRollParameters
 from sysdata.futures.contracts import futuresContract
+from sysproduction.data.prices import get_valid_instrument_code_from_user
 from sysproduction.data.get_data import dataBlob
 from syscore.objects import missing_contract, arg_not_supplied
 
@@ -143,17 +144,19 @@ class diagContracts(object):
 
 
 
-def get_valid_instrument_code_and_contractid_from_user(data):
+def get_valid_instrument_code_and_contractid_from_user(data, instrument_code= None):
     diag_contracts = diagContracts(data)
     invalid_input = True
     while invalid_input:
-        instrument_code = input("Instrument code?")
+        if instrument_code is None:
+            instrument_code = get_valid_instrument_code_from_user(data)
         all_contracts = diag_contracts.get_all_contract_objects_for_instrument_code(instrument_code)
         sampled_contract = all_contracts.currently_sampling()
         sampled_dates = sampled_contract.list_of_dates()
         all_dates = all_contracts.list_of_dates()
         if len(all_dates)==0:
-            print("%s is not an instrument with contract data (probably not even an instrument at all!)" % instrument_code)
+            print("%s is not an instrument with contract data" % instrument_code)
+            instrument_code = None
             continue
         print("Currently sampled contract dates %s" % str(sampled_dates))
         contract_date = input("Contract date?")

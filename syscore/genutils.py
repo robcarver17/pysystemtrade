@@ -2,11 +2,12 @@
 Utilities I can't put anywhere else...
 """
 
-from math import copysign
+from math import copysign, gcd
 from copy import copy
 import sys
 import numpy as np
 import datetime
+import functools
 
 
 class not_required_flag(object):
@@ -382,6 +383,20 @@ def transfer_object_attributes(named_tuple_object, original_object):
     new_object = named_tuple_object(**kwargs)
 
     return new_object
+
+def highest_common_factor_for_list(list_of_ints):
+    return functools.reduce(gcd, list_of_ints)
+
+def divide_list_of_ints_by_highest_common_factor(list_of_ints):
+    gcd_value = highest_common_factor_for_list(list_of_ints)
+    new_list = [int(float(x)/gcd_value) for x in list_of_ints]
+    return new_list
+
+def list_of_ints_with_highest_common_factor_positive_first(list_of_ints):
+    new_list = divide_list_of_ints_by_highest_common_factor(list_of_ints)
+    multiply_sign = sign(new_list[0])
+    new_list = [x*multiply_sign for x in new_list]
+    return new_list
 
 if __name__ == '__main__':
     import doctest

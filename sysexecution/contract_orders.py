@@ -2,7 +2,7 @@ import datetime
 from copy import copy
 
 from sysexecution.order_stack import orderStackData
-from sysexecution.base_orders import Order, tradeableObject, no_order_id, no_children, no_parent
+from sysexecution.base_orders import Order, tradeableObject, no_order_id, no_children, no_parent, resolve_trade_fill_fillprice
 from syscore.genutils import  none_to_object, object_to_none
 from syscore.objects import failure, success, missing_order
 
@@ -59,6 +59,14 @@ class contractTradeableObject(tradeableObject):
     def alt_key(self):
         return "/".join([self.strategy_name, self.instrument_code, self.alt_contract_id_key])
 
+    def sort_idx_for_contracts(self):
+        clist = self.contract_id
+        return sorted(range(len(clist)), key=lambda k: clist[k])
+
+    def sort_contracts(self):
+        clist = self.contract_id
+        clist = sorted(clist)
+        self._definition['contract_id'] = clist
 
 class contractOrder(Order):
 
@@ -75,7 +83,9 @@ class contractOrder(Order):
                  roll_order = False,
                  inter_spread_order = False,
                  calendar_spread_order = None,
-                 reference_of_controlling_algo = None
+                 reference_of_controlling_algo = None,
+                 split_order = False,
+                 sibling_id_for_split_order = None
                  ):
 
         """
@@ -115,24 +125,26 @@ class contractOrder(Order):
         tradeable_object, trade = self._resolve_args(args)
         self._tradeable_object = tradeable_object
 
-        if type(trade) is int or type(trade) is float:
-            trade = [int(trade)]
-
-        if fill is None:
-            fill = [0]*len(trade)
-
-        if len(trade)==1:
-            calendar_spread_order = False
-        else:
-            calendar_spread_order = True
 
         if generated_datetime is None:
             generated_datetime = datetime.datetime.now()
 
-        self._trade = trade
-        self._fill = fill
+        resolved_trade, resolved_fill, resolved_filled_price = resolve_trade_fill_fillprice(trade, fill, filled_price)
+
+        # ensure contracts and lists all match
+        resolved_trade, resolved_fill, resolved_filled_price, tradeable_object = \
+            sort_by_cid(resolved_trade, resolved_fill, resolved_filled_price, tradeable_object)
+
+        if len(resolved_trade.qty)==1:
+            calendar_spread_order = False
+        else:
+            calendar_spread_order = True
+
+        self._trade = resolved_trade
+        self._fill = resolved_fill
+        self._filled_price = resolved_filled_price
+
         self._fill_datetime = fill_datetime
-        self._filled_price = filled_price
         self._locked = locked
         self._order_id = order_id
         self._modification_status = modification_status
@@ -145,7 +157,8 @@ class contractOrder(Order):
                                 manual_trade = manual_trade, manual_fill = manual_fill,
                                 roll_order = roll_order, calendar_spread_order = calendar_spread_order,
                                 inter_spread_order = inter_spread_order, generated_datetime = generated_datetime,
-                                reference_of_controlling_algo = reference_of_controlling_algo)
+                                reference_of_controlling_algo = reference_of_controlling_algo, split_order = split_order,
+                                sibling_id_for_split_order = sibling_id_for_split_order)
 
     def _resolve_args(self, args):
         if len(args)==2:
@@ -165,7 +178,7 @@ class contractOrder(Order):
     def __repr__(self):
         my_repr = super().__repr__()
         if self.filled_price is not None and self.fill_datetime is not None:
-            my_repr = my_repr + "Fill %.2f on %s" % (self.filled_price, self.fill_datetime)
+            my_repr = my_repr + "Fill %s on %s" % (str(self.filled_price), str(self.fill_datetime))
         my_repr = my_repr+" %s" % str(self._order_info)
 
         return my_repr
@@ -258,6 +271,13 @@ class contractOrder(Order):
     def manual_fill(self, manual_fill):
         self._order_info['manual_fill'] = manual_fill
 
+    @property
+    def is_split_order(self):
+        return self._order_info['split_order']
+
+    def split_order(self, sibling_order_id):
+        self._order_info['split_order'] = True
+        self._order_info['sibling_id_for_split_order'] = sibling_order_id
 
     @property
     def roll_order(self):
@@ -288,27 +308,6 @@ class contractOrder(Order):
     def inter_spread_order(self):
         return self._order_info['inter_spread_order']
 
-    def fill_less_than_or_equal_to_desired_trade(self, proposed_fill
-
-                                                 ):
-        return all([x<=y for x,y in zip(proposed_fill, self.trade)])
-
-    def fill_equals_zero(self):
-        return all([x==0 for x in self.fill])
-
-
-    def fill_equals_desired_trade(self):
-        return all([x==y for x,y in zip(self.trade, self.fill)])
-
-    def is_zero_trade(self):
-        return all([x==0 for x in self.trade])
-
-    def same_trade_size(self, other):
-        my_trade = self.trade
-        other_trade = other.trade
-
-        return all([x==y for x,y in zip(my_trade, other_trade)])
-
     def log_with_attributes(self, log):
         """
         Returns a new log object with contract_order attributes added
@@ -324,6 +323,54 @@ class contractOrder(Order):
 
 
         return new_log
+
+    def split_spread_order(self):
+        """
+
+        :param self:
+        :return: list of contract orders, will be original order if not a spread order
+        """
+        if len(self.contract_id)==1:
+            # not a spread trade
+            return [self]
+
+        list_of_derived_contract_orders = []
+        original_as_dict = self.as_dict()
+        for contractid, trade_qty, fill, fill_price in zip(self.contract_id,
+                                                           self.trade,
+                                                           self.fill,
+                                                           self.filled_price):
+
+            new_order_as_dict = copy(original_as_dict)
+            new_tradeable_object = contractTradeableObject(self.strategy_name, self.instrument_code,
+                                                           contractid)
+            new_key = new_tradeable_object.key
+
+            new_order_as_dict['key'] = new_key
+            new_order_as_dict['trade'] = trade_qty
+            new_order_as_dict['fill'] = fill
+            new_order_as_dict['filled_price'] = fill_price
+            new_order_as_dict['order_id'] = no_order_id
+
+            new_order = contractOrder.from_dict(new_order_as_dict)
+            new_order.split_order(self.order_id)
+
+            list_of_derived_contract_orders.append(new_order)
+
+
+        return list_of_derived_contract_orders
+
+
+def sort_by_cid(resolved_trade, resolved_fill, resolved_filled_price, tradeable_object):
+    sort_order = tradeable_object.sort_idx_for_contracts()
+    resolved_trade.sort_with_idx(sort_order)
+    resolved_fill.sort_with_idx(sort_order)
+    resolved_filled_price.sort_with_idx(sort_order)
+
+    tradeable_object.sort_contracts()
+
+    return resolved_trade, resolved_fill, resolved_filled_price, tradeable_object
+
 
 class contractOrderStackData(orderStackData):
     def __repr__(self):

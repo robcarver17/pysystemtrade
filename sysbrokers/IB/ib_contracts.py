@@ -2,6 +2,11 @@ from syscore.genutils import NOT_REQUIRED
 from ib_insync import Future
 import re
 
+def ib_futures_instrument_just_symbol(symbol):
+    ibcontract = Future(symbol=symbol)
+    return ibcontract
+
+
 def ib_futures_instrument(futures_instrument_object):
     """
     Get an IB contract which is NOT specific to a contract date

@@ -1,6 +1,6 @@
 import datetime
 
-from syscore.objects import arg_not_supplied, missing_data, success, failure
+from syscore.objects import arg_not_supplied, missing_data, success, failure, missing_order
 
 from sysproduction.data.contracts import missing_contract
 from sysproduction.data.get_data import dataBlob
@@ -127,7 +127,11 @@ class updatePositions(object):
         instrument_code = instrument_order.instrument_code
         current_position_object = self.data.db_strategy_position.\
             get_current_position_for_strategy_and_instrument(strategy_name, instrument_code)
-        trade_done = instrument_order.fill
+        trade_done = instrument_order.fill.as_int()
+        if trade_done is missing_order:
+            self.log.critical("Instrument orders can't be spread orders!")
+            return  failure
+
         time_date = instrument_order.fill_datetime
         if time_date is None:
             time_date  = datetime.datetime.now()

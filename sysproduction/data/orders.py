@@ -51,3 +51,6 @@ class dataOrders(object):
 
     def get_historic_broker_order_from_order_id(self, order_id):
         return self.data.db_broker_historic_orders.get_order_with_orderid(order_id)
+
+    def get_fills_history_for_instrument_and_contract_id(self, instrument_code, contract_id):
+        return self.data.db_contract_historic_orders.get_fills_history_for_instrument_and_contract_id(instrument_code, contract_id)

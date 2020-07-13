@@ -1,7 +1,7 @@
 import datetime
 
 from sysexecution.order_stack import orderStackData
-from sysexecution.base_orders import Order, tradeableObject, no_order_id, no_children, no_parent
+from sysexecution.base_orders import Order, tradeableObject, resolve_trade_fill_fillprice, no_order_id, no_children, no_parent
 from syscore.genutils import  none_to_object, object_to_none
 from syscore.objects import missing_order, success, zero_order
 
@@ -33,7 +33,7 @@ class instrumentTradeableObject(tradeableObject):
 
 class instrumentOrder(Order):
 
-    def __init__(self, *args, fill=0,
+    def __init__(self, *args, fill=None,
                  locked=False, order_id=no_order_id,
                  modification_status = None,
                  modification_quantity = None, parent=no_parent,
@@ -89,10 +89,12 @@ class instrumentOrder(Order):
         if generated_datetime is None:
             generated_datetime = datetime.datetime.now()
 
-        self._trade = trade
-        self._fill = fill
+        resolved_trade, resolved_fill, resolved_filled_price = resolve_trade_fill_fillprice(trade, fill, filled_price)
+
+        self._trade = resolved_trade
+        self._fill = resolved_fill
+        self._filled_price = resolved_filled_price
         self._fill_datetime = fill_datetime
-        self._filled_price = filled_price
         self._locked = locked
         self._order_id = order_id
         self._modification_status = modification_status
@@ -112,7 +114,7 @@ class instrumentOrder(Order):
     def __repr__(self):
         my_repr = super().__repr__()
         if self.filled_price is not None and self.fill_datetime is not None:
-            my_repr = my_repr + "Fill %.2f on %s" % (self.filled_price, self.fill_datetime)
+            my_repr = my_repr + "Fill %s on %s" % (str(self.filled_price), self.fill_datetime)
         my_repr = my_repr+" %s" % str(self._order_info)
 
         return my_repr
@@ -245,8 +247,8 @@ class instrumentOrderStackData(orderStackData):
 
     def does_strategy_and_instrument_already_have_order_on_stack(self, strategy_name, instrument_code):
         pseudo_order = instrumentOrder(strategy_name, instrument_code, 0)
-        existing_order = self._get_order_with_same_tradeable_object_on_stack(pseudo_order)
-        if existing_order is missing_order:
+        existing_orders = self._get_order_with_same_tradeable_object_on_stack(pseudo_order)
+        if existing_orders is missing_order:
             return False
         return True
 
@@ -261,12 +263,12 @@ class instrumentOrderStackData(orderStackData):
         """
 
 
-        existing_order = self._get_order_with_same_tradeable_object_on_stack(new_order)
-        if existing_order is missing_order:
+        existing_order_id_list = self._get_order_with_same_tradeable_object_on_stack(new_order)
+        if existing_order_id_list is missing_order:
             result = self._put_new_order_on_stack_when_no_existing_order(new_order,
                                                                          allow_zero_orders=allow_zero_orders)
         else:
-            result = self._put_adjusting_order_on_stack(new_order, existing_order,
+            result = self._put_adjusting_order_on_stack(new_order, existing_order_id_list,
                                                         allow_zero_orders=allow_zero_orders)
         return result
 
@@ -282,7 +284,7 @@ class instrumentOrderStackData(orderStackData):
         order_id_or_error = self._put_order_on_stack_and_get_order_id(new_order)
         return order_id_or_error
 
-    def _put_adjusting_order_on_stack(self, new_order, existing_order, allow_zero_orders=False):
+    def _put_adjusting_order_on_stack(self, new_order, existing_order_id_list, allow_zero_orders=False):
         """
         Considering the order already on the stack place an additional adjusting order
 
@@ -291,18 +293,20 @@ class instrumentOrderStackData(orderStackData):
         """
         log = new_order.log_with_attributes(self.log)
 
-        existing_trade = existing_order.trade
+        existing_orders = [self.get_order_with_id_from_stack(order_id) for order_id in existing_order_id_list]
+        existing_trades = [existing_order.trade for existing_order in existing_orders]
+        net_existing_trades = sum(existing_trades)
         new_trade = new_order.trade
 
         # can change sign
-        residual_trade = new_trade - existing_trade
+        residual_trade = new_trade - net_existing_trades
         adjusted_order = new_order.replace_trade_only_use_for_unsubmitted_trades(residual_trade)
 
         if adjusted_order.is_zero_trade() and not allow_zero_orders:
             ## Trade we want is already in the system
             return zero_order
 
-        log.msg("Already have order %d wanted %d so putting on order for %d (%s)" % (existing_trade, new_trade, residual_trade, str(adjusted_order)))
+        log.msg("Already have orders %s wanted %s so putting on order for %s (%s)" % (str(existing_trades), str(new_trade), str(residual_trade), str(adjusted_order)))
         order_id_or_error = self._put_order_on_stack_and_get_order_id(adjusted_order)
 
         return order_id_or_error

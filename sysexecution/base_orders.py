@@ -1,7 +1,8 @@
 from copy import copy
 import datetime
+import numpy as np
 from syscore.genutils import are_dicts_equal, none_to_object, object_to_none
-from syscore.objects import  success,  no_order_id, no_children, no_parent
+from syscore.objects import  success,  no_order_id, no_children, no_parent, missing_order
 
 
 class tradeableObject(object):
@@ -32,6 +33,129 @@ class tradeableObject(object):
         # probably overriden
         return self._definition['object_name']
 
+class tradeQuantity(object):
+    def __init__(self, trade_or_fill_qty):
+        if type(trade_or_fill_qty) is tradeQuantity:
+            trade_or_fill_qty = trade_or_fill_qty.qty
+
+        elif (type(trade_or_fill_qty) is float) or (type(trade_or_fill_qty) is int):
+            trade_or_fill_qty = [trade_or_fill_qty]
+            ## must be a list
+            assert type(trade_or_fill_qty) is list
+
+        self._trade_or_fill_qty = trade_or_fill_qty
+
+    def __repr__(self):
+        return str(self.qty)
+
+    @property
+    def qty(self):
+        return self._trade_or_fill_qty
+
+    def zero_version(self):
+        len_self = len(self.qty)
+        return tradeQuantity([0] * len_self)
+
+    def fill_less_than_or_equal_to_desired_trade(self, proposed_fill):
+        return all([x<=y and x*y>=0 for x,y in zip(proposed_fill.qty, self.qty)])
+
+    def equals_zero(self):
+        return all([x == 0 for x in self.qty])
+
+
+    def __len__(self):
+        return len(self.qty)
+
+    def __eq__(self, other):
+        return all([x == y for x, y in zip(self.qty, other.qty)])
+
+    def __sub__(self, other):
+        assert len(self.qty) == len(other.qty)
+        result = [x-y for x,y in zip(self.qty, other.qty)]
+        result = tradeQuantity(result)
+        return result
+
+    def __add__(self, other):
+        assert len(self.qty) == len(other.qty)
+        result = [x+y for x,y in zip(self.qty, other.qty)]
+        result = tradeQuantity(result)
+        return result
+
+    def __radd__(self, other):
+        if other==0:
+            return self
+        else:
+            return self.__add__(other)
+
+    def __getitem__(self, item):
+        return self._trade_or_fill_qty[item]
+
+    def total_abs_qty(self):
+        abs_qty_list = [abs(x) for x in self.qty]
+        return sum(abs_qty_list)
+
+    def change_trade_size_proportionally(self, new_trade):
+        current_abs_qty = self.total_abs_qty()
+        new_abs_qty = float(new_trade)
+        ratio = new_abs_qty / current_abs_qty
+        new_qty = [int(np.floor(ratio*qty)) for qty in self.qty]
+        self._trade_or_fill_qty = new_qty
+
+    def sort_with_idx(self, idx_list):
+        unsorted = self.qty
+        qty_sorted = [unsorted[idx] for idx in idx_list]
+        self._trade_or_fill_qty = qty_sorted
+
+    def as_int(self):
+        if len(self._trade_or_fill_qty)>1:
+            return missing_order
+        return self._trade_or_fill_qty[0]
+
+class fillPrice(object):
+    def __init__(self, fill_price):
+        if type(fill_price) is fillPrice:
+            fill_price = fill_price.price
+        if (type(fill_price) is float) or (type(fill_price) is int):
+            fill_price = [fill_price]
+        ## must be a list
+        assert type(fill_price) is list
+
+        self._price = fill_price
+
+    def __repr__(self):
+        return str(self.price)
+
+    @property
+    def price(self):
+        return self._price
+
+    @classmethod
+    def nan_from_trade_qty(fillPrice, trade_qty):
+        len_self = len(trade_qty.qty)
+        return fillPrice([np.nan]*len_self)
+
+    def sort_with_idx(self, idx_list):
+        unsorted = self.price
+        price_sorted = [unsorted[idx] for idx in idx_list]
+        self._price = price_sorted
+
+    def __getitem__(self, item):
+        return self._price[item]
+
+def resolve_trade_fill_fillprice(trade, fill, filled_price):
+    resolved_trade = tradeQuantity(trade)
+    if fill is None:
+        resolved_fill = resolved_trade.zero_version()
+    else:
+        resolved_fill = tradeQuantity(fill)
+
+    if filled_price is None:
+        resolved_filled_price = fillPrice.nan_from_trade_qty(resolved_trade)
+    else:
+        resolved_filled_price = fillPrice(filled_price)
+
+    return resolved_trade, resolved_fill, resolved_filled_price
+
 class Order(object):
     """
     An order represents a desired or completed trade
@@ -41,7 +165,7 @@ class Order(object):
     """
 
 
-    def __init__(self, object_name, trade: int, fill=0, filled_price = None, fill_datetime = None,
+    def __init__(self, object_name, trade, fill=None, filled_price = None, fill_datetime = None,
                  locked=False, order_id=no_order_id,
                  modification_status = None,
                  modification_quantity = None, parent=no_parent,
@@ -50,7 +174,7 @@ class Order(object):
         """
 
         :param object_name: name for a tradeableObject, str
-        :param trade: trade we want to do, int
+        :param trade: trade we want to do, int or list
         :param fill: fill done so far, int
         :param fill_datetime: when fill done (if multiple, is last one)
         :param fill_price: price of fill (if multiple, is last one)
@@ -65,16 +189,18 @@ class Order(object):
         """
         self._tradeable_object = tradeableObject(object_name)
 
-        self._trade = trade
-        self._fill = fill
+        resolved_trade, resolved_fill, resolved_filled_price = resolve_trade_fill_fillprice(trade, fill, filled_price)
+
+        self._trade = resolved_trade
+        self._fill = resolved_fill
+        self._filled_price = resolved_filled_price
         self._fill_datetime = fill_datetime
-        self._filled_price = filled_price
         self._locked = locked
-        self._order_id = order_id
+        self.order_id = order_id
         self._modification_status = modification_status
         self._modification_quantity = modification_quantity
-        self._parent = parent
-        self._children = children
+        self.parent = parent
+        self.children = children
         self._active = active
 
         self._order_info = kwargs
@@ -93,22 +219,35 @@ class Order(object):
 
     @property
     def trade(self):
-        return self._trade
+        return tradeQuantity(self._trade)
 
     def replace_trade_only_use_for_unsubmitted_trades(self, new_trade):
+        # if this is a single leg trade, does a straight replacement
+        # otherwise
 
         new_order = copy(self)
-        new_order._trade = new_trade
+        new_order._trade = tradeQuantity(new_trade)
 
         return new_order
 
+    def change_trade_size_proportionally(self, new_trade):
+        # if this is a single leg trade, does a straight replacement
+        # otherwise
+
+        new_order = copy(self)
+        new_order._trade.change_trade_size_proportionally(new_trade)
+
+        return new_order
+
+
+
     @property
     def fill(self):
-        return self._fill
+        return tradeQuantity(self._fill)
 
     @property
     def filled_price(self):
-        return self._filled_price
+        return fillPrice(self._filled_price)
 
     @property
     def fill_datetime(self):
@@ -117,28 +256,27 @@ class Order(object):
 
     def fill_order(self, fill_qty, filled_price = None, fill_datetime = None):
         # Fill qty is cumulative, eg this is the new amount filled
-        assert self.fill_less_than_or_equal_to_desired_trade(fill_qty), "Can't fill order for more than trade quantity"
+        fill_qty = tradeQuantity(fill_qty)
+
+        assert self.trade.fill_less_than_or_equal_to_desired_trade(fill_qty), "Can't fill order for more than trade quantity"
 
         self._fill = fill_qty
         if filled_price is not None:
-            self._filled_price = filled_price
+            self._filled_price = fillPrice(filled_price)
+
         if fill_datetime is None:
             fill_datetime = datetime.datetime.now()
 
         self._fill_datetime = fill_datetime
 
-
-    def fill_less_than_or_equal_to_desired_trade(self, proposed_fill):
-        return abs(proposed_fill) <= abs(self.trade) and (proposed_fill * self.trade) >= 0
-
     def fill_equals_zero(self):
-        return self.fill==0
+        return self.fill.equals_zero()
 
     def fill_equals_desired_trade(self):
         return self.fill==self.trade
 
     def is_zero_trade(self):
-        return self.trade==0
+        return self.trade.equals_zero()
 
     @property
     def order_id(self):
@@ -159,13 +297,24 @@ class Order(object):
 
     @children.setter
     def children(self, children):
+        if type(children) is int:
+            children = [children]
         if self._children==no_children:
             self._children = children
         else:
-            raise Exception("Can't add children to order which already has them")
+            raise Exception("Can't add children to order which already has them: use add another child")
 
     def remove_children(self):
         self._children = no_children
+
+    def add_another_child(self, new_child):
+        if self.children is no_children:
+            new_children = [new_child]
+        else:
+            new_children = self.children + [new_child]
+
+        self._children = new_children
+
 
     @property
     def parent(self):
@@ -186,21 +335,24 @@ class Order(object):
         ## Once deactivated: filled or cancelled, we can never go back!
         self._active = False
 
-
+    def zero_out(self):
+        zero_version = self.trade.zero_version()
+        self._fill = zero_version
+        self.deactivate()
 
     def as_dict(self):
         object_dict = dict(key = self.key)
-        object_dict['trade'] = self._trade
-        object_dict['fill'] = self._fill
-        object_dict['fill_datetime'] = self._fill_datetime
-        object_dict['filled_price'] = self._filled_price
+        object_dict['trade'] = self.trade.qty
+        object_dict['fill'] = self.fill.qty
+        object_dict['fill_datetime'] = self.fill_datetime
+        object_dict['filled_price'] = self.filled_price.price
         object_dict['locked'] = self._locked
-        object_dict['order_id'] = object_to_none(self._order_id, no_order_id)
+        object_dict['order_id'] = object_to_none(self.order_id, no_order_id)
         object_dict['modification_status'] = self._modification_status
         object_dict['modification_quantity'] = self._modification_quantity
-        object_dict['parent'] = object_to_none(self._parent, no_parent)
-        object_dict['children'] = object_to_none(self._children, no_children)
-        object_dict['active'] = self._active
+        object_dict['parent'] = object_to_none(self.parent, no_parent)
+        object_dict['children'] = object_to_none(self.children, no_children)
+        object_dict['active'] = self.active
         for info_key, info_value in self._order_info.items():
             object_dict[info_key] = info_value
 

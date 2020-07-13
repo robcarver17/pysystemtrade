@@ -1,7 +1,8 @@
+from copy import copy
 import datetime
 from sysexecution.order_stack import orderStackData
-from sysexecution.base_orders import  no_order_id, no_children, no_parent
-from sysexecution.contract_orders import contractOrder
+from sysexecution.base_orders import  no_order_id, no_children, no_parent, resolve_trade_fill_fillprice
+from sysexecution.contract_orders import contractOrder, contractTradeableObject
 
 from syscore.genutils import  none_to_object, object_to_none
 from syscore.objects import failure, missing_order, fill_exceeds_trade, success
@@ -25,7 +26,10 @@ class brokerOrder(contractOrder):
                  broker_permid="", broker_tempid="",
                  manual_fill = False,
                  calendar_spread_order=None,
-                 broker_objects = dict()
+                 split_order=False,
+                 sibling_id_for_split_order=None,
+                 roll_order = False,
+                broker_objects = dict()
                  ):
         """
 
@@ -70,21 +74,17 @@ class brokerOrder(contractOrder):
         tradeable_object, trade = super()._resolve_args(args)
         self._tradeable_object = tradeable_object
 
-        if type(trade) is int:
-            trade = [trade]
+        resolved_trade, resolved_fill, resolved_filled_price = resolve_trade_fill_fillprice(trade, fill, filled_price)
 
-        if len(trade)==1:
+        if len(resolved_trade.qty)==1:
             calendar_spread_order = False
         else:
             calendar_spread_order = True
 
-        if fill is None:
-            fill = [0]*len(trade)
-
-        self._trade = trade
-        self._fill = fill
+        self._trade = resolved_trade
+        self._fill = resolved_fill
+        self._filled_price = resolved_filled_price
         self._fill_datetime = fill_datetime
-        self._filled_price = filled_price
         self._locked = locked
         self._order_id = order_id
         self._modification_status = modification_status
@@ -101,7 +101,8 @@ class brokerOrder(contractOrder):
                                 side_price = side_price, mid_price = mid_price,
                                 algo_comment = algo_comment, broker = broker, broker_account = broker_account,
                                 broker_permid = broker_permid, broker_tempid = broker_tempid, broker_clientid = broker_clientid,
-                                commission=commission)
+                                commission=commission, split_order = split_order,
+                                sibling_id_for_split_order = sibling_id_for_split_order, roll_order = roll_order)
 
         # NOTE: we do not include these in the normal order info dict
         # This means they will NOT be saved when we do .as_dict(), i.e. they won't be saved in the mongo record
@@ -266,8 +267,9 @@ class brokerOrder(contractOrder):
 
         return new_log
 
+
     def add_execution_details_from_matched_broker_order(self, matched_broker_order):
-        fill_qty_okay = self.fill_less_than_or_equal_to_desired_trade(matched_broker_order.fill)
+        fill_qty_okay = self.trade.fill_less_than_or_equal_to_desired_trade(matched_broker_order.fill)
         if not fill_qty_okay:
             return fill_exceeds_trade
         self.fill_order(matched_broker_order.fill,
@@ -279,8 +281,43 @@ class brokerOrder(contractOrder):
 
         return success
 
-    ## calculations
 
+
+    def split_spread_order(self):
+        """
+    
+        :param self:
+        :return: list of contract orders, will be original order if not a spread order
+        """
+        if len(self.contract_id)==1:
+            # not a spread trade
+            return [self]
+
+        list_of_derived_broker_orders = []
+        original_as_dict = self.as_dict()
+        for contractid, trade_qty, fill, fill_price in zip(self.contract_id,
+                                                           self.trade,
+                                                           self.fill,
+                                                           self.filled_price):
+
+            new_order_as_dict = copy(original_as_dict)
+            new_tradeable_object = contractTradeableObject(self.strategy_name, self.instrument_code,
+                                                           contractid)
+            new_key = new_tradeable_object.key
+
+            new_order_as_dict['key'] = new_key
+            new_order_as_dict['trade'] = trade_qty
+            new_order_as_dict['fill'] = fill
+            new_order_as_dict['filled_price'] = fill_price
+            new_order_as_dict['order_id'] = no_order_id
+
+            new_order = brokerOrder.from_dict(new_order_as_dict)
+            new_order.split_order(self.order_id)
+
+            list_of_derived_broker_orders.append(new_order)
+
+
+        return list_of_derived_broker_orders
 
 
 def create_new_broker_order_from_contract_order(contract_order, qty, order_type="market",
@@ -299,8 +336,8 @@ def create_new_broker_order_from_contract_order(contract_order, qty, order_type=
                  side_price=side_price, mid_price=mid_price,
                  broker=broker, broker_account=broker_account, broker_clientid=broker_clientid,
                 submit_datetime = submit_datetime, algo_comment=algo_comment,
-                               broker_permid = broker_permid, broker_tempid = broker_tempid
-                               )
+                               broker_permid = broker_permid, broker_tempid = broker_tempid,
+                               roll_order = contract_order.roll_order)
 
     return broker_order
 
@@ -324,11 +361,6 @@ class brokerOrderStackData(orderStackData):
 
     def add_execution_details_from_matched_broker_order(self, broker_order_id, matched_broker_order):
         db_broker_order = self.get_order_with_id_from_stack(broker_order_id)
-
-        # can only handle single leg orders
-        assert len(db_broker_order.fill)==1
-        assert len(matched_broker_order.fill)==1
-
         db_broker_order.add_execution_details_from_matched_broker_order(matched_broker_order)
         self._change_order_on_stack(broker_order_id, db_broker_order)
 

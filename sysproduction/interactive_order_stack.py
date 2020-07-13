@@ -28,6 +28,8 @@ from sysproduction.data.prices import get_valid_instrument_code_from_user
 from sysexecution.stack_handler.stack_handler import stackHandler
 from sysexecution.stack_handler.balance_trades import stackHandlerCreateBalanceTrades
 from sysexecution.broker_orders import brokerOrder
+from sysexecution.contract_orders import contractOrder
+from sysexecution.instrument_orders import instrumentOrder, possible_order_types
 
 def interactive_order_stack():
     with dataBlob(log_name = "Interactive-Order-Stack") as data:
@@ -74,7 +76,8 @@ nested_menu_of_options = {
                    30: 'Cancel broker order',
                         31: 'Net instrument orders',
                     32: 'Lock/unlock order',
-                    33: 'Lock/unlock instrument code'},
+                    33: 'Lock/unlock instrument code',
+                    34: 'Unlock all instruments'},
 
     4: {
                     40 : 'Delete entire stack (CAREFUL!)',
@@ -148,6 +151,7 @@ def create_balance_trade(data):
 
     print("Most likely use case here is that IB has closed one of your positions as close to the expiry")
     print("Or an edge case in which an order was submitted and then filled whilst you were not monitoring fills")
+    print("Or perhaps you are trading manually")
     print("Trades have to be attributed to a strategy (even roll trades)")
     strategy_name = get_valid_strategy_name_from_user()
     instrument_code, contract_date = get_valid_instrument_code_and_contractid_from_user(data)
@@ -175,6 +179,97 @@ def create_balance_trade(data):
     stack_handler = stackHandlerCreateBalanceTrades(data)
 
     stack_handler.create_balance_trade(broker_order)
+
+def create_manual_trade(data):
+
+    print("Create a trade which will then be executed by the system (so don't use this if you are doing your trades manually)")
+    print("Use case is testing, or forcing an emergency close early (perhaps roll related)")
+
+    instrument_order = enter_manual_instrument_order(data)
+
+    ans = input("Would you also like to create a contract order (if not stack generator will auto generate)? (y/other)")
+    if ans=="y":
+        contract_order = enter_manual_contract_order(data, instrument_order)
+    else:
+        contract_order = None
+
+    print(instrument_order)
+    print(contract_order)
+
+    ans = input("Are you sure? (Y/other)")
+    if ans !="Y":
+        return None
+
+    stack_handler = stackHandler(data)
+    instrument_order_id = stack_handler.instrument_stack.put_manual_order_on_stack(instrument_order)
+    if not type(instrument_order_id) is int:
+        print("Error condition %s couldn't place instrument order; not doing contract order eithier" % str(instrument_order_id))
+        return None
+    if contract_order is not None:
+        contract_order.parent = instrument_order_id
+        contract_order_id = stack_handler.contract_stack.put_order_on_stack(contract_order)
+        if not type(contract_order_id) is int:
+            print("Error condition %s couldn't place contract order; see if you can spawn it manually")
+            return None
+        stack_handler.instrument_stack.add_children_to_order(instrument_order_id, contract_order_id)
+
+    print("For instant execution, you may want to do menu [1] create orders, menu [13] create broker orders")
+
+    return None
+
+def enter_manual_instrument_order(data):
+    strategy_name = get_valid_strategy_name_from_user()
+    instrument_code = get_valid_instrument_code_from_user(data)
+    qty = get_and_convert("Quantity (-ve for sell, +ve for buy?)", type_expected=int,allow_default=False)
+    order_type = input("Order type (one of %s)?" % str(possible_order_types))
+    limit_price = get_and_convert("Limit price? (if you put None you can still add one to the contract order)", type_expected=float, default_value=None, default_str="None")
+    if limit_price is None:
+        limit_contract = None
+    else:
+        print("Enter contractid that limit price is referenced to")
+        _, contract_date = get_valid_instrument_code_and_contractid_from_user(data, instrument_code=instrument_code)
+        limit_contract = contract_date
+
+    instrument_order = instrumentOrder(strategy_name, instrument_code, qty,
+                 order_type=order_type, limit_price = limit_price, limit_contract = limit_contract,
+                 manual_trade =True, roll_order = False)
+
+    return instrument_order
+
+def enter_manual_contract_order(data, instrument_order):
+    strategy_name = instrument_order.strategy_name
+    instrument_code = instrument_order.instrument_code
+    qty = instrument_order.trade
+
+    leg_count = get_and_convert("How many legs?", type_expected=int, default_value=1)
+    contract_id_list = []
+    for leg_idx in range(leg_count):
+        print("Choose contract for leg %d" % leg_idx)
+        _, contract_date = get_valid_instrument_code_and_contractid_from_user(data, instrument_code=instrument_code)
+        contract_id_list.append(contract_date)
+
+    trade_qty_list = []
+    for trade_idx in range(leg_count):
+        trade_qty = get_and_convert("Enter quantity for leg %d" % trade_idx, type_expected=int, allow_default=False)
+        trade_qty_list.append(trade_qty)
+
+    if sum(trade_qty_list) != sum(qty):
+        print("Sum of instrument quantity %s is different from sum of contract quantity %s" % (str(qty), str(trade_qty_list)))
+        print("It's unlikely you meant to do this...")
+
+    algo_to_use = get_and_convert("Algo to use (Full function eg sysexecution.algos.algo_market.algo_market)",
+                                  type_expected=str, default_str="None: Algo will be allocated automatically",
+                                  default_value="")
+    limit_price = get_and_convert(
+        "Limit price? (will override instrument order limit price, will be ignored by some algo types",
+        type_expected=float, default_str="None", default_value=None)
+
+    contract_order = contractOrder(strategy_name, instrument_code, contract_id_list, trade_qty_list,
+                                   algo_to_use=algo_to_use, reference_price=None,
+                                   limit_price=limit_price, manual_trade=True,
+                                   )
+
+    return contract_order
 
 def generate_generic_manual_fill(data):
     stack = resolve_stack(data, exclude_instrument_stack=True)
@@ -459,6 +554,15 @@ def instrument_locking(data):
         if ans=="Y":
             data_locks.add_lock_for_instrument(instrument_code)
 
+def all_instrument_unlock(data):
+    data_locks = dataLocks(data)
+    list_of_locks = data_locks.get_list_of_locked_instruments()
+    print("Locked %s" % list_of_locks)
+    ans = input("Unlock everything [Y]es/no ?")
+    if ans == "Y":
+        stack_handler = stackHandler(data)
+        stack_handler.clear_position_locks_no_checks()
+
 dict_of_functions = {0: order_view,
                          1: view_instrument_stack,
                      2: view_contract_stack,
@@ -469,7 +573,7 @@ dict_of_functions = {0: order_view,
                      11: generate_force_roll_orders,
                      12: generate_ib_orders,
                      13: create_balance_trade,
-                     14: not_defined,
+                     14: create_manual_trade,
 
                      20: generate_generic_manual_fill,
                      21: get_fills_from_broker,
@@ -481,6 +585,7 @@ dict_of_functions = {0: order_view,
                      31: not_defined,
                      32: order_locking,
                      33: instrument_locking,
+                     34: all_instrument_unlock,
                      40: delete_entire_stack,
                      41: delete_specific_order,
 

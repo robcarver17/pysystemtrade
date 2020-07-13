@@ -1,4 +1,4 @@
-
+from syscore.objects import arg_not_supplied
 class brokerClient(object):
     """
 
@@ -36,7 +36,7 @@ class brokerClient(object):
     def close_connection(self):
         pass
 
-    def broker_get_positions(self):
+    def broker_get_positions(self, account_id = arg_not_supplied):
         raise NotImplementedError
 
     def broker_submit_single_leg_order(self, instrument_code, contract_id, account,

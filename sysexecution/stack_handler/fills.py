@@ -81,16 +81,9 @@ class stackHandlerForFills(stackHandlerCore):
         filled_qty = broker_order.fill ## will be a list
         filled_price = broker_order.filled_price
         fill_datetime = broker_order.fill_datetime
-        if len(filled_qty)==1:
-            ## Not a spread order, trivial
-            result = self.contract_stack.\
-                change_fill_quantity_for_order(contract_order.order_id, filled_qty, filled_price=filled_price,
-                                               fill_datetime=fill_datetime)
-        else:
-            ## Spread order
-            log.critical("Can't handle spread orders yet!")
-
-            result = failure
+        result = self.contract_stack.\
+            change_fill_quantity_for_order(contract_order.order_id, filled_qty, filled_price=filled_price,
+                                           fill_datetime=fill_datetime)
 
         return result
 
@@ -143,8 +136,8 @@ class stackHandlerForFills(stackHandlerCore):
                 ## A roll; meaningless to do this
                 result = success
             else:
-                ## A proper spread order
-                log.critical("Can't handle spread orders yet! Instrument order %s %s"
+                ## A proper spread order with non zero legs
+                log.critical("Can't handle non-flat spread orders yet! Instrument order %s %s"
                                   % (str(instrument_order), str(instrument_order.order_id)))
                 result = failure
 
@@ -153,11 +146,11 @@ class stackHandlerForFills(stackHandlerCore):
     def apply_contract_fill_to_parent_order_multiple_children(self, list_of_contract_order_ids, instrument_order):
         log = instrument_order.log_with_attributes(self.log)
         if instrument_order.is_zero_trade():
-            ## Probably a roll trade
+            ## An inter-market flat spread
             ## Meaningless to do this
             return success
         else:
-            ## A proper spread trade
-            log.critical("Can't handle spread orders yet! Instrument order %s %s"
+            ## A proper spread trade with non zero legs
+            log.critical("Can't handle inter-market spread orders yet! Instrument order %s %s"
                               % (str(instrument_order), str(instrument_order.order_id)))
             return failure

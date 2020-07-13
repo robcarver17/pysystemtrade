@@ -22,11 +22,6 @@ def algo_market(data, contract_order):
 
     qty = contract_order.trade
 
-    if len(qty)>1:
-        log.warn("Simple market algo can't yet deal with spread order' %s!" % str(
-            contract_order))
-        return missing_order, ""
-
     ## do full order
     qty_for_broker = qty
 

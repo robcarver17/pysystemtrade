@@ -78,7 +78,7 @@ def single_instrument_child_orders(data, instrument_order):
     """
     # We don't allow zero trades to be spawned
     # Zero trades can enter the instrument stack, where they can potentially modify existing trades
-    if instrument_order.trade ==0:
+    if instrument_order.is_zero_trade():
         return []
 
     # Get required contract(s) depending on roll status
@@ -118,10 +118,11 @@ def get_required_contract_trade_for_instrument(data, instrument_order):
     :return: tuple: list of child orders: each is a tuple: contract str or missing_contract, trade int
     """
     instrument_code = instrument_order.instrument_code
-    trade = instrument_order.trade
-
-    log =  data.log.setup(instrument_code=instrument_code, strategy=instrument_order.strategy_name,
-                          instrument_order_id=instrument_order.order_id)
+    log =  instrument_order.log_with_attributes(data.log)
+    trade = instrument_order.trade.as_int()
+    if trade is missing_order:
+        log.critical("Instrument order can't be a spread order")
+        return missing_contract
 
     diag_contracts = diagContracts(data)
     current_contract = diag_contracts.get_priced_contract_id(instrument_code)

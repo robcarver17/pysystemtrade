@@ -8,7 +8,7 @@ from sysproduction.data.capital import dataCapital
 
 from sysproduction.data.currency_data import currencyData
 from sysproduction.data.prices import diagPrices
-from sysproduction.data.trades import diagTrades
+from sysproduction.data.orders import dataOrders
 from sysproduction.data.positions import diagPositions
 from sysproduction.data.instruments import diagInstruments
 
@@ -271,8 +271,8 @@ def get_price_series_for_contract(data, instrument_code, contract_id):
     return price_series
 
 def get_trade_df_for_contract(data, instrument_code, contract_id):
-    diag_trades = diagTrades(data)
-    list_of_trades = diag_trades.get_fills_history_for_instrument_and_contract_id(instrument_code, contract_id)
+    data_orders = dataOrders(data)
+    list_of_trades = data_orders.get_fills_history_for_instrument_and_contract_id(instrument_code, contract_id)
     list_of_trades_as_pd_df = list_of_trades.as_pd_df()
 
     return list_of_trades_as_pd_df
