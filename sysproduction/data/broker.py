@@ -23,6 +23,8 @@ class dataBroker(object):
                             )
         self.data = data
 
+    def broker_fx_balances(self):
+        return self.data.broker_misc.broker_fx_balances()
 
     def get_fx_prices(self, fx_code):
         return self.data.broker_fx_prices.get_fx_prices(fx_code)
@@ -32,6 +34,14 @@ class dataBroker(object):
 
     def get_fx_prices(self, fx_code):
         return self.data.broker_fx_prices.get_fx_prices(fx_code)
+
+    def broker_fx_market_order(self, trade, ccy1, account = arg_not_supplied, ccy2="USD"):
+        account = self.get_broker_account()
+        result = self.data.broker_misc.broker_fx_market_order(trade, ccy1, ccy2="USD", account = account)
+        if result is missing_order:
+            self.log.warn("%s %s is not recognised by broker - try inverting" % (ccy1, ccy2))
+
+        return result
 
     def get_prices_at_frequency_for_contract_object(self, contract_object, frequency):
         return self.data.broker_futures_contract_price.get_prices_at_frequency_for_contract_object(contract_object, frequency)

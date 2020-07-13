@@ -65,7 +65,8 @@ nested_menu_of_options = {
                    11: 'Create force roll contract orders',
                     12: 'Create (and try to execute...) IB broker orders',
                     13: 'Balance trade: Create a series of trades and immediately fill them (not actually executed)',
-                    14: 'Manual trade: Create a series of trades to be executed'},
+                    14: 'Manual trade: Create a series of trades to be executed',
+                    15: 'Cash FX trade'},
                     2: {
                    20: 'Manually fill broker or contract order',
                     21: 'Get broker fills from IB',
@@ -317,6 +318,43 @@ def generate_ib_orders(data):
         stack_handler.create_broker_order_for_contract_order(contract_order_id, check_if_open=check_if_open)
 
     print("If stack process not running, your next job will be to get the fills from IB")
+
+def create_fx_trade(data):
+    data_broker = dataBroker(data)
+    fx_balance = data_broker.broker_fx_balances()
+    print("Current FX balances")
+    print(fx_balance)
+    print("Remember to check how much you need for margin as you will be charged interest if insufficient")
+    default_account = data_broker.get_broker_account()
+    broker_account = get_and_convert("Account ID", type_expected=str, allow_default=True, default_value=default_account)
+
+    invalid = True
+    while invalid:
+        print("First currency")
+        ccy1 = get_and_convert("First currency", allow_default=True,
+                               default_value=None, default_str="Cancel", type_expected=str)
+        if ccy1 is None:
+            return None
+        ccy2 = get_and_convert("Second currency", default_value="USD", type_expected=str)
+        if ccy1 == ccy2:
+            print("%s==%s. Not allowed!" % (ccy1, ccy2))
+            continue
+        qty = get_and_convert("Amount of trade in %s%s" % (ccy1, ccy2), type_expected=int, allow_default=False)
+        if qty<0:
+            print("Selling %d of %s, buying %s" % (qty, ccy1, ccy2))
+        elif qty>0:
+            print("Buying %d of %s, buying %s" % (qty, ccy1, ccy2))
+
+        ans = input("Are you sure that's right? Y-yes / other")
+        if ans!="Y":
+            continue
+        else:
+            break
+
+    result = data_broker.broker_fx_market_order(qty, ccy1, account = broker_account, ccy2=ccy2)
+    print("%s" % result)
+
+
 
 def get_fills_from_broker(data):
     stack_handler = stackHandler(data)
@@ -574,6 +612,7 @@ dict_of_functions = {0: order_view,
                      12: generate_ib_orders,
                      13: create_balance_trade,
                      14: create_manual_trade,
+                     15: create_fx_trade,
 
                      20: generate_generic_manual_fill,
                      21: get_fills_from_broker,

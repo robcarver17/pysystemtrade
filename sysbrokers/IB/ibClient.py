@@ -17,7 +17,7 @@ from syslogdiag.log import logtoscreen
 
 from sysbrokers.IB.ib_trading_hours import get_trading_hours
 from sysbrokers.IB.ib_contracts import ib_futures_instrument, resolve_multiple_expiries, ib_futures_instrument_just_symbol
-from sysbrokers.IB.ib_positions import from_ib_positions_to_dict, resolveBS,  resolveBS_for_list
+from sysbrokers.IB.ib_positions import from_ib_positions_to_dict, resolveBS,  resolveBS_for_list, extract_fx_balances_from_account_summary
 
 _PACING_PERIOD_SECONDS = 10*60
 _PACING_PERIOD_LIMIT = 60
@@ -39,6 +39,11 @@ class ibClient(brokerClient):
         ## means our first call won't be throttled for pacing
         self.last_historic_price_calltime = datetime.datetime.now()-  datetime.timedelta(seconds=_PACING_PERIOD_SECONDS)
 
+    def broker_fx_balances(self):
+        account_summary = self.ib.accountSummary()
+        fx_balance_dict = extract_fx_balances_from_account_summary(account_summary)
+
+        return fx_balance_dict
 
     def broker_get_orders(self, account_id=arg_not_supplied):
         """
@@ -130,6 +135,34 @@ class ibClient(brokerClient):
 
         return contract_dates
 
+
+    def broker_fx_market_order(self,  trade, ccy1, account = arg_not_supplied, ccy2="USD"):
+        """
+        Get some spot fx data
+
+        :param ccy1: first currency in pair
+        :param ccy2: second currency in pair
+        :param qty:
+        :return: broker order object
+        """
+
+        ccy_code = ccy1 + ccy2
+        specific_log = self.log.setup(currency_code = ccy_code)
+
+        ibcontract = self.ib_spotfx_contract(ccy1, ccy2=ccy2, log=specific_log)
+        if ibcontract is missing_contract:
+            return missing_contract
+
+        ib_BS_str, ib_qty = resolveBS(trade)
+        ib_order = MarketOrder(ib_BS_str, ib_qty)
+        if account!='':
+            ib_order.account = account
+        order_object = self.ib.placeOrder(ibcontract, ib_order)
+
+        # for consistency with spread orders
+        trade_with_contract = tradeWithContract(ibcontractWithLegs(ibcontract), order_object)
+
+        return trade_with_contract
 
 
     def broker_get_daily_fx_data(self, ccy1, ccy2="USD", bar_freq="D"):

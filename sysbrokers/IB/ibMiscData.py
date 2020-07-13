@@ -1,4 +1,4 @@
-from syscore.objects import missing_data
+from syscore.objects import missing_data, missing_contract, arg_not_supplied
 from syslogdiag.log import logtoscreen
 from sysdata.private_config import get_private_then_default_key_value
 
@@ -22,3 +22,11 @@ class ibMiscData(object):
 
     def get_broker_name(self):
         return "IB"
+
+    def broker_fx_balances(self):
+        return self.ibconnection.broker_fx_balances()
+
+    def broker_fx_market_order(self, trade, ccy1, account = arg_not_supplied, ccy2="USD"):
+        result = self.ibconnection. broker_fx_market_order(trade, ccy1, ccy2 = ccy2, account=account)
+
+        return result

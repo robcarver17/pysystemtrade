@@ -2,6 +2,18 @@ import re
 from syscore.genutils import highest_common_factor_for_list, sign
 from syscore.objects import arg_not_supplied, missing_data
 
+def extract_fx_balances_from_account_summary(account_summary):
+    relevant_tag = 'TotalCashBalance'
+
+    result = extract_currency_dict_for_tag_from_account_summary(account_summary, relevant_tag)
+
+    return result
+
+def extract_currency_dict_for_tag_from_account_summary(account_summary, relevant_tag):
+    result = dict([(summary_item.currency, summary_item.value) for summary_item in account_summary if summary_item.tag == relevant_tag])
+
+    return result
+
 def from_ib_positions_to_dict(raw_positions, account_id = arg_not_supplied):
     """
 
