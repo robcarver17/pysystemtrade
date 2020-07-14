@@ -29,23 +29,25 @@ from syslogdiag.log import logtoscreen
 Fill = namedtuple("Fill", ["date", "qty", "price"])
 
 def fill_from_order(order):
-    ## can't handle spread orders just yet
-    if type(order.fill) is list:
-        assert len(order.fill) ==1
-        if order.fill_equals_zero():
-            return missing_order
-
-        fill = order.fill[0]
-    else:
-        fill = order.fill
-        if fill==0:
-            return missing_order
-    if order.filled_price is None:
+    if order.fill_equals_zero():
         return missing_order
-    if order.fill_datetime is None:
+    fill_price_object = order.filled_price
+    fill_datetime = order.fill_datetime
+    fill_qty = order.fill
+
+    if fill_price_object is None:
+        return missing_order
+    if fill_datetime is None:
         return missing_order
 
-    return Fill( order.fill_datetime, fill, order.filled_price)
+    ## can't handle spread orders - hopefully should have been resolved now
+    assert len(fill_qty) ==1
+    fill = fill_qty[0]
+
+    assert len(fill_price_object)==1
+    fill_price = fill_price_object[0]
+
+    return Fill(fill_datetime, fill, fill_price)
 
 class listOfFills(list):
     def __init__(self, list_of_fills):

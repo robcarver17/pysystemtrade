@@ -142,6 +142,11 @@ class fillPrice(object):
     def __getitem__(self, item):
         return self._price[item]
 
+    def __len__(self):
+        return len(self.price)
+
+
+
 def resolve_trade_fill_fillprice(trade, fill, filled_price):
     resolved_trade = tradeQuantity(trade)
     if fill is None:
