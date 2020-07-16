@@ -33,13 +33,12 @@ process_configuration_previous_process:
   run_stack_handler:  'run_strategy_order_generator'
   run_cleaners: 'run_strategy_order_generator'
   run_backups: 'run_cleaners'
-  run_reports: 'run_backups'
+  run_reports: 'run_strategy_order_generator'
 # we include every method to make process monitoring easier
 process_configuration_methods:
   run_capital_update:
     update_total_capital:
-      frequency: 60
-      max_executions: 10
+      frequency: 120
     strategy_allocation:
       max_executions: 1
   run_daily_prices_updates:

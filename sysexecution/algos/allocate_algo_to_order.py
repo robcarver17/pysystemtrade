@@ -36,11 +36,11 @@ def check_and_if_required_allocate_algo_to_single_contract_order(data, contract_
     :param list_of_contract_orders:
     :return: list of contract orders with algo added
     """
+    log = contract_order.log_with_attributes(data.log)
 
     if contract_order.algo_to_use!='':
         ## Already done
         return contract_order
-
 
     instrument_order_id = contract_order.parent
     order_data = dataOrders(data)
@@ -56,6 +56,14 @@ def check_and_if_required_allocate_algo_to_single_contract_order(data, contract_
         instrument_order_type = instrument_order.order_type
         is_roll_order = instrument_order.roll_order
 
-    contract_order.algo_to_use = "sysexecution.algos.algo_market.algo_market"
+    if instrument_order_type == 'market':
+        contract_order.algo_to_use = "sysexecution.algos.algo_market.algo_market"
+    elif instrument_order_type == "best":
+        contract_order.algo_to_use = "sysexecution.algos.algo_market.algo_market"
+        #contract_order.algo_to_use = "sysexecution.algos.algo_original_best.original_best"
+    else:
+        log.warn("Don't recognise order type %s so allocating to default algo_market" % instrument_order_type)
+        contract_order.algo_to_use = "sysexecution.algos.algo_market.algo_market"
+
 
     return contract_order

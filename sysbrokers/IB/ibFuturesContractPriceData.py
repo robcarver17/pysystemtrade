@@ -3,12 +3,16 @@ import pandas as pd
 import datetime
 from syscore.fileutils import get_filename_for_package
 from syscore.genutils import value_or_npnan, NOT_REQUIRED
+from syscore.objects import missing_data, missing_contract
 
 from sysbrokers.IB.ibFuturesContracts import ibFuturesContractData
+from sysbrokers.IB.ibOrders import sign_from_BS
 from sysdata.futures.futures_per_contract_prices import futuresContractPriceData, futuresContractPrices
 from sysdata.futures.instruments import futuresInstrument
+
+from sysexecution.tick_data import tickerObject, oneTick
+
 from syslogdiag.log import logtoscreen
-from syscore.objects import missing_contract
 
 IB_FUTURES_CONFIG_FILE = get_filename_for_package("sysbrokers.IB.ibConfigFutures.csv")
 
@@ -104,7 +108,50 @@ class ibFuturesContractPriceData(futuresContractPriceData):
 
         return data
 
-    def get_recent_bid_ask_tick_data_for_contract_object(self, contract_object):
+    def get_ticker_object_for_contract_object(self, contract_object, trade_list_for_multiple_legs=None):
+        """
+        Returns my encapsulation of a ticker object
+
+        :param contract_object:
+        :param trade_list_for_multiple_legs:
+        :return:
+        """
+
+        new_log = self.log.setup(instrument_code=contract_object.instrument_code, contract_date=contract_object.date)
+
+        contract_object_with_ib_data = self.futures_contract_data.get_contract_object_with_IB_metadata(contract_object)
+        if contract_object_with_ib_data is missing_contract:
+            new_log.warn("Can't get data for %s" % str(contract_object))
+            return futuresContractPrices.create_empty()
+
+        ticker_with_bs = self.ibconnection.\
+                        get_ticker_object(contract_object_with_ib_data,
+                            trade_list_for_multiple_legs = trade_list_for_multiple_legs)
+
+        ticker_object = ibTickerObject(ticker_with_bs)
+
+        return ticker_object
+
+    def cancel_market_data_for_contract_object(self, contract_object, trade_list_for_multiple_legs=None):
+        """
+        Returns my encapsulation of a ticker object
+
+        :param contract_object:
+        :param trade_list_for_multiple_legs:
+        :return:
+        """
+
+        new_log = self.log.setup(instrument_code=contract_object.instrument_code, contract_date=contract_object.date)
+
+        contract_object_with_ib_data = self.futures_contract_data.get_contract_object_with_IB_metadata(contract_object)
+        if contract_object_with_ib_data is missing_contract:
+            new_log.warn("Can't get data for %s" % str(contract_object))
+            return futuresContractPrices.create_empty()
+
+        self.ibconnection.cancel_market_data_for_contract_object(contract_object_with_ib_data,
+                            trade_list_for_multiple_legs = trade_list_for_multiple_legs)
+
+    def get_recent_bid_ask_tick_data_for_contract_object(self, contract_object, trade_list_for_multiple_legs=None):
         """
         Get last few price ticks
 
@@ -118,7 +165,11 @@ class ibFuturesContractPriceData(futuresContractPriceData):
             new_log.warn("Can't get data for %s" % str(contract_object))
             return futuresContractPrices.create_empty()
 
-        tick_data = self.ibconnection.ib_get_recent_bid_ask_tick_data(contract_object_with_ib_data)
+        tick_data = self.ibconnection.\
+                        ib_get_recent_bid_ask_tick_data(contract_object_with_ib_data,
+                            trade_list_for_multiple_legs = trade_list_for_multiple_legs)
+        if tick_data is missing_contract:
+            return missing_data
 
         tick_data_as_df = from_ib_bid_ask_tick_data_to_dataframe(tick_data)
 
@@ -139,6 +190,25 @@ class ibFuturesContractPriceData(futuresContractPriceData):
 
     def get_contracts_with_price_data(self, *args, **kwargs):
         raise NotImplementedError("Do not use get_contracts_with_price_data with IB")
+
+class ibTickerObject(tickerObject):
+    def __init__(self, ticker_with_BS):
+        ticker = ticker_with_BS.ticker
+        BorS = ticker_with_BS.BorS
+        qty = sign_from_BS(BorS)
+        super().__init__(ticker, qty=qty)
+
+    def bid(self):
+        return self.ticker.bid
+
+    def ask(self):
+        return self.ticker.ask
+
+    def bid_size(self):
+        return self.ticker.bidSize
+
+    def ask_size(self):
+        return self.ticker.askSize
 
 
 

@@ -4,7 +4,7 @@ from copy import copy
 
 
 from ib_insync import Forex,  util, ComboLeg
-from ib_insync.order import MarketOrder
+from ib_insync.order import MarketOrder, LimitOrder
 
 from sysdata.fx.spotfx import currencyValue
 from sysbrokers.baseClient import brokerClient
@@ -64,7 +64,8 @@ class ibClient(brokerClient):
 
     # Methods in parent class overriden here
     # These methods should abstract the broker completely
-    def broker_submit_calendar_leg_order(self, contract_object_with_ib_data, trade_list, account,
+
+    def broker_submit_order(self, contract_object_with_ib_data, trade_list, account,
                                                   order_type = "market",
                                                   limit_price = None):
         """
@@ -79,35 +80,9 @@ class ibClient(brokerClient):
 
         """
 
-        if order_type=="market":
-            placed_broker_trade_object = self.ib_submit_calendar_leg_market_order(contract_object_with_ib_data, trade_list, account)
-        else:
-            self.log.critical("Order type %s is not supported for order on %s" % (order_type, str(contract_object_with_ib_data)))
-            return missing_order
-
-        return placed_broker_trade_object
-
-
-    def broker_submit_single_leg_order(self, contract_object_with_ib_data, trade, account,
-                                                  order_type = "market",
-                                                  limit_price = None):
-        """
-
-        :param ibcontract: contract_object_with_ib_data: contract where instrument has ib metadata
-        :param trade: int
-        :param account: str
-        :param order_type: str, market or limit
-        :param limit_price: None or float
-
-        :return: brokers trade object
-
-        """
-
-        if order_type=="market":
-            placed_broker_trade_object = self.ib_submit_single_leg_market_order(contract_object_with_ib_data, trade, account)
-        else:
-            self.log.critical("Order type %s is not supported for order on %s" % (order_type, str(contract_object_with_ib_data)))
-            return missing_order
+        placed_broker_trade_object = self.ib_submit_order(contract_object_with_ib_data, trade_list,
+                                                                            account=account, order_type=order_type,
+                                                                     limit_price= limit_price)
 
         return placed_broker_trade_object
 
@@ -286,7 +261,43 @@ class ibClient(brokerClient):
 
         return trade_with_contract
 
-    def ib_get_recent_bid_ask_tick_data(self, contract_object_with_ib_data, tick_count = 200):
+    def get_ticker_object(self, contract_object_with_ib_data,
+                            trade_list_for_multiple_legs = None):
+
+        specific_log = self.log.setup(instrument_code = contract_object_with_ib_data.instrument_code,
+                                      contract_date = contract_object_with_ib_data.date)
+
+        ibcontract = self.ib_futures_contract(contract_object_with_ib_data,
+                                              trade_list_for_multiple_legs = trade_list_for_multiple_legs)
+        if ibcontract is missing_contract:
+            specific_log.warn("Can't find matching IB contract for %s" % str(contract_object_with_ib_data))
+            return missing_contract
+
+        self.ib.reqMktData(ibcontract, '', False, False)
+        ticker = self.ib.ticker(ibcontract)
+
+        ib_BS_str, ib_qty = resolveBS_for_list(trade_list_for_multiple_legs)
+
+        ticker_with_bs = tickerWithBS(ticker, ib_BS_str)
+
+        return ticker_with_bs
+
+    def cancel_market_data_for_contract_object(self, contract_object_with_ib_data,
+                            trade_list_for_multiple_legs = None):
+
+        specific_log = self.log.setup(instrument_code = contract_object_with_ib_data.instrument_code,
+                                      contract_date = contract_object_with_ib_data.date)
+
+        ibcontract = self.ib_futures_contract(contract_object_with_ib_data,
+                                              trade_list_for_multiple_legs = trade_list_for_multiple_legs)
+        if ibcontract is missing_contract:
+            specific_log.warn("Can't find matching IB contract for %s" % str(contract_object_with_ib_data))
+            return missing_contract
+
+        self.ib.cancelMktData(ibcontract)
+
+    def ib_get_recent_bid_ask_tick_data(self, contract_object_with_ib_data, trade_list_for_multiple_legs = None,
+                                        tick_count = 200):
         """
 
         :param contract_object_with_ib_data:
@@ -295,10 +306,10 @@ class ibClient(brokerClient):
         specific_log = self.log.setup(instrument_code = contract_object_with_ib_data.instrument_code,
                                       contract_date = contract_object_with_ib_data.date)
         if contract_object_with_ib_data.is_spread_contract():
-            specific_log.critical("IB can't get recent tick data for multi leg orders")
-            return missing_contract
+            raise Exception("Can't get historical data for combo")
 
-        ibcontract = self.ib_futures_contract(contract_object_with_ib_data)
+        ibcontract = self.ib_futures_contract(contract_object_with_ib_data,
+                                              trade_list_for_multiple_legs = trade_list_for_multiple_legs)
         if ibcontract is missing_contract:
             specific_log.warn("Can't find matching IB contract for %s" % str(contract_object_with_ib_data))
             return missing_contract
@@ -324,10 +335,20 @@ class ibClient(brokerClient):
 
         return trading_hours
 
-    def ib_modify_existing_order(self, modified_order_object, original_contract_object):
-        new_trade_object = self.ib.placeOrder(original_contract_object, modified_order_object)
+    def modify_limit_price_given_original_objects(self,
+                                                  original_order_object, original_contract_object_with_legs,
+                                                  new_limit_price):
+        original_contract_object = original_contract_object_with_legs.ibcontract
+        original_order_object.lmtPrice = new_limit_price
 
-        return new_trade_object
+        new_trade_object = self.ib.placeOrder(original_contract_object, original_order_object)
+
+        new_trade_with_contract = tradeWithContract(original_contract_object_with_legs, new_trade_object)
+
+        return new_trade_with_contract
+
+
+
 
     def ib_cancel_order(self, original_order_object):
         new_trade_object = self.ib.cancelOrder(original_order_object)
@@ -337,38 +358,45 @@ class ibClient(brokerClient):
     def ib_check_order_is_cancelled(self, original_order_object):
         return original_order_object.OrderStatus == 'Cancelled'
 
-    def ib_submit_single_leg_market_order(self, contract_object_with_ib_data, trade, account=""):
-        ibcontract = self.ib_futures_contract(contract_object_with_ib_data)
-        if ibcontract is missing_contract:
-            return missing_order
+    def ib_submit_order(self, contract_object_with_ib_data, trade_list, account="", order_type = "market",
+                                   limit_price=None):
 
-        ib_BS_str, ib_qty = resolveBS(trade)
-        ib_order = MarketOrder(ib_BS_str, ib_qty)
-        if account!='':
-            ib_order.account = account
-        order_object = self.ib.placeOrder(ibcontract, ib_order)
+        if contract_object_with_ib_data.is_spread_contract():
+            ibcontract_with_legs = self.ib_futures_contract(contract_object_with_ib_data,
+                                                            trade_list_for_multiple_legs=trade_list,
+                                                            return_leg_data=True)
+            ibcontract = ibcontract_with_legs.ibcontract
+        else:
+            ibcontract = self.ib_futures_contract(contract_object_with_ib_data)
+            ibcontract_with_legs = ibcontractWithLegs(ibcontract)
 
-        # for consistency with spread orders
-        trade_with_contract = tradeWithContract(ibcontractWithLegs(ibcontract), order_object)
-
-        return trade_with_contract
-
-    def ib_submit_calendar_leg_market_order(self, contract_object_with_ib_data, trade_list, account=""):
-        ibcontract_with_legs = self.ib_futures_contract(contract_object_with_ib_data, trade_list_for_multiple_legs =trade_list,
-                                                    return_leg_data = True)
-        ibcontract = ibcontract_with_legs.ibcontract
         if ibcontract is missing_contract:
             return missing_order
 
         ib_BS_str, ib_qty = resolveBS_for_list(trade_list)
-        ib_order = MarketOrder(ib_BS_str, ib_qty)
+
+        if order_type=="market":
+            ib_order = MarketOrder(ib_BS_str, ib_qty)
+        elif order_type=="limit":
+            if limit_price is None:
+                self.log.critical("Need to have limit price with limit order!")
+                return missing_order
+            else:
+                ib_order = LimitOrder(ib_BS_str, ib_qty, limit_price)
+        else:
+            self.log.critical("Order type %s not recognised!" % order_type)
+            return missing_order
+
         if account!='':
             ib_order.account = account
 
         order_object = self.ib.placeOrder(ibcontract, ib_order)
-        placed_broker_trade_object  = tradeWithContract(ibcontract_with_legs, order_object)
 
-        return placed_broker_trade_object
+        # for consistency with spread orders
+        trade_with_contract = tradeWithContract(ibcontract_with_legs, order_object)
+
+        return trade_with_contract
+
 
 
     def _get_generic_data_for_contract(self, ibcontract, log=None, bar_freq="D", whatToShow='TRADES'):
@@ -750,3 +778,8 @@ class tradeWithContract(object):
 
     def __repr__(self):
         return str(self.trade)+" "+str(self.ibcontract_with_legs)
+
+class tickerWithBS(object):
+    def __init__(self, ticker, BorS):
+        self.ticker = ticker
+        self.BorS = BorS

@@ -59,15 +59,22 @@ def resolve_ib_cash_position(position):
                 expiry = "", multiplier = 1.0,
                 currency = position.contract.currency, position = position.position)
 
-def resolveBS(trade):
-    if trade<0:
-        return "SELL", int(abs(trade))
-    return "BUY", int(abs(trade))
 
 def resolveBS_for_list(trade_list):
-    ## result is always positive
+    if len(trade_list)==1:
+        return resolveBS(trade_list[0])
+    else:
+        return resolveBS_for_calendar_spread(trade_list)
+
+def resolveBS_for_calendar_spread(trade_list):
     trade = highest_common_factor_for_list(trade_list)
 
     trade = sign(trade_list[0])* trade
 
     return resolveBS(trade)
+
+
+def resolveBS(trade):
+    if trade<0:
+        return "SELL", int(abs(trade))
+    return "BUY", int(abs(trade))

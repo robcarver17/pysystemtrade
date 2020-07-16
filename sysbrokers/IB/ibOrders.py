@@ -8,12 +8,24 @@ from sysbrokers.IB.ibFuturesContracts import ibFuturesContractData
 from syscore.objects import missing_order, failure, success, missing_data, arg_not_supplied
 from sysdata.futures.contracts import futuresContract
 from sysdata.fx.spotfx import currencyValue
-from sysexecution.broker_orders import brokerOrderStackData, brokerOrder
+from sysexecution.broker_orders import brokerOrderStackData, brokerOrder, orderWithControls
 from sysexecution.base_orders import  no_order_id, tradeQuantity
 
 
 from syslogdiag.log import logtoscreen
 
+
+class ibOrderWithControls(orderWithControls):
+    def __init__(self, broker_order, control_object):
+        self._order = broker_order
+        self._control_object = control_object
+
+    def update_order(self):
+        original_order = self.order
+        extractable_trade_object = extractedTradeInfo(self.control_object)
+        updated_broker_order = extractable_trade_object.broker_order_with_IB_trade_details(original_order)
+
+        self._order = updated_broker_order
 
 
 class ibOrdersData(brokerOrderStackData):
@@ -73,12 +85,9 @@ class ibOrdersData(brokerOrderStackData):
         """
 
         :param broker_order: key properties are instrument_code, contract_id, quantity
-        :return: placed_broker_order or missing_order
+        :return: ibOrderWithControls or missing_order
         """
-        if broker_order.calendar_spread_order:
-            placed_broker_trade_object = self.put_calendar_leg_order_on_stack(broker_order)
-        else:
-            placed_broker_trade_object = self.put_single_leg_order_on_stack(broker_order)
+        placed_broker_trade_object = self.send_broker_order_to_IB(broker_order)
 
         if placed_broker_trade_object is missing_order:
             return missing_order
@@ -86,48 +95,17 @@ class ibOrdersData(brokerOrderStackData):
         extractable_trade_object = extractedTradeInfo(placed_broker_trade_object,
                                                   instrument_code=broker_order.instrument_code)
         placed_broker_order = extractable_trade_object.broker_order_with_IB_trade_details(broker_order)
+        placed_broker_order.submit_datetime = datetime.datetime.now()
 
         ## We do this so we can cancel stuff and get things back more easily
         storage_key = placed_broker_order.broker_tempid
         self.add_traded_object_to_store(storage_key, extractable_trade_object)
 
-        return placed_broker_order
+        order_with_controls = ibOrderWithControls(placed_broker_order, placed_broker_trade_object)
 
-    def put_single_leg_order_on_stack(self, broker_order):
-        """
+        return order_with_controls
 
-        :param broker_order: key properties are instrument_code, contract_id, quantity
-        :return: int with order ID or missing_order
-
-        """
-
-        log = broker_order.log_with_attributes(self.log)
-        log.msg("Going to submit order %s to IB" % str(broker_order))
-        instrument_code = broker_order.instrument_code
-
-        ## Next two are because we are a single leg order, but both are lists
-        contract_id = broker_order.contract_id[0]
-        trade = broker_order.trade.qty[0]
-
-        order_type = broker_order.order_type
-        limit_price = broker_order.limit_price
-        account = broker_order.broker_account
-
-        contract_object = futuresContract(instrument_code, contract_id)
-        contract_object_with_ib_data = self.futures_contract_data.get_contract_object_with_IB_metadata(contract_object)
-
-        placed_broker_trade_object = self.ibconnection.broker_submit_single_leg_order(contract_object_with_ib_data, trade, account,
-                                                  order_type = order_type,
-                                                  limit_price = limit_price)
-        if placed_broker_trade_object is missing_order:
-            log.warn("Couldn't submit order")
-            return missing_order
-
-        log.msg("Order submitted to IB")
-
-        return placed_broker_trade_object
-
-    def put_calendar_leg_order_on_stack(self, broker_order):
+    def send_broker_order_to_IB(self, broker_order):
         """
 
         :param broker_order: key properties are instrument_code, contract_id, quantity
@@ -150,7 +128,7 @@ class ibOrdersData(brokerOrderStackData):
         contract_object = futuresContract(instrument_code, contract_id)
         contract_object_with_ib_data = self.futures_contract_data.get_contract_object_with_IB_metadata(contract_object)
 
-        placed_broker_trade_object = self.ibconnection.broker_submit_calendar_leg_order(contract_object_with_ib_data, trade_list, account,
+        placed_broker_trade_object = self.ibconnection.broker_submit_order(contract_object_with_ib_data, trade_list, account,
                                                   order_type = order_type,
                                                   limit_price = limit_price)
         if placed_broker_trade_object is missing_order:
@@ -213,6 +191,12 @@ class ibOrdersData(brokerOrderStackData):
 
         return success
 
+    def cancel_order_given_control_object(self, broker_orders_with_controls):
+        original_order_object = broker_orders_with_controls.control_object.trade.order
+        self.ibconnection.ib_cancel_order(original_order_object)
+
+        return success
+
     def check_order_is_cancelled(self, broker_order):
         matched_order = self.match_db_broker_order_to_order_from_brokers(broker_order)
         if matched_order is missing_order:
@@ -222,55 +206,39 @@ class ibOrdersData(brokerOrderStackData):
 
         return cancellation_status
 
-    """
-    The original modification code has been abandoned
+    def check_order_is_cancelled_given_control_object(self, broker_order_with_controls):
+        original_trade_object = broker_order_with_controls.control_object.trade
+        cancellation_status = self.ibconnection.ib_check_order_is_cancelled(original_trade_object)
 
-    However at some point execution algos will need to modify orders: change limit price and cancel
+        return cancellation_status
 
-    This code is left here since some of it will be reused
+    def modify_limit_price_given_control_object(self, broker_order_with_controls, new_limit_price):
+        """
+        NOTE this does not update the internal state of orders, which will retain the original order
 
-    def modify_limit_order_on_stack(self, broker_order, new_limit):
+        :param broker_orders_with_controls:
+        :param new_limit_price:
+        :return:
+        """
+        original_order_object = broker_order_with_controls.control_object.trade.order
+        original_contract_object_with_legs = broker_order_with_controls.control_object.ibcontract_with_legs
+        new_trade_object = self.ibconnection.modify_limit_price_given_original_objects(
+                                                  original_order_object, original_contract_object_with_legs,
+                                                  new_limit_price)
 
-        matched_order = self.match_db_broker_order_to_order_from_brokers(broker_order)
-        if matched_order is missing_order:
-            return failure
+        original_placed_broker_order = broker_order_with_controls.order
+        original_placed_broker_order.limit_price = new_limit_price
 
-        storage_key = broker_order.broker_tempid
-        original_order_object = matched_order.broker_objects['order']
-        original_contract_object = matched_order.broker_objects['contract']
+        extractable_trade_object = extractedTradeInfo(new_trade_object,
+                                                  instrument_code=original_placed_broker_order.instrument_code)
 
-        original_order_object.limitPrice = new_limit
+        ## Update the object in the store
+        storage_key = original_placed_broker_order.broker_tempid
+        self.add_traded_object_to_store(storage_key, extractable_trade_object)
 
-            placed_broker_trade_object = self.ibconnection.\
-                ib_modify_existing_order(original_order_object, original_contract_object)
+        new_order_with_controls = ibOrderWithControls(original_placed_broker_order, new_trade_object)
 
-        ## We do this so we can cancel stuff and get things back more easily
-        self.add_traded_object_to_store(storage_key, placed_broker_trade_object)
-
-        return success
-
-    def cancel_order(self,  broker_order, original_order_object):
-        placed_broker_trade_object = self.ibconnection.ib_cancel_order(original_order_object)
-
-        return placed_broker_trade_object
-
-
-    def check_to_see_if_broker_order_is_modified(self, broker_order):
-
-        #psuedo code is get matched broker order and check traded object limit price
-        # possibly also status messages
-
-        return result
-
-
-    def check_cancelled_order(self, matched_order):
-    # possibly also check status messages if failed
-        traded_object = matched_order.broker_objects['trade_object']
-        if traded_object.orderStatus.status=='Cancelled':
-            return True
-        else:
-            return None
-    """
+        return new_order_with_controls
 
 
 class extractedTradeInfo(object):

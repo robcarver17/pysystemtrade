@@ -373,3 +373,47 @@ class brokerOrderStackData(orderStackData):
                 return order
 
         return missing_order
+
+
+class orderWithControls(object):
+    """
+    An encapsulation of a submitted broker order which includes additional methods for monitoring and controlling the orders progress
+
+
+
+    """
+
+    def __init__(self, broker_order, control_object):
+        self._order = broker_order
+        self._control_object = control_object
+
+    @property
+    def control_object(self):
+        return self._control_object
+
+    @property
+    def order(self):
+        return self._order
+
+    @property
+    def datetime_order_submitted(self):
+        return self.order.submit_datetime
+
+    def seconds_since_submission(self):
+        time_now =datetime.datetime.now()
+        time_elapsed = time_now - self.datetime_order_submitted
+        return time_elapsed.total_seconds()
+
+    def update_order(self):
+        raise NotImplementedError
+
+    @property
+    def current_limit_price(self):
+        current_limit_price = self.order.limit_price
+
+        return current_limit_price
+
+    def completed(self):
+        self.update_order()
+        return self.order.fill_equals_desired_trade()
+

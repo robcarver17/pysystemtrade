@@ -27,7 +27,8 @@ def algo_market(data, contract_order):
 
     data_broker = dataBroker(data)
 
-    broker_order = data_broker.get_and_submit_broker_order_for_contract_order_as_market_order_with_quantity(contract_order, qty_for_broker)
+    broker_order_with_controls = data_broker.get_and_submit_broker_order_for_contract_order_with_quantity(contract_order, qty_for_broker)
+    broker_order = broker_order_with_controls.order
 
     ## Need some kind of keystore for controlling Algos
     ## However as this is a 'fire and forget' algo that just runs once without any permanent thread

@@ -1,7 +1,7 @@
 from copy import copy
 import datetime
 import numpy as np
-from syscore.genutils import are_dicts_equal, none_to_object, object_to_none
+from syscore.genutils import are_dicts_equal, none_to_object, object_to_none, sign
 from syscore.objects import  success,  no_order_id, no_children, no_parent, missing_order
 
 
@@ -57,7 +57,7 @@ class tradeQuantity(object):
         return tradeQuantity([0] * len_self)
 
     def fill_less_than_or_equal_to_desired_trade(self, proposed_fill):
-        return all([x<=y and x*y>=0 for x,y in zip(proposed_fill.qty, self.qty)])
+        return all([abs(x)<=abs(y) and x*y>=0 for x,y in zip(proposed_fill.qty, self.qty)])
 
     def equals_zero(self):
         return all([x == 0 for x in self.qty])
@@ -110,6 +110,47 @@ class tradeQuantity(object):
         if len(self._trade_or_fill_qty)>1:
             return missing_order
         return self._trade_or_fill_qty[0]
+
+    def apply_minima(self, abs_list):
+        ## for each item in _trade and abs_list, return the signed minimum of the zip
+        ## eg if self._trade = [2,-2] and abs_list = [1,1], return [2,-2]
+        applied_list = apply_minima(self._trade_or_fill_qty, abs_list)
+
+        return tradeQuantity(applied_list)
+
+    def get_spread_price(self, list_of_prices):
+        assert len(self._trade_or_fill_qty)==len(list_of_prices)
+
+        if len(self._trade_or_fill_qty)==1:
+            return list_of_prices[0]
+
+        # spread price won't make sense otherwise
+        assert sum(self._trade_or_fill_qty)==0
+
+        sign_to_adjust = sign(self._trade_or_fill_qty[0])
+        multiplied_prices = [x*y*sign_to_adjust for x,y in zip(self._trade_or_fill_qty, list_of_prices)]
+
+        return sum(multiplied_prices)
+
+def apply_minima(trade_list, abs_list):
+    ## for each item in _trade and abs_list, return the signed minimum of the zip
+    ## eg if self._trade = [2,-2] and abs_list = [1,1], return [2,-2]
+    abs_trade_list = [abs(x) for x in trade_list]
+    abs_size_ratio_list = [min([x,y])/float(x) for x,y in zip(abs_trade_list, abs_list)]
+    min_abs_size_ratio = min(abs_size_ratio_list)
+    smallest_abs_leg = min(abs_trade_list)
+    new_smallest_leg = np.floor(smallest_abs_leg *min_abs_size_ratio)
+    ratio_applied = new_smallest_leg / smallest_abs_leg
+    trade_list_with_ratio_as_float = [x*ratio_applied for x in trade_list]
+    trade_list_with_ratio_as_int = [int(x) for x in trade_list_with_ratio_as_float]
+    diff = [abs(x-y) for x,y in zip(trade_list_with_ratio_as_float, trade_list_with_ratio_as_int)]
+    largediff = any([x>0.0001 for x in diff])
+    if largediff:
+        trade_list_with_ratio_as_int = [0]*len(trade_list)
+
+    return trade_list_with_ratio_as_int
+
+
 
 class fillPrice(object):
     def __init__(self, fill_price):
@@ -201,11 +242,11 @@ class Order(object):
         self._filled_price = resolved_filled_price
         self._fill_datetime = fill_datetime
         self._locked = locked
-        self.order_id = order_id
+        self._order_id = order_id
         self._modification_status = modification_status
         self._modification_quantity = modification_quantity
-        self.parent = parent
-        self.children = children
+        self._parent = parent
+        self._children = children
         self._active = active
 
         self._order_info = kwargs
@@ -320,6 +361,19 @@ class Order(object):
 
         self._children = new_children
 
+    @property
+    def remaining(self):
+        return self.trade - self.fill
+
+    def order_with_remaining(self):
+        new_order = copy(self)
+        new_trade = self.remaining
+        new_order._trade = new_trade
+        new_order._fill = new_trade.zero_version()
+        new_order._filled_price = fillPrice.nan_from_trade_qty(new_trade)
+        new_order._fill_datetime = None
+
+        return new_order
 
     @property
     def parent(self):
