@@ -458,11 +458,25 @@ class futuresContractData(baseData):
 
         return result
 
+    def less_than_one_hour_of_trading_leg_for_instrument_code_and_contract_date(self, instrument_code, contract_date):
+        contract_object = futuresContract(instrument_code, contract_date)
+        result = self.less_than_one_hour_of_trading_leg_for_contract(contract_object)
+
+        return result
+
+
     def is_contract_okay_to_trade(self, contract_object):
         trading_hours = self.get_trading_hours_for_contract(contract_object)
         trading_hours_checker = manyTradingStartAndEnd(trading_hours)
 
         return trading_hours_checker.okay_to_trade_now()
+
+    def less_than_one_hour_of_trading_leg_for_contract(self, contract_object):
+        trading_hours = self.get_trading_hours_for_contract(contract_object)
+        trading_hours_checker = manyTradingStartAndEnd(trading_hours)
+
+        return trading_hours_checker.less_than_one_hour_left()
+
 
     def get_trading_hours_for_instrument_code_and_contract_date(self, instrument_code, contract_date):
         contract_object = futuresContract(instrument_code, contract_date)

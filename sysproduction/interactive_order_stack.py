@@ -15,7 +15,7 @@ FIX ME FUTURE:
 """
 
 from syscore.dateutils import get_datetime_input
-from syscore.genutils import get_and_convert, run_interactive_menu
+from syscore.genutils import get_and_convert, run_interactive_menu, print_menu_and_get_response
 
 from sysproduction.data.get_data import dataBlob
 from sysproduction.data.positions import diagPositions
@@ -30,6 +30,7 @@ from sysexecution.stack_handler.balance_trades import stackHandlerCreateBalanceT
 from sysexecution.broker_orders import brokerOrder
 from sysexecution.contract_orders import contractOrder
 from sysexecution.instrument_orders import instrumentOrder, possible_order_types
+from sysexecution.algos.allocate_algo_to_order import list_of_algos
 
 def interactive_order_stack():
     with dataBlob(log_name = "Interactive-Order-Stack") as data:
@@ -258,9 +259,11 @@ def enter_manual_contract_order(data, instrument_order):
         print("Sum of instrument quantity %s is different from sum of contract quantity %s" % (str(qty), str(trade_qty_list)))
         print("It's unlikely you meant to do this...")
 
-    algo_to_use = get_and_convert("Algo to use (Full function eg sysexecution.algos.algo_market.algo_market)",
-                                  type_expected=str, default_str="None: Algo will be allocated automatically",
-                                  default_value="")
+    menu_of_options = dict(enumerate(list_of_algos))
+    algo_idx = print_menu_and_get_response(menu_of_options)
+
+    algo_to_use = list_of_algos[algo_idx]
+
     limit_price = get_and_convert(
         "Limit price? (will override instrument order limit price, will be ignored by some algo types",
         type_expected=float, default_str="None", default_value=None)

@@ -63,6 +63,12 @@ class dataBroker(object):
     def get_brokers_instrument_code(self, instrument_code):
         return self.data.broker_futures_contract.get_brokers_instrument_code(instrument_code)
 
+    def less_than_one_hour_of_trading_leg_for_instrument_code_and_contract_date(self, instrument_code, contract_date):
+        result = self.data.broker_futures_contract.\
+            less_than_one_hour_of_trading_leg_for_instrument_code_and_contract_date(instrument_code, contract_date)
+
+        return  result
+
     def is_instrument_code_and_contract_date_okay_to_trade(self, instrument_code, contract_id):
         check_open = self.data.broker_futures_contract.is_instrument_code_and_contract_date_okay_to_trade(instrument_code, contract_id)
         return check_open
@@ -107,7 +113,7 @@ class dataBroker(object):
         self.data.broker_futures_contract_price.cancel_market_data_for_order(order)
 
 
-    def get_and_submit_broker_order_for_contract_order_with_quantity(self, contract_order, qty,
+    def get_and_submit_broker_order_for_contract_order(self, contract_order,
                                                                                      limit_price = None,
                                                                      order_type = "market"):
 
@@ -118,7 +124,7 @@ class dataBroker(object):
 
         side_prices, mid_prices = self.get_benchmark_prices_for_contract_order_by_leg(contract_order)
 
-        broker_order = create_new_broker_order_from_contract_order(contract_order, qty, order_type=order_type,
+        broker_order = create_new_broker_order_from_contract_order(contract_order, order_type=order_type,
                                                    side_price=side_prices, mid_price=mid_prices,
                                                                    broker=broker, broker_account=broker_account,
                                                                    broker_clientid=broker_clientid,

@@ -118,6 +118,21 @@ class tradeQuantity(object):
 
         return tradeQuantity(applied_list)
 
+    def apply_min_size(self, min_size):
+        """
+        Cut the trade down proportionally so the smallest leg is min_size
+        eg self = [2], min_size = 1 -> [1]
+        self = [-2,2], min_size = 1 -> [-1,1]
+        self = [-2,4,-2], min_size = 1 -> [-1,2,2]
+        self = [-3,4,-3], min_size = 1 -> [-3,4,-3]
+
+        :param min_size:
+        :return: tradeQuantity
+        """
+
+        new_trade_list = apply_min_size(self._trade_or_fill_qty, min_size)
+        return tradeQuantity(new_trade_list)
+
     def get_spread_price(self, list_of_prices):
         assert len(self._trade_or_fill_qty)==len(list_of_prices)
 
@@ -150,6 +165,29 @@ def apply_minima(trade_list, abs_list):
 
     return trade_list_with_ratio_as_int
 
+def apply_min_size(trade_list, min_size):
+    """
+    Cut the trade down proportionally so the smallest leg is min_size
+    eg self = [2], min_size = 1 -> [1]
+    self = [-2,2], min_size = 1 -> [-1,1]
+    self = [-2,4,-2], min_size = 1 -> [-1,2,2]
+    self = [-3,4,-3], min_size = 1 -> [-3,4,-3]
+
+    :param min_size:
+    :return: tradeQuantity
+    """
+    abs_trade_list = [abs(x) for x in trade_list]
+    smallest_abs_leg = min(abs_trade_list)
+    new_smallest_leg = min_size
+    ratio_applied = new_smallest_leg / smallest_abs_leg
+    trade_list_with_ratio_as_float = [x*ratio_applied for x in trade_list]
+    trade_list_with_ratio_as_int = [int(x) for x in trade_list_with_ratio_as_float]
+    diff = [abs(x-y) for x,y in zip(trade_list_with_ratio_as_float, trade_list_with_ratio_as_int)]
+    largediff = any([x>0.0001 for x in diff])
+    if largediff:
+        return trade_list
+
+    return trade_list_with_ratio_as_int
 
 
 class fillPrice(object):
@@ -286,7 +324,6 @@ class Order(object):
         return new_order
 
 
-
     @property
     def fill(self):
         return tradeQuantity(self._fill)
@@ -374,6 +411,16 @@ class Order(object):
         new_order._fill_datetime = None
 
         return new_order
+
+    def order_with_min_size(self, min_size):
+        new_order = copy(self)
+        new_trade = new_order.trade.apply_min_size(min_size)
+        new_order._trade = new_trade
+
+        return new_order
+
+    def set_trade_to_fill(self):
+        self._trade = self._fill
 
     @property
     def parent(self):

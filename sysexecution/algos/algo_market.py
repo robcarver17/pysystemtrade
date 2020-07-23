@@ -20,21 +20,13 @@ def algo_market(data, contract_order):
         log.warn("Simple market algo can only deal with orders that have no existing fill, not %s!" % str(contract_order))
         return missing_order, ""
 
-    qty = contract_order.trade
-
-    ## do full order
-    qty_for_broker = qty
-
     data_broker = dataBroker(data)
 
-    broker_order_with_controls = data_broker.get_and_submit_broker_order_for_contract_order_with_quantity(contract_order, qty_for_broker)
+    broker_order_with_controls = data_broker.get_and_submit_broker_order_for_contract_order(contract_order)
     broker_order = broker_order_with_controls.order
 
-    ## Need some kind of keystore for controlling Algos
-    ## However as this is a 'fire and forget' algo that just runs once without any permanent thread
-    ##   this doesn't matter, except perhaps for some complex case that we don't want to worry about right now
-    ## When we introduce hooks for picking up fills, we're probably going to want to do this properly
-
+    # The algo remains in control until the fills are done, these are picked up elsewhere as this is a fire
+    #    and forget algo
     reference_of_controlling_algo = "algo_market"
 
     return broker_order, reference_of_controlling_algo

@@ -320,7 +320,7 @@ class brokerOrder(contractOrder):
         return list_of_derived_broker_orders
 
 
-def create_new_broker_order_from_contract_order(contract_order, qty, order_type="market",
+def create_new_broker_order_from_contract_order(contract_order, order_type="market",
                                                 limit_price=None,
                                                 submit_datetime = None,
                                                 side_price = None, mid_price = None,
@@ -331,7 +331,7 @@ def create_new_broker_order_from_contract_order(contract_order, qty, order_type=
     if submit_datetime is None:
         submit_datetime = datetime.datetime.now()
 
-    broker_order = brokerOrder(contract_order.key, qty, parent=contract_order.order_id,
+    broker_order = brokerOrder(contract_order.key, contract_order.trade, parent=contract_order.order_id,
                  algo_used=contract_order.algo_to_use, order_type=order_type, limit_price=limit_price,
                  side_price=side_price, mid_price=mid_price,
                  broker=broker, broker_account=broker_account, broker_clientid=broker_clientid,

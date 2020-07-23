@@ -23,7 +23,8 @@ class ibOrderWithControls(orderWithControls):
     def update_order(self):
         original_order = self.order
         extractable_trade_object = extractedTradeInfo(self.control_object)
-        updated_broker_order = extractable_trade_object.broker_order_with_IB_trade_details(original_order)
+        updated_broker_order = extractable_trade_object.\
+            broker_order_from_fill_with_passed_instrument_code(original_order.instrument_code)
 
         self._order = updated_broker_order
 

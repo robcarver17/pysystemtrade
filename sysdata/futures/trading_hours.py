@@ -1,5 +1,7 @@
 import  datetime
 
+from syscore.dateutils import SECONDS_PER_HOUR
+
 class tradingStartAndEnd(object):
     def __init__(self, hour_tuple):
         self._start_time = hour_tuple[0]
@@ -11,6 +13,15 @@ class tradingStartAndEnd(object):
             return True
         else:
             return False
+
+    def less_than_one_hour_left(self):
+        datetime_now = datetime.datetime.now()
+        time_left = self._end_time - datetime_now
+        if time_left.total_seconds()<SECONDS_PER_HOUR:
+            return True
+        else:
+            return False
+
 
 
 
@@ -34,4 +45,13 @@ class manyTradingStartAndEnd(object):
                 return True
         return False
 
+    def less_than_one_hour_left(self):
+        for check_period in self._my_start_and_end:
+            if check_period.okay_to_trade_now():
+                if check_period.less_than_one_hour_left():
+                    return True
+                else:
+                    return False
+
+        return None
 

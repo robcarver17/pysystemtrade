@@ -57,8 +57,15 @@ class stackHandlerCreateBrokerOrders(stackHandlerCore):
             if not market_open:
                 return None
 
+        # We can deal with partially filled contract orders: that's how hard we are!
+        remaining_contract_order = original_contract_order.order_with_remaining()
+
         ## Check the order doesn't breach trade limits
-        contract_order = self.what_contract_trade_is_possible(original_contract_order)
+        contract_order = self.what_contract_trade_is_possible(remaining_contract_order)
+
+        ## Note we don't save the algo method, but reallocate each time
+        ## This is useful if trading is about to finish, because we switch to market orders
+        ##   (assuming a bunch of limit orders haven't worked out so well)
 
         contract_order = check_and_if_required_allocate_algo_to_single_contract_order(self.data, contract_order)
 
@@ -95,6 +102,7 @@ class stackHandlerCreateBrokerOrders(stackHandlerCore):
         # ....create new algo lock
         # This means nobody else can try and execute this order until it is released
         # Only the algo itself can release!
+        # This only applies to 'fire and forget' orders that aren't controlled by an algo
 
         self.contract_stack.add_controlling_algo_ref(contract_order_id, reference_of_controlling_algo)
 
