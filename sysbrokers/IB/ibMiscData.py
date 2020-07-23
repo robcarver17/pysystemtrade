@@ -16,7 +16,7 @@ class ibMiscData(object):
     def get_broker_account(self):
         account_id = get_private_then_default_key_value("broker_account", raise_error=False)
         if account_id is missing_data:
-            return ''
+            return arg_not_supplied
         else:
             return account_id
 

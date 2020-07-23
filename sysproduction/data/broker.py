@@ -233,7 +233,8 @@ class dataBroker(object):
 
 
     def get_list_of_orders(self):
-        list_of_orders = self.data.broker_orders.get_list_of_broker_orders()
+        account_id = self.get_broker_account()
+        list_of_orders = self.data.broker_orders.get_list_of_broker_orders(account_id=account_id)
 
         list_of_orders_with_commission = [self.calculate_total_commission_for_broker_order(broker_order) \
                             for broker_order in list_of_orders]
