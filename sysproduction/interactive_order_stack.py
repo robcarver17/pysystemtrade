@@ -564,14 +564,14 @@ def view_positions(data):
     print("Strategy positions")
     print(ans1.as_pd_df().sort_values("instrument_code"))
     print("\n Contract level positions")
-    print(ans2.as_pd_df().sort_values("instrument_code", "contract_id"))
+    print(ans2.as_pd_df().sort_values("instrument_code", "contract_date"))
     breaks = diag_positions.get_list_of_breaks_between_contract_and_strategy_positions()
     if len(breaks)>0:
         print("\nBREAKS between strategy and contract positions: %s\n" % str(breaks))
     else:
         print("(No breaks positions consistent)")
     print("\n Broker positions")
-    print(ans3.as_pd_df().sort_values("instrument_code", "contract_id"))
+    print(ans3.as_pd_df().sort_values("instrument_code", "contract_date"))
     breaks = data_broker.get_list_of_breaks_between_broker_and_db_contract_positions()
     if len(breaks)>0:
         print("\nBREAKS between broker and DB stored contract positions: %s\n" % str(breaks))
