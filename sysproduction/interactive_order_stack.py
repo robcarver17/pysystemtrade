@@ -66,8 +66,9 @@ nested_menu_of_options = {
                    11: 'Create force roll contract orders',
                     12: 'Create (and try to execute...) IB broker orders',
                     13: 'Balance trade: Create a series of trades and immediately fill them (not actually executed)',
-                    14: 'Manual trade: Create a series of trades to be executed',
-                    15: 'Cash FX trade'},
+                    14: 'Balance instrument trade: Create a trade just at the strategy level and fill (not actually executed)',
+                    15: 'Manual trade: Create a series of trades to be executed',
+                    16: 'Cash FX trade'},
                     2: {
                    20: 'Manually fill broker or contract order',
                     21: 'Get broker fills from IB',
@@ -181,6 +182,31 @@ def create_balance_trade(data):
     stack_handler = stackHandlerCreateBalanceTrades(data)
 
     stack_handler.create_balance_trade(broker_order)
+
+def create_instrument_balance_trade(data):
+    data_broker = dataBroker(data)
+    default_account = data_broker.get_broker_account()
+
+    print("Use to fix breaks between instrument strategy and contract level positions")
+    strategy_name = get_valid_strategy_name_from_user()
+    instrument_code = get_valid_instrument_code_from_user(data)
+    fill_qty = get_and_convert("Quantity ", type_expected=int, allow_default=False)
+    filled_price = get_and_convert("Filled price", type_expected=float, allow_default=False)
+    fill_datetime  =get_datetime_input("Fill datetime", allow_default=True)
+
+    instrument_order = instrumentOrder(strategy_name, instrument_code, fill_qty, fill = fill_qty,
+                 order_type="balance_trade",
+                 filled_price = filled_price, fill_datetime = fill_datetime)
+
+    print(instrument_order)
+    ans = input("Are you sure? (Y/other)")
+    if ans !="Y":
+        return None
+
+    stack_handler = stackHandlerCreateBalanceTrades(data)
+
+    stack_handler.create_balance_instrument_trade(instrument_order)
+
 
 def create_manual_trade(data):
 
@@ -614,8 +640,9 @@ dict_of_functions = {0: order_view,
                      11: generate_force_roll_orders,
                      12: generate_ib_orders,
                      13: create_balance_trade,
-                     14: create_manual_trade,
-                     15: create_fx_trade,
+                     14: create_instrument_balance_trade,
+                     15: create_manual_trade,
+                     16: create_fx_trade,
 
                      20: generate_generic_manual_fill,
                      21: get_fills_from_broker,

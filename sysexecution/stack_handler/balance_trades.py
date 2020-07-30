@@ -71,6 +71,16 @@ class stackHandlerCreateBalanceTrades(stackHandlerForCompletions):
 
         return success
 
+    def create_balance_instrument_trade(self, instrument_order):
+        log = instrument_order.log_with_attributes(self.log)
+        log.msg("Putting balancing on stacks")
+        instrument_order_id = self.instrument_stack.put_manual_order_on_stack(instrument_order)
+
+        log.msg("Marking balancing trades as completed and updating positions and historic order data")
+        self.handle_completed_instrument_order(instrument_order_id)
+
+        return success
+
 def create_balance_contract_order_from_broker_order(broker_order):
     contract_order = contractOrder(broker_order.strategy_name, broker_order.instrument_code, broker_order.contract_id,
                   broker_order.trade, fill = broker_order.fill,

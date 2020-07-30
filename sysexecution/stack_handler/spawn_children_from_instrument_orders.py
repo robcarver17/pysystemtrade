@@ -47,7 +47,8 @@ class stackHandlerForSpawning(stackHandlerCore):
 def spawn_children_from_instrument_order(data, instrument_order):
     spawn_function = function_to_process_instrument(instrument_order.instrument_code)
     list_of_contract_orders = spawn_function(data, instrument_order)
-    list_of_contract_orders = allocate_algo_to_list_of_contract_orders(data, instrument_order, list_of_contract_orders)
+    list_of_contract_orders = allocate_algo_to_list_of_contract_orders(data, list_of_contract_orders,
+                                                                       instrument_order = instrument_order)
 
     return list_of_contract_orders
 

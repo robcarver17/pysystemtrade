@@ -93,7 +93,7 @@ def create_force_roll_orders(data, instrument_code):
     else:
         raise  Exception("Roll state %s not recognised" % roll_state)
 
-    contract_orders = allocate_algo_to_list_of_contract_orders(data, instrument_order, contract_orders)
+    contract_orders = allocate_algo_to_list_of_contract_orders(data,  contract_orders, instrument_order = instrument_order)
 
     return instrument_order, contract_orders
 

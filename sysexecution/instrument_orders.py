@@ -5,7 +5,7 @@ from sysexecution.base_orders import Order, tradeableObject, resolve_trade_fill_
 from syscore.genutils import  none_to_object, object_to_none
 from syscore.objects import missing_order, success, zero_order
 
-possible_order_types = ['best', 'market', 'limit', 'Zero-roll-order']
+possible_order_types = ['best', 'market', 'limit', 'Zero-roll-order', 'balance_trade']
 
 class instrumentTradeableObject(tradeableObject):
     def __init__(self, strategy_name, instrument_code):

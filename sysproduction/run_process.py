@@ -23,6 +23,7 @@ from syscore.objects import process_no_run, process_stop, process_running, succe
 from syslogdiag.echos import redirectOutput
 from syslogdiag.log import logtoscreen
 
+DEBUG = True
 
 class processToRun(object):
     """
@@ -51,8 +52,9 @@ class processToRun(object):
             return failure
 
         self._run_on_start()
-        try:
-            is_running= True
+
+        if DEBUG:
+            is_running = True
             while is_running:
                 we_should_stop = self._check_for_stop()
                 if we_should_stop:
@@ -60,11 +62,23 @@ class processToRun(object):
                     break
                 self._do()
 
-        except Exception as e:
-            self.log.critical(str(e))
-
-        finally:
             self._finish()
+
+        else:
+            try:
+                is_running= True
+                while is_running:
+                    we_should_stop = self._check_for_stop()
+                    if we_should_stop:
+                        is_running = False
+                        break
+                    self._do()
+
+            except Exception as e:
+                self.log.critical(str(e))
+
+            finally:
+                self._finish()
 
         return success
 
