@@ -788,7 +788,7 @@ class _AccountTradingRules(_AccountInstrumentForecast):
 
         # already weighted, don't need to do again
         pandl_by_trading_rule_unweighted = [
-            self.pandl_for_trading_rule(rulename, delayfill)
+            self.pandl_for_trading_rule_unweighted(rulename, delayfill)
             for rulename in variations
         ]
 
