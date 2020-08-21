@@ -160,7 +160,7 @@ class fxPricesData(baseData):
 
         raw_fx_data = self._get_fx_prices_vs_default(currency2)
         if raw_fx_data.empty:
-            self.log.warn("Code %s is missing, needed to get %s" %currency2+DEFAULT_CURRENCY, DEFAULT_CURRENCY+currency2 )
+            self.log.warn("Code %s is missing, needed to get %s" % (currency2+DEFAULT_CURRENCY, DEFAULT_CURRENCY+currency2))
             return raw_fx_data
 
         inverted_fx_data = 1.0 / raw_fx_data
