@@ -1,8 +1,9 @@
 from syscore.objects import fill_exceeds_trade, success, failure, locked_order, duplicate_order, no_order_id, no_children, no_parent, missing_contract, missing_data, rolling_cant_trade, ROLL_PSEUDO_STRATEGY, missing_order, order_is_in_status_reject_modification, order_is_in_status_finished, locked_order, order_is_in_status_modified, resolve_function
 
-
 from sysexecution.stack_handler.stackHandlerCore import stackHandlerCore
+from sysexecution.base_orders import listOfFillPrice
 from sysproduction.data.broker import dataBroker
+
 
 class stackHandlerForFills(stackHandlerCore):
 
@@ -127,17 +128,17 @@ class stackHandlerForFills(stackHandlerCore):
         if len(fill_for_contract)==1:
             ## Not a spread order, trivial
             result = self.instrument_stack.\
-                change_fill_quantity_for_order(instrument_order.order_id, fill_for_contract[0], filled_price=filled_price,
+                change_fill_quantity_for_order(instrument_order.order_id, fill_for_contract, filled_price=filled_price,
                                                fill_datetime=fill_datetime)
         else:
-            ## Spread order
+            ## Spread order: intra-market
             ## Instrument order quantity is either zero (for a roll) or non zero (for a spread)
             if instrument_order.is_zero_trade():
                 ## A roll; meaningless to do this
                 result = success
             else:
                 ## A proper spread order with non zero legs
-                log.critical("Can't handle non-flat spread orders yet! Instrument order %s %s"
+                log.critical("Can't handle non-flat intra-market spread orders yet! Instrument order %s %s"
                                   % (str(instrument_order), str(instrument_order.order_id)))
                 result = failure
 
@@ -148,9 +149,66 @@ class stackHandlerForFills(stackHandlerCore):
         if instrument_order.is_zero_trade():
             ## An inter-market flat spread
             ## Meaningless to do this
-            return success
+            result = success
+            return result
+
+        distributed_order = self.check_to_see_if_distributed_instrument_order(list_of_contract_order_ids, instrument_order)
+
+        if distributed_order:
+            # a distributed order, all orders have the same sign as the instrument order
+            result = self.apply_contract_fill_to_parent_order_distributed_children(list_of_contract_order_ids, instrument_order)
+            return result
+
+        ##  A proper spread trade across markets
+        log.critical("Can't handle inter-market spread orders yet! Instrument order %s %s"
+                          % (str(instrument_order), str(instrument_order.order_id)))
+        return failure
+
+    def check_to_see_if_distributed_instrument_order(self, list_of_contract_order_ids, instrument_order):
+        ## A distributed instrument order is like this: buy 2 EDOLLAR instrument order
+        ##   split into buy 1 202306, buy 1 203209
+
+        contract_orders = [self.contract_stack.get_order_with_id_from_stack(contract_id)
+                           for contract_id in list_of_contract_order_ids]
+
+        trade_instrument_order = instrument_order.trade
+        trade_contract_orders = [order.trade for order in contract_orders]
+
+        matching_signs = [trade.sign_equal(trade_instrument_order) for trade in trade_contract_orders]
+        all_signs_match = all(matching_signs)
+
+        sum_contract_orders = sum(trade_contract_orders)
+        sums_match = sum_contract_orders == trade_instrument_order
+
+        if all_signs_match and sums_match:
+            return True
         else:
-            ## A proper spread trade with non zero legs
-            log.critical("Can't handle inter-market spread orders yet! Instrument order %s %s"
-                              % (str(instrument_order), str(instrument_order.order_id)))
-            return failure
+            return False
+
+    def apply_contract_fill_to_parent_order_distributed_children(self, list_of_contract_order_ids, instrument_order):
+        ## A distributed instrument order is like this: buy 2 EDOLLAR instrument order
+        ##   split into buy 1 202306, buy 1 203209
+
+        ##
+        log = instrument_order.log_with_attributes(self.log)
+
+        contract_orders = [self.contract_stack.get_order_with_id_from_stack(contract_id)
+                           for contract_id in list_of_contract_order_ids]
+
+        ## We apply: total quantity, average price, highest datetime
+
+        list_of_filled_qty = [order.fill for order in contract_orders]
+        list_of_filled_price = listOfFillPrice([order.filled_price for order in contract_orders])
+        list_of_filled_datetime = [order.fill_datetime for order in contract_orders]
+
+        final_fill_datetime = max(list_of_filled_datetime)
+        total_filled_qty = sum(list_of_filled_qty)
+        average_fill_price = list_of_filled_price.average_fill_price()
+
+        result = self.instrument_stack.\
+            change_fill_quantity_for_order(instrument_order.order_id, total_filled_qty, filled_price=average_fill_price,
+                                           fill_datetime=final_fill_datetime)
+
+        return result
+
+

@@ -3,6 +3,7 @@ import datetime
 import numpy as np
 from syscore.genutils import are_dicts_equal, none_to_object, object_to_none, sign
 from syscore.objects import  success,  no_order_id, no_children, no_parent, missing_order
+from syscore.genutils import sign
 
 
 class tradeableObject(object):
@@ -62,6 +63,8 @@ class tradeQuantity(object):
     def equals_zero(self):
         return all([x == 0 for x in self.qty])
 
+    def sign_equal(self, other):
+        return all([sign(x) == sign(y) for x, y in zip(self.qty, other.qty)])
 
     def __len__(self):
         return len(self.qty)
@@ -224,7 +227,15 @@ class fillPrice(object):
     def __len__(self):
         return len(self.price)
 
+class listOfFillPrice(list):
+    def average_fill_price(self):
+        len_items = len(self[0]) ## assume all the same length
+        averages = [self._average_for_item(idx) for idx in range(len_items)]
+        return fillPrice(averages)
 
+    def _average_for_item(self, idx):
+        prices_for_item = [element.price[idx] for element in self]
+        return np.mean(prices_for_item)
 
 def resolve_trade_fill_fillprice(trade, fill, filled_price):
     resolved_trade = tradeQuantity(trade)
