@@ -2,6 +2,8 @@
 Various routines to do with dates
 """
 import datetime
+import time
+import calendar
 import numpy as np
 import pandas as pd
 
@@ -248,6 +250,8 @@ def time_matches(index_entry, closing_time=pd.DateOffset(hours=12, minutes=0, se
 Convert date into a decimal, and back again
 """
 LONG_DATE_FORMAT = "%Y%m%d%H%M%S.%f"
+LONG_TIME_FORMAT = "%H%M%S.%f"
+LONG_JUST_DATE_FORMAT = "%Y%m%d"
 CONVERSION_FACTOR = 10000
 
 def datetime_to_long(date_to_convert):
@@ -258,9 +262,14 @@ def datetime_to_long(date_to_convert):
 def long_to_datetime(int_to_convert):
     as_float = float(int_to_convert)/CONVERSION_FACTOR
     str_to_convert='%.6f' % as_float
-    converted_datetime = datetime.datetime.strptime(str_to_convert, LONG_DATE_FORMAT)
-    return converted_datetime
 
+    ## have to do this because of leap seconds
+    time_string, dot, microseconds = str_to_convert.partition('.')
+    utc_time_tuple = time.strptime(str_to_convert, LONG_DATE_FORMAT)
+    as_datetime = datetime.datetime(1970, 1, 1) + datetime.timedelta(seconds=calendar.timegm(utc_time_tuple))
+    as_datetime= as_datetime.replace(microsecond=datetime.datetime.strptime(microseconds, '%f').microsecond)
+
+    return as_datetime
 
 if __name__ == '__main__':
     import doctest
