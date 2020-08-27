@@ -378,18 +378,35 @@ class brokerOrderStackData(orderStackData):
 class orderWithControls(object):
     """
     An encapsulation of a submitted broker order which includes additional methods for monitoring and controlling the orders progress
+    The control object is a pointer to object(s) that allow us to do various things with the order at the broker end
 
-
-
+    Control objects are broker specific, and some methods need to be implemented by the broker inherited method
     """
 
-    def __init__(self, broker_order, control_object):
+    def __init__(self, broker_order, control_object, ticker_object = None):
         self._order = broker_order
         self._control_object = control_object
+        self._ticker = ticker_object
+
+        # we don't use the broker order time, as it may not be in local TZ
+        self._date_submitted = datetime.datetime.now()
+
+    @property
+    def ticker(self):
+        return self._ticker
+
+    def add_or_replace_ticker(self, new_ticker):
+        self._ticker = new_ticker
+
+    def set_submit_datetime(self, new_submit_datetime):
+        self._order.submit_datetime = new_submit_datetime
 
     @property
     def control_object(self):
         return self._control_object
+
+    def replace_control_object(self, new_control_object):
+        self._control_object = new_control_object
 
     @property
     def order(self):
@@ -397,7 +414,33 @@ class orderWithControls(object):
 
     @property
     def datetime_order_submitted(self):
-        return self.order.submit_datetime
+        return self._date_submitted
+
+    def message_required(self, messaging_frequency = 30):
+        time_elapsed = self.seconds_since_last_message()
+        if time_elapsed>messaging_frequency:
+            self.reset_last_message_time()
+            return True
+
+        return False
+
+
+    def seconds_since_last_message(self):
+        time_now =datetime.datetime.now()
+        time_elapsed = time_now - self.last_message_time
+        return time_elapsed.total_seconds()
+
+
+    @property
+    def last_message_time(self):
+        last_time = getattr(self, "_last_message_time", None)
+        if last_time is None:
+            last_time = self.datetime_order_submitted
+
+        return last_time
+
+    def reset_last_message_time(self):
+        self._last_message_time = datetime.datetime.now()
 
     def seconds_since_submission(self):
         time_now =datetime.datetime.now()
@@ -405,6 +448,7 @@ class orderWithControls(object):
         return time_elapsed.total_seconds()
 
     def update_order(self):
+        ## Update the representation of the order based on the control object
         raise NotImplementedError
 
     @property
@@ -417,3 +461,12 @@ class orderWithControls(object):
         self.update_order()
         return self.order.fill_equals_desired_trade()
 
+    def check_limit_price_consistent(self):
+        broker_limit_price = self.broker_limit_price()
+        if broker_limit_price == self.order.limit_price:
+            return True
+        else:
+            return False
+
+    def broker_limit_price(self):
+        raise NotImplementedError

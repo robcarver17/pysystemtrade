@@ -295,6 +295,9 @@ class contractOrder(Order):
         return self._order_info['reference_of_controlling_algo'] is not None
 
     def add_controlling_algo_ref(self, control_algo_ref):
+        if self.reference_of_controlling_algo == control_algo_ref:
+            ## irrelevant, already controlled
+            return success
         if self.is_order_controlled_by_algo():
             raise Exception("Already controlled by %s" % self.reference_of_controlling_algo)
         self._order_info['reference_of_controlling_algo'] = control_algo_ref

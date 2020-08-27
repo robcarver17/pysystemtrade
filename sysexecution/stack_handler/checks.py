@@ -75,7 +75,7 @@ class stackHandlerChecks(stackHandlerCore):
 
     def check_any_orphan_broker_order(self):
         data_broker = dataBroker(self.data)
-        list_of_broker_orders_to_match = data_broker.get_list_of_orders_for_matching()
+        list_of_broker_orders_to_match = data_broker.get_list_of_orders()
         for broker_order in list_of_broker_orders_to_match:
             self.check_if_orphan_broker_order(broker_order)
 

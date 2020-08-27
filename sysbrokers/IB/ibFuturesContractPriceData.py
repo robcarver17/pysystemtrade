@@ -6,7 +6,7 @@ from syscore.genutils import value_or_npnan, NOT_REQUIRED
 from syscore.objects import missing_data, missing_contract
 
 from sysbrokers.IB.ibFuturesContracts import ibFuturesContractData
-from sysbrokers.IB.ibOrders import sign_from_BS
+from sysbrokers.IB.ib_translate_broker_order_objects import sign_from_BS
 from sysdata.futures.futures_per_contract_prices import futuresContractPriceData, futuresContractPrices
 from sysdata.futures.instruments import futuresInstrument
 
@@ -128,7 +128,7 @@ class ibFuturesContractPriceData(futuresContractPriceData):
                         get_ticker_object(contract_object_with_ib_data,
                             trade_list_for_multiple_legs = trade_list_for_multiple_legs)
 
-        ticker_object = ibTickerObject(ticker_with_bs)
+        ticker_object = ibTickerObject(ticker_with_bs, self.ibconnection)
 
         return ticker_object
 
@@ -192,11 +192,16 @@ class ibFuturesContractPriceData(futuresContractPriceData):
         raise NotImplementedError("Do not use get_contracts_with_price_data with IB")
 
 class ibTickerObject(tickerObject):
-    def __init__(self, ticker_with_BS):
+    def __init__(self, ticker_with_BS, broker_connection):
         ticker = ticker_with_BS.ticker
         BorS = ticker_with_BS.BorS
         qty = sign_from_BS(BorS)
         super().__init__(ticker, qty=qty)
+        self._broker_connection = broker_connection
+
+    def refresh(self):
+        self._broker_connection.refresh()
+
 
     def bid(self):
         return self.ticker.bid

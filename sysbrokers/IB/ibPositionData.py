@@ -26,6 +26,7 @@ class ibContractPositionData(contractPositionData):
         return instrument_code, contract_id
 
     def _get_all_futures_positions_as_raw_list(self, account_id=arg_not_supplied):
+        self.ibconnection.refresh()
         all_positions = self.ibconnection.broker_get_positions(account_id = account_id)
         positions = all_positions.get('FUT', [])
         return positions

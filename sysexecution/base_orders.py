@@ -235,7 +235,14 @@ class listOfFillPrice(list):
 
     def _average_for_item(self, idx):
         prices_for_item = [element.price[idx] for element in self]
+        prices_for_item = [price for price in prices_for_item if not np.isnan(price)]
         return np.mean(prices_for_item)
+
+class listOfFillDatetime(list):
+    def final_fill_datetime(self):
+        valid_dates = [dt for dt in self if dt is not None]
+
+        return max(valid_dates)
 
 def resolve_trade_fill_fillprice(trade, fill, filled_price):
     resolved_trade = tradeQuantity(trade)
@@ -285,6 +292,9 @@ class Order(object):
         self._tradeable_object = tradeableObject(object_name)
 
         resolved_trade, resolved_fill, resolved_filled_price = resolve_trade_fill_fillprice(trade, fill, filled_price)
+
+        if children==[]:
+            children = no_children
 
         self._trade = resolved_trade
         self._fill = resolved_fill

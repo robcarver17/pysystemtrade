@@ -83,6 +83,9 @@ class tickerObject(object):
         self._qty = qty
         self._ticks = []
 
+    def refresh(self):
+        pass
+
     @property
     def reference_tick(self):
         ref = getattr(self, "_reference_tick", empty_tick)
@@ -137,7 +140,9 @@ class tickerObject(object):
     def ask_size(self):
         raise NotImplementedError
 
-    def current_tick(self):
+    def current_tick(self, require_refresh = True):
+        if require_refresh:
+            self.refresh()
         bid = self.bid()
         ask = self.ask()
         bid_size = self.bid_size()
@@ -167,6 +172,7 @@ class tickerObject(object):
         while waiting:
             if timer.finished:
                 return missing_data
+            self.refresh()
             last_bid = self.bid()
             last_ask = self.ask()
             last_bid_is_valid = not np.isnan(last_bid)
@@ -175,7 +181,9 @@ class tickerObject(object):
             if last_bid_is_valid and last_ask_is_valid:
                 break
 
-        return self.current_tick()
+        current_tick = self.current_tick(require_refresh=False)
+
+        return current_tick
 
 
     def adverse_price_movement_vs_reference(self):

@@ -39,6 +39,9 @@ class ibClient(brokerClient):
         ## means our first call won't be throttled for pacing
         self.last_historic_price_calltime = datetime.datetime.now()-  datetime.timedelta(seconds=_PACING_PERIOD_SECONDS)
 
+    def refresh(self):
+        self.ib.sleep(0.00001)
+
     def broker_fx_balances(self):
         account_summary = self.ib.accountSummary()
         fx_balance_dict = extract_fx_balances_from_account_summary(account_summary)
@@ -51,6 +54,7 @@ class ibClient(brokerClient):
 
         :return: list
         """
+        self.refresh()
         trades_in_broker_format = self.ib.trades()
         if account_id is not arg_not_supplied:
             trades_in_broker_format_this_account = [trade for trade in trades_in_broker_format
@@ -354,9 +358,6 @@ class ibClient(brokerClient):
         new_trade_object = self.ib.cancelOrder(original_order_object)
 
         return new_trade_object
-
-    def ib_check_order_is_cancelled(self, original_order_object):
-        return original_order_object.OrderStatus == 'Cancelled'
 
     def ib_submit_order(self, contract_object_with_ib_data, trade_list, account="", order_type = "market",
                                    limit_price=None):
@@ -771,10 +772,12 @@ class ibcontractWithLegs(object):
         self.legs = legs
     def __repr__(self):
         return str(self.ibcontract)+" "+str(self.legs)
+
 class tradeWithContract(object):
     def __init__(self, ibcontract_with_legs, trade_object):
         self.ibcontract_with_legs = ibcontract_with_legs
         self.trade = trade_object
+        self.ib_instrument_code = trade_object.contract.symbol
 
     def __repr__(self):
         return str(self.trade)+" "+str(self.ibcontract_with_legs)

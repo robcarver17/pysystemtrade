@@ -8,10 +8,11 @@ from sysproduction.data.orders import dataOrders
 from sysproduction.data.broker import dataBroker
 from syscore.objects import missing_order, arg_not_supplied
 
-list_of_algos = ["sysexecution.algos.algo_market.algo_market", "sysexecution.algos.algo_original_best.original_best"]
 
-DEFAULT_ALGO = "sysexecution.algos.algo_market.algo_market"
+DEFAULT_ALGO = MARKET_ALGO = "sysexecution.algos.algo_market.algoMarket"
+ORIGINAL_BEST = "sysexecution.algos.algo_original_best.algoOriginalBest"
 
+list_of_algos = [MARKET_ALGO, ORIGINAL_BEST]
 
 def allocate_algo_to_list_of_contract_orders(data, list_of_contract_orders, instrument_order = arg_not_supplied):
     """
@@ -55,11 +56,6 @@ def check_and_if_required_allocate_algo_to_single_contract_order(data, contract_
             return contract_order
 
 
-    contract_order.algo_to_use = DEFAULT_ALGO
-
-    """
-    UNCOMMENT WHEN BEST ALGO TESTED
-
     instrument_order_type = instrument_order.order_type
 
     # not used yet, but maybe in the future
@@ -71,17 +67,16 @@ def check_and_if_required_allocate_algo_to_single_contract_order(data, contract_
 
     if instrument_order_type == 'market':
         log.msg("Market order type, so allocating to algo_market")
-        contract_order.algo_to_use = "sysexecution.algos.algo_market.algo_market"
+        contract_order.algo_to_use = MARKET_ALGO
     elif instrument_order_type == "best":
         if short_of_time:
             log.warn("Short of time, so allocating to algo_market")
-            contract_order.algo_to_use = "sysexecution.algos.algo_market.algo_market"
+            contract_order.algo_to_use = MARKET_ALGO
         else:
             log.msg("'Best' order so allocating to original_best")
-            contract_order.algo_to_use = "sysexecution.algos.algo_original_best.original_best"
+            contract_order.algo_to_use = ORIGINAL_BEST
     else:
         log.warn("Don't recognise order type %s so allocating to default algo_market" % instrument_order_type)
-        contract_order.algo_to_use = "sysexecution.algos.algo_market.algo_market"
-    """
+        contract_order.algo_to_use = DEFAULT_ALGO
 
     return contract_order

@@ -224,7 +224,7 @@ class dataBlob(object):
             if csv_data_paths is arg_not_supplied:
                 raise Exception("Need csv_data_paths dict for class name %s" % class_name)
             datapath = csv_data_paths.get(class_name, "")
-            if datapath is "":
+            if datapath=="":
                 raise Exception("Need to have key %s in csv_data_paths" % class_name)
 
         eval_dict = dict(ib = "%s(self.ib_conn, log=self.log.setup(component='%s'))",
