@@ -245,6 +245,10 @@ class orderStackData(object):
             self.log.warn("Can't apply fill to non existent order %d" % order_id)
             return missing_order
 
+        if existing_order.fill == fill_qty:
+            ## nout to do here
+            return success
+
         log = self.log.setup(strategy_name=existing_order.strategy_name,
                              instrument_code=existing_order.instrument_code,
                              instrument_order_id = order_id)
