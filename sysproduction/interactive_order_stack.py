@@ -121,11 +121,11 @@ def view_generic_stack(stack):
 def view_broker_order_list(data):
     data_broker = dataBroker(data)
     broker_orders = data_broker.get_list_of_orders()
-    print("Orders received from broker API")
+    print("\n\nOrders received from broker API\n")
     for order in broker_orders:
         print(order)
-    print("Stored (orders made in this session):")
-    broker_orders = data_broker.get_list_of_placed_orders()
+    print("\n\nStored (orders made in this session):\n")
+    broker_orders = data_broker.get_list_of_stored_orders()
     for order in broker_orders:
         print(order)
 
@@ -407,16 +407,16 @@ def pass_fills_upwards_from_broker(data):
     stack_handler = stackHandler(data)
 
     print("This will process any fills applied to broker orders and pass them up to contract orders")
-    view_broker_stack(data)
+    view_contract_stack(data)
 
-    broker_order_id = get_and_convert("Which order ID?", default_value="ALL", default_str="for all", type_expected=int)
+    contract_order_id = get_and_convert("Which order ID?", default_value="ALL", default_str="for all", type_expected=int)
     ans = input("Are you sure? (Y/other)")
     if ans !="Y":
         return None
-    if broker_order_id=="ALL":
+    if contract_order_id=="ALL":
         stack_handler.pass_fills_from_broker_up_to_contract()
     else:
-        stack_handler.apply_broker_fill_to_contract_order(broker_order_id)
+        stack_handler.apply_broker_fill_to_contract_order(contract_order_id)
 
     print("If stack process not running, your next job will be to pass fills from contract to instrument")
 

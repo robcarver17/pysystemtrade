@@ -237,7 +237,7 @@ class dataBlob(object):
         try:
             resolved_instance = eval(to_eval)
         except:
-            msg = "Couldn't evaluate %s  This might be because it is missing from sysproduction.data.get_data imports or arguments don't follow pattern" % to_eval
+            msg = "Couldn't evaluate %s This might be because (a) IB gateway not running, or (b) it is missing from sysproduction.data.get_data imports or arguments don't follow pattern" % to_eval
             self.log.critical(msg)
             raise Exception(msg)
 

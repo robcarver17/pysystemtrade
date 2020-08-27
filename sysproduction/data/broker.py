@@ -2,16 +2,21 @@ import datetime
 
 import numpy as np
 
+from collections import namedtuple
 from syscore.objects import missing_data, arg_not_supplied, missing_order
 
 from sysdata.production.current_positions import contractPosition
 
+from sysexecution.base_orders import fillPrice
 from sysexecution.broker_orders import create_new_broker_order_from_contract_order
-from sysexecution.tick_data import analyse_tick_data_frame,empty_tick
+from sysexecution.tick_data import analyse_tick_data_frame
 
 from sysproduction.data.get_data import dataBlob
 from sysproduction.data.positions import diagPositions
 from sysproduction.data.currency_data import currencyData
+
+benchmarkPriceCollection = namedtuple("benchmarkPriceCollection", [
+    'side_price', 'offside_price', 'benchmark_side_prices','benchmark_mid_prices'])
 
 class dataBroker(object):
     def __init__(self, data=arg_not_supplied):
@@ -114,18 +119,35 @@ class dataBroker(object):
 
 
     def get_and_submit_broker_order_for_contract_order(self, contract_order,
-                                                                                     limit_price = None,
-                                                                     order_type = "market"):
+                                                                                     input_limit_price = None,
+                                                                     order_type = "market",
+                                                       limit_price_from="input",
+                                                       ticker_object = None):
+
 
         log = contract_order.log_with_attributes(self.data.log)
         broker = self.get_broker_name()
         broker_account = self.get_broker_account()
         broker_clientid = self.get_broker_clientid()
 
-        side_prices, mid_prices = self.get_benchmark_prices_for_contract_order_by_leg(contract_order)
+        if ticker_object is None:
+            ticker_object = self.get_ticker_object_for_order(contract_order)
+
+        ticker_object, collected_prices = self.get_market_data_for_order(ticker_object, contract_order)
+        if collected_prices is missing_order:
+            # no data available, no can do
+            return missing_order
+
+        if order_type=="limit":
+            limit_price = self.set_limit_price(collected_prices.side_price, collected_prices.offside_price,
+                                               limit_price_from = limit_price_from,
+                                               input_limit_price = input_limit_price)
+        else:
+            limit_price = None
 
         broker_order = create_new_broker_order_from_contract_order(contract_order, order_type=order_type,
-                                                   side_price=side_prices, mid_price=mid_prices,
+                                                   side_price=collected_prices.benchmark_side_prices,
+                                                    mid_price=collected_prices.benchmark_mid_prices,
                                                                    broker=broker, broker_account=broker_account,
                                                                    broker_clientid=broker_clientid,
                                                                    limit_price=limit_price)
@@ -141,6 +163,8 @@ class dataBroker(object):
         log = placed_broker_order_with_controls.order.log_with_attributes(log)
         log.msg("Submitted order to IB %s" % str(placed_broker_order_with_controls.order))
 
+        placed_broker_order_with_controls.add_or_replace_ticker(ticker_object)
+
         return placed_broker_order_with_controls
 
     def get_broker_account(self):
@@ -151,6 +175,81 @@ class dataBroker(object):
 
     def get_broker_name(self):
         return self.data.broker_misc.get_broker_name()
+
+    def get_market_data_for_order(self, ticker_object, contract_order):
+        ## We use prices for a couple of reasons:
+        ##   to provide a benchmark for execution purposes
+        ##   (optionally) to set limit prices
+        ##
+        ## We get prices from two sources:
+        ##   A tick stream in ticker object
+        ##   Historical ticks
+        ##
+        log = contract_order.log_with_attributes(self.data.log)
+
+        ## Get the first 'reference' tick
+        reference_tick = ticker_object.wait_for_valid_bid_and_ask_and_return_current_tick(wait_time_seconds=10)
+
+        # Try and get limit price from ticker
+        # We ignore the limit price given in the contract order: need to create a different order type for those
+        tick_analysis = ticker_object.analyse_for_tick(reference_tick)
+
+        if tick_analysis is missing_data:
+            """
+            Here's a possible solution for markets with no active spread orders, but it has potential problems
+            So probably better to do these as market orders
+
+            ## Get limit price from legs: we use the mid price because the net of offside prices is likely to be somewhat optimistic
+            ## limit_price_from_legs = data_broker.get_net_mid_price_for_contract_order_by_leg(remaining_contract_order)
+
+            #limit_price = limit_price_from_legs
+
+            """
+            log.warn(
+                "Can't get market data for %s so not trading with limit order %s" % (contract_order.instrument_code,
+                                                                                     str(contract_order)))
+            return ticker_object, missing_order
+
+        ticker_object.clear_and_add_reference_as_first_tick(reference_tick)
+
+        ## These prices will be used for limit price purposes
+        ## They are scalars
+        side_price = tick_analysis.side_price
+        offside_price = tick_analysis.offside_price
+        mid_price = tick_analysis.mid_price
+
+        if contract_order.calendar_spread_order:
+            ## For spread orders, we use the tick stream to get the limit price, and the historical ticks for the benchmark
+            ## This is because we benchmark on each individual contract price, and the tick stream is just for the spread
+
+            benchmark_side_prices, benchmark_mid_prices = self.get_benchmark_prices_for_contract_order_by_leg(contract_order)
+
+        else:
+            ## For non spread orders, we use the tick stream to get both the limit prices and the benchmark
+            ## These need to be converted into lists, as the tick stream provides scalars only
+            benchmark_side_price_scalar = side_price
+            benchmark_mid_price_scalar = mid_price
+
+            benchmark_side_prices = [benchmark_side_price_scalar]
+            benchmark_mid_prices = [benchmark_mid_price_scalar]
+
+        collected_prices = benchmarkPriceCollection(side_price, offside_price, benchmark_side_prices, benchmark_mid_prices)
+
+        return ticker_object, collected_prices
+
+
+    def set_limit_price(self, side_price, offside_price, input_limit_price = None, limit_price_from = "input"):
+        assert limit_price_from in ['input', 'side_price', 'offside_price']
+
+        if limit_price_from=="input":
+            assert input_limit_price is not None
+            limit_price = input_limit_price
+        elif limit_price_from == "side_price":
+            limit_price = side_price
+        elif limit_price_from == "offside_price":
+            limit_price = offside_price
+
+        return limit_price
 
     def get_net_mid_price_for_contract_order_by_leg(self, contract_order):
         market_conditions = self.get_market_conditions_for_contract_order_by_leg(contract_order)
@@ -235,29 +334,21 @@ class dataBroker(object):
     def get_list_of_orders(self):
         account_id = self.get_broker_account()
         list_of_orders = self.data.broker_orders.get_list_of_broker_orders(account_id=account_id)
+        list_of_orders_with_commission = self.add_commissions_to_list_of_orders(list_of_orders)
 
+        return list_of_orders_with_commission
+
+    def get_list_of_stored_orders(self):
+        list_of_orders = self.data.broker_orders.get_list_of_orders_from_storage()
+        list_of_orders_with_commission = self.add_commissions_to_list_of_orders(list_of_orders)
+
+        return list_of_orders_with_commission
+
+    def add_commissions_to_list_of_orders(self, list_of_orders):
         list_of_orders_with_commission = [self.calculate_total_commission_for_broker_order(broker_order) \
                             for broker_order in list_of_orders]
 
         return list_of_orders_with_commission
-
-    def get_list_of_orders_for_matching(self):
-        account_id = self.get_broker_account()
-        list_of_orders = self.data.broker_orders.get_list_of_broker_orders_using_external_tempid(account_id=account_id)
-        list_of_orders_with_commission = [self.calculate_total_commission_for_broker_order(broker_order) \
-                            for broker_order in list_of_orders]
-
-        return list_of_orders_with_commission
-
-
-    def get_list_of_placed_orders(self):
-        dict_of_orders = self.data.broker_orders.get_dict_of_orders_from_storage()
-
-        list_of_orders_with_commission = [self.calculate_total_commission_for_broker_order(broker_order) \
-                            for broker_order in dict_of_orders.values()]
-
-        return list_of_orders_with_commission
-
 
     def calculate_total_commission_for_broker_order(self, broker_order):
         """
@@ -294,11 +385,10 @@ class dataBroker(object):
 
         return matched_order
 
-    def cancel_order_given_control_object(self, broker_orders_with_controls):
-        self.data.broker_orders.cancel_order_given_control_object(broker_orders_with_controls)
+    def cancel_order_given_control_object(self, broker_order_with_controls):
+        self.data.broker_orders.cancel_order_given_control_object(broker_order_with_controls)
 
     def cancel_order_on_stack(self, broker_order):
-        account_id = self.get_broker_account()
         result = self.data.broker_orders.cancel_order_on_stack(broker_order)
 
         return result
@@ -312,6 +402,9 @@ class dataBroker(object):
         result = self.data.broker_orders.check_order_is_cancelled_given_control_object(broker_order_with_controls)
 
         return result
+
+    def check_order_can_be_modified_given_control_object(self, broker_order_with_controls):
+        return self.data.broker_orders.check_order_can_be_modified_given_control_object(broker_order_with_controls)
 
     def modify_limit_price_given_control_object(self, broker_order_with_controls, new_limit_price):
         new_order_with_controls = self.data.broker_orders.modify_limit_price_given_control_object(broker_order_with_controls, new_limit_price)
