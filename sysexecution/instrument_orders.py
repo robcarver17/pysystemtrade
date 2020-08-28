@@ -296,17 +296,17 @@ class instrumentOrderStackData(orderStackData):
         log = new_order.log_with_attributes(self.log)
 
         existing_orders = [self.get_order_with_id_from_stack(order_id) for order_id in existing_order_id_list]
-        existing_orders = [existing_order.trade for existing_order in existing_orders]
+        existing_trades = [existing_order.trade for existing_order in existing_orders]
         existing_fills = [existing_order.fill for existing_order in existing_orders]
 
-        net_existing_orders = sum(existing_orders)
+        net_existing_trades = sum(existing_trades)
         net_existing_fills = sum(existing_fills)
-        net_trades_to_execute = net_existing_orders - net_existing_fills
+        net_existing_trades_to_execute = net_existing_trades - net_existing_fills
 
         new_trade = new_order.trade
 
         # can change sign
-        residual_trade = new_trade - net_trades_to_execute
+        residual_trade = new_trade - net_existing_trades_to_execute
         adjusted_order = new_order.replace_trade_only_use_for_unsubmitted_trades(residual_trade)
 
         if adjusted_order.is_zero_trade() and not allow_zero_orders:
