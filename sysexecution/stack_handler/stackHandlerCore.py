@@ -229,14 +229,17 @@ class stackHandlerCore(object):
 
         return result
 
-    def apply_position_change_to_contracts(self, contract_order, total_filled_qty):
+    def apply_position_change_to_contracts(self, contract_order, total_filled_qty, apply_entire_trade = False):
         current_fills = contract_order.fill
 
-        if total_filled_qty==current_fills:
-            ## no change needed here
-            return success
+        if apply_entire_trade:
+            new_fills = current_fills
+        else:
+            if total_filled_qty==current_fills:
+                ## no change needed here
+                return success
 
-        new_fills = total_filled_qty - current_fills
+            new_fills = total_filled_qty - current_fills
 
         position_updater = updatePositions(self.data)
         result = position_updater.update_contract_position_table_with_contract_order(contract_order, new_fills)

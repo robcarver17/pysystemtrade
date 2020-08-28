@@ -164,6 +164,8 @@ class updatePositions(object):
             else:
                 current_position = current_position_object.position
 
+
+
             new_position = current_position + trade_done
 
             self.data.db_contract_position.\

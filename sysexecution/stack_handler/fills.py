@@ -200,14 +200,17 @@ class stackHandlerForFills(stackHandlerCore):
         return result
 
 
-    def apply_position_change_to_instrument(self, instrument_order, total_filled_qty):
+    def apply_position_change_to_instrument(self, instrument_order, total_filled_qty, apply_entire_trade= False):
         current_fill = instrument_order.fill
 
-        if total_filled_qty==current_fill:
-            ## no change needed here
-            return success
+        if apply_entire_trade:
+            new_fill = current_fill
+        else:
+            if total_filled_qty==current_fill:
+                ## no change needed here
+                return success
 
-        new_fill = total_filled_qty - current_fill
+            new_fill = total_filled_qty - current_fill
 
         position_updater = updatePositions(self.data)
         result = position_updater.update_strategy_position_table_with_instrument_order(instrument_order, new_fill)

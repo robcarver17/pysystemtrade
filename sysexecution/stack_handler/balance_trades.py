@@ -4,7 +4,7 @@ from sysexecution.stack_handler.fills import stackHandlerForFills
 from sysexecution.instrument_orders import instrumentOrder
 from sysexecution.contract_orders import contractOrder
 
-class stackHandlerCreateBalanceTrades(stackHandlerForCompletions):
+class stackHandlerCreateBalanceTrades(stackHandlerForCompletions, stackHandlerForFills):
 
     def create_balance_trade(self, broker_order):
         log = broker_order.log_with_attributes(self.log)
@@ -21,9 +21,12 @@ class stackHandlerCreateBalanceTrades(stackHandlerForCompletions):
             self.rollback_balance_trades(instrument_order_id, contract_order_id, broker_order_id)
             return failure
 
+        contract_order.order_id = contract_order_id
+        instrument_order.order_id = instrument_order_id
+
         log.msg("Updating positions")
-        self.apply_position_change_to_contracts(contract_order, contract_order.fill)
-        self.apply_position_change_to_instrument(self, instrument_order, instrument_order.fill)
+        self.apply_position_change_to_contracts(contract_order, contract_order.fill, apply_entire_trade=True)
+        self.apply_position_change_to_instrument( instrument_order, instrument_order.fill, apply_entire_trade=True)
 
         log.msg("Marking balancing trades as completed and historic order data")
         self.handle_completed_instrument_order(instrument_order_id)
@@ -81,8 +84,10 @@ class stackHandlerCreateBalanceTrades(stackHandlerForCompletions):
         log.msg("Putting balancing on stacks")
         instrument_order_id = self.instrument_stack.put_manual_order_on_stack(instrument_order)
 
+        instrument_order.order_id = instrument_order_id
+
         log.msg("Marking balancing trades as completed and updating positions and historic order data")
-        self.apply_position_change_to_instrument(self, instrument_order, instrument_order.fill)
+        self.apply_position_change_to_instrument(instrument_order, instrument_order.fill, apply_entire_trade=True)
         self.handle_completed_instrument_order(instrument_order_id)
 
         return success
