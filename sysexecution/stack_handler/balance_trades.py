@@ -1,5 +1,6 @@
 from syscore.objects import failure, success, missing_order
 from sysexecution.stack_handler.completed_orders import stackHandlerForCompletions
+from sysexecution.stack_handler.fills import stackHandlerForFills
 from sysexecution.instrument_orders import instrumentOrder
 from sysexecution.contract_orders import contractOrder
 
@@ -20,7 +21,11 @@ class stackHandlerCreateBalanceTrades(stackHandlerForCompletions):
             self.rollback_balance_trades(instrument_order_id, contract_order_id, broker_order_id)
             return failure
 
-        log.msg("Marking balancing trades as completed and updating positions and historic order data")
+        log.msg("Updating positions")
+        self.apply_position_change_to_contracts(contract_order, contract_order.fill)
+        self.apply_position_change_to_instrument(self, instrument_order, instrument_order.fill)
+
+        log.msg("Marking balancing trades as completed and historic order data")
         self.handle_completed_instrument_order(instrument_order_id)
 
         return success
