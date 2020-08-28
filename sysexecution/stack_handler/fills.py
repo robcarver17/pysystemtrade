@@ -3,7 +3,7 @@ from syscore.objects import fill_exceeds_trade, success, failure, locked_order, 
 from sysexecution.stack_handler.stackHandlerCore import stackHandlerCore
 from sysexecution.base_orders import listOfFillPrice
 from sysproduction.data.broker import dataBroker
-
+from sysproduction.data.positions import updatePositions
 
 class stackHandlerForFills(stackHandlerCore):
 
@@ -100,9 +100,8 @@ class stackHandlerForFills(stackHandlerCore):
         fill_datetime = contract_order.fill_datetime
         if len(fill_for_contract)==1:
             ## Not a spread order, trivial
-            result = self.instrument_stack.\
-                change_fill_quantity_for_order(instrument_order.order_id, fill_for_contract, filled_price=filled_price,
-                                               fill_datetime=fill_datetime)
+            result = self.fill_for_instrument_in_database(instrument_order, fill_for_contract, filled_price, fill_datetime)
+
         else:
             ## Spread order: intra-market
             ## Instrument order quantity is either zero (for a roll) or non zero (for a spread)
@@ -183,9 +182,35 @@ class stackHandlerForFills(stackHandlerCore):
         total_filled_qty = sum(list_of_filled_qty)
         average_fill_price = list_of_filled_price.average_fill_price()
 
+        result = self.fill_for_instrument_in_database(instrument_order, total_filled_qty,
+                                                      average_fill_price,
+                                           final_fill_datetime)
+
+        return result
+
+    def fill_for_instrument_in_database(self, instrument_order, fill_qty, fill_price, fill_datetime):
+
+        # if fill has changed then update positions
+        self.apply_position_change_to_instrument(instrument_order, fill_qty)
+
         result = self.instrument_stack.\
-            change_fill_quantity_for_order(instrument_order.order_id, total_filled_qty, filled_price=average_fill_price,
-                                           fill_datetime=final_fill_datetime)
+                change_fill_quantity_for_order(instrument_order.order_id, fill_qty, filled_price=fill_price,
+                                               fill_datetime=fill_datetime)
+
+        return result
+
+
+    def apply_position_change_to_instrument(self, instrument_order, total_filled_qty):
+        current_fill = instrument_order.fill
+
+        if total_filled_qty==current_fill:
+            ## no change needed here
+            return success
+
+        new_fill = total_filled_qty - current_fill
+
+        position_updater = updatePositions(self.data)
+        result = position_updater.update_strategy_position_table_with_instrument_order(instrument_order, new_fill)
 
         return result
 

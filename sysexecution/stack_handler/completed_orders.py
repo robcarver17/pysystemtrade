@@ -2,7 +2,6 @@
 from syscore.objects import missing_order, success, failure, locked_order, duplicate_order, no_order_id, no_children, no_parent, missing_contract, missing_data, rolling_cant_trade, ROLL_PSEUDO_STRATEGY, missing_order, order_is_in_status_reject_modification, order_is_in_status_finished, locked_order, order_is_in_status_modified, resolve_function
 
 from sysexecution.stack_handler.stackHandlerCore import stackHandlerCore
-from sysproduction.data.positions import updatePositions
 from sysproduction.data.orders import dataOrders
 
 class stackHandlerForCompletions(stackHandlerCore):
@@ -53,10 +52,6 @@ class stackHandlerForCompletions(stackHandlerCore):
         # Make orders inactive
         # A subsequent process will delete them
         self.deactivate_family_of_orders(instrument_order_id, list_of_contract_order_id, list_of_broker_order_id)
-
-        # update positions
-        position_updater = updatePositions(self.data)
-        position_updater.update_positions_with_instrument_and_contract_orders(instrument_order, contract_order_list)
 
         # Update historic order database
         order_data = dataOrders(self.data)

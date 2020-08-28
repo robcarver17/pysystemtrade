@@ -245,12 +245,6 @@ class instrumentOrderStackData(orderStackData):
 
         return order_id_or_error
 
-    def does_strategy_and_instrument_already_have_order_on_stack(self, strategy_name, instrument_code):
-        pseudo_order = instrumentOrder(strategy_name, instrument_code, 0)
-        existing_orders = self._get_order_with_same_tradeable_object_on_stack(pseudo_order)
-        if existing_orders is missing_order:
-            return False
-        return True
 
     def put_order_on_stack(self, new_order, allow_zero_orders=False):
         """
@@ -272,6 +266,14 @@ class instrumentOrderStackData(orderStackData):
                                                         allow_zero_orders=allow_zero_orders)
         return result
 
+    def does_strategy_and_instrument_already_have_order_on_stack(self, strategy_name, instrument_code):
+        pseudo_order = instrumentOrder(strategy_name, instrument_code, 0)
+        existing_orders = self._get_order_with_same_tradeable_object_on_stack(pseudo_order)
+        if existing_orders is missing_order:
+            return False
+        return True
+
+
     def _put_new_order_on_stack_when_no_existing_order(self, new_order, allow_zero_orders=False):
         log = new_order.log_with_attributes(self.log)
 
@@ -286,7 +288,7 @@ class instrumentOrderStackData(orderStackData):
 
     def _put_adjusting_order_on_stack(self, new_order, existing_order_id_list, allow_zero_orders=False):
         """
-        Considering the order already on the stack place an additional adjusting order
+        Considering the unfilled orders already on the stack place an additional adjusting order
 
         :param new_order:
         :return:
@@ -294,12 +296,17 @@ class instrumentOrderStackData(orderStackData):
         log = new_order.log_with_attributes(self.log)
 
         existing_orders = [self.get_order_with_id_from_stack(order_id) for order_id in existing_order_id_list]
-        existing_trades = [existing_order.trade for existing_order in existing_orders]
-        net_existing_trades = sum(existing_trades)
+        existing_orders = [existing_order.trade for existing_order in existing_orders]
+        existing_fills = [existing_order.fill for existing_order in existing_orders]
+
+        net_existing_orders = sum(existing_orders)
+        net_existing_fills = sum(existing_fills)
+        net_trades_to_execute = net_existing_orders - net_existing_fills
+
         new_trade = new_order.trade
 
         # can change sign
-        residual_trade = new_trade - net_existing_trades
+        residual_trade = new_trade - net_trades_to_execute
         adjusted_order = new_order.replace_trade_only_use_for_unsubmitted_trades(residual_trade)
 
         if adjusted_order.is_zero_trade() and not allow_zero_orders:
