@@ -82,6 +82,7 @@ class stackHandlerCreateBalanceTrades(stackHandlerForCompletions):
         instrument_order_id = self.instrument_stack.put_manual_order_on_stack(instrument_order)
 
         log.msg("Marking balancing trades as completed and updating positions and historic order data")
+        self.apply_position_change_to_instrument(self, instrument_order, instrument_order.fill)
         self.handle_completed_instrument_order(instrument_order_id)
 
         return success
