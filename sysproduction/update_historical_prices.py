@@ -95,7 +95,7 @@ def get_and_add_prices_for_frequency(data, log, contract_object, frequency="D"):
                 contract_object)
             log.warn(msg)
             try:
-                send_mail_msg(data, msg, "Price Spike")
+                send_mail_msg(msg, "Price Spike")
             except:
                 log.warn("Couldn't send email about price spike for %s" % str(contract_object))
 

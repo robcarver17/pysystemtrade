@@ -55,7 +55,7 @@ def run_report_with_data_blob(report_config, data):
     if report_config.output is "console":
         print(parsed_report)
     elif report_config.output is "email":
-        send_mail_msg(data, parsed_report, subject = report_config.title)
+        send_mail_msg(parsed_report, subject = report_config.title)
 
     return report_result
 

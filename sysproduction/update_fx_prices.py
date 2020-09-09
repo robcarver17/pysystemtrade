@@ -53,7 +53,7 @@ def update_fx_prices_for_code(fx_code, data):
         msg = "Spike found in prices for %s: need to manually check by running interactive_manual_check_fx_prices" % str(fx_code)
         data.log.warn(msg)
         try:
-            send_mail_msg(data, msg, "FX Price Spike")
+            send_mail_msg(msg, "FX Price Spike")
         except:
             data.log.warn("Couldn't send email about price spike")
 
