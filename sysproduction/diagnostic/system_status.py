@@ -20,7 +20,7 @@ from sysproduction.data.currency_data import get_list_of_fxcodes, currencyData
 from sysproduction.data.prices import diagPrices
 from sysproduction.data.positions import diagPositions
 
-from syslogdiag.log import accessLogFromMongodb
+from sysproduction.data.logs import diagLogs
 
 
 def system_status(data =arg_not_supplied):
@@ -296,7 +296,7 @@ def get_control_data_for_single_ordinary_method(data, method_name_and_process):
 short_date_string = '%m/%d %H:%M'
 
 def get_last_run_or_heartbeat(data, attr_dict):
-    log_data = accessLogFromMongodb(data.mongo_db)
+    log_data = diagLogs(data)
     last_run_or_heartbeat = log_data.find_last_entry_date(attr_dict)
     if last_run_or_heartbeat is missing_data:
         last_run_or_heartbeat = "00/00 Never run"
@@ -306,7 +306,6 @@ def get_last_run_or_heartbeat(data, attr_dict):
     return last_run_or_heartbeat
 
 def get_control_data_list_for_strategy_processes(data):
-    log_data = accessLogFromMongodb(data.mongo_db)
     list_of_processes = get_process_with_strategies(data)
     list_of_strategies = get_list_of_strategies()
     all_cd_list = []

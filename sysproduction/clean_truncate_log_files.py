@@ -1,4 +1,4 @@
-from syslogdiag.log import accessLogFromMongodb
+from sysproduction.data.logs import diagLogs
 from sysproduction.data.get_data import dataBlob
 
 def clean_truncate_log_files():
@@ -12,7 +12,7 @@ class cleanTruncateLogFiles():
         self.data = data
 
     def clean_log_files(self):
-        mlog = accessLogFromMongodb()
+        mlog = diagLogs(self.data)
         self.data.log.msg("Deleting log items more than 30 days old")
         mlog.delete_log_items_from_before_n_days(days=365)
 

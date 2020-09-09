@@ -6,10 +6,8 @@ from syscore.objects import success, failure,  missing_data, arg_not_supplied
 from syscore.dateutils import get_datetime_input
 from syscore.genutils import get_and_convert
 
-from sysdata.mongodb.mongo_connection import mongoDb
 from sysproduction.data.get_data import dataBlob
 from sysproduction.data.capital import dataCapital
-from syslogdiag.log import logToMongod as logger
 
 
 def interactive_update_capital_manual():
@@ -80,12 +78,11 @@ def print_capital_and_get_user_input(capital_data):
         try:
             user_option_int = int(user_option)
             assert user_option_int in option_keys
+            invalid_input = False
+            break
         except:
             input("\n%s is not a valid option: press return to continue" % str(user_option))
             continue
-
-        invalid_input = False
-        break
 
     return user_option_int
 

@@ -13,7 +13,6 @@ from sysproduction.data.broker import dataBroker
 from sysproduction.data.contracts import diagContracts
 from sysdata.futures.manual_price_checker import manual_price_checker
 from sysdata.futures.futures_per_contract_prices import futuresContractPrices
-from syslogdiag.log import logToMongod as logger
 
 
 def interactive_manual_check_historical_prices(instrument_code:str):
@@ -35,7 +34,7 @@ def interactive_manual_check_historical_prices(instrument_code:str):
     return success
 
 
-def update_historical_prices_with_checks_for_instrument(instrument_code, data, log=logger("")):
+def update_historical_prices_with_checks_for_instrument(instrument_code, data, log):
     """
     Do a daily update for futures contract prices, using IB historical data
 
@@ -60,7 +59,7 @@ def update_historical_prices_with_checks_for_instrument(instrument_code, data, l
 
     return success
 
-def update_historical_prices_with_checks_for_instrument_and_contract(contract_object, data, log=logger("")):
+def update_historical_prices_with_checks_for_instrument_and_contract(contract_object, data, log):
     """
     Do a daily update for futures contract prices, using IB historical data, with checking
 
@@ -77,6 +76,7 @@ def update_historical_prices_with_checks_for_instrument_and_contract(contract_ob
     return success
 
 def get_and_check_prices_for_frequency(data, log, contract_object, frequency="D"):
+
     broker_data  = dataBroker(data)
     price_data = diagPrices(data)
     price_updater = updatePrices(data)

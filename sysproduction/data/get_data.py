@@ -45,6 +45,7 @@ from sysdata.mongodb.mongo_override import mongoOverrideData
 from sysdata.mongodb.mongo_trade_limits import mongoTradeLimitData
 from sysdata.mongodb.mongo_lock_data import mongoLockData
 from sysdata.mongodb.mongo_process_control import mongoControlProcessData
+from sysdata.mongodb.mongo_log import mongoLogData
 
 from sysdata.mongodb.mongo_connection import mongoDb
 
@@ -53,7 +54,7 @@ from sysdata.arctic.arctic_spotfx_prices import arcticFxPricesData
 
 from sysdata.mongodb.mongo_connection import mongoDb
 
-from syslogdiag.log import logToMongod as logger
+from sysdata.mongodb.mongo_log import logToMongod as logger
 from syscore.objects import arg_not_supplied, success, failure
 
 
@@ -134,9 +135,6 @@ class dataBlob(object):
         if self._mongo_db is not arg_not_supplied:
             self.mongo_db.close()
 
-
-
-
     @property
     def ib_conn(self):
         ib_conn = getattr(self, "_ib_conn", arg_not_supplied)
@@ -159,7 +157,7 @@ class dataBlob(object):
     def log(self):
         log = getattr(self, "_log", arg_not_supplied)
         if log is arg_not_supplied:
-            log = logger(self._log_name, mongo_db = self.mongo_db)
+            log = logger(self._log_name, data = self, mongo_db = self.mongo_db)
             log.set_logging_level("on")
             self._log = log
 

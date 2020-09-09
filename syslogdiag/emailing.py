@@ -22,10 +22,11 @@ def send_mail_file(textfile, subject):
     _send_msg(msg)
 
 
-def send_mail_msg(body, subject):
+def send_mail_msg(data, body, subject):
     """
     Sends an email of particular text file with subject line
 
+    # USE DATA FOR EMAILING REGISTER
     """
 
     # Create a text/plain message
@@ -88,7 +89,3 @@ def get_email_details():
 
     return email_server, email_address, email_pwd
 
-
-
-if __name__ == "__main__":
-    send_mail_msg("testing", "test subject")

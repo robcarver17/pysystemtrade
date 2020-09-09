@@ -3,11 +3,8 @@ from sysbrokers.IB.ibConnection import connectionIB
 
 from syscore.objects import success, failure
 
-from sysdata.mongodb.mongo_connection import mongoDb
 from sysproduction.data.get_data import dataBlob
 from sysproduction.data.capital import dataCapital
-from syslogdiag.log import logToMongod as logger
-from syslogdiag.emailing import send_mail_msg
 
 
 def update_total_capital():
