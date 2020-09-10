@@ -46,10 +46,10 @@ from sysdata.mongodb.mongo_trade_limits import mongoTradeLimitData
 from sysdata.mongodb.mongo_lock_data import mongoLockData
 from sysdata.mongodb.mongo_process_control import mongoControlProcessData
 from sysdata.mongodb.mongo_log import mongoLogData
+from sysdata.mongodb.mongo_email_control import mongoEmailControlData
 
 from sysdata.mongodb.mongo_connection import mongoDb
 
-from sysdata.arctic.arctic_spotfx_prices import arcticFxPricesData
 
 
 from sysdata.mongodb.mongo_connection import mongoDb

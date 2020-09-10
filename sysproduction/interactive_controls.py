@@ -6,7 +6,7 @@ from sysproduction.data.get_data import dataBlob
 from sysproduction.data.controls import diagOverrides, updateOverrides, dataTradeLimits, diagProcessConfig, dataControlProcess
 from sysproduction.data.prices import get_valid_instrument_code_from_user
 from sysproduction.data.strategies import get_valid_strategy_name_from_user, get_list_of_strategies
-
+from sysproduction.diagnostic.emailing import retrieve_and_delete_stored_messages
 
 def interactive_controls():
     with dataBlob(log_name = "Interactive-Controls") as data:
@@ -42,7 +42,9 @@ nested_menu_of_options = {
                     2: {20: 'View process controls and status',
                         21: 'Change status of process control (STOP/GO/NO RUN)',
                         22: 'View process configuration (set in YAML, cannot change here)',
-                        23: 'Mark process as finished'}}
+                        23: 'Mark process as finished',
+                        24: 'Retrieve stored email messages'
+                        }}
 
 
 
@@ -198,8 +200,16 @@ def finish_process(data):
     data_control = dataControlProcess(data)
     data_control.finish_process(process_name)
 
+def retrieve_emails(data):
+    subject = get_and_convert("Subject of emails (copy from emails)?",
+                              type_expected=str, allow_default=True, default_value=None)
+    messages = retrieve_and_delete_stored_messages(data, subject=subject)
+    for msg in messages:
+        print(msg)
+
 def not_defined(data):
     print("\n\nFunction not yet defined\n\n")
+
 
 dict_of_functions = {0: view_trade_limits,
                          1: change_limit_for_instrument,
@@ -215,5 +225,6 @@ dict_of_functions = {0: view_trade_limits,
                      20: view_process_controls,
                      21: change_process_control_status,
                      22: view_process_config,
-                     23: finish_process}
+                     23: finish_process,
+                     24: retrieve_emails}
 
