@@ -1,10 +1,7 @@
 from copy import copy
 import datetime
 
-from sysdata.mongodb.mongo_connection import mongoConnection, MONGO_ID_KEY
 from syscore.dateutils import long_to_datetime, datetime_to_long
-from syscore.objects import missing_data
-from syslogdiag.emailing import send_mail_msg
 
 
 class logger(object):
@@ -312,7 +309,6 @@ class logEntry(object):
         :return: logEntry object
         """
         log_dict = copy(log_dict_input)
-        log_dict.pop(MONGO_ID_KEY)
         log_timestamp_aslong = log_dict.pop(TIMESTAMP_ID)
         msg_level = log_dict.pop(LEVEL_ID)
         text = log_dict.pop(TEXT_ID)

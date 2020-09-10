@@ -22,7 +22,7 @@ def send_mail_file(textfile, subject):
     _send_msg(msg)
 
 
-def send_mail_msg(body, subject):
+def send_mail_msg( body, subject):
     """
     Sends an email of particular text file with subject line
 

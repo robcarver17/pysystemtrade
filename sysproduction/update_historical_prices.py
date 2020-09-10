@@ -9,7 +9,7 @@ from sysproduction.data.get_data import dataBlob
 from sysproduction.data.prices import diagPrices, updatePrices
 from sysproduction.data.broker import dataBroker
 from sysproduction.data.contracts import diagContracts
-from syslogdiag.emailing import send_mail_msg
+from sysproduction.diagnostic.emailing import send_production_mail_msg
 
 
 def update_historical_prices():
@@ -95,7 +95,7 @@ def get_and_add_prices_for_frequency(data, log, contract_object, frequency="D"):
                 contract_object)
             log.warn(msg)
             try:
-                send_mail_msg(msg, "Price Spike")
+                send_production_mail_msg(data, msg, "Price Spike %s" % contract_object.instrument_code)
             except:
                 log.warn("Couldn't send email about price spike for %s" % str(contract_object))
 

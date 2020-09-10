@@ -1,9 +1,14 @@
 import datetime
 
 from sysdata.mongodb.mongo_connection import mongoConnection
-from syscore.dateutils import datetime_to_long
-from syslogdiag.log import logEntry, TIMESTAMP_ID
+from sysdata.mongodb.mongo_connection import  MONGO_ID_KEY
+from syscore.dateutils import long_to_datetime, datetime_to_long
+
+from syslogdiag.log import logEntry, TIMESTAMP_ID, LEVEL_ID, TEXT_ID, LOG_RECORD_ID
 from syslogdiag.database_log import logToDb, logData
+from copy import copy
+import datetime
+
 
 LOG_COLLECTION_NAME = "Logs"
 EMAIL_ON_LOG_LEVEL = [4]
@@ -67,14 +72,13 @@ class mongoLogData(logData):
         results_list = [single_log_dict for single_log_dict in result_dict]
 
         # ... to list of log entries
-        results = [logEntry.log_entry_from_dict(single_log_dict)
+        results = [mongoLogEntry.log_entry_from_dict(single_log_dict)
                                            for single_log_dict in results_list]
 
         # sort by log ID
         results.sort(key=lambda x: x._log_id)
 
         return results
-
 
     def delete_log_items_from_before_n_days(self, days=365):
         # need something to delete old log records, eg more than x months ago
@@ -86,3 +90,29 @@ class mongoLogData(logData):
         attribute_dict[TIMESTAMP_ID] = timestamp_dict
 
         self._mongo.collection.remove(attribute_dict)
+
+
+class mongoLogEntry(logEntry):
+    @classmethod
+    def log_entry_from_dict(logEntry, log_dict_input):
+        """
+        Starting with the dictionary representation, recover the original logEntry
+
+        :param log_dict: dict, as per logEntry.log_dict()
+        :return: logEntry object
+        """
+        log_dict = copy(log_dict_input)
+        log_dict.pop(MONGO_ID_KEY)
+        log_timestamp_aslong = log_dict.pop(TIMESTAMP_ID)
+        msg_level = log_dict.pop(LEVEL_ID)
+        text = log_dict.pop(TEXT_ID)
+        log_id = log_dict.pop(LOG_RECORD_ID)
+        input_attributes = log_dict
+
+        log_timestamp = long_to_datetime(log_timestamp_aslong)
+
+        log_entry = logEntry(text, log_timestamp=log_timestamp,
+                             msglevel=msg_level, input_attributes=input_attributes, log_id=log_id)
+
+        return log_entry
+

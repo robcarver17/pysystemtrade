@@ -1,12 +1,12 @@
 
 from syscore.objects import missing_data
-from syslogdiag.emailing import send_mail_msg
 from syslogdiag.log import logger, logEntry
+
+from sysproduction.diagnostic.emailing import send_production_mail_msg
 
 LOG_COLLECTION_NAME = "Logs"
 EMAIL_ON_LOG_LEVEL = [4]
 
-## should be another layer that interacts with the mongo database directly?
 
 class logToDb(logger):
     """
@@ -40,14 +40,18 @@ class logToDb(logger):
         raise NotImplementedError
 
     def email_user(self, log_entry):
+        data = self.data
         try:
-            send_mail_msg( str(log_entry), "*CRITICAL ERROR*")
+            send_production_mail_msg(data, str(log_entry), "*CRITICAL ERROR*")
         except:
             self.error("Couldn't email user")
 
 
 class logData(object):
     def __init__(self):
+        pass
+
+    def get_log_items_with_level(self, attribute_dict=dict(), lookback_days=1):
         pass
 
     def get_log_items(self, attribute_dict=dict(), lookback_days=1):
@@ -97,3 +101,4 @@ class logData(object):
         # need something to delete old log records, eg more than x months ago
 
         raise NotImplementedError
+
