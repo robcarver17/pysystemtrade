@@ -12,12 +12,18 @@ def send_production_mail_msg(data, body, subject, report = False):
     send_email = can_we_send_this_email_now(data, subject, report = report)
 
     if send_email:
-        record_date_of_email_send(data, subject)
-        send_mail_msg(body, subject)
-    else:
-        ## won't send an email to avoid clogging up the inbox
-        ## but will send one more to tell the user to check the logs of stored emails
-        store_and_warn_email(data, body, subject)
+
+        try:
+            send_mail_msg(body, subject)
+            record_date_of_email_send(data, subject)
+            return None
+        except:
+            # problem sending emails will store instead
+            pass
+
+    ## won't send an email to avoid clogging up the inbox
+    ## but will send one more to tell the user to check the logs of stored emails
+    store_and_warn_email(data, body, subject)
 
 
 def can_we_send_this_email_now(data, subject, report = False):
@@ -62,7 +68,7 @@ def check_if_sent_in_last_day(last_time_email_sent):
 
 
 def send_warning_email(subject):
-    send_mail_msg("To reduce email load, won't send any more emails with this subject today", subject)
+    send_mail_msg("To reduce email load, won't send any more emails with this subject today. Use interactive_controls, retrieve emails to see stored messages", subject)
 
 
 def get_time_last_email_sent_with_this_subject(data, subject):
