@@ -8,6 +8,7 @@ For a given process:
  - have I run today and finished running?
 """
 import datetime
+import os
 
 from sysdata.data import baseData
 from syscore.objects import success, failure, process_no_run, process_stop, process_running, missing_data
@@ -17,15 +18,20 @@ from syslogdiag.log import logtoscreen
 go_status = "GO"
 no_run_status = "NO-RUN"
 stop_status = "STOP"
+default_id = "?"
+no_id = "None"
+
 possible_status = [go_status, no_run_status, stop_status]
 
 class controlProcess(object):
-    def __init__(self, last_start_time=None, last_end_time=None, currently_running=False, status = "GO"):
+    def __init__(self, last_start_time=None, last_end_time=None, currently_running=False, status = "GO",
+                 process_id = default_id):
         assert status in possible_status
         self._last_start_time = last_start_time
         self._last_end_time = last_end_time
         self._currently_running = currently_running
         self._status = status
+        self._process_id = process_id
 
     def __repr__(self):
         if self.currently_running:
@@ -34,6 +40,9 @@ class controlProcess(object):
             run_string = "not running"
         return "Last started %s Last ended %s is %s, status %s" % (self.last_start_time, self.last_end_time, run_string, self.status)
 
+    @property
+    def process_id(self):
+        return self._process_id
 
     @property
     def last_start_time(self):
@@ -53,7 +62,8 @@ class controlProcess(object):
 
     def as_dict(self):
         output = dict(last_start_time = self.last_start_time, last_end_time = self.last_end_time,
-                      status = self.status, currently_running = self.currently_running)
+                      status = self.status, currently_running = self.currently_running,
+                      process_id = self.process_id)
 
         return output
 
@@ -86,6 +96,7 @@ class controlProcess(object):
 
         self._last_start_time = datetime.datetime.now()
         self._currently_running = True
+        self._process_id = os.getpid()
 
         return success
 
@@ -100,6 +111,7 @@ class controlProcess(object):
 
         self._last_end_time = datetime.datetime.now()
         self._currently_running = False
+        self._process_id = no_id
 
         return success
 
