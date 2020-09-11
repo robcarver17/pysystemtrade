@@ -171,10 +171,17 @@ class updatePositions(object):
             self.data.db_contract_position.\
                 update_position_for_instrument_and_contract_date(instrument_code, contract_id, new_position,
                                                                  date = time_date)
+            #check
+            updated_position_object = self.data.db_contract_position.\
+                get_current_position_for_instrument_and_contract_date(instrument_code, contract_id)
 
-            self.log.msg("Updated position of %s/%s from %d to %d because of trade %s %d" %
+            self.log.msg("Updated position of %s/%s from %d to %d because of trade %s %d with fill %s; new position in db is %d" %
                          (instrument_code, contract_id, current_position, new_position, str(contract_order),
-                          contract_order.order_id))
+                          contract_order.order_id, str(fill_list), updated_position_object.position))
+
+
+
+
 
     def update_optimal_position_for_strategy_and_instrument(self, strategy_name, instrument_code, position_entry):
         self.data.db_optimal_position.update_optimal_position_for_strategy_and_instrument(strategy_name, instrument_code, position_entry)
