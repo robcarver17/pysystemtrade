@@ -166,26 +166,26 @@ class updatePositions(object):
         if time_date is None:
             time_date = datetime.datetime.now()
 
-            current_position_object = self.data.db_contract_position.\
-                get_current_position_for_instrument_and_contract_date(instrument_code, contract_id)
-            if current_position_object is missing_data:
-                current_position = 0
-            else:
-                current_position = current_position_object.position
+        current_position_object = self.data.db_contract_position.\
+            get_current_position_for_instrument_and_contract_date(instrument_code, contract_id)
+        if current_position_object is missing_data:
+            current_position = 0
+        else:
+            current_position = current_position_object.position
 
-            new_position = current_position + trade_done
+        new_position = current_position + trade_done
 
-            self.data.db_contract_position.\
-                update_position_for_instrument_and_contract_date(instrument_code, contract_id, new_position,
-                                                                 date = time_date)
-            #check
-            updated_position_object = self.data.db_contract_position.\
-                get_current_position_for_instrument_and_contract_date(instrument_code, contract_id)
-            new_position_db = updated_position_object.position
+        self.data.db_contract_position.\
+            update_position_for_instrument_and_contract_date(instrument_code, contract_id, new_position,
+                                                             date = time_date)
+        #check
+        updated_position_object = self.data.db_contract_position.\
+            get_current_position_for_instrument_and_contract_date(instrument_code, contract_id)
+        new_position_db = updated_position_object.position
 
-            self.log.msg("Updated position of %s/%s from %d to %d; new position in db is %d" %
-                         (instrument_code, contract_id, current_position, new_position,
-                          new_position_db))
+        self.log.msg("Updated position of %s/%s from %d to %d; new position in db is %d" %
+                     (instrument_code, contract_id, current_position, new_position,
+                      new_position_db))
 
 
 
