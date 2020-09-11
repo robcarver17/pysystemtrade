@@ -41,10 +41,10 @@ class logToDb(logger):
 
     def email_user(self, log_entry):
         data = self.data
-        #try:
-            #send_production_mail_msg(data, str(log_entry), "*CRITICAL ERROR*")
-        #except:
-            #self.error("Couldn't email user")
+        try:
+            send_production_mail_msg(data, str(log_entry), "*CRITICAL ERROR*")
+        except:
+            self.error("Couldn't email user")
 
 
 class logData(object):

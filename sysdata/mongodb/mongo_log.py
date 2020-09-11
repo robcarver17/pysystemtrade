@@ -44,7 +44,8 @@ class logToMongod(logToDb):
 
     def add_log_record(self, log_entry):
         record_as_dict = log_entry.log_dict()
-        self._mongo.collection.insert_one(record_as_dict)
+        ## very rare race condition can lead to duplicates
+        self._mongo.collection.update_one(record_as_dict, record_as_dict, upsert = True)
 
 
 
