@@ -122,9 +122,6 @@ class updatePositions(object):
             self.log.critical("Instrument orders can't be spread orders!")
             return  failure
 
-        time_date = instrument_order.fill_datetime
-        if time_date is None:
-            time_date  = datetime.datetime.now()
         if current_position_object is missing_data:
             current_position = 0
         else:
@@ -133,8 +130,7 @@ class updatePositions(object):
         new_position = current_position + trade_done
 
         self.data.db_strategy_position.\
-            update_position_for_strategy_and_instrument(strategy_name, instrument_code, new_position,
-                                                        date = time_date)
+            update_position_for_strategy_and_instrument(strategy_name, instrument_code, new_position)
 
         self.log.msg("Updated position of %s/%s from %d to %d because of trade %s %d" %
                      (strategy_name, instrument_code, current_position, new_position, str(instrument_order),
@@ -152,19 +148,30 @@ class updatePositions(object):
 
         instrument_code = contract_order.instrument_code
         contract_id_list = contract_order.contract_id
-        time_date = contract_order.fill_datetime
-        if time_date is None:
-            time_date  = datetime.datetime.now()
 
-        for trade_done, contract_id in zip(fill_list, contract_id_list):
+        # WE DON'T USE THE CONTRACT FILL DUE TO DATETIME MIX UPS
+        #time_date = contract_order.fill_datetime
+        time_date = datetime.datetime.now()
+
+        for contract_id, trade_done in zip(contract_id_list, fill_list):
+            self.update_positions_for_individual_contract_leg(instrument_code, contract_id, trade_done,
+                                                              time_date = time_date)
+            self.log.msg("Updated position of %s/%s because of trade %s ID:%d with fills %s" %
+                         (instrument_code, contract_id, str(contract_order),
+                          contract_order.order_id, str(fill_list)))
+
+
+    def update_positions_for_individual_contract_leg(self, instrument_code, contract_id, trade_done,
+                                                     time_date = None):
+        if time_date is None:
+            time_date = datetime.datetime.now()
+
             current_position_object = self.data.db_contract_position.\
                 get_current_position_for_instrument_and_contract_date(instrument_code, contract_id)
             if current_position_object is missing_data:
                 current_position = 0
             else:
                 current_position = current_position_object.position
-
-
 
             new_position = current_position + trade_done
 
@@ -174,10 +181,11 @@ class updatePositions(object):
             #check
             updated_position_object = self.data.db_contract_position.\
                 get_current_position_for_instrument_and_contract_date(instrument_code, contract_id)
+            new_position_db = updated_position_object.position
 
-            self.log.msg("Updated position of %s/%s from %d to %d because of trade %s %d with fill %s; new position in db is %d" %
-                         (instrument_code, contract_id, current_position, new_position, str(contract_order),
-                          contract_order.order_id, str(fill_list), updated_position_object.position))
+            self.log.msg("Updated position of %s/%s from %d to %d; new position in db is %d" %
+                         (instrument_code, contract_id, current_position, new_position,
+                          new_position_db))
 
 
 
