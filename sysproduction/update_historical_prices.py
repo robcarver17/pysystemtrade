@@ -36,7 +36,7 @@ class updateHistoricalPrices(object):
             update_historical_prices_for_instrument(instrument_code, data, log=log.setup(instrument_code = instrument_code))
 
 
-def update_historical_prices_for_instrument(instrument_code, data):
+def update_historical_prices_for_instrument(instrument_code, data, log):
     """
     Do a daily update for futures contract prices, using IB historical data
 
@@ -45,7 +45,6 @@ def update_historical_prices_for_instrument(instrument_code, data):
     :param log: logger
     :return: None
     """
-    log = data.log
     diag_contracts = diagContracts(data)
     all_contracts_list = diag_contracts.get_all_contract_objects_for_instrument_code(instrument_code)
     contract_list = all_contracts_list.currently_sampling()
