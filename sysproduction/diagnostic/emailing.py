@@ -17,13 +17,13 @@ def send_production_mail_msg(data, body, subject, report = False):
             send_mail_msg(body, subject)
             record_date_of_email_send(data, subject)
             return None
-        except:
+        except Exception as e:
             # problem sending emails will store instead
-            pass
+            data.log.msg("Problem %s sending email, will store message instead" % str(e))
 
     ## won't send an email to avoid clogging up the inbox
     ## but will send one more to tell the user to check the logs of stored emails
-    store_and_warn_email(data, body, subject)
+    store_and_warn_email(data, body, subject, report=report)
 
 
 def can_we_send_this_email_now(data, subject, report = False):
@@ -38,14 +38,14 @@ def can_we_send_this_email_now(data, subject, report = False):
     else:
         return True
 
-def store_and_warn_email(data, body, subject):
+def store_and_warn_email(data, body, subject, report = False):
 
     warning_sent = have_we_sent_warning_email_for_this_subject(data, subject)
     if not warning_sent:
         send_warning_email(subject)
         record_date_of_email_warning_send(data, subject)
 
-    store_message(data, body, subject)
+    store_message(data, body, subject, report=report)
 
 def have_we_sent_warning_email_for_this_subject(data, subject):
     last_time_email_sent = get_time_last_warning_email_sent_with_this_subject(data, subject)
@@ -90,7 +90,10 @@ def record_date_of_email_warning_send(data, subject):
     email_control = dataEmailControl(data)
     email_control.record_date_of_email_warning_send(subject)
 
-def store_message(data, body, subject):
+def store_message(data, body, subject, report=False):
+    if report:
+        # can't store reports
+        return None
     email_control = dataEmailControl(data)
     email_control.store_message(body, subject)
 
