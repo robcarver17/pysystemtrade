@@ -65,7 +65,10 @@ def check_and_if_required_allocate_algo_to_single_contract_order(data, contract_
     short_of_time = data_broker.less_than_one_hour_of_trading_leg_for_instrument_code_and_contract_date(contract_order.instrument_code,
                                                                                         contract_order.contract_id[0])
 
-    if instrument_order_type == 'market':
+    ## HORRIBLE HACK!!!!!
+    if instrument_order.instrument_code == "EUROSTX":
+        contract_order.algo_to_use = MARKET_ALGO
+    elif instrument_order_type == 'market':
         log.msg("Market order type, so allocating to algo_market")
         contract_order.algo_to_use = MARKET_ALGO
     elif instrument_order_type in ["best", "Zero-roll-order"]:
