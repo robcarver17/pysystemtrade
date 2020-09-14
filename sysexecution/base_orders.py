@@ -154,9 +154,13 @@ def apply_minima(trade_list, abs_list):
     ## for each item in _trade and abs_list, return the signed minimum of the zip
     ## eg if self._trade = [2,-2] and abs_list = [1,1], return [2,-2]
     abs_trade_list = [abs(x) for x in trade_list]
+    smallest_abs_leg = min(abs_trade_list)
+    if smallest_abs_leg==0:
+        # can't do this
+        return trade_list
+    
     abs_size_ratio_list = [min([x,y])/float(x) for x,y in zip(abs_trade_list, abs_list)]
     min_abs_size_ratio = min(abs_size_ratio_list)
-    smallest_abs_leg = min(abs_trade_list)
     new_smallest_leg = np.floor(smallest_abs_leg *min_abs_size_ratio)
     ratio_applied = new_smallest_leg / smallest_abs_leg
     trade_list_with_ratio_as_float = [x*ratio_applied for x in trade_list]
