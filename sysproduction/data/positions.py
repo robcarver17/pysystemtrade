@@ -21,6 +21,9 @@ class diagPositions(object):
     def get_position_df_for_instrument_and_contract_id(self, instrument_code, contract_id):
         return self.data.db_contract_position.get_position_as_df_for_instrument_and_contract_date(instrument_code, contract_id)
 
+    def get_position_df_for_strategy_and_instrument(self,  strategy_name, instrument_code):
+        return self.data.db_strategy_position.get_position_as_df_for_strategy_and_instrument(strategy_name, instrument_code)
+
     def get_positions_for_instrument_and_contract_list(self, instrument_code, contract_list):
         list_of_positions = [self.get_position_for_instrument_and_contract_date(instrument_code, contract_date)
                              for contract_date in contract_list]

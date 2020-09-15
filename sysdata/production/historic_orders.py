@@ -110,11 +110,32 @@ class genericOrdersData(baseData):
 BASE_CLASS_ERROR = "Need to inherit and override this method"
 
 class strategyHistoricOrdersData(genericOrdersData):
-    def get_list_of_orders_for_strategy(self, strategy_name):
-        raise NotImplementedError(BASE_CLASS_ERROR)
 
-    def get_list_of_orders_for_strategy_and_instrument(self, strategy_name, instrument_code):
-        raise NotImplementedError(BASE_CLASS_ERROR)
+    def get_fills_history_for_strategy_and_instrument_code(self, strategy_name, instrument_code):
+        """
+
+        :param instrument_code:  str
+        :param contract_id: str
+        :return: fillHistory object, with fill and price
+        """
+        order_list  = self.get_list_of_orders_for_strategy_and_instrument_code(strategy_name, instrument_code)
+        order_list_as_fills = [fill_from_order(order) for order in order_list]
+        list_of_fills = listOfFills(order_list_as_fills)
+
+        return list_of_fills
+
+    def get_list_of_orders_for_strategy_and_instrument_code(self, strategy_name, instrument_code):
+        list_of_ids = self.get_list_of_order_ids_for_strategy_and_instrument_code(strategy_name, instrument_code)
+        order_list = []
+        for order_id in list_of_ids:
+            order = self.get_order_with_orderid(order_id)
+            order_list.append(order)
+
+        return order_list
+
+    def get_list_of_order_ids_for_strategy_and_instrument_code(self, strategy_name, instrument_code):
+        raise NotImplementedError
+
 
 class contractHistoricOrdersData(genericOrdersData):
 

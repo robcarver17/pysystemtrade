@@ -5,6 +5,7 @@ from sysdata.mongodb.mongo_connection import mongoConnection, MONGO_ID_KEY
 from syslogdiag.log import logtoscreen
 from sysdata.production.historic_orders import genericOrdersData, strategyHistoricOrdersData, contractHistoricOrdersData
 from sysexecution.contract_orders import contractTradeableObject
+from sysexecution.instrument_orders import instrumentTradeableObject
 
 ORDER_ID_STORE_KEY = "_ORDER_ID_STORE_KEY"
 
@@ -103,6 +104,13 @@ class mongoStrategyHistoricOrdersData(mongoGenericHistoricOrdersData, strategyHi
 
     def _order_class_str(self):
         return "sysexecution.instrument_orders.instrumentOrder"
+
+    def get_list_of_order_ids_for_strategy_and_instrument_code(self, strategy_name, instrument_code):
+        tradeable_object = instrumentTradeableObject(strategy_name, instrument_code)
+        object_key = tradeable_object.key
+        result_dict = self._mongo.collection.find(dict(key = object_key))
+        list_of_order_id = [result['order_id'] for result in result_dict]
+        return list_of_order_id
 
 
 class mongoContractHistoricOrdersData(mongoGenericHistoricOrdersData, contractHistoricOrdersData):

@@ -30,6 +30,9 @@ class diagPrices(object):
     def get_prices_for_contract_object(self, contract_object):
         return self.data.db_futures_contract_price.get_prices_for_contract_object(contract_object)
 
+    def get_prices_for_instrument(self, instrument_code):
+        return self.data.db_futures_multiple_prices.get_multiple_prices(instrument_code).PRICE
+
     def get_list_of_instruments_with_contract_prices(self):
         return self.data.db_futures_contract_price.get_instruments_with_price_data()
 

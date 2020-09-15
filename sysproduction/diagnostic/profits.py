@@ -11,6 +11,7 @@ from sysproduction.data.prices import diagPrices
 from sysproduction.data.orders import dataOrders
 from sysproduction.data.positions import diagPositions
 from sysproduction.data.instruments import diagInstruments
+from sysproduction.data.strategies import diagStrategiesConfig
 
 ## We want a p&l (We could merge this into another kind of report)
 ## We want to be able to have it emailed, or run it offline
@@ -65,6 +66,12 @@ def get_total_capital_series(data):
     data_capital_object = dataCapital(data)
 
     return data_capital_object.get_series_of_maximum_capital()
+
+def get_strategy_capital_series(data, strategy_name):
+    data_capital_object = dataCapital(data)
+
+    return data_capital_object.get_capital_pd_series_for_strategy(strategy_name)
+
 
 def get_daily_perc_pandl(data):
     data_capital_object = dataCapital(data)
@@ -133,6 +140,21 @@ def get_period_perc_pandl_for_instrument_all_strategies_in_date_range(
     return pandl_series.sum()
 
 
+def get_period_perc_pandl_for_strategy_in_date_range(
+        data, strategy_name, start_date, end_date):
+    print("Getting p&l for %s" % strategy_name)
+    pandl_df = get_df_of_perc_pandl_series_for_strategy_all_instruments(data, strategy_name)
+
+    if pandl_df is missing_data:
+        return 0.0
+
+    pandl_series = pandl_df.sum(axis=1, skipna=True)
+    pandl_series = pandl_series[start_date:end_date]
+
+    return pandl_series.sum()
+
+
+
 def get_df_of_perc_pandl_series_for_instrument_all_strategies_across_contracts_in_date_range(
         data, instrument_code, start_date, end_date):
     contract_list, pandl_list = get_list_of_perc_pandl_series_for_instrument_all_strategies_across_contracts_in_date_range(
@@ -146,6 +168,19 @@ def get_df_of_perc_pandl_series_for_instrument_all_strategies_across_contracts_i
 
     return pandl_df
 
+
+def get_df_of_perc_pandl_series_for_strategy_all_instruments(
+        data, strategy_name):
+    instrument_list, pandl_list = get_list_of_perc_pandl_series_for_strategy_all_instruments(data, strategy_name)
+
+    if instrument_list is missing_data:
+        return missing_data
+
+    pandl_df = pd.concat(pandl_list, axis=1)
+    pandl_df.columns = instrument_list
+
+    return pandl_df
+
 def get_list_of_perc_pandl_series_for_instrument_all_strategies_across_contracts_in_date_range(data, instrument_code,  start_date, end_date):
     contract_list = get_list_of_contracts_held_for_an_instrument_in_date_range(data, instrument_code, start_date, end_date)
     if len(contract_list)==0:
@@ -156,6 +191,18 @@ def get_list_of_perc_pandl_series_for_instrument_all_strategies_across_contracts
 
     return contract_list, pandl_list
 
+
+def get_list_of_perc_pandl_series_for_strategy_all_instruments(data, strategy_name):
+    instrument_list = get_list_of_instruments_held_for_a_strategy(data, strategy_name)
+    if len(instrument_list)==0:
+        return missing_data, missing_data
+
+    pandl_list = [get_perc_pandl_series_for_strategy_vs_total_capital(data, strategy_name, instrument_code)
+                  for instrument_code in instrument_list]
+
+    return instrument_list, pandl_list
+
+
 def get_list_of_contracts_held_for_an_instrument_in_date_range(data, instrument_code, start_date, end_date):
     diag_positions = diagPositions(data)
 
@@ -163,6 +210,12 @@ def get_list_of_contracts_held_for_an_instrument_in_date_range(data, instrument_
         get_list_of_contracts_with_any_contract_position_for_instrument_in_date_range(instrument_code, start_date, end_date)
 
     return contract_list
+
+def get_list_of_instruments_held_for_a_strategy(data, strategy_name):
+    diag_positions = diagPositions(data)
+    instrument_list = diag_positions.get_list_of_instruments_for_strategy_with_position(strategy_name)
+
+    return instrument_list
 
 def get_perc_pandl_series_for_contract(data, instrument_code, contract_id):
     pandl_in_base = get_pandl_series_in_base_ccy_for_contract(data, instrument_code, contract_id)
@@ -173,6 +226,28 @@ def get_perc_pandl_series_for_contract(data, instrument_code, contract_id):
 
     return perc_pandl
 
+
+def get_perc_pandl_series_for_strategy_vs_total_capital(data, strategy_name, instrument_code):
+    pandl_in_base = get_pandl_series_in_base_ccy_for_strategy_instrument(data, strategy_name, instrument_code)
+    capital = get_total_capital_series(data)
+    capital = capital.reindex(pandl_in_base.index, method="ffill")
+
+    perc_pandl = pandl_in_base / capital
+
+    return perc_pandl
+
+
+
+def get_perc_pandl_series_for_strategy_vs_strategy_capital(data, strategy_name, instrument_code):
+    pandl_in_base = get_pandl_series_in_base_ccy_for_strategy_instrument(data, strategy_name, instrument_code)
+    capital = get_strategy_capital_series(data, strategy_name)
+    capital = capital.reindex(pandl_in_base.index, method="ffill")
+
+    perc_pandl = pandl_in_base / capital
+
+    return perc_pandl
+
+
 def get_pandl_series_in_base_ccy_for_contract(data, instrument_code, contract_id):
     pandl_in_local = get_pandl_series_in_local_ccy_for_contract(data, instrument_code, contract_id)
     fx_series = get_fx_series_for_instrument(data, instrument_code)
@@ -181,6 +256,16 @@ def get_pandl_series_in_base_ccy_for_contract(data, instrument_code, contract_id
     pandl_in_base = fx_series * pandl_in_local
 
     return pandl_in_base
+
+def get_pandl_series_in_base_ccy_for_strategy_instrument(data, strategy_name, instrument_code):
+    pandl_in_local = get_pandl_series_in_local_ccy_for_strategy_instrument(data, strategy_name, instrument_code)
+    fx_series = get_fx_series_for_instrument(data, instrument_code)
+    fx_series = fx_series.reindex(pandl_in_local.index).ffill()
+
+    pandl_in_base = fx_series * pandl_in_local
+
+    return pandl_in_base
+
 
 def get_fx_series_for_instrument(data, instrument_code):
     diag_instruments = diagInstruments(data)
@@ -200,11 +285,31 @@ def get_pandl_series_in_local_ccy_for_contract(data, instrument_code, contract_i
     return pandl_in_local
 
 
+def get_pandl_series_in_local_ccy_for_strategy_instrument(data, strategy_name, instrument_code):
+    diag_instruments = diagInstruments(data)
+
+    pandl_in_points = get_pandl_series_in_points_for_instrument_strategy(data, instrument_code, strategy_name)
+    point_size = diag_instruments.get_point_size(instrument_code)
+    pandl_in_local = point_size * pandl_in_points
+
+    return pandl_in_local
 
 def get_pandl_series_in_points_for_contract(data, instrument_code, contract_id):
     pos_series = get_position_series_for_contract(data, instrument_code, contract_id)
     price_series = get_price_series_for_contract(data, instrument_code, contract_id)
     trade_df = get_trade_df_for_contract(data, instrument_code, contract_id)
+
+    trade_df = unique_trades_df(trade_df)
+
+    returns = pandl_points(price_series, trade_df, pos_series)
+
+    return returns
+
+
+def get_pandl_series_in_points_for_instrument_strategy(data, instrument_code, strategy_name):
+    pos_series = get_position_series_for_instrument_strategy(data, instrument_code, strategy_name)
+    price_series = get_price_series_for_instrument(data, instrument_code)
+    trade_df = get_trade_df_for_instrument(data, instrument_code, strategy_name)
 
     trade_df = unique_trades_df(trade_df)
 
@@ -270,12 +375,37 @@ def get_price_series_for_contract(data, instrument_code, contract_id):
 
     return price_series
 
+def get_price_series_for_instrument(data, instrument_code):
+    diag_prices = diagPrices(data)
+    price_series = diag_prices.get_prices_for_instrument(instrument_code)
+
+    return price_series
+
+
+def get_position_series_for_instrument_strategy(data, instrument_code, strategy_name):
+    diag_positions = diagPositions(data)
+    pos_series = diag_positions.get_position_df_for_strategy_and_instrument(strategy_name, instrument_code)
+    if pos_series is missing_data:
+        return pd.Series()
+
+    return pd.Series(pos_series.position)
+
+
 def get_trade_df_for_contract(data, instrument_code, contract_id):
     data_orders = dataOrders(data)
     list_of_trades = data_orders.get_fills_history_for_instrument_and_contract_id(instrument_code, contract_id)
     list_of_trades_as_pd_df = list_of_trades.as_pd_df()
 
     return list_of_trades_as_pd_df
+
+def get_trade_df_for_instrument(data, instrument_code, strategy_name):
+    data_orders = dataOrders(data)
+    list_of_trades = data_orders.get_fills_history_for_strategy_and_instrument(strategy_name, instrument_code)
+    list_of_trades_as_pd_df = list_of_trades.as_pd_df()
+
+    return list_of_trades_as_pd_df
+
+
 
 def get_position_series_for_contract(data, instrument_code, contract_id):
     diag_positions = diagPositions(data)
@@ -318,3 +448,6 @@ def format_pandl_data(results_object):
 
     return formatted_output
 
+def get_list_of_strategies(self, data):
+    diag_strategies = diagStrategiesConfig(data)
+    return diag_strategies.get_list_of_strategies()

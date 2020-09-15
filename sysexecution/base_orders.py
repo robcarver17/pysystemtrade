@@ -158,7 +158,7 @@ def apply_minima(trade_list, abs_list):
     if smallest_abs_leg==0:
         # can't do this
         return trade_list
-    
+
     abs_size_ratio_list = [min([x,y])/float(x) for x,y in zip(abs_trade_list, abs_list)]
     min_abs_size_ratio = min(abs_size_ratio_list)
     new_smallest_leg = np.floor(smallest_abs_leg *min_abs_size_ratio)

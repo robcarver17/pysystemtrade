@@ -333,7 +333,7 @@ class ibClient(brokerClient):
         try:
             trading_hours = get_trading_hours(ib_contract_details)
         except Exception as e:
-            self.log.critical("%s when getting trading hours!" % e)
+            self.log.warn("%s when getting trading hours!" % e)
             return missing_contract
 
 

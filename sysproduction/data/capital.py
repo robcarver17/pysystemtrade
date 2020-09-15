@@ -43,6 +43,9 @@ class dataCapital(object):
 
         return all_capital_data.Accumulated
 
+    def get_capital_pd_series_for_strategy(self, strategy_name):
+        capital_series = self.capital_data.get_capital_pd_series_for_strategy(strategy_name)
+        return  capital_series
 
     def get_capital_for_strategy(self, strategy_name):
         capital_value = self.capital_data.get_current_capital_for_strategy(strategy_name)
