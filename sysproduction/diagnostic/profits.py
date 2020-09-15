@@ -40,7 +40,7 @@ def pandl_info(data, calendar_days_back = 7):
 
 pandlResults = namedtuple("pandlResults", ['total_capital_pandl', 'start_date', 'end_date',
                                            'pandl_for_instruments_across_strategies',
-                                           'futures_total','residual'])
+                                           'futures_total','residual', 'strategies'])
 
 def get_pandl_report_data(data, calendar_days_back=7):
     """
@@ -56,8 +56,10 @@ def get_pandl_report_data(data, calendar_days_back=7):
     pandl_for_instruments_across_strategies.pandl = pandl_for_instruments_across_strategies.pandl*100
     total_for_futures = pandl_for_instruments_across_strategies.pandl.sum()
     residual = total_capital_pandl - total_for_futures
+    strategies = get_strategy_pandl_and_residual(data, start_date, end_date)
 
-    results_object = pandlResults(total_capital_pandl, start_date, end_date, pandl_for_instruments_across_strategies, total_for_futures, residual)
+    results_object = pandlResults(total_capital_pandl, start_date, end_date, pandl_for_instruments_across_strategies, total_for_futures, residual,
+                                  strategies)
 
     return results_object
 
@@ -97,6 +99,17 @@ def get_total_capital_pandl(data, start_date, end_date = arg_not_supplied):
 
     return pandl_in_period
 
+def get_strategy_pandl_and_residual(data, start_date, end_date):
+    strategies = get_ranked_list_of_pandl_by_strategy_in_date_range(data, start_date, end_date)
+    total_strategies = strategies.pandl.sum()
+    total = get_total_capital_pandl(data, start_date, end_date)
+    residual = total - total_strategies
+    residual_dfrow = pd.DataFrame(dict(codes=['residual'], pandl = residual))
+    strategies = strategies.append(residual_dfrow)
+    strategies.pandl = strategies.pandl * 100
+
+    return strategies
+
 
 def get_ranked_list_of_pandl_by_instrument_all_strategies_in_date_range(data, start_date, end_date):
     list_pandl = get_period_perc_pandl_for_all_instruments_all_strategies_in_date_range(data, start_date, end_date)
@@ -107,13 +120,24 @@ def get_ranked_list_of_pandl_by_instrument_all_strategies_in_date_range(data, st
 
     return pandl_as_df
 
-PandL = namedtuple("PandL", ["instrument", "pandl"])
+
+def get_ranked_list_of_pandl_by_strategy_in_date_range(data, start_date, end_date):
+    list_pandl = get_period_perc_pandl_for_all_strategies_in_date_range(data, start_date, end_date)
+    list_pandl.sort(key=lambda r:r.pandl)
+
+    pandl_as_df = list_pandl_to_df(list_pandl)
+
+    return pandl_as_df
+
+PandL = namedtuple("PandL", ["code", "pandl"])
 
 def list_pandl_to_df(list_pandl):
-    instrument_code_list = [pandl.instrument for pandl in list_pandl]
+    code_list = [pandl.code for pandl in list_pandl]
     pandl_list = [pandl.pandl for pandl in list_pandl]
 
-    return pd.DataFrame(dict(instrument = instrument_code_list, pandl = pandl_list))
+    return pd.DataFrame(dict(codes = code_list, pandl = pandl_list))
+
+
 
 def get_period_perc_pandl_for_all_instruments_all_strategies_in_date_range(data, start_date, end_date):
     diag_positions = diagPositions(data)
@@ -124,6 +148,15 @@ def get_period_perc_pandl_for_all_instruments_all_strategies_in_date_range(data,
     for instrument_code in instrument_list]
 
     return list_pandl
+
+def get_period_perc_pandl_for_all_strategies_in_date_range(data, start_date, end_date):
+    strategy_list = get_list_of_strategies(data)
+    list_pandl = [PandL(strategy_name, get_period_perc_pandl_for_strategy_in_date_range(
+        data, strategy_name, start_date, end_date))
+    for strategy_name in strategy_list]
+
+    return list_pandl
+
 
 def get_period_perc_pandl_for_instrument_all_strategies_in_date_range(
         data, instrument_code, start_date, end_date):
@@ -228,6 +261,7 @@ def get_perc_pandl_series_for_contract(data, instrument_code, contract_id):
 
 
 def get_perc_pandl_series_for_strategy_vs_total_capital(data, strategy_name, instrument_code):
+    print("Data for %s %s" % (strategy_name, instrument_code))
     pandl_in_base = get_pandl_series_in_base_ccy_for_strategy_instrument(data, strategy_name, instrument_code)
     capital = get_total_capital_series(data)
     capital = capital.reindex(pandl_in_base.index, method="ffill")
@@ -238,14 +272,6 @@ def get_perc_pandl_series_for_strategy_vs_total_capital(data, strategy_name, ins
 
 
 
-def get_perc_pandl_series_for_strategy_vs_strategy_capital(data, strategy_name, instrument_code):
-    pandl_in_base = get_pandl_series_in_base_ccy_for_strategy_instrument(data, strategy_name, instrument_code)
-    capital = get_strategy_capital_series(data, strategy_name)
-    capital = capital.reindex(pandl_in_base.index, method="ffill")
-
-    perc_pandl = pandl_in_base / capital
-
-    return perc_pandl
 
 
 def get_pandl_series_in_base_ccy_for_contract(data, instrument_code, contract_id):
@@ -444,10 +470,22 @@ def format_pandl_data(results_object):
 
     formatted_output.append(body_text("Residual p&l is %.3f%%" % results_object.residual))
 
+    table2_df = results_object.strategies
+
+    table2_df = table2_df.round(2)
+
+    table2 = table('P&L by strategy', table2_df)
+
+    formatted_output.append(table2)
+
+
+
     formatted_output.append(header("END OF P&L REPORT"))
 
     return formatted_output
 
-def get_list_of_strategies(self, data):
-    diag_strategies = diagStrategiesConfig(data)
-    return diag_strategies.get_list_of_strategies()
+def get_list_of_strategies(data):
+    diag_positions = diagPositions(data)
+    return diag_positions.get_list_of_strategies_with_positions()
+
+
