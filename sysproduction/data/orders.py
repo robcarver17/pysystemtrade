@@ -47,7 +47,14 @@ class dataOrders(object):
         return self.data.db_contract_historic_orders.get_orders_in_date_range(period_start, period_end)
 
     def get_historic_instrument_orders_in_date_range(self, period_start, period_end):
-        return self.data.db_instrument_historic_orders.get_orders_in_date_range(period_start, period_end)
+        return self.data.db_strategy_historic_orders.get_orders_in_date_range(period_start, period_end)
+
+
+    def get_historic_instrument_order_from_order_id(self, order_id):
+        return self.data.db_strategy_historic_orders.get_order_with_orderid(order_id)
+
+    def get_historic_contract_order_from_order_id(self, order_id):
+        return self.data.db_contract_historic_orders.get_order_with_orderid(order_id)
 
     def get_historic_broker_order_from_order_id(self, order_id):
         return self.data.db_broker_historic_orders.get_order_with_orderid(order_id)

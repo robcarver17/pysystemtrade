@@ -10,7 +10,6 @@ strategy_list:
       account_currency: "GBP"
 
 """
-from copy import copy
 from syscore.objects import resolve_function
 
 from sysproduction.data.get_data import dataBlob
@@ -23,8 +22,8 @@ def run_systems():
     process_name = "run_systems"
     data = dataBlob(log_name=process_name)
     list_of_timer_names_and_functions = get_list_of_timer_functions_for_strategies(process_name, data)
-    price_process = processToRun(process_name, data, list_of_timer_names_and_functions, use_strategy_config=True)
-    price_process.main_loop()
+    system_process = processToRun(process_name, data, list_of_timer_names_and_functions, use_strategy_config=True)
+    system_process.main_loop()
 
 
 def get_list_of_timer_functions_for_strategies(process_name, data):
@@ -38,9 +37,8 @@ def get_list_of_timer_functions_for_strategies(process_name, data):
     return list_of_timer_names_and_functions
 
 def get_strategy_object_and_method(process_name, data, strategy_name):
-    diag_config = diagProcessConfig(data)
-    config_this_process = diag_config.get_strategy_dict_for_process(process_name, strategy_name)
-    object = resolve_function(config_this_process.pop('object'))
+    config_this_process = get_strategy_class_object_config(process_name, data, strategy_name)
+    strategy_class_object = resolve_function(config_this_process.pop('object'))
     function = config_this_process.pop('function')
 
     ## following are used by run process but not by us
@@ -52,8 +50,14 @@ def get_strategy_object_and_method(process_name, data, strategy_name):
     strategy_data = dataBlob(log_name=process_name)
     strategy_data.log.label(strategy_name = strategy_name)
 
-    object = object(strategy_data, strategy_name, **other_args)
-    method = getattr(object, function)
+    strategy_class_instance = strategy_class_object(strategy_data, strategy_name, **other_args)
+    method = getattr(strategy_class_instance, function)
 
-    return object, method
+    return strategy_class_instance, method
+
+
+def get_strategy_class_object_config(process_name, data, strategy_name):
+    diag_config = diagProcessConfig(data)
+    config_this_process = diag_config.get_strategy_dict_for_process(process_name, strategy_name)
+    return config_this_process
 

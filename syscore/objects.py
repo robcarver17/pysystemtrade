@@ -47,6 +47,7 @@ process_running = _named_object("process running")
 
 
 arg_not_supplied = _named_object("arg not supplied")
+user_exit = _named_object("exit")
 
 table = namedtuple("table", "Heading Body")
 header = namedtuple("header", "Heading")

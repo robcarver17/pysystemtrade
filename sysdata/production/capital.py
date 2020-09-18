@@ -121,7 +121,7 @@ class capitalData(listOfEntriesData):
         strategy_names = list(set(strategy_names))
         for strat_name in SPECIAL_NAMES:
             try:
-                strategy_names.pop(strat_name)
+                strategy_names.remove(strat_name)
             except IndexError:
                 ## Don't have to have capital defined
                 pass

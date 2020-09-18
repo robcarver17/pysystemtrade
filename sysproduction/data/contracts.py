@@ -159,7 +159,9 @@ def get_valid_instrument_code_and_contractid_from_user(data, instrument_code= No
             instrument_code = None
             continue
         print("Currently sampled contract dates %s" % str(sampled_dates))
-        contract_date = input("Contract date?")
+        contract_date = input("Contract date? [yyyymm or yyyymmdd]")
+        if len(contract_date)==6:
+            contract_date = contract_date+"00"
         if contract_date in all_dates:
             break
         else:

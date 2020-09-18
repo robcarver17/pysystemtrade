@@ -15,7 +15,7 @@ from syscore.objects import missing_order
 from sysexecution.instrument_orders import instrumentOrder
 from sysexecution.strategies.strategy_order_handling import orderGeneratorForStrategy
 
-from sysproduction.data.positions import diagPositions
+from sysproduction.data.positions import dataOptimalPositions
 
 class orderGeneratorForBufferedPositions(orderGeneratorForStrategy):
     def get_required_orders(self):
@@ -32,8 +32,7 @@ class orderGeneratorForBufferedPositions(orderGeneratorForStrategy):
         data  = self.data
         strategy_name = self.strategy_name
 
-        position_data = diagPositions(data)
-        optimal_position_data = position_data.optimal_position_data()
+        optimal_position_data = dataOptimalPositions(data)
 
         list_of_instruments = optimal_position_data.get_list_of_instruments_for_strategy_with_optimal_position(strategy_name)
         optimal_positions = dict([(instrument_code,

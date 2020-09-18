@@ -20,7 +20,6 @@ from sysproduction.data.strategies import diagStrategiesConfig
 ## We also chuck in a title and a timestamp
 
 
-
 def pandl_info(data, calendar_days_back = 7):
     """
 

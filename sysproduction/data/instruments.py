@@ -14,13 +14,16 @@ class diagInstruments(object):
         self.data = data
 
     def get_point_size(self, instrument_code):
-        return self.data.db_futures_instrument.get_instrument_data(instrument_code).meta_data['Pointsize']
+        return self.get_meta_data['Pointsize']
 
     def get_currency(self, instrument_code):
-        return self.data.db_futures_instrument.get_instrument_data(instrument_code).meta_data['Currency']
+        return self.get_meta_data['Currency']
 
     def get_asset_class(self, instrument_code):
-        return self.data.db_futures_instrument.get_instrument_data(instrument_code).meta_data['AssetClass']
+        return self.get_meta_data['AssetClass']
 
-    def get_descrition(self, instrument_code):
-        return self.data.db_futures_instrument.get_instrument_data(instrument_code).meta_data['Description']
+    def get_description(self, instrument_code):
+        return self.get_meta_data['Description']
+
+    def get_meta_data(self, instrument_code):
+        return self.data.db_futures_instrument.get_instrument_data(instrument_code).meta_data

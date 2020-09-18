@@ -567,6 +567,7 @@ class contractDateWithRollParameters(contractDate):
 
         return contract_dates
 
+
 USE_CHILD_CLASS_ROLL_PARAMS_ERROR = "You need to use a child class of rollParametersData"
 
 class rollParametersData(baseData):

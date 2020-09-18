@@ -18,7 +18,7 @@ from sysproduction.data.strategies import get_list_of_strategies
 from sysproduction.data.prices import get_list_of_instruments
 from sysproduction.data.currency_data import get_list_of_fxcodes, currencyData
 from sysproduction.data.prices import diagPrices
-from sysproduction.data.positions import diagPositions
+from sysproduction.data.positions import diagPositions, dataOptimalPositions
 
 from sysproduction.data.logs import diagLogs
 
@@ -222,8 +222,7 @@ def get_list_of_position_updates_for_strategy(data, strategy_name):
     return list_of_updates
 
 def get_last_position_update_for_strategy_instrument(data, strategy_name, instrument_code):
-   diag_positions = diagPositions()
-   op = diag_positions.optimal_position_data()
+   op = dataOptimalPositions(data)
    pos_data = op.get_optimal_position_as_df_for_strategy_and_instrument(strategy_name, instrument_code)
    if pos_data is missing_data:
        return None

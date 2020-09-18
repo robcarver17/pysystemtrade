@@ -281,6 +281,11 @@ class Config(object):
 
         return self_as_dict
 
+    def save(self, filename):
+        config_to_save = self.as_dict()
+        with open(filename, 'w') as file:
+            yaml.dump(config_to_save, file)
+
 
 if __name__ == '__main__':
     import doctest

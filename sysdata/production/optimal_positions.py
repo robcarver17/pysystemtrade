@@ -32,7 +32,8 @@ class simpleOptimalPosition(timedEntry):
     def _containing_data_class_name(self):
         return "sysdata.production.optimal_positions.simpleOptimalPositionForInstrument"
 
-
+    def check_position_break(self, position):
+        return self.position == position
 
 class bufferedOptimalPositions(timedEntry):
     """
@@ -55,6 +56,9 @@ class bufferedOptimalPositions(timedEntry):
         except:
             raise Exception("Upper position has to be higher than lower position")
 
+    def check_position_break(self, position):
+        return position>=self.lower_position and position<=self.upper_position
+
 
 
 class simpleOptimalPositionForInstrument(listOfEntries):
@@ -68,12 +72,66 @@ class simpleOptimalPositionForInstrument(listOfEntries):
 
 class bufferedOptimalPositionForInstrument(listOfEntries):
     """
-    A list of positions
+    A list of positions over time
     """
 
     def _entry_class(self):
         return bufferedOptimalPositions
 
+class tradeableObjectAndOptimalPosition(object):
+    def __init__(self, tradeable_object, optimal_position_object):
+        self.tradeable_object = tradeable_object
+        self.optimal_position = optimal_position_object
+
+    def check_tradeable_objects_match(self, position_with_tradeable_object):
+        return self.tradeable_object == position_with_tradeable_object.tradeable_object
+
+class tradeableObjectAndOptimalAndCurrentPosition(object):
+    def __init__(self):
+        pass
+        ## this is contains a instrumentStrategyPosition type thing, and a tradeableObjectAndOptimalPosition
+        ## type thing
+
+        ## same tradeable object, so that is stored plus Position, and OptimalPosition
+
+
+    def check_break(self):
+        pass
+
+class listOfOptimalPositionsAcrossTradeableObjects(list):
+    # list of tradeableObjectAndOptimalPosition
+    ## need to set up so sysproduction.positions.optimal position data reports this eg
+    ## optimal_position_data.get_current_optimal_positions_across_strategies_and_instruments()
+    def as_pd(self):
+        list_of_keys = [pos.tradeable_object for pos in self]
+        list_of_buffers = []
+
+        return pd.DataFrame(dict(key = list_of_keys, buffers = list_of_buffers))
+
+    def add_positions(self):
+        # returns listOfBufferedAndCurrentPositionsAcrossTradeableObjects
+        # takes as input diag_positions.get_all_current_strategy_instrument_positions() type thing
+        pass
+
+class listOfOptimalAndCurrentPositionsAcrossTradeableObjects(list):
+    # list of tradeableObjectAndOptimalAndCurrentPosition
+    #
+    # needs to be gettable by sysproduction.data.diagPositions
+    def check_breaks(self):
+        ## this is done on init, and adds another column to the pandas output with break flag
+        pass
+
+    def as_pd(self):
+        pass
+
+    def sortByInstrument(self):
+        pass
+
+    def sortByStrategyAndInstrument(self):
+        pass
+
+    def sortByBreakSize(self):
+        pass
 
 class optimalPositionData(listOfEntriesData):
     """

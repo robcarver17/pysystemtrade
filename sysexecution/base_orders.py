@@ -1,6 +1,8 @@
 from copy import copy
 import datetime
 import numpy as np
+import pandas as pd
+
 from syscore.genutils import are_dicts_equal, none_to_object, object_to_none, sign
 from syscore.objects import  success,  no_order_id, no_children, no_parent, missing_order
 from syscore.genutils import sign
@@ -557,3 +559,19 @@ class Order(object):
         """
 
         raise NotImplementedError
+
+class listOfOrders(list):
+    def as_pd(self):
+        date_list = [order.fill_datetime for order in self]
+        key_list = [order.key for order in self]
+        fill_list = [order.fill for order in self]
+        id_list = [order.order_id for order in self]
+        price_list = [order.filled_price for order in self]
+
+        pd_df = pd.DataFrame(dict(fill_datetime = date_list,
+                             key = key_list,
+                                  fill = fill_list,
+                                  price = price_list),
+                             index = id_list)
+
+        return pd_df

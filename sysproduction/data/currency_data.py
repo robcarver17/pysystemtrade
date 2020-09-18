@@ -1,6 +1,7 @@
 from sysdata.private_config import get_private_then_default_key_value
 from sysproduction.data.get_data import dataBlob
 from syscore.objects import  arg_not_supplied
+from syscore.genutils import print_menu_of_values_and_get_response
 from sysdata.fx.spotfx import currencyValue
 
 class currencyData(object):
@@ -82,3 +83,11 @@ def get_list_of_fxcodes(data = arg_not_supplied):
         data = dataBlob()
     c = currencyData(data)
     return c.get_list_of_fxcodes()
+
+def get_valid_fx_code_from_user(data=arg_not_supplied):
+    if data is arg_not_supplied:
+        data = dataBlob()
+    all_fx_codes = get_list_of_fxcodes(data)
+    fx_code = print_menu_of_values_and_get_response(all_fx_codes)
+
+    return fx_code

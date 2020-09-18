@@ -342,7 +342,23 @@ class run_interactive_menu(object):
                 return result
 
 
+def print_menu_of_values_and_get_response(menu_of_options_as_list, default_str=""):
+    if default_str!="":
+        try:
+            menu_of_options_as_list.index(default_str)
+        except ValueError:
+            menu_of_options_as_list.append(default_str)
 
+        default_option = menu_of_options_as_list.index(default_str)
+    else:
+        default_option = None
+
+    menu_of_options = dict([(int_key, menu_value) for int_key, menu_value in
+                            enumerate(menu_of_options_as_list)])
+    ans = print_menu_and_get_response(menu_of_options, default_option=default_option, default_str=default_str)
+    option_chosen = menu_of_options_as_list[ans]
+
+    return option_chosen
 
 def print_menu_and_get_response(menu_of_options, default_option = None, default_str=""):
     """

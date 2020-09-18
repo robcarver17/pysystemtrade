@@ -188,6 +188,9 @@ class System(object):
         instrument_list = sorted(set(list(instrument_list)))
         return instrument_list
 
+    @property
+    def stage_names(self):
+        return ['data']+self._stage_names
 
 
 if __name__ == '__main__':
