@@ -43,7 +43,7 @@ class cacheRef(object):
         self.keyname = keyname
 
     def __repr__(self):
-        if self.keyname is "":
+        if self.keyname == "":
             keystring = ""
         else:
             keystring = "[%s] " % self.keyname
@@ -211,7 +211,7 @@ class systemCache(dict):
         pickable_cache_refs = self._get_pickable_items()
 
         cache_to_pickle = self.partial_cache(pickable_cache_refs)
-        cache_to_pickle_as_dict = self.as_dict()
+        cache_to_pickle_as_dict = cache_to_pickle.as_dict()
 
         with open(filename, "wb+") as fhandle:
             pickle.dump(cache_to_pickle_as_dict, fhandle)
