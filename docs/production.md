@@ -107,7 +107,7 @@ You need to:
         - MONGO_DATA=/home/user_name/data/mongodb/
         - PYSYS_CODE=/home/user_name/pysystemtrade
         - SCRIPT_PATH=/home/user_name/pysystemtrade/sysproduction/linux/scripts
-        - ECHO_PATH=/home/user/echos
+        - ECHO_PATH=/home/user_name/echos
         - MONGO_BACKUP_PATH=/media/shared_network/drive/mongo_backup
     - Create the following directories (again use other directories if you like, but you must modify the .profile above)
         - '/home/user_name/data/mongodb/'
