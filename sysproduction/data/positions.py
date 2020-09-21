@@ -60,8 +60,8 @@ class diagPositions(object):
 
         return strats
 
-    def get_list_of_positions_for_strategy(self, strategy_name):
-        return self.data.db_strategy_position.get_list_of_instruments_for_strategy_with_position(strategy_name)
+    def get_all_current_positions_as_list_with_instrument_objects(self):
+        return self.data.db_strategy_position.get_all_current_positions_as_list_with_instrument_objects()
 
     def get_all_current_contract_positions(self):
         return self.data.db_contract_position.\
@@ -115,6 +115,23 @@ class dataOptimalPositions(object):
     def update_optimal_position_for_strategy_and_instrument(self, strategy_name, instrument_code, position_entry):
         self.data.db_optimal_position.update_optimal_position_for_strategy_and_instrument(strategy_name, instrument_code, position_entry)
 
+
+    def get_list_of_optimal_position(self):
+        return self.data.db_optimal_position.get_list_of_optimal_positions()
+
+
+    def get_pd_of_position_breaks(self):
+        optimal_and_current = self.get_list_of_optimal_and_current_positions()
+
+        return optimal_and_current.as_pd_with_breaks()
+
+    def get_list_of_optimal_and_current_positions(self):
+        optimal_positions = self.get_list_of_optimal_positions()
+        position_data = diagPositions(self.data)
+        current_positions = position_data.get_all_current_positions_as_list_with_instrument_objects()
+        optimal_and_current = optimal_positions.add_positions(current_positions)
+
+        return optimal_and_current
 
 
 class updatePositions(object):

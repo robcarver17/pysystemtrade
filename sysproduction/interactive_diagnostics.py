@@ -2,6 +2,7 @@ import pandas as pd
 
 from syscore.dateutils import get_datetime_input
 from syscore.genutils import run_interactive_menu, print_menu_of_values_and_get_response, get_and_convert
+from syscore.pdutils import set_pd_print_options
 from syscore.objects import user_exit
 from sysexecution.base_orders import listOfOrders
 
@@ -76,11 +77,6 @@ nested_menu_of_options = {
         61: 'View contract configuration data'
                             }
                         }
-
-def set_pd_print_options():
-    pd.set_option('display.max_rows', 100)
-    pd.set_option('display.max_columns', 100)
-    pd.set_option('display.width', 1000)
 
 
 def not_defined(data):

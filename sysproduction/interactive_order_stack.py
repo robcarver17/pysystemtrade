@@ -3,27 +3,22 @@ Interactive tool to do the following:
 
 Look at the instrument, order and broker stack
 Do standard things to the instrument, order and broker stack (normally automated)
-Put in a fill for an existing order that wasn't picked up from IB
 
-
-FIX ME FUTURE:
-
-- cancel an order on the stack
-- manual trade: create an instrument and contract trades, put on the stack for IB to execute
-- balance trade: create an instrument and contract trades and fill them immediately with a manual fill to match a missing older IB order
 
 """
 
 from syscore.dateutils import get_datetime_input
 from syscore.genutils import get_and_convert, run_interactive_menu, print_menu_and_get_response
+from syscore.pdutils import set_pd_print_options
 
 from sysproduction.data.get_data import dataBlob
-from sysproduction.data.positions import diagPositions
+from sysproduction.data.positions import diagPositions, dataOptimalPositions
 from sysproduction.data.broker import dataBroker
 from sysproduction.data.strategies import get_valid_strategy_name_from_user
 from sysproduction.data.contracts import get_valid_instrument_code_and_contractid_from_user
 from sysproduction.data.controls import dataLocks
 from sysproduction.data.prices import get_valid_instrument_code_from_user
+
 
 from sysexecution.stack_handler.stack_handler import stackHandler
 from sysexecution.stack_handler.balance_trades import stackHandlerCreateBalanceTrades
@@ -558,9 +553,13 @@ def view_positions(data):
     data_broker = dataBroker(data)
 
     diag_positions = diagPositions(data)
+    data_optimal = dataOptimalPositions(data)
+    ans0 = data_optimal.get_pd_of_position_breaks()
     ans1=diag_positions.get_all_current_strategy_instrument_positions()
     ans2 = diag_positions.get_all_current_contract_positions()
     ans3 = data_broker.get_all_current_contract_positions()
+    print("Optimal vs actual")
+    print(ans0.sort_values("breaks"))
     print("Strategy positions")
     print(ans1.as_pd_df().sort_values("instrument_code"))
     print("\n Contract level positions")
