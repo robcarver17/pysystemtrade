@@ -107,7 +107,7 @@ You need to:
         - MONGO_DATA=/home/user_name/data/mongodb/
         - PYSYS_CODE=/home/user_name/pysystemtrade
         - SCRIPT_PATH=/home/user_name/pysystemtrade/sysproduction/linux/scripts
-        - ECHO_PATH=/home/user/echos
+        - ECHO_PATH=/home/user_name/echos
         - MONGO_BACKUP_PATH=/media/shared_network/drive/mongo_backup
     - Create the following directories (again use other directories if you like, but you must modify the .profile above)
         - '/home/user_name/data/mongodb/'
@@ -121,7 +121,7 @@ You need to:
 - FX data:
     - [Initialise the spot FX data in MongoDB from .csv files](/sysinit/futures/repocsv_spotfx_prices.py) (this will be out of date, but you will update it in a moment)
     - Check that you have got spot FX data present: command line:`. /pysystemtrade/sysproduction/linux/scripts/read_fx_prices`
-    - Update the FX price data in MongoDB using interactive brokers: command line:`. /home/your_user_name/workspace3/pysystemtrade/sysproduction/linux/scripts/update_fx_prices`
+    - Update the FX price data in MongoDB using interactive brokers: command line:`. /pysystemtrade/sysproduction/linux/scripts/update_fx_prices`
 - Instrument configuration:
     - Set up futures instrument configuration using this script [instruments_csv_mongo.py](/sysinit/futures/instruments_csv_mongo.py).
 - Roll calendars:
