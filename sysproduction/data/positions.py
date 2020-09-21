@@ -116,7 +116,7 @@ class dataOptimalPositions(object):
         self.data.db_optimal_position.update_optimal_position_for_strategy_and_instrument(strategy_name, instrument_code, position_entry)
 
 
-    def get_list_of_optimal_position(self):
+    def get_list_of_optimal_positions(self):
         return self.data.db_optimal_position.get_list_of_optimal_positions()
 
 
