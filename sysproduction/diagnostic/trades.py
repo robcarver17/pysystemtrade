@@ -10,7 +10,8 @@ from syscore.objects import header, table, body_text, arg_not_supplied, missing_
 from sysproduction.data.get_data import dataBlob
 from sysproduction.data.orders import dataOrders
 
-def trades_info(data =arg_not_supplied, calendar_days_back = 1):
+def trades_info(data =arg_not_supplied, calendar_days_back = 1, end_date = arg_not_supplied,
+                start_date = arg_not_supplied):
     """
     Report on system status
 
@@ -20,14 +21,18 @@ def trades_info(data =arg_not_supplied, calendar_days_back = 1):
     if data is arg_not_supplied:
         data = dataBlob()
 
-    results_object = get_trades_report_data(data, calendar_days_back = 1)
+    if end_date is arg_not_supplied:
+        end_date = datetime.datetime.now()
+
+    if start_date is arg_not_supplied:
+        start_date = end_date - datetime.timedelta(days = calendar_days_back)
+
+    results_object = get_trades_report_data(data, start_date = start_date, end_date = end_date)
     formatted_output = format_trades_data(results_object)
 
     return formatted_output
 
-def get_trades_report_data(data, calendar_days_back = 1):
-    end_date = datetime.datetime.now()
-    start_date = end_date - datetime.timedelta(days = calendar_days_back)
+def get_trades_report_data(data, start_date, end_date):
 
     broker_orders = get_recent_broker_orders(data, start_date, end_date)
     results_object = dict(broker_orders = broker_orders)

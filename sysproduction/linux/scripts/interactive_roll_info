@@ -1,3 +1,0 @@
-#!/bin/bash
-. ~/.profile
-. p sysproduction.interactive_roll_info.interactive_roll_info

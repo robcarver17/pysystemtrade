@@ -20,7 +20,7 @@ from sysproduction.data.strategies import diagStrategiesConfig
 ## We also chuck in a title and a timestamp
 
 
-def pandl_info(data, calendar_days_back = 7):
+def pandl_info(data, calendar_days_back = 7, start_date = arg_not_supplied, end_date = arg_not_supplied):
     """
 
     To begin with we calculate::
@@ -31,8 +31,12 @@ def pandl_info(data, calendar_days_back = 7):
     :param: data blob
     :return: list of formatted output items
     """
+    if end_date is arg_not_supplied:
+        end_date = datetime.datetime.now()
+    if start_date is arg_not_supplied:
+        start_date = datetime.datetime.now() - datetime.timedelta(days=calendar_days_back)
 
-    results_object = get_pandl_report_data(data, calendar_days_back=calendar_days_back)
+    results_object = get_pandl_report_data(data, start_date = start_date, end_date  = end_date)
     formatted_output = format_pandl_data(results_object)
 
     return formatted_output
@@ -41,15 +45,13 @@ pandlResults = namedtuple("pandlResults", ['total_capital_pandl', 'start_date', 
                                            'pandl_for_instruments_across_strategies',
                                            'futures_total','residual', 'strategies'])
 
-def get_pandl_report_data(data, calendar_days_back=7):
+def get_pandl_report_data(data, start_date, end_date):
     """
 
     :param data: data Blob
     :param calendar_days_back:
     :return: named tuple object containing p&l data
     """
-    end_date = datetime.datetime.now()
-    start_date = datetime.datetime.now() - datetime.timedelta(days=calendar_days_back)
     total_capital_pandl = get_total_capital_pandl(data, start_date, end_date=end_date)*100
     pandl_for_instruments_across_strategies = get_ranked_list_of_pandl_by_instrument_all_strategies_in_date_range(data, start_date, end_date)
     pandl_for_instruments_across_strategies.pandl = pandl_for_instruments_across_strategies.pandl*100

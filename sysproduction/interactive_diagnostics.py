@@ -3,7 +3,7 @@ import pandas as pd
 from syscore.dateutils import get_datetime_input
 from syscore.genutils import run_interactive_menu, print_menu_of_values_and_get_response, get_and_convert
 from syscore.pdutils import set_pd_print_options
-from syscore.objects import user_exit
+from syscore.objects import user_exit, arg_not_supplied
 from sysexecution.base_orders import listOfOrders
 
 from sysproduction.data.get_data import dataBlob
@@ -17,6 +17,9 @@ from sysproduction.data.orders import dataOrders
 from sysproduction.data.positions import diagPositions, dataOptimalPositions
 from sysproduction.data.prices import get_valid_instrument_code_from_user, diagPrices
 from sysproduction.data.strategies import get_valid_strategy_name_from_user
+
+from sysproduction.diagnostic.reporting import run_report
+from sysproduction.diagnostic.report_configs import roll_report_config, daily_pandl_report_config, status_report_config, trade_report_config, reconcile_report_config
 
 
 def interactive_diagnostics():
@@ -49,7 +52,11 @@ nested_menu_of_options = {
                        4: 'HTML output'
                     },
 
-                    1: {10: 'nothing yet'
+                    1: {10: 'Roll report',
+                        11: 'P&L report',
+                        12: 'Status report',
+                        13: 'Trade report',
+                        14: 'Reconcile report'
                         },
                     2: {20: 'nothing yet'
                         },
@@ -103,6 +110,63 @@ def backtest_html(data):
     data_backtests.html_data_loop()
     return None
 
+# reports
+def roll_report(data):
+    instrument_code = get_valid_instrument_code_from_user(data, allow_all=True)
+    report_config = email_or_print(roll_report_config)
+    report_config.modify_kwargs(instrument_code = instrument_code)
+    run_report(report_config, data = data)
+
+def pandl_report(data):
+    start_date, end_date, calendar_days = get_report_dates(data)
+    report_config = email_or_print(daily_pandl_report_config)
+    report_config.modify_kwargs(calendar_days_back = calendar_days,
+                                start_date = start_date,
+                                end_date = end_date)
+    run_report(report_config, data = data)
+
+
+
+def status_report(data):
+    report_config = email_or_print(status_report_config)
+    run_report(report_config, data = data)
+
+def trade_report(data):
+    start_date, end_date, calendar_days = get_report_dates(data)
+    report_config = email_or_print(trade_report_config)
+    report_config.modify_kwargs(calendar_days_back = calendar_days,
+                                start_date = start_date,
+                                end_date = end_date)
+    run_report(report_config, data = data)
+
+def reconcile_report(data):
+    report_config = email_or_print(reconcile_report_config)
+    run_report(report_config, data = data)
+
+def email_or_print(report_config):
+    ans = get_and_convert("1: Email or 2: print?", type_expected=int, allow_default=True, default_str="Print",
+                    default_value=2)
+    if ans==1:
+        report_config = report_config.new_config_with_modified_output("email")
+    else:
+        report_config = report_config.new_config_with_modified_output("console")
+
+    return report_config
+
+def get_report_dates(data):
+    end_date = get_datetime_input("End date for report?\n", allow_default=True)
+    start_date = get_datetime_input("Start date for report? (SPACE to use an offset from end date)\n",
+                                    allow_no_arg=True)
+    if start_date is None:
+        start_date = arg_not_supplied
+        calendar_days = get_and_convert("Calendar days back from %s?" % str(end_date),
+                                        type_expected=int, allow_default=True,
+                                        default_value=1)
+
+    else:
+        calendar_days = arg_not_supplied
+
+    return start_date, end_date, calendar_days
 
 ## prices
 def individual_prices(data):
@@ -313,8 +377,11 @@ dict_of_functions = {
                     2: backtest_plot,
                     3: backtest_print,
                     4: backtest_html,
-
-                    10: not_defined,
+                    10: roll_report,
+                    11: pandl_report,
+                    12: status_report,
+                    13: trade_report,
+                    14: reconcile_report,
                     20: not_defined,
                     30: individual_prices,
                     31: multiple_prices,

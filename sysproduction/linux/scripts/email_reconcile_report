@@ -1,3 +1,0 @@
-#!/bin/bash
-. ~/.profile
-. p sysproduction.email_reconcile_report.email_reconcile_report

@@ -108,15 +108,22 @@ class updatePrices(object):
         return self.data.db_futures_adjusted_prices.add_adjusted_prices(instrument_code, updated_adjusted_prices, ignore_duplication=True)
 
 
-def get_valid_instrument_code_from_user(data=arg_not_supplied):
+def get_valid_instrument_code_from_user(data=arg_not_supplied, allow_all = False):
     if data is arg_not_supplied:
         data = dataBlob()
     all_instruments = get_list_of_instruments(data)
     invalid_input = True
+    input_prompt = "Instrument code?"
+    if allow_all:
+        input_prompt = input_prompt+"(Return for ALL)"
     while invalid_input:
-        instrument_code = input("Instrument code?")
+        instrument_code = input(input_prompt)
         if instrument_code in all_instruments:
             return instrument_code
+
+        if allow_all:
+            if instrument_code=="" or instrument_code=="ALL":
+                return "ALL"
 
         print("%s is not in list %s" % (instrument_code, all_instruments))
 
