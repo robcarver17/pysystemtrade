@@ -38,3 +38,22 @@ class diagLogs(object):
         # need something to delete old log records, eg more than x months ago
 
         self.data.db_log.delete_log_items_from_before_n_days(days=days)
+
+    def get_possible_log_level_mapping(self):
+        return self.data.db_log.get_possible_log_level_mapping()
+
+    def get_list_of_values_for_log_attribute(self, attribute_name,
+                                             attribute_dict = {},
+                                             lookback_days=1):
+
+        return self.data.db_log.get_list_of_values_for_log_attribute(attribute_name,
+                                             attribute_dict = attribute_dict,
+                                             lookback_days=lookback_days)
+
+    def get_list_of_unique_log_attribute_keys(self, attribute_dict = {}, lookback_days = 1):
+        return self.data.db_log.get_list_of_unique_log_attribute_keys(attribute_dict = attribute_dict,
+                                                                      lookback_days = lookback_days)
+
+    def get_log_items_with_level(self, log_level, attribute_dict=dict(), lookback_days=1):
+        return self.data.db_log.get_log_items_with_level(log_level, attribute_dict=attribute_dict,
+                                                         lookback_days=lookback_days)

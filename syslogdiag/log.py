@@ -3,6 +3,8 @@ import datetime
 
 from syscore.dateutils import long_to_datetime, datetime_to_long
 
+LOG_MAPPING = dict(msg = 0, terse = 1, warn = 2, error = 3, critical = 4)
+INVERSE_MAP = dict([(value, key) for key,value in LOG_MAPPING.items()])
 
 class logger(object):
     """
@@ -119,19 +121,24 @@ class logger(object):
         setattr(self, "attributes", new_attributes)
 
     def msg(self, text, **kwargs):
-        return self.log(text, msglevel=0, **kwargs)
+        msg_level = LOG_MAPPING['msg']
+        return self.log(text, msglevel=msg_level, **kwargs)
 
     def terse(self, text, **kwargs):
-        return self.log(text, msglevel=1, **kwargs)
+        msg_level = LOG_MAPPING['terse']
+        return self.log(text, msglevel=msg_level, **kwargs)
 
     def warn(self, text, **kwargs):
-        return self.log(text, msglevel=2, **kwargs)
+        msg_level = LOG_MAPPING['warn']
+        return self.log(text, msglevel=msg_level, **kwargs)
 
     def error(self, text, **kwargs):
-        return self.log(text, msglevel=3, **kwargs)
+        msg_level = LOG_MAPPING['error']
+        return self.log(text, msglevel=msg_level, **kwargs)
 
     def critical(self, text, **kwargs):
-        return self.log(text, msglevel=4, **kwargs)
+        msg_level = LOG_MAPPING['critical']
+        return self.log(text, msglevel=msg_level, **kwargs)
 
     def get_last_used_log_id(self):
         """
@@ -337,8 +344,17 @@ class logEntry(object):
     def text(self):
         return self._text
 
+    @property
+    def level(self):
+        return self._msglevel
 
+    @property
+    def msg_level(self):
+        return self._msglevel_text
 
+    @property
+    def attributes(self):
+        return self._use_attributes
 
 if __name__ == '__main__':
     import doctest
