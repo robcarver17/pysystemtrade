@@ -1,3 +1,4 @@
+import glob
 import datetime
 import time
 import os
@@ -191,13 +192,11 @@ def delete_old_files_with_extension_in_pathname(pathname, days_old = 30, extensi
     :return: list of files, with extensions stripped off
     """
 
-    list_of_files = files_with_extension_in_pathname(pathname, extension)
     pathname = get_resolved_pathname(pathname)
+    list_of_files = glob.glob(pathname + '/**/*' + extension, recursive=True)
 
     for filename in list_of_files:
-        full_filename = os.path.join(pathname, filename)
-        full_filename_with_ext = "%s%s" % (full_filename, extension)
-        delete_file_if_too_old(full_filename_with_ext, days_old = days_old)
+        delete_file_if_too_old(filename, days_old = days_old)
 
 
 def delete_file_if_too_old(full_filename_with_ext, days_old=30):
