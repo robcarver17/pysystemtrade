@@ -73,7 +73,8 @@ class mongoGenericHistoricOrdersData(genericOrdersData):
         return order
 
     def delete_order_with_orderid(self, order_id):
-        pass
+        self._mongo.collection.remove(dict(order_id=order_id))
+        return success
 
     def update_order_with_orderid(self, order_id, order):
         self._mongo.collection.update_one(dict(order_id=order_id), {'$set': order.as_dict()})

@@ -1,5 +1,6 @@
 import  datetime
 import pandas as pd
+import numpy as np
 import types
 
 from collections import  namedtuple
@@ -122,15 +123,15 @@ def get_total_capital_pandl(data, start_date, end_date = arg_not_supplied):
     return pandl_in_period
 
 def get_strategy_pandl_and_residual(data, start_date, end_date):
-    strategies = get_ranked_list_of_pandl_by_strategy_in_date_range(data, start_date, end_date)
-    total_strategies = strategies.pandl.sum()
-    total = get_total_capital_pandl(data, start_date, end_date)
-    residual = total - total_strategies
-    residual_dfrow = pd.DataFrame(dict(codes=['residual'], pandl = residual))
-    strategies = strategies.append(residual_dfrow)
-    strategies.pandl = strategies.pandl * 100
+    strategies_pandl = get_ranked_list_of_pandl_by_strategy_in_date_range(data, start_date, end_date)
+    total_pandl_strategies = strategies_pandl.pandl.sum()
+    total_pandl = get_total_capital_pandl(data, start_date, end_date)
+    residual_pandl = total_pandl - total_pandl_strategies
+    residual_dfrow = pd.DataFrame(dict(codes=['residual'], pandl = residual_pandl))
+    strategies_pandl = strategies_pandl.append(residual_dfrow)
+    strategies_pandl.pandl = strategies_pandl.pandl * 100
 
-    return strategies
+    return strategies_pandl
 
 
 def get_ranked_list_of_pandl_by_instrument_all_strategies_in_date_range(data, start_date, end_date):
@@ -235,8 +236,9 @@ def get_period_perc_pandl_for_strategy_in_date_range(
     if pandl_df is missing_data:
         return 0.0
 
+    pandl_df = pandl_df[start_date:end_date]
     pandl_series = pandl_df.sum(axis=1, skipna=True)
-    pandl_series = pandl_series[start_date:end_date]
+    pandl_series = pandl_series.dropna()
 
     return pandl_series.sum()
 
@@ -317,14 +319,12 @@ def get_perc_pandl_series_for_contract(data, instrument_code, contract_id):
 def get_perc_pandl_series_for_strategy_vs_total_capital(data, strategy_name, instrument_code):
     print("Data for %s %s" % (strategy_name, instrument_code))
     pandl_in_base = get_pandl_series_in_base_ccy_for_strategy_instrument(data, strategy_name, instrument_code)
-    capital = get_total_capital_series(data)
+    capital = get_total_capital_series(data).ffill()
     capital = capital.reindex(pandl_in_base.index, method="ffill")
 
     perc_pandl = pandl_in_base / capital
 
     return perc_pandl
-
-
 
 
 
@@ -437,6 +437,9 @@ def pandl_points(price_series,
     prices_to_use = prices_to_use.fillna(axis=1, method="ffill")
 
     prices_to_use = prices_to_use.price
+
+    prices_to_use = prices_to_use.replace([np.inf, -np.inf], np.nan)
+    prices_to_use = prices_to_use.dropna()
 
     price_returns = prices_to_use.ffill().diff()
     pos_series = pos_series.groupby(pos_series.index).last()
