@@ -48,8 +48,10 @@ reconcile_report_config = reportConfig(title="Reconcile report",
 trade_report_config = reportConfig(title="Trade report",
                                     function="sysproduction.diagnostic.trades.trades_info", calendar_days_back = 1)
 
+strategy_report_config = reportConfig(title="Strategy report",
+                                    function="sysproduction.diagnostic.strategies.strategy_report")
 
 
 all_configs = dict(status_report = status_report_config, roll_report = roll_report_config,
                    daily_pandl_report = daily_pandl_report_config, reconcile_report = reconcile_report_config,
-                   trade_report = trade_report_config)
+                   trade_report = trade_report_config, strategy_report = strategy_report_config)

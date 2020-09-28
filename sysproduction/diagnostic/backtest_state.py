@@ -14,6 +14,16 @@ CONFIG_FILE_SUFFIX = "_config"
 PICKLE_SUFFIX = PICKLE_FILE_SUFFIX+PICKLE_EXT
 CONFIG_SUFFIX = CONFIG_FILE_SUFFIX+CONFIG_EXT
 
+date_formatting = "%Y%m%d_%H%M%S"
+
+def create_datetime_string(datetime_to_use):
+    datetime_marker = datetime_to_use.strftime(date_formatting)
+
+    return datetime_marker
+
+def from_marker_to_datetime(datetime_marker):
+    return datetime.datetime.strptime(datetime_marker, date_formatting)
+
 
 def create_system_with_saved_state(data, strategy_name, date_time_signature):
     """
@@ -86,7 +96,8 @@ def store_backtest_state(data, system, strategy_name="default_strategy"):
     """
 
     ensure_backtest_directory_exists(strategy_name)
-    datetime_marker = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    datetime_to_use = datetime.datetime.now()
+    datetime_marker = create_datetime_string(datetime_to_use)
 
     pickle_filename = get_backtest_pickle_filename(strategy_name, datetime_marker)
     pickle_state(data, system, pickle_filename)

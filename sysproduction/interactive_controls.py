@@ -75,7 +75,7 @@ def change_limit_for_instrument_strategy(data):
     trade_limits = dataTradeLimits(data)
     instrument_code = get_valid_instrument_code_from_user(data)
     period_days = get_and_convert("Period of days?", type_expected=int, allow_default=True, default_value = 1)
-    strategy_name = get_valid_strategy_name_from_user()
+    strategy_name = get_valid_strategy_name_from_user(data=data)
     new_limit = get_and_convert("Limit (in contracts?)", type_expected=int, allow_default=False)
 
     ans = input("Update will change number of trades allowed in periods, but won't reset 'clock'. Are you sure? (y/other)")
@@ -86,7 +86,7 @@ def reset_limit_for_instrument_strategy(data):
     trade_limits = dataTradeLimits(data)
     instrument_code = get_valid_instrument_code_from_user(data)
     period_days = get_and_convert("Period of days?", type_expected=int, allow_default=True, default_value = 1)
-    strategy_name = get_valid_strategy_name_from_user()
+    strategy_name = get_valid_strategy_name_from_user(data=data)
 
     ans = input("Reset means trade 'clock' will restart. Are you sure? (y/other)")
     if ans =="y":
@@ -102,7 +102,7 @@ def view_overrides(data):
 
 def update_strategy_override(data):
     update_overrides = updateOverrides(data)
-    strategy_name = get_valid_strategy_name_from_user()
+    strategy_name = get_valid_strategy_name_from_user(data=data)
     new_override = get_overide_object_from_user()
     ans = input("Are you sure? (y/other)")
     if ans =="y":
@@ -120,7 +120,7 @@ def update_instrument_override(data):
 def update_strategy_instrument_override(data):
     update_overrides = updateOverrides(data)
     instrument_code = get_valid_instrument_code_from_user(data)
-    strategy_name = get_valid_strategy_name_from_user()
+    strategy_name = get_valid_strategy_name_from_user(data=data)
     new_override = get_overide_object_from_user()
     ans = input("Are you sure? (y/other)")
     if ans =="y":
@@ -185,7 +185,7 @@ def view_process_config(data):
 
 def view_strategy_config(data):
     diag_config = diagProcessConfig(data)
-    strategy_name = get_valid_strategy_name_from_user()
+    strategy_name = get_valid_strategy_name_from_user(data=data)
     result_dict = diag_config.get_strategy_dict_for_strategy(strategy_name)
     for key,value in result_dict.items():
         print("%s: %s" % (str(key), str(value)))

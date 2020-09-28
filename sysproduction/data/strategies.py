@@ -45,13 +45,19 @@ def get_list_of_strategies(data = arg_not_supplied):
     return d.get_list_of_strategies()
 
 
-def get_valid_strategy_name_from_user():
-    all_strategies = get_list_of_strategies()
+def get_valid_strategy_name_from_user(data = arg_not_supplied, allow_all = False, all_code= "ALL"):
+    all_strategies = get_list_of_strategies(data = data)
     invalid_input = True
     while invalid_input:
         print("Strategies: %s" % all_strategies)
-        default_strategy = all_strategies[0]
+        if allow_all:
+            default_strategy = all_code
+        else:
+            default_strategy = all_strategies[0]
         strategy_name = get_and_convert("Strategy?", type_expected=str, default_value=default_strategy)
+        if allow_all and strategy_name==all_code:
+            return all_code
+
         if strategy_name in all_strategies:
             return strategy_name
 

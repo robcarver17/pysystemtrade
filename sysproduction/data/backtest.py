@@ -1,6 +1,8 @@
 import matplotlib
 import matplotlib.pyplot as pyplot
-matplotlib.use("TkAgg")
+
+# Uncomment this line if working inside IDE
+#matplotlib.use("TkAgg")
 
 import pandas as pd
 
@@ -43,6 +45,21 @@ class dataBacktest(object):
 
     def user_choose_system_with_saved_state(self):
         strategy_name, timestamp = self.interactively_choose_timestamp_and_strategy()
+
+        system = self.load_backtest(strategy_name, timestamp)
+        return system
+
+    def load_most_recent_backtest(self, strategy_name):
+        list_of_timestamps = self.get_list_of_timestamps_for_strategy(strategy_name)
+        ## most recent last
+        list_of_timestamps.sort()
+        timestamp_to_use = list_of_timestamps[-1]
+
+        system = self.load_backtest(strategy_name, timestamp_to_use)
+        return system
+
+
+    def load_backtest(self, strategy_name, timestamp):
         system = create_system_with_saved_state(self.data, strategy_name, timestamp)
         self._system = system
         self._timestamp = timestamp
@@ -53,8 +70,9 @@ class dataBacktest(object):
     def create_system_with_saved_state(self, strategy_name, timestamp):
         create_system_with_saved_state(self.data, strategy_name, timestamp)
 
+
     def interactively_choose_timestamp_and_strategy(self):
-        strategy_name = get_valid_strategy_name_from_user()
+        strategy_name = get_valid_strategy_name_from_user(data=self.data)
         timestamp = self.interactively_choose_timestamp(strategy_name)
 
         return strategy_name, timestamp

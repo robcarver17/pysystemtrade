@@ -21,7 +21,7 @@ from sysproduction.data.strategies import get_valid_strategy_name_from_user
 
 from sysproduction.diagnostic.emailing import retrieve_and_delete_stored_messages
 from sysproduction.diagnostic.reporting import run_report
-from sysproduction.diagnostic.report_configs import roll_report_config, daily_pandl_report_config, status_report_config, trade_report_config, reconcile_report_config
+from sysproduction.diagnostic.report_configs import roll_report_config, daily_pandl_report_config, status_report_config, trade_report_config, reconcile_report_config, strategy_report_config
 
 
 def interactive_diagnostics():
@@ -58,7 +58,8 @@ nested_menu_of_options = {
                         11: 'P&L report',
                         12: 'Status report',
                         13: 'Trade report',
-                        14: 'Reconcile report'
+                        14: 'Reconcile report',
+                        15: 'Strategy report'
                         },
                     2: {20: 'View stored emails',
                         21: 'View errors',
@@ -145,6 +146,21 @@ def trade_report(data):
 
 def reconcile_report(data):
     report_config = email_or_print(reconcile_report_config)
+    run_report(report_config, data = data)
+
+
+def strategy_report(data):
+
+    strategy_name = get_valid_strategy_name_from_user(data=data, allow_all=True, all_code="ALL")
+    if strategy_name is not "ALL":
+        data_backtests = dataBacktest(data)
+        timestamp = data_backtests.interactively_choose_timestamp(strategy_name)
+    else:
+        timestamp = arg_not_supplied
+
+    report_config = email_or_print(strategy_report_config)
+    report_config.modify_kwargs(strategy_name = strategy_name,
+                                timestamp = timestamp)
     run_report(report_config, data = data)
 
 def email_or_print(report_config):
@@ -295,7 +311,7 @@ def total_acc_capital(data):
     return None
 
 def optimal_positions(data):
-    strategy_name = get_valid_strategy_name_from_user()
+    strategy_name = get_valid_strategy_name_from_user(data=data)
     optimal_data = dataOptimalPositions(data)
 
     instrument_code_list = optimal_data.get_list_of_instruments_for_strategy_with_optimal_position(strategy_name)
@@ -440,6 +456,7 @@ dict_of_functions = {
                     12: status_report,
                     13: trade_report,
                     14: reconcile_report,
+                    15: strategy_report,
                     20: retrieve_and_delete_stored_messages,
                     21: view_errors,
                     22: view_logs,
