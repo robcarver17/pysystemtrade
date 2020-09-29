@@ -13,7 +13,7 @@ from syscore.objects import header, table, body_text, arg_not_supplied, missing_
 from syscore.genutils import transfer_object_attributes
 
 from sysproduction.data.get_data import dataBlob
-from sysproduction.data.controls import diagProcessConfig, dataControlProcess, dataTradeLimits, diagOverrides
+from sysproduction.data.controls import diagProcessConfig, dataControlProcess, dataTradeLimits, diagOverrides, dataLocks
 from sysproduction.data.strategies import get_list_of_strategies
 from sysproduction.data.prices import get_list_of_instruments
 from sysproduction.data.currency_data import get_list_of_fxcodes, currencyData
@@ -46,8 +46,9 @@ def get_status_report_data(data):
     position = get_last_optimal_position_updates_as_df(data)
     limits = get_trade_limits_as_df(data)
     overrides = get_overrides_as_df(data)## NOT WORKING
+    locks = get_list_of_position_locks(data)
     results_object = dict(process = process, method = method, price = price, position = position,
-                          limits = limits, overrides = overrides)
+                          limits = limits, overrides = overrides, locks = locks)
     return results_object
 
 def format_status_data(results_object):
@@ -87,6 +88,8 @@ def format_status_data(results_object):
     table6 = table('Status of overrides', table6_df)
     formatted_output.append(table6)
 
+    text1 = body_text(results_object['locks'])
+    formatted_output.append(text1)
 
     formatted_output.append(header("END OF STATUS REPORT"))
 
@@ -350,3 +353,8 @@ def get_methods_dict(data):
 
     return all_methods_dict
 
+def get_list_of_position_locks(data):
+    data_locks = dataLocks(data)
+    any_locks = data_locks.get_list_of_locked_instruments()
+
+    return "Locked instruments (position mismatch): %s" % str(any_locks)

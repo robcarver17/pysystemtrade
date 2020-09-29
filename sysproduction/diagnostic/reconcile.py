@@ -73,7 +73,8 @@ def format_reconcile_data(results_object):
     table2 = table('Positions broker', table2_df)
     formatted_output.append(table2)
 
-    body_text("Position breaks %s" % results_object['position_breaks'])
+    text1 = body_text(results_object['position_breaks'])
+    formatted_output.append(text1)
 
     table3_df = results_object['trades_mine']
     table3 = table('Trades in DB', table3_df)
