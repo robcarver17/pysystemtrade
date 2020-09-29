@@ -152,7 +152,7 @@ def reconcile_report(data):
 def strategy_report(data):
 
     strategy_name = get_valid_strategy_name_from_user(data=data, allow_all=True, all_code="ALL")
-    if strategy_name is not "ALL":
+    if strategy_name!="ALL":
         data_backtests = dataBacktest(data)
         timestamp = data_backtests.interactively_choose_timestamp(strategy_name)
     else:
