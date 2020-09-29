@@ -125,6 +125,13 @@ class dataOptimalPositions(object):
 
         return optimal_and_current.as_pd_with_breaks()
 
+    def get_list_of_optimal_position_breaks(self):
+        opt_positions = self.get_pd_of_position_breaks()
+        with_breaks = opt_positions[opt_positions.breaks==True]
+
+        return list(with_breaks.index)
+
+
     def get_list_of_optimal_and_current_positions(self):
         optimal_positions = self.get_list_of_optimal_positions()
         position_data = diagPositions(self.data)

@@ -43,7 +43,13 @@ def create_system_with_saved_state(data, strategy_name, date_time_signature):
 def get_system_caller(data, strategy_name, date_time_signature):
     ## returns a method we can use to recreate a system
     process_name = "load_backtests"
-    config_this_process = get_strategy_class_object_config(process_name, data, strategy_name)
+    try:
+        config_this_process = get_strategy_class_object_config(process_name, data, strategy_name)
+    except:
+        data.log.warn("No configuration strategy_list/strategy_name/load_backtests; using defaults")
+        config_this_process = dict(object = 'sysproduction.strategy_code.run_system_classic.runSystemClassic',
+                                   function = 'system_method')
+
     strategy_class_object = resolve_function(config_this_process.pop('object'))
     function = config_this_process.pop('function')
     config_filename = get_backtest_config_filename(strategy_name, date_time_signature)

@@ -16,7 +16,7 @@ from sysproduction.data.get_data import dataBlob
 from sysproduction.data.orders import dataOrders
 from sysproduction.data.positions import diagPositions
 from sysproduction.data.broker import dataBroker
-
+from sysproduction.data.positions import dataOptimalPositions
 
 
 def reconcile_info(data =arg_not_supplied):
@@ -36,6 +36,7 @@ def reconcile_info(data =arg_not_supplied):
 
 def get_reconcile_report_data(data):
 
+    positions_optimal = get_optimal_positions(data)
     positions_mine = get_my_positions(data)
     positions_ib = get_broker_positions(data)
     position_breaks = get_position_breaks(data)
@@ -44,7 +45,7 @@ def get_reconcile_report_data(data):
 
     results_object = dict(positions_mine=positions_mine, positions_ib=positions_ib,
                           position_breaks=position_breaks, trades_mine=trades_mine,
-                          trades_ib=trades_ib)
+                          trades_ib=trades_ib, positions_optimal = positions_optimal)
     return results_object
 
 def format_reconcile_data(results_object):
@@ -59,6 +60,10 @@ def format_reconcile_data(results_object):
     formatted_output=[]
 
     formatted_output.append(header("Reconcile report produced on %s" % (str(datetime.datetime.now()))))
+
+    table0_df = results_object['positions_optimal']
+    table0 = table('Optimal versus actual positions', table0_df)
+    formatted_output.append(table0)
 
     table1_df = results_object['positions_mine']
     table1 = table('Positions in DB', table1_df)
@@ -82,7 +87,11 @@ def format_reconcile_data(results_object):
 
     return formatted_output
 
+def get_optimal_positions(data):
+    data_optimal = dataOptimalPositions(data)
+    opt_positions = data_optimal.get_pd_of_position_breaks()
 
+    return opt_positions
 
 def get_my_positions(data):
     diag_positions = diagPositions(data)
@@ -98,8 +107,17 @@ def get_broker_positions(data):
     return broker_positions
 
 def get_position_breaks(data):
+
+    data_optimal = dataOptimalPositions(data)
+    breaks_str0 = "Breaks Optimal vs actual %s" % str(data_optimal.get_list_of_optimal_position_breaks())
+
+    diag_positions = diagPositions(data)
+    breaks_str1 =  "Breaks Instrument vs Contract %s" % str(diag_positions.get_list_of_breaks_between_contract_and_strategy_positions())
+
     data_broker = dataBroker(data)
-    return str(data_broker.get_list_of_breaks_between_broker_and_db_contract_positions())
+    breaks_str2 = "Breaks Broker vs Contract %s" % str(data_broker.get_list_of_breaks_between_broker_and_db_contract_positions())
+
+    return breaks_str0+"\n " +breaks_str1+"\n "+breaks_str2
 
 
 tradesData = namedtuple("tradesData", ["instrument_code","strategy_name",  "contract_id","fill_datetime",
