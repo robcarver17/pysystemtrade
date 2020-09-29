@@ -7,7 +7,7 @@ from syscore.objects import missing_data, arg_not_supplied, missing_order
 
 from sysdata.production.current_positions import contractPosition
 
-from sysexecution.base_orders import fillPrice
+from sysexecution.base_orders import adjust_spread_order_single_benchmark
 from sysexecution.broker_orders import create_new_broker_order_from_contract_order
 from sysexecution.tick_data import analyse_tick_data_frame
 
@@ -121,8 +121,8 @@ class dataBroker(object):
     def get_and_submit_broker_order_for_contract_order(self, contract_order,
                                                                                      input_limit_price = None,
                                                                      order_type = "market",
-                                                       limit_price_from="input",
-                                                       ticker_object = None):
+                                                                    limit_price_from="input",
+                                                                    ticker_object = None):
 
 
         log = contract_order.log_with_attributes(self.data.log)
@@ -222,7 +222,20 @@ class dataBroker(object):
             ## For spread orders, we use the tick stream to get the limit price, and the historical ticks for the benchmark
             ## This is because we benchmark on each individual contract price, and the tick stream is just for the spread
 
-            benchmark_side_prices, benchmark_mid_prices = self.get_benchmark_prices_for_contract_order_by_leg(contract_order)
+            benchmarks = self.get_benchmark_prices_for_contract_order_by_leg(contract_order)
+            if benchmarks is missing_data:
+                log.warn(
+                    "Can't get individual component market data for %s so not trading with limit order %s" % (contract_order.instrument_code,
+                                                                                         str(contract_order)))
+                return ticker_object, missing_order
+
+            benchmark_side_prices, benchmark_mid_prices = benchmarks
+
+            ## We need to adjust these so they are consistent with the initial spread
+            benchmark_side_prices = \
+                adjust_spread_order_single_benchmark(contract_order, benchmark_side_prices, side_price)
+            benchmark_mid_prices = \
+                adjust_spread_order_single_benchmark(contract_order, benchmark_mid_prices, mid_price)
 
         else:
             ## For non spread orders, we use the tick stream to get both the limit prices and the benchmark
@@ -264,7 +277,7 @@ class dataBroker(object):
     def get_benchmark_prices_for_contract_order_by_leg(self, contract_order):
         market_conditions = self.get_market_conditions_for_contract_order_by_leg(contract_order)
         if market_conditions is missing_data:
-            return np.nan
+            return missing_data
         side_prices = [x.side_price for x in market_conditions]
         mid_prices = [x.mid_price for x in market_conditions]
 

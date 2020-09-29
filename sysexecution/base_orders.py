@@ -199,6 +199,14 @@ def apply_min_size(trade_list, min_size):
     return trade_list_with_ratio_as_int
 
 
+def adjust_spread_order_single_benchmark(order, benchmark_list, actual_price):
+
+    spread_price_from_benchmark = order.trade.get_spread_price(benchmark_list)
+    adjustment_to_benchmark = actual_price - spread_price_from_benchmark
+    adjusted_benchmark_prices = [price + adjustment_to_benchmark for price in benchmark_list]
+
+    return adjusted_benchmark_prices
+
 class fillPrice(object):
     def __init__(self, fill_price):
         if type(fill_price) is fillPrice:
