@@ -139,6 +139,8 @@ class tradeQuantity(object):
         return tradeQuantity(new_trade_list)
 
     def get_spread_price(self, list_of_prices):
+        if list_of_prices is None:
+            return None
         assert len(self._trade_or_fill_qty)==len(list_of_prices)
 
         if len(self._trade_or_fill_qty)==1:
@@ -151,6 +153,9 @@ class tradeQuantity(object):
         multiplied_prices = [x*y*sign_to_adjust for x,y in zip(self._trade_or_fill_qty, list_of_prices)]
 
         return sum(multiplied_prices)
+
+    def buy_or_sell(self):
+        return sign(self.qty[0])
 
 def apply_minima(trade_list, abs_list):
     ## for each item in _trade and abs_list, return the signed minimum of the zip

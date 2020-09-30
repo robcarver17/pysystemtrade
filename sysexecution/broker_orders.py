@@ -295,10 +295,12 @@ class brokerOrder(contractOrder):
 
         list_of_derived_broker_orders = []
         original_as_dict = self.as_dict()
-        for contractid, trade_qty, fill, fill_price in zip(self.contract_id,
+        for contractid, trade_qty, fill, fill_price, mid_price, side_price in zip(self.contract_id,
                                                            self.trade,
                                                            self.fill,
-                                                           self.filled_price):
+                                                           self.filled_price,
+                                                           self.mid_price,
+                                                           self.side_price):
 
             new_order_as_dict = copy(original_as_dict)
             new_tradeable_object = contractTradeableObject(self.strategy_name, self.instrument_code,
@@ -310,6 +312,8 @@ class brokerOrder(contractOrder):
             new_order_as_dict['fill'] = fill
             new_order_as_dict['filled_price'] = fill_price
             new_order_as_dict['order_id'] = no_order_id
+            new_order_as_dict['mid_price'] = mid_price
+            new_order_as_dict['side_price'] = side_price
 
             new_order = brokerOrder.from_dict(new_order_as_dict)
             new_order.split_order(self.order_id)
