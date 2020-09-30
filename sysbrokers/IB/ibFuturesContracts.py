@@ -105,6 +105,7 @@ class ibFuturesContractData(futuresContractData):
 
         if expiry_date is missing_contract:
             new_log.msg("No IB expiry date found")
+            return missing_contract
         else:
             expiry_date = expiryDate.from_str(expiry_date, date_format="%Y%m%d")
 

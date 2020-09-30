@@ -1,7 +1,7 @@
 from syslogdiag.log import logtoscreen
 from sysdata.futures.contracts import futuresContract
 from sysbrokers.IB.ibFuturesContracts import ibFuturesContractData
-from syscore.objects import arg_not_supplied
+from syscore.objects import arg_not_supplied, missing_contract
 from sysdata.production.historic_positions import contractPositionData
 from sysdata.production.current_positions import listOfContractPositions, contractPosition
 
@@ -34,6 +34,8 @@ class ibContractPositionData(contractPositionData):
     def get_current_position_for_contract_object(self, contract_object, account_id=arg_not_supplied):
         instrument_code, _ = self._contract_tuple_given_contract(contract_object)
         actual_expiry = self.futures_contract_data.get_actual_expiry_date_for_contract(contract_object)
+        if actual_expiry is missing_contract:
+            return 0
         ib_symbol = self.futures_contract_data.get_brokers_instrument_code(instrument_code)
         all_positions = self._get_all_futures_positions_as_raw_list(account_id = account_id)
         position = [position_entry['position'] for position_entry in all_positions if
