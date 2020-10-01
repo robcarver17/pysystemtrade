@@ -2,7 +2,7 @@ import datetime
 
 from sysproduction.data.get_data import dataBlob
 from syscore.objects import arg_not_supplied
-
+from sysproduction.data.currency_data import currencyData, currencyValue
 
 class diagInstruments(object):
     def __init__(self, data=arg_not_supplied):
@@ -18,6 +18,16 @@ class diagInstruments(object):
 
     def get_currency(self, instrument_code):
         return self.get_meta_data(instrument_code)['Currency']
+
+    def get_point_size_base_currency(self, instrument_code):
+        point_size_instrument_currency = self.get_point_size(instrument_code)
+        instrument_currency = self.get_currency(instrument_code)
+
+        currency_data = currencyData(self.data)
+        point_size_currency_value = currencyValue(instrument_currency, point_size_instrument_currency)
+        value = currency_data.currency_value_in_base(point_size_currency_value)
+
+        return value
 
     def get_asset_class(self, instrument_code):
         return self.get_meta_data(instrument_code)['AssetClass']

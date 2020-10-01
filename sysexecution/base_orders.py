@@ -141,6 +141,9 @@ class tradeQuantity(object):
     def get_spread_price(self, list_of_prices):
         if list_of_prices is None:
             return None
+        if type(list_of_prices) is int or type(list_of_prices) is float:
+            list_of_prices = [list_of_prices]
+
         assert len(self._trade_or_fill_qty)==len(list_of_prices)
 
         if len(self._trade_or_fill_qty)==1:

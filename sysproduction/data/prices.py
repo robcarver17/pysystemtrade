@@ -85,6 +85,13 @@ class diagPrices(object):
         return self.data.db_futures_contract_price. \
             get_prices_for_instrument_code_and_contract_date(instrument_code, contract_date)
 
+    def get_quick_std_of_adjusted_prices(self, instrument_code):
+        price_series = self.get_adjusted_prices(instrument_code)
+        daily_price_series = price_series.resample("1B").last()
+        daily_returns = daily_price_series.diff()
+        daily_std = daily_returns.rolling(30, min_periods=2).std()
+
+        return daily_std
 
 class updatePrices(object):
     def __init__(self, data=arg_not_supplied):
