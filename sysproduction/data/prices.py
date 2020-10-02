@@ -87,6 +87,9 @@ class diagPrices(object):
 
     def get_quick_std_of_adjusted_prices(self, instrument_code):
         price_series = self.get_adjusted_prices(instrument_code)
+        if len(price_series)==0:
+            return price_series
+
         daily_price_series = price_series.resample("1B").last()
         daily_returns = daily_price_series.diff()
         daily_std = daily_returns.rolling(30, min_periods=2).std()

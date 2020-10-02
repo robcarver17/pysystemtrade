@@ -40,6 +40,10 @@ def trades_info(data =arg_not_supplied, calendar_days_back = 1, end_date = arg_n
 def get_trades_report_data(data, start_date, end_date):
 
     broker_orders = get_recent_broker_orders(data, start_date, end_date)
+    if len(broker_orders)==0:
+        empty_df = pd.DataFrame()
+        results_object = dict(overview=empty_df)
+        return results_object
 
     overview = broker_orders[["instrument_code","strategy_name",  "contract_id","fill_datetime",
                                        "fill", "filled_price"]]
@@ -55,7 +59,7 @@ def get_trades_report_data(data, start_date, end_date):
     detailed_raw_results = get_stats_for_slippage_groups(raw_slippage, item_list)
     summary_dict.update(detailed_raw_results)
 
-    item_list = ['last_annual_vol','delay_vol', 'bid_ask_vol', 'execution_vol', 'versus_limit_vol', 'versus_parent_limit_vol', 'total_trading_vol']
+    item_list = ['delay_vol', 'bid_ask_vol', 'execution_vol', 'versus_limit_vol', 'versus_parent_limit_vol', 'total_trading_vol']
     detailed_vol_results = get_stats_for_slippage_groups(vol_slippage, item_list)
     summary_dict.update(detailed_vol_results)
 
@@ -82,6 +86,11 @@ def format_trades_data(results_object):
     formatted_output=[]
 
     formatted_output.append(header("Trades report produced on %s" % (str(datetime.datetime.now()))))
+
+    if len(results_object['overview'])==0:
+        formatted_output.append(body_text("No trades in relevant period"))
+
+        return formatted_output
 
     table1_df = results_object['overview']
     table1 = table('Broker orders', table1_df)
@@ -293,6 +302,8 @@ def cash_calculations_for_slippage_row(slippage_row, data):
 
 def create_vol_norm_slippage_df(raw_slippage, data):
     ## What does this slippage mean in vol normalised terms
+    for irow in range(len(raw_slippage)):
+        vol_slippage_row(raw_slippage.iloc[irow], data)
 
     vol_slippage_data_as_list = [vol_slippage_row(raw_slippage.iloc[irow], data)
                           for irow in range(len(raw_slippage))]
@@ -319,7 +330,10 @@ def vol_calculations_for_slippage_row(slippage_row, data):
     ## What's a tick worth in base currency?
     diag_prices = diagPrices(data)
     rolling_daily_vol = diag_prices.get_quick_std_of_adjusted_prices(slippage_row.instrument_code)
-    last_daily_vol = rolling_daily_vol.ffill().values[-1]
+    if len(rolling_daily_vol)==0:
+        last_daily_vol = np.nan
+    else:
+        last_daily_vol = rolling_daily_vol.ffill().values[-1]
     last_annual_vol = last_daily_vol*16
 
     input_items = ['delay', 'bid_ask', 'execution', 'versus_limit', 'versus_parent_limit', 'total_trading']
