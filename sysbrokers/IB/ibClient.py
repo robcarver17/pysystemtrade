@@ -668,7 +668,7 @@ class ibClient(brokerClient):
         return df
 
     def ib_get_account_summary(self):
-        data_stale = self._ib_get_account_summary_if_cache_stale()
+        data_stale = self._ib_get_account_summary_check_for_stale_cache()
         if data_stale:
             account_summary_data =  self._ib_get_account_summary_if_cache_stale()
         else:
