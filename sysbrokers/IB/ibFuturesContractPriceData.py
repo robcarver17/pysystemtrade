@@ -89,12 +89,12 @@ class ibFuturesContractPriceData(futuresContractPriceData):
         """
         new_log = self.log.setup(instrument_code=contract_object.instrument_code, contract_date=contract_object.date)
 
-        contract_object_with_ib_data = self.futures_contract_data.get_contract_object_with_IB_metadata(contract_object)
-        if contract_object_with_ib_data is missing_contract:
+        contract_object_with_ib_broker_config = self.futures_contract_data.get_contract_object_with_IB_metadata(contract_object)
+        if contract_object_with_ib_broker_config is missing_contract:
             new_log.warn("Can't get data for %s" % str(contract_object))
             return futuresContractPrices.create_empty()
 
-        price_data = self.ibconnection.broker_get_historical_futures_data_for_contract(contract_object_with_ib_data,
+        price_data = self.ibconnection.broker_get_historical_futures_data_for_contract(contract_object_with_ib_broker_config,
                                                                                        bar_freq = freq)
 
         if len(price_data)==0:
