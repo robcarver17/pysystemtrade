@@ -155,6 +155,7 @@ class ibOrdersData(brokerOrderStackData):
         :return: ibOrderWithControls or missing_order
         """
         placed_broker_trade_object = self.send_broker_order_to_IB(broker_order)
+        order_time = self.ibconnection.get_broker_time_local_tz()
 
         if placed_broker_trade_object is missing_order:
             return missing_order
@@ -162,6 +163,7 @@ class ibOrdersData(brokerOrderStackData):
         order_with_controls = ibOrderWithControls(placed_broker_trade_object,
                                                   self.ibconnection,
                                                   broker_order = broker_order)
+        order_with_controls.order.submit_datetime = order_time
 
         ## We do this so the tempid and commission are accurate
         order_with_controls.write_placed_broker_trade_info_in_broker_order()

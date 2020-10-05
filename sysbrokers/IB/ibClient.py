@@ -470,6 +470,12 @@ class ibClient(brokerClient):
 
         return ib_tz
 
+    def get_broker_time_local_tz(self):
+        ib_time = self.ib.reqCurrentTime()
+        local_ib_time = ib_time.astimezone(tz.tzlocal())
+
+        return local_ib_time
+
     def ib_spotfx_contract(self, ccy1, ccy2="USD", log=arg_not_supplied):
         ibcontract = Forex(ccy1+ccy2)
 
