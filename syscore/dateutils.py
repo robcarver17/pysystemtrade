@@ -287,6 +287,11 @@ def adjust_timestamp(index_entry, actual_close = pd.DateOffset(hours = 23, minut
 
     return new_index_entry
 
+def strip_tz_info(timestamp_with_tz_info):
+    ts = timestamp_with_tz_info.timestamp()
+    new_timestamp = datetime.datetime.fromtimestamp(ts)
+    return new_timestamp
+
 def get_datetime_input(prompt, allow_default = True, allow_no_arg = False):
     invalid_input = True
     input_str = prompt+": Enter date and time in format %Y%-%m-%d eg '2020-05-30' OR '%Y-%m-%d %H:%M:%S' eg '2020-05-30 14:04:11'"

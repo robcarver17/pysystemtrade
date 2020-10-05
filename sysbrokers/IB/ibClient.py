@@ -12,7 +12,7 @@ from sysbrokers.baseClient import brokerClient
 
 from syscore.objects import missing_contract, arg_not_supplied, missing_order
 from syscore.genutils import list_of_ints_with_highest_common_factor_positive_first
-from syscore.dateutils import adjust_timestamp
+from syscore.dateutils import adjust_timestamp, strip_tz_info
 from syslogdiag.log import logtoscreen
 
 
@@ -451,7 +451,9 @@ class ibClient(brokerClient):
 
     def adjust_ib_time_to_local(self, timestamp_ib):
         timestamp_ib_with_tz = self.add_tz_to_ib_time(timestamp_ib)
-        local_timestamp_ib = timestamp_ib_with_tz.astimezone(tz.tzlocal())
+        local_timestamp_ib_with_tz = timestamp_ib_with_tz.astimezone(tz.tzlocal())
+        local_timestamp_ib = strip_tz_info(local_timestamp_ib_with_tz)
+
         return local_timestamp_ib
 
     def add_tz_to_ib_time(self, timestamp_ib):
@@ -472,7 +474,8 @@ class ibClient(brokerClient):
 
     def get_broker_time_local_tz(self):
         ib_time = self.ib.reqCurrentTime()
-        local_ib_time = ib_time.astimezone(tz.tzlocal())
+        local_ib_time_with_tz = ib_time.astimezone(tz.tzlocal())
+        local_ib_time = strip_tz_info(local_ib_time_with_tz)
 
         return local_ib_time
 
