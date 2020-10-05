@@ -450,6 +450,11 @@ class ibClient(brokerClient):
         return adjusted_ts
 
     def adjust_ib_time_to_local(self, timestamp_ib):
+
+        if getattr(timestamp_ib, 'tz_localize', None) is None:
+            ## daily, nothing to do
+            return timestamp_ib
+
         timestamp_ib_with_tz = self.add_tz_to_ib_time(timestamp_ib)
         local_timestamp_ib_with_tz = timestamp_ib_with_tz.astimezone(tz.tzlocal())
         local_timestamp_ib = strip_tz_info(local_timestamp_ib_with_tz)
