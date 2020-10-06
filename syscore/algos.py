@@ -59,9 +59,8 @@ def vol_estimator(x, using_exponent=True, min_periods=20, ew_lookback=250):
 
     """
     if using_exponent:
-        vol = x.ewm(
-            span=ew_lookback,
-            min_periods=min_periods).std().iloc[-1, :].values[0]
+        vol = (x.ewm(span=ew_lookback,
+                     min_periods=min_periods).std().iloc[-1, :].values[0])
 
     else:
         with warnings.catch_warnings():
@@ -70,7 +69,8 @@ def vol_estimator(x, using_exponent=True, min_periods=20, ew_lookback=250):
                 apply_with_min_periods,
                 axis=0,
                 min_periods=min_periods,
-                my_func=np.nanstd)
+                my_func=np.nanstd,
+            )
 
     stdev_list = list(vol)
 
@@ -87,9 +87,12 @@ def mean_estimator(x, using_exponent=True, min_periods=20, ew_lookback=500):
 
     """
     if using_exponent:
-        means = x.ewm(
-            x, span=ew_lookback,
-            min_periods=min_periods).mean().iloc[-1, :].values[0]
+        means = (
+            x.ewm(x, span=ew_lookback, min_periods=min_periods)
+            .mean()
+            .iloc[-1, :]
+            .values[0]
+        )
 
     else:
         with warnings.catch_warnings():
@@ -99,21 +102,24 @@ def mean_estimator(x, using_exponent=True, min_periods=20, ew_lookback=500):
                 apply_with_min_periods,
                 axis=0,
                 min_periods=min_periods,
-                my_func=np.nanmean)
+                my_func=np.nanmean,
+            )
 
     mean_list = list(means)
     return mean_list
 
 
-def robust_vol_calc(x,
-                    days=35,
-                    min_periods=10,
-                    vol_abs_min=0.0000000001,
-                    vol_floor=True,
-                    floor_min_quant=0.05,
-                    floor_min_periods=100,
-                    floor_days=500,
-                    backfill = False):
+def robust_vol_calc(
+    x,
+    days=35,
+    min_periods=10,
+    vol_abs_min=0.0000000001,
+    vol_floor=True,
+    floor_min_quant=0.05,
+    floor_min_periods=100,
+    floor_days=500,
+    backfill=False,
+):
     """
     Robust exponential volatility calculation, assuming daily series of prices
     We apply an absolute minimum level of vol (absmin);
@@ -157,12 +163,12 @@ def robust_vol_calc(x,
     if vol_floor:
         # Find the rolling 5% quantile point to set as a minimum
         vol_min = vol.rolling(
-            min_periods=floor_min_periods, window=floor_days).quantile(
-                quantile=floor_min_quant)
+            min_periods=floor_min_periods, window=floor_days
+        ).quantile(quantile=floor_min_quant)
 
         # set this to zero for the first value then propagate forward, ensures
         # we always have a value
-        vol_min.at[vol_min.index[0]] =  0.0
+        vol_min.at[vol_min.index[0]] = 0.0
         vol_min = vol_min.ffill()
 
         # apply the vol floor
@@ -172,16 +178,21 @@ def robust_vol_calc(x,
         vol_floored = vol
 
     if backfill:
-        # have to fill forwards first, as it's only the start we want to backfill, eg before any value available
-        vol_forward_fill = vol_floored.fillna(method = "ffill")
-        vol_backfilled = vol_forward_fill.fillna(method = "bfill")
+        # have to fill forwards first, as it's only the start we want to
+        # backfill, eg before any value available
+        vol_forward_fill = vol_floored.fillna(method="ffill")
+        vol_backfilled = vol_forward_fill.fillna(method="bfill")
     else:
         vol_backfilled = vol_floored
 
     return vol_backfilled
 
 
-def forecast_scalar(cs_forecasts, window=250000, min_periods=500, backfill=True):
+def forecast_scalar(
+        cs_forecasts,
+        window=250000,
+        min_periods=500,
+        backfill=True):
     """
     Work out the scaling factor for xcross such that T*x has an abs value of 10 (or whatever the average absolute forecast is)
 
@@ -198,13 +209,15 @@ def forecast_scalar(cs_forecasts, window=250000, min_periods=500, backfill=True)
     """
     backfill = str2Bool(backfill)  # in yaml will come in as text
     # We don't allow this to be changed in config
-    target_abs_forecast = get_default_config_key_value('average_absolute_forecast')
+    target_abs_forecast = get_default_config_key_value(
+        "average_absolute_forecast")
     if target_abs_forecast is missing_data:
-        raise Exception("average_absolute_forecast not defined in system defaults file")
+        raise Exception(
+            "average_absolute_forecast not defined in system defaults file")
 
-    ## Remove zeros/nans
+    # Remove zeros/nans
     copy_cs_forecasts = copy(cs_forecasts)
-    copy_cs_forecasts[copy_cs_forecasts==0.0] = np.nan
+    copy_cs_forecasts[copy_cs_forecasts == 0.0] = np.nan
 
     # Take CS average first
     # we do this before we get the final TS average otherwise get jumps in
@@ -224,8 +237,9 @@ def forecast_scalar(cs_forecasts, window=250000, min_periods=500, backfill=True)
     return scaling_factor
 
 
-def apply_buffer_single_period(last_position, optimal_position, top_pos,
-                               bot_pos, trade_to_edge):
+def apply_buffer_single_period(
+    last_position, optimal_position, top_pos, bot_pos, trade_to_edge
+):
     """
     Apply a buffer to a position, single period
 
@@ -267,10 +281,9 @@ def apply_buffer_single_period(last_position, optimal_position, top_pos,
         return last_position
 
 
-def apply_buffer(optimal_position,
-                 pos_buffers,
-                 trade_to_edge=False,
-                 roundpositions=False):
+def apply_buffer(
+    optimal_position, pos_buffers, trade_to_edge=False, roundpositions=False
+):
     """
     Apply a buffer to a position
 
@@ -316,13 +329,17 @@ def apply_buffer(optimal_position,
             current_position,
             float(use_optimal_position.values[idx]),
             float(top_pos.values[idx]),
-            float(bot_pos.values[idx]), trade_to_edge)
+            float(bot_pos.values[idx]),
+            trade_to_edge,
+        )
         buffered_position_list.append(current_position)
 
     buffered_position = pd.Series(
-        buffered_position_list, index=optimal_position.index)
+        buffered_position_list,
+        index=optimal_position.index)
 
     return buffered_position
+
 
 def return_mapping_params(a_param):
     """
@@ -344,16 +361,17 @@ def return_mapping_params(a_param):
     :return: tuple
     """
 
-    capped_value=20 # fitted function doesn't work otherwise
-    assert a_param>1.2 # fitted function doesn't work otherwise
-    assert a_param<=1.7
+    capped_value = 20  # fitted function doesn't work otherwise
+    assert a_param > 1.2  # fitted function doesn't work otherwise
+    assert a_param <= 1.7
 
     threshold_value = -19.811 + 22.263 * a_param
-    assert threshold_value<capped_value
+    assert threshold_value < capped_value
 
     b_param = (capped_value * a_param) / (capped_value - threshold_value)
 
     return (a_param, b_param, threshold_value, capped_value)
+
 
 def map_forecast_value_scalar(x, threshold, capped_value, a_param, b_param):
     """
@@ -377,18 +395,24 @@ def map_forecast_value_scalar(x, threshold, capped_value, a_param, b_param):
     x = float(x)
     if np.isnan(x):
         return x
-    if abs(x)<threshold:
+    if abs(x) < threshold:
         return 0.0
     if x >= -capped_value and x <= -threshold:
-        return b_param*(x+threshold)
+        return b_param * (x + threshold)
     if x >= threshold and x <= capped_value:
-        return b_param*(x-threshold)
-    if abs(x)>capped_value:
-        return sign(x)*capped_value*a_param
+        return b_param * (x - threshold)
+    if abs(x) > capped_value:
+        return sign(x) * capped_value * a_param
 
     raise Exception("This should cover all conditions!")
 
-def map_forecast_value(x, threshold=0.0, capped_value=20, a_param=1.0, b_param=1.0):
+
+def map_forecast_value(
+        x,
+        threshold=0.0,
+        capped_value=20,
+        a_param=1.0,
+        b_param=1.0):
     """
     Non linear mapping of x value; replaces forecast capping; with defaults will map 1 for 1, across time series
 
@@ -408,8 +432,16 @@ def map_forecast_value(x, threshold=0.0, capped_value=20, a_param=1.0, b_param=1
     :return: mapped x
     """
 
-    return x.apply(map_forecast_value_scalar, args=(threshold, capped_value, a_param, b_param))
+    return x.apply(
+        map_forecast_value_scalar,
+        args=(
+            threshold,
+            capped_value,
+            a_param,
+            b_param))
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     import doctest
+
     doctest.testmod()

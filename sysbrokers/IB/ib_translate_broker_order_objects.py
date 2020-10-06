@@ -1,4 +1,4 @@
-from collections import  namedtuple
+from collections import namedtuple
 from dateutil.tz import tz
 
 from syscore.objects import missing_order, missing_data, arg_not_supplied
@@ -8,35 +8,41 @@ from sysexecution.base_orders import tradeQuantity
 
 
 def create_broker_order_from_control_object(control_object, instrument_code):
-    ## pretty horrible code to convert IB order and contract objects into my world
+    # pretty horrible code to convert IB order and contract objects into my
+    # world
 
-    # we do this in two stages to make the abstraction marginally better (to be honest, to reflect legacy history)
+    # we do this in two stages to make the abstraction marginally better (to
+    # be honest, to reflect legacy history)
     extracted_trade_info = extract_trade_info(control_object)
 
-    ## and stage two
+    # and stage two
     ib_broker_order = ibBrokerOrder.from_broker_trade_object(
-        extracted_trade_info,
-        instrument_code=instrument_code)
-    ib_broker_order._order_info['broker_tempid'] = create_tempid_from_broker_details(ib_broker_order)
+        extracted_trade_info, instrument_code=instrument_code
+    )
+    ib_broker_order._order_info["broker_tempid"] = create_tempid_from_broker_details(
+        ib_broker_order)
 
     return ib_broker_order
 
 
 def create_tempid_from_broker_details(broker_order_from_trade_object):
-    tempid = "%s/%s/%s" % (broker_order_from_trade_object.broker_account,
-                           broker_order_from_trade_object.broker_clientid,
-                           broker_order_from_trade_object.broker_tempid)
+    tempid = "%s/%s/%s" % (
+        broker_order_from_trade_object.broker_account,
+        broker_order_from_trade_object.broker_clientid,
+        broker_order_from_trade_object.broker_tempid,
+    )
     return tempid
 
 
 class ibBrokerOrder(brokerOrder):
-
     @classmethod
-    def from_broker_trade_object(ibBrokerOrder,  extracted_trade_data, instrument_code=arg_not_supplied):
+    def from_broker_trade_object(
+        ibBrokerOrder, extracted_trade_data, instrument_code=arg_not_supplied
+    ):
         sec_type = extracted_trade_data.contract.ib_sectype
 
         if sec_type not in ["FUT", "BAG"]:
-            ## Doesn't handle non futures trades, just ignores them
+            # Doesn't handle non futures trades, just ignores them
             return missing_order
 
         strategy_name = ""
@@ -50,8 +56,11 @@ class ibBrokerOrder(brokerOrder):
         broker_account = extracted_trade_data.order.account
         broker_permid = extracted_trade_data.order.perm_id
 
-        broker_objects = dict(order=extracted_trade_data.order.order_object, trade=extracted_trade_data.trade_object,
-                              contract=extracted_trade_data.contract.contract_object)
+        broker_objects = dict(
+            order=extracted_trade_data.order.order_object,
+            trade=extracted_trade_data.trade_object,
+            contract=extracted_trade_data.contract.contract_object,
+        )
 
         leg_ratios = extracted_trade_data.contract.leg_ratios
 
@@ -60,16 +69,19 @@ class ibBrokerOrder(brokerOrder):
 
         # when it's negative this is often zero
         unsigned_total_qty_scalar = extracted_trade_data.order.total_qty
-        if unsigned_remain_qty_scalar<0:
+        if unsigned_remain_qty_scalar < 0:
             total_qty = None
         else:
             # remain is not used... but the option is here
-            #remain_qty_scalar = unsigned_remain_qty_scalar * extracted_trade_data.order.order_sign
-            #remain_qty_list = [int(remain_qty_scalar * ratio) for ratio in leg_ratios]
-            #remain_qty = tradeQuantity(remain_qty_list)
+            # remain_qty_scalar = unsigned_remain_qty_scalar * extracted_trade_data.order.order_sign
+            # remain_qty_list = [int(remain_qty_scalar * ratio) for ratio in leg_ratios]
+            # remain_qty = tradeQuantity(remain_qty_list)
 
-            total_qty_scalar = unsigned_total_qty_scalar * extracted_trade_data.order.order_sign
-            total_qty_list = [int(total_qty_scalar * ratio) for ratio in leg_ratios]
+            total_qty_scalar = (
+                unsigned_total_qty_scalar *
+                extracted_trade_data.order.order_sign)
+            total_qty_list = [int(total_qty_scalar * ratio)
+                              for ratio in leg_ratios]
 
             total_qty = tradeQuantity(total_qty_list)
 
@@ -83,12 +95,27 @@ class ibBrokerOrder(brokerOrder):
             broker_tempid = extracted_trade_data.order.order_id
             broker_clientid = extracted_trade_data.order.client_id
         else:
-            broker_clientid, broker_tempid, filled_price_dict, fill_datetime, commission, signed_qty_dict = fill_totals
+            (
+                broker_clientid,
+                broker_tempid,
+                filled_price_dict,
+                fill_datetime,
+                commission,
+                signed_qty_dict,
+            ) = fill_totals
 
-            filled_price_list = [filled_price_dict.get(contractid, None) for contractid in contract_id_list]
-            fill_list = [signed_qty_dict.get(contractid,None) for contractid in contract_id_list]
-            missing_fill = [fill_price is None or fill is None for fill_price, fill in
-                            zip(filled_price_list, fill_list)]
+            filled_price_list = [
+                filled_price_dict.get(contractid, None)
+                for contractid in contract_id_list
+            ]
+            fill_list = [
+                signed_qty_dict.get(
+                    contractid,
+                    None) for contractid in contract_id_list]
+            missing_fill = [
+                fill_price is None or fill is None
+                for fill_price, fill in zip(filled_price_list, fill_list)
+            ]
             if any(missing_fill):
                 fill = None
                 filled_price_list = None
@@ -96,18 +123,26 @@ class ibBrokerOrder(brokerOrder):
                 fill_list = [int(fill) for fill in fill_list]
                 fill = tradeQuantity(fill_list)
 
-
         if total_qty is None:
             total_qty = fill
 
-        broker_order = ibBrokerOrder(strategy_name, instrument_code, contract_id_list, total_qty, fill=fill,
-                                     order_type=order_type, limit_price=limit_price, filled_price=filled_price_list,
-                                     algo_comment=algo_comment,
-                                     fill_datetime=fill_datetime,
-                                     broker_account=broker_account,
-                                     commission=commission,
-                                     broker_permid=broker_permid, broker_tempid=broker_tempid,
-                                     broker_clientid=broker_clientid)
+        broker_order = ibBrokerOrder(
+            strategy_name,
+            instrument_code,
+            contract_id_list,
+            total_qty,
+            fill=fill,
+            order_type=order_type,
+            limit_price=limit_price,
+            filled_price=filled_price_list,
+            algo_comment=algo_comment,
+            fill_datetime=fill_datetime,
+            broker_account=broker_account,
+            commission=commission,
+            broker_permid=broker_permid,
+            broker_tempid=broker_tempid,
+            broker_clientid=broker_clientid,
+        )
 
         broker_order.broker_objects = broker_objects
 
@@ -129,8 +164,7 @@ def extract_totals_from_fill_data(list_of_fills):
 
     """
     contract_id_list = [fill.contract_id for fill in list_of_fills]
-    unique_contract_id_list = list(set(contract_id_list))
-    unique_contract_id_list.sort()
+    unique_contract_id_list = sorted(set(contract_id_list))
 
     if len(list_of_fills) == 0:
         # broker_clientid, broker_tempid, filled_price_dict, fill_datetime, commission_list, signed_qty_dict
@@ -138,49 +172,97 @@ def extract_totals_from_fill_data(list_of_fills):
 
     fill_data_by_contract = {}
     for contractid in unique_contract_id_list:
-        list_of_fills_for_contractid = [fill for fill in list_of_fills if fill.contract_id == contractid]
-        extracted_totals = extract_totals_from_fill_data_for_contract_id(list_of_fills_for_contractid)
-        fill_data_by_contract[contractid]= extracted_totals
+        list_of_fills_for_contractid = [
+            fill for fill in list_of_fills if fill.contract_id == contractid
+        ]
+        extracted_totals = extract_totals_from_fill_data_for_contract_id(
+            list_of_fills_for_contractid
+        )
+        fill_data_by_contract[contractid] = extracted_totals
 
-    #  Returns tuple broker_clientid, broker_tempid, filled_price, fill_datetime, commission (as list of tuples), signed_qty
+    # Returns tuple broker_clientid, broker_tempid, filled_price,
+    # fill_datetime, commission (as list of tuples), signed_qty
     first_contract = unique_contract_id_list[0]
-    broker_clientid = fill_data_by_contract[first_contract][0]  # should all be the same
-    broker_tempid = fill_data_by_contract[first_contract][1]  # should all be the same
-    filled_price_dict = dict([(contractid, fill_data_for_contractid[2])
-                              for contractid, fill_data_for_contractid
-                              in fill_data_by_contract.items()])
-    fill_datetime = fill_data_by_contract[first_contract][3]  # should all be the same
-    commission_list_of_lists = [fill_data_for_contract[4] for fill_data_for_contract in fill_data_by_contract.values()]
+    # should all be the same
+    broker_clientid = fill_data_by_contract[first_contract][0]
+    # should all be the same
+    broker_tempid = fill_data_by_contract[first_contract][1]
+    filled_price_dict = dict(
+        [
+            (contractid, fill_data_for_contractid[2])
+            for contractid, fill_data_for_contractid in fill_data_by_contract.items()
+        ]
+    )
+    # should all be the same
+    fill_datetime = fill_data_by_contract[first_contract][3]
+    commission_list_of_lists = [
+        fill_data_for_contract[4]
+        for fill_data_for_contract in fill_data_by_contract.values()
+    ]
     commission_list = sum(commission_list_of_lists, [])
-    signed_qty_dict = dict([(contractid, fill_data_for_contractid[5])
-                            for contractid, fill_data_for_contractid
-                            in fill_data_by_contract.items()])
+    signed_qty_dict = dict(
+        [
+            (contractid, fill_data_for_contractid[5])
+            for contractid, fill_data_for_contractid in fill_data_by_contract.items()
+        ]
+    )
 
-    return broker_clientid, broker_tempid, filled_price_dict, fill_datetime, commission_list, signed_qty_dict
+    return (
+        broker_clientid,
+        broker_tempid,
+        filled_price_dict,
+        fill_datetime,
+        commission_list,
+        signed_qty_dict,
+    )
 
 
-def extract_totals_from_fill_data_for_contract_id(list_of_fills_for_contractid):
+def extract_totals_from_fill_data_for_contract_id(
+        list_of_fills_for_contractid):
     """
     Sum up info over fills
 
     :param list_of_fills: list of named tuples
     :return: broker_clientid, broker_tempid, filled_price, fill_datetime, commission (as list of tuples)
     """
-    qty_and_price_and_datetime_and_id = [(fill.cum_qty, fill.avg_price, fill.time.astimezone(tz.tzlocal()),
-                                          fill.temp_id, fill.client_id, fill.signed_qty) for fill in
-                                         list_of_fills_for_contractid]
+    qty_and_price_and_datetime_and_id = [
+        (
+            fill.cum_qty,
+            fill.avg_price,
+            fill.time.astimezone(tz.tzlocal()),
+            fill.temp_id,
+            fill.client_id,
+            fill.signed_qty,
+        )
+        for fill in list_of_fills_for_contractid
+    ]
 
-    ## sort by total quantity
+    # sort by total quantity
     qty_and_price_and_datetime_and_id.sort(key=lambda x: x[0])
 
     final_fill = qty_and_price_and_datetime_and_id[-1]
-    _, filled_price, fill_datetime, broker_tempid, broker_clientid, signed_qty = final_fill
+    (
+        _,
+        filled_price,
+        fill_datetime,
+        broker_tempid,
+        broker_clientid,
+        signed_qty,
+    ) = final_fill
 
-    commission = [currencyValue(fill.commission_ccy, fill.commission) for fill in list_of_fills_for_contractid]
+    commission = [
+        currencyValue(fill.commission_ccy, fill.commission)
+        for fill in list_of_fills_for_contractid
+    ]
 
-    return broker_clientid, broker_tempid, filled_price, fill_datetime, commission, signed_qty
-
-
+    return (
+        broker_clientid,
+        broker_tempid,
+        filled_price,
+        fill_datetime,
+        commission,
+        signed_qty,
+    )
 
 
 def extract_trade_info(placed_broker_trade_object):
@@ -193,9 +275,17 @@ def extract_trade_info(placed_broker_trade_object):
     algo_msg = " ".join([str(log_entry) for log_entry in trade_to_process.log])
     active = trade_to_process.isActive()
 
-    tradeInfo = namedtuple("tradeInfo", ['order', 'contract', 'fills','algo_msg', 'active',
-                                         'trade_object'])
-    trade_info = tradeInfo(order_info, contract_info, fill_info, algo_msg, active, trade_to_process)
+    tradeInfo = namedtuple(
+        "tradeInfo",
+        ["order", "contract", "fills", "algo_msg", "active", "trade_object"],
+    )
+    trade_info = tradeInfo(
+        order_info,
+        contract_info,
+        fill_info,
+        algo_msg,
+        active,
+        trade_to_process)
 
     return trade_info
 
@@ -213,42 +303,85 @@ def extract_order_info(trade_to_process):
     remain_qty = trade_to_process.remaining()
     total_qty = trade_to_process.order.totalQuantity
 
-    orderInfo = namedtuple('orderInfo', ['account',  'perm_id', 'limit_price', 'order_sign', 'type',
-                                         'remain_qty', 'order_object', 'client_id', 'order_id',
-                                         'total_qty'])
-    order_info = orderInfo(account=account, perm_id=perm_id, limit_price=limit_price,
-                order_sign=order_sign, type = order_type, remain_qty=remain_qty, order_object = order,
-                           client_id=client_id, order_id = order_id, total_qty = total_qty)
+    orderInfo = namedtuple(
+        "orderInfo",
+        [
+            "account",
+            "perm_id",
+            "limit_price",
+            "order_sign",
+            "type",
+            "remain_qty",
+            "order_object",
+            "client_id",
+            "order_id",
+            "total_qty",
+        ],
+    )
+    order_info = orderInfo(
+        account=account,
+        perm_id=perm_id,
+        limit_price=limit_price,
+        order_sign=order_sign,
+        type=order_type,
+        remain_qty=remain_qty,
+        order_object=order,
+        client_id=client_id,
+        order_id=order_id,
+        total_qty=total_qty,
+    )
 
     return order_info
+
 
 def extract_contract_info(trade_to_process, legs):
     contract = trade_to_process.contract
     ib_instrument_code = contract.symbol
     ib_sectype = contract.secType
 
-    is_combo_legs = not legs==[]
+    is_combo_legs = not legs == []
     if is_combo_legs:
         ib_contract_id, leg_ratios = get_combo_info(contract, legs)
     else:
         ib_contract_id = [contract.lastTradeDateOrContractMonth]
         leg_ratios = [1]
 
-    contractInfo = namedtuple("contractInfo", ['ib_instrument_code', 'ib_contract_id', 'ib_sectype', 'contract_object', 'legs', 'leg_ratios'])
-    contract_info = contractInfo(ib_instrument_code=ib_instrument_code, ib_contract_id=ib_contract_id,
-                                 ib_sectype=ib_sectype, contract_object=contract, legs=legs, leg_ratios = leg_ratios)
+    contractInfo = namedtuple(
+        "contractInfo",
+        [
+            "ib_instrument_code",
+            "ib_contract_id",
+            "ib_sectype",
+            "contract_object",
+            "legs",
+            "leg_ratios",
+        ],
+    )
+    contract_info = contractInfo(
+        ib_instrument_code=ib_instrument_code,
+        ib_contract_id=ib_contract_id,
+        ib_sectype=ib_sectype,
+        contract_object=contract,
+        legs=legs,
+        leg_ratios=leg_ratios,
+    )
 
     return contract_info
 
+
 def get_combo_info(contract, legs):
     ib_contract_id = [leg.lastTradeDateOrContractMonth for leg in legs]
-    leg_ratios = [get_leg_ratio_for_leg(contract_id, contract, legs) for contract_id in ib_contract_id]
+    leg_ratios = [
+        get_leg_ratio_for_leg(contract_id, contract, legs)
+        for contract_id in ib_contract_id
+    ]
 
     return ib_contract_id, leg_ratios
 
+
 def get_leg_ratio_for_leg(contract_id, contract, legs):
     ib_contract_id = [leg.lastTradeDateOrContractMonth for leg in legs]
-    ib_conId =[leg.conId for leg in legs]
+    ib_conId = [leg.conId for leg in legs]
     idx = ib_contract_id.index(contract_id)
     conId = ib_conId[idx]
 
@@ -262,15 +395,23 @@ def get_leg_ratio_for_leg(contract_id, contract, legs):
 
     return trade_sign * ratio
 
+
 def extract_contract_spread_info(trade_to_process):
     contract = trade_to_process.contract
     ib_instrument_code = contract.symbol
     ib_contract_id = contract.lastTradeDateOrContractMonth
     ib_sectype = contract.secType
 
-    contractInfo = namedtuple("contractInfo", ['ib_instrument_code', 'ib_contract_id', 'ib_sectype', 'contract_object'])
-    contract_info = contractInfo(ib_instrument_code=ib_instrument_code, ib_contract_id=ib_contract_id,
-                                 ib_sectype=ib_sectype, contract_object=contract)
+    contractInfo = namedtuple(
+        "contractInfo",
+        ["ib_instrument_code", "ib_contract_id", "ib_sectype", "contract_object"],
+    )
+    contract_info = contractInfo(
+        ib_instrument_code=ib_instrument_code,
+        ib_contract_id=ib_contract_id,
+        ib_sectype=ib_sectype,
+        contract_object=contract,
+    )
 
     return contract_info
 
@@ -278,9 +419,12 @@ def extract_contract_spread_info(trade_to_process):
 def extract_fill_info(trade_to_process):
     all_fills = trade_to_process.fills
     fill_info = [extract_single_fill(single_fill) for single_fill in all_fills]
-    fill_info_without_bags = [single_fill for single_fill in fill_info if single_fill is not None]
+    fill_info_without_bags = [
+        single_fill for single_fill in fill_info if single_fill is not None
+    ]
 
     return fill_info_without_bags
+
 
 def extract_single_fill(single_fill):
     is_bag_fill = single_fill.contract.secType == "BAG"
@@ -298,27 +442,52 @@ def extract_single_fill(single_fill):
     client_id = single_fill.execution.clientId
     contract_month = single_fill.contract.lastTradeDateOrContractMonth
 
-    singleFill = namedtuple("singleFill", ['commission','commission_ccy', 'cum_qty', 'price', 'avg_price', 'time',
-                                           'temp_id', 'client_id', 'signed_qty', 'contract_id'])
+    singleFill = namedtuple(
+        "singleFill",
+        [
+            "commission",
+            "commission_ccy",
+            "cum_qty",
+            "price",
+            "avg_price",
+            "time",
+            "temp_id",
+            "client_id",
+            "signed_qty",
+            "contract_id",
+        ],
+    )
 
-    single_fill = singleFill(commission, commission_ccy, cum_qty, price, avg_price, time, temp_id, client_id,
-                             signed_qty, contract_month)
+    single_fill = singleFill(
+        commission,
+        commission_ccy,
+        cum_qty,
+        price,
+        avg_price,
+        time,
+        temp_id,
+        client_id,
+        signed_qty,
+        contract_month,
+    )
 
     return single_fill
 
+
 def resolve_order_type(ib_order_type):
-    lookup_dict = dict(MKT='market')
+    lookup_dict = dict(MKT="market")
     my_order_type = lookup_dict.get(ib_order_type, "")
 
     return my_order_type
 
 
 def sign_from_BS(action):
-    if action=="SELL":
+    if action == "SELL":
         return -1
     return 1
 
+
 def sign_from_BOT_SEL(action):
-    if action=="BOT":
+    if action == "BOT":
         return 1
     return -1

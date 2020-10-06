@@ -3,6 +3,7 @@ from syscore.genutils import get_and_convert
 from sysproduction.data.get_data import dataBlob
 from sysdata.private_config import get_private_then_default_key_value
 
+
 class dataSimData(object):
     def __init__(self, data=arg_not_supplied):
         # Check data has the right elements to do this

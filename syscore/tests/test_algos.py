@@ -1,8 +1,8 @@
-'''
+"""
 Created on 27 Nov 2015
 
 @author: rob
-'''
+"""
 import unittest as ut
 
 import numpy as np
@@ -12,9 +12,9 @@ from syscore.algos import robust_vol_calc
 
 
 def get_data(path):
-    '''
+    """
     returns: DataFrame or Series if 1 col
-    '''
+    """
     df = pd_readcsv_frompackage(path)
     if len(df.columns) == 1:
         return df[df.columns[0]]
@@ -57,7 +57,7 @@ class Test(ut.TestCase):
         vol = robust_vol_calc(returns, vol_floor=False)
         self.assertAlmostEqual(vol.iloc[-1], 0.42134038479240132)
 
-        vol = robust_vol_calc(returns, floor_min_quant=.5)
+        vol = robust_vol_calc(returns, floor_min_quant=0.5)
         self.assertAlmostEqual(vol.iloc[-1], 1.6582199589924964)
 
         vol = robust_vol_calc(returns, floor_min_periods=500)
@@ -78,5 +78,5 @@ class Test(ut.TestCase):
 """
 
 if __name__ == "__main__":
-    #import sys;sys.argv = ['', 'Test.test_robust_vol_calc']
+    # import sys;sys.argv = ['', 'Test.test_robust_vol_calc']
     ut.main()

@@ -47,7 +47,7 @@ class baseData(object):
         :return: nothing
         """
 
-        ## inherit the log
+        # inherit the log
         setattr(self, "log", base_system.log.setup(stage="data"))
 
     def methods(self):
@@ -63,8 +63,9 @@ class baseData(object):
         :returns: pd.DataFrame
         """
 
-        raise Exception("__getitem__ not defined for baseData class: use a class where it has been overriden")
-
+        raise Exception(
+            "__getitem__ not defined for baseData class: use a class where it has been overriden"
+        )
 
     def keys(self):
         """
@@ -103,7 +104,6 @@ class simData(baseData):
         return "simData object with %d instruments" % len(
             self.get_instrument_list())
 
-
     def daily_prices(self, instrument_code):
         """
         Gets daily prices
@@ -130,7 +130,9 @@ class simData(baseData):
         :returns: pd.Series
 
         """
-        error_msg = "You have created a simData() object; you might need to use a more specific data object" % instrument_code
+        error_msg = (
+            "You have created a simData() object; you might need to use a more specific data object" %
+            instrument_code)
         self.log.critical(error_msg)
 
     def __getitem__(self, keyname):
@@ -201,9 +203,8 @@ class simData(baseData):
             price_slippage=0.0,
             value_of_block_commission=0.0,
             percentage_cost=0.0,
-            value_of_pertrade_commission=0.0)
-
-
+            value_of_pertrade_commission=0.0,
+        )
 
     def get_instrument_currency(self, instrument_code):
         """
@@ -215,8 +216,9 @@ class simData(baseData):
         :returns: str
 
         """
-        raise NotImplementedError("Need to inherit from base class for specific data source")
-
+        raise NotImplementedError(
+            "Need to inherit from base class for specific data source"
+        )
 
     def _get_fx_data(self, currency1, currency2):
         """
@@ -228,7 +230,6 @@ class simData(baseData):
 
         """
         raise NotImplementedError("Need to inherit for a specific data source")
-
 
     def get_fx_for_instrument(self, instrument_code, base_currency):
         """
@@ -273,12 +274,17 @@ class simData(baseData):
         :return: list of instrument codes
         """
         asset_class_data = self.get_instrument_asset_classes()
-        asset_class_instrument_list = list(asset_class_data[asset_class_data==asset_class].index)
+        asset_class_instrument_list = list(
+            asset_class_data[asset_class_data == asset_class].index
+        )
 
         # Remove anything that's missing
         instrument_list = self.get_instrument_list()
-        filtered_asset_class_instrument_list = [instrument for instrument in asset_class_instrument_list
-                                                if instrument in instrument_list]
+        filtered_asset_class_instrument_list = [
+            instrument
+            for instrument in asset_class_instrument_list
+            if instrument in instrument_list
+        ]
 
         return filtered_asset_class_instrument_list
 
@@ -295,6 +301,8 @@ class simData(baseData):
 
         return asset_class
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     import doctest
+
     doctest.testmod()

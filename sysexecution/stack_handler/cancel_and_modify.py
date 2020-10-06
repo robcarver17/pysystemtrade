@@ -1,15 +1,35 @@
 import datetime
 from copy import copy
 
-from syscore.objects import missing_order, success, failure, locked_order, duplicate_order, no_order_id, no_children, no_parent, missing_contract, missing_data, rolling_cant_trade, ROLL_PSEUDO_STRATEGY, missing_order, order_is_in_status_reject_modification, order_is_in_status_finished, locked_order, order_is_in_status_modified, resolve_function
+from syscore.objects import (
+    missing_order,
+    success,
+    failure,
+    locked_order,
+    duplicate_order,
+    no_order_id,
+    no_children,
+    no_parent,
+    missing_contract,
+    missing_data,
+    rolling_cant_trade,
+    ROLL_PSEUDO_STRATEGY,
+    missing_order,
+    order_is_in_status_reject_modification,
+    order_is_in_status_finished,
+    locked_order,
+    order_is_in_status_modified,
+    resolve_function,
+)
 from syscore.genutils import quickTimer
 from sysexecution.stack_handler.stackHandlerCore import stackHandlerCore
 from sysproduction.data.broker import dataBroker
 
 
-
 class stackHandlerCancelAndModify(stackHandlerCore):
-    def cancel_and_confirm_all_broker_orders(self, log_critical_on_timeout=False, wait_time_seconds = 60):
+    def cancel_and_confirm_all_broker_orders(
+        self, log_critical_on_timeout=False, wait_time_seconds=60
+    ):
         """
         Try cancelling all our orders
 
@@ -22,9 +42,11 @@ class stackHandlerCancelAndModify(stackHandlerCore):
         :return: success or failure
         """
         list_of_broker_orders = self.cancel_all_broker_orders()
-        result = self.check_all_orders_cancelled_with_timeout(list_of_broker_orders, wait_time_seconds = wait_time_seconds)
+        result = self.check_all_orders_cancelled_with_timeout(
+            list_of_broker_orders, wait_time_seconds=wait_time_seconds
+        )
         if result is failure:
-            ## We don't wait for a confirmation
+            # We don't wait for a confirmation
             if log_critical_on_timeout:
                 self.critical_cancel_log(list_of_broker_orders)
 
@@ -40,13 +62,14 @@ class stackHandlerCancelAndModify(stackHandlerCore):
 
         return list_of_broker_orders
 
-    def cancel_broker_order(self,  broker_order_id):
-        broker_order = self.broker_stack.get_order_with_id_from_stack(broker_order_id)
+    def cancel_broker_order(self, broker_order_id):
+        broker_order = self.broker_stack.get_order_with_id_from_stack(
+            broker_order_id)
         if broker_order is missing_order:
             return missing_order
 
         if broker_order.fill_equals_desired_trade():
-            ## no need to cancel
+            # no need to cancel
             return missing_order
 
         log = broker_order.log_with_attributes(self.log)
@@ -58,13 +81,17 @@ class stackHandlerCancelAndModify(stackHandlerCore):
 
         return broker_order
 
-    def check_all_orders_cancelled_with_timeout(self, list_of_broker_orders, wait_time_seconds = 60):
+    def check_all_orders_cancelled_with_timeout(
+        self, list_of_broker_orders, wait_time_seconds=60
+    ):
 
         timer = quickTimer(wait_time_seconds)
         result = failure
         while timer.unfinished:
-            list_of_broker_orders = self.check_all_orders_cancelled(list_of_broker_orders)
-            if len(list_of_broker_orders)==0:
+            list_of_broker_orders = self.check_all_orders_cancelled(
+                list_of_broker_orders
+            )
+            if len(list_of_broker_orders) == 0:
                 result = success
                 break
 
@@ -92,5 +119,6 @@ class stackHandlerCancelAndModify(stackHandlerCore):
     def critical_cancel_log(self, list_of_broker_orders):
         for broker_order in list_of_broker_orders:
             log = broker_order.log_with_attributes(self.log)
-            log.critical("Broker order %s could not be cancelled within time limit; might be a position break" % broker_order)
-
+            log.critical(
+                "Broker order %s could not be cancelled within time limit; might be a position break" %
+                broker_order)

@@ -1,9 +1,10 @@
-'''
+"""
 Trading rules for futures system
-'''
+"""
 from syscore.dateutils import ROOT_BDAYS_INYEAR
 import pandas as pd
 from syscore.algos import robust_vol_calc
+
 
 def ewmac(price, vol, Lfast, Lslow):
     """
@@ -52,6 +53,7 @@ def ewmac(price, vol, Lfast, Lslow):
 
     return raw_ewmac / vol.ffill()
 
+
 def ewmac_calc_vol(price, Lfast, Lslow, vol_days=35):
     """
     Calculate the ewmac trading fule forecast, given a price and EWMA speeds Lfast, Lslow and vol_lookback
@@ -99,7 +101,6 @@ def ewmac_calc_vol(price, Lfast, Lslow, vol_days=35):
     return raw_ewmac / vol.ffill()
 
 
-
 def carry(daily_ann_roll, vol, smooth_days=90):
     """
     Old carry rule
@@ -132,6 +133,7 @@ def carry2(raw_carry, smooth_days=90):
     return smooth_carry
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import doctest
+
     doctest.testmod()

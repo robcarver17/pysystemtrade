@@ -26,18 +26,19 @@ def breakout(price, lookback=10, smooth=None):
     assert smooth < lookback
 
     roll_max = price.rolling(
-        lookback,
-        min_periods=int(min(len(price), np.ceil(lookback / 2.0)))).max()
+        lookback, min_periods=int(min(len(price), np.ceil(lookback / 2.0)))
+    ).max()
     roll_min = price.rolling(
-        lookback,
-        min_periods=int(min(len(price), np.ceil(lookback / 2.0)))).min()
+        lookback, min_periods=int(min(len(price), np.ceil(lookback / 2.0)))
+    ).min()
 
     roll_mean = (roll_max + roll_min) / 2.0
 
     # gives a nice natural scaling
     output = 40.0 * ((price - roll_mean) / (roll_max - roll_min))
     smoothed_output = output.ewm(
-        span=smooth, min_periods=np.ceil(smooth / 2.0)).mean()
+        span=smooth, min_periods=np.ceil(
+            smooth / 2.0)).mean()
 
     return smoothed_output
 
@@ -52,7 +53,7 @@ def short_bias(price):
 
     """
 
-    avg_abs_forecast = system_defaults['average_absolute_forecast']
+    avg_abs_forecast = system_defaults["average_absolute_forecast"]
 
     forecast = -1.0 * avg_abs_forecast
 
@@ -60,6 +61,7 @@ def short_bias(price):
     forecast_ts[:] = forecast
 
     return forecast_ts
+
 
 def long_bias(price):
     """
@@ -71,7 +73,7 @@ def long_bias(price):
 
     """
 
-    avg_abs_forecast = system_defaults['average_absolute_forecast']
+    avg_abs_forecast = system_defaults["average_absolute_forecast"]
 
     forecast = 1.0 * avg_abs_forecast
 
@@ -81,7 +83,9 @@ def long_bias(price):
     return forecast_ts
 
 
-def relative_carry(smoothed_carry_this_instrument, median_carry_for_asset_class):
+def relative_carry(
+        smoothed_carry_this_instrument,
+        median_carry_for_asset_class):
     """
     Relative carry rule
     Suggested inputs: rawdata.smoothed_carry, rawdata.median_carry_for_asset_class
@@ -92,12 +96,19 @@ def relative_carry(smoothed_carry_this_instrument, median_carry_for_asset_class)
     """
 
     # should already be aligned
-    relative_carry_forecast = smoothed_carry_this_instrument - median_carry_for_asset_class
+    relative_carry_forecast = (
+        smoothed_carry_this_instrument - median_carry_for_asset_class
+    )
 
     return relative_carry_forecast
 
 
-def cross_sectional_mean_reversion(normalised_price_this_instrument, normalised_price_for_asset_class, horizon=250, ewma_span=None):
+def cross_sectional_mean_reversion(
+    normalised_price_this_instrument,
+    normalised_price_for_asset_class,
+    horizon=250,
+    ewma_span=None,
+):
     """
     Cross sectional mean reversion within asset class
 
@@ -111,11 +122,13 @@ def cross_sectional_mean_reversion(normalised_price_this_instrument, normalised_
 
     ewma_span = max(ewma_span, 2)
 
-    outperformance = normalised_price_this_instrument.ffill() - normalised_price_for_asset_class.ffill()
+    outperformance = (
+        normalised_price_this_instrument.ffill()
+        - normalised_price_for_asset_class.ffill()
+    )
     relative_return = outperformance.diff()
     outperformance_over_horizon = relative_return.rolling(horizon).mean()
 
-    forecast = - outperformance_over_horizon.ewm(span=ewma_span).mean()
+    forecast = -outperformance_over_horizon.ewm(span=ewma_span).mean()
 
     return forecast
-

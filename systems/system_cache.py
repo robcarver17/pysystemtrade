@@ -13,12 +13,13 @@ There are 3 kinds of things in a cache with different levels of persistence:
 from syscore.fileutils import get_filename_for_package
 import pickle
 from functools import wraps
+
 """
 This is used for items which affect an entire system, not just one instrument
 """
 ALL_KEYNAME = "All_instruments"
 
-## more useful flags
+# more useful flags
 EMPTY_KEYNAME = object()
 MISSING_FROM_CACHE = object()
 
@@ -29,12 +30,13 @@ class cacheRef(object):
 
     """
 
-    def __init__(self,
-                 stage_name,
-                 itemname,
-                 instrument_code=ALL_KEYNAME,
-                 flags="",
-                 keyname=""):
+    def __init__(
+            self,
+            stage_name,
+            itemname,
+            instrument_code=ALL_KEYNAME,
+            flags="",
+            keyname=""):
 
         self.stage_name = stage_name
         self.itemname = itemname
@@ -48,18 +50,21 @@ class cacheRef(object):
         else:
             keystring = "[%s] " % self.keyname
 
-        return "%s in %s for instrument %s %s%s" % (self.itemname,
-                                                    self.stage_name,
-                                                    self.instrument_code,
-                                                    keystring, self.flags)
+        return "%s in %s for instrument %s %s%s" % (
+            self.itemname,
+            self.stage_name,
+            self.instrument_code,
+            keystring,
+            self.flags,
+        )
 
     # following code is to make keys hashable and suitable for dict keys
     def __key(self):
         return tuple(v for k, v in sorted(self.__dict__.items()))
 
     def __eq__(self, other):
-        return isinstance(other,
-                          self.__class__) and self.__key() == other.__key()
+        return isinstance(
+            other, self.__class__) and self.__key() == other.__key()
 
     def __hash__(self):
         return hash(self.__key())
@@ -76,22 +81,20 @@ class listOfCacheRefs(list):
 
     def filter_by_stage_name(self, stage_name):
         new_list = [
-            cache_ref for cache_ref in self
-            if cache_ref.stage_name == stage_name
-        ]
+            cache_ref for cache_ref in self if cache_ref.stage_name == stage_name]
 
         return listOfCacheRefs(new_list)
 
     def filter_by_itemname(self, itemname):
         new_list = [
-            cache_ref for cache_ref in self if cache_ref.itemname == itemname
-        ]
+            cache_ref for cache_ref in self if cache_ref.itemname == itemname]
 
         return listOfCacheRefs(new_list)
 
     def filter_by_instrument_code(self, instrument_code):
         new_list = [
-            cache_ref for cache_ref in self
+            cache_ref
+            for cache_ref in self
             if cache_ref.instrument_code == instrument_code
         ]
 
@@ -99,8 +102,7 @@ class listOfCacheRefs(list):
 
     def filter_by_keyname(self, keyname):
         new_list = [
-            cache_ref for cache_ref in self if cache_ref.keyname == keyname
-        ]
+            cache_ref for cache_ref in self if cache_ref.keyname == keyname]
 
         return listOfCacheRefs(new_list)
 
@@ -161,10 +163,9 @@ class systemCache(dict):
 
     def __repr__(self):
         if self.are_we_caching():
-            list_of_elements = ", ".join([
-                str(cache_ref)
-                for cache_ref in self.get_items_with_data()
-            ])
+            list_of_elements = ", ".join(
+                [str(cache_ref) for cache_ref in self.get_items_with_data()]
+            )
             return "Cache, elements: " + list_of_elements
         else:
             return "Not using cache"
@@ -217,13 +218,13 @@ class systemCache(dict):
             pickle.dump(cache_to_pickle_as_dict, fhandle)
 
     def as_dict(self):
-        self_as_dict={}
+        self_as_dict = {}
         for ref_name in self.get_items_with_data():
             self_as_dict[ref_name] = self[ref_name]
 
         return self_as_dict
 
-    def unpickle(self, relativefilename,  clearcache=True):
+    def unpickle(self, relativefilename, clearcache=True):
         """
         Loads the saved cache
 
@@ -264,7 +265,8 @@ class systemCache(dict):
         """
 
         protected_cache_refs = [
-            cache_ref for cache_ref in self.get_items_with_data()
+            cache_ref
+            for cache_ref in self.get_items_with_data()
             if self[cache_ref].protected()
         ]
 
@@ -278,7 +280,8 @@ class systemCache(dict):
         """
 
         pickable_cache_refs = [
-            cache_ref for cache_ref in self.get_items_with_data()
+            cache_ref
+            for cache_ref in self.get_items_with_data()
             if self[cache_ref].can_be_pickled()
         ]
 
@@ -348,9 +351,7 @@ class systemCache(dict):
         """
 
         cache_ref_list = [
-            cache_ref for cache_ref in cache_ref_list
-            if not self[cache_ref].protected()
-        ]
+            cache_ref for cache_ref in cache_ref_list if not self[cache_ref].protected()]
 
         return listOfCacheRefs(cache_ref_list)
 
@@ -370,11 +371,13 @@ class systemCache(dict):
 
         cache_ref_list = self.get_cacherefs_for_stage(stage_name)
         self.delete_elements_in_cache_ref_list(
-            cache_ref_list, delete_protected=delete_protected)
+            cache_ref_list, delete_protected=delete_protected
+        )
 
-    def delete_items_for_instrument(self,
-                                    instrument_code,
-                                    delete_protected=False):
+    def delete_items_for_instrument(
+            self,
+            instrument_code,
+            delete_protected=False):
         """
         Delete everything in the system relating to a particular instrument_code
 
@@ -401,7 +404,8 @@ class systemCache(dict):
 
         cache_ref_list = self.get_cache_refs_for_instrument(instrument_code)
         self.delete_elements_in_cache_ref_list(
-            cache_ref_list, delete_protected=delete_protected)
+            cache_ref_list, delete_protected=delete_protected
+        )
 
     def delete_items_across_system(self, delete_protected=False):
         """
@@ -430,11 +434,11 @@ class systemCache(dict):
 
         cache_ref_list = self.get_items_with_data()
         self.delete_elements_in_cache_ref_list(
-            cache_ref_list, delete_protected=delete_protected)
+            cache_ref_list, delete_protected=delete_protected
+        )
 
-    def delete_elements_in_cache_ref_list(self,
-                                          cache_ref_list,
-                                          delete_protected=False):
+    def delete_elements_in_cache_ref_list(
+            self, cache_ref_list, delete_protected=False):
         """
         Delete everything in the cache
 
@@ -478,11 +482,12 @@ class systemCache(dict):
         if cache_ref in self:
             del self[cache_ref]
 
-    def set_item_in_cache(self,
-                          value,
-                          cache_ref,
-                          protected=False,
-                          not_pickable=False):
+    def set_item_in_cache(
+            self,
+            value,
+            cache_ref,
+            protected=False,
+            not_pickable=False):
         """
         Set an item in a cache to a specific value.
 
@@ -500,7 +505,8 @@ class systemCache(dict):
         """
 
         self[cache_ref] = cacheElement(
-            value, protected=protected, not_pickable=not_pickable)
+            value, protected=protected, not_pickable=not_pickable
+        )
 
     def _get_item_from_cache(self, cache_ref):
         """
@@ -522,14 +528,16 @@ class systemCache(dict):
     def get_instrument_list(self):
         return self.parent.get_instrument_list()
 
-    def calc_or_cache(self,
-                      func,
-                      this_stage,
-                      *args,
-                      protected=False,
-                      not_pickable=False,
-                      instrument_classify=True,
-                      **kwargs):
+    def calc_or_cache(
+        self,
+        func,
+        this_stage,
+        *args,
+        protected=False,
+        not_pickable=False,
+        instrument_classify=True,
+        **kwargs
+    ):
         """
         Assumes that self._cache has an attribute itemname, and that is a dict
 
@@ -558,13 +566,20 @@ class systemCache(dict):
             value = func(this_stage, *args, **kwargs)
             return value
 
-        ## Turn all the arguments into things we can use to identify the cache element uniquely
-        cache_ref = self.cache_ref(func, this_stage, *args, instrument_classify=instrument_classify, **kwargs)
+        # Turn all the arguments into things we can use to identify the cache
+        # element uniquely
+        cache_ref = self.cache_ref(
+            func,
+            this_stage,
+            *args,
+            instrument_classify=instrument_classify,
+            **kwargs)
 
         value = self._get_item_from_cache(cache_ref)
 
         if value is MISSING_FROM_CACHE:
-            # call the function. Note in the original function 'this_stage' was 'self'
+            # call the function. Note in the original function 'this_stage' was
+            # 'self'
             value = func(this_stage, *args, **kwargs)
             self.set_item_in_cache(
                 value,
@@ -574,13 +589,7 @@ class systemCache(dict):
 
         return value
 
-    def cache_ref(self,
-                    func,
-                      this_stage,
-                      *args,
-                      instrument_classify=True,
-                      **kwargs
-                      ):
+    def cache_ref(self, func, this_stage, *args, instrument_classify=True, **kwargs):
         """
         Return cache key
 
@@ -596,31 +605,35 @@ class systemCache(dict):
 
         """
 
-        ## Turn all the arguments into things we can use to identify the cache element uniquely
-        itemname = func.__name__  ## use name of function as reference in cache
-        stage_name = this_stage.name  # use stage_name in case same function used across multiple stages
+        # Turn all the arguments into things we can use to identify the cache
+        # element uniquely
+        itemname = func.__name__  # use name of function as reference in cache
+        stage_name = (
+            this_stage.name
+        )  # use stage_name in case same function used across multiple stages
 
         if instrument_classify:
-            list_of_codes = self.get_instrument_list(
+            list_of_codes = (
+                self.get_instrument_list()
             )  # needed to identify instrument_code amongst args
         else:
-            ## if we're calling from the base system we don't want infinite recursion
+            # if we're calling from the base system we don't want infinite
+            # recursion
             list_of_codes = []
 
         (instrument_code, keyname) = resolve_args_to_code_and_key(
             args, list_of_codes
         )  # instrument involved, and/or other keys eg rule name
         flags = resolve_kwargs_to_str(
-            kwargs)  # used mostly in accounts, eg to identify delayed returns
+            kwargs
+        )  # used mostly in accounts, eg to identify delayed returns
 
         cache_ref = cacheRef(
-            stage_name,
-            itemname,
-            instrument_code,
-            flags=flags,
-            keyname=keyname)
+            stage_name, itemname, instrument_code, flags=flags, keyname=keyname
+        )
 
         return cache_ref
+
 
 def resolve_args_to_code_and_key(args, list_of_codes):
     """
@@ -638,7 +651,7 @@ def resolve_args_to_code_and_key(args, list_of_codes):
     while len(args_to_process) > 0:
         individual_arg = args_to_process.pop()
 
-        ## we only take the first arg that is an instrument code
+        # we only take the first arg that is an instrument code
         if instrument_code is None:
             if individual_arg in list_of_codes:
                 instrument_code = individual_arg
@@ -676,14 +689,14 @@ def resolve_kwargs_to_str(kwargs):
         return "%s=%s" % (single_flag, str(argvalue))
 
     long_flag_string = [
-        resolve_individual_flag(single_flag, kwargs)
-        for single_flag in kwargs.keys()
-    ]
+        resolve_individual_flag(
+            single_flag,
+            kwargs) for single_flag in kwargs.keys()]
 
     return ", ".join(long_flag_string)
 
 
-## null decorator doesn't do antyihng
+# null decorator doesn't do antyihng
 def null_decorator(func):
     def wrapper(*args, **kwargs):
         return func(*args, **kwargs)
@@ -691,7 +704,7 @@ def null_decorator(func):
     return wrapper
 
 
-## generic decorator for caching
+# generic decorator for caching
 def stage_access_cache_decorator(protected=False, not_pickable=False):
     """
 
@@ -700,10 +713,11 @@ def stage_access_cache_decorator(protected=False, not_pickable=False):
     :return: decorator function
     """
 
-    ## this pattern from Beazleys book; function inside function to get arguments to wrapper
+    # this pattern from Beazleys book; function inside function to get
+    # arguments to wrapper
     def decorate(func):
         @wraps(func)
-        ## note 'self' as always called from inside stage class
+        # note 'self' as always called from inside stage class
         def wrapper(self, *args, **kwargs):
             system = self.parent
             this_stage = self
@@ -715,7 +729,8 @@ def stage_access_cache_decorator(protected=False, not_pickable=False):
                 protected=protected,
                 not_pickable=not_pickable,
                 instrument_classify=True,
-                **kwargs)
+                **kwargs
+            )
 
             return ans
 
@@ -724,7 +739,7 @@ def stage_access_cache_decorator(protected=False, not_pickable=False):
     return decorate
 
 
-## generic decorator for caching in base system
+# generic decorator for caching in base system
 def base_system_cache(protected=False, not_pickable=False):
     """
 
@@ -733,10 +748,11 @@ def base_system_cache(protected=False, not_pickable=False):
     :return: decorator function
     """
 
-    ## this pattern from Beazleys book; function inside function to get arguments to wrapper
+    # this pattern from Beazleys book; function inside function to get
+    # arguments to wrapper
     def decorate(func):
         @wraps(func)
-        ## note 'self' as always called from inside system class
+        # note 'self' as always called from inside system class
         def wrapper(self, *args, **kwargs):
             system = self
 
@@ -748,7 +764,8 @@ def base_system_cache(protected=False, not_pickable=False):
                 protected=protected,
                 not_pickable=not_pickable,
                 instrument_classify=False,
-                **kwargs)
+                **kwargs
+            )
 
             return ans
 
@@ -757,7 +774,7 @@ def base_system_cache(protected=False, not_pickable=False):
     return decorate
 
 
-## actual decoraters used, snappier names for 'stage wiring'
+# actual decoraters used, snappier names for 'stage wiring'
 input = null_decorator
 dont_cache = null_decorator
 diagnostic = stage_access_cache_decorator

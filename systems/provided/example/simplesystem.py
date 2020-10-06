@@ -19,10 +19,18 @@ def simplesystem(data=None, config=None, log_level="on"):
     if data is None:
         data = csvFuturesSimData()
 
-    my_system = System([
-        Account(), Portfolios(), PositionSizing(), ForecastCombine(),
-        ForecastScaleCap(), Rules()
-    ], data, config)
+    my_system = System(
+        [
+            Account(),
+            Portfolios(),
+            PositionSizing(),
+            ForecastCombine(),
+            ForecastScaleCap(),
+            Rules(),
+        ],
+        data,
+        config,
+    )
 
     my_system.set_logging_level(log_level)
 

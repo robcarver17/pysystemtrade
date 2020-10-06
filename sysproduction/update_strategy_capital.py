@@ -1,4 +1,3 @@
-
 import datetime
 
 from syscore.objects import success
@@ -23,10 +22,11 @@ def update_strategy_capital():
 
     return success
 
-class updateStrategyCapital(object):
 
+class updateStrategyCapital(object):
     def __init__(self, data):
         self.data = data
+
     def strategy_allocation(self):
         """
         Used to allocate capital to strategies. Doesn't actually do the allocation but get's from another function,
@@ -42,8 +42,10 @@ class updateStrategyCapital(object):
             strategy_capital_dict = call_allocation_function(data)
             write_allocated_weights(data, strategy_capital_dict)
         except Exception as e:
-            ## Problem, will send email
-            self.data.log.critical("Error %s whilst allocating strategy capital" % e)
+            # Problem, will send email
+            self.data.log.critical(
+                "Error %s whilst allocating strategy capital" %
+                e)
 
         return None
 
@@ -51,23 +53,32 @@ class updateStrategyCapital(object):
 def call_allocation_function(data):
 
     strategy_allocation_config_dict = get_strategy_allocation_config_dict(data)
-    strategy_allocation_function_str = strategy_allocation_config_dict.pop('function')
-    strategy_allocation_function = resolve_function(strategy_allocation_function_str)
+    strategy_allocation_function_str = strategy_allocation_config_dict.pop(
+        "function")
+    strategy_allocation_function = resolve_function(
+        strategy_allocation_function_str)
 
-    results = strategy_allocation_function(data, **strategy_allocation_config_dict)
+    results = strategy_allocation_function(
+        data, **strategy_allocation_config_dict)
 
     return results
+
 
 def get_strategy_allocation_config_dict(data):
     config = diagStrategiesConfig(data)
     return config.get_strategy_allocation_config_dict()
 
+
 def write_allocated_weights(data, strategy_capital_dict):
     capital_data = dataCapital(data)
     date = datetime.datetime.now()
     for strategy_name, strategy_capital in strategy_capital_dict.items():
-        capital_data.update_capital_value_for_strategy(strategy_name, strategy_capital, date=date)
-        data.log.msg("Updated capital for %s to %f" % (strategy_name, strategy_capital), strategy_name = strategy_name)
+        capital_data.update_capital_value_for_strategy(
+            strategy_name, strategy_capital, date=date
+        )
+        data.log.msg(
+            "Updated capital for %s to %f" % (strategy_name, strategy_capital),
+            strategy_name=strategy_name,
+        )
 
     return success
-

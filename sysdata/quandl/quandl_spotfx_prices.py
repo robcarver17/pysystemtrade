@@ -11,7 +11,9 @@ from syscore.fileutils import get_filename_for_package
 quandl.ApiConfig.api_key = load_private_key()
 
 NOT_IN_QUANDL_MSG = "You can't add, delete, or get a list of codes for Quandl FX data"
-QUANDL_CCY_CONFIG_FILE = get_filename_for_package("sysdata.quandl.QuandlFXConfig.csv")
+QUANDL_CCY_CONFIG_FILE = get_filename_for_package(
+    "sysdata.quandl.QuandlFXConfig.csv")
+
 
 class quandlFxPricesData(fxPricesData):
     def __repr__(self):
@@ -22,7 +24,9 @@ class quandlFxPricesData(fxPricesData):
         try:
             fx_prices = quandl.get(qcode)
         except Exception as exception:
-            self.log.warn("Can't get QUANDL data for %s error %s" % (qcode, exception))
+            self.log.warn(
+                "Can't get QUANDL data for %s error %s" %
+                (qcode, exception))
             return fxPrices.create_empty()
 
         fx_prices = fx_prices.Rate
@@ -41,8 +45,8 @@ class quandlFxPricesData(fxPricesData):
 
     def _get_quandl_fx_config(self):
         try:
-            config_data=pd.read_csv(QUANDL_CCY_CONFIG_FILE)
-        except:
+            config_data = pd.read_csv(QUANDL_CCY_CONFIG_FILE)
+        except BaseException:
             raise Exception("Can't read file %s" % QUANDL_CCY_CONFIG_FILE)
 
         return config_data

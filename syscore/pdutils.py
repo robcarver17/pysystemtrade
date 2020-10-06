@@ -8,13 +8,18 @@ import datetime
 import numpy as np
 from copy import copy
 
-
 from syscore.fileutils import get_filename_for_package
-from syscore.dateutils import BUSINESS_DAYS_IN_YEAR, time_matches, CALENDAR_DAYS_IN_YEAR, SECONDS_PER_DAY
+from syscore.dateutils import (
+    BUSINESS_DAYS_IN_YEAR,
+    time_matches,
+    CALENDAR_DAYS_IN_YEAR,
+    SECONDS_PER_DAY,
+)
 from syscore.objects import _named_object, data_error, arg_not_supplied
 from sysdata.private_config import get_private_then_default_key_value
 
 DEFAULT_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
+
 
 def turnover(x, y):
     """
@@ -55,7 +60,8 @@ def df_from_list(data):
     """
     if isinstance(data, list):
         column_names = sorted(
-            set(sum([list(data_item.columns) for data_item in data], [])))
+            set(sum([list(data_item.columns) for data_item in data], []))
+        )
         # ensure all are properly aligned
         # note we don't check that all the columns match here
         new_data = [data_item[column_names] for data_item in data]
@@ -122,8 +128,14 @@ def pd_readcsv_frompackage(filename):
     return pd_readcsv(full_filename)
 
 
-def pd_readcsv(filename, date_index_name="DATETIME", date_format=DEFAULT_DATE_FORMAT,
-               input_column_mapping = None, skiprows=0, skipfooter=0):
+def pd_readcsv(
+    filename,
+    date_index_name="DATETIME",
+    date_format=DEFAULT_DATE_FORMAT,
+    input_column_mapping=None,
+    skiprows=0,
+    skipfooter=0,
+):
     """
     Reads a pandas data frame, with time index labelled
     package_name(/path1/path2.., filename
@@ -163,6 +175,7 @@ def pd_readcsv(filename, date_index_name="DATETIME", date_format=DEFAULT_DATE_FO
 
     return new_ans
 
+
 def fix_weights_vs_pdm(weights, pdm):
     """
     Take a matrix of weights and positions/forecasts (pdm)
@@ -187,7 +200,7 @@ def fix_weights_vs_pdm(weights, pdm):
     adj_weights = uniquets(weights)
 
     # resample weights
-    adj_weights = adj_weights.reindex(pdm_ffill.index, method='ffill')
+    adj_weights = adj_weights.reindex(pdm_ffill.index, method="ffill")
 
     # ensure columns are aligned
     adj_weights = adj_weights[pdm.columns]
@@ -237,17 +250,18 @@ def from_dict_of_values_to_df(data_dict, ts_index, columns=None):
 
     columns_as_list = list(columns)
 
-    numeric_values = dict([(keyname, [data_dict[keyname]] * len(ts_index))
-                           for keyname in columns_as_list])
+    numeric_values = dict(
+        [(keyname, [data_dict[keyname]] * len(ts_index)) for keyname in columns_as_list]
+    )
 
     pd_dataframe = pd.DataFrame(numeric_values, ts_index)
 
     return pd_dataframe
 
 
-def create_arbitrary_pdseries(data_list,
-                              date_start=datetime.datetime(1980, 1, 1),
-                              freq="B"):
+def create_arbitrary_pdseries(
+    data_list, date_start=datetime.datetime(1980, 1, 1), freq="B"
+):
     """
     Return a pandas Series with an arbitrary date index
 
@@ -270,7 +284,9 @@ def create_arbitrary_pdseries(data_list,
     """
 
     date_index = pd.date_range(
-        start=date_start, periods=len(data_list), freq=freq)
+        start=date_start,
+        periods=len(data_list),
+        freq=freq)
 
     pdseries = pd.Series(data_list, index=date_index)
 
@@ -293,21 +309,23 @@ def dataframe_pad(starting_df, column_list, padwith=0.0):
         else:
             return pd.Series([0.0] * len(starting_df.index), starting_df.index)
 
-    new_data = [
-        _pad_column(column_name, starting_df, padwith)
-        for column_name in column_list
-    ]
+    new_data = [_pad_column(column_name, starting_df, padwith)
+                for column_name in column_list]
 
     new_df = pd.concat(new_data, axis=1)
     new_df.columns = column_list
 
     return new_df
 
+
 status_old_data = object()
 status_new_data = object()
 status_merged_data = object()
 
-def merge_newer_data(old_data, new_data, check_for_spike=True,  column_to_check=arg_not_supplied):
+
+def merge_newer_data(
+    old_data, new_data, check_for_spike=True, column_to_check=arg_not_supplied
+):
     """
     Merge new data, with old data. Any new data that is older than the newest old data will be ignored
 
@@ -320,30 +338,42 @@ def merge_newer_data(old_data, new_data, check_for_spike=True,  column_to_check=
 
     :return:  pd.Series or DataFrame
     """
-    merge_status, first_date_in_new_data, merged_data = merge_newer_data_no_checks(old_data, new_data)
-
+    merge_status, first_date_in_new_data, merged_data = merge_newer_data_no_checks(
+        old_data, new_data)
 
     # check for spike
     if check_for_spike:
-        spike_present, _ = spike_check_merged_data(merge_status, first_date_in_new_data, merged_data,
-                                                column_to_check=column_to_check)
+        spike_present, _ = spike_check_merged_data(
+            merge_status,
+            first_date_in_new_data,
+            merged_data,
+            column_to_check=column_to_check,
+        )
         if spike_present:
             return data_error
 
     return merged_data
 
-def spike_check_merged_data(merge_status, first_date_in_new_data, merged_data, column_to_check=arg_not_supplied):
+
+def spike_check_merged_data(
+        merge_status,
+        first_date_in_new_data,
+        merged_data,
+        column_to_check=arg_not_supplied):
     if merge_status is status_old_data:
-        ## No checking
+        # No checking
         return False, None
 
     if merge_status is status_new_data:
-        ## check everything
+        # check everything
         first_date_in_new_data = None
 
-    spike_present, spike_date = _check_for_spike_in_data(merged_data, first_date_in_new_data, column_to_check = column_to_check)
+    spike_present, spike_date = _check_for_spike_in_data(
+        merged_data, first_date_in_new_data, column_to_check=column_to_check
+    )
 
     return spike_present, spike_date
+
 
 def merge_newer_data_no_checks(old_data, new_data):
     """
@@ -356,9 +386,9 @@ def merge_newer_data_no_checks(old_data, new_data):
 
     :return:  status ,last_date_in_old_data: datetime.datetime, merged_data: pd.Series or DataFrame
     """
-    if len(old_data.index)==0:
+    if len(old_data.index) == 0:
         return status_new_data, None, new_data
-    if len(new_data.index)==0:
+    if len(new_data.index) == 0:
         return status_old_data, None, old_data
 
     last_date_in_old_data = old_data.index[-1]
@@ -375,14 +405,18 @@ def merge_newer_data_no_checks(old_data, new_data):
     merged_data = merged_data.sort_index()
 
     # remove duplicates (shouldn't be any, but...)
-    merged_data = merged_data[~merged_data.index.duplicated(keep='first')]
+    merged_data = merged_data[~merged_data.index.duplicated(keep="first")]
 
     return status_merged_data, first_date_in_new_data, merged_data
 
 
-def _check_for_spike_in_data(merged_data, first_date_in_new_data=None, column_to_check=arg_not_supplied):
-    ## Returns tuple bool, logical date of spike (or None)
-    first_spike = _first_spike_in_data(merged_data, first_date_in_new_data, column_to_check=column_to_check)
+def _check_for_spike_in_data(
+    merged_data, first_date_in_new_data=None, column_to_check=arg_not_supplied
+):
+    # Returns tuple bool, logical date of spike (or None)
+    first_spike = _first_spike_in_data(
+        merged_data, first_date_in_new_data, column_to_check=column_to_check
+    )
 
     if first_spike is None:
         spike_exists = False
@@ -391,7 +425,10 @@ def _check_for_spike_in_data(merged_data, first_date_in_new_data=None, column_to
 
     return spike_exists, first_spike
 
-def _first_spike_in_data(merged_data, first_date_in_new_data=None, column_to_check=arg_not_supplied):
+
+def _first_spike_in_data(
+    merged_data, first_date_in_new_data=None, column_to_check=arg_not_supplied
+):
     """
     Checks to see if any data after last_date_in_old_data has spikes
 
@@ -401,44 +438,52 @@ def _first_spike_in_data(merged_data, first_date_in_new_data=None, column_to_che
     max_spike = get_private_then_default_key_value("max_price_spike")
     col_list = getattr(merged_data, "columns", None)
     if col_list is None:
-        ## already a series
+        # already a series
         data_to_check = merged_data
     else:
         if column_to_check is arg_not_supplied:
             column_to_check = col_list[0]
         data_to_check = merged_data[column_to_check]
 
-    ## Calculate the average change per day
+    # Calculate the average change per day
     change_pd = average_change_per_day(data_to_check)
 
-    ## absolute is what matters
+    # absolute is what matters
     abs_change_pd = change_pd.abs()
-    ## hard to know what span to use here as could be daily, intraday or a mixture
+    # hard to know what span to use here as could be daily, intraday or a
+    # mixture
     avg_abs_change = abs_change_pd.ewm(span=500).mean()
 
     change_in_avg_units = abs_change_pd / avg_abs_change
 
     if first_date_in_new_data is None:
-        ## No merged data so we check it all
-        data_to_check  = change_in_avg_units
+        # No merged data so we check it all
+        data_to_check = change_in_avg_units
     else:
         data_to_check = change_in_avg_units[first_date_in_new_data:]
 
-    if any(data_to_check>max_spike):
+    if any(data_to_check > max_spike):
         return data_to_check.index[data_to_check > max_spike][0]
     else:
         return None
 
+
 def average_change_per_day(data_to_check):
     data_diff = data_to_check.diff()[1:]
     index_diff = data_to_check.index[1:] - data_to_check.index[:-1]
-    index_diff_days = [diff.total_seconds()/SECONDS_PER_DAY for diff in index_diff]
+    index_diff_days = [
+        diff.total_seconds() /
+        SECONDS_PER_DAY for diff in index_diff]
 
-    change_per_day = [diff / (diff_days**.5) for diff, diff_days in zip(data_diff.values, index_diff_days)]
+    change_per_day = [
+        diff / (diff_days ** 0.5)
+        for diff, diff_days in zip(data_diff.values, index_diff_days)
+    ]
 
     change_pd = pd.Series(change_per_day, index=data_to_check.index[1:])
 
     return change_pd
+
 
 def full_merge_of_existing_data(old_data, new_data):
     """
@@ -471,6 +516,7 @@ def full_merge_of_existing_data(old_data, new_data):
 
     return merged_data_as_df
 
+
 def full_merge_of_existing_series(old_series, new_series):
     """
     Merges old data with new data.
@@ -481,17 +527,17 @@ def full_merge_of_existing_series(old_series, new_series):
 
     :returns: pd.Series
     """
-    if len(old_series)==0:
-        return  new_series
-    if len(new_series)==0:
+    if len(old_series) == 0:
+        return new_series
+    if len(new_series) == 0:
         return old_series
 
     joint_data = pd.concat([old_series, new_series], axis=1)
-    joint_data.columns = ['original', 'new']
+    joint_data.columns = ["original", "new"]
 
     # fill to the left
     joint_data_filled_across = joint_data.bfill(1)
-    merged_data = joint_data_filled_across['original']
+    merged_data = joint_data_filled_across["original"]
 
     return merged_data
 
@@ -500,8 +546,10 @@ all_labels_match = _named_object("all labels match")
 mismatch_on_last_day = _named_object("mismatch_on_last_day")
 original_index_matches_new = _named_object("original index matches new")
 
-def merge_data_series_with_label_column(original_data, new_data, col_names=dict(data='PRICE',
-                                                                                        label='PRICE_CONTRACT')):
+
+def merge_data_series_with_label_column(
+    original_data, new_data, col_names=dict(
+        data="PRICE", label="PRICE_CONTRACT")):
     """
     For two pd.DataFrames with 2 columns, including a label column, update the data when the labels
       start consistently matching
@@ -558,14 +606,16 @@ def merge_data_series_with_label_column(original_data, new_data, col_names=dict(
     :return: pd.DataFrame with two columns
     """
 
-    if len(new_data)==0:
+    if len(new_data) == 0:
         return original_data
 
-    if len(original_data)==0:
+    if len(original_data) == 0:
         return new_data
 
     # From the date after this, can happily merge new and old data
-    match_data = find_dates_when_label_changes(original_data, new_data, col_names=col_names)
+    match_data = find_dates_when_label_changes(
+        original_data, new_data, col_names=col_names
+    )
 
     if match_data is mismatch_on_last_day:
         # No matching is possible
@@ -574,23 +624,32 @@ def merge_data_series_with_label_column(original_data, new_data, col_names=dict(
         first_date_after_series_mismatch = original_data.index[0]
         last_date_when_series_mismatch = original_index_matches_new
     else:
-        first_date_after_series_mismatch, last_date_when_series_mismatch =match_data
+        first_date_after_series_mismatch, last_date_when_series_mismatch = match_data
 
     # Concat the two price series together, fill to the left
     # This will replace any NA values in existing prices with new ones
-    label_column = col_names['label']
-    data_column = col_names['data']
+    label_column = col_names["label"]
+    data_column = col_names["data"]
 
-    merged_data = full_merge_of_existing_series(original_data[data_column][first_date_after_series_mismatch:],
-                                           new_data[data_column][first_date_after_series_mismatch:])
+    merged_data = full_merge_of_existing_series(
+        original_data[data_column][first_date_after_series_mismatch:],
+        new_data[data_column][first_date_after_series_mismatch:],
+    )
 
     labels_in_new_data = new_data[last_date_when_series_mismatch:][label_column]
-    labels_in_old_data = original_data[:first_date_after_series_mismatch][label_column]
-    labels_in_merged_data = pd.concat([labels_in_old_data, labels_in_new_data], axis=0)
-    labels_in_merged_data  = labels_in_merged_data .loc[~labels_in_merged_data.index.duplicated(keep='first')]
-    labels_in_merged_data_reindexed = labels_in_merged_data.reindex(merged_data.index)
+    labels_in_old_data = original_data[:
+                                       first_date_after_series_mismatch][label_column]
+    labels_in_merged_data = pd.concat(
+        [labels_in_old_data, labels_in_new_data], axis=0)
+    labels_in_merged_data = labels_in_merged_data.loc[
+        ~labels_in_merged_data.index.duplicated(keep="first")
+    ]
+    labels_in_merged_data_reindexed = labels_in_merged_data.reindex(
+        merged_data.index)
 
-    labelled_merged_data = pd.concat([labels_in_merged_data_reindexed, merged_data], axis=1)
+    labelled_merged_data = pd.concat(
+        [labels_in_merged_data_reindexed, merged_data], axis=1
+    )
     labelled_merged_data.columns = [label_column, data_column]
 
     # for older data, keep older data
@@ -600,13 +659,19 @@ def merge_data_series_with_label_column(original_data, new_data, col_names=dict(
         original_data_to_use = original_data[:last_date_when_series_mismatch]
 
         # Merged data is the old data, and then the new data
-        current_and_merged_data = pd.concat([original_data_to_use, labelled_merged_data], axis=0)
+        current_and_merged_data = pd.concat(
+            [original_data_to_use, labelled_merged_data], axis=0
+        )
 
     return current_and_merged_data
 
 
-def find_dates_when_label_changes(original_data, new_data, col_names=dict(data='PRICE',
-                                                                                        label='PRICE_CONTRACT')):
+def find_dates_when_label_changes(
+    original_data,
+    new_data,
+    col_names=dict(
+        data="PRICE",
+        label="PRICE_CONTRACT")):
     """
     For two pd.DataFrames with 2 columns, including a label column, find the date after which the labelling
      is consistent across columns
@@ -632,39 +697,46 @@ def find_dates_when_label_changes(original_data, new_data, col_names=dict(data='
     :param col_names: dict of str
     :return: tuple or object if match didn't work out
     """
-    label_column = col_names['label']
+    label_column = col_names["label"]
 
-    joint_labels = pd.concat([original_data[label_column],
-                                        new_data[label_column]], axis=1)
-    joint_labels.columns = ['current', 'new']
+    joint_labels = pd.concat(
+        [original_data[label_column], new_data[label_column]], axis=1
+    )
+    joint_labels.columns = ["current", "new"]
     joint_labels = joint_labels.sort_index()
 
     new_data_start = new_data.index[0]
 
-    existing_labels_in_new_period = joint_labels['current'][new_data_start:].ffill()
-    new_labels_in_new_period = joint_labels['new'][new_data_start:].ffill()
+    existing_labels_in_new_period = joint_labels["current"][new_data_start:].ffill(
+    )
+    new_labels_in_new_period = joint_labels["new"][new_data_start:].ffill()
 
-    # Find the last date when the labels didn't match, and the first date after that
-    match_data=\
-        find_dates_when_series_starts_matching(existing_labels_in_new_period, new_labels_in_new_period)
+    # Find the last date when the labels didn't match, and the first date
+    # after that
+    match_data = find_dates_when_series_starts_matching(
+        existing_labels_in_new_period, new_labels_in_new_period
+    )
 
     if match_data is mismatch_on_last_day:
-        ## Can't use any of new data
+        # Can't use any of new data
         return mismatch_on_last_day
 
     elif match_data is all_labels_match:
-        ## Can use entire series becuase all match
+        # Can use entire series becuase all match
         if new_data.index[0] == original_data.index[0]:
             # They are same size, so have to use whole of original data
             return original_index_matches_new
         else:
-            ## All the new data matches
+            # All the new data matches
             first_date_after_series_mismatch = new_data_start
-            last_date_when_series_mismatch = original_data.index[original_data.index < new_data_start][-1]
+            last_date_when_series_mismatch = original_data.index[
+                original_data.index < new_data_start
+            ][-1]
     else:
         first_date_after_series_mismatch, last_date_when_series_mismatch = match_data
 
     return first_date_after_series_mismatch, last_date_when_series_mismatch
+
 
 def find_dates_when_series_starts_matching(series1, series2):
     """
@@ -694,9 +766,9 @@ def find_dates_when_series_starts_matching(series1, series2):
     :return: 2-tuple of index values
     """
 
-    # Data is same length, and timestamp matched, so equality of values is sufficient
-    period_equal = [x == y for x, y in zip(series1.values,
-                                           series2.values)]
+    # Data is same length, and timestamp matched, so equality of values is
+    # sufficient
+    period_equal = [x == y for x, y in zip(series1.values, series2.values)]
 
     if all(period_equal):
         return all_labels_match
@@ -712,16 +784,23 @@ def find_dates_when_series_starts_matching(series1, series2):
 
     reversed_time_index = series1.index[::-1]
     last_true_before_first_false_in_reversed_list_date = reversed_time_index[
-        last_true_before_first_false_in_reversed_list]
-    first_false_in_reversed_list_date = reversed_time_index[first_false_in_reversed_list]
+        last_true_before_first_false_in_reversed_list
+    ]
+    first_false_in_reversed_list_date = reversed_time_index[
+        first_false_in_reversed_list
+    ]
 
-    first_date_after_series_mismatch = last_true_before_first_false_in_reversed_list_date
+    first_date_after_series_mismatch = (
+        last_true_before_first_false_in_reversed_list_date
+    )
     last_date_when_series_mismatch = first_false_in_reversed_list_date
 
     return first_date_after_series_mismatch, last_date_when_series_mismatch
 
 
-def proportion_pd_object_intraday(data, closing_time = pd.DateOffset(hours=23, minutes=0, seconds=0)):
+def proportion_pd_object_intraday(
+    data, closing_time=pd.DateOffset(hours=23, minutes=0, seconds=0)
+):
     """
     Return the proportion of intraday data in a pd.Series or DataFrame
 
@@ -735,14 +814,19 @@ def proportion_pd_object_intraday(data, closing_time = pd.DateOffset(hours=23, m
     data_index = data.index
     length_index = len(data_index)
 
-    count_matches = [time_matches(index_entry, closing_time) for index_entry in data_index]
+    count_matches = [
+        time_matches(index_entry, closing_time) for index_entry in data_index
+    ]
     total_matches = sum(count_matches)
     proportion_matching_close = float(total_matches) / float(length_index)
     proportion_intraday = 1 - proportion_matching_close
 
     return proportion_intraday
 
-def strip_out_intraday(data,  closing_time = pd.DateOffset(hours=23, minutes=0, seconds=0)):
+
+def strip_out_intraday(
+    data, closing_time=pd.DateOffset(hours=23, minutes=0, seconds=0)
+):
     """
     Return a pd.Series or DataFrame with only the times matching closing_time
     Used when we have a mix of daily and intraday data, where the daily data has been given a nominal timestamp
@@ -755,9 +839,12 @@ def strip_out_intraday(data,  closing_time = pd.DateOffset(hours=23, minutes=0, 
     data_index = data.index
     length_index = len(data_index)
 
-    daily_matches = [time_matches(index_entry, closing_time) for index_entry in data_index]
+    daily_matches = [
+        time_matches(index_entry, closing_time) for index_entry in data_index
+    ]
 
     return data[daily_matches]
+
 
 def minimum_many_years_of_data_in_dataframe(data):
     years_of_data_dict = how_many_years_of_data_in_dataframe(data)
@@ -765,6 +852,7 @@ def minimum_many_years_of_data_in_dataframe(data):
     min_years_of_data = min(years_of_data_values)
 
     return min_years_of_data
+
 
 def how_many_years_of_data_in_dataframe(data):
     """
@@ -777,6 +865,7 @@ def how_many_years_of_data_in_dataframe(data):
     result_dict = dict(data.apply(how_many_years_of_data_in_pd_series, axis=0))
 
     return result_dict
+
 
 def how_many_years_of_data_in_pd_series(data_series):
     """
@@ -795,16 +884,18 @@ def how_many_years_of_data_in_pd_series(data_series):
 
     return date_difference_years
 
-def check_df_equals(x,y):
+
+def check_df_equals(x, y):
     try:
-        pd.testing.assert_frame_equal(x,y)
+        pd.testing.assert_frame_equal(x, y)
         return True
     except AssertionError:
         return False
 
-def check_ts_equals(x,y):
+
+def check_ts_equals(x, y):
     try:
-        pd.testing.assert_series_equal(x,y, check_names=False)
+        pd.testing.assert_series_equal(x, y, check_names=False)
         return True
     except AssertionError:
         return False
@@ -814,7 +905,9 @@ def make_df_from_list_of_named_tuple(tuple_class, list_of_tuples):
     elements = tuple_class._fields
     dict_of_elements = {}
     for element_name in elements:
-        this_element_values = [getattr(list_entry, element_name) for list_entry in list_of_tuples]
+        this_element_values = [
+            getattr(list_entry, element_name) for list_entry in list_of_tuples
+        ]
         dict_of_elements[element_name] = this_element_values
 
     pdf = pd.DataFrame(dict_of_elements)
@@ -823,13 +916,14 @@ def make_df_from_list_of_named_tuple(tuple_class, list_of_tuples):
 
     return pdf
 
+
 def set_pd_print_options():
-    pd.set_option('display.max_rows', 100)
-    pd.set_option('display.max_columns', 100)
-    pd.set_option('display.width', 1000)
+    pd.set_option("display.max_rows", 100)
+    pd.set_option("display.max_columns", 100)
+    pd.set_option("display.width", 1000)
 
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     import doctest
+
     doctest.testmod()

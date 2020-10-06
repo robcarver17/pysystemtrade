@@ -19,23 +19,41 @@ We kick them all off in the crontab at a specific time (midnight is easiest), bu
 """
 import datetime
 from sysproduction.data.controls import dataControlProcess, diagProcessConfig
-from syscore.objects import process_no_run, process_stop, process_running, success, failure, arg_not_supplied
+from syscore.objects import (
+    process_no_run,
+    process_stop,
+    process_running,
+    success,
+    failure,
+    arg_not_supplied,
+)
 from syslogdiag.echos import redirectOutput
 from syslogdiag.log import logtoscreen
 
 DEBUG = True
 
+
 class processToRun(object):
     """
     Create, then do main_loop
     """
-    def __init__(self, process_name, data, list_of_timer_names_and_functions, use_strategy_config=False):
+
+    def __init__(
+        self,
+        process_name,
+        data,
+        list_of_timer_names_and_functions,
+        use_strategy_config=False,
+    ):
         self.data = data
         self._process_name = process_name
         self._setup()
-        self._list_of_timer_functions = \
-            _get_list_of_timer_functions(data, process_name, list_of_timer_names_and_functions,
-                                         use_strategy_config = use_strategy_config)
+        self._list_of_timer_functions = _get_list_of_timer_functions(
+            data,
+            process_name,
+            list_of_timer_names_and_functions,
+            use_strategy_config=use_strategy_config,
+        )
 
     def _setup(self):
         self.log = self.data.log
@@ -44,7 +62,6 @@ class processToRun(object):
         diag_process = diagProcessConfig(self.data)
         self.diag_process = diag_process
         self._logged_wait_messages = False
-
 
     def main_loop(self):
         result_of_starting = self._start_or_wait()
@@ -66,7 +83,7 @@ class processToRun(object):
 
         else:
             try:
-                is_running= True
+                is_running = True
                 while is_running:
                     we_should_stop = self._check_for_stop()
                     if we_should_stop:
@@ -81,7 +98,6 @@ class processToRun(object):
                 self._finish()
 
         return success
-
 
     def _start_or_wait(self):
         waiting = True
@@ -105,9 +121,14 @@ class processToRun(object):
         :return:
         """
         process_okay = self._check_if_okay_to_start_process()
-        correct_machine = self.diag_process.is_this_correct_machine(self.process_name)
+        correct_machine = self.diag_process.is_this_correct_machine(
+            self.process_name)
         time_to_run = self.diag_process.is_it_time_to_run(self.process_name)
-        other_process_finished = self.diag_process.has_previous_process_finished_in_last_day(self.process_name)
+        other_process_finished = (
+            self.diag_process.has_previous_process_finished_in_last_day(
+                self.process_name
+            )
+        )
 
         if not self._logged_wait_messages:
             if not time_to_run:
@@ -116,14 +137,20 @@ class processToRun(object):
                 self.log.msg("Waiting for previous process to finish first")
             self._logged_wait_messages = True
 
-
-        if not process_okay or not correct_machine or not time_to_run or not other_process_finished:
+        if (
+            not process_okay
+            or not correct_machine
+            or not time_to_run
+            or not other_process_finished
+        ):
             return False
 
         return True
 
     def _check_if_okay_to_start_process(self):
-        okay_to_run = self.data_control.check_if_okay_to_start_process(self.process_name)
+        okay_to_run = self.data_control.check_if_okay_to_start_process(
+            self.process_name
+        )
 
         if okay_to_run is process_running:
             return False
@@ -131,15 +158,18 @@ class processToRun(object):
         elif okay_to_run is process_stop:
             return False
 
-        elif okay_to_run is  process_no_run:
+        elif okay_to_run is process_no_run:
             if not self._logged_wait_messages:
-                self.log.msg("Waiting to start as process control set to NO-RUN")
+                self.log.msg(
+                    "Waiting to start as process control set to NO-RUN")
             return False
 
         elif okay_to_run is success:
             return True
         else:
-            self.log.critical("Process control returned unknown object %s!" % str(okay_to_run))
+            self.log.critical(
+                "Process control returned unknown object %s!" %
+                str(okay_to_run))
 
     def _is_okay_to_wait_before_starting(self):
         """
@@ -157,40 +187,56 @@ class processToRun(object):
             # not okay to wait, should have stopped
             return False
 
-        correct_machine = self.diag_process.is_this_correct_machine(self.process_name)
+        correct_machine = self.diag_process.is_this_correct_machine(
+            self.process_name)
 
         if not correct_machine:
-            self.log.warn("Can't start process %s as not on correct machine" % self.process_name)
+            self.log.warn(
+                "Can't start process %s as not on correct machine" %
+                self.process_name)
             return False
 
         # check to see if process control status means we can't wait
         process_flag = self._check_if_okay_to_wait_before_starting_process()
 
         if not process_flag:
-            self.log.warn("Can't start process %s because of control process status" % self.process_name)
+            self.log.warn(
+                "Can't start process %s because of control process status"
+                % self.process_name
+            )
             return False
 
         return True
 
     def _check_if_okay_to_wait_before_starting_process(self):
-        okay_to_run = self.data_control.check_if_okay_to_start_process(self.process_name)
+        okay_to_run = self.data_control.check_if_okay_to_start_process(
+            self.process_name
+        )
 
         if okay_to_run is process_running:
-            self.log.warn("Can't start process %s at all since already running" % self.process_name)
+            self.log.warn(
+                "Can't start process %s at all since already running"
+                % self.process_name
+            )
             return False
 
         elif okay_to_run is process_stop:
-            self.log.warn("Can't start process %s at all since STOPPED by control" % self.process_name)
+            self.log.warn(
+                "Can't start process %s at all since STOPPED by control"
+                % self.process_name
+            )
             return False
 
-        elif okay_to_run is  process_no_run:
+        elif okay_to_run is process_no_run:
             # wait in case process changes
             return True
 
         elif okay_to_run is success:
-            return  True
+            return True
         else:
-            self.log.critical("Process control returned unknown object %s!" % str(okay_to_run))
+            self.log.critical(
+                "Process control returned unknown object %s!" %
+                str(okay_to_run))
 
     def _run_on_start(self):
         self.data_control.start_process(self.process_name)
@@ -228,7 +274,9 @@ class processToRun(object):
         return False
 
     def _check_for_stop_control_process(self):
-        check_for_stop = self.data_control.check_if_process_status_stopped(self.process_name)
+        check_for_stop = self.data_control.check_if_process_status_stopped(
+            self.process_name
+        )
 
         return check_for_stop
 
@@ -250,9 +298,13 @@ class processToRun(object):
         result_of_finish = self.data_control.finish_process(self.process_name)
 
         if result_of_finish is failure:
-            self.log.warn("Process %s won't finish in process control as already finished: weird!" % self.process_name)
+            self.log.warn(
+                "Process %s won't finish in process control as already finished: weird!" %
+                self.process_name)
         elif result_of_finish is success:
-            self.log.msg("Process control %s marked finished" % self.process_name)
+            self.log.msg(
+                "Process control %s marked finished" %
+                self.process_name)
 
         return None
 
@@ -261,9 +313,11 @@ class processToRun(object):
         return self._process_name
 
 
-
-def _get_list_of_timer_functions(data, process_name, list_of_timer_names_and_functions,
-                                 use_strategy_config = False):
+def _get_list_of_timer_functions(
+        data,
+        process_name,
+        list_of_timer_names_and_functions,
+        use_strategy_config=False):
     list_of_timer_functions = []
     diag_process = diagProcessConfig(data)
     for entry in list_of_timer_names_and_functions:
@@ -274,15 +328,25 @@ def _get_list_of_timer_functions(data, process_name, list_of_timer_names_and_fun
         else:
             method_name, object = entry
             function_object = getattr(object, method_name)
-            run_on_completion_only = diag_process.run_on_completion_only(process_name, method_name)
+            run_on_completion_only = diag_process.run_on_completion_only(
+                process_name, method_name
+            )
 
         log = object.data.log
-        frequency_minutes = diag_process.frequency_for_process_and_method(process_name, method_name, use_strategy_config=use_strategy_config)
-        max_executions = diag_process.max_executions_for_process_and_method(process_name, method_name, use_strategy_config=use_strategy_config)
-        timer_class = timerClassWithFunction(method_name, function_object,
-                                             frequency_minutes=frequency_minutes, max_executions=max_executions,
-                                             run_on_completion_only = run_on_completion_only,
-                                             log = log)
+        frequency_minutes = diag_process.frequency_for_process_and_method(
+            process_name, method_name, use_strategy_config=use_strategy_config
+        )
+        max_executions = diag_process.max_executions_for_process_and_method(
+            process_name, method_name, use_strategy_config=use_strategy_config
+        )
+        timer_class = timerClassWithFunction(
+            method_name,
+            function_object,
+            frequency_minutes=frequency_minutes,
+            max_executions=max_executions,
+            run_on_completion_only=run_on_completion_only,
+            log=log,
+        )
         list_of_timer_functions.append(timer_class)
 
     list_of_timer_functions = listOfTimerFunctions(list_of_timer_functions)
@@ -309,9 +373,17 @@ class listOfTimerFunctions(list):
 
 
 class timerClassWithFunction(object):
-    def __init__(self, name, function_to_execute, frequency_minutes = 60, max_executions = 1,
-                 run_on_completion_only = False, log = logtoscreen(""), minutes_between_heartbeats = 10):
-        self._function = function_to_execute # class.method to run
+    def __init__(
+        self,
+        name,
+        function_to_execute,
+        frequency_minutes=60,
+        max_executions=1,
+        run_on_completion_only=False,
+        log=logtoscreen(""),
+        minutes_between_heartbeats=10,
+    ):
+        self._function = function_to_execute  # class.method to run
         self._frequency_minutes = frequency_minutes
         self._max_executions = max_executions
         self._actual_executions = 0
@@ -322,7 +394,10 @@ class timerClassWithFunction(object):
         if run_on_completion_only:
             log.msg("%s will run on process completion" % name)
         else:
-            log.msg("%s will run every %d minutes at most %d times (-1: infinity)" % (name, frequency_minutes, max_executions))
+            log.msg(
+                "%s will run every %d minutes at most %d times (-1: infinity)"
+                % (name, frequency_minutes, max_executions)
+            )
 
     @property
     def frequency_minutes(self):
@@ -340,7 +415,7 @@ class timerClassWithFunction(object):
     def run_on_completion_only(self):
         return self._run_on_completion_only
 
-    def check_and_run(self, last_run = False):
+    def check_and_run(self, last_run=False):
         """
 
         :return: None
@@ -354,11 +429,13 @@ class timerClassWithFunction(object):
 
         return None
 
-    def check_if_okay_to_run(self, last_run = False):
+    def check_if_okay_to_run(self, last_run=False):
         if self.run_on_completion_only:
             if last_run:
                 self.log_heartbeat()
-                self.log.msg("Running %s as final run for process" % self.name, type=self.name)
+                self.log.msg(
+                    "Running %s as final run for process" %
+                    self.name, type=self.name)
                 return True
             else:
                 return False
@@ -370,14 +447,14 @@ class timerClassWithFunction(object):
                 # don't run a normal process on last run
                 return False
             else:
-                # okay not a last run, so check if timer elapsed enough and we haven't done too many
+                # okay not a last run, so check if timer elapsed enough and we
+                # haven't done too many
                 okay_to_run = self.check_if_ready_for_another_run()
                 exceeded_max = self.completed_max_runs()
                 if exceeded_max or not okay_to_run:
                     return False
                 else:
                     return True
-
 
     def check_if_ready_for_another_run(self):
         time_since_run = self.minutes_since_last_run()
@@ -390,16 +467,21 @@ class timerClassWithFunction(object):
     def log_heartbeat_if_required(self):
 
         time_since_run = self.minutes_since_last_heartbeat()
-        if time_since_run>self.minutes_between_heartbeats:
+        if time_since_run > self.minutes_between_heartbeats:
             self.log_heartbeat()
         return None
 
     def log_heartbeat(self):
-        self.log.msg("%s still alive, done %d of %d executions every %d minutes" % (self.name,
-                                                                                    self._actual_executions,
-                                                                                    self._max_executions,
-                                                                                    self.frequency_minutes),
-                     type=self.name)
+        self.log.msg(
+            "%s still alive, done %d of %d executions every %d minutes"
+            % (
+                self.name,
+                self._actual_executions,
+                self._max_executions,
+                self.frequency_minutes,
+            ),
+            type=self.name,
+        )
         self._last_heartbeat = datetime.datetime.now()
         return None
 
@@ -407,14 +489,14 @@ class timerClassWithFunction(object):
         when_last_run = self.when_last_run()
         time_now = datetime.datetime.now()
         delta = time_now - when_last_run
-        delta_minutes = delta.total_seconds()/60.0
+        delta_minutes = delta.total_seconds() / 60.0
 
         return delta_minutes
 
     def when_last_run(self):
         when_last_run = getattr(self, "_last_run", None)
         if when_last_run is None:
-            when_last_run = datetime.datetime(1970,1,1)
+            when_last_run = datetime.datetime(1970, 1, 1)
             self._last_run = when_last_run
 
         return when_last_run
@@ -423,48 +505,46 @@ class timerClassWithFunction(object):
         when_last_beat = self.when_last_heartbeat()
         time_now = datetime.datetime.now()
         delta = time_now - when_last_beat
-        delta_minutes = delta.total_seconds()/60.0
+        delta_minutes = delta.total_seconds() / 60.0
 
         return delta_minutes
 
     def when_last_heartbeat(self):
         when_last_heartbeat = getattr(self, "_last_heartbeat", None)
         if when_last_heartbeat is None:
-            when_last_heartbeat = datetime.datetime(1970,1,1)
+            when_last_heartbeat = datetime.datetime(1970, 1, 1)
             self._last_heartbeat = when_last_heartbeat
 
         return when_last_heartbeat
-
 
     def completed_max_runs(self):
         if self.run_on_completion_only:
             # doesn't apply
             return True
-        elif self._max_executions==-1:
+        elif self._max_executions == -1:
             # unlimited
             return False
-        elif self._actual_executions>=self._max_executions:
+        elif self._actual_executions >= self._max_executions:
             return True
         else:
             return False
 
-
     def run_function(self):
-        ## Functions can't take args or kwargs or return anything; pure method
+        # Functions can't take args or kwargs or return anything; pure method
         self._function()
 
     def update_on_run(self):
         self.increment_executions()
         self.set_last_run()
         if self.completed_max_runs():
-            self.log.msg("%s executed %d times so done" % (self.name, self._max_executions))
+            self.log.msg(
+                "%s executed %d times so done" %
+                (self.name, self._max_executions))
 
     def increment_executions(self):
         self._actual_executions = self._actual_executions + 1
-
 
     def set_last_run(self):
         self._last_run = datetime.datetime.now()
 
         return None
-

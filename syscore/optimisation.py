@@ -1,8 +1,8 @@
-'''
+"""
 Created on 21 Jan 2016
 
 @author: rob
-'''
+"""
 
 import pandas as pd
 import numpy as np
@@ -11,32 +11,47 @@ from copy import copy
 import random
 
 from syscore.correlations import boring_corr_matrix, get_avg_corr
-from syscore.dateutils import generate_fitting_dates, BUSINESS_DAYS_IN_YEAR, WEEKS_IN_YEAR, MONTHS_IN_YEAR
+from syscore.dateutils import (
+    generate_fitting_dates,
+    BUSINESS_DAYS_IN_YEAR,
+    WEEKS_IN_YEAR,
+    MONTHS_IN_YEAR,
+)
 from syscore.genutils import str2Bool, progressBar
 from syscore.pdutils import df_from_list, must_have_item
 from syscore.objects import resolve_function
 from syslogdiag.log import logtoscreen
 from syscore.handcrafting import Portfolio
-from syscore.optimisation_utils import clean_weights, sigma_from_corr_and_std, vol_equaliser, optimise, TARGET_ANN_SR, SR_equaliser
+from syscore.optimisation_utils import (
+    clean_weights,
+    sigma_from_corr_and_std,
+    vol_equaliser,
+    optimise,
+    TARGET_ANN_SR,
+    SR_equaliser,
+)
+
 
 class GenericOptimiser(object):
-    def __init__(self,
-                 data,
-                 identifier=None,
-                 parent = None,
-                 frequency="W",
-                 date_method="expanding",
-                 rollyears=20,
-                 method="bootstrap",
-                 cleaning=True,
-                 cost_multiplier=1.0,
-                 apply_cost_weight=True,
-                 ann_target_SR=TARGET_ANN_SR,
-                 equalise_gross=False,
-                 pool_gross_returns=False,
-                 use_pooled_costs=False,
-                 use_pooled_turnover=None, # not used
-                 **passed_params):
+    def __init__(
+        self,
+        data,
+        identifier=None,
+        parent=None,
+        frequency="W",
+        date_method="expanding",
+        rollyears=20,
+        method="bootstrap",
+        cleaning=True,
+        cost_multiplier=1.0,
+        apply_cost_weight=True,
+        ann_target_SR=TARGET_ANN_SR,
+        equalise_gross=False,
+        pool_gross_returns=False,
+        use_pooled_costs=False,
+        use_pooled_turnover=None,  # not used
+        **passed_params
+    ):
         """
 
         Set up optimiser
@@ -92,34 +107,45 @@ class GenericOptimiser(object):
         setattr(self, "log", log)
 
         # Because interaction of parameters is complex, display warnings
-        self.display_warnings(cost_multiplier, equalise_gross,
-                         apply_cost_weight, method, **passed_params)
+        self.display_warnings(
+            cost_multiplier,
+            equalise_gross,
+            apply_cost_weight,
+            method,
+            **passed_params)
 
         cleaning = str2Bool(cleaning)
         optimise_params = copy(passed_params)
 
         # annualisation
         ANN_DICT = dict(
-            D=BUSINESS_DAYS_IN_YEAR, W=WEEKS_IN_YEAR, M=MONTHS_IN_YEAR, Y=1.0)
+            D=BUSINESS_DAYS_IN_YEAR, W=WEEKS_IN_YEAR, M=MONTHS_IN_YEAR, Y=1.0
+        )
         annualisation = ANN_DICT.get(frequency, 1.0)
 
-        self.set_up_data(data, frequency=frequency, equalise_gross=equalise_gross,
-                    cost_multiplier=cost_multiplier, annualisation=annualisation,
-                    ann_target_SR=TARGET_ANN_SR,
-                    use_pooled_costs=use_pooled_costs,
-                         pool_gross_returns=pool_gross_returns,
-                         identifier=identifier)
+        self.set_up_data(
+            data,
+            frequency=frequency,
+            equalise_gross=equalise_gross,
+            cost_multiplier=cost_multiplier,
+            annualisation=annualisation,
+            ann_target_SR=TARGET_ANN_SR,
+            use_pooled_costs=use_pooled_costs,
+            pool_gross_returns=pool_gross_returns,
+            identifier=identifier,
+        )
 
         # A moments estimator works out the mean, vol, correlation
         # Also stores annualisation factor and target SR (used for shrinkage
         # and equalising)
-        moments_estimator = momentsEstimator(optimise_params, annualisation,
-                                             ann_target_SR)
+        moments_estimator = momentsEstimator(
+            optimise_params, annualisation, ann_target_SR
+        )
 
         # The optimiser instance will do the optimation once we have the
         # appropriate data
-        optimiser = optimiserWithParams(method, optimise_params,
-                                        moments_estimator)
+        optimiser = optimiserWithParams(
+            method, optimise_params, moments_estimator)
 
         setattr(self, "optimiser", optimiser)
         setattr(self, "frequency", frequency)
@@ -132,11 +158,18 @@ class GenericOptimiser(object):
         setattr(self, "cleaning", cleaning)
         setattr(self, "apply_cost_weight", apply_cost_weight)
 
-    def set_up_data(self, data, frequency = "W", equalise_gross = False,
-                    cost_multiplier = 1.0, annualisation = BUSINESS_DAYS_IN_YEAR,
-                    ann_target_SR = TARGET_ANN_SR,
-                    use_pooled_costs = False, pool_gross_returns = False,
-                    identifier=None):
+    def set_up_data(
+        self,
+        data,
+        frequency="W",
+        equalise_gross=False,
+        cost_multiplier=1.0,
+        annualisation=BUSINESS_DAYS_IN_YEAR,
+        ann_target_SR=TARGET_ANN_SR,
+        use_pooled_costs=False,
+        pool_gross_returns=False,
+        identifier=None,
+    ):
         """
 
         Optimise weights over some returns data
@@ -158,12 +191,12 @@ class GenericOptimiser(object):
 
         if identifier is None and len(data.keys()) > 1:
             log.warning(
-                "No identifier passed to optimisation code with pooled data passed - using arbitary code - results may be weird")
+                "No identifier passed to optimisation code with pooled data passed - using arbitary code - results may be weird"
+            )
             identifier = list(data.keys())[0]
 
-        (data_gross, data_costs) = decompose_group_pandl(
-            data, identifier, pool_costs=use_pooled_costs,
-            pool_gross = pool_gross_returns)
+        (data_gross, data_costs) = decompose_group_pandl(data, identifier,
+                                                         pool_costs=use_pooled_costs, pool_gross=pool_gross_returns)
 
         # resample, indexing before and differencing after (returns, remember)
         data_gross = [
@@ -188,11 +221,12 @@ class GenericOptimiser(object):
             )
 
         if cost_multiplier != 1.0:
-            log.terse("Using cost multiplier on optimisation of %.2f" %
-                      cost_multiplier)
+            log.terse(
+                "Using cost multiplier on optimisation of %.2f" %
+                cost_multiplier)
 
         # Will be needed if we equalise_gross returns
-        period_target_SR = ann_target_SR / (annualisation ** .5)
+        period_target_SR = ann_target_SR / (annualisation ** 0.5)
 
         # now work out the net
         net_return_data = work_out_net(
@@ -200,9 +234,11 @@ class GenericOptimiser(object):
             data_costs,
             equalise_gross=equalise_gross,
             cost_multiplier=cost_multiplier,
-            period_target_SR=period_target_SR)
+            period_target_SR=period_target_SR,
+        )
 
-        # FIXME: I STILL HAVE CONCERNS THAT THIS PREMATURE, SO DIVE INTO OPTIMISATION CODE AT NEXT REFACTOR
+        # FIXME: I STILL HAVE CONCERNS THAT THIS PREMATURE, SO DIVE INTO
+        # OPTIMISATION CODE AT NEXT REFACTOR
         net_return_data = df_from_list(net_return_data)
 
         setattr(self, "data", net_return_data)
@@ -235,12 +271,12 @@ class GenericOptimiser(object):
 
         data = getattr(self, "data", None)
 
-
         if data is None:
             log.critical("You need to run .set_up_data() before .optimise()")
 
         fit_dates = generate_fitting_dates(
-            data, date_method=date_method, rollyears=rollyears)
+            data, date_method=date_method, rollyears=rollyears
+        )
         setattr(self, "fit_dates", fit_dates)
 
         # Now for each time period, estimate weights
@@ -255,8 +291,9 @@ class GenericOptimiser(object):
         for fit_period in fit_dates:
             # Do the optimisation for one period, using a particular optimiser
             # instance
-            results_this_period = optSinglePeriod(self, data, fit_period,
-                                                  optimiser, cleaning)
+            results_this_period = optSinglePeriod(
+                self, data, fit_period, optimiser, cleaning
+            )
 
             opt_results.append(results_this_period)
 
@@ -265,7 +302,7 @@ class GenericOptimiser(object):
             # We adjust dates slightly to ensure no overlaps
             dindex = [
                 fit_period.period_start + datetime.timedelta(days=1),
-                fit_period.period_end - datetime.timedelta(days=1)
+                fit_period.period_end - datetime.timedelta(days=1),
             ]
 
             # create a double row to delineate start and end of test period
@@ -279,7 +316,8 @@ class GenericOptimiser(object):
 
         if apply_cost_weight:
             log.terse("Applying cost weighting to optimisation results")
-            # ann_SR_costs must be calculated before a cost multiplier is applied
+            # ann_SR_costs must be calculated before a cost multiplier is
+            # applied
             ann_SR_costs = self.calculate_ann_SR_costs()
 
             weight_df = apply_cost_weighting(raw_weight_df, ann_SR_costs)
@@ -290,26 +328,33 @@ class GenericOptimiser(object):
         setattr(self, "weights", weight_df)
         setattr(self, "raw_weights", raw_weight_df)
 
-
-    def display_warnings(self, cost_multiplier, equalise_gross, apply_cost_weight,
-                         method, equalise_SR, **ignored_passed_params):
+    def display_warnings(
+        self,
+        cost_multiplier,
+        equalise_gross,
+        apply_cost_weight,
+        method,
+        equalise_SR,
+        **ignored_passed_params
+    ):
         """
         Warn people when parameters are in conflict
         """
-        log=self.log
-        if method == "equal_weights" and (equalise_SR or cost_multiplier != 1.0 or
-                                          equalise_gross or apply_cost_weight):
+        log = self.log
+        if method == "equal_weights" and (
+                equalise_SR or cost_multiplier != 1.0 or equalise_gross or apply_cost_weight):
             log.warn("Using equal weights, all other config will be ignored")
             return None
 
         if equalise_SR and cost_multiplier != 1.0:
             log.warn(
-                "Cost multiplier of %.1f will be ignored as equalising SR in optimisation (equalise_SR=True)"
-                % cost_multiplier)
+                "Cost multiplier of %.1f will be ignored as equalising SR in optimisation (equalise_SR=True)" %
+                cost_multiplier)
 
         if equalise_gross and cost_multiplier == 0.0:
             log.critical(
-                "Cost multiplier of zero AND equalising gross_SR - can't do both! ")
+                "Cost multiplier of zero AND equalising gross_SR - can't do both! "
+            )
 
         if equalise_SR and equalise_gross:
             log.warn(
@@ -323,29 +368,32 @@ class GenericOptimiser(object):
 
         if cost_multiplier < 0.0:
             log.critical(
-                "Can't have a negative cost multiplier of %.2f! At least zero please."
-                % cost_multiplier)
+                "Can't have a negative cost multiplier of %.2f! At least zero please." %
+                cost_multiplier)
 
         if cost_multiplier < 1.0 and not apply_cost_weight:
             log.warn(
-                "Cost multiplier of %2.f is less than one and not applying cost weightings - effect of costs may be underestimated" % cost_multiplier
-            )
+                "Cost multiplier of %2.f is less than one and not applying cost weightings - effect of costs may be underestimated" %
+                cost_multiplier)
 
         if cost_multiplier > 5.0:
-            log.warn("Cost multiplier of %.1f is blooming high" % cost_multiplier)
+            log.warn(
+                "Cost multiplier of %.1f is blooming high" %
+                cost_multiplier)
 
         if cost_multiplier > 0.0 and apply_cost_weight:
             log.warn(
-                "Applying cost multiplier of %.2f AND applying a cost weight - effect of costs will be overestimated - did you mean to do this?"
-                % cost_multiplier)
+                "Applying cost multiplier of %.2f AND applying a cost weight - effect of costs will be overestimated - did you mean to do this?" %
+                cost_multiplier)
 
         return None
 
 
 # Mini function to copy costs across
-def _fit_cost_to_gross_frame(cost_to_fit,
-                             frame_gross_pandl,
-                             backfillavgcosts=True):
+def _fit_cost_to_gross_frame(
+        cost_to_fit,
+        frame_gross_pandl,
+        backfillavgcosts=True):
     # fit, and backfill, some costs
     costs_fitted = cost_to_fit.reindex(frame_gross_pandl.index)
 
@@ -356,11 +404,10 @@ def _fit_cost_to_gross_frame(cost_to_fit,
 
     return costs_fitted
 
-def decompose_group_pandl(data,
-                          identifier,
-                          pool_costs=False,
-                          pool_gross=False,
-                          backfillavgcosts=True):
+
+def decompose_group_pandl(
+    data, identifier, pool_costs=False, pool_gross=False, backfillavgcosts=True
+):
     """
     Given a pand_list (list of accountCurveGroup objects) return a 2-tuple of two pandas data frames;
       one is the gross costs and one is the net costs.
@@ -372,14 +419,14 @@ def decompose_group_pandl(data,
     costs_unpooled = data[identifier].costs.to_frame()
     costs_unpooled[costs_unpooled.isna()] = 0.0
     gross_unpooled = data[identifier].gross.to_frame()
-    unpooled_data  =([gross_unpooled], [costs_unpooled])
+    unpooled_data = ([gross_unpooled], [costs_unpooled])
 
     # Trivial case
     if len(data) == 1:
         return unpooled_data
 
-    assert type(pool_gross) is bool
-    assert type(pool_costs) is bool
+    assert isinstance(pool_gross, bool)
+    assert isinstance(pool_costs, bool)
 
     # Unpooled
     if (not pool_gross) and (not pool_costs):
@@ -387,8 +434,10 @@ def decompose_group_pandl(data,
 
     # Fully pooled
     if pool_costs and pool_gross:
-        pandl_gross = [pandl_item.gross.to_frame() for pandl_item in data.values()]
-        pandl_costs = [pandl_item.costs.to_frame() for pandl_item in data.values()]
+        pandl_gross = [pandl_item.gross.to_frame()
+                       for pandl_item in data.values()]
+        pandl_costs = [pandl_item.costs.to_frame()
+                       for pandl_item in data.values()]
 
         return (pandl_gross, pandl_costs)
 
@@ -396,10 +445,14 @@ def decompose_group_pandl(data,
     if (not pool_gross) and pool_costs:
         gross_this_instrument = data[identifier].gross.to_frame()
         pandl_gross = [gross_this_instrument for notUsed in data.values()]
-        pandl_costs = [_fit_cost_to_gross_frame(pandl_item.costs.to_frame(),
-                             gross_this_instrument,
-                             backfillavgcosts=backfillavgcosts)
-             for pandl_item in data.values()]
+        pandl_costs = [
+            _fit_cost_to_gross_frame(
+                pandl_item.costs.to_frame(),
+                gross_this_instrument,
+                backfillavgcosts=backfillavgcosts,
+            )
+            for pandl_item in data.values()
+        ]
 
         return (pandl_gross, pandl_costs)
 
@@ -410,18 +463,23 @@ def decompose_group_pandl(data,
 
     if pool_gross and (not pool_costs):
         costs_this_instrument = data[identifier].costs.to_frame()
-        pandl_gross = [pandl_item.gross.to_frame() for pandl_item in data.values()]
+        pandl_gross = [pandl_item.gross.to_frame()
+                       for pandl_item in data.values()]
 
         # Fit the
         pandl_costs = [
-            _fit_cost_to_gross_frame(costs_this_instrument,
-                                     frame_gross_pandl, backfillavgcosts)
+            _fit_cost_to_gross_frame(
+                costs_this_instrument, frame_gross_pandl, backfillavgcosts
+            )
             for frame_gross_pandl in pandl_gross
-            ]
+        ]
 
         return (pandl_gross, pandl_costs)
 
-    raise Exception("Impossible combination of pool_gross and pool_costs bool variables")
+    raise Exception(
+        "Impossible combination of pool_gross and pool_costs bool variables"
+    )
+
 
 def _set_equal_SR_returns(account_curve, period_target_SR):
     """
@@ -441,17 +499,21 @@ def _set_equal_SR_returns(account_curve, period_target_SR):
     shifts = target_mean - actual_period_mean
     shifts = np.array([list(shifts)] * len(account_curve.index))
     shifts = pd.DataFrame(
-        shifts, index=account_curve.index, columns=account_curve.columns)
+        shifts, index=account_curve.index, columns=account_curve.columns
+    )
 
     new_curve = account_curve + shifts
 
     return new_curve
 
-def work_out_net(data_gross,
-                 data_costs,
-                 equalise_gross=False,
-                 cost_multiplier=1.0,
-                 period_target_SR=TARGET_ANN_SR / (BUSINESS_DAYS_IN_YEAR**.5)):
+
+def work_out_net(
+    data_gross,
+    data_costs,
+    equalise_gross=False,
+    cost_multiplier=1.0,
+    period_target_SR=TARGET_ANN_SR / (BUSINESS_DAYS_IN_YEAR ** 0.5),
+):
     """
     Work out the net from a list of dataframes of gross and costs
     Columns in each dataframe are different assets
@@ -463,12 +525,16 @@ def work_out_net(data_gross,
 
     if equalise_gross:
         # Set gross returns to be equal, whilst preserving correlation structure
-        # sharpe has to be high enough so we don't get badly negative net returns
+        # sharpe has to be high enough so we don't get badly negative net
+        # returns
 
         # Note data adn SR is already in appropriate time period
         # assumes all have same vol
 
-        use_gross = [_set_equal_SR_returns(gross_curve, period_target_SR) for gross_curve in data_gross]
+        use_gross = [
+            _set_equal_SR_returns(gross_curve, period_target_SR)
+            for gross_curve in data_gross
+        ]
 
     else:
         # no adjustment
@@ -477,19 +543,55 @@ def work_out_net(data_gross,
     use_costs = [costs_curve * cost_multiplier for costs_curve in data_costs]
 
     # costs are negative, so add them on
-    net = [use_gross_curve + use_costs_curve for (use_gross_curve, use_costs_curve) in zip(use_gross, use_costs)]
+    net = [
+        use_gross_curve + use_costs_curve
+        for (use_gross_curve, use_costs_curve) in zip(use_gross, use_costs)
+    ]
 
     return net
 
 
 # factors .First element of tuple is SR difference, second is adjustment
-adj_factors = ([
-    -.5, -.4, -.3, -.25, -.2, -.15, -.1, -0.05, 0.0, .05, .1, .15, .2, .25, .3,
-    .4, .5
-], [
-    .32, .42, .55, .6, .66, .77, .85, .94, 1.0, 1.11, 1.19, 1.3, 1.37, 1.48,
-    1.56, 1.72, 1.83
-])
+adj_factors = (
+    [
+        -0.5,
+        -0.4,
+        -0.3,
+        -0.25,
+        -0.2,
+        -0.15,
+        -0.1,
+        -0.05,
+        0.0,
+        0.05,
+        0.1,
+        0.15,
+        0.2,
+        0.25,
+        0.3,
+        0.4,
+        0.5,
+    ],
+    [
+        0.32,
+        0.42,
+        0.55,
+        0.6,
+        0.66,
+        0.77,
+        0.85,
+        0.94,
+        1.0,
+        1.11,
+        1.19,
+        1.3,
+        1.37,
+        1.48,
+        1.56,
+        1.72,
+        1.83,
+    ],
+)
 
 
 def apply_cost_weighting(raw_weight_df, ann_SR_costs):
@@ -501,29 +603,33 @@ def apply_cost_weighting(raw_weight_df, ann_SR_costs):
     # In sample for vol estimation, but shouldn't matter much since target vol
     # should be the same
 
-
     ann_returns = [cost for cost in ann_SR_costs]
 
     avg_return = np.mean(ann_returns)
     relative_SR_returns = [
-        asset_return - avg_return for asset_return in ann_returns
-    ]
+        asset_return -
+        avg_return for asset_return in ann_returns]
 
     # Find adjustment factors
     weight_adj = list(
-        np.interp(relative_SR_returns, adj_factors[0], adj_factors[1]))
+        np.interp(
+            relative_SR_returns,
+            adj_factors[0],
+            adj_factors[1]))
     weight_adj = np.array([list(weight_adj)] * len(raw_weight_df.index))
     weight_adj = pd.DataFrame(
-        weight_adj, index=raw_weight_df.index, columns=raw_weight_df.columns)
+        weight_adj, index=raw_weight_df.index, columns=raw_weight_df.columns
+    )
 
     return raw_weight_df * weight_adj
 
 
 class momentsEstimator(object):
-    def __init__(self,
-                 optimise_params,
-                 annualisation=BUSINESS_DAYS_IN_YEAR,
-                 ann_target_SR=.5):
+    def __init__(
+            self,
+            optimise_params,
+            annualisation=BUSINESS_DAYS_IN_YEAR,
+            ann_target_SR=0.5):
         """
         Create an object which estimates the moments for a single period of data, according to the parameters
 
@@ -550,7 +656,7 @@ class momentsEstimator(object):
         setattr(self, "mean_estimate_func", mean_estimate_func)
         setattr(self, "vol_estimate_func", vol_estimate_func)
 
-        period_target_SR = ann_target_SR / (annualisation**.5)
+        period_target_SR = ann_target_SR / (annualisation ** 0.5)
 
         setattr(self, "annualisation", annualisation)
         setattr(self, "period_target_SR", period_target_SR)
@@ -573,14 +679,16 @@ class momentsEstimator(object):
         params = self.vol_estimate_params
         stdev_list = self.vol_estimate_func(data_for_estimate, **params)
 
-        stdev_list = list(np.array(stdev_list) * (self.annualisation**.5))
+        stdev_list = list(np.array(stdev_list) * (self.annualisation ** 0.5))
 
         return stdev_list
 
     def moments(self, data_for_estimate):
-        ans = (self.means(data_for_estimate),
-               self.correlation(data_for_estimate),
-               self.vol(data_for_estimate))
+        ans = (
+            self.means(data_for_estimate),
+            self.correlation(data_for_estimate),
+            self.vol(data_for_estimate),
+        )
         return ans
 
 
@@ -602,14 +710,17 @@ class optimiserWithParams(object):
             bootstrap=bootstrap_portfolio,
             shrinkage=opt_shrinkage,
             equal_weights=equal_weights,
-            handcraft=handcraft)
+            handcraft=handcraft,
+        )
 
         try:
             opt_func = fit_method_dict[method]
 
         except KeyError:
-            raise Exception("Fitting method %s unknown; try one of: %s " %
-                            (method, ", ".join(fit_method_dict.keys())))
+            raise Exception(
+                "Fitting method %s unknown; try one of: %s "
+                % (method, ", ".join(fit_method_dict.keys()))
+            )
 
         setattr(self, "opt_func", resolve_function(opt_func))
 
@@ -620,8 +731,12 @@ class optimiserWithParams(object):
     def call(self, optimise_data, cleaning, must_haves):
 
         params = self.params
-        return self.opt_func(optimise_data, self.moments_estimator, cleaning,
-                             must_haves, **params)
+        return self.opt_func(
+            optimise_data,
+            self.moments_estimator,
+            cleaning,
+            must_haves,
+            **params)
 
 
 class optSinglePeriod(object):
@@ -631,8 +746,7 @@ class optSinglePeriod(object):
             # Generate 'must have' from the period we need
             # because if we're bootstrapping could be completely different
             # periods
-            current_period_data = data[fit_period.period_start:
-                                       fit_period.period_end]
+            current_period_data = data[fit_period.period_start: fit_period.period_end]
             must_haves = must_have_item(current_period_data)
 
         else:
@@ -652,25 +766,26 @@ class optSinglePeriod(object):
 
         else:
             # we have data
-            subset_fitting_data = data[fit_period.fit_start:fit_period.fit_end]
+            subset_fitting_data = data[fit_period.fit_start: fit_period.fit_end]
 
-            (weights, diag) = optimiser.call(subset_fitting_data, cleaning,
-                                             must_haves)
+            (weights, diag) = optimiser.call(
+                subset_fitting_data, cleaning, must_haves)
 
         ##
         setattr(self, "diag", diag)
         setattr(self, "weights", weights)
 
 
-
-def opt_shrinkage(period_subset_data,
-                  moments_estimator,
-                  cleaning,
-                  must_haves,
-                  shrinkage_SR=.9,
-                  shrinkage_corr=.5,
-                  equalise_vols=False,
-                  **ignored_args):
+def opt_shrinkage(
+    period_subset_data,
+    moments_estimator,
+    cleaning,
+    must_haves,
+    shrinkage_SR=0.9,
+    shrinkage_corr=0.5,
+    equalise_vols=False,
+    **ignored_args
+):
     """
     Given dataframe of returns; returns_to_bs, performs a shrinkage optimisation
 
@@ -726,7 +841,8 @@ def opt_shrinkage(period_subset_data,
         sigma=sigma,
         mean_list=mean_list,
         unclean=unclean_weights,
-        weights=weights)
+        weights=weights,
+    )
 
     return (weights, diag)
 
@@ -757,7 +873,7 @@ def shrink_corr(corrmatrix, shrinkage_corr):
     return sigma_corr
 
 
-def shrink_SR(mean_list, stdev_list, shrinkage_SR, target_SR=.5):
+def shrink_SR(mean_list, stdev_list, shrinkage_SR, target_SR=0.5):
     """
     >>> shrink_SR([.0,1.], [1.,2.], .5)
     [0.25, 1.0]
@@ -772,9 +888,10 @@ def shrink_SR(mean_list, stdev_list, shrinkage_SR, target_SR=.5):
     if np.all(np.isnan(SR_estimates)):
         return [np.nan] * len(mean_list)
 
-    post_SR_list = [(shrinkage_SR * target_SR) +
-                    (1 - shrinkage_SR) * estimatedSR
-                    for estimatedSR in SR_estimates]
+    post_SR_list = [
+        (shrinkage_SR * target_SR) + (1 - shrinkage_SR) * estimatedSR
+        for estimatedSR in SR_estimates
+    ]
 
     post_means = [
         asset_SR * asset_stdev
@@ -784,13 +901,15 @@ def shrink_SR(mean_list, stdev_list, shrinkage_SR, target_SR=.5):
     return post_means
 
 
-def handcraft(period_subset_data,
-                moments_estimator,
-                cleaning,
-                must_haves,
-                equalise_SR=False,
-                equalise_vols=True,
-                **ignored_args):
+def handcraft(
+    period_subset_data,
+    moments_estimator,
+    cleaning,
+    must_haves,
+    equalise_SR=False,
+    equalise_vols=True,
+    **ignored_args
+):
     """
     Returns the optimal portfolio for the returns data, using handcrafting
 
@@ -838,8 +957,10 @@ def handcraft(period_subset_data,
 
     sigma = sigma_from_corr_and_std(stdev_list, corrmatrix)
 
-    portfolio = Portfolio(period_subset_data, allow_leverage = False,
-                          use_SR_estimates = not equalise_SR)
+    portfolio = Portfolio(
+        period_subset_data,
+        allow_leverage=False,
+        use_SR_estimates=not equalise_SR)
 
     if equalise_vols:
         unclean_weights = portfolio.volatility_weights_with_missing_data()
@@ -857,17 +978,21 @@ def handcraft(period_subset_data,
         mean_list=mean_list,
         unclean=unclean_weights,
         weights=weights,
-        hc_portfolio = portfolio)
+        hc_portfolio=portfolio,
+    )
 
     return (weights, diag)
 
-def markosolver(period_subset_data,
-                moments_estimator,
-                cleaning,
-                must_haves,
-                equalise_SR=False,
-                equalise_vols=True,
-                **ignored_args):
+
+def markosolver(
+    period_subset_data,
+    moments_estimator,
+    cleaning,
+    must_haves,
+    equalise_SR=False,
+    equalise_vols=True,
+    **ignored_args
+):
     """
     Returns the optimal portfolio for the returns data
 
@@ -927,14 +1052,19 @@ def markosolver(period_subset_data,
         sigma=sigma,
         mean_list=mean_list,
         unclean=unclean_weights,
-        weights=weights)
+        weights=weights,
+    )
 
     return (weights, diag)
 
 
-
-def equal_weights(period_subset_data, moments_estimator, cleaning, must_haves,
-                  **other_opt_args_ignored):
+def equal_weights(
+    period_subset_data,
+    moments_estimator,
+    cleaning,
+    must_haves,
+    **other_opt_args_ignored
+):
     """
     Given dataframe of returns; returns equal weights
 
@@ -961,18 +1091,24 @@ def equal_weights(period_subset_data, moments_estimator, cleaning, must_haves,
     weights = [1.0 / asset_count for i in range(asset_count)]
 
     diag = dict(
-        raw=None, sigma=None, mean_list=None, unclean=weights, weights=weights)
+        raw=None,
+        sigma=None,
+        mean_list=None,
+        unclean=weights,
+        weights=weights)
 
     return (weights, diag)
 
 
-def bootstrap_portfolio(subset_data,
-                        moments_estimator,
-                        cleaning,
-                        must_haves,
-                        monte_runs=100,
-                        bootstrap_length=50,
-                        **other_opt_args):
+def bootstrap_portfolio(
+    subset_data,
+    moments_estimator,
+    cleaning,
+    must_haves,
+    monte_runs=100,
+    bootstrap_length=50,
+    **other_opt_args
+):
     """
     Given dataframe of returns; returns_to_bs, performs a bootstrap optimisation
 
@@ -1006,8 +1142,14 @@ def bootstrap_portfolio(subset_data,
     """
 
     all_results = [
-        bs_one_time(subset_data, moments_estimator, cleaning, must_haves,
-                    bootstrap_length, **other_opt_args)
+        bs_one_time(
+            subset_data,
+            moments_estimator,
+            cleaning,
+            must_haves,
+            bootstrap_length,
+            **other_opt_args
+        )
         for unused_index in range(monte_runs)
     ]
 
@@ -1024,8 +1166,14 @@ def bootstrap_portfolio(subset_data,
     return (theweights_mean, diag)
 
 
-def bs_one_time(subset_data, moments_estimator, cleaning, must_haves,
-                bootstrap_length, **other_opt_args):
+def bs_one_time(
+    subset_data,
+    moments_estimator,
+    cleaning,
+    must_haves,
+    bootstrap_length,
+    **other_opt_args
+):
     """
     Given dataframe of returns; does a single run of the bootstrap optimisation
 
@@ -1063,12 +1211,14 @@ def bs_one_time(subset_data, moments_estimator, cleaning, must_haves,
 
     returns = subset_data.iloc[bs_idx, :]
 
-    (weights, diag) = markosolver(returns, moments_estimator, cleaning,
-                                  must_haves, **other_opt_args)
+    (weights, diag) = markosolver(
+        returns, moments_estimator, cleaning, must_haves, **other_opt_args
+    )
 
     return (weights, diag)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import doctest
+
     doctest.testmod()

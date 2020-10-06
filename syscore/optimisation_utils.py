@@ -1,8 +1,10 @@
-import  numpy as np
+import numpy as np
+
 FLAG_BAD_RETURN = -9999999.9
 TARGET_ANN_SR = 0.5
 
 from scipy.optimize import minimize
+
 
 def clean_weights(weights, must_haves=None, fraction=0.5):
     """
@@ -45,23 +47,32 @@ def clean_weights(weights, must_haves=None, fraction=0.5):
                        for (i, x) in enumerate(weights)]
     keep_empty = [(np.isnan(x) or x == 0.0) and not must_haves[i]
                   for (i, x) in enumerate(weights)]
-    no_replacement_needed = [(not keep_empty[i]) and (not needs_replacing[i])
-                             for (i, x) in enumerate(weights)]
+    no_replacement_needed = [
+        (not keep_empty[i]) and (not needs_replacing[i])
+        for (i, x) in enumerate(weights)
+    ]
 
     if not any(needs_replacing):
         return weights
 
     missing_weights = sum(needs_replacing)
 
-    total_for_missing_weights = fraction * missing_weights / (
-        float(np.nansum(no_replacement_needed) + np.nansum(missing_weights)))
+    total_for_missing_weights = (fraction *
+                                 missing_weights /
+                                 (float(np.nansum(no_replacement_needed) +
+                                        np.nansum(missing_weights))))
 
-    adjustment_on_rest = (1.0 - total_for_missing_weights)
+    adjustment_on_rest = 1.0 - total_for_missing_weights
 
     each_missing_weight = total_for_missing_weights / missing_weights
 
-    def _good_weight(value, idx, needs_replacing, keep_empty,
-                     each_missing_weight, adjustment_on_rest):
+    def _good_weight(
+            value,
+            idx,
+            needs_replacing,
+            keep_empty,
+            each_missing_weight,
+            adjustment_on_rest):
 
         if needs_replacing[idx]:
             return each_missing_weight
@@ -71,8 +82,14 @@ def clean_weights(weights, must_haves=None, fraction=0.5):
             return value * adjustment_on_rest
 
     weights = [
-        _good_weight(value, idx, needs_replacing, keep_empty,
-                     each_missing_weight, adjustment_on_rest)
+        _good_weight(
+            value,
+            idx,
+            needs_replacing,
+            keep_empty,
+            each_missing_weight,
+            adjustment_on_rest,
+        )
         for (idx, value) in enumerate(weights)
     ]
 
@@ -93,20 +110,17 @@ def vol_equaliser(mean_list, stdev_list):
     ([nan, nan], [nan, nan])
     """
     if np.all(np.isnan(stdev_list)):
-        return (([np.nan] * len(mean_list), [np.nan] * len(stdev_list)))
+        return ([np.nan] * len(mean_list), [np.nan] * len(stdev_list))
 
     avg_stdev = np.nanmean(stdev_list)
 
     norm_factor = [asset_stdev / avg_stdev for asset_stdev in stdev_list]
 
-    with np.errstate(invalid='ignore'):
-        norm_means = [
-            mean_list[i] / norm_factor[i] for (i, notUsed) in enumerate(mean_list)
-        ]
-        norm_stdev = [
-            stdev_list[i] / norm_factor[i]
-            for (i, notUsed) in enumerate(stdev_list)
-        ]
+    with np.errstate(invalid="ignore"):
+        norm_means = [mean_list[i] / norm_factor[i]
+                      for (i, notUsed) in enumerate(mean_list)]
+        norm_stdev = [stdev_list[i] / norm_factor[i]
+                      for (i, notUsed) in enumerate(stdev_list)]
 
     return (norm_means, norm_stdev)
 
@@ -137,7 +151,7 @@ def neg_SR(weights, sigma, mus):
     # Returns minus the Sharpe Ratio (as we're minimising)
     weights = np.matrix(weights)
     estreturn = (weights * mus)[0, 0]
-    std_dev = (variance(weights, sigma)**.5)
+    std_dev = variance(weights, sigma) ** 0.5
 
     return -estreturn / std_dev
 
@@ -172,9 +186,13 @@ def un_fix_weights(mean_list, weights):
             return xweight
 
     fixed_weights = [
-        _unfixit(xmean, xweight)
-        for (xmean, xweight) in zip(mean_list, weights)
-    ]
+        _unfixit(
+            xmean,
+            xweight) for (
+            xmean,
+            xweight) in zip(
+                mean_list,
+            weights)]
 
     return fixed_weights
 
@@ -212,17 +230,19 @@ def optimise(sigma, mean_list):
 
     # Constraints - positive weights, adding to 1.0
     bounds = [(0.0, 1.0)] * number_assets
-    cdict = [{'type': 'eq', 'fun': addem}]
+    cdict = [{"type": "eq", "fun": addem}]
     ans = minimize(
         neg_SR,
-        start_weights, (sigma, mus),
-        method='SLSQP',
+        start_weights,
+        (sigma, mus),
+        method="SLSQP",
         bounds=bounds,
         constraints=cdict,
-        tol=0.00001)
+        tol=0.00001,
+    )
 
     # anything that had a nan will now have a zero weight
-    weights = ans['x']
+    weights = ans["x"]
 
     # put back the nans
     weights = un_fix_weights(mean_list, weights)

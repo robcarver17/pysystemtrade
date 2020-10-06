@@ -1,10 +1,10 @@
-
 import os
 import sys
 from syscore.objects import missing_data
 from sysdata.private_config import get_private_config_key_value
 
-echo_extension=".txt"
+echo_extension = ".txt"
+
 
 class redirectOutput(object):
     def __init__(self, process_name):
@@ -13,7 +13,9 @@ class redirectOutput(object):
 
         file_name = get_echo_file_name(process_name)
         if file_name is missing_data:
-            print("Not redirecting output as variable 'echo_directory' not set in private_config.yaml")
+            print(
+                "Not redirecting output as variable 'echo_directory' not set in private_config.yaml"
+            )
             self.file_obj = missing_data
             self._stderr = self._original_err
             self._stdout = self._original_out
@@ -47,10 +49,10 @@ def get_echo_file_name(process_name):
 
     return full_file_name
 
+
 def get_echo_file_directory():
     ans = get_private_config_key_value("echo_directory")
     if ans is missing_data:
         return missing_data
 
     return ans
-

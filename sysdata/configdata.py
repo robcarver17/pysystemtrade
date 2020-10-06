@@ -68,10 +68,10 @@ class Config(object):
         :return: nothing
         """
 
-        ## inherit the log
+        # inherit the log
         setattr(self, "log", base_system.log.setup(stage="config"))
 
-        ## fill with defaults
+        # fill with defaults
         self.fill_with_defaults()
 
     def _create_config_from_item(self, config_item):
@@ -83,14 +83,17 @@ class Config(object):
             # must be a file YAML'able, from which we load the
             filename = get_filename_for_package(config_item)
             with open(filename) as file_to_parse:
-                dict_to_parse = yaml.load(file_to_parse,  Loader=yaml.FullLoader)
+                dict_to_parse = yaml.load(
+                    file_to_parse, Loader=yaml.FullLoader)
 
             self._create_config_from_dict(dict_to_parse)
 
         else:
-            error_msg = ("Can only create a config with a nested dict or the "
-                         "string of a 'yamable' filename, or a list "
-                         "comprising these things")
+            error_msg = (
+                "Can only create a config with a nested dict or the "
+                "string of a 'yamable' filename, or a list "
+                "comprising these things"
+            )
             self.log.critical(error_msg)
 
     def _create_config_from_dict(self, config_object):
@@ -102,15 +105,13 @@ class Config(object):
         So if config_objec=dict(a=2, b=2)
         Then this object will become self.a=2, self.b=2
         """
-        base_config = config_object.get('base_config')
+        base_config = config_object.get("base_config")
         if base_config is not None:
             self._create_config_from_item(base_config)
 
         attr_names = list(config_object.keys())
-        [
-            setattr(self, keyname, config_object[keyname])
-            for keyname in config_object
-        ]
+        [setattr(self, keyname, config_object[keyname])
+         for keyname in config_object]
         existing_elements = getattr(self, "_elements", [])
         new_elements = list(set(existing_elements + attr_names))
 
@@ -153,7 +154,6 @@ class Config(object):
             if element_name not in elements:
                 elements.append(element_name)
 
-
     def fill_with_defaults(self):
         """
         Fills with defaults
@@ -180,10 +180,8 @@ class Config(object):
         default_elements = list(get_system_defaults().keys())
 
         new_elements = list(set(existing_elements + default_elements))
-        [
-            self.element_fill_with_defaults(element_name)
-            for element_name in new_elements
-        ]
+        [self.element_fill_with_defaults(element_name)
+         for element_name in new_elements]
 
         setattr(self, "_elements", new_elements)
 
@@ -211,7 +209,10 @@ class Config(object):
                 config_item = self.dict_with_defaults(element_name)
         else:
             if isinstance(default_item, dict):
-                error_msg = "Config item %s is not a dict, but it is in the default!" % element_name
+                error_msg = (
+                    "Config item %s is not a dict, but it is in the default!"
+                    % element_name
+                )
                 self.log.critical(error_msg)
 
         setattr(self, element_name, config_item)
@@ -235,11 +236,13 @@ class Config(object):
             if isinstance(config_dict[dict_key], dict):
                 if isinstance(default_dict[dict_key], dict):
                     config_dict[dict_key] = self.nested_dict_with_defaults(
-                        element_name, dict_key)
+                        element_name, dict_key
+                    )
             else:
                 if isinstance(default_dict[dict_key], dict):
-                    error_msg = "You've created a config where %s.%s is not a dict, but it is in the default config!" % (
-                        element_name, dict_key)
+                    error_msg = (
+                        "You've created a config where %s.%s is not a dict, but it is in the default config!" %
+                        (element_name, dict_key))
                     self.log.critical(error_msg)
 
         return config_dict
@@ -263,8 +266,7 @@ class Config(object):
 
             for dict_key in required:
                 if dict_key not in nested_config_dict:
-                    nested_config_dict[dict_key] = nested_default_dict[
-                        dict_key]
+                    nested_config_dict[dict_key] = nested_default_dict[dict_key]
 
         return nested_config_dict
 
@@ -275,7 +277,7 @@ class Config(object):
 
     def as_dict(self):
         element_names = sorted(getattr(self, "_elements", []))
-        self_as_dict ={}
+        self_as_dict = {}
         for element in element_names:
             self_as_dict[element] = getattr(self, element, "")
 
@@ -283,10 +285,11 @@ class Config(object):
 
     def save(self, filename):
         config_to_save = self.as_dict()
-        with open(filename, 'w') as file:
+        with open(filename, "w") as file:
             yaml.dump(config_to_save, file)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import doctest
+
     doctest.testmod()

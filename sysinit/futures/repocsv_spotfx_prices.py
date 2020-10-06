@@ -6,8 +6,7 @@ WARNING WILL OVERWRITE EXISTING!
 from sysdata.arctic.arctic_spotfx_prices import arcticFxPricesData
 from sysdata.csv.csv_spot_fx import csvFxPricesData
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     arctic_fx_prices = arcticFxPricesData()
     csv_fx_prices = csvFxPricesData()
 
@@ -17,4 +16,6 @@ if __name__ == '__main__':
         fx_prices = csv_fx_prices.get_fx_prices(currency_code)
         print(fx_prices)
 
-        arctic_fx_prices.add_fx_prices(currency_code, fx_prices, ignore_duplication=True)
+        arctic_fx_prices.add_fx_prices(
+            currency_code, fx_prices, ignore_duplication=True
+        )

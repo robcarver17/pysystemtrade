@@ -1,14 +1,17 @@
 """
 Do fun things with objects and classes
 """
-from collections import  namedtuple
+from collections import namedtuple
 import importlib
 
-class _named_object():
+
+class _named_object:
     def __init__(self, name):
-        self._name= str(name)
+        self._name = str(name)
+
     def __repr__(self):
         return self._name
+
 
 missing_contract = _named_object("missing contract")
 missing_instrument = _named_object("missing instrument")
@@ -22,18 +25,22 @@ zero_order = _named_object("zero order")
 
 fill_exceeds_trade = _named_object("fill too big for trade")
 
-order_is_in_status_finished = _named_object("order status is modification finished")
+order_is_in_status_finished = _named_object(
+    "order status is modification finished")
 order_is_in_status_modified = _named_object("order status is being modified")
-order_is_in_status_not_modified = _named_object("order status is not currently modified")
-order_is_in_status_reject_modification= _named_object("order status is modification rejected")
-
+order_is_in_status_not_modified = _named_object(
+    "order status is not currently modified"
+)
+order_is_in_status_reject_modification = _named_object(
+    "order status is modification rejected"
+)
 
 no_order_id = _named_object("no order ID")
 no_children = _named_object("no_children")
 no_parent = _named_object("no parent")
 
 rolling_cant_trade = _named_object("rolling can't trade")
-ROLL_PSEUDO_STRATEGY="_ROLL_PSEUDO_STRATEGY"
+ROLL_PSEUDO_STRATEGY = "_ROLL_PSEUDO_STRATEGY"
 
 data_error = _named_object("data error")
 not_updated = _named_object("not updated")
@@ -45,7 +52,6 @@ process_stop = _named_object("process stop")
 process_no_run = _named_object("process no run")
 process_running = _named_object("process running")
 
-
 arg_not_supplied = _named_object("arg not supplied")
 user_exit = _named_object("exit")
 
@@ -53,21 +59,19 @@ table = namedtuple("table", "Heading Body")
 header = namedtuple("header", "Heading")
 body_text = namedtuple("bodytext", "Text")
 
+
 def get_methods(an_object):
     dir_list = dir(an_object)
 
     # remove "_"
 
     dir_list = [
-        method_name for method_name in dir_list if method_name[0] != "_"
-    ]
+        method_name for method_name in dir_list if method_name[0] != "_"]
 
     # remove special
     special_list = ["log", "name", "parent", "description"]
     dir_list = [
-        method_name for method_name in dir_list
-        if method_name not in special_list
-    ]
+        method_name for method_name in dir_list if method_name not in special_list]
 
     return dir_list
 
@@ -98,19 +102,21 @@ def resolve_function(func_or_func_name):
 
     if not isinstance(func_or_func_name, str):
         raise Exception(
-            "Called resolve_function with non string or callable object %s" %
-            str(func_or_func_name))
+            "Called resolve_function with non string or callable object %s"
+            % str(func_or_func_name)
+        )
 
     if "." in func_or_func_name:
         # it's another module, have to get it
-        mod_name, func_name = func_or_func_name.rsplit('.', 1)
+        mod_name, func_name = func_or_func_name.rsplit(".", 1)
         mod = importlib.import_module(mod_name)
         func = getattr(mod, func_name, None)
 
     else:
         raise Exception(
-            "Need full module file name string: %s isn't good enough" %
-            func_or_func_name)
+            "Need full module file name string: %s isn't good enough"
+            % func_or_func_name
+        )
 
     return func
 
@@ -209,8 +215,7 @@ def hasallattr(some_object, attrlist=[]):
     return all([hasattr(some_object, attrname) for attrname in attrlist])
 
 
-
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     import doctest
+
     doctest.testmod()

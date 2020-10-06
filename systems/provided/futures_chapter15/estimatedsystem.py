@@ -1,10 +1,10 @@
-'''
+"""
 This is a variation of the chapter 15 system which estimates rather than uses
 fixed parameters
 
 A system consists of a system, plus a config
 
-'''
+"""
 from sysdata.csv.csv_sim_futures_data import csvFuturesSimData
 from sysdata.configdata import Config
 
@@ -18,10 +18,11 @@ from systems.portfolio import Portfolios
 from systems.account import Account
 
 
-def futures_system(data=None,
-                   config=None,
-                   trading_rules=None,
-                   log_level="terse"):
+def futures_system(
+        data=None,
+        config=None,
+        trading_rules=None,
+        log_level="terse"):
     """
 
     :param data: data object (defaults to reading from csv files)
@@ -47,16 +48,26 @@ def futures_system(data=None,
 
     rules = Rules(trading_rules)
 
-    system = System([
-        Account(), Portfolios(), PositionSizing(), FuturesRawData(),
-        ForecastCombine(), ForecastScaleCap(), rules
-    ], data, config)
+    system = System(
+        [
+            Account(),
+            Portfolios(),
+            PositionSizing(),
+            FuturesRawData(),
+            ForecastCombine(),
+            ForecastScaleCap(),
+            rules,
+        ],
+        data,
+        config,
+    )
 
     system.set_logging_level(log_level)
 
     return system
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import doctest
+
     doctest.testmod()

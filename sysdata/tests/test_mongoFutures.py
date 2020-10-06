@@ -8,9 +8,10 @@ from sysdata.futures.instruments import futuresInstrument
 from sysdata.futures.contracts import futuresContract
 from sysdata.futures.contract_dates_and_expiries import contractDate
 
+
 class MyTestCase(unittest.TestCase):
     def test_futures_instruments(self):
-        data = mongoFuturesInstrumentData(database_name='test')
+        data = mongoFuturesInstrumentData(database_name="test")
 
         # test db so okay to do this
         data._mongo.db.drop_collection(data._mongo.collection_name)
@@ -22,21 +23,21 @@ class MyTestCase(unittest.TestCase):
 
         self.assertTrue(instrument_object.empty())
 
-        instrument_object = futuresInstrument('EDOLLAR', some_data="test")
+        instrument_object = futuresInstrument("EDOLLAR", some_data="test")
         data.add_instrument_data(instrument_object)
 
-        self.assertEqual(data.get_list_of_instruments(), ['EDOLLAR'])
+        self.assertEqual(data.get_list_of_instruments(), ["EDOLLAR"])
 
-        found_object = data.get_instrument_data('EDOLLAR')
-        self.assertEqual(found_object.instrument_code, 'EDOLLAR')
+        found_object = data.get_instrument_data("EDOLLAR")
+        self.assertEqual(found_object.instrument_code, "EDOLLAR")
 
-        found_object = data['EDOLLAR']
-        self.assertEqual(found_object.instrument_code, 'EDOLLAR')
+        found_object = data["EDOLLAR"]
+        self.assertEqual(found_object.instrument_code, "EDOLLAR")
 
-        self.assertEqual(found_object.meta_data['some_data'], "test")
+        self.assertEqual(found_object.meta_data["some_data"], "test")
 
         codes = data.get_list_of_instruments()
-        self.assertEqual(codes, ['EDOLLAR'])
+        self.assertEqual(codes, ["EDOLLAR"])
 
         data.delete_instrument_data("EDOLLAR", are_you_sure=True)
 
@@ -47,7 +48,7 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(codes, [])
 
     def test_roll_parameters(self):
-        data = mongoRollParametersData(database_name='test')
+        data = mongoRollParametersData(database_name="test")
 
         # test db so okay to do this
         data._mongo.db.drop_collection(data._mongo.collection_name)
@@ -59,19 +60,21 @@ class MyTestCase(unittest.TestCase):
 
         self.assertTrue(roll_object.empty())
 
-        roll_object = rollParameters(hold_rollcycle ="HMUZ", priced_rollcycle="HM")
+        roll_object = rollParameters(
+            hold_rollcycle="HMUZ",
+            priced_rollcycle="HM")
         data.add_roll_parameters(roll_object, "EDOLLAR")
 
-        self.assertEqual(data.get_list_of_instruments(), ['EDOLLAR'])
+        self.assertEqual(data.get_list_of_instruments(), ["EDOLLAR"])
 
         found_object = data.get_roll_parameters("EDOLLAR")
         self.assertEqual(found_object.hold_rollcycle.cyclestring, "HMUZ")
 
-        found_object = data['EDOLLAR']
+        found_object = data["EDOLLAR"]
         self.assertEqual(found_object.priced_rollcycle.cyclestring, "HM")
 
         codes = data.get_list_of_instruments()
-        self.assertEqual(codes, ['EDOLLAR'])
+        self.assertEqual(codes, ["EDOLLAR"])
 
         data.delete_roll_parameters("EDOLLAR", are_you_sure=True)
 
@@ -80,7 +83,6 @@ class MyTestCase(unittest.TestCase):
         self.assertTrue(found_object.empty())
         codes = data.get_list_of_instruments()
         self.assertEqual(codes, [])
-
 
     """
     def test_futures_contracts(self):

@@ -7,18 +7,19 @@ from syslogdiag.log import logtoscreen
 from syscore.objects import success
 from sysbrokers.baseServer import brokerServer
 
-## List of IB error codes that are blacklisted eg serious and require action
+# List of IB error codes that are blacklisted eg serious and require action
 IB_IS_ERROR = [200]
 
-## For each IB error code, map to one of my error types
-## Useful for deciding which process should handle it
-IB_ERROR_TYPES = {200:'invalid_contract'}
+# For each IB error code, map to one of my error types
+# Useful for deciding which process should handle it
+IB_ERROR_TYPES = {200: "invalid_contract"}
+
 
 def from_ibcontract_to_tuple(ibcontract):
     return (ibcontract.symbol, ibcontract.lastTradeDateOrContractMonth)
 
-class ibServer(brokerServer):
 
+class ibServer(brokerServer):
     def __init__(self, log=logtoscreen("ibServer")):
         self._contract_register = dict()
         super().__init__(log=log)
@@ -68,21 +69,25 @@ class ibServer(brokerServer):
         if contract is None:
             contract_str = ""
         else:
-            contract_str = " (%s/%s)" % (contract.symbol, contract.lastTradeDateOrContractMonth)
+            contract_str = " (%s/%s)" % (
+                contract.symbol,
+                contract.lastTradeDateOrContractMonth,
+            )
 
-        msg = "Reqid %d: %d %s %s" % (reqid, error_code, error_string, contract_str)
+        msg = "Reqid %d: %d %s %s" % (
+            reqid, error_code, error_string, contract_str)
 
         # Associate a contract with tags eg my instrument and contract id
         log_tags = self.get_contract_log_tags_from_register(contract)
 
         iserror = error_code in IB_IS_ERROR
         if iserror:
-            ## Serious requires some action
+            # Serious requires some action
             myerror_type = IB_ERROR_TYPES.get(error_code, "generic")
             self.broker_error(msg, myerror_type, log_tags)
 
         else:
-            ## just a warning / general message
+            # just a warning / general message
             self.broker_message(msg, log_tags)
 
         return success
