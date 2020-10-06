@@ -315,7 +315,7 @@ def create_vol_norm_slippage_df(raw_slippage, data):
 
 def vol_slippage_row(slippage_row, data):
     ## rewrite
-    vol_delay, vol_bid_ask, vol_execution, vol_versus_limit, vol_versus_parent_limit, last_annual_vol, total_trading_vol = vol_calculations_for_slippage_row(slippage_row, data)
+    vol_delay, vol_bid_ask, vol_execution, vol_versus_limit, vol_versus_parent_limit,  total_trading_vol, last_annual_vol= vol_calculations_for_slippage_row(slippage_row, data)
     new_slippage_row = copy(slippage_row)
     new_slippage_row = new_slippage_row[['instrument_code', 'strategy_name',
                                    "trade",
@@ -327,20 +327,20 @@ def vol_slippage_row(slippage_row, data):
     return new_slippage_row
 
 def vol_calculations_for_slippage_row(slippage_row, data):
-    ## What's a tick worth in base currency?
-    diag_prices = diagPrices(data)
-    rolling_daily_vol = diag_prices.get_quick_std_of_adjusted_prices(slippage_row.instrument_code)
-    if len(rolling_daily_vol)==0:
-        last_daily_vol = np.nan
-    else:
-        last_daily_vol = rolling_daily_vol.ffill().values[-1]
-    last_annual_vol = last_daily_vol*16
+
+    last_annual_vol = get_last_annual_vol_for_slippage_row(slippage_row, data)
 
     input_items = ['delay', 'bid_ask', 'execution', 'versus_limit', 'versus_parent_limit', 'total_trading']
     output = [10000*slippage_row[input_name]/last_annual_vol for input_name in input_items]
 
     return tuple(output+[last_annual_vol])
 
+def get_last_annual_vol_for_slippage_row(slippage_row, data):
+    diag_prices = diagPrices(data)
+    instrument_code = slippage_row.instrument_code
+    last_annual_vol = diag_prices.get_quick_current_annualised_std_of_adjusted_prices(instrument_code)
+
+    return last_annual_vol
 
 
 def get_stats_for_slippage_groups(df_to_process, item_list):

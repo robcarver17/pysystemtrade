@@ -1,6 +1,9 @@
+
 from sysdata.futures.futures_per_contract_prices import dictFuturesContractPrices
 from sysdata.private_config import get_private_then_default_key_value
+from syscore.dateutils import ROOT_BDAYS_INYEAR
 from sysproduction.data.get_data import dataBlob
+
 from syscore.objects import missing_contract, arg_not_supplied, missing_data
 import numpy as np
 
@@ -85,7 +88,18 @@ class diagPrices(object):
         return self.data.db_futures_contract_price. \
             get_prices_for_instrument_code_and_contract_date(instrument_code, contract_date)
 
-    def get_quick_std_of_adjusted_prices(self, instrument_code):
+    def get_quick_current_annualised_std_of_adjusted_prices(self, instrument_code):
+        rolling_daily_vol = self.get_quick_std_daily_ts_of_adjusted_prices(instrument_code)
+        if len(rolling_daily_vol) == 0:
+            last_daily_vol = np.nan
+        else:
+            last_daily_vol = rolling_daily_vol.ffill().values[-1]
+
+        last_annual_vol = last_daily_vol * ROOT_BDAYS_INYEAR
+
+        return last_annual_vol
+
+    def get_quick_std_daily_ts_of_adjusted_prices(self, instrument_code):
         price_series = self.get_adjusted_prices(instrument_code)
         if len(price_series)==0:
             return price_series
