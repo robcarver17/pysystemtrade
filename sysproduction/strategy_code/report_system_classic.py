@@ -5,6 +5,7 @@ import datetime
 from collections import  namedtuple
 
 from syscore.objects import header, table, body_text
+from syscore.dateutils import ROOT_BDAYS_INYEAR
 from sysproduction.diagnostic.backtest_state import from_marker_to_datetime
 from sysproduction.data.positions import diagPositions
 
@@ -57,6 +58,7 @@ def report_system_classic(data, data_backtest):
                                                  method_list = [
                                                      daily_returns_vol, daily_denom_price, rawdata_daily_perc_vol]
                                                 )
+    vol_calc_df['annual % vol'] = vol_calc_df['Daily % vol']*ROOT_BDAYS_INYEAR
     vol_calc_df_rounded = vol_calc_df.round(4)
     vol_calc_table = table("Vol calculation", vol_calc_df_rounded)
     format_output.append(vol_calc_table)
@@ -355,3 +357,4 @@ def get_current_position_for_instrument_code(data_backtest, data, instrument_cod
     current_position = diag_positions.get_position_for_strategy_and_instrument(data_backtest.strategy_name, instrument_code)
 
     return current_position
+
