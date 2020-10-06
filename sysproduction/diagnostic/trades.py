@@ -346,11 +346,16 @@ def vol_calculations_for_slippage_row(slippage_row, data):
 def get_stats_for_slippage_groups(df_to_process, item_list):
     results = {}
     for item_name in item_list:
+
         sum_data=df_to_process.groupby(['strategy_name', 'instrument_code']).agg({item_name:'sum'})
         count_data=df_to_process.groupby(['strategy_name', 'instrument_code']).agg({item_name:'count'})
         avg_data = sum_data / count_data
 
-        std = df_to_process.groupby(['strategy_name', 'instrument_code']).agg({item_name:'std'})
+        try:
+            std = df_to_process.groupby(['strategy_name', 'instrument_code']).agg({item_name:'std'})
+        except pd.core.base.DataError:
+            ## not enough items to calculate standard deviation
+            std = np.nan
 
         lower_range = avg_data + (-2*std)
         upper_range = avg_data + (2*std)
