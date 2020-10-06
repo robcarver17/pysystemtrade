@@ -4,6 +4,15 @@ from sysproduction.data.capital import dataCapital
 from sysproduction.data.currency_data import currencyData
 from sysproduction.data.instruments import diagInstruments
 
+def get_portfolio_risk(data, strategy_name):
+    pass
+
+def get_correlation_matrix(data, strategy_name):
+    pass
+
+def get_stdev_list(data, strategy_name):
+    pass
+
 
 def get_positions_as_perc_of_capital( data):
     list_of_instruments = data_backtest.system.get_instrument_list()
