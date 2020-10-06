@@ -54,21 +54,24 @@ class RandomData(simData):
         """
 
         if instrument_code in self.get_instrument_list():
-            ## must have been cached
+            # must have been cached
             return self._price_cache_random_data[instrument_code]
 
-        error_msg = "No price found for %s you need to run .generate_random_data(instrument_code=%s....)" % (
-            instrument_code, instrument_code)
+        error_msg = (
+            "No price found for %s you need to run .generate_random_data(instrument_code=%s....)" %
+            (instrument_code, instrument_code))
         self.log.critical(error_msg)
 
-    def generate_random_data(self,
-                             instrument_code,
-                             Nlength,
-                             Tlength,
-                             Xamplitude,
-                             Volscale,
-                             sines=False,
-                             date_start=pd.datetime(1980, 1, 1)):
+    def generate_random_data(
+        self,
+        instrument_code,
+        Nlength,
+        Tlength,
+        Xamplitude,
+        Volscale,
+        sines=False,
+        date_start=pd.datetime(1980, 1, 1),
+    ):
         """
         Generates a trend of length N amplitude X, plus gaussian noise mean zero std. dev (vol scale * amplitude)
         With an arbitrary datetime index
@@ -142,9 +145,11 @@ def generate_siney_trends(Nlength, Tlength, Xamplitude):
     increment = cycles_as_pi / Nlength
 
     alltrends = [
-        np.sin(x) * halfAmplitude
-        for x in np.arange(0.0, cycles_as_pi, increment)
-    ]
+        np.sin(x) *
+        halfAmplitude for x in np.arange(
+            0.0,
+            cycles_as_pi,
+            increment)]
     alltrends = alltrends[:Nlength]
 
     return alltrends
@@ -173,9 +178,14 @@ def generate_trends(Nlength, Tlength, Xamplitude):
     cycles = int(np.ceil(Nlength / Tlength))
 
     trendup = list(
-        np.arange(start=-halfAmplitude, stop=halfAmplitude, step=trend_step))
+        np.arange(
+            start=-
+            halfAmplitude,
+            stop=halfAmplitude,
+            step=trend_step))
     trenddown = list(
-        np.arange(start=halfAmplitude, stop=-halfAmplitude, step=-trend_step))
+        np.arange(start=halfAmplitude, stop=-halfAmplitude, step=-trend_step)
+    )
     alltrends = [trendup + trenddown] * int(np.ceil(cycles))
     alltrends = sum(alltrends, [])
     alltrends = alltrends[:Nlength]
@@ -200,12 +210,14 @@ def generate_noise(Nlength, stdev):
     return [gauss(0.0, stdev) for Unused in range(Nlength)]
 
 
-def generate_trendy_pdseries(Nlength,
-                             Tlength,
-                             Xamplitude,
-                             Volscale,
-                             sines=False,
-                             date_start=pd.datetime(1980, 1, 1)):
+def generate_trendy_pdseries(
+    Nlength,
+    Tlength,
+    Xamplitude,
+    Volscale,
+    sines=False,
+    date_start=pd.datetime(1980, 1, 1),
+):
     """
     Generates a trend of length N amplitude X, plus gaussian noise mean zero std. dev (vol scale * amplitude)
     With an arbitrary datetime index
@@ -262,7 +274,7 @@ def generate_trendy_pdseries(Nlength,
     stdev = Volscale * Xamplitude
     noise_returns_as_list = generate_noise(Nlength, stdev)
 
-    ## Can use a different process here if desired
+    # Can use a different process here if desired
     if sines:
         process_as_list = generate_siney_trends(Nlength, Tlength, Xamplitude)
     else:
@@ -271,7 +283,8 @@ def generate_trendy_pdseries(Nlength,
     pd_process = create_arbitrary_pdseries(
         process_as_list, date_start=date_start)
     noise_returns = create_arbitrary_pdseries(
-        noise_returns_as_list, date_start=date_start)
+        noise_returns_as_list, date_start=date_start
+    )
 
     process_returns = pd_process.diff()
     combined_returns = noise_returns + process_returns
@@ -284,6 +297,7 @@ def generate_trendy_pdseries(Nlength,
     return pdseries
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import doctest
+
     doctest.testmod()

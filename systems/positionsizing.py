@@ -97,7 +97,8 @@ class PositionSizing(SystemStage):
         system = self.parent
         if hasattr(system, "rawdata"):
             daily_perc_vol = system.rawdata.get_daily_percentage_volatility(
-                instrument_code)
+                instrument_code
+            )
         else:
             price = system.data.daily_prices(instrument_code)
             return_vol = robust_vol_calc(price.diff())
@@ -148,13 +149,15 @@ class PositionSizing(SystemStage):
 
         if hasattr(self.parent, "rawdata"):
             underlying_price = self.parent.rawdata.daily_denominator_price(
-                instrument_code)
+                instrument_code
+            )
 
         else:
             underlying_price = self.parent.data.daily_prices(instrument_code)
 
         value_of_price_move = self.parent.data.get_value_of_block_price_move(
-            instrument_code)
+            instrument_code
+        )
 
         return (underlying_price, value_of_price_move)
 
@@ -199,7 +202,9 @@ class PositionSizing(SystemStage):
 
         base_currency = system.config.base_currency
 
-        annual_cash_vol_target = notional_trading_capital * percentage_vol_target / 100.0
+        annual_cash_vol_target = (
+            notional_trading_capital * percentage_vol_target / 100.0
+        )
         daily_cash_vol_target = annual_cash_vol_target / ROOT_BDAYS_INYEAR
 
         # FIXME this thing ain't too pretty
@@ -208,7 +213,8 @@ class PositionSizing(SystemStage):
             percentage_vol_target=percentage_vol_target,
             notional_trading_capital=notional_trading_capital,
             annual_cash_vol_target=annual_cash_vol_target,
-            daily_cash_vol_target=daily_cash_vol_target)
+            daily_cash_vol_target=daily_cash_vol_target,
+        )
 
         return vol_target_dict
 
@@ -236,7 +242,7 @@ class PositionSizing(SystemStage):
 
         """
 
-        base_currency = self.get_daily_cash_vol_target()['base_currency']
+        base_currency = self.get_daily_cash_vol_target()["base_currency"]
         fx_rate = self.parent.data.get_fx_for_instrument(
             instrument_code, base_currency)
 
@@ -270,8 +276,8 @@ class PositionSizing(SystemStage):
 
         """
 
-        (underlying_price, value_of_price_move
-         ) = self.get_instrument_sizing_data(instrument_code)
+        (underlying_price, value_of_price_move) = self.get_instrument_sizing_data(
+            instrument_code)
         block_value = 0.01 * underlying_price.ffill() * value_of_price_move
         block_value.columns = ["bvalue"]
 
@@ -307,7 +313,8 @@ class PositionSizing(SystemStage):
 
         self.log.msg(
             "Calculating instrument currency vol for %s" % instrument_code,
-            instrument_code=instrument_code)
+            instrument_code=instrument_code,
+        )
 
         block_value = self.get_block_value(instrument_code)
         daily_perc_vol = self.get_price_volatility(instrument_code)
@@ -349,7 +356,8 @@ class PositionSizing(SystemStage):
 
         self.log.msg(
             "Calculating instrument value vol for %s" % instrument_code,
-            instrument_code=instrument_code)
+            instrument_code=instrument_code,
+        )
 
         instr_ccy_vol = self.get_instrument_currency_vol(instrument_code)
         fx_rate = self.get_fx_rate(instrument_code)
@@ -390,11 +398,12 @@ class PositionSizing(SystemStage):
 
         self.log.msg(
             "Calculating volatility scalar for %s" % instrument_code,
-            instrument_code=instrument_code)
+            instrument_code=instrument_code,
+        )
 
         instr_value_vol = self.get_instrument_value_vol(instrument_code)
         cash_vol_target = self.get_daily_cash_vol_target()[
-            'daily_cash_vol_target']
+            "daily_cash_vol_target"]
 
         vol_scalar = cash_vol_target / instr_value_vol
 
@@ -431,11 +440,13 @@ class PositionSizing(SystemStage):
         """
         self.log.msg(
             "Calculating subsystem position for %s" % instrument_code,
-            instrument_code=instrument_code)
+            instrument_code=instrument_code,
+        )
         """
         We don't allow this to be changed in config
         """
-        avg_abs_forecast = get_default_config_key_value('average_absolute_forecast')
+        avg_abs_forecast = get_default_config_key_value(
+            "average_absolute_forecast")
 
         vol_scalar = self.get_volatility_scalar(instrument_code)
         forecast = self.get_combined_forecast(instrument_code)
@@ -447,6 +458,7 @@ class PositionSizing(SystemStage):
         return subsystem_position
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import doctest
+
     doctest.testmod()

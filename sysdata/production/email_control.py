@@ -1,4 +1,3 @@
-
 class emailControlData(object):
     def get_time_last_email_sent_with_this_subject(self, subject):
         raise NotImplementedError

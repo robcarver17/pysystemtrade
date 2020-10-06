@@ -1,8 +1,8 @@
-'''
+"""
 Created on 14 Dec 2015
 
 @author: rob
-'''
+"""
 import unittest
 from systems.stage import SystemStage
 from systems.basesystem import System, ALL_KEYNAME
@@ -24,8 +24,8 @@ class Test(unittest.TestCase):
         instrument_list = system.get_instrument_list()
         self.assertEqual(instrument_list, ["another_code", "code"])
 
-        self.assertEqual(len(system.cache),
-                         1)  # get instrument list lives in cache
+        # get instrument list lives in cache
+        self.assertEqual(len(system.cache), 1)
         self.assertEqual(system, system.test.parent)
 
         system.set_logging_level("on")

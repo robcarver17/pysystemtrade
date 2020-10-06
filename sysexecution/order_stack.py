@@ -1,5 +1,16 @@
 from copy import copy
-from syscore.objects import missing_order, success, failure, locked_order, duplicate_order, no_order_id, no_children, no_parent, order_is_in_status_finished, zero_order
+from syscore.objects import (
+    missing_order,
+    success,
+    failure,
+    locked_order,
+    duplicate_order,
+    no_order_id,
+    no_children,
+    no_parent,
+    order_is_in_status_finished,
+    zero_order,
+)
 
 from syslogdiag.log import logtoscreen
 
@@ -30,14 +41,17 @@ class orderStackData(object):
 
     """
 
-    def __init__(self, log = logtoscreen("order-stack")):
+    def __init__(self, log=logtoscreen("order-stack")):
         self.log = log
         self._stack = dict()
 
     def __repr__(self):
         return "Order stack: %s" % str(self._stack)
 
-    def put_list_of_orders_on_stack(self, list_of_orders, unlock_when_finished=True):
+    def put_list_of_orders_on_stack(
+            self,
+            list_of_orders,
+            unlock_when_finished=True):
         """
         Put a list of new orders on the stack. We lock these before placing on.
 
@@ -51,7 +65,7 @@ class orderStackData(object):
         :param list_of_orders:
         :return: list of order_ids or failure
         """
-        if len(list_of_orders)==0:
+        if len(list_of_orders) == 0:
             return []
 
         list_of_order_ids = []
@@ -60,9 +74,10 @@ class orderStackData(object):
             log = order.log_with_attributes(self.log)
             order.lock_order()
             order_id = self.put_order_on_stack(order)
-            if type(order_id) is not int:
-                log.warn("Failed to put contract order %s on stack error %s, rolling back entire transaction" %
-                         (str(order), str(order_id)))
+            if not isinstance(order_id, int):
+                log.warn(
+                    "Failed to put contract order %s on stack error %s, rolling back entire transaction" %
+                    (str(order), str(order_id)))
                 status = failure
                 break
 
@@ -85,17 +100,18 @@ class orderStackData(object):
         return list_of_order_ids
 
     def rollback_list_of_orders_on_stack(self, list_of_order_ids):
-        if len(list_of_order_ids)==0:
+        if len(list_of_order_ids) == 0:
             return success
 
-        self.log.warn("Rolling back addition of orders %s" % str(list_of_order_ids))
+        self.log.warn(
+            "Rolling back addition of orders %s" %
+            str(list_of_order_ids))
         for order_id in list_of_order_ids:
             self._unlock_order_on_stack(order_id)
             self.deactivate_order(order_id)
             self.remove_order_with_id_from_stack(order_id)
 
         return success
-
 
     def unlock_list_of_orders(self, list_of_order_ids):
         for order_id in list_of_order_ids:
@@ -110,20 +126,21 @@ class orderStackData(object):
         :param new_order: Order
         :return: order_id or failure condition: duplicate_order, failure
         """
-        order_id_or_error = self._put_order_on_stack_and_get_order_id(new_order)
+        order_id_or_error = self._put_order_on_stack_and_get_order_id(
+            new_order)
 
         return order_id_or_error
 
-
-
     # FIND AND LIST ORDERS
     def get_order_with_key_from_stack(self, order_key):
-        order_ids = self._get_list_of_orders_with_key_from_stack(order_key, exclude_inactive_orders = True)
-        if len(order_ids)==0:
+        order_ids = self._get_list_of_orders_with_key_from_stack(
+            order_key, exclude_inactive_orders=True
+        )
+        if len(order_ids) == 0:
             return missing_order
         try:
-            assert len(order_ids)==1
-        except:
+            assert len(order_ids) == 1
+        except BaseException:
             msg = "Multiple orders for key %s shouldn't happen (EXCEPTION)" % order_key
             self.log.critical(msg)
             raise Exception(msg)
@@ -147,28 +164,30 @@ class orderStackData(object):
             order_list.append(order)
         return order_list
 
-    def get_list_of_order_ids(self, exclude_inactive_orders = True):
+    def get_list_of_order_ids(self, exclude_inactive_orders=True):
         order_ids = self._get_list_of_all_order_ids()
 
         if exclude_inactive_orders:
-            all_orders = [self.get_order_with_id_from_stack(order_id) for order_id in order_ids]
-            order_ids = [order.order_id for order in all_orders if order.active]
-
+            all_orders = [self.get_order_with_id_from_stack(
+                order_id) for order_id in order_ids]
+            order_ids = [
+                order.order_id for order in all_orders if order.active]
 
         return order_ids
 
     def list_of_new_orders(self):
         order_ids = self.get_list_of_order_ids()
-        new_order_ids = [order_id for order_id in order_ids if self.is_new_order(order_id)]
+        new_order_ids = [
+            order_id for order_id in order_ids if self.is_new_order(order_id)
+        ]
 
         return new_order_ids
-
 
     def is_new_order(self, order_id):
         existing_order = self.get_order_with_id_from_stack(order_id)
         if existing_order is missing_order:
-            return  False
-        if not existing_order.children is no_children:
+            return False
+        if existing_order.children is not no_children:
             return False
         if not existing_order.active:
             return False
@@ -177,16 +196,27 @@ class orderStackData(object):
 
         return True
 
-    def list_of_completed_orders(self, allow_partial_completions = False, allow_zero_completions = False):
+    def list_of_completed_orders(
+        self, allow_partial_completions=False, allow_zero_completions=False
+    ):
         order_ids = self.get_list_of_order_ids()
-        completed_order_ids = [order_id for order_id in order_ids if self.is_completed(order_id,
-                                                                                       allow_partial_completions=allow_partial_completions,
-                                                                                       allow_zero_completions = allow_zero_completions)]
+        completed_order_ids = [
+            order_id
+            for order_id in order_ids
+            if self.is_completed(
+                order_id,
+                allow_partial_completions=allow_partial_completions,
+                allow_zero_completions=allow_zero_completions,
+            )
+        ]
 
         return completed_order_ids
 
-
-    def is_completed(self, order_id, allow_partial_completions = False, allow_zero_completions = False):
+    def is_completed(
+            self,
+            order_id,
+            allow_partial_completions=False,
+            allow_zero_completions=False):
         existing_order = self.get_order_with_id_from_stack(order_id)
         if existing_order is missing_order:
             return False
@@ -224,7 +254,6 @@ class orderStackData(object):
 
         return result
 
-
     def remove_children_from_order(self, order_id):
         existing_order = self.get_order_with_id_from_stack(order_id)
         if existing_order is missing_order:
@@ -237,32 +266,43 @@ class orderStackData(object):
 
         return result
 
-
     # FILLS
-    def change_fill_quantity_for_order(self, order_id, fill_qty, filled_price = None, fill_datetime=None):
+    def change_fill_quantity_for_order(
+        self, order_id, fill_qty, filled_price=None, fill_datetime=None
+    ):
         existing_order = self.get_order_with_id_from_stack(order_id)
         if existing_order is missing_order:
-            self.log.warn("Can't apply fill to non existent order %d" % order_id)
+            self.log.warn(
+                "Can't apply fill to non existent order %d" %
+                order_id)
             return missing_order
 
         if existing_order.fill == fill_qty:
-            ## nout to do here
+            # nout to do here
             return success
 
-        log = self.log.setup(strategy_name=existing_order.strategy_name,
-                             instrument_code=existing_order.instrument_code,
-                             instrument_order_id = order_id)
+        log = self.log.setup(
+            strategy_name=existing_order.strategy_name,
+            instrument_code=existing_order.instrument_code,
+            instrument_order_id=order_id,
+        )
 
         new_order = copy(existing_order)
         try:
-            new_order.fill_order(fill_qty, filled_price=filled_price, fill_datetime=fill_datetime)
+            new_order.fill_order(
+                fill_qty,
+                filled_price=filled_price,
+                fill_datetime=fill_datetime)
         except Exception as e:
             log.warn(str(e))
             return failure
 
         result = self._change_order_on_stack(order_id, new_order)
 
-        log.msg("Changed fill qty from %s to %s for order %s" % (str(existing_order.fill), str(fill_qty), str(existing_order)))
+        log.msg(
+            "Changed fill qty from %s to %s for order %s"
+            % (str(existing_order.fill), str(fill_qty), str(existing_order))
+        )
 
         return result
 
@@ -272,9 +312,11 @@ class orderStackData(object):
             self.log.warn("Can't deactivate non existent order" % order_id)
             return missing_order
 
-        log = self.log.setup(strategy_name=existing_order.strategy_name,
-                             instrument_code=existing_order.instrument_code,
-                             instrument_order_id = order_id)
+        log = self.log.setup(
+            strategy_name=existing_order.strategy_name,
+            instrument_code=existing_order.instrument_code,
+            instrument_order_id=order_id,
+        )
 
         if not existing_order.active:
             # already inactive
@@ -284,7 +326,9 @@ class orderStackData(object):
         new_order.zero_out()
 
         # This will fail if being modified or locked
-        result = self._change_order_on_stack(order_id, new_order, check_if_inactive=False)
+        result = self._change_order_on_stack(
+            order_id, new_order, check_if_inactive=False
+        )
 
         return result
 
@@ -296,9 +340,11 @@ class orderStackData(object):
             self.log.warn("Can't deactivate non existent order" % order_id)
             return missing_order
 
-        log = self.log.setup(strategy_name=existing_order.strategy_name,
-                             instrument_code=existing_order.instrument_code,
-                             instrument_order_id = order_id)
+        log = self.log.setup(
+            strategy_name=existing_order.strategy_name,
+            instrument_code=existing_order.instrument_code,
+            instrument_order_id=order_id,
+        )
 
         if not existing_order.active:
             # already inactive
@@ -308,10 +354,11 @@ class orderStackData(object):
         new_order.deactivate()
 
         # This will fail if being modified or locked
-        result = self._change_order_on_stack(order_id, new_order, check_if_inactive=False)
+        result = self._change_order_on_stack(
+            order_id, new_order, check_if_inactive=False
+        )
 
         return result
-
 
     # REMOVE DEACTIVATED ORDERS (SPRING CLEANING - SHOULD BE ARCHIVED)
 
@@ -324,41 +371,55 @@ class orderStackData(object):
 
     def get_list_of_inactive_order_ids(self):
         all_order_ids = self._get_list_of_all_order_ids()
-        all_orders = [self.get_order_with_id_from_stack(order_id) for order_id in all_order_ids]
-        order_ids = [order.order_id for order in all_orders if not order.active]
+        all_orders = [self.get_order_with_id_from_stack(
+            order_id) for order_id in all_order_ids]
+        order_ids = [
+            order.order_id for order in all_orders if not order.active]
 
         return order_ids
-
 
     def remove_order_with_id_from_stack(self, order_id):
         order_on_stack = self.get_order_with_id_from_stack(order_id)
         if order_on_stack is missing_order:
-            raise Exception("Can't remove non existent order %s from stack" % order_id)
+            raise Exception(
+                "Can't remove non existent order %s from stack" %
+                order_id)
         if order_on_stack.is_order_locked():
-            raise Exception("Can't remove locked order %s from stack" % order_on_stack)
+            raise Exception(
+                "Can't remove locked order %s from stack" %
+                order_on_stack)
         if order_on_stack.active:
-            raise Exception("Can't remove active order %s from stack" % order_on_stack)
+            raise Exception(
+                "Can't remove active order %s from stack" %
+                order_on_stack)
 
         self._remove_order_with_id_from_stack_no_checking(order_id)
 
         return success
 
-
     # CHANGING AN ORDER ON THE STACK
 
-    def _change_order_on_stack(self, order_id, new_order,
-                               check_if_inactive = True):
+    def _change_order_on_stack(
+            self,
+            order_id,
+            new_order,
+            check_if_inactive=True):
         # Make any kind of general change to an order, checking for locks
         # Doesn't check for other conditions, eg beingactive or not
 
         existing_order = self.get_order_with_id_from_stack(order_id)
         if existing_order is missing_order:
-            self.log.warn("Can't change non existent order %d" % order_id, instrument_order_id = order_id)
+            self.log.warn(
+                "Can't change non existent order %d" % order_id,
+                instrument_order_id=order_id,
+            )
             return missing_order
 
-        log = self.log.setup(strategy_name=existing_order.strategy_name,
-                             instrument_code=existing_order.instrument_code,
-                             instrument_order_id = order_id)
+        log = self.log.setup(
+            strategy_name=existing_order.strategy_name,
+            instrument_code=existing_order.instrument_code,
+            instrument_order_id=order_id,
+        )
 
         lock_status = existing_order.is_order_locked()
         if lock_status is True:
@@ -368,12 +429,13 @@ class orderStackData(object):
 
         if check_if_inactive:
             if not existing_order.active:
-                log.warn("Can't change order %s as inactive" % str(existing_order))
+                log.warn(
+                    "Can't change order %s as inactive" %
+                    str(existing_order))
 
         result = self._change_order_on_stack_no_checking(order_id, new_order)
 
         return result
-
 
     def _unlock_order_on_stack(self, order_id):
         order = self.get_order_with_id_from_stack(order_id)
@@ -401,24 +463,25 @@ class orderStackData(object):
 
         return success
 
-
     def _put_order_on_stack_and_get_order_id(self, order):
-        # We only zero order trades if they are modifying an existing trade, otherwise pointless
+        # We only zero order trades if they are modifying an existing trade,
+        # otherwise pointless
 
         if order.order_id is no_order_id:
             pass
         else:
-            self.log.warn("Order %s already has order ID will be ignored" % str(order))
+            self.log.warn(
+                "Order %s already has order ID will be ignored" %
+                str(order))
         order_to_add = copy(order)
         order_id = self._get_next_order_id()
-        order_to_add.order_id= order_id
+        order_to_add.order_id = order_id
 
         result = self._put_order_on_stack_no_checking(order_to_add)
         if result is success:
             return order_id
         else:
             return result
-
 
     def _put_order_on_stack_no_checking(self, order):
         # probably will be overriden in data implementation
@@ -427,21 +490,21 @@ class orderStackData(object):
         self._stack[order_id] = order
         return success
 
-    ## ORDER ID
+    # ORDER ID
 
     def _get_next_order_id(self):
-        ## MUST override in data implementation
-        ## The maximum orderid should ideally live on in permanent storage
-        ## Otherwise we rely on this stack persisting while downstream stacks rely on mapping orderids
+        # MUST override in data implementation
+        # The maximum orderid should ideally live on in permanent storage
+        # Otherwise we rely on this stack persisting while downstream stacks
+        # rely on mapping orderids
 
         order_id_on_stack = self.get_list_of_order_ids()
-        if len(order_id_on_stack)==0:
+        if len(order_id_on_stack) == 0:
             return 1
 
         max_order_id_on_stack = max(order_id_on_stack)
 
-        return max_order_id_on_stack+1
-
+        return max_order_id_on_stack + 1
 
     # FINDING ORDERS AND LIST OF ORDERS
 
@@ -453,17 +516,24 @@ class orderStackData(object):
         :return: Existing order or missing_order or identical_order
         """
         order_key = order.key
-        existing_orders = self._get_list_of_orders_with_key_from_stack(order_key)
-        if len(existing_orders)==0:
+        existing_orders = self._get_list_of_orders_with_key_from_stack(
+            order_key)
+        if len(existing_orders) == 0:
             return missing_order
 
         return existing_orders
 
-    def _get_list_of_orders_with_key_from_stack(self, order_key,   exclude_inactive_orders = True):
+    def _get_list_of_orders_with_key_from_stack(
+        self, order_key, exclude_inactive_orders=True
+    ):
 
-        all_order_ids = self.get_list_of_order_ids(exclude_inactive_orders = exclude_inactive_orders)
-        all_orders = [self.get_order_with_id_from_stack(order_id) for order_id in all_order_ids]
-        order_ids = [order.order_id for order in all_orders if order.key == order_key]
+        all_order_ids = self.get_list_of_order_ids(
+            exclude_inactive_orders=exclude_inactive_orders
+        )
+        all_orders = [self.get_order_with_id_from_stack(
+            order_id) for order_id in all_order_ids]
+        order_ids = [
+            order.order_id for order in all_orders if order.key == order_key]
 
         return order_ids
 
@@ -480,9 +550,9 @@ class orderStackData(object):
         return success
 
     def _delete_entire_stack_without_checking(self):
-        order_id_list = self.get_list_of_order_ids(exclude_inactive_orders=False)
+        order_id_list = self.get_list_of_order_ids(
+            exclude_inactive_orders=False)
         for order_id in order_id_list:
             self._remove_order_with_id_from_stack_no_checking(order_id)
 
         return success
-

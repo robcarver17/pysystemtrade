@@ -7,9 +7,12 @@ import os
 
 import pandas as pd
 
-
 from sysdata.data import simData
-from sysdata.futures.futuresDataForSim import futuresAdjustedPriceData, futuresConfigDataForSim, futuresMultiplePriceData
+from sysdata.futures.futuresDataForSim import (
+    futuresAdjustedPriceData,
+    futuresConfigDataForSim,
+    futuresMultiplePriceData,
+)
 from sysdata.csv.csv_multiple_prices import csvFuturesMultiplePricesData
 from sysdata.csv.csv_adjusted_prices import csvFuturesAdjustedPricesData
 from sysdata.csv.csv_spot_fx import csvFxPricesData
@@ -43,11 +46,11 @@ class csvPaths(simData):
 
     def _resolve_path(self, path_attr_name, fallback_path=None):
 
-        ## a global 'datapath' overrides everything
+        # a global 'datapath' overrides everything
         if self._override_datapath is not None:
             return self._override_datapath
 
-        ## if a specific path is provided use that
+        # if a specific path is provided use that
         if path_attr_name in self._datapath_dict.keys():
             return self._datapath_dict[path_attr_name]
 
@@ -63,12 +66,12 @@ The directory they look in will be either be
 
 """
 
+
 class csvFuturesConfigDataForSim(csvPaths, futuresConfigDataForSim):
     """
     Get futures specific data from legacy csv files
 
     """
-
 
     def get_all_instrument_data(self):
         """
@@ -98,7 +101,7 @@ class csvFuturesConfigDataForSim(csvPaths, futuresConfigDataForSim):
 
         data_object = self._get_config_data_object()
 
-        all_instr_dataframe= data_object.get_all_instrument_data()
+        all_instr_dataframe = data_object.get_all_instrument_data()
 
         return all_instr_dataframe
 
@@ -111,7 +114,7 @@ class csvFuturesConfigDataForSim(csvPaths, futuresConfigDataForSim):
     def _get_config_data_object(self):
 
         pathname = self._resolve_path("config_data")
-        data_object = csvFuturesInstrumentData(datapath = pathname)
+        data_object = csvFuturesInstrumentData(datapath=pathname)
 
         return data_object
 
@@ -127,11 +130,10 @@ class csvFuturesConfigDataForSim(csvPaths, futuresConfigDataForSim):
         """
 
         csv_data_object = self._get_config_data_object()
-        instrument_object = csv_data_object.get_instrument_data(instrument_code)
+        instrument_object = csv_data_object.get_instrument_data(
+            instrument_code)
 
         return instrument_object
-
-
 
 
 class csvFuturesAdjustedPriceData(csvPaths, futuresAdjustedPriceData):
@@ -162,7 +164,8 @@ class csvFuturesAdjustedPriceData(csvPaths, futuresAdjustedPriceData):
 
         # Read from .csv
         self.log.msg(
-            "Loading csv data for %s" % instrument_code,
+            "Loading csv data for %s" %
+            instrument_code,
             instrument_code=instrument_code)
 
         adj_prices_data = self._get_adj_prices_data_object()
@@ -177,15 +180,15 @@ class csvFuturesAdjustedPriceData(csvPaths, futuresAdjustedPriceData):
         return instrument_list
 
     def _get_adj_prices_data_object(self):
-        pathname =self._resolve_path("adjusted_prices")
+        pathname = self._resolve_path("adjusted_prices")
 
         adj_prices_data = csvFuturesAdjustedPricesData(pathname)
         adj_prices_data.log = self.log
 
         return adj_prices_data
 
-class csvFuturesMultiplePriceData(csvPaths, futuresMultiplePriceData):
 
+class csvFuturesMultiplePriceData(csvPaths, futuresMultiplePriceData):
     def _get_all_price_data(self, instrument_code):
         """
         Returns a pd. dataframe with the 6 columns PRICE, CARRY, PRICE_CONTRACT, CARRY_CONTRACT, FORWARD, FORWARD_CONTRACT
@@ -213,11 +216,14 @@ class csvFuturesMultiplePriceData(csvPaths, futuresMultiplePriceData):
         """
 
         self.log.msg(
-            "Loading csv data for %s" % instrument_code,
+            "Loading csv data for %s" %
+            instrument_code,
             instrument_code=instrument_code)
 
         csv_multiple_prices_data = self._get_all_prices_data_object()
-        instr_all_price_data = csv_multiple_prices_data.get_multiple_prices(instrument_code)
+        instr_all_price_data = csv_multiple_prices_data.get_multiple_prices(
+            instrument_code
+        )
 
         return instr_all_price_data
 
@@ -225,18 +231,19 @@ class csvFuturesMultiplePriceData(csvPaths, futuresMultiplePriceData):
 
         pathname = self._resolve_path("multiple_price_data")
 
-        csv_multiple_prices_data = csvFuturesMultiplePricesData(datapath=pathname)
+        csv_multiple_prices_data = csvFuturesMultiplePricesData(
+            datapath=pathname)
         csv_multiple_prices_data.log = self.log
 
         return csv_multiple_prices_data
 
+
 class csvFXData(csvPaths, simData):
     """
-        Get fx data from legacy csv files
+    Get fx data from legacy csv files
 
 
     """
-
 
     def _get_fx_data(self, currency1, currency2):
         """
@@ -260,7 +267,7 @@ class csvFXData(csvPaths, simData):
         self.log.msg("Loading csv fx data", fx="%s%s" % (currency1, currency2))
 
         csv_fx_prices_data = self._get_fx_data_object()
-        code = currency1+currency2
+        code = currency1 + currency2
 
         fx_prices = csv_fx_prices_data.get_fx_prices(code)
 
@@ -275,6 +282,8 @@ class csvFXData(csvPaths, simData):
         csv_fx_prices_data.log = self.log
 
         return csv_fx_prices_data
+
+
 """
 This class ties everything together so we can just create a single object every time we need to access csv data for sim
 
@@ -283,23 +292,31 @@ You could modify this to mix and match csv and non csv data
 But you might need a custom __init__
 """
 
-class csvFuturesSimData(csvFXData, csvFuturesAdjustedPriceData, csvFuturesConfigDataForSim, csvFuturesMultiplePriceData):
+
+class csvFuturesSimData(
+    csvFXData,
+    csvFuturesAdjustedPriceData,
+    csvFuturesConfigDataForSim,
+    csvFuturesMultiplePriceData,
+):
     """
-        Get futures specific data from legacy csv files
+    Get futures specific data from legacy csv files
 
-        Extends the FuturesData class for a specific data source
+    Extends the FuturesData class for a specific data source
 
-        You can make this more interesting by replacing each of the objects above
+    You can make this more interesting by replacing each of the objects above
 
-        >>> data=csvFuturesSimData(datapath_dict=dict(config_data = "sysdata.tests.configtestdata", adjusted_prices = "sysdata.tests.adjtestdata", spot_fx_data = "sysdata.tests.fxtestdata", multiple_price_data = "sysdata.tests.multiplepricestestdata"))
-        >>> data
-        csvFuturesSimData for 6 instruments
+    >>> data=csvFuturesSimData(datapath_dict=dict(config_data = "sysdata.tests.configtestdata", adjusted_prices = "sysdata.tests.adjtestdata", spot_fx_data = "sysdata.tests.fxtestdata", multiple_price_data = "sysdata.tests.multiplepricestestdata"))
+    >>> data
+    csvFuturesSimData for 6 instruments
     """
 
     def __repr__(self):
-        return "csvFuturesSimData for %d instruments" % len(self.get_instrument_list())
+        return "csvFuturesSimData for %d instruments" % len(
+            self.get_instrument_list())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import doctest
+
     doctest.testmod()

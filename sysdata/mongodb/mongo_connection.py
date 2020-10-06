@@ -5,14 +5,13 @@ import numpy as np
 from syscore.genutils import get_safe_from_dict
 from sysdata.private_config import get_list_of_private_then_default_key_values
 
-LIST_OF_MONGO_PARAMS = ['db', 'host']
+LIST_OF_MONGO_PARAMS = ["db", "host"]
 
 # DO NOT CHANGE THIS VALUE!!!! IT WILL SCREW UP ARCTIC
 DEFAULT_MONGO_PORT = 27017
 
-MONGO_ID_STR = '_id_'
-MONGO_ID_KEY = '_id'
-
+MONGO_ID_STR = "_id_"
+MONGO_ID_KEY = "_id"
 
 
 def mongo_defaults(**kwargs):
@@ -25,12 +24,14 @@ def mongo_defaults(**kwargs):
 
     :return: mongo db, hostname, port
     """
-    param_names_with_prefix = ['mongo_'+arg_name for arg_name in LIST_OF_MONGO_PARAMS]
-    config_dict = get_list_of_private_then_default_key_values(param_names_with_prefix)
+    param_names_with_prefix = [
+        "mongo_" + arg_name for arg_name in LIST_OF_MONGO_PARAMS]
+    config_dict = get_list_of_private_then_default_key_values(
+        param_names_with_prefix)
 
     yaml_dict = {}
     for arg_name in LIST_OF_MONGO_PARAMS:
-        yaml_arg_name = 'mongo_'+arg_name
+        yaml_arg_name = "mongo_" + arg_name
 
         # Start with config (precedence: private config, then system config)
         arg_value = config_dict[yaml_arg_name]
@@ -41,8 +42,8 @@ def mongo_defaults(**kwargs):
         yaml_dict[arg_name] = arg_value
 
     # Get from dictionary
-    mongo_db = yaml_dict['db']
-    hostname = yaml_dict['host']
+    mongo_db = yaml_dict["db"]
+    hostname = yaml_dict["host"]
     port = DEFAULT_MONGO_PORT
 
     return mongo_db, hostname, port
@@ -55,7 +56,7 @@ class mongoDb(object):
     But requires adding a collection with mongoConnection before useful
     """
 
-    def __init__(self,  **kwargs):
+    def __init__(self, **kwargs):
 
         database_name, host, port = mongo_defaults(**kwargs)
 
@@ -66,13 +67,15 @@ class mongoDb(object):
         client = MongoClient(host=host, port=port)
         db = client[database_name]
 
-        self.client=client
-        self.db=db
+        self.client = client
+        self.db = db
 
     def __repr__(self):
-        return "Mongodb database: host %s, port %d, db name %s" % \
-               (self.host, self.port, self.database_name)
-
+        return "Mongodb database: host %s, port %d, db name %s" % (
+            self.host,
+            self.port,
+            self.database_name,
+        )
 
     def close(self):
         self.client.close()
@@ -83,7 +86,8 @@ class mongoConnection(object):
     All of our mongo connections use this class (for static data, not time series which goes via artic)
 
     """
-    def __init__(self,  collection_name, mongo_db = None):
+
+    def __init__(self, collection_name, mongo_db=None):
 
         if mongo_db is None:
             mongo_db = mongoDb()
@@ -109,21 +113,22 @@ class mongoConnection(object):
         self.client.close()
 
     def __repr__(self):
-        return "Mongodb connection: host %s, port %d, db name %s, collection %s" % \
-               (self.host, self.port, self.database_name, self.collection_name)
+        return "Mongodb connection: host %s, port %d, db name %s, collection %s" % (
+            self.host, self.port, self.database_name, self.collection_name, )
 
     def get_indexes(self):
 
         raw_index_information = copy(self.collection.index_information())
 
-        if len(raw_index_information)==0:
+        if len(raw_index_information) == 0:
             return []
 
-        ## '__id__' is always in index if there is data
+        # '__id__' is always in index if there is data
         raw_index_information.pop(MONGO_ID_STR)
 
-        ## mongo have buried this deep...
-        index_keys = [index_entry['key'][0][0] for index_entry in raw_index_information.values()]
+        # mongo have buried this deep...
+        index_keys = [index_entry["key"][0][0]
+                      for index_entry in raw_index_information.values()]
 
         return index_keys
 
@@ -137,17 +142,22 @@ class mongoConnection(object):
         if self.check_for_index(indexname):
             pass
         else:
-            self.collection.create_index([(indexname, order)],    unique = True)
+            self.collection.create_index([(indexname, order)], unique=True)
 
-    def create_multikey_index(self, indexname1, indexname2, order1=ASCENDING, order2=ASCENDING):
+    def create_multikey_index(
+        self, indexname1, indexname2, order1=ASCENDING, order2=ASCENDING
+    ):
 
-        joint_indexname = indexname1+"_"+indexname2
+        joint_indexname = indexname1 + "_" + indexname2
         if self.check_for_index(joint_indexname):
             pass
         else:
-            self.collection.create_index([(indexname1, order1), (indexname2, order2)],
-                                unique=True,
-                                name = joint_indexname)
+            self.collection.create_index(
+                [(indexname1, order1), (indexname2, order2)],
+                unique=True,
+                name=joint_indexname,
+            )
+
 
 def mongo_clean_ints(dict_to_clean):
     """
@@ -159,12 +169,13 @@ def mongo_clean_ints(dict_to_clean):
     new_dict = copy(dict_to_clean)
     for key_name in new_dict.keys():
         key_value = new_dict[key_name]
-        if (type(key_value) is int) or (type(key_value) is np.int64):
+        if (isinstance(key_value, int)) or (isinstance(key_value, np.int64)):
             key_value = float(key_value)
 
         new_dict[key_name] = key_value
 
     return new_dict
+
 
 def create_update_dict(mongo_record_dict):
     """
@@ -174,6 +185,7 @@ def create_update_dict(mongo_record_dict):
     :return: dict
     """
 
-    new_dict = [("$%s" % key, value) for key,value in mongo_record_dict.items()]
+    new_dict = [("$%s" % key, value)
+                for key, value in mongo_record_dict.items()]
 
     return new_dict

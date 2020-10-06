@@ -6,6 +6,7 @@ print(my_system.portfolio.get_notional_position("EDOLLAR").tail(5))
 
 from sysdata.csv.csv_sim_futures_data import csvFuturesSimData
 from sysdata.configdata import Config
+
 """
 Now loading config and data
 """
@@ -37,7 +38,7 @@ system.accounts.portfolio().curve().plot()
 system.cache.pickle("private.this_system_name.pck")
 show()
 
-del (system)  # just to make sure
+del system  # just to make sure
 system = futures_system(log_level="on")
 system.cache.unpickle("private.this_system_name.pck")
 # this will run much faster and reuse previous calculations

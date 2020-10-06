@@ -2,7 +2,7 @@ import matplotlib
 import matplotlib.pyplot as pyplot
 
 # Uncomment this line if working inside IDE
-#matplotlib.use("TkAgg")
+# matplotlib.use("TkAgg")
 
 import pandas as pd
 
@@ -10,9 +10,13 @@ from syscore.fileutils import file_in_home_dir
 from syscore.objects import arg_not_supplied, user_exit, missing_data
 from syscore.genutils import print_menu_of_values_and_get_response
 from sysproduction.data.get_data import dataBlob
-from sysproduction.diagnostic.backtest_state import create_system_with_saved_state, get_list_of_timestamps_for_strategy
+from sysproduction.diagnostic.backtest_state import (
+    create_system_with_saved_state,
+    get_list_of_timestamps_for_strategy,
+)
 from sysproduction.data.strategies import get_valid_strategy_name_from_user
 from sysproduction.functions import fill_args_and_run_func
+
 
 class dataBacktest(object):
     # store backtests
@@ -50,26 +54,25 @@ class dataBacktest(object):
         return system
 
     def load_most_recent_backtest(self, strategy_name):
-        list_of_timestamps = self.get_list_of_timestamps_for_strategy(strategy_name)
-        ## most recent last
-        list_of_timestamps.sort()
+        list_of_timestamps = sorted(
+            self.get_list_of_timestamps_for_strategy(strategy_name))
+        # most recent last
         timestamp_to_use = list_of_timestamps[-1]
 
         system = self.load_backtest(strategy_name, timestamp_to_use)
         return system
 
-
     def load_backtest(self, strategy_name, timestamp):
-        system = create_system_with_saved_state(self.data, strategy_name, timestamp)
+        system = create_system_with_saved_state(
+            self.data, strategy_name, timestamp)
         self._system = system
         self._timestamp = timestamp
         self._strategy_name = strategy_name
 
-        return  system
+        return system
 
     def create_system_with_saved_state(self, strategy_name, timestamp):
         create_system_with_saved_state(self.data, strategy_name, timestamp)
-
 
     def interactively_choose_timestamp_and_strategy(self):
         strategy_name = get_valid_strategy_name_from_user(data=self.data)
@@ -78,12 +81,13 @@ class dataBacktest(object):
         return strategy_name, timestamp
 
     def interactively_choose_timestamp(self, strategy_name):
-        list_of_timestamps = self.get_list_of_timestamps_for_strategy(strategy_name)
-        ## most recent last
-        list_of_timestamps.sort()
+        list_of_timestamps = sorted(
+            self.get_list_of_timestamps_for_strategy(strategy_name))
+        # most recent last
         print("Choose the backtest to load:\n")
-        timestamp = print_menu_of_values_and_get_response(list_of_timestamps,
-                                                          default_str=list_of_timestamps[-1])
+        timestamp = print_menu_of_values_and_get_response(
+            list_of_timestamps, default_str=list_of_timestamps[-1]
+        )
         return timestamp
 
     def get_list_of_timestamps_for_strategy(self, strategy_name):
@@ -95,13 +99,15 @@ class dataBacktest(object):
         print(system.config.as_dict())
 
     def eval_loop(self):
-        ## allows you to interrogate any object
+        # allows you to interrogate any object
         system = self.system
 
         doing_stuff = True
         while doing_stuff:
-            cmd = input("Type any python command (system object is 'system'), <return> to exit> ")
-            if cmd=="":
+            cmd = input(
+                "Type any python command (system object is 'system'), <return> to exit> "
+            )
+            if cmd == "":
                 doing_stuff = False
                 break
             try:
@@ -141,7 +147,6 @@ class dataBacktest(object):
 
         return None
 
-
     def interactively_get_data_and_plot_for_stage_and_method(self):
         data = self.interactively_get_data_for_stage_and_method()
         if data is user_exit or data is missing_data:
@@ -155,9 +160,9 @@ class dataBacktest(object):
         data = self.interactively_get_data_for_stage_and_method()
         if data is user_exit or data is missing_data:
             return data
-        pd.set_option('display.max_rows', 10000)
-        pd.set_option('display.max_columns', 50)
-        pd.set_option('display.width', 1000)
+        pd.set_option("display.max_rows", 10000)
+        pd.set_option("display.max_columns", 50)
+        pd.set_option("display.width", 1000)
         print(data)
 
         return None
@@ -171,7 +176,7 @@ class dataBacktest(object):
             data_as_pd = pd.DataFrame(data)
             data_as_pd.to_html(filename)
             print("Output to %s" % filename)
-        except:
+        except BaseException:
             print("Can't cast output %s to dataframe" % str(data))
 
         return None
@@ -190,8 +195,10 @@ class dataBacktest(object):
     def interactively_choose_stage(self):
         list_of_stages = self.get_list_of_stages()
         print("Which stage to acccess:\n")
-        stage_name = print_menu_of_values_and_get_response(list_of_stages, default_str="EXIT")
-        if stage_name=="EXIT":
+        stage_name = print_menu_of_values_and_get_response(
+            list_of_stages, default_str="EXIT"
+        )
+        if stage_name == "EXIT":
             return user_exit
 
         return stage_name
@@ -204,7 +211,10 @@ class dataBacktest(object):
         return method_name
 
     def print_information(self):
-        print("Instruments: %s\nRules: %s" % (self.get_instrument_list(), self.get_trading_rules()))
+        print(
+            "Instruments: %s\nRules: %s"
+            % (self.get_instrument_list(), self.get_trading_rules())
+        )
 
     def get_list_of_stages(self):
         return self.system.stage_names
@@ -239,4 +249,3 @@ class dataBacktest(object):
 
     def get_trading_rules(self):
         return self.system.rules.trading_rules().keys()
-

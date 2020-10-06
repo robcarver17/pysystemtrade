@@ -23,14 +23,21 @@ class dataCapital(object):
     @property
     def total_capital_calculator(self):
         # cache because could be slow getting calculation method from yaml
-        if getattr(self, '_total_capital_calculator', None) is None:
-            calc_method = get_private_then_default_key_value('production_capital_method')
-            self._total_capital_calculator = totalCapitalCalculationData(self.data.db_capital, calc_method=calc_method)
+        if getattr(self, "_total_capital_calculator", None) is None:
+            calc_method = get_private_then_default_key_value(
+                "production_capital_method"
+            )
+            self._total_capital_calculator = totalCapitalCalculationData(
+                self.data.db_capital, calc_method=calc_method
+            )
 
         return self._total_capital_calculator
 
-    def get_total_capital_with_new_broker_account_value(self, total_account_value_in_base_currency):
-        result = self.total_capital_calculator.get_total_capital_with_new_broker_account_value(total_account_value_in_base_currency)
+    def get_total_capital_with_new_broker_account_value(
+        self, total_account_value_in_base_currency
+    ):
+        result = self.total_capital_calculator.get_total_capital_with_new_broker_account_value(
+            total_account_value_in_base_currency)
         return result
 
     def get_series_of_total_capital(self):
@@ -53,33 +60,47 @@ class dataCapital(object):
 
         return all_capital_data.Broker
 
-
     def get_capital_pd_series_for_strategy(self, strategy_name):
-        capital_series = self.capital_data.get_capital_pd_series_for_strategy(strategy_name)
-        return  capital_series
+        capital_series = self.capital_data.get_capital_pd_series_for_strategy(
+            strategy_name
+        )
+        return capital_series
 
     def get_list_of_strategies_with_capital(self):
         strat_list = self.capital_data.get_list_of_strategies_with_capital()
         return strat_list
 
     def get_capital_for_strategy(self, strategy_name):
-        capital_value = self.capital_data.get_current_capital_for_strategy(strategy_name)
+        capital_value = self.capital_data.get_current_capital_for_strategy(
+            strategy_name
+        )
         if capital_value is missing_data:
-            self.data.log.error("Capital data is missing for %s" % strategy_name)
+            self.data.log.error(
+                "Capital data is missing for %s" %
+                strategy_name)
             return missing_data
 
         return capital_value
 
-    def update_capital_value_for_strategy(self, strategy_name, new_capital_value, date=arg_not_supplied):
-        self.capital_data.update_capital_value_for_strategy(strategy_name, new_capital_value, date=arg_not_supplied)
+    def update_capital_value_for_strategy(
+        self, strategy_name, new_capital_value, date=arg_not_supplied
+    ):
+        self.capital_data.update_capital_value_for_strategy(
+            strategy_name, new_capital_value, date=arg_not_supplied
+        )
 
     def get_ib_total_capital_value(self):
         currency_data = currencyData(self.data)
-        values_across_accounts = self.data.ib_conn.broker_get_account_value_across_currency_across_accounts()
+        values_across_accounts = (
+            self.data.ib_conn.broker_get_account_value_across_currency_across_accounts())
 
-        ## This assumes that each account only reports either in one currency or for each currency, i.e. no double counting
-        total_account_value_in_base_currency = currency_data.total_of_list_of_currency_values_in_base(
-            values_across_accounts)
+        # This assumes that each account only reports either in one currency or
+        # for each currency, i.e. no double counting
+        total_account_value_in_base_currency = (
+            currency_data.total_of_list_of_currency_values_in_base(
+                values_across_accounts
+            )
+        )
 
         return total_account_value_in_base_currency
 

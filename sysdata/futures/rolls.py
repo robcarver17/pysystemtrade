@@ -4,12 +4,21 @@ import datetime
 import pandas as pd
 from copy import copy
 
-from syscore.dateutils import contract_month_from_number, month_from_contract_letter, MONTH_LIST
-from sysdata.futures.contract_dates_and_expiries import contractDate, from_contract_numbers_to_contract_string, NO_DAY_PASSED, NO_EXPIRY_DATE_PASSED
+from syscore.dateutils import (
+    contract_month_from_number,
+    month_from_contract_letter,
+    MONTH_LIST,
+)
+from sysdata.futures.contract_dates_and_expiries import (
+    contractDate,
+    from_contract_numbers_to_contract_string,
+    NO_DAY_PASSED,
+    NO_EXPIRY_DATE_PASSED,
+)
 from sysdata.data import baseData
 
+EMPTY_ROLL_CYCLE_STRING = ""
 
-EMPTY_ROLL_CYCLE_STRING=""
 
 class rollCycle(object):
     """
@@ -20,11 +29,13 @@ class rollCycle(object):
 
     def __init__(self, cyclestring):
 
-        assert type(cyclestring) is str
+        assert isinstance(cyclestring, str)
 
-        self.cyclestring = ''.join(sorted(cyclestring))
-        self.cycle_as_list = [month_from_contract_letter(contract_letter)
-                              for contract_letter in self.cyclestring]
+        self.cyclestring = "".join(sorted(cyclestring))
+        self.cycle_as_list = [
+            month_from_contract_letter(contract_letter)
+            for contract_letter in self.cyclestring
+        ]
 
         if cyclestring == EMPTY_ROLL_CYCLE_STRING:
             self._isempty = True
@@ -55,7 +66,7 @@ class rollCycle(object):
 
         current_index = self.where_month(current_month)
         len_cycle = len(self.cyclestring)
-        new_index = current_index+offset
+        new_index = current_index + offset
         cycled_index = new_index % len_cycle
 
         return self.cyclestring[cycled_index]
@@ -91,7 +102,6 @@ class rollCycle(object):
 
         return self.cyclestring.index(current_month)
 
-
     def month_is_first(self, current_month):
         """
         Is this the first month in the expiry cycle?
@@ -123,7 +133,7 @@ class rollCycle(object):
 
         new_month_as_str = self.previous_month(month_str)
         if self.month_is_first(month_str):
-            year_value = year_value -1
+            year_value = year_value - 1
 
         return year_value, new_month_as_str
 
@@ -154,12 +164,15 @@ class rollCycle(object):
         relevant_month = reference_date.month
         roll_cycle_as_list = self.as_list()
 
-        closest_month_index = bisect_left(roll_cycle_as_list, relevant_month)-1
+        closest_month_index = bisect_left(
+            roll_cycle_as_list, relevant_month) - 1
 
-        if closest_month_index==-1:
+        if closest_month_index == -1:
             # We are to the left of, or equal to the first month, go back one
             first_month_in_year_as_str = self.cyclestring[0]
-            adjusted_year_int, adjusted_month_str = self.previous_year_month(relevant_year, first_month_in_year_as_str)
+            adjusted_year_int, adjusted_month_str = self.previous_year_month(
+                relevant_year, first_month_in_year_as_str
+            )
             adjusted_month_int = month_from_contract_letter(adjusted_month_str)
         else:
             adjusted_month_int = roll_cycle_as_list[closest_month_index]
@@ -182,19 +195,19 @@ class rollCycle(object):
 
         closest_month_index = bisect_right(roll_cycle_as_list, relevant_month)
 
-        if closest_month_index==len(roll_cycle_as_list):
-            ## fallen into the next year
+        if closest_month_index == len(roll_cycle_as_list):
+            # fallen into the next year
             # go forward one from the last month
             last_month_in_year_as_str = self.cyclestring[-1]
-            adjusted_year_int, adjusted_month_str = self.next_year_month( relevant_year, last_month_in_year_as_str)
+            adjusted_year_int, adjusted_month_str = self.next_year_month(
+                relevant_year, last_month_in_year_as_str
+            )
             adjusted_month_int = month_from_contract_letter(adjusted_month_str)
         else:
             adjusted_month_int = roll_cycle_as_list[closest_month_index]
             adjusted_year_int = relevant_year
 
         return (adjusted_year_int, adjusted_month_int)
-
-
 
     def check_is_month_in_rollcycle(self, current_month):
         """
@@ -206,8 +219,9 @@ class rollCycle(object):
         if current_month in self.cyclestring:
             return True
         else:
-            raise Exception("%s not in cycle %s" % (current_month, self.cyclestring))
-
+            raise Exception(
+                "%s not in cycle %s" %
+                (current_month, self.cyclestring))
 
 
 class rollParameters(object):
@@ -219,9 +233,14 @@ class rollParameters(object):
 
     """
 
-    def __init__(self, hold_rollcycle = EMPTY_ROLL_CYCLE_STRING, priced_rollcycle = EMPTY_ROLL_CYCLE_STRING,
-                 roll_offset_day=0,
-                 carry_offset=0, approx_expiry_offset = 0):
+    def __init__(
+        self,
+        hold_rollcycle=EMPTY_ROLL_CYCLE_STRING,
+        priced_rollcycle=EMPTY_ROLL_CYCLE_STRING,
+        roll_offset_day=0,
+        carry_offset=0,
+        approx_expiry_offset=0,
+    ):
         """
 
         :param hold_rollcycle: The rollcycle which we actually want to hold, str
@@ -232,12 +251,11 @@ class rollParameters(object):
 
         """
 
-
         self.hold_rollcycle = hold_rollcycle
         self.priced_rollcycle = priced_rollcycle
 
         # Special roll cycle consisting of all months in the year
-        self.global_rollcycle=rollCycle("".join(MONTH_LIST))
+        self.global_rollcycle = rollCycle("".join(MONTH_LIST))
         self.roll_offset_day = roll_offset_day
         self.carry_offset = carry_offset
         self.approx_expiry_offset = approx_expiry_offset
@@ -246,8 +264,10 @@ class rollParameters(object):
 
     def __repr__(self):
         dict_rep = self.as_dict()
-        str_rep = ", ".join(["%s:%s" % (key, str(dict_rep[key])) for key in dict_rep.keys()])
-        return "Rollcycle parameters "+str_rep
+        str_rep = ", ".join(
+            ["%s:%s" % (key, str(dict_rep[key])) for key in dict_rep.keys()]
+        )
+        return "Rollcycle parameters " + str_rep
 
     @property
     def priced_rollcycle(self):
@@ -281,7 +301,9 @@ class rollParameters(object):
 
         rollcycle_to_check = getattr(self, rollcycle_name)
         if rollcycle_to_check.empty():
-            raise Exception("You need a defined %s to do this!" % rollcycle_name)
+            raise Exception(
+                "You need a defined %s to do this!" %
+                rollcycle_name)
 
     @classmethod
     def create_empty(rollData):
@@ -302,13 +324,16 @@ class rollParameters(object):
         if self.empty():
             raise Exception("Can't create dict from empty object")
 
-        return dict(hold_rollcycle = self.hold_rollcycle.cyclestring, priced_rollcycle = self.priced_rollcycle.cyclestring,
-                    roll_offset_day = self.roll_offset_day,  carry_offset = self.carry_offset,
-                    approx_expiry_offset = self.approx_expiry_offset)
+        return dict(
+            hold_rollcycle=self.hold_rollcycle.cyclestring,
+            priced_rollcycle=self.priced_rollcycle.cyclestring,
+            roll_offset_day=self.roll_offset_day,
+            carry_offset=self.carry_offset,
+            approx_expiry_offset=self.approx_expiry_offset,
+        )
 
     def empty(self):
         return self._is_empty
-
 
     def approx_first_held_contractDate_at_date(self, reference_date):
         """
@@ -324,7 +349,9 @@ class rollParameters(object):
 
         self.check_for_price_cycle()
 
-        current_date_as_contract_with_roll_data = self._approx_first_contractDate_at_date(reference_date, "hold_rollcycle")
+        current_date_as_contract_with_roll_data = (
+            self._approx_first_contractDate_at_date(
+                reference_date, "hold_rollcycle"))
 
         return current_date_as_contract_with_roll_data
 
@@ -340,11 +367,14 @@ class rollParameters(object):
         """
         self.check_for_price_cycle()
 
-        current_date_as_contract_with_roll_data = self._approx_first_contractDate_at_date(reference_date, "priced_rollcycle")
+        current_date_as_contract_with_roll_data = (
+            self._approx_first_contractDate_at_date(
+                reference_date, "priced_rollcycle"))
 
         return current_date_as_contract_with_roll_data
 
-    def _approx_first_contractDate_at_date(self, reference_date, rollcycle_name):
+    def _approx_first_contractDate_at_date(
+            self, reference_date, rollcycle_name):
         """
         What contract would be pricing or holding on reference_date?
 
@@ -362,18 +392,28 @@ class rollParameters(object):
         #    plus the roll offset is -90 (we want to roll ~ 3 months in advance of the expiry)
         #    The contract expires on the 16th of each month
         #    We want to roll 90 days ahead of that
-        #    With thanks to https://github.com/tgibson11 for helping me get this right
+        # With thanks to https://github.com/tgibson11 for helping me get this
+        # right
 
-        adjusted_date = reference_date - pd.DateOffset(days = (self.roll_offset_day + self.approx_expiry_offset))
+        adjusted_date = reference_date - pd.DateOffset(
+            days=(self.roll_offset_day + self.approx_expiry_offset)
+        )
 
-        relevant_year_int, relevant_month_int = roll_cycle.yearmonth_inrollcycle_after_date(adjusted_date)
+        (
+            relevant_year_int,
+            relevant_month_int,
+        ) = roll_cycle.yearmonth_inrollcycle_after_date(adjusted_date)
 
-        current_date_as_contract_with_roll_data = contractDateWithRollParameters.contract_date_from_numbers(self, relevant_year_int,
-                                                                                                            relevant_month_int,
-                                                                                                            approx_expiry_offset=self.approx_expiry_offset)
+        current_date_as_contract_with_roll_data = (
+            contractDateWithRollParameters.contract_date_from_numbers(
+                self,
+                relevant_year_int,
+                relevant_month_int,
+                approx_expiry_offset=self.approx_expiry_offset,
+            )
+        )
 
         return current_date_as_contract_with_roll_data
-
 
 
 class contractDateWithRollParameters(contractDate):
@@ -382,7 +422,7 @@ class contractDateWithRollParameters(contractDate):
 
     """
 
-    def __init__(self, roll_parameters, *args, inherit_expiry_offset = True, **kwargs):
+    def __init__(self, roll_parameters, *args, inherit_expiry_offset=True, **kwargs):
         """
 
         :param roll_parameters: rollParameters
@@ -392,7 +432,8 @@ class contractDateWithRollParameters(contractDate):
 
         if inherit_expiry_offset:
             if "approx_expiry_offset" in kwargs.keys():
-                #Ignoring passed approx_expiry_offset, and using one in rolldata
+                # Ignoring passed approx_expiry_offset, and using one in
+                # rolldata
                 pass
 
             kwargs["approx_expiry_offset"] = roll_parameters.approx_expiry_offset
@@ -401,22 +442,35 @@ class contractDateWithRollParameters(contractDate):
         self.roll_parameters = roll_parameters
 
     @classmethod
-    def contract_date_from_numbers(contractDateWithRollData, rolldata_object,
-                            new_year_number, new_month_number, new_day_number=NO_DAY_PASSED, **kwargs):
+    def contract_date_from_numbers(
+        contractDateWithRollData,
+        rolldata_object,
+        new_year_number,
+        new_month_number,
+        new_day_number=NO_DAY_PASSED,
+        **kwargs
+    ):
 
-        contract_string = from_contract_numbers_to_contract_string(new_year_number, new_month_number, new_day_number)
+        contract_string = from_contract_numbers_to_contract_string(
+            new_year_number, new_month_number, new_day_number
+        )
 
-        contract_date_with_roll_data_object = contractDateWithRollData(rolldata_object, contract_string, **kwargs)
+        contract_date_with_roll_data_object = contractDateWithRollData(
+            rolldata_object, contract_string, **kwargs
+        )
 
         return contract_date_with_roll_data_object
 
     @classmethod
-    def create_from_dict(contractDateWithRollData, contract_date_dict, roll_data_dict):
+    def create_from_dict(
+            contractDateWithRollData,
+            contract_date_dict,
+            roll_data_dict):
 
         print("**")
         print(contract_date_dict)
         if "expiry_date" in contract_date_dict.keys():
-            expiry_date = contract_date_dict['expiry_date']
+            expiry_date = contract_date_dict["expiry_date"]
             if expiry_date == "":
                 expiry_date = NO_EXPIRY_DATE_PASSED
         else:
@@ -425,14 +479,17 @@ class contractDateWithRollParameters(contractDate):
         print(expiry_date)
 
         if "approx_expiry_offset" in contract_date_dict.keys():
-            approx_expiry_offset = contract_date_dict['approx_expiry_offset']
+            approx_expiry_offset = contract_date_dict["approx_expiry_offset"]
         else:
             approx_expiry_offset = 0
 
         roll_parameters = rollParameters.create_from_dict(roll_data_dict)
 
-        return contractDateWithRollData(roll_parameters, contract_date_dict['contract_date'], expiry_date=expiry_date)
-
+        return contractDateWithRollData(
+            roll_parameters,
+            contract_date_dict["contract_date"],
+            expiry_date=expiry_date,
+        )
 
     def valid_date_in_named_rollcycle(self, rollcycle_name):
 
@@ -466,36 +523,43 @@ class contractDateWithRollParameters(contractDate):
 
         try:
             assert self.valid_date_in_named_rollcycle(rollcycle_name) is True
-        except:
-            raise Exception("ContractDate %s with %s roll cycle, must be in %s %s" % (self.contract_date,
-                                                                                        rollcycle_name,
-                                                                                                   str(rollcycle_to_use)))
-
+        except BaseException:
+            raise Exception(
+                "ContractDate %s with %s roll cycle, must be in %s %s"
+                % (self.contract_date, rollcycle_name, str(rollcycle_to_use))
+            )
 
         current_month_str = self.letter_month()
         current_year_int = self.year()
 
-        new_year_int, new_month_str = direction_function(current_year_int, current_month_str)
+        new_year_int, new_month_str = direction_function(
+            current_year_int, current_month_str
+        )
         new_month_int = month_from_contract_letter(new_month_str)
 
         if self._only_has_month:
             new_day_number = 0
         else:
-            new_day_number=self.day()
+            new_day_number = self.day()
 
-        ## we don't pass expiry date as that will change
-        return contractDateWithRollParameters.contract_date_from_numbers(self.roll_parameters,
-                                                                         new_year_int, new_month_int, new_day_number = new_day_number,
-                                                                         approx_expiry_offset = self.roll_parameters.approx_expiry_offset)
-
+        # we don't pass expiry date as that will change
+        return contractDateWithRollParameters.contract_date_from_numbers(
+            self.roll_parameters,
+            new_year_int,
+            new_month_int,
+            new_day_number=new_day_number,
+            approx_expiry_offset=self.roll_parameters.approx_expiry_offset,
+        )
 
     def next_priced_contract(self):
         contract = self.closest_next_valid_priced_contract()
-        return contract._iterate_contract("next_year_month", "priced_rollcycle")
+        return contract._iterate_contract(
+            "next_year_month", "priced_rollcycle")
 
     def previous_priced_contract(self):
         contract = self.closest_previous_valid_priced_contract()
-        return contract._iterate_contract("previous_year_month", "priced_rollcycle")
+        return contract._iterate_contract(
+            "previous_year_month", "priced_rollcycle")
 
     def next_held_contract(self):
         contract = self.closest_next_valid_held_contract()
@@ -503,41 +567,51 @@ class contractDateWithRollParameters(contractDate):
 
     def previous_held_contract(self):
         contract = self.closest_previous_valid_held_contract()
-        return contract._iterate_contract("previous_year_month", "hold_rollcycle")
+        return contract._iterate_contract(
+            "previous_year_month", "hold_rollcycle")
 
     def closest_next_valid_priced_contract(self):
-        # returns current contract if a valid priced contract, or next one in cycle that is
+        # returns current contract if a valid priced contract, or next one in
+        # cycle that is
         valid_contract_to_return = self
         while not valid_contract_to_return.valid_date_in_priced_rollcycle():
             valid_contract_to_return = valid_contract_to_return.next_month_contract()
         return valid_contract_to_return
 
     def closest_previous_valid_priced_contract(self):
-        # returns current contract if a valid priced contract, or previous one in cycle that is
+        # returns current contract if a valid priced contract, or previous one
+        # in cycle that is
         valid_contract_to_return = self
         while not valid_contract_to_return.valid_date_in_priced_rollcycle():
-            valid_contract_to_return = valid_contract_to_return.previous_month_contract()
+            valid_contract_to_return = (
+                valid_contract_to_return.previous_month_contract()
+            )
         return valid_contract_to_return
 
     def closest_next_valid_held_contract(self):
-        # returns current contract if a valid held contract, or next one in cycle that is
+        # returns current contract if a valid held contract, or next one in
+        # cycle that is
         valid_contract_to_return = self
         while not valid_contract_to_return.valid_date_in_hold_rollcycle():
             valid_contract_to_return = valid_contract_to_return.next_month_contract()
         return valid_contract_to_return
 
     def closest_previous_held_priced_contract(self):
-        # returns current contract if a valid held contract, or previous one in cycle that is
+        # returns current contract if a valid held contract, or previous one in
+        # cycle that is
         valid_contract_to_return = self
         while not valid_contract_to_return.valid_date_in_hold_rollcycle():
-            valid_contract_to_return = valid_contract_to_return.previous_month_contract()
+            valid_contract_to_return = (
+                valid_contract_to_return.previous_month_contract()
+            )
         return valid_contract_to_return
 
     def next_month_contract(self):
         return self._iterate_contract("next_year_month", "global_rollcycle")
 
     def previous_month_contract(self):
-        return self._iterate_contract("previous_year_month", "global_rollcycle")
+        return self._iterate_contract(
+            "previous_year_month", "global_rollcycle")
 
     def carry_contract(self):
         if self.roll_parameters.carry_offset == -1:
@@ -548,7 +622,9 @@ class contractDateWithRollParameters(contractDate):
             raise Exception("carry_offset needs to be +1 or -1")
 
     def want_to_roll(self):
-        return self.expiry_date+ datetime.timedelta(days = self.roll_parameters.roll_offset_day)
+        return self.expiry_date + datetime.timedelta(
+            days=self.roll_parameters.roll_offset_day
+        )
 
     def get_unexpired_contracts_from_now_to_contract_date(self):
         """
@@ -568,7 +644,10 @@ class contractDateWithRollParameters(contractDate):
         return contract_dates
 
 
-USE_CHILD_CLASS_ROLL_PARAMS_ERROR = "You need to use a child class of rollParametersData"
+USE_CHILD_CLASS_ROLL_PARAMS_ERROR = (
+    "You need to use a child class of rollParametersData"
+)
+
 
 class rollParametersData(baseData):
     """
@@ -604,16 +683,24 @@ class rollParametersData(baseData):
 
         if are_you_sure:
             if self.is_code_in_data(instrument_code):
-                self._delete_roll_parameters_data_without_any_warning_be_careful(instrument_code)
-                self.log.terse("Deleted roll parameters for %s" % instrument_code)
+                self._delete_roll_parameters_data_without_any_warning_be_careful(
+                    instrument_code)
+                self.log.terse(
+                    "Deleted roll parameters for %s" %
+                    instrument_code)
 
             else:
-                ## doesn't exist anyway
-                self.log.warn("Tried to delete roll parameters for non existent instrument code %s" % instrument_code)
+                # doesn't exist anyway
+                self.log.warn(
+                    "Tried to delete roll parameters for non existent instrument code %s" %
+                    instrument_code)
         else:
-            self.log.error("You need to call delete_roll_parameters with a flag to be sure")
+            self.log.error(
+                "You need to call delete_roll_parameters with a flag to be sure"
+            )
 
-    def _delete_roll_parameters_data_without_any_warning_be_careful(instrument_code):
+    def _delete_roll_parameters_data_without_any_warning_be_careful(
+            instrument_code):
         raise NotImplementedError(USE_CHILD_CLASS_ROLL_PARAMS_ERROR)
 
     def is_code_in_data(self, instrument_code):
@@ -622,7 +709,9 @@ class rollParametersData(baseData):
         else:
             return False
 
-    def add_roll_parameters(self, roll_parameters, instrument_code, ignore_duplication=False):
+    def add_roll_parameters(
+        self, roll_parameters, instrument_code, ignore_duplication=False
+    ):
 
         self.log.label(instrument_code=instrument_code)
 
@@ -630,12 +719,19 @@ class rollParametersData(baseData):
             if ignore_duplication:
                 pass
             else:
-                raise self.log.warn("There is already %s in the data, you have to delete it first" % instrument_code)
+                raise self.log.warn(
+                    "There is already %s in the data, you have to delete it first" %
+                    instrument_code)
 
-        self._add_roll_parameters_without_checking_for_existing_entry(roll_parameters, instrument_code)
+        self._add_roll_parameters_without_checking_for_existing_entry(
+            roll_parameters, instrument_code
+        )
 
-        self.log.terse("Added roll parameters for instrument %s" % instrument_code)
+        self.log.terse(
+            "Added roll parameters for instrument %s" %
+            instrument_code)
 
-    def _add_roll_parameters_without_checking_for_existing_entry(self, roll_parameters, instrument_code):
+    def _add_roll_parameters_without_checking_for_existing_entry(
+        self, roll_parameters, instrument_code
+    ):
         raise NotImplementedError(USE_CHILD_CLASS_ROLL_PARAMS_ERROR)
-

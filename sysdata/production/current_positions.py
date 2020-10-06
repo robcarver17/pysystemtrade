@@ -8,8 +8,9 @@ from syscore.genutils import get_unique_list
 from sysdata.futures.instruments import futuresInstrument
 from sysdata.futures.contracts import futuresContract
 
+
 class Position(object):
-    def __init__(self,  position, tradeable_object):
+    def __init__(self, position, tradeable_object):
         self._tradeable_object = tradeable_object
         self._position = position
 
@@ -25,13 +26,14 @@ class Position(object):
         return self._position
 
     def __eq__(self, other):
-        if self.position!=other.position:
+        if self.position != other.position:
             return False
 
         if self._tradeable_object != other._tradeable_object:
             return False
 
         return True
+
 
 class instrumentPosition(Position):
     def __init__(self, position, *args, **kwargs):
@@ -41,7 +43,6 @@ class instrumentPosition(Position):
     @property
     def instrument_code(self):
         return self._tradeable_object.instrument_code
-
 
 
 class instrumentStrategy(object):
@@ -54,10 +55,10 @@ class instrumentStrategy(object):
         return "%s %s" % (self.strategy_name, str(self.instrument_object))
 
     def __eq__(self, other):
-        if self.instrument_object!=other.instrument_object:
+        if self.instrument_object != other.instrument_object:
             return False
 
-        if self.strategy_name!=other.strategy_name:
+        if self.strategy_name != other.strategy_name:
             return False
 
         return True
@@ -73,6 +74,7 @@ class instrumentStrategy(object):
     @property
     def strategy_name(self):
         return self._strategy_name
+
 
 class instrumentStrategyPosition(Position):
     def __init__(self, position, strategy_name, *args, **kwargs):
@@ -106,10 +108,10 @@ class contractPosition(Position):
     def contract_object(self):
         return self._tradeable_object
 
+
 class listOfPositions(list):
     def __repr__(self):
         return str(self.as_pd_df())
-
 
     def __eq__(self, other):
         """
@@ -131,11 +133,14 @@ class listOfPositions(list):
         """
 
         list_of_my_objects = [position.tradeable_object for position in self]
-        list_of_other_objects = [position.tradeable_object for position in other]
-        joint_list = get_unique_list(list_of_my_objects+list_of_other_objects)
+        list_of_other_objects = [
+            position.tradeable_object for position in other]
+        joint_list = get_unique_list(
+            list_of_my_objects + list_of_other_objects)
         breaks = []
         for tradeable_object in joint_list:
-            break_here = self.is_break_for_tradeable_object(other, tradeable_object)
+            break_here = self.is_break_for_tradeable_object(
+                other, tradeable_object)
             if break_here:
                 breaks.append(tradeable_object)
 
@@ -163,7 +168,7 @@ class listOfPositions(list):
         position_object = self[position_object_idx]
         return position_object.position
 
-    def index(self, tradeable_object, start = 0, stop = None):
+    def index(self, tradeable_object, start=0, stop=None):
         """
         Return the first location index of tradeable_instrument after start
 
@@ -172,15 +177,15 @@ class listOfPositions(list):
         :return: int, or None
         """
         if stop is None:
-            stop = len(self)-1
+            stop = len(self) - 1
 
-        idx=start
+        idx = start
         while idx <= stop:
             position_to_check = self[idx]
             if position_to_check.tradeable_object == tradeable_object:
                 return idx
 
-            idx = idx+1
+            idx = idx + 1
 
         return None
 
@@ -202,7 +207,7 @@ class listOfPositions(list):
         id_column_dict = self._id_column_dict()
         just_positions_list = [position.position for position in self]
         with_position_dict = id_column_dict
-        with_position_dict['position'] = just_positions_list
+        with_position_dict["position"] = just_positions_list
 
         return with_position_dict
 
@@ -210,6 +215,7 @@ class listOfPositions(list):
         id_column_list = [str(position.tradeable_object) for position in self]
         id_column_dict = dict(name=id_column_list)
         return id_column_dict
+
 
 class listOfInstrumentPositions(listOfPositions):
     @classmethod
@@ -228,11 +234,14 @@ class listOfInstrumentPositions(listOfPositions):
         id_column_dict = dict(instrument_code=id_column_list)
         return id_column_dict
 
+
 class listOfInstrumentStrategyPositions(listOfPositions):
     @classmethod
     def from_pd_df(listOfInstrumentStrategyPositions, pd_df):
         def _element_object_from_row(dfrow):
-            return instrumentStrategyPosition(dfrow.position, dfrow.strategy_name, dfrow.instrument_code)
+            return instrumentStrategyPosition(
+                dfrow.position, dfrow.strategy_name, dfrow.instrument_code
+            )
 
         list_of_positions = listOfInstrumentStrategyPositions()
         for df_row in pd_df.itertuples():
@@ -241,9 +250,12 @@ class listOfInstrumentStrategyPositions(listOfPositions):
         return list_of_positions
 
     def _id_column_dict(self):
-        instrument_code_list = [str(position.instrument_code) for position in self]
+        instrument_code_list = [str(position.instrument_code)
+                                for position in self]
         strategy_name_list = [str(position.strategy_name) for position in self]
-        id_column_dict = dict( strategy_name = strategy_name_list, instrument_code=instrument_code_list)
+        id_column_dict = dict(
+            strategy_name=strategy_name_list,
+            instrument_code=instrument_code_list)
         return id_column_dict
 
     def sum_for_instrument(self):
@@ -254,7 +266,9 @@ class listOfContractPositions(listOfPositions):
     @classmethod
     def from_pd_df(listOfInstrumentContractPositions, pd_df):
         def _element_object_from_row(dfrow):
-            return instrumentStrategyPosition(dfrow.position, dfrow.contract_id, dfrow.instrument_code)
+            return instrumentStrategyPosition(
+                dfrow.position, dfrow.contract_id, dfrow.instrument_code
+            )
 
         list_of_positions = listOfInstrumentContractPositions()
         for df_row in pd_df.itertuples():
@@ -266,9 +280,12 @@ class listOfContractPositions(listOfPositions):
         return contractPosition
 
     def _id_column_dict(self):
-        instrument_code_list = [str(position.instrument_code) for position in self]
+        instrument_code_list = [str(position.instrument_code)
+                                for position in self]
         contract_id_list = [str(position.contract_date) for position in self]
-        id_column_dict = dict(instrument_code=instrument_code_list, contract_date = contract_id_list)
+        id_column_dict = dict(
+            instrument_code=instrument_code_list,
+            contract_date=contract_id_list)
         return id_column_dict
 
     def sum_for_instrument(self):
@@ -288,12 +305,20 @@ def sum_for_instrument(list_of_positions):
     :return: listOfInstrumentPositions
     """
 
-    list_of_instruments = list(set([position.instrument_code for position in list_of_positions]))
+    list_of_instruments = list(
+        set([position.instrument_code for position in list_of_positions])
+    )
     summed_positions = []
     for instrument_code in list_of_instruments:
-        positions_this_code = [position.position for position in list_of_positions if position.instrument_code == instrument_code]
-        position_object = instrumentPosition( sum(positions_this_code), instrument_code)
+        positions_this_code = [
+            position.position
+            for position in list_of_positions
+            if position.instrument_code == instrument_code
+        ]
+        position_object = instrumentPosition(
+            sum(positions_this_code), instrument_code)
         summed_positions.append(position_object)
-    list_of_instrument_position_object = listOfInstrumentPositions(summed_positions)
+    list_of_instrument_position_object = listOfInstrumentPositions(
+        summed_positions)
 
     return list_of_instrument_position_object

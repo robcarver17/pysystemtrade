@@ -4,9 +4,9 @@ Implement the handcrafting method
 This is 'self contained code' which requires wrapping before using in pysystemtrade
 """
 
-## CAVEATS:
-## Uses weekly returns (resample needed first)
-## Doesn't deal with missing assets
+# CAVEATS:
+# Uses weekly returns (resample needed first)
+# Doesn't deal with missing assets
 
 import numpy as np
 import pandas as pd
@@ -17,14 +17,17 @@ from syscore.pdutils import minimum_many_years_of_data_in_dataframe
 from syscore.optimisation_utils import optimise, sigma_from_corr_and_std
 from syscore.correlations import get_avg_corr, boring_corr_matrix
 
-WEEKS_IN_YEAR = 365.25/7.0
-MAX_CLUSTER_SIZE = 3 # Do not change
-WARN_ON_SUBPORTFOLIO_SIZE = 0.2 # change if you like, sensible values are between 0 and 0.5
+WEEKS_IN_YEAR = 365.25 / 7.0
+MAX_CLUSTER_SIZE = 3  # Do not change
+WARN_ON_SUBPORTFOLIO_SIZE = (
+    0.2  # change if you like, sensible values are between 0 and 0.5
+)
 
 # Convenience objects
 NO_SUB_PORTFOLIOS = object()
 NO_RISK_TARGET = object()
 NO_TOP_LEVEL_WEIGHTS = object()
+
 
 class diagobject(object):
     def __init__(self):
@@ -32,39 +35,59 @@ class diagobject(object):
 
     def __repr__(self):
 
-        return "%s \n %s " % ( self.calcs, self.description)
+        return "%s \n %s " % (self.calcs, self.description)
+
 
 """
 In this section we create the candidate matrices and weights
 """
 
 unsorted_candidate_matrices = [
-    np.array([[1.,0.,0.],[0.,1.,0.],[0.,0.,1.]]), # equal weights
-    np.array([[1.,0.5,0.5],[0.5,1.,0.5],[0.5,0.5,1.]]), # equal weights
-    np.array([[1., 0.9, 0.9], [0.9, 1., 0.9], [0.9, 0.9, 1.]]),  # equal weights
-    np.array([[1., 0.0, 0.5],  [0.0, 1., 0.],  [0.5,0.,1.]]), # first interesting row of 'ABC' from 'Systematic Trading' table 8
-    np.array([[1., 0.0, 0.9],  [0.0, 1., 0.],  [0.9, 0., 1.]]),  # 2nd row of 'ABC' from 'Systematic Trading' table 8
-    np.array([[1., 0.5, 0.],  [0.5, 1., 0.5], [0., 0.5, 1.]]),  # 3rd row of 'ABC' from 'Systematic Trading' table 8
-    np.array([[1., 0.0, 0.5], [0.0, 1., 0.9], [0.5, 0.9, 1.]]),  # 4th row of 'ABC' from 'Systematic Trading' table 8
-    np.array([[1., 0.9, 0.0], [0.9, 1., 0.9], [0.0, 0.9, 1.]]),  # 5th row of 'ABC' from 'Systematic Trading' table 8
-    np.array([[1., 0.5, 0.9], [0.5, 1., 0.5], [0.9, 0.5, 1.]]),  # 6th row of 'ABC' from 'Systematic Trading' table 8
-    np.array([[1., 0.9, 0.5], [0.9, 1., 0.9], [0.5, 0.9, 1.]])  # 7th row of 'ABC' from 'Systematic Trading' table 8
+    np.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0],
+              [0.0, 0.0, 1.0]]),  # equal weights
+    np.array([[1.0, 0.5, 0.5], [0.5, 1.0, 0.5],
+              [0.5, 0.5, 1.0]]),  # equal weights
+    np.array([[1.0, 0.9, 0.9], [0.9, 1.0, 0.9],
+              [0.9, 0.9, 1.0]]),  # equal weights
+    np.array(
+        [[1.0, 0.0, 0.5], [0.0, 1.0, 0.0], [0.5, 0.0, 1.0]]
+    ),  # first interesting row of 'ABC' from 'Systematic Trading' table 8
+    np.array(
+        [[1.0, 0.0, 0.9], [0.0, 1.0, 0.0], [0.9, 0.0, 1.0]]
+    ),  # 2nd row of 'ABC' from 'Systematic Trading' table 8
+    np.array(
+        [[1.0, 0.5, 0.0], [0.5, 1.0, 0.5], [0.0, 0.5, 1.0]]
+    ),  # 3rd row of 'ABC' from 'Systematic Trading' table 8
+    np.array(
+        [[1.0, 0.0, 0.5], [0.0, 1.0, 0.9], [0.5, 0.9, 1.0]]
+    ),  # 4th row of 'ABC' from 'Systematic Trading' table 8
+    np.array(
+        [[1.0, 0.9, 0.0], [0.9, 1.0, 0.9], [0.0, 0.9, 1.0]]
+    ),  # 5th row of 'ABC' from 'Systematic Trading' table 8
+    np.array(
+        [[1.0, 0.5, 0.9], [0.5, 1.0, 0.5], [0.9, 0.5, 1.0]]
+    ),  # 6th row of 'ABC' from 'Systematic Trading' table 8
+    np.array(
+        [[1.0, 0.9, 0.5], [0.9, 1.0, 0.9], [0.5, 0.9, 1.0]]
+    ),  # 7th row of 'ABC' from 'Systematic Trading' table 8
 ]
 
-unsorted_candidate_weights = [[0.33333,0.33333,0.33333], # equal weights
-                     [0.33333,0.33333,0.33333], # equal weights
-                     [0.33333,0.33333,0.33333], # equal weights
-                     [0.3,    0.4,   0.3], # first interesting row of 'ABC' from 'Systematic Trading' table 8
-                     [0.27,  0.46,   0.27],  # 2nd row of 'ABC' from 'Systematic Trading' table 8
-                     [0.37,  0.26,   0.37],  # 3rd row of 'ABC' from 'Systematic Trading' table 8
-                     [0.45,  0.45,   0.1],   # 4th row of 'ABC' from 'Systematic Trading' table 8
-                     [0.39,  0.22,   0.39],  # 5th row of 'ABC' from 'Systematic Trading' table 8
-                     [0.29,  0.42,   0.29],   # 6th row of 'ABC' from 'Systematic Trading' table 8
-                     [0.42,  0.16,   0.42] # 7th row of 'ABC' from 'Systematic Trading' table 8
-                     ]
+unsorted_candidate_weights = [
+    [0.33333, 0.33333, 0.33333],  # equal weights
+    [0.33333, 0.33333, 0.33333],  # equal weights
+    [0.33333, 0.33333, 0.33333],  # equal weights
+    [0.3, 0.4, 0.3],  # first interesting row of 'ABC' from 'Systematic Trading' table 8
+    [0.27, 0.46, 0.27],  # 2nd row of 'ABC' from 'Systematic Trading' table 8
+    [0.37, 0.26, 0.37],  # 3rd row of 'ABC' from 'Systematic Trading' table 8
+    [0.45, 0.45, 0.1],  # 4th row of 'ABC' from 'Systematic Trading' table 8
+    [0.39, 0.22, 0.39],  # 5th row of 'ABC' from 'Systematic Trading' table 8
+    [0.29, 0.42, 0.29],  # 6th row of 'ABC' from 'Systematic Trading' table 8
+    [0.42, 0.16, 0.42],  # 7th row of 'ABC' from 'Systematic Trading' table 8
+]
+
 
 def norm_weights(list_of_weights):
-    norm_weights = list(np.array(list_of_weights)/np.sum(list_of_weights))
+    norm_weights = list(np.array(list_of_weights) / np.sum(list_of_weights))
     return norm_weights
 
 
@@ -98,17 +121,20 @@ def sort_corr_matrix_and_weights(cmatrix, cweights):
     corr_order = get_sorted_order_from_corr_matrix(cmatrix)
 
     new_cmatrix = cmatrix[np.ix_(corr_order, corr_order)]
-    new_cweights= list(np.array(cweights)[corr_order])
+    new_cweights = list(np.array(cweights)[corr_order])
 
     return new_cmatrix, new_cweights
 
-## Now build the sorted lists
+
+# Now build the sorted lists
 candidate_matrices = []
 candidate_weights = []
-for cmatrix, cweights in zip(unsorted_candidate_matrices, unsorted_candidate_weights):
+for cmatrix, cweights in zip(
+        unsorted_candidate_matrices, unsorted_candidate_weights):
     new_cmatrix, new_cweights = sort_corr_matrix_and_weights(cmatrix, cweights)
     candidate_matrices.append(new_cmatrix)
     candidate_weights.append(new_cweights)
+
 
 def distance_between_matrices(matrix1, matrix2):
     """
@@ -120,9 +146,9 @@ def distance_between_matrices(matrix1, matrix2):
     """
 
     diff_matrix = matrix1 - matrix2
-    distance_squared = sum(sum(diff_matrix**2))
+    distance_squared = sum(sum(diff_matrix ** 2))
 
-    return distance_squared**.5
+    return distance_squared ** 0.5
 
 
 def get_weights_using_candidate_method(cmatrix):
@@ -132,13 +158,13 @@ def get_weights_using_candidate_method(cmatrix):
     :return: a list of N weights
     """
 
-    if len(cmatrix)==1:
+    if len(cmatrix) == 1:
         return [1.0]
 
-    if len(cmatrix)==2:
+    if len(cmatrix) == 2:
         return [0.5, 0.5]
 
-    if len(cmatrix)>MAX_CLUSTER_SIZE:
+    if len(cmatrix) > MAX_CLUSTER_SIZE:
         raise Exception("Cluster too big")
 
     # we have to sort first, and then map back to the original weights
@@ -146,17 +172,26 @@ def get_weights_using_candidate_method(cmatrix):
     sorted_cmatrix = cmatrix[np.ix_(corr_order, corr_order)]
 
     # not quite inverse of weighting, in case of divide by zero
-    corr_weightings = [1.0/(0.0001+distance_between_matrices(sorted_cmatrix, candidate_matrix)) for candidate_matrix in candidate_matrices]
+    corr_weightings = [
+        1.0 / (0.0001 + distance_between_matrices(sorted_cmatrix, candidate_matrix))
+        for candidate_matrix in candidate_matrices
+    ]
 
-    weighted_weights = np.array([corr_weight_this_candidate*np.array(weightings_for_candidate)
-                        for corr_weight_this_candidate, weightings_for_candidate in
-                        zip(corr_weightings, candidate_weights)])
+    weighted_weights = np.array(
+        [
+            corr_weight_this_candidate * np.array(weightings_for_candidate)
+            for corr_weight_this_candidate, weightings_for_candidate in zip(
+                corr_weightings, candidate_weights
+            )
+        ]
+    )
 
     weighted_weights = weighted_weights.sum(axis=0)
     normalised_weights = norm_weights(weighted_weights)
 
     # return to original order
-    natural_order_weights = [normalised_weights[idx] for idx in list(corr_order)]
+    natural_order_weights = [normalised_weights[idx]
+                             for idx in list(corr_order)]
 
     return natural_order_weights
 
@@ -166,15 +201,25 @@ SR adjustment
 """
 
 
-def multiplier_from_relative_SR(relative_SR,  avg_correlation,years_of_data):
+def multiplier_from_relative_SR(relative_SR, avg_correlation, years_of_data):
     # Return a multiplier
     # 1 implies no adjustment required
-    ratio = mini_bootstrap_ratio_given_SR_diff(relative_SR, avg_correlation, years_of_data)
+    ratio = mini_bootstrap_ratio_given_SR_diff(
+        relative_SR, avg_correlation, years_of_data
+    )
 
     return ratio
 
-def mini_bootstrap_ratio_given_SR_diff(SR_diff,  avg_correlation, years_of_data, avg_SR=0.5, std=0.15, how_many_assets=2,
-                                       p_step=0.01):
+
+def mini_bootstrap_ratio_given_SR_diff(
+    SR_diff,
+    avg_correlation,
+    years_of_data,
+    avg_SR=0.5,
+    std=0.15,
+    how_many_assets=2,
+    p_step=0.01,
+):
     """
     Do a parametric bootstrap of portfolio weights to tell you what the ratio should be between an asset which
        has a higher backtested SR (by SR_diff) versus another asset(s) with average Sharpe Ratio (avg_SR)
@@ -190,21 +235,37 @@ def mini_bootstrap_ratio_given_SR_diff(SR_diff,  avg_correlation, years_of_data,
     :param p_step: Step size to go through in the CDF of the mean estimate
     :return: float, ratio of weight of asset with different SR to 1/n weight
     """
-    dist_points = np.arange(p_step, stop=(1-p_step)+0.00000001, step=p_step)
-    list_of_weights = [weights_given_SR_diff(SR_diff,  avg_correlation,
-                                          confidence_interval, years_of_data, avg_SR=avg_SR, std=std,
-                                             how_many_assets=how_many_assets)
-                     for confidence_interval in dist_points]
+    dist_points = np.arange(
+        p_step,
+        stop=(
+            1 -
+            p_step) +
+        0.00000001,
+        step=p_step)
+    list_of_weights = [
+        weights_given_SR_diff(
+            SR_diff,
+            avg_correlation,
+            confidence_interval,
+            years_of_data,
+            avg_SR=avg_SR,
+            std=std,
+            how_many_assets=how_many_assets,
+        )
+        for confidence_interval in dist_points
+    ]
 
     array_of_weights = np.array(list_of_weights)
     average_weights = np.nanmean(array_of_weights, axis=0)
     ratio_of_weights = weight_ratio(average_weights)
 
-    if np.sign(ratio_of_weights-1.0)!=np.sign(SR_diff):
-        # This shouldn't happen, and only occurs because weight distributions get curtailed at zero
+    if np.sign(ratio_of_weights - 1.0) != np.sign(SR_diff):
+        # This shouldn't happen, and only occurs because weight distributions
+        # get curtailed at zero
         return 1.0
 
     return ratio_of_weights
+
 
 def weight_ratio(weights):
     """
@@ -214,13 +275,21 @@ def weight_ratio(weights):
     :return: float
     """
 
-    one_over_N_weight = 1.0/len(weights)
+    one_over_N_weight = 1.0 / len(weights)
     weight_first_asset = weights[0]
 
-    return weight_first_asset/one_over_N_weight
+    return weight_first_asset / one_over_N_weight
 
-def weights_given_SR_diff(SR_diff,  avg_correlation,  confidence_interval, years_of_data,
-                          avg_SR=0.5, std=0.15, how_many_assets=2):
+
+def weights_given_SR_diff(
+    SR_diff,
+    avg_correlation,
+    confidence_interval,
+    years_of_data,
+    avg_SR=0.5,
+    std=0.15,
+    how_many_assets=2,
+):
     """
     Return the ratio of weight to 1/N weight for an asset with unusual SR
 
@@ -236,42 +305,50 @@ def weights_given_SR_diff(SR_diff,  avg_correlation,  confidence_interval, years
     """
 
     average_mean = avg_SR * std
-    asset1_mean = (SR_diff + avg_SR)*std
+    asset1_mean = (SR_diff + avg_SR) * std
 
     mean_difference = asset1_mean - average_mean
 
-    ## Work out what the mean is with appropriate confidence
-    confident_mean_difference = calculate_confident_mean_difference(std, years_of_data, mean_difference, confidence_interval, avg_correlation)
+    # Work out what the mean is with appropriate confidence
+    confident_mean_difference = calculate_confident_mean_difference(
+        std, years_of_data, mean_difference, confidence_interval, avg_correlation)
 
     confident_asset1_mean = confident_mean_difference + average_mean
 
-    mean_list = [confident_asset1_mean]+[average_mean]*(how_many_assets-1)
+    mean_list = [confident_asset1_mean] + \
+        [average_mean] * (how_many_assets - 1)
 
     weights = optimise_using_correlation(mean_list, avg_correlation, std)
 
     return list(weights)
 
+
 def optimise_using_correlation(mean_list, avg_correlation, std):
     corr_matrix = boring_corr_matrix(len(mean_list), offdiag=avg_correlation)
-    stdev_list = [std]*len(mean_list)
+    stdev_list = [std] * len(mean_list)
     sigma = sigma_from_corr_and_std(stdev_list, corr_matrix)
 
     return optimise(sigma, mean_list)
 
 
-def calculate_confident_mean_difference(std, years_of_data, mean_difference, confidence_interval, avg_correlation):
-    omega_difference = calculate_omega_difference(std, years_of_data, avg_correlation)
-    confident_mean_difference = stats.norm(mean_difference, omega_difference).ppf(confidence_interval)
+def calculate_confident_mean_difference(
+    std, years_of_data, mean_difference, confidence_interval, avg_correlation
+):
+    omega_difference = calculate_omega_difference(
+        std, years_of_data, avg_correlation)
+    confident_mean_difference = stats.norm(
+        mean_difference, omega_difference).ppf(confidence_interval)
 
     return confident_mean_difference
 
+
 def calculate_omega_difference(std, years_of_data, avg_correlation):
-    omega_one_asset = std / (years_of_data)**.5
-    omega_variance_difference = 2*(omega_one_asset**2)*(1- avg_correlation)
-    omega_difference = omega_variance_difference**.5
+    omega_one_asset = std / (years_of_data) ** 0.5
+    omega_variance_difference = 2 * \
+        (omega_one_asset ** 2) * (1 - avg_correlation)
+    omega_difference = omega_variance_difference ** 0.5
 
     return omega_difference
-
 
 
 def adjust_weights_for_SR(weights, SR_list, years_of_data, avg_correlation):
@@ -284,29 +361,39 @@ def adjust_weights_for_SR(weights, SR_list, years_of_data, avg_correlation):
     :return: list of adjusted weights
     """
 
-    assert len(weights)==len(SR_list)
+    assert len(weights) == len(SR_list)
 
     avg_SR = np.nanmean(SR_list)
-    relative_SR_list = SR_list -avg_SR
-    multipliers = [float(multiplier_from_relative_SR(relative_SR, avg_correlation, years_of_data))
-                   for relative_SR in relative_SR_list]
+    relative_SR_list = SR_list - avg_SR
+    multipliers = [
+        float(multiplier_from_relative_SR(relative_SR, avg_correlation, years_of_data))
+        for relative_SR in relative_SR_list
+    ]
 
-    new_weights = list(np.array(weights)*np.array(multipliers))
+    new_weights = list(np.array(weights) * np.array(multipliers))
 
     norm_new_weights = norm_weights(new_weights)
 
     return norm_new_weights
 
 
-class Portfolio():
+class Portfolio:
     """
     Portfolios; what do they contain: a list of instruments, return characteristics, [vol weights], [cash weights]
                 can contain sub portfolios
 
                 they are initially created with some returns
     """
-    def __init__(self, instrument_returns, allow_leverage=False, risk_target=NO_RISK_TARGET, use_SR_estimates=True,
-                 top_level_weights = NO_TOP_LEVEL_WEIGHTS, log=print):
+
+    def __init__(
+        self,
+        instrument_returns,
+        allow_leverage=False,
+        risk_target=NO_RISK_TARGET,
+        use_SR_estimates=True,
+        top_level_weights=NO_TOP_LEVEL_WEIGHTS,
+        log=print,
+    ):
         """
 
         :param instrument_returns: A pandas data frame labelled with instrument names, containing weekly instrument_returns
@@ -316,24 +403,25 @@ class Portfolio():
         :param top_level_weights: (optionally) pass a list, same length as top level. Used for partioning to hit risk target.
         """
 
-
-
-        instrument_returns = self._clean_instruments_remove_missing(instrument_returns)
+        instrument_returns = self._clean_instruments_remove_missing(
+            instrument_returns)
         self.instrument_returns = instrument_returns
         self.instruments = list(instrument_returns.columns)
         self.corr_matrix = instrument_returns.corr()
-        self.vol_vector = np.array(instrument_returns.std() * (WEEKS_IN_YEAR ** .5))
-        self.returns_vector = np.array(instrument_returns.mean() * WEEKS_IN_YEAR)
+        self.vol_vector = np.array(
+            instrument_returns.std() * (WEEKS_IN_YEAR ** 0.5))
+        self.returns_vector = np.array(
+            instrument_returns.mean() * WEEKS_IN_YEAR)
         self.sharpe_ratio = self.returns_vector / self.vol_vector
 
-        self.years_of_data = minimum_many_years_of_data_in_dataframe(instrument_returns)
+        self.years_of_data = minimum_many_years_of_data_in_dataframe(
+            instrument_returns)
 
         self.allow_leverage = allow_leverage
         self.risk_target = risk_target
         self.use_SR_estimates = use_SR_estimates
         self.top_level_weights = top_level_weights
         self.log = log
-
 
     def __repr__(self):
         return "Portfolio with %d instruments" % len(self.instruments)
@@ -345,12 +433,16 @@ class Portfolio():
         :return: list of instruments without enough data for correlation estimate
         """
 
-        instrument_returns[instrument_returns==0.0]=np.nan
+        instrument_returns[instrument_returns == 0.0] = np.nan
         missing_values = np.isnan(instrument_returns).sum()
         total_data_length = len(instrument_returns)
-        missing_instruments = [instrument for instrument, missing_value_this_instrument
-                               in zip(instrument_returns.columns, missing_values)
-                               if (total_data_length - missing_value_this_instrument)<min_periods]
+        missing_instruments = [
+            instrument for instrument,
+            missing_value_this_instrument in zip(
+                instrument_returns.columns,
+                missing_values) if (
+                total_data_length -
+                missing_value_this_instrument) < min_periods]
 
         return missing_instruments
 
@@ -361,15 +453,16 @@ class Portfolio():
         """
 
         all_instruments = instrument_returns.columns
-        missing_instruments = self._missing_data_instruments(instrument_returns)
-        valid_instruments = [x for x in all_instruments if x not in missing_instruments]
+        missing_instruments = self._missing_data_instruments(
+            instrument_returns)
+        valid_instruments = [
+            x for x in all_instruments if x not in missing_instruments]
 
         self.all_instruments = all_instruments
         self.missing_instruments = missing_instruments
         self.valid_instruments = valid_instruments
 
         return instrument_returns[valid_instruments]
-
 
     def _cluster_breakdown(self):
         """
@@ -382,8 +475,8 @@ class Portfolio():
 
         X = self.corr_matrix.values
         d = sch.distance.pdist(X)
-        L = sch.linkage(d, method='complete')
-        ind = sch.fcluster(L, MAX_CLUSTER_SIZE, criterion='maxclust')
+        L = sch.linkage(d, method="complete")
+        ind = sch.fcluster(L, MAX_CLUSTER_SIZE, criterion="maxclust")
 
         return list(ind)
 
@@ -395,31 +488,42 @@ class Portfolio():
         """
 
         risk_target = self.risk_target
-        self.log("Partioning into two groups to hit risk target of %f" % risk_target)
+        self.log(
+            "Partioning into two groups to hit risk target of %f" %
+            risk_target)
 
         assert risk_target is not NO_RISK_TARGET
 
         vol_vector = self.vol_vector
 
-        count_is_higher_risk = sum([instrument_vol > risk_target for instrument_vol in vol_vector])
+        count_is_higher_risk = sum(
+            [instrument_vol > risk_target for instrument_vol in vol_vector]
+        )
 
-        if count_is_higher_risk==0:
-            raise Exception("Risk target greater than vol of any instrument: will be impossible to hit risk target")
+        if count_is_higher_risk == 0:
+            raise Exception(
+                "Risk target greater than vol of any instrument: will be impossible to hit risk target"
+            )
 
-        if count_is_higher_risk<(len(self.instruments)*WARN_ON_SUBPORTFOLIO_SIZE):
-            self.log("Not many instruments have risk higher than target; portfolio will be concentrated to hit risk target")
+        if count_is_higher_risk < (
+                len(self.instruments) * WARN_ON_SUBPORTFOLIO_SIZE):
+            self.log(
+                "Not many instruments have risk higher than target; portfolio will be concentrated to hit risk target"
+            )
 
         def _cluster_id(instrument_vol, risk_target):
             # hard coded do not change; high vol is second group
-            if instrument_vol>risk_target:
+            if instrument_vol > risk_target:
                 return 2
             else:
                 return 1
 
-        cluster_list = [_cluster_id(instrument_vol, risk_target) for instrument_vol in vol_vector]
+        cluster_list = [
+            _cluster_id(
+                instrument_vol,
+                risk_target) for instrument_vol in vol_vector]
 
         return cluster_list
-
 
     def _create_single_subportfolio(self, instrument_list):
         """
@@ -431,8 +535,11 @@ class Portfolio():
 
         sub_portfolio_returns = self.instrument_returns[instrument_list]
 
-        # IMPORTANT NOTE: Sub portfolios don't inherit risk targets or leverage... that is only applied at top level
-        sub_portfolio = Portfolio(sub_portfolio_returns, use_SR_estimates=self.use_SR_estimates)
+        # IMPORTANT NOTE: Sub portfolios don't inherit risk targets or
+        # leverage... that is only applied at top level
+        sub_portfolio = Portfolio(
+            sub_portfolio_returns, use_SR_estimates=self.use_SR_estimates
+        )
 
         return sub_portfolio
 
@@ -446,7 +553,7 @@ class Portfolio():
 
         # get clusters
 
-        if len(self.instruments)<=MAX_CLUSTER_SIZE:
+        if len(self.instruments) <= MAX_CLUSTER_SIZE:
             return NO_SUB_PORTFOLIOS
 
         if self._require_partioned_portfolio():
@@ -458,11 +565,19 @@ class Portfolio():
             cluster_list = self._cluster_breakdown()
 
         unique_clusters = list(set(cluster_list))
-        instruments_by_cluster = [[self.instruments[idx] for idx,i in enumerate(cluster_list) if i==cluster_id]
-                                  for cluster_id in unique_clusters]
+        instruments_by_cluster = [
+            [
+                self.instruments[idx]
+                for idx, i in enumerate(cluster_list)
+                if i == cluster_id
+            ]
+            for cluster_id in unique_clusters
+        ]
 
-        sub_portfolios = [self._create_single_subportfolio(instruments_for_this_cluster)
-                          for instruments_for_this_cluster in instruments_by_cluster]
+        sub_portfolios = [
+            self._create_single_subportfolio(instruments_for_this_cluster)
+            for instruments_for_this_cluster in instruments_by_cluster
+        ]
 
         return sub_portfolios
 
@@ -479,8 +594,9 @@ class Portfolio():
             # if top level weights are passed we need to partition
             return True
 
-        elif (not self.risk_target is NO_RISK_TARGET) and (not self.allow_leverage):
-            # if a risk target is set, but also no leverage allowed, we need to partition
+        elif (self.risk_target is not NO_RISK_TARGET) and (not self.allow_leverage):
+            # if a risk target is set, but also no leverage allowed, we need to
+            # partition
             return True
 
         return False
@@ -492,7 +608,7 @@ class Portfolio():
         :return: None [populates self.subportfolios] or NO_SUB_PORTFOLIOS
         """
 
-        ## Create the first level of sub portfolios underneath us
+        # Create the first level of sub portfolios underneath us
         sub_portfolios = self._create_child_subportfolios()
 
         if sub_portfolios is NO_SUB_PORTFOLIOS:
@@ -513,15 +629,19 @@ class Portfolio():
         :return: None
         """
 
-        descrlist=[]
+        descrlist = []
         if self.sub_portfolios is NO_SUB_PORTFOLIOS:
-            descrlist=["%s Contains %s" % (prefix, str(self.instruments))]
+            descrlist = ["%s Contains %s" % (prefix, str(self.instruments))]
             return descrlist
 
-        descrlist.append("%s Contains %d sub portfolios" % (prefix, len(self.sub_portfolios)))
+        descrlist.append("%s Contains %d sub portfolios" %
+                         (prefix, len(self.sub_portfolios)))
 
-        for idx,sub_portfolio in enumerate(self.sub_portfolios):
-            descrlist.append(sub_portfolio.show_subportfolio_tree(prefix="%s[%d]" % (prefix, idx)))
+        for idx, sub_portfolio in enumerate(self.sub_portfolios):
+            descrlist.append(
+                sub_portfolio.show_subportfolio_tree(
+                    prefix="%s[%d]" %
+                    (prefix, idx)))
 
         return descrlist
 
@@ -531,22 +651,26 @@ class Portfolio():
         :return: A list of tuples (label, dataframes) showing how the portfolio weights were built up
         """
 
-
         diag = diagobject()
 
         # not used - make sure everything is available
         vw = self.volatility_weights
 
         if self.sub_portfolios is NO_SUB_PORTFOLIOS:
-            description = "Portfolio containing %s instruments " % (str(self.instruments))
+            description = "Portfolio containing %s instruments " % (
+                str(self.instruments)
+            )
             diag.description = description
 
             vol_weights = self.volatility_weights
             raw_weights = self.raw_weights
             SR = self.sharpe_ratio
 
-            diagmatrix = pd.DataFrame([raw_weights, vol_weights, list(SR)], columns=self.instruments,
-                                      index=["Raw vol (no SR adj)", "Vol (with SR adj)", "Sharpe Ratio"])
+            diagmatrix = pd.DataFrame(
+                [raw_weights, vol_weights, list(SR)],
+                columns=self.instruments,
+                index=["Raw vol (no SR adj)", "Vol (with SR adj)", "Sharpe Ratio"],
+            )
 
             diag.calcs = diagmatrix
 
@@ -555,8 +679,9 @@ class Portfolio():
 
             return diag
 
-
-        description = "Portfolio containing %d sub portfolios" % len(self.sub_portfolios)
+        description = "Portfolio containing %d sub portfolios" % len(
+            self.sub_portfolios
+        )
         diag.description = description
 
         # do instrument level
@@ -567,48 +692,68 @@ class Portfolio():
 
         vol_weights = self.volatility_weights
 
-        diagmatrix = pd.DataFrame([instrument_vol_weight_in_sub_list,
-                                   sub_portfolio_vol_weight_list,
-                                   dm_by_instrument_list, vol_weights], columns=self.instruments,
-                                  index=["Vol wt in group",
-                                         "Vol wt. of group",
-                                         "Div mult of group", "Vol wt."])
+        diagmatrix = pd.DataFrame(
+            [
+                instrument_vol_weight_in_sub_list,
+                sub_portfolio_vol_weight_list,
+                dm_by_instrument_list,
+                vol_weights,
+            ],
+            columns=self.instruments,
+            index=[
+                "Vol wt in group",
+                "Vol wt. of group",
+                "Div mult of group",
+                "Vol wt.",
+            ],
+        )
 
         diag.calcs = diagmatrix
 
         # do aggregate next
 
-        diag.aggregate=diagobject()
+        diag.aggregate = diagobject()
         diag.aggregate.description = description + " aggregate"
 
         vol_weights = self.aggregate_portfolio.volatility_weights
         raw_weights = self.aggregate_portfolio.raw_weights
-        div_mult = [sub_portfolio.div_mult for sub_portfolio in self.sub_portfolios]
+        div_mult = [
+            sub_portfolio.div_mult for sub_portfolio in self.sub_portfolios]
         sharpe_ratios = list(self.aggregate_portfolio.sharpe_ratio)
 
         # unlabelled, sub portfolios don't get names
-        diagmatrix = pd.DataFrame([raw_weights, vol_weights, sharpe_ratios, div_mult],
-                                  index=["Raw vol (no SR adj or DM)", "Vol (with SR adj no DM)", "SR","Div mult"])
+        diagmatrix = pd.DataFrame(
+            [raw_weights, vol_weights, sharpe_ratios, div_mult],
+            index=[
+                "Raw vol (no SR adj or DM)",
+                "Vol (with SR adj no DM)",
+                "SR",
+                "Div mult",
+            ],
+        )
 
         diag.aggregate.calcs = diagmatrix
 
         # do cash
         diag.cash = diagobject()
 
-        description = "Portfolio containing %d instruments (cash calculations)" %  len(self.instruments)
+        description = "Portfolio containing %d instruments (cash calculations)" % len(
+            self.instruments)
         diag.cash.description = description
 
         vol_weights = self.volatility_weights
         cash_weights = self.cash_weights
         vol_vector = list(self.vol_vector)
 
-        diagmatrix = pd.DataFrame([vol_weights, vol_vector, cash_weights], columns=self.instruments,
-                                  index=["Vol weights", "Std.", "Cash weights"])
+        diagmatrix = pd.DataFrame(
+            [vol_weights, vol_vector, cash_weights],
+            columns=self.instruments,
+            index=["Vol weights", "Std.", "Cash weights"],
+        )
 
         diag.cash.calcs = diagmatrix
 
         return diag
-
 
     def _calculate_weights_standalone_portfolio(self):
         """
@@ -619,19 +764,22 @@ class Portfolio():
         :return: list of weights
         """
 
-        assert len(self.instruments)<=MAX_CLUSTER_SIZE
+        assert len(self.instruments) <= MAX_CLUSTER_SIZE
         assert self.sub_portfolios is NO_SUB_PORTFOLIOS
 
-        raw_weights = get_weights_using_candidate_method(self.corr_matrix.values)
+        raw_weights = get_weights_using_candidate_method(
+            self.corr_matrix.values)
         self.raw_weights = raw_weights
 
-        use_SR_estimates= self.use_SR_estimates
+        use_SR_estimates = self.use_SR_estimates
 
         if use_SR_estimates:
             SR_list = self.sharpe_ratio
             years_of_data = self.years_of_data
             avg_correlation = get_avg_corr(self.corr_matrix.values)
-            adjusted_weights = adjust_weights_for_SR(raw_weights, SR_list, years_of_data, avg_correlation)
+            adjusted_weights = adjust_weights_for_SR(
+                raw_weights, SR_list, years_of_data, avg_correlation
+            )
         else:
             adjusted_weights = raw_weights
 
@@ -649,7 +797,9 @@ class Portfolio():
         cash_weights = self.cash_weights
         instrument_returns = self.instrument_returns
 
-        cash_weights_as_df = pd.DataFrame([cash_weights] * len(instrument_returns.index), instrument_returns.index)
+        cash_weights_as_df = pd.DataFrame(
+            [cash_weights] * len(instrument_returns.index), instrument_returns.index
+        )
         cash_weights_as_df.columns = instrument_returns.columns
 
         portfolio_returns_df = cash_weights_as_df * instrument_returns
@@ -659,8 +809,7 @@ class Portfolio():
         return portfolio_returns
 
     def _calculate_portfolio_returns_std(self):
-        return self.portfolio_returns.std() * (WEEKS_IN_YEAR ** .5)
-
+        return self.portfolio_returns.std() * (WEEKS_IN_YEAR ** 0.5)
 
     def _calculate_diversification_mult(self):
         """
@@ -672,10 +821,11 @@ class Portfolio():
         corr_matrix = self.corr_matrix.values
         vol_weights = np.array(self.volatility_weights)
 
-        div_mult = 1.0/((np.dot(np.dot(vol_weights,corr_matrix), vol_weights.transpose()))**.5)
+        div_mult = 1.0 / (
+            (np.dot(np.dot(vol_weights, corr_matrix), vol_weights.transpose())) ** 0.5
+        )
 
         return div_mult
-
 
     def _calculate_sub_portfolio_returns(self):
         """
@@ -686,11 +836,11 @@ class Portfolio():
 
         assert self.sub_portfolios is not NO_SUB_PORTFOLIOS
 
-        sub_portfolio_returns = [sub_portfolio.portfolio_returns for sub_portfolio in self.sub_portfolios]
+        sub_portfolio_returns = [
+            sub_portfolio.portfolio_returns for sub_portfolio in self.sub_portfolios]
         sub_portfolio_returns = pd.concat(sub_portfolio_returns, axis=1)
 
         return sub_portfolio_returns
-
 
     def _calculate_weights_aggregated_portfolio(self):
         """
@@ -704,7 +854,9 @@ class Portfolio():
         sub_portfolio_returns = self._calculate_sub_portfolio_returns()
 
         # create another Portfolio object made up of the sub portfolios
-        aggregate_portfolio = Portfolio(sub_portfolio_returns, use_SR_estimates=self.use_SR_estimates)
+        aggregate_portfolio = Portfolio(
+            sub_portfolio_returns, use_SR_estimates=self.use_SR_estimates
+        )
 
         # store to look at later if you want
         self.aggregate_portfolio = aggregate_portfolio
@@ -718,32 +870,44 @@ class Portfolio():
         else:
             # override with top_level_weights - used when risk targeting
             try:
-                assert len(self.top_level_weights)==len(aggregate_portfolio.instruments)
-            except:
-                raise Exception("Top level weights length %d is different from number of top level groups %d"
-                                % (len(self.top_level_weights)==len(self.aggregate_portfolio.instruments)))
+                assert len(self.top_level_weights) == len(
+                    aggregate_portfolio.instruments
+                )
+            except BaseException:
+                raise Exception(
+                    "Top level weights length %d is different from number of top level groups %d" %
+                    (len(
+                        self.top_level_weights) == len(
+                        self.aggregate_portfolio.instruments)))
             aggregate_weights = self.top_level_weights
             raw_weights = aggregate_weights
 
-        # calculate the product of div_mult, aggregate weights and sub portfolio weights, return as list
+        # calculate the product of div_mult, aggregate weights and sub
+        # portfolio weights, return as list
 
         vol_weights = []
         dm_by_instrument_list = []
         instrument_vol_weight_in_sub_list = []
-        sub_portfolio_vol_weight_list =[]
+        sub_portfolio_vol_weight_list = []
 
         for instrument_code in self.instruments:
             weight = None
-            for sub_portfolio, sub_weight in zip(self.sub_portfolios, aggregate_weights):
+            for sub_portfolio, sub_weight in zip(
+                self.sub_portfolios, aggregate_weights
+            ):
                 if instrument_code in sub_portfolio.instruments:
                     if weight is not None:
-                        raise Exception("Instrument %s in multiple sub portfolios" % instrument_code)
+                        raise Exception(
+                            "Instrument %s in multiple sub portfolios" %
+                            instrument_code)
 
                     # A weight is the product of: the diversification multiplier for the subportfolio it comes from,
                     #                             the weight of that instrument within that subportfolio, and
-                    #                             the weight of the subportfolio within the larger portfolio
+                    # the weight of the subportfolio within the larger
+                    # portfolio
                     div_mult = sub_portfolio.div_mult
-                    instrument_idx = sub_portfolio.instruments.index(instrument_code)
+                    instrument_idx = sub_portfolio.instruments.index(
+                        instrument_code)
                     instrument_weight = sub_portfolio.volatility_weights[instrument_idx]
 
                     weight = div_mult * instrument_weight * sub_weight
@@ -754,7 +918,9 @@ class Portfolio():
                     sub_portfolio_vol_weight_list.append(sub_weight)
 
             if weight is None:
-                raise Exception("Instrument %s missing from all sub portfolios" % instrument_code)
+                raise Exception(
+                    "Instrument %s missing from all sub portfolios" %
+                    instrument_code)
 
             vol_weights.append(weight)
 
@@ -767,7 +933,6 @@ class Portfolio():
         self.raw_weights = raw_weights
 
         return vol_weights
-
 
     def _calculate_volatility_weights(self):
         """
@@ -797,11 +962,12 @@ class Portfolio():
         vol_weights = self.volatility_weights
         instrument_std = self.vol_vector
 
-        raw_cash_weights = [vweight / vol for vweight, vol in zip(vol_weights, instrument_std)]
+        raw_cash_weights = [
+            vweight / vol for vweight, vol in zip(vol_weights, instrument_std)
+        ]
         raw_cash_weights = norm_weights(raw_cash_weights)
 
         return raw_cash_weights
-
 
     def _calculate_cash_weights_with_risk_target_partitioned(self):
         """
@@ -812,7 +978,7 @@ class Portfolio():
         """
 
         assert self._require_partioned_portfolio()
-        assert len(self.sub_portfolios)==2
+        assert len(self.sub_portfolios) == 2
 
         # hard coded - high vol is second group. Don't change!
         high_vol_sub_portfolio = self.sub_portfolios[1]
@@ -822,32 +988,49 @@ class Portfolio():
         low_vol_std = low_vol_sub_portfolio.portfolio_std
         risk_target_std = self.risk_target
 
-        assert high_vol_std>low_vol_std
+        assert high_vol_std > low_vol_std
 
         # Now for the correlation estimate
 
         # first create another Portfolio object made up of the sub portfolios
         sub_portfolio_returns = self._calculate_sub_portfolio_returns()
-        assert len(sub_portfolio_returns.columns)==2 # should be guaranteed by partioning but just to check
-        correlation = sub_portfolio_returns.corr().values[0][1] # only works for groups of 2
+        assert (
+            len(sub_portfolio_returns.columns) == 2
+        )  # should be guaranteed by partioning but just to check
+        correlation = sub_portfolio_returns.corr().values[0][
+            1
+        ]  # only works for groups of 2
 
-        # formula from https://qoppac.blogspot.com/2018/12/portfolio-construction-through_7.html
-        a_value = (high_vol_std**2) + (low_vol_std **2) - (2*high_vol_std *low_vol_std * correlation)
-        b_value = (2*high_vol_std*low_vol_std*correlation) - 2 * (low_vol_std**2)
-        c_value = (low_vol_std**2) - (risk_target_std**2)
+        # formula from
+        # https://qoppac.blogspot.com/2018/12/portfolio-construction-through_7.html
+        a_value = (
+            (high_vol_std ** 2)
+            + (low_vol_std ** 2)
+            - (2 * high_vol_std * low_vol_std * correlation)
+        )
+        b_value = (2 * high_vol_std * low_vol_std * correlation) - 2 * (
+            low_vol_std ** 2
+        )
+        c_value = (low_vol_std ** 2) - (risk_target_std ** 2)
 
         # standard formula for solving a quadratic
-        high_cash_weight = (-b_value + (((b_value**2) - (4*a_value * c_value))**.5))/(2*a_value)
+        high_cash_weight = (
+            -b_value + (((b_value ** 2) - (4 * a_value * c_value)) ** 0.5)
+        ) / (2 * a_value)
 
         try:
-            assert high_cash_weight>=0.0
-        except:
-            raise Exception("Something went wrong; cash weight target on high risk portfolio is negative!")
+            assert high_cash_weight >= 0.0
+        except BaseException:
+            raise Exception(
+                "Something went wrong; cash weight target on high risk portfolio is negative!"
+            )
 
         try:
-            assert high_cash_weight<=1.0
-        except:
-            raise Exception("Can't hit risk target of %f - make it lower or include riskier assets!" % risk_target_std)
+            assert high_cash_weight <= 1.0
+        except BaseException:
+            raise Exception(
+                "Can't hit risk target of %f - make it lower or include riskier assets!" %
+                risk_target_std)
 
         # new_weight is the weight on the HIGH_VOL portfolio
         low_cash_weight = 1.0 - high_cash_weight
@@ -856,8 +1039,9 @@ class Portfolio():
         high_vol_weight = high_cash_weight * high_vol_std
         low_vol_weight = low_cash_weight * low_vol_std
 
-        self.log("Need to limit low cash group to %f (vol) %f (cash) of portfolio to hit risk target of %f" %
-                 (low_vol_weight, low_cash_weight, risk_target_std))
+        self.log(
+            "Need to limit low cash group to %f (vol) %f (cash) of portfolio to hit risk target of %f" %
+            (low_vol_weight, low_cash_weight, risk_target_std))
 
         # Hard coded - high vol is second group
         top_level_weights = norm_weights([low_vol_weight, high_vol_weight])
@@ -867,8 +1051,12 @@ class Portfolio():
         #  we also need to pass the risk target to get same partitioning
         #   and use_SR_estimates to guarantee weights are the same
         #
-        adjusted_portfolio = Portfolio(self.instrument_returns, use_SR_estimates=self.use_SR_estimates,
-                                       top_level_weights=top_level_weights, risk_target=self.risk_target)
+        adjusted_portfolio = Portfolio(
+            self.instrument_returns,
+            use_SR_estimates=self.use_SR_estimates,
+            top_level_weights=top_level_weights,
+            risk_target=self.risk_target,
+        )
 
         return adjusted_portfolio.cash_weights
 
@@ -884,7 +1072,9 @@ class Portfolio():
 
         # create version without risk target to check natural risk
         # note all sub portfolios are like this
-        natural_portfolio = Portfolio(self.instrument_returns, risk_target=NO_RISK_TARGET)
+        natural_portfolio = Portfolio(
+            self.instrument_returns, risk_target=NO_RISK_TARGET
+        )
         natural_std = natural_portfolio.portfolio_std
         natural_cash_weights = natural_portfolio.cash_weights
 
@@ -899,8 +1089,12 @@ class Portfolio():
             cash_required = (natural_std - target_std) / natural_std
             portfolio_capital_left = 1.0 - cash_required
 
-            self.log("Too much risk %f of the portfolio will be cash" % cash_required)
-            cash_weights = list(np.array(natural_cash_weights)*portfolio_capital_left)
+            self.log(
+                "Too much risk %f of the portfolio will be cash" %
+                cash_required)
+            cash_weights = list(
+                np.array(natural_cash_weights) *
+                portfolio_capital_left)
 
             # stored as diag
             self.cash_required = cash_required
@@ -913,8 +1107,10 @@ class Portfolio():
                 # calc leverage
                 leverage = target_std / natural_std
 
-                self.log("Not enough risk leverage factor of %f applied" % leverage)
-                cash_weights = list(np.array(natural_cash_weights)*leverage)
+                self.log(
+                    "Not enough risk leverage factor of %f applied" %
+                    leverage)
+                cash_weights = list(np.array(natural_cash_weights) * leverage)
                 # stored as diag
                 self.leverage = leverage
 
@@ -923,7 +1119,8 @@ class Portfolio():
             else:
                 # no leverage allowed
                 # need to adjust weights
-                self.log("Not enough risk, no leverage allowed, using partition method")
+                self.log(
+                    "Not enough risk, no leverage allowed, using partition method")
 
                 return self._calculate_cash_weights_with_risk_target_partitioned()
 
@@ -931,7 +1128,6 @@ class Portfolio():
         # unlikely - but!
 
         return natural_cash_weights
-
 
     def _calculate_cash_weights(self):
         """
@@ -966,7 +1162,12 @@ class Portfolio():
         :return: weights adding back original instruments
         """
 
-        original_weights_valid_only = dict([(instrument, weight) for instrument, weight in zip(self.valid_instruments, original_weights)])
+        original_weights_valid_only = dict(
+            [
+                (instrument, weight)
+                for instrument, weight in zip(self.valid_instruments, original_weights)
+            ]
+        )
         new_weights = []
         for instrument in self.all_instruments:
             if instrument in self.missing_instruments:
@@ -977,7 +1178,6 @@ class Portfolio():
                 raise Exception("Gone horribly wrong")
 
         return new_weights
-
 
     def volatility_weights_with_missing_data(self):
         """
@@ -1074,5 +1274,3 @@ class Portfolio():
             self._diags = diags
 
             return diags
-
-

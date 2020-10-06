@@ -39,7 +39,8 @@ class RawData(SystemStage):
         """
         self.log.msg(
             "Calculating daily prices for %s" % instrument_code,
-            instrument_code=instrument_code)
+            instrument_code=instrument_code,
+        )
         dailyprice = self.parent.data.daily_prices(instrument_code)
 
         return dailyprice
@@ -143,7 +144,8 @@ class RawData(SystemStage):
         """
         self.log.msg(
             "Calculating daily volatility for %s" % instrument_code,
-            instrument_code=instrument_code)
+            instrument_code=instrument_code,
+        )
 
         system = self.parent
         dailyreturns = self.daily_returns(instrument_code)
@@ -152,7 +154,7 @@ class RawData(SystemStage):
         # volconfig contains 'func' and some other arguments
         # we turn func which could be a string into a function, and then
         # call it with the other ags
-        volfunction = resolve_function(volconfig.pop('func'))
+        volfunction = resolve_function(volconfig.pop("func"))
         vol = volfunction(dailyreturns, **volconfig)
 
         return vol
@@ -173,10 +175,9 @@ class RawData(SystemStage):
 
         denom_price = self.daily_denominator_price(instrument_code)
         num_returns = self.daily_returns(instrument_code)
-        perc_returns = num_returns/denom_price.ffill()
+        perc_returns = num_returns / denom_price.ffill()
 
         return perc_returns
-
 
     @output()
     def get_daily_percentage_volatility(self, instrument_code):
@@ -204,8 +205,7 @@ class RawData(SystemStage):
         denom_price = self.daily_denominator_price(instrument_code)
         return_vol = self.daily_returns_volatility(instrument_code)
         (denom_price, return_vol) = denom_price.align(return_vol, join="right")
-        perc_vol = 100.0 * \
-            (return_vol / denom_price.ffill())
+        perc_vol = 100.0 * (return_vol / denom_price.ffill())
 
         return perc_vol
 
@@ -234,7 +234,8 @@ class RawData(SystemStage):
         """
         self.log.msg(
             "Calculating normalised return for %s" % instrument_code,
-            instrument_code=instrument_code)
+            instrument_code=instrument_code,
+        )
 
         returnvol = self.daily_returns_volatility(instrument_code).shift(1)
         dailyreturns = self.daily_returns(instrument_code)
@@ -252,8 +253,8 @@ class RawData(SystemStage):
         """
 
         self.log.msg(
-            "Calculating cumulative normalised return for %s" % instrument_code,
-            instrument_code=instrument_code)
+            "Calculating cumulative normalised return for %s" %
+            instrument_code, instrument_code=instrument_code, )
 
         norm_returns = self.norm_returns(instrument_code)
 
@@ -270,14 +271,20 @@ class RawData(SystemStage):
         :return: pd.Series
         """
 
-        instruments_in_asset_class = self.parent.data.all_instruments_in_asset_class(asset_class)
+        instruments_in_asset_class = self.parent.data.all_instruments_in_asset_class(
+            asset_class)
 
-        aggregate_returns_across_asset_class = [self.norm_returns(instrument_code)
-                                             for instrument_code in instruments_in_asset_class]
+        aggregate_returns_across_asset_class = [
+            self.norm_returns(instrument_code)
+            for instrument_code in instruments_in_asset_class
+        ]
 
-        aggregate_returns_across_asset_class = pd.concat(aggregate_returns_across_asset_class, axis=1)
+        aggregate_returns_across_asset_class = pd.concat(
+            aggregate_returns_across_asset_class, axis=1
+        )
 
-        # we don't ffill before working out the median as this could lead to bad data
+        # we don't ffill before working out the median as this could lead to
+        # bad data
         median_returns = aggregate_returns_across_asset_class.median(axis=1)
 
         return median_returns
@@ -291,7 +298,8 @@ class RawData(SystemStage):
         :return: pd.Series
         """
 
-        norm_returns = self._aggregate_normalised_returns_for_asset_class(asset_class)
+        norm_returns = self._aggregate_normalised_returns_for_asset_class(
+            asset_class)
         norm_price = norm_returns.cumsum()
 
         return norm_price
@@ -304,14 +312,18 @@ class RawData(SystemStage):
         :return:
         """
 
-        asset_class = self.parent.data.asset_class_for_instrument(instrument_code)
-        normalised_price_for_asset_class = self._by_asset_class_normalised_price_for_asset_class_(asset_class)
-        normalised_price_this_instrument = self.cumulative_norm_return(instrument_code)
+        asset_class = self.parent.data.asset_class_for_instrument(
+            instrument_code)
+        normalised_price_for_asset_class = (
+            self._by_asset_class_normalised_price_for_asset_class_(asset_class)
+        )
+        normalised_price_this_instrument = self.cumulative_norm_return(
+            instrument_code)
 
         # Align for an easy life
         # As usual forward fill at last moment
-        normalised_price_for_asset_class = normalised_price_for_asset_class.reindex\
-            (normalised_price_this_instrument.index).ffill()
+        normalised_price_for_asset_class = normalised_price_for_asset_class.reindex(
+            normalised_price_this_instrument.index).ffill()
 
         return normalised_price_for_asset_class
 
@@ -331,11 +343,12 @@ class RawData(SystemStage):
 
         denom_price = self.daily_denominator_price(instrument_code)
         num_returns = self.daily_returns(instrument_code)
-        perc_returns = num_returns/denom_price.ffill()
+        perc_returns = num_returns / denom_price.ffill()
 
         return perc_returns
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import doctest
+
     doctest.testmod()

@@ -1,7 +1,7 @@
-### Get all the data we need to run production code
-### Stick in a standard 'blob', so the names are common
+# Get all the data we need to run production code
+# Stick in a standard 'blob', so the names are common
 
-from copy import  copy
+from copy import copy
 
 from sysbrokers.IB.ibFuturesContractPriceData import ibFuturesContractPriceData
 from sysbrokers.IB.ibSpotFXData import ibFxPricesData
@@ -11,12 +11,13 @@ from sysbrokers.IB.ibPositionData import ibContractPositionData
 from sysbrokers.IB.ibOrders import ibOrdersData
 from sysbrokers.IB.ibMiscData import ibMiscData
 
-from sysdata.arctic.arctic_futures_per_contract_prices import arcticFuturesContractPriceData
+from sysdata.arctic.arctic_futures_per_contract_prices import (
+    arcticFuturesContractPriceData,
+)
 from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesData
 from sysdata.arctic.arctic_adjusted_prices import arcticFuturesAdjustedPricesData
 from sysdata.arctic.arctic_spotfx_prices import arcticFxPricesData
 from sysdata.arctic.arctic_and_mongo_sim_futures_data import arcticFuturesSimData
-
 
 from sysdata.csv.csv_futures_contract_prices import csvFuturesContractPriceData
 from sysdata.csv.csv_adjusted_prices import csvFuturesAdjustedPricesData
@@ -24,7 +25,11 @@ from sysdata.csv.csv_multiple_prices import csvFuturesMultiplePricesData
 from sysdata.csv.csv_spot_fx import csvFxPricesData
 from sysdata.csv.csv_contract_position_data import csvContractPositionData
 from sysdata.csv.csv_strategy_position_data import csvStrategyPositionData
-from sysdata.csv.csv_historic_orders import csvBrokerHistoricOrdersData, csvContractHistoricOrdersData, csvStrategyHistoricOrdersData
+from sysdata.csv.csv_historic_orders import (
+    csvBrokerHistoricOrdersData,
+    csvContractHistoricOrdersData,
+    csvStrategyHistoricOrdersData,
+)
 from sysdata.csv.csv_capital_data import csvCapitalData
 from sysdata.csv.csv_optimal_position import csvOptimalPositionData
 from sysdata.csv.csv_instrument_config import csvFuturesInstrumentData
@@ -39,8 +44,16 @@ from sysdata.mongodb.mongo_position_by_contract import mongoContractPositionData
 from sysdata.mongodb.mongo_capital import mongoCapitalData
 from sysdata.mongodb.mongo_optimal_position import mongoOptimalPositionData
 from sysdata.mongodb.mongo_positions_by_strategy import mongoStrategyPositionData
-from sysdata.mongodb.mongo_order_stack import mongoInstrumentOrderStackData, mongoContractOrderStackData, mongoBrokerOrderStackData
-from sysdata.mongodb.mongo_historic_orders import mongoStrategyHistoricOrdersData, mongoContractHistoricOrdersData, mongoBrokerHistoricOrdersData
+from sysdata.mongodb.mongo_order_stack import (
+    mongoInstrumentOrderStackData,
+    mongoContractOrderStackData,
+    mongoBrokerOrderStackData,
+)
+from sysdata.mongodb.mongo_historic_orders import (
+    mongoStrategyHistoricOrdersData,
+    mongoContractHistoricOrdersData,
+    mongoBrokerHistoricOrdersData,
+)
 from sysdata.mongodb.mongo_override import mongoOverrideData
 from sysdata.mongodb.mongo_trade_limits import mongoTradeLimitData
 from sysdata.mongodb.mongo_lock_data import mongoLockData
@@ -50,8 +63,6 @@ from sysdata.mongodb.mongo_email_control import mongoEmailControlData
 
 from sysdata.mongodb.mongo_connection import mongoDb
 
-
-
 from sysdata.mongodb.mongo_connection import mongoDb
 
 from sysdata.mongodb.mongo_log import logToMongod as logger
@@ -59,9 +70,16 @@ from syscore.objects import arg_not_supplied, success, failure
 
 
 class dataBlob(object):
-    def __init__(self, arg_string=arg_not_supplied, log_name = "", csv_data_paths=arg_not_supplied,
-                 ib_conn = arg_not_supplied, mongo_db = arg_not_supplied, log=arg_not_supplied,
-                 keep_original_prefix = False):
+    def __init__(
+        self,
+        arg_string=arg_not_supplied,
+        log_name="",
+        csv_data_paths=arg_not_supplied,
+        ib_conn=arg_not_supplied,
+        mongo_db=arg_not_supplied,
+        log=arg_not_supplied,
+        keep_original_prefix=False,
+    ):
         """
         Set up of a data pipeline with standard attribute names, logging, links to DB etc
 
@@ -98,7 +116,6 @@ class dataBlob(object):
 
         """
 
-
         self._mongo_db = mongo_db
         self._ib_conn = ib_conn
         self._log = log
@@ -122,6 +139,7 @@ class dataBlob(object):
     """
     Following two methods implement context manager
     """
+
     def __enter__(self):
         return self
 
@@ -157,7 +175,7 @@ class dataBlob(object):
     def log(self):
         log = getattr(self, "_log", arg_not_supplied)
         if log is arg_not_supplied:
-            log = logger(self._log_name, data = self, mongo_db = self.mongo_db)
+            log = logger(self._log_name, data=self, mongo_db=self.mongo_db)
             log.set_logging_level("on")
             self._log = log
 
@@ -165,7 +183,7 @@ class dataBlob(object):
 
     @property
     def log_name(self):
-        return self.log.attributes['type']
+        return self.log.attributes["type"]
 
     def setup_clone(self, **kwargs):
         new_data = self._original_data
@@ -178,7 +196,7 @@ class dataBlob(object):
     def csv_data_paths(self):
         csv_data_paths = getattr(self, "_csv_data_paths", arg_not_supplied)
         if csv_data_paths is arg_not_supplied:
-            raise  Exception("No defaults for csv data paths")
+            raise Exception("No defaults for csv data paths")
         return csv_data_paths
 
     def add_class_list(self, arg_string):
@@ -215,39 +233,54 @@ class dataBlob(object):
         split_up_name = camel_case_split(class_name)
         prefix = split_up_name[0]
 
-        ## NEED TO DYNAMICALLY SWITCH DB SOURCE AND ADD DEFAULT CSV PATH NAME
-        ## REMOVE SOURCE_ PREFIX, REPLACE WITH db_ or broker_
-        if prefix=='csv':
+        # NEED TO DYNAMICALLY SWITCH DB SOURCE AND ADD DEFAULT CSV PATH NAME
+        # REMOVE SOURCE_ PREFIX, REPLACE WITH db_ or broker_
+        if prefix == "csv":
             csv_data_paths = self.csv_data_paths
             if csv_data_paths is arg_not_supplied:
-                raise Exception("Need csv_data_paths dict for class name %s" % class_name)
+                raise Exception(
+                    "Need csv_data_paths dict for class name %s" % class_name
+                )
             datapath = csv_data_paths.get(class_name, "")
-            if datapath=="":
-                raise Exception("Need to have key %s in csv_data_paths" % class_name)
+            if datapath == "":
+                raise Exception(
+                    "Need to have key %s in csv_data_paths" %
+                    class_name)
 
-        eval_dict = dict(ib = "%s(self.ib_conn, log=self.log.setup(component='%s'))",
-                         mongo = "%s(mongo_db=self.mongo_db, log=self.log.setup(component='%s'))",
-                         arctic = "%s(mongo_db=self.mongo_db, log=self.log.setup(component='%s'))",
-                         csv = "%s(datapath=datapath, log=self.log.setup(component='%s'))")
+        eval_dict = dict(
+            ib="%s(self.ib_conn, log=self.log.setup(component='%s'))",
+            mongo="%s(mongo_db=self.mongo_db, log=self.log.setup(component='%s'))",
+            arctic="%s(mongo_db=self.mongo_db, log=self.log.setup(component='%s'))",
+            csv="%s(datapath=datapath, log=self.log.setup(component='%s'))",
+        )
 
-        to_eval = eval_dict[prefix] % (class_name, class_name) # class_name appears twice as always passed as a log
-        ## The eval may use ib_conn, mongo_db, datapath and will always use log
+        to_eval = eval_dict[prefix] % (
+            class_name,
+            class_name,
+        )  # class_name appears twice as always passed as a log
+        # The eval may use ib_conn, mongo_db, datapath and will always use log
         try:
             resolved_instance = eval(to_eval)
-        except:
-            msg = "Couldn't evaluate %s This might be because (a) IB gateway not running, or (b) it is missing from sysproduction.data.get_data imports or arguments don't follow pattern" % to_eval
+        except BaseException:
+            msg = (
+                "Couldn't evaluate %s This might be because (a) IB gateway not running, or (b) it is missing from sysproduction.data.get_data imports or arguments don't follow pattern" %
+                to_eval)
             self.log.critical(msg)
             raise Exception(msg)
 
         keep_original_prefix = self.keep_original_prefix
 
-        attr_name = identifying_name(split_up_name, keep_original_prefix =keep_original_prefix)
+        attr_name = identifying_name(
+            split_up_name, keep_original_prefix=keep_original_prefix
+        )
 
         return attr_name, resolved_instance
 
-source_dict = dict(arctic = "db", mongo = "db", csv = "db", ib = "broker")
 
-def identifying_name(split_up_name, keep_original_prefix =False):
+source_dict = dict(arctic="db", mongo="db", csv="db", ib="broker")
+
+
+def identifying_name(split_up_name, keep_original_prefix=False):
     """
     Turns sourceClassNameData into broker_class_name or db_class_name
 
@@ -255,25 +288,32 @@ def identifying_name(split_up_name, keep_original_prefix =False):
     :return: str, class_name
     """
     lower_split_up_name = [x.lower() for x in split_up_name]
-    data_label = lower_split_up_name.pop(-1) # always 'data'
-    original_source_label = lower_split_up_name.pop(0) # always the source, eg csv, ib, mongo or arctic
+    data_label = lower_split_up_name.pop(-1)  # always 'data'
+    original_source_label = lower_split_up_name.pop(
+        0
+    )  # always the source, eg csv, ib, mongo or arctic
 
     try:
-        assert data_label=="data"
-    except:
-        raise Exception("Get_data strings only work if class name ends in ...Data")
+        assert data_label == "data"
+    except BaseException:
+        raise Exception(
+            "Get_data strings only work if class name ends in ...Data")
 
     if keep_original_prefix:
         source_label = original_source_label
     else:
         try:
             source_label = source_dict[original_source_label]
-        except:
-            raise Exception("Only works with classes that begin with one of %s" % str(source_dict.keys()))
+        except BaseException:
+            raise Exception(
+                "Only works with classes that begin with one of %s"
+                % str(source_dict.keys())
+            )
 
     lower_split_up_name = [source_label] + lower_split_up_name
 
     return "_".join(lower_split_up_name)
+
 
 def camel_case_split(str):
     words = [[str[0]]]
@@ -284,6 +324,4 @@ def camel_case_split(str):
         else:
             words[-1].append(c)
 
-    return [''.join(word) for word in words]
-
-
+    return ["".join(word) for word in words]

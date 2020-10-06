@@ -1,6 +1,7 @@
 from sysdata.futures.contracts import contractDateWithRollParameters
 from copy import copy
 
+
 class rollParametersWithPriceData(object):
     def __init__(self, roll_parameters, dict_of_final_price_data):
         """
@@ -14,8 +15,6 @@ class rollParametersWithPriceData(object):
         self.roll_parameters = roll_parameters
         self.prices = dict_of_final_price_data
 
-
-
     def find_earliest_held_contract_with_data(self):
         """
         Find the earliest contract we can hold in a given list of contract dates
@@ -28,15 +27,20 @@ class rollParametersWithPriceData(object):
         final_contract_date = list_of_contract_dates[-1]
         plausible_earliest_contract_date = list_of_contract_dates[0]
         roll_parameters_object = self.roll_parameters
-        plausible_earliest_contract = contractDateWithRollParameters(roll_parameters_object,
-                                                                     plausible_earliest_contract_date)
+        plausible_earliest_contract = contractDateWithRollParameters(
+            roll_parameters_object, plausible_earliest_contract_date
+        )
 
-        try_contract = contractWithRollParametersAndPrices(plausible_earliest_contract, self.prices)
+        try_contract = contractWithRollParametersAndPrices(
+            plausible_earliest_contract, self.prices
+        )
 
         while try_contract.contract_date <= final_contract_date:
             if try_contract.contract_date in list_of_contract_dates:
                 # possible candidate, let's check carry
-                try_carry_contract = try_contract.find_best_carry_contract_with_price_data()
+                try_carry_contract = (
+                    try_contract.find_best_carry_contract_with_price_data()
+                )
                 if try_carry_contract is not None:
                     # Okay this works
                     contract_to_return = try_contract.contract
@@ -49,11 +53,16 @@ class rollParametersWithPriceData(object):
         # Nothing found
         return None
 
+
 class contractWithRollParametersAndPrices(object):
     """
     Including prices in our contract means we can navigate more accurately through roll cycles
     """
-    def __init__(self, contract_with_roll_parameters, dict_of_final_price_data):
+
+    def __init__(
+            self,
+            contract_with_roll_parameters,
+            dict_of_final_price_data):
         """
 
         :param contract_with_roll_parameters: contractWithRollParameters
@@ -73,19 +82,31 @@ class contractWithRollParametersAndPrices(object):
 
     def next_held_contract(self):
         next_held_contract_with_roll_parameters = self.contract.next_held_contract()
-        return contractWithRollParametersAndPrices(next_held_contract_with_roll_parameters, self.prices)
+        return contractWithRollParametersAndPrices(
+            next_held_contract_with_roll_parameters, self.prices
+        )
 
     def next_priced_contract(self):
         next_priced_contract_with_roll_parameters = self.contract.next_priced_contract()
-        return contractWithRollParametersAndPrices(next_priced_contract_with_roll_parameters, self.prices)
+        return contractWithRollParametersAndPrices(
+            next_priced_contract_with_roll_parameters, self.prices
+        )
 
     def previous_priced_contract(self):
-        previous_priced_contract_with_roll_parameters = self.contract.previous_priced_contract()
-        return contractWithRollParametersAndPrices(previous_priced_contract_with_roll_parameters, self.prices)
+        previous_priced_contract_with_roll_parameters = (
+            self.contract.previous_priced_contract()
+        )
+        return contractWithRollParametersAndPrices(
+            previous_priced_contract_with_roll_parameters, self.prices
+        )
 
     def previous_held_contract(self):
-        previous_held_contract_with_roll_parameters = self.contract.previous_held_contract()
-        return contractWithRollParametersAndPrices(previous_held_contract_with_roll_parameters, self.prices)
+        previous_held_contract_with_roll_parameters = (
+            self.contract.previous_held_contract()
+        )
+        return contractWithRollParametersAndPrices(
+            previous_held_contract_with_roll_parameters, self.prices
+        )
 
     def find_next_held_contract_with_price_data(self):
         """
@@ -98,7 +119,7 @@ class contractWithRollParametersAndPrices(object):
         list_of_contract_dates = self.prices.sorted_contract_ids()
         final_contract_date = list_of_contract_dates[-1]
 
-        while try_contract.contract_date<=final_contract_date:
+        while try_contract.contract_date <= final_contract_date:
             if try_contract.contract_date in list_of_contract_dates:
                 return try_contract
             try_contract = try_contract.next_held_contract()
@@ -117,7 +138,7 @@ class contractWithRollParametersAndPrices(object):
         list_of_contract_dates = self.prices.sorted_contract_ids()
         final_contract_date = list_of_contract_dates[-1]
 
-        while try_contract.contract_date<=final_contract_date:
+        while try_contract.contract_date <= final_contract_date:
             if try_contract.contract_date in list_of_contract_dates:
                 return try_contract
             try_contract = try_contract.next_priced_contract()
@@ -136,7 +157,7 @@ class contractWithRollParametersAndPrices(object):
         list_of_contract_dates = self.prices.sorted_contract_ids()
         first_contract_date = list_of_contract_dates[0]
 
-        while try_contract.contract_date>=first_contract_date:
+        while try_contract.contract_date >= first_contract_date:
             if try_contract.contract_date in list_of_contract_dates:
                 return try_contract
             try_contract = try_contract.previous_priced_contract()
@@ -155,14 +176,13 @@ class contractWithRollParametersAndPrices(object):
         list_of_contract_dates = self.prices.sorted_contract_ids()
         first_contract_date = list_of_contract_dates[0]
 
-        while try_contract.contract_date>=first_contract_date:
+        while try_contract.contract_date >= first_contract_date:
             if try_contract.contract_date in list_of_contract_dates:
                 return try_contract
             try_contract = try_contract.previous_held_contract()
 
         # Nothing found
         return None
-
 
     def find_best_carry_contract_with_price_data(self):
         """
@@ -175,12 +195,11 @@ class contractWithRollParametersAndPrices(object):
         """
         carry_offset = self.contract.roll_parameters.carry_offset
 
-        if carry_offset==1.0:
+        if carry_offset == 1.0:
             best_carry_contract = self.find_next_priced_contract_with_price_data()
-        elif carry_offset==-1.0:
+        elif carry_offset == -1.0:
             best_carry_contract = self.find_previous_priced_contract_with_price_data()
         else:
             raise Exception("Carry offset should be 1 or -1!")
 
         return best_carry_contract
-

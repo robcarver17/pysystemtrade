@@ -20,9 +20,7 @@ class SystemStage(object):
     """
 
     def __init__(self):
-        '''
-
-        '''
+        """"""
 
         # We set these to empty lists but in the inherited object they'll be
         # overriden
@@ -30,21 +28,24 @@ class SystemStage(object):
         setattr(self, "name", self._name())
         setattr(self, "description", self._description())
 
-        # this will normally be overriden by the base system when we call _system_init
+        # this will normally be overriden by the base system when we call
+        # _system_init
         setattr(self, "log", logtoscreen("generic_stage", stage="config"))
 
     def _name(self):
-        ## normally overriden
+        # normally overriden
         return "unnamed"
 
     def _description(self):
-        ## normally overriden
+        # normally overriden
         return ""
 
     def __repr__(self):
-        return "SystemStage '%s' %s Try %s.methods()" % (self.name,
-                                                         self.description,
-                                                         self.name)
+        return "SystemStage '%s' %s Try %s.methods()" % (
+            self.name,
+            self.description,
+            self.name,
+        )
 
     def methods(self):
         return get_methods(self)

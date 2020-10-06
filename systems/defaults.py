@@ -7,7 +7,7 @@ Order of preferences is - passed in command line to calculation method,
 
 """
 from syscore.fileutils import get_filename_for_package
-from syscore.objects import missing_data,arg_not_supplied
+from syscore.objects import missing_data, arg_not_supplied
 import yaml
 
 DEFAULT_FILENAME = "systems.provided.defaults.yaml"
@@ -25,7 +25,8 @@ def get_system_defaults():
     return default_dict
 
 
-def get_default_config_key_value(key_name, system_defaults_dict = arg_not_supplied):
+def get_default_config_key_value(key_name,
+                                 system_defaults_dict=arg_not_supplied):
     if system_defaults_dict is arg_not_supplied:
         default_config_dict = get_system_defaults()
     else:
@@ -35,8 +36,10 @@ def get_default_config_key_value(key_name, system_defaults_dict = arg_not_suppli
 
     return key_value
 
+
 system_defaults = get_system_defaults()
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import doctest
+
     doctest.testmod()

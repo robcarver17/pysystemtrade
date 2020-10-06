@@ -49,7 +49,8 @@ class ForecastScaleCap(SystemStage):
         """
 
         raw_forecast = self.parent.rules.get_raw_forecast(
-            instrument_code, rule_variation_name)
+            instrument_code, rule_variation_name
+        )
 
         return raw_forecast
 
@@ -62,10 +63,14 @@ class ForecastScaleCap(SystemStage):
         :return: list of trading rules
         """
 
-        if getattr(self.parent, "combForecast", MISSING_ELEMENT) is MISSING_ELEMENT:
+        if getattr(
+            self.parent,
+            "combForecast",
+                MISSING_ELEMENT) is MISSING_ELEMENT:
             return []
         else:
-            return self.parent.combForecast.get_trading_rule_list(instrument_code)
+            return self.parent.combForecast.get_trading_rule_list(
+                instrument_code)
 
     @diagnostic()
     def _list_of_instruments_for_trading_rule(self, rule_variation_name):
@@ -79,8 +84,11 @@ class ForecastScaleCap(SystemStage):
         """
 
         instrument_list = self.parent.get_instrument_list()
-        instruments_with_rule=[instrument_code for instrument_code in instrument_list
-                        if rule_variation_name in self._get_trading_rule_list(instrument_code)]
+        instruments_with_rule = [
+            instrument_code
+            for instrument_code in instrument_list
+            if rule_variation_name in self._get_trading_rule_list(instrument_code)
+        ]
 
         if len(instruments_with_rule) == 0:
             return instrument_list
@@ -129,7 +137,8 @@ class ForecastScaleCap(SystemStage):
         """
 
         forecast_cap = self.get_forecast_cap()
-        forecast_floor = getattr(self.parent.config, "forecast_floor", -forecast_cap)
+        forecast_floor = getattr(
+            self.parent.config, "forecast_floor", -forecast_cap)
 
         return forecast_floor
 
@@ -184,23 +193,22 @@ class ForecastScaleCap(SystemStage):
 
         system = self.parent
         try:
-            scalar = system.config.trading_rules[rule_variation_name][
-                'forecast_scalar']
-        except:
+            scalar = system.config.trading_rules[rule_variation_name]["forecast_scalar"]
+        except BaseException:
             try:
                 # can also put somewhere else ...
                 scalar = system.config.forecast_scalars[rule_variation_name]
-            except:
+            except BaseException:
                 # go with defaults
-                scalar = get_default_config_key_value('forecast_scalar')
+                scalar = get_default_config_key_value("forecast_scalar")
 
         return scalar
 
     # protected in cache as slow to estimate
     @diagnostic(protected=True)
     def _get_forecast_scalar_estimated_from_instrument_list(
-            self, instrument_code, rule_variation_name,
-            forecast_scalar_config):
+        self, instrument_code, rule_variation_name, forecast_scalar_config
+    ):
         """
         Get the scalar to apply to raw forecasts
 
@@ -223,7 +231,7 @@ class ForecastScaleCap(SystemStage):
         # The config contains 'func' and some other arguments
         # we turn func which could be a string into a function, and then
         # call it with the other ags
-        scalar_function = resolve_function(forecast_scalar_config.pop('func'))
+        scalar_function = resolve_function(forecast_scalar_config.pop("func"))
         """
         instrument_list contains multiple things, might pool everything across
           all instruments
@@ -231,16 +239,19 @@ class ForecastScaleCap(SystemStage):
 
         if instrument_code == ALL_KEYNAME:
             # pool data across all instruments using this trading rule
-            instrument_list = self._list_of_instruments_for_trading_rule(rule_variation_name)
+            instrument_list = self._list_of_instruments_for_trading_rule(
+                rule_variation_name
+            )
 
         else:
             ## not pooled
             instrument_list = [instrument_code]
 
         self.log.msg(
-            "Getting forecast scalar for %s over %s" %
-            (rule_variation_name, ", ".join(instrument_list)),
-            rule_variation_name=rule_variation_name)
+            "Getting forecast scalar for %s over %s"
+            % (rule_variation_name, ", ".join(instrument_list)),
+            rule_variation_name=rule_variation_name,
+        )
 
         forecast_list = [
             self.get_raw_forecast(instrument_code, rule_variation_name)
@@ -252,15 +263,15 @@ class ForecastScaleCap(SystemStage):
 
         # an example of a scaling function is syscore.algos.forecast_scalar
         # must return thing the same size as cs_forecasts
-        scaling_factor = scalar_function(cs_forecasts,
-                                         **forecast_scalar_config)
+        scaling_factor = scalar_function(
+            cs_forecasts, **forecast_scalar_config)
 
         return scaling_factor
 
     # protected in cache as slow to estimate
     @diagnostic(protected=True)
-    def _get_forecast_scalar_estimated(self, instrument_code,
-                                       rule_variation_name):
+    def _get_forecast_scalar_estimated(
+            self, instrument_code, rule_variation_name):
         """
         Get the scalar to apply to raw forecasts
 
@@ -320,8 +331,7 @@ class ForecastScaleCap(SystemStage):
             instrument_code_to_pass = copy(instrument_code)
 
         scaling_factor = self._get_forecast_scalar_estimated_from_instrument_list(
-            instrument_code_to_pass, rule_variation_name,
-            forecast_scalar_config)
+            instrument_code_to_pass, rule_variation_name, forecast_scalar_config)
         forecast = self.get_raw_forecast(instrument_code, rule_variation_name)
 
         scaling_factor = scaling_factor.reindex(forecast.index, method="ffill")
@@ -335,11 +345,12 @@ class ForecastScaleCap(SystemStage):
     @dont_cache
     def get_forecast_scalar(self, instrument_code, rule_variation_name):
         if self._use_estimated_weights():
-            return self._get_forecast_scalar_estimated(instrument_code,
-                                                       rule_variation_name)
+            return self._get_forecast_scalar_estimated(
+                instrument_code, rule_variation_name
+            )
         else:
-            return self._get_forecast_scalar_fixed(instrument_code,
-                                                   rule_variation_name)
+            return self._get_forecast_scalar_fixed(
+                instrument_code, rule_variation_name)
 
     @diagnostic()
     def get_scaled_forecast(self, instrument_code, rule_variation_name):
@@ -364,11 +375,11 @@ class ForecastScaleCap(SystemStage):
         2015-12-11  0.871231
         """
 
-        raw_forecast = self.get_raw_forecast(instrument_code,
-                                             rule_variation_name)
+        raw_forecast = self.get_raw_forecast(
+            instrument_code, rule_variation_name)
         scale = self.get_forecast_scalar(
-            instrument_code,
-            rule_variation_name)  ## will either be a scalar or a timeseries
+            instrument_code, rule_variation_name
+        )  # will either be a scalar or a timeseries
 
         scaled_forecast = raw_forecast * scale
 
@@ -403,21 +414,25 @@ class ForecastScaleCap(SystemStage):
         """
 
         self.log.msg(
-            "Calculating capped forecast for %s %s" % (instrument_code,
-                                                       rule_variation_name),
+            "Calculating capped forecast for %s %s"
+            % (instrument_code, rule_variation_name),
             instrument_code=instrument_code,
-            rule_variation_name=rule_variation_name)
+            rule_variation_name=rule_variation_name,
+        )
 
-        scaled_forecast = self.get_scaled_forecast(instrument_code,
-                                                   rule_variation_name)
+        scaled_forecast = self.get_scaled_forecast(
+            instrument_code, rule_variation_name)
         upper_cap = self.get_forecast_cap()
         lower_floor = self.get_forecast_floor()
 
-        capped_scaled_forecast = scaled_forecast.clip(upper=upper_cap, lower=lower_floor)
+        capped_scaled_forecast = scaled_forecast.clip(
+            upper=upper_cap, lower=lower_floor
+        )
 
         return capped_scaled_forecast
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import doctest
+
     doctest.testmod()

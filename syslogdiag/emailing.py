@@ -6,23 +6,24 @@ from email.mime.multipart import MIMEMultipart
 
 from sysdata.private_config import get_list_of_private_config_values
 
+
 def send_mail_file(textfile, subject):
     """
     Sends an email of a particular text file with subject line
 
     """
 
-    fp = open(textfile, 'rb')
+    fp = open(textfile, "rb")
     # Create a text/plain message
     msg = MIMEText(fp.read())
     fp.close()
 
-    msg['Subject'] = subject
+    msg["Subject"] = subject
 
     _send_msg(msg)
 
 
-def send_mail_msg( body, subject):
+def send_mail_msg(body, subject):
     """
     Sends an email of particular text file with subject line
 
@@ -31,10 +32,11 @@ def send_mail_msg( body, subject):
     # Create a text/plain message
     msg = MIMEMultipart()
 
-    msg['Subject'] = subject
-    msg.attach(MIMEText(body, 'plain'))
+    msg["Subject"] = subject
+    msg.attach(MIMEText(body, "plain"))
 
     _send_msg(msg)
+
 
 def send_mail_pdfs(preamble, filelist, subject):
     """
@@ -44,18 +46,20 @@ def send_mail_pdfs(preamble, filelist, subject):
 
     # Create a text/plain message
     msg = MIMEMultipart()
-    msg['Subject'] = subject
+    msg["Subject"] = subject
     msg.preamble = preamble
 
     for file in filelist:
-        fp = open(file, 'rb')
-        attach = MIMEApplication(fp.read(), 'pdf')
+        fp = open(file, "rb")
+        attach = MIMEApplication(fp.read(), "pdf")
         fp.close()
-        attach.add_header('Content-Disposition', 'attachment', filename='file.pdf')
+        attach.add_header(
+            "Content-Disposition",
+            "attachment",
+            filename="file.pdf")
         msg.attach(attach)
 
     _send_msg(msg)
-
 
 
 def _send_msg(msg):
@@ -68,8 +72,8 @@ def _send_msg(msg):
 
     me = email_address
     you = email_address
-    msg['From'] = me
-    msg['To'] = you
+    msg["From"] = me
+    msg["To"] = you
 
     # Send the message via our own SMTP server, but don't include the
     # envelope header.
@@ -80,11 +84,12 @@ def _send_msg(msg):
 
 
 def get_email_details():
-    yaml_dict = get_list_of_private_config_values(['email_address', 'email_pwd', 'email_server'])
+    yaml_dict = get_list_of_private_config_values(
+        ["email_address", "email_pwd", "email_server"]
+    )
 
-    email_address = yaml_dict['email_address']
-    email_pwd = yaml_dict['email_pwd']
-    email_server = yaml_dict['email_server']
+    email_address = yaml_dict["email_address"]
+    email_pwd = yaml_dict["email_pwd"]
+    email_server = yaml_dict["email_server"]
 
     return email_server, email_address, email_pwd
-

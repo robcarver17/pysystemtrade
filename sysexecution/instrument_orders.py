@@ -1,15 +1,30 @@
 import datetime
 
 from sysexecution.order_stack import orderStackData
-from sysexecution.base_orders import Order, tradeableObject, resolve_trade_fill_fillprice, no_order_id, no_children, no_parent
-from syscore.genutils import  none_to_object, object_to_none
+from sysexecution.base_orders import (
+    Order,
+    tradeableObject,
+    resolve_trade_fill_fillprice,
+    no_order_id,
+    no_children,
+    no_parent,
+)
+from syscore.genutils import none_to_object, object_to_none
 from syscore.objects import missing_order, success, zero_order
 
-possible_order_types = ['best', 'market', 'limit', 'Zero-roll-order', 'balance_trade']
+possible_order_types = [
+    "best",
+    "market",
+    "limit",
+    "Zero-roll-order",
+    "balance_trade"]
+
 
 class instrumentTradeableObject(tradeableObject):
     def __init__(self, strategy_name, instrument_code):
-        dict_def = dict(strategy_name = strategy_name, instrument_code = instrument_code)
+        dict_def = dict(
+            strategy_name=strategy_name,
+            instrument_code=instrument_code)
         self._set_definition(dict_def)
 
     @classmethod
@@ -20,30 +35,42 @@ class instrumentTradeableObject(tradeableObject):
 
     @property
     def strategy_name(self):
-        return self._definition['strategy_name']
+        return self._definition["strategy_name"]
 
     @property
     def instrument_code(self):
-        return self._definition['instrument_code']
+        return self._definition["instrument_code"]
 
     @property
     def key(self):
-        return "/".join([self._definition['strategy_name'],self._definition['instrument_code']])
+        return "/".join([self._definition["strategy_name"],
+                         self._definition["instrument_code"]])
 
 
 class instrumentOrder(Order):
-
-    def __init__(self, *args, fill=None,
-                 locked=False, order_id=no_order_id,
-                 modification_status = None,
-                 modification_quantity = None, parent=no_parent,
-                 children=no_children, active=True,
-                 order_type="best", limit_price = None, limit_contract = None,
-                 reference_datetime = None,
-                 reference_price = None, reference_contract = None,
-                 generated_datetime = None,
-                 filled_price = None, fill_datetime = None,
-                 manual_trade =False, roll_order = False):
+    def __init__(
+        self,
+        *args,
+        fill=None,
+        locked=False,
+        order_id=no_order_id,
+        modification_status=None,
+        modification_quantity=None,
+        parent=no_parent,
+        children=no_children,
+        active=True,
+        order_type="best",
+        limit_price=None,
+        limit_contract=None,
+        reference_datetime=None,
+        reference_price=None,
+        reference_contract=None,
+        generated_datetime=None,
+        filled_price=None,
+        fill_datetime=None,
+        manual_trade=False,
+        roll_order=False
+    ):
         """
 
         :param args: Either a single argument 'strategy/instrument' str, or strategy, instrument; followed by trade
@@ -70,26 +97,31 @@ class instrumentOrder(Order):
         :param roll_order: bool, is this a roll order
 
         """
-
         """
-        
+
         :param trade: float
         :param args: Either 2: strategy, instrument; or 1: instrumentTradeableObject
         :param type: str
         """
-        if len(args)==2:
-            self._tradeable_object = instrumentTradeableObject.from_key(args[0])
+        if len(args) == 2:
+            self._tradeable_object = instrumentTradeableObject.from_key(
+                args[0])
             trade = args[1]
         else:
-            strategy=args[0]
+            strategy = args[0]
             instrument = args[1]
             trade = args[2]
-            self._tradeable_object = instrumentTradeableObject(strategy, instrument)
+            self._tradeable_object = instrumentTradeableObject(
+                strategy, instrument)
 
         if generated_datetime is None:
             generated_datetime = datetime.datetime.now()
 
-        resolved_trade, resolved_fill, resolved_filled_price = resolve_trade_fill_fillprice(trade, fill, filled_price)
+        (
+            resolved_trade,
+            resolved_fill,
+            resolved_filled_price,
+        ) = resolve_trade_fill_fillprice(trade, fill, filled_price)
 
         self._trade = resolved_trade
         self._fill = resolved_fill
@@ -104,18 +136,26 @@ class instrumentOrder(Order):
         self._active = active
 
         assert order_type in possible_order_types
-        self._order_info = dict(order_type=order_type, limit_contract = limit_contract, limit_price = limit_price,
-                               reference_contract = reference_contract, reference_price = reference_price,
-                                manual_trade = manual_trade,
-                                roll_order = roll_order, reference_datetime = reference_datetime,
-                                generated_datetime = generated_datetime)
-
+        self._order_info = dict(
+            order_type=order_type,
+            limit_contract=limit_contract,
+            limit_price=limit_price,
+            reference_contract=reference_contract,
+            reference_price=reference_price,
+            manual_trade=manual_trade,
+            roll_order=roll_order,
+            reference_datetime=reference_datetime,
+            generated_datetime=generated_datetime,
+        )
 
     def __repr__(self):
         my_repr = super().__repr__()
         if self.filled_price is not None and self.fill_datetime is not None:
-            my_repr = my_repr + "Fill %s on %s" % (str(self.filled_price), self.fill_datetime)
-        my_repr = my_repr+" %s" % str(self._order_info)
+            my_repr = my_repr + "Fill %s on %s" % (
+                str(self.filled_price),
+                self.fill_datetime,
+            )
+        my_repr = my_repr + " %s" % str(self._order_info)
 
         return my_repr
 
@@ -125,28 +165,36 @@ class instrumentOrder(Order):
 
     @classmethod
     def from_dict(instrumentOrder, order_as_dict):
-        trade = order_as_dict.pop('trade')
-        key = order_as_dict.pop('key')
-        fill = order_as_dict.pop('fill')
-        filled_price = order_as_dict.pop('filled_price')
-        fill_datetime = order_as_dict.pop('fill_datetime')
-        locked = order_as_dict.pop('locked')
-        order_id = none_to_object(order_as_dict.pop('order_id'), no_order_id)
-        modification_status = order_as_dict.pop('modification_status')
-        modification_quantity = order_as_dict.pop('modification_quantity')
-        parent = none_to_object(order_as_dict.pop('parent'), no_parent)
-        children = none_to_object(order_as_dict.pop('children'), no_children)
-        active = order_as_dict.pop('active')
+        trade = order_as_dict.pop("trade")
+        key = order_as_dict.pop("key")
+        fill = order_as_dict.pop("fill")
+        filled_price = order_as_dict.pop("filled_price")
+        fill_datetime = order_as_dict.pop("fill_datetime")
+        locked = order_as_dict.pop("locked")
+        order_id = none_to_object(order_as_dict.pop("order_id"), no_order_id)
+        modification_status = order_as_dict.pop("modification_status")
+        modification_quantity = order_as_dict.pop("modification_quantity")
+        parent = none_to_object(order_as_dict.pop("parent"), no_parent)
+        children = none_to_object(order_as_dict.pop("children"), no_children)
+        active = order_as_dict.pop("active")
 
         order_info = order_as_dict
 
-        order = instrumentOrder(key, trade, fill=fill, locked = locked, order_id = order_id,
-                      modification_status = modification_status,
-                      modification_quantity = modification_quantity,
-                      parent = parent, children = children,
-                                fill_datetime = fill_datetime, filled_price=filled_price,
-                      active = active,
-                      **order_info)
+        order = instrumentOrder(
+            key,
+            trade,
+            fill=fill,
+            locked=locked,
+            order_id=order_id,
+            modification_status=modification_status,
+            modification_quantity=modification_quantity,
+            parent=parent,
+            children=children,
+            fill_datetime=fill_datetime,
+            filled_price=filled_price,
+            active=active,
+            **order_info
+        )
 
         return order
 
@@ -160,60 +208,59 @@ class instrumentOrder(Order):
 
     @property
     def order_type(self):
-        return self._order_info['order_type']
+        return self._order_info["order_type"]
 
     @order_type.setter
     def order_type(self, order_type):
-        self._order_info['order_type'] = order_type
+        self._order_info["order_type"] = order_type
 
     @property
     def limit_contract(self):
-        return self._order_info['limit_contract']
+        return self._order_info["limit_contract"]
 
     @limit_contract.setter
     def limit_contract(self, limit_contract):
-        self._order_info['limit_contract'] = limit_contract
+        self._order_info["limit_contract"] = limit_contract
 
     @property
     def limit_price(self):
-        return self._order_info['limit_price']
+        return self._order_info["limit_price"]
 
     @limit_price.setter
     def limit_price(self, limit_price):
-        self._order_info['limit_price'] = limit_price
+        self._order_info["limit_price"] = limit_price
 
     @property
     def reference_contract(self):
-        return self._order_info['reference_contract']
+        return self._order_info["reference_contract"]
 
     @reference_contract.setter
     def reference_contract(self, reference_contract):
-        self._order_info['reference_contract'] = reference_contract
+        self._order_info["reference_contract"] = reference_contract
 
     @property
     def reference_price(self):
-        return self._order_info['reference_price']
+        return self._order_info["reference_price"]
 
     @reference_price.setter
     def reference_price(self, reference_price):
-        self._order_info['reference_price'] = reference_price
-
+        self._order_info["reference_price"] = reference_price
 
     @property
     def reference_datetime(self):
-        return self._order_info['reference_datetime']
+        return self._order_info["reference_datetime"]
 
     @property
     def generated_datetime(self):
-        return self._order_info['reference_datetime']
+        return self._order_info["reference_datetime"]
 
     @property
     def manual_trade(self):
-        return self._order_info['manual_trade']
+        return self._order_info["manual_trade"]
 
     @property
     def roll_order(self):
-        return self._order_info['roll_order']
+        return self._order_info["roll_order"]
 
     def log_with_attributes(self, log):
         """
@@ -223,11 +270,13 @@ class instrumentOrder(Order):
         :return: log
         """
         new_log = log.setup(
-                  strategy_name=self.strategy_name,
-                  instrument_code=self.instrument_code,
-                  instrument_order_id=object_to_none(self.order_id, no_order_id))
+            strategy_name=self.strategy_name,
+            instrument_code=self.instrument_code,
+            instrument_order_id=object_to_none(self.order_id, no_order_id),
+        )
 
         return new_log
+
 
 class instrumentOrderStackData(orderStackData):
     def __repr__(self):
@@ -241,10 +290,10 @@ class instrumentOrderStackData(orderStackData):
         :return: order_id or failure object
         """
 
-        order_id_or_error = self._put_order_on_stack_and_get_order_id(new_order)
+        order_id_or_error = self._put_order_on_stack_and_get_order_id(
+            new_order)
 
         return order_id_or_error
-
 
     def put_order_on_stack(self, new_order, allow_zero_orders=False):
         """
@@ -256,25 +305,31 @@ class instrumentOrderStackData(orderStackData):
         :return: order_id or failure condition: duplicate_order, failure
         """
 
-
-        existing_order_id_list = self._get_order_with_same_tradeable_object_on_stack(new_order)
+        existing_order_id_list = self._get_order_with_same_tradeable_object_on_stack(
+            new_order)
         if existing_order_id_list is missing_order:
-            result = self._put_new_order_on_stack_when_no_existing_order(new_order,
-                                                                         allow_zero_orders=allow_zero_orders)
+            result = self._put_new_order_on_stack_when_no_existing_order(
+                new_order, allow_zero_orders=allow_zero_orders
+            )
         else:
-            result = self._put_adjusting_order_on_stack(new_order, existing_order_id_list,
-                                                        allow_zero_orders=allow_zero_orders)
+            result = self._put_adjusting_order_on_stack(
+                new_order, existing_order_id_list, allow_zero_orders=allow_zero_orders)
         return result
 
-    def does_strategy_and_instrument_already_have_order_on_stack(self, strategy_name, instrument_code):
+    def does_strategy_and_instrument_already_have_order_on_stack(
+        self, strategy_name, instrument_code
+    ):
         pseudo_order = instrumentOrder(strategy_name, instrument_code, 0)
-        existing_orders = self._get_order_with_same_tradeable_object_on_stack(pseudo_order)
+        existing_orders = self._get_order_with_same_tradeable_object_on_stack(
+            pseudo_order
+        )
         if existing_orders is missing_order:
             return False
         return True
 
-
-    def _put_new_order_on_stack_when_no_existing_order(self, new_order, allow_zero_orders=False):
+    def _put_new_order_on_stack_when_no_existing_order(
+        self, new_order, allow_zero_orders=False
+    ):
         log = new_order.log_with_attributes(self.log)
 
         if new_order.is_zero_trade() and not allow_zero_orders:
@@ -282,11 +337,16 @@ class instrumentOrderStackData(orderStackData):
             return zero_order
 
         # no current order for this instrument/strategy
-        log.msg("New order %s putting on %s" % (str(new_order), self.__repr__()))
-        order_id_or_error = self._put_order_on_stack_and_get_order_id(new_order)
+        log.msg(
+            "New order %s putting on %s" %
+            (str(new_order), self.__repr__()))
+        order_id_or_error = self._put_order_on_stack_and_get_order_id(
+            new_order)
         return order_id_or_error
 
-    def _put_adjusting_order_on_stack(self, new_order, existing_order_id_list, allow_zero_orders=False):
+    def _put_adjusting_order_on_stack(
+        self, new_order, existing_order_id_list, allow_zero_orders=False
+    ):
         """
         Considering the unfilled orders already on the stack place an additional adjusting order
 
@@ -295,9 +355,14 @@ class instrumentOrderStackData(orderStackData):
         """
         log = new_order.log_with_attributes(self.log)
 
-        existing_orders = [self.get_order_with_id_from_stack(order_id) for order_id in existing_order_id_list]
-        existing_trades = [existing_order.trade for existing_order in existing_orders]
-        existing_fills = [existing_order.fill for existing_order in existing_orders]
+        existing_orders = [
+            self.get_order_with_id_from_stack(order_id)
+            for order_id in existing_order_id_list
+        ]
+        existing_trades = [
+            existing_order.trade for existing_order in existing_orders]
+        existing_fills = [
+            existing_order.fill for existing_order in existing_orders]
 
         net_existing_trades = sum(existing_trades)
         net_existing_fills = sum(existing_fills)
@@ -307,14 +372,23 @@ class instrumentOrderStackData(orderStackData):
 
         # can change sign
         residual_trade = new_trade - net_existing_trades_to_execute
-        adjusted_order = new_order.replace_trade_only_use_for_unsubmitted_trades(residual_trade)
+        adjusted_order = new_order.replace_trade_only_use_for_unsubmitted_trades(
+            residual_trade)
 
         if adjusted_order.is_zero_trade() and not allow_zero_orders:
-            ## Trade we want is already in the system
+            # Trade we want is already in the system
             return zero_order
 
-        log.msg("Already have orders %s wanted %s so putting on order for %s (%s)" % (str(existing_trades), str(new_trade), str(residual_trade), str(adjusted_order)))
-        order_id_or_error = self._put_order_on_stack_and_get_order_id(adjusted_order)
+        log.msg(
+            "Already have orders %s wanted %s so putting on order for %s (%s)"
+            % (
+                str(existing_trades),
+                str(new_trade),
+                str(residual_trade),
+                str(adjusted_order),
+            )
+        )
+        order_id_or_error = self._put_order_on_stack_and_get_order_id(
+            adjusted_order)
 
         return order_id_or_error
-
