@@ -7,6 +7,7 @@ This utility is for you - it will read those files and output a yaml file you ca
 import pandas as pd
 import yaml
 
+
 def instr_weights_csv_to_yaml(filename_input, filename_output):
     """
     Read in a configuration csv file containing instrument weights and output as yaml
@@ -20,15 +21,22 @@ def instr_weights_csv_to_yaml(filename_input, filename_output):
     data_instruments = data.Instrument.values
     data_weights = data.instrumentWeight
 
-    my_config = dict([(instrument,weight) for (instrument, weight) in zip(data_instruments, data_weights)])
-    my_config_nested = dict(instrument_weights = my_config)
+    my_config = dict(
+        [
+            (instrument, weight)
+            for (instrument, weight) in zip(data_instruments, data_weights)
+        ]
+    )
+    my_config_nested = dict(instrument_weights=my_config)
 
-    with open(filename_output, 'w') as outfile:
-        outfile.write( yaml.dump(my_config_nested, default_flow_style=False) )
+    with open(filename_output, "w") as outfile:
+        outfile.write(yaml.dump(my_config_nested, default_flow_style=False))
 
     return data
 
-def forecast_weights_by_instrument_csv_to_yaml(filename_input, filename_output):
+
+def forecast_weights_by_instrument_csv_to_yaml(
+        filename_input, filename_output):
     """
     Read in a configuration csv file containing forecast weights, different for each instrument, and output as yaml
 
@@ -49,13 +57,19 @@ def forecast_weights_by_instrument_csv_to_yaml(filename_input, filename_output):
     for instrument in data_instruments:
 
         data_weights = data[instrument].values
-        my_config[instrument] = dict([(rule_name,float(weight)) for (rule_name, weight) in zip(rule_names, data_weights)])
+        my_config[instrument] = dict(
+            [
+                (rule_name, float(weight))
+                for (rule_name, weight) in zip(rule_names, data_weights)
+            ]
+        )
 
-    my_config_nested = dict(forecast_weights = my_config)
-    with open(filename_output, 'w') as outfile:
-        outfile.write( yaml.dump(my_config_nested, default_flow_style=False) )
+    my_config_nested = dict(forecast_weights=my_config)
+    with open(filename_output, "w") as outfile:
+        outfile.write(yaml.dump(my_config_nested, default_flow_style=False))
 
     return my_config
+
 
 def forecast_mapping_csv_to_yaml(filename_input, filename_output):
     """
@@ -72,13 +86,24 @@ def forecast_mapping_csv_to_yaml(filename_input, filename_output):
     data_param_b = data.b_param.values
     data_threshold = data.threshold.values
 
-    my_config = dict([(instrument,dict(a_param = float(a_param), b_param = float(b_param), threshold = float(threshold)))
-                      for (instrument, a_param, b_param, threshold)
-                      in zip(data_instruments, data_param_a, data_param_b, data_threshold)])
-    my_config_nested = dict(forecast_mapping = my_config)
+    my_config = dict(
+        [
+            (
+                instrument,
+                dict(
+                    a_param=float(a_param),
+                    b_param=float(b_param),
+                    threshold=float(threshold),
+                ),
+            )
+            for (instrument, a_param, b_param, threshold) in zip(
+                data_instruments, data_param_a, data_param_b, data_threshold
+            )
+        ]
+    )
+    my_config_nested = dict(forecast_mapping=my_config)
 
-    with open(filename_output, 'w') as outfile:
-        outfile.write( yaml.dump(my_config_nested, default_flow_style=False) )
+    with open(filename_output, "w") as outfile:
+        outfile.write(yaml.dump(my_config_nested, default_flow_style=False))
 
     return data
-

@@ -25,28 +25,33 @@ class diagStrategiesConfig(object):
         return list(strategy_dict.keys())
 
     def get_strategy_allocation_config_dict(self):
-        strategy_allocation_dict = getattr(self, '_strategy_allocation_dict', None)
+        strategy_allocation_dict = getattr(
+            self, "_strategy_allocation_dict", None)
         if strategy_allocation_dict is None:
-            self._strategy_allocation_dict  = strategy_allocation_dict = get_private_then_default_key_value('strategy_capital_allocation')
+            self._strategy_allocation_dict = (
+                strategy_allocation_dict
+            ) = get_private_then_default_key_value("strategy_capital_allocation")
 
         return strategy_allocation_dict
 
-
     def get_all_strategy_dict(self):
-        strategy_dict = getattr(self, '_strategy_dict', None)
+        strategy_dict = getattr(self, "_strategy_dict", None)
         if strategy_dict is None:
-            self._strategy_dict  = strategy_dict = get_private_then_default_key_value('strategy_list')
+            self._strategy_dict = strategy_dict = get_private_then_default_key_value(
+                "strategy_list")
 
         return strategy_dict
 
 
-def get_list_of_strategies(data = arg_not_supplied):
+def get_list_of_strategies(data=arg_not_supplied):
     d = diagStrategiesConfig(data)
     return d.get_list_of_strategies()
 
 
-def get_valid_strategy_name_from_user(data = arg_not_supplied, allow_all = False, all_code= "ALL"):
-    all_strategies = get_list_of_strategies(data = data)
+def get_valid_strategy_name_from_user(
+    data=arg_not_supplied, allow_all=False, all_code="ALL"
+):
+    all_strategies = get_list_of_strategies(data=data)
     invalid_input = True
     while invalid_input:
         print("Strategies: %s" % all_strategies)
@@ -54,8 +59,10 @@ def get_valid_strategy_name_from_user(data = arg_not_supplied, allow_all = False
             default_strategy = all_code
         else:
             default_strategy = all_strategies[0]
-        strategy_name = get_and_convert("Strategy?", type_expected=str, default_value=default_strategy)
-        if allow_all and strategy_name==all_code:
+        strategy_name = get_and_convert(
+            "Strategy?", type_expected=str, default_value=default_strategy
+        )
+        if allow_all and strategy_name == all_code:
             return all_code
 
         if strategy_name in all_strategies:

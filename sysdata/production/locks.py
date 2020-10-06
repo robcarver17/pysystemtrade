@@ -10,7 +10,7 @@ class lockData(object):
         self._locks = dict()
 
     def is_instrument_locked(self, instrument_code):
-        if self.get_lock_for_instrument(instrument_code)==lock_on:
+        if self.get_lock_for_instrument(instrument_code) == lock_on:
             return True
         else:
             return False

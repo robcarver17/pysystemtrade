@@ -1,6 +1,6 @@
-'''
+"""
 Simple trading rules used in examples
-'''
+"""
 import pandas as pd
 from syscore.algos import robust_vol_calc
 

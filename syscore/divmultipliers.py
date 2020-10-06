@@ -33,19 +33,15 @@ def diversification_mult_single_period(corrmatrix, weights, dm_max=2.5):
 
     weights = np.array(weights, ndmin=2)
 
-    dm = np.min([
-        1.0 /
-        (float(np.dot(np.dot(weights, corrmatrix), weights.transpose()))**.5),
-        dm_max
-    ])
+    dm = np.min([1.0 / (float(np.dot(np.dot(weights, corrmatrix),
+                                     weights.transpose())) ** 0.5), dm_max, ])
 
     return dm
 
 
-def diversification_multiplier_from_list(correlation_list_object,
-                                         weight_df_raw,
-                                         ewma_span=125,
-                                         **kwargs):
+def diversification_multiplier_from_list(
+    correlation_list_object, weight_df_raw, ewma_span=125, **kwargs
+):
     """
     Given a CorrelationList object, and a dataframe of weights, work out the div multiplier
 
@@ -70,15 +66,14 @@ def diversification_multiplier_from_list(correlation_list_object,
     weight_df = weight_df_raw[correlation_list_object.columns]
 
     ref_periods = [
-        fit_period.period_start
-        for fit_period in correlation_list_object.fit_dates
-    ]
+        fit_period.period_start for fit_period in correlation_list_object.fit_dates]
 
     # here's where we stack up the answers
     div_mult_vector = []
 
-    for (corrmatrix, start_of_period) in zip(correlation_list_object.corr_list,
-                                             ref_periods):
+    for (corrmatrix, start_of_period) in zip(
+        correlation_list_object.corr_list, ref_periods
+    ):
 
         weight_slice = weight_df[:start_of_period]
         if weight_slice.shape[0] == 0:
@@ -89,7 +84,8 @@ def diversification_multiplier_from_list(correlation_list_object,
         # take the current weights and work out the DM
         weights = list(weight_slice.iloc[-1, :].values)
         div_multiplier = diversification_mult_single_period(
-            corrmatrix, weights, **kwargs)
+            corrmatrix, weights, **kwargs
+        )
 
         div_mult_vector.append(div_multiplier)
 
@@ -102,6 +98,7 @@ def diversification_multiplier_from_list(correlation_list_object,
     return div_mult_df
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import doctest
+
     doctest.testmod()

@@ -5,7 +5,11 @@ Get data from mongo and arctic used for futures trading
 
 from syscore.objects import arg_not_supplied
 from sysdata.data import simData
-from sysdata.futures.futuresDataForSim import futuresAdjustedPriceData, futuresConfigDataForSim, futuresMultiplePriceData
+from sysdata.futures.futuresDataForSim import (
+    futuresAdjustedPriceData,
+    futuresConfigDataForSim,
+    futuresMultiplePriceData,
+)
 
 from sysdata.arctic.arctic_adjusted_prices import arcticFuturesAdjustedPricesData
 from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesData
@@ -21,7 +25,7 @@ Static variables to store location of data
 
 
 class dbconnections(simData):
-    def __init__(self, mongo_db = arg_not_supplied, log = logger("arcticSimData")):
+    def __init__(self, mongo_db=arg_not_supplied, log=logger("arcticSimData")):
         """
 
         Use a different database
@@ -34,6 +38,7 @@ class dbconnections(simData):
         self.log = log
         self.mongo_db = mongo_db
 
+
 """
 The next two sub classes are unusual in that they directly access the relevant files rather than going by another data object
 
@@ -41,6 +46,7 @@ The next two sub classes are unusual in that they directly access the relevant f
   ii) specified in the datapath_dict with the relevant keyname on __init__ (via csvPaths init),
   iii) specified in this file as DEFAULT_SIM_CONFIG_PATH
 """
+
 
 class mongoFuturesConfigDataForSim(dbconnections, futuresConfigDataForSim):
     def get_all_instrument_data(self):
@@ -54,7 +60,7 @@ class mongoFuturesConfigDataForSim(dbconnections, futuresConfigDataForSim):
 
         data_object = self._get_config_data_object()
 
-        all_instr_dataframe= data_object.get_all_instrument_data()
+        all_instr_dataframe = data_object.get_all_instrument_data()
 
         return all_instr_dataframe
 
@@ -63,7 +69,6 @@ class mongoFuturesConfigDataForSim(dbconnections, futuresConfigDataForSim):
         instr_data = data_object.get_instrument_data(instrument_code)
 
         return instr_data
-
 
     def _get_config_data_object(self):
 
@@ -80,14 +85,14 @@ class mongoFuturesConfigDataForSim(dbconnections, futuresConfigDataForSim):
         """
 
         mongo_configdata_object = self._get_config_data_object()
-        instrument_object = mongo_configdata_object.get_instrument_data(instrument_code)
+        instrument_object = mongo_configdata_object.get_instrument_data(
+            instrument_code)
 
         return instrument_object
 
 
-
-
-class arcticFuturesAdjustedPriceSimData(dbconnections, futuresAdjustedPriceData):
+class arcticFuturesAdjustedPriceSimData(
+        dbconnections, futuresAdjustedPriceData):
     """
     Get futures specific data from arctic database
 
@@ -106,7 +111,8 @@ class arcticFuturesAdjustedPriceSimData(dbconnections, futuresAdjustedPriceData)
 
         self.log.msg(
             "Loading arctic data for %s" % instrument_code,
-            instrument_code=instrument_code)
+            instrument_code=instrument_code,
+        )
 
         adj_prices_data = self._get_adj_prices_data_object()
         adj_prices = adj_prices_data.get_adjusted_prices(instrument_code)
@@ -126,8 +132,9 @@ class arcticFuturesAdjustedPriceSimData(dbconnections, futuresAdjustedPriceData)
 
         return adj_prices_data
 
-class arcticFuturesMultiplePriceSimData(dbconnections, futuresMultiplePriceData):
 
+class arcticFuturesMultiplePriceSimData(
+        dbconnections, futuresMultiplePriceData):
     def _get_all_price_data(self, instrument_code):
         """
         Returns a pd. dataframe with the 6 columns PRICE, CARRY, PRICE_CONTRACT, CARRY_CONTRACT, FORWARD, FORWARD_CONTRACT
@@ -143,27 +150,30 @@ class arcticFuturesMultiplePriceSimData(dbconnections, futuresMultiplePriceData)
 
         self.log.msg(
             "Loading arctic data for %s" % instrument_code,
-            instrument_code=instrument_code)
+            instrument_code=instrument_code,
+        )
 
         multiple_prices_data = self._get_all_prices_data_object()
-        instr_all_price_data = multiple_prices_data.get_multiple_prices(instrument_code)
+        instr_all_price_data = multiple_prices_data.get_multiple_prices(
+            instrument_code)
 
         return instr_all_price_data
 
     def _get_all_prices_data_object(self):
 
-        multiple_prices_data_object = arcticFuturesMultiplePricesData(self.mongo_db)
+        multiple_prices_data_object = arcticFuturesMultiplePricesData(
+            self.mongo_db)
         multiple_prices_data_object.log = self.log
 
         return multiple_prices_data_object
 
+
 class arcticFXSimData(dbconnections, simData):
     """
-        Get fx data from arctic
+    Get fx data from arctic
 
 
     """
-
 
     def _get_fx_data(self, currency1, currency2):
         """
@@ -179,10 +189,12 @@ class arcticFXSimData(dbconnections, simData):
 
         """
 
-        self.log.msg("Loading arctic fx data", fx="%s%s" % (currency1, currency2))
+        self.log.msg(
+            "Loading arctic fx data", fx="%s%s" %
+            (currency1, currency2))
 
         fx_prices_data_object = self._get_fx_data_object()
-        currency_code = currency1+currency2
+        currency_code = currency1 + currency2
 
         fx_prices = fx_prices_data_object.get_fx_prices(currency_code)
 
@@ -197,24 +209,34 @@ class arcticFXSimData(dbconnections, simData):
         fx_prices_data_object.log = self.log
 
         return fx_prices_data_object
+
+
 """
 This class ties everything together so we can just create a single object every time we need to access mongo data for sim
 
 """
 
-class arcticFuturesSimData(arcticFXSimData, arcticFuturesAdjustedPriceSimData,
-                           mongoFuturesConfigDataForSim, arcticFuturesMultiplePriceSimData):
-    """
-        Get futures specific data from mongo and arctic
 
-        Extends the FuturesData class for a specific data source
+class arcticFuturesSimData(
+    arcticFXSimData,
+    arcticFuturesAdjustedPriceSimData,
+    mongoFuturesConfigDataForSim,
+    arcticFuturesMultiplePriceSimData,
+):
+    """
+    Get futures specific data from mongo and arctic
+
+    Extends the FuturesData class for a specific data source
 
     """
 
     def __repr__(self):
-        return "arcticFuturesSimData for %d instruments" % len(self.get_instrument_list())
+        return "arcticFuturesSimData for %d instruments" % len(
+            self.get_instrument_list()
+        )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import doctest
+
     doctest.testmod()

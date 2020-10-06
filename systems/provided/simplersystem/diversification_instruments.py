@@ -28,6 +28,7 @@ import random
 from random import getrandbits
 import matplotlib.pylab as plt
 
+
 def simple_mav(price, short=10, long=40, forecast_fixed=10):
     """
     Simple moving average crossover
@@ -48,6 +49,7 @@ def simple_mav(price, short=10, long=40, forecast_fixed=10):
 
     return binary_position
 
+
 def stoploss(price, vol, position, annual_stoploss_fraction=0.5):
     """
     Apply trailing stoploss
@@ -62,8 +64,8 @@ def stoploss(price, vol, position, annual_stoploss_fraction=0.5):
     # assume all lined up
     current_position = 0.0
     previous_position = 0.0
-    new_position=[]
-    price_list_since_position_held=[]
+    new_position = []
+    price_list_since_position_held = []
 
     for iday in range(len(price)):
         current_price = price[iday]
@@ -75,12 +77,14 @@ def stoploss(price, vol, position, annual_stoploss_fraction=0.5):
                 # no signal
                 new_position.append(0.0)
                 continue
-            if original_position_now>0.0 or original_position_now<0.0:
+            if original_position_now > 0.0 or original_position_now < 0.0:
                 # potentially going long / short
                 # check last position to avoid whipsaw
-                if previous_position ==0.0 or sign(original_position_now)!=sign(previous_position):
+                if previous_position == 0.0 or sign(
+                        original_position_now) != sign(previous_position):
                     # okay to do this - we don't want to enter a new position unless sign changed
-                    # we set the position at the sized position at moment of inception
+                    # we set the position at the sized position at moment of
+                    # inception
                     current_position = original_position_now
                     price_list_since_position_held.append(current_price)
                     new_position.append(current_position)
@@ -97,28 +101,29 @@ def stoploss(price, vol, position, annual_stoploss_fraction=0.5):
         current_vol = vol[iday]
         trailing_factor = current_vol * Xfactor
 
-        if sign_position==1:
+        if sign_position == 1:
             # long
-            hwm= np.nanmax(price_list_since_position_held)
+            hwm = np.nanmax(price_list_since_position_held)
             threshold = hwm - trailing_factor
-            close_trade = current_price<threshold
+            close_trade = current_price < threshold
         else:
             # short
             hwm = np.nanmin(price_list_since_position_held)
             threshold = hwm + trailing_factor
-            close_trade = current_price>threshold
+            close_trade = current_price > threshold
 
         if close_trade:
             previous_position = copy(current_position)
-            current_position=0.0
+            current_position = 0.0
             # note if we don't close the current position is maintained
-            price_list_since_position_held=[]
+            price_list_since_position_held = []
 
         new_position.append(current_position)
 
     new_position = pd.DataFrame(new_position, price.index)
 
     return new_position
+
 
 class PositionSizeWithStopLoss(PositionSizing):
     @diagnostic()
@@ -129,11 +134,12 @@ class PositionSizeWithStopLoss(PositionSizing):
         """
         self.log.msg(
             "Calculating subsystem position for %s" % instrument_code,
-            instrument_code=instrument_code)
+            instrument_code=instrument_code,
+        )
         """
         We don't allow this to be changed in config
         """
-        avg_abs_forecast = system_defaults['average_absolute_forecast']
+        avg_abs_forecast = system_defaults["average_absolute_forecast"]
 
         vol_scalar = self.get_volatility_scalar(instrument_code)
         forecast = self.get_combined_forecast(instrument_code)
@@ -154,27 +160,29 @@ class PositionSizeWithStopLoss(PositionSizing):
         stop_fraction = self.parent.config.stop_fraction
         price = self.parent.rawdata.get_daily_prices(instrument_code)
         vol = self.parent.rawdata.daily_returns_volatility(instrument_code)
-        raw_position=self.get_subsystem_position_preliminary(instrument_code)
+        raw_position = self.get_subsystem_position_preliminary(instrument_code)
 
-        subsystem_position = stoploss(price,vol,raw_position,stop_fraction)
+        subsystem_position = stoploss(price, vol, raw_position, stop_fraction)
 
         return subsystem_position[0]
 
-def calc_perms(n,r):
-    return math.factorial(n)/(math.factorial(r)*math.factorial(n-r))
+
+def calc_perms(n, r):
+    return math.factorial(n) / (math.factorial(r) * math.factorial(n - r))
+
 
 def SR_error_bars_from_values(annual_SR, len_data):
 
-    daily_SR = annual_SR/16
+    daily_SR = annual_SR / 16
 
-    var_of_SR_estimator_daily = (1+0.5*(daily_SR**2))/len_data
-    std_of_SR_estimator_daily = var_of_SR_estimator_daily**.5
-    std_of_SR_estimator_annual = std_of_SR_estimator_daily *16
+    var_of_SR_estimator_daily = (1 + 0.5 * (daily_SR ** 2)) / len_data
+    std_of_SR_estimator_daily = var_of_SR_estimator_daily ** 0.5
+    std_of_SR_estimator_annual = std_of_SR_estimator_daily * 16
 
-    error_bar_annual = std_of_SR_estimator_annual*1.96
+    error_bar_annual = std_of_SR_estimator_annual * 1.96
 
-    low_SR_estimate = annual_SR - 2*error_bar_annual
-    upper_SR_estimate = annual_SR+ 2*error_bar_annual
+    low_SR_estimate = annual_SR - 2 * error_bar_annual
+    upper_SR_estimate = annual_SR + 2 * error_bar_annual
 
     return low_SR_estimate, annual_SR, upper_SR_estimate
 
@@ -188,17 +196,24 @@ def SR_error_bars(account_curve, shift_value):
     """
 
     annual_SR = approx_SR(account_curve)
-    len_data = len(account_curve) # working days
+    len_data = len(account_curve)  # working days
 
-    low_SR_estimate, annual_SR, upper_SR_estimate = SR_error_bars_from_values(annual_SR, len_data)
+    low_SR_estimate, annual_SR, upper_SR_estimate = SR_error_bars_from_values(
+        annual_SR, len_data
+    )
 
-    return [low_SR_estimate+shift_value, annual_SR+shift_value, upper_SR_estimate+shift_value]
+    return [
+        low_SR_estimate + shift_value,
+        annual_SR + shift_value,
+        upper_SR_estimate + shift_value,
+    ]
 
 
-simple_mav_rule=TradingRule(dict(function = simple_mav, other_args=dict(long=64, short=16)))
+simple_mav_rule = TradingRule(
+    dict(function=simple_mav, other_args=dict(long=64, short=16))
+)
 
 data = csvFuturesSimData()
-
 """
 # all instruments, non trading periods
 config= Config(dict(trading_rules = dict(simple_mav=simple_mav_rule), stop_fraction = 0.5,
@@ -239,88 +254,161 @@ y[pd.datetime(2013,4,1):].corr()
 std_by_instrument_list = [system.accounts.pandl_for_subsystem(code).gross.annual.as_percent().std() for code in system.get_instrument_list()]
 """
 
-## Plot improvement from adding instruments
+# Plot improvement from adding instruments
 
-config= Config(dict(trading_rules = dict(simple_mav=simple_mav_rule), stop_fraction=.5,
-                        percentage_vol_target=12.0,
-                    use_instrument_div_mult_estimates=True,
-                    ))
+config = Config(
+    dict(
+        trading_rules=dict(simple_mav=simple_mav_rule),
+        stop_fraction=0.5,
+        percentage_vol_target=12.0,
+        use_instrument_div_mult_estimates=True,
+    )
+)
 
-system = System([
-        Account(), Portfolios(), PositionSizeWithStopLoss(), FuturesRawData(),
-        ForecastCombine(), ForecastScaleCap(), Rules(simple_mav_rule)
-    ], data, config)
+system = System(
+    [
+        Account(),
+        Portfolios(),
+        PositionSizeWithStopLoss(),
+        FuturesRawData(),
+        ForecastCombine(),
+        ForecastScaleCap(),
+        Rules(simple_mav_rule),
+    ],
+    data,
+    config,
+)
 system.set_logging_level("on")
 
 # pre-calculate
-all_returns = [system.accounts.pandl_for_subsystem(code) for code in system.get_instrument_list()]
+all_returns = [system.accounts.pandl_for_subsystem(
+    code) for code in system.get_instrument_list()]
 
-all_instrument_codes = copy(system.get_instrument_list()) ## will be overriden
+all_instrument_codes = copy(system.get_instrument_list())  # will be overriden
 instrument_length = len(all_instrument_codes)
 
 MAX_PERMS = 50
 
-all_counts = [x for x in range(8,38)]
+all_counts = [x for x in range(8, 38)]
 
 for instrument_count in all_counts:
     results_for_this_count = []
 
-    def pick_markets(all_instrument_codes, instrument_count, instrument_length):
+    def pick_markets(
+            all_instrument_codes,
+            instrument_count,
+            instrument_length):
 
-        ## pick with replacement
+        # pick with replacement
         possible_indices = [x for x in range(instrument_length)]
-        pick_indices = [possible_indices.pop(int(random.uniform(0,len(possible_indices)))) for notUsed in range(instrument_count)]
+        pick_indices = [
+            possible_indices.pop(int(random.uniform(0, len(possible_indices))))
+            for notUsed in range(instrument_count)
+        ]
 
-        instrument_codes = [all_instrument_codes[instrument_index] for instrument_index in pick_indices]
+        instrument_codes = [all_instrument_codes[instrument_index]
+                            for instrument_index in pick_indices]
 
         return tuple(instrument_codes)
 
-    possible_perms = [pick_markets(all_instrument_codes, instrument_count, instrument_length) for notUsed in range(MAX_PERMS)]
+    possible_perms = [
+        pick_markets(all_instrument_codes, instrument_count, instrument_length)
+        for notUsed in range(MAX_PERMS)
+    ]
 
     weight = 1.0 / instrument_count
 
-    for which_run, instruments in zip(range(len(possible_perms)), possible_perms):
-        print("\n\n\n\n Run %d for count %d \n\n\n\n\n\n" % (which_run, instrument_count))
+    for which_run, instruments in zip(
+            range(len(possible_perms)), possible_perms):
+        print(
+            "\n\n\n\n Run %d for count %d \n\n\n\n\n\n" %
+            (which_run, instrument_count))
 
         system.cache.delete_items_for_stage("accounts", delete_protected=True)
         system.cache.delete_items_for_stage("portfolio", delete_protected=True)
-        system.cache.delete_items_for_stage("base_system", delete_protected=True)
+        system.cache.delete_items_for_stage(
+            "base_system", delete_protected=True)
 
-        system.config.instrument_weights = dict([(code, weight) for code in instruments])
+        system.config.instrument_weights = dict(
+            [(code, weight) for code in instruments]
+        )
 
         returns = list(system.accounts.portfolio().percent().values)
 
         # we'll measure SR distribution off the joint
         results_for_this_count.append(returns)
 
-    print("Done and saving %d \n\n\n\n\n\n"% instrument_count)
+    print("Done and saving %d \n\n\n\n\n\n" % instrument_count)
     f = open("/home/rob/test%d.pck" % instrument_count, "wb")
     pickle.dump(results_for_this_count, f)
     f.close()
 
-
 # now load
-all_counts = [1, 2,3,4,5,6,7, 8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33]
+all_counts = [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+]
 
 all_results = []
 for instrument_count in all_counts:
     f = open("/home/rob/test%d.pck" % instrument_count, "rb")
-    results_for_this_count  = pickle.load(f)
+    results_for_this_count = pickle.load(f)
     f.close()
     all_results.append(results_for_this_count)
 
-def approx_SR(acc_curve_days):
-    return np.nanmean(acc_curve_days)*16/np.nanstd(acc_curve_days)
 
-all_SR = [[approx_SR(acc_curve_days) for acc_curve_days in results_for_this_count] for results_for_this_count in all_results]
+def approx_SR(acc_curve_days):
+    return np.nanmean(acc_curve_days) * 16 / np.nanstd(acc_curve_days)
+
+
+all_SR = [
+    [approx_SR(acc_curve_days) for acc_curve_days in results_for_this_count]
+    for results_for_this_count in all_results
+]
 avg_SR_by_count = [np.mean(SR_this_count) for SR_this_count in all_SR]
 shift_factor = 0.24 - avg_SR_by_count[0]
 
-joined_acc_list = [list(chain(*results_for_this_count)) for results_for_this_count in all_results]
-all_SR_bounds = [SR_error_bars(joined_acc, shift_factor) for joined_acc in joined_acc_list]
+joined_acc_list = [list(chain(*results_for_this_count))
+                   for results_for_this_count in all_results]
+all_SR_bounds = [
+    SR_error_bars(joined_acc, shift_factor) for joined_acc in joined_acc_list
+]
 
-SR_by_rule_bars = pd.DataFrame(all_SR_bounds, all_counts, columns=["lower", "mean", "upper"])
-SR_by_rule_bars.transpose().plot(kind="box",rot=90)
-plt.rcParams.update({'font.size': 24})
+SR_by_rule_bars = pd.DataFrame(
+    all_SR_bounds, all_counts, columns=["lower", "mean", "upper"]
+)
+SR_by_rule_bars.transpose().plot(kind="box", rot=90)
+plt.rcParams.update({"font.size": 24})
 plt.gcf().subplots_adjust(bottom=0.35)
 image_process("instrument_diversification_error_bars")

@@ -12,10 +12,14 @@ ADD_TO_CSV = True
 # There must be ONLY fx prices here, with filenames "GBPUSD.csv" etc
 INVESTING_DATA_PATH = "data.other_sources.investing_dot_com.spotfx"
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # You can adapt this for different providers by changing these parameters
-    investingDotCom_csv_fx_prices = csvFxPricesData(datapath=INVESTING_DATA_PATH, price_column="Price",
-                                      date_column = "Date", date_format = "%b %d, %Y")
+    investingDotCom_csv_fx_prices = csvFxPricesData(
+        datapath=INVESTING_DATA_PATH,
+        price_column="Price",
+        date_column="Date",
+        date_format="%b %d, %Y",
+    )
     if ADD_TO_ARCTIC:
         arctic_fx_prices = arcticFxPricesData()
     my_csv_fx_prices = csvFxPricesData()
@@ -26,9 +30,13 @@ if __name__ == '__main__':
 
         print(currency_code)
 
-        fx_prices_investingDotCom = investingDotCom_csv_fx_prices.get_fx_prices(currency_code)
+        fx_prices_investingDotCom = investingDotCom_csv_fx_prices.get_fx_prices(
+            currency_code)
         fx_prices_my_csv = my_csv_fx_prices.get_fx_prices(currency_code)
-        print ("%d rows for my csv files, %d rows for investing.com" % (len(fx_prices_my_csv), len(fx_prices_investingDotCom)))
+        print(
+            "%d rows for my csv files, %d rows for investing.com"
+            % (len(fx_prices_my_csv), len(fx_prices_investingDotCom))
+        )
         # Merge;
         last_date_in_my_csv = fx_prices_my_csv.index[-1]
         fx_prices_investingDotCom = fx_prices_investingDotCom[last_date_in_my_csv:]
@@ -38,7 +46,11 @@ if __name__ == '__main__':
         print("%d rows to write for %s" % (len(fx_prices), currency_code))
 
         if ADD_TO_CSV:
-            my_csv_fx_prices.add_fx_prices(currency_code, fx_prices, ignore_duplication=True)
+            my_csv_fx_prices.add_fx_prices(
+                currency_code, fx_prices, ignore_duplication=True
+            )
 
         if ADD_TO_ARCTIC:
-            arctic_fx_prices.add_fx_prices(currency_code, fx_prices, ignore_duplication=True)
+            arctic_fx_prices.add_fx_prices(
+                currency_code, fx_prices, ignore_duplication=True
+            )

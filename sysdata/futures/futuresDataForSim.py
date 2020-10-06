@@ -1,9 +1,9 @@
-
 import pandas as pd
 
 from sysdata.data import simData
 
 OVERIDE_ERROR = "You probably need to replace this method to do anything useful"
+
 
 class futuresAdjustedPriceData(simData):
     """
@@ -64,7 +64,6 @@ class futuresMultiplePriceData(simData):
 
         self.log.critical(OVERIDE_ERROR)
 
-
     def get_instrument_raw_carry_data(self, instrument_code):
         """
         Returns a pd. dataframe with the 4 columns PRICE, CARRY, PRICE_CONTRACT, CARRY_CONTRACT
@@ -82,7 +81,8 @@ class futuresMultiplePriceData(simData):
 
         all_price_data = self._get_all_price_data(instrument_code)
 
-        return all_price_data[['PRICE', 'CARRY', 'PRICE_CONTRACT', 'CARRY_CONTRACT']]
+        return all_price_data[["PRICE", "CARRY",
+                               "PRICE_CONTRACT", "CARRY_CONTRACT"]]
 
     def get_current_and_forward_price_data(self, instrument_code):
         """
@@ -101,7 +101,9 @@ class futuresMultiplePriceData(simData):
 
         all_price_data = self._get_all_price_data(instrument_code)
 
-        return all_price_data[['PRICE', 'FORWARD', 'PRICE_CONTRACT', 'FORWARD_CONTRACT']]
+        return all_price_data[
+            ["PRICE", "FORWARD", "PRICE_CONTRACT", "FORWARD_CONTRACT"]
+        ]
 
 
 class futuresConfigDataForSim(simData):
@@ -119,7 +121,8 @@ class futuresConfigDataForSim(simData):
             price_slippage=0.0,
             value_of_block_commission=0.0,
             percentage_cost=0.0,
-            value_of_pertrade_commission=0.0)
+            value_of_pertrade_commission=0.0,
+        )
 
         return default_costs
 
@@ -131,7 +134,6 @@ class futuresConfigDataForSim(simData):
 
         """
         self.log.critical(OVERIDE_ERROR)
-
 
     def get_raw_cost_data(self, instrument_code):
         """
@@ -151,19 +153,20 @@ class futuresConfigDataForSim(simData):
 
         """
 
-        cost_data_object = self._get_instrument_object_with_cost_data(instrument_code)
+        cost_data_object = self._get_instrument_object_with_cost_data(
+            instrument_code)
 
         if cost_data_object.empty():
             return self._get_default_costs()
 
         cost_dict = dict(
-            price_slippage=cost_data_object.meta_data['Slippage'],
-            value_of_block_commission=cost_data_object.meta_data['PerBlock'],
-            percentage_cost=cost_data_object.meta_data['Percentage'],
-            value_of_pertrade_commission=cost_data_object.meta_data['PerTrade'])
+            price_slippage=cost_data_object.meta_data["Slippage"],
+            value_of_block_commission=cost_data_object.meta_data["PerBlock"],
+            percentage_cost=cost_data_object.meta_data["Percentage"],
+            value_of_pertrade_commission=cost_data_object.meta_data["PerTrade"],
+        )
 
         return cost_dict
-
 
     def get_all_instrument_data(self):
         """
@@ -207,7 +210,7 @@ class futuresConfigDataForSim(simData):
         """
 
         instr_object = self.get_instrument_object(instrument_code)
-        block_move_value = instr_object.meta_data['Pointsize']
+        block_move_value = instr_object.meta_data["Pointsize"]
 
         return block_move_value
 
@@ -222,10 +225,9 @@ class futuresConfigDataForSim(simData):
 
         """
         instr_object = self.get_instrument_object(instrument_code)
-        currency = instr_object.meta_data['Currency']
+        currency = instr_object.meta_data["Currency"]
 
         return currency
-
 
 
 """
@@ -233,11 +235,16 @@ This class isn't used; instead it shows the pattern for creating source specific
 
 These would inherit directly from source specific versions of futuresAdjustedPriceData... etc
 """
-class futuresSimData(futuresAdjustedPriceData, futuresConfigDataForSim, futuresMultiplePriceData):
+
+
+class futuresSimData(
+    futuresAdjustedPriceData, futuresConfigDataForSim, futuresMultiplePriceData
+):
     def __repr__(self):
         raise Exception(OVERIDE_ERROR)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import doctest
+
     doctest.testmod()

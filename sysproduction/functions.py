@@ -1,6 +1,5 @@
 import inspect
 
-
 NO_DEFAULT = object()
 NO_TYPE_PROVIDED = object()
 NO_VALID_ARGUMENT_PASSED = object()
@@ -66,31 +65,37 @@ def input_and_type_cast_argument(argname, parameter_signature):
         else:
             type_string = ""
 
-        arg_value = input("Argument %s %s %s?" % (argname, default_string, type_string))
+        arg_value = input(
+            "Argument %s %s %s?" %
+            (argname, default_string, type_string))
 
         if arg_value == "":  # just pressed carriage return...
             if default_provided:
                 arg_value = argdefault
                 break
             else:
-                print("No default provided for %s - need a value. Please type something!" % argname)
+                print(
+                    "No default provided for %s - need a value. Please type something!" %
+                    argname)
                 arg_value = NO_VALID_ARGUMENT_PASSED
         else:
-            ## A value has been typed - check if needs type casting
+            # A value has been typed - check if needs type casting
 
             if needs_casting:
                 try:
-                    ## Cast the type
-                    ## this might not work
+                    # Cast the type
+                    # this might not work
                     type_func = eval("%s" % type_to_cast_to)
                     arg_value = type_func(arg_value)
                     break
-                except:
-                    print("\nCouldn't cast value %s to type %s\n" %
-                          (arg_value, type_to_cast_to))
+                except BaseException:
+                    print(
+                        "\nCouldn't cast value %s to type %s\n"
+                        % (arg_value, type_to_cast_to)
+                    )
                     arg_value = NO_VALID_ARGUMENT_PASSED
             else:
-                ## no type casting required
+                # no type casting required
                 pass
 
     return arg_value
@@ -102,7 +107,7 @@ def fill_args_and_run_func(func, full_funcname):
 
     Optionally casts to type, if any argument name is an entry in the dict type_casting
     """
-    ##print doc string
+    # print doc string
 
     print("\n")
     print(full_funcname + ":")
@@ -120,7 +125,8 @@ def fill_args_and_run_func(func, full_funcname):
         arg_value = input_and_type_cast_argument(argname, parameter_signature)
         if arg_value is NO_VALID_ARGUMENT_PASSED:
             raise Exception(
-                "Invalid argument passed - should not happen - check function 'input_and_type_cast_argument' logic")
+                "Invalid argument passed - should not happen - check function 'input_and_type_cast_argument' logic"
+            )
 
         is_kwarg = has_default(parameter_signature)
         if is_kwarg:
@@ -129,5 +135,3 @@ def fill_args_and_run_func(func, full_funcname):
             args.append(arg_value)
 
     return args, kwargs
-
-

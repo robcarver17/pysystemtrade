@@ -10,10 +10,11 @@ Two types of services:
 
 """
 
-
 from syscore.objects import success
 
-from sysdata.futures.futures_per_contract_prices import dictFuturesContractFinalPricesWithContractID
+from sysdata.futures.futures_per_contract_prices import (
+    dictFuturesContractFinalPricesWithContractID,
+)
 from sysdata.futures.adjusted_prices import no_update_roll_has_occured
 
 from sysproduction.data.get_data import dataBlob
@@ -28,7 +29,8 @@ def update_multiple_adjusted_prices():
     """
 
     with dataBlob(log_name="Update-Multiple-Adjusted-Prices") as data:
-        update_multiple_adjusted_prices_object = updateMultipleAdjustedPrices(data)
+        update_multiple_adjusted_prices_object = updateMultipleAdjustedPrices(
+            data)
         update_multiple_adjusted_prices_object.update_multiple_adjusted_prices()
 
     return success
@@ -46,9 +48,12 @@ class updateMultipleAdjustedPrices(object):
         for instrument_code in list_of_codes_all:
             try:
 
-                update_multiple_adjusted_prices_for_instrument(instrument_code, data)
+                update_multiple_adjusted_prices_for_instrument(
+                    instrument_code, data)
             except Exception as e:
-                data.log.warn("ERROR: Multiple price update went wrong: %s" % str(e))
+                data.log.warn(
+                    "ERROR: Multiple price update went wrong: %s" %
+                    str(e))
 
 
 def update_multiple_adjusted_prices_for_instrument(instrument_code, data):
@@ -71,22 +76,36 @@ def update_multiple_adjusted_prices_for_instrument(instrument_code, data):
 
     relevant_contracts = existing_multiple_prices.current_contract_dict()
 
-    new_prices_dict = get_dict_of_new_prices_and_contractid(instrument_code, relevant_contracts, data)
-    updated_multiple_prices = existing_multiple_prices.update_multiple_prices_with_dict(new_prices_dict)
+    new_prices_dict = get_dict_of_new_prices_and_contractid(
+        instrument_code, relevant_contracts, data
+    )
+    updated_multiple_prices = existing_multiple_prices.update_multiple_prices_with_dict(
+        new_prices_dict)
 
-    updated_adjusted_prices = existing_adjusted_prices.update_with_multiple_prices_no_roll(updated_multiple_prices)
+    updated_adjusted_prices = (
+        existing_adjusted_prices.update_with_multiple_prices_no_roll(
+            updated_multiple_prices
+        )
+    )
 
     if updated_adjusted_prices is no_update_roll_has_occured:
-        log.critical("Can't update adjusted prices for %s as roll has occured but not registered properly" % instrument_code)
+        log.critical(
+            "Can't update adjusted prices for %s as roll has occured but not registered properly" %
+            instrument_code)
         raise Exception()
 
-    update_prices.add_multiple_prices(instrument_code, updated_multiple_prices, ignore_duplication=True)
-    update_prices.add_adjusted_prices(instrument_code, updated_adjusted_prices, ignore_duplication=True)
+    update_prices.add_multiple_prices(
+        instrument_code, updated_multiple_prices, ignore_duplication=True
+    )
+    update_prices.add_adjusted_prices(
+        instrument_code, updated_adjusted_prices, ignore_duplication=True
+    )
 
     return success
 
 
-def get_dict_of_new_prices_and_contractid(instrument_code, contract_date_dict, data):
+def get_dict_of_new_prices_and_contractid(
+        instrument_code, contract_date_dict, data):
     """
 
     :param instrument_code: str
@@ -95,14 +114,18 @@ def get_dict_of_new_prices_and_contractid(instrument_code, contract_date_dict, d
     :return: dict of futures contract prices for each contract, plus contract id column
     """
     diag_prices = diagPrices(data)
-    # get prices for relevant contracts, return as dict labelled with column for contractids
+    # get prices for relevant contracts, return as dict labelled with column
+    # for contractids
     relevant_contract_prices = dict()
     for key, contract_date in contract_date_dict.items():
-        price_series = diag_prices.get_prices_for_instrument_code_and_contract_date(instrument_code, contract_date)
+        price_series = diag_prices.get_prices_for_instrument_code_and_contract_date(
+            instrument_code, contract_date)
         relevant_contract_prices[key] = price_series.return_final_prices()
 
-    new_prices_dict = dictFuturesContractFinalPricesWithContractID.\
-        create_from_two_dicts(relevant_contract_prices, contract_date_dict)
+    new_prices_dict = (
+        dictFuturesContractFinalPricesWithContractID.create_from_two_dicts(
+            relevant_contract_prices, contract_date_dict
+        )
+    )
 
     return new_prices_dict
-

@@ -1,14 +1,15 @@
-
 from syscore.objects import arg_not_supplied
 from sysproduction.data.get_data import dataBlob
 from sysproduction.data.broker import dataBroker
 from sysproduction.data.contracts import diagContracts
 from sysproduction.data.prices import diagPrices
 
+
 def print_trading_hours_for_all_instruments(data=arg_not_supplied):
     all_trading_hours = get_trading_hours_for_all_instruments(data)
     for key, value in sorted(all_trading_hours.items(), key=lambda x: x[0]):
         print("{} : {}".format(key, value))
+
 
 def get_trading_hours_for_all_instruments(data=arg_not_supplied):
     if data is arg_not_supplied:
@@ -24,12 +25,14 @@ def get_trading_hours_for_all_instruments(data=arg_not_supplied):
 
     return all_trading_hours
 
+
 def get_trading_hours_for_instrument(data, instrument_code):
 
     diag_contracts = diagContracts(data)
     contract_id = diag_contracts.get_priced_contract_id(instrument_code)
 
     data_broker = dataBroker(data)
-    trading_hours = data_broker.get_trading_hours_for_instrument_code_and_contract_date(instrument_code, contract_id)
+    trading_hours = data_broker.get_trading_hours_for_instrument_code_and_contract_date(
+        instrument_code, contract_id)
 
     return trading_hours

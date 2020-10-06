@@ -6,7 +6,11 @@ from functools import partial
 
 from systems.stage import SystemStage
 from syscore.objects import resolve_function, resolve_data_method, hasallattr
-from syscore.text import sort_dict_by_underscore_length, strip_underscores_from_dict_keys, force_args_to_same_length
+from syscore.text import (
+    sort_dict_by_underscore_length,
+    strip_underscores_from_dict_keys,
+    force_args_to_same_length,
+)
 
 from systems.system_cache import input, diagnostic, output, dont_cache
 
@@ -39,7 +43,7 @@ class Rules(SystemStage):
     Name: rules
     """
 
-    def __init__(self, trading_rules = None, pre_calc_rules = True):
+    def __init__(self, trading_rules=None, pre_calc_rules=True):
         """
         Create a SystemStage for forecasting
 
@@ -66,9 +70,8 @@ class Rules(SystemStage):
         setattr(self, "_passed_trading_rules", trading_rules)
 
         # PRE CALC NOT IMPLEMENTED THESE ARE IRRELEVANT
-        self.pre_calc_rules= pre_calc_rules
+        self.pre_calc_rules = pre_calc_rules
         self._pre_calculation_not_yet_done = True
-
 
     def _name(self):
         return "rules"
@@ -130,7 +133,6 @@ class Rules(SystemStage):
             new_rules = process_trading_rules(passed_rules)
 
         setattr(self, "_trading_rules", new_rules)
-
         """
         if self.pre_calc_rules and self._pre_calculation_not_yet_done:
             # Pre calculate all values for all rules, and drop into the cache
@@ -143,7 +145,7 @@ class Rules(SystemStage):
             self._pre_calculation_not_yet_done = False
         """
 
-        return (new_rules)
+        return new_rules
 
     @output()
     def get_raw_forecast(self, instrument_code, rule_variation_name):
@@ -158,29 +160,34 @@ class Rules(SystemStage):
 
         system = self.parent
 
-
         self.log.msg(
-            "Calculating raw forecast %s for %s" % (instrument_code,
-                                                    rule_variation_name),
+            "Calculating raw forecast %s for %s"
+            % (instrument_code, rule_variation_name),
             instrument_code=instrument_code,
-            rule_variation_name=rule_variation_name)
+            rule_variation_name=rule_variation_name,
+        )
 
         trading_rule = self.trading_rules()[rule_variation_name]
 
         result = trading_rule.call(system, instrument_code)
         result.columns = [rule_variation_name]
 
-        ## Check for all zeros
+        # Check for all zeros
         check_result = copy(result)
-        check_result[check_result==0.0]=np.nan
+        check_result[check_result == 0.0] = np.nan
         if all(check_result.isna()):
-            self.log.warn("Setting rule %s for %s to all NAN as all values are 0 or NAN" % (instrument_code, rule_variation_name))
-            result[:]=np.nan
+            self.log.warn(
+                "Setting rule %s for %s to all NAN as all values are 0 or NAN"
+                % (instrument_code, rule_variation_name)
+            )
+            result[:] = np.nan
 
         return result
 
     @dont_cache
-    def _precalc_forecasts_for_rule_all_instruments_and_cache(self, rule_variation_name):
+    def _precalc_forecasts_for_rule_all_instruments_and_cache(
+        self, rule_variation_name
+    ):
         """
         Pre calculate all values for all instrument, and drop into the cache
         This is especially fast if we're using parallel processing
@@ -199,44 +206,56 @@ class Rules(SystemStage):
         rule_function = trading_rule.function
         instrument_list = system.get_instrument_list()
 
-        rule_data_as_list_across_instruments = [trading_rule.get_data_from_system(system, instrument_code)
-                                                for instrument_code in instrument_list]
+        rule_data_as_list_across_instruments = [
+            trading_rule.get_data_from_system(system, instrument_code)
+            for instrument_code in instrument_list
+        ]
         other_args_as_dict = trading_rule.other_args
 
-        partial_function = partial(_function_call_with_args, function=rule_function, other_args_as_dict=other_args_as_dict)
+        partial_function = partial(
+            _function_call_with_args,
+            function=rule_function,
+            other_args_as_dict=other_args_as_dict,
+        )
 
         if parallel_processing:
             # Parallel version
             # FIXME: NOT WORKING
-
             """
             with ProcessPoolExecutor(max_workers=max_workers) as executor:
                 instrument_forecasts = executor.map(partial_function, rule_data_as_list_across_instruments)
             """
             # FIXME USE NON PARALLEL INSTEAD FOR NOW
-            instrument_forecasts = [partial_function(this_instrument_data)
-                                    for this_instrument_data in rule_data_as_list_across_instruments]
+            instrument_forecasts = [
+                partial_function(this_instrument_data)
+                for this_instrument_data in rule_data_as_list_across_instruments
+            ]
 
         else:
 
             # Non parallel version
-            instrument_forecasts = [partial_function(this_instrument_data)
-                                    for this_instrument_data in rule_data_as_list_across_instruments]
+            instrument_forecasts = [
+                partial_function(this_instrument_data)
+                for this_instrument_data in rule_data_as_list_across_instruments
+            ]
 
         # Add to cache
-        for instrument_code, forecast_this_instrument in zip(instrument_list, instrument_forecasts):
+        for instrument_code, forecast_this_instrument in zip(
+            instrument_list, instrument_forecasts
+        ):
             cache_ref = system.cache.cache_ref(
-                    self.get_raw_forecast,
-                      self,
-                      instrument_code, rule_variation_name)
+                self.get_raw_forecast, self, instrument_code, rule_variation_name)
 
-            system.cache.set_item_in_cache(
-                          forecast_this_instrument,
-                          cache_ref)
+            system.cache.set_item_in_cache(forecast_this_instrument, cache_ref)
 
-def function_call_with_args(data_as_list, function=None, other_args_as_dict={}):
+
+def function_call_with_args(
+        data_as_list,
+        function=None,
+        other_args_as_dict={}):
     # convenience function to make creating a parital easier
     return function(*data_as_list, **other_args_as_dict)
+
 
 class TradingRule(object):
     """
@@ -288,9 +307,12 @@ class TradingRule(object):
 
         if hasallattr(rule, ["function", "data", "other_args"]):
             # looks like it is already a trading rule
-            (rule_function, data, other_args, data_args) = (rule.function, rule.data,
-                                                 rule.other_args, rule.data_args)
-
+            (rule_function, data, other_args, data_args) = (
+                rule.function,
+                rule.data,
+                rule.other_args,
+                rule.data_args,
+            )
 
         elif isinstance(rule, tuple):
             if len(data) > 0 or len(other_args) > 0:
@@ -311,19 +333,19 @@ class TradingRule(object):
                 )
 
             try:
-                rule_function = rule['function']
+                rule_function = rule["function"]
             except KeyError:
                 raise Exception(
                     "If you specify a TradingRule as a dict it has to contain a 'function' keyname"
                 )
 
             if "data" in rule:
-                data = rule['data']
+                data = rule["data"]
             else:
                 data = []
 
             if "other_args" in rule:
-                other_args = rule['other_args']
+                other_args = rule["other_args"]
 
             else:
                 other_args = dict()
@@ -349,13 +371,18 @@ class TradingRule(object):
         setattr(self, "data_args", data_args)
 
     def __repr__(self):
-        data_names = ["%s (args: %s)" % (data_name, str(data_args))
-                      for data_name, data_args in zip(self.data, self.data_args)]
+        data_names = [
+            "%s (args: %s)" % (data_name, str(data_args))
+            for data_name, data_args in zip(self.data, self.data_args)
+        ]
         data_names = ", ".join(data_names)
         args_names = ", ".join(self.other_args.keys())
 
         return "TradingRule; function: %s, data: %s and other_args: %s" % (
-            str(self.function), data_names, args_names)
+            str(self.function),
+            data_names,
+            args_names,
+        )
 
     def call(self, system, instrument_code):
         """
@@ -398,14 +425,15 @@ class TradingRule(object):
 
         # Turn a list of strings into a list of function objects
         data_methods = [
-            resolve_data_method(system, data_string)
-            for data_string in datalist
-        ]
-
+            resolve_data_method(
+                system,
+                data_string) for data_string in datalist]
 
         # Call the functions, providing additional data if neccesssary
-        data = [data_method(instrument_code, **data_arguments) for data_method, data_arguments in
-                zip(data_methods, data_arg_list)]
+        data = [
+            data_method(instrument_code, **data_arguments)
+            for data_method, data_arguments in zip(data_methods, data_arg_list)
+        ]
 
         return data
 
@@ -413,6 +441,7 @@ class TradingRule(object):
         other_args = self.other_args
 
         return self.function(*data, **other_args)
+
 
 def separate_other_args(other_args, data):
     """
@@ -430,16 +459,19 @@ def separate_other_args(other_args, data):
 
     # Split arguments up into groups depending on number of leading _
     # 0 (passed as other_args to data function), 1, 2, 3 ...
-    if len(other_args)==0:
-        return ({},[{}]*len(data))
+    if len(other_args) == 0:
+        return ({}, [{}] * len(data))
 
     sorted_other_args = sort_dict_by_underscore_length(other_args)
 
-    # The first item in the list has no underscores, and is for the main trading rule function
+    # The first item in the list has no underscores, and is for the main
+    # trading rule function
     other_args_for_trading_rule = sorted_other_args.pop(0)
 
-    # The rest are data_args. At this point the key values still have "_" so let's drop them
-    data_args = [strip_underscores_from_dict_keys(arg_dict) for arg_dict in sorted_other_args]
+    # The rest are data_args. At this point the key values still have "_" so
+    # let's drop them
+    data_args = [strip_underscores_from_dict_keys(
+        arg_dict) for arg_dict in sorted_other_args]
 
     # Force them to be the same length so things don't break later
     # Pad if required
@@ -475,15 +507,23 @@ def process_trading_rules(trading_rules):
     """
     if isinstance(trading_rules, list):
         # Give some arbitrary name
-        ans = dict([("rule%d" % ruleid, TradingRule(rule))
-                    for (ruleid, rule) in enumerate(trading_rules)])
+        ans = dict(
+            [
+                ("rule%d" % ruleid, TradingRule(rule))
+                for (ruleid, rule) in enumerate(trading_rules)
+            ]
+        )
         return ans
 
     if isinstance(trading_rules, dict):
         if "function" not in trading_rules:
             # Note the system config will always come in as a dict
-            ans = dict([(keyname, TradingRule(trading_rules[keyname]))
-                        for keyname in trading_rules])
+            ans = dict(
+                [
+                    (keyname, TradingRule(trading_rules[keyname]))
+                    for keyname in trading_rules
+                ]
+            )
             return ans
 
     # Must be an individual rule (string, function, dict with 'function' or
@@ -491,10 +531,11 @@ def process_trading_rules(trading_rules):
     return process_trading_rules([trading_rules])
 
 
-def create_variations_oneparameter(baseRule,
-                                   list_of_args,
-                                   argname,
-                                   nameformat="%s_%s"):
+def create_variations_oneparameter(
+        baseRule,
+        list_of_args,
+        argname,
+        nameformat="%s_%s"):
     """
     Returns a dict of trading rule variations, varying only one named parameter
 
@@ -527,18 +568,15 @@ def create_variations_oneparameter(baseRule,
         list_of_args_dict.append(thisdict)
 
     ans = create_variations(
-        baseRule,
-        list_of_args_dict,
-        key_argname=argname,
-        nameformat=nameformat)
+        baseRule, list_of_args_dict, key_argname=argname, nameformat=nameformat
+    )
 
     return ans
 
 
-def create_variations(baseRule,
-                      list_of_args_dict,
-                      key_argname=None,
-                      nameformat="%s_%s"):
+def create_variations(
+    baseRule, list_of_args_dict, key_argname=None, nameformat="%s_%s"
+):
     """
     Returns a dict of trading rule variations
 
@@ -584,8 +622,9 @@ def create_variations(baseRule,
     for args_dict in list_of_args_dict:
         if key_argname not in args_dict.keys():
             raise Exception(
-                "Argname %s missing from at least one set of argument values" %
-                key_argname)
+                "Argname %s missing from at least one set of argument values"
+                % key_argname
+            )
 
         # these will be overwritten or added to as we run through
         baseRuleargs = copy(baseRule.other_args)
@@ -593,8 +632,8 @@ def create_variations(baseRule,
         for arg_name in args_dict.keys():
             baseRuleargs[arg_name] = args_dict[arg_name]
 
-        rule_variation = TradingRule(baseRulefunction, baseRuledata,
-                                     baseRuleargs)
+        rule_variation = TradingRule(
+            baseRulefunction, baseRuledata, baseRuleargs)
         var_name = nameformat % (key_argname, str(args_dict[key_argname]))
 
         variations[var_name] = rule_variation
@@ -602,6 +641,7 @@ def create_variations(baseRule,
     return variations
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import doctest
+
     doctest.testmod()

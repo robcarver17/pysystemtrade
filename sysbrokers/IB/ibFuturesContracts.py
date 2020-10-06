@@ -1,8 +1,6 @@
-
 import pandas as pd
 from syscore.fileutils import get_filename_for_package
 from syscore.genutils import value_or_npnan, NOT_REQUIRED
-
 
 from sysdata.futures.contracts import futuresContractData
 from sysdata.futures.instruments import futuresInstrument
@@ -10,9 +8,8 @@ from sysdata.futures.contract_dates_and_expiries import expiryDate
 from syslogdiag.log import logtoscreen
 from syscore.objects import missing_contract, missing_instrument, missing_file
 
-IB_FUTURES_CONFIG_FILE = get_filename_for_package("sysbrokers.IB.ibConfigFutures.csv")
-
-
+IB_FUTURES_CONFIG_FILE = get_filename_for_package(
+    "sysbrokers.IB.ibConfigFutures.csv")
 
 
 class ibFuturesContractData(futuresContractData):
@@ -32,23 +29,25 @@ class ibFuturesContractData(futuresContractData):
         return "IB Futures per contract data %s" % str(self.ibconnection)
 
     def get_brokers_instrument_code(self, instrument_code):
-        return get_instrument_object_from_config(instrument_code).meta_data['symbol']
+        return get_instrument_object_from_config(
+            instrument_code).meta_data["symbol"]
 
     def get_instrument_code_from_broker_code(self, ib_code):
         config = self._get_ib_config()
         config_row = config[config.IBSymbol == ib_code]
-        if len(config_row)==0:
+        if len(config_row) == 0:
             msg = "Broker symbol %s not found in configuration file!" % ib_code
             self.log.critical(msg)
             raise Exception(msg)
 
-        if len(config_row)>1:
-            msg = "Broker symbol %s appears more than once in configuration file!" % ib_code
+        if len(config_row) > 1:
+            msg = (
+                "Broker symbol %s appears more than once in configuration file!" %
+                ib_code)
             self.log.critical(msg)
-            raise  Exception(msg)
+            raise Exception(msg)
 
         return config_row.iloc[0].Instrument
-
 
     def has_data_for_contract(self, contract_object):
         """
@@ -71,21 +70,26 @@ class ibFuturesContractData(futuresContractData):
         :param contract_object:
         :return: list of paired date times
         """
-        new_log = self.log.setup(instrument_code=contract_object.instrument_code, contract_date=contract_object.date)
+        new_log = self.log.setup(
+            instrument_code=contract_object.instrument_code,
+            contract_date=contract_object.date,
+        )
 
-        contract_object_with_ib_data = self.get_contract_object_with_IB_metadata(contract_object)
+        contract_object_with_ib_data = self.get_contract_object_with_IB_metadata(
+            contract_object)
         if contract_object_with_ib_data is missing_contract:
             new_log.msg("Can't resolve contract so can't find expiry date")
             return missing_contract
 
-        trading_hours = self.ibconnection.ib_get_trading_hours(contract_object_with_ib_data)
+        trading_hours = self.ibconnection.ib_get_trading_hours(
+            contract_object_with_ib_data
+        )
 
         if trading_hours is missing_contract:
             new_log.msg("No IB expiry date found")
             trading_hours = []
 
         return trading_hours
-
 
     def get_actual_expiry_date_for_contract(self, contract_object):
         """
@@ -94,31 +98,43 @@ class ibFuturesContractData(futuresContractData):
         :param contract_object: type futuresContract
         :return: YYYYMMDD or None
         """
-        new_log = self.log.setup(instrument_code=contract_object.instrument_code, contract_date=contract_object.date)
+        new_log = self.log.setup(
+            instrument_code=contract_object.instrument_code,
+            contract_date=contract_object.date,
+        )
 
-        contract_object_with_ib_data = self.get_contract_object_with_IB_metadata(contract_object)
+        contract_object_with_ib_data = self.get_contract_object_with_IB_metadata(
+            contract_object)
         if contract_object_with_ib_data is missing_contract:
             new_log.msg("Can't resolve contract so can't find expiry date")
             return missing_contract
 
-        expiry_date = self.ibconnection.broker_get_contract_expiry_date(contract_object_with_ib_data)
+        expiry_date = self.ibconnection.broker_get_contract_expiry_date(
+            contract_object_with_ib_data
+        )
 
         if expiry_date is missing_contract:
             new_log.msg("No IB expiry date found")
             return missing_contract
         else:
-            expiry_date = expiryDate.from_str(expiry_date, date_format="%Y%m%d")
+            expiry_date = expiryDate.from_str(
+                expiry_date, date_format="%Y%m%d")
 
         return expiry_date
 
     def get_contract_object_with_IB_metadata(self, contract_object):
 
-        new_instrument_object = self.get_instrument_object_with_IB_metadata(contract_object.instrument_code)
+        new_instrument_object = self.get_instrument_object_with_IB_metadata(
+            contract_object.instrument_code
+        )
         if new_instrument_object is missing_instrument:
             return missing_contract
 
-        contract_object_with_ib_data = \
-            contract_object.new_contract_with_replaced_instrument_object( new_instrument_object)
+        contract_object_with_ib_data = (
+            contract_object.new_contract_with_replaced_instrument_object(
+                new_instrument_object
+            )
+        )
 
         return contract_object_with_ib_data
 
@@ -127,16 +143,22 @@ class ibFuturesContractData(futuresContractData):
 
         try:
             assert instrument_code in self.get_instruments_with_config_data()
-        except:
-            new_log.warn("Instrument %s is not in IB configuration file" % instrument_code)
+        except BaseException:
+            new_log.warn(
+                "Instrument %s is not in IB configuration file" %
+                instrument_code)
             return missing_instrument
 
         config = self._get_ib_config()
         if config is missing_file:
-            new_log.warn("Can't get config for instrument %s as IB configuration file missing" % instrument_code)
+            new_log.warn(
+                "Can't get config for instrument %s as IB configuration file missing" %
+                instrument_code)
             return missing_instrument
 
-        instrument_object = get_instrument_object_from_config( instrument_code, config=config)
+        instrument_object = get_instrument_object_from_config(
+            instrument_code, config=config
+        )
 
         return instrument_object
 
@@ -150,13 +172,14 @@ class ibFuturesContractData(futuresContractData):
 
         config = self._get_ib_config()
         if config is missing_file:
-            self.log.warn("Can't get list of instruments because IB config file missing")
+            self.log.warn(
+                "Can't get list of instruments because IB config file missing"
+            )
             return []
 
         instrument_list = list(config.Instrument)
 
         return instrument_list
-
 
     # Configuration read in and cache
     def _get_ib_config(self):
@@ -169,8 +192,8 @@ class ibFuturesContractData(futuresContractData):
     def _get_and_set_ib_config_from_file(self):
 
         try:
-            config_data=get_ib_config()
-        except:
+            config_data = get_ib_config()
+        except BaseException:
             self.log.warn("Can't read file %s" % IB_FUTURES_CONFIG_FILE)
             config_data = missing_file
 
@@ -178,41 +201,51 @@ class ibFuturesContractData(futuresContractData):
 
         return config_data
 
-
-
     def get_all_contract_objects_for_instrument_code(self, *args, **kwargs):
-        raise NotImplementedError("Consider implementing for consistent interface")
+        raise NotImplementedError(
+            "Consider implementing for consistent interface")
 
     def get_contract_data(self, *args, **kwargs):
-        raise NotImplementedError("Consider implementing for consistent interface")
+        raise NotImplementedError(
+            "Consider implementing for consistent interface")
 
     def delete_contract_data(self, *args, **kwargs):
         raise NotImplementedError("IB is ready only")
 
     def is_contract_in_data(self, *args, **kwargs):
-        raise NotImplementedError("Consider implementing for consistent interface")
+        raise NotImplementedError(
+            "Consider implementing for consistent interface")
 
     def add_contract_data(self, *args, **kwargs):
         raise NotImplementedError("IB is ready only")
 
 
-def get_instrument_object_from_config( instrument_code, config = None):
+def get_instrument_object_from_config(instrument_code, config=None):
     if config is None:
         config = get_ib_config()
     config_row = config[config.Instrument == instrument_code]
     symbol = config_row.IBSymbol.values[0]
     exchange = config_row.IBExchange.values[0]
     currency = value_or_npnan(config_row.IBCurrency.values[0], NOT_REQUIRED)
-    ib_multiplier = value_or_npnan(config_row.IBMultiplier.values[0], NOT_REQUIRED)
-    my_multiplier = value_or_npnan(config_row.MyMultiplier.values[0], NOT_REQUIRED)
+    ib_multiplier = value_or_npnan(
+        config_row.IBMultiplier.values[0], NOT_REQUIRED)
+    my_multiplier = value_or_npnan(
+        config_row.MyMultiplier.values[0], NOT_REQUIRED)
     ignore_weekly = config_row.IgnoreWeekly.values[0]
 
-    ## We use the flexibility of futuresInstrument to add additional arguments
-    instrument_config = futuresInstrument(instrument_code, symbol=symbol, exchange=exchange, currency=currency,
-                                          ibMultiplier=ib_multiplier, myMultiplier=my_multiplier,
-                                          ignoreWeekly=ignore_weekly)
+    # We use the flexibility of futuresInstrument to add additional arguments
+    instrument_config = futuresInstrument(
+        instrument_code,
+        symbol=symbol,
+        exchange=exchange,
+        currency=currency,
+        ibMultiplier=ib_multiplier,
+        myMultiplier=my_multiplier,
+        ignoreWeekly=ignore_weekly,
+    )
 
     return instrument_config
+
 
 def get_ib_config():
     return pd.read_csv(IB_FUTURES_CONFIG_FILE)

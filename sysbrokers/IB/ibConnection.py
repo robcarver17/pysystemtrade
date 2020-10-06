@@ -14,12 +14,11 @@ from sysdata.private_config import get_list_of_private_then_default_key_values
 from syslogdiag.log import logtoscreen
 from sysdata.mongodb.mongo_connection import mongoConnection, mongoDb
 
-DEFAULT_IB_IPADDRESS='127.0.0.1'
+DEFAULT_IB_IPADDRESS = "127.0.0.1"
 DEFAULT_IB_PORT = 4001
 DEFAULT_IB_IDOFFSET = 1
 
-LIST_OF_IB_PARAMS = ['ipaddress', 'port', 'idoffset']
-
+LIST_OF_IB_PARAMS = ["ipaddress", "port", "idoffset"]
 
 
 def ib_defaults(**kwargs):
@@ -33,12 +32,14 @@ def ib_defaults(**kwargs):
     :return: mongo db, hostname, port
     """
 
-    param_names_with_prefix = ['ib_' + arg_name for arg_name in LIST_OF_IB_PARAMS]
-    config_dict = get_list_of_private_then_default_key_values(param_names_with_prefix)
+    param_names_with_prefix = [
+        "ib_" + arg_name for arg_name in LIST_OF_IB_PARAMS]
+    config_dict = get_list_of_private_then_default_key_values(
+        param_names_with_prefix)
 
     yaml_dict = {}
     for arg_name in LIST_OF_IB_PARAMS:
-        yaml_arg_name = 'ib_' + arg_name
+        yaml_arg_name = "ib_" + arg_name
 
         # Start with config (precedence: private config, then system config)
         arg_value = config_dict[yaml_arg_name]
@@ -49,9 +50,9 @@ def ib_defaults(**kwargs):
         yaml_dict[arg_name] = arg_value
 
     # Get from dictionary
-    ipaddress = yaml_dict.get('ipaddress', DEFAULT_IB_IPADDRESS)
-    port = yaml_dict.get('port', DEFAULT_IB_PORT)
-    idoffset = yaml_dict.get('idoffset', DEFAULT_IB_IDOFFSET)
+    ipaddress = yaml_dict.get("ipaddress", DEFAULT_IB_IPADDRESS)
+    port = yaml_dict.get("port", DEFAULT_IB_PORT)
+    idoffset = yaml_dict.get("idoffset", DEFAULT_IB_IDOFFSET)
 
     return ipaddress, port, idoffset
 
@@ -62,9 +63,14 @@ class connectionIB(ibClient, ibServer):
     (A database plug in will need to be added for streaming prices)
     """
 
-    def __init__(self, client=None, ipaddress=None, port=None, log=logtoscreen("connectionIB"),
-                 mongo_db = arg_not_supplied):
-
+    def __init__(
+        self,
+        client=None,
+        ipaddress=None,
+        port=None,
+        log=logtoscreen("connectionIB"),
+        mongo_db=arg_not_supplied,
+    ):
         """
         :param client: client id. If not passed then will get from database specified by mongo_db
         :param ipaddress: IP address of machine running IB Gateway or TWS. If not passed then will get from private config file, or defaults
@@ -78,18 +84,22 @@ class connectionIB(ibClient, ibServer):
 
         # The client id is pulled from a mongo database
         # If for example you want to use a different database you could do something like:
-        # connectionIB(mongo_ib_tracker = mongoIBclientIDtracker(database_name="another")
+        # connectionIB(mongo_ib_tracker =
+        # mongoIBclientIDtracker(database_name="another")
 
         # You can pass a client id yourself, or let IB find one
 
-        self.db_id_tracker = mongoIBclientIDtracker(mongo_db = mongo_db, log=log, idoffset=idoffset)
+        self.db_id_tracker = mongoIBclientIDtracker(
+            mongo_db=mongo_db, log=log, idoffset=idoffset
+        )
         client = self.db_id_tracker.return_valid_client_id(client)
 
         # If you copy for another broker include this line
-        log.label(broker="IB", clientid = client)
-        self._ib_connection_config = dict(ipaddress = ipaddress, port = port, client = client)
+        log.label(broker="IB", clientid=client)
+        self._ib_connection_config = dict(
+            ipaddress=ipaddress, port=port, client=client)
 
-        #if you copy for another broker, don't forget the logs
+        # if you copy for another broker, don't forget the logs
         ibServer.__init__(self, log=log)
         ibClient.__init__(self, log=log)
 
@@ -97,28 +107,29 @@ class connectionIB(ibClient, ibServer):
         ib = IB()
         ib.connect(ipaddress, port, clientId=client)
 
-        ## Add handlers, from ibServer methods
+        # Add handlers, from ibServer methods
         ib.errorEvent += self.error_handler
 
         self.ib = ib
 
     def __repr__(self):
-        return "IB broker connection"+str(self._ib_connection_config)
+        return "IB broker connection" + str(self._ib_connection_config)
 
     def close_connection(self):
         self.log.msg("Terminating %s" % str(self._ib_connection_config))
         try:
-            ## Try and disconnect IB client
+            # Try and disconnect IB client
             self.ib.disconnect()
-        except:
-            self.log.warn("Trying to disconnect IB client failed... ensure process is killed")
+        except BaseException:
+            self.log.warn(
+                "Trying to disconnect IB client failed... ensure process is killed"
+            )
         finally:
-            self.db_id_tracker.release_clientid(self._ib_connection_config['client'])
+            self.db_id_tracker.release_clientid(
+                self._ib_connection_config["client"])
 
 
-
-
-IB_CLIENT_COLLECTION = 'IBClientTracker'
+IB_CLIENT_COLLECTION = "IBClientTracker"
 
 
 class mongoIBclientIDtracker(object):
@@ -126,7 +137,12 @@ class mongoIBclientIDtracker(object):
     Read and write data class to get next used client id
     """
 
-    def __init__(self, mongo_db = arg_not_supplied, idoffset=arg_not_supplied, log=logtoscreen("mongoIDTracker")):
+    def __init__(
+        self,
+        mongo_db=arg_not_supplied,
+        idoffset=arg_not_supplied,
+        log=logtoscreen("mongoIDTracker"),
+    ):
 
         if mongo_db is arg_not_supplied:
             mongo_db = mongoDb()
@@ -140,7 +156,11 @@ class mongoIBclientIDtracker(object):
         self._mongo.create_index("client_id")
 
         self.name = "Tracking IB client IDs, mongodb %s/%s @ %s -p %s " % (
-            self._mongo.database_name, self._mongo.collection_name, self._mongo.host, self._mongo.port)
+            self._mongo.database_name,
+            self._mongo.collection_name,
+            self._mongo.host,
+            self._mongo.port,
+        )
 
         self.log = log
         self._idoffset = idoffset
@@ -175,9 +195,10 @@ class mongoIBclientIDtracker(object):
             # this will also lock it
             clientid_to_use = self.get_next_clientid()
         else:
-            # okay it's been passed, and we can use it. So let's lock and use it
+            # okay it's been passed, and we can use it. So let's lock and use
+            # it
             clientid_to_use = clientid_to_try
-            self._add_clientid(clientid_to_use) # lock
+            self._add_clientid(clientid_to_use)  # lock
 
         return clientid_to_use
 
@@ -189,10 +210,12 @@ class mongoIBclientIDtracker(object):
         """
 
         current_list = self._get_list_of_clientids()
-        if len(current_list)==0:
+        if len(current_list) == 0:
             next_id = self._idoffset
         else:
-            full_set = set(range(self._idoffset, max(current_list) + 2)) # includes next value up in case no space
+            full_set = set(
+                range(self._idoffset, max(current_list) + 2)
+            )  # includes next value up in case no space
             missing_values = full_set - set(current_list)
             next_id = min(missing_values)
 
@@ -203,13 +226,13 @@ class mongoIBclientIDtracker(object):
 
     def _get_list_of_clientids(self):
         cursor = self._mongo.collection.find()
-        clientids = [db_entry['client_id'] for db_entry in cursor]
+        clientids = [db_entry["client_id"] for db_entry in cursor]
 
         return clientids
 
     def _add_clientid(self, next_id):
         self._mongo.collection.insert_one(dict(client_id=next_id))
-        self.log.msg("Locked ID %d" %  next_id)
+        self.log.msg("Locked ID %d" % next_id)
 
     def clear_all_clientids(self):
         """
@@ -220,7 +243,6 @@ class mongoIBclientIDtracker(object):
         self._mongo.collection.delete_many({})
         self.log.msg("Released all IDs")
 
-
     def release_clientid(self, clientid):
         """
         Delete a client id lock
@@ -229,4 +251,4 @@ class mongoIBclientIDtracker(object):
         """
 
         self._mongo.collection.delete_one(dict(client_id=clientid))
-        self.log.msg("Released ID %d" %  clientid)
+        self.log.msg("Released ID %d" % clientid)
