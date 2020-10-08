@@ -234,6 +234,10 @@ class listOfInstrumentPositions(listOfPositions):
         id_column_dict = dict(instrument_code=id_column_list)
         return id_column_dict
 
+    def position_for_instrument(self, instrument_code):
+        tradeable_object = futuresInstrument(instrument_code)
+        position = self.position_for_object(tradeable_object)
+        return position
 
 class listOfInstrumentStrategyPositions(listOfPositions):
     @classmethod

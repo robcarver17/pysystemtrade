@@ -14,6 +14,7 @@ from sysproduction.data.orders import dataOrders
 from sysproduction.data.instruments import diagInstruments
 from sysproduction.data.prices import diagPrices
 
+from sysproduction.diagnostic.risk import  get_current_annualised_stdev_for_instrument
 
 def trades_info(
     data=arg_not_supplied,
@@ -552,9 +553,8 @@ def vol_calculations_for_slippage_row(slippage_row, data):
 
 
 def get_last_annual_vol_for_slippage_row(slippage_row, data):
-    diag_prices = diagPrices(data)
     instrument_code = slippage_row.instrument_code
-    last_annual_vol = diag_prices.get_quick_current_annualised_std_of_adjusted_prices(
+    last_annual_vol = get_current_annualised_stdev_for_instrument(data,
         instrument_code)
 
     return last_annual_vol

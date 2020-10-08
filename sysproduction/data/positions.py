@@ -103,6 +103,13 @@ class diagPositions(object):
             self.data.db_strategy_position.get_all_current_positions_as_list_with_instrument_objects()
         )
 
+    def get_current_instrument_position_across_strategies(self, instrument_code):
+        all_positions = self.get_all_current_strategy_instrument_positions()
+        all_positions_sum_over_instruments = all_positions.sum_for_instrument()
+        position = all_positions_sum_over_instruments.position_for_instrument(instrument_code)
+
+        return position
+
     def get_list_of_breaks_between_contract_and_strategy_positions(self):
         contract_positions = self.get_all_current_contract_positions()
         instrument_positions_from_contract = contract_positions.sum_for_instrument()

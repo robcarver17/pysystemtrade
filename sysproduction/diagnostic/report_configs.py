@@ -69,6 +69,11 @@ strategy_report_config = reportConfig(
     function="sysproduction.diagnostic.strategies.strategy_report",
 )
 
+risk_report_config = reportConfig(
+    title= "Risk report",
+    function="sysproduction.diagnostic.risk.risk_report"
+)
+
 all_configs = dict(
     status_report=status_report_config,
     roll_report=roll_report_config,
@@ -76,4 +81,5 @@ all_configs = dict(
     reconcile_report=reconcile_report_config,
     trade_report=trade_report_config,
     strategy_report=strategy_report_config,
+    risk_report = risk_report_config
 )

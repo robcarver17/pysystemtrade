@@ -36,6 +36,7 @@ from sysproduction.diagnostic.report_configs import (
     trade_report_config,
     reconcile_report_config,
     strategy_report_config,
+    risk_report_config
 )
 
 
@@ -82,6 +83,7 @@ nested_menu_of_options = {0: {1: "Interactive python",
                               13: "Trade report",
                               14: "Reconcile report",
                               15: "Strategy report",
+                              16: "Risk report"
                               },
                           2: {20: "View stored emails",
                               21: "View errors",
@@ -193,6 +195,10 @@ def strategy_report(data):
     report_config.modify_kwargs(
         strategy_name=strategy_name,
         timestamp=timestamp)
+    run_report(report_config, data=data)
+
+def risk_report(data):
+    report_config = email_or_print(risk_report_config)
     run_report(report_config, data=data)
 
 
@@ -576,6 +582,7 @@ dict_of_functions = {
     13: trade_report,
     14: reconcile_report,
     15: strategy_report,
+    16: risk_report,
     20: retrieve_and_delete_stored_messages,
     21: view_errors,
     22: view_logs,
