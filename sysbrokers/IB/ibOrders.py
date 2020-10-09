@@ -199,19 +199,19 @@ class ibOrdersData(brokerOrderStackData):
         if placed_broker_trade_object is missing_order:
             return missing_order
 
-        order_with_controls = ibOrderWithControls(
+        placed_broker_order_with_controls = ibOrderWithControls(
             placed_broker_trade_object,
             self.ibconnection,
             broker_order=broker_order)
-        order_with_controls.order.submit_datetime = order_time
+        placed_broker_order_with_controls.order.submit_datetime = order_time
 
         # We do this so the tempid and commission are accurate
-        order_with_controls.write_placed_broker_trade_info_in_broker_order()
+        placed_broker_order_with_controls.write_placed_broker_trade_info_in_broker_order()
 
         # We do this so we can cancel stuff and get things back more easily
-        self.add_order_with_controls_to_store(order_with_controls)
+        self.add_order_with_controls_to_store(placed_broker_order_with_controls)
 
-        return order_with_controls
+        return placed_broker_order_with_controls
 
     def send_broker_order_to_IB(self, broker_order):
         """

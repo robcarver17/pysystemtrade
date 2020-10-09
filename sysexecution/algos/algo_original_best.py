@@ -41,24 +41,24 @@ class algoOriginalBest(Algo):
     """
 
     def submit_trade(self):
-        broker_order_with_controls = prepare_and_submit_trade(
+        placed_broker_order_with_controls = prepare_and_submit_trade(
             self.data, self.contract_order
         )
-        if broker_order_with_controls is missing_order:
+        if placed_broker_order_with_controls is missing_order:
             return missing_order
 
-        return broker_order_with_controls
+        return placed_broker_order_with_controls
 
-    def manage_trade(self, broker_order_with_controls):
+    def manage_trade(self, placed_broker_order_with_controls):
 
         data = self.data
-        broker_order_with_controls = manage_trade(
-            data, broker_order_with_controls)
-        broker_order_with_controls = post_trade_processing(
-            data, broker_order_with_controls
+        placed_broker_order_with_controls = manage_trade(
+            data, placed_broker_order_with_controls)
+        placed_broker_order_with_controls = post_trade_processing(
+            data, placed_broker_order_with_controls
         )
 
-        return broker_order_with_controls
+        return placed_broker_order_with_controls
 
 
 def prepare_and_submit_trade(data, contract_order):
@@ -75,9 +75,9 @@ def prepare_and_submit_trade(data, contract_order):
 
     ticker_object = data_broker.get_ticker_object_for_order(
         cut_down_contract_order)
-    do_limit_trade = limit_trade_viable(ticker_object)
+    okay_to_do_limit_trade = limit_trade_viable(ticker_object)
 
-    if do_limit_trade:
+    if okay_to_do_limit_trade:
 
         # create and issue limit order
         broker_order_with_controls = (
@@ -111,58 +111,58 @@ def limit_trade_viable(ticker_object):
     return True
 
 
-def manage_trade(data, broker_order_with_controls):
-    log = broker_order_with_controls.order.log_with_attributes(data.log)
+def manage_trade(data, placed_broker_order_with_controls):
+    log = placed_broker_order_with_controls.order.log_with_attributes(data.log)
     data_broker = dataBroker(data)
 
     trade_open = True
     aggressive = False
     log.msg(
         "Managing trade %s with algo 'original-best'"
-        % str(broker_order_with_controls.order)
+        % str(placed_broker_order_with_controls.order)
     )
 
-    limit_trade = broker_order_with_controls.order.order_type == "limit"
+    limit_trade = placed_broker_order_with_controls.order.order_type == "limit"
 
     while trade_open:
-        if broker_order_with_controls.message_required(
+        if placed_broker_order_with_controls.message_required(
             messaging_frequency=MESSAGING_FREQUENCY
         ):
-            file_log_report(log, aggressive, broker_order_with_controls)
+            file_log_report(log, aggressive, placed_broker_order_with_controls)
 
         if limit_trade:
             if aggressive:
-                set_aggressive_limit_price(data, broker_order_with_controls)
+                set_aggressive_limit_price(data, placed_broker_order_with_controls)
             else:
                 # passive
                 reason_to_switch = switch_to_aggressive(
-                    broker_order_with_controls)
+                    placed_broker_order_with_controls)
                 if reason_to_switch is not None:
                     log.msg(
                         "Switch to aggressive because %s" %
                         reason_to_switch)
                     aggressive = True
 
-        order_completed = broker_order_with_controls.completed()
+        order_completed = placed_broker_order_with_controls.completed()
         order_timeout = (
-            broker_order_with_controls.seconds_since_submission() > TOTAL_TIME_OUT)
+            placed_broker_order_with_controls.seconds_since_submission() > TOTAL_TIME_OUT)
         order_cancelled = data_broker.check_order_is_cancelled_given_control_object(
-            broker_order_with_controls)
+            placed_broker_order_with_controls)
         if order_completed:
             log.msg("Trade completed")
             break
 
         if order_timeout:
             log.msg("Run out of time: cancelling")
-            broker_order_with_controls = cancel_order(
-                data, broker_order_with_controls)
+            placed_broker_order_with_controls = cancel_order(
+                data, placed_broker_order_with_controls)
             break
 
         if order_cancelled:
             log.warn("Order has been cancelled: not by algo")
             break
 
-    return broker_order_with_controls
+    return placed_broker_order_with_controls
 
 
 def file_log_report(log, aggressive, broker_order_with_controls):

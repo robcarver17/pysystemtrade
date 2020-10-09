@@ -11,7 +11,6 @@ from sysproduction.data.positions import diagPositions
 from sysproduction.data.capital import dataCapital
 from sysproduction.data.instruments import diagInstruments
 from sysproduction.data.prices import diagPrices
-from sysproduction.data.strategies import get_list_of_strategies
 
 
 
@@ -136,7 +135,8 @@ def get_portfolio_risk_for_all_strategies(data):
 
 def get_portfolio_risk_across_strategies(data):
     ## PORTFOLIO RISK PER STRATEGY
-    strategy_list = get_list_of_strategies(data)
+    diag_positions = diagPositions(data)
+    strategy_list = diag_positions.get_list_of_strategies_with_positions(data)
     risk_across_strategies = dict([(strategy_name, get_portfolio_risk_for_strategy(data, strategy_name))
                   for strategy_name in strategy_list])
 
