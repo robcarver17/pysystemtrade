@@ -1,3 +1,5 @@
+import datetime
+
 from collections import namedtuple
 from dateutil.tz import tz
 
@@ -229,7 +231,7 @@ def extract_totals_from_fill_data_for_contract_id(
         (
             fill.cum_qty,
             fill.avg_price,
-            fill.time.astimezone(tz.tzlocal()),
+            fill.time,
             fill.temp_id,
             fill.client_id,
             fill.signed_qty,
@@ -437,7 +439,10 @@ def extract_single_fill(single_fill):
     signed_qty = cum_qty * sign
     price = single_fill.execution.price
     avg_price = single_fill.execution.avgPrice
+
+    # move to local time and strip TZ info
     time = single_fill.execution.time.astimezone(tz.tzlocal())
+    time = datetime.datetime.fromtimestamp(time.timestamp())
     temp_id = single_fill.execution.orderId
     client_id = single_fill.execution.clientId
     contract_month = single_fill.contract.lastTradeDateOrContractMonth

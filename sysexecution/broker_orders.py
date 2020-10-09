@@ -142,6 +142,7 @@ class brokerOrder(contractOrder):
 
         self._broker_objects = broker_objects
 
+
     @property
     def algo_used(self):
         return self._order_info["algo_used"]

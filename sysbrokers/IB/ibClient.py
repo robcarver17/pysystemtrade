@@ -561,6 +561,7 @@ class ibClient(brokerClient):
 
         return price_data_as_df
 
+
     def ib_timestamp_to_datetime(self, timestamp_ib):
         """
         Turns IB timestamp into pd.datetime as plays better with arctic, converts IB time (UTC?) to local,
