@@ -268,6 +268,7 @@ def time_matches(
         return False
 
 
+
 """
 Convert date into a decimal, and back again
 """
@@ -305,10 +306,14 @@ if __name__ == "__main__":
 
     doctest.testmod()
 
+NOTIONAL_CLOSING_TIME = dict(hours=23, minutes=0, seconds=0)
+NOTIONAL_CLOSING_TIME_AS_PD_OFFSET = pd.DateOffset(hours = NOTIONAL_CLOSING_TIME['hours'],
+                                                   minutes = NOTIONAL_CLOSING_TIME['minutes'],
+                                                   seconds = NOTIONAL_CLOSING_TIME['seconds'])
 
 def adjust_timestamp(
     index_entry,
-    actual_close=pd.DateOffset(hours=23, minutes=0, seconds=0),
+    actual_close=NOTIONAL_CLOSING_TIME_AS_PD_OFFSET,
     original_close=pd.DateOffset(hours=23, minutes=0, seconds=0),
     time_offset=pd.DateOffset(hours=0),
 ):

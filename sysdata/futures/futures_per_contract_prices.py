@@ -2,11 +2,11 @@ import pandas as pd
 import numpy as np
 
 from syscore.pdutils import merge_data_series_with_label_column
+from syscore.pdutils import full_merge_of_existing_data, merge_newer_data, sumup_business_days_over_pd_series_without_double_counting_of_closing_data
 from syscore.objects import arg_not_supplied, missing_data, data_error
 
 from sysdata.data import baseData
 from sysdata.futures.contracts import futuresContract
-from syscore.pdutils import full_merge_of_existing_data, merge_newer_data
 
 PRICE_DATA_COLUMNS = sorted(["OPEN", "HIGH", "LOW", "FINAL", "VOLUME"])
 FINAL_COLUMN = "FINAL"
@@ -70,7 +70,9 @@ class futuresContractPrices(pd.DataFrame):
 
     def daily_volumes(self):
         volumes = self.volumes()
-        daily_volumes = volumes.resample("1B", how="sum")
+
+        # stop double counting
+        daily_volumes = sumup_business_days_over_pd_series_without_double_counting_of_closing_data(volumes)
 
         return daily_volumes
 

@@ -36,14 +36,23 @@ class diagContracts(object):
             )
         )
 
-    def get_labelled_list_of_contracts(self, contract_list):
+
+
+    def get_labelled_list_of_contracts_from_contract_list(self, contract_list):
         instrument_code = contract_list[0].instrument_code
         list_of_dates = contract_list.list_of_dates()
+
+        labelled_list = self.get_labelled_list_of_contracts_from_contract_date_list(instrument_code, list_of_dates)
+
+        return labelled_list
+
+    def get_labelled_list_of_contracts_from_contract_date_list(self, instrument_code, list_of_dates):
         current_contracts = self.get_current_contract_dict(instrument_code)
 
         labelled_list = label_up_contracts(list_of_dates, current_contracts)
 
         return labelled_list
+
 
     def get_all_sampled_contracts(self, instrument_code):
         all_contracts = self.get_all_contract_objects_for_instrument_code(instrument_code)
@@ -211,7 +220,8 @@ def get_valid_instrument_code_and_contractid_from_user(
                 instrument_code)
             dates_to_choose_from = contract_list.list_of_dates()
 
-        dates_to_display = diag_contracts.get_labelled_list_of_contracts(contract_list)
+        dates_to_display = diag_contracts.get_labelled_list_of_contracts_from_contract_date_list(instrument_code,
+                                                                                                 dates_to_choose_from)
 
         if len(dates_to_choose_from) == 0:
             print(

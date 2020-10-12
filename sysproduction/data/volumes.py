@@ -89,6 +89,6 @@ class diagVolumes(object):
         if len(price_data) == 0:
             return missing_data
 
-        volumes = price_data.volumes().resample("1B").sum()
+        volumes = price_data.daily_volumes()
 
         return volumes
