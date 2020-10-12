@@ -72,11 +72,6 @@ def get_roll_data_for_instrument(instrument_code, data):
         instrument_code, relevant_contracts
     )
 
-    # price curve
-    p_data = diagPrices(data)
-    contracts_to_match = [current_contracts[k] for k in ("PRICE", "FORWARD")]
-    last_matched_prices = p_data.get_last_matched_prices_for_contract_list(
-        instrument_code, relevant_contracts, contracts_to_match=contracts_to_match)
 
     # length to expiries / length to suggested roll
     price_expiry = c_data.get_priced_expiry(instrument_code)
@@ -105,7 +100,6 @@ def get_roll_data_for_instrument(instrument_code, data):
         carry_expiry=carry_expiry_days,
         contract_labels=contract_labels,
         volumes=volumes,
-        curve=last_matched_prices,
         positions=positions,
     )
 
@@ -194,17 +188,6 @@ def format_roll_data_for_instrument(results_dict):
         )
     )
 
-    table4_dict = {}
-    for col_number in range(width_contract_columns):
-        table4_dict["P%d" % col_number] = [results_dict[code][
-            "curve"][col_number] for code in instrument_codes]
-
-    table4_df = pd.DataFrame(table4_dict, index=instrument_codes)
-
-    table4_df = table4_df.round(5)
-
-    table4 = table("Prices", table4_df)
-    formatted_output.append(table4)
 
     formatted_output.append(header("END OF ROLL REPORT"))
 
