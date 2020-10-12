@@ -1,10 +1,13 @@
 import datetime
 
+from syscore.objects import missing_contract, arg_not_supplied
+
 from sysdata.futures.rolls import contractDateWithRollParameters
 from sysdata.futures.contracts import futuresContract
-from sysproduction.data.prices import get_valid_instrument_code_from_user
+
+from sysproduction.data.prices import get_valid_instrument_code_from_user, diagPrices
 from sysproduction.data.get_data import dataBlob
-from syscore.objects import missing_contract, arg_not_supplied
+
 
 missing_expiry = datetime.datetime(1900, 1, 1)
 
@@ -32,6 +35,21 @@ class diagContracts(object):
                 instrument_code
             )
         )
+
+    def get_labelled_list_of_contracts(self, contract_list):
+        instrument_code = contract_list[0].instrument_code
+        list_of_dates = contract_list.list_of_dates()
+        current_contracts = self.get_current_contract_dict(instrument_code)
+
+        labelled_list = label_up_contracts(list_of_dates, current_contracts)
+
+        return labelled_list
+
+    def get_all_sampled_contracts(self, instrument_code):
+        all_contracts = self.get_all_contract_objects_for_instrument_code(instrument_code)
+        sampled_contracts = all_contracts.currently_sampling()
+
+        return sampled_contracts
 
     def get_labelled_list_of_relevant_contracts(self, instrument_code):
 
@@ -177,31 +195,39 @@ class diagContracts(object):
 
 
 def get_valid_instrument_code_and_contractid_from_user(
-        data, instrument_code=None):
+        data, instrument_code=None, include_priced_contracts = False):
     diag_contracts = diagContracts(data)
+    diag_prices = diagPrices(data)
+
     invalid_input = True
     while invalid_input:
         if instrument_code is None:
             instrument_code = get_valid_instrument_code_from_user(data)
-        all_contracts = diag_contracts.get_all_contract_objects_for_instrument_code(
-            instrument_code)
-        sampled_contract = all_contracts.currently_sampling()
-        sampled_dates = sampled_contract.list_of_dates()
-        all_dates = all_contracts.list_of_dates()
-        if len(all_dates) == 0:
+
+        if include_priced_contracts:
+            dates_to_choose_from = diag_prices.contract_dates_with_price_data_for_instrument_code(instrument_code)
+        else:
+            contract_list = diag_contracts.get_all_contract_objects_for_instrument_code(
+                instrument_code)
+            dates_to_choose_from = contract_list.list_of_dates()
+
+        dates_to_display = diag_contracts.get_labelled_list_of_contracts(contract_list)
+
+        if len(dates_to_choose_from) == 0:
             print(
                 "%s is not an instrument with contract data" %
                 instrument_code)
             instrument_code = None
             continue
-        print("Currently sampled contract dates %s" % str(sampled_dates))
-        contract_date = input("Contract date? [yyyymm or yyyymmdd]")
+        print("Available contract dates %s" % str(dates_to_display))
+        print("p = currently priced, c=current carry, f= current forward")
+        contract_date = input("Contract date? [yyyymm or yyyymmdd] (ignore suffixes)")
         if len(contract_date) == 6:
             contract_date = contract_date + "00"
-        if contract_date in all_dates:
+        if contract_date in dates_to_choose_from:
             break
         else:
-            print("%s is not in list %s" % (contract_date, all_dates))
+            print("%s is not in list %s" % (contract_date, dates_to_choose_from))
             continue  # not required
 
     return instrument_code, contract_date

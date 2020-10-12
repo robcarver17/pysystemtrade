@@ -315,7 +315,7 @@ def build_attribute_dict(diag_logs, lookback_days):
 # prices
 def individual_prices(data):
     instrument_code, contract_date = get_valid_instrument_code_and_contractid_from_user(
-        data)
+        data, include_priced_contracts = True)
     diag_prices = diagPrices(data)
     prices = diag_prices.get_prices_for_instrument_code_and_contract_date(
         instrument_code, contract_date

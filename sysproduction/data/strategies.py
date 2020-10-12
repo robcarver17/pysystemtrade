@@ -4,7 +4,7 @@ import socket
 from sysproduction.data.get_data import dataBlob
 from sysdata.private_config import get_private_then_default_key_value
 from syscore.objects import arg_not_supplied
-from syscore.genutils import get_and_convert
+from syscore.genutils import print_menu_of_values_and_get_response
 
 
 class diagStrategiesConfig(object):
@@ -52,20 +52,11 @@ def get_valid_strategy_name_from_user(
     data=arg_not_supplied, allow_all=False, all_code="ALL"
 ):
     all_strategies = get_list_of_strategies(data=data)
-    invalid_input = True
-    while invalid_input:
-        print("Strategies: %s" % all_strategies)
-        if allow_all:
-            default_strategy = all_code
-        else:
-            default_strategy = all_strategies[0]
-        strategy_name = get_and_convert(
-            "Strategy?", type_expected=str, default_value=default_strategy
-        )
-        if allow_all and strategy_name == all_code:
-            return all_code
+    if allow_all:
+        default_strategy = all_code
+    else:
+        default_strategy = all_strategies[0]
+    strategy_name = print_menu_of_values_and_get_response(all_strategies, default_str=default_strategy)
 
-        if strategy_name in all_strategies:
-            return strategy_name
+    return strategy_name
 
-        print("%s is not in list %s" % (strategy_name, all_strategies))
