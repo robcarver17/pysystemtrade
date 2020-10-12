@@ -54,17 +54,15 @@ def backup_mongo_dump(data):
 def backup_csv_dump(data):
     source_path = get_csv_source_directory()
     destination_path = get_csv_backup_directory()
-    shutil.rmtree(destination_path, ignore_errors=True)
     data.log.msg("Copy from %s to %s" % (source_path, destination_path))
-    shutil.copytree(source_path, destination_path)
+    os.system("rsync -av %s %s" % (source_path, destination_path))
 
 
 def backup_state_files(data):
     source_path = get_statefile_directory()
     destination_path = get_statefile_backup_directory()
-    shutil.rmtree(destination_path, ignore_errors=True)
     data.log.msg("Copy from %s to %s" % (source_path, destination_path))
-    shutil.copytree(source_path, destination_path)
+    os.system("rsync -av %s %s" % (source_path, destination_path))
 
 
 # sources
