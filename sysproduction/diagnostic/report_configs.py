@@ -1,5 +1,6 @@
 from copy import copy
 
+from sysproduction.diagnostic.rolls import ALL_ROLL_INSTRUMENTS
 
 class reportConfig(object):
     def __init__(self, title, function, output="console", **kwargs):
@@ -44,7 +45,7 @@ status_report_config = reportConfig(
 roll_report_config = reportConfig(
     title="Roll report",
     function="sysproduction.diagnostic.rolls.roll_info",
-    instrument_code="ALL",
+    instrument_code=ALL_ROLL_INSTRUMENTS,
 )
 
 daily_pandl_report_config = reportConfig(

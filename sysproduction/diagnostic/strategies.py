@@ -14,15 +14,16 @@ from sysproduction.strategy_code.strategy_report import (
     get_reporting_function_instance_for_strategy_name,
 )
 
+ALL_STRATEGIES = "ALL"
 
 def strategy_report(
-    data=arg_not_supplied, timestamp=arg_not_supplied, strategy_name="ALL"
+    data=arg_not_supplied, timestamp=arg_not_supplied, strategy_name=ALL_STRATEGIES
 ):
 
     if data is arg_not_supplied:
         data = dataBlob()
 
-    if strategy_name == "ALL":
+    if strategy_name == ALL_STRATEGIES:
         list_of_strategies = get_list_of_strategies(data=data)
         if timestamp is not arg_not_supplied:
             # use print not logs as will only happen interactively

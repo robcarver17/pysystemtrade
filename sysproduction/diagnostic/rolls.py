@@ -14,8 +14,9 @@ from syscore.objects import header, table, body_text
 # Reports consist of multiple calls to functions with data object, each of which returns a displayable object
 # We also chuck in a title and a timestamp
 
+ALL_ROLL_INSTRUMENTS = "ALL"
 
-def roll_info(data, instrument_code="ALL"):
+def roll_info(data, instrument_code=ALL_ROLL_INSTRUMENTS):
     """
     Get some roll info. For all markets which are:
 
@@ -34,7 +35,7 @@ def roll_info(data, instrument_code="ALL"):
     """
     diag_prices = diagPrices(data)
 
-    if instrument_code == "ALL":
+    if instrument_code == ALL_ROLL_INSTRUMENTS:
         list_of_instruments = diag_prices.get_list_of_instruments_in_multiple_prices()
 
     else:

@@ -150,7 +150,7 @@ class updatePrices(object):
 
 
 def get_valid_instrument_code_from_user(
-        data=arg_not_supplied, allow_all=False):
+        data=arg_not_supplied, allow_all=False, all_code = "ALL"):
     if data is arg_not_supplied:
         data = dataBlob()
     all_instruments = get_list_of_instruments(data)
@@ -165,7 +165,7 @@ def get_valid_instrument_code_from_user(
 
         if allow_all:
             if instrument_code == "" or instrument_code == "ALL":
-                return "ALL"
+                return all_code
 
         print("%s is not in list %s" % (instrument_code, all_instruments))
 

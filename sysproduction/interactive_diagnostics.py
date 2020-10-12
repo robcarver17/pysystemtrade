@@ -29,6 +29,9 @@ from sysproduction.data.strategies import get_valid_strategy_name_from_user
 
 from sysproduction.diagnostic.emailing import retrieve_and_delete_stored_messages
 from sysproduction.diagnostic.reporting import run_report
+from sysproduction.diagnostic.rolls import ALL_ROLL_INSTRUMENTS
+from sysproduction.diagnostic.strategies import ALL_STRATEGIES
+from sysproduction.diagnostic.strategies import ALL_STRATEGIES
 from sysproduction.diagnostic.report_configs import (
     roll_report_config,
     daily_pandl_report_config,
@@ -143,7 +146,7 @@ def backtest_html(data):
 
 # reports
 def roll_report(data):
-    instrument_code = get_valid_instrument_code_from_user(data, allow_all=True)
+    instrument_code = get_valid_instrument_code_from_user(data, allow_all=True, all_code=ALL_ROLL_INSTRUMENTS)
     report_config = email_or_print(roll_report_config)
     report_config.modify_kwargs(instrument_code=instrument_code)
     run_report(report_config, data=data)
@@ -182,9 +185,9 @@ def reconcile_report(data):
 def strategy_report(data):
 
     strategy_name = get_valid_strategy_name_from_user(
-        data=data, allow_all=True, all_code="ALL"
+        data=data, allow_all=True, all_code = ALL_STRATEGIES
     )
-    if strategy_name != "ALL":
+    if strategy_name != ALL_STRATEGIES:
         data_backtests = dataBacktest(data)
         timestamp = data_backtests.interactively_choose_timestamp(
             strategy_name)
