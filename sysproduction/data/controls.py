@@ -178,6 +178,10 @@ class dataControlProcess(object):
 
         return self.data.db_control_process.finish_process(process_name)
 
+    def finish_all_processes(self):
+
+        return self.data.db_control_process.finish_all_processes()
+
     def check_if_process_status_stopped(self, process_name):
         """
 

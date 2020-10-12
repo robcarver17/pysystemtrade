@@ -243,6 +243,13 @@ class controlProcessData(baseData):
 
         return result
 
+    def finish_all_processes(self):
+
+        list_of_names = self.get_list_of_process_names()
+        _ = [self.finish_process(process_name) for process_name in list_of_names]
+
+        return success
+
     def finish_process(self, process_name):
         """
 
