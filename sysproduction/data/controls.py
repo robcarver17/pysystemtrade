@@ -1,11 +1,15 @@
 import datetime
 import socket
 
-from sysproduction.data.get_data import dataBlob
-from sysproduction.data.strategies import diagStrategiesConfig
-from sysdata.private_config import get_private_then_default_key_value
+from syscore.dateutils import SECONDS_PER_HOUR
+
 from syscore.objects import arg_not_supplied, missing_data
 from syscore.genutils import str2Bool
+
+from sysdata.private_config import get_private_then_default_key_value
+
+from sysproduction.data.get_data import dataBlob
+from sysproduction.data.strategies import diagStrategiesConfig
 
 
 class dataLocks(object):
@@ -401,6 +405,23 @@ class diagProcessConfig:
         result = datetime.datetime.strptime(result, "%H:%M").time()
 
         return result
+
+    def how_long_in_hours_before_trading_process_finishes(self):
+
+        now_datetime = datetime.datetime.now()
+
+        now_date = now_datetime.date()
+        stop_time = self.get_stop_time_of_trading_process()
+        stop_datetime = datetime.datetime.combine(now_date, stop_time)
+
+        diff = stop_datetime - now_datetime
+        time_seconds = max(0, diff.total_seconds())
+        time_hours = time_seconds / SECONDS_PER_HOUR
+
+        return time_hours
+
+    def get_stop_time_of_trading_process(self):
+        return self.get_stop_time("run_stack_handler")
 
     def get_stop_time(self, process_name):
         """

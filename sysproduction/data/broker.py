@@ -14,6 +14,7 @@ from sysexecution.tick_data import analyse_tick_data_frame
 from sysproduction.data.get_data import dataBlob
 from sysproduction.data.positions import diagPositions
 from sysproduction.data.currency_data import currencyData
+from sysproduction.data.controls import diagProcessConfig
 
 benchmarkPriceCollection = namedtuple(
     "benchmarkPriceCollection",
@@ -91,6 +92,14 @@ class dataBroker(object):
 
     def less_than_one_hour_of_trading_leg_for_instrument_code_and_contract_date(
             self, instrument_code, contract_date):
+
+        diag_controls = diagProcessConfig()
+        hours_left_before_process_finishes = diag_controls.how_long_in_hours_before_trading_process_finishes()
+
+        if hours_left_before_process_finishes<1:
+            ## irespective of instrument traded
+            return True
+
         result = self.data.broker_futures_contract.less_than_one_hour_of_trading_leg_for_instrument_code_and_contract_date(
             instrument_code, contract_date)
 
