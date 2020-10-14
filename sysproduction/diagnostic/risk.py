@@ -281,7 +281,7 @@ def get_instruments_with_positions(data, strategy_name):
 
 def get_instruments_with_positions_all_strategies(data):
     diag_positions = diagPositions(data)
-    instrument_list = diag_positions.get_list_of_instruments_with_any_position()
+    instrument_list = diag_positions.get_list_of_instruments_with_current_positions()
     return instrument_list
 
 def get_perc_of_capital_position_size_for_instrument(

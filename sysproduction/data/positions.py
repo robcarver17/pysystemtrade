@@ -81,6 +81,11 @@ class diagPositions(object):
         return (
             self.data.db_contract_position.get_list_of_instruments_with_any_position())
 
+    def get_list_of_instruments_with_current_positions(self):
+        return (
+            self.data.db_contract_position.get_list_of_instruments_with_current_positions())
+
+
     def get_list_of_strategies_with_positions(self):
         list_of_strat_instrument_tuples = self.data.db_strategy_position.get_list_of_strategies_and_instruments_with_positions(
             ignore_zero_positions=True)

@@ -329,6 +329,13 @@ class contractPositionData(listOfEntriesData):
         )
         return success
 
+    def get_list_of_instruments_with_current_positions(self):
+        all_current_positions = self.get_all_current_positions_as_list_with_contract_objects()
+        instrument_list = [position.instrument_code for position in all_current_positions]
+        instrument_list = list(set(instrument_list))
+
+        return instrument_list
+
     def get_list_of_instruments_with_any_position(self):
         all_positions_dict = self._get_list_of_args_dict()
         instrument_list = [

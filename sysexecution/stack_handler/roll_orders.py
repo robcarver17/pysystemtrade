@@ -16,7 +16,7 @@ from sysexecution.stack_handler.stackHandlerCore import stackHandlerCore
 class stackHandlerForRolls(stackHandlerCore):
     def generate_force_roll_orders(self):
         diag_positions = diagPositions(self.data)
-        list_of_instruments = diag_positions.get_list_of_instruments_with_any_position()
+        list_of_instruments = diag_positions.get_list_of_instruments_with_current_positions()
         for instrument_code in list_of_instruments:
             self.generate_force_roll_orders_for_instrument(instrument_code)
 
