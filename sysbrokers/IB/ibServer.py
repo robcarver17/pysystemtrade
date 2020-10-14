@@ -21,7 +21,7 @@ def from_ibcontract_to_tuple(ibcontract):
 class ibServer(object):
     def __init__(self, log=logtoscreen("ibServer")):
         self._contract_register = dict()
-        super().__init__(log=log)
+        self.log = log
 
     def add_contract_to_register(self, ibcontract, log_tags={}):
         """
