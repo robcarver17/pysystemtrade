@@ -5,7 +5,6 @@ Handlers used by https://ib-insync.readthedocs.io/api.html flavour
 
 from syslogdiag.log import logtoscreen
 from syscore.objects import success
-from sysbrokers.baseServer import brokerServer
 
 # List of IB error codes that are blacklisted eg serious and require action
 IB_IS_ERROR = [200]
@@ -19,7 +18,7 @@ def from_ibcontract_to_tuple(ibcontract):
     return (ibcontract.symbol, ibcontract.lastTradeDateOrContractMonth)
 
 
-class ibServer(brokerServer):
+class ibServer(object):
     def __init__(self, log=logtoscreen("ibServer")):
         self._contract_register = dict()
         super().__init__(log=log)

@@ -7,7 +7,6 @@ from ib_insync import Forex, util, ComboLeg
 from ib_insync.order import MarketOrder, LimitOrder
 
 from sysdata.fx.spotfx import currencyValue
-from sysbrokers.baseClient import brokerClient
 
 from syscore.objects import missing_contract, arg_not_supplied, missing_order
 from syscore.genutils import list_of_ints_with_highest_common_factor_positive_first
@@ -34,7 +33,7 @@ PACING_INTERVAL_SECONDS = 1 + (_PACING_PERIOD_SECONDS / _PACING_PERIOD_LIMIT)
 STALE_SECONDS_ALLOWED_ACCOUNT_SUMMARY = 600
 
 
-class ibClient(brokerClient):
+class ibClient(object):
     """
     Client specific to interactive brokers
 
