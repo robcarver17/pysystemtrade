@@ -447,6 +447,24 @@ class ibClient(brokerClient):
 
         return trading_hours
 
+    def ib_get_min_tick_size(self, contract_object_with_ib_data):
+        ib_contract = self.ib_futures_contract(
+            contract_object_with_ib_data, always_return_single_leg=True
+        )
+        if ib_contract is missing_contract:
+            return missing_contract
+
+        ib_contract_details = self.ib.reqContractDetails(ib_contract)[0]
+
+        try:
+            min_tick = ib_contract_details.minTick
+        except Exception as e:
+            self.log.warn("%s when getting min tick size from %s!" % (e, ib_contract_details))
+            return missing_contract
+
+        return min_tick
+
+
     def modify_limit_price_given_original_objects(
             self,
             original_order_object,

@@ -64,6 +64,28 @@ class ibFuturesContractData(futuresContractData):
         else:
             return True
 
+    def get_min_tick_size_for_contract(self, contract_object):
+        new_log = self.log.setup(
+            instrument_code=contract_object.instrument_code,
+            contract_date=contract_object.date,
+        )
+
+        contract_object_with_ib_data = self.get_contract_object_with_IB_metadata(
+            contract_object)
+        if contract_object_with_ib_data is missing_contract:
+            new_log.msg("Can't resolve contract so can't find tick size")
+            return missing_contract
+
+        min_tick_size = self.ibconnection.ib_get_min_tick_size(
+            contract_object_with_ib_data
+        )
+
+        if min_tick_size is missing_contract:
+            new_log.msg("No tick size found")
+            return missing_contract
+
+        return min_tick_size
+
     def get_trading_hours_for_contract(self, contract_object):
         """
 

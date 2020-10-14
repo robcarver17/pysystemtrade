@@ -591,5 +591,15 @@ class futuresContractData(baseData):
 
         return result
 
+    def get_min_tick_size_for_instrument_code_and_contract_date(self, instrument_code, contract_date):
+        contract_object = futuresContract(instrument_code, contract_date)
+        result = self.get_min_tick_size_for_contract(contract_object)
+
+        return result
+
+
     def get_trading_hours_for_contract(self, contract_object):
+        raise NotImplementedError(USE_CHILD_CLASS_ERROR)
+
+    def get_min_tick_size_for_contract(self, contract_object):
         raise NotImplementedError(USE_CHILD_CLASS_ERROR)
