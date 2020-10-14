@@ -29,6 +29,7 @@ TOTAL_TIME_OUT = 600
 IMBALANCE_THRESHOLD = 5
 IMBALANCE_ADJ_FACTOR = 3
 
+# we only do one contract at a time
 SIZE_LIMIT = 1
 
 

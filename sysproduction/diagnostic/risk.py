@@ -136,7 +136,7 @@ def get_portfolio_risk_for_all_strategies(data):
 def get_portfolio_risk_across_strategies(data):
     ## PORTFOLIO RISK PER STRATEGY
     diag_positions = diagPositions(data)
-    strategy_list = diag_positions.get_list_of_strategies_with_positions(data)
+    strategy_list = diag_positions.get_list_of_strategies_with_positions()
     risk_across_strategies = dict([(strategy_name, get_portfolio_risk_for_strategy(data, strategy_name))
                   for strategy_name in strategy_list])
 
