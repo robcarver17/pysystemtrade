@@ -915,7 +915,7 @@ class ibClient(brokerClient):
         if account_summary_data_update is None or account_summary_data is None:
             return True
         elapsed_seconds = (
-            account_summary_data_update - datetime.datetime.now()
+            datetime.datetime.now() - account_summary_data_update
         ).total_seconds()
 
         if elapsed_seconds > STALE_SECONDS_ALLOWED_ACCOUNT_SUMMARY:
