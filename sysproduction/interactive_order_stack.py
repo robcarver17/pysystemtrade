@@ -11,7 +11,7 @@ from syscore.dateutils import get_datetime_input
 from syscore.genutils import (
     get_and_convert,
     run_interactive_menu,
-    print_menu_and_get_response,
+    print_menu_of_values_and_get_response
 )
 from syscore.pdutils import set_pd_print_options
 
@@ -389,10 +389,10 @@ def enter_manual_contract_order(data, instrument_order):
             (str(qty), str(trade_qty_list)))
         print("It's unlikely you meant to do this...")
 
-    menu_of_options = dict(enumerate(list_of_algos))
-    algo_idx = print_menu_and_get_response(menu_of_options)
-
-    algo_to_use = list_of_algos[algo_idx]
+    NO_ALGO = "None: allow system to allocate"
+    algo_to_use = print_menu_of_values_and_get_response(list_of_algos, default_str = NO_ALGO)
+    if algo_to_use == NO_ALGO:
+        algo_to_use = ""
 
     limit_price = get_and_convert(
         "Limit price? (will override instrument order limit price, will be ignored by some algo types",
