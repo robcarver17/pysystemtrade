@@ -113,7 +113,11 @@ strategy_list:
       function: get_and_place_orders
       frequency: 60
       max_executions: 1
-
+    load_backtests:
+      object: sysproduction.strategy_code.run_system_classic.runSystemClassic
+      function: system_method
+    reporting_code:
+      function: sysproduction.strategy_code.report_system_classic.report_system_classic
 #
 # Allocate capital to strategies
 strategy_capital_allocation:
