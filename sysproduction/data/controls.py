@@ -478,3 +478,54 @@ class diagProcessConfig:
             setattr(self, "_process_config_%s" % item_name, config)
 
         return config
+
+
+class diagPositionLimits:
+    def __init__(self, data=arg_not_supplied):
+        # Check data has the right elements to do this
+        if data is arg_not_supplied:
+            data = dataBlob()
+        self.data = data
+
+    def check_if_position_okay(
+            self,
+            strategy_name,
+            instrument_code,
+            proposed_position):
+
+            pass
+
+
+    def check_if_position_okay_against_strategy_instrument_constraint(
+            self,
+            strategy_name,
+            instrument_code,
+            proposed_position):
+
+            pass
+
+    def check_if_position_okay_against_instrument_constraint(
+            self,
+            instrument_code,
+            proposed_position):
+
+            pass
+
+    def get_all_instrument_limits(self):
+        pass
+
+    def get_all_strategy_instrument_limits(self):
+        pass
+
+    def set_abs_position_limit_for_strategy_instrument(self, strategy_name, instrument_code, new_position_limit):
+        pass
+
+    def set_abs_position_limit_for_instrument(self, instrument_code, new_position_limit):
+        pass
+
+class dataPositionLimits:
+    def __init__(self, data=arg_not_supplied):
+        # Check data has the right elements to do this
+        if data is arg_not_supplied:
+            data = dataBlob()
+        self.data = data

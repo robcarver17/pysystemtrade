@@ -90,3 +90,9 @@ class ibServer(object):
             self.broker_message(msg, log_tags)
 
         return success
+
+    def broker_error(self, msg, myerror_type, log_tags):
+        self.log.warn(msg, **log_tags)
+
+    def broker_message(self, msg, log_tags):
+        self.log.msg(msg, **log_tags)
