@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 
 from syscore.dateutils import ROOT_BDAYS_INYEAR
-from syscore.objects import header, table, body_text
+from syscore.objects import header, table, body_text, missing_data
 from syscore.optimisation_utils import sigma_from_corr_and_std
 
 from sysproduction.data.positions import diagPositions
@@ -305,6 +305,8 @@ def capital_for_strategy(data, strategy_name):
     data_capital = dataCapital(data)
     capital = data_capital.get_capital_for_strategy(
         strategy_name)
+    if capital is missing_data:
+        return 0.00001
 
     return capital
 
