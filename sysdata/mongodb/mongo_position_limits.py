@@ -1,9 +1,14 @@
+from syscore.objects import missing_data
+
 from sysdata.mongodb.mongo_connection import mongoConnection, MONGO_ID_KEY
-from sysdata.production.position_limits import positionLimitData
+from sysdata.production.position_limits import positionLimitData, positionLimitForInstrument, positionLimitForStrategyInstrument
 
 from syslogdiag.log import logtoscreen
 
 POSITION_LIMIT_STATUS_COLLECTION = "position_limit_status"
+MARKER_KEY = "marker"
+MARKER_STRATEGY_INSTRUMENT = "strategy_instrument"
+MARKER_INSTRUMENT = "instrument"
 
 class mongoPositionLimitData(positionLimitData):
     """
@@ -31,85 +36,109 @@ class mongoPositionLimitData(positionLimitData):
     def __repr__(self):
         return self.name
 
-    def get_all_instruments_with_limits(self):
-        raise NotImplementedError
+    def get_all_instruments_with_limits(self) -> list:
+        pos_dict = dict(marker=MARKER_INSTRUMENT)
+        cursor = self._mongo.collection.find(pos_dict)
+        list_of_dicts = [db_entry for db_entry in cursor]
+        list_of_instruments = [db_entry['instrument_code'] for db_entry in list_of_dicts]
 
-    def get_all_strategy_instruments_with_limits(self):
-        raise NotImplementedError
+        return list_of_instruments
 
-    def get_abs_position_limit_for_strategy_instrument(self, strategy_name, instrument_code):
-        find_object_dict = dict(
+    def get_all_strategy_instruments_with_limits(self) -> list:
+        pos_dict = dict(marker=MARKER_STRATEGY_INSTRUMENT)
+        cursor = self._mongo.collection.find(pos_dict)
+        list_of_dicts = [db_entry for db_entry in cursor]
+        list_of_strategy_instruments = [(db_entry['strategy_name'], db_entry['instrument_code']) for db_entry in list_of_dicts]
+
+        return list_of_strategy_instruments
+
+    def delete_abs_position_limit_for_strategy_instrument(self, strategy_name:str,
+                                                       instrument_code: str):
+        delete_dict = dict(marker = MARKER_STRATEGY_INSTRUMENT,
             strategy_name=strategy_name, instrument_code=instrument_code
         )
-        cursor = self._mongo.collection.find(find_object_dict)
+        self._mongo.collection.delete_one(delete_dict)
 
-        result = self._get_list_of_trade_limits_for_cursor(cursor)
-
-        return result
-
-    def get_abs_position_limit_for_instrument(self, instrument_code):
-        pass
-
-    def set_abs_position_limit_for_strategy_instrument(self, strategy_name, instrument_code, new_position_limit):
-        strategy_name = trade_limit_object.strategy_name
-        instrument_code = trade_limit_object.instrument_code
-        period_days = trade_limit_object.period_days
-
-        if (
-            self._get_trade_limit_object_or_missing_data(
-                strategy_name, instrument_code, period_days
-            )
-            is missing_data
-        ):
-            return self._add_new_trade_limit_object(trade_limit_object)
-        else:
-            return self._change_existing_trade_limit_object(trade_limit_object)
-
-    def set_abs_position_limit_for_instrument(self, instrument_code, new_position_limit):
-        strategy_name = trade_limit_object.strategy_name
-        instrument_code = trade_limit_object.instrument_code
-        period_days = trade_limit_object.period_days
-
-        if (
-            self._get_trade_limit_object_or_missing_data(
-                strategy_name, instrument_code, period_days
-            )
-            is missing_data
-        ):
-            return self._add_new_trade_limit_object(trade_limit_object)
-        else:
-            return self._change_existing_trade_limit_object(trade_limit_object)
-
-    def _change_existing_trade_limit_object(self, trade_limit_object):
-        strategy_name = trade_limit_object.strategy_name
-        instrument_code = trade_limit_object.instrument_code
-        period_days = trade_limit_object.period_days
-
-        self.log.msg("Updating trade limit to %s" % trade_limit_object)
-
-        find_object_dict = dict(
-            strategy_name=strategy_name,
-            instrument_code=instrument_code,
-            period_days=period_days,
+    def delete_position_limit_for_instrument(self, instrument_code: str):
+        delete_dict = dict(marker = MARKER_INSTRUMENT,
+            instrument_code=instrument_code
         )
-        new_values_dict = {"$set": trade_limit_object.as_dict()}
+        self._mongo.collection.delete_one(delete_dict)
+
+    def _get_abs_position_limit_for_strategy_instrument(self,
+                                                       strategy_name:
+                                                       str, instrument_code: str) ->int:
+        # return missing_data if no limit found
+        find_object_dict = dict(marker = MARKER_STRATEGY_INSTRUMENT,
+            strategy_name=strategy_name, instrument_code=instrument_code
+        )
+        position_limit = self._get_position_limit_from_dict(find_object_dict)
+
+        return position_limit
+
+    def _get_abs_position_limit_for_instrument(self,
+                                              instrument_code: str,
+                                              ) -> int:
+        # return missing_data if no limit found
+        find_object_dict = dict(marker = MARKER_INSTRUMENT,
+            instrument_code=instrument_code
+        )
+
+        position_limit = self._get_position_limit_from_dict(find_object_dict)
+
+        return position_limit
+
+    def _get_position_limit_from_dict(self, find_object_dict: dict):
+        cursor = self._mongo.collection.find_one(find_object_dict)
+        if cursor is None:
+            return missing_data
+        position_limit = cursor['position_limit']
+
+        return position_limit
+
+
+    def set_position_limit_for_strategy_instrument(self, strategy_name:str,
+                                                       instrument_code: str,
+                                                       new_position_limit: int):
+
+        pos_dict = dict(marker = MARKER_STRATEGY_INSTRUMENT, strategy_name = strategy_name,
+                        instrument_code = instrument_code)
+
+        self._set_position_limit_from_dict(pos_dict, new_position_limit)
+
+    def set_position_limit_for_instrument(self, instrument_code: str,
+                                              new_position_limit: int):
+        pos_dict = dict(marker=MARKER_INSTRUMENT,
+                        instrument_code=instrument_code)
+
+        self._set_position_limit_from_dict(pos_dict, new_position_limit)
+
+    def _set_position_limit_from_dict(self, pos_dict: dict,
+                                      position_limit: int):
+
+        existing_position_limit = self._get_position_limit_from_dict(pos_dict)
+        if existing_position_limit is missing_data:
+            self._add_new_position_limit(pos_dict, position_limit)
+        else:
+            self._change_existing_position_limit(pos_dict, position_limit)
+
+
+
+
+    def _add_new_position_limit(self, pos_dict:dict , position_limit: int):
+        pos_dict['position_limit'] = position_limit
+
+        self.log.msg("Adding position limit %s" % str(pos_dict))
+
+        self._mongo.collection.insert_one(pos_dict)
+
+    def _change_existing_position_limit(self, pos_dict:dict, position_limit: int):
+
+        self.log.msg("Updating trade limit %s to %d" % (str(pos_dict), position_limit))
+
+        new_values_dict = {"$set": dict(position_limit = position_limit)}
         self._mongo.collection.update_one(
-            find_object_dict, new_values_dict, upsert=True
+            pos_dict, new_values_dict, upsert=True
         )
 
-    def _add_new_trade_limit_object(self, trade_limit_object):
-        self.log.msg("Adding trade limit to %s" % trade_limit_object)
 
-        object_dict = trade_limit_object.as_dict()
-        self._mongo.collection.insert_one(object_dict)
-
-    def _get_list_of_position_limits_for_cursor(self, cursor):
-
-        list_of_dicts = [db_entry for db_entry in cursor]
-        _ = [db_entry.pop(MONGO_ID_KEY) for db_entry in list_of_dicts]
-        trade_limits = [(tradeLimit.from_dict(db_dict))
-                        for db_dict in list_of_dicts]
-
-        list_of_trade_limits = listOfTradeLimits(trade_limits)
-
-        return list_of_trade_limits

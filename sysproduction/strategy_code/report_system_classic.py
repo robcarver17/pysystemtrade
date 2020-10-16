@@ -117,6 +117,14 @@ def report_system_classic(data, data_backtest):
 
     format_output.append(portfolio_positions_table)
 
+    # position diags
+    position_diags_df = calc_position_diags(portfolio_positions_df, subystem_positions_df)
+
+    position_diags_df_rounded = position_diags_df.round(2)
+    position_diags_table = table("Position diags", position_diags_df_rounded)
+
+    format_output.append(position_diags_table)
+
     # Position vs buffer table: position required, buffers, actual position
     versus_buffers_df = get_stage_breakdown_over_codes(
         data_backtest,
@@ -506,3 +514,12 @@ def get_current_position_for_instrument_code(
     )
 
     return current_position
+
+def calc_position_diags(portfolio_positions_df, subystem_positions_df):
+    idm = portfolio_positions_df.IDM
+    instr_weight = portfolio_positions_df['instr weight']
+    vol_scalar = subystem_positions_df['Vol Scalar']
+
+    average_position = idm * instr_weight * vol_scalar
+
+    return average_position

@@ -1,5 +1,8 @@
 import datetime
 
+from syscore.genutils import none_to_object, object_to_none
+from syscore.objects import missing_order, success, zero_order
+
 from sysexecution.order_stack import orderStackData
 from sysexecution.base_orders import (
     Order,
@@ -9,8 +12,6 @@ from sysexecution.base_orders import (
     no_children,
     no_parent,
 )
-from syscore.genutils import none_to_object, object_to_none
-from syscore.objects import missing_order, success, zero_order
 
 possible_order_types = [
     "best",
@@ -340,7 +341,7 @@ class instrumentOrderStackData(orderStackData):
         log.msg(
             "New order %s putting on %s" %
             (str(new_order), self.__repr__()))
-        order_id_or_error = self._put_order_on_stack_and_get_order_id(
+        order_id_or_error = self.self._put_order_on_stack_and_get_order_id(
             new_order)
         return order_id_or_error
 
@@ -388,7 +389,8 @@ class instrumentOrderStackData(orderStackData):
                 str(adjusted_order),
             )
         )
-        order_id_or_error = self._put_order_on_stack_and_get_order_id(
+        order_id_or_error = self.self._put_order_on_stack_and_get_order_id(
             adjusted_order)
 
         return order_id_or_error
+

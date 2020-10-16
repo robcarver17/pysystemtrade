@@ -4,12 +4,14 @@ import socket
 from syscore.dateutils import SECONDS_PER_HOUR
 
 from syscore.objects import arg_not_supplied, missing_data
-from syscore.genutils import str2Bool
+from syscore.genutils import str2Bool, sign
 
 from sysdata.private_config import get_private_then_default_key_value
+from sysdata.production.position_limits import positionLimitAndPosition, positionLimitForInstrument, positionLimitForStrategyInstrument
 
 from sysproduction.data.get_data import dataBlob
 from sysproduction.data.strategies import diagStrategiesConfig
+from sysproduction.data.positions import diagPositions
 
 
 class dataLocks(object):
@@ -480,52 +482,176 @@ class diagProcessConfig:
         return config
 
 
-class diagPositionLimits:
-    def __init__(self, data=arg_not_supplied):
-        # Check data has the right elements to do this
-        if data is arg_not_supplied:
-            data = dataBlob()
-        self.data = data
-
-    def check_if_position_okay(
-            self,
-            strategy_name,
-            instrument_code,
-            proposed_position):
-
-            pass
-
-
-    def check_if_position_okay_against_strategy_instrument_constraint(
-            self,
-            strategy_name,
-            instrument_code,
-            proposed_position):
-
-            pass
-
-    def check_if_position_okay_against_instrument_constraint(
-            self,
-            instrument_code,
-            proposed_position):
-
-            pass
-
-    def get_all_instrument_limits(self):
-        pass
-
-    def get_all_strategy_instrument_limits(self):
-        pass
-
-    def set_abs_position_limit_for_strategy_instrument(self, strategy_name, instrument_code, new_position_limit):
-        pass
-
-    def set_abs_position_limit_for_instrument(self, instrument_code, new_position_limit):
-        pass
-
 class dataPositionLimits:
     def __init__(self, data=arg_not_supplied):
         # Check data has the right elements to do this
         if data is arg_not_supplied:
             data = dataBlob()
+        data.add_class_list("mongoPositionLimitData")
         self.data = data
+
+
+    def cut_down_proposed_instrument_trade_okay(
+            self,
+            instrument_trade):
+
+            strategy_name = instrument_trade.strategy_name
+            instrument_code = instrument_trade.instrument_code
+            proposed_trade = instrument_trade.trade.as_int()
+
+            ## want to CUT DOWN rather than bool possible trades
+            ## underneath should be using tradeQuantity and position objects
+            ## these will handle abs cases plus legs if required in future
+
+            max_trade_ok_against_strategy_instrument = \
+                self.check_if_proposed_trade_okay_against_strategy_instrument_constraint(strategy_name,
+                                                                                         instrument_code,
+                                                                                         proposed_trade)
+            max_trade_ok_against_instrument = \
+                self.check_if_proposed_trade_okay_against_instrument_constraint(instrument_code,
+                                                                                proposed_trade)
+
+            mini_max_trade = sign(proposed_trade) * \
+                             min([abs(max_trade_ok_against_instrument),
+                            abs(max_trade_ok_against_strategy_instrument)])
+
+
+            instrument_trade = instrument_trade.replace_trade_only_use_for_unsubmitted_trades(mini_max_trade)
+
+            return instrument_trade
+
+    def check_if_proposed_trade_okay_against_strategy_instrument_constraint(
+            self,
+            strategy_name: str,
+            instrument_code: str,
+            proposed_trade: int) -> int:
+
+            position_and_limit = self.get_limit_and_position_for_strategy_instrument(strategy_name, instrument_code)
+            max_trade_ok_against_strategy_instrument =  position_and_limit.what_trade_is_possible(proposed_trade)
+
+            return max_trade_ok_against_strategy_instrument
+
+    def check_if_proposed_trade_okay_against_instrument_constraint(
+            self,
+            instrument_code: str,
+            proposed_trade: int) -> int:
+
+            position_and_limit = self.get_limit_and_position_for_instrument(instrument_code)
+            max_trade_ok_against_instrument = position_and_limit.what_trade_is_possible(proposed_trade)
+
+            return max_trade_ok_against_instrument
+
+    def get_all_instrument_limits_and_positions(self):
+        instrument_list = self.get_all_relevant_instruments()
+        list_of_limit_and_position = [self.get_limit_and_position_for_instrument(instrument_code)
+                                      for instrument_code in instrument_list]
+
+        return list_of_limit_and_position
+
+    def get_all_relevant_instruments(self):
+        ## want limits both for the union of instruments where we have positions & limits are set
+        instrument_list_held = self.get_instruments_with_current_positions()
+        instrument_list_limits = self.get_instruments_with_position_limits()
+
+        instrument_list = list(set(instrument_list_held+instrument_list_limits))
+
+        return instrument_list
+
+    def get_instruments_with_current_positions(self):
+        diag_positions = diagPositions(self.data)
+        instrument_list = diag_positions.get_list_of_instruments_with_current_positions()
+
+        return instrument_list
+
+    def get_instruments_with_position_limits(self):
+        instrument_list = self.data.db_position_limit.get_all_instruments_with_limits()
+
+        return instrument_list
+
+    def get_all_strategy_instrument_limits_and_positions(self):
+        instrument_strategy_list = self.get_all_relevant_strategy_instruments()
+        list_of_limit_and_position = [self.get_limit_and_position_for_strategy_instrument(strategy_name, instrument_code)
+                                      for strategy_name, instrument_code in instrument_strategy_list]
+
+        return list_of_limit_and_position
+
+    def get_all_relevant_strategy_instruments(self):
+        ## want limits both for the union of strategy/instruments where we have positions & limits are set
+        # return list of tuple strategy_name, instrument_code
+        strategy_instrument_list_held = self.get_strategy_instruments_with_current_positions()
+        strategy_instrument_list_limits = self.get_strategy_instruments_with_position_limits()
+
+        strategy_instrument_list = list(set(strategy_instrument_list_held+strategy_instrument_list_limits))
+
+        return strategy_instrument_list
+
+    def get_strategy_instruments_with_current_positions(self):
+        # return list of tuple strategy_name, instrument_code
+        diag_positions = diagPositions(self.data)
+        all_current_positions = diag_positions.get_all_current_strategy_instrument_positions()
+        strategy_instrument_list_held = [(position.strategy_name, position.instrument_code)
+                                    for position in all_current_positions]
+
+        return strategy_instrument_list_held
+
+    def get_strategy_instruments_with_position_limits(self):
+        # return list of tuple strategy_name, instrument_code
+        strategy_instrument_list_limits = self.data.db_position_limit.get_all_strategy_instruments_with_limits()
+
+        return strategy_instrument_list_limits
+
+    def get_limit_and_position_for_strategy_instrument(self, strategy_name, instrument_code):
+        limit_object = self.get_position_limit_object_for_strategy_instrument(strategy_name, instrument_code)
+        position = self.get_current_position_for_strategy_instrument(strategy_name, instrument_code)
+
+        position_and_limit = positionLimitAndPosition(limit_object, position)
+
+        return position_and_limit
+
+    def get_limit_and_position_for_instrument(self, instrument_code):
+        limit_object = self.get_position_limit_object_for_instrument(instrument_code)
+        position = self.get_current_position_for_instrument(instrument_code)
+
+        position_and_limit = positionLimitAndPosition(limit_object, position)
+
+        return position_and_limit
+
+    def get_position_limit_object_for_strategy_instrument(self, strategy_name, instrument_code):
+        limit_object = self.data.db_position_limit.get_position_limit_object_for_strategy_instrument(strategy_name, instrument_code)
+        return limit_object
+
+    def get_position_limit_object_for_instrument(self, instrument_code):
+        limit_object = self.data.db_position_limit.get_position_limit_object_for_instrument(instrument_code)
+
+        return limit_object
+
+    def get_current_position_for_instrument(self, instrument_code):
+        diag_positions = diagPositions(self.data)
+        position = diag_positions.get_current_instrument_position_across_strategies(instrument_code)
+
+        return position
+
+    def get_current_position_for_strategy_instrument(self, strategy_name, instrument_code):
+        diag_positions = diagPositions(self.data)
+        position = diag_positions.get_position_for_strategy_and_instrument(strategy_name, instrument_code)
+
+        return position
+
+    def set_abs_position_limit_for_strategy_instrument(self, strategy_name, instrument_code, new_position_limit):
+
+        self.data.db_position_limit.set_position_limit_for_strategy_instrument(strategy_name,
+                                                                               instrument_code,
+                                                                               new_position_limit)
+
+    def set_abs_position_limit_for_instrument(self, instrument_code, new_position_limit):
+
+        self.data.db_position_limit.set_position_limit_for_instrument(instrument_code, new_position_limit)
+
+    def delete_abs_position_limit_for_strategy_instrument(self, strategy_name:str,
+                                                       instrument_code: str):
+
+        self.data.db_position_limit.delete_abs_position_limit_for_strategy_instrument(strategy_name, instrument_code)
+
+    def delete_position_limit_for_instrument(self, instrument_code: str):
+
+        self.data.db_position_limit.delete_abs_position_limit_for_instrument(instrument_code)

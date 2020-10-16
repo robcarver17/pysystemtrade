@@ -7,10 +7,10 @@ So called because it deals with instrument level trades, not contract implementa
 
 from syscore.objects import zero_order
 
-from syscore.objects import success
+from syscore.objects import success, failure
 from sysproduction.data.positions import diagPositions
 from sysproduction.data.orders import dataOrders
-from sysproduction.data.controls import diagOverrides, dataLocks
+from sysproduction.data.controls import diagOverrides, dataLocks, dataPositionLimits
 
 
 class orderGeneratorForStrategy(object):
@@ -140,28 +140,48 @@ class orderGeneratorForStrategy(object):
             if instrument_locked:
                 log.msg("Instrument locked, not submitting")
                 continue
-
-            order_id = self.order_stack.put_order_on_stack(order)
-            if isinstance(order_id, int):
-                log.msg(
-                    "Added order %s to instrument order stack with order id %d"
-                    % (str(order), order_id),
-                    instrument_order_id=order_id,
-                )
-            else:
-                order_error_object = order_id
-                if order_error_object is zero_order:
-                    # To be expected unless modifying an existing order
-                    log.msg("Ignoring zero order %s" % str(order))
-
-                else:
-                    log.warn(
-                        "Could not put order %s on instrument order stack, error: %s" %
-                        (str(order), str(order_error_object)))
-
-        # except Exception as e:
-        #    # serious error, abandon everything
-        #    log.critical("Error %s putting %s on instrument order stack" % (str(e), str(order)))
-        #    return failure
+            self.submit_order(order)
 
         return success
+
+    def submit_order(self, order):
+        log = order.log_with_attributes(self.log)
+        cut_down_order = self.adjust_order_for_position_limits(order)
+        if cut_down_order.is_zero_trade():
+            ## nothing to do
+            return failure
+
+        order_id = self.order_stack.put_order_on_stack(cut_down_order)
+        if isinstance(order_id, int):
+            log.msg(
+                "Added order %s to instrument order stack with order id %d"
+                % (str(order), order_id),
+                instrument_order_id=order_id,
+            )
+        else:
+            order_error_object = order_id
+            if order_error_object is zero_order:
+                # To be expected unless modifying an existing order
+                log.msg("Ignoring zero order %s" % str(order))
+
+            else:
+                log.warn(
+                    "Could not put order %s on instrument order stack, error: %s" %
+                    (str(order), str(order_error_object)))
+
+    def adjust_order_for_position_limits(self, order):
+
+        log = order.log_with_attributes(self.log)
+
+        data_position_limits = dataPositionLimits(self.data)
+        cut_down_order = data_position_limits.cut_down_proposed_instrument_trade_okay(order)
+
+        if cut_down_order.trade != order.trade:
+            if cut_down_order.is_zero_trade():
+                ## at position limit, can't do anything
+                log.warn("Can't trade at all because of position limits %s" % str(order))
+            else:
+                log.warn("Can't do full trade of %s because of position limits, can only do %s" %
+                         (str(order), str(cut_down_order.trade)))
+
+        return cut_down_order

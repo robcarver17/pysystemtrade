@@ -7,6 +7,7 @@ We can also check: when last adjusted prices were updated, when FX was last upda
 from collections import namedtuple
 
 import datetime
+import pandas as pd
 
 from syscore.pdutils import make_df_from_list_of_named_tuple
 from syscore.objects import header, table, body_text, arg_not_supplied, missing_data
@@ -19,6 +20,7 @@ from sysproduction.data.controls import (
     dataTradeLimits,
     diagOverrides,
     dataLocks,
+    dataPositionLimits
 )
 from sysproduction.data.strategies import get_list_of_strategies
 from sysproduction.data.prices import get_list_of_instruments
@@ -52,14 +54,18 @@ def get_status_report_data(data):
     price = get_last_price_updates_as_df(data)
     position = get_last_optimal_position_updates_as_df(data)
     limits = get_trade_limits_as_df(data)
+    position_limits = get_position_limits_as_df(data)
     overrides = get_overrides_as_df(data)  # NOT WORKING
     locks = get_list_of_position_locks(data)
+
+
     results_object = dict(
         process=process,
         method=method,
         price=price,
         position=position,
         limits=limits,
+        position_limits=position_limits,
         overrides=overrides,
         locks=locks,
     )
@@ -100,9 +106,13 @@ def format_status_data(results_object):
     table5 = table("Status of trade limits", table5_df)
     formatted_output.append(table5)
 
-    table6_df = results_object["overrides"]
-    table6 = table("Status of overrides", table6_df)
+    table6_df = results_object["position_limits"]
+    table6 = table("Status of position limits", table6_df)
     formatted_output.append(table6)
+
+    table7_df = results_object["overrides"]
+    table7 = table("Status of overrides", table7_df)
+    formatted_output.append(table7)
 
     text1 = body_text(results_object["locks"])
     formatted_output.append(text1)
@@ -465,3 +475,37 @@ def get_list_of_position_locks(data):
     any_locks = data_locks.get_list_of_locked_instruments()
 
     return "Locked instruments (position mismatch): %s" % str(any_locks)
+
+
+def get_position_limits_as_df(data):
+    strat_instrument_limits_as_df = get_strategy_instrument_limits_as_df(data)
+    instrument_limits_as_df = get_instrument_limits_as_df(data)
+
+    agg_limits = pd.concat([strat_instrument_limits_as_df, instrument_limits_as_df], axis=0)
+
+    return agg_limits
+
+def get_strategy_instrument_limits_as_df(data):
+    data_position_limits = dataPositionLimits(data)
+    strat_instrument_limits = data_position_limits.get_all_strategy_instrument_limits_and_positions()
+    strat_instrument_limits_as_df = df_from_list_of_limits_and_positions(strat_instrument_limits)
+
+    return strat_instrument_limits_as_df
+
+
+def get_instrument_limits_as_df(data):
+    data_position_limits = dataPositionLimits(data)
+    instrument_limits = data_position_limits.get_all_instrument_limits_and_positions()
+    instrument_limits_as_df = df_from_list_of_limits_and_positions(instrument_limits)
+
+    return instrument_limits_as_df
+
+
+def df_from_list_of_limits_and_positions(pos_limit_list):
+    keys = [pos.key for pos in pos_limit_list]
+    position = [pos.position for pos in pos_limit_list]
+    pos_limit = [pos.position_limit for pos in pos_limit_list]
+
+    df = pd.DataFrame(dict(keys = keys, position = position, pos_limit = pos_limit))
+
+    return df
