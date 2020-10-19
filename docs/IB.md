@@ -118,7 +118,7 @@ Portid should match that in the Gateway configuration. Client ids must not be du
 If values for ipaddress and port are not passed here, they will default to:
 
 1- values supplied in file 'private_config.yaml' (see below)
-2- default hardcoded values 
+2- default hardcoded values
 
 You should first create a file 'private_config.yaml' in the private directory of [pysystemtrade](#/private). Then add one or both of these line:
 
@@ -152,8 +152,8 @@ We treat IB as another data source, which means it has to conform to the data ob
 from sysbrokers.IB.ibSpotFXData import ibFxPricesData
 ibfxpricedata = ibFxPricesData(conn)
 
-ibfxpricedata.get_list_of_fxcodes()  # codes must be in .csv file /sysbrokers/IB/ibConfigSpotFx.csv
-ibfxpricedata.get_fx_prices("GBPUSD") # returns fxPrices object 
+ibfxpricedata.get_list_of_fxcodes()  # codes must be in .csv file /sysbrokers/IB/ibConfigSpotFX.csv
+ibfxpricedata.get_fx_prices("GBPUSD") # returns fxPrices object
 ```
 
 
@@ -179,7 +179,7 @@ ibfuturesdata.get_prices_for_contract_object(futuresContract("EDOLLAR", "201203"
 
 There are four types of objects in the [sysbrokers](/sysbrokers/) area of pysystemtrade:
 
-- Client objects, 
+- Client objects,
 - Server objects
 - Connection objects
 - Data source objects
@@ -220,7 +220,7 @@ The extra methods include:
 - `ib_init_request_id_factory`, `ib_next_req_id`, `ib_clear_req_id`: make sure request ID's are parcelled out and shared nicely
 - `ib_spotfx_contract`, `ib_futures_contract`, `ib_resolve_futures_contract`: Translate pysystemtrade depictions of an instrument into IB objects
 - `ib_resolve_contract`, `ib_get_contract_chain`: Called by individual resolve methods, to go to IB and ensure we have the 'full' IB object.
-- `ib_get_historical_data`: Called by specific methods to get historical data 
+- `ib_get_historical_data`: Called by specific methods to get historical data
 
 If you are going to connect to a new broker, then your main job is to ensure that you provide working methods to override those in `brokerClient`.
 
@@ -257,7 +257,7 @@ It also includes functions to help manage the queues which store data coming fro
 
 ### Connection objects
 
-A connection object inherits from both a client and a server (NOTE: in the future we would need to add a database connection object to receive streamed prices, fills etc). 
+A connection object inherits from both a client and a server (NOTE: in the future we would need to add a database connection object to receive streamed prices, fills etc).
 
 No generic connection object is provided, since they are likely to be highly bespoke to a particular broker. See [connectionIB](/sysbrokers/IB/ibConnection.py) for an example. At a minimum, connection objects must do the following:
 
@@ -280,11 +280,11 @@ For spot FX we have a class `ibFxPricesData` which inherits from the generic `fx
 ```python
 from sysbrokers.IB.ibSpotFXData import ibFxPricesData
 ibfxpricedata = ibFxPricesData(conn)
-ibfxpricedata.get_list_of_fxcodes()  # codes must be in .csv file /sysbrokers/IB/ibConfigSpotFx.csv
-ibfxpricedata.get_fx_prices("GBPUSD") # returns fxPrices object 
+ibfxpricedata.get_list_of_fxcodes()  # codes must be in .csv file /sysbrokers/IB/ibConfigSpotFX.csv
+ibfxpricedata.get_fx_prices("GBPUSD") # returns fxPrices object
 ```
 
-This is a 'read only' object; there are no methods implemented for writing or deleting FX data. 
+This is a 'read only' object; there are no methods implemented for writing or deleting FX data.
 
 #### Futures contract prices data
 
@@ -295,11 +295,7 @@ For spot FX we have a class `ibFuturesContractPricesData` which inherits from th
 from sysbrokers.IB.ibFuturesContractPricesData import ibFuturesContractPricesData
 ibfutpricedata = ibFuturesContractPricesData(conn)
 ibfutpricedata.get_instruments_with_price_data()  # codes must be in .csv file /sysbrokers/IB/ibConfigFutures.csv
-ibfutpricedata.get_prices_for_instrument_code_and_contract_date("SP500", "202006") 
+ibfutpricedata.get_prices_for_instrument_code_and_contract_date("SP500", "202006")
 ```
 
-This is a 'read only' object; there are no methods implemented for writing or deleting data. 
-
-
-
-
+This is a 'read only' object; there are no methods implemented for writing or deleting data.
