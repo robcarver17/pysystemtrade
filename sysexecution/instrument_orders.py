@@ -341,7 +341,7 @@ class instrumentOrderStackData(orderStackData):
         log.msg(
             "New order %s putting on %s" %
             (str(new_order), self.__repr__()))
-        order_id_or_error = self.self._put_order_on_stack_and_get_order_id(
+        order_id_or_error = self._put_order_on_stack_and_get_order_id(
             new_order)
         return order_id_or_error
 
@@ -389,7 +389,7 @@ class instrumentOrderStackData(orderStackData):
                 str(adjusted_order),
             )
         )
-        order_id_or_error = self.self._put_order_on_stack_and_get_order_id(
+        order_id_or_error = self._put_order_on_stack_and_get_order_id(
             adjusted_order)
 
         return order_id_or_error
