@@ -1,4 +1,4 @@
-This document is specifically about using pysystemtrade for *live production trading*. 
+This document is specifically about using pysystemtrade for *live production trading*.
 
 *This is NOT a complete document, and is currently a work in progress - and in many cases a series of thoughts about design intent rather than a fully featured specification. It is not possible to run a full production system with pysystemtrade at present*
 
@@ -94,7 +94,7 @@ Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 This quick start guide assumes the following:
 
 - you are running on a linux box with a minimal distro installation
-- you are using interactive brokers 
+- you are using interactive brokers
 - you are storing data using mongodb
 - you have a backtest that you are happy with
 - you are happy to store your data and configuration in the /private directory of your pysystemtrade installation
@@ -121,7 +121,7 @@ You need to:
 - FX data:
     - [Initialise the spot FX data in MongoDB from .csv files](/sysinit/futures/repocsv_spotfx_prices.py) (this will be out of date, but you will update it in a moment)
     - Check that you have got spot FX data present: command line:`. /pysystemtrade/sysproduction/linux/scripts/interactive_diagnostics` option 3, option 33
-    - Update the FX price data in MongoDB using interactive brokers: command line:`. /home/your_user_name/workspace3/pysystemtrade/sysproduction/linux/scripts/update_fx_prices`
+    - Update the FX price data in MongoDB using interactive brokers: command line:`. /home/your_user_name/pysystemtrade/sysproduction/linux/scripts/update_fx_prices`
 - Instrument configuration:
     - Set up futures instrument configuration using this script [instruments_csv_mongo.py](/sysinit/futures/instruments_csv_mongo.py).
 - Roll calendars:
@@ -161,7 +161,7 @@ Here are the steps you need to follow to set up a production system. I assume yo
 1. Consider your implementation options
 2. Ensure you have a private area for your system code and configuration
 3. Finalise and store your backtested system configuration
-4. If you want to automatically execute, or get data from a broker, then set up a broker 
+4. If you want to automatically execute, or get data from a broker, then set up a broker
 5. Set up any other data sources you need.
 6. Set up a database for storage, including a backup
 7. Have a strategy for reporting, diagnostics, and logs
@@ -304,7 +304,7 @@ Change the list of attr_names depending on what you want to output. You can then
 
 You are probably going to want to link your system to a broker, to do one or more of the following things:
 
-- get prices 
+- get prices
 - get account value and profitability
 - do trades
 - get trade fills
@@ -318,7 +318,7 @@ You should now read [connecting pysystemtrade to interactive brokers](/docs/IB.m
 
 You might get all your data from your broker, but there are good reasons to get data from other sources as well:
 
-- multiple sources can improve accuracy 
+- multiple sources can improve accuracy
 - multiple sources can provide redundancy in case of feed issues
 - you can't get the relevant data from your broker
 - the relevant data is cheaper elsewhere
@@ -366,7 +366,7 @@ cp -rf $MONGO_BACKUP_PATH/dump/ ~
 # Now make sure a mongo-db instance is running with correct directory
 # If required delete any existing instances of the databases. If you don't do this the results may be unpredictable...
 mongo
-# This starts a mongo client 
+# This starts a mongo client
 > show dbs
 admin              0.000GB
 arctic_production  0.083GB
@@ -381,7 +381,7 @@ production         0.000GB
 > db.dropDatabase()
 > exit
 # Now we run the restore (back on the linux command line)
-mongorestore 
+mongorestore
 ```
 
 
@@ -409,8 +409,8 @@ Linux script:
 We need to know what our system is doing, especially if it is fully automated. Here are the methods by which this should be done:
 
 - Echoes of stdout output from processes that are running
-- Storage of logging output in a database, tagged with keys to identify them 
-- Storage of diagnostics in a database, tagged with keys to identify them 
+- Storage of logging output in a database, tagged with keys to identify them
+- Storage of diagnostics in a database, tagged with keys to identify them
 - the option to run reports both scheduled and ad-hoc, which can optionally be automatically emailed
 
 ## Echos: stdout output
@@ -430,7 +430,7 @@ The above line will run the script `updatefxprices`, but instead of outputting t
 
 Over time echo files can get... large (my default position for logging is verbose). To avoid this you can run the daily run cleaners process (FIX ME LINK) archives old echo files with a date suffix, and deletes anything more than a month old. 
 
-## Logging 
+## Logging
 
 Logging in pysystemtrade is done via loggers. See the [userguide for more detail](/docs/userguide.md#logging). The logging levels are:
 
@@ -449,7 +449,7 @@ The default logger in production code is to the mongo database. This method will
 The default for logging is to do this via mongodb. Here is an example of logging code:
 
 ```python
-from syslogdiag.log import logToMongod as logger 
+from syslogdiag.log import logToMongod as logger
 
 def top_level_function():
     """
@@ -461,7 +461,7 @@ def top_level_function():
 
     # note use of log.setup when passing log to other components, this creates a copy of the existing log with an additional attribute set
     conn = connectionIB(client=100, log=log.setup(component="IB-connection"))
-    
+
     ibfxpricedata = ibFxPricesData(conn, log=log.setup(component="ibFxPricesData"))
 
     arcticfxdata = arcticFxPricesData(log=log.setup(component="arcticFxPricesData"))
@@ -472,7 +472,7 @@ def top_level_function():
 
         # Using log.label permanently adds the labelled attribute (although in this case it will be replaced on each iteration of the loop
         log.label(currency_code = fx_code)
-        new_fx_prices = ibfxpricedata.get_fx_prices(fx_code) 
+        new_fx_prices = ibfxpricedata.get_fx_prices(fx_code)
 
         if len(new_fx_prices)==0:
             log.error("Error trying to get data for %s" % fx_code)
@@ -1354,7 +1354,7 @@ Spike checks are not carried out on multiple and adjusted prices, since they sho
 FIXME: An intraday sampling would be good
 
 
-### Manual check of futures contract historical price data 
+### Manual check of futures contract historical price data
 (Whever required)
 
 Python:
@@ -1377,7 +1377,7 @@ Spikes are only checked on the FINAL price in each bar, and the user is only giv
 Once all spikes are checked for a given contract then the checked data is written to the database, and the system moves on to the next contract.
 
 
-### Manual check of FX price data 
+### Manual check of FX price data
 (Whever required)
 
 Python:
@@ -1394,7 +1394,7 @@ Linux script:
 See [manual check of futures contract prices](#manual-check-of-futures-contract-historical-price-data) for more detail. Note that as the FX data is a single series, no adjustment is required for other values.
 
 
-### Interactively roll adjusted prices 
+### Interactively roll adjusted prices
 (Whenever required)
 
 Allows you to change the roll state and roll from one priced contract to the next.
@@ -1431,7 +1431,7 @@ Linux script:
 
 See [launcher functions](#launcher-functions) for more details.
 
-### Update capital and p&l by polling brokerage account 
+### Update capital and p&l by polling brokerage account
 (daily)
 
 FIX ME ADD TO CRON / REGULAR STUFF
@@ -1555,7 +1555,7 @@ from sysproduction.truncateLogFiles import truncate_log_files
 truncate_log_files()
 ```
 
-Linux command line: 
+Linux command line:
 ```
 cd $SCRIPT_PATH
 . truncate_log_files
@@ -1564,7 +1564,7 @@ cd $SCRIPT_PATH
 ### Truncate echo log files
 
 
-Linux command line: 
+Linux command line:
 ```
 cd $SCRIPT_PATH
 . truncate_echo_files
@@ -1581,7 +1581,7 @@ FIX ME TO DO
 Running a fully or partially automated trading system requires the use of scheduling software that can launch new scripts at regular intervals, for example:
 
 - processes that kick off when a machine is switched on
-- processes that kick off daily 
+- processes that kick off daily
 - processes that kick off several times a day (eg regular reports or reconciliation)
 
 
@@ -1624,7 +1624,7 @@ You need some sort of scheduling system to kick off the various top level proces
 
 ### Linux cron
 
-Because I use cron myself, there are is a [cron tab included in pysystemtrade](https://github.com/robcarver17/pysystemtrade/blob/master/sysproduction/linux/crontab). 
+Because I use cron myself, there are is a [cron tab included in pysystemtrade](https://github.com/robcarver17/pysystemtrade/blob/master/sysproduction/linux/crontab).
 
 ### Windows task scheduler
 
@@ -1666,25 +1666,25 @@ strategy_capital_allocation:
 ## Capital
 
 *Capital* is how much we have 'at risk' in our trading account. This total capital is then allocated to trading strategies; see [strategy-capita](#strategy-capital) on a [daily basis](#update-capital-and-p&l-by-polling-brokerage-account).
- 
+
 The simplest possible case is that your capital at risk is equal to what is in your trading account. If you do nothing else, that is how the system will behave. For all other cases, the behaviour of capital will depend on the interaction between stored capital values and the parameter value `production_capital_method` (defaults to *full* unless set in private yaml config). If you want to do things differently, you should consider modifying that parameter and/or using the [interactive tool](#interactively-modify-capital-values) to modify or initialise capital.
 
 On initialising capital you can choose what the following values are:
 
 - Brokerage account value (defaults to value from brokerage API). You might want to change this if you have stitched in some capital from another system, otherwise usually leave as the default
-- Current capital allocated (defaults to brokerage account value). 
+- Current capital allocated (defaults to brokerage account value).
 - Maximum capital allocated (defaults to current capital). This is only used if `production_capital_method='half'`. It's effectively the 'high water mark' for your strategy. You might want to set this higher than current capital if for example you have already been running the strategy elsewhere, and it's accumulated losses. Although you can set it lower than current capital, there is no logical reason for doing that.
 - Accumulated profits and losses (defaults to zero). Doesn't affect capital calculations, but is nice to know. You may want to set this if you've already been running the strategy elsewhere.
 
-If you don't initialise capital deliberately, then the first time that is run it will populate the fields with the defaults (which will effectively mean your capital will be equal to your current trading account value). 
+If you don't initialise capital deliberately, then the first time that is run it will populate the fields with the defaults (which will effectively mean your capital will be equal to your current trading account value).
 
-After initialising the capital is updated [daily](#update-capital-and-p&l-by-polling-brokerage-account). First the valuation of the brokerage account is captured, and compared to the previous valuation. The difference between the valuations is your profit (or loss) since the capital was last checked, and this is written to the p&l accumulation account. 
+After initialising the capital is updated [daily](#update-capital-and-p&l-by-polling-brokerage-account). First the valuation of the brokerage account is captured, and compared to the previous valuation. The difference between the valuations is your profit (or loss) since the capital was last checked, and this is written to the p&l accumulation account.
 
 What will happen next will depend on `production_capital_method`. Read [this first](https://qoppac.blogspot.com/2016/06/capital-correction-pysystemtrade.html):
 
 - if *full*, then your profit or loss is added to capital employed. For tidiness, maximum capital is set to be equal to current capital employed. This will result in your returns being compounded. This is the default.
 - if *half* then your profit or loss is added to capital employed, until your capital is equal to the maximum capital employed. After that no further profits accrue to your capital. This is 'Kelly compatible' because losses reduce capital, but your returns will not be compounded. It's the method I use myself.
-- if *fixed* then no change is made to capital. For tidiness, maximum capital is set to be equal to current capital employed. This isn't recommended as it isn't 'Kelly compatible', and if you lose money you will make exponentially increasing losses as a % of your account value. It could plausibly make sense in a small test account where you want to maintain a minimum position size. 
+- if *fixed* then no change is made to capital. For tidiness, maximum capital is set to be equal to current capital employed. This isn't recommended as it isn't 'Kelly compatible', and if you lose money you will make exponentially increasing losses as a % of your account value. It could plausibly make sense in a small test account where you want to maintain a minimum position size.
 
 Capital is mostly 'fire and forget', with a few exceptions which require the interactive tool to deal with:
 
@@ -1695,7 +1695,7 @@ If brokerage account value has changed by more than 10% no further action is tak
 
 ### Withdrawals and deposits of cash or stock
 
-The method above is neat in that it 'self recovers'; if you don't collect capital for a while it will adjust correctly when restarted. However this does mean that if you withdraw cash or securities from your brokerage account, it will look like you've made a loss and your capital will reduce. The reverse will happen if you make a deposit. This may not bother you (you actually want this to happen and aren't using the account level p&l figures), but if it does you can run the [interactive tool](#interactively-modify-capital-values) and select 'Adjust account value for withdrawal or deposit'. Make sure you are using the base currency of the account. 
+The method above is neat in that it 'self recovers'; if you don't collect capital for a while it will adjust correctly when restarted. However this does mean that if you withdraw cash or securities from your brokerage account, it will look like you've made a loss and your capital will reduce. The reverse will happen if you make a deposit. This may not bother you (you actually want this to happen and aren't using the account level p&l figures), but if it does you can run the [interactive tool](#interactively-modify-capital-values) and select 'Adjust account value for withdrawal or deposit'. Make sure you are using the base currency of the account.
 
 If you forget to do this, you should select 'Delete values of capital since time T' in the interactive tool. You can then delete the erroneous rows of capital, account for the withdrawal, and finally 'Update capital from IB account value' to make sure it has worked properly.
 
@@ -1764,7 +1764,7 @@ strategy_list:
 ```
 
 The configuration for the overnight launcher includes the launcher function; the other configuration values are passed as keyword arguments to the launcher function.
-Launcher functions must include the strategy name and a [data 'blob'](#data-blobs-and-the-classes-that-feed-on-them) as their first two arguments. 
+Launcher functions must include the strategy name and a [data 'blob'](#data-blobs-and-the-classes-that-feed-on-them) as their first two arguments.
 
 A launcher usually does the following:
 
