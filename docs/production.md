@@ -143,7 +143,9 @@ Before trading, and each time you restart the machine you should:
 
 - [check a mongodb server is running with the right data directory](/docs/futures.md#mongo-db) command line: `mongod --dbpath $MONGO_DATA` (the supplied crontab should do this)
 - launch an IB gateway (this could [be done automatically](https://github.com/ib-controller/ib-controller) depending on your security setup)
-- startup housekeeping services (FIX ME TO DO BUT WILL INCLUDE CLEARING IB TICKERS)
+- ensure all processes are marked as 'finished' FIXME LINK
+
+Note that the system won't start trading until the next day, unless you manually launch the processes that would ordinarily have been started by the crontab or other [scheduler](#scheduling). [Linux screen](https://linuxize.com/post/how-to-use-linux-screen/) is helpful if you want to launch a process but not keep the window active (eg on a headless machine).
 
 When trading you will need to do the following
 
@@ -176,7 +178,9 @@ My own implementation runs on a Linux machine, and some of the implementation de
 
 ## Automation options
 
-You can run pysystemtrade as a fully automated system, which does everything from getting prices through to executing orders. But other patterns make sense. In particular you may wish to do your trading manually, after pulling in prices and generating optimal positions manually. It will also possible to trade manually, but allow pysystemtrade to pick up your fills from the broker rather than entering them manually.
+You can run pysystemtrade as a fully automated system, which does everything from getting prices through to executing orders. But other patterns make sense. In particular you may wish to do your trading manually, after pulling in prices and generating optimal positions manually. It will also possible to trade manually, but allow pysystemtrade to pick up your fills from the broker rather than entering them manually. You can remove items from the scheduler[]() to achieve this. 
+
+If running fully automated, [ib-controller](https://github.com/ib-controller/ib-controller) is very useful.
 
 ## Machines, containers and clouds
 
@@ -194,18 +198,17 @@ If spreading your implementation across several machines bear in mind:
 
 ## Backup machine
 
-If you are running your implementation locally, or on a remote server that is not a cloud, then you should seriously consider a backup machine. The backup machine should have an up to date environment containing all the relevant applications, code and libaries, and on a regular basis you should update the local data stored on that machine (see INSERT BACKUP LINK). The backup machine doesn't need to be turned on at all times, unless you are trading in such a way that a one hour period without trading would be critical (in my experience, one hour is the maximum time to get a backup machine on line assuming the code is up to date, and the data is less than 24 hours stale). I also encourage you to perform a scheduled 'failover' on regular basis: stop the live machine running (best to do this at a weekend), copy across any data to the backup machine, start up the backup machine. The live machine then becomes the backup.
+If you are running your implementation locally, or on a remote server that is not a cloud, then you should seriously consider a backup machine. The backup machine should have an up to date environment containing all the relevant applications, code and libaries, and on a regular basis you should update the local data stored on that machine (see [backup](#data-backup)). The backup machine doesn't need to be turned on at all times, unless you are trading in such a way that a one hour period without trading would be critical (in my experience, one hour is the maximum time to get a backup machine on line assuming the code is up to date, and the data is less than 24 hours stale). I also encourage you to perform a scheduled 'failover' on regular basis: stop the live machine running (best to do this at a weekend), copy across any data to the backup machine, start up the backup machine. The live machine then becomes the backup.
 
 ## Multiple systems
 
 You may want to run multiple trading systems on a single machine. Common use cases are:
 
-- You want different systems for different asset classes
 - You want to run relative value systems *
 - You want different systems for different time frames (eg intra day and slower trading) *
-- You want to run the same system, but for different trading accounts
+- You want different systems for different asset classes eg stocks and ETFs, or futures
+- You want to run the same system, but for different trading accounts (pysystemtrade can't handle multiple accounts natively)
 - You want a paper trading and live trading system
-
 
 *for these cases I plan to implement functionality in pysystemtrade so that it can handle them in the same system.
 
@@ -228,7 +231,7 @@ I strongly recommend that you use a code repo system or similar to manage your n
 
 ### Managing your private directory
 
-Since the private directory is excluded from the git system (since you don't want it appearing on github!), you need to ensure it is managed separately. I use a script which I run in lieu of a normal git add/ commit / push cycle:
+Since the private directory is excluded from the git system (since you don't want it appearing on github!), you need to ensure it is managed separately. I use a bash script which I run in lieu of a normal git add/ commit / push cycle:
 
 ```
 # pass commit quote as an argument
@@ -308,7 +311,7 @@ You are probably going to want to link your system to a broker, to do one or mor
 
 ... although one or more of these can also be done manually.
 
-You should now read [connecting pysystemtrade to interactive brokers](/docs/IB.md).
+You should now read [connecting pysystemtrade to interactive brokers](/docs/IB.md). The fields `broker_account`,`ib_ipaddress`, `ib_port` and `ib_idoffset` should be set in the [private config file](/private/private_config.yaml).
 
 
 # Other data sources
@@ -334,7 +337,7 @@ Various kinds of data files are used by the pysystemtrade production system. Bro
 - other state and control information
 - static configuration files
 
-The default option is to store these all into a mongodb database, except for configuration files which are stored as .yaml and .csv files.
+The default option is to store these all into a mongodb database, except for configuration files which are stored as .yaml and .csv files. Time series data is stored in [arctic](https://github.com/man-group/arctic) which also uses mongodb. Databases used will be named with the value of parameter `mongo_db` in [private config file](/private/private_config.yaml). A seperate Arctic database will have the same name, with the suffix `_arctic`.
 
 ## Data backup
 
@@ -342,9 +345,7 @@ The default option is to store these all into a mongodb database, except for con
 
 Assuming that you are using the default mongob for storing, then I recommend using [mongodump](https://docs.mongodb.com/manual/reference/program/mongodump/#bin.mongodump) on a daily basis to back up your files. Other more complicated alternatives are available (see the [official mongodb man page](https://docs.mongodb.com/manual/core/backups/)). You may also want to do this if you're transferring your data to e.g. a new machine.
 
-To avoid conflicts you should [schedule](#scheduling) your backup during the 'deadtime' for your system (see scheduling).
-
-FIX ME ADD BACKUP TO CRONTAB
+To avoid conflicts you should [schedule](#scheduling) your backup during the 'deadtime' for your system (see [scheduling](#scheduling)).
 
 
 Linux:
@@ -356,6 +357,8 @@ mongodump -o ~/dump/
 # copy dump directory to another machine or drive. This will create a directory $MONGO_BACKUP_PATH/dump/
 cp -rf ~/dump/* $MONGO_BACKUP_PATH
 ```
+
+This is done by the scheduled backup process (see [scheduling](#scheduling)).
 
 Then to restore, from a linux command line:
 ```
@@ -386,9 +389,7 @@ mongorestore
 
 As I am super paranoid, I also like to output all my mongo_db data into .csv files, which I then regularly backup. This will allow a system recovery, should the mongo files be corrupted.
 
-This currently supports: FX, individual futures contract prices, multiple prices, adjusted prices.
-
-FIX ME: Add capital data, Position by contract, roll states, optimal positions
+This currently supports: FX, individual futures contract prices, multiple prices, adjusted prices, position data, historical trades, capital, contract meta-data, instrument data, optimal positions. Some other state information relating to the control of trading and processes is also stored in the database and this will be lost, however this can be recovered with a litle work: roll status, trade limits, position limits, and overrides. Log data will also be lost; but archived [echo files](#echos-stdout-output) could be searched if neccessary.
 
 
 ```python
@@ -427,7 +428,7 @@ The above line will run the script `updatefxprices`, but instead of outputting t
 
 ### Cleaning old echo files
 
-Over time echo files can get... large (my default position for logging is verbose). To avoid this you can run [this linux script](/sysproduction/linux/scripts/clean_truncate_echo_files) which chops them down to the last 20,000 lines (FIX ME ADD TO CRONTAB)
+Over time echo files can get... large (my default position for logging is verbose). To avoid this you can run the daily run cleaners process (FIX ME LINK) archives old echo files with a date suffix, and deletes anything more than a month old. 
 
 ## Logging
 
@@ -435,10 +436,10 @@ Logging in pysystemtrade is done via loggers. See the [userguide for more detail
 
 ```
 self.log.msg("this is a normal message")
-self.log.terse("not really used in production code since everything is logged")
-self.log.warn("this is a warning message means something unexpected")
-self.log.error("this error message means ")
-self.log.critical("this critical message will always be printed, and an email will be sent to the user. Use this if user action is required")
+self.log.terse("not really used in production code since everything is logged by default, but if we were only running log=terse then you'd see this but not normal .msg")
+self.log.warn("this is a warning message means something unexpected has happened but probably no big deal")
+self.log.error("this error message means something bad but recoverable has happened")
+self.log.critical("this critical message will always be printed, and an email will be sent to the user if emails are set up. Use this if user action is required, or if a process cannot continue")
 ```
 
 The default logger in production code is to the mongo database. This method will also try and email the user if a critical message is logged.
@@ -458,10 +459,11 @@ def top_level_function():
     # can optionally pass mongodb connection attributes here
     log=logger("top-level-function")
 
-    # note use of log.setup when passing log to other components
+    # note use of log.setup when passing log to other components, this creates a copy of the existing log with an additional attribute set
     conn = connectionIB(client=100, log=log.setup(component="IB-connection"))
 
     ibfxpricedata = ibFxPricesData(conn, log=log.setup(component="ibFxPricesData"))
+
     arcticfxdata = arcticFxPricesData(log=log.setup(component="arcticFxPricesData"))
 
     list_of_codes_all = ibfxpricedata.get_list_of_fxcodes()  # codes must be in .csv file /sysbrokers/IB/ibConfigSpotFx.csv
@@ -508,34 +510,26 @@ mlog.print_log_items(dict(type="top-level-function"), lookback_days=7) # get las
 mlog.get_log_items_as_entries(dict(type="top-level-function"))
 ```
 
+Alternatively you can use the interactive diagnostics function to get old log data (FIX ME LINK)
 
 ### Cleaning old logs
 
 
+This code is run automatically from the daily cleaning code (FIX ME LINK)
+
 Python:
+
 ```python
-from syslogdiag.log import accessLogFromMongodb
-from sysdata.mongodb.mongo_connection import mongoDb
-
-# can optionally pass mongodb connection attributes here
-mongo_db=mongoDb()
-mlog = accessLogFromMongodb(mongo_db=mongo_db)
-
-mlog.delete_log_items_from_before_n_days(days=365) # this is also the default
+from sysproduction.clean_truncate_log_files import clean_truncate_log_files
+clean_truncate_log_files()
 ```
 
-Linux script: (defaults to last 365 days and default database
-```
-. $SCRIPT_PATH/truncate_log_files
-```
+It defaults to deleting anything more than a year old.
 
-FIX ME THIS SHOULD BE DONE EVERY DAY ONCE WE HAVE ENOUGH LOGS ADD TO CRONTAB
 
 ## Reporting
 
-Reports are run regularly to allow you to monitor the system and decide if any action should be taken. You can choose to have them emailed to you.
-
-Email address, server and password *must* be set in `private_config.yaml`:
+Reports are run regularly to allow you to monitor the system and decide if any action should be taken. You can choose to have them emailed to you. To do this the email address, server and password *must* be set in `private_config.yaml`:
 
 ```
 email_address: "somebloke@anemailadress.com"
@@ -543,29 +537,109 @@ email_pwd: "h0Wm@nyLetter$ub$tiute$"
 email_server: 'smtp.anemailadress.com'
 ```
 
+Reports are run automatically every day by the run reports process (FIX ME LINK), but you can also run ad-hoc reports in the interactive diagnostics tool (FIX ME LINK). Ad hoc reports can be emailed or displayed on screen.
+
+
 ### Roll report (Daily)
 
-Email version:
+The roll report can be run for all markets (default for the email), or for a single individual market (if run on an ad hoc basis). It will also be run when you run the interactive update roll status process (FIX ME LINK) for the relevant market. Here's an example of a roll report, which I've annoted with comments (marked with quotes ""):
 
-Python:
-```python
-from sysproduction.email_roll_report import email_roll_report
+```
+********************************************************************************
+           Roll status report produced on 2020-10-19 17:10:13.280422            
+********************************************************************************
 
-email_roll_report()
+"The roll report gives you all the information you need to decide when to roll from one futures contract to the next"
+
+=============================================
+       Status and time to roll in days       
+=============================================
+
+          Status  Roll_exp  Prc_exp  Crry_exp
+EDOLLAR  Passive      -128      972       874
+
+Roll_exp is days until preferred roll set by roll parameters. Prc_exp is days until price contract rolls, Crry_exp is days until carry contract rolls
+
+"When should you roll? Certainly before the current priced contract (what we're currently trading) expires (note for some contracts, eg fixed income, you should roll before the first notice date). If the carry contract is younger (as here) then you will probably want to roll before that expires, assuming that there is enough liquidity, or carry calculations will become stale. Suggested times to roll before an expiry are shown, and these are used in the backtest to generate historical roll dates, but you do not need to treat these as gospel in live trading"
+
+========================================================
+                   List of contracts                    
+========================================================
+
+                C0         C1         C2        C3 C4 C5
+EDOLLAR  20230300c  20230600p  20230900f  20231200      
+
+Suffix: p=price, f=forward, c=carry
+
+"This shows the contracts we're currently primarily trading (price), will trade next (forward), and are using for carry calculation (carry). Other contracts may also be shown."
+
+===========================================
+                 Positions                 
+===========================================
+
+         Pos0  Pos1  Pos2  Pos3  Pos4  Pos5
+EDOLLAR   0.0   0.0  11.0   0.0   0.0   0.0
+
+
+"The position we have in each contract. Here we are long 11 futures lots in the second contract (which from above is 202309: the forward contract)."
+
+========================================
+            Relative volumes            
+========================================
+
+           V0    V1    V2   V3   V4   V5
+EDOLLAR  0.98  0.82  0.88  1.0  0.0  0.0
+
+Contract volumes over recent days, normalised so largest volume is 1.0
+
+"You can't roll until there is sufficient volume in the forward contract. Often a sign that volume is falling in the price relative to the forward is a sign you should hurry up and roll! Volumes are shown in relative terms to make interpretation easier."
+
+********************************************************************************
+                               END OF ROLL REPORT                               
+********************************************************************************
 
 ```
 
-Linux script:
+### P&L report
+
+The p&l report shows you profit and loss (duh!).  On a daily basis it is run for the previous 24 hours. On an ad hoc basis, it can be run for any time period (recent or in the past). 
+
+Here is an example, with annotations added in quotes (""):
+
+
 ```
-. $SCRIPT_PATH/email_roll_report
 ```
 
-The ad-hoc version of this report (not emailed) is:
+### Status report
 
-Linux script:
+The status report monitors the status of processes and data acquisition, plus all control elements. It is run on a daily basis, but can also be run ad hoc.
+
+
+### Trade report
+
+The trade report lists all trades recorded in the database, and allows you to analyse slippage in very fine detail.  On a daily basis it is run for the previous 24 hours. On an ad hoc basis, it can be run for any time period (recent or in the past). 
+
+Here is an example, with annotations added in quotes (""):
+
+
 ```
-. $SCRIPT_PATH/get_roll_info
-```
+
+
+### Reconcile report
+
+The reconcile report checks the consistency of positions and trades stored in the database, and with the broker. It is run on a daily basis, but can also be run ad hoc.
+
+
+
+### Strategy report
+
+The strategy report is bespoke to a strategy; it will load the last backtest file generated and report diagnostics from it. On a daily basis it runs for all strategies. On an ad hoc basis, it can be run for all or a single strategy.
+
+
+### Risk report
+
+The risk report checks the consistency of positions and trades stored in the database, and with the broker. It is run on a daily basis, but can also be run ad hoc.
+
 
 
 # Scripts
@@ -1139,13 +1213,18 @@ Output: Total capital. Account level p&l
 Input: Total capital
 Output: Capital allocated per strategy
 
-Update run systems
+Run systems
 Input: Capital allocated per strategy, Adjusted futures prices, Multiple price series, Spot FX prices
 Output: Optimal positions and buffers per strategy
 
-Update backup_to_csv
-Input: MongoDB data
-Output: csv data
+Run strategy order generator
+Input:  Optimal positions and buffers per strategy
+Output: Order tickets 
+
+Run stack handler
+Input: Order tickets
+Output: Trades
+
 
 # Production system classes
 
