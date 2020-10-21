@@ -1,7 +1,7 @@
 from syscore.objects import missing_data, missing_contract, arg_not_supplied
 from syslogdiag.log import logtoscreen
 from sysdata.private_config import get_private_then_default_key_value
-
+from sysbrokers.IB.ibConnection import get_broker_account
 
 class ibMiscData(object):
     def __init__(self, ibconnection, log=logtoscreen(
@@ -16,13 +16,8 @@ class ibMiscData(object):
         return self.ibconnection.ib.client.clientId
 
     def get_broker_account(self):
-        account_id = get_private_then_default_key_value(
-            "broker_account", raise_error=False
-        )
-        if account_id is missing_data:
-            return arg_not_supplied
-        else:
-            return account_id
+        broker_account = get_broker_account()
+        return broker_account
 
     def get_broker_name(self):
         return "IB"

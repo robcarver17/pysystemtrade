@@ -165,7 +165,7 @@ Here are the steps you need to follow to set up a production system. I assume yo
 5. Set up any other data sources you need.
 6. Set up a database for storage, including a backup
 7. Have a strategy for reporting, diagnostics, and logs
-8. Write some scripts to kick off processes to: get data, get accounting information, calculate optimal positions, execute trades, run reports.
+8. Write some scripts to kick off processes to: get data, get accounting information, calculate optimal positions, execute trades, run reports, and do backups and housekeeping.
 9. Schedule your scripts to run regularly
 10. Regularly monitor your system, and deal with any problems
 
@@ -1079,7 +1079,11 @@ V2X                            [20201118, 20201216] 2020-10-15 09:43:30  (1, -1)
 
 ### Strategy report
 
-The strategy report is bespoke to a strategy; it will load the last backtest file generated and report diagnostics from it. On a daily basis it runs for all strategies. On an ad hoc basis, it can be run for all or a single strategy. Here is an example, with annotations added in quotes (""):
+The strategy report is bespoke to a strategy; it will load the last backtest file generated and report diagnostics from it. On a daily basis it runs for all strategies. On an ad hoc basis, it can be run for all or a single strategy. 
+
+The strategy reporting is determined by the parameter `strategy_list/strategy_name/reporting_code/function` in default.yaml or overriden in the private config .yaml file. The 'classic' reporting function is `sysproduction.strategy_code.report_system_classic.report_system_classic`
+
+Here is an example, with annotations added in quotes (""):
 
 ```
 
@@ -1253,6 +1257,84 @@ CORN    -0.08 -0.11 -0.06 -0.06     0.68 -0.10  0.08    0.05  0.13 -0.10 -0.25  
 ```
 
 
+# Production system data flow
+
+Update FX prices / Update manual check FX prices  (interactive)
+Input: IB fx prices
+Output: Spot FX prices
+
+Update roll adjusted prices (interactive)
+Input: Manual decision, existing multiple price series
+Output: Current set of active contracts (price, carry, forward), Roll calendar (implicit in updated multiple price series)
+
+Update sampled contracts
+Input: Current set of active contracts (price, carry, forward) implicit in multiple price series
+Output: Contracts to be sampled by historical data
+
+Update historical prices / Update manual check historical prices (interactive)
+Input: Contracts to be sampled by historical data, IB futures prices
+Output: Futures prices per contract
+
+Update multiple adjusted prices
+Input: Futures prices per contract, Existing multiple price series, Existing adjusted price series
+Output: Adjusted price series, Multiple price series
+
+Update account values / update capital manual  (interactive)
+Input: Brokerage account value from IB
+Output: Total capital. Account level p&l
+
+[Update strategy capital](#allocate-capital-to-strategies)
+Input: Total capital
+Output: Capital allocated per strategy
+
+Run systems
+Input: Capital allocated per strategy, Adjusted futures prices, Multiple price series, Spot FX prices
+Output: Optimal positions and buffers per strategy
+
+Run strategy order generator
+Input:  Optimal positions and buffers per strategy
+Output: Order tickets 
+
+Run stack handler
+Input: Order tickets
+Output: Trades
+
+
+# Positions and order levels
+
+At this stage it's worth discussing the different kinds
+
+## Instrument level
+
+### Instrument positions
+
+### Instrument orders
+
+### Spreads
+
+
+## Contract level
+
+### Contract positions
+
+### Contract orders
+
+### Spreads
+
+
+## Broker level
+
+### Broker positions
+
+### Broker orders
+
+
+# Orders and execution
+
+## Desired execution
+
+## Executing spreads
+
 
 # Scripts
 
@@ -1264,12 +1346,65 @@ Scripts are used to run python code which:
    - calculate positions
    - execute trades
    - get accounting data
+- fix any issues or basically interactively meddle with the system
 - runs report and diagnostics, either regular or ad-hoc
 - Do housekeeping duties, eg truncate log files and run backups
 
 Script are then called by [schedulers](#scheduling), or on an ad-hoc basis from the command line.
 
-## Production system components
+## Script calling
+
+I've created scripts that run under Linux, however these all just call simple python functions so it ought to be easy to create your own scripts in another OS. 
+
+So, for example, here is the [run reports script](/sysproduction/linux/scripts/run_reports):
+
+```
+#!/bin/bash
+. ~/.profile
+. p sysproduction.run_reports.run_reports
+```
+
+In plain english this will call the python function `run_reports()`, located in `/sysproduction/run_reports.py` By convention all 'top level' python functions should be located in this folder, and the file name, script name, and top level function name ought to be the same. 
+
+Scripts are run with the following linux convenience [script](/sysproduction/linux/scripts/p) that just calls run.py with the single argument in the script that is the code reference for the function: 
+
+```
+python3 run.py $1
+```
+
+run.py is a little more complicated as it allows you to call python functions that require arguments, such as [interactive_update_roll_status](/sysproduction/interactive_update_roll_status). 
+
+
+## Script naming convention
+
+The following prefixes are used for scripts:
+
+- _backup: run a backup. 
+- _clean: run a housekeeping / cleaning process
+- _interactive: run an interactive process to check or fix the system, avoiding diving into python every time something goes wrong
+- _update: update data in the system (price or capital)
+- startup: run when the machine starts
+- _run: run a regularly scheduled process.
+
+Normally it's possible to call a process directly (eg _backup_files) on an ad-hoc basis, or it will be called regularly through a 'run' process that may do other stuff as well  (eg run_backups, runs all backup processses). Run processes are a bit complicated, as I've foolishly written my own scheduling code, so see this section FIX ME for more. Some exceptions are interactive scripts which only run when called, and run_systems / run_strategy_order_generator which do not have seperate scripts.
+
+## Run processes
+
+These are listed here for convenience, but more documentation is given below in the relevant section for each script
+
+- run_backups: Runs backup_arctic_to_csv (FIX ME LINK), backup_files (FIX ME LINK)
+- run_capital_updates: Runs update_strategy_capital, update_total_capital (FIX ME LINKS)
+- run_cleaners: Runs clean_truncate_backtest_states, clean_truncate_echo_files, clean_truncate_log_files (FIX ME LINKS)
+- run_daily_price_updates: Runs update_fx_prices, update_sampled_contracts, update_historical_prices, update_multiple_adjusted_prices (FIX ME LINKS)
+- run_reports: Runs all reports (FIX ME LINK), you can also run these using interactive_diagnostics (FIX ME LINK)
+- run_stack_handler: Executes trades placed on the stack by run_strategy_order_generator (FIX ME LINK)
+- run_strategy_order_generator: Creates trades based on the output of run_systems (FIX ME LINK)
+- run_systems: Runs a backtest to decide what optimal positions are required (FIX ME LINK)
+
+
+## Core production system components
+
+These control the core functionality of the system. 
 
 ### Get spot FX data from interactive brokers, write to MongoDB (Daily)
 
@@ -1284,6 +1419,8 @@ Linux script:
 ```
 . $SCRIPT_PATH/update_fx_prices
 ```
+
+Called by: `run_daily_price_updates`
 
 
 This will check for 'spikes', unusually large movements in FX rates either when comparing new data to existing data, or within new data. If any spikes are found in data for a particular contract it will not be written. The system will attempt to email the user when a spike is detected. The user will then need to [manually check the data](#manual-check-of-fx-price-data).
@@ -1307,6 +1444,8 @@ Linux script:
 . $SCRIPT_PATH/update_sampled_contracts
 ```
 
+Called by: `run_daily_price_updates`
+
 
 ### Update futures contract historical price data (Daily)
 
@@ -1324,12 +1463,15 @@ Linux script:
 . $SCRIPT_PATH/update_historical_prices
 ```
 
+Called by: `run_daily_price_updates`
+
+This will get daily closes, plus intraday data at the frequency specified by the parameter `intraday_frequency` in the defaults.yaml file (or overwritten in the private .yaml config file). It defaults to 'H: hourly'.
+
 This will check for 'spikes', unusually large movements in price either when comparing new data to existing data, or within new data. If any spikes are found in data for a particular contract it will not be written. The system will attempt to email the user when a spike is detected. The user will then need to [manually check the data](#manual-check-of-futures-contract-historical-price-data).
 .
 
-The threshold for spikes is set in the default.yaml file, or overidden in the private config, using the paramater `max_price_spike`. Spikes are defined as a large multiple of the average absolute daily change. So for example if a price typically changes by 0.5 units a day, and `max_price_spike=6`, then a price change larger than 3 units will trigger a spike.
+The threshold for spikes is set in the default.yaml file, or overidden in the private config .yaml file, using the paramater `max_price_spike`. Spikes are defined as a large multiple of the average absolute daily change. So for example if a price typically changes by 0.5 units a day, and `max_price_spike=8`, then a price change larger than 4 units will trigger a spike.
 
-FIXME: An intraday sampling would be good
 
 
 ### Update multiple and adjusted prices (Daily)
@@ -1349,13 +1491,148 @@ Linux script:
 . $SCRIPT_PATH/update_multiple_adjusted_prices
 ```
 
+Called by: `run_daily_price_updates`
+
+
 Spike checks are not carried out on multiple and adjusted prices, since they should hopefully be clean if the underlying per contract prices are clean.
 
-FIXME: An intraday sampling would be good
 
+### Update capital and p&l by polling brokerage account
+(daily)
+
+See [capital](#capital) to understand how capital works. On a daily basis we need to check how our brokerage account value has changed. This will be used to update our total available capital, and allocate that to individual strategies.
+
+Python:
+```python
+from sysproduction.update_account_values
+update_account_values()
+```
+
+Linux script:
+```
+. $SCRIPT_PATH/update_account_values
+```
+
+Called by: `run_capital_update`
+
+
+If the brokers account value changes by more than 10% then capital will not be adjusted, and you will be sent an email. You will then need to run `modify_account_values`. This will repeat the poll of the brokerage account, and ask you to confirm if a large change is real. The next time `update_account_values` is run there will be no error, and all adjustments will go ahead as normal.
+
+
+### Allocate capital to strategies
+
+Allocates total capital to individual strategies. See [strategy capital](#strategy-capital) for more details. Will not work if `update_account_values` has not run at least once, or capital has been manually initialised by `update_capital_manual`.
+
+Python:
+```python
+from sysproduction.update_strategy_capital import update_strategy_capital
+update_strategy_capital()
+```
+
+Linux script:
+```
+. $SCRIPT_PATH/update_strategy_capital
+```
+
+Called by: `run_capital_update`
+
+
+### Run updated backtest systems for one or more strategies
+(Usually overnight)
+
+The paradigm for pysystemtrade is that we run a new backtest nightly, which outputs some parameters that a trading engine uses the next day. For the basic system defined in the core code those parameters are a pair of position buffers for each instrument. The trading engine will trade if the current position lies outside those buffer values.
+
+This can easily be adapted for different kinds of trading system. So for example, for a mean reversion system the nightly backtest could output the target prices for the range. For an intraday system it could output the target position sizes and entry  / exit points. This process reduces the amount of work the trading engine has to do during the day.
+
+
+Python:
+```python
+from sysproduction.update_run_systems import update_run_systems
+run_system()
+```
+
+Linux script:
+```
+. $SCRIPT_PATH/update_system_example
+```
+
+The code to run each strategies backtest is defined in the configuration parameter in the default.yaml file (or overriden in the private yaml config): `strategy_list/strategy_name/run_systems`. The sub-parameters do the following:
+
+- `object` the class of the code that runs the system, eg `sysproduction.strategy_code.run_system_classic.runSystemClassic`
+- `function` the method of the class that runs the system eg `run_system_classic`
+- `backtest_config_filename` the location of the .yaml configuration file to pass to the strategy runner eg `systems.provided.futures_chapter15.futures_config.yaml`
+- `max_executions` the number of times the backtest should be run on each iteration of run_systems. Normally 1, unless you have some whacky intraday system. Can be omitted.
+- `frequency` how often, in minutes, the backtest is run. Normally 60 (but only relevant if max_executions>1). Can be omitted.
+
+See [launcher functions](#launcher-functions) and scheduling processes (FIX ME) for more details.
+
+The backtest will use the most up to date prices and capital, so it makes sense to run this after these have updated(see FIX ME). 
+
+### Generate orders for each strategy
+
+Once each strategy knows what it wants to do, we generate orders. These will depend on the strategy; for the classic system we generate optimal positions that are then compared with current positions to see what trades are needed (or not). Other strategies may have specific limits ('buy but only at X or less'). Importantly these are *instrument orders*. These will then be mapped to actual *contract level* orders (FIX ME SEE LINKS).
+
+Python:
+```python
+from sysproduction.run_strategy_order_generator import run_strategy_order_generator
+run_strategy_order_generator()
+```
+
+Linux script:
+```
+. $SCRIPT_PATH/run_strategy_order_generator
+```
+
+The code to run each strategies backtest is defined in the configuration parameter in the default.yaml file (or overriden in the private yaml config): `strategy_list/strategy_name/run_systems`. The sub-parameters do the following:
+
+- `object` the class of the code that generates the orders, eg `sysexecution.strategies.classic_buffered_positions.orderGeneratorForBufferedPositions`. 
+- `function` the method of the class that generates the orders eg `get_and_place_orders`
+- `max_executions` the number of times the generator should be run on each iteration of run_systems. Normally 1, unless you have some whacky intraday system. Can be omitted.
+- `frequency` how often, in minutes, the generator is run. Normally 60 (but only relevant if max_executions>1). Can be omitted.
+
+See [launcher functions](#launcher-functions) and scheduling processes (FIX ME) for more details.
+
+
+
+### Execute orders 
+
+Once we have orders on the instrument stack (put there by the order generator), we need to execute them. This is done by the stack handler, which handles all three order stacks (instrument stack, contract stack and broker stack). 
+
+Python:
+```python
+from sysproduction.run_stack_handler import run_stack_handler
+run_stack_handler()
+```
+
+Linux script:
+```
+. $SCRIPT_PATH/run_stack_handler
+```
+
+The behaviour of the stack handler is extremely complex (and it's worth reading FIX ME, before reviewing this section). Here is the normal path an order takes:
+
+- Instrument order created (by the strategy order generator)
+- Spawn a contract order from an instrument order
+- Create a broker order from a contract order and submit this to the broker
+- Manage the execution of the order (technically done by execution algo code, but this is called by the stack handler), and note any fills that are returned
+- Pass fills upwards; if a broker order is filled then the contract order should reflect that, and if a contract order is filled then an instrument order should reflect that
+- Update position tables when fills are received
+- Handle completed orders (which are fully filled) by deleting them from the stack after copying them to the historic order table 
+
+In addition the stack handler will:
+
+- Check that the broker and database positions are aligned at contract level, if not then it will lock the instrument so it can't be traded (locks can be cleared automatically once positions reconcile again, or using interactive_stack_handler FIX ME LINK).
+- Generate roll orders if a roll status is FORCE or FORCELEG (see FIX ME LINK)
+- Safely clear the order stacks at the end of the day or when the process is stopped by cancelling existing orders, and deleting them from the order stack.
+
+That's quite a list, hence the use of the interactive_order_stack (FIX ME LINK) to keep it in check!
+
+## Interactive scripts to modify data
 
 ### Manual check of futures contract historical price data
 (Whever required)
+
+You should run these if the normal price collection 
 
 Python:
 ```python
@@ -1394,64 +1671,6 @@ Linux script:
 See [manual check of futures contract prices](#manual-check-of-futures-contract-historical-price-data) for more detail. Note that as the FX data is a single series, no adjustment is required for other values.
 
 
-### Interactively roll adjusted prices
-(Whenever required)
-
-Allows you to change the roll state and roll from one priced contract to the next.
-
-Python:
-```python
-from sysproduction.update_roll_adjusted_prices import update_roll_adjusted_prices
-update_roll_adjusted_prices(instrument_code)
-```
-
-Linux script:
-```
-. $SCRIPT_PATH/update_roll_adjusted_prices
-```
-
-### Run updated backtest systems for one or more strategies
-(Usually overnight)
-
-The paradigm for pysystemtrade is that we run a new backtest nightly, which outputs some parameters that a trading engine uses the next day. For the basic system defined in the core code those parameters are a pair of position buffers for each instrument. The trading engine will trade if the current position lies outside those buffer values.
-
-This can easily be adapted for different kinds of trading system. So for example, for a mean reversion system the nightly backtest could output the target prices for the range. For an intraday system it could output the target position sizes and entry  / exit points. This process reduces the amount of work the trading engine has to do during the day.
-
-
-Python:
-```python
-from sysproduction.update_run_systems import update_run_systems
-run_system()
-```
-
-Linux script:
-```
-. $SCRIPT_PATH/update_system_example
-```
-
-See [launcher functions](#launcher-functions) for more details.
-
-### Update capital and p&l by polling brokerage account
-(daily)
-
-FIX ME ADD TO CRON / REGULAR STUFF
-
-See [capital](#capital) to understand how capital works. On a daily basis we need to check how our brokerage account value has changed. This will be used to update our total available capital, and allocate that to individual strategies.
-
-Python:
-```python
-from sysproduction.update_account_values
-update_account_values()
-```
-
-Linux script:
-```
-. $SCRIPT_PATH/update_account_values
-```
-
-If the brokers account value changes by more than 10% then capital will not be adjusted, and you will be sent an email. You will then need to run `modify_account_values`. This will repeat the poll of the brokerage account, and ask you to confirm if a large change is real. The next time `update_account_values` is run there will be no error, and all adjustments will go ahead as normal.
-
-
 ### Interactively modify capital values
 
 Python:
@@ -1477,72 +1696,118 @@ This function is used interactively to control total capital allocation in any o
 
 
 
-### Allocate capital to strategies
 
-Allocates total capital to individual strategies. See [strategy capital](#strategy-capital) for more details. Will not work if `update_account_values` has not run at least once, or capital has been manually initialised by `update_capital_manual`.
+### Interactively roll adjusted prices
+(Whenever required)
+
+Allows you to change the roll state and roll from one priced contract to the next.
 
 Python:
 ```python
-from sysproduction.update_strategy_capital import update_strategy_capital
-update_strategy_capital()
+from sysproduction.update_roll_adjusted_prices import update_roll_adjusted_prices
+update_roll_adjusted_prices(instrument_code)
 ```
 
 Linux script:
 ```
-. $SCRIPT_PATH/update_strategy_capital
+. $SCRIPT_PATH/update_roll_adjusted_prices
 ```
 
+See the roll report (FIX ME LINK) for more information on how to interpret the information shown. 
 
-## Ad-hoc diagnostics
+MORE
 
-### Recent FX prices
+
+
+
+## Menu driven interactive scripts
+
+The remaining interactive scripts allow you to view and control a large array of things, and hence are menu driven. There are three such scripts:
+
+- interactive_controls: Trade limits, position limits, process control and monitoring
+- interactive_diagnostics: View backtest objects, generate ad hoc reports, view logs/emails and errors; view prices, capital, positions & orders, and configuration.
+- interactive_order_stack: View order stacks and positions, create orders, net/cancel orders, lock/unlock instruments, delete and clean up the order stack.
+
+### Interactive controls
 
 Python:
 ```python
-from sysproduction.readFxPrices import read_fx_prices
-read_fx_prices("GBPUSD", tail_size=20) # print last 20 rows for cable
+from sysproduction.run_strategy_order_generator import run_strategy_order_generator
+run_strategy_order_generator()
 ```
 
-Linux command line: (arguments are asked for after script is run)
+Linux script:
 ```
-cd $SCRIPT_PATH
-. read_fx_prices
+. $SCRIPT_PATH/run_strategy_order_generator
 ```
 
-### Recent futures contract prices (FIX ME TO DO)
+Called by: `run_capital_update`
 
-### Recent multiple prices (FIX ME TO DO)
 
-### Recent adjusted prices (FIX ME TO DO)
-
-### Roll information
-
-Get information about which markets to roll. There is also an email version of this report.
+### Interactive diagnostics
 
 Python:
 ```python
-from sysproduction.get_roll_info import get_roll_info
-get_roll_info("EDOLLAR") ## Defaults to 'ALL'
+from sysproduction.run_strategy_order_generator import run_strategy_order_generator
+run_strategy_order_generator()
 ```
 
-Linux command line: (arguments are asked for after script is run)
+Linux script:
 ```
-cd $SCRIPT_PATH
-. get_roll_info
+. $SCRIPT_PATH/run_strategy_order_generator
 ```
 
-### Examine pickled backtest state object
+Called by: `run_capital_update`
 
-FIX ME TO DO
+
+### Interactive order stack 
 
 Python:
 ```python
+from sysproduction.run_strategy_order_generator import run_strategy_order_generator
+run_strategy_order_generator()
 ```
 
+Linux script:
+```
+. $SCRIPT_PATH/run_strategy_order_generator
+```
 
-## Housekeeping
+Called by: `run_capital_update`
+
+
+## Reporting, housekeeping and backup scripts
+
+### Run all reports
+
+Python:
+```python
+from sysproduction.run_strategy_order_generator import run_strategy_order_generator
+run_strategy_order_generator()
+```
+
+Linux script:
+```
+. $SCRIPT_PATH/run_strategy_order_generator
+```
+
+Called by: `run_capital_update`
+
 
 ### Delete old pickled backtest state objects
+
+Python:
+```python
+from sysproduction.run_strategy_order_generator import run_strategy_order_generator
+run_strategy_order_generator()
+```
+
+Linux script:
+```
+. $SCRIPT_PATH/run_strategy_order_generator
+```
+
+Called by: `run_capital_update`
 
 TO DO
 
@@ -1561,7 +1826,15 @@ cd $SCRIPT_PATH
 . truncate_log_files
 ```
 
+Called by: `run_capital_update`
+
 ### Truncate echo log files
+
+Python:
+```python
+from sysproduction.run_strategy_order_generator import run_strategy_order_generator
+run_strategy_order_generator()
+```
 
 
 Linux command line:
@@ -1570,9 +1843,56 @@ cd $SCRIPT_PATH
 . truncate_echo_files
 ```
 
-#### Clear IB client IDs
+Called by: `run_capital_update`
 
-Do this when the machine restarts and IB is definitely not running.
+### Backup Arctic data to .csv files
+
+Python:
+```python
+from sysproduction.run_strategy_order_generator import run_strategy_order_generator
+run_strategy_order_generator()
+```
+
+Linux script:
+```
+. $SCRIPT_PATH/run_strategy_order_generator
+```
+
+Called by: `run_capital_update`
+
+
+### Backup files
+
+
+Python:
+```python
+from sysproduction.run_strategy_order_generator import run_strategy_order_generator
+run_strategy_order_generator()
+```
+
+Linux script:
+```
+. $SCRIPT_PATH/run_strategy_order_generator
+```
+
+Called by: `run_capital_update`
+
+### Start up script
+
+
+
+Python:
+```python
+from sysproduction.run_strategy_order_generator import run_strategy_order_generator
+run_strategy_order_generator()
+```
+
+Linux script:
+```
+. $SCRIPT_PATH/run_strategy_order_generator
+```
+
+Clear IB client IDs: Do this when the machine restarts and IB is definitely not running.
 
 FIX ME TO DO
 
@@ -1795,56 +2115,21 @@ def run_system_classic(strategy_name, data,
 ```
 
 
-# Production system data flow
+# Production system things of interest
 
-Update FX prices / Update manual check FX prices  (interactive)
-Input: IB fx prices
-Output: Spot FX prices
-
-Update roll adjusted prices (interactive)
-Input: Manual decision, existing multiple price series
-Output: Current set of active contracts (price, carry, forward), Roll calendar (implicit in updated multiple price series)
-
-Update sampled contracts
-Input: Current set of active contracts (price, carry, forward) implicit in multiple price series
-Output: Contracts to be sampled by historical data
-
-Update historical prices / Update manual check historical prices (interactive)
-Input: Contracts to be sampled by historical data, IB futures prices
-Output: Futures prices per contract
-
-Update multiple adjusted prices
-Input: Futures prices per contract, Existing multiple price series, Existing adjusted price series
-Output: Adjusted price series, Multiple price series
-
-Update account values / update capital manual  (interactive)
-Input: Brokerage account value from IB
-Output: Total capital. Account level p&l
-
-[Update strategy capital](#allocate-capital-to-strategies)
-Input: Total capital
-Output: Capital allocated per strategy
-
-Run systems
-Input: Capital allocated per strategy, Adjusted futures prices, Multiple price series, Spot FX prices
-Output: Optimal positions and buffers per strategy
-
-Run strategy order generator
-Input:  Optimal positions and buffers per strategy
-Output: Order tickets 
-
-Run stack handler
-Input: Order tickets
-Output: Trades
-
-
-# Production system classes
+Here I describe parts of the production system that are a bit fiddly and weird, as well as some conventions. 
 
 ## Data blobs and the classes that feed on them
 
 TO DO
 
 
+
+## 'Run' process
+
 ## Reporting and diagnostics
 
 TO DO
+
+
+
