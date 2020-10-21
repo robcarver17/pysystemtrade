@@ -3,6 +3,8 @@ IB connection using ib-insync https://ib-insync.readthedocs.io/api.html
 
 """
 
+import time
+
 from ib_insync import IB
 
 from sysbrokers.IB.ibClient import ibClient
@@ -118,6 +120,9 @@ class connectionIB(ibClient, ibServer):
         # this is all very IB specific
         ib = IB()
         ib.connect(ipaddress, port, clientId=client, account=account)
+
+        # Attempt to fix connection bug
+        time.sleep(5)
 
         # Add handlers, from ibServer methods
         ib.errorEvent += self.error_handler
