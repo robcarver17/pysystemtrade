@@ -1632,7 +1632,7 @@ That's quite a list, hence the use of the interactive_order_stack (FIX ME LINK) 
 ### Manual check of futures contract historical price data
 (Whever required)
 
-You should run these if the normal price collection 
+You should run these if the normal price collection has identified a spike (for which you'd be sent an email, if you've set that up).
 
 Python:
 ```python
@@ -1657,6 +1657,9 @@ Once all spikes are checked for a given contract then the checked data is writte
 ### Manual check of FX price data
 (Whever required)
 
+You should run these if the normal price collection has identified a spike (for which you'd be sent an email, if you've set that up).
+
+
 Python:
 ```python
 from sysproduction.interactive_manual_check_fx_prices import interactive_manual_check_fx_prices
@@ -1675,13 +1678,13 @@ See [manual check of futures contract prices](#manual-check-of-futures-contract-
 
 Python:
 ```python
-from sysproduction.update_capital_manual import update_capital_manual
-update_capital_manual()
+from sysproduction.interactive_update_capital_manual import interactive_update_capital_manual
+interactive_update_capital_manual()
 ```
 
 Linux script:
 ```
-. $SCRIPT_PATH/update_capital_manual
+. $SCRIPT_PATH/interactive_update_capital_manual
 ```
 
 See [capital](#capital) to understand how capital works.
@@ -1704,20 +1707,24 @@ Allows you to change the roll state and roll from one priced contract to the nex
 
 Python:
 ```python
-from sysproduction.update_roll_adjusted_prices import update_roll_adjusted_prices
-update_roll_adjusted_prices(instrument_code)
+from sysproduction.interactive_update_roll_status import interactive_update_roll_status
+interactive_update_roll_status(instrument_code)
 ```
 
 Linux script:
 ```
-. $SCRIPT_PATH/update_roll_adjusted_prices
+. $SCRIPT_PATH/interactive_update_roll_status
 ```
 
-See the roll report (FIX ME LINK) for more information on how to interpret the information shown. 
+The first thing the process will do is create and print a roll report. See the roll report (FIX ME LINK) for more information on how to interpret the information shown. You will then have the option of switching between roll modes. Not all modes will be allowed, depending on the current positions that you are holding and the current roll state.
 
-MORE
+The possible options are:
 
-
+- No roll. Obvious.
+- Passive. This will tactically reduce positions in the priced contract, and open new positions in the forward contract.
+- Force. This will pause all normal trading in the relevant instrument, and the stack handler will create a calendar spread trade to roll from the priced to the forward contract.
+- Force legs. This will pause all normal trading, and create two outright trades (closing the priced contract position, opening a forward position).
+- Roll adjusted. This is only possible if you have no positions in the current price contract. It will create a new adjusted and multiple price series, hence the current forward contract will become the new priced contract (and everything else will shift accordingly). 
 
 
 ## Menu driven interactive scripts
@@ -1728,52 +1735,288 @@ The remaining interactive scripts allow you to view and control a large array of
 - interactive_diagnostics: View backtest objects, generate ad hoc reports, view logs/emails and errors; view prices, capital, positions & orders, and configuration.
 - interactive_order_stack: View order stacks and positions, create orders, net/cancel orders, lock/unlock instruments, delete and clean up the order stack.
 
+Menus are nested, and a common pattern is that <return> will go back a step, or exit.
+
 ### Interactive controls
+
+Tools to control the system's behaviour, including operational risk controls.
 
 Python:
 ```python
-from sysproduction.run_strategy_order_generator import run_strategy_order_generator
-run_strategy_order_generator()
+from sysproduction.interactive_controls
+interactive_controls()
 ```
 
 Linux script:
 ```
-. $SCRIPT_PATH/run_strategy_order_generator
+. $SCRIPT_PATH/interactive_controls
 ```
 
-Called by: `run_capital_update`
+#### Trade limits
 
+We can set limits for the maximum number of trades we will done over a given period, and for a specific instrument, or a specific instrument within a given strategy. Limits are applied within run_stack_handler whenever a broker order is about to be generated from a contract order. Options are as follows:
+
+- View limits
+- Change limits (instrument, instrument & strategy)
+- Reset limits (instrument, instrument & strategy): helpful if you have reached your limit but want to keep trading, without increasing the limits upwards
+- Autopopulate limits
+
+Autopopulate uses current levels of risk to estimate the appropriate trade limit. So it will make limits smaller when risk is higher, and vice versa. It makes a lot of assumptions when setting limits: that all your strategies have the same risk limit (which you can set), and the same IDM (also can be modified), and that all instruments have the same instrument weight (which you can set), and trade at the same speed (again you can set the maximum proportion of typical position traded daily). It does not use actual instrument weights, and it only sets limits that are global for a particular instrument. It also assumes that trade sizes scale with the square root of time for periods greater than one day.
+
+#### Position limits
+
+We can set the maximum allowable position that can be held in a given instrument, or by a specific strategy for an instrument. An instrument trade that will result in a position which exceeds this limit will be rejected (this occurs when run_strategy_order_generator is run). We can:
+
+- View limits
+- Change limits (instrument, instrument & strategy)
+- Autopopulate limits
+
+Autopopulate uses current levels of risk to estimate the appropriate position limit. So it will make position limits smaller when risk is higher, and vice versa. It makes a lot of assumptions when setting limits: that all your strategies have the same risk limit (which you can set), and the same IDM (also can be modified), and that all instruments have the same instrument weight (which you can set). It does not use actual instrument weights, and it only sets limits that are global for a particular instrument. 
+
+
+#### Trade control / override
+
+Overrides allow us to reduce positions for a given strategy, for a given instrument (across all strategies), or for a given instrument & strategy combination. They are eithier:
+
+- a multiplier, between 0 and 1, by which we multiply the desired . A multiplier of 1 is equal to 'normal', and 0 means 'close everything'
+- a flag, allowing us only to submit trades which reduce our positions
+- a flag, allowing no trading to occur in the given instrument.
+
+Instrument trades will be modified to achieve any required override effect (this occurs when run_strategy_order_generator is run). We can:
+
+- View overrides
+- Update / add / remove overide (for strategy, instrument, or instrument & strategy)
+
+
+#### Process control & monitoring
+
+Allows us to control how processes behave.
+
+See scheduling FIX ME LINK
+
+
+##### View processes
+
+Here's an example of the relevant output, start/end times, currently running, status, and PID (process ID). 
+
+```
+run_capital_update: Last started 2020-10-21 01:00:01.412000 Last ended 2020-10-20 19:07:07.112000 is running, status GO, PID 86140
+run_daily_prices_updates: Last started 2020-10-20 20:05:12.405000 Last ended 2020-10-21 09:27:04.973000 is not running, status GO, PID None
+run_systems: Last started 2020-10-21 10:59:00.898000 Last ended 2020-10-21 12:16:52.191000 is not running, status GO, PID None
+run_strategy_order_generator: Last started 2020-10-21 12:18:20.953000 Last ended 2020-10-21 12:20:23.840000 is not running, status GO, PID None
+run_stack_handler: Last started 2020-10-21 09:30:14.443000 Last ended 2020-10-21 09:26:51.279000 is running, status GO, PID 88642
+run_reports: Last started 2020-10-20 23:00:00.059000 Last ended 2020-10-20 23:58:00.790000 is not running, status GO, PID None
+run_cleaners: Last started 2020-10-20 22:10:00.134000 Last ended 2020-10-20 22:10:01.731000 is not running, status GO, PID None
+run_backups: Last started 2020-10-20 22:20:00.589000 Last ended 2020-10-20 23:33:04.582000 is not running, status GO, PID None
+```
+
+You can use the PID to check using the Linux command line eg `ps aux | grep 86140` if a process really is running (in this case I'm checking if run_capital_update really is still going), or if it's abnormally aborted (in which case you will need to change it to 'not running' before relaunching - see below).
+
+Note that processes that have launched but waiting to properly start (perhaps because it is not their scheduled start time) will be shown as not running and will have no PID registered. You can safely kill them.
+
+#####  Change status of process
+
+You can change the status of any process to STOP, GO or NO RUN. A process which is NO RUN will continue running, but won't start again. This is the correct way to stop processes that you want to kill, as it will properly update their process state and (importantly in the case of run stack handler) do a graceful exit. Stop processes will only stop once they have finished running their current method, which means for run_systems and run_strategy_order_generator they will stop when the current strategy has finished processing (which can take a while!). 
+
+If a process refuses to STOP, then as a last resort you can use `kill NNNN` at the command line where NNNN is the PID, but there may be data corruption, or weird behaviour (particularly if you do this with the stack handler), and you will definitely need to mark it as finished (see below).
+
+Marking a process as START won't actually launch it, you will have to do this manually or wait for the crontab to run it. Nor will the process run if it's preconditions aren't met (start and end time window, previous process).
+
+#####  View process configuration
+
+This allows you to see the configuration for each process, eithier from defaults.yaml or the private yaml config file. See scheduling FIX ME LINK
+
+
+#####  Mark as finished
+
+This will manually mark a process as finished. This is done automatically when a process finishes normally, or is told to stop, but if it terminates unexpectedly then the status may well be set as 'running', which means a new version of the process can't be launched until this flag is cleared. Marking a process as finished won't stop it if it is still running! Use 'change status' instead. Check the process PID isn't running using `ps aux | grep NNNNN` where NNNN is the PID, before marking it as finished.
+
+Note that the startup script will also mark all processes as finished (as there should be no processes running on startup).
 
 ### Interactive diagnostics
 
+Tools to view internal diagnostic information.
+
 Python:
 ```python
-from sysproduction.run_strategy_order_generator import run_strategy_order_generator
-run_strategy_order_generator()
+from sysproduction.interactive_diagnostics import interactive_diagnostics
+interactive_diagnostics()
 ```
 
 Linux script:
 ```
-. $SCRIPT_PATH/run_strategy_order_generator
+. $SCRIPT_PATH/interactive_diagnostics
 ```
 
-Called by: `run_capital_update`
+#### Backtest objects
 
+It's often helpful to examine the backtest output of run_systems to understand where particular trades came from (above and beyond what the strategy report FIX ME LINK gives you). These are saved as a combination of pickled cache and configuration .yaml file, allowing you to see the calculations done when the system ran.
+
+##### Output choice
+
+First of all you can choose your output:
+
+- Interactive python. This loads the backtest, and effectively opens a small python interpreter (actually it just runs eval on the input). 
+- Plot. This loads a menu allowing you to choose a data element in the backtest, which is then plotted (may fail on headless servers)
+- Print. This loads a menu allowing you to choose a data element in the backtest, which is then printed to screen.
+- HTML. This loads a menu allowing you to choose a data element in the backtest, which is then output to an HTML file (outputs to ~/temp.html), which can easily be web browsed
+
+##### Choice of strategy and backtest
+
+Next you can choose your strategy, and the backtest you want to see- all backtests are saved with a timestamp (normally these are kept for a few days, SEE FIX ME LINK). The most recent backtest file is the default. 
+
+##### Choose stage / method / arguments
+
+Unless you're working in 'interactive python' mode, you can then choose the stage and method for which you want to see output. Depending on exactly what you've asked for, you'll be asked for other parameters like the instrument code and possibly trading rule name. The time series of calling the relevant method will then be shown to you using your chosen output method.
+
+##### Alternative python code
+
+If you prefer to do this exercise in your python environment, then this will interactively allow you to choose a system and dated backtest, and returns the system object for you to do what you wish.
+
+```python
+from sysproduction.data.backtest import dataBacktest
+d = dataBacktest()
+system = d.system
+```
+
+
+#### Reports
+
+Allows you to run any of the reports on an ad-hoc basis FIX ME LINK.
+
+#### Logs, errors, emails
+
+Allows you to look at various system diagnostics.
+
+##### View stored emails
+
+The system sends emails quite a bit: when critical errors occur, when reports are sent, and when price spikes occur. To avoid spamming a user, it won't send an email with the same subject line as a previous email sent in the last 24 hours. Instead these emails are stored, and if you view them here they will be printed and then deleted from the store. The most common case is if you get a large price move which affects many different contracts for the same instrument; the first spike email will be sent, and the rest stored.
+
+##### View errors
+
+Log entries are tagged with a level; higher levels are more likely to be serious errors. You can view log entries for any time period at a given level. In theory this could be ordinary messages, but you'd be better off using 'view logs' which allows you to filter logs further. 
+
+##### View logs
+
+You can view logs filtered by any group of attributes, over a given period. Log attributes are selected iteratively, until you have narrowed down exactly what you want to look at.
+
+Alternatively you can do this in python directly:
+
+```python
+from sysproduction.data.logs import diagLogs
+d = diagLogs()
+lookback_days = 1
+d.get_list_of_unique_log_attribute_keys(lookback_days = lookback_days) # what attributes do we have eg type, instrument_code...
+d.get_list_of_values_for_log_attribute("type", lookback_days=lookback_days ) # what value can an attribute take
+d.get_log_items(dict(instrument_code = "EDOLLAR", type = "process_fills_stack"), lookback_days=lookback_days) # get the log items with some attribute dict
+```
+
+
+#### View prices
+
+View dataframes for historical prices. Options are:
+
+- Individual futures contract prices
+- Multiple prices
+- Adjusted prices
+- FX prices
+
+#### View capital
+
+View historical series of capital. See FIX ME LINK for more details on how capital works. You can see the:
+
+- Capital for a strategy
+- Total capital (across all strategies): current capital
+- Total capital: broker valuation
+- Total capital: maximum capital
+- Total capital: accumulated returns
+
+#### Positions and orders
+
+View historic series of positions and orders. Options are:
+
+- Optimal position history (instruments for strategy)
+- Actual position history (instruments for strategy)
+- Actual position history (contracts for instrument)
+- List of historic instrument level orders (for strategy)
+- List of historic contract level orders (for strategy and instrument)
+- List of historic broker level orders (for strategy and instrument)
+- View full details of any individual order (of any type)
+
+
+#### Instrument configuration
+
+##### View instrument configuration data
+
+View the configuration data for a particular instrument, eg for EDOLLAR:
+
+```{'Description': 'US STIR Eurodollar', 'Exchange': 'GLOBEX', 'Pointsize': 2500.0, 'Currency': 'USD', 'AssetClass': 'STIR', 'Slippage': 0.0025, 'PerBlock': 2.11, 'Percentage': 0.0, 'PerTrade': 0.0}```
+
+Note there may be further configuration stored in other places, eg broker specific.
+
+#####  View contract configuration data
+
+View the configuration for a particular contract, eg:
+
+```{'contract_date_dict': {'expiry_date': (2023, 6, 19), 'contract_date': '202306', 'approx_expiry_offset': 0}, 'instrument_dict': {'instrument_code': 'EDOLLAR'}, 'contract_params': {'currently_sampling': True}}
+Rollcycle parameters hold_rollcycle:HMUZ, priced_rollcycle:HMUZ, roll_offset_day:-1100.0, carry_offset:-1.0, approx_expiry_offset:18.0```
+
+See FIXME to understand roll parameters.
 
 ### Interactive order stack 
 
+Allows us to examine and control the various order stacks SEE FIX ME FOR LINK.
+
 Python:
 ```python
-from sysproduction.run_strategy_order_generator import run_strategy_order_generator
-run_strategy_order_generator()
+from sysproduction.interactive_order_stack import interactive_order_stack
+interactive_order_stack()
 ```
 
 Linux script:
 ```
-. $SCRIPT_PATH/run_strategy_order_generator
+. $SCRIPT_PATH/interactive_order_stack
 ```
 
-Called by: `run_capital_update`
+#### View
+
+Options are:
+
+- View specific order (on any stack)
+- View instrument order stack
+- View contract order stack
+- View broker order stack (as stored in the local database)
+- View broker order stack (will get all the active orders and completed trades from the broker API)
+- View positions (optimal, instrument level, and contract level from the database; plus contract level from the broker API)
+
+#### Create orders
+
+Orders will normally be created by run_strategy_order_generator or by run_stack_handler, but sometimes its useful to do these manually.
+
+##### Spawn contract orders from instrument orders
+##### Create force roll contract orders
+##### Create (and try to execute...) IB broker orders
+##### Balance trade: Create a series of trades and immediately fill them (not actually executed)
+##### Balance instrument trade: Create a trade just at the strategy level and fill (not actually executed)
+##### Manual trade: Create a series of trades to be executed
+##### Cash FX trade
+
+
+#### Netting, cancellation and locks
+
+##### Cancel broker order
+##### Net instrument orders
+##### Lock/unlock order
+##### Lock/unlock instrument code
+##### Unlock all instruments
+
+#### Delete and clean
+
+##### Delete entire stack (CAREFUL!)
+##### Delete specific order ID (CAREFUL!)
+##### End of day process (cancel orders, mark all orders as complete, delete orders)
+
+
 
 
 ## Reporting, housekeeping and backup scripts
@@ -1782,83 +2025,84 @@ Called by: `run_capital_update`
 
 Python:
 ```python
-from sysproduction.run_strategy_order_generator import run_strategy_order_generator
-run_strategy_order_generator()
+from sysproduction.run_reports import run_reports
+run_reports()
 ```
 
 Linux script:
 ```
-. $SCRIPT_PATH/run_strategy_order_generator
+. $SCRIPT_PATH/run_reports
 ```
 
-Called by: `run_capital_update`
+See reporting for details on individual reports FIX ME LINK
 
+See reporting and diagnostics for details on report configuration FIX ME LINK
 
 ### Delete old pickled backtest state objects
 
 Python:
 ```python
-from sysproduction.run_strategy_order_generator import run_strategy_order_generator
-run_strategy_order_generator()
+from sysproduction.clean_truncate_backtest_states
+clean_truncate_backtest_states()
 ```
 
 Linux script:
 ```
-. $SCRIPT_PATH/run_strategy_order_generator
+. $SCRIPT_PATH/clean_truncate_backtest_states
 ```
 
-Called by: `run_capital_update`
+Called by: `run_cleaners`
 
-TO DO
 
-### Clean up old log files
+
+### Clean up old logs
 
 
 Python:
 ```python
-from sysproduction.truncateLogFiles import truncate_log_files
-truncate_log_files()
+from sysproduction.clean_truncate_log_files import clean_truncate_log_files
+clean_truncate_log_files()
 ```
 
 Linux command line:
 ```
 cd $SCRIPT_PATH
-. truncate_log_files
+. clean_truncate_log_files
 ```
 
-Called by: `run_capital_update`
+Called by: `run_cleaners`
 
-### Truncate echo log files
+### Truncate echo files
 
 Python:
 ```python
-from sysproduction.run_strategy_order_generator import run_strategy_order_generator
-run_strategy_order_generator()
+from sysproduction.clean_truncate_echo_files import clean_truncate_echo_files
+clean_truncate_echo_files()
 ```
-
 
 Linux command line:
 ```
 cd $SCRIPT_PATH
-. truncate_echo_files
+. clean_truncate_echo_files
 ```
 
-Called by: `run_capital_update`
+Called by: `run_cleaners`
+
 
 ### Backup Arctic data to .csv files
 
 Python:
 ```python
-from sysproduction.run_strategy_order_generator import run_strategy_order_generator
-run_strategy_order_generator()
+from sysproduction.backup_arctic_to_csv import backup_arctic_to_csv
+backup_arctic_to_csv()
 ```
 
 Linux script:
 ```
-. $SCRIPT_PATH/run_strategy_order_generator
+. $SCRIPT_PATH/backup_arctic_to_csv
 ```
 
-Called by: `run_capital_update`
+Called by: `run_backups`
 
 
 ### Backup files
@@ -1866,16 +2110,17 @@ Called by: `run_capital_update`
 
 Python:
 ```python
-from sysproduction.run_strategy_order_generator import run_strategy_order_generator
-run_strategy_order_generator()
+from sysproduction.backup_files import backup_files
+backup_files()
 ```
 
 Linux script:
 ```
-. $SCRIPT_PATH/run_strategy_order_generator
+. $SCRIPT_PATH/backup_files
 ```
 
-Called by: `run_capital_update`
+Called by: `run_backups`
+
 
 ### Start up script
 
@@ -1883,18 +2128,18 @@ Called by: `run_capital_update`
 
 Python:
 ```python
-from sysproduction.run_strategy_order_generator import run_strategy_order_generator
-run_strategy_order_generator()
+from sysproduction.startup import startup
+startup()
 ```
 
 Linux script:
 ```
-. $SCRIPT_PATH/run_strategy_order_generator
+. $SCRIPT_PATH/startup
 ```
 
-Clear IB client IDs: Do this when the machine restarts and IB is definitely not running.
+Clear IB client IDs: Do this when the machine restarts and IB is definitely not running (FIX ME TO DO)
 
-FIX ME TO DO
+
 
 # Scheduling
 
