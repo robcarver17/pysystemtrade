@@ -1992,7 +1992,7 @@ Options are:
 #### Create orders
 
 Orders will normally be created by run_strategy_order_generator or by run_stack_handler, but sometimes its useful to do these manually.
-
+ 
 ##### Spawn contract orders from instrument orders
 ##### Create force roll contract orders
 ##### Create (and try to execute...) IB broker orders
@@ -2358,6 +2358,8 @@ def run_system_classic(strategy_name, data,
                              backtest_config_filename=backtest_config_filename)
         return success
 ```
+
+# Recovering from a crash - what you can save and how, and what you can't
 
 
 # Production system things of interest

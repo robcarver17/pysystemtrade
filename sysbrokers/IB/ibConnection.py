@@ -231,10 +231,13 @@ class mongoIBclientIDtracker(object):
             next_id = self._idoffset
         else:
             full_set = set(
-                range(self._idoffset, max(current_list) + 2)
-            )  # includes next value up in case no space
+                range(self._idoffset, max(current_list) + 1)
+            )
             missing_values = full_set - set(current_list)
-            next_id = min(missing_values)
+            if len(missing_values)==0:
+                next_id = max(current_list)+1
+            else:
+                next_id = min(missing_values)
 
         # lock
         self._add_clientid(next_id)
