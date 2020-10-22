@@ -15,5 +15,5 @@ class cleanTruncateLogFiles:
 
     def clean_log_files(self):
         mlog = diagLogs(self.data)
-        self.data.log.msg("Deleting log items more than 365 days old")
-        mlog.delete_log_items_from_before_n_days(days=365)
+        self.data.log.msg("Deleting log items more than 30 days old")
+        mlog.delete_log_items_from_before_n_days(days=30)

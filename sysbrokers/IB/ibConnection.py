@@ -115,11 +115,14 @@ class connectionIB(ibClient, ibServer):
         ibServer.__init__(self, log=log)
         ibClient.__init__(self, log=log)
 
-        account = get_broker_account()
-
-        # this is all very IB specific
         ib = IB()
-        ib.connect(ipaddress, port, clientId=client, account=account)
+
+        account = get_broker_account()
+        if account is missing_data:
+            self.log.error("Broker account ID not found in private config - may cause issues")
+            ib.connect(ipaddress, port, clientId=client, account=account)
+        else:
+            ib.connect(ipaddress, port, clientId=client, account=account)
 
         # Attempt to fix connection bug
         time.sleep(5)

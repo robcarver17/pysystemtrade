@@ -4,14 +4,14 @@
 #
 #
 #
-0 0  * * 1-5     $HOME/.profile; $SCRIPT_PATH/run_backups  >> $ECHO_PATH/run_backups_echos.txt 2>&1
-0 0  * * 1-5     $HOME/.profile; $SCRIPT_PATH/run_capital_update  >> $ECHO_PATH/run_capital_update.txt 2>&1
-0 0  * * 1-5     $HOME/.profile; $SCRIPT_PATH/run_cleaners  >> $ECHO_PATH/run_cleaners.txt 2>&1
-0 0  * * 1-5     $HOME/.profile; $SCRIPT_PATH/run_daily_price_updates  >> $ECHO_PATH/run_daily_price_updates.txt 2>&1
-0 0  * * 1-5     $HOME/.profile; $SCRIPT_PATH/run_reports  >> $ECHO_PATH/run_reports.txt 2>&1
-0 0  * * 1-5     $HOME/.profile; $SCRIPT_PATH/run_stack_handler  >> $ECHO_PATH/run_stack_handler.txt 2>&1
-0 0  * * 1-5     $HOME/.profile; $SCRIPT_PATH/run_strategy_order_generator  >> $ECHO_PATH/run_strategy_order_generator.txt 2>&1
-0 0  * * 1-5     $HOME/.profile; $SCRIPT_PATH/run_systems  >> $ECHO_PATH/run_systems.txt 2>&1
+15 00  * * 1-5     $HOME/.profile; $SCRIPT_PATH/run_stack_handler  >> $ECHO_PATH/run_stack_handler.txt 2>&1
+45 00  * * 1-5     $HOME/.profile; $SCRIPT_PATH/run_capital_update  >> $ECHO_PATH/run_capital_update.txt 2>&1
+05 20  * * 1-5     $HOME/.profile; $SCRIPT_PATH/run_daily_price_updates  >> $ECHO_PATH/run_daily_price_updates.txt 2>&1
+30 20  * * 1-5     $HOME/.profile; $SCRIPT_PATH/run_systems  >> $ECHO_PATH/run_systems.txt 2>&1
+45 20  * * 1-5     $HOME/.profile; $SCRIPT_PATH/run_strategy_order_generator  >> $ECHO_PATH/run_strategy_order_generator.txt 2>&1
+00 21  * * 1-5     $HOME/.profile; $SCRIPT_PATH/run_cleaners  >> $ECHO_PATH/run_cleaners.txt 2>&1
+15 21  * * 1-5     $HOME/.profile; $SCRIPT_PATH/run_backups  >> $ECHO_PATH/run_backups_echos.txt 2>&1
+30 21  * * 1-5     $HOME/.profile; $SCRIPT_PATH/run_reports  >> $ECHO_PATH/run_reports.txt 2>&1
 #
 # Note: $MONGO_DATA must be accessible at boot; this won't work if it's in an encrypted home folder
 @reboot          $HOME/.profile; mongod --dbpath $MONGO_DATA

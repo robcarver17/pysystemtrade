@@ -1991,31 +1991,87 @@ Options are:
 
 #### Create orders
 
-Orders will normally be created by run_strategy_order_generator or by run_stack_handler, but sometimes its useful to do these manually.
+Orders will normally be created by run_strategy_order_generator or by run_stack_handler, but sometimes its useful to do these manually. It's worth checking out the section on orders FIX ME LINK.
  
 ##### Spawn contract orders from instrument orders
+
+If the stack handler is running it will periodically check for new instrument orders, and then create child contract orders. However you can do this manually. Use case for this might be debugging, or if you don't trust the stack handler and want to do everything step by step, or if you're trading manually (in which case the stack handler won't be running).
+
 ##### Create force roll contract orders
+
+If an instrument is in a FORCE or FORCELEG roll status (see FIX ME LINK), then the stack handler will periodically create new roll orders (consisting of a parent instrument order that is an intramarket spread, allocated to the phantom 'rolling' strategy, and a child contract order). However you can do this manually. Use case for this might be debugging, or if you don't trust the stack handler and want to do everything step by step, or if you're trading manually (in which case the stack handler won't be running).
+
+
 ##### Create (and try to execute...) IB broker orders
+
+If the stack handler is running it will periodically check for contract orders that aren't completely filled, and generate broker orders that it will submit to the broker and then pass to an algo to manage the execution. However you can do this manually. Use case for this might be debugging, or if you don't trust the stack handler and want to do everything step by step.
+
+
 ##### Balance trade: Create a series of trades and immediately fill them (not actually executed)
+
+Ordinarily the stack handler will pick up on any fills, and act accordingly. However there are times when this might not happen. If a position is closed by IB because it is close to expiry, or you submit a manual trade on another platform, or if the stack handler crashes after submitting the order but executing the fill... the possibilities are endless. Anyway, this is a serious problem because the positions you actually have (in the brokers records) won't be reflected in the position database which will be reported in the reconcile report FIX ME LINK) - a condition which, when detected, will lock the instrument so it can't be traded until the problem is solved. Less seriously, you'll be missing the trade from your historic trade database. 
+
+To get round this you should submit a balance trade, which will ripple through the databases like a normal trade, but won't actually be sent to the broker for execution; thus replacing the missing trade.
+
 ##### Balance instrument trade: Create a trade just at the strategy level and fill (not actually executed)
+
+Ordinarly the strategy level positions (for instruments, per strategy, summed across contracts) should match the contract level positions (for instruments and contracts, summed across strategies). However if for some reason an order goes astray you will end up with a mismatch (which will be reported in the reconcile report FIX ME LINK). To solve this you can submit an order just at the strategy level (not allocated to a specific contract) which will solve the problem but isn't actually executed.
+
+
 ##### Manual trade: Create a series of trades to be executed
+
+Normally run_strategy_order_generator creates all the trades you should need, but sometimes you might want to generate a manual trade. This could be for testing, because you urgently want to close a position (which you ought to do with an override FIX ME LINK), or because something has gone wrong with the roll process and you're stuck in a contract that the system won't automatically close.
+
+Manual trades are not the same as balance trades: they will actually go to the broker for execution!
+
+Note, you can create a manual spread trade: enter the instrument position as zero, ask to create contract orders, then enter the number of legs you want.
+
 ##### Cash FX trade
 
+Cash FX isn't the primary asset class traded in pysystemtrade, but we trade FX anyway without realising it (unless you only trade in your account currency). When you buy or sell a futures contract in another country, it will require margin. If you don't have margin in that currency, then IB will lend it to you. Borrowing money in foreign currencies incurs a spread, so it's better to do a spot FX trade, converting your domestic currency (which will probably be earning 0% interest anyway) into the margin currency. As a rule, I periodically optimise my currency holdings so I have a diversified portfolio of currency. Others may prefer to 'sweep' all excess foreign currencies back to their home currency to reduce unwanted currency Beta. Or you could live dangerously, and try and maintain a larger balance in currencies with higher positive deposit rates (basically the carry trade).
+
+First of all you see the balances in each currency. Note, these aren't excess or uncleared balances, so you will need to run an IB report to see what you really have spare or are short of. You can then create an FX trade. In specifying the pairing, don't forget there is a market convention so if you get the pairing the wrong way round your order will be rejected.
 
 #### Netting, cancellation and locks
 
+
 ##### Cancel broker order
+
+If you have an order that has been submitted, and you want to cancel it, here is where you come.
+
 ##### Net instrument orders
+
+The complexity of the order stacks is there for a reason; it allows different kinds of strategies to submit trades at the same time. One advantage of this is that orders can be netted. Ordinarily the stack handler will do this netting, but you might want to trigger it manually.
+
 ##### Lock/unlock order
+
+There is a 'lock' in the order database, basically an explicit flag preventing the order from being modified. Certain operations which span multiple data tables will impose locks first so the commit does not partially fail (I'm using noSQL so there is no explicit cross table commit available). If operations fail mid lock they will usually try and fall back and remove locks, but this doesn't always work out. So it sometimes neccessary to manually unlock orders, and for symmettry manually lock them.
+
+
 ##### Lock/unlock instrument code
+
+If there is a mismatch between the brokers record of positions, and ours, then a lock will be placed on the instrument and no broker trades can be issued for it. This is done automatically by the stack handler. Once a mismatch clears, the stack handler will remove the lock. But you can also do these operations manually. 
+
+Note: if you want to avoid trading in an instrument for some reason, use an override FIX ME LINK not a lock: a lock will be automatically cleared by the system, an override won't be.
+
+
 ##### Unlock all instruments
+
+If the broker API has gone crazy or died for some reason then all instruments with active positions will be locked. This is a quick way of unlocking them.
 
 #### Delete and clean
 
 ##### Delete entire stack (CAREFUL!)
+
+You can delete all orders on any of the three stacks. I can't even begin to describe how bad an idea this is. If you want to stop trading urgently then I strongly advise using a STOP command FIX ME LINK on run_stack_handler, or calling the end of day process manually (described below) - which will leave the stack handler running. Only use when debugging or testing, if you really know what you're doing.
+
 ##### Delete specific order ID (CAREFUL!)
+
+You can delete a specific live order from the database. Again, this will most likely lead to all kinds of weird side effects. This won't cancel the order eithier; the broker will continue to try and execute it. Only use when debugging or testing, if you really know what you're doing.
+
 ##### End of day process (cancel orders, mark all orders as complete, delete orders)
 
+When run_stack_handler has done it's work (eithier because it's time is up, or it has received a STOP command) it will run a clean up process. First it will cancel any active orders. Then it will mark all orders as complete, which will update position databases, and move orders to historical data tables. Finally it deletes every order from every stack; ensuring no state continues to the next day (which could lead to weird behaviour). 
 
 
 
@@ -2053,6 +2109,10 @@ Linux script:
 
 Called by: `run_cleaners`
 
+Every time run_systems runs it creates a pickled backtest and saves a copy of it's configuration file. This makes it easier to use them for diagnostic purposes FIX ME LINK.
+
+However these file are large! So we delete anything more than 5 days old.
+
 
 
 ### Clean up old logs
@@ -2072,6 +2132,8 @@ cd $SCRIPT_PATH
 
 Called by: `run_cleaners`
 
+I love logging! Which does mean there are a lot of log entries. This deletes any that are more than a month old.
+
 ### Truncate echo files
 
 Python:
@@ -2088,6 +2150,8 @@ cd $SCRIPT_PATH
 
 Called by: `run_cleaners`
 
+Every day we generate echo files with extension .txt; this process renames ones from yesterday and before with a date suffix, and then deletes anything more than 30 days old.
+
 
 ### Backup Arctic data to .csv files
 
@@ -2103,6 +2167,8 @@ Linux script:
 ```
 
 Called by: `run_backups`
+
+See FIX ME LINK
 
 
 ### Backup files
@@ -2121,9 +2187,15 @@ Linux script:
 
 Called by: `run_backups`
 
+This copies a bunch of stuff to backup directories (ideally on a different machine, NAS...)
+
+- Firstly it dumps the mongo databases to the local directory specified in the config parameter (defaults.yaml or private config yaml file) "mongo_dump_directory".   FIX ME LINK
+- Then it copies those dumps to the backup directory specified in the config parameter "offsystem_backup_directory", subdirectory /mongo
+- It then copies the .csv files (saved by backup_arctic_to_csv) to the backup directory,  "offsystem_backup_directory", subdirectory /csv
+- Finally it copies backtest pickle and config files to the backup directory,  "offsystem_backup_directory", subdirectory /statefile
+
 
 ### Start up script
-
 
 
 Python:
@@ -2137,7 +2209,10 @@ Linux script:
 . $SCRIPT_PATH/startup
 ```
 
-Clear IB client IDs: Do this when the machine restarts and IB is definitely not running (FIX ME TO DO)
+There is some housekeeping to do when a machine starts up, primarily in case it crashed and did not close everything gracefully:
+
+- Clear IB client IDs: Do this when the machine restarts and IB is definitely not running (or we'll eventually run out of IDs)
+- Mark all running processes as finished
 
 
 
@@ -2160,36 +2235,17 @@ Things to consider when constructing a schedule include:
 - Robustness (eg it's probably better to have trading processes shutting down each night and then restarting in the morning, than trying to keep them running continously)
 
 
-## A suggested schedule in pseudocode
-
-Here is the schedule I use for my own trading system. Since I trade US, European, and Asian markets, I trade between midnight (9am in Asia) and 8pm (4pm in New York) local UK time. This reduces the 'dead time' when reporting and backups can take place to between 8pm and midnight.
-
-- Midnight: If you are restarting IB Gateway on a daily basis, do it now
-- Midnight: Launch processes for monitoring account value, executing trades, generating trades, and gathering intraday prices
-- 6am: Get daily spot FX prices
-- 6am: Run some lightweight morning reports
-- 8pm: Stop processes for monitoring account value, executing trades, and gathering intraday prices
-- 8pm: Clear client id tracker used by IB to avoid conflicts
-- 8:30pm: Get daily 'closing' prices (some of these may not be technically closes if markets have not yet closed)
-- 9:00pm: Run daily reports, and any computationally intensive processes (like running a backtest based on new prices)
-- 11pm: If you are restarting IB Gateway on a daily basis, close it now.
-- 11pm: Run backups
-- 11pm: Truncate echo files, discard log file entries more than one year old, clear IB locked client IDs
-
-There will be flexibility in this schedule depending on how long different processes take. Notice that I don't shut down and then launch a new interactive brokers gateway daily. Some people may prefer to do this, but I am using an authentication protocol which requires manual intervention. [This product](https://github.com/ib-controller/ib-controller/) is popular for automating the lauch of the IB gateway.
-
-## Formal list of scheduled tasks
-
-TO DO
-
-
 ## Choice of scheduling systems
 
-You need some sort of scheduling system to kick off the various top level processes.
+You need some sort of scheduling system to kick off the various top level processes (all scripts that are prefixed with run_). Ideally this would allow us to monitor processes, record their activity, control them remotely, run them a certain number of times, wait for other processes to run first (conditionality) and so on.
 
 ### Linux cron
 
-Because I use cron myself, there are is a [cron tab included in pysystemtrade](https://github.com/robcarver17/pysystemtrade/blob/master/sysproduction/linux/crontab).
+The linux crontab is a thing of beauty, but it can't (easily?) handle things like conditional processes, nor does it do monitoring.
+
+### Third party scheduler
+
+There are plenty of third party schedulers, particular if you are working with something like Docker / Pupper.
 
 ### Windows task scheduler
 
@@ -2201,7 +2257,142 @@ You can use python itself as a scheduler, using something like [this](https://gi
 
 ### Manual system
 
-It's possible to run pysystemtrade without any scheduling, by manually starting the neccessary processes as required. This option might make sense for traders who are not running a fully automated system.
+It's possible to run pysystemtrade without any scheduling, by manually starting the neccessary processes as required. This option might make sense for traders who are not running a fully automated system (though see manual trading LINK).
+
+### Hybrid of python and cron
+
+This is the approach I use in pysystemtrade, and it's described in more detail below. It ought to be possible to replace the cron component with another scheduler.
+
+## Pysystemtrade scheduling
+
+The scheduler built into pysystemtrade does not launch processes (this is still be done by the cron on a daily basis), but it does everything else:
+
+- Allocate processes to individual machines
+- Record when processes have started and stopped, if they are still running, and what their process ID is.
+- Run only in a specified time window (start time, end time)
+- Run only when another process has already finished (i.e. do not run_systems until prices have been updated)
+- Allow interactive_controls to STOP proccesses, or prevent them from starting.
+- Call 'methods', which are effectively sub processes, multiple times (up to a specified limit) and at specified time intervals (if required).
+
+
+### Configuring the scheduling
+
+#### The crontab
+
+Processes still need to be launched every day, since the pysystemtrade scheduler doesn't do that. However their start time isn't critical, since seperate start times can be configured in .yaml files (more of that below).
+
+Because I use cron myself, there are is a [cron tab included in pysystemtrade](https://github.com/robcarver17/pysystemtrade/blob/master/sysproduction/linux/crontab).
+
+Useful things to note about the crontab:
+
+- We start the stack handler and capital update processes. These run 'all day' (you can envisage a situation in which other processes also run all day, if you are running certain kinds of intraday system). They will actually start and then stop when the process configuration (in .yaml) tells them to.
+- We then start a bunch of 'once a day' processes: `run_daily_price_updates`, `run_systems`, `run_strategy_order_generator`, `run_cleaners`, `run_backups`, `run_reports`. They are started in the sequence they will run, but their behaviour will actually be governed by the process configuration in .yaml (below)
+- On startup we start a mongodb instance, and run the startup script (FIX ME LINK)
+
+#### Process configuration
+
+Process configuration is governed by the following config parameters (in defaults.yaml, or individually overriden in the private config .yaml file):
+
+-  `process_configuration_start_time`: when the process starts (default 00:01)
+- `process_configuration_stop_time`: when the process ends, regardless of any method configuration (default 23:50)
+- `process_configuration_previous_process`: a process that has to have run in the previous 24 hours for the process to start (default: none)
+- `host_name`: the machine name the process will run on (default: will run on any machine)
+
+Each of these is a dict, with process names as keys. All values are strings; start and stop times are in 24 hour format eg '23:05'. If a value is missing for any process, then we use the default.
+
+For most processes (excluding the cross strategy processes: `run_systems` and `run_strategy_order_generator`, of which more below), the configuration of methods that run from within each process are governed by the config parameter `process_configuration_methods` (in defaults.yaml, or individually overriden in the private config .yaml file). That in turn contains a dict for each relevant process, which in turn has a dict for each method, and these have the following possible values:
+
+- frequency: How many minutes pass before we run a method again (default: 0, no waiting time)
+- max_executions: How many times to run the method (default: -1, which means there is no maximum)
+- run_on_completion_only: Don't run until the process is stopping
+
+```
+process_configuration_methods:
+  run_capital_update:
+    update_total_capital:
+      frequency: 120
+      max_executions: 10
+    strategy_allocation:
+      max_executions: 1
+  run_daily_prices_updates:
+    update_fx_prices:
+      max_executions: 1
+    update_sampled_contracts:
+      max_executions: 1
+    update_historical_prices:
+      max_executions: 1
+    update_multiple_adjusted_prices:
+      max_executions: 1
+  run_stack_handler:
+    check_external_position_break:
+      frequency: 0
+      max_executions: -1
+    spawn_children_from_new_instrument_orders:
+      frequency: 0
+      max_executions: -1
+    generate_force_roll_orders:
+      frequency: 0
+      max_executions: 1
+    create_broker_orders_from_contract_orders:
+      frequency: 0
+      max_executions: -1
+    process_fills_stack:
+      frequency: 0
+      max_executions: -1
+    handle_completed_orders:
+      frequency: 0
+      max_executions: -1
+    safe_stack_removal:
+      run_on_completion_only: True
+  run_reports:
+    status_report:
+      max_executions: 1
+    roll_report:
+      max_executions: 1
+    daily_pandl_report:
+      max_executions: 1
+    reconcile_report:
+      max_executions: 1
+    trade_report:
+      max_executions: 1
+  run_backups:
+    backup_arctic_to_csv:
+      max_executions: 1
+    backup_files:
+      backup_files: 1
+  run_cleaners:
+    clean_backtest_states:
+      max_executions: 1
+    clean_echo_files:
+      max_executions: 1
+    clean_log_files:
+      max_executions: 1
+```
+
+Cross strategy processes (run_systems and run_strategy_order_generator) have one method per strategy, are governed by the parameter 'strategy_list'
+
+strategy_list:
+  example:
+    run_systems:
+      object: sysproduction.strategy_code.run_system_classic.runSystemClassic
+      function: run_system_classic
+      backtest_config_filename: systems.provided.futures_chapter15.futures_config.yaml
+      max_executions: 1
+    run_strategy_order_generator:
+      object: sysexecution.strategies.classic_buffered_positions.orderGeneratorForBufferedPositions
+      function: get_and_place_orders
+      frequency: 60
+      max_executions: 1
+    load_backtests:
+      object: sysproduction.strategy_code.run_system_classic.runSystemClassic
+      function: system_method
+    reporting_code:
+      function: sysproduction.strategy_code.report_system_classic.report_system_classic
+
+
+### The details
+
+If you want more details on how the run process all works, perhaps for debugging or because you want to mess with the code yourself, see this section FIX ME LINK.
 
 # Production system concepts
 
@@ -2362,9 +2553,12 @@ def run_system_classic(strategy_name, data,
 # Recovering from a crash - what you can save and how, and what you can't
 
 
+# Manual trading
+
+
 # Production system things of interest
 
-Here I describe parts of the production system that are a bit fiddly and weird, as well as some conventions. 
+Here I describe parts of the production system that are a bit fiddly and weird, as well as some conventions. This is useful information if you're planning on extending or contributing.
 
 ## Data blobs and the classes that feed on them
 
@@ -2372,7 +2566,8 @@ TO DO
 
 
 
-## 'Run' process
+## 'Run' process details
+
 
 ## Reporting and diagnostics
 
