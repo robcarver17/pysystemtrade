@@ -219,32 +219,22 @@ class mongoIBclientIDtracker(object):
 
         return clientid_to_use
 
-    def get_next_clientid(self):
+    def get_next_clientid(self) -> int:
         """
         Returns a client id which will be locked so no other use can use it
         The clientid in question is the lowest available unused value
         :return: clientid
         """
 
-        current_list = self._get_list_of_clientids()
-        if len(current_list) == 0:
-            next_id = self._idoffset
-        else:
-            full_set = set(
-                range(self._idoffset, max(current_list) + 1)
-            )
-            missing_values = full_set - set(current_list)
-            if len(missing_values)==0:
-                next_id = max(current_list)+1
-            else:
-                next_id = min(missing_values)
+        current_list_of_ids = self._get_list_of_clientids()
+        next_id = get_next_id_from_current_list(current_list_of_ids, id_offset=self._idoffset)
 
         # lock
         self._add_clientid(next_id)
 
         return next_id
 
-    def _get_list_of_clientids(self):
+    def _get_list_of_clientids(self) -> list:
         cursor = self._mongo.collection.find()
         clientids = [db_entry["client_id"] for db_entry in cursor]
 
@@ -272,3 +262,28 @@ class mongoIBclientIDtracker(object):
 
         self._mongo.collection.delete_one(dict(client_id=clientid))
         self.log.msg("Released ID %d" % clientid)
+
+def get_next_id_from_current_list(current_list_of_ids: list, id_offset: int = 0) -> int:
+    if len(current_list_of_ids) == 0:
+        # no IDS in use
+        return id_offset
+
+    full_set_of_available_ids = set(
+        range(id_offset, max(current_list_of_ids) + 1)
+    )
+
+    next_id = get_next_id_from_current_list_and_full_set(current_list_of_ids, full_set_of_available_ids)
+
+    return next_id
+
+
+def get_next_id_from_current_list_and_full_set(current_list_of_ids: list, full_set_of_available_ids: set) -> int:
+
+    unused_values = full_set_of_available_ids - set(current_list_of_ids)
+    if len(unused_values)==0:
+        # no gaps, return the higest number plus 1
+        return max(current_list_of_ids) + 1
+    else:
+        # there is a gap, use the lowest numbered one
+        return min(unused_values)
+
