@@ -64,6 +64,12 @@ class futuresMultiplePriceData(simData):
 
         self.log.critical(OVERIDE_ERROR)
 
+    def get_all_multiple_prices(self, instrument_code: str):
+        all_price_data = self._get_all_price_data(instrument_code)
+
+        return all_price_data
+
+
     def get_instrument_raw_carry_data(self, instrument_code):
         """
         Returns a pd. dataframe with the 4 columns PRICE, CARRY, PRICE_CONTRACT, CARRY_CONTRACT

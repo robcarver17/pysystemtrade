@@ -21,4 +21,4 @@ email_address: 'some_address@server.com' # add your address here
 email_pwd: 'terrible_mash_of_stuff_for_security' # your password
 email_server: 'the_outgoing_smtp_server' # the smtp server
 # email_port: 587 # for future use: currently hardcoded at 587.
-# email_security: 'SSL or TLS' # for future use 
+# email_security: 'SSL or TLS' # for future use

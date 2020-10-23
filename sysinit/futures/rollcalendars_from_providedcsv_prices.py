@@ -16,13 +16,13 @@ if __name__ == "__main__":
 
     for instrument_code in instrument_list:
         print(instrument_code)
-        current_and_forward_data = sim_futures_data.get_current_and_forward_price_data(
+        multiple_prices = sim_futures_data.get_all_multiple_prices(
             instrument_code)
 
         roll_parameters = mongo_rollparameters.get_roll_parameters(
             instrument_code)
         roll_calendar = rollCalendar.back_out_from_current_and_forward_data(
-            current_and_forward_data, roll_parameters
+            multiple_prices, roll_parameters
         )
         print("Calendar:")
         print(roll_calendar)
@@ -31,4 +31,3 @@ if __name__ == "__main__":
         csv_roll_calendars.add_roll_calendar(
             roll_calendar, instrument_code, ignore_duplication=True
         )
-        mongo_rollparameters
