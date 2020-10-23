@@ -7,10 +7,10 @@ Rob Carver
 [https://qoppac.blogspot.com/p/pysystemtrade.html](https://qoppac.blogspot.com/p/pysystemtrade.html)
 
 
-Version 0.31.0
+Version 0.50.0
 
 
-20200707
+20201023
 
 
 ## Release notes
@@ -27,8 +27,7 @@ For a longer explanation of the motivation and point of this project see my [blo
 Currently pysystemtrade can do the following:
 - Backtesting environment that will work "out of the box" for chapter 15 of my book ["Systematic Trading"](https://www.systematicmoney.org/systematic-trading)
 - Implement all the optimisation and system design principles in the book and on my website.
-
-*Eventually* pysystemtrade will also be a complete implementation of a fully automated system for futures trading (for interactive brokers only), including regularly updated data
+- a complete implementation of a fully automated system for futures trading (for interactive brokers) - in progress
 
 pysystemtrade uses the [IB insync library](https://ib-insync.readthedocs.io/api.html) to connect to interactive brokers.
 
@@ -39,6 +38,8 @@ pysystemtrade uses the [IB insync library](https://ib-insync.readthedocs.io/api.
 [Backtesting user guide](docs/userguide.md)
 
 [Working with futures data](/docs/futures.md)
+
+[Production system](/docs/) Documentation incomplete and in progress!
 
 ## Dependencies
 
@@ -64,7 +65,7 @@ Notice that develop mode is required so that ipython sessions can see files insi
 
 ### A note on support
 
-This is an open source project, designed for people who are already comfortable using and writing python code, are capable of installing the dependencies, and who want a head start on implementing a system of their own. I do not have the time to provide support. Of course I am very happy if you get in touch with me on any of the following topics:
+This is an open source project, designed for people who are already comfortable using and writing python code, are capable of installing the dependencies, and who want a head start on implementing a system of their own. I do not have the time to provide support. Primarily, this is my trading system which you are welcome to use or steal code from, I'm open sourcing it out of the goodness of my heart not so I can become an unpaid technical support helper to hundreds of strangers. Of course I am very happy if you get in touch with me on any of the following topics:
 
 - Confusing error messages
 - Missing or misleading documentation

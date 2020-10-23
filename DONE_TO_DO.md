@@ -1,5 +1,21 @@
 # Release notes
 
+## Version 0.50.0
+
+Done loads of work but forgotten to update the version number or this file
+So let's reward ourselves with a 0.20 version bump
+Done loads of documentation for production
+Added position limits
+Removed broker base classes as redundant
+Minimum tick size used in setting limit orders
+Stopped double counting of volumes when daily/intraday data mixed
+Added startup script
+Fixed issues with time zone mismatches
+Added trades report, strategy report, signals report, risk report, p&l report
+Position locks
+Added interactive diagnostics, interactive order stack, interactive
+
+
 ## Version 0.30.0
 
 Introduced capital model for production
