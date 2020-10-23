@@ -2,8 +2,7 @@
 
 ## Version 0.50.0
 
-Done loads of work but forgotten to update the version number or this file
-So let's reward ourselves with a 0.20 version bump
+(Done loads of work but forgotten to update the version number or this file. So let's reward ourselves with a 0.20 version bump. The following list is almost certainly incomplete...)
 Done loads of documentation for production
 Added position limits
 Removed broker base classes as redundant
@@ -13,8 +12,9 @@ Added startup script
 Fixed issues with time zone mismatches
 Added trades report, strategy report, signals report, risk report, p&l report
 Position locks
-Added interactive diagnostics, interactive order stack, interactive
-
+Added interactive diagnostics, interactive order stack, interactive controls
+Execution algo!
+Added capability to trade
 
 ## Version 0.30.0
 
