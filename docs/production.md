@@ -2298,23 +2298,55 @@ Process configuration is governed by the following config parameters (in default
 - `process_configuration_previous_process`: a process that has to have run in the previous 24 hours for the process to start (default: none)
 - `host_name`: the machine name the process will run on (default: will run on any machine)
 
-Each of these is a dict, with process names as keys. All values are strings; start and stop times are in 24 hour format eg '23:05'. If a value is missing for any process, then we use the default.
+Each of these is a dict, with process names as keys. All values are strings; start and stop times are in 24 hour format eg '23:05'. If a value is missing for any process, then we use the default. Here's the default .yaml values, with some comments:
+
+```
+process_configuration_start_time:
+  default: '00:01'
+  run_stack_handler: '00:01'
+  run_capital_update: '01:00'
+  run_daily_prices_updates: '20:00' # we start these off at 5 minute intervals, although the previous process will govern how they actually run
+  run_systems: '20:05'
+  run_strategy_order_generator: '20:10'
+  run_backups: '20:15'
+  run_cleaners: '20:20'
+  run_reports: '20:25'
+process_configuration_stop_time:
+  default: '23:50'
+  run_strategy_order_generator: '19:30' # this in case we're running it throughout the day
+  run_stack_handler: '19:45' # I stop trading late in the US afternoon session to give myself a few hours for daily processes to run
+  run_capital_update: '19:50'
+  run_daily_prices_updates: '23:50' # these are all nominal stop times 
+  run_systems: '23:50'
+  run_backups: '23:50'
+  run_cleaners: '23:50'
+  run_reports: '23:50'
+process_configuration_previous_process:
+  run_systems: 'run_daily_prices_updates' # no point running a backtest with stale prices.
+  run_strategy_order_generator: 'run_systems' # will be no orders to generate until backtest system has run
+  run_cleaners: 'run_strategy_order_generator' # wait until the main 'big 3' daily processes have run before tidying up
+  run_backups: 'run_cleaners' # this can take a while, will be less stuff to back up if we've already cleaned
+  run_reports: 'run_strategy_order_generator' # will be more interesting reports if we run after other stuff has finished
+
+```
 
 For most processes (excluding the cross strategy processes: `run_systems` and `run_strategy_order_generator`, of which more below), the configuration of methods that run from within each process are governed by the config parameter `process_configuration_methods` (in defaults.yaml, or individually overriden in the private config .yaml file). That in turn contains a dict for each relevant process, which in turn has a dict for each method, and these have the following possible values:
 
-- frequency: How many minutes pass before we run a method again (default: 0, no waiting time)
-- max_executions: How many times to run the method (default: -1, which means there is no maximum)
-- run_on_completion_only: Don't run until the process is stopping
+- `frequency`: How many minutes pass before we run a method again (default: 0, no waiting time)
+- `max_executions`: How many times to run the method (default: -1, which means there is no maximum)
+- `run_on_completion_only`: Don't run until the process is stopping
+
+Here is the full defaults.yaml file section with comments:
 
 ```
 process_configuration_methods:
   run_capital_update:
-    update_total_capital:
+    update_total_capital: # every 2 hours throughout the day; in a crisis I like to keep an eye on my account value
       frequency: 120
-      max_executions: 10
-    strategy_allocation:
-      max_executions: 1
-  run_daily_prices_updates:
+      max_executions: 10 # nominal figure, since uptime is a little less than 20 hours
+    strategy_allocation: 
+      max_executions: 1 # don't bother updating more often than we run backtests
+  run_daily_prices_updates: # all this stuff happens once. the order matters.
     update_fx_prices:
       max_executions: 1
     update_sampled_contracts:
@@ -2323,7 +2355,7 @@ process_configuration_methods:
       max_executions: 1
     update_multiple_adjusted_prices:
       max_executions: 1
-  run_stack_handler:
+  run_stack_handler: # frequency 0 and max_executions -1 means we just keep doing them over and over again until the process stops...
     check_external_position_break:
       frequency: 0
       max_executions: -1
@@ -2343,8 +2375,8 @@ process_configuration_methods:
       frequency: 0
       max_executions: -1
     safe_stack_removal:
-      run_on_completion_only: True
-  run_reports:
+      run_on_completion_only: True   # only run this once we're done
+  run_reports:  # all this stuff happens once. 
     status_report:
       max_executions: 1
     roll_report:
@@ -2355,12 +2387,12 @@ process_configuration_methods:
       max_executions: 1
     trade_report:
       max_executions: 1
-  run_backups:
+  run_backups: # all this stuff happens once. 
     backup_arctic_to_csv:
       max_executions: 1
     backup_files:
       backup_files: 1
-  run_cleaners:
+  run_cleaners:  # all this stuff happens once. 
     clean_backtest_states:
       max_executions: 1
     clean_echo_files:
@@ -2369,8 +2401,25 @@ process_configuration_methods:
       max_executions: 1
 ```
 
-Cross strategy processes (run_systems and run_strategy_order_generator) have one method per strategy, are governed by the parameter 'strategy_list'
+Cross strategy processes (run_systems and run_strategy_order_generator) have one method per strategy, are governed by the parameter 'strategy_list'. This has dict keys for each strategy, and then dicts for the following processes:
 
+- `run_systems`
+- `run_strategy_order_generator`
+- `load_backtests` (not a process, but used by interactive_diagnostics FIX ME LINK)
+- `reporting_code` (not a process, but used by run_reports / strategy_report FIX ME LINK)
+
+Each of these contains bespoke parameters determing behaviour, as well as (optionally) the same control parameters we've already seen:
+
+- `frequency`: How many minutes pass before we run a method again (default: 0, no waiting time)
+- `max_executions`: How many times to run the method (default: -1, which means there is no maximum)
+- `run_on_completion_only`: Don't run until the process is stopping
+
+Heres an extract from defaults.yaml with comments:
+
+```
+process_configuration_run_over_strategies:
+  - run_systems
+  - run_strategy_order_generator
 strategy_list:
   example:
     run_systems:
@@ -2381,13 +2430,37 @@ strategy_list:
     run_strategy_order_generator:
       object: sysexecution.strategies.classic_buffered_positions.orderGeneratorForBufferedPositions
       function: get_and_place_orders
-      frequency: 60
+      frequency: 60 # sort of irrelevant, since max_executions is 1 but you can imagine an intraday strategy...
       max_executions: 1
     load_backtests:
       object: sysproduction.strategy_code.run_system_classic.runSystemClassic
       function: system_method
     reporting_code:
       function: sysproduction.strategy_code.report_system_classic.report_system_classic
+```
+
+### Troubleshooting?
+
+Why won't my process run? (use status report and interactive_controls to investigate)
+
+- is it launching in the cron or equivalent scheduler?
+- is it set to STOP or DONT RUN? Fix with interactive_controls
+- is it on the wrong machine? Move it to the right machine, or remove the parameter
+- is it before the start_time? Change the start time, or wait
+- is it after the end_time? Change the end time, or wait until tommorrow
+- has the previous process finished? Wait, or remove dependency
+- is it already running, or at least thinks it is already running because a previous iteration didn't fail? Mark the process as finished with interactive_controls
+
+Why has my process stopped?
+
+- is it set to STOP? 
+- is it after the end_time? 
+- have all the methods finished running, because they have exceeded their `max_executions`?
+
+Why won't my method run? use status report to investigate)
+
+- has it run out of `max_executions`?
+- is it set to `run_on_completion_only`?
 
 
 ### The details
@@ -2398,15 +2471,22 @@ If you want more details on how the run process all works, perhaps for debugging
 
 ## Configuration files
 
-### Private config
+Configuration for the system is 
 
-TO DO
 ### System defaults
 
+/systems/provided/defaults.yaml
+
+### Private config
+
+/private/private_config.yaml
 
 TO DO
 
-### List of production configuration options
+
+TO DO
+
+### List of production configuration options (private config and system defaults)
 
 TO DO
 max_price_spike
@@ -2417,6 +2497,27 @@ strategy_capital_allocation:
   function: sysproduction.strategy_code.strategy_allocation.weighted_strategy_allocation
   strategy_weights:
     medium_speed_TF_carry: 100.0
+
+
+### System backtest .yaml config file(s)
+
+
+### Broker and data source specific configuration files
+
+- /sysbrokers/IB/ibConfigFutures.csv
+- /sysbrokers/IB/ibConfigSpotFX.csv
+- /sysdata/quandl/*.csv
+
+
+
+### Only used when setting up the system
+
+- sysinit/futures/config/rollconfig.csv
+- /data/futures/csvconfig/instrumentconfig.csv 
+
+### Not used in production system after setup is complete
+
+- /data/futures/csvconfig/instrumentconfig.csv (unless, weirdly you have reconfigured your data inputs to use .csv rather than database tables)
 
 
 ## Capital
