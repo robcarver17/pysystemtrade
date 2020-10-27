@@ -94,6 +94,7 @@ Table of Contents
             * [Instrument configuration](#instrument-configuration)
                * [View instrument configuration data](#view-instrument-configuration-data)
                * [View contract configuration data](#view-contract-configuration-data)
+         * [Interactive order stack](#interactive-order-stack)
             * [View](#view)
             * [Create orders](#create-orders)
                * [Spawn contract orders from instrument orders](#spawn-contract-orders-from-instrument-orders)
