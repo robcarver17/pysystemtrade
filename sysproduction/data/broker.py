@@ -3,6 +3,9 @@ import datetime
 import numpy as np
 
 from collections import namedtuple
+
+from sysbrokers.IB.ibSpotFXData import ibFxPricesData
+
 from syscore.objects import missing_data, arg_not_supplied, missing_order, missing_contract
 
 from sysdata.production.current_positions import contractPosition
@@ -27,6 +30,8 @@ class dataBroker(object):
         # Check data has the right elements to do this
         if data is arg_not_supplied:
             data = dataBlob()
+
+        data.add_ib_class("ibFxPricesData", ibFxPricesData)
 
         data.add_class_list(
             "ibFxPricesData ibFuturesContractPriceData ibFuturesContractData\

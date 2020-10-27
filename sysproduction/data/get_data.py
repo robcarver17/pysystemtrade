@@ -186,12 +186,6 @@ class dataBlob(object):
     def log_name(self):
         return self.log.attributes["type"]
 
-    def setup_clone(self, **kwargs):
-        new_data = self._original_data
-        new_data._log = new_data.log.setup(**kwargs)
-        new_data._original_data = self._original_data
-
-        return new_data
 
     @property
     def csv_data_paths(self):
@@ -200,6 +194,92 @@ class dataBlob(object):
             raise Exception("No defaults for csv data paths")
         return csv_data_paths
 
+    ## NEW STYLE CLASS STUFF
+    def add_ib_class(self, class_name: str, class_object):
+        try:
+            resolved_instance = class_object(self.ib_conn, log = self.log.setup(component = class_name))
+        except Exception as e:
+                msg = (
+                        "Couldn't evaluate %s(self.ib_conn, log = self.log.setup(component = %s)) This might be because (a) IB gateway not running, or (b) import is missing\
+                         or (c) arguments don't follow pattern" % (class_name, class_name))
+                self.log.critical(msg)
+                raise Exception(msg)
+
+        self.resolve_names_and_add(resolved_instance, class_name)
+
+    def add_mongo_class(self, class_name: str, class_object):
+        try:
+            resolved_instance = class_object(mongo_db=self.mongo_db, log = self.log.setup(component = class_name))
+        except Exception as e:
+                msg = (
+                        "Couldn't evaluate %s(mongo_db=self.mongo_db, log = self.log.setup(component = %s)) \
+                        This might be because import is missing\
+                         or arguments don't follow pattern" % (class_name, class_name))
+                self.log.critical(msg)
+                raise Exception(msg)
+
+        self.resolve_names_and_add(resolved_instance, class_name)
+
+    def add_arctic_class(self, class_name: str, class_object):
+        try:
+            resolved_instance = class_object(mongo_db=self.mongo_db, log = self.log.setup(component = class_name))
+        except Exception as e:
+                msg = (
+                        "Couldn't evaluate %s(mongo_db=self.mongo_db, log = self.log.setup(component = %s)) \
+                        This might be because import is missing\
+                         or arguments don't follow pattern" % (class_name, class_name))
+                self.log.critical(msg)
+                raise Exception(msg)
+
+        self.resolve_names_and_add(resolved_instance, class_name)
+
+    def add_csv_class(self, class_name: str, class_object):
+        datapath = self.get_csv_paths_for_class(class_name)
+        try:
+            resolved_instance = class_object(datapath = datapath, log = self.log.setup(component = class_name))
+        except Exception as e:
+                msg = (
+                        "Couldn't evaluate %s(datapath = datapath, log = self.log.setup(component = %s)) \
+                        This might be because import is missing\
+                         or arguments don't follow pattern" % (class_name, class_name))
+                self.log.critical(msg)
+                raise Exception(msg)
+
+        self.resolve_names_and_add(resolved_instance, class_name)
+
+
+    def resolve_names_and_add(self, resolved_instance, class_name: str):
+        attr_name = self.get_new_name(class_name)
+        self.add_new_class_ids(resolved_instance, attr_name, class_name)
+
+    def get_new_name(self, class_name: str):
+        split_up_name = camel_case_split(class_name)
+        attr_name = identifying_name(
+            split_up_name, keep_original_prefix=self.keep_original_prefix
+        )
+
+        return attr_name
+
+    def add_new_class_ids(self, resolved_instance, attr_name:str, class_name: str):
+        setattr(self, attr_name, resolved_instance)
+        self.attr_list.append(attr_name)
+        self.class_list.append(class_name)
+
+    def get_csv_paths_for_class(self, class_name):
+        csv_data_paths = self.csv_data_paths
+        if csv_data_paths is arg_not_supplied:
+            raise Exception(
+                "Need csv_data_paths dict for class name %s" % class_name
+            )
+        datapath = csv_data_paths.get(class_name, "")
+        if datapath == "":
+            raise Exception(
+                "Need to have key %s in csv_data_paths" %
+                class_name)
+
+        return datapath
+
+    ## OLD STYLE CLASS NAMES DEPRECATED
     def add_class_list(self, arg_string):
         list_of_classes = arg_string.split(" ")
 
@@ -207,6 +287,7 @@ class dataBlob(object):
             self._add_class_element(class_name)
         return success
 
+    ## OLD STYLE CLASS NAMES DEPRECATED
     def _add_class_element(self, class_name):
         if class_name in self.class_list:
             # Already present
@@ -223,6 +304,7 @@ class dataBlob(object):
 
         return success
 
+    ## OLD STYLE CLASS NAMES DEPRECATED
     def process_class_id(self, class_name):
         """
 
@@ -237,16 +319,7 @@ class dataBlob(object):
         # NEED TO DYNAMICALLY SWITCH DB SOURCE AND ADD DEFAULT CSV PATH NAME
         # REMOVE SOURCE_ PREFIX, REPLACE WITH db_ or broker_
         if prefix == "csv":
-            csv_data_paths = self.csv_data_paths
-            if csv_data_paths is arg_not_supplied:
-                raise Exception(
-                    "Need csv_data_paths dict for class name %s" % class_name
-                )
-            datapath = csv_data_paths.get(class_name, "")
-            if datapath == "":
-                raise Exception(
-                    "Need to have key %s in csv_data_paths" %
-                    class_name)
+            datapath = self.get_csv_paths_for_class(class_name)
 
         eval_dict = dict(
             ib="%s(self.ib_conn, log=self.log.setup(component='%s'))",
