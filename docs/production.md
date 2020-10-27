@@ -1421,7 +1421,7 @@ Ordinarly the strategy level positions (for instruments, per strategy, summed ac
 
 ##### Manual trade: Create a series of trades to be executed
 
-Normally run_strategy_order_generator creates all the trades you should need, but sometimes you might want to generate a manual trade. This could be for testing, because you urgently want to close a position (which you ought to do with an override FIX ME LINK), or because something has gone wrong with the roll process and you're stuck in a contract that the system won't automatically close.
+Normally run_strategy_order_generator creates all the trades you should need, but sometimes you might want to generate a manual trade. This could be for testing, because you urgently want to close a position (which you ought to do with an [override](#trade-control--override)), or because something has gone wrong with the roll process and you're stuck in a contract that the system won't automatically close.
 
 Manual trades are not the same as balance trades: they will actually go to the broker for execution!
 
@@ -2175,7 +2175,7 @@ The better case is when the mongo DB is fine. In this case (once you've [restore
 
 ### Roll report (Daily)
 
-The roll report can be run for all markets (default for the email), or for a single individual market (if run on an ad hoc basis). It will also be run when you run the interactive update roll status process (FIX ME LINK) for the relevant market. Here's an example of a roll report, which I've annoted with comments (marked with quotes ""):
+The roll report can be run for all markets (default for the email), or for a single individual market (if run on an ad hoc basis). It will also be run when you run the interactive [update roll status](#menu-driven-interactive-scripts) process for the relevant market. Here's an example of a roll report, which I've annoted with comments (marked with quotes ""):
 
 ```
 ********************************************************************************
