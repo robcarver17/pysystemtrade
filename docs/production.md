@@ -1,8 +1,6 @@
 This document is specifically about using pysystemtrade for *live production trading*.
 
-*This is NOT a complete document, and is currently a work in progress*
-
-Ultimately this will include:
+This includes:
 
 1. Getting prices
 2. Generating desired trades
@@ -21,72 +19,152 @@ Table of Contents
 =================
 
    * [Quick start guide](#quick-start-guide)
+   * [Production system data flow](#production-system-data-flow)
    * [Overview of a production system](#overview-of-a-production-system)
-   * [Implementation options](#implementation-options)
-      * [Automation options](#automation-options)
-      * [Machines, containers and clouds](#machines-containers-and-clouds)
-      * [Backup machine](#backup-machine)
-      * [Multiple systems](#multiple-systems)
-   * [Code and configuration management](#code-and-configuration-management)
-      * [Managing your separate directories of code and configuration](#managing-your-separate-directories-of-code-and-configuration)
-      * [Managing your private directory](#managing-your-private-directory)
-   * [Finalise your backtest configuration](#finalise-your-backtest-configuration)
-   * [Linking to a broker](#linking-to-a-broker)
-   * [Other data sources](#other-data-sources)
-   * [Data storage](#data-storage)
+      * [Implementation options](#implementation-options)
+         * [Automation options](#automation-options)
+         * [Machines, containers and clouds](#machines-containers-and-clouds)
+         * [Backup machine](#backup-machine)
+         * [Multiple systems](#multiple-systems)
+      * [Code and configuration management](#code-and-configuration-management)
+         * [Managing your separate directories of code and configuration](#managing-your-separate-directories-of-code-and-configuration)
+         * [Managing your private directory](#managing-your-private-directory)
+      * [Finalise your backtest configuration](#finalise-your-backtest-configuration)
+      * [Linking to a broker](#linking-to-a-broker)
+      * [Other data sources](#other-data-sources)
+      * [Data storage](#data-storage)
       * [Data backup](#data-backup)
          * [Mongo data](#mongo-data)
          * [Mongo / csv data](#mongo--csv-data)
-   * [Echoes, Logging, diagnostics and reporting](#echoes-logging-diagnostics-and-reporting)
-      * [Echos: stdout output](#echos-stdout-output)
-         * [Cleaning old echo files](#cleaning-old-echo-files)
-      * [Logging](#logging)
-         * [Adding logging to your code](#adding-logging-to-your-code)
-         * [Getting log data back](#getting-log-data-back)
-         * [Cleaning old logs](#cleaning-old-logs)
-      * [Reporting](#reporting)
-         * [Roll report (Daily)](#roll-report-daily)
+      * [Echoes, Logging, diagnostics and reporting](#echoes-logging-diagnostics-and-reporting)
+         * [Echos: stdout output](#echos-stdout-output)
+            * [Cleaning old echo files](#cleaning-old-echo-files)
+         * [Logging](#logging)
+            * [Adding logging to your code](#adding-logging-to-your-code)
+            * [Getting log data back](#getting-log-data-back)
+            * [Cleaning old logs](#cleaning-old-logs)
+         * [Reporting](#reporting)
+   * [Positions and order levels](#positions-and-order-levels)
+      * [Instrument level](#instrument-level)
+      * [Contract level](#contract-level)
+      * [Broker level](#broker-level)
    * [Scripts](#scripts)
-      * [Production system components](#production-system-components)
+      * [Script calling](#script-calling)
+      * [Script naming convention](#script-naming-convention)
+      * [Run processes](#run-processes)
+      * [Core production system components](#core-production-system-components)
          * [Get spot FX data from interactive brokers, write to MongoDB (Daily)](#get-spot-fx-data-from-interactive-brokers-write-to-mongodb-daily)
          * [Update sampled contracts (Daily)](#update-sampled-contracts-daily)
          * [Update futures contract historical price data (Daily)](#update-futures-contract-historical-price-data-daily)
          * [Update multiple and adjusted prices (Daily)](#update-multiple-and-adjusted-prices-daily)
-         * [Roll adjusted prices (whenever required)](#roll-adjusted-prices-whenever-required)
-         * [Run an updated backtest system (overnight) for a single strategy](#run-an-updated-backtest-system-overnight-for-a-single-strategy)
-      * [Ad-hoc diagnostics](#ad-hoc-diagnostics)
-         * [Recent FX prices](#recent-fx-prices)
-         * [Recent futures contract prices (FIX ME TO DO)](#recent-futures-contract-prices-fix-me-to-do)
-         * [Recent multiple prices (FIX ME TO DO)](#recent-multiple-prices-fix-me-to-do)
-         * [Recent adjusted prices (FIX ME TO DO)](#recent-adjusted-prices-fix-me-to-do)
-         * [Roll information](#roll-information)
-         * [Examine pickled backtest state object](#examine-pickled-backtest-state-object)
-      * [Housekeeping](#housekeeping)
+         * [Update capital and p&amp;l by polling brokerage account](#update-capital-and-pl-by-polling-brokerage-account)
+         * [Allocate capital to strategies](#allocate-capital-to-strategies)
+         * [Run updated backtest systems for one or more strategies](#run-updated-backtest-systems-for-one-or-more-strategies)
+         * [Generate orders for each strategy](#generate-orders-for-each-strategy)
+         * [Execute orders](#execute-orders)
+      * [Interactive scripts to modify data](#interactive-scripts-to-modify-data)
+         * [Manual check of futures contract historical price data](#manual-check-of-futures-contract-historical-price-data)
+         * [Manual check of FX price data](#manual-check-of-fx-price-data)
+         * [Interactively modify capital values](#interactively-modify-capital-values)
+         * [Interactively roll adjusted prices](#interactively-roll-adjusted-prices)
+      * [Menu driven interactive scripts](#menu-driven-interactive-scripts)
+         * [Interactive controls](#interactive-controls)
+            * [Trade limits](#trade-limits)
+            * [Position limits](#position-limits)
+            * [Trade control / override](#trade-control--override)
+            * [Process control &amp; monitoring](#process-control--monitoring)
+               * [View processes](#view-processes)
+               * [Change status of process](#change-status-of-process)
+               * [View process configuration](#view-process-configuration)
+               * [Mark as finished](#mark-as-finished)
+         * [Interactive diagnostics](#interactive-diagnostics)
+            * [Backtest objects](#backtest-objects)
+               * [Output choice](#output-choice)
+               * [Choice of strategy and backtest](#choice-of-strategy-and-backtest)
+               * [Choose stage / method / arguments](#choose-stage--method--arguments)
+               * [Alternative python code](#alternative-python-code)
+            * [Reports](#reports)
+            * [Logs, errors, emails](#logs-errors-emails)
+               * [View stored emails](#view-stored-emails)
+               * [View errors](#view-errors)
+               * [View logs](#view-logs)
+            * [View prices](#view-prices)
+            * [View capital](#view-capital)
+            * [Positions and orders](#positions-and-orders)
+            * [Instrument configuration](#instrument-configuration)
+               * [View instrument configuration data](#view-instrument-configuration-data)
+               * [View contract configuration data](#view-contract-configuration-data)
+            * [View](#view)
+            * [Create orders](#create-orders)
+               * [Spawn contract orders from instrument orders](#spawn-contract-orders-from-instrument-orders)
+               * [Create force roll contract orders](#create-force-roll-contract-orders)
+               * [Create (and try to execute...) IB broker orders](#create-and-try-to-execute-ib-broker-orders)
+               * [Balance trade: Create a series of trades and immediately fill them (not actually executed)](#balance-trade-create-a-series-of-trades-and-immediately-fill-them-not-actually-executed)
+               * [Balance instrument trade: Create a trade just at the strategy level and fill (not actually executed)](#balance-instrument-trade-create-a-trade-just-at-the-strategy-level-and-fill-not-actually-executed)
+               * [Manual trade: Create a series of trades to be executed](#manual-trade-create-a-series-of-trades-to-be-executed)
+               * [Cash FX trade](#cash-fx-trade)
+            * [Netting, cancellation and locks](#netting-cancellation-and-locks)
+               * [Cancel broker order](#cancel-broker-order)
+               * [Net instrument orders](#net-instrument-orders)
+               * [Lock/unlock order](#lockunlock-order)
+               * [Lock/unlock instrument code](#lockunlock-instrument-code)
+               * [Unlock all instruments](#unlock-all-instruments)
+            * [Delete and clean](#delete-and-clean)
+               * [Delete entire stack (CAREFUL!)](#delete-entire-stack-careful)
+               * [Delete specific order ID (CAREFUL!)](#delete-specific-order-id-careful)
+               * [End of day process (cancel orders, mark all orders as complete, delete orders)](#end-of-day-process-cancel-orders-mark-all-orders-as-complete-delete-orders)
+      * [Reporting, housekeeping and backup scripts](#reporting-housekeeping-and-backup-scripts)
+         * [Run all reports](#run-all-reports)
          * [Delete old pickled backtest state objects](#delete-old-pickled-backtest-state-objects)
-         * [Clean up old log files](#clean-up-old-log-files)
-         * [Truncate echo log files](#truncate-echo-log-files)
+         * [Clean up old logs](#clean-up-old-logs)
+         * [Truncate echo files](#truncate-echo-files)
+         * [Backup Arctic data to .csv files](#backup-arctic-data-to-csv-files)
+         * [Backup files](#backup-files)
+         * [Start up script](#start-up-script)
    * [Scheduling](#scheduling)
       * [Issues to consider when constructing the schedule](#issues-to-consider-when-constructing-the-schedule)
-      * [A suggested schedule in pseudocode](#a-suggested-schedule-in-pseudocode)
-      * [Formal list of scheduled tasks](#formal-list-of-scheduled-tasks)
       * [Choice of scheduling systems](#choice-of-scheduling-systems)
          * [Linux cron](#linux-cron)
+         * [Third party scheduler](#third-party-scheduler)
          * [Windows task scheduler](#windows-task-scheduler)
          * [Python](#python)
          * [Manual system](#manual-system)
+         * [Hybrid of python and cron](#hybrid-of-python-and-cron)
+      * [Pysystemtrade scheduling](#pysystemtrade-scheduling)
+         * [Configuring the scheduling](#configuring-the-scheduling)
+            * [The crontab](#the-crontab)
+            * [Process configuration](#process-configuration)
+         * [Troubleshooting?](#troubleshooting)
+         * [The details](#the-details)
    * [Production system concepts](#production-system-concepts)
       * [Configuration files](#configuration-files)
-         * [Private config](#private-config)
-         * [System defaults](#system-defaults)
-         * [Strategy config](#strategy-config)
+         * [System defaults &amp; Private config](#system-defaults--private-config)
+         * [System backtest .yaml config file(s)](#system-backtest-yaml-config-files)
+         * [Broker and data source specific configuration files](#broker-and-data-source-specific-configuration-files)
+         * [Only used when setting up the system](#only-used-when-setting-up-the-system)
+      * [Capital](#capital)
+         * [Large changes in capital](#large-changes-in-capital)
+         * [Withdrawals and deposits of cash or stock](#withdrawals-and-deposits-of-cash-or-stock)
+         * [Change in capital methodology or capital base](#change-in-capital-methodology-or-capital-base)
       * [Strategies](#strategies)
-   * [Production system data and data flow](#production-system-data-and-data-flow)
-   * [Production system classes](#production-system-classes)
-      * [Data blobs and the classes that feed on them](#data-blobs-and-the-classes-that-feed-on-them)
-      * [Reporting and diagnostics](#reporting-and-diagnostics)
+         * [Strategy capital](#strategy-capital)
+            * [Risk target](#risk-target)
+            * [Changing risk targets and/or capital](#changing-risk-targets-andor-capital)
+         * [System runner](#system-runner)
+         * [Strategy order generator](#strategy-order-generator)
+         * [Load backtests](#load-backtests)
+         * [Reporting code](#reporting-code)
+   * [Recovering from a crash - what you can save and how, and what you can't](#recovering-from-a-crash---what-you-can-save-and-how-and-what-you-cant)
+   * [Reports](#reports-1)
+         * [Roll report (Daily)](#roll-report-daily)
+         * [P&amp;L report](#pl-report)
+         * [Status report](#status-report)
+         * [Trade report](#trade-report)
+         * [Reconcile report](#reconcile-report)
+         * [Strategy report](#strategy-report)
+         * [Risk report](#risk-report)
 
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
-
 
 
 # Quick start guide
@@ -154,22 +232,6 @@ When trading you will need to do the following
 - Ad-hoc diagnostics TO DO LINK
 
 
-# Overview of a production system
-
-Here are the steps you need to follow to set up a production system. I assume you already have a backtested system in pysystemtrade, with appropriate python libraries etc.
-
-1. Consider your implementation options
-2. Ensure you have a private area for your system code and configuration
-3. Finalise and store your backtested system configuration
-4. If you want to automatically execute, or get data from a broker, then set up a broker
-5. Set up any other data sources you need.
-6. Set up a database for storage, including a backup
-7. Have a strategy for reporting, diagnostics, and logs
-8. Write some scripts to kick off processes to: get data, get accounting information, calculate optimal positions, execute trades, run reports, and do backups and housekeeping.
-9. Schedule your scripts to run regularly
-10. Regularly monitor your system, and deal with any problems
-
-
 # Production system data flow
 
 Update FX prices / Update manual check FX prices  (interactive)
@@ -214,13 +276,30 @@ Output: Trades
 
 
 
-# Implementation options
+
+# Overview of a production system
+
+Here are the steps you need to follow to set up a production system. I assume you already have a backtested system in pysystemtrade, with appropriate python libraries etc.
+
+1. Consider your implementation options
+2. Ensure you have a private area for your system code and configuration
+3. Finalise and store your backtested system configuration
+4. If you want to automatically execute, or get data from a broker, then set up a broker
+5. Set up any other data sources you need.
+6. Set up a database for storage, including a backup
+7. Have a strategy for reporting, diagnostics, and logs
+8. Write some scripts to kick off processes to: get data, get accounting information, calculate optimal positions, execute trades, run reports, and do backups and housekeeping.
+9. Schedule your scripts to run regularly
+10. Regularly monitor your system, and deal with any problems
+
+
+## Implementation options
 
 Standard implementation for pysystemtrade is a fully automated system running on a single local machine. In this section I briefly describe some alternatives you may wish to consider.
 
 My own implementation runs on a Linux machine, and some of the implementation details in this document are Linux specific. Windows and Mac users are welcome to contribute with respect to any differences.
 
-## Automation options
+### Automation options
 
 You can run pysystemtrade as a fully automated system, which does everything from getting prices through to executing orders. 
 If running fully automated, [ib-controller](https://github.com/ib-controller/ib-controller) is very useful. But other patterns make sense. In particular you may wish to do your trading manually, after pulling in prices and generating optimal positions manually. It will also possible to trade manually, but allow pysystemtrade to pick up your fills from the broker rather than entering them manually. or example, you might not trust the system (I wouldn't blame you), it gives you more control, you might think your execution is better than an algo, you might be doing some testing, or you simply want to use a broker that doesn't offer an API.
@@ -235,7 +314,7 @@ I suggest the following:
 Everything else should be allowed to run as normal.
 
 
-## Machines, containers and clouds
+### Machines, containers and clouds
 
 Pysystemtrade can be run locally in the normal way, on a single machine. But you may also want to consider containerisation (see [my blog post](https://qoppac.blogspot.com/2017/01/playing-with-docker-some-initial.html)), or even implementing on AWS or another cloud solution. You could also spread your implemetation across several local machines.
 
@@ -249,11 +328,11 @@ If spreading your implementation across several machines bear in mind:
    - you will need to modify the `private_config.yaml` system configuration file so it connects to a different IP address `mongo_host: 192.168.0.13`
    - you may want to enforce [further security protocol](https://docs.mongodb.com/manual/administration/security-checklist/)
 
-## Backup machine
+### Backup machine
 
 If you are running your implementation locally, or on a remote server that is not a cloud, then you should seriously consider a backup machine. The backup machine should have an up to date environment containing all the relevant applications, code and libaries, and on a regular basis you should update the local data stored on that machine (see [backup](#data-backup)). The backup machine doesn't need to be turned on at all times, unless you are trading in such a way that a one hour period without trading would be critical (in my experience, one hour is the maximum time to get a backup machine on line assuming the code is up to date, and the data is less than 24 hours stale). I also encourage you to perform a scheduled 'failover' on regular basis: stop the live machine running (best to do this at a weekend), copy across any data to the backup machine, start up the backup machine. The live machine then becomes the backup.
 
-## Multiple systems
+### Multiple systems
 
 You may want to run multiple trading systems on a single machine. Common use cases are:
 
@@ -269,7 +348,7 @@ To handle this I suggest having multiple copies of the pysystemtrade environment
 
 Finally you should set the field `ib_idoffset` in the [private config file](/private/private_config.yaml) so that there is no chance of duplicate clientid connections; setting one system to have an id offset of 1, the next offset 1000, and so on should be sufficient.
 
-# Code and configuration management
+## Code and configuration management
 
 Your trading strategy will consist of pysystemtrade, plus some specific configuration files, plus possibly some bespoke code. You can either implement this as:
 
@@ -329,7 +408,7 @@ git pull
 I use a local git repo for my private directory. Github are now offering free private repos, so that is another option.
 
 
-# Finalise your backtest configuration
+## Finalise your backtest configuration
 
 You can just re-run a daily backtest to generate your positions. This will probably mean that you end up refitting parameters like instrument weights and forecast scalars. This is pointless, a waste of time, and potentially dangerous. Instead I'd suggest using fixed values for all fitted parameters in a live trading system.
 
@@ -353,7 +432,7 @@ sysdiag.yaml_config_with_estimated_parameters('someyamlfile.yaml',
 Change the list of attr_names depending on what you want to output. You can then merge the resulting .yaml file into your simulation .yaml file. Don't forget to turn off the flags for `use_forecast_div_mult_estimates`,`use_forecast_scale_estimates`,`use_forecast_weight_estimates`,`use_instrument_div_mult_estimates`, and `use_instrument_weight_estimates`.  You don't need to change flag for forecast mapping, since this isn't done by default.
 
 
-# Linking to a broker
+## Linking to a broker
 
 You are probably going to want to link your system to a broker, to do one or more of the following things:
 
@@ -367,7 +446,7 @@ You are probably going to want to link your system to a broker, to do one or mor
 You should now read [connecting pysystemtrade to interactive brokers](/docs/IB.md). The fields `broker_account`,`ib_ipaddress`, `ib_port` and `ib_idoffset` should be set in the [private config file](/private/private_config.yaml).
 
 
-# Other data sources
+## Other data sources
 
 You might get all your data from your broker, but there are good reasons to get data from other sources as well:
 
@@ -379,7 +458,7 @@ You might get all your data from your broker, but there are good reasons to get 
 You should now read [getting and storing futures and spot FX data](/docs/futures.md).
 
 
-# Data storage
+## Data storage
 
 Various kinds of data files are used by the pysystemtrade production system. Broadly speaking they fall into the following categories:
 
@@ -457,7 +536,7 @@ Linux script:
 ```
 
 
-# Echoes, Logging, diagnostics and reporting
+## Echoes, Logging, diagnostics and reporting
 
 We need to know what our system is doing, especially if it is fully automated. Here are the methods by which this should be done:
 
@@ -466,7 +545,7 @@ We need to know what our system is doing, especially if it is fully automated. H
 - Storage of diagnostics in a database, tagged with keys to identify them
 - the option to run reports both scheduled and ad-hoc, which can optionally be automatically emailed
 
-## Echos: stdout output
+### Echos: stdout output
 
 The [supplied crontab](/sysproduction/linux/crontab) contains lines like this:
 
@@ -479,11 +558,11 @@ ECHO_PATH="$HOME:/echos"
 
 The above line will run the script `updatefxprices`, but instead of outputting the results to stdout they will go to `updatefxprices`. These echo files are must useful when processes crash, in which case you may want to examine the stack trace. Usually however the log files will be more useful.
 
-### Cleaning old echo files
+#### Cleaning old echo files
 
 Over time echo files can get... large (my default position for logging is verbose). To avoid this you can run the daily run cleaners process (FIX ME LINK) archives old echo files with a date suffix, and deletes anything more than a month old. 
 
-## Logging
+### Logging
 
 Logging in pysystemtrade is done via loggers. See the [userguide for more detail](/docs/userguide.md#logging). The logging levels are:
 
@@ -497,7 +576,7 @@ self.log.critical("this critical message will always be printed, and an email wi
 
 The default logger in production code is to the mongo database. This method will also try and email the user if a critical message is logged.
 
-### Adding logging to your code
+#### Adding logging to your code
 
 The default for logging is to do this via mongodb. Here is an example of logging code:
 
@@ -547,7 +626,7 @@ The following should be used as logging attributes (failure to do so will break 
 - strategy_name: Self explanatory
 
 
-### Getting log data back
+#### Getting log data back
 
 Python:
 ```python
@@ -565,7 +644,7 @@ mlog.get_log_items_as_entries(dict(type="top-level-function"))
 
 Alternatively you can use the interactive diagnostics function to get old log data (FIX ME LINK)
 
-### Cleaning old logs
+#### Cleaning old logs
 
 
 This code is run automatically from the daily cleaning code (FIX ME LINK)
@@ -580,7 +659,7 @@ clean_truncate_log_files()
 It defaults to deleting anything more than a year old.
 
 
-## Reporting
+### Reporting
 
 Reports are run regularly to allow you to monitor the system and decide if any action should be taken. You can choose to have them emailed to you. To do this the email address, server and password *must* be set in `private_config.yaml`:
 
