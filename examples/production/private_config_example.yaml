@@ -3,22 +3,39 @@
 # in your private_config.yaml file in the ~/pysystemtrade/private folder
 #
 
-# ib_data
+####################################################################################################
+#
+# MUST BE SET! Not in defaults.yaml
+#
 
-ib_ipaddress: 'localhost' # this changes if you set up elsewhere
-ib_port: 4001 # the default for the ib Gateway
-ib_idoffset: 1 # the default
 broker_account: 'UXXXXXX' # your account number at IB
 
-#Mongo db variables
+####################################################################################################
+#
+# OPTIONAL: Not in defaults.yaml
+#
 
-mongo_host: 'localhost' # can be elsewhere
-mongo_db: 'production' # fits with all the documentation
-
-# email address variables
+# email address variables - If missing emails won't be sent and you will have to check logs/echos
 
 email_address: 'some_address@server.com' # add your address here
 email_pwd: 'terrible_mash_of_stuff_for_security' # your password
 email_server: 'the_outgoing_smtp_server' # the smtp server
 # email_port: 587 # for future use: currently hardcoded at 587.
 # email_security: 'SSL or TLS' # for future use
+
+####################################################################################################
+#
+# OVERRIDES: In defaults.yaml and will override
+#
+
+# ib_data
+
+ib_ipaddress: 'localhost' # this changes if you set up elsewhere
+ib_port: 4001 # the default for the ib Gateway
+ib_idoffset: 1 # the default
+
+#Mongo db variables
+
+mongo_host: 'localhost' # can be elsewhere
+mongo_db: 'production' # fits with all the documentation
+

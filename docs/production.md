@@ -178,9 +178,18 @@ My own implementation runs on a Linux machine, and some of the implementation de
 
 ## Automation options
 
-You can run pysystemtrade as a fully automated system, which does everything from getting prices through to executing orders. But other patterns make sense. In particular you may wish to do your trading manually, after pulling in prices and generating optimal positions manually. It will also possible to trade manually, but allow pysystemtrade to pick up your fills from the broker rather than entering them manually. You can remove items from the scheduler[]() to achieve this. 
+You can run pysystemtrade as a fully automated system, which does everything from getting prices through to executing orders. 
+If running fully automated, [ib-controller](https://github.com/ib-controller/ib-controller) is very useful. But other patterns make sense. In particular you may wish to do your trading manually, after pulling in prices and generating optimal positions manually. It will also possible to trade manually, but allow pysystemtrade to pick up your fills from the broker rather than entering them manually. or example, you might not trust the system (I wouldn't blame you), it gives you more control, you might think your execution is better than an algo, you might be doing some testing, or you simply want to use a broker that doesn't offer an API.
 
-If running fully automated, [ib-controller](https://github.com/ib-controller/ib-controller) is very useful.
+I suggest the following:
+
+- From run_stack_handler .yaml process configuration (FIX ME LINK), remove the method `create_broker_orders_from_contract_orders`
+- Run interactive_order_stack to check what contract orders have been created.
+- Do the trade
+- Use 'manually fill broker or contract order' to fill the contract orders
+
+Everything else should be allowed to run as normal.
+
 
 ## Machines, containers and clouds
 
@@ -2471,53 +2480,121 @@ If you want more details on how the run process all works, perhaps for debugging
 
 ## Configuration files
 
-Configuration for the system is 
+Configuration for the system is spread across a few different places:
 
-### System defaults
+- System defaults
+- Private config (which overrides the system defaults)
+- Backtest config
+- Broker and data source specific config
+- Initialisation config
 
-/systems/provided/defaults.yaml
+### System defaults & Private config
 
-### Private config
+Most configuration is stored in [/systems/provided/defaults.yaml](/systems/provided/defaults.yaml), with the possibility of overriding in the private configuration file `/private/private_config.yaml`, an example of which is here [examples/production/private_config_example.yaml](examples/production/private_config_example.yaml). Any top level keyword included in the private config will override the same keyword in the defaults.yaml file.
 
-/private/private_config.yaml
+Exceptionally, the following are configuration options that are not in defaults.yaml and *must* be in private_config.yaml:
 
-TO DO
+- `broker_account`: IB account id, str
+
+The following are configuration options that are not in defaults.yaml and *may* be in private_config.yaml:
+
+- `quandl_key`: if using quandl data
+- `barchart_key`: if using barchart data
+- `email_address`
+- `email_pwd`
+- `email_server`: this is the outgoing server
+offsystem_backup_directory
+
+The following are configuration options that are in defaults.yaml and can be overriden in private_config.yaml:
+
+Process control (see FIX ME LINK)
+- `process_configuration_start_time` 
+   - `process_name: 'HH:MM'` 
+- `process_configuration_stop_time` 
+   - `process_name: 'HH:MM'` 
+- `process_configuration_previous_process` 
+   - `process_name: 'prior_process_name'` 
+- `process_configuration_methods` (dict, keys are process names; each is a dict, keys are method names)
+   - `process_name` 
+      - `method_name`
+         - `frequency: N` (int minutes, optional defaults to 0)
+         - `max_executions: N` (int, optional defaults to -1: no maximum)
+         - `run_on_completion_only: True` (bool, optional defaults to False)
+- `process_configuration_run_over_strategies` (list)
+   - `first_process_name` 
+   - `second_process_name` ...
 
 
-TO DO
+Strategy configuration 
+- `strategy_list` (dict, keys are strategy names) (see FIX ME LINK)
+   - `strategy_name`
+      - `run_systems`
+         - `object` class to run system, eg sysproduction.strategy_code.run_system_classic.runSystemClassic
+         - `function` method in class eg run_system_classic
+         - `backtest_config_filename` eg systems.provided.futures_chapter15.futures_config.yaml
+         - `max_executions: N` (int, optional defaults to -1: no maximum, recommended value 1)
+         - `frequency: N` (int minutes, optional defaults to 0)
+      - `run_strategy_order_generator`
+         - `object` class to run system, eg sysexecution.strategies.classic_buffered_positions.orderGeneratorForBufferedPositions
+         - `function` method in class eg get_and_place_orders
+         - `max_executions: N` (int, optional defaults to -1: no maximum, recommended value 1)
+         - `frequency: N` (int minutes, optional defaults to 0)
+      - `load_backtests`
+         - `object` class to create system instance, eg sysproduction.strategy_code.run_system_classic.runSystemClassic
+         - `function` method in class to create system instance eg system_method
+      - `reporting_code`
+         - `function` to produce strategy reporting code eg sysproduction.strategy_code.report_system_classic.report_system_classic
+- `strategy_capital_allocation` see FIX ME LINK
+   - `function` to produce allocations eg sysproduction.strategy_code.strategy_allocation.weighted_strategy_allocation
+   - `strategy_weights` dict of strategy names
+      - `strategy_name` weight as float
 
-### List of production configuration options (private config and system defaults)
+Paths SEE FIX ME LINK
+- `backtest_store_directory` parent directory, backtests are stored under strategy_name subdirectory
+- `csv_backup_directory`
+- `mongo_dump_directory`
+- `echo_directory`
 
-TO DO
-max_price_spike
-strategy_list
-base_currency
-production_capital_method
-strategy_capital_allocation:
-  function: sysproduction.strategy_code.strategy_allocation.weighted_strategy_allocation
-  strategy_weights:
-    medium_speed_TF_carry: 100.0
+Broker SEE FIX ME LINK
+ib_ipaddress: 127.0.0.1
+ib_port: 4001
+ib_idoffset: 100
+
+Database SEE FIX ME LINK
+mongo_host: 127.0.0.1
+mongo_db: 'production'
+
+Price collection
+max_price_spike: 8
+intraday_frequency: H
+
+Capital calculation
+production_capital_method: 'full'
+base_currency (also used by backtesting, but clearly more important here)
+
+
 
 
 ### System backtest .yaml config file(s)
 
+See the user guide for backtesting, FIX ME LINK HERE
 
 ### Broker and data source specific configuration files
 
-- /sysbrokers/IB/ibConfigFutures.csv
-- /sysbrokers/IB/ibConfigSpotFX.csv
-- /sysdata/quandl/*.csv
+The following are configurations mainly for mapping from our codes to broker codes:
 
+- [/sysbrokers/IB/ibConfigFutures.csv](/sysbrokers/IB/ibConfigFutures.csv)
+- [/sysbrokers/IB/ibConfigSpotFX.csv](/sysbrokers/IB/ibConfigSpotFX.csv)
+- [/sysdata/quandl/*.csv](/sysdata/quandl/*.csv)
 
 
 ### Only used when setting up the system
 
-- sysinit/futures/config/rollconfig.csv
-- /data/futures/csvconfig/instrumentconfig.csv 
+The following are configurations used when initialising the database with it's initial configuration:
 
-### Not used in production system after setup is complete
+- [/sysinit/futures/config/rollconfig.csv](/sysinit/futures/config/rollconfig.csv)
+- [/data/futures/csvconfig/instrumentconfig.csv](/data/futures/csvconfig/instrumentconfig.csv) (though this may be used by the simulation environment)
 
-- /data/futures/csvconfig/instrumentconfig.csv (unless, weirdly you have reconfigured your data inputs to use .csv rather than database tables)
 
 
 ## Capital
@@ -2606,73 +2683,101 @@ Strategy capital can be changed at any time, and indeed will usually change dail
 We do not store a history of the risk target of a strategy, so if you change the risk target this will make it difficult to compare across time. I do not advise doing this.
 
 
-### Launcher functions
+### System runner
 
-Launch functions run overnight backtests for each of the strategies you are running (see [here](#run-updated-backtest-systems-for-one-or-more-strateges) for more details.)
+System runners run overnight backtests for each of the strategies you are running (see [here](#run-updated-backtest-systems-for-one-or-more-strateges) for more details.)
 
-The following shows the launch function parameters for an example strategy, named (appropriately enough) `example`.
+The following shows the parameters for an example strategy, named (appropriately enough) `example`.
 
 ```
 strategy_list:
   example:
-    overnight_launcher:
+    run_systems:
       function: sysproduction.system_launchers.run_system_classic.run_system_classic
       backtest_config_filename: systems.provided.futures_chapter15.futures_config.yaml
+      function: run_system_classic
+      max_executions: 1
+      frequency: 60
+
 ```
+Note the generic process parameters max_executions and frequency, both are optional, but it is strongly recomended that you set max_executions to 1 unless you want the backtest to run multiple times throughout the day (in which case you should also set frequency, which is the gap between runs in minutes).
 
-The configuration for the overnight launcher includes the launcher function; the other configuration values are passed as keyword arguments to the launcher function.
-Launcher functions must include the strategy name and a [data 'blob'](#data-blobs-and-the-classes-that-feed-on-them) as their first two arguments.
-
-A launcher usually does the following:
+A system usually does the following:
 
 - get the amount of capital currently in your trading account. See [strategy-capita](#strategy-capital).
 - run a backtest using that amount of capital
 - get the position buffer limits, and save these down (for the classic system, other systems may save different values down)
 - store the backtest state (pickled cache) in the directory specified by the parameter csv_backup_directory (set in your private config file, or the system defaults file), subdirectory strategy name, filename date and time generated. It also copies the config file used to generate this backtest with a similar naming pattern.
 
-As an example here is the provided 'classic' launcher function:
+As an example [here](/sysproduction/system_launchers/run_system_classic.py) is the provided 'classic' run systems function.
 
-```python
-def run_system_classic(strategy_name, data,
-               backtest_config_filename="systems.provided.futures_chapter15.futures_config.yaml",
-               ):
+### Strategy order generator
 
+Once a backtest has been run it will generate a list of desired optimal positions (for the classic buffered positions, these will include buffers). From those, and our actual current positions, we need to calculate what trades are required for execution by the run_stack_handler process. 
 
-        capital_value = get_capital(data, strategy_name)
-
-        system = production_classic_futures_system(backtest_config_filename,
-                                            log=data.log, notional_trading_capital=capital_value,
-                                           )
-
-        updated_buffered_positions(data, strategy_name, system)
-
-        store_backtest_state(data, system, strategy_name=strategy_name,
-                             backtest_config_filename=backtest_config_filename)
-        return success
 ```
+strategy_list:
+  example:
+    run_strategy_order_generator:
+      object: sysexecution.strategies.classic_buffered_positions.orderGeneratorForBufferedPositions
+      function: get_and_place_orders
+      frequency: 60
+      max_executions: 1
+```
+
+Example of an order generator, [here](/sysexecution/strategies/classic_buffered_positions.py). Different order generators would be required for eg strategies that used limit orders, or conditional orders, or did not use buffering.
+
+
+### Load backtests
+
+It's often useful for diagnostic purposes to reload the backtest (eg for strategy reporting, discussed below). This configuration specifies the object class that is used, and the relevant method (in this case it's the same as the run_systems class, but with a different method):
+
+
+```
+strategy_list:
+  example:
+    load_backtests:
+      object: sysproduction.strategy_code.run_system_classic.runSystemClassic
+      function: system_method
+
+```
+
+
+### Reporting code
+
+Reports are run that are specific for each strategy, to achieve this we need to configure which function will do the reporting:
+
+```
+strategy_list:
+  example:
+      function: sysproduction.strategy_code.report_system_classic.report_system_classic
+```
+
+Example [here](/sysproduction/strategy_code/report_system_classic.py).
+
 
 # Recovering from a crash - what you can save and how, and what you can't
 
+Let's first consider an awful case where your mongo DB is corrupted, and the backups are also corrupted. In this case you can use the backed up .csv database dump files to recover the following: FX, individual futures contract prices, multiple prices, adjusted prices, position data, historical trades, capital, contract meta-data, instrument data, optimal positions. Note that scripts don't neccessarily exist to do all this automatically yet FIX ME TO DO.
 
-# Manual trading
+Some other state information relating to the control of trading and processes is also stored in the database and this will be lost, however this can be recovered with a litle work: roll status, trade limits, position limits, and overrides. Log data will also be lost; but archived [echo files](#echos-stdout-output) could be searched if neccessary.
 
+The better case is when the mongo DB is fine. In this case (once you've restored it FIX ME LINK) you will have only lost everything from your last nightly backup onwards. Here is what you do to get it back (if possible)
 
-# Production system things of interest
-
-Here I describe parts of the production system that are a bit fiddly and weird, as well as some conventions. This is useful information if you're planning on extending or contributing.
-
-## Data blobs and the classes that feed on them
-
-TO DO
-
-
-
-## 'Run' process details
-
-
-## Reporting and diagnostics
-
-TO DO
+- As the database isn't SQL it's possible for inconsistencies to creep in, so it's generally better to revert to the last good full backup even if some data appears to be up to date (FIX ME LINK)
+- Log entries will be lost, shrug, deal with it.
+- Any changes made to trade limits, position limits and overrides will be lost and will need to be redone.
+- You may want to copy across the backtest state files (FIX ME LINK).
+- IMPORTANT:Any changes made to roll status will be lost; any back adjusted price rolls will have reverted. Do this before any trading takes place, or you may confuse the system!
+- IMPORTANT: The stack handler may contain incomplete orders. Run interactive_order_stack and run the end of day process. Do this before any trading takes place, or you may confuse the system!
+- IMPORTANT:Even after finishing the stack handler, position data and historical data will be missing the effect of any trades, including orders that were subsequently filled but for which the fill was lost. Run interactive_order_stack and check to see if view positions. If any breaks come up, you will need to enter create eithier a balance trade (contract level break between broker and database) or balance instrument trade (instrument level break between strategy and contract positions) using interactive_order_stack (FIX ME LINK). Get the fill prices from your brokerage website. Do this before any trading takes place or the system will lock and won't trade the instruments with breaks.
+- FX, individual futures contract prices, multiple prices, adjusted prices: data will be backfilled once run_daily_price_updates has run.
+- Capital: any intraday p&l data will be lost, but once run_capital_update has run the current capital will be correct.
+- Optimal positions: will be correct once run_systems has run.
+- State information about processes running may be wrong; you may need to manually FINISH processes (see FIX ME LINK) otherwise processes won't run for fear of conflict.
+- You can use update_* and run_* processes if you want to recover your data before the normal scheduled process will do so. Don't forget to run them in the correct order: update_fx_prices (has to be before run_systems), update_sampled_contracts, update_historical_prices, update_multiple_adjusted_prices, run_systems,  run_strategy_order_generator; at which run_stack_handler will probably have orders to do if it's running. 
+- Processes are started by the scheduler, eg Cron, you will need to start them manually if their normal start time has passed (I find linux screen helpful for this on my headless server). Everything should work normally the following day.
+- Carefully check your reports, especially the status and reconcile reports, to see that all is well.
 
 
 
