@@ -3,7 +3,7 @@ from syscore.fileutils import get_filename_for_package
 from syscore.genutils import value_or_npnan, NOT_REQUIRED
 
 from sysdata.futures.contracts import futuresContractData
-from sysdata.futures.instruments import futuresInstrument
+from sysobjects.instruments import futuresInstrument
 from sysdata.futures.contract_dates_and_expiries import expiryDate
 from syslogdiag.log import logtoscreen
 from syscore.objects import missing_contract, missing_instrument, missing_file

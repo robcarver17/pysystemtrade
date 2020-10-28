@@ -1,5 +1,6 @@
 from syscore.fileutils import get_filename_for_package
-from sysdata.futures.instruments import futuresInstrumentData, futuresInstrument
+from sysdata.futures.instruments import futuresInstrumentData
+from sysobjects.instruments import futuresInstrument
 from syslogdiag.log import logtoscreen
 import pandas as pd
 

@@ -10,7 +10,7 @@ from sysdata.futures.futures_per_contract_prices import (
     futuresContractPriceData,
     futuresContractPrices,
 )
-from sysdata.futures.instruments import futuresInstrument
+from sysobjects.instruments import futuresInstrument
 
 from sysexecution.tick_data import tickerObject, oneTick
 

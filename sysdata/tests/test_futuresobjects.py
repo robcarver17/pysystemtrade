@@ -8,7 +8,7 @@ from sysdata.futures.rolls import (
 )
 from sysdata.futures.contract_dates_and_expiries import contractDate
 from sysdata.futures.contracts import futuresContract, listOfFuturesContracts
-from sysdata.futures.instruments import futuresInstrument
+from sysobjects.instruments import futuresInstrument
 
 
 class MyTestCase(unittest.TestCase):

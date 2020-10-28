@@ -1,6 +1,7 @@
 import pandas as pd
 
-from sysdata.futures.instruments import futuresInstrumentData, futuresInstrument
+from sysdata.futures.instruments import futuresInstrumentData
+from sysobjects.instruments import futuresInstrument
 from sysdata.mongodb.mongo_connection import (
     mongoConnection,
     MONGO_ID_KEY,

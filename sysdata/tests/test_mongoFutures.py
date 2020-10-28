@@ -4,7 +4,7 @@ from sysdata.futures.rolls import rollParameters
 from sysdata.mongodb.mongo_roll_data import mongoRollParametersData
 
 from sysdata.mongodb.mongo_futures_contracts import mongoFuturesContractData
-from sysdata.futures.instruments import futuresInstrument
+from sysobjects.instruments import futuresInstrument
 from sysdata.futures.contracts import futuresContract
 from sysdata.futures.contract_dates_and_expiries import contractDate
 

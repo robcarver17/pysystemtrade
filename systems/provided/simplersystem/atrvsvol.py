@@ -3,7 +3,7 @@ from sysdata.quandl.quandl_futures import (
     quandlFuturesContractPriceData,
 )
 from sysdata.futures.contracts import listOfFuturesContracts
-from sysdata.futures.instruments import futuresInstrument
+from sysobjects.instruments import futuresInstrument
 from sysdata.mongodb.mongo_roll_data import mongoRollParametersData
 
 import numpy as np

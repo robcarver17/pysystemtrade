@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 
 from sysdata.futures.contracts import futuresContract
-from sysdata.futures.instruments import futuresInstrument
+from sysobjects.instruments import futuresInstrument
 from sysdata.futures.multiple_prices import (
     preferred_columns,
     contract_column_names,
