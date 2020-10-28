@@ -13,8 +13,9 @@ class ibCapitalData(capitalData):
     def __repr__(self):
         return "IB capital data"
 
-    def get_current_total_capital(self):
-        return self.ibconnection.broker_get_total_account_value()
+    def get_account_value_across_currency_across_accounts(self):
+        return self.data.ib_connection.broker_get_account_value_across_currency_across_accounts()
+
 
     """
     Can add other functions not in parent class to get IB specific stuff which could be required for

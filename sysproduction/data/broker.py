@@ -7,6 +7,7 @@ from collections import namedtuple
 "ibFxPricesData, ibFuturesContractPriceData, ibFuturesContractData,\
 ibContractPositionData, ibOrdersData, ibMiscData]"
 
+from sysbrokers.IB.ib_capital_data import ibCapitalData
 from sysbrokers.IB.ibSpotFXData import ibFxPricesData
 from sysbrokers.IB.ibFuturesContractPriceData import ibFuturesContractPriceData
 from sysbrokers.IB.ibFuturesContracts import ibFuturesContractData
@@ -41,7 +42,7 @@ class dataBroker(object):
 
         data.add_class_list([
             ibFxPricesData, ibFuturesContractPriceData, ibFuturesContractData,
-        ibContractPositionData, ibOrdersData, ibMiscData]
+        ibContractPositionData, ibOrdersData, ibMiscData, ibCapitalData]
         )
         self.data = data
 
@@ -579,3 +580,17 @@ class dataBroker(object):
             )
         )
         return new_order_with_controls
+
+    def get_total_capital_value_in_base_currency(self):
+        currency_data = currencyData(self.data)
+        values_across_accounts = self.data.broker_capital_data.get_account_value_across_currency_across_accounts()
+
+        # This assumes that each account only reports either in one currency or
+        # for each currency, i.e. no double counting
+        total_account_value_in_base_currency = (
+            currency_data.total_of_list_of_currency_values_in_base(
+                values_across_accounts
+            )
+        )
+
+        return total_account_value_in_base_currency

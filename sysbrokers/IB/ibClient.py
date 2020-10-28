@@ -240,7 +240,7 @@ class ibClient(object):
         return price_data
 
     def broker_get_account_value_across_currency_across_accounts(
-        self, account_id=arg_not_supplied
+        self
     ):
         list_of_currencies = self.get_list_of_currencies_for_liquidation_values()
         list_of_values_per_currency = list(
