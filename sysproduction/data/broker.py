@@ -39,8 +39,6 @@ class dataBroker(object):
         if data is arg_not_supplied:
             data = dataBlob()
 
-        data.add_ib_class("ibFxPricesData", ibFxPricesData)
-
         data.add_class_list([
             ibFxPricesData, ibFuturesContractPriceData, ibFuturesContractData,
         ibContractPositionData, ibOrdersData, ibMiscData]
