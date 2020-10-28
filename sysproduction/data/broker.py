@@ -4,9 +4,6 @@ import numpy as np
 
 from collections import namedtuple
 
-"ibFxPricesData, ibFuturesContractPriceData, ibFuturesContractData,\
-ibContractPositionData, ibOrdersData, ibMiscData]"
-
 from sysbrokers.IB.ib_capital_data import ibCapitalData
 from sysbrokers.IB.ibSpotFXData import ibFxPricesData
 from sysbrokers.IB.ibFuturesContractPriceData import ibFuturesContractPriceData
@@ -583,7 +580,7 @@ class dataBroker(object):
 
     def get_total_capital_value_in_base_currency(self):
         currency_data = currencyData(self.data)
-        values_across_accounts = self.data.broker_capital_data.get_account_value_across_currency_across_accounts()
+        values_across_accounts = self.data.broker_capital.get_account_value_across_currency_across_accounts()
 
         # This assumes that each account only reports either in one currency or
         # for each currency, i.e. no double counting
