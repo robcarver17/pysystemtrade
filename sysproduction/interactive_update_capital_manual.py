@@ -66,9 +66,9 @@ def print_capital_and_get_user_input(capital_data: dataCapital):
     else:
         possible_options = {
             2: "Update capital from IB account value",
-            3: "2: Adjust account value for withdrawal or deposit",
-            4: "3: Modify any/all values",
-            5: "4: Delete values of capital since time T",
+            3: "Adjust account value for withdrawal or deposit",
+            4: "Modify any/all values",
+            5: "Delete values of capital since time T",
             919: "Delete everything and start again"}
 
     user_option_int = print_menu_and_get_response(possible_options, default_option=0,
