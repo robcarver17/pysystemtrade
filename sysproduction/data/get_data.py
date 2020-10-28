@@ -3,7 +3,7 @@
 
 from copy import copy
 
-from sysbrokers.IB.ibConnection import connectionIB
+from sysbrokers.IB.ib_connection import connectionIB
 
 from sysdata.mongodb.mongo_connection import mongoDb
 

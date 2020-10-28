@@ -1,4 +1,4 @@
-from sysbrokers.IB.ibConnection import connectionIB
+from sysbrokers.IB.ib_connection import connectionIB
 
 from syscore.objects import success, failure, missing_data, arg_not_supplied
 from syscore.dateutils import get_datetime_input

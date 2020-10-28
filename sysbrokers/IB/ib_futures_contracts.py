@@ -9,7 +9,7 @@ from syslogdiag.log import logtoscreen
 from syscore.objects import missing_contract, missing_instrument, missing_file
 
 IB_FUTURES_CONFIG_FILE = get_filename_for_package(
-    "sysbrokers.IB.ibConfigFutures.csv")
+    "sysbrokers.IB.ib_config_futures.csv")
 
 
 class ibFuturesContractData(futuresContractData):

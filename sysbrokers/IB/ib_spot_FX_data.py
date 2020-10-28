@@ -5,7 +5,7 @@ from syscore.fileutils import get_filename_for_package
 from syscore.objects import missing_file, missing_instrument
 
 IB_CCY_CONFIG_FILE = get_filename_for_package(
-    "sysbrokers.IB.ibConfigSpotFX.csv")
+    "sysbrokers.IB.ib_config_spot_FX.csv")
 
 
 class ibFxPricesData(fxPricesData):

@@ -4,7 +4,7 @@ from syscore.fileutils import get_filename_for_package
 from syscore.genutils import value_or_npnan, NOT_REQUIRED
 from syscore.objects import missing_data, missing_contract
 
-from sysbrokers.IB.ibFuturesContracts import ibFuturesContractData
+from sysbrokers.IB.ib_futures_contracts import ibFuturesContractData
 from sysbrokers.IB.ib_translate_broker_order_objects import sign_from_BS
 from sysdata.futures.futures_per_contract_prices import (
     futuresContractPriceData,
@@ -17,7 +17,7 @@ from sysexecution.tick_data import tickerObject, oneTick
 from syslogdiag.log import logtoscreen
 
 IB_FUTURES_CONFIG_FILE = get_filename_for_package(
-    "sysbrokers.IB.ibConfigFutures.csv")
+    "sysbrokers.IB.ib_config_futures.csv")
 
 
 class ibFuturesContractPriceData(futuresContractPriceData):

@@ -5,12 +5,12 @@ import numpy as np
 from collections import namedtuple
 
 from sysbrokers.IB.ib_capital_data import ibCapitalData
-from sysbrokers.IB.ibSpotFXData import ibFxPricesData
-from sysbrokers.IB.ibFuturesContractPriceData import ibFuturesContractPriceData
-from sysbrokers.IB.ibFuturesContracts import ibFuturesContractData
-from sysbrokers.IB.ibPositionData import ibContractPositionData
-from sysbrokers.IB.ibOrders import ibOrdersData
-from sysbrokers.IB.ibMiscData import ibMiscData
+from sysbrokers.IB.ib_spot_FX_data import ibFxPricesData
+from sysbrokers.IB.ib_futures_contract_price_data import ibFuturesContractPriceData
+from sysbrokers.IB.ib_futures_contracts import ibFuturesContractData
+from sysbrokers.IB.ib_position_data import ibContractPositionData
+from sysbrokers.IB.ib_orders import ibOrdersData
+from sysbrokers.IB.ib_misc_data import ibMiscData
 
 from syscore.objects import missing_data, arg_not_supplied, missing_order, missing_contract
 

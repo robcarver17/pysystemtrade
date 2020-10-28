@@ -2,7 +2,7 @@ import datetime
 
 from copy import copy
 
-from sysbrokers.IB.ibFuturesContracts import ibFuturesContractData
+from sysbrokers.IB.ib_futures_contracts import ibFuturesContractData
 from sysbrokers.IB.ib_translate_broker_order_objects import (
     create_broker_order_from_control_object,
 )

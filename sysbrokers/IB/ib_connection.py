@@ -7,8 +7,8 @@ import time
 
 from ib_insync import IB
 
-from sysbrokers.IB.ibClient import ibClient
-from sysbrokers.IB.ibServer import ibServer
+from sysbrokers.IB.ib_client import ibClient
+from sysbrokers.IB.ib_server import ibServer
 from syscore.genutils import get_safe_from_dict
 from syscore.objects import arg_not_supplied, missing_data
 
