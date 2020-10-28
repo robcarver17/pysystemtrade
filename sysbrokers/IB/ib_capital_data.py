@@ -14,7 +14,7 @@ class ibCapitalData(capitalData):
         return "IB capital data"
 
     def get_account_value_across_currency_across_accounts(self):
-        return self.ib_connection.broker_get_account_value_across_currency_across_accounts()
+        return self.ibconnection.broker_get_account_value_across_currency_across_accounts()
 
 
     """

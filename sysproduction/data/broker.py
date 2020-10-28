@@ -578,7 +578,7 @@ class dataBroker(object):
         )
         return new_order_with_controls
 
-    def get_total_capital_value_in_base_currency(self):
+    def get_total_capital_value_in_base_currency(self) ->float:
         currency_data = currencyData(self.data)
         values_across_accounts = self.data.broker_capital.get_account_value_across_currency_across_accounts()
 
