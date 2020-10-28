@@ -1,5 +1,10 @@
 # Release notes
 
+## Version 0.51.0
+
+Essentially 'finished' production.md (in as much as anything can be finished...)
+Changed data Blobs so now take lists of objects rather than str, easier to see dependencies
+
 ## Version 0.50.0
 
 (Done loads of work but forgotten to update the version number or this file. So let's reward ourselves with a 0.20 version bump. The following list is almost certainly incomplete...)

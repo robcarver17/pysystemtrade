@@ -7,6 +7,20 @@ from sysproduction.data.get_data import dataBlob
 from sysproduction.data.strategies import get_list_of_strategies
 import os
 
+from sysdata.csv.csv_futures_contracts import csvFuturesContractData
+from sysdata.csv.csv_adjusted_prices import csvFuturesAdjustedPricesData
+from sysdata.csv.csv_futures_contract_prices import csvFuturesContractPriceData
+from sysdata.csv.csv_multiple_prices import csvFuturesMultiplePricesData
+from sysdata.csv.csv_spot_fx import csvFxPricesData
+from sysdata.csv.csv_contract_position_data import csvContractPositionData
+from sysdata.csv.csv_strategy_position_data import csvStrategyPositionData
+from sysdata.csv.csv_historic_orders import csvStrategyHistoricOrdersData, csvContractHistoricOrdersData, csvBrokerHistoricOrdersData
+from sysdata.csv.csv_capital_data import csvCapitalData
+from sysdata.csv.csv_optimal_position import csvOptimalPositionData
+from sysdata.csv.csv_instrument_config import csvFuturesInstrumentData
+from sysdata.csv.csv_roll_state_storage import csvRollStateData
+
+
 
 def backup_arctic_to_csv():
     data = dataBlob(log_name="backup_arctic_to_csv")
@@ -72,23 +86,15 @@ def get_data_and_create_csv_directories(logname):
         csv_data_paths=class_paths, keep_original_prefix=True, log_name=logname
     )
 
-    data.add_class_list(
-        "csvFuturesContractPriceData csvFuturesAdjustedPricesData \
-                        csvFuturesMultiplePricesData csvFxPricesData \
-                        csvContractPositionData csvStrategyPositionData \
-                        csvBrokerHistoricOrdersData csvContractHistoricOrdersData csvStrategyHistoricOrdersData \
-                        csvCapitalData csvOptimalPositionData csvFuturesInstrumentData \
-                        csvRollStateData csvFuturesContractData"
+    data.add_class_list([
+        csvFuturesContractPriceData, csvFuturesAdjustedPricesData,
+                        csvFuturesMultiplePricesData, csvFxPricesData,
+                        csvContractPositionData, csvStrategyPositionData,
+                        csvBrokerHistoricOrdersData, csvContractHistoricOrdersData, csvStrategyHistoricOrdersData,
+                        csvCapitalData, csvOptimalPositionData, csvFuturesInstrumentData,
+                        csvRollStateData, csvFuturesContractData]
     )
 
-    data.add_class_list(
-        "arcticFuturesContractPriceData arcticFuturesMultiplePricesData \
-                        arcticFuturesAdjustedPricesData arcticFxPricesData \
-                        mongoContractPositionData mongoStrategyPositionData \
-                        mongoBrokerHistoricOrdersData mongoContractHistoricOrdersData mongoStrategyHistoricOrdersData \
-                        mongoCapitalData mongoFuturesContractData mongoFuturesInstrumentData \
-                        mongoOptimalPositionData mongoRollParametersData mongoRollStateData"
-    )
 
     return data
 

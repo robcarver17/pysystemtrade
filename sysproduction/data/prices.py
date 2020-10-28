@@ -1,10 +1,18 @@
-from sysdata.futures.futures_per_contract_prices import dictFuturesContractPrices
-from sysdata.private_config import get_private_then_default_key_value
-from syscore.dateutils import ROOT_BDAYS_INYEAR
-from sysproduction.data.get_data import dataBlob
+import numpy as np
 
 from syscore.objects import missing_contract, arg_not_supplied, missing_data
-import numpy as np
+
+from sysdata.futures.futures_per_contract_prices import dictFuturesContractPrices
+from sysdata.private_config import get_private_then_default_key_value
+from sysdata.arctic.arctic_futures_per_contract_prices import arcticFuturesContractPriceData
+from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesData
+from sysdata.arctic.arctic_adjusted_prices import arcticFuturesAdjustedPricesData
+from sysdata.mongodb.mongo_futures_contracts import mongoFuturesContractData
+
+from sysproduction.data.get_data import dataBlob
+
+
+
 
 
 class diagPrices(object):
@@ -13,9 +21,9 @@ class diagPrices(object):
         if data is arg_not_supplied:
             data = dataBlob()
 
-        data.add_class_list(
-            "arcticFuturesContractPriceData arcticFuturesAdjustedPricesData \
-         arcticFuturesMultiplePricesData mongoFuturesContractData "
+        data.add_class_list([
+            arcticFuturesContractPriceData, arcticFuturesAdjustedPricesData,
+         arcticFuturesMultiplePricesData, mongoFuturesContractData]
         )
         self.data = data
 
@@ -120,9 +128,9 @@ class updatePrices(object):
         if data is arg_not_supplied:
             data = dataBlob()
 
-        data.add_class_list(
-            "arcticFuturesContractPriceData arcticFuturesMultiplePricesData \
-         mongoFuturesContractData arcticFuturesAdjustedPricesData"
+        data.add_class_list([
+            arcticFuturesContractPriceData, arcticFuturesMultiplePricesData,
+         mongoFuturesContractData, arcticFuturesAdjustedPricesData]
         )
         self.data = data
 

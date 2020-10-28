@@ -1,8 +1,11 @@
-from sysdata.private_config import get_private_then_default_key_value
-from sysproduction.data.get_data import dataBlob
 from syscore.objects import arg_not_supplied
 from syscore.genutils import print_menu_of_values_and_get_response
+
+from sysdata.arctic.arctic_spotfx_prices import arcticFxPricesData
 from sysdata.fx.spotfx import currencyValue
+from sysdata.private_config import get_private_then_default_key_value
+
+from sysproduction.data.get_data import dataBlob
 
 
 class currencyData(object):
@@ -15,7 +18,7 @@ class currencyData(object):
         if data is arg_not_supplied:
             data = dataBlob()
 
-        data.add_class_list("arcticFxPricesData")
+        data.add_class_object(arcticFxPricesData)
         self.data = data
 
     def update_fx_prices(self, fx_code, new_fx_prices, check_for_spike=True):

@@ -1,5 +1,6 @@
-from sysproduction.data.get_data import dataBlob
 from syscore.objects import arg_not_supplied
+from sysdata.mongodb.mongo_log import mongoLogData
+from sysproduction.data.get_data import dataBlob
 
 
 class diagLogs(object):
@@ -8,7 +9,7 @@ class diagLogs(object):
         if data is arg_not_supplied:
             data = dataBlob()
 
-        data.add_class_list("mongoLogData")
+        data.add_class_object(mongoLogData)
         self.data = data
 
     def get_log_items(self, attribute_dict=dict(), lookback_days=1):

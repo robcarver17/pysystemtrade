@@ -4,7 +4,15 @@ import numpy as np
 
 from collections import namedtuple
 
+"ibFxPricesData, ibFuturesContractPriceData, ibFuturesContractData,\
+ibContractPositionData, ibOrdersData, ibMiscData]"
+
 from sysbrokers.IB.ibSpotFXData import ibFxPricesData
+from sysbrokers.IB.ibFuturesContractPriceData import ibFuturesContractPriceData
+from sysbrokers.IB.ibFuturesContracts import ibFuturesContractData
+from sysbrokers.IB.ibPositionData import ibContractPositionData
+from sysbrokers.IB.ibOrders import ibOrdersData
+from sysbrokers.IB.ibMiscData import ibMiscData
 
 from syscore.objects import missing_data, arg_not_supplied, missing_order, missing_contract
 
@@ -33,9 +41,9 @@ class dataBroker(object):
 
         data.add_ib_class("ibFxPricesData", ibFxPricesData)
 
-        data.add_class_list(
-            "ibFxPricesData ibFuturesContractPriceData ibFuturesContractData\
-        ibContractPositionData ibOrdersData ibMiscData"
+        data.add_class_list([
+            ibFxPricesData, ibFuturesContractPriceData, ibFuturesContractData,
+        ibContractPositionData, ibOrdersData, ibMiscData]
         )
         self.data = data
 

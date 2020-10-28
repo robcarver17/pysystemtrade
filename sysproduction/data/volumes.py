@@ -1,7 +1,9 @@
 import datetime as datetime
-from sysproduction.data.get_data import dataBlob
 
 from syscore.objects import missing_contract, arg_not_supplied, missing_data
+from sysdata.arctic.arctic_futures_per_contract_prices import arcticFuturesContractPriceData
+from sysproduction.data.get_data import dataBlob
+
 
 # Get volume data for the contract we're currently trading, plus what we might roll into, plus the previous one
 # This is handy for working out whether to roll
@@ -13,7 +15,7 @@ class diagVolumes(object):
         if data is arg_not_supplied:
             data = dataBlob()
 
-        data.add_class_list("arcticFuturesContractPriceData")
+        data.add_class_object(arcticFuturesContractPriceData)
         self.data = data
 
     def get_normalised_smoothed_volumes_of_contract_list(
@@ -22,7 +24,6 @@ class diagVolumes(object):
         """
 
         :param instrument_code:
-        :param data:
         :return: dict, keys are contract names
             Values are normalised volumes, with largest volume contract as 1.0
         """

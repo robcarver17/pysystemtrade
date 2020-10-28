@@ -8,6 +8,11 @@ from syscore.genutils import str2Bool, sign
 
 from sysdata.private_config import get_private_then_default_key_value
 from sysdata.production.position_limits import positionLimitAndPosition, positionLimitForInstrument, positionLimitForStrategyInstrument
+from sysdata.mongodb.mongo_process_control import mongoControlProcessData
+from sysdata.mongodb.mongo_lock_data import mongoLockData
+from sysdata.mongodb.mongo_position_limits import mongoPositionLimitData
+from sysdata.mongodb.mongo_trade_limits import mongoTradeLimitData
+from sysdata.mongodb.mongo_override import mongoOverrideData
 
 from sysproduction.data.get_data import dataBlob
 from sysproduction.data.strategies import diagStrategiesConfig
@@ -20,7 +25,7 @@ class dataLocks(object):
         if data is arg_not_supplied:
             data = dataBlob()
 
-        data.add_class_list("mongoLockData")
+        data.add_class_object(mongoLockData)
         self.data = data
 
     def is_instrument_locked(self, instrument_code):
@@ -42,7 +47,7 @@ class dataTradeLimits(object):
         if data is arg_not_supplied:
             data = dataBlob()
 
-        data.add_class_list("mongoTradeLimitData")
+        data.add_class_object(mongoTradeLimitData)
         self.data = data
 
     def what_trade_is_possible(
@@ -97,7 +102,7 @@ class diagOverrides(object):
         if data is arg_not_supplied:
             data = dataBlob()
 
-        data.add_class_list("mongoOverrideData")
+        data.add_class_object(mongoOverrideData)
         self.data = data
 
     def get_dict_of_all_overrides(self):
@@ -118,7 +123,7 @@ class updateOverrides(object):
         if data is arg_not_supplied:
             data = dataBlob()
 
-        data.add_class_list("mongoOverrideData")
+        data.add_class_object(mongoOverrideData)
         self.data = data
 
     def update_override_for_strategy(self, strategy_name, new_override):
@@ -152,7 +157,7 @@ class dataControlProcess(object):
         if data is arg_not_supplied:
             data = dataBlob()
 
-        data.add_class_list("mongoControlProcessData")
+        data.add_class_object(mongoControlProcessData)
         self.data = data
 
     def get_dict_of_control_processes(self):
@@ -487,9 +492,8 @@ class dataPositionLimits:
         # Check data has the right elements to do this
         if data is arg_not_supplied:
             data = dataBlob()
-        data.add_class_list("mongoPositionLimitData")
+        data.add_class_object(mongoPositionLimitData)
         self.data = data
-
 
     def cut_down_proposed_instrument_trade_okay(
             self,

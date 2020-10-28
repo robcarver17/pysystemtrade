@@ -7,10 +7,10 @@ Rob Carver
 [https://qoppac.blogspot.com/p/pysystemtrade.html](https://qoppac.blogspot.com/p/pysystemtrade.html)
 
 
-Version 0.50.0
+Version 0.51.0
 
 
-20201023
+20201028
 
 
 ## Release notes

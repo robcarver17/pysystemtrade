@@ -8,6 +8,11 @@ from syscore.objects import (
     missing_order,
 )
 
+from sysdata.mongodb.mongo_roll_state_storage import mongoRollStateData
+from sysdata.mongodb.mongo_position_by_contract import mongoContractPositionData
+from sysdata.mongodb.mongo_positions_by_strategy import mongoStrategyPositionData
+from sysdata.mongodb.mongo_optimal_position import mongoOptimalPositionData
+
 from sysproduction.data.contracts import missing_contract
 from sysproduction.data.get_data import dataBlob
 
@@ -18,8 +23,8 @@ class diagPositions(object):
         if data is arg_not_supplied:
             data = dataBlob()
 
-        data.add_class_list(
-            "mongoRollStateData mongoContractPositionData mongoStrategyPositionData"
+        data.add_class_list([
+            mongoRollStateData, mongoContractPositionData, mongoStrategyPositionData]
         )
         self.data = data
         self.log = data.log
@@ -150,7 +155,7 @@ class dataOptimalPositions(object):
         if data is arg_not_supplied:
             data = dataBlob()
 
-        data.add_class_list("mongoOptimalPositionData")
+        data.add_class_object(mongoOptimalPositionData)
         self.data = data
         self.log = data.log
 
@@ -209,7 +214,7 @@ class updatePositions(object):
             data = dataBlob()
 
         data.add_class_list(
-            "mongoRollStateData mongoContractPositionData mongoStrategyPositionData mongoOptimalPositionData"
+            [mongoRollStateData, mongoContractPositionData, mongoStrategyPositionData, mongoOptimalPositionData]
         )
         self.data = data
         self.log = data.log

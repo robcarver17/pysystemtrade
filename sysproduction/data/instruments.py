@@ -1,7 +1,10 @@
 import datetime
 
-from sysproduction.data.get_data import dataBlob
 from syscore.objects import arg_not_supplied
+
+from sysdata.mongodb.mongo_futures_instruments import mongoFuturesInstrumentData
+
+from sysproduction.data.get_data import dataBlob
 from sysproduction.data.currency_data import currencyData, currencyValue
 
 
@@ -11,7 +14,7 @@ class diagInstruments(object):
         if data is arg_not_supplied:
             data = dataBlob()
 
-        data.add_class_list(" mongoFuturesInstrumentData")
+        data.add_class_object(mongoFuturesInstrumentData)
         self.data = data
 
     def get_point_size(self, instrument_code):

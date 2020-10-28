@@ -1,8 +1,8 @@
 import datetime
 from syscore.dateutils import SECONDS_PER_DAY
-from syscore.objects import arg_not_supplied
 from syslogdiag.emailing import send_mail_msg
 
+from sysdata.mongodb.mongo_email_control import mongoEmailControlData
 
 def send_production_mail_msg(data, body, subject, report=False):
     """
@@ -134,7 +134,7 @@ class dataEmailControl:
         # Check data has the right elements to do this
         # uniquely, we don't allow a default data or this causes circular
         # imports
-        data.add_class_list("mongoEmailControlData")
+        data.add_class_list([mongoEmailControlData])
         self.data = data
 
     def get_time_last_email_sent_with_this_subject(self, subject):

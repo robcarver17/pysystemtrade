@@ -2,12 +2,15 @@ import datetime
 
 from syscore.objects import missing_contract, arg_not_supplied
 
+from sysdata.arctic.arctic_futures_per_contract_prices import arcticFuturesContractPriceData
+from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesData
+from sysdata.mongodb.mongo_roll_data import mongoRollParametersData
+from sysdata.mongodb.mongo_futures_contracts import mongoFuturesContractData
 from sysdata.futures.rolls import contractDateWithRollParameters
 from sysdata.futures.contracts import futuresContract
 
 from sysproduction.data.prices import get_valid_instrument_code_from_user, diagPrices
 from sysproduction.data.get_data import dataBlob
-
 
 missing_expiry = datetime.datetime(1900, 1, 1)
 
@@ -18,9 +21,9 @@ class diagContracts(object):
         if data is arg_not_supplied:
             data = dataBlob()
 
-        data.add_class_list(
-            "arcticFuturesContractPriceData mongoRollParametersData \
-                            arcticFuturesMultiplePricesData mongoFuturesContractData"
+        data.add_class_list([
+            arcticFuturesContractPriceData, mongoRollParametersData,
+                            arcticFuturesMultiplePricesData, mongoFuturesContractData]
         )
         self.data = data
 
@@ -280,7 +283,7 @@ class updateContracts(object):
         if data is arg_not_supplied:
             data = dataBlob()
 
-        data.add_class_list("mongoFuturesContractData")
+        data.add_class_object(mongoFuturesContractData)
         self.data = data
 
     def add_contract_data(self, contract, ignore_duplication=False):
