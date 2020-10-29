@@ -1,12 +1,13 @@
 import pandas as pd
 from syscore.fileutils import get_filename_for_package
-from syscore.genutils import value_or_npnan, NOT_REQUIRED
+from syscore.genutils import value_or_npnan
 
 from sysdata.futures.contracts import futuresContractData
 from sysobjects.instruments import futuresInstrument
 from sysdata.futures.contract_dates_and_expiries import expiryDate
 from syslogdiag.log import logtoscreen
 from syscore.objects import missing_contract, missing_instrument, missing_file
+from sysbrokers.IB.ib_contracts import futuresInstrumentWithIBData, NOT_REQUIRED_FOR_IB, ibInstrumentData
 
 IB_FUTURES_CONFIG_FILE = get_filename_for_package(
     "sysbrokers.IB.ib_config_futures.csv")
@@ -29,8 +30,8 @@ class ibFuturesContractData(futuresContractData):
         return "IB Futures per contract data %s" % str(self.ibconnection)
 
     def get_brokers_instrument_code(self, instrument_code):
-        return get_instrument_object_from_config(
-            instrument_code).meta_data["symbol"]
+        futures_instrument_with_ib_data = self.get_futures_instrument_object_with_IB_data(instrument_code)
+        return futures_instrument_with_ib_data.broker_symbol()
 
     def get_instrument_code_from_broker_code(self, ib_code):
         config = self._get_ib_config()
@@ -146,21 +147,21 @@ class ibFuturesContractData(futuresContractData):
 
     def get_contract_object_with_IB_metadata(self, contract_object):
 
-        new_instrument_object = self.get_instrument_object_with_IB_metadata(
+        futures_instrument_with_ib_data = self.get_futures_instrument_object_with_IB_data(
             contract_object.instrument_code
         )
-        if new_instrument_object is missing_instrument:
+        if futures_instrument_with_ib_data is missing_instrument:
             return missing_contract
 
         contract_object_with_ib_data = (
             contract_object.new_contract_with_replaced_instrument_object(
-                new_instrument_object
+                futures_instrument_with_ib_data
             )
         )
 
         return contract_object_with_ib_data
 
-    def get_instrument_object_with_IB_metadata(self, instrument_code):
+    def get_futures_instrument_object_with_IB_data(self, instrument_code) ->futuresInstrumentWithIBData:
         new_log = self.log.setup(instrument_code=instrument_code)
 
         try:
@@ -242,31 +243,30 @@ class ibFuturesContractData(futuresContractData):
         raise NotImplementedError("IB is ready only")
 
 
-def get_instrument_object_from_config(instrument_code, config=None):
+def get_instrument_object_from_config(instrument_code: str, config=None) ->futuresInstrumentWithIBData:
     if config is None:
         config = get_ib_config()
     config_row = config[config.Instrument == instrument_code]
     symbol = config_row.IBSymbol.values[0]
     exchange = config_row.IBExchange.values[0]
-    currency = value_or_npnan(config_row.IBCurrency.values[0], NOT_REQUIRED)
+    currency = value_or_npnan(config_row.IBCurrency.values[0], NOT_REQUIRED_FOR_IB)
     ib_multiplier = value_or_npnan(
-        config_row.IBMultiplier.values[0], NOT_REQUIRED)
+        config_row.IBMultiplier.values[0], NOT_REQUIRED_FOR_IB)
     my_multiplier = value_or_npnan(
-        config_row.MyMultiplier.values[0], NOT_REQUIRED)
+        config_row.MyMultiplier.values[0], 1.0)
     ignore_weekly = config_row.IgnoreWeekly.values[0]
 
     # We use the flexibility of futuresInstrument to add additional arguments
-    instrument_config = futuresInstrument(
-        instrument_code,
-        symbol=symbol,
-        exchange=exchange,
-        currency=currency,
+    instrument = futuresInstrument(instrument_code)
+    ib_data = ibInstrumentData(symbol, exchange, currency=currency,
         ibMultiplier=ib_multiplier,
         myMultiplier=my_multiplier,
-        ignoreWeekly=ignore_weekly,
-    )
+        ignoreWeekly=ignore_weekly
+        )
 
-    return instrument_config
+    futures_instrument_with_ib_data = futuresInstrumentWithIBData(instrument, ib_data)
+
+    return futures_instrument_with_ib_data
 
 
 def get_ib_config():

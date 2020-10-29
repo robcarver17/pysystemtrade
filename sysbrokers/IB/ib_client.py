@@ -18,6 +18,7 @@ from sysbrokers.IB.ib_contracts import (
     ib_futures_instrument,
     resolve_multiple_expiries,
     ib_futures_instrument_just_symbol,
+    futuresInstrumentWithIBData
 )
 from sysbrokers.IB.ib_positions import (
     from_ib_positions_to_dict,
@@ -130,14 +131,14 @@ class ibClient(object):
         return dict_of_positions
 
     def broker_get_futures_contract_list(
-            self, instrument_object_with_ib_config):
+            self, futures_instrument_with_ib_data: futuresInstrumentWithIBData):
 
         specific_log = self.log.setup(
-            instrument_code=instrument_object_with_ib_config.instrument_code
+            instrument_code=futures_instrument_with_ib_data.instrument_code
         )
 
         ibcontract_pattern = ib_futures_instrument(
-            instrument_object_with_ib_config)
+            futures_instrument_with_ib_data)
         contract_list = self.ib_get_contract_chain(
             ibcontract_pattern, log=specific_log)
         # if no contracts found will be empty
@@ -718,7 +719,7 @@ class ibClient(object):
         return ibcontract_with_legs
 
     def _get_vanilla_ib_futures_contract(
-        self, instrument_object_with_metadata, contract_date
+        self, futures_instrument_with_ib_data: futuresInstrumentWithIBData, contract_date
     ):
         """
         Return a complete and unique IB contract that matches contract_object_with_ib_data
@@ -729,7 +730,7 @@ class ibClient(object):
         """
 
         # The contract date might be 'yyyymm' or 'yyyymmdd'
-        ibcontract = ib_futures_instrument(instrument_object_with_metadata)
+        ibcontract = ib_futures_instrument(futures_instrument_with_ib_data)
 
         contract_day_passed = contract_date.is_day_defined()
         if contract_day_passed:
@@ -758,12 +759,12 @@ class ibClient(object):
             # We need to find the right one
             try:
                 resolved_contract = resolve_multiple_expiries(
-                    ibcontract_list, instrument_object_with_metadata
+                    ibcontract_list, futures_instrument_with_ib_data
                 )
             except Exception as exception:
                 self.log.warn(
                     "%s could not resolve contracts: %s"
-                    % (str(instrument_object_with_metadata), exception.args[0])
+                    % (str(futures_instrument_with_ib_data), exception.args[0])
                 )
 
                 return missing_contract
@@ -772,7 +773,7 @@ class ibClient(object):
 
     def _get_spread_ib_futures_contract(
         self,
-        instrument_object_with_metadata,
+        futures_instrument_with_ib_data: futuresInstrumentWithIBData,
         list_of_contract_dates,
         trade_list_for_multiple_legs=[-1, 1],
     ):
@@ -784,12 +785,12 @@ class ibClient(object):
         :return: a single ib contract object
         """
         # Convert to IB world
-        ibcontract = ib_futures_instrument(instrument_object_with_metadata)
+        ibcontract = ib_futures_instrument(futures_instrument_with_ib_data)
         ibcontract.secType = "BAG"
 
         resolved_legs = [
             self._get_vanilla_ib_futures_contract(
-                instrument_object_with_metadata, contract_date
+                futures_instrument_with_ib_data, contract_date
             )
             for contract_date in list_of_contract_dates
         ]
