@@ -266,37 +266,6 @@ class ibTickerObject(tickerObject):
         return self.ticker.askSize
 
 
-def get_instrument_object_from_config(instrument_code, config=None):
-    if config is None:
-        config = get_ib_config()
-    config_row = config[config.Instrument == instrument_code]
-    symbol = config_row.IBSymbol.values[0]
-    exchange = config_row.IBExchange.values[0]
-    currency = value_or_npnan(config_row.IBCurrency.values[0], NOT_REQUIRED)
-    ib_multiplier = value_or_npnan(
-        config_row.IBMultiplier.values[0], NOT_REQUIRED)
-    my_multiplier = value_or_npnan(
-        config_row.MyMultiplier.values[0], NOT_REQUIRED)
-    ignore_weekly = config_row.IgnoreWeekly.values[0]
-
-    # We use the flexibility of futuresInstrument to add additional arguments
-    instrument_config = futuresInstrument(
-        instrument_code,
-        symbol=symbol,
-        exchange=exchange,
-        currency=currency,
-        ibMultiplier=ib_multiplier,
-        myMultiplier=my_multiplier,
-        ignoreWeekly=ignore_weekly,
-    )
-
-    return instrument_config
-
-
-def get_ib_config():
-    return pd.read_csv(IB_FUTURES_CONFIG_FILE)
-
-
 def from_ib_bid_ask_tick_data_to_dataframe(tick_data):
     """
 

@@ -20,6 +20,20 @@ from sysdata.csv.csv_optimal_position import csvOptimalPositionData
 from sysdata.csv.csv_instrument_config import csvFuturesInstrumentData
 from sysdata.csv.csv_roll_state_storage import csvRollStateData
 
+from sysdata.arctic.arctic_futures_per_contract_prices import arcticFuturesContractPriceData
+from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesData
+from sysdata.arctic.arctic_adjusted_prices import arcticFuturesAdjustedPricesData
+from sysdata.arctic.arctic_spotfx_prices import arcticFxPricesData
+
+from sysdata.mongodb.mongo_futures_contracts import mongoFuturesContractData
+from sysdata.mongodb.mongo_position_by_contract import mongoContractPositionData
+from sysdata.mongodb.mongo_positions_by_strategy import mongoStrategyPositionData
+from sysdata.mongodb.mongo_historic_orders import mongoBrokerHistoricOrdersData, mongoContractHistoricOrdersData, mongoStrategyHistoricOrdersData
+from sysdata.mongodb.mongo_capital import mongoCapitalData
+from sysdata.mongodb.mongo_futures_instruments import mongoFuturesInstrumentData
+from sysdata.mongodb.mongo_optimal_position import mongoOptimalPositionData
+from sysdata.mongodb.mongo_roll_data import mongoRollParametersData
+from sysdata.mongodb.mongo_roll_state_storage import mongoRollStateData
 
 
 def backup_arctic_to_csv():
@@ -95,6 +109,14 @@ def get_data_and_create_csv_directories(logname):
                         csvRollStateData, csvFuturesContractData]
     )
 
+    data.add_class_list([
+        arcticFuturesContractPriceData, arcticFuturesMultiplePricesData,
+                        arcticFuturesAdjustedPricesData, arcticFxPricesData,
+                        mongoContractPositionData, mongoStrategyPositionData,
+                        mongoBrokerHistoricOrdersData, mongoContractHistoricOrdersData, mongoStrategyHistoricOrdersData,
+                        mongoCapitalData, mongoFuturesContractData, mongoFuturesInstrumentData,
+                        mongoOptimalPositionData, mongoRollParametersData, mongoRollStateData]
+    )
 
     return data
 
