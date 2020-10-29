@@ -30,10 +30,11 @@ class futuresInstrumentWithIBData(object):
     instrument: futuresInstrument
     ib_data: ibInstrumentData
 
+    @property
     def instrument_code(self):
         return self.instrument.instrument_code
 
-
+    @property
     def broker_symbol(self):
         return self.ib_data.symbol
 

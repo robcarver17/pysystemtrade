@@ -31,7 +31,7 @@ class ibFuturesContractData(futuresContractData):
 
     def get_brokers_instrument_code(self, instrument_code):
         futures_instrument_with_ib_data = self.get_futures_instrument_object_with_IB_data(instrument_code)
-        return futures_instrument_with_ib_data.broker_symbol()
+        return futures_instrument_with_ib_data.broker_symbol
 
     def get_instrument_code_from_broker_code(self, ib_code):
         config = self._get_ib_config()
