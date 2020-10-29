@@ -75,6 +75,10 @@ class stackHandlerCreateBrokerOrders(stackHandlerCore):
 
         contract_order = check_and_if_required_allocate_algo_to_single_contract_order(
             self.data, contract_order)
+
+        log = contract_order.log_with_attributes(self.log)
+        log.msg("Sending order %s to algo %s" % (str(contract_order), contract_order.algo_to_use))
+
         algo_class_to_call = self.resolve_algo(contract_order)
         algo_instance = algo_class_to_call(self.data, contract_order)
 
@@ -109,8 +113,6 @@ class stackHandlerCreateBrokerOrders(stackHandlerCore):
         instrument_locked = data_locks.is_instrument_locked(
             original_contract_order.instrument_code
         )
-        if instrument_locked:
-            return missing_order
 
         # CHECK IF OPEN
         if check_if_open:
@@ -125,9 +127,6 @@ class stackHandlerCreateBrokerOrders(stackHandlerCore):
 
         # RESIZE
         contract_order = self.size_contract_order(original_contract_order)
-
-        if contract_order.is_zero_trade():
-            return missing_order
 
         return contract_order
 
