@@ -14,7 +14,7 @@ def ib_futures_instrument_just_symbol(symbol):
 NOT_REQUIRED_FOR_IB = ""
 
 @dataclass
-class ibInstrumentData(frozen = True):
+class ibInstrumentData:
     symbol: str
     exchange: str
     currency: str = NOT_REQUIRED_FOR_IB
