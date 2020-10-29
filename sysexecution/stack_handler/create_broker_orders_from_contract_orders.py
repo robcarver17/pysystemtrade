@@ -126,6 +126,9 @@ class stackHandlerCreateBrokerOrders(stackHandlerCore):
         # RESIZE
         contract_order = self.size_contract_order(original_contract_order)
 
+        if contract_order.is_zero_trade():
+            return missing_order
+
         return contract_order
 
     def size_contract_order(self, original_contract_order):
