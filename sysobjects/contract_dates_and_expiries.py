@@ -158,6 +158,10 @@ class contractDate(object):
     def expiry_date(self):
         return self._expiry_date
 
+    # not using a setter as shouldn't be done casually
+    def update_expiry_date(self, expiry_date: expiryDate):
+        self._expiry_date = expiry_date
+
     def as_dict(self):
         expiry_date = self.expiry_date.as_tuple()
 
