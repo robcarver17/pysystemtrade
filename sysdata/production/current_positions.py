@@ -108,6 +108,9 @@ class contractPosition(Position):
     def contract_object(self):
         return self._tradeable_object
 
+    @property
+    def expiry(self):
+        return self._tradeable_object.expiry_date
 
 class listOfPositions(list):
     def __repr__(self):
@@ -287,9 +290,12 @@ class listOfContractPositions(listOfPositions):
         instrument_code_list = [str(position.instrument_code)
                                 for position in self]
         contract_id_list = [str(position.contract_date) for position in self]
+        expiry_date_list = [str(position.expiry_date) for position in self]
         id_column_dict = dict(
             instrument_code=instrument_code_list,
-            contract_date=contract_id_list)
+            contract_date=contract_id_list,
+            expiry_date = expiry_date_list)
+
         return id_column_dict
 
     def sum_for_instrument(self):
@@ -300,6 +306,8 @@ class listOfContractPositions(listOfPositions):
         """
 
         return sum_for_instrument(self)
+
+
 
 
 def sum_for_instrument(list_of_positions):
