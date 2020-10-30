@@ -124,9 +124,9 @@ class contractDate(object):
 
         if contract_id[DAY_SLICE] == "00":
             self._init_with_yymm(contract_id[YYYYMM_SLICE])
-
-        self.contract_date = contract_id
-        self._only_has_month = False
+        else:
+            self.contract_date = contract_id
+            self._only_has_month = False
 
 
     # Hidden setter only used in init
