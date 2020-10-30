@@ -109,7 +109,7 @@ class contractPosition(Position):
         return self._tradeable_object
 
     @property
-    def expiry(self):
+    def expiry_date(self):
         return self._tradeable_object.expiry_date
 
 class listOfPositions(list):
