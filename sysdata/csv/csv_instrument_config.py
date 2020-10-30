@@ -1,6 +1,6 @@
 from syscore.fileutils import get_filename_for_package
 from sysdata.futures.instruments import futuresInstrumentData
-from sysobjects.instruments import futuresInstrument
+from sysobjects.instruments import futuresInstrument, futuresInstrumentWithMetaData, instrumentMetaData
 from syslogdiag.log import logtoscreen
 import pandas as pd
 
@@ -68,10 +68,11 @@ class csvFuturesInstrumentData(futuresInstrumentData):
                 for item_name in config_items
             ]
         )
-        instrument_object = futuresInstrument(instrument_code, **meta_data)
-        print(instrument_object)
+        instrument = futuresInstrument(instrument_code)
+        meta_data = instrumentMetaData.from_dict(meta_data)
+        instrument_with_meta_data = futuresInstrumentWithMetaData(instrument, meta_data)
 
-        return instrument_object
+        return instrument_with_meta_data
 
     def write_all_instrument_data(self, instrument_data):
         instrument_data.to_csv(self._config_file, index_label="Instrument")

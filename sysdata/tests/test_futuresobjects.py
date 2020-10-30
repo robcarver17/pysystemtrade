@@ -6,7 +6,7 @@ from sysdata.futures.rolls import (
     rollParameters,
     contractDateWithRollParameters,
 )
-from sysdata.futures.contract_dates_and_expiries import contractDate
+from sysobjects.contract_dates_and_expiries import contractDate
 from sysdata.futures.contracts import futuresContract, listOfFuturesContracts
 from sysobjects.instruments import futuresInstrument
 
@@ -234,10 +234,10 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(contract_date20180115.day(), 15)
 
         self.assertEqual(contract_date201801.letter_month(), "F")
-        self.assertEqual(contract_date201801.as_date(),
+        self.assertEqual(contract_date201801._as_date(),
                          datetime.datetime(2018, 1, 1))
         self.assertEqual(
-            contract_date20180115.as_date(), datetime.datetime(2018, 1, 15)
+            contract_date20180115._as_date(), datetime.datetime(2018, 1, 15)
         )
 
         # check date comparision

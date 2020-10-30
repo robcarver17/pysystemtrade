@@ -3,7 +3,7 @@ Read / write and represent instrument data
 """
 
 from sysdata.data import baseData
-from sysobjects.instruments import futuresInstrument
+from sysobjects.instruments import futuresInstrumentWithMetaData
 
 USE_CHILD_CLASS_ERROR = "You need to use a child class of futuresInstrumentData"
 
@@ -33,7 +33,7 @@ class futuresInstrumentData(baseData):
         if self.is_code_in_data(instrument_code):
             return self._get_instrument_data_without_checking(instrument_code)
         else:
-            return futuresInstrument.create_empty()
+            return futuresInstrumentWithMetaData.create_empty()
 
     def _get_instrument_data_without_checking(self, instrument_code):
         raise NotImplementedError(USE_CHILD_CLASS_ERROR)

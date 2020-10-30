@@ -4,7 +4,7 @@ from syscore.genutils import value_or_npnan
 
 from sysdata.futures.contracts import futuresContractData
 from sysobjects.instruments import futuresInstrument
-from sysdata.futures.contract_dates_and_expiries import expiryDate
+from sysobjects.contract_dates_and_expiries import expiryDate
 from syslogdiag.log import logtoscreen
 from syscore.objects import missing_contract, missing_instrument, missing_file
 from sysbrokers.IB.ib_contracts import futuresInstrumentWithIBData, NOT_REQUIRED_FOR_IB, ibInstrumentData

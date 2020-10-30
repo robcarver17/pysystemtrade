@@ -1,7 +1,7 @@
 import pandas as pd
 
 from sysdata.futures.instruments import futuresInstrumentData
-from sysobjects.instruments import futuresInstrument
+from sysobjects.instruments import  futuresInstrumentWithMetaData
 from sysdata.mongodb.mongo_connection import (
     mongoConnection,
     MONGO_ID_KEY,
@@ -62,7 +62,7 @@ class mongoFuturesInstrumentData(futuresInstrumentData):
         ]
 
         meta_data_keys = [
-            instrument_object.meta_data.keys()
+            instrument_object.meta_data.as_dict().keys()
             for instrument_object in all_instrument_objects
         ]
         meta_data_keys_flattened = [
@@ -75,7 +75,7 @@ class mongoFuturesInstrumentData(futuresInstrumentData):
                 (
                     metadata_name,
                     [
-                        instrument_object.meta_data[metadata_name]
+                        getattr(instrument_object.meta_data, metadata_name)
                         for instrument_object in all_instrument_objects
                     ],
                 )
@@ -96,7 +96,7 @@ class mongoFuturesInstrumentData(futuresInstrumentData):
         )
         result_dict.pop(MONGO_ID_KEY)
 
-        instrument_object = futuresInstrument.create_from_dict(result_dict)
+        instrument_object = futuresInstrumentWithMetaData.from_dict(result_dict)
 
         return instrument_object
 

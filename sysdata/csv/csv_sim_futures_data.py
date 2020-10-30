@@ -125,7 +125,7 @@ class csvFuturesConfigDataForSim(csvPaths, futuresConfigDataForSim):
         :returns: pd.DataFrame
 
         >>> data=csvFuturesConfigDataForSim(datapath_dict=dict(config_data = "sysdata.tests.configtestdata"))
-        >>> data.get_raw_cost_data("EDOLLAR")['price_slippage']
+        >>> data.get_raw_cost_data("EDOLLAR").meta_data.price_slippage
         0.0025000000000000001
         """
 

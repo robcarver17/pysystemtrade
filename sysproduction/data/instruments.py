@@ -18,10 +18,10 @@ class diagInstruments(object):
         self.data = data
 
     def get_point_size(self, instrument_code):
-        return self.get_meta_data(instrument_code)["Pointsize"]
+        return self.get_meta_data(instrument_code).Pointsize
 
     def get_currency(self, instrument_code):
-        return self.get_meta_data(instrument_code)["Currency"]
+        return self.get_meta_data(instrument_code).Currency
 
     def get_point_size_base_currency(self, instrument_code):
         point_size_instrument_currency = self.get_point_size(instrument_code)
@@ -36,10 +36,10 @@ class diagInstruments(object):
         return value
 
     def get_asset_class(self, instrument_code):
-        return self.get_meta_data(instrument_code)["AssetClass"]
+        return self.get_meta_data(instrument_code).AssetClass
 
     def get_description(self, instrument_code):
-        return self.get_meta_data(instrument_code)["Description"]
+        return self.get_meta_data(instrument_code).Description
 
     def get_meta_data(self, instrument_code):
         return self.data.db_futures_instrument.get_instrument_data(

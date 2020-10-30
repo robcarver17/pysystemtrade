@@ -5,11 +5,10 @@ import pandas as pd
 from copy import copy
 
 from syscore.dateutils import (
-    contract_month_from_number,
     month_from_contract_letter,
     MONTH_LIST,
 )
-from sysdata.futures.contract_dates_and_expiries import (
+from sysobjects.contract_dates_and_expiries import (
     contractDate,
     from_contract_numbers_to_contract_string,
     NO_DAY_PASSED,

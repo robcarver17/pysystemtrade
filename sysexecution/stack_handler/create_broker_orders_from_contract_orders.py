@@ -113,6 +113,8 @@ class stackHandlerCreateBrokerOrders(stackHandlerCore):
         instrument_locked = data_locks.is_instrument_locked(
             original_contract_order.instrument_code
         )
+        if instrument_locked:
+            return missing_order
 
         # CHECK IF OPEN
         if check_if_open:

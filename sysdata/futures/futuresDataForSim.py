@@ -166,10 +166,10 @@ class futuresConfigDataForSim(simData):
             return self._get_default_costs()
 
         cost_dict = dict(
-            price_slippage=cost_data_object.meta_data["Slippage"],
-            value_of_block_commission=cost_data_object.meta_data["PerBlock"],
-            percentage_cost=cost_data_object.meta_data["Percentage"],
-            value_of_pertrade_commission=cost_data_object.meta_data["PerTrade"],
+            price_slippage=cost_data_object.meta_data.Slippage,
+            value_of_block_commission=cost_data_object.meta_data.PerBlock,
+            percentage_cost=cost_data_object.meta_data.Percentage,
+            value_of_pertrade_commission=cost_data_object.meta_data.PerTrade,
         )
 
         return cost_dict
@@ -216,7 +216,8 @@ class futuresConfigDataForSim(simData):
         """
 
         instr_object = self.get_instrument_object(instrument_code)
-        block_move_value = instr_object.meta_data["Pointsize"]
+        meta_data = instr_object.meta_data
+        block_move_value = meta_data.Pointsize
 
         return block_move_value
 
@@ -231,7 +232,8 @@ class futuresConfigDataForSim(simData):
 
         """
         instr_object = self.get_instrument_object(instrument_code)
-        currency = instr_object.meta_data["Currency"]
+        meta_data = instr_object.meta_data
+        currency = meta_data.Currency
 
         return currency
 

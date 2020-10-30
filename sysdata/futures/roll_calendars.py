@@ -1,5 +1,5 @@
 from sysdata.data import baseData
-from sysdata.futures.contract_dates_and_expiries import contractDate
+from sysobjects.contract_dates_and_expiries import contractDate
 from sysdata.futures.roll_parameters_with_price_data import (
     rollParametersWithPriceData,
     contractWithRollParametersAndPrices,
@@ -8,7 +8,6 @@ from sysdata.futures.rolls import contractDateWithRollParameters
 
 import pandas as pd
 import numpy as np
-import datetime
 
 
 class rollCalendar(pd.DataFrame):

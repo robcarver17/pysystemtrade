@@ -1,11 +1,9 @@
-from syscore.dateutils import month_from_contract_letter
-from sysdata.futures.contract_dates_and_expiries import contractDate
+from sysobjects.contract_dates_and_expiries import contractDate
 from sysdata.futures.rolls import contractDateWithRollParameters
 from sysobjects.instruments import futuresInstrument
 from sysdata.futures.trading_hours import manyTradingStartAndEnd
 
 from sysdata.data import baseData
-from copy import copy
 import datetime
 
 NO_ROLL_CYCLE_PASSED = object()

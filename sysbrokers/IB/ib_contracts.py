@@ -1,6 +1,5 @@
-from dataclasses import astuple, dataclass
+from dataclasses import  dataclass
 
-from syscore.genutils import NOT_REQUIRED
 from ib_insync import Future
 import re
 
@@ -26,7 +25,6 @@ class ibInstrumentData:
 
 @dataclass
 class futuresInstrumentWithIBData(object):
-    ## USE THIS CLASS TO REPLACE 'with meta data'
     instrument: futuresInstrument
     ib_data: ibInstrumentData
 
