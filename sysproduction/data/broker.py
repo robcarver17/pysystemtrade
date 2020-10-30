@@ -157,10 +157,7 @@ class dataBroker(object):
         return original_position_list
 
     def get_list_of_breaks_between_broker_and_db_contract_positions(self):
-        diag_positions = diagPositions(self.data)
-        db_contract_positions = diag_positions.get_all_current_contract_positions()
-        db_contract_positions = self.update_expiries_for_position_list_with_IB_expiries(
-            db_contract_positions)
+        db_contract_positions = self.get_db_contract_positions_with_IB_expiries()
         broker_contract_positions = self.get_all_current_contract_positions()
 
         break_list = db_contract_positions.return_list_of_breaks(
@@ -168,6 +165,14 @@ class dataBroker(object):
         )
 
         return break_list
+
+    def get_db_contract_positions_with_IB_expiries(self):
+        diag_positions = diagPositions(self.data)
+        db_contract_positions = diag_positions.get_all_current_contract_positions()
+        db_contract_positions = self.update_expiries_for_position_list_with_IB_expiries(
+            db_contract_positions)
+
+        return db_contract_positions
 
     def get_ticker_object_for_order(self, order):
         ticker_object = (

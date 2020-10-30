@@ -764,7 +764,7 @@ def view_positions(data):
     data_optimal = dataOptimalPositions(data)
     ans0 = data_optimal.get_pd_of_position_breaks()
     ans1 = diag_positions.get_all_current_strategy_instrument_positions()
-    ans2 = diag_positions.get_all_current_contract_positions()
+    ans2 = data_broker.get_db_contract_positions_with_IB_expiries()
     ans3 = data_broker.get_all_current_contract_positions()
     print("Optimal vs actual")
     print(ans0.sort_values("breaks"))

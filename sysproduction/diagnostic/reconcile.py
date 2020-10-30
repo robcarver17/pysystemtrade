@@ -107,8 +107,8 @@ def get_optimal_positions(data):
 
 
 def get_my_positions(data):
-    diag_positions = diagPositions(data)
-    my_positions = diag_positions.get_all_current_contract_positions().as_pd_df()
+    data_broker = dataBroker(data)
+    my_positions = data_broker.get_db_contract_positions_with_IB_expiries().as_pd_df()
     my_positions = my_positions.sort_values("instrument_code")
 
     return my_positions
