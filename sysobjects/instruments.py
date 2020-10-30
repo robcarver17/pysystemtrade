@@ -18,6 +18,8 @@ class futuresInstrument(object):
         ## WANT TO GET RID OF
         return futuresInstrument(input_dict['instrument_code'])
 
+    def __eq__(self, other):
+        return self.instrument_code == other.instrument_code
 
 @dataclass
 class instrumentMetaData:
