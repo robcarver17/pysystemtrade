@@ -179,6 +179,10 @@ class contractDate(object):
         # needs to match output from as_dict
 
         expiry_date = results_dict.get("expiry_date", NO_EXPIRY_DATE_PASSED)
+
+        if expiry_date is not NO_EXPIRY_DATE_PASSED:
+            expiry_date = expiryDate(expiry_date)
+
         contract_id = results_dict["contract_date"]
 
         return contractDate(
