@@ -181,7 +181,7 @@ class contractDate(object):
         expiry_date = results_dict.get("expiry_date", NO_EXPIRY_DATE_PASSED)
 
         if expiry_date is not NO_EXPIRY_DATE_PASSED:
-            expiry_date = expiryDate(expiry_date)
+            expiry_date = expiryDate(*expiry_date)
 
         contract_id = results_dict["contract_date"]
 
