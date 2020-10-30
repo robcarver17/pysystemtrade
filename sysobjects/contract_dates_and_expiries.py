@@ -163,6 +163,7 @@ class contractDate(object):
         self._expiry_date = expiry_date
 
     def as_dict(self):
+        ## safe, db independent way of storing expiry dates
         expiry_date = self.expiry_date.as_tuple()
 
         # we do this so that we can init the object again from this with the

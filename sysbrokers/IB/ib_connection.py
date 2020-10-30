@@ -14,7 +14,7 @@ from syscore.objects import arg_not_supplied, missing_data, Singleton
 
 from sysdata.private_config import get_list_of_private_then_default_key_values, get_private_then_default_key_value
 from syslogdiag.log import logtoscreen
-from sysdata.mongodb.mongo_connection import mongoConnection, mongoDb
+from sysdata.mongodb.mongo_connection import mongoConnection, mongo_db_global_instance
 
 DEFAULT_IB_IPADDRESS = "127.0.0.1"
 DEFAULT_IB_PORT = 4001
@@ -165,7 +165,7 @@ class mongoIBclientIDtracker(object):
     ):
 
         if mongo_db is arg_not_supplied:
-            mongo_db = mongoDb()
+            mongo_db = mongo_db_global_instance
 
         if idoffset is arg_not_supplied:
             _notused_ipaddress, _notused_port, idoffset = ib_defaults()

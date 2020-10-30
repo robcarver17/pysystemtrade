@@ -51,7 +51,7 @@ def mongo_defaults(**kwargs):
 
 
 
-class mongoDb(Singleton):
+class _mongoDb():
     """
     Keeps track of mongo database we are connected to
 
@@ -82,6 +82,7 @@ class mongoDb(Singleton):
     def close(self):
         self.client.close()
 
+mongo_db_global_instance = _mongoDb()
 
 class mongoConnection(object):
     """
@@ -92,7 +93,7 @@ class mongoConnection(object):
     def __init__(self, collection_name, mongo_db=None):
 
         if mongo_db is None:
-            mongo_db = mongoDb()
+            mongo_db = mongo_db_global_instance
 
         database_name = mongo_db.database_name
         host = mongo_db.host

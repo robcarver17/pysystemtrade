@@ -14,7 +14,7 @@ from sysdata.futures.futuresDataForSim import (
 from sysdata.arctic.arctic_adjusted_prices import arcticFuturesAdjustedPricesData
 from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesData
 from sysdata.arctic.arctic_spotfx_prices import arcticFxPricesData
-from sysdata.mongodb.mongo_connection import mongoDb
+from sysdata.mongodb.mongo_connection import mongo_db_global_instance
 from sysdata.mongodb.mongo_futures_instruments import mongoFuturesInstrumentData
 
 from syslogdiag.log import logtoscreen as logger
@@ -33,7 +33,7 @@ class dbconnections(simData):
 
         super().__init__()
         if mongo_db is arg_not_supplied:
-            mongo_db = mongoDb()
+            mongo_db = mongo_db_global_instance
 
         self.log = log
         self.mongo_db = mongo_db
