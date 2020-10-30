@@ -141,7 +141,7 @@ class ibFuturesContractData(futuresContractData):
             return missing_contract
         else:
             expiry_date = expiryDate.from_str(
-                expiry_date, date_format="%Y%m%d")
+                expiry_date)
 
         return expiry_date
 
