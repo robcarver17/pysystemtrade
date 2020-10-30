@@ -3,7 +3,6 @@ from copy import copy
 import numpy as np
 
 from syscore.genutils import get_safe_from_dict
-from syscore.objects import Singleton
 from sysdata.private_config import get_list_of_private_then_default_key_values
 
 LIST_OF_MONGO_PARAMS = ["db", "host"]
@@ -51,7 +50,7 @@ def mongo_defaults(**kwargs):
 
 
 
-class _mongoDb():
+class mongoDb():
     """
     Keeps track of mongo database we are connected to
 
@@ -82,7 +81,6 @@ class _mongoDb():
     def close(self):
         self.client.close()
 
-mongo_db_global_instance = _mongoDb()
 
 class mongoConnection(object):
     """
@@ -93,7 +91,7 @@ class mongoConnection(object):
     def __init__(self, collection_name, mongo_db=None):
 
         if mongo_db is None:
-            mongo_db = mongo_db_global_instance
+            mongo_db = mongoDb()
 
         database_name = mongo_db.database_name
         host = mongo_db.host

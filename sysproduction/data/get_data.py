@@ -5,7 +5,7 @@ from copy import copy
 
 from sysbrokers.IB.ib_connection import connectionIB
 
-from sysdata.mongodb.mongo_connection import mongo_db_global_instance
+from sysdata.mongodb.mongo_connection import mongoDb
 
 from sysdata.mongodb.mongo_log import logToMongod as logger
 from syscore.objects import arg_not_supplied
@@ -240,7 +240,7 @@ class dataBlob(object):
     def ib_conn(self):
         ib_conn = getattr(self, "_ib_conn", arg_not_supplied)
         if ib_conn is arg_not_supplied:
-            ib_conn = connectionIB()
+            ib_conn = connectionIB(log=self.log, mongo_db=self.mongo_db)
             self._ib_conn = ib_conn
 
         return ib_conn
@@ -249,7 +249,7 @@ class dataBlob(object):
     def mongo_db(self):
         mongo_db = getattr(self, "_mongo_db", arg_not_supplied)
         if mongo_db is arg_not_supplied:
-            mongo_db = mongo_db_global_instance
+            mongo_db = mongoDb()
             self._mongo_db = mongo_db
 
         return mongo_db

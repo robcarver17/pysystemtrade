@@ -10,11 +10,11 @@ from ib_insync import IB
 from sysbrokers.IB.ib_client import ibClient
 from sysbrokers.IB.ib_server import ibServer
 from syscore.genutils import get_safe_from_dict
-from syscore.objects import arg_not_supplied, missing_data, Singleton
+from syscore.objects import arg_not_supplied, missing_data
 
 from sysdata.private_config import get_list_of_private_then_default_key_values, get_private_then_default_key_value
 from syslogdiag.log import logtoscreen
-from sysdata.mongodb.mongo_connection import mongoConnection, mongo_db_global_instance
+from sysdata.mongodb.mongo_connection import mongoConnection, mongoDb
 
 DEFAULT_IB_IPADDRESS = "127.0.0.1"
 DEFAULT_IB_PORT = 4001
@@ -69,7 +69,7 @@ def get_broker_account() -> str:
         return account_id
 
 
-class connectionIB(ibClient, ibServer, Singleton):
+class connectionIB(ibClient, ibServer):
     """
     Connection object for connecting IB
     (A database plug in will need to be added for streaming prices)
@@ -165,7 +165,7 @@ class mongoIBclientIDtracker(object):
     ):
 
         if mongo_db is arg_not_supplied:
-            mongo_db = mongo_db_global_instance
+            mongo_db = mongoDb()
 
         if idoffset is arg_not_supplied:
             _notused_ipaddress, _notused_port, idoffset = ib_defaults()

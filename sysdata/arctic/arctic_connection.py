@@ -1,5 +1,5 @@
 from arctic import Arctic
-from sysdata.mongodb.mongo_connection import mongo_db_global_instance
+from sysdata.mongodb.mongo_connection import mongoDb()
 
 """
 IMPORTANT NOTE: Make sure you have a mongodb running eg mongod --dbpath /home/yourusername/pysystemtrade/data/futures/arctic
@@ -18,7 +18,7 @@ class articConnection(object):
     def __init__(self, collection_name, mongo_db=None):
 
         if mongo_db is None:
-            mongo_db = mongo_db_global_instance
+            mongo_db = mongoDb()
 
         database_name = mongo_db.database_name
         host = mongo_db.host
