@@ -10,7 +10,7 @@ from ib_insync import IB
 from sysbrokers.IB.ib_client import ibClient
 from sysbrokers.IB.ib_server import ibServer
 from syscore.genutils import get_safe_from_dict
-from syscore.objects import arg_not_supplied, missing_data
+from syscore.objects import arg_not_supplied, missing_data, Singleton
 
 from sysdata.private_config import get_list_of_private_then_default_key_values, get_private_then_default_key_value
 from syslogdiag.log import logtoscreen
@@ -69,7 +69,7 @@ def get_broker_account() -> str:
         return account_id
 
 
-class connectionIB(ibClient, ibServer):
+class connectionIB(ibClient, ibServer, Singleton):
     """
     Connection object for connecting IB
     (A database plug in will need to be added for streaming prices)
