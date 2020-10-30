@@ -18,6 +18,10 @@ class futuresInstrument(object):
         ## WANT TO GET RID OF
         return futuresInstrument(input_dict['instrument_code'])
 
+    def as_dict(self):
+        # WANT TO GET RID OF
+        return dict(instrument_code = self.instrument_code)
+
     def __eq__(self, other):
         return self.instrument_code == other.instrument_code
 
