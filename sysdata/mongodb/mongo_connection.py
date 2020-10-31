@@ -49,6 +49,30 @@ def mongo_defaults(**kwargs):
     return mongo_db, hostname, port
 
 
+class MongoClientFactory(object):
+    """
+    Only one MongoClient is needed per Python process and MongoDB instance.
+
+    I'm not sure why anyone would need more than one MongoDB instance,
+    but it's easy to support, so why not?
+    """
+
+    def __init__(self):
+        self.mongo_clients = {}
+
+    def get_mongo_client(self, host, port):
+        key = (host, port)
+        if key in self.mongo_clients:
+            return self.mongo_clients.get(key)
+        else:
+            client = MongoClient(host=host, port=port)
+            self.mongo_clients[key] = client
+            return client
+
+
+# Only need one of these
+mongo_client_factory = MongoClientFactory()
+
 
 class mongoDb():
     """
@@ -65,7 +89,7 @@ class mongoDb():
         self.host = host
         self.port = port
 
-        client = MongoClient(host=host, port=port)
+        client = mongo_client_factory.get_mongo_client(host, port)
         db = client[database_name]
 
         self.client = client
@@ -77,9 +101,6 @@ class mongoDb():
             self.port,
             self.database_name,
         )
-
-    def close(self):
-        self.client.close()
 
 
 class mongoConnection(object):
@@ -109,9 +130,6 @@ class mongoConnection(object):
         self.client = client
         self.db = db
         self.collection = collection
-
-    def close(self):
-        self.client.close()
 
     def __repr__(self):
         return "Mongodb connection: host %s, port %d, db name %s, collection %s" % (
