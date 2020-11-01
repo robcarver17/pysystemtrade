@@ -233,8 +233,7 @@ class dataBlob(object):
         if self._ib_conn is not arg_not_supplied:
             self.ib_conn.close_connection()
 
-        if self._mongo_db is not arg_not_supplied:
-            self.mongo_db.close()
+        # No need to explicitly close Mongo connections; handled by Python garbage collection
 
     @property
     def ib_conn(self):
