@@ -1,5 +1,5 @@
 from arctic import Arctic
-from sysdata.mongodb.mongo_connection import mongoDb()
+from sysdata.mongodb.mongo_connection import mongoDb
 
 """
 IMPORTANT NOTE: Make sure you have a mongodb running eg mongod --dbpath /home/yourusername/pysystemtrade/data/futures/arctic
