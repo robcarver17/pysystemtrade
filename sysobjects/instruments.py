@@ -25,6 +25,12 @@ class futuresInstrument(object):
     def __eq__(self, other):
         return self.instrument_code == other.instrument_code
 
+    def key(self):
+        return self.instrument_code
+
+    def __repr__(self):
+        return str(self.instrument_code)
+
 @dataclass
 class instrumentMetaData:
     Description: str = ""
