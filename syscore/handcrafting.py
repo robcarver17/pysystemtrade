@@ -29,6 +29,7 @@ WARN_ON_SUBPORTFOLIO_SIZE = (
 APPROX_MIN_WEIGHT_IN_CORR_WEIGHTS = 0.1
 FUDGE_FACTOR_FOR_CORR_WEIGHT_UNCERTAINTY = 4.0
 MAX_ROWS_FOR_CORR_ESTIMATION = 100
+PSTEP_FOR_CORR_ESTIMATION = 0.25
 
 # Convenience objects
 NO_SUB_PORTFOLIOS = object()
@@ -68,7 +69,7 @@ def get_weights_using_uncertainty_method(cmatrix, data_points=100):
 
     return weights
 
-def optimised_weights_given_correlation_uncertainty(corr_matrix, data_points, p_step=0.2):
+def optimised_weights_given_correlation_uncertainty(corr_matrix, data_points, p_step=PSTEP_FOR_CORR_ESTIMATION):
     dist_points = np.arange(p_step, stop=(1-p_step)+0.000001, step=p_step)
     list_of_weights = []
     for conf1 in dist_points:
