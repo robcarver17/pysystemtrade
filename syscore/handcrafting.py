@@ -12,6 +12,10 @@ import numpy as np
 import pandas as pd
 import scipy.cluster.hierarchy as sch
 import scipy.stats as stats
+from scipy.stats import norm
+
+
+from collections import namedtuple
 
 from syscore.pdutils import minimum_many_years_of_data_in_dataframe
 from syscore.optimisation_utils import optimise, sigma_from_corr_and_std
@@ -22,6 +26,9 @@ MAX_CLUSTER_SIZE = 3  # Do not change
 WARN_ON_SUBPORTFOLIO_SIZE = (
     0.2  # change if you like, sensible values are between 0 and 0.5
 )
+APPROX_MIN_WEIGHT_IN_CORR_WEIGHTS = 0.1
+FUDGE_FACTOR_FOR_CORR_WEIGHT_UNCERTAINTY = 4.0
+MAX_ROWS_FOR_CORR_ESTIMATION = 100
 
 # Convenience objects
 NO_SUB_PORTFOLIOS = object()
@@ -38,54 +45,6 @@ class diagobject(object):
         return "%s \n %s " % (self.calcs, self.description)
 
 
-"""
-In this section we create the candidate matrices and weights
-"""
-
-unsorted_candidate_matrices = [
-    np.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0],
-              [0.0, 0.0, 1.0]]),  # equal weights
-    np.array([[1.0, 0.5, 0.5], [0.5, 1.0, 0.5],
-              [0.5, 0.5, 1.0]]),  # equal weights
-    np.array([[1.0, 0.9, 0.9], [0.9, 1.0, 0.9],
-              [0.9, 0.9, 1.0]]),  # equal weights
-    np.array(
-        [[1.0, 0.0, 0.5], [0.0, 1.0, 0.0], [0.5, 0.0, 1.0]]
-    ),  # first interesting row of 'ABC' from 'Systematic Trading' table 8
-    np.array(
-        [[1.0, 0.0, 0.9], [0.0, 1.0, 0.0], [0.9, 0.0, 1.0]]
-    ),  # 2nd row of 'ABC' from 'Systematic Trading' table 8
-    np.array(
-        [[1.0, 0.5, 0.0], [0.5, 1.0, 0.5], [0.0, 0.5, 1.0]]
-    ),  # 3rd row of 'ABC' from 'Systematic Trading' table 8
-    np.array(
-        [[1.0, 0.0, 0.5], [0.0, 1.0, 0.9], [0.5, 0.9, 1.0]]
-    ),  # 4th row of 'ABC' from 'Systematic Trading' table 8
-    np.array(
-        [[1.0, 0.9, 0.0], [0.9, 1.0, 0.9], [0.0, 0.9, 1.0]]
-    ),  # 5th row of 'ABC' from 'Systematic Trading' table 8
-    np.array(
-        [[1.0, 0.5, 0.9], [0.5, 1.0, 0.5], [0.9, 0.5, 1.0]]
-    ),  # 6th row of 'ABC' from 'Systematic Trading' table 8
-    np.array(
-        [[1.0, 0.9, 0.5], [0.9, 1.0, 0.9], [0.5, 0.9, 1.0]]
-    ),  # 7th row of 'ABC' from 'Systematic Trading' table 8
-]
-
-unsorted_candidate_weights = [
-    [0.33333, 0.33333, 0.33333],  # equal weights
-    [0.33333, 0.33333, 0.33333],  # equal weights
-    [0.33333, 0.33333, 0.33333],  # equal weights
-    [0.3, 0.4, 0.3],  # first interesting row of 'ABC' from 'Systematic Trading' table 8
-    [0.27, 0.46, 0.27],  # 2nd row of 'ABC' from 'Systematic Trading' table 8
-    [0.37, 0.26, 0.37],  # 3rd row of 'ABC' from 'Systematic Trading' table 8
-    [0.45, 0.45, 0.1],  # 4th row of 'ABC' from 'Systematic Trading' table 8
-    [0.39, 0.22, 0.39],  # 5th row of 'ABC' from 'Systematic Trading' table 8
-    [0.29, 0.42, 0.29],  # 6th row of 'ABC' from 'Systematic Trading' table 8
-    [0.42, 0.16, 0.42],  # 7th row of 'ABC' from 'Systematic Trading' table 8
-]
-
-
 def norm_weights(list_of_weights):
     norm_weights = list(np.array(list_of_weights) / np.sum(list_of_weights))
     return norm_weights
@@ -94,70 +53,7 @@ def norm_weights(list_of_weights):
 # To make comparision easier we compare sorted correlations to sorted correlations; otherwise we'd need many more than 10
 # candidate matrices to cope with different ordering of the same matrix
 
-
-def get_sorted_order_from_corr_matrix(cmatrix):
-    """
-    Returns the sort order for a correlation matrix
-
-    :param cmatrix: NxN np.array
-    :return: np.array you can use to re-order your assets
-    """
-
-    corr_sums = cmatrix.sum(axis=0)
-    corr_order = corr_sums.argsort()
-
-    return corr_order
-
-
-def sort_corr_matrix_and_weights(cmatrix, cweights):
-    """
-    Sort a correlation matrix and weights
-
-    :param cmatrix: a NxN np.array
-    :param cweights: an N length list of weights
-    :return: tuple cmatrix, cweights [both reordered]
-    """
-
-    corr_order = get_sorted_order_from_corr_matrix(cmatrix)
-
-    new_cmatrix = cmatrix[np.ix_(corr_order, corr_order)]
-    new_cweights = list(np.array(cweights)[corr_order])
-
-    return new_cmatrix, new_cweights
-
-
-# Now build the sorted lists
-candidate_matrices = []
-candidate_weights = []
-for cmatrix, cweights in zip(
-        unsorted_candidate_matrices, unsorted_candidate_weights):
-    new_cmatrix, new_cweights = sort_corr_matrix_and_weights(cmatrix, cweights)
-    candidate_matrices.append(new_cmatrix)
-    candidate_weights.append(new_cweights)
-
-
-def distance_between_matrices(matrix1, matrix2):
-    """
-    Return the euclidian distance between two matrices
-
-    :param matrix1: NxN np.array
-    :param matrix2: NxN np.array
-    :return: float
-    """
-
-    diff_matrix = matrix1 - matrix2
-    distance_squared = sum(sum(diff_matrix ** 2))
-
-    return distance_squared ** 0.5
-
-
-def get_weights_using_candidate_method(cmatrix):
-    """
-    Using interpolation, find the optimal weights from a correlation matrix using the candidate method
-
-    :return: a list of N weights
-    """
-
+def get_weights_using_uncertainty_method(cmatrix, data_points=100):
     if len(cmatrix) == 1:
         return [1.0]
 
@@ -167,33 +63,139 @@ def get_weights_using_candidate_method(cmatrix):
     if len(cmatrix) > MAX_CLUSTER_SIZE:
         raise Exception("Cluster too big")
 
-    # we have to sort first, and then map back to the original weights
-    corr_order = get_sorted_order_from_corr_matrix(cmatrix)
-    sorted_cmatrix = cmatrix[np.ix_(corr_order, corr_order)]
+    average_weights = optimised_weights_given_correlation_uncertainty(cmatrix, data_points)
+    weights = apply_min_weight(average_weights)
 
-    # not quite inverse of weighting, in case of divide by zero
-    corr_weightings = [
-        1.0 / (0.0001 + distance_between_matrices(sorted_cmatrix, candidate_matrix))
-        for candidate_matrix in candidate_matrices
-    ]
+    return weights
 
-    weighted_weights = np.array(
-        [
-            corr_weight_this_candidate * np.array(weightings_for_candidate)
-            for corr_weight_this_candidate, weightings_for_candidate in zip(
-                corr_weightings, candidate_weights
-            )
-        ]
-    )
+def optimised_weights_given_correlation_uncertainty(corr_matrix, data_points, p_step=0.2):
+    dist_points = np.arange(p_step, stop=(1-p_step)+0.000001, step=p_step)
+    list_of_weights = []
+    for conf1 in dist_points:
+        for conf2 in dist_points:
+            for conf3 in dist_points:
+                conf_intervals = labelledCorrelations(conf1, conf2, conf3)
+                weights = optimise_for_corr_matrix_with_uncertainty(corr_matrix, conf_intervals, data_points)
+                list_of_weights.append(weights)
 
-    weighted_weights = weighted_weights.sum(axis=0)
-    normalised_weights = norm_weights(weighted_weights)
+    array_of_weights = np.array(list_of_weights)
+    average_weights = np.nanmean(array_of_weights, axis=0)
 
-    # return to original order
-    natural_order_weights = [normalised_weights[idx]
-                             for idx in list(corr_order)]
+    return average_weights
 
-    return natural_order_weights
+labelledCorrelations = namedtuple("labelledCorrelations", 'ab ac bc')
+
+def optimise_for_corr_matrix_with_uncertainty(corr_matrix, conf_intervals, data_points):
+    labelled_correlations = extract_asset_pairwise_correlations_from_matrix(corr_matrix)
+    labelled_correlation_points = calculate_correlation_points_from_tuples(labelled_correlations, conf_intervals, data_points)
+    corr_matrix = three_asset_corr_matrix(labelled_correlation_points)
+    weights = optimise_for_corr_matrix(corr_matrix)
+
+    return weights
+
+
+def extract_asset_pairwise_correlations_from_matrix(corr_matrix):
+    ab = corr_matrix[0][1]
+    ac = corr_matrix[0][2]
+    bc = corr_matrix[1][2]
+
+    return labelledCorrelations(ab=ab, ac=ac, bc=bc)
+
+
+def calculate_correlation_points_from_tuples(labelled_correlations, conf_intervals, data_points):
+    correlation_point_list = [get_correlation_distribution_point(corr_value, data_points, confidence_interval)
+                          for corr_value, confidence_interval in
+                          zip(labelled_correlations, conf_intervals)]
+    labelled_correlation_points = labelledCorrelations(*correlation_point_list)
+
+    return labelled_correlation_points
+
+
+def get_correlation_distribution_point(corr_value,  data_points, conf_interval):
+    fisher_corr = fisher_transform(corr_value)
+    point_in_fisher_units = \
+        get_fisher_confidence_point(fisher_corr, data_points, conf_interval)
+
+    point_in_natural_units = inverse_fisher(point_in_fisher_units)
+
+    return point_in_natural_units
+
+
+def fisher_transform(corr_value):
+    if corr_value>=1.0:
+        corr_value =  0.99999999999999
+    elif corr_value<=-1.0:
+        corr_value = -0.99999999999999
+    return 0.5*np.log((1+corr_value) / (1-corr_value)) # also arctanh
+
+
+def get_fisher_confidence_point(fisher_corr, data_points, conf_interval):
+    if conf_interval<0.5:
+        confidence_in_fisher_units = fisher_confidence(data_points, conf_interval)
+        point_in_fisher_units = fisher_corr - confidence_in_fisher_units
+    elif conf_interval>0.5:
+        confidence_in_fisher_units = fisher_confidence(data_points, 1-conf_interval)
+        point_in_fisher_units = fisher_corr + confidence_in_fisher_units
+    else:
+        point_in_fisher_units = fisher_corr
+
+    return point_in_fisher_units
+
+def fisher_confidence(data_points, conf_interval):
+    data_point_root =fisher_stdev(data_points)*FUDGE_FACTOR_FOR_CORR_WEIGHT_UNCERTAINTY
+    conf_point = get_confidence_point(conf_interval)
+
+    return data_point_root * conf_point
+
+
+def fisher_stdev(data_points):
+    data_point_root = 1/((data_points-3)**.5)
+    return data_point_root
+
+
+def get_confidence_point(conf_interval):
+    conf_point = norm.ppf(1-(conf_interval/2))
+
+    return conf_point
+
+def inverse_fisher(fisher_corr_value):
+    return (np.exp(2*fisher_corr_value) - 1) / (np.exp(2*fisher_corr_value) + 1)
+
+
+
+def three_asset_corr_matrix(labelled_correlations):
+    """
+    :return: np.array 2 dimensions, size
+    """
+    ab = labelled_correlations.ab
+    ac = labelled_correlations.ac
+    bc = labelled_correlations.bc
+
+    m = [[1.0, ab, ac], [ab, 1.0, bc], [ac, bc, 1.0]]
+    m = np.array(m)
+    return m
+
+def optimise_for_corr_matrix(corr_matrix):
+    ## arbitrary
+    mean_list = [.05]*3
+    std = [.1]*3
+
+    return optimise_using_correlation(mean_list, corr_matrix, std)
+
+
+def apply_min_weight(average_weights):
+    weights_with_min = [min_weight(weight) for weight in average_weights]
+    adj_weights = norm_weights(weights_with_min)
+
+    return adj_weights
+
+def min_weight(weight):
+    if weight<APPROX_MIN_WEIGHT_IN_CORR_WEIGHTS:
+        return APPROX_MIN_WEIGHT_IN_CORR_WEIGHTS
+    else:
+        return weight
+
+
 
 
 """
@@ -407,7 +409,7 @@ class Portfolio:
             instrument_returns)
         self.instrument_returns = instrument_returns
         self.instruments = list(instrument_returns.columns)
-        self.corr_matrix = instrument_returns.corr()
+        self.corr_matrix = calc_correlation(instrument_returns)
         self.vol_vector = np.array(
             instrument_returns.std() * (WEEKS_IN_YEAR ** 0.5))
         self.returns_vector = np.array(
@@ -767,8 +769,8 @@ class Portfolio:
         assert len(self.instruments) <= MAX_CLUSTER_SIZE
         assert self.sub_portfolios is NO_SUB_PORTFOLIOS
 
-        raw_weights = get_weights_using_candidate_method(
-            self.corr_matrix.values)
+        raw_weights = get_weights_using_uncertainty_method(
+            self.corr_matrix.values, len(self.instrument_returns.index))
         self.raw_weights = raw_weights
 
         use_SR_estimates = self.use_SR_estimates
@@ -1274,3 +1276,9 @@ class Portfolio:
             self._diags = diags
 
             return diags
+
+def calc_correlation(instrument_returns):
+    recent_instrument_returns = instrument_returns[-MAX_ROWS_FOR_CORR_ESTIMATION:]
+    corr = recent_instrument_returns.corr()
+
+    return corr
