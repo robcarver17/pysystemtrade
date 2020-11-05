@@ -6,7 +6,7 @@ from syscore.pdutils import full_merge_of_existing_data, merge_newer_data, sumup
 from syscore.objects import arg_not_supplied, missing_data, data_error
 
 from sysdata.data import baseData
-from sysdata.futures.contracts import futuresContract
+from sysobjects.contracts import futuresContract
 
 PRICE_DATA_COLUMNS = sorted(["OPEN", "HIGH", "LOW", "FINAL", "VOLUME"])
 FINAL_COLUMN = "FINAL"

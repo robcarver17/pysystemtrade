@@ -2,7 +2,7 @@ import unittest
 from sysdata.arctic.arctic_futures_per_contract_prices import (
     arcticFuturesContractPriceData,
 )
-from sysdata.futures.contracts import futuresContract
+from sysobjects.contracts import futuresContract
 import pandas as pd
 
 

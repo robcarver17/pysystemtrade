@@ -9,9 +9,8 @@ from sysdata.quandl.quandl_futures import (
     quandlFuturesConfiguration,
     quandlFuturesContractPriceData,
 )
-from sysdata.futures.contracts import listOfFuturesContracts
+from sysobjects.contracts import listOfFuturesContracts
 from sysobjects.instruments import futuresInstrument
-from sysdata.mongodb.mongo_futures_instruments import mongoFuturesInstrumentData
 from sysdata.mongodb.mongo_roll_data import mongoRollParametersData
 from sysdata.arctic.arctic_futures_per_contract_prices import (
     arcticFuturesContractPriceData,

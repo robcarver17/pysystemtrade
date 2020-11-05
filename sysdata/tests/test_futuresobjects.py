@@ -7,7 +7,7 @@ from sysdata.futures.rolls import (
     contractDateWithRollParameters,
 )
 from sysobjects.contract_dates_and_expiries import contractDate
-from sysdata.futures.contracts import futuresContract, listOfFuturesContracts
+from sysobjects.contracts import futuresContract, listOfFuturesContracts
 from sysobjects.instruments import futuresInstrument
 
 

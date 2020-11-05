@@ -6,7 +6,6 @@ import numpy as np
 
 from syscore.objects import _named_object
 from syscore.genutils import sign
-from sysdata.futures.contracts import futuresContract
 from syslogdiag.log import logtoscreen
 
 override_close = _named_object("Close")

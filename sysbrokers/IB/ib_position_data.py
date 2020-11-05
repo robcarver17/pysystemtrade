@@ -1,5 +1,4 @@
 from syslogdiag.log import logtoscreen
-from sysdata.futures.contracts import futuresContract
 from sysbrokers.IB.ib_futures_contracts import ibFuturesContractData
 from syscore.objects import arg_not_supplied, missing_contract
 from sysdata.production.historic_positions import contractPositionData
@@ -7,8 +6,6 @@ from sysdata.production.current_positions import (
     listOfContractPositions,
     contractPosition,
 )
-
-import pandas as pd
 
 
 class ibContractPositionData(contractPositionData):

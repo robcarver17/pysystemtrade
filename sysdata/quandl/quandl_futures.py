@@ -3,7 +3,7 @@ Get data from quandl for futures
 
 """
 
-from sysdata.futures.contracts import futuresContract
+from sysobjects.contracts import futuresContract
 from sysdata.futures.futures_per_contract_prices import (
     futuresContractPriceData,
     futuresContractPrices,

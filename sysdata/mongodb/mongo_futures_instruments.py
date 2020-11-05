@@ -1,12 +1,8 @@
-import pandas as pd
+
 
 from sysdata.futures.instruments import futuresInstrumentData
 from sysobjects.instruments import  futuresInstrumentWithMetaData
-from sysdata.mongodb.mongo_connection import (
-    mongoConnection,
-    MONGO_ID_KEY,
-    mongo_clean_ints,
-)
+from sysdata.mongodb.mongo_generic import mongoData, missing_data
 from syslogdiag.log import logtoscreen
 
 INSTRUMENT_COLLECTION = "futures_instruments"
@@ -24,77 +20,24 @@ class mongoFuturesInstrumentData(futuresInstrumentData):
             "mongoFuturesInstrumentData")):
 
         super().__init__(log=log)
-        self._mongo = mongoConnection(INSTRUMENT_COLLECTION, mongo_db=mongo_db)
-
-        # this won't create the index if it already exists
-        self._mongo.create_index("instrument_code")
-
-        self.name = (
-            "simData connection for futures instruments, mongodb %s/%s @ %s -p %s " %
-            (self._mongo.database_name,
-             self._mongo.collection_name,
-             self._mongo.host,
-             self._mongo.port,
-             ))
+        self._mongo_data = mongoData(INSTRUMENT_COLLECTION, "instrument_code", mongo_db = mongo_db)
 
     def __repr__(self):
-        return self.name
+        return "mongoFuturesInstrumentData %s" % str(self.mongo_data)
+
+    @property
+    def mongo_data(self):
+        return self._mongo_data
 
     def get_list_of_instruments(self):
-        cursor = self._mongo.collection.find()
-        codes = [db_entry["instrument_code"] for db_entry in cursor]
-
-        return codes
-
-    def get_all_instrument_data(self):
-        """
-        Gets information about all instruments
-
-        Returns dataframe of meta data, indexed by instrument code
-
-        :return: pd.DataFrame
-        """
-
-        all_instrument_codes = self.get_list_of_instruments()
-        all_instrument_objects = [
-            self.get_instrument_data(instrument_code)
-            for instrument_code in all_instrument_codes
-        ]
-
-        meta_data_keys = [
-            instrument_object.meta_data.as_dict().keys()
-            for instrument_object in all_instrument_objects
-        ]
-        meta_data_keys_flattened = [
-            item for sublist in meta_data_keys for item in sublist
-        ]
-        meta_data_keys_unique = list(set(meta_data_keys_flattened))
-
-        meta_data_as_lists = dict(
-            [
-                (
-                    metadata_name,
-                    [
-                        getattr(instrument_object.meta_data, metadata_name)
-                        for instrument_object in all_instrument_objects
-                    ],
-                )
-                for metadata_name in meta_data_keys_unique
-            ]
-        )
-
-        meta_data_as_dataframe = pd.DataFrame(
-            meta_data_as_lists, index=all_instrument_codes
-        )
-
-        return meta_data_as_dataframe
+        return self.mongo_data.get_list_of_keys()
 
     def _get_instrument_data_without_checking(self, instrument_code):
 
-        result_dict = self._mongo.collection.find_one(
-            dict(instrument_code=instrument_code)
-        )
-        result_dict.pop(MONGO_ID_KEY)
+        result_dict = self.mongo_data.get_result_dict_for_key(instrument_code)
+        if result_dict is missing_data:
+            # shouldn't happen...
+            raise Exception("Data for %s gone AWOL" % instrument_code)
 
         instrument_object = futuresInstrumentWithMetaData.from_dict(result_dict)
 
@@ -102,15 +45,11 @@ class mongoFuturesInstrumentData(futuresInstrumentData):
 
     def _delete_instrument_data_without_any_warning_be_careful(
             self, instrument_code):
-        self._mongo.collection.remove(dict(instrument_code=instrument_code))
-        self.log.terse("Deleted %s from %s" % (instrument_code, self.name))
+        self.mongo_data.delete_data_without_any_warning(instrument_code)
 
     def _add_instrument_data_without_checking_for_existing_entry(
         self, instrument_object
     ):
         instrument_object_dict = instrument_object.as_dict()
-        cleaned_object_dict = mongo_clean_ints(instrument_object_dict)
-        self._mongo.collection.insert_one(cleaned_object_dict)
-        self.log.terse(
-            "Added %s to %s" % (instrument_object.instrument_code, self.name)
-        )
+        instrument_code = instrument_object_dict.pop("instrument_code")
+        self.mongo_data.add_data(instrument_code, instrument_object_dict)

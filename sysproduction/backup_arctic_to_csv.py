@@ -342,8 +342,8 @@ def backup_optimal_positions(data):
 
 
 def backup_instrument_data(data):
-    instrument_config = data.mongo_futures_instrument.get_all_instrument_data()
-    data.csv_futures_instrument.write_all_instrument_data(instrument_config)
+    instrument_config = data.mongo_futures_instrument.get_all_instrument_data_as_df()
+    data.csv_futures_instrument.write_all_instrument_data_from_df(instrument_config)
     data.log.msg("Backed up instrument config data")
 
 

@@ -2,12 +2,11 @@ from sysdata.futures.futures_per_contract_prices import (
     futuresContractPriceData,
     futuresContractPrices,
 )
-from sysdata.futures.contracts import futuresContract
+from sysobjects.contracts import futuresContract
 from syslogdiag.log import logtoscreen
 from syscore.fileutils import files_with_extension_in_pathname, get_filename_for_package
 from syscore.pdutils import pd_readcsv, DEFAULT_DATE_FORMAT
 
-import pandas as pd
 
 # no default datapath supplied as this is not normally used
 

@@ -1,6 +1,6 @@
 from syscore.fileutils import get_filename_for_package
 from syscore.objects import arg_not_supplied
-from sysdata.futures.contracts import futuresContractData
+from sysobjects.contracts import futuresContractData
 from syslogdiag.log import logtoscreen
 import pandas as pd
 

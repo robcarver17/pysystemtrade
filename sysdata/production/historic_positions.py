@@ -1,5 +1,5 @@
 from syscore.objects import success, arg_not_supplied
-from sysdata.futures.contracts import futuresContract
+from sysobjects.contracts import futuresContract
 
 from sysdata.production.generic_timed_storage import (
     timedEntry,
@@ -13,7 +13,6 @@ from sysdata.production.current_positions import (
     listOfInstrumentStrategyPositions,
 )
 from syscore.objects import failure
-import pandas as pd
 import datetime
 
 

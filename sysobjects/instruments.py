@@ -1,4 +1,5 @@
 from dataclasses import  dataclass
+import pandas as pd
 
 EMPTY_INSTRUMENT = ""
 
@@ -93,3 +94,34 @@ class futuresInstrumentWithMetaData:
 
     def empty(self):
         return self.instrument.empty()
+
+class listOffuturesInstrumentWithMetaData(list):
+    def as_df(self):
+        instrument_codes = [instrument_object.instrument_code for instrument_object in self]
+        meta_data_keys = [
+            instrument_object.meta_data.as_dict().keys()
+            for instrument_object in self
+        ]
+        meta_data_keys_flattened = [
+            item for sublist in meta_data_keys for item in sublist
+        ]
+        meta_data_keys_unique = list(set(meta_data_keys_flattened))
+
+        meta_data_as_lists = dict(
+            [
+                (
+                    metadata_name,
+                    [
+                        getattr(instrument_object.meta_data, metadata_name)
+                        for instrument_object in self
+                    ],
+                )
+                for metadata_name in meta_data_keys_unique
+            ]
+        )
+
+        meta_data_as_dataframe = pd.DataFrame(
+            meta_data_as_lists, index=instrument_codes
+        )
+
+        return meta_data_as_dataframe

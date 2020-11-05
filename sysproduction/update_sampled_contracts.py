@@ -1,7 +1,7 @@
 from syscore.objects import missing_contract
 
 from sysdata.futures.rolls import contractDateWithRollParameters
-from sysdata.futures.contracts import futuresContract, listOfFuturesContracts
+from sysobjects.contracts import futuresContract, listOfFuturesContracts
 from sysobjects.instruments import futuresInstrument
 
 from sysproduction.data.get_data import dataBlob

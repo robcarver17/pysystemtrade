@@ -101,7 +101,7 @@ class csvFuturesConfigDataForSim(csvPaths, futuresConfigDataForSim):
 
         data_object = self._get_config_data_object()
 
-        all_instr_dataframe = data_object.get_all_instrument_data()
+        all_instr_dataframe = data_object.get_all_instrument_data_as_df()
 
         return all_instr_dataframe
 

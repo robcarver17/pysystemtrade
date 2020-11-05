@@ -6,7 +6,7 @@ Any time we get the current position from DB or the broker, it's useful to store
 import pandas as pd
 from syscore.genutils import get_unique_list
 from sysobjects.instruments import futuresInstrument
-from sysdata.futures.contracts import futuresContract
+from sysobjects.contracts import futuresContract
 
 
 class Position(object):

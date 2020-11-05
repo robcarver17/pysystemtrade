@@ -1,5 +1,4 @@
-from sysdata.futures.contracts import contractDateWithRollParameters
-from copy import copy
+from sysobjects.contracts import contractDateWithRollParameters
 
 
 class rollParametersWithPriceData(object):

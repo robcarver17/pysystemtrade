@@ -1,5 +1,5 @@
 from sysdata.production.historic_positions import contractPositionData
-from sysdata.futures.contracts import futuresContract
+from sysobjects.contracts import futuresContract
 from syscore.fileutils import get_filename_for_package
 from syscore.objects import arg_not_supplied
 from syslogdiag.log import logtoscreen

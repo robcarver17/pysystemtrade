@@ -11,6 +11,12 @@ class Singleton(object):
             class_._instance = object.__new__(class_, *args, **kwargs)
         return class_._instance
 
+class missingData(Exception):
+    pass
+
+class existingData(Exception):
+    pass
+
 
 class _named_object:
     def __init__(self, name):
