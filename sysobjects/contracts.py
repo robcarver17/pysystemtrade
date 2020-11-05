@@ -21,7 +21,8 @@ class parametersForFuturesContract:
     @classmethod
     def from_dict(parametersForFuturesContract, input_dict):
         keys = parametersForFuturesContract.__dataclass_fields__.keys()
-        args_list = [input_dict[key] for key in keys]
+        args_list = [input_dict.get(key, None) for key in keys ]
+        args_list = [value for value in args_list if value is not None]
 
         return parametersForFuturesContract(*args_list)
 
