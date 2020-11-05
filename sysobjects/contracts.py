@@ -108,10 +108,10 @@ class futuresContract(object):
         return self.params.sampling
 
     def sampling_on(self):
-        self.params["currently_sampling"] = True
+        self.params.sampling = True
 
     def sampling_off(self):
-        self.params["currently_sampling"] = False
+        self.params.sampling = False
 
     def as_dict(self):
         """
