@@ -1,11 +1,29 @@
+from syscore.objects import arg_not_supplied
 from sysobjects.contract_dates_and_expiries import contractDate
 from sysdata.futures.rolls import contractDateWithRollParameters
 from sysobjects.instruments import futuresInstrument
+from dataclasses import  dataclass
 
 import datetime
 
 NO_ROLL_CYCLE_PASSED = object()
 
+@dataclass
+class parametersForFuturesContract:
+    sampling: bool = False
+
+    def as_dict(self) -> dict:
+        keys = self.__dataclass_fields__.keys()
+        self_as_dict = dict([(key, getattr(self, key)) for key in keys])
+
+        return self_as_dict
+
+    @classmethod
+    def from_dict(parametersForFuturesContract, input_dict):
+        keys = parametersForFuturesContract.__dataclass_fields__.keys()
+        args_list = [input_dict[key] for key in keys]
+
+        return parametersForFuturesContract(*args_list)
 
 class futuresContract(object):
     """
@@ -15,7 +33,8 @@ class futuresContract(object):
 
     """
 
-    def __init__(self, instrument_object, contract_date_object, **kwargs):
+    def __init__(self, instrument_object: futuresInstrument, contract_date_object: contractDate,
+                 parameter_object: parametersForFuturesContract = arg_not_supplied):
         """
         futuresContract(futuresInstrument, contractDate)
         OR
@@ -24,33 +43,32 @@ class futuresContract(object):
         :param instrument_object: str or futuresInstrument
         :param contract_date_object: contractDate or contractDateWithRollParameters or str
         """
-        ## BREAK OUT INTO FUNCTIONS
 
-        if isinstance(instrument_object, str):
-            if isinstance(contract_date_object, str):
-                # create a simple object
-                self.instrument = futuresInstrument(instrument_object)
-                self.contract_date = contractDate(contract_date_object)
-            if isinstance(contract_date_object, list):
-                if len(contract_date_object) == 1:
-                    self.instrument = futuresInstrument(instrument_object)
-                    self.contract_date = contractDate(contract_date_object[0])
-                else:
-                    self.instrument = futuresInstrument(instrument_object)
-                    self.contract_date = [
-                        contractDate(contract_date)
-                        for contract_date in contract_date_object
-                    ]
+        instrument_object, contract_date_object = _resolve_args_for_futures_contract(instrument_object, contract_date_object)
 
-        else:
-            self.instrument = instrument_object
-            self.contract_date = contract_date_object
+        self._instrument = instrument_object
+        self._contract_date = contract_date_object
+
+        if parameter_object is arg_not_supplied:
+            parameter_object = parametersForFuturesContract()
 
         self._is_empty = False
-        self.params = kwargs
+        self._params = parameter_object
+
+    @property
+    def instrument(self):
+        return self._instrument
+
+    @property
+    def contract_date(self):
+        return self._contract_date
+
+    @property
+    def params(self):
+        return self._params
 
     def __repr__(self):
-        return self.ident()
+        return self.key()
 
     def __eq__(self, other):
         if self.instrument_code != other.instrument_code:
@@ -60,6 +78,7 @@ class futuresContract(object):
         return True
 
     @classmethod
+    ## CLASIER WAY?
     def create_empty(futuresContract):
         fake_instrument = futuresInstrument("EMPTY")
         fake_contract_date = contractDate("150001")
@@ -73,7 +92,10 @@ class futuresContract(object):
         return self._is_empty
 
     def ident(self):
-        ## REPLACE WITH KEY
+        ## REPLACE WITH KEY WHERE USED?
+        return self.key()
+
+    def key(self):
         return self.instrument_code + "/" + self.date
 
     def as_tuple(self):
@@ -82,11 +104,7 @@ class futuresContract(object):
 
     @property
     def currently_sampling(self):
-        ## USED WHERE? BREAK OUT INTO SUBCLASS
-        if self.params.get("currently_sampling", None) is None:
-            self.params["currently_sampling"] = False
-
-        return self.params["currently_sampling"]
+        return self.params.sampling
 
     def sampling_on(self):
         self.params["currently_sampling"] = True
@@ -107,7 +125,7 @@ class futuresContract(object):
 
         contract_date_dict = self.contract_date.as_dict()
         instrument_dict = self.instrument.as_dict()
-        contract_params_dict = self.params
+        contract_params_dict = self.params.as_dict()
 
         joint_dict = dict(
             contract_date_dict=contract_date_dict,
@@ -132,9 +150,10 @@ class futuresContract(object):
         contract_date_object = contractDate.create_from_dict(
             contract_date_dict)
         instrument_object = futuresInstrument.create_from_dict(instrument_dict)
+        parameter_object = parametersForFuturesContract.from_dict(contract_params_dict)
 
         return futuresContract(
-            instrument_object, contract_date_object, **contract_params_dict
+            instrument_object, contract_date_object, parameter_object= parameter_object
         )
 
     @classmethod
@@ -276,6 +295,42 @@ class futuresContract(object):
         contract_date_object = self.contract_date
 
         return futuresContract(new_instrument_object, contract_date_object)
+
+def _resolve_args_for_futures_contract(instrument_object, contract_date_object) -> tuple:
+
+    instrument_is_str = isinstance(instrument_object, str)
+    contract_date_is_str = isinstance(contract_date_object, str)
+
+    ## NEED A MORE SATISFYING WAY OF DOING THIS...
+    contract_date_is_list = isinstance(contract_date_object, list)
+
+    if instrument_is_str and  contract_date_is_str:
+        return _resolve_args_where_both_are_str(instrument_object, contract_date_object)
+
+    if instrument_is_str and contract_date_is_list:
+        return _resolve_args_where_instrument_str_and_contract_date_is_list(instrument_object, contract_date_object)
+
+    return instrument_object, contract_date_object
+
+def _resolve_args_where_both_are_str(instrument_object_str, contract_date_object_str):
+    # create a simple object
+    instrument_object = futuresInstrument(instrument_object_str)
+    contract_date_object = contractDate(contract_date_object_str)
+
+    return instrument_object, contract_date_object
+
+
+def _resolve_args_where_instrument_str_and_contract_date_is_list(instrument_object, contract_date_object_list):
+    instrument_object = futuresInstrument(instrument_object)
+    if len(contract_date_object_list) == 1:
+        contract_date_object = contractDate(contract_date_object_list[0])
+    else:
+        contract_date_object = [
+            contractDate(contract_date)
+            for contract_date in contract_date_object_list
+        ]
+
+    return instrument_object, contract_date_object
 
 
 MAX_CONTRACT_SIZE = 10000
