@@ -2,7 +2,7 @@ import pandas as pd
 from syscore.fileutils import get_filename_for_package
 from syscore.genutils import value_or_npnan
 
-from sysobjects.contracts import futuresContractData
+from sysdata.futures.contracts import futuresContractData
 from sysobjects.instruments import futuresInstrument
 from sysobjects.contract_dates_and_expiries import expiryDate
 from syslogdiag.log import logtoscreen

@@ -1,9 +1,7 @@
 from sysobjects.contract_dates_and_expiries import contractDate
 from sysdata.futures.rolls import contractDateWithRollParameters
 from sysobjects.instruments import futuresInstrument
-from sysdata.futures.trading_hours import manyTradingStartAndEnd
 
-from sysdata.data import baseData
 import datetime
 
 NO_ROLL_CYCLE_PASSED = object()
@@ -26,6 +24,7 @@ class futuresContract(object):
         :param instrument_object: str or futuresInstrument
         :param contract_date_object: contractDate or contractDateWithRollParameters or str
         """
+        ## BREAK OUT INTO FUNCTIONS
 
         if isinstance(instrument_object, str):
             if isinstance(contract_date_object, str):
@@ -74,13 +73,16 @@ class futuresContract(object):
         return self._is_empty
 
     def ident(self):
+        ## REPLACE WITH KEY
         return self.instrument_code + "/" + self.date
 
     def as_tuple(self):
+        ## USED WHERE?
         return self.instrument_code, self.date
 
     @property
     def currently_sampling(self):
+        ## USED WHERE? BREAK OUT INTO SUBCLASS
         if self.params.get("currently_sampling", None) is None:
             self.params["currently_sampling"] = False
 
@@ -136,6 +138,7 @@ class futuresContract(object):
         )
 
     @classmethod
+    ## USED AT ALL?
     def simple(futuresContract, instrument_code, contract_date, **kwargs):
         DeprecationWarning(
             "futuresContract.simple(x,y) is deprecated, use futuresContract(x,y) instead"
@@ -149,6 +152,9 @@ class futuresContract(object):
     @property
     def instrument_code(self):
         return self.instrument.instrument_code
+
+    ## SHOULD BE IN CONTRACT DATE?
+    ## SHOULD HAVE CONTRACT DATE AS A SEPERATE OBJECT WHICH CAN BE A SPREAD?
 
     def is_spread_contract(self):
         if isinstance(self.contract_date, list):
@@ -172,6 +178,7 @@ class futuresContract(object):
     def approx_first_held_futuresContract_at_date(
         futuresContract, instrument_object, roll_parameters, reference_date
     ):
+        ## WHERE USED, SEEMS SHOULD BE A SEPERATE FUNCTION
         try:
             first_contract_date = (
                 roll_parameters.approx_first_held_contractDate_at_date(reference_date))
@@ -186,6 +193,8 @@ class futuresContract(object):
     def approx_first_priced_futuresContract_at_date(
         futuresContract, instrument_object, roll_parameters, reference_date
     ):
+        ## WHERE USED, SEEMS SHOULD BE A SEPERATE FUNCTION
+        ## OR EXPLICIT FUTURES CONTRACT OBJECT WITH ROLL DATA
         try:
             first_contract_date = (
                 roll_parameters.approx_first_priced_contractDate_at_date(reference_date))
@@ -197,6 +206,9 @@ class futuresContract(object):
         return futuresContract(instrument_object, first_contract_date)
 
     def next_priced_contract(self):
+        ## WHERE USED, SEEMS SHOULD BE A SEPERATE FUNCTION
+        ## OR EXPLICIT FUTURES CONTRACT OBJECT WITH ROLL DATA
+
         try:
             next_contract_date = self.contract_date.next_priced_contract()
         except AttributeError:
@@ -207,6 +219,8 @@ class futuresContract(object):
         return futuresContract(self.instrument, next_contract_date)
 
     def previous_priced_contract(self):
+        ## WHERE USED, SEEMS SHOULD BE A SEPERATE FUNCTION
+        ## OR EXPLICIT FUTURES CONTRACT OBJECT WITH ROLL DATA
 
         try:
             previous_contract_date = self.contract_date.previous_priced_contract()
@@ -218,6 +232,8 @@ class futuresContract(object):
         return futuresContract(self.instrument, previous_contract_date)
 
     def carry_contract(self):
+        ## WHERE USED, SEEMS SHOULD BE A SEPERATE FUNCTION
+        ## OR EXPLICIT FUTURES CONTRACT OBJECT WITH ROLL DATA
 
         try:
             carry_contract = self.contract_date.carry_contract()
@@ -229,6 +245,9 @@ class futuresContract(object):
         return futuresContract(self.instrument, carry_contract)
 
     def next_held_contract(self):
+        ## WHERE USED, SEEMS SHOULD BE A SEPERATE FUNCTION
+        ## OR EXPLICIT FUTURES CONTRACT OBJECT WITH ROLL DATA
+
         try:
             next_held_date = self.contract_date.next_held_contract()
         except AttributeError:
@@ -239,6 +258,9 @@ class futuresContract(object):
         return futuresContract(self.instrument, next_held_date)
 
     def previous_held_contract(self):
+        ## WHERE USED, SEEMS SHOULD BE A SEPERATE FUNCTION
+        ## OR EXPLICIT FUTURES CONTRACT OBJECT WITH ROLL DATA
+
         try:
             previous_held_date = self.contract_date.previous_held_contract()
         except AttributeError:
@@ -250,6 +272,7 @@ class futuresContract(object):
 
     def new_contract_with_replaced_instrument_object(
             self, new_instrument_object):
+        ## WHERE USED
         contract_date_object = self.contract_date
 
         return futuresContract(new_instrument_object, contract_date_object)
@@ -264,6 +287,8 @@ class listOfFuturesContracts(list):
     """
 
     @classmethod
+    ## LOT OF PARAMTERS HERE!
+    ## THIS FUNCTION TOO LARGE
     def historical_price_contracts(
         listOfFuturesContracts,
         instrument_object,
@@ -338,6 +363,7 @@ class listOfFuturesContracts(list):
 
         return listOfFuturesContracts(list_of_contracts)
 
+    ## CHECK WHERE USED...
     def currently_sampling(self):
         contracts_currently_sampling = [
             contract for contract in self if contract.currently_sampling
@@ -346,11 +372,13 @@ class listOfFuturesContracts(list):
         return listOfFuturesContracts(contracts_currently_sampling)
 
     def list_of_dates(self):
+        ## CHECK WHERE USED...
         # Return list of contract_date identifiers
         contract_dates = [contract.date for contract in self]
         return contract_dates
 
     def as_dict(self):
+        ## CHECK WHERE USED...
         contract_dates_keys = self.list_of_dates()
         contract_values = self
 
@@ -360,11 +388,13 @@ class listOfFuturesContracts(list):
         return contract_dict
 
     def difference(self, another_contract_list):
+        ## CHECK WHERE USED...
         return self._set_operation(
             another_contract_list,
             operation="difference")
 
     def _set_operation(self, another_contract_list, operation="difference"):
+        ### FUNCTION TO OBIG
         """
         Equivalent to set(self).operation(set(another_contract_list))
 
@@ -415,189 +445,4 @@ class listOfFuturesContracts(list):
         return list_of_contracts
 
 
-USE_CHILD_CLASS_ERROR = "You need to use a child class of futuresContractData"
-ContractNotFound = Exception()
 
-
-class futuresContractData(baseData):
-    """
-    Read and write data class to get futures contract data
-
-    We'd inherit from this class for a specific implementation
-
-    We store instrument code, and contract date data (date, expiry, roll cycle)
-
-    If you want more information about a given instrument you have to read it in using futuresInstrumentData
-    """
-
-    def __repr__(self):
-        return "Individual futures contract data - DO NOT USE"
-
-    def get_list_of_contract_dates_for_instrument_code(self, instrument_code):
-        raise NotImplementedError(USE_CHILD_CLASS_ERROR)
-
-    def get_all_contract_objects_for_instrument_code(self, instrument_code):
-        contract_dates_list = self.get_list_of_contract_dates_for_instrument_code(
-            instrument_code)
-        contract_objects_list = [
-            self.get_contract_data(instrument_code, contract_date)
-            for contract_date in contract_dates_list
-        ]
-
-        contract_objects_list = listOfFuturesContracts(contract_objects_list)
-
-        return contract_objects_list
-
-    def get_contract_data(self, instrument_code, contract_date):
-        if self.is_contract_in_data(instrument_code, contract_date):
-            return self._get_contract_data_without_checking(
-                instrument_code, contract_date
-            )
-        else:
-            return futuresContract.create_empty()
-
-    def _get_contract_data_without_checking(
-            self, instrument_code, contract_date):
-        raise NotImplementedError(USE_CHILD_CLASS_ERROR)
-
-    def __getitem__(self, key_tuple):
-        (instrument_code, contract_date) = key_tuple
-        return self.get_contract_data(instrument_code, contract_date)
-
-    def delete_contract_data(
-            self,
-            instrument_code,
-            contract_date,
-            are_you_sure=False):
-        self.log.label(
-            instrument_code=instrument_code,
-            contract_date=contract_date)
-        if are_you_sure:
-            if self.is_contract_in_data(instrument_code, contract_date):
-                self._delete_contract_data_without_any_warning_be_careful(
-                    instrument_code, contract_date
-                )
-                self.log.terse(
-                    "Deleted contract %s/%s" % (instrument_code, contract_date)
-                )
-            else:
-                # doesn't exist anyway
-                self.log.warn("Tried to delete non existent contract")
-        else:
-            self.log.error(
-                "You need to call delete_contract_data with a flag to be sure"
-            )
-
-    def _delete_contract_data_without_any_warning_be_careful(
-        self, instrument_code, contract_date
-    ):
-        raise NotImplementedError(USE_CHILD_CLASS_ERROR)
-
-    def delete_all_contracts_for_instrument(
-        self, instrument_code, areyoureallysure=False
-    ):
-        if not areyoureallysure:
-            raise Exception(
-                "You have to be sure to delete all contracts for an instrument!"
-            )
-
-        list_of_dates = self.get_list_of_contract_dates_for_instrument_code(
-            instrument_code
-        )
-        for contract_date in list_of_dates:
-            self.delete_contract_data(
-                instrument_code, contract_date, are_you_sure=True)
-
-    def is_contract_in_data(self, instrument_code, contract_date):
-        if contract_date in self.get_list_of_contract_dates_for_instrument_code(
-                instrument_code):
-            return True
-        else:
-            return False
-
-    def add_contract_data(self, contract_object, ignore_duplication=False):
-
-        instrument_code = contract_object.instrument_code
-        contract_date = contract_object.date
-
-        self.log.label(
-            instrument_code=instrument_code,
-            contract_date=contract_date)
-
-        if self.is_contract_in_data(instrument_code, contract_date):
-            if ignore_duplication:
-                pass
-            else:
-                self.log.warn(
-                    "There is already %s/%s in the data, you have to delete it first" %
-                    (instrument_code, contract_date))
-                return None
-
-        self._add_contract_object_without_checking_for_existing_entry(
-            contract_object)
-        self.log.terse(
-            "Added contract %s %s" %
-            (instrument_code, contract_date))
-
-    def _add_contract_object_without_checking_for_existing_entry(
-            self, contract_object):
-        raise NotImplementedError(USE_CHILD_CLASS_ERROR)
-
-    def get_actual_expiry_date_for_instrument_code_and_contract_date(
-        self, instrument_code, contract_date
-    ):
-        contract_object = futuresContract(instrument_code, contract_date)
-
-        return self.get_actual_expiry_date_for_contract(contract_object)
-
-    def get_actual_expiry_date_for_contract(self, contract_object):
-        raise NotImplementedError(USE_CHILD_CLASS_ERROR)
-
-    def is_instrument_code_and_contract_date_okay_to_trade(
-        self, instrument_code, contract_date
-    ):
-        contract_object = futuresContract(instrument_code, contract_date)
-        result = self.is_contract_okay_to_trade(contract_object)
-
-        return result
-
-    def less_than_one_hour_of_trading_leg_for_instrument_code_and_contract_date(
-            self, instrument_code, contract_date):
-        contract_object = futuresContract(instrument_code, contract_date)
-        result = self.less_than_one_hour_of_trading_leg_for_contract(
-            contract_object)
-
-        return result
-
-    def is_contract_okay_to_trade(self, contract_object):
-        trading_hours = self.get_trading_hours_for_contract(contract_object)
-        trading_hours_checker = manyTradingStartAndEnd(trading_hours)
-
-        return trading_hours_checker.okay_to_trade_now()
-
-    def less_than_one_hour_of_trading_leg_for_contract(self, contract_object):
-        trading_hours = self.get_trading_hours_for_contract(contract_object)
-        trading_hours_checker = manyTradingStartAndEnd(trading_hours)
-
-        return trading_hours_checker.less_than_one_hour_left()
-
-    def get_trading_hours_for_instrument_code_and_contract_date(
-        self, instrument_code, contract_date
-    ):
-        contract_object = futuresContract(instrument_code, contract_date)
-        result = self.get_trading_hours_for_contract(contract_object)
-
-        return result
-
-    def get_min_tick_size_for_instrument_code_and_contract_date(self, instrument_code, contract_date):
-        contract_object = futuresContract(instrument_code, contract_date)
-        result = self.get_min_tick_size_for_contract(contract_object)
-
-        return result
-
-
-    def get_trading_hours_for_contract(self, contract_object):
-        raise NotImplementedError(USE_CHILD_CLASS_ERROR)
-
-    def get_min_tick_size_for_contract(self, contract_object):
-        raise NotImplementedError(USE_CHILD_CLASS_ERROR)

@@ -6,7 +6,8 @@ from sysdata.mongodb.mongo_connection import (
 CONTRACT_COLLECTION = "futures_contracts"
 DEFAULT_DB = "production"
 
-from sysobjects.contracts import futuresContractData, futuresContract
+from sysdata.futures.contracts import futuresContractData
+from sysobjects.contracts import futuresContract
 from syslogdiag.log import logtoscreen
 
 
