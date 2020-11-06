@@ -49,9 +49,10 @@ class expiryDate(datetime.datetime):
         return self.strftime(EXPIRY_DATE_FORMAT)
 
 
-class contractDate(object):
+class singleContractDate(object):
     """
     A single contract date; either in the form YYYYMM or YYYYMMDD
+    *or* specified as a list
 
     Use cases:
     - normal contract eg 201712 and expiry date like 20171214
@@ -233,3 +234,87 @@ class contractDate(object):
             contract_date = self.contract_date
 
         return contract_date
+
+class contractDate(object):
+    """
+    A single contract date; either in the form YYYYMM or YYYYMMDD
+    *or* specified as a list
+
+    Use cases:
+    - normal contract eg 201712 and expiry date like 20171214
+    - VIX where contract needs to be defined as 20171214 because of weekly expiries
+    - Gas where contract month and expiry date are in different months
+
+    We store the expiry date separately
+
+    Representation is eithier 20171200 or 20171214 so always yyyymmdd
+
+    Either:
+
+    - we know the expiry date precisely and it's passed when we create the object
+    - OR we have to approximate by using the 1st of the month when the object is created
+    - OR we can make a better approximation by applying an offset to the approximate date
+    """
+
+    def __init__(
+            self,
+            contract_id,
+            expiry_date=NO_EXPIRY_DATE_PASSED,
+            approx_expiry_offset=0):
+        """
+
+        :param contract_id: string of numbers length 6 or 8 eg '201008' or '201008515'
+        :param expiry_date:  string of numbers length 8 be passed eg '20101218'
+        """
+
+        ## TEMP REFACTORING
+        inner_contract_date = singleContractDate(contract_id, expiry_date=expiry_date, approx_expiry_offset=approx_expiry_offset)
+        self.inner_contract_date = inner_contract_date
+
+    def __repr__(self):
+        return self.inner_contract_date.contract_date
+
+
+    @property
+    ## KEEP
+    def expiry_date(self):
+        return self.inner_contract_date.expiry_date
+
+    # not using a setter as shouldn't be done casually
+    ## KEEP
+    def update_expiry_date(self, expiry_date: expiryDate):
+        self.inner_contract_date.update_expiry_date(expiry_date)
+
+    def as_dict(self):
+        return self.inner_contract_date.as_dict()
+
+    @classmethod
+    def create_from_dict(contractDate, results_dict):
+        ## KEEP
+        # needs to match output from as_dict
+
+        expiry_date = results_dict.get("expiry_date", NO_EXPIRY_DATE_PASSED)
+
+        if expiry_date is not NO_EXPIRY_DATE_PASSED:
+            expiry_date = expiryDate(*expiry_date)
+
+        contract_id = results_dict["contract_date"]
+
+        return contractDate(
+            contract_id,
+            expiry_date=expiry_date)
+
+    def year(self):
+        return self.inner_contract_date.year()
+
+    def month(self):
+        return self.inner_contract_date.month()
+
+    def day(self):
+        return self.inner_contract_date.day()
+
+    def is_day_defined(self):
+        return self.inner_contract_date.is_day_defined()
+
+    def letter_month(self):
+        return self.inner_contract_date.letter_month()

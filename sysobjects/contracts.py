@@ -68,6 +68,8 @@ class futuresContract(object):
     def params(self):
         return self._params
 
+
+
     def __repr__(self):
         return self.key()
 
@@ -297,19 +299,24 @@ class futuresContract(object):
 
         return futuresContract(new_instrument_object, contract_date_object)
 
+    def new_contract_with_replaced_contract_date_object(self, new_contract_date_object):
+        instrument_object = self.instrument
+
+        return futuresContract(instrument_object, new_contract_date_object)
+
 def _resolve_args_for_futures_contract(instrument_object, contract_date_object) -> tuple:
 
     instrument_is_str = isinstance(instrument_object, str)
     contract_date_is_str = isinstance(contract_date_object, str)
 
-    ## NEED A MORE SATISFYING WAY OF DOING THIS...
-    contract_date_is_list = isinstance(contract_date_object, list)
+    # not needed?
+    #contract_date_is_list = isinstance(contract_date_object, list)
+    #if instrument_is_str and contract_date_is_list:
+    #    return _resolve_args_where_instrument_str_and_contract_date_is_list(instrument_object, contract_date_object)
 
     if instrument_is_str and  contract_date_is_str:
         return _resolve_args_where_both_are_str(instrument_object, contract_date_object)
 
-    if instrument_is_str and contract_date_is_list:
-        return _resolve_args_where_instrument_str_and_contract_date_is_list(instrument_object, contract_date_object)
 
     return instrument_object, contract_date_object
 
