@@ -274,6 +274,9 @@ class contractDate(object):
     def __repr__(self):
         return self.inner_contract_date.contract_date
 
+    def _only_has_month(self):
+        ## FIND WHO IS USING THIS METHOD AND KILL THEM
+        return self.inner_contract_date._only_has_month
 
     @property
     ## KEEP

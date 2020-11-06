@@ -656,7 +656,7 @@ class ibClient(object):
         contract_object_to_use = copy(futures_contract_object)
         if always_return_single_leg and contract_object_to_use.is_spread_contract():
             contract_object_to_use = contract_object_to_use.new_contract_with_replaced_contract_date_object(futures_contract_object.contract_date[0])
-            
+
         if getattr(self, "_futures_contract_cache", None) is None:
             self._futures_contract_cache = {}
 
