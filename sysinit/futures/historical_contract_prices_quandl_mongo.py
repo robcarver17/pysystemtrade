@@ -1,7 +1,7 @@
 """
 For a given list of futures contracts defined by Quandl start dates:
 
-read price data from quandl, and then write to artic
+read price data from quandl, and then write to arctic
 Write list of futures contracts to mongodb database
 """
 
