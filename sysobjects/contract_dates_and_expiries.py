@@ -283,6 +283,11 @@ class contractDate(object):
     def expiry_date(self):
         return self.inner_contract_date.expiry_date
 
+    @property
+    def contract_date(self):
+        ## 
+        return self.inner_contract_date.contract_date
+
     # not using a setter as shouldn't be done casually
     ## KEEP
     def update_expiry_date(self, expiry_date: expiryDate):
