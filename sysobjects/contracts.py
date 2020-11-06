@@ -190,7 +190,7 @@ class futuresContract(object):
         if self.is_spread_contract():
             return "_".join([str(x) for x in self.contract_date])
         else:
-            return self.contract_date.contract_date
+            return self.contract_date.date
 
     @property
     def expiry_date(self):

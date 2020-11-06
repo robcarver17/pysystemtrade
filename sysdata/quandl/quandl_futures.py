@@ -105,7 +105,7 @@ class _quandlFuturesContract(futuresContract):
         :param futures_contract: of type FuturesContract
         """
 
-        super().__init__(futures_contract.instrument, futures_contract.contract_date)
+        super().__init__(futures_contract.instrument, futures_contract.date)
 
         if quandl_instrument_data is USE_DEFAULT:
             quandl_instrument_data = quandlFuturesConfiguration()

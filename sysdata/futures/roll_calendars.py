@@ -83,19 +83,19 @@ class rollCalendar(pd.DataFrame):
         current_contracts = [
             contractDate(
                 current_and_forward_unique.loc[date_index].PRICE_CONTRACT
-            ).contract_date
+            ).date
             for date_index in days_before
         ]
         next_contracts = [
             contractDate(
                 current_and_forward_unique.loc[date_index].PRICE_CONTRACT
-            ).contract_date
+            ).date
             for date_index in roll_dates
         ]
         carry_contracts = [
             contractDate(
                 current_and_forward_unique.loc[date_index].CARRY_CONTRACT
-            ).contract_date
+            ).date
             for date_index in days_before
         ]
 
@@ -113,17 +113,17 @@ class rollCalendar(pd.DataFrame):
                 current_contract=[
                     contractDate(
                         current_and_forward_data.iloc[-1].PRICE_CONTRACT
-                    ).contract_date
+                    ).date
                 ],
                 next_contract=[
                     contractDate(
                         current_and_forward_data.iloc[-1].FORWARD_CONTRACT
-                    ).contract_date
+                    ).date
                 ],
                 carry_contract=[
                     contractDate(
                         current_and_forward_data.iloc[-1].CARRY_CONTRACT
-                    ).contract_date
+                    ).date
                 ],
             ),
             index=[current_and_forward_data.index[-1]],
@@ -277,7 +277,7 @@ def _generate_approximate_calendar(
             # The current contract isn't the last contract
             # But the remaining contracts aren't held contracts
             if (
-                current_contract.next_held_contract().contract_date
+                current_contract.next_held_contract().date
                 > final_contract_date
             ):
                 # We are done
@@ -285,7 +285,7 @@ def _generate_approximate_calendar(
             else:
                 raise Exception(
                     "Can't find good next contract date %s from data when building roll calendar using hold calendar %s" %
-                    (carry_contract.contract_date, str(
+                    (carry_contract.date, str(
                         roll_parameters_object.hold_rollcycle), ))
 
         carry_contract = current_contract.find_best_carry_contract_with_price_data()
@@ -297,9 +297,9 @@ def _generate_approximate_calendar(
 
         contract_dates_to_hold_on_each_roll.append(
             current_contract.contract_date)
-        contract_dates_next_contract_along.append(next_contract.contract_date)
+        contract_dates_next_contract_along.append(next_contract.date)
         carry_contracts_to_hold_on_each_roll.append(
-            carry_contract.contract_date)
+            carry_contract.date)
 
         current_roll_date = current_contract.want_to_roll()
         theoretical_roll_dates.append(current_roll_date)
@@ -473,7 +473,7 @@ def _add_carry_calendar(
     ]
 
     carry_contract_dates = [contract.carry_contract(
-    ).contract_date for contract in contracts_with_roll_data]
+    ).date for contract in contracts_with_roll_data]
 
     # Special case if first carry contract missing with a negative offset
     first_carry_contract = carry_contract_dates[0]

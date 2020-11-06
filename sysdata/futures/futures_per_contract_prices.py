@@ -958,7 +958,7 @@ class futuresContractPriceData(baseData):
             self.contracts_with_price_data_for_instrument_code(instrument_code)
         )
         contract_dates = [
-            str(contract.contract_date)
+            str(contract.date)
             for contract in list_of_contracts_with_price_data
             if contract.instrument_code == instrument_code
         ]

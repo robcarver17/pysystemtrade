@@ -655,7 +655,7 @@ class ibClient(object):
         """
         contract_object_to_use = copy(futures_contract_object)
         if always_return_single_leg and contract_object_to_use.is_spread_contract():
-            contract_object_to_use = contract_object_to_use.new_contract_with_replaced_contract_date_object(futures_contract_object.contract_date[0])
+            contract_object_to_use = contract_object_to_use.new_contract_with_replaced_contract_date_object(futures_contract_object.date[0])
 
         if getattr(self, "_futures_contract_cache", None) is None:
             self._futures_contract_cache = {}
@@ -703,13 +703,13 @@ class ibClient(object):
         if contract_object_with_ib_data.is_spread_contract():
             ibcontract, legs = self._get_spread_ib_futures_contract(
                 instrument_object_with_metadata,
-                contract_object_with_ib_data.contract_date,
+                contract_object_with_ib_data.date,
                 trade_list_for_multiple_legs=trade_list_for_multiple_legs,
             )
         else:
             ibcontract = self._get_vanilla_ib_futures_contract(
                 instrument_object_with_metadata,
-                contract_object_with_ib_data.contract_date,
+                contract_object_with_ib_data.date,
             )
             legs = []
 

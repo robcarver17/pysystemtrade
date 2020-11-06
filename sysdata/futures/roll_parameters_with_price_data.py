@@ -73,7 +73,7 @@ class contractWithRollParametersAndPrices(object):
 
     @property
     def contract_date(self):
-        return self.contract.contract_date
+        return self.contract.date
 
     @property
     def want_to_roll(self):

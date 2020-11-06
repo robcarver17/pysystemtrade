@@ -525,7 +525,7 @@ class contractDateWithRollParameters(contractDate):
         except BaseException:
             raise Exception(
                 "ContractDate %s with %s roll cycle, must be in %s %s"
-                % (self.contract_date, rollcycle_name, str(rollcycle_to_use))
+                % (self.date, rollcycle_name, str(rollcycle_to_use))
             )
 
         current_month_str = self.letter_month()
@@ -536,7 +536,7 @@ class contractDateWithRollParameters(contractDate):
         )
         new_month_int = month_from_contract_letter(new_month_str)
 
-        if self._only_has_month:
+        if self.only_has_month:
             new_day_number = 0
         else:
             new_day_number = self.day()

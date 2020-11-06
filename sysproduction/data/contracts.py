@@ -123,7 +123,7 @@ class diagContracts(object):
         ]
 
         all_contracts_dates = [
-            contract.contract_date for contract in all_contracts]
+            contract.date for contract in all_contracts]
         unique_all_contract_dates = sorted(set(all_contracts_dates))
         unique_all_contract_dates = unique_all_contract_dates + \
             [missing_contract] * (6 - len(unique_all_contract_dates))

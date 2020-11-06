@@ -271,7 +271,7 @@ def update_expiry_for_contract(contract_object, data):
         instrument_code, contract_date)
 
     # Both should be in format expiryDate(yyyy,mm,dd)
-    db_expiry_date = db_contract.contract_date.expiry_date
+    db_expiry_date = db_contract.date.expiry_date
     try:
         ib_expiry_date = (
             data_broker.get_actual_expiry_date_for_instrument_code_and_contract_date(
@@ -296,7 +296,7 @@ def update_expiry_for_contract(contract_object, data):
         return None
 
     # Different!
-    contract_object.contract_date.update_expiry_date(ib_expiry_date)
+    contract_object.date.update_expiry_date(ib_expiry_date)
     update_contracts.add_contract_data(
         contract_object, ignore_duplication=True)
 
