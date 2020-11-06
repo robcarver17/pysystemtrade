@@ -285,7 +285,7 @@ class contractDate(object):
 
     @property
     def contract_date(self):
-        ## 
+        ##
         return self.inner_contract_date.contract_date
 
     # not using a setter as shouldn't be done casually

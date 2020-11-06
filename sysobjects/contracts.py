@@ -310,9 +310,9 @@ def _resolve_args_for_futures_contract(instrument_object, contract_date_object) 
     contract_date_is_str = isinstance(contract_date_object, str)
 
     # not needed?
-    #contract_date_is_list = isinstance(contract_date_object, list)
-    #if instrument_is_str and contract_date_is_list:
-    #    return _resolve_args_where_instrument_str_and_contract_date_is_list(instrument_object, contract_date_object)
+    contract_date_is_list = isinstance(contract_date_object, list)
+    if instrument_is_str and contract_date_is_list:
+        return _resolve_args_where_instrument_str_and_contract_date_is_list(instrument_object, contract_date_object)
 
     if instrument_is_str and  contract_date_is_str:
         return _resolve_args_where_both_are_str(instrument_object, contract_date_object)
