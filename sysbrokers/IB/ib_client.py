@@ -709,7 +709,7 @@ class ibClient(object):
         else:
             ibcontract = self._get_vanilla_ib_futures_contract(
                 instrument_object_with_metadata,
-                contract_object_with_ib_data.date,
+                contract_object_with_ib_data.contract_date,
             )
             legs = []
 
