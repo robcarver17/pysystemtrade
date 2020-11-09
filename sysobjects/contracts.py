@@ -159,18 +159,6 @@ class futuresContract(object):
             instrument_object, contract_date_object, parameter_object= parameter_object
         )
 
-    @classmethod
-    ## USED AT ALL?
-    def simple(futuresContract, instrument_code, contract_date, **kwargs):
-        DeprecationWarning(
-            "futuresContract.simple(x,y) is deprecated, use futuresContract(x,y) instead"
-        )
-        return futuresContract(
-            futuresInstrument(instrument_code),
-            contractDate(
-                contract_date,
-                **kwargs))
-
     @property
     def instrument_code(self):
         return self.instrument.instrument_code
@@ -179,18 +167,11 @@ class futuresContract(object):
     ## SHOULD HAVE CONTRACT DATE AS A SEPERATE OBJECT WHICH CAN BE A SPREAD?
 
     def is_spread_contract(self):
-        if isinstance(self.contract_date, list):
-            if len(self.contract_date) > 1:
-                return True
-        else:
-            return False
+        return self.contract_date.is_spread_contract
 
     @property
     def date(self):
-        if self.is_spread_contract():
-            return "_".join([str(x) for x in self.contract_date])
-        else:
-            return self.contract_date.date
+        return self.contract_date.date
 
     @property
     def expiry_date(self):

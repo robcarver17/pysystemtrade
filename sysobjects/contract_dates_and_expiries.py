@@ -312,7 +312,7 @@ class contractDate(object):
 
     @property
     def key(self):
-        return "_".join([str(x) for x in self.list_of_single_contract_dates])
+        return self.date
 
     @property
     def is_spread_contract(self):
@@ -338,8 +338,8 @@ class contractDate(object):
 
     @property
     def date(self):
-        ##
-        return self.first_contract.date
+        return "_".join([str(x) for x in self.list_of_single_contract_dates])
+
 
     # not using a setter as shouldn't be done casually
     def update_expiry_date(self, expiry_date: expiryDate):
