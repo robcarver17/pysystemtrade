@@ -47,14 +47,15 @@ class futuresContract(object):
 
         instrument_object, contract_date_object = _resolve_args_for_futures_contract(instrument_object, contract_date_object)
 
-        self._instrument = instrument_object
-        self._contract_date = contract_date_object
-
         if parameter_object is arg_not_supplied:
             parameter_object = parametersForFuturesContract()
 
-        self._is_empty = False
+        self._instrument = instrument_object
+        self._contract_date = contract_date_object
         self._params = parameter_object
+
+
+        self._is_empty = False
 
     @property
     def instrument(self):
@@ -68,42 +69,21 @@ class futuresContract(object):
     def params(self):
         return self._params
 
-
-
     def __repr__(self):
-        return self.key()
+        return self.key
 
     def __eq__(self, other):
-        if self.instrument_code != other.instrument_code:
+        instruments_match = self.instrument == other.instrument
+        contracts_match = self.contract_date == other.contract_date
+
+        if instruments_match and contracts_match:
+            return True
+        else:
             return False
-        if self.date != other.date:
-            return False
-        return True
 
-    @classmethod
-    ## CLASIER WAY?
-    def create_empty(futuresContract):
-        fake_instrument = futuresInstrument("EMPTY")
-        fake_contract_date = contractDate("150001")
-
-        futures_contract = futuresContract(fake_instrument, fake_contract_date)
-        futures_contract._is_empty = True
-
-        return futures_contract
-
-    def empty(self):
-        return self._is_empty
-
-    def ident(self):
-        ## REPLACE WITH KEY WHERE USED?
-        return self.key()
-
+    @property
     def key(self):
         return self.instrument_code + "/" + self.date
-
-    def as_tuple(self):
-        ## USED WHERE?
-        return self.instrument_code, self.date
 
     @property
     def currently_sampling(self):
@@ -122,9 +102,6 @@ class futuresContract(object):
 
         :return: dict
         """
-
-        if self.empty():
-            raise Exception("Can't create dict from empty object")
 
         contract_date_dict = self.contract_date.as_dict()
         instrument_dict = self.instrument.as_dict()
@@ -163,12 +140,6 @@ class futuresContract(object):
     def instrument_code(self):
         return self.instrument.instrument_code
 
-    ## SHOULD BE IN CONTRACT DATE?
-    ## SHOULD HAVE CONTRACT DATE AS A SEPERATE OBJECT WHICH CAN BE A SPREAD?
-
-    def is_spread_contract(self):
-        return self.contract_date.is_spread_contract
-
     @property
     def date(self):
         return self.contract_date.date
@@ -176,6 +147,10 @@ class futuresContract(object):
     @property
     def expiry_date(self):
         return self.contract_date.expiry_date
+
+    def is_spread_contract(self):
+        return self.contract_date.is_spread_contract
+
 
     @classmethod
     def approx_first_held_futuresContract_at_date(
@@ -277,13 +252,20 @@ class futuresContract(object):
             self, new_instrument_object):
         ## WHERE USED
         contract_date_object = self.contract_date
+        params = self.params
 
-        return futuresContract(new_instrument_object, contract_date_object)
+        return futuresContract(new_instrument_object, contract_date_object, parameter_object=params)
+
+    def new_contract_with_first_contract_date(self):
+        new_contract_date_object = self.contract_date.first_contract_as_contract_date()
+
+        return self.new_contract_with_replaced_contract_date_object(new_contract_date_object)
 
     def new_contract_with_replaced_contract_date_object(self, new_contract_date_object):
         instrument_object = self.instrument
+        params = self.params
 
-        return futuresContract(instrument_object, new_contract_date_object)
+        return futuresContract(instrument_object, new_contract_date_object, params)
 
 def _resolve_args_for_futures_contract(instrument_object, contract_date_object) -> tuple:
 

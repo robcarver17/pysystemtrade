@@ -55,7 +55,7 @@ def get_and_write_prices_for_contract_list_from_quandl_to_arctic(
     arctic_prices_data = arcticFuturesContractPriceData()
 
     for contract_object in list_of_contracts:
-        print("Processing %s" % contract_object.ident())
+        print("Processing %s" % contract_object.key)
         quandl_price = quandl_prices_data.get_prices_for_contract_object(
             contract_object
         )

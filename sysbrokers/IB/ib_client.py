@@ -672,7 +672,7 @@ class ibClient(object):
             )
 
         cache = self._futures_contract_cache
-        key = contract_object_to_use.ident() + trade_list_suffix
+        key = contract_object_to_use.key + trade_list_suffix
 
         ibcontract_with_legs = cache.get(key, missing_contract)
         if ibcontract_with_legs is missing_contract:

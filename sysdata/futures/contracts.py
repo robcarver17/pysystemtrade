@@ -33,13 +33,13 @@ class futuresContractData(baseData):
 
         return contract_objects_list
 
-    def get_contract_data(self, instrument_code, contract_date):
-        if self.is_contract_in_data(instrument_code, contract_date):
+    def get_contract_data(self, instrument_code, contract_id):
+        if self.is_contract_in_data(instrument_code, contract_id):
             return self._get_contract_data_without_checking(
-                instrument_code, contract_date
+                instrument_code, contract_id
             )
         else:
-            return futuresContract.create_empty()
+            raise ContractNotFound("Contract %s/%s not found" % (instrument_code, contract_id))
 
     def _get_contract_data_without_checking(
             self, instrument_code, contract_date):

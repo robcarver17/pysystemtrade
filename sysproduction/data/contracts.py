@@ -153,8 +153,6 @@ class diagContracts(object):
     def get_actual_expiry(self, instrument_code, contract_id):
         contract_object = self.get_contract_object(
             instrument_code, contract_id)
-        if contract_object.empty():
-            return missing_expiry
 
         expiry_date = contract_object.expiry_date
 

@@ -95,7 +95,7 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
         self._arctic.library.write(ident, futures_price_data_aspd)
         self.log.msg("Wrote %s lines of prices for %s to %s" %
                      (len(futures_price_data),
-                      str(futures_contract_object.ident()), self.name))
+                      str(futures_contract_object.key), self.name))
 
     def _all_keynames_in_library(self):
         return self._arctic.library.list_symbols()
@@ -115,7 +115,7 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
         ident = self._keyname_given_contract_object(futures_contract_object)
         self._arctic.library.delete(ident)
         self.log.msg("Deleted all prices for %s from %s" %
-                     (futures_contract_object.ident(), self.name))
+                     (futures_contract_object.key, self.name))
 
     def _get_contract_tuples_with_price_data(self):
         """
