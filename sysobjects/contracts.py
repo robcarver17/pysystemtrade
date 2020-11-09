@@ -287,10 +287,11 @@ class futuresContract(object):
 
 def _resolve_args_for_futures_contract(instrument_object, contract_date_object) -> tuple:
 
-    if not isinstance(instrument_object, futuresInstrument):
+    if isinstance(instrument_object, str):
         instrument_object = futuresInstrument(instrument_object)
 
-    if not isinstance(contract_date_object, contractDate):
+    if isinstance(contract_date_object, list) or isinstance(contract_date_object, str) \
+            or isinstance(contract_date_object, dict):
         contract_date_object = contractDate(contract_date_object)
 
     return instrument_object, contract_date_object
