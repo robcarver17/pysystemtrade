@@ -295,7 +295,7 @@ def update_expiry_for_contract(contract_object, data):
         return None
 
     # Different!
-    contract_object.date.update_expiry_date(ib_expiry_date)
+    contract_object.contract_date.update_expiry_date(ib_expiry_date)
     update_contracts.add_contract_data(
         contract_object, ignore_duplication=True)
 
