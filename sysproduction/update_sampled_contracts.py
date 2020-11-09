@@ -271,11 +271,10 @@ def update_expiry_for_contract(contract_object, data):
         instrument_code, contract_date)
 
     # Both should be in format expiryDate(yyyy,mm,dd)
-    db_expiry_date = db_contract.date.expiry_date
+    db_expiry_date = db_contract.expiry_date
     try:
-        ib_expiry_date = (
-            data_broker.get_actual_expiry_date_for_instrument_code_and_contract_date(
-                instrument_code, contract_date))
+        ib_expiry_date = \
+            data_broker.get_actual_expiry_date_for_contract(db_contract)
 
         if ib_expiry_date is missing_contract:
             raise Exception()

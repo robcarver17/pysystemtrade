@@ -84,11 +84,6 @@ class dataBroker(object):
         return self.data.broker_futures_contract_price.get_recent_bid_ask_tick_data_for_instrument_code_and_contract_date(
             instrument_code, contract_date)
 
-    def get_actual_expiry_date_for_instrument_code_and_contract_date(
-        self, instrument_code, contract_date
-    ):
-        return self.data.broker_futures_contract.get_actual_expiry_date_for_instrument_code_and_contract_date(
-            instrument_code, contract_date)
 
     def get_actual_expiry_date_for_contract(self, contract_object):
         return self.data.broker_futures_contract.get_actual_expiry_date_for_contract(
