@@ -314,7 +314,7 @@ class contractDate(object):
     def key(self):
         return "_".join([str(x) for x in self.list_of_single_contract_dates])
 
-    @@property
+    @property
     def is_spread_contract(self):
         if len(self.list_of_single_contract_dates)>1:
             return True
