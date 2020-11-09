@@ -5,6 +5,7 @@ Represent contract dates and expiries
 import datetime
 
 from syscore.dateutils import contract_month_from_number
+from syscore.genutils import list_of_items_seperated_by_underscores
 
 NO_EXPIRY_DATE_PASSED = ""
 NO_DAY_PASSED = object()
@@ -14,6 +15,8 @@ MONTH_SLICE = slice(4, 6)
 DAY_SLICE = slice(6, 8)
 YYYYMM_SLICE = slice(0, 6)
 
+class needSingleLegDate(Exception):
+    pass
 
 def from_contract_numbers_to_contract_string(
     new_year_number, new_month_number, new_day_number=NO_DAY_PASSED
@@ -90,7 +93,7 @@ class singleContractDate(object):
             elif len(date_str) == 8:
                 self._init_with_yymmdd(date_str)
             else:
-                raise Exception()
+                raise Exception("Can't parse %s as YYYYMM or YYYYMMDD" % str(date_str))
 
         except Exception:
             raise Exception(
@@ -243,10 +246,16 @@ class singleContractDate(object):
 
         return date_str
 
+CONTRACT_DATE_LIST_ENTRY_KEY = "contract_list"
+
 class contractDate(object):
     """
+
+
     A single contract date; either in the form YYYYMM or YYYYMMDD
-    *or* specified as a list
+    *or* a list of contract dates
+
+    Typically
 
     Use cases:
     - normal contract eg 201712 and expiry date like 20171214
@@ -270,64 +279,186 @@ class contractDate(object):
             expiry_date=NO_EXPIRY_DATE_PASSED,
             approx_expiry_offset=0):
         """
+        Vanilla
+        contractDate("202003")
+        contractDate("20200300")
+        contractDate("20200302")
 
-        :param date_str: string of numbers length 6 or 8 eg '201008' or '201008515'
-        :param expiry_date:  string of numbers length 8 be passed eg '20101218'
+        contractDate("202003", expiry_date = expiryDate(2020,3,1)) # approx offset will be ignored
+        contractDate("202003", approx_expiry_offset = 2)
+
+        Spreads
+        contractDate(["202003", "202006"])
+        contractDate("202003_202006")
+        contractDate("202003_202006", approx_expiry_offset = 2) ## offset applied to everything
+        contractDate("202003_202006", expiry_date = [expiryDate(2020,3,1), expiryDate(2020,6,2)])
+        contractDate(dict(contract_list = [dict(contract_date = '20230300', expiry_date = (2023,3,1)),
+                                            dict(contract_date = '20230600', expiry_date = (2023,6,2))]))
+
+        :param date_str: string of numbers length 6 or 8 eg '201008' or '201008515', or a list of those, or underscore
+        :param expiry_date:  expiryDate object, or list same length as contract date list
+        :param approx_expiry_offset: int (applied to all expiry dates if a spread)
         """
 
-        ## TEMP REFACTORING
-        inner_contract_date = singleContractDate(date_str, expiry_date=expiry_date, approx_expiry_offset=approx_expiry_offset)
-        self.inner_contract_date = inner_contract_date
+        contract_date_list = resolve_date_string_into_list_of_single_contract_dates(date_str, expiry_date=expiry_date, approx_expiry_offset=approx_expiry_offset)
+        self._list_of_single_contract_dates = contract_date_list
 
     def __repr__(self):
-        return self.inner_contract_date.date
+        return self.key
+
+    @property
+    def list_of_single_contract_dates(self):
+        return self._list_of_single_contract_dates
+
+    @property
+    def key(self):
+        return "_".join([str(x) for x in self.list_of_single_contract_dates])
+
+    @property
+    def first_contract(self):
+        list_of_single_contract_dates = self.list_of_single_contract_dates
+        if len(list_of_single_contract_dates)>1:
+            raise needSingleLegDate("Can't use this method or property with multiple leg contractDate %s" % str(self))
+
+        return list_of_single_contract_dates[0]
 
     @property
     def only_has_month(self):
-        return self.inner_contract_date.only_has_month
+        return self.first_contract.only_has_month
 
     @property
     def expiry_date(self):
-        return self.inner_contract_date.expiry_date
+        return self.first_contract.expiry_date
 
     @property
     def date(self):
         ##
-        return self.inner_contract_date.date
+        return self.first_contract.date
 
     # not using a setter as shouldn't be done casually
     def update_expiry_date(self, expiry_date: expiryDate):
-        self.inner_contract_date.update_expiry_date(expiry_date)
+        self.first_contract.update_expiry_date(expiry_date)
 
     def as_dict(self):
-        return self.inner_contract_date.as_dict()
+        return {CONTRACT_DATE_LIST_ENTRY_KEY:
+                    [contract_date.as_dict() for contract_date in self.list_of_single_contract_dates]}
 
     @classmethod
     def create_from_dict(contractDate, results_dict):
         # needs to match output from as_dict
-
-        expiry_date = results_dict.get("expiry_date", NO_EXPIRY_DATE_PASSED)
-
-        if expiry_date is not NO_EXPIRY_DATE_PASSED:
-            expiry_date = expiryDate(*expiry_date)
-
-        contract_id = results_dict["contract_date"]
-
-        return contractDate(
-            contract_id,
-            expiry_date=expiry_date)
+        # Have 'old style' storage for legacy data
+        if CONTRACT_DATE_LIST_ENTRY_KEY in results_dict.keys():
+            ## new style
+            return contractDate(results_dict)
+        else:
+            ## old style
+            return create_contract_date_from_old_style_dict(contractDate, results_dict)
 
     def year(self):
-        return self.inner_contract_date.year()
+        return self.first_contract.year()
 
     def month(self):
-        return self.inner_contract_date.month()
+        return self.first_contract.month()
 
     def day(self):
-        return self.inner_contract_date.day()
+        return self.first_contract.day()
 
     def is_day_defined(self):
-        return self.inner_contract_date.is_day_defined()
+        return self.first_contract.is_day_defined()
 
     def letter_month(self):
-        return self.inner_contract_date.letter_month()
+        return self.first_contract.letter_month()
+
+def resolve_date_string_into_list_of_single_contract_dates(date_str, expiry_date=NO_EXPIRY_DATE_PASSED, approx_expiry_offset=0) -> list:
+    if type(date_str) is dict:
+        contract_date_list = get_contract_date_object_list_from_dict(date_str)
+    else:
+        contract_date_list = \
+            get_contract_date_object_list_from_date_str_and_expiry_date(date_str, expiry_date,
+                                                                            approx_expiry_offset=approx_expiry_offset)
+
+    return contract_date_list
+
+def get_contract_date_object_list_from_dict(date_str: dict)-> list:
+    try:
+        contract_dates_as_list = date_str[CONTRACT_DATE_LIST_ENTRY_KEY]
+    except:
+        raise Exception("Need to pass dict with single key %s" % CONTRACT_DATE_LIST_ENTRY_KEY)
+
+    contract_date_list = [singleContractDate.create_from_dict(dict_in_list)
+                            for dict_in_list in contract_dates_as_list]
+
+    return contract_date_list
+
+
+def get_contract_date_object_list_from_date_str_and_expiry_date(date_str, expiry_date,
+                                                                     approx_expiry_offset=0) ->list:
+    date_str_list = resolve_date_string_into_list_of_date_str(date_str)
+    expiry_date_list = resolve_expiry_date_into_list_of_expiry_dates(expiry_date, date_str_list)
+    contract_date_list = [singleContractDate(date_str_this_date,
+                                             expiry_date = expiry_date_this_str,
+                                             approx_expiry_offset = approx_expiry_offset,
+                                             ) for date_str_this_date, expiry_date_this_str
+                                                in zip(date_str_list, expiry_date_list)]
+
+    return contract_date_list
+
+
+def get_date_str_list_and_expiry_date_list_from_date_str_and_expiry_date(date_str, expiry_date):
+    date_str_list = resolve_date_string_into_list_of_date_str(date_str)
+    expiry_date_list = resolve_expiry_date_into_list_of_expiry_dates(expiry_date, date_str_list)
+
+    return date_str_list, expiry_date_list
+
+def resolve_date_string_into_list_of_date_str(date_str) -> list:
+    """
+    str with no underscores becomes [str]
+
+    str with underscores becomes [str1, str2,...]
+
+    list remains list
+
+    :param date_str: str or list
+    :return: list
+    """
+    if type(date_str) is list:
+        return date_str
+
+    date_str_as_list = list_of_items_seperated_by_underscores(date_str)
+    return date_str_as_list
+
+def resolve_expiry_date_into_list_of_expiry_dates(expiry_date, date_str_as_list):
+    if expiry_date is NO_EXPIRY_DATE_PASSED:
+        return [NO_EXPIRY_DATE_PASSED] * len(date_str_as_list)
+
+    if type(expiry_date) is list:
+        try:
+            assert len(expiry_date) == len(date_str_as_list)
+        except:
+            raise Exception("Length of expiry date list has to match length of date strings")
+
+        return expiry_date
+
+    if type(expiry_date) is expiryDate:
+        try:
+            assert len(date_str_as_list)==1
+        except:
+            raise Exception("Passing a single expiry date but there is more than one contract date")
+
+        return [expiry_date]
+
+    raise Exception("Don't know how to handle expiry date %s of type %s" % (str(expiry_date), str(type(expiry_date))))
+
+
+def create_contract_date_from_old_style_dict(contractDate, results_dict: dict):
+    ## for compatibility with original format
+    expiry_date = results_dict.get("expiry_date", NO_EXPIRY_DATE_PASSED)
+
+    if expiry_date is not NO_EXPIRY_DATE_PASSED:
+        expiry_date = expiryDate(*expiry_date)
+
+    contract_id = results_dict["contract_date"]
+
+    return contractDate(
+        contract_id,
+        expiry_date=expiry_date)
