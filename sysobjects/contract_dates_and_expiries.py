@@ -314,13 +314,19 @@ class contractDate(object):
     def key(self):
         return "_".join([str(x) for x in self.list_of_single_contract_dates])
 
+    @@property
+    def is_spread_contract(self):
+        if len(self.list_of_single_contract_dates)>1:
+            return True
+        else:
+            return False
+
     @property
     def first_contract(self):
-        list_of_single_contract_dates = self.list_of_single_contract_dates
-        if len(list_of_single_contract_dates)>1:
+        if self.is_spread_contract:
             raise needSingleLegDate("Can't use this method or property with multiple leg contractDate %s" % str(self))
 
-        return list_of_single_contract_dates[0]
+        return self.list_of_single_contract_dates[0]
 
     @property
     def only_has_month(self):
