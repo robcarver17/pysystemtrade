@@ -168,7 +168,7 @@ def add_missing_contracts_to_database(
     for contract_to_add in missing_from_db:
         contract_date = contract_to_add.date
         if diag_contracts.is_contract_in_data(instrument_code, contract_date):
-            contract_to_add = diag_contracts.get_contract_data(
+            contract_to_add = diag_contracts.get_contract_object(
                 instrument_code, contract_date
             )
 
@@ -204,7 +204,7 @@ def mark_contracts_as_stopped_sampling(
         contract_date = contract_date_object.date
 
         # Mark it as stop sampling in the database
-        contract = diag_contracts.get_contract_data(
+        contract = diag_contracts.get_contract_object(
             instrument_code, contract_date)
         if contract.currently_sampling:
             contract.sampling_off()
@@ -267,7 +267,7 @@ def update_expiry_for_contract(contract_object, data):
     log = log.setup(
         instrument_code=instrument_code,
         contract_date=contract_date)
-    db_contract = diag_contracts.get_contract_data(
+    db_contract = diag_contracts.get_contract_object(
         instrument_code, contract_date)
 
     # Both should be in format expiryDate(yyyy,mm,dd)

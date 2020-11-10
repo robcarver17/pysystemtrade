@@ -136,14 +136,10 @@ class diagContracts(object):
         )
         return roll_parameters
 
+
     def get_contract_object(self, instrument_code, contract_id):
-        contract_object = self.get_contract_data(instrument_code, contract_id)
 
-        return contract_object
-
-    def get_contract_data(self, instrument_code, contract_id):
-
-        contract_object = self.data.db_futures_contract.get_contract_data(
+        contract_object = self.data.db_futures_contract.get_contract_object(
             instrument_code, contract_id
         )
 
