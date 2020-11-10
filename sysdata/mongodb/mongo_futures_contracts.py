@@ -110,9 +110,11 @@ def _from_old_to_new_contract_storage(mongo_data):
     if len(list_of_old_records)==0:
         return False
 
+    mongo_data._mongo.collection.drop_indexes()
+
     _translate_old_records(mongo_data, list_of_old_records)
 
-    _modify_indices(mongo_data)
+    mongo_data._mongo.create_index(mongo_data.key_name)
 
     return True
 
@@ -166,6 +168,3 @@ def _delete_old_record(mongo_data, record):
     mongo_data._mongo.collection.delete_one(dict(instrument_code=instrument_code, contract_date=contract_date))
 
 
-def _modify_indices(mongo_data):
-    mongo_data._mongo.collection.drop_indexes()
-    mongo_data._mongo.create_index(mongo_data.key_name)
