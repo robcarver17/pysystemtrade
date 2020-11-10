@@ -228,7 +228,7 @@ class ibFuturesContractData(futuresContractData):
         raise NotImplementedError(
             "Consider implementing for consistent interface")
 
-    def get_contract_data(self, *args, **kwargs):
+    def get_contract_object(self, *args, **kwargs):
         raise NotImplementedError(
             "Consider implementing for consistent interface")
 

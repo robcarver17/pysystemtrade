@@ -27,7 +27,7 @@ class futuresContractData(baseData):
     def get_all_contract_objects_for_instrument_code(self, instrument_code):
         raise NotImplementedError(USE_CHILD_CLASS_ERROR)
 
-    def get_contract_data(self, instrument_code, contract_id):
+    def get_contract_object(self, instrument_code, contract_id):
         if self.is_contract_in_data(instrument_code, contract_id):
             return self._get_contract_data_without_checking(
                 instrument_code, contract_id
@@ -41,7 +41,7 @@ class futuresContractData(baseData):
 
     def __getitem__(self, key_tuple):
         (instrument_code, contract_date) = key_tuple
-        return self.get_contract_data(instrument_code, contract_date)
+        return self.get_contract_object(instrument_code, contract_date)
 
     def delete_contract_data(
             self,
