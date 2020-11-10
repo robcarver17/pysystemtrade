@@ -17,39 +17,39 @@ class MyTestCase(unittest.TestCase):
         cycle1 = rollCycle_TOMOVE("HMUZ")
         self.assertEqual(cycle1.__repr__(), "HMUZ")
 
-        self.assertEqual(cycle1.as_list(), [3, 6, 9, 12])
+        self.assertEqual(cycle1._as_list(), [3, 6, 9, 12])
 
         # check moving forwards and backwards
-        self.assertEqual(cycle1.offset_month("H", 1), "M")
-        self.assertEqual(cycle1.offset_month("H", -1), "Z")
-        self.assertEqual(cycle1.offset_month("Z", -1), "U")
-        self.assertEqual(cycle1.offset_month("Z", 1), "H")
-        self.assertEqual(cycle1.offset_month("M", 4), "M")
+        self.assertEqual(cycle1._offset_month("H", 1), "M")
+        self.assertEqual(cycle1._offset_month("H", -1), "Z")
+        self.assertEqual(cycle1._offset_month("Z", -1), "U")
+        self.assertEqual(cycle1._offset_month("Z", 1), "H")
+        self.assertEqual(cycle1._offset_month("M", 4), "M")
 
-        self.assertEqual(cycle1.previous_month("H"), "Z")
-        self.assertEqual(cycle1.previous_month("Z"), "U")
-        self.assertEqual(cycle1.next_month("Z"), "H")
-        self.assertEqual(cycle1.next_month("H"), "M")
+        self.assertEqual(cycle1._previous_month("H"), "Z")
+        self.assertEqual(cycle1._previous_month("Z"), "U")
+        self.assertEqual(cycle1._next_month("Z"), "H")
+        self.assertEqual(cycle1._next_month("H"), "M")
 
-        self.assertEqual(cycle1.where_month("H"), 0)
-        self.assertEqual(cycle1.where_month("Z"), 3)
+        self.assertEqual(cycle1._where_month("H"), 0)
+        self.assertEqual(cycle1._where_month("Z"), 3)
 
-        self.assertEqual(cycle1.month_is_first("H"), True)
-        self.assertEqual(cycle1.month_is_first("Z"), False)
+        self.assertEqual(cycle1._month_is_first("H"), True)
+        self.assertEqual(cycle1._month_is_first("Z"), False)
 
-        self.assertEqual(cycle1.month_is_last("H"), False)
-        self.assertEqual(cycle1.month_is_last("Z"), True)
+        self.assertEqual(cycle1._month_is_last("H"), False)
+        self.assertEqual(cycle1._month_is_last("Z"), True)
 
-        self.assertEqual(cycle1.check_is_month_in_rollcycle("H"), True)
-        self.assertRaises(Exception, cycle1.check_is_month_in_rollcycle, "J")
+        self.assertEqual(cycle1._check_is_month_in_rollcycle("H"), True)
+        self.assertRaises(Exception, cycle1._check_is_month_in_rollcycle, "J")
 
-        self.assertRaises(Exception, cycle1.month_is_first, "J")
+        self.assertRaises(Exception, cycle1._month_is_first, "J")
 
-        self.assertEqual(cycle1.previous_year_month(2002, "M"), (2002, "H"))
-        self.assertEqual(cycle1.previous_year_month(2002, "H"), (2001, "Z"))
+        self.assertEqual(cycle1._previous_year_month(2002, "M"), (2002, "H"))
+        self.assertEqual(cycle1._previous_year_month(2002, "H"), (2001, "Z"))
 
-        self.assertEqual(cycle1.next_year_month(2002, "M"), (2002, "U"))
-        self.assertEqual(cycle1.next_year_month(2002, "Z"), (2003, "H"))
+        self.assertEqual(cycle1._next_year_month(2002, "M"), (2002, "U"))
+        self.assertEqual(cycle1._next_year_month(2002, "Z"), (2003, "H"))
 
         self.assertEqual(
             cycle1.yearmonth_inrollcycle_after_date(

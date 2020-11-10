@@ -30,126 +30,23 @@ class rollCycle(object):
 
         assert isinstance(cyclestring, str)
 
-        self.cyclestring = "".join(sorted(cyclestring))
-        self.cycle_as_list = [
-            month_from_contract_letter(contract_letter)
-            for contract_letter in self.cyclestring
-        ]
+        self._cyclestring = "".join(sorted(cyclestring))
 
         if cyclestring == EMPTY_ROLL_CYCLE_STRING:
             self._isempty = True
         else:
             self._isempty = False
 
-    def empty(self):
-        return self._isempty
-
     def __repr__(self):
         return self.cyclestring
 
-    def as_list(self):
-        """
+    @property
+    def cyclestring(self):
+        return self._cyclestring
 
-        :return: list with int values referring to month numbers eg January =12 etc
-        """
-        return self.cycle_as_list
-
-    def offset_month(self, current_month, offset):
-        """
-        Move a number of months in the expiry cycle
-
-        :param current_month: Current month as a str
-        :param offset: number of months to go forwards or backwards
-        :return: new month as str
-        """
-
-        current_index = self.where_month(current_month)
-        len_cycle = len(self.cyclestring)
-        new_index = current_index + offset
-        cycled_index = new_index % len_cycle
-
-        return self.cyclestring[cycled_index]
-
-    def next_month(self, current_month):
-        """
-        Move one month forward in expiry cycle
-
-        :param current_month: Current month as a str
-        :return: new month as str
-        """
-
-        return self.offset_month(current_month, 1)
-
-    def previous_month(self, current_month):
-        """
-        Move one month back in expiry cycle
-
-        :param current_month: Current month as a str
-        :return: new month as str
-        """
-
-        return self.offset_month(current_month, -1)
-
-    def where_month(self, current_month):
-        """
-        Return the index value (0 is first) of month in expiry
-
-        :param current_month: month as str
-        :return: int
-        """
-        self.check_is_month_in_rollcycle(current_month)
-
-        return self.cyclestring.index(current_month)
-
-    def month_is_first(self, current_month):
-        """
-        Is this the first month in the expiry cycle?
-
-        :param current_month: month as str
-        :return: bool
-        """
-
-        return self.where_month(current_month) == 0
-
-    def month_is_last(self, current_month):
-        """
-        Is this the last month in the expiry cycle?
-
-        :param current_month: month as str
-        :return: bool
-        """
-
-        return self.where_month(current_month) == len(self.cyclestring) - 1
-
-    def previous_year_month(self, year_value, month_str):
-        """
-        Returns a tuple (year, month: str)
-
-        :param month_str: str
-        :param year_value: int
-        :return: tuple (int, str)
-        """
-
-        new_month_as_str = self.previous_month(month_str)
-        if self.month_is_first(month_str):
-            year_value = year_value - 1
-
-        return year_value, new_month_as_str
-
-    def next_year_month(self, year_value, month_str):
-        """
-        Returns a tuple (year, month: str)
-
-        :param month_str: str
-        :param year_value: int
-        :return: tuple (int, str)
-        """
-
-        new_month_as_str = self.next_month(month_str)
-        if self.month_is_last(month_str):
-            year_value = year_value + 1
-
-        return year_value, new_month_as_str
+    @property
+    def empty(self):
+        return self._isempty
 
     def yearmonth_inrollcycle_before_date(self, reference_date):
         """
@@ -161,15 +58,15 @@ class rollCycle(object):
 
         relevant_year = reference_date.year
         relevant_month = reference_date.month
-        roll_cycle_as_list = self.as_list()
+        roll_cycle_as_list = self._as_list()
 
         closest_month_index = bisect_left(
             roll_cycle_as_list, relevant_month) - 1
 
         if closest_month_index == -1:
             # We are to the left of, or equal to the first month, go back one
-            first_month_in_year_as_str = self.cyclestring[0]
-            adjusted_year_int, adjusted_month_str = self.previous_year_month(
+            first_month_in_year_as_str = self._cyclestring[0]
+            adjusted_year_int, adjusted_month_str = self._previous_year_month(
                 relevant_year, first_month_in_year_as_str
             )
             adjusted_month_int = month_from_contract_letter(adjusted_month_str)
@@ -190,15 +87,15 @@ class rollCycle(object):
         relevant_year = reference_date.year
         relevant_month = reference_date.month
 
-        roll_cycle_as_list = self.as_list()
+        roll_cycle_as_list = self._as_list()
 
         closest_month_index = bisect_right(roll_cycle_as_list, relevant_month)
 
         if closest_month_index == len(roll_cycle_as_list):
             # fallen into the next year
             # go forward one from the last month
-            last_month_in_year_as_str = self.cyclestring[-1]
-            adjusted_year_int, adjusted_month_str = self.next_year_month(
+            last_month_in_year_as_str = self._cyclestring[-1]
+            adjusted_year_int, adjusted_month_str = self._next_year_month(
                 relevant_year, last_month_in_year_as_str
             )
             adjusted_month_int = month_from_contract_letter(adjusted_month_str)
@@ -208,19 +105,130 @@ class rollCycle(object):
 
         return (adjusted_year_int, adjusted_month_int)
 
-    def check_is_month_in_rollcycle(self, current_month):
+
+    def _previous_year_month(self, year_value: int, month_str: str):
+        """
+        Returns a tuple (year, month: str)
+
+        :param month_str: str
+        :param year_value: int
+        :return: tuple (int, str)
+        """
+
+        new_month_as_str = self._previous_month(month_str)
+        if self._month_is_first(month_str):
+            year_value = year_value - 1
+
+        return year_value, new_month_as_str
+
+    def _next_year_month(self, year_value: int, month_str:str) -> tuple:
+        """
+        Returns a tuple (year, month: str)
+
+        :param month_str: str
+        :param year_value: int
+        :return: tuple (int, str)
+        """
+
+        new_month_as_str = self._next_month(month_str)
+        if self._month_is_last(month_str):
+            year_value = year_value + 1
+
+        return year_value, new_month_as_str
+
+
+
+    def _next_month(self, current_month: str) -> str:
+        """
+        Move one month forward in expiry cycle
+
+        :param current_month: Current month as a str
+        :return: new month as str
+        """
+
+        return self._offset_month(current_month, 1)
+
+    def _previous_month(self, current_month: str) ->str:
+        """
+        Move one month back in expiry cycle
+
+        :param current_month: Current month as a str
+        :return: new month as str
+        """
+
+        return self._offset_month(current_month, -1)
+
+    def _offset_month(self, current_month:str, offset: int):
+        """
+        Move a number of months in the expiry cycle
+
+        :param current_month: Current month as a str
+        :param offset: number of months to go forwards or backwards
+        :return: new month as str
+        """
+
+        current_index = self._where_month(current_month)
+        len_cycle = len(self._cyclestring)
+        new_index = current_index + offset
+        cycled_index = new_index % len_cycle
+
+        return self.cyclestring[cycled_index]
+
+    def _where_month(self, current_month: str) -> int:
+        """
+        Return the index value (0 is first) of month in expiry
+
+        :param current_month: month as str
+        :return: int
+        """
+        self._check_is_month_in_rollcycle(current_month)
+
+        return self.cyclestring.index(current_month)
+
+    def _month_is_first(self, current_month:str) -> int:
+        """
+        Is this the first month in the expiry cycle?
+
+        :param current_month: month as str
+        :return: bool
+        """
+
+        return self._where_month(current_month) == 0
+
+    def _month_is_last(self, current_month: str) -> int:
+        """
+        Is this the last month in the expiry cycle?
+
+        :param current_month: month as str
+        :return: bool
+        """
+
+        return self._where_month(current_month) == len(self._cyclestring) - 1
+
+    def _as_list(self) -> list:
+        """
+
+        :return: list with int values referring to month numbers eg January =12 etc
+        """
+        return [
+            month_from_contract_letter(contract_letter)
+            for contract_letter in self.cyclestring
+        ]
+
+
+    def _check_is_month_in_rollcycle(self, current_month:str) -> bool:
         """
         Is current_month in our expiry cycle?
 
         :param current_month: month as str
         :return: bool
         """
-        if current_month in self.cyclestring:
+        if current_month in self._cyclestring:
             return True
         else:
             raise Exception(
                 "%s not in cycle %s" %
-                (current_month, self.cyclestring))
+                (current_month, self._cyclestring))
 
 
 class rollParameters(object):
@@ -299,7 +307,7 @@ class rollParameters(object):
         """
 
         rollcycle_to_check = getattr(self, rollcycle_name)
-        if rollcycle_to_check.empty():
+        if rollcycle_to_check.empty:
             raise Exception(
                 "You need a defined %s to do this!" %
                 rollcycle_name)
@@ -324,8 +332,8 @@ class rollParameters(object):
             raise Exception("Can't create dict from empty object")
 
         return dict(
-            hold_rollcycle=self.hold_rollcycle.cyclestring,
-            priced_rollcycle=self.priced_rollcycle.cyclestring,
+            hold_rollcycle=self.hold_rollcycle._cyclestring,
+            priced_rollcycle=self.priced_rollcycle._cyclestring,
             roll_offset_day=self.roll_offset_day,
             carry_offset=self.carry_offset,
             approx_expiry_offset=self.approx_expiry_offset,
