@@ -5,8 +5,7 @@ import pandas as pd
 from copy import copy
 
 from syscore.dateutils import (
-    month_from_contract_letter,
-    MONTH_LIST,
+    month_from_contract_letter
 )
 from sysobjects.contract_dates_and_expiries import (
     contractDate,
@@ -14,7 +13,6 @@ from sysobjects.contract_dates_and_expiries import (
     NO_DAY_PASSED,
     NO_EXPIRY_DATE_PASSED,
 )
-from sysdata.data import baseData
 
 
 class rollCycle(object):
@@ -30,11 +28,6 @@ class rollCycle(object):
 
         self._cyclestring = "".join(sorted(cyclestring))
 
-        if cyclestring == EMPTY_ROLL_CYCLE_STRING:
-            self._isempty = True
-        else:
-            self._isempty = False
-
     def __repr__(self):
         return self.cyclestring
 
@@ -43,6 +36,7 @@ class rollCycle(object):
         return self._cyclestring
 
     def yearmonth_inrollcycle_before_date(self, reference_date):
+        ## FEELS LIKE WE SHOULD BE WORKING IN CONTRACT DATES RATHER THAN TUPLES HERE...
         """
         Returns a tuple (month,year) which is in this roll cycle; and which is just before reference_date
 
