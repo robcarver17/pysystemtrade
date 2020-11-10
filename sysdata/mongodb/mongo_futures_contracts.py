@@ -2,7 +2,7 @@
 CONTRACT_COLLECTION = "futures_contracts"
 
 from sysdata.futures.contracts import futuresContractData
-from sysobjects.contracts import  contract_key_from_code_and_id, futuresContract, get_code_and_id_from_contract_key, key_contains_instrument_code
+from sysobjects.contracts import  contract_key_from_code_and_id, futuresContract, get_code_and_id_from_contract_key, key_contains_instrument_code, listOfFuturesContracts
 from syslogdiag.log import logtoscreen
 from sysdata.mongodb.mongo_generic import mongoData, missing_data
 
@@ -32,21 +32,22 @@ class mongoFuturesContractData(futuresContractData):
     def mongo_data(self):
         return self._mongo_data
 
-    def is_contract_in_data(self, instrument_code, contract_date):
-        key = contract_key_from_code_and_id(instrument_code, contract_date)
+    def is_contract_in_data(self, instrument_code:str, contract_id:str) -> bool:
+        key = contract_key_from_code_and_id(instrument_code, contract_id)
         return self.mongo_data.key_is_in_data(key)
 
-    def get_list_of_all_contract_keys(self):
+    def get_list_of_all_contract_keys(self) -> list:
         return self.mongo_data.get_list_of_keys()
 
-    def get_all_contract_objects_for_instrument_code(self, instrument_code):
+    def get_all_contract_objects_for_instrument_code(self, instrument_code: str) -> listOfFuturesContracts:
 
         list_of_keys = self._get_all_contract_keys_for_instrument_code(instrument_code)
         list_of_objects = [self._get_contract_data_from_key_without_checking(key) for key in list_of_keys]
+        list_of_futures_contracts = listOfFuturesContracts(list_of_objects)
 
-        return list_of_objects
+        return list_of_futures_contracts
 
-    def _get_all_contract_keys_for_instrument_code(self, instrument_code):
+    def _get_all_contract_keys_for_instrument_code(self, instrument_code:str) -> list:
         list_of_all_contract_keys = self.get_list_of_all_contract_keys()
         list_of_relevant_keys = [contract_key
                                  for contract_key in list_of_all_contract_keys
@@ -54,7 +55,7 @@ class mongoFuturesContractData(futuresContractData):
 
         return list_of_relevant_keys
 
-    def get_list_of_contract_dates_for_instrument_code(self, instrument_code):
+    def get_list_of_contract_dates_for_instrument_code(self, instrument_code:str) -> list:
         list_of_keys = self._get_all_contract_keys_for_instrument_code(instrument_code)
         list_of_split_keys = [get_code_and_id_from_contract_key(key) for key in list_of_keys]
         list_of_contract_id = [contract_id for _,contract_id in list_of_split_keys]
@@ -62,7 +63,7 @@ class mongoFuturesContractData(futuresContractData):
         return list_of_contract_id
 
     def _get_contract_data_without_checking(
-            self, instrument_code, contract_id):
+            self, instrument_code:str, contract_id:str) -> futuresContract:
 
         key = contract_key_from_code_and_id(instrument_code, contract_id)
         contract_object = self._get_contract_data_from_key_without_checking(key)
@@ -70,7 +71,7 @@ class mongoFuturesContractData(futuresContractData):
         return contract_object
 
     def _get_contract_data_from_key_without_checking(
-            self, key):
+            self, key:str) ->futuresContract:
 
         result_dict = self.mongo_data.get_result_dict_for_key_without_key_value(key)
         if result_dict is missing_data:
@@ -82,14 +83,14 @@ class mongoFuturesContractData(futuresContractData):
         return contract_object
 
     def _delete_contract_data_without_any_warning_be_careful(
-        self, instrument_code, contract_date
+        self, instrument_code:str, contract_date:str
     ):
 
         key =  contract_key_from_code_and_id(instrument_code, contract_date)
         self.mongo_data.delete_data_without_any_warning(key)
 
     def _add_contract_object_without_checking_for_existing_entry(
-            self, contract_object):
+            self, contract_object: futuresContract):
         contract_object_as_dict = contract_object.as_dict()
         key = contract_object.key
         self.mongo_data.add_data(key, contract_object_as_dict)
@@ -131,6 +132,7 @@ def _translate_old_records(mongo_data, list_of_old_records):
 
 def _translate_record(mongo_data, record):
     contract_object = _get_old_record(mongo_data, record)
+    mongo_data.delete_data_without_any_warning(contract_object.key)
     mongo_data.add_data(contract_object.key, contract_object.as_dict())
     _delete_old_record(mongo_data, record)
 
