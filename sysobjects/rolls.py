@@ -268,7 +268,7 @@ class rollParameters(object):
     def carry_offset(self):
         return self._carry_offset
 
-    @@property
+    @property
     def approx_expiry_offset(self):
         return self._approx_expiry_offset
 
