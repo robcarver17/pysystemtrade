@@ -6,8 +6,8 @@ from sysdata.arctic.arctic_futures_per_contract_prices import arcticFuturesContr
 from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesData
 from sysdata.mongodb.mongo_roll_data import mongoRollParametersData
 from sysdata.mongodb.mongo_futures_contracts import mongoFuturesContractData
-from sysdata.futures.rolls import contractDateWithRollParameters
-from sysobjects.contracts import futuresContract
+
+from sysobjects.rolls import contractDateWithRollParameters
 
 from sysproduction.data.prices import get_valid_instrument_code_from_user, diagPrices
 from sysproduction.data.get_data import dataBlob

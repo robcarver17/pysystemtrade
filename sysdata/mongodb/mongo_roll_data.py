@@ -1,4 +1,5 @@
-from sysdata.futures.rolls import rollParametersData, rollParameters
+from sysdata.futures.rolls import rollParametersData
+from sysobjects.rolls import rollParameters
 
 from sysdata.mongodb.mongo_connection import (
     mongoConnection,

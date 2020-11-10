@@ -1,5 +1,5 @@
-from sysobjects.contracts import contractDateWithRollParameters
 
+from sysobjects.rolls import contractDateWithRollParameters
 
 class rollParametersWithPriceData(object):
     def __init__(self, roll_parameters, dict_of_final_price_data):

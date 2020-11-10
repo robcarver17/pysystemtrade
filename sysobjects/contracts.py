@@ -1,6 +1,5 @@
 from syscore.objects import arg_not_supplied
 from sysobjects.contract_dates_and_expiries import contractDate
-from sysdata.futures.rolls import contractDateWithRollParameters
 from sysobjects.instruments import futuresInstrument
 from dataclasses import  dataclass
 
@@ -160,37 +159,6 @@ class futuresContract(object):
     def is_spread_contract(self):
         return self.contract_date.is_spread_contract
 
-
-    @classmethod
-    def approx_first_held_futuresContract_at_date(
-        futuresContract, instrument_object, roll_parameters, reference_date
-    ):
-        ## WHERE USED, SEEMS SHOULD BE A SEPERATE FUNCTION
-        try:
-            first_contract_date = (
-                roll_parameters.approx_first_held_contractDate_at_date(reference_date))
-        except AttributeError:
-            raise Exception(
-                "You can only do this if contract_date_object is contractDateWithRollParameters"
-            )
-
-        return futuresContract(instrument_object, first_contract_date)
-
-    @classmethod
-    def approx_first_priced_futuresContract_at_date(
-        futuresContract, instrument_object, roll_parameters, reference_date
-    ):
-        ## WHERE USED, SEEMS SHOULD BE A SEPERATE FUNCTION
-        ## OR EXPLICIT FUTURES CONTRACT OBJECT WITH ROLL DATA
-        try:
-            first_contract_date = (
-                roll_parameters.approx_first_priced_contractDate_at_date(reference_date))
-        except AttributeError:
-            raise Exception(
-                "You can only do this if contract_date_object is contractDateWithRollParameters"
-            )
-
-        return futuresContract(instrument_object, first_contract_date)
 
     def next_priced_contract(self):
         ## WHERE USED, SEEMS SHOULD BE A SEPERATE FUNCTION

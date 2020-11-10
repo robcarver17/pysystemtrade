@@ -2,9 +2,9 @@ import pandas as pd
 import unittest
 import datetime
 from sysdata.futures.rolls import (
-    rollCycle,
-    rollParameters,
-    contractDateWithRollParameters,
+    rollCycle_TOMOVE,
+    rollParametersTOMOVE,
+    contractDateWithRollParametersTOMOVE,
 )
 from sysobjects.contract_dates_and_expiries import contractDate
 from sysobjects.contracts import futuresContract, listOfFuturesContracts
@@ -14,7 +14,7 @@ from sysobjects.instruments import futuresInstrument
 class MyTestCase(unittest.TestCase):
     def test_rollcycle(self):
 
-        cycle1 = rollCycle("HMUZ")
+        cycle1 = rollCycle_TOMOVE("HMUZ")
         self.assertEqual(cycle1.__repr__(), "HMUZ")
 
         self.assertEqual(cycle1.as_list(), [3, 6, 9, 12])
@@ -90,15 +90,15 @@ class MyTestCase(unittest.TestCase):
                     2002, 5, 31)), (2002, 3), )
 
     def test_rolldata(self):
-        roll_data_blank = rollParameters()
+        roll_data_blank = rollParametersTOMOVE()
 
         self.assertRaises(Exception, roll_data_blank.check_for_price_cycle)
         self.assertRaises(Exception, roll_data_blank.check_for_hold_cycle)
 
-        roll_data_empty = rollParameters.create_empty()
+        roll_data_empty = rollParametersTOMOVE.create_empty()
         self.assertEqual(roll_data_empty.empty(), True)
 
-        roll_data = rollParameters(
+        roll_data = rollParametersTOMOVE(
             priced_rollcycle="HMUZ",
             hold_rollcycle="Z",
             approx_expiry_offset=15)
@@ -114,7 +114,7 @@ class MyTestCase(unittest.TestCase):
                 12,
                 16))
 
-        roll_data = rollParameters(
+        roll_data = rollParametersTOMOVE(
             priced_rollcycle="HMUZ",
             hold_rollcycle="HMUZ",
             roll_offset_day=-365)
@@ -127,26 +127,26 @@ class MyTestCase(unittest.TestCase):
                          datetime.datetime(2009, 3, 1))
 
     def test_roll_with_date(self):
-        roll_data = rollParameters(
+        roll_data = rollParametersTOMOVE(
             priced_rollcycle="HMUZ",
             hold_rollcycle="Z",
             approx_expiry_offset=15)
-        rollwithdate = contractDateWithRollParameters(roll_data, "201801")
+        rollwithdate = contractDateWithRollParametersTOMOVE(roll_data, "201801")
 
         self.assertRaises(Exception, rollwithdate.next_priced_contract)
 
-        roll_data_no_price_cycle = rollParameters(
+        roll_data_no_price_cycle = rollParametersTOMOVE(
             hold_rollcycle="F", approx_expiry_offset=15
         )
-        rollwithdate = contractDateWithRollParameters(roll_data, "201801")
+        rollwithdate = contractDateWithRollParametersTOMOVE(roll_data, "201801")
 
         self.assertRaises(Exception, rollwithdate.next_priced_contract)
 
-        roll_data = rollParameters(
+        roll_data = rollParametersTOMOVE(
             priced_rollcycle="HMUZ",
             hold_rollcycle="MZ",
             approx_expiry_offset=15)
-        rollwithdate = contractDateWithRollParameters(roll_data, "201806")
+        rollwithdate = contractDateWithRollParametersTOMOVE(roll_data, "201806")
 
         self.assertEqual(rollwithdate.date, "20180600")
         self.assertEqual(
@@ -378,7 +378,7 @@ class MyTestCase(unittest.TestCase):
 
     def test_list_of_futures_contracts(self):
         instrument_object = futuresInstrument("EDOLLAR")
-        roll_parameters = rollParameters(
+        roll_parameters = rollParametersTOMOVE(
             priced_rollcycle="HMUZ",
             hold_rollcycle="MZ",
             approx_expiry_offset=15,

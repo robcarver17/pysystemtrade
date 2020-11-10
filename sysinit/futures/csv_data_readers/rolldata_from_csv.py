@@ -1,5 +1,7 @@
 from syscore.fileutils import get_filename_for_package
-from sysdata.futures.rolls import rollParametersData, rollParameters
+from sysdata.futures.rolls import rollParametersData
+from sysobjects.rolls import rollParameters
+
 import pandas as pd
 
 ROLLS_CONFIG_FILE = "sysinit.futures.config.rollconfig.csv"

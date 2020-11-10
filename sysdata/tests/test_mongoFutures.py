@@ -1,6 +1,6 @@
 import unittest
 from sysdata.mongodb.mongo_futures_instruments import mongoFuturesInstrumentData
-from sysdata.futures.rolls import rollParameters
+from sysdata.futures.rolls import rollParametersTOMOVE
 from sysdata.mongodb.mongo_roll_data import mongoRollParametersData
 
 from sysobjects.instruments import futuresInstrument
@@ -57,7 +57,7 @@ class MyTestCase(unittest.TestCase):
 
         self.assertTrue(roll_object.empty())
 
-        roll_object = rollParameters(
+        roll_object = rollParametersTOMOVE(
             hold_rollcycle="HMUZ",
             priced_rollcycle="HM")
         data.add_roll_parameters(roll_object, "EDOLLAR")
