@@ -25,7 +25,12 @@ class mongoData(object):
         self._key_name = key_name
 
         # this won't create the index if it already exists
-        self._mongo.create_index(self.key_name)
+        # if a different index exists (FIX ME WILL HAPPEN UNTIL NEW DATA READY)...
+        try:
+            self._mongo.create_index(self.key_name)
+        except:
+            pass
+            ## no big deal
 
 
     def __repr__(self):
@@ -71,6 +76,13 @@ class mongoData(object):
             return missing_data
 
         result_dict.pop(MONGO_ID_KEY)
+
+        return result_dict
+
+    def get_result_dict_for_key_without_key_value(self, key: str) ->dict:
+        key_name = self.key_name
+        result_dict = self.get_result_dict_for_key(key)
+        result_dict.pop(key_name)
 
         return result_dict
 

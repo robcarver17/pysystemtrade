@@ -1,7 +1,10 @@
 USE_CHILD_CLASS_ERROR = "You need to use a child class of futuresContractData"
-ContractNotFound = Exception()
+
+class ContractNotFound(Exception):
+    pass
+
 from sysdata.data import baseData
-from sysobjects.contracts import listOfFuturesContracts, futuresContract
+from sysobjects.contracts import listOfFuturesContracts, contract_from_code_and_id
 from sysdata.futures.trading_hours import manyTradingStartAndEnd
 
 class futuresContractData(baseData):
@@ -22,16 +25,7 @@ class futuresContractData(baseData):
         raise NotImplementedError(USE_CHILD_CLASS_ERROR)
 
     def get_all_contract_objects_for_instrument_code(self, instrument_code):
-        contract_dates_list = self.get_list_of_contract_dates_for_instrument_code(
-            instrument_code)
-        contract_objects_list = [
-            self.get_contract_data(instrument_code, contract_date)
-            for contract_date in contract_dates_list
-        ]
-
-        contract_objects_list = listOfFuturesContracts(contract_objects_list)
-
-        return contract_objects_list
+        raise NotImplementedError(USE_CHILD_CLASS_ERROR)
 
     def get_contract_data(self, instrument_code, contract_id):
         if self.is_contract_in_data(instrument_code, contract_id):
@@ -94,11 +88,7 @@ class futuresContractData(baseData):
                 instrument_code, contract_date, are_you_sure=True)
 
     def is_contract_in_data(self, instrument_code, contract_date):
-        if contract_date in self.get_list_of_contract_dates_for_instrument_code(
-                instrument_code):
-            return True
-        else:
-            return False
+        raise NotImplementedError
 
     def add_contract_data(self, contract_object, ignore_duplication=False):
 
@@ -128,27 +118,24 @@ class futuresContractData(baseData):
             self, contract_object):
         raise NotImplementedError(USE_CHILD_CLASS_ERROR)
 
-    def get_actual_expiry_date_for_instrument_code_and_contract_date(
-        self, instrument_code, contract_date
-    ):
-        contract_object = futuresContract(instrument_code, contract_date)
-
-        return self.get_actual_expiry_date_for_contract(contract_object)
-
     def get_actual_expiry_date_for_contract(self, contract_object):
         raise NotImplementedError(USE_CHILD_CLASS_ERROR)
 
     def is_instrument_code_and_contract_date_okay_to_trade(
         self, instrument_code, contract_date
     ):
-        contract_object = futuresContract(instrument_code, contract_date)
+        ## WANT TO REMOVE ONCE HAVE INSTALLED FUTURESCONTRACT AS UNIVERSAL TRADEABLE OBJECT...
+        ## ... INSTEAD HAVE CALL WITH CONTRACT OBJECT PULLED FROM TRADE
+        contract_object = contract_from_code_and_id(instrument_code, contract_date)
         result = self.is_contract_okay_to_trade(contract_object)
 
         return result
 
     def less_than_one_hour_of_trading_leg_for_instrument_code_and_contract_date(
             self, instrument_code, contract_date):
-        contract_object = futuresContract(instrument_code, contract_date)
+        ## WANT TO REMOVE ONCE HAVE INSTALLED FUTURESCONTRACT AS UNIVERSAL TRADEABLE OBJECT...
+        ## ... INSTEAD HAVE CALL WITH CONTRACT OBJECT PULLED FROM TRADE
+        contract_object = contract_from_code_and_id(instrument_code, contract_date)
         result = self.less_than_one_hour_of_trading_leg_for_contract(
             contract_object)
 
@@ -169,17 +156,16 @@ class futuresContractData(baseData):
     def get_trading_hours_for_instrument_code_and_contract_date(
         self, instrument_code, contract_date
     ):
-        contract_object = futuresContract(instrument_code, contract_date)
+        contract_object = contract_from_code_and_id(instrument_code, contract_date)
         result = self.get_trading_hours_for_contract(contract_object)
 
         return result
 
     def get_min_tick_size_for_instrument_code_and_contract_date(self, instrument_code, contract_date):
-        contract_object = futuresContract(instrument_code, contract_date)
+        contract_object = contract_from_code_and_id(instrument_code, contract_date)
         result = self.get_min_tick_size_for_contract(contract_object)
 
         return result
-
 
     def get_trading_hours_for_contract(self, contract_object):
         raise NotImplementedError(USE_CHILD_CLASS_ERROR)

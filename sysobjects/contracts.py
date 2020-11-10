@@ -26,6 +26,15 @@ class parametersForFuturesContract:
 
         return parametersForFuturesContract(*args_list)
 
+
+def contract_key_from_code_and_id(instrument_code, contract_id):
+    contract = contract_from_code_and_id(instrument_code, contract_id)
+    return contract.key
+
+
+def contract_from_code_and_id(instrument_code, contract_id):
+    return futuresContract(instrument_code, contract_id)
+
 class futuresContract(object):
     """
     Define an individual futures contract
@@ -83,7 +92,7 @@ class futuresContract(object):
 
     @property
     def key(self):
-        return self.instrument_code + "/" + self.date
+        return get_contract_key_from_code_and_id(self.instrument_code, self.date)
 
     @property
     def currently_sampling(self):
@@ -278,6 +287,19 @@ def _resolve_args_for_futures_contract(instrument_object, contract_date_object) 
 
     return instrument_object, contract_date_object
 
+
+def key_contains_instrument_code(contract_key, instrument_code):
+    key_instrument_code, contract_id = get_code_and_id_from_contract_key(contract_key)
+    if key_instrument_code == instrument_code:
+        return True
+    else:
+        return False
+
+def get_contract_key_from_code_and_id(instrument_code, contract_id):
+    return instrument_code + "/" + contract_id
+
+def get_code_and_id_from_contract_key(contract_key):
+    return contract_key.split("/")
 
 MAX_CONTRACT_SIZE = 10000
 
