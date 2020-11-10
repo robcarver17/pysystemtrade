@@ -259,7 +259,6 @@ class futuresContract(object):
 
     def new_contract_with_replaced_instrument_object(
             self, new_instrument_object):
-        ## WHERE USED
         contract_date_object = self.contract_date
         params = self.params
 
@@ -309,84 +308,6 @@ class listOfFuturesContracts(list):
     Ordered list of futuresContracts
     """
 
-    @classmethod
-    ## LOT OF PARAMTERS HERE!
-    ## THIS FUNCTION TOO LARGE
-    def historical_price_contracts(
-        listOfFuturesContracts,
-        instrument_object,
-        roll_parameters,
-        first_contract_date,
-        end_date=datetime.datetime.now(),
-    ):
-        """
-        We want to get all the contracts that fit in the roll cycle, bearing in mind the RollOffsetDays (in roll_parameters)
-          So for example suppose we want all contracts since 1st January 1980, to the present day, for
-          Eurodollar; where the rollcycle = "HMUZ" (quarterly IMM) and where the rollOffSetDays is 1100
-          (we want to be around 3 years in the future; eg 12 contracts). If it's current 1st January 2018
-          then we'd get all contracts with expiries between 1st January 1980 to approx 1st January 2021
-
-        This uses the 'priceRollCycle' rollCycle in instrument_object, which is a superset of the heldRollCycle
-
-
-        :param instrument_object: An instrument object
-        :param roll_parameters: rollParameters
-        :param start_date: The first contract date, 'eg yyyymm'
-        :param end_date: The date when we want to stop getting data, defaults to today
-
-        :return: list of futuresContracts
-        """
-
-        first_contract = futuresContract(
-            instrument_object, contractDateWithRollParameters(
-                roll_parameters, first_contract_date), )
-
-        assert end_date > first_contract.expiry_date
-
-        current_held_contract = (
-            futuresContract.approx_first_held_futuresContract_at_date(
-                instrument_object, roll_parameters, end_date
-            )
-        )
-        current_priced_contract = (
-            futuresContract.approx_first_priced_futuresContract_at_date(
-                instrument_object, roll_parameters, end_date
-            )
-        )
-        current_carry_contract = current_held_contract.carry_contract()
-
-        # these are all str thats okay
-        last_contract_date = max(
-            [
-                current_held_contract.date,
-                current_priced_contract.date,
-                current_carry_contract.date,
-            ]
-        )
-
-        list_of_contracts = [first_contract]
-
-        # note the same instrument_object will be shared by all in the list so
-        # we can modify it directly if needed
-        date_still_valid = True
-        current_contract = first_contract
-
-        while date_still_valid:
-            next_contract = current_contract.next_priced_contract()
-
-            list_of_contracts.append(next_contract)
-
-            if next_contract.date >= last_contract_date:
-                date_still_valid = False
-                # will now terminate
-            if len(list_of_contracts) > MAX_CONTRACT_SIZE:
-                raise Exception("Too many contracts - check your inputs")
-
-            current_contract = next_contract
-
-        return listOfFuturesContracts(list_of_contracts)
-
-    ## CHECK WHERE USED...
     def currently_sampling(self):
         contracts_currently_sampling = [
             contract for contract in self if contract.currently_sampling
@@ -395,13 +316,11 @@ class listOfFuturesContracts(list):
         return listOfFuturesContracts(contracts_currently_sampling)
 
     def list_of_dates(self):
-        ## CHECK WHERE USED...
         # Return list of contract_date identifiers
         contract_dates = [contract.date for contract in self]
         return contract_dates
 
     def as_dict(self):
-        ## CHECK WHERE USED...
         contract_dates_keys = self.list_of_dates()
         contract_values = self
 
@@ -417,7 +336,6 @@ class listOfFuturesContracts(list):
             operation="difference")
 
     def _set_operation(self, another_contract_list, operation="difference"):
-        ### FUNCTION TO OBIG
         """
         Equivalent to set(self).operation(set(another_contract_list))
 
