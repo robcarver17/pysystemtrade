@@ -5,7 +5,7 @@ from sysdata.futures.roll_parameters_with_price_data import (
 )
 
 from sysobjects.contract_dates_and_expiries import contractDate
-from sysobjects.rolls import contractDateWithRollParameters
+from sysobjects.rolls import contractDateWithRollParametersTODELETE
 
 
 import pandas as pd
@@ -470,7 +470,7 @@ def _add_carry_calendar(
 
     list_of_contract_dates = list(roll_calendar.current_contract.values)
     contracts_with_roll_data = [
-        contractDateWithRollParameters(roll_parameters_object, str(contract_date))
+        contractDateWithRollParametersTODELETE(roll_parameters_object, str(contract_date))
         for contract_date in list_of_contract_dates
     ]
 

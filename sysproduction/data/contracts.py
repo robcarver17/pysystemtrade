@@ -7,7 +7,7 @@ from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesDat
 from sysdata.mongodb.mongo_roll_data import mongoRollParametersData
 from sysdata.mongodb.mongo_futures_contracts import mongoFuturesContractData
 
-from sysobjects.rolls import contractDateWithRollParameters
+from sysobjects.rolls import contractDateWithRollParametersTODELETE
 
 from sysproduction.data.prices import get_valid_instrument_code_from_user, diagPrices
 from sysproduction.data.get_data import dataBlob
@@ -97,13 +97,13 @@ class diagContracts(object):
 
         roll_parameters = self.get_roll_parameters(instrument_code)
 
-        price_contract = contractDateWithRollParameters(
+        price_contract = contractDateWithRollParametersTODELETE(
             roll_parameters, price_contract_date
         )
-        forward_contract = contractDateWithRollParameters(
+        forward_contract = contractDateWithRollParametersTODELETE(
             roll_parameters, forward_contract_date
         )
-        carry_contract = contractDateWithRollParameters(
+        carry_contract = contractDateWithRollParametersTODELETE(
             roll_parameters, carry_contract_date
         )
 
@@ -192,7 +192,7 @@ class diagContracts(object):
     ):
         roll_parameters = self.get_roll_parameters(instrument_code)
 
-        contract_date_with_roll_parameters = contractDateWithRollParameters(
+        contract_date_with_roll_parameters = contractDateWithRollParametersTODELETE(
             roll_parameters, contract_date_id
         )
 

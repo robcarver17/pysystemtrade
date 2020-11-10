@@ -2,7 +2,7 @@ from syscore.objects import missing_contract
 
 from sysobjects.contracts import futuresContract, listOfFuturesContracts
 from sysobjects.instruments import futuresInstrument
-from sysobjects.rolls import contractDateWithRollParameters
+from sysobjects.rolls import contractDateWithRollParametersTODELETE
 
 from sysproduction.data.get_data import dataBlob
 from sysproduction.data.prices import diagPrices
@@ -86,7 +86,7 @@ def get_contract_chain(instrument_code, data):
     current_contract_dict = multiple_prices.current_contract_dict()
     current_contract_list = list(current_contract_dict.values())
     furthest_out_contract_date = max(current_contract_list)
-    furthest_out_contract = contractDateWithRollParameters(
+    furthest_out_contract = contractDateWithRollParametersTODELETE(
         roll_parameters, furthest_out_contract_date
     )
 
