@@ -16,8 +16,6 @@ from sysobjects.contract_dates_and_expiries import (
 )
 from sysdata.data import baseData
 
-EMPTY_ROLL_CYCLE_STRING = ""
-
 
 class rollCycle(object):
     """
@@ -43,10 +41,6 @@ class rollCycle(object):
     @property
     def cyclestring(self):
         return self._cyclestring
-
-    @property
-    def empty(self):
-        return self._isempty
 
     def yearmonth_inrollcycle_before_date(self, reference_date):
         """
@@ -242,8 +236,8 @@ class rollParameters(object):
 
     def __init__(
         self,
-        hold_rollcycle=EMPTY_ROLL_CYCLE_STRING,
-        priced_rollcycle=EMPTY_ROLL_CYCLE_STRING,
+        hold_rollcycle,
+        priced_rollcycle,
         roll_offset_day=0,
         carry_offset=0,
         approx_expiry_offset=0,
@@ -258,16 +252,25 @@ class rollParameters(object):
 
         """
 
-        self.hold_rollcycle = hold_rollcycle
-        self.priced_rollcycle = priced_rollcycle
+        self._hold_rollcycle = hold_rollcycle
+        self._priced_rollcycle = priced_rollcycle
 
-        # Special roll cycle consisting of all months in the year
-        self.global_rollcycle = rollCycle("".join(MONTH_LIST))
-        self.roll_offset_day = roll_offset_day
-        self.carry_offset = carry_offset
-        self.approx_expiry_offset = approx_expiry_offset
+        self._roll_offset_day = roll_offset_day
+        self._carry_offset = carry_offset
+        self._approx_expiry_offset = approx_expiry_offset
 
-        self._is_empty = False
+
+    @property
+    def roll_offset_day(self):
+        return self._roll_offset_day
+
+    @property
+    def carry_offset(self):
+        return self._carry_offset
+
+    @@property
+    def approx_expiry_offset(self):
+        return self._approx_expiry_offset
 
     def __repr__(self):
         dict_rep = self.as_dict()
@@ -280,44 +283,12 @@ class rollParameters(object):
     def priced_rollcycle(self):
         return self._priced_rollcycle
 
-    @priced_rollcycle.setter
-    def priced_rollcycle(self, priced_rollcycle):
-        self._priced_rollcycle = rollCycle(priced_rollcycle)
 
     @property
     def hold_rollcycle(self):
         return self._hold_rollcycle
 
-    @hold_rollcycle.setter
-    def hold_rollcycle(self, hold_rollcycle):
-        self._hold_rollcycle = rollCycle(hold_rollcycle)
 
-    def check_for_price_cycle(self):
-        self.check_for_named_rollcycle("priced_rollcycle")
-
-    def check_for_hold_cycle(self):
-        self.check_for_named_rollcycle("hold_rollcycle")
-
-    def check_for_named_rollcycle(self, rollcycle_name):
-        """
-        Check to see if a rollcycle is empty
-
-        :param rollcycle_name: str, attribute of self, either 'priced_rollcycle' or 'hold_rollcycle'
-        :return: nothing or exception
-        """
-
-        rollcycle_to_check = getattr(self, rollcycle_name)
-        if rollcycle_to_check.empty:
-            raise Exception(
-                "You need a defined %s to do this!" %
-                rollcycle_name)
-
-    @classmethod
-    def create_empty(rollData):
-        futures_instrument_roll_data = rollData()
-        futures_instrument_roll_data._is_empty = True
-
-        return futures_instrument_roll_data
 
     @classmethod
     def create_from_dict(rollData, roll_data_dict):
@@ -328,19 +299,14 @@ class rollParameters(object):
 
     def as_dict(self):
 
-        if self.empty():
-            raise Exception("Can't create dict from empty object")
-
         return dict(
-            hold_rollcycle=self.hold_rollcycle._cyclestring,
-            priced_rollcycle=self.priced_rollcycle._cyclestring,
+            hold_rollcycle=self.hold_rollcycle.cyclestring,
+            priced_rollcycle=self.priced_rollcycle.cyclestring,
             roll_offset_day=self.roll_offset_day,
             carry_offset=self.carry_offset,
             approx_expiry_offset=self.approx_expiry_offset,
         )
 
-    def empty(self):
-        return self._is_empty
 
     def approx_first_held_contractDate_at_date(self, reference_date):
         """
@@ -352,10 +318,6 @@ class rollParameters(object):
         :param reference_date:
         :return: contractDate object
         """
-        self.check_for_hold_cycle()
-
-        self.check_for_price_cycle()
-
         current_date_as_contract_with_roll_data = (
             self._approx_first_contractDate_at_date(
                 reference_date, "hold_rollcycle"))
@@ -372,7 +334,6 @@ class rollParameters(object):
         :param reference_date:
         :return: contractDate object
         """
-        self.check_for_price_cycle()
 
         current_date_as_contract_with_roll_data = (
             self._approx_first_contractDate_at_date(
@@ -382,6 +343,8 @@ class rollParameters(object):
 
     def _approx_first_contractDate_at_date(
             self, reference_date, rollcycle_name):
+        ## WHERE USED
+        ## TAKE OUT CONTRACT DATE REPLACE
         """
         What contract would be pricing or holding on reference_date?
 

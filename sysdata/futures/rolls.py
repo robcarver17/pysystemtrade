@@ -7,6 +7,8 @@ USE_CHILD_CLASS_ROLL_PARAMS_ERROR = (
     "You need to use a child class of rollParametersData"
 )
 
+class rollParametersMissing(Exception):
+    pass
 
 class rollParametersData(baseData):
     """
@@ -29,7 +31,7 @@ class rollParametersData(baseData):
         if self.is_code_in_data(instrument_code):
             return self._get_roll_parameters_without_checking(instrument_code)
         else:
-            return rollParametersTOMOVE.create_empty()
+            raise rollParametersMissing("Don't have parameters for %s" % instrument_code)
 
     def _get_roll_parameters_without_checking(self, instrument_code):
         raise NotImplementedError(USE_CHILD_CLASS_ROLL_PARAMS_ERROR)
