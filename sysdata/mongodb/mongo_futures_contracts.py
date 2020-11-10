@@ -21,8 +21,9 @@ class mongoFuturesContractData(futuresContractData):
         mongo_data = mongoData(CONTRACT_COLLECTION, "contract_key", mongo_db = mongo_db)
         self._mongo_data = mongo_data
 
-        _from_old_to_new_contract_storage(mongo_data)
-
+        any_old_data_was_modified = _from_old_to_new_contract_storage(mongo_data)
+        if any_old_data_was_modified:
+            self.log.critical("Modified the storage of contract data. Any other processes running will need restarting with new code")
 
     def __repr__(self):
         return "mongoFuturesInstrumentData %s" % str(self.mongo_data)
@@ -107,13 +108,13 @@ def _from_old_to_new_contract_storage(mongo_data):
     list_of_old_records = [record for record in existing_records_as_list if _is_old_record(record)]
 
     if len(list_of_old_records)==0:
-        return None
+        return False
 
     _translate_old_records(mongo_data, list_of_old_records)
 
     _modify_indices(mongo_data)
 
-
+    return True
 
 def _is_old_record(record):
     if "instrument_code" in list(record.keys()):
