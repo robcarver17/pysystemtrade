@@ -305,7 +305,7 @@ MAX_CONTRACT_SIZE = 10000
 
 class listOfFuturesContracts(list):
     """
-    Ordered list of futuresContracts
+    List of futuresContracts for a single instrument code (not enforced)
     """
 
     def currently_sampling(self):
@@ -315,12 +315,12 @@ class listOfFuturesContracts(list):
 
         return listOfFuturesContracts(contracts_currently_sampling)
 
-    def list_of_dates(self):
+    def list_of_dates(self) -> list:
         # Return list of contract_date identifiers
         contract_dates = [contract.date for contract in self]
         return contract_dates
 
-    def as_dict(self):
+    def as_dict(self) ->dict:
         contract_dates_keys = self.list_of_dates()
         contract_values = self
 
@@ -330,60 +330,20 @@ class listOfFuturesContracts(list):
         return contract_dict
 
     def difference(self, another_contract_list):
-        ## CHECK WHERE USED...
-        return self._set_operation(
-            another_contract_list,
-            operation="difference")
 
-    def _set_operation(self, another_contract_list, operation="difference"):
-        """
-        Equivalent to set(self).operation(set(another_contract_list))
+        self_contract_dates = set(self.list_of_dates())
+        another_contract_list_dates = set(another_contract_list.list_of_dates())
 
-        Since set will use __eq__ methods this will often fail, but we're happy to match equality if
-          contract dates are the same
+        list_of_differential_dates =self_contract_dates.difference(another_contract_list_dates)
 
-        :param another_contract_list:
-        :param operation: str, one of intersection, union, difference
-        :return: list of contracts that are in self but not in another contract_list
-        """
-
-        self_as_dict = self.as_dict()
-        another_contract_list_as_dict = another_contract_list.as_dict()
-
-        self_contract_dates = set(self_as_dict.keys())
-        another_contract_list_dates = set(another_contract_list_as_dict.keys())
-
-        try:
-            operation_func = getattr(self_contract_dates, operation)
-        except AttributeError:
-            raise Exception("%s is not a valid set method" % operation)
-
-        list_of_dates = operation_func(another_contract_list_dates)
-
-        # turn back into contracts
-        if operation == "difference" or operation == "intersect":
-            list_of_contracts = [
-                self_as_dict[contract_date] for contract_date in list_of_dates
-            ]
-        elif operation == "union":
-            list_of_contracts_from_self = [
-                self_as_dict[contract_date]
-                for contract_date in list_of_dates
-                if contract_date in self_as_dict.keys()
-            ]
-            list_of_contracts_from_other = [
-                another_contract_list_as_dict[contract_date]
-                for contract_date in list_of_dates
-                if contract_date not in self_as_dict.keys()
-            ]
-            list_of_contracts = (
-                list_of_contracts_from_other + list_of_contracts_from_self
-            )
-
-        else:
-            raise Exception("%s not supported" % operation)
+        list_of_contracts = self._subset_of_list_from_list_of_dates(list_of_differential_dates)
 
         return list_of_contracts
 
+    def _subset_of_list_from_list_of_dates(self, list_of_dates):
+        self_as_dict = self.as_dict()
+        list_of_contracts = [
+            self_as_dict[contract_date] for contract_date in list_of_dates
+        ]
 
-
+        return listOfFuturesContracts(list_of_contracts)
