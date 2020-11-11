@@ -1,5 +1,6 @@
 
-from sysobjects.rolls import contractDateWithRollParametersTODELETE
+from sysobjects.rolls import contractDateWithRollParameters
+from sysobjects.contracts import contractDate
 
 class rollParametersWithPriceData(object):
     def __init__(self, roll_parameters, dict_of_final_price_data):
@@ -26,8 +27,8 @@ class rollParametersWithPriceData(object):
         final_contract_date = list_of_contract_dates[-1]
         plausible_earliest_contract_date = list_of_contract_dates[0]
         roll_parameters_object = self.roll_parameters
-        plausible_earliest_contract = contractDateWithRollParametersTODELETE(
-            roll_parameters_object, plausible_earliest_contract_date
+        plausible_earliest_contract = contractDateWithRollParameters(
+            contractDate(plausible_earliest_contract_date), roll_parameters_object
         )
 
         try_contract = contractWithRollParametersAndPrices(
