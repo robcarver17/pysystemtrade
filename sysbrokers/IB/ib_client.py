@@ -703,13 +703,13 @@ class ibClient(object):
         if contract_object_with_ib_data.is_spread_contract():
             ibcontract, legs = self._get_spread_ib_futures_contract(
                 instrument_object_with_metadata,
-                contract_object_with_ib_data.date_str,
+                contract_object_with_ib_data.contract_date,
                 trade_list_for_multiple_legs=trade_list_for_multiple_legs,
             )
         else:
             ibcontract = self._get_vanilla_ib_futures_contract(
                 instrument_object_with_metadata,
-                contract_object_with_ib_data.date_str,
+                contract_object_with_ib_data.contract_date,
             )
             legs = []
 
@@ -738,7 +738,7 @@ class ibClient(object):
         else:
             # Don't have the expiry so lose the days at the end so it's just
             # 'YYYYMM'
-            contract_date = str(contract_date)[:6]
+            contract_date = str(contract_date.date_str)[:6]
 
         ibcontract.lastTradeDateOrContractMonth = contract_date
 
@@ -773,7 +773,7 @@ class ibClient(object):
     def _get_spread_ib_futures_contract(
         self,
         futures_instrument_with_ib_data: futuresInstrumentWithIBData,
-        list_of_contract_dates,
+        contract_date,
         trade_list_for_multiple_legs=[-1, 1],
     ):
         """
@@ -787,6 +787,7 @@ class ibClient(object):
         ibcontract = ib_futures_instrument(futures_instrument_with_ib_data)
         ibcontract.secType = "BAG"
 
+        list_of_contract_dates = contract_date.list_of_single_contract_dates
         resolved_legs = [
             self._get_vanilla_ib_futures_contract(
                 futures_instrument_with_ib_data, contract_date
