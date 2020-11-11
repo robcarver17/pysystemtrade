@@ -101,7 +101,7 @@ class contractPosition(Position):
         return self._tradeable_object.instrument_code
 
     @property
-    def date(self):
+    def date_str(self):
         return self._tradeable_object.date_str
 
     @property
