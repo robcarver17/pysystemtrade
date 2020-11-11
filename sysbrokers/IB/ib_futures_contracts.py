@@ -23,11 +23,15 @@ class ibFuturesContractData(futuresContractData):
     """
 
     def __init__(self, ibconnection, log=logtoscreen("ibFuturesContractData")):
-        setattr(self, "ibconnection", ibconnection)
-        setattr(self, "log", log)
+        super().__init__(log=log)
+        self._ibconnection = ibconnection
 
     def __repr__(self):
         return "IB Futures per contract data %s" % str(self.ibconnection)
+
+    @property
+    def ibconnection(self):
+        return self._ibconnection
 
     def get_brokers_instrument_code(self, instrument_code):
         futures_instrument_with_ib_data = self.get_futures_instrument_object_with_IB_data(instrument_code)
