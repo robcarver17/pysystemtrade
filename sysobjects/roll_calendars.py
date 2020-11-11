@@ -1,5 +1,4 @@
-from sysdata.data import baseData
-from sysdata.futures.roll_parameters_with_price_data import (
+from sysobjects.roll_parameters_with_price_data import (
     rollParametersWithPriceData,
     contractWithRollParametersAndPrices,
 )
@@ -85,19 +84,19 @@ class rollCalendar(pd.DataFrame):
         current_contracts = [
             contractDate(
                 current_and_forward_unique.loc[date_index].PRICE_CONTRACT
-            ).date
+            ).date_str
             for date_index in days_before
         ]
         next_contracts = [
             contractDate(
                 current_and_forward_unique.loc[date_index].PRICE_CONTRACT
-            ).date
+            ).date_str
             for date_index in roll_dates
         ]
         carry_contracts = [
             contractDate(
                 current_and_forward_unique.loc[date_index].CARRY_CONTRACT
-            ).date
+            ).date_str
             for date_index in days_before
         ]
 
@@ -115,17 +114,17 @@ class rollCalendar(pd.DataFrame):
                 current_contract=[
                     contractDate(
                         current_and_forward_data.iloc[-1].PRICE_CONTRACT
-                    ).date
+                    ).date_str
                 ],
                 next_contract=[
                     contractDate(
                         current_and_forward_data.iloc[-1].FORWARD_CONTRACT
-                    ).date
+                    ).date_str
                 ],
                 carry_contract=[
                     contractDate(
                         current_and_forward_data.iloc[-1].CARRY_CONTRACT
-                    ).date
+                    ).date_str
                 ],
             ),
             index=[current_and_forward_data.index[-1]],
@@ -271,7 +270,7 @@ def _generate_approximate_calendar(
 
     # On the roll date we stop holding the current contract, and end up holding the next one
     # The roll date is the last day we hold the current contract
-    while current_contract.contract_date < final_contract_date:
+    while current_contract.date_str < final_contract_date:
 
         next_contract = current_contract.find_next_held_contract_with_price_data()
         if next_contract is None:
@@ -279,7 +278,7 @@ def _generate_approximate_calendar(
             # The current contract isn't the last contract
             # But the remaining contracts aren't held contracts
             if (
-                current_contract.next_held_contract().date
+                current_contract.next_held_contract().date_str
                 > final_contract_date
             ):
                 # We are done
@@ -287,21 +286,21 @@ def _generate_approximate_calendar(
             else:
                 raise Exception(
                     "Can't find good next contract date %s from data when building roll calendar using hold calendar %s" %
-                    (carry_contract.date, str(
+                    (current_contract.date, str(
                         roll_parameters_object.hold_rollcycle), ))
 
         carry_contract = current_contract.find_best_carry_contract_with_price_data()
         if carry_contract is None:
             raise Exception(
                 "Can't find good carry contract %s from data when building roll calendar using hold calendar %s" %
-                (current_contract.contract_date, str(
+                (current_contract.date_str, str(
                     roll_parameters_object.hold_rollcycle), ))
 
         contract_dates_to_hold_on_each_roll.append(
-            current_contract.contract_date)
-        contract_dates_next_contract_along.append(next_contract.date)
+            current_contract.date_str)
+        contract_dates_next_contract_along.append(next_contract.date_str)
         carry_contracts_to_hold_on_each_roll.append(
-            carry_contract.date)
+            carry_contract.date_str)
 
         current_roll_date = current_contract.want_to_roll()
         theoretical_roll_dates.append(current_roll_date)
@@ -475,7 +474,7 @@ def _add_carry_calendar(
     ]
 
     carry_contract_dates = [contract.carry_contract(
-    ).date for contract in contracts_with_roll_data]
+    ).date_str for contract in contracts_with_roll_data]
 
     # Special case if first carry contract missing with a negative offset
     first_carry_contract = carry_contract_dates[0]
@@ -491,95 +490,3 @@ def _add_carry_calendar(
 
     return roll_calendar
 
-
-USE_CHILD_CLASS_ROLL_CALENDAR_ERROR = (
-    "You need to use a child class of rollCalendarData"
-)
-
-
-class rollCalendarData(baseData):
-    """
-    Class to read / write roll calendars
-
-    We wouldn't normally use this base class, but inherit from it for a specific data source eg Arctic
-    """
-
-    def __repr__(self):
-        return "rollCalendarData base class - DO NOT USE"
-
-    def keys(self):
-        return self.get_list_of_instruments()
-
-    def get_list_of_instruments(self):
-        raise NotImplementedError(USE_CHILD_CLASS_ROLL_CALENDAR_ERROR)
-
-    def get_roll_calendar(self, instrument_code):
-        if self.is_code_in_data(instrument_code):
-            return self._get_roll_calendar_without_checking(instrument_code)
-        else:
-            return rollCalendar.create_empty()
-
-    def _get_roll_calendar_without_checking(self, instrument_code):
-        raise NotImplementedError(USE_CHILD_CLASS_ROLL_CALENDAR_ERROR)
-
-    def __getitem__(self, instrument_code):
-        return self.get_roll_calendar(instrument_code)
-
-    def delete_roll_calendar(self, instrument_code, are_you_sure=False):
-        self.log.label(instrument_code=instrument_code)
-
-        if are_you_sure:
-            if self.is_code_in_data(instrument_code):
-                self._delete_roll_calendar_data_without_any_warning_be_careful(
-                    instrument_code
-                )
-                self.log.terse(
-                    "Deleted roll calendar for %s" %
-                    instrument_code)
-
-            else:
-                # doesn't exist anyway
-                self.log.warn(
-                    "Tried to delete roll calendar for non existent instrument code %s" %
-                    instrument_code)
-        else:
-            self.log.error(
-                "You need to call delete_roll_calendar with a flag to be sure"
-            )
-
-    def _delete_roll_calendar_data_without_any_warning_be_careful(
-            instrument_code):
-        raise NotImplementedError(USE_CHILD_CLASS_ROLL_CALENDAR_ERROR)
-
-    def is_code_in_data(self, instrument_code):
-        if instrument_code in self.get_list_of_instruments():
-            return True
-        else:
-            return False
-
-    def add_roll_calendar(
-        self, roll_calendar, instrument_code, ignore_duplication=False
-    ):
-
-        self.log.label(instrument_code=instrument_code)
-
-        if self.is_code_in_data(instrument_code):
-            if ignore_duplication:
-                pass
-            else:
-                raise self.log.warn(
-                    "There is already %s in the data, you have to delete it first" %
-                    instrument_code)
-
-        self._add_roll_calendar_without_checking_for_existing_entry(
-            roll_calendar, instrument_code
-        )
-
-        self.log.terse(
-            "Added roll calendar for instrument %s" %
-            instrument_code)
-
-    def _add_roll_calendar_without_checking_for_existing_entry(
-        self, roll_calendar, instrument_code
-    ):
-        raise NotImplementedError(USE_CHILD_CLASS_ROLL_CALENDAR_ERROR)

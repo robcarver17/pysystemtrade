@@ -2,10 +2,8 @@ from sysdata.arctic.arctic_futures_per_contract_prices import (
     arcticFuturesContractPriceData,
 )
 from sysdata.mongodb.mongo_roll_data import mongoRollParametersData
-from sysdata.futures.roll_calendars import rollCalendar
+from sysobjects.roll_calendars import rollCalendar
 from sysdata.csv.csv_roll_calendars import csvRollCalendarData
-
-import sys
 
 """
 Generate a 'best guess' roll calendar based on some price data for individual contracts

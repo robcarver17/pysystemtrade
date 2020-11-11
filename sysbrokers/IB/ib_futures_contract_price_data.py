@@ -93,7 +93,7 @@ class ibFuturesContractPriceData(futuresContractPriceData):
         """
         new_log = self.log.setup(
             instrument_code=contract_object.instrument_code,
-            contract_date=contract_object.date,
+            contract_date=contract_object.date_str,
         )
 
         contract_object_with_ib_broker_config = (
@@ -135,7 +135,7 @@ class ibFuturesContractPriceData(futuresContractPriceData):
 
         new_log = self.log.setup(
             instrument_code=contract_object.instrument_code,
-            contract_date=contract_object.date,
+            contract_date=contract_object.date_str,
         )
 
         contract_object_with_ib_data = (
@@ -169,7 +169,7 @@ class ibFuturesContractPriceData(futuresContractPriceData):
 
         new_log = self.log.setup(
             instrument_code=contract_object.instrument_code,
-            contract_date=contract_object.date,
+            contract_date=contract_object.date_str,
         )
 
         contract_object_with_ib_data = (
@@ -197,7 +197,7 @@ class ibFuturesContractPriceData(futuresContractPriceData):
         """
         new_log = self.log.setup(
             instrument_code=contract_object.instrument_code,
-            contract_date=contract_object.date,
+            contract_date=contract_object.date_str,
         )
 
         contract_object_with_ib_data = (

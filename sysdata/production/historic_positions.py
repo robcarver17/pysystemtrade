@@ -222,7 +222,7 @@ class contractPositionData(listOfEntriesData):
         """
 
         return (futures_contract_object.instrument_code +
-                "." + futures_contract_object.date)
+                "." + futures_contract_object.date_str)
 
     def _contract_tuple_given_keyname(self, keyname):
         """

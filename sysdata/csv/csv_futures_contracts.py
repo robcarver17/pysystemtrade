@@ -29,8 +29,8 @@ class csvFuturesContractData(futuresContractData):
             instrument_code)
 
     def write_contract_list_as_df(self, instrument_code, contract_list):
-        list_of_expiry = [x.expiry_date.date() for x in contract_list]
-        list_of_contract_date = [x.date for x in contract_list]
+        list_of_expiry = [x.expiry_date.date_str() for x in contract_list]
+        list_of_contract_date = [x.date_str for x in contract_list]
         list_of_sampling = [x.currently_sampling for x in contract_list]
 
         df = pd.DataFrame(

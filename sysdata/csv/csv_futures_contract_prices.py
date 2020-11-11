@@ -49,7 +49,7 @@ class csvFuturesContractPriceData(futuresContractPriceData):
         return (
             str(futures_contract_object.instrument)
             + "_"
-            + str(futures_contract_object.date)
+            + str(futures_contract_object.date_str)
         )
 
     def _contract_tuple_given_keyname(self, keyname):

@@ -93,7 +93,7 @@ class mongoFuturesContractData(futuresContractData):
             self, contract_object: futuresContract):
         contract_object_as_dict = contract_object.as_dict()
         key = contract_object.key
-        self.mongo_data.add_data(key, contract_object_as_dict)
+        self.mongo_data.add_data(key, contract_object_as_dict, allow_overwrite=True)
 
 ###########################################################################
 # THE FOLLOWING CODE IS USED ONLY TO TRANSLATE 'OLD STYLE' INTO 'NEW STYLE'

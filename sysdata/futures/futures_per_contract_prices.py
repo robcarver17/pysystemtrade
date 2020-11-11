@@ -560,7 +560,7 @@ class futuresContractPriceData(baseData):
 
     def has_data_for_contract(self, contract_object):
 
-        contract_date = contract_object.date
+        contract_date = contract_object.date_str
         instrument_code = contract_object.instrument_code
 
         if contract_date in self.contract_dates_with_price_data_for_instrument_code(
@@ -784,7 +784,7 @@ class futuresContractPriceData(baseData):
 
         new_log = self.log.setup(
             instrument_code=futures_contract_object.instrument_code,
-            contract_date=futures_contract_object.date,
+            contract_date=futures_contract_object.date_str,
         )
         if self.has_data_for_contract(futures_contract_object):
             if ignore_duplication:
@@ -849,7 +849,7 @@ class futuresContractPriceData(baseData):
         """
         new_log = self.log.setup(
             instrument_code=futures_contract_object.instrument_code,
-            contract_date=futures_contract_object.date,
+            contract_date=futures_contract_object.date_str,
         )
 
         old_prices = self.get_prices_for_contract_object(
@@ -957,10 +957,10 @@ class futuresContractPriceData(baseData):
         list_of_contracts_with_price_data = (
             self.contracts_with_price_data_for_instrument_code(instrument_code)
         )
+
         contract_dates = [
-            str(contract.date)
+            str(contract.date_str)
             for contract in list_of_contracts_with_price_data
-            if contract.instrument_code == instrument_code
         ]
 
         return contract_dates

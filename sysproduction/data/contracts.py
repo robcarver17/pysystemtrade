@@ -7,7 +7,9 @@ from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesDat
 from sysdata.mongodb.mongo_roll_data import mongoRollParametersData
 from sysdata.mongodb.mongo_futures_contracts import mongoFuturesContractData
 
-from sysobjects.rolls import contractDateWithRollParametersTODELETE
+from sysobjects.contract_dates_and_expiries import contractDate
+from sysobjects.rolls import contractDateWithRollParameters
+
 
 from sysproduction.data.prices import get_valid_instrument_code_from_user, diagPrices
 from sysproduction.data.get_data import dataBlob
@@ -97,14 +99,14 @@ class diagContracts(object):
 
         roll_parameters = self.get_roll_parameters(instrument_code)
 
-        price_contract = contractDateWithRollParametersTODELETE(
-            roll_parameters, price_contract_date
+        price_contract = contractDateWithRollParameters(
+            contractDate(price_contract_date), roll_parameters
         )
-        forward_contract = contractDateWithRollParametersTODELETE(
-            roll_parameters, forward_contract_date
+        forward_contract = contractDateWithRollParameters(
+            contractDate(forward_contract_date), roll_parameters
         )
-        carry_contract = contractDateWithRollParametersTODELETE(
-            roll_parameters, carry_contract_date
+        carry_contract = contractDateWithRollParameters(
+            contractDate(carry_contract_date), roll_parameters
         )
 
         preceeding_price_contract_date = price_contract.previous_priced_contract()
@@ -123,7 +125,7 @@ class diagContracts(object):
         ]
 
         all_contracts_dates = [
-            contract.date for contract in all_contracts]
+            contract.date_str for contract in all_contracts]
         unique_all_contract_dates = sorted(set(all_contracts_dates))
         unique_all_contract_dates = unique_all_contract_dates + \
             [missing_contract] * (6 - len(unique_all_contract_dates))
@@ -192,8 +194,8 @@ class diagContracts(object):
     ):
         roll_parameters = self.get_roll_parameters(instrument_code)
 
-        contract_date_with_roll_parameters = contractDateWithRollParametersTODELETE(
-            roll_parameters, contract_date_id
+        contract_date_with_roll_parameters = contractDateWithRollParameters(
+            contractDate(contract_date_id), roll_parameters
         )
 
         return contract_date_with_roll_parameters

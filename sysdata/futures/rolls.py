@@ -1,22 +1,26 @@
 
-from sysdata.data import baseData
+from syslogdiag.log import logtoscreen
 
+USE_CHILD_CLASS_ROLL_PARAMS_ERROR = "You need to use a child class of rollParametersData"
 
-
-USE_CHILD_CLASS_ROLL_PARAMS_ERROR = (
-    "You need to use a child class of rollParametersData"
-)
 
 class rollParametersMissing(Exception):
     pass
 
-class rollParametersData(baseData):
+class rollParametersData(object):
     """
     Read and write data class to get roll data for a given instrument
 
     We'd inherit from this class for a specific implementation
 
     """
+
+    def __init__(self, log=logtoscreen("futuresInstrumentData")):
+        self._log = log
+
+    @property
+    def log(self):
+        return self._log
 
     def __repr__(self):
         return "rollParametersData base class - DO NOT USE"
@@ -60,7 +64,7 @@ class rollParametersData(baseData):
                 "You need to call delete_roll_parameters with a flag to be sure"
             )
 
-    def _delete_roll_parameters_data_without_any_warning_be_careful(
+    def _delete_roll_parameters_data_without_any_warning_be_careful(self,
             instrument_code):
         raise NotImplementedError(USE_CHILD_CLASS_ROLL_PARAMS_ERROR)
 

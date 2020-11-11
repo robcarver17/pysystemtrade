@@ -104,13 +104,13 @@ class singleContractDate(object):
 
 
     def __repr__(self):
-        return self.date
+        return self.date_str
 
     def __eq__(self, other):
         return self.expiry_date == other.expiry_date
 
     @property
-    def date(self):
+    def date_str(self):
         return self._date_str
 
     def _init_with_yymm(self, date_str:str):
@@ -151,7 +151,7 @@ class singleContractDate(object):
     def _get_expiry_date_from_approx_expiry(self, approx_expiry_offset):
         # guess from the contract date - we can always correct this later
 
-        approx_expiry_date = self._as_date()
+        approx_expiry_date = self.as_date()
         new_expiry_date = approx_expiry_date + datetime.timedelta(
             days=approx_expiry_offset
         )
@@ -206,16 +206,16 @@ class singleContractDate(object):
             expiry_date=expiry_date)
 
     def year(self):
-        return int(self.date[YEAR_SLICE])
+        return int(self.date_str[YEAR_SLICE])
 
     def month(self):
-        return int(self.date[MONTH_SLICE])
+        return int(self.date_str[MONTH_SLICE])
 
     def day(self):
         if not self.is_day_defined():
             return 0
 
-        return int(self.date[DAY_SLICE])
+        return int(self.date_str[DAY_SLICE])
 
     def is_day_defined(self):
         if self.only_has_month:
@@ -226,7 +226,7 @@ class singleContractDate(object):
     def letter_month(self):
         return contract_month_from_number(self.month())
 
-    def _as_date(self):
+    def as_date(self):
 
         tuple_of_dates = self._as_date_tuple()
 
@@ -243,9 +243,9 @@ class singleContractDate(object):
     def _date_str_with_no_trailing_zeros(self):
         if self.only_has_month:
             # remove trailing zeros
-            date_str = self.date[YYYYMM_SLICE]
+            date_str = self.date_str[YYYYMM_SLICE]
         else:
-            date_str = self.date
+            date_str = self.date_str
 
         return date_str
 
@@ -328,7 +328,7 @@ class contractDate(object):
 
     @property
     def key(self):
-        return self.date
+        return self.date_str
 
     @property
     def is_spread_contract(self):
@@ -360,8 +360,8 @@ class contractDate(object):
         return self.first_contract.expiry_date
 
     @property
-    def date(self):
-        return "_".join([str(x) for x in self.list_of_single_contract_dates])
+    def date_str(self):
+        return "_".join([x.date_str for x in self.list_of_single_contract_dates])
 
 
     # not using a setter as shouldn't be done casually

@@ -150,7 +150,7 @@ class mongoContractHistoricOrdersData(
         self, strategy_name, contract_object
     ):
         instrument_code = contract_object.instrument_code
-        contract_id = contract_object.date
+        contract_id = contract_object.date_str
 
         tradeable_object = contractTradeableObject(
             strategy_name, instrument_code, contract_id

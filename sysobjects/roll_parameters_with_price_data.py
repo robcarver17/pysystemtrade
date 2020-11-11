@@ -35,8 +35,8 @@ class rollParametersWithPriceData(object):
             plausible_earliest_contract, self.prices
         )
 
-        while try_contract.contract_date <= final_contract_date:
-            if try_contract.contract_date in list_of_contract_dates:
+        while try_contract.date_str <= final_contract_date:
+            if try_contract.date_str in list_of_contract_dates:
                 # possible candidate, let's check carry
                 try_carry_contract = (
                     try_contract.find_best_carry_contract_with_price_data()
@@ -73,8 +73,8 @@ class contractWithRollParametersAndPrices(object):
         self.prices = dict_of_final_price_data
 
     @property
-    def contract_date(self):
-        return self.contract.date
+    def date_str(self):
+        return self.contract.date_str
 
     @property
     def want_to_roll(self):
@@ -119,8 +119,8 @@ class contractWithRollParametersAndPrices(object):
         list_of_contract_dates = self.prices.sorted_contract_ids()
         final_contract_date = list_of_contract_dates[-1]
 
-        while try_contract.contract_date <= final_contract_date:
-            if try_contract.contract_date in list_of_contract_dates:
+        while try_contract.date_str <= final_contract_date:
+            if try_contract.date_str in list_of_contract_dates:
                 return try_contract
             try_contract = try_contract.next_held_contract()
 
@@ -138,8 +138,8 @@ class contractWithRollParametersAndPrices(object):
         list_of_contract_dates = self.prices.sorted_contract_ids()
         final_contract_date = list_of_contract_dates[-1]
 
-        while try_contract.contract_date <= final_contract_date:
-            if try_contract.contract_date in list_of_contract_dates:
+        while try_contract.date_str <= final_contract_date:
+            if try_contract.date_str in list_of_contract_dates:
                 return try_contract
             try_contract = try_contract.next_priced_contract()
 
@@ -157,8 +157,8 @@ class contractWithRollParametersAndPrices(object):
         list_of_contract_dates = self.prices.sorted_contract_ids()
         first_contract_date = list_of_contract_dates[0]
 
-        while try_contract.contract_date >= first_contract_date:
-            if try_contract.contract_date in list_of_contract_dates:
+        while try_contract.date_str >= first_contract_date:
+            if try_contract.date_str in list_of_contract_dates:
                 return try_contract
             try_contract = try_contract.previous_priced_contract()
 
@@ -176,8 +176,8 @@ class contractWithRollParametersAndPrices(object):
         list_of_contract_dates = self.prices.sorted_contract_ids()
         first_contract_date = list_of_contract_dates[0]
 
-        while try_contract.contract_date >= first_contract_date:
-            if try_contract.contract_date in list_of_contract_dates:
+        while try_contract.date_str >= first_contract_date:
+            if try_contract.date_str in list_of_contract_dates:
                 return try_contract
             try_contract = try_contract.previous_held_contract()
 

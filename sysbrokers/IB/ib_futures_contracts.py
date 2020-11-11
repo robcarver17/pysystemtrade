@@ -68,7 +68,7 @@ class ibFuturesContractData(futuresContractData):
     def get_min_tick_size_for_contract(self, contract_object):
         new_log = self.log.setup(
             instrument_code=contract_object.instrument_code,
-            contract_date=contract_object.date,
+            contract_date=contract_object.date_str,
         )
 
         contract_object_with_ib_data = self.get_contract_object_with_IB_metadata(
@@ -95,7 +95,7 @@ class ibFuturesContractData(futuresContractData):
         """
         new_log = self.log.setup(
             instrument_code=contract_object.instrument_code,
-            contract_date=contract_object.date,
+            contract_date=contract_object.date_str,
         )
 
         contract_object_with_ib_data = self.get_contract_object_with_IB_metadata(
@@ -123,7 +123,7 @@ class ibFuturesContractData(futuresContractData):
         """
         new_log = self.log.setup(
             instrument_code=contract_object.instrument_code,
-            contract_date=contract_object.date,
+            contract_date=contract_object.date_str,
         )
 
         contract_object_with_ib_data = self.get_contract_object_with_IB_metadata(

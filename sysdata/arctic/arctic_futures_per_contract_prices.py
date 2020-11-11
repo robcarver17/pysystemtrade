@@ -41,7 +41,7 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
         """
 
         return futures_contract_object.instrument_code + \
-            "." + futures_contract_object.date
+            "." + futures_contract_object.date_str
 
     def _contract_tuple_given_keyname(self, keyname):
         """
@@ -89,7 +89,7 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
         """
 
         self.log.label(instrument_code=futures_contract_object.instrument_code,
-                       contract_date=futures_contract_object.date)
+                       contract_date=futures_contract_object.date_str)
         ident = self._keyname_given_contract_object(futures_contract_object)
         futures_price_data_aspd = pd.DataFrame(futures_price_data)
         self._arctic.library.write(ident, futures_price_data_aspd)
@@ -110,7 +110,7 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
         :return: None
         """
         self.log.label(instrument_code=futures_contract_object.instrument_code,
-                       contract_date=futures_contract_object.date)
+                       contract_date=futures_contract_object.date_str)
 
         ident = self._keyname_given_contract_object(futures_contract_object)
         self._arctic.library.delete(ident)

@@ -1,8 +1,9 @@
 from syscore.objects import missing_contract
 
+from sysobjects.contract_dates_and_expiries import contractDate
 from sysobjects.contracts import futuresContract, listOfFuturesContracts
 from sysobjects.instruments import futuresInstrument
-from sysobjects.rolls import contractDateWithRollParametersTODELETE
+from sysobjects.rolls import contractDateWithRollParameters
 
 from sysproduction.data.get_data import dataBlob
 from sysproduction.data.prices import diagPrices
@@ -86,8 +87,8 @@ def get_contract_chain(instrument_code, data):
     current_contract_dict = multiple_prices.current_contract_dict()
     current_contract_list = list(current_contract_dict.values())
     furthest_out_contract_date = max(current_contract_list)
-    furthest_out_contract = contractDateWithRollParametersTODELETE(
-        roll_parameters, furthest_out_contract_date
+    furthest_out_contract = contractDateWithRollParameters(
+        contractDate(furthest_out_contract_date), roll_parameters
     )
 
     # To give us wiggle room, and ensure we start collecting the new forward a
@@ -166,7 +167,7 @@ def add_missing_contracts_to_database(
     update_contracts = updateContracts(data)
 
     for contract_to_add in missing_from_db:
-        contract_date = contract_to_add.date
+        contract_date = contract_to_add.date_str
         if diag_contracts.is_contract_in_data(instrument_code, contract_date):
             contract_to_add = diag_contracts.get_contract_object(
                 instrument_code, contract_date
@@ -201,7 +202,7 @@ def mark_contracts_as_stopped_sampling(
     update_contracts = updateContracts(data)
 
     for contract_date_object in contracts_not_sampling:
-        contract_date = contract_date_object.date
+        contract_date = contract_date_object.date_str
 
         # Mark it as stop sampling in the database
         contract = diag_contracts.get_contract_object(
@@ -213,7 +214,7 @@ def mark_contracts_as_stopped_sampling(
 
             log.msg(
                 "Contract %s has now stopped sampling" % str(contract),
-                contract_date=contract.date,
+                contract_date=contract.date_str,
             )
         else:
             # nothing to do
@@ -261,7 +262,7 @@ def update_expiry_for_contract(contract_object, data):
     data_broker = dataBroker(data)
     update_contracts = updateContracts(data)
 
-    contract_date = contract_object.date
+    contract_date = contract_object.date_str
     instrument_code = contract_object.instrument_code
 
     log = log.setup(
@@ -295,7 +296,7 @@ def update_expiry_for_contract(contract_object, data):
         return None
 
     # Different!
-    contract_object.contract_date.update_expiry_date(ib_expiry_date)
+    contract_object.date_str.update_expiry_date(ib_expiry_date)
     update_contracts.add_contract_data(
         contract_object, ignore_duplication=True)
 

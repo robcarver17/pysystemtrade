@@ -3,11 +3,11 @@ USE_CHILD_CLASS_ERROR = "You need to use a child class of futuresContractData"
 class ContractNotFound(Exception):
     pass
 
-from sysdata.data import baseData
-from sysobjects.contracts import listOfFuturesContracts, contract_from_code_and_id
+from syslogdiag.log import logtoscreen
+from sysobjects.contracts import  contract_from_code_and_id
 from sysdata.futures.trading_hours import manyTradingStartAndEnd
 
-class futuresContractData(baseData):
+class futuresContractData(object):
     """
     Read and write data class to get futures contract data
 
@@ -17,6 +17,13 @@ class futuresContractData(baseData):
 
     If you want more information about a given instrument you have to read it in using futuresInstrumentData
     """
+
+    def __init__(self, log=logtoscreen("futuresInstrumentData")):
+        self._log = log
+
+    @property
+    def log(self):
+        return self._log
 
     def __repr__(self):
         return "Individual futures contract data - DO NOT USE"
@@ -93,7 +100,7 @@ class futuresContractData(baseData):
     def add_contract_data(self, contract_object, ignore_duplication=False):
 
         instrument_code = contract_object.instrument_code
-        contract_date = contract_object.date
+        contract_date = contract_object.date_str
 
         self.log.label(
             instrument_code=instrument_code,

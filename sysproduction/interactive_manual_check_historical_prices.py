@@ -64,7 +64,7 @@ def update_historical_prices_with_checks_for_instrument(
 
     for contract_object in contract_list:
         update_historical_prices_with_checks_for_instrument_and_contract(
-            contract_object, data, log=log.setup(contract_date=contract_object.date)
+            contract_object, data, log=log.setup(contract_date=contract_object.date_str)
         )
 
     return success

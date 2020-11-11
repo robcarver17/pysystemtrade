@@ -82,7 +82,7 @@ class futuresContract(object):
 
     def __eq__(self, other):
         instruments_match = self.instrument == other.instrument
-        contracts_match = self.contract_date == other.contract_date
+        contracts_match = self.contract_date == other.date_str
 
         if instruments_match and contracts_match:
             return True
@@ -91,7 +91,7 @@ class futuresContract(object):
 
     @property
     def key(self):
-        return get_contract_key_from_code_and_id(self.instrument_code, self.date)
+        return get_contract_key_from_code_and_id(self.instrument_code, self.date_str)
 
     @property
     def currently_sampling(self):
@@ -149,8 +149,12 @@ class futuresContract(object):
         return self.instrument.instrument_code
 
     @property
+    def date_str(self):
+        return self.contract_date.date_str
+
+    @property
     def date(self):
-        return self.contract_date.date
+        return self.contract_date.as_date
 
     @property
     def expiry_date(self):
@@ -158,72 +162,6 @@ class futuresContract(object):
 
     def is_spread_contract(self):
         return self.contract_date.is_spread_contract
-
-
-    def next_priced_contract(self):
-        ## WHERE USED, SEEMS SHOULD BE A SEPERATE FUNCTION
-        ## OR EXPLICIT FUTURES CONTRACT OBJECT WITH ROLL DATA
-
-        try:
-            next_contract_date = self.contract_date.next_priced_contract()
-        except AttributeError:
-            raise Exception(
-                "You can only do this if contract_date_object is contractDateWithRollParameters"
-            )
-
-        return futuresContract(self.instrument, next_contract_date)
-
-    def previous_priced_contract(self):
-        ## WHERE USED, SEEMS SHOULD BE A SEPERATE FUNCTION
-        ## OR EXPLICIT FUTURES CONTRACT OBJECT WITH ROLL DATA
-
-        try:
-            previous_contract_date = self.contract_date.previous_priced_contract()
-        except AttributeError:
-            raise Exception(
-                "You can only do this if contract_date_object is contractDateWithRollParameters"
-            )
-
-        return futuresContract(self.instrument, previous_contract_date)
-
-    def carry_contract(self):
-        ## WHERE USED, SEEMS SHOULD BE A SEPERATE FUNCTION
-        ## OR EXPLICIT FUTURES CONTRACT OBJECT WITH ROLL DATA
-
-        try:
-            carry_contract = self.contract_date.carry_contract()
-        except AttributeError:
-            raise Exception(
-                "You can only do this if contract_date_object is contractDateWithRollParameters"
-            )
-
-        return futuresContract(self.instrument, carry_contract)
-
-    def next_held_contract(self):
-        ## WHERE USED, SEEMS SHOULD BE A SEPERATE FUNCTION
-        ## OR EXPLICIT FUTURES CONTRACT OBJECT WITH ROLL DATA
-
-        try:
-            next_held_date = self.contract_date.next_held_contract()
-        except AttributeError:
-            raise Exception(
-                "You can only do this if contract_date_object is contractDateWithRollParameters"
-            )
-
-        return futuresContract(self.instrument, next_held_date)
-
-    def previous_held_contract(self):
-        ## WHERE USED, SEEMS SHOULD BE A SEPERATE FUNCTION
-        ## OR EXPLICIT FUTURES CONTRACT OBJECT WITH ROLL DATA
-
-        try:
-            previous_held_date = self.contract_date.previous_held_contract()
-        except AttributeError:
-            raise Exception(
-                "You can only do this if contract_date_object is contractDateWithRollParameters"
-            )
-
-        return futuresContract(self.instrument, previous_held_date)
 
     def new_contract_with_replaced_instrument_object(
             self, new_instrument_object):
@@ -285,7 +223,7 @@ class listOfFuturesContracts(list):
 
     def list_of_dates(self) -> list:
         # Return list of contract_date identifiers
-        contract_dates = [contract.date for contract in self]
+        contract_dates = [contract.date_str for contract in self]
         return contract_dates
 
     def as_dict(self) ->dict:

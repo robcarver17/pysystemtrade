@@ -102,7 +102,7 @@ class capitalData(listOfEntriesData):
         if current_capital_entry is missing_data:
             return missing_data
 
-        entry_date = current_capital_entry.date
+        entry_date = current_capital_entry.date_str
 
         return entry_date
 

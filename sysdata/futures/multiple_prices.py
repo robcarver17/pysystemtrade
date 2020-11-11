@@ -388,7 +388,7 @@ class futuresMultiplePricesData(baseData):
         raise NotImplementedError(USE_CHILD_CLASS_ERROR)
 
     def __getitem__(self, instrument_code):
-        return self.get_instrument_data(instrument_code)
+        return self.get_multiple_prices(instrument_code)
 
     def _delete_all_multiple_prices(self, are_you_sure=False):
         if are_you_sure:

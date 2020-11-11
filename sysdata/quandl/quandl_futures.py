@@ -105,7 +105,7 @@ class _quandlFuturesContract(futuresContract):
         :param futures_contract: of type FuturesContract
         """
 
-        super().__init__(futures_contract.instrument, futures_contract.date)
+        super().__init__(futures_contract.instrument, futures_contract.date_str)
 
         if quandl_instrument_data is USE_DEFAULT:
             quandl_instrument_data = quandlFuturesConfiguration()
@@ -191,7 +191,7 @@ class quandlFuturesContractPriceData(futuresContractPriceData):
         """
         self.log.label(
             instrument_code=futures_contract_object.instrument_code,
-            contract_date=futures_contract_object.date,
+            contract_date=futures_contract_object.date_str,
         )
 
         try:

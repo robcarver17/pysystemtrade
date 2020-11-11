@@ -318,9 +318,9 @@ def adjust_timestamp(
     time_offset=pd.DateOffset(hours=0),
 ):
     if index_entry.hour == 0 and index_entry.minute == 0 and index_entry.second == 0:
-        new_index_entry = index_entry.date() + actual_close
+        new_index_entry = index_entry.date_str() + actual_close
     elif time_matches(index_entry, original_close):
-        new_index_entry = index_entry.date() + actual_close
+        new_index_entry = index_entry.date_str() + actual_close
     else:
         new_index_entry = index_entry + time_offset
 

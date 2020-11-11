@@ -1,4 +1,5 @@
-from sysdata.futures.roll_calendars import rollCalendarData, rollCalendar
+from sysobjects.roll_calendars import rollCalendar
+from sysdata.futures.roll_calendars import rollCalendarData
 from syscore.fileutils import get_filename_for_package, files_with_extension_in_pathname
 from syscore.pdutils import pd_readcsv
 

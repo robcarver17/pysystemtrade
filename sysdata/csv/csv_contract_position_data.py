@@ -40,4 +40,4 @@ class csvContractPositionData(contractPositionData):
         contract_object = futuresContract(instrument_code, contract_date)
         return get_filename_for_package(
             self._datapath, "%s_%s.csv" %
-            (instrument_code, contract_object.date))
+            (instrument_code, contract_object.date_str))

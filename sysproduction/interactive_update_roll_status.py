@@ -11,6 +11,7 @@ import pandas as pd
 
 from sysobjects.contracts import futuresContract
 from sysobjects.instruments import futuresInstrument
+from sysobjects.rolls import contractDateWithRollParameters
 from sysdata.futures.multiple_prices import (
     preferred_columns,
     contract_column_names,
@@ -338,11 +339,12 @@ def update_multiple_prices_on_roll(
             instrument_code, old_forward_contract
         )
     )
-    new_price_contract_object = futuresContract(
-        instrument_object, new_price_contract_date_object
-    )
-    new_forward_contract_object = new_price_contract_object.next_held_contract()
-    new_carry_contract_object = new_price_contract_object.carry_contract()
+    new_forward_contract_date = new_price_contract_date_object.next_held_contract()
+    new_carry_contract_date = new_price_contract_date_object.carry_contract()
+
+    new_price_contract_object = futuresContract(instrument_object, new_price_contract_date_object)
+    new_forward_contract_object = futuresContract(instrument_object, new_forward_contract_date)
+    new_carry_contract_object = futuresContract(instrument_object, new_carry_contract_date)
 
     new_price_price = old_forward_contract_last_price
     new_forward_price = get_final_matched_price_from_contract_object(
@@ -352,9 +354,9 @@ def update_multiple_prices_on_roll(
         data, new_carry_contract_object, new_multiple_prices
     )
 
-    new_price_contractid = new_price_contract_object.date
-    new_forward_contractid = new_forward_contract_object.date
-    new_carry_contractid = new_carry_contract_object.date
+    new_price_contractid = new_price_contract_object.date_str
+    new_forward_contractid = new_forward_contract_object.date_str
+    new_carry_contractid = new_carry_contract_object.date_str
 
     # If any prices had to be inferred, then add row with both current priced and forward prices
     # Otherwise adjusted prices will break

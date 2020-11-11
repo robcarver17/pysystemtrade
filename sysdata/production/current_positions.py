@@ -102,7 +102,7 @@ class contractPosition(Position):
 
     @property
     def date(self):
-        return self._tradeable_object.date
+        return self._tradeable_object.date_str
 
     @property
     def contract_object(self):
@@ -289,7 +289,7 @@ class listOfContractPositions(listOfPositions):
     def _id_column_dict(self):
         instrument_code_list = [str(position.instrument_code)
                                 for position in self]
-        contract_id_list = [str(position.date) for position in self]
+        contract_id_list = [str(position.date_str) for position in self]
         expiry_date_list = [str(position.expiry_date) for position in self]
         id_column_dict = dict(
             instrument_code=instrument_code_list,

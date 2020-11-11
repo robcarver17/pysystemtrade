@@ -52,4 +52,4 @@ class mongoFuturesInstrumentData(futuresInstrumentData):
     ):
         instrument_object_dict = instrument_object.as_dict()
         instrument_code = instrument_object_dict.pop("instrument_code")
-        self.mongo_data.add_data(instrument_code, instrument_object_dict)
+        self.mongo_data.add_data(instrument_code, instrument_object_dict, allow_overwrite=True)
