@@ -82,7 +82,7 @@ class futuresContract(object):
 
     def __eq__(self, other):
         instruments_match = self.instrument == other.instrument
-        contracts_match = self.contract_date == other.date_str
+        contracts_match = self.contract_date == other.contract_date
 
         if instruments_match and contracts_match:
             return True
