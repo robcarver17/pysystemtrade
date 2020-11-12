@@ -52,40 +52,40 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(cycle1.next_year_month(2002, "Z"), (2003, "H"))
 
         self.assertEqual(
-            cycle1.yearmonth_inrollcycle_after_date(
+            cycle1._yearmonth_inrollcycle_after_dateNOTUSED(
                 datetime.datetime(
                     2002, 1, 1)), (2002, 3), )
         self.assertEqual(
-            cycle1.yearmonth_inrollcycle_after_date(
+            cycle1._yearmonth_inrollcycle_after_dateNOTUSED(
                 datetime.datetime(
                     2002, 12, 1)), (2003, 3), )
         self.assertEqual(
-            cycle1.yearmonth_inrollcycle_after_date(
+            cycle1._yearmonth_inrollcycle_after_dateNOTUSED(
                 datetime.datetime(
                     2002, 12, 31)), (2003, 3), )
         self.assertEqual(
-            cycle1.yearmonth_inrollcycle_after_date(
+            cycle1._yearmonth_inrollcycle_after_dateNOTUSED(
                 datetime.datetime(
                     2002, 3, 1)), (2002, 6), )
         self.assertEqual(
-            cycle1.yearmonth_inrollcycle_after_date(
+            cycle1._yearmonth_inrollcycle_after_dateNOTUSED(
                 datetime.datetime(
                     2002, 5, 31)), (2002, 6), )
 
         self.assertEqual(
-            cycle1.yearmonth_inrollcycle_before_date(
+            cycle1._yearmonth_inrollcycle_before_dateNOTUSED(
                 datetime.datetime(
                     2002, 1, 1)), (2001, 12), )
         self.assertEqual(
-            cycle1.yearmonth_inrollcycle_before_date(
+            cycle1._yearmonth_inrollcycle_before_dateNOTUSED(
                 datetime.datetime(
                     2002, 3, 1)), (2001, 12), )
         self.assertEqual(
-            cycle1.yearmonth_inrollcycle_before_date(
+            cycle1._yearmonth_inrollcycle_before_dateNOTUSED(
                 datetime.datetime(
                     2002, 4, 1)), (2002, 3), )
         self.assertEqual(
-            cycle1.yearmonth_inrollcycle_before_date(
+            cycle1._yearmonth_inrollcycle_before_dateNOTUSED(
                 datetime.datetime(
                     2002, 5, 31)), (2002, 3), )
 
