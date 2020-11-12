@@ -60,7 +60,7 @@ def update_active_contracts_for_instrument(
         instrument_code, data):
     # Get the list of contracts we'd want to get prices for, given current
     # roll calendar
-    required_contract_chain = get_contract_chain(instrument_code, data)
+    required_contract_chain = get_contract_chain(data, instrument_code)
 
     # Make sure contract chain and database are aligned
     update_contract_database_with_contract_chain(
@@ -73,21 +73,58 @@ def update_active_contracts_for_instrument(
     return None
 
 
-def get_contract_chain(instrument_code, data):
-    diag_contracts = diagContracts(data)
-    diag_prices = diagPrices(data)
+def get_contract_chain(data: dataBlob, instrument_code: str) -> listOfFuturesContracts:
 
-    roll_parameters = diag_contracts.get_roll_parameters(instrument_code)
+    furthest_out_contract = get_furthest_out_contract_with_roll_parameters(data, instrument_code)
+    contract_object_chain = create_contract_object_chain(furthest_out_contract, instrument_code)
+
+    return contract_object_chain
+
+def get_furthest_out_contract_with_roll_parameters(data: dataBlob,
+                                                   instrument_code: str) \
+                                                -> contractDateWithRollParameters:
+
+    furthest_out_contract_date = get_furthest_out_contract_date(data, instrument_code)
+    furthest_out_contract = create_furthest_out_contract_with_roll_parameters_from_contract_date(data,
+                                                                                                 instrument_code,
+                                                                                                 furthest_out_contract_date)
+
+    return furthest_out_contract
+
+def get_furthest_out_contract_date(data: dataBlob,
+                                   instrument_code: str) ->contractDate:
+
+    diag_prices = diagPrices(data)
 
     # Get the last contract currently being used
     multiple_prices = diag_prices.get_multiple_prices(instrument_code)
     current_contract_dict = multiple_prices.current_contract_dict()
     current_contract_list = list(current_contract_dict.values())
     furthest_out_contract_date = max(current_contract_list)
+
+    return furthest_out_contract_date
+
+def create_furthest_out_contract_with_roll_parameters_from_contract_date(data: dataBlob, instrument_code: str,
+                                                                         furthest_out_contract_date: contractDate):
+
+    diag_contracts = diagContracts(data)
+    roll_parameters = diag_contracts.get_roll_parameters(instrument_code)
+
     furthest_out_contract = contractDateWithRollParameters(
         contractDate(furthest_out_contract_date), roll_parameters
     )
 
+    return furthest_out_contract
+
+def create_contract_object_chain(furthest_out_contract: contractDateWithRollParameters,
+                                  instrument_code: str) -> listOfFuturesContracts:
+
+    contract_date_chain = create_contract_date_chain(furthest_out_contract)
+    contract_object_chain = create_contract_object_chain_from_contract_date_chain(instrument_code, contract_date_chain)
+
+    return contract_object_chain
+
+def create_contract_date_chain(furthest_out_contract: contractDateWithRollParameters) ->list:
     # To give us wiggle room, and ensure we start collecting the new forward a
     # little in advance
     final_contract = furthest_out_contract.next_priced_contract()
@@ -95,6 +132,12 @@ def get_contract_chain(instrument_code, data):
     contract_date_chain = (
         final_contract.get_unexpired_contracts_from_now_to_contract_date()
     )
+
+    return contract_date_chain
+
+def create_contract_object_chain_from_contract_date_chain(instrument_code: str,
+                                                          contract_date_chain: list) \
+                                                    -> listOfFuturesContracts:
 
     # We have a list of contract_date objects, need futureContracts
     # create a 'bare' instrument object
@@ -110,7 +153,6 @@ def get_contract_chain(instrument_code, data):
 
     return contract_object_chain
 
-
 def update_contract_database_with_contract_chain(
     instrument_code, required_contract_chain, data
 ):
@@ -121,19 +163,12 @@ def update_contract_database_with_contract_chain(
     :param data: dataBlob
     :return: None
     """
-    diag_contracts = diagContracts(data)
 
-    # Get list of contracts in the database
-    all_contracts_in_db = diag_contracts.get_all_contract_objects_for_instrument_code(
-        instrument_code)
-    current_contract_chain = all_contracts_in_db.currently_sampling()
+    current_contract_chain = get_current_contract_chain(data, instrument_code)
 
-    # Is something in required_contract_chain, but not in the database?
     missing_from_db = required_contract_chain.difference(
         current_contract_chain)
 
-    # They have probably been added as the result of a recent roll
-    # Let's add them
     add_missing_contracts_to_database(
          missing_from_db, data)
 
@@ -149,6 +184,15 @@ def update_contract_database_with_contract_chain(
 
     return None
 
+def get_current_contract_chain(data: dataBlob, instrument_code:str) -> listOfFuturesContracts:
+    diag_contracts = diagContracts(data)
+
+    # Get list of contracts in the database
+    all_contracts_in_db = diag_contracts.get_all_contract_objects_for_instrument_code(
+        instrument_code)
+    current_contract_chain = all_contracts_in_db.currently_sampling()
+
+    return current_contract_chain
 
 def add_missing_contracts_to_database(
      missing_from_db: list, data
@@ -169,7 +213,6 @@ def add_missing_contract_to_database(data: dataBlob, contract_to_add: futuresCon
     diag_contracts = diagContracts(data)
     update_contracts = updateContracts(data)
     instrument_code = contract_to_add.instrument_code
-    log = data.log.setup(instrument_code=instrument_code)
 
     contract_date_str = contract_to_add.date_str
 
@@ -185,6 +228,8 @@ def add_missing_contract_to_database(data: dataBlob, contract_to_add: futuresCon
     # We are happy to overwrite
     update_contracts.add_contract_data(
         contract_to_add, ignore_duplication=True)
+
+    log = data.log.setup(instrument_code=instrument_code)
 
     log.msg(
         "Contract %s now added to database and sampling" %
