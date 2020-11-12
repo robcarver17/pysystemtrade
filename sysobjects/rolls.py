@@ -467,7 +467,7 @@ class contractDateWithRollParameters(object):
         else:
             raise Exception("carry_offset needs to be +1 or -1")
 
-    def want_to_roll(self):
+    def desired_roll_date(self) ->datetime.datetime:
         return self.contract_date.expiry_date + datetime.timedelta(
             days=self.roll_parameters.roll_offset_day
         )

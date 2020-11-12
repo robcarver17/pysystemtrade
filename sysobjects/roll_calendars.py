@@ -1,6 +1,7 @@
 from sysobjects.roll_parameters_with_price_data import (
-    rollParametersWithPriceData,
+    find_earliest_held_contract_with_price_data,
     contractWithRollParametersAndPrices,
+    missing_data
 )
 
 from sysobjects.contract_dates_and_expiries import contractDate
@@ -248,17 +249,14 @@ def _generate_approximate_calendar(
 
     :return: data frame ready to be rollCalendar
     """
-    roll_parameters_with_price_data = rollParametersWithPriceData(
+    earliest_contract_with_roll_data = find_earliest_held_contract_with_price_data(
         roll_parameters_object, dict_of_futures_contract_prices
     )
-    earliest_contract_with_roll_data = (
-        roll_parameters_with_price_data.find_earliest_held_contract_with_data()
-    )
 
-    if earliest_contract_with_roll_data is None:
+    if earliest_contract_with_roll_data is missing_data:
         raise Exception("Can't find any valid starting contract!")
 
-    final_contract_date = dict_of_futures_contract_prices.last_contract_id()
+    final_contract_date = dict_of_futures_contract_prices.last_contract_date_str()
 
     current_contract = contractWithRollParametersAndPrices(
         earliest_contract_with_roll_data, dict_of_futures_contract_prices
@@ -273,7 +271,7 @@ def _generate_approximate_calendar(
     while current_contract.date_str < final_contract_date:
 
         next_contract = current_contract.find_next_held_contract_with_price_data()
-        if next_contract is None:
+        if next_contract is missing_data:
             # This is a problem UNLESS for the corner case where:
             # The current contract isn't the last contract
             # But the remaining contracts aren't held contracts
@@ -290,7 +288,7 @@ def _generate_approximate_calendar(
                         roll_parameters_object.hold_rollcycle), ))
 
         carry_contract = current_contract.find_best_carry_contract_with_price_data()
-        if carry_contract is None:
+        if carry_contract is missing_data:
             raise Exception(
                 "Can't find good carry contract %s from data when building roll calendar using hold calendar %s" %
                 (current_contract.date_str, str(
@@ -302,7 +300,7 @@ def _generate_approximate_calendar(
         carry_contracts_to_hold_on_each_roll.append(
             carry_contract.date_str)
 
-        current_roll_date = current_contract.want_to_roll()
+        current_roll_date = current_contract.desired_roll_date()
         theoretical_roll_dates.append(current_roll_date)
 
         current_contract = next_contract

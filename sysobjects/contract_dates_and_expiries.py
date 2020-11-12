@@ -406,6 +406,14 @@ class contractDate(object):
     def letter_month(self):
         return self.first_contract.letter_month()
 
+class listOfContractDateStr(list):
+    def sorted_date_str(self):
+        return listOfContractDateStr(sorted(self))
+
+    def final_date_str(self):
+        return self.sorted_date_str()[-1]
+
+
 def resolve_date_string_into_list_of_single_contract_dates(date_str, expiry_date=NO_EXPIRY_DATE_PASSED, approx_expiry_offset=0) -> list:
     if type(date_str) is dict:
         contract_date_list = get_contract_date_object_list_from_dict(date_str)

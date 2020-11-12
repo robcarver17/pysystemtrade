@@ -6,7 +6,9 @@ from syscore.pdutils import full_merge_of_existing_data, merge_newer_data, sumup
 from syscore.objects import arg_not_supplied, missing_data, data_error
 
 from sysdata.data import baseData
+
 from sysobjects.contracts import futuresContract
+from sysobjects.contract_dates_and_expiries import listOfContractDateStr
 
 PRICE_DATA_COLUMNS = sorted(["OPEN", "HIGH", "LOW", "FINAL", "VOLUME"])
 FINAL_COLUMN = "FINAL"
@@ -246,20 +248,22 @@ class dictFuturesContractFinalPrices(dict):
             self.keys())
         return object_repr
 
-    def sorted_contract_ids(self):
+    def sorted_contract_date_str(self):
         """
         Time sorted contract ids
         :return:
         """
 
-        all_contract_ids = sorted(self.keys())
+        all_contract_date_str = listOfContractDateStr(self.keys())
+        all_contract_date_str_sorted = all_contract_date_str.sorted_date_str()
 
-        return all_contract_ids
+        return all_contract_date_str_sorted
 
-    def last_contract_id(self):
-        sorted_contract_ids = self.sorted_contract_ids()
+    def last_contract_date_str(self):
 
-        return sorted_contract_ids[-1]
+        all_contract_date_str_sorted = self.sorted_contract_date_str()
+
+        return all_contract_date_str_sorted.final_date_str()
 
     def joint_data(self):
 
