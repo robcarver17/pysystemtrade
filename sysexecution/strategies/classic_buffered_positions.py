@@ -48,7 +48,7 @@ class orderGeneratorForBufferedPositions(orderGeneratorForStrategy):
 
         ref_dates = dict(
             [
-                (instrument_code, opt_position.date_str)
+                (instrument_code, opt_position.date)
                 for instrument_code, opt_position in optimal_positions.items()
             ]
         )
