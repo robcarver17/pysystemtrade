@@ -1,6 +1,7 @@
 from syscore.objects import arg_not_supplied
-from sysobjects.contract_dates_and_expiries import contractDate
+from sysobjects.contract_dates_and_expiries import contractDate, expiryDate
 from sysobjects.instruments import futuresInstrument
+
 from dataclasses import  dataclass
 
 import datetime
@@ -159,6 +160,9 @@ class futuresContract(object):
     @property
     def expiry_date(self):
         return self.contract_date.expiry_date
+
+    def update_expiry(self, new_expiry_date: expiryDate):
+        self.contract_date.update_expiry(new_expiry_date)
 
     def is_spread_contract(self):
         return self.contract_date.is_spread_contract
