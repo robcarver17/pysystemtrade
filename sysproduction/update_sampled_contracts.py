@@ -101,8 +101,8 @@ def get_contract_chain(instrument_code, data):
     instrument_object = futuresInstrument(instrument_code)
 
     contract_object_chain_as_list = [
-        futuresContract(instrument_object, contract_date_object)
-        for contract_date_object in contract_date_chain
+        futuresContract(instrument_object, contract_date)
+        for contract_date in contract_date_chain
     ]
 
     contract_object_chain = listOfFuturesContracts(
@@ -160,8 +160,7 @@ def add_missing_contracts_to_database(
     :return: None
     """
 
-    for contract_with_roll_parameters in missing_from_db:
-        contract_to_add = contract_with_roll_parameters.contract_date
+    for contract_to_add in missing_from_db:
         add_missing_contract_to_database(data, contract_to_add)
 
     return None

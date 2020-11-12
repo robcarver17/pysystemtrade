@@ -481,11 +481,12 @@ class contractDateWithRollParameters(object):
 
         datetime_now = datetime.datetime.now()
         contract_dates = []
-        current_contract = copy(self)
+        current_contract_date_with_roll_parameters = copy(self)
 
-        while current_contract.contract_date.expiry_date >= datetime_now:
-            contract_dates.append(current_contract)
-            current_contract = current_contract.previous_priced_contract()
+        while current_contract_date_with_roll_parameters.contract_date.expiry_date >= datetime_now:
+            current_contract_date = current_contract_date_with_roll_parameters.contract_date
+            contract_dates.append(current_contract_date)
+            current_contract_date_with_roll_parameters = current_contract_date_with_roll_parameters.previous_priced_contract()
 
         return contract_dates
 
