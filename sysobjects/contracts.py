@@ -161,7 +161,7 @@ class futuresContract(object):
     def expiry_date(self):
         return self.contract_date.expiry_date
 
-    def update_expiry(self, new_expiry_date: expiryDate):
+    def update_expiry_date(self, new_expiry_date: expiryDate):
         self.contract_date.update_expiry(new_expiry_date)
 
     def is_spread_contract(self):
