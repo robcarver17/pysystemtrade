@@ -10,8 +10,6 @@ from sysproduction.data.prices import diagPrices
 from sysproduction.data.contracts import diagContracts, updateContracts
 from sysproduction.data.broker import dataBroker
 
-from syslogdiag.log import logtoscreen
-
 
 def update_sampled_contracts():
     """
@@ -137,7 +135,7 @@ def update_contract_database_with_contract_chain(
     # They have probably been added as the result of a recent roll
     # Let's add them
     add_missing_contracts_to_database(
-        instrument_code, missing_from_db, data)
+         missing_from_db, data)
 
     # Is something in the database, but not in required_contract_chain?
     # Then it's either expired or weirdly very far in the future (maybe we changed the roll parameters)
