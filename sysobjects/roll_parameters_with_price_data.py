@@ -23,8 +23,20 @@ class contractWithRollParametersAndPrices(object):
         :param dict_of_final_price_data: object of type dictFuturesContractFinalPrices
         """
 
-        self.contract = contract_with_roll_parameters
-        self.prices = dict_of_final_price_data
+        self._contract = contract_with_roll_parameters
+        self._prices = dict_of_final_price_data
+
+    @property
+    def contract(self):
+        return self._contract
+
+    @property
+    def prices(self):
+        return self._prices
+
+    @property
+    def roll_parameters(self):
+        return self.contract.roll_parameters
 
     @property
     def date_str(self) ->str:
@@ -176,7 +188,8 @@ class contractWithRollParametersAndPrices(object):
 
 
 def find_earliest_held_contract_with_price_data( roll_parameters_object: rollParameters,
-                 price_dict: dictFuturesContractFinalPrices):
+                 price_dict: dictFuturesContractFinalPrices)\
+                ->contractWithRollParametersAndPrices:
         """
         Find the earliest contract we can hold in a given list of contract dates
         To hold the contract, it needs to be in the held roll cycle and the list_of_contract_dates
@@ -186,24 +199,24 @@ def find_earliest_held_contract_with_price_data( roll_parameters_object: rollPar
         """
         list_of_contract_dates = price_dict.sorted_contract_date_str()
 
-        earliest_contract = find_earliest_held_contract_with_data(list_of_contract_dates, roll_parameters_object,
-                                                                  price_dict)
+        earliest_contract = _find_earliest_held_contract_with_data(list_of_contract_dates, roll_parameters_object,
+                                                                   price_dict)
 
         return earliest_contract
 
-def find_earliest_held_contract_with_data(list_of_contract_dates: listOfContractDateStr,
-                                          roll_parameters_object: rollParameters,
-                                          price_dict: dictFuturesContractFinalPrices) \
-        -> contractDateWithRollParameters:
-    try_contract = initial_contract_to_try_with(list_of_contract_dates, roll_parameters_object, price_dict)
+def _find_earliest_held_contract_with_data(list_of_contract_dates: listOfContractDateStr,
+                                           roll_parameters_object: rollParameters,
+                                           price_dict: dictFuturesContractFinalPrices) \
+                                     -> contractWithRollParametersAndPrices:
+
+    try_contract = _initial_contract_to_try_with(list_of_contract_dates, roll_parameters_object, price_dict)
     final_contract_date = list_of_contract_dates[-1]
 
     while try_contract.date_str <= final_contract_date:
-        is_contract_ok = check_valid_contract(try_contract, list_of_contract_dates)
+        is_contract_ok = _check_valid_contract(try_contract, list_of_contract_dates)
         # Okay this works
         if is_contract_ok:
-            contract_to_return = try_contract.contract
-            return contract_to_return
+            return try_contract
 
         # okay it's not suitable
         # Let's try another one
@@ -213,9 +226,10 @@ def find_earliest_held_contract_with_data(list_of_contract_dates: listOfContract
     return missing_data
 
 
-def initial_contract_to_try_with(list_of_contract_dates: list,
+def _initial_contract_to_try_with(list_of_contract_dates: list,
                                  roll_parameters_object: rollParameters,
-                                 price_dict: dictFuturesContractFinalPrices):
+                                 price_dict: dictFuturesContractFinalPrices)\
+                            ->contractWithRollParametersAndPrices:
 
     plausible_earliest_contract_date = list_of_contract_dates[0]
     plausible_earliest_contract = contractDateWithRollParameters(
@@ -228,8 +242,9 @@ def initial_contract_to_try_with(list_of_contract_dates: list,
 
     return try_contract
 
-def check_valid_contract(try_contract: contractWithRollParametersAndPrices,
-                         list_of_contract_dates: listOfContractDateStr):
+def _check_valid_contract(try_contract: contractWithRollParametersAndPrices,
+                         list_of_contract_dates: listOfContractDateStr)\
+                        -> bool:
 
     if try_contract.date_str in list_of_contract_dates:
         # possible candidate, let's check carry

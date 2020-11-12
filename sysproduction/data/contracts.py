@@ -187,7 +187,7 @@ class diagContracts(object):
             )
         )
 
-        return contract_date_with_roll_parameters.desired_roll_date()
+        return contract_date_with_roll_parameters.desired_roll_date
 
     def get_contract_date_object_with_roll_parameters(
         self, instrument_code, contract_date_id
