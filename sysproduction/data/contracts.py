@@ -190,16 +190,23 @@ class diagContracts(object):
         return contract_date_with_roll_parameters.desired_roll_date
 
     def get_contract_date_object_with_roll_parameters(
-        self, instrument_code, contract_date_id
-    ):
+        self, instrument_code:str, contract_date_str:str
+    ) -> contractDateWithRollParameters:
+
         roll_parameters = self.get_roll_parameters(instrument_code)
+        contract_date = self.get_contract_date_object(instrument_code, contract_date_str)
 
         contract_date_with_roll_parameters = contractDateWithRollParameters(
-            contractDate(contract_date_id), roll_parameters
+            contract_date, roll_parameters
         )
 
         return contract_date_with_roll_parameters
 
+    def get_contract_date_object(self, instrument_code:str, contract_date_str: str) -> contractDate:
+        contract = self.get_contract_object(instrument_code, contract_date_str)
+        contract_date = contract.contract_date
+
+        return contract_date
 
 def get_valid_instrument_code_and_contractid_from_user(
         data, instrument_code=None, include_priced_contracts = False):
