@@ -33,10 +33,10 @@ def build_and_write_roll_calendar(
     )
 
     # checks - this might fail
-    check_monotonic = roll_calendar.check_if_date_index_monotonic()
+    assert roll_calendar.check_if_date_index_monotonic()
 
     # this should never fail
-    check_valid = roll_calendar.check_dates_are_valid_for_prices(
+    assert roll_calendar.check_dates_are_valid_for_prices(
         dict_of_futures_contract_prices
     )
 
