@@ -60,7 +60,7 @@ class listOfFills(list):
     def _as_dict_of_lists(self):
         qty_list = [fill.qty for fill in self]
         price_list = [fill.price for fill in self]
-        date_list = [fill.date_str for fill in self]
+        date_list = [fill.date for fill in self]
 
         return dict(qty=qty_list, price=price_list, date=date_list)
 

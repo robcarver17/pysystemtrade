@@ -1,3 +1,4 @@
+from copy import copy
 from sysdata.futures.futures_per_contract_prices import dictFuturesContractFinalPrices
 
 from sysobjects.roll_parameters_with_price_data import (
@@ -250,74 +251,102 @@ def _generate_approximate_calendar(
         raise Exception("Can't find any valid starting contract!")
 
 
-    approx_calendar = _create_approx_calendar_from_earliest_contract(earliest_contract_with_roll_data,
-                                                                     dict_of_futures_contract_prices)
+    approx_calendar = _create_approx_calendar_from_earliest_contract(earliest_contract_with_roll_data,)
 
     return approx_calendar
 
-def _create_approx_calendar_from_earliest_contract(earliest_contract_with_roll_data: contractWithRollParametersAndPrices,
-                                                    dict_of_futures_contract_prices: dictFuturesContractFinalPrices)\
+
+INDEX_NAME = 'current_roll_date'
+
+class _rollCalendarRow(dict):
+    def __init__(self, current_roll_date,
+                 current_contract: contractWithRollParametersAndPrices,
+                 next_contract: contractWithRollParametersAndPrices,
+                 carry_contract: contractWithRollParametersAndPrices):
+        # a dict because pd.DataFrame can handle those
+        # plus a hidden storage of the actual contract
+        if current_roll_date is not None:
+            self[INDEX_NAME] = current_roll_date
+            self['current_contract'] = current_contract.date_str
+            self['next_contract'] = next_contract.date_str
+            self['carry_contract'] = carry_contract.date_str
+
+
+_no_more_rows = _rollCalendarRow(None, None, None, None)
+
+class _listOfRollCalendarRows(list):
+
+    def to_pd_df(self):
+        result = pd.DataFrame(
+            self
+        )
+        result.index = result[INDEX_NAME]
+        result = result.drop(INDEX_NAME, axis=1)
+
+        return result
+
+
+def _create_approx_calendar_from_earliest_contract(earliest_contract_with_roll_data: contractWithRollParametersAndPrices)\
                                                 ->pd.DataFrame:
 
-    final_contract_date_str = dict_of_futures_contract_prices.last_contract_date_str()
-
-    current_contract = earliest_contract_with_roll_data
-
-    theoretical_roll_dates = []
-    contract_dates_to_hold_on_each_roll = []
-    contract_dates_next_contract_along = []
-    carry_contracts_to_hold_on_each_roll = []
+    roll_calendar_as_list = _listOfRollCalendarRows()
 
     # On the roll date we stop holding the current contract, and end up holding the next one
     # The roll date is the last day we hold the current contract
+    dict_of_futures_contract_prices = earliest_contract_with_roll_data.prices
+    final_contract_date_str = dict_of_futures_contract_prices.last_contract_date_str()
+    current_contract = earliest_contract_with_roll_data
+
     while current_contract.date_str < final_contract_date_str:
-        roll_parameters = current_contract.roll_parameters
+        next_contract, new_row = _get_new_row_of_roll_calendar(current_contract)
+        if new_row is _no_more_rows:
+            break
 
-        next_contract = current_contract.find_next_held_contract_with_price_data()
-        if next_contract is missing_data:
-            # This is a problem UNLESS for the corner case where:
-            # The current contract isn't the last contract
-            # But the remaining contracts aren't held contracts
-            if (
-                current_contract.next_held_contract().date_str
-                > final_contract_date_str
-            ):
-                # We are done
-                break
-            else:
-                raise Exception(
-                    "Can't find good next contract date %s from data when building roll calendar using hold calendar %s" %
-                    (current_contract.date, str(
-                        roll_parameters.hold_rollcycle), ))
+        roll_calendar_as_list.append(new_row)
+        current_contract = copy(next_contract)
 
-        carry_contract = current_contract.find_best_carry_contract_with_price_data()
-        if carry_contract is missing_data:
-            raise Exception(
-                "Can't find good carry contract %s from data when building roll calendar using hold calendar %s" %
-                (current_contract.date_str, str(
-                    roll_parameters.hold_rollcycle), ))
-
-        contract_dates_to_hold_on_each_roll.append(
-            current_contract.date_str)
-        contract_dates_next_contract_along.append(next_contract.date_str)
-        carry_contracts_to_hold_on_each_roll.append(
-            carry_contract.date_str)
-
-        current_roll_date = current_contract.desired_roll_date
-        theoretical_roll_dates.append(current_roll_date)
-
-        current_contract = next_contract
-
-    roll_calendar = pd.DataFrame(
-        dict(
-            current_contract=contract_dates_to_hold_on_each_roll,
-            next_contract=contract_dates_next_contract_along,
-            carry_contract=carry_contracts_to_hold_on_each_roll,
-        ),
-        index=theoretical_roll_dates,
-    )
+    roll_calendar = roll_calendar_as_list.to_pd_df()
 
     return roll_calendar
+
+def _get_new_row_of_roll_calendar(current_contract: contractWithRollParametersAndPrices)\
+                                -> (contractWithRollParametersAndPrices, _rollCalendarRow):
+
+    roll_parameters = current_contract.roll_parameters
+    final_contract_date_str = current_contract.prices.last_contract_date_str()
+
+    next_contract = current_contract.find_next_held_contract_with_price_data()
+    if next_contract is missing_data:
+        # This is a problem UNLESS for the corner case where:
+        # The current contract isn't the last contract
+        # But the remaining contracts aren't held contracts
+        if (
+                current_contract.next_held_contract().date_str
+                > final_contract_date_str
+        ):
+            # We are done
+            return _no_more_rows
+        else:
+            raise Exception(
+                "Can't find good next contract date %s from data when building roll calendar using hold calendar %s" %
+                (current_contract.date_str, str(
+                    roll_parameters.hold_rollcycle),))
+
+    carry_contract = current_contract.find_best_carry_contract_with_price_data()
+    if carry_contract is missing_data:
+        raise Exception(
+            "Can't find good carry contract %s from data when building roll calendar using hold calendar %s" %
+            (current_contract.date_str, str(
+                roll_parameters.hold_rollcycle),))
+
+    current_roll_date = current_contract.desired_roll_date
+    new_row = _rollCalendarRow(current_roll_date,
+                              current_contract,
+                              next_contract,
+                              carry_contract)
+    print(new_row)
+
+    return next_contract, new_row
 
 
 def _adjust_to_price_series(approx_calendar, dict_of_futures_contract_prices):
