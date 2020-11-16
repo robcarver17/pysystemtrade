@@ -22,16 +22,9 @@ class futuresContractPrices(pd.DataFrame):
         :param data: pd.DataFrame or something that could be passed to it
         """
 
-        data_present = sorted(data.columns)
-
-        try:
-            assert data_present == PRICE_DATA_COLUMNS
-        except AssertionError:
-            raise Exception("futuresContractPrices has to conform to pattern")
-
+        _validate_price_data(data)
         super().__init__(data)
 
-        self._is_empty = False
         data.index.name = "index"  # for arctic compatibility
 
     @classmethod
@@ -44,11 +37,10 @@ class futuresContractPrices(pd.DataFrame):
 
         futures_contract_prices = futuresContractPrices(data)
 
-        futures_contract_prices._is_empty = True
         return futures_contract_prices
 
     @classmethod
-    def only_have_final_prices(futuresContractPrices, data):
+    def create_from_final_prirces_only(futuresContractPrices, data):
         data = pd.DataFrame(data, columns=[FINAL_COLUMN])
         data = data.reindex(columns=PRICE_DATA_COLUMNS)
 
@@ -73,9 +65,6 @@ class futuresContractPrices(pd.DataFrame):
         daily_volumes = sumup_business_days_over_pd_series_without_double_counting_of_closing_data(volumes)
 
         return daily_volumes
-
-    def empty(self):
-        return
 
     def merge_with_other_prices(
             self,
@@ -114,8 +103,8 @@ class futuresContractPrices(pd.DataFrame):
         return futuresContractPrices(merged_data)
 
     def remove_zero_volumes(self):
-        self = self[self[VOLUME_COLUMN] > 0]
-        return futuresContractPrices(self)
+        new_data = self[self[VOLUME_COLUMN] > 0]
+        return futuresContractPrices(new_data)
 
     def add_rows_to_existing_data(
         self, new_futures_per_contract_prices, check_for_spike=True
@@ -142,6 +131,14 @@ class futuresContractPrices(pd.DataFrame):
         merged_futures_prices = futuresContractPrices(merged_futures_prices)
 
         return merged_futures_prices
+
+def _validate_price_data(data):
+    data_present = sorted(data.columns)
+
+    try:
+        assert data_present == PRICE_DATA_COLUMNS
+    except AssertionError:
+        raise Exception("futuresContractPrices has to conform to pattern")
 
 
 class futuresContractFinalPrices(pd.Series):
