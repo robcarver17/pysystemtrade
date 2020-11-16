@@ -12,7 +12,9 @@ Two types of services:
 
 from syscore.objects import success
 
-from sysobjects.futures_per_contract_prices import dictFuturesContractFinalPricesWithContractID
+from sysobjects.dict_of_named_futures_per_contract_prices import dictNamedFuturesContractFinalPrices, \
+    dictFuturesNamedContractFinalPricesWithContractID
+
 from sysdata.futures.adjusted_prices import no_update_roll_has_occured
 
 from sysproduction.data.get_data import dataBlob
@@ -120,8 +122,10 @@ def get_dict_of_new_prices_and_contractid(
             instrument_code, contract_date)
         relevant_contract_prices[key] = price_series.return_final_prices()
 
+    relevant_contract_prices = dictNamedFuturesContractFinalPrices(relevant_contract_prices)
+
     new_prices_dict = (
-        dictFuturesContractFinalPricesWithContractID.create_from_two_dicts(
+        dictFuturesNamedContractFinalPricesWithContractID.create_from_two_dicts(
             relevant_contract_prices, contract_date_dict
         )
     )

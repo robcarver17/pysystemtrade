@@ -13,11 +13,10 @@ from sysobjects.contracts import futuresContract
 from sysobjects.instruments import futuresInstrument
 from sysobjects.rolls import contractDateWithRollParameters
 from sysdata.futures.multiple_prices import (
-    preferred_columns,
-    contract_column_names,
-    price_column_names,
     futuresMultiplePrices,
 )
+from sysobjects.dict_of_named_futures_per_contract_prices import price_name, carry_name, forward_name, \
+    price_column_names, contract_column_names
 from sysdata.futures.adjusted_prices import futuresAdjustedPrices
 
 from syscore.objects import success, failure
@@ -322,7 +321,7 @@ def update_multiple_prices_on_roll(
     fwd_column = price_column_names["FORWARD"]
 
     current_contract_dict = new_multiple_prices.current_contract_dict()
-    old_forward_contract = current_contract_dict[fwd_column]
+    old_forward_contract = current_contract_dict.forward
 
     old_priced_contract_last_price, price_inferred = get_or_infer_latest_price(
         new_multiple_prices, price_col=price_column
@@ -399,6 +398,13 @@ def get_final_matched_price_from_contract_object(
     final_price = price_series_reindexed.values[-1]
 
     return final_price
+
+## order of preference to  use for missing data
+preferred_columns = dict(
+    PRICE=[
+        forward_name, carry_name], FORWARD=[
+            price_name, carry_name], CARRY=[
+                price_name, forward_name])
 
 
 def get_or_infer_latest_price(new_multiple_prices, price_col="PRICE"):

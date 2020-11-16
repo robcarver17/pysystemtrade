@@ -99,8 +99,7 @@ def get_furthest_out_contract_date(data: dataBlob,
     # Get the last contract currently being used
     multiple_prices = diag_prices.get_multiple_prices(instrument_code)
     current_contract_dict = multiple_prices.current_contract_dict()
-    current_contract_list = list(current_contract_dict.values())
-    furthest_out_contract_date = max(current_contract_list)
+    furthest_out_contract_date = current_contract_dict.furthest_out_contract_date()
 
     return furthest_out_contract_date
 

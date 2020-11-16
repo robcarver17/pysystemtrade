@@ -2,7 +2,7 @@ import datetime
 from syscore.objects import missing_data
 from sysobjects.rolls import contractDateWithRollParameters, rollParameters
 from sysobjects.contracts import contractDate
-from sysobjects.futures_per_contract_prices import dictFuturesContractFinalPrices
+from sysobjects.dict_of_futures_per_contract_prices import dictFuturesContractFinalPrices
 from sysobjects.contract_dates_and_expiries import listOfContractDateStr
 
 HELD= "held"

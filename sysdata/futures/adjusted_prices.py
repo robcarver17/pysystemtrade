@@ -13,9 +13,8 @@ from copy import copy
 from syscore.objects import _named_object
 from syscore.pdutils import full_merge_of_existing_series
 from sysdata.data import baseData
-from sysdata.futures.multiple_prices import price_column_names
-from sysdata.futures.multiple_prices import contract_column_names
-from sysobjects.futures_per_contract_prices import futuresContractFinalPricesWithContractID
+from sysobjects.dict_of_named_futures_per_contract_prices import price_column_names, contract_column_names, \
+    futuresNamedContractFinalPricesWithContractID
 
 
 def panama_stitch(multiple_prices_input, forward_fill=False):
@@ -162,9 +161,8 @@ def update_adjusted_prices_from_multiple_no_roll(
     last_contract_in_price_data = prices_in_multiple_prices[contract_column][
         :last_date_in_adj
     ][-1]
-    new_price_data = futuresContractFinalPricesWithContractID(
-        prices_in_multiple_prices[last_date_in_adj:]
-    )
+
+    new_price_data = prices_in_multiple_prices.prices_after_date(last_date_in_adj)
 
     has_roll_occured = not new_price_data.check_all_contracts_equal_to(
         last_contract_in_price_data

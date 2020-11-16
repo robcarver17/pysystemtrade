@@ -3,7 +3,8 @@ from syscore.objects import data_error
 from sysdata.data import baseData
 
 from sysobjects.contracts import futuresContract
-from sysobjects.futures_per_contract_prices import futuresContractPrices, dictFuturesContractPrices
+from sysobjects.futures_per_contract_prices import futuresContractPrices
+from sysobjects.dict_of_futures_per_contract_prices import dictFuturesContractPrices
 
 BASE_CLASS_ERROR = "You have used a base class for futures price data; you need to use a class that inherits with a specific data source"
 

@@ -17,31 +17,16 @@ import numpy as np
 from copy import copy
 
 from sysdata.data import baseData
-from sysobjects.futures_per_contract_prices import futuresContractFinalPricesWithContractID, \
-    dictFuturesContractFinalPricesWithContractID
-
-price_column_names = dict(PRICE="PRICE", CARRY="CARRY", FORWARD="FORWARD")
-contract_suffix = "_CONTRACT"
-contract_column_names = dict(
-    [
-        (key, column_name + contract_suffix)
-        for key, column_name in price_column_names.items()
-    ]
-)
-
-list_of_contract_column_names = list(contract_column_names.values())
-list_of_price_column_names = list(price_column_names)
+from sysobjects.dict_of_named_futures_per_contract_prices import price_column_names, list_of_price_column_names, \
+    contract_name_from_column_name, contract_column_names, list_of_contract_column_names, \
+    futuresNamedContractFinalPricesWithContractID, setOfNamedContracts, dictFuturesNamedContractFinalPricesWithContractID
 
 multiple_data_columns = sorted(
     list_of_price_column_names +
     list_of_contract_column_names)
 
+
 # These are used when inferring prices in an incomplete series
-preferred_columns = dict(
-    PRICE=[
-        "FORWARD", "CARRY"], FORWARD=[
-            "PRICE", "CARRY"], CARRY=[
-                "PRICE", "FORWARD"])
 
 
 class futuresMultiplePrices(pd.DataFrame):
@@ -103,6 +88,7 @@ class futuresMultiplePrices(pd.DataFrame):
         final_row = self.iloc[-1]
         contract_dict = dict([(key, final_row[value])
                               for key, value in contract_column_names.items()])
+        contract_dict = setOfNamedContracts(contract_dict)
 
         return contract_dict
 
@@ -114,23 +100,21 @@ class futuresMultiplePrices(pd.DataFrame):
         """
 
         self_as_dict = {}
-        for key in price_column_names.keys():
-            column_names = [
-                price_column_names[key],
-                contract_column_names[key]]
-            self_as_dict[key] = futuresContractFinalPricesWithContractID(
-                self[column_names],
-                price_column=price_column_names[key],
-                contract_suffix=contract_suffix,
+        for price_column_name in list_of_price_column_names:
+            contract_column_name = contract_name_from_column_name(price_column_name)
+            self_as_dict[price_column_name] = futuresNamedContractFinalPricesWithContractID(
+                self[price_column_name],
+                self[contract_column_name],
+                price_column_name=price_column_name
             )
 
-        self_as_dict = dictFuturesContractFinalPricesWithContractID(
+        self_as_dict = dictFuturesNamedContractFinalPricesWithContractID(
             self_as_dict)
 
         return self_as_dict
 
     @classmethod
-    def from_dict(futuresMultiplePrices, prices_dict):
+    def from_dict(futuresMultiplePrices, prices_dict: dictFuturesNamedContractFinalPricesWithContractID):
         """
         Re-create from dict, eg results of _as_dict
 
@@ -142,12 +126,13 @@ class futuresMultiplePrices(pd.DataFrame):
         for key_name in price_column_names.keys():
             try:
                 relevant_data = prices_dict[key_name]
+
             except KeyError:
                 raise Exception(
                     "Create multiple prices as dict needs %s as key" % key_name
                 )
 
-            multiple_prices_list.append(relevant_data)
+            multiple_prices_list.append(relevant_data.as_pd())
 
         multiple_prices_data_frame = pd.concat(multiple_prices_list, axis=1)
 

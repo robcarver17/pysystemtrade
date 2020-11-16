@@ -2,7 +2,7 @@ import numpy as np
 
 from syscore.objects import missing_contract, arg_not_supplied, missing_data
 
-from sysobjects.futures_per_contract_prices import dictFuturesContractPrices
+from sysobjects.dict_of_futures_per_contract_prices import dictFuturesContractPrices
 from sysdata.private_config import get_private_then_default_key_value
 from sysdata.arctic.arctic_futures_per_contract_prices import arcticFuturesContractPriceData
 from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesData

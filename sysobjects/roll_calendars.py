@@ -1,6 +1,6 @@
 from collections import namedtuple
 from copy import copy
-from sysobjects.futures_per_contract_prices import dictFuturesContractFinalPrices
+from sysobjects.dict_of_futures_per_contract_prices import dictFuturesContractFinalPrices
 from sysdata.futures.multiple_prices import futuresMultiplePrices
 
 from sysobjects.roll_parameters_with_price_data import (
@@ -79,7 +79,7 @@ class rollCalendar(pd.DataFrame):
 
         return roll_calendar_object
 
-    def check_if_date_index_monotonic(self):
+    def check_if_date_index_monotonic(self) ->bool:
         if not self.index._is_strictly_monotonic_increasing:
             print(
                 "WARNING: Date index not monotonically increasing in following indices:"
@@ -93,7 +93,7 @@ class rollCalendar(pd.DataFrame):
             return True
 
     def check_dates_are_valid_for_prices(
-            self, dict_of_futures_contract_prices):
+            self, dict_of_futures_contract_prices: dictFuturesContractFinalPrices) -> bool:
         """
         Adjust an approximate roll calendar so that we have matching dates on each expiry
 
@@ -105,62 +105,12 @@ class rollCalendar(pd.DataFrame):
         checks_okay = True
         for row_number in range(len(self.index)):
             calendar_row = self.iloc[row_number, :]
-            current_contract = calendar_row.current_contract
-            next_contract = calendar_row.next_contract
-            carry_contract = calendar_row.carry_contract
-            roll_date = self.index[row_number]
 
-            try:
-                current_prices = dict_of_futures_contract_prices[current_contract]
-            except KeyError:
-                print(
-                    "On roll date %s contract %s is missing from futures prices" %
-                    (roll_date, current_contract))
-                checks_okay = False
-            try:
-                next_prices = dict_of_futures_contract_prices[next_contract]
-            except KeyError:
-                print(
-                    "On roll date %s contract %s is missing from futures prices" %
-                    (roll_date, next_contract))
-                checks_okay = False
+            checks_okay_this_row = _check_row_of_row_calendar(calendar_row,
+                             dict_of_futures_contract_prices)
 
-            try:
-                carry_prices = dict_of_futures_contract_prices[carry_contract]
-            except KeyError:
-                print(
-                    "On roll date %s contract %s is missing from futures prices" %
-                    (roll_date, carry_contract))
-                checks_okay = False
-
-            try:
-                current_price = current_prices.loc[roll_date]
-            except KeyError:
-                print(
-                    "Roll date %s missing from prices for %s"
-                    % (roll_date, current_contract)
-                )
-                checks_okay = False
-
-            try:
-                next_price = next_prices.loc[roll_date]
-            except KeyError:
-                print(
-                    "Roll date %s missing from prices for %s"
-                    % (roll_date, next_contract)
-                )
-                checks_okay = False
-
-            if np.isnan(current_price):
-                print(
-                    "NAN for price on %s for %s " %
-                    (roll_date, current_contract))
-                checks_okay = False
-
-            if np.isnan(next_price):
-                print(
-                    "NAN for price on %s for %s " %
-                    (roll_date, current_contract))
+            if not checks_okay_this_row:
+                # single failure is a total failure
                 checks_okay = False
 
         return checks_okay
@@ -699,3 +649,68 @@ def _add_extra_row_to_implied_roll_calendar(roll_calendar: pd.DataFrame,
     roll_calendar = pd.concat([roll_calendar, extra_row], axis=0)
 
     return roll_calendar
+
+def _check_row_of_row_calendar(calendar_row: pd.Series,
+                               dict_of_futures_contract_prices: dictFuturesContractFinalPrices) ->bool:
+
+    current_contract = calendar_row.current_contract
+    next_contract = calendar_row.next_contract
+    carry_contract = calendar_row.carry_contract
+    roll_date = calendar_row.date
+
+    checks_okay_this_row = True
+
+    try:
+        current_prices = dict_of_futures_contract_prices[current_contract]
+    except KeyError:
+        print(
+            "On roll date %s contract %s is missing from futures prices" %
+            (roll_date, current_contract))
+        checks_okay_this_row = False
+    try:
+        next_prices = dict_of_futures_contract_prices[next_contract]
+    except KeyError:
+        print(
+            "On roll date %s contract %s is missing from futures prices" %
+            (roll_date, next_contract))
+        checks_okay_this_row = False
+
+    try:
+        carry_prices = dict_of_futures_contract_prices[carry_contract]
+    except KeyError:
+        print(
+            "On roll date %s contract %s is missing from futures prices" %
+            (roll_date, carry_contract))
+        checks_okay_this_row = False
+
+    try:
+        current_price = current_prices.loc[roll_date]
+    except KeyError:
+        print(
+            "Roll date %s missing from prices for %s"
+            % (roll_date, current_contract)
+        )
+        checks_okay_this_row = False
+
+    try:
+        next_price = next_prices.loc[roll_date]
+    except KeyError:
+        print(
+            "Roll date %s missing from prices for %s"
+            % (roll_date, next_contract)
+        )
+        checks_okay_this_row = False
+
+    if np.isnan(current_price):
+        print(
+            "NAN for price on %s for %s " %
+            (roll_date, current_contract))
+        checks_okay_this_row = False
+
+    if np.isnan(next_price):
+        print(
+            "NAN for price on %s for %s " %
+            (roll_date, current_contract))
+        checks_okay_this_row = False
+
+    return checks_okay_this_row

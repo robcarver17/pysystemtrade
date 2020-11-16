@@ -9,7 +9,7 @@ from sysdata.mongodb.mongo_futures_contracts import mongoFuturesContractData
 
 from sysobjects.contract_dates_and_expiries import contractDate
 from sysobjects.rolls import contractDateWithRollParameters
-
+from sysobjects.dict_of_named_futures_per_contract_prices import setOfNamedContracts
 
 from sysproduction.data.prices import get_valid_instrument_code_from_user, diagPrices
 from sysproduction.data.get_data import dataBlob
@@ -40,7 +40,6 @@ class diagContracts(object):
                 instrument_code
             )
         )
-
 
 
     def get_labelled_list_of_contracts_from_contract_list(self, contract_list):
@@ -84,7 +83,7 @@ class diagContracts(object):
 
         return ans_as_dict
 
-    def get_current_contract_dict(self, instrument_code):
+    def get_current_contract_dict(self, instrument_code) ->setOfNamedContracts:
         multiple_prices = self.data.db_futures_multiple_prices.get_multiple_prices(
             instrument_code)
         current_contracts = multiple_prices.current_contract_dict()
@@ -93,9 +92,9 @@ class diagContracts(object):
 
     def extend_current_contracts(self, instrument_code, current_contracts):
 
-        price_contract_date = current_contracts["PRICE"]
-        forward_contract_date = current_contracts["FORWARD"]
-        carry_contract_date = current_contracts["CARRY"]
+        price_contract_date = current_contracts.price
+        forward_contract_date = current_contracts.forward
+        carry_contract_date = current_contracts.carry
 
         roll_parameters = self.get_roll_parameters(instrument_code)
 
@@ -157,17 +156,17 @@ class diagContracts(object):
 
     def get_priced_contract_id(self, instrument_code):
         contract_dict = self.get_current_contract_dict(instrument_code)
-        price_contract = contract_dict["PRICE"]
+        price_contract = contract_dict.price
         return price_contract
 
     def get_carry_contract_id(self, instrument_code):
         contract_dict = self.get_current_contract_dict(instrument_code)
-        carry_contract = contract_dict["CARRY"]
+        carry_contract = contract_dict.carry
         return carry_contract
 
     def get_forward_contract_id(self, instrument_code):
         contract_dict = self.get_current_contract_dict(instrument_code)
-        carry_contract = contract_dict["FORWARD"]
+        carry_contract = contract_dict.forward
         return carry_contract
 
     def get_priced_expiry(self, instrument_code):
