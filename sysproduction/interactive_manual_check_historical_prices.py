@@ -99,34 +99,27 @@ def get_and_check_prices_for_frequency(
     price_data = diagPrices(data)
     price_updater = updatePrices(data)
 
-    try:
-        old_prices = price_data.get_prices_for_contract_object(contract_object)
-        ib_prices = broker_data.get_prices_at_frequency_for_contract_object(
-            contract_object, frequency
-        )
-        if len(ib_prices) == 0:
-            raise Exception(
-                "No IB prices found for %s nothing to check" %
-                str(contract_object))
-
+    old_prices = price_data.get_prices_for_contract_object(contract_object)
+    ib_prices = broker_data.get_prices_at_frequency_for_contract_object(
+        contract_object, frequency
+    )
+    if len(ib_prices) == 0:
         print(
-            "\n\n Manually checking prices for %s \n\n" %
+            "No IB prices found for %s nothing to check" %
             str(contract_object))
-        new_prices_checked = manual_price_checker(
-            old_prices,
-            ib_prices,
-            column_to_check="FINAL",
-            delta_columns=["OPEN", "HIGH", "LOW"],
-            type_new_data=futuresContractPrices,
-        )
-        result = price_updater.update_prices_for_contract(
-            contract_object, new_prices_checked, check_for_spike=False
-        )
-        return result
-
-    except Exception as e:
-        log.warn(
-            "Exception %s when getting or checking data at frequency %s for %s"
-            % (e, frequency, str(contract_object))
-        )
         return failure
+
+    print(
+        "\n\n Manually checking prices for %s \n\n" %
+        str(contract_object))
+    new_prices_checked = manual_price_checker(
+        old_prices,
+        ib_prices,
+        column_to_check="FINAL",
+        delta_columns=["OPEN", "HIGH", "LOW"],
+        type_new_data=futuresContractPrices,
+    )
+    result = price_updater.update_prices_for_contract(
+        contract_object, new_prices_checked, check_for_spike=False
+    )
+    return result
