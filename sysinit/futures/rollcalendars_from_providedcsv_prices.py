@@ -21,8 +21,8 @@ if __name__ == "__main__":
 
         roll_parameters = mongo_rollparameters.get_roll_parameters(
             instrument_code)
-        roll_calendar = rollCalendar.back_out_from_current_and_forward_data(
-            multiple_prices, roll_parameters
+        roll_calendar = rollCalendar.back_out_from_multiple_prices(
+            multiple_prices
         )
         print("Calendar:")
         print(roll_calendar)

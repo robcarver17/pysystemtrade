@@ -15,9 +15,7 @@ from syscore.pdutils import full_merge_of_existing_series
 from sysdata.data import baseData
 from sysdata.futures.multiple_prices import price_column_names
 from sysdata.futures.multiple_prices import contract_column_names
-from sysdata.futures.futures_per_contract_prices import (
-    futuresContractFinalPricesWithContractID,
-)
+from sysobjects.futures_per_contract_prices import futuresContractFinalPricesWithContractID
 
 
 def panama_stitch(multiple_prices_input, forward_fill=False):

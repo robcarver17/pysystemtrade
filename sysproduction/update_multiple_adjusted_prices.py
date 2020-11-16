@@ -12,9 +12,7 @@ Two types of services:
 
 from syscore.objects import success
 
-from sysdata.futures.futures_per_contract_prices import (
-    dictFuturesContractFinalPricesWithContractID,
-)
+from sysobjects.futures_per_contract_prices import dictFuturesContractFinalPricesWithContractID
 from sysdata.futures.adjusted_prices import no_update_roll_has_occured
 
 from sysproduction.data.get_data import dataBlob

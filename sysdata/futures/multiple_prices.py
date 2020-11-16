@@ -17,10 +17,8 @@ import numpy as np
 from copy import copy
 
 from sysdata.data import baseData
-from sysdata.futures.futures_per_contract_prices import (
-    dictFuturesContractFinalPricesWithContractID,
-    futuresContractFinalPricesWithContractID,
-)
+from sysobjects.futures_per_contract_prices import futuresContractFinalPricesWithContractID, \
+    dictFuturesContractFinalPricesWithContractID
 
 price_column_names = dict(PRICE="PRICE", CARRY="CARRY", FORWARD="FORWARD")
 contract_suffix = "_CONTRACT"

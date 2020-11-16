@@ -8,8 +8,8 @@ from sysbrokers.IB.ib_futures_contracts import ibFuturesContractData
 from sysbrokers.IB.ib_translate_broker_order_objects import sign_from_BS
 from sysdata.futures.futures_per_contract_prices import (
     futuresContractPriceData,
-    futuresContractPrices,
 )
+from sysobjects.futures_per_contract_prices import futuresContractPrices
 from sysobjects.instruments import futuresInstrument
 
 from sysexecution.tick_data import tickerObject, oneTick

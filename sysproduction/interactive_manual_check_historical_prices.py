@@ -15,7 +15,7 @@ from sysproduction.data.prices import (
 from sysproduction.data.broker import dataBroker
 from sysproduction.data.contracts import diagContracts
 from sysdata.futures.manual_price_checker import manual_price_checker
-from sysdata.futures.futures_per_contract_prices import futuresContractPrices
+from sysobjects.futures_per_contract_prices import futuresContractPrices
 
 
 def interactive_manual_check_historical_prices(instrument_code: str):
