@@ -14,14 +14,14 @@ class csvFuturesContractData(futuresContractData):
     def __init__(self, datapath=arg_not_supplied,
                  log=logtoscreen("csvFuturesContractData")):
 
-        super().__init__()
+        super().__init__(log=log)
 
         if datapath is arg_not_supplied:
             raise Exception("Need to pass datapath")
 
         self.datapath = datapath
         self.name = "Instruments data from %s" % self.datapath
-        self.log = log
+
 
     def _filename_for_instrument_code(self, instrument_code):
         return get_filename_for_package(
