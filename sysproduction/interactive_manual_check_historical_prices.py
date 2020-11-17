@@ -100,6 +100,7 @@ def get_and_check_prices_for_frequency(
     price_updater = updatePrices(data)
 
     old_prices = price_data.get_prices_for_contract_object(contract_object)
+
     ib_prices = broker_data.get_prices_at_frequency_for_contract_object(
         contract_object, frequency
     )

@@ -549,15 +549,15 @@ class ibClient(object):
         if log is None:
             log = self.log
 
+        if ibcontract is missing_contract:
+            log.warn("Can't find price with valid IB contract")
+            return pd.Series()
+
         try:
             barSizeSetting, durationStr = get_barsize_and_duration_from_frequency(
                 bar_freq)
         except Exception as exception:
             log.warn(str(exception.args[0]))
-            return pd.Series()
-
-        if ibcontract is missing_contract:
-            log.warn("Can't find price with valid IB contract")
             return pd.Series()
 
         price_data_raw = self.ib_get_historical_data(
@@ -567,6 +567,10 @@ class ibClient(object):
             whatToShow=whatToShow,
             log=log,
         )
+
+        if price_data_raw is None:
+            log.warn("No price data from IB")
+            return pd.Series()
 
         price_data_as_df = price_data_raw[[
             "open", "high", "low", "close", "volume"]]
