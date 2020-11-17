@@ -4,7 +4,7 @@ Read and write data from mongodb for individual futures contracts
 """
 
 from sysdata.arctic.arctic_connection import articConnection
-from sysdata.futures.futures_per_contract_prices import futuresContractPriceData
+from sysdata.futures.futures_per_contract_prices import futuresContractPriceData, listOfFuturesContracts
 from sysobjects.futures_per_contract_prices import futuresContractPrices
 from sysobjects.contracts import futuresContract
 from syslogdiag.log import logtoscreen
@@ -143,5 +143,7 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
             futuresContract(contract_tuple[0], contract_tuple[1])
             for contract_tuple in list_of_contract_tuples
         ]
+
+        list_of_contracts = listOfFuturesContracts(list_of_contracts)
 
         return list_of_contracts
