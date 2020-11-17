@@ -47,7 +47,7 @@ def process_multiple_prices_all_instruments(
         _not_used2,
         _not_used3,
     ) = _get_data_inputs(csv_roll_data_path, csv_multiple_data_path)
-    instrument_list = arctic_individual_futures_prices.get_instruments_with_price_data()
+    instrument_list = arctic_individual_futures_prices.get_list_of_instrument_codes_with_price_data()
 
     for instrument_code in instrument_list:
         print(instrument_code)

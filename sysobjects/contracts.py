@@ -215,8 +215,16 @@ MAX_CONTRACT_SIZE = 10000
 
 class listOfFuturesContracts(list):
     """
-    List of futuresContracts for a single instrument code (not enforced)
+    List of futuresContracts
     """
+    def unique_list_of_instrument_codes(self):
+        list_of_instruments = [
+            contract.instrument_code for contract in self]
+
+        # will contain duplicates, make unique
+        unique_list_of_instruments = list(set(list_of_instruments))
+
+        return unique_list_of_instruments
 
     def currently_sampling(self):
         contracts_currently_sampling = [

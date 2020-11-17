@@ -53,7 +53,7 @@ class diagPrices(object):
         ).PRICE
 
     def get_list_of_instruments_with_contract_prices(self):
-        return self.data.db_futures_contract_price.get_instruments_with_price_data()
+        return self.data.db_futures_contract_price.get_list_of_instrument_codes_with_price_data()
 
     def contract_dates_with_price_data_for_instrument_code(self, instrument_code):
         return self.data.db_futures_contract_price.contract_dates_with_price_data_for_instrument_code(instrument_code)

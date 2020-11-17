@@ -128,7 +128,7 @@ def get_data_and_create_csv_directories(logname):
 # Futures contract data
 def backup_futures_contract_prices_to_csv(data):
     instrument_list = (
-        data.arctic_futures_contract_price.get_instruments_with_price_data()
+        data.arctic_futures_contract_price.get_list_of_instrument_codes_with_price_data()
     )
     for instrument_code in instrument_list:
         contract_dates = data.arctic_futures_contract_price.contract_dates_with_price_data_for_instrument_code(
