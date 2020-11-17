@@ -85,13 +85,10 @@ class futuresContractPriceData(object):
         """
 
         list_of_contracts_with_price_data = self.get_contracts_with_price_data()
-        list_of_contracts = [
-            contract
-            for contract in list_of_contracts_with_price_data
-            if contract.instrument_code == instrument_code
-        ]
+        list_of_contracts_for_instrument = \
+            list_of_contracts_with_price_data.contracts_with_price_data_for_instrument_code(instrument_code)
 
-        return list_of_contracts
+        return list_of_contracts_for_instrument
 
     def contract_dates_with_price_data_for_instrument_code(
             self, instrument_code):
@@ -136,6 +133,7 @@ class futuresContractPriceData(object):
 
         return dict_of_prices
 
+    ## WHERE USED - TRY AND REMOVE
     def get_prices_for_instrument_code_and_contract_date(
         self, instrument_code, contract_date
     ):
@@ -150,6 +148,8 @@ class futuresContractPriceData(object):
 
         return ans
 
+
+    ### MOVE
     def get_recent_bid_ask_tick_data_for_instrument_code_and_contract_date(
         self, instrument_code, contract_date
     ):
@@ -167,6 +167,7 @@ class futuresContractPriceData(object):
 
         return ans
 
+    ## MOVE
     def get_recent_bid_ask_tick_data_for_order(self, order):
         ans = self._perform_contract_method_for_order(
             order, "get_recent_bid_ask_tick_data_for_contract_object"
@@ -228,6 +229,7 @@ class futuresContractPriceData(object):
         else:
             return futuresContractPrices.create_empty()
 
+    ## WHERE USED MOVE
     def get_prices_at_frequency_for_instrument_code_and_contract_date(
         self, instrument_code, contract_date, freq="D"
     ):
@@ -286,6 +288,7 @@ class futuresContractPriceData(object):
 
         raise NotImplementedError(BASE_CLASS_ERROR)
 
+    ## WHERE USED MOVE
     def write_prices_for_instrument_code_and_contract_date(
         self,
         instrument_code,
@@ -325,16 +328,14 @@ class futuresContractPriceData(object):
         :return: None
         """
 
-        new_log = self.log.setup(
-            instrument_code=futures_contract_object.instrument_code,
-            contract_date=futures_contract_object.date_str,
-        )
         if self.has_data_for_contract(futures_contract_object):
             if ignore_duplication:
                 pass
             else:
-                new_log.warn(
-                    "There is already existing data, you have to delete it first"
+                self.log.warn(
+                    "There is already existing data, you have to delete it first",
+                    instrument_code=futures_contract_object.instrument_code,
+                    contract_date=futures_contract_object.date_str
                 )
                 return None
 
@@ -356,9 +357,11 @@ class futuresContractPriceData(object):
 
         raise NotImplementedError(BASE_CLASS_ERROR)
 
+    ## MOVE
     def get_brokers_instrument_code(self, instrument_code):
         raise NotImplementedError(BASE_CLASS_ERROR)
 
+    ## WHERE USED REMOVE
     def update_prices_for_for_instrument_code_and_contract_date(
         self, instrument_code, contract_date, new_futures_per_contract_prices
     ):
@@ -422,6 +425,7 @@ class futuresContractPriceData(object):
 
         return rows_added
 
+    ## ARE THESE DELETION METHODS ACTUALL USED??
     def _delete_all_prices_for_all_instruments(self, are_you_sure=False):
         if are_you_sure:
             instrument_list = self.get_list_of_instrument_codes_with_price_data()
@@ -472,7 +476,7 @@ class futuresContractPriceData(object):
     ):
         raise NotImplementedError(BASE_CLASS_ERROR)
 
-
+    ## AIM TO EVENTUALLY REMOVE
     def _perform_contract_method_for_instrument_code_and_contract_date(
         self, instrument_code, contract_date, method_name, *args, **kwargs
     ):

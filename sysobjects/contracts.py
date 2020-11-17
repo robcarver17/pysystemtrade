@@ -231,6 +231,17 @@ class listOfFuturesContracts(list):
 
         return unique_list_of_instruments
 
+    def contracts_with_price_data_for_instrument_code(self, instrument_code: str):
+        list_of_contracts = [
+            contract
+            for contract in self
+            if contract.instrument_code == instrument_code
+        ]
+
+        list_of_contracts = listOfFuturesContracts(list_of_contracts)
+
+        return list_of_contracts
+
     def currently_sampling(self):
         contracts_currently_sampling = [
             contract for contract in self if contract.currently_sampling

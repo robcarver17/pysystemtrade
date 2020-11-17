@@ -2,7 +2,7 @@ from sysdata.futures.futures_per_contract_prices import (
     futuresContractPriceData,
 )
 from sysobjects.futures_per_contract_prices import futuresContractPrices
-from sysobjects.contracts import futuresContract
+from sysobjects.contracts import futuresContract, listOfFuturesContracts
 from syslogdiag.log import logtoscreen
 from syscore.fileutils import files_with_extension_in_pathname, get_filename_for_package
 from syscore.pdutils import pd_readcsv, DEFAULT_DATE_FORMAT
@@ -157,7 +157,7 @@ class csvFuturesContractPriceData(futuresContractPriceData):
 
         return list_of_contract_tuples
 
-    def get_contracts_with_price_data(self):
+    def get_contracts_with_price_data(self) ->listOfFuturesContracts:
         """
 
         :return: list of contracts
