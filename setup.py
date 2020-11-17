@@ -76,6 +76,9 @@ setup(
             "matplotlib > 1.4.3",
             "PyYAML>=3.11",
             "scipy>=0.17",
+        "ib-insync>=0.9.64",
+        "pymongo>=3.6.0",
+        "arctic>=1.79.2"
     ],
     tests_require=[
         "nose",

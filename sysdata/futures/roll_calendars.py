@@ -1,23 +1,34 @@
 from sysdata.data import baseData
 from sysobjects.roll_calendars import rollCalendar
+from syslogdiag.log import logtoscreen
 
 USE_CHILD_CLASS_ROLL_CALENDAR_ERROR = (
     "You need to use a child class of rollCalendarData"
 )
 
 
-class rollCalendarData(baseData):
+class rollCalendarData(object):
     """
     Class to read / write roll calendars
 
     We wouldn't normally use this base class, but inherit from it for a specific data source eg Arctic
     """
 
+    def __init__(self, log=logtoscreen):
+        self._log = log
+
+    @property
+    def log(self):
+        return self._log
+
     def __repr__(self):
         return "rollCalendarData base class - DO NOT USE"
 
     def keys(self):
         return self.get_list_of_instruments()
+
+    def __getitem__(self, instrument_code):
+        return self.get_roll_calendar(instrument_code)
 
     def get_list_of_instruments(self):
         raise NotImplementedError(USE_CHILD_CLASS_ROLL_CALENDAR_ERROR)
@@ -30,9 +41,6 @@ class rollCalendarData(baseData):
 
     def _get_roll_calendar_without_checking(self, instrument_code):
         raise NotImplementedError(USE_CHILD_CLASS_ROLL_CALENDAR_ERROR)
-
-    def __getitem__(self, instrument_code):
-        return self.get_roll_calendar(instrument_code)
 
     def delete_roll_calendar(self, instrument_code, are_you_sure=False):
         self.log.label(instrument_code=instrument_code)
@@ -56,7 +64,7 @@ class rollCalendarData(baseData):
                 "You need to call delete_roll_calendar with a flag to be sure"
             )
 
-    def _delete_roll_calendar_data_without_any_warning_be_careful(
+    def _delete_roll_calendar_data_without_any_warning_be_careful(self,
             instrument_code):
         raise NotImplementedError(USE_CHILD_CLASS_ROLL_CALENDAR_ERROR)
 
