@@ -21,7 +21,7 @@ class futuresInstrumentData(object):
         return "futuresInstrumentData base class - DO NOT USE"
 
     def __init__(self, log=logtoscreen("futuresInstrumentData")):
-        setattr(self, "_log", log)
+        self._log = log
 
     @property
     def log(self):

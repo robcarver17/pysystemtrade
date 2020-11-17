@@ -5,6 +5,9 @@ from syscore.genutils import value_or_npnan
 from sysdata.futures.contracts import futuresContractData
 from sysobjects.instruments import futuresInstrument
 from sysobjects.contract_dates_and_expiries import expiryDate
+from sysobjects.contracts import  contract_from_code_and_id
+from sysdata.futures.trading_hours import manyTradingStartAndEnd
+
 from syslogdiag.log import logtoscreen
 from syscore.objects import missing_contract, missing_instrument, missing_file
 from sysbrokers.IB.ib_contracts import futuresInstrumentWithIBData, NOT_REQUIRED_FOR_IB, ibInstrumentData
@@ -90,6 +93,58 @@ class ibFuturesContractData(futuresContractData):
             return missing_contract
 
         return min_tick_size
+
+    def is_instrument_code_and_contract_date_okay_to_trade(
+        self, instrument_code, contract_date
+    ):
+        ## WANT TO REMOVE ONCE HAVE INSTALLED FUTURESCONTRACT AS UNIVERSAL TRADEABLE OBJECT...
+        ## ... INSTEAD HAVE CALL WITH CONTRACT OBJECT PULLED FROM TRADE
+        contract_object = contract_from_code_and_id(instrument_code, contract_date)
+        result = self.is_contract_okay_to_trade(contract_object)
+
+        return result
+
+
+    def less_than_one_hour_of_trading_leg_for_instrument_code_and_contract_date(
+            self, instrument_code, contract_date):
+        ## WANT TO REMOVE ONCE HAVE INSTALLED FUTURESCONTRACT AS UNIVERSAL TRADEABLE OBJECT...
+        ## ... INSTEAD HAVE CALL WITH CONTRACT OBJECT PULLED FROM TRADE
+        contract_object = contract_from_code_and_id(instrument_code, contract_date)
+        result = self.less_than_one_hour_of_trading_leg_for_contract(
+            contract_object)
+
+        return result
+
+    def is_contract_okay_to_trade(self, contract_object):
+        trading_hours = self.get_trading_hours_for_contract(contract_object)
+        trading_hours_checker = manyTradingStartAndEnd(trading_hours)
+
+        return trading_hours_checker.okay_to_trade_now()
+
+
+
+    def less_than_one_hour_of_trading_leg_for_contract(self, contract_object):
+        trading_hours = self.get_trading_hours_for_contract(contract_object)
+        trading_hours_checker = manyTradingStartAndEnd(trading_hours)
+
+        return trading_hours_checker.less_than_one_hour_left()
+
+
+
+    def get_trading_hours_for_instrument_code_and_contract_date(
+        self, instrument_code, contract_date
+    ):
+        contract_object = contract_from_code_and_id(instrument_code, contract_date)
+        result = self.get_trading_hours_for_contract(contract_object)
+
+        return result
+
+
+    def get_min_tick_size_for_instrument_code_and_contract_date(self, instrument_code, contract_date):
+        contract_object = contract_from_code_and_id(instrument_code, contract_date)
+        result = self.get_min_tick_size_for_contract(contract_object)
+
+        return result
 
     def get_trading_hours_for_contract(self, contract_object):
         """
