@@ -66,6 +66,11 @@ class futuresContract(object):
 
         self._is_empty = False
 
+    def specific_log(self, log):
+        new_log = log.setup(instrument_code = self.instrument_code, contract_date = self.date_str)
+
+        return new_log
+
     @property
     def instrument(self):
         return self._instrument

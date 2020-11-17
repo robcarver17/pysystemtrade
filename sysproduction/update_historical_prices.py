@@ -96,6 +96,10 @@ def get_and_add_prices_for_frequency(
 
     ib_prices = broker_data_source.get_prices_at_frequency_for_contract_object(
         contract_object, frequency)
+    if len(ib_prices)==0:
+        log.msg("No prices from broker for %s" % str(contract_object))
+        return failure
+
     rows_added = db_futures_prices.update_prices_for_contract(
         contract_object, ib_prices, check_for_spike=True
     )

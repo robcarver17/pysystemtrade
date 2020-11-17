@@ -132,7 +132,7 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
 
         return list_of_contract_tuples
 
-    def get_contracts_with_price_data(self):
+    def get_contracts_with_price_data(self) -> listOfFuturesContracts:
         """
 
         :return: list of contracts
