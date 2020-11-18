@@ -411,8 +411,14 @@ class futuresContractPriceData(object):
 
         rows_added = len(merged_prices) - len(old_prices)
 
+
+
         if rows_added == 0:
-            new_log.msg("No additional data since %s " %
+            if len(old_prices) == 0:
+                new_log.msg("No existing or additional data")
+                return 0
+            else:
+                new_log.msg("No additional data since %s " %
                         str(old_prices.index[-1]))
             return 0
 

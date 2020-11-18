@@ -1,4 +1,4 @@
-from sysdata.data import baseData
+
 from sysobjects.roll_calendars import rollCalendar
 from syslogdiag.log import logtoscreen
 
