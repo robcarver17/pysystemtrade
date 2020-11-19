@@ -9,8 +9,6 @@ from syscore.dateutils import (
 )
 from sysobjects.contract_dates_and_expiries import (
     contractDate,
-    from_contract_numbers_to_contract_string,
-    NO_DAY_PASSED,
     contract_given_tuple
 
 )
@@ -248,13 +246,13 @@ class rollParameters(object):
         return self._global_rollcycle
 
     @classmethod
-    def create_from_dict(rollData, roll_data_dict):
+    def create_from_dict(rollData, roll_data_dict: dict):
 
         futures_instrument_roll_data = rollData(**roll_data_dict)
 
         return futures_instrument_roll_data
 
-    def as_dict(self):
+    def as_dict(self) -> dict:
 
         return dict(
             hold_rollcycle=self.hold_rollcycle.cyclestring,
@@ -386,13 +384,13 @@ class contractDateWithRollParameters(object):
 
         return new_contract_date_with_roll_data_object
 
-    def _valid_date_in_priced_rollcycle(self):
+    def _valid_date_in_priced_rollcycle(self) ->bool:
         return self._valid_date_in_named_rollcycle("priced_rollcycle")
 
-    def _valid_date_in_hold_rollcycle(self):
+    def _valid_date_in_hold_rollcycle(self) ->bool:
         return self._valid_date_in_named_rollcycle("hold_rollcycle")
 
-    def _valid_date_in_named_rollcycle(self, rollcycle_name):
+    def _valid_date_in_named_rollcycle(self, rollcycle_name:str) ->bool:
 
         relevant_rollcycle = getattr(self.roll_parameters, rollcycle_name)
         current_month = self.contract_date.letter_month()

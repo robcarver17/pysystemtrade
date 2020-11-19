@@ -14,7 +14,7 @@ class ibContractPositionData(contractPositionData):
     def __init__(self, ibconnection, log=logtoscreen(
             "ibFuturesContractPriceData")):
         setattr(self, "ibconnection", ibconnection)
-        setattr(self, "log", log)
+        super().__init__(log=log)
 
     def __repr__(self):
         return "IB Futures per contract position data %s" % str(
