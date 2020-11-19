@@ -45,7 +45,7 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
         :return: data
         """
 
-        ident = futures_contract_object.key
+        ident = from_contract_to_key(futures_contract_object)
 
         # Returns a data frame which should have the right format
         data = self.arctic_connection.read(ident)
@@ -65,7 +65,7 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
         """
 
         log = futures_contract_object.log(self.log)
-        ident = futures_contract_object.key
+        ident = from_contract_to_key(futures_contract_object)
         futures_price_data_as_pd = pd.DataFrame(futures_price_data)
 
         self.arctic_connection.write(ident, futures_price_data_as_pd)
@@ -98,7 +98,7 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
 
         all_keynames = self._all_keynames_in_library()
         list_of_contract_tuples = [
-            get_code_and_id_from_contract_key(keyname)
+            from_key_to_tuple(keyname[0])
             for keyname in all_keynames
         ]
 
@@ -118,9 +118,17 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
         """
         log = futures_contract_object.log(self.log)
 
-        ident = futures_contract_object.key
+        ident = from_contract_to_key(futures_contract_object)
         self.arctic_connection.delete(ident)
         log.msg("Deleted all prices for %s from %s" %
                      (futures_contract_object.key, str(self)))
 
 
+def from_key_to_tuple(keyname):
+    return keyname.split(".")
+
+def from_contract_to_key(contract: futuresContract):
+    return from_tuple_to_key([contract.instrument_code, contract.date_str])
+
+def from_tuple_to_key(keytuple):
+    return keytuple[0]+"."+keytuple[1]
