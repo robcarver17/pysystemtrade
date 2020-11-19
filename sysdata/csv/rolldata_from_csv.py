@@ -7,7 +7,7 @@ import pandas as pd
 ROLLS_CONFIG_FILE = "sysinit.futures.config.rollconfig.csv"
 
 
-class initCsvFuturesRollData(rollParametersData):
+class csvRollParametersData(rollParametersData):
     """
     Get data about instruments from a special configuration used for initialising the system
 

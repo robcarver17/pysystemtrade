@@ -27,10 +27,10 @@ class mongoRollParametersData(rollParametersData):
     def mongo_data(self):
         return self._mongo_data
 
-    def get_list_of_instruments(self):
+    def get_list_of_instruments(self) -> list:
         return self.mongo_data.get_list_of_keys()
 
-    def _get_roll_parameters_without_checking(self, instrument_code):
+    def _get_roll_parameters_without_checking(self, instrument_code:str) -> rollParameters:
         result_dict = self.mongo_data.get_result_dict_for_key_without_key_value(instrument_code)
         if result_dict is missing_data:
             self.log.critical("%s just vanished from roll parameters??" % instrument_code)
@@ -40,12 +40,12 @@ class mongoRollParametersData(rollParametersData):
         return roll_parameters_object
 
     def _delete_roll_parameters_data_without_any_warning_be_careful(
-        self, instrument_code
+        self, instrument_code:str
     ):
         self.mongo_data.delete_data_without_any_warning(instrument_code)
 
     def _add_roll_parameters_without_checking_for_existing_entry(
-        self, roll_parameters_object, instrument_code
+        self, roll_parameters_object: rollParameters, instrument_code: str
     ):
 
         roll_parameters_object_dict = roll_parameters_object.as_dict()

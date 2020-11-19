@@ -8,7 +8,7 @@ from syscore.objects import missing_file, missing_instrument
 class ibCapitalData(capitalData):
     def __init__(self, ibconnection, log=logtoscreen("ibFxPricesData")):
         setattr(self, "ibconnection", ibconnection)
-        setattr(self, "log", log)
+        super().__init__(log=log)
 
     def __repr__(self):
         return "IB capital data"
