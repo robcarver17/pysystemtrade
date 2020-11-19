@@ -1,5 +1,6 @@
 import pandas as pd
-from sysdata.fx.spotfx import fxPricesData, fxPrices
+from sysdata.fx.spotfx import fxPricesData
+from sysobjects.spot_fx_prices import fxPrices
 from syslogdiag.log import logtoscreen
 from syscore.fileutils import get_filename_for_package
 from syscore.objects import missing_file, missing_instrument

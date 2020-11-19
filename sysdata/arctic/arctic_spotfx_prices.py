@@ -1,4 +1,5 @@
-from sysdata.fx.spotfx import fxPrices, fxPricesData
+from sysdata.fx.spotfx import fxPricesData
+from sysobjects.spot_fx_prices import fxPrices
 from sysdata.arctic.arctic_connection import articConnection
 from syslogdiag.log import logtoscreen
 import pandas as pd

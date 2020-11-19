@@ -6,7 +6,7 @@ from copy import copy
 from ib_insync import Forex, util, ComboLeg
 from ib_insync.order import MarketOrder, LimitOrder
 
-from sysdata.fx.spotfx import currencyValue
+from sysobjects.spot_fx_prices import currencyValue
 
 from syscore.objects import missing_contract, arg_not_supplied, missing_order
 from syscore.genutils import list_of_ints_with_highest_common_factor_positive_first

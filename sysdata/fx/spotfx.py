@@ -6,11 +6,9 @@ import pandas as pd
 import datetime
 
 from sysdata.base_data import baseData
-from syscore.pdutils import merge_newer_data, full_merge_of_existing_data
 from syscore.objects import data_error
-from collections import namedtuple
 
-currencyValue = namedtuple("currencyValue", "currency, value")
+from sysobjects.spot_fx_prices import fxPrices
 
 # by convention we always get prices vs the dollar
 DEFAULT_CURRENCY = "USD"
@@ -21,94 +19,6 @@ DEFAULT_DATES = pd.date_range(
 DEFAULT_RATE_SERIES = pd.Series(
     [1.0] * len(DEFAULT_DATES),
     index=DEFAULT_DATES)
-
-
-class fxPrices(pd.Series):
-    """
-    adjusted price information
-    """
-
-    def __init__(self, data):
-
-        super().__init__(data)
-        data.index.name = "index"
-        self._is_empty = False
-        data.name = ""
-
-    @classmethod
-    def create_empty(fxPrices):
-        """
-        Our graceful fail is to return an empty, but valid, dataframe
-        """
-
-        data = pd.Series()
-
-        fx_prices = fxPrices(data)
-
-        fx_prices._is_empty = True
-
-        return fx_prices
-
-    @classmethod
-    def from_data_frame(fxPrices, data_frame):
-        return fxPrices(data_frame.T.squeeze())
-
-    @property
-    def empty(self):
-        return self._is_empty
-
-    def merge_with_other_prices(
-        self, new_fx_prices, only_add_rows=True, check_for_spike=True
-    ):
-        """
-        Merges self with new data.
-        If only_add_rows is True,
-        Otherwise: Any Nan in the existing data will be replaced (be careful!)
-
-        :param new_fx_prices:
-
-        :return: merged fx prices: doesn't update self
-        """
-        if only_add_rows:
-            return self.add_rows_to_existing_data(
-                new_fx_prices, check_for_spike=check_for_spike
-            )
-        else:
-            return self._full_merge_of_existing_data(new_fx_prices)
-
-    def _full_merge_of_existing_data(self, new_fx_prices):
-        """
-        Merges self with new data.
-        Any Nan in the existing data will be replaced (be careful!)
-        We make this private so not called accidentally
-
-        :param new_fx_prices: the new data
-        :return: updated data, doesn't update self
-        """
-
-        merged_data = full_merge_of_existing_data(self, new_fx_prices)
-
-        return fxPrices(merged_data)
-
-    def add_rows_to_existing_data(self, new_fx_prices, check_for_spike=True):
-        """
-        Merges self with new data.
-        Only newer data will be added
-
-        :param new_fx_prices:
-
-        :return: merged fxPrices
-        """
-
-        merged_fx_prices = merge_newer_data(
-            self, new_fx_prices, check_for_spike=check_for_spike
-        )
-        if merged_fx_prices is data_error:
-            return data_error
-        merged_fx_prices = fxPrices(merged_fx_prices)
-
-        return merged_fx_prices
-
 
 USE_CHILD_CLASS_ERROR = "You need to use a child class of fxPricesData"
 

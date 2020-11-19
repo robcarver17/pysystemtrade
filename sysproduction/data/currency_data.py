@@ -2,7 +2,7 @@ from syscore.objects import arg_not_supplied
 from syscore.genutils import print_menu_of_values_and_get_response
 
 from sysdata.arctic.arctic_spotfx_prices import arcticFxPricesData
-from sysdata.fx.spotfx import currencyValue
+from sysobjects.spot_fx_prices import currencyValue
 from sysdata.private_config import get_private_then_default_key_value
 
 from sysproduction.data.get_data import dataBlob

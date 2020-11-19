@@ -5,7 +5,8 @@ from syscore.objects import arg_not_supplied
 from sysdata.mongodb.mongo_futures_instruments import mongoFuturesInstrumentData
 
 from sysproduction.data.get_data import dataBlob
-from sysproduction.data.currency_data import currencyData, currencyValue
+from sysproduction.data.currency_data import currencyData
+from sysobjects.spot_fx_prices import currencyValue
 
 
 class diagInstruments(object):

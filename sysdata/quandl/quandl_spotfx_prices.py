@@ -5,7 +5,8 @@ DEPRECATED: DOESN'T WORK ANY MORE
 import quandl
 import pandas as pd
 from sysdata.quandl.quandl_utils import load_private_key
-from sysdata.fx.spotfx import fxPricesData, fxPrices
+from sysdata.fx.spotfx import fxPricesData
+from sysobjects.spot_fx_prices import fxPrices
 from syscore.fileutils import get_filename_for_package
 
 quandl.ApiConfig.api_key = load_private_key()

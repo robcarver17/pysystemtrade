@@ -1,3 +1,5 @@
+#FIXME HAS A LOT OF IMPORTS - SPLIT THINGS OUT?
+
 import pandas as pd
 from syscore.objects import missing_data, missing_contract
 
