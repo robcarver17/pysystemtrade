@@ -1,6 +1,10 @@
 from syscore.objects import arg_not_supplied
+
+from syslogdiag.log import logger
+
 from sysobjects.contract_dates_and_expiries import contractDate, expiryDate
 from sysobjects.instruments import futuresInstrument
+
 
 from dataclasses import  dataclass
 
@@ -109,6 +113,9 @@ class futuresContract(object):
     def sampling_off(self):
         self.params.sampling = False
 
+    def log(self, log: logger):
+        return log.setup(instrument_code =self.instrument_code, contract_date = self.date_str)
+
     def as_dict(self):
         """
         Turn into a dict. We only include instrument_code from the instrument_object, the rest would be found elsewhere
@@ -214,8 +221,6 @@ def get_contract_key_from_code_and_id(instrument_code, contract_id):
 
 def get_code_and_id_from_contract_key(contract_key):
     return contract_key.split("/")
-
-MAX_CONTRACT_SIZE = 10000
 
 
 class listOfFuturesContracts(list):

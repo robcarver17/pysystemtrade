@@ -1,6 +1,6 @@
 import unittest
 from sysdata.mongodb.mongo_futures_instruments import mongoFuturesInstrumentData
-from sysdata.futures.rolls import rollParametersTOMOVE
+from sysdata.futures.rolls_parameters import rollParametersTOMOVE
 from sysdata.mongodb.mongo_roll_data import mongoRollParametersData
 
 from sysobjects.instruments import futuresInstrument
@@ -60,7 +60,7 @@ class MyTestCase(unittest.TestCase):
         roll_object = rollParametersTOMOVE(
             hold_rollcycle="HMUZ",
             priced_rollcycle="HM")
-        data.add_roll_parameters(roll_object, "EDOLLAR")
+        data.add_roll_parameters("EDOLLAR", roll_object)
 
         self.assertEqual(data.get_list_of_instruments(), ["EDOLLAR"])
 

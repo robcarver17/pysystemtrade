@@ -1,4 +1,4 @@
-from sysdata.futures.rolls import rollParametersData
+from sysdata.futures.rolls_parameters import rollParametersData
 from sysobjects.rolls import rollParameters
 
 from sysdata.mongodb.mongo_generic import mongoData, missing_data
@@ -44,9 +44,8 @@ class mongoRollParametersData(rollParametersData):
     ):
         self.mongo_data.delete_data_without_any_warning(instrument_code)
 
-    def _add_roll_parameters_without_checking_for_existing_entry(
-        self, roll_parameters_object: rollParameters, instrument_code: str
-    ):
+    def _add_roll_parameters_without_checking_for_existing_entry(self, instrument_code: str,
+                                                                 roll_parameters: rollParameters):
 
         roll_parameters_object_dict = roll_parameters_object.as_dict()
         self.mongo_data.add_data(instrument_code, roll_parameters_object_dict, allow_overwrite=True)

@@ -56,9 +56,8 @@ class rollParametersData(baseData):
                 "You need to call delete_roll_parameters with a flag to be sure"
             )
 
-    def add_roll_parameters(
-        self, roll_parameters: rollParameters, instrument_code:str, ignore_duplication:bool=False
-    ):
+    def add_roll_parameters(self, instrument_code: str, roll_parameters: rollParameters,
+                            ignore_duplication: bool = False):
 
         self.log.label(instrument_code=instrument_code)
 
@@ -70,9 +69,7 @@ class rollParametersData(baseData):
                     "There is already %s in the data, you have to delete it first" %
                     instrument_code)
 
-        self._add_roll_parameters_without_checking_for_existing_entry(
-            roll_parameters, instrument_code
-        )
+        self._add_roll_parameters_without_checking_for_existing_entry(instrument_code, roll_parameters)
 
         self.log.terse(
             "Added roll parameters for instrument %s" %
@@ -89,9 +86,8 @@ class rollParametersData(baseData):
             instrument_code:str):
         raise NotImplementedError(USE_CHILD_CLASS_ROLL_PARAMS_ERROR)
 
-    def _add_roll_parameters_without_checking_for_existing_entry(
-        self, roll_parameters: rollParameters, instrument_code:str
-    ):
+    def _add_roll_parameters_without_checking_for_existing_entry(self, instrument_code: str,
+                                                                 roll_parameters: rollParameters):
         raise NotImplementedError(USE_CHILD_CLASS_ROLL_PARAMS_ERROR)
 
     def get_list_of_instruments(self) ->list:

@@ -2,6 +2,7 @@ import datetime as datetime
 
 from syscore.objects import missing_contract, arg_not_supplied, missing_data
 from sysdata.arctic.arctic_futures_per_contract_prices import arcticFuturesContractPriceData
+from sysobjects.contracts import futuresContract
 from sysproduction.data.get_data import dataBlob
 
 
@@ -82,10 +83,10 @@ class diagVolumes(object):
         return final_volume
 
     def get_daily_volumes_for_contract(self, instrument_code, contract_id):
+        # FIXME AND REPLACE WITH METHOD THAT USES ACTUAL CONTRACT OBJECT
         data = self.data
-
-        price_data = data.db_futures_contract_price.get_prices_for_instrument_code_and_contract_date(
-            instrument_code, contract_id)
+        contract = futuresContract(instrument_code, contract_id)
+        price_data = data.db_futures_contract_price.get_prices_for_contract_object(contract)
 
         if len(price_data) == 0:
             return missing_data

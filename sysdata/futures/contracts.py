@@ -47,7 +47,7 @@ class futuresContractData(baseData):
             contract_date: str,
             are_you_sure=False):
 
-        self.log.label(
+        log = self.log.setup(
             instrument_code=instrument_code,
             contract_date=contract_date)
         if are_you_sure:
@@ -55,14 +55,14 @@ class futuresContractData(baseData):
                 self._delete_contract_data_without_any_warning_be_careful(
                     instrument_code, contract_date
                 )
-                self.log.terse(
+                log.terse(
                     "Deleted contract %s/%s" % (instrument_code, contract_date)
                 )
             else:
                 # doesn't exist anyway
-                self.log.warn("Tried to delete non existent contract")
+                log.warn("Tried to delete non existent contract")
         else:
-            self.log.error(
+            log.error(
                 "You need to call delete_contract_data with a flag to be sure"
             )
 
@@ -87,22 +87,20 @@ class futuresContractData(baseData):
         instrument_code = contract_object.instrument_code
         contract_date = contract_object.date_str
 
-        self.log.label(
-            instrument_code=instrument_code,
-            contract_date=contract_date)
+        log = contract_object.log(self.log)
 
         if self.is_contract_in_data(instrument_code, contract_date):
             if ignore_duplication:
                 pass
             else:
-                self.log.warn(
-                    "There is already %s/%s in the data, you have to delete it first" %
-                    (instrument_code, contract_date))
+                log.warn(
+                    "There is already %s in the data, you have to delete it first" %
+                    (contract_object.key))
                 return None
 
         self._add_contract_object_without_checking_for_existing_entry(
             contract_object)
-        self.log.terse(
+        log.terse(
             "Added contract %s %s" %
             (instrument_code, contract_date))
 

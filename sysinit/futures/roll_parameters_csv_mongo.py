@@ -14,7 +14,7 @@ for instrument_code in instrument_list:
     instrument_object = data_in.get_roll_parameters(instrument_code)
 
     data_out.delete_roll_parameters(instrument_code, are_you_sure=True)
-    data_out.add_roll_parameters(instrument_object, instrument_code)
+    data_out.add_roll_parameters(instrument_code, instrument_object)
 
     # check
     instrument_added = data_out.get_roll_parameters(instrument_code)

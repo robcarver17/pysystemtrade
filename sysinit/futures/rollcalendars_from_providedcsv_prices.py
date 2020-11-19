@@ -28,6 +28,4 @@ if __name__ == "__main__":
         print(roll_calendar)
 
         # We ignore duplicates since this is run regularly
-        csv_roll_calendars.add_roll_calendar(
-            roll_calendar, instrument_code, ignore_duplication=True
-        )
+        csv_roll_calendars.add_roll_calendar(instrument_code, roll_calendar, ignore_duplication=True)

@@ -94,13 +94,11 @@ class ibFuturesContractData(futuresContractData):
         :return: YYYYMMDD or None
         """
 
+        log = contract_object.log(self.log)
         contract_object_with_ib_data = self._get_contract_object_with_IB_metadata(
             contract_object)
         if contract_object_with_ib_data is missing_contract:
-            self.log.msg("Can't resolve contract so can't find expiry date",
-                         instrument_code=contract_object_with_ib_data.instrument_code,
-                            contract_date=contract_object_with_ib_data.date_str,
-                        )
+            log.msg("Can't resolve contract so can't find expiry date")
             return missing_contract
 
         expiry_date = self._get_actual_expiry_date_given_contract_with_ib_metadata(contract_object_with_ib_data)
@@ -114,10 +112,8 @@ class ibFuturesContractData(futuresContractData):
         )
 
         if expiry_date is missing_contract:
-            self.log.msg("No IB expiry date found",
-                         instrument_code=contract_object_with_ib_data.instrument_code,
-                            contract_date=contract_object_with_ib_data.date_str,
-                        )
+            log = contract_object_with_ib_data.log(self.log)
+            log.msg("No IB expiry date found")
             return missing_contract
         else:
             expiry_date = expiryDate.from_str(
@@ -149,11 +145,7 @@ class ibFuturesContractData(futuresContractData):
 
 
     def get_min_tick_size_for_contract(self, contract_object: futuresContract) -> float:
-        new_log = self.log.setup(
-            instrument_code=contract_object.instrument_code,
-            contract_date=contract_object.date_str,
-        )
-
+        new_log = contract_object.log(self.log)
         contract_object_with_ib_data = self.get_contract_object_with_IB_data(contract_object)
         if contract_object_with_ib_data is missing_contract:
             new_log.msg("Can't resolve contract so can't find tick size")
@@ -169,26 +161,6 @@ class ibFuturesContractData(futuresContractData):
 
         return min_tick_size
 
-    def is_instrument_code_and_contract_date_okay_to_trade(
-        self, instrument_code, contract_date
-    ):
-        ## FIXME WANT TO REMOVE ONCE HAVE INSTALLED FUTURESCONTRACT AS UNIVERSAL TRADEABLE OBJECT...
-        ## ... INSTEAD HAVE CALL WITH CONTRACT OBJECT PULLED FROM TRADE
-        contract_object = contract_from_code_and_id(instrument_code, contract_date)
-        result = self.is_contract_okay_to_trade(contract_object)
-
-        return result
-
-
-    def less_than_one_hour_of_trading_leg_for_instrument_code_and_contract_date(
-            self, instrument_code, contract_date):
-        ## FIXME WANT TO REMOVE ONCE HAVE INSTALLED FUTURESCONTRACT AS UNIVERSAL TRADEABLE OBJECT...
-        ## ... INSTEAD HAVE CALL WITH CONTRACT OBJECT PULLED FROM TRADE
-        contract_object = contract_from_code_and_id(instrument_code, contract_date)
-        result = self.less_than_one_hour_of_trading_leg_for_contract(
-            contract_object)
-
-        return result
 
     def is_contract_okay_to_trade(self, contract_object: futuresContract) -> bool:
         trading_hours = self.get_trading_hours_for_contract(contract_object)
@@ -205,34 +177,13 @@ class ibFuturesContractData(futuresContractData):
         return trading_hours_checker.less_than_one_hour_left()
 
 
-    def get_trading_hours_for_instrument_code_and_contract_date(
-        self, instrument_code, contract_date
-    ):
-        ## FIXME WANT TO REMOVE ONCE HAVE INSTALLED FUTURESCONTRACT AS UNIVERSAL TRADEABLE OBJECT...
-        ## ... INSTEAD HAVE CALL WITH CONTRACT OBJECT PULLED FROM TRADE
-        contract_object = contract_from_code_and_id(instrument_code, contract_date)
-        result = self.get_trading_hours_for_contract(contract_object)
-
-        return result
-
-    def get_min_tick_size_for_instrument_code_and_contract_date(self, instrument_code, contract_date):
-        ## FIXME WANT TO REMOVE ONCE HAVE INSTALLED FUTURESCONTRACT AS UNIVERSAL TRADEABLE OBJECT...
-        ## ... INSTEAD HAVE CALL WITH CONTRACT OBJECT PULLED FROM TRADE
-        contract_object = contract_from_code_and_id(instrument_code, contract_date)
-        result = self.get_min_tick_size_for_contract(contract_object)
-
-        return result
-
     def get_trading_hours_for_contract(self, contract_object: futuresContract) :
         """
 
         :param contract_object:
         :return: list of paired date times
         """
-        new_log = self.log.setup(
-            instrument_code=contract_object.instrument_code,
-            contract_date=contract_object.date_str,
-        )
+        new_log = contract_object.log(self.log)
 
         contract_object_with_ib_data = self.get_contract_object_with_IB_data(contract_object)
         if contract_object_with_ib_data is missing_contract:

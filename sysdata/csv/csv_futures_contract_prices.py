@@ -1,3 +1,5 @@
+from dataclasses import  dataclass
+
 from sysdata.futures.futures_per_contract_prices import (
     futuresContractPriceData,
 )
@@ -5,40 +7,51 @@ from sysobjects.futures_per_contract_prices import futuresContractPrices
 from sysobjects.contracts import futuresContract, listOfFuturesContracts
 from syslogdiag.log import logtoscreen
 from syscore.fileutils import files_with_extension_in_pathname, get_filename_for_package
+from syscore.objects import arg_not_supplied
 from syscore.pdutils import pd_readcsv, DEFAULT_DATE_FORMAT
 
 
-# no default datapath supplied as this is not normally used
+@dataclass
+class ConfigCsvFuturesPrices:
+    input_date_index_name: str = "DATETIME",
+    input_date_format: str = DEFAULT_DATE_FORMAT,
+    input_column_mapping: dict = None,
+    input_skiprows: int = 0,
+    input_skipfooter: int = 0,
 
 
 class csvFuturesContractPriceData(futuresContractPriceData):
     """
     Class to read / write individual futures contract price data to and from csv files
+# no default datapath supplied as this is not normally used
     """
 
     def __init__(
         self,
         datapath,
         log=logtoscreen("csvFuturesContractPriceData"),
-        input_date_index_name="DATETIME",
-        input_date_format=DEFAULT_DATE_FORMAT,
-        input_column_mapping=None,
-        input_skiprows=0,
-        input_skipfooter=0,
+        config: ConfigCsvFuturesPrices = arg_not_supplied
     ):
 
         super().__init__(log=log)
         self._datapath = datapath
-        self._input_date_format = input_date_format
-        self._input_date_time_column = input_date_index_name
-        self._input_column_mapping = input_column_mapping
-        self._input_skiprows = input_skiprows
-        self._input_skipfooter = input_skipfooter
+        if config is arg_not_supplied:
+            config = ConfigCsvFuturesPrices()
+
+        self._config = config
 
     def __repr__(self):
         return "csvFuturesContractPricesData accessing %s" % self._datapath
 
-    def _keyname_given_contract_object(self, futures_contract_object):
+    @property
+    def config(self):
+        return self.config
+
+    @property
+    def datapath(self):
+        return self._datapath
+
+    def _keyname_given_contract_object(self, futures_contract_object: futuresContract) -> str:
         """
         We could do this using the .ident() method of instrument_object, but this way we keep control inside this class
 
@@ -52,7 +65,7 @@ class csvFuturesContractPriceData(futuresContractPriceData):
             + str(futures_contract_object.date_str)
         )
 
-    def _contract_tuple_given_keyname(self, keyname):
+    def _contract_tuple_given_keyname(self, keyname: str) -> tuple:
         """
         Extract the two parts of a keyname
 
@@ -81,7 +94,7 @@ class csvFuturesContractPriceData(futuresContractPriceData):
         return instrument_code, contract_date
 
     def _get_prices_for_contract_object_no_checking(
-            self, futures_contract_object):
+            self, futures_contract_object: futuresContract) -> futuresContractPrices:
         """
         Read back the prices for a given contract object
 
@@ -90,12 +103,13 @@ class csvFuturesContractPriceData(futuresContractPriceData):
         """
         keyname = self._keyname_given_contract_object(futures_contract_object)
         filename = self._filename_given_key_name(keyname)
+        config = self.config
 
-        date_format = self._input_date_format
-        date_time_column = self._input_date_time_column
-        input_column_mapping = self._input_column_mapping
-        skiprows = self._input_skiprows
-        skipfooter = self._input_skipfooter
+        date_format = config.input_date_format
+        date_time_column = config.input_date_time_column
+        input_column_mapping = config.input_column_mapping
+        skiprows = config.input_skiprows
+        skipfooter = config.input_skipfooter
 
         try:
             instrpricedata = pd_readcsv(
@@ -107,7 +121,8 @@ class csvFuturesContractPriceData(futuresContractPriceData):
                 skipfooter=skipfooter,
             )
         except OSError:
-            self.log.warning("Can't find adjusted price file %s" % filename)
+            log = futures_contract_object.log(self.log)
+            log.warning("Can't find adjusted price file %s" % filename)
             return futuresContractPrices.create_empty()
 
         instrpricedata = instrpricedata.groupby(level=0).last()
@@ -117,7 +132,7 @@ class csvFuturesContractPriceData(futuresContractPriceData):
         return instrpricedata
 
     def _write_prices_for_contract_object_no_checking(
-        self, futures_contract_object, futures_price_data
+        self, futures_contract_object: futuresContract, futures_price_data: futuresContractPrices
     ):
         """
         Write prices
@@ -130,22 +145,22 @@ class csvFuturesContractPriceData(futuresContractPriceData):
         keyname = self._keyname_given_contract_object(futures_contract_object)
         filename = self._filename_given_key_name(keyname)
         futures_price_data.to_csv(
-            filename, index_label=self._input_date_time_column)
+            filename, index_label=self.config.input_date_time_column)
 
-    def _filename_given_key_name(self, keyname):
+    def _filename_given_key_name(self, keyname: str):
         return get_filename_for_package(self._datapath, "%s.csv" % (keyname))
 
-    def _all_keynames_in_library(self):
+    def _all_keynames_in_library(self) -> list:
         return files_with_extension_in_pathname(self._datapath, ".csv")
 
     def _delete_prices_for_contract_object_with_no_checks_be_careful(
-        self, futures_contract_object
+        self, futures_contract_object: futuresContract
     ):
         raise NotImplementedError(
-            "You can't delete futures prices stored as a csv - Add to overwrite existing or delete file manually"
+            "You can't delete futures prices stored as a csv - Add to overwrite existing data, or delete file manually"
         )
 
-    def _get_contract_tuples_with_price_data(self):
+    def _get_contract_tuples_with_price_data(self) -> list:
         """
 
         :return: list of futures contracts as tuples
@@ -168,5 +183,6 @@ class csvFuturesContractPriceData(futuresContractPriceData):
             futuresContract(contract_tuple[0], contract_tuple[1])
             for contract_tuple in list_of_contract_tuples
         ]
+        list_of_contracts = listOfFuturesContracts(list_of_contracts)
 
         return list_of_contracts

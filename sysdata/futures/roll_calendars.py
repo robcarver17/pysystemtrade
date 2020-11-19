@@ -15,34 +15,26 @@ class rollCalendarData(baseData):
     """
 
     def __init__(self, log=logtoscreen):
-        self._log = log
+        super().__init__(log=log)
 
-    @property
-    def log(self):
-        return self._log
 
     def __repr__(self):
         return "rollCalendarData base class - DO NOT USE"
 
-    def keys(self):
+    def keys(self) ->str:
         return self.get_list_of_instruments()
 
-    def __getitem__(self, instrument_code):
+    def __getitem__(self, instrument_code:str) -> rollCalendar:
         return self.get_roll_calendar(instrument_code)
 
-    def get_list_of_instruments(self):
-        raise NotImplementedError(USE_CHILD_CLASS_ROLL_CALENDAR_ERROR)
 
-    def get_roll_calendar(self, instrument_code):
+    def get_roll_calendar(self, instrument_code:str) -> rollCalendar:
         if self.is_code_in_data(instrument_code):
             return self._get_roll_calendar_without_checking(instrument_code)
         else:
             return rollCalendar.create_empty()
 
-    def _get_roll_calendar_without_checking(self, instrument_code):
-        raise NotImplementedError(USE_CHILD_CLASS_ROLL_CALENDAR_ERROR)
-
-    def delete_roll_calendar(self, instrument_code, are_you_sure=False):
+    def delete_roll_calendar(self, instrument_code:str, are_you_sure=False):
         self.log.label(instrument_code=instrument_code)
 
         if are_you_sure:
@@ -64,19 +56,8 @@ class rollCalendarData(baseData):
                 "You need to call delete_roll_calendar with a flag to be sure"
             )
 
-    def _delete_roll_calendar_data_without_any_warning_be_careful(self,
-            instrument_code):
-        raise NotImplementedError(USE_CHILD_CLASS_ROLL_CALENDAR_ERROR)
 
-    def is_code_in_data(self, instrument_code):
-        if instrument_code in self.get_list_of_instruments():
-            return True
-        else:
-            return False
-
-    def add_roll_calendar(
-        self, roll_calendar, instrument_code, ignore_duplication=False
-    ):
+    def add_roll_calendar(self, instrument_code: str, roll_calendar: rollCalendar, ignore_duplication: bool = False):
 
         self.log.label(instrument_code=instrument_code)
 
@@ -88,15 +69,29 @@ class rollCalendarData(baseData):
                     "There is already %s in the data, you have to delete it first" %
                     instrument_code)
 
-        self._add_roll_calendar_without_checking_for_existing_entry(
-            roll_calendar, instrument_code
-        )
+        self._add_roll_calendar_without_checking_for_existing_entry(instrument_code, roll_calendar)
 
         self.log.terse(
             "Added roll calendar for instrument %s" %
             instrument_code)
 
-    def _add_roll_calendar_without_checking_for_existing_entry(
-        self, roll_calendar, instrument_code
-    ):
+    def is_code_in_data(self, instrument_code:str) -> bool:
+        if instrument_code in self.get_list_of_instruments():
+            return True
+        else:
+            return False
+
+    def get_list_of_instruments(self) -> list:
+        raise NotImplementedError(USE_CHILD_CLASS_ROLL_CALENDAR_ERROR)
+
+    def _get_roll_calendar_without_checking(self, instrument_code) -> rollCalendar:
+        raise NotImplementedError(USE_CHILD_CLASS_ROLL_CALENDAR_ERROR)
+
+
+    def _delete_roll_calendar_data_without_any_warning_be_careful(self,
+            instrument_code:str):
+        raise NotImplementedError(USE_CHILD_CLASS_ROLL_CALENDAR_ERROR)
+
+
+    def _add_roll_calendar_without_checking_for_existing_entry(self, instrument_code:str, roll_calendar: rollCalendar):
         raise NotImplementedError(USE_CHILD_CLASS_ROLL_CALENDAR_ERROR)

@@ -2,6 +2,7 @@ import numpy as np
 
 from syscore.objects import missing_contract, arg_not_supplied, missing_data
 
+from sysobjects.contracts import futuresContract
 from sysobjects.dict_of_futures_per_contract_prices import dictFuturesContractPrices
 from sysdata.private_config import get_private_then_default_key_value
 from sysdata.arctic.arctic_futures_per_contract_prices import arcticFuturesContractPriceData
@@ -116,9 +117,9 @@ class diagPrices(object):
     def get_prices_for_instrument_code_and_contract_date(
         self, instrument_code, contract_date
     ):
-
-        return self.data.db_futures_contract_price.get_prices_for_instrument_code_and_contract_date(
-            instrument_code, contract_date)
+        # FIXME remove method and replace with one that uses contract object
+        contract = futuresContract(instrument_code, contract_date)
+        return self.data.db_futures_contract_price.get_prices_for_contract_object(contract)
 
 
 

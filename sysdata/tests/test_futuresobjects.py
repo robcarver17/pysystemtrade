@@ -1,7 +1,7 @@
 import pandas as pd
 import unittest
 import datetime
-from sysdata.futures.rolls import (
+from sysdata.futures.rolls_parameters import (
     rollCycle_TOMOVE,
     rollParametersTOMOVE,
     contractDateWithRollParametersTOMOVE,

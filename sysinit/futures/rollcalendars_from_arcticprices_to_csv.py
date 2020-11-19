@@ -51,9 +51,7 @@ def build_and_write_roll_calendar(
         check_happy_to_write = "yes"
 
     if check_happy_to_write == "yes":
-        csv_roll_calendars.add_roll_calendar(
-            roll_calendar, instrument_code, ignore_duplication=True
-        )
+        csv_roll_calendars.add_roll_calendar(instrument_code, roll_calendar, ignore_duplication=True)
     else:
         print("Not writing")
 

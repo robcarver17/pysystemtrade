@@ -1,5 +1,5 @@
 import pandas as pd
-
+import datetime
 from syscore.objects import data_error
 from syscore.pdutils import sumup_business_days_over_pd_series_without_double_counting_of_closing_data, \
     full_merge_of_existing_data, merge_newer_data
@@ -9,22 +9,21 @@ FINAL_COLUMN = "FINAL"
 VOLUME_COLUMN = "VOLUME"
 
 
-
 class futuresContractPrices(pd.DataFrame):
     """
     simData frame in specific format containing per contract information
     """
 
-    def __init__(self, data):
+    def __init__(self, price_data_as_df: pd.DataFrame):
         """
 
         :param data: pd.DataFrame or something that could be passed to it
         """
 
-        _validate_price_data(data)
-        super().__init__(data)
+        _validate_price_data(price_data_as_df)
+        price_data_as_df.index.name = "index"  # for arctic compatibility
+        super().__init__(price_data_as_df)
 
-        data.index.name = "index"  # for arctic compatibility
 
     @classmethod
     def create_empty(futuresContractPrices):
@@ -39,11 +38,11 @@ class futuresContractPrices(pd.DataFrame):
         return futures_contract_prices
 
     @classmethod
-    def create_from_final_prirces_only(futuresContractPrices, data):
-        data = pd.DataFrame(data, columns=[FINAL_COLUMN])
-        data = data.reindex(columns=PRICE_DATA_COLUMNS)
+    def create_from_final_prices_only(futuresContractPrices, price_data_as_series: pd.Series):
+        price_data_as_series = pd.DataFrame(price_data_as_series, columns=[FINAL_COLUMN])
+        price_data_as_series = price_data_as_series.reindex(columns=PRICE_DATA_COLUMNS)
 
-        futures_contract_prices = futuresContractPrices(data)
+        futures_contract_prices = futuresContractPrices(price_data_as_series)
 
         return futures_contract_prices
 
@@ -52,13 +51,13 @@ class futuresContractPrices(pd.DataFrame):
 
         return futuresContractFinalPrices(data)
 
-    def volumes(self):
+    def _raw_volumes(self) -> pd.Series:
         data = self[VOLUME_COLUMN]
 
         return data
 
-    def daily_volumes(self):
-        volumes = self.volumes()
+    def daily_volumes(self) -> pd.Series:
+        volumes = self._raw_volumes()
 
         # stop double counting
         daily_volumes = sumup_business_days_over_pd_series_without_double_counting_of_closing_data(volumes)
@@ -104,6 +103,12 @@ class futuresContractPrices(pd.DataFrame):
     def remove_zero_volumes(self):
         new_data = self[self[VOLUME_COLUMN] > 0]
         return futuresContractPrices(new_data)
+
+    def remove_future_data(self):
+        new_data = futuresContractPrices(
+            self[self.index < datetime.datetime.now()])
+
+        return  new_data
 
     def add_rows_to_existing_data(
         self, new_futures_per_contract_prices, check_for_spike=True

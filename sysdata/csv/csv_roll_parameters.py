@@ -1,5 +1,5 @@
 from syscore.fileutils import get_filename_for_package
-from sysdata.futures.rolls import rollParametersData
+from sysdata.futures.rolls_parameters import rollParametersData
 from sysobjects.rolls import rollParameters
 
 import pandas as pd
@@ -63,8 +63,7 @@ class csvRollParametersData(rollParametersData):
             instrument_code:str):
         raise NotImplementedError("csv is read only")
 
-    def _add_roll_parameters_without_checking_for_existing_entry(
-        self, roll_parameters: rollParameters, instrument_code:str
-    ):
+    def _add_roll_parameters_without_checking_for_existing_entry(self, instrument_code: str,
+                                                                 roll_parameters: rollParameters):
         raise NotImplementedError("csv is read only")
 

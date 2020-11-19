@@ -1,6 +1,8 @@
+from sysdata.base_data import baseData
 from syscore.objects import data_error
 
 from sysobjects.contracts import futuresContract, listOfFuturesContracts
+from sysobjects.contract_dates_and_expiries import listOfContractDateStr
 from sysobjects.futures_per_contract_prices import futuresContractPrices
 from sysobjects.dict_of_futures_per_contract_prices import dictFuturesContractPrices
 
@@ -8,12 +10,9 @@ from syslogdiag.log import logtoscreen
 
 BASE_CLASS_ERROR = "You have used a base class for futures price data; you need to use a class that inherits with a specific data source"
 
-## REDUCE USE OF CODE/DATE STRING CALLS...
-## SPLIT OUT SOMEWHAT?
-## TICKER OBJECTS ETC DO THEY REALLY NEED TO BE HERE, AS NOT USED EXCEPT IN BROKER INHERITANCE?
+PRICE_FREQ =  ['D', 'H', '5M', 'M', '10S', 'S']
 
-
-class futuresContractPriceData(object):
+class futuresContractPriceData(baseData):
     """
     Extends the baseData object to a data source that reads in and writes prices for specific futures contracts
 
@@ -24,16 +23,12 @@ class futuresContractPriceData(object):
     """
 
     def __init__(self, log=logtoscreen("futuresContractPriceData")):
-        setattr(self, "_log", log)
-
-    @property
-    def log(self):
-        return self._log
+        super().__init__(log=log)
 
     def __repr__(self):
         return "Individual futures contract price data - DO NOT USE"
 
-    def __getitem__(self, contract_object: futuresContract):
+    def __getitem__(self, contract_object: futuresContract) -> futuresContractPrices:
         """
         convenience method to get the price, make it look like a dict
 
@@ -41,7 +36,7 @@ class futuresContractPriceData(object):
 
         return self.get_prices_for_contract_object(contract_object)
 
-    def keys(self):
+    def keys(self) -> listOfFuturesContracts:
         """
         list of things in this data set (futures contracts, instruments...)
 
@@ -49,13 +44,6 @@ class futuresContractPriceData(object):
 
         """
         return self.get_contracts_with_price_data()
-
-    def get_contracts_with_price_data(self) ->listOfFuturesContracts:
-        """
-
-        :return: list of futuresContact
-        """
-        raise NotImplementedError(BASE_CLASS_ERROR)
 
     def get_list_of_instrument_codes_with_price_data(self)->list:
         """
@@ -76,7 +64,7 @@ class futuresContractPriceData(object):
         else:
             return False
 
-    def contracts_with_price_data_for_instrument_code(self, instrument_code):
+    def contracts_with_price_data_for_instrument_code(self, instrument_code: str) -> listOfFuturesContracts:
         """
         Valid contracts
 
@@ -91,7 +79,7 @@ class futuresContractPriceData(object):
         return list_of_contracts_for_instrument
 
     def contract_dates_with_price_data_for_instrument_code(
-            self, instrument_code):
+            self, instrument_code:str) -> listOfContractDateStr:
         """
 
         :param instrument_code:
@@ -107,9 +95,7 @@ class futuresContractPriceData(object):
             for contract in list_of_contracts_with_price_data
         ]
 
-        return contract_dates
-
-
+        return listOfContractDateStr(contract_dates)
 
 
     def get_all_prices_for_instrument(self, instrument_code: str) ->dictFuturesContractPrices:
@@ -133,89 +119,8 @@ class futuresContractPriceData(object):
 
         return dict_of_prices
 
-    ## WHERE USED - TRY AND REMOVE
-    def get_prices_for_instrument_code_and_contract_date(
-        self, instrument_code, contract_date
-    ):
-        """
-        Convenience method for when we have a code and date str, and don't want to build an object
 
-        :return: data
-        """
-
-        ans = self._perform_contract_method_for_instrument_code_and_contract_date(
-            instrument_code, contract_date, "get_prices_for_contract_object")
-
-        return ans
-
-
-    ### MOVE
-    def get_recent_bid_ask_tick_data_for_instrument_code_and_contract_date(
-        self, instrument_code, contract_date
-    ):
-        """
-        Convenience method for when we have a code and date str, and don't want to build an object
-
-        :return: data
-        """
-
-        ans = self._perform_contract_method_for_instrument_code_and_contract_date(
-            instrument_code,
-            contract_date,
-            "get_recent_bid_ask_tick_data_for_contract_object",
-        )
-
-        return ans
-
-    ## MOVE
-    def get_recent_bid_ask_tick_data_for_order(self, order):
-        ans = self._perform_contract_method_for_order(
-            order, "get_recent_bid_ask_tick_data_for_contract_object"
-        )
-        return ans
-
-    def get_ticker_object_for_order(self, order):
-        ans = self._perform_contract_method_for_order(
-            order, "get_ticker_object_for_contract_object"
-        )
-        return ans
-
-    def cancel_market_data_for_order(self, order):
-        ans = self._perform_contract_method_for_order(
-            order, "cancel_market_data_for_contract_object"
-        )
-        return ans
-
-    def _perform_contract_method_for_order(self, order, method, **kwargs):
-        contract_object = futuresContract(
-            order.instrument_code, order.contract_id)
-        trade_list_for_multiple_legs = order.trade.qty
-        method_to_call = getattr(self, method)
-
-        result = method_to_call(
-            contract_object,
-            trade_list_for_multiple_legs=trade_list_for_multiple_legs,
-            **kwargs
-        )
-
-        return result
-
-    def get_ticker_object_for_contract_object(
-        self, contract_object, trade_list_for_multiple_legs=None
-    ):
-        raise NotImplementedError
-
-    def cancel_market_data_for_contract_object(
-        self, contract_object, trade_list_for_multiple_legs=None
-    ):
-        raise NotImplementedError
-
-    def get_recent_bid_ask_tick_data_for_contract_object(
-        self, contract_object, trade_list_for_multiple_legs=None
-    ):
-        raise NotImplementedError
-
-    def get_prices_for_contract_object(self, contract_object):
+    def get_prices_for_contract_object(self, contract_object: futuresContract):
         """
         get some prices
 
@@ -229,28 +134,9 @@ class futuresContractPriceData(object):
         else:
             return futuresContractPrices.create_empty()
 
-    ## WHERE USED MOVE
-    def get_prices_at_frequency_for_instrument_code_and_contract_date(
-        self, instrument_code, contract_date, freq="D"
-    ):
-        """
-        Convenience method for when we have a code and date str, and don't want to build an object
-
-        :param freq: str; one of D, H, M5, M, 10S, S
-        :return: data
-        """
-
-        ans = self._perform_contract_method_for_instrument_code_and_contract_date(
-            instrument_code,
-            contract_date,
-            "get_prices_at_frequency_for_contract_object",
-            freq=freq,
-        )
-
-        return ans
 
     def get_prices_at_frequency_for_contract_object(
-            self, contract_object, freq="D"):
+            self, contract_object: futuresContract, freq: str="D"):
         """
         get some prices
 
@@ -258,6 +144,7 @@ class futuresContractPriceData(object):
         :param freq: str; one of D, H, 5M, M, 10S, S
         :return: data
         """
+        assert freq in PRICE_FREQ
 
         if self.has_data_for_contract(contract_object):
             return self._get_prices_at_frequency_for_contract_object_no_checking(
@@ -265,59 +152,12 @@ class futuresContractPriceData(object):
         else:
             return futuresContractPrices.create_empty()
 
-    def _get_prices_at_frequency_for_contract_object_no_checking(
-        self, contract_object, freq
-    ):
-        """
-        get some prices
 
-        :param contract_object:  futuresContract
-        :param freq: str; one of D, H, 5M, M, 10S, S
-        :return: data
-        """
-
-        raise NotImplementedError(BASE_CLASS_ERROR)
-
-    def _get_prices_for_contract_object_no_checking(self, contract_object):
-        """
-        get some prices
-
-        :param contract_object:  futuresContract
-        :return: data
-        """
-
-        raise NotImplementedError(BASE_CLASS_ERROR)
-
-    ## WHERE USED MOVE
-    def write_prices_for_instrument_code_and_contract_date(
-        self,
-        instrument_code,
-        contract_date,
-        futures_price_data,
-        ignore_duplication=False,
-    ):
-        """
-        Write some prices
-
-        :param futures_price_data:
-        :param ignore_duplication: bool, to stop us overwriting existing prices
-        :return: None
-        """
-
-        ans = self._perform_contract_method_for_instrument_code_and_contract_date(
-            instrument_code,
-            contract_date,
-            "write_prices_for_contract_object",
-            futures_price_data,
-            ignore_duplication=ignore_duplication,
-        )
-
-        return ans
 
     def write_prices_for_contract_object(
             self,
-            futures_contract_object,
-            futures_price_data,
+            futures_contract_object: futuresContract,
+            futures_price_data: futuresContractPrices,
             ignore_duplication=False):
         """
         Write some prices
@@ -332,71 +172,29 @@ class futuresContractPriceData(object):
             if ignore_duplication:
                 pass
             else:
-                self.log.warn(
-                    "There is already existing data, you have to delete it first",
-                    instrument_code=futures_contract_object.instrument_code,
-                    contract_date=futures_contract_object.date_str
-                )
+                log = futures_contract_object.log(self.log)
+                log.warn(
+                    "There is already existing data for %s" % futures_contract_object.key)
                 return None
 
         self._write_prices_for_contract_object_no_checking(
             futures_contract_object, futures_price_data
         )
 
-    def _write_prices_for_contract_object_no_checking(
-        self, futures_contract_object, futures_price_data
-    ):
-        """
-        Write some prices
-
-        We don't check to see if we've already written some, so only call directly with care
-        :param futures_contract_object:
-        :param futures_price_data:
-        :return: None
-        """
-
-        raise NotImplementedError(BASE_CLASS_ERROR)
-
-    ## MOVE
-    def get_brokers_instrument_code(self, instrument_code):
-        raise NotImplementedError(BASE_CLASS_ERROR)
-
-    ## WHERE USED REMOVE
-    def update_prices_for_for_instrument_code_and_contract_date(
-        self, instrument_code, contract_date, new_futures_per_contract_prices
-    ):
-        """
-        Convenience method for when we have a code and date str, and don't want to build an object
-
-        :new futures prices: futuresPrices object
-        :return: int, number of rows added
-        """
-
-        ans = self._perform_contract_method_for_instrument_code_and_contract_date(
-            instrument_code,
-            contract_date,
-            "update_prices_for_contract",
-            new_futures_per_contract_prices=new_futures_per_contract_prices,
-        )
-
-        return ans
 
     def update_prices_for_contract(
         self,
-        futures_contract_object,
-        new_futures_per_contract_prices,
-        check_for_spike=True,
-    ):
+        futures_contract_object: futuresContract,
+        new_futures_per_contract_prices: futuresContractPrices,
+        check_for_spike: bool=True,
+    ) -> int:
         """
         Reads existing data, merges with new_futures_prices, writes merged data
 
         :param new_futures_prices:
         :return: int, number of rows
         """
-        new_log = self.log.setup(
-            instrument_code=futures_contract_object.instrument_code,
-            contract_date=futures_contract_object.date_str,
-        )
+        new_log = futures_contract_object.log(self.log)
 
         old_prices = self.get_prices_for_contract_object(
             futures_contract_object)
@@ -406,7 +204,7 @@ class futuresContractPriceData(object):
 
         if merged_prices is data_error:
             new_log.msg(
-                "Price has moved too much - will need to manually check")
+                "Price has moved too much - will need to manually check - no price updated done")
             return data_error
 
         rows_added = len(merged_prices) - len(old_prices)
@@ -429,21 +227,9 @@ class futuresContractPriceData(object):
 
         return rows_added
 
-    ## ARE THESE DELETION METHODS ACTUALL USED??
-    def _delete_all_prices_for_all_instruments(self, are_you_sure=False):
-        if are_you_sure:
-            instrument_list = self.get_list_of_instrument_codes_with_price_data()
-            for instrument_code in instrument_list:
-                self.delete_all_prices_for_instrument_code(
-                    instrument_code, areyousure=are_you_sure
-                )
-        else:
-            self.log.error(
-                "You need to call delete_all_prices_for_all_instruments with a flag to be sure"
-            )
 
     def delete_prices_for_contract_object(
-        self, futures_contract_object, areyousure=False
+        self, futures_contract_object: futuresContract, areyousure=False
     ):
         """
 
@@ -460,10 +246,11 @@ class futuresContractPriceData(object):
                 futures_contract_object
             )
         else:
-            self.log.warn("Tried to delete non existent contract")
+            log = futures_contract_object.log(self.log)
+            log.warn("Tried to delete non existent contract")
 
     def delete_all_prices_for_instrument_code(
-            self, instrument_code, areyousure=False):
+            self, instrument_code:str, areyousure=False):
         # We don't pass areyousure, otherwise if we weren't sure would get
         # multiple exceptions
         if not areyousure:
@@ -475,33 +262,30 @@ class futuresContractPriceData(object):
         for contract in all_contracts_to_delete:
             self.delete_prices_for_contract_object(contract, areyousure=True)
 
+
+    def get_contracts_with_price_data(self) ->listOfFuturesContracts:
+
+        raise NotImplementedError(BASE_CLASS_ERROR)
+
+
     def _delete_prices_for_contract_object_with_no_checks_be_careful(
-        self, futures_contract_object
+        self, futures_contract_object: futuresContract
     ):
         raise NotImplementedError(BASE_CLASS_ERROR)
 
-    ## AIM TO EVENTUALLY REMOVE
-    def _perform_contract_method_for_instrument_code_and_contract_date(
-        self, instrument_code, contract_date, method_name, *args, **kwargs
+    def _write_prices_for_contract_object_no_checking(
+        self, futures_contract_object: futuresContract, futures_price_data: futuresContractPrices
     ):
-        contract_object = self._object_given_instrumentCode_and_contractDate(
-            instrument_code, contract_date
-        )
-        method = getattr(self, method_name)
 
-        return method(contract_object, *args, **kwargs)
+        raise NotImplementedError(BASE_CLASS_ERROR)
 
-    def _object_given_instrumentCode_and_contractDate(
-        self, instrument_code, contract_date
-    ):
-        """
-        Quickly go from eg "EDOLLAR" "201801" to an object
+    def _get_prices_for_contract_object_no_checking(self, contract_object: futuresContract) -> futuresContractPrices:
 
-        :param instrument_code: str
-        :param contract_date: str
-        :return: futuresContract
-        """
+        raise NotImplementedError(BASE_CLASS_ERROR)
 
-        contract_object = futuresContract(instrument_code, contract_date)
+    def _get_prices_at_frequency_for_contract_object_no_checking(
+        self, contract_object: futuresContract, freq: str
+    ) -> futuresContractPrices:
 
-        return contract_object
+        raise NotImplementedError(BASE_CLASS_ERROR)
+
