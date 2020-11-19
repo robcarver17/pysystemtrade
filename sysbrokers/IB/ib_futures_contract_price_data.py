@@ -4,7 +4,8 @@ from syscore.fileutils import get_filename_for_package
 from syscore.genutils import value_or_npnan, NOT_REQUIRED
 from syscore.objects import missing_data, missing_contract
 
-from sysbrokers.IB.ib_futures_contracts import ibFuturesContractData
+from sysbrokers.IB.ib_futures_contracts_data import ibFuturesContractData
+from sysbrokers.IB.ib_instruments_data import ibFuturesInstrumentData
 from sysbrokers.IB.ib_translate_broker_order_objects import sign_from_BS
 from sysdata.futures.futures_per_contract_prices import (
     futuresContractPriceData,
@@ -32,7 +33,7 @@ class ibFuturesContractPriceData(futuresContractPriceData):
     def __init__(self, ibconnection, log=logtoscreen(
             "ibFuturesContractPriceData")):
         self._ibconnection = ibconnection
-        self._log = log
+        super().__init__(log=log)
 
     def __repr__(self):
         return "IB Futures per contract price data %s" % str(self.ibconnection)
@@ -48,7 +49,11 @@ class ibFuturesContractPriceData(futuresContractPriceData):
 
     @property
     def futures_contract_data(self):
-        return ibFuturesContractData(self.ibconnection)
+        return ibFuturesContractData(self.ibconnection, log = self.log)
+
+    @property
+    def futures_instrument_data(self):
+        return ibFuturesInstrumentData(self.ibconnection, log = self.log)
 
     def has_data_for_contract(self, contract_object):
         """
@@ -73,7 +78,7 @@ class ibFuturesContractPriceData(futuresContractPriceData):
         :return: list of str
         """
 
-        return self.futures_contract_data.get_instruments_with_config_data()
+        return self.futures_instrument_data.get_instruments_with_config_data()
 
     def get_prices_for_contract_object(self, contract_object):
         """

@@ -7,7 +7,9 @@ import pandas as pd
 
 class csvFuturesContractData(futuresContractData):
     """
-    Get data about instruments from a special configuration used for initialising the system
+    Only used for backup purposes at the moment
+
+    Therefore, there is no 'read' or other methods as yet
 
     """
 
@@ -42,3 +44,21 @@ class csvFuturesContractData(futuresContractData):
         )
         filename = self._filename_for_instrument_code(instrument_code)
         df.to_csv(filename)
+
+    def get_list_of_contract_dates_for_instrument_code(self, instrument_code):
+        raise NotImplementedError
+
+    def get_all_contract_objects_for_instrument_code(self, instrument_code):
+        raise NotImplementedError
+
+    def _delete_contract_data_without_any_warning_be_careful(
+        self, instrument_code, contract_date
+    ):
+        raise NotImplementedError
+
+    def is_contract_in_data(self, instrument_code, contract_date):
+        raise NotImplementedError
+
+    def _add_contract_object_without_checking_for_existing_entry(
+            self, contract_object):
+        raise NotImplementedError

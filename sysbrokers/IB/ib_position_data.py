@@ -1,6 +1,8 @@
 from syslogdiag.log import logtoscreen
-from sysbrokers.IB.ib_futures_contracts import ibFuturesContractData
+from sysbrokers.IB.ib_futures_contracts_data import ibFuturesContractData
 from syscore.objects import arg_not_supplied, missing_contract
+
+from sysbrokers.IB.ib_instruments_data import ibFuturesInstrumentData
 from sysdata.production.historic_positions import contractPositionData
 from sysdata.production.current_positions import (
     listOfContractPositions,
@@ -20,7 +22,11 @@ class ibContractPositionData(contractPositionData):
 
     @property
     def futures_contract_data(self):
-        return ibFuturesContractData(self.ibconnection)
+        return ibFuturesContractData(self.ibconnection, log=self.log)
+
+    @property
+    def futures_instrument_data(self):
+        return ibFuturesInstrumentData(self.ibconnection, log = self.log)
 
     def _contract_tuple_given_contract(self, contract_object):
         key = self._keyname_given_contract_object(contract_object)
@@ -45,7 +51,7 @@ class ibContractPositionData(contractPositionData):
             contract_object)
         if actual_expiry is missing_contract:
             return 0
-        ib_symbol = self.futures_contract_data.get_brokers_instrument_code(
+        ib_symbol = self.futures_instrument_data.get_brokers_instrument_code(
             instrument_code
         )
         all_positions = self._get_all_futures_positions_as_raw_list(
@@ -68,7 +74,7 @@ class ibContractPositionData(contractPositionData):
                           for position_entry in all_positions]
         unique_ib_symbols = list(set(all_ib_symbols))
         resolved_instrument_codes = sorted([
-            self.futures_contract_data.get_instrument_code_from_broker_code(ib_code)
+            self.futures_instrument_data.get_instrument_code_from_broker_code(ib_code)
             for ib_code in unique_ib_symbols
         ])
 
@@ -84,7 +90,7 @@ class ibContractPositionData(contractPositionData):
         for position_entry in all_positions:
             ib_code = position_entry["symbol"]
             instrument_code = (
-                self.futures_contract_data.get_instrument_code_from_broker_code(ib_code))
+                self.futures_instrument_data.get_instrument_code_from_broker_code(ib_code))
             expiry = position_entry["expiry"]
             position = position_entry["position"]
             if position == 0:

@@ -15,11 +15,10 @@ from syslogdiag.log import logtoscreen
 
 from sysbrokers.IB.ib_trading_hours import get_trading_hours
 from sysbrokers.IB.ib_contracts import (
-    ib_futures_instrument,
-    resolve_multiple_expiries,
-    ib_futures_instrument_just_symbol,
-    futuresInstrumentWithIBData
+    resolve_multiple_expiries
 )
+from sysbrokers.IB.ib_instruments import ib_futures_instrument_just_symbol, futuresInstrumentWithIBConfigData, \
+    ib_futures_instrument
 from sysbrokers.IB.ib_positions import (
     from_ib_positions_to_dict,
     resolveBS,
@@ -131,7 +130,7 @@ class ibClient(object):
         return dict_of_positions
 
     def broker_get_futures_contract_list(
-            self, futures_instrument_with_ib_data: futuresInstrumentWithIBData):
+            self, futures_instrument_with_ib_data: futuresInstrumentWithIBConfigData):
 
         specific_log = self.log.setup(
             instrument_code=futures_instrument_with_ib_data.instrument_code
@@ -722,7 +721,7 @@ class ibClient(object):
         return ibcontract_with_legs
 
     def _get_vanilla_ib_futures_contract(
-        self, futures_instrument_with_ib_data: futuresInstrumentWithIBData, contract_date
+        self, futures_instrument_with_ib_data: futuresInstrumentWithIBConfigData, contract_date
     ):
         """
         Return a complete and unique IB contract that matches contract_object_with_ib_data
@@ -776,7 +775,7 @@ class ibClient(object):
 
     def _get_spread_ib_futures_contract(
         self,
-        futures_instrument_with_ib_data: futuresInstrumentWithIBData,
+        futures_instrument_with_ib_data: futuresInstrumentWithIBConfigData,
         contract_date,
         trade_list_for_multiple_legs=[-1, 1],
     ):

@@ -2,7 +2,8 @@ import datetime
 
 from copy import copy
 
-from sysbrokers.IB.ib_futures_contracts import ibFuturesContractData
+from sysbrokers.IB.ib_futures_contracts_data import ibFuturesContractData
+from sysbrokers.IB.ib_instruments_data import ibFuturesInstrumentData
 from sysbrokers.IB.ib_translate_broker_order_objects import (
     create_broker_order_from_control_object,
 )
@@ -99,6 +100,11 @@ class ibOrdersData(brokerOrderStackData):
     def futures_contract_data(self):
         return ibFuturesContractData(self.ibconnection)
 
+    @property
+    def futures_instrument_data(self):
+        return ibFuturesInstrumentData(self.ibconnection)
+
+
     def get_list_of_broker_orders(self, account_id=arg_not_supplied):
         """
         Get list of broker orders from IB, and return as my broker_order objects
@@ -149,7 +155,7 @@ class ibOrdersData(brokerOrderStackData):
         :return: brokerOrder
         """
         instrument_code = (
-            self.futures_contract_data.get_instrument_code_from_broker_code(
+            self.futures_instrument_data.get_instrument_code_from_broker_code(
                 broker_trade_object_results.ib_instrument_code
             )
         )

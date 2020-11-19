@@ -7,7 +7,8 @@ from collections import namedtuple
 from sysbrokers.IB.ib_capital_data import ibCapitalData
 from sysbrokers.IB.ib_spot_FX_data import ibFxPricesData
 from sysbrokers.IB.ib_futures_contract_price_data import ibFuturesContractPriceData
-from sysbrokers.IB.ib_futures_contracts import ibFuturesContractData
+from sysbrokers.IB.ib_futures_contracts_data import ibFuturesContractData
+from sysbrokers.IB.ib_instruments_data import ibFuturesInstrumentData
 from sysbrokers.IB.ib_position_data import ibContractPositionData
 from sysbrokers.IB.ib_orders import ibOrdersData
 from sysbrokers.IB.ib_misc_data import ibMiscData
@@ -39,7 +40,8 @@ class dataBroker(object):
 
         data.add_class_list([
             ibFxPricesData, ibFuturesContractPriceData, ibFuturesContractData,
-        ibContractPositionData, ibOrdersData, ibMiscData, ibCapitalData]
+        ibContractPositionData, ibOrdersData, ibMiscData, ibCapitalData,
+        ibFuturesInstrumentData]
         )
         self.data = data
 
@@ -90,7 +92,7 @@ class dataBroker(object):
             contract_object)
 
     def get_brokers_instrument_code(self, instrument_code):
-        return self.data.broker_futures_contract.get_brokers_instrument_code(
+        return self.data.broker_futures_instrument.get_brokers_instrument_code(
             instrument_code
         )
 
