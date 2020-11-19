@@ -10,7 +10,7 @@ from sysbrokers.IB.ib_futures_contract_price_data import ibFuturesContractPriceD
 from sysbrokers.IB.ib_futures_contracts_data import ibFuturesContractData
 from sysbrokers.IB.ib_instruments_data import ibFuturesInstrumentData
 from sysbrokers.IB.ib_position_data import ibContractPositionData
-from sysbrokers.IB.ib_orders import ibOrdersData
+from sysbrokers.IB.ib_orders_data import ibOrdersData
 from sysbrokers.IB.ib_misc_data import ibMiscData
 
 from syscore.objects import missing_data, arg_not_supplied, missing_order, missing_contract

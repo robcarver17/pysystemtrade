@@ -3,7 +3,7 @@ Populate a mongo DB collection with roll data from a csv
 """
 
 from sysdata.mongodb.mongo_roll_data import mongoRollParametersData
-from sysdata.csv.rolldata_from_csv import csvRollParametersData
+from sysdata.csv.csv_roll_parameters import csvRollParametersData
 
 data_out = mongoRollParametersData()
 data_in = csvRollParametersData()

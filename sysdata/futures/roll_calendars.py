@@ -1,4 +1,4 @@
-
+from sysdata.base_data import baseData
 from sysobjects.roll_calendars import rollCalendar
 from syslogdiag.log import logtoscreen
 
@@ -7,7 +7,7 @@ USE_CHILD_CLASS_ROLL_CALENDAR_ERROR = (
 )
 
 
-class rollCalendarData(object):
+class rollCalendarData(baseData):
     """
     Class to read / write roll calendars
 

@@ -154,6 +154,8 @@ class _rollCalendarRow(dict):
                  carry_contract: str):
         # a dict because pd.DataFrame can handle those
         # plus a hidden storage of the actual contract
+
+        super().__init__({})
         if current_roll_date is not None:
             self[INDEX_NAME] = current_roll_date
             self['current_contract'] = current_contract
