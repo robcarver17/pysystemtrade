@@ -98,7 +98,7 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
 
         all_keynames = self._all_keynames_in_library()
         list_of_contract_tuples = [
-            from_key_to_tuple(keyname[0])
+            from_key_to_tuple(keyname)
             for keyname in all_keynames
         ]
 
