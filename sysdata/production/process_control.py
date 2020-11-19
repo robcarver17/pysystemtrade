@@ -172,7 +172,7 @@ class controlProcess(object):
 
 class controlProcessData(baseData):
     def __init__(self, log=logtoscreen("controlProcessData")):
-        self.log = log
+        super().__init__(log=log)
         self._control_store = dict()
 
     def get_dict_of_control_processes(self):

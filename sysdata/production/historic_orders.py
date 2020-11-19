@@ -75,7 +75,7 @@ class listOfFills(list):
 
 class genericOrdersData(baseData):
     def __init__(self, log=logtoscreen("")):
-        self.log = log
+        super().__init__(log=log)
         self._dict = {}
 
     def __repr__(self):
