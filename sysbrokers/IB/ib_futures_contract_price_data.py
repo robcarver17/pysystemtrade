@@ -1,5 +1,4 @@
 import pandas as pd
-from syscore.fileutils import get_filename_for_package
 from syscore.objects import missing_data, missing_contract
 
 from sysbrokers.IB.ib_futures_contracts_data import ibFuturesContractData
@@ -15,9 +14,6 @@ from sysexecution.tick_data import tickerObject
 from sysexecution.contract_orders import contractOrder
 
 from syslogdiag.log import logtoscreen
-
-IB_FUTURES_CONFIG_FILE = get_filename_for_package(
-    "sysbrokers.IB.ib_config_futures.csv")
 
 
 class ibTickerObject(tickerObject):

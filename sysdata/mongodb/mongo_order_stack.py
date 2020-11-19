@@ -34,7 +34,7 @@ class mongoOrderStackData(orderStackData):
 
         # this won't create the index if it already exists
         self._mongo.create_index("order_id")
-        self.log = log
+        super().__init__(log=log)
 
     @property
     def _name(self):

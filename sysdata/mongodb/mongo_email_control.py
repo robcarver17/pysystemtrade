@@ -28,7 +28,11 @@ class mongoEmailControlData(emailControlData):
                 self._mongo.port,
             )
         )
-        self.log = log
+        self._log = log
+
+    @property
+    def log(self):
+        return self._log
 
     def get_time_last_email_sent_with_this_subject(self, subject):
         result_as_datetime = self._get_time_last_email_of_type_sent_with_this_subject(
