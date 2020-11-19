@@ -11,7 +11,7 @@ IB_CCY_CONFIG_FILE = get_filename_for_package(
 class ibFxPricesData(fxPricesData):
     def __init__(self, ibconnection, log=logtoscreen("ibFxPricesData")):
         setattr(self, "ibconnection", ibconnection)
-        setattr(self, "log", log)
+        super().__init__(log=log)
 
     def __repr__(self):
         return "IB FX price data"
