@@ -1,3 +1,7 @@
+from sysdata.base_data import baseData
+from sysobjects.contracts import futuresContract, listOfFuturesContracts
+from sysobjects.contract_dates_and_expiries import listOfContractDateStr
+
 USE_CHILD_CLASS_ERROR = "You need to use a child class of futuresContractData"
 
 class ContractNotFound(Exception):
@@ -5,7 +9,7 @@ class ContractNotFound(Exception):
 
 from syslogdiag.log import logtoscreen
 
-class futuresContractData(object):
+class futuresContractData(baseData):
     """
     Read and write data class to get futures contract data
 
@@ -17,22 +21,18 @@ class futuresContractData(object):
     """
 
     def __init__(self, log=logtoscreen("futuresInstrumentData")):
-        self._log = log
 
-    @property
-    def log(self):
-        return self._log
+        super().__init__(log=log)
+
 
     def __repr__(self):
         return "Individual futures contract data - DO NOT USE"
 
-    def get_list_of_contract_dates_for_instrument_code(self, instrument_code):
-        raise NotImplementedError(USE_CHILD_CLASS_ERROR)
+    def __getitem__(self, key_tuple: tuple):
+        (instrument_code, contract_date) = key_tuple
+        return self.get_contract_object(instrument_code, contract_date)
 
-    def get_all_contract_objects_for_instrument_code(self, instrument_code):
-        raise NotImplementedError(USE_CHILD_CLASS_ERROR)
-
-    def get_contract_object(self, instrument_code, contract_id):
+    def get_contract_object(self, instrument_code: str, contract_id: str) -> futuresContract:
         if self.is_contract_in_data(instrument_code, contract_id):
             return self._get_contract_data_without_checking(
                 instrument_code, contract_id
@@ -40,19 +40,13 @@ class futuresContractData(object):
         else:
             raise ContractNotFound("Contract %s/%s not found" % (instrument_code, contract_id))
 
-    def _get_contract_data_without_checking(
-            self, instrument_code, contract_date):
-        raise NotImplementedError(USE_CHILD_CLASS_ERROR)
-
-    def __getitem__(self, key_tuple):
-        (instrument_code, contract_date) = key_tuple
-        return self.get_contract_object(instrument_code, contract_date)
 
     def delete_contract_data(
             self,
-            instrument_code,
-            contract_date,
+            instrument_code: str,
+            contract_date: str,
             are_you_sure=False):
+
         self.log.label(
             instrument_code=instrument_code,
             contract_date=contract_date)
@@ -72,13 +66,8 @@ class futuresContractData(object):
                 "You need to call delete_contract_data with a flag to be sure"
             )
 
-    def _delete_contract_data_without_any_warning_be_careful(
-        self, instrument_code, contract_date
-    ):
-        raise NotImplementedError(USE_CHILD_CLASS_ERROR)
-
     def delete_all_contracts_for_instrument(
-        self, instrument_code, areyoureallysure=False
+        self, instrument_code: str, areyoureallysure=False
     ):
         if not areyoureallysure:
             raise Exception(
@@ -92,10 +81,8 @@ class futuresContractData(object):
             self.delete_contract_data(
                 instrument_code, contract_date, are_you_sure=True)
 
-    def is_contract_in_data(self, instrument_code, contract_date):
-        raise NotImplementedError
 
-    def add_contract_data(self, contract_object, ignore_duplication=False):
+    def add_contract_data(self, contract_object: futuresContract, ignore_duplication: bool=False):
 
         instrument_code = contract_object.instrument_code
         contract_date = contract_object.date_str
@@ -119,6 +106,25 @@ class futuresContractData(object):
             "Added contract %s %s" %
             (instrument_code, contract_date))
 
+
+    def get_list_of_contract_dates_for_instrument_code(self, instrument_code: str) ->listOfContractDateStr:
+        raise NotImplementedError(USE_CHILD_CLASS_ERROR)
+
+    def get_all_contract_objects_for_instrument_code(self, instrument_code: str) ->listOfFuturesContracts:
+        raise NotImplementedError(USE_CHILD_CLASS_ERROR)
+
+    def _get_contract_data_without_checking(
+            self, instrument_code: str, contract_date: str) -> futuresContract:
+        raise NotImplementedError(USE_CHILD_CLASS_ERROR)
+
+    def _delete_contract_data_without_any_warning_be_careful(
+        self, instrument_code: str, contract_date: str
+    ):
+        raise NotImplementedError(USE_CHILD_CLASS_ERROR)
+
+    def is_contract_in_data(self, instrument_code:str, contract_date: str) -> bool:
+        raise NotImplementedError
+
     def _add_contract_object_without_checking_for_existing_entry(
-            self, contract_object):
+            self, contract_object: futuresContract):
         raise NotImplementedError(USE_CHILD_CLASS_ERROR)

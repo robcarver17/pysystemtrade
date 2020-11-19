@@ -1,5 +1,5 @@
 from syscore.objects import _named_object
-from sysdata.data import baseData
+from sysdata.base_data import baseData
 from syslogdiag.log import logtoscreen
 
 roll_states = [

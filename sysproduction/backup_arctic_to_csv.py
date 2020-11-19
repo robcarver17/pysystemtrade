@@ -17,7 +17,7 @@ from sysdata.csv.csv_strategy_position_data import csvStrategyPositionData
 from sysdata.csv.csv_historic_orders import csvStrategyHistoricOrdersData, csvContractHistoricOrdersData, csvBrokerHistoricOrdersData
 from sysdata.csv.csv_capital_data import csvCapitalData
 from sysdata.csv.csv_optimal_position import csvOptimalPositionData
-from sysdata.csv.csv_instrument_config import csvFuturesInstrumentData
+from sysdata.csv.csv_instrument_data import csvFuturesInstrumentData
 from sysdata.csv.csv_roll_state_storage import csvRollStateData
 
 from sysdata.arctic.arctic_futures_per_contract_prices import arcticFuturesContractPriceData

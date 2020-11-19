@@ -7,7 +7,7 @@ import os
 
 import pandas as pd
 
-from sysdata.data import simData
+from sysdata.base_data import simData
 from sysdata.futures.futuresDataForSim import (
     futuresAdjustedPriceData,
     futuresConfigDataForSim,
@@ -16,7 +16,7 @@ from sysdata.futures.futuresDataForSim import (
 from sysdata.csv.csv_multiple_prices import csvFuturesMultiplePricesData
 from sysdata.csv.csv_adjusted_prices import csvFuturesAdjustedPricesData
 from sysdata.csv.csv_spot_fx import csvFxPricesData
-from sysdata.csv.csv_instrument_config import csvFuturesInstrumentData
+from sysdata.csv.csv_instrument_data import csvFuturesInstrumentData
 
 """
 Static variables to store location of data

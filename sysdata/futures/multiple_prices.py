@@ -16,7 +16,7 @@ import numpy as np
 
 from copy import copy
 
-from sysdata.data import baseData
+from sysdata.base_data import baseData
 from sysobjects.dict_of_named_futures_per_contract_prices import price_column_names, list_of_price_column_names, \
     contract_name_from_column_name, contract_column_names, list_of_contract_column_names, \
     futuresNamedContractFinalPricesWithContractID, setOfNamedContracts, dictFuturesNamedContractFinalPricesWithContractID

@@ -12,6 +12,13 @@ from sysbrokers.IB.ib_instruments import NOT_REQUIRED_FOR_IB, ibInstrumentConfig
 IB_FUTURES_CONFIG_FILE = get_filename_for_package(
     "sysbrokers.IB.ib_config_futures.csv")
 
+class IBconfig(pd.DataFrame):
+    pass
+
+def read_ib_config_from_file() -> pd.DataFrame:
+    df = pd.read_csv(IB_FUTURES_CONFIG_FILE)
+    return IBconfig(df)
+
 
 class ibFuturesInstrumentData(futuresInstrumentData):
     """
@@ -33,11 +40,11 @@ class ibFuturesInstrumentData(futuresInstrumentData):
     def ibconnection(self):
         return self._ibconnection
 
-    def get_brokers_instrument_code(self, instrument_code):
+    def get_brokers_instrument_code(self, instrument_code:str) -> str:
         futures_instrument_with_ib_data = self.get_futures_instrument_object_with_IB_data(instrument_code)
         return futures_instrument_with_ib_data.broker_symbol
 
-    def get_instrument_code_from_broker_code(self, ib_code):
+    def get_instrument_code_from_broker_code(self, ib_code: str) -> str:
         config = self._get_ib_config()
         config_row = config[config.IBSymbol == ib_code]
         if len(config_row) == 0:
@@ -54,11 +61,14 @@ class ibFuturesInstrumentData(futuresInstrumentData):
 
         return config_row.iloc[0].Instrument
 
-    def get_futures_instrument_object_with_IB_data(self, instrument_code) ->futuresInstrumentWithIBConfigData:
+    def _get_instrument_data_without_checking(self, instrument_code: str):
+        return self.get_futures_instrument_object_with_IB_data(instrument_code)
+
+    def get_futures_instrument_object_with_IB_data(self, instrument_code:str) ->futuresInstrumentWithIBConfigData:
         new_log = self.log.setup(instrument_code=instrument_code)
 
         try:
-            assert instrument_code in self.get_instruments_with_config_data()
+            assert instrument_code in self.get_list_of_instruments()
         except:
             new_log.warn(
                 "Instrument %s is not in IB configuration file" %
@@ -78,7 +88,7 @@ class ibFuturesInstrumentData(futuresInstrumentData):
 
         return instrument_object
 
-    def get_instruments_with_config_data(self):
+    def get_list_of_instruments(self):
         """
         Get instruments that have price data
         Pulls these in from a config file
@@ -97,18 +107,28 @@ class ibFuturesInstrumentData(futuresInstrumentData):
 
         return instrument_list
 
+    def _delete_instrument_data_without_any_warning_be_careful(self,
+            instrument_code: str):
+        raise NotImplementedError("IB instrument config is read only - manually edit .csv file %s" % IB_FUTURES_CONFIG_FILE)
+
+    def _add_instrument_data_without_checking_for_existing_entry(
+        self, instrument_object
+    ):
+        raise NotImplementedError(
+            "IB instrument config is read only - manually edit .csv file %s" % IB_FUTURES_CONFIG_FILE)
+
     # Configuration read in and cache
-    def _get_ib_config(self):
+    def _get_ib_config(self) -> IBconfig:
         config = getattr(self, "_config", None)
         if config is None:
-            self._config = config = self._get_and_set_ib_config_from_file()
+            config = self._get_and_set_ib_config_from_file()
 
         return config
 
-    def _get_and_set_ib_config_from_file(self):
+    def _get_and_set_ib_config_from_file(self) -> IBconfig:
 
         try:
-            config_data = get_ib_config()
+            config_data = read_ib_config_from_file()
         except BaseException:
             self.log.warn("Can't read file %s" % IB_FUTURES_CONFIG_FILE)
             config_data = missing_file
@@ -118,9 +138,11 @@ class ibFuturesInstrumentData(futuresInstrumentData):
         return config_data
 
 
-def get_instrument_object_from_config(instrument_code: str, config=None) ->futuresInstrumentWithIBConfigData:
+def get_instrument_object_from_config(instrument_code: str,
+                                      config: IBconfig=None) ->futuresInstrumentWithIBConfigData:
     if config is None:
-        config = get_ib_config()
+        config = read_ib_config_from_file()
+
     config_row = config[config.Instrument == instrument_code]
     symbol = config_row.IBSymbol.values[0]
     exchange = config_row.IBExchange.values[0]
@@ -143,6 +165,3 @@ def get_instrument_object_from_config(instrument_code: str, config=None) ->futur
 
     return futures_instrument_with_ib_data
 
-
-def get_ib_config():
-    return pd.read_csv(IB_FUTURES_CONFIG_FILE)

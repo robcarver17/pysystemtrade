@@ -2,14 +2,15 @@
 Read / write and represent instrument data
 """
 
-
+import pandas as pd
+from sysdata.base_data import baseData
 from sysobjects.instruments import futuresInstrumentWithMetaData, listOffuturesInstrumentWithMetaData
 from syslogdiag.log import logtoscreen
 
 USE_CHILD_CLASS_ERROR = "You need to use a child class of futuresInstrumentData"
 
 
-class futuresInstrumentData(object):
+class futuresInstrumentData(baseData):
     """
     Read and write data class to get instrument data
 
@@ -21,16 +22,15 @@ class futuresInstrumentData(object):
         return "futuresInstrumentData base class - DO NOT USE"
 
     def __init__(self, log=logtoscreen("futuresInstrumentData")):
-        self._log = log
+        super().__init__(log=log)
 
-    @property
-    def log(self):
-        return self._log
-
-    def keys(self):
+    def keys(self) -> list:
         return self.get_list_of_instruments()
 
-    def get_all_instrument_data_as_list_of_instrument_objects(self):
+    def __getitem__(self, instrument_code: str):
+        return self.get_instrument_data(instrument_code)
+
+    def get_all_instrument_data_as_list_of_instrument_objects(self) -> listOffuturesInstrumentWithMetaData:
         all_instrument_codes = self.get_list_of_instruments()
         all_instrument_objects = [
             self.get_instrument_data(instrument_code)
@@ -40,7 +40,7 @@ class futuresInstrumentData(object):
 
         return list_of_instrument_objects
 
-    def get_all_instrument_data_as_df(self):
+    def get_all_instrument_data_as_df(self) -> pd.DataFrame:
         """
         Gets information about all instruments
 
@@ -54,22 +54,14 @@ class futuresInstrumentData(object):
 
         return list_as_df
 
-    def get_list_of_instruments(self):
-        raise NotImplementedError(USE_CHILD_CLASS_ERROR)
-
-    def get_instrument_data(self, instrument_code):
+    def get_instrument_data(self, instrument_code: str) ->futuresInstrumentWithMetaData:
         if self.is_code_in_data(instrument_code):
             return self._get_instrument_data_without_checking(instrument_code)
         else:
             return futuresInstrumentWithMetaData.create_empty()
 
-    def _get_instrument_data_without_checking(self, instrument_code):
-        raise NotImplementedError(USE_CHILD_CLASS_ERROR)
 
-    def __getitem__(self, instrument_code):
-        return self.get_instrument_data(instrument_code)
-
-    def delete_instrument_data(self, instrument_code, are_you_sure=False):
+    def delete_instrument_data(self, instrument_code: str, are_you_sure: bool=False):
         self.log.label(instrument_code=instrument_code)
 
         if are_you_sure:
@@ -89,17 +81,15 @@ class futuresInstrumentData(object):
                 "You need to call delete_instrument_data with a flag to be sure"
             )
 
-    def _delete_instrument_data_without_any_warning_be_careful(self,
-            instrument_code):
-        raise NotImplementedError(USE_CHILD_CLASS_ERROR)
-
-    def is_code_in_data(self, instrument_code):
+    def is_code_in_data(self, instrument_code: str) -> bool:
         if instrument_code in self.get_list_of_instruments():
             return True
         else:
             return False
 
-    def add_instrument_data(self, instrument_object, ignore_duplication=False):
+
+    def add_instrument_data(self, instrument_object: futuresInstrumentWithMetaData,
+                            ignore_duplication:bool=False):
         instrument_code = instrument_object.instrument_code
 
         self.log.label(instrument_code=instrument_code)
@@ -119,7 +109,20 @@ class futuresInstrumentData(object):
             "Added instrument object %s" %
             instrument_object.instrument_code)
 
+    def get_list_of_instruments(self):
+        raise NotImplementedError(USE_CHILD_CLASS_ERROR)
+
+
+    def _get_instrument_data_without_checking(self, instrument_code: str):
+        raise NotImplementedError(USE_CHILD_CLASS_ERROR)
+
+
+    def _delete_instrument_data_without_any_warning_be_careful(self,
+            instrument_code: str):
+        raise NotImplementedError(USE_CHILD_CLASS_ERROR)
+
+
     def _add_instrument_data_without_checking_for_existing_entry(
-        self, instrument_object
+        self, instrument_object: futuresInstrumentWithMetaData
     ):
         raise NotImplementedError(USE_CHILD_CLASS_ERROR)

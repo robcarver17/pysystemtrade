@@ -1,6 +1,6 @@
 from syscore.fileutils import get_filename_for_package
 from syscore.objects import arg_not_supplied
-from sysdata.futures.contracts import futuresContractData
+from sysdata.futures.contracts import futuresContractData, listOfFuturesContracts
 from syslogdiag.log import logtoscreen
 import pandas as pd
 
@@ -21,16 +21,21 @@ class csvFuturesContractData(futuresContractData):
         if datapath is arg_not_supplied:
             raise Exception("Need to pass datapath")
 
-        self.datapath = datapath
-        self.name = "Instruments data from %s" % self.datapath
+        self._datapath = datapath
 
+    def __repr__(self):
+        return "Instruments data from %s" % self.datapath
 
-    def _filename_for_instrument_code(self, instrument_code):
+    @property
+    def datapath(self):
+        return self._datapath
+
+    def _filename_for_instrument_code(self, instrument_code:str):
         return get_filename_for_package(
             self.datapath, "%s.csv" %
             instrument_code)
 
-    def write_contract_list_as_df(self, instrument_code, contract_list):
+    def write_contract_list_as_df(self, instrument_code: str, contract_list: listOfFuturesContracts):
         list_of_expiry = [x.expiry_date.as_str() for x in contract_list]
         list_of_contract_date = [x.date_str for x in contract_list]
         list_of_sampling = [x.currently_sampling for x in contract_list]
@@ -49,16 +54,21 @@ class csvFuturesContractData(futuresContractData):
         raise NotImplementedError
 
     def get_all_contract_objects_for_instrument_code(self, instrument_code):
-        raise NotImplementedError
+        raise NotImplementedError("used for backup only no read methods")
 
     def _delete_contract_data_without_any_warning_be_careful(
         self, instrument_code, contract_date
     ):
-        raise NotImplementedError
+        raise NotImplementedError(".csv are read only")
 
     def is_contract_in_data(self, instrument_code, contract_date):
-        raise NotImplementedError
+        raise NotImplementedError("used for backup only no read methods")
 
     def _add_contract_object_without_checking_for_existing_entry(
             self, contract_object):
-        raise NotImplementedError
+        raise NotImplementedError(".csv can only write contract list en bloc use write_contract_list_as_df")
+
+    def _get_contract_data_without_checking(
+            self, instrument_code: str, contract_date: str):
+
+        raise NotImplementedError("used for backup only no read methods")

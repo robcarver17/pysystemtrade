@@ -4,7 +4,7 @@ Get data from mongo and arctic used for futures trading
 """
 
 from syscore.objects import arg_not_supplied
-from sysdata.data import simData
+from sysdata.base_data import simData
 from sysdata.futures.futuresDataForSim import (
     futuresAdjustedPriceData,
     futuresConfigDataForSim,

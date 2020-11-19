@@ -1,6 +1,6 @@
 import pandas as pd
 
-from sysdata.data import simData
+from sysdata.base_data import simData
 
 OVERIDE_ERROR = "You probably need to replace this method to do anything useful"
 

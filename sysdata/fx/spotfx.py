@@ -5,7 +5,7 @@ Spot fx prices
 import pandas as pd
 import datetime
 
-from sysdata.data import baseData
+from sysdata.base_data import baseData
 from syscore.pdutils import merge_newer_data, full_merge_of_existing_data
 from syscore.objects import data_error
 from collections import namedtuple

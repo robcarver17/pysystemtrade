@@ -298,7 +298,7 @@ class ibClient(object):
         return account_summary_dict[account_id]["NetLiquidation"]
 
     def broker_get_contract_expiry_date(
-            self, contract_object_with_ib_data):
+            self, contract_object_with_ib_data) -> str:
         """
         Return the exact expiry date for a given contract
 

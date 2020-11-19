@@ -78,7 +78,7 @@ class ibFuturesContractPriceData(futuresContractPriceData):
         :return: list of str
         """
 
-        return self.futures_instrument_data.get_instruments_with_config_data()
+        return self.futures_instrument_data.get_list_of_instruments()
 
     def get_prices_for_contract_object(self, contract_object):
         """

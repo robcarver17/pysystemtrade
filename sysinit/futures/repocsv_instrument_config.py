@@ -5,7 +5,7 @@ NOTE: THIS DIFFERS FROM 'INSTRUMENTS_CSV_MONGO' AS IT USES THE CONFIG FILE IN 'd
 """
 
 from sysdata.mongodb.mongo_futures_instruments import mongoFuturesInstrumentData
-from sysdata.csv.csv_instrument_config import csvFuturesInstrumentData
+from sysdata.csv.csv_instrument_data import csvFuturesInstrumentData
 
 data_out = mongoFuturesInstrumentData()
 data_in = csvFuturesInstrumentData()

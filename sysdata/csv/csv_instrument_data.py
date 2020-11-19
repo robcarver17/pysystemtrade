@@ -24,16 +24,20 @@ class csvFuturesInstrumentData(futuresInstrumentData):
 
         if datapath is None:
             datapath = INSTRUMENT_CONFIG_PATH
-
-        self._config_file = get_filename_for_package(
+        config_file =get_filename_for_package(
             datapath, CONFIG_FILE_NAME)
-        self.name = "Instruments data from %s" % self._config_file
+        self._config_file = config_file
 
-    def _load_instrument_csv_as_df(self):
+    @property
+    def config_file(self):
+        return self._config_file
+
+
+    def _load_instrument_csv_as_df(self) -> pd.DataFrame:
         try:
-            config_data = pd.read_csv(self._config_file)
+            config_data = pd.read_csv(self.config_file)
         except BaseException:
-            raise Exception("Can't read file %s" % self._config_file)
+            raise Exception("Can't read file %s" % self.config_file)
 
         try:
             config_data.index = config_data.Instrument
@@ -45,7 +49,7 @@ class csvFuturesInstrumentData(futuresInstrumentData):
         return config_data
 
 
-    def get_all_instrument_data_as_df(self):
+    def get_all_instrument_data_as_df(self) -> pd.DataFrame:
         """
         Get configuration information as a dataframe
 
@@ -55,21 +59,33 @@ class csvFuturesInstrumentData(futuresInstrumentData):
         return config_data
 
     def __repr__(self):
-        return self.name
+        return "Instruments data from %s" % self._config_file
 
-    def get_list_of_instruments(self):
+    def get_list_of_instruments(self) -> list:
         return list(self.get_all_instrument_data_as_df().index)
 
-    def _get_instrument_data_without_checking(self, instrument_code):
+    def _get_instrument_data_without_checking(self, instrument_code:str) -> futuresInstrumentWithMetaData:
         all_instrument_data = self.get_all_instrument_data_as_df()
         instrument_with_meta_data = get_instrument_with_meta_data_object(all_instrument_data, instrument_code)
 
         return instrument_with_meta_data
 
-    def write_all_instrument_data_from_df(self, instrument_data_as_df):
+    def _delete_instrument_data_without_any_warning_be_careful(self,
+            instrument_code: str):
+        raise NotImplementedError("Can't overwrite part of .csv use write_all_instrument_data_from_df")
+
+
+    def _add_instrument_data_without_checking_for_existing_entry(
+        self, instrument_object: futuresInstrumentWithMetaData
+    ):
+        raise NotImplementedError("Can't overwrite part of .csv use write_all_instrument_data_from_df")
+
+
+    def write_all_instrument_data_from_df(self, instrument_data_as_df: pd.DataFrame):
         instrument_data_as_df.to_csv(self._config_file, index_label="Instrument")
 
-def get_instrument_with_meta_data_object(all_instrument_data, instrument_code):
+def get_instrument_with_meta_data_object(all_instrument_data: pd.DataFrame,
+                                         instrument_code: str) -> futuresInstrumentWithMetaData:
     config_for_this_instrument = all_instrument_data.loc[instrument_code]
     config_items = all_instrument_data.columns
 
@@ -82,7 +98,7 @@ def get_instrument_with_meta_data_object(all_instrument_data, instrument_code):
 
     return instrument_with_meta_data
 
-def get_meta_data_dict_for_instrument(config_for_this_instrument, config_items):
+def get_meta_data_dict_for_instrument(config_for_this_instrument: pd.DataFrame, config_items: list):
     meta_data = dict(
         [
             (item_name, getattr(config_for_this_instrument, item_name))

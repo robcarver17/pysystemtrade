@@ -12,7 +12,7 @@ from copy import copy
 
 from syscore.objects import _named_object
 from syscore.pdutils import full_merge_of_existing_series
-from sysdata.data import baseData
+from sysdata.base_data import baseData
 from sysobjects.dict_of_named_futures_per_contract_prices import price_column_names, contract_column_names, \
     futuresNamedContractFinalPricesWithContractID
 

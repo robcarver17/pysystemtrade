@@ -12,7 +12,7 @@ from syscore.objects import (
     failure,
     resolve_function,
 )
-from sysdata.data import baseData
+from sysdata.base_data import baseData
 from syslogdiag.log import logtoscreen
 
 

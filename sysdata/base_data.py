@@ -33,25 +33,16 @@ class baseData(object):
         >>> data
         simData object
         """
-        # this will normally be overriden by the base system
-        setattr(self, "log", log)
+
+        self._log = log
 
     def __repr__(self):
         return "simData object"
 
-    def _system_init(self, base_system):
-        """
-        This is run when added to a base system
+    @property
+    def log(self):
+        return self._log
 
-        :param base_system
-        :return: nothing
-        """
-
-        # inherit the log
-        setattr(self, "log", base_system.log.setup(stage="data"))
-
-    def methods(self):
-        return get_methods(self)
 
     def __getitem__(self, keyname):
         """
@@ -77,7 +68,10 @@ class baseData(object):
         >>> data.keys()
         []
         """
-        return []
+
+        raise Exception(
+            "keys() not defined for baseData class: use a class where it has been overriden"
+        )
 
 
 class simData(baseData):
@@ -103,6 +97,20 @@ class simData(baseData):
     def __repr__(self):
         return "simData object with %d instruments" % len(
             self.get_instrument_list())
+
+    def _system_init(self, base_system):
+        """
+        This is run when added to a base system
+
+        :param base_system
+        :return: nothing
+        """
+
+        # inherit the log
+        setattr(self, "log", base_system.log.setup(stage="data"))
+
+    def methods(self):
+        return get_methods(self)
 
     def daily_prices(self, instrument_code):
         """

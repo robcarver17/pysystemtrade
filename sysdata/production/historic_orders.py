@@ -19,7 +19,7 @@ import pandas as pd
 
 from syscore.objects import arg_not_supplied, missing_order, success, failure
 
-from sysdata.data import baseData
+from sysdata.base_data import baseData
 from sysobjects.contracts import futuresContract
 
 from sysexecution.contract_orders import contractTradeableObject

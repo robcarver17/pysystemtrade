@@ -12,7 +12,7 @@ A mean reversion style class would include price buffers
 import pandas as pd
 
 from syscore.objects import arg_not_supplied, failure, success, missing_data
-from sysdata.data import baseData
+from sysdata.base_data import baseData
 from syslogdiag.log import logtoscreen
 from sysdata.production.generic_timed_storage import (
     timedEntry,
