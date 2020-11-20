@@ -1,13 +1,29 @@
+from dataclasses import  dataclass
 import pandas as pd
 from copy import copy
 
 from sysdata.fx.spotfx import fxPricesData
 from sysobjects.spot_fx_prices import fxPrices
 from syscore.fileutils import get_filename_for_package, files_with_extension_in_pathname
+from syscore.objects import arg_not_supplied
 from syscore.pdutils import pd_readcsv, DEFAULT_DATE_FORMAT
 from syslogdiag.log import logtoscreen
 
 FX_PRICES_DIRECTORY = "data.futures.fx_prices_csv"
+
+
+@dataclass
+class ConfigCsvFXPrices:
+    """
+            :param price_column: Column where spot FX prices are
+        :param date_column: Column where dates are
+        :param date_format: Format for dates https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior
+
+    """
+    date_column: str = "DATETIME",
+    date_format: str = DEFAULT_DATE_FORMAT,
+    price_column: str = "PRICE",
+
 
 
 class csvFxPricesData(fxPricesData):
@@ -18,50 +34,55 @@ class csvFxPricesData(fxPricesData):
 
     def __init__(
         self,
-        datapath=None,
+        datapath=arg_not_supplied,
         log=logtoscreen("csvFxPricesData"),
-        price_column="PRICE",
-        date_column="DATETIME",
-        date_format=DEFAULT_DATE_FORMAT,
+        config: ConfigCsvFXPrices = arg_not_supplied
     ):
         """
         Get FX data from a .csv file
 
         :param datapath: Path where csv files are located
         :param log: logging object
-        :param price_column: Column where spot FX prices are
-        :param date_column: Column where dates are
-        :param date_format: Format for dates https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior
         """
 
         super().__init__(log=log)
 
-        if datapath is None:
+        if datapath is arg_not_supplied:
             datapath = FX_PRICES_DIRECTORY
 
+        if config is arg_not_supplied:
+            config = ConfigCsvFXPrices()
+
         self._datapath = datapath
-        self._price_column = price_column
-        self._date_column = date_column
-        self._date_format = date_format
+        self._config = config
 
     def __repr__(self):
         return "csvFxPricesData accessing %s" % self._datapath
 
-    def get_list_of_fxcodes(self):
+    @property
+    def datapath(self):
+        return self._datapath
+
+    @property
+    def config(self):
+        return self._config
+
+    def get_list_of_fxcodes(self) ->list:
         return files_with_extension_in_pathname(self._datapath, ".csv")
 
-    def _get_fx_prices_without_checking(self, code):
+    def _get_fx_prices_without_checking(self, code: str) ->fxPrices:
         filename = self._filename_given_fx_code(code)
-        price_column = self._price_column
-        date_column = self._date_column
-        date_format = self._date_format
+        config = self.config
+        price_column = config.price_column
+        date_column = config.date_column
+        date_format = config.date_format
 
         try:
             fx_data = pd_readcsv(
                 filename, date_format=date_format, date_index_name=date_column
             )
         except OSError:
-            self.log.warn("Can't find currency price file %s" % filename)
+            self.log.warn("Can't find currency price file %s" % filename, fx_code = code)
             return fxPrices.create_empty()
 
         fx_data = pd.Series(fx_data[price_column])
@@ -70,17 +91,18 @@ class csvFxPricesData(fxPricesData):
 
         return fx_data
 
-    def _delete_fx_prices_without_any_warning_be_careful(code):
+    def _delete_fx_prices_without_any_warning_be_careful(self, code:str):
         raise NotImplementedError(
             "You can't delete adjusted prices stored as a csv - Add to overwrite existing or delete file manually"
         )
 
     def _add_fx_prices_without_checking_for_existing_entry(
-            self, code, fx_price_data):
+            self, code:str, fx_price_data: fxPrices):
         filename = self._filename_given_fx_code(code)
-        price_column = self._price_column
-        date_column = self._date_column
-        date_format = self._date_format
+        config = self.config
+        price_column = config.price_column
+        date_column = config.date_column
+        date_format = config.date_format
 
         fx_price_data.name = price_column
         fx_price_data.to_csv(
@@ -89,5 +111,7 @@ class csvFxPricesData(fxPricesData):
             date_format=date_format,
             header=True)
 
-    def _filename_given_fx_code(self, code):
+        self.log.msg("Wrote currency prices to %s for %s" % (filename, code), fx_code = code)
+
+    def _filename_given_fx_code(self, code: str):
         return get_filename_for_package(self._datapath, "%s.csv" % (code))

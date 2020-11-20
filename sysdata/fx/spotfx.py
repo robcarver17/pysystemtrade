@@ -122,7 +122,7 @@ class fxPricesData(baseData):
 
         return fx_data
 
-    def _get_fx_prices(self, code):
+    def _get_fx_prices(self, code: str) -> fxPrices:
         if not self.is_code_in_data(code):
             self.log.warn("Currency %s is missing from list of FX data" % code)
 
@@ -132,7 +132,7 @@ class fxPricesData(baseData):
 
         return data
 
-    def delete_fx_prices(self, code, are_you_sure=False):
+    def delete_fx_prices(self, code: str, are_you_sure=False):
         self.log.label(fx_code=code)
 
         if are_you_sure:
@@ -149,20 +149,20 @@ class fxPricesData(baseData):
             self.log.warn(
                 "You need to call delete_fx_prices with a flag to be sure")
 
-    def is_code_in_data(self, code):
+    def is_code_in_data(self, code: str) ->bool:
         if code in self.get_list_of_fxcodes():
             return True
         else:
             return False
 
-    def add_fx_prices(self, code, fx_price_data, ignore_duplication=False):
+    def add_fx_prices(self, code: str, fx_price_data: fxPrices, ignore_duplication:bool =False):
         self.log.label(fx_code=code)
         if self.is_code_in_data(code):
             if ignore_duplication:
                 pass
             else:
                 self.log.warn(
-                    "There is already %s in the data, you have to delete it first" %
+                    "There is already %s in the data, you have to delete it first, or set ignore_duplication=True, or use update_fx_prices" %
                     code)
                 return None
 
@@ -171,7 +171,7 @@ class fxPricesData(baseData):
 
         self.log.terse("Added fx data for code %s" % code)
 
-    def update_fx_prices(self, code, new_fx_prices, check_for_spike=True):
+    def update_fx_prices(self, code: str, new_fx_prices: fxPrices, check_for_spike=True) -> int:
         """
         Checks existing data, adds any new data with a timestamp greater than the existing data
 
@@ -192,10 +192,17 @@ class fxPricesData(baseData):
         rows_added = len(merged_fx_prices) - len(old_fx_prices)
 
         if rows_added == 0:
-            new_log.msg(
-                "No additional data since %s for %s"
-                % (str(old_fx_prices.index[-1]), code)
-            )
+            if len(old_fx_prices)==0:
+                new_log.msg(
+                    "No new or old prices for %s"
+                    % code
+                )
+
+            else:
+                new_log.msg(
+                    "No additional data since %s for %s"
+                    % (str(old_fx_prices.index[-1]), code)
+                )
             return 0
 
         self.add_fx_prices(code, merged_fx_prices, ignore_duplication=True)
