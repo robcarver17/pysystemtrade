@@ -13,11 +13,11 @@ from syscore.pdutils import pd_readcsv, DEFAULT_DATE_FORMAT
 
 @dataclass
 class ConfigCsvFuturesPrices:
-    input_date_index_name: str = "DATETIME",
-    input_date_format: str = DEFAULT_DATE_FORMAT,
-    input_column_mapping: dict = None,
-    input_skiprows: int = 0,
-    input_skipfooter: int = 0,
+    input_date_index_name: str = "DATETIME"
+    input_date_format: str = DEFAULT_DATE_FORMAT
+    input_column_mapping: dict = None
+    input_skiprows: int = 0
+    input_skipfooter: int = 0
 
 
 class csvFuturesContractPriceData(futuresContractPriceData):

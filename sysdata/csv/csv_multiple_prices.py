@@ -21,13 +21,13 @@ class csvFuturesMultiplePricesData(futuresMultiplePricesData):
     def __init__(self, datapath=None, log=logtoscreen(
             "csvFuturesMultiplePricesData")):
 
-        super().__init__()
+        super().__init__(log=log)
 
         if datapath is None:
             datapath = CSV_MULTIPLE_PRICE_DIRECTORY
 
         self._datapath = datapath
-        self.log = log
+
 
     def __repr__(self):
         return "csvFuturesMultiplePricesData accessing %s" % self._datapath

@@ -1,13 +1,12 @@
 import datetime as datetime
 from copy import copy
 
-import numpy as np
 import pandas as pd
 
+from sysinit.futures.build_multiple_prices_from_raw_data import create_multiple_price_stack_from_raw_data
 from sysobjects.dict_of_named_futures_per_contract_prices import list_of_price_column_names, \
     list_of_contract_column_names, contract_column_names, setOfNamedContracts, contract_name_from_column_name, \
-    futuresNamedContractFinalPricesWithContractID, dictFuturesNamedContractFinalPricesWithContractID, price_column_names,\
-    price_name, carry_name, forward_name
+    futuresNamedContractFinalPricesWithContractID, dictFuturesNamedContractFinalPricesWithContractID, price_column_names
 
 from sysobjects.dict_of_futures_per_contract_prices import dictFuturesContractFinalPrices
 
@@ -218,111 +217,6 @@ class futuresMultiplePrices(pd.DataFrame):
 
         return futuresMultiplePrices(combined_df)
 
-missing_row = object()
-
-def create_multiple_price_stack_from_raw_data(
-    roll_calendar, dict_of_futures_contract_closing_prices: dictFuturesContractFinalPrices
-):
-    """
-    # NO TYPE CHECK FOR ROLL_CALENDAR AS WOULD CAUSE CIRCULAR IMPORT
-
-    :param roll_calendar: rollCalendar
-    :param dict_of_futures_closing_contract_prices: dictFuturesContractPrices with only one column, keys are date_str
-
-    :return: pd.DataFrame with the 6 columns PRICE, CARRY, FORWARD, PRICE_CONTRACT, CARRY_CONTRACT, FORWARD_CONTRACT
-    """
-
-
-    all_price_data_stack = []
-    added_data = False
-    for rolling_row_index in range(len(roll_calendar.index))[1:]:
-        all_price_data = _get_price_data_between_rolls(added_data, rolling_row_index, roll_calendar, dict_of_futures_contract_closing_prices)
-        if all_price_data is missing_row:
-            continue
-        all_price_data_stack.append(all_price_data)
-        added_data = True
-
-    # end of loop
-    all_price_data_stack = pd.concat(all_price_data_stack, axis=0)
-
-    return all_price_data_stack
-
-
-def _get_price_data_between_rolls(added_data, rolling_row_index, roll_calendar, dict_of_futures_contract_closing_prices: dictFuturesContractFinalPrices):
-    # Between these dates is where we are populating prices
-    last_roll_date = roll_calendar.index[rolling_row_index - 1]
-    next_roll_date = roll_calendar.index[rolling_row_index]
-
-    end_of_roll_period = next_roll_date
-    start_of_roll_period = last_roll_date + pd.DateOffset(
-        seconds=1
-    )  # to avoid overlaps
-
-    contracts_now = roll_calendar.loc[next_roll_date, :]
-    current_contract = contracts_now.current_contract
-    next_contract = contracts_now.next_contract
-    carry_contract = contracts_now.carry_contract
-
-    current_contract_str = str(current_contract)
-    next_contract_str = str(next_contract)
-    carry_contract_str = str(carry_contract)
-
-    contract_keys = dict_of_futures_contract_closing_prices.keys()
-
-    if (current_contract_str not in contract_keys) or (
-            carry_contract_str not in contract_keys
-    ):
-
-        # missing, this is okay if we haven't started properly yet
-        if not added_data:
-            print(
-                "Missing contracts at start of roll calendar not in price data, ignoring"
-            )
-            return missing_row
-        else:
-            raise Exception(
-                "Missing contracts in middle of roll calendar %s, not in price data!" %
-                str(next_roll_date))
-
-    current_price_data = dict_of_futures_contract_closing_prices[
-                             current_contract_str
-                         ][start_of_roll_period:end_of_roll_period]
-    carry_price_data = dict_of_futures_contract_closing_prices[
-                           carry_contract_str][start_of_roll_period:end_of_roll_period]
-
-    if next_contract_str not in contract_keys:
-
-        if rolling_row_index == len(roll_calendar.index) - 1:
-            # Last entry, this is fine
-            print(
-                "Next contract %s missing in last row of roll calendar - this is okay" %
-                next_contract_str)
-            next_price_data = pd.Series(np.nan, current_price_data.index)
-            next_price_data.iloc[:] = np.nan
-        else:
-            raise Exception(
-                "Missing contract %s in middle of roll calendar on %s"
-                % (next_contract_str, str(next_roll_date))
-            )
-    else:
-        next_price_data = dict_of_futures_contract_closing_prices[
-                              next_contract_str
-                          ][start_of_roll_period:end_of_roll_period]
-
-    all_price_data = pd.concat(
-        [current_price_data, next_price_data, carry_price_data], axis=1
-    )
-    all_price_data.columns = [
-        price_name,
-        forward_name,
-        carry_name,
-    ]
-
-    all_price_data[contract_name_from_column_name(price_name)] = current_contract
-    all_price_data[contract_name_from_column_name(forward_name)] = next_contract
-    all_price_data[contract_name_from_column_name(carry_name)] = carry_contract
-
-    return all_price_data
 
 def _check_valid_multiple_price_data(data):
     data_present = sorted(data.columns)
@@ -334,3 +228,20 @@ def _check_valid_multiple_price_data(data):
 multiple_data_columns = sorted(
     list_of_price_column_names +
     list_of_contract_column_names)
+
+"""
+from sysinit.futures.multipleprices_from_arcticprices_and_csv_calendars_to_arctic import *
+instrument_code="EDOLLAR"
+csv_roll_data_path="/home/rob/data/csv_temp/roll_calendars"
+csv_roll_calendars = csvRollCalendarData(csv_roll_data_path)
+roll_calendar = csv_roll_calendars.get_roll_calendar(instrument_code)
+arctic_individual_futures_prices = arcticFuturesContractPriceData()
+dict_of_futures_contract_prices = (
+    arctic_individual_futures_prices.get_all_prices_for_instrument(instrument_code))
+dict_of_futures_contract_closing_prices = (
+    dict_of_futures_contract_prices.final_prices()
+)
+multiple_prices = futuresMultiplePrices.create_from_raw_data(
+    roll_calendar, dict_of_futures_contract_closing_prices
+)
+"""
