@@ -32,10 +32,10 @@ class arcticFxPricesData(fxPricesData):
 
     def _get_fx_prices_without_checking(self, currency_code: str) -> fxPrices:
 
-        data = self.arctic.read(currency_code)
+        fx_data = self.arctic.read(currency_code)
 
         # Returns a pd.Series which should have the right format
-        fx_prices = fxPrices(data)
+        fx_prices = fxPrices(fx_data['values'])
 
         return fx_prices
 
