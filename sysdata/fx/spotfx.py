@@ -68,7 +68,7 @@ class fxPricesData(baseData):
 
     def _get_standard_fx_prices(self, fx_code: str) -> fxPrices:
         currency1, currency2 = get_fx_tuple_from_code(fx_code)
-        assert currency2 is DEFAULT_CURRENCY
+        assert currency2==DEFAULT_CURRENCY
         fx_data = self._get_fx_prices_vs_default(currency1)
 
         return fx_data
