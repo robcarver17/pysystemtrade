@@ -8,6 +8,10 @@ from sysobjects.dict_of_named_futures_per_contract_prices import list_of_price_c
     list_of_contract_column_names, contract_column_names, setOfNamedContracts, contract_name_from_column_name, \
     futuresNamedContractFinalPricesWithContractID, dictFuturesNamedContractFinalPricesWithContractID, price_column_names
 
+from sysobjects.dict_of_futures_per_contract_prices import dictFuturesContractFinalPrices
+
+from sysobjects.roll_calendars import rollCalendar
+
 multiple_data_columns = sorted(
     list_of_price_column_names +
     list_of_contract_column_names)
@@ -21,12 +25,11 @@ class futuresMultiplePrices(pd.DataFrame):
 
         data.index.name = "index"  # arctic compatible
 
-
     @classmethod
     def create_from_raw_data(
             futuresMultiplePrices,
-            roll_calendar,
-            dict_of_futures_contract_closing_prices):
+            roll_calendar: rollCalendar,
+            dict_of_futures_contract_closing_prices: dictFuturesContractFinalPrices):
         """
 
         :param roll_calendar: rollCalendar

@@ -38,11 +38,8 @@ class updateFxPrices(object):
         log.msg("FX Codes: %s" % str(list_of_codes_all))
 
         for fx_code in list_of_codes_all:
-            try:
-                log.label(fx_code=fx_code)
-                update_fx_prices_for_code(fx_code, data)
-            except Exception as e:
-                log.warn("Something went wrong with FX update %s" % e)
+            log.label(fx_code=fx_code)
+            update_fx_prices_for_code(fx_code, data)
 
         return None
 
