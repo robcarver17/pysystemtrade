@@ -37,8 +37,6 @@ class fxPricesData(baseData):
     def keys(self):
         return self.get_list_of_fxcodes()
 
-    def get_list_of_fxcodes(self):
-        raise NotImplementedError(USE_CHILD_CLASS_ERROR)
 
     def get_fx_prices(self, code):
         """
@@ -47,6 +45,8 @@ class fxPricesData(baseData):
         :param code: currency code, in the form EURUSD
         :return: fxData object
         """
+        assert len(code)==6
+
         currency1 = code[:3]
         currency2 = code[3:]
 
@@ -142,9 +142,6 @@ class fxPricesData(baseData):
 
         return fx_rate_series
 
-    def _get_fx_prices_without_checking(self, code):
-        raise NotImplementedError(USE_CHILD_CLASS_ERROR)
-
     def __getitem__(self, code):
         return self.get_fx_prices(code)
 
@@ -164,9 +161,6 @@ class fxPricesData(baseData):
         else:
             self.log.warn(
                 "You need to call delete_fx_prices with a flag to be sure")
-
-    def _delete_fx_prices_without_any_warning_be_careful(self, code):
-        raise NotImplementedError(USE_CHILD_CLASS_ERROR)
 
     def is_code_in_data(self, code):
         if code in self.get_list_of_fxcodes():
@@ -189,10 +183,6 @@ class fxPricesData(baseData):
             code, fx_price_data)
 
         self.log.terse("Added fx data for code %s" % code)
-
-    def _add_fx_prices_without_checking_for_existing_entry(
-            self, code, fx_price_data):
-        raise NotImplementedError(USE_CHILD_CLASS_ERROR)
 
     def update_fx_prices(self, code, new_fx_prices, check_for_spike=True):
         """
@@ -226,3 +216,17 @@ class fxPricesData(baseData):
         new_log.msg("Added %d additional rows for %s" % (rows_added, code))
 
         return rows_added
+
+    def get_list_of_fxcodes(self):
+        raise NotImplementedError(USE_CHILD_CLASS_ERROR)
+
+    def _add_fx_prices_without_checking_for_existing_entry(
+            self, code, fx_price_data):
+        raise NotImplementedError(USE_CHILD_CLASS_ERROR)
+
+    def _delete_fx_prices_without_any_warning_be_careful(self, code):
+        raise NotImplementedError(USE_CHILD_CLASS_ERROR)
+
+    def _get_fx_prices_without_checking(self, code):
+        raise NotImplementedError(USE_CHILD_CLASS_ERROR)
+

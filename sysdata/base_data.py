@@ -107,7 +107,7 @@ class simData(baseData):
         """
 
         # inherit the log
-        setattr(self, "log", base_system.log.setup(stage="data"))
+        self._log = base_system.log.setup(stage="data")
 
     def methods(self):
         return get_methods(self)
