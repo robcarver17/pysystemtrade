@@ -1,7 +1,7 @@
 from collections import namedtuple
 from copy import copy
 from sysobjects.dict_of_futures_per_contract_prices import dictFuturesContractFinalPrices
-from sysdata.futures.multiple_prices import futuresMultiplePrices
+from sysobjects.multiple_prices import futuresMultiplePrices
 
 from sysobjects.roll_parameters_with_price_data import (
     find_earliest_held_contract_with_price_data,

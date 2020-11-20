@@ -12,9 +12,7 @@ import pandas as pd
 from sysobjects.contracts import futuresContract
 from sysobjects.instruments import futuresInstrument
 from sysobjects.rolls import contractDateWithRollParameters
-from sysdata.futures.multiple_prices import (
-    futuresMultiplePrices,
-)
+from sysobjects.multiple_prices import futuresMultiplePrices
 from sysobjects.dict_of_named_futures_per_contract_prices import price_name, carry_name, forward_name, \
     price_column_names, contract_column_names
 from sysdata.futures.adjusted_prices import futuresAdjustedPrices

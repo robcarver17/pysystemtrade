@@ -1,7 +1,7 @@
 from sysdata.futures.multiple_prices import (
     futuresMultiplePricesData,
-    futuresMultiplePrices,
 )
+from sysobjects.multiple_prices import futuresMultiplePrices
 
 from syscore.fileutils import get_filename_for_package, files_with_extension_in_pathname
 from syscore.pdutils import pd_readcsv

@@ -17,7 +17,7 @@ from sysdata.csv.csv_roll_calendars import csvRollCalendarData
 from sysdata.csv.csv_multiple_prices import csvFuturesMultiplePricesData
 from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesData
 
-from sysdata.futures.multiple_prices import futuresMultiplePrices
+from sysobjects.multiple_prices import futuresMultiplePrices
 
 
 def _get_data_inputs(csv_roll_data_path, csv_multiple_data_path):

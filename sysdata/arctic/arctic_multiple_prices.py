@@ -6,8 +6,8 @@ import pandas as pd
 from sysdata.arctic.arctic_connection import articConnection
 from sysdata.futures.multiple_prices import (
     futuresMultiplePricesData,
-    futuresMultiplePrices,
 )
+from sysobjects.multiple_prices import futuresMultiplePrices
 from sysobjects.dict_of_named_futures_per_contract_prices import list_of_price_column_names, \
     list_of_contract_column_names
 from syslogdiag.log import logtoscreen
