@@ -10,7 +10,6 @@ from sysobjects.dict_of_named_futures_per_contract_prices import list_of_price_c
 
 from sysobjects.dict_of_futures_per_contract_prices import dictFuturesContractFinalPrices
 
-from sysobjects.roll_calendars import rollCalendar
 
 multiple_data_columns = sorted(
     list_of_price_column_names +
@@ -28,7 +27,7 @@ class futuresMultiplePrices(pd.DataFrame):
     @classmethod
     def create_from_raw_data(
             futuresMultiplePrices,
-            roll_calendar: rollCalendar,
+            roll_calendar,
             dict_of_futures_contract_closing_prices: dictFuturesContractFinalPrices):
         """
 
@@ -60,7 +59,7 @@ class futuresMultiplePrices(pd.DataFrame):
         return multiple_prices
 
 
-    def current_contract_dict(self):
+    def current_contract_dict(self) -> setOfNamedContracts:
         final_row = self.iloc[-1]
         contract_dict = dict([(key, final_row[value])
                               for key, value in contract_column_names.items()])
@@ -68,7 +67,7 @@ class futuresMultiplePrices(pd.DataFrame):
 
         return contract_dict
 
-    def as_dict(self):
+    def as_dict(self) ->dictFuturesNamedContractFinalPricesWithContractID:
         """
         Split up and transform into dict
 
@@ -90,7 +89,7 @@ class futuresMultiplePrices(pd.DataFrame):
         return self_as_dict
 
     @classmethod
-    def from_dict(futuresMultiplePrices, prices_dict: dictFuturesNamedContractFinalPricesWithContractID):
+    def from_merged_dict(futuresMultiplePrices, prices_dict: dictFuturesNamedContractFinalPricesWithContractID):
         """
         Re-create from dict, eg results of _as_dict
 
@@ -129,7 +128,7 @@ class futuresMultiplePrices(pd.DataFrame):
 
         return futuresMultiplePrices(sorted_df)
 
-    def update_multiple_prices_with_dict(self, new_prices_dict):
+    def update_multiple_prices_with_dict(self, new_prices_dict: dictFuturesNamedContractFinalPricesWithContractID):
         """
         Given a dict containing prices, forward, carry prices; update existing multiple prices
         Because of asynchronicity, we allow overwriting of earlier data
@@ -155,7 +154,7 @@ class futuresMultiplePrices(pd.DataFrame):
         except Exception as e:
             raise e
 
-        merged_data = futuresMultiplePrices.from_dict(merged_data_as_dict)
+        merged_data = futuresMultiplePrices.from_merged_dict(merged_data_as_dict)
 
         return merged_data
 
