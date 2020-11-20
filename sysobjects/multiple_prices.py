@@ -218,6 +218,7 @@ class futuresMultiplePrices(pd.DataFrame):
 
         return futuresMultiplePrices(combined_df)
 
+missing_row = object()
 
 def create_multiple_price_stack_from_raw_data(
     roll_calendar, dict_of_futures_contract_closing_prices: dictFuturesContractFinalPrices
@@ -233,17 +234,21 @@ def create_multiple_price_stack_from_raw_data(
 
 
     all_price_data_stack = []
-
+    added_data = False
     for rolling_row_index in range(len(roll_calendar.index))[1:]:
-        all_price_data = _get_price_data_between_rolls(rolling_row_index, roll_calendar, dict_of_futures_contract_closing_prices)
+        all_price_data = _get_price_data_between_rolls(added_data, rolling_row_index, roll_calendar, dict_of_futures_contract_closing_prices)
+        if all_price_data is missing_row:
+            continue
         all_price_data_stack.append(all_price_data)
+        added_data = True
 
     # end of loop
     all_price_data_stack = pd.concat(all_price_data_stack, axis=0)
 
     return all_price_data_stack
 
-def _get_price_data_between_rolls(rolling_row_index, roll_calendar, dict_of_futures_contract_closing_prices: dictFuturesContractFinalPrices):
+
+def _get_price_data_between_rolls(added_data, rolling_row_index, roll_calendar, dict_of_futures_contract_closing_prices: dictFuturesContractFinalPrices):
     # Between these dates is where we are populating prices
     last_roll_date = roll_calendar.index[rolling_row_index - 1]
     next_roll_date = roll_calendar.index[rolling_row_index]
@@ -269,11 +274,11 @@ def _get_price_data_between_rolls(rolling_row_index, roll_calendar, dict_of_futu
     ):
 
         # missing, this is okay if we haven't started properly yet
-        if len(all_price_data_stack) == 0:
+        if not added_data:
             print(
                 "Missing contracts at start of roll calendar not in price data, ignoring"
             )
-            continue
+            return missing_row
         else:
             raise Exception(
                 "Missing contracts in middle of roll calendar %s, not in price data!" %
