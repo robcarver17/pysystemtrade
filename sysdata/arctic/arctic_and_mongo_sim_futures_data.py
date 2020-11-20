@@ -31,11 +31,10 @@ class dbconnections(simData):
         Use a different database
         """
 
-        super().__init__()
+        super().__init__(log = log)
         if mongo_db is arg_not_supplied:
             mongo_db = mongoDb()
 
-        self.log = log
         self.mongo_db = mongo_db
 
 
