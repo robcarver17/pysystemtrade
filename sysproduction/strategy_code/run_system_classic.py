@@ -116,26 +116,20 @@ def updated_buffered_positions(data, strategy_name, system):
 
     list_of_instruments = system.get_instrument_list()
     for instrument_code in list_of_instruments:
-        try:
-            lower_buffer, upper_buffer = get_position_buffers_from_system(
-                system, instrument_code
-            )
-            position_entry = construct_position_entry(
-                data, system, instrument_code, lower_buffer, upper_buffer
-            )
-            data_optimal_positions.update_optimal_position_for_strategy_and_instrument(
-                strategy_name, instrument_code, position_entry)
-            log.msg(
-                "New buffered positions %.3f %.3f" %
-                (position_entry.lower_position,
-                 position_entry.upper_position),
-                instrument_code=instrument_code,
-            )
-        except Exception as e:
-            log.critical(
-                "Couldn't get or update buffered positions error %s" % e,
-                instrument_code=instrument_code,
-            )
+        lower_buffer, upper_buffer = get_position_buffers_from_system(
+            system, instrument_code
+        )
+        position_entry = construct_position_entry(
+            data, system, instrument_code, lower_buffer, upper_buffer
+        )
+        data_optimal_positions.update_optimal_position_for_strategy_and_instrument(
+            strategy_name, instrument_code, position_entry)
+        log.msg(
+            "New buffered positions %.3f %.3f" %
+            (position_entry.lower_position,
+             position_entry.upper_position),
+            instrument_code=instrument_code,
+        )
 
     return success
 

@@ -86,3 +86,15 @@ class fxPrices(pd.Series):
 
 
 currencyValue = namedtuple("currencyValue", "currency, value")
+
+# by convention we always get prices vs the dollar
+DEFAULT_CURRENCY = "USD"
+
+
+def get_fx_tuple_from_code(code):
+    assert len(code) == 6
+
+    currency1 = code[:3]
+    currency2 = code[3:]
+
+    return currency1, currency2

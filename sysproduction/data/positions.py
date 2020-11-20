@@ -158,7 +158,6 @@ class dataOptimalPositions(object):
 
         data.add_class_object(mongoOptimalPositionData)
         self.data = data
-        self.log = data.log
 
     def get_list_of_instruments_for_strategy_with_optimal_position(
             self, strategy_name):
