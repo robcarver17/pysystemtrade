@@ -32,7 +32,7 @@ class csvFuturesMultiplePricesData(futuresMultiplePricesData):
 
 
     def __repr__(self):
-        return "csvFuturesMultiplePricesData accessing %s" % self._datapath
+        return "csvFuturesMultiplePricesData accessing %s" % self.datapath
 
     @property
     def datapath(self):
@@ -80,7 +80,7 @@ class csvFuturesMultiplePricesData(futuresMultiplePricesData):
 
     def _filename_given_instrument_code(self, instrument_code: str):
         filename = get_filename_for_package(
-            self._datapath, "%s.csv" % (instrument_code)
+            self.datapath, "%s.csv" % (instrument_code)
         )
 
         return filename

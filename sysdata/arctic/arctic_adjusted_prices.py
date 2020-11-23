@@ -21,45 +21,44 @@ class arcticFuturesAdjustedPricesData(futuresAdjustedPricesData):
 
         self._arctic = articConnection(ADJPRICE_COLLECTION, mongo_db=mongo_db)
 
-        self.name = (
-            "simData connection for adjusted futures prices, arctic %s/%s @ %s " %
+
+    def __repr__(self):
+        return \
+            "simData connection for adjusted futures prices, arctic %s/%s @ %s " %\
             (self._arctic.database_name,
              self._arctic.collection_name,
              self._arctic.host,
-             ))
+             )
 
-    def __repr__(self):
-        return self.name
+    @property
+    def arctic(self):
+        return self._arctic
 
-    def get_list_of_instruments(self):
-        return self._arctic.library.list_symbols()
+    def get_list_of_instruments(self) -> list:
+        return self.arctic.get_keynames()
 
-    def _get_adjusted_prices_without_checking(self, instrument_code):
-        item = self._arctic.library.read(instrument_code)
-
-        # Returns a data frame which should have the right format
-        data = item.data
+    def _get_adjusted_prices_without_checking(self, instrument_code: str) -> futuresAdjustedPrices:
+        data = self.arctic.read(instrument_code)
 
         instrpricedata = futuresAdjustedPrices(data)
 
         return instrpricedata
 
     def _delete_adjusted_prices_without_any_warning_be_careful(
-            self, instrument_code):
-        self.log.label(instrument_code=instrument_code)
-        self._arctic.library.delete(instrument_code)
+            self, instrument_code: str):
+        self.arctic.delete(instrument_code)
         self.log.msg(
             "Deleted adjusted prices for %s from %s" %
-            (instrument_code, self.name))
+            (instrument_code, str(self)), instrument_code = instrument_code)
 
     def _add_adjusted_prices_without_checking_for_existing_entry(
-        self, instrument_code, adjusted_price_data
+        self, instrument_code: str, adjusted_price_data: futuresAdjustedPrices
     ):
-        self.log.label(instrument_code=instrument_code)
         adjusted_price_data_aspd = pd.Series(adjusted_price_data)
         adjusted_price_data_aspd = adjusted_price_data_aspd.astype(float)
-        self._arctic.library.write(instrument_code, adjusted_price_data_aspd)
+        self.arctic.write(instrument_code, adjusted_price_data_aspd)
         self.log.msg(
             "Wrote %s lines of prices for %s to %s"
-            % (len(adjusted_price_data), instrument_code, self.name)
+            % (len(adjusted_price_data), instrument_code, str(self)),
+            instrument_code = instrument_code
         )

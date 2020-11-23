@@ -6,6 +6,7 @@ from sysdata.futures.adjusted_prices import (
 from sysobjects.adjusted_prices import futuresAdjustedPrices
 from syscore.fileutils import get_filename_for_package, files_with_extension_in_pathname
 from syscore.pdutils import pd_readcsv
+from syscore.objects import arg_not_supplied
 from syslogdiag.log import logtoscreen
 
 ADJUSTED_PRICES_DIRECTORY = "data.futures.adjusted_prices_csv"
@@ -18,12 +19,12 @@ class csvFuturesAdjustedPricesData(futuresAdjustedPricesData):
     Class for adjusted prices write / to from csv
     """
 
-    def __init__(self, datapath=None, log=logtoscreen(
+    def __init__(self, datapath=arg_not_supplied, log=logtoscreen(
             "csvFuturesContractPriceData")):
 
         super().__init__(log=log)
 
-        if datapath is None:
+        if datapath is arg_not_supplied:
             datapath = ADJUSTED_PRICES_DIRECTORY
 
         self._datapath = datapath
@@ -31,10 +32,14 @@ class csvFuturesAdjustedPricesData(futuresAdjustedPricesData):
     def __repr__(self):
         return "csvFuturesAdjustedPricesData accessing %s" % self._datapath
 
-    def get_list_of_instruments(self):
-        return files_with_extension_in_pathname(self._datapath, ".csv")
+    @property
+    def datapath(self):
+        return self._datapath
 
-    def _get_adjusted_prices_without_checking(self, instrument_code):
+    def get_list_of_instruments(self) -> list:
+        return files_with_extension_in_pathname(self.datapath, ".csv")
+
+    def _get_adjusted_prices_without_checking(self, instrument_code: str) -> futuresAdjustedPrices:
         filename = self._filename_given_instrument_code(instrument_code)
 
         try:
@@ -52,13 +57,13 @@ class csvFuturesAdjustedPricesData(futuresAdjustedPricesData):
         return instrpricedata
 
     def _delete_adjusted_prices_without_any_warning_be_careful(
-            self, instrument_code):
+            self, instrument_code: str):
         raise NotImplementedError(
             "You can't delete adjusted prices stored as a csv - Add to overwrite existing or delete file manually"
         )
 
     def _add_adjusted_prices_without_checking_for_existing_entry(
-        self, instrument_code, adjusted_price_data
+        self, instrument_code:str, adjusted_price_data: futuresAdjustedPrices
     ):
 
         # Ensures the file will be written with a column header
@@ -69,7 +74,7 @@ class csvFuturesAdjustedPricesData(futuresAdjustedPricesData):
         adjusted_price_data_as_dataframe.to_csv(
             filename, index_label=DATE_INDEX_NAME)
 
-    def _filename_given_instrument_code(self, instrument_code):
+    def _filename_given_instrument_code(self, instrument_code:str):
         return get_filename_for_package(
-            self._datapath, "%s.csv" %
+            self.datapath, "%s.csv" %
             (instrument_code))

@@ -26,35 +26,16 @@ class futuresAdjustedPricesData(baseData):
     def keys(self):
         return self.get_list_of_instruments()
 
-    def get_list_of_instruments(self):
-        raise NotImplementedError(USE_CHILD_CLASS_ERROR)
-
-    def get_adjusted_prices(self, instrument_code):
+    def get_adjusted_prices(self, instrument_code: str) -> futuresAdjustedPrices:
         if self.is_code_in_data(instrument_code):
             return self._get_adjusted_prices_without_checking(instrument_code)
         else:
             return futuresAdjustedPrices.create_empty()
 
-    def _get_adjusted_prices_without_checking(self, instrument_code):
-        raise NotImplementedError(USE_CHILD_CLASS_ERROR)
-
-    def __getitem__(self, instrument_code):
+    def __getitem__(self, instrument_code: str) -> futuresAdjustedPrices:
         return self.get_adjusted_prices(instrument_code)
 
-    def _delete_all_adjusted_prices(self, are_you_sure=False):
-        if are_you_sure:
-            instrument_list = self.get_list_of_instruments()
-            for instrument_code in instrument_list:
-                self.delete_adjusted_prices(
-                    instrument_code, are_you_sure=are_you_sure)
-        else:
-            self.log.error(
-                "You need to call delete_all_adjusted_prices with a flag to be sure"
-            )
-
-    def delete_adjusted_prices(self, instrument_code, are_you_sure=False):
-        self.log.label(instrument_code=instrument_code)
-
+    def delete_adjusted_prices(self, instrument_code: str, are_you_sure: bool=False):
         if are_you_sure:
             if self.is_code_in_data(instrument_code):
                 self._delete_adjusted_prices_without_any_warning_be_careful(
@@ -62,48 +43,54 @@ class futuresAdjustedPricesData(baseData):
                 )
                 self.log.terse(
                     "Deleted adjusted price data for %s" %
-                    instrument_code)
+                    instrument_code, instrument_code = instrument_code)
 
             else:
                 # doesn't exist anyway
                 self.log.warn(
                     "Tried to delete non existent adjusted prices for %s"
-                    % instrument_code
+                    % instrument_code, instrument_code = instrument_code
                 )
         else:
             self.log.error(
                 "You need to call delete_adjusted_prices with a flag to be sure"
+                , instrument_code=instrument_code
             )
 
-    def _delete_adjusted_prices_without_any_warning_be_careful(
-            instrument_code):
-        raise NotImplementedError(USE_CHILD_CLASS_ERROR)
-
-    def is_code_in_data(self, instrument_code):
+    def is_code_in_data(self, instrument_code: str) -> bool:
         if instrument_code in self.get_list_of_instruments():
             return True
         else:
             return False
 
     def add_adjusted_prices(
-        self, instrument_code, adjusted_price_data, ignore_duplication=False
+        self, instrument_code: str, adjusted_price_data: futuresAdjustedPrices, ignore_duplication: bool=False
     ):
-        self.log.label(instrument_code=instrument_code)
         if self.is_code_in_data(instrument_code):
             if ignore_duplication:
                 pass
             else:
                 self.log.error(
                     "There is already %s in the data, you have to delete it first" %
-                    instrument_code)
+                    instrument_code, instrument_code = instrument_code)
 
         self._add_adjusted_prices_without_checking_for_existing_entry(
             instrument_code, adjusted_price_data
         )
 
-        self.log.terse("Added data for instrument %s" % instrument_code)
+        self.log.terse("Added data for instrument %s" % instrument_code, instrument_code = instrument_code)
 
     def _add_adjusted_prices_without_checking_for_existing_entry(
-        self, instrument_code, adjusted_price_data
+        self, instrument_code: str, adjusted_price_data: futuresAdjustedPrices
     ):
+        raise NotImplementedError(USE_CHILD_CLASS_ERROR)
+
+    def get_list_of_instruments(self) -> list:
+        raise NotImplementedError(USE_CHILD_CLASS_ERROR)
+
+    def _delete_adjusted_prices_without_any_warning_be_careful(self,
+            instrument_code: str):
+        raise NotImplementedError(USE_CHILD_CLASS_ERROR)
+
+    def _get_adjusted_prices_without_checking(self, instrument_code: str) -> futuresAdjustedPrices:
         raise NotImplementedError(USE_CHILD_CLASS_ERROR)

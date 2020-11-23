@@ -135,27 +135,16 @@ def _update_adjusted_prices_from_multiple_no_roll(
     :param updated_multiple_prices: futuresMultiplePrices
     :return: updated adjusted prices
     """
+    new_multiple_price_data, last_contract_in_price_data = _calc_new_multiple_prices(existing_adjusted_prices, updated_multiple_prices)
 
-    last_date_in_adj = existing_adjusted_prices.index[-1]
-    multiple_prices_as_dict = updated_multiple_prices.as_dict()
-
-    prices_in_multiple_prices = multiple_prices_as_dict[price_name]
-    price_contract_column = contract_name_from_column_name(price_name)
-
-    last_contract_in_price_data = prices_in_multiple_prices[price_contract_column][
-        :last_date_in_adj
-    ][-1]
-
-    new_price_data = prices_in_multiple_prices.prices_after_date(last_date_in_adj)
-
-    has_roll_occured = not new_price_data.check_all_contracts_equal_to(
+    no_roll_has_occured = new_multiple_price_data.check_all_contracts_equal_to(
         last_contract_in_price_data
     )
 
-    if has_roll_occured:
+    if not no_roll_has_occured:
         return no_update_roll_has_occured
 
-    new_adjusted_prices = new_price_data[price_name]
+    new_adjusted_prices = new_multiple_price_data[price_name]
     new_adjusted_prices = new_adjusted_prices.dropna()
 
     merged_adjusted_prices = full_merge_of_existing_series(
@@ -164,3 +153,21 @@ def _update_adjusted_prices_from_multiple_no_roll(
     merged_adjusted_prices = futuresAdjustedPrices(merged_adjusted_prices)
 
     return merged_adjusted_prices
+
+def _calc_new_multiple_prices(existing_adjusted_prices: futuresAdjustedPrices,
+                              updated_multiple_prices: futuresMultiplePrices)\
+        -> (futuresMultiplePrices, str):
+
+    last_date_in_current_adj = existing_adjusted_prices.index[-1]
+    multiple_prices_as_dict = updated_multiple_prices.as_dict()
+
+    prices_in_multiple_prices = multiple_prices_as_dict[price_name]
+    price_contract_column = contract_name_from_column_name(price_name)
+
+    last_contract_in_price_data = prices_in_multiple_prices[price_contract_column][
+        :last_date_in_current_adj
+    ][-1]
+
+    new_multiple_price_data = prices_in_multiple_prices.prices_after_date(last_date_in_current_adj)
+
+    return new_multiple_price_data, last_contract_in_price_data
