@@ -40,7 +40,7 @@ class arcticFuturesAdjustedPricesData(futuresAdjustedPricesData):
     def _get_adjusted_prices_without_checking(self, instrument_code: str) -> futuresAdjustedPrices:
         data = self.arctic.read(instrument_code)
 
-        instrpricedata = futuresAdjustedPrices(data['values'])
+        instrpricedata = futuresAdjustedPrices(data[data.columns[0]])
 
         return instrpricedata
 
@@ -55,6 +55,7 @@ class arcticFuturesAdjustedPricesData(futuresAdjustedPricesData):
         self, instrument_code: str, adjusted_price_data: futuresAdjustedPrices
     ):
         adjusted_price_data_aspd = pd.Series(adjusted_price_data)
+        adjusted_price_data_aspd.columns = ['price']
         adjusted_price_data_aspd = adjusted_price_data_aspd.astype(float)
         self.arctic.write(instrument_code, adjusted_price_data_aspd)
         self.log.msg(
