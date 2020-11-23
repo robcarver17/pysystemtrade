@@ -335,9 +335,9 @@ def update_multiple_prices_on_roll(
     new_forward_contract_date = new_price_contract_date_object.next_held_contract()
     new_carry_contract_date = new_price_contract_date_object.carry_contract()
 
-    new_price_contract_object = futuresContract(instrument_object, new_price_contract_date_object)
-    new_forward_contract_object = futuresContract(instrument_object, new_forward_contract_date)
-    new_carry_contract_object = futuresContract(instrument_object, new_carry_contract_date)
+    new_price_contract_object = futuresContract(instrument_object, new_price_contract_date_object.contract_date)
+    new_forward_contract_object = futuresContract(instrument_object, new_forward_contract_date.contract_date)
+    new_carry_contract_object = futuresContract(instrument_object, new_carry_contract_date.contract_date)
 
     new_price_price = old_forward_contract_last_price
     new_forward_price = get_final_matched_price_from_contract_object(
@@ -359,7 +359,6 @@ def update_multiple_prices_on_roll(
         new_multiple_prices = new_multiple_prices.add_one_row_with_time_delta(
             new_single_row
         )
-
     # SOME KIND OF WARNING HERE...?
 
     # Now we add a row with the new rolled contracts
