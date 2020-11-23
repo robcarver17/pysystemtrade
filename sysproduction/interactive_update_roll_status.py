@@ -12,7 +12,7 @@ import pandas as pd
 from sysobjects.contracts import futuresContract
 from sysobjects.instruments import futuresInstrument
 from sysobjects.rolls import contractDateWithRollParameters
-from sysobjects.multiple_prices import futuresMultiplePrices
+from sysobjects.multiple_prices import futuresMultiplePrices, singleRowMultiplePrices
 from sysobjects.dict_of_named_futures_per_contract_prices import price_name, carry_name, forward_name, \
     price_column_names, contract_column_names
 from sysdata.futures.adjusted_prices import futuresAdjustedPrices
@@ -358,28 +358,25 @@ def update_multiple_prices_on_roll(
     # If any prices had to be inferred, then add row with both current priced and forward prices
     # Otherwise adjusted prices will break
     if price_inferred or forward_inferred:
+        new_single_row = singleRowMultiplePrices(price=old_priced_contract_last_price,
+                forward=old_forward_contract_last_price)
         new_multiple_prices = new_multiple_prices.add_one_row_with_time_delta(
-            dict(
-                price=old_priced_contract_last_price,
-                forward=old_forward_contract_last_price,
-            )
+            new_single_row
         )
 
     # SOME KIND OF WARNING HERE...?
 
     # Now we add a row with the new rolled contracts
-    new_multiple_prices = new_multiple_prices.add_one_row_with_time_delta(
-        dict(
-            price=new_price_price,
+    newer_single_row = singleRowMultiplePrices( price=new_price_price,
             forward=new_forward_price,
             carry=new_carry_price,
             price_contract=new_price_contractid,
             forward_contract=new_forward_contractid,
-            carry_contract=new_carry_contractid,
-        )
-    )
+            carry_contract=new_carry_contractid)
+    newer_multiple_prices = new_multiple_prices.add_one_row_with_time_delta(
+        newer_single_row)
 
-    return new_multiple_prices
+    return newer_multiple_prices
 
 
 def get_final_matched_price_from_contract_object(

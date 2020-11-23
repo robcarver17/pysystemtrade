@@ -1,16 +1,51 @@
+from dataclasses import  dataclass
 import datetime as datetime
 from copy import copy
-
 import pandas as pd
 
 from sysinit.futures.build_multiple_prices_from_raw_data import create_multiple_price_stack_from_raw_data
 from sysobjects.dict_of_named_futures_per_contract_prices import list_of_price_column_names, \
     list_of_contract_column_names, contract_column_names, setOfNamedContracts, contract_name_from_column_name, \
-    futuresNamedContractFinalPricesWithContractID, dictFuturesNamedContractFinalPricesWithContractID, price_column_names
+    futuresNamedContractFinalPricesWithContractID, dictFuturesNamedContractFinalPricesWithContractID, price_column_names, \
+    price_name, carry_name, forward_name
 
 from sysobjects.dict_of_futures_per_contract_prices import dictFuturesContractFinalPrices
 
 
+
+@dataclass
+class singleRowMultiplePrices:
+    price: float = None
+    carry: float = None
+    forward: float = None
+    price_contract: str = None
+    carry_contract: str = None
+    forward_contract: str = None
+
+    def concat_with_multiple_prices(self, multiple_prices, timedelta_seconds=1):
+        new_time_index = multiple_prices.index[-1] + datetime.timedelta(seconds=timedelta_seconds)
+        new_df_row = self.as_aligned_pd_row(new_time_index)
+
+        combined_df = pd.concat([pd.DataFrame(multiple_prices), new_df_row], axis=0)
+
+        new_multiple_prices = futuresMultiplePrices(combined_df)
+
+        return new_multiple_prices
+
+    def as_aligned_pd_row(self, time_index: datetime.timedelta) ->pd.DataFrame:
+
+        new_dict = {price_name: self.price, carry_name: self.carry, forward_name: self.forward,
+                    contract_name_from_column_name(price_name): self.price_contract,
+                    contract_name_from_column_name(carry_name): self.carry_contract,
+                    contract_name_from_column_name(forward_name): self.forward_contract
+                    }
+
+        new_dict_with_nones_removed = dict([(key,value) for key,value in new_dict.items()
+                                            if value is not None])
+
+        new_df_row = pd.DataFrame(new_dict_with_nones_removed, index=[time_index])
+
+        return new_df_row
 
 
 class futuresMultiplePrices(pd.DataFrame):
@@ -173,7 +208,7 @@ class futuresMultiplePrices(pd.DataFrame):
                 new_multiple_prices = new_multiple_prices[:-1]
                 # Should still be true but let's be careful
                 found_zeros = True
-
+                continue
             else:
                 # Terminate loop
                 found_zeros = False
@@ -182,41 +217,27 @@ class futuresMultiplePrices(pd.DataFrame):
 
         return futuresMultiplePrices(new_multiple_prices)
 
-    def add_one_row_with_time_delta(self, prices_dict, timedelta_seconds=1):
+    def add_one_row_with_time_delta(self, single_row_prices: singleRowMultiplePrices, timedelta_seconds: int=1):
         """
         Add a row with a slightly different timestamp
 
-        :param prices_dict: dict of scalars, keys are one or more of 'price','forward','carry','*_contract'
+        :param single_row_prices: dict of scalars, keys are one or more of 'price','forward','carry','*_contract'
                             If a contract column is missing, we forward fill
                             If a price column is missing, we include nans
         :return: new multiple prices
         """
 
-        alignment_dict = dict(
-            price=price_column_names["PRICE"],
-            forward=price_column_names["FORWARD"],
-            carry=price_column_names["CARRY"],
-            price_contract=contract_column_names["PRICE"],
-            carry_contract=contract_column_names["CARRY"],
-            forward_contract=contract_column_names["FORWARD"],
-        )
+        new_multiple_prices = single_row_prices.concat_with_multiple_prices(self, timedelta_seconds=timedelta_seconds)
+        new_multiple_prices = new_multiple_prices.forward_fill_contracts()
 
-        new_time_index = self.index[-1] + datetime.timedelta(seconds=1)
+        return new_multiple_prices
 
-        new_dict = {}
-        for keyname, value in prices_dict.items():
-            new_key = alignment_dict[keyname]
-            new_dict[new_key] = value
-
-        new_df = pd.DataFrame(new_dict, index=[new_time_index])
-
-        combined_df = pd.concat([pd.DataFrame(self), new_df], axis=0)
-
+    def forward_fill_contracts(self):
+        combined_df = copy(self)
         for colname in list_of_contract_column_names:
             combined_df[colname] = combined_df[colname].ffill()
 
         return futuresMultiplePrices(combined_df)
-
 
 def _check_valid_multiple_price_data(data):
     data_present = sorted(data.columns)

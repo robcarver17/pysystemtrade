@@ -1,3 +1,5 @@
+from dataclasses import  dataclass
+
 from syscore.objects import arg_not_supplied
 
 from syslogdiag.log import logger
@@ -6,9 +8,6 @@ from sysobjects.contract_dates_and_expiries import contractDate, expiryDate
 from sysobjects.instruments import futuresInstrument
 
 
-from dataclasses import  dataclass
-
-import datetime
 
 NO_ROLL_CYCLE_PASSED = object()
 
