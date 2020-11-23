@@ -1,5 +1,3 @@
-import pandas as pd
-
 from syscore.dateutils import get_datetime_input
 from syscore.genutils import (
     run_interactive_menu,
@@ -17,7 +15,7 @@ from sysproduction.data.backtest import dataBacktest
 from sysproduction.data.capital import dataCapital
 from sysproduction.data.contracts import (
     get_valid_instrument_code_and_contractid_from_user,
-    diagContracts,
+    diagContracts, get_valid_contract_object_from_user
 )
 from sysproduction.data.currency_data import currencyData, get_valid_fx_code_from_user
 from sysproduction.data.instruments import diagInstruments
@@ -30,7 +28,6 @@ from sysproduction.data.strategies import get_valid_strategy_name_from_user
 from sysproduction.diagnostic.emailing import retrieve_and_delete_stored_messages
 from sysproduction.diagnostic.reporting import run_report
 from sysproduction.diagnostic.rolls import ALL_ROLL_INSTRUMENTS
-from sysproduction.diagnostic.strategies import ALL_STRATEGIES
 from sysproduction.diagnostic.strategies import ALL_STRATEGIES
 from sysproduction.diagnostic.report_configs import (
     roll_report_config,
@@ -317,12 +314,9 @@ def build_attribute_dict(diag_logs, lookback_days):
 
 # prices
 def individual_prices(data):
-    instrument_code, contract_date = get_valid_instrument_code_and_contractid_from_user(
-        data, include_priced_contracts = True)
+    contract = get_valid_contract_object_from_user(data, include_priced_contracts=True)
     diag_prices = diagPrices(data)
-    prices = diag_prices.get_prices_for_instrument_code_and_contract_date(
-        instrument_code, contract_date
-    )
+    prices = diag_prices.get_prices_for_contract_object(contract)
 
     print(prices)
 

@@ -19,7 +19,6 @@ from sysobjects.adjusted_prices import futuresAdjustedPrices
 
 from syscore.objects import success, failure
 
-
 from sysdata.production.roll_state_storage import (
     allowable_roll_state_from_current_and_position,
     explain_roll_state,
@@ -34,10 +33,10 @@ from sysproduction.diagnostic.reporting import run_report_with_data_blob, landin
 from sysproduction.data.positions import diagPositions, updatePositions
 from sysproduction.data.contracts import diagContracts
 from sysproduction.data.get_data import dataBlob
-from sysproduction.data.prices import diagPrices, updatePrices
+from sysproduction.data.prices import diagPrices, updatePrices, get_valid_instrument_code_from_user
 
 
-def interactive_update_roll_status(instrument_code: str):
+def interactive_update_roll_status():
     """
     Update the roll state for a particular instrument
     This includes the option, where possible, to switch the adjusted price series on to a new contract
@@ -47,7 +46,7 @@ def interactive_update_roll_status(instrument_code: str):
     """
 
     with dataBlob(log_name="Interactive_Update-Roll-Status") as data:
-
+        instrument_code = get_valid_instrument_code_from_user(data=data)
         # First get the roll info
         # This will also update to console
         config = roll_report_config.new_config_with_modified_output("console")
@@ -87,7 +86,7 @@ def interactive_update_roll_status(instrument_code: str):
         return success
 
 
-def get_required_roll_state(data, instrument_code):
+def get_required_roll_state(data: dataBlob, instrument_code: str):
     diag_positions = diagPositions(data)
     diag_contracts = diagContracts(data)
 
@@ -168,7 +167,7 @@ def display_roll_query_banner(
     return success
 
 
-def _roll_adjusted_and_multiple_prices(data, instrument_code):
+def _roll_adjusted_and_multiple_prices(data: dataBlob, instrument_code: str):
     """
     Roll multiple and adjusted prices
 
@@ -253,7 +252,9 @@ def compare_old_and_new_prices(price_list, price_list_names):
 
 
 def rollback_adjustment(
-    data, instrument_code, current_adjusted_prices, current_multiple_prices
+    data: dataBlob, instrument_code: str,
+        current_adjusted_prices: futuresAdjustedPrices,
+        current_multiple_prices: futuresMultiplePrices
 ):
     price_updater = updatePrices(data)
 
@@ -274,9 +275,9 @@ def rollback_adjustment(
 
 
 def update_multiple_prices_on_roll(
-        data,
-        current_multiple_prices,
-        instrument_code):
+        data: dataBlob,
+        current_multiple_prices: futuresMultiplePrices,
+        instrument_code: str) -> futuresMultiplePrices:
     """
     Roll multiple prices
 

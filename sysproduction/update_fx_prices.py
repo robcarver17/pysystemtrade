@@ -17,6 +17,7 @@ def update_fx_prices():
     :return: Nothing
     """
 
+    ## Called as standalone
     with dataBlob(log_name="Update-FX-Prices") as data:
         update_fx_prices_object = updateFxPrices(data)
         update_fx_prices_object.update_fx_prices()
@@ -25,26 +26,27 @@ def update_fx_prices():
 
 
 class updateFxPrices(object):
+    ## Called by run_daily_price_updates
     def __init__(self, data):
         self.data = data
 
     def update_fx_prices(self):
         data = self.data
-        log = data.log
-        broker_fx_source = dataBroker(data)
-        list_of_codes_all = (
-            broker_fx_source.get_list_of_fxcodes()
-        )  # codes must be in .csv file /sysbrokers/IB/ibConfigSpotFx.csv
-        log.msg("FX Codes: %s" % str(list_of_codes_all))
+        update_fx_prices_with_data(data)
 
-        for fx_code in list_of_codes_all:
-            log.label(fx_code=fx_code)
-            update_fx_prices_for_code(fx_code, data)
+def update_fx_prices_with_data(data: dataBlob):
+    broker_fx_source = dataBroker(data)
+    list_of_codes_all = (
+        broker_fx_source.get_list_of_fxcodes()
+    )  # codes must be in .csv file /sysbrokers/IB/ibConfigSpotFx.csv
+    data.log.msg("FX Codes: %s" % str(list_of_codes_all))
 
-        return None
+    for fx_code in list_of_codes_all:
+        data.log.label(fx_code=fx_code)
+        update_fx_prices_for_code(fx_code, data)
 
 
-def update_fx_prices_for_code(fx_code, data):
+def update_fx_prices_for_code(fx_code: str, data: dataBlob):
     broker_fx_source = dataBroker(data)
     db_fx_data = currencyData(data)
 
@@ -55,15 +57,19 @@ def update_fx_prices_for_code(fx_code, data):
     )
 
     if rows_added is data_error:
-        msg = (
-            "Spike found in prices for %s: need to manually check by running interactive_manual_check_fx_prices" %
-            str(fx_code))
-        data.log.warn(msg)
-        try:
-            send_production_mail_msg(
-                data, msg, "FX Price Spike %s" %
-                str(fx_code))
-        except BaseException:
-            data.log.warn("Couldn't send email about price spike")
+        report_fx_data_spike(data, fx_code)
 
     return success
+
+def report_fx_data_spike(data: dataBlob, fx_code: str):
+    msg = (
+            "Spike found in prices for %s: need to manually check by running interactive_manual_check_fx_prices" %
+            str(fx_code))
+    data.log.warn(msg)
+    try:
+        send_production_mail_msg(
+            data, msg, "FX Price Spike %s" %
+                       str(fx_code))
+    except BaseException:
+        data.log.warn("Couldn't send email about price spike")
+

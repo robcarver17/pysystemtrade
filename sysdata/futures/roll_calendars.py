@@ -21,7 +21,7 @@ class rollCalendarData(baseData):
     def __repr__(self):
         return "rollCalendarData base class - DO NOT USE"
 
-    def keys(self) ->str:
+    def keys(self) -> list:
         return self.get_list_of_instruments()
 
     def __getitem__(self, instrument_code:str) -> rollCalendar:

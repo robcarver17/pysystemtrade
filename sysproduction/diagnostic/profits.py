@@ -6,6 +6,9 @@ import types
 from collections import namedtuple
 
 from syscore.objects import header, table, body_text, arg_not_supplied, missing_data
+
+from sysobjects.contracts import futuresContract
+
 from sysproduction.data.capital import dataCapital
 
 from sysproduction.data.currency_data import currencyData
@@ -533,7 +536,7 @@ def get_pandl_series_in_points_for_instrument_strategy(
     pos_series = get_position_series_for_instrument_strategy(
         data, instrument_code, strategy_name
     )
-    price_series = get_price_series_for_instrument(data, instrument_code)
+    price_series = get_current_contract_price_series_for_instrument(data, instrument_code)
     trade_df = get_trade_df_for_instrument(
         data, instrument_code, strategy_name)
 
@@ -597,17 +600,16 @@ def pandl_points(price_series, trade_df, pos_series):
 
 def get_price_series_for_contract(data, instrument_code, contract_id):
     diag_prices = diagPrices(data)
-    all_prices = diag_prices.get_prices_for_instrument_code_and_contract_date(
-        instrument_code, contract_id
-    )
+    contract = futuresContract(instrument_code, contract_id)
+    all_prices = diag_prices.get_prices_for_contract_object(contract)
     price_series = all_prices.return_final_prices()
 
     return price_series
 
 
-def get_price_series_for_instrument(data, instrument_code):
+def get_current_contract_price_series_for_instrument(data, instrument_code):
     diag_prices = diagPrices(data)
-    price_series = diag_prices.get_prices_for_instrument(instrument_code)
+    price_series = diag_prices.get_current_contract_prices_for_instrument(instrument_code)
 
     return price_series
 

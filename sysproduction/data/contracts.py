@@ -10,6 +10,7 @@ from sysdata.mongodb.mongo_futures_contracts import mongoFuturesContractData
 from sysobjects.contract_dates_and_expiries import contractDate
 from sysobjects.rolls import contractDateWithRollParameters
 from sysobjects.dict_of_named_futures_per_contract_prices import setOfNamedContracts
+from sysobjects.contracts import futuresContract
 
 from sysproduction.data.prices import get_valid_instrument_code_from_user, diagPrices
 from sysproduction.data.get_data import dataBlob
@@ -206,6 +207,13 @@ class diagContracts(object):
         contract_date = contract.contract_date
 
         return contract_date
+
+def get_valid_contract_object_from_user(data, instrument_code=None, include_priced_contracts = False):
+    instrument_code , contract_date_str = get_valid_instrument_code_and_contractid_from_user(data,
+                                                                                             instrument_code = instrument_code,
+                                                                                             include_priced_contracts = include_priced_contracts)
+
+    return futuresContract(instrument_code, contract_date_str)
 
 def get_valid_instrument_code_and_contractid_from_user(
         data, instrument_code=None, include_priced_contracts = False):

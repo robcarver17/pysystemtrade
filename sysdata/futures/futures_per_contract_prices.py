@@ -11,6 +11,7 @@ from syslogdiag.log import logtoscreen
 BASE_CLASS_ERROR = "You have used a base class for futures price data; you need to use a class that inherits with a specific data source"
 
 PRICE_FREQ =  ['D', 'H', '5M', 'M', '10S', 'S']
+DAILY_PRICE_FREQ = 'D'
 
 class futuresContractPriceData(baseData):
     """

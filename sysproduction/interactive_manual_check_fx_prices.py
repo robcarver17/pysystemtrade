@@ -11,11 +11,11 @@ from sysdata.futures.manual_price_checker import manual_price_checker
 from sysobjects.spot_fx_prices import fxPrices
 
 from sysproduction.data.get_data import dataBlob
-from sysproduction.data.currency_data import currencyData
+from sysproduction.data.currency_data import currencyData, get_valid_fx_code_from_user
 from sysproduction.data.broker import dataBroker
 
 
-def interactive_manual_check_fx_prices(fx_code):
+def interactive_manual_check_fx_prices():
     """
     Update FX prices stored in Arctic (Mongo) with interactive brokers prices (usually going back about a year)
 
@@ -23,25 +23,30 @@ def interactive_manual_check_fx_prices(fx_code):
     """
 
     with dataBlob(log_name="Interactive-Manual-Check-FX-prices") as data:
-        data_broker = dataBroker(data)
-        list_of_codes_all = (
-            data_broker.get_list_of_fxcodes()
-        )  # codes must be in .csv file /sysbrokers/IB/ibConfigSpotFx.csv
-
-        if fx_code not in list_of_codes_all:
-            print(
-                "\n\n\ %s is not an FX code (valid codes: %s) \n\n"
-                % (fx_code, list_of_codes_all)
-            )
-            raise Exception()
+        fx_code = get_valid_fx_code_from_user(data)
 
         data.log.label(currency_code=fx_code)
+        check_fx_ok_for_broker(data, fx_code)
+
         update_manual_check_fx_prices_for_code(fx_code, data)
 
     return success
 
+def check_fx_ok_for_broker(data: dataBlob, fx_code: str):
+    data_broker = dataBroker(data)
+    list_of_codes_all = (
+        data_broker.get_list_of_fxcodes()
+    )  # codes must be in .csv file /sysbrokers/IB/ibConfigSpotFx.csv
 
-def update_manual_check_fx_prices_for_code(fx_code, data):
+    if fx_code not in list_of_codes_all:
+        print(
+            "\n\n\ %s is not an FX code (valid codes: %s) \n\n"
+            % (fx_code, list_of_codes_all)
+        )
+        raise Exception()
+
+
+def update_manual_check_fx_prices_for_code(fx_code: str, data: dataBlob):
     db_currency_data = currencyData(data)
     data_broker = dataBroker(data)
 
@@ -52,7 +57,7 @@ def update_manual_check_fx_prices_for_code(fx_code, data):
 
     old_fx_prices = db_currency_data.get_fx_prices(fx_code)
 
-    # May break manual price checking code if not equal
+    # Will break manual price checking code if not equal
     old_fx_prices.name = new_fx_prices.name = ""
 
     print("\n\n Manually checking prices for %s \n\n" % fx_code)
@@ -60,7 +65,7 @@ def update_manual_check_fx_prices_for_code(fx_code, data):
         old_fx_prices, new_fx_prices, type_new_data=fxPrices.from_data_frame
     )
 
-    rows_added = db_currency_data.update_fx_prices(
+    db_currency_data.update_fx_prices(
         fx_code, new_prices_checked, check_for_spike=False
     )
 

@@ -4,7 +4,7 @@ from sysbrokers.IB.ib_instruments_data import ibFuturesInstrumentData
 from syscore.objects import missing_contract, missing_instrument
 
 from sysdata.futures.contracts import futuresContractData
-from sysdata.futures.trading_hours import manyTradingStartAndEnd
+from syscore.dateutils import manyTradingStartAndEnd
 
 from sysobjects.contract_dates_and_expiries import expiryDate
 from sysobjects.contracts import  contract_from_code_and_id, futuresContract

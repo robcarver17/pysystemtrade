@@ -11,7 +11,7 @@ from sysproduction.data.get_data import dataBlob
 
 
 class diagVolumes(object):
-    def __init__(self, data=arg_not_supplied):
+    def __init__(self, data: dataBlob=arg_not_supplied):
         # Check data has the right elements to do this
         if data is arg_not_supplied:
             data = dataBlob()
@@ -20,7 +20,7 @@ class diagVolumes(object):
         self.data = data
 
     def get_normalised_smoothed_volumes_of_contract_list(
-        self, instrument_code, contract_list, span=3
+        self, instrument_code:str, contract_date_str_list: list, span: int=3
     ):
         """
 
@@ -30,7 +30,7 @@ class diagVolumes(object):
         """
 
         smoothed_volumes = self.get_smoothed_volumes_of_contract_list(
-            instrument_code, contract_list, span=span
+            instrument_code, contract_date_str_list, span=span
         )
         max_smoothed_volume = max(smoothed_volumes)
         if max_smoothed_volume == 0.0:
@@ -42,8 +42,8 @@ class diagVolumes(object):
         return normalised_volumes
 
     def get_smoothed_volumes_of_contract_list(
-        self, instrument_code, contract_list, span=3
-    ):
+        self, instrument_code:str, contract_date_str_list: list, span: int=3
+    ) -> list:
         """
         Return list of most recent volumes, exponentially weighted
 
@@ -53,20 +53,20 @@ class diagVolumes(object):
 
         smoothed_volumes = [
             self.get_smoothed_volume_for_contract(
-                instrument_code, contract_id, span=span
+                futuresContract(instrument_code, contract_date_str), span=span
             )
-            for contract_id in contract_list
+            for contract_date_str in contract_date_str_list
         ]
 
         return smoothed_volumes
 
     def get_smoothed_volume_for_contract(
-            self, instrument_code, contract_id, span=3):
-        if contract_id is missing_contract:
+            self, contract: futuresContract, span=3):
+        if contract is missing_contract:
             return 0.0
 
         volumes = self.get_daily_volumes_for_contract(
-            instrument_code, contract_id)
+            contract)
 
         if volumes is missing_data:
             return 0.0
@@ -82,10 +82,8 @@ class diagVolumes(object):
 
         return final_volume
 
-    def get_daily_volumes_for_contract(self, instrument_code, contract_id):
-        # FIXME AND REPLACE WITH METHOD THAT USES ACTUAL CONTRACT OBJECT
+    def get_daily_volumes_for_contract(self, contract: futuresContract):
         data = self.data
-        contract = futuresContract(instrument_code, contract_id)
         price_data = data.db_futures_contract_price.get_prices_for_contract_object(contract)
 
         if len(price_data) == 0:
