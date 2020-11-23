@@ -1,6 +1,6 @@
 from syscore.objects import missing_contract
 
-from sysobjects.contract_dates_and_expiries import contractDate
+from sysobjects.contract_dates_and_expiries import contractDate, expiryDate
 from sysobjects.contracts import futuresContract, listOfFuturesContracts
 from sysobjects.instruments import futuresInstrument
 from sysobjects.rolls import contractDateWithRollParameters
@@ -47,17 +47,18 @@ class updateSampledContracts(object):
 
     def update_sampled_contracts(self):
         data = self.data
-        diag_prices = diagPrices(data)
-        list_of_codes_all = diag_prices.get_list_of_instruments_in_multiple_prices()
-        for instrument_code in list_of_codes_all:
-            update_active_contracts_for_instrument(
-                instrument_code, data)
+        update_active_contracts_with_data(data)
 
-        return None
+def update_active_contracts_with_data(data: dataBlob):
+    diag_prices = diagPrices(data)
+    list_of_codes_all = diag_prices.get_list_of_instruments_in_multiple_prices()
+    for instrument_code in list_of_codes_all:
+        update_active_contracts_for_instrument(
+            instrument_code, data)
 
 
 def update_active_contracts_for_instrument(
-        instrument_code, data):
+        instrument_code: str, data: dataBlob):
     # Get the list of contracts we'd want to get prices for, given current
     # roll calendar
     required_contract_chain = get_contract_chain(data, instrument_code)
@@ -70,7 +71,6 @@ def update_active_contracts_for_instrument(
     # Now to check if expiry dates are resolved
     update_expiries_of_sampled_contracts(instrument_code, data)
 
-    return None
 
 
 def get_contract_chain(data: dataBlob, instrument_code: str) -> listOfFuturesContracts:
@@ -92,7 +92,7 @@ def get_furthest_out_contract_with_roll_parameters(data: dataBlob,
     return furthest_out_contract
 
 def get_furthest_out_contract_date(data: dataBlob,
-                                   instrument_code: str) ->contractDate:
+                                   instrument_code: str) -> str:
 
     diag_prices = diagPrices(data)
 
@@ -104,7 +104,7 @@ def get_furthest_out_contract_date(data: dataBlob,
     return furthest_out_contract_date
 
 def create_furthest_out_contract_with_roll_parameters_from_contract_date(data: dataBlob, instrument_code: str,
-                                                                         furthest_out_contract_date: contractDate):
+                                                                         furthest_out_contract_date: str):
 
     diag_contracts = diagContracts(data)
     roll_parameters = diag_contracts.get_roll_parameters(instrument_code)
@@ -153,7 +153,7 @@ def create_contract_object_chain_from_contract_date_chain(instrument_code: str,
     return contract_object_chain
 
 def update_contract_database_with_contract_chain(
-    instrument_code, required_contract_chain, data
+    instrument_code: str, required_contract_chain: listOfFuturesContracts, data: dataBlob
 ):
     """
 
@@ -194,7 +194,7 @@ def get_current_contract_chain(data: dataBlob, instrument_code:str) -> listOfFut
     return current_contract_chain
 
 def add_missing_contracts_to_database(
-     missing_from_db: list, data
+     missing_from_db: listOfFuturesContracts, data: dataBlob
 ):
     """
 
@@ -237,7 +237,7 @@ def add_missing_contract_to_database(data: dataBlob, contract_to_add: futuresCon
 
 
 def mark_contracts_as_stopped_sampling(
-    instrument_code, contracts_not_sampling, data
+    instrument_code: str, contracts_not_sampling: listOfFuturesContracts, data: dataBlob
 ):
     """
 
@@ -269,11 +269,10 @@ def mark_contracts_as_stopped_sampling(
             # nothing to do
             pass
 
-    return None
 
 
 def update_expiries_of_sampled_contracts(
-        instrument_code, data):
+        instrument_code: str, data: dataBlob):
     """
     # Now to check if expiry dates are resolved
     # For everything in the database which is sampling
@@ -297,7 +296,7 @@ def update_expiries_of_sampled_contracts(
     return None
 
 
-def update_expiry_for_contract(contract_object, data):
+def update_expiry_for_contract(contract_object: futuresContract, data: dataBlob):
     """
     Get an expiry from IB, check if same as database, otherwise update the database
 
@@ -309,7 +308,6 @@ def update_expiry_for_contract(contract_object, data):
     log = data.log
     diag_contracts = diagContracts(data)
     data_broker = dataBroker(data)
-    update_contracts = updateContracts(data)
 
     contract_date = contract_object.date_str
     instrument_code = contract_object.instrument_code
@@ -320,38 +318,36 @@ def update_expiry_for_contract(contract_object, data):
     db_contract = diag_contracts.get_contract_object(
         instrument_code, contract_date)
 
-    # Both should be in format expiryDate(yyyy,mm,dd)
     db_expiry_date = db_contract.expiry_date
-    try:
-        ib_expiry_date = \
-            data_broker.get_actual_expiry_date_for_contract(db_contract)
+    broker_expiry_date = \
+        data_broker.get_actual_expiry_date_for_contract(db_contract)
 
-        if ib_expiry_date is missing_contract:
-            raise Exception()
-
-    except Exception as e:
-        # We can do nothing with that...
+    if broker_expiry_date is missing_contract:
         log.warn(
-            "%s so couldn't get expiry date for %s" %
-            (e, str(contract_object)))
+            "Couldn't get expiry date for %s" %
+            (str(contract_object)))
         return None
 
-    # Will they be same format?
-    if ib_expiry_date == db_expiry_date:
+    if broker_expiry_date == db_expiry_date:
         log.msg(
             "No change to contract expiry %s to %s"
-            % (str(contract_object), str(ib_expiry_date))
+            % (str(contract_object), str(broker_expiry_date))
         )
         return None
 
     # Different!
-    contract_object.update_expiry_date(ib_expiry_date)
+    update_contract_object_with_new_expiry_date(data, broker_expiry_date, contract_object)
+
+def update_contract_object_with_new_expiry_date(data: dataBlob,
+                                                broker_expiry_date: expiryDate,
+                                                contract_object: futuresContract):
+    update_contracts = updateContracts(data)
+
+    contract_object.update_expiry_date(broker_expiry_date)
     update_contracts.add_contract_data(
         contract_object, ignore_duplication=True)
 
-    log.msg(
+    data.log.msg(
         "Updated expiry of contract %s to %s"
-        % (str(contract_object), str(ib_expiry_date))
+        % (str(contract_object), str(broker_expiry_date))
     )
-
-    return None
