@@ -11,6 +11,7 @@ They can be stored, or worked out 'on the fly'
 """
 
 from sysdata.base_data import baseData
+from syscore.objects import success, failure, status
 
 # These are used when inferring prices in an incomplete series
 from sysobjects.multiple_prices import futuresMultiplePrices
@@ -32,84 +33,81 @@ class futuresMultiplePricesData(baseData):
     def keys(self):
         return self.get_list_of_instruments()
 
-    def get_list_of_instruments(self):
-        raise NotImplementedError(USE_CHILD_CLASS_ERROR)
+    def __getitem__(self, instrument_code: str) ->futuresMultiplePrices:
+        return self.get_multiple_prices(instrument_code)
 
-    def get_multiple_prices(self, instrument_code):
+    def get_multiple_prices(self, instrument_code: str) -> futuresMultiplePrices:
         if self.is_code_in_data(instrument_code):
             return self._get_multiple_prices_without_checking(instrument_code)
         else:
             return futuresMultiplePrices.create_empty()
 
-    def _get_multiple_prices_without_checking(self, instrument_code):
-        raise NotImplementedError(USE_CHILD_CLASS_ERROR)
-
-    def __getitem__(self, instrument_code):
-        return self.get_multiple_prices(instrument_code)
-
-    def _delete_all_multiple_prices(self, are_you_sure=False):
-        if are_you_sure:
-            instrument_list = self.get_list_of_instruments()
-            for instrument_code in instrument_list:
-                self.delete_multiple_prices(
-                    instrument_code, are_you_sure=are_you_sure)
-        else:
-            self.log.error(
-                "You need to call delete_all_multiple_prices with a flag to be sure"
-            )
-
-    def delete_multiple_prices(self, instrument_code, are_you_sure=False):
-        self.log.label(instrument_code=instrument_code)
+    def delete_multiple_prices(self, instrument_code: str, are_you_sure=False) -> status:
+        log = self.log.setup(instrument_code=instrument_code)
 
         if are_you_sure:
             if self.is_code_in_data(instrument_code):
                 self._delete_multiple_prices_without_any_warning_be_careful(
                     instrument_code
                 )
-                self.log.terse(
+                log.terse(
                     "Deleted multiple price data for %s" %
                     instrument_code)
 
+                return success
+
             else:
                 # doesn't exist anyway
-                self.log.warn(
+                log.warn(
                     "Tried to delete non existent multiple prices for %s"
                     % instrument_code
                 )
+                return failure
         else:
-            self.log.error(
+            log.error(
                 "You need to call delete_multiple_prices with a flag to be sure"
             )
+            return failure
 
-    def _delete_multiple_prices_without_any_warning_be_careful(
-            instrument_code):
-        raise NotImplementedError(USE_CHILD_CLASS_ERROR)
 
-    def is_code_in_data(self, instrument_code):
+    def is_code_in_data(self, instrument_code: str) -> bool:
         if instrument_code in self.get_list_of_instruments():
             return True
         else:
             return False
 
     def add_multiple_prices(
-        self, instrument_code, multiple_price_data, ignore_duplication=False
-    ):
-        self.log.label(instrument_code=instrument_code)
+        self, instrument_code: str, multiple_price_data: futuresMultiplePrices, ignore_duplication=False
+    ) -> status:
+        log = self.log.setup(instrument_code=instrument_code)
         if self.is_code_in_data(instrument_code):
             if ignore_duplication:
                 pass
             else:
-                self.log.error(
+                log.error(
                     "There is already %s in the data, you have to delete it first" %
                     instrument_code)
+                return failure
 
         self._add_multiple_prices_without_checking_for_existing_entry(
             instrument_code, multiple_price_data
         )
 
-        self.log.terse("Added data for instrument %s" % instrument_code)
+        log.terse("Added data for instrument %s" % instrument_code)
+
+        return success
 
     def _add_multiple_prices_without_checking_for_existing_entry(
-        self, instrument_code, multiple_price_data
+        self, instrument_code: str, multiple_price_data: futuresMultiplePrices
     ):
+        raise NotImplementedError(USE_CHILD_CLASS_ERROR)
+
+    def get_list_of_instruments(self) -> list:
+        raise NotImplementedError(USE_CHILD_CLASS_ERROR)
+
+    def _get_multiple_prices_without_checking(self, instrument_code:str) -> futuresMultiplePrices:
+        raise NotImplementedError(USE_CHILD_CLASS_ERROR)
+
+    def _delete_multiple_prices_without_any_warning_be_careful(self,
+            instrument_code: str):
         raise NotImplementedError(USE_CHILD_CLASS_ERROR)

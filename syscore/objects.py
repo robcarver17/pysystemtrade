@@ -58,8 +58,10 @@ ROLL_PSEUDO_STRATEGY = "_ROLL_PSEUDO_STRATEGY"
 data_error = _named_object("data error")
 not_updated = _named_object("not updated")
 
-success = _named_object("success")
-failure = _named_object("failure")
+class status(_named_object):
+    pass
+success = status("success")
+failure = status("failure")
 
 process_stop = _named_object("process stop")
 process_no_run = _named_object("process no run")
