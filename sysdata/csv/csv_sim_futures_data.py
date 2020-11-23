@@ -183,7 +183,7 @@ class csvFuturesAdjustedPriceData(csvPaths, futuresAdjustedPriceData):
         pathname = self._resolve_path("adjusted_prices")
 
         adj_prices_data = csvFuturesAdjustedPricesData(pathname)
-        adj_prices_data.log = self.log
+        adj_prices_data._log = self.log
 
         return adj_prices_data
 
@@ -233,7 +233,7 @@ class csvFuturesMultiplePriceData(csvPaths, futuresMultiplePriceData):
 
         csv_multiple_prices_data = csvFuturesMultiplePricesData(
             datapath=pathname)
-        csv_multiple_prices_data.log = self.log
+        csv_multiple_prices_data._log = self.log
 
         return csv_multiple_prices_data
 
@@ -279,7 +279,7 @@ class csvFXData(csvPaths, simData):
     def _get_fx_data_object(self):
         pathname = self._resolve_path("spot_fx_data")
         csv_fx_prices_data = csvFxPricesData(pathname)
-        csv_fx_prices_data.log = self.log
+        csv_fx_prices_data._log = self.log
 
         return csv_fx_prices_data
 
