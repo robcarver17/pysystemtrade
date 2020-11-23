@@ -190,16 +190,12 @@ def _roll_adjusted_and_multiple_prices(data, instrument_code):
     # Only required for potential rollback
     current_adjusted_prices = diag_prices.get_adjusted_prices(instrument_code)
 
-    try:
-        updated_multiple_prices = update_multiple_prices_on_roll(
-            data, current_multiple_prices, instrument_code
-        )
-        new_adj_prices = futuresAdjustedPrices.stich_multiple_prices(
-            updated_multiple_prices
-        )
-    except Exception as e:
-        data.log.warn("%s : went wrong when rolling: No roll has happened" % e)
-        return failure
+    updated_multiple_prices = update_multiple_prices_on_roll(
+        data, current_multiple_prices, instrument_code
+    )
+    new_adj_prices = futuresAdjustedPrices.stich_multiple_prices(
+        updated_multiple_prices
+    )
 
     # We want user input before we do anything
     compare_old_and_new_prices(
