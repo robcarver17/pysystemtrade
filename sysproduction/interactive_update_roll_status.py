@@ -15,7 +15,7 @@ from sysobjects.rolls import contractDateWithRollParameters
 from sysobjects.multiple_prices import futuresMultiplePrices, singleRowMultiplePrices
 from sysobjects.dict_of_named_futures_per_contract_prices import price_name, carry_name, forward_name, \
     price_column_names, contract_column_names
-from sysdata.futures.adjusted_prices import futuresAdjustedPrices
+from sysobjects.adjusted_prices import futuresAdjustedPrices
 
 from syscore.objects import success, failure
 

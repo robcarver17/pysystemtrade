@@ -15,7 +15,7 @@ from syscore.objects import success
 from sysobjects.dict_of_named_futures_per_contract_prices import dictNamedFuturesContractFinalPrices, \
     dictFuturesNamedContractFinalPricesWithContractID
 
-from sysdata.futures.adjusted_prices import no_update_roll_has_occured
+from sysobjects.adjusted_prices import no_update_roll_has_occured
 
 from sysproduction.data.get_data import dataBlob
 from sysproduction.data.prices import diagPrices, updatePrices

@@ -2,8 +2,8 @@ import pandas as pd
 
 from sysdata.futures.adjusted_prices import (
     futuresAdjustedPricesData,
-    futuresAdjustedPrices,
 )
+from sysobjects.adjusted_prices import futuresAdjustedPrices
 from syscore.fileutils import get_filename_for_package, files_with_extension_in_pathname
 from syscore.pdutils import pd_readcsv
 from syslogdiag.log import logtoscreen

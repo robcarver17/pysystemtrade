@@ -9,7 +9,7 @@ from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesDat
 from sysdata.arctic.arctic_adjusted_prices import arcticFuturesAdjustedPricesData
 from sysdata.csv.csv_adjusted_prices import csvFuturesAdjustedPricesData
 
-from sysdata.futures.adjusted_prices import futuresAdjustedPrices
+from sysobjects.adjusted_prices import futuresAdjustedPrices
 
 
 def _get_data_inputs(csv_adj_data_path):

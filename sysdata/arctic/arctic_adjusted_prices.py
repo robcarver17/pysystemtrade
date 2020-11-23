@@ -1,7 +1,7 @@
 from sysdata.futures.adjusted_prices import (
     futuresAdjustedPricesData,
-    futuresAdjustedPrices,
 )
+from sysobjects.adjusted_prices import futuresAdjustedPrices
 from sysdata.arctic.arctic_connection import articConnection
 from syslogdiag.log import logtoscreen
 import pandas as pd
