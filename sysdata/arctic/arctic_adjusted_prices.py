@@ -40,7 +40,7 @@ class arcticFuturesAdjustedPricesData(futuresAdjustedPricesData):
     def _get_adjusted_prices_without_checking(self, instrument_code: str) -> futuresAdjustedPrices:
         data = self.arctic.read(instrument_code)
 
-        instrpricedata = futuresAdjustedPrices(data)
+        instrpricedata = futuresAdjustedPrices(data['values'])
 
         return instrpricedata
 
