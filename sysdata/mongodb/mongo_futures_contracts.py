@@ -132,7 +132,11 @@ def _translate_old_records(mongo_data, list_of_old_records):
 
 def _translate_record(mongo_data, record):
     contract_object = _get_old_record(mongo_data, record)
-    mongo_data.delete_data_without_any_warning(contract_object.key)
+    try:
+        mongo_data.delete_data_without_any_warning(contract_object.key)
+    except:
+        ## fine as we'd expect
+        pass
     mongo_data.add_data(contract_object.key, contract_object.as_dict())
     _delete_old_record(mongo_data, record)
 

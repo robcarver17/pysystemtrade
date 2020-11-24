@@ -105,7 +105,7 @@ def get_and_add_prices_for_frequency(
         return failure
 
     error_or_rows_added = db_futures_prices.update_prices_for_contract(
-        contract_object, broker_prices, check_for_spike=True
+        contract_object, broker_prices, check_for_spike=False
     )
     if error_or_rows_added is data_error:
         report_price_spike(data, contract_object)

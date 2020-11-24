@@ -133,11 +133,11 @@ class updatePrices(object):
         self.data = data
 
     def update_prices_for_contract(
-        self, contract_object: futuresContract, ib_prices: futuresContractPrices, check_for_spike=True
+        self, contract_object: futuresContract, new_prices: futuresContractPrices, check_for_spike=True
     ):
 
         return self.data.db_futures_contract_price.update_prices_for_contract(
-            contract_object, ib_prices, check_for_spike=check_for_spike
+            contract_object, new_prices, check_for_spike=check_for_spike
         )
 
     def add_multiple_prices(
