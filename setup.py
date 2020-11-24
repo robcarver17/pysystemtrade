@@ -71,14 +71,14 @@ setup(
     package_data=package_data,
     long_description=read("README.md"),
     install_requires=[
-            "pandas >= 0.25.2",
-            "numpy >= 1.13.3",
-            "matplotlib > 1.4.3",
-            "PyYAML>=3.11",
-            "scipy>=0.17",
-        "ib-insync>=0.9.64",
+        "pandas==0.25.2",
+        "matplotlib>=1.4.3",
+        "PyYAML>=5.3.1",
+        "numpy>=1.13.3",
+        "scipy>=1.0.0",
         "pymongo>=3.6.0",
-        "arctic>=1.79.2"
+        "arctic>=1.79.2",
+        "ib-insync>=0.9.64"
     ],
     tests_require=[
         "nose",
