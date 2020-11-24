@@ -1,4 +1,4 @@
-
+import datetime
 import pandas as pd
 import numpy as np
 
@@ -8,8 +8,6 @@ from sysobjects.dict_of_futures_per_contract_prices import dictFuturesContractFi
 from sysobjects.multiple_prices import futuresMultiplePrices
 
 from sysobjects.rolls import rollParameters
-
-
 
 
 class rollCalendar(pd.DataFrame):

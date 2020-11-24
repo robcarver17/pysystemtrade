@@ -76,7 +76,7 @@ def _get_price_data_between_rolls(roll_calendar_with_roll_index: rollCalendarWit
     roll_date_info = _calc_roll_date_info(roll_calendar_with_roll_index)
     contract_date_info = _calc_contract_date_info(roll_date_info, dict_of_futures_contract_closing_prices)
 
-    invalid = _invalid_current_or_carry_contract(contract_date_info)
+    invalid = _invalid_current_contract(contract_date_info)
 
     if invalid:
         # missing, this is okay if we haven't started properly yet
@@ -142,14 +142,12 @@ def _calc_contract_date_info(
     return contract_date_info
 
 
-def _invalid_current_or_carry_contract(contract_date_info: contractAndPriceInfo
-                                       ) -> bool:
+def _invalid_current_contract(contract_date_info: contractAndPriceInfo
+                              ) -> bool:
     dict_of_futures_contract_closing_prices = contract_date_info.dict_of_futures_contract_closing_prices
     contract_keys = dict_of_futures_contract_closing_prices.keys()
 
-    if (contract_date_info.current_contract_str not in contract_keys) or (
-            contract_date_info.carry_contract_str not in contract_keys
-    ):
+    if (contract_date_info.current_contract_str not in contract_keys):
         return True
     else:
         return False
@@ -178,8 +176,10 @@ def _get_current_next_carry_data(
     current_price_data = dict_of_futures_contract_closing_prices[
                              contract_date_info.current_contract_str
                          ][roll_date_info.start_of_roll_period:roll_date_info.end_of_roll_period]
-    carry_price_data = dict_of_futures_contract_closing_prices[
-                           contract_date_info.carry_contract_str][roll_date_info.start_of_roll_period:roll_date_info.end_of_roll_period]
+
+    carry_price_data = _get_carry_price_data(contract_date_info,
+                                             current_price_data,
+                                             roll_date_info)
 
     next_price_data = _get_next_price_data(contract_date_info,
                          current_price_data,
@@ -217,6 +217,35 @@ def _get_next_price_data(contract_date_info: contractAndPriceInfo,
                           ][roll_date_info.start_of_roll_period:roll_date_info.end_of_roll_period]
 
     return  next_price_data
+
+def _get_carry_price_data(contract_date_info: contractAndPriceInfo,
+                         current_price_data: pd.Series,
+                         roll_date_info: rollDateInfo
+                         ):
+    dict_of_futures_contract_closing_prices = contract_date_info.dict_of_futures_contract_closing_prices
+    contract_keys = dict_of_futures_contract_closing_prices.keys()
+    carry_contract_str = contract_date_info.carry_contract_str
+
+    if carry_contract_str not in contract_keys:
+
+        if _last_row_in_roll_calendar(roll_date_info):
+            # Last entry, this is fine
+            print(
+                "Carry contract %s missing in last row of roll calendar - this is okay" %
+                carry_contract_str)
+            carry_price_data = pd.Series(np.nan, current_price_data.index)
+            carry_price_data.iloc[:] = np.nan
+        else:
+            raise Exception(
+                "Missing contract %s in middle of roll calendar on %s"
+                % (carry_contract_str, str(roll_date_info.next_roll_date))
+            )
+    else:
+        carry_price_data =    dict_of_futures_contract_closing_prices[
+        carry_contract_str][roll_date_info.start_of_roll_period:roll_date_info.end_of_roll_period]
+
+
+    return  carry_price_data
 
 
 def _last_row_in_roll_calendar(roll_date_info: rollDateInfo):

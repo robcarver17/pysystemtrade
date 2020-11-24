@@ -233,6 +233,9 @@ def _adjust_row_of_approx_roll_calendar(local_row_data: localRowData,
 
     roll_date, date_to_avoid = _get_roll_date_and_date_to_avoid(local_row_data)
     set_of_prices = _get_set_of_prices(local_row_data, dict_of_futures_contract_prices)
+    if set_of_prices is _bad_row:
+        _print_roll_date_error(local_row_data)
+        return  _bad_row
     try:
 
         adjusted_roll_date = _find_best_matching_roll_date(
@@ -271,10 +274,14 @@ def _get_set_of_prices(local_row_data: localRowData,
 
     approx_row = local_row_data.current_row
 
-    current_contract = approx_row.current_contract
-    next_contract = approx_row.next_contract
+    current_contract = str(approx_row.current_contract)
+    next_contract = str(approx_row.next_contract)
 
-    current_prices = dict_of_futures_contract_prices[current_contract]
+    try:
+        current_prices = dict_of_futures_contract_prices[current_contract]
+    except KeyError:
+        return _bad_row
+
     next_prices = dict_of_futures_contract_prices[next_contract]
 
     carry_contract, carry_prices = _get_carry_contract_and_prices(local_row_data,
@@ -293,7 +300,7 @@ def _get_carry_contract_and_prices(local_row_data, dict_of_futures_contract_pric
         carry_prices = _no_carry_prices
         carry_contract = _no_carry_prices
     else:
-        carry_contract = next_approx_row.carry_contract
+        carry_contract = str(next_approx_row.carry_contract)
         carry_prices = dict_of_futures_contract_prices[carry_contract]
 
     return carry_contract, carry_prices

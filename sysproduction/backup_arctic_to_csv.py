@@ -131,31 +131,34 @@ def backup_futures_contract_prices_to_csv(data):
         data.arctic_futures_contract_price.get_list_of_instrument_codes_with_price_data()
     )
     for instrument_code in instrument_list:
-        list_of_contracts = data.arctic_futures_contract_price.contracts_with_price_data_for_instrument_code(
-            instrument_code)
+        backup_futures_contract_prices_for_instrument_to_csv(data, instrument_code)
 
-        for contract in list_of_contracts:
-            arctic_data = data.arctic_futures_contract_price.get_prices_for_contract_object(contract)
+def backup_futures_contract_prices_for_instrument_to_csv(data: dataBlob, instrument_code: str):
+    list_of_contracts = data.arctic_futures_contract_price.contracts_with_price_data_for_instrument_code(
+        instrument_code)
 
-            csv_data = data.csv_futures_contract_price.get_prices_for_contract_object(contract)
+    for contract in list_of_contracts:
+        arctic_data = data.arctic_futures_contract_price.get_prices_for_contract_object(contract)
 
-            if check_df_equals(arctic_data, csv_data):
-                # No updated needed, move on
-                print("No update needed")
-            else:
-                # Write backup
-                try:
-                    data.csv_futures_contract_price.write_prices_for_contract_object(
-                        contract, arctic_data, ignore_duplication=True, )
-                    data.log.msg(
-                        "Written backup .csv of prices for %s"
-                        % (contract)
-                    )
-                except BaseException:
-                    data.log.warn(
-                        "Problem writing .csv of prices for %s %s"
-                        % (contract)
-                    )
+        csv_data = data.csv_futures_contract_price.get_prices_for_contract_object(contract)
+
+        if check_df_equals(arctic_data, csv_data):
+            # No updated needed, move on
+            print("No update needed")
+        else:
+            # Write backup
+            try:
+                data.csv_futures_contract_price.write_prices_for_contract_object(
+                    contract, arctic_data, ignore_duplication=True, )
+                data.log.msg(
+                    "Written backup .csv of prices for %s"
+                    % (contract)
+                )
+            except BaseException:
+                data.log.warn(
+                    "Problem writing .csv of prices for %s %s"
+                    % (contract)
+                )
 
 
 # fx
@@ -180,55 +183,61 @@ def backup_fx_to_csv(data):
 def backup_multiple_to_csv(data):
     instrument_list = data.arctic_futures_multiple_prices.get_list_of_instruments()
     for instrument_code in instrument_list:
-        arctic_data = data.arctic_futures_multiple_prices.get_multiple_prices(
-            instrument_code
-        )
-        csv_data = data.csv_futures_multiple_prices.get_multiple_prices(
-            instrument_code)
+        backup_multiple_to_csv_for_instrument(data, instrument_code)
 
-        if check_df_equals(arctic_data, csv_data):
-            print("No update needed")
-            pass
-        else:
-            try:
-                data.csv_futures_multiple_prices.add_multiple_prices(
-                    instrument_code, arctic_data, ignore_duplication=True
-                )
-                data.log.msg(
-                    "Written .csv backup multiple prices for %s" %
-                    instrument_code)
-            except BaseException:
-                data.log.warn(
-                    "Problem writing .csv backup multiple prices for %s"
-                    % instrument_code
-                )
+def backup_multiple_to_csv_for_instrument(data, instrument_code: str):
+    arctic_data = data.arctic_futures_multiple_prices.get_multiple_prices(
+        instrument_code
+    )
+    csv_data = data.csv_futures_multiple_prices.get_multiple_prices(
+        instrument_code)
+
+    if check_df_equals(arctic_data, csv_data):
+        print("No update needed")
+        pass
+    else:
+        try:
+            data.csv_futures_multiple_prices.add_multiple_prices(
+                instrument_code, arctic_data, ignore_duplication=True
+            )
+            data.log.msg(
+                "Written .csv backup multiple prices for %s" %
+                instrument_code)
+        except BaseException:
+            data.log.warn(
+                "Problem writing .csv backup multiple prices for %s"
+                % instrument_code
+            )
 
 
 def backup_adj_to_csv(data):
     instrument_list = data.arctic_futures_adjusted_prices.get_list_of_instruments()
     for instrument_code in instrument_list:
-        arctic_data = data.arctic_futures_adjusted_prices.get_adjusted_prices(
-            instrument_code
-        )
-        csv_data = data.csv_futures_adjusted_prices.get_adjusted_prices(
-            instrument_code)
+        backup_adj_to_csv_for_instrument(data, instrument_code)
 
-        if check_ts_equals(arctic_data, csv_data):
-            print("No update needed")
-            pass
-        else:
-            try:
-                data.csv_futures_adjusted_prices.add_adjusted_prices(
-                    instrument_code, arctic_data, ignore_duplication=True
-                )
-                data.log.msg(
-                    "Written .csv backup for adjusted prices %s" %
-                    instrument_code)
-            except BaseException:
-                data.log.warn(
-                    "Problem writing .csv backup for adjusted prices %s"
-                    % instrument_code
-                )
+def backup_adj_to_csv_for_instrument(data: dataBlob, instrument_code: str):
+    arctic_data = data.arctic_futures_adjusted_prices.get_adjusted_prices(
+        instrument_code
+    )
+    csv_data = data.csv_futures_adjusted_prices.get_adjusted_prices(
+        instrument_code)
+
+    if check_ts_equals(arctic_data, csv_data):
+        print("No update needed")
+        pass
+    else:
+        try:
+            data.csv_futures_adjusted_prices.add_adjusted_prices(
+                instrument_code, arctic_data, ignore_duplication=True
+            )
+            data.log.msg(
+                "Written .csv backup for adjusted prices %s" %
+                instrument_code)
+        except BaseException:
+            data.log.warn(
+                "Problem writing .csv backup for adjusted prices %s"
+                % instrument_code
+            )
 
 
 def backup_contract_position_data(data):
