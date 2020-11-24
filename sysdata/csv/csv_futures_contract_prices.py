@@ -45,7 +45,7 @@ class csvFuturesContractPriceData(futuresContractPriceData):
 
     @property
     def config(self):
-        return self.config
+        return self._config
 
     @property
     def datapath(self):
@@ -106,7 +106,7 @@ class csvFuturesContractPriceData(futuresContractPriceData):
         config = self.config
 
         date_format = config.input_date_format
-        date_time_column = config.input_date_time_column
+        date_time_column = config.input_date_index_name
         input_column_mapping = config.input_column_mapping
         skiprows = config.input_skiprows
         skipfooter = config.input_skipfooter
@@ -145,7 +145,7 @@ class csvFuturesContractPriceData(futuresContractPriceData):
         keyname = self._keyname_given_contract_object(futures_contract_object)
         filename = self._filename_given_key_name(keyname)
         futures_price_data.to_csv(
-            filename, index_label=self.config.input_date_time_column)
+            filename, index_label=self.config.input_date_index_name)
 
     def _filename_given_key_name(self, keyname: str):
         return get_filename_for_package(self._datapath, "%s.csv" % (keyname))

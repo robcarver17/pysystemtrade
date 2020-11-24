@@ -20,9 +20,9 @@ class ConfigCsvFXPrices:
         :param date_format: Format for dates https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior
 
     """
-    date_column: str = "DATETIME",
-    date_format: str = DEFAULT_DATE_FORMAT,
-    price_column: str = "PRICE",
+    date_column: str = "DATETIME"
+    date_format: str = DEFAULT_DATE_FORMAT
+    price_column: str = "PRICE"
 
 
 

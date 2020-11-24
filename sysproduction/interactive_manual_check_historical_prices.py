@@ -19,7 +19,7 @@ from sysdata.futures.manual_price_checker import manual_price_checker
 from sysobjects.futures_per_contract_prices import futuresContractPrices
 from sysobjects.contracts import futuresContract
 
-def interactive_manual_check_historical_prices(instrument_code: str):
+def interactive_manual_check_historical_prices():
     """
     Do a daily update for futures contract prices, using IB historical data
 
