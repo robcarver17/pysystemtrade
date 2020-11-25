@@ -170,14 +170,15 @@ class dataBlob(object):
         class_name = get_class_name(class_object)
         csv_data_paths = self.csv_data_paths
         if csv_data_paths is arg_not_supplied:
-            raise Exception(
-                "Need csv_data_paths dict for class name %s" % class_name
-            )
+            print("No datapaths provided for .csv, will use defaults")
+            return arg_not_supplied
+
         datapath = csv_data_paths.get(class_name, "")
         if datapath == "":
-            raise Exception(
-                "Need to have key %s in csv_data_paths" %
+            print(
+                "No key for %s in csv_data_paths, will use " %
                 class_name)
+            return arg_not_supplied
 
         return datapath
 
