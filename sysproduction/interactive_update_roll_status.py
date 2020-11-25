@@ -94,7 +94,7 @@ class RollData(object):
         print("")
 
         for state_number, state in enumerate(self.allowable_roll_states):
-            print("%d) %s: %s" % (state_number, state, explain_roll_state(state)))
+            print("%s: %s" % (state, explain_roll_state(state)))
 
         print("")
 
@@ -211,36 +211,11 @@ def _roll_adjusted_and_multiple_prices(data: dataBlob, instrument_code: str) -> 
     print("Rolling adjusted prices!")
     print("")
 
-    diag_prices = diagPrices(data)
+    rolling_adj_and_mult_object = _rollingAdjustedAndMultiplePrices(data, instrument_code)
 
-    current_multiple_prices = diag_prices.get_multiple_prices(instrument_code)
+    # this will also do the roll calculations
+    rolling_adj_and_mult_object.compare_old_and_new_prices()
 
-    # Only required for potential rollback
-    current_adjusted_prices = diag_prices.get_adjusted_prices(instrument_code)
-
-    updated_multiple_prices = update_multiple_prices_on_roll(
-        data, current_multiple_prices, instrument_code
-    )
-    new_adj_prices = futuresAdjustedPrices.stich_multiple_prices(
-        updated_multiple_prices
-    )
-
-    # We want user input before we do anything
-    compare_old_and_new_prices(
-        [
-            current_multiple_prices,
-            updated_multiple_prices,
-            current_adjusted_prices,
-            new_adj_prices,
-        ],
-        [
-            "Current multiple prices",
-            "New multiple prices",
-            "Current adjusted prices",
-            "New adjusted prices",
-        ],
-    )
-    print("")
     confirm_roll = input(
         "Confirm roll adjusted prices for %s are you sure y/n:" %
         instrument_code)
@@ -249,27 +224,98 @@ def _roll_adjusted_and_multiple_prices(data: dataBlob, instrument_code: str) -> 
         return failure
 
     try:
-        # Apparently good let's try and write rolled data
-        price_updater = updatePrices(data)
-        price_updater.add_adjusted_prices(
-            instrument_code, new_adj_prices, ignore_duplication=True
-        )
-        price_updater.add_multiple_prices(
-            instrument_code, updated_multiple_prices, ignore_duplication=True
-        )
-
+        rolling_adj_and_mult_object.write_new_rolled_data()
     except Exception as e:
         data.log.warn(
             "%s went wrong when rolling: Going to roll-back to original multiple/adjusted prices" %
             e)
-        rollback_adjustment(
-            data,
-            instrument_code,
-            current_adjusted_prices,
-            current_multiple_prices)
         return failure
 
     return success
+
+
+class _rollingAdjustedAndMultiplePrices(object):
+    def __init__(self, data: dataBlob, instrument_code: str):
+        self.data = data
+        self.instrument_code = instrument_code
+
+
+    def compare_old_and_new_prices(self):
+        # We want user input before we do anything
+        compare_old_and_new_prices(
+            [
+                self.current_multiple_prices,
+                self.updated_multiple_prices,
+                self.current_adjusted_prices,
+                self.new_adjusted_prices,
+            ],
+            [
+                "Current multiple prices",
+                "New multiple prices",
+                "Current adjusted prices",
+                "New adjusted prices",
+            ],
+        )
+        print("")
+
+    @property
+    def current_multiple_prices(self):
+        current_multiple_prices = getattr(self, "_current_multiple_prices", None)
+        if current_multiple_prices is None:
+            diag_prices = diagPrices(self.data)
+            current_multiple_prices = self._current_multiple_prices = diag_prices.get_multiple_prices(self.instrument_code)
+
+        return current_multiple_prices
+
+    @property
+    def current_adjusted_prices(self):
+        current_adjusted_prices = getattr(self, "_current_adjusted_prices", None)
+        if current_adjusted_prices is None:
+            diag_prices = diagPrices(self.data)
+            current_adjusted_prices = self._current_adjusted_prices = diag_prices.get_adjusted_prices(self.instrument_code)
+
+        return current_adjusted_prices
+
+    @property
+    def updated_multiple_prices(self):
+        updated_multiple_prices = getattr(self, "_updated_multiple_prices", None)
+        if updated_multiple_prices is None:
+            updated_multiple_prices = self._updated_multiple_prices = update_multiple_prices_on_roll(
+                self.data, self.current_multiple_prices, self.instrument_code
+            )
+
+        return updated_multiple_prices
+
+    @property
+    def new_adjusted_prices(self):
+        new_adjusted_prices = getattr(self, "_new_adjusted_prices", None)
+        if new_adjusted_prices is None:
+
+            new_adjusted_prices = self._new_adjusted_prices = futuresAdjustedPrices.stich_multiple_prices(
+                self.updated_multiple_prices
+            )
+
+        return new_adjusted_prices
+
+    def write_new_rolled_data(self):
+        # Apparently good let's try and write rolled data
+        price_updater = updatePrices(self.data)
+        price_updater.add_multiple_prices(
+            self.instrument_code, self.updated_multiple_prices, ignore_duplication=True
+        )
+        price_updater.add_adjusted_prices(
+            self.instrument_code, self.new_adjusted_prices, ignore_duplication=True
+        )
+
+    def rollback(self):
+        rollback_adjustment(
+            self.data,
+            self.instrument_code,
+            self.current_adjusted_prices,
+            self.current_multiple_prices)
+
+
+
 
 
 def compare_old_and_new_prices(price_list, price_list_names):
@@ -278,29 +324,6 @@ def compare_old_and_new_prices(price_list, price_list_names):
         print("")
         print(df_prices.tail(6))
         print("")
-
-
-def rollback_adjustment(
-    data: dataBlob, instrument_code: str,
-        current_adjusted_prices: futuresAdjustedPrices,
-        current_multiple_prices: futuresMultiplePrices
-):
-    price_updater = updatePrices(data)
-
-    try:
-        price_updater.add_adjusted_prices(
-            instrument_code, current_adjusted_prices, ignore_duplication=True
-        )
-        price_updater.add_multiple_prices(
-            instrument_code, current_multiple_prices, ignore_duplication=True
-        )
-    except Exception as e:
-        data.log.warn(
-            "***** ROLLBACK FAILED! %s!You may need to rebuild your data! Check before trading!! *****" %
-            e)
-        return failure
-
-    return success
 
 
 def update_multiple_prices_on_roll(
@@ -576,3 +599,27 @@ def infer_price_from_matched_price_data(matched_price_data):
     inferred_price = final_price_to_infer_from + smoothed_offset
 
     return inferred_price
+
+def rollback_adjustment(
+    data: dataBlob, instrument_code: str,
+        current_adjusted_prices: futuresAdjustedPrices,
+        current_multiple_prices: futuresMultiplePrices
+):
+    price_updater = updatePrices(data)
+
+    try:
+        price_updater.add_adjusted_prices(
+            instrument_code, current_adjusted_prices, ignore_duplication=True
+        )
+        price_updater.add_multiple_prices(
+            instrument_code, current_multiple_prices, ignore_duplication=True
+        )
+    except Exception as e:
+        data.log.warn(
+            "***** ROLLBACK FAILED! %s!You may need to rebuild your data! Check before trading!! *****" %
+            e)
+        return failure
+
+    return success
+
+

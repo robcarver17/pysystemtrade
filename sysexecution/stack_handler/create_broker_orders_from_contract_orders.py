@@ -145,6 +145,9 @@ class stackHandlerCreateBrokerOrders(stackHandlerCore):
             contract_order_after_trade_limits
         )
 
+        if contract_order is missing_order:
+            return missing_order
+
         if contract_order.fill_equals_desired_trade():
             # Nothing left to trade
             return missing_order
