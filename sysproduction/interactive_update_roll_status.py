@@ -474,14 +474,12 @@ def get_or_infer_latest_price(new_multiple_prices, price_col="PRICE"):
             new_multiple_prices, price_col, col_to_use)
         if not np.isnan(inferred_price):
             # do in order of preference so if we find one we stop
-            break
+            print("Price for contract %s of %f inferred from contract %s" % (price_col, inferred_price, col_to_use))
+            return inferred_price, True
 
-    if np.isnan(inferred_price):
-        raise Exception(
-            "Couldn't infer price of %s column - can't roll" %
-            price_col)
-
-    return inferred_price, True
+    raise Exception(
+        "Couldn't infer price of %s column - can't roll" %
+        price_col)
 
 
 def infer_latest_price(new_multiple_prices, price_col, col_to_use):
