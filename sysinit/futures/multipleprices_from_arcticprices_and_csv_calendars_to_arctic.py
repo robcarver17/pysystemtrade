@@ -110,6 +110,7 @@ def process_multiple_prices_single_instrument(
 
     return multiple_prices
 
+
 def adjust_roll_calendar(instrument_code, roll_calendar):
     arctic_prices_per_contract = arcticFuturesContractPriceData()
     print("Getting prices to adjust roll calendar")

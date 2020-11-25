@@ -1,5 +1,6 @@
 from syscore.fileutils import get_filename_for_package
 from sysdata.futures.instruments import futuresInstrumentData
+from syscore.objects import arg_not_supplied
 from sysobjects.instruments import futuresInstrument, futuresInstrumentWithMetaData, instrumentMetaData
 from syslogdiag.log import logtoscreen
 import pandas as pd
@@ -16,13 +17,13 @@ class csvFuturesInstrumentData(futuresInstrumentData):
 
     def __init__(
         self,
-        datapath=INSTRUMENT_CONFIG_PATH,
+        datapath=arg_not_supplied,
         log=logtoscreen("csvFuturesInstrumentData"),
     ):
 
         super().__init__(log=log)
 
-        if datapath is None:
+        if datapath is arg_not_supplied:
             datapath = INSTRUMENT_CONFIG_PATH
         config_file =get_filename_for_package(
             datapath, CONFIG_FILE_NAME)

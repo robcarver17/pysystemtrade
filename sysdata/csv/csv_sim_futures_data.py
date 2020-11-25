@@ -7,6 +7,7 @@ import os
 
 import pandas as pd
 
+from syscore.objects import arg_not_supplied
 from sysdata.base_data import simData
 from sysdata.futures.futuresDataForSim import (
     futuresAdjustedPriceData,
@@ -24,7 +25,7 @@ Static variables to store location of data
 
 
 class csvPaths(simData):
-    def __init__(self, override_datapath=None, datapath_dict={}):
+    def __init__(self, override_datapath=arg_not_supplied, datapath_dict={}):
         """
 
         We look for data in .csv files
@@ -44,10 +45,10 @@ class csvPaths(simData):
         setattr(self, "_override_datapath", override_datapath)
         setattr(self, "_datapath_dict", datapath_dict)
 
-    def _resolve_path(self, path_attr_name, fallback_path=None):
+    def _resolve_path(self, path_attr_name, fallback_path=arg_not_supplied):
 
         # a global 'datapath' overrides everything
-        if self._override_datapath is not None:
+        if self._override_datapath is not arg_not_supplied:
             return self._override_datapath
 
         # if a specific path is provided use that

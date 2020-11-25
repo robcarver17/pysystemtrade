@@ -28,12 +28,14 @@ class csvFuturesContractPriceData(futuresContractPriceData):
 
     def __init__(
         self,
-        datapath,
+        datapath = arg_not_supplied,
         log=logtoscreen("csvFuturesContractPriceData"),
         config: ConfigCsvFuturesPrices = arg_not_supplied
     ):
 
         super().__init__(log=log)
+        if datapath is arg_not_supplied:
+            raise Exception("Need to pass datapath")
         self._datapath = datapath
         if config is arg_not_supplied:
             config = ConfigCsvFuturesPrices()
