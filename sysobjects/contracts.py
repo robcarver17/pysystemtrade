@@ -1,6 +1,6 @@
 from dataclasses import  dataclass
 
-from syscore.objects import arg_not_supplied
+from syscore.objects import arg_not_supplied, missing_contract
 
 from syslogdiag.log import logger
 
@@ -66,8 +66,6 @@ class futuresContract(object):
         self._contract_date = contract_date_object
         self._params = parameter_object
 
-
-        self._is_empty = False
 
     def specific_log(self, log):
         new_log = log.setup(instrument_code = self.instrument_code, contract_date = self.date_str)

@@ -53,7 +53,7 @@ class diagVolumes(object):
 
         smoothed_volumes = [
             self.get_smoothed_volume_for_contract(
-                futuresContract(instrument_code, contract_date_str), span=span
+                instrument_code, contract_date_str, span=span
             )
             for contract_date_str in contract_date_str_list
         ]
@@ -61,10 +61,10 @@ class diagVolumes(object):
         return smoothed_volumes
 
     def get_smoothed_volume_for_contract(
-            self, contract: futuresContract, span=3):
-        if contract is missing_contract:
+            self, instrument_code:str, contract_date_str, span=3):
+        if contract_date_str is missing_contract:
             return 0.0
-
+        contract = futuresContract(instrument_code, contract_date_str)
         volumes = self.get_daily_volumes_for_contract(
             contract)
 

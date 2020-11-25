@@ -4,7 +4,7 @@ from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesDat
 from sysdata.arctic.arctic_adjusted_prices import arcticFuturesAdjustedPricesData
 
 
-def init_arctic_with_csv_futures_contract_prices(datapath):
+def init_arctic_with_csv_futures_contract_prices():
     csv_multiple_prices = csvFuturesMultiplePricesData()
     csv_adj_prices = csvFuturesAdjustedPricesData()
     input("WARNING THIS WILL ERASE ANY EXISTING ARCTIC PRICES WITH DATA FROM %s,%s ARE YOU SURE?!" % (csv_adj_prices.datapath, csv_multiple_prices.datapath))
