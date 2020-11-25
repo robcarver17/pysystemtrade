@@ -2,7 +2,7 @@ from sysobjects.roll_calendars import rollCalendar
 from sysdata.futures.roll_calendars import rollCalendarData
 from syscore.fileutils import get_filename_for_package, files_with_extension_in_pathname
 from syscore.pdutils import pd_readcsv
-
+from syscore.objects import arg_not_supplied
 from syslogdiag.log import logtoscreen
 
 CSV_ROLL_CALENDAR_DIRECTORY = "data.futures.roll_calendars_csv"
@@ -18,11 +18,11 @@ class csvRollCalendarData(rollCalendarData):
     Class for roll calendars write / to from csv
     """
 
-    def __init__(self, datapath=None, log=logtoscreen("csvRollCalendarData")):
+    def __init__(self, datapath=arg_not_supplied, log=logtoscreen("csvRollCalendarData")):
 
         super().__init__(log=log)
 
-        if datapath is None:
+        if datapath is arg_not_supplied:
             datapath = CSV_ROLL_CALENDAR_DIRECTORY
 
         self._datapath = datapath

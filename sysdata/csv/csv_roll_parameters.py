@@ -1,10 +1,13 @@
+from syscore.objects import arg_not_supplied
 from syscore.fileutils import get_filename_for_package
 from sysdata.futures.rolls_parameters import rollParametersData
 from sysobjects.rolls import rollParameters
+from syslogdiag.log import logtoscreen
 
 import pandas as pd
 
-ROLLS_CONFIG_FILE = "sysinit.futures.config.rollconfig.csv"
+ROLLS_DATAPATH = "sysinit.futures.config."
+ROLLS_CONFIG_FILE = "rollconfig.csv"
 
 
 class csvRollParametersData(rollParametersData):
@@ -13,9 +16,13 @@ class csvRollParametersData(rollParametersData):
 
     """
 
-    def __init__(self, config_file=ROLLS_CONFIG_FILE):
+    def __init__(self, log = logtoscreen("csvRollParametersData"), datapath = arg_not_supplied):
 
-        super().__init__()
+        super().__init__(log=log)
+        if datapath is arg_not_supplied:
+            datapath = ROLLS_DATAPATH
+        config_file =get_filename_for_package(
+            datapath, ROLLS_CONFIG_FILE)
 
         self._config_file = get_filename_for_package(config_file)
 
