@@ -171,12 +171,6 @@ class stackHandlerCreateBrokerOrders(stackHandlerCore):
                 str(liquid_qty), str(contract_order_after_trade_limits.trade)))
 
         if liquid_qty.equals_zero():
-            # Nothing we can do here
-            log.msg(
-                "Can't do any of size %s so not trading at all"
-                % str(contract_order_after_trade_limits.trade)
-            )
-
             return missing_order
 
         contract_order = contract_order_after_trade_limits.replace_trade_only_use_for_unsubmitted_trades(
