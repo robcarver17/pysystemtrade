@@ -17,6 +17,8 @@ def init_arctic_with_csv_futures_contract_prices_for_code(instrument_code:str, d
     csv_prices = csvFuturesContractPriceData(datapath)
     arctic_prices = arcticFuturesContractPriceData()
     csv_price_dict = csv_prices.get_all_prices_for_instrument(instrument_code)
+
     for contract_date_str, prices_for_contract in csv_price_dict.items():
+        print(contract_date_str)
         contract = futuresContract(instrument_code, contract_date_str)
         arctic_prices.write_prices_for_contract_object(contract, prices_for_contract, ignore_duplication=True)
