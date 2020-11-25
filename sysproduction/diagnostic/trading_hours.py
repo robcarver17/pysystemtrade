@@ -1,5 +1,5 @@
 from syscore.objects import arg_not_supplied
-from sysproduction.data.get_data import dataBlob
+from sysdata.data_blob import dataBlob
 from sysproduction.data.broker import dataBroker
 from sysproduction.data.contracts import diagContracts
 from sysproduction.data.prices import diagPrices

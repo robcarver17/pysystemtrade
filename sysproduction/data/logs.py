@@ -1,6 +1,6 @@
 from syscore.objects import arg_not_supplied
 from sysdata.mongodb.mongo_log import mongoLogData
-from sysproduction.data.get_data import dataBlob
+from sysdata.data_blob import dataBlob
 
 
 class diagLogs(object):

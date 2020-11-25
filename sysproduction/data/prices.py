@@ -10,7 +10,7 @@ from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesDat
 from sysdata.arctic.arctic_adjusted_prices import arcticFuturesAdjustedPricesData, futuresAdjustedPrices
 from sysdata.mongodb.mongo_futures_contracts import mongoFuturesContractData
 
-from sysproduction.data.get_data import dataBlob
+from sysdata.data_blob import dataBlob
 
 from sysobjects.multiple_prices import price_name
 

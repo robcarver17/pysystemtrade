@@ -1,4 +1,4 @@
-from sysdata.base_data import simData
+from sysdata.sim_data import simData
 from random import gauss
 import numpy as np
 from syscore.pdutils import create_arbitrary_pdseries

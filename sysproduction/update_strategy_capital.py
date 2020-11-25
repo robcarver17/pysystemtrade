@@ -2,7 +2,7 @@ import datetime
 
 from syscore.objects import success
 
-from sysproduction.data.get_data import dataBlob
+from sysdata.data_blob import dataBlob
 from sysproduction.data.capital import dataCapital
 from sysproduction.data.strategies import diagStrategiesConfig
 

@@ -23,7 +23,7 @@ from sysexecution.tick_data import analyse_tick_data_frame
 
 from sysobjects.contracts import futuresContract
 
-from sysproduction.data.get_data import dataBlob
+from sysdata.data_blob import dataBlob
 from sysproduction.data.positions import diagPositions
 from sysproduction.data.currency_data import currencyData
 from sysproduction.data.controls import diagProcessConfig

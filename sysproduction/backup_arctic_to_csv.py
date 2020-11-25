@@ -3,7 +3,7 @@ from syscore.objects import missing_data
 from syscore.pdutils import check_df_equals, check_ts_equals
 from sysdata.private_config import get_private_then_default_key_value
 
-from sysproduction.data.get_data import dataBlob
+from sysdata.data_blob import dataBlob
 from sysproduction.data.strategies import get_list_of_strategies
 import os
 

@@ -4,7 +4,7 @@ from sysdata.production.capital import totalCapitalCalculationData
 from sysdata.mongodb.mongo_capital import mongoCapitalData
 from sysdata.private_config import get_private_then_default_key_value
 
-from sysproduction.data.get_data import dataBlob
+from sysdata.data_blob import dataBlob
 
 
 class dataCapital(object):

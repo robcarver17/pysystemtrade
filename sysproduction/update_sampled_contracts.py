@@ -5,7 +5,7 @@ from sysobjects.contracts import futuresContract, listOfFuturesContracts
 from sysobjects.instruments import futuresInstrument
 from sysobjects.rolls import contractDateWithRollParameters
 
-from sysproduction.data.get_data import dataBlob
+from sysdata.data_blob import dataBlob
 from sysproduction.data.prices import diagPrices
 from sysproduction.data.contracts import diagContracts, updateContracts
 from sysproduction.data.broker import dataBroker

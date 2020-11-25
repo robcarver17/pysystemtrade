@@ -4,7 +4,7 @@ Update spot FX prices using interactive brokers data, dump into mongodb
 
 from syscore.objects import success, failure, data_error
 
-from sysproduction.data.get_data import dataBlob
+from sysdata.data_blob import dataBlob
 from sysproduction.data.currency_data import currencyData
 from sysproduction.data.broker import dataBroker
 from sysproduction.diagnostic.emailing import send_production_mail_msg

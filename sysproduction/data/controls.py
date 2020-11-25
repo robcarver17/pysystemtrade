@@ -14,7 +14,7 @@ from sysdata.mongodb.mongo_position_limits import mongoPositionLimitData
 from sysdata.mongodb.mongo_trade_limits import mongoTradeLimitData
 from sysdata.mongodb.mongo_override import mongoOverrideData
 
-from sysproduction.data.get_data import dataBlob
+from sysdata.data_blob import dataBlob
 from sysproduction.data.strategies import diagStrategiesConfig
 from sysproduction.data.positions import diagPositions
 

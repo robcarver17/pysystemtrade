@@ -7,7 +7,7 @@ A strategy report is highly specific to a strategy, and will delve into the inte
 
 from syscore.objects import arg_not_supplied
 
-from sysproduction.data.get_data import dataBlob
+from sysdata.data_blob import dataBlob
 from sysproduction.data.backtest import dataBacktest
 from sysproduction.data.strategies import get_list_of_strategies
 from sysproduction.strategy_code.strategy_report import (

@@ -13,7 +13,7 @@ from sysobjects.dict_of_named_futures_per_contract_prices import setOfNamedContr
 from sysobjects.contracts import futuresContract
 
 from sysproduction.data.prices import get_valid_instrument_code_from_user, diagPrices
-from sysproduction.data.get_data import dataBlob
+from sysdata.data_blob import dataBlob
 
 missing_expiry = datetime.datetime(1900, 1, 1)
 

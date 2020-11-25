@@ -8,7 +8,7 @@ from syscore.objects import (
 from sysdata.mongodb.mongo_order_stack import mongoInstrumentOrderStackData, mongoContractOrderStackData, mongoBrokerOrderStackData
 from sysdata.mongodb.mongo_historic_orders import mongoStrategyHistoricOrdersData, mongoContractHistoricOrdersData, mongoBrokerHistoricOrdersData
 
-from sysproduction.data.get_data import dataBlob
+from sysdata.data_blob import dataBlob
 
 
 class dataOrders(object):

@@ -1,4 +1,4 @@
-from sysproduction.data.get_data import dataBlob
+from sysdata.data_blob import dataBlob
 from syscore.fileutils import (
     delete_old_files_with_extension_in_pathname,
     rename_files_with_extension_in_pathname_as_archive,

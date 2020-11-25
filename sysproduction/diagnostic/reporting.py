@@ -3,7 +3,7 @@ import pandas as pd
 from syscore.objects import resolve_function, success, failure, arg_not_supplied
 from syscore.objects import header, table, body_text
 
-from sysproduction.data.get_data import dataBlob
+from sysdata.data_blob import dataBlob
 from sysproduction.diagnostic.emailing import send_production_mail_msg
 
 pd.set_option("display.width", 1000)

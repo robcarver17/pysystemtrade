@@ -9,7 +9,7 @@ import pandas as pd
 from syscore.fileutils import file_in_home_dir
 from syscore.objects import arg_not_supplied, user_exit, missing_data
 from syscore.genutils import print_menu_of_values_and_get_response
-from sysproduction.data.get_data import dataBlob
+from sysdata.data_blob import dataBlob
 from sysproduction.diagnostic.backtest_state import (
     create_system_with_saved_state,
     get_list_of_timestamps_for_strategy,

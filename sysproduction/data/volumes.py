@@ -3,7 +3,7 @@ import datetime as datetime
 from syscore.objects import missing_contract, arg_not_supplied, missing_data
 from sysdata.arctic.arctic_futures_per_contract_prices import arcticFuturesContractPriceData
 from sysobjects.contracts import futuresContract
-from sysproduction.data.get_data import dataBlob
+from sysdata.data_blob import dataBlob
 
 
 # Get volume data for the contract we're currently trading, plus what we might roll into, plus the previous one

@@ -7,7 +7,7 @@ from syscore.genutils import (
 )
 from sysdata.production.override import override_dict, Override
 
-from sysproduction.data.get_data import dataBlob
+from sysdata.data_blob import dataBlob
 from sysproduction.data.controls import (
     diagOverrides,
     updateOverrides,

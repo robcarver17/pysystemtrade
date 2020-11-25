@@ -1,7 +1,7 @@
 from syscore.objects import arg_not_supplied
 
 from sysdata.arctic.arctic_and_mongo_sim_futures_data import arcticFuturesSimData
-from sysproduction.data.get_data import dataBlob
+from sysdata.data_blob import dataBlob
 
 
 class dataSimData(object):

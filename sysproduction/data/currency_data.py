@@ -5,7 +5,7 @@ from sysdata.arctic.arctic_spotfx_prices import arcticFxPricesData
 from sysobjects.spot_fx_prices import currencyValue, fxPrices
 from sysdata.private_config import get_private_then_default_key_value
 
-from sysproduction.data.get_data import dataBlob
+from sysdata.data_blob import dataBlob
 
 
 class currencyData(object):

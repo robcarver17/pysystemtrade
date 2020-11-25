@@ -1,7 +1,7 @@
 import datetime
 import socket
 
-from sysproduction.data.get_data import dataBlob
+from sysdata.data_blob import dataBlob
 from sysdata.private_config import get_private_then_default_key_value
 from syscore.objects import arg_not_supplied
 from syscore.genutils import print_menu_of_values_and_get_response

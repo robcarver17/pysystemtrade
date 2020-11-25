@@ -1,7 +1,8 @@
 from sysproduction.run_process import processToRun
 from sysproduction.diagnostic.report_configs import all_configs
 
-from sysproduction.data.get_data import dataBlob
+from sysdata.data_blob import dataBlob
+
 
 # JUST A COPY AND PAST JOB RIGHT NOW
 

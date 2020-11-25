@@ -9,7 +9,7 @@ from syscore.genutils import transfer_object_attributes
 from syscore.pdutils import make_df_from_list_of_named_tuple
 from syscore.objects import header, table, body_text, arg_not_supplied, missing_data
 
-from sysproduction.data.get_data import dataBlob
+from sysdata.data_blob import dataBlob
 from sysproduction.data.orders import dataOrders
 from sysproduction.data.instruments import diagInstruments
 from sysproduction.data.prices import diagPrices

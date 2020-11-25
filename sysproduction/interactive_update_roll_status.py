@@ -33,7 +33,7 @@ from sysproduction.diagnostic.reporting import run_report_with_data_blob, landin
 
 from sysproduction.data.positions import diagPositions, updatePositions
 from sysproduction.data.contracts import diagContracts
-from sysproduction.data.get_data import dataBlob
+from sysdata.data_blob import dataBlob
 from sysproduction.data.prices import diagPrices, updatePrices, get_valid_instrument_code_from_user
 
 

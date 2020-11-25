@@ -7,7 +7,7 @@ from sysdata.private_config import (
     get_private_then_default_key_value,
 )
 from syscore.objects import missing_data
-from sysproduction.data.get_data import dataBlob
+from sysdata.data_blob import dataBlob
 
 from sysproduction.backup_arctic_to_csv import get_backup_dir as csv_backup_dir
 from sysproduction.diagnostic.backtest_state import get_directory_store_backtests

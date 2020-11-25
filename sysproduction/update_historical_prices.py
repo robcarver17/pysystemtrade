@@ -8,7 +8,7 @@ from sysdata.futures.futures_per_contract_prices import DAILY_PRICE_FREQ
 
 from sysobjects.contracts import futuresContract
 
-from sysproduction.data.get_data import dataBlob
+from sysdata.data_blob import dataBlob
 from sysproduction.data.prices import diagPrices, updatePrices
 from sysproduction.data.broker import dataBroker
 from sysproduction.data.contracts import diagContracts

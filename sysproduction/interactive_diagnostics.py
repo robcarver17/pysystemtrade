@@ -9,7 +9,7 @@ from syscore.pdutils import set_pd_print_options
 from syscore.objects import user_exit, arg_not_supplied
 from sysexecution.base_orders import listOfOrders
 
-from sysproduction.data.get_data import dataBlob
+from sysdata.data_blob import dataBlob
 
 from sysproduction.data.backtest import dataBacktest
 from sysproduction.data.capital import dataCapital

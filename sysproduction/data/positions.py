@@ -14,7 +14,7 @@ from sysdata.mongodb.mongo_positions_by_strategy import mongoStrategyPositionDat
 from sysdata.mongodb.mongo_optimal_position import mongoOptimalPositionData
 
 from sysproduction.data.contracts import missing_contract
-from sysproduction.data.get_data import dataBlob
+from sysdata.data_blob import dataBlob
 
 
 class diagPositions(object):

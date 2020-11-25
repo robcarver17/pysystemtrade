@@ -1,5 +1,5 @@
 from sysproduction.data.logs import diagLogs
-from sysproduction.data.get_data import dataBlob
+from sysdata.data_blob import dataBlob
 
 
 def clean_truncate_log_files():

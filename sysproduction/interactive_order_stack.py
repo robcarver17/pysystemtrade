@@ -15,7 +15,7 @@ from syscore.genutils import (
 )
 from syscore.pdutils import set_pd_print_options
 
-from sysproduction.data.get_data import dataBlob
+from sysdata.data_blob import dataBlob
 from sysproduction.data.positions import diagPositions, dataOptimalPositions
 from sysproduction.data.broker import dataBroker
 from sysproduction.data.strategies import get_valid_strategy_name_from_user

@@ -7,7 +7,7 @@ Apply a check to each price series
 from syscore.objects import success, failure
 
 from sysdata.futures.futures_per_contract_prices import DAILY_PRICE_FREQ
-from sysproduction.data.get_data import dataBlob
+from sysdata.data_blob import dataBlob
 from sysproduction.data.prices import (
     diagPrices,
     updatePrices,

@@ -19,7 +19,7 @@ from sysobjects.adjusted_prices import no_update_roll_has_occured, futuresAdjust
 from sysobjects.multiple_prices import futuresMultiplePrices, setOfNamedContracts
 from sysobjects.contracts import futuresContract
 
-from sysproduction.data.get_data import dataBlob
+from sysdata.data_blob import dataBlob
 from sysproduction.data.prices import diagPrices, updatePrices
 
 

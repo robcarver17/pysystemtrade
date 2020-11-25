@@ -10,7 +10,7 @@ from syscore.objects import success
 from sysdata.futures.manual_price_checker import manual_price_checker
 from sysobjects.spot_fx_prices import fxPrices
 
-from sysproduction.data.get_data import dataBlob
+from sysdata.data_blob import dataBlob
 from sysproduction.data.currency_data import currencyData, get_valid_fx_code_from_user
 from sysproduction.data.broker import dataBroker
 

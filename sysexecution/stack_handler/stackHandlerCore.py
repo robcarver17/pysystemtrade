@@ -15,7 +15,7 @@ from syscore.objects import (
 from sysexecution.base_orders import listOfFillPrice, listOfFillDatetime
 
 from sysproduction.data.orders import dataOrders
-from sysproduction.data.get_data import dataBlob
+from sysdata.data_blob import dataBlob
 from sysproduction.data.controls import dataTradeLimits
 
 from sysproduction.data.positions import updatePositions
