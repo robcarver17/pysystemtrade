@@ -32,7 +32,7 @@ class runSystemClassic(object):
         self,
         data,
         strategy_name,
-        backtest_config_filename="systems.provided.futures_chapter15.futures_config.yaml",
+        backtest_config_filename="systems.provided.futures_chapter15.futuresconfig.yaml",
     ):
         self.data = data
         self.strategy_name = strategy_name
@@ -90,8 +90,7 @@ def production_classic_futures_system(
 
     log_level = "on"
 
-    # ugly but once you've established a pattern...
-    sim_data = dataSimData(data).sim_data()
+    sim_data = dataSimData(data)
     config = Config(config_filename)
 
     # Overwrite capital
@@ -102,7 +101,7 @@ def production_classic_futures_system(
         config.base_currency = base_currency
 
     system = futures_system(data=sim_data, config=config)
-    system.log = log
+    system._log = log
 
     system.set_logging_level(log_level)
 

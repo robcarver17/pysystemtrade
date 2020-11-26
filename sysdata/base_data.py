@@ -34,7 +34,7 @@ class baseData(object):
         self._log = log
 
     def __repr__(self):
-        return "simData object"
+        return "baseData object"
 
     @property
     def log(self):

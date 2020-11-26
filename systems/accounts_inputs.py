@@ -5,6 +5,7 @@ from systems.system_cache import input, dont_cache, diagnostic, output
 
 from syscore.algos import robust_vol_calc
 from syscore.algos import apply_buffer
+from sysobjects.instruments import instrumentCosts
 
 ARBITRARY_FORECAST_CAPITAL = 100.0
 
@@ -397,7 +398,7 @@ class _AccountInput(SystemStage):
         return self.parent.data.get_value_of_block_price_move(instrument_code)
 
     @diagnostic()
-    def get_raw_cost_data(self, instrument_code):
+    def get_raw_cost_data(self, instrument_code: str) -> instrumentCosts:
         """
         Get the cost data for an instrument
 

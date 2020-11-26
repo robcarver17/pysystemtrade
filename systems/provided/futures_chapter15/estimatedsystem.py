@@ -5,7 +5,7 @@ fixed parameters
 A system consists of a system, plus a config
 
 """
-from sysdata.csv.csv_sim_futures_data import csvFuturesSimData
+from sysdata.sim.csv_futures_sim_data import csvFuturesSimData
 from sysdata.configdata import Config
 
 from systems.forecasting import Rules

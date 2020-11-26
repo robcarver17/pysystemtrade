@@ -9,17 +9,13 @@ from systems.forecasting import (
     TradingRule,
     Rules,
     process_trading_rules,
-    create_variations,
-    create_variations_oneparameter,
 )
 from systems.basesystem import System
 from systems.rawdata import RawData
 from systems.futures.rawdata import FuturesRawData
 from systems.provided.futures_chapter15.rules import carry2
 from sysdata.configdata import Config
-from sysdata.csv.csv_sim_futures_data import csvFuturesSimData
 from systems.tests.testdata import get_test_object
-import matplotlib.pyplot as plt
 
 
 class Test(unittest.TestCase):

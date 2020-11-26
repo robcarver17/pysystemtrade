@@ -64,7 +64,7 @@ class System(object):
 
         setattr(self, "data", data)
         setattr(self, "config", config)
-        setattr(self, "log", log)
+        self._log = log
 
         self.config._system_init(self)
         self.data._system_init(self)
@@ -126,6 +126,10 @@ class System(object):
         description = "System %s with .config, .data, and .stages: " % self.name
 
         return description + sslist
+
+    @property
+    def log(self):
+        return self._log
 
     def set_logging_level(self, new_log_level):
         """

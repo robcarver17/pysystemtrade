@@ -14,6 +14,8 @@ from syscore.dateutils import ROOT_BDAYS_INYEAR
 from syscore.pdutils import turnover
 from syscore.objects import resolve_function
 
+
+
 ARBITRARY_FORECAST_CAPITAL = 100.0
 
 
@@ -51,37 +53,24 @@ class _AccountCosts(_AccountInput):
         raw_costs = self.get_raw_cost_data(instrument_code)
         block_value = self.get_value_of_price_move(instrument_code)
 
-        price_slippage = raw_costs["price_slippage"]
-        value_of_block_commission = raw_costs["value_of_block_commission"]
-        percentage_cost = raw_costs["percentage_cost"]
-        value_of_pertrade_commission = raw_costs["value_of_pertrade_commission"]
-
-        daily_vol = self.get_daily_returns_volatility(instrument_code)
         daily_price = self.get_daily_price(instrument_code)
 
         last_date = daily_price.index[-1]
         start_date = last_date - pd.DateOffset(years=1)
         average_price = float(daily_price[start_date:].mean())
-        average_vol = float(daily_vol[start_date:].mean())
 
         # Cost in Sharpe Ratio terms
-        # First work out costs in price terms
-        price_block_commission = value_of_block_commission / block_value
-        price_percentage_cost = average_price * percentage_cost
-        price_per_trade_cost = (
-            value_of_pertrade_commission / block_value
-        )  # assume one trade per contract
+        # First work out costs in percentage terms
+        value_per_block = average_price * block_value
+        cost_in_currency_terms = raw_costs.calculate_cost_instrument_currency(1, value_per_block = value_per_block)
+        cost_in_percentage_terms = cost_in_currency_terms / value_per_block
 
-        price_total = (
-            price_slippage
-            + price_block_commission
-            + price_percentage_cost
-            + price_per_trade_cost
-        )
-
+        daily_vol = self.get_daily_returns_volatility(instrument_code)
+        average_vol = float(daily_vol[start_date:].mean())
         avg_annual_vol = average_vol * ROOT_BDAYS_INYEAR
+        avg_annual_vol_perc = avg_annual_vol / average_price
 
-        SR_cost = 2.0 * price_total / (avg_annual_vol)
+        SR_cost = 2.0 * cost_in_percentage_terms / avg_annual_vol_perc
 
         return SR_cost
 
@@ -104,13 +93,15 @@ class _AccountCosts(_AccountInput):
         (8.3599999999999994, 0, 0)
         """
 
+        # FIXME these cost objects should instead be passed into the accounting module and used directly
+
         raw_costs = self.get_raw_cost_data(instrument_code)
         block_value = self.get_value_of_price_move(instrument_code)
 
-        price_slippage = raw_costs["price_slippage"]
-        value_of_block_commission = raw_costs["value_of_block_commission"]
-        percentage_cost = raw_costs["percentage_cost"]
-        value_of_pertrade_commission = raw_costs["value_of_pertrade_commission"]
+        price_slippage = raw_costs.price_slippage
+        value_of_block_commission = raw_costs.value_of_block_commission
+        percentage_cost = raw_costs.percentage_cost
+        value_of_pertrade_commission = raw_costs.value_of_pertrade_commission
 
         # Cost in actual terms in local currency
         value_of_slippage = price_slippage * block_value

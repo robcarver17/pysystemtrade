@@ -185,8 +185,7 @@ class dataBlob(object):
     @property
     def csv_data_paths(self) -> dict:
         csv_data_paths = getattr(self, "_csv_data_paths", arg_not_supplied)
-        if csv_data_paths is arg_not_supplied:
-            raise Exception("No defaults for csv data paths")
+
         return csv_data_paths
 
     def _get_specific_logger(self, class_object):

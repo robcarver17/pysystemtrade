@@ -1,17 +1,20 @@
 from syscore.objects import arg_not_supplied
 
-from sysdata.arctic.arctic_and_mongo_sim_futures_data import arcticFuturesSimData
+from sysdata.sim.db_futures_sim_data import dbFuturesSimData
 from sysdata.data_blob import dataBlob
+from sysdata.arctic.arctic_adjusted_prices import arcticFuturesAdjustedPricesData
+from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesData
+from sysdata.arctic.arctic_spotfx_prices import arcticFxPricesData
+from sysdata.mongodb.mongo_futures_instruments import mongoFuturesInstrumentData
 
 
-class dataSimData(object):
-    def __init__(self, data=arg_not_supplied):
-        # Check data has the right elements to do this
-        if data is arg_not_supplied:
-            data = dataBlob()
+def dataSimData(data=arg_not_supplied):
+    # Check data has the right elements to do this
+    if data is arg_not_supplied:
+        data = dataBlob()
 
-        data.add_class_object(arcticFuturesSimData)
-        self.data = data
+    data.add_class_list([arcticFuturesAdjustedPricesData, arcticFuturesMultiplePricesData,
+                         arcticFxPricesData, mongoFuturesInstrumentData])
 
-    def sim_data(self):
-        return self.data.db_futures_sim
+
+    return dbFuturesSimData(data)

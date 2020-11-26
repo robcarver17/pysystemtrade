@@ -3,7 +3,6 @@ from syscore.genutils import print_menu_of_values_and_get_response
 
 from sysdata.arctic.arctic_spotfx_prices import arcticFxPricesData
 from sysobjects.spot_fx_prices import currencyValue, fxPrices
-from sysdata.private_config import get_private_then_default_key_value
 
 from sysdata.data_blob import dataBlob
 
@@ -58,7 +57,7 @@ class currencyData(object):
 
         :return: eg USD
         """
-        return get_private_then_default_key_value("base_currency")
+        return self.data.db_fx_prices.get_base_currency()
 
     def get_last_fx_rate_for_pair(self, currency_pair: str)-> float:
         """

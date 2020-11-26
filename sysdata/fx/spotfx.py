@@ -9,6 +9,7 @@ from sysdata.base_data import baseData
 from syscore.objects import data_error
 
 from sysobjects.spot_fx_prices import fxPrices, get_fx_tuple_from_code, DEFAULT_CURRENCY
+from sysdata.private_config import get_private_then_default_key_value
 
 
 DEFAULT_DATES = pd.date_range(
@@ -217,6 +218,10 @@ class fxPricesData(baseData):
         new_log.msg("Added %d additional rows for %s" % (rows_added, code))
 
         return rows_added
+
+    def get_base_currency(self):
+        return get_private_then_default_key_value("base_currency")
+
 
     def get_list_of_fxcodes(self):
         raise NotImplementedError(USE_CHILD_CLASS_ERROR)
