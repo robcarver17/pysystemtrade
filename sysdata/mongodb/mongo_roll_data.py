@@ -47,5 +47,5 @@ class mongoRollParametersData(rollParametersData):
     def _add_roll_parameters_without_checking_for_existing_entry(self, instrument_code: str,
                                                                  roll_parameters: rollParameters):
 
-        roll_parameters_object_dict = roll_parameters_object.as_dict()
+        roll_parameters_object_dict = roll_parameters.as_dict()
         self.mongo_data.add_data(instrument_code, roll_parameters_object_dict, allow_overwrite=True)

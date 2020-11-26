@@ -37,18 +37,18 @@ def get_filename_for_package(pathname, filename=None):
     Absolute filenames always begin with ., / or \
     Relative filenames do not
     """
-    dotted_pathname = add_dots_to_pathname(pathname)
+    markedup_pathname = add_ampersand_to_pathname(pathname)
     if filename is None:
         # filename will be at the end of the pathname
-        path_as_list = dotted_pathname.rsplit(".")
+        path_as_list = markedup_pathname.rsplit("&")
         filename = ".".join(path_as_list[-2:])
-        split_pathname = ".".join(path_as_list[0:-2])
+        split_pathname = "&".join(path_as_list[0:-2])
     else:
         # filename is already separate
-        split_pathname = dotted_pathname
+        split_pathname = markedup_pathname
 
     # Resolve pathname
-    resolved_pathname = get_resolved_dotted_pathname(split_pathname)
+    resolved_pathname = get_resolved_ampersand_pathname(split_pathname)
 
     # Glue together
     full_path_and_file = os.path.join(resolved_pathname, filename)
@@ -56,23 +56,24 @@ def get_filename_for_package(pathname, filename=None):
     return full_path_and_file
 
 
-def add_dots_to_pathname(pathname):
-    pathname_replaced = pathname.replace("/", ".")
-    pathname_replaced = pathname_replaced.replace("\\", ".")
+def add_ampersand_to_pathname(pathname):
+    pathname_replaced = pathname.replace(".", "&")
+    pathname_replaced = pathname_replaced.replace("/", "&")
+    pathname_replaced = pathname_replaced.replace("\\", "&")
 
     return pathname_replaced
 
 
 def get_resolved_pathname(pathname):
     # Turn /,\ into . so system independent
-    pathname_replaced = add_dots_to_pathname(pathname)
-    resolved_pathname = get_resolved_dotted_pathname(pathname_replaced)
+    pathname_replaced = add_ampersand_to_pathname(pathname)
+    resolved_pathname = get_resolved_ampersand_pathname(pathname_replaced)
 
     return resolved_pathname
 
 
-def get_resolved_dotted_pathname(pathname):
-    path_as_list = pathname.rsplit(".")
+def get_resolved_ampersand_pathname(pathname):
+    path_as_list = pathname.rsplit("&")
 
     # Check for absolute or relative
     pathname = get_pathname_from_list(path_as_list)
