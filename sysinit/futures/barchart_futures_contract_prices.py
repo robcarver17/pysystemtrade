@@ -1,5 +1,5 @@
 
-from sysdata.csv.csv_futures_contract_prices import csvFuturesContractPriceData, ConfigCsvFuturesPrices
+from sysdata.csv.csv_futures_contract_prices import ConfigCsvFuturesPrices
 import os
 from syscore.fileutils import files_with_extension_in_pathname
 from syscore.dateutils import month_from_contract_letter

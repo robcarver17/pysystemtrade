@@ -100,9 +100,23 @@ This section describes a typical workflow for setting up futures data from scrat
 2. Get, and store, [some historical data](#get_historical_data)
 3. Create, and store, [roll calendars](#roll_calendars)  (these are not actually used once multiple prices are created, so the storage is temporary)
 4. Create and store ['multiple' price series](#create_multiple_prices) containing the relevant contracts we need for any given time period
-5. Create and store [back-adjusted prices](#back_adjusted_prices)
+5. Create and store [back-adjusted prices](#back_adjusted_prices): a single price series
 6. Get, and store, [spot FX prices](#create_fx_data)
 
+## A note on data sources
+
+Confusing, data can be stored or come from various places, which include: 
+
+1. .csv files containing data that pysystemtrade is shipped with (stored in [this set of directories](data/futures/)); it includes everything except for roll parameters, and is periodically updated from my own live data.
+2. configuration .csv files used to iniatilise the system, such as [this file](/data/futures/csvconfig/instrumentconfig.csv)
+3. Temporary .csv files created in the process of initialising the databases
+4. Backup .csv files, created by the production system.
+5. External sources such as our broker, or data providers like Barchart and Quandl
+6. Mongo DB or other databases
+
+It's important to be clear where data is coming from, and where it is going to, during the intialisation process.
+
+(Note that we could just use the provided .csv files (1), and this is the default for how the backtesting part of pysystemtrade works, since you probably don't want to start down the road of building up your data stack before you've even tested out any ideas.)
 
 
 <a name="set_up_instrument_config"></a>
@@ -139,28 +153,54 @@ Let's take a more extreme example, Eurodollar. The ExpiryOffset is 18, and the r
 <a name="get_historical_data"></a>
 ## Getting historical data for individual futures contracts
 
-Now let's turn our attention to getting prices for individual futures contracts. We could get this from anywhere, but we'll use [Quandl](https://www.quandl.com). Obviously you will need to [get the python Quandl library](#getQuandlPythonAPI), and you may want to [set a Quandl key](#setQuandlKey).
+Now let's turn our attention to getting prices for individual futures contracts. We could get this from anywhere, but I'm going to use Barchart. As you'll see, the code is quite adaptable to any kind of data source that produces .csv files. You could also use an API; in live trading we use the IB API to update our prices (Barchart also has an API but I don't support that yet). 
 
-NOTE: Quandl are no longer supporting free futures data except for a limited number of instruments. I am looking for alternatives, but the most likely outcome is that I will use IB to get historical data although this will only go back one year and excludes closed contracts.
+Once we have the data we can also store it, in principal, anywhere but I will be using the open source [Arctic library](https://github.com/manahl/arctic) which was released by my former employers [AHL](https://www.ahl.com). This sits on top of Mongo DB (so we don't need yet another database) but provides straightforward and fast storage of pandas DataFrames. Once we have the data we can also copy it to .csv files; if you prefer to run your backtest simulation from .csv (this is the default, but you can also Arctic data as I discuss later FIXME WHERE?).
 
-We can also store it, in principal, anywhere but I will be using the open source [Arctic library](https://github.com/manahl/arctic) which was released by my former employers [AHL](https://www.ahl.com). This sits on top of Mongo DB (so we don't need yet another database) but provides straightforward and fast storage of pandas DataFrames.
+By the way I can't just pull down this data myself and put it on github to save you time. Storing large amounts of data in github isn't a good idea regardless of whether it is in .csv or Mongo files, and there would also be licensing issues with me basically just copying and pasting raw data that belongs to someone else. You have to get, and then store, this stuff yourself. And of course at some point in a live system you would be updating this yourself.
 
-We'll be using [this script](/sysinit/futures/historical_contract_prices_quandl_mongo.py). Unlike the first two initialisation scripts this is set up to run for a single market. 
+We'll be using [this script](sysinit/futures/barchart_futures_contract_prices.py), which in turn calls this [other more general script](sysinit/futures/contract_prices_from_csv_to_arctic.py). Although it's very specific to Barchart, with some work you should be able to adapt it. You will need to call it with the directory where your Barchart .csv files are stored.
 
-By the way I can't just pull down this data myself and put it on github to save you time. Storing large amounts of data in github isn't a good idea regardless of whether it is in .csv or Mongo files, and there would also be licensing issues with basically just copying and pasting raw data from Quandl. You have to get, and then store, this stuff yourself. And of course at some point in a live system you would be updating this yourself.
-
-This uses quite a few data objects:
-
-- Price data for individual futures contracts: [quandlFuturesContractPriceData](#quandlFuturesContractPriceData) and [arcticFuturesContractPriceData](#arcticFuturesContractPriceData)
-- Configuration needed when dealing with Quandl: [quandlFuturesConfiguration](#quandlFuturesConfiguration) - this reads [this .csv](/sysdata/quandl/QuandlFuturesConfig.csv) and defines the code and market; but also the first contract in Quandl's database.
-- Instrument data (that we prepared earlier): [mongoFuturesInstrumentData](#mongoFuturesInstrumentData)
-- Roll parameters data (that we prepared earlier): [mongoRollParametersData](#mongoRollParametersData)
-- Two generic data objects (not for a specific source):  [listOfFuturesContracts](#listOfFuturesContracts), [futuresInstrument](#futuresInstrument)
- 
 The script does two things:
 
-1. Generate a list of futures contracts, starting with the first contract defined in [this .csv](/sysdata/quandl/QuandlFuturesConfig.csv) and following the *price cycle*. The last contract in that series is the contract we'll currently hold, given the 'ExpiryOffset' parameter.
-2. For each contract, get the prices from Quandl and write them into Arctic / Mongo DB.
+1. Rename the files so they have the name expected
+2. Read in the data from the Barchart files and write them into Arctic / Mongo DB.
+
+Barchart data (when manually downloaded through the website) is saved with the file format: XXMYY_Barchart_Interactive_Chart*.csv
+Where XX is the two character barchart instrument identifier, eg ZW is Wheat, M is the future contract month (F=January, G=February... Z =December), YY is the two digit year code, and the rest is fluff. The little function 'strip_file_names' renames them so they have the expected format: NNNN_YYYYMMDD.csv, where NNNN is my instrument code (usually way more than two letters), and YYYYMM00 is a numeric date format eg 20201200 (the last two digits are notionally the days, but these are never used - I might need them if I trade weekly expiries at some point). If I was a real programmer, I'd probably have used perl or even a bash script to do this.
+
+The next thing we do is define the internal format of the files, by setting 'barchart_csv_config':
+
+'''python
+barchart_csv_config = ConfigCsvFuturesPrices(input_date_index_name="Date Time",
+                                input_skiprows=1, input_skipfooter=1,
+                                input_column_mapping=dict(OPEN='Open',
+                                                          HIGH='High',
+                                                          LOW='Low',
+                                                          FINAL='Close',
+                                                          VOLUME='Volume'
+                                                          ))
+'''
+
+Here we can see that the barchart files have one initial row we can ignore, and one final footer row we should also ignore. The second row contains the column names; of which the 'Date Time' column includes our date time index. The column mapping shows how we can map between my preferred names (in caps) and those in the file. An unused option is the 'input_date_format' which defaults to '%Y-%m-%d %H:%M:%S'. Changing these options should give you flexibility to read 99% of third party data files; for others you might have to write your own parser. 
+
+The actual reading and writing is done here:
+
+'''python
+def init_arctic_with_csv_futures_contract_prices_for_code(instrument_code:str, datapath: str, csv_config = arg_not_supplied):
+    print(instrument_code)
+    csv_prices = csvFuturesContractPriceData(datapath, config=csv_config)
+    arctic_prices = arcticFuturesContractPriceData()
+
+    csv_price_dict = csv_prices.get_all_prices_for_instrument(instrument_code)
+
+    for contract_date_str, prices_for_contract in csv_price_dict.items():
+        print(contract_date_str)
+        contract = futuresContract(instrument_code, contract_date_str)
+        arctic_prices.write_prices_for_contract_object(contract, prices_for_contract, ignore_duplication=True)
+'''
+
+The objects csvFuturesContractPriceData and arcticFuturesContractPriceData are 'data pipelines', which allow us to read and write a specific type of data (in this ). They have the same methods (and they inherit from a more generic object, futuresContractPriceData)
 
 <a name="roll_calendars"></a>
 ## Roll calendars
@@ -169,10 +209,12 @@ We're now ready to set up a *roll calendar*. A roll calendar is the series of da
 
 You can see a roll calendar for Eurodollar futures, [here](/data/futures/roll_calendars_csv/EDOLLAR.csv). On each date we roll from the current_contract shown to the next_contract. We also see the current carry_contract; we use the differential between this and the current_contract to calculate forecasts for carry trading rules.
 
-There are two ways to generate roll calendars:
+There are three ways to generate roll calendars:
 
-1. Generate an [approximate calendar](#roll_calendars_from_approx) based on the 'ExpiryOffset' parameter, and then adjust it so it is viable given the futures prices we have from the [previous stage](#get_historical_data).
-2. Infer from [existing 'multiple price' data](#roll_calendars_from_multiple). [Multiple price data](/data/futures/multiple_prices_csv) are data series that include the prices for three types of contract: the current, next, and carry contract (though of course there may be overlaps between these). 
+1. Generate an [approximate calendar](#roll_calendars_from_approx) based on the 'ExpiryOffset' parameter, and then adjust it so it is viable given the individual contract futures prices we have from the [previous stage](#get_historical_data).
+2. Infer from [existing 'multiple price' data](#roll_calendars_from_multiple). [Multiple price data](/data/futures/multiple_prices_csv) are data series that include the prices for three types of contract: the current, next, and carry contract (though of course there may be overlaps between these). pysystemtrade is shipped with .csv files for multiple and adjusted price data. 
+
+3. Use the provided roll calendars, saved in . 
 
 <a name="roll_calendars_from_approx"></a>
 ### Approximate roll calendars, adjusted with actual prices

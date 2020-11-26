@@ -24,7 +24,7 @@ class csvRollParametersData(rollParametersData):
         config_file =get_filename_for_package(
             datapath, ROLLS_CONFIG_FILE)
 
-        self._config_file = get_filename_for_package(config_file)
+        self._config_file = config_file
 
     def _get_config_information(self):
         """
