@@ -9,7 +9,7 @@ from sysdata.futures.futures_per_contract_prices import (
 )
 from sysobjects.futures_per_contract_prices import futuresContractPrices
 from syscore.fileutils import get_filename_for_package
-from sysdata.quandl.quandl_utils import load_private_key
+from sysdata.deprecated.quandl import load_private_key
 
 import quandl
 import pandas as pd
