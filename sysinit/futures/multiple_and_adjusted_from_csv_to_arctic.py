@@ -3,7 +3,6 @@ from sysdata.csv.csv_adjusted_prices import csvFuturesAdjustedPricesData
 from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesData
 from sysdata.arctic.arctic_adjusted_prices import arcticFuturesAdjustedPricesData
 
-
 def init_arctic_with_csv_futures_contract_prices():
     csv_multiple_prices = csvFuturesMultiplePricesData()
     csv_adj_prices = csvFuturesAdjustedPricesData()
@@ -26,3 +25,5 @@ def init_arctic_with_csv_prices_for_code(instrument_code:str):
 
     adj = csv_adj.get_adjusted_prices(instrument_code)
     a_adj.add_adjusted_prices(instrument_code, adj, ignore_duplication=True)
+
+init_arctic_with_csv_futures_contract_prices()

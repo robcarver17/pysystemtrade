@@ -111,9 +111,10 @@ In general each step relies on the previous step to work; more formally:
 - Multiple prices -> Adjusted prices
 - Instrument config, Adjusted prices, Multiple prices, Spot FX prices -> Simulation & Production data
 
-## A note on data sources
 
-Confusing, data can be stored or come from various places, which include: 
+## A note on data storage
+
+Before we start, another note: Confusingly, data can be stored or come from various places, which include: 
 
 1. .csv files containing data that pysystemtrade is shipped with (stored in [this set of directories](data/futures/)); it includes everything above except for roll parameters, and is periodically updated from my own live data. Any .csv data 'pipeline' object defaults to using this data set.
 2. configuration .csv files used to iniatilise the system, such as [this file](/data/futures/csvconfig/instrumentconfig.csv)
@@ -124,7 +125,16 @@ Confusing, data can be stored or come from various places, which include:
 
 It's important to be clear where data is coming from, and where it is going to, during the intialisation process. Once we're actually running, the main storage will usually be in mongo DB (for production and possibly simulation).
 
-(Note that for simulation we could just use the provided .csv files (1), and this is the default for how the backtesting part of pysystemtrade works, since you probably don't want to start down the road of building up your data stack before you've even tested out any ideas. I don't advise using .csv files for production - it won't work. As we'll see later, you can use mongoDB data for simulation and production.)
+For simulation we could just use the provided .csv files (1), and this is the default for how the backtesting part of pysystemtrade works, since you probably don't want to start down the road of building up your data stack before you've even tested out any ideas. I don't advise using .csv files for production - it won't work. As we'll see later, you can use mongoDB data for simulation and production.
+
+Hence there are four possible use cases:
+
+- You want to run pysystemtrade in production, which requires database storage.
+- You want to run backtests, but from faster databases rather than silly old .csv files
+- You want to update the .csv data used for backtests that is shipped with pysystemtrade
+- You want both database and updated .csv files, maybe because you want to keep a backup of your data in .csv or use that for backtesting
+
+Because of this it's possible at (almost) every stage to store data in eithier .csv or databases (the exception are roll calendars, which only live in .csv format).
 
 
 <a name="set_up_instrument_config"></a>
@@ -161,7 +171,11 @@ Let's take a more extreme example, Eurodollar. The ExpiryOffset is 18, and the r
 <a name="get_historical_data"></a>
 ## Getting historical data for individual futures contracts
 
-Now let's turn our attention to getting prices for individual futures contracts. We could get this from anywhere, but I'm going to use Barchart. As you'll see, the code is quite adaptable to any kind of data source that produces .csv files. You could also use an API; in live trading we use the IB API to update our prices (Barchart also has an API but I don't support that yet). 
+Now let's turn our attention to getting prices for individual futures contracts. 
+
+This step is neccessary if you're going to run production code or you want newer data, newer than the data that is shipped by default. If you just want to run backtests,  but with data in a database rather than .csv, and you're not bothered about using old data, you can skip ahead to [multiple prices](#mult_adj_csv_to_arctic).
+
+We could get this from anywhere, but I'm going to use Barchart. As you'll see, the code is quite adaptable to any kind of data source that produces .csv files. You could also use an API; in live trading we use the IB API to update our prices (Barchart also has an API but I don't support that yet). 
 
 Once we have the data we can also store it, in principal, anywhere but I will be using the open source [Arctic library](https://github.com/manahl/arctic) which was released by my former employers [AHL](https://www.ahl.com). This sits on top of Mongo DB (so we don't need yet another database) but provides straightforward and fast storage of pandas DataFrames. Once we have the data we can also copy it to .csv files; if you prefer to run your backtest simulation from .csv (this is the default, but you can also Arctic data as I discuss later FIXME WHERE?).
 
@@ -319,7 +333,10 @@ If you are too lazy even to do the previous step, I've done it for you and you c
 
 The next stage is to create and store *multiple prices*. Multiple prices are the price and contract identifier for the current contract we're holding, the next contract we'll hold, and the carry contract we compare with the current contract for the carry trading rule. They are required for the next stage, calculating back-adjusted prices, but are also used directly by the carry trading rule in a backtest. Constructing them requires a roll calendar, and prices for individual futures contracts. You can see an example of multiple prices [here](data/futures/multiple_prices_csv/AEX.csv). Obviously this is .csv, but the internal representation of a dataframe will look pretty similar.
 
-We can store these prices in either Arctic or .csv files. The [relevant script ](/sysinit/futures/multipleprices_from_arcticprices_and_csv_calendars_to_arctic.py) gives you the option of doing either or both of these. For production purposes, you should use Arctic. For backtesting you could also use Arctic, but .csv is also fine.
+
+### Creating multiple prices from adjusted prices
+
+The [relevant script is here](/sysinit/futures/multipleprices_from_arcticprices_and_csv_calendars_to_arctic.py).
 
 The script should be reasonably self explanatory in terms of data pipelines, but it's worth briefly reviewing what it does:
 
@@ -330,12 +347,21 @@ The script should be reasonably self explanatory in terms of data pipelines, but
 5. Create the multiple prices; basically stitching together contract data for different roll periods. 
 6. Depending on flags, write the multiple prices data to`csv_multiple_data_path` (which defaults to [this](/data/futures/multiple_prices_csv)) and / or to Arctic. I like to write to both: Arctic for production, .csv as a backup and sometimes I prefer to use that for backtesting.
 
+Step 5 can sometimes throw up warnings or outright errors if things don't look right. Sometimes you can live with these, sometimes you are better off trying to fix them by changing your roll calendar.
+
+<a name="mult_adj_csv_to_arctic"></a>
+### Writing multiple prices from .csv to database
+
+The use case here is you are happy to use the shipped .csv data, even though it's probably out of date, but you want to use a database for backtesting. You don't want to try and find and upload individual futures prices, or create roll calendars.... the good news is you don't have to. Instead you can just use [this script](sysinit/futures/multiple_and_adjusted_from_csv_to_arctic.py) which will just copy from .csv (default ['shipping' directory](/data/futures/multiple_prices_csv))to Arctic.
+
+This will also copy adjusted prices, so you can skip ahead to [creating FX data](#create_fx_data).
 
 <a name="back_adjusted_prices"></a>
 ## Creating and storing back adjusted prices
 
 Once we have multiple prices we can then create a backadjusted price series. The [relevant script](/sysinit/futures/adjustedprices_from_mongo_multiple_to_mongo.py) will read multiple prices from Arctic, do the backadjustment, and then write the prices to Arctic (and optionally to .csv if you want to use that for backup or simulation purposes). It's easy to modify this to read/write to/from different sources.
 
+Note if something goes wrong here it's most likely because you haven't checked your roll calendar properly: make sure it's verified, monotonic, and adjusted to actual prices.
 
 ## Backadjusting 'on the fly'
 
@@ -349,9 +375,11 @@ The default method for stiching the prices is 'panama' stiching. If you don't li
 <a name="create_fx_data"></a>
 ## Getting and storing FX data
 
-Although strictly not futures prices we also need spot FX prices to run our simulation. The github for pysystemtrade contains spot FX data, but you will probably wish to update it. In live trading we'd use interactive brokers, but for now I'm going to use one of the many free data websites: [investing.com](https://www.investing.com)
+Although strictly not futures prices we also need spot FX prices to run our system (unless you have a USD account and all your futures are USD denominated). The github for pysystemtrade contains spot FX data, but you will probably wish to update it. 
 
-You need to register and then download enough history. To see how much FX data there already is:
+In live trading we'd use interactive brokers, but as an alternative for now I'm going to use one of the many free data websites: [investing.com](https://www.investing.com)
+
+You need to register with investing.com and then download enough history. To see how much FX data there already is in the .csv data provided:
 
 ```python
 from sysdata.csv.csv_spot_fx import *
@@ -360,6 +388,13 @@ data.get_fx_prices("GBPUSD")
 ```
 
 Save the files in a directory with no other content, using the filename format "GBPUSD.csv". Using [this simple script](/sysinit/futures/spotfx_from_csvAndInvestingDotCom_to_arctic.py) they are written to Arctic and/or .csv files. You will need to modify the script to point to the right directory, and you can also change the column and formatting parameters to use data from other sources.
+
+You can also run the script with `ADD_EXTRA_DATA = False, ADD_TO_CSV = True`. Then it will just do a straight copy from provided .csv data to Arctic.
+
+## Finished!
+
+That's it. You've got all the price and configuration data you need to start live trading, or run backtests using the database rather than .csv files. 
+
 
 <a name="storing_futures_data"></a>
 # Storing and representing futures data
