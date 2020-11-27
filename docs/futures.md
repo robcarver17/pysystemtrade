@@ -115,7 +115,7 @@ In general each step relies on the previous step to work; more formally:
 
 Confusing, data can be stored or come from various places, which include: 
 
-1. .csv files containing data that pysystemtrade is shipped with (stored in [this set of directories](data/futures/)); it includes everything above except for roll parameters, and is periodically updated from my own live data.
+1. .csv files containing data that pysystemtrade is shipped with (stored in [this set of directories](data/futures/)); it includes everything above except for roll parameters, and is periodically updated from my own live data. Any .csv data 'pipeline' object defaults to using this data set.
 2. configuration .csv files used to iniatilise the system, such as [this file](/data/futures/csvconfig/instrumentconfig.csv)
 3. Temporary .csv files created in the process of initialising the databases
 4. Backup .csv files, created by the production system.
@@ -215,7 +215,7 @@ The objects 'csvFuturesContractPriceData' and 'arcticFuturesContractPriceData' a
 
 We're now ready to set up a *roll calendar*. A roll calendar is the series of dates on which we roll from one futures contract to the next. It might be helpful to read [my blog post](https://qoppac.blogspot.co.uk/2015/05/systems-building-futures-rolling.html) on rolling futures contracts (though bear in mind some of the details relate to my current trading system and do no reflect how pysystemtrade works).
 
-You can see a roll calendar for Eurodollar futures, [here](/data/futures/roll_calendars_csv/EDOLLAR.csv). On each date we roll from the current_contract shown to the next_contract. We also see the current carry_contract; we use the differential between this and the current_contract to calculate forecasts for carry trading rules.
+You can see a roll calendar for Eurodollar futures, [here](/data/futures/roll_calendars_csv/EDOLLAR.csv). On each date we roll from the current_contract shown to the next_contract. We also see the current carry_contract; we use the differential between this and the current_contract to calculate forecasts for carry trading rules. The key thing is that on each roll date we *MUST* have prices for both the price and forward contract (we don't need carry).
 
 There are three ways to generate roll calendars:
 
@@ -314,7 +314,6 @@ The downside is that I don't keep the data constantly updated, and thus you migh
 If you are too lazy even to do the previous step, I've done it for you and you can just use the calendars provided [here](/data/futures/roll_calendars_csv/EDOLLAR.csv). Of course they could also be out of date, and you'll need to fix this manually.
 
 
-
 <a name="create_multiple_prices"></a>
 ## Creating and storing multiple prices
 
@@ -324,14 +323,18 @@ We can store these prices in either Arctic or .csv files. The [relevant script ]
 
 The script should be reasonably self explanatory in terms of data pipelines, but it's worth briefly reviewing what it does:
 
-1. Get the roll calendars from `csv_roll_data_path`, which we have spent so much time and energy creating.
-2.  
+1. Get the roll calendars from `csv_roll_data_path` (which defaults to [this](/data/futures/roll_calendars_csv)), which we have spent so much time and energy creating.
+2. Get some closing prices for each individual future (we don't use OHLC data in the multiple and adjusted prices stage).
+3. Optionally but recommended: adjust the roll calendar so it aligns to the closing prices. This isn't strictly neccessary if you've used method 1 above, deriving the calendar from individual futures contract prices. But it is if you've used methods 2 or 3, and strongly advisable if you've done any manual hacking of the roll calendar files. 
+4. Add a 'phantom' roll a week in the future. Otherwise the data won't be complete up the present day. This will fix itself the first time you run the live production code to update prices, but some people find it annoying.
+5. Create the multiple prices; basically stitching together contract data for different roll periods. 
+6. Depending on flags, write the multiple prices data to`csv_multiple_data_path` (which defaults to [this](/data/futures/multiple_prices_csv)) and / or to Arctic. I like to write to both: Arctic for production, .csv as a backup and sometimes I prefer to use that for backtesting.
 
 
 <a name="back_adjusted_prices"></a>
 ## Creating and storing back adjusted prices
 
-Once we have multiple prices we can then create a backadjusted price series. The [relevant script](/sysinit/futures/adjustedprices_from_mongo_multiple_to_mongo.py) will read multiple prices from Arctic, do the backadjustment, and then write the prices to Arctic. It's easy to modify this to read/write to/from different sources.
+Once we have multiple prices we can then create a backadjusted price series. The [relevant script](/sysinit/futures/adjustedprices_from_mongo_multiple_to_mongo.py) will read multiple prices from Arctic, do the backadjustment, and then write the prices to Arctic (and optionally to .csv if you want to use that for backup or simulation purposes). It's easy to modify this to read/write to/from different sources.
 
 
 ## Backadjusting 'on the fly'
@@ -340,8 +343,7 @@ It's also possible to implement the back-adjustment 'on the fly' within your bac
 
 ## Changing the stitching method
 
-If you don't like panama stitching then you can modify the method. More details later in this document, [here](#futuresAdjustedPrices).
-
+The default method for stiching the prices is 'panama' stiching. If you don't like panama stitching then you can modify the method. More details later in this document, [here](#futuresAdjustedPrices).
 
 
 <a name="create_fx_data"></a>
@@ -537,7 +539,7 @@ For obvious (?) reasons we only implement get and read methods for .csv files (S
 Reads futures configuration information from [here](/data/futures/csvconfig/instrumentconfig.csv) (note this is a separate file from the one used to initialise the mongoDB database [earlier](#init_instrument_config) although this uses the same class method to get the data). Columns currently used by the simulation engine are: Instrument, Pointsize, AssetClass, Currency, Slippage, PerBlock, Percentage, PerTrade. Extraneous columns don't affect functionality.
 
 <a name="csvFuturesContractPriceData"></a>
-#### [csvFuturesContractPriceData()](/sysdata/csv/csv_futures_contract_prices.py) inherits from [futuresContractPriceData](#futuresContractPriceData)
+#### [csvFxPricesData()](/sysdata/csv/csv_spot_fx.py) inherits from [futuresContractPriceData](#futuresContractPriceData)
 
 Reads prices for individual futures contracts. There is no default directory for these as this is provided as a convenience method if you have acquired .csv contract level data and wish to put it into your system. For this reason there is a lot of flexibility in the arguments to allow different formats to be included. As an example, this code will read data downloaded from `barcharts.com` (with files renamed in the format `EDOLLAR_201509.csv`):
 

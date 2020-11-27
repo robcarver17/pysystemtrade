@@ -9,6 +9,7 @@ We then store those multiple prices in: (depending on options)
 - arctic
 - .csv
 """
+from syscore.objects import arg_not_supplied
 from sysobjects.dict_of_futures_per_contract_prices import dictFuturesContractFinalPrices
 
 import datetime
@@ -42,8 +43,8 @@ def _get_data_inputs(csv_roll_data_path, csv_multiple_data_path):
 
 
 def process_multiple_prices_all_instruments(
-    csv_multiple_data_path=None,
-    csv_roll_data_path=None,
+    csv_multiple_data_path=arg_not_supplied,
+    csv_roll_data_path=arg_not_supplied,
     ADD_TO_ARCTIC=True,
     ADD_TO_CSV=False,
 ):
@@ -70,8 +71,8 @@ def process_multiple_prices_all_instruments(
 def process_multiple_prices_single_instrument(
     instrument_code,
     adjust_calendar_to_prices = True,
-    csv_multiple_data_path=None,
-    csv_roll_data_path=None,
+    csv_multiple_data_path=arg_not_supplied,
+    csv_roll_data_path=arg_not_supplied,
     ADD_TO_ARCTIC=True,
     ADD_TO_CSV=False,
 ):
@@ -92,6 +93,10 @@ def process_multiple_prices_single_instrument(
     dict_of_futures_contract_closing_prices = (
         dict_of_futures_contract_prices.final_prices()
     )
+
+    m = mongoRollParametersData()
+    roll_parameters = m.get_roll_parameters(instrument_code)
+    roll_calendar = add_phantom_row(roll_calendar, dict_of_futures_contract_closing_prices, roll_parameters)
 
     multiple_prices = futuresMultiplePrices.create_from_raw_data(
         roll_calendar, dict_of_futures_contract_closing_prices
@@ -117,12 +122,10 @@ def adjust_roll_calendar(instrument_code, roll_calendar):
     dict_of_prices = arctic_prices_per_contract.get_all_prices_for_instrument(instrument_code)
     final_prices = dict_of_prices.final_prices()
     roll_calendar = adjust_to_price_series(roll_calendar, final_prices)
-    m = mongoRollParametersData()
-    roll_parameters = m.get_roll_parameters(instrument_code)
-    roll_calendar = add_virtual_row(roll_calendar, final_prices, roll_parameters)
+
     return roll_calendar
 
-def add_virtual_row(roll_calendar, dict_of_futures_contract_prices: dictFuturesContractFinalPrices,
+def add_phantom_row(roll_calendar, dict_of_futures_contract_prices: dictFuturesContractFinalPrices,
                     roll_parameters: rollParameters):
     final_row = roll_calendar.iloc[-1]
     if datetime.datetime.now()<final_row.name:

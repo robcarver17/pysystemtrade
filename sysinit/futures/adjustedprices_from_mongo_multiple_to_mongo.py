@@ -64,3 +64,4 @@ def process_adjusted_prices_single_instrument(
         )
 
     return adjusted_prices
+
