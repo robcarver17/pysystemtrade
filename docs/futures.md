@@ -94,7 +94,7 @@ Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 <a name="futures_data_workflow"></a>
 # A futures data workflow
 
-This section describes a typical workflow for setting up futures data from scratch:
+This section describes a typical workflow for setting up futures data from scratch, and setting up a mongoDB database full of the required data:
 
 1. [Set up some static configuration information](#set_up_instrument_config) for instruments, and [roll parameters](#set_up_roll_parameter_config)
 2. Get, and store, [some historical data](#get_historical_data)
@@ -102,21 +102,29 @@ This section describes a typical workflow for setting up futures data from scrat
 4. Create and store ['multiple' price series](#create_multiple_prices) containing the relevant contracts we need for any given time period
 5. Create and store [back-adjusted prices](#back_adjusted_prices): a single price series
 6. Get, and store, [spot FX prices](#create_fx_data)
+7. Using data for production and backtest
+
+In general each step relies on the previous step to work; more formally:
+
+- Roll parameters & Individual contract prices -> Roll calendars
+- Roll calendars &  Individual contract prices -> Multiple prices
+- Multiple prices -> Adjusted prices
+- Instrument config, Adjusted prices, Multiple prices, Spot FX prices -> Simulation & Production data
 
 ## A note on data sources
 
 Confusing, data can be stored or come from various places, which include: 
 
-1. .csv files containing data that pysystemtrade is shipped with (stored in [this set of directories](data/futures/)); it includes everything except for roll parameters, and is periodically updated from my own live data.
+1. .csv files containing data that pysystemtrade is shipped with (stored in [this set of directories](data/futures/)); it includes everything above except for roll parameters, and is periodically updated from my own live data.
 2. configuration .csv files used to iniatilise the system, such as [this file](/data/futures/csvconfig/instrumentconfig.csv)
 3. Temporary .csv files created in the process of initialising the databases
 4. Backup .csv files, created by the production system.
 5. External sources such as our broker, or data providers like Barchart and Quandl
 6. Mongo DB or other databases
 
-It's important to be clear where data is coming from, and where it is going to, during the intialisation process.
+It's important to be clear where data is coming from, and where it is going to, during the intialisation process. Once we're actually running, the main storage will usually be in mongo DB (for production and possibly simulation).
 
-(Note that we could just use the provided .csv files (1), and this is the default for how the backtesting part of pysystemtrade works, since you probably don't want to start down the road of building up your data stack before you've even tested out any ideas.)
+(Note that for simulation we could just use the provided .csv files (1), and this is the default for how the backtesting part of pysystemtrade works, since you probably don't want to start down the road of building up your data stack before you've even tested out any ideas. I don't advise using .csv files for production - it won't work. As we'll see later, you can use mongoDB data for simulation and production.)
 
 
 <a name="set_up_instrument_config"></a>
@@ -200,7 +208,7 @@ def init_arctic_with_csv_futures_contract_prices_for_code(instrument_code:str, d
         arctic_prices.write_prices_for_contract_object(contract, prices_for_contract, ignore_duplication=True)
 '''
 
-The objects csvFuturesContractPriceData and arcticFuturesContractPriceData are 'data pipelines', which allow us to read and write a specific type of data (in this ). They have the same methods (and they inherit from a more generic object, futuresContractPriceData)
+The objects 'csvFuturesContractPriceData' and 'arcticFuturesContractPriceData' are 'data pipelines', which allow us to read and write a specific type of data (in this case OHLC price data for individual futures contracts). They have the same methods (and they inherit from a more generic object, futuresContractPriceData), which allows us to write code that abstracts the actual place and way the data is stored. We'll see much more of this kind of thing later.
 
 <a name="roll_calendars"></a>
 ## Roll calendars
@@ -211,10 +219,13 @@ You can see a roll calendar for Eurodollar futures, [here](/data/futures/roll_ca
 
 There are three ways to generate roll calendars:
 
-1. Generate an [approximate calendar](#roll_calendars_from_approx) based on the 'ExpiryOffset' parameter, and then adjust it so it is viable given the individual contract futures prices we have from the [previous stage](#get_historical_data).
-2. Infer from [existing 'multiple price' data](#roll_calendars_from_multiple). [Multiple price data](/data/futures/multiple_prices_csv) are data series that include the prices for three types of contract: the current, next, and carry contract (though of course there may be overlaps between these). pysystemtrade is shipped with .csv files for multiple and adjusted price data. 
-
+1. Generate an [approximate calendar](#roll_calendars_from_approx) based on the 'ExpiryOffset' parameter stored in the instrument roll parameters we already setup
+2. Infer the roll calendar from [existing 'multiple price' data](#roll_calendars_from_multiple). [Multiple price data](/data/futures/multiple_prices_csv) are data series that include the prices for three types of contract: the current, next, and carry contract (though of course there may be overlaps between these). pysystemtrade is shipped with .csv files for multiple and adjusted price data. 
 3. Use the provided roll calendars, saved in . 
+
+Once we have our roll calendar 
+
+, and then adjust it so it is viable given the individual contract futures prices we have from the [previous stage](#get_historical_data).
 
 <a name="roll_calendars_from_approx"></a>
 ### Approximate roll calendars, adjusted with actual prices
@@ -265,6 +276,10 @@ In the next section we learn how to use roll calendars, and price data for indiv
 Of course you can only do this if you've already got these prices, which means you already need to have a roll calendar: a catch 22. Fortunately there are sets of multiple prices provided in pysystemtrade, and have been for some time, [here](/data/futures/multiple_prices_csv). These are copies of the data in my legacy trading system, for which I had to generate historic roll calendars, and for the data since early 2014 include the actual dates when I rolled.
 
 We run [this script](/sysinit/futures/rollcalendars_from_providedcsv_prices.py) which by default will loop over all the instruments for which we have data in the multiple prices directory. 
+
+<a name="roll_calendars_from_multiple"></a>
+### Roll calendars shipped in .csv files
+
 
 
 <a name="create_multiple_prices"></a>
