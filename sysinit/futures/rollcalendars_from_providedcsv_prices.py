@@ -1,26 +1,23 @@
 from sysdata.sim.csv_futures_sim_data import csvFuturesSimData
 from sysobjects.roll_calendars import rollCalendar
 from sysdata.csv.csv_roll_calendars import csvRollCalendarData
-from sysdata.mongodb.mongo_roll_data import mongoRollParametersData
 
 """
 Generate the roll calendars from existing data
 """
 
-if __name__ == "__main__":
-    csv_roll_calendars = csvRollCalendarData()
+def generate_roll_calendars_from_provided_multiple_csv_prices(output_datapath):
+    input("This will overwrite the roll calendars in %s : CRTL-C if you aren't sure!" % output_datapath)
+    csv_roll_calendars = csvRollCalendarData(datapath=output_datapath)
     sim_futures_data = csvFuturesSimData()
-    mongo_rollparameters = mongoRollParametersData()
 
     instrument_list = sim_futures_data.get_instrument_list()
 
     for instrument_code in instrument_list:
         print(instrument_code)
-        multiple_prices = sim_futures_data.get_all_multiple_prices(
+        multiple_prices = sim_futures_data.get_multiple_prices(
             instrument_code)
 
-        roll_parameters = mongo_rollparameters.get_roll_parameters(
-            instrument_code)
         roll_calendar = rollCalendar.back_out_from_multiple_prices(
             multiple_prices
         )

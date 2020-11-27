@@ -219,20 +219,22 @@ You can see a roll calendar for Eurodollar futures, [here](/data/futures/roll_ca
 
 There are three ways to generate roll calendars:
 
-1. Generate an [approximate calendar](#roll_calendars_from_approx) based on the 'ExpiryOffset' parameter stored in the instrument roll parameters we already setup
-2. Infer the roll calendar from [existing 'multiple price' data](#roll_calendars_from_multiple). [Multiple price data](/data/futures/multiple_prices_csv) are data series that include the prices for three types of contract: the current, next, and carry contract (though of course there may be overlaps between these). pysystemtrade is shipped with .csv files for multiple and adjusted price data. 
-3. Use the provided roll calendars, saved in . 
+1. Generate a calendar based on the individual contract data you have. Initially this will generate an [approximate calendar](#roll_calendars_from_approx) based on the 'ExpiryOffset' parameter stored in the instrument roll parameters we already setup. 
+2. Infer the roll calendar from [existing 'multiple price' data](#roll_calendars_from_multiple). [Multiple price data](/data/futures/multiple_prices_csv) are data series that include the prices for three types of contract: the current, next, and carry contract (though of course there may be overlaps between these). pysystemtrade is shipped with .csv files for multiple and adjusted price data. Unless the multiple price data is up to date, this may mean your rolls are a bit behind. For example, if you're trading quarterly HMUZ, and the data was last updated 6 months ago, there will probably have been one or two rolls since then.
+3. Use the provided roll calendars, saved [here](data/futures/roll_calendars_csv/). Again, these may be a bit behind. I generate these from multiple prices, so it's basically like step 2 except I've done the work for you.
 
-Once we have our roll calendar 
+Roll calendars are always saved as .csv files, which have the advantage of being readable and edited by human. So you can add extra rolls (if you've used method 2 or 3, and there would have been rolls since then) or do any manual hacking you need to get your multiple price data build to work. 
 
-, and then adjust it so it is viable given the individual contract futures prices we have from the [previous stage](#get_historical_data).
+Once we have the roll calendar we can adjust it so it is viable given the individual contract futures prices we have from the [previous stage](#get_historical_data). As an arbitrary example, you might assume you can roll 10 days before the expiry but that happens to be Thanksgiving so there are no prices available. The logic would find the closest date when you can actually trade. 
+
+Then the roll calendar, plus the individual futures contract prices, can be used together to build multiple prices, from which we can get a single contionous backadjusted price series.
 
 <a name="roll_calendars_from_approx"></a>
 ### Approximate roll calendars, adjusted with actual prices
 
-This is the method you'd use if you were starting from scratch, and you'd just got some prices for each futures contract. The relevant script is [here](/sysinit/futures/rollcalendars_from_arcticprices_to_csv.py). Again it is only set up to run a single instrument at a time. 
+This is the method you'd use if you were starting from scratch, and you'd just got some prices for each futures contract. The relevant script is [here](/sysinit/futures/rollcalendars_from_arcticprices_to_csv.py); you should call the function `build_and_write_roll_calendar`. It is only set up to run a single instrument at a time: creating roll calendars is careful craftmanship, not suited to a batch process.
 
-In this script:
+In this script (which you should run for each instrument in turn):
 
 - We get prices for individual futures contract [from Arctic](#arcticFuturesContractPriceData) that we created in the [previous stage](#get_historical_data)
 - We get roll parameters [from Mongo](#mongoRollParametersData), that [we made earlier](#set_up_roll_parameter_config) 
@@ -241,32 +243,58 @@ In this script:
 - We do some checks on the roll calendar, for monotonicity and validity (these checks will generate warnings if things go wrong)
 - If we're happy with the roll calendar we [write](#csvRollCalendarData) our roll calendar into a csv file 
 
+I strongtly suggest putting an output datapath here; somewhere you can store temporary data. Otherwise you will overwrite the provided roll calendars [here](data/futures/roll_calendars_csv/). OK, you can restore them with a git pull, but it's nice to be able to compare the 'official' and generated roll calendars.
+
 #### Calculate the roll calendar
 
-The actual code that generates the roll calendar is [here](/sysdata/futures/roll_calendars.py)
+The actual code that generates the roll calendar is [here](sysobjects/roll_calendars.py) which mostly calls code from [here](sysinit/futures/build_roll_calendars.py):
 
 The interesting part is:
 
 ```python
-approx_calendar = _generate_approximate_calendar(list_of_contract_dates, roll_parameters_object)
-adjusted_calendar = _adjust_to_price_series(approx_calendar, dict_of_futures_contract_prices)
-adjusted_calendar_with_carry = _add_carry_calendar(adjusted_calendar, roll_parameters_object)
+    @classmethod
+    def create_from_prices(
+        rollCalendar, dict_of_futures_contract_prices:dictFuturesContractFinalPrices,
+            roll_parameters_object: rollParameters
+    ):
+
+        approx_calendar = generate_approximate_calendar(
+            roll_parameters_object, dict_of_futures_contract_prices
+        )
+
+        adjusted_calendar = adjust_to_price_series(
+            approx_calendar, dict_of_futures_contract_prices
+        )
+
+        roll_calendar = rollCalendar(adjusted_calendar)
 ```
 
-So we first generate an approximate calendar, for when we'd ideally want to roll each of the contracts, based on our roll parameter `RollOffsetDays`. However we may find that there weren't *matching* prices for a given roll date. A matching price is when we have prices for both the current and next contract on the relevant day. If we don't have that, then we can't calculate an adjusted price. The *adjustment* stage finds the closest date to the ideal date (looking both forwards and backwards in time). If there are no dates with matching prices, then the process will return an error. Finally we add the carry contract on to the roll calendar - this isn't used for back adjustment but we still need it for forecasting using the carry trading rule.
+So we first generate an approximate calendar, for when we'd ideally want to roll each of the contracts, based on our roll parameter `RollOffsetDays`. However we may find that there weren't *matching* prices for a given roll date. A matching price is when we have prices for both the current and next contract on the relevant day. If we don't have that, then we can't calculate an adjusted price. The *adjustment* stage finds the closest date to the ideal date (looking both forwards and backwards in time). If there are no dates with matching prices, then the process will return an error. 
 
 
 #### Checks
 
 We then check that the roll calendar is monotonic and valid.
 
+```python
+    # checks - this might fail
+    roll_calendar.check_if_date_index_monotonic()
+
+    # this should never fail
+    roll_calendar.check_dates_are_valid_for_prices(
+        dict_of_futures_contract_prices
+    )
+```
+
 A *monotonic* roll calendar will have increasing datestamps in the index. It's possible, if your data is messy, to get non-monotonic calendars. Unfortunately there is no automatic way to fix this, you need to dive in and rebuild the data (this is why I store the calendars as .csv files to make such hacking easy).
 
 A *valid* roll calendar will have current and next contract prices on the roll date. Since this is how we generate the roll calendars they should always pass this test (if we couldn't find a date when we have aligned prices then the calendar generation would have failed with an exception).
 
-#### Write CSV prices
 
-Roll calendars are stored in .csv format [here](/data/futures/roll_calendars_csv/EDOLLAR.csv). Of course you could put these into Mongo DB, or Arctic, but I like the ability to hack them if required.
+#### Manually editing roll calendars
+
+Roll calendars are stored in .csv format [and here is an example](/data/futures/roll_calendars_csv/EDOLLAR.csv). Of course you could put these into Mongo DB, or Arctic, but I like the ability to hack them if required; plus we only use them when starting the system up from scratch. If you have to manually edit your .csv roll calendars, you can easily load them up and check they are monotonic and valid. The function `check_saved_roll_calendar` is your friend. from [here](/sysinit/futures/rollcalendars_from_arcticprices_to_csv.py). Just make sure you are using the right datapath.
+
 
 <a name="roll_calendars_from_multiple"></a>
 ### Roll calendars from existing 'multiple prices' .csv files
@@ -277,8 +305,9 @@ Of course you can only do this if you've already got these prices, which means y
 
 We run [this script](/sysinit/futures/rollcalendars_from_providedcsv_prices.py) which by default will loop over all the instruments for which we have data in the multiple prices directory. 
 
-<a name="roll_calendars_from_multiple"></a>
+<a name="roll_calendars_from_provided"></a>
 ### Roll calendars shipped in .csv files
+
 
 
 
