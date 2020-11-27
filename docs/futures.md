@@ -220,7 +220,7 @@ You can see a roll calendar for Eurodollar futures, [here](/data/futures/roll_ca
 There are three ways to generate roll calendars:
 
 1. Generate a calendar based on the individual contract data you have. Initially this will generate an [approximate calendar](#roll_calendars_from_approx) based on the 'ExpiryOffset' parameter stored in the instrument roll parameters we already setup. 
-2. Infer the roll calendar from [existing 'multiple price' data](#roll_calendars_from_multiple). [Multiple price data](/data/futures/multiple_prices_csv) are data series that include the prices for three types of contract: the current, next, and carry contract (though of course there may be overlaps between these). pysystemtrade is shipped with .csv files for multiple and adjusted price data. Unless the multiple price data is up to date, this may mean your rolls are a bit behind. For example, if you're trading quarterly HMUZ, and the data was last updated 6 months ago, there will probably have been one or two rolls since then.
+2. Infer the roll calendar from [existing 'multiple price' data](#roll_calendars_from_multiple). [Multiple price data](/data/futures/multiple_prices_csv) are data series that include the prices for three types of contract: the current, next, and carry contract (though of course there may be overlaps between these). pysystemtrade is shipped with .csv files for multiple and adjusted price data. Unless the multiple price data is up to date, this may mean your rolls are a bit behind. 
 3. Use the provided roll calendars, saved [here](data/futures/roll_calendars_csv/). Again, these may be a bit behind. I generate these from multiple prices, so it's basically like step 2 except I've done the work for you.
 
 Roll calendars are always saved as .csv files, which have the advantage of being readable and edited by human. So you can add extra rolls (if you've used method 2 or 3, and there would have been rolls since then) or do any manual hacking you need to get your multiple price data build to work. 
@@ -243,7 +243,7 @@ In this script (which you should run for each instrument in turn):
 - We do some checks on the roll calendar, for monotonicity and validity (these checks will generate warnings if things go wrong)
 - If we're happy with the roll calendar we [write](#csvRollCalendarData) our roll calendar into a csv file 
 
-I strongtly suggest putting an output datapath here; somewhere you can store temporary data. Otherwise you will overwrite the provided roll calendars [here](data/futures/roll_calendars_csv/). OK, you can restore them with a git pull, but it's nice to be able to compare the 'official' and generated roll calendars.
+I strongly suggest putting an output datapath here; somewhere you can store temporary data. Otherwise you will overwrite the provided roll calendars [here](data/futures/roll_calendars_csv/). OK, you can restore them with a git pull, but it's nice to be able to compare the 'official' and generated roll calendars.
 
 #### Calculate the roll calendar
 
@@ -303,20 +303,30 @@ In the next section we learn how to use roll calendars, and price data for indiv
 
 Of course you can only do this if you've already got these prices, which means you already need to have a roll calendar: a catch 22. Fortunately there are sets of multiple prices provided in pysystemtrade, and have been for some time, [here](/data/futures/multiple_prices_csv). These are copies of the data in my legacy trading system, for which I had to generate historic roll calendars, and for the data since early 2014 include the actual dates when I rolled.
 
-We run [this script](/sysinit/futures/rollcalendars_from_providedcsv_prices.py) which by default will loop over all the instruments for which we have data in the multiple prices directory. 
+We run [this script](/sysinit/futures/rollcalendars_from_providedcsv_prices.py) which by default will loop over all the instruments for which we have data in the multiple prices directory, and output to a provided temporary directory. 
+
+The downside is that I don't keep the data constantly updated, and thus you might be behind. For example, if you're trading quarterly with a hold cycle of HMUZ, and the data was last updated 6 months ago, there will probably have been one or two rolls since then. You will need to manually edit the calendars to add these extra rows (in theory you could generate these automatically but it would be quite a faff, and much quicker to do it manually).
+
 
 <a name="roll_calendars_from_provided"></a>
 ### Roll calendars shipped in .csv files
 
+If you are too lazy even to do the previous step, I've done it for you and you can just use the calendars provided [here](/data/futures/roll_calendars_csv/EDOLLAR.csv). Of course they could also be out of date, and you'll need to fix this manually.
 
 
 
 <a name="create_multiple_prices"></a>
 ## Creating and storing multiple prices
 
-The next stage is to store *multiple prices*. Multiple prices are the price and contract identifier for the current contract we're holding, the next contract we'll hold, and the carry contract we compare with the current contract for the carry trading rule. They are required for the next stage, calculating back-adjusted prices, but are also used directly by the carry trading rule in a backtest. Constructing them requires a roll calendar, and prices for individual futures contracts.
+The next stage is to create and store *multiple prices*. Multiple prices are the price and contract identifier for the current contract we're holding, the next contract we'll hold, and the carry contract we compare with the current contract for the carry trading rule. They are required for the next stage, calculating back-adjusted prices, but are also used directly by the carry trading rule in a backtest. Constructing them requires a roll calendar, and prices for individual futures contracts. You can see an example of multiple prices [here](data/futures/multiple_prices_csv/AEX.csv). Obviously this is .csv, but the internal representation of a dataframe will look pretty similar.
 
-We can store these prices in either Arctic or .csv files. The [relevant script ](/sysinit/futures/multipleprices_from_arcticprices_and_csv_calendars_to_arctic.py) gives you the option of doing either or both of these.
+We can store these prices in either Arctic or .csv files. The [relevant script ](/sysinit/futures/multipleprices_from_arcticprices_and_csv_calendars_to_arctic.py) gives you the option of doing either or both of these. For production purposes, you should use Arctic. For backtesting you could also use Arctic, but .csv is also fine.
+
+The script should be reasonably self explanatory in terms of data pipelines, but it's worth briefly reviewing what it does:
+
+1. Get the roll calendars from `csv_roll_data_path`, which we have spent so much time and energy creating.
+2.  
+
 
 <a name="back_adjusted_prices"></a>
 ## Creating and storing back adjusted prices
