@@ -397,11 +397,25 @@ You can also run the script with `ADD_EXTRA_DATA = False, ADD_TO_CSV = True`. Th
 That's it. You've got all the price and configuration data you need to start live trading, or run backtests using the database rather than .csv files. 
 
 
-<a name="storing_futures_data"></a>
-# Storing and representing futures data
+
+<a name="Overview"></a>
+# Overview of futures data in pysystemtrade
 
 The paradigm for data storage is that we have a bunch of [data objects](#generic_objects) for specific types of data, i.e. futuresInstrument is the generic class for storing static information about instruments. Each of those objects then has a matching *data storage object* which accesses data for that object, i.e. futuresInstrumentData. Then we have [specific instances of those for different data sources](#specific_data_storage), i.e. mongoFuturesInstrumentData for storing instrument data in a mongo DB database. 
 
+I use [data 'blobs'](/sysdata/data_blob.py) to access collections of data storage objects in both simulation and production. This also hides the exact source of the data and ensures that data objects are using a common database, logging method, and brokerage connection (since the broker is also accessed via data storage objects). More [later](#data_blobs).
+
+For backtesting, data is accessed through `simData` objects (I discuss these [later](#simdata-objects)). These form part of the giant `system` objects that are used in backtesting ([as the `data` stage](backtesting.md#data)), and they provide the API to get certain kinds of data which are needed for backtesting (some instrument configuration and cost data, spot FX, multiple, and adjusted prices). From version 0.52 onwards `simData` objects also use data blobs.
+
+Finally in production I use the objects in [this module](/sysproduction/data) to act as [*interfaces*](#production_interface) between production code and data blobs, so that production code doesn't need to be too concerned about the exact implementation of the data storage. These also include some business logic. 
+
+## Heirarchy of data objects
+
+FIXME UP TO HERE
+
+
+<a name="storing_futures_data"></a>
+# Storing and representing futures data
 
 <a name="generic_objects"></a>
 ## Futures data objects and their generic data storage objects
@@ -765,6 +779,13 @@ Use the naming convention sourceNameOfGenericDataObject, i.e. `class arcticFutur
 For databases you may want to create connection objects (like [this](#/sysdata/arctic/arctic_connection.py) for Arctic) 
 
 
+<a name="data_blobs"></a>
+# Data blobs
+
+TO DO
+
+
+
 <a name="simData_objects"></a>
 # simData objects
 
@@ -1014,9 +1035,7 @@ class csvMultiplePriceData(csvPaths, futuresMultiplePriceData):
 
 ```
 
-# Updating the provided .csv data from a production system
+<a name="production_interface"></a>
+# Production code data interface
 
-If you have set up pysystemtrade as a [production trading environment](/docs/production.md) you may wish to continue storing your backtest data in .csv files rather than in databases (this step is also required for the [BDFL](https://en.wikipedia.org/wiki/Benevolent_dictator_for_life) of pysystemtrade to ensure the data provided on github is up to date). The following functions will allow you to update the .csv files:
-
-- [For spot FX data](/sysinit/futures/spotfx_from_arctic_to_csv.py) 
-
+TO DO
