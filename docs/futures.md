@@ -537,7 +537,7 @@ For obvious (?) reasons we only implement get and read methods for .csv files (S
 Reads futures configuration information from [here](/data/futures/csvconfig/instrumentconfig.csv) (note this is a separate file from the one used to initialise the mongoDB database [earlier](#init_instrument_config) although this uses the same class method to get the data). Columns currently used by the simulation engine are: Instrument, Pointsize, AssetClass, Currency, Slippage, PerBlock, Percentage, PerTrade. Extraneous columns don't affect functionality.
 
 <a name="csvFuturesContractPriceData"></a>
-#### [csvFxPricesData()](/sysdata/csv/csv_spot_fx.py) inherits from [futuresContractPriceData](#futuresContractPriceData)
+#### [csvFuturesContractPriceData()](/sysdata/csv/csv_futures_contract_prices.py) inherits from [futuresContractPriceData](#futuresContractPriceData)
 
 Reads prices for individual futures contracts. There is no default directory for these as this is provided as a convenience method if you have acquired .csv contract level data and wish to put it into your system. For this reason there is a lot of flexibility in the arguments to allow different formats to be included. As an example, this code will read data downloaded from `barcharts.com` (with files renamed in the format `EDOLLAR_201509.csv`):
 
