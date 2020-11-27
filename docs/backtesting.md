@@ -1,8 +1,8 @@
-This is the main userguide for pysystemtrade. Before reading this you should have gone through the [introduction.](/docs/introduction.md)
+This is the userguide for using pysystemtrade as a backtesting platform. Before reading this you should have gone through the [introduction.](/docs/introduction.md)
 
 Related documents:
 
-- [Storing futures and spot FX data](/docs/futures.md)
+- [Storing futures and spot FX data](/docs/data.md)
 - [Using pysystemtrade as a production trading environment](/docs/production.md)
 - [Connecting pysystemtrade to interactive brokers](/docs/IB.md)
 

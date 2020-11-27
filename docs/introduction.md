@@ -729,4 +729,4 @@ system.cache.unpickle("private.this_system_name.pck")
 system.accounts.portfolio().sharpe() ## this will run much faster and reuse previous calculations
 ```
 
-You'll probably want to read the [users guide](userguide.md) next.
+You'll probably want to read the [backtesting guide](backtesting.md) next.

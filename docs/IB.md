@@ -9,9 +9,9 @@ Although this document is about Interactive Brokers, you should read it carefull
 
 Related documents:
 
-- [Storing futures and spot FX data](/docs/futures.md)
+- [Storing futures and spot FX data](/docs/data.md)
 - [Using pysystemtrade as a production trading environment](/docs/production.md)
-- [Main user guide](/docs/userguide.md)
+- [Using pysystemtrade for backtesting](/docs/backtesting.md)
 
 *IMPORTANT: Make sure you know what you are doing. All financial trading offers the possibility of loss. Leveraged trading, such as futures trading, may result in you losing all your money, and still owing more. Backtested results are no guarantee of future performance. No warranty is offered or implied for this software. I can take no responsibility for any losses caused by live trading using pysystemtrade. Use at your own risk.*
 
