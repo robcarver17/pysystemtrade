@@ -1,5 +1,10 @@
 # Release notes
 
+## Version 0.52.0
+
+Mostly refactoring and documenting the creation and storage of data
+
+
 ## Version 0.51.0
 
 Essentially 'finished' production.md (in as much as anything can be finished...)
