@@ -10,7 +10,9 @@ LIST_OF_MONGO_PARAMS = ["db", "host"]
 # DO NOT CHANGE THIS VALUE!!!! IT WILL SCREW UP ARCTIC
 DEFAULT_MONGO_PORT = 27017
 
-MONGO_ID_STR = "_id"
+
+MONGO_ID_STR = "_id_"
+MONGO_ID_KEY = "_id"
 
 def mongo_defaults(**kwargs):
     """

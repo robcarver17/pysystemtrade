@@ -1,6 +1,6 @@
 from sysdata.mongodb.mongo_connection import (
     mongoConnection,
-    MONGO_ID_STR,
+    MONGO_ID_KEY,
     mongo_clean_ints,
 )
 
@@ -75,7 +75,7 @@ class mongoData(object):
         if result_dict is None:
             return missing_data
 
-        result_dict.pop(MONGO_ID_STR)
+        result_dict.pop(MONGO_ID_KEY)
 
         return result_dict
 

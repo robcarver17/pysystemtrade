@@ -2,7 +2,7 @@ from sysdata.production.process_control import controlProcessData, controlProces
 from syscore.objects import success, missing_data
 from sysdata.mongodb.mongo_connection import (
     mongoConnection,
-    MONGO_ID_STR,
+    MONGO_ID_KEY,
     mongo_clean_ints,
 )
 from syslogdiag.log import logtoscreen
@@ -51,7 +51,7 @@ class mongoControlProcessData(controlProcessData):
             dict(process_name=process_name))
         if result_dict is None:
             return missing_data
-        result_dict.pop(MONGO_ID_STR)
+        result_dict.pop(MONGO_ID_KEY)
         result_dict.pop("process_name")
 
         control_object = controlProcess.from_dict(result_dict)

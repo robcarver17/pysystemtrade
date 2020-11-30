@@ -1,8 +1,7 @@
 from sysdata.production.generic_timed_storage import listOfEntriesData
 from sysdata.mongodb.mongo_connection import (
     mongoConnection,
-    MONGO_ID_STR,
-    mongo_clean_ints,
+    MONGO_ID_KEY
 )
 from syslogdiag.log import logtoscreen
 from syscore.objects import success, missing_data
@@ -54,7 +53,7 @@ class mongoListOfEntriesData(listOfEntriesData):
         if result_dict is None:
             return missing_data, missing_data
 
-        result_dict.pop(MONGO_ID_STR)
+        result_dict.pop(MONGO_ID_KEY)
         data_class = result_dict["data_class"]
         series_as_list_of_dicts = result_dict["entry_series"]
 

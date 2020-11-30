@@ -2,7 +2,7 @@ from sysdata.production.roll_state_storage import rollStateData, no_state_availa
 from syscore.objects import success
 from sysdata.mongodb.mongo_connection import (
     mongoConnection,
-    MONGO_ID_STR,
+    MONGO_ID_KEY,
     mongo_clean_ints,
 )
 from syslogdiag.log import logtoscreen
@@ -52,7 +52,7 @@ class mongoRollStateData(rollStateData):
         )
         if result_dict is None:
             return no_state_available
-        result_dict.pop(MONGO_ID_STR)
+        result_dict.pop(MONGO_ID_KEY)
         result_dict.pop("instrument_code")
 
         roll_status = result_dict["roll_state"]

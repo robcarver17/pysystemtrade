@@ -4,7 +4,7 @@ from sysdata.production.trade_limits import (
     tradeLimit,
     listOfTradeLimits,
 )
-from sysdata.mongodb.mongo_connection import mongoConnection, MONGO_ID_STR
+from sysdata.mongodb.mongo_connection import mongoConnection, MONGO_ID_KEY
 from syslogdiag.log import logtoscreen
 
 LIMIT_STATUS_COLLECTION = "limit_status"
@@ -58,7 +58,7 @@ class mongoTradeLimitData(tradeLimitData):
     def _get_list_of_trade_limits_for_cursor(self, cursor):
 
         list_of_dicts = [db_entry for db_entry in cursor]
-        _ = [db_entry.pop(MONGO_ID_STR) for db_entry in list_of_dicts]
+        _ = [db_entry.pop(MONGO_ID_KEY) for db_entry in list_of_dicts]
         trade_limits = [(tradeLimit.from_dict(db_dict))
                         for db_dict in list_of_dicts]
 
@@ -81,7 +81,7 @@ class mongoTradeLimitData(tradeLimitData):
         )
         if result_dict is None:
             return missing_data
-        result_dict.pop(MONGO_ID_STR)
+        result_dict.pop(MONGO_ID_KEY)
         trade_limit = tradeLimit.from_dict(result_dict)
 
         return trade_limit

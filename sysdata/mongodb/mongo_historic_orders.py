@@ -1,7 +1,7 @@
 import datetime
 
 from syscore.objects import success, missing_order, resolve_function, arg_not_supplied
-from sysdata.mongodb.mongo_connection import mongoConnection, MONGO_ID_STR
+from sysdata.mongodb.mongo_connection import mongoConnection, MONGO_ID_KEY
 from syslogdiag.log import logtoscreen
 from sysdata.production.historic_orders import (
     genericOrdersData,
@@ -81,7 +81,7 @@ class mongoGenericHistoricOrdersData(genericOrdersData):
         result_dict = self._mongo.collection.find_one(dict(order_id=order_id))
         if result_dict is None:
             return missing_order
-        result_dict.pop(MONGO_ID_STR)
+        result_dict.pop(MONGO_ID_KEY)
 
         order_class = self._order_class()
         order = order_class.from_dict(result_dict)

@@ -1,5 +1,5 @@
 from sysdata.mongodb.mongo_connection import mongoConnection
-from sysdata.mongodb.mongo_connection import MONGO_ID_STR
+from sysdata.mongodb.mongo_connection import MONGO_ID_KEY
 from syscore.dateutils import long_to_datetime, datetime_to_long
 
 from syslogdiag.log import logEntry, TIMESTAMP_ID, LEVEL_ID, TEXT_ID, LOG_RECORD_ID
@@ -111,7 +111,7 @@ class mongoLogEntry(logEntry):
         :return: logEntry object
         """
         log_dict = copy(log_dict_input)
-        log_dict.pop(MONGO_ID_STR)
+        log_dict.pop(MONGO_ID_KEY)
         log_timestamp_aslong = log_dict.pop(TIMESTAMP_ID)
         msg_level = log_dict.pop(LEVEL_ID)
         text = log_dict.pop(TEXT_ID)

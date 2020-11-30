@@ -1,5 +1,5 @@
 from syscore.objects import success
-from sysdata.mongodb.mongo_connection import mongoConnection, MONGO_ID_STR
+from sysdata.mongodb.mongo_connection import mongoConnection, MONGO_ID_KEY
 from syslogdiag.log import logtoscreen
 
 from sysexecution.order_stack import orderStackData, missing_order
@@ -119,7 +119,7 @@ class mongoOrderStackData(orderStackData):
         if result_dict is None:
             return self._create_max_order_id()
 
-        result_dict.pop(MONGO_ID_STR)
+        result_dict.pop(MONGO_ID_KEY)
         order_id = result_dict["max_order_id"]
 
         return order_id
