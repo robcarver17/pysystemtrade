@@ -311,7 +311,7 @@ class ibClient(object):
         )
 
         ibcontract = self.ib_futures_contract(
-            contract_object_with_ib_data)
+            contract_object_with_ib_data, always_return_single_leg=True)
         if ibcontract is missing_contract:
             specific_log.warn(
                 "Can't get contract expiry from IB for %s"
