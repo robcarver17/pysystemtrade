@@ -10,7 +10,7 @@ This connection won't fail if mongo missing, but will hang
 """
 
 
-class articConnection(object):
+class articData(object):
     """
     All of our ARCTIC mongo connections use this class (not static data which goes directly via mongo DB)
 

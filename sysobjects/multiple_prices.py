@@ -249,20 +249,3 @@ def _check_valid_multiple_price_data(data):
 multiple_data_columns = sorted(
     list_of_price_column_names +
     list_of_contract_column_names)
-
-"""
-from sysinit.futures.multipleprices_from_arcticprices_and_csv_calendars_to_arctic import *
-instrument_code="EDOLLAR"
-csv_roll_data_path="/home/rob/data/csv_temp/roll_calendars"
-csv_roll_calendars = csvRollCalendarData(csv_roll_data_path)
-roll_calendar = csv_roll_calendars.get_roll_calendar(instrument_code)
-arctic_individual_futures_prices = arcticFuturesContractPriceData()
-dict_of_futures_contract_prices = (
-    arctic_individual_futures_prices.get_all_prices_for_instrument(instrument_code))
-dict_of_futures_contract_closing_prices = (
-    dict_of_futures_contract_prices.final_prices()
-)
-multiple_prices = futuresMultiplePrices.create_from_raw_data(
-    roll_calendar, dict_of_futures_contract_closing_prices
-)
-"""

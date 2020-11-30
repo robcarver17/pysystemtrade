@@ -7,7 +7,7 @@ from sysobjects.spot_fx_prices import currencyValue, fxPrices
 from sysdata.data_blob import dataBlob
 
 
-class currencyData(object):
+class dataCurrency(object):
     """
     Translate between currency values
     """
@@ -90,7 +90,7 @@ class currencyData(object):
 def get_list_of_fxcodes(data=arg_not_supplied):
     if data is arg_not_supplied:
         data = dataBlob()
-    c = currencyData(data)
+    c = dataCurrency(data)
     return c.get_list_of_fxcodes()
 
 

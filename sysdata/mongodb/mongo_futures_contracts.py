@@ -100,7 +100,7 @@ class mongoFuturesContractData(futuresContractData):
 # IT WILL RUN ONCE ONLY, SO IN THE FUTURE IT CAN BE DELETED
 ###########################################################################
 
-from sysdata.mongodb.mongo_connection import MONGO_ID_KEY
+from sysdata.mongodb.mongo_connection import MONGO_ID_STR
 
 
 def _from_old_to_new_contract_storage(mongo_data):
@@ -146,7 +146,7 @@ def _get_old_record(mongo_data, record):
     result_dict = mongo_data._mongo.collection.find_one(
         dict(instrument_code=instrument_code, contract_date=contract_date)
     )
-    result_dict.pop(MONGO_ID_KEY)
+    result_dict.pop(MONGO_ID_STR)
 
     contract_object = _from_old_style_mongo_record_to_contract_dict(result_dict)
 

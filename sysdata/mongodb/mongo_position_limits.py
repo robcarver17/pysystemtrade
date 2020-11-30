@@ -1,6 +1,6 @@
 from syscore.objects import missing_data
 
-from sysdata.mongodb.mongo_connection import mongoConnection, MONGO_ID_KEY
+from sysdata.mongodb.mongo_connection import mongoConnection, MONGO_ID_STR
 from sysdata.production.position_limits import positionLimitData, positionLimitForInstrument, positionLimitForStrategyInstrument
 
 from syslogdiag.log import logtoscreen

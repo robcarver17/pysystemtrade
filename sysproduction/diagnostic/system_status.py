@@ -24,7 +24,7 @@ from sysproduction.data.controls import (
 )
 from sysproduction.data.strategies import get_list_of_strategies
 from sysproduction.data.prices import get_list_of_instruments
-from sysproduction.data.currency_data import get_list_of_fxcodes, currencyData
+from sysproduction.data.currency_data import get_list_of_fxcodes, dataCurrency
 from sysproduction.data.prices import diagPrices
 from sysproduction.data.positions import diagPositions, dataOptimalPositions
 
@@ -264,7 +264,7 @@ def get_list_of_last_fx_price_updates(data):
 
 
 def get_last_fx_price_update_for_code(data, fx_code):
-    data_fx = currencyData(data)
+    data_fx = dataCurrency(data)
     px = data_fx.get_fx_prices(fx_code)
     last_timestamp = px.index[-1]
 

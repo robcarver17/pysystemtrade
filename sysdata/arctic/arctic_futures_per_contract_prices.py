@@ -3,7 +3,7 @@ Read and write data from mongodb for individual futures contracts
 
 """
 
-from sysdata.arctic.arctic_connection import articConnection
+from sysdata.arctic.arctic_connection import articData
 from sysdata.futures.futures_per_contract_prices import futuresContractPriceData, listOfFuturesContracts
 from sysobjects.futures_per_contract_prices import futuresContractPrices
 from sysobjects.contracts import futuresContract, get_code_and_id_from_contract_key
@@ -25,7 +25,7 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
 
         super().__init__(log=log)
 
-        self._arctic_connection = articConnection(CONTRACT_COLLECTION, mongo_db=mongo_db)
+        self._arctic_connection = articData(CONTRACT_COLLECTION, mongo_db=mongo_db)
 
     def __repr__(self):
         return "simData connection for individual futures contracts prices, arctic %s/%s @ %s " % (

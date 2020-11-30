@@ -1,6 +1,6 @@
 from sysdata.fx.spotfx import fxPricesData
 from sysobjects.spot_fx_prices import fxPrices
-from sysdata.arctic.arctic_connection import articConnection
+from sysdata.arctic.arctic_connection import articData
 from syslogdiag.log import logtoscreen
 import pandas as pd
 
@@ -14,7 +14,7 @@ class arcticFxPricesData(fxPricesData):
     def __init__(self, mongo_db=None, log=logtoscreen("arcticFxPricesData")):
 
         super().__init__(log=log)
-        self._arctic = articConnection(SPOTFX_COLLECTION, mongo_db=mongo_db)
+        self._arctic = articData(SPOTFX_COLLECTION, mongo_db=mongo_db)
 
     @property
     def arctic(self):

@@ -3,19 +3,20 @@ from copy import copy
 from sysbrokers.IB.ib_connection import connectionIB
 from syscore.objects import arg_not_supplied
 from sysdata.mongodb.mongo_connection import mongoDb
-from sysdata.mongodb.mongo_log import logToMongod as logger
+from sysdata.mongodb.mongo_log import logToMongod
+from syslogdiag.log import logger
 
 
 class dataBlob(object):
     def __init__(
         self,
-        class_list=arg_not_supplied,
-        log_name="",
-        csv_data_paths=arg_not_supplied,
-        ib_conn=arg_not_supplied,
-        mongo_db=arg_not_supplied,
-        log=arg_not_supplied,
-        keep_original_prefix=False,
+        class_list: list=arg_not_supplied,
+        log_name: str="",
+        csv_data_paths: dict=arg_not_supplied,
+        ib_conn: connectionIB=arg_not_supplied,
+        mongo_db: mongoDb=arg_not_supplied,
+        log: logger=arg_not_supplied,
+        keep_original_prefix: bool=False,
     ):
         """
         Set up of a data pipeline with standard attribute names, logging, links to DB etc
@@ -256,7 +257,7 @@ class dataBlob(object):
     def log(self):
         log = getattr(self, "_log", arg_not_supplied)
         if log is arg_not_supplied:
-            log = logger(self.log_name, data=self, mongo_db=self.mongo_db)
+            log = logToMongod(self.log_name, data=self, mongo_db=self.mongo_db)
             log.set_logging_level("on")
             self._log = log
 

@@ -5,7 +5,7 @@ Update spot FX prices using interactive brokers data, dump into mongodb
 from syscore.objects import success, failure, data_error
 
 from sysdata.data_blob import dataBlob
-from sysproduction.data.currency_data import currencyData
+from sysproduction.data.currency_data import dataCurrency
 from sysproduction.data.broker import dataBroker
 from sysproduction.diagnostic.emailing import send_production_mail_msg
 
@@ -48,7 +48,7 @@ def update_fx_prices_with_data(data: dataBlob):
 
 def update_fx_prices_for_code(fx_code: str, data: dataBlob):
     broker_fx_source = dataBroker(data)
-    db_fx_data = currencyData(data)
+    db_fx_data = dataCurrency(data)
 
     new_fx_prices = broker_fx_source.get_fx_prices(
         fx_code)  # returns fxPrices object

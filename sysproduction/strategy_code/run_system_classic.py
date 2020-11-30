@@ -14,7 +14,7 @@ from syscore.objects import success, missing_data
 from sysdata.configdata import Config
 from sysdata.production.optimal_positions import bufferedOptimalPositions
 
-from sysproduction.data.currency_data import currencyData
+from sysproduction.data.currency_data import dataCurrency
 from sysproduction.data.capital import dataCapital
 from sysproduction.data.contracts import diagContracts
 from sysproduction.data.positions import dataOptimalPositions
@@ -52,7 +52,7 @@ class runSystemClassic(object):
             data.log.critical(error_msg)
             raise Exception(error_msg)
 
-        currency_data = currencyData(data)
+        currency_data = dataCurrency(data)
         base_currency = currency_data.get_base_currency()
 
         system = self.system_method(

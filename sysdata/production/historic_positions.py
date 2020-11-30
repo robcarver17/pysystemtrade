@@ -70,7 +70,7 @@ def any_positions_since_start_date(position_series, start_date, end_date):
         return True
 
 
-class instrumentPositionData(listOfEntriesData):
+class strategyPositionData(listOfEntriesData):
     """
     Store and retrieve the instrument positions assigned to a particular strategy
 
@@ -78,7 +78,7 @@ class instrumentPositionData(listOfEntriesData):
     """
 
     def _name(self):
-        return "instrumentPositionData"
+        return "strategyPositionData"
 
     def _data_class_name(self):
         return "sysdata.production.historic_positions.listPositions"

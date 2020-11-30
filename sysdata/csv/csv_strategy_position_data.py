@@ -1,4 +1,4 @@
-from sysdata.production.historic_positions import instrumentPositionData
+from sysdata.production.historic_positions import strategyPositionData
 from syscore.fileutils import get_filename_for_package
 from syscore.objects import arg_not_supplied
 from syslogdiag.log import logtoscreen
@@ -6,7 +6,7 @@ from syslogdiag.log import logtoscreen
 DATE_INDEX_NAME = "DATETIME"
 
 
-class csvStrategyPositionData(instrumentPositionData):
+class csvStrategyPositionData(strategyPositionData):
     """
 
     Class for contract_positions write to / read from csv

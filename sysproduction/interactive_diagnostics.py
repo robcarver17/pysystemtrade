@@ -17,7 +17,7 @@ from sysproduction.data.contracts import (
     get_valid_instrument_code_and_contractid_from_user,
     diagContracts, get_valid_contract_object_from_user
 )
-from sysproduction.data.currency_data import currencyData, get_valid_fx_code_from_user
+from sysproduction.data.currency_data import dataCurrency, get_valid_fx_code_from_user
 from sysproduction.data.instruments import diagInstruments
 from sysproduction.data.logs import diagLogs
 from sysproduction.data.orders import dataOrders
@@ -343,7 +343,7 @@ def adjusted_prices(data):
 
 def fx_prices(data):
     fx_code = get_valid_fx_code_from_user(data)
-    diag_prices = currencyData(data)
+    diag_prices = dataCurrency(data)
     prices = diag_prices.get_fx_prices(fx_code)
     print(prices)
 

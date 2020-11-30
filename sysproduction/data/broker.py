@@ -25,7 +25,7 @@ from sysobjects.contracts import futuresContract
 
 from sysdata.data_blob import dataBlob
 from sysproduction.data.positions import diagPositions
-from sysproduction.data.currency_data import currencyData
+from sysproduction.data.currency_data import dataCurrency
 from sysproduction.data.controls import diagProcessConfig
 
 benchmarkPriceCollection = namedtuple(
@@ -547,7 +547,7 @@ class dataBroker(object):
         if broker_order.commission is None:
             return broker_order
 
-        currency_data = currencyData(self.data)
+        currency_data = dataCurrency(self.data)
         if isinstance(broker_order.commission, float):
             base_values = [broker_order.commission]
         else:
@@ -617,7 +617,7 @@ class dataBroker(object):
         return new_order_with_controls
 
     def get_total_capital_value_in_base_currency(self) ->float:
-        currency_data = currencyData(self.data)
+        currency_data = dataCurrency(self.data)
         values_across_accounts = self.data.broker_capital.get_account_value_across_currency_across_accounts()
 
         # This assumes that each account only reports either in one currency or

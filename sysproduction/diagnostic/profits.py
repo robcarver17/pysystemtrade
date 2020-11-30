@@ -11,7 +11,7 @@ from sysobjects.contracts import futuresContract
 
 from sysproduction.data.capital import dataCapital
 
-from sysproduction.data.currency_data import currencyData
+from sysproduction.data.currency_data import dataCurrency
 from sysproduction.data.prices import diagPrices
 from sysproduction.data.orders import dataOrders
 from sysproduction.data.positions import diagPositions
@@ -482,7 +482,7 @@ def get_pandl_series_in_base_ccy_for_strategy_instrument(
 def get_fx_series_for_instrument(data, instrument_code):
     diag_instruments = diagInstruments(data)
     currency = diag_instruments.get_currency(instrument_code)
-    currency_data = currencyData(data)
+    currency_data = dataCurrency(data)
     fx_series = currency_data.get_fx_prices_to_base(currency)
 
     return fx_series

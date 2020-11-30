@@ -11,7 +11,7 @@ from sysdata.futures.manual_price_checker import manual_price_checker
 from sysobjects.spot_fx_prices import fxPrices
 
 from sysdata.data_blob import dataBlob
-from sysproduction.data.currency_data import currencyData, get_valid_fx_code_from_user
+from sysproduction.data.currency_data import dataCurrency, get_valid_fx_code_from_user
 from sysproduction.data.broker import dataBroker
 
 
@@ -47,7 +47,7 @@ def check_fx_ok_for_broker(data: dataBlob, fx_code: str):
 
 
 def update_manual_check_fx_prices_for_code(fx_code: str, data: dataBlob):
-    db_currency_data = currencyData(data)
+    db_currency_data = dataCurrency(data)
     data_broker = dataBroker(data)
 
     new_fx_prices = data_broker.get_fx_prices(
