@@ -11,7 +11,7 @@ LIST_OF_MONGO_PARAMS = ["db", "host"]
 DEFAULT_MONGO_PORT = 27017
 
 
-MONGO_ID_STR = "_id_"
+MONGO_INDEX_ID = "_id_"
 MONGO_ID_KEY = "_id"
 
 def mongo_defaults(**kwargs):
@@ -143,7 +143,7 @@ class mongoConnection(object):
             return []
 
         # '__id__' is always in index if there is data
-        raw_index_information.pop(MONGO_ID_STR)
+        raw_index_information.pop(MONGO_INDEX_ID)
 
         # mongo have buried this deep...
         index_keys = [index_entry["key"][0][0]

@@ -54,7 +54,7 @@ class mongoOrderStackData(orderStackData):
             dict(key=order_key, active=True))
         if result_dict is None:
             return missing_order
-        result_dict.pop(MONGO_ID_STR)
+        result_dict.pop(MONGO_ID_KEY)
 
         order_class = self._order_class()
         order = order_class.from_dict(result_dict)
@@ -64,7 +64,7 @@ class mongoOrderStackData(orderStackData):
         result_dict = self._mongo.collection.find_one(dict(order_id=order_id))
         if result_dict is None:
             return missing_order
-        result_dict.pop(MONGO_ID_STR)
+        result_dict.pop(MONGO_ID_KEY)
 
         order_class = self._order_class()
         order = order_class.from_dict(result_dict)
