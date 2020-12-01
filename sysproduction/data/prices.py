@@ -156,10 +156,11 @@ class updatePrices(object):
 
 
 def get_valid_instrument_code_from_user(
-        data: dataBlob=arg_not_supplied, allow_all: bool=False, all_code = "ALL") -> str:
+        data: dataBlob=arg_not_supplied, allow_all: bool=False, all_code = "ALL",
+            source = 'multiple') -> str:
     if data is arg_not_supplied:
         data = dataBlob()
-    all_instruments = get_list_of_instruments(data)
+    all_instruments = get_list_of_instruments(data, source=source)
     invalid_input = True
     input_prompt = "Instrument code?"
     if allow_all:
@@ -178,6 +179,11 @@ def get_valid_instrument_code_from_user(
 
     return instrument_code
 
-def get_list_of_instruments(data: dataBlob=arg_not_supplied) -> list:
+def get_list_of_instruments(data: dataBlob=arg_not_supplied, source = 'multiple') -> list:
     price_data = diagPrices(data)
-    return price_data.get_list_of_instruments_in_multiple_prices()
+    if source=="multiple":
+        return price_data.get_list_of_instruments_in_multiple_prices()
+    elif source=="single":
+        return price_data.get_list_of_instruments_with_contract_prices()
+    else:
+        raise Exception("%s not recognised must be multiple or single")
