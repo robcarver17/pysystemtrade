@@ -298,24 +298,24 @@ class ibClient(object):
         return account_summary_dict[account_id]["NetLiquidation"]
 
     def broker_get_contract_expiry_date(
-            self, contract_object_with_ib_data) -> str:
+            self, futures_contract_with_ib_data) -> str:
         """
         Return the exact expiry date for a given contract
 
-        :param contract_object_with_ib_data:  contract where instrument has ib metadata
+        :param futures_contract_with_ib_data:  contract where instrument has ib metadata
         :return: YYYYMMDD str
         """
         specific_log = self.log.setup(
-            instrument_code=contract_object_with_ib_data.instrument_code,
-            contract_date=contract_object_with_ib_data.date_str,
+            instrument_code=futures_contract_with_ib_data.instrument_code,
+            contract_date=futures_contract_with_ib_data.date_str,
         )
 
         ibcontract = self.ib_futures_contract(
-            contract_object_with_ib_data, always_return_single_leg=True)
+            futures_contract_with_ib_data, always_return_single_leg=True)
         if ibcontract is missing_contract:
             specific_log.warn(
                 "Can't get contract expiry from IB for %s"
-                % str(contract_object_with_ib_data)
+                % str(futures_contract_with_ib_data)
             )
             return missing_contract
 
@@ -644,7 +644,7 @@ class ibClient(object):
 
     def ib_futures_contract(
         self,
-        contract_object_with_ib_data,
+        futures_contract_with_ib_data,
         always_return_single_leg=False,
         trade_list_for_multiple_legs=None,
         return_leg_data=False,
@@ -653,12 +653,12 @@ class ibClient(object):
         Return a complete and unique IB contract that matches contract_object_with_ib_data
         Doesn't actually get the data from IB, tries to get from cache
 
-        :param contract_object_with_ib_data: contract, containing instrument metadata suitable for IB
+        :param futures_contract_with_ib_data: contract, containing instrument metadata suitable for IB
         :return: a single ib contract object
         """
-        contract_object_to_use = copy(contract_object_with_ib_data)
+        contract_object_to_use = copy(futures_contract_with_ib_data)
         if always_return_single_leg and contract_object_to_use.is_spread_contract():
-            contract_object_to_use = contract_object_to_use.new_contract_with_replaced_contract_date_object(contract_object_with_ib_data.date_str[0])
+            contract_object_to_use = contract_object_to_use.new_contract_with_first_contract_date()
 
         if getattr(self, "_futures_contract_cache", None) is None:
             self._futures_contract_cache = {}

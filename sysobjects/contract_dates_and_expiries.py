@@ -349,9 +349,12 @@ class contractDate(object):
 
         return self.list_of_single_contract_dates[0]
 
+    def first_contract_ignore_errors(self):
+        return self.list_of_single_contract_dates[0]
+
     def first_contract_as_contract_date(self):
-        first_contract_as_single_contract = self.first_contract
-        first_contract_as_dict = {CONTRACT_DATE_LIST_ENTRY_KEY: first_contract_as_single_contract.as_dict()}
+        first_contract_as_single_contract = self.first_contract_ignore_errors()
+        first_contract_as_dict = {CONTRACT_DATE_LIST_ENTRY_KEY: [first_contract_as_single_contract.as_dict()]}
 
         return contractDate(first_contract_as_dict)
 
