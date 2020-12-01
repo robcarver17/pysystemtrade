@@ -90,8 +90,8 @@ class dataBroker(object):
         return self.data.broker_futures_contract_price.get_recent_bid_ask_tick_data_for_contract_object(contract)
 
 
-    def get_actual_expiry_date_for_contract(self, contract_object):
-        return self.data.broker_futures_contract.get_actual_expiry_date_for_contract(
+    def get_actual_expiry_date_for_single_contract(self, contract_object):
+        return self.data.broker_futures_contract.get_actual_expiry_date_for_single_contract(
             contract_object)
 
     def get_brokers_instrument_code(self, instrument_code):
@@ -168,7 +168,7 @@ class dataBroker(object):
 
         for idx in range(len(original_position_list)):
             position_entry = original_position_list[idx]
-            actual_expiry = self.get_actual_expiry_date_for_contract(
+            actual_expiry = self.get_actual_expiry_date_for_single_contract(
                 position_entry.contract_object
             ).as_str()
             new_entry = contractPosition(

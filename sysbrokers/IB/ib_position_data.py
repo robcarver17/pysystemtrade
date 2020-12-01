@@ -42,28 +42,6 @@ class ibContractPositionData(contractPositionData):
         positions = all_positions.get("FUT", [])
         return positions
 
-    def get_current_position_for_contract_object(
-        self, contract_object, account_id=arg_not_supplied
-    ):
-        instrument_code, _ = self._contract_tuple_given_contract(
-            contract_object)
-        actual_expiry = self.futures_contract_data.get_actual_expiry_date_for_contract(
-            contract_object)
-        if actual_expiry is missing_contract:
-            return 0
-        ib_symbol = self.futures_instrument_data.get_brokers_instrument_code(
-            instrument_code
-        )
-        all_positions = self._get_all_futures_positions_as_raw_list(
-            account_id=account_id
-        )
-        position = [
-            position_entry["position"]
-            for position_entry in all_positions
-            if position_entry["symbol"] == ib_symbol
-            and position_entry["expiry"] == actual_expiry
-        ]
-        return sum(position)
 
     def get_list_of_instruments_with_any_position(
             self, account_id=arg_not_supplied):

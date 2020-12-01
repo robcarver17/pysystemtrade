@@ -343,29 +343,28 @@ class contractDate(object):
             return False
 
     @property
-    def first_contract(self):
+    def first_contract_date(self)->singleContractDate:
         if self.is_spread_contract:
             raise needSingleLegDate("Can't use this method or property with multiple leg contractDate %s" % str(self))
 
         return self.list_of_single_contract_dates[0]
 
-    def first_contract_ignore_errors(self):
-        return self.list_of_single_contract_dates[0]
+    def nth_single_contract_as_contract_date(self, contract_index:int):
+        contract_as_single_contract = self.nth_contract_date(contract_index)
+        contract_as_single_contract_as_dict = {CONTRACT_DATE_LIST_ENTRY_KEY: [contract_as_single_contract.as_dict()]}
 
-    def first_contract_as_contract_date(self):
-        first_contract_as_single_contract = self.first_contract_ignore_errors()
-        first_contract_as_dict = {CONTRACT_DATE_LIST_ENTRY_KEY: [first_contract_as_single_contract.as_dict()]}
+        return contractDate(contract_as_single_contract_as_dict)
 
-        return contractDate(first_contract_as_dict)
-
+    def nth_contract_date(self, contract_index: int) ->singleContractDate:
+        return self.list_of_single_contract_dates[contract_index]
 
     @property
     def only_has_month(self):
-        return self.first_contract.only_has_month
+        return self.first_contract_date.only_has_month
 
     @property
     def expiry_date(self):
-        return self.first_contract.expiry_date
+        return self.first_contract_date.expiry_date
 
     @property
     def date_str(self):
@@ -373,11 +372,17 @@ class contractDate(object):
 
     @property
     def date_str_to_year_month(self):
-        return  self.first_contract.date_str_to_year_month
+        return  self.first_contract_date.date_str_to_year_month
 
     # not using a setter as shouldn't be done casually
-    def update_expiry_date(self, expiry_date: expiryDate):
-        self.first_contract.update_expiry_date(expiry_date)
+    def update_single_expiry_date(self, expiry_date: expiryDate):
+        # we don't call update_nth expiry as this will assert it's a single
+        assert not self.is_spread_contract
+        self.update_nth_expiry_date(0, expiry_date)
+
+    def update_nth_expiry_date(self, contract_index: int, expiry_date: expiryDate):
+        single_contract_date = self.nth_contract_date(contract_index)
+        single_contract_date.update_expiry_date(expiry_date)
 
     def as_dict(self):
         return {CONTRACT_DATE_LIST_ENTRY_KEY:
@@ -395,19 +400,19 @@ class contractDate(object):
             return create_contract_date_from_old_style_dict(contractDate, results_dict)
 
     def year(self):
-        return self.first_contract.year()
+        return self.first_contract_date.year()
 
     def month(self):
-        return self.first_contract.month()
+        return self.first_contract_date.month()
 
     def day(self):
-        return self.first_contract.day()
+        return self.first_contract_date.day()
 
     def is_day_defined(self):
-        return self.first_contract.is_day_defined()
+        return self.first_contract_date.is_day_defined()
 
     def letter_month(self):
-        return self.first_contract.letter_month()
+        return self.first_contract_date.letter_month()
 
 class listOfContractDateStr(list):
     def sorted_date_str(self):

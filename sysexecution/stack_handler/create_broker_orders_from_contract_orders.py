@@ -67,6 +67,10 @@ class stackHandlerCreateBrokerOrders(stackHandlerCore):
 
         original_contract_order = self.contract_stack.get_order_with_id_from_stack(
             contract_order_id)
+        if original_contract_order is missing_order:
+            # weird race condition
+            return failure
+
         contract_order = self.preprocess_contract_order(
             original_contract_order, check_if_open=check_if_open
         )

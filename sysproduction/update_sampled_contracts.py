@@ -320,7 +320,7 @@ def update_expiry_for_contract(contract_object: futuresContract, data: dataBlob)
 
     db_expiry_date = db_contract.expiry_date
     broker_expiry_date = \
-        data_broker.get_actual_expiry_date_for_contract(db_contract)
+        data_broker.get_actual_expiry_date_for_single_contract(db_contract)
 
     if broker_expiry_date is missing_contract:
         log.warn(
@@ -343,7 +343,7 @@ def update_contract_object_with_new_expiry_date(data: dataBlob,
                                                 contract_object: futuresContract):
     update_contracts = updateContracts(data)
 
-    contract_object.update_expiry_date(broker_expiry_date)
+    contract_object.update_single_expiry_date(broker_expiry_date)
     update_contracts.add_contract_data(
         contract_object, ignore_duplication=True)
 

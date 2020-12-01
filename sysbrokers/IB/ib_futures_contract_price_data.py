@@ -96,7 +96,7 @@ class ibFuturesContractPriceData(futuresContractPriceData):
     def futures_instrument_data(self):
         return ibFuturesInstrumentData(self.ibconnection, log = self.log)
 
-    def has_data_for_contract(self, contract_object: futuresContract):
+    def has_data_for_contract(self, futures_contract: futuresContract):
         """
         Does IB have data for a given contract?
 
@@ -104,9 +104,9 @@ class ibFuturesContractPriceData(futuresContractPriceData):
         :param contract_object:
         :return: bool
         """
-        expiry_date = self.futures_contract_data.get_actual_expiry_date_for_contract(
-            contract_object)
-        if expiry_date is missing_contract:
+        futures_contract_with_IB_data = self.futures_contract_data.get_contract_object_with_IB_data(
+            futures_contract)
+        if futures_contract_with_IB_data is missing_contract:
             return False
         else:
             return True

@@ -170,8 +170,8 @@ class futuresContract(object):
     def expiry_date(self):
         return self.contract_date.expiry_date
 
-    def update_expiry_date(self, new_expiry_date: expiryDate):
-        self.contract_date.update_expiry_date(new_expiry_date)
+    def update_single_expiry_date(self, new_expiry_date: expiryDate):
+        self.contract_date.update_single_expiry_date(new_expiry_date)
 
     def is_spread_contract(self):
         return self.contract_date.is_spread_contract
@@ -183,16 +183,38 @@ class futuresContract(object):
 
         return futuresContract(new_instrument_object, contract_date_object, parameter_object=params)
 
+    def update_expiry_dates_one_at_a_time_with_method(self, method):
+
+        as_list_of_individual_contracts = self.as_list_of_individual_contracts()
+        new_expiries = [method(single_contract) for single_contract in as_list_of_individual_contracts]
+
+        for contract_index, expiry_date in enumerate(new_expiries):
+            self.update_nth_expiry_date(contract_index, expiry_date)
+
+    def update_nth_expiry_date(self, contract_index: int, expiry_date: expiryDate):
+        self.contract_date.update_nth_expiry_date(contract_index, expiry_date)
+
+    def as_list_of_individual_contracts(self) -> list:
+        return [self.new_contract_with_nth_contract_date(contract_index)
+                for contract_index in range(len(self.list_of_single_contract_dates()))]
+
     def new_contract_with_first_contract_date(self):
-        new_contract_date_object = self.contract_date.first_contract_as_contract_date()
+        return self.new_contract_with_nth_contract_date(0)
+
+    def new_contract_with_nth_contract_date(self, contract_index: int):
+        new_contract_date_object = self.contract_date.nth_single_contract_as_contract_date(contract_index)
 
         return self.new_contract_with_replaced_contract_date_object(new_contract_date_object)
 
-    def new_contract_with_replaced_contract_date_object(self, new_contract_date_object):
+    def new_contract_with_replaced_contract_date_object(self, new_contract_date_object: contractDate):
         instrument_object = self.instrument
         params = self.params
 
         return futuresContract(instrument_object, new_contract_date_object, params)
+
+    def list_of_single_contract_dates(self) -> list:
+        return self.contract_date.list_of_single_contract_dates
+
 
 def _resolve_args_for_futures_contract(instrument_object, contract_date_object) -> tuple:
 

@@ -297,7 +297,7 @@ class ibClient(object):
         account_summary_dict = self.ib_get_account_summary()
         return account_summary_dict[account_id]["NetLiquidation"]
 
-    def broker_get_contract_expiry_date(
+    def broker_get_single_contract_expiry_date(
             self, futures_contract_with_ib_data) -> str:
         """
         Return the exact expiry date for a given contract
@@ -305,10 +305,9 @@ class ibClient(object):
         :param futures_contract_with_ib_data:  contract where instrument has ib metadata
         :return: YYYYMMDD str
         """
-        specific_log = self.log.setup(
-            instrument_code=futures_contract_with_ib_data.instrument_code,
-            contract_date=futures_contract_with_ib_data.date_str,
-        )
+        specific_log = futures_contract_with_ib_data.specific_log(self.log)
+        if futures_contract_with_ib_data.is_spread_contract():
+            specific_log.warn("Can only find expiry for single leg contract!")
 
         ibcontract = self.ib_futures_contract(
             futures_contract_with_ib_data, always_return_single_leg=True)
