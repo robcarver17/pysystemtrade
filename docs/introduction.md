@@ -1,4 +1,4 @@
- 
+
 
 Here is a whistlestop tour of what pysystemtrade can currently do. You'll probably want to read the [users guide](userguide.md) after this.
 Notice that you will see different results than shown here, as you will be using more up to date data.
@@ -7,10 +7,10 @@ Notice that you will see different results than shown here, as you will be using
 
 (code is [here](/examples/introduction/asimpletradingrule.py) )
 
-As systematic traders we believe that the future will be at least a bit like the past. So first of all we need some past data. In principle past data can come from many places, but to begin with we'll get it from some pre-baked .csv files: 
+As systematic traders we believe that the future will be at least a bit like the past. So first of all we need some past data. In principle past data can come from many places, but to begin with we'll get it from some pre-baked .csv files:
 
 ```python
-from sysdata.csv.csv_sim_futures_data import csvFuturesSimData
+from sysdata.sim.csv_futures_sim_data import csvFuturesSimData
 data=csvFuturesSimData()
 data
 ```
@@ -72,7 +72,7 @@ data.get_instrument_raw_carry_data("EDOLLAR").tail(6)
 2016-05-11  98.6675     NaN         201903         201906
 ```
 
-Let's create a simple trading rule. 
+Let's create a simple trading rule.
 
 
 ```python
@@ -81,11 +81,11 @@ import pandas as pd
 from syscore.algos import robust_vol_calc
 
 def calc_ewmac_forecast(price, Lfast, Lslow=None):
-    
-    
+
+
     """
     Calculate the ewmac trading fule forecast, given a price and EWMA speeds Lfast, Lslow and vol_lookback
-    
+
     """
     ## price: This is the stitched price series
     ## We can't use the price of the contract we're trading, or the volatility will be jumpy
@@ -94,15 +94,15 @@ def calc_ewmac_forecast(price, Lfast, Lslow=None):
     price = price.resample("1B").last()
     if Lslow is None:
         Lslow=4*Lfast
-    
+
     ## We don't need to calculate the decay parameter, just use the span directly
-    
+
     fast_ewma=price.ewm(span=Lfast).mean()
     slow_ewma=price.ewm(span=Lslow).mean()
     raw_ewmac=fast_ewma - slow_ewma
-    
+
     vol=robust_vol_calc(price.diff())    
-    
+
     return raw_ewmac / vol
 
 ```
@@ -187,7 +187,7 @@ A full list of stages would include:
 
 1. Preprocessing some raw data (which we don't cover in this introduction)
 2. Running some trading rules over it to generate forecasts
-3. Scaling and capping those forecasts 
+3. Scaling and capping those forecasts
 4. Combining forecasts together
 5. Position sizing
 6. Creating a portfolio of instruments
@@ -196,7 +196,7 @@ A full list of stages would include:
 For now let's start with the simplest possible system, one which contains only a trading rules stage. Let's just setup our environment again:
 
 ```python
-from sysdata.csv.csv_sim_futures_data import csvFuturesSimData
+from sysdata.sim.csv_futures_sim_data import csvFuturesSimData
 data=csvFuturesSimData()
 
 from systems.provided.example.rules import ewmac_forecast_with_defaults as ewmac
@@ -266,7 +266,7 @@ ewmac_rule
 ```
 
 ```
-TradingRule; function: <function ewmac_forecast_with_defaults at 0xb734ca4c>, data:  and other_args: 
+TradingRule; function: <function ewmac_forecast_with_defaults at 0xb734ca4c>, data:  and other_args:
 ```
 
 Time to reveal what the mysterious object is. A `TradingRule` contains 3 elements - a function, a list of any data the function needs, and a dict of any other arguments that can be passed to the function. So the function is just the `ewmac` function that we imported earlier, and in this trivial case there is no data, and no arguments. Having no data is fine, because the code assumes that you'd normally want to pass the price of an instrument to a trading rule if you don't tell it otherwise. Furthermore on this occassion having no arguments is also no problem since the ewmac function we're using includes some defaults.
@@ -286,7 +286,7 @@ my_rules.trading_rules()['ewmac32']
 TradingRule; function: <function ewmac_forecast_with_defaults at 0xb7252a4c>, data:  and other_args: Lfast, Lslow
 ```
 
-Again, let's check that `ewmac32` is the same as the `ewmac` we have before (it should be, since 32, 128 are the default arguments for the underlying trading rule function). 
+Again, let's check that `ewmac32` is the same as the `ewmac` we have before (it should be, since 32, 128 are the default arguments for the underlying trading rule function).
 
 ```python
 my_system=System([my_rules], data)
@@ -303,7 +303,7 @@ Freq: B, dtype: float64
 ```
 
 
-Now let's introduce the idea of **config** objects. A `config` or configuration object allows us to control the behaviour of the various stages in the system. 
+Now let's introduce the idea of **config** objects. A `config` or configuration object allows us to control the behaviour of the various stages in the system.
 
 Configuration objects can be created on the fly or by reading in files written in yaml (which we'll talk about below). A configuration object is just a collection of attributes. We create them interactively like so:
 
@@ -314,7 +314,7 @@ my_config
 ```
 
 ```
-Config with elements: 
+Config with elements:
 ## this line intentionally left blank. Apart from this comment of course.
 ```
 
@@ -367,7 +367,7 @@ Freq: B, dtype: float64
 ```
 
 
-Alternatively we can use the fixed values from Appendix B of my book ["Systematic Trading"](http:/www.systematictrading.org). 
+Alternatively we can use the fixed values from Appendix B of my book ["Systematic Trading"](http:/www.systematictrading.org).
 
 
 ```python
@@ -428,7 +428,7 @@ WARNING: No forecast weights  - using equal weights of 0.5000 over all 2 trading
 Freq: B, dtype: float64
 ```
 
-Alternatively you can estimate div. multipliers, and weights. 
+Alternatively you can estimate div. multipliers, and weights.
 
 Note: Since we need to know the performance of different trading rules, we need to include an Accounts stage to calculate these:
 
@@ -437,7 +437,7 @@ from systems.account import Account
 my_account = Account()
 
 ## let's use naive markowitz to get more interesting results...
-my_config.forecast_weight_estimate=dict(method="one_period") 
+my_config.forecast_weight_estimate=dict(method="one_period")
 my_config.use_forecast_weight_estimates=True
 my_config.use_forecast_div_mult_estimates = True
 
@@ -494,7 +494,7 @@ Freq: B, dtype: float64
 
 ```
 
-If you're working through my book you'd know the next stage is deciding what level of risk to target (chapter 9) and position sizing (chapter 10). 
+If you're working through my book you'd know the next stage is deciding what level of risk to target (chapter 9) and position sizing (chapter 10).
 Let's do the position scaling:
 
 ```python
@@ -522,7 +522,7 @@ my_system.positionSize.get_subsystem_position("EDOLLAR").tail(5)
 Freq: B, dtype: float64
 ```
 
-We're almost there. The final stage we need to get positions is to combine everything into a portfolio (chapter 11). 
+We're almost there. The final stage we need to get positions is to combine everything into a portfolio (chapter 11).
 
 We can estimate these:
 
@@ -639,7 +639,7 @@ my_config=Config("systems.provided.example.simplesystemconfig.yaml")
 
 (Notice we don't put filenames in; rather a python style reference within the project)
 
-If you look at the YAML file you'll notice that the trading rule function has been specified as a string `systems.provided.example.rules.ewmac_forecast_with_defaults`. This is because we can't easily create a function in a YAML text file (*we can in theory; but it's quite a bit of work and creates a potential security risk*). Instead we specify where the relevant function can be found in the project directory structure. 
+If you look at the YAML file you'll notice that the trading rule function has been specified as a string `systems.provided.example.rules.ewmac_forecast_with_defaults`. This is because we can't easily create a function in a YAML text file (*we can in theory; but it's quite a bit of work and creates a potential security risk*). Instead we specify where the relevant function can be found in the project directory structure.
 
 Similarly for the ewmac8 rule we've specified a data source `data.daily_prices` which points to `system.data.daily_prices()`. This is the default, which is why we haven't needed to specify it before, and it isn't included in the specification for the ewmac32 rule. Equally we could specify any attribute and method within the system object, as long as it takes the argument `instrument_code`. We can also have a list of data inputs. This means you can configure almost any trading rule quite easily through configuration changes.
 
@@ -647,7 +647,7 @@ Similarly for the ewmac8 rule we've specified a data source `data.daily_prices` 
 
 ## A simple pre-baked system
 
-Normally we wouldn't create a system by adding each stage manually (importing and creating long lists of stage objects). Instead you can use a 'pre baked' system, and then modify it as required. 
+Normally we wouldn't create a system by adding each stage manually (importing and creating long lists of stage objects). Instead you can use a 'pre baked' system, and then modify it as required.
 
 For example here is a pre-baked version of the previous example (code is [here](/examples/introduction/prebakedsystems.py) ):
 
@@ -673,7 +673,7 @@ By default this has loaded the same data and read the config from the same yaml 
 
 ```python
 from sysdata.configdata import Config
-from sysdata.csv.csv_sim_futures_data import csvFuturesSimData
+from sysdata.sim.csv_futures_sim_data import csvFuturesSimData
 
 my_config=Config("systems.provided.example.simplesystemconfig.yaml")
 my_data=csvFuturesSimData()

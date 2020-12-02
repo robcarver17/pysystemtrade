@@ -721,7 +721,7 @@ You can create your own directory for .csv files. For example supposed you wante
 `pysystemtrade/private/system_name/adjusted_price_data'. Here is how you'd use it:
 
 ```python
-from sysdata.csv.csv_sim_futures_data import csvFuturesSimData
+from sysdata.sim.csv_futures_sim_data import csvFuturesSimData
 from systems.provided.futures_chapter15.basesystem import futures_system
 
 data=csvFuturesSimData(datapath_dict=dict(adjusted_prices = "private.system_name.adjusted_price_data"))
@@ -821,7 +821,7 @@ You can import and use data objects directly:
 used as an example.*
 
 ```python
-from sysdata.csv.csv_sim_futures_data import csvFuturesSimData
+from sysdata.sim.csv_futures_sim_data import csvFuturesSimData
 
 data=csvFuturesSimData()
 
@@ -862,21 +862,21 @@ should omit the system eg `data.get_raw_price`)
 The `csvFuturesSimData` object works like this:
 
 ```python
-from sysdata.csv.csv_sim_futures_data import csvFuturesSimData
+from sysdata.sim.csv_futures_sim_data import csvFuturesSimData
 
 ## with the default folders
 data=csvFuturesData()
 
 ## OR with different folders, by providing a dict containing the folder(s) to use
-data=csvFuturesData(datapath_dict = dict(key_name = "pathtodata.with.dots")) 
+data=csvFuturesData(datapath_dict = dict(key_name = "pathtodata.with.dots"))
 
-# Permissible key names are 'spot_fx_data' (FX prices), 'multiple_price_data' (for carry and forward prices), 
-# 'adjusted_prices' and 'config_data' (configuration and costs). 
+# Permissible key names are 'spot_fx_data' (FX prices), 'multiple_price_data' (for carry and forward prices),
+# 'adjusted_prices' and 'config_data' (configuration and costs).
 # If a keyname is not present then the system defaults will be used
 
 # An example to override with FX data stored in /psystemtrade/private/data/fxdata/:
 
-data=csvFuturesSimData(datapath_dict = dict(spot_fx_data="private.data.fxdata")) 
+data=csvFuturesSimData(datapath_dict = dict(spot_fx_data="private.data.fxdata"))
 
 # WARNING: Do not store multiple_price_data and adjusted_price_data in the same directory
 #          They use the same file names!
@@ -914,10 +914,10 @@ we're trading in (i.e. for a UK investor you'd need a `GBPUSDfx.csv` file). If
 cross rate files are available they will be used; otherwise the USD rates will
 be used to work out implied cross rates.
 
-See data in subdirectories [pysystemtrade/data/futures](/data/futures) for files you can modify: 
+See data in subdirectories [pysystemtrade/data/futures](/data/futures) for files you can modify:
 
 - [adjusted prices](/data/futures/adjusted_prices_csv),
-- [configuration and costs](/data/futures/csvconfig), 
+- [configuration and costs](/data/futures/csvconfig),
 - [Futures specific carry and forward prices](/data/futures/multiple_prices_csv)
 - [Spot FX prices](/data/futures/fx_prices_csv)
 
@@ -929,7 +929,7 @@ For more information see the [futures data document](/docs/futures.md#csvFutures
 
 This is a simData object which gets it's data out of [Mongo DB](https://mongodb.com) (static) and [Arctic](https://github.com/manahl/arctic) (time series) (*Yes the class name should include both terms. Yes I shortened it so it isn't ridiculously long, and most of the interesting stuff comes from Arctic*). It is better for live trading.
 
-For production code, and storing large amounts of data (eg for individual futures contracts) we probably need something more robust than .csv files. 
+For production code, and storing large amounts of data (eg for individual futures contracts) we probably need something more robust than .csv files.
 [MongoDB](https://mongodb.com) is a no-sql database which is rather fashionable at the moment, though the main reason I selected it for this purpose is that it is used by Arctic. [Arctic](https://github.com/manahl/arctic) is a superb open source time series database which sits on top of Mongo DB) and provides straightforward and fast storage of pandas DataFrames. It was created by my former colleagues at [Man AHL](https://www.ahl.com/) (in fact I beta tested a very early version of Arctic), and then very generously released as open source.
 
 There is more detail on this in the [futures data documentation](/docs/futures.md): [Mongo DB](/docs/futures.md#mongoDB) and [Arctic](/docs/futures.md#arctic).
@@ -946,7 +946,7 @@ You can do this from scratch, as per the ['futures data workflow'](/docs/futures
 - [Multiple prices](/sysinit/futures/repocsv_multiple_prices.py)
 - [Spot FX prices](/sysinit/futures/repocsv_spotfx_prices.py)
 
-Of course it's also possible to mix these two methods. 
+Of course it's also possible to mix these two methods.
 
 ##### Using arcticFuturesSimData
 
@@ -976,7 +976,7 @@ You should be familiar with the python object orientated idiom before reading
 this section.
 
 The [`simData()`](/sysdata/data.py) object is the base class for data used in simulations. From that we
-inherit data type specific classes such as those 
+inherit data type specific classes such as those
 [for futures](/sysdata/futures/futuresDataForSim.py) object. These in turn are inherited from
 for specific data sources, such as for csv files: [csvFuturesSimData()](/sysdata/csv/csv_sim_futures_data.py).
 
@@ -1981,7 +1981,7 @@ Then it's a case of creating the python function. Here is an extract from the
 ```python
 ## We probably need these to get our data
 
-from sysdata.csv.csv_sim_futures_data import csvFuturesSimData
+from sysdata.sim.csv_futures_sim_data import csvFuturesSimData
 from sysdata.configdata import Config
 
 ## We now import all the stages we need
@@ -2460,7 +2460,7 @@ definition, but if included here will be used instead of the separate
 
 All the items in the `data` list passed to a trading rule are string references to methods in the system object that (usually) take a single argument, the instrument code. In theory these could be anywhere in the system object, but by convention they should only be in `system.rawdata` or `system.data` (if they are in stages that call the rules stage, you will get infinite recursion and things will break), with perhaps occasional reference to `system.get_instrument_list()`. The advantage of using methods in `rawdata` is that these are cached, and can be re-used. It's strongly recommended that you use methods in `rawdata` for trading rules.
 
-What if you want to pass arguments to the data method? For example, you might want to pre-calculate the moving averages of different lengths in `rawdata` and then reuse them to save time. Or you might want to calculate skew over a given time period for all markets and then take a cross sectional average to use in a relative value rule. 
+What if you want to pass arguments to the data method? For example, you might want to pre-calculate the moving averages of different lengths in `rawdata` and then reuse them to save time. Or you might want to calculate skew over a given time period for all markets and then take a cross sectional average to use in a relative value rule.
 
 We can do this by passing special kinds of `other_args` which are pre-fixed with underscores, eg "_". If an element in the other_ags dictionary has no underscores, then it is passed to the trading rule function as a keyword argument. If it has one leading underscore eg "_argname", then it is passed to the first method in the data list as a keyword argument. If it has two underscores eg "__argname", then it is passed to the second method in the data list, and so on.
 
@@ -2487,7 +2487,7 @@ def new_ewma(fast_ewma, slow_ewma, vol, multiplier=1):
     raw_ewmac = fast_ewma - slow_ewma
 
     raw_ewmac = raw_ewmac * multiplier
-    
+
     return raw_ewmac / vol.ffill()
 
 # Now we define our first trading rule. Notice that data gets two kinds of moving average, but the first one will have span 2 and the second span 8
@@ -2524,7 +2524,7 @@ a look at an incomplete version of the pre-baked chapter 15 futures system.
 ```python
 ## We probably need these to get our data
 
-from sysdata.csv.csv_sim_futures_data import csvFuturesSimData
+from sysdata.sim.csv_futures_sim_data import csvFuturesSimData
 from sysdata.configdata import Config
 from systems.basesystem import System
 
@@ -2584,7 +2584,7 @@ understanding).
 5. When the method `get_trading_rules` is called it looks to see if there is a *processed* dict of trading rules
 6. The first time the method `get_trading_rules` is called there won't be a processed list. So it looks for something to process
 7. First it will look to see if anything was passed when the instance rules of the `Rules()` class was created
-8. Since we didn't pass anything instead it processes what it finds in `system.config.trading_rules` - a nested dict, keynames rule variation names. 
+8. Since we didn't pass anything instead it processes what it finds in `system.config.trading_rules` - a nested dict, keynames rule variation names.
 9. The `Rules` instance now has processed rule names in the form of a dict, keynames rule variation names, each element containing a valid `TradingRule` object
 
 
@@ -3009,7 +3009,7 @@ sysdiag.forecast_mapping()
 
 Parameters are specified by market as follows:
 
-YAML: 
+YAML:
 ```
 forecast_mapping:
   AEX:
@@ -3752,11 +3752,11 @@ from syscore.fileutils import get_resolved_pathname, get_filename_for_package
 ### Windows (note use of double backslash in str) Make sure you include the initial backslash, or will be treated as relative format
 get_filename_for_package("\\home\\rob\\file.csv")
 
-### Unix. Make sure you include the initial forward slash, 
+### Unix. Make sure you include the initial forward slash,
 get_filename_for_package("/home/rob/file.csv")
 
-## Relative format to find a file in the installed pysystemtrade 
-### Dot format. Notice there is no initial 'dot' and we don't need to include 'pysystemtrade' 
+## Relative format to find a file in the installed pysystemtrade
+### Dot format. Notice there is no initial 'dot' and we don't need to include 'pysystemtrade'
 get_filename_for_package("syscore.tests.pricedata.csv")
 
 # Specify the path and filename separately
@@ -3770,7 +3770,7 @@ get_resolved_pathname("\\home\\rob")
 get_resolved_pathname("syscore.tests")
 
 ## DON'T USE THESE:-
-### It's possible to use Unix or Windows for relative filenames, but I prefer not to, so there is a clearer disctinction between absolute and relative. 
+### It's possible to use Unix or Windows for relative filenames, but I prefer not to, so there is a clearer disctinction between absolute and relative.
 ### However this works:
 get_filename_for_package("syscore/tests/pricedata.csv")
 
@@ -3791,7 +3791,7 @@ These functions are used internally whenever a file name is passed in, so feel f
 ### Absolute: Unix.
 "/home/rob/file.csv"
 
-## Relative: Dot format to find a file in the installed pysystemtrade 
+## Relative: Dot format to find a file in the installed pysystemtrade
 "syscore.tests.pricedata.csv"
 ```
 
@@ -3854,7 +3854,7 @@ method is called, it will typically know one or more of the following:
 - component: other parts of the top level function that have their own loggers
 - currency_code: Currency code (used for fx), format 'GBPUSD'
 - instrument_code: Self explanatory
-- contract_date: Self explanatory, format 'yyyymm' 
+- contract_date: Self explanatory, format 'yyyymm'
 - order_id: Self explanatory, used for live trading
 
 
