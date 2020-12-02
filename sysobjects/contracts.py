@@ -189,7 +189,13 @@ class futuresContract(object):
         new_expiries = [method(single_contract) for single_contract in as_list_of_individual_contracts]
 
         for contract_index, expiry_date in enumerate(new_expiries):
-            self.update_nth_expiry_date(contract_index, expiry_date)
+            if expiry_date is missing_contract:
+                ## whole thing is buggered
+                return missing_contract
+            else:
+                self.update_nth_expiry_date(contract_index, expiry_date)
+
+        return self
 
     def update_nth_expiry_date(self, contract_index: int, expiry_date: expiryDate):
         self.contract_date.update_nth_expiry_date(contract_index, expiry_date)

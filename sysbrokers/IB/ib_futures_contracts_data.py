@@ -74,7 +74,7 @@ class ibFuturesContractData(futuresContractData):
         if futures_contract_with_ib_data is missing_contract:
             return missing_contract
 
-        futures_contract_with_ib_data.update_expiry_dates_one_at_a_time_with_method(self._get_actual_expiry_date_given_single_contract_with_ib_metadata)
+        futures_contract_with_ib_data = futures_contract_with_ib_data.update_expiry_dates_one_at_a_time_with_method(self._get_actual_expiry_date_given_single_contract_with_ib_metadata)
 
         return futures_contract_with_ib_data
 
