@@ -57,4 +57,8 @@ def transfer_barchart_prices_to_arctic(datapath):
     strip_file_names(datapath)
     init_arctic_with_csv_futures_contract_prices(datapath, csv_config= barchart_csv_config)
 
-
+if __name__ == "__main__":
+    input("Will overwrite existing prices are you sure?! CTL-C to abort")
+    # modify flags as required
+    datapath = "*** NEED TO DEFINE A DATAPATH ***"
+    transfer_barchart_prices_to_arctic(datapath)

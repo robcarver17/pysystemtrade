@@ -151,3 +151,8 @@ def add_phantom_row(roll_calendar, dict_of_futures_contract_prices: dictFuturesC
     roll_calendar = pd.concat([roll_calendar, new_row], axis=0)
 
     return  roll_calendar
+
+if __name__ == "__main__":
+    input("Will overwrite existing prices are you sure?! CTL-C to abort")
+    # modify flags as required
+    process_multiple_prices_all_instruments()

@@ -4,6 +4,7 @@ from sysdata.arctic.arctic_futures_per_contract_prices import (
 from sysdata.mongodb.mongo_roll_data import mongoRollParametersData
 from sysobjects.roll_calendars import rollCalendar
 from sysdata.csv.csv_roll_calendars import csvRollCalendarData
+from sysproduction.data.prices import get_valid_instrument_code_from_user
 
 """
 Generate a 'best guess' roll calendar based on some price data for individual contracts
@@ -94,3 +95,7 @@ def check_saved_roll_calendar(
     return roll_calendar
 
 
+if __name__ == "__main__":
+    input("Will overwrite existing prices are you sure?! CTL-C to abort")
+    instrument_code = get_valid_instrument_code_from_user()
+    build_and_write_roll_calendar(instrument_code)

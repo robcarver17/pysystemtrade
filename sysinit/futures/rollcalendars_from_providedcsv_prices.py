@@ -26,3 +26,7 @@ def generate_roll_calendars_from_provided_multiple_csv_prices(output_datapath):
 
         # We ignore duplicates since this is run regularly
         csv_roll_calendars.add_roll_calendar(instrument_code, roll_calendar, ignore_duplication=True)
+
+if __name__ == "__main__":
+    datapath ="MUST SUPPLY A DATAPATH"
+    generate_roll_calendars_from_provided_multiple_csv_prices(datapath)

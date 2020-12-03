@@ -6,6 +6,7 @@ from sysdata.arctic.arctic_adjusted_prices import arcticFuturesAdjustedPricesDat
 from sysdata.csv.csv_adjusted_prices import csvFuturesAdjustedPricesData
 
 if __name__ == "__main__":
+    input("Will overwrite existing prices are you sure?! CTL-C to abort")
     artic_adjusted_prices = arcticFuturesAdjustedPricesData()
     csv_adjusted_prices = csvFuturesAdjustedPricesData()
 

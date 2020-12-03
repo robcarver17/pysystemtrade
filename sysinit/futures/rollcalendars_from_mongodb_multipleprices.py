@@ -8,6 +8,7 @@ Generate the roll calendars from existing data
 """
 
 if __name__ == "__main__":
+    input("Will overwrite existing data are you sure?! CTL-C to abort")
     csv_roll_calendars = csvRollCalendarData()
     mongo_rollparameters = mongoRollParametersData()
     arctic_multiple_prices = arcticFuturesMultiplePricesData()

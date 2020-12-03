@@ -26,4 +26,6 @@ def init_arctic_with_csv_prices_for_code(instrument_code:str):
     adj = csv_adj.get_adjusted_prices(instrument_code)
     a_adj.add_adjusted_prices(instrument_code, adj, ignore_duplication=True)
 
-init_arctic_with_csv_futures_contract_prices()
+if __name__ == "__main__":
+    input("Will overwrite existing prices are you sure?! CTL-C to abort")
+    init_arctic_with_csv_futures_contract_prices()

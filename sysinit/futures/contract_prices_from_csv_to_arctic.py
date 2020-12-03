@@ -35,3 +35,9 @@ def init_arctic_with_csv_futures_contract_prices_for_code(instrument_code:str, d
         print("Reading back prices from arctic to check")
         written_prices = arctic_prices.get_prices_for_contract_object(contract)
         print("Read back prices are \n %s" % str(written_prices))
+
+if __name__ == "__main__":
+    input("Will overwrite existing prices are you sure?! CTL-C to abort")
+    # modify flags as required
+    datapath = "*** NEED TO DEFINE A DATAPATH***"
+    init_arctic_with_csv_futures_contract_prices(datapath)
