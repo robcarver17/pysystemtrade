@@ -4,7 +4,7 @@ We create adjusted prices using multiple prices stored in arctic
 We then store those adjusted prices in arctic and/or csv
 
 """
-
+from syscore.objects import arg_not_supplied
 from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesData
 from sysdata.arctic.arctic_adjusted_prices import arcticFuturesAdjustedPricesData
 from sysdata.csv.csv_adjusted_prices import csvFuturesAdjustedPricesData
@@ -21,7 +21,7 @@ def _get_data_inputs(csv_adj_data_path):
 
 
 def process_adjusted_prices_all_instruments(
-    csv_adj_data_path=None, ADD_TO_ARCTIC=True, ADD_TO_CSV=False
+    csv_adj_data_path=arg_not_supplied, ADD_TO_ARCTIC=True, ADD_TO_CSV=False
 ):
     arctic_multiple_prices, _notused, _alsonotused = _get_data_inputs(
         csv_adj_data_path)
@@ -38,7 +38,7 @@ def process_adjusted_prices_all_instruments(
 
 def process_adjusted_prices_single_instrument(
         instrument_code,
-        csv_adj_data_path=None,
+        csv_adj_data_path=arg_not_supplied,
         ADD_TO_ARCTIC=True,
         ADD_TO_CSV=False):
     (
@@ -67,5 +67,5 @@ def process_adjusted_prices_single_instrument(
 
 if __name__ == "__main__":
     input("Will overwrite existing prices are you sure?! CTL-C to abort")
-    # modify flags as required
-    process_adjusted_prices_all_instruments()
+    # modify flags and datapath as required
+    process_adjusted_prices_all_instruments(ADD_TO_ARCTIC=True, ADD_TO_CSV=True, csv_adj_data_path=arg_not_supplied)
