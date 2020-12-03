@@ -93,6 +93,8 @@ class ibFuturesContractData(futuresContractData):
             return missing_contract
 
         contract_object_with_ib_data = self.get_contract_object_with_IB_data(futures_contract)
+        if contract_object_with_ib_data is missing_contract:
+            return missing_contract
 
         expiry_date = contract_object_with_ib_data.expiry_date
 
