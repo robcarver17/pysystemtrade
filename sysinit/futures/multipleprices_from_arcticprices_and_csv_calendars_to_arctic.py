@@ -154,5 +154,12 @@ def add_phantom_row(roll_calendar, dict_of_futures_contract_prices: dictFuturesC
 
 if __name__ == "__main__":
     input("Will overwrite existing prices are you sure?! CTL-C to abort")
+    # change if you want to write elsewhere
+    csv_multiple_data_path=arg_not_supplied
+
+    # only change if you have written the files elsewhere
+    csv_roll_data_path=arg_not_supplied
+
     # modify flags as required
-    process_multiple_prices_all_instruments()
+    process_multiple_prices_all_instruments(csv_multiple_data_path= csv_multiple_data_path,
+                                            csv_roll_data_path = csv_roll_data_path)

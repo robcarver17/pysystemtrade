@@ -1,3 +1,4 @@
+from syscore.objects import arg_not_supplied
 from sysdata.sim.csv_futures_sim_data import csvFuturesSimData
 from sysobjects.roll_calendars import rollCalendar
 from sysdata.csv.csv_roll_calendars import csvRollCalendarData
@@ -7,7 +8,11 @@ Generate the roll calendars from existing data
 """
 
 def generate_roll_calendars_from_provided_multiple_csv_prices(output_datapath):
-    input("This will overwrite the roll calendars in %s : CRTL-C if you aren't sure!" % output_datapath)
+    if output_datapath is arg_not_supplied:
+        print("USING DEFAULT DATAPATH WILL OVERWRITE PROVIDED DATA in /data/futures/")
+    else:
+        print("Writing to %s" % output_datapath)
+    input("This will overwrite any existing roll calendars: CRTL-C if you aren't sure!" % str(output_datapath))
     csv_roll_calendars = csvRollCalendarData(datapath=output_datapath)
     sim_futures_data = csvFuturesSimData()
 
@@ -28,5 +33,4 @@ def generate_roll_calendars_from_provided_multiple_csv_prices(output_datapath):
         csv_roll_calendars.add_roll_calendar(instrument_code, roll_calendar, ignore_duplication=True)
 
 if __name__ == "__main__":
-    datapath ="MUST SUPPLY A DATAPATH"
-    generate_roll_calendars_from_provided_multiple_csv_prices(datapath)
+    generate_roll_calendars_from_provided_multiple_csv_prices()
