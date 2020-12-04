@@ -6,9 +6,8 @@ Related documents:
 - [Backtesting with pysystemtrade](/docs/backtesting.md)
 - [Connecting pysystemtrade to interactive brokers](/docs/IB.md)
 
-It is broken into three sections. The first, [A futures data workflow](#futures_data_workflow), gives an overview of how data is typically processed. It describes how you would get some data from, store it, and create data suitable for simulation and as an initial state for trading. The next section [Storing futures data](#storing_futures_data) then describes in detail each of the components of the API for storing futures data. In the third and final section [simData objects](#simData_objects) you will see how we hook together individual data components to create a `simData` object that is used by the main simulation system.
+It is broken into four parts. The first, [A futures data workflow](#futures_data_workflow), gives an overview of how data is typically processed. It describes how you would get some data from, store it, and create data suitable for simulation and as an initial state for trading. Reading this will also give you a feel for the data in pysystemtrade. The rest of the document goes into much more detail. In [part two](#part-2-overview-of-futures-data-in-pysystemtrade), I provide an overview of how the various data objects fit together. The third part, [storing futures data](#storing_futures_data), then describes in detail each of the components used to futures data. In the [final part](#part-4-interfaces),  you will see how we provide an interface between the data storage objects and the simulation / production code.
 
-Although this document is about futures data, parts two and three are necessary reading if you are trying to create or modify any data objects.
 
 
 Table of Contents
@@ -374,116 +373,119 @@ You can also run the script with `ADD_EXTRA_DATA = False, ADD_TO_CSV = True`. Th
 
 ## Finished!
 
-That's it. You've got all the price and configuration data you need to start live trading, or run backtests using the database rather than .csv files. 
+That's it. You've got all the price and configuration data you need to start live trading, or run backtests using the database rather than .csv files. The rest of the document goes into much more detail about how the data storage works in pysystemtrade.
 
 
 
 <a name="Overview"></a>
 # Part 2: Overview of futures data in pysystemtrade
 
-The paradigm for data storage is that we have a bunch of [data objects](#generic_objects) for specific types of data used in both backtesting and simulation, i.e. futuresInstrument is the generic class for storing static information about instruments. [Another set](#production_data_objects) of data objects is only used in production.
+The paradigm for data storage is that we have a bunch of [*data objects*](#generic_objects) for specific types of data used in both backtesting and simulation, i.e. `futuresInstrument` is the generic class for storing static information about instruments. [Another set](#production_data_objects) of data objects is only used in production.
 
-Each of those objects then has a matching *data storage object* which accesses data for that object, i.e. futuresInstrumentData. Then we have [specific instances of those for different data sources](#specific_data_storage), i.e. mongoFuturesInstrumentData for storing instrument data in a mongo DB database. 
+Each of those data objects then has a matching *data storage object* which accesses data for that object, i.e. futuresInstrumentData. Then we have [specific instances of those for different data sources](#specific_data_storage), i.e. `mongoFuturesInstrumentData` for storing instrument data in a mongo DB database. 
 
-I use [data 'blobs'](/sysdata/data_blob.py) to access collections of data storage objects in both simulation and production. This also hides the exact source of the data and ensures that data objects are using a common database, logging method, and brokerage connection (since the broker is also accessed via data storage objects). More [later](#data_blobs).
+I use [`dataBlob`s](/sysdata/data_blob.py) to access collections of data storage objects in both simulation and production. This also hides the exact source of the data and ensures that data objects are using a common database, logging method, and brokerage connection (since the broker is also accessed via data storage objects). More [later](#data_blobs).
 
-For backtesting, data is accessed through the interface of `simData` objects (I discuss these [later](#simdata-objects)). These form part of the giant `system` objects that are used in backtesting ([as the `data` stage](backtesting.md#data)), and they provide the API to get certain kinds of data which are needed for backtesting (some instrument configuration and cost data, spot FX, multiple, and adjusted prices). From version 0.52 onwards `simData` objects also use data blobs.
+To further hide the data, I use two kinds of additional interface which embed `dataBlob`s, one in backtesting and the other in production trading. For backtesting, data is accessed through the interface of `simData` objects (I discuss these [later](#simdata-objects)). These form part of the giant `System` objects that are used in backtesting ([as the `data` stage](backtesting.md#data)), and they provide the appropriate methods to get certain kinds of data which are needed for backtesting (some instrument configuration and cost data, spot FX, multiple, and adjusted prices). 
 
-Finally in production I use the objects in [this module](/sysproduction/data) to act as [*interfaces*](#production_interface) between production code and data blobs, so that production code doesn't need to be too concerned about the exact implementation of the data storage. These also include some business logic. 
+Finally in production I use the objects in [this module](/sysproduction/data) to act as [interfaces](#production_interface) between production code and data blobs, so that production code doesn't need to be too concerned about the exact implementation of the data storage. These also include some business logic. 
 
 ## Heirarchy of data storage and access objects
 
-Generic data storage objects, used in both production and backtesting
+Generic data storage objects, used in both production and backtesting:
 
-- baseData: Does basic logging. Has __getitem__ and keys() methods so it looks sort of like a dictionary
-    - futuresAdjustedPricesData
-        - csvFuturesAdjustedPricesData
-        - arcticFuturesAdjustedPricesData
-    - futuresContractData
-        - csvFuturesContractData
-        - ibFuturesContractData
-        - mongoFuturesContractData
-    - futuresContractPriceData
-        - csvFuturesContractPriceData
-        - ibFuturesContractPriceData
-        - arcticFuturesContractPriceData
-    - futuresInstrumentData
-        - csvFuturesInstrumentData
-        - ibFuturesInstrumentData
-        - mongoFuturesInstrumentData
-    - futuresMultiplePricesData
-        - csvFuturesMultiplePricesData
-        - arcticFuturesMultiplePricesData
-    - rollCalendarData
-        - csvRollCalendarData
-    - rollParametersData
-        - csvRollParametersData
-        - mongoRollParametersData
-    - fxPricesData
-        - csvFxPricesData
-        - arcticFxPricesData
-        - ibFxPricesData
+- `baseData`: Does basic logging. Has `__getitem__` and `keys()` methods so it looks sort of like a dictionary
+    - `futuresAdjustedPricesData`
+        - `csvFuturesAdjustedPricesData`
+        - `arcticFuturesAdjustedPricesData`
+    - `futuresContractData`
+        - `csvFuturesContractData`
+        - `ibFuturesContractData`
+        - `mongoFuturesContractData`
+    - `futuresContractPriceData`
+        - `csvFuturesContractPriceData`
+        - `ibFuturesContractPriceData`
+        - `arcticFuturesContractPriceData`
+    - `futuresInstrumentData`
+        - `csvFuturesInstrumentData`
+        - `ibFuturesInstrumentData`
+        - `mongoFuturesInstrumentData`
+    - `futuresMultiplePricesData`
+        - `csvFuturesMultiplePricesData`
+        - `arcticFuturesMultiplePricesData`
+    - `rollCalendarData`
+        - `csvRollCalendarData`
+    - `rollParametersData`
+        - `csvRollParametersData`
+        - `mongoRollParametersData`
+    - `fxPricesData`
+        - `csvFxPricesData`
+        - `arcticFxPricesData`
+        - `ibFxPricesData`
 
-Production data storage objects
+Production only data storage objects:
 
-- baseData: Does basic logging. Has __getitem__ and keys() methods so it looks sort of like a dictionary
-    - listOfEntriesData: generic 'point in time' data used for capital and positions
-        - mongoListOfEntriesData
-        - capitalData
-            - mongocapitalData
-        - strategyPositionData
-            - mongoStrategyPositionData
-        - contractPositionData
-            - mongoContractPositionData
-        - optimalPositionData
-            - mongoOptimalPositionData
-    - genericOrdersData
-        - mongoGenericHistoricOrdersData
-        - strategyHistoricOrdersData
-            - mongoStrategyHistoricOrdersData
-        - contractHistoricOrdersData
-            - mongoContractHistoricOrdersData
-            - mongoBrokerHistoricOrdersData
-    - lockData
-        - mongoLockData
-    - overrideData
-        - mongoOverrideData
-    - positionLimitData
-        - mongoPositionLimitData
-    - controlProcessData
-        - mongoControlProcessData
-    - rollStateData
-        - mongoRollStateData
-    - tradeLimitData
-        - mongoTradeLimitData
-    - emailControlData
-        - mongoEmailControlData
-    - logger
-        - logtoscreen
-        - logToDb
-            - logToMongod
-    - orderStackData
-        - mongoOrderStackData
-        - brokerOrderStackData
-            - mongoBrokerOrderStackData
-        - contractOrderStackData
-            - mongoContractOrderStackData
-        - brokerOrderStackData
-            - mongoBrokerOrderStackData
+- `baseData`: Does basic logging. Has `__getitem__` and `keys()` methods so it looks sort of like a dictionary
+    - `listOfEntriesData`: generic 'point in time' data used for capital and positions
+        - `mongoListOfEntriesData`
+        - `capitalData`
+            - `mongocapitalData`
+        - `strategyPositionData`
+            - `mongoStrategyPositionData`
+        - `contractPositionData`
+            - `mongoContractPositionData`
+        - `optimalPositionData`
+            - `mongoOptimalPositionData`
+    - `genericOrdersData`
+        - `mongoGenericHistoricOrdersData`
+        - `strategyHistoricOrdersData`
+            - `mongoStrategyHistoricOrdersData`
+        - `contractHistoricOrdersData`
+            - `mongoContractHistoricOrdersData`
+            - `mongoBrokerHistoricOrdersData`
+    - `lockData`
+        - `mongoLockData`
+    - `overrideData`
+        - `mongoOverrideData`
+    - `positionLimitData`
+        - `mongoPositionLimitData`
+    - `controlProcessData`
+        - `mongoControlProcessData`
+    - `rollStateData`
+        - `mongoRollStateData`
+    - `tradeLimitData`
+        - `mongoTradeLimitData`
+    - `emailControlData`
+        - `mongoEmailControlData`
+    - `orderStackData`
+        - `mongoOrderStackData`
+        - `brokerOrderStackData`
+            - `mongoBrokerOrderStackData`
+        - `contractOrderStackData`
+            - `mongoContractOrderStackData`
+        - `brokerOrderStackData`
+            - `mongoBrokerOrderStackData`
+
+Used for logging:
+    - `logger`
+        - `logtoscreen`
+        - `logToDb`
+            - `logToMongod`
+
 
 Specific data sources
 
 - Mongo / Arctic
-    - mongoDb: Connection to a database (arctic or mongo) specifying port, databasename and hostname. Usually created by a dataBlob, and the instance is used to create various mongoConnection
-    - mongoConnection: Creates a connection (combination of database and specific collection) that is created inside object like mongoRollParametersData, using a mongoDb
-    - mongoData: Provides a common abstract interface to mongo, assuming the data is in dict and has a single key 
-    - articData: Provides a common abstract interface to arctic, assuming the data is passed as pd.DataFrame
-- Interactive brokers: see (/docs/IB.md)
+    - `mongoDb`: Connection to a database (arctic or mongo) specifying port, databasename and hostname. Usually created by a `dataBlob`, and the instance is used to create various `mongoConnection`
+    - `mongoConnection`: Creates a connection (combination of database and specific collection) that is created inside object like `mongoRollParametersData`, using a `mongoDb`
+    - `mongoData`: Provides a common abstract interface to mongo, assuming the data is in dict and has a single key 
+    - `articData`: Provides a common abstract interface to arctic, assuming the data is passed as pd.DataFrame
+- Interactive brokers: see [this file](/docs/IB.md)
 
 
 Data collection and abstraction:
 
-- dataBlob: Holds collection of data storage objects, whose names are abstracted to hide the source
+- `dataBlob`: Holds collection of data storage objects, whose names are abstracted to hide the source
 
 
 Simulation interface layer:
@@ -584,16 +586,16 @@ A 'final' price is either a close or a settlement price depending on how the dat
 <a name="futuresContractDictPrices"></a>
 ### [Final prices for individual futures contracts](/sysobjects/dict_of_futures_per_contract_prices.py): dictFuturesContractFinalPrices(), dictFuturesContractVolumes(), dictFuturesContractPrices()
 
-All these dicts have the contract date string as the key, and a dataframe like object as the value.
+All these dicts have the contract date string as the key (eg `20201200`), and a dataframe like object as the value.
 
 ### [Named futures contract dicts](sysobjects/dict_of_named_futures_per_contract_prices.py): dictNamedFuturesContractFinalPrices, futuresNamedContractFinalPricesWithContractID, setOfNamedContracts, dictFuturesNamedContractFinalPricesWithContractID
  
 'Named' contracts are those we are currently trading (priced), the next contract(forward), and the carry contract.
 
-dictNamedFuturesContractFinalPrices: keys are PRICE,CARRY,FORWARD; values are futuresContractFinalPrices
-setOfNamedContracts: A dictionary, keys are PRICE,CARRY,FORWARD; values are date strings for each contract eg '20201200'
-futuresNamedContractFinalPricesWithContractID: Dataframe like object, two columns, one for price, one for contract as a date string eg '20201200'
-dictFuturesNamedContractFinalPricesWithContractID: keys are PRICE,CARRY,FORWARD; values are futuresNamedContractFinalPricesWithContractID
+`dictNamedFuturesContractFinalPrices`: keys are PRICE,CARRY,FORWARD; values are `futuresContractFinalPrices`
+`setOfNamedContracts`: A dictionary, keys are PRICE,CARRY,FORWARD; values are date strings for each contract eg '20201200'
+`futuresNamedContractFinalPricesWithContractID`: Dataframe like object, two columns, one for price, one for contract as a date string eg '20201200'
+`dictFuturesNamedContractFinalPricesWithContractID`: keys are PRICE,CARRY,FORWARD; values are `futuresNamedContractFinalPricesWithContractID`
 
 
 <a name="rollCalendar"></a>
@@ -669,9 +671,9 @@ You need to specify an IP address (host), and database name when you connect to 
 - Then, variables set in the [private `.yaml` configuration file](/private/private_config.yaml): mongo_host, mongo_db
 - Finally, default arguments in the [system defaults configuration file](/systems/provided/defaults.yaml): mongo_host, mongo_db
 
-Note that 'localhost' is equivalent to '127.0.0.1', i.e. this machine. Note also that no port can be specified. This is because the port is hard coded in Arctic. You should stick to the default port 27017.
+Note that `localhost` is equivalent to `127.0.0.1`, i.e. this machine. Note also that no port can be specified. This is because the port is hard coded in Arctic. You should stick to the default port 27017.
 
-If your mongoDB is running on your local machine then you can stick with the defaults (assuming you are happy with the database name 'production'). If you have different requirements, eg mongo running on another machine or you want a different database name, then you should set them in the private .yaml file. If you have highly bespoke needs, eg you want to use a different database or different host for different types of data, then you will need to add code like this:
+If your mongoDB is running on your local machine then you can stick with the defaults (assuming you are happy with the database name `production`). If you have different requirements, eg mongo running on another machine or you want a different database name, then you should set them in the private .yaml file. If you have highly bespoke needs, eg you want to use a different database or different host for different types of data, then you will need to add code like this:
 
 ```python
 # Instead of:
@@ -697,7 +699,7 @@ You need to specify an IP address (host), and database name when you connect to 
 
 Note:
 - No port is specified - Arctic can only use the default port. For this reason I strongly discourage changing the port used when connecting to other mongo databases.
-- In actual use Arctic prepends 'arctic-' to the database name. So instead of 'production' it specifies 'arctic-production'. This shouldn't be an issue unless you are connecting directly to the mongo database.
+- In actual use Arctic prepends `arctic-` to the database name. So instead of `production` it specifies `arctic-production`. This shouldn't be an issue unless you are connecting directly to the mongo database.
 
 These are set with the following priority:
 
@@ -705,7 +707,7 @@ These are set with the following priority:
 - Then, arguments set in the [private `.yaml` configuration file](/private/private_config.yaml): mongo_host, mongo_db
 - Finally, default arguments hardcoded [in mongo_connection.py](/sysdata/mongodb/mongo_connection.py): DEFAULT_MONGO_DB, DEFAULT_MONGO_HOST, DEFAULT_MONGO_PORT
 
-Note that 'localhost' is equivalent to '127.0.0.1', i.e. this machine.
+Note that `localhost` is equivalent to `127.0.0.1`, i.e. this machine.
 
 If your mongoDB is running on your local machine with the standard port settings, then you can stick with the defaults (assuming you are happy with the database name 'production'). If you have different requirements, eg mongo running on another machine, then you should code them up in the private .yaml file. If you have highly bespoke needs, eg you want to use a different database for different types of data, then you will need to add code like this:
 
@@ -713,7 +715,7 @@ If your mongoDB is running on your local machine with the standard port settings
 # Instead of:
 afcpdata=arcticFuturesContractPriceData()
 
-# Do this
+# Do this (could also be done by passing another mongo connection to dataBlob)
 from sysdata.mongodb import mongoDb
 afcpdata=arcticFuturesContractPriceData(mongo_db = mongoDb(database_name='another database')) # could also change host
 ```
@@ -723,11 +725,8 @@ afcpdata=arcticFuturesContractPriceData(mongo_db = mongoDb(database_name='anothe
 
 We don't use IB as a data store, but we do implement certain data storage methods to get futures and FX price data, as well as providing an interface to production layer services like creating orders and getting fills. 
 
-See (/docs/IB.md) for more information.
+See [here](/docs/IB.md) for more information.
 
-### Quandl
-
-No longer supported as futures price data service is not free.
 
 ## Creating your own data storage objects for a new source
 
@@ -737,28 +736,32 @@ They should live in a subdirectory of [sysdata](/sysdata), named for the data so
 
 Look at an existing data storage object for a different source to see which methods you'd need to implement, and to see the generic data storage object you should inherit from. Normally you'd need to override all the methods in the generic object which return `NotImplementedError`; the exception is if you have a read-only source like Quandl, or if you're working with .csv or similar files in which case I wouldn't recommend implementing delete methods.
 
-Use the naming convention sourceNameOfGenericDataObject, i.e. `class arcticFuturesContractPriceData(futuresContractPriceData)`. They must be prefixed with the source, and suffixed with Data. And they must be camel cased in the middle.
+Use the naming convention `sourceNameOfObjectData`, i.e. `class arcticFuturesContractPriceData(futuresContractPriceData)`. They must be prefixed with the source, and suffixed with Data. And they must be camel cased in the middle.
 
-*YOU MUST DO THIS OR THE dataBlob RENAMING WILL NOT WORK!!* dataBlob renames sourceSomethingInCamelCaseData to something_in_camel_case. If you add another source you'll need to add that to the dataBlob resolution dictionary.
+**YOU MUST DO THIS OR THE `dataBlob` RENAMING WILL NOT WORK!!** `dataBlob` renames `sourceSomethingInCamelCaseData` to `db_something_in_camel_case`. If you add another source you'll need to add that to the dataBlob resolution dictionary.
 
-For databases you may want to create connection objects (like [this](#/sysdata/arctic/arctic_connection.py) for Arctic) which abstract the database implementation to a set of simple read/write/update/delete methods.
+For databases you may want to create connection objects (like [this](/sysdata/arctic/arctic_connection.py) for Arctic) which abstract the database implementation to a set of simple read/write/update/delete methods.
 
 
 
 <a name="interfaces"></a>
 # Part 4: Interfaces
 
-This section of the file describes various interfaces to different data storage objects: dataBlobs, simData, and the production data interface layer.
+This section of the file describes various interfaces to different data storage objects: `dataBlobs`, `simData`, and the production data interface layer.
 
-- Data storage objects (eg )
-- ... live inside dataBlobs
-- ... are accessed by simData object
-- ... which live inside backtesting Systems
+For simulation:
 
-- Data storage objects (eg )
-- ... live inside dataBlobs
-- ... are accessed by simData object
-- ... which live inside backtesting Systems
+- Data storage objects (eg `arcticFuturesContractPriceData`)
+- ... live inside `dataBlob`s
+- ... are accessed by `simData` object
+- ... which live inside backtesting `System`s
+
+And for production:
+
+- Data storage objects (eg `arcticFuturesContractPriceData`)
+- ... live inside `dataBlob`s
+- ... are accessed by production data interfaces
+- ... which are called by production code
 
 
 
@@ -787,9 +790,9 @@ data.db_futures_adjusted_prices.get_list_of_instruments()
 ['EDOLLAR', 'CAC', 'KR3', 'SMI', 'V2X', 'JPY', ....]
 ```
 
-OK, why does it say 'db' here? It's because dataBlob knows we don't really care where our data is stored. It dynamically creates an instance of any valid data storage class that is passed to it, renaming it by replacing the source with 'db' (or 'broker' if it's an interface to the broker), stripping off the 'Data' at the end, and replacing the CamelCase in the middle with '-' seperated strings (since this is an instance now not a class).
+OK, why does it say `db_futures_adjusted_prices` here? It's because dataBlob knows we don't really care where our data is stored. It dynamically creates an instance of any valid data storage class that is passed to it, renaming it by replacing the source with `db` (or `broker` if it's an interface to the broker), stripping off the 'Data' at the end, and replacing the CamelCase in the middle with `_` seperated strings (since this is an instance now not a class).
 
-(In fact a further layer of abstraction is achieved by the use of interface objects in backtesting or production, so you'd not normally write code that directly accessed the method of a data object, even one that is renamed. More on these below.) These interfaces all have data blobs as attributes.
+(In fact a further layer of abstraction is achieved by the use of interface objects in backtesting or production, so you'd not normally write code that directly accessed the method of a data object, even one that is renamed. These interfaces all have data blobs as attributes. More on these below.) 
 
 Let's suppose we wanted to access the futures adjusted price data from csv files. Then:
 
@@ -803,22 +806,22 @@ data.db_futures_adjusted_prices.get_list_of_instruments()
 ['EDOLLAR', 'CAC', 'KR3', 'SMI', 'V2X', 'JPY', ....]
 ```
 
-A .csv is just another type of database as far as dataBlob is concerned. It's replaced the attribute we had before with a new one that links to .csv files. 
+A .csv is just another type of database as far as dataBlob is concerned. It's replaced the attribute we had before with a new one that now links to .csv files. 
 
 Here's a quick whistlestop tour of dataBlob's other features:
 
 
-- you can create it with a starting class list by passing the parameter class_list=...
-- it includes a log attribute that is passed to create data storage instances (you can override this by passing in a logger via the log= parameter when dataBlob is created), the log will have top level type attribute as defined by the log_name parameter
-- when required it creates a mongoDb instance that is passed to create data storage instances (you can override this by passing in a mongoDb instance via the mongo_db= parameter when dataBlob is created)
-- when required it creates a connectionIB instance that is passed to create data storage instances (you can override this by passing in a connection instance via the ib_conn= parameter when dataBlob is created)
-- csv_data_paths parameter will allow you to use different .csv data paths, not the defaults. The dict should have the keys of the class names, and values will be the paths to use.
-- keep_original_prefix=True will prevent the source renaming. Thus add_class_list([csvFuturesAdjustedPricesData]) will create a method csv_futures_adjusted_prices, and add_class_object(arcticFuturesAdjustedPricesData) will create arctic_futures_adjusted_prices. This is useful if you're copying from one type of data to another.
+- you can create it with a starting class list by passing the `parameter class_list=...`
+- it includes a `log` attribute that is passed to create data storage instances (you can override this by passing in a logger via the `log=` parameter when dataBlob is created), the log will have top level type attribute as defined by the log_name parameter
+- when required it creates a `mongoDb` instance that is passed to create data storage instances (you can override this by passing in a `mongoDb` instance via the `mongo_db=` parameter when dataBlob is created)
+- when required it creates a `connectionIB` instance that is passed to create data storage instances (you can override this by passing in a connection instance via the `ib_conn=` parameter when dataBlob is created)
+- The parameter `csv_data_paths` will allow you to use different .csv data paths, not the defaults. The dict should have the keys of the class names, and values will be the paths to use.
+- Setting `keep_original_prefix=True` will prevent the source renaming. Thus `add_class_list([csvFuturesAdjustedPricesData])` will create a method `csv_futures_adjusted_prices`, and `add_class_object(arcticFuturesAdjustedPricesData)` will create `arctic_futures_adjusted_prices`. This is useful if you're copying from one type of data to another.
 
 <a name="simData_objects"></a>
 ## simData objects
 
-The `simData` object is a compulsory part of the psystemtrade system object which runs simulations (or in live trading generates desired positions). The API required for that is laid out in the userguide, [here](/docs/userguide.md#using-the-standard-data-objects). It's an interface between the contents of a dataBlob, and the simulation code.
+The `simData` object is a compulsory part of the psystemtrade system object which runs simulations (or in live trading generates desired positions). The API required for that is laid out in the userguide, [here](/docs/backtesting.md#using-the-standard-data-objects). It's an interface between the contents of a dataBlob, and the simulation code.
 
 This modularity allows us to easily replace the data objects, so we could load our adjusted prices from mongo DB, or do 'back adjustment' of futures prices 'on the fly'.
 
@@ -838,7 +841,7 @@ I've provided two complete simData objects which get their data from different s
 <a name="csvFuturesSimData"></a>
 #### [csvFuturesSimData()](/sysdata/sim/csv_futures_sim_data.py)
 
-The simplest simData object gets all of its data from .csv files, making it ideal for simulations if you haven't built a process yet to get your own data. It's essentially a like for like replacement for the simpler csvSimData objects that pysystemtrade used in versions before 0.17.0.
+The simplest simData object gets all of its data from .csv files, making it ideal for simulations if you haven't built a process yet to get your own data. 
 
 <a name="mongoSimData"></a>
 #### [dbFuturesSimData()](/sysdata/arctic/db_futures_sim_data.py)
@@ -876,7 +879,7 @@ Configuration information about futures instruments is stored in a number of dif
 - Roll configuration information in [this .csv file](/sysinit/futures/config/rollconfig.csv), which will be copied to Mongo DB with [this script](/sysinit/futures/roll_parameters_csv_mongo.py)
 - Interactive brokers configuration in [this file](https://github.com/robcarver17/pysystemtrade/blob/master/sysbrokers/IB/ibConfigSpotFX.csv) and [this file](https://github.com/robcarver17/pysystemtrade/blob/master/sysbrokers/IB/ibConfigFutures.csv).
 
-The instruments in these lists won't neccessarily match up, however under DRY there shouldn't be duplicated column headings across files.
+The instruments in these lists won't neccessarily match up, however under the principal of DRY there shouldn't be duplicated column headings across files.
 
 The `system.get_instrument_list()` method is used by the simulation to decide which markets to trade; if no explicit list of instruments is included then it will fall back on the method `system.data.get_instrument_list()`. In both the provided simData objects this will resolve to the method `get_instrument_list` in the class which gets back adjusted prices, or in whatever overrides it for a given data source (.csv or Mongo DB). In practice this means it's okay if your instrument configuration (or roll configuration, when used) is a superset of the instruments you have adjusted prices for. But it's not okay if you have adjusted prices for an instrument, but no configuration information.
 
@@ -928,29 +931,29 @@ csvFxPricesData accessing data.futures.fx_prices_csv
 <a name="production_interface"></a>
 ## Production interface
 
-In production I use the objects in [this module](/sysproduction/data) to act as [*interfaces*](#production_interface) between production code and data blobs, so that production code doesn't need to be too concerned about the exact implementation of the data storage. These also include some business logic. 
+In production I use the objects in [this module](/sysproduction/data) to act as interfaces between production code and data blobs, so that production code doesn't need to be too concerned about the exact implementation of the data storage. These also include some business logic. 
 
-'diag' classes are read only, 'update' are write only, 'data' are read/write (created because it's not worth creating a seperate read and write class):
+`diag` classes are read only, `update` are write only, `data` are read/write (created because it's not worth creating a seperate read and write class):
 
-- dataBacktest: read/write pickled backtests from production runs
-- dataBroker: interact with broker
-- dataCapital: read/write total and strategy capital
-- diagContracts, updateContracts: read/write information about individual futures contracts
-- dataLocks: read/write information on locks (temporarily preventing instrument from trading because of position level conflict)
-- diagOverrides, updateOverrides: read/write information about overrides (cut position size or prevent positions from increasing)
-- dataControlProcess, diagProcessConfig: control starting and stopping of production processes
-- dataPositionLimits: read/write position limits 
-- dataTradeLimits: read/write limits on individual trades
-- diagInstruments: get configuration for instruments
-- diagLogs: read logging information
-- dataOrders: read/write historic orders and order 'stacks' (current orders)
-- diagPositions, updatePositions: Read/Write historic and current positions
-- dataOptimalPositions: Read/Write optimal position data
-- diagPrices, updatePrices: Read/Write futures price data (adjusted, multiple, per contract)
-- dataCurrency: Read/write FX data and do currency conversions
-- dataSimData: Create a simData object to be used by production backtests
-- diagStrategiesConfig: Configuration data for strategies (capital allocation, backtest configuration, order generator...)
-- diagVolumes: volume data
+- `dataBacktest`: read/write pickled backtests from production `run_systems`
+- `dataBroker`: interact with broker
+- `dataCapital`: read/write total and strategy capital
+- `diagContracts`, `updateContracts`: read/write information about individual futures contracts
+- `dataLocks`: read/write information on locks (temporarily preventing instrument from trading because of position level conflict)
+- `diagOverrides`, `updateOverrides`: read/write information about overrides (cut position size or prevent positions from increasing)
+- `dataControlProcess`, `diagProcessConfig`: control starting and stopping of production processes
+- `dataPositionLimits`: read/write position limits 
+- `dataTradeLimits`: read/write limits on individual trades
+- `diagInstruments`: get configuration for instruments
+- `diagLogs`: read logging information
+- `dataOrders`: read/write historic orders and order 'stacks' (current orders)
+- `diagPositions`, `updatePositions`: Read/Write historic and current positions
+- `dataOptimalPositions`: Read/Write optimal position data
+- `diagPrices`, `updatePrices`: Read/Write futures price data (adjusted, multiple, per contract)
+- `dataCurrency`: Read/write FX data and do currency conversions
+- `dataSimData`: Create a simData object to be used by production backtests
+- `diagStrategiesConfig`: Configuration data for strategies (capital allocation, backtest configuration, order generator...)
+- `diagVolumes`: volume data
 
 
 
