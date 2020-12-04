@@ -51,7 +51,7 @@ class System(object):
 
         >>> from systems.stage import SystemStage
         >>> stage=SystemStage()
-        >>> from sysdata.csv.csv_sim_futures_data import csvFuturesSimData
+        >>> from sysdata.sim.csv_futures_sim_data import csvFuturesSimData
         >>> data=csvFuturesSimData()
         >>> System([stage], data)
         System base_system with .config, .data, and .stages: unnamed
