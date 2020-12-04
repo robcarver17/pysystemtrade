@@ -1,7 +1,8 @@
 import itertools
 
 from syscore.objects import missing_data
-from syslogdiag.log import logger, logEntry, LEVEL_ID, INVERSE_MAP
+from sysdata.base_data import baseData
+from syslogdiag.log import logger, logEntry, LEVEL_ID, INVERSE_MAP, logtoscreen
 
 from sysproduction.diagnostic.emailing import send_production_mail_msg
 
@@ -52,9 +53,9 @@ class logToDb(logger):
             self.error("Couldn't email user")
 
 
-class logData(object):
-    def __init__(self):
-        pass
+class logData(baseData):
+    def __init__(self, log = logger("logData")):
+        super().__init__(log=log)
 
     def get_log_items_with_level(
         self, log_level, attribute_dict=dict(), lookback_days=1

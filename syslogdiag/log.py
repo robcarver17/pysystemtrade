@@ -145,7 +145,7 @@ class logger(object):
         msg_level = LOG_MAPPING["critical"]
         return self.log(text, msglevel=msg_level, **kwargs)
 
-    def get_last_used_log_id(self):
+    def get_last_used_log_id(self) -> int:
         """
         Get last log id used. This should be stored in the underlying database.
 
@@ -157,7 +157,7 @@ class logger(object):
             "You need to implement this method in an inherited class or use an inherited claass eg logToMongod"
         )
 
-    def update_log_id(self):
+    def update_log_id(self, log_id: int):
         """
         Update the current stored log id
 
@@ -167,7 +167,7 @@ class logger(object):
             "You need to implement this method in an inherited class or use an inherited claass eg logToMongod"
         )
 
-    def get_next_log_id(self):
+    def get_next_log_id(self) -> int:
         """
         Get next log id
 

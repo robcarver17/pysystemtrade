@@ -1,3 +1,4 @@
+from copy import copy
 from sysdata.mongodb.mongo_connection import (
     mongoConnection,
     MONGO_ID_KEY,
@@ -102,8 +103,11 @@ class mongoData(object):
 
         self._mongo.collection.remove({key_name: key})
 
-    def add_data(self, key: str, data_dict: dict, allow_overwrite = False):
-        cleaned_data_dict = mongo_clean_ints(data_dict)
+    def add_data(self, key: str, data_dict: dict, allow_overwrite = False, clean_ints = True):
+        if clean_ints:
+            cleaned_data_dict = mongo_clean_ints(data_dict)
+        else:
+            cleaned_data_dict = copy(data_dict)
 
         if self.key_is_in_data(key):
             if allow_overwrite:

@@ -1,8 +1,8 @@
-from sysdata.mongodb.mongo_connection import mongoConnection
-from sysdata.mongodb.mongo_connection import MONGO_ID_KEY
+from sysdata.mongodb.mongo_connection import mongoConnection, mongoDb
+from sysdata.mongodb.mongo_generic import mongoData, MONGO_ID_KEY, existingData
 from syscore.dateutils import long_to_datetime, datetime_to_long
 
-from syslogdiag.log import logEntry, TIMESTAMP_ID, LEVEL_ID, TEXT_ID, LOG_RECORD_ID
+from syslogdiag.log import logEntry, TIMESTAMP_ID, LEVEL_ID, TEXT_ID, LOG_RECORD_ID, logtoscreen
 from syslogdiag.database_log import logToDb, logData
 from copy import copy
 import datetime
@@ -19,47 +19,62 @@ class logToMongod(logToDb):
 
     def __init__(
         self,
-        type,
+        type: str,
         data=None,
-        log_level="Off",
-        mongo_db=None,
+        log_level: str="Off",
+        mongo_db: mongoDb=None,
         **kwargs,
     ):
         super().__init__(type=type, log_level=log_level, **kwargs)
-        self._mongo = mongoConnection(LOG_COLLECTION_NAME, mongo_db=mongo_db)
-        self.data = data
+        self._mongo_data = mongoData(LOG_COLLECTION_NAME, LOG_RECORD_ID, mongo_db=mongo_db)
+        self._delete_old_metadata()
 
-    def get_last_used_log_id(self):
+    def _delete_old_metadata(self):
+        ## ONLY NEED TO DO ONCE... CHANGED THE WAY THIS WORKS
+        self.mongo_data._mongo.collection.delete_one(dict(_meta_data='log_id'))
+
+    @property
+    def mongo_data(self):
+        return self._mongo_data
+
+    def get_last_used_log_id(self) -> int:
         """
         Get last used log id. Returns None if not present
 
         :return: int or None
         """
-        attribute_dict = dict(_meta_data="log_id")
-        last_id_dict = self._mongo.collection.find_one(attribute_dict)
-        if last_id_dict is None:
+        all_log_ids = self.get_all_log_ids()
+        if len(all_log_ids)==0:
             return None
-        return last_id_dict["next_id"]
 
-    def update_log_id(self, next_id):
-        attribute_dict = dict(_meta_data="log_id")
-        next_id_dict = dict(_meta_data="log_id", next_id=next_id)
-        self._mongo.collection.replace_one(attribute_dict, next_id_dict, True)
+        return max(all_log_ids)
 
-        return None
+    def get_all_log_ids(self) -> list:
+        return self.mongo_data.get_list_of_keys()
+
+    def update_log_id(self, next_id: int):
+        # reserve log_id with a blank record
+        try:
+            self.mongo_data.add_data(next_id, {})
+        except existingData:
+            raise Exception("ID %d is already used")
 
     def add_log_record(self, log_entry):
         record_as_dict = log_entry.log_dict()
-        # very rare race condition can lead to duplicates
-        self._mongo.collection.update_one(
-            record_as_dict, {"$set": record_as_dict}, upsert=True
-        )
+        key = record_as_dict[LOG_RECORD_ID]
+
+        self.mongo_data.add_data(key, record_as_dict, allow_overwrite=True)
 
 
 class mongoLogData(logData):
     # Need to change so uses data
-    def __init__(self, mongo_db=None, log=logToMongod("mongoLogData")):
-        self._mongo = mongoConnection(LOG_COLLECTION_NAME, mongo_db=mongo_db)
+    def __init__(self, mongo_db=None, log=logtoscreen("mongoLogData")):
+        self._mongo_data = mongoData(LOG_COLLECTION_NAME, LOG_RECORD_ID, mongo_db=mongo_db)
+        super().__init__(log=log)
+
+    @property
+    def mongo_data(self):
+        return self._mongo_data
 
     def get_log_items_as_entries(self, attribute_dict=dict(), lookback_days=1):
         """
@@ -74,7 +89,8 @@ class mongoLogData(logData):
         timestamp_dict["$gt"] = datetime_to_long(cutoff_date)
         attribute_dict[TIMESTAMP_ID] = timestamp_dict
 
-        result_dict = self._mongo.collection.find(attribute_dict)
+        ## FIXME SHOULDN'T ACCESS THIS DIRECTLY
+        result_dict = self.mongo_data._mongo.collection.find(attribute_dict)
         # from cursor to list...
         results_list = [single_log_dict for single_log_dict in result_dict]
 
@@ -98,7 +114,8 @@ class mongoLogData(logData):
         timestamp_dict["$lt"] = datetime_to_long(cutoff_date)
         attribute_dict[TIMESTAMP_ID] = timestamp_dict
 
-        self._mongo.collection.remove(attribute_dict)
+        # FIXME
+        self._mongo_data._mongo.collection.remove(attribute_dict)
 
 
 class mongoLogEntry(logEntry):

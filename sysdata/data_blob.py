@@ -257,7 +257,7 @@ class dataBlob(object):
     def log(self):
         log = getattr(self, "_log", arg_not_supplied)
         if log is arg_not_supplied:
-            log = logToMongod(self.log_name, data=self, mongo_db=self.mongo_db)
+            log = logToMongod(self.log_name, mongo_db=self.mongo_db)
             log.set_logging_level("on")
             self._log = log
 
