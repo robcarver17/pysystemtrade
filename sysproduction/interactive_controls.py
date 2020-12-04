@@ -242,6 +242,7 @@ def view_position_limit(data):
 
 
 def change_position_limit_for_instrument(data):
+    view_position_limit(data)
     data_position_limits = dataPositionLimits(data)
     instrument_code = get_valid_instrument_code_from_user(data, allow_all=False)
     new_position_limit = get_and_convert("New position limit?", type_expected=int, allow_default=True,
@@ -254,6 +255,7 @@ def change_position_limit_for_instrument(data):
 
 
 def change_position_limit_for_instrument_strategy(data):
+    view_position_limit(data)
     data_position_limits = dataPositionLimits(data)
     strategy_name = get_valid_strategy_name_from_user(data, allow_all=False)
     instrument_code = get_valid_instrument_code_from_user(data, allow_all=False)
@@ -274,6 +276,7 @@ def auto_populate_position_limits(data: dataBlob):
     return None
 
 def set_position_limit_for_instrument(data, instrument_code, risk_multiplier):
+
     data_position_limits = dataPositionLimits(data)
     max_position_int = get_max_position_for_instrument(data, instrument_code, risk_multiplier)
     if np.isnan(max_position_int):
@@ -301,6 +304,7 @@ def view_overrides(data):
 
 
 def update_strategy_override(data):
+    view_overrides(data)
     update_overrides = updateOverrides(data)
     strategy_name = get_valid_strategy_name_from_user(data=data)
     new_override = get_overide_object_from_user()
@@ -311,6 +315,7 @@ def update_strategy_override(data):
 
 
 def update_instrument_override(data):
+    view_overrides(data)
     update_overrides = updateOverrides(data)
     instrument_code = get_valid_instrument_code_from_user(data)
     new_override = get_overide_object_from_user()
@@ -321,6 +326,7 @@ def update_instrument_override(data):
 
 
 def update_strategy_instrument_override(data):
+    view_overrides(data)
     update_overrides = updateOverrides(data)
     instrument_code = get_valid_instrument_code_from_user(data)
     strategy_name = get_valid_strategy_name_from_user(data=data)
@@ -353,7 +359,8 @@ def view_process_controls(data):
     dict_of_controls = get_dict_of_process_controls(data)
     print("\nControlled processes:\n")
     for key, value in dict_of_controls.items():
-        print("%s: %s" % (str(key), str(value)))
+        padded_key = f"{''+key:<30}"
+        print("%s: %s" % (padded_key, str(value)))
     return dict_of_controls
 
 
@@ -365,6 +372,8 @@ def get_dict_of_process_controls(data):
 
 
 def change_process_control_status(data):
+    view_process_controls(data)
+
     data_process = dataControlProcess(data)
     process_name = get_process_name(data)
     status_int = print_menu_and_get_response(
@@ -414,6 +423,7 @@ def view_strategy_config(data):
 
 
 def finish_process(data):
+    view_process_controls(data)
     print("Will need to use if process aborted without properly closing")
     process_name = get_process_name(data)
     data_control = dataControlProcess(data)
