@@ -1,6 +1,7 @@
 
 CONTRACT_COLLECTION = "futures_contracts"
 
+from syscore.objects import arg_not_supplied
 from sysdata.futures.contracts import futuresContractData
 from sysobjects.contracts import  contract_key_from_code_and_id, futuresContract, get_code_and_id_from_contract_key, key_contains_instrument_code, listOfFuturesContracts
 from syslogdiag.log import logtoscreen
@@ -14,7 +15,7 @@ class mongoFuturesContractData(futuresContractData):
 
     If you want more information about a given instrument you have to read it in using mongoFuturesInstrumentData
     """
-    def __init__(self, mongo_db=None, log=logtoscreen(
+    def __init__(self, mongo_db=arg_not_supplied, log=logtoscreen(
             "mongoFuturesContractData")):
 
         super().__init__(log=log)

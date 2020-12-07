@@ -3,7 +3,7 @@ from sysobjects.rolls import rollParameters
 
 from sysdata.mongodb.mongo_generic import mongoData, missing_data
 from syslogdiag.log import logtoscreen
-
+from syscore.objects import arg_not_supplied
 ROLL_COLLECTION = "futures_roll_parameters"
 
 
@@ -15,7 +15,7 @@ class mongoRollParametersData(rollParametersData):
     """
 
 
-    def __init__(self, mongo_db=None, log=logtoscreen(
+    def __init__(self, mongo_db=arg_not_supplied, log=logtoscreen(
         "mongoRollParametersData")):
         super().__init__(log=log)
         self._mongo_data = mongoData(ROLL_COLLECTION, "instrument_code", mongo_db=mongo_db)

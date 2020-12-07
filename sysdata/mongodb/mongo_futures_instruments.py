@@ -1,4 +1,4 @@
-
+from syscore.objects import arg_not_supplied
 
 from sysdata.futures.instruments import futuresInstrumentData
 from sysobjects.instruments import  futuresInstrumentWithMetaData
@@ -16,7 +16,7 @@ class mongoFuturesInstrumentData(futuresInstrumentData):
 
     """
 
-    def __init__(self, mongo_db=None, log=logtoscreen(
+    def __init__(self, mongo_db=arg_not_supplied, log=logtoscreen(
             "mongoFuturesInstrumentData")):
 
         super().__init__(log=log)

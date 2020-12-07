@@ -3,6 +3,7 @@ from copy import copy
 import numpy as np
 
 from syscore.genutils import get_safe_from_dict
+from syscore.objects import arg_not_supplied
 from sysdata.private_config import get_list_of_private_then_default_key_values
 
 LIST_OF_MONGO_PARAMS = ["db", "host"]
@@ -109,9 +110,10 @@ class mongoConnection(object):
 
     """
 
-    def __init__(self, collection_name: str, mongo_db: mongoDb=None):
+    def __init__(self, collection_name: str, mongo_db: mongoDb=arg_not_supplied):
 
-        if mongo_db is None:
+        # FIXME REMOVE NONE WHEN CODE PROPERLY REFACTORED
+        if mongo_db is arg_not_supplied or mongo_db is None:
             mongo_db = mongoDb()
 
         database_name = mongo_db.database_name

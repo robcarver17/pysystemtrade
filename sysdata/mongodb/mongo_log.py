@@ -1,3 +1,4 @@
+from syscore.objects import arg_not_supplied
 from sysdata.mongodb.mongo_connection import mongoConnection, mongoDb
 from sysdata.mongodb.mongo_generic import mongoData, MONGO_ID_KEY, existingData
 from syscore.dateutils import long_to_datetime, datetime_to_long
@@ -22,7 +23,7 @@ class logToMongod(logToDb):
         type: str,
         data=None,
         log_level: str="Off",
-        mongo_db: mongoDb=None,
+        mongo_db: mongoDb=arg_not_supplied,
         **kwargs,
     ):
         super().__init__(type=type, log_level=log_level, **kwargs)
@@ -85,7 +86,7 @@ class logToMongod(logToDb):
 
 class mongoLogData(logData):
     # Need to change so uses data
-    def __init__(self, mongo_db=None, log=logtoscreen("mongoLogData")):
+    def __init__(self, mongo_db=arg_not_supplied, log=logtoscreen("mongoLogData")):
         self._mongo_data = mongoData(LOG_COLLECTION_NAME, LOG_RECORD_ID, mongo_db=mongo_db)
         super().__init__(log=log)
 
