@@ -361,7 +361,7 @@ class controlProcessData(baseData):
 
     def when_method_last_run(self, process_name: str, method_name: str) -> datetime.datetime:
         original_process = self._get_control_for_process_name(process_name)
-        return original_process.when_last_run(method_name)
+        return original_process.when_method_last_run(method_name)
 
 
 def list_of_all_running_pids():

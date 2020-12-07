@@ -379,7 +379,7 @@ def get_control_data_list_for_ordinary_methods(data):
 
 def get_control_data_for_single_ordinary_method(data, method_name_and_process):
     method, process_name = method_name_and_process
-    data_control = dataControlProcess()
+    data_control = dataControlProcess(data)
     last_run_or_heartbeat = data_control.when_method_last_run(process_name, method)
 
     data_for_method = dataForMethod(
