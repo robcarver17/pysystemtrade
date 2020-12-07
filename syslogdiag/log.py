@@ -249,8 +249,16 @@ class logtoscreen(logger):
         if msglevel == 4:
             raise Exception(text)
 
+    def get_next_log_id(self) -> int:
+        last_id = self.get_last_used_log_id()
+        next_id = last_id+1
+
+        self.update_log_id(next_id)
+
+        return next_id
+
     def get_last_used_log_id(self):
-        return getattr(self, "_log_id", None)
+        return getattr(self, "_log_id", 0)
 
     def update_log_id(self, log_id):
         self._log_id = log_id
