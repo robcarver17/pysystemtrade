@@ -5,7 +5,7 @@ from sysdata.mongodb.mongo_generic import mongoData
 from syslogdiag.log import logtoscreen
 
 IB_CLIENT_COLLECTION = "IBClientTracker"
-IB_ID_REF = 'client id'
+IB_ID_REF = 'client_id'
 
 class mongoIbBrokerClientIdData(ibBrokerClientIdData):
     """
