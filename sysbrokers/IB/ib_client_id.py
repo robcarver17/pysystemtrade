@@ -2,7 +2,7 @@ from syscore.objects import arg_not_supplied
 
 from syslogdiag.log import logtoscreen
 
-from sysbrokers.IB.ib_connection import ib_defaults
+from sysbrokers.IB.ib_connection_defaults import ib_defaults
 from sysdata.production.broker_client_id import brokerClientIdData
 
 class ibBrokerClientIdData(brokerClientIdData):
