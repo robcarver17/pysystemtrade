@@ -239,7 +239,7 @@ class dataBlob(object):
 
             ## default to tracking ID through mongo change if required
             self.add_class_object(mongoIbBrokerClientIdData)
-            client_id = self.db_ib_broker_client.return_valid_client_id()
+            client_id = self.db_ib_broker_client_id.return_valid_client_id()
             ib_conn = connectionIB(client_id, log=self.log)
             self._ib_conn = ib_conn
 
