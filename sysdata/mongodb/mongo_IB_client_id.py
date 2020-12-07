@@ -33,8 +33,7 @@ class mongoIbBrokerClientIdData(ibBrokerClientIdData):
         return self.mongo_data.get_list_of_keys()
 
     def _lock_clientid(self, next_id: int):
-        lock_dict = {IB_ID_REF: next_id}
-        self.mongo_data.add_data(lock_dict)
+        self.mongo_data.add_data(next_id, {})
         self.log.msg("Locked IB client ID %d" % next_id)
 
 
