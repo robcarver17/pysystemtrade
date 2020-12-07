@@ -14,7 +14,8 @@ from sysproduction.data.controls import (
     dataTradeLimits,
     diagProcessConfig,
     dataControlProcess,
-    dataPositionLimits
+    dataPositionLimits,
+    dataBrokerClientIDs
 )
 from sysproduction.data.prices import get_valid_instrument_code_from_user
 from sysproduction.data.strategies import get_valid_strategy_name_from_user
@@ -46,7 +47,8 @@ top_level_menu_of_options = {
     0: "Trade limits",
     1: "Position limits",
     2: "Trade control (override)",
-    3: "Process control and monitoring",
+    3: "Broker client IDS"
+    4: "Process control and monitoring",
 }
 
 nested_menu_of_options = {
@@ -71,10 +73,13 @@ nested_menu_of_options = {
         23: "Update / add / remove override for strategy & instrument",
     },
     3: {
-        30: "View process controls and status",
-        31: "Change status of process control (STOP/GO/NO RUN)",
-        32: "View process configuration (set in YAML, cannot change here)",
-        33: "Mark process as finished",
+        30: "Clear all unused client IDS"
+    },
+    4: {
+        40: "View process controls and status",
+        41: "Change status of process control (STOP/GO/NO RUN)",
+        42: "View process configuration (set in YAML, cannot change here)",
+        43: "Mark process as finished",
     },
 }
 
@@ -355,6 +360,14 @@ def get_overide_object_from_user():
             print(e)
 
 
+def clear_used_client_ids(data):
+    print("Clear all locks on broker client IDs. DO NOT DO IF ANY BROKER SESSIONS ARE ACTIVE!")
+    ans = input("Are you sure? (y/other)")
+    if ans == "y":
+        client_id_data = dataBrokerClientIDs(data)
+        client_id_data.clear_all_clientids()
+
+
 def view_process_controls(data):
     dict_of_controls = get_dict_of_process_controls(data)
     print("\nControlled processes:\n")
@@ -449,8 +462,9 @@ dict_of_functions = {
     21: update_strategy_override,
     22: update_instrument_override,
     23: update_strategy_instrument_override,
-    30: view_process_controls,
-    31: change_process_control_status,
-    32: view_process_config,
-    33: finish_process,
+    30: clear_used_client_ids,
+    40: view_process_controls,
+    41: change_process_control_status,
+    42: view_process_config,
+    43: finish_process,
 }
