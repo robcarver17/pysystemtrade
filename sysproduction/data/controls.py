@@ -13,10 +13,23 @@ from sysdata.mongodb.mongo_lock_data import mongoLockData
 from sysdata.mongodb.mongo_position_limits import mongoPositionLimitData
 from sysdata.mongodb.mongo_trade_limits import mongoTradeLimitData
 from sysdata.mongodb.mongo_override import mongoOverrideData
+from sysdata.mongodb.mongo_IB_client_id import mongoIbBrokerClientIdData
 
 from sysdata.data_blob import dataBlob
 from sysproduction.data.strategies import diagStrategiesConfig
 from sysproduction.data.positions import diagPositions
+
+class dataBrokerClientIDs(object):
+    def __init__(self, data=arg_not_supplied):
+        # Check data has the right elements to do this
+        if data is arg_not_supplied:
+            data = dataBlob()
+
+        data.add_class_object(mongoIbBrokerClientIdData)
+        self.data = data
+
+    def clear_all_clientids(self):
+        self.data.db_ib_broker_client_id.clear_all_clientids()
 
 
 class dataLocks(object):

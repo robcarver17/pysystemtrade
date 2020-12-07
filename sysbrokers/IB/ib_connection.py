@@ -8,7 +8,7 @@ import time
 from ib_insync import IB
 
 from sysbrokers.IB.ib_client import ibClient
-from sysbrokers.IB.ib_client_id import mongoIBclientIdData
+from sysdata.mongodb.mongo_IB_client_id import mongoIbClientIdData
 from sysbrokers.IB.ib_server import ibServer
 from syscore.genutils import get_safe_from_dict
 from syscore.objects import arg_not_supplied, missing_data
@@ -77,14 +77,13 @@ class connectionIB(ibClient, ibServer):
 
     def __init__(
         self,
-        client=None,
+        client_id: int,
         ipaddress=None,
         port=None,
-        log=logtoscreen("connectionIB"),
-        mongo_db=arg_not_supplied,
+        log=logtoscreen("connectionIB")
     ):
         """
-        :param client: client id. If not passed then will get from database specified by mongo_db
+        :param client_id: client id
         :param ipaddress: IP address of machine running IB Gateway or TWS. If not passed then will get from private config file, or defaults
         :param port: Port listened to by IB Gateway or TWS
         :param log: logging object
@@ -92,7 +91,7 @@ class connectionIB(ibClient, ibServer):
         """
 
         # resolve defaults
-        ipaddress, port, idoffset = ib_defaults(ipaddress=ipaddress, port=port)
+        ipaddress, port, __ = ib_defaults(ipaddress=ipaddress, port=port)
 
         # The client id is pulled from a mongo database
         # If for example you want to use a different database you could do something like:
@@ -101,15 +100,10 @@ class connectionIB(ibClient, ibServer):
 
         # You can pass a client id yourself, or let IB find one
 
-        self.db_id_tracker = mongoIBclientIdData(
-            mongo_db=mongo_db, log=log, idoffset=idoffset
-        )
-        client = self.db_id_tracker.return_valid_client_id(client)
-
         # If you copy for another broker include this line
-        log.label(broker="IB", clientid=client)
+        log.label(broker="IB", clientid=client_id)
         self._ib_connection_config = dict(
-            ipaddress=ipaddress, port=port, client=client)
+            ipaddress=ipaddress, port=port, client=client_id)
 
         # if you copy for another broker, don't forget the logs
         ibServer.__init__(self, log=log)
@@ -120,9 +114,9 @@ class connectionIB(ibClient, ibServer):
         account = get_broker_account()
         if account is missing_data:
             self.log.error("Broker account ID not found in private config - may cause issues")
-            ib.connect(ipaddress, port, clientId=client, account=account)
+            ib.connect(ipaddress, port, clientId=client_id, account=account)
         else:
-            ib.connect(ipaddress, port, clientId=client, account=account)
+            ib.connect(ipaddress, port, clientId=client_id, account=account)
 
         # Attempt to fix connection bug
         time.sleep(5)
