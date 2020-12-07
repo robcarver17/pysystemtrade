@@ -107,7 +107,7 @@ class timerClassWithFunction(object):
 
     @property
     def log(self):
-        return self.log
+        return self._log
 
     @property
     def frequency_minutes(self):
