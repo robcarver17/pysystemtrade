@@ -10,6 +10,7 @@ For a given process:
 import datetime
 import os
 
+from syscore.genutils import is_pid_running
 from sysdata.base_data import baseData
 from syscore.objects import (
     success,
@@ -125,6 +126,16 @@ class controlProcess(object):
         self._process_id = os.getpid()
 
         return success
+
+    def check_if_pid_running_and_if_not_finish(self):
+        pid_running = self.check_if_pid_running()
+        if not pid_running:
+            self.finish_process()
+
+    def check_if_pid_running(self) -> bool:
+        ## I don't normally make jokes in code, or use weird variable names, so allow me this one please
+        flash_gordon_is_alive = is_pid_running(self.process_id)
+        return flash_gordon_is_alive
 
     def finish_process(self):
         """

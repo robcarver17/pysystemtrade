@@ -12,6 +12,7 @@ from sysbrokers.IB.ib_server import ibServer
 from syscore.genutils import get_safe_from_dict
 from syscore.objects import arg_not_supplied, missing_data
 
+from sysdata.base_data import baseData
 from sysdata.private_config import get_list_of_private_then_default_key_values, get_private_then_default_key_value
 from syslogdiag.log import logtoscreen
 from sysdata.mongodb.mongo_connection import mongoConnection, mongoDb
@@ -101,7 +102,7 @@ class connectionIB(ibClient, ibServer):
 
         # You can pass a client id yourself, or let IB find one
 
-        self.db_id_tracker = mongoIBclientIDtracker(
+        self.db_id_tracker = mongoIBclientIdData(
             mongo_db=mongo_db, log=log, idoffset=idoffset
         )
         client = self.db_id_tracker.return_valid_client_id(client)
@@ -152,7 +153,8 @@ class connectionIB(ibClient, ibServer):
 IB_CLIENT_COLLECTION = "IBClientTracker"
 
 
-class mongoIBclientIDtracker(object):
+#FIXME NEEDS REFACTORING BUT ALSO IS THIS THE RIGHT PLACE FOR IT??
+class mongoIBclientIdData(baseData):
     """
     Read and write data class to get next used client id
     """
@@ -164,6 +166,7 @@ class mongoIBclientIDtracker(object):
         log=logtoscreen("mongoIDTracker"),
     ):
 
+        super().__init__(log=log)
         if mongo_db is arg_not_supplied:
             mongo_db = mongoDb()
 
@@ -182,8 +185,11 @@ class mongoIBclientIDtracker(object):
             self._mongo.port,
         )
 
-        self.log = log
         self._idoffset = idoffset
+
+    @property
+    def log(self):
+        return self._log
 
     def __repr__(self):
         return self.name

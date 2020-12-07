@@ -32,6 +32,7 @@ class logToMongod(logToDb):
     def _delete_old_metadata(self):
         ## ONLY NEED TO DO ONCE... CHANGED THE WAY THIS WORKS
         self.mongo_data._mongo.collection.delete_one(dict(_meta_data='log_id'))
+        self.mongo_data._mongo.collection.drop_indexes()
 
     @property
     def mongo_data(self):
