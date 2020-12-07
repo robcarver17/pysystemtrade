@@ -380,12 +380,13 @@ def get_control_data_list_for_ordinary_methods(data):
 def get_control_data_for_single_ordinary_method(data, method_name_and_process):
     method, process_name = method_name_and_process
     data_control = dataControlProcess(data)
-    last_run_or_heartbeat = data_control.when_method_last_run(process_name, method)
+    last_run = data_control.when_method_last_run(process_name, method)
+    last_run_as_str = last_run_or_heartbeat_from_date_or_none(last_run)
 
     data_for_method = dataForMethod(
         method_or_strategy=method,
         process_name=process_name,
-        last_run_or_heartbeat=last_run_or_heartbeat,
+        last_run_or_heartbeat=last_run_as_str,
     )
 
     return data_for_method
@@ -395,8 +396,19 @@ short_date_string = "%m/%d %H:%M"
 
 
 def get_last_run_or_heartbeat(data, attr_dict):
+    #FIXME CAN BE REMOVED ONCE STRATEGY STUFF REFACTORED
     log_data = diagLogs(data)
     last_run_or_heartbeat = log_data.find_last_entry_date(attr_dict)
+    if last_run_or_heartbeat is missing_data:
+        last_run_or_heartbeat = "00/00 Never run"
+    else:
+        last_run_or_heartbeat = last_run_or_heartbeat.strftime(
+            short_date_string)
+
+    return last_run_or_heartbeat
+
+
+def last_run_or_heartbeat_from_date_or_none(last_run_or_heartbeat):
     if last_run_or_heartbeat is missing_data:
         last_run_or_heartbeat = "00/00 Never run"
     else:

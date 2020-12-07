@@ -51,7 +51,7 @@ class dictOfRunningMethods(dict):
         self[method_name] = datetime.datetime.now()
 
     def when_last_run(self, method_name):
-        last_run = self.get(method_name, None)
+        last_run = self.get(method_name, missing_data)
         return last_run
 
     def as_dict(self):
