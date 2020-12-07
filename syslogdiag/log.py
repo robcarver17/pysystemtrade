@@ -145,27 +145,6 @@ class logger(object):
         msg_level = LOG_MAPPING["critical"]
         return self.log(text, msglevel=msg_level, **kwargs)
 
-    def get_last_used_log_id(self) -> int:
-        """
-        Get last log id used. This should be stored in the underlying database.
-
-        If no last log id, return None
-
-        :return: int
-        """
-        raise NotImplementedError(
-            "You need to implement this method in an inherited class or use an inherited claass eg logToMongod"
-        )
-
-    def update_log_id(self, log_id: int):
-        """
-        Update the current stored log id
-
-        :return: None
-        """
-        raise NotImplementedError(
-            "You need to implement this method in an inherited class or use an inherited claass eg logToMongod"
-        )
 
     def get_next_log_id(self) -> int:
         """
@@ -173,15 +152,9 @@ class logger(object):
 
         :return: int
         """
-        last_id = self.get_last_used_log_id()
-        if last_id is None:
-            last_id = -1
-
-        next_id = last_id + 1
-
-        self.update_log_id(next_id)
-
-        return next_id
+        raise NotImplementedError(
+            "You need to implement this method in an inherited class or use an inherited claass eg logToMongod"
+        )
 
     def log(self, text, msglevel=0, **kwargs):
         log_attributes = self.attributes

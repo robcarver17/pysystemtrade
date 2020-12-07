@@ -38,6 +38,22 @@ class logToMongod(logToDb):
     def mongo_data(self):
         return self._mongo_data
 
+    def get_next_log_id(self) -> int:
+        invalid_id = True
+        counter = 0
+        while invalid_id:
+            last_id = self.get_last_used_log_id()
+            next_id = last_id + 1
+            reversed_okay = self.reserved_log_id(next_id)
+            if reversed_okay:
+                invalid_id = False
+            counter = counter + 1
+            if counter>100:
+                self.log.critical("Couldn't reserve log ID")
+                raise Exception("Couldn't reserve log ID")
+
+        return next_id
+
     def get_last_used_log_id(self) -> int:
         """
         Get last used log id. Returns None if not present
@@ -53,8 +69,13 @@ class logToMongod(logToDb):
     def get_all_log_ids(self) -> list:
         return self.mongo_data.get_list_of_keys()
 
-    def update_log_id(self, next_id: int):
-        self.mongo_data.add_data(next_id, {}, allow_overwrite=True)
+    def reserved_log_id(self, next_id: int) -> bool:
+        try:
+            self.mongo_data.add_data(next_id, {})
+        except existingData:
+            return False
+        else:
+            return True
 
     def add_log_record(self, log_entry):
         record_as_dict = log_entry.log_dict()
