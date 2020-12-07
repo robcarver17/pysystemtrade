@@ -34,7 +34,7 @@ class mongoControlProcessData(controlProcessData):
         return self.mongo_data.get_list_of_keys()
 
     def _get_control_for_process_name_without_default(self, process_name):
-        result_dict = self.mongo_data.get_result_dict_for_key_without_key_value(PROCESS_CONTROL_KEY)
+        result_dict = self.mongo_data.get_result_dict_for_key_without_key_value(process_name)
         if result_dict is missing_data:
             return missing_data
 
