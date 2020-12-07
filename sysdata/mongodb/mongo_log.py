@@ -62,7 +62,7 @@ class logToMongod(logToDb):
         """
         all_log_ids = self.get_all_log_ids()
         if len(all_log_ids)==0:
-            return None
+            return 0
 
         return max(all_log_ids)
 
