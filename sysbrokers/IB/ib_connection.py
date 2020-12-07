@@ -88,6 +88,9 @@ class connectionIB(ibClient, ibServer):
     def __repr__(self):
         return "IB broker connection" + str(self._ib_connection_config)
 
+    def client_id(self):
+        return self._ib_connection_config["client"]
+
     def close_connection(self):
         self.log.msg("Terminating %s" % str(self._ib_connection_config))
         try:
@@ -97,8 +100,5 @@ class connectionIB(ibClient, ibServer):
             self.log.warn(
                 "Trying to disconnect IB client failed... ensure process is killed"
             )
-        finally:
-            self.db_id_tracker.release_clientid(
-                self._ib_connection_config["client"])
 
 
