@@ -1,6 +1,6 @@
 import datetime
 
-from syscontrol.data_interface import diagProcessConfig
+from syscontrol.data_interface import diagProcessConfig, dataControlProcess
 from syslogdiag.log import logtoscreen
 
 
@@ -11,6 +11,7 @@ def _get_list_of_timer_functions(
         use_strategy_config=False):
     list_of_timer_functions = []
     diag_process = diagProcessConfig(data)
+
     for entry in list_of_timer_names_and_functions:
         if use_strategy_config:
             strategy_name, object, function_object = entry
@@ -33,6 +34,8 @@ def _get_list_of_timer_functions(
         timer_class = timerClassWithFunction(
             method_name,
             function_object,
+            data,
+            process_name = process_name,
             frequency_minutes=frequency_minutes,
             max_executions=max_executions,
             run_on_completion_only=run_on_completion_only,
@@ -68,9 +71,11 @@ class timerClassWithFunction(object):
         self,
         name,
         function_to_execute,
-        frequency_minutes=60,
-        max_executions=1,
-        run_on_completion_only=False,
+        data,
+        process_name:str = "",
+        frequency_minutes: int=60,
+        max_executions: int=1,
+        run_on_completion_only: bool=False,
         log=logtoscreen(""),
         minutes_between_heartbeats=10,
     ):
@@ -81,7 +86,10 @@ class timerClassWithFunction(object):
         self._name = name
         self._run_on_completion_only = run_on_completion_only
         self._minutes_between_heartbeats = minutes_between_heartbeats
-        self.log = log
+        self._log = log
+        self._data = data
+        self._process_name = process_name
+
         if run_on_completion_only:
             log.msg("%s will run on process completion" % name)
         else:
@@ -89,6 +97,17 @@ class timerClassWithFunction(object):
                 "%s will run every %d minutes at most %d times (-1: infinity)"
                 % (name, frequency_minutes, max_executions)
             )
+    @property
+    def data(self):
+        return self.data
+
+    @property
+    def process_name(self):
+        return self._process_name
+
+    @property
+    def log(self):
+        return self.log
 
     @property
     def frequency_minutes(self):
@@ -117,6 +136,7 @@ class timerClassWithFunction(object):
 
         self.run_function()
         self.update_on_run()
+        self.log_run_method()
 
         return None
 
@@ -125,8 +145,8 @@ class timerClassWithFunction(object):
             if last_run:
                 self.log_heartbeat()
                 self.log.msg(
-                    "Running %s as final run for process" %
-                    self.name, type=self.name)
+                    "Running %s as final run for process %s" %
+                    self.name, self.process_name, type=self.name)
                 return True
             else:
                 return False
@@ -239,3 +259,7 @@ class timerClassWithFunction(object):
         self._last_run = datetime.datetime.now()
 
         return None
+
+    def log_run_method(self):
+        data_process = dataControlProcess()
+        data_process.log_run_for_method(self.process_name, self.name)
