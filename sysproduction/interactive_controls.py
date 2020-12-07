@@ -47,7 +47,7 @@ top_level_menu_of_options = {
     0: "Trade limits",
     1: "Position limits",
     2: "Trade control (override)",
-    3: "Broker client IDS"
+    3: "Broker client IDS",
     4: "Process control and monitoring",
 }
 
