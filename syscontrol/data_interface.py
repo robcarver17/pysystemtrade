@@ -23,6 +23,7 @@ class dataControlProcess(object):
     def get_dict_of_control_processes(self):
         return self.data.db_control_process.get_dict_of_control_processes()
 
+
     def check_if_okay_to_start_process(self, process_name):
         """
 
@@ -78,6 +79,12 @@ class dataControlProcess(object):
         )
         return result
 
+    def log_run_for_method(self, process_name: str, method_name: str):
+       self.data.db_control_process.log_run_for_method(process_name, method_name)
+
+    def when_method_last_run(self, process_name: str, method_name: str) -> datetime.datetime:
+        result = self.data.db_control_process.when_method_last_run(process_name, method_name)
+        return result
 
 class diagProcessConfig:
     def __init__(self, data=arg_not_supplied):

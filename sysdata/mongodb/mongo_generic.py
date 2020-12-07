@@ -84,6 +84,9 @@ class mongoData(object):
     def get_result_dict_for_key_without_key_value(self, key: str) ->dict:
         key_name = self.key_name
         result_dict = self.get_result_dict_for_key(key)
+        if result_dict is missing_data:
+            return missing_data
+
         result_dict.pop(key_name)
 
         return result_dict

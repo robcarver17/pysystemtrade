@@ -8,7 +8,7 @@ import sys
 import numpy as np
 import datetime
 import functools
-import psutil
+
 
 class not_required_flag(object):
     def __repr__(self):
@@ -17,19 +17,6 @@ class not_required_flag(object):
 
 NOT_REQUIRED = not_required_flag()
 
-def list_of_all_running_pids():
-    psid_list=[]
-    for proc in psutil.process_iter():
-        try:
-            processID = proc.pid
-            psid_list.append(processID)
-        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-            pass
-    return psid_list
-
-def is_pid_running(pid):
-    pid_list = list_of_all_running_pids()
-    return pid in pid_list
 
 def group_dict_from_natural(dict_group):
     """

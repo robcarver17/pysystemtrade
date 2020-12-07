@@ -18,7 +18,7 @@ We kick them all off in the crontab at a specific time (midnight is easiest), bu
 
 """
 from syscontrol.data_interface import dataControlProcess, diagProcessConfig
-from syscontrol.data_objects import process_no_run,process_stop,process_running
+from syscontrol.data_objects import process_no_run, process_stop, process_running
 from syscontrol.timer_functions import _get_list_of_timer_functions
 
 from syscore.objects import (
