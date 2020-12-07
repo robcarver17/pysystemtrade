@@ -165,7 +165,7 @@ class controlProcess(object):
         self.running_methods.log_run_for_method(method_name)
 
     def when_method_last_run(self, method_name: str):
-        self.running_methods.when_last_run(method_name)
+        return self.running_methods.when_last_run(method_name)
 
     def check_if_pid_running_and_if_not_finish(self):
         pid_running = self.check_if_pid_running()
