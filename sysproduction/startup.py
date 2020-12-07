@@ -1,6 +1,7 @@
 ## run on startup
 
-from sysproduction.data.controls import dataControlProcess, dataBrokerClientIDs
+from sysproduction.data.controls import dataBrokerClientIDs
+from syscontrol.data_interface import dataControlProcess
 
 
 def startup():

@@ -1,4 +1,4 @@
-from sysproduction.run_process import processToRun
+from syscontrol.run_process import processToRun
 from sysproduction.diagnostic.report_configs import all_configs
 
 from sysdata.data_blob import dataBlob

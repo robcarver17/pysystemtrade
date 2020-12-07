@@ -1,4 +1,4 @@
-from sysproduction.run_process import processToRun
+from syscontrol.run_process import processToRun
 from sysproduction.update_fx_prices import updateFxPrices
 from sysproduction.update_sampled_contracts import updateSampledContracts
 from sysproduction.update_historical_prices import updateHistoricalPrices

@@ -12,11 +12,10 @@ from sysproduction.data.controls import (
     diagOverrides,
     updateOverrides,
     dataTradeLimits,
-    diagProcessConfig,
-    dataControlProcess,
     dataPositionLimits,
     dataBrokerClientIDs
 )
+from syscontrol.data_interface import dataControlProcess, diagProcessConfig
 from sysproduction.data.prices import get_valid_instrument_code_from_user
 from sysproduction.data.strategies import get_valid_strategy_name_from_user
 from sysproduction.data.positions import diagPositions

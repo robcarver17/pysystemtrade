@@ -13,8 +13,8 @@ strategy_list:
 from syscore.objects import resolve_function
 
 from sysdata.data_blob import dataBlob
-from sysproduction.data.controls import diagProcessConfig
-from sysproduction.run_process import processToRun
+from syscontrol.data_interface import diagProcessConfig
+from syscontrol.run_process import processToRun
 from sysproduction.data.strategies import get_list_of_strategies
 
 

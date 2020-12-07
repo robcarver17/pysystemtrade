@@ -15,13 +15,12 @@ from syscore.genutils import transfer_object_attributes
 
 from sysdata.data_blob import dataBlob
 from sysproduction.data.controls import (
-    diagProcessConfig,
-    dataControlProcess,
     dataTradeLimits,
     diagOverrides,
     dataLocks,
     dataPositionLimits
 )
+from syscontrol.data_interface import dataControlProcess, diagProcessConfig
 from sysproduction.data.strategies import get_list_of_strategies
 from sysproduction.data.prices import get_list_of_instruments
 from sysproduction.data.currency_data import get_list_of_fxcodes, dataCurrency

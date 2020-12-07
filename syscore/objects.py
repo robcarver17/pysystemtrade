@@ -63,10 +63,6 @@ class status(_named_object):
 success = status("success")
 failure = status("failure")
 
-process_stop = _named_object("process stop")
-process_no_run = _named_object("process no run")
-process_running = _named_object("process running")
-
 arg_not_supplied = _named_object("arg not supplied")
 user_exit = _named_object("exit")
 

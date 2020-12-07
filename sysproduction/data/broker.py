@@ -26,7 +26,7 @@ from sysobjects.contracts import futuresContract
 from sysdata.data_blob import dataBlob
 from sysproduction.data.positions import diagPositions
 from sysproduction.data.currency_data import dataCurrency
-from sysproduction.data.controls import diagProcessConfig
+from syscontrol.data_interface import diagProcessConfig
 
 benchmarkPriceCollection = namedtuple(
     "benchmarkPriceCollection",

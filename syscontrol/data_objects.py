@@ -15,11 +15,16 @@ from sysdata.base_data import baseData
 from syscore.objects import (
     success,
     failure,
-    process_no_run,
-    process_stop,
-    process_running,
+    _named_object,
     missing_data,
 )
+
+
+process_stop = _named_object("process stop")
+process_no_run = _named_object("process no run")
+process_running = _named_object("process running")
+
+
 from syscore.dateutils import SECONDS_PER_DAY
 from syslogdiag.log import logtoscreen
 

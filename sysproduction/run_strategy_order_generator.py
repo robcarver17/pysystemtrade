@@ -8,13 +8,8 @@ This is a 'run' module, designed to run all day and then stop at the end of the 
 
 """
 
-from copy import copy
-
-from sysdata.private_config import get_private_then_default_key_value
-from syscore.objects import resolve_function
-
 from sysdata.data_blob import dataBlob
-from sysproduction.run_process import processToRun
+from syscontrol.run_process import processToRun
 from sysproduction.run_systems import get_list_of_timer_functions_for_strategies
 
 process_name = "run_strategy_order_generator"

@@ -1,4 +1,4 @@
-from sysproduction.run_process import processToRun
+from syscontrol.run_process import processToRun
 from sysproduction.update_total_capital import totalCapitalUpdate
 from sysproduction.update_strategy_capital import updateStrategyCapital
 from sysdata.data_blob import dataBlob
