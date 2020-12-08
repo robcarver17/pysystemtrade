@@ -10,8 +10,9 @@ from syscontrol.data_objects import was_running_pid_notok_closed
 
 def monitor():
     with dataBlob(log_name="system-monitor") as data:
+        process_observatory = processObservatory(data)
+
         while 2==2:
-            process_observatory = processObservatory(data)
             check_if_pid_running_return_status_msgs(process_observatory)
             process_observatory.update_all_status_with_process_control()
             generate_html(process_observatory)
