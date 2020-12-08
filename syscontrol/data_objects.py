@@ -42,6 +42,8 @@ possible_status = [go_status, no_run_status, stop_status]
 start_run_idx = 0
 end_run_idx = 1
 
+missing_date_str=""
+
 class dictOfRunningMethods(dict):
     def log_start_run_for_method(self, method_name: str):
         current_entry = self.get_current_entry(method_name)
@@ -68,10 +70,14 @@ class dictOfRunningMethods(dict):
 
     def when_last_start_run(self, method_name):
         current_entry = self.get_current_entry(method_name)
+        if current_entry is missing_date_str:
+            return missing_data
         return current_entry[start_run_idx]
 
     def when_last_end_run(self, method_name):
         current_entry = self.get_current_entry(method_name)
+        if current_entry is missing_date_str:
+            return missing_data
         return current_entry[end_run_idx]
 
 
@@ -79,8 +85,8 @@ class dictOfRunningMethods(dict):
         return dict(self)
 
     def get_current_entry(self, method_name):
-        ans= copy(self.get(method_name, [missing_data, missing_data]))
-        #FIXME
+        ans= copy(self.get(method_name, [missing_date_str, missing_date_str]))
+        #FIXME TEMP FIX
         if type(ans) is datetime.datetime:
             return [missing_data, missing_data]
 
