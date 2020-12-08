@@ -15,10 +15,3 @@ def update_strategy_orders():
         for strategy_name in list_of_strategies:
             strategy_order_generator = strategyRunner(data, strategy_name, process_name, name_of_main_generator_method)
             strategy_order_generator.run_strategy_method()
-
-def update_strategy_orders_for_strategy(data, strategy_name):
-    ## if called externally eg from interactive function
-    strategy_order_generator = strategyRunner(data, strategy_name, process_name, name_of_main_generator_method)
-    strategy_order_generator.run_strategy_method()
-
-

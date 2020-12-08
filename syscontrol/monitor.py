@@ -1,3 +1,4 @@
+import time
 from copy import  copy
 import datetime
 from sysdata.data_blob import dataBlob
@@ -16,6 +17,7 @@ def monitor():
             check_if_pid_running_return_status_msgs(process_observatory)
             process_observatory.update_all_status_with_process_control()
             generate_html(process_observatory)
+            time.sleep(300)
 
 UNKNOWN_STATUS = "Unknown"
 RUNNING_STATUS = "Running"

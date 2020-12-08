@@ -1,5 +1,12 @@
 # Release notes
 
+## Version 0.60.0
+
+Split out control configuration from other YAML files (**YOU WILL NEED TO CHANGE PRIVATE CONFIG** look at the production docs!)
+Refactoring of run and control processes mostly into new syscontrol module
+Added simple monitoring tool
+Added email 'to' option (**YOU WILL NEED TO CHANGE PRIVATE CONFIG TO INCLUDE email_to parameter**)
+
 ## Version 0.52.0
 
 Mostly refactoring and documenting the creation and storage of data

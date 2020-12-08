@@ -195,7 +195,7 @@ You need to:
     - Install the pysystemtrade package, and install or update, any dependencies in directory $PYSYS_CODE (it's possible to put it elsewhere, but you will need to modify the environment variables listed above). If using git clone from your home directory this should create the directory '/home/user_name/pysystemtrade/'
     - [Set up interactive brokers](/docs/IB.md), download and install their python code, and get a gateway running.
     - [Install mongodb](https://docs.mongodb.com/manual/administration/install-on-linux/)
-    - create a file 'private_config.yaml' in the private directory of [pysystemtrade](/private)
+    - create a file 'private_config.yaml' in the private directory of [pysystemtrade](/private), and optionally a 'private_control_config.yaml' file
     - [check a mongodb server is running with the right data directory](/docs/futures.md#mongo-db) command line: `mongod --dbpath $MONGO_DATA`
     - launch an IB gateway (this could be done automatically depending on your security setup)
 - FX data:
@@ -313,7 +313,7 @@ If running fully automated, [ib-controller](https://github.com/ib-controller/ib-
 
 I suggest the following:
 
-- From `run_stack_handler`.yaml process configuration (#process-configuration) in your private yaml config file, remove the method `create_broker_orders_from_contract_orders`
+- From `run_stack_handler`.yaml process configuration (#process-configuration) in your `private_control_config.yaml` file, remove the method `create_broker_orders_from_contract_orders`
 - Run `interactive_order_stack` to check what contract orders have been created.
 - Do the trade
 - Use 'manually fill broker or contract order' in `interactive_order_stack` to enter the fill details.
@@ -671,12 +671,13 @@ It defaults to deleting anything more than 30 days old.
 
 ### Reporting
 
-Reports are run regularly to allow you to monitor the system and decide if any action should be taken. You can choose to have them emailed to you. To do this the email address, server and password *must* be set in `private_config.yaml`:
+Reports are run regularly to allow you to monitor the system and decide if any action should be taken. You can choose to have them emailed to you. To do this the email address, server and password *must* be set in `private_config.yaml`, as well as the address the email is being sent to (which can be the same as the sending email account):
 
 ```
 email_address: "somebloke@anemailadress.com"
 email_pwd: "h0Wm@nyLetter$ub$tiute$"
 email_server: 'smtp.anemailadress.com'
+email_to: "someotherbloke@anothermail.com"
 ```
 
 Reports are run automatically every day by the [run reports](#run-all-reports) process, but you can also run ad-hoc reports in the [interactive diagnostics](#reports) tool. Ad hoc reports can be emailed or displayed on screen.
@@ -781,23 +782,23 @@ The following prefixes are used for scripts:
 - _backup: run a backup. 
 - _clean: run a housekeeping / cleaning process
 - _interactive: run an interactive process to check or fix the system, avoiding diving into python every time something goes wrong
-- _update: update data in the system (price or capital)
+- _update: update data in the system (basically do one of the stages in the system)
 - startup: run when the machine starts
 - _run: run a regularly scheduled process.
 
-Normally it's possible to call a process directly (eg _backup_files) on an ad-hoc basis, or it will be called regularly through a 'run' process that may do other stuff as well  (eg run_backups, runs all backup processses). Run processes are a bit complicated, as I've foolishly written my own scheduling code, so see [this section](#pysystemtrade-scheduling) for more. Some exceptions are interactive scripts which only run when called, and run_systems / run_strategy_order_generator which do not have separate scripts.
+Normally it's possible to call a process directly (eg _backup_files) on an ad-hoc basis, or it will be called regularly through a 'run' process that may do other stuff as well  (eg run_backups, runs all backup processses). Run processes are a bit complicated, as I've foolishly written my own scheduling code, so see [this section](#pysystemtrade-scheduling) for more. Some exceptions are interactive scripts which only run when called, and run_stack_handler which does not have a separate script.
 
 ## Run processes
 
 These are listed here for convenience, but more documentation is given below in the relevant section for each script
 
-- run_backups: Runs [backup_arctic_to_csv](#backup-arctic-data-to-csv-files), [backup_files](#backup-files)
-- run_capital_updates: Runs [update_strategy_capital](#allocate-capital-to-strategies), [update_total_capital](#update-capital-and-pl-by-polling-brokerage-account)
-- run_cleaners: Runs [clean_truncate_backtest_states](#delete-old-pickled-backtest-state-objects), [clean_truncate_echo_files](#truncate-echo-files), [clean_truncate_log_files](#clean-up-old-logs)
-- run_daily_price_updates: Runs [update_fx_prices](#get-spot-fx-data-from-interactive-brokers-write-to-mongodb-daily), [update_sampled_contracts](#update-sampled-contracts-daily), [update_historical_prices](#update-futures-contract-historical-price-data-daily), [update_multiple_adjusted_prices](#update-multiple-and-adjusted-prices-daily)
+- run_backups: Runs [backup_arctic_to_csv](#backup-arctic-data-to-csv-files), [backup_files](#backup-files): create backups
+- run_capital_updates: Runs [update_strategy_capital](#allocate-capital-to-strategies), [update_total_capital](#update-capital-and-pl-by-polling-brokerage-account): update capital
+- run_cleaners: Runs [clean_truncate_backtest_states](#delete-old-pickled-backtest-state-objects), [clean_truncate_echo_files](#truncate-echo-files), [clean_truncate_log_files](#clean-up-old-logs): Clean up
+- run_daily_price_updates: Runs [update_fx_prices](#get-spot-fx-data-from-interactive-brokers-write-to-mongodb-daily), [update_sampled_contracts](#update-sampled-contracts-daily), [update_historical_prices](#update-futures-contract-historical-price-data-daily), [update_multiple_adjusted_prices](#update-multiple-and-adjusted-prices-daily): daily price and contract data updates
 - run_reports: Runs [all reports](#reports-1)
-- [run_systems](#run-updated-backtest-systems-for-one-or-more-strategies): Runs a backtest to decide what optimal positions are required
-- [run_strategy_order_generator](#generate-orders-for-each-strategy): Creates trades based on the output of run_systems
+- run_systems: Runs [update_system_backtests](#run-updated-backtest-systems-for-one-or-more-strategies): Runs a backtest to decide what optimal positions are required
+- run_strategy_order_generator: Runs [update_strategy_orders](#generate-orders-for-each-strategy): Creates trades based on the output of run_systems
 - [run_stack_handler](#execute-orders): Executes trades placed on the stack by run_strategy_order_generator
 
 
@@ -946,20 +947,36 @@ This can easily be adapted for different kinds of trading system. So for example
 
 Python:
 ```python
-from sysproduction.update_run_systems import update_run_systems
-run_system()
+from sysproduction.update_system_backtests import update_system_backtests
+update_system_backtests() 
 ```
 
 Linux script:
 ```
-. $SCRIPT_PATH/update_system_example
+. $SCRIPT_PATH/update_system_backtests
 ```
 
-The code to run each strategies backtest is defined in the configuration parameter in the default.yaml file (or overriden in the private yaml config): `strategy_list/strategy_name/run_systems`. The sub-parameters do the following:
+Called by: `run_systems`
 
-- `object` the class of the code that runs the system, eg `sysproduction.strategy_code.run_system_classic.runSystemClassic`
-- `function` the method of the class that runs the system eg `run_system_classic`
+The code to run each strategies backtest is defined in the configuration parameter in the control_config.yaml file (or overriden in the private_control_config.yaml file): `process_configuration_methods/run_systems/strategy_name/`. For example:
+
+```
+process_configuration_methods:
+  run_systems:
+    example:
+      max_executions: 1
+      object: sysproduction.strategy_code.run_system_classic.runSystemClassic
+      backtest_config_filename: systems.provided.futures_chapter15.futures_config.yaml
+
+```
+
+
+The sub-parameters do the following:
+
+- `object` the class of the code that runs the system, eg `sysproduction.strategy_code.run_system_classic.runSystemClassic` This class **must** provide a method `run_backtest` that has no arguments.
 - `backtest_config_filename` the location of the .yaml configuration file to pass to the strategy runner eg `systems.provided.futures_chapter15.futures_config.yaml`
+
+The following optional parameters are used only by `run_systems`:
 - `max_executions` the number of times the backtest should be run on each iteration of run_systems. Normally 1, unless you have some whacky intraday system. Can be omitted.
 - `frequency` how often, in minutes, the backtest is run. Normally 60 (but only relevant if max_executions>1). Can be omitted.
 
@@ -973,19 +990,31 @@ Once each strategy knows what it wants to do, we generate orders. These will dep
 
 Python:
 ```python
-from sysproduction.run_strategy_order_generator import run_strategy_order_generator
-run_strategy_order_generator()
+from sysproduction.update_strategy_orders import update_strategy_orders
+update_strategy_orders()
 ```
 
 Linux script:
 ```
-. $SCRIPT_PATH/run_strategy_order_generator
+. $SCRIPT_PATH/update_strategy_orders
 ```
 
-The code to run each strategies backtest is defined in the configuration parameter in the default.yaml file (or overriden in the private yaml config): `strategy_list/strategy_name/run_systems`. The sub-parameters do the following:
+Called by: `run_strategy_order_generator`
 
-- `object` the class of the code that generates the orders, eg `sysexecution.strategies.classic_buffered_positions.orderGeneratorForBufferedPositions`. 
-- `function` the method of the class that generates the orders eg `get_and_place_orders`
+
+The code to run each strategies backtest is defined in the configuration parameter in the control_config.yaml file (or overriden in the private_control_config.yaml file): `process_configuration_methods/run_systems/strategy_name/`. For example:
+
+
+```
+  run_strategy_order_generator:
+    example:
+      object: sysexecution.strategies.classic_buffered_positions.orderGeneratorForBufferedPositions
+      max_executions: 1
+```
+
+- `object` the class of the code that generates the orders, eg `sysexecution.strategies.classic_buffered_positions.orderGeneratorForBufferedPositions`. This must provide a method `get_and_place_orders` (which it will, as long if the class inherits from `orderGeneratorForStrategy`)
+
+The following optional parameters are used only by `run_strategy_order_generator`:
 - `max_executions` the number of times the generator should be run on each iteration of run_systems. Normally 1, unless you have some whacky intraday system. Can be omitted.
 - `frequency` how often, in minutes, the generator is run. Normally 60 (but only relevant if max_executions>1). Can be omitted.
 
