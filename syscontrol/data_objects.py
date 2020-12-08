@@ -88,7 +88,7 @@ class dictOfRunningMethods(dict):
         ans= copy(self.get(method_name, [missing_date_str, missing_date_str]))
         #FIXME TEMP FIX
         if type(ans) is datetime.datetime:
-            return [missing_data, missing_data]
+            return [missing_date_str, missing_date_str]
 
     def set_entry(self, method_name, new_entry):
         self[method_name] = new_entry
