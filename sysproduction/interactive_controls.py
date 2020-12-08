@@ -390,7 +390,7 @@ def change_process_control_status(data):
 
     process_name = get_process_name(data)
     status_int= get_valid_status_for_process()
-    change_process_given_int(process_name, status_int)
+    change_process_given_int(data, process_name, status_int)
     return None
 
 def change_global_process_control_status(data):
@@ -402,7 +402,7 @@ def change_global_process_control_status(data):
     process_dict = get_dict_of_process_controls(data)
     process_list = list(process_dict.keys())
     for process_name in process_list:
-        change_process_given_int(process_name, status_int)
+        change_process_given_int(data, process_name, status_int)
 
 def get_valid_status_for_process():
     status_int = print_menu_and_get_response(
@@ -416,7 +416,7 @@ def get_valid_status_for_process():
     )
     return status_int
 
-def change_process_given_int(process_name, status_int):
+def change_process_given_int(data, process_name, status_int):
     data_process = dataControlProcess(data)
 
     if status_int == 1:
@@ -444,14 +444,6 @@ def view_process_config(data):
         print("%s: %s" % (str(key), str(value)))
     print("\nAbove should be modified in private_config.yaml files")
 
-
-def view_strategy_config(data):
-    diag_config = diagControlProcess(data)
-    strategy_name = get_valid_strategy_name_from_user(data=data)
-    result_dict = diag_config.get_strategy_dict_for_strategy(strategy_name)
-    for key, value in result_dict.items():
-        print("%s: %s" % (str(key), str(value)))
-    print("\nAbove should be modified in private_config.yaml files")
 
 
 def finish_process(data):
