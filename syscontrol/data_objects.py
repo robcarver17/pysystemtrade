@@ -8,6 +8,7 @@ For a given process:
  - have I run today and finished running?
 """
 from dataclasses import dataclass
+from copy import copy
 import datetime
 import os
 
@@ -78,7 +79,7 @@ class dictOfRunningMethods(dict):
         return dict(self)
 
     def get_current_entry(self, method_name):
-        return self.get(method_name, [missing_data, missing_data])
+        return copy(self.get(method_name, [missing_data, missing_data]))
 
     def set_entry(self, method_name, new_entry):
         self[method_name] = new_entry
