@@ -3,11 +3,16 @@ import socket
 
 from syscore.dateutils import SECONDS_PER_HOUR
 from syscore.genutils import str2Bool
-from syscore.objects import arg_not_supplied, missing_data
 from sysdata.data_blob import dataBlob
 from syscontrol.mongo_process_control import mongoControlProcessData
-from sysdata.private_config import get_private_then_default_key_value
-from sysproduction.data.strategies import diagStrategiesConfig
+
+import yaml
+from syscore.fileutils import get_filename_for_package
+from syscore.objects import missing_data, arg_not_supplied
+
+PRIVATE_CONTROL_CONFIG_FILE = get_filename_for_package("private.private_control_config.yaml")
+PUBLIC_CONTROL_CONFIG_FILE = get_filename_for_package("syscontrol.control_config.yaml")
+
 
 
 
@@ -79,12 +84,12 @@ class dataControlProcess(object):
         )
         return result
 
-    def log_run_for_method(self, process_name: str, method_name: str):
-       self.data.db_control_process.log_run_for_method(process_name, method_name)
+    def log_start_run_for_method(self, process_name: str, method_name: str):
+       self.data.db_control_process.log_start_run_for_method(process_name, method_name)
 
-    def when_method_last_run(self, process_name: str, method_name: str) -> datetime.datetime:
-        result = self.data.db_control_process.when_method_last_run(process_name, method_name)
-        return result
+    def log_end_run_for_method(self, process_name: str, method_name: str):
+       self.data.db_control_process.log_end_run_for_method(process_name, method_name)
+
 
 class diagProcessConfig:
     def __init__(self, data=arg_not_supplied):
@@ -109,12 +114,6 @@ class diagProcessConfig:
         )
 
         return result_dict
-
-    def get_strategy_dict_for_process(self, process_name, strategy_name):
-        this_strategy_dict = self.get_strategy_dict_for_strategy(strategy_name)
-        this_process_dict = this_strategy_dict[process_name]
-
-        return this_process_dict
 
     def has_previous_process_finished_in_last_day(self, process_name):
         previous_process = self.previous_process_name(process_name)
@@ -168,21 +167,21 @@ class diagProcessConfig:
         return run_on_completion_only
 
     def frequency_for_process_and_method(
-        self, process_name, method_name, use_strategy_config=False
+        self, process_name, method_name
     ):
         frequency, _ = self.frequency_and_max_executions_for_process_and_method(
-            process_name, method_name, use_strategy_config=use_strategy_config)
+            process_name, method_name)
         return frequency
 
     def max_executions_for_process_and_method(
-        self, process_name, method_name, use_strategy_config
+        self, process_name, method_name
     ):
         _, max_executions = self.frequency_and_max_executions_for_process_and_method(
-            process_name, method_name, use_strategy_config=use_strategy_config)
+            process_name, method_name)
         return max_executions
 
     def frequency_and_max_executions_for_process_and_method(
-        self, process_name, method_name, use_strategy_config=False
+        self, process_name, method_name
     ):
         """
 
@@ -191,42 +190,16 @@ class diagProcessConfig:
         :return: tuple of int: frequency (minutes), max executions
         """
 
-        if use_strategy_config:
-            # the 'method' here is actually a strategy
-            (
-                frequency,
-                max_executions,
-            ) = self.frequency_and_max_executions_for_process_and_method_strategy_dict(
-                process_name,
-                method_name)
-        else:
-            (
-                frequency,
-                max_executions,
-            ) = self.frequency_and_max_executions_for_process_and_method_process_dict(
-                process_name,
-                method_name)
+        (
+            frequency,
+            max_executions,
+        ) = self.frequency_and_max_executions_for_process_and_method_process_dict(
+            process_name,
+            method_name)
 
         return frequency, max_executions
 
-    def frequency_and_max_executions_for_process_and_method_strategy_dict(
-        self, process_name, strategy_name
-    ):
-        this_process_dict = self.get_strategy_dict_for_process(
-            process_name, strategy_name
-        )
-        frequency = this_process_dict.get("frequency", 60)
-        max_executions = this_process_dict.get("max_executions", 1)
 
-        return frequency, max_executions
-
-    def get_strategy_dict_for_strategy(self, strategy_name):
-        diag_strategy_config = diagStrategiesConfig(self.data)
-        strategy_dict = diag_strategy_config.get_strategy_dict_for_strategy(
-            strategy_name
-        )
-
-        return strategy_dict
 
     def frequency_and_max_executions_for_process_and_method_process_dict(
         self, process_name, method_name
@@ -247,6 +220,12 @@ class diagProcessConfig:
         this_method_dict = all_method_dict.get(method_name, {})
 
         return this_method_dict
+
+    def get_list_of_methods_for_process_name(self, process_name: str):
+        all_method_dict = self.get_all_method_dict_for_process_name(
+            process_name)
+
+        return all_method_dict.keys()
 
     def get_all_method_dict_for_process_name(self, process_name):
         all_method_dict = self.get_configuration_item_for_process_name(
@@ -325,10 +304,6 @@ class diagProcessConfig:
 
         return result
 
-    def get_list_of_processes_run_over_strategies(self):
-        return self.get_process_configuration_for_item_name(
-            "run_over_strategies")
-
     def get_configuration_item_for_process_name(
         self, process_name, item_name, default=None, use_config_default=False
     ):
@@ -344,11 +319,81 @@ class diagProcessConfig:
     def get_process_configuration_for_item_name(self, item_name):
         config = getattr(self, "_process_config_%s" % item_name, None)
         if config is None:
-            config = get_private_then_default_key_value(
-                "process_configuration_%s" % item_name, raise_error=False
+            config = get_key_value_from_dict(
+                "process_configuration_%s" % item_name
             )
             if config is missing_data:
                 return {}
             setattr(self, "_process_config_%s" % item_name, config)
 
         return config
+
+    def when_method_last_started(self, process_name: str, method_name: str) -> datetime.datetime:
+        result = self.data.db_control_process.when_method_last_started(process_name, method_name)
+        return result
+
+    def when_method_last_ended(self, process_name: str, method_name: str) -> datetime.datetime:
+        result = self.data.db_control_process.when_method_last_ended(process_name, method_name)
+        return result
+
+    def method_currently_running(self, process_name: str, method_name: str) -> bool:
+        result = self.data.db_control_process.method_currently_running(process_name, method_name)
+        return  result
+
+def get_key_value_from_dict(item_name):
+    config_dict = get_config_dict()
+
+    return config_dict.get(item_name, missing_data)
+
+
+def get_config_dict() -> dict:
+    private_dict = get_private_control_config()
+    if private_dict is not missing_data:
+        return private_dict
+    public_dict = get_public_control_config()
+    if public_dict is missing_data:
+        raise Exception("Need to have eithier %s or %s present:" % (
+        str(PUBLIC_CONTROL_CONFIG_FILE), str(PRIVATE_CONTROL_CONFIG_FILE)))
+
+    return public_dict
+
+
+
+def get_public_control_config():
+    try:
+        with open(PUBLIC_CONTROL_CONFIG_FILE) as file_to_parse:
+            config_dict = yaml.load(file_to_parse, Loader=yaml.FullLoader)
+    except BaseException:
+        config_dict = missing_data
+
+    return config_dict
+
+def get_private_control_config():
+    try:
+        with open(PRIVATE_CONTROL_CONFIG_FILE) as file_to_parse:
+            config_dict = yaml.load(file_to_parse, Loader=yaml.FullLoader)
+    except BaseException:
+        config_dict = missing_data
+
+    return config_dict
+
+
+def get_list_of_strategies_for_process(data: dataBlob, process_name: str) -> list:
+    diag_config = diagProcessConfig(data)
+    list_of_strategies = diag_config.get_list_of_methods_for_process_name(process_name)
+
+    return list_of_strategies
+
+
+def get_strategy_class_object_config(data: dataBlob, process_name: str, strategy_name: str):
+    """
+    returns dict with
+          object: sysproduction.strategy_code.run_system_classic.runSystemClassic
+      function: run_system_classic
+      backtest_config_filename: systems.provided.futures_chapter15.futures_config.yaml
+
+    """
+    diag_config = diagProcessConfig(data)
+    config_this_process = diag_config.get_method_configuration_for_process_name(process_name, strategy_name)
+
+    return config_this_process

@@ -155,7 +155,8 @@ dataForLimits = namedtuple(
 
 dataForMethod = namedtuple(
     "dataForMethod", [
-        "method_or_strategy", "process_name", "last_run_or_heartbeat"])
+        "method_or_strategy", "process_name", "last_start", "last_end", "currently_running"
+    ])
 
 genericUpdate = namedtuple("genericUpdate", ["name", "last_update"])
 dataOverride = namedtuple("dataOverride", ["name", "override"])
@@ -359,16 +360,8 @@ def get_control_data_for_process_name(data, process_name):
     return data_for_process
 
 
+
 def get_control_data_list_for_all_methods(data):
-    list_one = get_control_data_list_for_ordinary_methods(data)
-    list_two = get_control_data_list_for_strategy_processes(data)
-
-    all_list = list_one + list_two
-
-    return all_list
-
-
-def get_control_data_list_for_ordinary_methods(data):
     all_methods_and_processes = get_method_names_and_process_names(data)
     list_of_controls = [
         get_control_data_for_single_ordinary_method(data, method_name_and_process)
@@ -379,14 +372,22 @@ def get_control_data_list_for_ordinary_methods(data):
 
 def get_control_data_for_single_ordinary_method(data, method_name_and_process):
     method, process_name = method_name_and_process
-    data_control = dataControlProcess(data)
-    last_run = data_control.when_method_last_run(process_name, method)
-    last_run_as_str = last_run_or_heartbeat_from_date_or_none(last_run)
+    data_control = diagProcessConfig(data)
+
+    last_start = data_control.when_method_last_started(process_name, method)
+    last_start_as_str = last_run_or_heartbeat_from_date_or_none(last_start)
+
+    last_end = data_control.when_method_last_ended(process_name, method)
+    last_end_as_str = last_run_or_heartbeat_from_date_or_none(last_end)
+
+    currently_running = data_control.method_currently_running(process_name, method)
 
     data_for_method = dataForMethod(
         method_or_strategy=method,
         process_name=process_name,
-        last_run_or_heartbeat=last_run_as_str,
+        last_start= last_start_as_str,
+        last_end = last_end_as_str,
+        currently_running=str(currently_running)
     )
 
     return data_for_method
@@ -395,17 +396,6 @@ def get_control_data_for_single_ordinary_method(data, method_name_and_process):
 short_date_string = "%m/%d %H:%M"
 
 
-def get_last_run_or_heartbeat(data, attr_dict):
-    #FIXME CAN BE REMOVED ONCE STRATEGY STUFF REFACTORED
-    log_data = diagLogs(data)
-    last_run_or_heartbeat = log_data.find_last_entry_date(attr_dict)
-    if last_run_or_heartbeat is missing_data:
-        last_run_or_heartbeat = "00/00 Never run"
-    else:
-        last_run_or_heartbeat = last_run_or_heartbeat.strftime(
-            short_date_string)
-
-    return last_run_or_heartbeat
 
 
 def last_run_or_heartbeat_from_date_or_none(last_run_or_heartbeat):
@@ -418,22 +408,6 @@ def last_run_or_heartbeat_from_date_or_none(last_run_or_heartbeat):
     return last_run_or_heartbeat
 
 
-def get_control_data_list_for_strategy_processes(data):
-    list_of_processes = get_process_with_strategies(data)
-    list_of_strategies = get_list_of_strategies()
-    all_cd_list = []
-    for process_name in list_of_processes:
-        for strategy_name in list_of_strategies:
-            last_run_or_heartbeat = get_last_run_or_heartbeat(
-                data, dict(type=process_name, strategy_name=strategy_name)
-            )
-            data_for_method = dataForMethod(
-                method_or_strategy=strategy_name,
-                process_name=process_name,
-                last_run_or_heartbeat=last_run_or_heartbeat,
-            )
-            all_cd_list.append(data_for_method)
-    return all_cd_list
 
 
 def get_method_names_and_process_names(data):
@@ -451,27 +425,13 @@ def get_method_names_and_process_names(data):
     return method_and_process_list
 
 
-def get_list_of_all_processes(data):
-    ordinary_process_names = get_ordinary_process_list(data)
-    process_with_strategies = get_process_with_strategies(data)
-    all_process_names = ordinary_process_names + process_with_strategies
-
-    return all_process_names
 
 
-def get_ordinary_process_list(data):
+def  get_list_of_all_processes(data):
     all_methods_dict = get_methods_dict(data)
     ordinary_process_names = list(all_methods_dict.keys())
 
     return ordinary_process_names
-
-
-def get_process_with_strategies(data):
-    diag_process_config = diagProcessConfig(data)
-    process_with_strategies = (
-        diag_process_config.get_list_of_processes_run_over_strategies()
-    )
-    return process_with_strategies
 
 
 def get_methods_dict(data):

@@ -5,7 +5,7 @@ from shutil import copyfile
 from syscore.objects import success, failure, resolve_function
 from syscore.fileutils import get_resolved_pathname, files_with_extension_in_pathname
 from sysdata.private_config import get_private_then_default_key_value
-from sysproduction.run_systems import get_strategy_class_object_config
+from sysproduction.data.strategies import diagStrategiesConfig
 
 PICKLE_EXT = ".pck"
 CONFIG_EXT = ".yaml"
@@ -44,11 +44,9 @@ def create_system_with_saved_state(data, strategy_name, date_time_signature):
 
 def get_system_caller(data, strategy_name, date_time_signature):
     # returns a method we can use to recreate a system
-    process_name = "load_backtests"
+
     try:
-        config_this_process = get_strategy_class_object_config(
-            process_name, data, strategy_name
-        )
+        config_this_process = get_strategy_class_backtest_loader_config(data, strategy_name)
     except BaseException:
         data.log.warn(
             "No configuration strategy_list/strategy_name/load_backtests; using defaults"
@@ -69,6 +67,13 @@ def get_system_caller(data, strategy_name, date_time_signature):
     method = getattr(strategy_class_instance, function)
 
     return method
+
+def get_strategy_class_backtest_loader_config(
+            data, strategy_name
+        ):
+    diag_strategy_config = diagStrategiesConfig(data)
+    return diag_strategy_config.get_strategy_config_dict(strategy_name, "load_backtests")
+
 
 
 def load_backtest_state(system, strategy_name, date_time_signature):

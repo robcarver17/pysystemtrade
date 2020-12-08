@@ -38,7 +38,7 @@ class runSystemClassic(object):
         self.strategy_name = strategy_name
         self.backtest_config_filename = backtest_config_filename
 
-    def run_system_classic(self):
+    def run_backtest(self):
         strategy_name = self.strategy_name
         data = self.data
 

@@ -9,8 +9,16 @@ from systems.defaults import (
 
 PRIVATE_CONFIG_FILE = get_filename_for_package("private.private_config.yaml")
 
-
 def get_private_config():
+    try:
+        with open(PRIVATE_CONFIG_FILE) as file_to_parse:
+            config_dict = yaml.load(file_to_parse, Loader=yaml.FullLoader)
+    except BaseException:
+        config_dict = {}
+
+    return config_dict
+
+def get_private_control_config():
     try:
         with open(PRIVATE_CONFIG_FILE) as file_to_parse:
             config_dict = yaml.load(file_to_parse, Loader=yaml.FullLoader)

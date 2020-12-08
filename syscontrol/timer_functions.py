@@ -7,29 +7,24 @@ from syslogdiag.log import logtoscreen
 def _get_list_of_timer_functions(
         data,
         process_name,
-        list_of_timer_names_and_functions,
-        use_strategy_config=False):
+        list_of_timer_names_and_functions):
     list_of_timer_functions = []
     diag_process = diagProcessConfig(data)
 
     for entry in list_of_timer_names_and_functions:
-        if use_strategy_config:
-            strategy_name, object, function_object = entry
-            method_name = strategy_name
-            run_on_completion_only = False
-        else:
-            method_name, object = entry
-            function_object = getattr(object, method_name)
-            run_on_completion_only = diag_process.run_on_completion_only(
-                process_name, method_name
-            )
+        method_name, object = entry
+        function_object = getattr(object, method_name)
+
+        run_on_completion_only = diag_process.run_on_completion_only(
+            process_name, method_name
+        )
 
         log = object.data.log
         frequency_minutes = diag_process.frequency_for_process_and_method(
-            process_name, method_name, use_strategy_config=use_strategy_config
+            process_name, method_name
         )
         max_executions = diag_process.max_executions_for_process_and_method(
-            process_name, method_name, use_strategy_config=use_strategy_config
+            process_name, method_name
         )
         timer_class = timerClassWithFunction(
             method_name,
@@ -134,9 +129,10 @@ class timerClassWithFunction(object):
         if not okay_to_run:
             return None
 
+        self.log_run_start_method()
+        self.update_on_start_run()
         self.run_function()
-        self.update_on_run()
-        self.log_run_method()
+        self.log_run_start_method()
 
         return None
 
@@ -146,7 +142,7 @@ class timerClassWithFunction(object):
                 self.log_heartbeat()
                 self.log.msg(
                     "Running %s as final run for process %s" %
-                    self.name, self.process_name, type=self.name)
+                    (self.name, self.process_name), type=self.name)
                 return True
             else:
                 return False
@@ -240,26 +236,32 @@ class timerClassWithFunction(object):
         else:
             return False
 
-    def run_function(self):
-        # Functions can't take args or kwargs or return anything; pure method
-        self._function()
-
-    def update_on_run(self):
+    def update_on_start_run(self):
         self.increment_executions()
-        self.set_last_run()
+        self.set_time_of_last_run()
         if self.completed_max_runs():
             self.log.msg(
                 "%s executed %d times so done" %
                 (self.name, self._max_executions))
 
+
     def increment_executions(self):
         self._actual_executions = self._actual_executions + 1
 
-    def set_last_run(self):
+    def set_time_of_last_run(self):
         self._last_run = datetime.datetime.now()
 
         return None
 
-    def log_run_method(self):
-        data_process = dataControlProcess()
-        data_process.log_run_for_method(self.process_name, self.name)
+    def log_run_start_method(self):
+        data_process = dataControlProcess(self.data)
+        data_process.log_start_run_for_method(self.process_name, self.name)
+
+    def run_function(self):
+        # Functions can't take args or kwargs or return anything; pure method
+        self._function()
+
+
+    def log_run_end_method(self):
+        data_process = dataControlProcess(self.data)
+        data_process.log_end_run_for_method(self.process_name, self.name)

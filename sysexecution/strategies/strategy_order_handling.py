@@ -12,6 +12,7 @@ from sysproduction.data.positions import diagPositions
 from sysproduction.data.orders import dataOrders
 from sysproduction.data.controls import diagOverrides, dataLocks, dataPositionLimits
 
+name_of_main_generator_method = "get_and_place_orders"
 
 class orderGeneratorForStrategy(object):
     """

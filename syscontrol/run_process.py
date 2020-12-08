@@ -38,8 +38,7 @@ class processToRun(object):
         self,
         process_name,
         data,
-        list_of_timer_names_and_functions,
-        use_strategy_config=False,
+        list_of_timer_names_and_functions
     ):
         self.data = data
         self._process_name = process_name
@@ -47,8 +46,7 @@ class processToRun(object):
         self._list_of_timer_functions = _get_list_of_timer_functions(
             data,
             process_name,
-            list_of_timer_names_and_functions,
-            use_strategy_config=use_strategy_config,
+            list_of_timer_names_and_functions
         )
 
     def _setup(self):
