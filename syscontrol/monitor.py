@@ -129,6 +129,7 @@ def generate_html(process_observatory: processObservatory):
     resolved_filename = get_filename_for_package(filename)
 
     with open(resolved_filename, "w") as file:
+        file.write("<br/> Last update %s" % str(datetime.datetime.now()))
         file.write("<br/><br/>")
         file.write(process_observatory.html_repr())
         file.write("<br/><br/>")
