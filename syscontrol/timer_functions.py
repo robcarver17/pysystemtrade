@@ -132,7 +132,7 @@ class timerClassWithFunction(object):
         self.log_run_start_method()
         self.update_on_start_run()
         self.run_function()
-        self.log_run_start_method()
+        self.log_run_end_method()
 
         return None
 
