@@ -68,10 +68,10 @@ def _send_msg(msg):
 
     """
 
-    email_server, email_address, email_pwd = get_email_details()
+    email_server, email_address, email_pwd, email_to = get_email_details()
 
     me = email_address
-    you = email_address
+    you = email_to
     msg["From"] = me
     msg["To"] = you
 
@@ -84,12 +84,17 @@ def _send_msg(msg):
 
 
 def get_email_details():
-    yaml_dict = get_list_of_private_config_values(
-        ["email_address", "email_pwd", "email_server"]
-    )
+    try:
+        yaml_dict = get_list_of_private_config_values(
+        ["email_address", "email_pwd", "email_server", "email_to"]
+        )
+    except:
+        raise Exception("Need to have all of these for email "
+                        "to work in private config: email_address, email_pwd, email_server, email_to")
 
     email_address = yaml_dict["email_address"]
     email_pwd = yaml_dict["email_pwd"]
     email_server = yaml_dict["email_server"]
+    email_to = yaml_dict["email_to"]
 
-    return email_server, email_address, email_pwd
+    return email_server, email_address, email_pwd, email_to
