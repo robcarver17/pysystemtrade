@@ -89,8 +89,7 @@ def get_email_details():
         ["email_address", "email_pwd", "email_server", "email_to"]
         )
     except:
-        raise Exception("Need to have all of these for email "
-                        "to work in private config: email_address, email_pwd, email_server, email_to")
+        raise Exception("Need to have all of these for email to work in private config: email_address, email_pwd, email_server, email_to")
 
     email_address = yaml_dict["email_address"]
     email_pwd = yaml_dict["email_pwd"]

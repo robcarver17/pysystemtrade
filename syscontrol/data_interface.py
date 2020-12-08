@@ -59,7 +59,7 @@ class dataControlProcess(object):
 
         return self.data.db_control_process.finish_all_processes()
 
-    def check_if_pid_running_and_if_not_finish_all_processes(self):
+    def check_if_pid_running_and_if_not_finish_all_processes(self) -> list:
         return self.data.db_control_process.check_if_pid_running_and_if_not_finish_all_processes()
 
     def check_if_process_status_stopped(self, process_name):
@@ -351,6 +351,11 @@ class diagControlProcess:
         result = self.data.db_control_process.get_control_for_process_name(process_name)
 
         return result
+
+    def get_list_of_process_names(self) -> list:
+        result = self.data.db_control_process.get_list_of_process_names()
+        return result
+
 
 def get_key_value_from_dict(item_name):
     config_dict = get_config_dict()
