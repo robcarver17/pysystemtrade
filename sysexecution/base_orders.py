@@ -181,7 +181,7 @@ def apply_minima(trade_list, abs_list):
     smallest_abs_leg = min(abs_trade_list)
     if smallest_abs_leg == 0:
         # can't do this
-        return trade_list
+        return [0 for x in trade_list]
 
     abs_size_ratio_list = [
         min([x, y]) / float(x) for x, y in zip(abs_trade_list, abs_list)
