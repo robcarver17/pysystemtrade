@@ -1518,6 +1518,7 @@ You can delete a specific live order from the database. Again, this will most li
 
 When run_stack_handler has done it's work (eithier because it's time is up, or it has received a STOP command) it will run a clean up process. First it will cancel any active orders. Then it will mark all orders as complete, which will update position databases, and move orders to historical data tables. Finally it deletes every order from every stack; ensuring no state continues to the next day (which could lead to weird behaviour). 
 
+I strongly advise running this rather than deleting the stack, unless you know exactly what you're doing and have a very valid reason for doing it!
 
 
 ## Reporting, housekeeping and backup scripts
@@ -1715,9 +1716,9 @@ The scheduler built into pysystemtrade does not launch processes (this is still 
 - Record when processes have started and stopped, if they are still running, and what their process ID is.
 - Run only in a specified time window (start time, end time)
 - Run only when another process has already finished (i.e. do not run_systems until prices have been updated)
-- Allow interactive_controls to STOP proccesses, or prevent them from starting.
+- Allow interactive_controls to STOP processes, or prevent them from starting.
 - Call 'methods', which are effectively sub processes, multiple times (up to a specified limit) and at specified time intervals (if required).
-
+- Provides a monitoring tool
 
 ### Configuring the scheduling
 
@@ -1735,7 +1736,7 @@ Useful things to note about the crontab:
 
 #### Process configuration
 
-Process configuration is governed by the following config parameters (in defaults.yaml, or individually overriden in the private config .yaml file):
+Process configuration is governed by the following config parameters (in [/syscontrol/control_config.yaml](/syscontrol/control_config.yaml), or these will be globally overriden (so you need to copy and paste the entire file, unlike other default files) by [/private/private_control_config.yaml](/private/private_control_config.yaml)):
 
 -  `process_configuration_start_time`: when the process starts (default 00:01)
 - `process_configuration_stop_time`: when the process ends, regardless of any method configuration (default 23:50)
@@ -1774,13 +1775,15 @@ process_configuration_previous_process:
 
 ```
 
-For most processes (excluding the cross strategy processes: `run_systems` and `run_strategy_order_generator`, of which more below), the configuration of methods that run from within each process are governed by the config parameter `process_configuration_methods` (in defaults.yaml, or individually overriden in the private config .yaml file). That in turn contains a dict for each relevant process, which in turn has a dict for each method, and these have the following possible values:
+The configuration of methods that run from within each process are governed by the config parameter `process_configuration_methods`. That in turn contains a dict for each relevant process, which in turn has a dict for each method, and these have the following possible values:
 
 - `frequency`: How many minutes pass before we run a method again (default: 0, no waiting time)
 - `max_executions`: How many times to run the method (default: -1, which means there is no maximum)
 - `run_on_completion_only`: Don't run until the process is stopping
 
-Here is the full defaults.yaml file section with comments:
+Note for `run_systems` and `run_strategy_order_generator` the methods are actually strategy names, and there are additional parameters that are specific to these processes.
+
+Here is the full default control config with comments:
 
 ```
 process_configuration_methods:
@@ -1843,45 +1846,31 @@ process_configuration_methods:
       max_executions: 1
     clean_log_files:
       max_executions: 1
-```
-
-Cross strategy processes (run_systems and run_strategy_order_generator) have one method per strategy, are governed by the parameter 'strategy_list'. This has dict keys for each strategy, and then dicts for the following processes:
-
-- `run_systems`
-- `run_strategy_order_generator`
-- `load_backtests` (not a process, but used by [interactive_diagnostics](#interactive-diagnostics))
-- `reporting_code` (not a process, but used by [run_reports / strategy_report](#strategy-report))
-
-Each of these contains bespoke parameters determing behaviour, as well as (optionally) the same control parameters we've already seen:
-
-- `frequency`: How many minutes pass before we run a method again (default: 0, no waiting time)
-- `max_executions`: How many times to run the method (default: -1, which means there is no maximum)
-- `run_on_completion_only`: Don't run until the process is stopping
-
-Heres an extract from defaults.yaml with comments:
-
-```
-process_configuration_run_over_strategies:
-  - run_systems
-  - run_strategy_order_generator
-strategy_list:
-  example:
-    run_systems:
-      object: sysproduction.strategy_code.run_system_classic.runSystemClassic
-      function: run_system_classic
-      backtest_config_filename: systems.provided.futures_chapter15.futures_config.yaml
+  run_systems:
+    example:  # strategy name
       max_executions: 1
-    run_strategy_order_generator:
-      object: sysexecution.strategies.classic_buffered_positions.orderGeneratorForBufferedPositions
-      function: get_and_place_orders
-      frequency: 60 # sort of irrelevant, since max_executions is 1 but you can imagine an intraday strategy...
+      object: sysproduction.strategy_code.run_system_classic.runSystemClassic # additional parameter
+      backtest_config_filename: systems.provided.futures_chapter15.futures_config.yaml #additional parameter
+  run_strategy_order_generator:
+    example: # strategy_name
+      object: sysexecution.strategies.classic_buffered_positions.orderGeneratorForBufferedPositions # additional parameter passed
       max_executions: 1
-    load_backtests:
-      object: sysproduction.strategy_code.run_system_classic.runSystemClassic
-      function: system_method
-    reporting_code:
-      function: sysproduction.strategy_code.report_system_classic.report_system_classic
 ```
+
+### System monitor
+
+It can be hard to keep track of what's going on, so I added a simple monitoring tool which outputs an .html file. To use it, add the following to your crontab: 
+
+```
+@reboot             cd ~pysystemtrade/private/; python3 -m http.server
+@reboot             cd ~pysystemtrade/syscontrol/; python3 monitor.py
+```
+
+Once your machine has started you should be able to go to `http://192.168.1.13:8000/` (change the IP address as required) on any LAN connected machine and see the status of the system.
+
+Whilst running the monitor will also handle any 'crashed' processes (those where the PID that is registered is killed without the process being properly finished); it will email the user, update the web log, and mark the process as finished so it can be run again. **It will not automatically respawn the processes!** (you will have to do that manually or wait until the crontab does so the next day).
+
+
 
 ### Troubleshooting?
 
@@ -1940,38 +1929,10 @@ offsystem_backup_directory
 
 The following are configuration options that are in defaults.yaml and can be overriden in private_config.yaml:
 
-[Process control](#process-configuration)
-- `process_configuration_start_time` 
-   - `process_name: 'HH:MM'` 
-- `process_configuration_stop_time` 
-   - `process_name: 'HH:MM'` 
-- `process_configuration_previous_process` 
-   - `process_name: 'prior_process_name'` 
-- `process_configuration_methods` (dict, keys are process names; each is a dict, keys are method names)
-   - `process_name` 
-      - `method_name`
-         - `frequency: N` (int minutes, optional defaults to 0)
-         - `max_executions: N` (int, optional defaults to -1: no maximum)
-         - `run_on_completion_only: True` (bool, optional defaults to False)
-- `process_configuration_run_over_strategies` (list)
-   - `first_process_name` 
-   - `second_process_name` ...
-
 
 [Strategy configuration](#strategies)
 - `strategy_list` (dict, keys are strategy names)
    - `strategy_name`
-      - `run_systems`
-         - `object` class to run system, eg sysproduction.strategy_code.run_system_classic.runSystemClassic
-         - `function` method in class eg run_system_classic
-         - `backtest_config_filename` eg systems.provided.futures_chapter15.futures_config.yaml
-         - `max_executions: N` (int, optional defaults to -1: no maximum, recommended value 1)
-         - `frequency: N` (int minutes, optional defaults to 0)
-      - `run_strategy_order_generator`
-         - `object` class to run system, eg sysexecution.strategies.classic_buffered_positions.orderGeneratorForBufferedPositions
-         - `function` method in class eg get_and_place_orders
-         - `max_executions: N` (int, optional defaults to -1: no maximum, recommended value 1)
-         - `frequency: N` (int minutes, optional defaults to 0)
       - `load_backtests`
          - `object` class to create system instance, eg sysproduction.strategy_code.run_system_classic.runSystemClassic
          - `function` method in class to create system instance eg system_method
@@ -2087,10 +2048,13 @@ Each strategy is defined in the config parameter `strategy_list`, found either i
 ```
 strategy_list:
   example:
-    overnight_launcher:
-      function: sysproduction.system_launchers.run_system_classic.run_system_classic
-      backtest_config_filename: systems.provided.futures_chapter15.futures_config.yaml
+    load_backtests:
+      object: sysproduction.strategy_code.run_system_classic.runSystemClassic
+      function: system_method
+    reporting_code:
+      function: sysproduction.strategy_code.report_system_classic.report_system_classic
 ```
+
 ### Strategy capital
 
 Strategy capital is allocated from [total capital](#capital). This is done by the scripted function, [update strategy capital](#allocate-capital-to-strategies). It is controlled by the configuration element below (in the defaults.yaml file, or overriden in private_config.yaml).
@@ -2120,19 +2084,17 @@ We do not store a history of the risk target of a strategy, so if you change the
 
 System runners run overnight backtests for each of the strategies you are running (see [here](#run-updated-backtest-systems-for-one-or-more-strateges) for more details.)
 
-The following shows the parameters for an example strategy, named (appropriately enough) `example`.
+The following shows the parameters for an example strategy, named (appropriately enough) `example` stored in [syscontrol/control_config.yaml](/syscontrol/control_config.yaml) (remember you can override these in private_control_config.yaml).
 
 ```
-strategy_list:
-  example:
-    run_systems:
-      function: sysproduction.system_launchers.run_system_classic.run_system_classic
-      backtest_config_filename: systems.provided.futures_chapter15.futures_config.yaml
-      function: run_system_classic
+process_configuration_methods:
+  run_systems:
+    example:
       max_executions: 1
-      frequency: 60
-
+      object: sysproduction.strategy_code.run_system_classic.runSystemClassic
+      backtest_config_filename: systems.provided.futures_chapter15.futures_config.yaml
 ```
+
 Note the generic process parameters max_executions and frequency, both are optional, but it is strongly recomended that you set max_executions to 1 unless you want the backtest to run multiple times throughout the day (in which case you should also set frequency, which is the gap between runs in minutes).
 
 A system usually does the following:
@@ -2148,13 +2110,13 @@ As an example [here](/sysproduction/system_launchers/run_system_classic.py) is t
 
 Once a backtest has been run it will generate a list of desired optimal positions (for the classic buffered positions, these will include buffers). From those, and our actual current positions, we need to calculate what trades are required for execution by the run_stack_handler process. 
 
+The following shows the parameters for an example strategy, named (appropriately enough) `example` stored in [syscontrol/control_config.yaml](/syscontrol/control_config.yaml) (remember you can override these in private_control_config.yaml).
+
 ```
-strategy_list:
-  example:
-    run_strategy_order_generator:
+process_configuration_methods:
+  run_strategy_order_generator:
+    example:
       object: sysexecution.strategies.classic_buffered_positions.orderGeneratorForBufferedPositions
-      function: get_and_place_orders
-      frequency: 60
       max_executions: 1
 ```
 
@@ -2183,6 +2145,7 @@ Reports are run that are specific for each strategy, to achieve this we need to 
 ```
 strategy_list:
   example:
+    reporting_code:
       function: sysproduction.strategy_code.report_system_classic.report_system_classic
 ```
 
@@ -2207,7 +2170,7 @@ The better case is when the mongo DB is fine. In this case (once you've [restore
 - FX, individual futures contract prices, multiple prices, adjusted prices: data will be backfilled once run_daily_price_updates has run.
 - Capital: any intraday p&l data will be lost, but once run_capital_update has run the current capital will be correct.
 - Optimal positions: will be correct once run_systems has run.
-- IMPORTANT: State information about processes running may be wrong; you may need to manually FINISH processes using interactive_controls otherwise processes won't run for fear of conflict.
+- IMPORTANT: State information about processes running may be wrong; you may need to manually FINISH processes using interactive_controls otherwise processes won't run for fear of conflict (but the startup script should do this for you)
 - You can use update_* and run_* processes if you want to recover your data before the normal scheduled process will do so. Don't forget to run them in the correct order: update_fx_prices (has to be before run_systems), update_sampled_contracts, update_historical_prices, update_multiple_adjusted_prices, run_systems,  run_strategy_order_generator; at which run_stack_handler will probably have orders to do if it's running. 
 - Processes are started by the scheduler, eg Cron, you will need to start them manually if their normal start time has passed (I find [linux screen](https://linuxize.com/post/how-to-use-linux-screen/) helpful for this on my headless server). Everything should work normally the following day.
 - Carefully check your reports, especially the status and reconcile reports, to see that all is well.
