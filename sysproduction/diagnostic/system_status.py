@@ -20,14 +20,13 @@ from sysproduction.data.controls import (
     dataLocks,
     dataPositionLimits
 )
-from syscontrol.data_interface import dataControlProcess, diagProcessConfig
+from syscontrol.data_interface import dataControlProcess, diagControlProcess
 from sysproduction.data.strategies import get_list_of_strategies
 from sysproduction.data.prices import get_list_of_instruments
 from sysproduction.data.currency_data import get_list_of_fxcodes, dataCurrency
 from sysproduction.data.prices import diagPrices
-from sysproduction.data.positions import diagPositions, dataOptimalPositions
+from sysproduction.data.positions import  dataOptimalPositions
 
-from sysproduction.data.logs import diagLogs
 
 
 def system_status(data=arg_not_supplied):
@@ -138,6 +137,7 @@ dataForProcess = namedtuple(
         "previous_required",
         "previous_finished",
         "time_to_stop",
+        "pid"
     ],
 )
 dataForLimits = namedtuple(
@@ -211,7 +211,7 @@ def get_control_data_list_for_all_processes_as_df(data):
 def get_control_data_list_for_all_methods_as_df(data):
     cd_list = get_control_data_list_for_all_methods(data)
     pdf = make_df_from_list_of_named_tuple(dataForMethod, cd_list)
-    pdf = pdf.sort_values("last_run_or_heartbeat")
+    pdf = pdf.sort_values("last_start")
     return pdf
 
 
@@ -327,7 +327,7 @@ def get_control_data_list_for_all_processes(data):
 
 def get_control_data_for_process_name(data, process_name):
     data_control = dataControlProcess(data)
-    diag_process_config = diagProcessConfig(data)
+    diag_process_config = diagControlProcess(data)
 
     control_data = data_control.get_dict_of_control_processes()
     control_data_for_process = control_data[process_name]
@@ -339,6 +339,7 @@ def get_control_data_for_process_name(data, process_name):
         process_name)
     time_to_stop = diag_process_config.is_it_time_to_stop(process_name)
     right_machine = diag_process_config.is_this_correct_machine(process_name)
+    pid = control_data_for_process.process_id
 
     data_for_process = dataForProcess(
         name=process_name,
@@ -355,6 +356,7 @@ def get_control_data_for_process_name(data, process_name):
         time_to_run=time_to_run,
         time_to_stop=time_to_stop,
         previous_finished=previous_finished,
+        pid = pid
     )
 
     return data_for_process
@@ -370,9 +372,10 @@ def get_control_data_list_for_all_methods(data):
     return list_of_controls
 
 
+
 def get_control_data_for_single_ordinary_method(data, method_name_and_process):
     method, process_name = method_name_and_process
-    data_control = diagProcessConfig(data)
+    data_control = diagControlProcess(data)
 
     last_start = data_control.when_method_last_started(process_name, method)
     last_start_as_str = last_run_or_heartbeat_from_date_or_none(last_start)
@@ -401,8 +404,6 @@ short_date_string = "%m/%d %H:%M"
 def last_run_or_heartbeat_from_date_or_none(last_run_or_heartbeat):
     if last_run_or_heartbeat is missing_data:
         last_run_or_heartbeat = "00/00 Never run"
-    elif type(last_run_or_heartbeat) is str:
-        return last_run_or_heartbeat
     else:
         last_run_or_heartbeat = last_run_or_heartbeat.strftime(
             short_date_string)
@@ -437,7 +438,7 @@ def  get_list_of_all_processes(data):
 
 
 def get_methods_dict(data):
-    diag_process_config = diagProcessConfig(data)
+    diag_process_config = diagControlProcess(data)
     all_methods_dict = diag_process_config.get_process_configuration_for_item_name(
         "methods")
 

@@ -17,7 +17,7 @@ We kick them all off in the crontab at a specific time (midnight is easiest), bu
 - how do I mark myself as FINISHED for a subsequent process to know (in database)
 
 """
-from syscontrol.data_interface import dataControlProcess, diagProcessConfig
+from syscontrol.data_interface import dataControlProcess, diagControlProcess
 from syscontrol.data_objects import process_no_run, process_stop, process_running
 from syscontrol.timer_functions import _get_list_of_timer_functions
 
@@ -53,7 +53,7 @@ class processToRun(object):
         self.log = self.data.log
         data_control = dataControlProcess(self.data)
         self.data_control = data_control
-        diag_process = diagProcessConfig(self.data)
+        diag_process = diagControlProcess(self.data)
         self.diag_process = diag_process
         self._logged_wait_messages = False
 

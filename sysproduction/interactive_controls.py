@@ -15,7 +15,7 @@ from sysproduction.data.controls import (
     dataPositionLimits,
     dataBrokerClientIDs
 )
-from syscontrol.data_interface import dataControlProcess, diagProcessConfig
+from syscontrol.data_interface import dataControlProcess, diagControlProcess
 from sysproduction.data.prices import get_valid_instrument_code_from_user
 from sysproduction.data.strategies import get_valid_strategy_name_from_user
 from sysproduction.data.positions import diagPositions
@@ -417,7 +417,7 @@ def get_process_name(data):
 
 
 def view_process_config(data):
-    diag_config = diagProcessConfig(data)
+    diag_config = diagControlProcess(data)
     process_name = get_process_name(data)
     result_dict = diag_config.get_config_dict(process_name)
     for key, value in result_dict.items():
@@ -426,7 +426,7 @@ def view_process_config(data):
 
 
 def view_strategy_config(data):
-    diag_config = diagProcessConfig(data)
+    diag_config = diagControlProcess(data)
     strategy_name = get_valid_strategy_name_from_user(data=data)
     result_dict = diag_config.get_strategy_dict_for_strategy(strategy_name)
     for key, value in result_dict.items():

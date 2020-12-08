@@ -26,7 +26,7 @@ from sysobjects.contracts import futuresContract
 from sysdata.data_blob import dataBlob
 from sysproduction.data.positions import diagPositions
 from sysproduction.data.currency_data import dataCurrency
-from syscontrol.data_interface import diagProcessConfig
+from syscontrol.data_interface import diagControlProcess
 
 benchmarkPriceCollection = namedtuple(
     "benchmarkPriceCollection",
@@ -110,7 +110,7 @@ class dataBroker(object):
     def less_than_one_hour_of_trading_leg_for_contract(
             self, contract: futuresContract):
 
-        diag_controls = diagProcessConfig()
+        diag_controls = diagControlProcess()
         hours_left_before_process_finishes = diag_controls.how_long_in_hours_before_trading_process_finishes()
 
         if hours_left_before_process_finishes<1:

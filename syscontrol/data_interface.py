@@ -91,11 +91,13 @@ class dataControlProcess(object):
        self.data.db_control_process.log_end_run_for_method(process_name, method_name)
 
 
-class diagProcessConfig:
+class diagControlProcess:
     def __init__(self, data=arg_not_supplied):
         # Check data has the right elements to do this
         if data is arg_not_supplied:
             data = dataBlob()
+        data.add_class_object(mongoControlProcessData)
+
         self.data = data
 
     def get_config_dict(self, process_name):
@@ -328,6 +330,8 @@ class diagProcessConfig:
 
         return config
 
+
+
     def when_method_last_started(self, process_name: str, method_name: str) -> datetime.datetime:
         result = self.data.db_control_process.when_method_last_started(process_name, method_name)
         return result
@@ -339,6 +343,11 @@ class diagProcessConfig:
     def method_currently_running(self, process_name: str, method_name: str) -> bool:
         result = self.data.db_control_process.method_currently_running(process_name, method_name)
         return  result
+
+    def get_control_for_process_name(self, process_name: str):
+        result = self.data.db_control_process.get_control_for_process_name(process_name)
+
+        return result
 
 def get_key_value_from_dict(item_name):
     config_dict = get_config_dict()
@@ -379,7 +388,7 @@ def get_private_control_config():
 
 
 def get_list_of_strategies_for_process(data: dataBlob, process_name: str) -> list:
-    diag_config = diagProcessConfig(data)
+    diag_config = diagControlProcess(data)
     list_of_strategies = diag_config.get_list_of_methods_for_process_name(process_name)
 
     return list_of_strategies
@@ -393,7 +402,7 @@ def get_strategy_class_object_config(data: dataBlob, process_name: str, strategy
       backtest_config_filename: systems.provided.futures_chapter15.futures_config.yaml
 
     """
-    diag_config = diagProcessConfig(data)
+    diag_config = diagControlProcess(data)
     config_this_process = diag_config.get_method_configuration_for_process_name(process_name, strategy_name)
 
     return config_this_process

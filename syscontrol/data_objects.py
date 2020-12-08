@@ -70,15 +70,17 @@ class dictOfRunningMethods(dict):
 
     def when_last_start_run(self, method_name):
         current_entry = self.get_current_entry(method_name)
-        if current_entry is missing_date_str:
+        start_run = current_entry[start_run_idx]
+        if start_run == missing_date_str:
             return missing_data
-        return current_entry[start_run_idx]
+        return start_run
 
     def when_last_end_run(self, method_name):
         current_entry = self.get_current_entry(method_name)
-        if current_entry is missing_date_str:
+        end_run = current_entry[end_run_idx]
+        if end_run == missing_date_str:
             return missing_data
-        return current_entry[end_run_idx]
+        return end_run
 
 
     def as_dict(self):
@@ -91,6 +93,8 @@ class dictOfRunningMethods(dict):
             return [missing_date_str, missing_date_str]
         if ans is None:
             return [missing_date_str, missing_date_str]
+        # END OF FIX
+
         return ans
 
     def set_entry(self, method_name, new_entry):
@@ -277,7 +281,7 @@ class controlProcessData(baseData):
 
     def get_dict_of_control_processes(self) ->dict:
         list_of_names = self.get_list_of_process_names()
-        output_dict = dict([(process_name, self._get_control_for_process_name(
+        output_dict = dict([(process_name, self.get_control_for_process_name(
             process_name)) for process_name in list_of_names])
 
         return output_dict
@@ -285,7 +289,7 @@ class controlProcessData(baseData):
     def get_list_of_process_names(self) ->list:
         return list(self._control_store.keys())
 
-    def _get_control_for_process_name(self, process_name) -> controlProcess:
+    def get_control_for_process_name(self, process_name) -> controlProcess:
         control = self._get_control_for_process_name_without_default(
             process_name)
         if control is missing_data:
@@ -324,7 +328,7 @@ class controlProcessData(baseData):
         :param process_name: str
         :return:  success, or if not okay: process_no_run, process_stop, process_running
         """
-        original_process = self._get_control_for_process_name(process_name)
+        original_process = self.get_control_for_process_name(process_name)
         result = original_process.check_if_okay_to_start_process()
 
         return result
@@ -335,7 +339,7 @@ class controlProcessData(baseData):
         :param process_name: str
         :return:  success, or if not okay: process_no_run, process_stop, process_running
         """
-        original_process = self._get_control_for_process_name(process_name)
+        original_process = self.get_control_for_process_name(process_name)
         result = original_process.start_process()
         if result is success:
             self._update_control_for_process_name(
@@ -356,7 +360,7 @@ class controlProcessData(baseData):
         :param process_name: str
         :return: sucess or failure if can't finish process (maybe already running?)
         """
-        original_process = self._get_control_for_process_name(process_name)
+        original_process = self.get_control_for_process_name(process_name)
         result = original_process.finish_process()
         if result is success:
             self._update_control_for_process_name(
@@ -370,7 +374,7 @@ class controlProcessData(baseData):
         :param process_name: str
         :return: bool
         """
-        original_process = self._get_control_for_process_name(process_name)
+        original_process = self.get_control_for_process_name(process_name)
         result = original_process.check_if_process_status_stopped()
 
         return result
@@ -381,46 +385,46 @@ class controlProcessData(baseData):
         :param process_name: str
         :return: bool
         """
-        original_process = self._get_control_for_process_name(process_name)
+        original_process = self.get_control_for_process_name(process_name)
         result = original_process.has_process_finished_in_last_day()
 
         return result
 
     def change_status_to_stop(self, process_name: str):
-        original_process = self._get_control_for_process_name(process_name)
+        original_process = self.get_control_for_process_name(process_name)
         original_process.change_status_to_stop()
         self._update_control_for_process_name(process_name, original_process)
 
     def change_status_to_go(self, process_name: str):
-        original_process = self._get_control_for_process_name(process_name)
+        original_process = self.get_control_for_process_name(process_name)
         original_process.change_status_to_go()
         self._update_control_for_process_name(process_name, original_process)
 
     def change_status_to_no_run(self, process_name: str):
-        original_process = self._get_control_for_process_name(process_name)
+        original_process = self.get_control_for_process_name(process_name)
         original_process.change_status_to_no_run()
         self._update_control_for_process_name(process_name, original_process)
 
     def log_start_run_for_method(self, process_name: str, method_name: str):
-        original_process = self._get_control_for_process_name(process_name)
+        original_process = self.get_control_for_process_name(process_name)
         original_process.log_start_run_for_method(method_name)
         self._update_control_for_process_name(process_name, original_process)
 
     def log_end_run_for_method(self, process_name: str, method_name: str):
-        original_process = self._get_control_for_process_name(process_name)
+        original_process = self.get_control_for_process_name(process_name)
         original_process.log_end_run_for_method(method_name)
         self._update_control_for_process_name(process_name, original_process)
 
     def when_method_last_started(self, process_name: str, method_name: str) -> datetime.datetime:
-        original_process = self._get_control_for_process_name(process_name)
+        original_process = self.get_control_for_process_name(process_name)
         return original_process.when_method_last_started(method_name)
 
     def when_method_last_ended(self, process_name: str, method_name: str) -> datetime.datetime:
-        original_process = self._get_control_for_process_name(process_name)
+        original_process = self.get_control_for_process_name(process_name)
         return original_process.when_method_last_ended(method_name)
 
     def method_currently_running(self, process_name: str, method_name: str) -> bool:
-        original_process = self._get_control_for_process_name(process_name)
+        original_process = self.get_control_for_process_name(process_name)
         return original_process.method_currently_running(method_name)
 
 

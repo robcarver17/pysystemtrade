@@ -1,6 +1,6 @@
 import datetime
 
-from syscontrol.data_interface import diagProcessConfig, dataControlProcess
+from syscontrol.data_interface import diagControlProcess, dataControlProcess
 from syslogdiag.log import logtoscreen
 
 
@@ -9,7 +9,7 @@ def _get_list_of_timer_functions(
         process_name,
         list_of_timer_names_and_functions):
     list_of_timer_functions = []
-    diag_process = diagProcessConfig(data)
+    diag_process = diagControlProcess(data)
 
     for entry in list_of_timer_names_and_functions:
         method_name, object = entry
