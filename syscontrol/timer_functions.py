@@ -94,7 +94,7 @@ class timerClassWithFunction(object):
             )
     @property
     def data(self):
-        return self.data
+        return self._data
 
     @property
     def process_name(self):
