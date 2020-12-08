@@ -7,7 +7,7 @@ For a given process:
  - is my status NO-RUN, STOP or GO?
  - have I run today and finished running?
 """
-from dataclasses import dataclass
+
 from copy import copy
 import datetime
 import os
@@ -21,7 +21,6 @@ from syscore.objects import (
     missing_data,
 )
 
-from dataclasses import  dataclass
 
 process_stop = _named_object("process stop")
 process_no_run = _named_object("process no run")

@@ -24,7 +24,7 @@ RUNNING_STATUS = "Running"
 NOT_RUNNING_STATUS = "Not running"
 PID_CRASHED_STATUS = "Not running: Crashed"
 
-MAX_LOG_LENGTH = 15
+MAX_LOG_LENGTH = 20
 class internal_logger(list):
     def append_msg(self, new_msg):
         if len(self)>MAX_LOG_LENGTH:
@@ -47,8 +47,16 @@ class processObservatory(dict):
         self.update_all_status_with_process_control()
 
     def html_repr(self):
-        all_str = "<br/>".join(["%s, %s" % (key, value) for key, value in self.items()])
+        list_of_str = self.list_of_processes_str()
+        all_str = "<br/>".join(list_of_str)
         return all_str
+
+    def list_of_processes_str(self):
+        list_of_processes =get_list_of_process_names(self)
+        list_of_str = [str(get_control_for_process(self, process_name))
+                       for process_name in list_of_processes]
+
+        return list_of_str
 
     @property
     def data(self):
