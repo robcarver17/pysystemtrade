@@ -53,12 +53,17 @@ class processObservatory(dict):
 
     def list_of_processes_str(self):
         list_of_processes =get_list_of_process_names(self)
-        list_of_str = ["%s %s %s" % (f"{''+process_name:<20}",
-                                     str(get_control_for_process(self, process_name)),
-                                  self.get_current_status(process_name))
+        list_of_str = [self.str_for_process(process_name)
                        for process_name in list_of_processes]
 
         return list_of_str
+
+    def str_for_process(self, process_name):
+        pname = f"{''+process_name:<30}"
+        control_str = str(get_control_for_process(self, process_name))
+        status_str = self.get_current_status(process_name)
+
+        return "%s: %s (%s)" %  (pname, control_str, status_str)
 
     @property
     def data(self):
