@@ -89,6 +89,8 @@ class dictOfRunningMethods(dict):
         #FIXME TEMP FIX
         if type(ans) is datetime.datetime:
             return [missing_date_str, missing_date_str]
+        if ans is None:
+            return [missing_date_str, missing_date_str]
 
     def set_entry(self, method_name, new_entry):
         self[method_name] = new_entry
