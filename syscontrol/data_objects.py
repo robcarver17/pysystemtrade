@@ -126,6 +126,7 @@ class controlProcess(object):
             run_string = "running"
         else:
             run_string = "not running"
+
         status_string = f"{''+self.status:<7}"
         process_id_string = f"{''+str(self.process_id):<10}"
         return "Last started %s Last ended status %s %s PID %s is %s" % (
