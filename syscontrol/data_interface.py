@@ -59,7 +59,8 @@ class dataControlProcess(object):
 
         return self.data.db_control_process.finish_all_processes()
 
-
+    def check_if_pid_running_and_if_not_finish_all_processes(self):
+        return self.data.db_control_process.check_if_pid_running_and_if_not_finish_all_processes()
 
     def check_if_process_status_stopped(self, process_name):
         """

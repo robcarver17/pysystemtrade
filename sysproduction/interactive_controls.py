@@ -462,7 +462,8 @@ def finish_process(data):
     data_control.finish_process(process_name)
 
 def finish_all_processes(data):
-
+    data_control = dataControlProcess(data)
+    data_control.check_if_pid_running_and_if_not_finish_all_processes()
 
 
 
