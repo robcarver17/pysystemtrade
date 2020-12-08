@@ -1,0 +1,3 @@
+#!/bin/bash
+. ~/.profile
+. p sysproduction.update_strategy_orders.update_strategy_orders
