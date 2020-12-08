@@ -484,6 +484,6 @@ dict_of_functions = {
     42: change_global_process_control_status,
     43: finish_process,
     44: finish_all_processes,
-    42: view_process_config,
+    45: view_process_config,
 }
 
