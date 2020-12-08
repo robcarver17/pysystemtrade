@@ -77,8 +77,10 @@ nested_menu_of_options = {
     4: {
         40: "View process controls and status",
         41: "Change status of process control (STOP/GO/NO RUN)",
-        42: "View process configuration (set in YAML, cannot change here)",
+        42: "Global status change  (STOP/GO/NO RUN)",
         43: "Mark process as finished",
+        44: "Mark all dead processes as finished",
+        45: "View process configuration (set in YAML, cannot change here)",
     },
 }
 
@@ -386,8 +388,23 @@ def get_dict_of_process_controls(data):
 def change_process_control_status(data):
     view_process_controls(data)
 
-    data_process = dataControlProcess(data)
     process_name = get_process_name(data)
+    status_int= get_valid_status_for_process()
+    change_process_given_int(process_name, status_int)
+    return None
+
+def change_global_process_control_status(data):
+    view_process_controls(data)
+    print("Status for *all* processes")
+    status_int= get_valid_status_for_process()
+    if status_int ==0:
+        return None
+    process_dict = get_dict_of_process_controls(data)
+    process_list = list(process_dict.keys())
+    for process_name in process_list:
+        change_process_given_int(process_name, status_int)
+
+def get_valid_status_for_process():
     status_int = print_menu_and_get_response(
         {
             1: "Go",
@@ -397,14 +414,17 @@ def change_process_control_status(data):
         default_option=0,
         default_str="<CANCEL>",
     )
+    return status_int
+
+def change_process_given_int(process_name, status_int):
+    data_process = dataControlProcess(data)
+
     if status_int == 1:
         data_process.change_status_to_go(process_name)
     if status_int == 2:
         data_process.change_status_to_no_run(process_name)
     if status_int == 3:
         data_process.change_status_to_stop(process_name)
-
-    return None
 
 
 def get_process_name(data):
@@ -441,6 +461,10 @@ def finish_process(data):
     data_control = dataControlProcess(data)
     data_control.finish_process(process_name)
 
+def finish_all_processes(data):
+
+
+
 
 def not_defined(data):
     print("\n\nFunction not yet defined\n\n")
@@ -464,6 +488,9 @@ dict_of_functions = {
     30: clear_used_client_ids,
     40: view_process_controls,
     41: change_process_control_status,
-    42: view_process_config,
+    42: change_global_process_control_status,
     43: finish_process,
+    44: finish_all_processes,
+    42: view_process_config,
 }
+

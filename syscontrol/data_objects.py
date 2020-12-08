@@ -100,6 +100,10 @@ class dictOfRunningMethods(dict):
     def set_entry(self, method_name, new_entry):
         self[method_name] = new_entry
 
+not_running = "not running"
+still_running_and_pid_ok = "still running, PID active"
+was_running_pid_notok_closed = "PID was inactive, marked as finished"
+
 class controlProcess(object):
     def __init__(
         self,
@@ -218,10 +222,17 @@ class controlProcess(object):
     def method_currently_running(self, method_name: str):
         return self.running_methods.currently_running(method_name)
 
-    def check_if_pid_running_and_if_not_finish(self):
+    def check_if_pid_running_and_if_not_finish_return_status(self) -> str:
+        if not self.currently_running:
+            return not_running
+
         pid_running = self.check_if_pid_running()
-        if not pid_running:
-            self.finish_process()
+        if pid_running:
+            return still_running_and_pid_ok
+
+        self.finish_process()
+
+        return was_running_pid_notok_closed
 
     def check_if_pid_running(self) -> bool:
         ## I don't normally make jokes in code, or use weird variable names, so allow me this one please
@@ -346,6 +357,23 @@ class controlProcessData(baseData):
                 process_name, original_process)
 
         return result
+
+    def check_if_pid_running_and_if_not_finish_all_processes(self):
+
+        list_of_names = self.get_list_of_process_names()
+        _ = [self.check_if_pid_running_and_if_not_finish(process_name) for process_name in list_of_names]
+
+        return success
+
+
+    def check_if_pid_running_and_if_not_finish(self, process_name: str):
+        original_process = self.get_control_for_process_name(process_name)
+        PID = original_process.process_id
+        result = original_process.check_if_pid_running_and_if_not_finish_return_status()
+
+        if result is was_running_pid_notok_closed:
+            self.log.critical("Process %s with PID %d appears to have crashed, marking as finished: you may want to restart" % (process_name, PID))
+            self._update_control_for_process_name(process_name, original_process)
 
     def finish_all_processes(self):
 
