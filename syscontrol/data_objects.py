@@ -421,7 +421,7 @@ class controlProcessData(baseData):
 
     def method_currently_running(self, process_name: str, method_name: str) -> bool:
         original_process = self._get_control_for_process_name(process_name)
-        return original_process.method_currently_running()
+        return original_process.method_currently_running(method_name)
 
 
 def list_of_all_running_pids():
