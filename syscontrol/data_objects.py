@@ -79,7 +79,10 @@ class dictOfRunningMethods(dict):
         return dict(self)
 
     def get_current_entry(self, method_name):
-        return copy(self.get(method_name, [missing_data, missing_data]))
+        ans= copy(self.get(method_name, [missing_data, missing_data]))
+        #FIXME
+        if type(ans) is datetime.datetime:
+            return [missing_data, missing_data]
 
     def set_entry(self, method_name, new_entry):
         self[method_name] = new_entry
