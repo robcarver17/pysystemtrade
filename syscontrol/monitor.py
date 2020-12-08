@@ -53,7 +53,8 @@ class processObservatory(dict):
 
     def list_of_processes_str(self):
         list_of_processes =get_list_of_process_names(self)
-        list_of_str = [str(get_control_for_process(self, process_name))
+        list_of_str = ["%s %s" % (str(get_control_for_process(self, process_name)),
+                                  self.get_current_status(process_name))
                        for process_name in list_of_processes]
 
         return list_of_str
