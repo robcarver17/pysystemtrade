@@ -91,6 +91,7 @@ class dictOfRunningMethods(dict):
             return [missing_date_str, missing_date_str]
         if ans is None:
             return [missing_date_str, missing_date_str]
+        return ans
 
     def set_entry(self, method_name, new_entry):
         self[method_name] = new_entry
