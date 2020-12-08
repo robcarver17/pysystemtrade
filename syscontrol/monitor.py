@@ -28,6 +28,10 @@ class internal_logger(list):
             del(self[0])
         self.append(new_msg)
 
+    def __repr__(self):
+        all_str = "\n".join(self)
+        return all_str
+
 
 
 class processObservatory(dict):
@@ -38,6 +42,10 @@ class processObservatory(dict):
 
         ## get initial status
         self.update_all_status_with_process_control()
+
+    def __repr__(self):
+        all_str = "\n".join(["%s, %s" % (key, value) for key, value in self.items()])
+        return all_str
 
     @property
     def data(self):
@@ -119,6 +127,7 @@ def generate_html(process_observatory: processObservatory):
 
     with open(resolved_filename, "w") as file:
         file.write(str(process_observatory))
+        file.write("\n")
         file.write(str(process_observatory.log_messages))
 
 
