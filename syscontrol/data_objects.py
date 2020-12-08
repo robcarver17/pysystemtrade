@@ -84,7 +84,7 @@ class dictOfRunningMethods(dict):
     def as_dict(self):
         return dict(self)
 
-    def get_current_entry(self, method_name):
+    def get_current_entry(self, method_name) -> list:
         ans= copy(self.get(method_name, [missing_date_str, missing_date_str]))
         #FIXME TEMP FIX
         if type(ans) is datetime.datetime:

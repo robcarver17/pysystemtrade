@@ -401,6 +401,8 @@ short_date_string = "%m/%d %H:%M"
 def last_run_or_heartbeat_from_date_or_none(last_run_or_heartbeat):
     if last_run_or_heartbeat is missing_data:
         last_run_or_heartbeat = "00/00 Never run"
+    elif type(last_run_or_heartbeat) is str:
+        return last_run_or_heartbeat
     else:
         last_run_or_heartbeat = last_run_or_heartbeat.strftime(
             short_date_string)
