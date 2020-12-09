@@ -14,15 +14,12 @@ def monitor():
         process_observatory = processObservatory(data)
 
         while 2==2:
-            check_if_pid_running_return_status_msgs(process_observatory)
+            check_if_pid_running_and_if_not_finish(process_observatory)
             process_observatory.update_all_status_with_process_control()
             generate_html(process_observatory)
             time.sleep(300)
 
 UNKNOWN_STATUS = "Unknown"
-RUNNING_STATUS = "Running"
-NOT_RUNNING_STATUS = "Not running"
-PID_CRASHED_STATUS = "Not running: Crashed"
 
 MAX_LOG_LENGTH = 20
 class internal_logger(list):
@@ -69,23 +66,15 @@ class processObservatory(dict):
     def log_messages(self):
         return self._log_messages
 
-    def mark_as_pid_crash_detected(self, process_name):
-        self.update_status(process_name, PID_CRASHED_STATUS)
-
     def update_all_status_with_process_control(self):
         list_of_process = get_list_of_process_names(self)
         for process_name in list_of_process:
-            currently_running = is_process_currently_running(self, process_name)
-            if currently_running:
-                self.update_status(process_name, RUNNING_STATUS)
-            else:
-                self.update_status(process_name, NOT_RUNNING_STATUS)
+            process_running_status = get_running_mode_str_for_process(self, process_name)
+            self.update_status(process_name, process_running_status)
 
     def update_status(self, process_name, new_status):
         current_status = self.get_current_status(process_name)
         if current_status == new_status:
-            pass
-        elif current_status == PID_CRASHED_STATUS and new_status == NOT_RUNNING_STATUS:
             pass
         else:
             self.change_status(process_name, new_status)
@@ -109,12 +98,9 @@ def get_list_of_process_names(process_observatory: processObservatory):
     return diag_control.get_list_of_process_names()
 
 
-def is_process_currently_running(process_observatory: processObservatory, process_name: str):
+def get_running_mode_str_for_process(process_observatory: processObservatory, process_name: str):
     control = get_control_for_process(process_observatory, process_name)
-    if control.currently_running ==0:
-        return False
-    else:
-        return True
+    return control.running_mode_str()
 
 def get_control_for_process(process_observatory: processObservatory, process_name: str):
     diag_control = diagControlProcess(process_observatory.data)
@@ -123,16 +109,9 @@ def get_control_for_process(process_observatory: processObservatory, process_nam
     return control
 
 
-def check_if_pid_running_return_status_msgs(process_observatory: processObservatory):
+def check_if_pid_running_and_if_not_finish(process_observatory: processObservatory):
     data_control = dataControlProcess(process_observatory.data)
-
-    results = data_control.check_if_pid_running_and_if_not_finish_all_processes()
-    for process_result in results:
-        process_name, pid_status = process_result
-        if pid_status is was_running_pid_notok_closed:
-            process_observatory.mark_as_pid_crash_detected(process_name)
-
-    return results
+    data_control.check_if_pid_running_and_if_not_finish_all_processes()
 
 filename = "private.index.html"
 

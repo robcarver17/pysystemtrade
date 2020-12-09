@@ -387,7 +387,6 @@ class controlProcessData(baseData):
             self.log.critical("Process %s with PID %d appears to have crashed, marking as finished: you may want to restart" % (process_name, PID))
             self._update_control_for_process_name(process_name, original_process)
 
-        return process_name, result
 
     def finish_all_processes(self):
 
