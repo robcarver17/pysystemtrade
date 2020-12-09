@@ -21,7 +21,6 @@ from syscore.objects import (
     missing_data,
 )
 
-
 process_stop = _named_object("process stop")
 process_no_run = _named_object("process no run")
 process_running = _named_object("process running")
@@ -98,6 +97,7 @@ still_running_and_pid_ok = "still running"
 was_running_pid_notok_closed = "not running, crashed"
 
 
+
 class controlProcess(object):
     def __init__(
         self,
@@ -119,16 +119,20 @@ class controlProcess(object):
         self._recently_crashed = recently_crashed
 
     def __repr__(self):
+        return " ".join(self.as_printable_list())
+
+    def as_printable_list(self):
         run_string = self.running_mode_str
         status_string = f"{''+self.status:<7}"
-        process_id_string = f"{''+str(self.process_id):<10}"
-        return "Last started %s Last ended status %s %s PID %s is %s" % (
-            self.last_start_time,
-            self.last_end_time,
-            status_string,
-            process_id_string,
-            run_string,
-        )
+        process_id_string = f"{''+str(self.process_id):<8}"
+        return ["Started %s" %
+            last_run_or_heartbeat_from_date_or_none(self.last_start_time),
+                "ended %s" %
+                    last_run_or_heartbeat_from_date_or_none(self.last_end_time),
+                "Status %s" % status_string,
+                "PID %s" % process_id_string,
+                run_string
+                    ]
 
     @property
     def running_mode_str(self) -> str:
@@ -296,16 +300,47 @@ class controlProcess(object):
     def change_status_to_no_run(self):
         self._status = no_run_status
 
+class dictOfControlProcesses(dict):
+    def __repr__(self):
+        return "\n".join(self.pretty_print())
+
+    def pretty_print(self):
+        ans = [self._pretty_print_element(key) for key in self.keys()]
+
+        return ans
+
+    def _pretty_print_element(self, key):
+        name_string = f"{'' + key:<32}"
+        all_string = name_string+str(self[key])
+
+        return all_string
+
+    def list_of_lists(self):
+        lol = [item.as_printable_list() for item in self.values()]
+        return lol
+
+    def to_html_table_in_file(self, file):
+        html_table(file, self.list_of_lists())
+
+def html_table(file, lol: list):
+  file.write('<table>')
+  for sublist in lol:
+    file.write('  <tr><td>')
+    file.write('    </td><td>'.join(sublist))
+    file.write('  </td></tr>')
+  file.write('</table>')
+
 
 class controlProcessData(baseData):
     def __init__(self, log=logtoscreen("controlProcessData")):
         super().__init__(log=log)
         self._control_store = dict()
 
-    def get_dict_of_control_processes(self) ->dict:
+    def get_dict_of_control_processes(self) ->dictOfControlProcesses:
         list_of_names = self.get_list_of_process_names()
         output_dict = dict([(process_name, self.get_control_for_process_name(
             process_name)) for process_name in list_of_names])
+        output_dict = dictOfControlProcesses(output_dict)
 
         return output_dict
 
@@ -483,3 +518,16 @@ def list_of_all_running_pids():
 def is_pid_running(pid):
     pid_list = list_of_all_running_pids()
     return pid in pid_list
+
+
+short_date_string = "%m/%d %H:%M:%S"
+missing_string =    "     ???      "
+
+def last_run_or_heartbeat_from_date_or_none(last_run_or_heartbeat):
+    if last_run_or_heartbeat is missing_data:
+        last_run_or_heartbeat = missing_string
+    else:
+        last_run_or_heartbeat = last_run_or_heartbeat.strftime(
+            short_date_string)
+
+    return last_run_or_heartbeat

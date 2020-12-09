@@ -44,20 +44,6 @@ class processObservatory(dict):
         self.update_all_status_with_process_control()
 
 
-    def lol_repr(self):
-        list_of_processes =get_list_of_process_names(self)
-        list_of_str = [self.list_of_str_for_process(process_name)
-                       for process_name in list_of_processes]
-
-        return list_of_str
-
-    def list_of_str_for_process(self, process_name):
-
-        control_str = str(get_control_for_process(self, process_name))
-        status_str = self.get_current_status(process_name)
-
-        return [process_name, control_str, status_str]
-
     @property
     def data(self):
         return self._data
@@ -65,6 +51,11 @@ class processObservatory(dict):
     @property
     def log_messages(self):
         return self._log_messages
+
+    def process_dict_to_html_table(self, file):
+        data_control = dataControlProcess(self.data)
+        dict_of_process = data_control.get_dict_of_control_processes()
+        dict_of_process.to_html_table_in_file(file)
 
     def update_all_status_with_process_control(self):
         list_of_process = get_list_of_process_names(self)
@@ -121,19 +112,12 @@ def generate_html(process_observatory: processObservatory):
     with open(resolved_filename, "w") as file:
         file.write("<br/> Last update %s" % str(datetime.datetime.now()))
         file.write("<br/><br/>")
-        html_table(file, process_observatory.lol_repr())
+        process_observatory.process_dict_to_html_table(file)
         file.write("<br/><br/>")
         file.write(process_observatory.log_messages.html_repr())
         file.write("<br/><br/>")
 
 
-def html_table(file, lol: list):
-  file.write('<table>')
-  for sublist in lol:
-    file.write('  <tr><td>')
-    file.write('    </td><td>'.join(sublist))
-    file.write('  </td></tr>')
-  file.write('</table>')
 
 if __name__ == "__main__":
     monitor()

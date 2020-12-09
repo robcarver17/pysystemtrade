@@ -9,6 +9,7 @@ from collections import namedtuple
 import datetime
 import pandas as pd
 
+from syscontrol.data_objects import last_run_or_heartbeat_from_date_or_none
 from syscore.pdutils import make_df_from_list_of_named_tuple
 from syscore.objects import header, table, body_text, arg_not_supplied, missing_data
 from syscore.genutils import transfer_object_attributes
@@ -394,21 +395,6 @@ def get_control_data_for_single_ordinary_method(data, method_name_and_process):
     )
 
     return data_for_method
-
-
-short_date_string = "%m/%d %H:%M"
-
-
-
-
-def last_run_or_heartbeat_from_date_or_none(last_run_or_heartbeat):
-    if last_run_or_heartbeat is missing_data:
-        last_run_or_heartbeat = "00/00 Never run"
-    else:
-        last_run_or_heartbeat = last_run_or_heartbeat.strftime(
-            short_date_string)
-
-    return last_run_or_heartbeat
 
 
 
