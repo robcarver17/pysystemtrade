@@ -18,17 +18,17 @@ def init_arctic_with_csv_futures_contract_prices(multiple_price_datapath =arg_no
 def init_arctic_with_csv_prices_for_code(instrument_code:str, multiple_price_datapath =arg_not_supplied,
                                                  adj_price_datapath = arg_not_supplied):
     print(instrument_code)
-    csv_mult = csvFuturesMultiplePricesData(multiple_price_datapath)
-    a_mult = arcticFuturesMultiplePricesData(adj_price_datapath)
+    csv_mult_data = csvFuturesMultiplePricesData(multiple_price_datapath)
+    arctic_mult_data = arcticFuturesMultiplePricesData()
 
-    mult = csv_mult.get_multiple_prices(instrument_code)
-    a_mult.add_multiple_prices(instrument_code, mult, ignore_duplication=True)
+    mult_prices = csv_mult_data.get_multiple_prices(instrument_code)
+    arctic_mult_data.add_multiple_prices(instrument_code, mult_prices, ignore_duplication=True)
 
-    csv_adj = csvFuturesAdjustedPricesData()
-    a_adj = arcticFuturesAdjustedPricesData()
+    csv_adj_data = csvFuturesAdjustedPricesData(adj_price_datapath)
+    arctic_adj_data = arcticFuturesAdjustedPricesData()
 
-    adj = csv_adj.get_adjusted_prices(instrument_code)
-    a_adj.add_adjusted_prices(instrument_code, adj, ignore_duplication=True)
+    adj_prices = csv_adj_data.get_adjusted_prices(instrument_code)
+    arctic_adj_data.add_adjusted_prices(instrument_code, adj_prices, ignore_duplication=True)
 
 if __name__ == "__main__":
     ## modify datapaths if required
