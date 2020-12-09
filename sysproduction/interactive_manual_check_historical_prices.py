@@ -28,7 +28,7 @@ def interactive_manual_check_historical_prices():
     :return: Nothing
     """
     with dataBlob(log_name="Update-Historical-prices-manually") as data:
-        instrument_code = get_valid_instrument_code_from_user(data)
+        instrument_code = get_valid_instrument_code_from_user(data, source='single')
         check_instrument_ok_for_broker(data, instrument_code)
         data.log.label(instrument_code = instrument_code)
         update_historical_prices_with_checks_for_instrument(
