@@ -100,7 +100,7 @@ def get_list_of_process_names(process_observatory: processObservatory):
 
 def get_running_mode_str_for_process(process_observatory: processObservatory, process_name: str):
     control = get_control_for_process(process_observatory, process_name)
-    return control.running_mode_str()
+    return control.running_mode_str
 
 def get_control_for_process(process_observatory: processObservatory, process_name: str):
     diag_control = diagControlProcess(process_observatory.data)
