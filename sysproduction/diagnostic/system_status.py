@@ -9,7 +9,7 @@ from collections import namedtuple
 import datetime
 import pandas as pd
 
-from syscontrol.data_objects import last_run_or_heartbeat_from_date_or_none
+from syscontrol.data_objects import last_run_or_heartbeat_from_date_or_none, short_date_string
 from syscore.pdutils import make_df_from_list_of_named_tuple
 from syscore.objects import header, table, body_text, arg_not_supplied, missing_data
 from syscore.genutils import transfer_object_attributes
