@@ -6,7 +6,7 @@ from sysdata.data_blob import dataBlob
 from syscore.fileutils import get_filename_for_package
 from syscontrol.data_interface import dataControlProcess
 from syscontrol.data_interface import diagControlProcess
-from syscontrol.data_objects import was_running_pid_notok_closed
+from syscontrol.data_objects import last_run_or_heartbeat_from_date_or_none
 
 
 def monitor():
@@ -28,9 +28,9 @@ class internal_logger(list):
             del(self[0])
         self.append(new_msg)
 
-    def html_repr(self):
+    def html_repr(self, file):
         all_str = "<br/>".join(self)
-        return all_str
+        file.write(all_str)
 
 
 
@@ -57,6 +57,9 @@ class processObservatory(dict):
         dict_of_process = data_control.get_dict_of_control_processes()
         dict_of_process.to_html_table_in_file(file)
 
+    def log_messages_to_html(self, file):
+        self.log_messages.html_repr(file)
+
     def update_all_status_with_process_control(self):
         list_of_process = get_list_of_process_names(self)
         for process_name in list_of_process:
@@ -74,7 +77,7 @@ class processObservatory(dict):
     def send_update_message(self, process_name, current_status, new_status):
         ## Called when anything changes status
         msg = "Status of %s changed from %s to %s at %s" % (process_name, current_status, new_status,
-                                                            str(datetime.datetime.now()))
+                                                            last_run_or_heartbeat_from_date_or_none(datetime.datetime.now()))
         self.log_messages.append_msg(msg)
 
     def change_status(self, process_name, new_status):
@@ -114,7 +117,7 @@ def generate_html(process_observatory: processObservatory):
         file.write("<br/><br/>")
         process_observatory.process_dict_to_html_table(file)
         file.write("<br/><br/>")
-        file.write(process_observatory.log_messages.html_repr())
+        process_observatory.log_messages_to_html(file)
         file.write("<br/><br/>")
 
 

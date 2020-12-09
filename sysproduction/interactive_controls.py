@@ -372,10 +372,7 @@ def clear_used_client_ids(data):
 def view_process_controls(data):
     dict_of_controls = get_dict_of_process_controls(data)
     print("\nControlled processes:\n")
-    for key, value in dict_of_controls.items():
-        padded_key = f"{''+key:<30}"
-        print("%s: %s" % (padded_key, str(value)))
-    return dict_of_controls
+    print(dict_of_controls)
 
 
 def get_dict_of_process_controls(data):

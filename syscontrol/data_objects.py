@@ -316,7 +316,7 @@ class dictOfControlProcesses(dict):
         return all_string
 
     def list_of_lists(self):
-        lol = [item.as_printable_list() for item in self.values()]
+        lol = [[key]+value.as_printable_list() for key, value in self.items()]
         return lol
 
     def to_html_table_in_file(self, file):
