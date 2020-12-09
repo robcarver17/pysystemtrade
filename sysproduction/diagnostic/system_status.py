@@ -219,7 +219,7 @@ def get_control_data_list_for_all_processes_as_df(data):
 def get_control_status_list_for_all_processes_as_df(data):
     dc = dataControlProcess(data)
     dict_of_controls = dc.get_dict_of_control_processes()
-    pdf = dict_of_controls.to_pd_df()
+    pdf = dict_of_controls.as_pd_df()
 
     return pdf
 
