@@ -196,11 +196,11 @@ class stackHandlerCore(object):
         instrument_code = proposed_order.instrument_code
 
         # proposed_order.trade.total_abs_qty() is a scalar, returns a scalar
-        possible_trade_size = data_trade_limits.what_trade_is_possible(
+        maximum_abs_qty = data_trade_limits.what_trade_is_possible(
             strategy_name, instrument_code, proposed_order.trade.total_abs_qty())
 
-        revised_order = proposed_order.change_trade_size_proportionally(
-            possible_trade_size
+        revised_order = proposed_order.change_trade_size_proportionally_to_meet_abs_qty_limit(
+            maximum_abs_qty
         )
 
         if revised_order.trade != proposed_order.trade:

@@ -53,8 +53,9 @@ class stackHandlerCreateBrokerOrders(stackHandlerCore):
             )
             if contract_order.fill_equals_desired_trade():
                 continue
-            if contract_order.is_order_controlled_by_algo():
+            elif contract_order.is_order_controlled_by_algo():
                 continue
+
             self.create_broker_order_for_contract_order(
                 contract_order_id, check_if_open=check_if_open
             )

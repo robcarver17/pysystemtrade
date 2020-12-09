@@ -435,7 +435,7 @@ class dataBroker(object):
             offside_qty,
         ) = self.get_current_size_for_contract_order_by_leg(contract_order)
 
-        new_qty = contract_order.trade.apply_minima(offside_qty)
+        new_qty = contract_order.trade.reduce_trade_size_proportionally_to_abs_limit_per_leg(offside_qty)
 
         return new_qty
 

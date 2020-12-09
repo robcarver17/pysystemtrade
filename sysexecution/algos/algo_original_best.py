@@ -67,7 +67,7 @@ def prepare_and_submit_trade(data, contract_order):
     log = contract_order.log_with_attributes(data.log)
     data_broker = dataBroker(data)
 
-    cut_down_contract_order = contract_order.order_with_min_size(SIZE_LIMIT)
+    cut_down_contract_order = contract_order.reduce_trade_size_proportionally_so_smallest_leg_is_max_size(SIZE_LIMIT)
     if cut_down_contract_order.trade != contract_order.trade:
         log.msg(
             "Cut down order to size %s from %s because of algo size limit"

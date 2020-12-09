@@ -6,7 +6,7 @@ from dateutil.tz import tz
 from syscore.objects import missing_order, missing_data, arg_not_supplied
 from sysobjects.spot_fx_prices import currencyValue
 from sysexecution.broker_orders import brokerOrder
-from sysexecution.base_orders import tradeQuantity
+from sysexecution.trade_qty import tradeQuantity
 
 
 def create_broker_order_from_control_object(control_object, instrument_code):
