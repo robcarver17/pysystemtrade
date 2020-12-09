@@ -18,6 +18,7 @@ Related documents (which you should read before this one!):
 Table of Contents
 =================
 
+   * [Table of Contents](#table-of-contents)
    * [Quick start guide](#quick-start-guide)
    * [Production system data flow](#production-system-data-flow)
    * [Overview of a production system](#overview-of-a-production-system)
@@ -72,11 +73,14 @@ Table of Contents
             * [Trade limits](#trade-limits)
             * [Position limits](#position-limits)
             * [Trade control / override](#trade-control--override)
+            * [Broker client IDs](#broker-client-ids)
             * [Process control &amp; monitoring](#process-control--monitoring)
                * [View processes](#view-processes)
                * [Change status of process](#change-status-of-process)
-               * [View process configuration](#view-process-configuration)
+               * [Global status change](#global-status-change)
                * [Mark as finished](#mark-as-finished)
+               * [Mark all dead processes as finished](#mark-all-dead-processes-as-finished)
+               * [View process configuration](#view-process-configuration)
          * [Interactive diagnostics](#interactive-diagnostics)
             * [Backtest objects](#backtest-objects)
                * [Output choice](#output-choice)
@@ -135,8 +139,8 @@ Table of Contents
          * [Configuring the scheduling](#configuring-the-scheduling)
             * [The crontab](#the-crontab)
             * [Process configuration](#process-configuration)
+         * [System monitor](#system-monitor)
          * [Troubleshooting?](#troubleshooting)
-         * [The details](#the-details)
    * [Production system concepts](#production-system-concepts)
       * [Configuration files](#configuration-files)
          * [System defaults &amp; Private config](#system-defaults--private-config)
@@ -195,23 +199,23 @@ You need to:
     - Install the pysystemtrade package, and install or update, any dependencies in directory $PYSYS_CODE (it's possible to put it elsewhere, but you will need to modify the environment variables listed above). If using git clone from your home directory this should create the directory '/home/user_name/pysystemtrade/'
     - [Set up interactive brokers](/docs/IB.md), download and install their python code, and get a gateway running.
     - [Install mongodb](https://docs.mongodb.com/manual/administration/install-on-linux/)
-    - create a file 'private_config.yaml' in the private directory of [pysystemtrade](/private), and optionally a 'private_control_config.yaml' file
+    - create a file 'private_config.yaml' in the private directory of [pysystemtrade](/private), and optionally a ['private_control_config.yaml' file in the same directory](#process-configuration)
     - [check a mongodb server is running with the right data directory](/docs/futures.md#mongo-db) command line: `mongod --dbpath $MONGO_DATA`
     - launch an IB gateway (this could be done automatically depending on your security setup)
 - FX data:
     - [Initialise the spot FX data in MongoDB from .csv files](/sysinit/futures/repocsv_spotfx_prices.py) (this will be out of date, but you will update it in a moment)
-    - Check that you have got spot FX data present: command line:`. /pysystemtrade/sysproduction/linux/scripts/interactive_diagnostics` option 3, option 33
     - Update the FX price data in MongoDB using interactive brokers: command line:`. /home/your_user_name/pysystemtrade/sysproduction/linux/scripts/update_fx_prices`
 - Instrument configuration:
     - Set up futures instrument configuration using this script [instruments_csv_mongo.py](/sysinit/futures/instruments_csv_mongo.py).
+- Futures contract prices:
+    - [You must have a source of individual futures prices, then backfill them into the Arctic database](/docs/futures.md#get_historical_data).
 - Roll calendars:
     - For *roll configuration* we need to initialise by running the code in this file [roll_parameters_csv_mongo.py](/sysinit/futures/roll_parameters_csv_mongo.py).
-    - Create roll calendars for each instrument you are trading. Assuming you are happy to infer these from the supplied data [use this script](/sysinit/futures/rollcalendars_from_providedcsv_prices.py)
-- Futures contract prices:
-    - [If you have a source of individual futures prices, then backfill them into the Arctic database](/docs/futures.md#get_historical_data)
+    - [Create roll calendars for each instrument you are trading](/docs/futures.md#roll-calendars).
 - Adjusted futures prices:
-    - Create 'multiple prices' in Arctic. Assuming you have prices in Artic and roll calendars in csv use [this script](/sysinit/futures/multipleprices_from_arcticprices_and_csv_calendars_to_arctic.py). I recommend *not* writing the multiple prices to .csv, so that you can compare the legacy .csv data with the new prices
-    - Create adjusted prices. Assuming you have multiple prices in Arctic use [this script](/sysinit/futures/adjustedprices_from_mongo_multiple_to_mongo.py)
+    - [Create 'multiple prices' in Arctic](/docs/futures.md#creating-and-storing-multiple-prices). 
+    - [Create adjusted prices in Arctic](/docs/futures.md#creating-and-storing-back-adjusted-prices)
+- Use [interactive diagnostics](#interactive-diagnostics) to check all your prices are in place correctly
 - Live production backtest:
     - Create a yaml config file to run the live production 'backtest'. For speed I recommend you do not estimate parameters, but use fixed parameters, using the [yaml_config_with_estimated_parameters method of systemDiag](/systems/diagoutput.py) function to output these to a .yaml file.
 - Scheduling:
