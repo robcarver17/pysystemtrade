@@ -197,7 +197,7 @@ def calc_trade_limit_for_instrument(data, instrument_code, risk_multiplier, trad
 
     adj_trade_multiplier = (float(day_count)**.5) * trade_multiplier
     standard_trade = float(standard_position) * adj_trade_multiplier
-    standard_trade_int = max(1, int(np.ceil(abs(standard_trade))))
+    standard_trade_int = max(4, int(np.ceil(abs(standard_trade))))
 
     return standard_trade_int
 
