@@ -11,6 +11,7 @@ For a given process:
 from copy import copy
 import datetime
 import os
+import pandas as pd
 
 import psutil
 from sysdata.base_data import baseData
@@ -133,6 +134,16 @@ class controlProcess(object):
                 "PID %s" % process_id_string,
                 run_string
                     ]
+
+    def as_list(self):
+        run_string = self.running_mode_str
+        return [            last_run_or_heartbeat_from_date_or_none(self.last_start_time),
+                    last_run_or_heartbeat_from_date_or_none(self.last_end_time),
+                self.status,
+                self.process_id,
+                run_string
+                    ]
+
 
     @property
     def running_mode_str(self) -> str:
@@ -302,25 +313,36 @@ class controlProcess(object):
 
 class dictOfControlProcesses(dict):
     def __repr__(self):
-        return "\n".join(self.pretty_print())
+        return "\n".join(self.pretty_print_list())
 
-    def pretty_print(self):
+    def pretty_print_list(self) -> list:
         ans = [self._pretty_print_element(key) for key in self.keys()]
 
         return ans
 
-    def _pretty_print_element(self, key):
+    def _pretty_print_element(self, key) -> str:
         name_string = f"{'' + key:<32}"
         all_string = name_string+str(self[key])
 
         return all_string
 
-    def list_of_lists(self):
+    def list_of_printable_lists(self) -> list:
         lol = [[key]+value.as_printable_list() for key, value in self.items()]
         return lol
 
     def to_html_table_in_file(self, file):
-        html_table(file, self.list_of_lists())
+        html_table(file, self.list_of_printable_lists())
+
+    def list_of_lists(self) -> list:
+        lol = [value.as_list() for key, value in self.items()]
+
+        return lol
+
+    def as_pd_df(self) -> pd.DataFrame:
+        pd_df = pd.DataFrame(self.list_of_lists())
+        pd_df.index = list(self.keys())
+
+        return pd_df
 
 def html_table(file, lol: list):
   file.write('<table>')

@@ -49,6 +49,8 @@ def system_status(data=arg_not_supplied):
 def get_status_report_data(data):
 
     process = get_control_data_list_for_all_processes_as_df(data)
+    process2 = get_control_status_list_for_all_processes_as_df(data)
+
     method = get_control_data_list_for_all_methods_as_df(data)
     price = get_last_price_updates_as_df(data)
     position = get_last_optimal_position_updates_as_df(data)
@@ -60,6 +62,7 @@ def get_status_report_data(data):
 
     results_object = dict(
         process=process,
+        process2 = process2,
         method=method,
         price=price,
         position=position,
@@ -86,8 +89,12 @@ def format_status_data(results_object):
     )
 
     table1_df = results_object["process"]
-    table1 = table("Status of processses", table1_df)
+    table1 = table("Status of process control", table1_df)
     formatted_output.append(table1)
+
+    table1a_df = results_object["process2"]
+    table1a = table("Status of process control", table1a_df)
+    formatted_output.append(table1a)
 
     table2_df = results_object["method"]
     table2 = table("Status of methods", table2_df)
@@ -141,6 +148,7 @@ dataForProcess = namedtuple(
         "pid"
     ],
 )
+
 dataForLimits = namedtuple(
     "dataForLimits",
     [
@@ -208,12 +216,26 @@ def get_control_data_list_for_all_processes_as_df(data):
 
     return pdf
 
+def get_control_status_list_for_all_processes_as_df(data):
+    dc = dataControlProcess(data)
+    dict_of_controls = dc.get_dict_of_control_processes()
+    pdf = dict_of_controls.to_pd_df()
+
+    return pdf
+
 
 def get_control_data_list_for_all_methods_as_df(data):
     cd_list = get_control_data_list_for_all_methods(data)
     pdf = make_df_from_list_of_named_tuple(dataForMethod, cd_list)
     pdf = pdf.sort_values("last_start")
     return pdf
+
+def get_control_status_list_for_all_methods_as_df(data):
+    cd_list = get_control_data_list_for_all_methods(data)
+    pdf = make_df_from_list_of_named_tuple(dataForMethod, cd_list)
+    pdf = pdf.sort_values("last_start")
+    return pdf
+
 
 
 def get_last_price_updates_as_df(data):
