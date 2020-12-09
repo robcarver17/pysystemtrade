@@ -94,8 +94,9 @@ class dictOfRunningMethods(dict):
         self[method_name] = new_entry
 
 not_running = "not running"
-still_running_and_pid_ok = "still running, PID active"
-was_running_pid_notok_closed = "PID was inactive, marked as finished"
+still_running_and_pid_ok = "still running"
+was_running_pid_notok_closed = "not running, crashed"
+
 
 class controlProcess(object):
     def __init__(
@@ -105,6 +106,7 @@ class controlProcess(object):
         currently_running: bool=False,
         status: str=go_status,
         process_id: int=default_id,
+        recently_crashed: bool = False,
         running_methods: dictOfRunningMethods = dictOfRunningMethods()
     ):
         assert status in possible_status
@@ -114,13 +116,10 @@ class controlProcess(object):
         self._status = status
         self._process_id = process_id
         self._running_methods = running_methods
+        self._recently_crashed = recently_crashed
 
     def __repr__(self):
-        if self.currently_running:
-            run_string = "running"
-        else:
-            run_string = "not running"
-
+        run_string = self.running_mode_str
         status_string = f"{''+self.status:<7}"
         process_id_string = f"{''+str(self.process_id):<10}"
         return "Last started %s Last ended status %s %s PID %s is %s" % (
@@ -130,6 +129,22 @@ class controlProcess(object):
             process_id_string,
             run_string,
         )
+
+    @property
+    def running_mode_str(self) -> str:
+        if self.currently_running:
+            run_string = still_running_and_pid_ok
+        else:
+            if self.recently_crashed:
+                run_string = was_running_pid_notok_closed
+            else:
+                run_string = not_running
+
+        return run_string
+
+    @property
+    def recently_crashed(self):
+        return self._recently_crashed
 
     @property
     def running_methods(self) -> dictOfRunningMethods:
@@ -162,7 +177,8 @@ class controlProcess(object):
             status=self.status,
             currently_running=self.currently_running,
             process_id=self.process_id,
-            running_methods = self.running_methods.as_dict()
+            running_methods = self.running_methods.as_dict(),
+            recently_crashed = self.recently_crashed
         )
 
         return output
@@ -198,6 +214,7 @@ class controlProcess(object):
         self._last_start_time = datetime.datetime.now()
         self._currently_running = True
         self._process_id = os.getpid()
+        self._recently_crashed = False
 
         return success
 
@@ -225,6 +242,7 @@ class controlProcess(object):
             return still_running_and_pid_ok
 
         self.finish_process()
+        self._recently_crashed = True
 
         return was_running_pid_notok_closed
 
