@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 
 from syscore.genutils import sign
+from syscore.objects import missing_data
 
 """
 First some constants
@@ -416,3 +417,17 @@ class manyTradingStartAndEnd(object):
                     return False
 
         return None
+
+
+short_date_string = "%m/%d %H:%M:%S"
+missing_string =    "     ???      "
+
+
+def last_run_or_heartbeat_from_date_or_none(last_run_or_heartbeat):
+    if last_run_or_heartbeat is missing_data:
+        last_run_or_heartbeat = missing_string
+    else:
+        last_run_or_heartbeat = last_run_or_heartbeat.strftime(
+            short_date_string)
+
+    return last_run_or_heartbeat

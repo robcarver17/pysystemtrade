@@ -237,3 +237,12 @@ if __name__ == "__main__":
     import doctest
 
     doctest.testmod()
+
+
+def html_table(file, lol: list):
+  file.write('<table>')
+  for sublist in lol:
+    file.write('  <tr><td>')
+    file.write('    </td><td>'.join(sublist))
+    file.write('  </td></tr>')
+  file.write('</table>')

@@ -6,7 +6,7 @@ from sysdata.data_blob import dataBlob
 from syscore.fileutils import get_filename_for_package
 from syscontrol.data_interface import dataControlProcess
 from syscontrol.data_interface import diagControlProcess
-from syscontrol.data_objects import last_run_or_heartbeat_from_date_or_none
+from syscore.dateutils import last_run_or_heartbeat_from_date_or_none
 
 
 def monitor():

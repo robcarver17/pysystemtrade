@@ -9,7 +9,7 @@ from collections import namedtuple
 import datetime
 import pandas as pd
 
-from syscontrol.data_objects import last_run_or_heartbeat_from_date_or_none, short_date_string
+from syscore.dateutils import  last_run_or_heartbeat_from_date_or_none
 from syscore.pdutils import make_df_from_list_of_named_tuple
 from syscore.objects import header, table, body_text, arg_not_supplied, missing_data
 from syscore.genutils import transfer_object_attributes
@@ -48,8 +48,9 @@ def system_status(data=arg_not_supplied):
 
 def get_status_report_data(data):
 
-    process = get_control_data_list_for_all_processes_as_df(data)
+    process = get_control_config_list_for_all_processes_as_df(data)
     process2 = get_control_status_list_for_all_processes_as_df(data)
+    process3 = get_process_status_list_for_all_processes_as_df(data)
 
     method = get_control_data_list_for_all_methods_as_df(data)
     price = get_last_price_updates_as_df(data)
@@ -63,6 +64,7 @@ def get_status_report_data(data):
     results_object = dict(
         process=process,
         process2 = process2,
+        process3 = process3,
         method=method,
         price=price,
         position=position,
@@ -89,12 +91,16 @@ def format_status_data(results_object):
     )
 
     table1_df = results_object["process"]
-    table1 = table("Status of process control", table1_df)
+    table1 = table("Config for process control", table1_df)
     formatted_output.append(table1)
 
     table1a_df = results_object["process2"]
     table1a = table("Status of process control", table1a_df)
     formatted_output.append(table1a)
+
+    table1b_df = results_object["process3"]
+    table1b = table("Status of process control", table1b_df)
+    formatted_output.append(table1b)
 
     table2_df = results_object["method"]
     table2 = table("Status of methods", table2_df)
@@ -209,10 +215,17 @@ def get_trade_limit_tuple(element):
     return tuple_object
 
 
-def get_control_data_list_for_all_processes_as_df(data):
-    cd_list = get_control_data_list_for_all_processes(data)
-    pdf = make_df_from_list_of_named_tuple(dataForProcess, cd_list)
-    pdf = pdf.transpose()
+def get_process_status_list_for_all_processes_as_df(data):
+    all_processes, cd_list = get_process_status_list_for_all_processes(data)
+    pdf = pd.DataFrame(cd_list)
+    pdf.index = all_processes
+
+    return pdf
+
+def get_control_config_list_for_all_processes_as_df(data):
+    process_name_list, cd_list = get_control_config_list_for_all_processes(data)
+    pdf = pd.DataFrame(cd_list)
+    pdf.index = process_name_list
 
     return pdf
 
@@ -338,52 +351,38 @@ def get_last_position_update_for_strategy_instrument(
     return genericUpdate(key, last_update)
 
 
-def get_control_data_list_for_all_processes(data):
+def get_control_config_list_for_all_processes(data):
     all_processes = get_list_of_all_processes(data)
     list_of_control_data = [
-        get_control_data_for_process_name(data, process_name)
+        get_control_config_dict_for_process_name(data, process_name)
         for process_name in all_processes
     ]
 
-    return list_of_control_data
+    return all_processes, list_of_control_data
+
+def get_process_status_list_for_all_processes(data):
+    all_processes = get_list_of_all_processes(data)
+    list_of_control_data = [
+        get_process_status_dict_for_process_name(data, process_name)
+        for process_name in all_processes
+    ]
+
+    return all_processes, list_of_control_data
 
 
-def get_control_data_for_process_name(data, process_name):
-    data_control = dataControlProcess(data)
+def get_control_config_dict_for_process_name(data, process_name):
     diag_process_config = diagControlProcess(data)
 
-    control_data = data_control.get_dict_of_control_processes()
-    control_data_for_process = control_data[process_name]
-
-    all_config = diag_process_config.get_config_dict(process_name)
-
-    time_to_run = diag_process_config.is_it_time_to_run(process_name)
-    previous_finished = diag_process_config.has_previous_process_finished_in_last_day(
-        process_name)
-    time_to_stop = diag_process_config.is_it_time_to_stop(process_name)
-    right_machine = diag_process_config.is_this_correct_machine(process_name)
-    pid = control_data_for_process.process_id
-
-    data_for_process = dataForProcess(
-        name=process_name,
-        running=control_data_for_process.currently_running,
-        start=control_data_for_process.last_start_time.strftime(short_date_string),
-        end=control_data_for_process.last_end_time.strftime(short_date_string),
-        status=control_data_for_process.status,
-        finished_in_last_day=control_data_for_process.has_process_finished_in_last_day(),
-        start_time=all_config["start_time"],
-        end_time=all_config["end_time"],
-        required_machine=all_config["machine_name"],
-        previous_required=all_config["previous_process"],
-        right_machine=right_machine,
-        time_to_run=time_to_run,
-        time_to_stop=time_to_stop,
-        previous_finished=previous_finished,
-        pid = pid
-    )
+    data_for_process = diag_process_config.get_config_dict(process_name)
 
     return data_for_process
 
+def get_process_status_dict_for_process_name(data, process_name):
+    diag_process_config = diagControlProcess(data)
+
+    data_for_process = diag_process_config.get_process_status_dict(process_name)
+
+    return data_for_process
 
 
 def get_control_data_list_for_all_methods(data):
