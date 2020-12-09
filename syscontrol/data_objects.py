@@ -94,8 +94,8 @@ class dictOfRunningMethods(dict):
         self[method_name] = new_entry
 
 not_running = "not running"
-still_running_and_pid_ok = "still running"
-was_running_pid_notok_closed = "not running, crashed"
+still_running_and_pid_ok = "running"
+was_running_pid_notok_closed = "crashed"
 
 
 
