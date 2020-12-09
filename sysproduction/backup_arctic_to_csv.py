@@ -35,6 +35,8 @@ from sysdata.mongodb.mongo_optimal_position import mongoOptimalPositionData
 from sysdata.mongodb.mongo_roll_data import mongoRollParametersData
 from sysdata.mongodb.mongo_roll_state_storage import mongoRollStateData
 
+from sysdata.private_config import get_main_backup_directory
+
 
 def backup_arctic_to_csv():
     data = dataBlob(log_name="backup_arctic_to_csv")
@@ -49,28 +51,32 @@ class backupArcticToCsv:
         self.data = data
 
     def backup_arctic_to_csv(self):
-        data = get_data_and_create_csv_directories(self.data.log_name)
-        backup_fx_to_csv(data)
-        backup_futures_contract_prices_to_csv(data)
-        backup_multiple_to_csv(data)
-        backup_adj_to_csv(data)
-        backup_strategy_position_data(data)
-        backup_contract_position_data(data)
-        backup_historical_orders(data)
-        backup_capital(data)
-        backup_contract_data(data)
-        backup_instrument_data(data)
-        backup_optimal_positions(data)
-        backup_roll_state_data(data)
+        backup_data = get_data_and_create_csv_directories(self.data.log_name)
+        log = self.data.log
 
+        log.msg("Dumping from arctic, mongo to .csv files")
+        backup_fx_to_csv(backup_data)
+        backup_futures_contract_prices_to_csv(backup_data)
+        backup_multiple_to_csv(backup_data)
+        backup_adj_to_csv(backup_data)
+        backup_strategy_position_data(backup_data)
+        backup_contract_position_data(backup_data)
+        backup_historical_orders(backup_data)
+        backup_capital(backup_data)
+        backup_contract_data(backup_data)
+        backup_instrument_data(backup_data)
+        backup_optimal_positions(backup_data)
+        backup_roll_state_data(backup_data)
+        log.msg("Copying to backup directory")
+        backup_csv_dump(self.data)
 
-def get_backup_dir():
+def get_csv_dump_dir():
     return get_private_then_default_key_value("csv_backup_directory")
 
 
 def get_data_and_create_csv_directories(logname):
 
-    backup_dir = get_backup_dir()
+    csv_dump_dir = get_csv_dump_dir()
 
     class_paths = dict(
         csvFuturesContractPriceData="contract_prices",
@@ -91,7 +97,7 @@ def get_data_and_create_csv_directories(logname):
     )
 
     for class_name, path in class_paths.items():
-        dir_name = "%s/%s/" % (backup_dir, path)
+        dir_name = "%s/%s/" % (csv_dump_dir, path)
         class_paths[class_name] = dir_name
         if not os.path.exists(dir_name):
             os.mkdir(dir_name)
@@ -379,3 +385,16 @@ def backup_contract_data(data):
             instrument_code, contract_list
         )
         data.log.msg("Backed up contract data for %s" % instrument_code)
+
+
+def backup_csv_dump(data):
+    source_path = get_csv_dump_dir()
+    destination_path = get_csv_backup_directory()
+    data.log.msg("Copy from %s to %s" % (source_path, destination_path))
+    os.system("rsync -av %s %s" % (source_path, destination_path))
+
+def get_csv_backup_directory():
+    main_backup = get_main_backup_directory()
+    ans = os.path.join(main_backup, "csv")
+
+    return ans

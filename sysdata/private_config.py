@@ -1,5 +1,5 @@
 import yaml
-from syscore.fileutils import get_filename_for_package
+from syscore.fileutils import get_filename_for_package, get_resolved_pathname
 from syscore.objects import missing_data, arg_not_supplied
 from systems.defaults import (
     get_default_config_key_value,
@@ -101,3 +101,11 @@ def get_list_of_private_config_values(
         result_dict[key_name] = key_value
 
     return result_dict
+
+def get_main_backup_directory():
+    ans = get_private_config_key_value("offsystem_backup_directory")
+    if ans is missing_data:
+        raise Exception(
+            "Can't backup without setting 'offsystem_backup_directory' in private_config.yaml"
+        )
+    return get_resolved_pathname(ans)

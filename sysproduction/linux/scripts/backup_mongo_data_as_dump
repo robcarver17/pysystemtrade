@@ -1,0 +1,3 @@
+#!/bin/bash
+. ~/.profile
+. p sysproduction.backup_mongo_data_as_dump.backup_mongo_data_as_dump

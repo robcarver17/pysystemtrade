@@ -86,7 +86,9 @@ process_configuration_methods:
     backup_arctic_to_csv:
       max_executions: 1
     backup_files:
-      backup_files: 1
+      max_executions: 1
+    backup_mongo_data_as_dump:
+      max_executions: 1
   run_cleaners:
     clean_backtest_states:
       max_executions: 1
