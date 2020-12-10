@@ -26,12 +26,11 @@ class classStrWithListOfEntriesAsListOfDicts(object):
         self.class_of_entry_list_as_str = class_of_entry_list_as_str
         self.list_of_entries_as_list_of_dicts = list_of_entries_as_list_of_dicts
 
-    def with_class_object(self, class_of_entry_list_as_str: str,
-                               list_of_entries_as_list_of_dicts: listOfEntriesAsListOfDicts):
+    def with_class_object(self):
 
-        class_of_entry_list = resolve_function(class_of_entry_list_as_str)
+        class_of_entry_list = resolve_function(self.class_of_entry_list_as_str)
 
-        return classWithListOfEntriesAsListOfDicts(class_of_entry_list, list_of_entries_as_list_of_dicts)
+        return classWithListOfEntriesAsListOfDicts(class_of_entry_list, self.list_of_entries_as_list_of_dicts)
 
 class listOfEntriesData(baseData):
     """
