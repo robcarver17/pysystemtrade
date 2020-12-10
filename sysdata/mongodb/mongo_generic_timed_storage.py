@@ -1,4 +1,4 @@
-from sysdata.production.generic_timed_storage import listOfEntriesData
+from sysdata.production.generic_timed_storage import listOfEntriesData, classStrWithListOfEntriesAsListOfDicts
 from sysdata.mongodb.mongo_connection import (
     mongoConnection,
     MONGO_ID_KEY
@@ -47,35 +47,41 @@ class mongoListOfEntriesData(listOfEntriesData):
 
         return args_dict_list
 
-    def _get_series_dict_with_data_class_for_args_dict(self, args_dict):
+    def _get_series_dict_with_data_class_for_args_dict(self, args_dict: dict) ->classStrWithListOfEntriesAsListOfDicts:
 
         result_dict = self._mongo.collection.find_one(args_dict)
         if result_dict is None:
-            return missing_data, missing_data
+            return missing_data
 
         result_dict.pop(MONGO_ID_KEY)
         data_class = result_dict["data_class"]
         series_as_list_of_dicts = result_dict["entry_series"]
 
-        return data_class, series_as_list_of_dicts
+        class_str_with_series_as_list_of_dicts = \
+            classStrWithListOfEntriesAsListOfDicts(data_class, series_as_list_of_dicts)
+
+        return class_str_with_series_as_list_of_dicts
 
     def _write_series_dict_for_args_dict(
-        self, args_dict, series_as_list_of_dicts, data_class
+        self, args_dict: dict, class_str_with_series_as_list_of_dicts: classStrWithListOfEntriesAsListOfDicts
     ):
-        __, existing_data = self._get_series_dict_with_data_class_for_args_dict(
+        existing_data = self._get_series_dict_with_data_class_for_args_dict(
             args_dict)
         if existing_data is missing_data:
-            return self._add_series_dict_for_args_dict(
-                args_dict, series_as_list_of_dicts, data_class
+            self._add_series_dict_for_args_dict(
+                class_str_with_series_as_list_of_dicts
             )
         else:
-            return self._update_series_dict_for_args_dict(
-                args_dict, series_as_list_of_dicts, data_class
+            self._update_series_dict_for_args_dict(
+                class_str_with_series_as_list_of_dicts
             )
 
     def _add_series_dict_for_args_dict(
-        self, args_dict, series_as_list_of_dicts, data_class
+        self, args_dict: dict, class_str_with_series_as_list_of_dicts: classStrWithListOfEntriesAsListOfDicts
     ):
+        series_as_list_of_dicts = class_str_with_series_as_list_of_dicts.list_of_entries_as_list_of_dicts
+        data_class = class_str_with_series_as_list_of_dicts
+
         object_to_insert = copy(args_dict)
         object_to_insert.update(
             dict(entry_series=series_as_list_of_dicts, data_class=data_class)
@@ -85,8 +91,11 @@ class mongoListOfEntriesData(listOfEntriesData):
         return success
 
     def _update_series_dict_for_args_dict(
-        self, args_dict, series_as_list_of_dicts, data_class
+        self, args_dict: dict, class_str_with_series_as_list_of_dicts: classStrWithListOfEntriesAsListOfDicts
     ):
+
+        series_as_list_of_dicts = class_str_with_series_as_list_of_dicts.list_of_entries_as_list_of_dicts
+        data_class = class_str_with_series_as_list_of_dicts
 
         find_object_dict = args_dict
         find_object_dict["data_class"] = data_class

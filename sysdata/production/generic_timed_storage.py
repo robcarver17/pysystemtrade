@@ -4,7 +4,6 @@ Generic timed storage; more bullet proof than a data frame
 from dataclasses import dataclass
 
 from syscore.objects import (
-    arg_not_supplied,
     missing_data,
     success,
     failure,
@@ -49,7 +48,7 @@ class listOfEntriesData(baseData):
         return "sysdata.production.generic_timed_storage.listOfEntries"
 
     @property
-    def _data_class(self) -> 'function':
+    def _data_class(self):
         return  resolve_function(self._data_class_name)
 
     @property
@@ -64,7 +63,9 @@ class listOfEntriesData(baseData):
         super().__init__(log=log)
 
     def _delete_all_data_for_args_dict(
-            self, args_dict: dict, are_you_really_sure: bool=False):
+            self, args_dict: dict,
+            are_you_really_sure: bool=False):
+
         if not are_you_really_sure:
             self.log.warn(
                 "To delete all data, need to set are_you_really_sure=True")
