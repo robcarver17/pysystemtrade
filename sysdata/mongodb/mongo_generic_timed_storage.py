@@ -70,11 +70,11 @@ class mongoListOfEntriesData(listOfEntriesData):
         existing_data = self._get_series_dict_with_data_class_for_args_dict(
             args_dict)
         if existing_data is missing_data:
-            self._add_series_dict_for_args_dict(
+            self._add_series_dict_for_args_dict(args_dict,
                 class_str_with_series_as_list_of_dicts
             )
         else:
-            self._update_series_dict_for_args_dict(
+            self._update_series_dict_for_args_dict(args_dict,
                 class_str_with_series_as_list_of_dicts
             )
 

@@ -167,7 +167,7 @@ class listOfEntriesData(baseData):
             classStrWithListOfEntriesAsListOfDicts(class_of_entry_list_as_str,
                                                             entry_series_as_list_of_dicts)
 
-        self._write_series_dict_for_args_dict(args_dict, 
+        self._write_series_dict_for_args_dict(args_dict,
             class_str_with_series_as_list_of_dicts
         )
 
