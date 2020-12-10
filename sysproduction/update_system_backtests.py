@@ -2,7 +2,7 @@ from syscontrol.strategy_tools import strategyRunner
 
 
 from sysdata.data_blob import dataBlob
-from syscontrol.data_interface import get_list_of_strategies_for_process
+from sysproduction.data.control_process import get_list_of_strategies_for_process
 
 backtest_function = "run_backtest"
 process_name = "run_systems"

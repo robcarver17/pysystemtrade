@@ -411,14 +411,14 @@ class contractDateWithRollParameters(object):
             days=self.roll_parameters.roll_offset_day
         )
 
-    def get_unexpired_contracts_from_now_to_contract_date(self):
+    def get_contracts_from_recently_to_contract_date(self):
         """
         Returns all the unexpired contracts between now and the contract date
 
         :return: list of contractDate
         """
 
-        datetime_now = datetime.datetime.now()
+        datetime_now = datetime.datetime.now() - datetime.timedelta(180)
         contract_dates = []
         current_contract_date_with_roll_parameters = copy(self)
 

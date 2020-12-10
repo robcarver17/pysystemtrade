@@ -1,6 +1,6 @@
 from syscore.objects import resolve_function, missing_data
 from sysdata.data_blob import dataBlob
-from syscontrol.data_interface import get_strategy_class_object_config
+from sysproduction.data.control_process import get_strategy_class_object_config
 
 def get_strategy_method(data: dataBlob,  strategy_name: str, process_name: str, function_name: str):
     config_this_process = get_strategy_class_object_config(data, process_name, strategy_name)

@@ -14,7 +14,7 @@ from syscontrol.run_process import processToRun
 
 from sysproduction.update_strategy_orders import name_of_main_generator_method, process_name
 from syscontrol.strategy_tools import strategyRunner
-from syscontrol.data_interface import get_list_of_strategies_for_process
+from sysproduction.data.control_process import get_list_of_strategies_for_process
 
 
 def run_strategy_order_generator():

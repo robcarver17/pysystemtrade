@@ -4,15 +4,14 @@ import datetime
 from sysdata.data_blob import dataBlob
 
 from syscore.fileutils import get_filename_for_package
-from syscontrol.data_interface import dataControlProcess
-from syscontrol.data_interface import diagControlProcess
+from sysproduction.data.control_process import dataControlProcess
+from sysproduction.data.control_process import diagControlProcess
 from syscore.dateutils import last_run_or_heartbeat_from_date_or_none
 
 
 def monitor():
     with dataBlob(log_name="system-monitor") as data:
-        process_observatory = processObservatory(data)
-
+        process_observatory = processMonitor(data)
         while 2==2:
             check_if_pid_running_and_if_not_finish(process_observatory)
             process_observatory.update_all_status_with_process_control()
@@ -34,7 +33,7 @@ class internal_logger(list):
 
 
 
-class processObservatory(dict):
+class processMonitor(dict):
     def __init__(self, data):
         super().__init__()
         self._data = data
@@ -87,29 +86,29 @@ class processObservatory(dict):
         status = copy(self.get(process_name, UNKNOWN_STATUS))
         return status
 
-def get_list_of_process_names(process_observatory: processObservatory):
+def get_list_of_process_names(process_observatory: processMonitor):
     diag_control = diagControlProcess(process_observatory.data)
     return diag_control.get_list_of_process_names()
 
 
-def get_running_mode_str_for_process(process_observatory: processObservatory, process_name: str):
+def get_running_mode_str_for_process(process_observatory: processMonitor, process_name: str):
     control = get_control_for_process(process_observatory, process_name)
     return control.running_mode_str
 
-def get_control_for_process(process_observatory: processObservatory, process_name: str):
+def get_control_for_process(process_observatory: processMonitor, process_name: str):
     diag_control = diagControlProcess(process_observatory.data)
     control = diag_control.get_control_for_process_name(process_name)
 
     return control
 
 
-def check_if_pid_running_and_if_not_finish(process_observatory: processObservatory):
+def check_if_pid_running_and_if_not_finish(process_observatory: processMonitor):
     data_control = dataControlProcess(process_observatory.data)
     data_control.check_if_pid_running_and_if_not_finish_all_processes()
 
 filename = "private.index.html"
 
-def generate_html(process_observatory: processObservatory):
+def generate_html(process_observatory: processMonitor):
     resolved_filename = get_filename_for_package(filename)
 
     with open(resolved_filename, "w") as file:

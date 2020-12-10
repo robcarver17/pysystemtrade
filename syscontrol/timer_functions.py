@@ -1,6 +1,6 @@
 import datetime
 
-from syscontrol.data_interface import diagControlProcess, dataControlProcess
+from sysproduction.data.control_process import diagControlProcess, dataControlProcess
 from syslogdiag.log import logtoscreen
 
 

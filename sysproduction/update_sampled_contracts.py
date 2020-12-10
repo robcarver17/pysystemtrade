@@ -129,7 +129,7 @@ def create_contract_date_chain(furthest_out_contract: contractDateWithRollParame
     final_contract = furthest_out_contract.next_priced_contract()
 
     contract_date_chain = (
-        final_contract.get_unexpired_contracts_from_now_to_contract_date()
+        final_contract.get_contracts_from_recently_to_contract_date()
     )
 
     return contract_date_chain

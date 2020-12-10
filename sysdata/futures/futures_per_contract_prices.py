@@ -185,7 +185,7 @@ class futuresContractPriceData(baseData):
 
     def update_prices_for_contract(
         self,
-        futures_contract_object: futuresContract,
+        contract_object: futuresContract,
         new_futures_per_contract_prices: futuresContractPrices,
         check_for_spike: bool=True,
     ) -> int:
@@ -195,10 +195,10 @@ class futuresContractPriceData(baseData):
         :param new_futures_prices:
         :return: int, number of rows
         """
-        new_log = futures_contract_object.log(self.log)
+        new_log = contract_object.log(self.log)
 
         old_prices = self.get_prices_for_contract_object(
-            futures_contract_object)
+            contract_object)
         merged_prices = old_prices.add_rows_to_existing_data(
             new_futures_per_contract_prices, check_for_spike=check_for_spike
         )
@@ -221,7 +221,7 @@ class futuresContractPriceData(baseData):
 
         # We have guaranteed no duplication
         self.write_prices_for_contract_object(
-            futures_contract_object, merged_prices, ignore_duplication=True
+            contract_object, merged_prices, ignore_duplication=True
         )
 
         new_log.msg("Added %d additional rows of data" % rows_added)

@@ -4,7 +4,7 @@ import socket
 from syscore.dateutils import SECONDS_PER_HOUR
 from syscore.genutils import str2Bool
 from sysdata.data_blob import dataBlob
-from syscontrol.mongo_process_control import mongoControlProcessData
+from sysdata.mongodb.mongo_process_control import mongoControlProcessData
 
 import yaml
 from syscore.fileutils import get_filename_for_package

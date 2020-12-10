@@ -1,5 +1,5 @@
 from syscontrol.data_objects import controlProcess
-from syscontrol.process_control_data import controlProcessData
+from sysdata.production.process_control_data import controlProcessData
 from syscore.objects import missing_data, arg_not_supplied
 
 from sysdata.mongodb.mongo_generic import mongoData

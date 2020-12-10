@@ -9,7 +9,7 @@ from syscontrol.run_process import processToRun
 
 from sysproduction.update_system_backtests import process_name, backtest_function
 from syscontrol.strategy_tools import strategyRunner
-from syscontrol.data_interface import get_list_of_strategies_for_process
+from sysproduction.data.control_process import get_list_of_strategies_for_process
 
 
 def run_systems():

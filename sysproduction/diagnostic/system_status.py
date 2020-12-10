@@ -21,7 +21,7 @@ from sysproduction.data.controls import (
     dataLocks,
     dataPositionLimits
 )
-from syscontrol.data_interface import dataControlProcess, diagControlProcess
+from sysproduction.data.control_process import dataControlProcess, diagControlProcess
 from sysproduction.data.strategies import get_list_of_strategies
 from sysproduction.data.prices import get_list_of_instruments
 from sysproduction.data.currency_data import get_list_of_fxcodes, dataCurrency

@@ -1,5 +1,3 @@
-import datetime
-
 import numpy as np
 
 from collections import namedtuple
@@ -26,7 +24,7 @@ from sysobjects.contracts import futuresContract
 from sysdata.data_blob import dataBlob
 from sysproduction.data.positions import diagPositions
 from sysproduction.data.currency_data import dataCurrency
-from syscontrol.data_interface import diagControlProcess
+from sysproduction.data.control_process import diagControlProcess
 
 benchmarkPriceCollection = namedtuple(
     "benchmarkPriceCollection",
