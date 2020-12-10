@@ -13,10 +13,12 @@ class capitalEntry(timedEntry):
     def required_argument_names(self) -> list:
         return ["capital_value"]  # compulsory args
 
+    @property
     def _name_(self):
         return "Capital"
 
-    def _containing_data_class_name(self):
+    @property
+    def containing_data_class_name(self):
         return "sysdata.production.capital.capitalForStrategy"
 
 

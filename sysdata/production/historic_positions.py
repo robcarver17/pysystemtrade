@@ -25,10 +25,12 @@ class historicPosition(timedEntry):
     def required_argument_names(self) -> list:
         return ["position"]  # compulsory args
 
+    @property
     def _name_(self):
         return "Position"
 
-    def _containing_data_class_name(self):
+    @property
+    def containing_data_class_name(self):
         return "sysdata.production.historic_positions.listPositions"
 
 

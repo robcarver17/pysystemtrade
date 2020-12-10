@@ -1,6 +1,7 @@
 """
 Generic timed storage; more bullet proof than a data frame
 """
+from dataclasses import dataclass
 
 from syscore.objects import (
     arg_not_supplied,
@@ -11,59 +12,76 @@ from syscore.objects import (
 )
 from sysdata.base_data import baseData
 from syslogdiag.log import logtoscreen
+from sysobjects.production.timed_storage import listOfEntriesAsListOfDicts, listOfEntries, timedEntry
 
+class classWithListOfEntriesAsListOfDicts(object):
+    def __init__(self, class_of_entry_list, list_of_entries_as_list_of_dicts: listOfEntriesAsListOfDicts):
+        self.class_of_entry_list = class_of_entry_list
+        self.list_of_entries_as_list_of_dicts = list_of_entries_as_list_of_dicts
+
+    def as_list_of_entries(self):
+        return self.list_of_entries_as_list_of_dicts.as_list_of_entries(self.class_of_entry_list)
+
+class classStrWithListOfEntriesAsListOfDicts(object):
+    def __init__(self, class_of_entry_list_as_str: str, list_of_entries_as_list_of_dicts: listOfEntriesAsListOfDicts):
+        self.class_of_entry_list_as_str = class_of_entry_list_as_str
+        self.list_of_entries_as_list_of_dicts = list_of_entries_as_list_of_dicts
+
+    def with_class_object(self, class_of_entry_list_as_str: str,
+                               list_of_entries_as_list_of_dicts: listOfEntriesAsListOfDicts):
+
+        class_of_entry_list = resolve_function(class_of_entry_list_as_str)
+
+        return classWithListOfEntriesAsListOfDicts(class_of_entry_list, list_of_entries_as_list_of_dicts)
 
 class listOfEntriesData(baseData):
     """
-    base data class
+    base data class for list of entries
+
+    Highly generic, an args dict is any set of labels eg strategy & instrument for positions
+
+    Most of the methods are private because when we inherit we don't want to see them
     """
 
-    def _name(self):
-        return "listOfEntries"
-
-    def _data_class_name(self):
+    @property
+    def _data_class_name(self) -> str:
+        ## The type of storage we are putting in here
         return "sysdata.production.generic_timed_storage.listOfEntries"
+
+    @property
+    def _data_class(self) -> 'function':
+        return  resolve_function(self._data_class_name)
+
+    @property
+    def _empty_data_series(self):
+        data_class = self._data_class
+        empty_entry_series = data_class.as_empty()
+
+        return empty_entry_series
 
     def __init__(self, log=logtoscreen("listOfEntriesData")):
 
         super().__init__(log=log)
-        self.name = self._name()
 
     def _delete_all_data_for_args_dict(
-            self, args_dict, are_you_really_sure=False):
+            self, args_dict: dict, are_you_really_sure: bool=False):
         if not are_you_really_sure:
             self.log.warn(
                 "To delete all data, need to set are_you_really_sure=True")
             return failure
 
-        data_class_name = self._data_class_name()
-        data_class = resolve_function(data_class_name)
-        entry_series = data_class.as_empty()
+        empty_entry_series = self._empty_data_series
+        self._write_series_for_args_dict(args_dict, empty_entry_series)
 
-        self._write_series_for_args_dict(args_dict, entry_series)
+    def _update_entry_for_args_dict(self, new_entry: timedEntry, args_dict: dict):
 
-    def _update_entry_for_args_dict(self, new_entry, args_dict):
-
-        data_class_new_entry = new_entry._containing_data_class_name()
-        entry_series = self._get_series_for_args_dict(args_dict)
-
-        if len(entry_series) > 0:
+        existing_series = self._get_series_for_args_dict(args_dict)
+        if len(existing_series) > 0:
             # Check types match
-            existing_data_class_name = self._get_data_class_name_for_args_dict(
-                args_dict
-            )
-            new_data_class = data_class_new_entry.split(".")[-1]
-            existing_data_class = existing_data_class_name.split(".")[-1]
-            try:
-                assert new_data_class == existing_data_class
-            except BaseException:
-                self.log.warn(
-                    "You tried to add an entry of type %s to existing data type %s" %
-                    (data_class_new_entry, existing_data_class_name))
-                return failure
+            self._check_class_name_matches_for_new_entry(args_dict, new_entry)
 
         try:
-            entry_series.append(new_entry)
+            existing_series.append(new_entry)
         except Exception as e:
             self.log.warn(
                 "Error %s when updating for %s with %s"
@@ -72,10 +90,25 @@ class listOfEntriesData(baseData):
             return failure
 
         self._write_series_for_args_dict(
-            args_dict, entry_series, data_class_name=data_class_new_entry
-        )
+            args_dict, existing_series
+            )
 
         return success
+
+    def _check_class_name_matches_for_new_entry(self, args_dict:dict,  new_entry: timedEntry):
+
+        entry_class_name_new_entry = new_entry.containing_data_class_name
+        entry_class_name_existing = self._get_class_of_entry_list_as_str(args_dict)
+
+        split_new_name = entry_class_name_new_entry.split(".")[-1]
+        split_existing_name = entry_class_name_existing.split(".")[-1]
+        try:
+            assert split_new_name == split_existing_name
+        except BaseException:
+            self.log.warn(
+                "You tried to add an entry of type %s to existing data type %s" %
+                (entry_class_name_new_entry, entry_class_name_existing))
+            return failure
 
     def _delete_last_entry_for_args_dict(self, args_dict, are_you_sure=False):
         if not are_you_sure:
@@ -99,65 +132,71 @@ class listOfEntriesData(baseData):
 
         return current_entry
 
-    def _get_series_for_args_dict(self, args_dict):
-        data_class, series_as_dict = self._get_series_dict_and_class_for_args_dict(
+    def _get_series_for_args_dict(self, args_dict) -> listOfEntries:
+        class_with_series_as_list_of_dicts = self._get_series_dict_and_class_for_args_dict(
             args_dict)
-        if series_as_dict is missing_data:
-            return data_class.as_empty()
+        if class_with_series_as_list_of_dicts is missing_data:
+            return self._empty_data_series
 
-        entry_series = data_class.from_list_of_dict(series_as_dict)
+        entry_series = class_with_series_as_list_of_dicts.as_list_of_entries()
 
         return entry_series
 
-    def _get_series_dict_and_class_for_args_dict(self, args_dict):
+    def _get_series_dict_and_class_for_args_dict(self, args_dict: dict) -> classWithListOfEntriesAsListOfDicts:
 
-        series_as_dict_with_data_class = (
+        class_str_with_series_as_list_of_dicts = (
             self._get_series_dict_with_data_class_for_args_dict(args_dict)
         )
-        data_class_name = self._get_data_class_name_for_args_dict(
-            args_dict, series_as_dict_with_data_class=series_as_dict_with_data_class)
-        __, series_as_dict = series_as_dict_with_data_class
-        data_class = resolve_function(data_class_name)
 
-        return data_class, series_as_dict
+        if class_str_with_series_as_list_of_dicts is missing_data:
+            return missing_data
 
-    def _get_data_class_name_for_args_dict(
-        self, args_dict, series_as_dict_with_data_class=arg_not_supplied
-    ):
-        if series_as_dict_with_data_class is arg_not_supplied:
-            series_as_dict_with_data_class = (
-                self._get_series_dict_with_data_class_for_args_dict(args_dict)
-            )
-        data_class_name, __ = series_as_dict_with_data_class
+        class_with_series_as_list_of_dicts = class_str_with_series_as_list_of_dicts.with_class_object()
 
-        if data_class_name is missing_data:
-            # Return defaults
-            data_class_name = self._data_class_name()
+        return class_with_series_as_list_of_dicts
 
-        return data_class_name
 
     def _write_series_for_args_dict(
-        self, args_dict, entry_series, data_class_name=arg_not_supplied
-    ):
+        self, args_dict: dict,
+            entry_series: listOfEntries
+        ):
         entry_series_as_list_of_dicts = entry_series.as_list_of_dict()
-        if data_class_name is arg_not_supplied:
-            data_class_name = self._get_data_class_name_for_args_dict(
-                args_dict)
+        class_of_entry_list_as_str = self._get_class_of_entry_list_as_str(args_dict)
+
+        class_str_with_series_as_list_of_dicts = \
+            classStrWithListOfEntriesAsListOfDicts(class_of_entry_list_as_str,
+                                                            entry_series_as_list_of_dicts)
 
         self._write_series_dict_for_args_dict(
-            args_dict, entry_series_as_list_of_dicts, data_class_name
+            class_str_with_series_as_list_of_dicts
         )
 
         return success
 
-    def _get_series_dict_with_data_class_for_args_dict(self, args_dict):
+    def _get_class_of_entry_list_as_str(
+            self, args_dict: dict,
+             ) -> str:
+
+        ## Use existing data, or if not available use the default for this object
+        class_str_with_series_as_list_of_dicts = \
+            self._get_series_dict_with_data_class_for_args_dict(args_dict)
+
+        if class_str_with_series_as_list_of_dicts is missing_data:
+            return self._data_class_name
+        else:
+            return class_str_with_series_as_list_of_dicts.class_of_entry_list_as_str
+
+
+    def _get_series_dict_with_data_class_for_args_dict(self, args_dict: dict) -> classStrWithListOfEntriesAsListOfDicts:
+
         # return data_class, series_as_list_of_dicts
+        ## return missing_data if unvailable
         raise NotImplementedError("Need to use child class")
 
     def _write_series_dict_for_args_dict(
-        self, args_dict, series_as_list_of_dicts, data_class
+        self, args_dict: dict, class_str_with_series_as_list_of_dicts: classStrWithListOfEntriesAsListOfDicts
     ):
         raise NotImplementedError("Need to use child class")
 
-    def _get_list_of_args_dict(self):
+    def _get_list_of_args_dict(self) -> list:
         raise NotImplementedError("Need to use child class")

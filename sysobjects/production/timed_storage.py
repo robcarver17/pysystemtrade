@@ -22,7 +22,7 @@ class timedEntry(object):
         return "timedEntry"
 
     @property
-    def _containing_data_class_name(self) -> str:
+    def containing_data_class_name(self) -> str:
         ## this makes sure we don't mix and match different types of timed storage
         return "sysdata.production.generic_timed_storage.listOfEntries"
 
@@ -152,6 +152,16 @@ class timedEntry(object):
         return success
 
 
+
+class listOfEntriesAsListOfDicts(list):
+    def as_list_of_entries(self, class_of_entry_list):
+        class_of_each_individual_entry = class_of_entry_list.as_empty()._entry_class()
+        list_of_class_entries = [class_of_each_individual_entry.from_dict(
+            entry_as_dict) for entry_as_dict in self]
+
+        return class_of_entry_list(list_of_class_entries)
+
+
 class listOfEntries(list):
     """
     A list of timedEntry
@@ -173,10 +183,10 @@ class listOfEntries(list):
     def as_list_of_dict(self) -> list:
         list_of_dict = [entry.as_dict() for entry in self]
 
-        return list_of_dict
+        return listOfEntriesAsListOfDicts(list_of_dict)
 
     @classmethod
-    def from_list_of_dict(cls, list_of_dict: list):
+    def from_list_of_dict(cls, list_of_dict: listOfEntriesAsListOfDicts):
         class_of_each_individual_entry = cls.as_empty()._entry_class()
         list_of_class_entries = [class_of_each_individual_entry.from_dict(
             entry_as_dict) for entry_as_dict in list_of_dict]
@@ -248,3 +258,4 @@ class listOfEntries(list):
         self_as_df = self_as_df.sort_index()
 
         return self_as_df
+
