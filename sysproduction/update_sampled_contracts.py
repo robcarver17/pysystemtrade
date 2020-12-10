@@ -71,6 +71,8 @@ def update_active_contracts_for_instrument(
     # Now to check if expiry dates are resolved
     update_expiries_of_sampled_contracts(instrument_code, data)
 
+    # mark expired as no longer sampling
+    stop_expired_contracts_sampling(instrument_code, data)
 
 
 def get_contract_chain(data: dataBlob, instrument_code: str) -> listOfFuturesContracts:
@@ -128,6 +130,8 @@ def create_contract_date_chain(furthest_out_contract: contractDateWithRollParame
     # little in advance
     final_contract = furthest_out_contract.next_priced_contract()
 
+    ## this will pick up contracts from 6 months ago, to deal with any gaps
+    ## however if these have expired they are marked as finished sampling later
     contract_date_chain = (
         final_contract.get_contracts_from_recently_to_contract_date()
     )
@@ -163,27 +167,16 @@ def update_contract_database_with_contract_chain(
     :return: None
     """
 
-    current_contract_chain = get_current_contract_chain(data, instrument_code)
+    current_contract_chain_in_db = get_current_contract_chain_in_db(data, instrument_code)
 
     missing_from_db = required_contract_chain.difference(
-        current_contract_chain)
+        current_contract_chain_in_db)
 
     add_missing_contracts_to_database(
          missing_from_db, data)
 
-    # Is something in the database, but not in required_contract_chain?
-    # Then it's either expired or weirdly very far in the future (maybe we changed the roll parameters)
-    # Either way, we stop sampling it (if it hasn't expired, will be added in
-    # the future)
-    contracts_not_sampling = current_contract_chain.difference(
-        required_contract_chain)
-    mark_contracts_as_stopped_sampling(
-        instrument_code, contracts_not_sampling, data
-    )
 
-    return None
-
-def get_current_contract_chain(data: dataBlob, instrument_code:str) -> listOfFuturesContracts:
+def get_current_contract_chain_in_db(data: dataBlob, instrument_code:str) -> listOfFuturesContracts:
     diag_contracts = diagContracts(data)
 
     # Get list of contracts in the database
@@ -233,41 +226,6 @@ def add_missing_contract_to_database(data: dataBlob, contract_to_add: futuresCon
     log.msg(
         "Contract %s now added to database and sampling" %
         str(contract_to_add))
-
-
-
-def mark_contracts_as_stopped_sampling(
-    instrument_code: str, contracts_not_sampling: listOfFuturesContracts, data: dataBlob
-):
-    """
-
-    :param instrument_code: str
-    :param contracts_not_sampling: list of contractDate objects
-    :param data: dataBlobg
-    :return: None
-    """
-    diag_contracts = diagContracts(data)
-    update_contracts = updateContracts(data)
-    log = data.log.setup(instrument_code=instrument_code)
-
-    for contract_date_object in contracts_not_sampling:
-        contract_date = contract_date_object.date_str
-
-        # Mark it as stop sampling in the database
-        contract = diag_contracts.get_contract_object(
-            instrument_code, contract_date)
-        if contract.currently_sampling:
-            contract.sampling_off()
-            update_contracts.add_contract_data(
-                contract, ignore_duplication=True)
-
-            log.msg(
-                "Contract %s has now stopped sampling" % str(contract),
-                contract_date=contract.date_str,
-            )
-        else:
-            # nothing to do
-            pass
 
 
 
@@ -323,9 +281,12 @@ def update_expiry_for_contract(contract_object: futuresContract, data: dataBlob)
         data_broker.get_actual_expiry_date_for_single_contract(db_contract)
 
     if broker_expiry_date is missing_contract:
-        log.warn(
-            "Couldn't get expiry date for %s" %
-            (str(contract_object)))
+        log.msg(
+            "Can't find expiry for %s, could be a connection problem but could be because contract has already expired"
+            % (str(contract_object))
+        )
+
+        ## don't warn as probably expired we'll remove it from the sampling list
         return None
 
     if broker_expiry_date == db_expiry_date:
@@ -351,3 +312,29 @@ def update_contract_object_with_new_expiry_date(data: dataBlob,
         "Updated expiry of contract %s to %s"
         % (str(contract_object), str(broker_expiry_date))
     )
+
+
+def stop_expired_contracts_sampling(instrument_code: str, data: dataBlob):
+    ## expiry dates will have been updated and are correct
+    current_contract_chain_in_db = get_current_contract_chain_in_db(data, instrument_code)
+
+    diag_contracts = diagContracts(data)
+    update_contracts = updateContracts(data)
+    log = data.log.setup(instrument_code=instrument_code)
+
+    for contract_date_object in current_contract_chain_in_db:
+        contract_date = contract_date_object.date_str
+
+        # Mark it as stop sampling in the database
+        contract = diag_contracts.get_contract_object(
+            instrument_code, contract_date)
+        if contract.expired() and contract.currently_sampling:
+            contract.sampling_off()
+            update_contracts.add_contract_data(
+                contract, ignore_duplication=True)
+
+            log.msg(
+                "Contract %s has now stopped sampling" % str(contract),
+                contract_date=contract.date_str,
+            )
+

@@ -101,7 +101,9 @@ class ibFuturesContractData(futuresContractData):
         return expiry_date
 
 
-    def _get_actual_expiry_date_given_single_contract_with_ib_metadata(self, futures_contract_with_ib_data: futuresContract) -> expiryDate:
+    def _get_actual_expiry_date_given_single_contract_with_ib_metadata(self,
+                                                futures_contract_with_ib_data: futuresContract
+                                                                       ) -> expiryDate:
         log = futures_contract_with_ib_data.specific_log(self.log)
         if futures_contract_with_ib_data.is_spread_contract():
             log.warn("Can't find expiry for multiple leg contract here")
@@ -112,8 +114,6 @@ class ibFuturesContractData(futuresContractData):
         )
 
         if expiry_date is missing_contract:
-            log = futures_contract_with_ib_data.log(self.log)
-            log.msg("No IB expiry date found")
             return missing_contract
         else:
             expiry_date = expiryDate.from_str(

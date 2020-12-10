@@ -20,7 +20,7 @@ def monitor():
 
 UNKNOWN_STATUS = "Unknown"
 
-MAX_LOG_LENGTH = 20
+MAX_LOG_LENGTH = 17
 class internal_logger(list):
     def append_msg(self, new_msg):
         if len(self)>MAX_LOG_LENGTH:

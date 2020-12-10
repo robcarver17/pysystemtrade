@@ -1,3 +1,5 @@
+import datetime
+
 from dataclasses import  dataclass
 
 from syscore.objects import arg_not_supplied, missing_contract
@@ -169,6 +171,13 @@ class futuresContract(object):
     @property
     def expiry_date(self):
         return self.contract_date.expiry_date
+
+    def expired(self):
+        expiry_date = self.expiry_date
+        if expiry_date<datetime.datetime.now():
+            return True
+        else:
+            return False
 
     def update_single_expiry_date(self, new_expiry_date: expiryDate):
         self.contract_date.update_single_expiry_date(new_expiry_date)

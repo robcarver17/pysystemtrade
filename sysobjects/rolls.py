@@ -415,10 +415,12 @@ class contractDateWithRollParameters(object):
         """
         Returns all the unexpired contracts between now and the contract date
 
+        We go back 3 months in case of a mismatch between roll parameters and actual expiries when setting up data
+
         :return: list of contractDate
         """
 
-        datetime_now = datetime.datetime.now() - datetime.timedelta(180)
+        datetime_now = datetime.datetime.now() - datetime.timedelta(100)
         contract_dates = []
         current_contract_date_with_roll_parameters = copy(self)
 

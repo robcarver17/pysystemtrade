@@ -15,10 +15,9 @@ from syscore.objects import arg_not_supplied, failure, success, missing_data
 from sysdata.base_data import baseData
 from syslogdiag.log import logtoscreen
 from sysdata.production.generic_timed_storage import (
-    timedEntry,
-    listOfEntries,
     listOfEntriesData,
 )
+from sysobjects.production.timed_storage import timedEntry, listOfEntries
 from sysdata.production.current_positions import (
     instrumentStrategy,
     instrumentStrategyPosition,
@@ -66,7 +65,7 @@ class bufferedOptimalPositions(timedEntry):
             "sysdata.production.optimal_positions.bufferedOptimalPositionForInstrument"
         )
 
-    def _kwargs_checks(self, kwargs):
+    def _argument_checks(self, kwargs):
         try:
             assert kwargs["upper_position"] >= kwargs["lower_position"]
         except BaseException:
