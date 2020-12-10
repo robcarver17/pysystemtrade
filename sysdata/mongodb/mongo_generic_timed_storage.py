@@ -1,4 +1,5 @@
-from sysdata.production.generic_timed_storage import listOfEntriesData, classStrWithListOfEntriesAsListOfDicts
+from sysdata.production.generic_timed_storage import listOfEntriesData, classStrWithListOfEntriesAsListOfDicts, listOfEntriesAsListOfDicts
+
 from sysdata.mongodb.mongo_connection import (
     mongoConnection,
     MONGO_ID_KEY
@@ -56,6 +57,7 @@ class mongoListOfEntriesData(listOfEntriesData):
         result_dict.pop(MONGO_ID_KEY)
         data_class = result_dict["data_class"]
         series_as_list_of_dicts = result_dict["entry_series"]
+        series_as_list_of_dicts = listOfEntriesAsListOfDicts(series_as_list_of_dicts)
 
         class_str_with_series_as_list_of_dicts = \
             classStrWithListOfEntriesAsListOfDicts(data_class, series_as_list_of_dicts)
