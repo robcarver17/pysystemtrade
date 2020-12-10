@@ -21,8 +21,9 @@ class historicPosition(timedEntry):
 
     """
 
-    def _setup_args_data(self):
-        self._star_args = ["position"]  # compulsory args
+    @property
+    def required_argument_names(self) -> list:
+        return ["position"]  # compulsory args
 
     def _name_(self):
         return "Position"

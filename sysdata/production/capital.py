@@ -8,8 +8,10 @@ from sysobjects.production.timed_storage import timedEntry, listOfEntries
 
 
 class capitalEntry(timedEntry):
-    def _setup_args_data(self):
-        self._star_args = ["capital_value"]  # compulsory args
+
+    @property
+    def required_argument_names(self) -> list:
+        return ["capital_value"]  # compulsory args
 
     def _name_(self):
         return "Capital"
