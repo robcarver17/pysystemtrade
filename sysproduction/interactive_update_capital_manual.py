@@ -15,39 +15,39 @@ def interactive_update_capital_manual():
     """
     with dataBlob(log_name="Interactive-Update-Capital-Manual") as data:
 
-        data_capital = dataCapital(data)
 
         still_running = True
         while still_running:
             # display capital and get input
-            user_option_int = print_capital_and_get_user_input(data_capital)
-            if user_option_int == 1:
-                setup_initial_capital(data)
-            elif user_option_int == 2:
-                update_capital_from_ib(data)
-            elif user_option_int == 3:
-                adjust_capital_for_delta(data_capital)
-            elif user_option_int == 4:
-                modify_any_value(data_capital)
-            elif user_option_int == 5:
-                delete_capital_since_time(data_capital)
-            elif user_option_int == 919:
-                delete_all_capital(data_capital)
-            elif user_option_int == 0:
-                still_running = False
-                break
-            else:
+            user_option_int = print_capital_and_get_user_input(data)
+            function_list = [finished,
+                             setup_initial_capital,
+                             update_capital_from_ib,
+                            adjust_capital_for_delta,
+                            modify_any_value,
+                            delete_capital_since_time,
+                            delete_all_capital]
+
+            try:
+                function_to_run = function_list[user_option_int]
+            except IndexError:
                 print(
-                    "%d is not a valid option but was in list of possible options: check code" %
+                    "%d is not a valid option" %
                     str(user_option_int))
+
+            function_to_run(data)
 
             # Back to top of while loop
 
     return success
 
+def finished(data):
+    exit()
 
-def print_capital_and_get_user_input(capital_data: dataCapital):
-    all_calcs = capital_data.get_series_of_all_global_capital()
+def print_capital_and_get_user_input(data: dataBlob):
+    data_capital = dataCapital(data)
+
+    all_calcs = data_capital.get_series_of_all_global_capital()
     print("\n")
     if all_calcs is missing_data:
         # No capital
@@ -69,7 +69,7 @@ def print_capital_and_get_user_input(capital_data: dataCapital):
             3: "Adjust account value for withdrawal or deposit",
             4: "Modify any/all values",
             5: "Delete values of capital since time T",
-            919: "Delete everything and start again"}
+            6: "Delete everything and start again"}
 
     user_option_int = print_menu_and_get_response(possible_options, default_option=0,
                                                   default_str="EXIT")
@@ -91,13 +91,12 @@ def setup_initial_capital(data: dataBlob):
         data_capital = dataCapital(data)
         data_capital.total_capital_calculator.create_initial_capital(
             broker_account_value,
-            total_capital=arg_not_supplied,
-            maximum_capital=arg_not_supplied,
-            acc_pandl=arg_not_supplied,
+            total_capital=total_capital,
+            maximum_capital=maximum_capital,
+            acc_pandl=acc_pandl,
             are_you_really_sure=True,
         )
 
-    return success
 
 
 def get_initial_capital_values_from_user(data: dataBlob):
@@ -110,15 +109,18 @@ def get_initial_capital_values_from_user(data: dataBlob):
     if broker_account_value is arg_not_supplied:
         broker_account_value = get_broker_account_value(data)
         print("Got broker account value of %f from IB" % broker_account_value)
+
     total_capital = get_and_convert(
         "Total capital at risk",
         type_expected=float,
         default_value=broker_account_value)
+
     maximum_capital = get_and_convert(
         "Max capital, only used for half compounding",
         type_expected=float,
         default_value=total_capital,
     )
+
     acc_pandl = get_and_convert(
         "Accumulated profit", type_expected=float, default_value=0.0
     )
@@ -127,10 +129,14 @@ def get_initial_capital_values_from_user(data: dataBlob):
 
 
 def update_capital_from_ib(data: dataBlob):
+
     data_capital = dataCapital(data)
     broker_account_value = get_broker_account_value(data)
     try:
-        total_capital = data_capital.update_and_return_total_capital_with_new_broker_account_value(broker_account_value)
+        total_capital = data_capital.\
+            update_and_return_total_capital_with_new_broker_account_value(broker_account_value)
+        print("New total capital is %s" % total_capital)
+
     except BaseException:
         ans = input(
             "Do you want to try again, without checking for large capital changes? Yes/<anything else>"
@@ -139,9 +145,10 @@ def update_capital_from_ib(data: dataBlob):
             total_capital = data_capital.update_and_return_total_capital_with_new_broker_account_value(
                 broker_account_value, check_limit=9999)
         else:
-            return failure
+            total_capital = "Capital not updated"
 
-    print("New total capital is %s" % total_capital)
+    print("New total capital is %s" % str(total_capital))
+
 
 def get_broker_account_value(data: dataBlob):
     data_broker = dataBroker(data)
@@ -149,7 +156,9 @@ def get_broker_account_value(data: dataBlob):
 
     return capital_value
 
-def adjust_capital_for_delta(data_capital: dataCapital):
+def adjust_capital_for_delta(data: dataBlob):
+    data_capital = dataCapital(data)
+
     capital_delta = get_and_convert(
         "What change have you made to brokerage account that will not change capital +ve deposit, -ve withdrawal",
         type_expected=float,
@@ -163,13 +172,11 @@ def adjust_capital_for_delta(data_capital: dataCapital):
         data_capital.total_capital_calculator.adjust_broker_account_for_delta(
             capital_delta
         )
-    else:
-        return failure
-
-    return success
 
 
-def modify_any_value(data_capital: dataCapital):
+def modify_any_value(data: dataBlob):
+    data_capital = dataCapital(data)
+
     (
         broker_account_value,
         total_capital,
@@ -186,10 +193,6 @@ def modify_any_value(data_capital: dataCapital):
             maximum_capital=maximum_capital,
             acc_pandl=acc_pandl,
         )
-    else:
-        return failure
-
-    return success
 
 
 def get_values_from_user_to_modify():
@@ -221,32 +224,30 @@ def get_values_from_user_to_modify():
     return broker_account_value, total_capital, maximum_capital, acc_pandl
 
 
-def delete_capital_since_time(data_capital:dataCapital):
+def delete_capital_since_time(data: dataBlob):
+    data_capital = dataCapital(data)
+
     start_date = get_datetime_input("Delete capital from when?")
     ans = input("Are you sure about this? Can't be undone Yes/<other for no>")
     if ans == "Yes":
         data_capital.total_capital_calculator.delete_recent_capital(
             start_date, are_you_sure=True
         )
-    else:
-        return failure
-
-    return success
 
 
-def delete_all_capital(data_capital: dataCapital):
+def delete_all_capital(data: dataBlob):
+    data_capital = dataCapital(data)
+
     ans = input(
-        "Will delete all capital history (though not for individual strategies). Really sure this is a good idea? Can't be recovered from: Yes/<anything else for no>"
+        "Will delete all capital history (though not for individual strategies). Really sure this is a good idea? Can't be recovered from: 'YESyesYES'/<anything else for no>"
     )
-    if ans == "Yes":
+    if ans == "YESyesYES":
         try:
-            result = data_capital.total_capital_calculator.delete_all_capital(
+            data_capital.total_capital_calculator.delete_all_capital(
                 are_you_really_sure=True
             )
-            return success
+
         except BaseException:
             print(
                 "Something went wrong: You may have to manually drop collection in mongo DB"
             )
-            return failure
-    return failure
