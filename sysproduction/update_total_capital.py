@@ -29,7 +29,7 @@ def update_total_capital():
 
 
 class totalCapitalUpdate(object):
-    def __init__(self, data):
+    def __init__(self, data: dataBlob):
         self.data = data
 
     def update_total_capital(self):

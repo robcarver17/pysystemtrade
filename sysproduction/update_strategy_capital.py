@@ -6,7 +6,6 @@ from sysdata.data_blob import dataBlob
 from sysproduction.data.capital import dataCapital
 from sysproduction.data.strategies import diagStrategiesConfig
 
-from sysdata.private_config import get_private_then_default_key_value
 from syscore.objects import resolve_function
 
 
@@ -24,7 +23,7 @@ def update_strategy_capital():
 
 
 class updateStrategyCapital(object):
-    def __init__(self, data):
+    def __init__(self, data: dataBlob):
         self.data = data
 
     def strategy_allocation(self):
@@ -50,7 +49,7 @@ class updateStrategyCapital(object):
         return None
 
 
-def call_allocation_function(data):
+def call_allocation_function(data: dataBlob) -> dict:
 
     strategy_allocation_config_dict = get_strategy_allocation_config_dict(data)
     strategy_allocation_function_str = strategy_allocation_config_dict.pop(
@@ -64,12 +63,12 @@ def call_allocation_function(data):
     return results
 
 
-def get_strategy_allocation_config_dict(data):
+def get_strategy_allocation_config_dict(data: dataBlob) -> dict:
     config = diagStrategiesConfig(data)
     return config.get_strategy_allocation_config_dict()
 
 
-def write_allocated_weights(data, strategy_capital_dict):
+def write_allocated_weights(data: dataBlob, strategy_capital_dict: dict):
     capital_data = dataCapital(data)
     date = datetime.datetime.now()
     for strategy_name, strategy_capital in strategy_capital_dict.items():
@@ -81,4 +80,3 @@ def write_allocated_weights(data, strategy_capital_dict):
             strategy_name=strategy_name,
         )
 
-    return success

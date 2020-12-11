@@ -28,10 +28,11 @@ cancelPnLSingle
 """
 
 from sysproduction.data.capital import dataCapital
+from sysdata.data_blob import dataBlob
 from syscore.objects import missing_data
 
 
-def weighted_strategy_allocation(data, strategy_weights):
+def weighted_strategy_allocation(data: dataBlob, strategy_weights: dict):
     """
     Used to allocate capital to strategies
 
@@ -52,7 +53,7 @@ def weighted_strategy_allocation(data, strategy_weights):
     return output_dict
 
 
-def get_total_current_capital(data):
+def get_total_current_capital(data: dataBlob) -> float:
     data_capital = dataCapital(data)
     total_capital = data_capital.get_current_total_capital()
 
