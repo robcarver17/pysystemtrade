@@ -81,12 +81,12 @@ class mongoListOfEntriesData(listOfEntriesData):
     def _add_series_dict_for_args_dict(
         self, args_dict: dict, class_str_with_series_as_list_of_dicts: classStrWithListOfEntriesAsListOfDicts
     ):
-        series_as_list_of_dicts = class_str_with_series_as_list_of_dicts.list_of_entries_as_list_of_dicts
-        data_class = class_str_with_series_as_list_of_dicts
+        series_as_plain_list = class_str_with_series_as_list_of_dicts.entry_list_as_plain_list()
+        data_class = class_str_with_series_as_list_of_dicts.class_of_entry_list_as_str
 
         object_to_insert = copy(args_dict)
         object_to_insert.update(
-            dict(entry_series=series_as_list_of_dicts, data_class=data_class)
+            dict(entry_series=series_as_plain_list, data_class=data_class)
         )
         self._mongo.collection.insert_one(object_to_insert)
 
@@ -96,12 +96,14 @@ class mongoListOfEntriesData(listOfEntriesData):
         self, args_dict: dict, class_str_with_series_as_list_of_dicts: classStrWithListOfEntriesAsListOfDicts
     ):
 
-        series_as_list_of_dicts = class_str_with_series_as_list_of_dicts.list_of_entries_as_list_of_dicts
-        data_class = class_str_with_series_as_list_of_dicts
+        series_as_plain_list = class_str_with_series_as_list_of_dicts.entry_list_as_plain_list()
+        data_class = class_str_with_series_as_list_of_dicts.class_of_entry_list_as_str
 
         find_object_dict = args_dict
+
+        # data class should match so let's add it to find dict
         find_object_dict["data_class"] = data_class
-        new_values_dict = {"$set": {"entry_series": series_as_list_of_dicts}}
+        new_values_dict = {"$set": {"entry_series": series_as_plain_list}}
         self._mongo.collection.update_one(
             find_object_dict, new_values_dict, upsert=True
         )

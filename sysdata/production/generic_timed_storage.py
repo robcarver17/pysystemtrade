@@ -32,6 +32,13 @@ class classStrWithListOfEntriesAsListOfDicts(object):
 
         return classWithListOfEntriesAsListOfDicts(class_of_entry_list, self.list_of_entries_as_list_of_dicts)
 
+    def as_list_of_entries(self):
+        with_class_object = self.with_class_object()
+        return with_class_object.as_list_of_entries()
+
+    def entry_list_as_plain_list(self):
+        return self.list_of_entries_as_list_of_dicts.as_plain_list()
+
 class listOfEntriesData(baseData):
     """
     base data class for list of entries

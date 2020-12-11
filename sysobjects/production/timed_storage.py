@@ -161,6 +161,8 @@ class listOfEntriesAsListOfDicts(list):
 
         return class_of_entry_list(list_of_class_entries)
 
+    def as_plain_list(self):
+        return list(self)
 
 class listOfEntries(list):
     """
