@@ -1,7 +1,7 @@
 from syscore.objects import success, arg_not_supplied
 from sysobjects.contracts import futuresContract
 
-from sysdata.production.generic_timed_storage import (
+from sysdata.production.timed_storage import (
     listOfEntriesData,
 )
 from sysobjects.production.timed_storage import timedEntry, listOfEntries

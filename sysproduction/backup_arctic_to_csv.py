@@ -312,16 +312,16 @@ def backup_capital(data):
     for strategy_name in strategy_list:
         capital_data[
             strategy_name
-        ] = data.mongo_capital.get_capital_pd_series_for_strategy(strategy_name)
+        ] = data.mongo_capital.get_capital_pd_df_for_strategy(strategy_name)
 
-    capital_data["TOTAL_total"] = data.mongo_capital.get_total_capital_pd_series()
+    capital_data["TOTAL_total"] = data.mongo_capital.get_total_capital_pd_df()
     capital_data[
         "TOTAL_broker"
-    ] = data.mongo_capital.get_broker_account_value_pd_series()
-    capital_data["TOTAL_max"] = data.mongo_capital.get_maximum_account_value_pd_series()
+    ] = data.mongo_capital.get_broker_account_value_pd_df()
+    capital_data["TOTAL_max"] = data.mongo_capital.get_maximum_account_value_pd_df()
     capital_data[
         "TOTAL_pandl"
-    ] = data.mongo_capital.get_profit_and_loss_account_pd_series()
+    ] = data.mongo_capital.get_profit_and_loss_account_pd_df()
 
     capital_data = pd.concat(capital_data, axis=1)
     capital_data.columns = strategy_list + [

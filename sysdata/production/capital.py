@@ -1,35 +1,14 @@
+from copy import copy
 import datetime
 import pandas as pd
-from syscore.objects import arg_not_supplied, failure, success, missing_data
-from sysdata.production.generic_timed_storage import (
+
+from syscore.objects import arg_not_supplied, failure, missing_data
+from sysdata.production.timed_storage import (
     listOfEntriesData,
 )
-from sysobjects.production.timed_storage import timedEntry, listOfEntries
+from sysobjects.production.capital import capitalEntry
 
-
-class capitalEntry(timedEntry):
-
-    @property
-    def required_argument_names(self) -> list:
-        return ["capital_value"]  # compulsory args
-
-    @property
-    def _name_(self):
-        return "Capital"
-
-    @property
-    def containing_data_class_name(self):
-        return "sysdata.production.capital.capitalForStrategy"
-
-
-class capitalForStrategy(listOfEntries):
-    """
-    A list of capitalEntry
-    """
-
-    def _entry_class(self):
-        return capitalEntry
-
+## All capital is stored by strategy, but some 'strategies' actually relate to the total global account
 
 GLOBAL_STRATEGY = "_GLOBAL"
 BROKER_ACCOUNT_VALUE = "_BROKER"
@@ -54,44 +33,42 @@ class capitalData(listOfEntriesData):
        and for half compounding purposes MAXIMUM_ACCOUNT_VALUE
     """
 
-    def _name(self):
-        return "capitalData"
-
-    def _data_class_name(self):
+    @property
+    def _data_class_name(self) ->str:
         return "sysdata.production.capital.capitalForStrategy"
 
-    def get_total_capital_pd_series(self):
-        return self.get_capital_pd_series_for_strategy(GLOBAL_STRATEGY)
+    def get_total_capital_pd_df(self) -> pd.DataFrame:
+        return self.get_capital_pd_df_for_strategy(GLOBAL_STRATEGY)
 
-    def get_broker_account_value_pd_series(self):
-        return self.get_capital_pd_series_for_strategy(BROKER_ACCOUNT_VALUE)
+    def get_broker_account_value_pd_df(self) -> pd.DataFrame:
+        return self.get_capital_pd_df_for_strategy(BROKER_ACCOUNT_VALUE)
 
-    def get_maximum_account_value_pd_series(self):
-        return self.get_capital_pd_series_for_strategy(MAXIMUM_ACCOUNT_VALUE)
+    def get_maximum_account_value_pd_df(self) -> pd.DataFrame:
+        return self.get_capital_pd_df_for_strategy(MAXIMUM_ACCOUNT_VALUE)
 
-    def get_profit_and_loss_account_pd_series(self):
-        return self.get_capital_pd_series_for_strategy(ACC_PROFIT_VALUES)
+    def get_profit_and_loss_account_pd_df(self) -> pd.DataFrame:
+        return self.get_capital_pd_df_for_strategy(ACC_PROFIT_VALUES)
 
-    def get_capital_pd_series_for_strategy(self, strategy_name):
+    def get_capital_pd_df_for_strategy(self, strategy_name: str) -> pd.DataFrame:
         capital_series = self._get_series_for_args_dict(
             dict(strategy_name=strategy_name)
         )
         pd_series = capital_series.as_pd_df()
         return pd_series
 
-    def get_current_total_capital(self):
+    def get_current_total_capital(self) -> float:
         return self.get_current_capital_for_strategy(GLOBAL_STRATEGY)
 
-    def get_broker_account_value(self):
+    def get_broker_account_value(self) -> float:
         return self.get_current_capital_for_strategy(BROKER_ACCOUNT_VALUE)
 
-    def get_current_maximum_account_value(self):
+    def get_current_maximum_account_value(self) -> float:
         return self.get_current_capital_for_strategy(MAXIMUM_ACCOUNT_VALUE)
 
-    def get_current_pandl_account(self):
+    def get_current_pandl_account(self) -> float:
         return self.get_current_capital_for_strategy(ACC_PROFIT_VALUES)
 
-    def get_current_capital_for_strategy(self, strategy_name):
+    def get_current_capital_for_strategy(self, strategy_name: str) -> float:
         current_capital_entry = self.get_last_entry_for_strategy(strategy_name)
         if current_capital_entry is missing_data:
             return missing_data
@@ -100,16 +77,16 @@ class capitalData(listOfEntriesData):
 
         return capital_value
 
-    def get_date_of_last_entry_for_strategy(self, strategy_name):
+    def get_date_of_last_entry_for_strategy(self, strategy_name: str) -> datetime.datetime:
         current_capital_entry = self.get_last_entry_for_strategy(strategy_name)
         if current_capital_entry is missing_data:
             return missing_data
 
-        entry_date = current_capital_entry.date_str
+        entry_date = current_capital_entry.date
 
         return entry_date
 
-    def get_last_entry_for_strategy(self, strategy_name):
+    def get_last_entry_for_strategy(self, strategy_name: str) -> capitalEntry:
         current_capital_entry = self._get_current_entry_for_args_dict(
             dict(strategy_name=strategy_name)
         )
@@ -117,30 +94,32 @@ class capitalData(listOfEntriesData):
 
     def update_broker_account_value(
             self,
-            new_capital_value,
-            date=arg_not_supplied):
-        return self.update_capital_value_for_strategy(
+            new_capital_value: float,
+            date: datetime.datetime=arg_not_supplied):
+
+        self.update_capital_value_for_strategy(
             BROKER_ACCOUNT_VALUE, new_capital_value, date=date
         )
 
     def update_profit_and_loss_account(
-            self, new_capital_value, date=arg_not_supplied):
-        return self.update_capital_value_for_strategy(
+            self, new_capital_value: float, date: datetime.datetime=arg_not_supplied):
+
+        self.update_capital_value_for_strategy(
             ACC_PROFIT_VALUES, new_capital_value, date=date
         )
 
-    def update_total_capital(self, new_capital_value, date=arg_not_supplied):
-        return self.update_capital_value_for_strategy(
+    def update_total_capital(self, new_capital_value: float, date: datetime.datetime=arg_not_supplied):
+        self.update_capital_value_for_strategy(
             GLOBAL_STRATEGY, new_capital_value, date=date
         )
 
-    def update_maximum_capital(self, new_capital_value, date=arg_not_supplied):
+    def update_maximum_capital(self, new_capital_value: float, date: datetime.datetime=arg_not_supplied):
         return self.update_capital_value_for_strategy(
             MAXIMUM_ACCOUNT_VALUE, new_capital_value, date=date
         )
 
     def update_capital_value_for_strategy(
-        self, strategy_name, new_capital_value, date=arg_not_supplied
+        self, strategy_name: str, new_capital_value: float, date: datetime.datetime=arg_not_supplied
     ):
         new_capital_entry = capitalEntry(new_capital_value, date=date)
         try:
@@ -152,12 +131,9 @@ class capitalData(listOfEntriesData):
                 "Error %s when updating capital for %s with %s"
                 % (str(e), strategy_name, str(new_capital_entry))
             )
-            return failure
 
-    def get_list_of_strategies_with_capital(self):
-        list_of_args_dict = self._get_list_of_args_dict()
-        strategy_names = [d["strategy_name"] for d in list_of_args_dict]
-        strategy_names = list(set(strategy_names))
+    def get_list_of_strategies_with_capital(self) -> list:
+        strategy_names = self._get_list_of_strategies_with_capital_including_reserved_names()
         for strat_name in SPECIAL_NAMES:
             try:
                 strategy_names.remove(strat_name)
@@ -167,69 +143,231 @@ class capitalData(listOfEntriesData):
 
         return strategy_names
 
+    def _get_list_of_strategies_with_capital_including_reserved_names(self) -> list:
+        list_of_args_dict = self._get_list_of_args_dict()
+        strategy_names = [d["strategy_name"] for d in list_of_args_dict]
+        strategy_names = list(set(strategy_names))
+
+        return strategy_names
+
     def delete_last_capital_for_strategy(
-            self, strategy_name, are_you_sure=False):
+            self, strategy_name: str, are_you_sure=False):
+
         self._delete_last_entry_for_args_dict(
             dict(strategy_name=strategy_name), are_you_sure=are_you_sure
         )
 
     def delete_all_capital_for_strategy(
-            self, strategy_name, are_you_really_sure=False):
+            self, strategy_name: str, are_you_really_sure=False):
+
         self._delete_all_data_for_args_dict(
             dict(
                 strategy_name=strategy_name),
             are_you_really_sure=are_you_really_sure)
 
     def delete_all_special_capital_entries(self, are_you_really_sure=False):
-        if not are_you_really_sure:
-            self.log.warn("You have to be really sure to delete all capital")
-            return failure
         for strat_name in SPECIAL_NAMES:
             self.delete_all_capital_for_strategy(
                 strat_name, are_you_really_sure=are_you_really_sure
             )
 
     def delete_recent_capital_for_total_strategy(
-            self, start_date, are_you_sure=False):
+            self, start_date: datetime.datetime, are_you_sure=False):
         self.delete_recent_capital_for_strategy(
             GLOBAL_STRATEGY, start_date, are_you_sure=are_you_sure
         )
 
     def delete_recent_capital_for_maximum(
-            self, start_date, are_you_sure=False):
+            self, start_date: datetime.datetime, are_you_sure=False):
         self.delete_recent_capital_for_strategy(
             MAXIMUM_ACCOUNT_VALUE, start_date, are_you_sure=are_you_sure
         )
 
     def delete_recent_capital_for_broker_value(
-            self, start_date, are_you_sure=False):
+            self, start_date: datetime.datetime, are_you_sure=False):
         self.delete_recent_capital_for_strategy(
             BROKER_ACCOUNT_VALUE, start_date, are_you_sure=are_you_sure
         )
 
-    def delete_recent_capital_for_pandl(self, start_date, are_you_sure=False):
+    def delete_recent_capital_for_pandl(self, start_date: datetime.datetime, are_you_sure=False):
         self.delete_recent_capital_for_strategy(
             ACC_PROFIT_VALUES, start_date, are_you_sure=are_you_sure
         )
 
     def delete_recent_capital_for_strategy(
-        self, strategy_name, start_date, are_you_sure=False
+        self, strategy_name: str, start_date: datetime.datetime, are_you_sure=False
     ):
         have_capital_to_delete = True
         while have_capital_to_delete:
-            last_date = self.get_date_of_last_entry_for_strategy(strategy_name)
-            if last_date is missing_data:
+            last_date_in_data = self.get_date_of_last_entry_for_strategy(strategy_name)
+            if last_date_in_data is missing_data:
+                ## gone to the start, nothing left
                 break
-            if last_date > start_date:
+            if last_date_in_data < start_date:
+                # before the start date, so don't want to delete
+                break
+            else:
                 self.delete_last_capital_for_strategy(
                     strategy_name, are_you_sure=are_you_sure
                 )
-            else:
-                break
-        return success
+
+
 
 
 LIST_OF_COMPOUND_METHODS = ["full", "half", "fixed"]
+
+
+class totalCapitalUpdater(object):
+    """
+    All values must be set, we only include as named keywords to avoid mixups
+    """
+    def __init__(self, new_broker_account_value: float = missing_data,
+                 prev_total_capital: float = missing_data,
+                 prev_maximum_capital: float = missing_data,
+                 prev_broker_account_value: float = missing_data,
+                 calc_method: str = missing_data):
+
+        self._new_broker_account_value = new_broker_account_value
+        self._calc_method = calc_method
+        self._prev_broker_account_value  = prev_broker_account_value
+        self._prev_total_capital = prev_total_capital
+        self._prev_maximum_capital = prev_maximum_capital
+
+    @property
+    def calc_method(self):
+        return self._calc_method
+
+    @property
+    def new_broker_account_value(self) -> float:
+        return self._new_broker_account_value
+
+    @property
+    def prev_broker_account_value(self) -> float:
+        return self._prev_broker_account_value
+
+    @property
+    def prev_total_capital(self) -> float:
+        return self._prev_total_capital
+
+    @property
+    def prev_maximum_capital(self) -> float:
+        return self._prev_maximum_capital
+
+    @property
+    def new_total_capital(self) -> float:
+        new_total_capital =  getattr(self, "_new_total_capital", missing_data)
+        if new_total_capital is missing_data:
+            self.calculate_new_total_and_max_capital_given_pandl()
+            return self._new_total_capital
+
+    @property
+    def new_maximum_capital(self) -> float:
+        new_max_capital = getattr(self, "_new_maximum_capital", missing_data)
+        if new_max_capital is missing_data:
+            self.calculate_new_total_and_max_capital_given_pandl()
+            return self._new_maximum_capital
+
+
+    @property
+    def profit_and_loss(self) -> float:
+        if self.new_broker_account_value is missing_data or self.prev_broker_account_value is missing_data:
+            return missing_data
+        return self.new_broker_account_value - self.prev_broker_account_value
+
+    def check_pandl_size(self, check_limit:float = 0.1):
+        profit_and_loss = self.profit_and_loss
+        prev_broker_account_value = self.prev_broker_account_value
+
+        abs_perc_change = abs(profit_and_loss / prev_broker_account_value)
+        if abs_perc_change > check_limit:
+            raise Exception(
+                "New capital with new account value of %0.f profit of %.0f is more than %.1f%% away from original of %.0f, limit is %.1f%%" %
+                (self.new_broker_account_value,
+                 profit_and_loss, abs_perc_change * 100, prev_broker_account_value, check_limit))
+
+    def calculate_new_total_and_max_capital_given_pandl(self):
+        """
+        Calculate capital depending on method
+
+        Saves result into objects
+
+        :param profit_and_loss: float
+        :return: new capital
+        """
+        calc_method = self.calc_method
+        if calc_method == "full":
+            self._full_capital_calculation()
+        elif calc_method == "half":
+            self._full_capital_calculation()
+        elif calc_method == "fixed":
+            self._full_capital_calculation()
+        else:
+            raise Exception(
+                "Capital method should be one of full, half or fixed")
+
+
+    def _full_capital_calculation(self):
+        """
+        Update capital accumullating all p&l
+
+        :param profit_and_loss: float
+        :return: new capital
+        """
+
+        prev_total_capital = self.prev_total_capital
+        new_total_capital = prev_total_capital + self.profit_and_loss
+
+        if new_total_capital < 0:
+            new_total_capital = 0
+
+        # We don't really use maximum capital but set it to the same as capital
+        # for tidieness
+        new_maximum_capital = new_total_capital
+
+        self._new_maximum_capital = new_maximum_capital
+        self._new_total_capital = new_total_capital
+
+
+    def _half_capital_calculation(self):
+        """
+        Update capital accumallating losses, but not profits about HWM (maximum capital)
+
+        :param profit_and_loss: float
+        :return: new capital
+        """
+        profit_and_loss = self.profit_and_loss
+        prev_total_capital = self.prev_total_capital
+        prev_maximum_capital = self.prev_maximum_capital
+
+        new_total_capital = min(
+            prev_total_capital + profit_and_loss, prev_maximum_capital
+        )
+        if new_total_capital < 0:
+            new_total_capital = 0
+
+        # Max is unchanged
+        new_maximum_capital = prev_maximum_capital
+
+        self._new_maximum_capital = new_maximum_capital
+        self._new_total_capital = new_total_capital
+
+    def _fixed_capital_calculation(self):
+        """
+        'Update' capital but capital is fixed
+
+        :param profit_and_loss: float
+        :return: new capital
+        """
+
+        prev_total_capital = self.prev_total_capital
+        new_total_capital = prev_total_capital
+
+        # We don't really use maximum capital but set it to the same as capital
+        # for tidieness
+        new_maximum_capital = new_total_capital
+
+        self._new_maximum_capital = new_maximum_capital
+        self._new_total_capital = new_total_capital
 
 
 class totalCapitalCalculationData(object):
@@ -241,6 +379,7 @@ class totalCapitalCalculationData(object):
     Three different compounding methods are available  ['full', 'half', 'fixed']
 
     """
+
 
     def __init__(self, capital_data: capitalData, calc_method="full"):
         """
@@ -262,14 +401,38 @@ class totalCapitalCalculationData(object):
 
         self._calc_method = calc_method
 
+    @property
+    def capital_data(self):
+        return self._capital_data
+
+    @property
+    def calc_method(self):
+        return self._calc_method
+
+
     def __repr__(self):
         return "capitalCalculationData for %s" % self._capital_data
 
-    def get_all_capital_calcs(self):
-        total_capital = self._capital_data.get_total_capital_pd_series()
-        max_capital = self._capital_data.get_maximum_account_value_pd_series()
-        acc_pandl = self._capital_data.get_profit_and_loss_account_pd_series()
-        broker_acc = self._capital_data.get_broker_account_value_pd_series()
+    def get_current_total_capital(self):
+        return self.capital_data.get_current_total_capital()
+
+    def get_total_capital(self) ->pd.DataFrame:
+        return self.capital_data.get_total_capital_pd_df()
+
+    def get_profit_and_loss_account(self) -> pd.DataFrame():
+        return self.capital_data.get_profit_and_loss_account_pd_df()
+
+    def get_broker_account(self) -> pd.DataFrame:
+        return self.capital_data.get_broker_account_value_pd_df()
+
+    def get_maximum_account(self) -> pd.DataFrame:
+        return self.capital_data.get_maximum_account_value_pd_df()
+
+    def get_all_capital_calcs(self) -> pd.DataFrame:
+        total_capital = self.get_total_capital()
+        max_capital = self.get_maximum_account()
+        acc_pandl = self.get_profit_and_loss_account()
+        broker_acc = self.get_broker_account()
 
         if (
             total_capital is missing_data
@@ -286,9 +449,10 @@ class totalCapitalCalculationData(object):
 
         return all_capital
 
-    def get_total_capital_with_new_broker_account_value(
-        self, broker_account_value, check_limit=0.1
-    ):
+    def update_and_return_total_capital_with_new_broker_account_value(
+        self, broker_account_value: float, check_limit=0.1
+    ) -> float:
+
         """
         does everything you'd expect when a new broker account value arrives:
            - add on to broker account value series
@@ -303,129 +467,71 @@ class totalCapitalCalculationData(object):
         :return: current total capital
         """
         # Compare broker account value to previous
-        prev_broker_account_value = self._capital_data.get_broker_account_value()
+
+        capital_updater = self._init_capital_updater(broker_account_value)
+        capital_updater.check_pandl_size(check_limit=check_limit)
+
+        capital_updater.calculate_new_total_and_max_capital_given_pandl()
+        
+        self._update_capital_data_after_pandl_event(capital_updater)
+
+        return capital_updater.new_total_capital
+
+    def _init_capital_updater(self, new_broker_account_value: float) -> totalCapitalUpdater:
+
+        calc_method = self.calc_method
+        prev_broker_account_value = self._get_prev_broker_account_value_create_if_no_data(new_broker_account_value)
+        prev_maximum_capital = self.capital_data.get_current_maximum_account_value()
+        prev_total_capital = self.capital_data.get_current_total_capital()
+
+        capital_updater = totalCapitalUpdater(new_broker_account_value= new_broker_account_value,
+                                              prev_total_capital = prev_total_capital,
+                                              prev_maximum_capital = prev_maximum_capital,
+                                              prev_broker_account_value = prev_broker_account_value,
+                                              calc_method = calc_method)
+
+        return capital_updater
+
+    def _get_prev_broker_account_value_create_if_no_data(self, new_broker_account_value: float) -> float:
+        prev_broker_account_value = self.capital_data.get_broker_account_value()
         if prev_broker_account_value is missing_data:
             # No previous capital, need to set everything up
             self.create_initial_capital(
-                broker_account_value, are_you_really_sure=True)
-            prev_broker_account_value = broker_account_value
+                new_broker_account_value, are_you_really_sure=True)
+            prev_broker_account_value = copy(new_broker_account_value)
 
-        profit_and_loss = broker_account_value - prev_broker_account_value
+        return prev_broker_account_value
 
-        abs_perc_change = abs(profit_and_loss / prev_broker_account_value)
-        if abs_perc_change > check_limit:
-            raise Exception(
-                "New capital of %.0f is more than %.1f%% away from original of %.0f, limit is %.1f%%" %
-                (broker_account_value, abs_perc_change * 100, prev_broker_account_value, check_limit, ))
 
-        # Adjust capital calculations. This will also update capital
-        new_total_capital, new_maximum_capital = self._capital_calculations(
-            profit_and_loss
-        )
+    def _update_capital_data_after_pandl_event(self, capital_updater: totalCapitalUpdater):
 
         # Update broker account value and add p&l entry with synched dates
         date = datetime.datetime.now()
-        self._capital_data.update_total_capital(new_total_capital, date=date)
-        self._capital_data.update_maximum_capital(
+
+        new_total_capital = capital_updater.new_total_capital
+        new_maximum_capital = capital_updater.new_maximum_capital
+        new_broker_account_value = capital_updater.new_broker_account_value
+        profit_and_loss = capital_updater.profit_and_loss
+
+        self.capital_data.update_total_capital(
+            new_total_capital, date=date)
+        self.capital_data.update_maximum_capital(
             new_maximum_capital, date=date)
-        self._capital_data.update_broker_account_value(
-            broker_account_value, date=date)
-        self._add_pandl_entry(profit_and_loss, date=date)
+        self.capital_data.update_broker_account_value(
+            new_broker_account_value, date=date)
 
-        return new_total_capital
+        self._update_pandl(profit_and_loss, date)
 
-    def _add_pandl_entry(self, profit_and_loss, date=arg_not_supplied):
+    def _update_pandl(self, profit_and_loss: float, date: datetime.datetime):
+
         # Add P&L to accumulated p&l
         prev_acc_pandl = self._capital_data.get_current_pandl_account()
         new_acc_pandl = prev_acc_pandl + profit_and_loss
         self._capital_data.update_profit_and_loss_account(
             new_acc_pandl, date=date)
 
-        return new_acc_pandl
 
-    def _capital_calculations(self, profit_and_loss):
-        """
-        Calculate capital depending on method
-
-        :param profit_and_loss: float
-        :return: new capital
-        """
-
-        if self._calc_method == "full":
-            new_total_capital, new_maximum_capital = self._full_capital_calculation(
-                profit_and_loss)
-        elif self._calc_method == "half":
-            new_total_capital, new_maximum_capital = self._half_capital_calculation(
-                profit_and_loss)
-        elif self._calc_method == "fixed":
-            new_total_capital, new_maximum_capital = self._fixed_capital_calculation(
-                profit_and_loss)
-        else:
-            raise Exception(
-                "Capital method should be one of full, half or fixed")
-
-        return new_total_capital, new_maximum_capital
-
-    def _full_capital_calculation(self, profit_and_loss):
-        """
-        Update capital accumallating all p&l
-
-        :param profit_and_loss: float
-        :return: new capital
-        """
-
-        prev_total_capital = self._capital_data.get_current_total_capital()
-        new_total_capital = prev_total_capital + profit_and_loss
-
-        if new_total_capital < 0:
-            new_total_capital = 0
-
-        # We don't really use maximum capital but set it to the same as capital
-        # for tidieness
-        new_maximum_capital = new_total_capital
-
-        return new_total_capital, new_maximum_capital
-
-    def _half_capital_calculation(self, profit_and_loss):
-        """
-        Update capital accumallating losses, but not profits about HWM (maximum capital)
-
-        :param profit_and_loss: float
-        :return: new capital
-        """
-
-        prev_total_capital = self._capital_data.get_current_total_capital()
-        prev_maximum_capital = self._capital_data.get_current_maximum_account_value()
-
-        new_total_capital = min(
-            prev_total_capital + profit_and_loss, prev_maximum_capital
-        )
-        if new_total_capital < 0:
-            new_total_capital = 0
-
-        # Max is unchanged
-        new_maximum_capital = prev_maximum_capital
-
-        return new_total_capital, new_maximum_capital
-
-    def _fixed_capital_calculation(self, profit_and_loss):
-        """
-        'Update' capital but capital is fixed
-
-        :param profit_and_loss: float
-        :return: new capital
-        """
-
-        prev_total_capital = self._capital_data.get_current_total_capital()
-        new_total_capital = prev_total_capital
-
-        # We don't really use maximum capital but set it to the same as capital
-        # for tidieness
-        new_maximum_capital = new_total_capital
-
-        return new_total_capital, new_maximum_capital
-
-    def adjust_broker_account_for_delta(self, delta_value):
+    def adjust_broker_account_for_delta(self, delta_value: float):
         """
         If you have changed broker account value, for example because of a withdrawal, but don't want this to
         affect capital calculations
@@ -436,7 +542,7 @@ class totalCapitalCalculationData(object):
         :return: None
         """
 
-        prev_broker_account_value = self._capital_data.get_broker_account_value()
+        prev_broker_account_value = self.capital_data.get_broker_account_value()
         if prev_broker_account_value is missing_data:
             self._capital_data.log.warn(
                 "Can't apply a delta to broker account value, since no value in data"
@@ -445,18 +551,16 @@ class totalCapitalCalculationData(object):
         broker_account_value = prev_broker_account_value + delta_value
 
         # Update broker account value
-        self._capital_data.update_broker_account_value(broker_account_value)
-
-        return success
+        self.capital_data.update_broker_account_value(broker_account_value)
 
     def modify_account_values(
         self,
-        broker_account_value=arg_not_supplied,
-        total_capital=arg_not_supplied,
-        maximum_capital=arg_not_supplied,
-        acc_pandl=arg_not_supplied,
-        date=arg_not_supplied,
-        are_you_sure=False,
+        broker_account_value: float=arg_not_supplied,
+        total_capital: float=arg_not_supplied,
+        maximum_capital: float=arg_not_supplied,
+        acc_pandl: float=arg_not_supplied,
+        date: datetime.datetime=arg_not_supplied,
+        are_you_sure:bool =False,
     ):
         """
         Allow any account valuation to be modified
@@ -472,30 +576,29 @@ class totalCapitalCalculationData(object):
             date = datetime.datetime.now()
 
         if broker_account_value is not arg_not_supplied:
-            self._capital_data.update_broker_account_value(
+            self.capital_data.update_broker_account_value(
                 broker_account_value, date=date
             )
 
         if total_capital is not arg_not_supplied:
-            self._capital_data.update_total_capital(total_capital, date=date)
+            self.capital_data.update_total_capital(total_capital, date=date)
 
         if maximum_capital is not arg_not_supplied:
-            self._capital_data.update_maximum_capital(
+            self.capital_data.update_maximum_capital(
                 maximum_capital, date=date)
 
         if acc_pandl is not arg_not_supplied:
-            self._capital_data.update_profit_and_loss_account(
+            self.capital_data.update_profit_and_loss_account(
                 acc_pandl, date=date)
 
-        return success
 
     def create_initial_capital(
         self,
-        broker_account_value,
-        total_capital=arg_not_supplied,
-        maximum_capital=arg_not_supplied,
-        acc_pandl=arg_not_supplied,
-        are_you_really_sure=False,
+        broker_account_value: float,
+        total_capital: float=arg_not_supplied,
+        maximum_capital: float=arg_not_supplied,
+        acc_pandl: float=arg_not_supplied,
+        are_you_really_sure: bool=False,
     ):
         """
 
@@ -524,15 +627,14 @@ class totalCapitalCalculationData(object):
 
         date = datetime.datetime.now()
 
-        self._capital_data.update_total_capital(total_capital, date=date)
-        self._capital_data.update_maximum_capital(maximum_capital, date=date)
-        self._capital_data.update_broker_account_value(
+        self.capital_data.update_total_capital(total_capital, date=date)
+        self.capital_data.update_maximum_capital(maximum_capital, date=date)
+        self.capital_data.update_broker_account_value(
             broker_account_value, date=date)
-        self._capital_data.update_profit_and_loss_account(acc_pandl, date=date)
+        self.capital_data.update_profit_and_loss_account(acc_pandl, date=date)
 
-        return success
 
-    def delete_recent_capital(self, start_date, are_you_sure=False):
+    def delete_recent_capital(self, start_date: datetime.datetime, are_you_sure: bool=False):
         """
         Delete all capital entries on or after start date
 
@@ -544,22 +646,22 @@ class totalCapitalCalculationData(object):
                 "You have to be sure to delete capital")
             return failure
 
-        self._capital_data.delete_recent_capital_for_total_strategy(
+        self.capital_data.delete_recent_capital_for_total_strategy(
             start_date, are_you_sure=are_you_sure
         )
-        self._capital_data.delete_recent_capital_for_maximum(
+        self.capital_data.delete_recent_capital_for_maximum(
             start_date, are_you_sure=are_you_sure
         )
-        self._capital_data.delete_recent_capital_for_broker_value(
+        self.capital_data.delete_recent_capital_for_broker_value(
             start_date, are_you_sure=are_you_sure
         )
-        self._capital_data.delete_recent_capital_for_pandl(
+        self.capital_data.delete_recent_capital_for_pandl(
             start_date, are_you_sure=are_you_sure
         )
 
-        return success
 
-    def delete_all_capital(self, are_you_really_sure=False):
+    def delete_all_capital(self, are_you_really_sure: bool=False):
         self._capital_data.delete_all_special_capital_entries(
             are_you_really_sure=are_you_really_sure
         )
+

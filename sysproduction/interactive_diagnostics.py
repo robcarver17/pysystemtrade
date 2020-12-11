@@ -364,7 +364,7 @@ def capital_strategy(data):
 
 def total_current_capital(data):
     data_capital = dataCapital(data)
-    capital_series = data_capital.get_series_of_total_capital()
+    capital_series = data_capital.get_series_of_all_global_capital()
     print(capital_series)
     return None
 

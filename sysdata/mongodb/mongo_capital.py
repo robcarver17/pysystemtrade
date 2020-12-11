@@ -1,5 +1,5 @@
 from sysdata.production.capital import capitalData
-from sysdata.mongodb.mongo_generic_timed_storage import mongoListOfEntriesData
+from sysdata.mongodb.mongo_timed_storage import mongoListOfEntriesData
 
 CAPITAL_COLLECTION = "capital"
 

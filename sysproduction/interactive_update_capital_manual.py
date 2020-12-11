@@ -129,16 +129,14 @@ def get_initial_capital_values_from_user(data: dataBlob):
 def update_capital_from_ib(data: dataBlob):
     data_capital = dataCapital(data)
     broker_account_value = get_broker_account_value(data)
-
     try:
-        total_capital = data_capital.total_capital_calculator.get_total_capital_with_new_broker_account_value(
-            broker_account_value, check_limit=0.1)
+        total_capital = data_capital.update_and_return_total_capital_with_new_broker_account_value(broker_account_value)
     except BaseException:
         ans = input(
             "Do you want to try again, without checking for large capital changes? Yes/<anything else>"
         )
         if ans == "Yes":
-            total_capital = data_capital.total_capital_calculator.get_total_capital_with_new_broker_account_value(
+            total_capital = data_capital.update_and_return_total_capital_with_new_broker_account_value(
                 broker_account_value, check_limit=9999)
         else:
             return failure
@@ -156,7 +154,7 @@ def adjust_capital_for_delta(data_capital: dataCapital):
         "What change have you made to brokerage account that will not change capital +ve deposit, -ve withdrawal",
         type_expected=float,
     )
-    old_capital = data_capital.capital_data.get_current_total_capital()
+    old_capital = data_capital.get_current_total_capital()
     new_capital = old_capital + capital_delta
     ans = input(
         "New brokerage capital will be %f, are you sure? Yes/<anything else for no>" %

@@ -1,4 +1,4 @@
-from sysdata.production.generic_timed_storage import listOfEntriesData, classStrWithListOfEntriesAsListOfDicts, listOfEntriesAsListOfDicts
+from sysdata.production.timed_storage import listOfEntriesData, classStrWithListOfEntriesAsListOfDicts, listOfEntriesAsListOfDicts
 from syscore.objects import arg_not_supplied
 
 from sysdata.mongodb.mongo_generic import mongoDataWithMultipleKeys
