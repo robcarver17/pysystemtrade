@@ -94,10 +94,7 @@ nested_menu_of_options = {0: {1: "Interactive python",
                               33: "FX prices",
                               },
                           4: {40: "Capital for an individual strategy",
-                              41: "Total capital: current capital",
-                              42: "Total capital: broker account valuation",
-                              43: "Total capital: maximum capital",
-                              44: "Total capital: accumulated returns",
+                              41: "Capital for global account, all strategies",
                               },
                           5: {50: "Optimal position history (instruments for strategy)",
                               51: "Actual position history (instruments for strategy)",
@@ -369,26 +366,6 @@ def total_current_capital(data):
     return None
 
 
-def total_broker_capital(data):
-    data_capital = dataCapital(data)
-    capital_series = data_capital.get_series_of_broker_capital()
-    print(capital_series)
-    return None
-
-
-def total_max_capital(data):
-    data_capital = dataCapital(data)
-    capital_series = data_capital.get_series_of_maximum_capital()
-    print(capital_series)
-    return None
-
-
-def total_acc_capital(data):
-    data_capital = dataCapital(data)
-    capital_series = data_capital.get_series_of_accumulated_capital()
-    print(capital_series)
-    return None
-
 
 def optimal_positions(data):
     strategy_name = get_valid_strategy_name_from_user(data=data)
@@ -589,9 +566,6 @@ dict_of_functions = {
     33: fx_prices,
     40: capital_strategy,
     41: total_current_capital,
-    42: total_broker_capital,
-    43: total_max_capital,
-    44: total_acc_capital,
     50: optimal_positions,
     51: actual_instrument_position,
     52: actual_contract_position,

@@ -60,19 +60,18 @@ class totalCapitalUpdater(object):
     def new_total_capital(self) -> float:
         new_total_capital =  getattr(self, "_new_total_capital", missing_data)
         if new_total_capital is missing_data:
-            self.calculate_new_total_and_max_capital_given_pandl()
+            raise Exception("Need to run calculate_new_total_and_max_capital_given_pandl()")
 
-        return self._new_total_capital
+        return new_total_capital
 
 
     @property
     def new_maximum_capital(self) -> float:
         new_max_capital = getattr(self, "_new_maximum_capital", missing_data)
         if new_max_capital is missing_data:
-            self.calculate_new_total_and_max_capital_given_pandl()
+            raise Exception("Need to run calculate_new_total_and_max_capital_given_pandl()")
 
-        return self._new_maximum_capital
-
+        return new_max_capital
 
     @property
     def profit_and_loss(self) -> float:
@@ -104,9 +103,9 @@ class totalCapitalUpdater(object):
         if calc_method == "full":
             self._full_capital_calculation()
         elif calc_method == "half":
-            self._full_capital_calculation()
+            self._half_capital_calculation()
         elif calc_method == "fixed":
-            self._full_capital_calculation()
+            self._fixed_capital_calculation()
         else:
             raise Exception(
                 "Capital method should be one of full, half or fixed")
