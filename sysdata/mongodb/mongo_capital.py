@@ -11,6 +11,7 @@ class mongoCapitalData(capitalData, mongoListOfEntriesData):
 
     """
 
+    @property
     def _collection_name(self):
         return CAPITAL_COLLECTION
 

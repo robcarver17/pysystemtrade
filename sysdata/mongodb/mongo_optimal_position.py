@@ -11,6 +11,7 @@ class mongoOptimalPositionData(optimalPositionData, mongoListOfEntriesData):
 
     """
 
+    @property
     def _collection_name(self):
         return OPTIMAL_POSITION_COLLECTION
 

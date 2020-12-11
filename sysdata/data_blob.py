@@ -131,7 +131,7 @@ class dataBlob(object):
         except Exception as e:
                 class_name = get_class_name(class_object)
                 msg = (
-                        "Error %s couldn't evaluate %s(mongo_db=self.mongo_db, log = self.log.setup(component = %s)) \
+                        "Error '%s' couldn't evaluate %s(mongo_db=self.mongo_db, log = self.log.setup(component = %s)) \
                         This might be because import is missing\
                          or arguments don't follow pattern" % (str(e), class_name, class_name))
                 self._raise_and_log_error(msg)

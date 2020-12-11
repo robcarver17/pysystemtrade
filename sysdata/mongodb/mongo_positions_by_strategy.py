@@ -13,6 +13,7 @@ class mongoStrategyPositionData(
 
     """
 
+    @property
     def _collection_name(self):
         return POSITION_STRATEGY_COLLECTION
 

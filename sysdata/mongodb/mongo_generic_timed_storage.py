@@ -1,13 +1,12 @@
 from sysdata.production.generic_timed_storage import listOfEntriesData, classStrWithListOfEntriesAsListOfDicts, listOfEntriesAsListOfDicts
+from syscore.objects import arg_not_supplied
 
-from sysdata.mongodb.mongo_connection import (
-    mongoConnection,
-    MONGO_ID_KEY
-)
+from sysdata.mongodb.mongo_generic import mongoDataWithMultipleKeys
 from syslogdiag.log import logtoscreen
-from syscore.objects import success, missing_data
-from copy import copy
+from syscore.objects import missing_data
 
+DATA_CLASS_KEY = "data_class"
+ENTRY_SERIES_KEY = "entry_series"
 
 class mongoListOfEntriesData(listOfEntriesData):
     """
@@ -16,47 +15,45 @@ class mongoListOfEntriesData(listOfEntriesData):
 
     """
 
-    def _collection_name(self):
+    @property
+    def _collection_name(self) -> str:
         raise NotImplementedError("Need to inherit for a specific data type")
 
-    def _data_name(self):
+    @property
+    def _data_name(self) -> str:
         raise NotImplementedError("Need to inherit for a specific data type")
 
-    def __init__(self, mongo_db=None, log=logtoscreen("mongoCapitalData")):
+    def __init__(self, mongo_db=arg_not_supplied, log=logtoscreen("mongoCapitalData")):
 
         super().__init__(log=log)
+        self._mongo_data = mongoDataWithMultipleKeys(
+            self._collection_name, mongo_db = mongo_db)
 
-        self._mongo = mongoConnection(
-            self._collection_name(), mongo_db=mongo_db)
-
-        # this won't create the index if it already exists
-
-        self.name = "Data connection for %s, mongodb %s/%s @ %s -p %s " % (
-            self._data_name(),
-            self._mongo.database_name,
-            self._mongo.collection_name,
-            self._mongo.host,
-            self._mongo.port,
-        )
+    @property
+    def mongo_data(self):
+        return self._mongo_data
 
     def __repr__(self):
-        return self.name
+        self.name = "Data connection for %s, mongodb %s" % (
+            self._data_name,
+            str(self._mongo_data)
+        )
 
-    def _get_list_of_args_dict(self):
-        cursor = self._mongo.collection.find()
-        args_dict_list = [db_entry for db_entry in cursor]
+    def _get_list_of_args_dict(self) -> list:
+        dict_list = self.mongo_data.get_list_of_all_dicts()
+        _ = [dict_entry.pop(DATA_CLASS_KEY) for dict_entry in dict_list]
+        _ = [dict_entry.pop(ENTRY_SERIES_KEY) for dict_entry in dict_list]
 
-        return args_dict_list
+        return dict_list
 
     def _get_series_dict_with_data_class_for_args_dict(self, args_dict: dict) ->classStrWithListOfEntriesAsListOfDicts:
 
-        result_dict = self._mongo.collection.find_one(args_dict)
-        if result_dict is None:
+        result_dict = self.mongo_data.get_result_dict_for_dict_keys(args_dict)
+        if result_dict is missing_data:
             return missing_data
 
-        result_dict.pop(MONGO_ID_KEY)
-        data_class = result_dict["data_class"]
-        series_as_list_of_dicts = result_dict["entry_series"]
+        data_class = result_dict[DATA_CLASS_KEY]
+        series_as_list_of_dicts = result_dict[ENTRY_SERIES_KEY]
         series_as_list_of_dicts = listOfEntriesAsListOfDicts(series_as_list_of_dicts)
 
         class_str_with_series_as_list_of_dicts = \
@@ -67,45 +64,10 @@ class mongoListOfEntriesData(listOfEntriesData):
     def _write_series_dict_for_args_dict(
         self, args_dict: dict, class_str_with_series_as_list_of_dicts: classStrWithListOfEntriesAsListOfDicts
     ):
-        existing_data = self._get_series_dict_with_data_class_for_args_dict(
-            args_dict)
-        if existing_data is missing_data:
-            self._add_series_dict_for_args_dict(args_dict,
-                class_str_with_series_as_list_of_dicts
-            )
-        else:
-            self._update_series_dict_for_args_dict(args_dict,
-                class_str_with_series_as_list_of_dicts
-            )
-
-    def _add_series_dict_for_args_dict(
-        self, args_dict: dict, class_str_with_series_as_list_of_dicts: classStrWithListOfEntriesAsListOfDicts
-    ):
-        series_as_plain_list = class_str_with_series_as_list_of_dicts.entry_list_as_plain_list()
-        data_class = class_str_with_series_as_list_of_dicts.class_of_entry_list_as_str
-
-        object_to_insert = copy(args_dict)
-        object_to_insert.update(
-            dict(entry_series=series_as_plain_list, data_class=data_class)
-        )
-        self._mongo.collection.insert_one(object_to_insert)
-
-        return success
-
-    def _update_series_dict_for_args_dict(
-        self, args_dict: dict, class_str_with_series_as_list_of_dicts: classStrWithListOfEntriesAsListOfDicts
-    ):
 
         series_as_plain_list = class_str_with_series_as_list_of_dicts.entry_list_as_plain_list()
         data_class = class_str_with_series_as_list_of_dicts.class_of_entry_list_as_str
 
-        find_object_dict = args_dict
+        data_dict = {ENTRY_SERIES_KEY: series_as_plain_list, DATA_CLASS_KEY: data_class}
 
-        # data class should match so let's add it to find dict
-        find_object_dict["data_class"] = data_class
-        new_values_dict = {"$set": {"entry_series": series_as_plain_list}}
-        self._mongo.collection.update_one(
-            find_object_dict, new_values_dict, upsert=True
-        )
-
-        return success
+        self.mongo_data.add_data(args_dict, data_dict, allow_overwrite=True)
