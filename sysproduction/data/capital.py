@@ -45,7 +45,7 @@ class dataCapital(object):
     def get_series_of_all_global_capital(self):
         all_capital_data = self.total_capital_calculator.get_all_capital_calcs()
 
-        return all_capital_data.Actual
+        return all_capital_data
 
     def get_series_of_maximum_capital(self):
         return  self.total_capital_calculator.get_maximum_account()

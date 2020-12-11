@@ -47,7 +47,7 @@ def interactive_update_capital_manual():
 
 
 def print_capital_and_get_user_input(capital_data: dataCapital):
-    all_calcs = capital_data.total_capital_calculator.get_all_capital_calcs()
+    all_calcs = capital_data.get_series_of_all_global_capital()
     print("\n")
     if all_calcs is missing_data:
         # No capital
