@@ -18,10 +18,8 @@ from sysdata.production.timed_storage import (
     listOfEntriesData,
 )
 from sysobjects.production.timed_storage import timedEntry, listOfEntries
-from sysdata.production.current_positions import (
-    instrumentStrategy,
-    instrumentStrategyPosition,
-)
+from sysobjects.production.positions import instrumentStrategyPosition
+from sysobjects.production.strategy import instrumentStrategy
 
 
 class simpleOptimalPosition(timedEntry):

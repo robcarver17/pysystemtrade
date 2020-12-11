@@ -5,12 +5,8 @@ from sysdata.production.timed_storage import (
     listOfEntriesData,
 )
 from sysobjects.production.timed_storage import timedEntry, listOfEntries
-from sysdata.production.current_positions import (
-    contractPosition,
-    listOfContractPositions,
-    instrumentStrategyPosition,
-    listOfInstrumentStrategyPositions,
-)
+from sysobjects.production.positions import instrumentStrategyPosition, contractPosition, \
+    listOfInstrumentStrategyPositions, listOfContractPositions
 from syscore.objects import failure
 import datetime
 

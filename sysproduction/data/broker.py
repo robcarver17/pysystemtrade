@@ -13,7 +13,7 @@ from sysbrokers.IB.ib_misc_data import ibMiscData
 
 from syscore.objects import missing_data, arg_not_supplied, missing_order, missing_contract
 
-from sysdata.production.current_positions import contractPosition
+from sysobjects.production.positions import contractPosition
 
 from sysexecution.base_orders import adjust_spread_order_single_benchmark
 from sysexecution.broker_orders import create_new_broker_order_from_contract_order
@@ -167,7 +167,7 @@ class dataBroker(object):
         for idx in range(len(original_position_list)):
             position_entry = original_position_list[idx]
             actual_expiry = self.get_actual_expiry_date_for_single_contract(
-                position_entry.contract_object
+                position_entry.contract
             ).as_str()
             new_entry = contractPosition(
                 position_entry.position,

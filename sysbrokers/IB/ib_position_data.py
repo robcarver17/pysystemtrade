@@ -4,10 +4,7 @@ from syscore.objects import arg_not_supplied, missing_contract
 
 from sysbrokers.IB.ib_instruments_data import ibFuturesInstrumentData
 from sysdata.production.historic_positions import contractPositionData
-from sysdata.production.current_positions import (
-    listOfContractPositions,
-    contractPosition,
-)
+from sysobjects.production.positions import contractPosition, listOfContractPositions
 
 
 class ibContractPositionData(contractPositionData):
