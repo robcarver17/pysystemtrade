@@ -129,7 +129,7 @@ def temp_pandl_read(self, instrument_code):
 def get_total_capital_series(data):
     data_capital_object = dataCapital(data)
 
-    return data_capital_object.get_series_of_maximum_capital()
+    return pd.Series(data_capital_object.get_series_of_maximum_capital())
 
 
 def get_strategy_capital_series(data, strategy_name):
