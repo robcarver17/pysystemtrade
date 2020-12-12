@@ -129,15 +129,18 @@ def temp_pandl_read(self, instrument_code):
 def get_total_capital_series(data):
     data_capital_object = dataCapital(data)
 
-    return pd.Series(data_capital_object.get_series_of_maximum_capital())
+
+    return df_to_series(data_capital_object.get_series_of_maximum_capital())
 
 
 def get_strategy_capital_series(data, strategy_name):
     data_capital_object = dataCapital(data)
 
-    return pd.Series(data_capital_object.get_capital_pd_series_for_strategy(
+    return df_to_series(data_capital_object.get_capital_pd_series_for_strategy(
         strategy_name))
 
+def df_to_series(x):
+    return x._series[x.keys()[0]]
 
 def get_daily_perc_pandl(data):
     data_capital_object = dataCapital(data)
