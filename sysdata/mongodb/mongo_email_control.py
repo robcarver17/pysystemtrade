@@ -2,6 +2,7 @@ import datetime
 from syscore.dateutils import datetime_to_long, long_to_datetime, ARBITRARY_START
 from sysdata.production.email_control import emailControlData
 from sysdata.mongodb.mongo_connection import mongoConnection
+
 from syslogdiag.log import logtoscreen
 
 EMAIL_CONTROL_COLLECTION = "EMAIL_CONTROL"

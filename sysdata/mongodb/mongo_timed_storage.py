@@ -34,9 +34,9 @@ class mongoListOfEntriesData(listOfEntriesData):
         return self._mongo_data
 
     def __repr__(self):
-        self.name = "Data connection for %s, mongodb %s" % (
+        return "Data connection for %s, mongodb %s" % (
             self._data_name,
-            str(self._mongo_data)
+            str(self.mongo_data)
         )
 
     def _get_list_of_args_dict(self) -> list:

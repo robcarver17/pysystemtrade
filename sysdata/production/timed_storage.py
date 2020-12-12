@@ -48,19 +48,20 @@ class listOfEntriesData(baseData):
     Most of the methods are private because when we inherit we don't want to see them
     """
 
-    @property
     def _data_class_name(self) -> str:
         ## The type of storage we are putting in here
         return "sysdata.production.generic_timed_storage.listOfEntries"
 
     @property
     def _data_class(self):
-        return  resolve_function(self._data_class_name)
+        class_name = self._data_class_name()
+        return resolve_function(class_name)
 
     @property
     def _empty_data_series(self):
         data_class = self._data_class
-        empty_entry_series = data_class.as_empty()
+        data_class_instance = data_class([])
+        empty_entry_series = data_class_instance.as_empty()
 
         return empty_entry_series
 

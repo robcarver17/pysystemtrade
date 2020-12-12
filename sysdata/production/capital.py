@@ -42,7 +42,6 @@ class capitalData(listOfEntriesData):
        and for half compounding purposes MAXIMUM_ACCOUNT_VALUE
     """
 
-    @property
     def _data_class_name(self) ->str:
         return "sysdata.production.capital.capitalForStrategy"
 
