@@ -135,8 +135,8 @@ def get_total_capital_series(data):
 def get_strategy_capital_series(data, strategy_name):
     data_capital_object = dataCapital(data)
 
-    return data_capital_object.get_capital_pd_series_for_strategy(
-        strategy_name)
+    return pd.Series(data_capital_object.get_capital_pd_series_for_strategy(
+        strategy_name))
 
 
 def get_daily_perc_pandl(data):
