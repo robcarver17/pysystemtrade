@@ -2,7 +2,7 @@ import datetime
 
 from syscore.dateutils import SECONDS_PER_DAY
 from syscore.objects import missing_data
-from sysdata.mongodb.mongo_email_control import mongoEmailControlData
+from syslogdiag.mongo_email_control import mongoEmailControlData
 
 from syslogdiag.emailing import send_mail_msg
 

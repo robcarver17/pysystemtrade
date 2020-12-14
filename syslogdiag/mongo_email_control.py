@@ -1,7 +1,7 @@
 import datetime
 from syscore.dateutils import datetime_to_long, long_to_datetime
 from syscore.objects import missing_data
-from sysdata.production.email_control import emailControlData
+from syslogdiag.email_control import emailControlData
 from sysdata.mongodb.mongo_generic import mongoDataWithMultipleKeys
 
 from syslogdiag.log import logtoscreen
