@@ -1,5 +1,20 @@
 from sysobjects.instruments import futuresInstrument
 
+class listOfInstrumentStrategies(list):
+    def get_list_of_strategies(self) -> list:
+        list_of_strategies = list(set([instrument_strategy.strategy_name for
+                                       instrument_strategy in self]))
+
+        return list_of_strategies
+
+    def get_list_of_instruments_for_strategy(self, strategy_name: str) -> list:
+        list_of_instruments = [
+            instrument_strategy.instrument_code
+            for instrument_strategy in self
+            if instrument_strategy.strategy_name == strategy_name
+        ]
+
+        return list_of_instruments
 
 class instrumentStrategy(object):
     def __init__(self, strategy_name: str, instrument_code:str):

@@ -1,7 +1,6 @@
 """
 Generic timed storage; more bullet proof than a data frame
 """
-from dataclasses import dataclass
 
 from syscore.objects import (
     missing_data,
@@ -12,6 +11,7 @@ from syscore.objects import (
 from sysdata.base_data import baseData
 from syslogdiag.log import logtoscreen
 from sysobjects.production.timed_storage import listOfEntriesAsListOfDicts, listOfEntries, timedEntry
+
 
 class classWithListOfEntriesAsListOfDicts(object):
     def __init__(self, class_of_entry_list, list_of_entries_as_list_of_dicts: listOfEntriesAsListOfDicts):

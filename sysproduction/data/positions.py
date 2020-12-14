@@ -72,9 +72,8 @@ class diagPositions(object):
             self, strategy_name, instrument_code):
         position = self.data.db_strategy_position.get_current_position_for_strategy_and_instrument(
             strategy_name, instrument_code)
-        if position is missing_data:
-            return 0.0
-        return position.position
+
+        return position
 
     def get_list_of_instruments_for_strategy_with_position(
             self, strategy_name):
@@ -91,17 +90,10 @@ class diagPositions(object):
             self.data.db_contract_position.get_list_of_instruments_with_current_positions())
 
 
-    def get_list_of_strategies_with_positions(self):
-        list_of_strat_instrument_tuples = self.data.db_strategy_position.get_list_of_strategies_and_instruments_with_positions(
-            ignore_zero_positions=True)
-        strats = list(set([x[0] for x in list_of_strat_instrument_tuples]))
+    def get_list_of_strategies_with_positions(self) -> list:
+        list_of_strategies = self.data.db_strategy_position.get_list_of_strategies_with_positions()
 
-        return strats
-
-    def get_all_current_positions_as_list_with_instrument_objects(self):
-        return (
-            self.data.db_strategy_position.get_all_current_positions_as_list_with_instrument_objects()
-        )
+        return list_of_strategies
 
 
     def get_all_current_contract_positions(self):
@@ -200,7 +192,7 @@ class dataOptimalPositions(object):
         optimal_positions = self.get_list_of_optimal_positions()
         position_data = diagPositions(self.data)
         current_positions = (
-            position_data.get_all_current_positions_as_list_with_instrument_objects())
+            position_data.get_all_current_strategy_instrument_positions())
         optimal_and_current = optimal_positions.add_positions(
             current_positions)
 
@@ -236,17 +228,12 @@ class updatePositions(object):
 
         strategy_name = instrument_order.strategy_name
         instrument_code = instrument_order.instrument_code
-        current_position_object = self.data.db_strategy_position.get_current_position_for_strategy_and_instrument(
+        current_position = self.data.db_strategy_position.get_current_position_for_strategy_and_instrument(
             strategy_name, instrument_code)
         trade_done = new_fill.as_int()
         if trade_done is missing_order:
             self.log.critical("Instrument orders can't be spread orders!")
             return failure
-
-        if current_position_object is missing_data:
-            current_position = 0
-        else:
-            current_position = current_position_object.position
 
         new_position = current_position + trade_done
 
