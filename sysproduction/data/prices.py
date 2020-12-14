@@ -175,7 +175,7 @@ def get_valid_instrument_code_from_user(
         if instrument_code in all_instruments:
             break
 
-        print("%s is not in list %s" % (instrument_code, all_instruments))
+        print("%s is not in list %s derived from source: %s" % (instrument_code, all_instruments, source))
 
     return instrument_code
 
