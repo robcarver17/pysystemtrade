@@ -1,4 +1,10 @@
-class emailControlData(object):
+from sysdata.base_data import baseData
+from syslogdiag.log import logtoscreen
+
+class emailControlData(baseData):
+    def __init__(self, log=logtoscreen("email-control-data")):
+        super().__init__(log=log)
+
     def get_time_last_email_sent_with_this_subject(self, subject):
         raise NotImplementedError
 
@@ -14,8 +20,8 @@ class emailControlData(object):
     def store_message(self, body, subject):
         raise NotImplementedError
 
-    def get_stored_messages(self, subject):
+    def get_stored_messages(self):
         raise NotImplementedError
 
-    def delete_stored_messages(self, subject):
+    def delete_stored_messages(self):
         raise NotImplementedError

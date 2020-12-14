@@ -1,6 +1,7 @@
 import datetime
 
 from syscore.dateutils import SECONDS_PER_DAY
+from syscore.objects import missing_data
 from sysdata.mongodb.mongo_email_control import mongoEmailControlData
 
 from syslogdiag.emailing import send_mail_msg
@@ -27,11 +28,12 @@ def send_email_and_record_date_or_store_on_fail(data, body: str, subject: str, e
     try:
         send_mail_msg(body, subject)
         record_date_of_email_send(data, subject)
+        data.log.msg("Sent email subject %s" % subject)
     except Exception as e:
         # problem sending emails will store instead
         data.log.msg(
-            "Problem %s sending email, will store message instead" % str(e)
-        )
+            "Problem %s sending email subject %s, will store message instead" % (str(e), subject
+        ))
         store_message(data, body, subject, email_is_report=email_is_report)
 
 def can_we_send_this_email_now(data, subject, email_is_report=False):
@@ -69,6 +71,8 @@ def have_we_sent_warning_email_for_this_subject(data, subject):
 
 
 def check_if_sent_in_last_day(last_time_email_sent):
+    if last_time_email_sent is missing_data:
+        return False
     time_now = datetime.datetime.now()
     elapsed_time = time_now - last_time_email_sent
     elapsed_time_seconds = elapsed_time.total_seconds()
@@ -162,9 +166,9 @@ class dataEmailControl:
     def store_message(self, body, subject):
         self.data.db_email_control.store_message(body, subject)
 
-    def get_stored_messages(self, subject):
-        stored = self.data.db_email_control.get_stored_messages(subject)
+    def get_stored_messages(self):
+        stored = self.data.db_email_control.get_stored_messages()
         return stored
 
-    def delete_stored_messages(self, subject):
-        self.data.db_email_control.delete_stored_messages(subject)
+    def delete_stored_messages(self):
+        self.data.db_email_control.delete_stored_messages()

@@ -181,6 +181,20 @@ class mongoDataWithMultipleKeys(object):
 
         return result_dict
 
+    def get_list_of_result_dicts_for_dict_keys(self, dict_of_keys: dict) -> list:
+        cursor_of_result_dicts = self._mongo.collection.find(
+            dict_of_keys
+        )
+
+        if cursor_of_result_dicts is None:
+            return []
+
+        list_of_result_dicts = list(cursor_of_result_dicts
+                                    )
+        _ = [result_dict.pop(MONGO_ID_KEY) for result_dict in list_of_result_dicts]
+
+        return list_of_result_dicts
+
 
     def key_dict_is_in_data(self, dict_of_keys: dict) -> bool:
         result = self.get_result_dict_for_dict_keys(dict_of_keys)
@@ -208,6 +222,13 @@ class mongoDataWithMultipleKeys(object):
         self._mongo.collection.update_one(dict_of_keys, {"$set":cleaned_data_dict})
 
     def _add_new_cleaned_dict(self, dict_of_keys: dict, cleaned_data_dict: dict):
+        dict_with_both_keys_and_data= {}
+        dict_with_both_keys_and_data.update(cleaned_data_dict)
+        dict_with_both_keys_and_data.update(dict_of_keys)
 
-        cleaned_data_dict.update(dict_of_keys)
-        self._mongo.collection.insert_one(cleaned_data_dict)
+        self._mongo.collection.insert_one(dict_with_both_keys_and_data)
+
+    def delete_data_without_any_warning(
+            self, dict_of_keys):
+
+        self._mongo.collection.remove(dict_of_keys)
