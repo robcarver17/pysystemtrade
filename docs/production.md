@@ -208,7 +208,7 @@ You need to:
 - Instrument configuration:
     - Set up futures instrument configuration using this script [instruments_csv_mongo.py](/sysinit/futures/instruments_csv_mongo.py).
 - Futures contract prices:
-    - [You must have a source of individual futures prices, then backfill them into the Arctic database](/docs/futures.md#get_historical_data).
+    - [You must have a source of individual futures prices, then backfill them into the Arctic database](/docs/data.md#get_historical_data).
 - Roll calendars:
     - For *roll configuration* we need to initialise by running the code in this file [roll_parameters_csv_mongo.py](/sysinit/futures/roll_parameters_csv_mongo.py).
     - [Create roll calendars for each instrument you are trading](/docs/futures.md#roll-calendars).

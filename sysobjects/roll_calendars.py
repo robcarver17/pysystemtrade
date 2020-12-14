@@ -114,7 +114,7 @@ def _check_row_of_row_calendar(calendar_row: pd.Series,
     current_contract = calendar_row.current_contract
     next_contract = calendar_row.next_contract
     carry_contract = calendar_row.carry_contract
-    roll_date = calendar_row.date
+    roll_date = calendar_row.name
 
     checks_okay_this_row = True
 
@@ -172,7 +172,4 @@ def _check_row_of_row_calendar(calendar_row: pd.Series,
         checks_okay_this_row = False
 
     return checks_okay_this_row
-
-#####
-
 

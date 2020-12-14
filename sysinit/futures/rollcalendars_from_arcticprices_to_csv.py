@@ -52,12 +52,14 @@ def build_and_write_roll_calendar(
 
     if check_before_writing:
         check_happy_to_write = input(
-            "Are you ok to write this csv to path %s? [might be worth writing and hacking manually] (yes/other)?" % output_datapath
+            "Are you ok to write this csv to path %s? [might be worth writing and hacking manually] (yes/other)?" % csv_roll_calendars.datapath
+
         )
     else:
         check_happy_to_write = "yes"
 
     if check_happy_to_write == "yes":
+        print("Adding roll calendar")
         csv_roll_calendars.add_roll_calendar(instrument_code, roll_calendar, ignore_duplication=True)
     else:
         print("Not writing")
@@ -102,4 +104,5 @@ if __name__ == "__main__":
     input("Will overwrite existing prices are you sure?! CTL-C to abort")
     instrument_code = get_valid_instrument_code_from_user(source='single')
     ## MODIFY DATAPATH IF REQUIRED
-    build_and_write_roll_calendar(instrument_code, output_datapath=arg_not_supplied)
+    #build_and_write_roll_calendar(instrument_code, output_datapath=arg_not_supplied)
+    build_and_write_roll_calendar(instrument_code, output_datapath='/home/rob/')

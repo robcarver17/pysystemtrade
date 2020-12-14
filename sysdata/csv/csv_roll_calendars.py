@@ -28,10 +28,14 @@ class csvRollCalendarData(rollCalendarData):
         self._datapath = datapath
 
     def __repr__(self):
-        return "csvRollCalendarData accessing %s" % self._datapath
+        return "csvRollCalendarData accessing %s" % self.datapath
+
+    @property
+    def datapath(self):
+        return self._datapath
 
     def get_list_of_instruments(self) -> list:
-        return files_with_extension_in_pathname(self._datapath, ".csv")
+        return files_with_extension_in_pathname(self.datapath, ".csv")
 
     def _get_roll_calendar_without_checking(self, instrument_code: str) -> rollCalendar:
         filename = self._filename_given_instrument_code(instrument_code)
@@ -54,8 +58,9 @@ class csvRollCalendarData(rollCalendarData):
     def _add_roll_calendar_without_checking_for_existing_entry(self, instrument_code:str, roll_calendar: rollCalendar):
         filename = self._filename_given_instrument_code(instrument_code)
         roll_calendar.to_csv(filename, index_label=DATE_INDEX_NAME)
+        self.log.msg("Wrote calendar for %s to %s" % (instrument_code, str(filename)))
 
     def _filename_given_instrument_code(self, instrument_code:str):
         return get_filename_for_package(
-            self._datapath, "%s.csv" %
+            self.datapath, "%s.csv" %
             (instrument_code))

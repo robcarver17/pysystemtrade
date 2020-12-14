@@ -65,13 +65,13 @@ class rollCalendarData(baseData):
             if ignore_duplication:
                 pass
             else:
-                raise self.log.warn(
+                raise Exception(
                     "There is already %s in the data, you have to delete it first" %
                     instrument_code)
 
         self._add_roll_calendar_without_checking_for_existing_entry(instrument_code, roll_calendar)
 
-        self.log.terse(
+        self.log.msg(
             "Added roll calendar for instrument %s" %
             instrument_code)
 

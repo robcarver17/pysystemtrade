@@ -324,3 +324,4 @@ def _position_for_code_in_list(list_of_positions, instrument_code: str) -> instr
         sum(positions_this_code), instrument_code)
 
     return position_object
+
