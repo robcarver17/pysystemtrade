@@ -1,3 +1,4 @@
+from syscore.objects import missing_data
 from dataclasses import  dataclass
 import datetime as datetime
 from copy import copy
@@ -93,6 +94,9 @@ class futuresMultiplePrices(pd.DataFrame):
 
 
     def current_contract_dict(self) -> setOfNamedContracts:
+        if len(self)==0:
+            return missing_data
+
         final_row = self.iloc[-1]
         contract_dict = dict([(key, final_row[value])
                               for key, value in contract_column_names.items()])

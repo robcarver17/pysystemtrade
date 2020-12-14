@@ -1,3 +1,4 @@
+from syscore.objects import missing_data
 import datetime
 
 from syscore.objects import missing_contract, arg_not_supplied
@@ -53,6 +54,8 @@ class diagContracts(object):
 
     def get_labelled_list_of_contracts_from_contract_date_list(self, instrument_code, list_of_dates):
         current_contracts = self.get_current_contract_dict(instrument_code)
+        if current_contracts is missing_data:
+            return list_of_dates
 
         labelled_list = label_up_contracts(list_of_dates, current_contracts)
 
