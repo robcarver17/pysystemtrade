@@ -76,9 +76,9 @@ class diagPositions(object):
         return position
 
     def get_list_of_instruments_for_strategy_with_position(
-            self, strategy_name):
+            self, strategy_name, ignore_zero_positions=True):
         instrument_list = self.data.db_strategy_position.get_list_of_instruments_for_strategy_with_position(
-            strategy_name)
+            strategy_name, ignore_zero_positions=ignore_zero_positions)
         return instrument_list
 
     def get_list_of_instruments_with_any_position(self):

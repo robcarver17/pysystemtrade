@@ -400,7 +400,7 @@ def actual_instrument_position(data):
         return None
 
     instrument_code_list = (
-        diag_positions.get_list_of_instruments_for_strategy_with_position(strategy_name))
+        diag_positions.get_list_of_instruments_for_strategy_with_position(strategy_name, ignore_zero_positions=False))
     instrument_code = get_valid_code_from_list(instrument_code_list)
     if instrument_code is user_exit:
         return None
