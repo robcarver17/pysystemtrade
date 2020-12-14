@@ -12,7 +12,7 @@ from sysdata.data_blob import dataBlob
 from sysproduction.data.prices import diagPrices, updatePrices
 from sysproduction.data.broker import dataBroker
 from sysproduction.data.contracts import diagContracts
-from sysproduction.diagnostic.emailing import send_production_mail_msg
+from syslogdiag.email_via_db_interface import send_production_mail_msg
 
 
 def update_historical_prices():

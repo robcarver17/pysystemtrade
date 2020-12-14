@@ -7,7 +7,7 @@ from syscore.objects import success, failure, data_error
 from sysdata.data_blob import dataBlob
 from sysproduction.data.currency_data import dataCurrency
 from sysproduction.data.broker import dataBroker
-from sysproduction.diagnostic.emailing import send_production_mail_msg
+from syslogdiag.email_via_db_interface import send_production_mail_msg
 
 
 def update_fx_prices():

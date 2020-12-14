@@ -87,7 +87,7 @@ class mongoEmailControlData(emailControlData):
         )
         self._mongo.collection.insert_one(object_dict)
 
-    def get_stored_messages(self, subject):
+    def get_stored_messages(self):
         cursor = self._mongo.collection.find(dict(type=STORED_MSG))
         list_of_msg_dicts = [dict for dict in cursor]
         stored_msgs = [

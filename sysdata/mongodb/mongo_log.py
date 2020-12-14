@@ -26,7 +26,7 @@ class logToMongod(logToDb):
         mongo_db: mongoDb=arg_not_supplied,
         **kwargs,
     ):
-        super().__init__(type=type, log_level=log_level, **kwargs)
+        super().__init__(type=type, data = data, log_level=log_level, **kwargs)
         self._mongo_data = mongoData(LOG_COLLECTION_NAME, LOG_RECORD_ID, mongo_db=mongo_db)
         self._delete_old_metadata()
 

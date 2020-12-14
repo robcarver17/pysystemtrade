@@ -4,7 +4,7 @@ from syscore.objects import missing_data
 from sysdata.base_data import baseData
 from syslogdiag.log import logger, logEntry, LEVEL_ID, INVERSE_MAP, logtoscreen
 
-from sysproduction.diagnostic.emailing import send_production_mail_msg
+from syslogdiag.email_via_db_interface import send_production_mail_msg
 
 LOG_COLLECTION_NAME = "Logs"
 EMAIL_ON_LOG_LEVEL = [4]
@@ -47,10 +47,7 @@ class logToDb(logger):
 
     def email_user(self, log_entry):
         data = self.data
-        try:
-            send_production_mail_msg(data, str(log_entry), "*CRITICAL ERROR*")
-        except BaseException:
-            self.error("Couldn't email user")
+        send_production_mail_msg(data, str(log_entry), "*CRITICAL ERROR*")
 
 
 class logData(baseData):
