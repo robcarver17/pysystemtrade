@@ -17,6 +17,7 @@ from sysdata.data_blob import dataBlob
 from sysdata.production.historic_positions import listOfInstrumentStrategyPositions
 
 from sysobjects.production.strategy import instrumentStrategy
+from sysobjects.production.optimal_positions import simpleOptimalPosition
 from sysobjects.contracts import futuresContract
 from sysproduction.data.contracts import missing_contract
 
@@ -202,16 +203,33 @@ class dataOptimalPositions(object):
             strategy_name, instrument_code)
 
     def get_optimal_position_as_df_for_strategy_and_instrument(
-        self, strategy_name, instrument_code
+        self, strategy_name: str, instrument_code: str
     ):
-        return self.data.db_optimal_position.get_optimal_position_as_df_for_strategy_and_instrument_code(
-            strategy_name, instrument_code)
+        # FIX ME REMOVE
+        return self.get_optimal_position_as_df_for_instrument_strategy(instrumentStrategy(instrument_code=instrument_code, strategy_name=strategy_name))
+
+    def get_optimal_position_as_df_for_instrument_strategy(
+        self, instrument_strategy: instrumentStrategy
+    ) -> pd.DataFrame:
+        return self.data.db_optimal_position.get_optimal_position_as_df_for_instrument_strategy(
+            instrument_strategy)
+
 
     def update_optimal_position_for_strategy_and_instrument(
         self, strategy_name, instrument_code, position_entry
     ):
-        self.data.db_optimal_position.update_optimal_position_for_strategy_and_instrument(
-            strategy_name, instrument_code, position_entry)
+        #FIXME REMOVE
+        self.update_optimal_position_for_instrument_strategy(
+            instrumentStrategy(strategy_name=strategy_name, instrument_code=instrument_code),
+            position_entry)
+
+
+    def update_optimal_position_for_instrument_strategy(
+        self, instrument_strategy: instrumentStrategy, position_entry: simpleOptimalPosition
+    ):
+        self.data.db_optimal_position.update_optimal_position_for_instrument_strategy(
+            instrument_strategy, position_entry)
+
 
     def get_list_of_optimal_positions(self):
         return self.data.db_optimal_position.get_list_of_optimal_positions()

@@ -100,14 +100,6 @@ class optimalPositionData(listOfEntriesData):
 
         return instrument_strategy_and_optimal_position
 
-    def get_optimal_position_as_df_for_strategy_and_instrument_code(
-        self, strategy_name, instrument_code
-    ):
-        #FIXME REMOVE
-        df_object = self.get_optimal_position_as_df_for_instrument_strategy(instrumentStrategy(instrument_code=instrument_code, strategy_name=strategy_name))
-        return df_object
-
-
     def get_optimal_position_as_df_for_instrument_strategy(
         self, instrument_strategy: instrumentStrategy
     ):
@@ -126,12 +118,6 @@ class optimalPositionData(listOfEntriesData):
         )
 
         return current_optimal_position_entry
-
-    def update_optimal_position_for_strategy_and_instrument(
-        self, strategy_name, instrument_code, position_entry
-    ):
-        ## FIXME
-        self.update_optimal_position_for_strategy_and_instrument(instrumentStrategy(strategy_name=strategy_name, instrument_code=instrument_code))
 
     def update_optimal_position_for_instrument_strategy(self,
                                                         instrument_strategy: instrumentStrategy,
