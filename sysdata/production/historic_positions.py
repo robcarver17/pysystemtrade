@@ -41,6 +41,9 @@ class listPositions(listOfEntries):
         return historicPosition
 
 
+STRATEGY_NAME_KEY = 'strategy_name'
+INSTRUMENT_CODE_KEY = 'instrument_code'
+
 class strategyPositionData(listOfEntriesData):
     """
     Store and retrieve the instrument positions assigned to a particular strategy
@@ -56,7 +59,7 @@ class strategyPositionData(listOfEntriesData):
            ) -> pd.DataFrame:
 
         position_series = self._get_series_for_args_dict(
-            dict(strategy_name=strategy_name, instrument_code=instrument_code)
+            {STRATEGY_NAME_KEY: strategy_name, INSTRUMENT_CODE_KEY: instrument_code}
         )
         df_object = position_series.as_pd_df()
         return df_object

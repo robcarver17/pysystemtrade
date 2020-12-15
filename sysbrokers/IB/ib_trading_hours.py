@@ -82,6 +82,7 @@ def get_time_difference(time_zone_id):
         "MET (Middle Europe Time)": -1,
         "EST (Eastern Standard Time)": 5,
         "JST (Japan Standard Time)": -8,
+        "": 0
     }
     diff_hours = time_diff_dict.get(time_zone_id, None)
     if diff_hours is None:
