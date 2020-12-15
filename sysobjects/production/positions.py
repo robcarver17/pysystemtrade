@@ -253,6 +253,18 @@ class listOfInstrumentStrategyPositions(listOfPositions):
     def sum_for_instrument(self):
         return sum_for_instrument(self)
 
+    def position_object_for_instrument_strategy(self, instrument_strategy: instrumentStrategy):
+
+        result = list(filter(lambda position: position.instrument_strategy == instrument_strategy, self))
+        if len(result)==0:
+            return instrumentStrategyPosition(
+                0, instrument_strategy
+            )
+        elif len(result)==1:
+            return result[1]
+        else:
+            raise Exception("Multiple instances of %s found in list of positions!" % str(instrument_strategy))
+
 
 class listOfContractPositions(listOfPositions):
     @classmethod

@@ -139,7 +139,7 @@ class diagPositions(object):
             self.data.db_contract_position.get_all_current_positions_as_list_with_contract_objects()
         )
 
-    def get_all_current_strategy_instrument_positions(self):
+    def get_all_current_strategy_instrument_positions(self) -> listOfInstrumentStrategyPositions:
         return (
             self.data.db_strategy_position.get_all_current_positions_as_list_with_instrument_objects()
         )

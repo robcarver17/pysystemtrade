@@ -26,6 +26,10 @@ class instrumentStrategy(object):
         self._strategy_name = strategy_name
 
     def __repr__(self):
+        return self.key
+
+    @property
+    def key(self):
         return "%s %s" % (self.strategy_name, str(self.instrument))
 
     def __eq__(self, other):

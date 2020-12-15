@@ -12,7 +12,7 @@ this:
 from syscore.objects import success, missing_data, arg_not_supplied
 
 from sysdata.configdata import Config
-from sysdata.production.optimal_positions import bufferedOptimalPositions
+from sysobjects.production.optimal_positions import bufferedOptimalPositions
 
 from sysproduction.data.currency_data import dataCurrency
 from sysproduction.data.capital import dataCapital
