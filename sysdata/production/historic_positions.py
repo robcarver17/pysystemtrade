@@ -245,6 +245,7 @@ class contractPositionData(listOfEntriesData):
 
         return instrument_code, contract_date
 
+    # FIXME STILL USE
     def get_position_as_df_for_instrument_and_contract_date(
         self, instrument_code, contract_date
     ):
@@ -253,11 +254,14 @@ class contractPositionData(listOfEntriesData):
 
         return df_object
 
+    # FIXME STILL USE
+
     def get_current_position_for_instrument_and_contract_date(
         self, instrument_code, contract_date
     ):
         position = self._perform_method_for_instrument_and_contract_date(
             "get_current_position_for_contract_object", instrument_code, contract_date)
+
 
         return position
 
@@ -300,6 +304,13 @@ class contractPositionData(listOfEntriesData):
         return df_object
 
     def get_current_position_for_contract_object(self, contract_object):
+        position_entry = self.get_current_position_entry_for_contract_object(contract_object)
+        if position_entry is missing_data:
+            return 0.0
+
+        return position_entry.position
+
+    def get_current_position_entry_for_contract_object(self, contract_object):
         contractid = self._keyname_given_contract_object(contract_object)
         current_position_entry = self._get_current_entry_for_args_dict(
             dict(contractid=contractid)
@@ -397,7 +408,7 @@ class contractPositionData(listOfEntriesData):
             instrument_code = contractid[0]
             contract_date = contractid[1]
             position = self.get_current_position_for_instrument_and_contract_date(
-                instrument_code, contract_date).position
+                instrument_code, contract_date)
             if position == 0:
                 continue
             position_object = contractPosition(
