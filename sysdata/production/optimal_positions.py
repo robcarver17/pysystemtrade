@@ -162,10 +162,8 @@ class listOfOptimalPositionsAcrossTradeableObjects(list):
                     tradeable_object)
                 relevant_position_item = position_list[idx]
             except ValueError:
-                strategy_name = tradeable_object.strategy_name
-                instrument_code = tradeable_object.instrument_code
                 relevant_position_item = instrumentStrategyPosition(
-                    0, strategy_name, instrument_code
+                    0, tradeable_object
                 )
 
             new_object = tradeableObjectAndOptimalAndCurrentPosition(

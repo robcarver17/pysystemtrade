@@ -9,10 +9,8 @@ from sysobjects.production.timed_storage import timedEntry, listOfEntries
 from sysobjects.production.positions import instrumentStrategyPosition, contractPosition, \
     listOfInstrumentStrategyPositions, listOfContractPositions
 from sysobjects.production.strategy import instrumentStrategy, listOfInstrumentStrategies
-from syscore.objects import failure
 import datetime
 
-#FIXME INCLUDE STRING LITERALS
 class historicPosition(timedEntry):
     """
     Position, could be for an instrument or a contract
@@ -41,8 +39,6 @@ class listPositions(listOfEntries):
         return historicPosition
 
 
-STRATEGY_NAME_KEY = 'strategy_name'
-INSTRUMENT_CODE_KEY = 'instrument_code'
 
 class strategyPositionData(listOfEntriesData):
     """
@@ -54,65 +50,55 @@ class strategyPositionData(listOfEntriesData):
     def _data_class_name(self):
         return "sysdata.production.historic_positions.listPositions"
 
-    def get_position_as_df_for_strategy_and_instrument(
-        self, strategy_name: str, instrument_code: str
+    def get_position_as_df_for_instrument_strategy_object(
+        self, instrument_strategy: instrumentStrategy
            ) -> pd.DataFrame:
 
         position_series = self._get_series_for_args_dict(
-            {STRATEGY_NAME_KEY: strategy_name, INSTRUMENT_CODE_KEY: instrument_code}
+            instrument_strategy.as_dict()
         )
         df_object = position_series.as_pd_df()
         return df_object
-
 
     def get_current_position_for_instrument_strategy_object(
         self, instrument_strategy: instrumentStrategy
          ) -> int:
 
-        position = self.get_current_position_for_strategy_and_instrument(instrument_strategy.strategy_name,
-                                                                         instrument_strategy.instrument_code)
-        return position
-
-    def get_current_position_for_strategy_and_instrument(
-        self, strategy_name: str, instrument_code: str
-         ) -> int:
-
-        position_entry = self.get_current_position_entry_for_strategy_and_instrument(strategy_name, instrument_code)
+        position_entry = self.get_current_position_entry_for_instrument_strategy_object(instrument_strategy)
         if position_entry is missing_data:
             return 0
         else:
+            # ignore warning it's because we dynamically assign attributes
             return position_entry.position
 
-    def get_current_position_entry_for_strategy_and_instrument(
-        self, strategy_name: str, instrument_code: str
+    def get_current_position_entry_for_instrument_strategy_object(
+        self, instrument_strategy: instrumentStrategy
          ) -> historicPosition:
 
         current_position_entry = self._get_current_entry_for_args_dict(
-            dict(strategy_name=strategy_name, instrument_code=instrument_code)
+            instrument_strategy.as_dict()
         )
 
         return current_position_entry
 
-    def update_position_for_strategy_and_instrument(
-        self, strategy_name: str, instrument_code: str, position: int,
+    def update_position_for_instrument_strategy_object(
+        self, instrument_strategy: instrumentStrategy, position: int,
             date: datetime.datetime=arg_not_supplied
     ):
         if date is arg_not_supplied:
             date = datetime.datetime.now()
 
         position_entry = historicPosition(position, date=date)
-        args_dict = dict(
-                    strategy_name=strategy_name,
-                    instrument_code=instrument_code)
+        args_dict = instrument_strategy.as_dict()
         try:
             self._update_entry_for_args_dict(
                 position_entry,
                 args_dict
             )
         except Exception as e:
-            self.log.warn(
-                "Error %s when updating position for %s/%s with %s"
-                % (str(e), strategy_name, instrument_code, str(position_entry))
+            self.log.critical(
+                "Error %s when updating position for %s with %s"
+                % (str(e), str(instrument_strategy), str(position_entry))
             )
 
 
@@ -154,10 +140,10 @@ class strategyPositionData(listOfEntriesData):
         return list_of_strategies
 
 
-    def delete_last_position_for_strategy_and_instrument(
-        self, strategy_name: str, instrument_code: str, are_you_sure: bool=False
+    def delete_last_position_for_instrument_strategy_object(
+        self, instrument_strategy: instrumentStrategy, are_you_sure: bool=False
     ):
-        args_dict = dict(strategy_name=strategy_name, instrument_code=instrument_code)
+        args_dict = instrument_strategy.as_dict()
         self._delete_last_entry_for_args_dict(
             args_dict,
             are_you_sure=are_you_sure
@@ -169,7 +155,6 @@ class strategyPositionData(listOfEntriesData):
 
         :return: listOfInstrumentStrategyPositions
         """
-        #FIXME CONSIDER RETURNING AS INSTRUMENTSTRATEGY OBJECTS
 
         list_of_instrument_strategies = self.get_list_of_instrument_strategies()
         current_positions = []
@@ -178,7 +163,7 @@ class strategyPositionData(listOfEntriesData):
             if position==0:
                 continue
             position_object = instrumentStrategyPosition(
-                position, instrument_strategy.strategy_name, instrument_strategy.instrument_code
+                position, instrument_strategy
             )
             current_positions.append(position_object)
 
@@ -196,10 +181,7 @@ class strategyPositionData(listOfEntriesData):
         all_positions_dict = self._get_list_of_args_dict()
         list_of_instrument_strategies = []
         for dict_entry in all_positions_dict:
-            strategy_name = dict_entry['strategy_name']
-            instrument_code = dict_entry['instrument_code']
-
-            instrument_strategy = instrumentStrategy(strategy_name, instrument_code)
+            instrument_strategy = instrumentStrategy.from_dict(dict_entry)
             list_of_instrument_strategies.append(instrument_strategy)
 
         list_of_instrument_strategies = listOfInstrumentStrategies(list_of_instrument_strategies)

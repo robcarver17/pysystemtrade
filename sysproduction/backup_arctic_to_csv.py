@@ -3,6 +3,8 @@ from syscore.objects import missing_data
 from syscore.pdutils import check_df_equals, check_ts_equals
 from sysdata.private_config import get_private_then_default_key_value
 
+from sysobjects.production.strategy import instrumentStrategy
+
 from sysdata.data_blob import dataBlob
 from sysproduction.data.strategies import get_list_of_strategies
 import os
@@ -268,8 +270,8 @@ def backup_strategy_position_data(data):
         data.mongo_contract_position.get_list_of_instruments_with_any_position())
     for strategy_name in strategy_list:
         for instrument_code in instrument_list:
-            mongo_data = data.mongo_strategy_position.get_position_as_df_for_strategy_and_instrument(
-                strategy_name, instrument_code)
+            instrument_strategy = instrumentStrategy(strategy_name=strategy_name, instrument_code=instrument_code)
+            mongo_data = data.mongo_strategy_position.get_position_as_df_for_instrument_strategy_object(instrument_strategy)
             if mongo_data is missing_data:
                 continue
             data.csv_strategy_position.write_position_df_for_instrument_strategy(

@@ -357,7 +357,7 @@ def get_base_currency_risk_per_lot_for_instrument(data, instrument_code):
 def get_current_position_for_instrument_code(
         data, strategy_name, instrument_code):
     diag_positions = diagPositions(data)
-    current_position = diag_positions.get_position_for_strategy_and_instrument(
+    current_position = diag_positions.get_current_position_for_strategy_and_instrument(
         strategy_name, instrument_code
     )
 

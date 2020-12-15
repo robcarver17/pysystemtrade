@@ -509,7 +509,7 @@ def get_position_for_instrument_code_at_timestamp(
 def get_current_position_for_instrument_code(
         data_backtest, data, instrument_code):
     diag_positions = diagPositions(data)
-    current_position = diag_positions.get_position_for_strategy_and_instrument(
+    current_position = diag_positions.get_current_position_for_strategy_and_instrument(
         data_backtest.strategy_name, instrument_code
     )
 

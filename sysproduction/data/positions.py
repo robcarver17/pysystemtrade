@@ -12,9 +12,10 @@ from sysdata.mongodb.mongo_roll_state_storage import mongoRollStateData
 from sysdata.mongodb.mongo_position_by_contract import mongoContractPositionData
 from sysdata.mongodb.mongo_positions_by_strategy import mongoStrategyPositionData
 from sysdata.mongodb.mongo_optimal_position import mongoOptimalPositionData
-
-from sysproduction.data.contracts import missing_contract
 from sysdata.data_blob import dataBlob
+
+from sysobjects.production.strategy import instrumentStrategy
+from sysproduction.data.contracts import missing_contract
 
 
 class diagPositions(object):
@@ -39,10 +40,21 @@ class diagPositions(object):
             instrument_code, contract_id)
 
     def get_position_df_for_strategy_and_instrument(
-        self, strategy_name, instrument_code
+        self, strategy_name:str, instrument_code:str
     ):
-        return self.data.db_strategy_position.get_position_as_df_for_strategy_and_instrument(
-            strategy_name, instrument_code)
+        #FIXME THINK ABOUT REMOVING
+        instrument_strategy = instrumentStrategy(strategy_name=strategy_name, instrument_code=instrument_code)
+        position_df = self.get_position_df_for_instrument_strategy_object(instrument_strategy)
+
+        return position_df
+
+    def get_position_df_for_instrument_strategy_object(
+        self, instrument_strategy: instrumentStrategy
+    ):
+
+        return self.data.get_position_as_df_for_instrument_strategy_object(
+            instrument_strategy)
+
 
     def get_positions_for_instrument_and_contract_list(
         self, instrument_code, contract_list
@@ -66,12 +78,20 @@ class diagPositions(object):
 
         return position
 
-    def get_position_for_strategy_and_instrument(
+    def get_current_position_for_strategy_and_instrument(
             self, strategy_name, instrument_code):
-        position = self.data.db_strategy_position.get_current_position_for_strategy_and_instrument(
-            strategy_name, instrument_code)
+        #FIXME THINK ABOUT REMOVING
+        instrument_strategy = instrumentStrategy(strategy_name=strategy_name, instrument_code=instrument_code)
+        position = self.get_current_position_for_instrument_strategy(instrument_strategy)
+        return position
+
+    def get_current_position_for_instrument_strategy(
+            self, instrument_strategy: instrumentStrategy) -> int:
+        position = self.data.db_strategy_position.get_current_position_for_instrument_strategy_object(
+            instrument_strategy)
 
         return position
+
 
     def get_list_of_instruments_for_strategy_with_position(
             self, strategy_name, ignore_zero_positions=True):
@@ -209,6 +229,10 @@ class updatePositions(object):
         self.data = data
         self.log = data.log
 
+    @property
+    def diag_positions(self):
+        return diagPositions(self.data)
+
     def set_roll_state(self, instrument_code, roll_state_required):
         return self.data.db_roll_state.set_roll_state(
             instrument_code, roll_state_required
@@ -224,10 +248,12 @@ class updatePositions(object):
         :return:
         """
 
+        # FIXME WOULD BE NICE IF COULD GET DIRECTLY FROM ORDER
         strategy_name = instrument_order.strategy_name
         instrument_code = instrument_order.instrument_code
-        current_position = self.data.db_strategy_position.get_current_position_for_strategy_and_instrument(
-            strategy_name, instrument_code)
+        instrument_strategy = instrumentStrategy(strategy_name=strategy_name, instrument_code=instrument_code)
+
+        current_position = self.diag_positions.get_current_position_for_instrument_strategy(instrument_strategy)
         trade_done = new_fill.as_int()
         if trade_done is missing_order:
             self.log.critical("Instrument orders can't be spread orders!")
@@ -235,8 +261,8 @@ class updatePositions(object):
 
         new_position = current_position + trade_done
 
-        self.data.db_strategy_position.update_position_for_strategy_and_instrument(
-            strategy_name, instrument_code, new_position)
+        self.data.db_strategy_position.update_position_for_instrument_strategy_object(
+            instrument_strategy, new_position)
 
         self.log.msg(
             "Updated position of %s/%s from %d to %d because of trade %s %d"

@@ -306,7 +306,7 @@ class dataPositionLimits:
 
     def get_current_position_for_strategy_instrument(self, strategy_name, instrument_code):
         diag_positions = diagPositions(self.data)
-        position = diag_positions.get_position_for_strategy_and_instrument(strategy_name, instrument_code)
+        position = diag_positions.get_current_position_for_strategy_and_instrument(strategy_name, instrument_code)
 
         return position
 

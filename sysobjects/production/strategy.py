@@ -16,6 +16,9 @@ class listOfInstrumentStrategies(list):
 
         return list_of_instruments
 
+STRATEGY_NAME_KEY = 'strategy_name'
+INSTRUMENT_CODE_KEY = 'instrument_code'
+
 class instrumentStrategy(object):
     def __init__(self, strategy_name: str, instrument_code:str):
         instrument_object = futuresInstrument(instrument_code)
@@ -45,3 +48,10 @@ class instrumentStrategy(object):
     @property
     def strategy_name(self):
         return self._strategy_name
+
+    def as_dict(self):
+        return {STRATEGY_NAME_KEY: self.strategy_name, INSTRUMENT_CODE_KEY: self.instrument_code}
+
+    @classmethod
+    def from_dict(instrumentStrategy, attr_dict):
+        return instrumentStrategy(attr_dict[STRATEGY_NAME_KEY], attr_dict[INSTRUMENT_CODE_KEY])

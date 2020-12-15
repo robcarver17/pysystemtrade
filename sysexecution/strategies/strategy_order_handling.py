@@ -67,7 +67,7 @@ class orderGeneratorForStrategy(object):
             [
                 (
                     instrument_code,
-                    diag_positions.get_position_for_strategy_and_instrument(
+                    diag_positions.get_current_position_for_strategy_and_instrument(
                         strategy_name, instrument_code
                     ),
                 )
@@ -104,7 +104,7 @@ class orderGeneratorForStrategy(object):
         strategy_name = proposed_order.strategy_name
         instrument_code = proposed_order.instrument_code
 
-        original_position = diag_positions.get_position_for_strategy_and_instrument(
+        original_position = diag_positions.get_current_position_for_strategy_and_instrument(
             strategy_name, instrument_code)
 
         override = diag_overrides.get_cumulative_override_for_strategy_and_instrument(
