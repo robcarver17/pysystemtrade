@@ -1,10 +1,10 @@
-from sysdata.production.trade_limits import tradeLimit, listOfTradeLimits
+from syscore.objects import arg_not_supplied, missing_data
 from sysdata.production.locks import lockData, lock_off, lock_on
-from sysdata.mongodb.mongo_connection import mongoConnection, MONGO_ID_KEY
+from sysdata.mongodb.mongo_generic import mongoData
 from syslogdiag.log import logtoscreen
 
 LOCK_STATUS_COLLECTION = "locks"
-
+LOCK_DICT_KEY = "lock"
 
 class mongoLockData(lockData):
     """
@@ -13,52 +13,36 @@ class mongoLockData(lockData):
 
     """
 
-    def __init__(self, mongo_db=None, log=logtoscreen("mongoLockData")):
+    def __init__(self, mongo_db=arg_not_supplied, log=logtoscreen("mongoLockData")):
+
         super().__init__(log=log)
-
-        self._mongo = mongoConnection(
-            LOCK_STATUS_COLLECTION, mongo_db=mongo_db)
-
-        self._mongo.create_index("instrument_code")
-
-        self.name = "Data connection for lock data, mongodb %s/%s @ %s -p %s " % (
-            self._mongo.database_name,
-            self._mongo.collection_name,
-            self._mongo.host,
-            self._mongo.port,
-        )
+        self._mongo_data = mongoData(LOCK_STATUS_COLLECTION, "instrument_code", mongo_db = mongo_db)
 
     def __repr__(self):
-        return self.name
+        return "mongoLockData %s" % str(self.mongo_data)
 
-    def get_lock_for_instrument(self, instrument_code):
-        result = self._mongo.collection.find_one(
-            dict(instrument_code=instrument_code))
-        if result is None:
+    @property
+    def mongo_data(self):
+        return self._mongo_data
+
+    def get_lock_for_instrument(self, instrument_code: str) -> str:
+        result = self.mongo_data.get_result_dict_for_key(instrument_code)
+        if result is missing_data:
             return lock_off
-        lock = result["lock"]
+
+        lock = result[LOCK_DICT_KEY]
 
         return lock
 
-    def add_lock_for_instrument(self, instrument_code):
-        if self.is_instrument_locked(instrument_code):
-            # already locked
-            return None
-        object_dict = dict(instrument_code=instrument_code, lock=lock_on)
-        self._mongo.collection.insert_one(object_dict)
+    def add_lock_for_instrument(self, instrument_code: str):
+        self.mongo_data.add_data(instrument_code, {LOCK_DICT_KEY: lock_on})
 
     def remove_lock_for_instrument(self, instrument_code):
-        self._mongo.collection.remove(dict(instrument_code=instrument_code))
+        self.mongo_data.delete_data_without_any_warning(instrument_code)
 
     def get_list_of_locked_instruments(self):
+        all_instruments = self.mongo_data.get_list_of_keys()
+        all_instruments_with_locks = [instrument_code for instrument_code in all_instruments \
+                                      if self.is_instrument_locked(instrument_code)]
 
-        cursor = self._mongo.collection.find()
-        list_of_dicts = [dict for dict in cursor]
-        _ = [db_entry.pop(MONGO_ID_KEY) for db_entry in list_of_dicts]
-        output_list = [
-            db_entry["instrument_code"]
-            for db_entry in list_of_dicts
-            if db_entry["lock"] == lock_on
-        ]
-
-        return output_list
+        return all_instruments_with_locks
