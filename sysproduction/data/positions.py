@@ -1,3 +1,4 @@
+import pandas as pd
 import datetime
 
 from syscore.objects import (
@@ -15,6 +16,7 @@ from sysdata.mongodb.mongo_optimal_position import mongoOptimalPositionData
 from sysdata.data_blob import dataBlob
 
 from sysobjects.production.strategy import instrumentStrategy
+from sysobjects.contracts import futuresContract
 from sysproduction.data.contracts import missing_contract
 
 
@@ -33,11 +35,20 @@ class diagPositions(object):
     def get_roll_state(self, instrument_code):
         return self.data.db_roll_state.get_roll_state(instrument_code)
 
+
     def get_position_df_for_instrument_and_contract_id(
-        self, instrument_code, contract_id
+        self, instrument_code:str, contract_id:str
     ):
-        return self.data.db_contract_position.get_position_as_df_for_instrument_and_contract_date(
-            instrument_code, contract_id)
+        #FIXME REMOVE
+        # ignore warnings can be str
+        contract = futuresContract(instrument_code, contract_id)
+        return self.get_position_df_for_contract(contract)
+
+    def get_position_df_for_contract(
+        self, contract: futuresContract
+    ) -> pd.DataFrame:
+
+        return self.data.db_contract_position.get_position_as_df_for_contract_object(contract)
 
     def get_position_df_for_strategy_and_instrument(
         self, strategy_name:str, instrument_code:str
@@ -69,12 +80,20 @@ class diagPositions(object):
         return list_of_positions
 
     def get_position_for_instrument_and_contract_date(
-        self, instrument_code, contract_date
-    ):
-        if contract_date is missing_contract:
+        self, instrument_code:str, contract_date: str
+    ) -> float:
+        # FIXME REMOVE
+        contract = futuresContract(instrument_code, contract_date)
+        position = self.get_position_for_contract(contract)
+
+        return position
+
+    def get_position_for_contract(
+        self, contract: futuresContract
+    ) -> float:
+        if contract is missing_contract:
             return 0.0
-        position = self.data.db_contract_position.get_current_position_for_instrument_and_contract_date(
-            instrument_code, contract_date)
+        position = self.data.db_contract_position.get_current_position_for_contract_object(contract)
 
         return position
 
@@ -312,19 +331,19 @@ class updatePositions(object):
     def update_positions_for_individual_contract_leg(
         self, instrument_code, contract_id, trade_done, time_date=None
     ):
+        #FIXME CHANGE TO CONTRACT
         if time_date is None:
             time_date = datetime.datetime.now()
 
-        current_position = self.data.db_contract_position.get_current_position_for_instrument_and_contract_date(
-            instrument_code, contract_id)
+        contract = futuresContract(instrument_code, contract_id)
+        current_position = self.diag_positions.get_position_for_contract(contract)
 
         new_position = current_position + trade_done
 
-        self.data.db_contract_position.update_position_for_instrument_and_contract_date(
-            instrument_code, contract_id, new_position, date=time_date)
+        self.data.db_contract_position.update_position_for_contract_object(
+            contract, new_position, date=time_date)
         # check
-        new_position_db = self.data.db_contract_position.get_current_position_for_instrument_and_contract_date(
-            instrument_code, contract_id)
+        new_position_db = self.diag_positions.get_position_for_contract(contract)
 
         self.log.msg(
             "Updated position of %s/%s from %d to %d; new position in db is %d"

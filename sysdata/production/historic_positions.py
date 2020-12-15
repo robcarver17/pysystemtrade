@@ -238,56 +238,6 @@ class contractPositionData(listOfEntriesData):
 
         return instrument_code, contract_date_str
 
-    # FIXME STILL USE?
-    def get_position_as_df_for_instrument_and_contract_date(
-        self, instrument_code, contract_date
-    ):
-        df_object = self._perform_method_for_instrument_and_contract_date(
-            "get_position_as_df_for_contract_object", instrument_code, contract_date)
-
-        return df_object
-
-    # FIXME STILL USE?
-    def get_current_position_for_instrument_and_contract_date(
-        self, instrument_code, contract_date
-    ):
-        position = self._perform_method_for_instrument_and_contract_date(
-            "get_current_position_for_contract_object", instrument_code, contract_date)
-
-
-        return position
-
-    # FIXME STILL USE?
-    def update_position_for_instrument_and_contract_date(
-        self, instrument_code, contract_date, position, date=arg_not_supplied
-    ):
-        ans = self._perform_method_for_instrument_and_contract_date(
-            "update_position_for_contract_object",
-            instrument_code,
-            contract_date,
-            position,
-            date=date,
-        )
-        return ans
-
-    # FIXME STILL USE?
-    def delete_last_position_for_instrument_and_contract_date(
-        self, instrument_code, contract_date, are_you_sure=False
-    ):
-        ans = self._perform_method_for_instrument_and_contract_date(
-            "delete_last_position_for_contract_object",
-            instrument_code,
-            contract_date,
-            are_you_sure=are_you_sure,
-        )
-        return ans
-
-    def _perform_method_for_instrument_and_contract_date(
-        self, method_name, instrument_code, contract_date, *args, **kwargs
-    ):
-        contract_object = futuresContract(instrument_code, contract_date)
-        method = getattr(self, method_name)
-        return method(contract_object, *args, **kwargs)
 
     def get_position_as_df_for_contract_object(self, contract_object):
         contractid = self._keyname_given_contract_object(contract_object)
