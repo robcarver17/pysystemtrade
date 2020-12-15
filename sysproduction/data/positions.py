@@ -198,13 +198,13 @@ class dataOptimalPositions(object):
     def get_current_optimal_position_for_strategy_and_instrument(
         self, strategy_name, instrument_code
     ):
-        return self.data.db_optimal_position.get_current_optimal_position_for_strategy_and_instrument(
+        return self.data.db_optimal_position.get_current_optimal_position_for_instrument_strategy(
             strategy_name, instrument_code)
 
     def get_optimal_position_as_df_for_strategy_and_instrument(
         self, strategy_name, instrument_code
     ):
-        return self.data.db_optimal_position.get_optimal_position_as_df_for_strategy_and_instrument(
+        return self.data.db_optimal_position.get_optimal_position_as_df_for_strategy_and_instrument_code(
             strategy_name, instrument_code)
 
     def update_optimal_position_for_strategy_and_instrument(
