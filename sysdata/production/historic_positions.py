@@ -239,7 +239,7 @@ class contractPositionData(listOfEntriesData):
         return instrument_code, contract_date_str
 
 
-    def get_position_as_df_for_contract_object(self, contract_object):
+    def get_position_as_df_for_contract_object(self, contract_object: futuresContract):
         contractid = self._keyname_given_contract_object(contract_object)
         position_series = self._get_series_for_args_dict(
             {CONTRACTID_KEY: contractid})

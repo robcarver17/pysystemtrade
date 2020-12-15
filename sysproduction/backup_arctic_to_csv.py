@@ -256,8 +256,8 @@ def backup_contract_position_data(data):
             instrument_code)
         for contract in contract_list:
             mongo_data = data.mongo_contract_position.get_position_as_df_for_contract_object(
-                instrument_code, contract)
-            data.csv_contract_position.write_position_df_for_instrument_and_contract_date(
+                contract)
+            data.csv_contract_position.write_position_df_for_contract(
                 instrument_code, contract, mongo_data)
             data.log.msg(
                 "Backed up %s %s contract position data" %
@@ -275,7 +275,7 @@ def backup_strategy_position_data(data):
             if mongo_data is missing_data:
                 continue
             data.csv_strategy_position.write_position_df_for_instrument_strategy(
-                strategy_name, instrument_code, mongo_data)
+                instrument_strategy, mongo_data)
             data.log.msg(
                 "Backed up %s %s strategy position data"
                 % (instrument_code, strategy_name)
@@ -349,7 +349,7 @@ def backup_optimal_positions(data):
             if mongo_data is missing_data:
                 continue
             data.csv_optimal_position.write_position_df_for_instrument_strategy(
-                strategy_name, instrument_code, mongo_data)
+                instrument_strategy, mongo_data)
             data.log.msg(
                 "Backed up %s %s optimal position data"
                 % (instrument_code, strategy_name)
