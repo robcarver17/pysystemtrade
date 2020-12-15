@@ -261,7 +261,7 @@ class listOfInstrumentStrategyPositions(listOfPositions):
                 0, instrument_strategy
             )
         elif len(result)==1:
-            return result[1]
+            return result[0]
         else:
             raise Exception("Multiple instances of %s found in list of positions!" % str(instrument_strategy))
 
