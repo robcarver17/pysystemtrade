@@ -95,6 +95,7 @@ def _create_approx_calendar_from_earliest_contract(earliest_contract_with_roll_d
     current_contract = earliest_contract_with_roll_data
 
     while current_contract.date_str < final_contract_date_str:
+        current_contract.update_expiry_with_offset_from_parameters()
         next_contract, new_row = _get_new_row_of_roll_calendar(current_contract)
         if new_row is _bad_row:
             break

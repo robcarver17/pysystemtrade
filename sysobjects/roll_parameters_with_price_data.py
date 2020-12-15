@@ -46,6 +46,10 @@ class contractWithRollParametersAndPrices(object):
     def desired_roll_date(self) -> datetime.datetime:
         return self.contract.desired_roll_date
 
+    def update_expiry_with_offset_from_parameters(self):
+        expiry_offset = self.roll_parameters.approx_expiry_offset
+        self.contract.contract_date.update_expiry_date_with_new_offset(expiry_offset)
+
     def next_held_contract(self):
         next_held_contract_with_roll_parameters = self.contract.next_held_contract()
         return contractWithRollParametersAndPrices(
@@ -233,7 +237,7 @@ def _initial_contract_to_try_with(list_of_contract_dates: list,
 
     plausible_earliest_contract_date = list_of_contract_dates[0]
     plausible_earliest_contract = contractDateWithRollParameters(
-        contractDate(plausible_earliest_contract_date), roll_parameters_object
+        contractDate(plausible_earliest_contract_date, approx_expiry_offset=roll_parameters_object.approx_expiry_offset), roll_parameters_object
     )
 
     try_contract = contractWithRollParametersAndPrices(

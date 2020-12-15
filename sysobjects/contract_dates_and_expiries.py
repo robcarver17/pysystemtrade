@@ -176,6 +176,10 @@ class singleContractDate(object):
     def update_expiry_date(self, expiry_date: expiryDate):
         self._expiry_date = expiry_date
 
+    def update_expiry_date_with_new_offset(self, expiry_date_offset: int):
+        expiry_date = self._get_expiry_date_from_approx_expiry(expiry_date_offset)
+        self.update_expiry_date(expiry_date)
+
     def as_dict(self):
         ## safe, db independent way of storing expiry dates
         expiry_date = self.expiry_date.as_tuple()
@@ -379,6 +383,11 @@ class contractDate(object):
         # we don't call update_nth expiry as this will assert it's a single
         assert not self.is_spread_contract
         self.update_nth_expiry_date(0, expiry_date)
+
+    def update_expiry_date_with_new_offset(self, approx_expiry_offset: int):
+        assert not self.is_spread_contract
+        single_contract_date = self.nth_contract_date(0)
+        single_contract_date.update_expiry_date_with_new_offset(approx_expiry_offset)
 
     def update_nth_expiry_date(self, contract_index: int, expiry_date: expiryDate):
         single_contract_date = self.nth_contract_date(contract_index)
