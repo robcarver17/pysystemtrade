@@ -339,21 +339,19 @@ def backup_capital(data):
 
 
 def backup_optimal_positions(data):
-    strategy_list = get_list_of_strategies(data)
-    for strategy_name in strategy_list:
-        instrument_list = data.mongo_optimal_position.get_list_of_instruments_for_strategy_with_optimal_position(
-            strategy_name)
-        for instrument_code in instrument_list:
-            instrument_strategy = instrumentStrategy(instrument_code=instrument_code, strategy_name=strategy_name)
-            mongo_data = data.mongo_optimal_position.get_optimal_position_as_df_for_instrument_strategy(instrument_strategy)
-            if mongo_data is missing_data:
-                continue
-            data.csv_optimal_position.write_position_df_for_instrument_strategy(
-                instrument_strategy, mongo_data)
-            data.log.msg(
-                "Backed up %s %s optimal position data"
-                % (instrument_code, strategy_name)
-            )
+
+    strategy_instrument_list = data.mongo_optimal_position.get_list_of_instrument_strategies_with_optimal_position()
+
+    for instrument_strategy in strategy_instrument_list:
+        mongo_data = data.mongo_optimal_position.get_optimal_position_as_df_for_instrument_strategy(instrument_strategy)
+        if mongo_data is missing_data:
+            continue
+        data.csv_optimal_position.write_position_df_for_instrument_strategy(
+            instrument_strategy, mongo_data)
+        data.log.msg(
+            "Backed up %s  optimal position data"
+            % str(instrument_strategy)
+        )
 
 
 def backup_instrument_data(data):
