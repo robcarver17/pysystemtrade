@@ -52,7 +52,7 @@ class diagPositions(object):
         self, instrument_strategy: instrumentStrategy
     ):
 
-        return self.data.get_position_as_df_for_instrument_strategy_object(
+        return self.data.db_strategy_position.get_position_as_df_for_instrument_strategy_object(
             instrument_strategy)
 
 
