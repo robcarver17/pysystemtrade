@@ -75,7 +75,7 @@ class futuresContractPriceData(baseData):
 
         list_of_contracts_with_price_data = self.get_contracts_with_price_data()
         list_of_contracts_for_instrument = \
-            list_of_contracts_with_price_data.contracts_with_price_data_for_instrument_code(instrument_code)
+            list_of_contracts_with_price_data.contracts_in_list_for_instrument_code(instrument_code)
 
         return list_of_contracts_for_instrument
 

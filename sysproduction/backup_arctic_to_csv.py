@@ -142,7 +142,7 @@ def backup_futures_contract_prices_to_csv(data):
         backup_futures_contract_prices_for_instrument_to_csv(data, instrument_code)
 
 def backup_futures_contract_prices_for_instrument_to_csv(data: dataBlob, instrument_code: str):
-    list_of_contracts = data.arctic_futures_contract_price.contracts_with_price_data_for_instrument_code(
+    list_of_contracts = data.arctic_futures_contract_price.contracts_in_list_for_instrument_code(
         instrument_code)
 
     for contract in list_of_contracts:
@@ -252,7 +252,7 @@ def backup_contract_position_data(data):
     instrument_list = (
         data.mongo_contract_position.get_list_of_instruments_with_any_position())
     for instrument_code in instrument_list:
-        contract_list = data.mongo_contract_position.get_list_of_contracts_with_any_position_for_instrument(
+        contract_list = data.mongo_contract_position.get_list_of_contract_date_str_with_any_position_for_instrument(
             instrument_code)
         for contract in contract_list:
             mongo_data = data.mongo_contract_position.get_position_as_df_for_instrument_and_contract_date(

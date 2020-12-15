@@ -105,7 +105,8 @@ class diagPositions(object):
 
     def get_list_of_instruments_with_current_positions(self):
         return (
-            self.data.db_contract_position.get_list_of_instruments_with_current_positions())
+            self.data.db_contract_position.get_list_of_instruments_with_any_position()
+        )
 
 
     def get_list_of_strategies_with_positions(self) -> list:
@@ -148,7 +149,7 @@ class diagPositions(object):
     def get_list_of_contracts_with_any_contract_position_for_instrument(
         self, instrument_code
     ):
-        return self.data.db_contract_position.get_list_of_contracts_with_any_position_for_instrument(
+        return self.data.db_contract_position.get_list_of_contract_date_str_with_any_position_for_instrument(
             instrument_code)
 
     def get_list_of_contracts_with_any_contract_position_for_instrument_in_date_range(
@@ -156,7 +157,7 @@ class diagPositions(object):
         if end_date is arg_not_supplied:
             end_date = datetime.datetime.now()
 
-        return self.data.db_contract_position.get_list_of_contracts_with_any_position_for_instrument_in_date_range(
+        return self.data.db_contract_position.get_list_of_contract_date_str_with_any_position_for_instrument_in_date_range(
             instrument_code, start_date, end_date)
 
 

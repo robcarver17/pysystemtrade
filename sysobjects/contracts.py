@@ -270,7 +270,13 @@ class listOfFuturesContracts(list):
 
         return unique_list_of_instruments
 
-    def contracts_with_price_data_for_instrument_code(self, instrument_code: str):
+    def contract_date_str_for_contracts_in_list_for_instrument_code(self, instrument_code: str) -> list:
+        list_of_contracts = self.contracts_in_list_for_instrument_code(instrument_code)
+        list_of_date_str = list_of_contracts.list_of_dates()
+        list_of_date_str = list(set(list_of_date_str))
+        return list_of_date_str
+
+    def contracts_in_list_for_instrument_code(self, instrument_code: str):
         list_of_contracts = [
             contract
             for contract in self
