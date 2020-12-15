@@ -59,7 +59,7 @@ class optimalPositionData(listOfEntriesData):
 
         return list_of_instrument_strategies_with_positions
 
-    def get_list_of_optimal_positions(self) -> listOfOptimalPositionsAcrossInstrumentStrategies
+    def get_list_of_optimal_positions(self) -> listOfOptimalPositionsAcrossInstrumentStrategies:
         list_of_instrument_strategies = (
             self.get_list_of_instrument_strategies_with_optimal_position()
         )
