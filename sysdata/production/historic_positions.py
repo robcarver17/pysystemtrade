@@ -166,6 +166,7 @@ class strategyPositionData(listOfEntriesData):
 
         :return: listOfInstrumentStrategyPositions
         """
+        #FIXME CONSIDER RETURNING AS INSTRUMENTSTRATEGY OBJECTS
 
         list_of_instrument_strategies = self.get_list_of_instrument_strategies()
         current_positions = []
@@ -322,8 +323,6 @@ class contractPositionData(listOfEntriesData):
                 "Error %s when updating position for %s with %s"
                 % (str(e), contractid, str(position_entry))
             )
-            return failure
-        return success
 
     def delete_last_position_for_contract_object(
         self, contract_object, are_you_sure=False
@@ -332,7 +331,6 @@ class contractPositionData(listOfEntriesData):
         self._delete_last_entry_for_args_dict(
             dict(contractid=contractid), are_you_sure=are_you_sure
         )
-        return success
 
     def get_list_of_instruments_with_current_positions(self):
         all_current_positions = self.get_all_current_positions_as_list_with_contract_objects()

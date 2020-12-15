@@ -212,7 +212,19 @@ The objects `csvFuturesContractPriceData` and `arcticFuturesContractPriceData` a
 
 We're now ready to set up a *roll calendar*. A roll calendar is the series of dates on which we roll from one futures contract to the next. It might be helpful to read [my blog post](https://qoppac.blogspot.co.uk/2015/05/systems-building-futures-rolling.html) on rolling futures contracts (though bear in mind some of the details relate to my original defunct trading system and do no reflect how pysystemtrade works).
 
-You can see a roll calendar for Eurodollar futures, [here](/data/futures/roll_calendars_csv/EDOLLAR.csv). On each date we roll from the current_contract shown to the next_contract. We also see the current carry_contract; we use the differential between this and the current_contract to calculate forecasts for carry trading rules. The key thing is that on each roll date we *MUST* have prices for both the price and forward contract (we don't need carry).
+You can see a roll calendar for Eurodollar futures, [here](/data/futures/roll_calendars_csv/EDOLLAR.csv). On each date we roll from the current_contract shown to the next_contract. We also see the current carry_contract; we use the differential between this and the current_contract to calculate forecasts for carry trading rules. The key thing is that on each roll date we *MUST* have prices for both the price and forward contract (we don't need carry). Here is a snippet from another roll calendar. This particular contract rolls quarterly on IMM dates (HMUZ), trades the first contract, and uses the second contract for carry. 
+
+```
+DATE_TIME,current_contract,next_contract,carry_contract
+2020-02-28,20200300,20200600,20200600
+2020-06-01,20200600,20200900,20200900
+2020-08-31,20200900,20201200,20201200
+```
+
+- Before 28th February we are trading 202003 and using 20206 for carry
+- Then on 28th February we roll into 202006. Between 28th February and 1st June we are trading 20206, and using 202009 for carry
+- Then on 1st June we roll into 202009. Between 1st June and 31st August we are trading 202009, and using 202012 for carry.
+- Then on 31st August we roll into 202012. After 31st August we are trading 202012 (it isn't shown, but we'd obviously use 202103 for carry)
 
 There are three ways to generate roll calendars:
 
