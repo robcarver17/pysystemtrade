@@ -190,7 +190,7 @@ class listOfEntriesData(baseData):
             self._get_series_dict_with_data_class_for_args_dict(args_dict)
 
         if class_str_with_series_as_list_of_dicts is missing_data:
-            return self._data_class_name
+            return self._data_class_name()
         else:
             return class_str_with_series_as_list_of_dicts.class_of_entry_list_as_str
 

@@ -12,7 +12,7 @@ from sysobjects.production.strategy import instrumentStrategy, listOfInstrumentS
 from syscore.objects import failure
 import datetime
 
-
+#FIXME INCLUDE STRING LITERALS
 class historicPosition(timedEntry):
     """
     Position, could be for an instrument or a contract
@@ -203,6 +203,7 @@ class strategyPositionData(listOfEntriesData):
 
         return list_of_instrument_strategies
 
+#FIXME KEYS AS VARS
 class contractPositionData(listOfEntriesData):
     """
     Store and retrieve the instrument positions held in a particular instrument and contract
@@ -245,7 +246,7 @@ class contractPositionData(listOfEntriesData):
 
         return instrument_code, contract_date
 
-    # FIXME STILL USE
+    # FIXME STILL USE?
     def get_position_as_df_for_instrument_and_contract_date(
         self, instrument_code, contract_date
     ):
@@ -254,8 +255,7 @@ class contractPositionData(listOfEntriesData):
 
         return df_object
 
-    # FIXME STILL USE
-
+    # FIXME STILL USE?
     def get_current_position_for_instrument_and_contract_date(
         self, instrument_code, contract_date
     ):
@@ -265,6 +265,7 @@ class contractPositionData(listOfEntriesData):
 
         return position
 
+    # FIXME STILL USE?
     def update_position_for_instrument_and_contract_date(
         self, instrument_code, contract_date, position, date=arg_not_supplied
     ):
@@ -277,6 +278,7 @@ class contractPositionData(listOfEntriesData):
         )
         return ans
 
+    # FIXME STILL USE?
     def delete_last_position_for_instrument_and_contract_date(
         self, instrument_code, contract_date, are_you_sure=False
     ):
@@ -325,15 +327,9 @@ class contractPositionData(listOfEntriesData):
             date = datetime.datetime.now()
 
         position_entry = historicPosition(position, date=date)
-        try:
-            self._update_entry_for_args_dict(
-                position_entry, dict(contractid=contractid)
-            )
-        except Exception as e:
-            self.log.warn(
-                "Error %s when updating position for %s with %s"
-                % (str(e), contractid, str(position_entry))
-            )
+        self._update_entry_for_args_dict(
+            position_entry, dict(contractid=contractid)
+        )
 
     def delete_last_position_for_contract_object(
         self, contract_object, are_you_sure=False
