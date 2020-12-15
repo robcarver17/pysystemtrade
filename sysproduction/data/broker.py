@@ -169,10 +169,10 @@ class dataBroker(object):
             actual_expiry = self.get_actual_expiry_date_for_single_contract(
                 position_entry.contract
             ).as_str()
+            position = position_entry.position
+            contract = futuresContract(position_entry.instrument_code, actual_expiry)
             new_entry = contractPosition(
-                position_entry.position,
-                position_entry.instrument_code,
-                actual_expiry)
+                position,contract)
             original_position_list[idx] = new_entry
 
         return original_position_list

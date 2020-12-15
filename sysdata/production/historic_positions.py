@@ -373,9 +373,8 @@ class contractPositionData(listOfEntriesData):
             if position == 0:
                 continue
 
-            # FIXME CHANGE CONTRACT POSITION
             position_object = contractPosition(
-                position, contract.instrument_code, contract.date_str)
+                position, contract)
             current_positions.append(position_object)
 
         list_of_current_positions = listOfContractPositions(current_positions)

@@ -65,9 +65,8 @@ class instrumentStrategyPosition(Position):
 
 
 class contractPosition(Position):
-    def __init__(self, position:int, instrument_code: str, contract_date_str: str):
-        tradeable_object = futuresContract(instrument_code, contract_date_str)
-        super().__init__(position, tradeable_object)
+    def __init__(self, position:int, contract: futuresContract):
+        super().__init__(position, contract)
 
     @property
     def contract(self) -> futuresContract:
@@ -259,8 +258,10 @@ class listOfContractPositions(listOfPositions):
     @classmethod
     def from_pd_df(listOfInstrumentContractPositions, pd_df):
         def _element_object_from_row(dfrow):
+            contract = futuresContract(dfrow.instrument_code, dfrow.contract_id)
+
             return contractPosition(
-                dfrow.position, dfrow.contract_id, dfrow.instrument_code
+                dfrow.position, contract
             )
 
         list_of_positions = listOfInstrumentContractPositions()

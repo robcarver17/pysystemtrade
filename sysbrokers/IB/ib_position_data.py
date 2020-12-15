@@ -5,7 +5,7 @@ from syscore.objects import arg_not_supplied, missing_contract
 from sysbrokers.IB.ib_instruments_data import ibFuturesInstrumentData
 from sysdata.production.historic_positions import contractPositionData
 from sysobjects.production.positions import contractPosition, listOfContractPositions
-
+from sysobjects.contracts import futuresContract
 
 class ibContractPositionData(contractPositionData):
     def __init__(self, ibconnection, log=logtoscreen(
@@ -65,8 +65,10 @@ class ibContractPositionData(contractPositionData):
             position = position_entry["position"]
             if position == 0:
                 continue
+            contract = futuresContract(instrument_code, expiry)
+
             contract_position_object = contractPosition(
-                position, instrument_code, expiry
+                position, contract
             )
             current_positions.append(contract_position_object)
 
