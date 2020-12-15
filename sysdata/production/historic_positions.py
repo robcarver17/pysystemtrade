@@ -188,7 +188,8 @@ class strategyPositionData(listOfEntriesData):
 
         return list_of_instrument_strategies
 
-#FIXME KEYS AS VARS
+CONTRACTID_KEY = 'contractid'
+
 class contractPositionData(listOfEntriesData):
     """
     Store and retrieve the instrument positions held in a particular instrument and contract
@@ -204,7 +205,7 @@ class contractPositionData(listOfEntriesData):
     def _data_class_name(self):
         return "sysdata.production.historic_positions.listPositions"
 
-    def _keyname_given_contract_object(self, futures_contract_object):
+    def _keyname_given_contract_object(self, futures_contract_object: futuresContract):
         """
         We could do this using the .ident() method of the contract object, but this way we keep control inside this class
 
@@ -285,7 +286,7 @@ class contractPositionData(listOfEntriesData):
     def get_position_as_df_for_contract_object(self, contract_object):
         contractid = self._keyname_given_contract_object(contract_object)
         position_series = self._get_series_for_args_dict(
-            dict(contractid=contractid))
+            {CONTRACTID_KEY: contractid})
         df_object = position_series.as_pd_df()
 
         return df_object
@@ -300,7 +301,7 @@ class contractPositionData(listOfEntriesData):
     def get_current_position_entry_for_contract_object(self, contract_object):
         contractid = self._keyname_given_contract_object(contract_object)
         current_position_entry = self._get_current_entry_for_args_dict(
-            dict(contractid=contractid)
+            {CONTRACTID_KEY: contractid}
         )
         return current_position_entry
 
@@ -313,7 +314,7 @@ class contractPositionData(listOfEntriesData):
 
         position_entry = historicPosition(position, date=date)
         self._update_entry_for_args_dict(
-            position_entry, dict(contractid=contractid)
+            position_entry, {CONTRACTID_KEY: contractid}
         )
 
     def delete_last_position_for_contract_object(
@@ -321,7 +322,7 @@ class contractPositionData(listOfEntriesData):
     ):
         contractid = self._keyname_given_contract_object(contract_object)
         self._delete_last_entry_for_args_dict(
-            dict(contractid=contractid), are_you_sure=are_you_sure
+            {CONTRACTID_KEY: contractid}, are_you_sure=are_you_sure
         )
 
     def get_list_of_instruments_with_current_positions(self):
@@ -334,7 +335,7 @@ class contractPositionData(listOfEntriesData):
     def get_list_of_instruments_with_any_position(self):
         all_positions_dict = self._get_list_of_args_dict()
         instrument_list = [
-            self._contract_tuple_given_keyname(entry["contractid"])[0]
+            self._contract_tuple_given_keyname(entry[CONTRACTID_KEY])[0]
             for entry in all_positions_dict
         ]
 
@@ -344,9 +345,9 @@ class contractPositionData(listOfEntriesData):
             self, instrument_code):
         all_positions_dict = self._get_list_of_args_dict()
         contract_list = [
-            self._contract_tuple_given_keyname(entry["contractid"])[1]
+            self._contract_tuple_given_keyname(entry[CONTRACTID_KEY])[1]
             for entry in all_positions_dict
-            if self._contract_tuple_given_keyname(entry["contractid"])[0]
+            if self._contract_tuple_given_keyname(entry[CONTRACTID_KEY])[0]
             == instrument_code
         ]
 
@@ -385,7 +386,7 @@ class contractPositionData(listOfEntriesData):
         current_positions = []
         for dict_entry in all_positions_dict:
             contractid = self._contract_tuple_given_keyname(
-                dict_entry["contractid"])
+                dict_entry[CONTRACTID_KEY])
             instrument_code = contractid[0]
             contract_date = contractid[1]
             position = self.get_current_position_for_instrument_and_contract_date(

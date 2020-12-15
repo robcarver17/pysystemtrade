@@ -25,11 +25,6 @@ class ibContractPositionData(contractPositionData):
     def futures_instrument_data(self):
         return ibFuturesInstrumentData(self.ibconnection, log = self.log)
 
-    def _contract_tuple_given_contract(self, contract_object):
-        key = self._keyname_given_contract_object(contract_object)
-        instrument_code, contract_id = self._contract_tuple_given_keyname(key)
-
-        return instrument_code, contract_id
 
     def _get_all_futures_positions_as_raw_list(
             self, account_id=arg_not_supplied):
