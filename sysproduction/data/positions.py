@@ -14,6 +14,7 @@ from sysdata.mongodb.mongo_position_by_contract import mongoContractPositionData
 from sysdata.mongodb.mongo_positions_by_strategy import mongoStrategyPositionData
 from sysdata.mongodb.mongo_optimal_position import mongoOptimalPositionData
 from sysdata.data_blob import dataBlob
+from sysdata.production.historic_positions import listOfInstrumentStrategyPositions
 
 from sysobjects.production.strategy import instrumentStrategy
 from sysobjects.contracts import futuresContract
