@@ -8,13 +8,23 @@ class listOfInstrumentStrategies(list):
         return list_of_strategies
 
     def get_list_of_instruments_for_strategy(self, strategy_name: str) -> list:
+        list_of_instrument_strategies = self.get_list_of_instrument_strategies_for_strategy(strategy_name)
         list_of_instruments = [
             instrument_strategy.instrument_code
+            for instrument_strategy in list_of_instrument_strategies
+        ]
+
+        return list_of_instruments
+
+    def get_list_of_instrument_strategies_for_strategy(self, strategy_name: str):
+        list_of_instrument_strategies = [
+            instrument_strategy
             for instrument_strategy in self
             if instrument_strategy.strategy_name == strategy_name
         ]
 
-        return list_of_instruments
+        return list_of_instrument_strategies
+
 
 STRATEGY_NAME_KEY = 'strategy_name'
 INSTRUMENT_CODE_KEY = 'instrument_code'
