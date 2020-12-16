@@ -55,22 +55,22 @@ class overrideData(baseData):
         self._update_override(instrument_overrides, instrument_code, new_override)
 
     def get_dict_of_all_overrides(self) -> dict:
-        strategy_dict = self.get_dict_of_strategies_with_overrides()
-        strategy_instrument_dict = self.get_dict_of_strategy_instrument_with_overrides()
-        instrument_dict = self.get_dict_of_instruments_with_overrides()
+        strategy_dict = self._get_dict_of_strategies_with_overrides()
+        strategy_instrument_dict = self._get_dict_of_strategy_instrument_with_overrides()
+        instrument_dict = self._get_dict_of_instruments_with_overrides()
 
         all_overrides = {**strategy_dict, **strategy_instrument_dict, **instrument_dict}
 
         return all_overrides
 
-    def get_dict_of_strategies_with_overrides(self) ->dict:
+    def _get_dict_of_strategies_with_overrides(self) ->dict:
         return self._get_dict_of_items_with_overrides_for_type(strategy_overrides)
 
-    def get_dict_of_strategy_instrument_with_overrides(self) ->dict:
+    def _get_dict_of_strategy_instrument_with_overrides(self) ->dict:
         return self._get_dict_of_items_with_overrides_for_type(
             strategy_instruments_overrides)
 
-    def get_dict_of_instruments_with_overrides(self) ->dict:
+    def _get_dict_of_instruments_with_overrides(self) ->dict:
         return self._get_dict_of_items_with_overrides_for_type(instrument_overrides)
 
     def _update_override(self, override_type:str, key:str, new_override_object:Override):
