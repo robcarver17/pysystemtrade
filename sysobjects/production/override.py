@@ -51,6 +51,7 @@ class Override:
         return self._override
 
     def as_float(self):
+        assert self.is_float_like()
         value = self.override_value
         if value in override_dict.keys():
             return override_dict[value]
@@ -77,7 +78,7 @@ class Override:
             return False
 
     @classmethod
-    def from_float(Override, value):
+    def from_numeric_value(Override, value):
         value_or_object = lookup_value_and_return_float_or_object(value)
 
         return Override(value_or_object)

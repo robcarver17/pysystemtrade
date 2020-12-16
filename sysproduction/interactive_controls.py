@@ -355,7 +355,7 @@ def get_overide_object_from_user():
         value = input("Your value?")
         value = float(value)
         try:
-            override_object = Override.from_float(value)
+            override_object = Override.from_numeric_value(value)
             return override_object
         except Exception as e:
             print(e)

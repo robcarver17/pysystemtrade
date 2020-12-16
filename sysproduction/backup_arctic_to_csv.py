@@ -252,7 +252,7 @@ def backup_contract_position_data(data):
     instrument_list = (
         data.mongo_contract_position.get_list_of_instruments_with_any_position())
     for instrument_code in instrument_list:
-        contract_list = data.mongo_contract_position.get_list_of_contract_date_str_with_any_position_for_instrument(
+        contract_list = data.mongo_contract_position.get_list_of_contracts_for_instrument_code(
             instrument_code)
         for contract in contract_list:
             mongo_data = data.mongo_contract_position.get_position_as_df_for_contract_object(

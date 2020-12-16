@@ -55,8 +55,7 @@ class mongoOverrideData(overrideData):
 
 def _from_dict_to_override(result_dict: dict)-> Override:
     value = result_dict[OVERRIDE_VALUE]
-    # FIXME from numeric value
-    override = Override(value)
+    override = Override.from_numeric_value(value)
     return override
 
 def _from_override_to_dict(override: Override) -> dict:
