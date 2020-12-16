@@ -140,7 +140,7 @@ class optimalPositionData(listOfEntriesData):
         list_of_instrument_strategies = \
             self.get_list_of_instrument_strategies_with_optimal_position()
 
-        list_of_instruments = list_of_instrument_strategies.get_list_of_instruments_for_strategy()
+        list_of_instruments = list_of_instrument_strategies.get_list_of_instruments_for_strategy(strategy_name)
 
         return list_of_instruments
 
