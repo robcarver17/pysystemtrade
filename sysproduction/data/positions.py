@@ -199,8 +199,18 @@ class dataOptimalPositions(object):
     def get_current_optimal_position_for_strategy_and_instrument(
         self, strategy_name, instrument_code
     ):
+        # FIX ME REMOVE
+        instrument_strategy = instrumentStrategy(strategy_name=strategy_name,
+                                                 instrument_code=instrument_code)
+
+        return self.get_current_optimal_position_for_instrument_strategy(instrument_strategy)
+
+    def get_current_optimal_position_for_instrument_strategy(
+        self, instrument_strategy: instrumentStrategy
+    ) -> float:
         return self.data.db_optimal_position.get_current_optimal_position_for_instrument_strategy(
-            strategy_name, instrument_code)
+            instrument_strategy)
+
 
     def get_optimal_position_as_df_for_strategy_and_instrument(
         self, strategy_name: str, instrument_code: str
