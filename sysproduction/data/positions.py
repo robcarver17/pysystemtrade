@@ -85,6 +85,8 @@ class diagPositions(object):
         self, instrument_code:str, contract_date: str
     ) -> float:
         # FIXME REMOVE
+        if contract_date is missing_data:
+            return 0
         contract = futuresContract(instrument_code, contract_date)
         position = self.get_position_for_contract(contract)
 
