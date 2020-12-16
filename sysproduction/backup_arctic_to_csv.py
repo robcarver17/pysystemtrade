@@ -258,7 +258,7 @@ def backup_contract_position_data(data):
             mongo_data = data.mongo_contract_position.get_position_as_df_for_contract_object(
                 contract)
             data.csv_contract_position.write_position_df_for_contract(
-                instrument_code, contract, mongo_data)
+                 contract, mongo_data)
             data.log.msg(
                 "Backed up %s %s contract position data" %
                 (instrument_code, contract))

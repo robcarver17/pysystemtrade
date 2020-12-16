@@ -40,6 +40,16 @@ class mongoOverrideData(overrideData):
         return override
 
     def _update_override(self, override_type:str, key:str, new_override_object:Override):
+        if new_override_object.is_no_override():
+            self._update_override_to_no_override(override_type, key, new_override_object)
+        else:
+            self._update_other_type_of_override(override_type, key, new_override_object)
+
+    def _update_override_to_no_override(self, override_type:str, key:str, new_override_object:Override):
+        dict_of_keys = {OVERRIDE_KEY: key, OVERRIDE_TYPE: override_type}
+        self.mongo_data.delete_data_without_any_warning(dict_of_keys)
+
+    def _update_other_type_of_override(self, override_type:str, key:str, new_override_object:Override):
         dict_of_keys = {OVERRIDE_KEY: key, OVERRIDE_TYPE: override_type}
         new_override_as_dict = _from_override_to_dict(new_override_object)
 

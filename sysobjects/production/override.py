@@ -65,6 +65,15 @@ class Override:
         else:
             return value
 
+    def is_no_override(self):
+        if self.override_value is override_none:
+            return True
+
+        if self.override_value==1.0:
+            return True
+
+        return False
+
     def is_float_like(self):
         override_value = self.override_value
         """
