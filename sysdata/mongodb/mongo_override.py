@@ -1,5 +1,6 @@
 from syscore.objects import missing_data
-from sysdata.production.override import overrideData, Override
+from sysdata.production.override import overrideData
+from sysobjects.production.override import Override
 from sysdata.mongodb.mongo_connection import mongoConnection
 from syslogdiag.log import logtoscreen
 

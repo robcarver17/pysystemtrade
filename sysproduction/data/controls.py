@@ -10,6 +10,7 @@ from sysdata.mongodb.mongo_IB_client_id import mongoIbBrokerClientIdData
 
 from sysdata.data_blob import dataBlob
 from sysproduction.data.positions import diagPositions
+from sysobjects.production.strategy import instrumentStrategy
 
 class dataBrokerClientIDs(object):
     def __init__(self, data=arg_not_supplied):
@@ -116,10 +117,18 @@ class diagOverrides(object):
     def get_cumulative_override_for_strategy_and_instrument(
         self, strategy_name, instrument_code
     ):
-        return (
-            self.data.db_override.get_cumulative_override_for_strategy_and_instrument(
-                strategy_name,
-                instrument_code))
+        # FIXME REMOVE
+        instrument_strategy = instrumentStrategy(strategy_name  =strategy_name,
+            instrument_code=instrument_code)
+        return \
+            self.get_cumulative_override_for_instrument_strategy(instrument_strategy)
+
+    def get_cumulative_override_for_instrument_strategy(
+        self, instrument_strategy: instrumentStrategy
+    ):
+        return \
+            self.data.db_override.get_cumulative_override_for_instrument_strategy(
+                instrument_strategy)
 
 
 class updateOverrides(object):
@@ -138,8 +147,17 @@ class updateOverrides(object):
     def update_override_for_strategy_instrument(
         self, strategy_name, instrument_code, new_override
     ):
-        self.data.db_override.update_override_for_strategy_instrument(
-            strategy_name, instrument_code, new_override
+        # FIXME REMOVE
+        instrument_strategy = instrumentStrategy(strategy_name  =strategy_name,
+            instrument_code=instrument_code)
+
+        self.update_override_for_instrument_strategy(instrument_strategy, new_override)
+
+    def update_override_for_instrument_strategy(
+        self, instrument_strategy: instrumentStrategy, new_override
+    ):
+        self.data.db_override.update_override_for_instrument_strategy(
+            instrument_strategy, new_override
         )
 
     def update_override_for_instrument(self, instrument_code, new_override):

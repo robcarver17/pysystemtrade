@@ -5,7 +5,7 @@ from syscore.genutils import (
     get_and_convert,
     print_menu_and_get_response,
 )
-from sysdata.production.override import override_dict, Override
+from sysobjects.production.override import override_dict, Override
 
 from sysdata.data_blob import dataBlob
 from sysproduction.data.controls import (
