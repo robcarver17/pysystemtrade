@@ -200,7 +200,7 @@ class dataPositionLimits:
 
             max_trade_ok_against_instrument_strategy = \
                 self.check_if_proposed_trade_okay_against_instrument_strategy_constraint(instrument_strategy,
-                                                                                         proposed_trade)
+                                                                                        proposed_trade)
             max_trade_ok_against_instrument = \
                 self.check_if_proposed_trade_okay_against_instrument_constraint(instrument_code,
                                                                                 proposed_trade)

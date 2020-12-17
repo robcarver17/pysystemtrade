@@ -2,23 +2,23 @@ from syscore.genutils import sign
 from sysobjects.instruments import futuresInstrument
 from sysobjects.production.strategy import instrumentStrategy
 
-NO_LIMIT = 99931415999
+NO_LIMIT = "No limit"
 
 
 class positionLimit(object):
     def __init__(self, tradeable_object, position_limit: int):
         self._tradeable_object = tradeable_object
-        self._position_limit = abs(position_limit)
+        if position_limit == NO_LIMIT:
+            self._position_limit = NO_LIMIT
+        else:
+            self._position_limit = abs(position_limit)
 
     def __repr__(self):
         return "Position limit for %s is %s" % (str(self.key), str(self.position_limit))
 
     @property
     def position_limit(self):
-        if self._position_limit is NO_LIMIT:
-            return "No limit"
-        else:
-            return self._position_limit
+        return self._position_limit
 
     @property
     def tradeable_object(self):
