@@ -1,7 +1,7 @@
 from syscore.objects import arg_not_supplied
 from syscore.genutils import sign
 
-from sysdata.production.position_limits import positionLimitAndPosition
+from sysobjects.production.position_limits import positionLimitAndPosition
 from sysdata.mongodb.mongo_lock_data import mongoLockData
 from sysdata.mongodb.mongo_position_limits import mongoPositionLimitData
 from sysdata.mongodb.mongo_trade_limits import mongoTradeLimitData
@@ -10,7 +10,7 @@ from sysdata.mongodb.mongo_IB_client_id import mongoIbBrokerClientIdData
 
 from sysdata.data_blob import dataBlob
 from sysproduction.data.positions import diagPositions
-from sysobjects.production.strategy import instrumentStrategy
+from sysobjects.production.strategy import instrumentStrategy, listOfInstrumentStrategies
 
 class dataBrokerClientIDs(object):
     def __init__(self, data=arg_not_supplied):
@@ -191,36 +191,38 @@ class dataPositionLimits:
             proposed_trade = instrument_trade.trade.as_int()
 
             ## want to CUT DOWN rather than bool possible trades
+            ## FIXME:
             ## underneath should be using tradeQuantity and position objects
             ## these will handle abs cases plus legs if required in future
+            # :FIXME
+            instrument_strategy = instrumentStrategy(strategy_name=strategy_name,
+                                                     instrument_code=instrument_code)
 
-            max_trade_ok_against_strategy_instrument = \
-                self.check_if_proposed_trade_okay_against_strategy_instrument_constraint(strategy_name,
-                                                                                         instrument_code,
+            max_trade_ok_against_instrument_strategy = \
+                self.check_if_proposed_trade_okay_against_instrument_strategy_constraint(instrument_strategy,
                                                                                          proposed_trade)
             max_trade_ok_against_instrument = \
                 self.check_if_proposed_trade_okay_against_instrument_constraint(instrument_code,
                                                                                 proposed_trade)
 
+            ## FIXME THIS IS UGLY WOULD BE BETTER IF DONE INSIDE TRADE SIZE OBJECT
             mini_max_trade = sign(proposed_trade) * \
                              min([abs(max_trade_ok_against_instrument),
-                            abs(max_trade_ok_against_strategy_instrument)])
-
+                            abs(max_trade_ok_against_instrument_strategy)])
 
             instrument_trade = instrument_trade.replace_trade_only_use_for_unsubmitted_trades(mini_max_trade)
 
             return instrument_trade
 
-    def check_if_proposed_trade_okay_against_strategy_instrument_constraint(
+    def check_if_proposed_trade_okay_against_instrument_strategy_constraint(
             self,
-            strategy_name: str,
-            instrument_code: str,
+            instrument_strategy: instrumentStrategy,
             proposed_trade: int) -> int:
 
-            position_and_limit = self.get_limit_and_position_for_strategy_instrument(strategy_name, instrument_code)
-            max_trade_ok_against_strategy_instrument =  position_and_limit.what_trade_is_possible(proposed_trade)
+            position_and_limit = self.get_limit_and_position_for_instrument_strategy(instrument_strategy)
+            max_trade_ok_against_instrument_strategy =  position_and_limit.what_trade_is_possible(proposed_trade)
 
-            return max_trade_ok_against_strategy_instrument
+            return max_trade_ok_against_instrument_strategy
 
     def check_if_proposed_trade_okay_against_instrument_constraint(
             self,
@@ -232,7 +234,7 @@ class dataPositionLimits:
 
             return max_trade_ok_against_instrument
 
-    def get_all_instrument_limits_and_positions(self):
+    def get_all_instrument_limits_and_positions(self) -> list:
         instrument_list = self.get_all_relevant_instruments()
         list_of_limit_and_position = [self.get_limit_and_position_for_instrument(instrument_code)
                                       for instrument_code in instrument_list]
@@ -248,52 +250,49 @@ class dataPositionLimits:
 
         return instrument_list
 
-    def get_instruments_with_current_positions(self):
+    def get_instruments_with_current_positions(self) -> list:
         diag_positions = diagPositions(self.data)
         instrument_list = diag_positions.get_list_of_instruments_with_current_positions()
 
         return instrument_list
 
-    def get_instruments_with_position_limits(self):
+    def get_instruments_with_position_limits(self) -> list:
         instrument_list = self.data.db_position_limit.get_all_instruments_with_limits()
 
         return instrument_list
 
-    def get_all_strategy_instrument_limits_and_positions(self):
+    def get_all_strategy_instrument_limits_and_positions(self) -> list:
         instrument_strategy_list = self.get_all_relevant_strategy_instruments()
-        list_of_limit_and_position = [self.get_limit_and_position_for_strategy_instrument(strategy_name, instrument_code)
-                                      for strategy_name, instrument_code in instrument_strategy_list]
+        list_of_limit_and_position = [self.get_limit_and_position_for_instrument_strategy(instrument_strategy)
+                            for instrument_strategy in instrument_strategy_list]
 
         return list_of_limit_and_position
 
-    def get_all_relevant_strategy_instruments(self):
+    def get_all_relevant_strategy_instruments(self)-> listOfInstrumentStrategies:
         ## want limits both for the union of strategy/instruments where we have positions & limits are set
         # return list of tuple strategy_name, instrument_code
-        strategy_instrument_list_held = self.get_strategy_instruments_with_current_positions()
+        strategy_instrument_list_held = self.get_instrument_strategies_with_current_positions()
         strategy_instrument_list_limits = self.get_strategy_instruments_with_position_limits()
 
-        strategy_instrument_list = list(set(strategy_instrument_list_held+strategy_instrument_list_limits))
+        strategy_instrument_list = strategy_instrument_list_held.unique_join_with_other_list(strategy_instrument_list_limits)
 
         return strategy_instrument_list
 
-    def get_strategy_instruments_with_current_positions(self):
-        # return list of tuple strategy_name, instrument_code
+    def get_instrument_strategies_with_current_positions(self) -> listOfInstrumentStrategies:
         diag_positions = diagPositions(self.data)
-        all_current_positions = diag_positions.get_all_current_strategy_instrument_positions()
-        strategy_instrument_list_held = [(position.strategy_name, position.instrument_code)
-                                    for position in all_current_positions]
+        strategy_instrument_list_held = diag_positions.get_list_of_strategies_and_instruments_with_positions()
 
         return strategy_instrument_list_held
 
-    def get_strategy_instruments_with_position_limits(self):
+    def get_strategy_instruments_with_position_limits(self) -> listOfInstrumentStrategies:
         # return list of tuple strategy_name, instrument_code
-        strategy_instrument_list_limits = self.data.db_position_limit.get_all_strategy_instruments_with_limits()
+        strategy_instrument_list_limits = self.data.db_position_limit.get_all_instrument_strategies_with_limits()
 
         return strategy_instrument_list_limits
 
-    def get_limit_and_position_for_strategy_instrument(self, strategy_name, instrument_code):
-        limit_object = self.get_position_limit_object_for_strategy_instrument(strategy_name, instrument_code)
-        position = self.get_current_position_for_strategy_instrument(strategy_name, instrument_code)
+    def get_limit_and_position_for_instrument_strategy(self, instrument_strategy: instrumentStrategy):
+        limit_object = self.get_position_limit_object_for_instrument_strategy(instrument_strategy)
+        position = self.get_current_position_for_instrument_strategy(instrument_strategy)
 
         position_and_limit = positionLimitAndPosition(limit_object, position)
 
@@ -307,8 +306,8 @@ class dataPositionLimits:
 
         return position_and_limit
 
-    def get_position_limit_object_for_strategy_instrument(self, strategy_name, instrument_code):
-        limit_object = self.data.db_position_limit.get_position_limit_object_for_strategy_instrument(strategy_name, instrument_code)
+    def get_position_limit_object_for_instrument_strategy(self, instrument_strategy: instrumentStrategy):
+        limit_object = self.data.db_position_limit.get_position_limit_object_for_instrument_strategy(instrument_strategy)
         return limit_object
 
     def get_position_limit_object_for_instrument(self, instrument_code):
@@ -322,27 +321,40 @@ class dataPositionLimits:
 
         return position
 
-    def get_current_position_for_strategy_instrument(self, strategy_name, instrument_code):
+    def get_current_position_for_instrument_strategy(self, instrument_strategy: instrumentStrategy):
         diag_positions = diagPositions(self.data)
-        position = diag_positions.get_current_position_for_strategy_and_instrument(strategy_name, instrument_code)
+        position = diag_positions.get_current_position_for_instrument_strategy(instrument_strategy)
 
         return position
 
     def set_abs_position_limit_for_strategy_instrument(self, strategy_name, instrument_code, new_position_limit):
 
-        self.data.db_position_limit.set_position_limit_for_strategy_instrument(strategy_name,
-                                                                               instrument_code,
+        #FIXME DELETE
+        instrument_strategy = instrumentStrategy(strategy_name=strategy_name, instrument_code=instrument_code)
+        self.set_position_limit_for_instrument_strategy(instrument_strategy, new_position_limit)
+
+    def set_position_limit_for_instrument_strategy(self, instrument_strategy: instrumentStrategy,
+                                                   new_position_limit: int):
+
+        self.data.db_position_limit.set_position_limit_for_instrument_strategy(instrument_strategy,
                                                                                new_position_limit)
+
 
     def set_abs_position_limit_for_instrument(self, instrument_code, new_position_limit):
 
         self.data.db_position_limit.set_position_limit_for_instrument(instrument_code, new_position_limit)
 
-    def delete_abs_position_limit_for_strategy_instrument(self, strategy_name:str,
-                                                       instrument_code: str):
+    def delete_position_limit_for_strategy_instrument(self, strategy_name:str,
+                                                      instrument_code: str):
+        ## FIXME DELETE
+        instrument_strategy = instrumentStrategy(strategy_name=strategy_name, instrument_code=instrument_code)
+        self.delete_position_limit_for_instrument_strategy(instrument_strategy)
 
-        self.data.db_position_limit.delete_abs_position_limit_for_strategy_instrument(strategy_name, instrument_code)
+    def delete_position_limit_for_instrument_strategy(self, instrument_strategy: instrumentStrategy):
+
+        self.data.db_position_limit.delete_position_limit_for_instrument_strategy(instrument_strategy)
+
 
     def delete_position_limit_for_instrument(self, instrument_code: str):
 
-        self.data.db_position_limit.delete_abs_position_limit_for_instrument(instrument_code)
+        self.data.db_position_limit.delete_position_limit_for_instrument(instrument_code)

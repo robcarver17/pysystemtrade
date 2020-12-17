@@ -233,6 +233,7 @@ def get_standardised_position(data: dataBlob, instrument_code: str, risk_multipl
 
 
 def view_position_limit(data):
+    # FIXME NICER ORDE
     data_position_limits = dataPositionLimits(data)
     instrument_limits = data_position_limits.get_all_instrument_limits_and_positions()
     strategy_instrument_limits = data_position_limits.get_all_strategy_instrument_limits_and_positions()
@@ -269,7 +270,7 @@ def change_position_limit_for_instrument_strategy(data):
                                          default_value=-1, default_str = "No limit")
 
     if new_position_limit==-1:
-        data_position_limits.delete_abs_position_limit_for_strategy_instrument(strategy_name, instrument_code)
+        data_position_limits.delete_position_limit_for_strategy_instrument(strategy_name, instrument_code)
     else:
         new_position_limit = abs(new_position_limit)
         data_position_limits.set_abs_position_limit_for_strategy_instrument(strategy_name, instrument_code, new_position_limit)

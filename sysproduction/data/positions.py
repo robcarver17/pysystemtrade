@@ -16,7 +16,7 @@ from sysdata.mongodb.mongo_optimal_position import mongoOptimalPositionData
 from sysdata.data_blob import dataBlob
 from sysdata.production.historic_positions import listOfInstrumentStrategyPositions
 
-from sysobjects.production.strategy import instrumentStrategy
+from sysobjects.production.strategy import instrumentStrategy, listOfInstrumentStrategies
 from sysobjects.production.optimal_positions import simpleOptimalPosition
 from sysobjects.contracts import futuresContract
 from sysproduction.data.contracts import missing_contract
@@ -137,6 +137,8 @@ class diagPositions(object):
 
         return list_of_strategies
 
+    def get_list_of_strategies_and_instruments_with_positions(self) -> listOfInstrumentStrategies:
+        return self.data.db_strategy_position.get_list_of_strategies_and_instruments_with_positions()
 
     def get_all_current_contract_positions(self):
         return (

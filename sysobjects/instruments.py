@@ -27,6 +27,7 @@ class futuresInstrument(object):
     def __eq__(self, other):
         return self.instrument_code == other.instrument_code
 
+    @property
     def key(self):
         return self.instrument_code
 

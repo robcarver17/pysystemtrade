@@ -1,6 +1,9 @@
 from sysobjects.instruments import futuresInstrument
 
 class listOfInstrumentStrategies(list):
+    def unique_join_with_other_list(self, other):
+        return listOfInstrumentStrategies(set(list(self+other)))
+
     def get_list_of_strategies(self) -> list:
         list_of_strategies = list(set([instrument_strategy.strategy_name for
                                        instrument_strategy in self]))
@@ -34,6 +37,9 @@ class instrumentStrategy(object):
         instrument_object = futuresInstrument(instrument_code)
         self._instrument = instrument_object
         self._strategy_name = strategy_name
+
+    def __hash__(self):
+        return self.instrument_code.__hash__()+self.strategy_name.__hash__()
 
     def __repr__(self):
         return self.key

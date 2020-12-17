@@ -1,14 +1,21 @@
 from syscore.objects import missing_data
 
-from sysdata.mongodb.mongo_connection import mongoConnection
-from sysdata.production.position_limits import positionLimitData, positionLimitForInstrument, positionLimitForStrategyInstrument
-
+from sysdata.mongodb.mongo_generic import mongoDataWithMultipleKeys
+from sysdata.production.position_limits import positionLimitData
+from sysobjects.production.position_limits import positionLimitForInstrument, positionLimitForStrategyInstrument
+from sysobjects.production.strategy import instrumentStrategy, listOfInstrumentStrategies
 from syslogdiag.log import logtoscreen
 
 POSITION_LIMIT_STATUS_COLLECTION = "position_limit_status"
+
 MARKER_KEY = "marker"
+
 MARKER_STRATEGY_INSTRUMENT = "strategy_instrument"
 MARKER_INSTRUMENT = "instrument"
+
+INSTRUMENT_KEY = 'instrument_code'
+STRATEGY_KEY = 'strategy_name'
+POSITION_LIMIT_KEY = 'position_limit'
 
 class mongoPositionLimitData(positionLimitData):
     """
@@ -20,125 +27,95 @@ class mongoPositionLimitData(positionLimitData):
     def __init__(self, mongo_db=None, log=logtoscreen("mongoPositionLimitData")):
         super().__init__(log=log)
 
-        self._mongo = mongoConnection(
-            POSITION_LIMIT_STATUS_COLLECTION, mongo_db=mongo_db)
+        self._mongo_data = mongoDataWithMultipleKeys(POSITION_LIMIT_STATUS_COLLECTION, mongo_db=mongo_db)
 
-        self.name = (
-            "Data connection for position limit data, mongodb %s/%s @ %s -p %s "
-            % (
-                self._mongo.database_name,
-                self._mongo.collection_name,
-                self._mongo.host,
-                self._mongo.port,
-            )
-        )
+    @property
+    def mongo_data(self):
+        return self._mongo_data
 
     def __repr__(self):
-        return self.name
+        return "Data connection for position limit data, mongodb %s"
 
     def get_all_instruments_with_limits(self) -> list:
-        pos_dict = dict(marker=MARKER_INSTRUMENT)
-        cursor = self._mongo.collection.find(pos_dict)
-        list_of_dicts = [db_entry for db_entry in cursor]
-        list_of_instruments = [db_entry['instrument_code'] for db_entry in list_of_dicts]
+        dict_of_keys = {MARKER_KEY:MARKER_INSTRUMENT}
+        list_of_dicts = self.mongo_data.get_list_of_result_dicts_for_dict_keys(dict_of_keys)
+        list_of_instruments = [db_entry[INSTRUMENT_KEY] for db_entry in list_of_dicts]
 
         return list_of_instruments
 
-    def get_all_strategy_instruments_with_limits(self) -> list:
-        pos_dict = dict(marker=MARKER_STRATEGY_INSTRUMENT)
-        cursor = self._mongo.collection.find(pos_dict)
-        list_of_dicts = [db_entry for db_entry in cursor]
-        list_of_strategy_instruments = [(db_entry['strategy_name'], db_entry['instrument_code']) for db_entry in list_of_dicts]
+    def get_all_instrument_strategies_with_limits(self) -> listOfInstrumentStrategies:
 
-        return list_of_strategy_instruments
+        dict_of_keys = {MARKER_KEY:MARKER_STRATEGY_INSTRUMENT}
+        list_of_dicts = self.mongo_data.get_list_of_result_dicts_for_dict_keys(dict_of_keys)
 
-    def delete_abs_position_limit_for_strategy_instrument(self, strategy_name:str,
-                                                       instrument_code: str):
-        delete_dict = dict(marker = MARKER_STRATEGY_INSTRUMENT,
-            strategy_name=strategy_name, instrument_code=instrument_code
-        )
-        self._mongo.collection.delete_one(delete_dict)
+        list_of_instrument_strategies = [instrumentStrategy(strategy_name=db_entry[STRATEGY_KEY],
+                                                            instrument_code=db_entry[INSTRUMENT_KEY])
+                                         for db_entry in list_of_dicts]
+
+        list_of_instrument_strategies = listOfInstrumentStrategies(list_of_instrument_strategies)
+
+        return list_of_instrument_strategies
+
+    def delete_position_limit_for_instrument_strategy(self, instrument_strategy: instrumentStrategy):
+        dict_of_keys = {MARKER_KEY:MARKER_STRATEGY_INSTRUMENT,
+            STRATEGY_KEY:instrument_strategy.strategy_name,
+                        INSTRUMENT_KEY: instrument_strategy.instrument_code
+        }
+
+        self.mongo_data.delete_data_without_any_warning(dict_of_keys)
 
     def delete_position_limit_for_instrument(self, instrument_code: str):
-        delete_dict = dict(marker = MARKER_INSTRUMENT,
-            instrument_code=instrument_code
-        )
-        self._mongo.collection.delete_one(delete_dict)
+        dict_of_keys = {MARKER_KEY: MARKER_INSTRUMENT,
+                        INSTRUMENT_KEY: instrument_code}
 
-    def _get_abs_position_limit_for_strategy_instrument(self,
-                                                       strategy_name:
-                                                       str, instrument_code: str) ->int:
+        self.mongo_data.delete_data_without_any_warning(dict_of_keys)
+
+    def _get_abs_position_limit_for_instrument_strategy(self,
+                                                       instrument_strategy: instrumentStrategy) ->int:
+
         # return missing_data if no limit found
-        find_object_dict = dict(marker = MARKER_STRATEGY_INSTRUMENT,
-            strategy_name=strategy_name, instrument_code=instrument_code
-        )
-        position_limit = self._get_position_limit_from_dict(find_object_dict)
+        dict_of_keys = {MARKER_KEY:MARKER_STRATEGY_INSTRUMENT,
+            STRATEGY_KEY:instrument_strategy.strategy_name,
+                        INSTRUMENT_KEY: instrument_strategy.instrument_code
+        }
+        find_object_dict = self.mongo_data.get_result_dict_for_dict_keys(dict_of_keys)
+        if find_object_dict is missing_data:
+            return missing_data
+        position_limit = find_object_dict[POSITION_LIMIT_KEY]
 
         return position_limit
 
     def _get_abs_position_limit_for_instrument(self,
                                               instrument_code: str,
                                               ) -> int:
-        # return missing_data if no limit found
-        find_object_dict = dict(marker = MARKER_INSTRUMENT,
-            instrument_code=instrument_code
-        )
+        dict_of_keys = {MARKER_KEY: MARKER_INSTRUMENT,
+                        INSTRUMENT_KEY: instrument_code}
 
-        position_limit = self._get_position_limit_from_dict(find_object_dict)
-
-        return position_limit
-
-    def _get_position_limit_from_dict(self, find_object_dict: dict):
-        cursor = self._mongo.collection.find_one(find_object_dict)
-        if cursor is None:
+        find_object_dict = self.mongo_data.get_result_dict_for_dict_keys(dict_of_keys)
+        if find_object_dict is missing_data:
             return missing_data
-        position_limit = cursor['position_limit']
+        position_limit = find_object_dict[POSITION_LIMIT_KEY]
 
         return position_limit
 
 
-    def set_position_limit_for_strategy_instrument(self, strategy_name:str,
-                                                       instrument_code: str,
+    def set_position_limit_for_instrument_strategy(self, instrument_strategy: instrumentStrategy,
                                                        new_position_limit: int):
+        dict_of_keys = {MARKER_KEY:MARKER_STRATEGY_INSTRUMENT,
+            STRATEGY_KEY:instrument_strategy.strategy_name,
+                        INSTRUMENT_KEY: instrument_strategy.instrument_code
+        }
+        data_dict = {POSITION_LIMIT_KEY: new_position_limit}
 
-        pos_dict = dict(marker = MARKER_STRATEGY_INSTRUMENT, strategy_name = strategy_name,
-                        instrument_code = instrument_code)
+        self.mongo_data.add_data(dict_of_keys, data_dict, allow_overwrite=True)
 
-        self._set_position_limit_from_dict(pos_dict, new_position_limit)
 
     def set_position_limit_for_instrument(self, instrument_code: str,
                                               new_position_limit: int):
-        pos_dict = dict(marker=MARKER_INSTRUMENT,
-                        instrument_code=instrument_code)
+        dict_of_keys = {MARKER_KEY: MARKER_INSTRUMENT,
+                        INSTRUMENT_KEY: instrument_code}
+        data_dict = {POSITION_LIMIT_KEY: new_position_limit}
 
-        self._set_position_limit_from_dict(pos_dict, new_position_limit)
-
-    def _set_position_limit_from_dict(self, pos_dict: dict,
-                                      position_limit: int):
-
-        existing_position_limit = self._get_position_limit_from_dict(pos_dict)
-        if existing_position_limit is missing_data:
-            self._add_new_position_limit(pos_dict, position_limit)
-        else:
-            self._change_existing_position_limit(pos_dict, position_limit)
-
-
-
-
-    def _add_new_position_limit(self, pos_dict:dict , position_limit: int):
-        pos_dict['position_limit'] = position_limit
-
-        self.log.msg("Adding position limit %s" % str(pos_dict))
-
-        self._mongo.collection.insert_one(pos_dict)
-
-    def _change_existing_position_limit(self, pos_dict:dict, position_limit: int):
-
-        self.log.msg("Updating trade limit %s to %d" % (str(pos_dict), position_limit))
-
-        new_values_dict = {"$set": dict(position_limit = position_limit)}
-        self._mongo.collection.update_one(
-            pos_dict, new_values_dict, upsert=True
-        )
+        self.mongo_data.add_data(dict_of_keys, data_dict, allow_overwrite=True)
 
 
