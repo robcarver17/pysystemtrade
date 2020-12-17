@@ -1,6 +1,6 @@
 from syscore.fileutils import get_filename_for_package
 from syscore.objects import arg_not_supplied
-from sysdata.production.roll_state_storage import rollStateData
+from sysdata.production.roll_state import rollStateData
 from syslogdiag.log import logtoscreen
 
 

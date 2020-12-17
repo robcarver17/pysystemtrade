@@ -40,7 +40,6 @@ from sysexecution.algos.allocate_algo_to_order import (
 )
 from sysexecution.stack_handler.stackHandlerCore import stackHandlerCore
 
-
 class stackHandlerForSpawning(stackHandlerCore):
     def spawn_children_from_new_instrument_orders(self):
         new_order_ids = self.instrument_stack.list_of_new_orders()
@@ -180,27 +179,28 @@ def get_required_contract_trade_for_instrument(data, instrument_order):
     next_contract = diag_contracts.get_forward_contract_id(instrument_code)
 
     diag_positions = diagPositions(data)
-    roll_state = diag_positions.get_roll_state(instrument_code)
+
 
     position_current_contract = (
         diag_positions.get_position_for_instrument_and_contract_date(
             instrument_code, current_contract
         )
     )
-    if roll_state == "No_Roll":
+    if diag_positions.is_roll_state_no_roll(instrument_code):
         log.msg(
             "No roll, allocating entire order %s to current contract %s"
             % (str(instrument_order), current_contract)
         )
         return [(current_contract, trade)]
 
-    elif roll_state in ["Force", "Force_Outright", "Roll_Adjusted"]:
+    elif diag_positions.is_type_of_active_rolling_roll_state(instrument_code):
         log.msg(
-            "Roll state %s is rolling, not going to generate trade for order %s" %
-            (roll_state, str(instrument_order)))
+            "Roll state is active rolling, not going to generate trade for order %s" %
+            (str(instrument_order)))
         return rolling_cant_trade
 
-    elif roll_state == "Passive":
+    elif diag_positions.is_roll_state_passive(instrument_code):
+        # no log as function does it
         return passive_roll_child_order(
             position_current_contract,
             current_contract,
@@ -212,7 +212,7 @@ def get_required_contract_trade_for_instrument(data, instrument_order):
     else:
         log.critical(
             "Roll state %s not understood: can't generate trade for %s"
-            % (roll_state, str(instrument_order))
+            % (diag_positions.get_name_of_roll_state(instrument_code), str(instrument_order))
         )
         return missing_contract
 

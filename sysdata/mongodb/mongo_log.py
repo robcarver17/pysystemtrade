@@ -1,6 +1,6 @@
 from syscore.objects import arg_not_supplied
 from sysdata.mongodb.mongo_connection import mongoConnection, mongoDb
-from sysdata.mongodb.mongo_generic import mongoData, MONGO_ID_KEY, existingData
+from sysdata.mongodb.mongo_generic import mongoDataWithSingleKey, MONGO_ID_KEY, existingData
 from syscore.dateutils import long_to_datetime, datetime_to_long
 
 from syslogdiag.log import logEntry, TIMESTAMP_ID, LEVEL_ID, TEXT_ID, LOG_RECORD_ID, logtoscreen
@@ -27,7 +27,7 @@ class logToMongod(logToDb):
         **kwargs,
     ):
         super().__init__(type=type, data = data, log_level=log_level, **kwargs)
-        self._mongo_data = mongoData(LOG_COLLECTION_NAME, LOG_RECORD_ID, mongo_db=mongo_db)
+        self._mongo_data = mongoDataWithSingleKey(LOG_COLLECTION_NAME, LOG_RECORD_ID, mongo_db=mongo_db)
         self._delete_old_metadata()
 
     def _delete_old_metadata(self):
@@ -87,7 +87,7 @@ class logToMongod(logToDb):
 class mongoLogData(logData):
     # Need to change so uses data
     def __init__(self, mongo_db=arg_not_supplied, log=logtoscreen("mongoLogData")):
-        self._mongo_data = mongoData(LOG_COLLECTION_NAME, LOG_RECORD_ID, mongo_db=mongo_db)
+        self._mongo_data = mongoDataWithSingleKey(LOG_COLLECTION_NAME, LOG_RECORD_ID, mongo_db=mongo_db)
         super().__init__(log=log)
 
     @property

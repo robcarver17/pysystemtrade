@@ -6,6 +6,7 @@ from sysexecution.algos.allocate_algo_to_order import (
     allocate_algo_to_list_of_contract_orders,
 )
 
+from sysobjects.production.roll_state import RollState
 from sysproduction.data.positions import diagPositions
 from sysproduction.data.contracts import diagContracts
 from sysproduction.data.prices import diagPrices
@@ -71,12 +72,7 @@ class stackHandlerForRolls(stackHandlerCore):
 
     def check_if_forced_roll_required(self, instrument_code):
         diag_positions = diagPositions(self.data)
-        roll_state = diag_positions.get_roll_state(instrument_code)
-        if roll_state not in ["Force", "Force_Outright"]:
-            return False
-        else:
-            return True
-
+        return diag_positions.is_forced_roll_required(instrument_code)
 
 def create_force_roll_orders(data, instrument_code):
     """
@@ -86,7 +82,6 @@ def create_force_roll_orders(data, instrument_code):
     :return: tuple; instrument_order (or missing_order), contract_orders
     """
     diag_positions = diagPositions(data)
-    roll_state = diag_positions.get_roll_state(instrument_code)
 
     strategy = ROLL_PSEUDO_STRATEGY
     trade = 0
@@ -96,6 +91,7 @@ def create_force_roll_orders(data, instrument_code):
         trade,
         roll_order=True,
         order_type="Zero-roll-order")
+
 
     diag_contracts = diagContracts(data)
     priced_contract_id = diag_contracts.get_priced_contract_id(instrument_code)
@@ -107,7 +103,7 @@ def create_force_roll_orders(data, instrument_code):
     if position_in_priced == 0:
         return missing_order, []
 
-    if roll_state == "Force_Outright":
+    if diag_positions.is_roll_state_force(instrument_code):
         contract_orders = create_contract_orders_outright(
             data,
             instrument_code,
@@ -115,7 +111,7 @@ def create_force_roll_orders(data, instrument_code):
             forward_contract_id,
             position_in_priced,
         )
-    elif roll_state == "Force":
+    elif diag_positions.is_roll_state_force_outright(instrument_code):
         contract_orders = create_contract_orders_spread(
             data,
             instrument_code,
@@ -124,7 +120,9 @@ def create_force_roll_orders(data, instrument_code):
             position_in_priced,
         )
     else:
-        raise Exception("Roll state %s not recognised" % roll_state)
+        log = instrument_order.log_with_attributes(data.log)
+        log.warn("Roll state %s is unexpected, might have changed" % str(roll_state))
+        return missing_order, []
 
     contract_orders = allocate_algo_to_list_of_contract_orders(
         data, contract_orders, instrument_order=instrument_order

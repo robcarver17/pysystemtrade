@@ -18,15 +18,10 @@ from sysobjects.dict_of_named_futures_per_contract_prices import price_name, car
     price_column_names, contract_column_names
 from sysobjects.adjusted_prices import futuresAdjustedPrices
 
-from syscore.objects import success, failure, status
+from syscore.objects import success, failure, status, _named_object
 
-from sysdata.production.roll_state_storage import (
-    allowable_roll_state_from_current_and_position,
-    explain_roll_state,
-    roll_adj_state,
-    no_state_available,
-    default_state,
-)
+from sysobjects.production.roll_state import default_state, roll_adj_state, explain_roll_state_str, \
+    allowable_roll_state_from_current_and_position, RollState
 
 from sysproduction.diagnostic.report_configs import roll_report_config
 from sysproduction.diagnostic.reporting import run_report_with_data_blob, landing_strip
@@ -36,6 +31,7 @@ from sysproduction.data.contracts import diagContracts
 from sysdata.data_blob import dataBlob
 from sysproduction.data.prices import diagPrices, updatePrices, get_valid_instrument_code_from_user
 
+no_state_available = _named_object("No state available")
 
 def interactive_update_roll_status():
     """
@@ -78,9 +74,13 @@ def run_roll_report(data:dataBlob, instrument_code: str):
 @dataclass
 class RollData(object):
     instrument_code: str
-    original_roll_status: str
+    original_roll_status: RollState
     position_priced_contract: int
-    allowable_roll_states: list
+    allowable_roll_states_as_list_of_str: list
+
+    @property
+    def original_roll_status_as_string(self):
+        return self.original_roll_status.name
 
     def display_roll_query_banner(self):
 
@@ -93,8 +93,8 @@ class RollData(object):
         print("These are your options:")
         print("")
 
-        for state_number, state in enumerate(self.allowable_roll_states):
-            print("%s: %s" % (state, explain_roll_state(state)))
+        for state_number, state in enumerate(self.allowable_roll_states_as_list_of_str):
+            print("%s: %s" % (state, explain_roll_state_str(state)))
 
         print("")
 
@@ -102,20 +102,21 @@ class RollData(object):
         invalid_input = True
         while invalid_input:
             self.display_roll_query_banner()
-            roll_state_required = print_menu_of_values_and_get_response(self.allowable_roll_states)
+            roll_state_required_as_str = print_menu_of_values_and_get_response(self.allowable_roll_states_as_list_of_str)
 
-            if roll_state_required != self.original_roll_status:
+            if roll_state_required_as_str != self.original_roll_status_as_string:
                 # check if changing
                 print("")
                 check = input(
-                    "Changing roll state for %s from %s to %s, are you sure y/n to try again/<RETURN> to exist: "
-                    % (self.instrument_code, self.original_roll_status, roll_state_required)
+                    "Changing roll state for %s from %s to %s, are you sure y/n to try again/<RETURN> to exit: "
+                    % (self.instrument_code, self.original_roll_status_as_string, roll_state_required_as_str)
                 )
                 print("")
                 if check == "y":
                     # happy
-                    invalid_input = False
-                    break
+                    self.set_new_roll_state(roll_state_required_as_str)
+                    return roll_state_required_as_str
+
                 elif check=="":
                     print("Okay, we're done")
                     return no_state_available
@@ -124,23 +125,22 @@ class RollData(object):
                     print("OK. Choose again.")
                     # back to top of loop
                     continue
+            else:
+                print("No change")
+                return no_state_available
 
-        self.set_new_roll_state(roll_state_required)
 
-        return roll_state_required
-
-    def set_new_roll_state(self, required_state: str):
-        self._required_state = required_state
+    def set_new_roll_state(self, required_state_as_str: str):
+        self._required_state = RollState[required_state_as_str]
 
     @property
-    def required_state(self):
+    def required_state(self) -> RollState:
         return self._required_state
 
 def get_required_roll_state(data: dataBlob, instrument_code: str)-> RollData:
     roll_data = setup_roll_data(data, instrument_code)
 
     roll_status  = roll_data.get_roll_state_required()
-
     if roll_status is no_state_available:
         return no_state_available
 
@@ -169,12 +169,12 @@ def setup_roll_data(data: dataBlob, instrument_code: str) -> RollData:
     return roll_data
 
 
-def modify_roll_state(data: dataBlob, instrument_code: str, roll_state_required: str):
+def modify_roll_state(data: dataBlob, instrument_code: str, roll_state_required: RollState):
     update_positions = updatePositions(data)
     update_positions.set_roll_state(instrument_code, roll_state_required)
 
 
-def roll_adjusted_prices(data: dataBlob, instrument_code: str, original_roll_status: str):
+def roll_adjusted_prices(data: dataBlob, instrument_code: str, original_roll_status: RollState):
     # Going to roll adjusted prices
     update_positions = updatePositions(data)
 

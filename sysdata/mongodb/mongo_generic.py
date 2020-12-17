@@ -9,7 +9,7 @@ from sysdata.mongodb.mongo_connection import (
 from syscore.objects import missing_data, missingData, existingData
 
 
-class mongoData(object):
+class mongoDataWithSingleKey(object):
     """
     Read and write data class to get data from a mongo database
 

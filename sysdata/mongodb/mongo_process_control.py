@@ -2,7 +2,7 @@ from syscontrol.data_objects import controlProcess
 from sysdata.production.process_control_data import controlProcessData
 from syscore.objects import missing_data, arg_not_supplied
 
-from sysdata.mongodb.mongo_generic import mongoData
+from sysdata.mongodb.mongo_generic import mongoDataWithSingleKey
 from syslogdiag.log import logtoscreen
 
 PROCESS_CONTROL_COLLECTION = "process_control"
@@ -22,7 +22,7 @@ class mongoControlProcessData(controlProcessData):
 
         super().__init__(log=log)
 
-        self._mongo_data = mongoData(PROCESS_CONTROL_COLLECTION, PROCESS_CONTROL_KEY, mongo_db=mongo_db)
+        self._mongo_data = mongoDataWithSingleKey(PROCESS_CONTROL_COLLECTION, PROCESS_CONTROL_KEY, mongo_db=mongo_db)
 
     @property
     def mongo_data(self):

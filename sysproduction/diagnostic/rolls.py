@@ -85,7 +85,7 @@ def get_roll_data_for_instrument(instrument_code, data):
 
     # roll status
     diag_positions = diagPositions(data)
-    roll_status = diag_positions.get_roll_state(instrument_code)
+    roll_status = diag_positions.get_name_of_roll_state(instrument_code)
 
     # Positions
     positions = diag_positions.get_positions_for_instrument_and_contract_list(

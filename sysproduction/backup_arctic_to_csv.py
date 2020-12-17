@@ -364,7 +364,7 @@ def backup_roll_state_data(data):
     instrument_list = data.mongo_roll_state.get_list_of_instruments()
     roll_state_list = []
     for instrument_code in instrument_list:
-        roll_state = data.mongo_roll_state.get_roll_state(instrument_code)
+        roll_state = data.mongo_roll_state.get_name_of_roll_state(instrument_code)
         roll_state_list.append(roll_state)
 
     roll_state_df = pd.DataFrame(roll_state_list, index=instrument_list)
