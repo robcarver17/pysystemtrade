@@ -490,7 +490,7 @@ Specific data sources
 - Mongo / Arctic
     - `mongoDb`: Connection to a database (arctic or mongo) specifying port, databasename and hostname. Usually created by a `dataBlob`, and the instance is used to create various `mongoConnection`
     - `mongoConnection`: Creates a connection (combination of database and specific collection) that is created inside object like `mongoRollParametersData`, using a `mongoDb`
-    - `mongoData`: Provides a common abstract interface to mongo, assuming the data is in dict and has a single key 
+    - `mongoData`: Provides a common abstract interface to mongo, assuming the data is in dicts. Has different classes for single or multiple keys.
     - `articData`: Provides a common abstract interface to arctic, assuming the data is passed as pd.DataFrame
 - Interactive brokers: see [this file](/docs/IB.md)
 
@@ -512,9 +512,10 @@ Simulation interface layer:
 
 
 
-## Directory structure 
+## Directory structure (not the whole package! Just related to data objects, storage and interfaces)
 
 - [/sysbrokers/IB/](/sysbrokers/IB/): IB specific data storage / access objects
+- [/syscontrol/](/syscontrol/): Process control data objects
 - [/sysdata/](/sysdata/): Generic data storage objects and dataBlobs 
     - [/sysdata/futures/](/sysdata/futures/): Data storage objects for futures (backtesting and production), including execution and logging
     - [/sysdata/production/](/sysdata/production/): Data storage objects for production only 

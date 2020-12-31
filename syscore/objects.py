@@ -230,3 +230,7 @@ if __name__ == "__main__":
     import doctest
 
     doctest.testmod()
+
+
+def get_class_name(class_object):
+    return class_object.__name__

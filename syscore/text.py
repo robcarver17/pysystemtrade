@@ -118,3 +118,15 @@ def force_args_to_same_length(data_args_input, data, pad_with={}):
             (len(data_args), len(data)))
 
     return padded_data_args
+
+
+def camel_case_split(some_str) -> list:
+    words = [[some_str[0]]]
+
+    for c in some_str[1:]:
+        if words[-1][-1].islower() and c.isupper():
+            words.append(list(c))
+        else:
+            words[-1].append(c)
+
+    return ["".join(word) for word in words]

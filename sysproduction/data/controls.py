@@ -61,18 +61,38 @@ class dataTradeLimits(object):
             strategy_name,
             instrument_code,
             proposed_trade):
+        #FIXME DELETE
+        instrument_strategy = instrumentStrategy(instrument_code=instrument_code, strategy_name=strategy_name)
+        return self.what_trade_is_possible_for_strategy_instrument(instrument_strategy, proposed_trade)
+
+
+    def what_trade_is_possible_for_strategy_instrument(
+            self,
+            instrument_strategy: instrumentStrategy,
+            proposed_trade: int):
         return self.data.db_trade_limit.what_trade_is_possible(
-            strategy_name, instrument_code, proposed_trade
+            instrument_strategy, proposed_trade
         )
 
     def add_trade(self, strategy_name, instrument_code, trade):
-        return self.data.db_trade_limit.add_trade(
-            strategy_name, instrument_code, trade)
+        #FIXME REMOVE
+        instrument_strategy = instrumentStrategy(strategy_name=strategy_name,
+                                                 instrument_code=instrument_code)
+        self.add_trade_for_instrument_strategy(instrument_strategy, trade)
+
+    def add_trade_for_instrument_strategy(self, instrument_strategy: instrumentStrategy, trade: int):
+        self.data.db_trade_limit.add_trade(
+            instrument_strategy, trade)
 
     def remove_trade(self, strategy_name, instrument_code, trade):
-        return self.data.db_trade_limit.remove_trade(
-            strategy_name, instrument_code, trade
-        )
+        instrument_strategy = instrumentStrategy(strategy_name=strategy_name,
+                                                 instrument_code=instrument_code)
+        self.remove_trade_for_instrument_strategy(instrument_strategy, trade)
+
+    def remove_trade_for_instrument_strategy(self, instrument_strategy: instrumentStrategy, trade: int):
+        self.data.db_trade_limit.remove_trade(
+            instrument_strategy, trade)
+
 
     def get_all_limits(self):
         return self.data.db_trade_limit.get_all_limits()
@@ -91,14 +111,32 @@ class dataTradeLimits(object):
     def update_instrument_strategy_limit_with_new_limit(
         self, strategy_name, instrument_code, period_days, new_limit
     ):
+        #FIXME DELETE REPLACE WITH '2'
+        instrument_strategy = instrumentStrategy(strategy_name=strategy_name,
+                                                 instrument_code=instrument_code)
+
+        self.update_instrument_strategy_limit_with_new_limit2(instrument_strategy, period_days, new_limit)
+
+    def update_instrument_strategy_limit_with_new_limit2(
+        self, instrument_strategy: instrumentStrategy, period_days: int, new_limit: int
+    ):
         self.data.db_trade_limit.update_instrument_strategy_limit_with_new_limit(
-            strategy_name, instrument_code, period_days, new_limit)
+            instrument_strategy, period_days, new_limit)
+
 
     def reset_instrument_strategy_limit(
         self, strategy_name, instrument_code, period_days
     ):
+        #FIXME REPLACE WITH 2
+        instrument_strategy = instrumentStrategy(strategy_name=strategy_name,
+                                                 instrument_code=instrument_code)
+        self.reset_instrument_strategy_limit2(instrument_strategy, period_days)
+
+    def reset_instrument_strategy_limit2(
+        self, instrument_strategy: instrumentStrategy, period_days: int
+    ):
         self.data.db_trade_limit.reset_instrument_strategy_limit(
-            strategy_name, instrument_code, period_days
+            instrument_strategy, period_days
         )
 
 

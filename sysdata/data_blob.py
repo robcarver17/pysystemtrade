@@ -1,7 +1,8 @@
 from copy import copy
 
 from sysbrokers.IB.ib_connection import connectionIB
-from syscore.objects import arg_not_supplied
+from syscore.objects import arg_not_supplied, get_class_name
+from syscore.text import camel_case_split
 from sysdata.mongodb.mongo_connection import mongoDb
 from sysdata.mongodb.mongo_log import logToMongod
 from syslogdiag.log import logger
@@ -168,7 +169,7 @@ class dataBlob(object):
 
         return resolved_instance
 
-    def _get_csv_paths_for_class(self, class_object):
+    def _get_csv_paths_for_class(self, class_object) -> str:
         class_name = get_class_name(class_object)
         csv_data_paths = self.csv_data_paths
         if csv_data_paths is arg_not_supplied:
@@ -200,7 +201,7 @@ class dataBlob(object):
         attr_name = self._get_new_name(class_name)
         self._add_new_class_with_new_name(resolved_instance, attr_name)
 
-    def _get_new_name(self, class_name: str):
+    def _get_new_name(self, class_name: str) -> str:
         split_up_name = camel_case_split(class_name)
         attr_name = identifying_name(
             split_up_name, keep_original_prefix=self._keep_original_prefix
@@ -256,7 +257,7 @@ class dataBlob(object):
 
         return mongo_db
 
-    def _raise_and_log_error(self, error_msg):
+    def _raise_and_log_error(self, error_msg: str):
         self.log.critical(error_msg)
         raise Exception(error_msg)
 
@@ -279,7 +280,7 @@ class dataBlob(object):
 source_dict = dict(arctic="db", mongo="db", csv="db", ib="broker")
 
 
-def identifying_name(split_up_name, keep_original_prefix=False):
+def identifying_name(split_up_name: list, keep_original_prefix=False)-> str:
     """
     Turns sourceClassNameData into broker_class_name or db_class_name
 
@@ -314,17 +315,3 @@ def identifying_name(split_up_name, keep_original_prefix=False):
     return "_".join(lower_split_up_name)
 
 
-def camel_case_split(str):
-    words = [[str[0]]]
-
-    for c in str[1:]:
-        if words[-1][-1].islower() and c.isupper():
-            words.append(list(c))
-        else:
-            words[-1].append(c)
-
-    return ["".join(word) for word in words]
-
-
-def get_class_name(class_object):
-    return class_object.__name__

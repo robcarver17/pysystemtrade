@@ -75,3 +75,8 @@ class instrumentStrategy(object):
     @classmethod
     def from_dict(instrumentStrategy, attr_dict):
         return instrumentStrategy(attr_dict[STRATEGY_NAME_KEY], attr_dict[INSTRUMENT_CODE_KEY])
+
+    @classmethod
+    def from_key(instrumentStrategy, key):
+        strategy_name, instrument_code = key.split(" ")
+        return instrumentStrategy(strategy_name=strategy_name, instrument_code=instrument_code)
