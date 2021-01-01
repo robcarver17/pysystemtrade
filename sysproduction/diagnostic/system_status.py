@@ -158,8 +158,7 @@ dataForProcess = namedtuple(
 dataForLimits = namedtuple(
     "dataForLimits",
     [
-        "strategy_name",
-        "instrument_code",
+        "instrument_strategy",
         "period_days",
         "trade_limit",
         "trades_since_last_reset",
