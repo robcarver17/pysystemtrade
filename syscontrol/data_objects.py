@@ -13,8 +13,7 @@ import datetime
 import os
 import pandas as pd
 
-import psutil
-
+from syscontrol.list_running_pids import list_of_all_running_pids
 from syscore.fileutils import html_table
 from syscore.dateutils import SECONDS_PER_DAY, last_run_or_heartbeat_from_date_or_none
 
@@ -349,19 +348,6 @@ class dictOfControlProcesses(dict):
         return pd_df
 
 
-def list_of_all_running_pids():
-    psid_list=[]
-    for proc in psutil.process_iter():
-        try:
-            processID = proc.pid
-            psid_list.append(processID)
-        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-            pass
-    return psid_list
-
-
 def is_pid_running(pid):
     pid_list = list_of_all_running_pids()
     return pid in pid_list
-
-
