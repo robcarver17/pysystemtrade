@@ -89,8 +89,8 @@ labelledCorrelations = namedtuple("labelledCorrelations", 'ab ac bc')
 def optimise_for_corr_matrix_with_uncertainty(corr_matrix, conf_intervals, data_points):
     labelled_correlations = extract_asset_pairwise_correlations_from_matrix(corr_matrix)
     labelled_correlation_points = calculate_correlation_points_from_tuples(labelled_correlations, conf_intervals, data_points)
-    corr_matrix = three_asset_corr_matrix(labelled_correlation_points)
-    weights = optimise_for_corr_matrix(corr_matrix)
+    corr_matrix_at_distribution_point = three_asset_corr_matrix(labelled_correlation_points)
+    weights = optimise_for_corr_matrix(corr_matrix_at_distribution_point)
 
     return weights
 

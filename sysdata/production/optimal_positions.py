@@ -144,6 +144,14 @@ class optimalPositionData(listOfEntriesData):
 
         return list_of_instruments
 
+    def list_of_strategies_with_optimal_position(self) -> list:
+        list_of_instrument_strategies = \
+            self.get_list_of_instrument_strategies_with_optimal_position()
+
+        list_of_strategies = list_of_instrument_strategies.get_list_of_strategies()
+
+        return list_of_strategies
+
     def get_list_of_instrument_strategies_for_strategy_with_optimal_position(
             self, strategy_name: str) -> listOfInstrumentStrategies:
 

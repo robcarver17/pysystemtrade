@@ -362,7 +362,7 @@ def total_current_capital(data):
 
 
 def optimal_positions(data):
-    strategy_name = get_valid_strategy_name_from_user(data=data)
+    strategy_name = get_valid_strategy_name_from_user(data=data, source="optimal_positions")
     optimal_data = dataOptimalPositions(data)
 
     instrument_code_list = (

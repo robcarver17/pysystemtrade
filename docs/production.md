@@ -336,6 +336,7 @@ If spreading your implementation across several machines bear in mind:
    - you will need to modify the `private_config.yaml` system configuration file so it connects to a different IP address `ib_ipaddress: '192.168.0.10'`
 - Mongodb
    - Add an ip address to the `bind_ip` line in the `/etc/mongod.conf` file to allow connections from other machines `eg bind_ip=localhost, 192.168.0.10`
+   - You may need to change your firewall settings, either UFW (`sudo ufw enable`, `sudo ufw allow 27017 from 192.168.0.10`) or iptables 
    - you will need to modify the `private_config.yaml` system configuration file so it connects to a different IP address `mongo_host: 192.168.0.13`
    - you may want to enforce [further security protocol](https://docs.mongodb.com/manual/administration/security-checklist/)
 - [Process configuration](#process-configuration); you will want to specify different machine names for each process in your private yaml config file.
@@ -1734,7 +1735,7 @@ The scheduler built into pysystemtrade does not launch processes (this is still 
 - Run only when another process has already finished (i.e. do not run_systems until prices have been updated)
 - Allow interactive_controls to STOP processes, or prevent them from starting.
 - Call 'methods', which are effectively sub processes, multiple times (up to a specified limit) and at specified time intervals (if required).
-- Provides a monitoring tool
+- Provides a monitoring tool which can also be used from a remote machine
 
 ### Configuring the scheduling
 
@@ -1888,7 +1889,21 @@ Once your machine has started you should be able to go to `http://192.168.1.13:8
 
 Whilst running the monitor will also handle any 'crashed' processes (those where the PID that is registered is killed without the process being properly finished); it will email the user, update the web log, and mark the process as finished so it can be run again. **It will not automatically respawn the processes!** (you will have to do that manually or wait until the crontab does so the next day).
 
+You may prefer to run your monitor from another machine. To do this on the trading server (the machine that is being monitored), assuming that is also the machine that is hosting your mongoDB instance:
 
+- Add an ip address to the `bind_ip` line in the `/etc/mongod.conf` file to allow connections from other machines `eg bind_ip=localhost, 192.168.0.10` or change your call to mongodb `mongod --dbpath /home/rob/data/mongodb --bind_ip_all` (**warning, insecure unless you have other security eg firewall**).
+- You may need to change your firewall settings, either UFW (`sudo ufw enable`, `sudo ufw allow 27017 from 192.168.0.10`) or iptables 
+- set up ssh so that it does not require password login, only ssh-key (**again, has security implications so make sure you know what you are doing!**)
+
+Then on the monitoring machine:
+
+- you will need to modify the `private_config.yaml` system configuration file so it connects to a different IP address `mongo_host: 192.168.0.13`
+- add the following to your `private_config.yaml` file
+
+`trading_server_ip: 192.168.0.121`
+`trading_server_username: 'rob'`
+`trading_server_ssh_port: 22` (optional, defaults to port 22)
+  
 
 ### Troubleshooting?
 

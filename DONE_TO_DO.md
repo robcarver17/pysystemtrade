@@ -1,5 +1,7 @@
 # Release notes
 
+added remote monitoring
+
 ## Version 0.60.0
 
 Split out control configuration from other YAML files (**YOU WILL NEED TO CHANGE PRIVATE CONFIG** look at the production docs!)

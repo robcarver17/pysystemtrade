@@ -229,6 +229,11 @@ class dataOptimalPositions(object):
         return self.data.db_optimal_position.get_list_of_instruments_for_strategy_with_optimal_position(
             strategy_name)
 
+    def get_list_of_strategies_with_optimal_position(
+            self):
+        return self.data.db_optimal_position.list_of_strategies_with_optimal_position()
+
+
     def get_current_optimal_position_for_strategy_and_instrument(
         self, strategy_name, instrument_code
     ):

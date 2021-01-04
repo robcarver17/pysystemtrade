@@ -2,7 +2,7 @@ from sysdata.data_blob import dataBlob
 from sysdata.private_config import get_private_then_default_key_value
 from syscore.objects import arg_not_supplied
 from syscore.genutils import print_menu_of_values_and_get_response
-
+from sysproduction.data.positions import diagPositions, dataOptimalPositions
 
 class diagStrategiesConfig(object):
     def __init__(self, data=arg_not_supplied):
@@ -46,15 +46,32 @@ class diagStrategiesConfig(object):
         return strategy_dict
 
 
-def get_list_of_strategies(data=arg_not_supplied):
+def get_list_of_strategies(data=arg_not_supplied, source="config"):
+    if source=="config":
+        return get_list_of_strategies_from_config(data)
+    elif source=="positions":
+        return get_list_of_strategies_from_positions(data)
+    elif source=="optimal_positions":
+        return
+    else:
+        raise Exception("Source %s not recognised!" % source)
+
+def get_list_of_strategies_from_config(data=arg_not_supplied):
     d = diagStrategiesConfig(data)
     return d.get_list_of_strategies()
 
+def get_list_of_strategies_from_positions(data=arg_not_supplied):
+    d = diagPositions(data)
+    return d.get_list_of_strategies_with_positions()
+
+def get_list_of_strategies_from_optimal_positions(data = arg_not_supplied):
+    d = dataOptimalPositions(data)
+    return d.get_list_of_strategies_with_optimal_position()
 
 def get_valid_strategy_name_from_user(
-    data=arg_not_supplied, allow_all=False, all_code="ALL"
+    data=arg_not_supplied, allow_all=False, all_code="ALL", source="config"
 ):
-    all_strategies = get_list_of_strategies(data=data)
+    all_strategies = get_list_of_strategies(data=data, source=source)
     if allow_all:
         default_strategy = all_code
     else:
