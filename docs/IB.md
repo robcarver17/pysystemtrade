@@ -62,16 +62,9 @@ These links may break or become outdated - use google to find the appropriate pa
 [For Linux](https://www.interactivebrokers.co.uk/en/index.php?f=16454)
 
 
-### Python library
+### IB-insync library
 
-You also need the python library for IB. This can be downloaded from [here](https://interactivebrokers.github.io/#). Once you have the source code you will need to install it. Here's the Linux way:
-
-```
-cd ~/IBJts/source/pythonclient
-python3 setup.py install
-```
-
-The directory required may vary, and you might need to prefix the second command with `sudo`. Windows users should do whatever they normally do to install python packages.
+I use IB-insync as my API to the python Gateway. You will need the [ib_insync](https://github.com/erdewit/ib_insync) library. This does not require you to download the IB python code.
 
 ## Launching and configuring the Gateway
 
@@ -91,11 +84,11 @@ You will also need to configure the Gateway:
 ## Making a connection
 
 ```
-from sysbrokers.IB.ibConnection import  connectionIB
-conn = connectionIB(ipaddress = "127.0.0.1", port=4001) # these are the default values and can be omitted
+from sysbrokers.IB.ib_connection import connectionIB
+conn = connectionIB( 999, ipaddress = "127.0.0.1", port=4001) # the first compulsory value is the client_id; the keyword args are the default values and can be omitted
 conn
-
-Out[13]: IB broker connection{'ipaddress': '127.0.0.1', 'port': 4001, 'client': 1} # client id may be different
+# In production the client id is assigned from a database to avoid conflicts
+Out[13]: IB broker connection{'ipaddress': '127.0.0.1', 'port': 4001, 'client': 999} 
 
 ```
 
@@ -109,11 +102,11 @@ See [here](#creating-and-closing-connection-objects) for more details.
 ### Creating and closing connection objects
 
 ```
-from sysbrokers.IB.ibConnection import connectionIB
-conn = connectionIB(ipaddress = "127.0.0.1", port=4001) # these are the default values and can be ommitted
+from sysbrokers.IB.ib_connection import connectionIB
+conn = connectionIB(ipaddress = "127.0.0.1", port=4001)
 ```
 
-Portid should match that in the Gateway configuration. Client ids must not be duplicated by an already connected python process (even if it's hung...). The IP address shown means 'this machine'; only change this if you are planning to run the Gateway on a different network machine.
+Portid should match that in the Gateway configuration. Client ids must not be duplicated by an already connected python process (even if it's hung...in production the client id is assigned from a database to avoid conflicts). The IP address shown means 'this machine'; only change this if you are planning to run the Gateway on a different network machine.
 
 If values for ipaddress and port are not passed here, they will default to:
 
@@ -131,7 +124,7 @@ ib_port: 4001
 conn = connectionIB(config)
 ```
 
-Connection objects immediately try and connect to IB. So don't create them until you are ready to do this. Once you have a connection object that exists in a particular Python process, do not try and create a new one. I've also had problems closing connections and then trying to create a new connection object. Generally it is safer to stick to the pattern of creating a single connection object in each process, attempting to close it out of politeness with `conn.disconnnect()`, and then terminating the process.
+Connection objects immediately try and connect to IB. So don't create them until you are ready to do this. Once you have a connection object that exists in a particular Python process, do not try and create a new one. I've also had problems closing connections and then trying to create a new connection object. Generally it is safer to stick to the pattern of creating a single connection object in each process, attempting to close it out of politeness with `conn.close_connection()`, and then terminating the process.
 
 ### Make multiple connections
 
