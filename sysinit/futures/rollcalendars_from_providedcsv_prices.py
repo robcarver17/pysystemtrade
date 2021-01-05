@@ -7,12 +7,12 @@ from sysdata.csv.csv_roll_calendars import csvRollCalendarData
 Generate the roll calendars from existing data
 """
 
-def generate_roll_calendars_from_provided_multiple_csv_prices(output_datapath):
+def generate_roll_calendars_from_provided_multiple_csv_prices(output_datapath = arg_not_supplied):
     if output_datapath is arg_not_supplied:
         print("USING DEFAULT DATAPATH WILL OVERWRITE PROVIDED DATA in /data/futures/")
     else:
         print("Writing to %s" % output_datapath)
-    input("This will overwrite any existing roll calendars: CRTL-C if you aren't sure!" % str(output_datapath))
+    input("This will overwrite any existing roll calendars to %s: CRTL-C if you aren't sure!" % str(output_datapath))
     csv_roll_calendars = csvRollCalendarData(datapath=output_datapath)
     sim_futures_data = csvFuturesSimData()
 
