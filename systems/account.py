@@ -9,7 +9,7 @@ from systems.system_cache import input, dont_cache, diagnostic, output
 from systems.accounts_inputs import _AccountInput
 
 from syscore.algos import apply_buffer
-from syscore.genutils import TorF, str2Bool
+from syscore.genutils import  str2Bool
 from syscore.dateutils import ROOT_BDAYS_INYEAR
 from syscore.pdutils import turnover
 from syscore.objects import resolve_function

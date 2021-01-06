@@ -18,7 +18,7 @@ import sysbrokers
 import sysproduction
 
 
-def get_filename_for_package(pathname, filename=None):
+def get_filename_for_package(pathname:str, filename=None):
     """
     A way of resolving relative and absolute filenames, and dealing with akward OS specific things
 
@@ -56,7 +56,7 @@ def get_filename_for_package(pathname, filename=None):
     return full_path_and_file
 
 
-def add_ampersand_to_pathname(pathname):
+def add_ampersand_to_pathname(pathname: str):
     pathname_replaced = pathname.replace(".", "&")
     pathname_replaced = pathname_replaced.replace("/", "&")
     pathname_replaced = pathname_replaced.replace("\\", "&")
@@ -233,11 +233,6 @@ def get_file_or_folder_age_in_days(full_filename_with_ext):
     return age_days
 
 
-if __name__ == "__main__":
-    import doctest
-
-    doctest.testmod()
-
 
 def html_table(file, lol: list):
   file.write('<table>')
@@ -245,4 +240,5 @@ def html_table(file, lol: list):
     file.write('  <tr><td>')
     file.write('    </td><td>'.join(sublist))
     file.write('  </td></tr>')
+
   file.write('</table>')
