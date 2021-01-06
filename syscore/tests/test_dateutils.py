@@ -7,7 +7,7 @@ import unittest as ut
 import numpy as np
 import pandas as pd
 
-from syscore.dateutils import expiry_diff
+from syscore.dateutils import fraction_of_year_between_price_and_carry_expiries
 
 
 class Test(ut.TestCase):
@@ -39,7 +39,7 @@ class Test(ut.TestCase):
 
     def test_expiry_diff(self):
         x = self.test_data()
-        expiries = x.apply(expiry_diff, 1)
+        expiries = x.apply(fraction_of_year_between_price_and_carry_expiries, 1)
         expected = [
             -0.24640657084188911,
             -0.24640657084188911,

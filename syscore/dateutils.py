@@ -40,114 +40,134 @@ UNIXTIME_IN_YEAR = UNIXTIME_CONVERTER * SECONDS_IN_YEAR
 MONTH_LIST = ["F", "G", "H", "J", "K", "M", "N", "Q", "U", "V", "X", "Z"]
 
 
-def month_from_contract_letter(contract_letter):
+def month_from_contract_letter(contract_letter: str) -> int:
     """
     Returns month number (1 is January) from contract letter
+    >>> month_from_contract_letter("F")
+    1
+    >>> month_from_contract_letter("Z")
+    12
+    >>> month_from_contract_letter("A")
+    Exception: Contract letter A is not a valid future month (must be one of ['F', 'G', 'H', 'J', 'K', 'M', 'N', 'Q', 'U', 'V', 'X', 'Z'])
 
-    :param contract_letter:
-    :return:
     """
 
     try:
         month_number = MONTH_LIST.index(contract_letter)
     except ValueError:
-        return None
+        raise Exception("Contract letter %s is not a valid future month (must be one of %s)" %
+                        (contract_letter, str(MONTH_LIST)))
 
     return month_number + 1
 
 
-def contract_month_from_number(month_number):
+def contract_month_from_number(month_number: int) -> str:
     """
     Returns standard month letters used in futures land
+
+    >>> contract_month_from_number(1)
+    'F'
+    >>> contract_month_from_number(12)
+    'Z'
+    >>> contract_month_from_number(0)
+    AssertionError
+    >>> contract_month_from_number(13)
+    AssertionError
 
     :param month_number: int
     :return: str
     """
 
+    assert month_number>0 and month_number<13
+
     return MONTH_LIST[month_number - 1]
 
 
-def expiry_date(expiry_ident):
+def get_datetime_from_datestring(datestring: str):
     """
-    Translates an expiry date which could be "20150305" or "201505" into a datetime
+    Translates a date which could be "20150305" or "201505" into a datetime
 
 
-    :param expiry_ident: Expiry to be processed
-    :type days: str or datetime.datetime
+    :param datestring: Date to be processed
+    :type days: str
 
-    :returns: datetime.datetime or datetime.date
+    :returns: datetime.datetime
 
-    >>> expiry_date('201503')
+    >>> get_datetime_from_datestring('201503')
     datetime.datetime(2015, 3, 1, 0, 0)
 
-    >>> expiry_date('20150300')
+    >>> get_datetime_from_datestring('20150300')
     datetime.datetime(2015, 3, 1, 0, 0)
 
-    >>> expiry_date('20150305')
+    >>> get_datetime_from_datestring('20150305')
     datetime.datetime(2015, 3, 5, 0, 0)
 
-    >>> expiry_date(datetime.datetime(2015,5,1))
-    datetime.datetime(2015, 5, 1, 0, 0)
+    >>> get_datetime_from_datestring('2015031')
+    Exception: 2015031 needs to be a string with 6 or 8 digits
+    >>> get_datetime_from_datestring('2015013')
+    Exception: 2015013 needs to be a string with 6 or 8 digits
 
     """
 
-    if isinstance(expiry_ident, str):
-        # do string expiry calc
-        if len(expiry_ident) == 6:
-            expiry_date = datetime.datetime.strptime(expiry_ident, "%Y%m")
-        elif len(expiry_ident) == 8:
-            if expiry_ident[6:8] == "00":
-                expiry_ident = expiry_ident[:6] + "01"
+    # do string expiry calc
+    if len(datestring) == 6:
+        return_date = datetime.datetime.strptime(datestring, "%Y%m")
+    elif len(datestring) == 8:
+        if datestring[6:8] == "00":
+            datestring = datestring[:6] + "01"
 
-            expiry_date = datetime.datetime.strptime(expiry_ident, "%Y%m%d")
-        else:
-            raise Exception("")
-
-    elif isinstance(expiry_ident, datetime.datetime) or isinstance(
-        expiry_ident, datetime.date
-    ):
-        expiry_date = expiry_ident
-
+        return_date = datetime.datetime.strptime(datestring, "%Y%m%d")
     else:
         raise Exception(
-            "expiry_ident needs to be a string with 6 or 8 digits, a datetime, or a date;"
-            f" type={type(expiry_ident)}, value={expiry_ident}"
+            "%s needs to be a string with 6 or 8 digits" % datestring
         )
 
     # 'Natural' form is datetime
-    return expiry_date
+    return return_date
 
 
-def expiry_diff(carry_row, floor_date_diff=20):
+def fraction_of_year_between_price_and_carry_expiries(carry_row, floor_date_diff: int=1) -> float:
     """
     Given a pandas row containing CARRY_CONTRACT and PRICE_CONTRACT, both of
     which represent dates
 
-    Return the annualised difference between the dates
+    Return the difference between the dates as a fraction
+
+    Positive means PRICE BEFORE CARRY, negative means CARRY BEFORE PRICE
 
     :param carry_row: object with attributes CARRY_CONTRACT and PRICE_CONTRACT
     :type carry_row: pandas row, or something that quacks like it
 
     :param floor_date_diff: If date resolves to less than this, floor here (*default* 20)
-    :type carry_row: pandas row, or something that quacks like it
+    :type int
 
-    :returns: datetime.datetime or datetime.date
+    :returns: float
 
+    >>> import pandas as pd
+    >>> carry_df = pd.DataFrame(dict(PRICE_CONTRACT =["20200601", "20200601", "20200601"],\
+                                    CARRY_CONTRACT = ["20200303", "20200905", "20200603"]))
+    >>> fraction_of_year_between_price_and_carry_expiries(carry_df.iloc[0])
+    -0.2464065708418891
+    >>> fraction_of_year_between_price_and_carry_expiries(carry_df.iloc[1])
+    0.26283367556468173
+    >>> fraction_of_year_between_price_and_carry_expiries(carry_df.iloc[2], floor_date_diff= 50)
+    0.13689253935660506
 
     """
     if carry_row.PRICE_CONTRACT == "" or carry_row.CARRY_CONTRACT == "":
         return np.nan
-    ans = float(
-        (
-            expiry_date(carry_row.CARRY_CONTRACT)
-            - expiry_date(carry_row.PRICE_CONTRACT)
-        ).days
-    )
-    if abs(ans) < floor_date_diff:
-        ans = sign(ans) * floor_date_diff
-    ans = ans / CALENDAR_DAYS_IN_YEAR
+    period_between_expiries =                 get_datetime_from_datestring(carry_row.CARRY_CONTRACT) \
+                                              - get_datetime_from_datestring(carry_row.PRICE_CONTRACT)
 
-    return ans
+    days_between_expiries = period_between_expiries.days
+
+    if abs(days_between_expiries) < floor_date_diff:
+        days_between_expiries = sign(days_between_expiries) * floor_date_diff
+
+    ## Annualise, ensuring float output
+    fraction_of_year_between_expiries = float(days_between_expiries) / CALENDAR_DAYS_IN_YEAR
+
+    return fraction_of_year_between_expiries
 
 
 class fit_dates_object(object):
@@ -279,13 +299,13 @@ LONG_JUST_DATE_FORMAT = "%Y%m%d"
 CONVERSION_FACTOR = 10000
 
 
-def datetime_to_long(date_to_convert):
+def datetime_to_long(date_to_convert: datetime.datetime)-> int:
     as_str = date_to_convert.strftime(LONG_DATE_FORMAT)
     as_float = float(as_str)
     return int(as_float * CONVERSION_FACTOR)
 
 
-def long_to_datetime(int_to_convert):
+def long_to_datetime(int_to_convert:int) -> datetime.datetime:
     as_float = float(int_to_convert) / CONVERSION_FACTOR
     str_to_convert = "%.6f" % as_float
 
@@ -302,39 +322,35 @@ def long_to_datetime(int_to_convert):
     return as_datetime
 
 
-if __name__ == "__main__":
-    import doctest
-
-    doctest.testmod()
 
 NOTIONAL_CLOSING_TIME = dict(hours=23, minutes=0, seconds=0)
 NOTIONAL_CLOSING_TIME_AS_PD_OFFSET = pd.DateOffset(hours = NOTIONAL_CLOSING_TIME['hours'],
                                                    minutes = NOTIONAL_CLOSING_TIME['minutes'],
                                                    seconds = NOTIONAL_CLOSING_TIME['seconds'])
 
-def adjust_timestamp(
-    index_entry,
-    actual_close=NOTIONAL_CLOSING_TIME_AS_PD_OFFSET,
-    original_close=pd.DateOffset(hours=23, minutes=0, seconds=0),
-    time_offset=pd.DateOffset(hours=0),
+def adjust_timestamp_to_include_notional_close_and_time_offset(
+    timestamp: datetime.datetime,
+    actual_close: pd.DateOffset = NOTIONAL_CLOSING_TIME_AS_PD_OFFSET,
+    original_close: pd.DateOffset = pd.DateOffset(hours=23, minutes=0, seconds=0),
+    time_offset: pd.DateOffset = pd.DateOffset(hours=0),
 ):
-    if index_entry.hour == 0 and index_entry.minute == 0 and index_entry.second == 0:
-        new_index_entry = index_entry.date() + actual_close
-    elif time_matches(index_entry, original_close):
-        new_index_entry = index_entry.date() + actual_close
+    if timestamp.hour == 0 and timestamp.minute == 0 and timestamp.second == 0:
+        new_datetime = timestamp.date() + actual_close
+    elif time_matches(timestamp, original_close):
+        new_datetime = timestamp.date() + actual_close
     else:
-        new_index_entry = index_entry + time_offset
+        new_datetime = timestamp + time_offset
 
-    return new_index_entry
+    return new_datetime
 
 
-def strip_tz_info(timestamp_with_tz_info):
+def strip_timezone_fromdatetime(timestamp_with_tz_info):
     ts = timestamp_with_tz_info.timestamp()
     new_timestamp = datetime.datetime.fromtimestamp(ts)
     return new_timestamp
 
 
-def get_datetime_input(prompt, allow_default=True, allow_no_arg=False):
+def get_datetime_input(prompt:str, allow_default:bool=True, allow_no_arg:bool=False):
     invalid_input = True
     input_str = (
         prompt +
@@ -351,83 +367,107 @@ def get_datetime_input(prompt, allow_default=True, allow_no_arg=False):
             return None
         try:
             if len(ans) == 10:
-                ans = datetime.datetime.strptime(ans, "%Y-%m-%d")
+                return_datetime = datetime.datetime.strptime(ans, "%Y-%m-%d")
             elif len(ans) == 19:
-                ans = datetime.datetime.strptime(ans, "%Y-%m-%d %H:%M:%S")
+                return_datetime = datetime.datetime.strptime(ans, "%Y-%m-%d %H:%M:%S")
             else:
                 # problems formatting will also raise value error
                 raise ValueError
-            invalid_input = False
-            break
+            return return_datetime
 
         except ValueError:
             print("%s is not a valid datetime string" % ans)
             continue
 
-    return ans
 
 
-class tradingStartAndEnd(object):
+class tradingStartAndEndDateTimes(object):
     def __init__(self, hour_tuple):
         self._start_time = hour_tuple[0]
         self._end_time = hour_tuple[1]
 
-    def okay_to_trade_now(self):
+    @property
+    def start_time(self):
+        return self._start_time
+
+    @property
+    def end_time(self):
+        return self._end_time
+
+    def okay_to_trade_now(self) -> bool:
         datetime_now = datetime.datetime.now()
-        if datetime_now >= self._start_time and datetime_now <= self._end_time:
+        if datetime_now >= self.start_time and datetime_now <= self.end_time:
             return True
         else:
             return False
 
-    def less_than_one_hour_left(self):
+    def hours_left_before_market_close(self)->float:
+        if not self.okay_to_trade_now():
+            # market closed
+            return 0
+
         datetime_now = datetime.datetime.now()
-        time_left = self._end_time - datetime_now
-        if time_left.total_seconds() < SECONDS_PER_HOUR:
+        time_left = self.end_time - datetime_now
+        seconds_left = time_left.total_seconds()
+        hours_left = float(seconds_left) / SECONDS_PER_HOUR
+
+        return hours_left
+
+
+    def less_than_one_hour_left(self) -> bool:
+        hours_left = self.hours_left_before_market_close()
+        if hours_left<1.0:
             return True
         else:
             return False
 
-
-class manyTradingStartAndEnd(object):
+class manyTradingStartAndEndDateTimes(list):
     def __init__(self, list_of_trading_hours):
         """
 
         :param list_of_trading_hours: list of tuples, both datetime, first is start and second is end
         """
 
-        my_start_and_end = []
+        list_of_start_and_end_objects = []
         for hour_tuple in list_of_trading_hours:
-            this_period = tradingStartAndEnd(hour_tuple)
-            my_start_and_end.append(this_period)
+            this_period = tradingStartAndEndDateTimes(hour_tuple)
+            list_of_start_and_end_objects.append(this_period)
 
-        self._my_start_and_end = my_start_and_end
+        super().__init__(list_of_start_and_end_objects)
+
 
     def okay_to_trade_now(self):
-        for check_period in self._my_start_and_end:
+        for check_period in self:
             if check_period.okay_to_trade_now():
+                # okay to trade if it's okay to trade on some date
                 return True
         return False
 
     def less_than_one_hour_left(self):
-        for check_period in self._my_start_and_end:
+        for check_period in self:
             if check_period.okay_to_trade_now():
+                # market is open, but for how long?
                 if check_period.less_than_one_hour_left():
                     return True
                 else:
                     return False
+            else:
+                # move on to next period
+                continue
 
-        return None
+        # market closed, we treat that as 'less than one hour left'
+        return True
 
 
-short_date_string = "%m/%d %H:%M:%S"
-missing_string =    "     ???      "
+SHORT_DATE_PATTERN = "%m/%d %H:%M:%S"
+MISSING_STRING_PATTERN = "     ???      "
 
 
-def last_run_or_heartbeat_from_date_or_none(last_run_or_heartbeat):
+def last_run_or_heartbeat_from_date_or_none(last_run_or_heartbeat: datetime.datetime):
     if last_run_or_heartbeat is missing_data:
-        last_run_or_heartbeat = missing_string
+        last_run_or_heartbeat = MISSING_STRING_PATTERN
     else:
         last_run_or_heartbeat = last_run_or_heartbeat.strftime(
-            short_date_string)
+            SHORT_DATE_PATTERN)
 
     return last_run_or_heartbeat

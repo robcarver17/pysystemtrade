@@ -10,7 +10,7 @@ from sysobjects.spot_fx_prices import currencyValue
 
 from syscore.objects import missing_contract, arg_not_supplied, missing_order
 from syscore.genutils import list_of_ints_with_highest_common_factor_positive_first
-from syscore.dateutils import adjust_timestamp, strip_tz_info
+from syscore.dateutils import adjust_timestamp_to_include_notional_close_and_time_offset, strip_timezone_fromdatetime
 from syslogdiag.log import logtoscreen
 
 from sysbrokers.IB.ib_trading_hours import get_trading_hours
@@ -590,7 +590,7 @@ class ibClient(object):
         local_timestamp_ib = self.adjust_ib_time_to_local(timestamp_ib)
         timestamp = pd.to_datetime(local_timestamp_ib)
 
-        adjusted_ts = adjust_timestamp(timestamp)
+        adjusted_ts = adjust_timestamp_to_include_notional_close_and_time_offset(timestamp)
 
         return adjusted_ts
 
@@ -603,7 +603,7 @@ class ibClient(object):
         timestamp_ib_with_tz = self.add_tz_to_ib_time(timestamp_ib)
         local_timestamp_ib_with_tz = timestamp_ib_with_tz.astimezone(
             tz.tzlocal())
-        local_timestamp_ib = strip_tz_info(local_timestamp_ib_with_tz)
+        local_timestamp_ib = strip_timezone_fromdatetime(local_timestamp_ib_with_tz)
 
         return local_timestamp_ib
 
@@ -626,7 +626,7 @@ class ibClient(object):
     def get_broker_time_local_tz(self):
         ib_time = self.ib.reqCurrentTime()
         local_ib_time_with_tz = ib_time.astimezone(tz.tzlocal())
-        local_ib_time = strip_tz_info(local_ib_time_with_tz)
+        local_ib_time = strip_timezone_fromdatetime(local_ib_time_with_tz)
 
         return local_ib_time
 

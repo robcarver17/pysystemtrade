@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 
 from systems.rawdata import RawData
-from syscore.dateutils import expiry_diff
+from syscore.dateutils import fraction_of_year_between_price_and_carry_expiries
 from syscore.pdutils import uniquets
 from systems.system_cache import input, diagnostic, output
 from syscore.dateutils import ROOT_BDAYS_INYEAR, BUSINESS_DAYS_IN_YEAR
@@ -102,7 +102,8 @@ class FuturesRawData(RawData):
         dtype: float64
         """
         carrydata = self.get_instrument_raw_carry_data(instrument_code)
-        roll_diff = carrydata.apply(expiry_diff, 1)
+
+        roll_diff = carrydata.apply(fraction_of_year_between_price_and_carry_expiries, floor_date_diff = 1)
 
         roll_diff = uniquets(roll_diff)
 
