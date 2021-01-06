@@ -1,4 +1,4 @@
-from syscontrol.data_objects import controlProcess
+from sysobjects.production.process_control import controlProcess
 from sysdata.production.process_control_data import controlProcessData
 from syscore.objects import missing_data, arg_not_supplied
 
