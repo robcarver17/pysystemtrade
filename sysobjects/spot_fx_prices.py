@@ -3,7 +3,7 @@ from collections import namedtuple
 import pandas as pd
 
 from syscore.objects import data_error
-from syscore.pdutils import full_merge_of_existing_data, merge_newer_data
+from syscore.merge_data import merge_newer_data, full_merge_of_existing_data
 
 
 class fxPrices(pd.Series):

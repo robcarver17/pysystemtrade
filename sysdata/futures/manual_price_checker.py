@@ -1,7 +1,8 @@
 import pandas as pd
 
 from syscore.objects import arg_not_supplied
-from syscore.pdutils import merge_newer_data_no_checks, spike_check_merged_data
+from syscore.merge_data import merge_newer_data_no_checks, spike_check_merged_data
+
 
 def manual_price_checker(
     old_data_passed,
@@ -40,12 +41,10 @@ def manual_price_checker(
     data_iterating = True
     while data_iterating:
 
-        merge_status, first_date_in_new_data, merged_data = merge_newer_data_no_checks(
+        merged_data_with_status = merge_newer_data_no_checks(
             old_data, new_data)
         spike_present, first_spike = spike_check_merged_data(
-            merge_status,
-            first_date_in_new_data,
-            merged_data,
+            merged_data_with_status,
             column_to_check=column_to_check,
         )
 
@@ -97,7 +96,8 @@ def manual_price_checker(
     # and new data that may have shrunk to nothing
 
     # One last merge
-    _, _, merged_data = merge_newer_data_no_checks(old_data, new_data)
+    merged_data_with_status = merge_newer_data_no_checks(old_data, new_data)
+    merged_data = merged_data_with_status.merged_data
 
     old_data = merged_data[
         :original_last_date_of_old_data
@@ -184,11 +184,11 @@ def _get_new_value(
 def _adjust_old_and_new_data(old_data, new_data, position_of_spike_in_newdata):
     checked_new_data = new_data[: position_of_spike_in_newdata + 1]
     unchecked_new_data = new_data[position_of_spike_in_newdata + 1:]
-    _, _, merge_of_old_and_checked_new_data = merge_newer_data_no_checks(
+    merged_data_with_status = merge_newer_data_no_checks(
         old_data, checked_new_data
     )
 
-    old_data = merge_of_old_and_checked_new_data
+    old_data = merged_data_with_status.merged_data
     new_data = unchecked_new_data
 
     return old_data, new_data

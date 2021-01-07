@@ -1,6 +1,6 @@
 import pandas as pd
 
-from syscore.pdutils import merge_data_series_with_label_column
+from syscore.merge_data import merge_data_series_with_label_column
 
 ## CHECK IF ALL THESE ARE NEEDED...
 
