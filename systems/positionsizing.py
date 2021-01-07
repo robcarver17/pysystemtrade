@@ -102,7 +102,7 @@ class PositionSizing(SystemStage):
         else:
             price = system.data.daily_prices(instrument_code)
             return_vol = robust_vol_calc(price.diff())
-            daily_perc_vol = 100.0 * return_vol / price
+            daily_perc_vol = 100.0 * return_vol / abs(price)
 
         return daily_perc_vol
 

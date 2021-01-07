@@ -4,13 +4,6 @@ Do fun things with objects and classes
 from collections import namedtuple
 import importlib
 
-class Singleton(object):
-    _instance = None
-    def __new__(class_, *args, **kwargs):
-        if not isinstance(class_._instance, class_):
-            class_._instance = object.__new__(class_, *args, **kwargs)
-        return class_._instance
-
 class missingData(Exception):
     pass
 
@@ -224,12 +217,6 @@ def hasallattr(some_object, attrlist=[]):
 
     """
     return all([hasattr(some_object, attrname) for attrname in attrlist])
-
-
-if __name__ == "__main__":
-    import doctest
-
-    doctest.testmod()
 
 
 def get_class_name(class_object):

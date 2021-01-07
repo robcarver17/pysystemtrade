@@ -103,7 +103,7 @@ class FuturesRawData(RawData):
         """
         carrydata = self.get_instrument_raw_carry_data(instrument_code)
 
-        roll_diff = carrydata.apply(fraction_of_year_between_price_and_carry_expiries, floor_date_diff = 1)
+        roll_diff = carrydata.apply(fraction_of_year_between_price_and_carry_expiries, floor_date_diff = 1, axis=1)
 
         roll_diff = uniquets(roll_diff)
 

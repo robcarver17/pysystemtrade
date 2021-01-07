@@ -114,21 +114,6 @@ def must_have_item(slice_data):
     return some_data_flags
 
 
-def pd_readcsv_frompackage(filename):
-    """
-    Run pd_readcsv on a file in python
-
-    :param args: List showing location in project directory of file eg systems,
-      provided, tests.csv
-    :type args: str
-
-    :returns: pd.DataFrame
-
-    """
-
-    full_filename = get_filename_for_package(filename)
-    return pd_readcsv(full_filename)
-
 
 def pd_readcsv(
     filename,
