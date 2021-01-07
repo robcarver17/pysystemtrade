@@ -1,5 +1,5 @@
 from sysdata.base_data import baseData
-from syscore.objects import data_error
+from syscore.merge_data import spike_in_data
 
 from sysobjects.contracts import futuresContract, listOfFuturesContracts
 from sysobjects.contract_dates_and_expiries import listOfContractDateStr
@@ -203,10 +203,10 @@ class futuresContractPriceData(baseData):
             new_futures_per_contract_prices, check_for_spike=check_for_spike
         )
 
-        if merged_prices is data_error:
+        if merged_prices is spike_in_data:
             new_log.msg(
                 "Price has moved too much - will need to manually check - no price updated done")
-            return data_error
+            return spike_in_data
 
         rows_added = len(merged_prices) - len(old_prices)
 

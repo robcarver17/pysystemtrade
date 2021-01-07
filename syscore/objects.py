@@ -48,7 +48,6 @@ no_parent = _named_object("no parent")
 rolling_cant_trade = _named_object("rolling can't trade")
 ROLL_PSEUDO_STRATEGY = "_ROLL_PSEUDO_STRATEGY"
 
-data_error = _named_object("data error")
 not_updated = _named_object("not updated")
 
 class status(_named_object):

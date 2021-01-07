@@ -5,7 +5,7 @@ import pandas as pd
 import datetime
 
 from syscore.dateutils import SECONDS_PER_DAY
-from syscore.objects import arg_not_supplied, data_error, _named_object
+from syscore.objects import arg_not_supplied, _named_object
 from sysdata.private_config import get_private_then_default_key_value
 
 class mergeStatus(object):
@@ -20,6 +20,7 @@ status_new_data = mergeStatus("Only_New_data")
 status_merged_data = mergeStatus("Merged_data")
 
 no_spike = object()
+spike_in_data = object()
 
 class mergingDataWithStatus(object):
     def __init__(self, status: mergeStatus,
@@ -91,7 +92,7 @@ def merge_newer_data(
             column_to_check=column_to_check,
         )
         if merged_data_with_status.spike_present:
-            return data_error
+            return spike_in_data
 
     merged_data = merged_data_with_status.merged_data
 

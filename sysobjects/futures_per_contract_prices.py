@@ -1,6 +1,7 @@
 import pandas as pd
 import datetime
-from syscore.objects import data_error
+
+from syscore.merge_data import spike_in_data
 from syscore.pdutils import sumup_business_days_over_pd_series_without_double_counting_of_closing_data
 from syscore.merge_data import merge_newer_data, full_merge_of_existing_data
 
@@ -129,8 +130,8 @@ class futuresContractPrices(pd.DataFrame):
             column_to_check=FINAL_COLUMN,
         )
 
-        if merged_futures_prices is data_error:
-            return data_error
+        if merged_futures_prices is spike_in_data:
+            return spike_in_data
 
         merged_futures_prices = futuresContractPrices(merged_futures_prices)
 
