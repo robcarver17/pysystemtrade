@@ -39,6 +39,7 @@ def manual_price_checker(
 
     # Iterate:
     data_iterating = True
+
     while data_iterating:
 
         merged_data_with_status = merge_newer_data_no_checks(

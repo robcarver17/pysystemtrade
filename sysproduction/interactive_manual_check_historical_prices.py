@@ -85,6 +85,7 @@ def update_historical_prices_with_checks_for_instrument_and_contract(
     :return: None
     """
     diag_prices = diagPrices(data)
+
     intraday_frequency = diag_prices.get_intraday_frequency_for_historical_download()
     daily_frequency = DAILY_PRICE_FREQ
 
@@ -98,7 +99,7 @@ def update_historical_prices_with_checks_for_instrument_and_contract(
 
 
 def get_and_check_prices_for_frequency(
-        data: dataBlob, contract_object: futuresContract, frequency="D"):
+        data: dataBlob, contract_object: futuresContract, frequency=DAILY_PRICE_FREQ):
 
     broker_data = dataBroker(data)
     price_data = diagPrices(data)

@@ -197,6 +197,10 @@ class futuresContractPriceData(baseData):
         """
         new_log = contract_object.log(self.log)
 
+        if len(new_futures_per_contract_prices) == 0:
+            new_log.msg("No new data")
+            return 0
+
         old_prices = self.get_prices_for_contract_object(
             contract_object)
         merged_prices = old_prices.add_rows_to_existing_data(
@@ -210,7 +214,11 @@ class futuresContractPriceData(baseData):
 
         rows_added = len(merged_prices) - len(old_prices)
 
-        if rows_added == 0:
+        if rows_added<0:
+            new_log.critical("Can't remove prices something gone wrong!")
+            return 0
+
+        elif rows_added == 0:
             if len(old_prices) == 0:
                 new_log.msg("No existing or additional data")
                 return 0
