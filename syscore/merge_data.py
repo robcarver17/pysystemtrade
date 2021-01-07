@@ -48,6 +48,20 @@ class mergingDataWithStatus(object):
     def only_new_data(mergingDataWithStatus, new_data):
         return mergingDataWithStatus(status_new_data, None, new_data)
 
+    @property
+    def spike_present(self):
+        spike_present = getattr(self, "_spike_present", False)
+
+        return spike_present
+
+    @property
+    def date_of_spike(self):
+        spike_date = getattr(self, "_spike_date", None)
+        return spike_date
+
+    def flag_as_spike_present(self, spike_date):
+        self._spike_date = spike_date
+        self._spike_present = True
 
 def merge_newer_data(
     old_data, new_data,
@@ -70,11 +84,11 @@ def merge_newer_data(
 
     # check for spike
     if check_for_spike:
-        spike_present, _ = spike_check_merged_data(
+        merged_data_with_status = spike_check_merged_data(
            merged_data_with_status,
             column_to_check=column_to_check,
         )
-        if spike_present:
+        if merged_data_with_status.spike_present:
             return data_error
 
     merged_data = merged_data_with_status.merged_data
@@ -125,7 +139,7 @@ def _merge_newer_data_no_checks_if_both_old_and_new(old_data, new_data)-> mergin
 
 def spike_check_merged_data(
         merged_data_with_status: mergingDataWithStatus,
-        column_to_check=arg_not_supplied):
+        column_to_check=arg_not_supplied) -> mergingDataWithStatus:
 
     merge_status = merged_data_with_status.status
     merged_data = merged_data_with_status.merged_data
@@ -133,7 +147,7 @@ def spike_check_merged_data(
 
     if merge_status is status_old_data:
         # No checking
-        return False, None
+        return merged_data_with_status
 
     if merge_status is status_new_data:
         # check everything
@@ -143,7 +157,10 @@ def spike_check_merged_data(
         merged_data, first_date_in_new_data, column_to_check=column_to_check
     )
 
-    return spike_present, spike_date
+    if spike_present:
+        merged_data_with_status.flag_as_spike_present(spike_date)
+
+    return merged_data_with_status
 
 
 def _check_for_spike_in_data(

@@ -43,15 +43,19 @@ def manual_price_checker(
 
         merged_data_with_status = merge_newer_data_no_checks(
             old_data, new_data)
-        spike_present, first_spike = spike_check_merged_data(
+        merged_data_with_status = spike_check_merged_data(
             merged_data_with_status,
             column_to_check=column_to_check,
         )
+        spike_present = merged_data_with_status.spike_present
 
         if not spike_present:
             # No issues, we can go home
             data_iterating = False
             break
+
+        first_spike = merged_data_with_status.date_of_spike
+        merged_data = merged_data_with_status.merged_data
 
         position_of_spike_in_newdata = list(new_data.index).index(first_spike)
         position_of_spike_in_mergedata = list(
