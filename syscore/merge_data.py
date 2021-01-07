@@ -19,6 +19,7 @@ status_old_data = mergeStatus("Only_Old_data")
 status_new_data = mergeStatus("Only_New_data")
 status_merged_data = mergeStatus("Merged_data")
 
+no_spike = object()
 
 class mergingDataWithStatus(object):
     def __init__(self, status: mergeStatus,
@@ -49,19 +50,20 @@ class mergingDataWithStatus(object):
         return mergingDataWithStatus(status_new_data, None, new_data)
 
     @property
-    def spike_present(self):
-        spike_present = getattr(self, "_spike_present", False)
-
-        return spike_present
+    def spike_present(self) -> bool:
+        spike_date = self.date_of_spike
+        if spike_date is no_spike:
+            return False
+        else:
+            return True
 
     @property
     def date_of_spike(self):
-        spike_date = getattr(self, "_spike_date", None)
+        spike_date = getattr(self, "_spike_date", no_spike)
         return spike_date
 
-    def flag_as_spike_present(self, spike_date):
+    def add_spike_date(self, spike_date: datetime.datetime):
         self._spike_date = spike_date
-        self._spike_present = True
 
 def merge_newer_data(
     old_data, new_data,
@@ -143,40 +145,25 @@ def spike_check_merged_data(
 
     merge_status = merged_data_with_status.status
     merged_data = merged_data_with_status.merged_data
-    first_date_in_new_data = merged_data_with_status.first_date
 
     if merge_status is status_old_data:
-        # No checking
+        # No checking, just old data
         return merged_data_with_status
 
     if merge_status is status_new_data:
-        # check everything
+        # check everything as there is no old data
         first_date_in_new_data = None
+    else:
+        first_date_in_new_data = merged_data_with_status.first_date
 
-    spike_present, spike_date = _check_for_spike_in_data(
+    spike_date = _first_spike_in_data(
         merged_data, first_date_in_new_data, column_to_check=column_to_check
     )
 
-    if spike_present:
-        merged_data_with_status.flag_as_spike_present(spike_date)
+    merged_data_with_status.add_spike_date(spike_date)
 
     return merged_data_with_status
 
-
-def _check_for_spike_in_data(
-    merged_data, first_date_in_new_data=None, column_to_check=arg_not_supplied
-):
-    # Returns tuple bool, logical date of spike (or None)
-    first_spike = _first_spike_in_data(
-        merged_data, first_date_in_new_data, column_to_check=column_to_check
-    )
-
-    if first_spike is None:
-        spike_exists = False
-    else:
-        spike_exists = True
-
-    return spike_exists, first_spike
 
 
 def _first_spike_in_data(
@@ -188,7 +175,15 @@ def _first_spike_in_data(
     :param merged_data:
     :return: date if spike, else None
     """
-    max_spike = get_private_then_default_key_value("max_price_spike")
+    data_to_check = _get_data_to_check(merged_data, column_to_check=column_to_check)
+    change_in_avg_units = _calculate_change_in_avg_units(data_to_check)
+    change_in_avg_units_to_check = _get_change_in_avg_units_to_check(change_in_avg_units, first_date_in_new_data = first_date_in_new_data)
+
+    first_spike = _check_for_spikes_in_change_in_avg_units(change_in_avg_units_to_check)
+
+    return first_spike
+
+def _get_data_to_check(merged_data, column_to_check = arg_not_supplied):
     col_list = getattr(merged_data, "columns", None)
     if col_list is None:
         # already a series
@@ -198,30 +193,25 @@ def _first_spike_in_data(
             column_to_check = col_list[0]
         data_to_check = merged_data[column_to_check]
 
+    return data_to_check
+
+def _calculate_change_in_avg_units(data_to_check: pd.Series) -> pd.Series:
+
     # Calculate the average change per day
     change_pd = average_change_per_day(data_to_check)
 
     # absolute is what matters
     abs_change_pd = change_pd.abs()
+
     # hard to know what span to use here as could be daily, intraday or a
     # mixture
     avg_abs_change = abs_change_pd.ewm(span=500).mean()
 
     change_in_avg_units = abs_change_pd / avg_abs_change
 
-    if first_date_in_new_data is None:
-        # No merged data so we check it all
-        data_to_check = change_in_avg_units
-    else:
-        data_to_check = change_in_avg_units[first_date_in_new_data:]
+    return change_in_avg_units
 
-    if any(data_to_check > max_spike):
-        return data_to_check.index[data_to_check > max_spike][0]
-    else:
-        return None
-
-
-def average_change_per_day(data_to_check):
+def average_change_per_day(data_to_check: pd.Series) -> pd.Series:
     data_diff = data_to_check.diff()[1:]
     index_diff = data_to_check.index[1:] - data_to_check.index[:-1]
     index_diff_days = [
@@ -237,6 +227,26 @@ def average_change_per_day(data_to_check):
 
     return change_pd
 
+
+def _get_change_in_avg_units_to_check(change_in_avg_units: pd.Series, first_date_in_new_data = None):
+    if first_date_in_new_data is None:
+        # No merged data so we check it all
+        change_in_avg_units_to_check = change_in_avg_units
+    else:
+        # just check more recent data
+        change_in_avg_units_to_check = change_in_avg_units[first_date_in_new_data:]
+
+    return change_in_avg_units_to_check
+
+def _check_for_spikes_in_change_in_avg_units(change_in_avg_units_to_check: pd.Series):
+    max_spike = get_private_then_default_key_value("max_price_spike")
+
+    if any(change_in_avg_units_to_check > max_spike):
+        first_spike=change_in_avg_units_to_check.index[change_in_avg_units_to_check > max_spike][0]
+    else:
+        first_spike = no_spike
+
+    return first_spike
 
 def full_merge_of_existing_data(old_data, new_data):
     """
