@@ -16,7 +16,7 @@ from sysdata.mongodb.mongo_optimal_position import mongoOptimalPositionData
 from sysdata.data_blob import dataBlob
 from sysdata.production.historic_positions import listOfInstrumentStrategyPositions
 
-from sysobjects.production.strategy import instrumentStrategy, listOfInstrumentStrategies
+from sysobjects.production.tradeable_object import listOfInstrumentStrategies, instrumentStrategy
 from sysobjects.production.optimal_positions import simpleOptimalPosition
 from sysobjects.production.roll_state import RollState, is_forced_roll_state, is_type_of_active_rolling_roll_state
 from sysobjects.contracts import futuresContract
@@ -335,13 +335,13 @@ class updatePositions(object):
         :return:
         """
 
-        # FIXME WOULD BE NICE IF COULD GET DIRECTLY FROM ORDER
+        # FIXME WOULD BE NICE IF COULD GET DIRECTLY FROM ORDER NOT REQUIRE TRADE_DONE
         strategy_name = instrument_order.strategy_name
         instrument_code = instrument_order.instrument_code
         instrument_strategy = instrumentStrategy(strategy_name=strategy_name, instrument_code=instrument_code)
 
         current_position = self.diag_positions.get_current_position_for_instrument_strategy(instrument_strategy)
-        trade_done = new_fill.as_int()
+        trade_done = new_fill.as_single_trade_qty_or_error()
         if trade_done is missing_order:
             self.log.critical("Instrument orders can't be spread orders!")
             return failure

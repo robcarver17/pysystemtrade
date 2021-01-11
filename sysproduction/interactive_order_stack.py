@@ -13,7 +13,6 @@ from syscore.genutils import (
     run_interactive_menu,
     print_menu_of_values_and_get_response
 )
-from syscore.pdutils import set_pd_print_options
 
 from sysdata.data_blob import dataBlob
 from sysproduction.data.positions import diagPositions, dataOptimalPositions
@@ -27,9 +26,9 @@ from sysproduction.data.prices import get_valid_instrument_code_from_user
 
 from sysexecution.stack_handler.stack_handler import stackHandler
 from sysexecution.stack_handler.balance_trades import stackHandlerCreateBalanceTrades
-from sysexecution.broker_orders import brokerOrder
-from sysexecution.contract_orders import contractOrder
-from sysexecution.instrument_orders import instrumentOrder, possible_order_types
+from sysexecution.orders.broker_orders import brokerOrder
+from sysexecution.orders.contract_orders import contractOrder
+from sysexecution.orders.instrument_orders import instrumentOrder, possible_order_types
 from sysexecution.algos.allocate_algo_to_order import list_of_algos
 
 

@@ -1,12 +1,11 @@
 from syscore.objects import missing_order, ROLL_PSEUDO_STRATEGY
 
-from sysexecution.contract_orders import contractOrder
-from sysexecution.instrument_orders import instrumentOrder
+from sysexecution.orders.contract_orders import contractOrder
+from sysexecution.orders.instrument_orders import instrumentOrder
 from sysexecution.algos.allocate_algo_to_order import (
     allocate_algo_to_list_of_contract_orders,
 )
 
-from sysobjects.production.roll_state import RollState
 from sysproduction.data.positions import diagPositions
 from sysproduction.data.contracts import diagContracts
 from sysproduction.data.prices import diagPrices

@@ -4,15 +4,12 @@ from syscore.objects import (
     success,
     failure,
     locked_order,
-    duplicate_order,
     no_order_id,
     no_children,
-    no_parent,
-    order_is_in_status_finished,
-    zero_order,
 )
 
 from syslogdiag.log import logtoscreen
+from sysexecution.orders.list_of_orders import listOfOrders
 
 
 class orderStackData(object):
@@ -157,12 +154,12 @@ class orderStackData(object):
 
         return order
 
-    def get_list_of_orders_from_order_id_list(self, list_of_order_ids):
+    def get_list_of_orders_from_order_id_list(self, list_of_order_ids) -> listOfOrders:
         order_list = []
         for order_id in list_of_order_ids:
             order = self.get_order_with_id_from_stack(order_id)
             order_list.append(order)
-        return order_list
+        return listOfOrders(order_list)
 
     def get_list_of_order_ids(self, exclude_inactive_orders=True):
         order_ids = self._get_list_of_all_order_ids()
@@ -260,7 +257,7 @@ class orderStackData(object):
             return missing_order
 
         new_order = copy(existing_order)
-        new_order.remove_children()
+        new_order.remove_all_children()
 
         result = self._change_order_on_stack(order_id, new_order)
 

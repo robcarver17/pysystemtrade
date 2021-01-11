@@ -1,6 +1,7 @@
 import pandas as pd
 
-from sysobjects.production.positions import instrumentStrategyPosition, instrumentStrategy, listOfInstrumentStrategyPositions
+from sysobjects.production.positions import instrumentStrategyPosition, listOfInstrumentStrategyPositions
+from sysobjects.production.tradeable_object import instrumentStrategy
 from sysobjects.production.timed_storage import timedEntry
 
 

@@ -8,8 +8,10 @@ from sysdata.production.historic_orders import (
     strategyHistoricOrdersData,
     contractHistoricOrdersData,
 )
-from sysexecution.contract_orders import contractTradeableObject
-from sysexecution.instrument_orders import instrumentTradeableObject
+
+#FIXME
+from sysobjects.production.tradeable_object import instrumentStrategy as instrumentTradeableObject, \
+    futuresContractStrategy
 
 ORDER_ID_STORE_KEY = "_ORDER_ID_STORE_KEY"
 
@@ -152,7 +154,7 @@ class mongoContractHistoricOrdersData(
         instrument_code = contract_object.instrument_code
         contract_id = contract_object.date_str
 
-        tradeable_object = contractTradeableObject(
+        tradeable_object = futuresContractStrategy(
             strategy_name, instrument_code, contract_id
         )
         object_key = tradeable_object.key

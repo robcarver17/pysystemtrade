@@ -12,8 +12,6 @@ from syscore.objects import (
     no_children,
 )
 
-from sysexecution.base_orders import listOfFillPrice, listOfFillDatetime
-
 from sysproduction.data.orders import dataOrders
 from sysdata.data_blob import dataBlob
 from sysproduction.data.controls import dataTradeLimits
@@ -276,23 +274,13 @@ class stackHandlerCore(object):
 
         # We apply: total quantity, average price, highest datetime
 
-        list_of_filled_qty = [order.fill for order in broker_order_list]
-
-        zero_fills = [fill.equals_zero() for fill in list_of_filled_qty]
-        if all(zero_fills):
+        if broker_order_list.all_zero_fills():
             # nothing to do here
             return None
 
-        list_of_filled_price = listOfFillPrice(
-            [order.filled_price for order in broker_order_list]
-        )
-        list_of_filled_datetime = listOfFillDatetime(
-            [order.fill_datetime for order in broker_order_list]
-        )
-
-        final_fill_datetime = list_of_filled_datetime.final_fill_datetime()
-        total_filled_qty = sum(list_of_filled_qty)
-        average_fill_price = list_of_filled_price.average_fill_price()
+        final_fill_datetime = broker_order_list.final_fill_datetime()
+        total_filled_qty = broker_order_list.total_filled_qty()
+        average_fill_price = broker_order_list.average_fill_price()
 
         result = self.contract_stack.change_fill_quantity_for_order(
             contract_order.order_id,

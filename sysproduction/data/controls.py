@@ -9,8 +9,12 @@ from sysdata.mongodb.mongo_override import mongoOverrideData
 from sysdata.mongodb.mongo_IB_client_id import mongoIbBrokerClientIdData
 
 from sysdata.data_blob import dataBlob
+
+from sysexecution.trade_qty import tradeQuantity
+
 from sysproduction.data.positions import diagPositions
-from sysobjects.production.strategy import instrumentStrategy, listOfInstrumentStrategies
+from sysobjects.production.tradeable_object import listOfInstrumentStrategies, instrumentStrategy
+
 
 class dataBrokerClientIDs(object):
     def __init__(self, data=arg_not_supplied):
@@ -226,7 +230,7 @@ class dataPositionLimits:
 
             strategy_name = instrument_trade.strategy_name
             instrument_code = instrument_trade.instrument_code
-            proposed_trade = instrument_trade.trade.as_int()
+            proposed_trade = instrument_trade.as_single_trade_qty_or_error()
 
             ## want to CUT DOWN rather than bool possible trades
             ## FIXME:
@@ -248,7 +252,9 @@ class dataPositionLimits:
                              min([abs(max_trade_ok_against_instrument),
                             abs(max_trade_ok_against_instrument_strategy)])
 
-            instrument_trade = instrument_trade.replace_trade_only_use_for_unsubmitted_trades(mini_max_trade)
+            mini_max_trade = tradeQuantity(mini_max_trade)
+
+            instrument_trade = instrument_trade.replace_required_trade_size_only_use_for_unsubmitted_trades(mini_max_trade)
 
             return instrument_trade
 

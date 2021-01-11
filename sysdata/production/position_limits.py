@@ -12,7 +12,7 @@ from sysdata.base_data import baseData
 from syslogdiag.log import logtoscreen
 
 from sysobjects.production.position_limits import positionLimitForInstrument, positionLimitForStrategyInstrument
-from sysobjects.production.strategy import instrumentStrategy, listOfInstrumentStrategies
+from sysobjects.production.tradeable_object import listOfInstrumentStrategies, instrumentStrategy
 
 
 class positionLimitData(baseData):

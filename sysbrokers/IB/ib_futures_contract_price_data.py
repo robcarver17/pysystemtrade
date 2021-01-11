@@ -13,7 +13,7 @@ from sysobjects.futures_per_contract_prices import futuresContractPrices
 from sysobjects.contracts import futuresContract, listOfFuturesContracts
 
 from sysexecution.tick_data import tickerObject
-from sysexecution.contract_orders import contractOrder
+from sysexecution.orders.contract_orders import contractOrder
 
 from syslogdiag.log import logtoscreen
 

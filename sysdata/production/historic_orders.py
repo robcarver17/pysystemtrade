@@ -22,7 +22,7 @@ from syscore.objects import arg_not_supplied, missing_order, success, failure
 from sysdata.base_data import baseData
 from sysobjects.contracts import futuresContract
 
-from sysexecution.contract_orders import contractTradeableObject
+from sysobjects.production.tradeable_object import futuresContractStrategy
 
 from syslogdiag.log import logtoscreen
 
@@ -209,7 +209,7 @@ class contractHistoricOrdersData(genericOrdersData):
         all_keys = self.get_list_of_all_keys()
 
         def _get_strategy_from_key(key):
-            contract_tradeable_object = contractTradeableObject.from_key(key)
+            contract_tradeable_object = futuresContractStrategy.from_key(key)
             return contract_tradeable_object.strategy_name
 
         all_strategy_names = [_get_strategy_from_key(key) for key in all_keys]

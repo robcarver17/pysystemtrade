@@ -10,6 +10,7 @@ from sysdata.mongodb.mongo_historic_orders import mongoStrategyHistoricOrdersDat
 
 from sysdata.data_blob import dataBlob
 
+from sysexecution.price_quotes import quotePrice
 
 class dataOrders(object):
     def __init__(self, data=arg_not_supplied):
@@ -124,9 +125,10 @@ class dataOrders(object):
             calc_side = None
             calc_fill = None
         else:
-            calc_mid = order.trade.get_spread_price(order.mid_price)
-            calc_side = order.trade.get_spread_price(order.side_price)
-            calc_fill = order.trade.get_spread_price(order.filled_price)
+            # FIXME IDEALLY THESE WOULD BE QUOTE PRICE ANYWAY
+            calc_mid = order.trade.get_spread_price(quotePrice(order.mid_price))
+            calc_side = order.trade.get_spread_price(quotePrice(order.side_price))
+            calc_fill = order.trade.get_spread_price(quotePrice(order.filled_price))
 
         order.calculated_filled_price = calc_fill
         order.calculated_mid_price = calc_mid

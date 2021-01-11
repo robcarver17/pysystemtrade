@@ -1,6 +1,6 @@
 from syscore.genutils import sign
 from sysobjects.instruments import futuresInstrument
-from sysobjects.production.strategy import instrumentStrategy
+from sysobjects.production.tradeable_object import instrumentStrategy
 
 NO_LIMIT = "No limit"
 

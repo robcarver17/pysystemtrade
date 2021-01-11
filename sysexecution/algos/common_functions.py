@@ -19,7 +19,7 @@ def post_trade_processing(data, broker_order_with_controls):
 
     # This order will now hopefully contain all fills so we set trades==fills
     # so the order is treated as completed
-    broker_order_with_controls.order.set_trade_to_fill()
+    broker_order_with_controls.order.change_trade_qty_to_filled_qty()
 
     return broker_order_with_controls
 

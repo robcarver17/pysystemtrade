@@ -1,24 +1,7 @@
 import numpy as np
 
 from syscore.objects import (
-    missing_order,
-    success,
     failure,
-    locked_order,
-    duplicate_order,
-    no_order_id,
-    no_children,
-    no_parent,
-    missing_contract,
-    missing_data,
-    rolling_cant_trade,
-    ROLL_PSEUDO_STRATEGY,
-    missing_order,
-    order_is_in_status_reject_modification,
-    order_is_in_status_finished,
-    locked_order,
-    order_is_in_status_modified,
-    resolve_function,
 )
 
 from syscore.genutils import sign
@@ -34,7 +17,7 @@ from sysproduction.data.positions import diagPositions
 from sysproduction.data.prices import diagPrices
 from sysproduction.data.controls import dataLocks
 
-from sysexecution.contract_orders import contractOrder
+from sysexecution.orders.contract_orders import contractOrder
 from sysexecution.algos.allocate_algo_to_order import (
     allocate_algo_to_list_of_contract_orders,
 )
@@ -169,7 +152,7 @@ def get_required_contract_trade_for_instrument(data, instrument_order):
     """
     instrument_code = instrument_order.instrument_code
     log = instrument_order.log_with_attributes(data.log)
-    trade = instrument_order.trade.as_int()
+    trade = instrument_order.as_single_trade_qty_or_error()
     if trade is missing_order:
         log.critical("Instrument order can't be a spread order")
         return missing_contract

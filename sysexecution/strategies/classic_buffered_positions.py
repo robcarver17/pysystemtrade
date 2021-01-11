@@ -9,9 +9,7 @@ These are 'virtual' orders, because they are per instrument. We translate that t
 Desired virtual orders have to be labelled with the desired type: limit, market,best-execution
 """
 
-from syscore.objects import missing_order
-
-from sysexecution.instrument_orders import instrumentOrder
+from sysexecution.orders.instrument_orders import instrumentOrder
 from sysexecution.strategies.strategy_order_handling import orderGeneratorForStrategy
 
 from sysproduction.data.positions import dataOptimalPositions

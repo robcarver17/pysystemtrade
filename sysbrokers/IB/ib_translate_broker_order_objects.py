@@ -5,7 +5,7 @@ from dateutil.tz import tz
 
 from syscore.objects import missing_order, missing_data, arg_not_supplied
 from sysobjects.spot_fx_prices import currencyValue
-from sysexecution.broker_orders import brokerOrder
+from sysexecution.orders.broker_orders import brokerOrder
 from sysexecution.trade_qty import tradeQuantity
 
 

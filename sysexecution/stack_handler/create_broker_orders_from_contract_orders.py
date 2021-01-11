@@ -143,7 +143,7 @@ class stackHandlerCreateBrokerOrders(stackHandlerCore):
     def size_contract_order(self, original_contract_order):
         # We can deal with partially filled contract orders: that's how hard we
         # are!
-        remaining_contract_order = original_contract_order.order_with_remaining()
+        remaining_contract_order = original_contract_order.create_order_with_unfilled_qty()
 
         # Check the order doesn't breach trade limits
         contract_order_after_trade_limits = self.what_contract_trade_is_possible(
@@ -188,7 +188,7 @@ class stackHandlerCreateBrokerOrders(stackHandlerCore):
         if liquid_qty.equals_zero():
             return missing_order
 
-        contract_order = contract_order_after_trade_limits.replace_trade_only_use_for_unsubmitted_trades(
+        contract_order = contract_order_after_trade_limits.replace_required_trade_size_only_use_for_unsubmitted_trades(
             liquid_qty)
 
         return contract_order

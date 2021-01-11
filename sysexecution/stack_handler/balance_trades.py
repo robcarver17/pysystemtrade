@@ -1,8 +1,8 @@
 from syscore.objects import failure, success, missing_order
 from sysexecution.stack_handler.completed_orders import stackHandlerForCompletions
 from sysexecution.stack_handler.fills import stackHandlerForFills
-from sysexecution.instrument_orders import instrumentOrder
-from sysexecution.contract_orders import contractOrder
+from sysexecution.orders.instrument_orders import instrumentOrder
+from sysexecution.orders.contract_orders import contractOrder
 
 
 class stackHandlerCreateBalanceTrades(

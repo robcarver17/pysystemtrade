@@ -15,9 +15,10 @@ from syscore.objects import missing_data, arg_not_supplied, missing_order, missi
 
 from sysobjects.production.positions import contractPosition
 
-from sysexecution.base_orders import adjust_spread_order_single_benchmark
-from sysexecution.broker_orders import create_new_broker_order_from_contract_order
+from sysexecution.orders.base_orders import adjust_spread_order_single_benchmark
+from sysexecution.orders.broker_orders import create_new_broker_order_from_contract_order
 from sysexecution.tick_data import analyse_tick_data_frame
+from sysexecution.price_quotes import quotePrice
 
 from sysobjects.contracts import futuresContract
 
@@ -409,18 +410,18 @@ class dataBroker(object):
         if market_conditions is missing_data:
             return np.nan
 
-        mid_prices = [x.mid_price for x in market_conditions]
+        mid_prices = quotePrice([x.mid_price for x in market_conditions])
         net_mid_price = contract_order.trade.get_spread_price(mid_prices)
 
         return net_mid_price
 
-    def get_benchmark_prices_for_contract_order_by_leg(self, contract_order):
+    def get_benchmark_prices_for_contract_order_by_leg(self, contract_order)-> (quotePrice, quotePrice):
         market_conditions = self.get_market_conditions_for_contract_order_by_leg(
             contract_order)
         if market_conditions is missing_data:
             return missing_data
-        side_prices = [x.side_price for x in market_conditions]
-        mid_prices = [x.mid_price for x in market_conditions]
+        side_prices = quotePrice([x.side_price for x in market_conditions])
+        mid_prices = quotePrice([x.mid_price for x in market_conditions])
 
         return side_prices, mid_prices
 

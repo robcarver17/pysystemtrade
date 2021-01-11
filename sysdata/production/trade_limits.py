@@ -11,7 +11,8 @@ from sysdata.base_data import baseData
 from syslogdiag.log import logtoscreen
 from sysobjects.production.trade_limits import tradeLimit, listOfTradeLimits
 
-from sysobjects.production.strategy import instrumentStrategy
+from sysobjects.production.tradeable_object import instrumentStrategy
+
 
 @dataclass
 class instrumentStrategyKeyAndDays:

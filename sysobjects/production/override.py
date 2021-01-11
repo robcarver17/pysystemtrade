@@ -2,7 +2,8 @@ import numpy as np
 
 from syscore.genutils import sign
 from syscore.objects import _named_object
-from sysexecution.base_orders import Order
+from sysexecution.orders.base_orders import Order
+from sysexecution.trade_qty import tradeQuantity
 
 override_close = _named_object("Close")
 override_no_trading = _named_object("No trading")
@@ -161,8 +162,8 @@ def _apply_float_override(override_as_float: float,
 
     new_trade_value = override_new_position - original_position_no_override
 
-    proposed_trade.replace_trade_only_use_for_unsubmitted_trades(
-        new_trade_value)
+    proposed_trade.replace_required_trade_size_only_use_for_unsubmitted_trades(
+        tradeQuantity(new_trade_value))
 
     return proposed_trade
 
@@ -184,14 +185,14 @@ def _apply_reduce_only(
         # Reducing trade and sign not changing, we'll allow
         new_trade_value = proposed_trade_value
 
-    proposed_trade.replace_trade_only_use_for_unsubmitted_trades(
-        new_trade_value)
+    proposed_trade.replace_required_trade_size_only_use_for_unsubmitted_trades(
+        tradeQuantity(new_trade_value))
 
     return proposed_trade
 
 
 def _apply_no_trading(proposed_trade: Order):
-    new_trade = proposed_trade.replace_trade_only_use_for_unsubmitted_trades(
-        0)
+    new_trade = proposed_trade.replace_required_trade_size_only_use_for_unsubmitted_trades(
+        tradeQuantity(0))
 
     return new_trade

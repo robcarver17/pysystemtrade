@@ -16,7 +16,7 @@ from sysdata.production.timed_storage import (
 from sysobjects.production.optimal_positions import simpleOptimalPosition, bufferedOptimalPositions, \
     instrumentStrategyAndOptimalPosition, listOfOptimalPositionsAcrossInstrumentStrategies
 from sysobjects.production.timed_storage import listOfEntries
-from sysobjects.production.strategy import instrumentStrategy, listOfInstrumentStrategies
+from sysobjects.production.tradeable_object import listOfInstrumentStrategies, instrumentStrategy
 
 
 ## THIS HAS TO STAY HERE OR OLD DATA WILL BREAK - DO NOT MOVE

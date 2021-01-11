@@ -3,7 +3,8 @@ import datetime
 from syscore.genutils import sign
 from syscore.objects import arg_not_supplied
 
-from sysobjects.production.strategy import instrumentStrategy
+from sysobjects.production.tradeable_object import instrumentStrategy
+
 
 class tradeLimit(object):
     def __init__(
