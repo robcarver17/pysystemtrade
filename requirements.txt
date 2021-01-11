@@ -7,3 +7,4 @@ pymongo>=3.6.0
 arctic>=1.79.2
 ib-insync>=0.9.64
 psutil>=0.5.8
+dataclasses>=0.7
