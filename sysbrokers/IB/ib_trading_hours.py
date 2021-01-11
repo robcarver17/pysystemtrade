@@ -86,6 +86,7 @@ def get_time_difference(time_zone_id):
         "MET": -1,
         "EST": 5,
         "JST": -8,
+        "Japan": -8,
         "US/Central": 6,
         "": 0
     }
