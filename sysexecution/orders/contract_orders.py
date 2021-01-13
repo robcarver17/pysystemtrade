@@ -10,7 +10,7 @@ from sysexecution.orders.base_orders import (
 from sysexecution.trade_qty import tradeQuantity
 from sysexecution.fill_price import fillPrice
 from sysexecution.orders.list_of_orders import listOfOrders
-from sysobjects.production.tradeable_object import futuresContractStrategy
+from sysobjects.production.tradeable_object import futuresContractStrategy, instrumentStrategy
 from sysobjects.contract_dates_and_expiries import singleContractDate
 from syscore.genutils import none_to_object, object_to_none
 from syscore.objects import success
@@ -27,26 +27,28 @@ class contractOrder(Order):
     def __init__(
         self,
         *args,
-        fill: fillPrice=None,
-        locked: bool=False,
-        order_id: int=no_order_id,
-        parent: int=no_parent,
-        children: list=no_children,
-        active:bool =True,
-        filled_price: fillPrice=None,
-        fill_datetime: datetime.datetime=None,
+        fill: tradeQuantity = None,
+        filled_price: fillPrice = None,
+        fill_datetime: datetime.datetime = None,
+        locked=False,
+        order_id: int = no_order_id,
+        parent: int = no_parent,
+        children: list = no_children,
+        active: bool = True,
         order_type: contractOrderType = contractOrderType("best"),
 
         limit_price: float =None,
         reference_price: float=None,
-        algo_to_use: str="",
         generated_datetime: datetime.datetime=None,
+
         manual_fill:bool =False,
         manual_trade: bool=False,
         roll_order: bool=False,
         inter_spread_order: bool=False,
-        calendar_spread_order: bool=None,
+
+        algo_to_use: str="",
         reference_of_controlling_algo: str=None,
+
         split_order: bool=False,
         sibling_id_for_split_order: int=None,
         **kwargs
@@ -86,7 +88,6 @@ class contractOrder(Order):
         """
 
         tradeable_object, trade = resolve_contract_order_args(args)
-        self._tradeable_object = tradeable_object
 
         if generated_datetime is None:
             generated_datetime = datetime.datetime.now()
@@ -107,24 +108,12 @@ class contractOrder(Order):
                                                 resolved_filled_price,
                                                 tradeable_object)
 
-        if len(resolved_trade.qty) == 1:
+        if len(resolved_trade) == 1:
             calendar_spread_order = False
         else:
             calendar_spread_order = True
 
-        self._trade = resolved_trade
-        self._fill = resolved_fill
-        self._filled_price = resolved_filled_price
-
-        self._fill_datetime = fill_datetime
-        self._locked = locked
-        self._order_id = order_id
-        self._parent = parent
-        self._children = children
-        self._active = active
-        self._order_type = order_type
-
-        self._order_info = dict(
+        order_info = dict(
             algo_to_use=algo_to_use,
             reference_price=reference_price,
             limit_price=limit_price,
@@ -138,6 +127,20 @@ class contractOrder(Order):
             split_order=split_order,
             sibling_id_for_split_order=sibling_id_for_split_order
         )
+
+        super().__init__(tradeable_object,
+                        trade= resolved_trade,
+                        fill = resolved_fill,
+                        filled_price= resolved_filled_price,
+                        fill_datetime = fill_datetime,
+                        locked = locked,
+                        order_id=order_id,
+                        parent = parent,
+                        children= children,
+                        active=active,
+                        order_type=order_type,
+                        **order_info
+                        )
 
 
 
@@ -190,6 +193,10 @@ class contractOrder(Order):
     @property
     def contract_date_key(self):
         return self.tradeable_object.contract_date_key
+
+    @property
+    def instrument_strategy(self) -> instrumentStrategy:
+        return self.tradeable_object.instrument_strategy
 
     @property
     def algo_to_use(self):

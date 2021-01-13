@@ -127,7 +127,7 @@ def manage_trade(data, placed_broker_order_with_controls):
 
     while trade_open:
         if placed_broker_order_with_controls.message_required(
-            messaging_frequency=MESSAGING_FREQUENCY
+            messaging_frequency_seconds=MESSAGING_FREQUENCY
         ):
             file_log_report(log, aggressive, placed_broker_order_with_controls)
 

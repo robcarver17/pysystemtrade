@@ -14,6 +14,7 @@ from sysobjects.production.trade_limits import tradeLimit, listOfTradeLimits
 from sysobjects.production.tradeable_object import instrumentStrategy
 
 
+
 @dataclass
 class instrumentStrategyKeyAndDays:
     instrument_strategy_key: str
@@ -47,7 +48,7 @@ class tradeLimitData(baseData):
     def what_trade_is_possible(
             self,
             instrument_strategy: instrumentStrategy,
-            proposed_trade: int):
+            proposed_trade: int) -> int:
         combined_list = self._get_list_of_all_relevant_trade_limits(
             instrument_strategy
         )

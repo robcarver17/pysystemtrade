@@ -57,17 +57,21 @@ class mongoDataWithSingleKey(object):
 
         return name
 
+    @property
+    def collection(self):
+        return self._mongo.collection
+
     def get_list_of_keys(self)->list:
-        cursor = self._mongo.collection.find()
+        cursor = self.collection.find()
         key_name = self.key_name
         key_list = [db_entry[key_name] for db_entry in cursor]
 
         return key_list
 
 
-    def get_result_dict_for_key(self, key: str) ->dict:
+    def get_result_dict_for_key(self, key) ->dict:
         key_name = self.key_name
-        result_dict = self._mongo.collection.find_one(
+        result_dict = self.collection.find_one(
             {key_name:key}
         )
         if result_dict is None:
@@ -77,7 +81,7 @@ class mongoDataWithSingleKey(object):
 
         return result_dict
 
-    def get_result_dict_for_key_without_key_value(self, key: str) ->dict:
+    def get_result_dict_for_key_without_key_value(self, key) ->dict:
         key_name = self.key_name
         result_dict = self.get_result_dict_for_key(key)
         if result_dict is missing_data:
@@ -87,7 +91,14 @@ class mongoDataWithSingleKey(object):
 
         return result_dict
 
-    def key_is_in_data(self, key: str):
+    def get_list_of_result_dict_for_custom_dict(self, custom_dict: dict) -> list:
+        cursor = self._mongo.collection.find(custom_dict)
+        dict_list = [db_entry for db_entry in cursor]
+        _ = [dict_item.pop(MONGO_ID_KEY) for dict_item in dict_list]
+
+        return dict_list
+
+    def key_is_in_data(self, key):
         result = self.get_result_dict_for_key(key)
         if result is missing_data:
             return False
@@ -95,15 +106,15 @@ class mongoDataWithSingleKey(object):
             return True
 
     def delete_data_without_any_warning(
-            self, key: str):
+            self, key):
         key_name = self.key_name
 
         if not self.key_is_in_data(key):
             raise missingData("%s:%s not in data %s" % (key_name, key, self.name))
 
-        self._mongo.collection.remove({key_name: key})
+        self.collection.remove({key_name: key})
 
-    def add_data(self, key: str, data_dict: dict, allow_overwrite = False, clean_ints = True):
+    def add_data(self, key, data_dict: dict, allow_overwrite = False, clean_ints = True):
         if clean_ints:
             cleaned_data_dict = mongo_clean_ints(data_dict)
         else:
@@ -120,12 +131,14 @@ class mongoDataWithSingleKey(object):
     def _update_existing_data_with_cleaned_dict(self, key, cleaned_data_dict):
 
         key_name = self.key_name
-        self._mongo.collection.update_one({key_name:key}, {"$set":cleaned_data_dict})
+        self.collection.update_one({key_name:key}, {"$set":cleaned_data_dict})
 
     def _add_new_cleaned_dict(self, key, cleaned_data_dict):
         key_name = self.key_name
         cleaned_data_dict[key_name] = key
-        self._mongo.collection.insert_one(cleaned_data_dict)
+        self.collection.insert_one(cleaned_data_dict)
+
+
 
 class mongoDataWithMultipleKeys(object):
     """

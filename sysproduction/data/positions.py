@@ -16,6 +16,9 @@ from sysdata.mongodb.mongo_optimal_position import mongoOptimalPositionData
 from sysdata.data_blob import dataBlob
 from sysdata.production.historic_positions import listOfInstrumentStrategyPositions
 
+from sysexecution.trade_qty import tradeQuantity
+from sysexecution.orders.contract_orders import contractOrder
+
 from sysobjects.production.tradeable_object import listOfInstrumentStrategies, instrumentStrategy
 from sysobjects.production.optimal_positions import simpleOptimalPosition
 from sysobjects.production.roll_state import RollState, is_forced_roll_state, is_type_of_active_rolling_roll_state
@@ -366,20 +369,20 @@ class updatePositions(object):
         return success
 
     def update_contract_position_table_with_contract_order(
-        self, contract_order, fill_list
+        self, contract_order_before_fills: contractOrder,
+            fill_list: tradeQuantity
     ):
         """
         Alter the strategy position table according to contract order fill value
 
-        :param contract_order:
+        :param contract_order_before_fills:
         :return:
         """
 
-        instrument_code = contract_order.instrument_code
-        contract_id_list = contract_order.contract_id
+        instrument_code = contract_order_before_fills.instrument_code
+        contract_id_list = contract_order_before_fills.contract_date
 
-        # WE DON'T USE THE CONTRACT FILL DUE TO DATETIME MIX UPS
-        # time_date = contract_order.fill_datetime
+        # WE DON'T USE THE CONTRACT FILL DATE DELIBERATELY
         time_date = datetime.datetime.now()
 
         for contract_id, trade_done in zip(contract_id_list, fill_list):
@@ -390,9 +393,9 @@ class updatePositions(object):
                 "Updated position of %s/%s because of trade %s ID:%d with fills %s" %
                 (instrument_code,
                  contract_id,
-                 str(contract_order),
-                    contract_order.order_id,
-                    str(fill_list),
+                 str(contract_order_before_fills),
+                 contract_order_before_fills.order_id,
+                 str(fill_list),
                  ))
 
     def update_positions_for_individual_contract_leg(

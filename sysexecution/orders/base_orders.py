@@ -8,6 +8,9 @@ from sysexecution.trade_qty import tradeQuantity
 from sysexecution.price_quotes import quotePrice
 from sysobjects.production.tradeable_object import tradeableObject
 
+class overFilledOrder(Exception):
+    pass
+
 class orderType(object):
     def allowed_types(self):
         return ["market"]
@@ -30,7 +33,7 @@ class Order(object):
 
     def __init__(
         self,
-        object_name: str,
+        tradeable_object: tradeableObject,
         trade: tradeQuantity,
         fill: tradeQuantity=None,
         filled_price: fillPrice=None,
@@ -41,7 +44,7 @@ class Order(object):
         children: list =no_children,
         active:bool =True,
         order_type: orderType = orderType("market"),
-        **kwargs
+        **order_info
     ):
         """
 
@@ -57,7 +60,7 @@ class Order(object):
         :param active: bool, inactive orders have been filled or cancelled
         :param kwargs: other interesting arguments
         """
-        self._tradeable_object = tradeableObject(object_name)
+        self._tradeable_object = tradeable_object
 
         (
             resolved_trade,
@@ -78,7 +81,7 @@ class Order(object):
         self._children = children
         self._active = active
         self._order_type = order_type
-        self._order_info = kwargs
+        self._order_info = order_info
 
     def __repr__(self):
         terse_repr = self.terse_repr()
@@ -171,10 +174,12 @@ class Order(object):
                    filled_price: fillPrice,
                    fill_datetime: datetime.datetime=None):
         # Fill qty is cumulative, eg this is the new amount filled
-
-        assert self.trade.fill_less_than_or_equal_to_desired_trade(
-            fill_qty
-        ), "Can't fill order for more than trade quantity"
+        try:
+            assert self.trade.fill_less_than_or_equal_to_desired_trade(
+            fill_qty)
+        except:
+            raise overFilledOrder("Can't fill order with fill %s more than trade quantity %s "
+                                      % (str(fill_qty), str(self.trade)))
 
         self._fill = fill_qty
         self._filled_price = filled_price
@@ -214,18 +219,25 @@ class Order(object):
     def children(self, children):
         if isinstance(children, int):
             children = [children]
-        if self._children == no_children:
-            self._children = children
-        else:
+
+        if not self.no_children():
             raise Exception(
                 "Can't add children to order which already has them: use add another child"
             )
 
+        self._children = children
+
     def remove_all_children(self):
         self._children = no_children
 
+    def no_children(self):
+        return self.children is no_children
+
+    def add_a_list_of_children(self, list_of_new_children: list):
+        _ = [self.add_another_child(new_child) for new_child in list_of_new_children]
+
     def add_another_child(self, new_child: int):
-        if self.children is no_children:
+        if self.no_children():
             new_children = [new_child]
         else:
             new_children = self.children + [new_child]
@@ -276,8 +288,8 @@ class Order(object):
         self._active = False
 
     def zero_out(self):
-        zero_version = self.trade.zero_version()
-        self._fill = zero_version
+        zero_version_of_trades = self.trade.zero_version()
+        self._fill = zero_version_of_trades
         self.deactivate()
 
     def as_dict(self):
@@ -369,7 +381,7 @@ class Order(object):
         :return: log
         """
 
-        raise NotImplementedError
+        return log
 
 
 def adjust_spread_order_single_benchmark(order: Order, benchmark_list: quotePrice, actual_price: float) -> quotePrice:

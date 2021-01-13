@@ -7,11 +7,12 @@ from sysexecution.orders.base_orders import (
     no_children,
     no_parent,
     resolve_inputs_to_order, orderType)
+from sysexecution.orders.base_orders import Order
 from sysexecution.trade_qty import tradeQuantity
 from sysexecution.fill_price import fillPrice
 from sysexecution.price_quotes import quotePrice
 from sysexecution.orders.contract_orders import contractOrder, resolve_contract_order_args
-from sysobjects.production.tradeable_object import futuresContractStrategy
+from sysobjects.production.tradeable_object import futuresContractStrategy, instrumentStrategy
 from sysobjects.contract_dates_and_expiries import singleContractDate
 
 from syscore.genutils import none_to_object, object_to_none
@@ -22,7 +23,7 @@ class brokerOrderType(orderType):
     def allowed_types(self):
         return ['market', 'limit']
 
-class brokerOrder(contractOrder):
+class brokerOrder(Order):
     def __init__(
         self,
         *args,
@@ -37,23 +38,28 @@ class brokerOrder(contractOrder):
         order_type: brokerOrderType = brokerOrderType("market"),
 
         algo_used: str="",
+        algo_comment: str="",
+
         limit_price: float=None,
         submit_datetime: datetime.datetime=None,
         side_price: quotePrice=None,
         mid_price: quotePrice=None,
-        algo_comment: str="",
+
+        roll_order: bool = False,
+
         broker: str="",
         broker_account: str="",
         broker_clientid: str="",
+        broker_permid: str = "",
+        broker_tempid: str = "",
+        broker_objects=dict(),
+
         commission: float=0.0,
-        broker_permid: str="",
-        broker_tempid: str="",
         manual_fill: bool=False,
-        calendar_spread_order=None,
+
         split_order: bool=False,
         sibling_id_for_split_order=None,
-        roll_order: bool=False,
-        broker_objects=dict()
+        **kwargs_ignored
     ):
         """
 
@@ -96,31 +102,13 @@ class brokerOrder(contractOrder):
         """
 
         tradeable_object, trade = resolve_contract_order_args(args)
-        self._tradeable_object = tradeable_object
 
-        (
-            resolved_trade,
-            resolved_fill,
-            resolved_filled_price,
-        ) = resolve_inputs_to_order(trade, fill, filled_price)
-
-        if len(resolved_trade.qty) == 1:
+        if len(trade) == 1:
             calendar_spread_order = False
         else:
             calendar_spread_order = True
 
-        self._trade = resolved_trade
-        self._fill = resolved_fill
-        self._filled_price = resolved_filled_price
-        self._fill_datetime = fill_datetime
-        self._locked = locked
-        self._order_id = order_id
-        self._parent = parent
-        self._children = children
-        self._active = active
-        self._order_type = order_type
-
-        self._order_info = dict(
+        order_info = dict(
             algo_used=algo_used,
             submit_datetime=submit_datetime,
             limit_price=limit_price,
@@ -140,6 +128,20 @@ class brokerOrder(contractOrder):
             roll_order=roll_order
         )
 
+        super().__init__(tradeable_object,
+                        trade= trade,
+                        fill = fill,
+                        filled_price= filled_price,
+                        fill_datetime = fill_datetime,
+                        locked = locked,
+                        order_id=order_id,
+                        parent = parent,
+                        children= children,
+                        active=active,
+                        order_type=order_type,
+                        **order_info
+                        )
+
         # NOTE: we do not include these in the normal order info dict
         # This means they will NOT be saved when we do .as_dict(), i.e. they won't be saved in the mongo record
         # This is deliberate since these objects can't be saved accordingly
@@ -147,6 +149,35 @@ class brokerOrder(contractOrder):
         # match and modify orders
 
         self._broker_objects = broker_objects
+
+    @property
+    def strategy_name(self):
+        return self.tradeable_object.strategy_name
+
+    @property
+    def instrument_code(self):
+        return self.tradeable_object.instrument_code
+
+    @property
+    def contract_date(self):
+        return self.tradeable_object.contract_date
+
+    @property
+    def instrument_strategy(self) -> instrumentStrategy:
+        return self.tradeable_object.instrument_strategy
+
+    @property
+    def contract_date_key(self):
+        return self.tradeable_object.contract_date_key
+
+    @property
+    def limit_price(self):
+        return self.order_info["limit_price"]
+
+    @limit_price.setter
+    def limit_price(self, limit_price):
+        self.order_info["limit_price"] = limit_price
+
 
 
     @property
@@ -156,6 +187,11 @@ class brokerOrder(contractOrder):
     @property
     def broker_objects(self):
         return self._broker_objects
+
+
+    @property
+    def calendar_spread_order(self):
+        return self.order_info["calendar_spread_order"]
 
 
     @property
@@ -173,10 +209,6 @@ class brokerOrder(contractOrder):
     @manual_fill.setter
     def manual_fill(self, manual_fill):
         self.order_info["manual_fill"] = manual_fill
-
-    @property
-    def calendar_spread_order(self):
-        return self.order_info["calendar_spread_order"]
 
     @property
     def side_price(self):
@@ -268,27 +300,6 @@ class brokerOrder(contractOrder):
 
         return order
 
-    # Following methods for compatibility with parent class
-
-    @property
-    def roll_order(self):
-        return False
-
-    @property
-    def inter_spread_order(self):
-        return False
-
-    @property
-    def reference_price(self):
-        return None
-
-    @property
-    def algo_to_use(self):
-        return self.algo_used()
-
-    @property
-    def manual_trade(self):
-        return False
 
     def log_with_attributes(self, log):
         """
@@ -324,6 +335,15 @@ class brokerOrder(contractOrder):
         self.algo_comment = matched_broker_order.algo_comment
 
         return success
+
+
+    @property
+    def is_split_order(self):
+        return self.order_info["split_order"]
+
+    def split_order(self, sibling_order_id):
+        self.order_info["split_order"] = True
+        self.order_info["sibling_id_for_split_order"] = sibling_order_id
 
     def split_spread_order(self):
         """
@@ -440,7 +460,8 @@ def create_new_broker_order_from_contract_order(
         algo_comment=algo_comment,
         broker_permid=broker_permid,
         broker_tempid=broker_tempid,
-        roll_order=contract_order.roll_order
+        roll_order=contract_order.roll_order,
+        manual_fill=contract_order.manual_fill
 
     )
 

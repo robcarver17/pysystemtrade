@@ -128,6 +128,13 @@ class futuresContractStrategy(tradeableObject):
         self._instrument = futuresInstrument(instrument_code)
         self._strategy_name = strategy_name
 
+    @classmethod
+    def from_strategy_name_and_contract_object(futuresContractStrategy, strategy_name: str,
+                                               futures_contract: futuresContract):
+
+        return futuresContractStrategy(strategy_name=strategy_name,
+                                       contract_id=futures_contract.date_str,
+                                       instrument_code=futures_contract.instrument_code)
 
     def __eq__(self, other):
         if self.instrument != other.instrument:
@@ -144,6 +151,11 @@ class futuresContractStrategy(tradeableObject):
     @property
     def futures_contract(self):
         return futuresContract(self.instrument, self.contract_date)
+
+    @property
+    def instrument_strategy(self) -> instrumentStrategy:
+        return instrumentStrategy(instrument_code=self.instrument_code,
+                                  strategy_name=self.strategy_name)
 
     @classmethod
     def from_key(instrumentTradeableObject, key):

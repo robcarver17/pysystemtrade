@@ -10,7 +10,12 @@ from sysproduction.data.positions import diagPositions
 from sysproduction.data.contracts import diagContracts
 from sysproduction.data.prices import diagPrices
 
-from sysexecution.stack_handler.stackHandlerCore import stackHandlerCore
+from sysexecution.stack_handler.stackHandlerCore import stackHandlerCore, put_children_on_stack, rollback_parents_and_children_and_handle_exceptions, log_successful_adding
+from sysexecution.order_stacks.order_stack import orderStackData, failureWithRollback
+from sysexecution.orders.base_orders import Order
+from sysexecution.orders.contract_orders import contractOrder
+from sysexecution.orders.broker_orders import brokerOrder
+from sysexecution.orders.list_of_orders import listOfOrders
 
 
 class stackHandlerForRolls(stackHandlerCore):
@@ -47,6 +52,82 @@ class stackHandlerForRolls(stackHandlerCore):
         )
 
         return result
+
+
+    def add_parent_and_list_of_child_orders_to_stack(
+        self, parent_stack: orderStackData,
+            child_stack: orderStackData,
+            parent_order: Order,
+            list_of_child_orders: listOfOrders
+    ):
+
+        parent_log = parent_order.log_with_attributes(self.log)
+
+        # Do as a transaction: if everything doesn't go to plan can roll back
+        # We lock now, and
+        parent_order.lock_order()
+        try:
+            parent_order_id = parent_stack.put_order_on_stack(
+                parent_order)
+
+        except Exception as parent_order_error:
+            parent_log.warn(
+                    "Couldn't put parent order %s on instrument order stack error %s" %
+                    (str(parent_order), str(parent_order_error)))
+            parent_order.unlock_order()
+            return None
+
+        ## Parent order is now on stack in locked state
+        ## We will unlock at the end, or during a rollback
+
+        # Do as a transaction: if everything doesn't go to plan can roll back
+        # if this try fails we will roll back the instrument commit
+        list_of_child_order_ids =[]
+
+        try:
+            # Add parent order to children
+            # This will only throw an error if the orders already have parents, which they shouldn't
+            for child_order in list_of_child_orders:
+                child_order.parent = parent_order_id
+
+            # this will return eithier a list of orders, an empty list if error and rolled back, or an error if couldn't rollback
+            list_of_child_order_ids = put_children_on_stack(child_stack = child_stack,
+                                                            parent_log=parent_log,
+                                                            list_of_child_orders=list_of_child_orders,
+                                                            parent_order = parent_order)
+
+            if len(list_of_child_order_ids)==0:
+                ## We had an error, but manged to roll back the children. Still need to throw an error so the parent
+                ##   will be rolledback. But because the list_of_child_order_ids is probably zero
+                ##   we won't try and rollback children
+                raise Exception("Couldn't put child orders on stack, children were rolled back okay")
+
+            parent_stack.add_children_to_order_without_existing_children(
+                parent_order_id, list_of_child_order_ids
+            )
+
+
+        except Exception as error_from_adding_child_orders:
+            # okay it's gone wrong
+            # Roll back parent order and possibly children
+            # At this point list_of_child_order_ids will eithier be empty (if succesful rollback) or contain child ids
+
+            rollback_parents_and_children_and_handle_exceptions(child_stack=child_stack,
+                                          parent_stack=parent_stack,
+                                          list_of_child_order_ids=list_of_child_order_ids,
+                                          parent_order_id=parent_order_id,
+                                        error_from_adding_child_orders=error_from_adding_child_orders)
+
+        # phew got there
+        parent_log.msg("Added parent order with ID %d %s to stack" % (parent_order_id, str(parent_order)))
+        log_successful_adding(list_of_child_orders=list_of_child_orders,
+                              list_of_child_ids=list_of_child_order_ids,
+                              parent_order=parent_order,
+                              parent_log=parent_log)
+
+        # one last thing
+        parent_stack.unlock_order_on_stack(parent_order_id)
+
 
     def check_roll_required(self, instrument_code):
         order_already_on_stack = self.check_if_roll_order_already_on_stack(
@@ -120,6 +201,7 @@ def create_force_roll_orders(data, instrument_code):
         )
     else:
         log = instrument_order.log_with_attributes(data.log)
+        roll_state = diag_positions.get_roll_state(instrument_code)
         log.warn("Roll state %s is unexpected, might have changed" % str(roll_state))
         return missing_order, []
 

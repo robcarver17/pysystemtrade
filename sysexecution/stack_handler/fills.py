@@ -82,7 +82,7 @@ class stackHandlerForFills(stackHandlerCore):
         list_of_contract_order_ids = self.contract_stack.get_list_of_order_ids()
         for contract_order_id in list_of_contract_order_ids:
             # this function is in 'core' since it's used elsewhere
-            self.apply_broker_fill_to_contract_order(contract_order_id)
+            self.apply_broker_fills_to_contract_order(contract_order_id)
 
     def pass_fills_from_contract_up_to_instrument(self):
         list_of_child_order_ids = self.contract_stack.get_list_of_order_ids()

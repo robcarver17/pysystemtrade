@@ -25,10 +25,11 @@ from sysproduction.data.orders import dataOrders
 
 class stackHandlerForCompletions(stackHandlerCore):
     def handle_completed_orders(
-        self, allow_partial_completions=False, allow_zero_completions=False
+        self, allow_partial_completions:bool=False,
+            allow_zero_completions:bool=False
     ):
         list_of_completed_instrument_orders = (
-            self.instrument_stack.list_of_completed_orders(
+            self.instrument_stack.list_of_completed_order_ids(
                 allow_partial_completions=allow_partial_completions,
                 allow_zero_completions=allow_zero_completions,
             )
@@ -43,28 +44,21 @@ class stackHandlerForCompletions(stackHandlerCore):
 
     def handle_completed_instrument_order(
         self,
-        instrument_order_id,
+        instrument_order_id: int,
         allow_partial_completions=False,
         allow_zero_completions=False,
     ):
         # Check children all done
 
-        (
-            list_of_broker_order_id,
-            list_of_contract_order_id,
-        ) = self.get_all_children_and_grandchildren_for_instrument_order_id(
-            instrument_order_id
-        )
 
         completely_filled = self.confirm_all_children_and_grandchildren_are_filled(
-            list_of_broker_order_id,
-            list_of_contract_order_id,
+            instrument_order_id,
             allow_partial_completions=allow_partial_completions,
             allow_zero_completions=allow_zero_completions,
         )
 
         if not completely_filled:
-            return success
+            return None
 
         # If we have got this far then all our children are filled, and the
         # parent is filled
@@ -104,23 +98,62 @@ class stackHandlerForCompletions(stackHandlerCore):
             instrument_order, contract_order_list, broker_order_list
         )
 
-        return success
+
+    def get_all_children_and_grandchildren_for_instrument_order_id(
+        self, instrument_order_id: int
+    ) -> (list, list):
+
+        instrument_order = self.instrument_stack.get_order_with_id_from_stack(
+            instrument_order_id
+        )
+        list_of_contract_order_id = instrument_order.children
+        if list_of_contract_order_id is no_children:
+            # childless, grandchildless
+            return [],[]
+
+        list_of_broker_order_id = \
+            self.get_all_grandchildren_from_list_of_contract_order_id(list_of_contract_order_id)
+
+        return list_of_broker_order_id, list_of_contract_order_id
+
+    def get_all_grandchildren_from_list_of_contract_order_id(self, list_of_contract_order_id: list) -> list:
+        list_of_broker_order_id = []
+
+        for contract_order_id in list_of_contract_order_id:
+            contract_order = self.contract_stack.get_order_with_id_from_stack(
+                contract_order_id
+            )
+
+            broker_order_children = contract_order.children
+            if broker_order_children is not no_children:
+                list_of_broker_order_id = (
+                    list_of_broker_order_id + broker_order_children
+                )
+
+        list_of_broker_order_id = list(set(list_of_broker_order_id))
+
+        return list_of_broker_order_id
 
     def confirm_all_children_and_grandchildren_are_filled(
         self,
-        list_of_broker_order_id,
-        list_of_contract_order_id,
+        instrument_order_id: int,
         allow_partial_completions=False,
         allow_zero_completions=False,
     ):
+
+        (
+            list_of_broker_order_id,
+            list_of_contract_order_id,
+        ) = self.get_all_children_and_grandchildren_for_instrument_order_id(
+            instrument_order_id
+        )
+
 
         children_filled = self.check_list_of_contract_orders_complete(
             list_of_contract_order_id,
             allow_partial_completions=allow_partial_completions,
             allow_zero_completions=allow_zero_completions,
         )
-        if not children_filled:
-            return False
 
         grandchildren_filled = self.check_list_of_broker_orders_complete(
             list_of_broker_order_id,
@@ -128,17 +161,18 @@ class stackHandlerForCompletions(stackHandlerCore):
             allow_zero_completions=allow_zero_completions,
         )
 
-        if not grandchildren_filled:
+        if grandchildren_filled and children_filled:
+            return True
+        else:
             return False
 
-        return True
 
     def check_list_of_contract_orders_complete(
         self,
-        list_of_contract_order_id,
+        list_of_contract_order_id: list,
         allow_partial_completions=False,
         allow_zero_completions=False,
-    ):
+    ) -> bool:
         for contract_order_id in list_of_contract_order_id:
             completely_filled = self.contract_stack.is_completed(
                 contract_order_id,
@@ -146,14 +180,15 @@ class stackHandlerForCompletions(stackHandlerCore):
                 allow_partial_completions=allow_partial_completions,
             )
             if not completely_filled:
-                # OK We can't do this unless all our children are filled
+                # OK We can't do this unless *all* our children are filled
                 return False
 
+        # all filled
         return True
 
     def check_list_of_broker_orders_complete(
         self,
-        list_of_broker_order_id,
+        list_of_broker_order_id: list,
         allow_partial_completions=False,
         allow_zero_completions=False,
     ):
@@ -172,19 +207,19 @@ class stackHandlerForCompletions(stackHandlerCore):
 
     def deactivate_family_of_orders(
             self,
-            instrument_order_id,
-            list_of_contract_order_id,
-            list_of_broker_order_id):
+            instrument_order_id: int,
+            list_of_contract_order_id: list,
+            list_of_broker_order_id: list):
         # Make orders inactive
         # A subsequent process will delete them
         self.instrument_stack.deactivate_order(instrument_order_id)
+
         for contract_order_id in list_of_contract_order_id:
             self.contract_stack.deactivate_order(contract_order_id)
 
         for broker_order_id in list_of_broker_order_id:
             self.broker_stack.deactivate_order(broker_order_id)
 
-        return success
 
     def split_up_spread_orders(self, instrument_order_id):
         """

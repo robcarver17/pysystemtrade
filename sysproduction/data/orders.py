@@ -12,6 +12,8 @@ from sysdata.data_blob import dataBlob
 
 from sysexecution.price_quotes import quotePrice
 
+from sysobjects.production.tradeable_object import instrumentStrategy, futuresContract
+
 class dataOrders(object):
     def __init__(self, data=arg_not_supplied):
         # Check data has the right elements to do this
@@ -59,7 +61,7 @@ class dataOrders(object):
         self, period_start, period_end=arg_not_supplied
     ):
         # remove split orders
-        order_id_list = self.data.db_broker_historic_orders.get_orders_in_date_range(
+        order_id_list = self.data.db_broker_historic_orders.get_list_of_order_ids_in_date_range(
             period_start, period_end=period_end)
         order_id_list = [
             order_id
@@ -70,13 +72,13 @@ class dataOrders(object):
 
     def get_historic_contract_orders_in_date_range(
             self, period_start, period_end):
-        return self.data.db_contract_historic_orders.get_orders_in_date_range(
+        return self.data.db_contract_historic_orders.get_list_of_order_ids_in_date_range(
             period_start, period_end
         )
 
     def get_historic_instrument_orders_in_date_range(
             self, period_start, period_end):
-        return self.data.db_strategy_historic_orders.get_orders_in_date_range(
+        return self.data.db_strategy_historic_orders.get_list_of_order_ids_in_date_range(
             period_start, period_end
         )
 
@@ -92,17 +94,33 @@ class dataOrders(object):
         return self.data.db_broker_historic_orders.get_order_with_orderid(
             order_id)
 
+
     def get_fills_history_for_instrument_and_contract_id(
         self, instrument_code, contract_id
     ):
-        return self.data.db_contract_historic_orders.get_fills_history_for_instrument_and_contract_id(
-            instrument_code, contract_id)
+        #FIXME DELETE
+        futures_contract = futuresContract(instrument_object=instrument_code,
+                                           contract_date_object=contract_id)
+        return self.get_fills_history_for_contract(futures_contract)
+
+    def get_fills_history_for_contract(
+        self, futures_contract: futuresContract
+    ):
+        return self.data.db_contract_historic_orders.get_fills_history_for_contract(futures_contract)
 
     def get_fills_history_for_strategy_and_instrument(
         self, strategy_name, instrument_code
     ):
-        return self.data.db_strategy_historic_orders.get_fills_history_for_strategy_and_instrument_code(
-            strategy_name, instrument_code)
+        #FIXME DELETE
+        instrument_strategy = instrumentStrategy(instrument_code=instrument_code, strategy_name=strategy_name)
+        return self.get_fills_history_for_instrument_strategy(instrument_strategy)
+
+    def get_fills_history_for_instrument_strategy(
+        self, instrument_strategy: instrumentStrategy
+    ):
+        return self.data.db_strategy_historic_orders.get_fills_history_for_instrument_strategy(
+            instrument_strategy)
+
 
     def get_historic_broker_order_from_order_id_with_execution_data(
             self, order_id):

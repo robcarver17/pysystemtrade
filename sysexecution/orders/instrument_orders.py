@@ -22,24 +22,26 @@ class instrumentOrder(Order):
         self,
         *args,
         fill: tradeQuantity=None,
+        filled_price: fillPrice = None,
+        fill_datetime: datetime.datetime = None,
         locked: bool=False,
         order_id: int =no_order_id,
         parent: int =no_parent,
         children: list=no_children,
         active:bool =True,
         order_type: instrumentOrderType = instrumentOrderType("best"),
-        limit_price: float=None,
 
+        limit_price: float=None,
         limit_contract: str=None,
+
         reference_datetime: datetime.datetime=None,
         reference_price: float=None,
         reference_contract: str=None,
+
         generated_datetime: datetime.datetime=None,
-        filled_price: fillPrice=None,
-        fill_datetime: datetime.datetime=None,
         manual_trade: bool=False,
         roll_order: bool=False,
-            **kwargs
+            **kwargs_not_used
     ):
         """
 
@@ -74,37 +76,20 @@ class instrumentOrder(Order):
         :param type: str
         """
         if len(args) == 2:
-            self._tradeable_object = instrumentStrategy.from_key(
+            tradeable_object = instrumentStrategy.from_key(
                 args[0])
             trade = args[1]
         else:
             strategy = args[0]
             instrument = args[1]
             trade = args[2]
-            self._tradeable_object = instrumentStrategy(
+            tradeable_object = instrumentStrategy(
                 strategy, instrument)
 
         if generated_datetime is None:
             generated_datetime = datetime.datetime.now()
 
-        (
-            resolved_trade,
-            resolved_fill,
-            resolved_filled_price,
-        ) = resolve_inputs_to_order(trade, fill, filled_price)
-
-        self._trade = resolved_trade
-        self._fill = resolved_fill
-        self._filled_price = resolved_filled_price
-        self._fill_datetime = fill_datetime
-        self._locked = locked
-        self._order_id = order_id
-        self._parent = parent
-        self._children = children
-        self._active = active
-        self._order_type = order_type
-
-        self._order_info = dict(
+        order_info = dict(
             limit_contract=limit_contract,
             limit_price=limit_price,
             reference_contract=reference_contract,
@@ -114,7 +99,20 @@ class instrumentOrder(Order):
             reference_datetime=reference_datetime,
             generated_datetime=generated_datetime,
         )
-        self._order_info.update(kwargs)
+
+        super().__init__(tradeable_object,
+                        trade= trade,
+                        fill = fill,
+                        filled_price= filled_price,
+                        fill_datetime = fill_datetime,
+                        locked = locked,
+                        order_id=order_id,
+                        parent = parent,
+                        children= children,
+                        active=active,
+                        order_type=order_type,
+                        ** order_info
+                        )
 
 
     @classmethod
@@ -145,7 +143,7 @@ class instrumentOrder(Order):
             fill_datetime=fill_datetime,
             filled_price=filled_price,
             active=active,
-            order_type = order_type
+            order_type = order_type,
             **order_info
         )
 

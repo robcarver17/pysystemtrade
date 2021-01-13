@@ -10,6 +10,7 @@ from syscore.objects import (
     missing_contract,
     missing_data,
     rolling_cant_trade,
+    success
 )
 
 from sysproduction.data.contracts import diagContracts
@@ -17,11 +18,16 @@ from sysproduction.data.positions import diagPositions
 from sysproduction.data.prices import diagPrices
 from sysproduction.data.controls import dataLocks
 
+from sysexecution.order_stacks.order_stack import orderStackData, failureWithRollback
+from sysexecution.orders.base_orders import Order
 from sysexecution.orders.contract_orders import contractOrder
+from sysexecution.orders.broker_orders import brokerOrder
+from sysexecution.orders.list_of_orders import listOfOrders
+
 from sysexecution.algos.allocate_algo_to_order import (
     allocate_algo_to_list_of_contract_orders,
 )
-from sysexecution.stack_handler.stackHandlerCore import stackHandlerCore
+from sysexecution.stack_handler.stackHandlerCore import stackHandlerCore, put_children_on_stack, add_children_to_parent_or_rollback_children, log_successful_adding
 
 class stackHandlerForSpawning(stackHandlerCore):
     def spawn_children_from_new_instrument_orders(self):
@@ -61,6 +67,36 @@ class stackHandlerForSpawning(stackHandlerCore):
         )
 
         return result
+
+    def add_children_to_stack_and_child_id_to_parent(
+        self, parent_stack: orderStackData,
+            child_stack: orderStackData,
+            parent_order: Order,
+            list_of_child_orders: listOfOrders
+    ):
+
+        parent_log = parent_order.log_with_attributes(self.log)
+
+        list_of_child_ids = put_children_on_stack(child_stack=child_stack,
+                                                  list_of_child_orders=list_of_child_orders,
+                                                  parent_log=parent_log,
+                                                  parent_order=parent_order)
+        if len(list_of_child_ids)==0:
+            return None
+
+        success_or_failure = add_children_to_parent_or_rollback_children(child_stack=child_stack,
+                                                                         parent_order=parent_order,
+                                                                         parent_log=parent_log,
+                                                                         parent_stack=parent_stack,
+                                                                         list_of_child_ids=list_of_child_ids)
+
+        if success_or_failure is success:
+            log_successful_adding(list_of_child_orders=list_of_child_orders,
+                                  list_of_child_ids=list_of_child_ids,
+                                  parent_order=parent_order,
+                                  parent_log=parent_log)
+
+
 
 
 def spawn_children_from_instrument_order(data, instrument_order):

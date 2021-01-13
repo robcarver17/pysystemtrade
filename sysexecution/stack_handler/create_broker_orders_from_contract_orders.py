@@ -18,10 +18,13 @@ from syscore.objects import (
     order_is_in_status_modified,
     resolve_function,
 )
+from sysproduction.data.controls import dataTradeLimits
 
 from sysexecution.algos.allocate_algo_to_order import (
     check_and_if_required_allocate_algo_to_single_contract_order,
 )
+from sysexecution.orders.contract_orders import contractOrder
+from sysexecution.orders.broker_orders import brokerOrder
 
 from sysexecution.stack_handler.stackHandlerCore import stackHandlerCore
 from sysproduction.data.controls import dataLocks
@@ -169,6 +172,33 @@ class stackHandlerCreateBrokerOrders(stackHandlerCore):
 
         return contract_order
 
+    def what_contract_trade_is_possible(self, proposed_order: contractOrder) -> contractOrder:
+        log = proposed_order.log_with_attributes(self.log)
+        data_trade_limits = dataTradeLimits(self.data)
+
+        instrument_strategy = proposed_order.instrument_strategy
+
+        # proposed_order.trade.total_abs_qty() is a scalar, returns a scalar
+        maximum_abs_qty = data_trade_limits.what_trade_is_possible_for_strategy_instrument(
+            instrument_strategy, proposed_order.trade)
+
+        revised_order = proposed_order.change_trade_size_proportionally_to_meet_abs_qty_limit(
+            maximum_abs_qty
+        )
+
+        if revised_order.trade != proposed_order.trade:
+            log.msg(
+                "%s trade change from %s to %s because of trade limits"
+                % (
+                    proposed_order.key,
+                    str(proposed_order.trade),
+                    str(revised_order.trade),
+                )
+            )
+
+        return revised_order
+
+
     def liquidity_size_contract_order(self, contract_order_after_trade_limits):
         data_broker = dataBroker(self.data)
         log = contract_order_after_trade_limits.log_with_attributes(self.log)
@@ -255,6 +285,15 @@ class stackHandlerCreateBrokerOrders(stackHandlerCore):
 
         return success
 
+
+    def add_trade_to_trade_limits(
+            self,
+            executed_order: brokerOrder):
+
+        data_trade_limits = dataTradeLimits(self.data)
+
+        data_trade_limits.add_trade(executed_order)
+
     def apply_fills_to_database(self, broker_order):
         broker_order_id = broker_order.order_id
 
@@ -268,4 +307,4 @@ class stackHandlerCreateBrokerOrders(stackHandlerCore):
         contract_order_id = broker_order.parent
 
         # pass broker fills upwards
-        self.apply_broker_fill_to_contract_order(contract_order_id)
+        self.apply_broker_fills_to_contract_order(contract_order_id)

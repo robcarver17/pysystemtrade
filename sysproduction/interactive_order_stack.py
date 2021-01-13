@@ -326,7 +326,7 @@ def create_manual_trade(data):
         return None
 
     stack_handler = stackHandler(data)
-    instrument_order_id = stack_handler.instrument_stack.put_manual_order_on_stack(
+    instrument_order_id = stack_handler.instrument_stack.put_manual_order_on_stack_and_return_order_id(
         instrument_order)
     if not isinstance(instrument_order_id, int):
         print(
@@ -343,7 +343,7 @@ def create_manual_trade(data):
                 "Error condition %s couldn't place contract order; see if you can spawn it manually"
             )
             return None
-        stack_handler.instrument_stack.add_children_to_order(
+        stack_handler.instrument_stack.add_children_to_order_without_existing_children(
             instrument_order_id, contract_order_id
         )
 
@@ -621,7 +621,7 @@ def pass_fills_upwards_from_broker(data):
     if contract_order_id == "ALL":
         stack_handler.pass_fills_from_broker_up_to_contract()
     else:
-        stack_handler.apply_broker_fill_to_contract_order(contract_order_id)
+        stack_handler.apply_broker_fills_to_contract_order(contract_order_id)
 
     print(
         "If stack process not running, your next job will be to pass fills from contract to instrument"
@@ -856,7 +856,7 @@ def cancel_broker_order(data):
     if ans != "Y":
         return None
     if broker_order_id == "ALL":
-        stack_handler.cancel_all_broker_orders()
+        stack_handler.try_and_cancel_all_broker_orders_and_return_list_of_orders()
     else:
         stack_handler.cancel_broker_order(broker_order_id)
 

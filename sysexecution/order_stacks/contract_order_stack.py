@@ -1,28 +1,33 @@
+import datetime
 from copy import copy
 
-from syscore.objects import failure, missing_order, success
-from sysexecution.order_stacks.order_stack import orderStackData
+from syscore.objects import missing_order
+from sysexecution.order_stacks.order_stack import orderStackData, missingOrder
+from sysexecution.trade_qty import tradeQuantity
+from sysexecution.fill_price import fillPrice
+from sysexecution.orders.contract_orders import contractOrder
 
 class contractOrderStackData(orderStackData):
-    def __repr__(self):
-        return "Contract order stack: %s" % str(self._stack)
+    def _name(self):
+        return "Contract order stack"
 
     def manual_fill_for_order_id(
-        self, order_id, fill_qty, filled_price=None, fill_datetime=None
+        self, order_id: int,
+            fill_qty: tradeQuantity,
+            filled_price: fillPrice=None,
+            fill_datetime: datetime.datetime=None
     ):
-        result = self.change_fill_quantity_for_order(
+        self.change_fill_quantity_for_order(
             order_id, fill_qty, filled_price=filled_price, fill_datetime=fill_datetime)
-        if result is failure:
-            return failure
 
         # all good need to show it was a manual fill
         order = self.get_order_with_id_from_stack(order_id)
         order.manual_fill = True
-        result = self._change_order_on_stack(order_id, order)
+        self._change_order_on_stack(order_id, order)
 
-        return result
 
-    def add_controlling_algo_ref(self, order_id, control_algo_ref):
+    def add_controlling_algo_ref(self, order_id: int,
+                                 control_algo_ref: str):
         """
 
         :param order_id: int
@@ -34,54 +39,49 @@ class contractOrderStackData(orderStackData):
 
         existing_order = self.get_order_with_id_from_stack(order_id)
         if existing_order is missing_order:
-            raise Exception(
-                "Can't add controlling ago as order %d doesn't exist" %
-                order_id)
+            error_msg ="Can't add controlling ago as order %d doesn't exist" % order_id
+            self.log.warn(error_msg)
+            raise missingOrder(error_msg)
 
         try:
             modified_order = copy(existing_order)
             modified_order.add_controlling_algo_ref(control_algo_ref)
+            self._change_order_on_stack(order_id, modified_order)
         except Exception as e:
-            raise Exception(
-                "%s couldn't add controlling algo %s to order %d"
-                % (str(e), control_algo_ref, order_id)
-            )
+            log = existing_order.log_with_attributes(self.log)
+            error_msg = "%s couldn't add controlling algo %s to order %d"  % \
+                        (str(e), control_algo_ref, order_id)
+            log.warn(error_msg)
+            raise Exception(error_msg)
 
-        result = self._change_order_on_stack(order_id, modified_order)
+    def release_order_from_algo_control(self, order_id: int):
 
-        if result is not success:
-            raise Exception(
-                "%s when trying to add controlling algo to order %d"
-                % (str(result), order_id)
-            )
-
-        return success
-
-    def release_order_from_algo_control(self, order_id):
         existing_order = self.get_order_with_id_from_stack(order_id)
         if existing_order is missing_order:
-            raise Exception(
-                "Can't release controlling ago as order %d doesn't exist" %
-                order_id)
+            error_msg ="Can't add controlling ago as order %d doesn't exist" % order_id
+            self.log.warn(error_msg)
+            raise missingOrder(error_msg)
 
-        if not existing_order.is_order_controlled_by_algo():
+        order_is_not_controlled = not existing_order.is_order_controlled_by_algo()
+        if order_is_not_controlled:
             # No change required
-            return success
+            return None
 
         try:
             modified_order = copy(existing_order)
             modified_order.release_order_from_algo_control()
+            self._change_order_on_stack(order_id, modified_order)
         except Exception as e:
-            raise Exception(
-                "%s couldn't release controlling algo for order %d" %
-                (str(e), order_id))
+            log = existing_order.log_with_attributes(self.log)
+            error_msg = "%s couldn't remove controlling algo from order %d" % \
+                        (str(e), order_id)
+            log.warn(error_msg)
+            raise Exception(error_msg)
 
-        result = self._change_order_on_stack(order_id, modified_order)
+    def get_order_with_id_from_stack(self, order_id: int) -> contractOrder:
+        # probably will be overriden in data implementation
+        # only here so the appropriate type is shown as being returned
 
-        if result is not success:
-            raise Exception(
-                "%s when trying to add controlling algo to order %d"
-                % (str(result), order_id)
-            )
+        order = self.stack.get(order_id, missing_order)
 
-        return success
+        return order
