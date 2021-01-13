@@ -78,6 +78,11 @@ def _send_msg(msg):
     # Send the message via our own SMTP server, but don't include the
     # envelope header.
     s = smtplib.SMTP(email_server, 587)
+    # add tls for those using yahoo or gmail. 
+    try:
+        s.starttls()
+    except:
+        pass
     s.login(email_address, email_pwd)
     s.sendmail(me, [you], msg.as_string())
     s.quit()
