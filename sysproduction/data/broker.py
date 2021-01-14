@@ -11,18 +11,19 @@ from sysbrokers.IB.ib_position_data import ibContractPositionData
 from sysbrokers.IB.ib_orders_data import ibOrdersData
 from sysbrokers.IB.ib_misc_data import ibMiscData
 
+from sysdata.data_blob import dataBlob
+
 from syscore.objects import missing_data, arg_not_supplied, missing_order, missing_contract
 
 from sysobjects.production.positions import contractPosition
 
 from sysexecution.orders.base_orders import adjust_spread_order_single_benchmark
-from sysexecution.orders.broker_orders import create_new_broker_order_from_contract_order
+from sysexecution.orders.broker_orders import create_new_broker_order_from_contract_order, brokerOrderType, market_order_type, limit_order_type
 from sysexecution.tick_data import analyse_tick_data_frame
 from sysexecution.price_quotes import quotePrice
 
 from sysobjects.contracts import futuresContract
 
-from sysdata.data_blob import dataBlob
 from sysproduction.data.positions import diagPositions
 from sysproduction.data.currency_data import dataCurrency
 from sysproduction.data.control_process import diagControlProcess
@@ -32,6 +33,10 @@ benchmarkPriceCollection = namedtuple(
     ["side_price", "offside_price", "benchmark_side_prices", "benchmark_mid_prices"],
 )
 
+
+limit_price_from_input = "input"
+limit_price_from_side_price = "side_price"
+limit_price_from_offside_price = "offside_price"
 
 class dataBroker(object):
     def __init__(self, data=arg_not_supplied):
@@ -124,13 +129,6 @@ class dataBroker(object):
         check_open = self.data.broker_futures_contract.is_contract_okay_to_trade(contract)
         return check_open
 
-    def is_instrument_code_and_contract_date_okay_to_trade(
-        self, instrument_code, contract_id
-    ):
-        #FIXME REMOVE
-        futures_contract = futuresContract(instrument_code, contract_id)
-        check_open = self.is_contract_okay_to_trade(futures_contract)
-        return check_open
 
     def get_min_tick_size_for_instrument_code_and_contract_date(self, instrument_code, contract_id):
         # FIXME REMOVE
@@ -209,7 +207,7 @@ class dataBroker(object):
         self,
         contract_order,
         input_limit_price=None,
-        order_type="market",
+        order_type: brokerOrderType=market_order_type,
         limit_price_from="input",
         ticker_object=None,
     ):
@@ -229,7 +227,7 @@ class dataBroker(object):
             # no data available, no can do
             return missing_order
 
-        if order_type == "limit":
+        if order_type == limit_order_type:
             limit_price = self.set_limit_price(
                 contract_order,
                 collected_prices.side_price,
@@ -237,8 +235,13 @@ class dataBroker(object):
                 limit_price_from=limit_price_from,
                 input_limit_price=input_limit_price,
             )
-        else:
+        elif order_type == market_order_type:
             limit_price = None
+        else:
+            error_msg = "Order type %s not valid for broker orders" % str (order_type)
+            log.critical(error_msg)
+
+            return missing_order
 
         broker_order = create_new_broker_order_from_contract_order(
             contract_order,

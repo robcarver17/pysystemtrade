@@ -1,7 +1,9 @@
 # functions used by multiple algos
 
+from sysdata.data_blob import dataBlob
 from sysproduction.data.broker import dataBroker
 from syscore.genutils import quickTimer
+from sysexecution.order_stacks.broker_order_stack import orderWithControls
 
 # how often do algos talk
 MESSAGING_FREQUENCY = 30
@@ -10,27 +12,31 @@ MESSAGING_FREQUENCY = 30
 CANCEL_WAIT_TIME = 60
 
 
-def post_trade_processing(data, broker_order_with_controls):
+def post_trade_processing(data: dataBlob,
+                          broker_order_with_controls: orderWithControls) -> orderWithControls:
     data_broker = dataBroker(data)
     data_broker.cancel_market_data_for_order(broker_order_with_controls.order)
 
     # update the order one more time
     broker_order_with_controls.update_order()
 
-    # This order will now hopefully contain all fills so we set trades==fills
+    # This order will now contain all fills so we set trades==fills
     # so the order is treated as completed
-    broker_order_with_controls.order.change_trade_qty_to_filled_qty()
+    # FIXME don't think I need to do this
+    #broker_order_with_controls.order.change_trade_qty_to_filled_qty()
 
     return broker_order_with_controls
 
 
-def cancel_order(data, broker_order_with_controls):
+def cancel_order(data: dataBlob,
+                 broker_order_with_controls: orderWithControls) -> orderWithControls:
+
     log = broker_order_with_controls.order.log_with_attributes(data.log)
     data_broker = dataBroker(data)
     data_broker.cancel_order_given_control_object(broker_order_with_controls)
 
     # Wait for cancel. It's vitual we do this since if a fill comes in before we finish it will screw
-    #   everyting up...
+    #   everything up...
     timer = quickTimer(seconds=CANCEL_WAIT_TIME)
     not_cancelled = True
     while not_cancelled:
@@ -46,7 +52,10 @@ def cancel_order(data, broker_order_with_controls):
     return broker_order_with_controls
 
 
-def set_limit_price(data, broker_order_with_controls, new_limit_price):
+def set_limit_price(data: dataBlob,
+                    broker_order_with_controls: orderWithControls,
+                    new_limit_price: float):
+
     log = broker_order_with_controls.order.log_with_attributes(data.log)
     data_broker = dataBroker(data)
     can_be_modified = data_broker.check_order_can_be_modified_given_control_object(
@@ -63,8 +72,9 @@ def set_limit_price(data, broker_order_with_controls, new_limit_price):
 
     return broker_order_with_controls
 
+limit_price_is_at_inside_spread = -99999999999999.99
 
-def check_current_limit_price_at_inside_spread(broker_order_with_controls):
+def check_current_limit_price_at_inside_spread(broker_order_with_controls: orderWithControls) -> float:
     # When we are aggressive we want to remain on the correct side of the
     # spread
 
@@ -80,7 +90,7 @@ def check_current_limit_price_at_inside_spread(broker_order_with_controls):
     current_side_price = ticker_object.current_side_price
 
     if current_limit_price == current_side_price:
-        return None
+        return limit_price_is_at_inside_spread
 
     # change limit
     new_limit_price = current_side_price
@@ -88,7 +98,8 @@ def check_current_limit_price_at_inside_spread(broker_order_with_controls):
     return new_limit_price
 
 
-def file_log_report_market_order(log, broker_order_with_controls):
+def file_log_report_market_order(log, broker_order_with_controls: orderWithControls):
+
     ticker_object = broker_order_with_controls.ticker
     current_tick = str(ticker_object.current_tick())
 

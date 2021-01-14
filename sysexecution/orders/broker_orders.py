@@ -23,6 +23,9 @@ class brokerOrderType(orderType):
     def allowed_types(self):
         return ['market', 'limit']
 
+market_order_type = brokerOrderType('market')
+limit_order_type = brokerOrderType('limit')
+
 class brokerOrder(Order):
     def __init__(
         self,

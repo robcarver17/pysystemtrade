@@ -69,6 +69,25 @@ class diagPositions(object):
     def get_roll_state(self, instrument_code: str) -> RollState:
         return self.data.db_roll_state.get_roll_state(instrument_code)
 
+    def get_dict_of_actual_positions_for_strategy(self, strategy_name: str) -> dict:
+        list_of_instruments = (
+            self.get_list_of_instruments_for_strategy_with_position(
+                strategy_name
+            )
+        )
+        actual_positions = dict(
+            [
+                (
+                    instrument_code,
+                    self.get_current_position_for_strategy_and_instrument(
+                        strategy_name, instrument_code
+                    ),
+                )
+                for instrument_code in list_of_instruments
+            ]
+        )
+
+        return actual_positions
 
     def get_position_df_for_instrument_and_contract_id(
         self, instrument_code:str, contract_id:str

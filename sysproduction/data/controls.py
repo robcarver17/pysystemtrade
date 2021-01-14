@@ -149,15 +149,6 @@ class diagOverrides(object):
     def get_dict_of_all_overrides(self):
         return self.data.db_override.get_dict_of_all_overrides()
 
-    def get_cumulative_override_for_strategy_and_instrument(
-        self, strategy_name, instrument_code
-    ):
-        # FIXME REMOVE
-        instrument_strategy = instrumentStrategy(strategy_name  =strategy_name,
-            instrument_code=instrument_code)
-        return \
-            self.get_cumulative_override_for_instrument_strategy(instrument_strategy)
-
     def get_cumulative_override_for_instrument_strategy(
         self, instrument_strategy: instrumentStrategy
     ):

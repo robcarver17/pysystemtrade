@@ -3,6 +3,8 @@ from sysexecution.stack_handler.completed_orders import stackHandlerForCompletio
 from sysexecution.stack_handler.fills import stackHandlerForFills
 from sysexecution.orders.instrument_orders import instrumentOrder
 from sysexecution.orders.contract_orders import contractOrder
+from sysexecution.orders.contract_orders import balance_order_type as balance_order_type_for_contract_orders
+from sysexecution.orders.instrument_orders import balance_order_type as balance_order_type_for_instrument_orders
 from sysexecution.orders.broker_orders import brokerOrder
 
 class stackHandlerCreateBalanceTrades(
@@ -157,6 +159,7 @@ def create_balance_contract_order_from_broker_order(broker_order: brokerOrder):
         manual_fill=True,
         manual_trade=True,
         active=False,
+        order_type= balance_order_type_for_contract_orders
     )
 
     return contract_order
@@ -172,5 +175,6 @@ def create_balance_instrument_order_from_contract_order(contract_order):
         fill_datetime=contract_order.fill_datetime,
         manual_trade=True,
         active=False,
+        order_type=balance_order_type_for_instrument_orders
     )
     return instrument_order

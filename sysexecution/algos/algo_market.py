@@ -11,6 +11,10 @@ from sysexecution.algos.common_functions import (
     cancel_order,
     file_log_report_market_order,
 )
+from sysdata.data_blob import dataBlob
+from sysexecution.orders.contract_orders import contractOrder
+from sysexecution.order_stacks.broker_order_stack import orderWithControls
+from sysexecution.orders.broker_orders import market_order_type
 
 SIZE_LIMIT = 1
 ORDER_TIME_OUT = 600
@@ -23,7 +27,7 @@ class algoMarket(Algo):
 
     """
 
-    def submit_trade(self):
+    def submit_trade(self) -> orderWithControls:
         broker_order_with_controls = prepare_and_submit_trade(
             self.data, self.contract_order
         )
@@ -33,7 +37,7 @@ class algoMarket(Algo):
 
         return broker_order_with_controls
 
-    def manage_trade(self, broker_order_with_controls):
+    def manage_trade(self, broker_order_with_controls: orderWithControls) -> orderWithControls:
         data = self.data
         broker_order_with_controls = manage_trade(
             data, broker_order_with_controls)
@@ -44,7 +48,8 @@ class algoMarket(Algo):
         return broker_order_with_controls
 
 
-def prepare_and_submit_trade(data, contract_order):
+def prepare_and_submit_trade(data: dataBlob,
+                             contract_order: contractOrder):
     log = contract_order.log_with_attributes(data.log)
 
     data_broker = dataBroker(data)
@@ -58,14 +63,16 @@ def prepare_and_submit_trade(data, contract_order):
 
     broker_order_with_controls = (
         data_broker.get_and_submit_broker_order_for_contract_order(
-            cut_down_contract_order, order_type="market"
+            cut_down_contract_order, order_type=market_order_type
         )
     )
 
     return broker_order_with_controls
 
 
-def manage_trade(data, broker_order_with_controls):
+def manage_trade(data: dataBlob,
+                broker_order_with_controls: orderWithControls) \
+        -> orderWithControls:
     log = broker_order_with_controls.order.log_with_attributes(data.log)
     data_broker = dataBroker(data)
 
@@ -73,28 +80,29 @@ def manage_trade(data, broker_order_with_controls):
     log.msg("Managing trade %s with market order" %
             str(broker_order_with_controls.order))
     while trade_open:
-        if broker_order_with_controls.message_required(
+        log_message_required = broker_order_with_controls.message_required(
             messaging_frequency_seconds=MESSAGING_FREQUENCY
-        ):
+        )
+        if log_message_required:
             file_log_report_market_order(log, broker_order_with_controls)
 
-        order_completed = broker_order_with_controls.completed()
-        order_timeout = (
+        is_order_completed = broker_order_with_controls.completed()
+        is_order_timeout = (
             broker_order_with_controls.seconds_since_submission() > ORDER_TIME_OUT)
-        order_cancelled = data_broker.check_order_is_cancelled_given_control_object(
+        is_order_cancelled = data_broker.check_order_is_cancelled_given_control_object(
             broker_order_with_controls)
-        if order_completed:
+        if is_order_completed:
             log.msg("Trade completed")
             break
 
-        if order_timeout:
-            log.msg("Run out of time: cancelling")
+        if is_order_timeout:
+            log.msg("Run out of time to execute: cancelling")
             broker_order_with_controls = cancel_order(
                 data, broker_order_with_controls)
             break
 
-        if order_cancelled:
-            log.warn("Order has been cancelled: not by algo!")
+        if is_order_cancelled:
+            log.warn("Order has been cancelled apparently by broker: not by algo!")
             break
 
     return broker_order_with_controls

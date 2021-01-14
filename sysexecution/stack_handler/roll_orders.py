@@ -1,5 +1,7 @@
 from syscore.objects import missing_order, ROLL_PSEUDO_STRATEGY
 
+from sysdata.data_blob import dataBlob
+
 from sysexecution.orders.contract_orders import contractOrder
 from sysexecution.orders.instrument_orders import instrumentOrder
 from sysexecution.algos.allocate_algo_to_order import (
@@ -13,10 +15,12 @@ from sysproduction.data.prices import diagPrices
 from sysexecution.stack_handler.stackHandlerCore import stackHandlerCore, put_children_on_stack, rollback_parents_and_children_and_handle_exceptions, log_successful_adding
 from sysexecution.order_stacks.order_stack import orderStackData, failureWithRollback
 from sysexecution.orders.base_orders import Order
-from sysexecution.orders.contract_orders import contractOrder
-from sysexecution.orders.broker_orders import brokerOrder
+from sysexecution.orders.contract_orders import contractOrder, best_order_type
+from sysexecution.orders.instrument_orders import zero_roll_order_type
+
 from sysexecution.orders.list_of_orders import listOfOrders
 
+CONTRACT_ORDER_TYPE_FOR_ROLL_ORDERS = best_order_type
 
 class stackHandlerForRolls(stackHandlerCore):
     def generate_force_roll_orders(self):
@@ -25,12 +29,12 @@ class stackHandlerForRolls(stackHandlerCore):
         for instrument_code in list_of_instruments:
             self.generate_force_roll_orders_for_instrument(instrument_code)
 
-    def generate_force_roll_orders_for_instrument(self, instrument_code):
+    def generate_force_roll_orders_for_instrument(self, instrument_code: str):
         log = self.data.log.setup(
             instrument_code=instrument_code, strategy_name=ROLL_PSEUDO_STRATEGY
         )
-        roll_required = self.check_roll_required(instrument_code)
-        if not roll_required:
+        no_roll_required = not self.check_roll_required(instrument_code)
+        if no_roll_required:
             return None
 
         instrument_order, contract_orders = create_force_roll_orders(
@@ -129,7 +133,8 @@ class stackHandlerForRolls(stackHandlerCore):
         parent_stack.unlock_order_on_stack(parent_order_id)
 
 
-    def check_roll_required(self, instrument_code):
+    def check_roll_required(self, instrument_code: str) -> bool:
+
         order_already_on_stack = self.check_if_roll_order_already_on_stack(
             instrument_code
         )
@@ -139,30 +144,39 @@ class stackHandlerForRolls(stackHandlerCore):
         if order_already_on_stack:
             return False
 
-        if not forced_roll_required:
+        if forced_roll_required:
+            return True
+        else:
             return False
 
-        return True
 
-    def check_if_roll_order_already_on_stack(self, instrument_code):
-        result = self.instrument_stack.does_strategy_and_instrument_already_have_order_on_stack(
+    def check_if_roll_order_already_on_stack(self, instrument_code: str) -> bool:
+        order_already_on_stack = self.instrument_stack.does_strategy_and_instrument_already_have_order_on_stack(
             ROLL_PSEUDO_STRATEGY, instrument_code)
 
-        return result
+        return order_already_on_stack
 
-    def check_if_forced_roll_required(self, instrument_code):
+    def check_if_forced_roll_required(self, instrument_code: str) -> bool:
         diag_positions = diagPositions(self.data)
-        return diag_positions.is_forced_roll_required(instrument_code)
+        forced_roll_required = diag_positions.is_forced_roll_required(instrument_code)
 
-def create_force_roll_orders(data, instrument_code):
+        return forced_roll_required
+
+def create_force_roll_orders(data: dataBlob, instrument_code: str) -> (instrumentOrder, listOfOrders):
     """
 
     :param data:
     :param instrument_code:
     :return: tuple; instrument_order (or missing_order), contract_orders
     """
-    diag_positions = diagPositions(data)
 
+    instrument_order = create_instrument_roll_order(instrument_code)
+
+    contract_orders = create_contract_roll_orders(data = data, instrument_order = instrument_order)
+
+    return instrument_order, contract_orders
+
+def create_instrument_roll_order(instrument_code: str) -> instrumentOrder:
     strategy = ROLL_PSEUDO_STRATEGY
     trade = 0
     instrument_order = instrumentOrder(
@@ -170,9 +184,15 @@ def create_force_roll_orders(data, instrument_code):
         instrument_code,
         trade,
         roll_order=True,
-        order_type="Zero-roll-order")
+        order_type=zero_roll_order_type)
 
+    return instrument_order
 
+def create_contract_roll_orders(data: dataBlob, instrument_order: instrumentOrder) -> listOfOrders:
+
+    instrument_code = instrument_order.instrument_code
+
+    diag_positions = diagPositions(data)
     diag_contracts = diagContracts(data)
     priced_contract_id = diag_contracts.get_priced_contract_id(instrument_code)
     forward_contract_id = diag_contracts.get_forward_contract_id(
@@ -181,7 +201,7 @@ def create_force_roll_orders(data, instrument_code):
         instrument_code, priced_contract_id)
 
     if position_in_priced == 0:
-        return missing_order, []
+        return listOfOrders([])
 
     if diag_positions.is_roll_state_force(instrument_code):
         contract_orders = create_contract_orders_outright(
@@ -189,7 +209,7 @@ def create_force_roll_orders(data, instrument_code):
             instrument_code,
             priced_contract_id,
             forward_contract_id,
-            position_in_priced,
+            position_in_priced
         )
     elif diag_positions.is_roll_state_force_outright(instrument_code):
         contract_orders = create_contract_orders_spread(
@@ -203,21 +223,21 @@ def create_force_roll_orders(data, instrument_code):
         log = instrument_order.log_with_attributes(data.log)
         roll_state = diag_positions.get_roll_state(instrument_code)
         log.warn("Roll state %s is unexpected, might have changed" % str(roll_state))
-        return missing_order, []
+        return listOfOrders([])
 
     contract_orders = allocate_algo_to_list_of_contract_orders(
-        data, contract_orders, instrument_order=instrument_order
+        data, contract_orders, instrument_order
     )
 
-    return instrument_order, contract_orders
-
+    return contract_orders
 
 def create_contract_orders_outright(
-        data,
-        instrument_code,
-        priced_contract_id,
-        forward_contract_id,
-        position_in_priced):
+        data: dataBlob,
+        instrument_code: str,
+        priced_contract_id: str,
+        forward_contract_id: str,
+        position_in_priced: int) -> listOfOrders:
+
     diag_prices = diagPrices(data)
     reference_price_priced_contract, reference_price_forward_contract = tuple(
         diag_prices.get_last_matched_prices_for_contract_list(
@@ -234,6 +254,7 @@ def create_contract_orders_outright(
         reference_price=reference_price_priced_contract,
         roll_order=True,
         inter_spread_order=True,
+        order_type = CONTRACT_ORDER_TYPE_FOR_ROLL_ORDERS
     )
     second_order = contractOrder(
         strategy,
@@ -243,17 +264,18 @@ def create_contract_orders_outright(
         reference_price=reference_price_forward_contract,
         roll_order=True,
         inter_spread_order=True,
+        order_type = CONTRACT_ORDER_TYPE_FOR_ROLL_ORDERS
     )
 
-    return [first_order, second_order]
+    return listOfOrders([first_order, second_order])
 
 
 def create_contract_orders_spread(
-        data,
-        instrument_code,
-        priced_contract_id,
-        forward_contract_id,
-        position_in_priced):
+        data: dataBlob,
+        instrument_code: str,
+        priced_contract_id: str,
+        forward_contract_id: str,
+        position_in_priced: int) -> listOfOrders:
 
     diag_prices = diagPrices(data)
     reference_price_priced_contract, reference_price_forward_contract = tuple(
@@ -276,6 +298,7 @@ def create_contract_orders_spread(
         trade_list,
         reference_price=spread_reference_price,
         roll_order=True,
+        order_type = CONTRACT_ORDER_TYPE_FOR_ROLL_ORDERS
     )
 
-    return [spread_order]
+    return listOfOrders(spread_order)

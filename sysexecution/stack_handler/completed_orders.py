@@ -1,27 +1,15 @@
+from collections import namedtuple
 from syscore.objects import (
-    missing_order,
-    success,
-    failure,
-    locked_order,
-    duplicate_order,
-    no_order_id,
     no_children,
-    no_parent,
-    missing_contract,
-    missing_data,
-    rolling_cant_trade,
-    ROLL_PSEUDO_STRATEGY,
     missing_order,
-    order_is_in_status_reject_modification,
-    order_is_in_status_finished,
-    locked_order,
-    order_is_in_status_modified,
-    resolve_function,
 )
 
 from sysexecution.stack_handler.stackHandlerCore import stackHandlerCore
 from sysproduction.data.orders import dataOrders
 
+orderFamily = namedtuple('orderFamily', ['instrument_order_id',
+                                         'list_of_contract_order_id',
+                                        'list_of_broker_order_id'])
 
 class stackHandlerForCompletions(stackHandlerCore):
     def handle_completed_orders(
@@ -67,41 +55,26 @@ class stackHandlerForCompletions(stackHandlerCore):
         # When we do this the original orders are deactivated
         # the instrument order has it's children removed and replaced by the components of each spread order
         # the contract order
+
         self.split_up_spread_orders(instrument_order_id)
 
-        # we need to do this again in case of any splits
-        (
-            list_of_broker_order_id,
-            list_of_contract_order_id,
-        ) = self.get_all_children_and_grandchildren_for_instrument_order_id(
-            instrument_order_id
-        )
-
-        contract_order_list = self.contract_stack.get_list_of_orders_from_order_id_list(
-            list_of_contract_order_id)
-        broker_order_list = self.broker_stack.get_list_of_orders_from_order_id_list(
-            list_of_broker_order_id)
-        instrument_order = self.instrument_stack.get_order_with_id_from_stack(
+        # the 'order family' will now include split orders
+        order_family = self.get_order_family_for_instrument_order_id(
             instrument_order_id
         )
 
         # Make orders inactive
         # A subsequent process will delete them
         self.deactivate_family_of_orders(
-            instrument_order_id,
-            list_of_contract_order_id,
-            list_of_broker_order_id)
+            order_family)
 
-        # Update historic order database
-        order_data = dataOrders(self.data)
-        order_data.add_historic_orders_to_data(
-            instrument_order, contract_order_list, broker_order_list
-        )
+        self.add_order_family_to_historic_orders_database(order_family)
 
 
-    def get_all_children_and_grandchildren_for_instrument_order_id(
+
+    def get_order_family_for_instrument_order_id(
         self, instrument_order_id: int
-    ) -> (list, list):
+    ) -> orderFamily:
 
         instrument_order = self.instrument_stack.get_order_with_id_from_stack(
             instrument_order_id
@@ -109,12 +82,16 @@ class stackHandlerForCompletions(stackHandlerCore):
         list_of_contract_order_id = instrument_order.children
         if list_of_contract_order_id is no_children:
             # childless, grandchildless
-            return [],[]
+            return orderFamily(instrument_order_id, [],[])
 
         list_of_broker_order_id = \
             self.get_all_grandchildren_from_list_of_contract_order_id(list_of_contract_order_id)
 
-        return list_of_broker_order_id, list_of_contract_order_id
+        order_family = orderFamily(instrument_order_id=instrument_order_id,
+                                   list_of_contract_order_id=list_of_contract_order_id,
+                                   list_of_broker_order_id=list_of_broker_order_id)
+
+        return order_family
 
     def get_all_grandchildren_from_list_of_contract_order_id(self, list_of_contract_order_id: list) -> list:
         list_of_broker_order_id = []
@@ -141,22 +118,19 @@ class stackHandlerForCompletions(stackHandlerCore):
         allow_zero_completions=False,
     ):
 
-        (
-            list_of_broker_order_id,
-            list_of_contract_order_id,
-        ) = self.get_all_children_and_grandchildren_for_instrument_order_id(
+        order_family = self.get_order_family_for_instrument_order_id(
             instrument_order_id
         )
 
 
         children_filled = self.check_list_of_contract_orders_complete(
-            list_of_contract_order_id,
+            order_family.list_of_contract_order_id,
             allow_partial_completions=allow_partial_completions,
             allow_zero_completions=allow_zero_completions,
         )
 
         grandchildren_filled = self.check_list_of_broker_orders_complete(
-            list_of_broker_order_id,
+            order_family.list_of_broker_order_id,
             allow_partial_completions=allow_partial_completions,
             allow_zero_completions=allow_zero_completions,
         )
@@ -205,29 +179,16 @@ class stackHandlerForCompletions(stackHandlerCore):
 
         return True
 
-    def deactivate_family_of_orders(
-            self,
-            instrument_order_id: int,
-            list_of_contract_order_id: list,
-            list_of_broker_order_id: list):
-        # Make orders inactive
-        # A subsequent process will delete them
-        self.instrument_stack.deactivate_order(instrument_order_id)
-
-        for contract_order_id in list_of_contract_order_id:
-            self.contract_stack.deactivate_order(contract_order_id)
-
-        for broker_order_id in list_of_broker_order_id:
-            self.broker_stack.deactivate_order(broker_order_id)
 
 
-    def split_up_spread_orders(self, instrument_order_id):
+
+    def split_up_spread_orders(self, instrument_order_id: int):
         """
         Replace spread orders with individual components
 
         Once finished the contract stack and broker stack will contain the original, spread-orders,
            set to zero fill,  (so they don't mess up position tables)
-        plus the broken down components
+            plus the broken down components
 
         :param instrument_order_id:
         :param list_of_contract_order_id:
@@ -237,11 +198,11 @@ class stackHandlerForCompletions(stackHandlerCore):
         original_instrument_order = self.instrument_stack.get_order_with_id_from_stack(
             instrument_order_id)
         if original_instrument_order is missing_order:
-            return failure
+            raise Exception("Can't split up missing orders")
 
         list_of_contract_order_id = original_instrument_order.children
         if list_of_contract_order_id is no_children:
-            return failure
+            return None
 
         new_contract_order_ids = []
         for contract_order_id in list_of_contract_order_id:
@@ -252,14 +213,14 @@ class stackHandlerForCompletions(stackHandlerCore):
                 new_contract_order_ids_for_this_contract)
 
         # add the new contract order ids as children for the instrument order
+        # this wil keep the original ones there
         for contract_order_id in new_contract_order_ids:
             self.instrument_stack.add_another_child_to_order(
                 instrument_order_id, contract_order_id
             )
 
-        return success
 
-    def split_contract_order_id(self, contract_order_id):
+    def split_contract_order_id(self, contract_order_id: int) -> list:
 
         # get the original contract order
         original_contract_order = self.contract_stack.get_order_with_id_from_stack(
@@ -292,12 +253,13 @@ class stackHandlerForCompletions(stackHandlerCore):
                 contract_order_id, new_broker_order_id
             )
 
+        # split the contract
         new_contract_order_ids_for_this_contract = (
             self.split_contract_order_id_once_broker_id_split(contract_order_id))
 
         return new_contract_order_ids_for_this_contract
 
-    def split_contract_order_id_once_broker_id_split(self, contract_order_id):
+    def split_contract_order_id_once_broker_id_split(self, contract_order_id: int) -> list:
 
         # reread original contract order otherwise won't include new children
         original_contract_order = self.contract_stack.get_order_with_id_from_stack(
@@ -321,7 +283,7 @@ class stackHandlerForCompletions(stackHandlerCore):
 
         return new_contract_order_ids_for_this_contract
 
-    def split_broker_order_id(self, broker_order_id):
+    def split_broker_order_id(self, broker_order_id: int) -> list:
         # get the order
 
         original_broker_order = self.broker_stack.get_order_with_id_from_stack(
@@ -345,3 +307,34 @@ class stackHandlerForCompletions(stackHandlerCore):
             new_order_ids_for_this_broker_id = []
 
         return new_order_ids_for_this_broker_id
+
+    def add_order_family_to_historic_orders_database(self, order_family: orderFamily):
+
+        instrument_order = self.instrument_stack.get_order_with_id_from_stack(
+            order_family.instrument_order_id
+        )
+        contract_order_list = self.contract_stack.get_list_of_orders_from_order_id_list(
+            order_family.list_of_contract_order_id)
+        broker_order_list = self.broker_stack.get_list_of_orders_from_order_id_list(
+            order_family.list_of_broker_order_id)
+
+        # Update historic order database
+        order_data = dataOrders(self.data)
+        order_data.add_historic_orders_to_data(
+            instrument_order, contract_order_list, broker_order_list
+        )
+
+
+    def deactivate_family_of_orders(
+            self,
+            order_family: orderFamily):
+
+        # Make orders inactive
+        # A subsequent process will delete them
+        self.instrument_stack.deactivate_order(order_family.instrument_order_id)
+
+        for contract_order_id in order_family.list_of_contract_order_id:
+            self.contract_stack.deactivate_order(contract_order_id)
+
+        for broker_order_id in order_family.list_of_broker_order_id:
+            self.broker_stack.deactivate_order(broker_order_id)

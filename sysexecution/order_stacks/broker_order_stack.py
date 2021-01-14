@@ -152,5 +152,5 @@ class orderWithControls(object):
         else:
             return False
 
-    def broker_limit_price(self) -> quotePrice:
+    def broker_limit_price(self) -> float:
         raise NotImplementedError

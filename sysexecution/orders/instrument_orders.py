@@ -15,7 +15,11 @@ class instrumentOrderType(orderType):
     def allowed_types(self):
         return ['best', 'market', 'limit', 'Zero_roll_order', 'balance_trade']
 
-
+zero_roll_order_type = instrumentOrderType('Zero_roll_order')
+balance_order_type = instrumentOrderType('balance_trade')
+market_order_type = instrumentOrderType('market')
+best_order_type = instrumentOrderType('best')
+limit_order_type = instrumentOrderType('limit')
 
 class instrumentOrder(Order):
     def __init__(
@@ -156,6 +160,10 @@ class instrumentOrder(Order):
     @property
     def instrument_code(self):
         return self.tradeable_object.instrument_code
+
+    @property
+    def instrument_strategy(self):
+        return self.tradeable_object
 
     @property
     def limit_contract(self):

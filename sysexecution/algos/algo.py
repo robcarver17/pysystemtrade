@@ -1,8 +1,11 @@
-from syscore.objects import missing_order
+from sysdata.data_blob import dataBlob
+from sysexecution.orders.contract_orders import contractOrder
+from sysexecution.order_stacks.broker_order_stack import orderWithControls
 
 
 class Algo(object):
-    def __init__(self, data, contract_order):
+    def __init__(self, data: dataBlob,
+                 contract_order: contractOrder):
         self._data = data
         self._contract_order = contract_order
 
@@ -14,14 +17,14 @@ class Algo(object):
     def contract_order(self):
         return self._contract_order
 
-    def submit_trade(self):
+    def submit_trade(self) -> orderWithControls:
         """
 
         :return: broker order with control  or missing_order
         """
         raise NotImplementedError
 
-    def manage_trade(self, broker_order_with_controls):
+    def manage_trade(self, broker_order_with_controls: orderWithControls) -> orderWithControls:
         """
 
         :return: broker order with control

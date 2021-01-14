@@ -7,6 +7,7 @@ from sysexecution.orders.base_orders import (
     no_children,
     no_parent,
     resolve_inputs_to_order, orderType)
+
 from sysexecution.trade_qty import tradeQuantity
 from sysexecution.fill_price import fillPrice
 from sysexecution.orders.list_of_orders import listOfOrders
@@ -21,6 +22,8 @@ class contractOrderType(orderType):
     def allowed_types(self):
         return ['best', 'market', 'limit', 'balance_trade']
 
+best_order_type  = contractOrderType('best')
+balance_order_type = contractOrderType('balance')
 
 
 class contractOrder(Order):
@@ -193,6 +196,10 @@ class contractOrder(Order):
     @property
     def contract_date_key(self):
         return self.tradeable_object.contract_date_key
+
+    @property
+    def futures_contract(self):
+        return self.tradeable_object.futures_contract
 
     @property
     def instrument_strategy(self) -> instrumentStrategy:

@@ -1,21 +1,6 @@
+from copy import copy
 from syscore.objects import (
     missing_order,
-    success,
-    failure,
-    locked_order,
-    duplicate_order,
-    no_order_id,
-    no_children,
-    no_parent,
-    missing_contract,
-    missing_data,
-    rolling_cant_trade,
-    ROLL_PSEUDO_STRATEGY,
-    missing_order,
-    order_is_in_status_reject_modification,
-    order_is_in_status_finished,
-    locked_order,
-    order_is_in_status_modified,
     resolve_function,
 )
 from sysproduction.data.controls import dataTradeLimits
@@ -25,14 +10,15 @@ from sysexecution.algos.allocate_algo_to_order import (
 )
 from sysexecution.orders.contract_orders import contractOrder
 from sysexecution.orders.broker_orders import brokerOrder
-
+from sysexecution.order_stacks.broker_order_stack import orderWithControls
+from sysexecution.algos.algo import Algo
 from sysexecution.stack_handler.stackHandlerCore import stackHandlerCore
 from sysproduction.data.controls import dataLocks
 from sysproduction.data.broker import dataBroker
 
 
 class stackHandlerCreateBrokerOrders(stackHandlerCore):
-    def create_broker_orders_from_contract_orders(self, check_if_open=True):
+    def create_broker_orders_from_contract_orders(self):
         """
         Create broker orders from contract orders. These become child orders of the contract parent.
 
@@ -54,125 +40,106 @@ class stackHandlerCreateBrokerOrders(stackHandlerCore):
             contract_order = self.contract_stack.get_order_with_id_from_stack(
                 contract_order_id
             )
-            if contract_order.fill_equals_desired_trade():
-                continue
-            elif contract_order.is_order_controlled_by_algo():
-                continue
 
             self.create_broker_order_for_contract_order(
-                contract_order_id, check_if_open=check_if_open
+                contract_order_id
             )
 
-        return success
 
     def create_broker_order_for_contract_order(
-        self, contract_order_id, check_if_open=True
+        self, contract_order_id:int
     ):
 
         original_contract_order = self.contract_stack.get_order_with_id_from_stack(
             contract_order_id)
         if original_contract_order is missing_order:
             # weird race condition
-            return failure
-
-        contract_order = self.preprocess_contract_order(
-            original_contract_order, check_if_open=check_if_open
-        )
-        if contract_order is missing_order:
-            #print("Empty order not submitting to algo")
             return None
 
-        contract_order = check_and_if_required_allocate_algo_to_single_contract_order(
-            self.data, contract_order)
+        contract_order_to_trade = self.preprocess_contract_order(
+            original_contract_order
+        )
 
-        log = contract_order.log_with_attributes(self.log)
-        log.msg("Sending order %s to algo %s" % (str(contract_order), contract_order.algo_to_use))
-
-        algo_class_to_call = self.resolve_algo(contract_order)
-        algo_instance = algo_class_to_call(self.data, contract_order)
-
-        # THIS LINE ACTUALLY SENDS THE ORDER TO THE ALGO
-        broker_order_with_controls = algo_instance.submit_trade()
-
-        if broker_order_with_controls is missing_order:
-            self.contract_stack.release_order_from_algo_control(
-                contract_order_id)
+        if contract_order_to_trade is missing_order:
+            # Empty order not submitting to algo
             return None
 
-        broker_order_with_controls = self.add_trade_to_database(
-            broker_order_with_controls
-        )
-        broker_order_with_controls = algo_instance.manage_trade(
+        algo_instance_and_broker_order_with_controls = self.send_to_algo(contract_order_to_trade)
+
+        if algo_instance_and_broker_order_with_controls is missing_order:
+            # something gone wrong with execution
+            return missing_order
+
+        (algo_instance, broker_order_with_controls) = algo_instance_and_broker_order_with_controls
+
+        broker_order_with_controls_and_order_id = self.add_trade_to_database(
             broker_order_with_controls
         )
 
-        result = self.post_trade_processing(broker_order_with_controls)
+        completed_broker_order_with_controls = algo_instance.manage_trade(
+            broker_order_with_controls_and_order_id
+        )
 
-        return result
+        self.post_trade_processing(completed_broker_order_with_controls)
+
 
     def preprocess_contract_order(
             self,
-            original_contract_order,
-            check_if_open=True):
+            original_contract_order: contractOrder) -> contractOrder:
+
+        if original_contract_order.fill_equals_desired_trade():
+            return missing_order
+
+        if original_contract_order.is_order_controlled_by_algo():
+            # already being traded by an active algo
+            return missing_order
+
         data_broker = dataBroker(self.data)
-        log = original_contract_order.log_with_attributes(self.log)
 
         # CHECK FOR LOCKS
         data_locks = dataLocks(self.data)
         instrument_locked = data_locks.is_instrument_locked(
             original_contract_order.instrument_code
         )
-        if instrument_locked:
-            #print("Instrument is locked for order %s" % str(original_contract_order))
+
+        market_closed = not (
+            data_broker.is_contract_okay_to_trade(
+                original_contract_order.futures_contract
+            )
+        )
+        if instrument_locked or market_closed:
+            # we don't log to avoid spamming
+            #print("market is closed for order %s" % str(original_contract_order))
             return missing_order
 
-        # CHECK IF OPEN
-        if check_if_open:
-            market_open = (
-                data_broker.is_instrument_code_and_contract_date_okay_to_trade(
-                    original_contract_order.instrument_code,
-                    original_contract_order.contract_id,
-                )
-            )
-            if not market_open:
-                #print("market is closed for order %s" % str(original_contract_order))
-                return missing_order
-
         # RESIZE
-        contract_order = self.size_contract_order(original_contract_order)
+        contract_order_to_trade = self.size_contract_order(original_contract_order)
 
-        return contract_order
+        return contract_order_to_trade
 
-    def size_contract_order(self, original_contract_order):
+    def size_contract_order(self, original_contract_order: contractOrder) -> contractOrder:
         # We can deal with partially filled contract orders: that's how hard we
         # are!
         remaining_contract_order = original_contract_order.create_order_with_unfilled_qty()
 
         # Check the order doesn't breach trade limits
-        contract_order_after_trade_limits = self.what_contract_trade_is_possible(
+        contract_order_after_trade_limits = self.apply_trade_limits_to_contract_order(
             remaining_contract_order)
 
-        #print("Order after trade limits%s" % str(contract_order_after_trade_limits))
-
-        contract_order = self.liquidity_size_contract_order(
+        contract_order_to_trade  = self.liquidity_size_contract_order(
             contract_order_after_trade_limits
         )
 
-        #print("Order after liquiditysizing %s" % str(contract_order))
-
-        if contract_order is missing_order:
-            #print("Order %s is zero, not trading" % str(contract_order))
+        if contract_order_to_trade is missing_order:
             return missing_order
 
-        if contract_order.fill_equals_desired_trade():
-            #print("Order is completely filled %s" % str(contract_order))
-
+        if contract_order_to_trade.fill_equals_desired_trade():
             # Nothing left to trade
             return missing_order
 
-        return contract_order
+        return contract_order_to_trade
 
-    def what_contract_trade_is_possible(self, proposed_order: contractOrder) -> contractOrder:
+    def apply_trade_limits_to_contract_order(self, proposed_order: contractOrder) -> contractOrder:
         log = proposed_order.log_with_attributes(self.log)
         data_trade_limits = dataTradeLimits(self.data)
 
@@ -182,24 +149,26 @@ class stackHandlerCreateBrokerOrders(stackHandlerCore):
         maximum_abs_qty = data_trade_limits.what_trade_is_possible_for_strategy_instrument(
             instrument_strategy, proposed_order.trade)
 
-        revised_order = proposed_order.change_trade_size_proportionally_to_meet_abs_qty_limit(
+        contract_order_after_trade_limits = \
+            proposed_order.change_trade_size_proportionally_to_meet_abs_qty_limit(
             maximum_abs_qty
         )
 
-        if revised_order.trade != proposed_order.trade:
+        if contract_order_after_trade_limits.trade != proposed_order.trade:
             log.msg(
                 "%s trade change from %s to %s because of trade limits"
                 % (
                     proposed_order.key,
                     str(proposed_order.trade),
-                    str(revised_order.trade),
+                    str(contract_order_after_trade_limits.trade),
                 )
             )
 
-        return revised_order
+        return contract_order_after_trade_limits
 
 
-    def liquidity_size_contract_order(self, contract_order_after_trade_limits):
+    def liquidity_size_contract_order(self, contract_order_after_trade_limits: contractOrder) -> contractOrder:
+
         data_broker = dataBroker(self.data)
         log = contract_order_after_trade_limits.log_with_attributes(self.log)
 
@@ -223,39 +192,65 @@ class stackHandlerCreateBrokerOrders(stackHandlerCore):
 
         return contract_order
 
-    def resolve_algo(self, contract_order):
+    def send_to_algo(self, contract_order_to_trade: contractOrder) -> (Algo, orderWithControls):
+
+        log = contract_order_to_trade.log_with_attributes(self.log)
+        contract_order_to_trade_with_algo_set = check_and_if_required_allocate_algo_to_single_contract_order(
+            self.data, contract_order_to_trade)
+
+        log.msg("Sending order %s to algo %s" % (str(contract_order_to_trade_with_algo_set), contract_order_to_trade_with_algo_set.algo_to_use))
+
+        algo_class_to_call = self.add_controlling_algo_to_order(contract_order_to_trade_with_algo_set)
+        algo_instance = algo_class_to_call(self.data, contract_order_to_trade_with_algo_set)
+
+        # THIS LINE ACTUALLY SENDS THE ORDER TO THE ALGO
+        broker_order_with_controls = algo_instance.submit_trade()
+
+        if broker_order_with_controls is missing_order:
+            # important we do this or order will never execute
+            #  if no issue here will be released once order filled
+            self.contract_stack.release_order_from_algo_control(
+                contract_order_to_trade_with_algo_set.contract_order_id)
+            return missing_order
+
+        return algo_instance, broker_order_with_controls
+
+    def add_controlling_algo_to_order(self, contract_order_to_trade: contractOrder) -> 'function':
         # Note we don't save the algo method, but reallocate each time
         # This is useful if trading is about to finish, because we switch to market orders
         # (assuming a bunch of limit orders haven't worked out so well)
 
-        algo_to_use_str = contract_order.algo_to_use
+        algo_to_use_str = contract_order_to_trade.algo_to_use
         algo_method = resolve_function(algo_to_use_str)
 
         # This prevents another algo from trying to trade the same contract order
         # Very important to avoid multiple broker orders being issued from the
         # same contract order
         self.contract_stack.add_controlling_algo_ref(
-            contract_order.order_id, algo_to_use_str
+            contract_order_to_trade.order_id, algo_to_use_str
         )
 
         return algo_method
 
-    def add_trade_to_database(self, broker_order_with_controls):
-        broker_order = broker_order_with_controls.order
+    def add_trade_to_database(self, broker_order_with_controls: orderWithControls) -> orderWithControls:
+        broker_order_with_controls_and_order_id = copy(broker_order_with_controls)
+
+        broker_order = broker_order_with_controls_and_order_id.order
 
         log = broker_order.log_with_attributes(self.log)
-
-        broker_order_id = self.broker_stack.put_order_on_stack(broker_order)
-        if not isinstance(broker_order_id, int):
+        try:
+            broker_order_id = self.broker_stack.put_order_on_stack(broker_order)
+        except Exception as e:
             # We've created a broker order but can't add it to the broker order database
             # Probably safest to leave the contract order locked otherwise there could be multiple
             #   broker orders issued and nobody wants that!
-            log.critical(
-                "Created a broker order %s but can't add it to the order stack!! (condition %s)" %
-                (str(broker_order), str(broker_order_id)))
-            return failure
+            error_msg = "Created a broker order %s but can't add it to the order stack!! (condition %s) STACK CORRUPTED" %\
+                (str(broker_order), str(e))
+            log.critical(error_msg
+                )
+            raise Exception(error_msg)
 
-        # set order_id (wouldn't have had one before)
+        # set order_id (wouldn't have had one before, might be done inside db adding but make explicit)
         broker_order.order_id = broker_order_id
 
         # This broker order is a child of the parent contract order
@@ -266,12 +261,10 @@ class stackHandlerCreateBrokerOrders(stackHandlerCore):
             contract_order_id, broker_order_id
         )
 
-        return broker_order_with_controls
+        return broker_order_with_controls_and_order_id
 
-    def post_trade_processing(self, broker_order_with_controls):
-        broker_order = broker_order_with_controls.order
-
-        log = broker_order.log_with_attributes(self.log)
+    def post_trade_processing(self, completed_broker_order_with_controls: orderWithControls):
+        broker_order = completed_broker_order_with_controls.order
 
         # update trade limits
         self.add_trade_to_trade_limits(broker_order)
@@ -283,7 +276,6 @@ class stackHandlerCreateBrokerOrders(stackHandlerCore):
         contract_order_id = broker_order.parent
         self.contract_stack.release_order_from_algo_control(contract_order_id)
 
-        return success
 
 
     def add_trade_to_trade_limits(
@@ -294,7 +286,7 @@ class stackHandlerCreateBrokerOrders(stackHandlerCore):
 
         data_trade_limits.add_trade(executed_order)
 
-    def apply_fills_to_database(self, broker_order):
+    def apply_fills_to_database(self, broker_order: brokerOrder):
         broker_order_id = broker_order.order_id
 
         self.broker_stack.change_fill_quantity_for_order(

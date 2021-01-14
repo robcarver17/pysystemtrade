@@ -1,3 +1,4 @@
+import datetime
 from syscore.objects import (
     fill_exceeds_trade,
     success,
@@ -19,8 +20,13 @@ from syscore.objects import (
     resolve_function,
 )
 
+from sysexecution.orders.instrument_orders import instrumentOrder
 from sysexecution.stack_handler.stackHandlerCore import stackHandlerCore
 from sysexecution.fill_price import listOfFillPrice
+from sysexecution.orders.list_of_orders import listOfOrders
+from sysexecution.trade_qty import tradeQuantity
+from sysexecution.fill_price import fillPrice
+
 from sysproduction.data.broker import dataBroker
 from sysproduction.data.positions import updatePositions
 
@@ -43,30 +49,29 @@ class stackHandlerForFills(stackHandlerCore):
         for broker_order_id in list_of_broker_order_ids:
             self.apply_broker_fill_to_broker_stack(broker_order_id)
 
-    def apply_broker_fill_to_broker_stack(self, broker_order_id):
+    def apply_broker_fill_to_broker_stack(self, broker_order_id: int):
 
         db_broker_order = self.broker_stack.get_order_with_id_from_stack(
             broker_order_id
         )
         if db_broker_order is missing_order:
-            return failure
-
-        log = db_broker_order.log_with_attributes(self.log)
+            return None
 
         if db_broker_order.fill_equals_desired_trade():
             # No point
             # We don't log or we'd be spamming like crazy
-            return success
+            return None
 
         data_broker = dataBroker(self.data)
         matched_broker_order = data_broker.match_db_broker_order_to_order_from_brokers(
             db_broker_order)
 
         if matched_broker_order is missing_order:
+            log = db_broker_order.log_with_attributes(self.log)
             log.warn(
-                "Order %s does not match any broker orders" %
+                "Order in database %s does not match any broker orders: can't fill" %
                 db_broker_order)
-            return failure
+            return None
 
         result = self.broker_stack.add_execution_details_from_matched_broker_order(
             broker_order_id, matched_broker_order)
@@ -76,7 +81,6 @@ class stackHandlerForFills(stackHandlerCore):
                 "Fill for %s exceeds trade for %s, ignoring... (hopefully will go away)" %
                 (db_broker_order, matched_broker_order))
 
-        return result
 
     def pass_fills_from_broker_up_to_contract(self):
         list_of_contract_order_ids = self.contract_stack.get_list_of_order_ids()
@@ -89,45 +93,54 @@ class stackHandlerForFills(stackHandlerCore):
         for contract_order_id in list_of_child_order_ids:
             self.apply_contract_fill_to_instrument_order(contract_order_id)
 
-    def apply_contract_fill_to_instrument_order(self, contract_order_id):
+    def apply_contract_fill_to_instrument_order(self, contract_order_id: int):
+
         contract_order = self.contract_stack.get_order_with_id_from_stack(
             contract_order_id
         )
-        log = contract_order.log_with_attributes(self.log)
+        if contract_order is missing_order:
+            return None
 
         if contract_order.fill_equals_zero():
             # Nothing to do here
-            return success
+            return None
 
         contract_parent_id = contract_order.parent
         if contract_parent_id is no_parent:
+            log = contract_order.log_with_attributes(self.log)
             log.error(
                 "No parent for contract order %s %d"
                 % (str(contract_order), contract_order_id)
             )
-            return failure
+            return None
+
+        self.apply_contract_fills_for_instrument_order(instrument_order_id=contract_parent_id)
+
+    def apply_contract_fills_for_instrument_order(self, instrument_order_id: int):
 
         instrument_order = self.instrument_stack.get_order_with_id_from_stack(
-            contract_parent_id
+            instrument_order_id
         )
         list_of_contract_order_ids = instrument_order.children
-
-        # This will be a list...
+        if list_of_contract_order_ids is no_children:
+            return  None
 
         if len(list_of_contract_order_ids) == 1:
             # easy, only one child
-            result = self.apply_contract_fill_to_parent_order_single_child(
-                contract_order, instrument_order
+            contract_order_id = list_of_contract_order_ids[0]
+            self.apply_contract_fill_to_parent_order_single_child(
+                contract_order_id, instrument_order
             )
         else:
-            result = self.apply_contract_fill_to_parent_order_multiple_children(
+            self.apply_contract_fill_to_parent_order_multiple_children(
                 list_of_contract_order_ids, instrument_order)
 
-        return result
 
     def apply_contract_fill_to_parent_order_single_child(
-        self, contract_order, instrument_order
+        self, contract_order_id: int,
+            instrument_order: instrumentOrder
     ):
+        contract_order = self.contract_stack.get_order_with_id_from_stack(contract_order_id)
         log = contract_order.log_with_attributes(self.log)
 
         fill_for_contract = contract_order.fill
@@ -135,7 +148,7 @@ class stackHandlerForFills(stackHandlerCore):
         fill_datetime = contract_order.fill_datetime
         if len(fill_for_contract) == 1:
             # Not a spread order, trivial
-            result = self.fill_for_instrument_in_database(
+            self.fill_for_instrument_in_database(
                 instrument_order, fill_for_contract, filled_price, fill_datetime)
 
         else:
@@ -143,88 +156,76 @@ class stackHandlerForFills(stackHandlerCore):
             # Instrument order quantity is either zero (for a roll) or non zero
             # (for a spread)
             if instrument_order.is_zero_trade():
-                # A roll; meaningless to do this
-                result = success
+                # A forced leg roll or a flat spread; meaningless to do this
+                pass
             else:
-                # A proper spread order with non zero legs
+                # A spread order that isn't flat
                 log.critical(
                     "Can't handle non-flat intra-market spread orders! Instrument order %s %s" %
                     (str(instrument_order), str(
                         instrument_order.order_id)))
-                result = failure
 
-        return result
 
     def apply_contract_fill_to_parent_order_multiple_children(
-        self, list_of_contract_order_ids, instrument_order
+        self, list_of_contract_order_ids: list,
+            instrument_order: instrumentOrder
     ):
+        ## Three cases for multiple children (as normally one to one)
+        # - Inter market spread: we can't handle these yet and we'll break
+        # - Leg by leg flat spread eg forced roll order: do nothing since doesn't change instrument positions
+        # Distributed roll order eg if we are short -2 front, want to buy 3, will do +2 front +1 next
+
         log = instrument_order.log_with_attributes(self.log)
-        if instrument_order.is_zero_trade():
-            # An inter-market flat spread
-            # Meaningless to do this
-            result = success
-            return result
 
         distributed_order = self.check_to_see_if_distributed_instrument_order(
             list_of_contract_order_ids, instrument_order
         )
 
-        if distributed_order:
+        flat_order = instrument_order.is_zero_trade()
+
+        if flat_order:
+            # An inter-market flat spread
+            # Meaningless to do this
+            return None
+
+        elif distributed_order:
             # a distributed order, all orders have the same sign as the
             # instrument order
-            result = self.apply_contract_fill_to_parent_order_distributed_children(
+            self.apply_contract_fill_to_parent_order_distributed_children(
                 list_of_contract_order_ids, instrument_order)
-            return result
 
-        # A proper spread trade across markets
-        log.critical(
-            "Can't handle inter-market spread orders yet! Instrument order %s %s" %
-            (str(instrument_order), str(
-                instrument_order.order_id)))
-        return failure
+        else:
+            # A proper spread trade across markets can't do this
+            log.critical(
+                "Can't handle inter-market spread orders! Instrument order %s %s" %
+                (str(instrument_order), str(
+                    instrument_order.order_id)))
+
 
     def check_to_see_if_distributed_instrument_order(
-        self, list_of_contract_order_ids, instrument_order
-    ):
+        self, list_of_contract_order_ids: list,
+            instrument_order: instrumentOrder
+    ) -> bool:
         # A distributed instrument order is like this: buy 2 EDOLLAR instrument order
         # split into buy 1 202306, buy 1 203209
 
-        contract_orders = [
+        contract_orders = listOfOrders([
             self.contract_stack.get_order_with_id_from_stack(contract_id)
             for contract_id in list_of_contract_order_ids
-        ]
+        ])
 
-        trade_instrument_order = instrument_order.trade
-        trade_contract_orders = [order.trade for order in contract_orders]
+        result = check_to_see_if_distributed_order(instrument_order, contract_orders)
 
-        instrument_code_from_instrument_order = instrument_order.instrument_code
-        matching_instruments = [
-            order.instrument_code == instrument_code_from_instrument_order
-            for order in contract_orders
-        ]
-        all_instruments_match = all(matching_instruments)
-
-        matching_signs = [trade.sign_equal(
-            trade_instrument_order) for trade in trade_contract_orders]
-        all_signs_match = all(matching_signs)
-
-        sum_contract_orders = sum(trade_contract_orders)
-        sums_match = sum_contract_orders == trade_instrument_order
-
-        if all_signs_match and sums_match and all_instruments_match:
-            return True
-        else:
-            return False
+        return result
 
     def apply_contract_fill_to_parent_order_distributed_children(
-        self, list_of_contract_order_ids, instrument_order
+        self, list_of_contract_order_ids: list,
+            instrument_order: instrumentOrder
     ):
         # A distributed instrument order is like this: buy 2 EDOLLAR instrument order
         # split into buy 1 202306, buy 1 203209
 
         ##
-        log = instrument_order.log_with_attributes(self.log)
-
         contract_orders = [
             self.contract_stack.get_order_with_id_from_stack(contract_id)
             for contract_id in list_of_contract_order_ids
@@ -243,43 +244,69 @@ class stackHandlerForFills(stackHandlerCore):
         total_filled_qty = sum(list_of_filled_qty)
         average_fill_price = list_of_filled_price.average_fill_price()
 
-        result = self.fill_for_instrument_in_database(
+        self.fill_for_instrument_in_database(
             instrument_order, total_filled_qty, average_fill_price, final_fill_datetime)
 
-        return result
-
     def fill_for_instrument_in_database(
-        self, instrument_order, fill_qty, fill_price, fill_datetime
+        self, instrument_order: instrumentOrder,
+            fill_qty: tradeQuantity,
+            fill_price: fillPrice,
+            fill_datetime: datetime.datetime
     ):
 
         # if fill has changed then update positions
         self.apply_position_change_to_instrument(instrument_order, fill_qty)
 
-        result = self.instrument_stack.change_fill_quantity_for_order(
+        self.instrument_stack.change_fill_quantity_for_order(
             instrument_order.order_id,
             fill_qty,
             filled_price=fill_price,
             fill_datetime=fill_datetime,
         )
 
-        return result
 
     def apply_position_change_to_instrument(
-        self, instrument_order, total_filled_qty, apply_entire_trade=False
+        self, instrument_order: instrumentOrder,
+            total_filled_qty: tradeQuantity,
+            apply_entire_trade: bool=False
     ):
         current_fill = instrument_order.fill
 
         if apply_entire_trade:
             new_fill = current_fill
         else:
-            if total_filled_qty == current_fill:
-                # no change needed here
-                return success
-
             new_fill = total_filled_qty - current_fill
 
+        if new_fill.equals_zero():
+            return None
+
         position_updater = updatePositions(self.data)
-        result = position_updater.update_strategy_position_table_with_instrument_order(
+        position_updater.update_strategy_position_table_with_instrument_order(
             instrument_order, new_fill)
 
-        return result
+
+def check_to_see_if_distributed_order(instrument_order: instrumentOrder,
+                                      contract_orders: listOfOrders) -> bool:
+
+    trade_instrument_order = instrument_order.trade
+    trade_contract_orders = [order.trade for order in contract_orders]
+
+    instrument_code_from_instrument_order = instrument_order.instrument_code
+    matching_instruments = [
+        order.instrument_code == instrument_code_from_instrument_order
+        for order in contract_orders
+    ]
+    all_instruments_match = all(matching_instruments)
+
+    matching_signs = [trade.sign_equal(
+        trade_instrument_order) for trade in trade_contract_orders]
+    all_signs_match = all(matching_signs)
+
+    # contract orders are spawned from instruments, so the size of the required trade should match
+    sum_contract_orders = sum(trade_contract_orders)
+    sums_match = sum_contract_orders == trade_instrument_order
+
+    if all_signs_match and sums_match and all_instruments_match:
+        return True
+    else:
+        return False
