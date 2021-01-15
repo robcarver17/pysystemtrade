@@ -91,11 +91,11 @@ class listOfEntriesData(baseData):
         try:
             existing_series.append(new_entry)
         except Exception as e:
-            self.log.warn(
-                "Error %s when updating for %s with %s"
+            error_msg = "Error %s when updating for %s with %s" \
                 % (str(e), str(args_dict), str(new_entry))
-            )
-            return failure
+
+            self.log.critical(e)
+            raise Exception(e)
 
         self._write_series_for_args_dict(
             args_dict, existing_series
@@ -113,10 +113,11 @@ class listOfEntriesData(baseData):
         try:
             assert split_new_name == split_existing_name
         except BaseException:
-            self.log.warn(
-                "You tried to add an entry of type %s to existing data type %s" %
-                (entry_class_name_new_entry, entry_class_name_existing))
-            return failure
+            error_msg = "You tried to add an entry of type %s to existing data type %s" % \
+                (entry_class_name_new_entry, entry_class_name_existing)
+            self.log.critical(
+                error_msg)
+            raise Exception(error_msg)
 
     def _delete_last_entry_for_args_dict(self, args_dict, are_you_sure=False):
         if not are_you_sure:
