@@ -4,7 +4,7 @@ from copy import copy
 from syscore.objects import missing_order
 from sysexecution.order_stacks.order_stack import orderStackData, missingOrder
 from sysexecution.trade_qty import tradeQuantity
-from sysexecution.fill_price import fillPrice
+from sysexecution.fills import fillPrice
 from sysexecution.orders.contract_orders import contractOrder
 
 class contractOrderStackData(orderStackData):

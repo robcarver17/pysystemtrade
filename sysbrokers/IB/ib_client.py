@@ -32,6 +32,20 @@ PACING_INTERVAL_SECONDS = 1 + (_PACING_PERIOD_SECONDS / _PACING_PERIOD_LIMIT)
 
 STALE_SECONDS_ALLOWED_ACCOUNT_SUMMARY = 600
 
+class tradeWithContract(object):
+    def __init__(self, ibcontract_with_legs, trade_object):
+        self.ibcontract_with_legs = ibcontract_with_legs
+        self.trade = trade_object
+        self.ib_instrument_code = trade_object.contract.symbol
+
+    def __repr__(self):
+        return str(self.trade) + " " + str(self.ibcontract_with_legs)
+
+
+class tickerWithBS(object):
+    def __init__(self, ticker, BorS):
+        self.ticker = ticker
+        self.BorS = BorS
 
 class ibClient(object):
     """
@@ -53,7 +67,7 @@ class ibClient(object):
     def refresh(self):
         self.ib.sleep(0.00001)
 
-    def broker_fx_balances(self):
+    def broker_fx_balances(self) -> dict:
         account_summary = self.ib.accountSummary()
         fx_balance_dict = extract_fx_balances_from_account_summary(
             account_summary)
@@ -153,7 +167,7 @@ class ibClient(object):
             trade,
             ccy1,
             account=arg_not_supplied,
-            ccy2="USD"):
+            ccy2="USD") -> tradeWithContract:
         """
         Get some spot fx data
 
@@ -1042,17 +1056,3 @@ class ibcontractWithLegs(object):
         return str(self.ibcontract) + " " + str(self.legs)
 
 
-class tradeWithContract(object):
-    def __init__(self, ibcontract_with_legs, trade_object):
-        self.ibcontract_with_legs = ibcontract_with_legs
-        self.trade = trade_object
-        self.ib_instrument_code = trade_object.contract.symbol
-
-    def __repr__(self):
-        return str(self.trade) + " " + str(self.ibcontract_with_legs)
-
-
-class tickerWithBS(object):
-    def __init__(self, ticker, BorS):
-        self.ticker = ticker
-        self.BorS = BorS

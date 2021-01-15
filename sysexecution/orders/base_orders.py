@@ -3,7 +3,7 @@ import datetime
 
 from syscore.genutils import none_to_object, object_to_none
 from syscore.objects import no_order_id, no_children, no_parent
-from sysexecution.fill_price import fillPrice
+from sysexecution.fills import fillPrice
 from sysexecution.trade_qty import tradeQuantity
 from sysexecution.price_quotes import quotePrice
 from sysobjects.production.tradeable_object import tradeableObject

@@ -12,7 +12,7 @@ from sysdata.futures.futures_per_contract_prices import (
 from sysobjects.futures_per_contract_prices import futuresContractPrices
 from sysobjects.contracts import futuresContract, listOfFuturesContracts
 
-from sysexecution.tick_data import tickerObject
+from sysexecution.tick_data import tickerObject, dataFrameOfRecentTicks
 from sysexecution.orders.contract_orders import contractOrder
 
 from syslogdiag.log import logtoscreen
@@ -42,7 +42,7 @@ class ibTickerObject(tickerObject):
         return self.ticker.askSize
 
 
-def from_ib_bid_ask_tick_data_to_dataframe(tick_data) ->pd.DataFrame:
+def from_ib_bid_ask_tick_data_to_dataframe(tick_data) ->dataFrameOfRecentTicks:
     """
 
     :param tick_data: list of HistoricalTickBidAsk()
@@ -57,7 +57,7 @@ def from_ib_bid_ask_tick_data_to_dataframe(tick_data) ->pd.DataFrame:
                         for tick_item in tick_data]
         value_dict[field_name] = field_values
 
-    output = pd.DataFrame(value_dict, time_index)
+    output = dataFrameOfRecentTicks(value_dict, time_index)
 
     return output
 
@@ -281,7 +281,7 @@ class ibFuturesContractPriceData(futuresContractPriceData):
 
     def get_recent_bid_ask_tick_data_for_contract_object(
         self, contract_object, trade_list_for_multiple_legs=None
-    ) ->pd.DataFrame:
+    ) ->dataFrameOfRecentTicks:
         """
         Get last few price ticks
 

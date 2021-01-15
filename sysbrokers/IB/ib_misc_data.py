@@ -23,7 +23,7 @@ class ibMiscData(baseData):
     def get_broker_name(self):
         return "IB"
 
-    def broker_fx_balances(self):
+    def broker_fx_balances(self) -> dict:
         return self.ibconnection.broker_fx_balances()
 
     def broker_fx_market_order(

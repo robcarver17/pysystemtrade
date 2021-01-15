@@ -10,6 +10,7 @@ from sysbrokers.IB.ib_translate_broker_order_objects import (
 from syscore.objects import missing_order, failure, success, arg_not_supplied
 from sysobjects.contracts import futuresContract
 from sysexecution.order_stacks.broker_order_stack import brokerOrderStackData, orderWithControls
+from sysexecution.orders.list_of_orders import listOfOrders
 
 from syslogdiag.log import logtoscreen
 
@@ -105,7 +106,7 @@ class ibOrdersData(brokerOrderStackData):
         return ibFuturesInstrumentData(self.ibconnection)
 
 
-    def get_list_of_broker_orders(self, account_id=arg_not_supplied):
+    def get_list_of_broker_orders(self, account_id=arg_not_supplied) -> listOfOrders:
         """
         Get list of broker orders from IB, and return as my broker_order objects
 
@@ -116,6 +117,8 @@ class ibOrdersData(brokerOrderStackData):
         )
         order_list = [
             order_with_control.order for order_with_control in list_of_control_objects]
+
+        order_list = listOfOrders(order_list)
 
         return order_list
 
@@ -167,10 +170,11 @@ class ibOrdersData(brokerOrderStackData):
 
         return broker_order_with_controls
 
-    def get_list_of_orders_from_storage(self):
+    def get_list_of_orders_from_storage(self) -> listOfOrders:
         dict_of_stored_orders = self.get_dict_of_orders_from_storage()
+        list_of_orders = listOfOrders(dict_of_stored_orders.values())
 
-        return list(dict_of_stored_orders.values())
+        return list_of_orders
 
     def get_dict_of_orders_from_storage(self):
         # Get dict from storage, update, return just the orders

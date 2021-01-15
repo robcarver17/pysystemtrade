@@ -29,6 +29,7 @@ from syslogdiag.email_via_db_interface import retrieve_and_delete_stored_message
 from sysproduction.diagnostic.reporting import run_report
 from sysproduction.diagnostic.rolls import ALL_ROLL_INSTRUMENTS
 from sysproduction.diagnostic.strategies import ALL_STRATEGIES
+from sysproduction.diagnostic.trading_hours import get_trading_hours_for_all_instruments
 from sysproduction.diagnostic.report_configs import (
     roll_report_config,
     daily_pandl_report_config,
@@ -106,6 +107,7 @@ nested_menu_of_options = {0: {1: "Interactive python",
                               },
                           6: {60: "View instrument configuration data",
                               61: "View contract configuration data",
+                              62: "View trading hours for all instruments"
                               },
                           }
 
@@ -539,6 +541,12 @@ def view_contract_config(data):
     return None
 
 
+
+def print_trading_hours_for_all_instruments(data=arg_not_supplied):
+    all_trading_hours = get_trading_hours_for_all_instruments(data)
+    for key, value in sorted(all_trading_hours.items(), key=lambda x: x[0]):
+        print("{} : {}".format(key, value))
+
 dict_of_functions = {
     1: backtest_python,
     2: backtest_plot,
@@ -569,4 +577,5 @@ dict_of_functions = {
     56: view_individual_order,
     60: view_instrument_config,
     61: view_contract_config,
+    62: print_trading_hours_for_all_instruments
 }

@@ -7,7 +7,18 @@ from syscore.genutils import quickTimer
 from syscore.objects import missing_data, arg_not_supplied
 
 
-def analyse_tick_data_frame(tick_data: pd.DataFrame, qty: int):
+class dataFrameOfRecentTicks(pd.DataFrame):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        columns = self.columns
+        sorted_columns = sorted(columns)
+        required_columns = ["priceAsk", "priceBid" , "sizeAsk", "sizeBid"]
+        try:
+            assert all([x==y for x, y in zip(sorted_columns, required_columns)])
+        except:
+            raise Exception("historical ticks should have columns %s" % str(required_columns))
+
+def analyse_tick_data_frame(tick_data: dataFrameOfRecentTicks, qty: int):
     if tick_data is missing_data:
         return missing_data
     tick = extract_final_row_of_tick_data_frame(tick_data)

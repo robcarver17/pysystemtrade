@@ -3,7 +3,7 @@ from syscore.genutils import highest_common_factor_for_list, sign
 from syscore.objects import arg_not_supplied, missing_data
 
 
-def extract_fx_balances_from_account_summary(account_summary):
+def extract_fx_balances_from_account_summary(account_summary) -> dict:
     relevant_tag = "TotalCashBalance"
 
     result = extract_currency_dict_for_tag_from_account_summary(

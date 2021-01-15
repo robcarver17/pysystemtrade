@@ -8,6 +8,7 @@ from collections import namedtuple
 from syscore.objects import header, table, body_text, arg_not_supplied, missing_data
 
 from sysobjects.contracts import futuresContract
+from sysobjects.production.tradeable_object import instrumentStrategy
 
 from sysproduction.data.capital import dataCapital
 
@@ -632,8 +633,8 @@ def get_position_series_for_instrument_strategy(
 
 def get_trade_df_for_contract(data, instrument_code, contract_id):
     data_orders = dataOrders(data)
-    list_of_trades = data_orders.get_fills_history_for_instrument_and_contract_id(
-        instrument_code, contract_id)
+    contract  = futuresContract(instrument_code, contract_id)
+    list_of_trades = data_orders.get_fills_history_for_contract(contract)
     list_of_trades_as_pd_df = list_of_trades.as_pd_df()
 
     return list_of_trades_as_pd_df
@@ -641,9 +642,9 @@ def get_trade_df_for_contract(data, instrument_code, contract_id):
 
 def get_trade_df_for_instrument(data, instrument_code, strategy_name):
     data_orders = dataOrders(data)
-    list_of_trades = data_orders.get_fills_history_for_strategy_and_instrument(
-        strategy_name, instrument_code
-    )
+    instrument_strategy = instrumentStrategy(instrument_code=instrument_code, strategy_name=strategy_name)
+
+    list_of_trades = data_orders.get_fills_history_for_instrument_strategy(instrument_strategy)
     list_of_trades_as_pd_df = list_of_trades.as_pd_df()
 
     return list_of_trades_as_pd_df

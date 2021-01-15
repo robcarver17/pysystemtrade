@@ -9,9 +9,10 @@ from sysexecution.orders.base_orders import (
     resolve_inputs_to_order, orderType)
 from sysexecution.orders.base_orders import Order
 from sysexecution.trade_qty import tradeQuantity
-from sysexecution.fill_price import fillPrice
+from sysexecution.fills import fillPrice
 from sysexecution.price_quotes import quotePrice
 from sysexecution.orders.contract_orders import contractOrder, resolve_contract_order_args
+from sysexecution.orders.instrument_orders import instrumentOrder
 from sysobjects.production.tradeable_object import futuresContractStrategy, instrumentStrategy
 from sysobjects.contract_dates_and_expiries import singleContractDate
 
@@ -470,4 +471,62 @@ def create_new_broker_order_from_contract_order(
 
     return broker_order
 
+## Not very pretty but only used for diagnostic TCA
+class brokerOrderWithParentInformation(brokerOrder):
+    @classmethod
+    def create_augemented_order(self, order: brokerOrder, instrument_order: instrumentOrder, contract_order: contractOrder):
 
+        # Price when the trade was generated. We use the contract order price since
+        #  the instrument order price may refer to a different contract
+        reference_price = contract_order.reference_price
+
+        # when the trade was originally generated, this is the instrument order
+        # used to measure effects of delay eg from close
+        generated_datetime = instrument_order.generated_datetime
+
+        # instrument order prices may refer to a different contract
+        # so we use the contract order limit
+        parent_limit = contract_order.limit_price
+
+
+
+        if order.is_split_order:
+            # Note; multiple leg orders are 'split' before adding to the database
+            #  The original order is then zeroed out
+            #  This means there aren't any spread broker orders in the database
+            # WHAT HAPPENS WITH A TWO LEVEL SPLIT?
+            # FIXME THIS WHOLE THING NEEDS A LOT OF CAREFUL THOUGHT
+
+            # We won't use these, and it may cause bugs for orders saved with
+
+            ## A few possible cases:
+            # - The instrument order is a non spread single leg and so is the contract (and broker) legs
+            #          This is easy.
+            # - The instrument order is a non spread flat trade calendar spread roll trade, and so are the contract/broker legs
+            #          Here there is no reference price or limit price
+            #          The b
+            # -  The instrument order is a spread trade (calendar spread)
+            #          Here the reference (and possibly limit prices) will be for the spread
+            #          For the split order
+
+            calc_mid = None
+            calc_side = None
+            calc_fill = None
+        else:
+            # If it isn't a split order then it must be a single leg trade
+            calc_mid = order.trade.get_spread_price(order.mid_price)
+            calc_side = order.trade.get_spread_price(order.side_price)
+            calc_fill = order.trade.get_spread_price(order.filled_price)
+
+
+        order.parent_reference_price = reference_price
+        order.parent_generated_datetime = generated_datetime
+        order.parent_limit_price = parent_limit
+
+        order.calculated_filled_price = calc_fill
+        order.calculated_mid_price = calc_mid
+        order.calculated_side_price = calc_side
+
+        order.buy_or_sell = order.trade.buy_or_sell()
+
+        return brokerOrderWithParentInformation(order)

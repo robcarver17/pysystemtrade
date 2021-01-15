@@ -9,7 +9,7 @@ from sysexecution.orders.base_orders import (
     resolve_inputs_to_order, orderType)
 
 from sysexecution.trade_qty import tradeQuantity
-from sysexecution.fill_price import fillPrice
+from sysexecution.fills import fillPrice
 from sysexecution.orders.list_of_orders import listOfOrders
 from sysobjects.production.tradeable_object import futuresContractStrategy, instrumentStrategy
 from sysobjects.contract_dates_and_expiries import singleContractDate
