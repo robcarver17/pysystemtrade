@@ -148,7 +148,7 @@ class mongoDataWithMultipleKeys(object):
     def __repr__(self):
         return self.name
 
-    @propertys
+    @property
     def name(self) -> str:
         mongo_object = self._mongo
         name = (
