@@ -4,7 +4,7 @@ This is the original 'best execution' algo I used in my legacy system
 from syscore.objects import missing_order
 
 from sysdata.data_blob import dataBlob
-from sysexecution.algos.algo import Algo
+from sysexecution.algos.algo import Algo, limit_price_from_offside_price
 from sysexecution.algos.common_functions import (
     post_trade_processing,
     MESSAGING_FREQUENCY,
@@ -19,7 +19,7 @@ from sysexecution.order_stacks.broker_order_stack import orderWithControls
 from sysexecution.orders.broker_orders import market_order_type, limit_order_type
 from sysexecution.orders.contract_orders import contractOrder, best_order_type
 
-from sysproduction.data.broker import dataBroker, limit_price_from_offside_price
+from sysproduction.data.broker import dataBroker
 
 # Here are the algo parameters
 # Hard coded; if you want to try different parameters make a hard copy and
@@ -48,9 +48,7 @@ class algoOriginalBest(Algo):
     """
 
     def submit_trade(self) -> orderWithControls:
-        placed_broker_order_with_controls = prepare_and_submit_trade(
-            self.data, self.contract_order
-        )
+        placed_broker_order_with_controls = self.prepare_and_submit_trade()
         if placed_broker_order_with_controls is missing_order:
             return missing_order
 
@@ -59,8 +57,8 @@ class algoOriginalBest(Algo):
     def manage_trade(self, placed_broker_order_with_controls: orderWithControls) -> orderWithControls:
 
         data = self.data
-        placed_broker_order_with_controls = manage_trade(
-            data, placed_broker_order_with_controls)
+        placed_broker_order_with_controls = manage_live_trade(
+            placed_broker_order_with_controls)
         placed_broker_order_with_controls = post_trade_processing(
             data, placed_broker_order_with_controls
         )
@@ -68,49 +66,112 @@ class algoOriginalBest(Algo):
         return placed_broker_order_with_controls
 
 
-def prepare_and_submit_trade(data:dataBlob,
-                             contract_order: contractOrder) -> orderWithControls:
+    def prepare_and_submit_trade(self) -> orderWithControls:
 
-    log = contract_order.log_with_attributes(data.log)
-    data_broker = dataBroker(data)
+        data = self.data
+        contract_order = self.contract_order
+        log = contract_order.log_with_attributes(data.log)
 
-    ## check order type is 'best' not 'limit' or 'market'
-    if contract_order.order_type is not best_order_type:
-        log.critical("Order has been allocated to algo 'original-best' but order type is %s" % str(contract_order.order_type))
-        return missing_order
+        ## check order type is 'best' not 'limit' or 'market'
+        if contract_order.order_type is not best_order_type:
+            log.critical("Order has been allocated to algo 'original-best' but order type is %s" % str(contract_order.order_type))
+            return missing_order
 
-    cut_down_contract_order = contract_order.reduce_trade_size_proportionally_so_smallest_leg_is_max_size(SIZE_LIMIT)
-    if cut_down_contract_order.trade != contract_order.trade:
+        cut_down_contract_order = contract_order.reduce_trade_size_proportionally_so_smallest_leg_is_max_size(SIZE_LIMIT)
+        if cut_down_contract_order.trade != contract_order.trade:
+            log.msg(
+                "Cut down order to size %s from %s because of algo size limit"
+                % (str(contract_order.trade), str(cut_down_contract_order.trade))
+            )
+
+        ticker_object = self.get_ticker_object_for_order(
+            cut_down_contract_order)
+        okay_to_do_limit_trade = limit_trade_viable(ticker_object)
+
+        if okay_to_do_limit_trade:
+
+            # create and issue limit order
+            broker_order_with_controls = (
+                self.get_and_submit_broker_order_for_contract_order(
+                    cut_down_contract_order,
+                    order_type=limit_order_type,
+                    limit_price_from=limit_price_from_offside_price,
+                    ticker_object=ticker_object,
+                )
+            )
+        else:
+            # do a market order
+            log.msg("Conditions are wrong so doing market trade instead of limit trade")
+            broker_order_with_controls = (
+                self.get_and_submit_broker_order_for_contract_order(
+                    cut_down_contract_order, order_type=market_order_type
+                )
+            )
+
+        return broker_order_with_controls
+
+    def manage_live_trade(self,
+                     placed_broker_order_with_controls: orderWithControls) -> orderWithControls:
+
+        data = self.data
+        log = placed_broker_order_with_controls.order.log_with_attributes(data.log)
+        data_broker = dataBroker(data)
+
+        trade_open = True
+        is_aggressive = False
         log.msg(
-            "Cut down order to size %s from %s because of algo size limit"
-            % (str(contract_order.trade), str(cut_down_contract_order.trade))
+            "Managing trade %s with algo 'original-best'"
+            % str(placed_broker_order_with_controls.order)
         )
 
-    ticker_object = data_broker.get_ticker_object_for_order(
-        cut_down_contract_order)
-    okay_to_do_limit_trade = limit_trade_viable(ticker_object)
+        is_limit_trade = placed_broker_order_with_controls.order.order_type == limit_order_type
 
-    if okay_to_do_limit_trade:
+        while trade_open:
+            if placed_broker_order_with_controls.message_required(
+                messaging_frequency_seconds=MESSAGING_FREQUENCY
+            ):
+                file_log_report(log, is_aggressive, placed_broker_order_with_controls)
 
-        # create and issue limit order
-        broker_order_with_controls = (
-            data_broker.get_and_submit_broker_order_for_contract_order(
-                cut_down_contract_order,
-                order_type=limit_order_type,
-                limit_price_from=limit_price_from_offside_price,
-                ticker_object=ticker_object,
-            )
-        )
-    else:
-        # do a market order
-        log.msg("Conditions are wrong so doing market trade instead of limit trade")
-        broker_order_with_controls = (
-            data_broker.get_and_submit_broker_order_for_contract_order(
-                cut_down_contract_order, order_type=market_order_type
-            )
-        )
+            if is_limit_trade:
+                if is_aggressive:
+                    set_aggressive_limit_price(data, placed_broker_order_with_controls)
+                else:
+                    # passive limit trade
+                    reason_to_switch = switch_to_aggressive(
+                        placed_broker_order_with_controls)
+                    if reason_to_switch is no_need_to_switch:
+                        log.msg(
+                            "Switch to aggressive because %s" %
+                            reason_to_switch)
+                        is_aggressive = True
+            else:
+                # market trade nothing to do
+                pass
 
-    return broker_order_with_controls
+            order_completed = placed_broker_order_with_controls.completed()
+
+            order_timeout = (
+                placed_broker_order_with_controls.seconds_since_submission() > TOTAL_TIME_OUT)
+
+            order_cancelled = data_broker.check_order_is_cancelled_given_control_object(
+                placed_broker_order_with_controls)
+
+            if order_completed:
+                log.msg("Trade completed")
+                break
+
+            if order_timeout:
+                log.msg("Run out of time: cancelling")
+                placed_broker_order_with_controls = cancel_order(
+                    data, placed_broker_order_with_controls)
+                break
+
+            if order_cancelled:
+                log.warn("Order has been cancelled: not by algo")
+                break
+
+        return placed_broker_order_with_controls
+
 
 
 def limit_trade_viable(ticker_object: tickerObject) -> bool:
@@ -124,67 +185,6 @@ def limit_trade_viable(ticker_object: tickerObject) -> bool:
     return True
 
 no_need_to_switch = "_NO_NEED_TO_SWITCH"
-
-def manage_trade(data: dataBlob,
-                 placed_broker_order_with_controls: orderWithControls) -> orderWithControls:
-
-    log = placed_broker_order_with_controls.order.log_with_attributes(data.log)
-    data_broker = dataBroker(data)
-
-    trade_open = True
-    is_aggressive = False
-    log.msg(
-        "Managing trade %s with algo 'original-best'"
-        % str(placed_broker_order_with_controls.order)
-    )
-
-    is_limit_trade = placed_broker_order_with_controls.order.order_type == limit_order_type
-
-    while trade_open:
-        if placed_broker_order_with_controls.message_required(
-            messaging_frequency_seconds=MESSAGING_FREQUENCY
-        ):
-            file_log_report(log, is_aggressive, placed_broker_order_with_controls)
-
-        if is_limit_trade:
-            if is_aggressive:
-                set_aggressive_limit_price(data, placed_broker_order_with_controls)
-            else:
-                # passive limit trade
-                reason_to_switch = switch_to_aggressive(
-                    placed_broker_order_with_controls)
-                if reason_to_switch is no_need_to_switch:
-                    log.msg(
-                        "Switch to aggressive because %s" %
-                        reason_to_switch)
-                    is_aggressive = True
-        else:
-            # market trade nothing to do
-            pass
-
-        order_completed = placed_broker_order_with_controls.completed()
-
-        order_timeout = (
-            placed_broker_order_with_controls.seconds_since_submission() > TOTAL_TIME_OUT)
-
-        order_cancelled = data_broker.check_order_is_cancelled_given_control_object(
-            placed_broker_order_with_controls)
-
-        if order_completed:
-            log.msg("Trade completed")
-            break
-
-        if order_timeout:
-            log.msg("Run out of time: cancelling")
-            placed_broker_order_with_controls = cancel_order(
-                data, placed_broker_order_with_controls)
-            break
-
-        if order_cancelled:
-            log.warn("Order has been cancelled: not by algo")
-            break
-
-    return placed_broker_order_with_controls
 
 
 def file_log_report(log, is_aggressive: bool,

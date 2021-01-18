@@ -13,11 +13,12 @@ from sysexecution.orders.broker_orders import brokerOrder
 from sysexecution.order_stacks.broker_order_stack import orderWithControls
 from sysexecution.algos.algo import Algo
 from sysexecution.stack_handler.stackHandlerCore import stackHandlerCore
+from sysexecution.stack_handler.submit_broker_orders import stackHandlerSubmitBrokerOrders
 from sysproduction.data.controls import dataLocks
 from sysproduction.data.broker import dataBroker
 
 
-class stackHandlerCreateBrokerOrders(stackHandlerCore):
+class stackHandlerCreateBrokerOrders(stackHandlerCore, stackHandlerSubmitBrokerOrders):
     def create_broker_orders_from_contract_orders(self):
         """
         Create broker orders from contract orders. These become child orders of the contract parent.
