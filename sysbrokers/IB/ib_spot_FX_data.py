@@ -1,6 +1,8 @@
 from collections import  namedtuple
 import pandas as pd
 
+from sysbrokers.IB.client.ib_fx_client import ibFxClient
+
 from sysdata.fx.spotfx import fxPricesData
 from sysobjects.spot_fx_prices import fxPrices
 from syslogdiag.log import logtoscreen
@@ -24,6 +26,15 @@ class ibFxPricesData(fxPricesData):
     def ibconnection(self):
         return self._ibconnection
 
+    @property
+    def ib_client(self) -> ibFxClient:
+        client = getattr(self, "_ib_client", None)
+        if client is None:
+             client = self._ib_client = ibFxClient(ibconnection=self.ibconnection,
+                                                   log = self.log)
+
+        return client
+
 
     def get_list_of_fxcodes(self) -> list:
         config_data = self._get_ib_fx_config()
@@ -39,7 +50,7 @@ class ibFxPricesData(fxPricesData):
     def _get_fx_prices_without_checking(self, currency_code: str) -> fxPrices:
         ib_config_for_code = self._get_config_info_for_code(currency_code)
         if ib_config_for_code is missing_instrument:
-            self.warn(
+            self.log.warn(
                 "Can't get prices as missing IB config for %s" %
                 currency_code, fx_code=currency_code)
             return fxPrices.create_empty()
@@ -69,7 +80,7 @@ class ibFxPricesData(fxPricesData):
         return fx_prices
 
     def _get_raw_fx_prices(self, ib_config_for_code: ibFXConfig) -> pd.Series:
-        raw_fx_prices = self.ibconnection.broker_get_daily_fx_data(
+        raw_fx_prices = self.ib_client.broker_get_daily_fx_data(
             ib_config_for_code.ccy1, ccy2=ib_config_for_code.ccy2
         )
         if raw_fx_prices is missing_data:

@@ -2,6 +2,7 @@ import re
 from syscore.genutils import highest_common_factor_for_list, sign
 from syscore.objects import arg_not_supplied, missing_data
 
+from sysexecution.trade_qty import tradeQuantity
 
 def extract_fx_balances_from_account_summary(account_summary) -> dict:
     relevant_tag = "TotalCashBalance"
@@ -100,14 +101,14 @@ def resolve_ib_cash_position(position):
     )
 
 
-def resolveBS_for_list(trade_list):
+def resolveBS_for_list(trade_list: tradeQuantity):
     if len(trade_list) == 1:
         return resolveBS(trade_list[0])
     else:
         return resolveBS_for_calendar_spread(trade_list)
 
 
-def resolveBS_for_calendar_spread(trade_list):
+def resolveBS_for_calendar_spread(trade_list: tradeQuantity):
     trade = highest_common_factor_for_list(trade_list)
 
     trade = sign(trade_list[0]) * trade
@@ -115,7 +116,7 @@ def resolveBS_for_calendar_spread(trade_list):
     return resolveBS(trade)
 
 
-def resolveBS(trade):
+def resolveBS(trade: int):
     if trade < 0:
         return "SELL", int(abs(trade))
     return "BUY", int(abs(trade))

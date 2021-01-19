@@ -106,13 +106,10 @@ def view_contract_stack(data):
 
     order_ids = stack_handler.contract_stack.get_list_of_order_ids()
     print("\nCONTRACT STACK \n")
-    broker_data = dataBroker(data)
     for order_id in order_ids:
         order = stack_handler.contract_stack.get_order_with_id_from_stack(
             order_id)
-        IB_code = broker_data.get_brokers_instrument_code(
-            order.instrument_code)
-        print("%s:%s" % (IB_code, order.terse_repr()))
+        print(order)
 
 
 def view_broker_stack(data):
@@ -124,7 +121,7 @@ def view_broker_stack(data):
 def view_generic_stack(stack):
     order_ids = stack.get_list_of_order_ids()
     for order_id in order_ids:
-        print(stack.get_order_with_id_from_stack(order_id).terse_repr())
+        print(stack.get_order_with_id_from_stack(order_id))
 
 
 def view_broker_order_list(data):
@@ -136,7 +133,7 @@ def view_broker_order_list(data):
     print("\n\nStored (orders made in this session):\n")
     broker_orders = data_broker.get_list_of_stored_orders()
     for order in broker_orders:
-        print(order)
+        print(order.full_repr())
 
 def view_positions(data):
     data_broker = dataBroker(data)
@@ -695,7 +692,7 @@ def order_view(data):
         type_expected=int,
         allow_default=False)
     order = stack.get_order_with_id_from_stack(order_id)
-    print("%s" % order)
+    print("%s" % order.full_repr())
 
     return None
 

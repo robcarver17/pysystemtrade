@@ -7,11 +7,6 @@ import time
 
 from ib_insync import IB
 
-from sysbrokers.IB.client.ib_fx_client import ibFxClient
-from sysbrokers.IB.client.ib_orders_client import ibOrdersClient
-from sysbrokers.IB.client.ib_positions_client import ibPositionsClient
-from sysbrokers.IB.client.ib_accounting_client import ibAccountingClient
-
 from sysbrokers.IB.ib_connection_defaults import ib_defaults
 from syscore.objects import arg_not_supplied, missing_data
 
@@ -30,9 +25,7 @@ def get_broker_account() -> str:
     else:
         return account_id
 
-## price, contracts client not included as already in price and orders
-class connectionIB(ibFxClient, ibPositionsClient, ibOrdersClient,
-                   ibAccountingClient):
+class connectionIB(object):
     """
     Connection object for connecting IB
     (A database plug in will need to be added for streaming prices)
@@ -85,9 +78,16 @@ class connectionIB(ibFxClient, ibPositionsClient, ibOrdersClient,
         ib.errorEvent += self.error_handler
 
         # if you copy for another broker, don't forget the logs
-        super().__init__(self, ib, log=log)
+        self._ib = ib
+        self._log = log
 
+    @property
+    def ib(self):
+        return self.ib
 
+    @property
+    def log(self):
+        return self.log
 
     def __repr__(self):
         return "IB broker connection" + str(self._ib_connection_config)

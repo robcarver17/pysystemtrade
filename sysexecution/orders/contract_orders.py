@@ -11,7 +11,7 @@ from sysexecution.orders.base_orders import (
 from sysexecution.trade_qty import tradeQuantity
 from sysexecution.fills import fillPrice
 from sysexecution.orders.list_of_orders import listOfOrders
-from sysobjects.production.tradeable_object import futuresContractStrategy, instrumentStrategy
+from sysobjects.production.tradeable_object import futuresContractStrategy, instrumentStrategy, futuresContract
 from sysobjects.contract_dates_and_expiries import singleContractDate
 from syscore.genutils import none_to_object, object_to_none
 from syscore.objects import success
@@ -198,7 +198,7 @@ class contractOrder(Order):
         return self.tradeable_object.contract_date_key
 
     @property
-    def futures_contract(self):
+    def futures_contract(self) -> futuresContract:
         return self.tradeable_object.futures_contract
 
     @property

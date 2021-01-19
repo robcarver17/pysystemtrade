@@ -149,7 +149,7 @@ class futuresContractStrategy(tradeableObject):
         return True
 
     @property
-    def futures_contract(self):
+    def futures_contract(self) -> futuresContract:
         return futuresContract(self.instrument, self.contract_date)
 
     @property

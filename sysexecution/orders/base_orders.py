@@ -85,9 +85,15 @@ class Order(object):
 
     def __repr__(self):
         terse_repr = self.terse_repr()
-        my_repr = terse_repr + " %s" % str(self._order_info)
 
-        return my_repr
+        return terse_repr
+
+    def full_repr(self):
+        terse_repr = self.terse_repr()
+        full_repr = terse_repr + " %s" % str(self._order_info)
+
+        return full_repr
+
 
     def terse_repr(self):
         if self._locked:

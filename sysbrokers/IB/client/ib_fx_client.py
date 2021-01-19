@@ -9,6 +9,7 @@ from syscore.objects import arg_not_supplied, missing_contract, missing_data
 
 
 class ibFxClient(ibPriceClient):
+
     def broker_fx_balances(self) -> dict:
         account_summary = self.ib.accountSummary()
         fx_balance_dict = extract_fx_balances_from_account_summary(
@@ -38,9 +39,10 @@ class ibFxClient(ibPriceClient):
         ib_order = self._create_fx_market_order_for_submission(trade=trade, account=account)
         order_object = self.ib.placeOrder(ibcontract, ib_order)
 
-        # for consistency with spread orders
+        # for consistency with spread orders use this kind of object
+        contract_object_to_return =ibcontractWithLegs(ibcontract)
         trade_with_contract = tradeWithContract(
-            ibcontractWithLegs(ibcontract), order_object
+            contract_object_to_return, order_object
         )
 
         return trade_with_contract
@@ -49,7 +51,6 @@ class ibFxClient(ibPriceClient):
             trade: float,
             account: str=arg_not_supplied,
             ) -> MarketOrder:
-
 
         ib_BS_str, ib_qty = resolveBS(trade)
         ib_order = MarketOrder(ib_BS_str, ib_qty)
@@ -77,6 +78,7 @@ class ibFxClient(ibPriceClient):
             log.warn("Can't find IB contract for %s%s" % (ccy1, ccy2))
             return missing_data
 
+        # uses parent class ibClientPrices
         fx_data = self._get_generic_data_for_contract(
             ibcontract, log=log, bar_freq=bar_freq, whatToShow="MIDPOINT")
 
@@ -85,14 +87,7 @@ class ibFxClient(ibPriceClient):
 
     def ib_spotfx_contract(self, ccy1, ccy2="USD") -> Forex:
 
-        ccy_code = ccy1 + ccy2
         ibcontract = Forex(ccy1 + ccy2)
         ibcontract = self.ib_resolve_unique_contract(ibcontract)
-
-        # Register the contract to make logging and error handling cleaner
-        # Two different ways of labelling
-        self.add_contract_to_register(
-            ibcontract, log_tags=dict(
-                currency_code=ccy_code))
 
         return ibcontract

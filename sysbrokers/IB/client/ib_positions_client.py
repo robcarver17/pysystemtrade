@@ -7,7 +7,7 @@ positionsFromIB
 
 class ibPositionsClient(ibClient):
 
-    def broker_get_positions(self, account_id=arg_not_supplied) -> positionsFromIB:
+    def broker_get_positions(self, account_id: str=arg_not_supplied) -> positionsFromIB:
         # Get all the positions
         # We return these as a dict of pd DataFrame
         # dict entries are asset classes, columns are IB symbol, contract ID,
