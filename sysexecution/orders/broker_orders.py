@@ -13,7 +13,7 @@ from sysexecution.fills import fillPrice
 from sysexecution.price_quotes import quotePrice
 from sysexecution.orders.contract_orders import contractOrder, resolve_contract_order_args
 from sysexecution.orders.instrument_orders import instrumentOrder
-from sysobjects.production.tradeable_object import futuresContractStrategy, instrumentStrategy
+from sysobjects.production.tradeable_object import futuresContractStrategy, instrumentStrategy, futuresContract
 from sysobjects.contract_dates_and_expiries import singleContractDate
 
 from syscore.genutils import none_to_object, object_to_none
@@ -269,6 +269,10 @@ class brokerOrder(Order):
     @commission.setter
     def commission(self, comm):
         self.order_info["commission"] = comm
+
+    @property
+    def futures_contract(self):
+        return futuresContract(instrument_object=self.instrument_code, contract_date_object=self.contract_date)
 
     @classmethod
     def from_dict(instrumentOrder, order_as_dict):

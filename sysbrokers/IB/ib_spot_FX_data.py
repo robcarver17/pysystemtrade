@@ -1,10 +1,11 @@
 from collections import  namedtuple
 import pandas as pd
+
 from sysdata.fx.spotfx import fxPricesData
 from sysobjects.spot_fx_prices import fxPrices
 from syslogdiag.log import logtoscreen
 from syscore.fileutils import get_filename_for_package
-from syscore.objects import missing_file, missing_instrument
+from syscore.objects import missing_file, missing_instrument, missing_data
 
 IB_CCY_CONFIG_FILE = get_filename_for_package(
     "sysbrokers.IB.ib_config_spot_FX.csv")
@@ -71,6 +72,8 @@ class ibFxPricesData(fxPricesData):
         raw_fx_prices = self.ibconnection.broker_get_daily_fx_data(
             ib_config_for_code.ccy1, ccy2=ib_config_for_code.ccy2
         )
+        if raw_fx_prices is missing_data:
+            return pd.Series()
         raw_fx_prices_as_series = raw_fx_prices["FINAL"]
 
         return raw_fx_prices_as_series
@@ -129,3 +132,4 @@ class ibFxPricesData(fxPricesData):
     def _add_fx_prices_without_checking_for_existing_entry(
             self, *args, **kwargs):
         raise NotImplementedError("IB is a read only source of prices")
+

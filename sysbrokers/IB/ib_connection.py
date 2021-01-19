@@ -7,9 +7,12 @@ import time
 
 from ib_insync import IB
 
-from sysbrokers.IB.ib_client import ibClient
+from sysbrokers.IB.client.ib_fx_client import ibFxClient
+from sysbrokers.IB.client.ib_orders_client import ibOrdersClient
+from sysbrokers.IB.client.ib_positions_client import ibPositionsClient
+from sysbrokers.IB.client.ib_accounting_client import ibAccountingClient
+
 from sysbrokers.IB.ib_connection_defaults import ib_defaults
-from sysbrokers.IB.ib_server import ibServer
 from syscore.objects import arg_not_supplied, missing_data
 
 from syslogdiag.log import logtoscreen
@@ -27,8 +30,9 @@ def get_broker_account() -> str:
     else:
         return account_id
 
-
-class connectionIB(ibClient, ibServer):
+## price, contracts client not included as already in price and orders
+class connectionIB(ibFxClient, ibPositionsClient, ibOrdersClient,
+                   ibAccountingClient):
     """
     Connection object for connecting IB
     (A database plug in will need to be added for streaming prices)
@@ -64,26 +68,26 @@ class connectionIB(ibClient, ibServer):
         self._ib_connection_config = dict(
             ipaddress=ipaddress, port=port, client=client_id)
 
-        # if you copy for another broker, don't forget the logs
-        ibServer.__init__(self, log=log)
-        ibClient.__init__(self, log=log)
 
         ib = IB()
 
         account = get_broker_account()
         if account is missing_data:
             self.log.error("Broker account ID not found in private config - may cause issues")
-            ib.connect(ipaddress, port, clientId=client_id, account=account)
+            ib.connect(ipaddress, port, clientId=client_id)
         else:
             ib.connect(ipaddress, port, clientId=client_id, account=account)
 
         # Attempt to fix connection bug
         time.sleep(5)
 
-        # Add handlers, from ibServer methods
+        # Add error handler
         ib.errorEvent += self.error_handler
 
-        self.ib = ib
+        # if you copy for another broker, don't forget the logs
+        super().__init__(self, ib, log=log)
+
+
 
     def __repr__(self):
         return "IB broker connection" + str(self._ib_connection_config)

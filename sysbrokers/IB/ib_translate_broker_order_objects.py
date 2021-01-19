@@ -496,3 +496,16 @@ def sign_from_BOT_SEL(action):
     if action == "BOT":
         return 1
     return -1
+
+
+class tradeWithContract(object):
+    def __init__(self, ibcontract_with_legs, trade_object):
+        self.ibcontract_with_legs = ibcontract_with_legs
+        self.trade = trade_object
+        self.ib_instrument_code = trade_object.contract.symbol
+
+    def __repr__(self):
+        return str(self.trade) + " " + str(self.ibcontract_with_legs)
+
+class listOfTradesWithContracts(list):
+    pass

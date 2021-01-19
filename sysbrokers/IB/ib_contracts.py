@@ -54,3 +54,12 @@ def _is_vix_symbol_monthly(symbol):
         return monthly
     else:
         raise Exception("IB Local Symbol %s not recognised" % symbol)
+
+
+class ibcontractWithLegs(object):
+    def __init__(self, ibcontract, legs=[]):
+        self.ibcontract = ibcontract
+        self.legs = legs
+
+    def __repr__(self):
+        return str(self.ibcontract) + " " + str(self.legs)

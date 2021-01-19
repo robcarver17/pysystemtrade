@@ -11,6 +11,7 @@ from syscore.objects import missing_order, failure, success, arg_not_supplied
 from sysobjects.contracts import futuresContract
 from sysexecution.order_stacks.broker_order_stack import brokerOrderStackData, orderWithControls
 from sysexecution.orders.list_of_orders import listOfOrders
+from sysexecution.orders.broker_orders import brokerOrder
 
 from syslogdiag.log import logtoscreen
 
@@ -223,7 +224,7 @@ class ibOrdersData(brokerOrderStackData):
 
         return placed_broker_order_with_controls
 
-    def send_broker_order_to_IB(self, broker_order):
+    def send_broker_order_to_IB(self, broker_order: brokerOrder):
         """
 
         :param broker_order: key properties are instrument_code, contract_id, quantity
@@ -233,17 +234,15 @@ class ibOrdersData(brokerOrderStackData):
 
         log = broker_order.log_with_attributes(self.log)
         log.msg("Going to submit order %s to IB" % str(broker_order))
-        instrument_code = broker_order.instrument_code
 
         # Next two are because we are a single leg order, but both are lists
-        contract_id = broker_order.contract_id
-        trade_list = broker_order.trade.qty
+        trade_list = broker_order.trade
 
         order_type = broker_order.order_type
         limit_price = broker_order.limit_price
         account = broker_order.broker_account
 
-        contract_object = futuresContract(instrument_code, contract_id)
+        contract_object = broker_order.futures_contract
         contract_object_with_ib_data = (
             self.futures_contract_data.get_contract_object_with_IB_metadata(
                 contract_object

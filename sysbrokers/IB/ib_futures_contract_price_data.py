@@ -164,7 +164,13 @@ class ibFuturesContractPriceData(futuresContractPriceData):
         price_data = self.ibconnection.broker_get_historical_futures_data_for_contract(
             contract_object_with_ib_broker_config, bar_freq=freq)
 
-        if len(price_data) == 0:
+        if price_data is missing_data:
+            new_log.warn(
+                "Something went wrong getting IB price data for %s" %
+                str(contract_object))
+            price_data = futuresContractPrices.create_empty()
+
+        elif len(price_data) == 0:
             new_log.warn(
                 "No IB price data found for %s" %
                 str(contract_object))

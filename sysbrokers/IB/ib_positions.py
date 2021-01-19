@@ -26,7 +26,10 @@ def extract_currency_dict_for_tag_from_account_summary(
     return result
 
 
-def from_ib_positions_to_dict(raw_positions, account_id=arg_not_supplied):
+class positionsFromIB(dict):
+    pass
+
+def from_ib_positions_to_dict(raw_positions, account_id=arg_not_supplied) -> positionsFromIB:
     """
 
     :param raw_positions: list of positions in form Position(...)
@@ -54,6 +57,8 @@ def from_ib_positions_to_dict(raw_positions, account_id=arg_not_supplied):
         asset_class_list = resolved_positions_dict.get(asset_class, [])
         asset_class_list.append(resolved_position)
         resolved_positions_dict[asset_class] = asset_class_list
+
+    resolved_positions_dict =positionsFromIB(resolved_positions_dict)
 
     return resolved_positions_dict
 
