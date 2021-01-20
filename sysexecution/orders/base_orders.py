@@ -3,7 +3,7 @@ import datetime
 
 from syscore.genutils import none_to_object, object_to_none
 from syscore.objects import no_order_id, no_children, no_parent
-from sysexecution.fills import fillPrice
+from sysexecution.fill_price import fillPrice
 from sysexecution.trade_qty import tradeQuantity
 from sysexecution.price_quotes import quotePrice
 from sysobjects.production.tradeable_object import tradeableObject
@@ -12,6 +12,9 @@ class overFilledOrder(Exception):
     pass
 
 class orderType(object):
+    def __repr__(self):
+        return self.as_string()
+
     def allowed_types(self):
         return ["market"]
 
@@ -21,7 +24,7 @@ class orderType(object):
         self._type = type_string
 
     def as_string(self):
-        return self.as_string()
+        return self._type
 
 class Order(object):
     """
@@ -104,7 +107,7 @@ class Order(object):
             active_str = " INACTIVE"
         else:
             active_str = ""
-        return "(Order ID:%s) %s For %s, qty %s fill %s, price %s Parent:%s Child:%s%s%s" % (
+        return "(Order ID:%s) Type %s for %s, qty %s fill %s, price %s Parent:%s Child:%s%s%s" % (
             str(self.order_id),
             str(self._order_type),
             str(self.key),
@@ -144,15 +147,6 @@ class Order(object):
 
         new_order = copy(self)
         new_order._trade = new_trade
-
-        return new_order
-
-    def change_trade_size_proportionally_to_meet_abs_qty_limit(self, max_abs_qty:int):
-        # if this is a single leg trade, does a straight replacement
-        # otherwise
-
-        new_order = copy(self)
-        new_order.trade.change_trade_size_proportionally_to_meet_abs_qty_limit(max_abs_qty)
 
         return new_order
 
@@ -264,10 +258,23 @@ class Order(object):
 
         return new_order
 
-    def reduce_trade_size_proportionally_so_smallest_leg_is_max_size(self, min_size: int):
+
+    def change_trade_size_proportionally_to_meet_abs_qty_limit(self, max_abs_qty:int):
+        # if this is a single leg trade, does a straight replacement
+        # otherwise
+
         new_order = copy(self)
-        new_trade = new_order.trade.reduce_trade_size_proportionally_so_smallest_leg_is_max_size(min_size)
-        new_order._trade = new_trade
+        old_trade =  new_order.trade
+        new_trade = old_trade.change_trade_size_proportionally_to_meet_abs_qty_limit(max_abs_qty)
+        new_order = new_order.replace_required_trade_size_only_use_for_unsubmitted_trades(new_trade)
+
+        return new_order
+
+    def reduce_trade_size_proportionally_so_smallest_leg_is_max_size(self, max_size: int):
+        new_order = copy(self)
+        old_trade = new_order.trade
+        new_trade = old_trade.reduce_trade_size_proportionally_so_smallest_leg_is_max_size(max_size)
+        new_order = new_order.replace_required_trade_size_only_use_for_unsubmitted_trades(new_trade)
 
         return new_order
 
@@ -309,7 +316,7 @@ class Order(object):
         object_dict["parent"] = object_to_none(self.parent, no_parent)
         object_dict["children"] = object_to_none(self.children, no_children)
         object_dict["active"] = self.active
-        object_dict["type"] = self.order_type.as_string()
+        object_dict["order_type"] = self.order_type.as_string()
         for info_key, info_value in self.order_info.items():
             object_dict[info_key] = info_value
 
@@ -395,7 +402,7 @@ def adjust_spread_order_single_benchmark(order: Order, benchmark_list: quotePric
     spread_price_from_benchmark = order.trade.get_spread_price(benchmark_list)
     adjustment_to_benchmark = actual_price - spread_price_from_benchmark
     adjusted_benchmark_prices_as_list = [
-        price + adjustment_to_benchmark for price in benchmark_list.price
+        price + adjustment_to_benchmark for price in benchmark_list
     ]
     adjusted_benchmark_prices = quotePrice(adjusted_benchmark_prices_as_list)
 

@@ -146,9 +146,6 @@ class orderGeneratorForStrategy(object):
     def submit_order(self, order: instrumentOrder):
         log = order.log_with_attributes(self.log)
         cut_down_order = self.adjust_order_for_position_limits(order)
-        if cut_down_order.is_zero_trade():
-            ## nothing to do
-            return None
 
         try:
             order_id = self.order_stack.put_order_on_stack(cut_down_order)

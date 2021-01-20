@@ -186,7 +186,7 @@ class mongoContractHistoricOrdersData(
 
 
 class mongoBrokerHistoricOrdersData(
-    mongoGenericHistoricOrdersData, brokerHistoricOrdersData, mongoContractHistoricOrdersData
+    mongoGenericHistoricOrdersData, brokerHistoricOrdersData
 ):
     def _collection_name(self):
         return "_BROKER_HISTORIC_ORDERS"
@@ -196,4 +196,34 @@ class mongoBrokerHistoricOrdersData(
 
     def _name(self):
         return "Historic broker orders"
+
+    ## repeated code to avoid MRO issue
+    ## probably cleaner way of doing this
+    def get_list_of_order_ids_for_strategy_and_contract(
+        self, futures_contract_strategy: futuresContractStrategy
+    ) -> list:
+
+        object_key = futures_contract_strategy.key
+        custom_dict = dict(key = object_key)
+        list_of_result_dicts = self.mongo_data.get_list_of_result_dict_for_custom_dict(custom_dict)
+        list_of_order_id = [result["order_id"] for result in list_of_result_dicts]
+
+        alt_key = futures_contract_strategy.alt_key
+        custom_dict = dict(key = alt_key)
+        alt_list_of_result_dicts = self.mongo_data.get_list_of_result_dict_for_custom_dict(custom_dict)
+        alt_list_of_order_id = [result["order_id"] for result in alt_list_of_result_dicts]
+
+        list_of_order_id = list_of_order_id + alt_list_of_order_id
+
+        return list_of_order_id
+
+
+    def get_list_of_strategies(self):
+        list_of_keys = self.mongo_data.get_list_of_keys()
+        list_of_contract_strategies = [futuresContractStrategy.from_key(key) for key in list_of_keys]
+        list_of_strategies = [futures_contract_strategy.strategy_name for futures_contract_strategy in list_of_contract_strategies]
+
+        list_of_strategies = list(set(list_of_strategies))
+
+        return list_of_strategies
 

@@ -22,10 +22,9 @@ from syscore.objects import (
 
 from sysexecution.orders.instrument_orders import instrumentOrder
 from sysexecution.stack_handler.stackHandlerCore import stackHandlerCore
-from sysexecution.fills import listOfFillPrice
 from sysexecution.orders.list_of_orders import listOfOrders
 from sysexecution.trade_qty import tradeQuantity
-from sysexecution.fills import fillPrice
+from sysexecution.fill_price import fillPrice, listOfFillPrice
 
 from sysproduction.data.broker import dataBroker
 from sysproduction.data.positions import updatePositions

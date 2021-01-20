@@ -9,7 +9,7 @@ from sysexecution.orders.base_orders import (
     resolve_inputs_to_order, orderType)
 
 from sysexecution.trade_qty import tradeQuantity
-from sysexecution.fills import fillPrice
+from sysexecution.fill_price import fillPrice
 from sysexecution.orders.list_of_orders import listOfOrders
 from sysobjects.production.tradeable_object import futuresContractStrategy, instrumentStrategy, futuresContract
 from sysobjects.contract_dates_and_expiries import singleContractDate
@@ -23,7 +23,7 @@ class contractOrderType(orderType):
         return ['best', 'market', 'limit', 'balance_trade']
 
 best_order_type  = contractOrderType('best')
-balance_order_type = contractOrderType('balance')
+balance_order_type = contractOrderType('balance_trade')
 
 
 class contractOrder(Order):

@@ -8,7 +8,8 @@ from sysexecution.orders.base_orders import (
     no_order_id,
     no_children,
     no_parent,
-    resolve_inputs_to_order, tradeQuantity, fillPrice, orderType)
+     tradeQuantity, orderType)
+from sysexecution.fill_price import fillPrice
 from sysobjects.production.tradeable_object import instrumentStrategy
 
 class instrumentOrderType(orderType):
@@ -203,7 +204,7 @@ class instrumentOrder(Order):
 
     @property
     def generated_datetime(self):
-        return self.order_info["reference_datetime"]
+        return self.order_info["generated_datetime"]
 
     @property
     def manual_trade(self):

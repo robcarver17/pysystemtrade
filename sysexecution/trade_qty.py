@@ -10,8 +10,7 @@ class tradeQuantity(list):
         if trade_or_fill_qty is None:
             trade_or_fill_qty = []
         if isinstance(trade_or_fill_qty, tradeQuantity):
-            trade_or_fill_qty = [trade_or_fill_qty.qty]
-
+            pass
         elif (isinstance(trade_or_fill_qty, float)) or (isinstance(trade_or_fill_qty, int)):
             trade_or_fill_qty = [trade_or_fill_qty]
             # must be a list
@@ -66,7 +65,7 @@ class tradeQuantity(list):
 
     def change_trade_size_proportionally_to_meet_abs_qty_limit(self, max_abs_qty: int):
         new_qty = change_trade_size_proportionally_to_meet_abs_qty_limit(self, max_abs_qty)
-        self = tradeQuantity(new_qty)
+        return tradeQuantity(new_qty)
 
     def sort_with_idx(self, idx_list: list):
         unsorted = self
@@ -85,7 +84,7 @@ class tradeQuantity(list):
 
         return tradeQuantity(applied_list)
 
-    def reduce_trade_size_proportionally_so_smallest_leg_is_max_size(self, min_size: int):
+    def reduce_trade_size_proportionally_so_smallest_leg_is_max_size(self, max_size: int):
         """
         Cut the trade down proportionally so the smallest leg is min_size
         eg self = [2], min_size = 1 -> [1]
@@ -93,11 +92,11 @@ class tradeQuantity(list):
         self = [-2,4,-2], min_size = 1 -> [-1,2,2]
         self = [-3,4,-3], min_size = 1 -> [-3,4,-3]
 
-        :param min_size:
+        :param max_size:
         :return: tradeQuantity
         """
 
-        new_trade_list = reduce_trade_size_proportionally_so_smallest_leg_is_max_size(self, min_size)
+        new_trade_list = reduce_trade_size_proportionally_so_smallest_leg_is_max_size(self, max_size)
         return tradeQuantity(new_trade_list)
 
     def get_spread_price(self, quote_price: quotePrice) -> float:
