@@ -7,6 +7,7 @@ from syscore.objects import (
     success,
     failure,
     resolve_function,
+arg_not_supplied
 )
 from sysdata.base_data import baseData
 from syslogdiag.log import logtoscreen
@@ -97,9 +98,11 @@ class listOfEntriesData(baseData):
             self.log.critical(e)
             raise Exception(e)
 
+        class_of_entry_list_as_str = new_entry.containing_data_class_name
+
         self._write_series_for_args_dict(
             args_dict, existing_series
-            )
+            class_of_entry_list_as_str = class_of_entry_list_as_str)
 
         return success
 
@@ -167,10 +170,12 @@ class listOfEntriesData(baseData):
 
     def _write_series_for_args_dict(
         self, args_dict: dict,
-            entry_series: listOfEntries
+            entry_series: listOfEntries,
+            class_of_entry_list_as_str = arg_not_supplied
         ):
         entry_series_as_list_of_dicts = entry_series.as_list_of_dict()
-        class_of_entry_list_as_str = self._get_class_of_entry_list_as_str(args_dict)
+        if class_of_entry_list_as_str is arg_not_supplied:
+            class_of_entry_list_as_str = self._get_class_of_entry_list_as_str(args_dict)
 
         class_str_with_series_as_list_of_dicts = \
             classStrWithListOfEntriesAsListOfDicts(class_of_entry_list_as_str,
