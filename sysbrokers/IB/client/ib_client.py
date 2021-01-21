@@ -94,7 +94,7 @@ class ibClient(object):
     def broker_error(self, msg, myerror_type):
         self.log.warn(msg)
 
-    def broker_message(self, msg, log_tags):
+    def broker_message(self, msg):
         self.log.msg(msg)
 
     def refresh(self):

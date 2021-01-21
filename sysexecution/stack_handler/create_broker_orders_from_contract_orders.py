@@ -10,6 +10,7 @@ from sysexecution.algos.allocate_algo_to_order import (
 )
 from sysexecution.orders.contract_orders import contractOrder
 from sysexecution.orders.broker_orders import brokerOrder
+from sysexecution.order_stacks.instrument_order_stack import instrumentOrder
 from sysexecution.order_stacks.broker_order_stack import orderWithControls
 from sysexecution.algos.algo import Algo
 from sysexecution.stack_handler.stackHandlerCore import stackHandlerCore
@@ -37,9 +38,6 @@ class stackHandlerCreateBrokerOrders(stackHandlerCore):
         """
         list_of_contract_order_ids = self.contract_stack.get_list_of_order_ids()
         for contract_order_id in list_of_contract_order_ids:
-            contract_order = self.contract_stack.get_order_with_id_from_stack(
-                contract_order_id
-            )
 
             self.create_broker_order_for_contract_order(
                 contract_order_id
@@ -52,9 +50,6 @@ class stackHandlerCreateBrokerOrders(stackHandlerCore):
 
         original_contract_order = self.contract_stack.get_order_with_id_from_stack(
             contract_order_id)
-        if original_contract_order is missing_order:
-            # weird race condition
-            return None
 
         contract_order_to_trade = self.preprocess_contract_order(
             original_contract_order
@@ -64,16 +59,16 @@ class stackHandlerCreateBrokerOrders(stackHandlerCore):
             # Empty order not submitting to algo
             return None
 
-        algo_instance_and_broker_order_with_controls = self.send_to_algo(contract_order_to_trade)
+        algo_instance_and_placed_broker_order_with_controls = self.send_to_algo(contract_order_to_trade)
 
-        if algo_instance_and_broker_order_with_controls is missing_order:
+        if algo_instance_and_placed_broker_order_with_controls is missing_order:
             # something gone wrong with execution
             return missing_order
 
-        (algo_instance, broker_order_with_controls) = algo_instance_and_broker_order_with_controls
+        (algo_instance, placed_broker_order_with_controls) = algo_instance_and_placed_broker_order_with_controls
 
         broker_order_with_controls_and_order_id = self.add_trade_to_database(
-            broker_order_with_controls
+            placed_broker_order_with_controls
         )
 
         completed_broker_order_with_controls = algo_instance.manage_trade(
@@ -86,6 +81,10 @@ class stackHandlerCreateBrokerOrders(stackHandlerCore):
     def preprocess_contract_order(
             self,
             original_contract_order: contractOrder) -> contractOrder:
+
+        if original_contract_order is missing_order:
+            # weird race condition
+            return missing_order
 
         if original_contract_order.fill_equals_desired_trade():
             return missing_order
@@ -195,8 +194,12 @@ class stackHandlerCreateBrokerOrders(stackHandlerCore):
     def send_to_algo(self, contract_order_to_trade: contractOrder) -> (Algo, orderWithControls):
 
         log = contract_order_to_trade.log_with_attributes(self.log)
+        instrument_order = self.get_parent_of_contract_order(contract_order_to_trade)
+
         contract_order_to_trade_with_algo_set = check_and_if_required_allocate_algo_to_single_contract_order(
-            self.data, contract_order_to_trade)
+            data=self.data,
+            contract_order=contract_order_to_trade,
+        instrument_order=instrument_order)
 
         log.msg("Sending order %s to algo %s" % (str(contract_order_to_trade_with_algo_set), contract_order_to_trade_with_algo_set.algo_to_use))
 
@@ -204,16 +207,22 @@ class stackHandlerCreateBrokerOrders(stackHandlerCore):
         algo_instance = algo_class_to_call(self.data, contract_order_to_trade_with_algo_set)
 
         # THIS LINE ACTUALLY SENDS THE ORDER TO THE ALGO
-        broker_order_with_controls = algo_instance.submit_trade()
+        placed_broker_order_with_controls = algo_instance.submit_trade()
 
-        if broker_order_with_controls is missing_order:
+        if placed_broker_order_with_controls is missing_order:
             # important we do this or order will never execute
             #  if no issue here will be released once order filled
             self.contract_stack.release_order_from_algo_control(
-                contract_order_to_trade_with_algo_set.contract_order_id)
+                contract_order_to_trade_with_algo_set.order_id)
             return missing_order
 
-        return algo_instance, broker_order_with_controls
+        return algo_instance, placed_broker_order_with_controls
+
+    def get_parent_of_contract_order(self, contract_order: contractOrder) -> instrumentOrder:
+        instrument_order_id = contract_order.parent
+        parent_instrument_order = self.instrument_stack.get_order_with_id_from_stack(instrument_order_id)
+
+        return parent_instrument_order
 
     def add_controlling_algo_to_order(self, contract_order_to_trade: contractOrder) -> 'function':
         # Note we don't save the algo method, but reallocate each time

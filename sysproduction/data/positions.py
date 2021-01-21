@@ -285,13 +285,6 @@ class dataOptimalPositions(object):
             instrument_strategy)
 
 
-    def update_optimal_position_for_strategy_and_instrument(
-        self, strategy_name, instrument_code, position_entry
-    ):
-        #FIXME REMOVE
-        self.update_optimal_position_for_instrument_strategy(
-            instrumentStrategy(strategy_name=strategy_name, instrument_code=instrument_code),
-            position_entry)
 
 
     def update_optimal_position_for_instrument_strategy(

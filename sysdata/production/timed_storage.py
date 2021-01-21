@@ -7,6 +7,7 @@ from syscore.objects import (
     success,
     failure,
     resolve_function,
+arg_not_supplied
 )
 from sysdata.base_data import baseData
 from syslogdiag.log import logtoscreen
@@ -87,6 +88,9 @@ class listOfEntriesData(baseData):
         if len(existing_series) > 0:
             # Check types match
             self._check_class_name_matches_for_new_entry(args_dict, new_entry)
+        else:
+            # empty this ensures we use the correct type for a new set of data
+            existing_series = get_empty_series_for_timed_entry(new_entry)
 
         try:
             existing_series.append(new_entry)
@@ -97,8 +101,11 @@ class listOfEntriesData(baseData):
             )
             return failure
 
+        class_of_entry_list_as_str = new_entry.containing_data_class_name
+
         self._write_series_for_args_dict(
-            args_dict, existing_series
+            args_dict, existing_series,
+            class_of_entry_list_as_str = class_of_entry_list_as_str
             )
 
         return success
@@ -166,10 +173,13 @@ class listOfEntriesData(baseData):
 
     def _write_series_for_args_dict(
         self, args_dict: dict,
-            entry_series: listOfEntries
+            entry_series: listOfEntries,
+            class_of_entry_list_as_str: str = arg_not_supplied
         ):
         entry_series_as_list_of_dicts = entry_series.as_list_of_dict()
-        class_of_entry_list_as_str = self._get_class_of_entry_list_as_str(args_dict)
+
+        if class_of_entry_list_as_str is arg_not_supplied:
+            class_of_entry_list_as_str = self._get_class_of_entry_list_as_str(args_dict)
 
         class_str_with_series_as_list_of_dicts = \
             classStrWithListOfEntriesAsListOfDicts(class_of_entry_list_as_str,
@@ -208,3 +218,10 @@ class listOfEntriesData(baseData):
 
     def _get_list_of_args_dict(self) -> list:
         raise NotImplementedError("Need to use child class")
+
+def get_empty_series_for_timed_entry(new_entry: timedEntry) -> listOfEntries:
+    containing_data_class_name = new_entry.containing_data_class_name
+    containing_data_class = resolve_function(containing_data_class_name)
+
+    return containing_data_class.as_empty()
+

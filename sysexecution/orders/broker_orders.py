@@ -1,4 +1,3 @@
-from enum import Enum
 from copy import copy
 import datetime
 
@@ -6,7 +5,7 @@ from sysexecution.orders.base_orders import (
     no_order_id,
     no_children,
     no_parent,
-    resolve_inputs_to_order, orderType)
+     orderType)
 from sysexecution.orders.base_orders import Order
 from sysexecution.trade_qty import tradeQuantity
 from sysexecution.fill_price import fillPrice
@@ -22,7 +21,7 @@ from syscore.objects import fill_exceeds_trade, success
 
 class brokerOrderType(orderType):
     def allowed_types(self):
-        return ['market', 'limit']
+        return ['market', 'limit', 'balance_trade']
 
 market_order_type = brokerOrderType('market')
 limit_order_type = brokerOrderType('limit')
@@ -208,7 +207,7 @@ class brokerOrder(Order):
 
     @property
     def manual_fill(self):
-        return self.order_info["manual_fill"]
+        return bool(self.order_info["manual_fill"])
 
     @manual_fill.setter
     def manual_fill(self, manual_fill):
@@ -347,7 +346,7 @@ class brokerOrder(Order):
 
     @property
     def is_split_order(self):
-        return self.order_info["split_order"]
+        return bool(self.order_info["split_order"])
 
     def split_order(self, sibling_order_id):
         self.order_info["split_order"] = True

@@ -25,6 +25,7 @@ class contractOrderType(orderType):
 best_order_type  = contractOrderType('best')
 balance_order_type = contractOrderType('balance_trade')
 
+NO_CONTROLLING_ALGO = None
 
 class contractOrder(Order):
     def __init__(
@@ -54,7 +55,7 @@ class contractOrder(Order):
 
         split_order: bool=False,
         sibling_id_for_split_order: int=None,
-        **kwargs
+        **kwargs_ignored
     ):
         """
         :param args: Either a single argument 'strategy/instrument/contract_order_id' str, or strategy, instrument, contract_order_id; followed by trade
@@ -215,7 +216,7 @@ class contractOrder(Order):
 
     @property
     def generated_datetime(self):
-        return self.order_info["reference_datetime"]
+        return self.order_info["generated_datetime"]
 
     @property
     def reference_price(self):
@@ -235,11 +236,11 @@ class contractOrder(Order):
 
     @property
     def manual_trade(self):
-        return self.order_info["manual_trade"]
+        return bool(self.order_info["manual_trade"])
 
     @property
     def manual_fill(self):
-        return self.order_info["manual_fill"]
+        return bool(self.order_info["manual_fill"])
 
     @manual_fill.setter
     def manual_fill(self, manual_fill):
@@ -247,7 +248,7 @@ class contractOrder(Order):
 
     @property
     def is_split_order(self):
-        return self.order_info["split_order"]
+        return bool(self.order_info["split_order"])
 
     def split_order(self, sibling_order_id):
         self.order_info["split_order"] = True
@@ -255,18 +256,18 @@ class contractOrder(Order):
 
     @property
     def roll_order(self):
-        return self.order_info["roll_order"]
+        return bool(self.order_info["roll_order"])
 
     @property
     def calendar_spread_order(self):
-        return self.order_info["calendar_spread_order"]
+        return bool(self.order_info["calendar_spread_order"])
 
     @property
     def reference_of_controlling_algo(self):
         return self.order_info["reference_of_controlling_algo"]
 
     def is_order_controlled_by_algo(self):
-        return self.order_info["reference_of_controlling_algo"] is not None
+        return self.order_info["reference_of_controlling_algo"] is not NO_CONTROLLING_ALGO
 
     def add_controlling_algo_ref(self, control_algo_ref):
         if self.reference_of_controlling_algo == control_algo_ref:
@@ -281,11 +282,11 @@ class contractOrder(Order):
         return success
 
     def release_order_from_algo_control(self):
-        self.order_info["reference_of_controlling_algo"] = None
+        self.order_info["reference_of_controlling_algo"] = NO_CONTROLLING_ALGO
 
     @property
     def inter_spread_order(self):
-        return self.order_info["inter_spread_order"]
+        return bool(self.order_info["inter_spread_order"])
 
     def log_with_attributes(self, log):
         """

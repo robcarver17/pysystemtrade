@@ -28,7 +28,7 @@ from sysexecution.stack_handler.stack_handler import stackHandler
 from sysexecution.stack_handler.balance_trades import stackHandlerCreateBalanceTrades
 from sysexecution.orders.broker_orders import brokerOrder
 from sysexecution.orders.contract_orders import contractOrder
-from sysexecution.orders.instrument_orders import instrumentOrder, possible_order_types
+from sysexecution.orders.instrument_orders import instrumentOrder, instrumentOrderType
 from sysexecution.algos.allocate_algo_to_order import list_of_algos
 
 
@@ -358,6 +358,7 @@ def enter_manual_instrument_order(data):
         "Quantity (-ve for sell, +ve for buy?)",
         type_expected=int,
         allow_default=False)
+    possible_order_types = instrumentOrderType.allowed_types()
     order_type = input("Order type (one of %s)?" % str(possible_order_types))
     limit_price = get_and_convert(
         "Limit price? (if you put None you can still add one to the contract order)",

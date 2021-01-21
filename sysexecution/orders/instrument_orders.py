@@ -208,11 +208,11 @@ class instrumentOrder(Order):
 
     @property
     def manual_trade(self):
-        return self.order_info["manual_trade"]
+        return bool(self.order_info["manual_trade"])
 
     @property
     def roll_order(self):
-        return self.order_info["roll_order"]
+        return bool(self.order_info["roll_order"])
 
     def log_with_attributes(self, log):
         """

@@ -110,7 +110,7 @@ class Order(object):
             active_str = " INACTIVE"
         else:
             active_str = ""
-        return "(Order ID:%s) Type %s for %s, qty %s fill %s, price %s Parent:%s Child:%s%s%s" % (
+        return "(Order ID:%s) Type %s for %s, qty %s, fill %s@ price, %s Parent:%s Children:%s%s%s" % (
             str(self.order_id),
             str(self._order_type),
             str(self.key),
@@ -203,7 +203,8 @@ class Order(object):
 
     @property
     def order_id(self) -> int:
-        return self._order_id
+        order_id = resolve_orderid(self._order_id)
+        return order_id
 
     @order_id.setter
     def order_id(self, order_id: int):
@@ -286,18 +287,19 @@ class Order(object):
 
     @property
     def parent(self):
-        return self._parent
+        parent = resolve_parent(self._parent)
+        return parent
 
     @parent.setter
     def parent(self, parent: int):
         if self._parent == no_parent:
-            self._parent = parent
+            self._parent = int(parent)
         else:
             raise Exception("Can't add parent to order which already has them")
 
     @property
     def active(self):
-        return self._active
+        return bool(self._active)
 
     def deactivate(self):
         # Once deactivated: filled or cancelled, we can never go back!
@@ -364,7 +366,7 @@ class Order(object):
         return self.tradeable_object.key
 
     def is_order_locked(self):
-        return self._locked
+        return bool(self._locked)
 
     def lock_order(self):
         self._locked = True
@@ -427,3 +429,19 @@ def resolve_inputs_to_order(trade, fill, filled_price) -> (tradeQuantity, tradeQ
     return resolved_trade, resolved_fill, resolved_filled_price
 
 
+def resolve_orderid(order_id:int):
+    if order_id is no_order_id:
+        return no_order_id
+    if order_id is None:
+        return no_order_id
+    order_id= int(order_id)
+    return order_id
+
+def resolve_parent(parent: int):
+    if parent is no_parent:
+        return no_parent
+    if parent is None:
+        return no_parent
+    parent= int(parent)
+
+    return parent

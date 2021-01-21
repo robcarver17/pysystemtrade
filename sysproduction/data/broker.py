@@ -220,11 +220,12 @@ class dataBroker(object):
     def get_market_conditions_for_contract_order_by_leg(self, contract_order: contractOrder) -> list:
         market_conditions = []
         instrument_code = contract_order.instrument_code
-        for contract_date, qty in zip(
-            contract_order.contract_date, contract_order.trade
+        list_of_trade_qty = contract_order.trade
+        list_of_contracts = contract_order.futures_contract.as_list_of_individual_contracts()
+        for contract, qty in zip(
+            list_of_contracts, list_of_trade_qty
         ):
-            contract = futuresContract(instrument_code, contract_date)
-
+            pass
             market_conditions_this_contract = (
                 self.check_market_conditions_for_single_legged_contract_and_qty(contract, qty)
             )
@@ -255,7 +256,7 @@ class dataBroker(object):
         :return: tuple: side_price, mid_price OR missing_data
         """
 
-        tick_data = self.data_broker.get_recent_bid_ask_tick_data_for_contract_object(contract)
+        tick_data = self.get_recent_bid_ask_tick_data_for_contract_object(contract)
         analysis_of_tick_data = analyse_tick_data_frame(tick_data, qty)
 
         return analysis_of_tick_data

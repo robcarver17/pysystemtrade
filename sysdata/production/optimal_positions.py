@@ -111,10 +111,10 @@ class optimalPositionData(listOfEntriesData):
 
 
     def get_current_optimal_position_for_instrument_strategy(
-            self, strategy_instrument: instrumentStrategy
+            self, instrument_strategy: instrumentStrategy
     ):
         current_optimal_position_entry = self._get_current_entry_for_args_dict(
-            strategy_instrument.as_dict()
+            instrument_strategy.as_dict()
         )
 
         return current_optimal_position_entry

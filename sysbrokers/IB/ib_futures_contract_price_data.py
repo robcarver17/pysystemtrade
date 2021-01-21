@@ -205,7 +205,7 @@ class ibFuturesContractPriceData(futuresContractPriceData):
 
 
     def get_ticker_object_for_order(self, order: contractOrder) -> tickerObject:
-        contract_object = contractOrder.futures_contract
+        contract_object = order.futures_contract
         trade_list_for_multiple_legs = order.trade
 
         new_log = order.log_with_attributes(self.log)
