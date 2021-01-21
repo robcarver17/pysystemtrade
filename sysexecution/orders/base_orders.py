@@ -26,6 +26,9 @@ class orderType(object):
     def as_string(self):
         return self._type
 
+    def __eq__(self, other):
+        return self.as_string() == other.as_string()
+
 class Order(object):
     """
     An order represents a desired or completed trade

@@ -37,8 +37,13 @@ class ibClient(object):
             datetime.datetime.now() -
             datetime.timedelta(
                 seconds=_PACING_PERIOD_SECONDS))
+
+        # Add error handler
+        ibconnection.ib.errorEvent += self.error_handler
+
         self._ib_connnection = ibconnection
         self._log = log
+
 
     @property
     def ib_connection(self) -> connectionIB:

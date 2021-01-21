@@ -69,12 +69,12 @@ class mongoOrderStackData(orderStackData):
     def _put_order_on_stack_no_checking(self, order: Order):
         order_as_dict = order.as_dict()
 
-        self.mongo_data.add_data(order.order_id, order_as_dict, allow_overwrite=False)
+        self.mongo_data.add_data(int(order.order_id), order_as_dict, allow_overwrite=False)
 
     # ORDER ID
     def _get_next_order_id(self) -> int:
         max_orderid = self._get_current_max_order_id()
-        new_orderid = max_orderid + 1
+        new_orderid = int(max_orderid + 1)
         self._update_max_order_id(new_orderid)
 
         return new_orderid
@@ -87,7 +87,7 @@ class mongoOrderStackData(orderStackData):
 
         order_id = result_dict[MAX_ORDER_KEY]
 
-        return order_id
+        return int(order_id)
 
     def _update_max_order_id(self, max_order_id: int):
         self.mongo_data.add_data(ORDER_ID_STORE_KEY, {MAX_ORDER_KEY: max_order_id}, allow_overwrite=True)

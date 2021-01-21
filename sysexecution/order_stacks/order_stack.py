@@ -93,7 +93,7 @@ class orderStackData(object):
                 order_id = self.put_order_on_stack(order)
             except Exception as e:
                 log.warn(
-                    "Failed to put contract order %s on stack error %s, rolling back entire transaction" %
+                    "Failed to put order %s on stack error %s, rolling back entire transaction" %
                     (str(order), str(e)))
                 status = failure
                 break

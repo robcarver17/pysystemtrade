@@ -74,20 +74,17 @@ class connectionIB(object):
         # Attempt to fix connection bug
         time.sleep(5)
 
-        # Add error handler
-        ib.errorEvent += self.error_handler
-
         # if you copy for another broker, don't forget the logs
         self._ib = ib
         self._log = log
 
     @property
     def ib(self):
-        return self.ib
+        return self._ib
 
     @property
     def log(self):
-        return self.log
+        return self._log
 
     def __repr__(self):
         return "IB broker connection" + str(self._ib_connection_config)

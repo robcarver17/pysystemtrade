@@ -70,14 +70,14 @@ def check_and_if_required_allocate_algo_to_single_contract_order(
         log.msg("Market order type, so allocating to algo_market")
         contract_order.algo_to_use = MARKET_ALGO
 
-    elif instrument_order_type in [best_order_type, zero_roll_order_type]:
+    elif instrument_order_type == best_order_type or instrument_order_type==zero_roll_order_type:
         contract_order = allocate_for_best_execution_no_limit(data=data, contract_order=contract_order)
 
-    elif instrument_order_type is limit_order_type:
+    elif instrument_order_type == limit_order_type:
         log.critical("Don't have an algo for instrument level limit orders yet!")
         return missing_order
 
-    elif instrument_order_type is balance_order_type:
+    elif instrument_order_type==balance_order_type:
         log.critical("Balance orders aren't executed, shouldn't even be here!")
         return missing_order
     else:

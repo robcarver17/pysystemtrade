@@ -1,16 +1,13 @@
 from collections import namedtuple
 import numpy as np
 
-from syscore.objects import (
-    failure,
-)
 
 from syscore.genutils import sign
 from syscore.objects import (
     missing_order,
-    missing_contract,
+
     missing_data,
-    rolling_cant_trade,
+
     success
 )
 
@@ -21,14 +18,14 @@ from sysproduction.data.positions import diagPositions
 from sysproduction.data.prices import diagPrices
 from sysproduction.data.controls import dataLocks
 
-from sysexecution.order_stacks.order_stack import orderStackData, failureWithRollback
+from sysexecution.order_stacks.order_stack import orderStackData
 from sysexecution.orders.base_orders import Order
-from sysexecution.orders.contract_orders import contractOrder, contractOrderType, best_order_type
-from sysexecution.orders.broker_orders import brokerOrder
+from sysexecution.orders.contract_orders import contractOrder, contractOrderType
+
 from sysexecution.orders.list_of_orders import listOfOrders
 from sysexecution.orders.instrument_orders import instrumentOrder, instrumentOrderType
 
-from sysexecution.price_quotes import quotePrice
+
 
 from sysexecution.algos.allocate_algo_to_order import (
     allocate_algo_to_list_of_contract_orders,
@@ -42,13 +39,14 @@ class stackHandlerForSpawning(stackHandlerCore):
             self.spawn_children_from_instrument_order_id(instrument_order_id)
 
     def spawn_children_from_instrument_order_id(self, instrument_order_id: int):
-        data_locks = dataLocks(self.data)
+
         instrument_order = self.instrument_stack.get_order_with_id_from_stack(
             instrument_order_id
         )
         if instrument_order is missing_order:
             return None
 
+        data_locks = dataLocks(self.data)
         instrument_locked = data_locks.is_instrument_locked(
             instrument_order.instrument_code
         )

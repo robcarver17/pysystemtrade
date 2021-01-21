@@ -107,7 +107,7 @@ class instrumentOrderStackData(orderStackData):
 
         if adjusted_order.is_zero_trade() and not allow_zero_orders:
             # Trade we want is already in the system
-            error_msg = "Adjusted order %s is zero, zero orders not allowed"
+            error_msg = "Adjusted order %s is zero, zero orders not allowed" % str(adjusted_order)
             log.warn(error_msg)
             raise zeroOrderException(error_msg)
 

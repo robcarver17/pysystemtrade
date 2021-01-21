@@ -152,7 +152,7 @@ class orderGeneratorForStrategy(object):
         except zeroOrderException:
             # we checked for zero already, which means that there is an existing order on the stack
             # An existing order of the same size
-            log.warn("Ignoring new order as it replicates an existing order on the stack")
+            log.warn("Ignoring new order as eithier zero size or it replicates an existing order on the stack")
 
         except Exception as e:
             log.critical("Something went very wrong when submitting order %s!" % str(cut_down_order))
