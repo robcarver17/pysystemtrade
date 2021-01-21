@@ -589,7 +589,7 @@ class Portfolios(_PortfoliosCalculateIDM, _PortfoliosCalculateWeights):
 
         buffer_size = self.parent.config.buffer_size
 
-        position = self.get_notional_position(instrument_code)
+        position = abs(self.get_notional_position(instrument_code))
 
         buffer = position * buffer_size
 
