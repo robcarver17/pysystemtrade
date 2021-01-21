@@ -88,6 +88,9 @@ class listOfEntriesData(baseData):
         if len(existing_series) > 0:
             # Check types match
             self._check_class_name_matches_for_new_entry(args_dict, new_entry)
+        else:
+            # empty this ensures we use the correct type for a new set of data
+            existing_series = get_empty_series_for_timed_entry(new_entry)
 
         try:
             existing_series.append(new_entry)
