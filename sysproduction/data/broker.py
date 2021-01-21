@@ -141,13 +141,22 @@ class dataBroker(object):
         self, original_position_list: listOfContractPositions
     ) -> listOfContractPositions:
 
-        for idx in range(len(original_position_list)):
+        for idx, position_entry in enumerate(original_position_list):
             position_entry = original_position_list[idx]
+            original_contract = position_entry.contract
             actual_expiry = self.get_actual_expiry_date_for_single_contract(
-                position_entry.contract
-            ).as_str()
+                original_contract
+            )
+            if actual_expiry is missing_contract:
+                log = original_contract.specific_log(self.log)
+                log.warn("Contract %s is missing from IB probably expired - need to manually close on DB" % str(original_contract))
+                contract = original_contract
+            else:
+                expiry_date_as_str = actual_expiry.as_str()
+                instrument_code = position_entry.instrument_code
+                contract = futuresContract(instrument_code, expiry_date_as_str)
+
             position = position_entry.position
-            contract = futuresContract(position_entry.instrument_code, actual_expiry)
             new_entry = contractPosition(
                 position,contract)
             original_position_list[idx] = new_entry
