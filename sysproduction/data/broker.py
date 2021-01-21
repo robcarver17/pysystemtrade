@@ -148,7 +148,7 @@ class dataBroker(object):
                 original_contract
             )
             if actual_expiry is missing_contract:
-                log = original_contract.specific_log(self.log)
+                log = original_contract.specific_log(self.data.log)
                 log.warn("Contract %s is missing from IB probably expired - need to manually close on DB" % str(original_contract))
                 contract = original_contract
             else:
