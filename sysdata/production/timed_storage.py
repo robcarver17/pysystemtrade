@@ -217,3 +217,11 @@ class listOfEntriesData(baseData):
 
     def _get_list_of_args_dict(self) -> list:
         raise NotImplementedError("Need to use child class")
+
+
+def get_empty_series_for_timed_entry(new_entry: timedEntry) -> listOfEntries:
+    containing_data_class_name = new_entry.containing_data_class_name
+    containing_data_class = resolve_function(containing_data_class_name)
+
+    return containing_data_class.as_empty()
+
