@@ -26,9 +26,10 @@ from sysproduction.data.prices import get_valid_instrument_code_from_user
 
 from sysexecution.stack_handler.stack_handler import stackHandler
 from sysexecution.stack_handler.balance_trades import stackHandlerCreateBalanceTrades
+from sysexecution.stack_handler.spawn_children_from_instrument_orders import map_instrument_order_type_to_contract_order_type
 from sysexecution.orders.broker_orders import brokerOrder
 from sysexecution.orders.contract_orders import contractOrder
-from sysexecution.orders.instrument_orders import instrumentOrder, instrumentOrderType
+from sysexecution.orders.instrument_orders import instrumentOrder, market_order_type, instrumentOrderType
 from sysexecution.algos.allocate_algo_to_order import list_of_algos
 
 
@@ -135,39 +136,6 @@ def view_broker_order_list(data):
     for order in broker_orders:
         print(order.full_repr())
 
-def view_positions(data):
-    data_broker = dataBroker(data)
-
-    diag_positions = diagPositions(data)
-    data_optimal = dataOptimalPositions(data)
-    ans0 = data_optimal.get_pd_of_position_breaks()
-    ans1 = diag_positions.get_all_current_strategy_instrument_positions()
-    ans2 = data_broker.get_db_contract_positions_with_IB_expiries()
-    ans3 = data_broker.get_all_current_contract_positions()
-    print("Optimal vs actual")
-    print(ans0.sort_values("breaks"))
-    print("Strategy positions")
-    print(ans1.as_pd_df().sort_values("instrument_code"))
-    print("\n Contract level positions")
-    print(ans2.as_pd_df().sort_values(["instrument_code", "contract_date"]))
-    breaks = diag_positions.get_list_of_breaks_between_contract_and_strategy_positions()
-    if len(breaks) > 0:
-        print(
-            "\nBREAKS between strategy and contract positions: %s\n" %
-            str(breaks))
-    else:
-        print("(No breaks positions consistent)")
-    print("\n Broker positions")
-    print(ans3.as_pd_df().sort_values(["instrument_code", "contract_date"]))
-    breaks = data_broker.get_list_of_breaks_between_broker_and_db_contract_positions()
-    if len(breaks) > 0:
-        print(
-            "\nBREAKS between broker and DB stored contract positions: %s\n"
-            % str(breaks)
-        )
-    else:
-        print("(No breaks positions consistent)")
-    return None
 
 
 
@@ -341,7 +309,7 @@ def create_manual_trade(data):
             )
             return None
         stack_handler.instrument_stack.add_children_to_order_without_existing_children(
-            instrument_order_id, contract_order_id
+            instrument_order_id, [contract_order_id]
         )
 
     print(
@@ -358,7 +326,7 @@ def enter_manual_instrument_order(data):
         "Quantity (-ve for sell, +ve for buy?)",
         type_expected=int,
         allow_default=False)
-    possible_order_types = instrumentOrderType.allowed_types()
+    possible_order_types = market_order_type.allowed_types()
     order_type = input("Order type (one of %s)?" % str(possible_order_types))
     limit_price = get_and_convert(
         "Limit price? (if you put None you can still add one to the contract order)",
@@ -379,7 +347,7 @@ def enter_manual_instrument_order(data):
         strategy_name,
         instrument_code,
         qty,
-        order_type=order_type,
+        order_type=instrumentOrderType(order_type),
         limit_price=limit_price,
         limit_contract=limit_contract,
         manual_trade=True,
@@ -433,12 +401,14 @@ def enter_manual_contract_order(data, instrument_order):
         default_value=None,
     )
 
+    order_type= map_instrument_order_type_to_contract_order_type(instrument_order.order_type)
     contract_order = contractOrder(
         strategy_name,
         instrument_code,
         contract_id_list,
         trade_qty_list,
         algo_to_use=algo_to_use,
+        order_type = order_type,
         reference_price=None,
         limit_price=limit_price,
         manual_trade=True,
@@ -779,7 +749,7 @@ def delete_entire_stack(data):
     ans = input(
         "This will delete the entire order stack! Are you sure? (Y/other)")
     if ans == "Y":
-        stack._delete_entire_stack_without_checking()
+        stack._delete_entire_stack_without_checking_only_use_when_debugging()
     return None
 
 

@@ -37,7 +37,7 @@ class algoMarket(Algo):
 
     def manage_trade(self, broker_order_with_controls: orderWithControls) -> orderWithControls:
         broker_order_with_controls = self.manage_live_trade( broker_order_with_controls)
-        broker_order_with_controls = post_trade_processing(
+        broker_order_with_controls = post_trade_processing(self.data,
             broker_order_with_controls
         )
 

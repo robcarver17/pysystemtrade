@@ -37,7 +37,7 @@ class listOfFillPrice(list):
         return fillPrice(averages)
 
     def _average_price_for_items_with_idx(self, idx) -> float:
-        prices_for_item = [element.price[idx] for element in self]
+        prices_for_item = [element[idx] for element in self]
         prices_for_item = [
             price for price in prices_for_item if not np.isnan(price)]
         return float(np.mean(prices_for_item))
