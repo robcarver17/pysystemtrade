@@ -200,7 +200,7 @@ You need to:
     - [Set up interactive brokers](/docs/IB.md), download and install their python code, and get a gateway running.
     - [Install mongodb](https://docs.mongodb.com/manual/administration/install-on-linux/)
     - create a file 'private_config.yaml' in the private directory of [pysystemtrade](/private), and optionally a ['private_control_config.yaml' file in the same directory](#process-configuration)
-    - [check a mongodb server is running with the right data directory](/docs/futures.md#mongo-db) command line: `mongod --dbpath $MONGO_DATA`
+    - [check a mongodb server is running with the right data directory](/docs/data.md#mongo-db) command line: `mongod --dbpath $MONGO_DATA`
     - launch an IB gateway (this could be done automatically depending on your security setup)
 - FX data:
     - [Initialise the spot FX data in MongoDB from .csv files](/sysinit/futures/repocsv_spotfx_prices.py) (this will be out of date, but you will update it in a moment)
@@ -211,10 +211,10 @@ You need to:
     - [You must have a source of individual futures prices, then backfill them into the Arctic database](/docs/data.md#get_historical_data).
 - Roll calendars:
     - For *roll configuration* we need to initialise by running the code in this file [roll_parameters_csv_mongo.py](/sysinit/futures/roll_parameters_csv_mongo.py).
-    - [Create roll calendars for each instrument you are trading](/docs/futures.md#roll-calendars).
+    - [Create roll calendars for each instrument you are trading](/docs/data.md#roll-calendars).
 - Adjusted futures prices:
-    - [Create 'multiple prices' in Arctic](/docs/futures.md#creating-and-storing-multiple-prices).
-    - [Create adjusted prices in Arctic](/docs/futures.md#creating-and-storing-back-adjusted-prices)
+    - [Create 'multiple prices' in Arctic](/docs/data.md#creating-and-storing-multiple-prices).
+    - [Create adjusted prices in Arctic](/docs/data.md#creating-and-storing-back-adjusted-prices)
 - Use [interactive diagnostics](#interactive-diagnostics) to check all your prices are in place correctly
 - Live production backtest:
     - Create a yaml config file to run the live production 'backtest'. For speed I recommend you do not estimate parameters, but use fixed parameters, using the [yaml_config_with_estimated_parameters method of systemDiag](/systems/diagoutput.py) function to output these to a .yaml file.
@@ -227,7 +227,7 @@ You need to:
 
 Before trading, and each time you restart the machine you should:
 
-- [check a mongodb server is running with the right data directory](/docs/futures.md#mongo-db) command line: `mongod --dbpath $MONGO_DATA` (the supplied crontab should do this)
+- [check a mongodb server is running with the right data directory](/docs/data.md#mongo-db) command line: `mongod --dbpath $MONGO_DATA` (the supplied crontab should do this)
 - launch an IB gateway (this could [be done automatically](https://github.com/IbcAlpha/IBC) depending on your security setup)
 - ensure all processes are [marked as 'finished'](#mark-as-finished)
 
@@ -470,7 +470,7 @@ You might get all your data from your broker, but there are good reasons to get 
 - you can't get the relevant data from your broker
 - the relevant data is cheaper elsewhere
 
-You should now read [getting and storing futures and spot FX data](/docs/futures.md) for some hints on writing API layers for other data sources.
+You should now read [getting and storing futures and spot FX data](/docs/data.md) for some hints on writing API layers for other data sources.
 
 
 ## Data storage
@@ -479,7 +479,7 @@ Various kinds of data files are used by the pysystemtrade production system. Bro
 
 - accounting (calculations of profit and loss)
 - diagnostics
-- prices (see [storing futures and spot FX data](/docs/futures.md))
+- prices (see [storing futures and spot FX data](/docs/data.md))
 - positions
 - other state and control information
 - static configuration files
@@ -573,7 +573,7 @@ Over time echo files can get... large (my default position for logging is verbos
 
 ### Logging
 
-Logging in pysystemtrade is done via loggers. See the [userguide for more detail](/docs/userguide.md#logging). The logging levels are:
+Logging in pysystemtrade is done via loggers. See the [userguide for more detail](/docs/backtesting.md#logging). The logging levels are:
 
 ```
 self.log.msg("this is a normal message")
@@ -2004,7 +2004,7 @@ The following are configuration options that are in defaults.yaml and can be ove
 
 ### System backtest .yaml config file(s)
 
-See the [user guide for backtesting](/docs/userguide.md).
+See the [user guide for backtesting](/docs/backtesting.md).
 
 ### Broker and data source specific configuration files
 
