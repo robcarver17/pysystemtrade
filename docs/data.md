@@ -256,7 +256,7 @@ I strongly suggest putting an output datapath here; somewhere you can store temp
 
 #### Calculate the roll calendar
 
-The actual code that generates the roll calendar is [here](sysobjects/roll_calendars.py) which mostly calls code from [here](sysinit/futures/build_roll_calendars.py):
+The actual code that generates the roll calendar is [here](/sysobjects/roll_calendars.py) which mostly calls code from [here](/sysinit/futures/build_roll_calendars.py):
 
 The interesting part is:
 
@@ -601,7 +601,7 @@ A 'final' price is either a close or a settlement price depending on how the dat
 
 All these dicts have the contract date string as the key (eg `20201200`), and a dataframe like object as the value.
 
-### [Named futures contract dicts](sysobjects/dict_of_named_futures_per_contract_prices.py): dictNamedFuturesContractFinalPrices, futuresNamedContractFinalPricesWithContractID, setOfNamedContracts, dictFuturesNamedContractFinalPricesWithContractID
+### [Named futures contract dicts](/sysobjects/dict_of_named_futures_per_contract_prices.py): dictNamedFuturesContractFinalPrices, futuresNamedContractFinalPricesWithContractID, setOfNamedContracts, dictFuturesNamedContractFinalPricesWithContractID
  
 'Named' contracts are those we are currently trading (priced), the next contract(forward), and the carry contract.
 
@@ -650,7 +650,7 @@ The adjustment defaults to the panama method. If you want to use your own stitch
 
 
 <a name="fxPrices"></a>
-### [Spot FX data](/sysobjects/spotfx.py): fxPrices()
+### [Spot FX data](/sysobjects/spot_fx_prices.py): fxPrices()
 
 Technically bugger all to do with futures, but implemented in pysystemtrade as it's required for position scaling.
 
