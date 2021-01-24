@@ -1205,7 +1205,7 @@ Autopopulate uses current levels of risk to estimate the appropriate position li
 
 #### Trade control / override
 
-Overrides allow us to reduce positions for a given strategy, for a given instrument (across all strategies), or for a given instrument & strategy combination. They are eithier:
+Overrides allow us to reduce positions for a given strategy, for a given instrument (across all strategies), or for a given instrument & strategy combination. They are either:
 
 - a multiplier, between 0 and 1, by which we multiply the desired . A multiplier of 1 is equal to 'normal', and 0 means 'close everything'
 - a flag, allowing us only to submit trades which reduce our positions
@@ -1511,11 +1511,11 @@ You can delete all orders on any of the three stacks. I can't even begin to desc
 
 ##### Delete specific order ID (CAREFUL!)
 
-You can delete a specific live order from the database. Again, this will most likely lead to all kinds of weird side effects. This won't cancel the order eithier; the broker will continue to try and execute it. Only use when debugging or testing, if you really know what you're doing.
+You can delete a specific live order from the database. Again, this will most likely lead to all kinds of weird side effects. This won't cancel the order either; the broker will continue to try and execute it. Only use when debugging or testing, if you really know what you're doing.
 
 ##### End of day process (cancel orders, mark all orders as complete, delete orders)
 
-When run_stack_handler has done it's work (eithier because it's time is up, or it has received a STOP command) it will run a clean up process. First it will cancel any active orders. Then it will mark all orders as complete, which will update position databases, and move orders to historical data tables. Finally it deletes every order from every stack; ensuring no state continues to the next day (which could lead to weird behaviour).
+When run_stack_handler has done it's work (either because it's time is up, or it has received a STOP command) it will run a clean up process. First it will cancel any active orders. Then it will mark all orders as complete, which will update position databases, and move orders to historical data tables. Finally it deletes every order from every stack; ensuring no state continues to the next day (which could lead to weird behaviour).
 
 I strongly advise running this rather than deleting the stack, unless you know exactly what you're doing and have a very valid reason for doing it!
 
@@ -2199,7 +2199,7 @@ The better case is when the mongo DB is fine. In this case (once you've [restore
 - You may want to copy across the backtest state files.
 - IMPORTANT:Any changes made to roll status will be lost; any back adjusted price rolls will have reverted. Do this before any trading takes place, or you may confuse the system!
 - IMPORTANT: The stack handler may contain incomplete orders. Run interactive_order_stack and run the end of day process. Do this before any trading takes place, or you may confuse the system!
-- IMPORTANT:Even after finishing the stack handler, position data and historical data will be missing the effect of any trades, including orders that were subsequently filled but for which the fill was lost. Run interactive_order_stack and check to see if view positions. If any breaks come up, you will need to enter create eithier a balance trade (contract level break between broker and database) or balance instrument trade (instrument level break between strategy and contract positions) using interactive_order_stack. Get the fill prices from your brokerage website. Do this before any trading takes place or the system will lock and won't trade the instruments with breaks.
+- IMPORTANT:Even after finishing the stack handler, position data and historical data will be missing the effect of any trades, including orders that were subsequently filled but for which the fill was lost. Run interactive_order_stack and check to see if view positions. If any breaks come up, you will need to enter create either a balance trade (contract level break between broker and database) or balance instrument trade (instrument level break between strategy and contract positions) using interactive_order_stack. Get the fill prices from your brokerage website. Do this before any trading takes place or the system will lock and won't trade the instruments with breaks.
 - FX, individual futures contract prices, multiple prices, adjusted prices: data will be backfilled once run_daily_price_updates has run.
 - Capital: any intraday p&l data will be lost, but once run_capital_update has run the current capital will be correct.
 - Optimal positions: will be correct once run_systems has run.
@@ -2720,7 +2720,7 @@ The reconcile report checks the consistency of positions and trades stored in th
 "Optimal positions are set by the nightly backtest. For this strategy we set an upper and
 lower buffer region, so two figures are shown for the optimal. A break occurs if the
 position is outside the buffer region. For example you can see for BTP that the current
- position (long 3) is higher than the upper buffer(2.4, rounded to 2). This eithier means
+ position (long 3) is higher than the upper buffer(2.4, rounded to 2). This either means
  that the relevant market hasn't traded yet, or there is something wrong with the system
 (check the status report to see if a process or method hasn't run)."
 

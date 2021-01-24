@@ -117,7 +117,7 @@ Hence there are five possible use cases:
 - You want to run pysystemtrade in [production](/docs/production.md), which requires database storage.
 - You want both database storage and updated .csv files, maybe because you want to keep a backup of your data in .csv (someting that the production code does automatically, FWIW) or use that for backtesting
 
-Because of this it's possible at (almost) every stage to store data in eithier .csv or databases (the exception are roll calendars, which only live in .csv format).
+Because of this it's possible at (almost) every stage to store data in either .csv or databases (the exception are roll calendars, which only live in .csv format).
 
 
 <a name="set_up_instrument_config"></a>
@@ -278,7 +278,7 @@ The interesting part is:
         roll_calendar = rollCalendar(adjusted_calendar)
 ```
 
-So we first generate an approximate calendar, for when we'd ideally want to roll each of the contracts, based on our roll parameter `RollOffsetDays`. However we may find that there weren't *matching* prices for a given roll date. A matching price is when we have prices for both the current and next contract on the relevant day. If we don't have that, then we can't calculate an adjusted price. The *adjustment* stage finds the closest date to the ideal date (looking both forwards and backwards in time). If there are no dates with matching prices, then the process will return an error. You will need to eithier modify the roll parameters (maybe using the next rather than the previous contract), get some extra individual futures contract price data from somewhere, or manually add fake prices to your underlying futures contract prices to ensure some overlap (obviously this is cheating slightly, as without matching prices you have no way of knowing what the roll spread would have been in reality).
+So we first generate an approximate calendar, for when we'd ideally want to roll each of the contracts, based on our roll parameter `RollOffsetDays`. However we may find that there weren't *matching* prices for a given roll date. A matching price is when we have prices for both the current and next contract on the relevant day. If we don't have that, then we can't calculate an adjusted price. The *adjustment* stage finds the closest date to the ideal date (looking both forwards and backwards in time). If there are no dates with matching prices, then the process will return an error. You will need to either modify the roll parameters (maybe using the next rather than the previous contract), get some extra individual futures contract price data from somewhere, or manually add fake prices to your underlying futures contract prices to ensure some overlap (obviously this is cheating slightly, as without matching prices you have no way of knowing what the roll spread would have been in reality).
 
 
 #### Checks
