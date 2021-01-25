@@ -331,7 +331,7 @@ def create_manual_trade(data):
         instrument_order)
     if not isinstance(instrument_order_id, int):
         print(
-            "Error condition %s couldn't place instrument order; not doing contract order eithier" %
+            "Error condition %s couldn't place instrument order; not doing contract order either" %
             str(instrument_order_id))
         return None
     if contract_order is not None:

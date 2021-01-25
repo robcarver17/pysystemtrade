@@ -33,7 +33,7 @@ class timedEntry(object):
 
     def __init__(self, *args, date: datetime.datetime=arg_not_supplied):
         """
-        Can pass eithier a single dict (which can include 'date') or the arguments in the order of required_arguments
+        Can pass either a single dict (which can include 'date') or the arguments in the order of required_arguments
 
         >>> timedEntry(1,2)._arg_dict_excluding_date
         {'test1': 1, 'test2': 2}
@@ -51,7 +51,7 @@ class timedEntry(object):
         self._init_data_from_passed_args(args_as_dict)
 
     def _resolve_args(self, args: tuple, date:datetime.datetime) -> dict:
-        ## We can eithier be passed a dict or a list of args
+        ## We can either be passed a dict or a list of args
         ## If we're passed a dict, we put the date in if available
         ## Otherwise it's a list and
         if len(args) == 1:

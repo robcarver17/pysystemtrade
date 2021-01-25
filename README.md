@@ -35,9 +35,9 @@ pysystemtrade uses the [IB insync library](https://ib-insync.readthedocs.io/api.
 
 [Introduction (start here)](docs/introduction.md)
 
-[Backtesting user guide](docs/userguide.md)
+[Backtesting user guide](docs/backtesting.md)
 
-[Working with futures data](/docs/futures.md)
+[Working with futures data](/docs/data.md)
 
 [Production system](/docs/) Documentation incomplete and in progress!
 

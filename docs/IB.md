@@ -137,7 +137,7 @@ The IB and broker objects don't raise exceptions caused by IB reported errors, o
 
 ## Data
 
-We treat IB as another data source, which means it has to conform to the data object API (see [storing futures and spot FX data](/docs/futures.md)). However we can't delete or write to IB.
+We treat IB as another data source, which means it has to conform to the data object API (see [storing futures and spot FX data](/docs/data.md)). However we can't delete or write to IB.
 
 ### FX Data
 
@@ -263,7 +263,7 @@ Importantly the connection object will include methods that are inherited from [
 
 ### Data source objects
 
-We treat IB as another data source, which means it has to conform to the data object API (see [storing futures and spot FX data](/docs/futures.md)). Since connection objects abstract what the broker is doing, it should be possible to use these object for other brokers with minimal changes.
+We treat IB as another data source, which means it has to conform to the data object API (see [storing futures and spot FX data](/docs/data.md)). Since connection objects abstract what the broker is doing, it should be possible to use these object for other brokers with minimal changes.
 
 #### Spot FX
 

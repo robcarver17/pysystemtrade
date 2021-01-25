@@ -200,7 +200,7 @@ You need to:
     - [Set up interactive brokers](/docs/IB.md), download and install their python code, and get a gateway running.
     - [Install mongodb](https://docs.mongodb.com/manual/administration/install-on-linux/)
     - create a file 'private_config.yaml' in the private directory of [pysystemtrade](/private), and optionally a ['private_control_config.yaml' file in the same directory](#process-configuration)
-    - [check a mongodb server is running with the right data directory](/docs/futures.md#mongo-db) command line: `mongod --dbpath $MONGO_DATA`
+    - [check a mongodb server is running with the right data directory](/docs/data.md#mongo-db) command line: `mongod --dbpath $MONGO_DATA`
     - launch an IB gateway (this could be done automatically depending on your security setup)
 - FX data:
     - [Initialise the spot FX data in MongoDB from .csv files](/sysinit/futures/repocsv_spotfx_prices.py) (this will be out of date, but you will update it in a moment)
@@ -211,10 +211,10 @@ You need to:
     - [You must have a source of individual futures prices, then backfill them into the Arctic database](/docs/data.md#get_historical_data).
 - Roll calendars:
     - For *roll configuration* we need to initialise by running the code in this file [roll_parameters_csv_mongo.py](/sysinit/futures/roll_parameters_csv_mongo.py).
-    - [Create roll calendars for each instrument you are trading](/docs/futures.md#roll-calendars).
+    - [Create roll calendars for each instrument you are trading](/docs/data.md#roll-calendars).
 - Adjusted futures prices:
-    - [Create 'multiple prices' in Arctic](/docs/futures.md#creating-and-storing-multiple-prices).
-    - [Create adjusted prices in Arctic](/docs/futures.md#creating-and-storing-back-adjusted-prices)
+    - [Create 'multiple prices' in Arctic](/docs/data.md#creating-and-storing-multiple-prices).
+    - [Create adjusted prices in Arctic](/docs/data.md#creating-and-storing-back-adjusted-prices)
 - Use [interactive diagnostics](#interactive-diagnostics) to check all your prices are in place correctly
 - Live production backtest:
     - Create a yaml config file to run the live production 'backtest'. For speed I recommend you do not estimate parameters, but use fixed parameters, using the [yaml_config_with_estimated_parameters method of systemDiag](/systems/diagoutput.py) function to output these to a .yaml file.
@@ -227,7 +227,7 @@ You need to:
 
 Before trading, and each time you restart the machine you should:
 
-- [check a mongodb server is running with the right data directory](/docs/futures.md#mongo-db) command line: `mongod --dbpath $MONGO_DATA` (the supplied crontab should do this)
+- [check a mongodb server is running with the right data directory](/docs/data.md#mongo-db) command line: `mongod --dbpath $MONGO_DATA` (the supplied crontab should do this)
 - launch an IB gateway (this could [be done automatically](https://github.com/IbcAlpha/IBC) depending on your security setup)
 - ensure all processes are [marked as 'finished'](#mark-as-finished)
 
@@ -376,7 +376,7 @@ I strongly recommend that you use a code repo system or similar to manage your n
 
 ### Managing your private directory
 
-Since the private directory is excluded from the git system (since you don't want it appearing on github!), you need to ensure it is managed separately. I have a seperate repo for my private stuff, for which I have a local clone in directory ~/private. Incidentally, github are now offering free private repos, so that is another option.
+Since the private directory is excluded from the git system (since you don't want it appearing on github!), you need to ensure it is managed separately. I have a separate repo for my private stuff, for which I have a local clone in directory ~/private. Incidentally, github are now offering free private repos, so that is another option.
 I then use a bash script which I run in lieu of a normal git add/ commit / push cycle, to commit both private and public code:
 
 ```
@@ -470,7 +470,7 @@ You might get all your data from your broker, but there are good reasons to get 
 - you can't get the relevant data from your broker
 - the relevant data is cheaper elsewhere
 
-You should now read [getting and storing futures and spot FX data](/docs/futures.md) for some hints on writing API layers for other data sources.
+You should now read [getting and storing futures and spot FX data](/docs/data.md) for some hints on writing API layers for other data sources.
 
 
 ## Data storage
@@ -479,12 +479,12 @@ Various kinds of data files are used by the pysystemtrade production system. Bro
 
 - accounting (calculations of profit and loss)
 - diagnostics
-- prices (see [storing futures and spot FX data](/docs/futures.md))
+- prices (see [storing futures and spot FX data](/docs/data.md))
 - positions
 - other state and control information
 - static configuration files
 
-The default option is to store these all into a mongodb database, except for configuration files which are stored as .yaml and .csv files. Time series data is stored in [arctic](https://github.com/man-group/arctic) which also uses mongodb. Databases used will be named with the value of parameter `mongo_db` in [private config file](/private/private_config.yaml). A seperate Arctic database will have the same name, with the suffix `_arctic`.
+The default option is to store these all into a mongodb database, except for configuration files which are stored as .yaml and .csv files. Time series data is stored in [arctic](https://github.com/man-group/arctic) which also uses mongodb. Databases used will be named with the value of parameter `mongo_db` in [private config file](/private/private_config.yaml). A separate Arctic database will have the same name, with the suffix `_arctic`.
 
 ## Data backup
 
@@ -505,7 +505,7 @@ mongodump -o ~/dump/
 cp -rf ~/dump/* $MONGO_BACKUP_PATH
 ```
 
-This is done by the scheduled backup process (see [scheduling](#scheduling)), and also by [this script]((#backup-files)
+This is done by the scheduled backup process (see [scheduling](#scheduling)), and also by [this script](#backup-files)
 
 Then to restore, from a linux command line:
 ```
@@ -573,7 +573,7 @@ Over time echo files can get... large (my default position for logging is verbos
 
 ### Logging
 
-Logging in pysystemtrade is done via loggers. See the [userguide for more detail](/docs/userguide.md#logging). The logging levels are:
+Logging in pysystemtrade is done via loggers. See the [userguide for more detail](/docs/backtesting.md#logging). The logging levels are:
 
 ```
 self.log.msg("this is a normal message")
@@ -711,7 +711,7 @@ An instrument order will be resolved into a contract order: an order for a speci
 
 - For a normal single leg order, we trade the priced contract or the forward contract, or both; depending on whether we are passively rolling and whether our position is increasing or reducing (see [here](#interactively-roll-adjusted-prices) for more info about rolls)
 - For a FORCE roll order, we create an intramarket spread between the priced and forward contract. This will also create a zero size instrument order.
-- For a FORCELEG roll order, we create two seperate trades closing the priced and opening up in the forward. This will also create a zero size instrument order.
+- For a FORCELEG roll order, we create two separate trades closing the priced and opening up in the forward. This will also create a zero size instrument order.
 - For an intramarket spread (eg 5th vs 6th Eurodollar spread) we create an intramarket spread using the current contract status which determines which contracts the trades map to. FIX ME TO BE IMPLEMENTED.
 - For an intermarket spread (eg Brent vs WTI crude) we create two separate normal single leg orders. FIX ME TO BE IMPLEMENTED.
 
@@ -1051,7 +1051,7 @@ The behaviour of the stack handler is extremely complex (and it's worth reading 
 In addition the stack handler will:
 
 - Check that the broker and database positions are aligned at contract level, if not then it will lock the instrument so it can't be traded (locks can be cleared automatically once positions reconcile again, or using [interactive_order_stack](#interactive-order-stack).
-- Generate roll orders if a [roll status]((#interactively-roll-adjusted-prices)) is FORCE or FORCELEG
+- Generate roll orders if a [roll status](#interactively-roll-adjusted-prices) is FORCE or FORCELEG
 - Safely clear the order stacks at the end of the day or when the process is stopped by cancelling existing orders, and deleting them from the order stack.
 
 That's quite a list, hence the use of the [interactive_order_stack](#interactive-order-stack) to keep it in check!
@@ -1205,7 +1205,7 @@ Autopopulate uses current levels of risk to estimate the appropriate position li
 
 #### Trade control / override
 
-Overrides allow us to reduce positions for a given strategy, for a given instrument (across all strategies), or for a given instrument & strategy combination. They are eithier:
+Overrides allow us to reduce positions for a given strategy, for a given instrument (across all strategies), or for a given instrument & strategy combination. They are either:
 
 - a multiplier, between 0 and 1, by which we multiply the desired . A multiplier of 1 is equal to 'normal', and 0 means 'close everything'
 - a flag, allowing us only to submit trades which reduce our positions
@@ -1511,11 +1511,11 @@ You can delete all orders on any of the three stacks. I can't even begin to desc
 
 ##### Delete specific order ID (CAREFUL!)
 
-You can delete a specific live order from the database. Again, this will most likely lead to all kinds of weird side effects. This won't cancel the order eithier; the broker will continue to try and execute it. Only use when debugging or testing, if you really know what you're doing.
+You can delete a specific live order from the database. Again, this will most likely lead to all kinds of weird side effects. This won't cancel the order either; the broker will continue to try and execute it. Only use when debugging or testing, if you really know what you're doing.
 
 ##### End of day process (cancel orders, mark all orders as complete, delete orders)
 
-When run_stack_handler has done it's work (eithier because it's time is up, or it has received a STOP command) it will run a clean up process. First it will cancel any active orders. Then it will mark all orders as complete, which will update position databases, and move orders to historical data tables. Finally it deletes every order from every stack; ensuring no state continues to the next day (which could lead to weird behaviour).
+When run_stack_handler has done it's work (either because it's time is up, or it has received a STOP command) it will run a clean up process. First it will cancel any active orders. Then it will mark all orders as complete, which will update position databases, and move orders to historical data tables. Finally it deletes every order from every stack; ensuring no state continues to the next day (which could lead to weird behaviour).
 
 I strongly advise running this rather than deleting the stack, unless you know exactly what you're doing and have a very valid reason for doing it!
 
@@ -1741,7 +1741,7 @@ The scheduler built into pysystemtrade does not launch processes (this is still 
 
 #### The crontab
 
-Processes still need to be launched every day, since the pysystemtrade scheduler doesn't do that. However their start time isn't critical, since seperate start times can be configured in .yaml files (more of that below).
+Processes still need to be launched every day, since the pysystemtrade scheduler doesn't do that. However their start time isn't critical, since separate start times can be configured in .yaml files (more of that below).
 
 Because I use cron myself, there are is a [cron tab included in pysystemtrade](https://github.com/robcarver17/pysystemtrade/blob/master/sysproduction/linux/crontab).
 
@@ -1945,7 +1945,7 @@ Configuration for the system is spread across a few different places:
 
 ### System defaults & Private config
 
-Most configuration is stored in [/systems/provided/defaults.yaml](/systems/provided/defaults.yaml), with the possibility of overriding in the private configuration file `/private/private_config.yaml`, an example of which is here [examples/production/private_config_example.yaml](examples/production/private_config_example.yaml). Any top level keyword included in the private config will override the same keyword in the defaults.yaml file.
+Most configuration is stored in [/systems/provided/defaults.yaml](/systems/provided/defaults.yaml), with the possibility of overriding in the private configuration file `/private/private_config.yaml`, an example of which is here [/examples/production/private_config_example.yaml](/examples/production/private_config_example.yaml). Any top level keyword included in the private config will override the same keyword in the defaults.yaml file.
 
 Exceptionally, the following are configuration options that are not in defaults.yaml and *must* be in private_config.yaml:
 
@@ -2004,7 +2004,7 @@ The following are configuration options that are in defaults.yaml and can be ove
 
 ### System backtest .yaml config file(s)
 
-See the [user guide for backtesting](/docs/userguide.md).
+See the [user guide for backtesting](/docs/backtesting.md).
 
 ### Broker and data source specific configuration files
 
@@ -2199,7 +2199,7 @@ The better case is when the mongo DB is fine. In this case (once you've [restore
 - You may want to copy across the backtest state files.
 - IMPORTANT:Any changes made to roll status will be lost; any back adjusted price rolls will have reverted. Do this before any trading takes place, or you may confuse the system!
 - IMPORTANT: The stack handler may contain incomplete orders. Run interactive_order_stack and run the end of day process. Do this before any trading takes place, or you may confuse the system!
-- IMPORTANT:Even after finishing the stack handler, position data and historical data will be missing the effect of any trades, including orders that were subsequently filled but for which the fill was lost. Run interactive_order_stack and check to see if view positions. If any breaks come up, you will need to enter create eithier a balance trade (contract level break between broker and database) or balance instrument trade (instrument level break between strategy and contract positions) using interactive_order_stack. Get the fill prices from your brokerage website. Do this before any trading takes place or the system will lock and won't trade the instruments with breaks.
+- IMPORTANT:Even after finishing the stack handler, position data and historical data will be missing the effect of any trades, including orders that were subsequently filled but for which the fill was lost. Run interactive_order_stack and check to see if view positions. If any breaks come up, you will need to enter create either a balance trade (contract level break between broker and database) or balance instrument trade (instrument level break between strategy and contract positions) using interactive_order_stack. Get the fill prices from your brokerage website. Do this before any trading takes place or the system will lock and won't trade the instruments with breaks.
 - FX, individual futures contract prices, multiple prices, adjusted prices: data will be backfilled once run_daily_price_updates has run.
 - Capital: any intraday p&l data will be lost, but once run_capital_update has run the current capital will be correct.
 - Optimal positions: will be correct once run_systems has run.
@@ -2720,7 +2720,7 @@ The reconcile report checks the consistency of positions and trades stored in th
 "Optimal positions are set by the nightly backtest. For this strategy we set an upper and
 lower buffer region, so two figures are shown for the optimal. A break occurs if the
 position is outside the buffer region. For example you can see for BTP that the current
- position (long 3) is higher than the upper buffer(2.4, rounded to 2). This eithier means
+ position (long 3) is higher than the upper buffer(2.4, rounded to 2). This either means
  that the relevant market hasn't traded yet, or there is something wrong with the system
 (check the status report to see if a process or method hasn't run)."
 

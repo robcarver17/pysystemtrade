@@ -302,7 +302,7 @@ class stackHandlerCore(object):
         )
 
         # if fill has changed then update positions
-        # we do this here, because we can get here eithier from fills process
+        # we do this here, because we can get here either from fills process
         # or after an execution
         self.apply_position_change_to_contracts(
             contract_order, total_filled_qty)
