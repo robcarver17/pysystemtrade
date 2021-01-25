@@ -376,7 +376,7 @@ I strongly recommend that you use a code repo system or similar to manage your n
 
 ### Managing your private directory
 
-Since the private directory is excluded from the git system (since you don't want it appearing on github!), you need to ensure it is managed separately. I have a seperate repo for my private stuff, for which I have a local clone in directory ~/private. Incidentally, github are now offering free private repos, so that is another option.
+Since the private directory is excluded from the git system (since you don't want it appearing on github!), you need to ensure it is managed separately. I have a separate repo for my private stuff, for which I have a local clone in directory ~/private. Incidentally, github are now offering free private repos, so that is another option.
 I then use a bash script which I run in lieu of a normal git add/ commit / push cycle, to commit both private and public code:
 
 ```
@@ -484,7 +484,7 @@ Various kinds of data files are used by the pysystemtrade production system. Bro
 - other state and control information
 - static configuration files
 
-The default option is to store these all into a mongodb database, except for configuration files which are stored as .yaml and .csv files. Time series data is stored in [arctic](https://github.com/man-group/arctic) which also uses mongodb. Databases used will be named with the value of parameter `mongo_db` in [private config file](/private/private_config.yaml). A seperate Arctic database will have the same name, with the suffix `_arctic`.
+The default option is to store these all into a mongodb database, except for configuration files which are stored as .yaml and .csv files. Time series data is stored in [arctic](https://github.com/man-group/arctic) which also uses mongodb. Databases used will be named with the value of parameter `mongo_db` in [private config file](/private/private_config.yaml). A separate Arctic database will have the same name, with the suffix `_arctic`.
 
 ## Data backup
 
@@ -711,7 +711,7 @@ An instrument order will be resolved into a contract order: an order for a speci
 
 - For a normal single leg order, we trade the priced contract or the forward contract, or both; depending on whether we are passively rolling and whether our position is increasing or reducing (see [here](#interactively-roll-adjusted-prices) for more info about rolls)
 - For a FORCE roll order, we create an intramarket spread between the priced and forward contract. This will also create a zero size instrument order.
-- For a FORCELEG roll order, we create two seperate trades closing the priced and opening up in the forward. This will also create a zero size instrument order.
+- For a FORCELEG roll order, we create two separate trades closing the priced and opening up in the forward. This will also create a zero size instrument order.
 - For an intramarket spread (eg 5th vs 6th Eurodollar spread) we create an intramarket spread using the current contract status which determines which contracts the trades map to. FIX ME TO BE IMPLEMENTED.
 - For an intermarket spread (eg Brent vs WTI crude) we create two separate normal single leg orders. FIX ME TO BE IMPLEMENTED.
 
@@ -1741,7 +1741,7 @@ The scheduler built into pysystemtrade does not launch processes (this is still 
 
 #### The crontab
 
-Processes still need to be launched every day, since the pysystemtrade scheduler doesn't do that. However their start time isn't critical, since seperate start times can be configured in .yaml files (more of that below).
+Processes still need to be launched every day, since the pysystemtrade scheduler doesn't do that. However their start time isn't critical, since separate start times can be configured in .yaml files (more of that below).
 
 Because I use cron myself, there are is a [cron tab included in pysystemtrade](https://github.com/robcarver17/pysystemtrade/blob/master/sysproduction/linux/crontab).
 

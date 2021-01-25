@@ -803,7 +803,7 @@ data.db_futures_adjusted_prices.get_list_of_instruments()
 ['EDOLLAR', 'CAC', 'KR3', 'SMI', 'V2X', 'JPY', ....]
 ```
 
-OK, why does it say `db_futures_adjusted_prices` here? It's because dataBlob knows we don't really care where our data is stored. It dynamically creates an instance of any valid data storage class that is passed to it, renaming it by replacing the source with `db` (or `broker` if it's an interface to the broker), stripping off the 'Data' at the end, and replacing the CamelCase in the middle with `_` seperated strings (since this is an instance now not a class).
+OK, why does it say `db_futures_adjusted_prices` here? It's because dataBlob knows we don't really care where our data is stored. It dynamically creates an instance of any valid data storage class that is passed to it, renaming it by replacing the source with `db` (or `broker` if it's an interface to the broker), stripping off the 'Data' at the end, and replacing the CamelCase in the middle with `_` separated strings (since this is an instance now not a class).
 
 (In fact a further layer of abstraction is achieved by the use of interface objects in backtesting or production, so you'd not normally write code that directly accessed the method of a data object, even one that is renamed. These interfaces all have data blobs as attributes. More on these below.) 
 
@@ -946,7 +946,7 @@ csvFxPricesData accessing data.futures.fx_prices_csv
 
 In production I use the objects in [this module](/sysproduction/data) to act as interfaces between production code and data blobs, so that production code doesn't need to be too concerned about the exact implementation of the data storage. These also include some business logic. 
 
-`diag` classes are read only, `update` are write only, `data` are read/write (created because it's not worth creating a seperate read and write class):
+`diag` classes are read only, `update` are write only, `data` are read/write (created because it's not worth creating a separate read and write class):
 
 - `dataBacktest`: read/write pickled backtests from production `run_systems`
 - `dataBroker`: interact with broker
