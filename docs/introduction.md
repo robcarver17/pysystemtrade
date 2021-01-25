@@ -367,7 +367,7 @@ Freq: B, dtype: float64
 ```
 
 
-Alternatively we can use the fixed values from Appendix B of my book ["Systematic Trading"](http:/www.systematictrading.org).
+Alternatively we can use the fixed values from Appendix B of my book ["Systematic Trading"](https://www.systematicmoney.org/systematic-trading).
 
 
 ```python

@@ -505,7 +505,7 @@ mongodump -o ~/dump/
 cp -rf ~/dump/* $MONGO_BACKUP_PATH
 ```
 
-This is done by the scheduled backup process (see [scheduling](#scheduling)), and also by [this script]((#backup-files)
+This is done by the scheduled backup process (see [scheduling](#scheduling)), and also by [this script](#backup-files)
 
 Then to restore, from a linux command line:
 ```
@@ -1051,7 +1051,7 @@ The behaviour of the stack handler is extremely complex (and it's worth reading 
 In addition the stack handler will:
 
 - Check that the broker and database positions are aligned at contract level, if not then it will lock the instrument so it can't be traded (locks can be cleared automatically once positions reconcile again, or using [interactive_order_stack](#interactive-order-stack).
-- Generate roll orders if a [roll status]((#interactively-roll-adjusted-prices)) is FORCE or FORCELEG
+- Generate roll orders if a [roll status](#interactively-roll-adjusted-prices) is FORCE or FORCELEG
 - Safely clear the order stacks at the end of the day or when the process is stopped by cancelling existing orders, and deleting them from the order stack.
 
 That's quite a list, hence the use of the [interactive_order_stack](#interactive-order-stack) to keep it in check!
@@ -1945,7 +1945,7 @@ Configuration for the system is spread across a few different places:
 
 ### System defaults & Private config
 
-Most configuration is stored in [/systems/provided/defaults.yaml](/systems/provided/defaults.yaml), with the possibility of overriding in the private configuration file `/private/private_config.yaml`, an example of which is here [examples/production/private_config_example.yaml](examples/production/private_config_example.yaml). Any top level keyword included in the private config will override the same keyword in the defaults.yaml file.
+Most configuration is stored in [/systems/provided/defaults.yaml](/systems/provided/defaults.yaml), with the possibility of overriding in the private configuration file `/private/private_config.yaml`, an example of which is here [/examples/production/private_config_example.yaml](/examples/production/private_config_example.yaml). Any top level keyword included in the private config will override the same keyword in the defaults.yaml file.
 
 Exceptionally, the following are configuration options that are not in defaults.yaml and *must* be in private_config.yaml:
 
