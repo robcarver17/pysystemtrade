@@ -58,9 +58,6 @@ class brokerOrder(Order):
         broker_tempid: str = "",
         commission: float=0.0,
         manual_fill: bool=False,
-
-        split_order: bool=False,
-        sibling_id_for_split_order=None,
         **kwargs_ignored
     ):
         """
@@ -130,8 +127,6 @@ class brokerOrder(Order):
             broker_tempid=broker_tempid,
             broker_clientid=broker_clientid,
             commission=commission,
-            split_order=split_order,
-            sibling_id_for_split_order=sibling_id_for_split_order,
             roll_order=roll_order
         )
 
@@ -337,100 +332,6 @@ class brokerOrder(Order):
         return success
 
 
-    @property
-    def is_split_order(self):
-        return bool(self.order_info["split_order"])
-
-    def split_order(self, sibling_order_id):
-        self.order_info["split_order"] = True
-        self.order_info["sibling_id_for_split_order"] = sibling_order_id
-
-    def split_spread_order(self):
-        """
-
-        :param self:
-        :return: list of contract orders, will be original order if not a spread order
-        """
-        if len(self.contract_date) == 1:
-            # not a spread trade
-            return [self]
-
-        list_of_derived_broker_orders = []
-        for contractid, trade_qty, fill, fill_price, mid_price, side_price in zip(
-            self.contract_date,
-            self.trade,
-            self.fill,
-            self.filled_price,
-            self.mid_price,
-            self.side_price,
-        ):
-
-            new_order = create_split_broker_order(original_order=self,
-                                                  contractid=contractid,
-                                                  fill=fill,
-                                                  fill_price=fill_price,
-                                                  mid_price=mid_price,
-                                                  side_price=side_price,
-                                                  trade_qty=trade_qty)
-
-            list_of_derived_broker_orders.append(new_order)
-
-        return list_of_derived_broker_orders
-
-def create_split_broker_order(original_order: brokerOrder,
-                                contractid: singleContractDate,
-                                trade_qty: int,
-                                fill: int,
-                                fill_price: float,
-                              mid_price: float,
-                              side_price: float) -> brokerOrder:
-
-    new_order_as_dict = create_split_broker_order_dict(original_order=original_order,
-                                                       contractid=contractid,
-                                                       fill=fill,
-                                                       fill_price=fill_price,
-                                                       mid_price=mid_price,
-                                                       side_price=side_price,
-                                                       trade_qty=trade_qty
-
-                                                       )
-    new_order = brokerOrder.from_dict(new_order_as_dict)
-    new_order.split_order(original_order.order_id)
-
-    return new_order
-
-def create_split_broker_order_dict(original_order: brokerOrder,
-                                contractid: singleContractDate,
-                                trade_qty: int,
-                                fill: int,
-                                fill_price: float,
-                              mid_price: float,
-                              side_price: float) -> dict:
-
-    original_as_dict = original_order.as_dict()
-    new_order_as_dict = copy(original_as_dict)
-    new_tradeable_object = futuresContractStrategy(
-        strategy_name=original_order.strategy_name,
-        instrument_code=original_order.instrument_code,
-        contract_id=contractid.date_str
-    )
-
-    new_key = new_tradeable_object.key
-
-    new_order_as_dict["key"] = new_key
-    new_order_as_dict["trade"] = trade_qty
-    new_order_as_dict["fill"] = fill
-    new_order_as_dict["filled_price"] = fill_price
-    new_order_as_dict["order_id"] = no_order_id
-    new_order_as_dict["mid_price"] = mid_price
-    new_order_as_dict["side_price"] = side_price
-
-    # We can't back out the limit price for a split order leg
-    new_order_as_dict.pop("limit_price")
-
-    return new_order_as_dict
-
-
 def create_new_broker_order_from_contract_order(
     contract_order: contractOrder,
     order_type: brokerOrderType=brokerOrderType('market'),
@@ -491,40 +392,18 @@ class brokerOrderWithParentInformation(brokerOrder):
         order.parent_generated_datetime = generated_datetime
         order.parent_limit_price = parent_limit
 
+        ## NOT BACKWARD COMPATIBLE...
+        ## WILL WORK FOR NEW TYPE ORDERS AND OLD SPLIT ORDERS, BUT NOT OLD STYLE MULTI-LENGTH ORDERS
+        try:
+            assert len(order.filled_price)==1
+            assert len(order.mid_price)==1
+            assert len(order.side_price)==1
+        except:
+            raise Exception("Can't get TCA data for old style split order")
 
-        if order.is_split_order:
-            # Note; multiple leg orders are 'split' before adding to the database
-            #  The original order is then zeroed out
-            #  This means there aren't any spread broker orders in the database
-            # WHAT HAPPENS WITH A TWO LEVEL SPLIT?
-            # FIXME THIS WHOLE THING NEEDS A LOT OF CAREFUL THOUGHT
-
-            # We won't use these, and it may cause bugs for orders saved with
-
-            ## A few possible cases:
-            # - The instrument order is a non spread single leg and so is the contract (and broker) legs
-            #          This is easy.
-            # - The instrument order is a non spread flat trade calendar spread roll trade, and so are the contract/broker legs
-            #          Here there is no reference price or limit price
-            #          The b
-            # -  The instrument order is a spread trade (calendar spread)
-            #          Here the reference (and possibly limit prices) will be for the spread
-            #          For the split order
-
-            calc_mid = None
-            calc_side = None
-            calc_fill = None
-        else:
-            # If it isn't a split order then it must be a single leg trade
-            calc_mid = order.trade.get_spread_price(order.mid_price)
-            calc_side = order.trade.get_spread_price(order.side_price)
-            calc_fill = order.trade.get_spread_price(order.filled_price)
-
-
-
-        order.calculated_filled_price = calc_fill
-        order.calculated_mid_price = calc_mid
-        order.calculated_side_price = calc_side
+        order.calculated_filled_price = order.filled_price[0]
+        order.calculated_mid_price = order.mid_price[0]
+        order.calculated_side_price = order.side_price[0]
 
         order.buy_or_sell = order.trade.buy_or_sell()
 

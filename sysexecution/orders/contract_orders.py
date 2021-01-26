@@ -53,9 +53,6 @@ class contractOrder(Order):
 
         algo_to_use: str="",
         reference_of_controlling_algo: str=None,
-
-        split_order: bool=False,
-        sibling_id_for_split_order: int=None,
         **kwargs_ignored
     ):
         """
@@ -118,8 +115,6 @@ class contractOrder(Order):
             inter_spread_order=inter_spread_order,
             generated_datetime=generated_datetime,
             reference_of_controlling_algo=reference_of_controlling_algo,
-            split_order=split_order,
-            sibling_id_for_split_order=sibling_id_for_split_order,
         )
 
         super().__init__(tradeable_object,
@@ -237,13 +232,6 @@ class contractOrder(Order):
     def manual_fill(self, manual_fill):
         self.order_info["manual_fill"] = manual_fill
 
-    @property
-    def is_split_order(self):
-        return bool(self.order_info["split_order"])
-
-    def split_order(self, sibling_order_id):
-        self.order_info["split_order"] = True
-        self.order_info["sibling_id_for_split_order"] = sibling_order_id
 
     @property
     def roll_order(self):
@@ -294,71 +282,6 @@ class contractOrder(Order):
         )
 
         return new_log
-
-    def split_spread_order(self) -> listOfOrders:
-        """
-
-        :param self:
-        :return: list of contract orders, will be original order if not a spread order
-        """
-        if len(self.contract_date) == 1:
-            # not a spread trade
-            return listOfOrders([self])
-
-        list_of_derived_contract_orders = []
-
-        for contractid, trade_qty, fill, fill_price in zip(
-            self.contract_date, self.trade, self.fill, self.filled_price
-        ):
-            new_order = create_split_contract_order(original_order=self,
-                                                    contractid=contractid,
-                                                    trade_qty=trade_qty,
-                                                    fill=fill,
-                                                    fill_price = fill_price)
-
-            list_of_derived_contract_orders.append(new_order)
-
-        return listOfOrders(list_of_derived_contract_orders)
-
-def create_split_contract_order(original_order: contractOrder,
-                                contractid: singleContractDate,
-                                trade_qty: int,
-                                fill: int,
-                                fill_price: float) -> contractOrder:
-
-    new_order_as_dict = create_split_contract_order_dict(original_order=original_order,
-                                                contractid=contractid,
-                                                trade_qty=trade_qty,
-                                                fill=fill,
-                                                fill_price=fill_price)
-
-    new_order = contractOrder.from_dict(new_order_as_dict)
-    new_order.split_order(original_order.order_id)
-
-    return new_order
-
-
-def create_split_contract_order_dict(original_order: contractOrder,
-                                contractid: singleContractDate,
-                                trade_qty: int,
-                                fill: int,
-                                fill_price: float) -> dict:
-
-
-    original_as_dict = original_order.as_dict()
-    new_order_as_dict = copy(original_as_dict)
-    new_tradeable_object = futuresContractStrategy(
-        original_order.strategy_name, original_order.instrument_code, contractid
-    )
-    new_key = new_tradeable_object.key
-
-    new_order_as_dict["key"] = new_key
-    new_order_as_dict["trade"] = trade_qty
-    new_order_as_dict["fill"] = fill
-    new_order_as_dict["filled_price"] = fill_price
-    new_order_as_dict["order_id"] = no_order_id
-
-    return new_order_as_dict
 
 @dataclass
 class contractOrderKeyArguments():

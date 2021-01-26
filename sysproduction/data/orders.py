@@ -84,13 +84,22 @@ class dataOrders(object):
             period_start, period_end=period_end)
 
         if remove_split_orders:
+            # required for backward compatibility
+
             order_id_list = [
                 order_id
                 for order_id in order_id_list
-                if not self.get_historic_broker_order_from_order_id(order_id).is_split_order
+                if not self._is_split_broker_order(order_id)
             ]
 
         return order_id_list
+
+    def _is_split_broker_order(self, broker_order_id:int) -> bool:
+        order = self.get_historic_broker_order_from_order_id(broker_order_id)
+        if len(order.filled_price)>1:
+            return True
+        else:
+            return False
 
     def get_historic_contract_orders_in_date_range(
             self, period_start: datetime.datetime,
@@ -138,6 +147,8 @@ class dataOrders(object):
         # go through each carefully...
 
         order = self.get_historic_broker_order_from_order_id(order_id)
+        order.change_fill_price_to_spread_price()
+
         contract_order = self.get_parent_contract_order_for_historic_broker_order_id(order_id)
         instrument_order = (
             self.get_parent_instrument_order_for_historic_broker_order_id(order_id))
