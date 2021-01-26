@@ -229,7 +229,7 @@ class ibFuturesContractPriceData(futuresContractPriceData):
 
     def cancel_market_data_for_order(self, order: ibBrokerOrder):
         contract_object = order.futures_contract
-        trade_list_for_multiple_legs = order.trade.qty
+        trade_list_for_multiple_legs = order.trade
 
         new_log = order.log_with_attributes(self.log)
 

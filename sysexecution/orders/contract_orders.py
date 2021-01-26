@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import datetime
 from copy import copy
 
@@ -91,31 +92,20 @@ class contractOrder(Order):
         :param inter_spread_order: bool, part of an instrument order that is a spread across multiple markets
         """
 
-        tradeable_object, trade = resolve_contract_order_args(args)
+        key_arguments = from_contract_order_args_to_resolved_args(args, fill=fill, filled_price=filled_price)
 
-        if generated_datetime is None:
-            generated_datetime = datetime.datetime.now()
-
-        (
-            resolved_trade,
-            resolved_fill,
-            resolved_filled_price,
-        ) = resolve_inputs_to_order(trade, fill, filled_price)
-
-        # ensure contracts and lists all match
-        (resolved_trade,
-         resolved_fill,
-         resolved_filled_price,
-         tradeable_object,
-         ) = sort_inputs_by_contract_date_order(resolved_trade,
-                                                resolved_fill,
-                                                resolved_filled_price,
-                                                tradeable_object)
+        resolved_trade = key_arguments.trade
+        resolved_fill = key_arguments.fill
+        resolved_filled_price = key_arguments.filled_price
+        tradeable_object = key_arguments.tradeable_object
 
         if len(resolved_trade) == 1:
             calendar_spread_order = False
         else:
             calendar_spread_order = True
+
+        if generated_datetime is None:
+            generated_datetime = datetime.datetime.now()
 
         order_info = dict(
             algo_to_use=algo_to_use,
@@ -129,7 +119,7 @@ class contractOrder(Order):
             generated_datetime=generated_datetime,
             reference_of_controlling_algo=reference_of_controlling_algo,
             split_order=split_order,
-            sibling_id_for_split_order=sibling_id_for_split_order
+            sibling_id_for_split_order=sibling_id_for_split_order,
         )
 
         super().__init__(tradeable_object,
@@ -161,7 +151,8 @@ class contractOrder(Order):
         parent = none_to_object(order_as_dict.pop("parent"), no_parent)
         children = none_to_object(order_as_dict.pop("children"), no_children)
         active = order_as_dict.pop("active")
-        order_type = contractOrderType(order_as_dict.pop("order_type"))
+        order_type = order_as_dict.pop("order_type")
+        order_type = contractOrderType(order_type)
 
         order_info = order_as_dict
 
@@ -369,7 +360,46 @@ def create_split_contract_order_dict(original_order: contractOrder,
 
     return new_order_as_dict
 
-def resolve_contract_order_args(args: list) -> (futuresContractStrategy, tradeQuantity):
+@dataclass
+class contractOrderKeyArguments():
+    tradeable_object: futuresContractStrategy
+    trade: tradeQuantity
+    fill: tradeQuantity = None
+    filled_price: fillPrice = None
+
+    def resolve_inputs_to_order_with_key_arguments(self):
+        resolved_trade, resolved_fill, resolved_filled_price = resolve_inputs_to_order(trade=self.trade,
+                                                                                       fill=self.fill,
+                                                                                       filled_price=self.filled_price)
+
+        self.filled_price = resolved_filled_price
+        self.fill = resolved_fill
+        self.trade = resolved_trade
+
+    def sort_inputs_by_contract_date_order(self):
+        sort_order = self.tradeable_object.sort_idx_for_contracts()
+        self.trade.sort_with_idx(sort_order)
+        self.fill.sort_with_idx(sort_order)
+        self.filled_price.sort_with_idx(sort_order)
+
+        self.tradeable_object.sort_contracts_with_idx(sort_order)
+
+
+def from_contract_order_args_to_resolved_args(args: tuple, fill: tradeQuantity, filled_price: fillPrice) -> contractOrderKeyArguments:
+
+    # different ways of specififying tradeable object
+    key_arguments = split_contract_order_args(args, fill, filled_price)
+
+    # ensure everything has the right type
+    key_arguments.resolve_inputs_to_order_with_key_arguments()
+
+    # ensure contracts and lists all match
+    key_arguments.sort_inputs_by_contract_date_order()
+
+    return key_arguments
+
+def split_contract_order_args(args: tuple, fill: tradeQuantity, filled_price: fillPrice) \
+        -> contractOrderKeyArguments:
     if len(args) == 2:
         tradeable_object = futuresContractStrategy.from_key(args[0])
         trade = args[1]
@@ -386,21 +416,9 @@ def resolve_contract_order_args(args: list) -> (futuresContractStrategy, tradeQu
             "contractOrder(strategy, instrument, contractid, trade,  **kwargs) or ('strategy/instrument/contract_order_id', trade, **kwargs) "
         )
 
-    return tradeable_object, trade
+    key_arguments = contractOrderKeyArguments(tradeable_object=tradeable_object, trade=trade, fill=fill,
+                                              filled_price=filled_price)
 
-def sort_inputs_by_contract_date_order(
-        resolved_trade: tradeQuantity,
-        resolved_fill: tradeQuantity,
-        resolved_filled_price: fillPrice,
-        tradeable_object: futuresContractStrategy):
-
-    sort_order = tradeable_object.sort_idx_for_contracts()
-    resolved_trade.sort_with_idx(sort_order)
-    resolved_fill.sort_with_idx(sort_order)
-    resolved_filled_price.sort_with_idx(sort_order)
-
-    tradeable_object.sort_contracts_with_idx(sort_order)
-
-    return resolved_trade, resolved_fill, resolved_filled_price, tradeable_object
+    return key_arguments
 
 

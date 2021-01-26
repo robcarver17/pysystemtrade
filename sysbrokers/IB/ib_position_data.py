@@ -44,8 +44,6 @@ class ibContractPositionData(contractPositionData):
     def futures_instrument_data(self) -> ibFuturesInstrumentData:
         return ibFuturesInstrumentData(self.ibconnection, log = self.log)
 
-
-
     def get_all_current_positions_as_list_with_contract_objects(
         self, account_id=arg_not_supplied
     ) -> listOfContractPositions:

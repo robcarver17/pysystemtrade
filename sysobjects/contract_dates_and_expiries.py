@@ -343,10 +343,16 @@ class contractDate(object):
     def list_of_single_contract_dates(self):
         return self._list_of_single_contract_dates
 
+    @property
+    def list_of_date_str(self):
+        list_of_contract_dates = self.list_of_single_contract_dates
+        list_of_date_str = [contract_date.date_str for contract_date in list_of_contract_dates]
+
+        return list_of_date_str
 
     def index_of_sorted_contract_dates(self) -> list:
 
-        clist = self.list_of_single_contract_dates
+        clist = self.list_of_date_str
         return sorted(range(len(clist)), key=lambda k: clist[k])
 
     def sort_with_idx(self, idx_list):

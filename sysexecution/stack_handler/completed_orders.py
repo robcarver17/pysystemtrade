@@ -1,25 +1,24 @@
-from collections import namedtuple
+
 from syscore.objects import (
     no_children,
     missing_order,
 )
 
-from sysexecution.stack_handler.stackHandlerCore import stackHandlerCore
+from sysexecution.stack_handler.stackHandlerCore import stackHandlerCore, orderFamily
 from sysproduction.data.orders import dataOrders
 
-orderFamily = namedtuple('orderFamily', ['instrument_order_id',
-                                         'list_of_contract_order_id',
-                                        'list_of_broker_order_id'])
 
 class stackHandlerForCompletions(stackHandlerCore):
     def handle_completed_orders(
         self, allow_partial_completions:bool=False,
-            allow_zero_completions:bool=False
+            allow_zero_completions:bool=False,
+        treat_inactive_as_complete: bool = False
     ):
         list_of_completed_instrument_orders = (
             self.instrument_stack.list_of_completed_order_ids(
                 allow_partial_completions=allow_partial_completions,
                 allow_zero_completions=allow_zero_completions,
+                treat_inactive_as_complete = treat_inactive_as_complete
             )
         )
 
@@ -35,6 +34,7 @@ class stackHandlerForCompletions(stackHandlerCore):
         instrument_order_id: int,
         allow_partial_completions=False,
         allow_zero_completions=False,
+            treat_inactive_as_complete = False
     ):
         # Check children all done
 
@@ -43,6 +43,7 @@ class stackHandlerForCompletions(stackHandlerCore):
             instrument_order_id,
             allow_partial_completions=allow_partial_completions,
             allow_zero_completions=allow_zero_completions,
+            treat_inactive_as_complete=treat_inactive_as_complete
         )
 
         if not completely_filled:
@@ -56,7 +57,8 @@ class stackHandlerForCompletions(stackHandlerCore):
         # the instrument order has it's children removed and replaced by the components of each spread order
         # the contract order
 
-        self.split_up_spread_orders(instrument_order_id)
+        # FIX ME NOT DOING THIS ANYMORE???
+        #self.split_up_spread_orders(instrument_order_id)
 
         # the 'order family' will now include split orders
         order_family = self.get_order_family_for_instrument_order_id(
@@ -116,6 +118,7 @@ class stackHandlerForCompletions(stackHandlerCore):
         instrument_order_id: int,
         allow_partial_completions=False,
         allow_zero_completions=False,
+            treat_inactive_as_complete=True
     ):
 
         order_family = self.get_order_family_for_instrument_order_id(
@@ -127,12 +130,14 @@ class stackHandlerForCompletions(stackHandlerCore):
             order_family.list_of_contract_order_id,
             allow_partial_completions=allow_partial_completions,
             allow_zero_completions=allow_zero_completions,
+            treat_inactive_as_complete=treat_inactive_as_complete
         )
 
         grandchildren_filled = self.check_list_of_broker_orders_complete(
             order_family.list_of_broker_order_id,
             allow_partial_completions=allow_partial_completions,
             allow_zero_completions=allow_zero_completions,
+            treat_inactive_as_complete=treat_inactive_as_complete
         )
 
         if grandchildren_filled and children_filled:
@@ -146,12 +151,14 @@ class stackHandlerForCompletions(stackHandlerCore):
         list_of_contract_order_id: list,
         allow_partial_completions=False,
         allow_zero_completions=False,
+        treat_inactive_as_complete = False
     ) -> bool:
         for contract_order_id in list_of_contract_order_id:
             completely_filled = self.contract_stack.is_completed(
                 contract_order_id,
                 allow_zero_completions=allow_zero_completions,
                 allow_partial_completions=allow_partial_completions,
+                treat_inactive_as_complete=treat_inactive_as_complete
             )
             if not completely_filled:
                 # OK We can't do this unless *all* our children are filled
@@ -165,6 +172,7 @@ class stackHandlerForCompletions(stackHandlerCore):
         list_of_broker_order_id: list,
         allow_partial_completions=False,
         allow_zero_completions=False,
+            treat_inactive_as_complete=False
     ):
 
         for broker_order_id in list_of_broker_order_id:
@@ -172,6 +180,7 @@ class stackHandlerForCompletions(stackHandlerCore):
                 broker_order_id,
                 allow_zero_completions=allow_zero_completions,
                 allow_partial_completions=allow_partial_completions,
+                treat_inactive_as_complete=treat_inactive_as_complete
             )
             if not completely_filled:
                 # OK We can't do this unless all our children are filled

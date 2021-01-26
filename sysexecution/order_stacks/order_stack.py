@@ -192,7 +192,8 @@ class orderStackData(object):
         return True
 
     def list_of_completed_order_ids(
-        self, allow_partial_completions=False, allow_zero_completions=False
+        self, allow_partial_completions=False, allow_zero_completions=False,
+            treat_inactive_as_complete = False
     ) -> list:
         order_ids = self.get_list_of_order_ids()
         completed_order_ids = [
@@ -202,6 +203,7 @@ class orderStackData(object):
                 order_id,
                 allow_partial_completions=allow_partial_completions,
                 allow_zero_completions=allow_zero_completions,
+                treat_inactive_as_complete = treat_inactive_as_complete
             )
         ]
 
@@ -211,25 +213,31 @@ class orderStackData(object):
             self,
             order_id: int,
             allow_partial_completions=False,
-            allow_zero_completions=False) -> bool:
+            allow_zero_completions=False,
+            treat_inactive_as_complete = False) -> bool:
 
         existing_order = self.get_order_with_id_from_stack(order_id)
 
-        if existing_order is missing_order:
-            return False
-        if not existing_order.active:
-            return False
-        elif allow_zero_completions:
+        if allow_zero_completions:
             return True
 
-        elif allow_partial_completions:
+        if existing_order is missing_order:
+            return False
+
+        order_inactive = not existing_order.active
+        treat_inactive_orders_as_incomplete = not treat_inactive_as_complete
+
+        if order_inactive and treat_inactive_orders_as_incomplete:
+            return False
+
+        if allow_partial_completions:
             trade_with_no_fills = existing_order.fill_equals_zero()
             partially_completed = not trade_with_no_fills
             return partially_completed
-        else:
-            fully_filled= existing_order.fill_equals_desired_trade()
-            is_completed = fully_filled is True
-            return is_completed
+
+        fully_filled= existing_order.fill_equals_desired_trade()
+        is_completed = fully_filled is True
+        return is_completed
 
     # CHILD ORDERS
     def add_children_to_order_without_existing_children(self, order_id: int, new_children: list):

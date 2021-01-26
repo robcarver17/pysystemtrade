@@ -4,22 +4,19 @@ Stack handler is a giant object, so we split it up into files/classes
 This 'core' is inherited by all the other classes and just initialises, plus does some common functions
 
 """
+from collections import namedtuple
 from syscore.objects import (
     arg_not_supplied,
     failure,
-    success,
-    no_children,
-)
+    success)
 
-from sysproduction.data.orders import dataOrders
 from sysdata.data_blob import dataBlob
 
-from sysproduction.data.positions import updatePositions
 from sysexecution.order_stacks.order_stack import orderStackData, failureWithRollback
 from sysexecution.orders.base_orders import Order
-from sysexecution.orders.contract_orders import contractOrder
 from sysexecution.orders.list_of_orders import listOfOrders
-from sysexecution.trade_qty import tradeQuantity
+
+from sysproduction.data.orders import dataOrders
 
 class stackHandlerCore(object):
     def __init__(self, data: dataBlob=arg_not_supplied):
@@ -60,64 +57,6 @@ class stackHandlerCore(object):
     def broker_stack(self):
         return self._broker_stack
 
-    def apply_broker_fills_to_contract_order(self, contract_order_id: int):
-        contract_order_before_fill = self.contract_stack.get_order_with_id_from_stack(
-            contract_order_id
-        )
-
-        children = contract_order_before_fill.children
-        if children is no_children:
-            # no children created yet, definitely no fills
-            return None
-
-        broker_order_list = self.broker_stack.get_list_of_orders_from_order_id_list(
-            children)
-
-        # We apply: total quantity, average price, highest datetime
-
-        if broker_order_list.all_zero_fills():
-            # nothing to do here
-            return None
-
-        final_fill_datetime = broker_order_list.final_fill_datetime()
-        total_filled_qty = broker_order_list.total_filled_qty()
-        average_fill_price = broker_order_list.average_fill_price()
-
-        self.contract_stack.change_fill_quantity_for_order(
-            contract_order_before_fill.order_id,
-            total_filled_qty,
-            filled_price=average_fill_price,
-            fill_datetime=final_fill_datetime,
-        )
-
-        # if fill has changed then update positions
-        # we do this here, because we can get here eithier from fills process
-        # or after an execution
-        ## At this point the contract stack has changed the contract order, but the contract_order
-        ##    here reflects the original contract order before fills applied, this allows comparision
-        self.apply_position_change_to_stored_contract_positions(
-            contract_order_before_fill, total_filled_qty)
-
-
-    def apply_position_change_to_stored_contract_positions(
-        self, contract_order_before_fill: contractOrder,
-            total_filled_qty: tradeQuantity,
-            apply_entire_trade: bool=False
-    ):
-        current_fills = contract_order_before_fill.fill
-
-        if apply_entire_trade:
-            new_fills = current_fills
-        else:
-            new_fills = total_filled_qty - current_fills
-
-        if new_fills.equals_zero():
-            # nothing to do
-            return None
-
-        position_updater = updatePositions(self.data)
-        position_updater.update_contract_position_table_with_contract_order(
-            contract_order_before_fill, new_fills)
 
 def put_children_on_stack(child_stack: orderStackData, parent_order: Order,
                           list_of_child_orders: listOfOrders,
@@ -217,3 +156,8 @@ def rollback_parents_and_children(parent_stack: orderStackData,
         child_stack.rollback_list_of_orders_on_stack(
             list_of_child_order_ids)
 
+
+
+orderFamily = namedtuple('orderFamily', ['instrument_order_id',
+                                         'list_of_contract_order_id',
+                                        'list_of_broker_order_id'])

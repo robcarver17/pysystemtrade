@@ -734,6 +734,10 @@ Fills, once received from the broker API, are propogated upwards: broker orders 
 
 Once all the child orders of an order are completed, then a parent order can also be completed. Completed orders are removed from the stack and put in historic order databases.
 
+# The journey of an order
+
+.... MORE HERE....
+
 
 # Scripts
 

@@ -27,9 +27,9 @@ from sysproduction.data.prices import get_valid_instrument_code_from_user
 from sysexecution.stack_handler.stack_handler import stackHandler
 from sysexecution.stack_handler.balance_trades import stackHandlerCreateBalanceTrades
 from sysexecution.stack_handler.spawn_children_from_instrument_orders import map_instrument_order_type_to_contract_order_type
-from sysexecution.orders.broker_orders import brokerOrder
+from sysexecution.orders.broker_orders import brokerOrder, balance_order_type as broker_balance_order_type
 from sysexecution.orders.contract_orders import contractOrder
-from sysexecution.orders.instrument_orders import instrumentOrder, market_order_type, instrumentOrderType
+from sysexecution.orders.instrument_orders import instrumentOrder, market_order_type, instrumentOrderType, balance_order_type as instrument_balance_order_type
 from sysexecution.algos.allocate_algo_to_order import list_of_algos
 
 
@@ -206,10 +206,10 @@ def create_balance_trade(data):
         strategy_name,
         instrument_code,
         contract_date,
-        [fill_qty],
-        fill=[fill_qty],
+        fill_qty,
+        fill=fill_qty,
         algo_used="balance_trade",
-        order_type="balance_trade",
+        order_type=broker_balance_order_type,
         filled_price=filled_price,
         fill_datetime=fill_datetime,
         broker_account=broker_account,
@@ -249,7 +249,7 @@ def create_instrument_balance_trade(data):
         instrument_code,
         fill_qty,
         fill=fill_qty,
-        order_type="balance_trade",
+        order_type=instrument_balance_order_type,
         filled_price=filled_price,
         fill_datetime=fill_datetime,
     )

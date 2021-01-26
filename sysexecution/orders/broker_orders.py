@@ -10,7 +10,7 @@ from sysexecution.orders.base_orders import Order
 from sysexecution.trade_qty import tradeQuantity
 from sysexecution.fill_price import fillPrice
 from sysexecution.price_quotes import quotePrice
-from sysexecution.orders.contract_orders import contractOrder, resolve_contract_order_args
+from sysexecution.orders.contract_orders import contractOrder, from_contract_order_args_to_resolved_args
 from sysexecution.orders.instrument_orders import instrumentOrder
 from sysobjects.production.tradeable_object import futuresContractStrategy, instrumentStrategy, futuresContract
 from sysobjects.contract_dates_and_expiries import singleContractDate
@@ -25,6 +25,7 @@ class brokerOrderType(orderType):
 
 market_order_type = brokerOrderType('market')
 limit_order_type = brokerOrderType('limit')
+balance_order_type = brokerOrderType('balance_trade')
 
 class brokerOrder(Order):
     def __init__(
@@ -55,8 +56,6 @@ class brokerOrder(Order):
         broker_clientid: str="",
         broker_permid: str = "",
         broker_tempid: str = "",
-        broker_objects=dict(),
-
         commission: float=0.0,
         manual_fill: bool=False,
 
@@ -99,17 +98,22 @@ class brokerOrder(Order):
         :param commission: float
         :param broker_permid: Brokers permanent ref number
         :param broker_tempid: Brokers temporary ref number
-        :param broker_objects: store brokers representation of objects
         :param manual_fill: bool, was fill entered manually rather than being picked up from IB
 
         """
 
-        tradeable_object, trade = resolve_contract_order_args(args)
+        key_arguments = from_contract_order_args_to_resolved_args(args, fill=fill, filled_price=filled_price)
 
-        if len(trade) == 1:
+        resolved_trade = key_arguments.trade
+        resolved_fill = key_arguments.fill
+        resolved_filled_price = key_arguments.filled_price
+        tradeable_object = key_arguments.tradeable_object
+
+        if len(resolved_trade) == 1:
             calendar_spread_order = False
         else:
             calendar_spread_order = True
+
 
         order_info = dict(
             algo_used=algo_used,
@@ -132,9 +136,9 @@ class brokerOrder(Order):
         )
 
         super().__init__(tradeable_object,
-                        trade= trade,
-                        fill = fill,
-                        filled_price= filled_price,
+                        trade= resolved_trade,
+                        fill = resolved_fill,
+                        filled_price= resolved_filled_price,
                         fill_datetime = fill_datetime,
                         locked = locked,
                         order_id=order_id,
@@ -145,13 +149,6 @@ class brokerOrder(Order):
                         **order_info
                         )
 
-        # NOTE: we do not include these in the normal order info dict
-        # This means they will NOT be saved when we do .as_dict(), i.e. they won't be saved in the mongo record
-        # This is deliberate since these objects can't be saved accordingly
-        # Instead we store them only in a single session to make it easier to
-        # match and modify orders
-
-        self._broker_objects = broker_objects
 
     @property
     def strategy_name(self):
@@ -186,10 +183,6 @@ class brokerOrder(Order):
     @property
     def algo_used(self):
         return self.order_info["algo_used"]
-
-    @property
-    def broker_objects(self):
-        return self._broker_objects
 
 
     @property
@@ -363,7 +356,6 @@ class brokerOrder(Order):
             return [self]
 
         list_of_derived_broker_orders = []
-        original_as_dict = self.as_dict()
         for contractid, trade_qty, fill, fill_price, mid_price, side_price in zip(
             self.contract_date,
             self.trade,
@@ -373,7 +365,7 @@ class brokerOrder(Order):
             self.side_price,
         ):
 
-            new_order = create_split_broker_order(original_order=original_as_dict,
+            new_order = create_split_broker_order(original_order=self,
                                                   contractid=contractid,
                                                   fill=fill,
                                                   fill_price=fill_price,
@@ -418,8 +410,11 @@ def create_split_broker_order_dict(original_order: brokerOrder,
     original_as_dict = original_order.as_dict()
     new_order_as_dict = copy(original_as_dict)
     new_tradeable_object = futuresContractStrategy(
-        original_order.strategy_name, original_order.instrument_code, contractid
+        strategy_name=original_order.strategy_name,
+        instrument_code=original_order.instrument_code,
+        contract_id=contractid.date_str
     )
+
     new_key = new_tradeable_object.key
 
     new_order_as_dict["key"] = new_key
@@ -429,6 +424,9 @@ def create_split_broker_order_dict(original_order: brokerOrder,
     new_order_as_dict["order_id"] = no_order_id
     new_order_as_dict["mid_price"] = mid_price
     new_order_as_dict["side_price"] = side_price
+
+    # We can't back out the limit price for a split order leg
+    new_order_as_dict.pop("limit_price")
 
     return new_order_as_dict
 
@@ -448,8 +446,6 @@ def create_new_broker_order_from_contract_order(
     broker_tempid: str="",
 ) -> brokerOrder:
 
-    if submit_datetime is None:
-        submit_datetime = datetime.datetime.now()
 
     broker_order = brokerOrder(
         contract_order.key,
@@ -491,6 +487,9 @@ class brokerOrderWithParentInformation(brokerOrder):
         # so we use the contract order limit
         parent_limit = contract_order.limit_price
 
+        order.parent_reference_price = reference_price
+        order.parent_generated_datetime = generated_datetime
+        order.parent_limit_price = parent_limit
 
 
         if order.is_split_order:
@@ -522,9 +521,6 @@ class brokerOrderWithParentInformation(brokerOrder):
             calc_fill = order.trade.get_spread_price(order.filled_price)
 
 
-        order.parent_reference_price = reference_price
-        order.parent_generated_datetime = generated_datetime
-        order.parent_limit_price = parent_limit
 
         order.calculated_filled_price = calc_fill
         order.calculated_mid_price = calc_mid
@@ -533,3 +529,4 @@ class brokerOrderWithParentInformation(brokerOrder):
         order.buy_or_sell = order.trade.buy_or_sell()
 
         return brokerOrderWithParentInformation(order)
+

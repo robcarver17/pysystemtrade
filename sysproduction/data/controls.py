@@ -67,7 +67,7 @@ class dataTradeLimits(object):
             instrument_strategy: instrumentStrategy,
             proposed_trade: tradeQuantity) -> int:
 
-        proposed_trade_as_int = proposed_trade.as_single_trade_qty_or_error()
+        proposed_trade_as_int = proposed_trade.total_abs_qty()
         return self.data.db_trade_limit.what_trade_is_possible(
             instrument_strategy, proposed_trade_as_int
         )

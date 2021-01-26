@@ -12,6 +12,8 @@ from sysexecution.orders.broker_orders import brokerOrder
 from sysexecution.trade_qty import tradeQuantity
 
 
+class ibOrderCouldntCreateException(Exception):
+    pass
 
 
 class tradeWithContract(object):
@@ -158,19 +160,24 @@ class ibBrokerOrder(brokerOrder):
         self._broker_objects = broker_objects
 
 
-def create_broker_order_from_trade_with_contract(trade_with_contract: tradeWithContract,
+def create_broker_order_from_trade_with_contract(trade_with_contract_from_ib: tradeWithContract,
                                                  instrument_code: str) -> ibBrokerOrder:
     # pretty horrible code to convert IB order and contract objects into my
     # world
 
     # we do this in two stages to make the abstraction marginally better (to
     # be honest, to reflect legacy history)
-    extracted_trade_info = extract_trade_info(trade_with_contract)
+    extracted_trade_info = extract_trade_info(trade_with_contract_from_ib)
 
     # and stage two
     ib_broker_order = ibBrokerOrder.from_broker_trade_object(
         extracted_trade_info, instrument_code=instrument_code
     )
+
+    # this can go wrong eg for FX
+    if ib_broker_order is missing_order:
+        raise ibOrderCouldntCreateException()
+
     ib_broker_order._order_info["broker_tempid"] = create_tempid_from_broker_details(
         ib_broker_order)
 

@@ -1,5 +1,4 @@
 from ib_insync import Trade as ibTrade
-import datetime
 
 from copy import copy
 
@@ -9,7 +8,7 @@ from sysbrokers.IB.ib_translate_broker_order_objects import (
     create_broker_order_from_trade_with_contract, ibBrokerOrder
 )
 from sysbrokers.IB.ib_connection import connectionIB
-from sysbrokers.IB.ib_translate_broker_order_objects import tradeWithContract
+from sysbrokers.IB.ib_translate_broker_order_objects import tradeWithContract, ibOrderCouldntCreateException
 from sysbrokers.IB.client.ib_orders_client import ibOrdersClient
 
 from syscore.objects import missing_order, failure, success, arg_not_supplied
@@ -23,7 +22,7 @@ from syslogdiag.log import logtoscreen
 
 
 class ibOrderWithControls(orderWithControls):
-    def __init__(self, trade_with_contract: tradeWithContract,
+    def __init__(self, trade_with_contract_from_ib: tradeWithContract,
                  ibclient: ibOrdersClient,
                  broker_order: brokerOrder = None,
                  instrument_code: str = None,
@@ -33,12 +32,12 @@ class ibOrderWithControls(orderWithControls):
             # This might happen if for example we are getting the orders from
             #   IB
             broker_order = create_broker_order_from_trade_with_contract(
-                trade_with_contract, instrument_code
+                trade_with_contract_from_ib, instrument_code
             )
 
-        super().__init__(control_object=trade_with_contract,
-            broker_order=broker_order,
-                 ticker_object=ticker_object)
+        super().__init__(control_object=trade_with_contract_from_ib,
+                         broker_order=broker_order,
+                         ticker_object=ticker_object)
 
         self._ibclient = ibclient
 
@@ -110,7 +109,7 @@ class ibOrdersData(brokerOrderStackData):
 
         return store
 
-    def add_order_with_controls_to_store(self, order_with_controls: ibOrderWithControls):
+    def _add_order_with_controls_to_store(self, order_with_controls: ibOrderWithControls):
         storage_key = order_with_controls.order.broker_tempid
         self.traded_object_store[storage_key] = order_with_controls
 
@@ -128,7 +127,7 @@ class ibOrdersData(brokerOrderStackData):
 
         :return: list of brokerOrder objects
         """
-        list_of_control_objects = self.get_list_of_broker_control_orders(
+        list_of_control_objects = self._get_list_of_broker_control_orders(
             account_id=account_id
         )
         order_list = [
@@ -138,8 +137,8 @@ class ibOrdersData(brokerOrderStackData):
 
         return order_list
 
-    def get_dict_of_broker_control_orders(self, account_id: str=arg_not_supplied) -> dict:
-        control_order_list = self.get_list_of_broker_control_orders(
+    def _get_dict_of_broker_control_orders(self, account_id: str=arg_not_supplied) -> dict:
+        control_order_list = self._get_list_of_broker_control_orders(
             account_id=account_id
         )
         dict_of_control_orders = dict(
@@ -150,9 +149,9 @@ class ibOrdersData(brokerOrderStackData):
         )
         return dict_of_control_orders
 
-    def get_list_of_broker_control_orders(self, account_id: str=arg_not_supplied) -> list:
+    def _get_list_of_broker_control_orders(self, account_id: str=arg_not_supplied) -> list:
         """
-        Get list of broker orders from IB, and return as dict of control objects
+        Get list of broker orders from IB, and return as list of orders with controls
 
         :return: list of brokerOrder objects
         """
@@ -160,39 +159,52 @@ class ibOrdersData(brokerOrderStackData):
         list_of_raw_orders_as_trade_objects = self.ib_client.broker_get_orders(
             account_id=account_id)
 
-        control_order_list = [
-            self.create_broker_control_order_object(broker_trade_object_results)
+        broker_order_with_controls_list = [
+            self._create_broker_control_order_object(broker_trade_object_results)
             for broker_trade_object_results in list_of_raw_orders_as_trade_objects
         ]
 
-        return control_order_list
+        broker_order_with_controls_list = [broker_order_with_controls for broker_order_with_controls
+                              in broker_order_with_controls_list
+                              if broker_order_with_controls is not missing_order]
 
-    def create_broker_control_order_object(self, trade_with_contract_from_ib: tradeWithContract):
+        return broker_order_with_controls_list
+
+    def _create_broker_control_order_object(self, trade_with_contract_from_ib: tradeWithContract):
         """
         Map from the data IB gives us to my broker order object, to order with controls
 
         :param trade_with_contract_from_ib: tradeWithContract
         :return: brokerOrder
         """
-        instrument_code = (
-            self.futures_instrument_data.get_instrument_code_from_broker_code(
-                trade_with_contract_from_ib.ib_instrument_code
-            )
-        )
-        broker_order_with_controls = ibOrderWithControls(trade_with_contract_from_ib, ibclient=self.ib_client,
-                                                         instrument_code=instrument_code)
+        try:
+            try:
+                instrument_code = (
+                    self.futures_instrument_data.get_instrument_code_from_broker_code(
+                        trade_with_contract_from_ib.ib_instrument_code
+                    )
+                )
+            except:
+                raise ibOrderCouldntCreateException()
+
+            broker_order_with_controls = ibOrderWithControls(trade_with_contract_from_ib, ibclient=self.ib_client,
+                                                             instrument_code=instrument_code)
+        except ibOrderCouldntCreateException:
+            self.log.warn("Couldn't create order from ib returned order %s, usual behaviour for FX and equities trades" %
+                          str(trade_with_contract_from_ib))
+            return missing_order
 
         return broker_order_with_controls
 
     def get_list_of_orders_from_storage(self) -> listOfOrders:
-        dict_of_stored_orders = self.get_dict_of_orders_from_storage()
+        dict_of_stored_orders = self._get_dict_of_orders_from_storage()
         list_of_orders = listOfOrders(dict_of_stored_orders.values())
 
         return list_of_orders
 
-    def get_dict_of_orders_from_storage(self) -> dict:
+    def _get_dict_of_orders_from_storage(self) -> dict:
         # Get dict from storage, update, return just the orders
-        dict_of_orders_with_control = self.get_dict_of_control_orders_from_storage()
+        dict_of_orders_with_control = self._get_dict_of_control_orders_from_storage()
         order_dict = dict(
             [
                 (key, order_with_control.order)
@@ -202,7 +214,7 @@ class ibOrdersData(brokerOrderStackData):
 
         return order_dict
 
-    def get_dict_of_control_orders_from_storage(self) -> dict:
+    def _get_dict_of_control_orders_from_storage(self) -> dict:
         dict_of_orders_with_control = self.traded_object_store
         __ = [
             order_with_control.update_order()
@@ -217,7 +229,7 @@ class ibOrdersData(brokerOrderStackData):
         :param broker_order: key properties are instrument_code, contract_id, quantity
         :return: ibOrderWithControls or missing_order
         """
-        trade_with_contract_from_ib = self.send_broker_order_to_IB(broker_order)
+        trade_with_contract_from_ib = self._send_broker_order_to_IB(broker_order)
         order_time = self.ib_client.get_broker_time_local_tz()
 
         if trade_with_contract_from_ib is missing_order:
@@ -229,15 +241,15 @@ class ibOrdersData(brokerOrderStackData):
 
         placed_broker_order_with_controls.order.submit_datetime = order_time
 
-        # We do this so the tempid and commission are accurate
+        # We do this so the tempid is accurate
         placed_broker_order_with_controls.update_order()
 
         # We do this so we can cancel stuff and get things back more easily
-        self.add_order_with_controls_to_store(placed_broker_order_with_controls)
+        self._add_order_with_controls_to_store(placed_broker_order_with_controls)
 
         return placed_broker_order_with_controls
 
-    def send_broker_order_to_IB(self, broker_order: brokerOrder) -> tradeWithContract:
+    def _send_broker_order_to_IB(self, broker_order: brokerOrder) -> tradeWithContract:
         """
 
         :param broker_order: key properties are instrument_code, contract_id, quantity
@@ -298,7 +310,7 @@ class ibOrdersData(brokerOrderStackData):
         """
 
         # check stored orders first
-        dict_of_stored_control_orders = self.get_dict_of_control_orders_from_storage()
+        dict_of_stored_control_orders = self._get_dict_of_control_orders_from_storage()
         matched_control_order = match_control_order_from_dict(
             dict_of_stored_control_orders, broker_order_to_match
         )
@@ -308,7 +320,7 @@ class ibOrdersData(brokerOrderStackData):
         # try getting from broker
         # match on temp id and clientid
         account_id = broker_order_to_match.broker_account
-        dict_of_broker_control_orders = self.get_dict_of_broker_control_orders(
+        dict_of_broker_control_orders = self._get_dict_of_broker_control_orders(
             account_id=account_id
         )
         matched_control_order = match_control_order_from_dict(
@@ -333,10 +345,10 @@ class ibOrdersData(brokerOrderStackData):
             log.warn("Couldn't cancel non existent order")
             return None
 
-        self.cancel_order_given_control_object(matched_control_order)
+        self._cancel_order_given_control_object(matched_control_order)
         log.msg("Sent cancellation for %s" % str(broker_order))
 
-    def cancel_order_given_control_object(self, broker_orders_with_controls: ibOrderWithControls):
+    def _cancel_order_given_control_object(self, broker_orders_with_controls: ibOrderWithControls):
         original_order_object = broker_orders_with_controls.control_object.trade.order
         self.ib_client.ib_cancel_order(original_order_object)
 
@@ -354,7 +366,7 @@ class ibOrdersData(brokerOrderStackData):
 
     def check_order_is_cancelled_given_control_object(
             self, broker_order_with_controls: ibOrderWithControls) -> bool:
-        status = self.get_status_for_control_object(broker_order_with_controls)
+        status = self._get_status_for_control_object(broker_order_with_controls)
         cancellation_status = status == "Cancelled"
 
         return cancellation_status
@@ -362,17 +374,17 @@ class ibOrdersData(brokerOrderStackData):
     def check_order_can_be_modified_given_control_object(
         self, broker_order_with_controls: ibOrderWithControls
     ):
-        status = self.get_status_for_control_object(broker_order_with_controls)
+        status = self._get_status_for_control_object(broker_order_with_controls)
         modification_status = status in ["Submitted"]
         return modification_status
 
-    def get_status_for_control_object(self, broker_order_with_controls: ibOrderWithControls) -> str:
+    def _get_status_for_control_object(self, broker_order_with_controls: ibOrderWithControls) -> str:
         original_trade_object = broker_order_with_controls.control_object.trade
-        status = self.get_status_for_trade_object(original_trade_object)
+        status = self._get_status_for_trade_object(original_trade_object)
 
         return status
 
-    def get_status_for_trade_object(self, original_trade_object: ibTrade) -> str:
+    def _get_status_for_trade_object(self, original_trade_object: ibTrade) -> str:
         self.ib_client.refresh()
         return original_trade_object.orderStatus.status
 
@@ -409,7 +421,7 @@ def add_trade_info_to_broker_order(
         broker_order_from_trade_object: ibBrokerOrder) -> brokerOrder:
 
     new_broker_order = copy(broker_order)
-    keys_to_replace = ["broker_permid", "commission", "algo_comment"]
+    keys_to_replace = ["broker_permid", "commission", "algo_comment", "broker_tempid"]
 
     for key in keys_to_replace:
         new_broker_order._order_info[key] = broker_order_from_trade_object._order_info[
@@ -430,7 +442,7 @@ def add_trade_info_to_broker_order(
 def match_control_order_on_permid(
         dict_of_broker_control_orders: dict,
         broker_order_to_match: brokerOrder):
-    list_of_broker_control_orders = dict_of_broker_control_orders.values()
+    list_of_broker_control_orders = list(dict_of_broker_control_orders.values())
     list_of_broker_orders = [
         control_order.order for control_order in list_of_broker_control_orders
     ]

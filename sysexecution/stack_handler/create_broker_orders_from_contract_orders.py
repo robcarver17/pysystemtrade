@@ -13,12 +13,12 @@ from sysexecution.orders.broker_orders import brokerOrder
 from sysexecution.order_stacks.instrument_order_stack import instrumentOrder
 from sysexecution.order_stacks.broker_order_stack import orderWithControls
 from sysexecution.algos.algo import Algo
-from sysexecution.stack_handler.stackHandlerCore import stackHandlerCore
+from sysexecution.stack_handler.fills import stackHandlerForFills
 from sysproduction.data.controls import dataLocks
 from sysproduction.data.broker import dataBroker
 
 
-class stackHandlerCreateBrokerOrders(stackHandlerCore):
+class stackHandlerCreateBrokerOrders(stackHandlerForFills):
     def create_broker_orders_from_contract_orders(self):
         """
         Create broker orders from contract orders. These become child orders of the contract parent.
@@ -186,10 +186,10 @@ class stackHandlerCreateBrokerOrders(stackHandlerCore):
         if liquid_qty.equals_zero():
             return missing_order
 
-        contract_order = contract_order_after_trade_limits.replace_required_trade_size_only_use_for_unsubmitted_trades(
+        contract_order_to_trade = contract_order_after_trade_limits.replace_required_trade_size_only_use_for_unsubmitted_trades(
             liquid_qty)
 
-        return contract_order
+        return contract_order_to_trade
 
     def send_to_algo(self, contract_order_to_trade: contractOrder) -> (Algo, orderWithControls):
 
@@ -273,13 +273,14 @@ class stackHandlerCreateBrokerOrders(stackHandlerCore):
         return broker_order_with_controls_and_order_id
 
     def post_trade_processing(self, completed_broker_order_with_controls: orderWithControls):
+
         broker_order = completed_broker_order_with_controls.order
 
         # update trade limits
         self.add_trade_to_trade_limits(broker_order)
 
-        # apply fills
-        self.apply_fills_to_database(broker_order)
+        # apply fills and commissions
+        self.apply_broker_order_fills_to_database(broker_order)
 
         # release contract order from algo
         contract_order_id = broker_order.parent
@@ -295,15 +296,16 @@ class stackHandlerCreateBrokerOrders(stackHandlerCore):
 
         data_trade_limits.add_trade(executed_order)
 
-    def apply_fills_to_database(self, broker_order: brokerOrder):
+    def apply_broker_order_fills_to_database(self, broker_order: brokerOrder):
         broker_order_id = broker_order.order_id
 
-        self.broker_stack.change_fill_quantity_for_order(
-            broker_order_id,
-            broker_order.fill,
-            filled_price=broker_order.filled_price,
-            fill_datetime=broker_order.fill_datetime,
-        )
+        # Turn commissions into floats
+        data_broker = dataBroker(self.data)
+        broker_order = data_broker.calculate_total_commission_for_broker_order(broker_order)
+
+        # This will add commissions, fills, etc
+        self.broker_stack.add_execution_details_from_matched_broker_order(
+            broker_order_id, broker_order)
 
         contract_order_id = broker_order.parent
 

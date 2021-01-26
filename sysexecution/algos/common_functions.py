@@ -78,13 +78,11 @@ def check_current_limit_price_at_inside_spread(broker_order_with_controls: order
     # When we are aggressive we want to remain on the correct side of the
     # spread
 
-    correct_limit_price_on_order = (
-        broker_order_with_controls.check_limit_price_consistent()
-    )
-    if correct_limit_price_on_order:
-        current_limit_price = broker_order_with_controls.current_limit_price
-    else:
-        current_limit_price = broker_order_with_controls.broker_limit_price()
+    ## We store two types of limit price. The limit price saved in the broker order (current_limit_price),
+    ##   and the limit price in the IB control object (broker_limit_price)
+    ## The former is changed when we change a limit price, the latter is not, we wait for IB to
+    ##    update it and reflect the object
+    current_limit_price = broker_order_with_controls.broker_limit_price()
 
     ticker_object = broker_order_with_controls.ticker
     current_side_price = ticker_object.current_side_price

@@ -1,36 +1,26 @@
 import datetime
+
 from syscore.objects import (
     fill_exceeds_trade,
-    success,
-    failure,
-    locked_order,
-    duplicate_order,
-    no_order_id,
     no_children,
     no_parent,
-    missing_contract,
-    missing_data,
-    rolling_cant_trade,
-    ROLL_PSEUDO_STRATEGY,
-    missing_order,
-    order_is_in_status_reject_modification,
-    order_is_in_status_finished,
-    locked_order,
-    order_is_in_status_modified,
-    resolve_function,
+    missing_order
+
 )
 
+from sysexecution.stack_handler.completed_orders import stackHandlerForCompletions
+
+from sysproduction.data.broker import dataBroker
+
+from sysexecution.orders.contract_orders import contractOrder
 from sysexecution.orders.instrument_orders import instrumentOrder
-from sysexecution.stack_handler.stackHandlerCore import stackHandlerCore
 from sysexecution.orders.list_of_orders import listOfOrders
 from sysexecution.trade_qty import tradeQuantity
 from sysexecution.fill_price import fillPrice, listOfFillPrice
 
-from sysproduction.data.broker import dataBroker
 from sysproduction.data.positions import updatePositions
 
-
-class stackHandlerForFills(stackHandlerCore):
+class stackHandlerForFills(stackHandlerForCompletions):
     def process_fills_stack(self):
         """
         Run a regular sweep across the stack
@@ -72,6 +62,9 @@ class stackHandlerForFills(stackHandlerCore):
                 db_broker_order)
             return None
 
+        # Turn commissions into floats
+        matched_broker_order = data_broker.calculate_total_commission_for_broker_order(matched_broker_order)
+
         result = self.broker_stack.add_execution_details_from_matched_broker_order(
             broker_order_id, matched_broker_order)
 
@@ -80,6 +73,8 @@ class stackHandlerForFills(stackHandlerCore):
                 "Fill for %s exceeds trade for %s, ignoring... (hopefully will go away)" %
                 (db_broker_order, matched_broker_order))
 
+        contract_order_id = db_broker_order.parent
+        self.apply_broker_fills_to_contract_order(contract_order_id)
 
     def pass_fills_from_broker_up_to_contract(self):
         list_of_contract_order_ids = self.contract_stack.get_list_of_order_ids()
@@ -91,6 +86,69 @@ class stackHandlerForFills(stackHandlerCore):
         list_of_child_order_ids = self.contract_stack.get_list_of_order_ids()
         for contract_order_id in list_of_child_order_ids:
             self.apply_contract_fill_to_instrument_order(contract_order_id)
+
+    def apply_broker_fills_to_contract_order(self, contract_order_id: int):
+        contract_order_before_fill = self.contract_stack.get_order_with_id_from_stack(
+            contract_order_id
+        )
+
+        children = contract_order_before_fill.children
+        if children is no_children:
+            # no children created yet, definitely no fills
+            return None
+
+        broker_order_list = self.broker_stack.get_list_of_orders_from_order_id_list(
+            children)
+
+        # We apply: total quantity, average price, highest datetime
+
+        if broker_order_list.all_zero_fills():
+            # nothing to do here
+            return None
+
+        final_fill_datetime = broker_order_list.final_fill_datetime()
+        total_filled_qty = broker_order_list.total_filled_qty()
+        average_fill_price = broker_order_list.average_fill_price()
+
+        self.contract_stack.change_fill_quantity_for_order(
+            contract_order_before_fill.order_id,
+            total_filled_qty,
+            filled_price=average_fill_price,
+            fill_datetime=final_fill_datetime,
+        )
+
+        # if fill has changed then update positions
+        # we do this here, because we can get here eithier from fills process
+        # or after an execution
+        ## At this point the contract stack has changed the contract order to reflect the fill, but the contract_order
+        ##    here reflects the original contract order before fills applied, this allows comparision
+        self.apply_position_change_to_stored_contract_positions(
+            contract_order_before_fill, total_filled_qty)
+
+        ## We now pass it up to the next level
+        self.apply_contract_fill_to_instrument_order(contract_order_id)
+
+
+    def apply_position_change_to_stored_contract_positions(
+        self, contract_order_before_fill: contractOrder,
+            total_filled_qty: tradeQuantity,
+            apply_entire_trade: bool=False
+    ):
+        current_fills = contract_order_before_fill.fill
+
+        if apply_entire_trade:
+            # used for balance trades
+            new_fills = current_fills
+        else:
+            new_fills = total_filled_qty - current_fills
+
+        if new_fills.equals_zero():
+            # nothing to do
+            return None
+
+        position_updater = updatePositions(self.data)
+        position_updater.update_contract_position_table_with_contract_order(
+            contract_order_before_fill, new_fills)
 
     def apply_contract_fill_to_instrument_order(self, contract_order_id: int):
 
@@ -104,8 +162,8 @@ class stackHandlerForFills(stackHandlerCore):
             # Nothing to do here
             return None
 
-        contract_parent_id = contract_order.parent
-        if contract_parent_id is no_parent:
+        instrument_order_id = contract_order.parent
+        if instrument_order_id is no_parent:
             log = contract_order.log_with_attributes(self.log)
             log.error(
                 "No parent for contract order %s %d"
@@ -113,7 +171,7 @@ class stackHandlerForFills(stackHandlerCore):
             )
             return None
 
-        self.apply_contract_fills_for_instrument_order(instrument_order_id=contract_parent_id)
+        self.apply_contract_fills_for_instrument_order(instrument_order_id=instrument_order_id)
 
     def apply_contract_fills_for_instrument_order(self, instrument_order_id: int):
 
@@ -134,6 +192,8 @@ class stackHandlerForFills(stackHandlerCore):
             self.apply_contract_fill_to_parent_order_multiple_children(
                 list_of_contract_order_ids, instrument_order)
 
+        ## Order is now potentially completed
+        self.handle_completed_instrument_order(instrument_order_id)
 
     def apply_contract_fill_to_parent_order_single_child(
         self, contract_order_id: int,
@@ -155,7 +215,7 @@ class stackHandlerForFills(stackHandlerCore):
             # Instrument order quantity is either zero (for a roll) or non zero
             # (for a spread)
             if instrument_order.is_zero_trade():
-                # A forced leg roll or a flat spread; meaningless to do this
+                # A forced leg roll; meaningless to do this
                 pass
             else:
                 # A spread order that isn't flat
@@ -219,7 +279,7 @@ class stackHandlerForFills(stackHandlerCore):
 
     def apply_contract_fill_to_parent_order_distributed_children(
         self, list_of_contract_order_ids: list,
-            instrument_order: instrumentOrder
+            original_instrument_order: instrumentOrder
     ):
         # A distributed instrument order is like this: buy 2 EDOLLAR instrument order
         # split into buy 1 202306, buy 1 203209
@@ -244,20 +304,20 @@ class stackHandlerForFills(stackHandlerCore):
         average_fill_price = list_of_filled_price.average_fill_price()
 
         self.fill_for_instrument_in_database(
-            instrument_order, total_filled_qty, average_fill_price, final_fill_datetime)
+            original_instrument_order, total_filled_qty, average_fill_price, final_fill_datetime)
 
     def fill_for_instrument_in_database(
-        self, instrument_order: instrumentOrder,
+        self, original_instrument_order: instrumentOrder,
             fill_qty: tradeQuantity,
             fill_price: fillPrice,
             fill_datetime: datetime.datetime
     ):
 
         # if fill has changed then update positions
-        self.apply_position_change_to_instrument(instrument_order, fill_qty)
+        self.apply_position_change_to_instrument(original_instrument_order, fill_qty)
 
         self.instrument_stack.change_fill_quantity_for_order(
-            instrument_order.order_id,
+            original_instrument_order.order_id,
             fill_qty,
             filled_price=fill_price,
             fill_datetime=fill_datetime,
@@ -265,11 +325,11 @@ class stackHandlerForFills(stackHandlerCore):
 
 
     def apply_position_change_to_instrument(
-        self, instrument_order: instrumentOrder,
+        self, original_instrument_order: instrumentOrder,
             total_filled_qty: tradeQuantity,
             apply_entire_trade: bool=False
     ):
-        current_fill = instrument_order.fill
+        current_fill = original_instrument_order.fill
 
         if apply_entire_trade:
             new_fill = current_fill
@@ -281,7 +341,7 @@ class stackHandlerForFills(stackHandlerCore):
 
         position_updater = updatePositions(self.data)
         position_updater.update_strategy_position_table_with_instrument_order(
-            instrument_order, new_fill)
+            original_instrument_order, new_fill)
 
 
 def check_to_see_if_distributed_order(instrument_order: instrumentOrder,
@@ -309,3 +369,4 @@ def check_to_see_if_distributed_order(instrument_order: instrumentOrder,
         return True
     else:
         return False
+

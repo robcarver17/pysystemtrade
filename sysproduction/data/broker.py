@@ -228,7 +228,6 @@ class dataBroker(object):
 
     def get_market_conditions_for_contract_order_by_leg(self, contract_order: contractOrder) -> list:
         market_conditions = []
-        instrument_code = contract_order.instrument_code
         list_of_trade_qty = contract_order.trade
         list_of_contracts = contract_order.futures_contract.as_list_of_individual_contracts()
         for contract, qty in zip(
@@ -354,7 +353,7 @@ class dataBroker(object):
         return matched_order
 
     def cancel_order_given_control_object(self, broker_order_with_controls: orderWithControls):
-        self.data.broker_orders.cancel_order_given_control_object(
+        self.data.broker_orders._cancel_order_given_control_object(
             broker_order_with_controls
         )
 

@@ -285,6 +285,9 @@ class Order(object):
     def change_trade_qty_to_filled_qty(self):
         self._trade = self._fill
 
+    def change_fill_price_to_spread_price(self):
+        self._filled_price = fillPrice(self.trade.get_spread_price(self.filled_price))
+
     @property
     def parent(self):
         parent = resolve_parent(self._parent)

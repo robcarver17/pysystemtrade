@@ -490,7 +490,6 @@ def calculate_adjusted_price_for_a_direct_child_order(
     """
 
     :param data:
-    :param instrument_code:
     :param child_order:
     :param original_contract_date:
     :param original_price:
@@ -511,10 +510,10 @@ def calculate_adjusted_price_for_a_direct_child_order(
 
     diag_prices = diagPrices(data)
     contract_list = [original_contract_date, child_contract_date]
-    list_of_prices = diag_prices.get_last_matched_prices_for_contract_list(
+    _last_matched_date, list_of_matching_prices = diag_prices.get_last_matched_date_and_prices_for_contract_list(
         instrument_code, contract_list
     )
-    differential = list_of_prices[1] - list_of_prices[0]
+    differential = list_of_matching_prices[1] - list_of_matching_prices[0]
 
     if np.isnan(differential):
         # can't adjust

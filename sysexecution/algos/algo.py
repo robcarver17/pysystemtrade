@@ -1,3 +1,4 @@
+from copy import copy
 from dataclasses import dataclass
 
 from syscore.objects import missing_data, arg_not_supplied, missing_order, missing_contract
@@ -91,6 +92,9 @@ class Algo(object):
             # no data available, no can do
             return missing_order
 
+        ## We want to preserve these otherwise there is a danger they will dynamically change
+        collected_prices = copy(collected_prices)
+
         if order_type == limit_order_type:
             limit_price = self.set_limit_price(
                 contract_order=contract_order,
@@ -143,10 +147,6 @@ class Algo(object):
         # to provide a benchmark for execution purposes
         # (optionally) to set limit prices
         ##
-        # We get prices from two sources:
-        # A tick stream in ticker object
-        # Historical ticks
-        ##
         log = contract_order.log_with_attributes(self.data.log)
 
         # Get the first 'reference' tick
@@ -172,6 +172,9 @@ class Algo(object):
         offside_price = tick_analysis.offside_price
         mid_price = tick_analysis.mid_price
 
+        """
+        FIXME
+        CODE THAT I THINK IS DEFUNCT
         if contract_order.calendar_spread_order:
             # For spread orders, we use the tick stream to get the limit price, and the historical ticks for the benchmark
             # This is because we benchmark on each individual contract price,
@@ -188,19 +191,17 @@ class Algo(object):
 
 
             # We need to adjust these so they are consistent with the initial
-            # spread
+            # spread (timing issues or something)
             benchmark_side_prices = adjust_spread_order_single_benchmark(
                 contract_order, benchmarks.benchmark_side_prices, side_price
             )
             benchmark_mid_prices = adjust_spread_order_single_benchmark(
                 contract_order, benchmarks.benchmark_mid_prices, mid_price
             )
+        """
 
-        else:
-            # For non spread orders, we use the tick stream to get both the limit prices and the benchmark
-
-            benchmark_side_prices = quotePrice(side_price)
-            benchmark_mid_prices = quotePrice(mid_price)
+        benchmark_side_prices = quotePrice(side_price)
+        benchmark_mid_prices = quotePrice(mid_price)
 
         collected_prices = benchmarkPriceCollection(
             side_price=side_price,
@@ -270,11 +271,11 @@ class Algo(object):
 
     def get_market_conditions_for_contract_order_by_leg(self, contract_order: contractOrder) -> list:
         market_conditions = []
-        instrument_code = contract_order.instrument_code
-        for contract_date, qty in zip(
-            contract_order.contract_date, contract_order.trade
+        list_of_individual_contracts = contract_order.futures_contract.as_list_of_individual_contracts()
+        list_of_trades = contract_order.trade
+        for contract, qty in zip(
+            list_of_individual_contracts, list_of_trades
         ):
-            contract = futuresContract(instrument_code, contract_date)
 
             market_conditions_this_contract = (
                 self.data_broker.check_market_conditions_for_single_legged_contract_and_qty(contract, qty)

@@ -145,12 +145,5 @@ class orderWithControls(object):
         self.update_order()
         return self.order.fill_equals_desired_trade()
 
-    def check_limit_price_consistent(self) -> bool:
-        broker_limit_price = self.broker_limit_price()
-        if broker_limit_price == self.order.limit_price:
-            return True
-        else:
-            return False
-
     def broker_limit_price(self) -> float:
         raise NotImplementedError
