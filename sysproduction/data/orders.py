@@ -77,20 +77,18 @@ class dataOrders(object):
     def get_historic_broker_orders_in_date_range(
         self, period_start: datetime.datetime,
             period_end: datetime.datetime=arg_not_supplied,
-            remove_split_orders = True
     ) -> list:
         # remove split orders
         order_id_list = self.data.db_broker_historic_orders.get_list_of_order_ids_in_date_range(
             period_start, period_end=period_end)
 
-        if remove_split_orders:
-            # required for backward compatibility
+        # required for backward compatibility
 
-            order_id_list = [
-                order_id
-                for order_id in order_id_list
-                if not self._is_split_broker_order(order_id)
-            ]
+        order_id_list = [
+            order_id
+            for order_id in order_id_list
+            if not self._is_split_broker_order(order_id)
+        ]
 
         return order_id_list
 
@@ -105,9 +103,29 @@ class dataOrders(object):
     def get_historic_contract_orders_in_date_range(
             self, period_start: datetime.datetime,
             period_end: datetime.datetime) -> list:
-        return self.data.db_contract_historic_orders.get_list_of_order_ids_in_date_range(
+
+        order_id_list = self.data.db_contract_historic_orders.get_list_of_order_ids_in_date_range(
             period_start, period_end
         )
+
+        # required for backward compatibility
+
+        order_id_list = [
+            order_id
+            for order_id in order_id_list
+            if not self._is_split_contract_order(order_id)
+        ]
+
+        return order_id_list
+
+    def _is_split_contract_order(self, contract_order_id:int) -> bool:
+        try:
+            _order = self.get_historic_contract_order_from_order_id(contract_order_id)
+        except oldStyleSplitOrderCantRead:
+            return True
+
+        return False
+
 
     def get_historic_instrument_orders_in_date_range(
             self, period_start: datetime.datetime,

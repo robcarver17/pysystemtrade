@@ -52,7 +52,7 @@ def get_list_of_strategies(data=arg_not_supplied, source="config"):
     elif source=="positions":
         return get_list_of_strategies_from_positions(data)
     elif source=="optimal_positions":
-        return
+        return get_list_of_strategies_from_optimal_positions(data)
     else:
         raise Exception("Source %s not recognised!" % source)
 

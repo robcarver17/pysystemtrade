@@ -512,8 +512,11 @@ def view_individual_order(data):
         order = data_orders.get_historic_contract_order_from_order_id(order_id)
     elif order_type == list_of_order_types[2]:
         order = data_orders.get_historic_broker_order_from_order_id(order_id)
+    else:
+        print("Don't know what to do")
+        return None
 
-    print(order)
+    print(order.full_repr())
 
     return None
 
