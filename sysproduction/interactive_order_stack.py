@@ -7,6 +7,7 @@ Do standard things to the instrument, order and broker stack (normally automated
 
 """
 
+from syscore.objects import missing_order
 from syscore.dateutils import get_datetime_input
 from syscore.genutils import (
     get_and_convert,
@@ -88,6 +89,7 @@ nested_menu_of_options = {0: {0: "View specific order",
                               32: "Lock/unlock order",
                               33: "Lock/unlock instrument code",
                               34: "Unlock all instruments",
+                              35: "Remove Algo lock on contract order"
                               },
                           4: {40: "Delete entire stack (CAREFUL!)",
                               41: "Delete specific order ID (CAREFUL!)",
@@ -427,8 +429,16 @@ def generate_generic_manual_fill(data):
     if order_id == "":
         return None
     order = stack.get_order_with_id_from_stack(order_id)
+    if order is missing_order:
+        print("Order doesn't exist on stack")
+        return None
+    if len(order.trade)>1:
+        print("Can't manually fill spread orders; delete and replace with legs")
+        return None
+    if not order.no_children():
+        print("Don't manually fill order with children: can cause problems! Manually fill the child instead")
+        return None
     print("Order now %s" % str(order))
-    # FIX ME HANDLE SPREAD ORDERS
     fill_qty = get_and_convert(
         "Quantity to fill (must be less than or equal to %s)" % str(
             order.trade),
@@ -443,13 +453,21 @@ def generate_generic_manual_fill(data):
     )
     fill_datetime = get_datetime_input("Fill datetime", allow_default=True)
 
-    stack.manual_fill_for_order_id(
-        order_id,
-        fill_qty,
-        filled_price=filled_price,
-        fill_datetime=fill_datetime)
     order = stack.get_order_with_id_from_stack(order_id)
 
+    order.fill_order(fill_qty=fill_qty, filled_price=filled_price, fill_datetime=fill_datetime)
+
+    stack.mark_as_manual_fill_for_order_id(
+        order_id)
+
+    stack_handler = stackHandler()
+    if type(order) is brokerOrder:
+        ## pass up and change positions
+        stack_handler.apply_broker_order_fills_to_database(order)
+    else:
+        stack_handler.apply_contract_order_fill_to_database(order)
+
+    order = stack.get_order_with_id_from_stack(order_id)
     print("Order now %s" % str(order))
     print("If stack process not running, your next job will be to pass fills upwards")
 
@@ -475,7 +493,7 @@ def generate_ib_orders(data):
         stack_handler.create_broker_orders_from_contract_orders(
         )
     else:
-        stack_handler.create_broker_order_for_contract_order(
+        stack_handler.create_broker_order_for_contract_order(contract_order_id
         )
 
     print(
@@ -557,7 +575,7 @@ def get_fills_from_broker(data):
     if broker_order_id == "ALL":
         stack_handler.pass_fills_from_broker_to_broker_stack()
     else:
-        stack_handler.apply_broker_fill_to_broker_stack(broker_order_id)
+        stack_handler.apply_broker_fill_from_broker_to_broker_database(broker_order_id)
 
     print(
         "If stack process not running, your next job will be to pass fills from broker to contract stack"
@@ -695,6 +713,19 @@ def order_locking(data):
             return None
 
     return None
+
+def clear_algo_on_order(data):
+    stack_handler = stackHandler(data)
+    stack = stack_handler.contract_stack
+    view_generic_stack(stack)
+    order_id = get_and_convert(
+        "Order ID ",
+        type_expected=int,
+        allow_default=False)
+    order = stack.get_order_with_id_from_stack(order_id)
+    print("Controlled by %s; releasing now" % str(order.reference_of_controlling_algo))
+    stack.release_order_from_algo_control(order_id)
+    print("Released")
 
 
 def resolve_stack(data, exclude_instrument_stack=False):
@@ -874,6 +905,7 @@ dict_of_functions = {
     32: order_locking,
     33: instrument_locking,
     34: all_instrument_unlock,
+    35: clear_algo_on_order,
     40: delete_entire_stack,
     41: delete_specific_order,
     42: end_of_day,

@@ -2,7 +2,6 @@ import numpy as np
 
 from syscore.genutils import sign
 from syscore.objects import missing_order
-from sysexecution.price_quotes import quotePrice
 
 
 class tradeQuantity(list):
@@ -98,25 +97,6 @@ class tradeQuantity(list):
 
         new_trade_list = reduce_trade_size_proportionally_so_smallest_leg_is_max_size(self, max_size)
         return tradeQuantity(new_trade_list)
-
-    def get_spread_price(self, quote_price: quotePrice) -> float:
-
-        assert len(self) == len(quote_price)
-
-        if len(self) == 1:
-            return quote_price.first_price()
-
-        # multileg, check it's a spread price won't make sense otherwise
-        assert sum(self) == 0
-
-        sign_to_adjust = sign(self[0])
-        multiplied_prices = [
-            x * y * sign_to_adjust
-            for x, y in zip(self, quote_price)
-        ]
-
-        return sum(multiplied_prices)
-
 
     def buy_or_sell(self) -> int:
         # sign of trade quantity

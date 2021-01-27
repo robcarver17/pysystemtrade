@@ -12,7 +12,6 @@ from sysexecution.fills import listOfFills
 
 from sysdata.data_blob import dataBlob
 
-from sysexecution.price_quotes import quotePrice
 from sysexecution.order_stacks.broker_order_stack import brokerOrderStackData
 from sysexecution.order_stacks.contract_order_stack import contractOrderStackData
 from sysexecution.order_stacks.instrument_order_stack import instrumentOrderStackData
@@ -21,6 +20,7 @@ from sysexecution.orders.contract_orders import contractOrder
 from sysexecution.orders.broker_orders import brokerOrder, brokerOrderWithParentInformation
 from sysexecution.orders.instrument_orders import instrumentOrder
 from sysexecution.orders.list_of_orders import listOfOrders
+from sysexecution.orders.base_orders import oldStyleSplitOrderCantRead
 
 from sysobjects.production.tradeable_object import instrumentStrategy, futuresContract
 
@@ -95,11 +95,12 @@ class dataOrders(object):
         return order_id_list
 
     def _is_split_broker_order(self, broker_order_id:int) -> bool:
-        order = self.get_historic_broker_order_from_order_id(broker_order_id)
-        if len(order.filled_price)>1:
+        try:
+            _order = self.get_historic_broker_order_from_order_id(broker_order_id)
+        except oldStyleSplitOrderCantRead:
             return True
-        else:
-            return False
+
+        return False
 
     def get_historic_contract_orders_in_date_range(
             self, period_start: datetime.datetime,
@@ -147,7 +148,6 @@ class dataOrders(object):
         # go through each carefully...
 
         order = self.get_historic_broker_order_from_order_id(order_id)
-        order.change_fill_price_to_spread_price()
 
         contract_order = self.get_parent_contract_order_for_historic_broker_order_id(order_id)
         instrument_order = (

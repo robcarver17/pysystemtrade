@@ -1,5 +1,5 @@
 import datetime
-
+import numpy as np
 from syscore.objects import (
     fill_exceeds_trade,
     no_children,
@@ -14,9 +14,9 @@ from sysproduction.data.broker import dataBroker
 
 from sysexecution.orders.contract_orders import contractOrder
 from sysexecution.orders.instrument_orders import instrumentOrder
+from sysexecution.orders.broker_orders import brokerOrder
 from sysexecution.orders.list_of_orders import listOfOrders
 from sysexecution.trade_qty import tradeQuantity
-from sysexecution.fill_price import fillPrice, listOfFillPrice
 
 from sysproduction.data.positions import updatePositions
 
@@ -36,9 +36,9 @@ class stackHandlerForFills(stackHandlerForCompletions):
     def pass_fills_from_broker_to_broker_stack(self):
         list_of_broker_order_ids = self.broker_stack.get_list_of_order_ids()
         for broker_order_id in list_of_broker_order_ids:
-            self.apply_broker_fill_to_broker_stack(broker_order_id)
+            self.apply_broker_fill_from_broker_to_broker_database(broker_order_id)
 
-    def apply_broker_fill_to_broker_stack(self, broker_order_id: int):
+    def apply_broker_fill_from_broker_to_broker_database(self, broker_order_id: int):
 
         db_broker_order = self.broker_stack.get_order_with_id_from_stack(
             broker_order_id
@@ -62,19 +62,31 @@ class stackHandlerForFills(stackHandlerForCompletions):
                 db_broker_order)
             return None
 
-        # Turn commissions into floats
-        matched_broker_order = data_broker.calculate_total_commission_for_broker_order(matched_broker_order)
+        self.apply_broker_order_fills_to_database(matched_broker_order)
 
+    def apply_broker_order_fills_to_database(self, broker_order: brokerOrder):
+
+        broker_order_id = broker_order.order_id
+
+        # Turn commissions into floats
+        data_broker = dataBroker(self.data)
+        broker_order = data_broker.calculate_total_commission_for_broker_order(broker_order)
+
+        # This will add commissions, fills, etc
         result = self.broker_stack.add_execution_details_from_matched_broker_order(
-            broker_order_id, matched_broker_order)
+            broker_order_id, broker_order)
 
         if result is fill_exceeds_trade:
             self.log.warn(
-                "Fill for %s exceeds trade for %s, ignoring... (hopefully will go away)" %
-                (db_broker_order, matched_broker_order))
+                "Fill for exceeds trade for %s, ignoring fill... (hopefully will go away)" %
+                (broker_order))
+            return None
 
-        contract_order_id = db_broker_order.parent
+        contract_order_id = broker_order.parent
+
+        # pass broker fills upwards
         self.apply_broker_fills_to_contract_order(contract_order_id)
+
 
     def pass_fills_from_broker_up_to_contract(self):
         list_of_contract_order_ids = self.contract_stack.get_list_of_order_ids()
@@ -82,10 +94,6 @@ class stackHandlerForFills(stackHandlerForCompletions):
             # this function is in 'core' since it's used elsewhere
             self.apply_broker_fills_to_contract_order(contract_order_id)
 
-    def pass_fills_from_contract_up_to_instrument(self):
-        list_of_child_order_ids = self.contract_stack.get_list_of_order_ids()
-        for contract_order_id in list_of_child_order_ids:
-            self.apply_contract_fill_to_instrument_order(contract_order_id)
 
     def apply_broker_fills_to_contract_order(self, contract_order_id: int):
         contract_order_before_fill = self.contract_stack.get_order_with_id_from_stack(
@@ -110,11 +118,35 @@ class stackHandlerForFills(stackHandlerForCompletions):
         total_filled_qty = broker_order_list.total_filled_qty()
         average_fill_price = broker_order_list.average_fill_price()
 
+        self.apply_fills_to_contract_order(contract_order_before_fill=contract_order_before_fill,
+                                           filled_price=average_fill_price,
+                                           filled_qty=total_filled_qty,
+                                           fill_datetime=final_fill_datetime)
+
+
+    def apply_contract_order_fill_to_database(self, contract_order: contractOrder):
+        contract_order_before_fill = self.contract_stack.get_order_with_id_from_stack(contract_order.order_id)
+        self.apply_fills_to_contract_order(contract_order_before_fill=contract_order_before_fill,
+                                           filled_qty=contract_order.fill,
+                                           fill_datetime=contract_order.fill_datetime,
+                                           filled_price=contract_order.filled_price)
+
+    def pass_fills_from_contract_up_to_instrument(self):
+        list_of_child_order_ids = self.contract_stack.get_list_of_order_ids()
+        for contract_order_id in list_of_child_order_ids:
+            self.apply_contract_fill_to_instrument_order(contract_order_id)
+
+    def apply_fills_to_contract_order(self, contract_order_before_fill: contractOrder,
+                                             filled_qty: tradeQuantity,
+                                      filled_price: float,
+                                      fill_datetime: datetime.datetime):
+
+        contract_order_id = contract_order_before_fill.order_id
         self.contract_stack.change_fill_quantity_for_order(
-            contract_order_before_fill.order_id,
-            total_filled_qty,
-            filled_price=average_fill_price,
-            fill_datetime=final_fill_datetime,
+            contract_order_id,
+            filled_qty,
+            filled_price=filled_price,
+            fill_datetime=fill_datetime,
         )
 
         # if fill has changed then update positions
@@ -123,7 +155,7 @@ class stackHandlerForFills(stackHandlerForCompletions):
         ## At this point the contract stack has changed the contract order to reflect the fill, but the contract_order
         ##    here reflects the original contract order before fills applied, this allows comparision
         self.apply_position_change_to_stored_contract_positions(
-            contract_order_before_fill, total_filled_qty)
+            contract_order_before_fill, filled_qty)
 
         ## We now pass it up to the next level
         self.apply_contract_fill_to_instrument_order(contract_order_id)
@@ -285,23 +317,14 @@ class stackHandlerForFills(stackHandlerForCompletions):
         # split into buy 1 202306, buy 1 203209
 
         ##
-        contract_orders = [
-            self.contract_stack.get_order_with_id_from_stack(contract_id)
-            for contract_id in list_of_contract_order_ids
-        ]
+        contract_orders = \
+            self.contract_stack.get_list_of_orders_from_order_id_list(list_of_contract_order_ids)
 
         # We apply: total quantity, average price, highest datetime
 
-        list_of_filled_qty = [order.fill for order in contract_orders]
-        list_of_filled_price = listOfFillPrice(
-            [order.filled_price for order in contract_orders]
-        )
-        list_of_filled_datetime = [
-            order.fill_datetime for order in contract_orders]
-
-        final_fill_datetime = max(list_of_filled_datetime)
-        total_filled_qty = sum(list_of_filled_qty)
-        average_fill_price = list_of_filled_price.average_fill_price()
+        final_fill_datetime = contract_orders.final_fill_datetime()
+        total_filled_qty = contract_orders.total_filled_qty()
+        average_fill_price = contract_orders.average_fill_price()
 
         self.fill_for_instrument_in_database(
             original_instrument_order, total_filled_qty, average_fill_price, final_fill_datetime)
@@ -309,7 +332,7 @@ class stackHandlerForFills(stackHandlerForCompletions):
     def fill_for_instrument_in_database(
         self, original_instrument_order: instrumentOrder,
             fill_qty: tradeQuantity,
-            fill_price: fillPrice,
+            fill_price: float,
             fill_datetime: datetime.datetime
     ):
 

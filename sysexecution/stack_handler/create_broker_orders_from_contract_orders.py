@@ -285,6 +285,7 @@ class stackHandlerCreateBrokerOrders(stackHandlerForFills):
         # release contract order from algo
         contract_order_id = broker_order.parent
         self.contract_stack.release_order_from_algo_control(contract_order_id)
+        self.log.msg("Released contract order %s from algo control" % contract_order_id)
 
 
 
@@ -295,19 +296,3 @@ class stackHandlerCreateBrokerOrders(stackHandlerForFills):
         data_trade_limits = dataTradeLimits(self.data)
 
         data_trade_limits.add_trade(executed_order)
-
-    def apply_broker_order_fills_to_database(self, broker_order: brokerOrder):
-        broker_order_id = broker_order.order_id
-
-        # Turn commissions into floats
-        data_broker = dataBroker(self.data)
-        broker_order = data_broker.calculate_total_commission_for_broker_order(broker_order)
-
-        # This will add commissions, fills, etc
-        self.broker_stack.add_execution_details_from_matched_broker_order(
-            broker_order_id, broker_order)
-
-        contract_order_id = broker_order.parent
-
-        # pass broker fills upwards
-        self.apply_broker_fills_to_contract_order(contract_order_id)

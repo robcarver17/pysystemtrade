@@ -6,14 +6,11 @@ from sysexecution.orders.base_orders import (
     no_children,
     no_parent,
      orderType)
-from sysexecution.orders.base_orders import Order
+from sysexecution.orders.base_orders import Order, resolve_possible_list_like_to_float
 from sysexecution.trade_qty import tradeQuantity
-from sysexecution.fill_price import fillPrice
-from sysexecution.price_quotes import quotePrice
 from sysexecution.orders.contract_orders import contractOrder, from_contract_order_args_to_resolved_args
 from sysexecution.orders.instrument_orders import instrumentOrder
-from sysobjects.production.tradeable_object import futuresContractStrategy, instrumentStrategy, futuresContract
-from sysobjects.contract_dates_and_expiries import singleContractDate
+from sysobjects.production.tradeable_object import  instrumentStrategy, futuresContract
 
 from syscore.genutils import none_to_object, object_to_none
 from syscore.objects import fill_exceeds_trade, success
@@ -32,7 +29,7 @@ class brokerOrder(Order):
         self,
         *args,
         fill: tradeQuantity=None,
-            filled_price: fillPrice = None,
+            filled_price: float = None,
             fill_datetime: datetime.datetime = None,
         locked: bool=False,
         order_id: int=no_order_id,
@@ -46,8 +43,9 @@ class brokerOrder(Order):
 
         limit_price: float=None,
         submit_datetime: datetime.datetime=None,
-        side_price: quotePrice=None,
-        mid_price: quotePrice=None,
+        side_price: float=None,
+        mid_price: float=None,
+        offside_price: float =None,
 
         roll_order: bool = False,
 
@@ -106,6 +104,9 @@ class brokerOrder(Order):
         resolved_filled_price = key_arguments.filled_price
         tradeable_object = key_arguments.tradeable_object
 
+        mid_price = resolve_possible_list_like_to_float(mid_price)
+        side_price = resolve_possible_list_like_to_float(side_price)
+
         if len(resolved_trade) == 1:
             calendar_spread_order = False
         else:
@@ -120,6 +121,7 @@ class brokerOrder(Order):
             calendar_spread_order=calendar_spread_order,
             side_price=side_price,
             mid_price=mid_price,
+            offside_price = offside_price,
             algo_comment=algo_comment,
             broker=broker,
             broker_account=broker_account,
@@ -210,6 +212,11 @@ class brokerOrder(Order):
         return self.order_info["mid_price"]
 
     @property
+    def offside_price(self):
+        return self.order_info["offside_price"]
+
+
+    @property
     def algo_comment(self):
         return self.order_info["algo_comment"]
 
@@ -274,7 +281,7 @@ class brokerOrder(Order):
         parent = none_to_object(order_as_dict.pop("parent"), no_parent)
         children = none_to_object(order_as_dict.pop("children"), no_children)
         active = order_as_dict.pop("active")
-        order_type = brokerOrderType(order_as_dict.pop("order_type"))
+        order_type = brokerOrderType(order_as_dict.pop("order_type", None))
 
         order_info = order_as_dict
 
@@ -337,8 +344,9 @@ def create_new_broker_order_from_contract_order(
     order_type: brokerOrderType=brokerOrderType('market'),
     limit_price: float=None,
     submit_datetime: datetime.datetime=None,
-    side_price: quotePrice=None,
-    mid_price: quotePrice=None,
+    side_price: float=None,
+    mid_price: float=None,
+    offside_price: float = None,
     algo_comment: str="",
     broker: str="",
     broker_account: str="",
@@ -356,6 +364,7 @@ def create_new_broker_order_from_contract_order(
         order_type=order_type,
         limit_price=limit_price,
         side_price=side_price,
+        offside_price=offside_price,
         mid_price=mid_price,
         broker=broker,
         broker_account=broker_account,
@@ -378,34 +387,17 @@ class brokerOrderWithParentInformation(brokerOrder):
 
         # Price when the trade was generated. We use the contract order price since
         #  the instrument order price may refer to a different contract
-        reference_price = contract_order.reference_price
+        order.parent_reference_price = contract_order.reference_price
 
         # when the trade was originally generated, this is the instrument order
         # used to measure effects of delay eg from close
-        generated_datetime = instrument_order.generated_datetime
+        order.parent_reference_datetime =instrument_order.reference_datetime
 
         # instrument order prices may refer to a different contract
         # so we use the contract order limit
-        parent_limit = contract_order.limit_price
-
-        order.parent_reference_price = reference_price
-        order.parent_generated_datetime = generated_datetime
-        order.parent_limit_price = parent_limit
-
-        ## NOT BACKWARD COMPATIBLE...
-        ## WILL WORK FOR NEW TYPE ORDERS AND OLD SPLIT ORDERS, BUT NOT OLD STYLE MULTI-LENGTH ORDERS
-        try:
-            assert len(order.filled_price)==1
-            assert len(order.mid_price)==1
-            assert len(order.side_price)==1
-        except:
-            raise Exception("Can't get TCA data for old style split order")
-
-        order.calculated_filled_price = order.filled_price[0]
-        order.calculated_mid_price = order.mid_price[0]
-        order.calculated_side_price = order.side_price[0]
+        order.parent_limit_price = contract_order.limit_price
 
         order.buy_or_sell = order.trade.buy_or_sell()
 
-        return brokerOrderWithParentInformation(order)
+        return order
 

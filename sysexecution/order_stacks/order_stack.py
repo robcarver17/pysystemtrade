@@ -12,7 +12,7 @@ from syslogdiag.log import logtoscreen
 from sysexecution.orders.list_of_orders import listOfOrders
 from sysexecution.orders.base_orders import Order, overFilledOrder
 from sysexecution.trade_qty import tradeQuantity
-from sysexecution.fill_price import fillPrice
+
 
 
 class missingOrder(Exception):
@@ -284,11 +284,20 @@ class orderStackData(object):
 
         self._change_order_on_stack(order_id, new_order)
 
+    def mark_as_manual_fill_for_order_id(
+        self, order_id:int
+    ):
+
+        order = self.get_order_with_id_from_stack(order_id)
+        order.manual_fill = True
+        self._change_order_on_stack(order_id, order)
+
+
     # FILLS
     def change_fill_quantity_for_order(
         self, order_id: int,
             fill_qty: tradeQuantity,
-            filled_price: fillPrice=None,
+            filled_price: float=None,
             fill_datetime: datetime.datetime=None
     ):
 

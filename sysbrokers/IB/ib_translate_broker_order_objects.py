@@ -7,6 +7,8 @@ from dateutil.tz import tz
 from ib_insync import Trade as ibTrade
 from sysbrokers.IB.ib_contracts import ibcontractWithLegs
 from syscore.objects import missing_order, missing_data, arg_not_supplied
+from syscore.genutils import list_of_ints_with_highest_common_factor_positive_first
+
 from sysobjects.spot_fx_prices import currencyValue
 from sysexecution.orders.broker_orders import brokerOrder
 from sysexecution.trade_qty import tradeQuantity
@@ -93,7 +95,7 @@ class ibBrokerOrder(brokerOrder):
         if fill_totals is missing_data:
             fill_datetime = None
             fill = total_qty.zero_version()
-            filled_price_list = None
+            fill_price = None
             commission = None
             broker_tempid = extracted_trade_data.order.order_id
             broker_clientid = extracted_trade_data.order.client_id
@@ -116,18 +118,21 @@ class ibBrokerOrder(brokerOrder):
                     contractid,
                     None) for contractid in contract_id_list]
             missing_fill = [
-                fill_price is None or fill is None
-                for fill_price, fill in zip(filled_price_list, fill_list)
+                fill_price_item is None or fill is None
+                for fill_price_item, fill in zip(filled_price_list, fill_list)
             ]
             if any(missing_fill):
                 fill = None
-                filled_price_list = None
+                fill_price = None
             else:
                 fill_list = [int(fill) for fill in fill_list]
                 fill = tradeQuantity(fill_list)
+                fill_price = from_fill_list_to_fill_price(fill_list=fill_list,
+                                                          filled_price_list=filled_price_list)
 
         if total_qty is None:
             total_qty = fill
+
 
         broker_order = ibBrokerOrder(
             strategy_name,
@@ -137,7 +142,7 @@ class ibBrokerOrder(brokerOrder):
             fill=fill,
             order_type=order_type,
             limit_price=limit_price,
-            filled_price=filled_price_list,
+            filled_price=fill_price,
             algo_comment=algo_comment,
             fill_datetime=fill_datetime,
             broker_account=broker_account,
@@ -158,6 +163,16 @@ class ibBrokerOrder(brokerOrder):
     @broker_objects.setter
     def broker_objects(self, broker_objects):
         self._broker_objects = broker_objects
+
+def from_fill_list_to_fill_price(fill_list: list, filled_price_list: list) -> float:
+    assert len(filled_price_list)==len(fill_list)
+    if len(filled_price_list)==1:
+            return filled_price_list[0]
+
+    fill_list_as_common_factor = list_of_ints_with_highest_common_factor_positive_first(fill_list)
+    fill_price = [x*y for x,y in zip(fill_list_as_common_factor, filled_price_list)]
+
+    return sum(fill_price)
 
 
 def create_broker_order_from_trade_with_contract(trade_with_contract_from_ib: tradeWithContract,

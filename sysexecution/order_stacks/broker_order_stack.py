@@ -1,30 +1,14 @@
 import datetime
 
-from syscore.objects import missing_order
+from syscore.objects import missing_order, fill_exceeds_trade
 from sysexecution.order_stacks.order_stack import orderStackData
 from sysexecution.orders.broker_orders import brokerOrder
-from sysexecution.trade_qty import tradeQuantity
-from sysexecution.fill_price import fillPrice
+
 from sysexecution.tick_data import tickerObject
-from sysexecution.price_quotes import quotePrice
 
 class brokerOrderStackData(orderStackData):
     def _name(self):
         return "Broker order stack"
-
-    def manual_fill_for_order_id(
-        self, order_id:int,
-            fill_qty: tradeQuantity,
-            filled_price: fillPrice=None,
-            fill_datetime=None
-    ):
-        self.change_fill_quantity_for_order(
-            order_id, fill_qty, filled_price=filled_price, fill_datetime=fill_datetime)
-
-        # all good need to show it was a manual fill
-        order = self.get_order_with_id_from_stack(order_id)
-        order.manual_fill = True
-        self._change_order_on_stack(order_id, order)
 
 
     def add_execution_details_from_matched_broker_order(
@@ -32,9 +16,12 @@ class brokerOrderStackData(orderStackData):
             matched_broker_order: brokerOrder
     ):
         db_broker_order = self.get_order_with_id_from_stack(broker_order_id)
-        db_broker_order.add_execution_details_from_matched_broker_order(
+        result = db_broker_order.add_execution_details_from_matched_broker_order(
             matched_broker_order
         )
+        if result is fill_exceeds_trade:
+            return fill_exceeds_trade
+
         self._change_order_on_stack(broker_order_id, db_broker_order)
 
     def find_order_with_broker_tempid(self, broker_tempid: str):
@@ -136,7 +123,7 @@ class orderWithControls(object):
         raise NotImplementedError
 
     @property
-    def current_limit_price(self) -> quotePrice:
+    def current_limit_price(self) -> float:
         current_limit_price = self.order.limit_price
 
         return current_limit_price

@@ -13,8 +13,9 @@ from sysdata.data_blob import dataBlob
 from sysexecution.trade_qty import tradeQuantity
 from sysexecution.orders.broker_orders import brokerOrder
 
-from sysproduction.data.positions import diagPositions
 from sysobjects.production.tradeable_object import listOfInstrumentStrategies, instrumentStrategy
+from sysobjects.production.override import Override
+from sysproduction.data.positions import diagPositions
 
 
 class dataBrokerClientIDs(object):
@@ -151,7 +152,7 @@ class diagOverrides(object):
 
     def get_cumulative_override_for_instrument_strategy(
         self, instrument_strategy: instrumentStrategy
-    ):
+    ) -> Override:
         return \
             self.data.db_override.get_cumulative_override_for_instrument_strategy(
                 instrument_strategy)

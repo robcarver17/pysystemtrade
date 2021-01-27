@@ -1,8 +1,8 @@
+import numpy as np
 import datetime
 
 import pandas as pd
 
-from sysexecution.fill_price import fillPrice, listOfFillPrice
 from sysexecution.trade_qty import listOfTradeQuantity, tradeQuantity
 
 
@@ -34,16 +34,26 @@ class listOfOrders(list):
 
         return pd_df
 
-    def list_of_filled_price(self) -> listOfFillPrice:
-        list_of_filled_price = listOfFillPrice(
-            [order.filled_price for order in self]
-        )
+    def list_of_filled_price(self) -> list:
+        list_of_filled_price = [
+            order.filled_price for order in self]
+
 
         return list_of_filled_price
 
-    def average_fill_price(self) -> fillPrice:
+    def average_fill_price(self) -> float:
+        def _nan_for_none(x):
+            if x is None:
+                return np.nan
+            else:
+                return x
+
         list_of_filled_price = self.list_of_filled_price()
-        average_fill_price = list_of_filled_price.average_fill_price()
+        list_of_filled_price = [_nan_for_none(x) for x in list_of_filled_price]
+        average_fill_price = np.nanmean(list_of_filled_price)
+
+        if np.isnan(average_fill_price):
+            return None
 
         return average_fill_price
 

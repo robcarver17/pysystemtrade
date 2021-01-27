@@ -9,7 +9,7 @@ from sysexecution.orders.base_orders import (
     no_children,
     no_parent,
      tradeQuantity, orderType)
-from sysexecution.fill_price import fillPrice
+
 from sysobjects.production.tradeable_object import instrumentStrategy
 
 class instrumentOrderType(orderType):
@@ -27,7 +27,7 @@ class instrumentOrder(Order):
         self,
         *args,
         fill: tradeQuantity=None,
-        filled_price: fillPrice = None,
+        filled_price: float = None,
         fill_datetime: datetime.datetime = None,
         locked: bool=False,
         order_id: int =no_order_id,
@@ -132,7 +132,7 @@ class instrumentOrder(Order):
         parent = none_to_object(order_as_dict.pop("parent"), no_parent)
         children = none_to_object(order_as_dict.pop("children"), no_children)
         active = order_as_dict.pop("active")
-        order_type = instrumentOrderType(order_as_dict.pop("order_type"))
+        order_type = instrumentOrderType(order_as_dict.pop("order_type", None))
 
         order_info = order_as_dict
 

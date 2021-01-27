@@ -5,15 +5,10 @@ from syscore.objects import missing_data, arg_not_supplied, missing_order, missi
 
 from sysdata.data_blob import dataBlob
 
-from sysexecution.orders.base_orders import adjust_spread_order_single_benchmark
 from sysexecution.orders.broker_orders import create_new_broker_order_from_contract_order, brokerOrderType, market_order_type, limit_order_type, brokerOrder
-from sysexecution.tick_data import analyse_tick_data_frame, tickerObject, analysisTick
-from sysexecution.price_quotes import quotePrice
+from sysexecution.tick_data import tickerObject
 from sysexecution.orders.contract_orders import contractOrder
-from sysexecution.trade_qty import tradeQuantity
 from sysexecution.order_stacks.broker_order_stack import orderWithControls
-
-from sysobjects.contracts import futuresContract
 
 from sysproduction.data.broker import dataBroker
 
@@ -27,8 +22,7 @@ sources_of_limit_price = [limit_price_from_offside_price, limit_price_from_side_
 class benchmarkPriceCollection(object):
     side_price: float = None
     offside_price: float= None
-    benchmark_side_prices: quotePrice= None
-    benchmark_mid_prices: quotePrice= None
+    mid_price: float = None
 
 class Algo(object):
     def __init__(self, data: dataBlob,
@@ -113,8 +107,9 @@ class Algo(object):
         broker_order = create_new_broker_order_from_contract_order(
             contract_order,
             order_type=order_type,
-            side_price=collected_prices.benchmark_side_prices,
-            mid_price=collected_prices.benchmark_mid_prices,
+            side_price=collected_prices.side_price,
+            mid_price=collected_prices.mid_price,
+            offside_price = collected_prices.offside_price,
             broker=broker,
             broker_account=broker_account,
             broker_clientid=broker_clientid,
@@ -168,46 +163,14 @@ class Algo(object):
 
         # These prices will be used for limit price purposes
         # They are scalars
-        side_price = tick_analysis.side_price
+        benchmark_side_prices = tick_analysis.side_price
         offside_price = tick_analysis.offside_price
         mid_price = tick_analysis.mid_price
 
-        """
-        FIXME
-        CODE THAT I THINK IS DEFUNCT
-        if contract_order.calendar_spread_order:
-            # For spread orders, we use the tick stream to get the limit price, and the historical ticks for the benchmark
-            # This is because we benchmark on each individual contract price,
-            # and the tick stream is just for the spread
-
-            benchmarks = self.get_benchmark_prices_for_contract_order_by_leg(
-                contract_order
-            )
-            if benchmarks is missing_data:
-                log.warn(
-                    "Can't get individual component market data for %s so not trading with order %s" %
-                    (contract_order.instrument_code, str(contract_order)))
-                return missing_data
-
-
-            # We need to adjust these so they are consistent with the initial
-            # spread (timing issues or something)
-            benchmark_side_prices = adjust_spread_order_single_benchmark(
-                contract_order, benchmarks.benchmark_side_prices, side_price
-            )
-            benchmark_mid_prices = adjust_spread_order_single_benchmark(
-                contract_order, benchmarks.benchmark_mid_prices, mid_price
-            )
-        """
-
-        benchmark_side_prices = quotePrice(side_price)
-        benchmark_mid_prices = quotePrice(mid_price)
-
         collected_prices = benchmarkPriceCollection(
-            side_price=side_price,
-            offside_price=offside_price,
-            benchmark_side_prices=benchmark_side_prices,
-            benchmark_mid_prices=benchmark_mid_prices)
+                                                    offside_price=tick_analysis.offside_price,
+                                                    side_price=tick_analysis.side_price,
+                                                    mid_price = tick_analysis.mid_price)
 
         return collected_prices
 
@@ -254,19 +217,7 @@ class Algo(object):
         return rounded_limit_price
 
 
-    def get_benchmark_prices_for_contract_order_by_leg(self, contract_order: contractOrder)-> benchmarkPriceCollection:
-        market_conditions = self.get_market_conditions_for_contract_order_by_leg(
-            contract_order)
-        if market_conditions is missing_data:
-            return missing_data
 
-        side_prices = quotePrice([x.side_price for x in market_conditions])
-        mid_prices = quotePrice([x.mid_price for x in market_conditions])
-
-        benchmark_price_collection = benchmarkPriceCollection(benchmark_side_prices=side_prices,
-                                 benchmark_mid_prices=mid_prices)
-
-        return benchmark_price_collection
 
 
     def get_market_conditions_for_contract_order_by_leg(self, contract_order: contractOrder) -> list:

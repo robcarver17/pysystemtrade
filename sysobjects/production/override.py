@@ -154,7 +154,7 @@ def _apply_float_override(override_as_float: float,
     if override_as_float == 1.0:
         return proposed_trade
 
-    desired_new_position = original_position_no_override + proposed_trade.trade
+    desired_new_position = original_position_no_override + proposed_trade.trade.as_single_trade_qty_or_error()
     override_new_position = int(
         np.floor(
             desired_new_position *
@@ -172,7 +172,7 @@ def _apply_reduce_only(
         original_position_no_override: int,
         proposed_trade: Order) -> Order:
 
-    proposed_trade_value = proposed_trade.trade
+    proposed_trade_value = proposed_trade.trade.as_single_trade_qty_or_error()
     desired_new_position = original_position_no_override + proposed_trade_value
     if sign(desired_new_position) != sign(original_position_no_override):
         # Wants sign to change, we convert into a pure closing trade

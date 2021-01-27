@@ -290,7 +290,11 @@ def passive_roll_child_order(
 
     # OKAY to recap: it's a passive roll, but the trade will be split between
     # current and next
-    list_of_child_contract_dates_and_trades = passive_trade_split_over_two_contracts(instrument_order, current_contract, next_contract)
+    list_of_child_contract_dates_and_trades = \
+        passive_trade_split_over_two_contracts(trade=trade,
+                                               current_contract=current_contract,
+                                               next_contract=next_contract,
+                                               position_current_contract=position_current_contract)
     log.msg(
         "Passive roll handling order %s, reducing trade, split trade between contract %s and %s" %
         (str(instrument_order), current_contract, next_contract))

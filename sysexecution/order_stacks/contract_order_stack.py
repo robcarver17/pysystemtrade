@@ -4,26 +4,12 @@ from copy import copy
 from syscore.objects import missing_order
 from sysexecution.order_stacks.order_stack import orderStackData, missingOrder
 from sysexecution.trade_qty import tradeQuantity
-from sysexecution.fill_price import fillPrice
+
 from sysexecution.orders.contract_orders import contractOrder
 
 class contractOrderStackData(orderStackData):
     def _name(self):
         return "Contract order stack"
-
-    def manual_fill_for_order_id(
-        self, order_id: int,
-            fill_qty: tradeQuantity,
-            filled_price: fillPrice=None,
-            fill_datetime: datetime.datetime=None
-    ):
-        self.change_fill_quantity_for_order(
-            order_id, fill_qty, filled_price=filled_price, fill_datetime=fill_datetime)
-
-        # all good need to show it was a manual fill
-        order = self.get_order_with_id_from_stack(order_id)
-        order.manual_fill = True
-        self._change_order_on_stack(order_id, order)
 
 
     def add_controlling_algo_ref(self, order_id: int,

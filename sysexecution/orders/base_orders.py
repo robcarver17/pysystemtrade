@@ -3,9 +3,9 @@ import datetime
 
 from syscore.genutils import none_to_object, object_to_none
 from syscore.objects import no_order_id, no_children, no_parent
-from sysexecution.fill_price import fillPrice
+
 from sysexecution.trade_qty import tradeQuantity
-from sysexecution.price_quotes import quotePrice
+
 from sysobjects.production.tradeable_object import tradeableObject
 
 class overFilledOrder(Exception):
@@ -19,7 +19,10 @@ class orderType(object):
         return ["market"]
 
     def __init__(self, type_string: str):
-        assert type_string in self.allowed_types(), "Type %s not valid" % type_string
+        if type_string is None:
+            type_string = ""
+        else:
+            assert type_string in self.allowed_types(), "Type %s not valid" % type_string
 
         self._type = type_string
 
@@ -42,7 +45,7 @@ class Order(object):
         tradeable_object: tradeableObject,
         trade: tradeQuantity,
         fill: tradeQuantity=None,
-        filled_price: fillPrice=None,
+        filled_price: float=None,
         fill_datetime: datetime.datetime=None,
         locked=False,
         order_id: int=no_order_id,
@@ -167,14 +170,14 @@ class Order(object):
 
     @property
     def filled_price(self):
-        return fillPrice(self._filled_price)
+        return self._filled_price
 
     @property
     def fill_datetime(self):
         return self._fill_datetime
 
     def fill_order(self, fill_qty: tradeQuantity,
-                   filled_price: fillPrice,
+                   filled_price: float,
                    fill_datetime: datetime.datetime=None):
         # Fill qty is cumulative, eg this is the new amount filled
         try:
@@ -257,7 +260,7 @@ class Order(object):
         new_trade = self.remaining
         new_order._trade = new_trade
         new_order._fill = new_trade.zero_version()
-        new_order._filled_price = fillPrice.empty_size_trade_qty(new_trade)
+        new_order._filled_price = None
         new_order._fill_datetime = None
 
         return new_order
@@ -284,9 +287,6 @@ class Order(object):
 
     def change_trade_qty_to_filled_qty(self):
         self._trade = self._fill
-
-    def change_fill_price_to_spread_price(self):
-        self._filled_price = fillPrice(self.trade.get_spread_price(self.filled_price))
 
     @property
     def parent(self):
@@ -318,7 +318,7 @@ class Order(object):
         object_dict["trade"] = list(self.trade)
         object_dict["fill"] = list(self.fill)
         object_dict["fill_datetime"] = self.fill_datetime
-        object_dict["filled_price"] = list(self.filled_price)
+        object_dict["filled_price"] = self.filled_price
         object_dict["locked"] = self._locked
         object_dict["order_id"] = object_to_none(self.order_id, no_order_id)
         object_dict["parent"] = object_to_none(self.parent, no_parent)
@@ -343,7 +343,7 @@ class Order(object):
         parent = none_to_object(order_as_dict.pop("parent"), no_parent)
         children = none_to_object(order_as_dict.pop("children"), no_children)
         active = order_as_dict.pop("active")
-        order_type = orderType(order_as_dict.pop("order_type"))
+        order_type = orderType(order_as_dict.pop("order_type", None))
 
         order_info = order_as_dict
 
@@ -405,31 +405,32 @@ class Order(object):
         return log
 
 
-def adjust_spread_order_single_benchmark(order: Order, benchmark_list: quotePrice, actual_price: float) -> quotePrice:
+class oldStyleSplitOrderCantRead(Exception):
+    pass
 
-    spread_price_from_benchmark = order.trade.get_spread_price(benchmark_list)
-    adjustment_to_benchmark = actual_price - spread_price_from_benchmark
-    adjusted_benchmark_prices_as_list = [
-        price + adjustment_to_benchmark for price in benchmark_list
-    ]
-    adjusted_benchmark_prices = quotePrice(adjusted_benchmark_prices_as_list)
-
-    return adjusted_benchmark_prices
-
-
-def resolve_inputs_to_order(trade, fill, filled_price) -> (tradeQuantity, tradeQuantity, fillPrice):
+def resolve_inputs_to_order(trade, fill, filled_price) -> (tradeQuantity, tradeQuantity, float):
     resolved_trade = tradeQuantity(trade)
     if fill is None:
         resolved_fill = resolved_trade.zero_version()
     else:
         resolved_fill = tradeQuantity(fill)
 
-    if filled_price is None:
-        resolved_filled_price = fillPrice.empty_size_trade_qty(resolved_trade)
-    else:
-        resolved_filled_price = fillPrice(filled_price)
+    filled_price =resolve_possible_list_like_to_float(filled_price)
 
-    return resolved_trade, resolved_fill, resolved_filled_price
+    return resolved_trade, resolved_fill, filled_price
+
+def resolve_possible_list_like_to_float(possible_list):
+    if type(possible_list) is list:
+        try:
+            assert len(possible_list)==1
+        except:
+            raise oldStyleSplitOrderCantRead(
+                "Prices can no longer be longer than length 1: can't read this historic order")
+
+        return possible_list[0]
+
+    else:
+        return possible_list
 
 
 def resolve_orderid(order_id:int):
