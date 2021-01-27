@@ -46,7 +46,7 @@ def fill_from_order(order: Order) -> Fill:
     fill_datetime = order.fill_datetime
     fill_qty = order.fill
 
-    if fill_price.is_empty():
+    if fill_price is None:
         return missing_order
 
     if fill_datetime is None:
