@@ -117,7 +117,7 @@ Hence there are five possible use cases:
 - You want to run pysystemtrade in [production](/docs/production.md), which requires database storage.
 - You want both database storage and updated .csv files, maybe because you want to keep a backup of your data in .csv (someting that the production code does automatically, FWIW) or use that for backtesting
 
-Because of this it's possible at (almost) every stage to store data in eithier .csv or databases (the exception are roll calendars, which only live in .csv format).
+Because of this it's possible at (almost) every stage to store data in either .csv or databases (the exception are roll calendars, which only live in .csv format).
 
 
 <a name="set_up_instrument_config"></a>
@@ -256,7 +256,7 @@ I strongly suggest putting an output datapath here; somewhere you can store temp
 
 #### Calculate the roll calendar
 
-The actual code that generates the roll calendar is [here](sysobjects/roll_calendars.py) which mostly calls code from [here](sysinit/futures/build_roll_calendars.py):
+The actual code that generates the roll calendar is [here](/sysobjects/roll_calendars.py) which mostly calls code from [here](/sysinit/futures/build_roll_calendars.py):
 
 The interesting part is:
 
@@ -278,7 +278,7 @@ The interesting part is:
         roll_calendar = rollCalendar(adjusted_calendar)
 ```
 
-So we first generate an approximate calendar, for when we'd ideally want to roll each of the contracts, based on our roll parameter `RollOffsetDays`. However we may find that there weren't *matching* prices for a given roll date. A matching price is when we have prices for both the current and next contract on the relevant day. If we don't have that, then we can't calculate an adjusted price. The *adjustment* stage finds the closest date to the ideal date (looking both forwards and backwards in time). If there are no dates with matching prices, then the process will return an error. You will need to eithier modify the roll parameters (maybe using the next rather than the previous contract), get some extra individual futures contract price data from somewhere, or manually add fake prices to your underlying futures contract prices to ensure some overlap (obviously this is cheating slightly, as without matching prices you have no way of knowing what the roll spread would have been in reality).
+So we first generate an approximate calendar, for when we'd ideally want to roll each of the contracts, based on our roll parameter `RollOffsetDays`. However we may find that there weren't *matching* prices for a given roll date. A matching price is when we have prices for both the current and next contract on the relevant day. If we don't have that, then we can't calculate an adjusted price. The *adjustment* stage finds the closest date to the ideal date (looking both forwards and backwards in time). If there are no dates with matching prices, then the process will return an error. You will need to either modify the roll parameters (maybe using the next rather than the previous contract), get some extra individual futures contract price data from somewhere, or manually add fake prices to your underlying futures contract prices to ensure some overlap (obviously this is cheating slightly, as without matching prices you have no way of knowing what the roll spread would have been in reality).
 
 
 #### Checks
@@ -601,7 +601,7 @@ A 'final' price is either a close or a settlement price depending on how the dat
 
 All these dicts have the contract date string as the key (eg `20201200`), and a dataframe like object as the value.
 
-### [Named futures contract dicts](sysobjects/dict_of_named_futures_per_contract_prices.py): dictNamedFuturesContractFinalPrices, futuresNamedContractFinalPricesWithContractID, setOfNamedContracts, dictFuturesNamedContractFinalPricesWithContractID
+### [Named futures contract dicts](/sysobjects/dict_of_named_futures_per_contract_prices.py): dictNamedFuturesContractFinalPrices, futuresNamedContractFinalPricesWithContractID, setOfNamedContracts, dictFuturesNamedContractFinalPricesWithContractID
  
 'Named' contracts are those we are currently trading (priced), the next contract(forward), and the carry contract.
 
@@ -650,7 +650,7 @@ The adjustment defaults to the panama method. If you want to use your own stitch
 
 
 <a name="fxPrices"></a>
-### [Spot FX data](/sysobjects/spotfx.py): fxPrices()
+### [Spot FX data](/sysobjects/spot_fx_prices.py): fxPrices()
 
 Technically bugger all to do with futures, but implemented in pysystemtrade as it's required for position scaling.
 
@@ -803,7 +803,7 @@ data.db_futures_adjusted_prices.get_list_of_instruments()
 ['EDOLLAR', 'CAC', 'KR3', 'SMI', 'V2X', 'JPY', ....]
 ```
 
-OK, why does it say `db_futures_adjusted_prices` here? It's because dataBlob knows we don't really care where our data is stored. It dynamically creates an instance of any valid data storage class that is passed to it, renaming it by replacing the source with `db` (or `broker` if it's an interface to the broker), stripping off the 'Data' at the end, and replacing the CamelCase in the middle with `_` seperated strings (since this is an instance now not a class).
+OK, why does it say `db_futures_adjusted_prices` here? It's because dataBlob knows we don't really care where our data is stored. It dynamically creates an instance of any valid data storage class that is passed to it, renaming it by replacing the source with `db` (or `broker` if it's an interface to the broker), stripping off the 'Data' at the end, and replacing the CamelCase in the middle with `_` separated strings (since this is an instance now not a class).
 
 (In fact a further layer of abstraction is achieved by the use of interface objects in backtesting or production, so you'd not normally write code that directly accessed the method of a data object, even one that is renamed. These interfaces all have data blobs as attributes. More on these below.) 
 
@@ -946,7 +946,7 @@ csvFxPricesData accessing data.futures.fx_prices_csv
 
 In production I use the objects in [this module](/sysproduction/data) to act as interfaces between production code and data blobs, so that production code doesn't need to be too concerned about the exact implementation of the data storage. These also include some business logic. 
 
-`diag` classes are read only, `update` are write only, `data` are read/write (created because it's not worth creating a seperate read and write class):
+`diag` classes are read only, `update` are write only, `data` are read/write (created because it's not worth creating a separate read and write class):
 
 - `dataBacktest`: read/write pickled backtests from production `run_systems`
 - `dataBroker`: interact with broker

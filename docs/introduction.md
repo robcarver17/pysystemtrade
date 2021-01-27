@@ -1,6 +1,6 @@
 
 
-Here is a whistlestop tour of what pysystemtrade can currently do. You'll probably want to read the [users guide](userguide.md) after this.
+Here is a whistlestop tour of what pysystemtrade can currently do. You'll probably want to read the [users guide](backtesting.md) after this.
 Notice that you will see different results than shown here, as you will be using more up to date data.
 
 ## A simple trading rule
@@ -367,7 +367,7 @@ Freq: B, dtype: float64
 ```
 
 
-Alternatively we can use the fixed values from Appendix B of my book ["Systematic Trading"](http:/www.systematictrading.org).
+Alternatively we can use the fixed values from Appendix B of my book ["Systematic Trading"](https://www.systematicmoney.org/systematic-trading).
 
 
 ```python
@@ -396,7 +396,7 @@ my_system.forecastScaleCap.get_capped_forecast("EDOLLAR", "ewmac32")
 Freq: B, dtype: float64
 ```
 
-*We didn't have to pass the forecast cap of 20.0, since the system was happy to use the default value (this is defined in the system defaults file, which the full [users guide](userguide.md) will tell you more about).*
+*We didn't have to pass the forecast cap of 20.0, since the system was happy to use the default value (this is defined in the system defaults file, which the full [users guide](backtesting.md) will tell you more about).*
 
 Since we have two trading rule variations we're naturally going to want to combine them (chapter 8 of my book). For a very quick and dirty exercise running this code will use equal forecast weights across instruments, and use no diversification multiplier:
 

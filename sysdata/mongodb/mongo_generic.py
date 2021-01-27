@@ -171,8 +171,8 @@ class mongoDataWithMultipleKeys(object):
     def name(self) -> str:
         mongo_object = self._mongo
         name = (
-            "mongoData connection for %s, mongodb %s/%s @ %s -p %s " %
-            (mongo_object.collection_name,
+            "mongoData connection for mongodb %s/%s @ %s -p %s " %
+            (
             mongo_object.database_name,
              mongo_object.collection_name,
              mongo_object.host,

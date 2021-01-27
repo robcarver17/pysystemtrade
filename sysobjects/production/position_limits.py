@@ -167,7 +167,7 @@ def what_trade_is_possible(position: int, position_limit: int, proposed_trade: i
 
     if position>=0 and abs(position)<=abs_position_limit:
         ## Was okay, but won't be after trade
-        ## We move to the limit, eithier long or short depending on what the trade wanted to do
+        ## We move to the limit, either long or short depending on what the trade wanted to do
         possible_new_position = signed_position_limit
         possible_trade = possible_new_position - position
 
@@ -191,7 +191,7 @@ def what_trade_is_possible(position: int, position_limit: int, proposed_trade: i
 
     if position<0 and abs(position)<=abs_position_limit:
         ## Was okay, but won't be after trade
-        ## We move to the limit, eithier long or short depending on what the trade wanted to do
+        ## We move to the limit, either long or short depending on what the trade wanted to do
         possible_new_position = signed_position_limit
         possible_trade = possible_new_position - position
 

@@ -382,7 +382,7 @@ def get_config_dict() -> dict:
         return private_dict
     public_dict = get_public_control_config()
     if public_dict is missing_data:
-        raise Exception("Need to have eithier %s or %s present:" % (
+        raise Exception("Need to have either %s or %s present:" % (
         str(PUBLIC_CONTROL_CONFIG_FILE), str(PRIVATE_CONTROL_CONFIG_FILE)))
 
     return public_dict

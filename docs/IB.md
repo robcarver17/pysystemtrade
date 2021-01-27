@@ -289,6 +289,8 @@ Again in production the connection would normally be closed by the [dataBlob](/d
 
 ### Using connections
 
+We treat IB as another data source, which means it has to conform to the data object API (see [storing futures and spot FX data](/docs/data.md)). Since connection objects abstract what the broker is doing, it should be possible to use these object for other brokers with minimal changes.
+
 The main service the connection provides is that it encapsulates a live ib_inysnc.IB instance:
 
 ```

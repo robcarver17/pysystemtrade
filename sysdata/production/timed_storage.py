@@ -95,11 +95,13 @@ class listOfEntriesData(baseData):
         try:
             existing_series.append(new_entry)
         except Exception as e:
-            self.log.warn(
-                "Error %s when updating for %s with %s"
+            error_msg = "Error %s when updating for %s with %s" \
                 % (str(e), str(args_dict), str(new_entry))
-            )
-            return failure
+
+            self.log.critical(e)
+            raise Exception(e)
+
+        class_of_entry_list_as_str = new_entry.containing_data_class_name
 
         class_of_entry_list_as_str = new_entry.containing_data_class_name
 
@@ -120,10 +122,11 @@ class listOfEntriesData(baseData):
         try:
             assert split_new_name == split_existing_name
         except BaseException:
-            self.log.warn(
-                "You tried to add an entry of type %s to existing data type %s" %
-                (entry_class_name_new_entry, entry_class_name_existing))
-            return failure
+            error_msg = "You tried to add an entry of type %s to existing data type %s" % \
+                (entry_class_name_new_entry, entry_class_name_existing)
+            self.log.critical(
+                error_msg)
+            raise Exception(error_msg)
 
     def _delete_last_entry_for_args_dict(self, args_dict, are_you_sure=False):
         if not are_you_sure:
@@ -174,6 +177,7 @@ class listOfEntriesData(baseData):
     def _write_series_for_args_dict(
         self, args_dict: dict,
             entry_series: listOfEntries,
+
             class_of_entry_list_as_str: str = arg_not_supplied
         ):
         entry_series_as_list_of_dicts = entry_series.as_list_of_dict()
@@ -218,6 +222,7 @@ class listOfEntriesData(baseData):
 
     def _get_list_of_args_dict(self) -> list:
         raise NotImplementedError("Need to use child class")
+
 
 def get_empty_series_for_timed_entry(new_entry: timedEntry) -> listOfEntries:
     containing_data_class_name = new_entry.containing_data_class_name

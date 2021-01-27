@@ -63,7 +63,7 @@ class singleContractDate(object):
 
     We store the expiry date separately
 
-    Representation is eithier 20171200 or 20171214 so always yyyymmdd
+    Representation is either 20171200 or 20171214 so always yyyymmdd
 
     Either:
 
@@ -284,7 +284,7 @@ class contractDate(object):
 
     We store the expiry date separately
 
-    Representation is eithier 20171200 or 20171214 so always yyyymmdd
+    Representation is either 20171200 or 20171214 so always yyyymmdd
 
     Either:
 

@@ -58,11 +58,13 @@ class bufferedOptimalPositions(simpleOptimalPosition):
 
     def _argument_checks(self, kwargs):
         # run on __init__ by parent class
+        upper_position = kwargs["upper_position"]
+        lower_position = kwargs["lower_position"]
         try:
-            assert kwargs["upper_position"] >= kwargs["lower_position"]
+            assert upper_position >=lower_position
         except BaseException:
             raise Exception(
-                "Upper position has to be higher than lower position")
+                "Upper position %f  has to be >= than lower position %f" % (upper_position, lower_position))
 
     def check_position_break(self, position: int):
         # ignore warnings set dynamically
