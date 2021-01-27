@@ -260,6 +260,14 @@ class singleContractDate(object):
 
 CONTRACT_DATE_LIST_ENTRY_KEY = "contract_list"
 
+
+class listOfContractDateStr(list):
+    def sorted_date_str(self):
+        return listOfContractDateStr(sorted(self))
+
+    def final_date_str(self):
+        return self.sorted_date_str()[-1]
+
 class contractDate(object):
     """
 
@@ -334,6 +342,23 @@ class contractDate(object):
     @property
     def list_of_single_contract_dates(self):
         return self._list_of_single_contract_dates
+
+    @property
+    def list_of_date_str(self):
+        list_of_contract_dates = self.list_of_single_contract_dates
+        list_of_date_str = [contract_date.date_str for contract_date in list_of_contract_dates]
+
+        return list_of_date_str
+
+    def index_of_sorted_contract_dates(self) -> list:
+
+        clist = self.list_of_date_str
+        return sorted(range(len(clist)), key=lambda k: clist[k])
+
+    def sort_with_idx(self, idx_list):
+        unsorted = self.list_of_single_contract_dates
+        sorted_dates = [unsorted[idx] for idx in idx_list]
+        self._list_of_single_contract_dates = sorted_dates
 
     @property
     def key(self):
@@ -423,13 +448,14 @@ class contractDate(object):
     def letter_month(self):
         return self.first_contract_date.letter_month()
 
-class listOfContractDateStr(list):
-    def sorted_date_str(self):
-        return listOfContractDateStr(sorted(self))
+    def __len__(self):
+        return len(self.list_of_single_contract_dates)
 
-    def final_date_str(self):
-        return self.sorted_date_str()[-1]
+    def __getitem__(self, item):
+        return self.list_of_single_contract_dates[item]
 
+    def __setitem__(self, key:int, value: singleContractDate):
+        self.list_of_single_contract_dates[key] = value
 
 def resolve_date_string_into_list_of_single_contract_dates(date_str, expiry_date=NO_EXPIRY_DATE_PASSED, approx_expiry_offset=0) -> list:
     if type(date_str) is dict:

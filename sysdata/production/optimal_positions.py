@@ -16,7 +16,7 @@ from sysdata.production.timed_storage import (
 from sysobjects.production.optimal_positions import simpleOptimalPosition, bufferedOptimalPositions, \
     instrumentStrategyAndOptimalPosition, listOfOptimalPositionsAcrossInstrumentStrategies
 from sysobjects.production.timed_storage import listOfEntries
-from sysobjects.production.strategy import instrumentStrategy, listOfInstrumentStrategies
+from sysobjects.production.tradeable_object import listOfInstrumentStrategies, instrumentStrategy
 
 
 ## THIS HAS TO STAY HERE OR OLD DATA WILL BREAK - DO NOT MOVE
@@ -111,10 +111,10 @@ class optimalPositionData(listOfEntriesData):
 
 
     def get_current_optimal_position_for_instrument_strategy(
-            self, strategy_instrument: instrumentStrategy
+            self, instrument_strategy: instrumentStrategy
     ):
         current_optimal_position_entry = self._get_current_entry_for_args_dict(
-            strategy_instrument.as_dict()
+            instrument_strategy.as_dict()
         )
 
         return current_optimal_position_entry

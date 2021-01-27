@@ -38,7 +38,7 @@ class futuresInstrumentWithIBConfigData(object):
         return self.ib_data.symbol
 
 
-def ib_futures_instrument(futures_instrument_with_ib_data: futuresInstrumentWithIBConfigData):
+def ib_futures_instrument(futures_instrument_with_ib_data: futuresInstrumentWithIBConfigData) -> Future:
     """
     Get an IB contract which is NOT specific to a contract date
     Used for getting expiry chains

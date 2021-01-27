@@ -2,7 +2,8 @@ import numpy as np
 
 from syscore.genutils import sign
 from syscore.objects import _named_object
-from sysexecution.base_orders import Order
+from sysexecution.orders.base_orders import Order
+from sysexecution.trade_qty import tradeQuantity
 
 override_close = _named_object("Close")
 override_no_trading = _named_object("No trading")
@@ -153,7 +154,7 @@ def _apply_float_override(override_as_float: float,
     if override_as_float == 1.0:
         return proposed_trade
 
-    desired_new_position = original_position_no_override + proposed_trade.trade
+    desired_new_position = original_position_no_override + proposed_trade.trade.as_single_trade_qty_or_error()
     override_new_position = int(
         np.floor(
             desired_new_position *
@@ -161,8 +162,8 @@ def _apply_float_override(override_as_float: float,
 
     new_trade_value = override_new_position - original_position_no_override
 
-    proposed_trade.replace_trade_only_use_for_unsubmitted_trades(
-        new_trade_value)
+    proposed_trade.replace_required_trade_size_only_use_for_unsubmitted_trades(
+        tradeQuantity(new_trade_value))
 
     return proposed_trade
 
@@ -171,7 +172,7 @@ def _apply_reduce_only(
         original_position_no_override: int,
         proposed_trade: Order) -> Order:
 
-    proposed_trade_value = proposed_trade.trade
+    proposed_trade_value = proposed_trade.trade.as_single_trade_qty_or_error()
     desired_new_position = original_position_no_override + proposed_trade_value
     if sign(desired_new_position) != sign(original_position_no_override):
         # Wants sign to change, we convert into a pure closing trade
@@ -184,14 +185,14 @@ def _apply_reduce_only(
         # Reducing trade and sign not changing, we'll allow
         new_trade_value = proposed_trade_value
 
-    proposed_trade.replace_trade_only_use_for_unsubmitted_trades(
-        new_trade_value)
+    proposed_trade.replace_required_trade_size_only_use_for_unsubmitted_trades(
+        tradeQuantity(new_trade_value))
 
     return proposed_trade
 
 
 def _apply_no_trading(proposed_trade: Order):
-    new_trade = proposed_trade.replace_trade_only_use_for_unsubmitted_trades(
-        0)
+    new_trade = proposed_trade.replace_required_trade_size_only_use_for_unsubmitted_trades(
+        tradeQuantity(0))
 
     return new_trade

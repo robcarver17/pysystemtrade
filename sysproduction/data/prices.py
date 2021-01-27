@@ -1,3 +1,4 @@
+import  datetime
 import numpy as np
 
 from syscore.objects import missing_contract, arg_not_supplied, missing_data
@@ -59,11 +60,11 @@ class diagPrices(object):
     def contract_dates_with_price_data_for_instrument_code(self, instrument_code: str) -> list:
         return self.data.db_futures_contract_price.contract_dates_with_price_data_for_instrument_code(instrument_code)
 
-    def get_last_matched_prices_for_contract_list(
+    def get_last_matched_date_and_prices_for_contract_list(
             self,
             instrument_code: str,
             contract_list: list,
-            contracts_to_match=arg_not_supplied) -> list:
+            contracts_to_match=arg_not_supplied) -> (datetime.datetime, list):
         """
         Get a list of matched prices; i.e. from a date when we had both forward and current prices
         If we don't have all the prices, will do the best it can
@@ -80,9 +81,9 @@ class diagPrices(object):
             instrument_code, contract_list
         )
 
-        last_matched_prices = _price_matching(dict_of_prices, contracts_to_match, contract_list)
+        last_matched_date, last_matched_prices = _price_matching(dict_of_prices, contracts_to_match, contract_list)
 
-        return last_matched_prices
+        return last_matched_date, last_matched_prices
 
     def get_dict_of_prices_for_contract_list(
             self, instrument_code: str, contract_list: list) -> dictFuturesContractPrices:
@@ -99,7 +100,7 @@ class diagPrices(object):
 
         return dict_of_prices
 
-def _price_matching(dict_of_prices: dictFuturesContractPrices, contracts_to_match: list, contract_list: list):
+def _price_matching(dict_of_prices: dictFuturesContractPrices, contracts_to_match: list, contract_list: list) -> (datetime.datetime, list):
     dict_of_final_prices = dict_of_prices.final_prices()
     matched_final_prices = dict_of_final_prices.matched_prices(
         contracts_to_match=contracts_to_match
@@ -111,13 +112,14 @@ def _price_matching(dict_of_prices: dictFuturesContractPrices, contracts_to_matc
         matched_final_prices = dict_of_final_prices.joint_data()
 
     last_matched_prices = list(matched_final_prices.iloc[-1].values)
+    last_matched_date = matched_final_prices.index[-1]
 
     # pad with extra nan values
     last_matched_prices = last_matched_prices + [np.nan] * (
         len(contract_list) - len(last_matched_prices)
     )
 
-    return last_matched_prices
+    return last_matched_date, last_matched_prices
 
 
 class updatePrices(object):

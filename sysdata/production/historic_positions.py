@@ -8,7 +8,7 @@ from sysdata.production.timed_storage import (
 from sysobjects.production.timed_storage import timedEntry, listOfEntries
 from sysobjects.production.positions import instrumentStrategyPosition, contractPosition, \
     listOfInstrumentStrategyPositions, listOfContractPositions
-from sysobjects.production.strategy import instrumentStrategy, listOfInstrumentStrategies
+from sysobjects.production.tradeable_object import listOfInstrumentStrategies, instrumentStrategy
 import datetime
 
 class historicPosition(timedEntry):

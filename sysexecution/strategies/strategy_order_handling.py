@@ -6,8 +6,12 @@ So called because it deals with instrument level trades, not contract implementa
 """
 
 from syscore.objects import zero_order
+from sysdata.data_blob import dataBlob
 
-from syscore.objects import success, failure
+from sysexecution.orders.list_of_orders import listOfOrders
+from sysexecution.orders.instrument_orders import instrumentOrder
+from sysexecution.order_stacks.instrument_order_stack import zeroOrderException
+
 from sysproduction.data.positions import diagPositions
 from sysproduction.data.orders import dataOrders
 from sysproduction.data.controls import diagOverrides, dataLocks, dataPositionLimits
@@ -21,32 +25,49 @@ class orderGeneratorForStrategy(object):
 
     """
 
-    def __init__(self, data, strategy_name):
+    def __init__(self, data: dataBlob,
+                 strategy_name: str):
 
-        self.strategy_name = strategy_name
-        self.data = data
-
-    def get_and_place_orders(self):
-        # THIS IS THE MAIN FUNCTION THAT IS RUN
-        data = self.data
-        self.setup_before_placing(data)
-        order_list = self.get_required_orders()
-        order_list_with_overrides = self.apply_overrides(order_list)
-        self.submit_order_list(order_list_with_overrides)
-
-        return None
-
-    def setup_before_placing(self, data):
+        self._strategy_name = strategy_name
+        self._data = data
         data_orders = dataOrders(data)
-        self.data = data
-        self.log = data.log
-        self.data_orders = data_orders
+        self._log = data.log
+        self._data_orders = data_orders
+
+
+    @property
+    def data(self) -> dataBlob:
+        return self._data
+
+    @property
+    def strategy_name(self) -> str:
+        return self._strategy_name
+
+    @property
+    def log(self):
+        return self._log
+
+    @property
+    def data_orders(self):
+        return self._data_orders
 
     @property
     def order_stack(self):
         return self.data_orders.instrument_stack()
 
-    def get_actual_positions_for_strategy(self):
+    def get_and_place_orders(self):
+        # THIS IS THE MAIN FUNCTION THAT IS RUN
+        order_list = self.get_required_orders()
+        order_list_with_overrides = self.apply_overrides(order_list)
+        self.submit_order_list(order_list_with_overrides)
+
+
+    def get_required_orders(self) -> listOfOrders:
+        raise Exception(
+            "Need to inherit with a specific method for your type of strategy"
+        )
+
+    def get_actual_positions_for_strategy(self) -> dict:
         """
         Actual positions held by a strategy
 
@@ -58,38 +79,21 @@ class orderGeneratorForStrategy(object):
         strategy_name = self.strategy_name
 
         diag_positions = diagPositions(data)
-        list_of_instruments = (
-            diag_positions.get_list_of_instruments_for_strategy_with_position(
-                strategy_name
-            )
-        )
-        actual_positions = dict(
-            [
-                (
-                    instrument_code,
-                    diag_positions.get_current_position_for_strategy_and_instrument(
-                        strategy_name, instrument_code
-                    ),
-                )
-                for instrument_code in list_of_instruments
-            ]
-        )
+        actual_positions = diag_positions.get_dict_of_actual_positions_for_strategy(strategy_name)
+
         return actual_positions
 
-    def get_required_orders(self):
-        raise Exception(
-            "Need to inherit with a specific method for your type of strategy"
-        )
-
-    def apply_overrides(self, order_list):
+    def apply_overrides(self, order_list: listOfOrders) -> listOfOrders:
         new_order_list = [
             self.apply_overrides_for_instrument_and_strategy(proposed_order)
             for proposed_order in order_list
         ]
+        new_order_list = listOfOrders(new_order_list)
 
         return new_order_list
 
-    def apply_overrides_for_instrument_and_strategy(self, proposed_order):
+    def apply_overrides_for_instrument_and_strategy(self, proposed_order: instrumentOrder)\
+            -> instrumentOrder:
         """
         Apply an override to a trade
 
@@ -101,34 +105,29 @@ class orderGeneratorForStrategy(object):
         diag_overrides = diagOverrides(self.data)
         diag_positions = diagPositions(self.data)
 
-        strategy_name = proposed_order.strategy_name
-        instrument_code = proposed_order.instrument_code
+        instrument_strategy = proposed_order.instrument_strategy
 
-        original_position = diag_positions.get_current_position_for_strategy_and_instrument(
-            strategy_name, instrument_code)
+        original_position = diag_positions.get_current_position_for_instrument_strategy(instrument_strategy)
 
-        override = diag_overrides.get_cumulative_override_for_strategy_and_instrument(
-            strategy_name, instrument_code)
+        override = diag_overrides.get_cumulative_override_for_instrument_strategy(instrument_strategy)
+
         revised_order = override.apply_override(
             original_position, proposed_order)
 
         if revised_order.trade != proposed_order.trade:
-            self.log.msg(
-                "%s/%s trade change from %d to %d because of override %s"
+            log = proposed_order.log_with_attributes(self.log)
+            log.msg(
+                "%s trade change from %s to %s because of override %s"
                 % (
-                    strategy_name,
-                    instrument_code,
-                    revised_order.trade,
-                    proposed_order.trade,
+                    instrument_strategy.key,
+                    str(revised_order.trade),
+                    str(proposed_order.trade),
                     str(override),
-                ),
-                strategy_name=strategy_name,
-                instrument_code=instrument_code,
-            )
+                ))
 
         return revised_order
 
-    def submit_order_list(self, order_list):
+    def submit_order_list(self, order_list: listOfOrders):
         data_lock = dataLocks(self.data)
         for order in order_list:
             # try:
@@ -143,34 +142,29 @@ class orderGeneratorForStrategy(object):
                 continue
             self.submit_order(order)
 
-        return success
 
-    def submit_order(self, order):
+    def submit_order(self, order: instrumentOrder):
         log = order.log_with_attributes(self.log)
         cut_down_order = self.adjust_order_for_position_limits(order)
-        if cut_down_order.is_zero_trade():
-            ## nothing to do
-            return failure
 
-        order_id = self.order_stack.put_order_on_stack(cut_down_order)
-        if isinstance(order_id, int):
-            log.msg(
-                "Added order %s to instrument order stack with order id %d"
-                % (str(order), order_id),
-                instrument_order_id=order_id,
-            )
+        try:
+            order_id = self.order_stack.put_order_on_stack(cut_down_order)
+        except zeroOrderException:
+            # we checked for zero already, which means that there is an existing order on the stack
+            # An existing order of the same size
+            log.warn("Ignoring new order as eithier zero size or it replicates an existing order on the stack")
+
+        except Exception as e:
+            log.critical("Something went very wrong when submitting order %s!" % str(cut_down_order))
+                        
         else:
-            order_error_object = order_id
-            if order_error_object is zero_order:
-                # To be expected unless modifying an existing order
-                log.msg("Ignoring zero order %s" % str(order))
+            log.msg(
+                    "Added order %s to instrument order stack with order id %d"
+                    % (str(order), order_id),
+                    instrument_order_id=order_id,
+                )
 
-            else:
-                log.warn(
-                    "Could not put order %s on instrument order stack, error: %s" %
-                    (str(order), str(order_error_object)))
-
-    def adjust_order_for_position_limits(self, order):
+    def adjust_order_for_position_limits(self, order: instrumentOrder) -> instrumentOrder:
 
         log = order.log_with_attributes(self.log)
 

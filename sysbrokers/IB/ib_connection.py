@@ -7,9 +7,7 @@ import time
 
 from ib_insync import IB
 
-from sysbrokers.IB.ib_client import ibClient
 from sysbrokers.IB.ib_connection_defaults import ib_defaults
-from sysbrokers.IB.ib_server import ibServer
 from syscore.objects import arg_not_supplied, missing_data
 
 from syslogdiag.log import logtoscreen
@@ -27,8 +25,7 @@ def get_broker_account() -> str:
     else:
         return account_id
 
-
-class connectionIB(ibClient, ibServer):
+class connectionIB(object):
     """
     Connection object for connecting IB
     (A database plug in will need to be added for streaming prices)
@@ -64,26 +61,30 @@ class connectionIB(ibClient, ibServer):
         self._ib_connection_config = dict(
             ipaddress=ipaddress, port=port, client=client_id)
 
-        # if you copy for another broker, don't forget the logs
-        ibServer.__init__(self, log=log)
-        ibClient.__init__(self, log=log)
 
         ib = IB()
 
         account = get_broker_account()
         if account is missing_data:
             self.log.error("Broker account ID not found in private config - may cause issues")
-            ib.connect(ipaddress, port, clientId=client_id, account=account)
+            ib.connect(ipaddress, port, clientId=client_id)
         else:
             ib.connect(ipaddress, port, clientId=client_id, account=account)
 
         # Attempt to fix connection bug
         time.sleep(5)
 
-        # Add handlers, from ibServer methods
-        ib.errorEvent += self.error_handler
+        # if you copy for another broker, don't forget the logs
+        self._ib = ib
+        self._log = log
 
-        self.ib = ib
+    @property
+    def ib(self):
+        return self._ib
+
+    @property
+    def log(self):
+        return self._log
 
     def __repr__(self):
         return "IB broker connection" + str(self._ib_connection_config)

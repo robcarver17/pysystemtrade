@@ -16,7 +16,10 @@ from sysdata.mongodb.mongo_optimal_position import mongoOptimalPositionData
 from sysdata.data_blob import dataBlob
 from sysdata.production.historic_positions import listOfInstrumentStrategyPositions
 
-from sysobjects.production.strategy import instrumentStrategy, listOfInstrumentStrategies
+from sysexecution.trade_qty import tradeQuantity
+from sysexecution.orders.contract_orders import contractOrder
+
+from sysobjects.production.tradeable_object import listOfInstrumentStrategies, instrumentStrategy
 from sysobjects.production.optimal_positions import simpleOptimalPosition
 from sysobjects.production.roll_state import RollState, is_forced_roll_state, is_type_of_active_rolling_roll_state
 from sysobjects.contracts import futuresContract
@@ -66,6 +69,25 @@ class diagPositions(object):
     def get_roll_state(self, instrument_code: str) -> RollState:
         return self.data.db_roll_state.get_roll_state(instrument_code)
 
+    def get_dict_of_actual_positions_for_strategy(self, strategy_name: str) -> dict:
+        list_of_instruments = (
+            self.get_list_of_instruments_for_strategy_with_position(
+                strategy_name
+            )
+        )
+        actual_positions = dict(
+            [
+                (
+                    instrument_code,
+                    self.get_current_position_for_strategy_and_instrument(
+                        strategy_name, instrument_code
+                    ),
+                )
+                for instrument_code in list_of_instruments
+            ]
+        )
+
+        return actual_positions
 
     def get_position_df_for_instrument_and_contract_id(
         self, instrument_code:str, contract_id:str
@@ -263,13 +285,6 @@ class dataOptimalPositions(object):
             instrument_strategy)
 
 
-    def update_optimal_position_for_strategy_and_instrument(
-        self, strategy_name, instrument_code, position_entry
-    ):
-        #FIXME REMOVE
-        self.update_optimal_position_for_instrument_strategy(
-            instrumentStrategy(strategy_name=strategy_name, instrument_code=instrument_code),
-            position_entry)
 
 
     def update_optimal_position_for_instrument_strategy(
@@ -335,13 +350,13 @@ class updatePositions(object):
         :return:
         """
 
-        # FIXME WOULD BE NICE IF COULD GET DIRECTLY FROM ORDER
+        # FIXME WOULD BE NICE IF COULD GET DIRECTLY FROM ORDER NOT REQUIRE TRADE_DONE
         strategy_name = instrument_order.strategy_name
         instrument_code = instrument_order.instrument_code
         instrument_strategy = instrumentStrategy(strategy_name=strategy_name, instrument_code=instrument_code)
 
         current_position = self.diag_positions.get_current_position_for_instrument_strategy(instrument_strategy)
-        trade_done = new_fill.as_int()
+        trade_done = new_fill.as_single_trade_qty_or_error()
         if trade_done is missing_order:
             self.log.critical("Instrument orders can't be spread orders!")
             return failure
@@ -366,20 +381,20 @@ class updatePositions(object):
         return success
 
     def update_contract_position_table_with_contract_order(
-        self, contract_order, fill_list
+        self, contract_order_before_fills: contractOrder,
+            fill_list: tradeQuantity
     ):
         """
         Alter the strategy position table according to contract order fill value
 
-        :param contract_order:
+        :param contract_order_before_fills:
         :return:
         """
 
-        instrument_code = contract_order.instrument_code
-        contract_id_list = contract_order.contract_id
+        instrument_code = contract_order_before_fills.instrument_code
+        contract_id_list = contract_order_before_fills.contract_date
 
-        # WE DON'T USE THE CONTRACT FILL DUE TO DATETIME MIX UPS
-        # time_date = contract_order.fill_datetime
+        # WE DON'T USE THE CONTRACT FILL DATE DELIBERATELY
         time_date = datetime.datetime.now()
 
         for contract_id, trade_done in zip(contract_id_list, fill_list):
@@ -390,9 +405,9 @@ class updatePositions(object):
                 "Updated position of %s/%s because of trade %s ID:%d with fills %s" %
                 (instrument_code,
                  contract_id,
-                 str(contract_order),
-                    contract_order.order_id,
-                    str(fill_list),
+                 str(contract_order_before_fills),
+                 contract_order_before_fills.order_id,
+                 str(fill_list),
                  ))
 
     def update_positions_for_individual_contract_leg(

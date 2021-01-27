@@ -164,12 +164,19 @@ class timerClassWithFunction(object):
                     return True
 
     def check_if_ready_for_another_run(self):
-        time_since_run = self.minutes_since_last_run()
-        minutes_between_runs = self.frequency_minutes
-        if time_since_run > minutes_between_runs:
+        minutes_until_next_run = self.minutes_until_next_run()
+        if minutes_until_next_run==0:
             return True
         else:
             return False
+
+    def minutes_until_next_run(self) -> float:
+        time_since_run = self.minutes_since_last_run()
+        minutes_between_runs = self.frequency_minutes
+
+        remaining_minutes = max(minutes_between_runs - time_since_run,0)
+
+        return remaining_minutes
 
     def log_heartbeat_if_required(self):
 

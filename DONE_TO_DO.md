@@ -1,5 +1,9 @@
 # Release notes
 
+## Version 0.70
+
+Massive refactoring mainly of order code but also IB client structure. Should be backwardly compatible with old saved orders except 'split' orders which are ignored. Read 'journey of an order' in production code for granular detail. 
+
 added remote monitoring
 
 ## Version 0.60.0

@@ -3,7 +3,7 @@ import pandas as pd
 from syscore.genutils import get_unique_list
 from sysobjects.contracts import futuresContract
 from sysobjects.instruments import futuresInstrument
-from sysobjects.production.strategy import instrumentStrategy
+from sysobjects.production.tradeable_object import instrumentStrategy
 
 
 class Position(object):

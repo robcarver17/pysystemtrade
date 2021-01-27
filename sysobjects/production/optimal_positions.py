@@ -1,6 +1,7 @@
 import pandas as pd
 
-from sysobjects.production.positions import instrumentStrategyPosition, instrumentStrategy, listOfInstrumentStrategyPositions
+from sysobjects.production.positions import instrumentStrategyPosition, listOfInstrumentStrategyPositions
+from sysobjects.production.tradeable_object import instrumentStrategy
 from sysobjects.production.timed_storage import timedEntry
 
 
@@ -23,10 +24,14 @@ class simpleOptimalPosition(timedEntry):
         return "sysdata.production.optimal_positions.simpleOptimalPositionForInstrument"
 
     def check_position_break(self, position: float):
-        return self.position == position
+        try:
+            found_break = self.position == position
+        except:
+            raise Exception("Can't check break for simpleOptimalPosition: most likely problem is data was stored incorrectly")
+        return found_break
 
 
-class bufferedOptimalPositions(timedEntry):
+class bufferedOptimalPositions(simpleOptimalPosition):
     """
     Here is one with buffers
 
