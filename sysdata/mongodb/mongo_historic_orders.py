@@ -134,7 +134,17 @@ class mongoStrategyHistoricOrdersData(
 
     def get_list_of_order_ids_for_instrument_strategy(self, instrument_strategy: instrumentStrategy) -> list:
 
-        object_key = instrument_strategy.key
+        old_list_of_order_id = self._get_list_of_order_ids_for_instrument_strategy_specify_key(instrument_strategy,
+                                                                                           "old_key")
+        new_list_of_order_id = self._get_list_of_order_ids_for_instrument_strategy_specify_key(instrument_strategy,
+                                                                                           "key")
+
+        return old_list_of_order_id + new_list_of_order_id
+
+    def _get_list_of_order_ids_for_instrument_strategy_specify_key(self, instrument_strategy: instrumentStrategy,
+                                                                   keyfield: str) -> list:
+
+        object_key = getattr(instrument_strategy, keyfield)
         custom_dict = dict(key = object_key)
         list_of_result_dicts = self.mongo_data.get_list_of_result_dict_for_custom_dict(custom_dict)
 

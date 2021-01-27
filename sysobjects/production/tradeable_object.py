@@ -79,6 +79,10 @@ class instrumentStrategy(tradeableObject):
     def key(self):
         return "%s %s" % (self.strategy_name, str(self.instrument))
 
+    @property
+    def old_key(self):
+        return "%s\%s" % (self.strategy_name, str(self.instrument))
+
     def __eq__(self, other):
         if self.instrument != other.instrument:
             return False
@@ -114,6 +118,7 @@ class instrumentStrategy(tradeableObject):
         else:
             strategy_name, instrument_code = key.split(" ")
         return instrumentStrategy(strategy_name=strategy_name, instrument_code=instrument_code)
+
 
 
 class futuresContractStrategy(tradeableObject):
