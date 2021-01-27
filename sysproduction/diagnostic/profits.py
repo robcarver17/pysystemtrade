@@ -522,6 +522,8 @@ def get_pandl_series_in_local_ccy_for_strategy_instrument(
 
 def get_pandl_series_in_points_for_contract(
         data, instrument_code, contract_id):
+    print(instrument_code)
+    print(contract_id)
     pos_series = get_position_series_for_contract(
         data, instrument_code, contract_id)
     price_series = get_price_series_for_contract(

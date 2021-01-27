@@ -81,7 +81,7 @@ class instrumentStrategy(tradeableObject):
 
     @property
     def old_key(self):
-        return "%s\%s" % (self.strategy_name, str(self.instrument))
+        return self.strategy_name + '/' + str(self.instrument)
 
     def __eq__(self, other):
         if self.instrument != other.instrument:

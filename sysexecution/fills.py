@@ -39,12 +39,17 @@ class listOfFills(list):
 
 
 def fill_from_order(order: Order) -> Fill:
+    try:
+        assert len(order.trade)==1
+    except:
+        raise Exception("Can't get fills from multi-leg orders")
+
     if order.fill_equals_zero():
         return missing_order
 
     fill_price = order.filled_price
     fill_datetime = order.fill_datetime
-    fill_qty = order.fill
+    fill_qty = order.fill[0]
 
     if fill_price is None:
         return missing_order
