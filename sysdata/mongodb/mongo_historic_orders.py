@@ -176,7 +176,7 @@ class mongoContractHistoricOrdersData(
 
 
     def get_list_of_strategies(self):
-        list_of_keys = self.mongo_data.get_list_of_keys()
+        list_of_keys = self.mongo_data.get_list_of_values_for_dict_key("key")
         list_of_contract_strategies = [futuresContractStrategy.from_key(key) for key in list_of_keys]
         list_of_strategies = [futures_contract_strategy.strategy_name for futures_contract_strategy in list_of_contract_strategies]
 
