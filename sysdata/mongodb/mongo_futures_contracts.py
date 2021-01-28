@@ -22,9 +22,6 @@ class mongoFuturesContractData(futuresContractData):
         mongo_data = mongoDataWithSingleKey(CONTRACT_COLLECTION, "contract_key", mongo_db = mongo_db)
         self._mongo_data = mongo_data
 
-        any_old_data_was_modified = _from_old_to_new_contract_storage(mongo_data)
-        if any_old_data_was_modified:
-            self.log.critical("Modified the storage of contract data. Any other processes running will need restarting with new code")
 
     def __repr__(self):
         return "mongoFuturesInstrumentData %s" % str(self.mongo_data)
@@ -95,83 +92,3 @@ class mongoFuturesContractData(futuresContractData):
         contract_object_as_dict = contract_object.as_dict()
         key = contract_object.key
         self.mongo_data.add_data(key, contract_object_as_dict, allow_overwrite=True)
-
-###########################################################################
-# THE FOLLOWING CODE IS USED ONLY TO TRANSLATE 'OLD STYLE' INTO 'NEW STYLE'
-# IT WILL RUN ONCE ONLY, SO IN THE FUTURE IT CAN BE DELETED
-###########################################################################
-
-from sysdata.mongodb.mongo_connection import MONGO_ID_KEY
-
-
-def _from_old_to_new_contract_storage(mongo_data):
-    existing_records = mongo_data._mongo.collection.find()
-    existing_records_as_list = [record for record in existing_records]
-    list_of_old_records = [record for record in existing_records_as_list if _is_old_record(record)]
-
-    if len(list_of_old_records)==0:
-        return False
-
-    mongo_data._mongo.collection.drop_indexes()
-
-    _translate_old_records(mongo_data, list_of_old_records)
-
-    mongo_data._mongo.create_index(mongo_data.key_name)
-
-    return True
-
-def _is_old_record(record):
-    if "instrument_code" in list(record.keys()):
-        return True
-    else:
-        return False
-
-def _translate_old_records(mongo_data, list_of_old_records):
-    _ = [_translate_record(mongo_data, record) for record in list_of_old_records]
-
-    return None
-
-def _translate_record(mongo_data, record):
-    contract_object = _get_old_record(mongo_data, record)
-    try:
-        mongo_data.delete_data_without_any_warning(contract_object.key)
-    except:
-        ## fine as we'd expect
-        pass
-    mongo_data.add_data(contract_object.key, contract_object.as_dict())
-    _delete_old_record(mongo_data, record)
-
-def _get_old_record(mongo_data, record):
-    instrument_code = record['instrument_code']
-    contract_date = record['contract_date']
-    result_dict = mongo_data._mongo.collection.find_one(
-        dict(instrument_code=instrument_code, contract_date=contract_date)
-    )
-    result_dict.pop(MONGO_ID_KEY)
-
-    contract_object = _from_old_style_mongo_record_to_contract_dict(result_dict)
-
-    return contract_object
-
-
-def _from_old_style_mongo_record_to_contract_dict(mongo_record_dict):
-    """
-
-    :param mongo_record_dict:
-    :return: dict to pass to futuresContract.create_from_dict
-    """
-
-    mongo_record_dict.pop("instrument_code")
-    mongo_record_dict.pop("contract_date")
-
-    contract_object = futuresContract.create_from_dict(mongo_record_dict)
-
-    return contract_object
-
-def _delete_old_record(mongo_data, record):
-    instrument_code = record['instrument_code']
-    contract_date = record['contract_date']
-
-    mongo_data._mongo.collection.delete_one(dict(instrument_code=instrument_code, contract_date=contract_date))
-
-

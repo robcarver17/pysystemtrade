@@ -7,6 +7,7 @@ from sysexecution.orders.base_orders import (
     orderType)
 from sysexecution.orders.base_orders import Order
 from sysexecution.trade_qty import tradeQuantity
+from sysexecution.fills import  fill_from_order, Fill
 from sysexecution.orders.contract_orders import contractOrder, from_contract_order_args_to_resolved_args
 from sysexecution.orders.instrument_orders import instrumentOrder
 
@@ -410,3 +411,17 @@ class brokerOrderWithParentInformation(brokerOrder):
         return order
 
 
+
+def single_fill_from_broker_order(order: brokerOrder, contract_str: str):
+    list_of_dates = order.contract_date.list_of_date_str
+    if len(list_of_dates) == 1:
+        # single leg
+        return fill_from_order(order)
+
+    index_of_date = list_of_dates.index(contract_str)
+    trade_qty = order.trade[index_of_date]
+    fill_price = order.leg_filled_price[index_of_date]
+
+    fill = Fill(order.fill_datetime, trade_qty, fill_price)
+
+    return fill

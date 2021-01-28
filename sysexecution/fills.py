@@ -15,12 +15,6 @@ class listOfFills(list):
             fill for fill in list_of_fills if fill is not missing_order]
         super().__init__(list_of_fills)
 
-    @classmethod
-    def from_list_of_orders(listOfFills, list_of_orders: listOfOrders):
-        order_list_as_fills = [fill_from_order(order) for order in list_of_orders]
-        list_of_fills = listOfFills(order_list_as_fills)
-
-        return list_of_fills
 
     def _as_dict_of_lists(self) -> dict:
         qty_list = [fill.qty for fill in self]
@@ -36,6 +30,7 @@ class listOfFills(list):
         df = df.sort_index()
 
         return df
+
 
 def fill_from_order(order: Order) -> Fill:
     try:
@@ -57,5 +52,4 @@ def fill_from_order(order: Order) -> Fill:
         return missing_order
 
     return Fill(fill_datetime, fill_qty, fill_price)
-
 

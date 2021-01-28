@@ -1,3 +1,4 @@
+
 """
 
 Historic orders
@@ -13,6 +14,7 @@ Use to analyse execution and also construct strategy/contract level p&l
 Doesn't have to reconcile with positions!
 
 """
+from copy import copy
 import datetime
 
 from syscore.objects import arg_not_supplied, missing_order
@@ -20,10 +22,11 @@ from syscore.objects import arg_not_supplied, missing_order
 from sysdata.base_data import baseData
 from sysexecution.fills import listOfFills, fill_from_order
 from sysexecution.orders.base_orders import Order
+from sysexecution.orders.broker_orders import single_fill_from_broker_order
 from sysexecution.order_stacks.order_stack import missingOrder
 from sysexecution.orders.list_of_orders import listOfOrders
 
-from sysobjects.production.tradeable_object import futuresContractStrategy, instrumentStrategy, futuresContract
+from sysobjects.production.tradeable_object import  instrumentStrategy, futuresContract
 
 from syslogdiag.log import logtoscreen
 
@@ -104,6 +107,9 @@ class strategyHistoricOrdersData(genericOrdersData):
 
 
 class contractHistoricOrdersData(genericOrdersData):
+    pass
+
+class brokerHistoricOrdersData(contractHistoricOrdersData):
     def get_fills_history_for_contract(
         self, futures_contract: futuresContract
     ) -> listOfFills:
@@ -113,54 +119,27 @@ class contractHistoricOrdersData(genericOrdersData):
         :param contract_id: str
         :return: fillHistory object, with fill and price
         """
+        instrument_code = futures_contract.instrument_code
+        contract_str = futures_contract.date_str
 
-        ## FIXME: THIS WON'T PULL IN SPREAD ORDERS
-
-        list_of_orders = self.get_list_of_orders_for_contract(futures_contract)
-        list_of_fills = listOfFills.from_list_of_orders(list_of_orders)
+        list_of_order_ids = self.get_list_of_order_ids_for_instrument_and_contract_str(
+            instrument_code=instrument_code, contract_str=contract_str
+        )
+        list_of_fills = [self.get_fill_from_order_id(orderid, contract_str) for orderid in list_of_order_ids]
+        list_of_fills = listOfFills(list_of_fills)
 
         return list_of_fills
 
-    def get_list_of_orders_for_contract(
-        self, futures_contract: futuresContract
-    ) -> listOfOrders:
+    def get_fill_from_order_id(self, orderid, contract_str: str):
+        order = self.get_order_with_orderid(orderid)
+        fill = single_fill_from_broker_order(order, contract_str)
 
-        list_of_ids = self.get_list_of_order_ids_for_contract(
-            futures_contract)
-        order_list = []
-        for order_id in list_of_ids:
-            order = self.get_order_with_orderid(order_id)
-            order_list.append(order)
-
-        order_list = listOfOrders(order_list)
-
-        return order_list
+        return fill
 
 
-    def get_list_of_order_ids_for_contract(self, futures_contract: futuresContract) -> list:
-        list_of_strategies = self.get_list_of_strategies()
-        list_of_ids = []
-        for strategy_name in list_of_strategies:
-            futures_contract_strategy = \
-                futuresContractStrategy.from_strategy_name_and_contract_object(strategy_name=strategy_name,
-                                                                           futures_contract=futures_contract)
-            id_list_for_this_strategy = (
-                self.get_list_of_order_ids_for_strategy_and_contract(
-                    futures_contract_strategy
-                )
-            )
-            list_of_ids = list_of_ids + id_list_for_this_strategy
 
-        return list_of_ids
-
-
-    def get_list_of_strategies(self):
+    def get_list_of_order_ids_for_instrument_and_contract_str(self, instrument_code: str,
+                                                              contract_str: str) -> list:
         raise NotImplementedError
 
-    def get_list_of_order_ids_for_strategy_and_contract(
-        self, futures_contract_strategy: futuresContractStrategy
-    ):
-        raise NotImplementedError
 
-class brokerHistoricOrdersData(contractHistoricOrdersData):
-    pass

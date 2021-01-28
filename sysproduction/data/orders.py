@@ -120,7 +120,8 @@ class dataOrders(object):
     def get_fills_history_for_contract(
         self, futures_contract: futuresContract
     ) -> listOfFills:
-        return self.data.db_contract_historic_orders.get_fills_history_for_contract(futures_contract)
+        ## We get this from broker fills, as they have leg by leg information
+        return self.data.db_broker_historic_orders.get_fills_history_for_contract(futures_contract)
 
     def get_fills_history_for_instrument_strategy(
         self, instrument_strategy: instrumentStrategy

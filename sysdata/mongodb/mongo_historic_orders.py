@@ -166,34 +166,6 @@ class mongoContractHistoricOrdersData(
         return "Historic contract orders"
 
 
-    def get_list_of_order_ids_for_strategy_and_contract(
-        self, futures_contract_strategy: futuresContractStrategy
-    ) -> list:
-
-        object_key = futures_contract_strategy.key
-        custom_dict = dict(key = object_key)
-        list_of_result_dicts = self.mongo_data.get_list_of_result_dict_for_custom_dict(custom_dict)
-        list_of_order_id = [result["order_id"] for result in list_of_result_dicts]
-
-        alt_key = futures_contract_strategy.alt_key
-        custom_dict = dict(key = alt_key)
-        alt_list_of_result_dicts = self.mongo_data.get_list_of_result_dict_for_custom_dict(custom_dict)
-        alt_list_of_order_id = [result["order_id"] for result in alt_list_of_result_dicts]
-
-        list_of_order_id = list_of_order_id + alt_list_of_order_id
-
-        return list_of_order_id
-
-
-    def get_list_of_strategies(self):
-        list_of_keys = self.mongo_data.get_list_of_values_for_dict_key("key")
-        list_of_contract_strategies = [futuresContractStrategy.from_key(key) for key in list_of_keys]
-        list_of_strategies = [futures_contract_strategy.strategy_name for futures_contract_strategy in list_of_contract_strategies]
-
-        list_of_strategies = list(set(list_of_strategies))
-
-        return list_of_strategies
-
 
 class mongoBrokerHistoricOrdersData(
     mongoGenericHistoricOrdersData, brokerHistoricOrdersData
@@ -207,33 +179,26 @@ class mongoBrokerHistoricOrdersData(
     def _name(self):
         return "Historic broker orders"
 
-    ## repeated code to avoid MRO issue
-    ## probably cleaner way of doing this
-    def get_list_of_order_ids_for_strategy_and_contract(
-        self, futures_contract_strategy: futuresContractStrategy
-    ) -> list:
+    def get_list_of_order_ids_for_instrument_and_contract_str(self, instrument_code: str,
+                                                              contract_str: str) -> list:
+        order_id_list = self.get_list_of_order_ids()
+        key_list = [self.mongo_data.get_result_dict_for_key(order_id)['key'] for order_id in order_id_list]
+        contract_strategies = [futuresContractStrategy.from_key(key) for key in key_list]
 
-        object_key = futures_contract_strategy.key
-        custom_dict = dict(key = object_key)
-        list_of_result_dicts = self.mongo_data.get_list_of_result_dict_for_custom_dict(custom_dict)
-        list_of_order_id = [result["order_id"] for result in list_of_result_dicts]
+        def _contains_both(futures_contract_strategy: futuresContractStrategy, instrument_code: str,
+                                                              contract_str: str):
+            list_of_date_str = futures_contract_strategy.contract_date.list_of_date_str
+            if futures_contract_strategy.instrument_code == instrument_code and\
+                contract_str in list_of_date_str:
+                return True
+            else:
+                return False
 
-        alt_key = futures_contract_strategy.alt_key
-        custom_dict = dict(key = alt_key)
-        alt_list_of_result_dicts = self.mongo_data.get_list_of_result_dict_for_custom_dict(custom_dict)
-        alt_list_of_order_id = [result["order_id"] for result in alt_list_of_result_dicts]
-
-        list_of_order_id = list_of_order_id + alt_list_of_order_id
-
-        return list_of_order_id
+        order_ids = [orderid for orderid, futures_contract_strategy in zip(order_id_list,
+                                                                           contract_strategies)
+                     if _contains_both(futures_contract_strategy,
+                                       instrument_code=instrument_code,
+                                       contract_str=contract_str)]
 
 
-    def get_list_of_strategies(self):
-        list_of_keys = self.mongo_data.get_list_of_keys()
-        list_of_contract_strategies = [futuresContractStrategy.from_key(key) for key in list_of_keys]
-        list_of_strategies = [futures_contract_strategy.strategy_name for futures_contract_strategy in list_of_contract_strategies]
-
-        list_of_strategies = list(set(list_of_strategies))
-
-        return list_of_strategies
-
+        return order_ids
