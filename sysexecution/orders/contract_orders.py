@@ -19,7 +19,7 @@ from syscore.objects import success
 
 class contractOrderType(orderType):
     def allowed_types(self):
-        return ['best', 'market', 'limit', 'balance_trade']
+        return ['best', 'market', 'limit', 'balance_trade', '']
 
 best_order_type  = contractOrderType('best')
 balance_order_type = contractOrderType('balance_trade')
