@@ -10,6 +10,7 @@ from sysexecution.orders.base_orders import (
     resolve_inputs_to_order, orderType)
 
 from sysexecution.trade_qty import tradeQuantity
+
 from sysobjects.production.tradeable_object import futuresContractStrategy, instrumentStrategy, futuresContract
 from syscore.genutils import none_to_object, object_to_none
 from syscore.objects import success

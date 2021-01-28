@@ -6,10 +6,12 @@ from sysexecution.orders.base_orders import (
     no_children,
     no_parent,
      orderType)
-from sysexecution.orders.base_orders import Order, resolve_possible_list_like_to_float
+from sysexecution.orders.base_orders import Order
 from sysexecution.trade_qty import tradeQuantity
+from sysexecution.fills import from_fill_list_to_fill_price
 from sysexecution.orders.contract_orders import contractOrder, from_contract_order_args_to_resolved_args
 from sysexecution.orders.instrument_orders import instrumentOrder
+
 from sysobjects.production.tradeable_object import  instrumentStrategy, futuresContract
 
 from syscore.genutils import none_to_object, object_to_none
@@ -97,6 +99,13 @@ class brokerOrder(Order):
         :param manual_fill: bool, was fill entered manually rather than being picked up from IB
 
         """
+        leg_filled_price, mid_price, side_price, offside_price = calculate_prices_with_possible_legs(fill=fill,
+                                                                                      leg_filled_price=leg_filled_price,
+                                                                                      mid_price=mid_price,
+                                                                                      side_price=side_price,
+                                                                                      offside_price=offside_price,
+                                                                                      filled_price=filled_price
+                                                                                      )
 
         key_arguments = from_contract_order_args_to_resolved_args(args, fill=fill, filled_price=filled_price)
 
@@ -413,3 +422,37 @@ class brokerOrderWithParentInformation(brokerOrder):
 
         return order
 
+def calculate_prices_with_possible_legs(fill: tradeQuantity,
+                                        leg_filled_price,
+                                        mid_price,
+                                        side_price,
+                                        offside_price,
+                                        filled_price
+                                        ) -> (list, float,float):
+
+    ## Leg filled price: In older trades, not specified, in newer trades is a list length of fill
+    ## Mid price: In older trades, list length of fill, in newer trades is a float
+    ## Side price: In older trades, list length of fill, in newer trades is a float
+    ## Offside price: In older trades, list length of fill, in newer trades is a float
+    ## Filled price: In older trades list length of fill, in newer trades is a float
+
+    ## We don't change 'filled_price' here, this is done later
+
+    if type(filled_price) is float:
+        ## Newer style, can't modify
+        pass
+    elif filled_price is None:
+        pass
+    elif leg_filled_price==[]:
+        ## Older style. Filled price is probably a list or list like. Save the filled prices here or we lose them
+        leg_filled_price = list(copy(filled_price))
+    else:
+        ## Not sure
+        raise Exception("Not sure how to parse order")
+
+    ## Convert old style to new style
+    mid_price = from_fill_list_to_fill_price(fill_list=fill, filled_price_list=mid_price)
+    side_price = from_fill_list_to_fill_price(fill_list=fill, filled_price_list=side_price)
+    offside_price = from_fill_list_to_fill_price(fill_list=fill, filled_price_list=offside_price)
+
+    return leg_filled_price, mid_price, side_price, offside_price

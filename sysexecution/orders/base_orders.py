@@ -5,6 +5,7 @@ from syscore.genutils import none_to_object, object_to_none
 from syscore.objects import no_order_id, no_children, no_parent
 
 from sysexecution.trade_qty import tradeQuantity
+from sysexecution.fills import from_fill_list_to_fill_price
 
 from sysobjects.production.tradeable_object import tradeableObject
 
@@ -405,8 +406,6 @@ class Order(object):
         return log
 
 
-class oldStyleSplitOrderCantRead(Exception):
-    pass
 
 def resolve_inputs_to_order(trade, fill, filled_price) -> (tradeQuantity, tradeQuantity, float):
     resolved_trade = tradeQuantity(trade)
@@ -415,22 +414,11 @@ def resolve_inputs_to_order(trade, fill, filled_price) -> (tradeQuantity, tradeQ
     else:
         resolved_fill = tradeQuantity(fill)
 
-    filled_price =resolve_possible_list_like_to_float(filled_price)
+    # Some historic orders were saved with filled price lists
+    # We turn these into a single price
+    filled_price =from_fill_list_to_fill_price(fill_list=resolved_fill, filled_price_list=filled_price)
 
     return resolved_trade, resolved_fill, filled_price
-
-def resolve_possible_list_like_to_float(possible_list):
-    if type(possible_list) is list:
-        try:
-            assert len(possible_list)==1
-        except:
-            raise oldStyleSplitOrderCantRead(
-                "Prices can no longer be longer than length 1: can't read this historic order")
-
-        return possible_list[0]
-
-    else:
-        return possible_list
 
 
 def resolve_orderid(order_id:int):

@@ -2,6 +2,7 @@ from collections import namedtuple
 
 import pandas as pd
 
+from syscore.genutils import list_of_ints_with_highest_common_factor_positive_first
 from syscore.objects import missing_order
 from sysexecution.orders.base_orders import Order
 from sysexecution.orders.list_of_orders import listOfOrders
@@ -58,3 +59,24 @@ def fill_from_order(order: Order) -> Fill:
         return missing_order
 
     return Fill(fill_datetime, fill_qty, fill_price)
+
+
+def from_fill_list_to_fill_price(fill_list, filled_price_list) -> float:
+    if type(filled_price_list) is float or type(filled_price_list) is int:
+        return filled_price_list
+
+    if filled_price_list is None:
+        return None
+
+    if len(filled_price_list)==1:
+        return filled_price_list[0]
+
+    if fill_list is None:
+        return None
+
+    assert len(filled_price_list)==len(fill_list)
+
+    fill_list_as_common_factor = list_of_ints_with_highest_common_factor_positive_first(fill_list)
+    fill_price = [x*y for x,y in zip(fill_list_as_common_factor, filled_price_list)]
+
+    return sum(fill_price)
