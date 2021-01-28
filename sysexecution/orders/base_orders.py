@@ -1,11 +1,10 @@
 from copy import copy
 import datetime
 
-from syscore.genutils import none_to_object, object_to_none
+from syscore.genutils import none_to_object, object_to_none, list_of_ints_with_highest_common_factor_positive_first
 from syscore.objects import no_order_id, no_children, no_parent
 
 from sysexecution.trade_qty import tradeQuantity
-from sysexecution.fills import from_fill_list_to_fill_price
 
 from sysobjects.production.tradeable_object import tradeableObject
 
@@ -416,7 +415,7 @@ def resolve_inputs_to_order(trade, fill, filled_price) -> (tradeQuantity, tradeQ
 
     # Some historic orders were saved with filled price lists
     # We turn these into a single price
-    filled_price =from_fill_list_to_fill_price(fill_list=resolved_fill, filled_price_list=filled_price)
+    filled_price =resolve_multi_leg_fill_price_to_single_price(trade_list=trade, filled_price_list=filled_price)
 
     return resolved_trade, resolved_fill, filled_price
 
@@ -437,3 +436,27 @@ def resolve_parent(parent: int):
     parent= int(parent)
 
     return parent
+
+
+def resolve_multi_leg_fill_price_to_single_price(trade_list, filled_price_list) -> float:
+    if type(filled_price_list) is float or type(filled_price_list) is int:
+        return filled_price_list
+
+    if filled_price_list is None:
+        return None
+
+    if trade_list is None:
+        return None
+
+    if len(filled_price_list)==0:
+        return None
+
+    if len(filled_price_list)==1:
+        return filled_price_list[0]
+
+    assert len(filled_price_list)==len(trade_list)
+
+    fill_list_as_common_factor = list_of_ints_with_highest_common_factor_positive_first(trade_list)
+    fill_price = [x*y for x,y in zip(fill_list_as_common_factor, filled_price_list)]
+
+    return sum(fill_price)
