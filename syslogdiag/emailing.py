@@ -68,7 +68,7 @@ def _send_msg(msg):
 
     """
 
-    email_server, email_address, email_pwd, email_to = get_email_details()
+    email_server, email_address, email_pwd, email_to, email_port = get_email_details()
 
     me = email_address
     you = email_to
@@ -77,7 +77,7 @@ def _send_msg(msg):
 
     # Send the message via our own SMTP server, but don't include the
     # envelope header.
-    s = smtplib.SMTP(email_server, 587)
+    s = smtplib.SMTP(email_server, email_port)
     # add tls for those using yahoo or gmail. 
     try:
         s.starttls()
@@ -91,14 +91,15 @@ def _send_msg(msg):
 def get_email_details():
     try:
         yaml_dict = get_list_of_private_config_values(
-        ["email_address", "email_pwd", "email_server", "email_to"]
+        ["email_address", "email_pwd", "email_server", "email_to", "email_port"]
         )
     except:
-        raise Exception("Need to have all of these for email to work in private config: email_address, email_pwd, email_server, email_to")
+        raise Exception("Need to have all of these for email to work in private config: email_address, email_pwd, email_server, email_to", "email_port")
 
     email_address = yaml_dict["email_address"]
     email_pwd = yaml_dict["email_pwd"]
     email_server = yaml_dict["email_server"]
     email_to = yaml_dict["email_to"]
+    email_port = yaml_dict["email_port"]
 
-    return email_server, email_address, email_pwd, email_to
+    return email_server, email_address, email_pwd, email_to, email_port
