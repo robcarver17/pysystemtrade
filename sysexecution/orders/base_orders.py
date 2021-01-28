@@ -1,3 +1,4 @@
+import numpy as np
 from copy import copy
 import datetime
 
@@ -415,7 +416,7 @@ def resolve_inputs_to_order(trade, fill, filled_price) -> (tradeQuantity, tradeQ
 
     # Some historic orders were saved with filled price lists
     # We turn these into a single price
-    filled_price =resolve_multi_leg_fill_price_to_single_price(trade_list=trade, filled_price_list=filled_price)
+    filled_price =resolve_multi_leg_fill_price_to_single_price(trade_list=resolved_trade, filled_price_list=filled_price)
 
     return resolved_trade, resolved_fill, filled_price
 
@@ -439,8 +440,15 @@ def resolve_parent(parent: int):
 
 
 def resolve_multi_leg_fill_price_to_single_price(trade_list, filled_price_list) -> float:
-    if type(filled_price_list) is float or type(filled_price_list) is int:
-        return filled_price_list
+    try:
+        if float(filled_price_list)==filled_price_list:
+            ## float or float like
+            return filled_price_list
+        if np.isnan(filled_price_list):
+            return None
+    except:
+        ## must be something else
+        pass
 
     if filled_price_list is None:
         return None
@@ -458,5 +466,9 @@ def resolve_multi_leg_fill_price_to_single_price(trade_list, filled_price_list) 
 
     fill_list_as_common_factor = list_of_ints_with_highest_common_factor_positive_first(trade_list)
     fill_price = [x*y for x,y in zip(fill_list_as_common_factor, filled_price_list)]
+
+    fill_price = sum(fill_price)
+    if np.isnan(fill_price):
+        return None
 
     return sum(fill_price)
