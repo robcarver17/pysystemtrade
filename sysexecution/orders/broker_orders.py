@@ -1,15 +1,13 @@
-from copy import copy
 import datetime
-from dataclasses import dataclass, field
 
 from sysexecution.orders.base_orders import (
     no_order_id,
     no_children,
     no_parent,
-    orderType, resolve_multi_leg_price_to_single_price)
-from sysexecution.orders.base_orders import Order, resolve_inputs_to_order
+    orderType)
+from sysexecution.orders.base_orders import Order
 from sysexecution.trade_qty import tradeQuantity
-from sysexecution.orders.contract_orders import contractOrder
+from sysexecution.orders.contract_orders import contractOrder, from_contract_order_args_to_resolved_args
 from sysexecution.orders.instrument_orders import instrumentOrder
 
 from sysobjects.production.tradeable_object import  instrumentStrategy, futuresContract, futuresContractStrategy
@@ -100,22 +98,11 @@ class brokerOrder(Order):
 
         """
 
-        key_arguments = from_broker_order_args_to_resolved_args(args,
-                                            fill=fill,
-                                            filled_price=filled_price,
-                                            leg_filled_price=leg_filled_price,
-                                            mid_price=mid_price,
-                                            side_price=side_price,
-                                            offside_price=offside_price)
+        key_arguments = from_contract_order_args_to_resolved_args(args, fill=fill)
 
         resolved_trade = key_arguments.trade
         resolved_fill = key_arguments.fill
-        resolved_filled_price = key_arguments.filled_price
         tradeable_object = key_arguments.tradeable_object
-        leg_filled_price = key_arguments.leg_filled_price
-        mid_price = key_arguments.mid_price
-        side_price = key_arguments.side_price
-        offside_price = key_arguments.offside_price
 
         if len(resolved_trade) == 1:
             calendar_spread_order = False
@@ -146,7 +133,7 @@ class brokerOrder(Order):
         super().__init__(tradeable_object,
                         trade= resolved_trade,
                         fill = resolved_fill,
-                        filled_price= resolved_filled_price,
+                        filled_price= filled_price,
                         fill_datetime = fill_datetime,
                         locked = locked,
                         order_id=order_id,
@@ -423,156 +410,3 @@ class brokerOrderWithParentInformation(brokerOrder):
         return order
 
 
-
-
-@dataclass
-class brokerOrderKeyArguments():
-    tradeable_object: futuresContractStrategy
-    trade: tradeQuantity
-    fill: tradeQuantity = None
-    filled_price: float = None
-    leg_filled_price: list = field(default_factory=list)
-    mid_price: float = None
-    side_price: float = None
-    offside_price: float = None
-
-    def resolve_inputs_to_order_with_key_arguments(self):
-
-        ## We do this because the next line turns the price into a float
-        ##   We want to keep it in case any multileg information is there
-        ##   Which will end up in leg_filled_price
-        original_filled_price = copy(self.filled_price)
-        resolved_trade, resolved_fill, resolved_filled_price = resolve_inputs_to_order(trade=self.trade,
-                                                                                       fill=self.fill,
-                                                                                       filled_price=self.filled_price)
-
-        ## Now ensure that all prices have correct format
-        leg_filled_price, mid_price, side_price, offside_price = \
-            calculate_prices_with_possible_legs(trade=resolved_trade,
-                                            leg_filled_price=self.leg_filled_price,
-                                            mid_price=self.mid_price,
-                                            side_price=self.side_price,
-                                            offside_price=self.offside_price,
-                                            original_filled_price=original_filled_price)
-
-        self.filled_price = resolved_filled_price
-        self.fill = resolved_fill
-        self.trade = resolved_trade
-        self.leg_filled_price = leg_filled_price
-        self.mid_price = mid_price
-        self.side_price = side_price
-        self.offside_price = offside_price
-
-    def sort_inputs_by_contract_date_order(self):
-        sort_order = self.tradeable_object.sort_idx_for_contracts()
-        self.trade.sort_with_idx(sort_order)
-        self.fill.sort_with_idx(sort_order)
-
-        self.tradeable_object.sort_contracts_with_idx(sort_order)
-
-
-def from_broker_order_args_to_resolved_args(args: tuple, fill: tradeQuantity, filled_price: float,
-                                            leg_filled_price: list = [],
-                                            mid_price: float = None,
-                                            side_price: float = None,
-                                            offside_price: float = None
-                                            ) -> brokerOrderKeyArguments:
-
-    # different ways of specififying tradeable object
-    key_arguments = split_broker_order_args(args,
-                                            fill=fill,
-                                            filled_price=filled_price,
-                                            leg_filled_price=leg_filled_price,
-                                            mid_price=mid_price,
-                                            side_price=side_price,
-                                            offside_price=offside_price)
-
-    # ensure everything has the right type
-    key_arguments.resolve_inputs_to_order_with_key_arguments()
-
-    # ensure contracts and lists all match
-    key_arguments.sort_inputs_by_contract_date_order()
-
-    return key_arguments
-
-
-def split_broker_order_args(args: tuple, fill: tradeQuantity, filled_price: float,
-                            leg_filled_price: list = [],
-                            mid_price: float = None,
-                            side_price: float = None,
-                            offside_price: float = None)\
-        -> brokerOrderKeyArguments:
-
-    if len(args) == 2:
-        tradeable_object = futuresContractStrategy.from_key(args[0])
-        trade = args[1]
-    elif len(args) == 4:
-        strategy = args[0]
-        instrument = args[1]
-        contract_id = args[2]
-        trade = args[3]
-        tradeable_object = futuresContractStrategy(
-            strategy, instrument, contract_id
-        )
-    else:
-        raise Exception(
-            "brokerOrder(strategy, instrument, contractid, trade,  **kwargs) or ('strategy/instrument/contract_order_id', trade, **kwargs) "
-        )
-
-    key_arguments = brokerOrderKeyArguments(tradeable_object=tradeable_object, trade=trade, fill=fill,
-                                              filled_price=filled_price,
-                                            leg_filled_price=leg_filled_price,
-                                            mid_price=mid_price,
-                                            side_price=side_price,
-                                            offside_price=offside_price)
-
-    return key_arguments
-
-
-
-
-def calculate_prices_with_possible_legs(trade: tradeQuantity,
-                                        leg_filled_price,
-                                        mid_price,
-                                        side_price,
-                                        offside_price,
-                                        original_filled_price
-                                        ) -> (list, float,float):
-
-    ## Leg filled price: In older trades, not specified, in newer trades is a list length of fill
-    ## Mid price: In older trades, list length of fill, in newer trades is a float
-    ## Side price: In older trades, list length of fill, in newer trades is a float
-    ## Offside price: In older trades, list length of fill, in newer trades is a float
-    ## Filled price: In older trades list length of fill, in newer trades is a float
-
-    ## We don't change 'filled_price' here, this is done elsewhere
-
-    if type(original_filled_price) is float:
-        ## Newer style, can't modify
-        pass
-
-    elif original_filled_price is None:
-        pass
-
-    elif leg_filled_price==[]:
-        ## Older style without leg filled price. Filled price is probably a list or list like. Save the filled prices here or we lose them
-        leg_filled_price = list(copy(original_filled_price))
-    else:
-        ## Not sure
-        raise Exception("Not sure how to parse order")
-
-    ## Convert old style to new style
-    try:
-        mid_price = resolve_multi_leg_price_to_single_price(trade_list=trade, price_list=mid_price)
-    except:
-        mid_price = None
-    try:
-        side_price = resolve_multi_leg_price_to_single_price(trade_list=trade, price_list=side_price)
-    except:
-        side_price = None
-    try:
-        offside_price = resolve_multi_leg_price_to_single_price(trade_list=trade, price_list=offside_price)
-    except:
-        offside_price = None
-
-    return leg_filled_price, mid_price, side_price, offside_price

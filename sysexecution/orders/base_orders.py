@@ -75,15 +75,15 @@ class Order(object):
         (
             resolved_trade,
             resolved_fill,
-            resolved_filled_price,
-        ) = resolve_inputs_to_order(trade, fill, filled_price)
+
+        ) = resolve_inputs_to_order(trade, fill)
 
         if children == []:
             children = no_children
 
         self._trade = resolved_trade
         self._fill = resolved_fill
-        self._filled_price = resolved_filled_price
+        self._filled_price = filled_price
         self._fill_datetime = fill_datetime
         self._locked = locked
         self._order_id = order_id
@@ -407,18 +407,14 @@ class Order(object):
 
 
 
-def resolve_inputs_to_order(trade, fill, filled_price) -> (tradeQuantity, tradeQuantity, float):
+def resolve_inputs_to_order(trade, fill) -> (tradeQuantity, tradeQuantity):
     resolved_trade = tradeQuantity(trade)
     if fill is None:
         resolved_fill = resolved_trade.zero_version()
     else:
         resolved_fill = tradeQuantity(fill)
 
-    # Some historic orders were saved with filled price lists
-    # We turn these into a single price
-    filled_price =resolve_multi_leg_price_to_single_price(trade_list=resolved_trade, price_list=filled_price)
-
-    return resolved_trade, resolved_fill, filled_price
+    return resolved_trade, resolved_fill
 
 
 def resolve_orderid(order_id:int):
@@ -440,23 +436,6 @@ def resolve_parent(parent: int):
 
 
 def resolve_multi_leg_price_to_single_price(trade_list: tradeQuantity, price_list: list) -> float:
-    try:
-        if float(price_list)==price_list:
-            ## float or float like
-            return price_list
-        if np.isnan(price_list):
-            return None
-    except:
-        ## must be something else
-        pass
-
-    if price_list is None:
-        return None
-
-    # Must be a list
-    if len(price_list)==0:
-        return None
-
     if len(price_list)==1:
         return price_list[0]
 

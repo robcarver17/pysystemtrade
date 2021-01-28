@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 import datetime
-from copy import copy
 
 from sysexecution.orders.base_orders import (
     Order,
@@ -87,11 +86,10 @@ class contractOrder(Order):
         :param inter_spread_order: bool, part of an instrument order that is a spread across multiple markets
         """
 
-        key_arguments = from_contract_order_args_to_resolved_args(args, fill=fill, filled_price=filled_price)
+        key_arguments = from_contract_order_args_to_resolved_args(args, fill=fill)
 
         resolved_trade = key_arguments.trade
         resolved_fill = key_arguments.fill
-        resolved_filled_price = key_arguments.filled_price
         tradeable_object = key_arguments.tradeable_object
 
         if len(resolved_trade) == 1:
@@ -118,7 +116,7 @@ class contractOrder(Order):
         super().__init__(tradeable_object,
                         trade= resolved_trade,
                         fill = resolved_fill,
-                        filled_price= resolved_filled_price,
+                        filled_price= filled_price,
                         fill_datetime = fill_datetime,
                         locked = locked,
                         order_id=order_id,
@@ -286,14 +284,11 @@ class contractOrderKeyArguments():
     tradeable_object: futuresContractStrategy
     trade: tradeQuantity
     fill: tradeQuantity = None
-    filled_price: float = None
 
     def resolve_inputs_to_order_with_key_arguments(self):
-        resolved_trade, resolved_fill, resolved_filled_price = resolve_inputs_to_order(trade=self.trade,
-                                                                                       fill=self.fill,
-                                                                                       filled_price=self.filled_price)
+        resolved_trade, resolved_fill = resolve_inputs_to_order(trade=self.trade,
+                                                                                       fill=self.fill)
 
-        self.filled_price = resolved_filled_price
         self.fill = resolved_fill
         self.trade = resolved_trade
 
@@ -305,10 +300,10 @@ class contractOrderKeyArguments():
         self.tradeable_object.sort_contracts_with_idx(sort_order)
 
 
-def from_contract_order_args_to_resolved_args(args: tuple, fill: tradeQuantity, filled_price: float) -> contractOrderKeyArguments:
+def from_contract_order_args_to_resolved_args(args: tuple, fill: tradeQuantity) -> contractOrderKeyArguments:
 
     # different ways of specififying tradeable object
-    key_arguments = split_contract_order_args(args, fill, filled_price)
+    key_arguments = split_contract_order_args(args, fill)
 
     # ensure everything has the right type
     key_arguments.resolve_inputs_to_order_with_key_arguments()
@@ -318,7 +313,7 @@ def from_contract_order_args_to_resolved_args(args: tuple, fill: tradeQuantity, 
 
     return key_arguments
 
-def split_contract_order_args(args: tuple, fill: tradeQuantity, filled_price: float) \
+def split_contract_order_args(args: tuple, fill: tradeQuantity) \
         -> contractOrderKeyArguments:
     if len(args) == 2:
         tradeable_object = futuresContractStrategy.from_key(args[0])
@@ -336,8 +331,7 @@ def split_contract_order_args(args: tuple, fill: tradeQuantity, filled_price: fl
             "contractOrder(strategy, instrument, contractid, trade,  **kwargs) or ('strategy/instrument/contract_order_id', trade, **kwargs) "
         )
 
-    key_arguments = contractOrderKeyArguments(tradeable_object=tradeable_object, trade=trade, fill=fill,
-                                              filled_price=filled_price)
+    key_arguments = contractOrderKeyArguments(tradeable_object=tradeable_object, trade=trade, fill=fill)
 
     return key_arguments
 
