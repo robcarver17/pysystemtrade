@@ -126,6 +126,7 @@ class brokerHistoricOrdersData(contractHistoricOrdersData):
             instrument_code=instrument_code, contract_str=contract_str
         )
         list_of_fills = [self.get_fill_from_order_id(orderid, contract_str) for orderid in list_of_order_ids]
+        list_of_fills = [fill for fill in list_of_fills if fill is not missing_order]
         list_of_fills = listOfFills(list_of_fills)
 
         return list_of_fills

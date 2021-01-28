@@ -1,10 +1,13 @@
 import datetime
 
+from syscore.objects import missing_order
+
 from sysexecution.orders.base_orders import (
     no_order_id,
     no_children,
     no_parent,
-    orderType)
+    orderType,
+)
 from sysexecution.orders.base_orders import Order
 from sysexecution.trade_qty import tradeQuantity
 from sysexecution.fills import  fill_from_order, Fill
@@ -417,6 +420,9 @@ def single_fill_from_broker_order(order: brokerOrder, contract_str: str):
     if len(list_of_dates) == 1:
         # single leg
         return fill_from_order(order)
+
+    if len(order.leg_filled_price)==0:
+        return missing_order
 
     index_of_date = list_of_dates.index(contract_str)
     trade_qty = order.trade[index_of_date]
