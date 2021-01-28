@@ -439,7 +439,7 @@ def resolve_parent(parent: int):
     return parent
 
 
-def resolve_multi_leg_price_to_single_price(trade_list: list, price_list: list) -> float:
+def resolve_multi_leg_price_to_single_price(trade_list: tradeQuantity, price_list: list) -> float:
     try:
         if float(price_list)==price_list:
             ## float or float like
@@ -462,8 +462,8 @@ def resolve_multi_leg_price_to_single_price(trade_list: list, price_list: list) 
 
     assert len(price_list) == len(trade_list)
 
-    fill_list_as_common_factor = list_of_ints_with_highest_common_factor_positive_first(trade_list)
-    fill_price = [x * y for x,y in zip(fill_list_as_common_factor, price_list)]
+    trade_list_as_common_factor = list_of_ints_with_highest_common_factor_positive_first(trade_list)
+    fill_price = [x * y for x,y in zip(trade_list_as_common_factor, price_list)]
 
     fill_price = sum(fill_price)
     if np.isnan(fill_price):

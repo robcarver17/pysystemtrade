@@ -8,11 +8,16 @@ class tradeQuantity(list):
     def __init__(self, trade_or_fill_qty):
         if trade_or_fill_qty is None:
             trade_or_fill_qty = []
-        if isinstance(trade_or_fill_qty, tradeQuantity):
+        elif isinstance(trade_or_fill_qty, tradeQuantity):
             pass
-        elif (isinstance(trade_or_fill_qty, float)) or (isinstance(trade_or_fill_qty, int)):
+        elif isinstance(trade_or_fill_qty, int):
             trade_or_fill_qty = [trade_or_fill_qty]
+
+        elif (isinstance(trade_or_fill_qty, float)):
+            trade_or_fill_qty = [int(trade_or_fill_qty)]
+        else:
             # must be a list
+            trade_or_fill_qty = [int(trade) for trade in trade_or_fill_qty]
 
         super().__init__(trade_or_fill_qty)
 
