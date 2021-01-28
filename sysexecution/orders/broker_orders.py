@@ -6,7 +6,7 @@ from sysexecution.orders.base_orders import (
     no_order_id,
     no_children,
     no_parent,
-    orderType, resolve_multi_leg_fill_price_to_single_price)
+    orderType, resolve_multi_leg_price_to_single_price)
 from sysexecution.orders.base_orders import Order, resolve_inputs_to_order
 from sysexecution.trade_qty import tradeQuantity
 from sysexecution.orders.contract_orders import contractOrder
@@ -562,8 +562,8 @@ def calculate_prices_with_possible_legs(trade: tradeQuantity,
         raise Exception("Not sure how to parse order")
 
     ## Convert old style to new style
-    mid_price = resolve_multi_leg_fill_price_to_single_price(trade_list=trade, filled_price_list=mid_price)
-    side_price = resolve_multi_leg_fill_price_to_single_price(trade_list=trade, filled_price_list=side_price)
-    offside_price = resolve_multi_leg_fill_price_to_single_price(trade_list=trade, filled_price_list=offside_price)
+    mid_price = resolve_multi_leg_price_to_single_price(trade_list=trade, price_list=mid_price)
+    side_price = resolve_multi_leg_price_to_single_price(trade_list=trade, price_list=side_price)
+    offside_price = resolve_multi_leg_price_to_single_price(trade_list=trade, price_list=offside_price)
 
     return leg_filled_price, mid_price, side_price, offside_price

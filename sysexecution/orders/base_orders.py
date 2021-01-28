@@ -416,7 +416,7 @@ def resolve_inputs_to_order(trade, fill, filled_price) -> (tradeQuantity, tradeQ
 
     # Some historic orders were saved with filled price lists
     # We turn these into a single price
-    filled_price =resolve_multi_leg_fill_price_to_single_price(trade_list=resolved_trade, filled_price_list=filled_price)
+    filled_price =resolve_multi_leg_price_to_single_price(trade_list=resolved_trade, price_list=filled_price)
 
     return resolved_trade, resolved_fill, filled_price
 
@@ -439,36 +439,34 @@ def resolve_parent(parent: int):
     return parent
 
 
-def resolve_multi_leg_fill_price_to_single_price(trade_list, filled_price_list) -> float:
+def resolve_multi_leg_price_to_single_price(trade_list: list, price_list: list) -> float:
     try:
-        if float(filled_price_list)==filled_price_list:
+        if float(price_list)==price_list:
             ## float or float like
-            return filled_price_list
-        if np.isnan(filled_price_list):
+            return price_list
+        if np.isnan(price_list):
             return None
     except:
         ## must be something else
         pass
 
-    if filled_price_list is None:
+    if price_list is None:
         return None
 
-    if trade_list is None:
+    # Must be a list
+    if len(price_list)==0:
         return None
 
-    if len(filled_price_list)==0:
-        return None
+    if len(price_list)==1:
+        return price_list[0]
 
-    if len(filled_price_list)==1:
-        return filled_price_list[0]
-
-    assert len(filled_price_list)==len(trade_list)
+    assert len(price_list) == len(trade_list)
 
     fill_list_as_common_factor = list_of_ints_with_highest_common_factor_positive_first(trade_list)
-    fill_price = [x*y for x,y in zip(fill_list_as_common_factor, filled_price_list)]
+    fill_price = [x * y for x,y in zip(fill_list_as_common_factor, price_list)]
 
     fill_price = sum(fill_price)
     if np.isnan(fill_price):
         return None
 
-    return sum(fill_price)
+    return fill_price

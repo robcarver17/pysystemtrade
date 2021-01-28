@@ -7,7 +7,7 @@ from dateutil.tz import tz
 from ib_insync import Trade as ibTrade
 from sysbrokers.IB.ib_contracts import ibcontractWithLegs
 from syscore.objects import missing_order, missing_data, arg_not_supplied
-from sysexecution.orders.base_orders import resolve_multi_leg_fill_price_to_single_price
+from sysexecution.orders.base_orders import resolve_multi_leg_price_to_single_price
 
 from sysobjects.spot_fx_prices import currencyValue
 from sysexecution.orders.broker_orders import brokerOrder
@@ -131,8 +131,8 @@ class ibBrokerOrder(brokerOrder):
         if total_qty is None:
             total_qty = fill
 
-        fill_price = resolve_multi_leg_fill_price_to_single_price(trade_list=total_qty,
-                                                                  filled_price_list=filled_price_list)
+        fill_price = resolve_multi_leg_price_to_single_price(trade_list=total_qty,
+                                                             price_list=filled_price_list)
 
         broker_order = ibBrokerOrder(
             strategy_name,
