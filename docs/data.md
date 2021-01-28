@@ -64,7 +64,7 @@ Table of Contents
       * [simData objects](#simdata-objects)
          * [Provided simData objects](#provided-simdata-objects)
             * [<a href="/sysdata/sim/csv_futures_sim_data.py">csvFuturesSimData()</a>](#csvfuturessimdata)
-            * [<a href="/sysdata/arctic/db_futures_sim_data.py">dbFuturesSimData()</a>](#dbfuturessimdata)
+            * [<a href="/sysdata/sim/db_futures_sim_data.py">dbFuturesSimData()</a>](#dbfuturessimdata)
             * [A note about multiple configuration files](#a-note-about-multiple-configuration-files)
          * [Modifying simData objects](#modifying-simdata-objects)
             * [Getting data from another source](#getting-data-from-another-source)
@@ -681,7 +681,7 @@ Personally I like to keep my Mongo data in a specific subdirectory; that is achi
 You need to specify an IP address (host), and database name when you connect to MongoDB. These are set with the following priority:
 
 - Firstly, arguments passed to a `mongoDb()` instance, which is then optionally passed to any data object with the argument `mongo_db=mongoDb(host='localhost', database_name='production')` All arguments are optional. 
-- Then, variables set in the [private `.yaml` configuration file](/private/private_config.yaml): mongo_host, mongo_db
+- Then, variables set in the private `.yaml` configuration file /private/private_config.yaml: mongo_host, mongo_db
 - Finally, default arguments in the [system defaults configuration file](/systems/provided/defaults.yaml): mongo_host, mongo_db
 
 Note that `localhost` is equivalent to `127.0.0.1`, i.e. this machine. Note also that no port can be specified. This is because the port is hard coded in Arctic. You should stick to the default port 27017.
@@ -717,7 +717,7 @@ Note:
 These are set with the following priority:
 
 - Firstly, arguments passed to a `mongoDb()` instance, which is then optionally passed to any Arctic data object with the argument `mongo_db=mongoDb(host='localhost', database_name='production')` All arguments are optional. 
-- Then, arguments set in the [private `.yaml` configuration file](/private/private_config.yaml): mongo_host, mongo_db
+- Then, arguments set in the private `.yaml` configuration file/private/private_config.yaml: mongo_host, mongo_db
 - Finally, default arguments hardcoded [in mongo_connection.py](/sysdata/mongodb/mongo_connection.py): DEFAULT_MONGO_DB, DEFAULT_MONGO_HOST, DEFAULT_MONGO_PORT
 
 Note that `localhost` is equivalent to `127.0.0.1`, i.e. this machine.
@@ -857,7 +857,7 @@ I've provided two complete simData objects which get their data from different s
 The simplest simData object gets all of its data from .csv files, making it ideal for simulations if you haven't built a process yet to get your own data. 
 
 <a name="mongoSimData"></a>
-#### [dbFuturesSimData()](/sysdata/arctic/db_futures_sim_data.py)
+#### [dbFuturesSimData()](/sysdata/sim/db_futures_sim_data.py)
 
 This is a simData object which gets it's data out of Mongo DB (static) and Arctic (time series). 
 
@@ -890,7 +890,7 @@ Configuration information about futures instruments is stored in a number of dif
 
 - Instrument configuration and cost levels in this [.csv file](/data/futures/csvconfig/instrumentconfig.csv), used by default with `csvFuturesSimData` or will be copied to the database with [this script](/sysinit/futures/repocsv_instrument_config.py)
 - Roll configuration information in [this .csv file](/sysinit/futures/config/rollconfig.csv), which will be copied to Mongo DB with [this script](/sysinit/futures/roll_parameters_csv_mongo.py)
-- Interactive brokers configuration in [this file](https://github.com/robcarver17/pysystemtrade/blob/master/sysbrokers/IB/ibConfigSpotFX.csv) and [this file](https://github.com/robcarver17/pysystemtrade/blob/master/sysbrokers/IB/ibConfigFutures.csv).
+- Interactive brokers configuration in [this file](/sysbrokers/IB/ib_config_spot_FX.csv) and [this file](/sysbrokers/IB/ib_config_futures.csv).
 
 The instruments in these lists won't neccessarily match up, however under the principal of DRY there shouldn't be duplicated column headings across files.
 

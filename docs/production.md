@@ -359,7 +359,7 @@ You may want to run multiple trading systems on a single machine. Common use cas
 
 To handle this I suggest having multiple copies of the pysystemtrade environment. You will have a single crontab, but you will need multiple script, echos and other directories. You will need to change the private config file so it points to different mongo_db database names. If you don't want multiple copies of certain data (eg prices) then you should hardcode the database_name in the relevant files whenever a connection is made eg mongo_db = mongoDb(database_name='whatever'). See storing futures and spot FX data for more detail.
 
-Finally you should set the field `ib_idoffset` in the [private config file](/private/private_config.yaml) so that there is no chance of duplicate clientid connections; setting one system to have an id offset of 1, the next offset 1000, and so on should be sufficient.
+Finally you should set the field `ib_idoffset` in the [private config file private/private_config.yaml] so that there is no chance of duplicate clientid connections; setting one system to have an id offset of 1, the next offset 1000, and so on should be sufficient.
 
 ## Code and configuration management
 
@@ -1324,7 +1324,7 @@ Scripts are run with the following linux convenience [script](/sysproduction/lin
 python3 run.py $1
 ```
 
-run.py is a little more complicated as it allows you to call python functions that require arguments, such as [interactive_update_roll_status](/sysproduction/interactive_update_roll_status), and then ask the user for those arguments (with type hints).
+run.py is a little more complicated as it allows you to call python functions that require arguments, such as [interactive_update_roll_status](/sysproduction/interactive_update_roll_status.py), and then ask the user for those arguments (with type hints).
 
 
 ## Script naming convention
@@ -2306,7 +2306,7 @@ Useful things to note about the crontab:
 
 #### Process configuration
 
-Process configuration is governed by the following config parameters (in [/syscontrol/control_config.yaml](/syscontrol/control_config.yaml), or these will be globally overriden (so you need to copy and paste the entire file, unlike other default files) by [/private/private_control_config.yaml](/private/private_control_config.yaml)):
+Process configuration is governed by the following config parameters (in [/syscontrol/control_config.yaml](/syscontrol/control_config.yaml), or these will be globally overriden (so you need to copy and paste the entire file, unlike other default files) by /private/private_control_config.yaml):
 
 -  `process_configuration_start_time`: when the process starts (default 00:01)
 - `process_configuration_stop_time`: when the process ends, regardless of any method configuration (default 23:50)
@@ -2563,9 +2563,8 @@ See the [user guide for backtesting](/docs/backtesting.md).
 
 The following are configurations mainly for mapping from our codes to broker codes:
 
-- [/sysbrokers/IB/ibConfigFutures.csv](/sysbrokers/IB/ibConfigFutures.csv)
-- [/sysbrokers/IB/ibConfigSpotFX.csv](/sysbrokers/IB/ibConfigSpotFX.csv)
-- [/sysdata/quandl/*.csv](/sysdata/quandl/)
+- [/sysbrokers/IB/ib_config_futures.csv](/sysbrokers/IB/ib_config_futures.csv)
+- [/sysbrokers/IB/ib_config_spot_FX.csv](/sysbrokers/IB/ib_config_spot_FX.csv)
 
 
 ### Only used when setting up the system
@@ -2690,7 +2689,7 @@ A system usually does the following:
 - get the position buffer limits, and save these down (for the classic system, other systems may save different values down)
 - store the backtest state (pickled cache) in the directory specified by the parameter csv_backup_directory (set in your private config file, or the system defaults file), subdirectory strategy name, filename date and time generated. It also copies the config file used to generate this backtest with a similar naming pattern.
 
-As an example [here](/sysproduction/system_launchers/run_system_classic.py) is the provided 'classic' run systems function.
+As an example [here](/sysproduction/strategy_code/run_system_classic.py) is the provided 'classic' run systems function.
 
 ### Strategy order generator
 

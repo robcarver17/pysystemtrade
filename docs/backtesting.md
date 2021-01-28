@@ -980,7 +980,7 @@ this section.
 The [`simData()`](/sysdata/sim/sim_data.py) object is the base class for data used in simulations. From that we
 inherit data type specific classes such as those
 [for futures](/sysdata/sim/futures_sim_data.py) object. These in turn are inherited from
-for specific data sources, such as for csv files: [csvFuturesSimData()](/sysdata/sim/csv_sim_futures_data.py).
+for specific data sources, such as for csv files: [csvFuturesSimData()](/sysdata/sim/csv_futures_sim_data.py).
 
 It is helpful if this naming scheme was adhered to: sourceTypeSimData. For example if we had
 some single equity data stored in a database we'd do `class
@@ -997,7 +997,7 @@ This might seem a hassle, and it's tempting to skip and just inherit from
 convenient to have the possibility of multiple data sources and this process
 ensures they keep a consistent API for a given data type.
 
-It's worth reading the [documentation on futures data](/docs/data.md#modify_SimData) to understand how [csvFuturesSimData()](/sysdata/sim/csv_sim_futures_data.py) is constructed before modifying it or creating your own data objects.
+It's worth reading the [documentation on futures data](/docs/data.md#modify_SimData) to understand how [csvFuturesSimData()](/sysdata/sim/csv_futures_sim_data.py) is constructed before modifying it or creating your own data objects.
 
 #### The Data() class
 
