@@ -1,4 +1,4 @@
-This document is specifically about using pysystemtrade to connect with [*Interactive Brokers (IB)*](https://www.interactivebrokers.com/).
+This document is specifically about using pysystemtrade to connect with *Interactive Brokers (IB)*
 
 As of version 0.28.0, this requires the [ib_insync](https://github.com/erdewit/ib_insync) library.
 
@@ -59,12 +59,6 @@ You may want to read [my blog posts](https://qoppac.blogspot.com/2017/03/interac
 ### Gateway / TWS
 
 You need to download either the gateway or TWS software from the IB website. I recommend using the Gateway as it is much more stable and lightweight, and does not regularly reboot itself.
-
-These links may break or become outdated - use google to find the appropriate page on IB's website.
-
-[For Windows](https://www.interactivebrokers.co.uk/en/index.php?f=1341)
-
-[For Linux](https://www.interactivebrokers.co.uk/en/index.php?f=16454)
 
 
 ### IB-insync library
