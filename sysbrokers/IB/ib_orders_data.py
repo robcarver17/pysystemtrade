@@ -421,7 +421,7 @@ def add_trade_info_to_broker_order(
         broker_order_from_trade_object: ibBrokerOrder) -> brokerOrder:
 
     new_broker_order = copy(broker_order)
-    keys_to_replace = ["broker_permid", "commission", "algo_comment", "broker_tempid"]
+    keys_to_replace = ["broker_permid", "commission", "algo_comment", "broker_tempid", "leg_filled_price"]
 
     for key in keys_to_replace:
         new_broker_order._order_info[key] = broker_order_from_trade_object._order_info[

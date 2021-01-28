@@ -285,7 +285,7 @@ class brokerOrder(Order):
 
     @leg_filled_price.setter
     def leg_filled_price(self, leg_filled_price: list):
-        self.order_info["leg_filled_price"] = list
+        self.order_info["leg_filled_price"] = leg_filled_price
 
 
     @classmethod
