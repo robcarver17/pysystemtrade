@@ -113,6 +113,9 @@ class contractHistoricOrdersData(genericOrdersData):
         :param contract_id: str
         :return: fillHistory object, with fill and price
         """
+
+        ## FIXME: THIS WON'T PULL IN SPREAD ORDERS
+
         list_of_orders = self.get_list_of_orders_for_contract(futures_contract)
         list_of_fills = listOfFills.from_list_of_orders(list_of_orders)
 

@@ -31,6 +31,7 @@ class brokerOrder(Order):
         fill: tradeQuantity=None,
             filled_price: float = None,
             fill_datetime: datetime.datetime = None,
+        leg_filled_price: list = [],
         locked: bool=False,
         order_id: int=no_order_id,
         parent: int=no_parent,
@@ -129,7 +130,8 @@ class brokerOrder(Order):
             broker_tempid=broker_tempid,
             broker_clientid=broker_clientid,
             commission=commission,
-            roll_order=roll_order
+            roll_order=roll_order,
+            leg_filled_price = leg_filled_price
         )
 
         super().__init__(tradeable_object,
@@ -268,6 +270,15 @@ class brokerOrder(Order):
     def futures_contract(self):
         return futuresContract(instrument_object=self.instrument_code, contract_date_object=self.contract_date)
 
+    @property
+    def leg_filled_price(self):
+        return self.order_info["leg_filled_price"]
+
+    @leg_filled_price.setter
+    def leg_filled_price(self, leg_filled_price: list):
+        self.order_info["leg_filled_price"] = list
+
+
     @classmethod
     def from_dict(instrumentOrder, order_as_dict):
         trade = order_as_dict.pop("trade")
@@ -335,6 +346,7 @@ class brokerOrder(Order):
         self.commission = matched_broker_order.commission
         self.broker_permid = matched_broker_order.broker_permid
         self.algo_comment = matched_broker_order.algo_comment
+        self.leg_filled_price = matched_broker_order.leg_filled_price
 
         return success
 

@@ -96,6 +96,7 @@ class ibBrokerOrder(brokerOrder):
             fill_datetime = None
             fill = total_qty.zero_version()
             fill_price = None
+            filled_price_list =[]
             commission = None
             broker_tempid = extracted_trade_data.order.order_id
             broker_clientid = extracted_trade_data.order.client_id
@@ -147,6 +148,7 @@ class ibBrokerOrder(brokerOrder):
             fill_datetime=fill_datetime,
             broker_account=broker_account,
             commission=commission,
+            leg_filled_price=filled_price_list,
             broker_permid=broker_permid,
             broker_tempid=broker_tempid,
             broker_clientid=broker_clientid,

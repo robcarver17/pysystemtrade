@@ -111,7 +111,7 @@ class contractOrder(Order):
             calendar_spread_order=calendar_spread_order,
             inter_spread_order=inter_spread_order,
             generated_datetime=generated_datetime,
-            reference_of_controlling_algo=reference_of_controlling_algo,
+            reference_of_controlling_algo=reference_of_controlling_algo
         )
 
         super().__init__(tradeable_object,
