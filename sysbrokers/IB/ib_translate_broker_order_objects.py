@@ -1,39 +1,42 @@
 import datetime
 
+
 from collections import namedtuple
 from dateutil.tz import tz
 
+from ib_insync import Trade as ibTrade
+from sysbrokers.IB.ib_contracts import ibcontractWithLegs
 from syscore.objects import missing_order, missing_data, arg_not_supplied
+from sysexecution.orders.base_orders import resolve_multi_leg_price_to_single_price
+
 from sysobjects.spot_fx_prices import currencyValue
-from sysexecution.broker_orders import brokerOrder
+from sysexecution.orders.broker_orders import brokerOrder
 from sysexecution.trade_qty import tradeQuantity
 
 
-def create_broker_order_from_control_object(control_object, instrument_code):
-    # pretty horrible code to convert IB order and contract objects into my
-    # world
-
-    # we do this in two stages to make the abstraction marginally better (to
-    # be honest, to reflect legacy history)
-    extracted_trade_info = extract_trade_info(control_object)
-
-    # and stage two
-    ib_broker_order = ibBrokerOrder.from_broker_trade_object(
-        extracted_trade_info, instrument_code=instrument_code
-    )
-    ib_broker_order._order_info["broker_tempid"] = create_tempid_from_broker_details(
-        ib_broker_order)
-
-    return ib_broker_order
+class ibOrderCouldntCreateException(Exception):
+    pass
 
 
-def create_tempid_from_broker_details(broker_order_from_trade_object):
-    tempid = "%s/%s/%s" % (
-        broker_order_from_trade_object.broker_account,
-        broker_order_from_trade_object.broker_clientid,
-        broker_order_from_trade_object.broker_tempid,
-    )
-    return tempid
+class tradeWithContract(object):
+    def __init__(self, ibcontract_with_legs: ibcontractWithLegs, trade_object: ibTrade):
+        self._ibcontract_with_legs = ibcontract_with_legs
+        self._trade = trade_object
+
+    def __repr__(self):
+        return str(self.trade) + " " + str(self.ibcontract_with_legs)
+
+    @property
+    def ibcontract_with_legs(self) -> ibcontractWithLegs:
+        return self._ibcontract_with_legs
+
+    @property
+    def trade(self) -> ibTrade:
+        return self._trade
+
+    @property
+    def ib_instrument_code(self):
+        return self.trade.contract.symbol
 
 
 class ibBrokerOrder(brokerOrder):
@@ -92,7 +95,7 @@ class ibBrokerOrder(brokerOrder):
         if fill_totals is missing_data:
             fill_datetime = None
             fill = total_qty.zero_version()
-            filled_price_list = None
+            filled_price_list =[]
             commission = None
             broker_tempid = extracted_trade_data.order.order_id
             broker_clientid = extracted_trade_data.order.client_id
@@ -115,18 +118,21 @@ class ibBrokerOrder(brokerOrder):
                     contractid,
                     None) for contractid in contract_id_list]
             missing_fill = [
-                fill_price is None or fill is None
-                for fill_price, fill in zip(filled_price_list, fill_list)
+                fill_price_item is None or fill is None
+                for fill_price_item, fill in zip(filled_price_list, fill_list)
             ]
             if any(missing_fill):
                 fill = None
-                filled_price_list = None
+                filled_price_list = []
             else:
                 fill_list = [int(fill) for fill in fill_list]
                 fill = tradeQuantity(fill_list)
 
         if total_qty is None:
             total_qty = fill
+
+        fill_price = resolve_multi_leg_price_to_single_price(trade_list=total_qty,
+                                                             price_list=filled_price_list)
 
         broker_order = ibBrokerOrder(
             strategy_name,
@@ -136,11 +142,12 @@ class ibBrokerOrder(brokerOrder):
             fill=fill,
             order_type=order_type,
             limit_price=limit_price,
-            filled_price=filled_price_list,
+            filled_price=fill_price,
             algo_comment=algo_comment,
             fill_datetime=fill_datetime,
             broker_account=broker_account,
             commission=commission,
+            leg_filled_price=filled_price_list,
             broker_permid=broker_permid,
             broker_tempid=broker_tempid,
             broker_clientid=broker_clientid,
@@ -158,6 +165,38 @@ class ibBrokerOrder(brokerOrder):
     def broker_objects(self, broker_objects):
         self._broker_objects = broker_objects
 
+
+def create_broker_order_from_trade_with_contract(trade_with_contract_from_ib: tradeWithContract,
+                                                 instrument_code: str) -> ibBrokerOrder:
+    # pretty horrible code to convert IB order and contract objects into my
+    # world
+
+    # we do this in two stages to make the abstraction marginally better (to
+    # be honest, to reflect legacy history)
+    extracted_trade_info = extract_trade_info(trade_with_contract_from_ib)
+
+    # and stage two
+    ib_broker_order = ibBrokerOrder.from_broker_trade_object(
+        extracted_trade_info, instrument_code=instrument_code
+    )
+
+    # this can go wrong eg for FX
+    if ib_broker_order is missing_order:
+        raise ibOrderCouldntCreateException()
+
+    ib_broker_order._order_info["broker_tempid"] = create_tempid_from_broker_details(
+        ib_broker_order)
+
+    return ib_broker_order
+
+
+def create_tempid_from_broker_details(broker_order_from_trade_object: ibBrokerOrder) -> str:
+    tempid = "%s/%s/%s" % (
+        broker_order_from_trade_object.broker_account,
+        broker_order_from_trade_object.broker_clientid,
+        broker_order_from_trade_object.broker_tempid,
+    )
+    return tempid
 
 def extract_totals_from_fill_data(list_of_fills):
     """
@@ -496,3 +535,6 @@ def sign_from_BOT_SEL(action):
     if action == "BOT":
         return 1
     return -1
+
+class listOfTradesWithContracts(list):
+    pass

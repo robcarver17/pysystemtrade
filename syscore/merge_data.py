@@ -1,12 +1,11 @@
 ## Merge series together
-from dataclasses import dataclass
 from copy import copy
 import pandas as pd
 import datetime
 
 from syscore.dateutils import SECONDS_PER_DAY
 from syscore.objects import arg_not_supplied, _named_object
-from sysdata.private_config import get_private_then_default_key_value
+from sysdata.config.private_config import get_private_then_default_key_value
 
 class mergeStatus(object):
     def __init__(self, text):
@@ -109,10 +108,12 @@ def merge_newer_data_no_checks(old_data, new_data)-> mergingDataWithStatus:
 
     :return:  status ,last_date_in_old_data: datetime.datetime, merged_data: pd.Series or DataFrame
     """
+
     if len(new_data.index) == 0:
         return mergingDataWithStatus.only_old_data(old_data)
     if len(old_data.index) == 0:
         return mergingDataWithStatus.only_new_data(new_data)
+
 
     merged_data_with_status = _merge_newer_data_no_checks_if_both_old_and_new(old_data, new_data)
 

@@ -7,13 +7,13 @@ Do standard things to the instrument, order and broker stack (normally automated
 
 """
 
+from syscore.objects import missing_order
 from syscore.dateutils import get_datetime_input
 from syscore.genutils import (
     get_and_convert,
     run_interactive_menu,
     print_menu_of_values_and_get_response
 )
-from syscore.pdutils import set_pd_print_options
 
 from sysdata.data_blob import dataBlob
 from sysproduction.data.positions import diagPositions, dataOptimalPositions
@@ -27,9 +27,10 @@ from sysproduction.data.prices import get_valid_instrument_code_from_user
 
 from sysexecution.stack_handler.stack_handler import stackHandler
 from sysexecution.stack_handler.balance_trades import stackHandlerCreateBalanceTrades
-from sysexecution.broker_orders import brokerOrder
-from sysexecution.contract_orders import contractOrder
-from sysexecution.instrument_orders import instrumentOrder, possible_order_types
+from sysexecution.stack_handler.spawn_children_from_instrument_orders import map_instrument_order_type_to_contract_order_type
+from sysexecution.orders.broker_orders import brokerOrder, balance_order_type as broker_balance_order_type
+from sysexecution.orders.contract_orders import contractOrder
+from sysexecution.orders.instrument_orders import instrumentOrder, market_order_type, instrumentOrderType, balance_order_type as instrument_balance_order_type
 from sysexecution.algos.allocate_algo_to_order import list_of_algos
 
 
@@ -88,6 +89,7 @@ nested_menu_of_options = {0: {0: "View specific order",
                               32: "Lock/unlock order",
                               33: "Lock/unlock instrument code",
                               34: "Unlock all instruments",
+                              35: "Remove Algo lock on contract order"
                               },
                           4: {40: "Delete entire stack (CAREFUL!)",
                               41: "Delete specific order ID (CAREFUL!)",
@@ -107,13 +109,10 @@ def view_contract_stack(data):
 
     order_ids = stack_handler.contract_stack.get_list_of_order_ids()
     print("\nCONTRACT STACK \n")
-    broker_data = dataBroker(data)
     for order_id in order_ids:
         order = stack_handler.contract_stack.get_order_with_id_from_stack(
             order_id)
-        IB_code = broker_data.get_brokers_instrument_code(
-            order.instrument_code)
-        print("%s:%s" % (IB_code, order.terse_repr()))
+        print(order)
 
 
 def view_broker_stack(data):
@@ -125,7 +124,7 @@ def view_broker_stack(data):
 def view_generic_stack(stack):
     order_ids = stack.get_list_of_order_ids()
     for order_id in order_ids:
-        print(stack.get_order_with_id_from_stack(order_id).terse_repr())
+        print(stack.get_order_with_id_from_stack(order_id))
 
 
 def view_broker_order_list(data):
@@ -137,41 +136,8 @@ def view_broker_order_list(data):
     print("\n\nStored (orders made in this session):\n")
     broker_orders = data_broker.get_list_of_stored_orders()
     for order in broker_orders:
-        print(order)
+        print(order.full_repr())
 
-def view_positions(data):
-    data_broker = dataBroker(data)
-
-    diag_positions = diagPositions(data)
-    data_optimal = dataOptimalPositions(data)
-    ans0 = data_optimal.get_pd_of_position_breaks()
-    ans1 = diag_positions.get_all_current_strategy_instrument_positions()
-    ans2 = data_broker.get_db_contract_positions_with_IB_expiries()
-    ans3 = data_broker.get_all_current_contract_positions()
-    print("Optimal vs actual")
-    print(ans0.sort_values("breaks"))
-    print("Strategy positions")
-    print(ans1.as_pd_df().sort_values("instrument_code"))
-    print("\n Contract level positions")
-    print(ans2.as_pd_df().sort_values(["instrument_code", "contract_date"]))
-    breaks = diag_positions.get_list_of_breaks_between_contract_and_strategy_positions()
-    if len(breaks) > 0:
-        print(
-            "\nBREAKS between strategy and contract positions: %s\n" %
-            str(breaks))
-    else:
-        print("(No breaks positions consistent)")
-    print("\n Broker positions")
-    print(ans3.as_pd_df().sort_values(["instrument_code", "contract_date"]))
-    breaks = data_broker.get_list_of_breaks_between_broker_and_db_contract_positions()
-    if len(breaks) > 0:
-        print(
-            "\nBREAKS between broker and DB stored contract positions: %s\n"
-            % str(breaks)
-        )
-    else:
-        print("(No breaks positions consistent)")
-    return None
 
 
 
@@ -242,10 +208,10 @@ def create_balance_trade(data):
         strategy_name,
         instrument_code,
         contract_date,
-        [fill_qty],
-        fill=[fill_qty],
+        fill_qty,
+        fill=fill_qty,
         algo_used="balance_trade",
-        order_type="balance_trade",
+        order_type=broker_balance_order_type,
         filled_price=filled_price,
         fill_datetime=fill_datetime,
         broker_account=broker_account,
@@ -285,7 +251,7 @@ def create_instrument_balance_trade(data):
         instrument_code,
         fill_qty,
         fill=fill_qty,
-        order_type="balance_trade",
+        order_type=instrument_balance_order_type,
         filled_price=filled_price,
         fill_datetime=fill_datetime,
     )
@@ -327,7 +293,7 @@ def create_manual_trade(data):
         return None
 
     stack_handler = stackHandler(data)
-    instrument_order_id = stack_handler.instrument_stack.put_manual_order_on_stack(
+    instrument_order_id = stack_handler.instrument_stack.put_manual_order_on_stack_and_return_order_id(
         instrument_order)
     if not isinstance(instrument_order_id, int):
         print(
@@ -344,8 +310,8 @@ def create_manual_trade(data):
                 "Error condition %s couldn't place contract order; see if you can spawn it manually"
             )
             return None
-        stack_handler.instrument_stack.add_children_to_order(
-            instrument_order_id, contract_order_id
+        stack_handler.instrument_stack.add_children_to_order_without_existing_children(
+            instrument_order_id, [contract_order_id]
         )
 
     print(
@@ -362,6 +328,7 @@ def enter_manual_instrument_order(data):
         "Quantity (-ve for sell, +ve for buy?)",
         type_expected=int,
         allow_default=False)
+    possible_order_types = market_order_type.allowed_types()
     order_type = input("Order type (one of %s)?" % str(possible_order_types))
     limit_price = get_and_convert(
         "Limit price? (if you put None you can still add one to the contract order)",
@@ -382,7 +349,7 @@ def enter_manual_instrument_order(data):
         strategy_name,
         instrument_code,
         qty,
-        order_type=order_type,
+        order_type=instrumentOrderType(order_type),
         limit_price=limit_price,
         limit_contract=limit_contract,
         manual_trade=True,
@@ -436,12 +403,14 @@ def enter_manual_contract_order(data, instrument_order):
         default_value=None,
     )
 
+    order_type= map_instrument_order_type_to_contract_order_type(instrument_order.order_type)
     contract_order = contractOrder(
         strategy_name,
         instrument_code,
         contract_id_list,
         trade_qty_list,
         algo_to_use=algo_to_use,
+        order_type = order_type,
         reference_price=None,
         limit_price=limit_price,
         manual_trade=True,
@@ -460,8 +429,16 @@ def generate_generic_manual_fill(data):
     if order_id == "":
         return None
     order = stack.get_order_with_id_from_stack(order_id)
+    if order is missing_order:
+        print("Order doesn't exist on stack")
+        return None
+    if len(order.trade)>1:
+        print("Can't manually fill spread orders; delete and replace with legs")
+        return None
+    if not order.no_children():
+        print("Don't manually fill order with children: can cause problems! Manually fill the child instead")
+        return None
     print("Order now %s" % str(order))
-    # FIX ME HANDLE SPREAD ORDERS
     fill_qty = get_and_convert(
         "Quantity to fill (must be less than or equal to %s)" % str(
             order.trade),
@@ -476,13 +453,21 @@ def generate_generic_manual_fill(data):
     )
     fill_datetime = get_datetime_input("Fill datetime", allow_default=True)
 
-    stack.manual_fill_for_order_id(
-        order_id,
-        fill_qty,
-        filled_price=filled_price,
-        fill_datetime=fill_datetime)
     order = stack.get_order_with_id_from_stack(order_id)
 
+    order.fill_order(fill_qty=fill_qty, filled_price=filled_price, fill_datetime=fill_datetime)
+
+    stack.mark_as_manual_fill_for_order_id(
+        order_id)
+
+    stack_handler = stackHandler()
+    if type(order) is brokerOrder:
+        ## pass up and change positions
+        stack_handler.apply_broker_order_fills_to_database(order)
+    else:
+        stack_handler.apply_contract_order_fill_to_database(order)
+
+    order = stack.get_order_with_id_from_stack(order_id)
     print("Order now %s" % str(order))
     print("If stack process not running, your next job will be to pass fills upwards")
 
@@ -502,19 +487,13 @@ def generate_ib_orders(data):
     ans = input("Are you sure? (Y/other)")
     if ans != "Y":
         return None
-    ans = input("Check if market open? <return for YES / other>")
-    if ans != "":
-        check_if_open = False
-    else:
-        check_if_open = True
+
 
     if contract_order_id == "ALL":
         stack_handler.create_broker_orders_from_contract_orders(
-            check_if_open=check_if_open
         )
     else:
-        stack_handler.create_broker_order_for_contract_order(
-            contract_order_id, check_if_open=check_if_open
+        stack_handler.create_broker_order_for_contract_order(contract_order_id
         )
 
     print(
@@ -596,7 +575,7 @@ def get_fills_from_broker(data):
     if broker_order_id == "ALL":
         stack_handler.pass_fills_from_broker_to_broker_stack()
     else:
-        stack_handler.apply_broker_fill_to_broker_stack(broker_order_id)
+        stack_handler.apply_broker_fill_from_broker_to_broker_database(broker_order_id)
 
     print(
         "If stack process not running, your next job will be to pass fills from broker to contract stack"
@@ -622,7 +601,7 @@ def pass_fills_upwards_from_broker(data):
     if contract_order_id == "ALL":
         stack_handler.pass_fills_from_broker_up_to_contract()
     else:
-        stack_handler.apply_broker_fill_to_contract_order(contract_order_id)
+        stack_handler.apply_broker_fills_to_contract_order(contract_order_id)
 
     print(
         "If stack process not running, your next job will be to pass fills from contract to instrument"
@@ -702,7 +681,7 @@ def order_view(data):
         type_expected=int,
         allow_default=False)
     order = stack.get_order_with_id_from_stack(order_id)
-    print("%s" % order)
+    print("%s" % order.full_repr())
 
     return None
 
@@ -734,6 +713,19 @@ def order_locking(data):
             return None
 
     return None
+
+def clear_algo_on_order(data):
+    stack_handler = stackHandler(data)
+    stack = stack_handler.contract_stack
+    view_generic_stack(stack)
+    order_id = get_and_convert(
+        "Order ID ",
+        type_expected=int,
+        allow_default=False)
+    order = stack.get_order_with_id_from_stack(order_id)
+    print("Controlled by %s; releasing now" % str(order.reference_of_controlling_algo))
+    stack.release_order_from_algo_control(order_id)
+    print("Released")
 
 
 def resolve_stack(data, exclude_instrument_stack=False):
@@ -788,7 +780,7 @@ def delete_entire_stack(data):
     ans = input(
         "This will delete the entire order stack! Are you sure? (Y/other)")
     if ans == "Y":
-        stack._delete_entire_stack_without_checking()
+        stack._delete_entire_stack_without_checking_only_use_when_debugging()
     return None
 
 
@@ -857,7 +849,7 @@ def cancel_broker_order(data):
     if ans != "Y":
         return None
     if broker_order_id == "ALL":
-        stack_handler.cancel_all_broker_orders()
+        stack_handler.try_and_cancel_all_broker_orders_and_return_list_of_orders()
     else:
         stack_handler.cancel_broker_order(broker_order_id)
 
@@ -913,6 +905,7 @@ dict_of_functions = {
     32: order_locking,
     33: instrument_locking,
     34: all_instrument_unlock,
+    35: clear_algo_on_order,
     40: delete_entire_stack,
     41: delete_specific_order,
     42: end_of_day,

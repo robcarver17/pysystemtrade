@@ -9,8 +9,14 @@ from sysdata.mongodb.mongo_override import mongoOverrideData
 from sysdata.mongodb.mongo_IB_client_id import mongoIbBrokerClientIdData
 
 from sysdata.data_blob import dataBlob
+
+from sysexecution.trade_qty import tradeQuantity
+from sysexecution.orders.broker_orders import brokerOrder
+
+from sysobjects.production.tradeable_object import listOfInstrumentStrategies, instrumentStrategy
+from sysobjects.production.override import Override
 from sysproduction.data.positions import diagPositions
-from sysobjects.production.strategy import instrumentStrategy, listOfInstrumentStrategies
+
 
 class dataBrokerClientIDs(object):
     def __init__(self, data=arg_not_supplied):
@@ -56,33 +62,25 @@ class dataTradeLimits(object):
         data.add_class_object(mongoTradeLimitData)
         self.data = data
 
-    def what_trade_is_possible(
-            self,
-            strategy_name,
-            instrument_code,
-            proposed_trade):
-        #FIXME DELETE
-        instrument_strategy = instrumentStrategy(instrument_code=instrument_code, strategy_name=strategy_name)
-        return self.what_trade_is_possible_for_strategy_instrument(instrument_strategy, proposed_trade)
-
 
     def what_trade_is_possible_for_strategy_instrument(
             self,
             instrument_strategy: instrumentStrategy,
-            proposed_trade: int):
+            proposed_trade: tradeQuantity) -> int:
+
+        proposed_trade_as_int = proposed_trade.total_abs_qty()
         return self.data.db_trade_limit.what_trade_is_possible(
-            instrument_strategy, proposed_trade
+            instrument_strategy, proposed_trade_as_int
         )
 
-    def add_trade(self, strategy_name, instrument_code, trade):
-        #FIXME REMOVE
-        instrument_strategy = instrumentStrategy(strategy_name=strategy_name,
-                                                 instrument_code=instrument_code)
-        self.add_trade_for_instrument_strategy(instrument_strategy, trade)
 
-    def add_trade_for_instrument_strategy(self, instrument_strategy: instrumentStrategy, trade: int):
+    def add_trade(self, executed_order: brokerOrder):
+        trade_size = executed_order.trade.total_abs_qty()
+        instrument_strategy = executed_order.instrument_strategy
+
+
         self.data.db_trade_limit.add_trade(
-            instrument_strategy, trade)
+            instrument_strategy, trade_size)
 
     def remove_trade(self, strategy_name, instrument_code, trade):
         instrument_strategy = instrumentStrategy(strategy_name=strategy_name,
@@ -152,18 +150,9 @@ class diagOverrides(object):
     def get_dict_of_all_overrides(self):
         return self.data.db_override.get_dict_of_all_overrides()
 
-    def get_cumulative_override_for_strategy_and_instrument(
-        self, strategy_name, instrument_code
-    ):
-        # FIXME REMOVE
-        instrument_strategy = instrumentStrategy(strategy_name  =strategy_name,
-            instrument_code=instrument_code)
-        return \
-            self.get_cumulative_override_for_instrument_strategy(instrument_strategy)
-
     def get_cumulative_override_for_instrument_strategy(
         self, instrument_strategy: instrumentStrategy
-    ):
+    ) -> Override:
         return \
             self.data.db_override.get_cumulative_override_for_instrument_strategy(
                 instrument_strategy)
@@ -226,7 +215,7 @@ class dataPositionLimits:
 
             strategy_name = instrument_trade.strategy_name
             instrument_code = instrument_trade.instrument_code
-            proposed_trade = instrument_trade.trade.as_int()
+            proposed_trade = instrument_trade.as_single_trade_qty_or_error()
 
             ## want to CUT DOWN rather than bool possible trades
             ## FIXME:
@@ -248,7 +237,9 @@ class dataPositionLimits:
                              min([abs(max_trade_ok_against_instrument),
                             abs(max_trade_ok_against_instrument_strategy)])
 
-            instrument_trade = instrument_trade.replace_trade_only_use_for_unsubmitted_trades(mini_max_trade)
+            mini_max_trade = tradeQuantity(mini_max_trade)
+
+            instrument_trade = instrument_trade.replace_required_trade_size_only_use_for_unsubmitted_trades(mini_max_trade)
 
             return instrument_trade
 

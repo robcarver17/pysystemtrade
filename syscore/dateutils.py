@@ -333,7 +333,8 @@ def adjust_timestamp_to_include_notional_close_and_time_offset(
     actual_close: pd.DateOffset = NOTIONAL_CLOSING_TIME_AS_PD_OFFSET,
     original_close: pd.DateOffset = pd.DateOffset(hours=23, minutes=0, seconds=0),
     time_offset: pd.DateOffset = pd.DateOffset(hours=0),
-):
+) -> datetime.datetime:
+
     if timestamp.hour == 0 and timestamp.minute == 0 and timestamp.second == 0:
         new_datetime = timestamp.date() + actual_close
     elif time_matches(timestamp, original_close):
@@ -344,7 +345,7 @@ def adjust_timestamp_to_include_notional_close_and_time_offset(
     return new_datetime
 
 
-def strip_timezone_fromdatetime(timestamp_with_tz_info):
+def strip_timezone_fromdatetime(timestamp_with_tz_info) -> datetime.datetime:
     ts = timestamp_with_tz_info.timestamp()
     new_timestamp = datetime.datetime.fromtimestamp(ts)
     return new_timestamp

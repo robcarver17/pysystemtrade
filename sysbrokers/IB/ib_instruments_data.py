@@ -8,6 +8,7 @@ from sysdata.futures.instruments import futuresInstrumentData
 from syslogdiag.log import logtoscreen
 from syscore.objects import  missing_instrument, missing_file
 from sysbrokers.IB.ib_instruments import NOT_REQUIRED_FOR_IB, ibInstrumentConfigData, futuresInstrumentWithIBConfigData
+from sysbrokers.IB.ib_connection import connectionIB
 
 IB_FUTURES_CONFIG_FILE = get_filename_for_package(
     "sysbrokers.IB.ib_config_futures.csv")
@@ -15,7 +16,7 @@ IB_FUTURES_CONFIG_FILE = get_filename_for_package(
 class IBconfig(pd.DataFrame):
     pass
 
-def read_ib_config_from_file() -> pd.DataFrame:
+def read_ib_config_from_file() -> IBconfig:
     df = pd.read_csv(IB_FUTURES_CONFIG_FILE)
     return IBconfig(df)
 
@@ -29,7 +30,7 @@ class ibFuturesInstrumentData(futuresInstrumentData):
 
     """
 
-    def __init__(self, ibconnection, log=logtoscreen("ibFuturesContractData")):
+    def __init__(self, ibconnection: connectionIB, log=logtoscreen("ibFuturesContractData")):
         super().__init__(log=log)
         self._ibconnection = ibconnection
 
@@ -37,7 +38,7 @@ class ibFuturesInstrumentData(futuresInstrumentData):
         return "IB Futures per contract data %s" % str(self.ibconnection)
 
     @property
-    def ibconnection(self):
+    def ibconnection(self) -> connectionIB:
         return self._ibconnection
 
     def get_brokers_instrument_code(self, instrument_code:str) -> str:
@@ -88,7 +89,7 @@ class ibFuturesInstrumentData(futuresInstrumentData):
 
         return instrument_object
 
-    def get_list_of_instruments(self):
+    def get_list_of_instruments(self) -> list:
         """
         Get instruments that have price data
         Pulls these in from a config file
@@ -106,16 +107,6 @@ class ibFuturesInstrumentData(futuresInstrumentData):
         instrument_list = list(config.Instrument)
 
         return instrument_list
-
-    def _delete_instrument_data_without_any_warning_be_careful(self,
-            instrument_code: str):
-        raise NotImplementedError("IB instrument config is read only - manually edit .csv file %s" % IB_FUTURES_CONFIG_FILE)
-
-    def _add_instrument_data_without_checking_for_existing_entry(
-        self, instrument_object
-    ):
-        raise NotImplementedError(
-            "IB instrument config is read only - manually edit .csv file %s" % IB_FUTURES_CONFIG_FILE)
 
     # Configuration read in and cache
     def _get_ib_config(self) -> IBconfig:
@@ -136,6 +127,17 @@ class ibFuturesInstrumentData(futuresInstrumentData):
         self._config = config_data
 
         return config_data
+
+
+    def _delete_instrument_data_without_any_warning_be_careful(self,
+            instrument_code: str):
+        raise NotImplementedError("IB instrument config is read only - manually edit .csv file %s" % IB_FUTURES_CONFIG_FILE)
+
+    def _add_instrument_data_without_checking_for_existing_entry(
+        self, instrument_object
+    ):
+        raise NotImplementedError(
+            "IB instrument config is read only - manually edit .csv file %s" % IB_FUTURES_CONFIG_FILE)
 
 
 def get_instrument_object_from_config(instrument_code: str,

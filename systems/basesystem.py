@@ -1,4 +1,4 @@
-from sysdata.configdata import Config
+from sysdata.config.configdata import Config
 from syslogdiag.log import logtoscreen
 from systems.system_cache import systemCache, base_system_cache
 

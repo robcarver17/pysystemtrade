@@ -144,7 +144,7 @@ tradesData = namedtuple(
     [
         "instrument_code",
         "strategy_name",
-        "contract_id",
+        "contract_date",
         "fill_datetime",
         "fill",
         "filled_price",

@@ -57,7 +57,7 @@ def get_trades_report_data(data, start_date, end_date):
         [
             "instrument_code",
             "strategy_name",
-            "contract_id",
+            "contract_date",
             "fill_datetime",
             "fill",
             "filled_price",
@@ -176,19 +176,16 @@ tradesData = namedtuple(
         "order_id",
         "instrument_code",
         "strategy_name",
-        "contract_id",
+        "contract_date",
         "fill",
         "filled_price",
         "mid_price",
         "side_price",
+        "offside_price",
         "parent_reference_price",  # from contract order
-        "parent_generated_datetime",  # from instrument order
+        "parent_reference_datetime",  # from instrument order
         "submit_datetime",
         "fill_datetime",
-        "is_split_order",
-        "calculated_filled_price",
-        "calculated_mid_price",
-        "calculated_side_price",
         "limit_price",
         "trade",
         "buy_or_sell",
@@ -241,7 +238,7 @@ def delay_row(order_row):
         [
             "instrument_code",
             "strategy_name",
-            "parent_generated_datetime",
+            "parent_reference_datetime",
             "submit_datetime",
             "fill_datetime",
         ]
@@ -259,7 +256,7 @@ def delay_row(order_row):
 def delay_calculations_for_order_row(order_row):
 
     submit_minus_generated = delay_calc(
-        order_row.parent_generated_datetime, order_row.submit_datetime
+        order_row.parent_reference_datetime, order_row.submit_datetime
     )
 
     filled_minus_submit = delay_calc(
@@ -311,10 +308,11 @@ def raw_slippage_row(order_row):
             "trade",
             "parent_reference_price",
             "parent_limit_price",
-            "calculated_mid_price",
-            "calculated_side_price",
+            "mid_price",
+            "side_price",
+            "offside_price",
             "limit_price",
-            "calculated_filled_price",
+            "filled_price",
         ]
     ]
     new_order_row = new_order_row.append(
@@ -349,19 +347,19 @@ def price_calculations_for_order_row(order_row):
     delay = price_slippage(
         buying_multiplier,
         order_row.parent_reference_price,
-        order_row.calculated_mid_price,
+        order_row.mid_price,
     )
 
     bid_ask = price_slippage(
         buying_multiplier,
-        order_row.calculated_mid_price,
-        order_row.calculated_side_price,
+        order_row.mid_price,
+        order_row.side_price,
     )
 
     execution = price_slippage(
         buying_multiplier,
-        order_row.calculated_side_price,
-        order_row.calculated_filled_price,
+        order_row.side_price,
+        order_row.filled_price,
     )
 
     total_trading = bid_ask + execution
@@ -369,12 +367,12 @@ def price_calculations_for_order_row(order_row):
     versus_limit = price_slippage(
         buying_multiplier,
         order_row.limit_price,
-        order_row.calculated_filled_price)
+        order_row.filled_price)
 
     versus_parent_limit = price_slippage(
         buying_multiplier,
         order_row.parent_limit_price,
-        order_row.calculated_filled_price,
+        order_row.filled_price,
     )
 
     return delay, bid_ask, execution, versus_limit, versus_parent_limit, total_trading

@@ -1,6 +1,6 @@
 import psutil
 import subprocess
-from sysdata.private_config import get_private_config_key_value
+from sysdata.config.private_config import get_private_config_key_value
 from syscore.objects import missing_data
 
 ## IF THIS FILE IS MOVED, NEED TO UPDATE THE NEXT LINE

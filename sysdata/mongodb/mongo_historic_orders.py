@@ -1,15 +1,23 @@
 import datetime
 
-from syscore.objects import success, missing_order, resolve_function, arg_not_supplied
-from sysdata.mongodb.mongo_connection import mongoConnection, MONGO_ID_KEY
+from syscore.objects import success, missing_order, missing_data, arg_not_supplied
+from sysdata.mongodb.mongo_generic import mongoDataWithSingleKey
+
+from sysexecution.orders.base_orders import Order
+from sysexecution.orders.instrument_orders import instrumentOrder
+from sysexecution.orders.contract_orders import contractOrder
+from sysexecution.orders.broker_orders import brokerOrder
+
 from syslogdiag.log import logtoscreen
 from sysdata.production.historic_orders import (
     genericOrdersData,
     strategyHistoricOrdersData,
     contractHistoricOrdersData,
+    brokerHistoricOrdersData
 )
-from sysexecution.contract_orders import contractTradeableObject
-from sysexecution.instrument_orders import instrumentTradeableObject
+
+from sysobjects.production.tradeable_object import instrumentStrategy , \
+    futuresContractStrategy
 
 ORDER_ID_STORE_KEY = "_ORDER_ID_STORE_KEY"
 
@@ -24,98 +32,92 @@ class mongoGenericHistoricOrdersData(genericOrdersData):
     def _collection_name(self):
         raise NotImplementedError("Need to inherit for a specific data type")
 
-    def _order_class_str(self):
+    def _order_class(self):
         raise NotImplementedError("Need to inherit for a specific data type")
 
-    def _order_class(self):
-        class_as_str = self._order_class_str()
-        return resolve_function(class_as_str)
+    def _name(self):
+        return "Historic orders"
+
 
     def __init__(
-        self, mongo_db=None, log=logtoscreen("mongoGenericHistoricOrdersData")
+        self, mongo_db=None,
+            log=logtoscreen("mongoGenericHistoricOrdersData")
     ):
         # Not needed as we don't store anything in _state attribute used in parent class
         # If we did have _state would risk breaking if we forgot to override methods
         # super().__init__()
+        collection_name = self._collection_name()
+        self._mongo_data = mongoDataWithSingleKey(collection_name, "order_id", mongo_db=mongo_db)
 
-        self._mongo = mongoConnection(
-            self._collection_name(), mongo_db=mongo_db)
-
-        # this won't create the index if it already exists
-        self._mongo.create_index("order_id")
         super().__init__(log = log)
 
     @property
-    def _name(self):
-        return "Generic historic orders"
+    def mongo_data(self):
+        return self._mongo_data
 
     def __repr__(self):
-        return "Data connection for %s, mongodb %s/%s @ %s -p %s " % (
-            self._name,
-            self._mongo.database_name,
-            self._mongo.collection_name,
-            self._mongo.host,
-            self._mongo.port,
-        )
+        return "%s (%s)" % (self._name, str(self.mongo_data))
 
-    def add_order_to_data(self, order, ignore_duplication=False):
+    def add_order_to_data(self, order: Order, ignore_duplication:bool=False):
         # Duplicates will be overriden, so be careful
         order_id = order.order_id
-        if self.get_order_with_orderid(order_id) is missing_order:
+        no_existing_order =self.get_order_with_orderid(order_id) is missing_order
+        if no_existing_order:
             return self._add_order_to_data_no_checking(order)
-        if ignore_duplication:
-            return self.update_order_with_orderid(order_id, order)
         else:
-            raise Exception(
-                "Can't add order %s as order id %d already exists!"
-                % (str(order), order_id)
-            )
+            if ignore_duplication:
+                return self.update_order_with_orderid(order_id, order)
+            else:
+                raise Exception(
+                    "Can't add order %s as order id %d already exists!"
+                    % (str(order), order_id)
+                )
 
-    def _add_order_to_data_no_checking(self, order):
+    def _add_order_to_data_no_checking(self, order: Order):
         # Duplicates will be overriden, so be careful
         mongo_record = order.as_dict()
-        self._mongo.collection.insert_one(mongo_record)
-        return success
 
-    def get_order_with_orderid(self, order_id):
-        result_dict = self._mongo.collection.find_one(dict(order_id=order_id))
-        if result_dict is None:
+        self.mongo_data.add_data(order.order_id, mongo_record, allow_overwrite=True)
+
+    def get_order_with_orderid(self, order_id: int):
+        result_dict = self.mongo_data.get_result_dict_for_key(order_id)
+
+        if result_dict is missing_data:
             return missing_order
-        result_dict.pop(MONGO_ID_KEY)
 
         order_class = self._order_class()
         order = order_class.from_dict(result_dict)
+
         return order
 
-    def delete_order_with_orderid(self, order_id):
-        self._mongo.collection.remove(dict(order_id=order_id))
-        return success
+
+    def _delete_order_with_orderid_without_checking(self, order_id):
+        self.mongo_data.delete_data_without_any_warning(order_id)
 
     def update_order_with_orderid(self, order_id, order):
-        self._mongo.collection.update_one(
-            dict(order_id=order_id), {"$set": order.as_dict()}
-        )
+        mongo_record = order.as_dict()
+        self.mongo_data.add_data(order_id, mongo_record)
 
-    def get_list_of_order_ids(self):
-        cursor = self._mongo.collection.find()
-        order_ids = [db_entry["order_id"] for db_entry in cursor]
+    def get_list_of_order_ids(self) -> list:
+        order_ids = self.mongo_data.get_list_of_keys()
 
         return order_ids
 
-    def get_orders_in_date_range(
+    def get_list_of_order_ids_in_date_range(
             self,
-            period_start,
-            period_end=arg_not_supplied):
+            period_start: datetime.datetime,
+            period_end: datetime.datetime=arg_not_supplied) -> list:
+
         if period_end is arg_not_supplied:
             period_end = datetime.datetime.now()
-        cursor = self._mongo.collection.find(
-            dict(fill_datetime={"$gte": period_start, "$lt": period_end})
-        )
 
-        order_ids = [db_entry["order_id"] for db_entry in cursor]
+        find_dict =\
+            dict(fill_datetime={"$gte": period_start, "$lt": period_end})
+
+        list_of_order_dicts = self.mongo_data.get_list_of_result_dict_for_custom_dict(find_dict)
+        order_ids = [order_dict['order_id'] for order_dict in list_of_order_dicts]
 
         return order_ids
-
 
 class mongoStrategyHistoricOrdersData(
     mongoGenericHistoricOrdersData, strategyHistoricOrdersData
@@ -123,17 +125,31 @@ class mongoStrategyHistoricOrdersData(
     def _collection_name(self):
         return "_STRATEGY_HISTORIC_ORDERS"
 
-    def _order_class_str(self):
-        return "sysexecution.instrument_orders.instrumentOrder"
+    def _order_class(self):
+        return instrumentOrder
 
-    def get_list_of_order_ids_for_strategy_and_instrument_code(
-        self, strategy_name, instrument_code
-    ):
-        tradeable_object = instrumentTradeableObject(
-            strategy_name, instrument_code)
-        object_key = tradeable_object.key
-        result_dict = self._mongo.collection.find(dict(key=object_key))
-        list_of_order_id = [result["order_id"] for result in result_dict]
+    def _name(self):
+        return "Historic instrument/strategy orders"
+
+
+    def get_list_of_order_ids_for_instrument_strategy(self, instrument_strategy: instrumentStrategy) -> list:
+
+        old_list_of_order_id = self._get_list_of_order_ids_for_instrument_strategy_specify_key(instrument_strategy,
+                                                                                           "old_key")
+        new_list_of_order_id = self._get_list_of_order_ids_for_instrument_strategy_specify_key(instrument_strategy,
+                                                                                           "key")
+
+        return old_list_of_order_id + new_list_of_order_id
+
+    def _get_list_of_order_ids_for_instrument_strategy_specify_key(self, instrument_strategy: instrumentStrategy,
+                                                                   keyfield: str) -> list:
+
+        object_key = getattr(instrument_strategy, keyfield)
+        custom_dict = dict(key = object_key)
+        list_of_result_dicts = self.mongo_data.get_list_of_result_dict_for_custom_dict(custom_dict)
+
+        list_of_order_id = [result["order_id"] for result in list_of_result_dicts]
+
         return list_of_order_id
 
 
@@ -143,42 +159,46 @@ class mongoContractHistoricOrdersData(
     def _collection_name(self):
         return "_CONTRACT_HISTORIC_ORDERS"
 
-    def _order_class_str(self):
-        return "sysexecution.broker_orders.contractOrder"
+    def _order_class(self):
+        return contractOrder
 
-    def get_list_of_order_ids_for_strategy_and_contract(
-        self, strategy_name, contract_object
-    ):
-        instrument_code = contract_object.instrument_code
-        contract_id = contract_object.date_str
+    def _name(self):
+        return "Historic contract orders"
 
-        tradeable_object = contractTradeableObject(
-            strategy_name, instrument_code, contract_id
-        )
-        object_key = tradeable_object.key
-        result_dict = self._mongo.collection.find(dict(key=object_key))
-        list_oforder_id = [result["order_id"] for result in result_dict]
-
-        alt_key = tradeable_object.alt_key
-        result_dict = self._mongo.collection.find(dict(key=alt_key))
-        alt_list_oforder_id = [result["order_id"] for result in result_dict]
-
-        list_oforder_id = list_oforder_id + alt_list_oforder_id
-
-        return list_oforder_id
-
-    def get_list_of_all_keys(self):
-        result_dict = self._mongo.collection.find()
-        key_list = [result["key"] for result in result_dict]
-
-        return key_list
 
 
 class mongoBrokerHistoricOrdersData(
-    mongoGenericHistoricOrdersData, contractHistoricOrdersData
+    mongoGenericHistoricOrdersData, brokerHistoricOrdersData
 ):
     def _collection_name(self):
         return "_BROKER_HISTORIC_ORDERS"
 
-    def _order_class_str(self):
-        return "sysexecution.broker_orders.brokerOrder"
+    def _order_class(self):
+        return brokerOrder
+
+    def _name(self):
+        return "Historic broker orders"
+
+    def get_list_of_order_ids_for_instrument_and_contract_str(self, instrument_code: str,
+                                                              contract_str: str) -> list:
+        order_id_list = self.get_list_of_order_ids()
+        key_list = [self.mongo_data.get_result_dict_for_key(order_id)['key'] for order_id in order_id_list]
+        contract_strategies = [futuresContractStrategy.from_key(key) for key in key_list]
+
+        def _contains_both(futures_contract_strategy: futuresContractStrategy, instrument_code: str,
+                                                              contract_str: str):
+            list_of_date_str = futures_contract_strategy.contract_date.list_of_date_str
+            if futures_contract_strategy.instrument_code == instrument_code and\
+                contract_str in list_of_date_str:
+                return True
+            else:
+                return False
+
+        order_ids = [orderid for orderid, futures_contract_strategy in zip(order_id_list,
+                                                                           contract_strategies)
+                     if _contains_both(futures_contract_strategy,
+                                       instrument_code=instrument_code,
+                                       contract_str=contract_str)]
+
+
+        return order_ids

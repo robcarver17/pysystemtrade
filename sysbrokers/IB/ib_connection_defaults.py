@@ -1,5 +1,5 @@
 from syscore.genutils import get_safe_from_dict
-from sysdata.private_config import get_list_of_private_then_default_key_values
+from sysdata.config.private_config import get_list_of_private_then_default_key_values
 
 DEFAULT_IB_IPADDRESS = "127.0.0.1"
 DEFAULT_IB_PORT = 4001

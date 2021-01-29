@@ -5,7 +5,7 @@ print(my_system)
 print(my_system.portfolio.get_notional_position("EDOLLAR").tail(5))
 
 from sysdata.sim.csv_futures_sim_data import csvFuturesSimData
-from sysdata.configdata import Config
+from sysdata.config.configdata import Config
 
 """
 Now loading config and data

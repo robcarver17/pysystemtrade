@@ -4,7 +4,7 @@ import numpy as np
 
 from syscore.genutils import get_safe_from_dict
 from syscore.objects import arg_not_supplied
-from sysdata.private_config import get_list_of_private_then_default_key_values
+from sysdata.config.private_config import get_list_of_private_then_default_key_values
 
 LIST_OF_MONGO_PARAMS = ["db", "host"]
 

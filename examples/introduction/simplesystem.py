@@ -66,7 +66,7 @@ print(my_rules.trading_rules()["ewmac32"])
 my_system = System([my_rules], data)
 my_system.rules.get_raw_forecast("EDOLLAR", "ewmac32").tail(5)
 
-from sysdata.configdata import Config
+from sysdata.config.configdata import Config
 
 my_config = Config()
 my_config

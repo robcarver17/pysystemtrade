@@ -2,9 +2,9 @@ import os
 import shutil
 
 from syscore.fileutils import get_resolved_pathname
-from sysdata.private_config import get_main_backup_directory
+from sysdata.config.private_config import get_main_backup_directory
 
-from sysdata.private_config import (
+from sysdata.config.private_config import (
     get_private_then_default_key_value,
 )
 from sysdata.data_blob import dataBlob

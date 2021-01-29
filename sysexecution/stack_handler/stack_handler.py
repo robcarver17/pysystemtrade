@@ -22,8 +22,6 @@ from sysexecution.stack_handler.spawn_children_from_instrument_orders import (
 from sysexecution.stack_handler.roll_orders import stackHandlerForRolls
 from sysexecution.stack_handler.create_broker_orders_from_contract_orders import (
     stackHandlerCreateBrokerOrders, )
-from sysexecution.stack_handler.fills import stackHandlerForFills
-from sysexecution.stack_handler.completed_orders import stackHandlerForCompletions
 from sysexecution.stack_handler.cancel_and_modify import stackHandlerCancelAndModify
 from sysexecution.stack_handler.checks import stackHandlerChecks
 
@@ -32,8 +30,6 @@ class stackHandler(
     stackHandlerForSpawning,
     stackHandlerForRolls,
     stackHandlerCreateBrokerOrders,
-    stackHandlerForFills,
-    stackHandlerForCompletions,
     stackHandlerCancelAndModify,
     stackHandlerChecks,
 ):
@@ -58,6 +54,8 @@ class stackHandler(
         self.handle_completed_orders(
             allow_partial_completions=True, allow_zero_completions=True
         )
+
+        self.remove_all_deactivated_orders_from_stack()
 
     def remove_all_deactivated_orders_from_stack(self):
         # Now we can delete everything

@@ -17,6 +17,7 @@ across multiple parts of the code in more detail. The final part
 Table of Contents
 =================
 
+   * [Table of Contents](#table-of-contents)
    * [How do I?](#how-do-i)
       * [How do I.... Experiment with a single trading rule and instrument](#how-do-i-experiment-with-a-single-trading-rule-and-instrument)
       * [How do I....Create a standard futures backtest](#how-do-icreate-a-standard-futures-backtest)
@@ -33,14 +34,15 @@ Table of Contents
          * [Change instruments: Change the configuration object](#change-instruments-change-the-configuration-object)
       * [How do I....Create my own trading rule](#how-do-icreate-my-own-trading-rule)
          * [Writing the function](#writing-the-function)
+         * [Adding the trading rule to a configuration](#adding-the-trading-rule-to-a-configuration)
       * [How do I....Use different data or instruments](#how-do-iuse-different-data-or-instruments)
       * [How do I... Save my work](#how-do-i-save-my-work)
    * [Guide](#guide)
       * [Data](#data)
          * [Using the standard data objects](#using-the-standard-data-objects)
             * [Generic data objects](#generic-data-objects)
-            * [The <a href="/sysdata/csv/csv_sim_futures_data.py">csvFuturesSimData</a> object](#the-csvfuturessimdata-object)
-            * [The <a href="/sysdata/arctic/arctic_and_mongo_sim_futures_data.py">arcticSimData</a> object](#the-arcticsimdata-object)
+            * [The csvFuturesSimData object](#the-csvfuturessimdata-object)
+            * [The arcticSimData object](#the-arcticsimdata-object)
                * [Setting up your Arctic and Mongo DB databases](#setting-up-your-arctic-and-mongo-db-databases)
                * [Using arcticFuturesSimData](#using-arcticfuturessimdata)
          * [Creating your own data objects](#creating-your-own-data-objects)
@@ -64,7 +66,7 @@ Table of Contents
       * [System](#system)
          * [Pre-baked systems](#pre-baked-systems)
             * [<a href="/systems/provided/futures_chapter15/basesystem.py">Futures system for chapter 15</a>](#futures-system-for-chapter-15)
-            * [<a href="/systems/provided/futures_chapter15/estimatedsystem.py">Futures system for chapter 15</a>](#futures-system-for-chapter-15-1)
+            * [<a href="/systems/provided/futures_chapter15/estimatedsystem.py">Estimated system for chapter 15</a>](#estimated-system-for-chapter-15)
          * [Using the system object](#using-the-system-object)
             * [Accessing child stages, data, and config within a system](#accessing-child-stages-data-and-config-within-a-system)
             * [System methods](#system-methods)
@@ -857,7 +859,7 @@ should omit the system eg `data.get_raw_price`)
 
 <a name="csvdata"> </a>
 
-#### The [csvFuturesSimData](/sysdata/csv/csv_sim_futures_data.py) object
+#### The csvFuturesSimData object
 
 The `csvFuturesSimData` object works like this:
 
@@ -925,7 +927,7 @@ For more information see the [futures data document](/docs/data.md#csvFuturesSim
 
 <a name="arctic_data"> </a>
 
-#### The [arcticSimData](/sysdata/arctic/arctic_and_mongo_sim_futures_data.py) object
+#### The arcticSimData object
 
 This is a simData object which gets it's data out of [Mongo DB](https://mongodb.com) (static) and [Arctic](https://github.com/manahl/arctic) (time series) (*Yes the class name should include both terms. Yes I shortened it so it isn't ridiculously long, and most of the interesting stuff comes from Arctic*). It is better for live trading.
 
@@ -975,10 +977,10 @@ print(system.accounts.portfolio().sharpe())
 You should be familiar with the python object orientated idiom before reading
 this section.
 
-The [`simData()`](/sysdata/data.py) object is the base class for data used in simulations. From that we
+The [`simData()`](/sysdata/sim/sim_data.py) object is the base class for data used in simulations. From that we
 inherit data type specific classes such as those
-[for futures](/sysdata/futures/futuresDataForSim.py) object. These in turn are inherited from
-for specific data sources, such as for csv files: [csvFuturesSimData()](/sysdata/csv/csv_sim_futures_data.py).
+[for futures](/sysdata/sim/futures_sim_data.py) object. These in turn are inherited from
+for specific data sources, such as for csv files: [csvFuturesSimData()](/sysdata/sim/csv_futures_sim_data.py).
 
 It is helpful if this naming scheme was adhered to: sourceTypeSimData. For example if we had
 some single equity data stored in a database we'd do `class
@@ -995,7 +997,7 @@ This might seem a hassle, and it's tempting to skip and just inherit from
 convenient to have the possibility of multiple data sources and this process
 ensures they keep a consistent API for a given data type.
 
-It's worth reading the [documentation on futures data](/docs/data.md#modify_SimData) to understand how [csvFuturesSimData()](/sysdata/csv/csv_sim_futures_data.py) is constructed before modifying it or creating your own data objects.
+It's worth reading the [documentation on futures data](/docs/data.md#modify_SimData) to understand how [csvFuturesSimData()](/sysdata/sim/csv_futures_sim_data.py) is constructed before modifying it or creating your own data objects.
 
 #### The Data() class
 
