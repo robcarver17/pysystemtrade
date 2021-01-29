@@ -12,7 +12,7 @@ from syscore.objects import arg_not_supplied, missing_data
 
 from syslogdiag.log import logtoscreen
 
-from sysdata.private_config import get_private_then_default_key_value
+from sysdata.config.private_config import get_private_then_default_key_value
 
 
 def get_broker_account() -> str:

@@ -1,12 +1,11 @@
 ## Merge series together
-from dataclasses import dataclass
 from copy import copy
 import pandas as pd
 import datetime
 
 from syscore.dateutils import SECONDS_PER_DAY
 from syscore.objects import arg_not_supplied, _named_object
-from sysdata.private_config import get_private_then_default_key_value
+from sysdata.config.private_config import get_private_then_default_key_value
 
 class mergeStatus(object):
     def __init__(self, text):

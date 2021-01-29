@@ -1,7 +1,7 @@
 import os
 
 from syscore.fileutils import get_resolved_pathname
-from sysdata.private_config import get_main_backup_directory
+from sysdata.config.private_config import get_main_backup_directory
 from sysdata.data_blob import dataBlob
 
 from sysproduction.diagnostic.backtest_state import get_directory_store_backtests

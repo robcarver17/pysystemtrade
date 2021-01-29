@@ -436,6 +436,9 @@ def resolve_parent(parent: int):
 
 
 def resolve_multi_leg_price_to_single_price(trade_list: tradeQuantity, price_list: list) -> float:
+    if len(price_list)==0:
+        return None
+
     if len(price_list)==1:
         return price_list[0]
 

@@ -2,7 +2,7 @@ import numpy as np
 from systems.futures.rawdata import FuturesRawData
 from systems.basesystem import System
 from sysdata.sim.csv_futures_sim_data import csvFuturesSimData
-from sysdata.configdata import Config
+from sysdata.config.configdata import Config
 import unittest
 
 

@@ -4,7 +4,7 @@ from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 
-from sysdata.private_config import get_list_of_private_config_values
+from sysdata.config.private_config import get_list_of_private_config_values
 
 
 def send_mail_file(textfile, subject):

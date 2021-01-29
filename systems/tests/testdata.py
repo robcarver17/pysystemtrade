@@ -3,7 +3,7 @@ from systems.portfolio import Portfolios
 from systems.futures.rawdata import FuturesRawData
 from systems.rawdata import RawData
 from sysdata.sim.csv_futures_sim_data import csvFuturesSimData
-from sysdata.configdata import Config
+from sysdata.config.configdata import Config
 from systems.forecasting import Rules
 from systems.forecast_scale_cap import ForecastScaleCap
 from systems.forecast_combine import ForecastCombine

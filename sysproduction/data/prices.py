@@ -5,7 +5,7 @@ from syscore.objects import missing_contract, arg_not_supplied, missing_data
 
 from sysobjects.contracts import futuresContract
 from sysobjects.dict_of_futures_per_contract_prices import dictFuturesContractPrices
-from sysdata.private_config import get_private_then_default_key_value
+from sysdata.config.private_config import get_private_then_default_key_value
 from sysdata.arctic.arctic_futures_per_contract_prices import arcticFuturesContractPriceData, futuresContractPrices
 from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesData, futuresMultiplePrices
 from sysdata.arctic.arctic_adjusted_prices import arcticFuturesAdjustedPricesData, futuresAdjustedPrices

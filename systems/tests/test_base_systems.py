@@ -7,7 +7,7 @@ import unittest
 from systems.stage import SystemStage
 from systems.basesystem import System
 from sysdata.sim.sim_data import simData
-from sysdata.configdata import Config
+from sysdata.config.configdata import Config
 
 
 class Test(unittest.TestCase):

@@ -18,15 +18,6 @@ def get_private_config():
 
     return config_dict
 
-def get_private_control_config():
-    try:
-        with open(PRIVATE_CONFIG_FILE) as file_to_parse:
-            config_dict = yaml.load(file_to_parse, Loader=yaml.FullLoader)
-    except BaseException:
-        config_dict = {}
-
-    return config_dict
-
 
 def get_private_config_key_value(
     key_name, private_config_dict=arg_not_supplied, raise_error=False

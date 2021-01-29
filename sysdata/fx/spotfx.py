@@ -9,7 +9,7 @@ from sysdata.base_data import baseData
 from syscore.merge_data import spike_in_data
 
 from sysobjects.spot_fx_prices import fxPrices, get_fx_tuple_from_code, DEFAULT_CURRENCY
-from sysdata.private_config import get_private_then_default_key_value
+from sysdata.config.private_config import get_private_then_default_key_value
 
 
 DEFAULT_DATES = pd.date_range(

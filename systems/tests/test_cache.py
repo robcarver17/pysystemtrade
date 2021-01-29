@@ -4,7 +4,7 @@ from systems.stage import SystemStage
 from systems.basesystem import System
 from systems.system_cache import input, diagnostic, output, ALL_KEYNAME
 from sysdata.sim.sim_data import simData
-from sysdata.configdata import Config
+from sysdata.config.configdata import Config
 
 
 class testStage1(SystemStage):

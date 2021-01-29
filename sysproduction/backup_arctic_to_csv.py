@@ -1,7 +1,7 @@
 import pandas as pd
 from syscore.objects import missing_data
 from syscore.pdutils import check_df_equals, check_ts_equals
-from sysdata.private_config import get_private_then_default_key_value
+from sysdata.config.private_config import get_private_then_default_key_value
 
 from sysobjects.production.tradeable_object import instrumentStrategy
 
@@ -37,7 +37,7 @@ from sysdata.mongodb.mongo_optimal_position import mongoOptimalPositionData
 from sysdata.mongodb.mongo_roll_data import mongoRollParametersData
 from sysdata.mongodb.mongo_roll_state_storage import mongoRollStateData
 
-from sysdata.private_config import get_main_backup_directory
+from sysdata.config.private_config import get_main_backup_directory
 
 
 def backup_arctic_to_csv():

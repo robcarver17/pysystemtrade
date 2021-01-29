@@ -11,7 +11,7 @@ this:
 
 from syscore.objects import success, missing_data, arg_not_supplied
 
-from sysdata.configdata import Config
+from sysdata.config.configdata import Config
 from sysobjects.production.optimal_positions import bufferedOptimalPositions
 from sysobjects.production.tradeable_object import instrumentStrategy
 

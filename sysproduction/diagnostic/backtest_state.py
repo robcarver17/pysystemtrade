@@ -4,7 +4,7 @@ from shutil import copyfile
 
 from syscore.objects import success, failure, resolve_function
 from syscore.fileutils import get_resolved_pathname, files_with_extension_in_pathname
-from sysdata.private_config import get_private_then_default_key_value
+from sysdata.config.private_config import get_private_then_default_key_value
 from sysproduction.data.strategies import diagStrategiesConfig
 
 PICKLE_EXT = ".pck"
