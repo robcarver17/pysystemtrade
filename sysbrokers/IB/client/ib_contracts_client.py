@@ -65,7 +65,7 @@ class ibContractsClient(ibClient):
         return expiry_date
 
 
-    def ib_get_trading_hours(self, contract_object_with_ib_data: futuresContract):
+    def ib_get_trading_hours(self, contract_object_with_ib_data: futuresContract) -> list:
         specific_log = contract_object_with_ib_data.specific_log(self.log)
         ib_contract = self.ib_futures_contract(
             contract_object_with_ib_data, always_return_single_leg=True
