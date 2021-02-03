@@ -57,7 +57,7 @@ class mongoOrderStackData(orderStackData):
 
     def _get_list_of_all_order_ids(self) -> list:
         order_ids = self.mongo_data.get_list_of_keys()
-        order_ids.pop(order_ids.index(ORDER_ID_STORE_KEY))
+        order_ids.pop(order_ids.index(ORDER_ID_STORE_KEY), None)
 
         return order_ids
 
