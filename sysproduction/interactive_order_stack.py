@@ -851,7 +851,7 @@ def cancel_broker_order(data):
     if broker_order_id == "ALL":
         stack_handler.try_and_cancel_all_broker_orders_and_return_list_of_orders()
     else:
-        stack_handler.cancel_broker_order(broker_order_id)
+        stack_handler.cancel_broker_order_with_id_and_return_order(broker_order_id)
 
 
 def instrument_locking(data):
