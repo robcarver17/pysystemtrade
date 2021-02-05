@@ -498,12 +498,14 @@ def get_position_for_instrument_code_at_timestamp(
     positions_over_time = diag_positions.get_position_df_for_strategy_and_instrument(
         data_backtest.strategy_name, instrument_code)
     datetime_cutoff = from_marker_to_datetime(data_backtest.timestamp)
+    positions_over_time_ffill =  positions_over_time.ffill()
+    positions_before_cutoff =   positions_over_time_ffill[:datetime_cutoff]
 
-    position_at_backtest_state = (
-        positions_over_time[:datetime_cutoff].ffill().values[-1]
-    )
+    if len(positions_before_cutoff)==0:
+        return np.nan
+    final_position = positions_before_cutoff.values[-1]
 
-    return position_at_backtest_state
+    return final_position
 
 
 def get_current_position_for_instrument_code(
