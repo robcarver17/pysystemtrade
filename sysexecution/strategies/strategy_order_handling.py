@@ -154,9 +154,6 @@ class orderGeneratorForStrategy(object):
             # An existing order of the same size
             log.warn("Ignoring new order as eithier zero size or it replicates an existing order on the stack")
 
-        except Exception as e:
-            log.critical("Something went very wrong when submitting order %s!" % str(cut_down_order))
-                        
         else:
             log.msg(
                     "Added order %s to instrument order stack with order id %d"

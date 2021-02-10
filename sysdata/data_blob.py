@@ -210,8 +210,20 @@ class dataBlob(object):
         return attr_name
 
     def _add_new_class_with_new_name(self, resolved_instance, attr_name:str):
-        setattr(self, attr_name, resolved_instance)
-        self._add_attr_to_list(attr_name)
+        already_exists = self._already_existing_class_name(attr_name)
+        if already_exists:
+            ## not uncommon don't log or would be a sea of span
+            pass
+        else:
+            setattr(self, attr_name, resolved_instance)
+            self._add_attr_to_list(attr_name)
+
+    def _already_existing_class_name(self, attr_name: str):
+        existing_attr = getattr(self, attr_name, None)
+        if existing_attr is None:
+            return False
+        else:
+            return True
 
 
     def _add_attr_to_list(self, new_attr: str):
