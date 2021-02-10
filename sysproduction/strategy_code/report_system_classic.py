@@ -499,13 +499,14 @@ def get_position_for_instrument_code_at_timestamp(
         data_backtest.strategy_name, instrument_code)
     if positions_over_time is missing_data:
         return np.nan
+
     datetime_cutoff = from_marker_to_datetime(data_backtest.timestamp)
     positions_over_time_ffill =  positions_over_time.ffill()
     positions_before_cutoff =   positions_over_time_ffill[:datetime_cutoff]
 
     if len(positions_before_cutoff)==0:
         return np.nan
-    final_position = positions_before_cutoff.values[-1]
+    final_position = positions_before_cutoff.iloc[-1].position
 
     return final_position
 
