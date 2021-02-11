@@ -17,9 +17,9 @@ import yaml
 from syscore.fileutils import get_filename_for_package
 from systems.defaults import get_system_defaults
 from syslogdiag.log import logtoscreen
-from syscore.objects import get_methods
+from sysdata.config.fill_config_dict_with_defaults import fill_config_dict_with_defaults
 
-RESERVED_NAMES = ["log", "_elements"]
+RESERVED_NAMES = ["log", "_elements", "elements"]
 
 
 class Config(object):
@@ -48,10 +48,9 @@ class Config(object):
         Config with elements: another_thing, parameters, trading_rules
 
         """
-        setattr(self, "_elements", [])  # will be populated later
 
         # this will normally be overriden by the base system
-        setattr(self, "log", logtoscreen(type="config", stage="config"))
+        self.log= logtoscreen(type="config", stage="config")
 
         if isinstance(config_object, list):
             # multiple configs
@@ -60,19 +59,36 @@ class Config(object):
         else:
             self._create_config_from_item(config_object)
 
-    def _system_init(self, base_system):
-        """
-        This is run when added to a base system
+    @property
+    def elements(self) -> list:
+        elements = getattr(self, "_elements", [])
 
-        :param base_system
-        :return: nothing
-        """
+        return elements
 
-        # inherit the log
-        setattr(self, "log", base_system.log.setup(stage="config"))
+    @elements.setter
+    def elements(self, new_elements):
+        self._elements = new_elements
 
-        # fill with defaults
-        self.fill_with_defaults()
+    def add_elements(self, new_elements: list):
+        _ = [self.add_single_element(element_name) for element_name in new_elements]
+
+    def remove_element(self, element: str):
+        current_elements = self.elements
+        current_elements.remove(element)
+        self.elements = current_elements
+
+    def add_single_element(self, element_name):
+        if element_name not in RESERVED_NAMES:
+            elements = self.elements
+            if element_name not in elements:
+                elements.append(element_name)
+                self.elements = elements
+
+
+    def __repr__(self):
+        elements = self.elements
+        elements.sort()
+        return "Config with elements: %s" % ", ".join(self.elements)
 
     def _create_config_from_item(self, config_item):
         if isinstance(config_item, dict):
@@ -112,10 +128,22 @@ class Config(object):
         attr_names = list(config_object.keys())
         [setattr(self, keyname, config_object[keyname])
          for keyname in config_object]
-        existing_elements = getattr(self, "_elements", [])
-        new_elements = list(set(existing_elements + attr_names))
 
-        setattr(self, "_elements", new_elements)
+        self.add_elements(attr_names)
+
+    def system_init(self, base_system):
+        """
+        This is run when added to a base system
+
+        :param base_system
+        :return: nothing
+        """
+
+        # inherit the log
+        setattr(self, "log", base_system.log.setup(stage="config"))
+
+        # fill with defaults
+        self.fill_with_defaults()
 
     def __delattr__(self, element_name):
         """
@@ -130,8 +158,7 @@ class Config(object):
         # to avoid recursion, we must first avoid recursion
         super().__delattr__(element_name)
 
-        elements = self._elements
-        elements.remove(element_name)
+        self.remove_element(element_name)
 
     def __setattr__(self, element_name, value):
         """
@@ -148,11 +175,7 @@ class Config(object):
         """
         # to avoid recursion, we must first avoid recursion
         super().__setattr__(element_name, value)
-
-        if element_name not in RESERVED_NAMES:
-            elements = self._elements
-            if element_name not in elements:
-                elements.append(element_name)
+        self.add_single_element(element_name)
 
     def fill_with_defaults(self):
         """
@@ -176,104 +199,12 @@ class Config(object):
         """
         self.log.msg("Adding config defaults")
 
-        existing_elements = self._elements
-        default_elements = list(get_system_defaults().keys())
+        self_as_dict = self.as_dict()
+        default_dict = get_system_defaults()
 
-        new_elements = list(set(existing_elements + default_elements))
-        [self.element_fill_with_defaults(element_name)
-         for element_name in new_elements]
+        new_dict = fill_config_dict_with_defaults(self_as_dict, default_dict)
 
-        setattr(self, "_elements", new_elements)
-
-    def element_fill_with_defaults(self, element_name):
-        """
-        Fills the config with any defaults for element_name
-
-        If item is a dict, then calls dict_with_defaults
-
-        """
-
-        config_item = getattr(self, element_name, None)
-        default_item = get_system_defaults().get(element_name, None)
-
-        if config_item is None:
-            if default_item is None:
-                error_msg = "Element %s not in defaults or config" % element_name
-                self.log.critical(error_msg)
-
-            else:
-                config_item = default_item
-
-        if isinstance(config_item, dict):
-            if isinstance(default_item, dict):
-                config_item = self.dict_with_defaults(element_name)
-        else:
-            if isinstance(default_item, dict):
-                error_msg = (
-                    "Config item %s is not a dict, but it is in the default!"
-                    % element_name
-                )
-                self.log.critical(error_msg)
-
-        setattr(self, element_name, config_item)
-
-    def dict_with_defaults(self, element_name):
-        """
-        Returns config.element_name with any keys missing replaced with system defaults
-
-        Only works for configs where the element is a dict
-        """
-        config_dict = copy(getattr(self, element_name, dict()))
-
-        default_dict = get_system_defaults().get(element_name, dict())
-        required = default_dict.keys()
-
-        for dict_key in required:
-            # key automatically in default...
-            if dict_key not in config_dict:
-                config_dict[dict_key] = default_dict[dict_key]
-
-            if isinstance(config_dict[dict_key], dict):
-                if isinstance(default_dict[dict_key], dict):
-                    config_dict[dict_key] = self.nested_dict_with_defaults(
-                        element_name, dict_key
-                    )
-            else:
-                if isinstance(default_dict[dict_key], dict):
-                    error_msg = (
-                        "You've created a config where %s.%s is not a dict, but it is in the default config!" %
-                        (element_name, dict_key))
-                    self.log.critical(error_msg)
-
-        return config_dict
-
-    def nested_dict_with_defaults(self, element_name, dict_name):
-        """
-        Returns config.element_name[dict_name] with any keys required replaced
-        with system defaults
-
-        Only works for configs where the element is a nested dict
-        """
-        element_in_config = copy(getattr(self, element_name, dict()))
-        nested_config_dict = element_in_config.get(dict_name, dict())
-
-        element_in_default = get_system_defaults().get(element_name, dict())
-        nested_default_dict = element_in_default.get(dict_name, dict())
-
-        required = nested_default_dict.keys()
-
-        if len(required) > 0:
-
-            for dict_key in required:
-                if dict_key not in nested_config_dict:
-                    nested_config_dict[dict_key] = nested_default_dict[dict_key]
-
-        return nested_config_dict
-
-    def __repr__(self):
-        element_names = sorted(getattr(self, "_elements", []))
-        element_names = ", ".join(element_names)
-        return "Config with elements: " + element_names
+        self._create_config_from_dict(new_dict)
 
     def as_dict(self):
         element_names = sorted(getattr(self, "_elements", []))

@@ -66,7 +66,7 @@ class System(object):
         setattr(self, "config", config)
         self._log = log
 
-        self.config._system_init(self)
+        self.config.system_init(self)
         self.data._system_init(self)
 
         stage_names = []

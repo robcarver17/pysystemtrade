@@ -13,7 +13,7 @@ import yaml
 DEFAULT_FILENAME = "systems.provided.defaults.yaml"
 
 
-def get_system_defaults():
+def get_system_defaults() -> dict:
     """
     >>> system_defaults['average_absolute_forecast']
     10.0

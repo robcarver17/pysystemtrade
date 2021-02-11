@@ -14,11 +14,9 @@ def fill_config_dict_with_defaults(config_dict, defaults_dict):
         default_value = defaults_dict.get(key, None)
         if config_value is None:
             config_value = default_value
-
-        if default_value is None:
+        elif default_value is None:
             continue
-
-        if type(config_value) is dict and type(defaults_dict) is dict:
+        elif type(config_value) is dict and type(defaults_dict) is dict:
             config_value = fill_config_dict_with_defaults(config_value, default_value)
 
         config_dict[key] = config_value
