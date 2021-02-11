@@ -3,6 +3,7 @@ from copy import copy
 from sysbrokers.IB.ib_connection import connectionIB
 from syscore.objects import arg_not_supplied, get_class_name
 from syscore.text import camel_case_split
+from sysdata.config.private_config import get_private_config, Config
 from sysdata.mongodb.mongo_connection import mongoDb
 from sysdata.mongodb.mongo_log import logToMongod
 from syslogdiag.log import logger
@@ -18,6 +19,7 @@ class dataBlob(object):
         ib_conn: connectionIB=arg_not_supplied,
         mongo_db: mongoDb=arg_not_supplied,
         log: logger=arg_not_supplied,
+        config: Config = arg_not_supplied,
         keep_original_prefix: bool=False,
     ):
         """
@@ -61,6 +63,7 @@ class dataBlob(object):
         self._log = log
         self._log_name = log_name
         self._csv_data_paths = csv_data_paths
+        self._config = config
         self._keep_original_prefix = keep_original_prefix
 
         self._attr_list = []
@@ -268,6 +271,14 @@ class dataBlob(object):
             self._mongo_db = mongo_db
 
         return mongo_db
+
+    def config(self):
+        config = getattr(self, "_config", arg_not_supplied)
+        if config is arg_not_supplied:
+            config = get_private_config()
+            self._config = config
+
+        return config
 
     def _raise_and_log_error(self, error_msg: str):
         self.log.critical(error_msg)

@@ -1,4 +1,5 @@
 import yaml
+from sysdata.config.configdata import Config
 from syscore.fileutils import get_filename_for_package, get_resolved_pathname
 from syscore.objects import missing_data, arg_not_supplied
 from systems.defaults import (
@@ -9,7 +10,14 @@ from systems.defaults import (
 
 PRIVATE_CONFIG_FILE = get_filename_for_package("private.private_config.yaml")
 
-def get_private_config():
+def get_private_config() -> Config:
+    config_as_dict = get_private_config_as_dict()
+    config = Config(config_as_dict)
+    config.fill_with_defaults()
+
+    return config
+
+def get_private_config_as_dict() -> dict:
     try:
         with open(PRIVATE_CONFIG_FILE) as file_to_parse:
             config_dict = yaml.load(file_to_parse, Loader=yaml.FullLoader)
@@ -19,11 +27,13 @@ def get_private_config():
     return config_dict
 
 
+
 def get_private_config_key_value(
     key_name, private_config_dict=arg_not_supplied, raise_error=False
 ):
+    #FIXME REMOVE
     if private_config_dict is arg_not_supplied:
-        private_config_dict = get_private_config()
+        private_config_dict = get_private_config_as_dict()
     key_value = private_config_dict.get(key_name, missing_data)
 
     if key_value is missing_data and raise_error:
@@ -41,6 +51,8 @@ def get_private_then_default_key_value(
     private_config_dict=arg_not_supplied,
     raise_error=True,
 ):
+    #FIXME REMOVE
+
 
     key_value = get_private_config_key_value(
         key_name, private_config_dict=private_config_dict
@@ -61,9 +73,11 @@ def get_private_then_default_key_value(
 def get_list_of_private_then_default_key_values(
     list_of_key_names, fail_if_any_missing=True
 ):
+    #FIXME REMOVE
+
     result_dict = {}
     system_defaults_dict = get_system_defaults()
-    private_config_dict = get_private_config()
+    private_config_dict = get_private_config_as_dict()
 
     for key_name in list_of_key_names:
         key_value = get_private_then_default_key_value(
@@ -80,8 +94,10 @@ def get_list_of_private_then_default_key_values(
 def get_list_of_private_config_values(
         list_of_key_names,
         fail_if_any_missing=True):
+    #FIXME REMOVE
+
     result_dict = {}
-    private_config_dict = get_private_config()
+    private_config_dict = get_private_config_as_dict()
 
     for key_name in list_of_key_names:
         key_value = get_private_config_key_value(
@@ -94,6 +110,8 @@ def get_list_of_private_config_values(
     return result_dict
 
 def get_main_backup_directory():
+    #FIXME REMOVE
+
     ans = get_private_config_key_value("offsystem_backup_directory")
     if ans is missing_data:
         raise Exception(
