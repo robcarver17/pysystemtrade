@@ -1090,7 +1090,7 @@ lists and dicts, and the standard project code only requires those (if you're a
 PyYAML expert you can do other python objects like tuples, but it won't be
 pretty).
 
-You should respect the structure of the config with respect to nesting, as
+You should respect the structure of the default config with respect to nesting, as
 otherwise [the defaults](#defaults_how) won't be properly filled in.
 
 The section on [configuration options](#Configuration_options) explains what
@@ -1189,10 +1189,8 @@ will work for nested dicts, eg if any keys are missing from
 in from the default file. If something is a dict, or a nested dict, in the
 config but not in the default (or vice versa) then values won't be replaced and
 bad things could happen. It's better to keep your config files, and the default
-file, with matching structures. Again this is a good argument for adding new
+file, with matching structures (for the items you want to change at least!). Again this is a good argument for adding new
 parameters, and retaining the original ones.
-
-This stops at two levels, and only works for dicts and nested dicts.
 
 Note this means that the config before, and after, it goes into a system object
 will probably be different; the latter will be populated with defaults.
@@ -1282,7 +1280,7 @@ config.instrument_div_multiplier=1.1 ## not nested, no problem
 
 ## Heres an example of how you'd change a nested parameter
 ## If the element doesn't yet exist in your config
-## If the element did exist, then obviously doing this would overwrite all other parameters in the config
+## If the element did exist, then obviously doing this would overwrite all other parameters in the config - so don't do it!
 
 config.volatility_calculation=dict(days=20)
 
@@ -1290,7 +1288,7 @@ config.volatility_calculation=dict(days=20)
 config.volatility_calculation['days']=20
 ```
 
-This is especially true if you're changing the config within a system, which
+This is especially true if you're changing the config that has been included within a system, which
 will already include all the defaults:
 
 ```python
