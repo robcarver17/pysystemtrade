@@ -19,7 +19,7 @@ from systems.defaults import get_system_defaults_dict
 from syslogdiag.log import logtoscreen
 from sysdata.config.fill_config_dict_with_defaults import fill_config_dict_with_defaults
 
-RESERVED_NAMES = ["log", "_elements", "elements"]
+RESERVED_NAMES = ["log", "_elements", "elements", "_default_filename", "_default_dict"]
 
 
 class Config(object):
@@ -208,22 +208,22 @@ class Config(object):
         self.log.msg("Adding config defaults")
 
         self_as_dict = self.as_dict()
-        default_dict = self.default_config_dict()
+        default_dict = self._default_config_dict()
 
         new_dict = fill_config_dict_with_defaults(self_as_dict, default_dict)
 
         self._create_config_from_dict(new_dict)
 
-    def default_config_dict(self) -> dict:
+    def _default_config_dict(self) -> dict:
         default_dict = getattr(self, "_default_dict", arg_not_supplied)
         if default_dict is arg_not_supplied:
-            default_filename = self.default_config_filename()
+            default_filename = self._default_config_filename()
             default_dict = get_system_defaults_dict(filename=default_filename)
             self._default_dict = default_dict
 
         return default_dict
 
-    def default_config_filename(self) -> str:
+    def _default_config_filename(self) -> str:
         default_filename = getattr(self, "_default_filename", arg_not_supplied)
 
         return default_filename

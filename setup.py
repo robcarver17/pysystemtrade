@@ -35,6 +35,9 @@ private_yaml_files = package_files(private_dir, "yaml")
 provided_dir = os.path.join(dir_this_file(), "systems", "provided")
 provided_yaml_files = package_files(provided_dir, "yaml")
 
+control_dir = os.path.join(dir_this_file(), "syscontrol")
+control_yaml_files = package_files(control_dir, "yaml")
+
 data_csv_path = os.path.join(dir_this_file(), "data")
 data_csv_files = package_files(data_csv_path, "csv")
 
@@ -53,6 +56,7 @@ package_data = {
     + data_csv_files
     + test_data_csv_files
     + brokers_csv_files
+    + control_yaml_files
 }
 
 print(package_data)
