@@ -2058,6 +2058,11 @@ Note: if you want to avoid trading in an instrument for some other reason, use a
 
 If the broker API has gone crazy or died for some reason then all instruments with active positions will be locked. This is a quick way of unlocking them.
 
+##### Remove Algo lock on contract order
+
+When an algo begins executing a contract order (in part or in full), it locks it. That lock is released when the order has finished executing. If the stack handler crashes before that can happen, then no other algo can execute it. Although the order will be deleted in the normal end of day stack clean up, if you can't wait that long you can manually clear the problem.
+
+
 #### Delete and clean
 
 ##### Delete entire stack (CAREFUL!)
@@ -2308,7 +2313,7 @@ Useful things to note about the crontab:
 
 #### Process configuration
 
-Process configuration is governed by the following config parameters (in [/syscontrol/control_config.yaml](/syscontrol/control_config.yaml), or these will be globally overriden (so you need to copy and paste the entire file, unlike other default files) by /private/private_control_config.yaml):
+Process configuration is governed by the following config parameters (in [/syscontrol/control_config.yaml](/syscontrol/control_config.yaml), or these will be overriden by /private/private_control_config.yaml):
 
 -  `process_configuration_start_time`: when the process starts (default 00:01)
 - `process_configuration_stop_time`: when the process ends, regardless of any method configuration (default 23:50)
@@ -2420,6 +2425,12 @@ process_configuration_methods:
       max_executions: 1
     clean_log_files:
       max_executions: 1
+```
+
+You can override any of these in /private/private_control_config.yaml, but you *must* also include the following sections in your private control config file (add more if you have more strategies), or these run processes won't work:
+
+```
+process_configuration_methods:
   run_systems:
     example:  # strategy name
       max_executions: 1
@@ -2500,23 +2511,12 @@ Configuration for the system is spread across a few different places:
 
 ### System defaults & Private config
 
-Most configuration is stored in [/systems/provided/defaults.yaml](/systems/provided/defaults.yaml), with the possibility of overriding in the private configuration file `/private/private_config.yaml`, an example of which is here [/examples/production/private_config_example.yaml](/examples/production/private_config_example.yaml). Any top level keyword included in the private config will override the same keyword in the defaults.yaml file.
+Most configuration is stored in [/sysdata/config/defaults.yaml](/sysdata/config/defaults.yaml), with the possibility of overriding in the private configuration file `/private/private_config.yaml`, an example of which is here [/examples/production/private_config_example.yaml](/examples/production/private_config_example.yaml). Anything included in the private config will override the defaults.yaml file.
 
 Exceptionally, the following are configuration options that are not in defaults.yaml and *must* be in private_config.yaml:
 
 - `broker_account`: IB account id, str
-
-The following are configuration options that are not in defaults.yaml and *may* be in private_config.yaml:
-
-- `quandl_key`: if using quandl data
-- `barchart_key`: if using barchart data
-- `email_address`
-- `email_pwd`
-- `email_server`: this is the outgoing server
-offsystem_backup_directory
-
-The following are configuration options that are in defaults.yaml and can be overriden in private_config.yaml:
-
+- `offsystem_backup_directory`: if you're using off site backup (if not set it to a local drive or modify the backup scripts)
 
 [Strategy configuration](#strategies)
 - `strategy_list` (dict, keys are strategy names)
@@ -2530,6 +2530,18 @@ The following are configuration options that are in defaults.yaml and can be ove
    - `function` to produce allocations eg sysproduction.strategy_code.strategy_allocation.weighted_strategy_allocation
    - `strategy_weights` dict of strategy names
       - `strategy_name` weight as float
+
+
+The following are configuration options that are not in defaults.yaml and *may* be in private_config.yaml:
+
+- `quandl_key`: if using quandl data
+- `barchart_key`: if using barchart data
+- `email_address`: if you want to get emailed errors and reports
+- `email_pwd`
+- `email_server`: this is the outgoing server
+
+
+The following are configuration options that are in defaults.yaml and can be overriden in private_config.yaml:
 
 [Backup paths](#data-backup)
 - `backtest_store_directory` parent directory, backtests are stored under strategy_name subdirectory

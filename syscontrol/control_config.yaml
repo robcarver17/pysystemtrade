@@ -26,15 +26,6 @@ process_configuration_previous_process:
   run_reports: 'run_strategy_order_generator'
 # we include every method to make process monitoring easier
 process_configuration_methods:
-  run_systems:
-    example:
-      max_executions: 1
-      object: sysproduction.strategy_code.run_system_classic.runSystemClassic
-      backtest_config_filename: systems.provided.futures_chapter15.futures_config.yaml
-  run_strategy_order_generator:
-    example:
-      object: sysexecution.strategies.classic_buffered_positions.orderGeneratorForBufferedPositions
-      max_executions: 1
   run_capital_update:
     update_total_capital:
       frequency: 120
@@ -96,3 +87,14 @@ process_configuration_methods:
       max_executions: 1
     clean_log_files:
       max_executions: 1
+# You need to create an entry in private control config that looks like this for each strategy
+#process_configuration_methods:
+#  run_systems:
+#    example:
+#      max_executions: 1
+#      object: sysproduction.strategy_code.run_system_classic.runSystemClassic
+#      backtest_config_filename: systems.provided.futures_chapter15.futures_config.yaml
+#  run_strategy_order_generator:
+#    example:
+#      object: sysexecution.strategies.classic_buffered_positions.orderGeneratorForBufferedPositions
+#      max_executions: 1
