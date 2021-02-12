@@ -26,9 +26,13 @@ def mongo_defaults(**kwargs):
     passed_param_names = list(kwargs.keys())
     output_dict = {}
     for param_name in LIST_OF_MONGO_PARAMS:
+
         if param_name in passed_param_names:
             param_value = kwargs[param_name]
         else:
+            param_value = arg_not_supplied
+            
+        if param_value is arg_not_supplied:
             param_value = getattr(config, param_name)
 
         output_dict[param_name] = param_value

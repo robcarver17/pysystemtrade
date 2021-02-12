@@ -8,7 +8,7 @@ import time
 from ib_insync import IB
 
 from sysbrokers.IB.ib_connection_defaults import ib_defaults
-from syscore.objects import missing_data
+from syscore.objects import missing_data,arg_not_supplied
 
 from syslogdiag.log import logtoscreen
 
@@ -33,8 +33,8 @@ class connectionIB(object):
     def __init__(
         self,
         client_id: int,
-        ipaddress: str=None,
-        port: int=None,
+        ipaddress: str=arg_not_supplied,
+        port: int=arg_not_supplied,
         log=logtoscreen("connectionIB")
     ):
         """

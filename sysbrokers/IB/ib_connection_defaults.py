@@ -1,4 +1,5 @@
 from sysdata.config.private_config import get_private_config
+from syscore.objects import arg_not_supplied
 
 LIST_OF_IB_PARAMS = ["ib_ipaddress", "ib_port", "ib_idoffset"]
 
@@ -21,6 +22,9 @@ def ib_defaults(**kwargs):
         if param_name in passed_param_names:
             param_value = kwargs[param_name]
         else:
+            param_value = arg_not_supplied
+
+        if param_value is arg_not_supplied:
             param_value = getattr(config, param_name)
 
         output_dict[param_name] = param_value
