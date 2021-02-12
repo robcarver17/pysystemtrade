@@ -211,9 +211,9 @@ class Config(object):
         self.log.msg("Adding config defaults")
 
         self_as_dict = self.as_dict()
-        default_dict = self._default_config_dict()
+        defaults_dict = self._default_config_dict()
 
-        new_dict = fill_config_dict_with_defaults(self_as_dict, default_dict)
+        new_dict = fill_config_dict_with_defaults(self_as_dict, defaults_dict)
 
         self._create_config_from_dict(new_dict)
 
