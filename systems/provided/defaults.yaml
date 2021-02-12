@@ -14,11 +14,11 @@
 #      function: sysproduction.strategy_code.report_system_classic.report_system_classic
 #
 # Allocate capital to strategies
-# strategy_weights will normally be overriden in private.config
+# strategy_weights *must* be defined in private config
 strategy_capital_allocation:
   function: sysproduction.strategy_code.strategy_allocation.weighted_strategy_allocation
-  strategy_weights:
-    example: 100.0
+#  strategy_weights:
+#    example: 100.0
 #
 ## Where do we save backtests
 backtest_store_directory: 'backtests'
