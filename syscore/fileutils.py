@@ -7,14 +7,18 @@ import sys
 from syscore.dateutils import SECONDS_PER_DAY
 
 # all these are unused: but are required to get the filename padding to work
-import syscore
-import sysdata
-import systems
-import sysinit
 import examples
 import private
 import data
 import sysbrokers
+import  syscontrol
+import syscore
+import sysdata
+import sysexecution
+import systems
+import sysinit
+import  syslog
+import  sysobjects
 import sysproduction
 
 
