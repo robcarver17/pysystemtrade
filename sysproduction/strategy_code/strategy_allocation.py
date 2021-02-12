@@ -29,7 +29,7 @@ cancelPnLSingle
 
 from sysproduction.data.capital import dataCapital
 from sysdata.data_blob import dataBlob
-from sysproduction.data.directories import missing_data
+from syscore.objects import missing_data
 
 
 def weighted_strategy_allocation(data: dataBlob, strategy_weights: dict):

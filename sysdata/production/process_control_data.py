@@ -1,8 +1,7 @@
 import datetime
 
 from sysobjects.production.process_control import dictOfControlProcesses, controlProcess, was_running_pid_notok_closed
-from syscore.objects import _named_object, success
-from sysproduction.data.directories import missing_data
+from syscore.objects import _named_object, success, missing_data
 from sysdata.base_data import baseData
 from syslogdiag.log import logtoscreen
 

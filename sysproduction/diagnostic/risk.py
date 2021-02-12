@@ -4,8 +4,7 @@ import numpy as np
 import pandas as pd
 
 from syscore.dateutils import ROOT_BDAYS_INYEAR
-from syscore.objects import header, table, body_text
-from sysproduction.data.directories import missing_data
+from syscore.objects import header, table, body_text, missing_data
 from syscore.optimisation_utils import sigma_from_corr_and_std
 
 from sysproduction.data.positions import diagPositions

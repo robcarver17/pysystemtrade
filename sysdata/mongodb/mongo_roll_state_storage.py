@@ -1,7 +1,6 @@
 from sysdata.production.roll_state import rollStateData
 from sysdata.mongodb.mongo_generic import mongoDataWithSingleKey
-from syscore.objects import success
-from sysproduction.data.directories import missing_data
+from syscore.objects import success, missing_data
 from syslogdiag.log import logtoscreen
 
 ROLL_STATUS_COLLECTION = "futures_roll_status"

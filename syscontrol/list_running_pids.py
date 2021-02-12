@@ -1,7 +1,7 @@
 import psutil
 import subprocess
 from sysdata.config.private_config import get_private_config
-from sysproduction.data.directories import missing_data
+from syscore.objects import missing_data
 
 ## IF THIS FILE IS MOVED, NEED TO UPDATE THE NEXT LINE
 ## WARNING ONLY WORKS ON LINUX??

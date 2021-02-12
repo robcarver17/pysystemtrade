@@ -1,6 +1,6 @@
 import itertools
 
-from sysproduction.data.directories import missing_data
+from syscore.objects import missing_data
 from sysdata.base_data import baseData
 from syslogdiag.log import logger, logEntry, LEVEL_ID, INVERSE_MAP, logtoscreen
 

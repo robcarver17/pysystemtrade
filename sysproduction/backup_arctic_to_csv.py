@@ -35,7 +35,8 @@ from sysdata.mongodb.mongo_optimal_position import mongoOptimalPositionData
 from sysdata.mongodb.mongo_roll_data import mongoRollParametersData
 from sysdata.mongodb.mongo_roll_state_storage import mongoRollStateData
 
-from sysproduction.data.directories import get_csv_backup_directory, get_csv_dump_dir, missing_data
+from sysproduction.data.directories import get_csv_backup_directory, get_csv_dump_dir
+from syscore.objects import missing_data
 
 
 def backup_arctic_to_csv():

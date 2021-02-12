@@ -1,7 +1,7 @@
 import os
 
 from syscore.fileutils import get_resolved_pathname
-from syscore.objects import _named_object
+from syscore.objects import missing_data
 from sysdata.config.private_config import get_private_config
 from sysproduction.diagnostic.backtest_state import get_directory_store_backtests
 
@@ -65,5 +65,3 @@ def get_echo_extension():
     return ans
 
 
-missing_file = _named_object("missing file")
-missing_data = _named_object("missing data")

@@ -1,7 +1,6 @@
 from sysobjects.production.process_control import controlProcess
 from sysdata.production.process_control_data import controlProcessData
-from syscore.objects import arg_not_supplied
-from sysproduction.data.directories import missing_data
+from syscore.objects import arg_not_supplied, missing_data
 
 from sysdata.mongodb.mongo_generic import mongoDataWithSingleKey
 from syslogdiag.log import logtoscreen

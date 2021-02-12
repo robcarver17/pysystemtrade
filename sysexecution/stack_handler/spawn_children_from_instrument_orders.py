@@ -6,9 +6,8 @@ from syscore.genutils import sign
 from syscore.objects import (
     missing_order,
 
-    success
-)
-from sysproduction.data.directories import missing_data
+    success,
+    missing_data)
 
 from sysdata.data_blob import dataBlob
 

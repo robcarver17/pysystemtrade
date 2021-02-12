@@ -21,8 +21,7 @@ from syscore.objects import (
     success,
     failure,
     _named_object,
-)
-from sysproduction.data.directories import missing_data
+    missing_data)
 
 process_stop = _named_object("process stop")
 process_no_run = _named_object("process no run")

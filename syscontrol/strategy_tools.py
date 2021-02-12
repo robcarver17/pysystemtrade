@@ -1,5 +1,4 @@
-from syscore.objects import resolve_function
-from sysproduction.data.directories import missing_data
+from syscore.objects import resolve_function, missing_data
 from sysdata.data_blob import dataBlob
 from sysproduction.data.control_process import get_strategy_class_object_config
 

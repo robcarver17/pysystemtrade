@@ -1,5 +1,4 @@
-from syscore.objects import success
-from sysproduction.data.directories import missing_data
+from syscore.objects import success, missing_data
 from sysdata.mongodb.mongo_generic import mongoDataWithSingleKey
 from syslogdiag.log import logtoscreen
 

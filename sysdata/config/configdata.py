@@ -14,7 +14,7 @@ trading_rules - a specification of the trading rules for a system
 
 import yaml
 from syscore.fileutils import get_filename_for_package
-from sysproduction.data.directories import missing_data
+from syscore.objects import missing_data
 from systems.defaults import get_system_defaults
 from syslogdiag.log import logtoscreen
 from sysdata.config.fill_config_dict_with_defaults import fill_config_dict_with_defaults

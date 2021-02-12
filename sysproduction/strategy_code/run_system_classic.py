@@ -9,8 +9,7 @@ this:
 
 """
 
-from syscore.objects import success, arg_not_supplied
-from sysproduction.data.directories import missing_data
+from syscore.objects import success, arg_not_supplied, missing_data
 
 from sysdata.config.configdata import Config
 from sysobjects.production.optimal_positions import bufferedOptimalPositions

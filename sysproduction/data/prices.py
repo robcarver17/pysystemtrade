@@ -1,8 +1,7 @@
 import  datetime
 import numpy as np
 
-from syscore.objects import missing_contract, arg_not_supplied
-from sysproduction.data.directories import missing_data
+from syscore.objects import missing_contract, arg_not_supplied, missing_data
 
 from sysobjects.contracts import futuresContract
 from sysobjects.dict_of_futures_per_contract_prices import dictFuturesContractPrices

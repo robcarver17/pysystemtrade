@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 
 from syscore.genutils import sign
-from sysproduction.data.directories import missing_data
+from syscore.objects import missing_data
 
 """
 First some constants

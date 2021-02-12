@@ -8,7 +8,7 @@ import time
 from ib_insync import IB
 
 from sysbrokers.IB.ib_connection_defaults import ib_defaults
-from sysproduction.data.directories import missing_data
+from syscore.objects import missing_data
 
 from syslogdiag.log import logtoscreen
 

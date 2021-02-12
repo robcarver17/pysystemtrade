@@ -220,3 +220,7 @@ class missingData(Exception):
 
 class existingData(Exception):
     pass
+
+
+missing_file = _named_object("missing file")
+missing_data = _named_object("missing data")

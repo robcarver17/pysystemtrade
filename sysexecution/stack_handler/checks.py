@@ -17,8 +17,7 @@ from syscore.objects import (
     order_is_in_status_modified,
     resolve_function,
     arg_not_supplied,
-)
-from sysproduction.data.directories import missing_data
+    missing_data)
 
 from sysexecution.stack_handler.stackHandlerCore import stackHandlerCore
 

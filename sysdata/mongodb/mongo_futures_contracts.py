@@ -1,12 +1,11 @@
 
 CONTRACT_COLLECTION = "futures_contracts"
 
-from syscore.objects import arg_not_supplied
+from syscore.objects import arg_not_supplied, missing_data
 from sysdata.futures.contracts import futuresContractData
 from sysobjects.contracts import  contract_key_from_code_and_id, futuresContract, get_code_and_id_from_contract_key, key_contains_instrument_code, listOfFuturesContracts
 from syslogdiag.log import logtoscreen
 from sysdata.mongodb.mongo_generic import mongoDataWithSingleKey
-from sysproduction.data.directories import missing_data
 
 
 class mongoFuturesContractData(futuresContractData):

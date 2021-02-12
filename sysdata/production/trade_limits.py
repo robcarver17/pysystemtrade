@@ -6,7 +6,7 @@ Limits per contract don't make sense, but it makes sense to limit (a) the number
    within a strategy can be traded and (b) the number of times an instrument can be traded, period.
 """
 from dataclasses import dataclass
-from sysproduction.data.directories import missing_data
+from syscore.objects import missing_data
 from sysdata.base_data import baseData
 from syslogdiag.log import logtoscreen
 from sysobjects.production.trade_limits import tradeLimit, listOfTradeLimits

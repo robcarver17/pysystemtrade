@@ -2,8 +2,7 @@ from copy import copy
 import datetime
 import pandas as pd
 
-from syscore.objects import arg_not_supplied, failure
-from sysproduction.data.directories import missing_data
+from syscore.objects import arg_not_supplied, failure, missing_data
 from sysdata.production.timed_storage import (
     listOfEntriesData,
 )

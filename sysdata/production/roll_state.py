@@ -1,4 +1,4 @@
-from sysproduction.data.directories import missing_data
+from syscore.objects import missing_data
 from sysdata.base_data import baseData
 from syslogdiag.log import logtoscreen
 from sysobjects.production.roll_state import RollState, default_state,  name_of_roll_state

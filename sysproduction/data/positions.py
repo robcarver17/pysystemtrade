@@ -6,8 +6,7 @@ from syscore.objects import (
     success,
     failure,
     missing_order,
-)
-from sysproduction.data.directories import missing_data
+    missing_data)
 
 from sysdata.mongodb.mongo_roll_state_storage import mongoRollStateData
 from sysdata.mongodb.mongo_position_by_contract import mongoContractPositionData

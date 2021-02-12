@@ -1,4 +1,4 @@
-from sysproduction.data.directories import missing_data
+from syscore.objects import missing_data
 from sysobjects.production.timed_storage import timedEntry
 
 

@@ -1,5 +1,4 @@
-from syscore.objects import arg_not_supplied
-from sysproduction.data.directories import missing_data
+from syscore.objects import arg_not_supplied, missing_data
 from sysdata.production.locks import lockData, lock_off, lock_on
 from sysdata.mongodb.mongo_generic import mongoDataWithSingleKey
 from syslogdiag.log import logtoscreen

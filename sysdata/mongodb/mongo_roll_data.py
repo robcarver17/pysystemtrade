@@ -2,9 +2,9 @@ from sysdata.futures.rolls_parameters import rollParametersData
 from sysobjects.rolls import rollParameters
 
 from sysdata.mongodb.mongo_generic import mongoDataWithSingleKey
-from sysproduction.data.directories import missing_data
 from syslogdiag.log import logtoscreen
-from syscore.objects import arg_not_supplied
+from syscore.objects import arg_not_supplied, missing_data
+
 ROLL_COLLECTION = "futures_roll_parameters"
 
 
