@@ -19,7 +19,6 @@ class dataBlob(object):
         ib_conn: connectionIB=arg_not_supplied,
         mongo_db: mongoDb=arg_not_supplied,
         log: logger=arg_not_supplied,
-        config: Config = arg_not_supplied,
         keep_original_prefix: bool=False,
     ):
         """
@@ -63,7 +62,6 @@ class dataBlob(object):
         self._log = log
         self._log_name = log_name
         self._csv_data_paths = csv_data_paths
-        self._config = config
         self._keep_original_prefix = keep_original_prefix
 
         self._attr_list = []
@@ -261,14 +259,8 @@ class dataBlob(object):
 
     def _get_new_ib_connection(self) -> connectionIB:
         client_id = self._get_next_client_id_for_ib()
-        ib_ipaddress = self.config.get_element_or_arg_not_supplied("ib_ipaddress")
-        ib_port = self.config.get_element_or_arg_not_supplied("ib_port")
-        account  = self.config.get_element_or_arg_not_supplied("broker_account")
 
         ib_conn = connectionIB(client_id,
-                               ib_ipaddress=ib_ipaddress,
-                               ib_port=ib_port,
-                               account=account,
                                log=self.log)
         return ib_conn
 
@@ -289,22 +281,14 @@ class dataBlob(object):
         return mongo_db
 
     def _get_new_mongo_db(self) -> mongoDb:
-        config = self.config
-        mongo_database_name = config.get_element_or_arg_not_supplied("mongo_database_name")
-        mongo_port = config.get_element_or_arg_not_supplied("mongo_port")
-        mongo_host = config.get_element_or_arg_not_supplied("mongo_host")
-
-        mongo_db = mongoDb(mongo_database_name=mongo_database_name,
-                           mongo_host=mongo_host,
-                           mongo_port=mongo_port
-                           )
+        mongo_db = mongoDb()
 
         return mongo_db
 
     @property
     def config(self) -> Config:
-        config = getattr(self, "_config", arg_not_supplied)
-        if config is arg_not_supplied:
+        config = getattr(self, "_config", None)
+        if config is None:
             self._config = production_config
 
         return config
