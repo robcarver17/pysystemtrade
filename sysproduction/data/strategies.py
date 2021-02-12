@@ -1,5 +1,5 @@
 from sysdata.data_blob import dataBlob
-from sysdata.config.private_config import get_private_config
+from sysdata.config.production_config import production_config
 from syscore.objects import arg_not_supplied
 from syscore.genutils import print_menu_of_values_and_get_response
 from sysproduction.data.positions import diagPositions, dataOptimalPositions
@@ -28,8 +28,7 @@ class diagStrategiesConfig(object):
         return list(strategy_dict.keys())
 
     def get_strategy_allocation_config_dict(self):
-        config = get_private_config()
-        strategy_allocation_dict = config.strategy_capital_allocation
+        strategy_allocation_dict = production_config.strategy_capital_allocation
 
         return strategy_allocation_dict
 

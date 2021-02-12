@@ -12,12 +12,11 @@ from syscore.objects import missing_data,arg_not_supplied
 
 from syslogdiag.log import logtoscreen
 
-from sysdata.config.private_config import get_private_config
+from sysdata.config.production_config import production_config
 
 
 def get_broker_account() -> str:
-    config = get_private_config()
-    account_id = config.get_element_or_missing_data(
+    account_id = production_config.get_element_or_missing_data(
         "broker_account")
     if account_id is missing_data:
         return missing_data

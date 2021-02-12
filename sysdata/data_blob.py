@@ -3,7 +3,7 @@ from copy import copy
 from sysbrokers.IB.ib_connection import connectionIB
 from syscore.objects import arg_not_supplied, get_class_name
 from syscore.text import camel_case_split
-from sysdata.config.private_config import get_private_config, Config
+from sysdata.config.production_config import production_config, Config
 from sysdata.mongodb.mongo_connection import mongoDb
 from sysdata.mongodb.mongo_log import logToMongod
 from syslogdiag.log import logger
@@ -276,8 +276,7 @@ class dataBlob(object):
     def config(self):
         config = getattr(self, "_config", arg_not_supplied)
         if config is arg_not_supplied:
-            config = get_private_config()
-            self._config = config
+            self._config = production_config
 
         return config
 
