@@ -4,7 +4,8 @@ import pandas as pd
 from collections import namedtuple
 
 from syscore.genutils import quickTimer
-from syscore.objects import missing_data, arg_not_supplied
+from syscore.objects import arg_not_supplied
+from sysproduction.data.directories import missing_data
 
 
 class dataFrameOfRecentTicks(pd.DataFrame):

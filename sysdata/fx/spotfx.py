@@ -9,8 +9,6 @@ from sysdata.base_data import baseData
 from syscore.merge_data import spike_in_data
 
 from sysobjects.spot_fx_prices import fxPrices, get_fx_tuple_from_code, DEFAULT_CURRENCY
-from sysdata.config.private_config import get_private_then_default_key_value
-
 
 DEFAULT_DATES = pd.date_range(
     start=datetime.datetime(1970, 1, 1), freq="B", end=datetime.datetime.now()
@@ -218,9 +216,6 @@ class fxPricesData(baseData):
         new_log.msg("Added %d additional rows for %s" % (rows_added, code))
 
         return rows_added
-
-    def get_base_currency(self):
-        return get_private_then_default_key_value("base_currency")
 
 
     def get_list_of_fxcodes(self):

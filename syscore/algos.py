@@ -13,7 +13,7 @@ import pandas as pd
 
 from syscore.genutils import str2Bool, sign
 from systems.defaults import get_default_config_key_value
-from syscore.objects import missing_data
+from sysproduction.data.directories import missing_data
 
 LARGE_NUMBER_OF_DAYS = 250 * 100 * 100
 

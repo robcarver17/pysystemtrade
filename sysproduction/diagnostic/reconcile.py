@@ -10,7 +10,8 @@ import datetime
 
 from syscore.genutils import transfer_object_attributes
 from syscore.pdutils import make_df_from_list_of_named_tuple
-from syscore.objects import header, table, body_text, arg_not_supplied, missing_data
+from syscore.objects import header, table, body_text, arg_not_supplied
+from sysproduction.data.directories import missing_data
 
 from sysdata.data_blob import dataBlob
 from sysproduction.data.orders import dataOrders

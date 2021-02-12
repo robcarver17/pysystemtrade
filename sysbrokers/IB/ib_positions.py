@@ -1,6 +1,7 @@
 import re
 from syscore.genutils import highest_common_factor_for_list, sign
-from syscore.objects import arg_not_supplied, missing_data
+from syscore.objects import arg_not_supplied
+from sysproduction.data.directories import missing_data
 
 from sysexecution.trade_qty import tradeQuantity
 

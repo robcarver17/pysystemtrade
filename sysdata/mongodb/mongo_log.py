@@ -1,6 +1,6 @@
-from syscore.objects import arg_not_supplied
+from syscore.objects import arg_not_supplied, existingData
 from sysdata.mongodb.mongo_connection import mongoConnection, mongoDb
-from sysdata.mongodb.mongo_generic import mongoDataWithSingleKey, MONGO_ID_KEY, existingData
+from sysdata.mongodb.mongo_generic import mongoDataWithSingleKey, MONGO_ID_KEY
 from syscore.dateutils import long_to_datetime, datetime_to_long
 
 from syslogdiag.log import logEntry, TIMESTAMP_ID, LEVEL_ID, TEXT_ID, LOG_RECORD_ID, logtoscreen

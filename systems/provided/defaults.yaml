@@ -39,7 +39,11 @@ ib_idoffset: 100
 # Mongo DB
 mongo_host: 127.0.0.1
 mongo_db: 'production'
+# DO NOT CHANGE THIS VALUE!!!! IT WILL SCREW UP ARCTIC
+mongo_port: 27017
 #
+# Needs to be consistent with what you are using in crontab
+echo_extension: '.txt'
 # Spike checker
 max_price_spike: 8
 #

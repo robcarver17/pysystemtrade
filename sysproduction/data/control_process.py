@@ -8,7 +8,8 @@ from sysdata.mongodb.mongo_process_control import mongoControlProcessData
 
 import yaml
 from syscore.fileutils import get_filename_for_package
-from syscore.objects import missing_data, arg_not_supplied
+from syscore.objects import arg_not_supplied
+from sysproduction.data.directories import missing_data
 
 PRIVATE_CONTROL_CONFIG_FILE = get_filename_for_package("private.private_control_config.yaml")
 PUBLIC_CONTROL_CONFIG_FILE = get_filename_for_package("syscontrol.control_config.yaml")

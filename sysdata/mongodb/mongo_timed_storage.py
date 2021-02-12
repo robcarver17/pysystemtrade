@@ -3,7 +3,7 @@ from syscore.objects import arg_not_supplied
 
 from sysdata.mongodb.mongo_generic import mongoDataWithMultipleKeys
 from syslogdiag.log import logtoscreen
-from syscore.objects import missing_data
+from sysproduction.data.directories import missing_data
 
 DATA_CLASS_KEY = "data_class"
 ENTRY_SERIES_KEY = "entry_series"

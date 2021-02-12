@@ -1,10 +1,10 @@
 import datetime
 from syscore.objects import (
     arg_not_supplied,
-    missing_data,
     no_parent,
     missing_order,
 )
+from sysproduction.data.directories import missing_data
 
 from sysdata.mongodb.mongo_order_stack import mongoInstrumentOrderStackData, mongoContractOrderStackData, mongoBrokerOrderStackData
 from sysdata.mongodb.mongo_historic_orders import mongoStrategyHistoricOrdersData, mongoContractHistoricOrdersData, mongoBrokerHistoricOrdersData

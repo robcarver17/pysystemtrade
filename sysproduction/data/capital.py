@@ -1,11 +1,11 @@
 import  datetime
 import  pandas as pd
 
-from syscore.objects import missing_data, arg_not_supplied
+from syscore.objects import arg_not_supplied
+from sysproduction.data.directories import missing_data
 
 from sysdata.production.capital import totalCapitalCalculationData
 from sysdata.mongodb.mongo_capital import mongoCapitalData
-from sysdata.config.private_config import get_private_then_default_key_value
 
 from sysdata.data_blob import dataBlob
 
@@ -29,14 +29,18 @@ class dataCapital(object):
     def total_capital_calculator(self):
         # cache because could be slow getting calculation method from yaml
         if getattr(self, "_total_capital_calculator", None) is None:
-            calc_method = get_private_then_default_key_value(
-                "production_capital_method"
-            )
+            calc_method = self.get_capital_calculation_method()
             self._total_capital_calculator = totalCapitalCalculationData(
                 self.data.db_capital, calc_method=calc_method
             )
 
         return self._total_capital_calculator
+
+    def get_capital_calculation_method(self) -> str:
+        config = self.data.config
+
+        return config.production_capital_method
+
 
     def update_and_return_total_capital_with_new_broker_account_value(
         self, total_account_value_in_base_currency: float, check_limit: float=0.1

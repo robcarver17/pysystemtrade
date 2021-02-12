@@ -4,12 +4,6 @@ Do fun things with objects and classes
 from collections import namedtuple
 import importlib
 
-class missingData(Exception):
-    pass
-
-class existingData(Exception):
-    pass
-
 
 class _named_object:
     def __init__(self, name):
@@ -21,8 +15,6 @@ class _named_object:
 
 missing_contract = _named_object("missing contract")
 missing_instrument = _named_object("missing instrument")
-missing_file = _named_object("missing file")
-missing_data = _named_object("missing data")
 
 missing_order = _named_object("missing order")
 locked_order = _named_object("locked order")
@@ -220,3 +212,11 @@ def hasallattr(some_object, attrlist=[]):
 
 def get_class_name(class_object):
     return class_object.__name__
+
+
+class missingData(Exception):
+    pass
+
+
+class existingData(Exception):
+    pass

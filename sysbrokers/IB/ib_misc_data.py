@@ -32,7 +32,7 @@ class ibMiscData(baseData):
         return self.ib_client.ib.client.clientId
 
     def get_broker_account(self) -> str:
-        broker_account = get_broker_account()
+        broker_account = self.ibconnection.account
         return broker_account
 
     def get_broker_name(self)-> str:

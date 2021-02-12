@@ -272,6 +272,7 @@ class dataBlob(object):
 
         return mongo_db
 
+    @property
     def config(self):
         config = getattr(self, "_config", arg_not_supplied)
         if config is arg_not_supplied:

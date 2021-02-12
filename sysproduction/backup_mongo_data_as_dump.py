@@ -1,12 +1,9 @@
 import os
 import shutil
 
-from syscore.fileutils import get_resolved_pathname
-from sysdata.config.private_config import get_main_backup_directory
+from sysproduction.data.directories import get_mongo_dump_directory, \
+    get_mongo_backup_directory
 
-from sysdata.config.private_config import (
-    get_private_then_default_key_value,
-)
 from sysdata.data_blob import dataBlob
 
 
@@ -44,23 +41,4 @@ def backup_mongo_dump(data):
     shutil.rmtree(destination_path)
     data.log.msg("Copy from %s to %s" % (source_path, destination_path))
     shutil.copytree(source_path, destination_path)
-
-
-
-
-
-# sources
-def get_mongo_dump_directory():
-    ans = get_private_then_default_key_value("mongo_dump_directory")
-    return get_resolved_pathname(ans)
-
-
-# destintations
-def get_mongo_backup_directory():
-    main_backup = get_main_backup_directory()
-    ans = os.path.join(main_backup, "mongo")
-
-    return ans
-
-
 

@@ -10,7 +10,8 @@ from sysbrokers.IB.client.ib_client import  PACING_INTERVAL_SECONDS
 from sysbrokers.IB.client.ib_contracts_client import ibContractsClient
 from sysbrokers.IB.ib_positions import resolveBS_for_list
 
-from syscore.objects import missing_contract, missing_data
+from syscore.objects import missing_contract
+from sysproduction.data.directories import missing_data
 from syscore.dateutils import adjust_timestamp_to_include_notional_close_and_time_offset, strip_timezone_fromdatetime
 
 from syslogdiag.log import logger, logtoscreen

@@ -1,10 +1,6 @@
-from syscore.genutils import get_safe_from_dict
-from sysdata.config.private_config import get_list_of_private_then_default_key_values
+from sysdata.config.private_config import get_private_config
 
-DEFAULT_IB_IPADDRESS = "127.0.0.1"
-DEFAULT_IB_PORT = 4001
-DEFAULT_IB_IDOFFSET = 1
-LIST_OF_IB_PARAMS = ["ipaddress", "port", "idoffset"]
+LIST_OF_IB_PARAMS = ["ib_ipaddress", "ib_port", "ib_idoffset"]
 
 
 def ib_defaults(**kwargs):
@@ -13,31 +9,25 @@ def ib_defaults(**kwargs):
     1- if passed in arguments: ipaddress, port, idoffset - use that
     2- if defined in private_config file, use that. ib_ipaddress, ib_port, ib_idoffset
     3 - if defined in system defaults file, use that
-    4- otherwise use defaults DEFAULT_IB_IPADDRESS, DEFAULT_IB_PORT, DEFAULT_IB_IDOFFSET
 
     :return: mongo db, hostname, port
     """
 
-    param_names_with_prefix = [
-        "ib_" + arg_name for arg_name in LIST_OF_IB_PARAMS]
-    config_dict = get_list_of_private_then_default_key_values(
-        param_names_with_prefix)
+    # this will include defaults.yaml if not defined in private
+    config = get_private_config()
+    passed_param_names = list(kwargs.keys())
+    output_dict = {}
+    for param_name in LIST_OF_IB_PARAMS:
+        if param_name in passed_param_names:
+            param_value = kwargs[param_name]
+        else:
+            param_value = getattr(config, param_name)
 
-    yaml_dict = {}
-    for arg_name in LIST_OF_IB_PARAMS:
-        yaml_arg_name = "ib_" + arg_name
-
-        # Start with config (precedence: private config, then system config)
-        arg_value = config_dict[yaml_arg_name]
-        # Overwrite with kwargs
-        arg_value = get_safe_from_dict(kwargs, arg_name, arg_value)
-
-        # Write
-        yaml_dict[arg_name] = arg_value
+        output_dict[param_name] = param_value
 
     # Get from dictionary
-    ipaddress = yaml_dict.get("ipaddress", DEFAULT_IB_IPADDRESS)
-    port = yaml_dict.get("port", DEFAULT_IB_PORT)
-    idoffset = yaml_dict.get("idoffset", DEFAULT_IB_IDOFFSET)
+    ipaddress = output_dict['ib_ipaddress']
+    port = output_dict['ib_port']
+    idoffset = output_dict['ib_idoffset']
 
     return ipaddress, port, idoffset

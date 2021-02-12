@@ -1,12 +1,12 @@
 from copy import copy
-from syscore.objects import arg_not_supplied
+from syscore.objects import arg_not_supplied, missingData, existingData
 from sysdata.mongodb.mongo_connection import (
     mongoConnection,
     MONGO_ID_KEY,
     mongo_clean_ints,
 )
 
-from syscore.objects import missing_data, missingData, existingData
+from sysproduction.data.directories import missing_data
 
 
 class mongoDataWithSingleKey(object):

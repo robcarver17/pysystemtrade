@@ -5,7 +5,7 @@ import datetime
 
 from syscore.dateutils import SECONDS_PER_DAY
 from syscore.objects import arg_not_supplied, _named_object
-from sysdata.config.private_config import get_private_then_default_key_value
+from sysdata.config.private_config import get_private_config
 
 class mergeStatus(object):
     def __init__(self, text):
@@ -241,7 +241,8 @@ def _get_change_in_avg_units_to_check(change_in_avg_units: pd.Series, first_date
     return change_in_avg_units_to_check
 
 def _check_for_spikes_in_change_in_avg_units(change_in_avg_units_to_check: pd.Series):
-    max_spike = get_private_then_default_key_value("max_price_spike")
+    config = get_private_config()
+    max_spike = config.max_price_spike
 
     if any(change_in_avg_units_to_check > max_spike):
         first_spike=change_in_avg_units_to_check.index[change_in_avg_units_to_check > max_spike][0]

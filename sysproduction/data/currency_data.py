@@ -57,7 +57,8 @@ class dataCurrency(object):
 
         :return: eg USD
         """
-        return self.data.db_fx_prices.get_base_currency()
+        config = self.data.config
+        return config.base_currency
 
     def get_last_fx_rate_for_pair(self, currency_pair: str)-> float:
         """

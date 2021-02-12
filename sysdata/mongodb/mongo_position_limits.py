@@ -1,4 +1,4 @@
-from syscore.objects import missing_data
+from sysproduction.data.directories import missing_data
 
 from sysdata.mongodb.mongo_generic import mongoDataWithMultipleKeys
 from sysdata.production.position_limits import positionLimitData

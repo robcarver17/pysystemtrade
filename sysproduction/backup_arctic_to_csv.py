@@ -1,7 +1,5 @@
 import pandas as pd
-from syscore.objects import missing_data
 from syscore.pdutils import check_df_equals, check_ts_equals
-from sysdata.config.private_config import get_private_then_default_key_value
 
 from sysobjects.production.tradeable_object import instrumentStrategy
 
@@ -37,7 +35,7 @@ from sysdata.mongodb.mongo_optimal_position import mongoOptimalPositionData
 from sysdata.mongodb.mongo_roll_data import mongoRollParametersData
 from sysdata.mongodb.mongo_roll_state_storage import mongoRollStateData
 
-from sysdata.config.private_config import get_main_backup_directory
+from sysproduction.data.directories import get_csv_backup_directory, get_csv_dump_dir, missing_data
 
 
 def backup_arctic_to_csv():
@@ -72,8 +70,6 @@ class backupArcticToCsv:
         log.msg("Copying to backup directory")
         backup_csv_dump(self.data)
 
-def get_csv_dump_dir():
-    return get_private_then_default_key_value("csv_backup_directory")
 
 
 def get_data_and_create_csv_directories(logname):
@@ -393,8 +389,3 @@ def backup_csv_dump(data):
     data.log.msg("Copy from %s to %s" % (source_path, destination_path))
     os.system("rsync -av %s %s" % (source_path, destination_path))
 
-def get_csv_backup_directory():
-    main_backup = get_main_backup_directory()
-    ans = os.path.join(main_backup, "csv")
-
-    return ans

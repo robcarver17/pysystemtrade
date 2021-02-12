@@ -2,8 +2,8 @@ import datetime
 
 import pandas as pd
 
-from syscore.objects import success, arg_not_supplied, missing_data
-
+from syscore.objects import success, arg_not_supplied
+from sysproduction.data.directories import missing_data
 
 DATE_KEY_NAME= 'date'
 class timedEntry(object):

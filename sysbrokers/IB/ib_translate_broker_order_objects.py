@@ -6,7 +6,8 @@ from dateutil.tz import tz
 
 from ib_insync import Trade as ibTrade
 from sysbrokers.IB.ib_contracts import ibcontractWithLegs
-from syscore.objects import missing_order, missing_data, arg_not_supplied
+from syscore.objects import missing_order, arg_not_supplied
+from sysproduction.data.directories import missing_data
 from sysexecution.orders.base_orders import resolve_multi_leg_price_to_single_price
 
 from sysobjects.spot_fx_prices import currencyValue

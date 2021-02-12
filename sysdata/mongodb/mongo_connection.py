@@ -2,14 +2,10 @@ from pymongo import MongoClient, ASCENDING
 from copy import copy
 import numpy as np
 
-from syscore.genutils import get_safe_from_dict
 from syscore.objects import arg_not_supplied
-from sysdata.config.private_config import get_list_of_private_then_default_key_values
+from sysdata.config.private_config import get_private_config
 
-LIST_OF_MONGO_PARAMS = ["db", "host"]
-
-# DO NOT CHANGE THIS VALUE!!!! IT WILL SCREW UP ARCTIC
-DEFAULT_MONGO_PORT = 27017
+LIST_OF_MONGO_PARAMS = ["mongo_db", "mongo_host", "mongo_port"]
 
 
 MONGO_INDEX_ID = "_id_"
@@ -19,33 +15,28 @@ def mongo_defaults(**kwargs):
     """
     Returns mongo configuration with following precedence
 
-    1- if passed in arguments: db, host - use that
-    2- if defined in private_config file, use that. mongo_db, mongo_host
+    1- if passed in arguments: mongo_db, mongo_host, mongo_port - use that
+    2- if defined in private_config file, use that. mongo_db, mongo_host, mongo_port
     3- if defined in system defaults file, use that: mongo_db, mongo_host
 
     :return: mongo db, hostname, port
     """
-    param_names_with_prefix = [
-        "mongo_" + arg_name for arg_name in LIST_OF_MONGO_PARAMS]
-    config_dict = get_list_of_private_then_default_key_values(
-        param_names_with_prefix)
+    # this will include defaults.yaml if not defined in private
+    config = get_private_config()
+    passed_param_names = list(kwargs.keys())
+    output_dict = {}
+    for param_name in LIST_OF_MONGO_PARAMS:
+        if param_name in passed_param_names:
+            param_value = kwargs[param_name]
+        else:
+            param_value = getattr(config, param_name)
 
-    yaml_dict = {}
-    for arg_name in LIST_OF_MONGO_PARAMS:
-        yaml_arg_name = "mongo_" + arg_name
-
-        # Start with config (precedence: private config, then system config)
-        arg_value = config_dict[yaml_arg_name]
-        # Overwrite with kwargs
-        arg_value = get_safe_from_dict(kwargs, arg_name, arg_value)
-
-        # Write
-        yaml_dict[arg_name] = arg_value
+        output_dict[param_name] = param_value
 
     # Get from dictionary
-    mongo_db = yaml_dict["db"]
-    hostname = yaml_dict["host"]
-    port = DEFAULT_MONGO_PORT
+    mongo_db = output_dict["mongo_db"]
+    hostname = output_dict["mongo_host"]
+    port = output_dict["mongo_port"]
 
     return mongo_db, hostname, port
 
@@ -82,9 +73,13 @@ class mongoDb():
     But requires adding a collection with mongoConnection before useful
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, database_name: str = arg_not_supplied,
+                 host: str = arg_not_supplied,
+                 port: int  = arg_not_supplied):
 
-        database_name, host, port = mongo_defaults(**kwargs)
+        database_name, host, port = mongo_defaults(mongo_database_name = database_name,
+                                                   mongo_host = host,
+                                                   mongo_port = port)
 
         self.database_name = database_name
         self.host = host

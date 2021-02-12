@@ -1,5 +1,6 @@
 import pandas as pd
-from syscore.objects import arg_not_supplied, missing_data
+from syscore.objects import arg_not_supplied
+from sysproduction.data.directories import missing_data
 from sysobjects.contracts import futuresContract, listOfFuturesContracts
 
 from sysdata.production.timed_storage import (

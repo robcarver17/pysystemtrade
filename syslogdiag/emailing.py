@@ -4,7 +4,7 @@ from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 
-from sysdata.config.private_config import get_list_of_private_config_values
+from sysdata.config.private_config import get_private_config
 
 
 def send_mail_file(textfile, subject):
@@ -89,17 +89,15 @@ def _send_msg(msg):
 
 
 def get_email_details():
+    # FIXME DON'T LIKE RETURNING ALL THESE VALUES - return CONFIG or subset?
     try:
-        yaml_dict = get_list_of_private_config_values(
-        ["email_address", "email_pwd", "email_server", "email_to", "email_port"]
-        )
+        config = get_private_config()
+        email_address = config.email_address
+        email_pwd = config.email_pwd
+        email_server = config.email_server
+        email_to = config.email_to
+        email_port = config.email_port
     except:
         raise Exception("Need to have all of these for email to work in private config: email_address, email_pwd, email_server, email_to", "email_port")
-
-    email_address = yaml_dict["email_address"]
-    email_pwd = yaml_dict["email_pwd"]
-    email_server = yaml_dict["email_server"]
-    email_to = yaml_dict["email_to"]
-    email_port = yaml_dict["email_port"]
 
     return email_server, email_address, email_pwd, email_to, email_port

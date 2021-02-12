@@ -1,4 +1,4 @@
-from syscore.objects import missing_data
+from sysproduction.data.directories import missing_data
 from dataclasses import  dataclass
 import datetime as datetime
 from copy import copy

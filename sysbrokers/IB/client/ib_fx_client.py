@@ -5,7 +5,8 @@ from sysbrokers.IB.client.ib_price_client import ibPriceClient
 from sysbrokers.IB.ib_contracts import ibcontractWithLegs
 from sysbrokers.IB.ib_positions import extract_fx_balances_from_account_summary, resolveBS
 from sysbrokers.IB.ib_translate_broker_order_objects import tradeWithContract
-from syscore.objects import arg_not_supplied, missing_contract, missing_data
+from syscore.objects import arg_not_supplied, missing_contract
+from sysproduction.data.directories import missing_data
 
 
 class ibFxClient(ibPriceClient):

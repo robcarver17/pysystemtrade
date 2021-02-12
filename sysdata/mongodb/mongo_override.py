@@ -1,4 +1,4 @@
-from syscore.objects import missing_data
+from sysproduction.data.directories import missing_data
 from sysdata.production.override import overrideData
 from sysobjects.production.override import Override
 from sysdata.mongodb.mongo_generic import mongoDataWithMultipleKeys

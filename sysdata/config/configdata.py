@@ -11,10 +11,10 @@ parameters - a dict of values which override those in system.defaults
 trading_rules - a specification of the trading rules for a system
 
 """
-from copy import copy
 
 import yaml
 from syscore.fileutils import get_filename_for_package
+from sysproduction.data.directories import missing_data
 from systems.defaults import get_system_defaults
 from syslogdiag.log import logtoscreen
 from sysdata.config.fill_config_dict_with_defaults import fill_config_dict_with_defaults
@@ -72,6 +72,7 @@ class Config(object):
     def add_elements(self, new_elements: list):
         _ = [self.add_single_element(element_name) for element_name in new_elements]
 
+
     def remove_element(self, element: str):
         current_elements = self.elements
         current_elements.remove(element)
@@ -83,6 +84,10 @@ class Config(object):
             if element_name not in elements:
                 elements.append(element_name)
                 self.elements = elements
+
+    def get_element_or_missing_data(self, element_name):
+        result = getattr(self, element_name, missing_data)
+        return result
 
 
     def __repr__(self):

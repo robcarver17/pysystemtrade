@@ -1,6 +1,7 @@
 import pandas as pd
 
-from syscore.objects import arg_not_supplied, missing_data
+from syscore.objects import arg_not_supplied
+from sysproduction.data.directories import missing_data
 from sysobjects.contract_dates_and_expiries import listOfContractDateStr
 
 

@@ -3,11 +3,11 @@ import datetime
 
 from syscore.objects import (
     arg_not_supplied,
-    missing_data,
     success,
     failure,
     missing_order,
 )
+from sysproduction.data.directories import missing_data
 
 from sysdata.mongodb.mongo_roll_state_storage import mongoRollStateData
 from sysdata.mongodb.mongo_position_by_contract import mongoContractPositionData

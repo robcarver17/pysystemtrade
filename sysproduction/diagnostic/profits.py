@@ -5,7 +5,8 @@ import types
 
 from collections import namedtuple
 
-from syscore.objects import header, table, body_text, arg_not_supplied, missing_data
+from syscore.objects import header, table, body_text, arg_not_supplied
+from sysproduction.data.directories import missing_data
 
 from sysobjects.contracts import futuresContract
 from sysobjects.production.tradeable_object import instrumentStrategy

@@ -7,7 +7,8 @@ import matplotlib.pyplot as pyplot
 import pandas as pd
 
 from syscore.fileutils import file_in_home_dir
-from syscore.objects import arg_not_supplied, user_exit, missing_data
+from syscore.objects import arg_not_supplied, user_exit
+from sysproduction.data.directories import missing_data
 from syscore.genutils import print_menu_of_values_and_get_response
 from sysdata.data_blob import dataBlob
 from sysproduction.diagnostic.backtest_state import (

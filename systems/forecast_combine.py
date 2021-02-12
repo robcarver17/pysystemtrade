@@ -4,7 +4,8 @@ import numpy as np
 import pandas as pd
 
 from syscore.genutils import str2Bool
-from syscore.objects import resolve_function, update_recalc, missing_data
+from syscore.objects import resolve_function, update_recalc
+from sysproduction.data.directories import missing_data
 from syscore.pdutils import dataframe_pad, fix_weights_vs_pdm, from_dict_of_values_to_df
 from syscore.algos import map_forecast_value
 from systems.defaults import get_default_config_key_value
