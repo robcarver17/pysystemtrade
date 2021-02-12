@@ -10,7 +10,7 @@ from syscore.fileutils import get_filename_for_package
 from syscore.objects import arg_not_supplied, missing_data
 import yaml
 
-DEFAULT_FILENAME = "systems.provided.defaults.yaml"
+DEFAULT_FILENAME = "sysdata.config.defaults.yaml"
 
 
 def get_system_defaults_dict(filename: str = arg_not_supplied) -> dict:
