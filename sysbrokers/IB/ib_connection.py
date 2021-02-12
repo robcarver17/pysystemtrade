@@ -56,7 +56,7 @@ class connectionIB(object):
 
         ib = IB()
 
-        if account is missing_data:
+        if account is arg_not_supplied:
             ## not passed get from config
             account = get_broker_account()
 
