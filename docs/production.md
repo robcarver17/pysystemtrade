@@ -273,11 +273,11 @@ When trading you will need to do the following:
 - Input: Total capital
 - Output: Capital allocated per strategy
 
-*[Run systems](#run-updated-backtest-systems-for-one-or-more-strategies)*
+*[Update system backtests](#run-updated-backtest-systems-for-one-or-more-strategies)*
 - Input: Capital allocated per strategy, Adjusted futures prices, Multiple price series, Spot FX prices
 - Output: Optimal positions and buffers per strategy, pickled backtest state
 
-*[Run strategy order generator](#generate-orders-for-each-strategy)*
+*[Update strategy orders](#generate-orders-for-each-strategy)*
 - Input:  Optimal positions and buffers per strategy
 - Output: Instrument orders
 
@@ -2683,7 +2683,7 @@ We do not store a history of the risk target of a strategy, so if you change the
 
 System runners run overnight backtests for each of the strategies you are running (see [here](#run-updated-backtest-systems-for-one-or-more-strateges) for more details.)
 
-The following shows the parameters for an example strategy, named (appropriately enough) `example` stored in [syscontrol/control_config.yaml](/syscontrol/control_config.yaml) (remember you can override these in private_control_config.yaml).
+The following shows the parameters for an example strategy, named (appropriately enough) `example` stored in [syscontrol/control_config.yaml](/syscontrol/control_config.yaml) (remember you must specify your own personal strategy configuration in private_control_config.yaml).
 
 ```
 process_configuration_methods:
@@ -2694,7 +2694,7 @@ process_configuration_methods:
       backtest_config_filename: systems.provided.futures_chapter15.futures_config.yaml
 ```
 
-Note the generic process parameters max_executions and frequency, both are optional, but it is strongly recomended that you set max_executions to 1 unless you want the backtest to run multiple times throughout the day (in which case you should also set frequency, which is the gap between runs in minutes).
+Note the generic process parameters max_executions and frequency, both are optional, but it is strongly reccomended that you set max_executions to 1 unless you want the backtest to run multiple times throughout the day (in which case you should also set frequency, which is the gap between runs in minutes).
 
 A system usually does the following:
 
@@ -2709,7 +2709,7 @@ As an example [here](/sysproduction/strategy_code/run_system_classic.py) is the 
 
 Once a backtest has been run it will generate a list of desired optimal positions (for the classic buffered positions, these will include buffers). From those, and our actual current positions, we need to calculate what trades are required for execution by the run_stack_handler process.
 
-The following shows the parameters for an example strategy, named (appropriately enough) `example` stored in [syscontrol/control_config.yaml](/syscontrol/control_config.yaml) (remember you can override these in private_control_config.yaml).
+The following shows the parameters for an example strategy, named (appropriately enough) `example` stored in [syscontrol/control_config.yaml](/syscontrol/control_config.yaml) (remember you must specify your own personal strategy configuration in private_control_config.yaml)
 
 ```
 process_configuration_methods:
@@ -2770,7 +2770,7 @@ The better case is when the mongo DB is fine. In this case (once you've [restore
 - Capital: any intraday p&l data will be lost, but once run_capital_update has run the current capital will be correct.
 - Optimal positions: will be correct once run_systems has run.
 - IMPORTANT: State information about processes running may be wrong; you may need to manually FINISH processes using interactive_controls otherwise processes won't run for fear of conflict (but the startup script should do this for you)
-- You can use update_* and run_* processes if you want to recover your data before the normal scheduled process will do so. Don't forget to run them in the correct order: update_fx_prices (has to be before run_systems), update_sampled_contracts, update_historical_prices, update_multiple_adjusted_prices, run_systems,  run_strategy_order_generator; at which run_stack_handler will probably have orders to do if it's running.
+- You can use update_*  processes if you want to recover your data before the normal scheduled process will do so. Don't forget to run them in the correct order: update_fx_prices (has to be before run_systems), update_sampled_contracts, update_historical_prices, update_multiple_adjusted_prices, update_strategy_backtests,  update_strategy_orders; at which run_stack_handler will probably have orders to do if it's running.
 - Processes are started by the scheduler, eg Cron, you will need to start them manually if their normal start time has passed (I find [linux screen](https://linuxize.com/post/how-to-use-linux-screen/) helpful for this on my headless server). Everything should work normally the following day.
 - Carefully check your reports, especially the status and reconcile reports, to see that all is well.
 
