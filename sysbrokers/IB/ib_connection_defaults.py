@@ -1,4 +1,4 @@
-from sysdata.config.production_config import production_config
+from sysdata.config.production_config import get_production_config
 from syscore.objects import arg_not_supplied
 
 LIST_OF_IB_PARAMS = ["ib_ipaddress", "ib_port", "ib_idoffset"]
@@ -24,7 +24,7 @@ def ib_defaults(**kwargs):
             param_value = arg_not_supplied
 
         if param_value is arg_not_supplied:
-            param_value = getattr(production_config, param_name)
+            param_value = getattr(get_production_config, param_name)
 
         output_dict[param_name] = param_value
 

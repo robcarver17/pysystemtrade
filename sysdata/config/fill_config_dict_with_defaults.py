@@ -1,5 +1,5 @@
 
-def fill_config_dict_with_defaults(config_dict, defaults_dict):
+def fill_config_dict_with_defaults(config_dict: dict, defaults_dict: dict) -> dict:
     """
     >>> fill_config_dict_with_defaults({a:2}, {b:3})
     """

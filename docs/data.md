@@ -680,11 +680,11 @@ Personally I like to keep my Mongo data in a specific subdirectory; that is achi
 
 You need to specify an IP address (host), and database name when you connect to MongoDB. These are set with the following priority:
 
-- Firstly, arguments passed to a `mongoDb()` instance, which is then optionally passed to any data object with the argument `mongo_db=mongoDb(host='localhost', database_name='production')` All arguments are optional. 
-- Then, variables set in the private `.yaml` configuration file /private/private_config.yaml: mongo_host, mongo_db
-- Finally, default arguments in the [system defaults configuration file](/systems/provided/defaults.yaml): mongo_host, mongo_db
+- Firstly, arguments passed to a `mongoDb()` instance, which is then optionally passed to any data object with the argument `mongo_db=mongoDb(mongo_host='localhost', mongo_database_name='production', mongo_port = 27017)` All arguments are optional. 
+- Then, variables set in the private `.yaml` configuration file /private/private_config.yaml: mongo_host, mongo_db, mongo_port
+- Finally, default arguments in the [system defaults configuration file](/systems/provided/defaults.yaml): mongo_host, mongo_db, mongo_port
 
-Note that `localhost` is equivalent to `127.0.0.1`, i.e. this machine. Note also that no port can be specified. This is because the port is hard coded in Arctic. You should stick to the default port 27017.
+Note that `localhost` is equivalent to `127.0.0.1`, i.e. this machine. Note also that the port number is hard coded in Arctic so you should stick to the default port 27017.
 
 If your mongoDB is running on your local machine then you can stick with the defaults (assuming you are happy with the database name `production`). If you have different requirements, eg mongo running on another machine or you want a different database name, then you should set them in the private .yaml file. If you have highly bespoke needs, eg you want to use a different database or different host for different types of data, then you will need to add code like this:
 
@@ -694,7 +694,7 @@ mfidata=mongoFuturesInstrumentData()
 
 # Do this
 from sysdata.mongodb import mongoDb
-mfidata=mongoFuturesInstrumentData(mongo_db = mongoDb(database_name='another database')) # could also change host
+mfidata=mongoFuturesInstrumentData(mongo_db = mongoDb(mongo_database_name='another database')) # could also change host
 ```
 
 <a name="arctic"></a>
@@ -708,21 +708,8 @@ Arctic has several *storage engines*, in my code I use the default VersionStore.
 
 #### Specifying an arctic connection
 
-You need to specify an IP address (host), and database name when you connect to Arctic. Usually Arctic data objects will default to using the same settings as Mongo data objects.
+You need to specify an IP address (host), and database name when you connect to Arctic. Arctic data objects will default to using the same settings as Mongo data objects.
 
-Note:
-- No port is specified - Arctic can only use the default port. For this reason I strongly discourage changing the port used when connecting to other mongo databases.
-- In actual use Arctic prepends `arctic-` to the database name. So instead of `production` it specifies `arctic-production`. This shouldn't be an issue unless you are connecting directly to the mongo database.
-
-These are set with the following priority:
-
-- Firstly, arguments passed to a `mongoDb()` instance, which is then optionally passed to any Arctic data object with the argument `mongo_db=mongoDb(host='localhost', database_name='production')` All arguments are optional. 
-- Then, arguments set in the private `.yaml` configuration file/private/private_config.yaml: mongo_host, mongo_db
-- Finally, default arguments hardcoded [in mongo_connection.py](/sysdata/mongodb/mongo_connection.py): DEFAULT_MONGO_DB, DEFAULT_MONGO_HOST, DEFAULT_MONGO_PORT
-
-Note that `localhost` is equivalent to `127.0.0.1`, i.e. this machine.
-
-If your mongoDB is running on your local machine with the standard port settings, then you can stick with the defaults (assuming you are happy with the database name 'production'). If you have different requirements, eg mongo running on another machine, then you should code them up in the private .yaml file. If you have highly bespoke needs, eg you want to use a different database for different types of data, then you will need to add code like this:
 
 ```python
 # Instead of:

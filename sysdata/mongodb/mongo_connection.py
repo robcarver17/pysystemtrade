@@ -3,7 +3,7 @@ from copy import copy
 import numpy as np
 
 from syscore.objects import arg_not_supplied
-from sysdata.config.production_config import production_config
+from sysdata.config.production_config import get_production_config
 
 LIST_OF_MONGO_PARAMS = ["mongo_db", "mongo_host", "mongo_port"]
 
@@ -23,6 +23,7 @@ def mongo_defaults(**kwargs):
     """
     # this will include defaults.yaml if not defined in private
     passed_param_names = list(kwargs.keys())
+    production_config =get_production_config()
     output_dict = {}
     for param_name in LIST_OF_MONGO_PARAMS:
 
@@ -32,6 +33,7 @@ def mongo_defaults(**kwargs):
             param_value = arg_not_supplied
             
         if param_value is arg_not_supplied:
+
             param_value = getattr(production_config, param_name)
 
         output_dict[param_name] = param_value

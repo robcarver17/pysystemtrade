@@ -2,9 +2,11 @@ import os
 
 from syscore.fileutils import get_resolved_pathname
 from syscore.objects import missing_data
-from sysdata.config.production_config import production_config
+from sysdata.config.production_config import get_production_config
 from sysproduction.diagnostic.backtest_state import get_directory_store_backtests
 
+
+production_config = get_production_config()
 
 def get_main_backup_directory():
 

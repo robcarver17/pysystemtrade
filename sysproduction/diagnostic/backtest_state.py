@@ -4,7 +4,7 @@ from shutil import copyfile
 
 from syscore.objects import success, failure, resolve_function
 from syscore.fileutils import get_resolved_pathname, files_with_extension_in_pathname
-from sysdata.config.production_config import production_config
+from sysdata.config.production_config import get_production_config
 from sysproduction.data.strategies import diagStrategiesConfig
 
 PICKLE_EXT = ".pck"
@@ -204,6 +204,7 @@ def get_backtest_directory_for_strategy(strategy_name):
 def get_directory_store_backtests():
     # eg '/home/rob/data/backtests/'
     key_name = "backtest_store_directory"
+    production_config = get_production_config()
     store_directory = getattr(production_config, key_name)
 
     return store_directory

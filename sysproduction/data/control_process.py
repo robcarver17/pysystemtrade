@@ -3,11 +3,10 @@ import socket
 
 from syscore.dateutils import SECONDS_PER_HOUR
 from syscore.genutils import str2Bool
-from sysdata.config.control_config import control_config
+from sysdata.config.control_config import get_control_config
 from sysdata.data_blob import dataBlob
 from sysdata.mongodb.mongo_process_control import mongoControlProcessData
 
-import yaml
 from syscore.objects import arg_not_supplied, missing_data
 
 
@@ -369,7 +368,8 @@ class diagControlProcess:
 
 
 def get_key_value_from_dict(item_name):
-    item = control_config.get_element_or_missing_data(item_name)
+    config = get_control_config()
+    item = config.get_element_or_missing_data(item_name)
 
     return item
 

@@ -12,7 +12,7 @@ from syscore.objects import missing_data,arg_not_supplied
 
 from syslogdiag.log import logtoscreen
 
-from sysdata.config.production_config import production_config
+from sysdata.config.production_config import get_production_config
 
 
 
@@ -106,6 +106,7 @@ class connectionIB(object):
 
 
 def get_broker_account() -> str:
+    production_config = get_production_config()
     account_id = production_config.get_element_or_missing_data(
         "broker_account")
     return account_id
