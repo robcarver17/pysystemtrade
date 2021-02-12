@@ -289,7 +289,7 @@ class dataBlob(object):
     def config(self) -> Config:
         config = getattr(self, "_config", None)
         if config is None:
-            self._config = production_config
+            config = self._config = production_config
 
         return config
 
