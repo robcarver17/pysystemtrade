@@ -76,13 +76,13 @@ class mongoDb():
     But requires adding a collection with mongoConnection before useful
     """
 
-    def __init__(self, database_name: str = arg_not_supplied,
-                 host: str = arg_not_supplied,
-                 port: int  = arg_not_supplied):
+    def __init__(self, mongo_database_name: str = arg_not_supplied,
+                 mongo_host: str = arg_not_supplied,
+                 mongo_port: int  = arg_not_supplied):
 
-        database_name, host, port = mongo_defaults(mongo_database_name = database_name,
-                                                   mongo_host = host,
-                                                   mongo_port = port)
+        database_name, host, port = mongo_defaults(mongo_database_name = mongo_database_name,
+                                                   mongo_host = mongo_host,
+                                                   mongo_port = mongo_port)
 
         self.database_name = database_name
         self.host = host

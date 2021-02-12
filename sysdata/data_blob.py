@@ -251,29 +251,58 @@ class dataBlob(object):
         # No need to explicitly close Mongo connections; handled by Python garbage collection
 
     @property
-    def ib_conn(self):
+    def ib_conn(self) -> connectionIB:
         ib_conn = getattr(self, "_ib_conn", arg_not_supplied)
         if ib_conn is arg_not_supplied:
-
-            ## default to tracking ID through mongo change if required
-            self.add_class_object(mongoIbBrokerClientIdData)
-            client_id = self.db_ib_broker_client_id.return_valid_client_id()
-            ib_conn = connectionIB(client_id, log=self.log)
+            ib_conn = self._get_new_ib_connection()
             self._ib_conn = ib_conn
 
         return ib_conn
 
+    def _get_new_ib_connection(self) -> connectionIB:
+        client_id = self._get_next_client_id_for_ib()
+        ib_ipaddress = self.config.get_element_or_arg_not_supplied("ib_ipaddress")
+        ib_port = self.config.get_element_or_arg_not_supplied("ib_port")
+        account  = self.config.get_element_or_arg_not_supplied("broker_account")
+
+        ib_conn = connectionIB(client_id,
+                               ib_ipaddress=ib_ipaddress,
+                               ib_port=ib_port,
+                               account=account,
+                               log=self.log)
+        return ib_conn
+
+    def _get_next_client_id_for_ib(self) -> int:
+        ## default to tracking ID through mongo change if required
+        self.add_class_object(mongoIbBrokerClientIdData)
+        client_id = self.db_ib_broker_client_id.return_valid_client_id()
+
+        return int(client_id)
+
     @property
-    def mongo_db(self):
+    def mongo_db(self) -> mongoDb:
         mongo_db = getattr(self, "_mongo_db", arg_not_supplied)
         if mongo_db is arg_not_supplied:
-            mongo_db = mongoDb()
+            mongo_db= self._get_new_mongo_db()
             self._mongo_db = mongo_db
 
         return mongo_db
 
+    def _get_new_mongo_db(self) -> mongoDb:
+        config = self.config
+        mongo_database_name = config.get_element_or_arg_not_supplied("mongo_database_name")
+        mongo_port = config.get_element_or_arg_not_supplied("mongo_port")
+        mongo_host = config.get_element_or_arg_not_supplied("mongo_host")
+
+        mongo_db = mongoDb(mongo_database_name=mongo_database_name,
+                           mongo_host=mongo_host,
+                           mongo_port=mongo_port
+                           )
+
+        return mongo_db
+
     @property
-    def config(self):
+    def config(self) -> Config:
         config = getattr(self, "_config", arg_not_supplied)
         if config is arg_not_supplied:
             self._config = production_config

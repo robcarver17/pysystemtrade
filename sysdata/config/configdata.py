@@ -92,6 +92,9 @@ class Config(object):
         result = getattr(self, element_name, missing_data)
         return result
 
+    def get_element_or_arg_not_supplied(self, element_name):
+        result = getattr(self, element_name, arg_not_supplied)
+        return  result
 
     def __repr__(self):
         elements = self.elements

@@ -15,13 +15,6 @@ from syslogdiag.log import logtoscreen
 from sysdata.config.production_config import production_config
 
 
-def get_broker_account() -> str:
-    account_id = production_config.get_element_or_missing_data(
-        "broker_account")
-    if account_id is missing_data:
-        return missing_data
-    else:
-        return account_id
 
 class connectionIB(object):
     """
@@ -32,8 +25,9 @@ class connectionIB(object):
     def __init__(
         self,
         client_id: int,
-        ipaddress: str=arg_not_supplied,
-        port: int=arg_not_supplied,
+        ib_ipaddress: str=arg_not_supplied,
+        ib_port: int=arg_not_supplied,
+        account: str = arg_not_supplied,
         log=logtoscreen("connectionIB")
     ):
         """
@@ -46,7 +40,7 @@ class connectionIB(object):
 
         # resolve defaults
 
-        ipaddress, port, __ = ib_defaults(ib_ipaddress=ipaddress, ib_port=port)
+        ipaddress, port, __ = ib_defaults(ib_ipaddress=ib_ipaddress, ib_port=ib_port)
 
         # The client id is pulled from a mongo database
         # If for example you want to use a different database you could do something like:
@@ -62,12 +56,16 @@ class connectionIB(object):
 
         ib = IB()
 
-        account = get_broker_account()
+        if account is missing_data:
+            ## not passed get from config
+            account = get_broker_account()
 
+        ## that may still return missing data...
         if account is missing_data:
             self.log.error("Broker account ID not found in private config - may cause issues")
             ib.connect(ipaddress, port, clientId=client_id)
         else:
+            ## conncect using account
             ib.connect(ipaddress, port, clientId=client_id, account=account)
 
         # Sometimes takes a few seconds to resolve... only have to do this once per process so no biggie
@@ -106,3 +104,8 @@ class connectionIB(object):
             )
 
 
+
+def get_broker_account() -> str:
+    account_id = production_config.get_element_or_missing_data(
+        "broker_account")
+    return account_id

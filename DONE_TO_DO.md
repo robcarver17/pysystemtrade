@@ -1,5 +1,9 @@
 # Release notes
 
+## Version 0.80
+
+Moved defaults.yaml to /sysdata/config directory
+Cleaned up configuration code. Production config now single instance, accessed through data blob.
 Messed up order database by changing formats; let me know if you have any issues reading your old orders
 
 ## Version 0.70
