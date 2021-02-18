@@ -3,15 +3,12 @@ import socket
 
 from syscore.dateutils import SECONDS_PER_HOUR
 from syscore.genutils import str2Bool
+from sysdata.config.control_config import get_control_config
 from sysdata.data_blob import dataBlob
 from sysdata.mongodb.mongo_process_control import mongoControlProcessData
 
-import yaml
-from syscore.fileutils import get_filename_for_package
-from syscore.objects import missing_data, arg_not_supplied
+from syscore.objects import arg_not_supplied, missing_data
 
-PRIVATE_CONTROL_CONFIG_FILE = get_filename_for_package("private.private_control_config.yaml")
-PUBLIC_CONTROL_CONFIG_FILE = get_filename_for_package("syscontrol.control_config.yaml")
 
 
 
@@ -371,41 +368,11 @@ class diagControlProcess:
 
 
 def get_key_value_from_dict(item_name):
-    config_dict = get_config_dict()
+    config = get_control_config()
+    item = config.get_element_or_missing_data(item_name)
 
-    return config_dict.get(item_name, missing_data)
+    return item
 
-
-def get_config_dict() -> dict:
-    private_dict = get_private_control_config()
-    if private_dict is not missing_data:
-        return private_dict
-    public_dict = get_public_control_config()
-    if public_dict is missing_data:
-        raise Exception("Need to have either %s or %s present:" % (
-        str(PUBLIC_CONTROL_CONFIG_FILE), str(PRIVATE_CONTROL_CONFIG_FILE)))
-
-    return public_dict
-
-
-
-def get_public_control_config():
-    try:
-        with open(PUBLIC_CONTROL_CONFIG_FILE) as file_to_parse:
-            config_dict = yaml.load(file_to_parse, Loader=yaml.FullLoader)
-    except BaseException:
-        config_dict = missing_data
-
-    return config_dict
-
-def get_private_control_config():
-    try:
-        with open(PRIVATE_CONTROL_CONFIG_FILE) as file_to_parse:
-            config_dict = yaml.load(file_to_parse, Loader=yaml.FullLoader)
-    except BaseException:
-        config_dict = missing_data
-
-    return config_dict
 
 
 def get_list_of_strategies_for_process(data: dataBlob, process_name: str) -> list:

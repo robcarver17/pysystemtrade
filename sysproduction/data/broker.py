@@ -8,7 +8,7 @@ from sysbrokers.IB.ib_position_data import ibContractPositionData
 from sysbrokers.IB.ib_orders_data import ibOrdersData
 from sysbrokers.IB.ib_misc_data import ibMiscData
 
-from syscore.objects import missing_data, arg_not_supplied, missing_order, missing_contract
+from syscore.objects import arg_not_supplied, missing_order, missing_contract, missing_data
 
 from sysdata.data_blob import dataBlob
 

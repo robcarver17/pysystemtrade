@@ -9,7 +9,7 @@ this:
 
 """
 
-from syscore.objects import success, missing_data, arg_not_supplied
+from syscore.objects import success, arg_not_supplied, missing_data
 
 from sysdata.config.configdata import Config
 from sysobjects.production.optimal_positions import bufferedOptimalPositions
@@ -47,8 +47,8 @@ class runSystemClassic(object):
         data = self.data
 
         capital_data = dataCapital(data)
-        capital_value = capital_data.get_capital_for_strategy(strategy_name)
-        if capital_data is missing_data:
+        notional_trading_capital = capital_data.get_capital_for_strategy(strategy_name)
+        if notional_trading_capital is missing_data:
             # critical log will send email
             error_msg = (
                 "Capital data is missing for %s: can't run backtest" %
@@ -60,7 +60,7 @@ class runSystemClassic(object):
         base_currency = currency_data.get_base_currency()
 
         system = self.system_method(
-            notional_trading_capital=capital_value, base_currency=base_currency
+            notional_trading_capital=notional_trading_capital, base_currency=base_currency
         )
 
         updated_buffered_positions(data, strategy_name, system)

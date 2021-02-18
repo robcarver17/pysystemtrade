@@ -174,7 +174,7 @@ Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 
 # Quick start guide
 
-This quick start guide assumes the following:
+This 'quick' start guide assumes the following:
 
 - you are running on a linux box with an appropriate distro (I use Mint). Windows / Mac people will have to do some things slightly differently
 - you are using interactive brokers
@@ -199,7 +199,7 @@ You need to:
     - Install the pysystemtrade package, and install or update, any dependencies in directory $PYSYS_CODE (it's possible to put it elsewhere, but you will need to modify the environment variables listed above). If using git clone from your home directory this should create the directory '/home/user_name/pysystemtrade/'
     - [Set up interactive brokers](/docs/IB.md), download and install their python code, and get a gateway running.
     - [Install mongodb](https://docs.mongodb.com/manual/administration/install-on-linux/)
-    - create a file 'private_config.yaml' in the private directory of [pysystemtrade](/private), and optionally a ['private_control_config.yaml' file in the same directory](#process-configuration)
+    - create a file 'private_config.yaml' in the private directory of [pysystemtrade](/private), and optionally a ['private_control_config.yaml' file in the same directory](#process-configuration) See [here for more details](#system-defaults--private-config)
     - [check a mongodb server is running with the right data directory](/docs/data.md#mongo-db) command line: `mongod --dbpath $MONGO_DATA`
     - launch an IB gateway (this could be done automatically depending on your security setup)
 - FX data:
@@ -273,11 +273,11 @@ When trading you will need to do the following:
 - Input: Total capital
 - Output: Capital allocated per strategy
 
-*[Run systems](#run-updated-backtest-systems-for-one-or-more-strategies)*
+*[Update system backtests](#run-updated-backtest-systems-for-one-or-more-strategies)*
 - Input: Capital allocated per strategy, Adjusted futures prices, Multiple price series, Spot FX prices
 - Output: Optimal positions and buffers per strategy, pickled backtest state
 
-*[Run strategy order generator](#generate-orders-for-each-strategy)*
+*[Update strategy orders](#generate-orders-for-each-strategy)*
 - Input:  Optimal positions and buffers per strategy
 - Output: Instrument orders
 
@@ -458,7 +458,7 @@ You are probably going to want to link your system to a broker, to do one or mor
 
 ... although one or more of these can also be done manually.
 
-You should now read [connecting pysystemtrade to interactive brokers](/docs/IB.md). The fields `broker_account`,`ib_ipaddress`, `ib_port` and `ib_idoffset` should be set in the private config file /private/private_config.yaml.
+You should now read [connecting pysystemtrade to interactive brokers](/docs/IB.md). The fields `broker_account`,`ib_ipaddress`, `ib_port` and `ib_idoffset` should be set in the [private config file](/private/private_config.yaml).
 
 
 ## Other data sources
@@ -562,14 +562,16 @@ The [supplied crontab](/sysproduction/linux/crontab) contains lines like this:
 SCRIPT_PATH="$HOME:/workspace3/psystemtrade/sysproduction/linux/scripts"
 ECHO_PATH="$HOME:/echos"
 #
-0 6  * * 1-5 $SCRIPT_PATH/updatefxprices  >> $ECHO_PATH/updatefxprices 2>&1
+0 6  * * 1-5 $SCRIPT_PATH/updatefxprices  >> $ECHO_PATH/updatefxprices.txt 2>&1
 ```
 
-The above line will run the script `updatefxprices`, but instead of outputting the results to stdout they will go to `updatefxprices`. These echo files are must useful when processes crash, in which case you may want to examine the stack trace. Usually however the log files will be more useful.
+The above line will run the script `updatefxprices`, but instead of outputting the results to stdout they will go to `updatefxprices.txt`. These echo files are must useful when processes crash, in which case you may want to examine the stack trace. Usually however the log files will be more useful.
 
 #### Cleaning old echo files
 
 Over time echo files can get... large (my default position for logging is verbose). To avoid this there is a [daily cleaning process](#truncate-echo-files) which archives old echo files with a date suffix, and deletes anything more than a month old.
+
+Note: the configuration variable echo_extension will need changing in `private_config.yaml` if you don't use .txt file extensions, otherwise cleaning won't work.
 
 ### Logging
 
@@ -2056,6 +2058,11 @@ Note: if you want to avoid trading in an instrument for some other reason, use a
 
 If the broker API has gone crazy or died for some reason then all instruments with active positions will be locked. This is a quick way of unlocking them.
 
+##### Remove Algo lock on contract order
+
+When an algo begins executing a contract order (in part or in full), it locks it. That lock is released when the order has finished executing. If the stack handler crashes before that can happen, then no other algo can execute it. Although the order will be deleted in the normal end of day stack clean up, if you can't wait that long you can manually clear the problem.
+
+
 #### Delete and clean
 
 ##### Delete entire stack (CAREFUL!)
@@ -2306,7 +2313,7 @@ Useful things to note about the crontab:
 
 #### Process configuration
 
-Process configuration is governed by the following config parameters (in [/syscontrol/control_config.yaml](/syscontrol/control_config.yaml), or these will be globally overriden (so you need to copy and paste the entire file, unlike other default files) by /private/private_control_config.yaml):
+Process configuration is governed by the following config parameters (in [/syscontrol/control_config.yaml](/syscontrol/control_config.yaml), or these will be overriden by /private/private_control_config.yaml):
 
 -  `process_configuration_start_time`: when the process starts (default 00:01)
 - `process_configuration_stop_time`: when the process ends, regardless of any method configuration (default 23:50)
@@ -2418,6 +2425,12 @@ process_configuration_methods:
       max_executions: 1
     clean_log_files:
       max_executions: 1
+```
+
+You can override any of these in /private/private_control_config.yaml, but you *must* also include the following sections in your private control config file (add more if you have more strategies), or these run processes won't work:
+
+```
+process_configuration_methods:
   run_systems:
     example:  # strategy name
       max_executions: 1
@@ -2498,23 +2511,12 @@ Configuration for the system is spread across a few different places:
 
 ### System defaults & Private config
 
-Most configuration is stored in [/systems/provided/defaults.yaml](/systems/provided/defaults.yaml), with the possibility of overriding in the private configuration file `/private/private_config.yaml`, an example of which is here [/examples/production/private_config_example.yaml](/examples/production/private_config_example.yaml). Any top level keyword included in the private config will override the same keyword in the defaults.yaml file.
+Most configuration is stored in [/sysdata/config/defaults.yaml](/sysdata/config/defaults.yaml), with the possibility of overriding in the private configuration file `/private/private_config.yaml`, an example of which is here [/examples/production/private_config_example.yaml](/examples/production/private_config_example.yaml). Anything included in the private config will override the defaults.yaml file.
 
 Exceptionally, the following are configuration options that are not in defaults.yaml and *must* be in private_config.yaml:
 
 - `broker_account`: IB account id, str
-
-The following are configuration options that are not in defaults.yaml and *may* be in private_config.yaml:
-
-- `quandl_key`: if using quandl data
-- `barchart_key`: if using barchart data
-- `email_address`
-- `email_pwd`
-- `email_server`: this is the outgoing server
-offsystem_backup_directory
-
-The following are configuration options that are in defaults.yaml and can be overriden in private_config.yaml:
-
+- `offsystem_backup_directory`: if you're using off site backup (if not set it to a local drive or modify the backup scripts)
 
 [Strategy configuration](#strategies)
 - `strategy_list` (dict, keys are strategy names)
@@ -2528,6 +2530,18 @@ The following are configuration options that are in defaults.yaml and can be ove
    - `function` to produce allocations eg sysproduction.strategy_code.strategy_allocation.weighted_strategy_allocation
    - `strategy_weights` dict of strategy names
       - `strategy_name` weight as float
+
+
+The following are configuration options that are not in defaults.yaml and *may* be in private_config.yaml:
+
+- `quandl_key`: if using quandl data
+- `barchart_key`: if using barchart data
+- `email_address`: if you want to get emailed errors and reports
+- `email_pwd`
+- `email_server`: this is the outgoing server
+
+
+The following are configuration options that are in defaults.yaml and can be overriden in private_config.yaml:
 
 [Backup paths](#data-backup)
 - `backtest_store_directory` parent directory, backtests are stored under strategy_name subdirectory
@@ -2669,7 +2683,7 @@ We do not store a history of the risk target of a strategy, so if you change the
 
 System runners run overnight backtests for each of the strategies you are running (see [here](#run-updated-backtest-systems-for-one-or-more-strateges) for more details.)
 
-The following shows the parameters for an example strategy, named (appropriately enough) `example` stored in [syscontrol/control_config.yaml](/syscontrol/control_config.yaml) (remember you can override these in private_control_config.yaml).
+The following shows the parameters for an example strategy, named (appropriately enough) `example` stored in [syscontrol/control_config.yaml](/syscontrol/control_config.yaml) (remember you must specify your own personal strategy configuration in private_control_config.yaml).
 
 ```
 process_configuration_methods:
@@ -2680,7 +2694,7 @@ process_configuration_methods:
       backtest_config_filename: systems.provided.futures_chapter15.futures_config.yaml
 ```
 
-Note the generic process parameters max_executions and frequency, both are optional, but it is strongly recomended that you set max_executions to 1 unless you want the backtest to run multiple times throughout the day (in which case you should also set frequency, which is the gap between runs in minutes).
+Note the generic process parameters max_executions and frequency, both are optional, but it is strongly reccomended that you set max_executions to 1 unless you want the backtest to run multiple times throughout the day (in which case you should also set frequency, which is the gap between runs in minutes).
 
 A system usually does the following:
 
@@ -2695,7 +2709,7 @@ As an example [here](/sysproduction/strategy_code/run_system_classic.py) is the 
 
 Once a backtest has been run it will generate a list of desired optimal positions (for the classic buffered positions, these will include buffers). From those, and our actual current positions, we need to calculate what trades are required for execution by the run_stack_handler process.
 
-The following shows the parameters for an example strategy, named (appropriately enough) `example` stored in [syscontrol/control_config.yaml](/syscontrol/control_config.yaml) (remember you can override these in private_control_config.yaml).
+The following shows the parameters for an example strategy, named (appropriately enough) `example` stored in [syscontrol/control_config.yaml](/syscontrol/control_config.yaml) (remember you must specify your own personal strategy configuration in private_control_config.yaml)
 
 ```
 process_configuration_methods:
@@ -2756,7 +2770,7 @@ The better case is when the mongo DB is fine. In this case (once you've [restore
 - Capital: any intraday p&l data will be lost, but once run_capital_update has run the current capital will be correct.
 - Optimal positions: will be correct once run_systems has run.
 - IMPORTANT: State information about processes running may be wrong; you may need to manually FINISH processes using interactive_controls otherwise processes won't run for fear of conflict (but the startup script should do this for you)
-- You can use update_* and run_* processes if you want to recover your data before the normal scheduled process will do so. Don't forget to run them in the correct order: update_fx_prices (has to be before run_systems), update_sampled_contracts, update_historical_prices, update_multiple_adjusted_prices, run_systems,  run_strategy_order_generator; at which run_stack_handler will probably have orders to do if it's running.
+- You can use update_*  processes if you want to recover your data before the normal scheduled process will do so. Don't forget to run them in the correct order: update_fx_prices (has to be before run_systems), update_sampled_contracts, update_historical_prices, update_multiple_adjusted_prices, update_strategy_backtests,  update_strategy_orders; at which run_stack_handler will probably have orders to do if it's running.
 - Processes are started by the scheduler, eg Cron, you will need to start them manually if their normal start time has passed (I find [linux screen](https://linuxize.com/post/how-to-use-linux-screen/) helpful for this on my headless server). Everything should work normally the following day.
 - Carefully check your reports, especially the status and reconcile reports, to see that all is well.
 

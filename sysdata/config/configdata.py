@@ -11,19 +11,20 @@ parameters - a dict of values which override those in system.defaults
 trading_rules - a specification of the trading rules for a system
 
 """
-from copy import copy
 
 import yaml
 from syscore.fileutils import get_filename_for_package
-from systems.defaults import get_system_defaults
+from syscore.objects import missing_data, arg_not_supplied
+from systems.defaults import get_system_defaults_dict
 from syslogdiag.log import logtoscreen
 from sysdata.config.fill_config_dict_with_defaults import fill_config_dict_with_defaults
 
-RESERVED_NAMES = ["log", "_elements", "elements"]
+RESERVED_NAMES = ["log", "_elements", "elements", "_default_filename", "_default_dict"]
 
 
 class Config(object):
-    def __init__(self, config_object=dict()):
+    def __init__(self, config_object=dict(),
+                 default_filename = arg_not_supplied):
         """
         Config objects control the behaviour of systems
 
@@ -59,6 +60,8 @@ class Config(object):
         else:
             self._create_config_from_item(config_object)
 
+        self._default_filename = default_filename
+
     @property
     def elements(self) -> list:
         elements = getattr(self, "_elements", [])
@@ -72,6 +75,7 @@ class Config(object):
     def add_elements(self, new_elements: list):
         _ = [self.add_single_element(element_name) for element_name in new_elements]
 
+
     def remove_element(self, element: str):
         current_elements = self.elements
         current_elements.remove(element)
@@ -84,6 +88,13 @@ class Config(object):
                 elements.append(element_name)
                 self.elements = elements
 
+    def get_element_or_missing_data(self, element_name):
+        result = getattr(self, element_name, missing_data)
+        return result
+
+    def get_element_or_arg_not_supplied(self, element_name):
+        result = getattr(self, element_name, arg_not_supplied)
+        return  result
 
     def __repr__(self):
         elements = self.elements
@@ -200,11 +211,25 @@ class Config(object):
         self.log.msg("Adding config defaults")
 
         self_as_dict = self.as_dict()
-        default_dict = get_system_defaults()
+        defaults_dict = self._default_config_dict()
 
-        new_dict = fill_config_dict_with_defaults(self_as_dict, default_dict)
+        new_dict = fill_config_dict_with_defaults(self_as_dict, defaults_dict)
 
         self._create_config_from_dict(new_dict)
+
+    def _default_config_dict(self) -> dict:
+        default_dict = getattr(self, "_default_dict", arg_not_supplied)
+        if default_dict is arg_not_supplied:
+            default_filename = self._default_config_filename()
+            default_dict = get_system_defaults_dict(filename=default_filename)
+            self._default_dict = default_dict
+
+        return default_dict
+
+    def _default_config_filename(self) -> str:
+        default_filename = getattr(self, "_default_filename", arg_not_supplied)
+
+        return default_filename
 
     def as_dict(self):
         element_names = sorted(getattr(self, "_elements", []))

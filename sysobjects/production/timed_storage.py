@@ -4,7 +4,6 @@ import pandas as pd
 
 from syscore.objects import success, arg_not_supplied, missing_data
 
-
 DATE_KEY_NAME= 'date'
 class timedEntry(object):
     """

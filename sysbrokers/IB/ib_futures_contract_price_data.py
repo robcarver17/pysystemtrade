@@ -1,4 +1,4 @@
-from syscore.objects import missing_data, missing_contract
+from syscore.objects import missing_contract, missing_data
 
 from sysbrokers.IB.ib_futures_contracts_data import ibFuturesContractData
 from sysbrokers.IB.ib_instruments_data import ibFuturesInstrumentData

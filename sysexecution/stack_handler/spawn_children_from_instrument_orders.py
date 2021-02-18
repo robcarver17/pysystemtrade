@@ -6,10 +6,8 @@ from syscore.genutils import sign
 from syscore.objects import (
     missing_order,
 
-    missing_data,
-
-    success
-)
+    success,
+    missing_data)
 
 from sysdata.data_blob import dataBlob
 

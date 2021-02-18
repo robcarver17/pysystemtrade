@@ -1,8 +1,8 @@
-from syscore.objects import arg_not_supplied
+from syscore.objects import arg_not_supplied, missing_data
 
 from sysdata.futures.instruments import futuresInstrumentData
 from sysobjects.instruments import  futuresInstrumentWithMetaData
-from sysdata.mongodb.mongo_generic import mongoDataWithSingleKey, missing_data
+from sysdata.mongodb.mongo_generic import mongoDataWithSingleKey
 from syslogdiag.log import logtoscreen
 
 INSTRUMENT_COLLECTION = "futures_instruments"

@@ -1150,7 +1150,7 @@ These will create .yaml files which can then be pasted into your existing config
 
 Many (but not all) configuration parameters have defaults which are used by the
 system if the parameters are not in the object. These can be found in the
-[defaults.yaml file](/systems/provided/defaults.yaml). The section on
+[defaults.yaml file](/sysdata/config/defaults.yaml). The section on
 [configuration options](#Configuration_options) explains what the defaults are,
 and where they are used.
 

@@ -1,7 +1,7 @@
 from copy import copy
 from dataclasses import dataclass
 
-from syscore.objects import missing_data, arg_not_supplied, missing_order, missing_contract
+from syscore.objects import arg_not_supplied, missing_order, missing_contract, missing_data
 
 from sysdata.data_blob import dataBlob
 

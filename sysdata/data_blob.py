@@ -3,7 +3,7 @@ from copy import copy
 from sysbrokers.IB.ib_connection import connectionIB
 from syscore.objects import arg_not_supplied, get_class_name
 from syscore.text import camel_case_split
-from sysdata.config.private_config import get_private_config, Config
+from sysdata.config.production_config import get_production_config, Config
 from sysdata.mongodb.mongo_connection import mongoDb
 from sysdata.mongodb.mongo_log import logToMongod
 from syslogdiag.log import logger
@@ -19,7 +19,6 @@ class dataBlob(object):
         ib_conn: connectionIB=arg_not_supplied,
         mongo_db: mongoDb=arg_not_supplied,
         log: logger=arg_not_supplied,
-        config: Config = arg_not_supplied,
         keep_original_prefix: bool=False,
     ):
         """
@@ -63,7 +62,6 @@ class dataBlob(object):
         self._log = log
         self._log_name = log_name
         self._csv_data_paths = csv_data_paths
-        self._config = config
         self._keep_original_prefix = keep_original_prefix
 
         self._attr_list = []
@@ -251,32 +249,47 @@ class dataBlob(object):
         # No need to explicitly close Mongo connections; handled by Python garbage collection
 
     @property
-    def ib_conn(self):
+    def ib_conn(self) -> connectionIB:
         ib_conn = getattr(self, "_ib_conn", arg_not_supplied)
         if ib_conn is arg_not_supplied:
-
-            ## default to tracking ID through mongo change if required
-            self.add_class_object(mongoIbBrokerClientIdData)
-            client_id = self.db_ib_broker_client_id.return_valid_client_id()
-            ib_conn = connectionIB(client_id, log=self.log)
+            ib_conn = self._get_new_ib_connection()
             self._ib_conn = ib_conn
 
         return ib_conn
 
+    def _get_new_ib_connection(self) -> connectionIB:
+        client_id = self._get_next_client_id_for_ib()
+
+        ib_conn = connectionIB(client_id,
+                               log=self.log)
+        return ib_conn
+
+    def _get_next_client_id_for_ib(self) -> int:
+        ## default to tracking ID through mongo change if required
+        self.add_class_object(mongoIbBrokerClientIdData)
+        client_id = self.db_ib_broker_client_id.return_valid_client_id()
+
+        return int(client_id)
+
     @property
-    def mongo_db(self):
+    def mongo_db(self) -> mongoDb:
         mongo_db = getattr(self, "_mongo_db", arg_not_supplied)
         if mongo_db is arg_not_supplied:
-            mongo_db = mongoDb()
+            mongo_db= self._get_new_mongo_db()
             self._mongo_db = mongo_db
 
         return mongo_db
 
-    def config(self):
-        config = getattr(self, "_config", arg_not_supplied)
-        if config is arg_not_supplied:
-            config = get_private_config()
-            self._config = config
+    def _get_new_mongo_db(self) -> mongoDb:
+        mongo_db = mongoDb()
+
+        return mongo_db
+
+    @property
+    def config(self) -> Config:
+        config = getattr(self, "_config", None)
+        if config is None:
+            config = self._config = get_production_config()
 
         return config
 

@@ -7,7 +7,7 @@ from sysdata.fx.spotfx import fxPricesData
 from sysobjects.spot_fx_prices import fxPrices
 from syslogdiag.log import logtoscreen
 from syscore.fileutils import get_filename_for_package
-from syscore.objects import missing_file, missing_instrument, missing_data
+from syscore.objects import missing_instrument, missing_file, missing_data
 
 IB_CCY_CONFIG_FILE = get_filename_for_package(
     "sysbrokers.IB.ib_config_spot_FX.csv")

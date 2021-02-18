@@ -8,7 +8,6 @@ from syscore.objects import (
     no_children,
     no_parent,
     missing_contract,
-    missing_data,
     rolling_cant_trade,
     ROLL_PSEUDO_STRATEGY,
     missing_order,
@@ -18,7 +17,7 @@ from syscore.objects import (
     order_is_in_status_modified,
     resolve_function,
     arg_not_supplied,
-)
+    missing_data)
 
 from sysexecution.stack_handler.stackHandlerCore import stackHandlerCore
 

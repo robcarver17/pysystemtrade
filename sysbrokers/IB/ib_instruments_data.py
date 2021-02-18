@@ -6,7 +6,7 @@ from sysobjects.instruments import futuresInstrument
 from sysdata.futures.instruments import futuresInstrumentData
 
 from syslogdiag.log import logtoscreen
-from syscore.objects import  missing_instrument, missing_file
+from syscore.objects import missing_instrument, missing_file
 from sysbrokers.IB.ib_instruments import NOT_REQUIRED_FOR_IB, ibInstrumentConfigData, futuresInstrumentWithIBConfigData
 from sysbrokers.IB.ib_connection import connectionIB
 

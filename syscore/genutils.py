@@ -161,13 +161,6 @@ def value_or_npnan(x, return_value=None):
     return x
 
 
-def get_safe_from_dict(some_dict, some_arg_name, some_default):
-    arg_from_dict = some_dict.get(some_arg_name, None)
-    if arg_from_dict is None:
-        return some_default
-    else:
-        return arg_from_dict
-
 
 def are_dicts_equal(d1, d2):
     d1_keys = set(d1.keys())

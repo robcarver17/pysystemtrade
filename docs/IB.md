@@ -65,7 +65,7 @@ You need to download either the gateway or TWS software from the IB website. I r
 
 I use IB-insync as my API to the python Gateway. You will need the [ib_insync](https://github.com/erdewit/ib_insync) library. This does not require you to download the IB python code.
 
-It is worth running the examples in the [IB-insync cookbook](https://ib-insync.readthedocs.io/api.html) to make sure your IB connection is working, that you have the right gateway settings, and so on. Pysystemtrade obviously won't work if IB insync can't work.
+It is worth running the examples in the [IB-insync cookbook](https://ib-insync.readthedocs.io/api.html) to make sure your IB connection is working, that you have the right gateway settings, and so on. Pysystemtrade obviously won't work if IB insync can't work!!
 
 
 ### IB Controller
@@ -92,7 +92,7 @@ You will also need to configure the Gateway:
 
 ```
 from sysbrokers.IB.ib_connection import connectionIB
-conn = connectionIB( 999, ipaddress = "127.0.0.1", port=4001) # the first compulsory value is the client_id; the keyword args are the default values and can be omitted
+conn = connectionIB( 999, ib_ipaddress = "127.0.0.1", ib_port=4001, account="U999999") # the first compulsory value is the client_id; the keyword args are the default values and can be omitted
 conn
 # In production the client id is assigned from a database to avoid conflicts
 Out[13]: IB broker connection{'ipaddress': '127.0.0.1', 'port': 4001, 'client': 999} 
@@ -118,7 +118,7 @@ There are three types of objects in the [sysbrokers/IB](/sysbrokers/IB/) area of
 
 
 ## Data source objects
-f
+
 We treat IB as another data source, which means it has to conform to the data object API (see [storing futures and spot FX data](/docs/data.md)). However we can't delete or write to IB.  Normally these functions would be called by the `/sysproduction/data/broker/` [interface functions](/docs/data.md#production-interface); it's discouraged to call them directly as the interface abstracts away exactly which broker you are talking to. 
 
 Data source objects are instanced with and contain a *connection object* (and optionally a logger). They contain, and make calls to, *client objects*. They are in this [module](/sysbrokers/IB/)
@@ -255,21 +255,22 @@ You wouldn't normally open a seperate IB connection in pysystemtrade since they 
 
 ```
 from sysbrokers.IB.ib_connection import connectionIB
-conn = connectionIB(ipaddress = "127.0.0.1", port=4001)
+conn = connectionIB(1, ib_ipaddress = "127.0.0.1", ib_port=4001, account="U123456")
 ```
 
-Portid should match that in the Gateway configuration. Client ids must not be duplicated by an already connected python process (even if it's hung... normally in production the client id is assigned from a database to avoid conflicts). The IP address shown means 'this machine'; only change this if you are planning to run the Gateway on a different network machine.
+Portid should match that in the Gateway configuration. Client ids (eg 1) must not be duplicated by an already connected python process (even if it's hung... normally in production the client id is assigned from a database to avoid conflicts). The IP address shown means 'this machine'; only change this if you are planning to run the Gateway on a different network machine.
 
-If values for ipaddress and port are not passed here, they will default to:
+If values for account, ib_ipaddress and ib_port are not passed here, they will default to:
 
 1- values supplied in file 'private_config.yaml' (see below)
-2- default hardcoded values
+2- values supplied in the ['defaults.yaml' file](/syscontrol/config/defaults.yaml)
 
-You should first create a file 'private_config.yaml' in the private directory of [pysystemtrade](#/private). Then add one or both of these line:
+You should first create a file 'private_config.yaml' in the private directory of [pysystemtrade](#/private). Then add one or more of these line:
 
 ```
 ib_ipaddress: 192.168.0.10
 ib_port: 4001
+broker_account: U123456
 ```
 
 ```

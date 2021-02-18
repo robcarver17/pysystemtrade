@@ -1,6 +1,6 @@
 import psutil
 import subprocess
-from sysdata.config.private_config import get_private_config_key_value
+from sysdata.config.production_config import get_production_config
 from syscore.objects import missing_data
 
 ## IF THIS FILE IS MOVED, NEED TO UPDATE THE NEXT LINE
@@ -18,13 +18,13 @@ def list_of_all_running_pids():
     return pid_list
 
 def get_trading_server_login_data():
-
-    trading_server_ip = get_private_config_key_value('trading_server_ip')
+    production_config = get_production_config()
+    trading_server_ip = production_config.trading_server_ip
     if trading_server_ip is missing_data:
         return missing_data
 
-    trading_server_username = get_private_config_key_value('trading_server_username')
-    trading_server_ssh_port = get_private_config_key_value('trading_server_ssh_port')
+    trading_server_username = production_config.trading_server_username
+    trading_server_ssh_port = production_config.trading_server_ssh_port
 
     return trading_server_username, trading_server_ip, trading_server_ssh_port
 

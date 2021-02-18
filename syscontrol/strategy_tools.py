@@ -1,3 +1,4 @@
+from copy import copy
 from syscore.objects import resolve_function, missing_data
 from sysdata.data_blob import dataBlob
 from sysproduction.data.control_process import get_strategy_class_object_config
@@ -71,7 +72,8 @@ def get_strategy_class_instance(data: dataBlob,  strategy_name: str, process_nam
     return strategy_class_instance
 
 def get_class_object_and_other_arguments(data: dataBlob,  strategy_name: str, process_name: str):
-    config_this_process = get_strategy_class_object_config(data, process_name, strategy_name)
+    original_config_this_process = get_strategy_class_object_config(data, process_name, strategy_name)
+    config_this_process = copy(original_config_this_process)
     strategy_class_object = resolve_function(config_this_process.pop("object"))
 
     # following are used by run process but not by us
