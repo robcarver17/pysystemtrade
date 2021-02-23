@@ -83,7 +83,7 @@ setup(
         "matplotlib==3.1.1",
         "PyYAML==5.3.1",
         "numpy==1.19.4",
-        "scipy==1.3.1",
+        "scipy>=1.0.0",
         "pymongo==3.9.0",
         "arctic==1.79.2",
         "ib-insync==0.9.64"
