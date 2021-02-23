@@ -114,6 +114,7 @@ def generate_html(process_observatory: processMonitor):
     dbase_description = str(process_observatory.data.mongo_db)
     with open(resolved_filename, "w") as file:
         file.write("<br/> Last update %s" % str(datetime.datetime.now()))
+        file.write("<br/><br/>")
         file.write("Monitoring %s with database %s" % (trading_server_description, dbase_description))
         file.write("<br/><br/>")
         process_observatory.process_dict_to_html_table(file)
