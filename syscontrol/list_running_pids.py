@@ -12,7 +12,8 @@ def describe_trading_server_login_data() -> str:
     login_data = get_trading_server_login_data()
     if login_data is missing_data:
         return "localhost"
-    host_description = ", ".join(login_data)
+    login_data_as_strings = [str(x) for x in login_data]
+    host_description = ", ".join(login_data_as_strings)
 
     return host_description
 
