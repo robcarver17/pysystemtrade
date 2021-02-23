@@ -19,7 +19,7 @@ def list_of_all_running_pids():
 
 def get_trading_server_login_data():
     production_config = get_production_config()
-    trading_server_ip = production_config.trading_server_ip
+    trading_server_ip = production_config.get_element_or_missing_data("trading_server_ip")
     if trading_server_ip is missing_data:
         return missing_data
 
