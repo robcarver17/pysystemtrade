@@ -7,7 +7,7 @@ from syscore.fileutils import get_filename_for_package
 from sysproduction.data.control_process import dataControlProcess
 from sysproduction.data.control_process import diagControlProcess
 from syscore.dateutils import last_run_or_heartbeat_from_date_or_none
-
+from syscontrol.list_running_pids import describe_trading_server_login_data
 
 def monitor():
     with dataBlob(log_name="system-monitor") as data:
@@ -110,9 +110,11 @@ filename = "private.index.html"
 
 def generate_html(process_observatory: processMonitor):
     resolved_filename = get_filename_for_package(filename)
-
+    trading_server_description = describe_trading_server_login_data()
+    dbase_description = str(process_observatory.data.mongo_db)
     with open(resolved_filename, "w") as file:
         file.write("<br/> Last update %s" % str(datetime.datetime.now()))
+        file.write("Monitoring %s with database %s" % (trading_server_description, dbase_description))
         file.write("<br/><br/>")
         process_observatory.process_dict_to_html_table(file)
         file.write("<br/><br/>")

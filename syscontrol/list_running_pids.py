@@ -8,6 +8,14 @@ from syscore.objects import missing_data
 PID_CODE_HOME = "/home/$USER/pysystemtrade/syscontrol/list_running_pids.py"
 DECODE_STR = 'utf-8'
 
+def describe_trading_server_login_data() -> str:
+    login_data = get_trading_server_login_data()
+    if login_data is missing_data:
+        return "localhost"
+    host_description = ", ".join(login_data)
+
+    return host_description
+
 def list_of_all_running_pids():
     trading_server_login_data = get_trading_server_login_data()
     if trading_server_login_data is missing_data:
