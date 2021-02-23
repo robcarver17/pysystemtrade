@@ -80,7 +80,7 @@ setup(
     long_description=read("README.md"),
     install_requires=[
         "pandas==0.25.2",
-        "matplotlib==3.1.1",
+        "matplotlib>=3.0.0",
         "PyYAML==5.3.1",
         "numpy==1.19.4",
         "scipy>=1.0.0",
