@@ -1,3 +1,10 @@
+## 3 things going on here
+## a data class
+## an interactive thing
+## a backtest object
+#
+# split them up!
+
 import matplotlib
 import matplotlib.pyplot as pyplot
 
@@ -20,7 +27,7 @@ from sysproduction.functions import fill_args_and_run_func
 
 class dataBacktest(object):
     # store backtests
-    def __init__(self, data=arg_not_supplied):
+    def __init__(self, data: dataBlob=arg_not_supplied):
         # Check data has the right elements to do this
         if data is arg_not_supplied:
             data = dataBlob()
@@ -47,11 +54,6 @@ class dataBacktest(object):
 
         return current_system
 
-    def user_choose_system_with_saved_state(self):
-        strategy_name, timestamp = self.interactively_choose_timestamp_and_strategy()
-
-        system = self.load_backtest(strategy_name, timestamp)
-        return system
 
     def load_most_recent_backtest(self, strategy_name):
         list_of_timestamps = sorted(
@@ -249,3 +251,10 @@ class dataBacktest(object):
 
     def get_trading_rules(self):
         return self.system.rules.trading_rules().keys()
+
+
+    def user_choose_system_with_saved_state(self):
+        strategy_name, timestamp = self.interactively_choose_timestamp_and_strategy()
+
+        system = self.load_backtest(strategy_name, timestamp)
+        return system
