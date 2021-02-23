@@ -115,7 +115,7 @@ def generate_html(process_observatory: processMonitor):
     with open(resolved_filename, "w") as file:
         file.write("<br/> Last update %s" % str(datetime.datetime.now()))
         file.write("<br/><br/>")
-        file.write("Monitoring %s with database %s" % (trading_server_description, dbase_description))
+        file.write("Monitoring machine %s with database %s" % (trading_server_description, dbase_description))
         file.write("<br/><br/>")
         process_observatory.process_dict_to_html_table(file)
         file.write("<br/><br/>")
