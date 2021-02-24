@@ -9,7 +9,7 @@ from sysbrokers.IB.ib_orders_data import ibOrdersData
 from sysbrokers.IB.ib_misc_data import ibMiscData
 
 from syscore.objects import arg_not_supplied, missing_order, missing_contract, missing_data
-
+from syscore.dateutils import Frequency
 from sysdata.data_blob import dataBlob
 
 from sysexecution.orders.broker_orders import brokerOrder
@@ -43,10 +43,6 @@ class dataBroker(dataGeneric):
 
         return data
 
-    @property
-    def data(self) -> dataBlob:
-        return self._data
-
     def broker_fx_balances(self) -> dict:
         return self.data.broker_misc.broker_fx_balances()
 
@@ -76,7 +72,7 @@ class dataBroker(dataGeneric):
 
     def get_prices_at_frequency_for_contract_object(
             self, contract_object: futuresContract,
-            frequency: str) -> futuresContractPrices:
+            frequency: Frequency) -> futuresContractPrices:
 
         return self.data.broker_futures_contract_price.get_prices_at_frequency_for_contract_object(
             contract_object, frequency)

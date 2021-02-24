@@ -1,5 +1,7 @@
-from sysdata.base_data import baseData
+from syscore.dateutils import Frequency, DAILY_PRICE_FREQ
 from syscore.merge_data import spike_in_data
+
+from sysdata.base_data import baseData
 
 from sysobjects.contracts import futuresContract, listOfFuturesContracts
 from sysobjects.contract_dates_and_expiries import listOfContractDateStr
@@ -10,8 +12,6 @@ from syslogdiag.log import logtoscreen
 
 BASE_CLASS_ERROR = "You have used a base class for futures price data; you need to use a class that inherits with a specific data source"
 
-PRICE_FREQ =  ['D', 'H', '5M', 'M', '10S', 'S']
-DAILY_PRICE_FREQ = 'D'
 
 class futuresContractPriceData(baseData):
     """
@@ -123,7 +123,7 @@ class futuresContractPriceData(baseData):
 
     def get_prices_for_contract_object(self, contract_object: futuresContract):
         """
-        get some prices
+        get all prices without worrying about frequency
 
         :param contract_object:  futuresContract
         :return: data
@@ -137,15 +137,14 @@ class futuresContractPriceData(baseData):
 
 
     def get_prices_at_frequency_for_contract_object(
-            self, contract_object: futuresContract, freq: str="D"):
+            self, contract_object: futuresContract, freq: Frequency = DAILY_PRICE_FREQ):
         """
-        get some prices
+        get some prices at a given frequency
 
         :param contract_object:  futuresContract
         :param freq: str; one of D, H, 5M, M, 10S, S
         :return: data
         """
-        assert freq in PRICE_FREQ
 
         if self.has_data_for_contract(contract_object):
             return self._get_prices_at_frequency_for_contract_object_no_checking(
@@ -293,7 +292,7 @@ class futuresContractPriceData(baseData):
         raise NotImplementedError(BASE_CLASS_ERROR)
 
     def _get_prices_at_frequency_for_contract_object_no_checking(
-        self, contract_object: futuresContract, freq: str
+        self, contract_object: futuresContract, freq: Frequency
     ) -> futuresContractPrices:
 
         raise NotImplementedError(BASE_CLASS_ERROR)

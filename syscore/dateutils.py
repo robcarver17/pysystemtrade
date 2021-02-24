@@ -1,6 +1,8 @@
 """
 Various routines to do with dates
 """
+from enum import Enum
+
 import datetime
 import time
 import calendar
@@ -39,6 +41,22 @@ UNIXTIME_IN_YEAR = UNIXTIME_CONVERTER * SECONDS_IN_YEAR
 
 MONTH_LIST = ["F", "G", "H", "J", "K", "M", "N", "Q", "U", "V", "X", "Z"]
 
+
+Frequency = Enum('Frequency', 'Day Hour Minutes_15 Minutes_5 Minute Seconds_10 Second')
+DAILY_PRICE_FREQ = Frequency.Day
+
+def from_config_frequency_to_frequency(freq_as_str:str)-> Frequency:
+    LOOKUP_TABLE = {'D':Frequency.Day,
+                        'H':Frequency.Hour,
+                        '15M': Frequency.Minutes_15,
+                        '5M': Frequency.Minutes_5,
+                        'M': Frequency.Minute,
+                        '10S': Frequency.Seconds_10,
+                        'S': Frequency.Second}
+
+    frequency = LOOKUP_TABLE.get(freq_as_str, missing_data)
+
+    return frequency
 
 def month_from_contract_letter(contract_letter: str) -> int:
     """
@@ -485,3 +503,5 @@ def create_datetime_string(datetime_to_use):
 
 def from_marker_to_datetime(datetime_marker):
     return datetime.datetime.strptime(datetime_marker, date_formatting)
+
+

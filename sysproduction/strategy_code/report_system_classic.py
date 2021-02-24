@@ -7,7 +7,7 @@ from collections import namedtuple
 from syscore.objects import header, table, body_text, missing_data
 from syscore.dateutils import ROOT_BDAYS_INYEAR, from_marker_to_datetime
 from sysproduction.data.positions import diagPositions
-from sysobjects.production.backtest import interactiveBacktest
+from sysobjects.production.backtest_storage import interactiveBacktest
 
 def report_system_classic(data, data_backtest: interactiveBacktest):
     """
