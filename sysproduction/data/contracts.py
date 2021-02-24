@@ -51,7 +51,7 @@ class dataContracts(productionDataLayerGeneric):
 
         return self.db_contract_data.is_contract_in_data(
             instrument_code = instrument_code,
-            contract_date = contract_date_str
+            contract_date_str = contract_date_str
         )
 
     def mark_contract_as_sampling(self, contract: futuresContract):

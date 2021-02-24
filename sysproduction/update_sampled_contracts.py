@@ -200,9 +200,9 @@ def add_missing_contracts_to_database(
 def add_missing_or_not_sampling_contract_to_database(data: dataBlob, contract_to_add: futuresContract):
     ## A 'missing' contract may be genuinely missing, or just not sampling
 
-    diag_contracts = dataContracts(data)
+    data_contracts = dataContracts(data)
 
-    is_contract_already_in_database = diag_contracts.is_contract_in_data(contract_to_add)
+    is_contract_already_in_database = data_contracts.is_contract_in_data(contract_to_add)
 
     if is_contract_already_in_database:
         mark_existing_contract_as_sampling(contract_to_add, data=data)
