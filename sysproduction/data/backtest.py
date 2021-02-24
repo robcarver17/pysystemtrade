@@ -2,13 +2,10 @@ import datetime
 import os
 from shutil import copyfile
 
-import matplotlib
-
 from syscore.dateutils import create_datetime_string
 from syscore.fileutils import files_with_extension_in_pathname, get_resolved_pathname
 from sysdata.config.production_config import get_production_config
 
-matplotlib.use("TkAgg")
 
 from syscore.objects import arg_not_supplied, resolve_function, success, failure
 from syscore.genutils import print_menu_of_values_and_get_response
