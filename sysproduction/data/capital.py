@@ -5,18 +5,16 @@ from syscore.objects import arg_not_supplied, missing_data
 
 from sysdata.production.capital import totalCapitalCalculationData
 from sysdata.mongodb.mongo_capital import mongoCapitalData
-
 from sysdata.data_blob import dataBlob
 
+from sysproduction.data.generic_production_data import dataGeneric
 
-class dataCapital(object):
-    def __init__(self, data=arg_not_supplied):
-        # Check data has the right elements to do this
-        if data is arg_not_supplied:
-            data = dataBlob()
+class dataCapital(dataGeneric):
 
+    def _add_required_classes_to_data(self, data) -> dataBlob:
         data.add_class_object(mongoCapitalData)
-        self.data = data
+
+        return data
 
     @property
     def capital_data(self):
@@ -24,29 +22,16 @@ class dataCapital(object):
 
     ## TOTAL CAPITAL...
 
-    @property
-    def total_capital_calculator(self):
-        # cache because could be slow getting calculation method from yaml
-        if getattr(self, "_total_capital_calculator", None) is None:
-            calc_method = self.get_capital_calculation_method()
-            self._total_capital_calculator = totalCapitalCalculationData(
-                self.data.db_capital, calc_method=calc_method
-            )
-
-        return self._total_capital_calculator
-
-    def get_capital_calculation_method(self) -> str:
-        config = self.data.config
-
-        return config.production_capital_method
-
+    def get_current_total_capital(self) -> float:
+        return self.total_capital_calculator.get_current_total_capital()
 
     def update_and_return_total_capital_with_new_broker_account_value(
-        self, total_account_value_in_base_currency: float, check_limit: float=0.1
+            self, total_account_value_in_base_currency: float, check_limit: float = 0.1
     ) -> float:
 
         result = self.total_capital_calculator.update_and_return_total_capital_with_new_broker_account_value(
-            total_account_value_in_base_currency, check_limit = check_limit)
+            total_account_value_in_base_currency, check_limit=check_limit)
+
         return result
 
     def get_series_of_all_global_capital(self) -> pd.DataFrame:
@@ -55,15 +40,38 @@ class dataCapital(object):
         return all_capital_data
 
     def get_series_of_maximum_capital(self) -> pd.DataFrame:
-        return  self.total_capital_calculator.get_maximum_account()
-
+        return self.total_capital_calculator.get_maximum_account()
 
     def get_series_of_accumulated_capital(self) -> pd.DataFrame:
-        return  self.total_capital_calculator.get_profit_and_loss_account()
-
+        return self.total_capital_calculator.get_profit_and_loss_account()
 
     def get_series_of_broker_capital(self) -> pd.DataFrame:
         return self.total_capital_calculator.get_broker_account()
+
+    @property
+    def total_capital_calculator(self) -> totalCapitalCalculationData:
+        # cache because could be slow getting calculation method from yaml
+        total_capital_calculator =getattr(self, "_total_capital_calculator", None)
+        if total_capital_calculator is None:
+            total_capital_calculator = self._get_total_capital_calculator()
+            self._total_capital_calculator  = total_capital_calculator
+
+        return total_capital_calculator
+
+    def _get_total_capital_calculator(self) -> totalCapitalCalculationData:
+        calc_method = self.get_capital_calculation_method()
+        total_capital_calculator = totalCapitalCalculationData(
+            self.capital_data, calc_method=calc_method
+        )
+
+        return total_capital_calculator
+
+    def get_capital_calculation_method(self) -> str:
+        config = self.data.config
+
+        return config.production_capital_method
+
+
 
     ## STRATEGY CAPITAL
     def get_capital_pd_series_for_strategy(self, strategy_name: str) -> pd.DataFrame:
@@ -77,7 +85,6 @@ class dataCapital(object):
         return strat_list
 
     def get_capital_for_strategy(self, strategy_name: str) -> float:
-
         capital_value = self.capital_data.get_current_capital_for_strategy(
             strategy_name
         )
@@ -100,5 +107,3 @@ class dataCapital(object):
         )
 
 
-    def get_current_total_capital(self) -> float:
-        return self.total_capital_calculator.get_current_total_capital()
