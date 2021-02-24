@@ -1,3 +1,4 @@
+from syscore.dateutils import Frequency, DAILY_PRICE_FREQ
 from syscore.objects import missing_contract, missing_data
 
 from sysbrokers.IB.ib_futures_contracts_data import ibFuturesContractData
@@ -149,12 +150,14 @@ class ibFuturesContractPriceData(futuresContractPriceData):
 
 
     def _get_prices_for_contract_object_no_checking(self, contract_object: futuresContract) -> futuresContractPrices:
-        return self._get_prices_at_frequency_for_contract_object_no_checking(
-            contract_object, freq="D"
+        price_series  =  self._get_prices_at_frequency_for_contract_object_no_checking(
+            contract_object, freq=DAILY_PRICE_FREQ
         )
 
+        return price_series
+
     def _get_prices_at_frequency_for_contract_object_no_checking(self, contract_object: futuresContract,
-                                                                 freq: str
+                                                                 freq: Frequency
                                                     ) -> futuresContractPrices:
 
         """

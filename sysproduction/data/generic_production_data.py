@@ -11,8 +11,12 @@ class dataGeneric(object):
 
 
     @property
-    def data(self):
+    def data(self) -> dataBlob:
         return self._data
+
+    @property
+    def log(self):
+        return self.data.log
 
     def _add_required_classes_to_data(self, data) -> dataBlob:
 

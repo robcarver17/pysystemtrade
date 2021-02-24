@@ -11,7 +11,7 @@ from sysbrokers.IB.client.ib_contracts_client import ibContractsClient
 from sysbrokers.IB.ib_positions import resolveBS_for_list
 
 from syscore.objects import missing_contract, missing_data
-from syscore.dateutils import adjust_timestamp_to_include_notional_close_and_time_offset, strip_timezone_fromdatetime
+from syscore.dateutils import adjust_timestamp_to_include_notional_close_and_time_offset, strip_timezone_fromdatetime, Frequency, DAILY_PRICE_FREQ
 
 from syslogdiag.log import logger, logtoscreen
 
@@ -26,7 +26,7 @@ class tickerWithBS(object):
 # we don't include ibClient since we get that through contracts client
 class ibPriceClient(ibContractsClient):
     def broker_get_historical_futures_data_for_contract(
-        self, contract_object_with_ib_broker_config: futuresContract, bar_freq="D"
+        self, contract_object_with_ib_broker_config: futuresContract, bar_freq: Frequency = DAILY_PRICE_FREQ
     ) -> pd.DataFrame:
         """
         Get historical daily data
@@ -144,7 +144,7 @@ class ibPriceClient(ibContractsClient):
                         self,
                         ibcontract: ibContract,
                         log:logger=None,
-                        bar_freq: str="D",
+                        bar_freq: Frequency= DAILY_PRICE_FREQ,
                         whatToShow:str="TRADES"
     ) -> pd.DataFrame:
         """
@@ -279,28 +279,29 @@ class ibPriceClient(ibContractsClient):
 
         return df
 
-def _get_barsize_and_duration_from_frequency(bar_freq: str) -> (str, str):
+def _get_barsize_and_duration_from_frequency(bar_freq: Frequency) -> (str, str):
 
     barsize_lookup = dict(
         [
-            ("D", "1 day"),
-            ("H", "1 hour"),
-            ("15M", "15 mins"),
-            ("5M", "5 mins"),
-            ("M", "1 min"),
-            ("10S", "10 secs"),
-            ("S", "1 secs"),
+            (Frequency.Day, "1 day"),
+            (Frequency.Hour, "1 hour"),
+            (Frequency.Minute_15, "15 mins"),
+            (Frequency.Minute_5, "5 mins"),
+            (Frequency.Minute, "1 min"),
+            (Frequency.Seconds_10, "10 secs"),
+            (Frequency.Seconds, "1 secs"),
         ]
     )
+
     duration_lookup = dict(
         [
-            ("D", "1 Y"),
-            ("H", "1 M"),
-            ("15M", "1 W"),
-            ("5M", "1 W"),
-            ("M", "1 D"),
-            ("10S", "14400 S"),
-            ("S", "1800 S"),
+            (Frequency.Day, "1 Y"),
+            (Frequency.Hour, "1 M"),
+            (Frequency.Minute_15, "1 W"),
+            (Frequency.Minute_5, "1 W"),
+            (Frequency.Minute, "1 D"),
+            (Frequency.Seconds_10, "14400 S"),
+            (Frequency.Seconds, "1800 S"),
         ]
     )
     try:

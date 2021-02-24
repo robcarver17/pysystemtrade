@@ -6,7 +6,8 @@ Apply a check to each price series
 
 from syscore.objects import success, failure
 
-from sysdata.futures.futures_per_contract_prices import DAILY_PRICE_FREQ
+
+from syscore.dateutils import DAILY_PRICE_FREQ, Frequency
 from sysdata.data_blob import dataBlob
 from sysproduction.data.prices import (
     diagPrices,
@@ -99,7 +100,7 @@ def update_historical_prices_with_checks_for_instrument_and_contract(
 
 
 def get_and_check_prices_for_frequency(
-        data: dataBlob, contract_object: futuresContract, frequency=DAILY_PRICE_FREQ):
+        data: dataBlob, contract_object: futuresContract, frequency: Frequency=DAILY_PRICE_FREQ):
 
     broker_data = dataBroker(data)
     price_data = diagPrices(data)

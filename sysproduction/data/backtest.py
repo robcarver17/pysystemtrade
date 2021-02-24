@@ -13,7 +13,7 @@ matplotlib.use("TkAgg")
 from syscore.objects import arg_not_supplied, resolve_function, success, failure
 from syscore.genutils import print_menu_of_values_and_get_response
 from sysdata.data_blob import dataBlob
-from sysobjects.production.backtest import interactiveBacktest
+from sysobjects.production.backtest_storage import interactiveBacktest
 from sysproduction.data.generic_production_data import dataGeneric
 from sysproduction.data.strategies import get_valid_strategy_name_from_user, diagStrategiesConfig
 

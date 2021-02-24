@@ -5,8 +5,9 @@ from sysbrokers.IB.client.ib_price_client import ibPriceClient
 from sysbrokers.IB.ib_contracts import ibcontractWithLegs
 from sysbrokers.IB.ib_positions import extract_fx_balances_from_account_summary, resolveBS
 from sysbrokers.IB.ib_translate_broker_order_objects import tradeWithContract
-from syscore.objects import arg_not_supplied, missing_contract, missing_data
 
+from syscore.objects import arg_not_supplied, missing_contract, missing_data
+from syscore.dateutils import Frequency, DAILY_PRICE_FREQ
 
 class ibFxClient(ibPriceClient):
 
@@ -60,7 +61,7 @@ class ibFxClient(ibPriceClient):
         return ib_order
 
 
-    def broker_get_daily_fx_data(self, ccy1, ccy2="USD", bar_freq="D") -> pd.Series:
+    def broker_get_daily_fx_data(self, ccy1: str, ccy2: str="USD", bar_freq: Frequency=DAILY_PRICE_FREQ) -> pd.Series:
         """
         Get some spot fx data
 
