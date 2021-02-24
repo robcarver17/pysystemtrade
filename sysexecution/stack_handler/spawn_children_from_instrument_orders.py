@@ -11,7 +11,7 @@ from syscore.objects import (
 
 from sysdata.data_blob import dataBlob
 
-from sysproduction.data.contracts import diagContracts
+from sysproduction.data.contracts import dataContracts
 from sysproduction.data.positions import diagPositions
 from sysproduction.data.prices import diagPrices
 from sysproduction.data.controls import dataLocks
@@ -202,7 +202,7 @@ def get_required_contract_trade_for_instrument(data: dataBlob,
     diag_positions = diagPositions(data)
 
     if diag_positions.is_roll_state_no_roll(instrument_code):
-        diag_contracts = diagContracts(data)
+        diag_contracts = dataContracts(data)
         current_contract = diag_contracts.get_priced_contract_id(instrument_code)
 
         log.msg(
@@ -244,7 +244,7 @@ def passive_roll_child_order(
     diag_positions = diagPositions(data)
     instrument_code = instrument_order.instrument_code
 
-    diag_contracts = diagContracts(data)
+    diag_contracts = dataContracts(data)
     current_contract = diag_contracts.get_priced_contract_id(instrument_code)
     next_contract = diag_contracts.get_forward_contract_id(instrument_code)
 

@@ -7,51 +7,101 @@ from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesDat
 from sysdata.mongodb.mongo_roll_data import mongoRollParametersData
 from sysdata.mongodb.mongo_futures_contracts import mongoFuturesContractData
 
-from sysobjects.contract_dates_and_expiries import contractDate
-from sysobjects.rolls import contractDateWithRollParameters
+from sysdata.futures.contracts import futuresContractData
+from sysdata.futures.multiple_prices import futuresMultiplePricesData
+from sysdata.futures.rolls_parameters import rollParametersData
+
+from sysobjects.contract_dates_and_expiries import contractDate, expiryDate, listOfContractDateStr
+from sysobjects.rolls import contractDateWithRollParameters, rollParameters
 from sysobjects.dict_of_named_futures_per_contract_prices import setOfNamedContracts
-from sysobjects.contracts import futuresContract
+from sysobjects.contracts import futuresContract, listOfFuturesContracts
 
 from sysproduction.data.prices import get_valid_instrument_code_from_user, diagPrices
+from sysproduction.data.generic_production_data import productionDataLayerGeneric
 from sysdata.data_blob import dataBlob
 
 missing_expiry = datetime.datetime(1900, 1, 1)
 
 
-class diagContracts(object):
-    def __init__(self, data=arg_not_supplied):
-        # Check data has the right elements to do this
-        if data is arg_not_supplied:
-            data = dataBlob()
+class dataContracts(productionDataLayerGeneric):
 
+    def _add_required_classes_to_data(self, data) -> dataBlob:
         data.add_class_list([
             arcticFuturesContractPriceData, mongoRollParametersData,
                             arcticFuturesMultiplePricesData, mongoFuturesContractData]
         )
-        self.data = data
 
-    def is_contract_in_data(self, instrument_code, contract_date):
-        return self.data.db_futures_contract.is_contract_in_data(
-            instrument_code, contract_date
+        return data
+
+    @property
+    def db_contract_data(self) -> futuresContractData:
+        return self.data.db_futures_contract
+
+    @property
+    def db_multiple_prices_data(self) -> futuresMultiplePricesData:
+        return self.data.db_futures_multiple_prices
+
+    @property
+    def db_roll_parameters(self) -> rollParametersData:
+        return self.data.db_roll_parameters
+
+    def is_contract_in_data(self, contract: futuresContract):
+        instrument_code = contract.instrument_code
+        contract_date_str = contract.date_str
+
+        return self.db_contract_data.is_contract_in_data(
+            instrument_code = instrument_code,
+            contract_date = contract_date_str
         )
 
-    def get_all_contract_objects_for_instrument_code(self, instrument_code):
-        return (
-            self.data.db_futures_contract.get_all_contract_objects_for_instrument_code(
+    def mark_contract_as_sampling(self, contract: futuresContract):
+        contract_to_modify = self.get_contract_from_db(contract)
+        if contract_to_modify is missing_data:
+            raise Exception("Can't mark non existent contract as sampling")
+        # Mark it as sampling
+        contract_to_modify.sampling_on()
+
+        self.add_contract_data(contract_to_modify, ignore_duplication=True)
+
+    def mark_contract_as_not_sampling(self, contract: futuresContract):
+        contract_to_modify = self.get_contract_from_db(contract)
+        if contract_to_modify is missing_data:
+            raise Exception("Can't mark non existent contract as sampling")
+
+        # Mark it as sampling
+        contract_to_modify.sampling_off()
+
+        self.add_contract_data(contract_to_modify, ignore_duplication=True)
+
+
+    def update_expiry_date(self, contract:futuresContract,
+                           new_expiry_date: expiryDate):
+
+        contract_to_modify = self.get_contract_from_db(contract)
+        if contract_to_modify is missing_data:
+            raise Exception("Can't update expiry date for non existent contract")
+
+        contract_to_modify.update_single_expiry_date(new_expiry_date)
+
+        self.add_contract_data(contract_to_modify, ignore_duplication=True)
+
+
+    def add_contract_data(self, contract: futuresContract,
+                          ignore_duplication: bool=False):
+        return self.db_contract_data.add_contract_data(
+            contract, ignore_duplication=ignore_duplication
+        )
+
+    def get_all_contract_objects_for_instrument_code(self, instrument_code: str) -> listOfFuturesContracts:
+        list_of_contracts = \
+            self.db_contract_data.get_all_contract_objects_for_instrument_code(
                 instrument_code
             )
-        )
 
+        return list_of_contracts
 
-    def get_labelled_list_of_contracts_from_contract_list(self, contract_list):
-        instrument_code = contract_list[0].instrument_code
-        list_of_dates = contract_list.list_of_dates()
-
-        labelled_list = self.get_labelled_list_of_contracts_from_contract_date_list(instrument_code, list_of_dates)
-
-        return labelled_list
-
-    def get_labelled_list_of_contracts_from_contract_date_list(self, instrument_code, list_of_dates):
+    def get_labelled_list_of_contracts_from_contract_date_list(self, instrument_code: str,
+                                                               list_of_dates: listOfContractDateStr) -> list:
         current_contracts = self.get_current_contract_dict(instrument_code)
         if current_contracts is missing_data:
             return list_of_dates
@@ -61,126 +111,89 @@ class diagContracts(object):
         return labelled_list
 
 
-    def get_all_sampled_contracts(self, instrument_code):
+    def get_all_sampled_contracts(self, instrument_code: str) -> listOfFuturesContracts:
         all_contracts = self.get_all_contract_objects_for_instrument_code(instrument_code)
         sampled_contracts = all_contracts.currently_sampling()
 
         return sampled_contracts
 
-    def get_labelled_list_of_relevant_contracts(self, instrument_code):
+    def get_labelled_dict_of_current_contracts(self, instrument_code: str) -> dict:
 
         current_contracts = self.get_current_contract_dict(instrument_code)
-
-        contract_date_list = self.extend_current_contracts(
-            instrument_code, current_contracts
-        )
+        contract_date_list = current_contracts.list_of_date_str
 
         labelled_contracts = label_up_contracts(
             contract_date_list, current_contracts)
 
         ans_as_dict = dict(
             contracts=contract_date_list,
-            labels=labelled_contracts,
-            current_contracts=current_contracts,
+            labels=labelled_contracts
         )
 
         return ans_as_dict
 
     def get_current_contract_dict(self, instrument_code) ->setOfNamedContracts:
-        multiple_prices = self.data.db_futures_multiple_prices.get_multiple_prices(
+        multiple_prices = self.db_multiple_prices_data.get_multiple_prices(
             instrument_code)
         current_contracts = multiple_prices.current_contract_dict()
 
         return current_contracts
 
-    def extend_current_contracts(self, instrument_code, current_contracts):
 
-        price_contract_date = current_contracts.price
-        forward_contract_date = current_contracts.forward
-        carry_contract_date = current_contracts.carry
-
-        roll_parameters = self.get_roll_parameters(instrument_code)
-
-        price_contract = contractDateWithRollParameters(
-            contractDate(price_contract_date), roll_parameters
-        )
-        forward_contract = contractDateWithRollParameters(
-            contractDate(forward_contract_date), roll_parameters
-        )
-        carry_contract = contractDateWithRollParameters(
-            contractDate(carry_contract_date), roll_parameters
-        )
-
-        preceeding_price_contract_date = price_contract.previous_priced_contract()
-        preceeding_forward_contract_date = forward_contract.previous_priced_contract()
-        subsequent_forward_contract_date = forward_contract.next_held_contract()
-
-        # Could be up to 6 contracts
-        # HOW TO PAD THESE ?
-        all_contracts = [
-            price_contract,
-            forward_contract,
-            preceeding_forward_contract_date,
-            preceeding_price_contract_date,
-            subsequent_forward_contract_date,
-            carry_contract,
-        ]
-
-        all_contracts_dates = [
-            contract.date_str for contract in all_contracts]
-        unique_all_contract_dates = sorted(set(all_contracts_dates))
-        unique_all_contract_dates = unique_all_contract_dates + \
-            [missing_contract] * (6 - len(unique_all_contract_dates))
-
-        return unique_all_contract_dates
-
-    def get_roll_parameters(self, instrument_code):
-        roll_parameters = self.data.db_roll_parameters.get_roll_parameters(
+    def get_roll_parameters(self, instrument_code: str) -> rollParameters:
+        roll_parameters = self.db_roll_parameters.get_roll_parameters(
             instrument_code
         )
         return roll_parameters
 
+    def get_contract_from_db(self, contract:futuresContract) -> futuresContract:
+        db_contract = self.get_contract_from_db_given_code_and_id(instrument_code=contract.instrument_code,
+                                                                  contract_id=contract.date_str)
 
-    def get_contract_object(self, instrument_code, contract_id):
+        return db_contract
 
-        contract_object = self.data.db_futures_contract.get_contract_object(
-            instrument_code, contract_id
+    def get_contract_from_db_given_code_and_id(self, instrument_code: str, contract_id: str) -> futuresContract:
+
+        contract_object = self.db_contract_data.get_contract_object(
+            instrument_code = instrument_code,
+            contract_id=contract_id
         )
 
         return contract_object
 
-    def get_actual_expiry(self, instrument_code, contract_id):
-        contract_object = self.get_contract_object(
+    def _get_actual_expiry(self, instrument_code: str, contract_id: str) -> expiryDate:
+        contract_object = self.get_contract_from_db_given_code_and_id(
             instrument_code, contract_id)
 
         expiry_date = contract_object.expiry_date
 
         return expiry_date
 
-    def get_priced_contract_id(self, instrument_code):
+    def get_priced_contract_id(self, instrument_code: str) -> str:
         contract_dict = self.get_current_contract_dict(instrument_code)
         price_contract = contract_dict.price
+
         return price_contract
 
-    def get_carry_contract_id(self, instrument_code):
+    def _get_carry_contract_id(self, instrument_code: str)->str:
         contract_dict = self.get_current_contract_dict(instrument_code)
         carry_contract = contract_dict.carry
         return carry_contract
 
-    def get_forward_contract_id(self, instrument_code):
+    def get_forward_contract_id(self, instrument_code: str) -> str:
         contract_dict = self.get_current_contract_dict(instrument_code)
         carry_contract = contract_dict.forward
         return carry_contract
 
-    def get_priced_expiry(self, instrument_code):
+    def get_priced_expiry(self, instrument_code: str) -> expiryDate:
         contract_id = self.get_priced_contract_id(instrument_code)
-        return self.get_actual_expiry(instrument_code, contract_id)
+        return self._get_actual_expiry(instrument_code, contract_id)
 
-    def get_carry_expiry(self, instrument_code):
-        contract_id = self.get_carry_contract_id(instrument_code)
-        return self.get_actual_expiry(instrument_code, contract_id)
+    def get_carry_expiry(self, instrument_code: str) -> expiryDate:
+        contract_id = self._get_carry_contract_id(instrument_code)
+        return self._get_actual_expiry(instrument_code, contract_id)
 
-    def when_to_roll_priced_contract(self, instrument_code):
+    def when_to_roll_priced_contract(self, instrument_code: str) -> datetime.datetime:
         priced_contract_id = self.get_priced_contract_id(instrument_code)
 
         contract_date_with_roll_parameters = (
@@ -196,7 +209,7 @@ class diagContracts(object):
     ) -> contractDateWithRollParameters:
 
         roll_parameters = self.get_roll_parameters(instrument_code)
-        contract_date = self.get_contract_date_object(instrument_code, contract_date_str)
+        contract_date = self._get_contract_date_object(instrument_code, contract_date_str)
 
         contract_date_with_roll_parameters = contractDateWithRollParameters(
             contract_date, roll_parameters
@@ -204,38 +217,37 @@ class diagContracts(object):
 
         return contract_date_with_roll_parameters
 
-    def get_contract_date_object(self, instrument_code:str, contract_date_str: str) -> contractDate:
-        contract = self.get_contract_object(instrument_code, contract_date_str)
+    def _get_contract_date_object(self, instrument_code:str, contract_date_str: str) -> contractDate:
+        contract = self.get_contract_from_db_given_code_and_id(instrument_code, contract_date_str)
         contract_date = contract.contract_date
 
         return contract_date
 
-def get_valid_contract_object_from_user(data, instrument_code=None, include_priced_contracts = False):
+def get_valid_contract_object_from_user(data: dataBlob,
+                                        instrument_code: str=None,
+                                        only_include_priced_contracts:bool = False) -> futuresContract:
+
     instrument_code , contract_date_str = get_valid_instrument_code_and_contractid_from_user(data,
                                                                                              instrument_code = instrument_code,
-                                                                                             include_priced_contracts = include_priced_contracts)
-
-    return futuresContract(instrument_code, contract_date_str)
+                                                                                             only_include_priced_contracts = only_include_priced_contracts)
+    contract = futuresContract(instrument_code, contract_date_str)
+    return contract
 
 def get_valid_instrument_code_and_contractid_from_user(
-        data, instrument_code=None, include_priced_contracts = False):
-    diag_contracts = diagContracts(data)
-    diag_prices = diagPrices(data)
+        data: dataBlob,
+        instrument_code: str=None,
+        only_include_priced_contracts:bool = False) -> (str, str):
+
+    diag_contracts = dataContracts(data)
 
     invalid_input = True
     while invalid_input:
         if instrument_code is None:
             instrument_code = get_valid_instrument_code_from_user(data, source = 'single')
 
-        if include_priced_contracts:
-            dates_to_choose_from = diag_prices.contract_dates_with_price_data_for_instrument_code(instrument_code)
-        else:
-            contract_list = diag_contracts.get_all_contract_objects_for_instrument_code(
-                instrument_code)
-            dates_to_choose_from = contract_list.list_of_dates()
-
-        dates_to_display = diag_contracts.get_labelled_list_of_contracts_from_contract_date_list(instrument_code,
-                                                                                                 dates_to_choose_from)
+        dates_to_choose_from = get_dates_to_choose_from(data = data,
+                                                        instrument_code=instrument_code,
+                                                        only_priced_contracts=only_include_priced_contracts)
 
         if len(dates_to_choose_from) == 0:
             print(
@@ -243,6 +255,10 @@ def get_valid_instrument_code_and_contractid_from_user(
                 instrument_code)
             instrument_code = None
             continue
+
+        dates_to_display = diag_contracts.get_labelled_list_of_contracts_from_contract_date_list(instrument_code,
+                                                                                                 dates_to_choose_from)
+
         print("Available contract dates %s" % str(dates_to_display))
         print("p = currently priced, c=current carry, f= current forward")
         contract_date = input("Contract date? [yyyymm or yyyymmdd] (ignore suffixes)")
@@ -256,48 +272,55 @@ def get_valid_instrument_code_and_contractid_from_user(
 
     return instrument_code, contract_date
 
+def get_dates_to_choose_from(data: dataBlob, instrument_code: str, only_priced_contracts:bool = False) -> listOfContractDateStr:
 
-def label_up_contracts(contract_date_list, current_contracts):
+    diag_contracts = dataContracts(data)
+    diag_prices = diagPrices(data)
+    if only_priced_contracts:
+        dates_to_choose_from = diag_prices.contract_dates_with_price_data_for_instrument_code(instrument_code)
+    else:
+        contract_list = diag_contracts.get_all_contract_objects_for_instrument_code(
+            instrument_code)
+        dates_to_choose_from = contract_list.list_of_dates()
+
+    dates_to_choose_from = listOfContractDateStr(dates_to_choose_from)
+
+    return dates_to_choose_from
+
+PRICE_SUFFIX = "p"
+CARRY_SUFFIX = "c"
+FORWARD_SUFFIX = "f"
+EMPTY_SUFFIX = ""
+
+def label_up_contracts(contract_date_list: listOfContractDateStr,
+                       current_contracts: setOfNamedContracts) -> list:
     """
     Labels some contracts
 
     :param contract_date_list: list of str, yyyymmdd
     :return: list of yyymm, with _p (price) _f (forward) _c (carry) suffixes
     """
-    price_contract_date = current_contracts["PRICE"]
-    forward_contract_date = current_contracts["FORWARD"]
-    carry_contract_date = current_contracts["CARRY"]
+    price_contract_date = current_contracts.price
+    forward_contract_date = current_contracts.forward
+    carry_contract_date = current_contracts.carry
 
     contract_names = []
     for contract in contract_date_list:
         if contract is missing_contract:
-            suffix = ""
             contract_names.append("")
             continue
 
         if contract == price_contract_date:
-            suffix = "p"
+            suffix = PRICE_SUFFIX
         elif contract == forward_contract_date:
-            suffix = "f"
+            suffix = FORWARD_SUFFIX
         elif contract == carry_contract_date:
-            suffix = "c"
+            suffix = CARRY_SUFFIX
         else:
-            suffix = ""
+            suffix = EMPTY_SUFFIX
+
         contract_names.append("%s%s" % (contract, suffix))
 
     return contract_names
 
 
-class updateContracts(object):
-    def __init__(self, data=arg_not_supplied):
-        # Check data has the right elements to do this
-        if data is arg_not_supplied:
-            data = dataBlob()
-
-        data.add_class_object(mongoFuturesContractData)
-        self.data = data
-
-    def add_contract_data(self, contract, ignore_duplication=False):
-        return self.data.db_futures_contract.add_contract_data(
-            contract, ignore_duplication=ignore_duplication
-        )

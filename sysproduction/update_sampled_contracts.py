@@ -7,7 +7,7 @@ from sysobjects.rolls import contractDateWithRollParameters
 
 from sysdata.data_blob import dataBlob
 from sysproduction.data.prices import diagPrices
-from sysproduction.data.contracts import diagContracts, updateContracts
+from sysproduction.data.contracts import dataContracts
 from sysproduction.data.broker import dataBroker
 
 
@@ -108,7 +108,7 @@ def get_furthest_out_contract_date(data: dataBlob,
 def create_furthest_out_contract_with_roll_parameters_from_contract_date(data: dataBlob, instrument_code: str,
                                                                          furthest_out_contract_date: str):
 
-    diag_contracts = diagContracts(data)
+    diag_contracts = dataContracts(data)
     roll_parameters = diag_contracts.get_roll_parameters(instrument_code)
 
     furthest_out_contract = contractDateWithRollParameters(
@@ -167,27 +167,24 @@ def update_contract_database_with_contract_chain(
     :return: None
     """
 
-    current_contract_chain_in_db = get_current_contract_chain_in_db(data, instrument_code)
+    currently_sampling_contracts = get_list_of_currently_sampling_contracts_in_db(data, instrument_code)
 
-    missing_from_db = required_contract_chain.difference(
-        current_contract_chain_in_db)
+    list_of_contracts_missing_from_db_or_not_sampling = required_contract_chain.difference(
+        currently_sampling_contracts)
 
     add_missing_contracts_to_database(
-         missing_from_db, data)
+         list_of_contracts_missing_from_db_or_not_sampling, data)
 
 
-def get_current_contract_chain_in_db(data: dataBlob, instrument_code:str) -> listOfFuturesContracts:
-    diag_contracts = diagContracts(data)
+def get_list_of_currently_sampling_contracts_in_db(data: dataBlob, instrument_code:str) -> listOfFuturesContracts:
+    data_contracts = dataContracts(data)
 
-    # Get list of contracts in the database
-    all_contracts_in_db = diag_contracts.get_all_contract_objects_for_instrument_code(
-        instrument_code)
-    current_contract_chain = all_contracts_in_db.currently_sampling()
+    currently_sampling_contracts = data_contracts.get_all_sampled_contracts(instrument_code)
 
-    return current_contract_chain
+    return currently_sampling_contracts
 
 def add_missing_contracts_to_database(
-     missing_from_db: listOfFuturesContracts, data: dataBlob
+     list_of_contracts_missing_from_db_or_not_sampling: listOfFuturesContracts, data: dataBlob
 ):
     """
 
@@ -196,37 +193,47 @@ def add_missing_contracts_to_database(
     :return: None
     """
 
-    for contract_to_add in missing_from_db:
-        add_missing_contract_to_database(data, contract_to_add)
+    for contract_to_add in list_of_contracts_missing_from_db_or_not_sampling:
+        add_missing_or_not_sampling_contract_to_database(data, contract_to_add)
 
-    return None
 
-def add_missing_contract_to_database(data: dataBlob, contract_to_add: futuresContract):
-    diag_contracts = diagContracts(data)
-    update_contracts = updateContracts(data)
-    instrument_code = contract_to_add.instrument_code
+def add_missing_or_not_sampling_contract_to_database(data: dataBlob, contract_to_add: futuresContract):
+    ## A 'missing' contract may be genuinely missing, or just not sampling
 
-    contract_date_str = contract_to_add.date_str
+    diag_contracts = dataContracts(data)
 
-    if diag_contracts.is_contract_in_data(instrument_code, contract_date_str):
-        contract_to_add = diag_contracts.get_contract_object(
-            instrument_code, contract_date_str
-        )
+    is_contract_already_in_database = diag_contracts.is_contract_in_data(contract_to_add)
+
+    if is_contract_already_in_database:
+        mark_existing_contract_as_sampling(contract_to_add, data=data)
+    else:
+        add_new_contract_with_sampling_on(contract_to_add, data=data)
+
+def mark_existing_contract_as_sampling(contract_to_add:futuresContract, data: dataBlob):
+    data_contracts = dataContracts(data)
+    data_contracts.mark_contract_as_sampling(contract_to_add)
+    log = contract_to_add.specific_log(data.log)
+
+    log.msg(
+        "Contract %s now sampling" %
+        str(contract_to_add))
+
+def add_new_contract_with_sampling_on(contract_to_add:futuresContract, data: dataBlob):
+    data_contracts = dataContracts(data)
 
     # Mark it as sampling
     contract_to_add.sampling_on()
 
     # Add it to the database
-    # We are happy to overwrite
-    update_contracts.add_contract_data(
-        contract_to_add, ignore_duplication=True)
+    # Should not be any duplication to ignore
+    data_contracts.add_contract_data(
+        contract_to_add, ignore_duplication=False)
 
-    log = data.log.setup(instrument_code=instrument_code)
+    log = contract_to_add.specific_log(data.log)
 
     log.msg(
         "Contract %s now added to database and sampling" %
         str(contract_to_add))
-
 
 
 def update_expiries_of_sampled_contracts(
@@ -242,7 +249,7 @@ def update_expiries_of_sampled_contracts(
     :return: None
     """
 
-    diag_contracts = diagContracts(data)
+    diag_contracts = dataContracts(data)
 
     all_contracts_in_db = diag_contracts.get_all_contract_objects_for_instrument_code(
         instrument_code)
@@ -251,7 +258,6 @@ def update_expiries_of_sampled_contracts(
     for contract_object in currently_sampling_contracts:
         update_expiry_for_contract(contract_object, data)
 
-    return None
 
 
 def update_expiry_for_contract(contract_object: futuresContract, data: dataBlob):
@@ -263,22 +269,10 @@ def update_expiry_for_contract(contract_object: futuresContract, data: dataBlob)
     :param log: log
     :return: None
     """
-    log = data.log
-    diag_contracts = diagContracts(data)
-    data_broker = dataBroker(data)
+    log = contract_object.specific_log(data.log)
 
-    contract_date = contract_object.date_str
-    instrument_code = contract_object.instrument_code
-
-    log = log.setup(
-        instrument_code=instrument_code,
-        contract_date=contract_date)
-    db_contract = diag_contracts.get_contract_object(
-        instrument_code, contract_date)
-
-    db_expiry_date = db_contract.expiry_date
-    broker_expiry_date = \
-        data_broker.get_actual_expiry_date_for_single_contract(db_contract)
+    broker_expiry_date = get_contract_expiry_from_broker(contract_object, data=data)
+    db_expiry_date = get_contract_expiry_from_db(contract_object, data = data)
 
     if broker_expiry_date is missing_contract:
         log.msg(
@@ -287,28 +281,43 @@ def update_expiry_for_contract(contract_object: futuresContract, data: dataBlob)
         )
 
         ## don't warn as probably expired we'll remove it from the sampling list
-        return None
 
-    if broker_expiry_date == db_expiry_date:
+    elif broker_expiry_date == db_expiry_date:
         log.msg(
             "No change to contract expiry %s to %s"
             % (str(contract_object), str(broker_expiry_date))
         )
-        return None
+    else:
+        # Different!
+        update_contract_object_with_new_expiry_date(data=data,
+                                                    broker_expiry_date=broker_expiry_date,
+                                                    contract_object=contract_object)
 
-    # Different!
-    update_contract_object_with_new_expiry_date(data, broker_expiry_date, contract_object)
+
+def get_contract_expiry_from_db(contract: futuresContract, data: dataBlob) -> expiryDate:
+    data_contracts = dataContracts(data)
+    db_contract = data_contracts.get_contract_from_db(contract)
+    db_expiry_date = db_contract.expiry_date
+
+    return db_expiry_date
+
+def get_contract_expiry_from_broker(contract:futuresContract, data: dataBlob) -> expiryDate:
+    data_broker = dataBroker(data)
+    broker_expiry_date = \
+        data_broker.get_actual_expiry_date_for_single_contract(contract)
+
+    return broker_expiry_date
 
 def update_contract_object_with_new_expiry_date(data: dataBlob,
                                                 broker_expiry_date: expiryDate,
                                                 contract_object: futuresContract):
-    update_contracts = updateContracts(data)
+    data_contracts = dataContracts(data)
+    data_contracts.update_expiry_date(contract_object,
+                                      new_expiry_date=broker_expiry_date)
 
-    contract_object.update_single_expiry_date(broker_expiry_date)
-    update_contracts.add_contract_data(
-        contract_object, ignore_duplication=True)
+    log = contract_object.specific_log(data.log)
 
-    data.log.msg(
+    log.msg(
         "Updated expiry of contract %s to %s"
         % (str(contract_object), str(broker_expiry_date))
     )
@@ -316,25 +325,27 @@ def update_contract_object_with_new_expiry_date(data: dataBlob,
 
 def stop_expired_contracts_sampling(instrument_code: str, data: dataBlob):
     ## expiry dates will have been updated and are correct
-    current_contract_chain_in_db = get_current_contract_chain_in_db(data, instrument_code)
+    currently_sampling_contracts = get_list_of_currently_sampling_contracts_in_db(data, instrument_code)
 
-    diag_contracts = diagContracts(data)
-    update_contracts = updateContracts(data)
-    log = data.log.setup(instrument_code=instrument_code)
+    for contract in currently_sampling_contracts:
+        check_and_stop_expired_contract_sampling(contract = contract, data = data)
 
-    for contract_date_object in current_contract_chain_in_db:
-        contract_date = contract_date_object.date_str
 
+def check_and_stop_expired_contract_sampling(contract: futuresContract, data: dataBlob):
+
+    data_contracts = dataContracts(data)
+    db_contract = data_contracts.get_contract_from_db(contract)
+    contract_expired = db_contract.expired()
+    contract_sampling = db_contract.currently_sampling
+
+    if contract_expired and contract_sampling:
         # Mark it as stop sampling in the database
-        contract = diag_contracts.get_contract_object(
-            instrument_code, contract_date)
-        if contract.expired() and contract.currently_sampling:
-            contract.sampling_off()
-            update_contracts.add_contract_data(
-                contract, ignore_duplication=True)
 
-            log.msg(
-                "Contract %s has now stopped sampling" % str(contract),
-                contract_date=contract.date_str,
-            )
+        data_contracts.mark_contract_as_not_sampling(contract)
+        log = contract.specific_log(data.log)
+        log.msg(
+            "Contract %s has expired so now stopped sampling" % str(contract),
+            contract_date=contract.date_str,
+        )
+
 

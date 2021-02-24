@@ -7,9 +7,10 @@ from sysdata.production.capital import totalCapitalCalculationData
 from sysdata.mongodb.mongo_capital import mongoCapitalData
 from sysdata.data_blob import dataBlob
 
-from sysproduction.data.generic_production_data import dataGeneric
+from sysproduction.data.generic_production_data import productionDataLayerGeneric
+from sysdata.production.capital import capitalData
 
-class dataCapital(dataGeneric):
+class dataCapital(productionDataLayerGeneric):
 
     def _add_required_classes_to_data(self, data) -> dataBlob:
         data.add_class_object(mongoCapitalData)
@@ -17,7 +18,7 @@ class dataCapital(dataGeneric):
         return data
 
     @property
-    def capital_data(self):
+    def capital_data(self) -> capitalData:
         return self.data.db_capital
 
     ## TOTAL CAPITAL...

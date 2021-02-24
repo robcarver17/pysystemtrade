@@ -1,7 +1,7 @@
 from sysdata.data_blob import dataBlob
 from syscore.objects import arg_not_supplied
 
-class dataGeneric(object):
+class productionDataLayerGeneric(object):
     def __init__(self, data: dataBlob = arg_not_supplied):
         if data is arg_not_supplied:
             data = dataBlob()

@@ -17,7 +17,7 @@ from sysobjects.production.tradeable_object import instrumentStrategy
 
 from sysproduction.data.currency_data import dataCurrency
 from sysproduction.data.capital import dataCapital
-from sysproduction.data.contracts import diagContracts
+from sysproduction.data.contracts import dataContracts
 from sysproduction.data.positions import dataOptimalPositions
 from sysproduction.data.sim_data import dataSimData
 
@@ -154,7 +154,7 @@ def construct_position_entry(
         instrument_code: str,
         lower_buffer: float,
         upper_buffer: float) -> bufferedOptimalPositions:
-    diag_contracts = diagContracts(data)
+    diag_contracts = dataContracts(data)
     reference_price = system.rawdata.get_daily_prices(instrument_code).iloc[-1]
     reference_contract = diag_contracts.get_priced_contract_id(instrument_code)
     position_entry = bufferedOptimalPositions(

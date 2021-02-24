@@ -15,7 +15,7 @@ from sysproduction.data.backtest import user_choose_backtest, interactively_choo
 from sysproduction.data.capital import dataCapital
 from sysproduction.data.contracts import (
     get_valid_instrument_code_and_contractid_from_user,
-    diagContracts, get_valid_contract_object_from_user
+    dataContracts, get_valid_contract_object_from_user
 )
 from sysproduction.data.currency_data import dataCurrency, get_valid_fx_code_from_user
 from sysproduction.data.instruments import diagInstruments
@@ -307,7 +307,7 @@ def build_attribute_dict(diag_logs, lookback_days):
 
 # prices
 def individual_prices(data):
-    contract = get_valid_contract_object_from_user(data, include_priced_contracts=True)
+    contract = get_valid_contract_object_from_user(data, only_include_priced_contracts=True)
     diag_prices = diagPrices(data)
     prices = diag_prices.get_prices_for_contract_object(contract)
 
@@ -533,8 +533,8 @@ def view_instrument_config(data):
 def view_contract_config(data):
     instrument_code, contract_id = get_valid_instrument_code_and_contractid_from_user(
         data)
-    diag_contracts = diagContracts(data)
-    contract_object = diag_contracts.get_contract_object(
+    diag_contracts = dataContracts(data)
+    contract_object = diag_contracts.get_contract_from_db_given_code_and_id(
         instrument_code, contract_id)
     contract_date = diag_contracts.get_contract_date_object_with_roll_parameters(
         instrument_code, contract_id)

@@ -10,7 +10,7 @@ from sysexecution.algos.allocate_algo_to_order import (
 )
 
 from sysproduction.data.positions import diagPositions
-from sysproduction.data.contracts import diagContracts
+from sysproduction.data.contracts import dataContracts
 from sysproduction.data.prices import diagPrices
 
 from sysexecution.stack_handler.stackHandlerCore import stackHandlerCore, put_children_on_stack, rollback_parents_and_children_and_handle_exceptions, log_successful_adding
@@ -202,7 +202,7 @@ class rollSpreadInformation():
 
 def get_roll_spread_information(data: dataBlob, instrument_code: str) -> rollSpreadInformation:
     diag_positions = diagPositions(data)
-    diag_contracts = diagContracts(data)
+    diag_contracts = dataContracts(data)
     diag_prices = diagPrices(data)
 
     priced_contract_id = diag_contracts.get_priced_contract_id(instrument_code)

@@ -28,9 +28,9 @@ from sysobjects.futures_per_contract_prices import futuresContractPrices
 from sysproduction.data.positions import diagPositions
 from sysproduction.data.currency_data import dataCurrency
 from sysproduction.data.control_process import diagControlProcess
-from sysproduction.data.generic_production_data import dataGeneric
+from sysproduction.data.generic_production_data import productionDataLayerGeneric
 
-class dataBroker(dataGeneric):
+class dataBroker(productionDataLayerGeneric):
 
     def _add_required_classes_to_data(self, data) -> dataBlob:
         ## Modify these to use another broker

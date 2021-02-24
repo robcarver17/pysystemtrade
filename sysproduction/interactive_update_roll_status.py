@@ -27,7 +27,7 @@ from sysproduction.diagnostic.report_configs import roll_report_config
 from sysproduction.diagnostic.reporting import run_report_with_data_blob, landing_strip
 
 from sysproduction.data.positions import diagPositions, updatePositions
-from sysproduction.data.contracts import diagContracts
+from sysproduction.data.contracts import dataContracts
 from sysdata.data_blob import dataBlob
 from sysproduction.data.prices import diagPrices, updatePrices, get_valid_instrument_code_from_user
 
@@ -149,7 +149,7 @@ def get_required_roll_state(data: dataBlob, instrument_code: str)-> RollData:
 
 def setup_roll_data(data: dataBlob, instrument_code: str) -> RollData:
     diag_positions = diagPositions(data)
-    diag_contracts = diagContracts(data)
+    diag_contracts = dataContracts(data)
 
     original_roll_status = diag_positions.get_roll_state(instrument_code)
     priced_contract_date = diag_contracts.get_priced_contract_id(
@@ -376,7 +376,7 @@ def update_multiple_prices_on_roll(
     old_forward_contract_last_price, forward_inferred = get_or_infer_latest_price(
         new_multiple_prices, price_col=fwd_column)
 
-    diag_contracts = diagContracts(data)
+    diag_contracts = dataContracts(data)
 
     instrument_object = futuresInstrument(instrument_code)
     # Old forward contract -> New price contract

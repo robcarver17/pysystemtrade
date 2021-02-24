@@ -1,6 +1,7 @@
 import pandas as pd
 
 from syscore.merge_data import merge_data_series_with_label_column
+from sysobjects.contract_dates_and_expiries import listOfContractDateStr
 
 ## CHECK IF ALL THESE ARE NEEDED...
 
@@ -210,6 +211,13 @@ class setOfNamedContracts(dict):
 
     def __repr__(self):
         return "setOfContracts %s" % str([(key,value) for key,value in self.items()])
+
+    @property
+    def list_of_date_str(self) -> listOfContractDateStr:
+        list_of_date_str = self.values()
+        list_of_date_str = listOfContractDateStr(list_of_date_str)
+
+        return list_of_date_str
 
     @property
     def price(self):

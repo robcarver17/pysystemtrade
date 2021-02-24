@@ -2,7 +2,7 @@ import datetime
 import pandas as pd
 
 from sysproduction.data.volumes import diagVolumes
-from sysproduction.data.contracts import diagContracts
+from sysproduction.data.contracts import dataContracts
 from sysproduction.data.prices import diagPrices
 from sysproduction.data.positions import diagPositions
 
@@ -59,13 +59,12 @@ def get_roll_data_for_instrument(instrument_code, data):
     :param data: dataBlob
     :return:
     """
-    c_data = diagContracts(data)
-    relevant_contract_dict = c_data.get_labelled_list_of_relevant_contracts(
+    c_data = dataContracts(data)
+    relevant_contract_dict = c_data.get_labelled_dict_of_current_contracts(
         instrument_code
     )
     list_of_relevant_contract_date_str = relevant_contract_dict["contracts"]
     contract_labels = relevant_contract_dict["labels"]
-    current_contracts = relevant_contract_dict["current_contracts"]
 
     v_data = diagVolumes(data)
     volumes = v_data.get_normalised_smoothed_volumes_of_contract_list(
