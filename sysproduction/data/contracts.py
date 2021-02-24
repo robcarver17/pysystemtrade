@@ -122,11 +122,13 @@ class dataContracts(productionDataLayerGeneric):
         current_contracts = self.get_current_contract_dict(instrument_code)
         contract_date_list = current_contracts.list_of_date_str
 
+        sorted_contract_date_list = contract_date_list.sorted_date_str()
+
         labelled_contracts = label_up_contracts(
-            contract_date_list, current_contracts)
+            sorted_contract_date_list, current_contracts)
 
         ans_as_dict = dict(
-            contracts=contract_date_list,
+            contracts=sorted_contract_date_list,
             labels=labelled_contracts
         )
 
