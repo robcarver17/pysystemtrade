@@ -106,7 +106,7 @@ class dataContracts(productionDataLayerGeneric):
         if current_contracts is missing_data:
             return list_of_dates
 
-        labelled_list = label_up_contracts(list_of_dates, current_contracts)
+        labelled_list = label_up_contracts_with_date_list(list_of_dates, current_contracts)
 
         return labelled_list
 
@@ -120,15 +120,11 @@ class dataContracts(productionDataLayerGeneric):
     def get_labelled_dict_of_current_contracts(self, instrument_code: str) -> dict:
 
         current_contracts = self.get_current_contract_dict(instrument_code)
-        contract_date_list = current_contracts.list_of_date_str
 
-        sorted_contract_date_list = contract_date_list.sorted_date_str()
-
-        labelled_contracts = label_up_contracts(
-            sorted_contract_date_list, current_contracts)
+        list_of_date_str, labelled_contracts = label_up_current_contracts(current_contracts)
 
         ans_as_dict = dict(
-            contracts=sorted_contract_date_list,
+            contracts=list_of_date_str,
             labels=labelled_contracts
         )
 
@@ -286,6 +282,7 @@ def get_dates_to_choose_from(data: dataBlob, instrument_code: str, only_priced_c
         dates_to_choose_from = contract_list.list_of_dates()
 
     dates_to_choose_from = listOfContractDateStr(dates_to_choose_from)
+    dates_to_choose_from = dates_to_choose_from.sorted_date_str()
 
     return dates_to_choose_from
 
@@ -294,8 +291,8 @@ CARRY_SUFFIX = "c"
 FORWARD_SUFFIX = "f"
 EMPTY_SUFFIX = ""
 
-def label_up_contracts(contract_date_list: listOfContractDateStr,
-                       current_contracts: setOfNamedContracts) -> list:
+def label_up_contracts_with_date_list(contract_date_list: listOfContractDateStr,
+                                      current_contracts: setOfNamedContracts) -> list:
     """
     Labels some contracts
 
@@ -325,4 +322,22 @@ def label_up_contracts(contract_date_list: listOfContractDateStr,
 
     return contract_names
 
+def label_up_current_contracts(
+                                      current_contracts: setOfNamedContracts) -> (listOfContractDateStr, list):
+    """
+    Labels some contracts
+
+    """
+    price_contract_date = current_contracts.price
+    forward_contract_date = current_contracts.forward
+    carry_contract_date = current_contracts.carry
+
+    labelled_price_contract = "%s%s" % (price_contract_date, PRICE_SUFFIX)
+    labelled_forward_contract = "%s%s" % (forward_contract_date, FORWARD_SUFFIX)
+    labelled_carry_contract = "%s%s" % (carry_contract_date, CARRY_SUFFIX)
+    contract_names = [labelled_carry_contract, labelled_price_contract, labelled_forward_contract]
+    contract_date_list = [carry_contract_date, price_contract_date, forward_contract_date]
+    contract_date_list = listOfContractDateStr(contract_date_list)
+
+    return contract_date_list, contract_names
 

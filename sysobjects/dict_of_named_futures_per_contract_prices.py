@@ -8,7 +8,7 @@ from sysobjects.contract_dates_and_expiries import listOfContractDateStr
 price_name = "PRICE"
 carry_name = "CARRY"
 forward_name = "FORWARD"
-price_column_names = dict(PRICE=price_name, CARRY=carry_name, FORWARD=forward_name)
+price_column_names = dict(CARRY=carry_name, PRICE=price_name, FORWARD=forward_name)
 list_of_price_column_names = list(price_column_names.values())
 list_of_price_column_names.sort()
 contract_suffix = "_CONTRACT"
