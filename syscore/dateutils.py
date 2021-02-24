@@ -48,8 +48,8 @@ DAILY_PRICE_FREQ = Frequency.Day
 def from_config_frequency_to_frequency(freq_as_str:str)-> Frequency:
     LOOKUP_TABLE = {'D':Frequency.Day,
                         'H':Frequency.Hour,
-                        '15M': Frequency.Minute_15,
-                        '5M': Frequency.Minute_5,
+                        '15M': Frequency.Minutes_15,
+                        '5M': Frequency.Minutes_5,
                         'M': Frequency.Minute,
                         '10S': Frequency.Seconds_10,
                         'S': Frequency.Second}

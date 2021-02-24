@@ -285,11 +285,11 @@ def _get_barsize_and_duration_from_frequency(bar_freq: Frequency) -> (str, str):
         [
             (Frequency.Day, "1 day"),
             (Frequency.Hour, "1 hour"),
-            (Frequency.Minute_15, "15 mins"),
-            (Frequency.Minute_5, "5 mins"),
+            (Frequency.Minutes_15, "15 mins"),
+            (Frequency.Minutes_5, "5 mins"),
             (Frequency.Minute, "1 min"),
             (Frequency.Seconds_10, "10 secs"),
-            (Frequency.Seconds, "1 secs"),
+            (Frequency.Second, "1 secs"),
         ]
     )
 
@@ -297,11 +297,11 @@ def _get_barsize_and_duration_from_frequency(bar_freq: Frequency) -> (str, str):
         [
             (Frequency.Day, "1 Y"),
             (Frequency.Hour, "1 M"),
-            (Frequency.Minute_15, "1 W"),
-            (Frequency.Minute_5, "1 W"),
+            (Frequency.Minutes_15, "1 W"),
+            (Frequency.Minutes_5, "1 W"),
             (Frequency.Minute, "1 D"),
             (Frequency.Seconds_10, "14400 S"),
-            (Frequency.Seconds, "1800 S"),
+            (Frequency.Second, "1800 S"),
         ]
     )
     try:
