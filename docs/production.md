@@ -1871,9 +1871,10 @@ Unless you're working in 'interactive python' mode, you can then choose the stag
 If you prefer to do this exercise in your python environment, then this will interactively allow you to choose a system and dated backtest, and returns the system object for you to do what you wish.
 
 ```python
-from sysproduction.data.backtest import dataBacktest
-d = dataBacktest()
-system = d.system
+
+from sysproduction.data.backtest import user_choose_backtest
+backtest = user_choose_backtest()
+system = backtest.system
 ```
 
 

@@ -63,11 +63,11 @@ def get_output_for_single_strategy(
         data, strategy_name)
     data_backtest = dataBacktest(data)
     if timestamp is arg_not_supplied:
-        data_backtest.load_most_recent_backtest(strategy_name)
+        backtest = data_backtest.get_most_recent_backtest(strategy_name)
     else:
-        data_backtest.load_backtest(strategy_name, timestamp)
+        backtest = data_backtest.load_backtest(strategy_name, timestamp)
 
     strategy_format_output_list = strategy_reporting_function(
-        data, data_backtest)
+        data, backtest)
 
     return strategy_format_output_list

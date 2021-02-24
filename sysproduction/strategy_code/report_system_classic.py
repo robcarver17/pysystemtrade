@@ -8,9 +8,9 @@ from syscore.objects import header, table, body_text, missing_data
 from syscore.dateutils import ROOT_BDAYS_INYEAR
 from sysproduction.diagnostic.backtest_state import from_marker_to_datetime
 from sysproduction.data.positions import diagPositions
+from sysobjects.production.backtest import interactiveBacktest
 
-
-def report_system_classic(data, data_backtest):
+def report_system_classic(data, data_backtest: interactiveBacktest):
     """
 
     :param strategy_name: str
@@ -20,11 +20,12 @@ def report_system_classic(data, data_backtest):
     """
 
     strategy_name = data_backtest.strategy_name
+    timestamp = data_backtest.timestamp
 
     format_output = []
     report_header = header(
         "Strategy report for %s backtest timestamp %s produced at %s" %
-        (strategy_name, data_backtest.timestamp, str(
+        (strategy_name, data_backtest, str(
             datetime.datetime.now())))
     format_output.append(report_header)
 

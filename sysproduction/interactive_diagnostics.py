@@ -11,7 +11,7 @@ from sysexecution.orders.list_of_orders import listOfOrders
 
 from sysdata.data_blob import dataBlob
 
-from sysproduction.data.backtest import dataBacktest
+from sysproduction.data.backtest import user_choose_backtest, interactively_choose_timestamp
 from sysproduction.data.capital import dataCapital
 from sysproduction.data.contracts import (
     get_valid_instrument_code_and_contractid_from_user,
@@ -117,27 +117,28 @@ def not_defined(data):
 
 
 def backtest_plot(data):
-    data_backtests = dataBacktest(data)
+    data_backtests = user_choose_backtest(data)
     data_backtests.plot_data_loop()
     return None
 
 
 def backtest_python(data):
-    data_backtests = dataBacktest(data)
+    data_backtests = user_choose_backtest(data)
     data_backtests.eval_loop()
     return None
 
 
 def backtest_print(data):
-    data_backtests = dataBacktest(data)
+    data_backtests = user_choose_backtest(data)
     data_backtests.print_data_loop()
     return None
 
 
 def backtest_html(data):
-    data_backtests = dataBacktest(data)
+    data_backtests = user_choose_backtest(data)
     data_backtests.html_data_loop()
     return None
+
 
 
 # reports
@@ -184,9 +185,8 @@ def strategy_report(data):
         data=data, allow_all=True, all_code = ALL_STRATEGIES
     )
     if strategy_name != ALL_STRATEGIES:
-        data_backtests = dataBacktest(data)
-        timestamp = data_backtests.interactively_choose_timestamp(
-            strategy_name)
+        timestamp = interactively_choose_timestamp(strategy_name=strategy_name,
+            data=data)
     else:
         timestamp = arg_not_supplied
 
