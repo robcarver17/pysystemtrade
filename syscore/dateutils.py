@@ -433,9 +433,9 @@ class tradingStartAndEndDateTimes(object):
         return hours_left
 
 
-    def less_than_one_hour_left(self) -> bool:
+    def less_than_N_hours_left(self, N_hours: float = 1.0) -> bool:
         hours_left = self.hours_left_before_market_close()
-        if hours_left<1.0:
+        if hours_left<N_hours:
             return True
         else:
             return False
@@ -462,11 +462,11 @@ class manyTradingStartAndEndDateTimes(list):
                 return True
         return False
 
-    def less_than_one_hour_left(self):
+    def less_than_N_hours_left(self, N_hours: float = 1.0):
         for check_period in self:
             if check_period.okay_to_trade_now():
                 # market is open, but for how long?
-                if check_period.less_than_one_hour_left():
+                if check_period.less_than_N_hours_left(N_hours=N_hours):
                     return True
                 else:
                     return False

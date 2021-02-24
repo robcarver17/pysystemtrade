@@ -94,17 +94,20 @@ class dataBroker(dataGeneric):
         )
 
 
-    def less_than_one_hour_of_trading_leg_for_contract(
-            self, contract: futuresContract) -> bool:
+    def less_than_N_hours_of_trading_left_for_contract(
+            self,
+            contract: futuresContract,
+            N_hours: float = 1.0) -> bool:
 
         diag_controls = diagControlProcess()
         hours_left_before_process_finishes = diag_controls.how_long_in_hours_before_trading_process_finishes()
 
-        if hours_left_before_process_finishes<1:
+        if hours_left_before_process_finishes<N_hours:
             ## irespective of instrument traded
             return True
 
-        result = self.data.broker_futures_contract.less_than_one_hour_of_trading_leg_for_contract(contract)
+        result = self.data.broker_futures_contract.less_than_N_hours_of_trading_left_for_contract(contract,
+                                                                                                  N_hours = N_hours)
 
         return result
 

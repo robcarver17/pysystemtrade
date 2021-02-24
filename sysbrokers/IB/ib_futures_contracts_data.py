@@ -149,11 +149,12 @@ class ibFuturesContractData(futuresContractData):
         return trading_hours_checker.okay_to_trade_now()
 
 
-    def less_than_one_hour_of_trading_leg_for_contract(self, contract_object: futuresContract) -> bool:
+    def less_than_N_hours_of_trading_left_for_contract(self, contract_object: futuresContract,
+                                                       N_hours: float = 1.0) -> bool:
         trading_hours = self.get_trading_hours_for_contract(contract_object)
         trading_hours_checker = manyTradingStartAndEndDateTimes(trading_hours)
 
-        return trading_hours_checker.less_than_one_hour_left()
+        return trading_hours_checker.less_than_N_hours_left(N_hours=N_hours)
 
 
     def get_trading_hours_for_contract(self, futures_contract: futuresContract) -> list :
