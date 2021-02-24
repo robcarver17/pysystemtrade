@@ -21,7 +21,7 @@ from sysproduction.data.contracts import diagContracts
 from sysproduction.data.positions import dataOptimalPositions
 from sysproduction.data.sim_data import dataSimData
 
-from sysproduction.diagnostic.backtest_state import store_backtest_state
+from sysproduction.data.backtest import store_backtest_state
 
 from syslogdiag.log import logtoscreen
 

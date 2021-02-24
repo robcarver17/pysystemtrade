@@ -472,3 +472,16 @@ def last_run_or_heartbeat_from_date_or_none(last_run_or_heartbeat: datetime.date
             SHORT_DATE_PATTERN)
 
     return last_run_or_heartbeat
+
+
+date_formatting = "%Y%m%d_%H%M%S"
+
+
+def create_datetime_string(datetime_to_use):
+    datetime_marker = datetime_to_use.strftime(date_formatting)
+
+    return datetime_marker
+
+
+def from_marker_to_datetime(datetime_marker):
+    return datetime.datetime.strptime(datetime_marker, date_formatting)

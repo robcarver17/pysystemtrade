@@ -28,21 +28,20 @@ from sysobjects.futures_per_contract_prices import futuresContractPrices
 from sysproduction.data.positions import diagPositions
 from sysproduction.data.currency_data import dataCurrency
 from sysproduction.data.control_process import diagControlProcess
+from sysproduction.data.generic_production_data import dataGeneric
 
+class dataBroker(dataGeneric):
 
-class dataBroker(object):
-    def __init__(self, data: dataBlob=arg_not_supplied):
-        # Check data has the right elements to do this
-        if data is arg_not_supplied:
-            data = dataBlob()
-
+    def _add_required_classes_to_data(self, data) -> dataBlob:
+        ## Modify these to use another broker
+        ## These will be aliased as self.data.broker_fx_prices, self.data.broker_futures_contract_price ... and so on
         data.add_class_list([
             ibFxPricesData, ibFuturesContractPriceData, ibFuturesContractData,
         ibContractPositionData, ibOrdersData, ibMiscData, ibCapitalData,
         ibFuturesInstrumentData]
         )
 
-        self._data = data
+        return data
 
     @property
     def data(self) -> dataBlob:
