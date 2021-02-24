@@ -161,7 +161,7 @@ class ibPriceClient(ibContractsClient):
             barSizeSetting, durationStr = _get_barsize_and_duration_from_frequency(
                 bar_freq)
         except Exception as exception:
-            log.warn(str(exception.args[0]))
+            log.warn(exception)
             return missing_data
 
         price_data_raw = self._ib_get_historical_data_of_duration_and_barSize(
@@ -305,11 +305,12 @@ def _get_barsize_and_duration_from_frequency(bar_freq: Frequency) -> (str, str):
         ]
     )
     try:
-        assert bar_freq in barsize_lookup.keys() and bar_freq in duration_lookup.keys()
-    except BaseException:
+        assert bar_freq in barsize_lookup.keys()
+        assert bar_freq in duration_lookup.keys()
+    except:
         raise Exception(
             "Barsize %s not recognised should be one of %s"
-            % (bar_freq, str(barsize_lookup.keys()))
+            % (str(bar_freq), str(barsize_lookup.keys()))
         )
 
     ib_barsize = barsize_lookup[bar_freq]
