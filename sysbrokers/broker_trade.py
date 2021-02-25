@@ -1,3 +1,3 @@
 
-def brokerTrade(object):
+class brokerTrade(object):
     pass
