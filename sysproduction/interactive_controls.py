@@ -6,6 +6,7 @@ from syscore.genutils import (
     print_menu_and_get_response,
 )
 from sysobjects.production.override import override_dict, Override
+from sysobjects.production.tradeable_object import instrumentStrategy
 
 from sysdata.data_blob import dataBlob
 from sysproduction.data.controls import (
@@ -140,13 +141,14 @@ def change_limit_for_instrument_strategy(data):
     new_limit = get_and_convert(
         "Limit (in contracts?)", type_expected=int, allow_default=False
     )
+    instrument_strategy = instrumentStrategy(instrument_code=instrument_code, strategy_name=strategy_name)
 
     ans = input(
         "Update will change number of trades allowed in periods, but won't reset 'clock'. Are you sure? (y/other)"
     )
     if ans == "y":
         trade_limits.update_instrument_strategy_limit_with_new_limit(
-            strategy_name, instrument_code, period_days, new_limit
+            instrument_strategy=instrument_strategy, period_days=period_days, new_limit=new_limit
         )
 
 
@@ -159,12 +161,13 @@ def reset_limit_for_instrument_strategy(data):
         allow_default=True,
         default_value=1)
     strategy_name = get_valid_strategy_name_from_user(data=data, source="positions")
+    instrument_strategy = instrumentStrategy(instrument_code=instrument_code, strategy_name=strategy_name)
 
     ans = input(
         "Reset means trade 'clock' will restart. Are you sure? (y/other)")
     if ans == "y":
         trade_limits.reset_instrument_strategy_limit(
-            strategy_name, instrument_code, period_days
+            instrument_strategy=instrument_strategy, period_days=period_days
         )
 
 
@@ -269,11 +272,14 @@ def change_position_limit_for_instrument_strategy(data):
     new_position_limit = get_and_convert("New position limit?", type_expected=int, allow_default=True,
                                          default_value=-1, default_str = "No limit")
 
+    instrument_strategy = instrumentStrategy(instrument_code=instrument_code,
+                                             strategy_name=strategy_name)
+
     if new_position_limit==-1:
-        data_position_limits.delete_position_limit_for_strategy_instrument(strategy_name, instrument_code)
+        data_position_limits.delete_position_limit_for_instrument_strategy(instrument_strategy)
     else:
         new_position_limit = abs(new_position_limit)
-        data_position_limits.set_abs_position_limit_for_strategy_instrument(strategy_name, instrument_code, new_position_limit)
+        data_position_limits.set_position_limit_for_instrument_strategy(instrument_strategy, new_position_limit)
 
 def auto_populate_position_limits(data: dataBlob):
     instrument_list = get_list_of_instruments(data)
@@ -337,11 +343,12 @@ def update_strategy_instrument_override(data):
     update_overrides = updateOverrides(data)
     instrument_code = get_valid_instrument_code_from_user(data)
     strategy_name = get_valid_strategy_name_from_user(data=data, source="positions")
+    instrument_strategy = instrumentStrategy(instrument_code=instrument_code, strategy_name=strategy_name)
     new_override = get_overide_object_from_user()
     ans = input("Are you sure? (y/other)")
     if ans == "y":
-        update_overrides.update_override_for_strategy_instrument(
-            strategy_name, instrument_code, new_override
+        update_overrides.update_override_for_instrument_strategy(
+            instrument_strategy=instrument_strategy, new_override=new_override
         )
 
 

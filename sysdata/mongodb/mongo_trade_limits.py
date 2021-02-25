@@ -2,7 +2,6 @@ from syscore.objects import missing_data
 from sysdata.production.trade_limits import (
     tradeLimitData, listOfInstrumentStrategyKeyAndDays, instrumentStrategyKeyAndDays
 )
-from sysobjects.production.trade_limits import tradeLimit, listOfTradeLimits
 from sysobjects.production.tradeable_object import instrumentStrategy
 from sysdata.mongodb.mongo_generic import mongoDataWithMultipleKeys
 from syslogdiag.log import logtoscreen

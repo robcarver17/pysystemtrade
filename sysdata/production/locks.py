@@ -25,5 +25,5 @@ class lockData(object):
         if self.is_instrument_locked(instrument_code):
             self._locks.pop(instrument_code)
 
-    def get_list_of_locked_instruments(self):
-        return self._locks.keys()
+    def get_list_of_locked_instruments(self) -> list:
+        return list(self._locks.keys())

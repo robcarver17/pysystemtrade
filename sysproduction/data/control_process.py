@@ -188,7 +188,7 @@ class diagControlProcess(productionDataLayerGeneric):
             return False
 
     def does_method_run_on_completion_only(self, process_name: str, method_name: str) -> bool:
-        this_method_dict = self.get_method_configuration_for_process_name(
+        this_method_dict = self._get_method_configuration_for_process_name(
             process_name, method_name
         )
         run_on_completion_only = this_method_dict.get(
@@ -200,7 +200,7 @@ class diagControlProcess(productionDataLayerGeneric):
     def frequency_for_process_and_method(
         self, process_name: str, method_name: str
     ) -> int:
-        this_method_dict = self.get_method_configuration_for_process_name(
+        this_method_dict = self._get_method_configuration_for_process_name(
             process_name, method_name
         )
 
@@ -211,7 +211,7 @@ class diagControlProcess(productionDataLayerGeneric):
     def max_executions_for_process_and_method(
         self, process_name: str, method_name: str
     ) -> int:
-        this_method_dict = self.get_method_configuration_for_process_name(
+        this_method_dict = self._get_method_configuration_for_process_name(
             process_name, method_name
         )
         max_executions = this_method_dict.get("max_executions", DEFAULT_MAX_EXECUTIONS)
@@ -219,7 +219,7 @@ class diagControlProcess(productionDataLayerGeneric):
         return max_executions
 
 
-    def get_method_configuration_for_process_name(
+    def _get_method_configuration_for_process_name(
             self, process_name: str, method_name: str) -> dict:
         all_method_dict = self.get_all_method_dict_for_process_name(
             process_name)
@@ -234,7 +234,7 @@ class diagControlProcess(productionDataLayerGeneric):
         return list(all_method_dict.keys())
 
     def get_all_method_dict_for_process_name(self, process_name: str)-> dict:
-        all_method_dict = self.get_configuration_item_for_process_name(
+        all_method_dict = self._get_configuration_item_for_process_name(
             process_name, "methods", default={}, use_config_default=False
         )
 
@@ -246,7 +246,7 @@ class diagControlProcess(productionDataLayerGeneric):
         :param process_name:
         :return: str or None
         """
-        return self.get_configuration_item_for_process_name(
+        return self._get_configuration_item_for_process_name(
             process_name, "previous_process", default=None, use_config_default=False)
 
     def get_start_time(self, process_name: str) -> datetime.time:
@@ -255,7 +255,7 @@ class diagControlProcess(productionDataLayerGeneric):
         :param process_name:
         :return:
         """
-        result = self.get_configuration_item_for_process_name(
+        result = self._get_configuration_item_for_process_name(
             process_name, "start_time", default=DEFAULT_START_TIME_STRING, use_config_default=True
         )
 
@@ -286,7 +286,7 @@ class diagControlProcess(productionDataLayerGeneric):
         :param process_name:
         :return:
         """
-        result = self.get_configuration_item_for_process_name(
+        result = self._get_configuration_item_for_process_name(
             process_name, "stop_time", default=DEFAULT_STOP_TIME_STRING, use_config_default=True
         )
 
@@ -300,15 +300,15 @@ class diagControlProcess(productionDataLayerGeneric):
         :param process_name:
         :return: str or None
         """
-        result = self.get_configuration_item_for_process_name(
+        result = self._get_configuration_item_for_process_name(
             process_name, "host_name", default=None, use_config_default=False
         )
 
         return result
 
-    def get_configuration_item_for_process_name(
+    def _get_configuration_item_for_process_name(
         self, process_name: str, item_name: str, default=None, use_config_default: bool=False
-    ) -> dict:
+    ):
         process_config_for_item = self.get_process_configuration_for_item_name(
             item_name
         )
@@ -378,6 +378,6 @@ def get_strategy_class_object_config(data: dataBlob, process_name: str, strategy
 
     """
     diag_config = diagControlProcess(data)
-    config_this_process = diag_config.get_method_configuration_for_process_name(process_name, strategy_name)
+    config_this_process = diag_config._get_method_configuration_for_process_name(process_name, strategy_name)
 
     return config_this_process

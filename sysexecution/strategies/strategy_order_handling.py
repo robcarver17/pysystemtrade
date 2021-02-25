@@ -166,7 +166,7 @@ class orderGeneratorForStrategy(object):
         log = order.log_with_attributes(self.log)
 
         data_position_limits = dataPositionLimits(self.data)
-        cut_down_order = data_position_limits.cut_down_proposed_instrument_trade_okay(order)
+        cut_down_order = data_position_limits.cut_down_proposed_instrument_trade_for_position_limits(order)
 
         if cut_down_order.trade != order.trade:
             if cut_down_order.is_zero_trade():

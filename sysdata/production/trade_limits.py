@@ -137,7 +137,7 @@ class tradeLimitData(baseData):
         trade_limit.reset()
         self._update_trade_limit_object(trade_limit)
 
-    def get_all_limits(self):
+    def get_all_limits(self) -> list:
         all_keys = self._get_all_limit_keys()
         all_limits = [
             self._get_trade_limit_object_from_isd_key(key) for key in all_keys]
