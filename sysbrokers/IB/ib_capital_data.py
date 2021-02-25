@@ -1,12 +1,13 @@
 
 from sysbrokers.IB.ib_connection import connectionIB
 from sysbrokers.IB.client.ib_accounting_client import ibAccountingClient
+from sysbrokers.broker_capital_data import brokerCapitalData
+from sysobjects.spot_fx_prices import listOfCurrencyValues
 
-from sysdata.production.capital import capitalData
 from syslogdiag.log import logtoscreen, logger
 
 
-class ibCapitalData(capitalData):
+class ibCapitalData(brokerCapitalData):
     def __init__(self, ibconnection: connectionIB, log: logger=logtoscreen("ibFxPricesData")):
         super().__init__(log=log)
         self._ibconnection = ibconnection
@@ -27,7 +28,7 @@ class ibCapitalData(capitalData):
     def __repr__(self):
         return "IB capital data"
 
-    def get_account_value_across_currency_across_accounts(self) -> list:
+    def get_account_value_across_currency_across_accounts(self) -> listOfCurrencyValues:
         return self.ib_client.broker_get_account_value_across_currency_across_accounts()
 
 

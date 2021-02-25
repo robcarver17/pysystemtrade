@@ -1,12 +1,12 @@
 import datetime
 from sysbrokers.IB.client.ib_client import ibClient, STALE_SECONDS_ALLOWED_ACCOUNT_SUMMARY
-from sysobjects.spot_fx_prices import currencyValue
+from sysobjects.spot_fx_prices import currencyValue, listOfCurrencyValues
 
 class ibAccountingClient(ibClient):
 
     def broker_get_account_value_across_currency_across_accounts(
         self
-    ) -> list:
+    ) -> listOfCurrencyValues:
         list_of_currencies = self._get_list_of_currencies_for_liquidation_values()
         list_of_values_per_currency = list(
             [
@@ -17,6 +17,8 @@ class ibAccountingClient(ibClient):
                 for currency in list_of_currencies
             ]
         )
+
+        list_of_values_per_currency = listOfCurrencyValues(list_of_values_per_currency)
 
         return list_of_values_per_currency
 

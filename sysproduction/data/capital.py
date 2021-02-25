@@ -18,7 +18,7 @@ class dataCapital(productionDataLayerGeneric):
         return data
 
     @property
-    def capital_data(self) -> capitalData:
+    def db_capital_data(self) -> capitalData:
         return self.data.db_capital
 
     ## TOTAL CAPITAL...
@@ -62,7 +62,7 @@ class dataCapital(productionDataLayerGeneric):
     def _get_total_capital_calculator(self) -> totalCapitalCalculationData:
         calc_method = self.get_capital_calculation_method()
         total_capital_calculator = totalCapitalCalculationData(
-            self.capital_data, calc_method=calc_method
+            self.db_capital_data, calc_method=calc_method
         )
 
         return total_capital_calculator
@@ -76,17 +76,17 @@ class dataCapital(productionDataLayerGeneric):
 
     ## STRATEGY CAPITAL
     def get_capital_pd_series_for_strategy(self, strategy_name: str) -> pd.DataFrame:
-        capital_series = self.capital_data.get_capital_pd_df_for_strategy(
+        capital_series = self.db_capital_data.get_capital_pd_df_for_strategy(
             strategy_name
         )
         return capital_series
 
     def get_list_of_strategies_with_capital(self) -> list:
-        strat_list = self.capital_data.get_list_of_strategies_with_capital()
+        strat_list = self.db_capital_data.get_list_of_strategies_with_capital()
         return strat_list
 
     def get_capital_for_strategy(self, strategy_name: str) -> float:
-        capital_value = self.capital_data.get_current_capital_for_strategy(
+        capital_value = self.db_capital_data.get_current_capital_for_strategy(
             strategy_name
         )
         if capital_value is missing_data:
@@ -103,7 +103,7 @@ class dataCapital(productionDataLayerGeneric):
             date: datetime.datetime=arg_not_supplied
     ):
 
-        self.capital_data.update_capital_value_for_strategy(
+        self.db_capital_data.update_capital_value_for_strategy(
             strategy_name, new_capital_value, date=date
         )
 

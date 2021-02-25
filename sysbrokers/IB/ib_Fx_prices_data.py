@@ -2,8 +2,8 @@ from collections import  namedtuple
 import pandas as pd
 
 from sysbrokers.IB.client.ib_fx_client import ibFxClient
+from sysbrokers.broker_fx_prices_data import brokerFxPricesData
 
-from sysdata.fx.spotfx import fxPricesData
 from sysobjects.spot_fx_prices import fxPrices
 from syslogdiag.log import logtoscreen
 from syscore.fileutils import get_filename_for_package
@@ -14,7 +14,7 @@ IB_CCY_CONFIG_FILE = get_filename_for_package(
 
 ibFXConfig = namedtuple("ibFXConfig", ["ccy1", "ccy2", "invert"])
 
-class ibFxPricesData(fxPricesData):
+class ibFxPricesData(brokerFxPricesData):
     def __init__(self, ibconnection, log=logtoscreen("ibFxPricesData")):
         self._ibconnection = ibconnection
         super().__init__(log=log)
@@ -129,18 +129,4 @@ class ibFxPricesData(fxPricesData):
         self._config = config_data
 
         return config_data
-
-    def update_fx_prices(self, *args, **kwargs):
-        raise NotImplementedError("IB is a read only source of prices")
-
-    def add_fx_prices(self, *args, **kwargs):
-        raise NotImplementedError("IB is a read only source of prices")
-
-    def _delete_fx_prices_without_any_warning_be_careful(
-            self, *args, **kwargs):
-        raise NotImplementedError("IB is a read only source of prices")
-
-    def _add_fx_prices_without_checking_for_existing_entry(
-            self, *args, **kwargs):
-        raise NotImplementedError("IB is a read only source of prices")
 

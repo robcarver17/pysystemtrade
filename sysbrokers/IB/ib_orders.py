@@ -10,10 +10,11 @@ from sysbrokers.IB.ib_translate_broker_order_objects import (
 from sysbrokers.IB.ib_connection import connectionIB
 from sysbrokers.IB.ib_translate_broker_order_objects import tradeWithContract, ibOrderCouldntCreateException
 from sysbrokers.IB.client.ib_orders_client import ibOrdersClient
+from sysbrokers.broker_execution_stack import brokerExecutionStackData
 
 from syscore.objects import missing_order, failure, success, arg_not_supplied
 
-from sysexecution.order_stacks.broker_order_stack import brokerOrderStackData, orderWithControls
+from sysexecution.order_stacks.broker_order_stack import orderWithControls
 from sysexecution.orders.list_of_orders import listOfOrders
 from sysexecution.orders.broker_orders import brokerOrder
 from sysexecution.tick_data import tickerObject
@@ -78,7 +79,7 @@ class ibOrderWithControls(orderWithControls):
         return broker_limit_price
 
 
-class ibOrdersData(brokerOrderStackData):
+class ibExecutionStackData(brokerExecutionStackData):
     def __init__(self, ibconnection: connectionIB, log=logtoscreen(
             "ibFuturesContractPriceData")):
         super().__init__(log=log)
@@ -121,7 +122,7 @@ class ibOrdersData(brokerOrderStackData):
     def futures_instrument_data(self) -> ibFuturesInstrumentData:
         return ibFuturesInstrumentData(self.ibconnection)
 
-    def get_list_of_broker_orders(self, account_id: str=arg_not_supplied) -> listOfOrders:
+    def get_list_of_broker_orders_with_account_id(self, account_id: str=arg_not_supplied) -> listOfOrders:
         """
         Get list of broker orders from IB, and return as my broker_order objects
 
@@ -345,10 +346,10 @@ class ibOrdersData(brokerOrderStackData):
             log.warn("Couldn't cancel non existent order")
             return None
 
-        self._cancel_order_given_control_object(matched_control_order)
+        self.cancel_order_given_control_object(matched_control_order)
         log.msg("Sent cancellation for %s" % str(broker_order))
 
-    def _cancel_order_given_control_object(self, broker_orders_with_controls: ibOrderWithControls):
+    def cancel_order_given_control_object(self, broker_orders_with_controls: ibOrderWithControls):
         original_order_object = broker_orders_with_controls.control_object.trade.order
         self.ib_client.ib_cancel_order(original_order_object)
 
@@ -373,7 +374,7 @@ class ibOrdersData(brokerOrderStackData):
 
     def check_order_can_be_modified_given_control_object(
         self, broker_order_with_controls: ibOrderWithControls
-    ):
+    ) -> bool:
         status = self._get_status_for_control_object(broker_order_with_controls)
         modification_status = status in ["Submitted"]
         return modification_status

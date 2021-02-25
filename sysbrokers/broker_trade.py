@@ -1,0 +1,3 @@
+
+def brokerTrade(object):
+    pass

@@ -54,6 +54,10 @@ class ibClient(object):
         return self.ib_connection.ib
 
     @property
+    def client_id(self) -> int:
+        return self.ib.client.clientId
+
+    @property
     def log(self):
         return self._log
 

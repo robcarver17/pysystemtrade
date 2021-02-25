@@ -1,14 +1,17 @@
 import pandas as pd
-from syscore.fileutils import get_filename_for_package
-from syscore.genutils import value_or_npnan
 
-from sysobjects.instruments import futuresInstrument
-from sysdata.futures.instruments import futuresInstrumentData
-
-from syslogdiag.log import logtoscreen
-from syscore.objects import missing_instrument, missing_file
 from sysbrokers.IB.ib_instruments import NOT_REQUIRED_FOR_IB, ibInstrumentConfigData, futuresInstrumentWithIBConfigData
 from sysbrokers.IB.ib_connection import connectionIB
+from sysbrokers.broker_instrument_data import brokerFuturesInstrumentData
+
+from syscore.fileutils import get_filename_for_package
+from syscore.genutils import value_or_npnan
+from syscore.objects import missing_instrument, missing_file
+
+from sysobjects.instruments import futuresInstrument
+
+
+from syslogdiag.log import logtoscreen
 
 IB_FUTURES_CONFIG_FILE = get_filename_for_package(
     "sysbrokers.IB.ib_config_futures.csv")
@@ -21,7 +24,7 @@ def read_ib_config_from_file() -> IBconfig:
     return IBconfig(df)
 
 
-class ibFuturesInstrumentData(futuresInstrumentData):
+class ibFuturesInstrumentData(brokerFuturesInstrumentData):
     """
     Extends the baseData object to a data source that reads in and writes prices for specific futures contracts
 

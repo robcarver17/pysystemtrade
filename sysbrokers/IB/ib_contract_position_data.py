@@ -4,15 +4,15 @@ from sysbrokers.IB.ib_futures_contracts_data import ibFuturesContractData
 from sysbrokers.IB.client.ib_positions_client import ibPositionsClient
 from sysbrokers.IB.ib_instruments_data import ibFuturesInstrumentData
 from sysbrokers.IB.ib_connection import connectionIB
+from sysbrokers.broker_contract_position_data import brokerContractPositionData
 
 from syscore.objects import arg_not_supplied, missing_contract
 
-from sysdata.production.historic_positions import contractPositionData
 
 from sysobjects.production.positions import contractPosition, listOfContractPositions
 from sysobjects.contracts import futuresContract
 
-class ibContractPositionData(contractPositionData):
+class ibContractPositionData(brokerContractPositionData):
     def __init__(self, ibconnection: connectionIB, log=logtoscreen(
             "ibFuturesContractPriceData")):
         self._ibconnection = ibconnection

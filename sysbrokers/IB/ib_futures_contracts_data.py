@@ -3,9 +3,11 @@ from sysbrokers.IB.client.ib_contracts_client import ibContractsClient
 from sysbrokers.IB.ib_instruments_data import ibFuturesInstrumentData
 from sysbrokers.IB.ib_connection import connectionIB
 
+from sysbrokers.broker_futures_contract_data import brokerFuturesContractData
+
 from syscore.objects import missing_contract, missing_instrument
 
-from sysdata.futures.contracts import futuresContractData
+
 from syscore.dateutils import manyTradingStartAndEndDateTimes
 
 from sysobjects.contract_dates_and_expiries import expiryDate
@@ -14,7 +16,7 @@ from sysobjects.contracts import futuresContract
 from syslogdiag.log import logtoscreen
 
 
-class ibFuturesContractData(futuresContractData):
+class ibFuturesContractData(brokerFuturesContractData):
     """
     Extends the baseData object to a data source that reads in and writes prices for specific futures contracts
 
@@ -179,30 +181,3 @@ class ibFuturesContractData(futuresContractData):
             trading_hours = []
 
         return trading_hours
-
-
-    def get_list_of_contract_dates_for_instrument_code(self, instrument_code: str):
-        raise NotImplementedError(
-            "Consider implementing for consistent interface")
-
-    def get_all_contract_objects_for_instrument_code(self, *args, **kwargs):
-        raise NotImplementedError(
-            "Consider implementing for consistent interface")
-
-    def _get_contract_data_without_checking(
-            self, instrument_code: str, contract_date: str) -> futuresContract:
-        raise NotImplementedError(
-            "Consider implementing for consistent interface")
-
-    def is_contract_in_data(self, *args, **kwargs):
-        raise NotImplementedError(
-            "Consider implementing for consistent interface")
-
-    def _delete_contract_data_without_any_warning_be_careful(
-        self, instrument_code: str, contract_date: str
-    ):
-        raise NotImplementedError("IB is read only")
-
-    def _add_contract_object_without_checking_for_existing_entry(
-            self, contract_object: futuresContract):
-        raise NotImplementedError("IB is read only")

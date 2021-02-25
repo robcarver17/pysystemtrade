@@ -87,6 +87,9 @@ class fxPrices(pd.Series):
 
 currencyValue = namedtuple("currencyValue", "currency, value")
 
+class listOfCurrencyValues(list):
+    pass
+
 # by convention we always get prices vs the dollar
 DEFAULT_CURRENCY = "USD"
 

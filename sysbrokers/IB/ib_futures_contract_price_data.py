@@ -6,10 +6,8 @@ from sysbrokers.IB.ib_instruments_data import ibFuturesInstrumentData
 from sysbrokers.IB.ib_translate_broker_order_objects import sign_from_BS, ibBrokerOrder
 from sysbrokers.IB.ib_connection import connectionIB
 from sysbrokers.IB.client.ib_price_client import tickerWithBS, ibPriceClient
+from sysbrokers.broker_futures_contract_price_data import brokerFuturesContractPriceData
 
-from sysdata.futures.futures_per_contract_prices import (
-    futuresContractPriceData,
-)
 
 
 from sysexecution.tick_data import tickerObject, dataFrameOfRecentTicks
@@ -70,7 +68,7 @@ def from_ib_bid_ask_tick_data_to_dataframe(tick_data) ->dataFrameOfRecentTicks:
 
 
 
-class ibFuturesContractPriceData(futuresContractPriceData):
+class ibFuturesContractPriceData(brokerFuturesContractPriceData):
     """
     Extends the baseData object to a data source that reads in and writes prices for specific futures contracts
 
@@ -99,10 +97,6 @@ class ibFuturesContractPriceData(futuresContractPriceData):
                                         log = self.log)
 
         return client
-
-    @property
-    def log(self):
-        return self._log
 
 
     @property
@@ -278,15 +272,3 @@ class ibFuturesContractPriceData(futuresContractPriceData):
 
         return tick_data_as_df
 
-
-
-    def _write_prices_for_contract_object_no_checking(self, *args, **kwargs):
-        raise NotImplementedError("IB is a read only source of prices")
-
-    def delete_prices_for_contract_object(self, *args, **kwargs):
-        raise NotImplementedError("IB is a read only source of prices")
-
-    def _delete_prices_for_contract_object_with_no_checks_be_careful(
-        self, futures_contract_object: futuresContract
-    ):
-        raise NotImplementedError("IB is a read only source of prices")
