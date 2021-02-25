@@ -1,7 +1,7 @@
 import datetime
 
 from sysobjects.production.process_control import dictOfControlProcesses, controlProcess, was_running_pid_notok_closed
-from syscore.objects import _named_object, success, missing_data
+from syscore.objects import named_object, success, missing_data
 from sysdata.base_data import baseData
 from syslogdiag.log import logtoscreen
 
@@ -55,7 +55,7 @@ class controlProcessData(baseData):
     ):
         self._control_store[process_name] = new_control_object
 
-    def check_if_okay_to_start_process(self, process_name: str) -> _named_object:
+    def check_if_okay_to_start_process(self, process_name: str) -> named_object:
         """
 
         :param process_name: str
@@ -66,7 +66,7 @@ class controlProcessData(baseData):
 
         return result
 
-    def start_process(self, process_name: str) -> _named_object:
+    def start_process(self, process_name: str) -> named_object:
         """
 
         :param process_name: str
@@ -105,7 +105,7 @@ class controlProcessData(baseData):
 
         return success
 
-    def finish_process(self, process_name: str) -> _named_object:
+    def finish_process(self, process_name: str) -> named_object:
         """
 
         :param process_name: str

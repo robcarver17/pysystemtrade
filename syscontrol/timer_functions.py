@@ -15,7 +15,7 @@ def _get_list_of_timer_functions(
         method_name, object = entry
         function_object = getattr(object, method_name)
 
-        run_on_completion_only = diag_process.run_on_completion_only(
+        run_on_completion_only = diag_process.does_method_run_on_completion_only(
             process_name, method_name
         )
 

@@ -5,7 +5,7 @@ from collections import namedtuple
 import importlib
 
 
-class _named_object:
+class named_object:
     def __init__(self, name):
         self._name = str(name)
 
@@ -13,42 +13,42 @@ class _named_object:
         return self._name
 
 
-missing_contract = _named_object("missing contract")
-missing_instrument = _named_object("missing instrument")
+missing_contract = named_object("missing contract")
+missing_instrument = named_object("missing instrument")
 
-missing_order = _named_object("missing order")
-locked_order = _named_object("locked order")
-duplicate_order = _named_object("duplicate order")
-zero_order = _named_object("zero order")
+missing_order = named_object("missing order")
+locked_order = named_object("locked order")
+duplicate_order = named_object("duplicate order")
+zero_order = named_object("zero order")
 
-fill_exceeds_trade = _named_object("fill too big for trade")
+fill_exceeds_trade = named_object("fill too big for trade")
 
-order_is_in_status_finished = _named_object(
+order_is_in_status_finished = named_object(
     "order status is modification finished")
-order_is_in_status_modified = _named_object("order status is being modified")
-order_is_in_status_not_modified = _named_object(
+order_is_in_status_modified = named_object("order status is being modified")
+order_is_in_status_not_modified = named_object(
     "order status is not currently modified"
 )
-order_is_in_status_reject_modification = _named_object(
+order_is_in_status_reject_modification = named_object(
     "order status is modification rejected"
 )
 
-no_order_id = _named_object("no order ID")
-no_children = _named_object("no_children")
-no_parent = _named_object("no parent")
+no_order_id = named_object("no order ID")
+no_children = named_object("no_children")
+no_parent = named_object("no parent")
 
-rolling_cant_trade = _named_object("rolling can't trade")
+rolling_cant_trade = named_object("rolling can't trade")
 ROLL_PSEUDO_STRATEGY = "_ROLL_PSEUDO_STRATEGY"
 
-not_updated = _named_object("not updated")
+not_updated = named_object("not updated")
 
-class status(_named_object):
+class status(named_object):
     pass
 success = status("success")
 failure = status("failure")
 
-arg_not_supplied = _named_object("arg not supplied")
-user_exit = _named_object("exit")
+arg_not_supplied = named_object("arg not supplied")
+user_exit = named_object("exit")
 
 table = namedtuple("table", "Heading Body")
 header = namedtuple("header", "Heading")
@@ -222,5 +222,5 @@ class existingData(Exception):
     pass
 
 
-missing_file = _named_object("missing file")
-missing_data = _named_object("missing data")
+missing_file = named_object("missing file")
+missing_data = named_object("missing data")

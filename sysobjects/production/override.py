@@ -1,14 +1,14 @@
 import numpy as np
 
 from syscore.genutils import sign
-from syscore.objects import _named_object
+from syscore.objects import named_object
 from sysexecution.orders.base_orders import Order
 from sysexecution.trade_qty import tradeQuantity
 
-override_close = _named_object("Close")
-override_no_trading = _named_object("No trading")
-override_reduce_only = _named_object("Reduce only")
-override_none = _named_object("No override")
+override_close = named_object("Close")
+override_no_trading = named_object("No trading")
+override_reduce_only = named_object("Reduce only")
+override_none = named_object("No override")
 override_dict = {
     override_close: 0.0,
     override_none: 1.0,

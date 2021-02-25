@@ -20,12 +20,12 @@ from syscore.dateutils import SECONDS_PER_DAY, last_run_or_heartbeat_from_date_o
 from syscore.objects import (
     success,
     failure,
-    _named_object,
+    named_object,
     missing_data)
 
-process_stop = _named_object("process stop")
-process_no_run = _named_object("process no run")
-process_running = _named_object("process running")
+process_stop = named_object("process stop")
+process_no_run = named_object("process no run")
+process_running = named_object("process running")
 
 
 
@@ -181,7 +181,7 @@ class controlProcess(object):
 
         return control_process
 
-    def start_process(self) -> _named_object:
+    def start_process(self) -> named_object:
         result = self.check_if_okay_to_start_process()
         if result is not success:
             return result
@@ -206,7 +206,7 @@ class controlProcess(object):
 
         return was_running_pid_notok_closed
 
-    def finish_process(self) -> _named_object:
+    def finish_process(self) -> named_object:
         """
 
         :return: success, or failure if no process running
@@ -222,7 +222,7 @@ class controlProcess(object):
         return success
 
 
-    def check_if_okay_to_start_process(self) -> _named_object:
+    def check_if_okay_to_start_process(self) -> named_object:
         """
 
         :return: success, or process_no_run, process_stop, process_running

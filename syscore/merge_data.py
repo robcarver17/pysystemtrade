@@ -4,7 +4,7 @@ import pandas as pd
 import datetime
 
 from syscore.dateutils import SECONDS_PER_DAY
-from syscore.objects import arg_not_supplied, _named_object
+from syscore.objects import arg_not_supplied, named_object
 from sysdata.config.production_config import get_production_config
 
 class mergeStatus(object):
@@ -310,9 +310,9 @@ def full_merge_of_existing_series(old_series, new_series):
     return merged_data
 
 
-all_labels_match = _named_object("all labels match")
-mismatch_on_last_day = _named_object("mismatch_on_last_day")
-original_index_matches_new = _named_object("original index matches new")
+all_labels_match = named_object("all labels match")
+mismatch_on_last_day = named_object("mismatch_on_last_day")
+original_index_matches_new = named_object("original index matches new")
 
 
 def merge_data_series_with_label_column(

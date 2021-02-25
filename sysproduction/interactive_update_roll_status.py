@@ -18,7 +18,7 @@ from sysobjects.dict_of_named_futures_per_contract_prices import price_name, car
     price_column_names, contract_column_names
 from sysobjects.adjusted_prices import futuresAdjustedPrices
 
-from syscore.objects import success, failure, status, _named_object
+from syscore.objects import success, failure, status, named_object
 
 from sysobjects.production.roll_state import default_state, roll_adj_state, explain_roll_state_str, \
     allowable_roll_state_from_current_and_position, RollState
@@ -31,7 +31,7 @@ from sysproduction.data.contracts import dataContracts
 from sysdata.data_blob import dataBlob
 from sysproduction.data.prices import diagPrices, updatePrices, get_valid_instrument_code_from_user
 
-no_state_available = _named_object("No state available")
+no_state_available = named_object("No state available")
 
 def interactive_update_roll_status():
     """

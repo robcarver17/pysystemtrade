@@ -1,6 +1,6 @@
 import datetime
 
-from syscore.objects import missing_contract, arg_not_supplied, missing_data
+from syscore.objects import missing_contract,  missing_data
 
 from sysdata.arctic.arctic_futures_per_contract_prices import arcticFuturesContractPriceData
 from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesData
