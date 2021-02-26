@@ -53,7 +53,7 @@ class orderGeneratorForStrategy(object):
 
     @property
     def order_stack(self):
-        return self.data_orders.instrument_stack()
+        return self.data_orders.db_instrument_stack_data
 
     def get_and_place_orders(self):
         # THIS IS THE MAIN FUNCTION THAT IS RUN

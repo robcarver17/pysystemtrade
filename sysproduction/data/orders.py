@@ -7,10 +7,10 @@ from syscore.objects import (
 
 from sysdata.mongodb.mongo_order_stack import mongoInstrumentOrderStackData, mongoContractOrderStackData, mongoBrokerOrderStackData
 from sysdata.mongodb.mongo_historic_orders import mongoStrategyHistoricOrdersData, mongoContractHistoricOrdersData, mongoBrokerHistoricOrdersData
-from sysexecution.fills import listOfFills
-
+from sysdata.production.historic_orders import brokerHistoricOrdersData, contractHistoricOrdersData, strategyHistoricOrdersData
 from sysdata.data_blob import dataBlob
 
+from sysexecution.fills import listOfFills
 from sysexecution.order_stacks.broker_order_stack import brokerOrderStackData
 from sysexecution.order_stacks.contract_order_stack import contractOrderStackData
 from sysexecution.order_stacks.instrument_order_stack import instrumentOrderStackData
@@ -38,13 +38,28 @@ class dataOrders(object):
     def data(self) -> dataBlob:
         return self._data
 
-    def instrument_stack(self) -> instrumentOrderStackData:
+    @property
+    def db_strategy_historic_orders_data(self) -> strategyHistoricOrdersData:
+        return self.db_strategy_historic_orders
+
+    @property
+    def db_contract_historic_orders_data(self) -> contractHistoricOrdersData:
+        return self.db_contract_historic_orders
+
+    @property
+    def db_broker_historic_orders_data(self) -> brokerHistoricOrdersData:
+        return self.db_broker_historic_orders
+
+    @property
+    def db_instrument_stack_data(self) -> instrumentOrderStackData:
         return self.data.db_instrument_order_stack
 
-    def contract_stack(self) -> contractOrderStackData:
+    @property
+    def db_contract_stack_data(self) -> contractOrderStackData:
         return self.data.db_contract_order_stack
 
-    def broker_stack(self) -> brokerOrderStackData:
+    @property
+    def db_broker_stack_data(self) -> brokerOrderStackData:
         return self.data.db_broker_order_stack
 
     def add_historic_orders_to_data(
@@ -61,34 +76,34 @@ class dataOrders(object):
             self.add_historic_broker_order_to_data(broker_order)
 
     def add_historic_instrument_order_to_data(self, instrument_order: instrumentOrder):
-        self.data.db_strategy_historic_orders.add_order_to_data(
+        self.db_strategy_historic_orders_data.add_order_to_data(
             instrument_order)
 
     def add_historic_contract_order_to_data(self, contract_order: contractOrder):
-        self.data.db_contract_historic_orders.add_order_to_data(
+        self.db_contract_historic_orders_data.add_order_to_data(
             contract_order)
 
     def add_historic_broker_order_to_data(self, broker_order: brokerOrder):
-        self.data.db_broker_historic_orders.add_order_to_data(
+        self.db_broker_historic_orders_data.add_order_to_data(
             broker_order)
 
-    def get_historic_broker_orders_in_date_range(
+    def get_historic_broker_order_ids_in_date_range(
         self, period_start: datetime.datetime,
             period_end: datetime.datetime=arg_not_supplied,
     ) -> list:
         # remove split orders
-        order_id_list = self.data.db_broker_historic_orders.get_list_of_order_ids_in_date_range(
+        order_id_list = self.db_broker_historic_orders_data.get_list_of_order_ids_in_date_range(
             period_start, period_end=period_end)
 
 
         return order_id_list
 
 
-    def get_historic_contract_orders_in_date_range(
+    def get_historic_contract_order_ids_in_date_range(
             self, period_start: datetime.datetime,
             period_end: datetime.datetime) -> list:
 
-        order_id_list = self.data.db_contract_historic_orders.get_list_of_order_ids_in_date_range(
+        order_id_list = self.db_contract_historic_orders_data.get_list_of_order_ids_in_date_range(
             period_start, period_end
         )
 
@@ -96,44 +111,54 @@ class dataOrders(object):
 
 
 
-    def get_historic_instrument_orders_in_date_range(
+    def get_historic_instrument_order_ids_in_date_range(
             self, period_start: datetime.datetime,
             period_end:datetime.datetime) -> list:
-        return self.data.db_strategy_historic_orders.get_list_of_order_ids_in_date_range(
+
+        order_id_list =  self.db_strategy_historic_orders_data.get_list_of_order_ids_in_date_range(
             period_start, period_end
         )
 
+        return order_id_list
+
     def get_historic_instrument_order_from_order_id(self, order_id: int) -> instrumentOrder:
-        return self.data.db_strategy_historic_orders.get_order_with_orderid(
+        order=  self.db_strategy_historic_orders_data.get_order_with_orderid(
             order_id)
+
+        return order
 
     def get_historic_contract_order_from_order_id(self, order_id: int) -> contractOrder:
-        return self.data.db_contract_historic_orders.get_order_with_orderid(
+        order = self.db_contract_historic_orders_data.get_order_with_orderid(
             order_id)
 
+        return order
+
     def get_historic_broker_order_from_order_id(self, order_id: int) -> brokerOrder:
-        return self.data.db_broker_historic_orders.get_order_with_orderid(
+        order = self.db_broker_historic_orders_data.get_order_with_orderid(
             order_id)
+
+        return order
 
 
     def get_fills_history_for_contract(
         self, futures_contract: futuresContract
     ) -> listOfFills:
         ## We get this from broker fills, as they have leg by leg information
-        return self.data.db_broker_historic_orders.get_fills_history_for_contract(futures_contract)
+        list_of_fills = self.db_broker_historic_orders_data.get_fills_history_for_contract(futures_contract)
+
+        return list_of_fills
 
     def get_fills_history_for_instrument_strategy(
         self, instrument_strategy: instrumentStrategy
     ) -> listOfFills:
-        return self.data.db_strategy_historic_orders.get_fills_history_for_instrument_strategy(
+        list_of_fills = self.db_strategy_historic_orders_data.get_fills_history_for_instrument_strategy(
             instrument_strategy)
 
+        return list_of_fills
 
     def get_historic_broker_order_from_order_id_with_execution_data(
             self, order_id: int) -> brokerOrderWithParentInformation:
 
-        # New class?
-        # go through each carefully...
 
         order = self.get_historic_broker_order_from_order_id(order_id)
 

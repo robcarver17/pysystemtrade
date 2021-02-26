@@ -28,9 +28,9 @@ class stackHandlerCore(object):
 
         order_data = dataOrders(data)
 
-        instrument_stack = order_data.instrument_stack()
-        contract_stack = order_data.contract_stack()
-        broker_stack = order_data.broker_stack()
+        instrument_stack = order_data.db_instrument_stack_data
+        contract_stack = order_data.db_contract_stack_data
+        broker_stack = order_data.db_broker_stack_data
 
         self._instrument_stack = instrument_stack
         self._contract_stack = contract_stack

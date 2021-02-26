@@ -199,7 +199,7 @@ data = dataBlob()
 
 def get_recent_broker_orders(data, start_date, end_date):
     data_orders = dataOrders(data)
-    order_id_list = data_orders.get_historic_broker_orders_in_date_range(
+    order_id_list = data_orders.get_historic_broker_order_ids_in_date_range(
         start_date, end_date
     )
     orders_as_list = [get_tuple_object_from_order_id(

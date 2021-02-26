@@ -155,7 +155,7 @@ tradesData = namedtuple(
 def get_recent_trades_from_db(data):
     data_orders = dataOrders(data)
     start_date = datetime.datetime.now() - datetime.timedelta(days=1)
-    order_id_list = data_orders.get_historic_broker_orders_in_date_range(
+    order_id_list = data_orders.get_historic_broker_order_ids_in_date_range(
         start_date)
     orders_as_list = [get_tuple_object_from_order_id(
         data, order_id) for order_id in order_id_list]
