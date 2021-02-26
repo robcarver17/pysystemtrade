@@ -52,7 +52,7 @@ def update_fx_prices_for_code(fx_code: str, data: dataBlob):
 
     new_fx_prices = broker_fx_source.get_fx_prices(
         fx_code)  # returns fxPrices object
-    rows_added = db_fx_data.update_fx_prices(
+    rows_added = db_fx_data.update_fx_prices_and_return_rows_added(
         fx_code, new_fx_prices, check_for_spike=True
     )
 

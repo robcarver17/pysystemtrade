@@ -65,7 +65,7 @@ def update_manual_check_fx_prices_for_code(fx_code: str, data: dataBlob):
         old_fx_prices, new_fx_prices, type_new_data=fxPrices.from_data_frame
     )
 
-    db_currency_data.update_fx_prices(
+    db_currency_data.update_fx_prices_and_return_rows_added(
         fx_code, new_prices_checked, check_for_spike=False
     )
 

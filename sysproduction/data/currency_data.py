@@ -2,28 +2,30 @@ from syscore.objects import arg_not_supplied
 from syscore.genutils import print_menu_of_values_and_get_response
 
 from sysdata.arctic.arctic_spotfx_prices import arcticFxPricesData
-from sysobjects.spot_fx_prices import currencyValue, fxPrices
-
+from sysdata.fx.spotfx import fxPricesData
 from sysdata.data_blob import dataBlob
 
+from sysobjects.spot_fx_prices import currencyValue, fxPrices
 
-class dataCurrency(object):
-    """
-    Translate between currency values
-    """
+from sysproduction.data.generic_production_data import productionDataLayerGeneric
 
-    def __init__(self, data: dataBlob=arg_not_supplied):
-        # Check data has the right elements to do this
-        if data is arg_not_supplied:
-            data = dataBlob()
 
+
+class dataCurrency(productionDataLayerGeneric):
+
+    def _add_required_classes_to_data(self, data: dataBlob) -> dataBlob:
         data.add_class_object(arcticFxPricesData)
-        self.data = data
+        return data
 
-    def update_fx_prices(self, fx_code: str, new_fx_prices: fxPrices, check_for_spike: bool=True):
-        return self.data.db_fx_prices.update_fx_prices(
+    @property
+    def db_fx_prices_data(self) -> fxPricesData:
+        return self.data.db_fx_prices
+
+    def update_fx_prices_and_return_rows_added(self, fx_code: str, new_fx_prices: fxPrices, check_for_spike: bool=True) -> int:
+        rows_added = self.db_fx_prices_data.update_fx_prices(
             fx_code, new_fx_prices, check_for_spike=check_for_spike
         )
+        return rows_added
 
     def total_of_list_of_currency_values_in_base(
             self, list_of_currency_values: list) -> float:
@@ -36,8 +38,8 @@ class dataCurrency(object):
 
     def currency_value_in_base(self, currency_value: currencyValue) -> float:
         value = currency_value.value
-        fx_rate = self.get_last_fx_rate_to_base(currency_value.currency)
-        base_value = value * fx_rate
+        last_fx_rate = self.get_last_fx_rate_to_base(currency_value.currency)
+        base_value = value * last_fx_rate
 
         return base_value
 
@@ -50,7 +52,8 @@ class dataCurrency(object):
         base = self.get_base_currency()
         currency_pair = currency + base
 
-        return self.get_last_fx_rate_for_pair(currency_pair)
+        last_fx_rate = self.get_last_fx_rate_for_pair(currency_pair)
+        return last_fx_rate
 
     def get_base_currency(self) -> str:
         """
@@ -68,7 +71,8 @@ class dataCurrency(object):
         :return: float
         """
         fx_data = self.get_fx_prices(currency_pair)
-        return fx_data.values[-1]
+        last_fx_rate =fx_data.values[-1]
+        return last_fx_rate
 
     def get_fx_prices_to_base(self, currency: str) -> fxPrices:
         """
@@ -79,23 +83,28 @@ class dataCurrency(object):
         base = self.get_base_currency()
         currency_pair = currency + base
 
-        return self.get_fx_prices(currency_pair)
+        prices = self.get_fx_prices(currency_pair)
+
+        return prices
 
     def get_fx_prices(self, fx_code: str) -> fxPrices:
-        return self.data.db_fx_prices.get_fx_prices(fx_code)
+        prices = self.db_fx_prices_data.get_fx_prices(fx_code)
+        return prices
 
     def get_list_of_fxcodes(self) -> list:
-        return self.data.db_fx_prices.get_list_of_fxcodes()
+        list_of_codes = self.db_fx_prices_data.get_list_of_fxcodes()
+        return list_of_codes
 
 
-def get_list_of_fxcodes(data=arg_not_supplied):
+def get_list_of_fxcodes(data: dataBlob=arg_not_supplied) -> list:
     if data is arg_not_supplied:
         data = dataBlob()
-    c = dataCurrency(data)
-    return c.get_list_of_fxcodes()
+    data_currency = dataCurrency(data)
+    list_of_codes = data_currency.get_list_of_fxcodes()
+    return list_of_codes
 
 
-def get_valid_fx_code_from_user(data=arg_not_supplied):
+def get_valid_fx_code_from_user(data: dataBlob=arg_not_supplied) -> str:
     if data is arg_not_supplied:
         data = dataBlob()
     all_fx_codes = get_list_of_fxcodes(data)
