@@ -320,7 +320,7 @@ class diagControlProcess(productionDataLayerGeneric):
 
     def get_process_configuration_for_item_name(self, item_name: str) -> dict:
         config = getattr(self, "_process_config_%s" % item_name, {})
-        if config is {}:
+        if config == {}:
             config = get_key_value_from_control_config(
                 "process_configuration_%s" % item_name
             )
