@@ -1,30 +1,30 @@
-import datetime
-
-from syscore.objects import arg_not_supplied
 
 from sysdata.mongodb.mongo_futures_instruments import mongoFuturesInstrumentData
 
 from sysdata.data_blob import dataBlob
 from sysproduction.data.currency_data import dataCurrency
+from sysproduction.data.generic_production_data import productionDataLayerGeneric
+from sysdata.futures.instruments import futuresInstrumentData
 from sysobjects.spot_fx_prices import currencyValue
 
 
-class diagInstruments(object):
-    def __init__(self, data=arg_not_supplied):
-        # Check data has the right elements to do this
-        if data is arg_not_supplied:
-            data = dataBlob()
-
+class diagInstruments(productionDataLayerGeneric):
+    def _add_required_classes_to_data(self, data) -> dataBlob:
         data.add_class_object(mongoFuturesInstrumentData)
-        self.data = data
+        return data
 
-    def get_point_size(self, instrument_code):
+
+    @property
+    def db_futures_instrument_data(self) -> futuresInstrumentData:
+        return self.data.db_futures_instrument
+
+    def get_point_size(self, instrument_code: str) -> float:
         return self.get_meta_data(instrument_code).Pointsize
 
-    def get_currency(self, instrument_code):
+    def get_currency(self, instrument_code: str) -> str:
         return self.get_meta_data(instrument_code).Currency
 
-    def get_point_size_base_currency(self, instrument_code):
+    def get_point_size_base_currency(self, instrument_code: str) -> float:
         point_size_instrument_currency = self.get_point_size(instrument_code)
         instrument_currency = self.get_currency(instrument_code)
 
@@ -36,21 +36,21 @@ class diagInstruments(object):
 
         return value
 
-    def get_asset_class(self, instrument_code):
+    def get_asset_class(self, instrument_code:str) -> str:
         return self.get_meta_data(instrument_code).AssetClass
 
-    def get_description(self, instrument_code):
+    def get_description(self, instrument_code: str) -> str:
         return self.get_meta_data(instrument_code).Description
 
-    def get_meta_data(self, instrument_code):
-        return self.data.db_futures_instrument.get_instrument_data(
+    def get_meta_data(self, instrument_code: str):
+        return self.db_futures_instrument_data.get_instrument_data(
             instrument_code
         ).meta_data
 
-    def get_list_of_instruments(self):
-        return self.data.db_futures_instrument.get_list_of_instruments()
+    def get_list_of_instruments(self) -> list:
+        return self.db_futures_instrument_data.get_list_of_instruments()
 
-    def get_all_asset_classes(self):
+    def get_all_asset_classes(self) -> list:
         instrument_codes = self.get_list_of_instruments()
         list_of_asset_classes = [
             self.get_asset_class(instrument_code)
@@ -60,7 +60,7 @@ class diagInstruments(object):
 
         return unique_list
 
-    def get_all_instruments_in_asset_class(self, asset_class):
+    def get_all_instruments_in_asset_class(self, asset_class: str) -> list:
         instrument_codes = self.get_list_of_instruments()
         instrument_codes = [
             instrument_code

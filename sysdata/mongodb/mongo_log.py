@@ -1,5 +1,5 @@
 from syscore.objects import arg_not_supplied, existingData
-from sysdata.mongodb.mongo_connection import mongoConnection, mongoDb
+from sysdata.mongodb.mongo_connection import mongoDb
 from sysdata.mongodb.mongo_generic import mongoDataWithSingleKey, MONGO_ID_KEY
 from syscore.dateutils import long_to_datetime, datetime_to_long
 
@@ -113,15 +113,15 @@ class mongoLogData(logData):
         results_list = [single_log_dict for single_log_dict in result_dict]
 
         # ... to list of log entries
-        results = [
+        list_of_log_items = [
             mongoLogEntry.log_entry_from_dict(single_log_dict)
             for single_log_dict in results_list
         ]
 
         # sort by log ID
-        results.sort(key=lambda x: x._log_id)
+        list_of_log_items.sort(key=lambda x: x._log_id)
 
-        return results
+        return list_of_log_items
 
     def delete_log_items_from_before_n_days(self, days=365):
         # need something to delete old log records, eg more than x months ago

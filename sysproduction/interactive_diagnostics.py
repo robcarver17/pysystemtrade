@@ -290,7 +290,7 @@ def build_attribute_dict(diag_logs, lookback_days):
         print("Which attribute to filter by?")
         attribute_name = print_menu_of_values_and_get_response(
             list_of_attributes)
-        list_of_attribute_values = diag_logs.get_list_of_values_for_log_attribute(
+        list_of_attribute_values = diag_logs.get_unique_list_of_values_for_log_attribute(
             attribute_name, attribute_dict=attribute_dict, lookback_days=lookback_days)
         print("Which value for %s ?" % attribute_name)
         attribute_value = print_menu_of_values_and_get_response(
