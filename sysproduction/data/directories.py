@@ -25,10 +25,10 @@ def get_csv_backup_directory():
 
 
 def get_csv_dump_dir():
-    return production_config.csv_backup_directory
+    return production_config.get_element_or_missing_data("csv_backup_directory")
 
 def get_mongo_dump_directory():
-    ans = production_config.mongo_dump_directory
+    ans = production_config.get_element_or_missing_data("mongo_dump_directory")
     return get_resolved_pathname(ans)
 
 

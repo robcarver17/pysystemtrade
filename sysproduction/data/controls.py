@@ -197,43 +197,37 @@ class dataPositionLimits(productionDataLayerGeneric):
 
             strategy_name = order.strategy_name
             instrument_code = order.instrument_code
-            proposed_trade = order.as_single_trade_qty_or_error()
 
-            ## want to CUT DOWN rather than bool possible trades
-            ## FIXME:
-            ## underneath should be using tradeQuantity and position objects
-            ## these will handle abs cases plus legs if required in future
-            # :FIXME
             instrument_strategy = instrumentStrategy(strategy_name=strategy_name,
                                                      instrument_code=instrument_code)
 
-            max_trade_ok_against_instrument_strategy = \
+            max_order_ok_against_instrument_strategy = \
                 self._check_if_proposed_trade_okay_against_instrument_strategy_constraint(instrument_strategy,
-                                                                                          proposed_trade)
-            max_trade_ok_against_instrument = \
+                                                                                          order)
+            max_order_ok_against_instrument = \
                 self._check_if_proposed_trade_okay_against_instrument_constraint(instrument_code,
-                                                                                 proposed_trade)
+                                                                                 order)
 
-            ## FIXME THIS IS UGLY WOULD BE BETTER IF DONE INSIDE TRADE SIZE OBJECT
-            mini_max_trade = sign(proposed_trade) * \
-                             min([abs(max_trade_ok_against_instrument),
-                            abs(max_trade_ok_against_instrument_strategy)])
+            new_order = order.\
+                single_leg_trade_qty_with_lowest_abs_value_trade_from_order_list(
+                [
+                max_order_ok_against_instrument,
+                max_order_ok_against_instrument_strategy
+                ]
+            )
 
-            mini_max_trade = tradeQuantity(mini_max_trade)
-
-            order = order.replace_required_trade_size_only_use_for_unsubmitted_trades(mini_max_trade)
-
-            return order
+            return new_order
 
     def _check_if_proposed_trade_okay_against_instrument_strategy_constraint(
             self,
             instrument_strategy: instrumentStrategy,
-            proposed_trade: int) -> int:
+            order: instrumentOrder) -> instrumentOrder:
 
             position_and_limit = self._get_limit_and_position_for_instrument_strategy(instrument_strategy)
-            max_trade_ok_against_instrument_strategy =  position_and_limit.what_trade_is_possible(proposed_trade)
+            max_order_ok_against_instrument_strategy =  position_and_limit.what_trade_is_possible(order)
 
-            return max_trade_ok_against_instrument_strategy
+            # Ignore warning instrumentOrder inherits from Order
+            return max_order_ok_against_instrument_strategy
 
 
     def _get_limit_and_position_for_instrument_strategy(self, instrument_strategy: instrumentStrategy) -> positionLimitAndPosition:
@@ -258,12 +252,13 @@ class dataPositionLimits(productionDataLayerGeneric):
     def _check_if_proposed_trade_okay_against_instrument_constraint(
             self,
             instrument_code: str,
-            proposed_trade: int) -> int:
+            order: instrumentOrder) -> instrumentOrder:
 
             position_and_limit = self._get_limit_and_position_for_instrument(instrument_code)
-            max_trade_ok_against_instrument = position_and_limit.what_trade_is_possible(proposed_trade)
+            max_order_ok_against_instrument = position_and_limit.what_trade_is_possible(order)
 
-            return max_trade_ok_against_instrument
+            # Ignore warning instrumentOrder inherits from Order
+            return max_order_ok_against_instrument
 
     def _get_limit_and_position_for_instrument(self, instrument_code: str) -> positionLimitAndPosition:
         limit_object = self._get_position_limit_object_for_instrument(instrument_code)

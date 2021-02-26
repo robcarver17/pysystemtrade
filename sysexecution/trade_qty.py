@@ -107,6 +107,24 @@ class tradeQuantity(list):
         # sign of trade quantity
         return sign(self[0])
 
+    def single_leg_trade_qty_with_lowest_abs_value_trade_from_list(self, list_of_trade_qty: list) -> 'tradeQuantity':
+        # only works with single legs
+        trade_qty_list_as_single_legs = [trade_qty.as_single_trade_qty_or_error()
+                                         for trade_qty in list_of_trade_qty]
+
+        abs_values_of_list_of_trade_qty = [abs(trade_qty) for trade_qty in trade_qty_list_as_single_legs]
+
+        min_abs_value_from_list = min(abs_values_of_list_of_trade_qty)
+        min_abs_value_as_trade_qty  = tradeQuantity(min_abs_value_from_list)
+
+        return min_abs_value_as_trade_qty
+
+class listOfTradeQuantity(list):
+    def total_filled_qty(self) -> tradeQuantity:
+        total_filled_qty = sum(self)
+        return total_filled_qty
+
+
 
 def change_trade_size_proportionally_to_meet_abs_qty_limit(trade_list: tradeQuantity, max_abs_qty: int) -> list:
     """
@@ -214,7 +232,3 @@ def reduce_trade_size_proportionally_so_smallest_leg_is_max_size(trade_list_qty:
 
     return trade_list_with_ratio_as_int
 
-class listOfTradeQuantity(list):
-    def total_filled_qty(self) -> tradeQuantity:
-        total_filled_qty = sum(self)
-        return total_filled_qty

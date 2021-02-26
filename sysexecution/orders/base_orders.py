@@ -286,6 +286,21 @@ class Order(object):
 
         return new_order
 
+
+    def trade_qty_with_lowest_abs_value_trade_from_order_list(self, list_of_orders: list) -> 'Order':
+        ## only deals with single legs right now
+        new_order = self.single_leg_trade_qty_with_lowest_abs_value_trade_from_order_list(list_of_orders)
+
+        return new_order
+
+    def single_leg_trade_qty_with_lowest_abs_value_trade_from_order_list(self, list_of_orders: list) -> 'Order':
+        list_of_trade_qty = [order.trade for order in list_of_orders]
+        my_trade_qty = self.trade
+        new_trade = my_trade_qty.single_leg_trade_qty_with_lowest_abs_value_trade_from_list(list_of_trade_qty)
+        new_order= self.replace_required_trade_size_only_use_for_unsubmitted_trades(new_trade)
+
+        return new_order
+
     def change_trade_qty_to_filled_qty(self):
         self._trade = self._fill
 
