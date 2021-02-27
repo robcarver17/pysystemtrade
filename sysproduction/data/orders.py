@@ -40,27 +40,27 @@ class dataOrders(object):
 
     @property
     def db_strategy_historic_orders_data(self) -> strategyHistoricOrdersData:
-        return self.db_strategy_historic_orders
+        return self.data.db_strategy_historic_orders
 
     @property
     def db_contract_historic_orders_data(self) -> contractHistoricOrdersData:
-        return self.db_contract_historic_orders
+        return self.data.db_contract_historic_orders
 
     @property
     def db_broker_historic_orders_data(self) -> brokerHistoricOrdersData:
-        return self.db_broker_historic_orders
+        return self.data.db_broker_historic_orders
 
     @property
     def db_instrument_stack_data(self) -> instrumentOrderStackData:
-        return self.data.db_instrument_order_stack
+        return self.data.db_instrument_stack_data
 
     @property
     def db_contract_stack_data(self) -> contractOrderStackData:
-        return self.data.db_contract_order_stack
+        return self.data.db_contract_stack_data
 
     @property
     def db_broker_stack_data(self) -> brokerOrderStackData:
-        return self.data.db_broker_order_stack
+        return self.data.db_broker_stack_data
 
     def add_historic_orders_to_data(
         self, instrument_order: instrumentOrder,
