@@ -106,7 +106,7 @@ class mongoDb():
 
 class mongoConnection(object):
     """
-    All of our mongo connections use this class (for static data, not time series which goes via artic)
+    All of our mongo connections use this class (for static data, not time series which goes via arctic)
 
     """
 

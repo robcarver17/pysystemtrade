@@ -22,11 +22,11 @@ def build_and_write_roll_calendar(
     else:
         print("Writing to %s" % output_datapath)
 
-    artic_prices = arcticFuturesContractPriceData()
+    arctic_prices = arcticFuturesContractPriceData()
     mongo_rollparameters = mongoRollParametersData()
     csv_roll_calendars = csvRollCalendarData(output_datapath)
 
-    dict_of_all_futures_contract_prices = artic_prices.get_all_prices_for_instrument(
+    dict_of_all_futures_contract_prices = arctic_prices.get_all_prices_for_instrument(
         instrument_code)
     dict_of_futures_contract_prices = dict_of_all_futures_contract_prices.final_prices()
 
@@ -80,9 +80,9 @@ def check_saved_roll_calendar(
 
     roll_calendar = csv_roll_calendars.get_roll_calendar(instrument_code)
 
-    artic_prices = arcticFuturesContractPriceData()
+    arctic_prices = arcticFuturesContractPriceData()
 
-    dict_of_all_futures_contract_prices = artic_prices.get_all_prices_for_instrument(
+    dict_of_all_futures_contract_prices = arctic_prices.get_all_prices_for_instrument(
         instrument_code)
     dict_of_futures_contract_prices = dict_of_all_futures_contract_prices.final_prices()
 
