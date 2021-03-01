@@ -27,7 +27,7 @@ def update_fx_prices():
 
 class updateFxPrices(object):
     ## Called by run_daily_price_updates
-    def __init__(self, data):
+    def __init__(self, data: dataBlob):
         self.data = data
 
     def update_fx_prices(self):
@@ -47,10 +47,10 @@ def update_fx_prices_with_data(data: dataBlob):
 
 
 def update_fx_prices_for_code(fx_code: str, data: dataBlob):
-    broker_fx_source = dataBroker(data)
+    broker_fx_data = dataBroker(data)
     db_fx_data = dataCurrency(data)
 
-    new_fx_prices = broker_fx_source.get_fx_prices(
+    new_fx_prices = broker_fx_data.get_fx_prices(
         fx_code)  # returns fxPrices object
     rows_added = db_fx_data.update_fx_prices_and_return_rows_added(
         fx_code, new_fx_prices, check_for_spike=True

@@ -15,7 +15,7 @@ def clean_truncate_echo_files():
 
 
 class cleanTruncateEchoFiles:
-    def __init__(self, data):
+    def __init__(self, data: dataBlob):
         self.data = data
 
     def clean_echo_files(self):

@@ -6,7 +6,7 @@ import pandas as pd
 from syscore.fileutils import file_in_home_dir
 from syscore.objects import user_exit, missing_data
 from syscore.genutils import print_menu_of_values_and_get_response
-from sysproduction.functions import fill_args_and_run_func
+from syscore.interactively_run_functions import fill_args_and_run_func
 
 class interactiveBacktest(object):
     # store backtests and interact with them

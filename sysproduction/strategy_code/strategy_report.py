@@ -1,20 +1,22 @@
 from sysproduction.data.strategies import diagStrategiesConfig
 from syscore.objects import resolve_function
+from sysdata.data_blob import dataBlob
 
 default_reporting_method = (
     "sysproduction.strategy_code.report_system_classic.report_system_classic"
 )
 
 
-def get_reporting_function_instance_for_strategy_name(data, strategy_name):
+def get_reporting_function_instance_for_strategy_name(data: dataBlob, strategy_name: str):
     reporting_function = get_reporting_function_for_strategy_name(
         data, strategy_name)
+    ## no arguments are passed
     reporting_function_instance = resolve_function(reporting_function)
 
     return reporting_function_instance
 
 
-def get_reporting_function_for_strategy_name(data, strategy_name):
+def get_reporting_function_for_strategy_name(data: dataBlob, strategy_name: str):
     try:
         diag_strategy_config = diagStrategiesConfig(data)
         config_for_strategy = diag_strategy_config.get_strategy_config_dict_for_strategy(

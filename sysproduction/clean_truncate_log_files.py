@@ -10,7 +10,7 @@ def clean_truncate_log_files():
 
 
 class cleanTruncateLogFiles:
-    def __init__(self, data):
+    def __init__(self, data: dataBlob):
         self.data = data
 
     def clean_log_files(self):

@@ -8,9 +8,8 @@ import importlib
 import sys
 
 # import of system libraries required to make this work
-import sysproduction
 
-from sysproduction.functions import fill_args_and_run_func
+from syscore.interactively_run_functions import fill_args_and_run_func
 
 
 def resolve_func(func_reference_name):

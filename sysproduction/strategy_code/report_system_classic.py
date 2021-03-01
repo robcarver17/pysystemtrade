@@ -26,7 +26,7 @@ def report_system_classic(data, data_backtest: interactiveBacktest):
     format_output = []
     report_header = header(
         "Strategy report for %s backtest timestamp %s produced at %s" %
-        (strategy_name, data_backtest, str(
+        (strategy_name, timestamp, str(
             datetime.datetime.now())))
     format_output.append(report_header)
 

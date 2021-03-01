@@ -12,6 +12,8 @@ this:
 from syscore.objects import success, arg_not_supplied, missing_data
 
 from sysdata.config.configdata import Config
+from sysdata.data_blob import dataBlob
+
 from sysobjects.production.optimal_positions import bufferedOptimalPositions
 from sysobjects.production.tradeable_object import instrumentStrategy
 
@@ -26,25 +28,41 @@ from sysproduction.data.backtest import store_backtest_state
 from syslogdiag.log import logtoscreen
 
 from systems.provided.futures_chapter15.basesystem import futures_system
-
+from systems.basesystem import System
 
 class runSystemClassic(object):
     def __init__(
         self,
-        data,
-        strategy_name,
+        data: dataBlob,
+        strategy_name: str,
         backtest_config_filename=arg_not_supplied,
     ):
+
+        if backtest_config_filename is arg_not_supplied:
+            raise Exception("Need to supply config filename")
+
         self.data = data
         self.strategy_name = strategy_name
         self.backtest_config_filename = backtest_config_filename
 
-        if backtest_config_filename is arg_not_supplied:
-            raise Exception("Need to supply config")
 
     def run_backtest(self):
         strategy_name = self.strategy_name
         data = self.data
+
+        base_currency, notional_trading_capital = self._get_currency_and_capital()
+
+        system = self._create_system_instance(
+            notional_trading_capital=notional_trading_capital, base_currency=base_currency
+        )
+
+        updated_buffered_positions(data, strategy_name, system)
+
+        store_backtest_state(data, system, strategy_name=strategy_name)
+
+    def _get_currency_and_capital(self):
+        data = self.data
+        strategy_name = self.strategy_name
 
         capital_data = dataCapital(data)
         notional_trading_capital = capital_data.get_capital_for_strategy(strategy_name)
@@ -59,17 +77,11 @@ class runSystemClassic(object):
         currency_data = dataCurrency(data)
         base_currency = currency_data.get_base_currency()
 
-        system = self.system_method(
-            notional_trading_capital=notional_trading_capital, base_currency=base_currency
-        )
+        return base_currency, notional_trading_capital
 
-        updated_buffered_positions(data, strategy_name, system)
-
-        store_backtest_state(data, system, strategy_name=strategy_name)
-
-        return success
-
-    def system_method(self, notional_trading_capital=None, base_currency=None):
+    def _create_system_instance(self,
+                                notional_trading_capital: float=None,
+                                base_currency: str=None) -> System:
         data = self.data
         backtest_config_filename = self.backtest_config_filename
 
@@ -85,23 +97,23 @@ class runSystemClassic(object):
 
 
 def production_classic_futures_system(
-    data,
-    config_filename,
+    data: dataBlob,
+    config_filename: str,
     log=logtoscreen("futures_system"),
-    notional_trading_capital=None,
-    base_currency=None,
-):
+    notional_trading_capital: float=arg_not_supplied,
+    base_currency: str=arg_not_supplied,
+) -> System:
 
     log_level = "on"
 
     sim_data = get_sim_data_object_for_production(data)
     config = Config(config_filename)
 
-    # Overwrite capital
-    if notional_trading_capital is not None:
+    # Overwrite capital and base currency
+    if notional_trading_capital is not arg_not_supplied:
         config.notional_trading_capital = notional_trading_capital
 
-    if base_currency is not None:
+    if base_currency is not arg_not_supplied:
         config.base_currency = base_currency
 
     system = futures_system(data=sim_data, config=config)
@@ -112,7 +124,9 @@ def production_classic_futures_system(
     return system
 
 
-def updated_buffered_positions(data, strategy_name, system):
+def updated_buffered_positions(data: dataBlob,
+                               strategy_name: str,
+                               system: System):
     log = data.log
 
     data_optimal_positions = dataOptimalPositions(data)
@@ -123,7 +137,11 @@ def updated_buffered_positions(data, strategy_name, system):
             system, instrument_code
         )
         position_entry = construct_position_entry(
-            data, system, instrument_code, lower_buffer, upper_buffer
+            data=data,
+            system=system,
+            instrument_code=instrument_code,
+            lower_buffer=lower_buffer,
+            upper_buffer = upper_buffer
         )
         instrument_strategy = instrumentStrategy(instrument_code=instrument_code, strategy_name=strategy_name)
         data_optimal_positions.update_optimal_position_for_instrument_strategy(instrument_strategy=instrument_strategy,
@@ -135,10 +153,10 @@ def updated_buffered_positions(data, strategy_name, system):
             instrument_code=instrument_code,
         )
 
-    return success
 
 
-def get_position_buffers_from_system(system, instrument_code):
+def get_position_buffers_from_system(system: System,
+                                     instrument_code: str):
     buffers = system.portfolio.get_buffers_for_position(
         instrument_code
     )  # get the upper and lower edges of the buffer
@@ -149,11 +167,12 @@ def get_position_buffers_from_system(system, instrument_code):
 
 
 def construct_position_entry(
-        data,
-        system,
+        data: dataBlob,
+        system: System,
         instrument_code: str,
         lower_buffer: float,
         upper_buffer: float) -> bufferedOptimalPositions:
+
     diag_contracts = dataContracts(data)
     reference_price = system.rawdata.get_daily_prices(instrument_code).iloc[-1]
     reference_contract = diag_contracts.get_priced_contract_id(instrument_code)

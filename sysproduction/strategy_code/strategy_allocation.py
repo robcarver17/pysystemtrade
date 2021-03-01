@@ -29,10 +29,10 @@ cancelPnLSingle
 
 from sysproduction.data.capital import dataCapital
 from sysdata.data_blob import dataBlob
-from syscore.objects import missing_data
+from syscore.objects import missing_data, arg_not_supplied
 from sysproduction.data.strategies import get_list_of_strategies_from_config
 
-def weighted_strategy_allocation(data: dataBlob, strategy_weights: dict = {}):
+def weighted_strategy_allocation(data: dataBlob, strategy_weights: dict = arg_not_supplied):
     """
     Used to allocate capital to strategies
 
@@ -43,7 +43,7 @@ def weighted_strategy_allocation(data: dataBlob, strategy_weights: dict = {}):
     :param strategy_weights: dict of float
     :return: dict of capital values per strategy
     """
-    if len(strategy_weights)==0:
+    if strategy_weights is arg_not_supplied:
         strategy_weights = strategy_weights_if_none_passed(data)
 
     sum_of_weights = sum(strategy_weights.values())
@@ -67,9 +67,10 @@ def get_total_current_capital(data: dataBlob) -> float:
 
     return total_capital
 
-def strategy_weights_if_none_passed(data):
+def strategy_weights_if_none_passed(data: dataBlob) -> dict:
     list_of_strategies = get_list_of_strategies_from_config(data)
-    weight = 100.0/list_of_strategies
+    count_of_strateges = len(list_of_strategies)
+    weight = 100.0/count_of_strateges
     data.log("No configuration for strategy weight defined in private config; equally weighting across %s each gets %f percent" %
              (str(list_of_strategies), weight))
     output_dict = dict([(strat_name, weight) for strat_name in list_of_strategies])

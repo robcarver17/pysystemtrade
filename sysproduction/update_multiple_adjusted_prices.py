@@ -39,7 +39,7 @@ def update_multiple_adjusted_prices():
 
 
 class updateMultipleAdjustedPrices(object):
-    def __init__(self, data):
+    def __init__(self, data: dataBlob):
         self.data = data
 
     def update_multiple_adjusted_prices(self):
@@ -72,7 +72,6 @@ def update_multiple_adjusted_prices_for_instrument(instrument_code: str, data: d
     update_with_new_prices(data, instrument_code, updated_adjusted_prices=updated_adjusted_prices,
                            updated_multiple_prices= updated_multiple_prices)
 
-    return success
 
 
 def calc_updated_multiple_prices(data: dataBlob, instrument_code: str) -> futuresMultiplePrices:
@@ -106,10 +105,11 @@ def calc_update_adjusted_prices(data: dataBlob, instrument_code: str,
     )
 
     if updated_adjusted_prices is no_update_roll_has_occured:
+        msg = "Can't update adjusted prices for %s as roll has occured but not registered properly" %\
+            instrument_code
         data.log.critical(
-            "Can't update adjusted prices for %s as roll has occured but not registered properly" %
-            instrument_code)
-        raise Exception()
+            msg)
+        raise Exception(msg)
 
     return updated_adjusted_prices
 
