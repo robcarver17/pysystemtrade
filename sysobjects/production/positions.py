@@ -223,8 +223,23 @@ class listOfInstrumentPositions(listOfPositions):
 
 KEY_STRATEGY_NAME= 'strategy_name'
 
+class listOfPositionsWithInstruments(listOfPositions):
+    def sum_for_instrument(self):
+        return sum_for_instrument(self)
 
-class listOfInstrumentStrategyPositions(listOfPositions):
+    def unique_list_of_instruments(self):
+        list_of_instruments = self.instrument_code_list()
+        unique_list_of_instruments = list(set(list_of_instruments))
+        return unique_list_of_instruments
+
+    def instrument_code_list(self) -> list:
+        instrument_code_list = [str(position.instrument_code)
+                                for position in self]
+
+        return instrument_code_list
+
+
+class listOfInstrumentStrategyPositions(listOfPositionsWithInstruments):
     @classmethod
     def from_pd_df(listOfInstrumentStrategyPositions, pd_df: pd.DataFrame):
         def _element_object_from_row(dfrow):
@@ -250,8 +265,6 @@ class listOfInstrumentStrategyPositions(listOfPositions):
 
         return id_column_dict
 
-    def sum_for_instrument(self):
-        return sum_for_instrument(self)
 
     def position_object_for_instrument_strategy(self, instrument_strategy: instrumentStrategy):
 
@@ -266,7 +279,8 @@ class listOfInstrumentStrategyPositions(listOfPositions):
             raise Exception("Multiple instances of %s found in list of positions!" % str(instrument_strategy))
 
 
-class listOfContractPositions(listOfPositions):
+
+class listOfContractPositions(listOfPositionsWithInstruments):
     @classmethod
     def from_pd_df(listOfInstrumentContractPositions, pd_df):
         def _element_object_from_row(dfrow):
@@ -296,25 +310,6 @@ class listOfContractPositions(listOfPositions):
 
         return id_column_dict
 
-    def instrument_code_list(self) -> list:
-        instrument_code_list = [str(position.instrument_code)
-                                for position in self]
-
-        return instrument_code_list
-
-    def sum_for_instrument(self):
-        """
-        Sum up positions for same instrument
-
-        :return: listOfInstrumentPositions
-        """
-
-        return sum_for_instrument(self)
-
-    def unique_list_of_instruments(self):
-        list_of_instruments = self.instrument_code_list()
-        unique_list_of_instruments = list(set(list_of_instruments))
-        return unique_list_of_instruments
 
 
 def sum_for_instrument(list_of_positions) -> listOfInstrumentPositions:
