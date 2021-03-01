@@ -491,7 +491,7 @@ Specific data sources
     - `mongoDb`: Connection to a database (arctic or mongo) specifying port, databasename and hostname. Usually created by a `dataBlob`, and the instance is used to create various `mongoConnection`
     - `mongoConnection`: Creates a connection (combination of database and specific collection) that is created inside object like `mongoRollParametersData`, using a `mongoDb`
     - `mongoData`: Provides a common abstract interface to mongo, assuming the data is in dicts. Has different classes for single or multiple keys.
-    - `articData`: Provides a common abstract interface to arctic, assuming the data is passed as pd.DataFrame
+    - `arcticData`: Provides a common abstract interface to arctic, assuming the data is passed as pd.DataFrame
 - Interactive brokers: see [this file](/docs/IB.md)
 
 

@@ -2,7 +2,7 @@ from sysdata.futures.adjusted_prices import (
     futuresAdjustedPricesData,
 )
 from sysobjects.adjusted_prices import futuresAdjustedPrices
-from sysdata.arctic.arctic_connection import articData
+from sysdata.arctic.arctic_connection import arcticData
 from syslogdiag.log import logtoscreen
 import pandas as pd
 
@@ -15,11 +15,11 @@ class arcticFuturesAdjustedPricesData(futuresAdjustedPricesData):
     """
 
     def __init__(self, mongo_db=None, log=logtoscreen(
-            "articFuturesAdjustedPrices")):
+            "arcticFuturesAdjustedPrices")):
 
         super().__init__(log=log)
 
-        self._arctic = articData(ADJPRICE_COLLECTION, mongo_db=mongo_db)
+        self._arctic = arcticData(ADJPRICE_COLLECTION, mongo_db=mongo_db)
 
 
     def __repr__(self):

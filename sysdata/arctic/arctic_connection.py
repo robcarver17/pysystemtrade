@@ -10,7 +10,7 @@ This connection won't fail if mongo missing, but will hang
 """
 
 
-class articData(object):
+class arcticData(object):
     """
     All of our ARCTIC mongo connections use this class (not static data which goes directly via mongo DB)
 
@@ -27,18 +27,13 @@ class articData(object):
         # Arctic doesn't accept a port
 
         store = Arctic(host)
-        library_name = database_name + "." + collection_name
-        # will this fail if already exists??
-        store.initialize_library(library_name)
-        library = store[library_name]
 
         self.database_name = database_name
         self.collection_name = collection_name
         self.host = host
 
         self.store = store
-        self.library_name = library_name
-        self.library = library
+        self.library = self._setup_lib(store, database_name, collection_name)
 
     def __repr__(self):
         return "Arctic connection: host %s, db name %s, collection %s" % (
@@ -59,3 +54,9 @@ class articData(object):
 
     def delete(self, ident: str):
         self.library.delete(ident)
+
+    def _setup_lib(self, store: Arctic, db_name, coll_name):
+        lib_name = db_name + "." + coll_name
+        if lib_name not in store.list_libraries():
+            store.initialize_library(lib_name)
+        return store[lib_name]

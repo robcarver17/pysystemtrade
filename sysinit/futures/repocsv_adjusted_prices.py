@@ -7,7 +7,7 @@ from sysdata.csv.csv_adjusted_prices import csvFuturesAdjustedPricesData
 
 if __name__ == "__main__":
     input("Will overwrite existing prices are you sure?! CTL-C to abort")
-    artic_adjusted_prices = arcticFuturesAdjustedPricesData()
+    arctic_adjusted_prices = arcticFuturesAdjustedPricesData()
 
     ## MODIFY PATH TO USE SOMETHING OTHER THAN DEFAULT
     csv_adj_datapath = arg_not_supplied
@@ -23,6 +23,6 @@ if __name__ == "__main__":
 
         print(adjusted_prices)
 
-        artic_adjusted_prices.add_adjusted_prices(
+        arctic_adjusted_prices.add_adjusted_prices(
             instrument_code, adjusted_prices, ignore_duplication=True
         )
