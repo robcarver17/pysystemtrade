@@ -16,10 +16,12 @@ from sysdata.production.roll_state import rollStateData
 from sysdata.production.historic_positions import contractPositionData, strategyPositionData, listOfInstrumentStrategyPositions
 from sysdata.production.optimal_positions import optimalPositionData
 
+
 from sysdata.data_blob import dataBlob
 
 from sysexecution.trade_qty import tradeQuantity
 from sysexecution.orders.contract_orders import contractOrder
+from sysexecution.orders.instrument_orders import instrumentOrder
 
 from sysobjects.production.positions import listOfContractPositions
 from sysobjects.production.tradeable_object import listOfInstrumentStrategies, instrumentStrategy
@@ -353,7 +355,13 @@ class updatePositions(productionDataLayerGeneric):
     def db_roll_state_data(self) ->rollStateData:
         return self.data.db_roll_state
 
+    @property
+    def db_strategy_position_data(self) -> strategyPositionData:
+        return self.data.db_strategy_position
 
+    @property
+    def db_contract_position_data(self) -> contractPositionData:
+        return self.data.db_contract_position
 
     @property
     def diag_positions(self):
@@ -365,47 +373,48 @@ class updatePositions(productionDataLayerGeneric):
         )
 
     def update_strategy_position_table_with_instrument_order(
-        self, instrument_order, new_fill
+        self,
+            original_instrument_order: instrumentOrder,
+            new_fill: tradeQuantity
     ):
         """
-        Alter the strategy position table according to instrument order fill value
+        Alter the strategy position table according to new_fill value
 
-        :param instrument_order:
+        :param original_instrument_order:
         :return:
         """
 
-        # FIXME WOULD BE NICE IF COULD GET DIRECTLY FROM ORDER NOT REQUIRE TRADE_DONE
-        strategy_name = instrument_order.strategy_name
-        instrument_code = instrument_order.instrument_code
-        instrument_strategy = instrumentStrategy(strategy_name=strategy_name, instrument_code=instrument_code)
+        instrument_strategy = original_instrument_order.instrument_strategy
 
-        current_position = self.diag_positions.get_current_position_for_instrument_strategy(instrument_strategy)
-        trade_done = new_fill.as_single_trade_qty_or_error()
-        if trade_done is missing_order:
+        current_position_as_int = self.diag_positions.get_current_position_for_instrument_strategy(instrument_strategy)
+        trade_done_as_int = new_fill.as_single_trade_qty_or_error()
+        if trade_done_as_int is missing_order:
             self.log.critical("Instrument orders can't be spread orders!")
             return failure
 
-        new_position = current_position + trade_done
+        new_position_as_int = current_position_as_int + trade_done_as_int
 
-        self.data.db_strategy_position.update_position_for_instrument_strategy_object(
-            instrument_strategy, new_position)
+        self.db_strategy_position_data.update_position_for_instrument_strategy_object(
+            instrument_strategy, new_position_as_int)
 
-        self.log.msg(
-            "Updated position of %s/%s from %d to %d because of trade %s %d"
+        log = original_instrument_order.log_with_attributes(self.log)
+        log.msg(
+            "Updated position of %s from %d to %d because of trade %s %d fill %s"
             % (
-                strategy_name,
-                instrument_code,
-                current_position,
-                new_position,
-                str(instrument_order),
-                instrument_order.order_id,
+                str(instrument_strategy),
+                current_position_as_int,
+                new_position_as_int,
+                str(original_instrument_order),
+                original_instrument_order.order_id,
+                str(new_fill)
             )
         )
 
         return success
 
     def update_contract_position_table_with_contract_order(
-        self, contract_order_before_fills: contractOrder,
+        self,
+            contract_order_before_fills: contractOrder,
             fill_list: tradeQuantity
     ):
         """
@@ -414,48 +423,45 @@ class updatePositions(productionDataLayerGeneric):
         :param contract_order_before_fills:
         :return:
         """
+        futures_contract_entire_order = contract_order_before_fills.futures_contract
+        list_of_individual_contracts = futures_contract_entire_order.as_list_of_individual_contracts()
 
-        instrument_code = contract_order_before_fills.instrument_code
-        contract_id_list = contract_order_before_fills.contract_date
+        time_date = contract_order_before_fills.fill_datetime
 
-        # WE DON'T USE THE CONTRACT FILL DATE DELIBERATELY
-        time_date = datetime.datetime.now()
+        log = contract_order_before_fills.log_with_attributes(self.log)
 
-        for contract_id, trade_done in zip(contract_id_list, fill_list):
-            self.update_positions_for_individual_contract_leg(
-                instrument_code, contract_id, trade_done, time_date=time_date
+        for contract, trade_done in zip(list_of_individual_contracts, fill_list):
+            self._update_positions_for_individual_contract_leg(
+                contract=contract, trade_done=trade_done, time_date=time_date
             )
-            self.log.msg(
-                "Updated position of %s/%s because of trade %s ID:%d with fills %s" %
-                (instrument_code,
-                 contract_id,
+            log.msg(
+                "Updated position of %s because of trade %s ID:%d with fills %d" %
+                (str(contract),
                  str(contract_order_before_fills),
                  contract_order_before_fills.order_id,
-                 str(fill_list),
+                trade_done
                  ))
 
-    def update_positions_for_individual_contract_leg(
-        self, instrument_code, contract_id, trade_done, time_date=None
+    def _update_positions_for_individual_contract_leg(
+        self, contract: futuresContract,
+            trade_done: int,
+            time_date: datetime.datetime
     ):
-        #FIXME CHANGE TO CONTRACT
-        if time_date is None:
-            time_date = datetime.datetime.now()
 
-        contract = futuresContract(instrument_code, contract_id)
         current_position = self.diag_positions.get_position_for_contract(contract)
 
         new_position = current_position + trade_done
 
-        self.data.db_contract_position.update_position_for_contract_object(
+        self.db_contract_position_data.update_position_for_contract_object(
             contract, new_position, date=time_date)
         # check
         new_position_db = self.diag_positions.get_position_for_contract(contract)
 
-        self.log.msg(
-            "Updated position of %s/%s from %d to %d; new position in db is %d"
+        log = contract.specific_log(self.log)
+        log.msg(
+            "Updated position of %s from %d to %d; new position in db is %d"
             % (
-                instrument_code,
-                contract_id,
+                str(contract),
                 current_position,
                 new_position,
                 new_position_db,
