@@ -115,10 +115,11 @@ class tradeQuantity(list):
         abs_values_of_list_of_trade_qty = [abs(trade_qty) for trade_qty in trade_qty_list_as_single_legs]
 
         min_abs_value_from_list = min(abs_values_of_list_of_trade_qty)
-        min_abs_value_as_trade_qty  = tradeQuantity(min_abs_value_from_list)
 
         buy_or_sell = self.buy_or_sell()
-        signed_abs_value_as_trade_qty = buy_or_sell * min_abs_value_as_trade_qty
+        signed_abs_value = buy_or_sell * min_abs_value_from_list
+
+        signed_abs_value_as_trade_qty = tradeQuantity(signed_abs_value)
 
         return signed_abs_value_as_trade_qty
 
