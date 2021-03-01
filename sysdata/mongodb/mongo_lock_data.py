@@ -25,10 +25,10 @@ class mongoLockData(lockData):
     def mongo_data(self):
         return self._mongo_data
 
-    def get_lock_for_instrument(self, instrument_code: str) -> str:
+    def _get_lock_for_instrument_no_checking(self, instrument_code: str) -> str:
         result = self.mongo_data.get_result_dict_for_key(instrument_code)
         if result is missing_data:
-            return lock_off
+            return missing_data
 
         lock = result[LOCK_DICT_KEY]
 

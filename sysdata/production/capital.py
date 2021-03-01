@@ -7,7 +7,7 @@ from sysdata.production.timed_storage import (
     listOfEntriesData,
 )
 from sysobjects.production.capital import capitalEntry, LIST_OF_COMPOUND_METHODS, totalCapitalUpdater
-from sysobjects.spot_fx_prices import listOfCurrencyValues
+
 
 ## All capital is stored by strategy, but some 'strategies' actually relate to the total global account
 from sysobjects.production.timed_storage import listOfEntries

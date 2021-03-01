@@ -10,7 +10,7 @@ class brokerClientIdData(baseData):
 
     def __init__(
         self,
-            idoffset = 0,
+            idoffset: int = 0,
         log=logtoscreen("brokerClientIdTracker"),
     ):
 
@@ -19,7 +19,7 @@ class brokerClientIdData(baseData):
         self._idoffset = idoffset
 
     @property
-    def idoffset(self):
+    def idoffset(self) -> int:
         return self._idoffset
 
     def __repr__(self):
@@ -47,7 +47,7 @@ class brokerClientIdData(baseData):
         return clientid_to_try
 
 
-    def _is_clientid_used(self, clientid):
+    def _is_clientid_used(self, clientid: int)-> bool:
         """
         Checks if a clientis is in use
         :param clientid: int
