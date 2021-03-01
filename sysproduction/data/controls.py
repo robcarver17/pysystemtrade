@@ -195,11 +195,8 @@ class dataPositionLimits(productionDataLayerGeneric):
             self,
             order: instrumentOrder):
 
-            strategy_name = order.strategy_name
-            instrument_code = order.instrument_code
-
-            instrument_strategy = instrumentStrategy(strategy_name=strategy_name,
-                                                     instrument_code=instrument_code)
+            instrument_strategy = order.instrument_strategy
+            instrument_code = instrument_strategy.instrument_code
 
             max_order_ok_against_instrument_strategy = \
                 self._check_if_proposed_trade_okay_against_instrument_strategy_constraint(instrument_strategy,
