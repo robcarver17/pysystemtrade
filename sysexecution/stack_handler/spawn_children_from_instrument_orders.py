@@ -11,6 +11,8 @@ from syscore.objects import (
 
 from sysdata.data_blob import dataBlob
 
+from sysobjects.contracts import futuresContract
+
 from sysproduction.data.contracts import dataContracts
 from sysproduction.data.positions import diagPositions
 from sysproduction.data.prices import diagPrices
@@ -248,10 +250,10 @@ def passive_roll_child_order(
     current_contract = diag_contracts.get_priced_contract_id(instrument_code)
     next_contract = diag_contracts.get_forward_contract_id(instrument_code)
 
+    contract = futuresContract(instrument_code, current_contract)
+
     position_current_contract = (
-        diag_positions.get_position_for_instrument_and_contract_date(
-            instrument_code, current_contract
-        )
+        diag_positions.get_position_for_contract(contract)
     )
 
     # Break out because so darn complicated

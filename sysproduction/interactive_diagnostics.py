@@ -11,6 +11,9 @@ from sysexecution.orders.list_of_orders import listOfOrders
 
 from sysdata.data_blob import dataBlob
 
+from sysobjects.contracts import futuresContract
+from sysobjects.production.tradeable_object import instrumentStrategy
+
 from sysproduction.data.backtest import user_choose_backtest, interactively_choose_timestamp
 from sysproduction.data.capital import dataCapital
 from sysproduction.data.contracts import (
@@ -375,10 +378,10 @@ def optimal_positions(data):
     instrument_code = get_valid_code_from_list(instrument_code_list)
     if instrument_code is user_exit:
         return None
-
-    data_series = optimal_data.get_optimal_position_as_df_for_strategy_and_instrument(
-        strategy_name, instrument_code)
+    instrument_strategy = instrumentStrategy(instrument_code=instrument_code, strategy_name=strategy_name)
+    data_series = optimal_data.get_optimal_position_as_df_for_instrument_strategy(instrument_strategy)
     print(data_series)
+
     return None
 
 
@@ -406,10 +409,9 @@ def actual_instrument_position(data):
     instrument_code = get_valid_code_from_list(instrument_code_list)
     if instrument_code is user_exit:
         return None
+    instrument_strategy = instrumentStrategy(strategy_name=strategy_name, instrument_code=instrument_code)
 
-    pos_series = diag_positions.get_position_df_for_strategy_and_instrument(
-        strategy_name, instrument_code
-    )
+    pos_series = diag_positions.get_position_df_for_instrument_strategy(instrument_strategy)
     print(pos_series)
     return None
 
@@ -427,13 +429,13 @@ def actual_contract_position(data):
             instrument_code
         )
     )
-    contract_code = get_valid_code_from_list(contract_code_list)
-    if contract_code is user_exit:
+    contract_date_str = get_valid_code_from_list(contract_code_list)
+    if contract_date_str is user_exit:
         return None
+    # ignore warnings can be str
+    contract = futuresContract(instrument_code, contract_date_str)
 
-    pos_series = diag_positions.get_position_df_for_instrument_and_contract_id(
-        instrument_code, contract_code
-    )
+    pos_series = diag_positions.get_position_df_for_contract(contract)
     print(pos_series)
     return None
 

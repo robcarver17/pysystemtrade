@@ -16,6 +16,8 @@ from sysexecution.orders.instrument_orders import instrumentOrder, best_order_ty
 from sysexecution.orders.list_of_orders import listOfOrders
 from sysexecution.strategies.strategy_order_handling import orderGeneratorForStrategy
 
+from sysobjects.production.tradeable_object import instrumentStrategy
+
 from sysproduction.data.positions import dataOptimalPositions
 
 optimalPositions = namedtuple("optimalPositions",  [
@@ -48,13 +50,17 @@ class orderGeneratorForBufferedPositions(orderGeneratorForStrategy):
 
         list_of_instruments = optimal_position_data.get_list_of_instruments_for_strategy_with_optimal_position(
             strategy_name)
+
+        list_of_instrument_strategies = [instrumentStrategy(strategy_name=strategy_name,
+                                                 instrument_code=instrument_code)
+            for instrument_code in list_of_instruments]
+
         optimal_positions = dict(
             [
-                (instrument_code,
-                 optimal_position_data.get_current_optimal_position_for_strategy_and_instrument(
-                     strategy_name,
-                     instrument_code),
-                 ) for instrument_code in list_of_instruments])
+                (instrument_strategy.instrument_code,
+                 optimal_position_data.get_current_optimal_position_for_instrument_strategy(
+                    instrument_strategy),
+                 ) for instrument_strategy in list_of_instrument_strategies])
 
         ref_dates = dict(
             [

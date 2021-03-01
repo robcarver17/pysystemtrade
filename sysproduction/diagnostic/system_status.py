@@ -15,6 +15,9 @@ from syscore.objects import header, table, body_text, arg_not_supplied, missing_
 from syscore.genutils import transfer_object_attributes
 
 from sysdata.data_blob import dataBlob
+
+from sysobjects.production.tradeable_object import instrumentStrategy
+
 from sysproduction.data.controls import (
     dataTradeLimits,
     diagOverrides,
@@ -339,9 +342,10 @@ def get_last_position_update_for_strategy_instrument(
     data, strategy_name, instrument_code
 ):
     op = dataOptimalPositions(data)
-    pos_data = op.get_optimal_position_as_df_for_strategy_and_instrument(
-        strategy_name, instrument_code
-    )
+    instrument_strategy = instrumentStrategy(instrument_code=instrument_code,
+                                             strategy_name=strategy_name)
+
+    pos_data = op.get_optimal_position_as_df_for_instrument_strategy(instrument_strategy)
     if pos_data is missing_data:
         return None
     last_update = pos_data.index[-1]

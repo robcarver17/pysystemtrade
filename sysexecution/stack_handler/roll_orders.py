@@ -9,6 +9,8 @@ from sysexecution.algos.allocate_algo_to_order import (
     allocate_algo_to_list_of_contract_orders,
 )
 
+from sysobjects.contracts import futuresContract
+
 from sysproduction.data.positions import diagPositions
 from sysproduction.data.contracts import dataContracts
 from sysproduction.data.prices import diagPrices
@@ -209,8 +211,9 @@ def get_roll_spread_information(data: dataBlob, instrument_code: str) -> rollSpr
     forward_contract_id = diag_contracts.get_forward_contract_id(
         instrument_code)
 
-    position_in_priced = diag_positions.get_position_for_instrument_and_contract_date(
-        instrument_code, priced_contract_id)
+    contract = futuresContract(instrument_code, priced_contract_id)
+
+    position_in_priced = diag_positions.get_position_for_contract(contract)
 
     reference_date, last_matched_prices = tuple(
         diag_prices.get_last_matched_date_and_prices_for_contract_list(

@@ -7,6 +7,8 @@ from syscore.dateutils import ROOT_BDAYS_INYEAR
 from syscore.objects import header, table, body_text, missing_data
 from syscore.optimisation_utils import sigma_from_corr_and_std
 
+from sysobjects.production.tradeable_object import instrumentStrategy
+
 from sysproduction.data.positions import diagPositions
 from sysproduction.data.capital import dataCapital
 from sysproduction.data.instruments import diagInstruments
@@ -357,9 +359,9 @@ def get_base_currency_risk_per_lot_for_instrument(data, instrument_code):
 def get_current_position_for_instrument_code(
         data, strategy_name, instrument_code):
     diag_positions = diagPositions(data)
-    current_position = diag_positions.get_current_position_for_strategy_and_instrument(
-        strategy_name, instrument_code
-    )
+    instrument_strategy = instrumentStrategy(strategy_name=strategy_name, instrument_code=instrument_code)
+
+    current_position = diag_positions.get_current_position_for_instrument_strategy(instrument_strategy)
 
     return current_position
 

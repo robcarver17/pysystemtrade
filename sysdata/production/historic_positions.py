@@ -285,6 +285,12 @@ class contractPositionData(listOfEntriesData):
         list_of_contracts = self.get_list_of_contracts()
         return list_of_contracts.unique_list_of_instrument_codes()
 
+    def get_list_of_instruments_with_current_positions(self) -> list:
+        list_of_current_positions = self.get_all_current_positions_as_list_with_contract_objects()
+        instrument_list = list_of_current_positions.instrument_code_list()
+
+        return instrument_list
+
     def get_list_of_contract_date_str_with_any_position_for_instrument(
             self, instrument_code: str):
         ## doesn't exclude zeros
@@ -313,7 +319,7 @@ class contractPositionData(listOfEntriesData):
         # excludes zeros
         return self.get_all_current_positions_as_list_with_contract_objects().as_pd_df()
 
-    def get_all_current_positions_as_list_with_contract_objects(self):
+    def get_all_current_positions_as_list_with_contract_objects(self) -> listOfContractPositions:
         # excludes zeros
 
         list_of_contracts = self.get_list_of_contracts() ## includes zeros
