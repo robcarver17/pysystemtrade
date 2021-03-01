@@ -5,6 +5,7 @@ import pandas as pd
 
 from syscore.dateutils import ROOT_BDAYS_INYEAR
 from syscore.objects import header, table, body_text, missing_data
+from syscore.correlations import ordered_correlation_matrix
 from syscore.optimisation_utils import sigma_from_corr_and_std
 
 from sysobjects.production.tradeable_object import instrumentStrategy
@@ -214,6 +215,7 @@ def clean_values(std_dev, cmatrix, weights):
 def get_correlation_matrix_all_instruments(data):
     instrument_list = get_instruments_with_positions_all_strategies(data)
     cmatrix = get_correlation_matrix(data, instrument_list)
+    cmatrix = ordered_correlation_matrix(cmatrix)
 
     return cmatrix
 

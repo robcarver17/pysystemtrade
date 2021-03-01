@@ -10,7 +10,6 @@ This is 'self contained code' which requires wrapping before using in pysystemtr
 
 import numpy as np
 import pandas as pd
-import scipy.cluster.hierarchy as sch
 import scipy.stats as stats
 from scipy.stats import norm
 
@@ -19,7 +18,7 @@ from collections import namedtuple
 
 from syscore.pdutils import minimum_many_years_of_data_in_dataframe
 from syscore.optimisation_utils import optimise, sigma_from_corr_and_std
-from syscore.correlations import get_avg_corr, boring_corr_matrix
+from syscore.correlations import get_avg_corr, boring_corr_matrix, cluster_correlation_matrix
 
 WEEKS_IN_YEAR = 365.25 / 7.0
 MAX_CLUSTER_SIZE = 3  # Do not change
@@ -467,7 +466,7 @@ class Portfolio:
 
         return instrument_returns[valid_instruments]
 
-    def _cluster_breakdown(self):
+    def _cluster_breakdown(self) -> list:
         """
         Creates clusters from the portfolio (doesn't create sub portfolios, but tells you which ones to make)
 
@@ -476,12 +475,10 @@ class Portfolio:
         :return: list of int same length as instruments
         """
 
-        X = self.corr_matrix.values
-        d = sch.distance.pdist(X)
-        L = sch.linkage(d, method="complete")
-        ind = sch.fcluster(L, MAX_CLUSTER_SIZE, criterion="maxclust")
+        corr_matrix = self.corr_matrix.values
+        ind = cluster_correlation_matrix(corr_matrix, max_cluster_size=MAX_CLUSTER_SIZE)
 
-        return list(ind)
+        return ind
 
     def _cluster_breakdown_using_risk_partition(self):
         """
