@@ -12,5 +12,3 @@ def get_control_config() -> Config:
         str(DEFAULT_CONTROL_CONFIG_FILE), str(PRIVATE_CONTROL_CONFIG_FILE)))
 
     return control_config
-
-control_config = get_control_config()
