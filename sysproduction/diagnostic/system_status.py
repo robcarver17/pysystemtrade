@@ -32,7 +32,6 @@ from sysproduction.data.prices import diagPrices
 from sysproduction.data.positions import  dataOptimalPositions
 
 
-
 def system_status(data=arg_not_supplied):
     """
     Report on system status

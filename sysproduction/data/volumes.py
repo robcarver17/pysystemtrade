@@ -1,27 +1,32 @@
 import datetime as datetime
-
+import pandas as pd
 from syscore.objects import missing_contract, arg_not_supplied, missing_data
 from sysdata.arctic.arctic_futures_per_contract_prices import arcticFuturesContractPriceData
+from sysdata.futures.futures_per_contract_prices import futuresContractPriceData
 from sysobjects.contracts import futuresContract
 from sysdata.data_blob import dataBlob
 
+from sysproduction.data.generic_production_data import productionDataLayerGeneric
 
 # Get volume data for the contract we're currently trading, plus what we might roll into, plus the previous one
 # This is handy for working out whether to roll
 
+NOTIONALLY_ZERO_VOLUME = 0.0001
 
-class diagVolumes(object):
-    def __init__(self, data: dataBlob=arg_not_supplied):
-        # Check data has the right elements to do this
-        if data is arg_not_supplied:
-            data = dataBlob()
-
+class diagVolumes(productionDataLayerGeneric):
+    def _add_required_classes_to_data(self, data) -> dataBlob:
         data.add_class_object(arcticFuturesContractPriceData)
-        self.data = data
+        return data
+
+    @property
+    def db_futures_contract_price_data(self) -> futuresContractPriceData:
+        return self.data.db_futures_contract_price
 
     def get_normalised_smoothed_volumes_of_contract_list(
-        self, instrument_code:str, contract_date_str_list: list, span: int=3
-    ):
+        self,
+            instrument_code:str,
+            contract_date_str_list: list
+    ) -> list:
         """
 
         :param instrument_code:
@@ -30,19 +35,15 @@ class diagVolumes(object):
         """
 
         smoothed_volumes = self.get_smoothed_volumes_of_contract_list(
-            instrument_code, contract_date_str_list, span=span
+            instrument_code, contract_date_str_list
         )
-        max_smoothed_volume = max(smoothed_volumes)
-        if max_smoothed_volume == 0.0:
-            max_smoothed_volume = 0.0001
-        normalised_volumes = [
-            volume / max_smoothed_volume for volume in smoothed_volumes
-        ]
+        normalised_volumes = normalise_volumes(smoothed_volumes)
 
         return normalised_volumes
 
     def get_smoothed_volumes_of_contract_list(
-        self, instrument_code:str, contract_date_str_list: list, span: int=3
+        self, instrument_code:str,
+            contract_date_str_list: list
     ) -> list:
         """
         Return list of most recent volumes, exponentially weighted
@@ -53,7 +54,7 @@ class diagVolumes(object):
 
         smoothed_volumes = [
             self.get_smoothed_volume_for_contract(
-                instrument_code, contract_date_str, span=span
+                instrument_code, contract_date_str
             )
             for contract_date_str in contract_date_str_list
         ]
@@ -61,30 +62,20 @@ class diagVolumes(object):
         return smoothed_volumes
 
     def get_smoothed_volume_for_contract(
-            self, instrument_code:str, contract_date_str, span=3):
+            self, instrument_code:str,
+            contract_date_str: str) -> float:
+
         if contract_date_str is missing_contract:
             return 0.0
         contract = futuresContract(instrument_code, contract_date_str)
         volumes = self.get_daily_volumes_for_contract(
             contract)
-
-        if volumes is missing_data:
-            return 0.0
-
-        # ignore anything more than 2 weeks old (so we don't get stale data)
-        two_weeks_ago = datetime.datetime.now() - datetime.timedelta(days=14)
-        recent_volumes = volumes[two_weeks_ago:]
-
-        if len(recent_volumes) == 0:
-            return 0.0
-
-        final_volume = recent_volumes.ewm(span=span).mean()[-1]
+        final_volume = get_smoothed_volume_ignoring_old_data(volumes)
 
         return final_volume
 
-    def get_daily_volumes_for_contract(self, contract: futuresContract):
-        data = self.data
-        price_data = data.db_futures_contract_price.get_prices_for_contract_object(contract)
+    def get_daily_volumes_for_contract(self, contract: futuresContract) -> pd.Series:
+        price_data = self.db_futures_contract_price_data.get_prices_for_contract_object(contract)
 
         if len(price_data) == 0:
             return missing_data
@@ -92,3 +83,31 @@ class diagVolumes(object):
         volumes = price_data.daily_volumes()
 
         return volumes
+
+def normalise_volumes(smoothed_volumes: list) -> list:
+    max_smoothed_volume = max(smoothed_volumes)
+    if max_smoothed_volume == 0.0:
+        max_smoothed_volume = NOTIONALLY_ZERO_VOLUME
+    normalised_volumes = [
+        volume / max_smoothed_volume for volume in smoothed_volumes
+    ]
+
+    return normalised_volumes
+
+def get_smoothed_volume_ignoring_old_data(volumes: pd.Series,
+                                          ignore_before_days =14,
+                                          span: int = 3) -> float:
+    if volumes is missing_data:
+        return 0.0
+
+    # ignore anything more than say 2 weeks old (so we don't get stale data)
+    two_weeks_ago = datetime.datetime.now() - datetime.timedelta(days=ignore_before_days)
+    recent_volumes = volumes[two_weeks_ago:]
+
+    if len(recent_volumes) == 0:
+        return 0.0
+
+    smoothed_recent_volumes =recent_volumes.ewm(span=span).mean()
+    final_volume = smoothed_recent_volumes[-1]
+
+    return final_volume

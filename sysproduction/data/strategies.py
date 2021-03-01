@@ -79,7 +79,7 @@ def get_valid_strategy_name_from_user(
         default_strategy = all_code
     else:
         default_strategy = all_strategies[0]
-        
+
     strategy_name = print_menu_of_values_and_get_response(all_strategies, default_str=default_strategy)
 
     return strategy_name
