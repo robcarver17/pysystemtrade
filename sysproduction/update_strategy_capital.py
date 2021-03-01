@@ -52,8 +52,7 @@ class updateStrategyCapital(object):
 def call_allocation_function(data: dataBlob) -> dict:
 
     strategy_allocation_config_dict = get_strategy_allocation_config_dict(data)
-    strategy_allocation_function_str = strategy_allocation_config_dict.pop(
-        "function")
+    strategy_allocation_function_str = strategy_allocation_config_dict["function"]
     strategy_allocation_function = resolve_function(
         strategy_allocation_function_str)
 
