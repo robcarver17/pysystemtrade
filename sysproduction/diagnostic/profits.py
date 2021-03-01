@@ -616,7 +616,7 @@ def get_price_series_for_contract(data, instrument_code, contract_id):
 
 def get_current_contract_price_series_for_instrument(data, instrument_code):
     diag_prices = diagPrices(data)
-    price_series = diag_prices.get_current_contract_prices_for_instrument(instrument_code)
+    price_series = diag_prices.get_current_priced_contract_prices_for_instrument(instrument_code)
 
     return price_series
 

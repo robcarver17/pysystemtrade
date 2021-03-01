@@ -1,76 +1,103 @@
 import  datetime
-import numpy as np
 
 from syscore.objects import missing_contract, arg_not_supplied, missing_data
 from syscore.dateutils import Frequency, from_config_frequency_to_frequency
 
 from sysobjects.contracts import futuresContract
-from sysobjects.dict_of_futures_per_contract_prices import dictFuturesContractPrices
+from sysobjects.dict_of_futures_per_contract_prices import dictFuturesContractPrices, \
+    get_last_matched_date_and_prices_for_contract_list
 from sysdata.arctic.arctic_futures_per_contract_prices import arcticFuturesContractPriceData, futuresContractPrices
 from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesData, futuresMultiplePrices
 from sysdata.arctic.arctic_adjusted_prices import arcticFuturesAdjustedPricesData, futuresAdjustedPrices
 from sysdata.mongodb.mongo_futures_contracts import mongoFuturesContractData
 
+from sysdata.futures.multiple_prices import futuresMultiplePricesData
+from sysdata.futures.adjusted_prices import futuresAdjustedPricesData
+from sysdata.futures.futures_per_contract_prices import futuresContractPriceData
+
 from sysdata.data_blob import dataBlob
 
 from sysobjects.multiple_prices import price_name
+from sysobjects.contract_dates_and_expiries import listOfContractDateStr
+
+from sysproduction.data.generic_production_data import productionDataLayerGeneric
 
 
-
-
-class diagPrices(object):
-    def __init__(self, data: dataBlob=arg_not_supplied):
-        # Check data has the right elements to do this
-        if data is arg_not_supplied:
-            data = dataBlob()
-
+class diagPrices(productionDataLayerGeneric):
+    def _add_required_classes_to_data(self, data) -> dataBlob:
         data.add_class_list([
             arcticFuturesContractPriceData, arcticFuturesAdjustedPricesData,
          arcticFuturesMultiplePricesData, mongoFuturesContractData]
         )
-        self.data = data
+        return data
+
+    @property
+    def db_futures_adjusted_prices_data(self) -> futuresAdjustedPricesData:
+        return self.data.db_futures_adjusted_prices
+
+    @property
+    def db_futures_multiple_prices_data(self) -> futuresMultiplePricesData:
+        return self.data.db_futures_multiple_prices
+
+    @property
+    def db_futures_contract_price_data(self) -> futuresContractPriceData:
+        return self.data.db_futures_contract_price
 
     def get_intraday_frequency_for_historical_download(self) -> Frequency:
         config = self.data.config
-        intraday_frequency_as_str = config.intraday_frequency
+        intraday_frequency_as_str = config.get_element_or_missing_data("intraday_frequency")
         intraday_frequency = from_config_frequency_to_frequency(intraday_frequency_as_str)
 
         if intraday_frequency is missing_data:
-            error_msg = "Intraday frequency of %s is not recognised as a valid frequency %" % intraday_frequency
+            error_msg = "Intraday frequency of %s is not recognised as a valid frequency" % str(intraday_frequency)
             self.log.critical(error_msg)
             raise Exception(error_msg)
 
         return intraday_frequency
 
     def get_adjusted_prices(self, instrument_code: str) -> futuresAdjustedPrices:
-        return self.data.db_futures_adjusted_prices.get_adjusted_prices(
+        adjusted_prices =   self.db_futures_adjusted_prices_data.get_adjusted_prices(
             instrument_code)
+
+        return adjusted_prices
 
     def get_list_of_instruments_in_multiple_prices(self) -> list:
-        return self.data.db_futures_multiple_prices.get_list_of_instruments()
+        list_of_instruments = self.db_futures_multiple_prices_data.get_list_of_instruments()
+
+        return list_of_instruments
 
     def get_multiple_prices(self, instrument_code: str) -> futuresMultiplePrices:
-        return self.data.db_futures_multiple_prices.get_multiple_prices(
+        multiple_prices= self.db_futures_multiple_prices_data.get_multiple_prices(
             instrument_code)
 
-    def get_prices_for_contract_object(self, contract_object: futuresContract):
-        return self.data.db_futures_contract_price.get_prices_for_contract_object(
+        return multiple_prices
+
+    def get_prices_for_contract_object(self, contract_object: futuresContract) -> futuresContractPrices:
+        prices = self.db_futures_contract_price_data.get_prices_for_contract_object(
             contract_object)
 
-    def get_current_contract_prices_for_instrument(self, instrument_code):
+        return prices
+
+    def get_current_priced_contract_prices_for_instrument(self, instrument_code: str)  -> futuresContractPrices:
         multiple_prices = self.get_multiple_prices(instrument_code)
-        return multiple_prices[price_name]
+        current_priced_contract_prices = multiple_prices[price_name]
+
+        return current_priced_contract_prices
 
     def get_list_of_instruments_with_contract_prices(self) -> list:
-        return self.data.db_futures_contract_price.get_list_of_instrument_codes_with_price_data()
+        unique_list_of_instruments =self.db_futures_contract_price_data.get_list_of_instrument_codes_with_price_data()
 
-    def contract_dates_with_price_data_for_instrument_code(self, instrument_code: str) -> list:
-        return self.data.db_futures_contract_price.contract_dates_with_price_data_for_instrument_code(instrument_code)
+        return unique_list_of_instruments
+
+    def contract_dates_with_price_data_for_instrument_code(self, instrument_code: str) -> listOfContractDateStr:
+        list_of_contract_date_str = self.db_futures_contract_price_data.contract_dates_with_price_data_for_instrument_code(instrument_code)
+
+        return list_of_contract_date_str
 
     def get_last_matched_date_and_prices_for_contract_list(
             self,
             instrument_code: str,
-            contract_list: list,
+            list_of_contract_date_str: list,
             contracts_to_match=arg_not_supplied) -> (datetime.datetime, list):
         """
         Get a list of matched prices; i.e. from a date when we had both forward and current prices
@@ -82,20 +109,20 @@ class diagPrices(object):
         :return: list of prices, in same order as contract_list
         """
         if contracts_to_match is arg_not_supplied:
-            contracts_to_match = contract_list
+            contracts_to_match = list_of_contract_date_str
 
         dict_of_prices = self.get_dict_of_prices_for_contract_list(
-            instrument_code, contract_list
+            instrument_code, list_of_contract_date_str
         )
 
-        last_matched_date, last_matched_prices = _price_matching(dict_of_prices, contracts_to_match, contract_list)
+        last_matched_date, last_matched_prices = get_last_matched_date_and_prices_for_contract_list(dict_of_prices, contracts_to_match, list_of_contract_date_str)
 
         return last_matched_date, last_matched_prices
 
     def get_dict_of_prices_for_contract_list(
-            self, instrument_code: str, contract_list: list) -> dictFuturesContractPrices:
+            self, instrument_code: str, list_of_contract_date_str: list) -> dictFuturesContractPrices:
         dict_of_prices = {}
-        for contract_date_str in contract_list:
+        for contract_date_str in list_of_contract_date_str:
             if contract_date_str is missing_contract:
                 continue
             # Could blow up here if don't have prices for a contract??
@@ -107,69 +134,61 @@ class diagPrices(object):
 
         return dict_of_prices
 
-def _price_matching(dict_of_prices: dictFuturesContractPrices, contracts_to_match: list, contract_list: list) -> (datetime.datetime, list):
-    dict_of_final_prices = dict_of_prices.final_prices()
-    matched_final_prices = dict_of_final_prices.matched_prices(
-        contracts_to_match=contracts_to_match
-    )
 
-    if matched_final_prices is missing_data:
-        # This will happen if there are no matching prices
-        # We just return the last row
-        matched_final_prices = dict_of_final_prices.joint_data()
-
-    last_matched_prices = list(matched_final_prices.iloc[-1].values)
-    last_matched_date = matched_final_prices.index[-1]
-
-    # pad with extra nan values
-    last_matched_prices = last_matched_prices + [np.nan] * (
-        len(contract_list) - len(last_matched_prices)
-    )
-
-    return last_matched_date, last_matched_prices
-
-
-class updatePrices(object):
-    def __init__(self, data: dataBlob=arg_not_supplied):
-        # Check data has the right elements to do this
-        if data is arg_not_supplied:
-            data = dataBlob()
-
+class updatePrices(productionDataLayerGeneric):
+    def _add_required_classes_to_data(self, data) -> dataBlob:
         data.add_class_list([
             arcticFuturesContractPriceData, arcticFuturesMultiplePricesData,
-         mongoFuturesContractData, arcticFuturesAdjustedPricesData]
-        )
-        self.data = data
+         mongoFuturesContractData, arcticFuturesAdjustedPricesData])
+
+        return data
+
+    @property
+    def db_futures_adjusted_prices_data(self) -> futuresAdjustedPricesData:
+        return self.data.db_futures_adjusted_prices
+
+    @property
+    def db_futures_multiple_prices_data(self) -> futuresMultiplePricesData:
+        return self.data.db_futures_multiple_prices
+
+    @property
+    def db_futures_contract_price_data(self) -> futuresContractPriceData:
+        return self.data.db_futures_contract_price
 
     def update_prices_for_contract(
-        self, contract_object: futuresContract, new_prices: futuresContractPrices, check_for_spike=True
-    ):
+        self, contract_object: futuresContract,
+            new_prices: futuresContractPrices,
+            check_for_spike: bool=True
+    ) -> int:
 
-        return self.data.db_futures_contract_price.update_prices_for_contract(
+        error_or_rows_added = self.db_futures_contract_price_data.update_prices_for_contract(
             contract_object, new_prices, check_for_spike=check_for_spike
         )
+        return error_or_rows_added
 
     def add_multiple_prices(
         self, instrument_code: str, updated_multiple_prices: futuresMultiplePrices, ignore_duplication=True
     ):
-        return self.data.db_futures_multiple_prices.add_multiple_prices(
-            instrument_code, updated_multiple_prices, ignore_duplication=True
+        self.db_futures_multiple_prices_data.add_multiple_prices(
+            instrument_code, updated_multiple_prices, ignore_duplication=ignore_duplication
         )
 
     def add_adjusted_prices(
         self, instrument_code: str, updated_adjusted_prices: futuresAdjustedPrices, ignore_duplication=True
     ):
-        return self.data.db_futures_adjusted_prices.add_adjusted_prices(
-            instrument_code, updated_adjusted_prices, ignore_duplication=True
+        self.db_futures_adjusted_prices_data.add_adjusted_prices(
+            instrument_code, updated_adjusted_prices, ignore_duplication=ignore_duplication
         )
 
 
 def get_valid_instrument_code_from_user(
-        data: dataBlob=arg_not_supplied, allow_all: bool=False, all_code = "ALL",
+        data: dataBlob=arg_not_supplied,
+        allow_all: bool=False,
+        all_code = "ALL",
             source = 'multiple') -> str:
     if data is arg_not_supplied:
         data = dataBlob()
-    all_instruments = get_list_of_instruments(data, source=source)
+    instrument_code_list = get_list_of_instruments(data, source=source)
     invalid_input = True
     input_prompt = "Instrument code?"
     if allow_all:
@@ -181,10 +200,10 @@ def get_valid_instrument_code_from_user(
             if instrument_code == "" or instrument_code == "ALL":
                 return all_code
 
-        if instrument_code in all_instruments:
+        if instrument_code in instrument_code_list:
             break
 
-        print("%s is not in list %s derived from source: %s" % (instrument_code, all_instruments, source))
+        print("%s is not in list %s derived from source: %s" % (instrument_code, instrument_code_list, source))
 
     return instrument_code
 
@@ -195,4 +214,4 @@ def get_list_of_instruments(data: dataBlob=arg_not_supplied, source = 'multiple'
     elif source=="single":
         return price_data.get_list_of_instruments_with_contract_prices()
     else:
-        raise Exception("%s not recognised must be multiple or single")
+        raise Exception("%s not recognised must be multiple or single" % source)

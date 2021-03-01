@@ -1,3 +1,6 @@
+import datetime
+
+import numpy as np
 import pandas as pd
 
 from syscore.objects import arg_not_supplied, missing_data
@@ -110,5 +113,23 @@ class dictFuturesContractPrices(dict):
         return volumes_dict
 
 
+def get_last_matched_date_and_prices_for_contract_list(dict_of_prices: dictFuturesContractPrices, contracts_to_match: list, list_of_contract_date_str: list) -> (datetime.datetime, list):
+    dict_of_final_prices = dict_of_prices.final_prices()
+    matched_final_prices = dict_of_final_prices.matched_prices(
+        contracts_to_match=contracts_to_match
+    )
 
+    if matched_final_prices is missing_data:
+        # This will happen if there are no matching prices
+        # We just return the last row
+        matched_final_prices = dict_of_final_prices.joint_data()
 
+    last_matched_prices = list(matched_final_prices.iloc[-1].values)
+    last_matched_date = matched_final_prices.index[-1]
+
+    # pad with extra nan values
+    last_matched_prices = last_matched_prices + [np.nan] * (
+            len(list_of_contract_date_str) - len(last_matched_prices)
+    )
+
+    return last_matched_date, last_matched_prices

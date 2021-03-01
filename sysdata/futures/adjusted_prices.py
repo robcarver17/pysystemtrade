@@ -28,9 +28,11 @@ class futuresAdjustedPricesData(baseData):
 
     def get_adjusted_prices(self, instrument_code: str) -> futuresAdjustedPrices:
         if self.is_code_in_data(instrument_code):
-            return self._get_adjusted_prices_without_checking(instrument_code)
+            adjusted_prices =   self._get_adjusted_prices_without_checking(instrument_code)
         else:
-            return futuresAdjustedPrices.create_empty()
+            adjusted_prices =   futuresAdjustedPrices.create_empty()
+
+        return adjusted_prices
 
     def __getitem__(self, instrument_code: str) -> futuresAdjustedPrices:
         return self.get_adjusted_prices(instrument_code)

@@ -95,8 +95,8 @@ class futuresContractPriceData(baseData):
             str(contract.date_str)
             for contract in list_of_contracts_with_price_data
         ]
-
-        return listOfContractDateStr(contract_dates)
+        list_of_contract_date_str =listOfContractDateStr(contract_dates)
+        return list_of_contract_date_str
 
 
     def get_all_prices_for_instrument(self, instrument_code: str) ->dictFuturesContractPrices:
@@ -130,11 +130,12 @@ class futuresContractPriceData(baseData):
         """
 
         if self.has_data_for_contract(contract_object):
-            return self._get_prices_for_contract_object_no_checking(
+            prices = self._get_prices_for_contract_object_no_checking(
                 contract_object)
         else:
-            return futuresContractPrices.create_empty()
+            prices = futuresContractPrices.create_empty()
 
+        return prices
 
     def get_prices_at_frequency_for_contract_object(
             self, contract_object: futuresContract, freq: Frequency = DAILY_PRICE_FREQ):

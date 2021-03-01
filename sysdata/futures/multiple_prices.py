@@ -38,9 +38,11 @@ class futuresMultiplePricesData(baseData):
 
     def get_multiple_prices(self, instrument_code: str) -> futuresMultiplePrices:
         if self.is_code_in_data(instrument_code):
-            return self._get_multiple_prices_without_checking(instrument_code)
+            multiple_prices= self._get_multiple_prices_without_checking(instrument_code)
         else:
-            return futuresMultiplePrices.create_empty()
+            multiple_prices= futuresMultiplePrices.create_empty()
+
+        return multiple_prices
 
     def delete_multiple_prices(self, instrument_code: str, are_you_sure=False) -> status:
         log = self.log.setup(instrument_code=instrument_code)
