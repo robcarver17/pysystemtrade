@@ -1,17 +1,20 @@
 import pandas as pd
 
-from syscore.objects import resolve_function, success, failure, arg_not_supplied
+from syscore.objects import resolve_function,  arg_not_supplied
 from syscore.objects import header, table, body_text
 
 from sysdata.data_blob import dataBlob
 from syslogdiag.email_via_db_interface import send_production_mail_msg
+
+from sysproduction.diagnostic.report_configs import reportConfig
 
 pd.set_option("display.width", 1000)
 pd.set_option("display.max_columns", 1000)
 pd.set_option("display.max_rows", 1000)
 
 
-def run_report(report_config, data=arg_not_supplied):
+def run_report(report_config: reportConfig,
+               data: dataBlob=arg_not_supplied):
     """
 
     :param report_config:
@@ -23,7 +26,8 @@ def run_report(report_config, data=arg_not_supplied):
     run_report_with_data_blob(report_config, data)
 
 
-def run_report_with_data_blob(report_config, data):
+def run_report_with_data_blob(report_config: reportConfig,
+                              data: dataBlob):
     """
 
     :param report_config:
@@ -35,24 +39,8 @@ def run_report_with_data_blob(report_config, data):
     report_kwargs = report_config.kwargs
 
     report_results = report_function(data, **report_kwargs)
-    """
-    except Exception as e:
-        report_results = [
-            header(
-                "Report %s failed to process with error %s" %
-                (report_config.title, e))]
-        report_result = failure
-    """
     parsed_report = parse_report_results(report_results)
 
-    """
-    except Exception as e:
-        parsed_report = "Report failed to parse %s with error %s\n" % (
-            report_config.title,
-            str(e),
-        )
-        report_result = failure
-    """
     # We either print or email
     if report_config.output is "console":
         print(parsed_report)
@@ -64,7 +52,7 @@ def run_report_with_data_blob(report_config, data):
 
 
 
-def parse_report_results(report_results):
+def parse_report_results(report_results: list):
     """
     Parse report results into human readable text for display, email, or christmas present
 
@@ -87,7 +75,7 @@ def parse_report_results(report_results):
     return output_string
 
 
-def parse_table(report_table):
+def parse_table(report_table: table) -> str:
     table_header = report_table.Heading
     table_body = str(report_table.Body)
     table_header_centred = centralise_text(table_header, table_body)
@@ -103,28 +91,28 @@ def parse_table(report_table):
     return table_string
 
 
-def parse_body(report_body):
+def parse_body(report_body: body_text) -> str:
     body_text = report_body.Text
     return "%s\n" % body_text
 
 
-def parse_header(report_header):
+def parse_header(report_header: header) -> str:
     header_line = landing_strip(80, "*")
     header_text = centralise_text(report_header.Heading, header_line)
 
     return "\n%s\n%s\n%s\n\n\n" % (header_line, header_text, header_line)
 
 
-def landing_strip_from_str(str_to_match, strip="="):
+def landing_strip_from_str(str_to_match: str, strip: str="=") -> str:
     str_width = measure_width(str_to_match)
     return landing_strip(width=str_width, strip=strip)
 
 
-def landing_strip(width=80, strip="*"):
+def landing_strip(width: int=80, strip: str="*"):
     return strip * width
 
 
-def centralise_text(text, str_to_match, pad_with=" "):
+def centralise_text(text: str, str_to_match: str, pad_with: str=" ") ->str:
     match_len = measure_width(str_to_match)
     text_len = len(text)
     if text_len >= match_len:
@@ -139,7 +127,7 @@ def centralise_text(text, str_to_match, pad_with=" "):
     return new_text
 
 
-def measure_width(text):
+def measure_width(text: str) -> int:
     first_cr = text.find("\n")
     if first_cr == -1:
         first_cr = len(text)

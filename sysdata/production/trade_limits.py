@@ -71,7 +71,7 @@ class tradeLimitData(baseData):
         self._update_list_of_trade_limits(combined_list)
 
     def _get_list_of_all_relevant_trade_limits(
-            self, instrument_strategy: instrumentStrategy):
+            self, instrument_strategy: instrumentStrategy) -> listOfTradeLimits:
         instrument_trade_limits = self._get_trade_limits_for_instrument(
             instrument_strategy.instrument_code)
         strategy_instrument_trade_limits = \

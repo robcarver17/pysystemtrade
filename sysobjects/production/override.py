@@ -139,6 +139,8 @@ class Override:
 
         return Override(another_override.as_float() * self.as_float())
 
+DEFAULT_OVERRIDE = Override(1.0)
+
 
 def _apply_float_override(override_as_float: float,
         original_position_no_override: int,
