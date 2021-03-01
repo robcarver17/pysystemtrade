@@ -19,7 +19,7 @@ from sysproduction.data.currency_data import dataCurrency
 from sysproduction.data.capital import dataCapital
 from sysproduction.data.contracts import dataContracts
 from sysproduction.data.positions import dataOptimalPositions
-from sysproduction.data.sim_data import dataSimData
+from sysproduction.data.sim_data import get_sim_data_object_for_production
 
 from sysproduction.data.backtest import store_backtest_state
 
@@ -94,7 +94,7 @@ def production_classic_futures_system(
 
     log_level = "on"
 
-    sim_data = dataSimData(data)
+    sim_data = get_sim_data_object_for_production(data)
     config = Config(config_filename)
 
     # Overwrite capital

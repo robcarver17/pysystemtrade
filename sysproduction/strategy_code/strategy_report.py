@@ -17,7 +17,7 @@ def get_reporting_function_instance_for_strategy_name(data, strategy_name):
 def get_reporting_function_for_strategy_name(data, strategy_name):
     try:
         diag_strategy_config = diagStrategiesConfig(data)
-        config_for_strategy = diag_strategy_config.get_strategy_dict_for_strategy(
+        config_for_strategy = diag_strategy_config.get_strategy_config_dict_for_strategy(
             strategy_name)
         reporting_config = config_for_strategy["reporting_code"]
         reporting_function = reporting_config["function"]

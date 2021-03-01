@@ -140,7 +140,7 @@ def get_strategy_class_backtest_loader_config_without_warning(
             data, strategy_name
         ):
     diag_strategy_config = diagStrategiesConfig(data)
-    strategy_loader_config = diag_strategy_config.get_strategy_config_dict(strategy_name, "load_backtests")
+    strategy_loader_config = diag_strategy_config.get_strategy_config_dict_for_specific_process(strategy_name, "load_backtests")
     return strategy_loader_config
 
 
