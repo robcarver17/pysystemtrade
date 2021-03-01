@@ -1,3 +1,4 @@
+from copy import  copy
 import datetime
 
 from syscore.objects import success
@@ -52,7 +53,8 @@ class updateStrategyCapital(object):
 def call_allocation_function(data: dataBlob) -> dict:
 
     strategy_allocation_config_dict = get_strategy_allocation_config_dict(data)
-    strategy_allocation_function_str = strategy_allocation_config_dict["function"]
+
+    strategy_allocation_function_str = strategy_allocation_config_dict.pop("function")
     strategy_allocation_function = resolve_function(
         strategy_allocation_function_str)
 
@@ -64,7 +66,9 @@ def call_allocation_function(data: dataBlob) -> dict:
 
 def get_strategy_allocation_config_dict(data: dataBlob) -> dict:
     config = diagStrategiesConfig(data)
-    return config.get_strategy_allocation_config_dict()
+    allocation_dict= config.get_strategy_allocation_config_dict()
+    allocation_dict_copy = copy(allocation_dict)
+    return allocation_dict_copy
 
 
 def write_allocated_weights(data: dataBlob, strategy_capital_dict: dict):

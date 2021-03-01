@@ -30,6 +30,6 @@ class lockData(object):
 
     def get_list_of_locked_instruments(self) -> list:
         raise NotImplementedError
-    
+
     def _get_lock_for_instrument_no_checking(self, instrument_code: str) -> str:
         raise NotImplementedError
