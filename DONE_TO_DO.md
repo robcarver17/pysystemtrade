@@ -1,5 +1,13 @@
 # Release notes
 
+## Version 0.80
+
+Finished refactoring of production code
+sysproduction/diagnostics now renamed reporting
+sysproduction/data code now uses generic handler and property methods to access data
+broker API now has proper base classes
+Tinkered with requirements to get running on new machine
+
 ## Version 0.75
 
 Moved defaults.yaml to /sysdata/config directory

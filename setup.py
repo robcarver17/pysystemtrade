@@ -67,7 +67,7 @@ print(package_data)
 
 setup(
     name="pysystemtrade",
-    version="0.30.0",
+    version="0.80.0",
     author="Robert Carver",
     description=(
         "Python framework for running systems as in Robert Carver's book Systematic Trading"
@@ -95,36 +95,3 @@ setup(
     test_suite="nose.collector",
     include_package_data=True,
 )
-
-# FIXME: delete this comment block when tested
-"""
-setup(
-    name="pysystemtrade",
-    version="0.0.1",
-    author="Robert Carver",
-    description=
-    ("Python framework for running systems as in Robert Carver's book Systematic Trading"
-     " (www.systematictrading.org)"),
-    license="GNU GPL v3",
-    keywords="systematic trading interactive brokers",
-    url="http://qoppac.blogspot.co.uk/p/pysystemtrade.html",
-    packages=find_packages(),
-    package_data={'': private_files,
-        'data': ['futures/legacycsv/*.csv', 'futures/roll_calendars_csv/*.csv',
-                           'futures/adjusted_prices_csv/*.csv', 'futures/fx_prices_csv/*.csv',
-                           'futures/multiple_prices_csv/*.csv', 'futures/csvconfig/*.csv'], 'sysinit': ['/config/*.csv'],
-                  'sysdata': ['*.csv','tests/adjtestdata/*.csv', 'tests/configtestdata/*.csv',
-                              'tests/fxtestdata/*.csv', 'multiplepricestestdata/*.csv',
-                              ],
-                                 'systems':['provided/*.yaml','provided/*/*.yaml'],
-                  'private': ['*.yaml']},
-    long_description=read('README.md'),
-    install_requires=[
-        "pandas >= 0.19.0", "numpy >= 1.10.1", "matplotlib > 1.4.3",
-        "PyYAML>=3.11", "scipy>=0.17"
-    ],
-    tests_requires=['nose', 'flake8'],
-    extras_require=dict(),
-    test_suite='nose.collector',
-    include_package_data=True)
-"""
