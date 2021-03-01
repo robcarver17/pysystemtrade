@@ -57,6 +57,7 @@ def extract_final_row_of_tick_data_frame(tick_data: pd.DataFrame) -> oneTick:
 
     return oneTick(bid_price, ask_price, bid_size, ask_size)
 
+VERY_LARGE_IMBALANCE = 9999
 
 def analyse_tick(tick: oneTick, qty: int) -> analysisTick:
     mid_price = np.mean([tick.ask_price, tick.bid_price])
@@ -81,7 +82,10 @@ def analyse_tick(tick: oneTick, qty: int) -> analysisTick:
     # If this number goes significantly above 1 it suggests there is significant buying pressure
     # If we're selling this would be ask quantity divided by bid quantity
     # Again, if it goes above 1 suggests more selling pressure
-    imbalance_ratio = offside_qty / side_qty
+    if side_qty ==0:
+        imbalance_ratio = VERY_LARGE_IMBALANCE
+    else:
+        imbalance_ratio = offside_qty / side_qty
 
     results = analysisTick(
         order=order,
