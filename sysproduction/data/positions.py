@@ -147,7 +147,7 @@ class diagPositions(productionDataLayerGeneric):
 
 
         list_of_positions = [
-            self.get_position_df_for_contract(contract)
+            self.get_position_for_contract(contract)
             for contract in list_of_contracts
         ]
 
