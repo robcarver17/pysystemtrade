@@ -166,17 +166,6 @@ class diagControlProcess(productionDataLayerGeneric):
         else:
             return False
 
-    def is_this_correct_machine(self, process_name: str) ->bool:
-        required_host = self.required_machine_name(process_name)
-        if required_host is None:
-            return True
-
-        hostname = socket.gethostname()
-
-        if hostname == required_host:
-            return True
-        else:
-            return False
 
     def is_it_time_to_stop(self, process_name:str) -> bool:
         stop_time = self.get_stop_time(process_name)
@@ -294,17 +283,6 @@ class diagControlProcess(productionDataLayerGeneric):
 
         return result
 
-    def required_machine_name(self, process_name: str)-> str:
-        """
-
-        :param process_name:
-        :return: str or None
-        """
-        result = self._get_configuration_item_for_process_name(
-            process_name, "host_name", default=None, use_config_default=False
-        )
-
-        return result
 
     def _get_configuration_item_for_process_name(
         self, process_name: str, item_name: str, default=None, use_config_default: bool=False

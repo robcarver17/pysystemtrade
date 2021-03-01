@@ -5,7 +5,6 @@ We kick them all off in the crontab at a specific time (midnight is easiest), bu
  depend on various rules, as defined in ... attribute of defaults.yaml or overriden in private_config
 
 - is my process marked as NO OPEN in process control  (check database)
-- am I running on the correct machine (defined in .yaml)
 - is it too early for me to run? (defined in .yaml)
 - is there a process I am waiting for to finish first?  (defined in .yaml, check database)
 - is my process marked as STOP in process control (check database)
@@ -107,7 +106,6 @@ class processToRun(object):
     def _is_okay_to_start(self):
         """
         - is my process marked as NO OPEN in process control  (check database): WAIT
-        - am I running on the correct machine (defined in .yaml): DO NOT OPEN
         - is it too early for me to run? (defined in .yaml): WAIT
         - is there a process I am waiting for to finish first?  (defined in .yaml, check database): WAIT
         - is my process marked as STOP in process control (check database): DO NOT OPEN
@@ -115,8 +113,6 @@ class processToRun(object):
         :return:
         """
         process_okay = self._check_if_okay_to_start_process()
-        correct_machine = self.diag_process.is_this_correct_machine(
-            self.process_name)
         time_to_run = self.diag_process.is_it_time_to_run(self.process_name)
         other_process_finished = (
             self.diag_process.has_previous_process_finished_in_last_day(
@@ -133,7 +129,6 @@ class processToRun(object):
 
         if (
             not process_okay
-            or not correct_machine
             or not time_to_run
             or not other_process_finished
         ):

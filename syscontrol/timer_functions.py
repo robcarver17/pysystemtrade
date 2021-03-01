@@ -4,10 +4,30 @@ from sysproduction.data.control_process import diagControlProcess, dataControlPr
 from syslogdiag.log import logtoscreen
 
 
+
+class listOfTimerFunctions(list):
+    def check_and_run(self):
+        for timer_class in self:
+            timer_class.check_and_run()
+
+    def all_finished(self):
+        if len(self) == 0:
+            return True
+
+        finished = [timer_class.completed_max_runs() for timer_class in self]
+        all_finished = all(finished)
+
+        return all_finished
+
+    def last_run(self):
+        for timer_class in self:
+            timer_class.check_and_run(last_run=True)
+
+
 def _get_list_of_timer_functions(
         data,
         process_name,
-        list_of_timer_names_and_functions):
+        list_of_timer_names_and_functions) -> listOfTimerFunctions:
     list_of_timer_functions = []
     diag_process = diagControlProcess(data)
 
@@ -40,26 +60,6 @@ def _get_list_of_timer_functions(
 
     list_of_timer_functions = listOfTimerFunctions(list_of_timer_functions)
     return list_of_timer_functions
-
-
-class listOfTimerFunctions(list):
-    def check_and_run(self):
-        for timer_class in self:
-            timer_class.check_and_run()
-
-    def all_finished(self):
-        if len(self) == 0:
-            return True
-
-        finished = [timer_class.completed_max_runs() for timer_class in self]
-        all_finished = all(finished)
-
-        return all_finished
-
-    def last_run(self):
-        for timer_class in self:
-            timer_class.check_and_run(last_run=True)
-
 
 class timerClassWithFunction(object):
     def __init__(

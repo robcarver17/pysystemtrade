@@ -21,7 +21,7 @@ from syscore.objects import (
     success,
     failure,
     named_object,
-    missing_data)
+    missing_data, arg_not_supplied)
 
 process_stop = named_object("process stop")
 process_no_run = named_object("process no run")
@@ -32,9 +32,10 @@ process_running = named_object("process running")
 go_status = "GO"
 no_run_status = "NO-RUN"
 stop_status = "STOP"
+pause_status = "PAUSE"
 default_process_id = 0
 
-possible_status = [go_status, no_run_status, stop_status]
+possible_status = [go_status, no_run_status, stop_status, pause_status]
 
 start_run_idx = 0
 end_run_idx = 1
@@ -52,7 +53,7 @@ class dictOfRunningMethods(dict):
         current_entry[end_run_idx] = datetime.datetime.now()
         self.set_entry(method_name, current_entry)
 
-    def currently_running(self, method_name):
+    def currently_running(self, method_name: str) -> bool:
         last_start = self.when_last_start_run(method_name)
         last_end = self.when_last_end_run(method_name)
         if last_start is missing_data:
@@ -65,14 +66,14 @@ class dictOfRunningMethods(dict):
 
         return False
 
-    def when_last_start_run(self, method_name):
+    def when_last_start_run(self, method_name: str) -> datetime.datetime:
         current_entry = self.get_current_entry(method_name)
         start_run = current_entry[start_run_idx]
         if start_run == missing_date_str:
             return missing_data
         return start_run
 
-    def when_last_end_run(self, method_name):
+    def when_last_end_run(self, method_name: str) -> datetime.datetime:
         current_entry = self.get_current_entry(method_name)
         end_run = current_entry[end_run_idx]
         if end_run == missing_date_str:
@@ -83,12 +84,14 @@ class dictOfRunningMethods(dict):
     def as_dict(self):
         return dict(self)
 
-    def get_current_entry(self, method_name) -> list:
-        ans= copy(self.get(method_name, [missing_date_str, missing_date_str]))
+    def get_current_entry(self, method_name: str) -> list:
+        missing_entry = [missing_date_str, missing_date_str]
+        entry = self.get(method_name, missing_entry)
+        copied_entry= copy(entry)
 
-        return ans
+        return copied_entry
 
-    def set_entry(self, method_name, new_entry):
+    def set_entry(self, method_name: str, new_entry: list):
         self[method_name] = new_entry
 
 not_running = "not running"
@@ -106,8 +109,10 @@ class controlProcess(object):
         status: str=go_status,
         process_id: int=default_process_id,
         recently_crashed: bool = False,
-        running_methods: dictOfRunningMethods = dictOfRunningMethods()
+        running_methods: dictOfRunningMethods = arg_not_supplied
     ):
+        if running_methods is arg_not_supplied:
+            running_methods = dictOfRunningMethods()
         assert status in possible_status
         self._last_start_time = last_start_time
         self._last_end_time = last_end_time
@@ -221,6 +226,11 @@ class controlProcess(object):
 
         return success
 
+
+    def check_if_should_pause(self) -> bool:
+        should_pause = self.status == pause_status
+
+        return should_pause
 
     def check_if_okay_to_start_process(self) -> named_object:
         """

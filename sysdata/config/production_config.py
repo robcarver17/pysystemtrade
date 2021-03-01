@@ -10,7 +10,7 @@ def get_production_config() -> Config:
     else:
         print("Private configuration %s does not exist; no problem if running in sim mode")
         config = Config({})
-        
+
     config.fill_with_defaults()
 
     return config

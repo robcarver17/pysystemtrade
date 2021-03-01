@@ -2290,7 +2290,6 @@ This is the approach I use in pysystemtrade, and it's described in more detail b
 
 The scheduler built into pysystemtrade does not launch processes (this is still be done by the cron on a daily basis), but it does everything else:
 
-- Allocate processes to individual machines
 - Record when processes have started and stopped, if they are still running, and what their process ID is.
 - Run only in a specified time window (start time, end time)
 - Run only when another process has already finished (i.e. do not run_systems until prices have been updated)
@@ -2319,7 +2318,6 @@ Process configuration is governed by the following config parameters (in [/sysco
 -  `process_configuration_start_time`: when the process starts (default 00:01)
 - `process_configuration_stop_time`: when the process ends, regardless of any method configuration (default 23:50)
 - `process_configuration_previous_process`: a process that has to have run in the previous 24 hours for the process to start (default: none)
-- `host_name`: the machine name the process will run on (default: will run on any machine)
 
 Each of these is a dict, with process names as keys. All values are strings; start and stop times are in 24 hour format eg '23:05'. If a value is missing for any process, then we use the default. Here's the default .yaml values, with some comments:
 
@@ -2358,6 +2356,8 @@ The configuration of methods that run from within each process are governed by t
 - `frequency`: How many minutes pass before we run a method again (default: 0, no waiting time)
 - `max_executions`: How many times to run the method (default: -1, which means there is no maximum)
 - `run_on_completion_only`: Don't run until the process is stopping
+
+(Why isn't there a 'run on start only' option? Well setting max_executions will do this; and if this method has to come before any others then just list it first in the configuration)
 
 Note for `run_systems` and `run_strategy_order_generator` the methods are actually strategy names, and there are additional parameters that are specific to these processes.
 
@@ -2480,7 +2480,6 @@ Why won't my process run?
 
 - is it launching in the cron or equivalent scheduler?
 - is it set to STOP or DONT RUN? Fix with interactive_controls
-- is it on the wrong machine? Move it to the right machine, or remove the parameter
 - is it before the start_time? Change the start time, or wait
 - is it after the end_time? Change the end time, or wait until tommorrow
 - has the previous process finished? Wait, or remove dependency
