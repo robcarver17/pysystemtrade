@@ -20,15 +20,20 @@ class timerClassWithFunction(object):
         parameters: timerClassParameters,
         log=logtoscreen(""),
     ):
+
         self._function = function_to_execute  # class.method to run
-        self._log = log
         self._data = data
         self._parameters = parameters
+
+
+        log.setup(type = self.process_name)
+        self._log = log
         self._report_status = reportStatus(log)
 
         self._actual_executions = 0
 
         self._log_on_startup()
+
 
     def _log_on_startup(self):
         log = self.log
@@ -98,6 +103,9 @@ class timerClassWithFunction(object):
     def report_status(self) -> reportStatus:
         return self._report_status
 
+    def log_msg(self, msg:str):
+        self.log.msg(msg, type = self.process_name)
+
     def check_and_run(self, last_run: bool=False):
         """
 
@@ -131,14 +139,14 @@ class timerClassWithFunction(object):
 
         # not the last run, don't run yet
         self.report_status.log_status("Not running %s as only runs when process %s ends" \
-                                      % (self.process_name, self.method_name))
+                                      % (self.method_name, self.process_name))
         return False
 
     def check_if_okay_to_run_normal_run(self, last_run: bool = False) -> bool:
         if last_run:
             # don't run a normal process on last run
             self.report_status.log_status("Not running %s as don't run normal method when process %s ends" \
-                                          % (self.process_name, self.method_name))
+                                          % (self.method_name, self.process_name))
 
             return False
 
@@ -195,16 +203,20 @@ class timerClassWithFunction(object):
         else:
             exec_string = str(self.max_executions)
 
-        self.log.msg(
-            "%s still alive, done %d of %s executions every %d minutes"
+        if self.run_on_completion_only:
+            log_msg = "%s will run on completion" % self.method_name
+        else:
+            log_msg=\
+            "%s still alive, done %d of %s executions every %d minutes"\
             % (
                 self.method_name,
                 self.actual_executions,
                 exec_string,
                 self.frequency_minutes,
-            ),
-            type=self.method_name,
-        )
+            )
+
+        self.log_msg(log_msg)
+
         self._last_heartbeat = datetime.datetime.now()
 
 
@@ -278,7 +290,7 @@ class timerClassWithFunction(object):
 
     def log_msg_when_completed_last_run(self):
         if self.completed_max_runs():
-            self.log.msg(
+            self.log_msg(
                 "%s executed %d times so done" %
                 (self.method_name, self.max_executions))
 
