@@ -132,8 +132,7 @@ class diagControlProcess(productionDataLayerGeneric):
         result_dict = dict(
             previous_process=previous_process,
             start_time=start_time,
-            end_time=end_time,
-            machine_name=machine_name
+            end_time=end_time
         )
 
         return result_dict
