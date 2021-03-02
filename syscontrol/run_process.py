@@ -45,6 +45,118 @@ FREQUENCY_TO_CHECK_LOG_MINUTES = 1
 def _store_name(reason, condition):
     return reason+"/"+condition
 
+def _split_name(keyname):
+    return keyname.split("/")
+
+class reportProcessStatus(object):
+    ## Report on status when waiting and paused, ensures we don't spam the log
+    def __init__(self, log: logger = arg_not_supplied):
+        if log is arg_not_supplied:
+            log = logtoscreen("")
+        self._log = log
+
+    @property
+    def log(self):
+        return self._log
+
+    def report_wait_condition(self, reason: str, condition_name:str=""):
+        we_already_logged_recently = self._have_we_logged_recently(reason, condition_name)
+
+        if we_already_logged_recently:
+            return None
+
+        self._log_and_mark_timing(reason, condition_name)
+
+    def clear_all_reasons_for_condition(self, condition_name: str):
+        list_of_reasons = self._get_all_reasons_for_condition(condition_name)
+        _ = [self.clear_wait_condition(reason, condition_name) for reason in list_of_reasons]
+
+    def clear_wait_condition(self, reason, condition_name:str="Waiting to start"):
+        have_we_logged_clear_already = self._have_we_logged_clear_already(reason, condition_name)
+        if have_we_logged_clear_already:
+            return None
+        self._log_clear_and_mark(reason, condition_name)
+
+    def _have_we_logged_recently(self, reason:str, condition_name:str) -> bool:
+        last_log_time = self._get_last_log_time(reason, condition_name)
+        if last_log_time is NO_LOG_ENTRY:
+            return False
+        if last_log_time is LOG_CLEARED:
+            return False
+        time_for_another_log = self._time_for_another_log(last_log_time)
+        if time_for_another_log:
+            return False
+        return True
+
+    def _time_for_another_log(self, log_time):
+        elapsed_minutes  =self._minutes_elapsed_since_log(log_time)
+        if elapsed_minutes > FREQUENCY_TO_CHECK_LOG_MINUTES:
+            return True
+        else:
+            return False
+
+    def _minutes_elapsed_since_log(self, log_time: datetime.datetime) -> float:
+        time_now = datetime.datetime.now()
+        elapsed_time = time_now - log_time
+        elapsed_seconds = elapsed_time.total_seconds()
+        elapsed_minutes = elapsed_seconds/60
+
+        return elapsed_minutes
+
+    def _log_and_mark_timing(self, reason:str, condition_name:str):
+        self.log.msg("%s because of %s" % (condition_name, reason))
+        self._mark_timing_of_log(reason, condition_name)
+
+    def _mark_timing_of_log(self, reason:str, condition_name:str):
+        self._set_last_log_time(reason, condition_name, datetime.datetime.now())
+
+    def _have_we_logged_clear_already(self, reason:str, condition_name:str) -> bool:
+        last_log_time = self._get_last_log_time(reason, condition_name)
+
+        return last_log_time is LOG_CLEARED
+
+    def _get_all_reasons_for_condition(self, condition_name: str):
+        paired_keys =  self._get_all_paired_keys_in_store()
+        reason_list = [pair[0] for pair in paired_keys if pair[1] == condition_name]
+
+        return reason_list
+
+    def _get_all_paired_keys_in_store(self) -> list:
+        all_keys = self._get_all_keys_in_store()
+        paired_keys = [_split_name(keyname) for keyname in all_keys]
+
+        return paired_keys
+
+    def _get_all_keys_in_store(self) -> list:
+        log_store = self._get_log_store()
+        all_keys = list(log_store.keys())
+
+        return all_keys
+
+    def _log_clear_and_mark(self, reason:str, condition_name:str):
+        self.log.msg("No longer %s because %s" % (condition_name, reason))
+        self._mark_log_of_clear(reason, condition_name)
+
+    def _mark_log_of_clear(self, reason: str, condition_name: str):
+        self._set_last_log_time(reason, condition_name, LOG_CLEARED)
+
+    def _get_last_log_time(self, reason:str, condition_name: str) -> datetime.datetime:
+        log_store = self._get_log_store()
+        log_name = _store_name(reason, condition_name)
+        last_log_time = log_store.get(log_name, NO_LOG_ENTRY)
+
+        return last_log_time
+
+    def _set_last_log_time(self, reason:str, condition_name: str, log_time):
+        log_store = self._get_log_store()
+        log_name = _store_name(reason, condition_name)
+        log_store[log_name] = log_time
+
+    def _get_log_store(self) -> dict:
+        log_store = getattr(self, "_log_store", None)
+        if log_store is None:
+            log_store = self._log_store = {}
+        return log_store
 
 class processToRun(object):
     """
@@ -249,12 +361,8 @@ def _has_previous_process_finished(process_to_run: processToRun) -> bool:
 
     if other_process_finished:
         wait_reporter.clear_wait_condition(PREVIOUS_PROCESS_REASON, NOT_STARTING_CONDITION)
-    else:
-        wait_reporter.report_wait_condition(PREVIOUS_PROCESS_REASON, NOT_STARTING_CONDITION)
 
     return other_process_finished
-
-
 
 
 def _is_okay_to_wait_before_starting(process_to_run: processToRun):
@@ -270,15 +378,15 @@ def _is_okay_to_wait_before_starting(process_to_run: processToRun):
     should_have_stopped = _check_for_stop(process_to_run)
 
     if should_have_stopped:
-        # not okay to wait, should have stopped already
+        # not okay to wait, should have stopped
         return False
 
     # check to see if process control status means we can't wait
-    okay_to_wait = _check_if_okay_to_wait_before_starting_process(process_to_run)
+    okay_to_wait = _check_if_okay_to_wait_before_starting_process()
 
     return okay_to_wait
 
-def _check_if_okay_to_wait_before_starting_process(process_to_run: processToRun) -> bool:
+def _check_if_okay_to_wait_before_starting_process(process_to_run: processToRun):
     data_control = process_to_run.data_control
     process_name = process_to_run.process_name
 
@@ -286,15 +394,16 @@ def _check_if_okay_to_wait_before_starting_process(process_to_run: processToRun)
         process_name
     )
 
+    log = process_to_run.log
     if okay_to_run is process_running:
-        process_to_run.log.warn(
+        log.warn(
             "Can't start process %s at all since already running"
             % process_name
         )
         return False
 
     elif okay_to_run is process_stop:
-        process_to_run.log.warn(
+        log.warn(
             "Can't start process %s at all since STOPPED by control"
             % process_name
         )
@@ -305,13 +414,14 @@ def _check_if_okay_to_wait_before_starting_process(process_to_run: processToRun)
         return True
 
     elif okay_to_run is success:
-        # edge case in which the status has just been changed will 'wait' but on next iteration will run
+        # will 'wait' but on next iteration will run
         return True
     else:
-        msg = \
-            "Process control returned unknown object %s!" % str(okay_to_run)
-        process_to_run.log.critical(msg)
-        raise  Exception(msg)
+        error_msg ="Process control returned unknown object %s!" %\
+            str(okay_to_run)
+        log.critical(error_msg)
+        raise Exception(error_msg)
+
 
 ## PAUSE CODE
 
@@ -367,8 +477,7 @@ def _check_for_stop_control_process(process_to_run: processToRun) -> bool:
     data_control = process_to_run.data_control
     process_name = process_to_run.process_name
 
-    check_for_stop = data_control.check_if_process_status_stopped(
-        process_name
+    check_for_stop = data_control.check_if_process_status_stopped( process_name
     )
 
     return check_for_stop
@@ -377,7 +486,9 @@ def _check_if_all_methods_finished(process_to_run: processToRun) -> bool:
     list_of_timer_functions = process_to_run.list_of_timer_functions
     check_for_all_methods_finished = list_of_timer_functions.all_finished()
 
+
     return check_for_all_methods_finished
+
 
 def _check_for_finish_time(process_to_run: processToRun) -> bool:
     diag_process = process_to_run.diag_process
