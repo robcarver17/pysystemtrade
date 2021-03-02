@@ -18,10 +18,11 @@ from syscore.objects import success
 
 class contractOrderType(orderType):
     def allowed_types(self):
-        return ['best', 'market', 'limit', 'balance_trade', '']
+        return ['best', 'market', 'limit', 'balance_trade', '', 'panic']
 
 best_order_type  = contractOrderType('best')
 balance_order_type = contractOrderType('balance_trade')
+panic_order_type = contractOrderType('panic')
 
 NO_CONTROLLING_ALGO = None
 
@@ -258,6 +259,11 @@ class contractOrder(Order):
 
     def release_order_from_algo_control(self):
         self.order_info["reference_of_controlling_algo"] = NO_CONTROLLING_ALGO
+
+    @property
+    def panic_order(self):
+        type = self.order_type
+        return type == panic_order_type
 
     @property
     def inter_spread_order(self):

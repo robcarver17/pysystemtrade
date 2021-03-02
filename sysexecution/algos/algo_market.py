@@ -1,6 +1,7 @@
 """
 Simplest possible execution method, one market order
 """
+from copy import copy
 from syscore.objects import missing_order
 from sysproduction.data.broker import dataBroker
 
@@ -48,7 +49,12 @@ class algoMarket(Algo):
         contract_order = self.contract_order
         log = contract_order.log_with_attributes(self.data.log)
 
-        cut_down_contract_order = contract_order.reduce_trade_size_proportionally_so_smallest_leg_is_max_size(SIZE_LIMIT)
+        if contract_order.panic_order:
+            log.msg("PANIC ORDER! DON'T RESIZE AND DO ENTIRE TRADE")
+            cut_down_contract_order = copy(contract_order)
+        else:
+            cut_down_contract_order = contract_order.reduce_trade_size_proportionally_so_smallest_leg_is_max_size(SIZE_LIMIT)
+
         if cut_down_contract_order.trade != contract_order.trade:
             log.msg(
                 "Cut down order to size %s from %s because of algo size limit"

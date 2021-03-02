@@ -14,7 +14,7 @@ from sysobjects.production.tradeable_object import instrumentStrategy
 
 class instrumentOrderType(orderType):
     def allowed_types(self):
-        return ['best', 'market', 'limit', 'Zero-roll-order', 'balance_trade']
+        return ['best', 'market', 'limit', 'Zero-roll-order', 'balance_trade', 'panic']
 
 zero_roll_order_type = instrumentOrderType('Zero-roll-order')
 balance_order_type = instrumentOrderType('balance_trade')

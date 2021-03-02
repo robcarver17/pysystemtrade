@@ -378,7 +378,7 @@ def contract_order_for_direct_instrument_child_date_and_trade(
 
 def map_instrument_order_type_to_contract_order_type(instrument_order_type: instrumentOrderType) \
         -> contractOrderType:
-    # will only work for matching order types eg best, limit, market
+    # will only work for matching order types eg best, limit, market, panic
     type_string = instrument_order_type.as_string()
     contract_order_type = contractOrderType(type_string)
 

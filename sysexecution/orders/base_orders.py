@@ -279,6 +279,7 @@ class Order(object):
         return new_order
 
     def reduce_trade_size_proportionally_so_smallest_leg_is_max_size(self, max_size: int):
+
         new_order = copy(self)
         old_trade = new_order.trade
         new_trade = old_trade.reduce_trade_size_proportionally_so_smallest_leg_is_max_size(max_size)

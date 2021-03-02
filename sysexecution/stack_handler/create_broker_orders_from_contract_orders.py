@@ -82,6 +82,7 @@ class stackHandlerCreateBrokerOrders(stackHandlerForFills):
             self,
             original_contract_order: contractOrder) -> contractOrder:
 
+
         if original_contract_order is missing_order:
             # weird race condition
             return missing_order
@@ -92,6 +93,10 @@ class stackHandlerCreateBrokerOrders(stackHandlerForFills):
         if original_contract_order.is_order_controlled_by_algo():
             # already being traded by an active algo
             return missing_order
+
+        if original_contract_order.panic_order:
+            ## Do no further checks or resizing whatsoever!
+            return original_contract_order
 
         data_broker = dataBroker(self.data)
 
