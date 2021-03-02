@@ -161,7 +161,7 @@ class timerClassWithFunction(object):
 
     def check_if_okay_to_run_normal_run_if_not_last_run(self) -> bool:
 
-        exceeded_max = self.check_if_exceeded_max_runs_and_report_status()
+        exceeded_max =  self.completed_max_runs()
         if exceeded_max:
             return False
 
@@ -184,21 +184,23 @@ class timerClassWithFunction(object):
 
         return enough_time_has_passed
 
-    def check_if_exceeded_max_runs_and_report_status(self) -> bool:
-
-        exceeded_max = self.completed_max_runs()
-        # no need to log as logs last run
-        return exceeded_max
 
 
     def check_if_enough_time_has_elapsed_since_last_run(self) -> bool:
         minutes_until_next_run = self.minutes_until_next_run()
+        if np.isnan(minutes_until_next_run):
+            ## completed the run
+            return False
+
         if minutes_until_next_run==0:
             return True
         else:
             return False
 
     def minutes_until_next_run(self) -> float:
+        if self.completed_max_runs():
+            return np.nan
+
         time_since_run = self.minutes_since_last_run()
         minutes_between_runs = self.frequency_minutes
 
@@ -329,7 +331,7 @@ class listOfTimerFunctions(list):
 
     def seconds_until_next_method_runs(self) -> float:
         minutes_remaining = [timer_object.minutes_until_next_run() for timer_object in self]
-        min_minutes = np.min(minutes_remaining)
+        min_minutes = np.nanmin(minutes_remaining)
         min_seconds  = min_minutes*60.0
 
         return min_seconds
