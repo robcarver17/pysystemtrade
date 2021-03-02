@@ -40,7 +40,8 @@ from sysproduction.data.control_process import dataControlProcess, diagControlPr
 
 LOG_CLEARED = object()
 NO_LOG_ENTRY = object()
-FREQUENCY_TO_CHECK_LOG_MINUTES = 1
+#FIXME DEBUG
+FREQUENCY_TO_CHECK_LOG_MINUTES = 0.2
 
 def _store_name(reason, condition):
     return reason+"/"+condition
@@ -71,7 +72,7 @@ class reportProcessStatus(object):
         list_of_reasons = self._get_all_reasons_for_condition(condition_name)
         _ = [self.clear_wait_condition(reason, condition_name) for reason in list_of_reasons]
 
-    def clear_wait_condition(self, reason, condition_name:str="Waiting to start"):
+    def clear_wait_condition(self, reason, condition_name:str=""):
         have_we_logged_clear_already = self._have_we_logged_clear_already(reason, condition_name)
         if have_we_logged_clear_already:
             return None
@@ -199,7 +200,7 @@ class processToRun(object):
         diag_process = diagControlProcess(self.data)
         self._diag_process = diag_process
 
-        wait_reporter =reportProcessStatus()
+        wait_reporter =reportProcessStatus(self.log)
         self._wait_reporter = wait_reporter
 
     @property
@@ -361,6 +362,8 @@ def _has_previous_process_finished(process_to_run: processToRun) -> bool:
 
     if other_process_finished:
         wait_reporter.clear_wait_condition(PREVIOUS_PROCESS_REASON, NOT_STARTING_CONDITION)
+    else:
+        wait_reporter.report_wait_condition(PREVIOUS_PROCESS_REASON, NOT_STARTING_CONDITION)
 
     return other_process_finished
 
