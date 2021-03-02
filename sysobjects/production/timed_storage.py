@@ -91,7 +91,7 @@ class timedEntry(object):
 
     def _init_data_from_passed_args(self, args_as_dict: dict):
         date = args_as_dict.pop(DATE_KEY_NAME)
-        if date is arg_not_supplied:
+        if date is arg_not_supplied or date is None:
             date = datetime.datetime.now()
 
         self._date = date
