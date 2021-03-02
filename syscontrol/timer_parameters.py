@@ -9,4 +9,4 @@ class timerClassParameters():
     max_executions: int = 1,
     run_on_completion_only: bool = False,
     #FIXME DEBUG
-    minutes_between_heartbeats: int = 1,
+    minutes_between_heartbeats: int = 1

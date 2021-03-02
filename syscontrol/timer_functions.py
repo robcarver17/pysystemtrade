@@ -75,7 +75,7 @@ class timerClassWithFunction(object):
         return self.parameters.method_name
 
     @property
-    def minutes_between_heartbeats(self) -> float:
+    def minutes_between_heartbeats(self) -> int:
         return self.parameters.minutes_between_heartbeats
 
     @property
