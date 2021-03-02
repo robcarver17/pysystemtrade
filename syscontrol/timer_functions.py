@@ -327,13 +327,11 @@ class listOfTimerFunctions(list):
             timer_class.check_and_run(last_run=True)
 
 
-    def seconds_until_next_method_runs(self) -> int:
+    def seconds_until_next_method_runs(self) -> float:
         minutes_remaining = [timer_object.minutes_until_next_run() for timer_object in self]
-        print("monutes %s" % str(minutes_remaining))
         min_minutes = min(minutes_remaining)
-        min_seconds  = int(min_minutes/60.0)
+        min_seconds  = min_minutes/60.0
 
-        print("seconds %d" % min_seconds)
         return min_seconds
 
 def get_list_of_timer_functions(
