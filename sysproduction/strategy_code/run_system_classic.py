@@ -52,7 +52,7 @@ class runSystemClassic(object):
 
         base_currency, notional_trading_capital = self._get_currency_and_capital()
 
-        system = self._create_system_instance(
+        system = self.system_method(
             notional_trading_capital=notional_trading_capital, base_currency=base_currency
         )
 
@@ -79,9 +79,10 @@ class runSystemClassic(object):
 
         return base_currency, notional_trading_capital
 
-    def _create_system_instance(self,
-                                notional_trading_capital: float=None,
-                                base_currency: str=None) -> System:
+    # DO NOT CHANGE THE NAME OF THIS FUNCTION; IT IS HARDCODED INTO CONFIGURATION FILES
+    def system_method(self,
+                      notional_trading_capital: float=None,
+                      base_currency: str=None) -> System:
         data = self.data
         backtest_config_filename = self.backtest_config_filename
 
