@@ -4,6 +4,7 @@ import socket
 from syscore.dateutils import SECONDS_PER_HOUR
 from syscore.genutils import str2Bool
 from syscore.objects import  missing_data, named_object
+from syscontrol.timer_parameters import timerClassParameters
 
 from sysdata.config.control_config import get_control_config
 from sysdata.data_blob import dataBlob
@@ -180,6 +181,27 @@ class diagControlProcess(productionDataLayerGeneric):
             return True
         else:
             return False
+
+    def get_method_timer_parameters(self, process_name: str, method_name: str) -> timerClassParameters:
+        run_on_completion_only = self.does_method_run_on_completion_only(
+            process_name, method_name
+        )
+
+        frequency_minutes = self.frequency_for_process_and_method(
+            process_name, method_name
+        )
+        max_executions = self.max_executions_for_process_and_method(
+            process_name, method_name
+        )
+
+        timer_parameters = timerClassParameters(method_name=method_name,
+                                                process_name=process_name,
+                                                frequency_minutes=frequency_minutes,
+                                                max_executions=max_executions,
+                                                run_on_completion_only=run_on_completion_only,
+                                                minutes_between_heartbeats=frequency_minutes)
+
+        return timer_parameters
 
     def does_method_run_on_completion_only(self, process_name: str, method_name: str) -> bool:
         this_method_dict = self.get_method_configuration_for_process_name(

@@ -16,158 +16,22 @@ We kick them all off in the crontab at a specific time (midnight is easiest), bu
 - how do I mark myself as FINISHED for a subsequent process to know (in database)
 
 """
-import  datetime
-
-from syscore.objects import (arg_not_supplied,
-    success,
-    failure,
-status
-)
+from syscontrol.report_process_status import reportProcessStatus
+from syscore.objects import (success,
+                             failure,
+                             status
+                             )
 
 from syscontrol.timer_functions import get_list_of_timer_functions, listOfTimerFunctions
 
 from sysdata.data_blob import dataBlob
 
-from syslogdiag.log import logtoscreen, logger
+from syslogdiag.log import logger
 
 from sysobjects.production.process_control import process_no_run, process_running, process_stop
 
 from sysproduction.data.control_process import dataControlProcess, diagControlProcess
 
-
-
-
-
-LOG_CLEARED = object()
-NO_LOG_ENTRY = object()
-#FIXME DEBUG
-FREQUENCY_TO_CHECK_LOG_MINUTES = 0.2
-
-def _store_name(reason, condition):
-    return reason+"/"+condition
-
-def _split_name(keyname):
-    return keyname.split("/")
-
-class reportProcessStatus(object):
-    ## Report on status when waiting and paused, ensures we don't spam the log
-    def __init__(self, log: logger = arg_not_supplied):
-        if log is arg_not_supplied:
-            log = logtoscreen("")
-        self._log = log
-
-    @property
-    def log(self):
-        return self._log
-
-    def report_wait_condition(self, reason: str, condition_name:str=""):
-        we_already_logged_recently = self._have_we_logged_recently(reason, condition_name)
-
-        if we_already_logged_recently:
-            return None
-
-        self._log_and_mark_timing(reason, condition_name)
-
-    def clear_all_reasons_for_condition(self, condition_name: str):
-        list_of_reasons = self._get_all_reasons_for_condition(condition_name)
-        _ = [self.clear_wait_condition(reason, condition_name) for reason in list_of_reasons]
-
-    def clear_wait_condition(self, reason, condition_name:str=""):
-        have_we_never_logged_before = self._have_we_never_logged_at_all_before(reason, condition_name)
-        if have_we_never_logged_before:
-            # nothing to clear
-            return None
-
-        have_we_logged_clear_already = self._have_we_logged_clear_already(reason, condition_name)
-        if have_we_logged_clear_already:
-            return None
-        self._log_clear_and_mark(reason, condition_name)
-
-    def _have_we_logged_recently(self, reason:str, condition_name:str) -> bool:
-        last_log_time = self._get_last_log_time(reason, condition_name)
-        if last_log_time is NO_LOG_ENTRY:
-            return False
-        if last_log_time is LOG_CLEARED:
-            return False
-        time_for_another_log = self._time_for_another_log(last_log_time)
-        if time_for_another_log:
-            return False
-        return True
-
-    def _time_for_another_log(self, log_time):
-        elapsed_minutes  =self._minutes_elapsed_since_log(log_time)
-        if elapsed_minutes > FREQUENCY_TO_CHECK_LOG_MINUTES:
-            return True
-        else:
-            return False
-
-    def _minutes_elapsed_since_log(self, log_time: datetime.datetime) -> float:
-        time_now = datetime.datetime.now()
-        elapsed_time = time_now - log_time
-        elapsed_seconds = elapsed_time.total_seconds()
-        elapsed_minutes = elapsed_seconds/60
-
-        return elapsed_minutes
-
-    def _log_and_mark_timing(self, reason:str, condition_name:str):
-        self.log.msg("%s because of %s" % (condition_name, reason))
-        self._mark_timing_of_log(reason, condition_name)
-
-    def _mark_timing_of_log(self, reason:str, condition_name:str):
-        self._set_last_log_time(reason, condition_name, datetime.datetime.now())
-
-    def _have_we_logged_clear_already(self, reason:str, condition_name:str) -> bool:
-        last_log_time = self._get_last_log_time(reason, condition_name)
-
-        return last_log_time is LOG_CLEARED
-
-    def _have_we_never_logged_at_all_before(self, reason:str, condition_name: str) -> bool:
-        last_log_time = self._get_last_log_time(reason, condition_name)
-
-        return last_log_time is NO_LOG_ENTRY
-
-    def _get_all_reasons_for_condition(self, condition_name: str):
-        paired_keys =  self._get_all_paired_keys_in_store()
-        reason_list = [pair[0] for pair in paired_keys if pair[1] == condition_name]
-
-        return reason_list
-
-    def _get_all_paired_keys_in_store(self) -> list:
-        all_keys = self._get_all_keys_in_store()
-        paired_keys = [_split_name(keyname) for keyname in all_keys]
-
-        return paired_keys
-
-    def _get_all_keys_in_store(self) -> list:
-        log_store = self._get_log_store()
-        all_keys = list(log_store.keys())
-
-        return all_keys
-
-    def _log_clear_and_mark(self, reason:str, condition_name:str):
-        self.log.msg("No longer %s because %s" % (condition_name, reason))
-        self._mark_log_of_clear(reason, condition_name)
-
-    def _mark_log_of_clear(self, reason: str, condition_name: str):
-        self._set_last_log_time(reason, condition_name, LOG_CLEARED)
-
-    def _get_last_log_time(self, reason:str, condition_name: str) -> datetime.datetime:
-        log_store = self._get_log_store()
-        log_name = _store_name(reason, condition_name)
-        last_log_time = log_store.get(log_name, NO_LOG_ENTRY)
-
-        return last_log_time
-
-    def _set_last_log_time(self, reason:str, condition_name: str, log_time):
-        log_store = self._get_log_store()
-        log_name = _store_name(reason, condition_name)
-        log_store[log_name] = log_time
-
-    def _get_log_store(self) -> dict:
-        log_store = getattr(self, "_log_store", None)
-        if log_store is None:
-            log_store = self._log_store = {}
-        return log_store
 
 class processToRun(object):
     """
@@ -210,7 +74,7 @@ class processToRun(object):
         diag_process = diagControlProcess(self.data)
         self._diag_process = diag_process
 
-        wait_reporter =reportProcessStatus(self.log)
+        wait_reporter = reportProcessStatus(self.log)
         self._wait_reporter = wait_reporter
 
     @property
@@ -260,7 +124,7 @@ class processToRun(object):
 
 
     def _finish(self):
-        self.list_of_timer_functions.last_run()
+        self.list_of_timer_functions.run_methods_which_run_on_exit_only()
         self._finish_control_process()
         self.data.close()
 
@@ -322,15 +186,15 @@ def _check_if_process_status_is_okay_to_run(process_to_run: processToRun) -> boo
     wait_reporter = process_to_run.wait_reporter
     if okay_to_run is process_running:
         # already running
-        wait_reporter.report_wait_condition("Already running",NOT_STARTING_CONDITION)
+        wait_reporter.report_wait_condition("because already running",NOT_STARTING_CONDITION)
         return False
 
     elif okay_to_run is process_stop:
-        wait_reporter.report_wait_condition("Process STOP status", NOT_STARTING_CONDITION)
+        wait_reporter.report_wait_condition("because process STOP status", NOT_STARTING_CONDITION)
         return False
 
     elif okay_to_run is process_no_run:
-        wait_reporter.report_wait_condition("Process NO RUN status", NOT_STARTING_CONDITION)
+        wait_reporter.report_wait_condition("because process NO RUN status", NOT_STARTING_CONDITION)
         return False
 
     elif okay_to_run is success:
@@ -348,7 +212,7 @@ def _is_it_time_to_run(process_to_run: processToRun) -> bool:
     time_to_run = diag_process.is_it_time_to_run(process_name)
 
 
-    TIME_TO_RUN_REASON = "Not yet time to run"
+    TIME_TO_RUN_REASON = "because Not yet time to run"
     wait_reporter = process_to_run.wait_reporter
 
     if time_to_run:
@@ -367,7 +231,7 @@ def _has_previous_process_finished(process_to_run: processToRun) -> bool:
             process_name
         )
     )
-    PREVIOUS_PROCESS_REASON = "Previous process still running"
+    PREVIOUS_PROCESS_REASON = "because Previous process still running"
     wait_reporter = process_to_run.wait_reporter
 
     if other_process_finished:
@@ -444,7 +308,7 @@ def check_for_pause_and_log(process_to_run: processToRun) -> bool:
 
     wait_reporter = process_to_run.wait_reporter
     condition = "Paused running methods"
-    reason = "process status is PAUSE"
+    reason = "because process status is PAUSE"
     if should_pause:
         wait_reporter.report_wait_condition(reason, condition)
     else:
@@ -497,7 +361,7 @@ def _check_for_stop_control_process(process_to_run: processToRun) -> bool:
 
 def _check_if_all_methods_finished(process_to_run: processToRun) -> bool:
     list_of_timer_functions = process_to_run.list_of_timer_functions
-    check_for_all_methods_finished = list_of_timer_functions.all_finished()
+    check_for_all_methods_finished = list_of_timer_functions.check_all_finished()
 
 
     return check_for_all_methods_finished
