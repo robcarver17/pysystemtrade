@@ -37,7 +37,7 @@ class timerClassWithFunction(object):
 
         max_executions = self.max_executions
 
-        if max_executions == INFINITE_EXECUTIONS
+        if max_executions == INFINITE_EXECUTIONS:
             exec_string = " until process ends"
         else:
             exec_string= "at most %d times" % max_executions
