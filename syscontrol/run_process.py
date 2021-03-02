@@ -111,12 +111,15 @@ class processToRun(object):
         is_running = True
         while is_running:
             list_of_timer_functions = self._list_of_timer_functions
+            we_should_stop = _check_for_stop(self)
+            if we_should_stop:
+                return None
             wait_for_next_method_run_time(self)
+
             for timer_class in list_of_timer_functions:
                 we_should_stop = _check_for_stop(self)
                 if we_should_stop:
-                    is_running = False
-                    break
+                    return None
 
                 we_should_pause = check_for_pause_and_log(self)
                 if not we_should_pause:
