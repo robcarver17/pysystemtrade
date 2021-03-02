@@ -182,7 +182,7 @@ class diagControlProcess(productionDataLayerGeneric):
             return False
 
     def does_method_run_on_completion_only(self, process_name: str, method_name: str) -> bool:
-        this_method_dict = self._get_method_configuration_for_process_name(
+        this_method_dict = self.get_method_configuration_for_process_name(
             process_name, method_name
         )
         run_on_completion_only = this_method_dict.get(
@@ -194,7 +194,7 @@ class diagControlProcess(productionDataLayerGeneric):
     def frequency_for_process_and_method(
         self, process_name: str, method_name: str
     ) -> int:
-        this_method_dict = self._get_method_configuration_for_process_name(
+        this_method_dict = self.get_method_configuration_for_process_name(
             process_name, method_name
         )
 
@@ -205,7 +205,7 @@ class diagControlProcess(productionDataLayerGeneric):
     def max_executions_for_process_and_method(
         self, process_name: str, method_name: str
     ) -> int:
-        this_method_dict = self._get_method_configuration_for_process_name(
+        this_method_dict = self.get_method_configuration_for_process_name(
             process_name, method_name
         )
         max_executions = this_method_dict.get("max_executions", DEFAULT_MAX_EXECUTIONS)
@@ -213,7 +213,7 @@ class diagControlProcess(productionDataLayerGeneric):
         return max_executions
 
 
-    def _get_method_configuration_for_process_name(
+    def get_method_configuration_for_process_name(
             self, process_name: str, method_name: str) -> dict:
         all_method_dict = self.get_all_method_dict_for_process_name(
             process_name)
@@ -361,6 +361,6 @@ def get_strategy_class_object_config(data: dataBlob, process_name: str, strategy
 
     """
     diag_config = diagControlProcess(data)
-    config_this_process = diag_config._get_method_configuration_for_process_name(process_name, strategy_name)
+    config_this_process = diag_config.get_method_configuration_for_process_name(process_name, strategy_name)
 
     return config_this_process

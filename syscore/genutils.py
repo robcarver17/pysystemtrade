@@ -390,27 +390,29 @@ class run_interactive_menu(object):
 
 
 def print_menu_of_values_and_get_response(
-        menu_of_options_as_list, default_str=""):
+       menu_of_options_as_list, default_str=""):
+
+    copy_menu_of_options_as_list = copy(menu_of_options_as_list)
     if default_str != "":
         try:
-            menu_of_options_as_list.index(default_str)
+            copy_menu_of_options_as_list.index(default_str)
         except ValueError:
-            menu_of_options_as_list.append(default_str)
+            copy_menu_of_options_as_list.append(default_str)
 
-        default_option = menu_of_options_as_list.index(default_str)
+        default_option = copy_menu_of_options_as_list.index(default_str)
     else:
         default_option = None
 
     menu_of_options = dict(
         [
             (int_key, menu_value)
-            for int_key, menu_value in enumerate(menu_of_options_as_list)
+            for int_key, menu_value in enumerate(copy_menu_of_options_as_list)
         ]
     )
     ans = print_menu_and_get_response(
         menu_of_options, default_option=default_option, default_str=default_str
     )
-    option_chosen = menu_of_options_as_list[ans]
+    option_chosen = copy_menu_of_options_as_list[ans]
 
     return option_chosen
 
@@ -421,14 +423,14 @@ def print_menu_and_get_response(
         default_str=""):
     """
 
-    :param menu_of_options: A dict, keys are ints, values are str
+    :param copy_menu_of_options: A dict, keys are ints, values are str
     :param default_option: None, or one of the keys
     :return: int menu chosen
     """
-
-    menu_options_list = sorted(menu_of_options.keys())
+    copy_menu_of_options = copy(menu_of_options)
+    menu_options_list = sorted(copy_menu_of_options.keys())
     for option in menu_options_list:
-        print("%d: %s" % (option, menu_of_options[option]))
+        print("%d: %s" % (option, copy_menu_of_options[option]))
     print("\n")
     computer_says_no = True
     if default_option is None:

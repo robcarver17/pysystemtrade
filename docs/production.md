@@ -2762,9 +2762,11 @@ Here's some general advice about recovering from a crash:
 - Check you have a mongoDB instance running okay
 
 - Run a full set of reports, and carefully check them, especially the status and reconcile reports, to see that all is well.
-- If neccessary take steps to recover data (see next section)
-- You can use update_*  processes if you want to recover your data before the normal scheduled process will do so. Don't forget to run them in the correct order: update_fx_prices (has to be before run_systems), update_sampled_contracts, update_historical_prices, update_multiple_adjusted_prices, update_strategy_backtests,  update_strategy_orders; at which run_stack_handler will probably have orders to do if it's running.
+- If neccessary take steps to recover data (see next section). 
+- If this goes well you will have an empty order stack. Run update_strategy_orders to repopulate it.
+- You should turn the crontab back on when everything is working fine
 - Processes are started by the scheduler, eg Cron, you will need to start them manually if their normal start time has passed (I find [linux screen](https://linuxize.com/post/how-to-use-linux-screen/) helpful for this on my headless server). Everything should work normally the following day.
+
 
 
 ## Data recovery
@@ -2785,6 +2787,7 @@ The better case is when the mongo DB is fine. In this case (once you've [restore
 - FX, individual futures contract prices, multiple prices, adjusted prices: data will be backfilled once run_daily_price_updates has run.
 - Capital: any intraday p&l data will be lost, but once run_capital_update has run the current capital will be correct.
 - Optimal positions: will be correct once run_systems has run.
+- You can use update_*  processes to run skipped processes before the normal scheduled process will do so. Don't forget to run them in the correct order: update_fx_prices (has to be before run_systems), update_sampled_contracts, update_historical_prices, update_multiple_adjusted_prices, update_strategy_backtests
 - IMPORTANT: State information about processes running may be wrong; you may need to manually FINISH processes using interactive_controls otherwise processes won't run for fear of conflict (but the startup script should do this for you)
 
 

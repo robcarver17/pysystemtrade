@@ -80,12 +80,6 @@ def get_class_object_and_other_arguments(data: dataBlob,  strategy_name: str, pr
     _ = config_this_process.pop("max_executions", None)
     _ = config_this_process.pop("frequency", None)
 
-    # might be in old config files
-    unused_config_function = config_this_process.pop("function", None)
-    if unused_config_function is not None:
-        #FIXME REMOVE CHECK AT SOME POINT
-        data.log.warn("Remove function from strategy run_systems configuration no longer uses!")
-
     other_args = config_this_process
 
     return strategy_class_object, other_args
