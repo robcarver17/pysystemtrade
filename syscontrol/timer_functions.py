@@ -28,7 +28,7 @@ class timerClassWithFunction(object):
 
         self._actual_executions = 0
 
-        self.log_heartbeat()
+        self._log_on_startup()
 
     def _log_on_startup(self):
         log = self.log
@@ -183,10 +183,10 @@ class timerClassWithFunction(object):
 
     def log_heartbeat_if_required(self):
 
-        time_since_run = self.minutes_since_last_heartbeat()
-        if time_since_run > self.minutes_between_heartbeats:
+        time_since_heartbeat = self.minutes_since_last_heartbeat()
+        if time_since_heartbeat > self.minutes_between_heartbeats:
             self.log_heartbeat()
-        return None
+
 
     def log_heartbeat(self):
         if self.max_executions is INFINITE_EXECUTIONS:
