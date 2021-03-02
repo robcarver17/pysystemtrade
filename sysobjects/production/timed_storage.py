@@ -182,10 +182,6 @@ class listOfEntries(list):
     def arg_names(self) -> list:
         return  getattr(self, "_arg_names", [])
 
-    def remove_none_dates(self):
-        new_list = [entry for entry in self if entry.date is not None]
-        return new_list
-
     def as_list_of_dict(self) -> list:
         list_of_dict = [entry.as_dict() for entry in self]
 
@@ -209,9 +205,8 @@ class listOfEntries(list):
     def final_entry(self):
         if len(self) == 0:
             return missing_data
-        new_list = self.remove_none_dates()
-        new_list.sort()
-        return new_list[-1]
+        self.sort()
+        return self[-1]
 
     def append(self, item):
         previous_final_entry = self.final_entry()
