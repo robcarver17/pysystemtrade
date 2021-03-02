@@ -28,6 +28,8 @@ class timerClassWithFunction(object):
 
         self._actual_executions = 0
 
+        self.log_heartbeat()
+
     def _log_on_startup(self):
         log = self.log
         method_name = self.method_name
