@@ -1,4 +1,4 @@
-import time
+import numpy as np
 import datetime
 
 from syscontrol.report_process_status import reportStatus
@@ -329,8 +329,8 @@ class listOfTimerFunctions(list):
 
     def seconds_until_next_method_runs(self) -> float:
         minutes_remaining = [timer_object.minutes_until_next_run() for timer_object in self]
-        min_minutes = min(minutes_remaining)
-        min_seconds  = min_minutes/60.0
+        min_minutes = np.min(minutes_remaining)
+        min_seconds  = min_minutes*60.0
 
         return min_seconds
 
