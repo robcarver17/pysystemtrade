@@ -40,13 +40,13 @@ class timerClassWithFunction(object):
         max_executions = self.max_executions
 
         if max_executions == INFINITE_EXECUTIONS:
-            exec_string = " until process ends"
+            exec_string = "until process ends"
         else:
             exec_string= "at most %d times" % max_executions
 
         log.msg(
-            "%s will run every %d minutes %s"
-            % (method_name, self.frequency_minutes, exec_string)
+            "%s will run every %d minutes %s with heartbeats every %d minutes"
+            % (method_name, self.frequency_minutes, exec_string, self.minutes_between_heartbeats)
         )
 
 
@@ -91,7 +91,7 @@ class timerClassWithFunction(object):
         return self._actual_executions
 
     @property
-    def exceeded_maximum_executions(self) -> bool:
+    def reached_maximum_executions(self) -> bool:
         return self.actual_executions >= self.max_executions
 
     @property
@@ -119,7 +119,8 @@ class timerClassWithFunction(object):
             return okay_to_run
 
         # normal
-        self.check_if_okay_to_run_normal_run(last_run)
+        okay_to_run = self.check_if_okay_to_run_normal_run(last_run)
+        return okay_to_run
 
     def check_if_okay_to_run_if_runs_at_end_only(self, last_run:bool = False) -> bool:
         if last_run:
@@ -241,7 +242,7 @@ class timerClassWithFunction(object):
             # unlimited
             return False
 
-        if self.exceeded_maximum_executions:
+        if self.reached_maximum_executions:
             return True
 
         return False

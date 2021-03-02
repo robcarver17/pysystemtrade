@@ -198,8 +198,7 @@ class diagControlProcess(productionDataLayerGeneric):
                                                 process_name=process_name,
                                                 frequency_minutes=frequency_minutes,
                                                 max_executions=max_executions,
-                                                run_on_completion_only=run_on_completion_only,
-                                                minutes_between_heartbeats=frequency_minutes)
+                                                run_on_completion_only=run_on_completion_only)
 
         return timer_parameters
 
