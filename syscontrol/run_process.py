@@ -113,7 +113,7 @@ class processToRun(object):
             list_of_timer_functions = self._list_of_timer_functions
             wait_for_next_method_run_time(self)
             for timer_class in list_of_timer_functions:
-                we_should_stop = _check_for_stop(process_running)
+                we_should_stop = _check_for_stop(self)
                 if we_should_stop:
                     is_running = False
                     break
