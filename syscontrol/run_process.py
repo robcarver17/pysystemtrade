@@ -16,17 +16,34 @@ We kick them all off in the crontab at a specific time (midnight is easiest), bu
 - how do I mark myself as FINISHED for a subsequent process to know (in database)
 
 """
-from sysproduction.data.control_process import dataControlProcess, diagControlProcess
-from sysdata.data_blob import dataBlob
-from sysobjects.production.process_control import process_no_run, process_stop, process_running
-from syscontrol.timer_functions import get_list_of_timer_functions, listOfTimerFunctions
+import  datetime
 
-from syscore.objects import (
+from syscore.objects import (arg_not_supplied,
     success,
     failure,
 status
 )
 
+from syscontrol.timer_functions import get_list_of_timer_functions, listOfTimerFunctions
+
+from sysdata.data_blob import dataBlob
+
+from syslogdiag.log import logtoscreen, logger
+
+from sysobjects.production.process_control import process_no_run, process_running, process_stop
+
+from sysproduction.data.control_process import dataControlProcess, diagControlProcess
+
+
+
+
+
+LOG_CLEARED = object()
+NO_LOG_ENTRY = object()
+FREQUENCY_TO_CHECK_LOG_MINUTES = 1
+
+def _store_name(reason, condition):
+    return reason+"/"+condition
 
 
 class processToRun(object):
@@ -64,14 +81,33 @@ class processToRun(object):
         return self._list_of_timer_functions
 
     def _setup(self):
-        self.log = self.data.log
+        self._log = self.data.log
         data_control = dataControlProcess(self.data)
-        self.data_control = data_control
+        self._data_control = data_control
         diag_process = diagControlProcess(self.data)
-        self.diag_process = diag_process
+        self._diag_process = diag_process
+
+        wait_reporter =reportProcessStatus()
+        self._wait_reporter = wait_reporter
+
+    @property
+    def log(self) -> logger:
+        return self._log
+
+    @property
+    def data_control(self) -> dataControlProcess:
+        return self._data_control
+
+    @property
+    def diag_process(self) -> diagControlProcess:
+        return self._diag_process
+
+    @property
+    def wait_reporter(self) -> reportProcessStatus:
+        return self._wait_reporter
 
     def main_loop(self):
-        result_of_starting = self._start_or_wait()
+        result_of_starting = start_or_wait(self)
         if result_of_starting is failure:
             return failure
 
@@ -79,7 +115,7 @@ class processToRun(object):
 
         is_running = True
         while is_running:
-            we_should_stop = self._check_for_stop()
+            we_should_stop = _check_for_stop(self)
             if we_should_stop:
                 break
             self._do()
@@ -88,175 +124,6 @@ class processToRun(object):
 
         return success
 
-    def _start_or_wait(self) -> status:
-        waiting = True
-        while waiting:
-            okay_to_start = self._is_okay_to_start()
-            if okay_to_start:
-                return success
-
-            okay_to_wait = self._is_okay_to_wait_before_starting()
-            if not okay_to_wait:
-                return failure
-
-            self._log_waiting_time()
-
-    def _is_okay_to_start(self) -> bool:
-        """
-        - is my process marked as NO OPEN in process control  (check database): WAIT
-        - is it too early for me to run? (defined in .yaml): WAIT
-        - is there a process I am waiting for to finish first?  (defined in .yaml, check database): WAIT
-        - is my process marked as STOP in process control (check database): DO NOT OPEN
-
-        :return:
-        """
-        process_okay = self._check_if_okay_to_start_process()
-        time_to_run = self.diag_process.is_it_time_to_run(self.process_name)
-        other_process_finished = (
-            self.diag_process.has_previous_process_finished_in_last_day(
-                self.process_name
-            )
-        )
-
-        if (
-            not process_okay
-            or not time_to_run
-            or not other_process_finished
-        ):
-            return False
-
-        return True
-
-    def _log_waiting_time(self):
-        time_to_run = self.diag_process.is_it_time_to_run(self.process_name)
-        other_process_finished = (
-            self.diag_process.has_previous_process_finished_in_last_day(
-                self.process_name
-            )
-        )
-
-        time_to_run_reason = "Waiting to start as not yet time to run"
-        if time_to_run:
-            self._update_status_if_not_waiting_for_reason(time_to_run_reason)
-        else:
-            self._log_reason_for_wait(time_to_run_reason)
-
-        other_process_finished_reason = "Waiting for previous process to finish first"
-        if other_process_finished:
-            self._update_status_if_not_waiting_for_reason(other_process_finished_reason)
-        else:
-            self._log_reason_for_wait(other_process_finished_reason)
-
-        okay_to_run = self.data_control.check_if_okay_to_start_process(
-            self.process_name
-        )
-
-        process_no_run_reason = "Waiting to start as process control set to NO-RUN"
-        if okay_to_run is process_no_run:
-            self._update_status_if_not_waiting_for_reason(process_no_run_reason)
-        else:
-            self._log_reason_for_wait(process_no_run_reason)
-
-    def _log_reason_for_wait(self, reason: str):
-        we_already_logged = self._have_we_logged_reason(reason)
-        if we_already_logged:
-            return None
-        self.log.msg(reason)
-        self._change_status_logging_of_reason(reason, new_status=True)
-
-    def _have_we_logged_reason(self, reason: str) -> bool:
-        log_status = getattr(self, "_log_status", {})
-        status = log_status.get(reason, False)
-        return status
-
-    def _update_status_if_not_waiting_for_reason(self, reason: str):
-        self._change_status_logging_of_reason(reason, new_status=False)
-
-    def _change_status_logging_of_reason(self, reason:str, new_status = True):
-        log_status = getattr(self, "_log_status", {})
-        log_status[reason] = new_status
-        self._log_status = log_status
-
-    def _check_if_okay_to_start_process(self) -> bool:
-        okay_to_run = self.data_control.check_if_okay_to_start_process(
-            self.process_name
-        )
-
-        if okay_to_run is process_running:
-            # already running
-            return False
-
-        elif okay_to_run is process_stop:
-            return False
-
-        elif okay_to_run is process_no_run:
-            return False
-
-        elif okay_to_run is success:
-            return True
-        else:
-            self.log.critical(
-                "Process control returned unknown object %s!" %
-                str(okay_to_run))
-
-    def _is_okay_to_wait_before_starting(self):
-        """
-        - I have run out of time
-        - is my process marked as STOP in process control (check database): DO NOT OPEN
-        - am I running on the correct machine (defined in .yaml): DO NOT OPEN
-
-        :return: bool: True if okay to wait, False if have to stop waiting
-        """
-
-        # check to see if process should have stopped already
-        should_have_stopped = self._check_for_stop()
-
-        if should_have_stopped:
-            # not okay to wait, should have stopped
-            return False
-
-        # check to see if process control status means we can't wait
-        process_flag = self._check_if_okay_to_wait_before_starting_process()
-
-        if not process_flag:
-            self.log.warn(
-                "Can't start process %s because of control process status"
-                % self.process_name
-            )
-            return False
-
-        return True
-
-    def _check_if_okay_to_wait_before_starting_process(self):
-        okay_to_run = self.data_control.check_if_okay_to_start_process(
-            self.process_name
-        )
-
-        if okay_to_run is process_running:
-            self.log.warn(
-                "Can't start process %s at all since already running"
-                % self.process_name
-            )
-            return False
-
-        elif okay_to_run is process_stop:
-            self.log.warn(
-                "Can't start process %s at all since STOPPED by control"
-                % self.process_name
-            )
-            return False
-
-        elif okay_to_run is process_no_run:
-            # wait in case process changes
-            return True
-
-        elif okay_to_run is success:
-            # will 'wait' but on next iteration will run
-            return True
-        else:
-            self.log.critical(
-                "Process control returned unknown object %s!" %
-                str(okay_to_run))
 
     def _run_on_start(self):
         self.data_control.start_process(self.process_name)
@@ -264,61 +131,10 @@ class processToRun(object):
     def _do(self):
         list_of_timer_functions = self._list_of_timer_functions
         for timer_class in list_of_timer_functions:
-            should_pause = self._check_for_pause_and_log()
+            should_pause = check_for_pause_and_log(self)
             if not should_pause:
                 timer_class.check_and_run()
 
-    def _check_for_pause_and_log(self) -> bool:
-        should_pause=self.data_control.check_if_should_pause_process(self.process_name)
-
-        log_string = "Not running methods in process %s because PAUSED" % self.process_name
-        if should_pause:
-            self._log_reason_for_wait(log_string)
-        else:
-            # clear that we've logged in case we pause again
-            self._update_status_if_not_waiting_for_reason(log_string)
-
-        return should_pause
-
-    def _check_for_stop(self) -> bool:
-        """
-        - is my process marked as STOP in process control (check database)
-
-        - is it too late for me to run (definied in .yaml): then I should close down
-        :return: bool
-        """
-
-        process_requires_stop = self._check_for_stop_control_process()
-        all_methods_finished = self._check_if_all_methods_finished()
-        time_to_stop = self._check_for_finish_time()
-
-        if process_requires_stop:
-            self.log.msg("Process control marked as STOP")
-
-        if all_methods_finished:
-            self.log.msg("Finished doing all executions of provided methods")
-
-        if time_to_stop:
-            self.log.msg("Passed finish time of process")
-
-        if process_requires_stop or all_methods_finished or time_to_stop:
-            return True
-
-        return False
-
-    def _check_for_stop_control_process(self) -> bool:
-        check_for_stop = self.data_control.check_if_process_status_stopped(
-            self.process_name
-        )
-
-        return check_for_stop
-
-    def _check_if_all_methods_finished(self) -> bool:
-        check_for_all_methods_finished = self.list_of_timer_functions.all_finished()
-        return check_for_all_methods_finished
-
-    def _check_for_finish_time(self):
-        return self.diag_process.is_it_time_to_stop(self.process_name)
 
     def _finish(self):
         self.list_of_timer_functions.last_run()
@@ -338,5 +154,233 @@ class processToRun(object):
                 "Process control %s marked finished" %
                 self.process_name)
 
+### STARTUP CODE
+
+def start_or_wait(process_to_run: processToRun) -> status:
+    waiting = True
+    while waiting:
+        okay_to_start = _is_okay_to_start(process_to_run)
+        if okay_to_start:
+            return success
+
+        okay_to_wait = _is_okay_to_wait_before_starting(process_to_run)
+        if not okay_to_wait:
+            return failure
 
 
+def _is_okay_to_start(process_to_run: processToRun) -> bool:
+    """
+    - is my process marked as NO OPEN in process control  (check database): WAIT
+    - is it too early for me to run? (defined in .yaml): WAIT
+    - is there a process I am waiting for to finish first?  (defined in .yaml, check database): WAIT
+    - is my process marked as STOP in process control (check database): DO NOT OPEN
+
+    :return:
+    """
+    process_status_okay = _check_if_process_status_is_okay_to_run(process_to_run)
+    time_to_run = _is_it_time_to_run(process_to_run)
+    previous_process_finished = _has_previous_process_finished(process_to_run)
+
+    if process_status_okay and time_to_run and previous_process_finished:
+        return True
+    else:
+        return False
+
+
+NOT_STARTING_CONDITION =  "Not starting process"
+
+def _check_if_process_status_is_okay_to_run(process_to_run: processToRun) -> bool:
+    data_control = process_to_run.data_control
+    process_name = process_to_run.process_name
+    okay_to_run = data_control.check_if_okay_to_start_process(
+        process_name
+    )
+
+    wait_reporter = process_to_run.wait_reporter
+    if okay_to_run is process_running:
+        # already running
+        wait_reporter.report_wait_condition("Already running",NOT_STARTING_CONDITION)
+        return False
+
+    elif okay_to_run is process_stop:
+        wait_reporter.report_wait_condition("Process STOP status", NOT_STARTING_CONDITION)
+        return False
+
+    elif okay_to_run is process_no_run:
+        wait_reporter.report_wait_condition("Process NO RUN status", NOT_STARTING_CONDITION)
+        return False
+
+    elif okay_to_run is success:
+        wait_reporter.clear_all_reasons_for_condition(NOT_STARTING_CONDITION)
+        return True
+
+    else:
+        process_running.log.critical(
+            "Process control returned unknown object %s!" %
+            str(okay_to_run))
+
+def _is_it_time_to_run(process_to_run: processToRun) -> bool:
+    diag_process = process_to_run.diag_process
+    process_name = process_to_run.process_name
+    time_to_run = diag_process.is_it_time_to_run(process_name)
+
+
+    TIME_TO_RUN_REASON = "Not yet time to run"
+    wait_reporter = process_to_run.wait_reporter
+
+    if time_to_run:
+        wait_reporter.clear_wait_condition(TIME_TO_RUN_REASON, NOT_STARTING_CONDITION)
+    else:
+        wait_reporter.report_wait_condition(TIME_TO_RUN_REASON, NOT_STARTING_CONDITION)
+
+    return  time_to_run
+
+def _has_previous_process_finished(process_to_run: processToRun) -> bool:
+    diag_process = process_to_run.diag_process
+    process_name = process_to_run.process_name
+
+    other_process_finished = (
+        diag_process.has_previous_process_finished_in_last_day(
+            process_name
+        )
+    )
+    PREVIOUS_PROCESS_REASON = "Previous process still running"
+    wait_reporter = process_to_run.wait_reporter
+
+    if other_process_finished:
+        wait_reporter.clear_wait_condition(PREVIOUS_PROCESS_REASON, NOT_STARTING_CONDITION)
+    else:
+        wait_reporter.report_wait_condition(PREVIOUS_PROCESS_REASON, NOT_STARTING_CONDITION)
+
+    return other_process_finished
+
+
+
+
+def _is_okay_to_wait_before_starting(process_to_run: processToRun):
+    """
+    - I have run out of time
+    - is my process marked as STOP in process control (check database): DO NOT OPEN
+    - am I running on the correct machine (defined in .yaml): DO NOT OPEN
+
+    :return: bool: True if okay to wait, False if have to stop waiting
+    """
+
+    # check to see if process should have stopped already
+    should_have_stopped = _check_for_stop(process_to_run)
+
+    if should_have_stopped:
+        # not okay to wait, should have stopped already
+        return False
+
+    # check to see if process control status means we can't wait
+    okay_to_wait = _check_if_okay_to_wait_before_starting_process(process_to_run)
+
+    return okay_to_wait
+
+def _check_if_okay_to_wait_before_starting_process(process_to_run: processToRun) -> bool:
+    data_control = process_to_run.data_control
+    process_name = process_to_run.process_name
+
+    okay_to_run = data_control.check_if_okay_to_start_process(
+        process_name
+    )
+
+    if okay_to_run is process_running:
+        process_to_run.log.warn(
+            "Can't start process %s at all since already running"
+            % process_name
+        )
+        return False
+
+    elif okay_to_run is process_stop:
+        process_to_run.log.warn(
+            "Can't start process %s at all since STOPPED by control"
+            % process_name
+        )
+        return False
+
+    elif okay_to_run is process_no_run:
+        # wait in case process changes
+        return True
+
+    elif okay_to_run is success:
+        # edge case in which the status has just been changed will 'wait' but on next iteration will run
+        return True
+    else:
+        msg = \
+            "Process control returned unknown object %s!" % str(okay_to_run)
+        process_to_run.log.critical(msg)
+        raise  Exception(msg)
+
+## PAUSE CODE
+
+def check_for_pause_and_log(process_to_run: processToRun) -> bool:
+    data_control = process_to_run.data_control
+    should_pause=data_control.check_if_should_pause_process(process_to_run.process_name)
+
+    wait_reporter = process_to_run.wait_reporter
+    condition = "Paused running methods"
+    reason = "process status is PAUSE"
+    if should_pause:
+        wait_reporter.report_wait_condition(reason, condition)
+    else:
+        # clear that we've logged in case we pause again
+        wait_reporter.clear_wait_condition(reason, condition)
+
+    return should_pause
+
+
+
+
+## FINISH CODE
+def _check_for_stop(process_to_run: processToRun) -> bool:
+
+    """
+    - is my process marked as STOP in process control (check database)
+
+    - is it too late for me to run (definied in .yaml): then I should close down
+    :return: bool
+    """
+
+    process_requires_stop = _check_for_stop_control_process(process_to_run)
+    all_methods_finished = _check_if_all_methods_finished(process_to_run)
+    time_to_stop = _check_for_finish_time(process_to_run)
+
+    log = process_to_run.log
+
+    if process_requires_stop:
+        log.msg("Process control marked as STOP")
+
+    if all_methods_finished:
+        log.msg("Finished doing all executions of provided methods")
+
+    if time_to_stop:
+        log.msg("Passed finish time of process")
+
+    if process_requires_stop or all_methods_finished or time_to_stop:
+        return True
+    else:
+        return False
+
+def _check_for_stop_control_process(process_to_run: processToRun) -> bool:
+    data_control = process_to_run.data_control
+    process_name = process_to_run.process_name
+
+    check_for_stop = data_control.check_if_process_status_stopped(
+        process_name
+    )
+
+    return check_for_stop
+
+def _check_if_all_methods_finished(process_to_run: processToRun) -> bool:
+    list_of_timer_functions = process_to_run.list_of_timer_functions
+    check_for_all_methods_finished = list_of_timer_functions.all_finished()
+
+    return check_for_all_methods_finished
+
+def _check_for_finish_time(process_to_run: processToRun) -> bool:
+    diag_process = process_to_run.diag_process
+    process_name = process_to_run.process_name
+
+    return diag_process.is_it_time_to_stop(process_name)
