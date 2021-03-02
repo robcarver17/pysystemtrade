@@ -74,7 +74,7 @@ class reportProcessStatus(object):
 
     def clear_wait_condition(self, reason, condition_name:str=""):
         have_we_never_logged_before = self._have_we_never_logged_at_all_before(reason, condition_name)
-        if not have_we_never_logged_before:
+        if have_we_never_logged_before:
             # nothing to clear
             return None
 
