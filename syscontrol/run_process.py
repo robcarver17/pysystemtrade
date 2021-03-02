@@ -219,7 +219,7 @@ class processToRun(object):
         return self._wait_reporter
 
     def main_loop(self):
-        result_of_starting = start_or_wait(self)
+        result_of_starting = _start_or_wait(self)
         if result_of_starting is failure:
             return failure
 
@@ -268,7 +268,7 @@ class processToRun(object):
 
 ### STARTUP CODE
 
-def start_or_wait(process_to_run: processToRun) -> status:
+def _start_or_wait(process_to_run: processToRun) -> status:
     waiting = True
     while waiting:
         okay_to_start = _is_okay_to_start(process_to_run)
@@ -382,11 +382,11 @@ def _is_okay_to_wait_before_starting(process_to_run: processToRun):
         return False
 
     # check to see if process control status means we can't wait
-    okay_to_wait = _check_if_okay_to_wait_before_starting_process()
+    okay_to_wait = _check_if_okay_to_wait_before_starting_process(process_to_run)
 
     return okay_to_wait
 
-def _check_if_okay_to_wait_before_starting_process(process_to_run: processToRun):
+def _check_if_okay_to_wait_before_starting_process(process_to_run: processToRun) -> bool:
     data_control = process_to_run.data_control
     process_name = process_to_run.process_name
 
