@@ -21,7 +21,7 @@ def run_systems():
         process_name,
         data,
         list_of_timer_names_and_functions)
-    system_process.main_loop()
+    system_process.run_process()
 
 def backtest_function_to_be_renamed(self):
     self.run_strategy_method()

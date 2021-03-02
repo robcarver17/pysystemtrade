@@ -95,35 +95,32 @@ class processToRun(object):
     def wait_reporter(self) -> reportProcessStatus:
         return self._wait_reporter
 
-    def main_loop(self):
+    def run_process(self):
         result_of_starting = _start_or_wait(self)
         if result_of_starting is failure:
-            return failure
+            return None
 
         self._run_on_start()
-
-        is_running = True
-        while is_running:
-            we_should_stop = _check_for_stop(self)
-            if we_should_stop:
-                break
-            self._do()
-
+        self._main_loop_over_methods()
         self._finish()
-
-        return success
-
 
     def _run_on_start(self):
         self.data_control.start_process(self.process_name)
 
-    def _do(self):
-        list_of_timer_functions = self._list_of_timer_functions
-        wait_for_next_method_run_time(self)
-        for timer_class in list_of_timer_functions:
-            should_pause = check_for_pause_and_log(self)
-            if not should_pause:
-                timer_class.check_and_run()
+    def _main_loop_over_methods(self):
+        is_running = True
+        while is_running:
+            list_of_timer_functions = self._list_of_timer_functions
+            wait_for_next_method_run_time(self)
+            for timer_class in list_of_timer_functions:
+                we_should_stop = _check_for_stop(process_running)
+                if we_should_stop:
+                    is_running = False
+                    break
+
+                we_should_pause = check_for_pause_and_log(self)
+                if not we_should_pause:
+                    timer_class.check_and_run()
 
 
     def _finish(self):
@@ -309,7 +306,7 @@ def wait_for_next_method_run_time(process_to_run: processToRun):
     list_of_timer_functions = process_to_run.list_of_timer_functions
     seconds_to_next_run = list_of_timer_functions.seconds_until_next_method_runs()
     if seconds_to_next_run>10:
-        process_to_run.log("Sleeping for %d seconds until next method ready to run" % seconds_to_next_run)
+        process_to_run.log.msg("Sleeping for %d seconds until next method ready to run (will react to STOP or PAUSE at that point)" % seconds_to_next_run)
         time.sleep(seconds_to_next_run)
 
 ## PAUSE CODE

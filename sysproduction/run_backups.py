@@ -11,7 +11,7 @@ def run_backups():
     list_of_timer_names_and_functions = get_list_of_timer_functions_for_backup()
     backup_process = processToRun(
         process_name, data, list_of_timer_names_and_functions)
-    backup_process.main_loop()
+    backup_process.run_process()
 
 
 def get_list_of_timer_functions_for_backup():

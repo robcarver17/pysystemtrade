@@ -160,10 +160,14 @@ class timerClassWithFunction(object):
 
 
     def check_if_okay_to_run_normal_run_if_not_last_run(self) -> bool:
-        enough_time_has_passed = self.check_if_enough_time_has_passed_and_report_status()
-        not_exceeded_max = self.check_if_exceeded_max_runs_and_report_status()
 
-        if enough_time_has_passed and not_exceeded_max:
+        exceeded_max = self.check_if_exceeded_max_runs_and_report_status()
+        if exceeded_max:
+            return False
+
+        enough_time_has_passed = self.check_if_enough_time_has_passed_and_report_status()
+
+        if enough_time_has_passed:
             return True
         else:
             return False
@@ -184,9 +188,7 @@ class timerClassWithFunction(object):
 
         exceeded_max = self.completed_max_runs()
         # no need to log as logs last run
-        not_exceeded_max = not exceeded_max
-
-        return not_exceeded_max
+        return exceeded_max
 
 
     def check_if_enough_time_has_elapsed_since_last_run(self) -> bool:

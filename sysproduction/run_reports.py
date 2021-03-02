@@ -13,7 +13,7 @@ def run_reports():
     list_of_timer_names_and_functions = get_list_of_timer_functions_for_reports()
     price_process = processToRun(
         process_name, data, list_of_timer_names_and_functions)
-    price_process.main_loop()
+    price_process.run_process()
 
 
 def get_list_of_timer_functions_for_reports():

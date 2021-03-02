@@ -11,7 +11,7 @@ def run_capital_update():
     capital_process = processToRun(
         process_name, data, list_of_timer_names_and_functions
     )
-    capital_process.main_loop()
+    capital_process.run_process()
 
 
 def get_list_of_timer_functions_for_capital_update():

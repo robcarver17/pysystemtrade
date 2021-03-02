@@ -12,7 +12,7 @@ def run_cleaners():
     cleaning_process = processToRun(
         process_name, data, list_of_timer_names_and_functions
     )
-    cleaning_process.main_loop()
+    cleaning_process.run_process()
 
 
 def get_list_of_timer_functions_for_cleaning():
