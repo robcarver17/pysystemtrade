@@ -2753,6 +2753,22 @@ Example [here](/sysproduction/strategy_code/report_system_classic.py).
 
 # Recovering from a crash - what you can save and how, and what you can't
 
+## General advice
+
+Here's some general advice about recovering from a crash:
+
+- If you're not using IBC restart the IB Gateway; and if you are check it has started ok
+- Temporarily turn off the crontab to stop processes from spawning before you are reading
+- Check you have a mongoDB instance running okay
+
+- Run a full set of reports, and carefully check them, especially the status and reconcile reports, to see that all is well.
+- If neccessary take steps to recover data (see next section)
+- You can use update_*  processes if you want to recover your data before the normal scheduled process will do so. Don't forget to run them in the correct order: update_fx_prices (has to be before run_systems), update_sampled_contracts, update_historical_prices, update_multiple_adjusted_prices, update_strategy_backtests,  update_strategy_orders; at which run_stack_handler will probably have orders to do if it's running.
+- Processes are started by the scheduler, eg Cron, you will need to start them manually if their normal start time has passed (I find [linux screen](https://linuxize.com/post/how-to-use-linux-screen/) helpful for this on my headless server). Everything should work normally the following day.
+
+
+## Data recovery
+
 Let's first consider an awful case where your mongo DB is corrupted, and the backups are also corrupted. In this case you can use the backed up .csv database dump files to recover the following: FX, individual futures contract prices, multiple prices, adjusted prices, position data, historical trades, capital, contract meta-data, instrument data, optimal positions. Note that scripts don't neccessarily exist to do all this automatically yet FIX ME TO DO.
 
 Some other state information relating to the control of trading and processes is also stored in the database and this will be lost, however this can be recovered with a litle work: roll status, trade limits, position limits, and overrides. Log data will also be lost; but archived [echo files](#echos-stdout-output) could be searched if neccessary.
@@ -2770,9 +2786,7 @@ The better case is when the mongo DB is fine. In this case (once you've [restore
 - Capital: any intraday p&l data will be lost, but once run_capital_update has run the current capital will be correct.
 - Optimal positions: will be correct once run_systems has run.
 - IMPORTANT: State information about processes running may be wrong; you may need to manually FINISH processes using interactive_controls otherwise processes won't run for fear of conflict (but the startup script should do this for you)
-- You can use update_*  processes if you want to recover your data before the normal scheduled process will do so. Don't forget to run them in the correct order: update_fx_prices (has to be before run_systems), update_sampled_contracts, update_historical_prices, update_multiple_adjusted_prices, update_strategy_backtests,  update_strategy_orders; at which run_stack_handler will probably have orders to do if it's running.
-- Processes are started by the scheduler, eg Cron, you will need to start them manually if their normal start time has passed (I find [linux screen](https://linuxize.com/post/how-to-use-linux-screen/) helpful for this on my headless server). Everything should work normally the following day.
-- Carefully check your reports, especially the status and reconcile reports, to see that all is well.
+
 
 
 # Reports
