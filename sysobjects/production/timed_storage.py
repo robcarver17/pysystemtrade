@@ -93,7 +93,8 @@ class timedEntry(object):
         date = args_as_dict.pop(DATE_KEY_NAME)
         if date is arg_not_supplied:
             date = datetime.datetime.now()
-            
+
+        assert type(date) is datetime.datetime
 
         self._date = date
         for arg_name in args_as_dict.keys():

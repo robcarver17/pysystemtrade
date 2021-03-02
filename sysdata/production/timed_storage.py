@@ -102,8 +102,6 @@ class listOfEntriesData(baseData):
 
         class_of_entry_list_as_str = new_entry.containing_data_class_name
 
-        class_of_entry_list_as_str = new_entry.containing_data_class_name
-
         self._write_series_for_args_dict(
             args_dict, existing_series,
             class_of_entry_list_as_str = class_of_entry_list_as_str
