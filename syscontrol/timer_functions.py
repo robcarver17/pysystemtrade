@@ -189,12 +189,17 @@ class timerClassWithFunction(object):
         return None
 
     def log_heartbeat(self):
+        if self.max_executions is INFINITE_EXECUTIONS:
+            exec_string = "unlimited"
+        else:
+            exec_string = str(self.max_executions)
+
         self.log.msg(
-            "%s still alive, done %d of %d executions every %d minutes"
+            "%s still alive, done %d of %s executions every %d minutes"
             % (
                 self.method_name,
-                self._actual_executions,
-                self.max_executions,
+                self.actual_executions,
+                exec_string,
                 self.frequency_minutes,
             ),
             type=self.method_name,
