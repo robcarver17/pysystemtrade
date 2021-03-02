@@ -75,6 +75,7 @@ class strategyPositionData(listOfEntriesData):
         self, instrument_strategy: instrumentStrategy
          ) -> historicPosition:
 
+        print(str(instrument_strategy))
         current_position_entry = self._get_current_entry_for_args_dict(
             instrument_strategy.as_dict()
         )
