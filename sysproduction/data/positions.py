@@ -426,7 +426,7 @@ class updatePositions(productionDataLayerGeneric):
         futures_contract_entire_order = contract_order_before_fills.futures_contract
         list_of_individual_contracts = futures_contract_entire_order.as_list_of_individual_contracts()
 
-        time_date = contract_order_before_fills.fill_datetime
+        time_date = datetime.datetime.now()
 
         log = contract_order_before_fills.log_with_attributes(self.log)
 
