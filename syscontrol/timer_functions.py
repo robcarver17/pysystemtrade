@@ -1,3 +1,4 @@
+import time
 import datetime
 
 from syscontrol.report_process_status import reportStatus
@@ -132,12 +133,15 @@ class timerClassWithFunction(object):
 
     def check_if_okay_to_run_if_runs_at_end_only(self, last_run:bool = False) -> bool:
         if last_run:
-            self.report_status.log_status(
+            self.log_msg(
                 "Running %s as this is the final run for process %s" %
                 (self.method_name, self.process_name))
+
             return True
 
         # not the last run, don't run yet
+        # use report status to avoid spamming
+
         self.report_status.log_status("Not running %s as only runs when process %s ends" \
                                       % (self.method_name, self.process_name))
         return False
@@ -145,9 +149,6 @@ class timerClassWithFunction(object):
     def check_if_okay_to_run_normal_run(self, last_run: bool = False) -> bool:
         if last_run:
             # don't run a normal process on last run
-            self.report_status.log_status("Not running %s as don't run normal method when process %s ends" \
-                                          % (self.method_name, self.process_name))
-
             return False
 
         # okay not a last run, so check if timer elapsed enough and we
@@ -159,21 +160,39 @@ class timerClassWithFunction(object):
 
 
     def check_if_okay_to_run_normal_run_if_not_last_run(self) -> bool:
-        enough_time_has_passed = self.check_if_enough_time_has_elapsed_since_last_run()
+        enough_time_has_passed = self.check_if_enough_time_has_passed_and_report_status()
+        not_exceeded_max = self.check_if_exceeded_max_runs_and_report_status()
 
-        if not enough_time_has_passed:
-            self.report_status.log_status("Not enough time has passed since last run of %s in %s" %
-                                          (self.method_name, self.process_name))
+        if enough_time_has_passed and not_exceeded_max:
+            return True
+        else:
             return False
+
+    def check_if_enough_time_has_passed_and_report_status(self) ->bool:
+
+        enough_time_has_passed = self.check_if_enough_time_has_elapsed_since_last_run()
+        enough_time_has_passed_status = "Not enough time has passed since last run of %s in %s" %\
+                                          (self.method_name, self.process_name)
+        if not enough_time_has_passed:
+            self.report_status.log_status(enough_time_has_passed_status)
+        else:
+            self.report_status.clear_status(enough_time_has_passed_status)
+
+        return enough_time_has_passed
+
+    def check_if_exceeded_max_runs_and_report_status(self) -> bool:
 
         exceeded_max = self.completed_max_runs()
         if exceeded_max:
-            self.report_status.log_status("Can't run %s again in %s as exceed maximum runs of %d" %
-                                          (self.method_name, self.process_name, self.max_executions))
-            return  False
+            exceeded_status = "Can't run %s again in %s as exceed maximum runs of %d" % \
+                              (self.method_name, self.process_name, self.max_executions)
+            ## don't use status report here as can't unexceed
+            self.log_msg(exceeded_status)
 
-        ## All good
-        return True
+        not_exceeded_max = not exceeded_max
+
+        return not_exceeded_max
+
 
     def check_if_enough_time_has_elapsed_since_last_run(self) -> bool:
         minutes_until_next_run = self.minutes_until_next_run()
@@ -310,6 +329,13 @@ class listOfTimerFunctions(list):
         for timer_class in self:
             timer_class.check_and_run(last_run=True)
 
+
+    def seconds_until_next_method_runs(self) -> int:
+        minutes_remaining = [timer_object.minutes_until_next_run() for timer_object in self]
+        min_minutes = min(minutes_remaining)
+        min_seconds  = int(min_minutes/60.0)
+
+        return min_seconds
 
 def get_list_of_timer_functions(
         data: dataBlob,

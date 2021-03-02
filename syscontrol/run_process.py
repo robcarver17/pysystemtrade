@@ -16,6 +16,7 @@ We kick them all off in the crontab at a specific time (midnight is easiest), bu
 - how do I mark myself as FINISHED for a subsequent process to know (in database)
 
 """
+import time
 from syscontrol.report_process_status import reportProcessStatus
 from syscore.objects import (success,
                              failure,
@@ -68,6 +69,7 @@ class processToRun(object):
         return self._list_of_timer_functions
 
     def _setup(self):
+        self.data.log.setup(type=self.process_name)
         self._log = self.data.log
         data_control = dataControlProcess(self.data)
         self._data_control = data_control
@@ -78,7 +80,7 @@ class processToRun(object):
         self._wait_reporter = wait_reporter
 
     @property
-    def log(self) -> logger:
+    def log(self):
         return self._log
 
     @property
@@ -117,6 +119,7 @@ class processToRun(object):
 
     def _do(self):
         list_of_timer_functions = self._list_of_timer_functions
+        wait_for_next_method_run_time(self)
         for timer_class in list_of_timer_functions:
             should_pause = check_for_pause_and_log(self)
             if not should_pause:
@@ -299,6 +302,15 @@ def _check_if_okay_to_wait_before_starting_process(process_to_run: processToRun)
         log.critical(error_msg)
         raise Exception(error_msg)
 
+
+## WAIT CODE
+
+def wait_for_next_method_run_time(process_to_run: processToRun):
+    list_of_timer_functions = process_to_run.list_of_timer_functions
+    seconds_to_next_run = list_of_timer_functions.seconds_until_next_method_runs()
+    if seconds_to_next_run>10:
+        process_to_run.log("Sleeping for %d seconds until next method ready to run" % seconds_to_next_run)
+        time.sleep(seconds_to_next_run)
 
 ## PAUSE CODE
 
