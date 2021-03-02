@@ -162,6 +162,11 @@ class controlProcessData(baseData):
         original_process.change_status_to_no_run()
         self._update_control_for_process_name(process_name, original_process)
 
+    def change_status_to_pause(self, process_name: str):
+        original_process = self.get_control_for_process_name(process_name)
+        original_process.change_status_to_pause()
+        self._update_control_for_process_name(process_name, original_process)
+
     def log_start_run_for_method(self, process_name: str, method_name: str):
         original_process = self.get_control_for_process_name(process_name)
         original_process.log_start_run_for_method(method_name)

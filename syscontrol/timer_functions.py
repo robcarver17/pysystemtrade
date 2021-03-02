@@ -24,14 +24,14 @@ class listOfTimerFunctions(list):
             timer_class.check_and_run(last_run=True)
 
 
-def _get_list_of_timer_functions(
+def get_list_of_timer_functions(
         data,
         process_name,
-        list_of_timer_names_and_functions) -> listOfTimerFunctions:
+        list_of_timer_names_and_functions_as_strings) -> listOfTimerFunctions:
     list_of_timer_functions = []
     diag_process = diagControlProcess(data)
 
-    for entry in list_of_timer_names_and_functions:
+    for entry in list_of_timer_names_and_functions_as_strings:
         method_name, object = entry
         function_object = getattr(object, method_name)
 

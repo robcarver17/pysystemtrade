@@ -32,10 +32,10 @@ from sysproduction.data.broker import dataBroker
 
 
 from syslogdiag.email_via_db_interface import retrieve_and_delete_stored_messages
-from sysproduction.diagnostic.reporting import run_report
-from sysproduction.diagnostic.rolls import ALL_ROLL_INSTRUMENTS
-from sysproduction.diagnostic.strategies import ALL_STRATEGIES
-from sysproduction.diagnostic.report_configs import (
+from sysproduction.reporting.reporting_functions import run_report
+from sysproduction.reporting.roll_report import ALL_ROLL_INSTRUMENTS
+from sysproduction.reporting.strategies_report import ALL_STRATEGIES
+from sysproduction.reporting.report_configs import (
     roll_report_config,
     daily_pandl_report_config,
     status_report_config,

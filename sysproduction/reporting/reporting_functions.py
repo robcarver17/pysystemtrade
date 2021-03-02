@@ -6,7 +6,7 @@ from syscore.objects import header, table, body_text
 from sysdata.data_blob import dataBlob
 from syslogdiag.email_via_db_interface import send_production_mail_msg
 
-from sysproduction.diagnostic.report_configs import reportConfig
+from sysproduction.reporting.report_configs import reportConfig
 
 pd.set_option("display.width", 1000)
 pd.set_option("display.max_columns", 1000)

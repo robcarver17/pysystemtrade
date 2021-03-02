@@ -300,6 +300,9 @@ class controlProcess(object):
     def change_status_to_no_run(self):
         self._status = no_run_status
 
+    def change_status_to_pause(self):
+        self._status = pause_status
+
     def as_printable_list(self):
         run_string = self.running_mode_str
         status_string = f"{''+self.status:<7}"

@@ -20,7 +20,7 @@ from sysproduction.data.control_process import dataControlProcess, diagControlPr
 from sysproduction.data.prices import get_valid_instrument_code_from_user
 from sysproduction.data.strategies import get_valid_strategy_name_from_user
 from sysproduction.data.positions import diagPositions
-from sysproduction.diagnostic.risk import get_risk_data_for_instrument
+from sysproduction.reporting.risk_report import get_risk_data_for_instrument
 
 def interactive_controls():
     with dataBlob(log_name="Interactive-Controls") as data:
@@ -415,6 +415,7 @@ def get_valid_status_for_process():
             1: "Go",
             2: "Do not run (don't stop if already running)",
             3: "Stop (and don't run if not started)",
+            4: "Pause (carry on running process, but don't run methods)"
         },
         default_option=0,
         default_str="<CANCEL>",
@@ -430,6 +431,8 @@ def change_process_given_int(data, process_name, status_int):
         data_process.change_status_to_no_run(process_name)
     if status_int == 3:
         data_process.change_status_to_stop(process_name)
+    if status_int == 4:
+        data_process.change_status_to_pause(process_name)
 
 
 def get_process_name(data):

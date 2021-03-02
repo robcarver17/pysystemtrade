@@ -54,6 +54,11 @@ class dataControlProcess(productionDataLayerGeneric):
 
         return result
 
+    def check_if_should_pause_process(self, process_name: str)-> bool:
+        result = self.db_control_process_data.check_if_should_pause_process(process_name)
+
+        return result
+
     def finish_process(self, process_name: str) -> named_object:
         """
 
@@ -91,6 +96,10 @@ class dataControlProcess(productionDataLayerGeneric):
 
     def change_status_to_no_run(self, process_name: str):
         self.db_control_process_data.change_status_to_no_run(process_name)
+
+    def change_status_to_pause(self, process_name: str):
+        self.db_control_process_data.change_status_to_pause(process_name)
+
 
     def has_process_finished_in_last_day(self, process_name: str) -> bool:
         has_it_finished_in_last_day = self.db_control_process_data.has_process_finished_in_last_day(

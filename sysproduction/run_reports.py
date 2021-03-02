@@ -1,5 +1,5 @@
 from syscontrol.run_process import processToRun
-from sysproduction.diagnostic.report_configs import all_configs
+from sysproduction.reporting.report_configs import all_configs
 
 from sysdata.data_blob import dataBlob
 
@@ -32,7 +32,7 @@ def get_list_of_timer_functions_for_reports():
     return list_of_timer_names_and_functions
 
 
-from sysproduction.diagnostic.reporting import run_report
+from sysproduction.reporting.reporting_functions import run_report
 
 
 class runReport(object):

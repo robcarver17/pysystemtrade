@@ -1,6 +1,6 @@
 from copy import copy
 
-from sysproduction.diagnostic.rolls import ALL_ROLL_INSTRUMENTS
+from sysproduction.reporting.roll_report import ALL_ROLL_INSTRUMENTS
 
 class reportConfig(object):
     def __init__(self, title, function, output="console", **kwargs):
@@ -39,40 +39,40 @@ class reportConfig(object):
 
 status_report_config = reportConfig(
     title="Status report",
-    function="sysproduction.diagnostic.system_status.system_status",
+    function="sysproduction.reporting.status_reporting.system_status",
 )
 
 roll_report_config = reportConfig(
     title="Roll report",
-    function="sysproduction.diagnostic.rolls.roll_info",
+    function="sysproduction.reporting.roll_report.roll_info",
     instrument_code=ALL_ROLL_INSTRUMENTS,
 )
 
 daily_pandl_report_config = reportConfig(
     title="One day P&L report",
-    function="sysproduction.diagnostic.profits.pandl_info",
+    function="sysproduction.reporting.pandl_report.pandl_info",
     calendar_days_back=1,
 )
 
 reconcile_report_config = reportConfig(
     title="Reconcile report",
-    function="sysproduction.diagnostic.reconcile.reconcile_info",
+    function="sysproduction.reporting.reconcile_report.reconcile_info",
 )
 
 trade_report_config = reportConfig(
     title="Trade report",
-    function="sysproduction.diagnostic.trades.trades_info",
+    function="sysproduction.reporting.trades_report.trades_info",
     calendar_days_back=1,
 )
 
 strategy_report_config = reportConfig(
     title="Strategy report",
-    function="sysproduction.diagnostic.strategies.strategy_report",
+    function="sysproduction.reporting.strategies_report.strategy_report",
 )
 
 risk_report_config = reportConfig(
     title= "Risk report",
-    function="sysproduction.diagnostic.risk.risk_report"
+    function="sysproduction.reporting.risk_report.risk_report"
 )
 
 ## The reports will be run in this order
