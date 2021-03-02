@@ -73,8 +73,8 @@ class reportProcessStatus(object):
         _ = [self.clear_wait_condition(reason, condition_name) for reason in list_of_reasons]
 
     def clear_wait_condition(self, reason, condition_name:str=""):
-        have_we_logged_before = self._have_we_logged_at_all_before(reason, condition_name)
-        if not have_we_logged_before:
+        have_we_never_logged_before = self._have_we_never_logged_at_all_before(reason, condition_name)
+        if not have_we_never_logged_before:
             # nothing to clear
             return None
 
@@ -121,7 +121,7 @@ class reportProcessStatus(object):
 
         return last_log_time is LOG_CLEARED
 
-    def _have_we_logged_at_all_before(self, reason:str, condition_name: str) -> bool:
+    def _have_we_never_logged_at_all_before(self, reason:str, condition_name: str) -> bool:
         last_log_time = self._get_last_log_time(reason, condition_name)
 
         return last_log_time is NO_LOG_ENTRY
