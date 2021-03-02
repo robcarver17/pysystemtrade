@@ -183,12 +183,7 @@ class timerClassWithFunction(object):
     def check_if_exceeded_max_runs_and_report_status(self) -> bool:
 
         exceeded_max = self.completed_max_runs()
-        if exceeded_max:
-            exceeded_status = "Can't run %s again in %s as exceed maximum runs of %d" % \
-                              (self.method_name, self.process_name, self.max_executions)
-            ## don't use status report here as can't unexceed
-            self.log_msg(exceeded_status)
-
+        # no need to log as logs last run
         not_exceeded_max = not exceeded_max
 
         return not_exceeded_max
