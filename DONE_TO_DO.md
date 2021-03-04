@@ -1,5 +1,8 @@
 # Release notes
 
+# Version 0.85
+
+Upgraded to Pandas 1.2.3 and Arctic 1.80.0
 Added 'Pause' process status
 Refactored and tidied control code
 Control process now sleep when not needed to save energy
