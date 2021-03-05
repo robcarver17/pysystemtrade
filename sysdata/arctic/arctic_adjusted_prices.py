@@ -54,7 +54,7 @@ class arcticFuturesAdjustedPricesData(futuresAdjustedPricesData):
     def _add_adjusted_prices_without_checking_for_existing_entry(
         self, instrument_code: str, adjusted_price_data: futuresAdjustedPrices
     ):
-        adjusted_price_data_aspd = pd.Series(adjusted_price_data)
+        adjusted_price_data_aspd = pd.DataFrame(adjusted_price_data)
         adjusted_price_data_aspd.columns = ['price']
         adjusted_price_data_aspd = adjusted_price_data_aspd.astype(float)
         self.arctic.write(instrument_code, adjusted_price_data_aspd)
