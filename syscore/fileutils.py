@@ -17,7 +17,7 @@ import sysdata
 import sysexecution
 import systems
 import sysinit
-import  syslog
+import  syslogdiag
 import  sysobjects
 import sysproduction
 
