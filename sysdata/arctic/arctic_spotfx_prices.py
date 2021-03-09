@@ -49,7 +49,7 @@ class arcticFxPricesData(fxPricesData):
         self, currency_code: str, fx_price_data: fxPrices
     ):
         self.log.label(currency_code=currency_code)
-        fx_price_data_aspd = pd.Series(fx_price_data)
+        fx_price_data_aspd = pd.DataFrame(fx_price_data)
         fx_price_data_aspd.columns = ['price']
         fx_price_data_aspd = fx_price_data_aspd.astype(float)
 

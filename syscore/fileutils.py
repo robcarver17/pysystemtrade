@@ -11,14 +11,14 @@ import examples
 import private
 import data
 import sysbrokers
-import  syscontrol
+import syscontrol
 import syscore
 import sysdata
 import sysexecution
 import systems
 import sysinit
-import  syslog
-import  sysobjects
+import syslogdiag
+import sysobjects
 import sysproduction
 
 def does_file_exist(filename:str):
