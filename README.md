@@ -60,12 +60,9 @@ This package isn't hosted on pip. So to get the code the easiest way is to use g
 
 ```
 git clone https://github.com/robcarver17/pysystemtrade.git
-python3 setup.py develop
-```
-Notice that develop mode is required so that ipython sessions can see files inside subdirectories which would otherwise be inaccessible.
-If you're not using ipython (the user flag is recommended):
-```
-python3 setup.py install --user
+python3 setup.py install # normal
+python3 setup.py develop # required if using ipython so sessions can see files inside subdirectories which would otherwise be inaccessible.
+
 ```
 
 
