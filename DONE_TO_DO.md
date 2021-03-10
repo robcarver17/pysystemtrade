@@ -1,5 +1,9 @@
 # Release notes
 
+## Version 0.85
+**WARNING! FROM VERSION 0.85.0 IS A MAJOR UPGRADE. SEE [pandas_upgrade](pandas_upgrade.md) BEFORE DOING ANYTHING!
+
+Upgraded pandas and arctic versions
 Added 'Pause' process status
 Refactored and tidied control code
 Control process now sleep when not needed to save energy

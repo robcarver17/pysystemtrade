@@ -235,6 +235,8 @@ class listOfPositionsWithInstruments(listOfPositions):
     def instrument_code_list(self) -> list:
         instrument_code_list = [str(position.instrument_code)
                                 for position in self]
+        ## unique
+        instrument_code_list = list(set(instrument_code_list))
 
         return instrument_code_list
 

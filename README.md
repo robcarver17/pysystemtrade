@@ -7,8 +7,9 @@ Rob Carver
 [https://qoppac.blogspot.com/p/pysystemtrade.html](https://qoppac.blogspot.com/p/pysystemtrade.html)
 
 
-Version 0.82.0
+Version 0.85.0
  
+**WARNING! FROM VERSION 0.80 TO 0.85.0 IS A MAJOR UPGRADE. SEE [pandas_upgrade](pandas_upgrade.md) BEFORE DOING ANYTHING!
 
 20210305
 
@@ -60,12 +61,9 @@ This package isn't hosted on pip. So to get the code the easiest way is to use g
 
 ```
 git clone https://github.com/robcarver17/pysystemtrade.git
-python3 setup.py develop
-```
-Notice that develop mode is required so that ipython sessions can see files inside subdirectories which would otherwise be inaccessible.
-If you're not using ipython (the user flag is recommended):
-```
-python3 setup.py install --user
+python3 setup.py install # normal
+python3 setup.py develop # required if using ipython so sessions can see files inside subdirectories which would otherwise be inaccessible.
+
 ```
 
 
