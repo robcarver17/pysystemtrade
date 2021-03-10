@@ -8,6 +8,8 @@ AHL Arctic later versions *cannot* read pandas Series objects. Unfortunately bot
 
 If you do not do this, then you won't be able to read your old adjusted price and spot FX data. The latter can be regenerated from .csv backups, whilst the former will be automatically generated from multiple price data.
 
+As always, it's advisable to back up your data before undertaking any upgrade.
+
 ## REQUIREMENTS FOR RUNNING VERSION 0.85.0
 
 This new version has been tested on python 3.8.5, pandas 1.0.5, and Arctic 1.79.2
