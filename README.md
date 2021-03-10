@@ -11,7 +11,8 @@ Version 0.85.0
  
 **WARNING! FROM VERSION 0.80 TO 0.85.0 IS A MAJOR UPGRADE. SEE [pandas_upgrade](pandas_upgrade.md) BEFORE DOING ANYTHING!
 
-20210301
+20210305
+
 
 
 ## Release notes
