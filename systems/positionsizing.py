@@ -1,7 +1,7 @@
 from sysdata.config.defaults import get_default_config_key_value
 from systems.stage import SystemStage
 from syscore.dateutils import ROOT_BDAYS_INYEAR
-from syscore.algos import robust_vol_calc
+from sysquant.estimators.vol import robust_vol_calc
 from systems.system_cache import input, diagnostic, output
 
 

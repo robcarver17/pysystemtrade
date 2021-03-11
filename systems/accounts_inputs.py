@@ -3,7 +3,7 @@ import pandas as pd
 from systems.stage import SystemStage
 from systems.system_cache import input, dont_cache, diagnostic, output
 
-from syscore.algos import robust_vol_calc
+from sysquant.estimators.vol import robust_vol_calc
 from syscore.algos import apply_buffer
 from sysobjects.instruments import instrumentCosts
 

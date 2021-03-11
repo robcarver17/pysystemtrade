@@ -8,7 +8,7 @@ import unittest as ut
 import numpy as np
 
 from syscore.pdutils import pd_readcsv
-from syscore.algos import robust_vol_calc
+from sysquant.estimators.vol import robust_vol_calc
 from syscore.fileutils import get_filename_for_package
 
 

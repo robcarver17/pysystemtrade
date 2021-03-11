@@ -46,8 +46,27 @@ class RawData(SystemStage):
 
         return dailyprice
 
+    @input
+    def get_natural_frequency_prices(self, instrument_code: str) -> pd.Series:
+        self.log.msg(
+            "Retrieving natural prices for %s" % instrument_code,
+            instrument_code=instrument_code,
+        )
+
+        natural_prices = self.parent.data.get_raw_price(instrument_code)
+
+        return natural_prices
+
+    @input
+    def get_hourly_prices(self, instrument_code: str) -> pd.Series:
+        raw_prices = self.get_natural_frequency_prices(instrument_code)
+
+        hourly_prices = raw_prices.resample("1H").last()
+
+        return hourly_prices
+
     @output()
-    def daily_denominator_price(self, instrument_code):
+    def daily_denominator_price(self, instrument_code: str) -> pd.Series:
         """
         Gets daily prices for use with % volatility
         This won't always be the same as the normal 'price' which is normally a cumulated total return series
@@ -74,7 +93,7 @@ class RawData(SystemStage):
         return dem_returns
 
     @output()
-    def daily_returns(self, instrument_code):
+    def daily_returns(self, instrument_code: str) -> pd.Series:
         """
         Gets daily returns (not % returns)
 
@@ -99,7 +118,7 @@ class RawData(SystemStage):
         return dailyreturns
 
     @output()
-    def daily_returns_volatility(self, instrument_code):
+    def daily_returns_volatility(self, instrument_code: str) -> pd.Series:
         """
         Gets volatility of daily returns (not % returns)
 
@@ -135,7 +154,7 @@ class RawData(SystemStage):
         2015-12-10  0.054145
         2015-12-11  0.058522
         >>>
-        >>> config=Config(dict(volatility_calculation=dict(func="syscore.algos.robust_vol_calc", days=200)))
+        >>> config=Config(dict(volatility_calculation=dict(func="sysquant.estimators.vol.robust_vol_calc", days=200)))
         >>> system2=System([rawdata], data, config)
         >>> system2.rawdata.daily_returns_volatility("EDOLLAR").tail(2)
                          vol
@@ -161,7 +180,7 @@ class RawData(SystemStage):
         return vol
 
     @output()
-    def get_percentage_returns(self, instrument_code):
+    def get_daily_percentage_returns(self, instrument_code: str) -> pd.Series:
         """
         Get percentage returns
 
@@ -181,7 +200,7 @@ class RawData(SystemStage):
         return perc_returns
 
     @output()
-    def get_daily_percentage_volatility(self, instrument_code):
+    def get_daily_percentage_volatility(self, instrument_code: str) -> pd.Series:
         """
         Get percentage returns normalised by recent vol
 
@@ -211,7 +230,7 @@ class RawData(SystemStage):
         return perc_vol
 
     @diagnostic()
-    def norm_returns(self, instrument_code):
+    def get_daily_vol_normalised_returns(self, instrument_code: str) -> pd.Series:
         """
         Get returns normalised by recent vol
 
@@ -228,7 +247,7 @@ class RawData(SystemStage):
         >>>
         >>> (rawdata, data, config)=get_test_object()
         >>> system=System([rawdata], data)
-        >>> system.rawdata.norm_returns("EDOLLAR").tail(2)
+        >>> system.rawdata.get_daily_vol_normalised_returns("EDOLLAR").tail(2)
                     norm_return
         2015-12-10    -1.219510
         2015-12-11     1.985413
@@ -244,7 +263,7 @@ class RawData(SystemStage):
         return norm_return
 
     @diagnostic()
-    def cumulative_norm_return(self, instrument_code):
+    def get_cumulative_daily_vol_normalised_returns(self, instrument_code: str) -> pd.Series:
         """
         Returns a cumulative normalised return. This is like a price, but with equal expected vol
         Used for a few different trading rules
@@ -257,14 +276,14 @@ class RawData(SystemStage):
             "Calculating cumulative normalised return for %s" %
             instrument_code, instrument_code=instrument_code, )
 
-        norm_returns = self.norm_returns(instrument_code)
+        norm_returns = self.get_daily_vol_normalised_returns(instrument_code)
 
         cum_norm_returns = norm_returns.cumsum()
 
         return cum_norm_returns
 
     @diagnostic()
-    def _aggregate_normalised_returns_for_asset_class(self, asset_class):
+    def _aggregate_daily_vol_normalised_returns_for_asset_class(self, asset_class: str) -> pd.Series:
         """
         Average normalised returns across an asset class
 
@@ -276,7 +295,7 @@ class RawData(SystemStage):
             asset_class)
 
         aggregate_returns_across_asset_class = [
-            self.norm_returns(instrument_code)
+            self.get_daily_vol_normalised_returns(instrument_code)
             for instrument_code in instruments_in_asset_class
         ]
 
@@ -291,7 +310,7 @@ class RawData(SystemStage):
         return median_returns
 
     @diagnostic()
-    def _by_asset_class_normalised_price_for_asset_class_(self, asset_class):
+    def _by_asset_class_daily_vol_normalised_price_for_asset_class(self, asset_class: str) -> pd.Series:
         """
         Price for an asset class, built up from cumulative returns
 
@@ -299,14 +318,14 @@ class RawData(SystemStage):
         :return: pd.Series
         """
 
-        norm_returns = self._aggregate_normalised_returns_for_asset_class(
+        norm_returns = self._aggregate_daily_vol_normalised_returns_for_asset_class(
             asset_class)
         norm_price = norm_returns.cumsum()
 
         return norm_price
 
     @output()
-    def normalised_price_for_asset_class(self, instrument_code):
+    def normalised_price_for_asset_class(self, instrument_code: str) -> pd.Series:
         """
 
         :param instrument_code:
@@ -316,9 +335,9 @@ class RawData(SystemStage):
         asset_class = self.parent.data.asset_class_for_instrument(
             instrument_code)
         normalised_price_for_asset_class = (
-            self._by_asset_class_normalised_price_for_asset_class_(asset_class)
+            self._by_asset_class_daily_vol_normalised_price_for_asset_class(asset_class)
         )
-        normalised_price_this_instrument = self.cumulative_norm_return(
+        normalised_price_this_instrument = self.get_cumulative_daily_vol_normalised_returns(
             instrument_code)
 
         # Align for an easy life
@@ -327,26 +346,6 @@ class RawData(SystemStage):
             normalised_price_this_instrument.index).ffill()
 
         return normalised_price_for_asset_class
-
-    @output()
-    def get_skew(self, instrument_code):
-        """
-        Get percentage returns
-
-        Useful statistic, also used for some trading rules
-
-        This is an optional subsystem; forecasts can go straight to system.data
-        :param instrument_code: Instrument to get prices for
-        :type trading_rules: str
-
-        :returns: Tx1 pd.DataFrame
-        """
-
-        denom_price = self.daily_denominator_price(instrument_code)
-        num_returns = self.daily_returns(instrument_code)
-        perc_returns = num_returns / denom_price.ffill()
-
-        return perc_returns
 
 
 if __name__ == "__main__":

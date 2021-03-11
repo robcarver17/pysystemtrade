@@ -38,7 +38,7 @@ class Test(unittest.TestCase):
     @unittest.SkipTest
     def test_norm_returns(self):
         self.assertAlmostEqual(
-            self.system.rawdata.norm_returns("EDOLLAR").tail(1).values[0],
+            self.system.rawdata.get_daily_vol_normalised_returns("EDOLLAR").tail(1).values[0],
             -0.67556593,
             places=6,
         )

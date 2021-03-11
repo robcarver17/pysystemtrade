@@ -74,15 +74,13 @@ data.get_instrument_raw_carry_data("EDOLLAR").tail(6)
 
 Let's create a simple trading rule.
 
-
 ```python
 
 import pandas as pd
-from syscore.algos import robust_vol_calc
+from sysquant.estimators.vol import robust_vol_calc
+
 
 def calc_ewmac_forecast(price, Lfast, Lslow=None):
-
-
     """
     Calculate the ewmac trading fule forecast, given a price and EWMA speeds Lfast, Lslow and vol_lookback
 
@@ -93,15 +91,15 @@ def calc_ewmac_forecast(price, Lfast, Lslow=None):
 
     price = price.resample("1B").last()
     if Lslow is None:
-        Lslow=4*Lfast
+        Lslow = 4 * Lfast
 
     ## We don't need to calculate the decay parameter, just use the span directly
 
-    fast_ewma=price.ewm(span=Lfast).mean()
-    slow_ewma=price.ewm(span=Lslow).mean()
-    raw_ewmac=fast_ewma - slow_ewma
+    fast_ewma = price.ewm(span=Lfast).mean()
+    slow_ewma = price.ewm(span=Lslow).mean()
+    raw_ewmac = fast_ewma - slow_ewma
 
-    vol=robust_vol_calc(price.diff())    
+    vol = robust_vol_calc(price.diff())
 
     return raw_ewmac / vol
 

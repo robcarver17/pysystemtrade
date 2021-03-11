@@ -12,7 +12,7 @@ from scipy.stats import skew, ttest_rel, ttest_1samp
 import scipy.stats as stats
 import random
 
-from syscore.algos import robust_vol_calc
+from sysquant.estimators.vol import robust_vol_calc
 from syscore.pdutils import drawdown
 from syscore.dateutils import (
     BUSINESS_DAYS_IN_YEAR,

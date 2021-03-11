@@ -3,7 +3,7 @@ Trading rules for futures system
 """
 from syscore.dateutils import ROOT_BDAYS_INYEAR
 import pandas as pd
-from syscore.algos import robust_vol_calc
+from sysquant.estimators.vol import robust_vol_calc
 
 
 def ewmac(price, vol, Lfast, Lslow):

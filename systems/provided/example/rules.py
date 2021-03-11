@@ -2,7 +2,7 @@
 Simple trading rules used in examples
 """
 import pandas as pd
-from syscore.algos import robust_vol_calc
+from sysquant.estimators.vol import robust_vol_calc
 
 
 def ewmac_forecast_with_defaults(price, Lfast=32, Lslow=128):

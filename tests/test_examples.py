@@ -1,5 +1,5 @@
 from sysdata.sim.csv_futures_sim_data import csvFuturesSimData
-from syscore.algos import robust_vol_calc
+from sysquant.estimators.vol import robust_vol_calc
 from syscore.accounting import accountCurve
 from systems.provided.example.rules import ewmac_forecast_with_defaults as ewmac
 from systems.forecasting import Rules

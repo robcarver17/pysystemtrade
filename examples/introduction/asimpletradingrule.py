@@ -51,7 +51,7 @@ Let's create a simple trading rule
 No capping or scaling
 """
 
-from syscore.algos import robust_vol_calc
+from sysquant.estimators.vol import robust_vol_calc
 
 
 def calc_ewmac_forecast(price, Lfast, Lslow=None):
