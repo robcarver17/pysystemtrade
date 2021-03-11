@@ -1,6 +1,6 @@
 from syscore.objects import get_methods
-from syslogdiag.log import logtoscreen
-
+from syslogdiag.log import logger
+from systems.basesystem import System
 
 class SystemStage(object):
     """
@@ -19,25 +19,22 @@ class SystemStage(object):
     Name: stage_name
     """
 
-    def __init__(self):
-        """"""
+    @property
+    def name(self):
+        return self._name()
 
-        # We set these to empty lists but in the inherited object they'll be
-        # overriden
-        setattr(self, "_protected", [])
-        setattr(self, "name", self._name())
-        setattr(self, "description", self._description())
-
-        # this will normally be overriden by the base system when we call
-        # _system_init
-        setattr(self, "log", logtoscreen("generic_stage", stage="config"))
-
-    def _name(self):
+    def _name(self) -> str:
         # normally overriden
+        # REPLACE WITH name property in inherited methods
         return "unnamed"
 
-    def _description(self):
+    @property
+    def description(self) -> str:
+        return self._description()
+
+    def _description(self) -> str:
         # normally overriden
+        ## REPLACE WITH PROPERTY
         return ""
 
     def __repr__(self):
@@ -50,10 +47,20 @@ class SystemStage(object):
     def methods(self):
         return get_methods(self)
 
-    def _system_init(self, system):
+    def _system_init(self, system: System):
         # method called once we have a system
-        setattr(self, "parent", system)
+        self._parent = system
 
         # and a log
         log = system.log.setup(stage=self.name)
-        setattr(self, "log", log)
+        self._log = log
+
+    @property
+    def log(self) -> logger:
+        log = getattr(self, "_log", None)
+        return log
+
+    @property
+    def parent(self) -> System:
+        parent  = getattr(self, "_parent", None)
+        return parent
