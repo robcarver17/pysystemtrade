@@ -8,7 +8,8 @@ from sysdata.config.configdata import Config
 
 
 class testStage1(SystemStage):
-    def _name(self):
+    @property
+    def name(self):
         return "test_stage1"
 
     @diagnostic()
@@ -43,7 +44,8 @@ class testStage1(SystemStage):
 
 
 class testStage2(SystemStage):
-    def _name(self):
+    @property
+    def name(self):
         return "test_stage2"
 
     @input
