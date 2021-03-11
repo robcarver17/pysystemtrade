@@ -21,33 +21,19 @@ class SystemStage(object):
 
     @property
     def name(self):
-        return self._name()
+         return "Need to replace method when inheriting"
 
-    def _name(self) -> str:
-        # normally overriden
-        # REPLACE WITH name property in inherited methods
-        return "unnamed"
-
-    @property
-    def description(self) -> str:
-        return self._description()
-
-    def _description(self) -> str:
-        # normally overriden
-        ## REPLACE WITH PROPERTY
-        return ""
 
     def __repr__(self):
-        return "SystemStage '%s' %s Try %s.methods()" % (
+        return "SystemStage '%s' Try %s.methods()" % (
             self.name,
-            self.description,
             self.name,
         )
 
     def methods(self):
         return get_methods(self)
 
-    def _system_init(self, system: System):
+    def system_init(self, system: System):
         # method called once we have a system
         self._parent = system
 

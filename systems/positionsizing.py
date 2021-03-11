@@ -1,9 +1,8 @@
-from systems.defaults import get_default_config_key_value
+from sysdata.config.defaults import get_default_config_key_value
 from systems.stage import SystemStage
-from systems.basesystem import ALL_KEYNAME
 from syscore.dateutils import ROOT_BDAYS_INYEAR
 from syscore.algos import robust_vol_calc
-from systems.system_cache import input, dont_cache, diagnostic, output
+from systems.system_cache import input, diagnostic, output
 
 
 class PositionSizing(SystemStage):
@@ -35,7 +34,8 @@ class PositionSizing(SystemStage):
     Name: positionSize
     """
 
-    def _name(self):
+    @property
+    def name(self):
         return "positionSize"
 
     @input

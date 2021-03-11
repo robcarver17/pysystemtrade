@@ -2,7 +2,6 @@ import pandas as pd
 
 from syscore.objects import get_methods
 from sysdata.base_data import baseData
-from systems.basesystem import System
 
 from sysobjects.spot_fx_prices import fxPrices
 from sysobjects.instruments import instrumentCosts
@@ -59,7 +58,7 @@ class simData(baseData):
         return self.get_instrument_list()
 
 
-    def _system_init(self, base_system: System):
+    def system_init(self, base_system: 'System'):
         """
         This is run when added to a base system
 

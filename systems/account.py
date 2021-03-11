@@ -3,9 +3,8 @@ import pandas as pd
 import numpy as np
 
 from syscore.accounting import accountCurve, accountCurveGroup, weighted
-from systems.basesystem import ALL_KEYNAME
-from systems.defaults import get_default_config_key_value
-from systems.system_cache import input, dont_cache, diagnostic, output
+from sysdata.config.defaults import get_default_config_key_value
+from systems.system_cache import dont_cache, diagnostic, output
 from systems.accounts_inputs import _AccountInput
 
 from syscore.algos import apply_buffer
@@ -28,8 +27,8 @@ class _AccountCosts(_AccountInput):
     This part deals with calculating costs and turnover
     """
 
-    def _name(self):
-        return "*do not use independently*"
+
+
 
     @diagnostic()
     def get_SR_cost(self, instrument_code):
@@ -491,8 +490,6 @@ class _AccountInstruments(_AccountInstrumentForecast):
     This part deals with p&l for instruments
     """
 
-    def _name(self):
-        return "*do not use independently*"
 
     @diagnostic(not_pickable=True)
     def pandl_for_subsystem(
@@ -758,8 +755,6 @@ class _AccountTradingRules(_AccountInstrumentForecast):
     This part deals with accounting for trading rules
     """
 
-    def _name(self):
-        return "*do not use independently*"
 
     @diagnostic(not_pickable=True)
     def pandl_for_all_trading_rules(self, delayfill=True):
@@ -1049,8 +1044,6 @@ class _AccountActual(_AccountCosts):
     See blog post: https://qoppac.blogspot.com/2016/06/capital-correction-pysystemtrade.html
     """
 
-    def _name(self):
-        return "*do not use independently*"
 
     @diagnostic()
     def capital_multiplier(self, delayfill=True, roundpositions=False):
@@ -1258,8 +1251,10 @@ class Account(_AccountActual, _AccountTradingRules, _AccountInstruments):
     Name: accounts
     """
 
-    def _name(self):
+    @property
+    def name(self):
         return "accounts"
+
 
     @output(not_pickable=True)
     def portfolio(self, delayfill=True, roundpositions=True):
