@@ -1,8 +1,11 @@
+import  datetime
 import itertools
 
 from syscore.objects import missing_data, arg_not_supplied
 from sysdata.base_data import baseData
-from syslogdiag.log import logger, logEntry, LEVEL_ID, INVERSE_MAP, logtoscreen
+from syslogdiag.logger import logger, DEFAULT_LOG_LEVEL
+from syslogdiag.log_entry import INVERSE_MAP, LEVEL_ID, logEntry
+from syslogdiag.log_to_screen import logtoscreen
 
 from syslogdiag.email_via_db_interface import send_production_mail_msg
 
@@ -16,22 +19,26 @@ class logToDb(logger):
 
     """
 
-    def __init__(self, type, data=None, log_level="Off", **kwargs):
+    def __init__(self, type, data: 'dataBlob'=None,
+                 log_level: str=DEFAULT_LOG_LEVEL,
+
+                 **kwargs):
         self.data = data
         super().__init__(type=type, log_level=log_level, **kwargs)
 
-    def log_handle_caller(self, msglevel, text, input_attributes, log_id):
+
+    def log_handle_caller(self,
+                          msglevel: int,
+                          text: str,
+                          attributes: dict,
+                          log_id: int):
         """
         Ignores log_level - logs everything, just in case
 
         Doesn't raise exceptions
 
         """
-        log_entry = logEntry(
-            text,
-            msglevel=msglevel,
-            input_attributes=input_attributes,
-            log_id=log_id)
+        log_entry = logEntry(text, msglevel=msglevel, attributes=attributes, log_id=log_id)
         print(log_entry)
 
         self.add_log_record(log_entry)
@@ -51,16 +58,18 @@ class logToDb(logger):
 
 
 class logData(baseData):
-    def __init__(self, log = logger("logData")):
+    def __init__(self, log: logger = logtoscreen("logData")):
         super().__init__(log=log)
 
-    def get_log_items_with_level(
-        self, log_level, attribute_dict=arg_not_supplied, lookback_days=1
-    ):
+    def get_log_items_with_level(self,
+                                 msg_level: int,
+                                 attribute_dict: dict=arg_not_supplied,
+                                 lookback_days: int=1) -> list:
+
         if attribute_dict is arg_not_supplied:
             attribute_dict = {}
 
-        attribute_dict[LEVEL_ID] = log_level
+        attribute_dict[LEVEL_ID] = msg_level
 
         list_of_log_items = self.get_log_items(
             attribute_dict=attribute_dict, lookback_days=lookback_days
@@ -68,22 +77,27 @@ class logData(baseData):
 
         return list_of_log_items
 
-    def get_possible_log_level_mapping(self):
+    def get_possible_log_level_mapping(self) -> dict:
         return INVERSE_MAP
 
     def get_unique_list_of_values_for_log_attribute(
-        self, attribute_name, attribute_dict=arg_not_supplied, lookback_days=7
-    ):
+        self, attribute_name: str,
+            attribute_dict: dict=arg_not_supplied,
+            lookback_days: int=7
+    )-> list:
+
         if attribute_dict is arg_not_supplied:
             attribute_dict = {}
 
         list_of_log_attributes = self.get_list_of_log_attributes(
             attribute_dict=attribute_dict, lookback_days=lookback_days
         )
+
         list_of_values = [
             log_attr.get(
                 attribute_name,
                 None) for log_attr in list_of_log_attributes]
+
         list_of_values = [
             value for value in list_of_values if value is not None]
         unique_list_of_values = list(set(list_of_values))
@@ -91,7 +105,10 @@ class logData(baseData):
         return unique_list_of_values
 
     def get_list_of_unique_log_attribute_keys(
-            self, attribute_dict=arg_not_supplied, lookback_days=1):
+            self,
+            attribute_dict: dict=arg_not_supplied,
+            lookback_days: int=1) -> list:
+
         if attribute_dict is arg_not_supplied:
             attribute_dict = {}
 
@@ -109,7 +126,11 @@ class logData(baseData):
 
         return unique_list_of_log_attribute_keys
 
-    def get_list_of_log_attributes(self, attribute_dict=arg_not_supplied, lookback_days=1):
+    def get_list_of_log_attributes(self,
+                                   attribute_dict: dict=arg_not_supplied,
+                                   lookback_days: int=1)\
+            -> list:
+
         if attribute_dict is arg_not_supplied:
             attribute_dict = {}
 
@@ -121,7 +142,10 @@ class logData(baseData):
 
         return list_of_log_attributes
 
-    def get_log_items(self, attribute_dict=arg_not_supplied, lookback_days=1):
+    def get_log_items(self,
+                      attribute_dict: dict=arg_not_supplied,
+                      lookback_days: int=1)\
+            -> list:
         """
         Return log items as list of text
 
@@ -137,7 +161,9 @@ class logData(baseData):
 
         return list_of_log_items
 
-    def print_log_items(self, attribute_dict=arg_not_supplied, lookback_days=1):
+    def print_log_items(self,
+                        attribute_dict: dict=arg_not_supplied,
+                        lookback_days: int=1):
         """
         Print log items as list of text
 
@@ -155,7 +181,11 @@ class logData(baseData):
 
         print("\n".join(results_as_text))
 
-    def find_last_entry_date(self, attribute_dict=arg_not_supplied, lookback_days=30):
+    def find_last_entry_date(self,
+                             attribute_dict: dict=arg_not_supplied,
+                             lookback_days: int=7)\
+            -> datetime.datetime:
+
         if attribute_dict is arg_not_supplied:
             attribute_dict = {}
 
@@ -169,7 +199,11 @@ class logData(baseData):
         last_entry_date= max(time_stamps)
         return last_entry_date
 
-    def get_log_items_as_entries(self, attribute_dict=arg_not_supplied, lookback_days=1):
+    def get_log_items_as_entries(self,
+                                 attribute_dict: dict=arg_not_supplied,
+                                 lookback_days: int=1)\
+            -> list:
+
         """
         Return log items not as text, good for diagnostics
 
@@ -179,7 +213,7 @@ class logData(baseData):
 
         raise NotImplementedError
 
-    def delete_log_items_from_before_n_days(self, days=365):
+    def delete_log_items_from_before_n_days(self, lookback_days: int = 365):
         # need something to delete old log records, eg more than x months ago
 
         raise NotImplementedError

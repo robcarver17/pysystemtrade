@@ -12,8 +12,7 @@ from sysdata.csv.csv_instrument_data import csvFuturesInstrumentData
 from sysdata.data_blob import dataBlob
 from sysdata.sim.futures_sim_data_with_data_blob import genericBlobUsingFuturesSimData
 
-from syslogdiag.log import logtoscreen
-
+from syslogdiag.log_to_screen import logtoscreen
 
 
 class csvFuturesSimData(genericBlobUsingFuturesSimData):

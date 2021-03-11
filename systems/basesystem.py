@@ -1,5 +1,5 @@
 from sysdata.config.configdata import Config
-from syslogdiag.log import logtoscreen
+from syslogdiag.log_to_screen import logtoscreen
 from systems.system_cache import systemCache, base_system_cache
 
 NOT_PASSED = object()

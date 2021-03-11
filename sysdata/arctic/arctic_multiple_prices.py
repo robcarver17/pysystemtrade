@@ -10,7 +10,7 @@ from sysdata.futures.multiple_prices import (
 from sysobjects.multiple_prices import futuresMultiplePrices
 from sysobjects.dict_of_named_futures_per_contract_prices import list_of_price_column_names, \
      contract_name_from_column_name
-from syslogdiag.log import logtoscreen
+from syslogdiag.log_to_screen import logtoscreen
 
 MULTIPLE_COLLECTION = "futures_multiple_prices"
 

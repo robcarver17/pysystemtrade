@@ -7,7 +7,7 @@ from sysdata.arctic.arctic_connection import arcticData
 from sysdata.futures.futures_per_contract_prices import futuresContractPriceData, listOfFuturesContracts
 from sysobjects.futures_per_contract_prices import futuresContractPrices
 from sysobjects.contracts import futuresContract, get_code_and_id_from_contract_key
-from syslogdiag.log import logtoscreen
+from syslogdiag.log_to_screen import logtoscreen
 
 import pandas as pd
 

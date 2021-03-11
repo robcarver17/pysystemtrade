@@ -8,7 +8,7 @@ from sysexecution.orders.instrument_orders import instrumentOrder
 from sysexecution.orders.contract_orders import contractOrder
 from sysexecution.orders.broker_orders import brokerOrder
 
-from syslogdiag.log import logtoscreen
+from syslogdiag.log_to_screen import logtoscreen
 from sysdata.production.historic_orders import (
     genericOrdersData,
     strategyHistoricOrdersData,

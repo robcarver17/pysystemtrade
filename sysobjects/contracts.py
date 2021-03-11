@@ -4,7 +4,7 @@ from dataclasses import  dataclass
 
 from syscore.objects import arg_not_supplied, missing_contract
 
-from syslogdiag.log import logger
+from syslogdiag.logger import logger
 
 from sysobjects.contract_dates_and_expiries import contractDate, expiryDate
 from sysobjects.instruments import futuresInstrument

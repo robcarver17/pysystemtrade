@@ -3874,7 +3874,7 @@ speaking you should use this kind of pattern to write a log item
 self.log.msg("Calculating scaled forecast for %s %s" % (instrument_code, rule_variation_name),
                                instrument_code=instrument_code, rule_variation_name=rule_variation_name)
 ```
-This has the advantage of keeping the original log attributes intact. If you want to do something more complex it's worth looking at the doc string for the logger class [here](/syslogdiag/log.py) which shows how attributes are inherited and added to log instances.
+This has the advantage of keeping the original log attributes intact. If you want to do something more complex it's worth looking at the doc string for the logger class [here](/syslogdiag/logger.py) which shows how attributes are inherited and added to log instances.
 
 
 <a name="optimisation"> </a>

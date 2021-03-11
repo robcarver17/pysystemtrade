@@ -1,5 +1,5 @@
 from sysdata.base_data import baseData
-from syslogdiag.log import logtoscreen
+from syslogdiag.log_to_screen import logtoscreen
 
 
 class brokerStaticData(baseData):

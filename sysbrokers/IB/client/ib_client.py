@@ -7,9 +7,8 @@ from ib_insync import IB
 from sysbrokers.IB.ib_connection import connectionIB
 
 from syscore.dateutils import strip_timezone_fromdatetime
-from syslogdiag.log import logtoscreen, logger
-
-
+from syslogdiag.logger import logger
+from syslogdiag.log_to_screen import logtoscreen
 
 _PACING_PERIOD_SECONDS = 10 * 60
 _PACING_PERIOD_LIMIT = 60

@@ -12,7 +12,7 @@ from sysbrokers.IB.ib_contracts import (
 from syscore.objects import missing_contract
 from syscore.genutils import list_of_ints_with_highest_common_factor_positive_first
 
-from syslogdiag.log import logger
+from syslogdiag.logger import logger
 
 from sysobjects.contracts import futuresContract, contractDate
 from sysexecution.trade_qty import tradeQuantity

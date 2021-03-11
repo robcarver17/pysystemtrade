@@ -1,6 +1,7 @@
 from sysdata.fx.spotfx import fxPricesData
 from sysobjects.spot_fx_prices import fxPrices
-from syslogdiag.log import logtoscreen
+from syslogdiag.log_to_screen import logtoscreen
+
 
 class brokerFxPricesData(fxPricesData):
     def __init__(self, log=logtoscreen("brokerFxPricesData")):

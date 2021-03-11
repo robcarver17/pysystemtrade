@@ -7,7 +7,8 @@ from sysexecution.order_stacks.broker_order_stack import orderWithControls
 from sysexecution.orders.list_of_orders import listOfOrders
 from sysexecution.orders.broker_orders import brokerOrder
 
-from syslogdiag.log import logtoscreen
+from syslogdiag.log_to_screen import logtoscreen
+
 
 class brokerExecutionStackData(brokerOrderStackData):
     def __init__(self, log = logtoscreen("brokerExecutionStackData")):

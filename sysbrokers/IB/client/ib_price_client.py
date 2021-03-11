@@ -13,7 +13,8 @@ from sysbrokers.IB.ib_positions import resolveBS_for_list
 from syscore.objects import missing_contract, missing_data
 from syscore.dateutils import adjust_timestamp_to_include_notional_close_and_time_offset, strip_timezone_fromdatetime, Frequency, DAILY_PRICE_FREQ
 
-from syslogdiag.log import logger, logtoscreen
+from syslogdiag.logger import logger
+from syslogdiag.log_to_screen import logtoscreen
 
 from sysobjects.contracts import futuresContract
 from sysexecution.trade_qty import tradeQuantity

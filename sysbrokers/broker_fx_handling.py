@@ -2,7 +2,7 @@ from syscore.objects import arg_not_supplied
 from sysdata.base_data import baseData
 from sysbrokers.broker_trade import brokerTrade
 
-from syslogdiag.log import logtoscreen
+from syslogdiag.log_to_screen import logtoscreen
 
 
 ### generic base class for FX handling

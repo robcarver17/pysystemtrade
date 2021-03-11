@@ -1,7 +1,7 @@
 from syscore.fileutils import get_filename_for_package
 from syscore.objects import arg_not_supplied
 from sysdata.production.roll_state import rollStateData
-from syslogdiag.log import logtoscreen
+from syslogdiag.log_to_screen import logtoscreen
 
 
 class csvRollStateData(rollStateData):

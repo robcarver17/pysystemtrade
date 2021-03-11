@@ -3,7 +3,7 @@ from sysdata.futures.adjusted_prices import (
 )
 from sysobjects.adjusted_prices import futuresAdjustedPrices
 from sysdata.arctic.arctic_connection import arcticData
-from syslogdiag.log import logtoscreen
+from syslogdiag.log_to_screen import logtoscreen
 import pandas as pd
 
 ADJPRICE_COLLECTION = "futures_adjusted_prices"

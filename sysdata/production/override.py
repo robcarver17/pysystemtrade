@@ -2,7 +2,7 @@
 An override is something that affects our normal trading behaviour
 """
 
-from syslogdiag.log import logtoscreen
+from syslogdiag.log_to_screen import logtoscreen
 from sysobjects.production.override import Override, DEFAULT_OVERRIDE
 from sysobjects.production.tradeable_object import instrumentStrategy
 from sysdata.base_data import baseData

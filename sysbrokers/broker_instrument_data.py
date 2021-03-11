@@ -1,6 +1,7 @@
 from sysdata.futures.instruments import futuresInstrumentData
 
-from syslogdiag.log import logtoscreen
+from syslogdiag.log_to_screen import logtoscreen
+
 
 class brokerFuturesInstrumentData(futuresInstrumentData):
     """

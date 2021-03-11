@@ -7,7 +7,7 @@ from sysobjects.adjusted_prices import futuresAdjustedPrices
 from syscore.fileutils import get_filename_for_package, files_with_extension_in_pathname
 from syscore.pdutils import pd_readcsv
 from syscore.objects import arg_not_supplied
-from syslogdiag.log import logtoscreen
+from syslogdiag.log_to_screen import logtoscreen
 
 ADJUSTED_PRICES_DIRECTORY = "data.futures.adjusted_prices_csv"
 DATE_INDEX_NAME = "DATETIME"

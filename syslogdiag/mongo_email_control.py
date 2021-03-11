@@ -4,7 +4,7 @@ from syscore.objects import missing_data
 from syslogdiag.email_control import emailControlData
 from sysdata.mongodb.mongo_generic import mongoDataWithMultipleKeys
 
-from syslogdiag.log import logtoscreen
+from syslogdiag.log_to_screen import logtoscreen
 
 EMAIL_CONTROL_COLLECTION = "EMAIL_CONTROL"
 LAST_EMAIL_SENT = "last_email_sent"

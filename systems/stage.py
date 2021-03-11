@@ -1,5 +1,5 @@
 from syscore.objects import get_methods
-from syslogdiag.log import logger
+from syslogdiag.logger import logger
 from systems.basesystem import System
 
 class SystemStage(object):

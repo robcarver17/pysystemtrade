@@ -9,7 +9,7 @@ When we want to trade (create an instrument / strategy order) we check that the 
 
 from syscore.objects import missing_data
 from sysdata.base_data import baseData
-from syslogdiag.log import logtoscreen
+from syslogdiag.log_to_screen import logtoscreen
 
 from sysobjects.production.position_limits import positionLimitForInstrument, positionLimitForStrategyInstrument
 from sysobjects.production.tradeable_object import listOfInstrumentStrategies, instrumentStrategy

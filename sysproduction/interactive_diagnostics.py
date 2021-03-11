@@ -278,8 +278,7 @@ def view_logs(data):
     log_item_list = diag_logs.get_log_items(
         attribute_dict=attribute_dict, lookback_days=lookback_days
     )
-    print(log_item_list)
-
+    print_log_items(log_item_list)
 
 def print_log_items(log_item_list):
     for log_item in log_item_list:

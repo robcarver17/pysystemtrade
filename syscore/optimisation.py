@@ -20,7 +20,7 @@ from syscore.dateutils import (
 from syscore.genutils import str2Bool, progressBar
 from syscore.pdutils import df_from_list, must_have_item
 from syscore.objects import resolve_function
-from syslogdiag.log import logtoscreen
+from syslogdiag.log_to_screen import logtoscreen
 from syscore.handcrafting import Portfolio
 from syscore.optimisation_utils import (
     clean_weights,

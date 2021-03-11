@@ -55,8 +55,8 @@ header = namedtuple("header", "Heading")
 body_text = namedtuple("bodytext", "Text")
 
 
-def get_methods(an_object):
-    dir_list = dir(an_object)
+def get_methods(a_stage_object) -> list:
+    dir_list = dir(a_stage_object)
 
     # remove "_"
 

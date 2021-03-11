@@ -2,7 +2,7 @@ from syscore.fileutils import get_filename_for_package
 from sysdata.futures.instruments import futuresInstrumentData
 from syscore.objects import arg_not_supplied
 from sysobjects.instruments import futuresInstrument, futuresInstrumentWithMetaData, instrumentMetaData
-from syslogdiag.log import logtoscreen
+from syslogdiag.log_to_screen import logtoscreen
 import pandas as pd
 
 INSTRUMENT_CONFIG_PATH = "data.futures.csvconfig"

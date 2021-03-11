@@ -5,7 +5,7 @@ Read / write and represent instrument data
 import pandas as pd
 from sysdata.base_data import baseData
 from sysobjects.instruments import futuresInstrumentWithMetaData, listOffuturesInstrumentWithMetaData
-from syslogdiag.log import logtoscreen
+from syslogdiag.log_to_screen import logtoscreen
 
 USE_CHILD_CLASS_ERROR = "You need to use a child class of futuresInstrumentData"
 
