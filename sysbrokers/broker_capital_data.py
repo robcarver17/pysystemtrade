@@ -2,7 +2,8 @@
 from sysobjects.spot_fx_prices import listOfCurrencyValues
 
 from sysdata.production.capital import capitalData
-from syslogdiag.log import logtoscreen, logger
+from syslogdiag.logger import logger
+from syslogdiag.log_to_screen import logtoscreen
 
 
 class brokerCapitalData(capitalData):

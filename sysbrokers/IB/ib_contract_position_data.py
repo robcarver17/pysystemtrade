@@ -1,4 +1,4 @@
-from syslogdiag.log import logtoscreen
+from syslogdiag.log_to_screen import logtoscreen
 from sysbrokers.IB.ib_futures_contracts_data import ibFuturesContractData
 
 from sysbrokers.IB.client.ib_positions_client import ibPositionsClient

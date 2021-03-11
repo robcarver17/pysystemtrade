@@ -3,7 +3,7 @@ import datetime
 from sysobjects.production.process_control import dictOfControlProcesses, controlProcess, was_running_pid_notok_closed
 from syscore.objects import named_object, success, missing_data
 from sysdata.base_data import baseData
-from syslogdiag.log import logtoscreen
+from syslogdiag.log_to_screen import logtoscreen
 
 
 class controlProcessData(baseData):

@@ -15,8 +15,8 @@ trading_rules - a specification of the trading rules for a system
 import yaml
 from syscore.fileutils import get_filename_for_package
 from syscore.objects import missing_data, arg_not_supplied
-from systems.defaults import get_system_defaults_dict
-from syslogdiag.log import logtoscreen
+from sysdata.config.defaults import get_system_defaults_dict
+from syslogdiag.log_to_screen import logtoscreen
 from sysdata.config.fill_config_dict_with_defaults import fill_config_dict_with_defaults
 
 RESERVED_NAMES = ["log", "_elements", "elements", "_default_filename", "_default_dict"]
@@ -58,14 +58,7 @@ class Config(object):
         if config_object is arg_not_supplied:
             config_object = dict()
 
-        if isinstance(config_object, list):
-            # multiple configs
-            config_list = config_object
-        else:
-            config_list = [config_object]
-
-        self._create_config_from_list(config_list)
-
+        self._init_config(config_object)
 
     @property
     def elements(self) -> list:
@@ -101,6 +94,16 @@ class Config(object):
         elements = self.elements
         elements.sort()
         return "Config with elements: %s" % ", ".join(self.elements)
+
+    def _init_config(self, config_object):
+        if isinstance(config_object, list):
+            # multiple configs, already a list
+            config_list = config_object
+        else:
+            config_list = [config_object]
+
+        self._create_config_from_list(config_list)
+
 
     def _create_config_from_list(self, config_object):
         for config_item in config_object:
@@ -216,22 +219,21 @@ class Config(object):
         self.log.msg("Adding config defaults")
 
         self_as_dict = self.as_dict()
-        defaults_dict = self._default_config_dict()
+        defaults_dict = self.default_config_dict
 
         new_dict = fill_config_dict_with_defaults(self_as_dict, defaults_dict)
 
         self._create_config_from_dict(new_dict)
 
-    def _default_config_dict(self) -> dict:
-        default_dict = getattr(self, "_default_dict", arg_not_supplied)
-        if default_dict is arg_not_supplied:
-            default_filename = self._default_config_filename()
-            default_dict = get_system_defaults_dict(filename=default_filename)
-            self._default_dict = default_dict
+    @property
+    def default_config_dict(self) -> dict:
+        default_filename = self.default_config_filename
+        default_dict = get_system_defaults_dict(filename=default_filename)
 
         return default_dict
 
-    def _default_config_filename(self) -> str:
+    @property
+    def default_config_filename(self) -> str:
         default_filename = getattr(self, "_default_filename", arg_not_supplied)
 
         return default_filename

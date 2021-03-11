@@ -55,7 +55,7 @@ class diagLogs(productionDataLayerGeneric):
     def delete_log_items_from_before_n_days(self, days: int=365):
         # need something to delete old log records, eg more than x months ago
 
-        self.db_log_data.delete_log_items_from_before_n_days(days=days)
+        self.db_log_data.delete_log_items_from_before_n_days(lookback_days=days)
 
     def get_possible_log_level_mapping(self) -> dict:
         return self.db_log_data.get_possible_log_level_mapping()
@@ -97,7 +97,7 @@ class diagLogs(productionDataLayerGeneric):
         if attribute_dict is arg_not_supplied:
             attribute_dict = {}
 
-        list_of_log_items = self.db_log_data.get_log_items_with_level(
-            log_level, attribute_dict=attribute_dict, lookback_days=lookback_days)
+        list_of_log_items = self.db_log_data.get_log_items_with_level(log_level, attribute_dict=attribute_dict,
+                                                                      lookback_days=lookback_days)
 
         return list_of_log_items

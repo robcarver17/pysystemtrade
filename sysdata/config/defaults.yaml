@@ -84,6 +84,7 @@ forecast_scalar_estimate:
 #
 # capping
 forecast_cap: 20.0
+#
 average_absolute_forecast: 10.0
 #
 #

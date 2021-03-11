@@ -3,7 +3,7 @@ from sysdata.futures.roll_calendars import rollCalendarData
 from syscore.fileutils import get_filename_for_package, files_with_extension_in_pathname
 from syscore.pdutils import pd_readcsv
 from syscore.objects import arg_not_supplied
-from syslogdiag.log import logtoscreen
+from syslogdiag.log_to_screen import logtoscreen
 
 CSV_ROLL_CALENDAR_DIRECTORY = "data.futures.roll_calendars_csv"
 DATE_INDEX_NAME = "DATE_TIME"

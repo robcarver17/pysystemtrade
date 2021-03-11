@@ -7,7 +7,9 @@ USE_CHILD_CLASS_ERROR = "You need to use a child class of futuresContractData"
 class ContractNotFound(Exception):
     pass
 
-from syslogdiag.log import logtoscreen
+
+from syslogdiag.log_to_screen import logtoscreen
+
 
 class futuresContractData(baseData):
     """

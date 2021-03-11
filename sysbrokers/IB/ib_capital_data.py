@@ -4,7 +4,8 @@ from sysbrokers.IB.client.ib_accounting_client import ibAccountingClient
 from sysbrokers.broker_capital_data import brokerCapitalData
 from sysobjects.spot_fx_prices import listOfCurrencyValues
 
-from syslogdiag.log import logtoscreen, logger
+from syslogdiag.logger import logger
+from syslogdiag.log_to_screen import logtoscreen
 
 
 class ibCapitalData(brokerCapitalData):

@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from systems.defaults import system_defaults
+from sysdata.config.defaults import system_defaults
 from copy import copy
 
 

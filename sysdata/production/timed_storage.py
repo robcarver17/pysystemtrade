@@ -9,7 +9,7 @@ from syscore.objects import (
     arg_not_supplied,
     missing_data)
 from sysdata.base_data import baseData
-from syslogdiag.log import logtoscreen
+from syslogdiag.log_to_screen import logtoscreen
 from sysobjects.production.timed_storage import listOfEntriesAsListOfDicts, listOfEntries, timedEntry
 
 

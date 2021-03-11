@@ -6,7 +6,7 @@ from syscore.text import camel_case_split
 from sysdata.config.production_config import get_production_config, Config
 from sysdata.mongodb.mongo_connection import mongoDb
 from sysdata.mongodb.mongo_log import logToMongod
-from syslogdiag.log import logger
+from syslogdiag.logger import logger
 
 from sysdata.mongodb.mongo_IB_client_id import mongoIbBrokerClientIdData
 

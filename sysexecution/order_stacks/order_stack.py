@@ -8,7 +8,7 @@ from syscore.objects import (
     no_children,
 )
 
-from syslogdiag.log import logtoscreen
+from syslogdiag.log_to_screen import logtoscreen
 from sysexecution.orders.list_of_orders import listOfOrders
 from sysexecution.orders.base_orders import Order, overFilledOrder
 from sysexecution.trade_qty import tradeQuantity

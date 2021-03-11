@@ -592,7 +592,8 @@ The default logger in production code is to the mongo database. This method will
 The default for logging is to do this via mongodb. Here is an example of logging code:
 
 ```python
-from syslogdiag.log import logToMongod as logger
+from syslogdiag.logger import logToMongod as logger
+
 
 def top_level_function():
     """
@@ -600,7 +601,7 @@ def top_level_function():
     """
 
     # can optionally pass mongodb connection attributes here
-    log=logger("top-level-function")
+    log = logger("top-level-function")
 
     # note use of log.setup when passing log to other components, this creates a copy of the existing log with an additional attribute set
     conn = connectionIB(client=100, log=log.setup(component="IB-connection"))
@@ -614,10 +615,10 @@ def top_level_function():
     for fx_code in list_of_codes_all:
 
         # Using log.label permanently adds the labelled attribute (although in this case it will be replaced on each iteration of the loop
-        log.label(currency_code = fx_code)
+        log.label(currency_code=fx_code)
         new_fx_prices = ibfxpricedata.get_fx_prices(fx_code)
 
-        if len(new_fx_prices)==0:
+        if len(new_fx_prices) == 0:
             log.error("Error trying to get data for %s" % fx_code)
             continue
 
@@ -640,15 +641,17 @@ The following should be used as logging attributes (failure to do so will break 
 #### Getting log data back
 
 Python:
+
 ```python
-from syslogdiag.log import accessLogFromMongodb
+from syslogdiag.logger import accessLogFromMongodb
 
 # can optionally pass mongodb connection attributes here
 mlog = accessLogFromMongodb()
 # Return a list of strings per log line
-mlog.get_log_items(dict(type="top-level-function")) # any attribute directory here is fine as a filter, defaults to last days results
+mlog.get_log_items(
+    dict(type="top-level-function"))  # any attribute directory here is fine as a filter, defaults to last days results
 # Printout log entries
-mlog.print_log_items(dict(type="top-level-function"), lookback_days=7) # get last weeks worth
+mlog.print_log_items(dict(type="top-level-function"), lookback_days=7)  # get last weeks worth
 # Return a list of logEntry objects, useful for dissecting
 mlog.get_log_items_as_entries(dict(type="top-level-function"))
 ```

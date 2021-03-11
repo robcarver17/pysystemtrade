@@ -73,7 +73,8 @@ class Rules(SystemStage):
         self.pre_calc_rules = pre_calc_rules
         self._pre_calculation_not_yet_done = True
 
-    def _name(self):
+    @property
+    def name(self):
         return "rules"
 
     def __repr__(self):

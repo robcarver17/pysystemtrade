@@ -2,7 +2,7 @@ from sysdata.production.timed_storage import listOfEntriesData, classStrWithList
 from syscore.objects import arg_not_supplied, missing_data
 
 from sysdata.mongodb.mongo_generic import mongoDataWithMultipleKeys
-from syslogdiag.log import logtoscreen
+from syslogdiag.log_to_screen import logtoscreen
 
 DATA_CLASS_KEY = "data_class"
 ENTRY_SERIES_KEY = "entry_series"

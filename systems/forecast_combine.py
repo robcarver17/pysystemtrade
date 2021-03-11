@@ -1,13 +1,12 @@
 from copy import copy
 
-import numpy as np
 import pandas as pd
 
 from syscore.genutils import str2Bool
-from syscore.objects import resolve_function, update_recalc, missing_data
+from syscore.objects import resolve_function, missing_data
 from syscore.pdutils import dataframe_pad, fix_weights_vs_pdm, from_dict_of_values_to_df
 from syscore.algos import map_forecast_value
-from systems.defaults import get_default_config_key_value
+from sysdata.config.defaults import get_default_config_key_value
 from systems.stage import SystemStage
 from systems.system_cache import diagnostic, dont_cache, input, output
 
@@ -914,7 +913,8 @@ class ForecastCombine(
     Stage for combining forecasts (already capped and scaled)
     """
 
-    def _name(self):
+    @property
+    def name(self):
         return "combForecast"
 
     @diagnostic(not_pickable=True)

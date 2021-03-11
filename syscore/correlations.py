@@ -12,7 +12,8 @@ from syscore.genutils import str2Bool, group_dict_from_natural, progressBar
 from syscore.dateutils import generate_fitting_dates
 from syscore.pdutils import df_from_list, must_have_item
 
-from syslogdiag.log import logtoscreen
+from syslogdiag.log_to_screen import logtoscreen
+
 
 def ordered_correlation_matrix(corr_matrix: pd.DataFrame):
     clusters = cluster_correlation_matrix(corr_matrix.values)

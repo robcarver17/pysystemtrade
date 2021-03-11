@@ -5,7 +5,7 @@ from sysbrokers.IB.client.ib_fx_client import ibFxClient
 from sysbrokers.broker_fx_prices_data import brokerFxPricesData
 
 from sysobjects.spot_fx_prices import fxPrices
-from syslogdiag.log import logtoscreen
+from syslogdiag.log_to_screen import logtoscreen
 from syscore.fileutils import get_filename_for_package
 from syscore.objects import missing_instrument, missing_file, missing_data
 

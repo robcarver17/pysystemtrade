@@ -12,7 +12,7 @@ from sysdata.mongodb.mongo_futures_instruments import mongoFuturesInstrumentData
 from sysdata.data_blob import dataBlob
 from sysdata.sim.futures_sim_data_with_data_blob import genericBlobUsingFuturesSimData
 
-from syslogdiag.log import logtoscreen
+from syslogdiag.log_to_screen import logtoscreen
 
 
 class dbFuturesSimData(genericBlobUsingFuturesSimData):

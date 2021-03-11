@@ -8,7 +8,7 @@ from syscore.fileutils import get_filename_for_package, files_with_extension_in_
 from syscore.pdutils import pd_readcsv
 from syscore.genutils import str_of_int
 from syscore.objects import arg_not_supplied
-from syslogdiag.log import logtoscreen
+from syslogdiag.log_to_screen import logtoscreen
 
 CSV_MULTIPLE_PRICE_DIRECTORY = "data.futures.multiple_prices_csv"
 DATE_INDEX_NAME = "DATETIME"

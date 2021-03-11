@@ -26,9 +26,6 @@ class _PortfoliosInputs(SystemStage):
 
     """
 
-    def _name(self):
-        return "*DO NOT USE INDEPENDENTLY USED INSIDE PORTFOLIOS CLASS*"
-
     @input
     def capital_multiplier(self):
         if hasattr(self.parent, "accounts"):
@@ -161,8 +158,6 @@ class _PortfoliosCalculateWeights(_PortfoliosInputs):
 
     """
 
-    def _name(self):
-        return "*DO NOT USE INDEPENDENTLY USED INSIDE PORTFOLIOS CLASS*"
 
     @diagnostic(protected=True, not_pickable=True)
     def calculation_of_raw_instrument_weights(self):
@@ -357,8 +352,6 @@ class _PortfoliosCalculateIDM(_PortfoliosInputs):
 
     """
 
-    def _name(self):
-        return "*DO NOT USE INDEPENDENTLY USED INSIDE PORTFOLIOS CLASS*"
 
     @diagnostic(protected=True, not_pickable=True)
     def get_instrument_correlation_matrix(self):
@@ -510,7 +503,8 @@ class _PortfoliosCalculateIDM(_PortfoliosInputs):
 
 
 class Portfolios(_PortfoliosCalculateIDM, _PortfoliosCalculateWeights):
-    def _name(self):
+    @property
+    def name(self):
         return "portfolio"
 
     @output()

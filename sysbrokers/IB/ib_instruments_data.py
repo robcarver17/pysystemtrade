@@ -10,8 +10,7 @@ from syscore.objects import missing_instrument, missing_file
 
 from sysobjects.instruments import futuresInstrument
 
-
-from syslogdiag.log import logtoscreen
+from syslogdiag.log_to_screen import logtoscreen
 
 IB_FUTURES_CONFIG_FILE = get_filename_for_package(
     "sysbrokers.IB.ib_config_futures.csv")

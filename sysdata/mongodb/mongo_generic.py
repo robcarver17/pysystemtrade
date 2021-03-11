@@ -1,4 +1,6 @@
 from copy import copy
+from datetime import date, time
+
 from syscore.objects import arg_not_supplied, missingData, existingData, missing_data
 from sysdata.mongodb.mongo_connection import (
     mongoConnection,
@@ -117,6 +119,12 @@ class mongoDataWithSingleKey(object):
             raise missingData("%s:%s not in data %s" % (key_name, key, self.name))
 
         self.collection.remove({key_name: key})
+
+    def delete_data_with_any_warning_for_custom_dict(self,
+                                                     custom_dict: dict):
+
+        self.collection.remove(custom_dict)
+
 
     def add_data(self, key, data_dict: dict, allow_overwrite = False, clean_ints = True):
         if clean_ints:
@@ -249,3 +257,7 @@ class mongoDataWithMultipleKeys(object):
             self, dict_of_keys):
 
         self._mongo.collection.remove(dict_of_keys)
+
+
+_date = date
+_time = time

@@ -4,7 +4,7 @@ import pandas as pd
 
 from systems.basesystem import ALL_KEYNAME
 from systems.stage import SystemStage
-from systems.defaults import get_default_config_key_value
+from sysdata.config.defaults import get_default_config_key_value
 from systems.system_cache import input, dont_cache, diagnostic, output
 
 from syscore.genutils import str2Bool
@@ -22,7 +22,8 @@ class ForecastScaleCap(SystemStage):
 
     """
 
-    def _name(self):
+    @property
+    def name(self):
         return "forecastScaleCap"
 
     @input

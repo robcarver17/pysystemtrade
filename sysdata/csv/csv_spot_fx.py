@@ -7,7 +7,7 @@ from sysobjects.spot_fx_prices import fxPrices
 from syscore.fileutils import get_filename_for_package, files_with_extension_in_pathname
 from syscore.objects import arg_not_supplied
 from syscore.pdutils import pd_readcsv, DEFAULT_DATE_FORMAT
-from syslogdiag.log import logtoscreen
+from syslogdiag.log_to_screen import logtoscreen
 
 FX_PRICES_DIRECTORY = "data.futures.fx_prices_csv"
 

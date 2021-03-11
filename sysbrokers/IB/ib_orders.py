@@ -19,7 +19,7 @@ from sysexecution.orders.list_of_orders import listOfOrders
 from sysexecution.orders.broker_orders import brokerOrder
 from sysexecution.tick_data import tickerObject
 
-from syslogdiag.log import logtoscreen
+from syslogdiag.log_to_screen import logtoscreen
 
 
 class ibOrderWithControls(orderWithControls):

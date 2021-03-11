@@ -22,7 +22,8 @@ class RawData(SystemStage):
     Name: rawdata
     """
 
-    def _name(self):
+    @property
+    def name(self):
         return "rawdata"
 
     @input

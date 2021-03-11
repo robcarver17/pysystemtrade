@@ -21,8 +21,6 @@ class _AccountInput(SystemStage):
     Name: accounts
     """
 
-    def _name(self):
-        return "accounts_input_DO_NOT_USE*"
 
     @input
     def get_capped_forecast(self, instrument_code, rule_variation_name):

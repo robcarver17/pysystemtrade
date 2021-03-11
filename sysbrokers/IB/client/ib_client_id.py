@@ -1,6 +1,6 @@
 from syscore.objects import arg_not_supplied
 
-from syslogdiag.log import logtoscreen
+from syslogdiag.log_to_screen import logtoscreen
 
 from sysbrokers.IB.ib_connection_defaults import ib_defaults
 from sysdata.production.broker_client_id import brokerClientIdData

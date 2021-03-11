@@ -25,7 +25,7 @@ from sysproduction.data.sim_data import get_sim_data_object_for_production
 
 from sysproduction.data.backtest import store_backtest_state
 
-from syslogdiag.log import logtoscreen
+from syslogdiag.log_to_screen import logtoscreen
 
 from systems.provided.futures_chapter15.basesystem import futures_system
 from systems.basesystem import System

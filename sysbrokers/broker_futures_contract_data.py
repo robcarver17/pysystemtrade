@@ -5,7 +5,7 @@ from sysdata.futures.contracts import futuresContractData
 from sysobjects.contract_dates_and_expiries import expiryDate
 from sysobjects.contracts import futuresContract
 
-from syslogdiag.log import logtoscreen
+from syslogdiag.log_to_screen import logtoscreen
 
 
 class brokerFuturesContractData(futuresContractData):
