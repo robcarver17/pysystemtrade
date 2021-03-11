@@ -222,6 +222,7 @@ class Config(object):
 
         self._create_config_from_dict(new_dict)
 
+    # clean up
     def _default_config_dict(self) -> dict:
         default_dict = getattr(self, "_default_dict", arg_not_supplied)
         if default_dict is arg_not_supplied:
