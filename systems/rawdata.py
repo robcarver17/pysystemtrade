@@ -27,7 +27,7 @@ class RawData(SystemStage):
         return "rawdata"
 
     @input
-    def get_daily_prices(self, instrument_code):
+    def get_daily_prices(self, instrument_code) -> pd.Series:
         """
         Gets daily prices
 

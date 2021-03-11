@@ -33,7 +33,7 @@ class Test(unittest.TestCase):
         self.assertEqual(system, system.test.parent)
 
         system.set_logging_level("on")
-        self.assertEqual(system.test.log.logging_level(), "on")
+        self.assertEqual(system.test.log.logging_level, "on")
 
 
 if __name__ == "__main__":
