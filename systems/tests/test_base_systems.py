@@ -12,7 +12,12 @@ from sysdata.config.configdata import Config
 
 class Test(unittest.TestCase):
     def setUp(self):
-        stage = SystemStage()
+        class testStage(SystemStage):
+            @property
+            def name(self):
+                return "test"
+
+        stage = testStage()
         data = simData()
         config = Config(dict(instruments=["another_code", "code"]))
         system = System([stage], data=data, config=config)
