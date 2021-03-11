@@ -5,12 +5,19 @@ omit =
     */.tox/*
     */.virtualenvs/*
     test/*
+    */tests/*
 
 source = 
     examples/
+    sysbrokers/
+    syscontrol/
     syscore/
+    sysdata/
+    sysexecution/
+    sysinit/
     syslogdiag/
-    syssims/
+    sysobjects/
+    sysproduction/
     systems/
 
 [report]

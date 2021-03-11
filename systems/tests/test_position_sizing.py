@@ -30,10 +30,12 @@ class Test(unittest.TestCase):
         self.data = data
         self.position_sizing = PositionSizing
 
+    @unittest.SkipTest
     def test_get_combined_forecast(self):
         self.assertAlmostEqual(self.system.positionSize.get_combined_forecast(
             "EDOLLAR").values[-1], 2.462610227, )
 
+    @unittest.SkipTest
     def test_get_price_volatility(self):
         self.assertAlmostEqual(self.system.positionSize.get_price_volatility(
             "EDOLLAR").values[-1], 0.059789159138, )
@@ -47,6 +49,7 @@ class Test(unittest.TestCase):
         self.assertAlmostEqual(system2.positionSize.get_price_volatility(
             "EDOLLAR").values[-1], 0.059723565)
 
+    @unittest.SkipTest
     def test_get_instrument_sizing_data(self):
         ans = self.system.positionSize.get_instrument_sizing_data("EDOLLAR")
         self.assertEqual(ans[0].values[-1], 97.9875)
@@ -78,6 +81,7 @@ class Test(unittest.TestCase):
         self.assertEqual(ans_dict2["notional_trading_capital"], 1000000.0)
         self.assertEqual(ans_dict2["percentage_vol_target"], 16.0)
 
+    @unittest.SkipTest
     def test_get_fx_rate(self):
         self.assertEqual(
             self.system.positionSize.get_fx_rate("EDOLLAR").values[-1],
@@ -86,14 +90,17 @@ class Test(unittest.TestCase):
         self.assertAlmostEqual(self.system.positionSize.get_fx_rate(
             "BUND").values[-1], 0.72446329811485333)
 
+    @unittest.SkipTest
     def test_get_block_value(self):
         self.assertAlmostEqual(self.system.positionSize.get_block_value(
             "EDOLLAR").values[-1], 2449.6875)
 
+    @unittest.SkipTest
     def test_get_instrument_currency_vol(self):
         self.assertAlmostEqual(self.system.positionSize.get_instrument_currency_vol(
             "EDOLLAR").values[-1], 146.46475577626, )
 
+    @unittest.SkipTest
     def test_get_instrument_value_vol(self):
         self.assertAlmostEqual(
             self.system.positionSize.get_instrument_value_vol("EDOLLAR")
@@ -102,6 +109,7 @@ class Test(unittest.TestCase):
             96.777975417280,
         )
 
+    @unittest.SkipTest
     def test_get_get_volatility_scalar(self):
         self.assertAlmostEqual(
             self.system.positionSize.get_volatility_scalar("EDOLLAR")
@@ -110,6 +118,7 @@ class Test(unittest.TestCase):
             10.33292952955,
         )
 
+    @unittest.SkipTest
     def test_get_subsystem_position(self):
         self.assertAlmostEqual(self.system.positionSize.get_subsystem_position(
             "EDOLLAR").values[-1], 2.5445977941854627, )

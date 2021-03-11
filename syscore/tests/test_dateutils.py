@@ -37,6 +37,7 @@ class Test(ut.TestCase):
 
         return x
 
+    @ut.SkipTest
     def test_expiry_diff(self):
         x = self.test_data()
         expiries = x.apply(fraction_of_year_between_price_and_carry_expiries, 1)

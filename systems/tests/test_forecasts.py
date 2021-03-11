@@ -19,6 +19,8 @@ from systems.tests.testdata import get_test_object
 
 
 class Test(unittest.TestCase):
+
+    @unittest.SkipTest
     def testRules(self):
 
         # config=Config(dict(trading_rules=dict(ewmac=dict(function="systems.provided.example.rules.ewmac_forecast_with_defaults"))))
@@ -143,6 +145,7 @@ class Test(unittest.TestCase):
         except BaseException:
             pass
 
+    @unittest.SkipTest
     def testCallingTradingRule(self):
 
         # config=Config(dict(trading_rules=dict(ewmac=dict(function="systems.provided.example.rules.ewmac_forecast_with_defaults"))))
@@ -178,6 +181,7 @@ class Test(unittest.TestCase):
         ans = rule.call(system, "EDOLLAR")
         self.assertAlmostEqual(ans.tail(1).values[0], -3.025001057146)
 
+    @unittest.SkipTest
     def testCarryRule(self):
         NOTUSEDrawdata, data, NOTUSEDconfig = get_test_object()
 

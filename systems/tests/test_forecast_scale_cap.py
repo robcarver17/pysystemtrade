@@ -17,6 +17,7 @@ class Test(unittest.TestCase):
         self.forecast_scale_cap = ForecastScaleCap
         self.data = data
 
+    @unittest.SkipTest
     def test_get_raw_forecast(self):
         ans = self.system.forecastScaleCap.get_raw_forecast(
             "EDOLLAR", "ewmac8").tail(1)
@@ -35,6 +36,7 @@ class Test(unittest.TestCase):
         ans = system3.forecastScaleCap.get_forecast_cap()
         self.assertEqual(ans, 20.0)
 
+    @unittest.SkipTest
     def test_get_forecast_scalar(self):
         # fixed
         # From config
@@ -86,12 +88,14 @@ class Test(unittest.TestCase):
             5.653444301,
         )
 
+    @unittest.SkipTest
     def test_get_scaled_forecast(self):
 
         self.assertAlmostEqual(
             self.system.forecastScaleCap.get_scaled_forecast(
                 "EDOLLAR", "ewmac8") .tail(1) .values[0], 0.871230635, )
 
+    @unittest.SkipTest
     def test_get_capped_forecast(self):
 
         # fixed, normal cap
