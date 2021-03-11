@@ -118,7 +118,8 @@ class simData(baseData):
 
     def get_raw_price(self, instrument_code: str) -> pd.Series:
         """
-        Default method to get instrument price
+        Default method to get instrument price at 'natural' frequency
+
         Will usually be overriden when inherited with specific data source
 
         :param instrument_code: instrument to get prices for

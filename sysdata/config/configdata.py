@@ -23,7 +23,7 @@ RESERVED_NAMES = ["log", "_elements", "elements", "_default_filename", "_default
 
 
 class Config(object):
-    def __init__(self, config_object=dict(),
+    def __init__(self, config_object=arg_not_supplied,
                  default_filename = arg_not_supplied):
         """
         Config objects control the behaviour of systems
@@ -53,14 +53,19 @@ class Config(object):
         # this will normally be overriden by the base system
         self.log= logtoscreen(type="config", stage="config")
 
+        self._default_filename = default_filename
+
+        if config_object is arg_not_supplied:
+            config_object = dict()
+
         if isinstance(config_object, list):
             # multiple configs
-            for config_item in config_object:
-                self._create_config_from_item(config_item)
+            config_list = config_object
         else:
-            self._create_config_from_item(config_object)
+            config_list = [config_object]
 
-        self._default_filename = default_filename
+        self._create_config_from_list(config_list)
+
 
     @property
     def elements(self) -> list:
@@ -68,25 +73,21 @@ class Config(object):
 
         return elements
 
-    @elements.setter
-    def elements(self, new_elements):
-        self._elements = new_elements
 
     def add_elements(self, new_elements: list):
         _ = [self.add_single_element(element_name) for element_name in new_elements]
 
-
     def remove_element(self, element: str):
         current_elements = self.elements
         current_elements.remove(element)
-        self.elements = current_elements
+        self._elements = current_elements
 
     def add_single_element(self, element_name):
         if element_name not in RESERVED_NAMES:
             elements = self.elements
             if element_name not in elements:
                 elements.append(element_name)
-                self.elements = elements
+                self._elements = elements
 
     def get_element_or_missing_data(self, element_name):
         result = getattr(self, element_name, missing_data)
@@ -100,6 +101,10 @@ class Config(object):
         elements = self.elements
         elements.sort()
         return "Config with elements: %s" % ", ".join(self.elements)
+
+    def _create_config_from_list(self, config_object):
+        for config_item in config_object:
+            self._create_config_from_item(config_item)
 
     def _create_config_from_item(self, config_item):
         if isinstance(config_item, dict):
@@ -156,7 +161,7 @@ class Config(object):
         # fill with defaults
         self.fill_with_defaults()
 
-    def __delattr__(self, element_name):
+    def __delattr__(self, element_name: str):
         """
         Remove element_name from config
 
@@ -171,7 +176,7 @@ class Config(object):
 
         self.remove_element(element_name)
 
-    def __setattr__(self, element_name, value):
+    def __setattr__(self, element_name:str, value):
         """
         Add / replace element_name in config
 

@@ -302,7 +302,7 @@ class listOfContractPositions(listOfPositionsWithInstruments):
         return contractPosition
 
     def _id_column_dict(self):
-        instrument_code_list = self.instrument_code_list()
+        instrument_code_list = [str(position.instrument_code) for position in self]
         contract_id_list = [str(position.date_str) for position in self]
         expiry_date_list = [str(position.expiry_date) for position in self]
         id_column_dict = dict(
