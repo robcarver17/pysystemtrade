@@ -14,7 +14,6 @@ from systems.portfolio import Portfolios
 import pytest
 from systems.provided.example.simplesystem import simplesystem
 from systems.provided.futures_chapter15.basesystem import futures_system as base_futures_system
-from systems.provided.futures_chapter15.estimatedsystem import futures_system as est_futures_system
 
 
 class TestExamples:
@@ -288,22 +287,6 @@ class TestExamples:
         """
         system = base_futures_system(log_level="on")
         print(system.accounts.portfolio().sharpe())
-
-    @pytest.mark.slow  # will be skipped unless run with 'pytest --runslow'
-    def test_prebaked_chapter15_with_pickle(self):
-        """
-        This is (mostly) the pickled chapter 15 system from 'examples.introduction.prebakedsimplesystems'
-        but without graph plotting
-        """
-        system = est_futures_system(log_level="on")
-        print(system.accounts.portfolio().sharpe())
-        system.cache.pickle("private.this_system_name.pck")
-
-        del system  # just to make sure
-        system = est_futures_system(log_level="on")
-        system.cache.unpickle("private.this_system_name.pck")
-        # this will run much faster and reuse previous calculations
-        system.accounts.portfolio().sharpe()
 
     @staticmethod
     def calc_ewmac_forecast(price, Lfast, Lslow=None):
