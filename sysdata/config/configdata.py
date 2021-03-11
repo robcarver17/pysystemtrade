@@ -224,11 +224,8 @@ class Config(object):
 
     # clean up
     def _default_config_dict(self) -> dict:
-        default_dict = getattr(self, "_default_dict", arg_not_supplied)
-        if default_dict is arg_not_supplied:
-            default_filename = self._default_config_filename()
-            default_dict = get_system_defaults_dict(filename=default_filename)
-            self._default_dict = default_dict
+        default_filename = self._default_config_filename()
+        default_dict = get_system_defaults_dict(filename=default_filename)
 
         return default_dict
 
