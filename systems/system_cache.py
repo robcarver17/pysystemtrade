@@ -149,8 +149,12 @@ class systemCache(dict):
     def __init__(self, parent_system):
 
         super().__init__()
-        self.parent = parent_system  # so we can access the instrument list
+        self._parent = parent_system  # so we can access the instrument list
         self.set_caching_on()
+
+    @property
+    def parent(self):
+        return self._parent
 
     def set_caching_on(self):
         self._caching_on = True
