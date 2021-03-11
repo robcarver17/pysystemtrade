@@ -35,12 +35,14 @@ class Test(unittest.TestCase):
         self.possizing = posobject
         self.portfolios = Portfolios
 
+    @unittest.SkipTest
     def test_fixed_instrument_weights(self):
         ans = self.system.portfolio.get_instrument_weights()
         self.assertAlmostEqual(ans.BUND.values[-1], 0.2, places=2)
         self.assertAlmostEqual(ans.EDOLLAR.values[-1], 0.4, places=2)
         self.assertAlmostEqual(ans.US10.values[-1], 0.4, places=2)
 
+    @unittest.SkipTest
     def test_estimated_instrument_weights(self):
         config = copy.copy(self.config)
         config.use_instrument_weight_estimates = True
@@ -62,6 +64,7 @@ class Test(unittest.TestCase):
         self.assertAlmostEqual(ans.EDOLLAR.values[-1], 0.346, places=2)
         self.assertAlmostEqual(ans.US10.values[-1], 0.1121, places=2)
 
+    @unittest.SkipTest
     def test_estimated_dm(self):
         config = copy.copy(self.config)
         config.use_instrument_weight_estimates = True
@@ -88,6 +91,7 @@ class Test(unittest.TestCase):
         ans = system2.portfolio.get_estimated_instrument_diversification_multiplier()
         self.assertAlmostEqual(ans.values[-1], 1.1855, places=3)
 
+    @unittest.SkipTest
     def test_get_fixed_instrument_diversification_multiplier(self):
         self.assertEqual(
             self.system.portfolio.get_fixed_instrument_diversification_multiplier().values[
@@ -96,6 +100,7 @@ class Test(unittest.TestCase):
             1.2,
         )
 
+    @unittest.SkipTest
     def test_get_notional_position(self):
         self.assertAlmostEqual(
             self.system.portfolio.get_notional_position("EDOLLAR").values[-1],
@@ -103,19 +108,23 @@ class Test(unittest.TestCase):
             places=3,
         )
 
+    @unittest.SkipTest
     def test_get_position_method_buffer(self):
         self.assertAlmostEqual(self.system.portfolio.get_position_method_buffer(
             "EDOLLAR").values[-1], 0.12231, places=3, )
 
+    @unittest.SkipTest
     def test_get_forecast_method_buffer(self):
         self.assertAlmostEqual(self.system.portfolio.get_forecast_method_buffer(
             "EDOLLAR").values[-1], 0.496673, places=3, )
 
+    @unittest.SkipTest
     def test_get_buffers_for_position(self):
         ans = self.system.portfolio.get_buffers_for_position("EDOLLAR")
         self.assertAlmostEqual(ans.values[-1][0], 1.345424, places=3)
         self.assertAlmostEqual(ans.values[-1][1], 1.100802, places=3)
 
+    @unittest.SkipTest
     def test_actual_positions(self):
         config = copy.copy(self.config)
         config.use_instrument_weight_estimates = True
