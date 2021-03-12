@@ -660,33 +660,38 @@ rule_variations: ['ewmac16_64','ewmac32_128', 'ewmac64_256', 'new_rule']
 Python (example - assuming we already have a config object loaded to modify)
 
 ```python
-from systems.forecasting import TradingRule
+
+from systems.trading_rules import TradingRule
 
 # method 1
-new_rule=TradingRule(dict(function="systems.futures.rules.ewmac", data=["rawdata.daily_prices", "rawdata.daily_returns_volatility"], other_args=dict(Lfast=10, Lslow=40)))
+new_rule = TradingRule(
+   dict(function="systems.futures.rules.ewmac", data=["rawdata.daily_prices", "rawdata.daily_returns_volatility"],
+        other_args=dict(Lfast=10, Lslow=40)))
 
 # method 2 - good for functions created on the fly
 from systems.futures.rules import ewmac
-new_rule=TradingRule(dict(function=ewmac, data=["rawdata.daily_prices", "rawdata.daily_returns_volatility"], other_args=dict(Lfast=10, Lslow=40)))
+
+new_rule = TradingRule(dict(function=ewmac, data=["rawdata.daily_prices", "rawdata.daily_returns_volatility"],
+                            other_args=dict(Lfast=10, Lslow=40)))
 
 ## both methods - modify the configuration
-config.trading_rules['new_rule']=new_rule
+config.trading_rules['new_rule'] = new_rule
 
 ## If you're using fixed weights and scalars
 
-config.forecast_scalars['new_rule']=7.0
-config.forecast_weights=dict(.... , new_rule=0.10)  ## all existing forecast weights will need to be updated
-config.forecast_div_multiplier=1.5
+config.forecast_scalars['new_rule'] = 7.0
+config.forecast_weights = dict(...., new_rule=0.10)  ## all existing forecast weights will need to be updated
+config.forecast_div_multiplier = 1.5
 
 ## If you're using estimates
 
-config.use_forecast_scale_estimates=True
-config.use_forecast_weight_estimates=True
+config.use_forecast_scale_estimates = True
+config.use_forecast_weight_estimates = True
 use_forecast_div_mult_estimates: True
 
-config.rule_variations=['ewmac16_64','ewmac32_128', 'ewmac64_256', 'new_rule']
+config.rule_variations = ['ewmac16_64', 'ewmac32_128', 'ewmac64_256', 'new_rule']
 # or to specify different variations for different instruments
-config.rule_variations=dict(SP500=['ewmac16_64','ewmac32_128', 'ewmac64_256', 'new_rule'], US10 =['new_rule',....)
+config.rule_variations = dict(SP500=['ewmac16_64', 'ewmac32_128', 'ewmac64_256', 'new_rule'], US10=['new_rule', ....)
 ```
 
 Once we've got the new config, by which ever method, we just use it in our
@@ -2398,10 +2403,11 @@ others, hence the deliberate flexibility here.
 Bare rules which only consist of a function can be defined as follows:
 
 ```python
-from systems.forecasting import TradingRule
 
-TradingRule(ewmac) ## with the actual function
-TradingRule("systems.provided.futures_chapter15.rules.ewmac") ## string reference to the function
+from systems.trading_rules import TradingRule
+
+TradingRule(ewmac)  ## with the actual function
+TradingRule("systems.provided.futures_chapter15.rules.ewmac")  ## string reference to the function
 ```
 
 We can also add data and other arguments. Data is always a list of str, or a
@@ -2466,41 +2472,47 @@ We can do this by passing special kinds of `other_args` which are pre-fixed with
 
 Let's see how we could implement the moving average example:
 
-
 ```python
 from systems.provided.futures_chapter15.basesystem import *
-from systems.forecasting import TradingRule
+from systems.trading_rules import TradingRule
 
 data = csvFuturesSimData()
 config = Config(
-        "systems.provided.futures_chapter15.futuresconfig.yaml")
+   "systems.provided.futures_chapter15.futuresconfig.yaml")
+
 
 # First let's add a new method to our rawdata
 # As well as the usual instrument_code this has a keyword argument, span, which we are going to access in our trading rule definitions
 class newRawData(FuturesRawData):
-    def moving_average(self, instrument_code, span=8):
-        price = self.get_daily_prices(instrument_code)
-        return price.ewm(span=span).mean()
+   def moving_average(self, instrument_code, span=8):
+      price = self.get_daily_prices(instrument_code)
+      return price.ewm(span=span).mean()
+
 
 # Now for our new trading rule. Multiplier is a trivial variable, included to show you can mix other arguments and data arguments
 def new_ewma(fast_ewma, slow_ewma, vol, multiplier=1):
-    raw_ewmac = fast_ewma - slow_ewma
+   raw_ewmac = fast_ewma - slow_ewma
 
-    raw_ewmac = raw_ewmac * multiplier
+   raw_ewmac = raw_ewmac * multiplier
 
-    return raw_ewmac / vol.ffill()
+   return raw_ewmac / vol.ffill()
+
 
 # Now we define our first trading rule. Notice that data gets two kinds of moving average, but the first one will have span 2 and the second span 8
-trading_rule1 = TradingRule(dict(function=new_ewma, data = ['rawdata.moving_average', 'rawdata.moving_average', 'rawdata.daily_returns_volatility'], other_args = dict(_span=2, __span=8, multiplier=1)))
+trading_rule1 = TradingRule(dict(function=new_ewma, data=['rawdata.moving_average', 'rawdata.moving_average',
+                                                          'rawdata.daily_returns_volatility'],
+                                 other_args=dict(_span=2, __span=8, multiplier=1)))
 
 # The second trading rule reuses one of the ewma, but uses a default value for the multiplier and the first ewma span (not great practice, but illustrates what is possible)
-trading_rule2 = TradingRule(dict(function=new_ewma, data = ['rawdata.moving_average', 'rawdata.moving_average', 'rawdata.daily_returns_volatility'], other_args = dict(__span=32)))
+trading_rule2 = TradingRule(dict(function=new_ewma, data=['rawdata.moving_average', 'rawdata.moving_average',
+                                                          'rawdata.daily_returns_volatility'],
+                                 other_args=dict(__span=32)))
 
-rules=Rules(dict(ewmac2_8 = trading_rule1, ewmac8_32 = trading_rule2))
+rules = Rules(dict(ewmac2_8=trading_rule1, ewmac8_32=trading_rule2))
 
 system = System([
-    Account(), Portfolios(), PositionSizing(), newRawData(),
-    ForecastCombine(), ForecastScaleCap(), rules
+   Account(), Portfolios(), PositionSizing(), newRawData(),
+   ForecastCombine(), ForecastScaleCap(), rules
 ], data, config)
 
 # This will now work in the usual way
@@ -2635,13 +2647,14 @@ parameters that can be changed, and then to produce a number of variations. Two
 functions are provided to make this easier.
 
 ```python
-from systems.forecasting import create_variations_oneparameter, create_variations, TradingRule
+
+from systems.trading_rules import TradingRule, create_variations_oneparameter, create_variations
 
 ## Let's create 3 variations of ewmac
 ## The default ewmac has Lslow=128
 ## Let's keep that fixed and vary Lfast
-rule=TradingRule("systems.provided.example.rules.ewmac_forecast_with_defaults")
-variations=create_variations_oneparameter(rule, [4,10,100], "ewmac_Lfast")
+rule = TradingRule("systems.provided.example.rules.ewmac_forecast_with_defaults")
+variations = create_variations_oneparameter(rule, [4, 10, 100], "ewmac_Lfast")
 
 variations.keys()
 ```
@@ -2724,32 +2737,32 @@ to pass in actual `TradingRule` objects.
 
 ```python
 from systems.provided.futures_chapter15.basesystem import futures_system
-from systems.forecasting import TradingRule
+from systems.trading_rules import TradingRule
 
-system=futures_system()
+system = futures_system()
 
 ## Parse the existing rules in the config (not required if you're going to backtest first as this will call this method doing its normal business)
 system.rules.trading_rules()
 
-
 #############
 ## add a rule by accessing private attribute
-new_rule=TradingRule("systems.provided.futures_chapter15.rules.ewmac") ## any form of [TradingRule](#TradingRule) is fine here
-system.rules._trading_rules['new_rule']=new_rule
+new_rule = TradingRule(
+   "systems.provided.futures_chapter15.rules.ewmac")  ## any form of [TradingRule](#TradingRule) is fine here
+system.rules._trading_rules['new_rule'] = new_rule
 #############
 
 
 #############
 ## modify a rule with existing key 'ewmac2_8'
-modified_rule=system.rules._trading_rules['ewmac2_8']
-modified_rule.other_args['Lfast']=10
+modified_rule = system.rules._trading_rules['ewmac2_8']
+modified_rule.other_args['Lfast'] = 10
 
 ## We can also do:
 ## modified_rule.function=new_function
 ## modified_rule.data='data.get_raw_price'
 ##
 
-system.rules._trading_rules['ewmac2_8']=modified_rule
+system.rules._trading_rules['ewmac2_8'] = modified_rule
 #############
 
 

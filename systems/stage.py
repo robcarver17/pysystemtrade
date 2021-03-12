@@ -1,5 +1,6 @@
 from syscore.objects import get_methods
 from syslogdiag.logger import logger
+from syslogdiag.log_to_screen import logtoscreen
 from systems.basesystem import System
 
 class SystemStage(object):
@@ -43,7 +44,7 @@ class SystemStage(object):
 
     @property
     def log(self) -> logger:
-        log = getattr(self, "_log", None)
+        log = getattr(self, "_log", logtoscreen(""))
         return log
 
     @property

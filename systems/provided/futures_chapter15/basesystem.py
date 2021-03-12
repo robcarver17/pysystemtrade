@@ -4,6 +4,8 @@ This is a futures system
 A system consists of a system, plus a config
 
 """
+from syscore.objects import arg_not_supplied
+
 from sysdata.sim.csv_futures_sim_data import csvFuturesSimData
 from sysdata.config.configdata import Config
 
@@ -17,7 +19,10 @@ from systems.portfolio import Portfolios
 from systems.account import Account
 
 
-def futures_system(data=None, config=None, trading_rules=None, log_level="on"):
+def futures_system(data=arg_not_supplied,
+                   config=arg_not_supplied,
+                   trading_rules=arg_not_supplied,
+                   log_level="on"):
     """
 
     :param data: data object (defaults to reading from csv files)
@@ -54,10 +59,10 @@ def futures_system(data=None, config=None, trading_rules=None, log_level="on"):
     2015-04-22  0.350892
     """
 
-    if data is None:
+    if data is arg_not_supplied:
         data = csvFuturesSimData()
 
-    if config is None:
+    if config is arg_not_supplied:
         config = Config(
             "systems.provided.futures_chapter15.futuresconfig.yaml")
 

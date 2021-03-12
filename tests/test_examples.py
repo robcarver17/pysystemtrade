@@ -4,7 +4,7 @@ from syscore.accounting import accountCurve
 from systems.provided.example.rules import ewmac_forecast_with_defaults as ewmac
 from systems.forecasting import Rules
 from systems.basesystem import System
-from systems.forecasting import TradingRule
+from systems.trading_rules import TradingRule
 from sysdata.config.configdata import Config
 from systems.forecast_scale_cap import ForecastScaleCap
 from systems.forecast_combine import ForecastCombine

@@ -257,9 +257,11 @@ We'll see this pattern of `my_system...stage name...get_something()` a lot. The 
 What about if we want more than one trading rule, say a couple of variations of the ewmac rule? To define two different flavours of ewmac we're going to need to learn a little bit more about trading rules. Remember when we had `my_rules=Rules(dict(ewmac=ewmac))`? Well this is an equivalent way of doing it:
 
 ```python
-from systems.forecasting import TradingRule
-ewmac_rule=TradingRule(ewmac)
-my_rules=Rules(dict(ewmac=ewmac_rule))
+
+from systems.trading_rules import TradingRule
+
+ewmac_rule = TradingRule(ewmac)
+my_rules = Rules(dict(ewmac=ewmac_rule))
 ewmac_rule
 ```
 

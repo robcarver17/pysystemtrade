@@ -44,7 +44,7 @@ print(my_system.rules.get_raw_forecast("EDOLLAR", "ewmac").tail(5))
 Define a TradingRule
 """
 
-from systems.forecasting import TradingRule
+from systems.trading_rules import TradingRule
 
 ewmac_rule = TradingRule(ewmac)
 my_rules = Rules(dict(ewmac=ewmac_rule))
