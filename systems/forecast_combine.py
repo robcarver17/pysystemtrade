@@ -1154,8 +1154,8 @@ def _get_fixed_fdm_scalar_value_from_config(forecast_div_multiplier_config: dict
 
     if error_msg=="":
         log.msg(
-            "Using fixed FDM multiplier of %f for %s" %
-            (instrument_code), instrument_code=instrument_code)
+            "Using fixed FDM multiplier of %.3f for %s" %
+            (fixed_div_mult, instrument_code), instrument_code=instrument_code)
     else:
         log.critical(error_msg, instrument_code=instrument_code)
         raise (error_msg)
