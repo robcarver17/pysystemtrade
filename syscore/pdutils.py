@@ -446,7 +446,7 @@ def sumup_business_days_over_pd_series_without_double_counting_of_closing_data(p
 
     return joint_data
 
-def replace_all_zeros_with_nan(result: pd.DataFrame) -> pd.DataFrame:
+def replace_all_zeros_with_nan(result: pd.Series) -> pd.Series:
     check_result = copy(result)
     check_result[check_result == 0.0] = np.nan
     if all(check_result.isna()):

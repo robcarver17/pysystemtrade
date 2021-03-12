@@ -116,7 +116,8 @@ def resolve_function(func_or_func_name):
     return func
 
 
-def resolve_data_method(some_object, data_string):
+def resolve_data_method(some_object,
+                        data_string: str):
     """
     eg if data_string="data1.data2.method" then returns the method some_object.data1.data2.method
 
@@ -148,14 +149,17 @@ def resolve_data_method(some_object, data_string):
 
     list_to_parse = data_string.rsplit(".")
 
-    def _get_attr_within_list(an_object, list_to_parse):
-        if len(list_to_parse) == 0:
-            return an_object
-        next_attr = list_to_parse.pop(0)
-        sub_object = getattr(an_object, next_attr)
-        return _get_attr_within_list(sub_object, list_to_parse)
+    return _recursively_get_attr_within_list(some_object, list_to_parse)
 
-    return _get_attr_within_list(some_object, list_to_parse)
+def _recursively_get_attr_within_list(an_object,
+                                      list_to_parse: list):
+    if len(list_to_parse) == 0:
+        return an_object
+
+    next_attr = list_to_parse.pop(0)
+    sub_object = getattr(an_object, next_attr)
+
+    return _recursively_get_attr_within_list(sub_object, list_to_parse)
 
 
 def update_recalc(stage_object, additional_protected=[]):
