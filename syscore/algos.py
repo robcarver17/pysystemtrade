@@ -5,15 +5,12 @@ Basic building blocks of trading rules, like volatility measurement and
 crossovers
 
 """
-from copy import copy
 import warnings
 
 import numpy as np
 import pandas as pd
 
-from syscore.genutils import str2Bool, sign
-from sysdata.config.defaults import get_default_config_key_value
-from syscore.objects import missing_data
+from syscore.genutils import sign
 
 LARGE_NUMBER_OF_DAYS = 250 * 100 * 100
 
@@ -107,55 +104,6 @@ def mean_estimator(x, using_exponent=True, min_periods=20, ew_lookback=500):
 
     mean_list = list(means)
     return mean_list
-
-
-def forecast_scalar(
-        cs_forecasts,
-        window=250000,
-        min_periods=500,
-        backfill=True):
-    """
-    Work out the scaling factor for xcross such that T*x has an abs value of 10 (or whatever the average absolute forecast is)
-
-    :param cs_forecasts: forecasts, cross sectionally
-    :type cs_forecasts: pd.DataFrame TxN
-
-    :param span:
-    :type span: int
-
-    :param min_periods:
-
-
-    :returns: pd.DataFrame
-    """
-    backfill = str2Bool(backfill)  # in yaml will come in as text
-    # We don't allow this to be changed in config
-    target_abs_forecast = get_default_config_key_value(
-        "average_absolute_forecast")
-    if target_abs_forecast is missing_data:
-        raise Exception(
-            "average_absolute_forecast not defined in system defaults file")
-
-    # Remove zeros/nans
-    copy_cs_forecasts = copy(cs_forecasts)
-    copy_cs_forecasts[copy_cs_forecasts == 0.0] = np.nan
-
-    # Take CS average first
-    # we do this before we get the final TS average otherwise get jumps in
-    # scalar when new markets introduced
-    if copy_cs_forecasts.shape[1] == 1:
-        x = copy_cs_forecasts.abs().iloc[:, 0]
-    else:
-        x = copy_cs_forecasts.ffill().abs().median(axis=1)
-
-    # now the TS
-    avg_abs_value = x.rolling(window=window, min_periods=min_periods).mean()
-    scaling_factor = target_abs_forecast / avg_abs_value
-
-    if backfill:
-        scaling_factor = scaling_factor.fillna(method="bfill")
-
-    return scaling_factor
 
 
 def apply_buffer_single_period(
@@ -364,6 +312,11 @@ def map_forecast_value(
 
 def robust_vol_calc(*args, **kwargs):
     raise Exception("robust_vol_calc has moved to sysquant.estimators.vol.robust_vol_calc - update your configuration!")
+
+
+def forecast_scalar(*args, **kwargs):
+    raise Exception("forecast_scalar has moved to sysquant.estimators.forecast_scalar.forecast_scalar - update your configuration!")
+
 
 if __name__ == "__main__":
     import doctest

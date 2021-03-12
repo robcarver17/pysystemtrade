@@ -77,7 +77,7 @@ use_forecast_scale_estimates: False
 #
 forecast_scalar_estimate:
    pool_instruments: True
-   func: "syscore.algos.forecast_scalar"
+   func: "sysquant.estimators.forecast_scalar.forecast_scalar"
    window: 250000
    min_periods: 500
    backfill: True

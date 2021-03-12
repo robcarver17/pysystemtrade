@@ -5,6 +5,7 @@ fixed parameters
 A system consists of a system, plus a config
 
 """
+from syscore.objects import arg_not_supplied
 from sysdata.sim.csv_futures_sim_data import csvFuturesSimData
 from sysdata.config.configdata import Config
 
@@ -21,7 +22,7 @@ from systems.account import Account
 def futures_system(
         data=None,
         config=None,
-        trading_rules=None,
+        trading_rules=arg_not_supplied,
         log_level="terse"):
     """
 

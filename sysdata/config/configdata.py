@@ -202,8 +202,8 @@ class Config(object):
         >>> config=Config(dict(forecast_cap=22.0, forecast_scalar_estimate=dict(backfill=False), forecast_weight_estimate=dict(correlation_estimate=dict(min_periods=40))))
         >>> config
         Config with elements: forecast_cap, forecast_scalar_estimate, forecast_weight_estimate
-        >>> config.fill_with_defaults()
-        >>> config.forecast_scalar
+import sysquant.estimators.forecast_scalar        >>> config.fill_with_defaults()
+        >>> sysquant.estimators.forecast_scalar.forecast_scalar
         1.0
         >>> config.forecast_cap
         22.0

@@ -2847,7 +2847,7 @@ which option is used.
 ##### Pooled forecast scale estimate (default)
 
 We do this if `pool_instruments=True`. This defaults to using the function
-"syscore.algos.forecast_scalar", but this is configurable using the parameter
+"sysquant.estimators.forecast_scalar.forecast_scalar", but this is configurable using the parameter
 `func`. If you're changing this please see [configuring defaults for your own
 functions](#config_function_defaults).
 
@@ -4642,7 +4642,7 @@ YAML:
 use_forecast_scale_estimates: True
 forecast_scalar_estimate:
    pool_instruments: True
-   func: "syscore.algos.forecast_scalar"
+   func: "sysquant.estimators.forecast_scalar.forecast_scalar"
    window: 250000
    min_periods: 500
    backfill: True
@@ -4653,7 +4653,7 @@ forecast_scalar_estimate:
 Python (example)
 ```python
 ## pooled example
-config.trading_rules=dict(pool_instruments=True, func="syscore.algos.forecast_scalar", window=250000, min_periods=500, backfill=True)
+config.trading_rules=dict(pool_instruments=True, func="sysquant.estimators.forecast_scalar.forecast_scalar", window=250000, min_periods=500, backfill=True)
 ```
 
 

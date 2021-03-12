@@ -76,6 +76,37 @@ class Rules(SystemStage):
 
         return "Rules object with rules " + rule_names
 
+
+    @output()
+    def get_raw_forecast(self, instrument_code: str,
+                         rule_variation_name: str) -> pd.Series:
+        """
+        Does what it says on the tin - pulls the forecast for the trading rule
+
+        This forecast will need scaling and capping later
+
+        KEY OUTPUT
+
+        """
+
+        system = self.parent
+
+        self.log.msg(
+            "Calculating raw forecast %s for %s"
+            % (instrument_code, rule_variation_name),
+            instrument_code=instrument_code,
+            rule_variation_name=rule_variation_name,
+        )
+        # this will process all the rules, if not already done
+        trading_rule_dict = self.trading_rules()
+        trading_rule = trading_rule_dict[rule_variation_name]
+
+        result = trading_rule.call(system, instrument_code)
+        result = pd.Series(result)
+
+        return result
+
+
     @dont_cache
     def trading_rules(self):
         """
@@ -111,6 +142,7 @@ class Rules(SystemStage):
 
         return new_rules
 
+    @dont_cache
     def _get_rules_from_parent_or_raise_errors(self):
         """
         We weren't passed anything in the command lines so need to inherit from the system config
@@ -134,36 +166,6 @@ class Rules(SystemStage):
         forecasting_config_rules = self.parent.config.trading_rules
 
         return forecasting_config_rules
-
-
-    @output()
-    def get_raw_forecast(self, instrument_code: str,
-                         rule_variation_name: str) -> pd.DataFrame:
-        """
-        Does what it says on the tin - pulls the forecast for the trading rule
-
-        This forecast will need scaling and capping later
-
-        KEY OUTPUT
-
-        """
-
-        system = self.parent
-
-        self.log.msg(
-            "Calculating raw forecast %s for %s"
-            % (instrument_code, rule_variation_name),
-            instrument_code=instrument_code,
-            rule_variation_name=rule_variation_name,
-        )
-
-        trading_rule = self.trading_rules()[rule_variation_name]
-
-        result = trading_rule.call(system, instrument_code)
-        result.columns = [rule_variation_name]
-
-
-        return result
 
 
 def process_trading_rules(passed_rules) -> dict:
