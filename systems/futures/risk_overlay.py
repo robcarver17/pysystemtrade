@@ -295,7 +295,7 @@ class portfoliosRiskOverlay(Portfolios):
         """
         system = self.parent
         instrument_returns = get_from_system_and_align(
-            system, "rawdata", "get_percentage_returns"
+            system, "rawdata", "get_daily_percentage_returns"
         )
 
         return instrument_returns
