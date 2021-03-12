@@ -117,7 +117,9 @@ forecast_cost_estimates:
    use_pooled_costs: False
    use_pooled_turnover: True
 #
-forecast_weight_ewma_span: 125
+# weights are in months, so...
+forecast_weight_ewma_span: 6
+#
 forecast_weight_estimate:
    func: syscore.optimisation.GenericOptimiser
    method: handcraft

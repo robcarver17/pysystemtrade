@@ -1,3 +1,5 @@
+### THIS IS PRETTY UGLY CODE BUT NOT CRITICAL SO NOT TOUCHING FOR NOW...
+
 """
 A cache lives inside each system object, storing preliminary results
 

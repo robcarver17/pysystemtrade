@@ -4692,7 +4692,7 @@ Change smoothing used for both fixed and variable weights:
 
 YAML: (example)
 ```
-forecast_weight_ewma_span: 125
+forecast_weight_ewma_span: 6
 ```
 
 

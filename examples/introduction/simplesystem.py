@@ -109,7 +109,7 @@ from systems.forecast_combine import ForecastCombine
 combiner = ForecastCombine()
 my_system = System([fcs, my_rules, combiner], data, my_config)
 print(my_system.combForecast.get_forecast_weights("EDOLLAR").tail(5))
-print(my_system.combForecast.get_forecast_diversification_multiplier("EDOLLAR").tail(5))
+print(my_system.combForecast.get_monthly_forecast_diversification_multiplier("EDOLLAR").tail(5))
 
 # estimates:
 from systems.account import Account
@@ -127,7 +127,7 @@ my_system = System([my_account, fcs, my_rules, combiner], data, my_config)
 my_system.set_logging_level("on")
 
 print(my_system.combForecast.get_forecast_weights("US10").tail(5))
-print(my_system.combForecast.get_forecast_diversification_multiplier("US10").tail(5))
+print(my_system.combForecast.get_monthly_forecast_diversification_multiplier("US10").tail(5))
 
 # fixed:
 my_config.forecast_weights = dict(ewmac8=0.5, ewmac32=0.5)

@@ -3,7 +3,7 @@ from copy import copy
 
 from systems.stage import SystemStage
 from systems.basesystem import ALL_KEYNAME
-from syscore.pdutils import fix_weights_vs_pdm
+from syscore.pdutils import fix_weights_vs_position_or_forecast
 from syscore.objects import update_recalc, resolve_function
 from syscore.genutils import str2Bool
 from systems.system_cache import input, dont_cache, diagnostic, output
@@ -335,7 +335,7 @@ class _PortfoliosCalculateWeights(_PortfoliosInputs):
         subsys_positions = pd.concat(subsys_positions, axis=1).ffill()
         subsys_positions.columns = instrument_list
 
-        instrument_weights = fix_weights_vs_pdm(
+        instrument_weights = fix_weights_vs_position_or_forecast(
             raw_instr_weights, subsys_positions)
 
         smooth_weighting = self.parent.config.instrument_weight_ewma_span

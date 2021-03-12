@@ -178,7 +178,7 @@ class systemDiag(object):
         instrument_list = self.instrument_list()
         fdm_results = dict()
         for instrument in instrument_list:
-            fdm = system.combForecast.get_forecast_diversification_multiplier(
+            fdm = system.combForecast.get_monthly_forecast_diversification_multiplier(
                 instrument
             ).values[-1]
             fdm_results[instrument] = float(fdm)

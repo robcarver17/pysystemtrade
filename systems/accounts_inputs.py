@@ -102,7 +102,7 @@ class _AccountInput(SystemStage):
         :returns: dict of Tx1 pd.DataFrames
 
         """
-        return self.parent.combForecast.get_forecast_diversification_multiplier(
+        return self.parent.combForecast.get_monthly_forecast_diversification_multiplier(
             instrument_code)
 
     @input

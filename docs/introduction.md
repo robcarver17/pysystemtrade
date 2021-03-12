@@ -402,10 +402,11 @@ Since we have two trading rule variations we're naturally going to want to combi
 
 ```python
 from systems.forecast_combine import ForecastCombine
-combiner=ForecastCombine()
-my_system=System([fcs, empty_rules, combiner], data, my_config)
+
+combiner = ForecastCombine()
+my_system = System([fcs, empty_rules, combiner], data, my_config)
 my_system.combForecast.get_forecast_weights("EDOLLAR").tail(5)
-my_system.combForecast.get_forecast_diversification_multiplier("EDOLLAR").tail(5)
+my_system.combForecast.get_monthly_forecast_diversification_multiplier("EDOLLAR").tail(5)
 
 ```
 
@@ -434,11 +435,12 @@ Note: Since we need to know the performance of different trading rules, we need 
 
 ```python
 from systems.account import Account
+
 my_account = Account()
 
 ## let's use naive markowitz to get more interesting results...
-my_config.forecast_weight_estimate=dict(method="one_period")
-my_config.use_forecast_weight_estimates=True
+my_config.forecast_weight_estimate = dict(method="one_period")
+my_config.use_forecast_weight_estimates = True
 my_config.use_forecast_div_mult_estimates = True
 
 combiner = ForecastCombine()
@@ -448,7 +450,7 @@ my_system = System([my_account, fcs, my_rules, combiner], data, my_config)
 my_system.set_logging_level("on")
 
 print(my_system.combForecast.get_forecast_weights("US10").tail(5))
-print(my_system.combForecast.get_forecast_diversification_multiplier("US10").tail(5))
+print(my_system.combForecast.get_monthly_forecast_diversification_multiplier("US10").tail(5))
 
 ```
 
