@@ -27,6 +27,7 @@ def diversification_mult_single_period(corrmatrix, weights, dm_max=2.5):
     1.414213562373095
     """
 
+    print("syscore.divmultipliers WILL BE DEPRECATED!")
     # edge cases...
     if all([x == 0.0 for x in list(weights)]) or np.all(np.isnan(weights)):
         return 1.0

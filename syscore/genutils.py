@@ -9,6 +9,12 @@ import numpy as np
 import datetime
 import functools
 
+def flatten_list(some_list):
+    flattened = [
+        item for sublist in some_list for item in sublist
+    ]
+
+    return flattened
 
 class not_required_flag(object):
     def __repr__(self):

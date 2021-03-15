@@ -277,11 +277,11 @@ class Test(unittest.TestCase):
         print(system2.combForecast.get_raw_monthly_forecast_weights("BUND"))
 
     def test_fixed_fdm(self):
-        print(self.system.combForecast.get_monthly_forecast_diversification_multiplier("BUND"))
+        print(self.system.combForecast.get_forecast_diversification_multiplier("BUND"))
 
     def test_estimated_fdm(self):
         system = self.setUpWithEstimatedReturns()
-        print(system.combForecast.get_monthly_forecast_diversification_multiplier("BUND"))
+        print(system.combForecast.get_forecast_diversification_multiplier("BUND"))
 
 
 if __name__ == "__main__":

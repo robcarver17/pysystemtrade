@@ -96,7 +96,7 @@ use_forecast_div_mult_estimates: False
 #
 forecast_correlation_estimate:
    pool_instruments: True
-   func: syscore.correlations.CorrelationEstimator
+   func: sysquant.estimators.pooled_correlation.pooled_correlation_estimator
    frequency: "W"
    date_method: "expanding"
    using_exponent: True
@@ -105,9 +105,10 @@ forecast_correlation_estimate:
    cleaning: True
    rollyears: 20
    floor_at_zero: True
+   forward_fill_data: True
 #
 forecast_div_mult_estimate:
-   func: syscore.divmultipliers.diversification_multiplier_from_list
+   func: sysquant.estimators.diversification_multipliers.diversification_multiplier_from_list
    ewma_span: 125
    dm_max: 2.5
 #

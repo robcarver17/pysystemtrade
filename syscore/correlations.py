@@ -10,7 +10,7 @@ import pandas as pd
 
 from syscore.genutils import str2Bool, group_dict_from_natural, progressBar
 from syscore.dateutils import generate_fitting_dates
-from syscore.pdutils import df_from_list, must_have_item
+from syscore.pdutils import stacked_df_with_added_time_from_list, must_have_item
 
 from syslogdiag.log_to_screen import logtoscreen
 
@@ -437,7 +437,7 @@ class CorrelationEstimator(CorrelationList):
 
         :returns: CorrelationList
         """
-
+        print("*** SWITCH TO sysquant.estimators.pooled_correlation.pooled_correlation_estimator***")
         if isinstance(data, list):
 
             # turn the list of data into a single dataframe. This will have a unique time series, which we manage
@@ -447,7 +447,7 @@ class CorrelationEstimator(CorrelationList):
             data_resampled = [
                 data_item.resample(frequency).last() for data_item in data
             ]
-            data_as_df = df_from_list(data_resampled)
+            data_as_df = stacked_df_with_added_time_from_list(data_resampled)
 
         else:
             length_of_data = 1

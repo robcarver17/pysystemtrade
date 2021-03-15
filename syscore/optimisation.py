@@ -18,7 +18,7 @@ from syscore.dateutils import (
     MONTHS_IN_YEAR,
 )
 from syscore.genutils import str2Bool, progressBar
-from syscore.pdutils import df_from_list, must_have_item
+from syscore.pdutils import stacked_df_with_added_time_from_list, must_have_item
 from syscore.objects import resolve_function
 from syslogdiag.log_to_screen import logtoscreen
 from syscore.handcrafting import Portfolio
@@ -211,7 +211,7 @@ class GenericOptimiser(object):
 
         # for diagnostic purposes
         # FIXME: HACK TO GET THIS REFACTOR WORKING
-        self.unmultiplied_costs = df_from_list(data_costs)
+        self.unmultiplied_costs = stacked_df_with_added_time_from_list(data_costs)
 
         # net gross and costs
         # first some warnings
@@ -239,7 +239,7 @@ class GenericOptimiser(object):
 
         # FIXME: I STILL HAVE CONCERNS THAT THIS PREMATURE, SO DIVE INTO
         # OPTIMISATION CODE AT NEXT REFACTOR
-        net_return_data = df_from_list(net_return_data)
+        net_return_data = stacked_df_with_added_time_from_list(net_return_data)
 
         setattr(self, "data", net_return_data)
         setattr(self, "period_target_SR", period_target_SR)

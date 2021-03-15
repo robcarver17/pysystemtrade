@@ -1,4 +1,5 @@
 from syscore.objects import arg_not_supplied
+from syscore.genutils import flatten_list
 from dataclasses import  dataclass
 import pandas as pd
 
@@ -104,9 +105,7 @@ class listOffuturesInstrumentWithMetaData(list):
             instrument_object.meta_data.as_dict().keys()
             for instrument_object in self
         ]
-        meta_data_keys_flattened = [
-            item for sublist in meta_data_keys for item in sublist
-        ]
+        meta_data_keys_flattened = flatten_list(meta_data_keys)
         meta_data_keys_unique = list(set(meta_data_keys_flattened))
 
         meta_data_as_lists = dict(

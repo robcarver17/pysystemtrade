@@ -406,7 +406,7 @@ from systems.forecast_combine import ForecastCombine
 combiner = ForecastCombine()
 my_system = System([fcs, empty_rules, combiner], data, my_config)
 my_system.combForecast.get_forecast_weights("EDOLLAR").tail(5)
-my_system.combForecast.get_monthly_forecast_diversification_multiplier("EDOLLAR").tail(5)
+my_system.combForecast.get_forecast_diversification_multiplier("EDOLLAR").tail(5)
 
 ```
 
@@ -450,7 +450,7 @@ my_system = System([my_account, fcs, my_rules, combiner], data, my_config)
 my_system.set_logging_level("on")
 
 print(my_system.combForecast.get_forecast_weights("US10").tail(5))
-print(my_system.combForecast.get_monthly_forecast_diversification_multiplier("US10").tail(5))
+print(my_system.combForecast.get_forecast_diversification_multiplier("US10").tail(5))
 
 ```
 

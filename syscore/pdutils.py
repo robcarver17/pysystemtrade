@@ -7,6 +7,7 @@ import datetime
 import numpy as np
 from copy import copy
 
+from syscore.genutils import flatten_list
 from syscore.dateutils import (
     BUSINESS_DAYS_IN_YEAR,
     time_matches,
@@ -45,7 +46,47 @@ def uniquets(x):
     return x
 
 
-def df_from_list(data):
+
+class listOfDataFrames(list):
+    def ffill(self):
+        ffill_data = [item.ffill() for item in self]
+        return listOfDataFrames(ffill_data)
+
+    def resample(self, frequency: str):
+        data_resampled = [
+            data_item.resample(frequency).last() for data_item in self
+        ]
+
+        return listOfDataFrames(data_resampled)
+
+    def stacked_df_with_added_time_from_list(self) -> pd.DataFrame:
+        data_as_df = stacked_df_with_added_time_from_list(self)
+
+        return data_as_df
+
+    def reindex_to_common_index(self):
+        common_index = self.common_index()
+        reindexed_data = self.reindex(common_index)
+
+        return reindexed_data
+
+    def reindex(self, new_index: list):
+        data_reindexed = [
+            data_item.reindex(new_index)
+            for data_item in self
+        ]
+        return listOfDataFrames(data_reindexed)
+
+    def common_index(self):
+        all_indices = [data_item.index for data_item in self]
+        all_indices_flattened = flatten_list(all_indices)
+        common_unique_index = list(set(all_indices_flattened))
+        common_unique_index.sort()
+
+        return common_unique_index
+
+
+def stacked_df_with_added_time_from_list(data: listOfDataFrames) -> pd.DataFrame:
     """
     Create a single data frame from list of data frames
 
@@ -55,7 +96,9 @@ def df_from_list(data):
 
     THIS WILL ALSO DESTROY ANY AUTOCORRELATION PROPERTIES
     """
-    if isinstance(data, list):
+
+
+    if isinstance(data, list) or isinstance(data, listOfDataFrames):
         column_names = sorted(
             set(sum([list(data_item.columns) for data_item in data], []))
         )
@@ -232,7 +275,7 @@ def from_dict_of_values_to_df(data_dict: dict, long_ts_index, columns: list=None
 
     columns_as_list = list(columns)
 
-    ts_index = [long_ts_index[0], long_ts_index[1]]
+    ts_index = [long_ts_index[0], long_ts_index[-1]]
 
     numeric_values = dict(
         [(keyname, [data_dict[keyname]] * len(ts_index)) for keyname in columns_as_list]
@@ -254,7 +297,7 @@ def from_scalar_values_to_ts(scalar_value: float, long_ts_index) -> pd.Series:
     :return: pd.dataframe, column names from data_dict, values repeated scalars
     """
 
-    ts_index = [long_ts_index[0], long_ts_index[1]]
+    ts_index = [long_ts_index[0], long_ts_index[-1]]
 
     pd_series = pd.Series([scalar_value]*len(ts_index), index = ts_index)
 
@@ -479,3 +522,4 @@ if __name__ == "__main__":
     import doctest
 
     doctest.testmod()
+
