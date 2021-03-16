@@ -42,8 +42,9 @@ UNIXTIME_IN_YEAR = UNIXTIME_CONVERTER * SECONDS_IN_YEAR
 MONTH_LIST = ["F", "G", "H", "J", "K", "M", "N", "Q", "U", "V", "X", "Z"]
 
 
-Frequency = Enum('Frequency', 'Day Hour Minutes_15 Minutes_5 Minute Seconds_10 Second')
+Frequency = Enum('Frequency', 'Unknown Year Month Week BDay Day Hour Minutes_15 Minutes_5 Minute Seconds_10 Second')
 DAILY_PRICE_FREQ = Frequency.Day
+
 
 def from_config_frequency_to_frequency(freq_as_str:str)-> Frequency:
     LOOKUP_TABLE = {'D':Frequency.Day,

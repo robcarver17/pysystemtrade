@@ -115,6 +115,7 @@ class RawData(SystemStage):
         """
         instrdailyprice = self.get_daily_prices(instrument_code)
         dailyreturns = instrdailyprice.diff()
+
         return dailyreturns
 
     @output()
@@ -174,6 +175,7 @@ class RawData(SystemStage):
         # volconfig contains 'func' and some other arguments
         # we turn func which could be a string into a function, and then
         # call it with the other ags
+
         volfunction = resolve_function(volconfig.pop("func"))
         vol = volfunction(dailyreturns, **volconfig)
 
@@ -193,6 +195,7 @@ class RawData(SystemStage):
         :returns: Tx1 pd.DataFrame
         """
 
+        # UGLY
         denom_price = self.daily_denominator_price(instrument_code)
         num_returns = self.daily_returns(instrument_code)
         perc_returns = num_returns / denom_price.ffill()
@@ -260,6 +263,7 @@ class RawData(SystemStage):
         returnvol = self.daily_returns_volatility(instrument_code).shift(1)
         dailyreturns = self.daily_returns(instrument_code)
         norm_return = dailyreturns / returnvol
+
         return norm_return
 
     @diagnostic()

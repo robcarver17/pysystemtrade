@@ -59,7 +59,7 @@ class futuresSimData(simData):
         :return: price
         """
 
-        return pd.Series(self.get_backadjusted_futures_price(instrument_code))
+        return self.get_backadjusted_futures_price(instrument_code)
 
 
     def get_instrument_raw_carry_data(self, instrument_code:str) -> pd.DataFrame:
@@ -78,9 +78,10 @@ class futuresSimData(simData):
         """
 
         all_price_data = self.get_multiple_prices(instrument_code)
-
-        return all_price_data[[price_name, carry_name,
+        carry_data = all_price_data[[price_name, carry_name,
                                price_contract_name, carry_contract_name]]
+
+        return carry_data
 
     def get_current_and_forward_price_data(self, instrument_code: str) -> pd.DataFrame:
         """
@@ -139,7 +140,7 @@ class futuresSimData(simData):
         return instrument_costs
 
 
-    def get_value_of_block_price_move(self, instrument_code):
+    def get_value_of_block_price_move(self, instrument_code: str) -> float:
         """
         How much is a $1 move worth in value terms?
 
@@ -156,7 +157,7 @@ class futuresSimData(simData):
 
         return block_move_value
 
-    def get_instrument_currency(self, instrument_code):
+    def get_instrument_currency(self, instrument_code: str) -> str:
         """
         What is the currency that this instrument is priced in?
 

@@ -7,7 +7,6 @@ from syscore.pdutils import uniquets
 from systems.system_cache import input, diagnostic, output
 from syscore.dateutils import ROOT_BDAYS_INYEAR
 
-
 class FuturesRawData(RawData):
     """
     A SubSystem that does futures specific raw data calculations
@@ -40,6 +39,7 @@ class FuturesRawData(RawData):
 
         instrcarrydata = self.parent.data.get_instrument_raw_carry_data(
             instrument_code)
+
         return instrcarrydata
 
     @diagnostic()
@@ -95,6 +95,7 @@ class FuturesRawData(RawData):
         roll_diff = carrydata.apply(fraction_of_year_between_price_and_carry_expiries, floor_date_diff = 1, axis=1)
 
         roll_diff = uniquets(roll_diff)
+
 
         return roll_diff
 
@@ -156,6 +157,7 @@ class FuturesRawData(RawData):
 
         annroll = self.annualised_roll(instrument_code)
         annroll = annroll.resample("1B").mean()
+
         return annroll
 
     @output()
@@ -271,6 +273,7 @@ class FuturesRawData(RawData):
         """
         prices = self.get_instrument_raw_carry_data(instrument_code).PRICE
         daily_prices = prices.resample("1B").last()
+
         return daily_prices
 
 
