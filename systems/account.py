@@ -1088,7 +1088,7 @@ class _AccountActual(_AccountCosts):
         notional = self.get_notional_capital()
 
         if not isinstance(notional, pd.core.series.Series):
-            notional_ts = pd.Series([notional] * len(capmult), capmult.index)
+            notional_ts = pd.Series(np.full(capmult.shape[0], notional), capmult.index)
         else:
             notional_ts = notional.reindex(capmult.index).ffill()
 

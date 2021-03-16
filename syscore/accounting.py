@@ -151,7 +151,7 @@ def pandl_with_data(
 
     if fx is None:
         # assume it's 1.0
-        use_fx = pd.Series([1.0] * len(price.index), index=price.index)
+        use_fx = pd.Series(np.full(price.shape[0], 1.0), index=price.index)
     else:
         use_fx = fx.reindex(price.index, method="ffill")
 
@@ -1068,10 +1068,10 @@ def calc_costs(returns_data, cash_costs, SR_cost, ann_risk):
 
         if len(traded) == 0:
             costs_pertrade = pd.Series(
-                [0.0] * len(cum_trades.index), cum_trades.index)
+                np.full(cum_trades.shape[0], 0.0), cum_trades.index)
         else:
             costs_pertrade = pd.Series(
-                [value_of_pertrade_commission] * len(traded.index), traded.index
+                np.full(traded.shape[0], value_of_pertrade_commission), traded.index
             )
             costs_pertrade = costs_pertrade.reindex(trades_to_use.index)
 
@@ -1080,7 +1080,7 @@ def calc_costs(returns_data, cash_costs, SR_cost, ann_risk):
 
     else:
         # set costs to zero
-        costs_instr_ccy = pd.Series([0.0] * len(use_fx), index=use_fx.index)
+        costs_instr_ccy = pd.Series(np.full(use_fx.shape[0], 0.0), index=use_fx.index)
 
     # fx is on master (price timestamp)
     # costs_instr_ccy needs downsampling
@@ -1135,7 +1135,7 @@ def resolve_capital(ts_to_scale_to, capital=None, ann_risk_target=None):
 
     if isinstance(base_capital, float) or isinstance(base_capital, int):
         ts_capital = pd.Series(
-            [base_capital] * len(ts_to_scale_to), index=ts_to_scale_to.index
+            np.full(ts_to_scale_to.shape[0], base_capital), index=ts_to_scale_to.index
         )
         base_capital = float(base_capital)
     else:
@@ -1189,7 +1189,7 @@ def total_from_list(list_of_ac_curves, asset_columns, capital):
 
     def _resolve_capital_for_total(capital, pdframe):
         if isinstance(capital, float):
-            return pd.Series([capital] * len(pdframe), pdframe.index)
+            return pd.Series(np.full(pdframe.shape[0], capital), pdframe.index)
         else:
             return capital
 

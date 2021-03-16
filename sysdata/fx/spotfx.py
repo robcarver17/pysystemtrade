@@ -2,6 +2,7 @@
 Spot fx prices
 """
 
+import numpy as np
 import pandas as pd
 import datetime
 
@@ -14,7 +15,7 @@ DEFAULT_DATES = pd.date_range(
     start=datetime.datetime(1970, 1, 1), freq="B", end=datetime.datetime.now()
 )
 DEFAULT_RATE_SERIES = pd.Series(
-    [1.0] * len(DEFAULT_DATES),
+    np.full(len(DEFAULT_DATES), 1.0),
     index=DEFAULT_DATES)
 
 USE_CHILD_CLASS_ERROR = "You need to use a child class of fxPricesData"
