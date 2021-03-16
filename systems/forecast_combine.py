@@ -2,14 +2,20 @@ from copy import copy
 
 import pandas as pd
 
+from syscore.algos import map_forecast_value
 from syscore.genutils import str2Bool
 from syscore.objects import resolve_function, missing_data
 from syscore.pdutils import dataframe_pad, fix_weights_vs_position_or_forecast, from_dict_of_values_to_df, \
     from_scalar_values_to_ts, listOfDataFrames
-from syscore.algos import map_forecast_value
+
+from sysdata.config.configdata import Config
+
+from sysquant.estimators.correlations import CorrelationList
+
 from systems.stage import SystemStage
 from systems.system_cache import diagnostic, dont_cache, input, output
-from sysquant.estimators.correlations import CorrelationList
+from systems.forecasting import Rules
+from systems.forecast_scale_cap import ForecastScaleCap
 
 
 class ForecastCombine(SystemStage
@@ -117,7 +123,8 @@ class ForecastCombine(SystemStage
         forecasts = self.get_all_forecasts(
             instrument_code, rule_variation_list)
 
-        smoothed_forecast_weights = self.get_forecast_weights(instrument_code)
+        smoothed_monthly_forecast_weights = self.get_forecast_weights(instrument_code)
+        smoothed_forecast_weights = smoothed_monthly_forecast_weights.reindex(forecasts.index).ffill()
 
         weighted_forecasts = smoothed_forecast_weights * forecasts
 
@@ -127,13 +134,14 @@ class ForecastCombine(SystemStage
 
     @diagnostic()
     def get_forecast_weights(self, instrument_code: str) -> pd.DataFrame:
-        raw_forecast_weights = self.get_unsmoothed_forecast_weights(instrument_code)
+        # These will be in monthly frequency
+        monthly_forecast_weights_fixed_to_forecasts_unsmoothed = self.get_unsmoothed_forecast_weights(instrument_code)
 
         # smooth out weights
-        forecast_smoothing_ewma_span= self.parent.config.forecast_weight_ewma_span
-        forecast_weights = raw_forecast_weights.ewm(span=forecast_smoothing_ewma_span).mean()
+        forecast_smoothing_ewma_span= self.config.forecast_weight_ewma_span
+        smoothed_monthly_forecast_weights = monthly_forecast_weights_fixed_to_forecasts_unsmoothed.ewm(span=forecast_smoothing_ewma_span).mean()
 
-        return forecast_weights
+        return smoothed_monthly_forecast_weights
 
     @diagnostic()
     def get_unsmoothed_forecast_weights(self, instrument_code: str):
@@ -193,7 +201,11 @@ class ForecastCombine(SystemStage
             monthly_forecast_weights=monthly_forecast_weights
             )
 
-        return forecast_weights_fixed_to_forecasts
+        # Remap to monthly frequency so the smoothing makes sense also space saver
+        monthly_forecast_weights_fixed_to_forecasts_unsmoothed = \
+            forecast_weights_fixed_to_forecasts.resample("1M").mean()
+
+        return monthly_forecast_weights_fixed_to_forecasts_unsmoothed
 
     @dont_cache
     def _fix_weights_to_forecasts(self,instrument_code: str,
@@ -299,15 +311,15 @@ class ForecastCombine(SystemStage
         """
 
         # Let's try the config
-        system = self.parent
-        if hasattr(system.config, "forecast_weights"):
+        config = self.config
+        if hasattr(config, "forecast_weights"):
             # a dict of weights, nested or un nested
-            if instrument_code in system.config.forecast_weights:
+            if instrument_code in config.forecast_weights:
                 # nested dict
-                rules = system.config.forecast_weights[instrument_code].keys()
+                rules = config.forecast_weights[instrument_code].keys()
             else:
                 # assume it's a non nested dict, eg weights same across instruments
-                rules = system.config.forecast_weights.keys()
+                rules = config.forecast_weights.keys()
         else:
             ## not supplied as a config item, use the name of the rules
             rules = self._get_list_of_all_trading_rules_from_forecasting_stage()
@@ -316,9 +328,17 @@ class ForecastCombine(SystemStage
 
         return rules
 
+    @property
+    def config(self) -> Config:
+        return self.parent.config
+
     @input
     def _get_list_of_all_trading_rules_from_forecasting_stage(self) -> list:
-        return list(self.parent.rules.trading_rules().keys())
+        return list(self.rules_stage.trading_rules().keys())
+
+    @property
+    def rules_stage(self) -> Rules:
+        return self.parent.rules
 
     @diagnostic()
     def get_trading_rule_list_for_estimated_weights(self, instrument_code: str) -> list:
@@ -345,21 +365,21 @@ class ForecastCombine(SystemStage
         ['ewmac8']
         """
         # Let's try the config
-        system = self.parent
+        config = self.config
 
-        if hasattr(system.config, "rule_variations"):
+        if hasattr(config, "rule_variations"):
             ###
-            if instrument_code in system.config.rule_variations:
+            if instrument_code in config.rule_variations:
                 # nested dict of lists
-                rules = system.config.rule_variations[instrument_code]
+                rules = config.rule_variations[instrument_code]
             else:
                 # assume it's a non nested list
                 # this will break if you have put an incomplete list of
                 # instruments into a nested dict
-                rules = system.config.rule_variations
+                rules = config.rule_variations
         else:
             ## not supplied in config
-            rules = self.parent.rules.trading_rules().keys()
+            rules = self._get_list_of_all_trading_rules_from_forecasting_stage()
 
         rules = sorted(rules)
 
@@ -417,10 +437,13 @@ class ForecastCombine(SystemStage
         2015-12-11  0.871231
         """
 
-        return self.parent.forecastScaleCap.get_capped_forecast(
+        return self.forecast_scale_cap_stage.get_capped_forecast(
             instrument_code, rule_variation_name
         )
 
+    @property
+    def forecast_scale_cap_stage(self) -> ForecastScaleCap:
+        return self.parent.forecastScaleCap
 
     # FORECAST WEIGHT CALCULATIONS
     @dont_cache
@@ -447,7 +470,7 @@ class ForecastCombine(SystemStage
 
     @dont_cache
     def _use_estimated_weights(self):
-        return str2Bool(self.parent.config.use_forecast_weight_estimates)
+        return str2Bool(self.config.use_forecast_weight_estimates)
 
     def get_monthly_raw_forecast_weights_estimated(self, instrument_code: str) -> pd.DataFrame:
         """
@@ -511,9 +534,10 @@ class ForecastCombine(SystemStage
             "Calculating raw forecast weights for %s" %
             instrument_code)
 
+        config = self.config
         # Get some useful stuff from the config
-        weighting_params = copy(self.parent.config.forecast_weight_estimate)
-        cost_param = copy(self.parent.config.forecast_cost_estimates)
+        weighting_params = copy(config.forecast_weight_estimate)
+        cost_param = copy(config.forecast_cost_estimates)
         weighting_params.update(cost_param)
 
         # which function to use for calculation
@@ -585,7 +609,7 @@ class ForecastCombine(SystemStage
 
         """
 
-        ceiling_cost_SR = self.parent.config.forecast_weight_estimate["ceiling_cost_SR"]
+        ceiling_cost_SR = self.config.forecast_weight_estimate["ceiling_cost_SR"]
 
         rule_list = self.get_trading_rule_list(instrument_code)
         SR_cost_list = [
@@ -617,7 +641,7 @@ class ForecastCombine(SystemStage
     @input
     def get_SR_cost_for_instrument_forecast(
             self, instrument_code: str,
-            rule_variation_name: str):
+            rule_variation_name: str) -> float:
         """
 
         Get the cost in SR units per year of trading this instrument / rule
@@ -632,17 +656,26 @@ class ForecastCombine(SystemStage
 
         KEY INPUT
         """
-        if not hasattr(self.parent, "accounts"):
+        accounts = self.accounts_stage
+        if accounts is missing_data:
             warn_msg = (
                 "You need an accounts stage in the system to estimate forecast costs for %s %s. Using costs of zero" % (instrument_code, rule_variation_name)
             )
             self.log.warn(warn_msg)
-
             return 0.0
 
-        return self.parent.accounts.get_SR_cost_for_instrument_forecast(
+        return accounts.get_SR_cost_for_instrument_forecast(
             instrument_code, rule_variation_name
         )
+
+    @property
+    def accounts_stage(self):
+
+        if not hasattr(self.parent, "accounts"):
+            return missing_data
+
+        # no -> to avoid circular imports
+        return self.parent.accounts
 
     @input
     def get_returns_for_optimisation(self, instrument_code: str) -> pd.DataFrame:
@@ -658,14 +691,17 @@ class ForecastCombine(SystemStage
         :returns: accountCurveGroup object
 
         """
-        if not hasattr(self.parent, "accounts"):
+        accounts = self.accounts_stage
+
+        if accounts is missing_data:
             error_msg = (
                 "You need an accounts stage in the system to estimate forecast weights"
             )
             self.log.critical(error_msg)
+            raise Exception(error_msg)
 
         cheap_rule_list = self.cheap_trading_rules(instrument_code)
-        return self.parent.accounts.pandl_for_instrument_rules_unweighted(
+        return accounts.pandl_for_instrument_rules_unweighted(
             instrument_code, cheap_rule_list
         )
 
@@ -720,11 +756,16 @@ class ForecastCombine(SystemStage
 
         rule_variation_list = sorted(fixed_weights.keys())
 
-        forecasts_ts = self.get_all_forecasts(
+        forecasts = self.get_all_forecasts(
             instrument_code, rule_variation_list)
+        forecasts_time_index = forecasts.index
+        forecast_columns_to_align = forecasts.columns
 
+        # Turn into a 2 row data frame aligned to forecast names
         forecast_weights = from_dict_of_values_to_df(
-            fixed_weights, forecasts_ts.index, columns=forecasts_ts.columns
+            fixed_weights,
+            forecasts_time_index,
+            columns=forecast_columns_to_align
         )
 
         return forecast_weights
@@ -762,7 +803,7 @@ class ForecastCombine(SystemStage
 
     # DIVERSIFICATION MULTIPLIER
     @dont_cache
-    def get_forecast_diversification_multiplier(self, instrument_code):
+    def get_forecast_diversification_multiplier(self, instrument_code: str) -> pd.Series:
         if self.use_estimated_div_mult():
             fdm = self.get_forecast_diversification_multiplier_estimated(
                 instrument_code
@@ -775,7 +816,7 @@ class ForecastCombine(SystemStage
 
     @dont_cache
     def use_estimated_div_mult(self):
-        return str2Bool(self.parent.config.use_forecast_div_mult_estimates)
+        return str2Bool(self.config.use_forecast_div_mult_estimates)
 
 
     # FIXED FDM
@@ -839,9 +880,7 @@ class ForecastCombine(SystemStage
 
     # ESTIMATED FDM
 
-
     @diagnostic(protected=True)
-    # FIXME REFACTOR
     def get_forecast_diversification_multiplier_estimated(
             self, instrument_code: str) -> pd.Series:
         """
@@ -884,7 +923,7 @@ class ForecastCombine(SystemStage
         div_mult_params = copy(self.parent.config.forecast_div_mult_estimate)
 
         # an example of an idm calculation function is
-        # syscore.divmultipliers.diversification_multiplier_from_list
+        # sysquant.estimators.diversification_multipliers.diversification_multiplier_from_list
         idm_func = resolve_function(div_mult_params.pop("func"))
 
         correlation_list = self.get_forecast_correlation_matrices(
@@ -940,7 +979,7 @@ class ForecastCombine(SystemStage
         """
 
         # Get some useful stuff from the config
-        corr_params = copy(self.parent.config.forecast_correlation_estimate)
+        corr_params = copy(self.config.forecast_correlation_estimate)
 
         # do we pool our estimation?
         pooling = str2Bool(corr_params.pop("pool_instruments"))
@@ -1028,7 +1067,7 @@ class ForecastCombine(SystemStage
         """
 
         # Get some useful stuff from the config
-        corr_params = copy(self.parent.config.forecast_correlation_estimate)
+        corr_params = copy(self.config.forecast_correlation_estimate)
 
         # do we pool our estimation?
         # not used here since we've looked at this already
@@ -1108,7 +1147,7 @@ class ForecastCombine(SystemStage
         KEY INPUT
         """
 
-        return self.parent.forecastScaleCap.get_forecast_cap()
+        return self.forecast_scale_cap_stage.get_forecast_cap()
 
     @input
     def get_forecast_floor(self) -> float:
@@ -1120,7 +1159,7 @@ class ForecastCombine(SystemStage
         KEY INPUT
         """
 
-        return self.parent.forecastScaleCap.get_forecast_floor()
+        return self.forecast_scale_cap_stage.get_forecast_floor()
 
 
 
