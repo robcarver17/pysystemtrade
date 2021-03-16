@@ -628,9 +628,12 @@ class _AccountInstruments(_AccountInstrumentForecast):
 
         capital = self.get_notional_capital()
         ann_risk_target = self.get_ann_risk_target()
-
+        
         (SR_cost, cash_costs) = self.get_costs(instrument_code)
-
+        # moved turnover multiplcation before accountCurve
+        turnover_for_SR = self.instrument_turnover(
+                instrument_code, roundpositions=roundpositions)
+        SR_cost = SR_cost * turnover_for_SR
 
         instr_pandl = accountCurve(
             price,
@@ -649,9 +652,7 @@ class _AccountInstruments(_AccountInstrumentForecast):
             # Note that SR cost is done as a proportion of capital
             # Since we're only using part of the capital we need to correct
             # for this
-            turnover_for_SR = self.instrument_turnover(
-                instrument_code, roundpositions=roundpositions)
-            SR_cost = SR_cost * turnover_for_SR
+            # moved turnover multiplcation before accountCurve
             weighting = self.get_instrument_scaling_factor(instrument_code)
             apply_weight_to_costs_only = True
 
