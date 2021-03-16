@@ -357,12 +357,12 @@ class accountCurveSingleElementOneFreq(pd.Series):
         except KeyError:
             raise Exception("Not a frequency %s" % frequency)
 
-        setattr(self, "frequency", frequency)
-        setattr(self, "_returns_scalar", returns_scalar)
-        setattr(self, "_vol_scalar", vol_scalar)
-        setattr(self, "_returns_df", returns_df)
-        setattr(self, "weighted_flag", weighted_flag)
-        setattr(self, "capital", capital)
+        self.frequency = frequency
+        self._returns_scalar = returns_scalar
+        self._vol_scalar = vol_scalar
+        self._returns_df = returns_df
+        self.weighted_flag = weighted_flag
+        self.capital = capital
 
     def as_df(self):
         print("Deprecated accountCurve.as_df use .as_ts() please")
@@ -412,11 +412,11 @@ class accountCurveSingleElementOneFreq(pd.Series):
 
     def curve(self):
         # we cache this since it's used so much
-        if hasattr(self, "_curve"):
+        if '_curve' in self.__dict__:
             return self._curve
         else:
             curve = self.cumsum().ffill()
-            setattr(self, "_curve", curve)
+            self._curve = curve
             return curve
 
     def mean(self):
@@ -457,10 +457,9 @@ class accountCurveSingleElementOneFreq(pd.Series):
         return np.nanmin(dd.values)
 
     def time_in_drawdown(self):
-        dd = self.drawdown()
-        dd = [z for z in dd.values if not np.isnan(z)]
-        in_dd = float(len([z for z in dd if z < 0]))
-        return in_dd / float(len(dd))
+        dd = self.drawdown().dropna()
+        in_dd = float(dd[dd < 0].shape[0])
+        return in_dd / float(dd.shape[0])
 
     def calmar(self):
         return self.ann_mean() / -self.worst_drawdown()
@@ -482,12 +481,14 @@ class accountCurveSingleElementOneFreq(pd.Series):
         return sortino
 
     def vals(self):
-        x = [z for z in self.values if not np.isnan(z)]
-        return x
+        if '_vals' in self.__dict__:
+            return self._vals
+        vals = self.values[~np.isnan(self.values)]
+        self._vals = vals
+        return vals
 
     def min(self):
-
-        return np.nanmin(self.vals())
+        return np.min(self.vals())
 
     def max(self):
         return np.max(self.vals())
@@ -500,11 +501,11 @@ class accountCurveSingleElementOneFreq(pd.Series):
 
     def losses(self):
         x = self.vals()
-        return [z for z in x if z < 0]
+        return x[x < 0]
 
     def gains(self):
         x = self.vals()
-        return [z for z in x if z > 0]
+        return x[x > 0]
 
     def avg_loss(self):
         return np.mean(self.losses())
@@ -516,11 +517,11 @@ class accountCurveSingleElementOneFreq(pd.Series):
         return self.avg_gain() / -self.avg_loss()
 
     def profitfactor(self):
-        return sum(self.gains()) / -sum(self.losses())
+        return np.sum(self.gains()) / -np.sum(self.losses())
 
     def hitrate(self):
-        no_gains = float(len(self.gains()))
-        no_losses = float(len(self.losses()))
+        no_gains = float(self.gains().shape[0])
+        no_losses = float(self.losses().shape[0])
         return no_gains / (no_losses + no_gains)
 
     def rolling_ann_std(self, window=40):
