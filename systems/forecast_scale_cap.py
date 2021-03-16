@@ -2,6 +2,8 @@ from copy import copy
 
 import pandas as pd
 
+from sysdata.config.configdata import Config
+
 from systems.basesystem import ALL_KEYNAME
 from systems.stage import SystemStage
 from systems.system_cache import input, dont_cache, diagnostic, output
@@ -128,11 +130,15 @@ class ForecastScaleCap(SystemStage):
         2015-12-11  0.164383
         """
 
-        raw_forecast = self.parent.rules.get_raw_forecast(
+        raw_forecast = self.rules_stage.get_raw_forecast(
             instrument_code, rule_variation_name
         )
 
         return raw_forecast
+
+    @property
+    def rules_stage(self):
+        return self.parent.rules
 
     @dont_cache
     def get_forecast_scalar(self, instrument_code: str, rule_variation_name: str)-> pd.Series:
@@ -144,12 +150,16 @@ class ForecastScaleCap(SystemStage):
             forecast_scalar = self._get_forecast_scalar_fixed_as_series(
                 instrument_code, rule_variation_name)
 
-
         return forecast_scalar
 
     @dont_cache
     def _use_estimated_weights(self) -> bool:
-        return str2Bool(self.parent.config.use_forecast_scale_estimates)
+        return str2Bool(self.config.use_forecast_scale_estimates)
+
+    @property
+    def config(self)->Config:
+        return self.parent.config
+
 
     # protected in cache as slow to estimate
     @diagnostic(protected=True)
@@ -203,7 +213,7 @@ class ForecastScaleCap(SystemStage):
         """
         # Get some useful stuff from the config
         forecast_scalar_config = copy(
-            self.parent.config.forecast_scalar_estimate)
+            self.config.forecast_scalar_estimate)
 
         instrument_code_to_pass = \
             _get_instrument_code_depending_on_pooling_status(instrument_code = instrument_code,
@@ -269,7 +279,7 @@ class ForecastScaleCap(SystemStage):
 
     @dont_cache
     def _target_abs_forecast(self) -> float:
-        return self.parent.config.average_absolute_forecast
+        return self.config.average_absolute_forecast
 
     @diagnostic()
     def _get_cross_sectional_forecasts_for_instrument(self, instrument_code: str,
@@ -346,9 +356,13 @@ class ForecastScaleCap(SystemStage):
                 missing_data) is missing_data:
             return []
         else:
-            return self.parent.combForecast.get_trading_rule_list(
+            return self.comb_forecast_stage.get_trading_rule_list(
                 instrument_code)
 
+    @property
+    def comb_forecast_stage(self):
+        # no use of -> as would cause circular import
+        return self.parent.combForecast
 
     @diagnostic()
     def _get_forecast_scalar_fixed_as_series(self, instrument_code: str,
@@ -419,16 +433,16 @@ class ForecastScaleCap(SystemStage):
         11.0
         """
 
-        system = self.parent
+        config = self.config
         try:
-            scalar = system.config.trading_rules[rule_variation_name]["forecast_scalar"]
+            scalar = config.trading_rules[rule_variation_name]["forecast_scalar"]
         except:
             try:
                 # can also put somewhere else ...
-                scalar = system.config.forecast_scalars[rule_variation_name]
+                scalar = config.forecast_scalars[rule_variation_name]
             except:
                 # just one global default
-                scalar = system.config.get_element_or_missing_data("forecast_scalar")
+                scalar = config.get_element_or_missing_data("forecast_scalar")
                 if scalar is missing_data:
                     raise Exception(
                         "Forecast scalar needs to be config.trading_rules[rule_variation_name]['forecast_scalar'] or config.forecast_scalars[rule_variation_name] or config['forecast_scalar']")
@@ -462,7 +476,7 @@ class ForecastScaleCap(SystemStage):
 
         """
 
-        return self.parent.config.forecast_cap
+        return self.config.forecast_cap
 
     @diagnostic()
     def get_forecast_floor(self) -> float:
@@ -479,7 +493,7 @@ class ForecastScaleCap(SystemStage):
         forecast_cap = self.get_forecast_cap()
         minus_forecast_cap = - forecast_cap
         forecast_floor = getattr(
-            self.parent.config, "forecast_floor", minus_forecast_cap)
+            self.config, "forecast_floor", minus_forecast_cap)
 
         return forecast_floor
 
