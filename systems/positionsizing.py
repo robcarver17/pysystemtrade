@@ -135,8 +135,7 @@ class PositionSizing(SystemStage):
         )
 
         instr_value_vol = self.get_instrument_value_vol(instrument_code)
-        cash_vol_target = self.get_daily_cash_vol_target()[
-            "daily_cash_vol_target"]
+        cash_vol_target = self.get_daily_cash_vol_target()
 
         vol_scalar = cash_vol_target / instr_value_vol
 
@@ -384,7 +383,8 @@ class PositionSizing(SystemStage):
         return daily_perc_vol
 
     @diagnostic()
-    def get_daily_cash_vol_target(self) -> dict:
+    def get_vol_target_dict(self) -> dict:
+        # FIXME UGLY REPLACE WITH COMPONENTS
         """
         Get the daily cash vol target
 
@@ -402,13 +402,13 @@ class PositionSizing(SystemStage):
         >>> system=System([rawdata, rules, fcs, comb, PositionSizing()], data, config)
         >>>
         >>> ## from config
-        >>> system.positionSize.get_daily_cash_vol_target()['base_currency']
+        >>> system.positionSize.get_vol_target_dict()['base_currency']
         'GBP'
         >>>
         >>> ## from defaults
         >>> del(config.base_currency)
         >>> system=System([rawdata, rules, fcs, comb, PositionSizing()], data, config)
-        >>> system.positionSize.get_daily_cash_vol_target()['base_currency']
+        >>> system.positionSize.get_vol_target_dict()['base_currency']
         'USD'
         >>>
 
@@ -416,18 +416,14 @@ class PositionSizing(SystemStage):
 
         self.log.msg("Getting vol target")
 
-        system = self.parent
-        percentage_vol_target = float(system.config.percentage_vol_target)
+        percentage_vol_target = self.get_percentage_vol_target()
 
-        notional_trading_capital = float(
-            system.config.notional_trading_capital)
+        notional_trading_capital = self.get_notional_trading_capital()
 
-        base_currency = system.config.base_currency
+        base_currency = self.get_base_currency()
 
-        annual_cash_vol_target = (
-            notional_trading_capital * percentage_vol_target / 100.0
-        )
-        daily_cash_vol_target = annual_cash_vol_target / ROOT_BDAYS_INYEAR
+        annual_cash_vol_target = self.annual_cash_vol_target()
+        daily_cash_vol_target = self.get_daily_cash_vol_target()
 
         vol_target_dict = dict(
             base_currency=base_currency,
@@ -438,6 +434,40 @@ class PositionSizing(SystemStage):
         )
 
         return vol_target_dict
+
+    @diagnostic()
+    def get_daily_cash_vol_target(self) -> float:
+        annual_cash_vol_target = self.annual_cash_vol_target()
+        daily_cash_vol_target = annual_cash_vol_target / ROOT_BDAYS_INYEAR
+
+        return daily_cash_vol_target
+
+    @diagnostic()
+    def annual_cash_vol_target(self) -> float:
+        notional_trading_capital = self.get_notional_trading_capital()
+        percentage_vol_target = self.get_percentage_vol_target()
+
+        annual_cash_vol_target = (
+            notional_trading_capital * percentage_vol_target / 100.0
+        )
+
+        return annual_cash_vol_target
+
+    @input
+    def get_notional_trading_capital(self) -> float:
+        notional_trading_capital = float(
+            self.config.notional_trading_capital)
+        return notional_trading_capital
+
+    @input
+    def get_percentage_vol_target(self):
+        return float(self.config.percentage_vol_target)
+
+
+    @diagnostic()
+    def get_base_currency(self) -> str:
+        base_currency = self.config.base_currency
+        return base_currency
 
     @input
     def get_fx_rate(self, instrument_code: str) -> pd.Series:
@@ -463,7 +493,7 @@ class PositionSizing(SystemStage):
 
         """
 
-        base_currency = self.get_daily_cash_vol_target()["base_currency"]
+        base_currency = self.get_base_currency()
         fx_rate = self.data.get_fx_for_instrument(
             instrument_code, base_currency)
 

@@ -59,7 +59,7 @@ def report_system_classic(data, data_backtest: interactiveBacktest):
     format_output.append(weighted_forecast_table)
 
     # Cash target
-    cash_target_dict = data_backtest.system.positionSize.get_daily_cash_vol_target()
+    cash_target_dict = data_backtest.system.positionSize.get_vol_target_dict()
     cash_target_text = body_text(
         "\nVol target calculation %s\n" %
         cash_target_dict)

@@ -210,7 +210,7 @@ class _AccountInput(SystemStage):
         >>> system.accounts.get_notional_capital()
         100000.0
         """
-        return self.parent.positionSize.get_daily_cash_vol_target()[
+        return self.parent.positionSize.get_vol_target_dict()[
             "notional_trading_capital"
         ]
 
@@ -224,7 +224,7 @@ class _AccountInput(SystemStage):
         :returns: float
         """
         return (
-            self.parent.positionSize.get_daily_cash_vol_target()[
+            self.parent.positionSize.get_vol_target_dict()[
                 "percentage_vol_target"
             ]
             / 100.0

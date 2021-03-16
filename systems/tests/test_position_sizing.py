@@ -56,7 +56,7 @@ class Test(unittest.TestCase):
         self.assertEqual(ans[1], 2500)
 
     def test_get_daily_cash_vol_target(self):
-        ans_dict = self.system.positionSize.get_daily_cash_vol_target()
+        ans_dict = self.system.positionSize.get_vol_target_dict()
         self.assertEqual(ans_dict["base_currency"], "GBP")
         self.assertEqual(ans_dict["annual_cash_vol_target"], 16000.0)
         self.assertEqual(ans_dict["daily_cash_vol_target"], 1000.0)
@@ -74,7 +74,7 @@ class Test(unittest.TestCase):
             ],
             self.data,
         )
-        ans_dict2 = system2.positionSize.get_daily_cash_vol_target()
+        ans_dict2 = system2.positionSize.get_vol_target_dict()
         self.assertEqual(ans_dict2["base_currency"], "USD")
         self.assertEqual(ans_dict2["annual_cash_vol_target"], 160000.0)
         self.assertEqual(ans_dict2["daily_cash_vol_target"], 10000.0)

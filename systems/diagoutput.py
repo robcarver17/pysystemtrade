@@ -345,7 +345,7 @@ class systemDiag(object):
             result = stage_method(instrument_code)
             results[name] = result
 
-        results["Daily VolTgt"] = system.positionSize.get_daily_cash_vol_target()[
+        results["Daily VolTgt"] = system.positionSize.get_vol_target_dict()[
             "daily_cash_vol_target"
         ]
 

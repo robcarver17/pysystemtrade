@@ -872,7 +872,7 @@ class ForecastCombine(SystemStage
         # Now we have a dict, fixed_weights.
         # Need to turn into a timeseries covering the range of forecast dates
         # get forecast weights first
-        forecast_weights = self.get_forecast_weights(instrument_code)
+        forecast_weights = self.get_all_forecasts(instrument_code)
 
         fixed_div_mult_as_ts = from_scalar_values_to_ts(fixed_div_mult, forecast_weights.index)
 
