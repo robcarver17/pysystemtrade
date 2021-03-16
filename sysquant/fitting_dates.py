@@ -79,7 +79,10 @@ def generate_fitting_dates(data: pd.DataFrame,
         periods.append(
             fit_date)
 
-    periods = _add_dummy_period_if_required(periods, date_method=date_method)
+    periods = _add_dummy_period_if_required(periods,
+                                            date_method=date_method,
+                                            list_of_starting_dates_per_period=list_of_starting_dates_per_period,
+                                            start_date=start_date)
 
     return listOfFittingDates(periods)
 
@@ -137,7 +140,9 @@ def _fit_dates_for_period_index(period_index: int,
     return fit_date
 
 def _add_dummy_period_if_required(periods: list,
-                                  date_method: str):
+                                  date_method: str,
+                                  start_date: datetime.datetime,
+                                  list_of_starting_dates_per_period: list):
     if date_method in ["rolling", "expanding"]:
         # add on a dummy date for the first year, when we have no data
         periods = [

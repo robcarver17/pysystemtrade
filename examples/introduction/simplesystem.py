@@ -154,7 +154,7 @@ my_system = System([fcs, my_rules, combiner, possizer], data, my_config)
 
 print(my_system.positionSize.get_price_volatility("EDOLLAR").tail(5))
 print(my_system.positionSize.get_block_value("EDOLLAR").tail(5))
-print(my_system.positionSize.get_instrument_sizing_data("EDOLLAR"))
+print(my_system.positionSize.get_underlying_price("EDOLLAR"))
 print(my_system.positionSize.get_instrument_value_vol("EDOLLAR").tail(5))
 print(my_system.positionSize.get_volatility_scalar("EDOLLAR").tail(5))
 print(my_system.positionSize.get_daily_cash_vol_target())

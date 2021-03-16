@@ -51,7 +51,7 @@ class Test(unittest.TestCase):
 
     @unittest.SkipTest
     def test_get_instrument_sizing_data(self):
-        ans = self.system.positionSize.get_instrument_sizing_data("EDOLLAR")
+        ans = self.system.positionSize.get_underlying_price("EDOLLAR")
         self.assertEqual(ans[0].values[-1], 97.9875)
         self.assertEqual(ans[1], 2500)
 

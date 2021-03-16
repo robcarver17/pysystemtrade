@@ -1,8 +1,17 @@
-from sysdata.config.defaults import get_default_config_key_value
-from systems.stage import SystemStage
+import pandas as pd
+
+
 from syscore.dateutils import ROOT_BDAYS_INYEAR
+from syscore.objects import missing_data
+
+from sysdata.config.configdata import Config
+from sysdata.sim.sim_data import simData
 from sysquant.estimators.vol import robust_vol_calc
+
+from systems.stage import SystemStage
 from systems.system_cache import input, diagnostic, output
+from systems.forecast_combine import ForecastCombine
+from systems.rawdata import RawData
 
 
 class PositionSizing(SystemStage):
@@ -38,33 +47,290 @@ class PositionSizing(SystemStage):
     def name(self):
         return "positionSize"
 
-    @input
-    def get_combined_forecast(self, instrument_code):
+    @output()
+    def get_subsystem_position(self, instrument_code: str) -> pd.Series:
         """
-        Get the combined forecast from previous module
+        Get scaled position (assuming for now we trade our entire capital for one instrument)
+
+        KEY OUTPUT
 
         :param instrument_code: instrument to get values for
         :type instrument_code: str
 
         :returns: Tx1 pd.DataFrame
 
-        KEY INPUT
+        >>> from systems.tests.testdata import get_test_object_futures_with_comb_forecasts
+        >>> from systems.basesystem import System
+        >>> (comb, fcs, rules, rawdata, data, config)=get_test_object_futures_with_comb_forecasts()
+        >>> system=System([rawdata, rules, fcs, comb, PositionSizing()], data, config)
+        >>>
+        >>> system.positionSize.get_subsystem_position("EDOLLAR").tail(2)
+                    ss_position
+        2015-12-10     1.811465
+        2015-12-11     2.544598
+        >>>
+        >>> system2=System([rawdata, rules, fcs, comb, PositionSizing()], data, config)
+        >>> system2.positionSize.get_subsystem_position("EDOLLAR").tail(2)
+                    ss_position
+        2015-12-10     1.811465
+        2015-12-11     2.544598
+
+        """
+        self.log.msg(
+            "Calculating subsystem position for %s" % instrument_code,
+            instrument_code=instrument_code,
+        )
+        """
+        We don't allow this to be changed in config
+        """
+
+        avg_abs_forecast = self.avg_abs_forecast()
+        vol_scalar = self.get_volatility_scalar(instrument_code)
+        forecast = self.get_combined_forecast(instrument_code)
+
+        vol_scalar = vol_scalar.reindex(forecast.index).ffill()
+
+        subsystem_position = vol_scalar * forecast / avg_abs_forecast
+
+        return subsystem_position
+
+    def avg_abs_forecast(self) -> float:
+        return self.config.average_absolute_forecast
+
+    @property
+    def config(self) -> Config:
+        return self.parent.config
+
+    @diagnostic()
+    def get_volatility_scalar(self, instrument_code: str) -> pd.Series:
+        """
+        Get ratio of required volatility vs volatility of instrument in instrument's own currency
+
+        :param instrument_code: instrument to get values for
+        :type instrument_code: str
+
+        :returns: Tx1 pd.DataFrame
 
         >>> from systems.tests.testdata import get_test_object_futures_with_comb_forecasts
         >>> from systems.basesystem import System
         >>> (comb, fcs, rules, rawdata, data, config)=get_test_object_futures_with_comb_forecasts()
         >>> system=System([rawdata, rules, fcs, comb, PositionSizing()], data, config)
         >>>
-        >>> system.positionSize.get_combined_forecast("EDOLLAR").tail(2)
-                    comb_forecast
-        2015-12-10       1.619134
-        2015-12-11       2.462610
+        >>> system.positionSize.get_volatility_scalar("EDOLLAR").tail(2)
+                    vol_scalar
+        2015-12-10   11.187869
+        2015-12-11   10.332930
+        >>>
+        >>> ## without raw data
+        >>> system2=System([ rules, fcs, comb, PositionSizing()], data, config)
+        >>> system2.positionSize.get_volatility_scalar("EDOLLAR").tail(2)
+                    vol_scalar
+        2015-12-10   11.180444
+        2015-12-11   10.344278
         """
 
-        return self.parent.combForecast.get_combined_forecast(instrument_code)
+        self.log.msg(
+            "Calculating volatility scalar for %s" % instrument_code,
+            instrument_code=instrument_code,
+        )
+
+        instr_value_vol = self.get_instrument_value_vol(instrument_code)
+        cash_vol_target = self.get_daily_cash_vol_target()[
+            "daily_cash_vol_target"]
+
+        vol_scalar = cash_vol_target / instr_value_vol
+
+        return vol_scalar
+
 
     @diagnostic()
-    def get_price_volatility(self, instrument_code):
+    def get_instrument_value_vol(self, instrument_code: str) -> pd.Series:
+        """
+        Get value of volatility of instrument in base currency (used for account value)
+
+        :param instrument_code: instrument to get values for
+        :type instrument_code: str
+
+        :returns: Tx1 pd.DataFrame
+
+        >>> from systems.tests.testdata import get_test_object_futures_with_comb_forecasts
+        >>> from systems.basesystem import System
+        >>> (comb, fcs, rules, rawdata, data, config)=get_test_object_futures_with_comb_forecasts()
+        >>> system=System([rawdata, rules, fcs, comb, PositionSizing()], data, config)
+        >>>
+        >>> system.positionSize.get_instrument_value_vol("EDOLLAR").tail(2)
+                          ivv
+        2015-12-10  89.382530
+        2015-12-11  96.777975
+        >>>
+        >>> system2=System([rawdata, rules, fcs, comb, PositionSizing()], data, config)
+        >>> system2.positionSize.get_instrument_value_vol("EDOLLAR").tail(2)
+                          ivv
+        2015-12-10  89.382530
+        2015-12-11  96.777975
+
+        """
+
+        self.log.msg(
+            "Calculating instrument value vol for %s" % instrument_code,
+            instrument_code=instrument_code,
+        )
+
+        instr_ccy_vol = self.get_instrument_currency_vol(instrument_code)
+        fx_rate = self.get_fx_rate(instrument_code)
+
+        fx_rate = fx_rate.reindex(instr_ccy_vol.index)
+
+        instr_value_vol = instr_ccy_vol.ffill() * fx_rate.ffill()
+
+        return instr_value_vol
+
+    @diagnostic()
+    def get_instrument_currency_vol(self, instrument_code: str) -> pd.Series:
+        """
+        Get value of volatility of instrument in instrument's own currency
+
+        :param instrument_code: instrument to get values for
+        :type instrument_code: str
+
+        :returns: Tx1 pd.DataFrame
+
+        >>> from systems.tests.testdata import get_test_object_futures_with_comb_forecasts
+        >>> from systems.basesystem import System
+        >>> (comb, fcs, rules, rawdata, data, config)=get_test_object_futures_with_comb_forecasts()
+        >>> system=System([rawdata, rules, fcs, comb, PositionSizing()], data, config)
+        >>>
+        >>> system.positionSize.get_instrument_currency_vol("EDOLLAR").tail(2)
+                           icv
+        2015-12-10  135.272415
+        2015-12-11  146.464756
+        >>>
+        >>> system2=System([ rules, fcs, comb, PositionSizing()], data, config)
+        >>> system2.positionSize.get_instrument_currency_vol("EDOLLAR").tail(2)
+                           icv
+        2015-12-10  135.362246
+        2015-12-11  146.304072
+
+        """
+
+        self.log.msg(
+            "Calculating instrument currency vol for %s" % instrument_code,
+            instrument_code=instrument_code,
+        )
+
+        block_value = self.get_block_value(instrument_code)
+        daily_perc_vol = self.get_price_volatility(instrument_code)
+
+        ## FIXME WHY NOT RESAMPLE?
+        (block_value, daily_perc_vol) = block_value.align(
+            daily_perc_vol, join="inner")
+
+        instr_ccy_vol = block_value.ffill() * daily_perc_vol
+
+        return instr_ccy_vol
+
+    @diagnostic()
+    def get_block_value(self, instrument_code: str) -> pd.Series:
+        """
+        Calculate block value for instrument_code
+
+        :param instrument_code: instrument to get values for
+        :type instrument_code: str
+
+        :returns: Tx1 pd.DataFrame
+
+        >>> from systems.tests.testdata import get_test_object_futures_with_comb_forecasts
+        >>> from systems.basesystem import System
+        >>> (comb, fcs, rules, rawdata, data, config)=get_test_object_futures_with_comb_forecasts()
+        >>> system=System([rawdata, rules, fcs, comb, PositionSizing()], data, config)
+        >>>
+        >>> system.positionSize.get_block_value("EDOLLAR").tail(2)
+                       bvalue
+        2015-12-10  2447.0000
+        2015-12-11  2449.6875
+        >>>
+        >>> system=System([rules, fcs, comb, PositionSizing()], data, config)
+        >>> system.positionSize.get_block_value("EDOLLAR").tail(2)
+                       bvalue
+        2015-12-10  2447.0000
+        2015-12-11  2449.6875
+
+        """
+
+        underlying_price = self.get_underlying_price(
+            instrument_code)
+        value_of_price_move = self.parent.data.get_value_of_block_price_move(
+            instrument_code
+        )
+
+        block_value =  underlying_price.ffill() * value_of_price_move * 0.01
+
+        return block_value
+
+
+
+    @diagnostic()
+    def get_underlying_price(self, instrument_code: str) -> pd.Series:
+        """
+        Get various things from data and rawdata to calculate position sizes
+
+        KEY INPUT
+
+        :param instrument_code: instrument to get values for
+        :type instrument_code: str
+
+        :returns: Tx1 pd.DataFrame: underlying price [as used to work out % volatility],
+
+        >>> from systems.tests.testdata import get_test_object_futures_with_comb_forecasts
+        >>> from systems.basesystem import System
+        >>> (comb, fcs, rules, rawdata, data, config)=get_test_object_futures_with_comb_forecasts()
+        >>> system=System([rawdata, rules, fcs, comb, PositionSizing()], data, config)
+        >>>
+        >>> ans=system.positionSize.get_underlying_price("EDOLLAR")
+        >>> ans[0].tail(2)
+                      price
+        2015-12-10  97.8800
+        2015-12-11  97.9875
+        >>>
+        >>> ans[1]
+        2500
+        >>>
+        >>> system=System([rules, fcs, comb, PositionSizing()], data, config)
+        >>>
+        >>> ans=system.positionSize.get_underlying_price("EDOLLAR")
+        >>> ans[0].tail(2)
+                      price
+        2015-12-10  97.8800
+        2015-12-11  97.9875
+        >>>
+        >>> ans[1]
+        2500
+
+
+        """
+        rawdata = self.rawdata_stage
+        if rawdata is missing_data:
+            underlying_price = self.data.daily_prices(instrument_code)
+        else:
+            underlying_price = self.rawdata_stage.daily_denominator_price(
+                instrument_code
+            )
+
+
+        return underlying_price
+
+    @property
+    def rawdata_stage(self) -> RawData:
+        rawdata_stage = getattr(self.parent, "rawdata", missing_data)
+
+        return rawdata_stage
+
+    @property
+    def data(self) -> simData:
+        return self.parent.data
+
+    @diagnostic()
+    def get_price_volatility(self, instrument_code: str) -> pd.Series:
         """
         Get the daily % volatility; If a rawdata stage exists from there; otherwise work it out
 
@@ -94,75 +360,31 @@ class PositionSizing(SystemStage):
         2015-12-10  0.055318
         2015-12-11  0.059724
         """
-        system = self.parent
-        if hasattr(system, "rawdata"):
-            daily_perc_vol = system.rawdata.get_daily_percentage_volatility(
+        rawdata = self.rawdata_stage
+        if rawdata is missing_data:
+            daily_perc_vol = self._get_daily_vol_from_sim_data(instrument_code)
+        else:
+
+            daily_perc_vol = rawdata.get_daily_percentage_volatility(
                 instrument_code
             )
-        else:
-            price = system.data.daily_prices(instrument_code)
-            return_vol = robust_vol_calc(price.diff())
-            daily_perc_vol = 100.0 * return_vol / abs(price)
 
         return daily_perc_vol
 
     @diagnostic()
-    def get_instrument_sizing_data(self, instrument_code):
-        """
-        Get various things from data and rawdata to calculate position sizes
+    def _get_daily_vol_from_sim_data(self, instrument_code: str) -> pd.Series:
+        price = self.data.daily_prices(instrument_code)
 
-        KEY INPUT
+        # backadjusted prices can be negative
+        abs_price = abs(price)
+        return_vol = robust_vol_calc(price.diff())
+        daily_vol_as_ratio = return_vol / abs_price
+        daily_perc_vol = 100.0 * daily_vol_as_ratio
 
-        :param instrument_code: instrument to get values for
-        :type instrument_code: str
-
-        :returns: tuple (Tx1 pd.DataFrame: underlying price [as used to work out % volatility],
-                              float: value of price block move)
-
-        >>> from systems.tests.testdata import get_test_object_futures_with_comb_forecasts
-        >>> from systems.basesystem import System
-        >>> (comb, fcs, rules, rawdata, data, config)=get_test_object_futures_with_comb_forecasts()
-        >>> system=System([rawdata, rules, fcs, comb, PositionSizing()], data, config)
-        >>>
-        >>> ans=system.positionSize.get_instrument_sizing_data("EDOLLAR")
-        >>> ans[0].tail(2)
-                      price
-        2015-12-10  97.8800
-        2015-12-11  97.9875
-        >>>
-        >>> ans[1]
-        2500
-        >>>
-        >>> system=System([rules, fcs, comb, PositionSizing()], data, config)
-        >>>
-        >>> ans=system.positionSize.get_instrument_sizing_data("EDOLLAR")
-        >>> ans[0].tail(2)
-                      price
-        2015-12-10  97.8800
-        2015-12-11  97.9875
-        >>>
-        >>> ans[1]
-        2500
-
-
-        """
-
-        if hasattr(self.parent, "rawdata"):
-            underlying_price = self.parent.rawdata.daily_denominator_price(
-                instrument_code
-            )
-
-        else:
-            underlying_price = self.parent.data.daily_prices(instrument_code)
-
-        value_of_price_move = self.parent.data.get_value_of_block_price_move(
-            instrument_code
-        )
-
-        return (underlying_price, value_of_price_move)
+        return daily_perc_vol
 
     @diagnostic()
-    def get_daily_cash_vol_target(self):
+    def get_daily_cash_vol_target(self) -> dict:
         """
         Get the daily cash vol target
 
@@ -207,7 +429,6 @@ class PositionSizing(SystemStage):
         )
         daily_cash_vol_target = annual_cash_vol_target / ROOT_BDAYS_INYEAR
 
-        # FIXME this thing ain't too pretty
         vol_target_dict = dict(
             base_currency=base_currency,
             percentage_vol_target=percentage_vol_target,
@@ -219,7 +440,7 @@ class PositionSizing(SystemStage):
         return vol_target_dict
 
     @input
-    def get_fx_rate(self, instrument_code):
+    def get_fx_rate(self, instrument_code: str) -> pd.Series:
         """
         Get FX rate to translate instrument volatility into same currency as account value.
 
@@ -243,220 +464,40 @@ class PositionSizing(SystemStage):
         """
 
         base_currency = self.get_daily_cash_vol_target()["base_currency"]
-        fx_rate = self.parent.data.get_fx_for_instrument(
+        fx_rate = self.data.get_fx_for_instrument(
             instrument_code, base_currency)
 
         return fx_rate
 
-    @diagnostic()
-    def get_block_value(self, instrument_code):
+
+    @input
+    def get_combined_forecast(self, instrument_code: str) -> pd.Series:
         """
-        Calculate block value for instrument_code
+        Get the combined forecast from previous module
 
         :param instrument_code: instrument to get values for
         :type instrument_code: str
 
         :returns: Tx1 pd.DataFrame
 
-        >>> from systems.tests.testdata import get_test_object_futures_with_comb_forecasts
-        >>> from systems.basesystem import System
-        >>> (comb, fcs, rules, rawdata, data, config)=get_test_object_futures_with_comb_forecasts()
-        >>> system=System([rawdata, rules, fcs, comb, PositionSizing()], data, config)
-        >>>
-        >>> system.positionSize.get_block_value("EDOLLAR").tail(2)
-                       bvalue
-        2015-12-10  2447.0000
-        2015-12-11  2449.6875
-        >>>
-        >>> system=System([rules, fcs, comb, PositionSizing()], data, config)
-        >>> system.positionSize.get_block_value("EDOLLAR").tail(2)
-                       bvalue
-        2015-12-10  2447.0000
-        2015-12-11  2449.6875
-
-        """
-
-        (underlying_price, value_of_price_move) = self.get_instrument_sizing_data(
-            instrument_code)
-        block_value = 0.01 * underlying_price.ffill() * value_of_price_move
-        block_value.columns = ["bvalue"]
-
-        return block_value
-
-    @diagnostic()
-    def get_instrument_currency_vol(self, instrument_code):
-        """
-        Get value of volatility of instrument in instrument's own currency
-
-        :param instrument_code: instrument to get values for
-        :type instrument_code: str
-
-        :returns: Tx1 pd.DataFrame
+        KEY INPUT
 
         >>> from systems.tests.testdata import get_test_object_futures_with_comb_forecasts
         >>> from systems.basesystem import System
         >>> (comb, fcs, rules, rawdata, data, config)=get_test_object_futures_with_comb_forecasts()
         >>> system=System([rawdata, rules, fcs, comb, PositionSizing()], data, config)
         >>>
-        >>> system.positionSize.get_instrument_currency_vol("EDOLLAR").tail(2)
-                           icv
-        2015-12-10  135.272415
-        2015-12-11  146.464756
-        >>>
-        >>> system2=System([ rules, fcs, comb, PositionSizing()], data, config)
-        >>> system2.positionSize.get_instrument_currency_vol("EDOLLAR").tail(2)
-                           icv
-        2015-12-10  135.362246
-        2015-12-11  146.304072
-
+        >>> system.positionSize.get_combined_forecast("EDOLLAR").tail(2)
+                    comb_forecast
+        2015-12-10       1.619134
+        2015-12-11       2.462610
         """
 
-        self.log.msg(
-            "Calculating instrument currency vol for %s" % instrument_code,
-            instrument_code=instrument_code,
-        )
+        return self.comb_forecast_stage.get_combined_forecast(instrument_code)
 
-        block_value = self.get_block_value(instrument_code)
-        daily_perc_vol = self.get_price_volatility(instrument_code)
-
-        (block_value, daily_perc_vol) = block_value.align(
-            daily_perc_vol, join="inner")
-
-        instr_ccy_vol = block_value.ffill() * daily_perc_vol
-
-        return instr_ccy_vol
-
-    @diagnostic()
-    def get_instrument_value_vol(self, instrument_code):
-        """
-        Get value of volatility of instrument in base currency (used for account value)
-
-        :param instrument_code: instrument to get values for
-        :type instrument_code: str
-
-        :returns: Tx1 pd.DataFrame
-
-        >>> from systems.tests.testdata import get_test_object_futures_with_comb_forecasts
-        >>> from systems.basesystem import System
-        >>> (comb, fcs, rules, rawdata, data, config)=get_test_object_futures_with_comb_forecasts()
-        >>> system=System([rawdata, rules, fcs, comb, PositionSizing()], data, config)
-        >>>
-        >>> system.positionSize.get_instrument_value_vol("EDOLLAR").tail(2)
-                          ivv
-        2015-12-10  89.382530
-        2015-12-11  96.777975
-        >>>
-        >>> system2=System([rawdata, rules, fcs, comb, PositionSizing()], data, config)
-        >>> system2.positionSize.get_instrument_value_vol("EDOLLAR").tail(2)
-                          ivv
-        2015-12-10  89.382530
-        2015-12-11  96.777975
-
-        """
-
-        self.log.msg(
-            "Calculating instrument value vol for %s" % instrument_code,
-            instrument_code=instrument_code,
-        )
-
-        instr_ccy_vol = self.get_instrument_currency_vol(instrument_code)
-        fx_rate = self.get_fx_rate(instrument_code)
-
-        fx_rate = fx_rate.reindex(instr_ccy_vol.index)
-
-        instr_value_vol = instr_ccy_vol.ffill() * fx_rate.ffill()
-
-        return instr_value_vol
-
-    @diagnostic()
-    def get_volatility_scalar(self, instrument_code):
-        """
-        Get ratio of required volatility vs volatility of instrument in instrument's own currency
-
-        :param instrument_code: instrument to get values for
-        :type instrument_code: str
-
-        :returns: Tx1 pd.DataFrame
-
-        >>> from systems.tests.testdata import get_test_object_futures_with_comb_forecasts
-        >>> from systems.basesystem import System
-        >>> (comb, fcs, rules, rawdata, data, config)=get_test_object_futures_with_comb_forecasts()
-        >>> system=System([rawdata, rules, fcs, comb, PositionSizing()], data, config)
-        >>>
-        >>> system.positionSize.get_volatility_scalar("EDOLLAR").tail(2)
-                    vol_scalar
-        2015-12-10   11.187869
-        2015-12-11   10.332930
-        >>>
-        >>> ## without raw data
-        >>> system2=System([ rules, fcs, comb, PositionSizing()], data, config)
-        >>> system2.positionSize.get_volatility_scalar("EDOLLAR").tail(2)
-                    vol_scalar
-        2015-12-10   11.180444
-        2015-12-11   10.344278
-        """
-
-        self.log.msg(
-            "Calculating volatility scalar for %s" % instrument_code,
-            instrument_code=instrument_code,
-        )
-
-        instr_value_vol = self.get_instrument_value_vol(instrument_code)
-        cash_vol_target = self.get_daily_cash_vol_target()[
-            "daily_cash_vol_target"]
-
-        vol_scalar = cash_vol_target / instr_value_vol
-
-        return vol_scalar
-
-    @output()
-    def get_subsystem_position(self, instrument_code):
-        """
-        Get scaled position (assuming for now we trade our entire capital for one instrument)
-
-        KEY OUTPUT
-
-        :param instrument_code: instrument to get values for
-        :type instrument_code: str
-
-        :returns: Tx1 pd.DataFrame
-
-        >>> from systems.tests.testdata import get_test_object_futures_with_comb_forecasts
-        >>> from systems.basesystem import System
-        >>> (comb, fcs, rules, rawdata, data, config)=get_test_object_futures_with_comb_forecasts()
-        >>> system=System([rawdata, rules, fcs, comb, PositionSizing()], data, config)
-        >>>
-        >>> system.positionSize.get_subsystem_position("EDOLLAR").tail(2)
-                    ss_position
-        2015-12-10     1.811465
-        2015-12-11     2.544598
-        >>>
-        >>> system2=System([rawdata, rules, fcs, comb, PositionSizing()], data, config)
-        >>> system2.positionSize.get_subsystem_position("EDOLLAR").tail(2)
-                    ss_position
-        2015-12-10     1.811465
-        2015-12-11     2.544598
-
-        """
-        self.log.msg(
-            "Calculating subsystem position for %s" % instrument_code,
-            instrument_code=instrument_code,
-        )
-        """
-        We don't allow this to be changed in config
-        """
-        avg_abs_forecast = get_default_config_key_value(
-            "average_absolute_forecast")
-
-        vol_scalar = self.get_volatility_scalar(instrument_code)
-        forecast = self.get_combined_forecast(instrument_code)
-
-        vol_scalar = vol_scalar.reindex(forecast.index).ffill()
-
-        subsystem_position = vol_scalar * forecast / avg_abs_forecast
-
-        return subsystem_position
-
+    @property
+    def comb_forecast_stage(self) -> ForecastCombine:
+        return self.parent.combForecast
 
 if __name__ == "__main__":
     import doctest
