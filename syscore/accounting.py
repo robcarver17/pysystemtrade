@@ -952,7 +952,8 @@ def calc_costs(returns_data, cash_costs, SR_cost, ann_risk):
                 [value_of_pertrade_commission] * len(traded.index),
                 traded.index)
             costs_pertrade = costs_pertrade.reindex(trades_to_use.index)
-
+            # added a fillna(0) to avoid that any Nan affects the sum below.
+            costs_pertrade = costs_pertrade.fillna(0)
         # everything on the trades index, so can do this:s
         costs_instr_ccy = costs_blocks + costs_percentage + costs_pertrade
 
