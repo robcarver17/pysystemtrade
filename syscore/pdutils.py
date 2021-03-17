@@ -29,7 +29,7 @@ def turnover(x, y):
     """
 
     if isinstance(y, float) or isinstance(y, int):
-        y = pd.Series([float(y)] * len(x.index), x.index)
+        y = pd.Series(np.full(x.shape[0], float(y)), x.index)
 
     norm_x = x / y.ffill()
 
@@ -353,7 +353,7 @@ def dataframe_pad(starting_df, column_list, padwith=0.0):
         if column_name in starting_df.columns:
             return starting_df[column_name]
         else:
-            return pd.Series([0.0] * len(starting_df.index), starting_df.index)
+            return pd.Series(np.full(starting_df.shape[0], 0.0), starting_df.index)
 
     new_data = [_pad_column(column_name, starting_df, padwith)
                 for column_name in column_list]

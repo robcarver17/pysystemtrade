@@ -327,7 +327,7 @@ def weights_given_SR_diff(
 
 def optimise_using_correlation(mean_list, avg_correlation, std):
     corr_matrix = boring_corr_matrix(len(mean_list), offdiag=avg_correlation)
-    stdev_list = [std] * len(mean_list)
+    stdev_list = np.full(len(mean_list), std)
     sigma = sigma_from_corr_and_std(stdev_list, corr_matrix)
 
     return optimise(sigma, mean_list)

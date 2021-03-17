@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 
 
@@ -82,12 +83,11 @@ def apply_vol_floor(vol: pd.Series,
 
     # set this to zero for the first value then propagate forward, ensures
     # we always have a value
-    vol_min.at[vol_min.index[0]] = 0.0
-    vol_min = vol_min.ffill()
+    vol_min.iloc[0] = 0.0
+    vol_min.ffill(inplace=True)
 
     # apply the vol floor
-    vol_with_min = pd.concat([vol, vol_min], axis=1)
-    vol_floored = vol_with_min.max(axis=1, skipna=False)
+    vol_floored = np.maximum(vol, vol_min)
 
     return vol_floored
 

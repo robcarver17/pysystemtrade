@@ -1,5 +1,6 @@
 from copy import copy
 
+import numpy as np
 import pandas as pd
 
 from sysdata.config.configdata import Config
@@ -388,7 +389,7 @@ class ForecastScaleCap(SystemStage):
                                                 rule_variation_name=rule_variation_name)
         raw_forecast = self.get_raw_forecast(instrument_code=instrument_code,
                                              rule_variation_name=rule_variation_name)
-        forecast_scalar = pd.Series([scalar] * len(raw_forecast.index), index = raw_forecast.index)
+        forecast_scalar = pd.Series(np.full(raw_forecast.shape[0], scalar), index = raw_forecast.index)
 
         return forecast_scalar
 
