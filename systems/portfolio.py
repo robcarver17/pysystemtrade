@@ -2,9 +2,8 @@ import pandas as pd
 from copy import copy
 
 from systems.stage import SystemStage
-from systems.basesystem import ALL_KEYNAME
 from syscore.pdutils import fix_weights_vs_position_or_forecast
-from syscore.objects import update_recalc, resolve_function
+from syscore.objects import  resolve_function
 from syscore.genutils import str2Bool
 from systems.system_cache import input, dont_cache, diagnostic, output
 
@@ -20,7 +19,37 @@ Note: At this stage we're dealing with a notional, fixed, amount of capital.
 """
 
 
-class _PortfoliosInputs(SystemStage):
+class Portfolios(SystemStage):
+
+    @property
+    def name(self):
+        return "portfolio"
+
+    @output()
+    def get_actual_buffers_for_position(self, instrument_code):
+        """
+        Gets the actual buffers for a position, accounting for cap multiplier
+        :param instrument_code: instrument to get values for
+        :type instrument_code: str
+        :returns: Tx1 pd.Series
+        KEY OUTPUT
+        """
+
+        self.log.msg(
+            "Calculating actual buffers for position for %s" % instrument_code,
+            instrument_code=instrument_code,
+        )
+
+        buffers = self.get_buffers_for_position(instrument_code)
+        cap_multiplier = self.capital_multiplier()
+        cap_multiplier = cap_multiplier.reindex(buffers.index).ffill()
+        cap_multiplier = pd.concat([cap_multiplier, cap_multiplier], axis=1)
+        cap_multiplier.columns = buffers.columns
+
+        actual_buffers_for_position = buffers * cap_multiplier
+
+        return actual_buffers_for_position
+
     """
     Input Stage for portfolios
 
@@ -152,7 +181,6 @@ class _PortfoliosInputs(SystemStage):
         return self.parent.accounts.pandl_across_subsystems()
 
 
-class _PortfoliosCalculateWeights(_PortfoliosInputs):
     """
     Calculate weights for portfolios
 
@@ -346,7 +374,6 @@ class _PortfoliosCalculateWeights(_PortfoliosInputs):
         return instrument_weights
 
 
-class _PortfoliosCalculateIDM(_PortfoliosInputs):
     """
     Calculate IDM for portfolios
 
@@ -502,10 +529,6 @@ class _PortfoliosCalculateIDM(_PortfoliosInputs):
             return self.get_fixed_instrument_diversification_multiplier()
 
 
-class Portfolios(_PortfoliosCalculateIDM, _PortfoliosCalculateWeights):
-    @property
-    def name(self):
-        return "portfolio"
 
     @output()
     def get_notional_position(self, instrument_code):
@@ -721,35 +744,6 @@ class Portfolios(_PortfoliosCalculateIDM, _PortfoliosCalculateWeights):
         actual_position = notional_position * cap_multiplier
 
         return actual_position
-
-    @output()
-    def get_actual_buffers_for_position(self, instrument_code):
-        """
-        Gets the actual buffers for a position, accounting for cap multiplier
-
-        :param instrument_code: instrument to get values for
-        :type instrument_code: str
-
-        :returns: Tx1 pd.Series
-
-        KEY OUTPUT
-        """
-
-        self.log.msg(
-            "Calculating actual buffers for position for %s" % instrument_code,
-            instrument_code=instrument_code,
-        )
-
-        buffers = self.get_buffers_for_position(instrument_code)
-        cap_multiplier = self.capital_multiplier()
-        cap_multiplier = cap_multiplier.reindex(buffers.index).ffill()
-        cap_multiplier = pd.concat([cap_multiplier, cap_multiplier], axis=1)
-        cap_multiplier.columns = buffers.columns
-
-        actual_buffers_for_position = buffers * cap_multiplier
-
-        return actual_buffers_for_position
-
 
 if __name__ == "__main__":
     import doctest

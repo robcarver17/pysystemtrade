@@ -1,3 +1,4 @@
+from copy import copy
 import datetime
 import os
 from shutil import copyfile
@@ -105,9 +106,11 @@ def create_system_with_saved_state(data, strategy_name, date_time_signature):
 def get_system_caller(data, strategy_name, date_time_signature):
     # returns a method we can use to recreate a system
 
-    strategy_loader_config = get_strategy_class_backtest_loader_config_without_warning(data = data,
+    strategy_loader_config_original = get_strategy_class_backtest_loader_config_without_warning(data = data,
                                                                                        strategy_name = strategy_name)
 
+    ## Whenever popping best to copy first
+    strategy_loader_config = copy(strategy_loader_config_original)
     strategy_class_object = resolve_function(strategy_loader_config.pop("object"))
     function = strategy_loader_config.pop("function")
     config_filename = get_backtest_config_filename(
