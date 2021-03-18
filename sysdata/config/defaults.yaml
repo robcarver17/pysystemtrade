@@ -109,6 +109,7 @@ forecast_correlation_estimate:
 #
 forecast_div_mult_estimate:
    func: sysquant.estimators.diversification_multipliers.diversification_multiplier_from_list
+   # this moving average is in business day space to smooth jumps
    ewma_span: 125
    dm_max: 2.5
 #
@@ -118,8 +119,8 @@ forecast_cost_estimates:
    use_pooled_costs: False
    use_pooled_turnover: True
 #
-# weights are in months, so...
-forecast_weight_ewma_span: 6
+# Smooth forecast weights; weights are in business days
+forecast_weight_ewma_span: 125
 #
 forecast_weight_estimate:
    func: syscore.optimisation.GenericOptimiser
@@ -172,7 +173,7 @@ instrument_div_multiplier: 1.0
 use_instrument_div_mult_estimates: False
 #
 instrument_correlation_estimate:
-   func: syscore.correlations.CorrelationEstimator
+   func: sysquant.estimators.correlation_over_time.correlation_over_time_for_returns
    frequency: "W"
    date_method: "expanding"
    using_exponent: True
@@ -181,15 +182,19 @@ instrument_correlation_estimate:
    cleaning: True
    rollyears: 20
    floor_at_zero: True
+   forward_fill_price_index: True
 #
 instrument_div_mult_estimate:
-   func: syscore.divmultipliers.diversification_multiplier_from_list
+   func: sysquant.estimators.diversification_multipliers.diversification_multiplier_from_list
+   # smooth IDM in daily space
    ewma_span: 125
    dm_max: 2.5
 #
 use_instrument_weight_estimates: False
 #
+# smooth weights they will are in daily space
 instrument_weight_ewma_span: 125
+#
 instrument_weight_estimate:
    func: syscore.optimisation.GenericOptimiser
    method: handcraft

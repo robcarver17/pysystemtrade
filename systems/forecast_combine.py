@@ -90,6 +90,7 @@ class ForecastCombine(SystemStage
         # sum
         raw_combined_forecast = self.get_combined_forecast_without_multiplier(instrument_code)
 
+        # probably daily frequency
         forecast_div_multiplier = self.get_forecast_diversification_multiplier(
             instrument_code
         )
@@ -123,8 +124,8 @@ class ForecastCombine(SystemStage
         forecasts = self.get_all_forecasts(
             instrument_code, rule_variation_list)
 
-        smoothed_monthly_forecast_weights = self.get_forecast_weights(instrument_code)
-        smoothed_forecast_weights = smoothed_monthly_forecast_weights.reindex(forecasts.index).ffill()
+        smoothed_daily_forecast_weights = self.get_forecast_weights(instrument_code)
+        smoothed_forecast_weights = smoothed_daily_forecast_weights.reindex(forecasts.index).ffill()
 
         weighted_forecasts = smoothed_forecast_weights * forecasts
 
@@ -134,14 +135,16 @@ class ForecastCombine(SystemStage
 
     @diagnostic()
     def get_forecast_weights(self, instrument_code: str) -> pd.DataFrame:
-        # These will be in monthly frequency
-        monthly_forecast_weights_fixed_to_forecasts_unsmoothed = self.get_unsmoothed_forecast_weights(instrument_code)
+        # These will be in daily frequency
+        daily_forecast_weights_fixed_to_forecasts_unsmoothed = self.get_unsmoothed_forecast_weights(instrument_code)
 
         # smooth out weights
         forecast_smoothing_ewma_span= self.config.forecast_weight_ewma_span
-        smoothed_monthly_forecast_weights = monthly_forecast_weights_fixed_to_forecasts_unsmoothed.ewm(span=forecast_smoothing_ewma_span).mean()
+        smoothed_daily_forecast_weights = daily_forecast_weights_fixed_to_forecasts_unsmoothed.ewm(span=forecast_smoothing_ewma_span).mean()
 
-        return smoothed_monthly_forecast_weights
+        # still daily
+
+        return smoothed_daily_forecast_weights
 
     @diagnostic()
     def get_unsmoothed_forecast_weights(self, instrument_code: str):
@@ -192,7 +195,7 @@ class ForecastCombine(SystemStage
 
         # note these might include missing weights, eg too expensive, or absent
         # from fixed weights
-        # These are monthly to save space
+        # These are monthly to save space, or possibly even only 2 rows long
         monthly_forecast_weights = self.get_raw_monthly_forecast_weights(instrument_code)
 
         # fix to forecast time series
@@ -201,11 +204,11 @@ class ForecastCombine(SystemStage
             monthly_forecast_weights=monthly_forecast_weights
             )
 
-        # Remap to monthly frequency so the smoothing makes sense also space saver
-        monthly_forecast_weights_fixed_to_forecasts_unsmoothed = \
-            forecast_weights_fixed_to_forecasts.resample("1M").mean()
+        # Remap to business day frequency so the smoothing makes sense also space saver
+        daily_forecast_weights_fixed_to_forecasts_unsmoothed = \
+            forecast_weights_fixed_to_forecasts.resample("1B").mean()
 
-        return monthly_forecast_weights_fixed_to_forecasts_unsmoothed
+        return daily_forecast_weights_fixed_to_forecasts_unsmoothed
 
     @dont_cache
     def _fix_weights_to_forecasts(self,instrument_code: str,
@@ -456,12 +459,12 @@ class ForecastCombine(SystemStage
         :return: forecast weights
         """
 
-        # get raw weights
+        # get estimated weights, will probably come back as annual data frame
         if self._use_estimated_weights():
             forecast_weights = self.get_monthly_raw_forecast_weights_estimated(
                 instrument_code)
         else:
-            ## these won't be monthly, but will be length 2
+            ## will come back as 2*N data frame
             forecast_weights = self.get_raw_fixed_forecast_weights(
                 instrument_code)
 
@@ -948,6 +951,8 @@ class ForecastCombine(SystemStage
             weight_df,
             **div_mult_params)
 
+        ## Returns smoothed IDM in business days
+
         return ts_fdm
 
 
@@ -1097,7 +1102,7 @@ class ForecastCombine(SystemStage
 
     # FORECAST MAPPING
     @diagnostic(not_pickable=True)
-    # FIXME REFACTOR
+
     def _get_forecast_mapping_function(self, instrument_code):
         """
         Get the function to apply non linear forecast mapping, and any parameters

@@ -5,6 +5,24 @@ from sysquant.fitting_dates import fitDates, generate_fitting_dates
 from sysquant.estimators.correlations import CorrelationList, Correlation, create_boring_corr_matrix
 from sysquant.estimators.exponential_correlation import exponentialCorrelation
 
+def correlation_over_time_for_returns(returns_for_correlation: pd.DataFrame,
+                                      frequency="W",
+                                      forward_fill_price_index=True,
+                                      **kwargs
+                                      ) -> CorrelationList:
+
+    index_prices_for_correlation = returns_for_correlation.cumsum()
+    if forward_fill_price_index:
+        index_prices_for_correlation = index_prices_for_correlation.ffill()
+
+    index_prices_for_correlation = index_prices_for_correlation.resample(frequency).last()
+    returns_for_correlation = index_prices_for_correlation.diff()
+
+    correlation_list = correlation_over_time(returns_for_correlation,
+                                             **kwargs)
+
+    return correlation_list
+
 def correlation_over_time(data_for_correlation: pd.DataFrame,
                           date_method="expanding",
                           rollyears=20,
