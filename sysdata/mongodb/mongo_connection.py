@@ -82,7 +82,7 @@ class mongoDb():
                  mongo_host: str = arg_not_supplied,
                  mongo_port: int  = arg_not_supplied):
 
-        database_name, host, port = mongo_defaults(mongo_database_name = mongo_database_name,
+        database_name, host, port = mongo_defaults(mongo_db = mongo_database_name,
                                                    mongo_host = mongo_host,
                                                    mongo_port = mongo_port)
 
