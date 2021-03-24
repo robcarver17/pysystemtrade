@@ -180,7 +180,7 @@ def optimise_for_corr_matrix(corr_matrix):
     mean_list = [.05]*3
     std = [.1]*3
 
-    return optimise_using_correlation(mean_list, corr_matrix, std)
+    return optimise_using_corr_matrix_at_distribution_point(mean_list, corr_matrix, std)
 
 
 def apply_min_weight(average_weights):
@@ -324,6 +324,11 @@ def weights_given_SR_diff(
 
     return list(weights)
 
+def optimise_using_corr_matrix_at_distribution_point(mean_list, corr_matrix_at_distribution_point, std):
+    stdev_list = np.full(len(mean_list), std)
+    sigma = sigma_from_corr_and_std(stdev_list, corr_matrix_at_distribution_point)
+
+    return optimise(sigma, mean_list)
 
 def optimise_using_correlation(mean_list, avg_correlation, std):
     corr_matrix = boring_corr_matrix(len(mean_list), offdiag=avg_correlation)
