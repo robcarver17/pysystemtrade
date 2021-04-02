@@ -14,7 +14,8 @@ Generate a 'best guess' roll calendar based on some price data for individual co
 
 
 def build_and_write_roll_calendar(
-    instrument_code, output_datapath=arg_not_supplied, check_before_writing=True
+    instrument_code, output_datapath=arg_not_supplied, check_before_writing=True,
+        input_prices=arg_not_supplied, input_config=arg_not_supplied
 ):
 
     if output_datapath is arg_not_supplied:
@@ -22,15 +23,23 @@ def build_and_write_roll_calendar(
     else:
         print("Writing to %s" % output_datapath)
 
-    arctic_prices = arcticFuturesContractPriceData()
-    mongo_rollparameters = mongoRollParametersData()
+    if input_prices is arg_not_supplied:
+        prices = arcticFuturesContractPriceData()
+    else:
+        prices = input_prices
+
+    if input_config is arg_not_supplied:
+        rollparameters = mongoRollParametersData()
+    else:
+        rollparameters = input_config
+
     csv_roll_calendars = csvRollCalendarData(output_datapath)
 
-    dict_of_all_futures_contract_prices = arctic_prices.get_all_prices_for_instrument(
+    dict_of_all_futures_contract_prices = prices.get_all_prices_for_instrument(
         instrument_code)
     dict_of_futures_contract_prices = dict_of_all_futures_contract_prices.final_prices()
 
-    roll_parameters_object = mongo_rollparameters.get_roll_parameters(
+    roll_parameters_object = rollparameters.get_roll_parameters(
         instrument_code)
 
     # might take a few seconds
@@ -52,8 +61,8 @@ def build_and_write_roll_calendar(
 
     if check_before_writing:
         check_happy_to_write = input(
-            "Are you ok to write this csv to path %s? [might be worth writing and hacking manually] (yes/other)?" % csv_roll_calendars.datapath
-
+            "Are you ok to write this csv to path %s/%s.csv? [might be worth writing and hacking manually] (yes/other)?" %
+            (csv_roll_calendars.datapath, instrument_code)
         )
     else:
         check_happy_to_write = "yes"
@@ -69,7 +78,7 @@ def build_and_write_roll_calendar(
 
 
 def check_saved_roll_calendar(
-    instrument_code, input_datapath=None
+    instrument_code, input_datapath=None, input_prices=None
 ):
 
     if input_datapath is None:
@@ -80,9 +89,12 @@ def check_saved_roll_calendar(
 
     roll_calendar = csv_roll_calendars.get_roll_calendar(instrument_code)
 
-    arctic_prices = arcticFuturesContractPriceData()
+    if input_prices is None:
+        prices = arcticFuturesContractPriceData()
+    else:
+        prices = input_prices
 
-    dict_of_all_futures_contract_prices = arctic_prices.get_all_prices_for_instrument(
+    dict_of_all_futures_contract_prices = prices.get_all_prices_for_instrument(
         instrument_code)
     dict_of_futures_contract_prices = dict_of_all_futures_contract_prices.final_prices()
 
