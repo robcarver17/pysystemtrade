@@ -23,12 +23,7 @@ class arcticFuturesAdjustedPricesData(futuresAdjustedPricesData):
 
 
     def __repr__(self):
-        return \
-            "simData connection for adjusted futures prices, arctic %s/%s @ %s " %\
-            (self._arctic.database_name,
-             self._arctic.collection_name,
-             self._arctic.host,
-             )
+        return f"adjusted futures prices, arctic: {repr(self._arctic)}"
 
     @property
     def arctic(self):
