@@ -543,6 +543,21 @@ def list_of_ints_with_highest_common_factor_positive_first(list_of_ints: list) -
     return new_list
 
 
+def np_convert(val):
+    """
+    Converts the passed numpy value to a native python type
+
+    >>> val = np.int64(1)
+    >>> type(val)
+    <class 'numpy.int64'>
+    >>> type(np_convert(val))
+    <class 'int'>
+
+    :param val:
+    :return: val as native type
+    """
+    return val.item() if isinstance(val, np.generic) else val
+
 if __name__ == "__main__":
     import doctest
 
