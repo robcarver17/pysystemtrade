@@ -28,8 +28,8 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
         self._arctic_connection = arcticData(CONTRACT_COLLECTION, mongo_db=mongo_db)
 
     def __repr__(self):
-        return "simData connection for individual futures contracts prices, arctic %s/%s @ %s " % (
-            self._arctic_connection.database_name, self._arctic_connection.collection_name, self._arctic_connection.host)
+        return "arctic storage for individual futures contracts prices, %s " % (
+            repr(self._arctic_connection))
 
     @property
     def arctic_connection(self):

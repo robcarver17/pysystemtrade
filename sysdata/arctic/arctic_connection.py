@@ -1,6 +1,6 @@
 import pandas as pd
 from arctic import Arctic
-from sysdata.mongodb.mongo_connection import mongoDb
+from sysdata.mongodb.mongo_connection import mongoDb, clean_mongo_host
 
 """
 IMPORTANT NOTE: Make sure you have a mongodb running eg mongod --dbpath /home/yourusername/pysystemtrade/data/futures/arctic
@@ -36,11 +36,8 @@ class arcticData(object):
         self.library = self._setup_lib(store, database_name, collection_name)
 
     def __repr__(self):
-        return "Arctic connection: host %s, db name %s, collection %s" % (
-            self.host,
-            self.database_name,
-            self.collection_name,
-        )
+        return f"Arctic connection: host {clean_mongo_host(self.host)}, " \
+               f"db {self.database_name}, collection {self.collection_name}"
 
     def read(self, ident) -> pd.DataFrame:
         item = self.library.read(ident)
