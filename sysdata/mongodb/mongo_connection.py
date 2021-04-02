@@ -1,6 +1,7 @@
 from pymongo import MongoClient, ASCENDING
 from copy import copy
 import numpy as np
+import re
 
 from syscore.objects import arg_not_supplied
 from sysdata.config.production_config import get_production_config
@@ -10,6 +11,9 @@ LIST_OF_MONGO_PARAMS = ["mongo_db", "mongo_host", "mongo_port"]
 
 MONGO_INDEX_ID = "_id_"
 MONGO_ID_KEY = "_id"
+
+# regular expression pattern for mongodb connection URLs
+host_pattern = re.compile('^(mongodb://)([^:]+):([^@]+)@([^/]+)')
 
 def mongo_defaults(**kwargs):
     """
@@ -31,7 +35,7 @@ def mongo_defaults(**kwargs):
             param_value = kwargs[param_name]
         else:
             param_value = arg_not_supplied
-            
+
         if param_value is arg_not_supplied:
 
             param_value = getattr(production_config, param_name)
@@ -97,8 +101,9 @@ class mongoDb():
         self.db = db
 
     def __repr__(self):
+        clean_host = clean_mongo_host(self.host)
         return "Mongodb database: host %s, port %d, db name %s" % (
-            self.host,
+            clean_host,
             self.port,
             self.database_name,
         )
@@ -134,8 +139,9 @@ class mongoConnection(object):
         self.collection = collection
 
     def __repr__(self):
+        clean_host = clean_mongo_host(self.host)
         return "Mongodb connection: host %s, port %d, db name %s, collection %s" % (
-            self.host, self.port, self.database_name, self.collection_name, )
+            clean_host, self.port, self.database_name, self.collection_name, )
 
     def get_indexes(self):
 
@@ -195,3 +201,18 @@ def mongo_clean_ints(dict_to_clean):
         new_dict[key_name] = key_value
 
     return new_dict
+
+
+def clean_mongo_host(host_string):
+    """
+    If the host string is a mongodb connection URL with authentication values, then return just the host part
+    :param host_string
+    :return: host name part only
+    """
+
+    clean_host = host_string
+    match = host_pattern.match(host_string)
+    if match is not None:
+        clean_host = match.group(4)
+
+    return clean_host
