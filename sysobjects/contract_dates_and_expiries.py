@@ -5,7 +5,7 @@ Represent contract dates and expiries
 import datetime
 
 from syscore.dateutils import contract_month_from_number, month_from_contract_letter
-from syscore.genutils import list_of_items_seperated_by_underscores
+from syscore.genutils import list_of_items_seperated_by_underscores, np_convert
 
 NO_EXPIRY_DATE_PASSED = ""
 NO_DAY_PASSED = object()
@@ -152,7 +152,7 @@ class singleContractDate(object):
 
         approx_expiry_date = self.as_date()
         new_expiry_date = approx_expiry_date + datetime.timedelta(
-            days=approx_expiry_offset
+            days=np_convert(approx_expiry_offset)
         )
         expiry_date_tuple = (
             new_expiry_date.year,

@@ -1,5 +1,4 @@
-from bisect import bisect_left, bisect_right
-
+from syscore.genutils import np_convert
 import datetime
 from copy import copy
 
@@ -408,7 +407,7 @@ class contractDateWithRollParameters(object):
     @property
     def desired_roll_date(self) ->datetime.datetime:
         return self.contract_date.expiry_date + datetime.timedelta(
-            days=self.roll_parameters.roll_offset_day
+            days=np_convert(self.roll_parameters.roll_offset_day)
         )
 
     def get_contracts_from_recently_to_contract_date(self):
