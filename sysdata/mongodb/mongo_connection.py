@@ -206,7 +206,7 @@ def clean_mongo_host(host_string):
     """
     If the host string is a mongodb connection URL with authentication values, then return just the host and port part
     :param host_string
-    :return: host name part only
+    :return: host and port only
     """
 
     clean_host = host_string
