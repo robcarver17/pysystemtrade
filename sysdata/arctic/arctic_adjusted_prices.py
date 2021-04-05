@@ -23,7 +23,7 @@ class arcticFuturesAdjustedPricesData(futuresAdjustedPricesData):
 
 
     def __repr__(self):
-        return f"adjusted futures prices, arctic: {repr(self._arctic)}"
+        return repr(self._arctic)
 
     @property
     def arctic(self):

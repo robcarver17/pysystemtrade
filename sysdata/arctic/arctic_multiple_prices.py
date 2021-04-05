@@ -29,7 +29,7 @@ class arcticFuturesMultiplePricesData(futuresMultiplePricesData):
         self._arctic = arcticData(MULTIPLE_COLLECTION, mongo_db=mongo_db)
 
     def __repr__(self):
-        return f"multiple futures prices, arctic: {repr(self._arctic)}"
+        return repr(self._arctic)
 
     @property
     def arctic(self):
