@@ -684,7 +684,9 @@ You need to specify an IP address (host), and database name when you connect to 
 - Then, variables set in the private `.yaml` configuration file /private/private_config.yaml: mongo_host, mongo_db, mongo_port
 - Finally, default arguments in the [system defaults configuration file](/systems/provided/defaults.yaml): mongo_host, mongo_db, mongo_port
 
-Note that `localhost` is equivalent to `127.0.0.1`, i.e. this machine. Note also that the port number is hard coded in Arctic so you should stick to the default port 27017.
+Note that `localhost` is equivalent to `127.0.0.1`, i.e. this machine. Note also that if you have a non-standard mongo port, you must use the url format for specifying the mongo host, eg
+
+```mongo_host: mongodb://username:p4zzw0rd@localhost:28018```
 
 If your mongoDB is running on your local machine then you can stick with the defaults (assuming you are happy with the database name `production`). If you have different requirements, eg mongo running on another machine or you want a different database name, then you should set them in the private .yaml file. If you have highly bespoke needs, eg you want to use a different database or different host for different types of data, then you will need to add code like this:
 
