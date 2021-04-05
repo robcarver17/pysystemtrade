@@ -102,9 +102,8 @@ class mongoDb():
 
     def __repr__(self):
         clean_host = clean_mongo_host(self.host)
-        return "Mongodb database: host %s, port %d, db name %s" % (
+        return "Mongodb database: host %s, db name %s" % (
             clean_host,
-            self.port,
             self.database_name,
         )
 
@@ -140,8 +139,8 @@ class mongoConnection(object):
 
     def __repr__(self):
         clean_host = clean_mongo_host(self.host)
-        return "Mongodb connection: host %s, port %d, db name %s, collection %s" % (
-            clean_host, self.port, self.database_name, self.collection_name, )
+        return "Mongodb connection: host %s, db name %s, collection %s" % (
+            clean_host, self.database_name, self.collection_name, )
 
     def get_indexes(self):
 
@@ -205,7 +204,7 @@ def mongo_clean_ints(dict_to_clean):
 
 def clean_mongo_host(host_string):
     """
-    If the host string is a mongodb connection URL with authentication values, then return just the host part
+    If the host string is a mongodb connection URL with authentication values, then return just the host and port part
     :param host_string
     :return: host name part only
     """
