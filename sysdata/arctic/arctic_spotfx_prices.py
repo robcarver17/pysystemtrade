@@ -21,11 +21,7 @@ class arcticFxPricesData(fxPricesData):
         return self._arctic
 
     def __repr__(self):
-        return "Arctic connection for spotfx prices, %s/%s @ %s " % (
-            self.arctic.database_name,
-            self.arctic.collection_name,
-            self.arctic.host,
-        )
+        return repr(self._arctic)
 
     def get_list_of_fxcodes(self) -> list:
         return self.arctic.get_keynames()

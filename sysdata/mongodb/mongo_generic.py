@@ -6,6 +6,7 @@ from sysdata.mongodb.mongo_connection import (
     mongoConnection,
     MONGO_ID_KEY,
     mongo_clean_ints,
+    clean_mongo_host
 )
 
 
@@ -45,17 +46,11 @@ class mongoDataWithSingleKey(object):
 
     @property
     def name(self) -> str:
-        mongo_object = self._mongo
-        name = (
-            "mongoData connection for %s, mongodb %s/%s @ %s -p %s " %
-            (mongo_object.collection_name,
-            mongo_object.database_name,
-             mongo_object.collection_name,
-             mongo_object.host,
-             mongo_object.port,
-             ))
+        col = self._mongo.collection_name
+        db = self._mongo.database_name
+        host = clean_mongo_host(self._mongo.host)
 
-        return name
+        return f"mongoData connection for {col}/{db}, {host}"
 
     @property
     def collection(self):
