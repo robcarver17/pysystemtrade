@@ -143,7 +143,12 @@ def _get_new_row_of_roll_calendar(current_contract: contractWithRollParametersAn
                               current_contract.date_str,
                               next_contract.date_str,
                               carry_contract.date_str)
-    print(new_row)
+
+    # output initial approx roll calendar to console - gives something to work with if manual adjustment
+    # is needed
+    print(f"{current_roll_date.strftime('%Y-%m-%d %H:%M:00')},{current_contract.date_str},{next_contract.date_str},{carry_contract.date_str}")
+    #print(new_row)
+
 
     return next_contract, new_row
 
