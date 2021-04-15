@@ -11,6 +11,9 @@ from syscore.pdutils import dataframe_pad, fix_weights_vs_position_or_forecast, 
 from sysdata.config.configdata import Config
 
 from sysquant.estimators.correlations import CorrelationList
+from sysquant.optimisation.pre_processing import returnsPreProcessor
+from sysquant.returns import dictOfReturnsForOptimisationWithCosts, returnsForOptimisationWithCosts
+from sysquant.estimators.turnover import turnoverDataAcrossTradingRules, turnoverDataForTradingRule
 
 from systems.stage import SystemStage
 from systems.system_cache import diagnostic, dont_cache, input, output
@@ -509,12 +512,11 @@ class ForecastCombine(SystemStage
         2015-06-01  0.464240  0.192962  0.342798
         2015-12-12  0.464240  0.192962  0.342798
         """
-        #FIXME REFACTOR
-        return self.calculation_of_raw_estimated_monthly_forecast_weights(
-            instrument_code
-        ).weights
+        optimiser = self.calculation_of_raw_estimated_monthly_forecast_weights(
+            instrument_code)
+        return optimiser.weights()
 
-    @diagnostic()
+    @diagnostic(not_pickable=True, protected=True)
     def calculation_of_raw_estimated_monthly_forecast_weights(self, instrument_code):
         """
         Does an optimisation for a single instrument
@@ -531,41 +533,93 @@ class ForecastCombine(SystemStage
 
         :returns: TxK pd.DataFrame containing weights, columns are trading rule variation names, T covers all
         """
-        #FIXME REFACTOR
 
         self.log.terse(
             "Calculating raw forecast weights for %s" %
             instrument_code)
 
+
         config = self.config
         # Get some useful stuff from the config
         weighting_params = copy(config.forecast_weight_estimate)
-        cost_param = copy(config.forecast_cost_estimates)
-        weighting_params.update(cost_param)
 
         # which function to use for calculation
         weighting_func = resolve_function(weighting_params.pop("func"))
 
+        returns_pre_processor = self.returns_pre_processor_for_code(instrument_code)
+
+        weight_func = weighting_func(
+            returns_pre_processor,
+            asset_name = instrument_code,
+            log=self.log,
+            **weighting_params)
+
+        return weight_func
+
+
+    @diagnostic(not_pickable=True)
+    def returns_pre_processor_for_code(self, instrument_code) -> returnsPreProcessor:
         # Because we might be pooling, we get a stack of p&l data
         codes_to_use = self.has_same_cheap_rules_as_code(instrument_code)
+        trading_rule_list = self.cheap_trading_rules(instrument_code)
 
+        returns_pre_processor = self.returns_pre_processing(codes_to_use, trading_rule_list=trading_rule_list)
+
+        return returns_pre_processor
+
+    @diagnostic(not_pickable=True)
+    def returns_pre_processing(self, codes_to_use: list, trading_rule_list: list) -> returnsPreProcessor:
+        pandl_forecasts = self.get_pandl_forecasts(codes_to_use)
+        turnovers = self.get_turnover_for_list_of_rules(codes_to_use, trading_rule_list)
+        config = self.config
+
+        weighting_params = copy(config.forecast_weight_estimate)
+        cost_params = copy(config.forecast_cost_estimates)
+        weighting_params = {**weighting_params, **cost_params}
+
+        returns_pre_processor = returnsPreProcessor(pandl_forecasts,
+                                                    turnovers = turnovers,
+                                                    log=self.log,
+                                                    **weighting_params)
+
+        return returns_pre_processor
+
+    @dont_cache
+    def get_turnover_for_list_of_rules(self, codes_to_use: list, list_of_rules: list) -> turnoverDataAcrossTradingRules:
+
+        turnover_dict = dict([
+            (rule_name, self.get_turnover_for_forecast(codes_to_use, rule_name))
+        for rule_name in list_of_rules])
+
+        turnover_data = turnoverDataAcrossTradingRules(turnover_dict)
+
+        ## dict of lists
+        return turnover_data
+
+    @input
+    def get_turnover_for_forecast(self, codes_to_use: list, rule_variation_name: str) -> turnoverDataForTradingRule:
+        #FIXME FEELS LIKE THIS JUNK SHOULD BE IN THE ACCOUNTS STAGE
+        turnover_as_list = self.accounts_stage.forecast_turnover_for_list_by_instrument(codes_to_use, rule_variation_name=rule_variation_name)
+        turnover_as_dict = dict([
+            (instrument_code, turnover)
+            for (instrument_code, turnover)
+            in zip(codes_to_use, turnover_as_list)
+        ])
+
+        turnover_data_for_trading_rule = turnoverDataForTradingRule(turnover_as_dict)
+
+        return turnover_data_for_trading_rule
+
+    @dont_cache
+    def get_pandl_forecasts(self, codes_to_use: list) -> dictOfReturnsForOptimisationWithCosts:
         # returns a dict of accountCurveGroups
-        # Note that the config.forecast_cost_estimates parameters will affect
-        # the costs shown in these returns
-        # They could all be equal, or
         pandl_forecasts = dict(
             [(code, self.get_returns_for_optimisation(code)) for code in codes_to_use]
         )
 
-        weight_func = weighting_func(
-            pandl_forecasts,
-            identifier=instrument_code,
-            parent=self,
-            **weighting_params)
+        pandl_forecasts = dictOfReturnsForOptimisationWithCosts(pandl_forecasts)
 
-        weight_func.optimise()
-
-        return weight_func
+        return pandl_forecasts
 
     @dont_cache
     def has_same_cheap_rules_as_code(self, instrument_code: str) -> list:
@@ -681,9 +735,9 @@ class ForecastCombine(SystemStage
         return self.parent.accounts
 
     @input
-    def get_returns_for_optimisation(self, instrument_code: str) -> pd.DataFrame:
+    def get_returns_for_optimisation(self, instrument_code: str) -> returnsForOptimisationWithCosts:
         """
-        Get pandl for instrument rules
+        Get pandl for forecasts for a given rule
         THese will include both gross and net returns, in case we do any pooling
 
         KEY INPUT
@@ -704,9 +758,13 @@ class ForecastCombine(SystemStage
             raise Exception(error_msg)
 
         cheap_rule_list = self.cheap_trading_rules(instrument_code)
-        return accounts.pandl_for_instrument_rules_unweighted(
+        pandl = accounts.pandl_for_instrument_rules_unweighted(
             instrument_code, cheap_rule_list
         )
+
+        pandl = returnsForOptimisationWithCosts(pandl)
+
+        return pandl
 
 
     # FIXED FORECAST WEIGHTS

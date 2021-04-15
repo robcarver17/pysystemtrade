@@ -201,6 +201,7 @@ class _AccountCosts(_AccountInput):
 
         return turnover(positions, average_position_for_turnover)
 
+
     @diagnostic()
     def forecast_turnover_for_list(
             self,
@@ -219,20 +220,13 @@ class _AccountCosts(_AccountInput):
 
         """
 
-        average_forecast_for_turnover = get_default_config_key_value(
-            "average_absolute_forecast"
-        )
-
         forecast_list = [
             self.get_capped_forecast(instrument_code, rule_variation_name)
             for instrument_code in instrument_code_list
         ]
 
-        turnovers = [
-            turnover(forecast, average_forecast_for_turnover)
-            for forecast in forecast_list
-        ]
-
+        turnovers = self.forecast_turnover_for_list_by_instrument(instrument_code_list,
+                                                                  rule_variation_name)
         if len(instrument_code_list) == 1:
             return turnovers[0]
 
@@ -247,6 +241,30 @@ class _AccountCosts(_AccountInput):
         avg_turnover = sum(weighted_turnovers)
 
         return avg_turnover
+
+
+    @diagnostic()
+    def forecast_turnover_for_list_by_instrument(
+            self,
+            instrument_code_list,
+            rule_variation_name):
+
+        forecast_list = [
+            self.get_capped_forecast(instrument_code, rule_variation_name)
+            for instrument_code in instrument_code_list
+        ]
+
+        average_forecast_for_turnover = get_default_config_key_value(
+            "average_absolute_forecast"
+        )
+
+        turnovers = [
+            turnover(forecast, average_forecast_for_turnover)
+            for forecast in forecast_list
+        ]
+
+        return turnovers
+
 
     @diagnostic()
     def forecast_turnover(self, instrument_code, rule_variation_name):

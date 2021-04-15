@@ -1,3 +1,4 @@
+from random import random
 from copy import copy
 import pandas as pd
 import numpy as np
@@ -6,9 +7,9 @@ from syscore.objects import arg_not_supplied
 from syscore.pdutils import must_have_item
 
 from sysquant.fitting_dates import fitDates
+from sysquant.estimators.generic_estimator import Estimate
 
-
-class Correlation(object):
+class correlationEstimate(Estimate):
     def __init__(self, values: np.array, columns =arg_not_supplied):
         if columns is arg_not_supplied:
             columns = [""]*len(values)
@@ -18,12 +19,24 @@ class Correlation(object):
     def __repr__(self):
         return str(self.as_pd())
 
-    def as_pd(self):
+    @property
+    def is_boring(self):
+        is_boring = getattr(self, "_is_boring", False)
+        return is_boring
+
+    @is_boring.setter
+    def is_boring(self, is_boring: bool):
+        self._is_boring = is_boring
+
+    def as_pd(self) -> pd.DataFrame:
         values = self.values
         columns = self.columns
 
         return pd.DataFrame(values, index = columns, columns=columns)
 
+    @classmethod
+    def from_pd(correlationEstimate, pd_df: pd.DataFrame):
+        return correlationEstimate(pd_df.values, columns=list(pd_df.columns))
 
     @property
     def values(self) -> np.array:
@@ -42,6 +55,34 @@ class Correlation(object):
 
     def no_values_present(self):
         return np.all(np.isnan(self.values))
+
+    def shrink_to_average(self, shrinkage_corr: float = 1.0):
+        avg_corr = self.average_corr()
+        prior_corr = self.boring_corr_matrix(offdiag=avg_corr)
+
+        return self.shrink(prior_corr, shrinkage_corr=shrinkage_corr)
+
+    def shrink(self, prior_corr: 'correlationEstimate', shrinkage_corr: float =1.0):
+        if shrinkage_corr==1.0:
+            return prior_corr
+
+        if shrinkage_corr==0.0:
+            return self
+
+        corr_values = self.values
+        prior_corr_values = prior_corr.values
+
+        shrunk_corr = shrinkage_corr * prior_corr_values + \
+                     (1 - shrinkage_corr) * corr_values
+
+        shrunk_corr = correlationEstimate(shrunk_corr, columns=self.columns)
+
+        return shrunk_corr
+
+    def update_with_asset_names_from_cmatrix(self, another_corr_matrix) -> 'correlationEstimate':
+        asset_names = list(another_corr_matrix.columns)
+
+        return correlationEstimate(self.values, columns=asset_names)
 
     def clean_corr_matrix_given_data(self,
                                      fit_period: fitDates,
@@ -70,12 +111,12 @@ class Correlation(object):
                            offdiag: float=0.99,
                        diag: float=1.0):
 
-        return create_boring_corr_matrix(self.size, offdiag=offdiag, diag = diag)
+        return create_boring_corr_matrix(self.size, offdiag=offdiag, diag = diag, columns=self.columns)
 
     def floor_correlation_matrix(self,  floor=0.0):
         corr_matrix_values = copy(self.values)
         corr_matrix_values[corr_matrix_values < floor] = floor
-        corr_matrix = Correlation(corr_matrix_values, self.columns)
+        corr_matrix = correlationEstimate(corr_matrix_values, self.columns)
         return corr_matrix
 
     def average_corr(self) -> float:
@@ -88,12 +129,24 @@ class Correlation(object):
 
         return avg_corr
 
+    def subset(self, subset_of_asset_names: list):
+        as_pd = self.as_pd()
+        subset_pd = as_pd.loc[subset_of_asset_names, subset_of_asset_names]
 
+        new_correlation = self.from_pd(subset_pd)
+        if self.is_boring:
+            new_correlation.is_boring = True
+
+        return new_correlation
+
+    def assets_with_missing_data(self) -> list:
+        na_row_count = self.as_pd().isna().any(axis=1)
+        return [keyname for keyname in na_row_count.keys() if na_row_count[keyname]]
 
 def create_boring_corr_matrix(size: int,
                        offdiag: float=0.99,
                        diag: float=1.0,
-                              columns = arg_not_supplied) -> Correlation:
+                              columns = arg_not_supplied) -> correlationEstimate:
     """
     Create a boring correlation matrix
 
@@ -102,6 +155,20 @@ def create_boring_corr_matrix(size: int,
     :param diag: value to put in diagonal
     :return: np.array 2 dimensions, size
     """
+
+    corr_matrix_values = boring_corr_matrix_values(size, offdiag=offdiag,
+                                                   diag = diag)
+
+    boring_corr_matrix = correlationEstimate(corr_matrix_values, columns)
+    boring_corr_matrix.is_boring = True
+
+    return boring_corr_matrix
+
+def boring_corr_matrix_values(size: int,
+                              offdiag: float=0.99,
+                       diag: float=1.0
+                              ) -> np.array:
+
     size_index = range(size)
 
     def _od(i, j, offdiag, diag):
@@ -113,14 +180,11 @@ def create_boring_corr_matrix(size: int,
     corr_matrix_values_as_list = [[_od(i, j, offdiag, diag) for i in size_index] for j in size_index]
     corr_matrix_values = np.array(corr_matrix_values_as_list)
 
-    boring_corr_matrix = Correlation(corr_matrix_values, columns)
+    return corr_matrix_values
 
-    return boring_corr_matrix
-
-
-def clean_correlation(raw_corr_matrix: Correlation,
+def clean_correlation(raw_corr_matrix: correlationEstimate,
                       must_haves=arg_not_supplied,
-                      offdiag = 0.99) -> Correlation:
+                      offdiag = 0.99) -> correlationEstimate:
     """
     Make's sure we *always* have some kind of correlation matrix
 
@@ -141,7 +205,7 @@ def clean_correlation(raw_corr_matrix: Correlation,
 
 
     >>> sigma=np.array([[1.0,0.0,0.5], [0.0, 1.0, 0.75],[0.5, 0.75, 1.0]])
-    >>> cmatrix = Correlation(sigma)
+    >>> cmatrix = correlationEstimate(sigma)
     >>> clean_correlation(sigma).values
     array([[ 1.  ,  0.  ,  0.5 ],
            [ 0.  ,  1.  ,  0.75],
@@ -191,13 +255,13 @@ def clean_correlation(raw_corr_matrix: Correlation,
                                                 must_haves=must_haves,
                                                 corr_for_cleaning=corr_for_cleaning)
 
-    cleaned_corr_matrix = Correlation(corrmat_values, raw_corr_matrix.columns)
+    cleaned_corr_matrix = correlationEstimate(corrmat_values, raw_corr_matrix.columns)
 
     return cleaned_corr_matrix
 
-def _get_cleaned_matrix_values(raw_corr_matrix: Correlation,
+def _get_cleaned_matrix_values(raw_corr_matrix: correlationEstimate,
                                must_haves: list,
-                               corr_for_cleaning: Correlation) -> np.array:
+                               corr_for_cleaning: correlationEstimate) -> np.array:
     size_range = range(raw_corr_matrix.size)
 
     # We replace missing values that we must have with the average, or

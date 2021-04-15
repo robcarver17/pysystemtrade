@@ -37,75 +37,6 @@ def apply_with_min_periods(xcol, my_func=np.nanmean, min_periods=0):
         return np.nan
 
 
-def vol_estimator(x, using_exponent=True, min_periods=20, ew_lookback=250):
-    """
-    Generic vol estimator used for optimisation, works on data frames, produces
-    a single answer
-
-    :param x: data
-    :type x: Tx1 pd.DataFrame
-
-    :param using_exponent: Use exponential or normal vol (latter recommended
-    for bootstrapping)
-    :type using_exponent: bool
-
-    :param min_periods: The minimum number of observations (*default* 10)
-    :type min_periods: int
-
-    :returns: pd.DataFrame -- volatility measure
-
-    """
-    if using_exponent:
-        vol = (x.ewm(span=ew_lookback,
-                     min_periods=min_periods).std().iloc[-1, :].values[0])
-
-    else:
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", category=RuntimeWarning)
-            vol = x.apply(
-                apply_with_min_periods,
-                axis=0,
-                min_periods=min_periods,
-                my_func=np.nanstd,
-            )
-
-    stdev_list = list(vol)
-
-    return stdev_list
-
-
-def mean_estimator(x, using_exponent=True, min_periods=20, ew_lookback=500):
-    """
-    Generic mean estimator used for optimisation, works on data frames
-
-    :param using_exponent: Use exponential or normal vol (latter recommended
-    for bootstrapping)
-    :type using_exponent: bool
-
-    """
-    if using_exponent:
-        means = (
-            x.ewm(x, span=ew_lookback, min_periods=min_periods)
-            .mean()
-            .iloc[-1, :]
-            .values[0]
-        )
-
-    else:
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", category=RuntimeWarning)
-
-            means = x.apply(
-                apply_with_min_periods,
-                axis=0,
-                min_periods=min_periods,
-                my_func=np.nanmean,
-            )
-
-    mean_list = list(means)
-    return mean_list
-
-
 def apply_buffer_single_period(
     last_position, optimal_position, top_pos, bot_pos, trade_to_edge
 ):
@@ -309,13 +240,6 @@ def map_forecast_value(
             a_param,
             b_param))
 
-
-def robust_vol_calc(*args, **kwargs):
-    raise Exception("robust_vol_calc has moved to sysquant.estimators.vol.robust_vol_calc - update your configuration!")
-
-
-def forecast_scalar(*args, **kwargs):
-    raise Exception("forecast_scalar has moved to sysquant.estimators.forecast_scalar.forecast_scalar - update your configuration!")
 
 
 if __name__ == "__main__":

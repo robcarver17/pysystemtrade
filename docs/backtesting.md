@@ -3907,7 +3907,7 @@ process is almost identical for both.
 From the config
 ```
 forecast_weight_estimate: ## can also be applied to instrument weights
-   func: syscore.optimisation.GenericOptimiser ## this is the only function provided
+   func: sysquant.optimisation.generic_optimiser.genericOptimiser ## this is the only function provided
    pool_instruments: True ## not used for instrument weights
    frequency: "W" ## other options: D, M, Y
 
@@ -3989,20 +3989,20 @@ From the config
 ```
 forecast_weight_estimate:  ## can also be applied to instrument weights
    correlation_estimate:
-     func: syscore.correlations.correlation_single_period
+     func: sysquant.estimators.correlation_estimator.correlationEstimator
      using_exponent: False
      ew_lookback: 500
      min_periods: 20
      floor_at_zero: True
 
    mean_estimate:
-     func: syscore.algos.mean_estimator
+     func: sysquant.estimators.mean_estimator.meanEstimator
      using_exponent: False
      ew_lookback: 500
      min_periods: 20
 
    vol_estimate:
-     func: syscore.algos.vol_estimator
+     func: sysquant.estimators.stdev_estimator.stdevEstimator
      using_exponent: False
      ew_lookback: 500
      min_periods: 20
@@ -4056,7 +4056,6 @@ times.
 ```
 method: bootstrap
    monte_runs: 100
-   bootstrap_length: 50
    equalise_SR: False
    ann_target_SR: 0.5  ## Sharpe we head to if we're shrinking or equalising
    equalise_vols: True
@@ -4092,6 +4091,8 @@ See [my series of blog posts](https://qoppac.blogspot.com/2018/12/portfolio-cons
 
 ```
    method: handcraft
+   equalise_SR: False # optional
+   equalise_vols: True ## This *must* be true for it to work
 ```
 
 
@@ -4108,7 +4109,7 @@ is given a share of the weight.
 
 
 ```
-   apply_cost_weight: True
+   apply_cost_weight: False
    cleaning: True
 ```
 
@@ -4132,13 +4133,28 @@ moving average on weekly data:
 ```
 forecast_correlation_estimate:
    pool_instruments: True ## not available for IDM estimation
-   func: syscore.correlations.CorrelationEstimator ## function to use for estimation. This handles both pooled and non pooled data
+   func:sysquant.estimators.pooled_correlation.pooled_correlation_estimator ## function to use for estimation. This handles both pooled and non pooled data
    frequency: "W"   # frequency to downsample to before estimating correlations
    date_method: "expanding" # what kind of window to use in backtest
    using_exponent: True  # use an exponentially weighted correlation, or all the values equally
    ew_lookback: 250 ## lookback when using exponential weighting
    min_periods: 20  # min_periods, used for both exponential, and non exponential weighting
    cleaning: True  # Replace missing values with an average so we don't lose data early on
+   floor_at_zero: True
+   forward_fill_data: True
+
+instrument_correlation_estimate:
+   func: sysquant.estimators.correlation_over_time.correlation_over_time_for_returns # these aren't pooled'
+   frequency: "W"
+   date_method: "expanding"
+   using_exponent: True
+   ew_lookback: 250
+   min_periods: 20
+   cleaning: True
+   rollyears: 20
+   floor_at_zero: True
+   forward_fill_price_index: True # we ffill prices not returns or goes wrong
+
 ```
 
 Once we have correlations, and the forecast or instrument weights, it's a
@@ -4146,9 +4162,8 @@ trivial calculation.
 
 ```
 instrument_div_mult_estimate:
-   func: syscore.divmultipliers.diversification_multiplier_from_list ## function to use
-   ewma_span: 125   ## smooth to apply
-   floor_at_zero: True ## floor negative correlations
+   func: sysquant.estimators.diversification_multipliers.diversification_multiplier_from_list
+   ewma_span: 125   ## smooth to apply, business day space
    div_mult: 2.5 ## maximum allowable multiplier
 ```
 

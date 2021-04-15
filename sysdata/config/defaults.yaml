@@ -123,8 +123,7 @@ forecast_cost_estimates:
 forecast_weight_ewma_span: 125
 #
 forecast_weight_estimate:
-   func: syscore.optimisation.GenericOptimiser
-   method: handcraft
+   func: sysquant.optimisation.generic_optimiser.genericOptimiser
    pool_gross_returns: True
    equalise_gross: False
    cost_multiplier: 2.0
@@ -133,30 +132,31 @@ forecast_weight_estimate:
    frequency: "W"
    date_method: "expanding"
    rollyears: 20
+   method: handcraft
    cleaning: True
    equalise_SR: False
    ann_target_SR: 0.5
    equalise_vols: True
-   shrinkage_SR: 0.90
-   shrinkage_corr: 0.50
+   shrinkage_SR: 0.9
+   shrinkage_corr: 0.5
    monte_runs: 100
-   bootstrap_length: 50
    correlation_estimate:
-     func: syscore.correlations.correlation_single_period
-     using_exponent: False
-     ew_lookback: 500
-     min_periods: 20
-     floor_at_zero: True
+     func: sysquant.estimators.correlation_estimator.correlationEstimator
+     using_exponent: True
+     ew_lookback: 50000
+     min_periods: 10
+     cleaning: True
+     floor_at_zero: False
    mean_estimate:
-     func: syscore.algos.mean_estimator
-     using_exponent: False
-     ew_lookback: 500
-     min_periods: 20
+     func: sysquant.estimators.mean_estimator.meanEstimator
+     using_exponent: True
+     ew_lookback: 50000
+     min_periods: 5
    vol_estimate:
-     func: syscore.algos.vol_estimator
-     using_exponent: False
-     ew_lookback: 500
-     min_periods: 20
+     func: sysquant.estimators.stdev_estimator.stdevEstimator
+     using_exponent: True
+     ew_lookback: 50000
+     min_periods: 5
 #
 # Capital correction
 #
@@ -196,11 +196,11 @@ use_instrument_weight_estimates: False
 instrument_weight_ewma_span: 125
 #
 instrument_weight_estimate:
-   func: syscore.optimisation.GenericOptimiser
+   func: sysquant.optimisation.generic_optimiser.genericOptimiser
    method: handcraft
    frequency: "W"
    equalise_gross: False
-   cost_multiplier: 0.0
+   cost_multiplier: 1.0
    apply_cost_weight: False
    date_method: "expanding"
    rollyears: 20
@@ -211,23 +211,23 @@ instrument_weight_estimate:
    shrinkage_mean: 1.00
    shrinkage_corr: 0.50
    monte_runs: 100
-   bootstrap_length: 50
    correlation_estimate:
-     func: syscore.correlations.correlation_single_period
-     using_exponent: False
-     ew_lookback: 500
-     min_periods: 20
-     floor_at_zero: True
+     func: sysquant.estimators.correlation_estimator.correlationEstimator
+     using_exponent: True
+     ew_lookback: 500000
+     min_periods: 10
+     floor_at_zero: False
+     cleaning: True
    mean_estimate:
-     func: syscore.algos.mean_estimator
-     using_exponent: False
-     ew_lookback: 500
-     min_periods: 20
+     func: sysquant.estimators.mean_estimator.meanEstimator
+     using_exponent: True
+     ew_lookback: 50000
+     min_periods: 5
    vol_estimate:
-     func: syscore.algos.vol_estimator
-     using_exponent: False
-     ew_lookback: 500
-     min_periods: 20
+     func: sysquant.estimators.stdev_estimator.stdevEstimator
+     using_exponent: True
+     ew_lookback: 50000
+     min_periods: 5
 #
 # buffering / position inertia
 buffer_method: position

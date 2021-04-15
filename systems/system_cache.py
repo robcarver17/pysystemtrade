@@ -234,7 +234,7 @@ class systemCache(dict):
         """
         Loads the saved cache
 
-        Note that certain elements (accountCurve objects and optimisers) won't
+        Note that certain elements (accountCurve objects and optimisation) won't
            be pickled, and so won't be loaded. You will need to regenerate
            these.
 

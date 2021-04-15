@@ -3,6 +3,7 @@ Utilities to help with pandas
 """
 import pandas as pd
 import datetime
+import random
 
 import numpy as np
 from copy import copy
@@ -12,11 +13,27 @@ from syscore.dateutils import (
     BUSINESS_DAYS_IN_YEAR,
     time_matches,
     CALENDAR_DAYS_IN_YEAR,
-    NOTIONAL_CLOSING_TIME_AS_PD_OFFSET
+    NOTIONAL_CLOSING_TIME_AS_PD_OFFSET,
+WEEKS_IN_YEAR,
+MONTHS_IN_YEAR
 
 )
 
 DEFAULT_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
+
+def how_many_times_a_year_is_pd_frequency(frequency: str) -> float:
+    DICT_OF_FREQ = {'B': BUSINESS_DAYS_IN_YEAR,
+                    'W': WEEKS_IN_YEAR,
+                    'M': MONTHS_IN_YEAR,
+                    'D': CALENDAR_DAYS_IN_YEAR}
+
+    times_a_year = DICT_OF_FREQ.get(frequency, None)
+
+    if times_a_year is None:
+        raise Exception("Frequency %s is no good I only know about %s" %
+                        (frequency, str(list(DICT_OF_FREQ.keys()))))
+
+    return float(times_a_year)
 
 
 def turnover(x, y):
@@ -151,6 +168,12 @@ def must_have_item(slice_data):
 
     return some_data_flags
 
+def get_bootstrap_series(data: pd.DataFrame):
+    length_of_series = len(data.index)
+    random_indices = [int(random.uniform(0,length_of_series)) for _unused in range(length_of_series)]
+    bootstrap_data = data.iloc[random_indices]
+
+    return bootstrap_data
 
 
 def pd_readcsv(

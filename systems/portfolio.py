@@ -7,6 +7,10 @@ from syscore.genutils import str2Bool
 
 from sysdata.config.configdata import Config
 
+from sysquant.estimators.turnover import turnoverDataAcrossSubsystems
+from sysquant.optimisation.pre_processing import returnsPreProcessor
+from sysquant.returns import dictOfReturnsForOptimisationWithCosts, returnsForOptimisationWithCosts
+
 from systems.stage import SystemStage
 from systems.system_cache import input, dont_cache, diagnostic, output
 from systems.positionsizing import PositionSizing
@@ -302,14 +306,14 @@ class Portfolios(SystemStage):
     @dont_cache
     def get_instrument_diversification_multiplier(self) -> pd.Series:
 
-        if self.use_estimated_instrument_div_mult():
+        if self.use_estimated_instrument_div_mult:
             idm= self.get_estimated_instrument_diversification_multiplier()
         else:
             idm= self.get_fixed_instrument_diversification_multiplier()
 
         return idm
 
-    @input
+    @property
     def use_estimated_instrument_div_mult(self) -> bool:
         """
         It will determine if we use an estimate or a fixed class of object
@@ -443,21 +447,15 @@ class Portfolios(SystemStage):
 
         self.log.terse("Calculating instrument correlations")
 
-        system = self.parent
+        config = self.config
 
         # Get some useful stuff from the config
-        corr_params = copy(system.config.instrument_correlation_estimate)
+        corr_params = copy(config.instrument_correlation_estimate)
 
         # which function to use for calculation
         corr_func = resolve_function(corr_params.pop("func"))
 
-        accounts = self.accounts_stage
-        if accounts is missing_data:
-            error_msg = "You need an accounts stage in the system to estimate instrument correlations"
-            self.log.critical(error_msg)
-            raise Exception(error_msg)
-        else:
-            pandl = self.pandl_across_subsystems().to_frame()
+        pandl = self.pandl_across_subsystems().to_frame()
 
         return corr_func(pandl, **corr_params)
 
@@ -641,13 +639,14 @@ class Portfolios(SystemStage):
         """
 
         # these will probably be annual
-        return self.calculation_of_raw_instrument_weights().weights
+        optimiser = self.calculation_of_raw_instrument_weights()
+        return optimiser.weights()
 
 
 
     @diagnostic(protected=True, not_pickable=True)
     def calculation_of_raw_instrument_weights(self):
-        #FIXME CONSIDER IF TWO STAGES NECCESSARY
+
         """
         Estimate the instrument weights
 
@@ -663,33 +662,36 @@ class Portfolios(SystemStage):
         # which function to use for calculation
         weighting_func = resolve_function(weighting_params.pop("func"))
 
-        system = self.parent
+        returns_pre_processor = self.returns_pre_processor()
 
         self.log.terse("Calculating raw instrument weights")
 
-        accounts = self.accounts_stage
-
-        if accounts is missing_data:
-            error_msg = "You need an accounts stage in the system to estimate instrument weights"
-            self.log.critical(error_msg)
-            raise Exception(error_msg)
-
-        else:
-            pandl = self.pandl_across_subsystems()
-
-        # FIXME THIS IS THE KIND OF HACK ONE SHOULD AVOID
-        # The optimiser is set up for pooling, but we're not going to do that
-        # Create a single fake set of return data
-        data = dict(instrument_pandl=pandl)
         weight_func = weighting_func(
-            data,
-            identifier="instrument_pandl",
-            parent=self,
+            returns_pre_processor,
+            log=self.log,
             **weighting_params)
 
-        weight_func.optimise()
-
         return weight_func
+
+    @diagnostic(not_pickable=True)
+    def returns_pre_processor(self)  -> returnsPreProcessor:
+
+        pandl_across_subsystems_raw = self.pandl_across_subsystems()
+        pandl_across_subsystems_as_returns_object = returnsForOptimisationWithCosts(pandl_across_subsystems_raw)
+        pandl_across_subsystems = dictOfReturnsForOptimisationWithCosts(pandl_across_subsystems_as_returns_object)
+
+        turnovers = self.turnover_across_subsystems()
+        config = self.config
+
+        weighting_params = copy(config.instrument_weight_estimate)
+
+        returns_pre_processor = returnsPreProcessor(pandl_across_subsystems,
+                                                    turnovers = turnovers,
+                                                    log=self.log,
+                                                    **weighting_params)
+
+        return returns_pre_processor
+
 
 
 
@@ -735,7 +737,31 @@ class Portfolios(SystemStage):
         :returns: accountCurveGroup object
         """
 
-        return self.accounts_stage.pandl_across_subsystems()
+        accounts = self.accounts_stage
+
+        if accounts is missing_data:
+            error_msg = "You need an accounts stage in the system to estimate instrument weights or IDM"
+            self.log.critical(error_msg)
+            raise Exception(error_msg)
+
+        return accounts.pandl_across_subsystems()
+
+    @input
+    def turnover_across_subsystems(self) -> turnoverDataAcrossSubsystems:
+
+        instrument_list = self.parent.get_instrument_list()
+        turnover_as_list = [self.accounts_stage.subsystem_turnover(instrument_code)
+                            for instrument_code in instrument_list]
+
+        turnover_as_dict = dict([
+            (instrument_code, turnover)
+            for (instrument_code, turnover)
+            in zip(instrument_list, turnover_as_list)
+        ])
+
+        turnovers = turnoverDataAcrossSubsystems(turnover_as_dict)
+
+        return turnovers
 
 
     @input

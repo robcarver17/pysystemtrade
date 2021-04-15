@@ -27,7 +27,8 @@ class fitDates(object):
             )
 
 class listOfFittingDates(list):
-    pass
+    def list_of_starting_periods(self) -> list:
+        return [period.period_start for period in self]
 
 IN_SAMPLE = "in_sample"
 ROLLING = "rolling"
