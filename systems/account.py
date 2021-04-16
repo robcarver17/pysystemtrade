@@ -3,7 +3,6 @@ import pandas as pd
 import numpy as np
 
 from syscore.accounting import accountCurve, accountCurveGroup, weighted
-from sysdata.config.defaults import get_default_config_key_value
 from systems.system_cache import dont_cache, diagnostic, output
 from systems.accounts_inputs import _AccountInput
 
@@ -254,9 +253,9 @@ class _AccountCosts(_AccountInput):
             for instrument_code in instrument_code_list
         ]
 
-        average_forecast_for_turnover = get_default_config_key_value(
-            "average_absolute_forecast"
-        )
+        config = self.parent.config ## FIX ME CHANGE
+        average_forecast_for_turnover = config.average_absolute_forecast
+
 
         turnovers = [
             turnover(forecast, average_forecast_for_turnover)

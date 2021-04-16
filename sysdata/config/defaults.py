@@ -27,19 +27,6 @@ def get_system_defaults_dict(filename: str = arg_not_supplied) -> dict:
     return default_dict
 
 
-def get_default_config_key_value(key_name,
-                                 system_defaults_dict=arg_not_supplied):
-    print("FIXME / WARNING: get_default_config_key_value SHOULD NOT BE USED!")
-    if system_defaults_dict is arg_not_supplied:
-        default_config_dict = get_system_defaults_dict()
-    else:
-        default_config_dict = system_defaults_dict
-
-    key_value = default_config_dict.get(key_name, missing_data)
-
-    return key_value
-
-
 system_defaults = get_system_defaults_dict()
 
 if __name__ == "__main__":
