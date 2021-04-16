@@ -320,9 +320,7 @@ def from_scalar_values_to_ts(scalar_value: float, long_ts_index) -> pd.Series:
     :return: pd.dataframe, column names from data_dict, values repeated scalars
     """
 
-    ts_index = [long_ts_index[0], long_ts_index[-1]]
-
-    pd_series = pd.Series([scalar_value]*len(ts_index), index = ts_index)
+    pd_series = pd.Series([scalar_value]*len(long_ts_index), index = long_ts_index)
 
     return pd_series
 
