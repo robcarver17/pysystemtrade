@@ -599,7 +599,7 @@ class ForecastCombine(SystemStage
     @input
     def get_turnover_for_forecast(self, codes_to_use: list, rule_variation_name: str) -> turnoverDataForTradingRule:
         #FIXME FEELS LIKE THIS JUNK SHOULD BE IN THE ACCOUNTS STAGE
-        turnover_as_list = self.accounts_stage.forecast_turnover_for_list_by_instrument(codes_to_use, rule_variation_name=rule_variation_name)
+        turnover_as_list = self.accounts_stage._forecast_turnover_for_individual_instrument(codes_to_use, rule_variation_name=rule_variation_name)
         turnover_as_dict = dict([
             (instrument_code, turnover)
             for (instrument_code, turnover)

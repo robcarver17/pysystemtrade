@@ -269,7 +269,7 @@ class ForecastScaleCap(SystemStage):
         # must return thing the same size as cs_forecasts
 
         # This we get from here to avoid possible inconsistency
-        target_abs_forecast = self._target_abs_forecast()
+        target_abs_forecast = self.target_abs_forecast()
 
         scaling_factor = scalar_function(
             cs_forecasts,
@@ -279,7 +279,7 @@ class ForecastScaleCap(SystemStage):
         return scaling_factor
 
     @dont_cache
-    def _target_abs_forecast(self) -> float:
+    def target_abs_forecast(self) -> float:
         return self.config.average_absolute_forecast
 
     @diagnostic()

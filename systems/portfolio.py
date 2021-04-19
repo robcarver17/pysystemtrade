@@ -573,7 +573,7 @@ class Portfolios(SystemStage):
         subsystem_positions = self._get_all_subsystem_positions()
         position_series_index = subsystem_positions.index
 
-        # CHANGE TO 2XN DATAFRAME
+        # CHANGE TO TXN DATAFRAME
         instrument_weights = from_dict_of_values_to_df(instrument_weights_dict,
                                   position_series_index,
                                   columns = instrument_list)

@@ -6,7 +6,7 @@ import pandas as pd
 from syscore.dateutils import ROOT_BDAYS_INYEAR
 from syscore.objects import header, table, body_text, missing_data
 from syscore.correlations import ordered_correlation_matrix
-from syscore.optimisation_utils import sigma_from_corr_and_std
+from sysquant.optimisation.shared import sigma_from_corr_and_std
 
 from sysobjects.production.tradeable_object import instrumentStrategy
 
