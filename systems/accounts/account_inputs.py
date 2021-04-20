@@ -1,3 +1,4 @@
+from sysobjects.instruments import instrumentCosts
 
 import pandas as pd
 from systems.stage import SystemStage
@@ -32,7 +33,6 @@ class accountInputs(SystemStage):
         return returns_vol
 
 
-    @input
     def has_same_rules_as_code(self, instrument_code):
         """
         Return instruments with same trading rules as this instrument
@@ -49,3 +49,16 @@ class accountInputs(SystemStage):
 
     def target_abs_forecast(self) -> float:
         return self.parent.forecastScaleCap.target_abs_forecast()
+
+    def average_forecast(self) -> float:
+        return self.config.average_absolute_forecast
+
+    def get_raw_cost_data(self, instrument_code: str)  -> instrumentCosts:
+        return self.parent.data.get_raw_cost_data(instrument_code)
+
+    def get_value_of_block_price_move(self, instrument_code: str) -> float:
+        return self.parent.data.get_value_of_block_price_move(instrument_code)
+
+    @property
+    def config(self):
+        return self.parent.config

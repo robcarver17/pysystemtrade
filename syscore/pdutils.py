@@ -42,7 +42,6 @@ def turnover(x, y):
 
     Returned in annualised terms
 
-    Assumes both x and y are daily business days
     """
 
     if isinstance(y, float) or isinstance(y, int):

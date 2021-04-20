@@ -10,6 +10,11 @@ ARBITRARY_FORECAST_ANNUAL_RISK_TARGET = 0.16
 ARBITRARY_FORECAST_DAILY_RISK_TARGET = ARBITRARY_FORECAST_ANNUAL_RISK_TARGET / ROOT_BDAYS_INYEAR
 
 class accountForecast(accountCosts):
+
+    @property
+    def name(self):
+        return "accounts"
+
     @diagnostic(not_pickable=True)
     def pandl_for_instrument_forecast(
             self, instrument_code: str,
@@ -48,7 +53,7 @@ class accountForecast(accountCosts):
             )
 
         position = self._get_notional_position_for_forecast(instrument_code,
-                                                           rule_variation_name = rule_variation_name)
+                                                           rule_variation_name)
 
         price = self.get_raw_price(instrument_code)
 
@@ -59,25 +64,16 @@ class accountForecast(accountCosts):
 
         # We use percentage returns (as no 'capital') and don't round
         # positions
-        pandl_fcast = accountCurve(
-            price,
-            forecast=forecast,
-            delayfill=delayfill,
-            roundpositions=False,
-            value_of_price_point=1.0,
-            capital=ARBITRARY_FORECAST_CAPITAL,
-            SR_cost=SR_cost,
-            cash_costs=None,
-            get_daily_returns_volatility=get_daily_returns_volatility,
-        )
+        pandl_fcast = 0
 
         return pandl_fcast
 
+    ## NEED QUICK AND DIRTY FOR FORECASTS
     def _get_notional_position_for_forecast(self,instrument_code: str,
             rule_variation_name: str) -> pd.Series:
 
         normalised_forecast = self._get_normalised_forecast(instrument_code,
-                                                            rule_variation_name=rule_variation_name)
+                                                            rule_variation_name)
         daily_returns_volatility = self.get_daily_returns_volatility(
             instrument_code
         )
@@ -94,7 +90,7 @@ class accountForecast(accountCosts):
             rule_variation_name: str) -> pd.Series:
 
         forecast = self.get_capped_forecast(instrument_code,
-                                            rule_variation_name=rule_variation_name)
+                                            rule_variation_name)
 
         target_abs_forecast = self.target_abs_forecast()
 
