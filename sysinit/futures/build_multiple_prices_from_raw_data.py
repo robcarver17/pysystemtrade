@@ -106,10 +106,10 @@ def _calc_roll_date_info(roll_calendar_with_roll_index: rollCalendarWithRollInde
     last_roll_date = roll_calendar.index[rolling_row_index - 1]
     next_roll_date = roll_calendar.index[rolling_row_index]
 
-    end_of_roll_period = next_roll_date
-    start_of_roll_period = last_roll_date + pd.DateOffset(
+    end_of_roll_period = next_roll_date - pd.DateOffset(
         seconds=1
     )  # to avoid overlaps
+    start_of_roll_period = last_roll_date
 
     roll_date_info = rollDateInfo(last_roll_date, next_roll_date,
                                   start_of_roll_period, end_of_roll_period,
