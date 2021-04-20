@@ -1,17 +1,25 @@
 import numpy as np
 import pandas as pd
 
+def robust_daily_vol_given_price(price: pd.Series, **kwargs):
+    price = price.reindex("1B").ffill()
+    daily_returns = price.diff()
+
+    vol = robust_vol_calc(daily_returns, **kwargs)
+
+    return vol
+
 
 def robust_vol_calc(
-    x: pd.Series,
-    days: int=35,
-    min_periods: int=10,
-    vol_abs_min: float=0.0000000001,
-    vol_floor: bool=True,
-    floor_min_quant: float=0.05,
-    floor_min_periods: int=100,
-    floor_days: int=500,
-    backfill: bool=False,
+        x: pd.Series,
+        days: int = 35,
+        min_periods: int = 10,
+        vol_abs_min: float = 0.0000000001,
+        vol_floor: bool = True,
+        floor_min_quant: float = 0.05,
+        floor_min_periods: int = 100,
+        floor_days: int = 500,
+        backfill: bool = False,
 ) -> pd.Series:
     """
     Robust exponential volatility calculation, assuming daily series of prices
@@ -55,10 +63,10 @@ def robust_vol_calc(
 
     if vol_floor:
         vol = apply_vol_floor(vol,
-                                      floor_min_quant=floor_min_quant,
-                                      floor_min_periods=floor_min_periods,
-                                      floor_days=floor_days
-                                      )
+                              floor_min_quant=floor_min_quant,
+                              floor_min_periods=floor_min_periods,
+                              floor_days=floor_days
+                              )
 
     if backfill:
         # use the first vol in the past, sort of cheating
@@ -66,10 +74,12 @@ def robust_vol_calc(
 
     return vol
 
-def apply_min_vol(vol: pd.Series, vol_abs_min: float =0.0000000001 ) -> pd.Series:
+
+def apply_min_vol(vol: pd.Series, vol_abs_min: float = 0.0000000001) -> pd.Series:
     vol[vol < vol_abs_min] = vol_abs_min
 
     return vol
+
 
 def apply_vol_floor(vol: pd.Series,
                     floor_min_quant: float = 0.05,
@@ -91,7 +101,8 @@ def apply_vol_floor(vol: pd.Series,
 
     return vol_floored
 
-def backfill_vol(vol: pd.Series) ->pd.Series:
+
+def backfill_vol(vol: pd.Series) -> pd.Series:
     # have to fill forwards first, as it's only the start we want to
     # backfill, eg before any value available
 

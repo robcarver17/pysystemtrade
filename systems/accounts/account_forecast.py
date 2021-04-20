@@ -1,13 +1,12 @@
 import pandas as pd
 
 from syscore.dateutils import ROOT_BDAYS_INYEAR
+from syscore.objects import arg_not_supplied
+
+from sysquant.estimators.vol import robust_daily_vol_given_price
 
 from systems.system_cache import dont_cache, diagnostic, output
 from systems.accounts.account_costs import accountCosts
-
-ARBITRARY_FORECAST_CAPITAL = 100
-ARBITRARY_FORECAST_ANNUAL_RISK_TARGET = 0.16
-ARBITRARY_FORECAST_DAILY_RISK_TARGET = ARBITRARY_FORECAST_ANNUAL_RISK_TARGET / ROOT_BDAYS_INYEAR
 
 class accountForecast(accountCosts):
 
@@ -52,15 +51,21 @@ class accountForecast(accountCosts):
             rule_variation_name=rule_variation_name,
             )
 
-        position = self._get_notional_position_for_forecast(instrument_code,
-                                                           rule_variation_name)
+        forecast = self.get_capped_forecast(instrument_code,
+                                            rule_variation_name)
 
         price = self.get_raw_price(instrument_code)
+
+        daily_returns_volatility = self.get_daily_returns_volatility(
+            instrument_code
+        )
 
         # We NEVER use cash costs for forecasts ...
         SR_cost = self.get_SR_cost_for_instrument_forecast(
             instrument_code, rule_variation_name
         )
+
+        target_abs_forecast = self.target_abs_forecast()
 
         # We use percentage returns (as no 'capital') and don't round
         # positions
@@ -68,32 +73,47 @@ class accountForecast(accountCosts):
 
         return pandl_fcast
 
-    ## NEED QUICK AND DIRTY FOR FORECASTS
-    def _get_notional_position_for_forecast(self,instrument_code: str,
-            rule_variation_name: str) -> pd.Series:
 
-        normalised_forecast = self._get_normalised_forecast(instrument_code,
-                                                            rule_variation_name)
-        daily_returns_volatility = self.get_daily_returns_volatility(
-            instrument_code
-        )
 
-        aligned_returns_volatility = daily_returns_volatility.reindex(normalised_forecast.index).ffill()
-        inverse_vol_scaling = (ARBITRARY_FORECAST_DAILY_RISK_TARGET  / aligned_returns_volatility)
 
-        notional_position = inverse_vol_scaling * normalised_forecast
+ARBITRARY_FORECAST_CAPITAL = 100
+ARBITRARY_FORECAST_ANNUAL_RISK_TARGET = 0.16
+ARBITRARY_FORECAST_DAILY_RISK_TARGET = ARBITRARY_FORECAST_ANNUAL_RISK_TARGET / ROOT_BDAYS_INYEAR
 
-        return  notional_position
 
-    @diagnostic()
-    def _get_normalised_forecast(self,instrument_code: str,
-            rule_variation_name: str) -> pd.Series:
 
-        forecast = self.get_capped_forecast(instrument_code,
-                                            rule_variation_name)
 
-        target_abs_forecast = self.target_abs_forecast()
+def pandl_for_instrument_forecast(forecast: pd.Series,
+                                  price: pd.Series,
+                                  daily_returns_volatility: pd.Series = arg_not_supplied,
+                                  target_abs_forecast: float = 10.0):
 
-        normalised_forecast = forecast / target_abs_forecast
+    if daily_returns_volatility is arg_not_supplied:
+        daily_returns_volatility = robust_daily_vol_given_price(price)
 
-        return normalised_forecast
+    notional_position = _get_notional_position_for_forecast(forecast,
+                                                            daily_returns_volatility =daily_returns_volatility,
+                                                            target_abs_forecast = target_abs_forecast)
+
+
+
+def _get_notional_position_for_forecast(forecast: pd.Series,
+                                  daily_returns_volatility: pd.Series = arg_not_supplied,
+                                        target_abs_forecast: float = 10.0) -> pd.Series:
+
+    normalised_forecast = _get_normalised_forecast(forecast,
+                                                   target_abs_forecast = target_abs_forecast)
+
+    aligned_returns_volatility = daily_returns_volatility.reindex(normalised_forecast.index).ffill()
+    inverse_vol_scaling = (ARBITRARY_FORECAST_DAILY_RISK_TARGET  / aligned_returns_volatility)
+
+    notional_position = inverse_vol_scaling * normalised_forecast
+
+    return  notional_position
+
+def _get_normalised_forecast(forecast: pd.Series,
+                             target_abs_forecast: float = 10.0) -> pd.Series:
+
+    normalised_forecast = forecast / target_abs_forecast
+
+    return normalised_forecast
