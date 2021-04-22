@@ -68,15 +68,15 @@ def analyse_tick(tick: oneTick, qty: int) -> analysisTick:
         order = "B"
         side_price = tick.ask_price
         offside_price = tick.bid_price
-        side_qty = tick.ask_size
-        offside_qty = tick.bid_size
+        side_qty = _zero_replace_nan(tick.ask_size)
+        offside_qty = _zero_replace_nan(tick.bid_size)
     else:
         order = "S"
         # Selling, normally at the bid
         side_price = tick.bid_price
         offside_price = tick.ask_price
-        side_qty = tick.bid_size
-        offside_qty = tick.ask_size
+        side_qty = _zero_replace_nan(tick.bid_size)
+        offside_qty = _zero_replace_nan(tick.ask_size)
 
     # Eg if we're buying this would be the bid quantity divided by ask quantity
     # If this number goes significantly above 1 it suggests there is significant buying pressure
@@ -100,6 +100,11 @@ def analyse_tick(tick: oneTick, qty: int) -> analysisTick:
 
     return results
 
+def _zero_replace_nan(x):
+    if np.isnan(x):
+        return 0
+    else:
+        return x
 
 class tickerObject(object):
     """
