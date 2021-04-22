@@ -1,3 +1,4 @@
+from copy import copy
 import numpy as np
 import datetime
 import pandas as pd
@@ -18,11 +19,13 @@ class dataFrameOfRecentTicks(pd.DataFrame):
         except:
             raise Exception("historical ticks should have columns %s" % str(required_columns))
 
-def analyse_tick_data_frame(tick_data: dataFrameOfRecentTicks, qty: int):
+def analyse_tick_data_frame(tick_data: dataFrameOfRecentTicks, qty: int,
+                            forward_fill:bool = False,
+                            replace_qty_nans=False):
     if tick_data is missing_data:
         return missing_data
-    tick = extract_final_row_of_tick_data_frame(tick_data)
-    results = analyse_tick(tick, qty)
+    tick = extract_final_row_of_tick_data_frame(tick_data, forward_fill=forward_fill)
+    results = analyse_tick(tick, qty, replace_qty_nans=replace_qty_nans)
 
     return results
 
@@ -47,9 +50,14 @@ analysisTick = namedtuple(
 empty_tick = oneTick(np.nan, np.nan, np.nan, np.nan)
 
 
-def extract_final_row_of_tick_data_frame(tick_data: pd.DataFrame) -> oneTick:
+def extract_final_row_of_tick_data_frame(tick_data: pd.DataFrame, forward_fill = False) -> oneTick:
     if len(tick_data) == 0:
         return empty_tick
+    if forward_fill:
+        filled_data = tick_data.ffill()
+    else:
+        filled_data = copy(tick_data)
+
     bid_price = tick_data.priceBid[-1]
     ask_price = tick_data.priceAsk[-1]
     bid_size = tick_data.sizeBid[-1]
@@ -59,7 +67,7 @@ def extract_final_row_of_tick_data_frame(tick_data: pd.DataFrame) -> oneTick:
 
 VERY_LARGE_IMBALANCE = 9999
 
-def analyse_tick(tick: oneTick, qty: int) -> analysisTick:
+def analyse_tick(tick: oneTick, qty: int, replace_qty_nans = False) -> analysisTick:
     mid_price = np.mean([tick.ask_price, tick.bid_price])
     spread = tick.ask_price - tick.bid_price
 
@@ -68,15 +76,19 @@ def analyse_tick(tick: oneTick, qty: int) -> analysisTick:
         order = "B"
         side_price = tick.ask_price
         offside_price = tick.bid_price
-        side_qty = _zero_replace_nan(tick.ask_size)
-        offside_qty = _zero_replace_nan(tick.bid_size)
+        side_qty = tick.ask_size
+        offside_qty = tick.bid_size
     else:
         order = "S"
         # Selling, normally at the bid
         side_price = tick.bid_price
         offside_price = tick.ask_price
-        side_qty = _zero_replace_nan(tick.bid_size)
-        offside_qty = _zero_replace_nan(tick.ask_size)
+        side_qty = tick.bid_size
+        offside_qty = tick.ask_size
+
+    if replace_qty_nans:
+        side_qty = _zero_replace_nan(side_qty)
+        offside_qty = _zero_replace_nan(offside_qty)
 
     # Eg if we're buying this would be the bid quantity divided by ask quantity
     # If this number goes significantly above 1 it suggests there is significant buying pressure
@@ -178,7 +190,8 @@ class tickerObject(object):
         return tick
 
     def analyse_for_tick(self, tick: oneTick=arg_not_supplied,
-                         qty: int=arg_not_supplied):
+                         qty: int=arg_not_supplied,
+                         replace_qty_nans=False):
         if qty is arg_not_supplied:
             qty = self.qty
 
@@ -188,9 +201,17 @@ class tickerObject(object):
         if tick is missing_data or qty is arg_not_supplied:
             return missing_data
 
-        results = analyse_tick(tick, qty)
+        results = analyse_tick(tick, qty, replace_qty_nans=replace_qty_nans)
 
         return results
+
+    def wait_for_valid_bid_and_ask_and_analyse_current_tick(
+            self, qty: int = arg_not_supplied, wait_time_seconds: int=10) -> oneTick:
+
+        current_tick = self.wait_for_valid_bid_and_ask_and_return_current_tick(wait_time_seconds=wait_time_seconds)
+        analysis = self.analyse_for_tick(current_tick, qty=qty)
+
+        return analysis
 
     def wait_for_valid_bid_and_ask_and_return_current_tick(
             self, wait_time_seconds: int=10) -> oneTick:

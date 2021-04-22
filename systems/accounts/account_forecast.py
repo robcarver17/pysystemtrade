@@ -58,7 +58,7 @@ class accountForecast(accountCosts):
 
         price = self.get_raw_price(instrument_code)
 
-        daily_returns_volatility = self.get_daily_returns_volatility(
+        daily_price_volatility = self.get_daily_returns_volatility(
             instrument_code
         )
 
@@ -71,7 +71,12 @@ class accountForecast(accountCosts):
 
         # We use percentage returns (as no 'capital') and don't round
         # positions
-        pandl_fcast = 0
+        pandl_fcast = pandl_for_instrument_forecast(forecast,
+                                  price = price,
+                                  daily_price_volatility = daily_returns_volatility,
+                                  target_abs_forecast = target_abs_forecast,
+                                  SR_cost = SR_cost,
+                                  delayfill = delayfill)
 
         return pandl_fcast
 
