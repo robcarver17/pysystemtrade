@@ -73,7 +73,7 @@ class accountForecast(accountCosts):
         # positions
         pandl_fcast = pandl_for_instrument_forecast(forecast,
                                   price = price,
-                                  daily_price_volatility = daily_returns_volatility,
+                                  daily_price_volatility = daily_price_volatility,
                                   target_abs_forecast = target_abs_forecast,
                                   SR_cost = SR_cost,
                                   delayfill = delayfill)

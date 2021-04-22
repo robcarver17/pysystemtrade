@@ -61,7 +61,7 @@ class pandlCalculation(object):
 
         cum_returns = as_pd_series.cumsum()
         resample_freq = from_config_frequency_pandas_resample(frequency)
-        cum_returns_at_frequency = cum_returns.resample(resample_freq, method="last")
+        cum_returns_at_frequency = cum_returns.resample(resample_freq).last()
 
         returns_at_frequency = cum_returns_at_frequency.diff()
 
@@ -322,7 +322,7 @@ class pandlCalculationWithGenericCosts(pandlCalculation):
 
 def _add_gross_and_costs(gross: pd.Series,
                         costs: pd.Series):
-    costs_aligned = costs.reindex(gross.index, method="sum")
+    costs_aligned = costs.reindex(gross.index).sum()
 
     net = gross + costs_aligned
 

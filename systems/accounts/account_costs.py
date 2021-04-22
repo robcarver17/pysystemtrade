@@ -227,7 +227,7 @@ class accountCosts(accountInputs):
     @diagnostic()
     def _get_SR_cost_per_trade_for_instrument_percentage(self, instrument_code: str) -> float:
         raw_costs = self.get_raw_cost_data(instrument_code)
-        value_per_block = self._value_per_block(instrument_code)
+        value_per_block = self._recent_average_value_per_block(instrument_code)
         notional_blocks_traded = 1
 
         cost_in_currency_terms = raw_costs.calculate_cost_instrument_currency(notional_blocks_traded,
@@ -237,7 +237,7 @@ class accountCosts(accountInputs):
         return cost_in_percentage_terms
 
     @diagnostic()
-    def _value_per_block(self, instrument_code: str) -> float:
+    def _recent_average_value_per_block(self, instrument_code: str) -> float:
         block_value = self.get_value_of_block_price_move(instrument_code)
 
         average_price = self._recent_average_price(instrument_code)

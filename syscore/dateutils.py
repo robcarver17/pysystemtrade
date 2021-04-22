@@ -55,7 +55,7 @@ def from_config_frequency_pandas_resample(freq: Frequency) -> str:
                     Frequency.Minutes_15: '15T',
                     Frequency.Minutes_5: '5T',
                     Frequency.Seconds_10: '10S',
-                    Frequency.Seconds: 'S'}
+                    Frequency.Second: 'S'}
     resample_string = LOOKUP_TABLE.get(freq, missing_data)
 
     return resample_string
@@ -69,8 +69,8 @@ def from_frequency_to_times_per_year(freq: Frequency) -> float:
                     Frequency.Day: CALENDAR_DAYS_IN_YEAR,
                     Frequency.Minutes_15: 4*24*BUSINESS_DAYS_IN_YEAR,
                     Frequency.Minutes_5: 12*24*BUSINESS_DAYS_IN_YEAR,
-                    Frequency.Seconds_10: 10*60*24*BUSINESS_DAYS_IN_YEAR,
-                    Frequency.Seconds: 3600*24*BUSINESS_DAYS_IN_YEAR}
+                    Frequency.Seconds_10: 6*60*24*BUSINESS_DAYS_IN_YEAR,
+                    Frequency.Second: 3600*24*BUSINESS_DAYS_IN_YEAR}
     times_per_year = LOOKUP_TABLE.get(freq, missing_data)
 
     return float(times_per_year)
