@@ -260,7 +260,7 @@ def adverse_size_issue(ticker_object: tickerObject,
                        wait_for_valid_tick = False) -> bool:
 
     if wait_for_valid_tick:
-        current_tick_analysis = ticker_object.wait_for_valid_bid_and_ask_and_return_current_tick()
+        current_tick_analysis = ticker_object.wait_for_valid_bid_and_ask_and_analyse_current_tick()
     else:
         current_tick_analysis = ticker_object.current_tick_analysis
 
