@@ -203,14 +203,19 @@ class instrumentCosts(object):
     def value_of_pertrade_commission(self):
         return self._value_of_pertrade_commission
 
-    def calculate_cost_instrument_currency(self, blocks_traded, value_per_block = 0):
-        slippage = self.calculate_slippage_instrument_currency(blocks_traded, value_per_block)
+    def calculate_cost_instrument_currency(self, blocks_traded: float,
+                                           block_price_multiplier: float,
+                                           price: float):
+        value_per_block = price * block_price_multiplier
+        slippage = self.calculate_slippage_instrument_currency(blocks_traded,
+                                                               block_price_multiplier= block_price_multiplier)
 
-        commission = self.calculate_total_commission(blocks_traded, value_per_block)
+        commission = self.calculate_total_commission(blocks_traded,
+                                                     value_per_block = value_per_block)
 
         return slippage + commission
 
-    def calculate_total_commission(self, blocks_traded, value_per_block):
+    def calculate_total_commission(self, blocks_traded: float, value_per_block: float):
         ### YOU WILL NEED TO CHANGE THIS IF YOUR BROKER HAS A MORE COMPLEX STRUCTURE
         per_trade_commission = self.calculate_per_trade_commission()
         per_block_commission = self.calculate_cost_per_block_commission(blocks_traded)
@@ -218,8 +223,9 @@ class instrumentCosts(object):
 
         return max([per_block_commission, per_trade_commission, percentage_commission])
 
-    def calculate_slippage_instrument_currency(self, blocks_traded: int, value_per_block: float) -> float:
-        return blocks_traded * self.price_slippage * value_per_block
+    def calculate_slippage_instrument_currency(self, blocks_traded: float,
+                                               block_price_multiplier: float) -> float:
+        return blocks_traded * self.price_slippage * block_price_multiplier
 
     def calculate_per_trade_commission(self):
         return self.value_of_pertrade_commission

@@ -60,7 +60,9 @@ class _AccountCosts(_AccountInput):
         # Cost in Sharpe Ratio terms
         # First work out costs in percentage terms
         value_per_block = average_price * block_value
-        cost_in_currency_terms = raw_costs.calculate_cost_instrument_currency(1, value_per_block = value_per_block)
+        cost_in_currency_terms = raw_costs.calculate_cost_instrument_currency(1,
+                                                                              price=average_price,
+                                                                              block_price_multiplier=block_value)
         cost_in_percentage_terms = cost_in_currency_terms / value_per_block
 
         daily_vol = self.get_daily_returns_volatility(instrument_code)
