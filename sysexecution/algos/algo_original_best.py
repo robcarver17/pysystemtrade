@@ -19,6 +19,8 @@ from sysexecution.order_stacks.broker_order_stack import orderWithControls
 from sysexecution.orders.broker_orders import market_order_type, limit_order_type
 from sysexecution.orders.contract_orders import contractOrder, best_order_type
 
+from syslogdiag.logger import logger
+
 from sysproduction.data.broker import dataBroker
 
 # Here are the algo parameters
@@ -85,7 +87,7 @@ class algoOriginalBest(Algo):
             )
 
         ticker_object = self.data_broker.get_ticker_object_for_order(cut_down_contract_order)
-        okay_to_do_limit_trade = limit_trade_viable(ticker_object)
+        okay_to_do_limit_trade = limit_trade_viable(ticker_object, log=log)
 
         if okay_to_do_limit_trade:
 
@@ -138,7 +140,7 @@ class algoOriginalBest(Algo):
                 else:
                     # passive limit trade
                     reason_to_switch = reason_to_switch_to_aggressive(
-                        broker_order_with_controls_and_order_id)
+                        broker_order_with_controls_and_order_id, log=log)
                     need_to_switch = required_to_switch_to_aggressive(reason_to_switch)
 
                     if need_to_switch:
@@ -176,10 +178,12 @@ class algoOriginalBest(Algo):
 
 
 
-def limit_trade_viable(ticker_object: tickerObject) -> bool:
+def limit_trade_viable(ticker_object: tickerObject,
+                       log) -> bool:
     # no point doing limit order if we've got imbalanced size issues, as we'd
     # switch to aggressive immediately
-    if adverse_size_issue(ticker_object):
+    if adverse_size_issue(ticker_object, log=log):
+        log.msg("Limit trade not viable")
         return False
 
     # might be other reasons...
@@ -219,13 +223,14 @@ def file_log_report_limit_order(log, is_aggressive: bool,
     log.msg(log_report)
 
 
-def reason_to_switch_to_aggressive(broker_order_with_controls: orderWithControls) -> str:
+def reason_to_switch_to_aggressive(broker_order_with_controls: orderWithControls,
+                                   log: logger) -> str:
     ticker_object = broker_order_with_controls.ticker
 
     too_much_time = (
         broker_order_with_controls.seconds_since_submission() > PASSIVE_TIME_OUT)
     adverse_price = ticker_object.adverse_price_movement_vs_reference()
-    adverse_size = adverse_size_issue(ticker_object)
+    adverse_size = adverse_size_issue(ticker_object, log=log)
 
     if too_much_time:
         return (
@@ -250,19 +255,47 @@ def required_to_switch_to_aggressive(reason):
         return True
 
 
-def adverse_size_issue(ticker_object: tickerObject) -> bool:
-    latest_imbalance_ratio_exceeded = (
-        ticker_object.latest_imbalance_ratio() > IMBALANCE_THRESHOLD
-    )
-    insufficient_size_on_our_preferred_side = (
-        ticker_object.last_tick_analysis.side_qty
-        < abs(ticker_object.qty * IMBALANCE_ADJ_FACTOR)
-    )
+def adverse_size_issue(ticker_object: tickerObject,
+                       log: logger) -> bool:
+    latest_imbalance_ratio_exceeded = \
+        _is_imbalance_ratio_exceeded(ticker_object, log=log)
+    insufficient_size_on_our_preferred_side = \
+        _is_insufficient_size_on_our_preferred_side(ticker_object, log=log)
 
     if latest_imbalance_ratio_exceeded and insufficient_size_on_our_preferred_side:
         return True
     else:
         return False
+
+def _is_imbalance_ratio_exceeded(ticker_object: tickerObject,
+                                 log: logger) -> bool:
+    latest_imbalance_ratio = ticker_object.latest_imbalance_ratio()
+    latest_imbalance_ratio_exceeded = (
+            latest_imbalance_ratio > IMBALANCE_THRESHOLD
+    )
+
+    if latest_imbalance_ratio_exceeded:
+        log.msg("Imbalance ratio %f exceeds threshold %f" % (latest_imbalance_ratio,
+                                                             IMBALANCE_THRESHOLD))
+
+    return latest_imbalance_ratio_exceeded
+
+def _is_insufficient_size_on_our_preferred_side(ticker_object: tickerObject,
+                                                log: logger) -> bool:
+    abs_size_we_wish_to_trade = abs(ticker_object.qty)
+    size_we_require_to_trade_limit = IMBALANCE_ADJ_FACTOR * abs_size_we_wish_to_trade
+    available_size_on_our_preferred_side = abs(ticker_object.last_tick_analysis.side_qty)
+
+    insufficient_size_on_our_preferred_side = (
+            available_size_on_our_preferred_side
+            < size_we_require_to_trade_limit
+    )
+
+    if insufficient_size_on_our_preferred_side:
+        log.msg("We require size of %f (our trade %f * adjustment %f) for a limit order but only %f available" %
+                (size_we_require_to_trade_limit, abs_size_we_wish_to_trade, IMBALANCE_ADJ_FACTOR, available_size_on_our_preferred_side))
+
+    return insufficient_size_on_our_preferred_side
 
 
 def set_aggressive_limit_price(data: dataBlob,
