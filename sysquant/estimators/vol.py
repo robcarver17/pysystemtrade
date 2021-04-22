@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 
 def robust_daily_vol_given_price(price: pd.Series, **kwargs):
-    price = price.reindex("1B").ffill()
+    price = price.resample("1B").ffill()
     daily_returns = price.diff()
 
     vol = robust_vol_calc(daily_returns, **kwargs)

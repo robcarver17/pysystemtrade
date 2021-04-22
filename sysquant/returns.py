@@ -236,8 +236,6 @@ class returnsForOptimisationWithCosts(object):
         for type in ['gross', 'costs']:
             account_curve = getattr(account_curve_group, type).to_frame()
 
-            ## FIXME should this be yet another special type
-            ## FIXME feels like we're going to end up with two account curve type classes
             account_curve = account_curve.resample("1B").sum()
 
             # avoid understating vol

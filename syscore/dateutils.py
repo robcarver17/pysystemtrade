@@ -45,6 +45,35 @@ MONTH_LIST = ["F", "G", "H", "J", "K", "M", "N", "Q", "U", "V", "X", "Z"]
 Frequency = Enum('Frequency', 'Unknown Year Month Week BDay Day Hour Minutes_15 Minutes_5 Minute Seconds_10 Second')
 DAILY_PRICE_FREQ = Frequency.Day
 
+def from_config_frequency_pandas_resample(freq: Frequency) -> str:
+    LOOKUP_TABLE = {Frequency.BDay: 'B',
+                    Frequency.Week: 'W',
+                    Frequency.Month: 'M',
+                    Frequency.Hour: 'H',
+                    Frequency.Year: 'A',
+                    Frequency.Day: 'D',
+                    Frequency.Minutes_15: '15T',
+                    Frequency.Minutes_5: '5T',
+                    Frequency.Seconds_10: '10S',
+                    Frequency.Seconds: 'S'}
+    resample_string = LOOKUP_TABLE.get(freq, missing_data)
+
+    return resample_string
+
+def from_frequency_to_times_per_year(freq: Frequency) -> float:
+    LOOKUP_TABLE = {Frequency.BDay: BUSINESS_DAYS_IN_YEAR,
+                    Frequency.Week: WEEKS_IN_YEAR,
+                    Frequency.Month: MONTHS_IN_YEAR,
+                    Frequency.Hour: 24 * BUSINESS_DAYS_IN_YEAR,
+                    Frequency.Year: 1,
+                    Frequency.Day: CALENDAR_DAYS_IN_YEAR,
+                    Frequency.Minutes_15: 4*24*BUSINESS_DAYS_IN_YEAR,
+                    Frequency.Minutes_5: 12*24*BUSINESS_DAYS_IN_YEAR,
+                    Frequency.Seconds_10: 10*60*24*BUSINESS_DAYS_IN_YEAR,
+                    Frequency.Seconds: 3600*24*BUSINESS_DAYS_IN_YEAR}
+    times_per_year = LOOKUP_TABLE.get(freq, missing_data)
+
+    return float(times_per_year)
 
 def from_config_frequency_to_frequency(freq_as_str:str)-> Frequency:
     LOOKUP_TABLE = {'Y': Frequency.Year,

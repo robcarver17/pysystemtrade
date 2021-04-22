@@ -7,6 +7,8 @@ from sysquant.estimators.vol import robust_daily_vol_given_price
 
 from systems.system_cache import dont_cache, diagnostic, output
 from systems.accounts.account_costs import accountCosts
+from systems.accounts.pandl_calculation import pandlCalculationWithSRCosts
+from systems.accounts.curves.account_curve import accountCurve
 
 class accountForecast(accountCosts):
 
@@ -19,7 +21,7 @@ class accountForecast(accountCosts):
             self, instrument_code: str,
             rule_variation_name: str,
             delayfill: bool=True
-    ):
+    ) -> accountCurve:
         """
         Get the p&l for one instrument and forecast; as % of arbitrary capital
 
@@ -85,17 +87,28 @@ ARBITRARY_FORECAST_DAILY_RISK_TARGET = ARBITRARY_FORECAST_ANNUAL_RISK_TARGET / R
 
 def pandl_for_instrument_forecast(forecast: pd.Series,
                                   price: pd.Series,
-                                  daily_returns_volatility: pd.Series = arg_not_supplied,
-                                  target_abs_forecast: float = 10.0):
+                                  daily_price_volatility: pd.Series = arg_not_supplied,
+                                  target_abs_forecast: float = 10.0,
+                                  SR_cost = 0.0,
+                                  delayfill = True):
 
-    if daily_returns_volatility is arg_not_supplied:
-        daily_returns_volatility = robust_daily_vol_given_price(price)
+    if daily_price_volatility is arg_not_supplied:
+        daily_price_volatility = robust_daily_vol_given_price(price)
 
     notional_position = _get_notional_position_for_forecast(forecast,
-                                                            daily_returns_volatility =daily_returns_volatility,
+                                                            daily_returns_volatility =daily_price_volatility,
                                                             target_abs_forecast = target_abs_forecast)
 
+    pandl_calculator = pandlCalculationWithSRCosts(price,
+                                SR_cost=SR_cost,
+                                positions= notional_position,
+                            daily_price_volatility = daily_price_volatility,
+                 capital = ARBITRARY_FORECAST_CAPITAL,
+                delayfill = delayfill)
 
+    account_curve = accountCurve(pandl_calculator)
+
+    return account_curve
 
 def _get_notional_position_for_forecast(forecast: pd.Series,
                                   daily_returns_volatility: pd.Series = arg_not_supplied,

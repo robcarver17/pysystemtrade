@@ -543,3 +543,10 @@ if __name__ == "__main__":
 
     doctest.testmod()
 
+
+def spread_out_annualised_return_over_periods(data_as_annual):
+    period_intervals_in_days = data_as_annual.index.to_series().diff().dt.days
+    period_intervals_in_year_fractions = period_intervals_in_days / CALENDAR_DAYS_IN_YEAR
+    data_per_period = data_as_annual * period_intervals_in_year_fractions
+
+    return data_per_period
