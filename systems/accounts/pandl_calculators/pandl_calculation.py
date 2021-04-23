@@ -3,11 +3,9 @@ import pandas as pd
 import numpy as np
 
 from syscore.objects import arg_not_supplied
-from syscore.dateutils import ROOT_BDAYS_INYEAR, from_config_frequency_pandas_resample
+from syscore.dateutils import from_config_frequency_pandas_resample
 from syscore.dateutils import Frequency, DAILY_PRICE_FREQ
-from syscore.pdutils import spread_out_annualised_return_over_periods
 from sysexecution.fills import listOfFills ## FEELS LIKE IT SHOULD BE MOVED
-from sysquant.estimators.vol import robust_daily_vol_given_price
 
 
 class pandlCalculation(object):
@@ -18,7 +16,7 @@ class pandlCalculation(object):
                  fx: pd.Series = arg_not_supplied,
                  capital: pd.Series = arg_not_supplied,
                  value_per_point: float = 1.0,
-
+                roundpositions = False,
                 delayfill = False
                  ):
 
@@ -29,6 +27,7 @@ class pandlCalculation(object):
         self._value_per_point = value_per_point
 
         self._delayfill = delayfill
+        self._roundpositions = roundpositions
 
 
     @classmethod
@@ -63,7 +62,10 @@ class pandlCalculation(object):
         resample_freq = from_config_frequency_pandas_resample(frequency)
         cum_returns_at_frequency = cum_returns.resample(resample_freq).last()
 
-        returns_at_frequency = cum_returns_at_frequency.diff()
+        ffill_cum_returns_at_frequency = cum_returns_at_frequency.ffill()
+        returns_at_frequency = ffill_cum_returns_at_frequency.diff()
+
+        returns_at_frequency[cum_returns_at_frequency.isna()] = np.nan
 
         return returns_at_frequency
 
@@ -137,14 +139,24 @@ class pandlCalculation(object):
     @property
     def positions(self) -> pd.Series:
         positions = self._positions
+
         if self.delayfill:
-            return positions.shift(1)
+            positions_to_use = positions.shift(1)
         else:
-            return positions
+            positions_to_use = positions
+
+        if self.roundpositions:
+            positions_to_use = positions_to_use.round()
+
+        return positions_to_use
 
     @property
     def delayfill(self) -> bool:
         return self._delayfill
+
+    @property
+    def roundpositions(self) -> bool:
+        return self._roundpositions
 
     @property
     def value_per_point(self) -> float:
@@ -298,7 +310,6 @@ class pandlCalculationWithGenericCosts(pandlCalculation):
         return net
 
 
-
     def costs_percentage_pandl(self) -> pd.Series:
         costs_in_base = self.costs_pandl_in_base_currency()
         costs = self._percentage_pandl_given_pandl(costs_in_base)
@@ -322,69 +333,14 @@ class pandlCalculationWithGenericCosts(pandlCalculation):
 
 def _add_gross_and_costs(gross: pd.Series,
                         costs: pd.Series):
-    costs_aligned = costs.reindex(gross.index).sum()
+    cumsum_costs = costs.cumsum()
+    cumsum_costs_aligned = cumsum_costs.reindex(gross.index, method="ffill")
+    costs_aligned = cumsum_costs_aligned.diff()
 
     net = gross + costs_aligned
 
     return net
 
-## perhaps we should move the pandl for a forecast stuff inside here new class
 
-class pandlCalculationWithSRCosts(pandlCalculationWithGenericCosts):
-    def __init__(self, *args,
-                 SR_cost: float,
-                 daily_price_volatility: pd.Series = arg_not_supplied,
-                 **kwargs):
-        ## Is SR_cost a negative number?
-        super().__init__(*args, **kwargs)
-        self._SR_cost = SR_cost
-        self._daily_price_volatility = daily_price_volatility
 
-    def costs_pandl_in_points(self) -> pd.Series:
-        SR_cost_as_annualised_figure = self.SR_cost_as_annualised_figure_points()
-
-        position = self.positions
-
-        SR_cost_per_period = calculate_SR_cost_per_period_of_position_data(position,
-                                                                           SR_cost_as_annualised_figure)
-
-        return SR_cost_per_period
-
-    def SR_cost_as_annualised_figure_points(self) -> pd.Series:
-        SR_cost_with_minus_sign = -self.SR_cost
-        annualised_price_vol_points = self.annualised_price_volatility_points()
-
-        return SR_cost_with_minus_sign * annualised_price_vol_points
-
-    def annualised_price_volatility_points(self) -> pd.Series:
-        return self.daily_price_volatility_points * ROOT_BDAYS_INYEAR
-
-    @property
-    def daily_price_volatility_points(self) -> pd.Series:
-        daily_price_volatility = self._daily_price_volatility
-        if daily_price_volatility is arg_not_supplied:
-            daily_price_volatility = robust_daily_vol_given_price(self.price)
-
-        return daily_price_volatility
-
-    @property
-    def SR_cost(self) -> float:
-        return self._SR_cost
-
-def calculate_SR_cost_per_period_of_position_data(position: pd.Series,
-                                                  SR_cost_as_annualised_figure: pd.Series) -> pd.Series:
-    # only want nans at the start
-    position_ffill = position.ffill()
-
-    ## We don't want to lose calculation because of warmup
-    SR_cost_aligned_positions = SR_cost_as_annualised_figure.reindex(position_ffill.index, method="ffill")
-    SR_cost_aligned_positions_backfilled = SR_cost_aligned_positions.bfill()
-
-    # Don't include costs until we start trading
-    SR_cost_aligned_positions_when_position_held = SR_cost_aligned_positions_backfilled[~position_ffill.isna()]
-
-    # These will be annualised figure, make it a small loss every day
-    SR_cost_per_period = spread_out_annualised_return_over_periods(SR_cost_aligned_positions_when_position_held)
-
-    return SR_cost_per_period
 

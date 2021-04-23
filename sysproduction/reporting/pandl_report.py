@@ -1,6 +1,5 @@
 import datetime
 import pandas as pd
-import numpy as np
 import types
 
 from collections import namedtuple
@@ -18,7 +17,7 @@ from sysproduction.data.orders import dataOrders
 from sysproduction.data.positions import diagPositions
 from sysproduction.data.instruments import diagInstruments
 
-from systems.accounts.pandl_calculation import pandlCalculation
+from systems.accounts.pandl_calculators.pandl_calculation import pandlCalculation
 
 # We want a p&l (We could merge this into another kind of report)
 # We want to be able to have it emailed, or run it offline

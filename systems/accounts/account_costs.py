@@ -4,7 +4,7 @@ from syscore.genutils import str2Bool
 from syscore.dateutils import ROOT_BDAYS_INYEAR
 from syscore.pdutils import turnover
 
-from systems.system_cache import  diagnostic
+from systems.system_cache import  diagnostic, input
 
 from systems.accounts.account_inputs import accountInputs
 
@@ -279,3 +279,18 @@ class accountCosts(accountInputs):
         average_vol = float(daily_vol[start_date:].mean())
 
         return average_vol
+
+    @diagnostic()
+    def subsystem_turnover(self, instrument_code: str) -> float:
+        positions = self.get_subsystem_position(instrument_code)
+        average_position_for_turnover = self.get_volatility_scalar(
+            instrument_code
+        )
+
+        subsystem_turnover = turnover(positions, average_position_for_turnover)
+
+        return subsystem_turnover
+
+    @property
+    def use_SR_costs(self) -> float:
+        return str2Bool(self.config.use_SR_costs)

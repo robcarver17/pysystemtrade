@@ -13,6 +13,7 @@ from syscore.dateutils import (
     BUSINESS_DAYS_IN_YEAR,
     time_matches,
     CALENDAR_DAYS_IN_YEAR,
+SECONDS_IN_YEAR,
     NOTIONAL_CLOSING_TIME_AS_PD_OFFSET,
 WEEKS_IN_YEAR,
 MONTHS_IN_YEAR
@@ -44,12 +45,15 @@ def turnover(x, y):
 
     """
 
+    daily_x = x.resample("1B").last()
     if isinstance(y, float) or isinstance(y, int):
-        y = pd.Series(np.full(x.shape[0], float(y)), x.index)
+        daily_y = pd.Series(np.full(daily_x.shape[0], float(y)), daily_x.index)
+    else:
+        daily_y = y.resample("1B").last()
 
-    norm_x = x / y.ffill()
+    norm_x = daily_x / daily_y.ffill()
 
-    avg_daily = float(norm_x.diff().abs().resample("1B").sum().mean())
+    avg_daily = float(norm_x.diff().abs().mean())
 
     return avg_daily * BUSINESS_DAYS_IN_YEAR
 
@@ -545,8 +549,8 @@ if __name__ == "__main__":
 
 
 def spread_out_annualised_return_over_periods(data_as_annual):
-    period_intervals_in_days = data_as_annual.index.to_series().diff().dt.days
-    period_intervals_in_year_fractions = period_intervals_in_days / CALENDAR_DAYS_IN_YEAR
+    period_intervals_in_seconds = data_as_annual.index.to_series().diff().dt.seconds
+    period_intervals_in_year_fractions = period_intervals_in_seconds / SECONDS_IN_YEAR
     data_per_period = data_as_annual * period_intervals_in_year_fractions
 
     return data_per_period
