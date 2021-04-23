@@ -1,6 +1,6 @@
 from systems.accounts.account_forecast import accountForecast
 from systems.accounts.account_subsystem import accountSubsystem
-from systems.accounts.account_portfolio import accountPortfolio
+from systems.accounts.account_instruments import accountInstruments
 
 
 class accountsStage(accountForecast, accountSubsystem, accountInstruments):
