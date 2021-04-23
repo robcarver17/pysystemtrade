@@ -31,6 +31,46 @@ class listOfFills(list):
 
         return df
 
+    @classmethod
+    def from_position_series_and_prices(listOfFills,
+                                        positions: pd.Series,
+                                        price: pd.Series):
+
+        list_of_fills = _list_of_fills_from_position_series_and_prices(positions = positions,
+                                                                       price=price)
+
+        return list_of_fills
+
+
+def _list_of_fills_from_position_series_and_prices(
+                                    positions: pd.Series,
+                                    price: pd.Series) -> listOfFills:
+
+    trades_without_zeros, prices_aligned_to_trades = _get_valid_trades_and_aligned_prices(positions=positions,
+                                                                                          price=price)
+
+    trades_as_list = list(trades_without_zeros.values)
+    prices_as_list = list(prices_aligned_to_trades.values)
+    dates_as_list = list(prices_aligned_to_trades.index)
+
+    list_of_fills_as_list = [Fill(date, qty, price) for date,qty,price in
+                             zip(dates_as_list, trades_as_list, prices_as_list)]
+
+    list_of_fills = listOfFills(list_of_fills_as_list)
+
+    return list_of_fills
+
+def _get_valid_trades_and_aligned_prices(
+                                    positions: pd.Series,
+                                    price: pd.Series) -> tuple:
+    # No delaying done here so we assume positions are already delayed
+    trades = positions.diff()
+    trades_without_na = trades[~trades.isna()]
+    trades_without_zeros = trades_without_na[trades_without_na != 0]
+
+    prices_aligned_to_trades = price.reindex(trades_without_zeros.index, method="ffill")
+
+    return trades_without_zeros, prices_aligned_to_trades
 
 def fill_from_order(order: Order) -> Fill:
     try:

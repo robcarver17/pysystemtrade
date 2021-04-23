@@ -1,14 +1,16 @@
-from systems.system_cache import diagnostic, dont_cache
+from systems.system_cache import diagnostic, output, dont_cache
 from systems.accounts.account_costs import accountCosts
+from systems.accounts.accounts_buffering import accountBuffering
 from systems.accounts.pandl_calculators.pandl_SR_cost import pandlCalculationWithSRCosts
 from systems.accounts.pandl_calculators.pandl_cash_costs import pandlCalculationWithCashCostsAndFills
 from systems.accounts.curves.account_curve import accountCurve
 
-class accountSubsystem(accountCosts):
-
+class accountInstruments(accountCosts, accountBuffering):
     @dont_cache
-    def pandl_for_subsystem(
-        self, instrument_code, delayfill=True, roundpositions=False
+    def pandl_for_instrument(
+        self, instrument_code:str,
+            delayfill: bool=True,
+            roundpositions: bool=True
     ) -> accountCurve:
         """
         Get the p&l for one instrument
@@ -28,50 +30,53 @@ class accountSubsystem(accountCosts):
         >>> from systems.tests.testdata import get_test_object_futures_with_portfolios
         >>> (portfolio, posobject, combobject, capobject, rules, rawdata, data, config)=get_test_object_futures_with_portfolios()
         >>> system=System([portfolio, posobject, combobject, capobject, rules, rawdata, Account()], data, config)
-        >>>
-        >>> system.accounts.pandl_for_subsystem("US10", percentage=True).ann_std()
-        0.23422378634127036
+        >>> system.accounts.pandl_for_instrument("US10").ann_std()
+        0.13908407620762306
         """
 
         self.log.msg(
-            "Calculating pandl for subsystem for instrument %s" %
-            instrument_code, instrument_code=instrument_code, )
+            "Calculating pandl for instrument for %s" % instrument_code,
+            instrument_code=instrument_code,
+        )
 
-        use_SR_cost = self.use_SR_costs
-
-        if use_SR_cost:
-            pandl = self._pandl_for_subsystem_with_SR_costs(instrument_code,
-                                                        delayfill=delayfill,
-                                                        roundpositions=roundpositions)
+        use_SR_costs = self.use_SR_costs
+        if use_SR_costs:
+            instrument_pandl = self._pandl_for_instrument_with_SR_costs(instrument_code,
+                                                                        roundpositions=roundpositions,
+                                                                        delayfill=delayfill)
         else:
-            pandl = self._pandl_for_subsystem_with_cash_costs(instrument_code,
-                                                        delayfill=delayfill,
-                                                        roundpositions=roundpositions)
+            instrument_pandl = self._pandl_for_instrument_with_cash_costs(instrument_code,
+                                                                          roundpositions=roundpositions,
+                                                                          delayfill=delayfill)
 
-        return pandl
+        return instrument_pandl
 
     @diagnostic(not_pickable=True)
-    def _pandl_for_subsystem_with_SR_costs(
-            self, instrument_code, delayfill=True, roundpositions=False
+    def _pandl_for_instrument_with_SR_costs(
+            self, instrument_code: str,
+            delayfill: bool = True,
+            roundpositions: bool = True
     ) -> accountCurve:
 
         price = self.get_daily_price(instrument_code)
-        positions = self.get_subsystem_position(instrument_code)
-
+        positions = self.get_buffered_position(
+            instrument_code, roundpositions=roundpositions
+        )
         fx = self.get_fx_rate(instrument_code)
-
         value_of_price_point = self.get_value_of_block_price_move(instrument_code)
         daily_returns_volatility = self.get_daily_returns_volatility(
             instrument_code
         )
 
-        average_position = self.get_volatility_scalar(instrument_code)
+        capital = self.get_notional_capital()
 
         SR_cost_per_trade = self.get_SR_cost_per_trade_for_instrument(instrument_code)
-        subsystem_turnover = self.subsystem_turnover(instrument_code)
-        annualised_SR_cost = SR_cost_per_trade * subsystem_turnover
+        instrument_turnover = self.instrument_turnover(
+                instrument_code, roundpositions=roundpositions
+            )
+        annualised_SR_cost = SR_cost_per_trade * instrument_turnover
 
-        capital = self.get_notional_capital()
+        average_position = self.get_average_position_for_instrument_at_portfolio_level(instrument_code)
 
         pandl_calculator = pandlCalculationWithSRCosts(price,
                                                        SR_cost=annualised_SR_cost,
@@ -84,23 +89,27 @@ class accountSubsystem(accountCosts):
                                                        fx=fx,
                                                        roundpositions=roundpositions)
 
-        account_curve = accountCurve(pandl_calculator)
+        account_curve = accountCurve(pandl_calculator, weighted=True)
 
         return account_curve
 
     @diagnostic(not_pickable=True)
-    def _pandl_for_subsystem_with_cash_costs(
-            self, instrument_code, delayfill=True, roundpositions=True
+    def _pandl_for_instrument_with_cash_costs(
+            self, instrument_code: str,
+            delayfill: bool = True,
+            roundpositions: bool = True
     ) -> accountCurve:
+
         if not roundpositions:
             self.log.warn("Using roundpositions=False with cash costs may lead to inaccurate costs (fixed costs, eg commissions will be overstated!!!")
 
         raw_costs = self.get_raw_cost_data(instrument_code)
+
         price = self.get_daily_price(instrument_code)
-        positions = self.get_subsystem_position(instrument_code)
-
+        positions = self.get_buffered_position(
+            instrument_code, roundpositions=roundpositions
+        )
         fx = self.get_fx_rate(instrument_code)
-
         value_of_price_point = self.get_value_of_block_price_move(instrument_code)
 
         capital = self.get_notional_capital()
@@ -114,6 +123,6 @@ class accountSubsystem(accountCosts):
                                                        fx=fx,
                                                        roundpositions=roundpositions)
 
-        account_curve = accountCurve(pandl_calculator)
+        account_curve = accountCurve(pandl_calculator, weighted=True)
 
         return account_curve

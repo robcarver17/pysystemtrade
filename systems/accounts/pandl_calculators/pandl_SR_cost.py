@@ -4,18 +4,20 @@ from syscore.dateutils import ROOT_BDAYS_INYEAR
 from syscore.objects import arg_not_supplied
 from syscore.pdutils import spread_out_annualised_return_over_periods
 from sysquant.estimators.vol import robust_daily_vol_given_price
-from systems.accounts.pandl_calculators.pandl_calculation import pandlCalculationWithGenericCosts
+from systems.accounts.pandl_calculators.pandl_generic_costs import pandlCalculationWithGenericCosts
 
 
 class pandlCalculationWithSRCosts(pandlCalculationWithGenericCosts):
     def __init__(self, *args,
                  SR_cost: float,
+                 average_position: pd.Series,
                  daily_returns_volatility: pd.Series = arg_not_supplied,
                  **kwargs):
         ## Is SR_cost a negative number?
         super().__init__(*args, **kwargs)
         self._SR_cost = SR_cost
         self._daily_returns_volatility = daily_returns_volatility
+        self._average_position = average_position
 
     def costs_pandl_in_points(self) -> pd.Series:
         SR_cost_as_annualised_figure = self.SR_cost_as_annualised_figure_points()
@@ -33,9 +35,17 @@ class pandlCalculationWithSRCosts(pandlCalculationWithGenericCosts):
 
     def SR_cost_as_annualised_figure_points(self) -> pd.Series:
         SR_cost_with_minus_sign = -self.SR_cost
+        annualised_price_vol_points_for_an_average_position = self.points_vol_of_an_average_position()
+
+        return SR_cost_with_minus_sign * annualised_price_vol_points_for_an_average_position
+
+    def points_vol_of_an_average_position(self) -> pd.Series:
+        average_position = self.average_position
         annualised_price_vol_points = self.annualised_price_volatility_points()
 
-        return SR_cost_with_minus_sign * annualised_price_vol_points
+        average_position_aligned_to_vol = average_position.reindex(annualised_price_vol_points.index, method="ffill")
+
+        return average_position_aligned_to_vol * annualised_price_vol_points
 
     def annualised_price_volatility_points(self) -> pd.Series:
         return self.daily_price_volatility_points * ROOT_BDAYS_INYEAR
@@ -52,6 +62,9 @@ class pandlCalculationWithSRCosts(pandlCalculationWithGenericCosts):
     def SR_cost(self) -> float:
         return self._SR_cost
 
+    @property
+    def average_position(self) -> pd.Series:
+        return self._average_position
 
 def calculate_SR_cost_per_period_of_position_data_match_price_index(position: pd.Series,
                                                   price: pd.Series,

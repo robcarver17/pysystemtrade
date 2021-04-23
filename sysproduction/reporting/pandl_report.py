@@ -17,7 +17,7 @@ from sysproduction.data.orders import dataOrders
 from sysproduction.data.positions import diagPositions
 from sysproduction.data.instruments import diagInstruments
 
-from systems.accounts.pandl_calculators.pandl_calculation import pandlCalculation
+from systems.accounts.pandl_calculators.pandl_using_fills import pandlCalculationWithFills
 
 # We want a p&l (We could merge this into another kind of report)
 # We want to be able to have it emailed, or run it offline
@@ -443,7 +443,7 @@ def get_perc_pandl_series_for_contract(data, instrument_code, contract_id):
         data, instrument_code, contract_id)
     fills = get_fills_for_contract(data, instrument_code, contract_id)
 
-    calculator = pandlCalculation.using_positions_and_prices_merged_from_fills(prices,
+    calculator = pandlCalculationWithFills.using_positions_and_prices_merged_from_fills(prices,
                     positions=positions,
                     fills=fills,
                      fx=fx,
@@ -474,7 +474,7 @@ def get_perc_pandl_series_for_strategy_vs_total_capital(
     fills = get_fills_for_instrument(data, instrument_code=instrument_code,
                                      strategy_name=strategy_name)
 
-    calculator = pandlCalculation.using_positions_and_prices_merged_from_fills(prices,
+    calculator = pandlCalculationWithFills.using_positions_and_prices_merged_from_fills(prices,
                     positions=positions,
                     fills=fills,
                      fx=fx,

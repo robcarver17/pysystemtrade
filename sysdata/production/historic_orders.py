@@ -14,13 +14,12 @@ Use to analyse execution and also construct strategy/contract level p&l
 Doesn't have to reconcile with positions!
 
 """
-from copy import copy
 import datetime
 
 from syscore.objects import arg_not_supplied, missing_order
 
 from sysdata.base_data import baseData
-from sysexecution.fills import listOfFills, fill_from_order
+from sysobjects.fills import listOfFills, fill_from_order
 from sysexecution.orders.base_orders import Order
 from sysexecution.orders.broker_orders import single_fill_from_broker_order
 from sysexecution.order_stacks.order_stack import missingOrder

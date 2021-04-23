@@ -10,11 +10,11 @@ from sysexecution.orders.base_orders import (
 )
 from sysexecution.orders.base_orders import Order
 from sysexecution.trade_qty import tradeQuantity
-from sysexecution.fills import  fill_from_order, Fill
+from sysobjects.fills import  fill_from_order, Fill
 from sysexecution.orders.contract_orders import contractOrder, from_contract_order_args_to_resolved_args
 from sysexecution.orders.instrument_orders import instrumentOrder
 
-from sysobjects.production.tradeable_object import  instrumentStrategy, futuresContract, futuresContractStrategy
+from sysobjects.production.tradeable_object import  instrumentStrategy, futuresContract
 
 from syscore.genutils import none_to_object, object_to_none
 from syscore.objects import fill_exceeds_trade, success

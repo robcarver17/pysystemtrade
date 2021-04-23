@@ -82,8 +82,11 @@ def apply_buffer_single_period(
 
 
 def apply_buffer(
-    optimal_position, pos_buffers, trade_to_edge=False, roundpositions=False
-):
+    optimal_position: pd.Series,
+        pos_buffers: pd.DataFrame,
+        trade_to_edge: bool=False,
+        roundpositions: bool=False
+) -> pd.Series:
     """
     Apply a buffer to a position
 
@@ -130,7 +133,7 @@ def apply_buffer(
             float(use_optimal_position.values[idx]),
             float(top_pos.values[idx]),
             float(bot_pos.values[idx]),
-            trade_to_edge,
+            trade_to_edge=trade_to_edge,
         )
         buffered_position_list.append(current_position)
 

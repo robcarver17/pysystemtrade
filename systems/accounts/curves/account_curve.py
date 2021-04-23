@@ -5,13 +5,16 @@ from scipy.stats import skew,  ttest_1samp
 from syscore.dateutils import Frequency, from_frequency_to_times_per_year
 from syscore.pdutils import drawdown
 
-from systems.accounts.pandl_calculators.pandl_calculation import pandlCalculationWithGenericCosts, GROSS_CURVE, NET_CURVE, COSTS_CURVE
+from systems.accounts.pandl_calculators.pandl_generic_costs import GROSS_CURVE, NET_CURVE, COSTS_CURVE, \
+    pandlCalculationWithGenericCosts
+
 
 class accountCurve(pd.Series):
     def __init__(self, pandl_calculator_with_costs: pandlCalculationWithGenericCosts,
                  frequency: Frequency = Frequency.BDay,
                  curve_type: str = NET_CURVE,
-                is_percentage: bool = False
+                is_percentage: bool = False,
+                 weighted = False
                  ):
 
         as_pd_series = pandl_calculator_with_costs.as_pd_series_for_frequency( percent = is_percentage,
@@ -25,16 +28,13 @@ class accountCurve(pd.Series):
         self._frequency = frequency ## frequency type
         self._curve_type = curve_type
         self._is_percentage = is_percentage
-
+        self._weighted = weighted
 
     def __repr__(self):
-        """
-        if self.weighted_flag:
+        if self.weighted:
             weight_comment = "Weighted"
         else:
             weight_comment = "Unweighted"
-        """
-        weight_comment = ""
 
         return (
             super().__repr__() +
@@ -136,6 +136,10 @@ class accountCurve(pd.Series):
     @property
     def is_percentage(self) -> bool:
         return self._is_percentage
+
+    @property
+    def weighted(self)-> bool:
+        return self._weighted
 
     def curve(self):
         return self.cumsum().ffill()
@@ -305,3 +309,4 @@ class accountCurve(pd.Series):
         )
 
         return [build_stats, comment1]
+
