@@ -49,8 +49,8 @@ class TestExamples:
         account.curve()
         account2.curve()
 
-        print(account.percent().stats())
-        print(account2.percent().stats())
+        print(account.percent.stats())
+        print(account2.percent.stats())
 
     @pytest.mark.slow  # will be skipped unless run with 'pytest --runslow'
     def test_simple_system(self):
