@@ -1,6 +1,7 @@
 from sysdata.sim.csv_futures_sim_data import csvFuturesSimData
 from sysquant.estimators.vol import robust_vol_calc
 from systems.accounts.curves.account_curve import accountCurve
+from systems.accounts.account_forecast import pandl_for_instrument_forecast
 from systems.provided.example.rules import ewmac_forecast_with_defaults as ewmac
 from systems.forecasting import Rules
 from systems.basesystem import System
@@ -42,8 +43,8 @@ class TestExamples:
         ewmac.columns = ["forecast"]
         print(ewmac.tail(5))
 
-        account = accountCurve(price, forecast=ewmac)
-        account2 = accountCurve(price, forecast=ewmac2)
+        account = pandl_for_instrument_forecast(price=price, forecast=ewmac)
+        account2 = pandl_for_instrument_forecast(price=price, forecast=ewmac2)
 
         account.curve()
         account2.curve()
