@@ -153,7 +153,7 @@ def get_daily_perc_pandl(data):
 
     perc_pandl_series = daily_pandl_series / all_capital
 
-    return perc_pandl_series
+    return perc_pandl_series * 100
 
 
 def get_total_capital_pandl(data, start_date, end_date=arg_not_supplied):
@@ -298,7 +298,7 @@ def get_period_perc_pandl_for_sector_in_date_range(
     ]
     asset_class_pandl = sum(instrument_pandl)
 
-    return asset_class_pandl 
+    return asset_class_pandl
 
 
 def get_period_perc_pandl_for_instrument_all_strategies_in_date_range(
