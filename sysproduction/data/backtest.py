@@ -9,7 +9,7 @@ from sysdata.config.production_config import get_production_config
 
 
 from syscore.objects import arg_not_supplied, resolve_function, success, failure
-from syscore.genutils import print_menu_of_values_and_get_response
+from syscore.interactive import print_menu_of_values_and_get_response
 from sysdata.data_blob import dataBlob
 from sysobjects.production.backtest_storage import interactiveBacktest
 from sysproduction.data.generic_production_data import productionDataLayerGeneric

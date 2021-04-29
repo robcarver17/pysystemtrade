@@ -7,11 +7,10 @@ Rob Carver
 [https://qoppac.blogspot.com/p/pysystemtrade.html](https://qoppac.blogspot.com/p/pysystemtrade.html)
 
 
-Version 0.85.0
+Version 0.90.0
  
-**WARNING! FROM VERSION 0.80 TO 0.85.0 IS A MAJOR UPGRADE. SEE [pandas_upgrade](pandas_upgrade.md) BEFORE DOING ANYTHING!
 
-20210305
+20210429
 
 
 
@@ -61,9 +60,12 @@ This package isn't hosted on pip. So to get the code the easiest way is to use g
 
 ```
 git clone https://github.com/robcarver17/pysystemtrade.git
+#
+# then one of:
+#
 python3 setup.py install # normal
 python3 setup.py develop # required if using ipython so sessions can see files inside subdirectories which would otherwise be inaccessible.
-
+python3 setup.py install --user # avoids use of sudo
 ```
 
 
@@ -95,6 +97,6 @@ A series of examples using pysystemtrade for my blog posts can be found [here](h
 GNU v3
 ( See [LICENSE](LICENSE) )
 
-Absolutely no warranty is implied with this product. Use at your own risk. I provide no guarantee that it will be profitable, or that it won't lose all your money very quickly, or delete every file on your computer (by the way: it's not *supposed* to do that. Just in case you thought it was.). All financial trading offers the possibility of loss. Leveraged trading, such as futures trading, may result in you losing all your money, and still owing more. Backtested results are no guarantee of future performance. I can take no responsibility for any losses caused by live trading using pysystemtrade. Use at your own risk. I am not registered or authorised by any financial regulator. 
+Absolutely no warranty is implied with this product. Use at your own risk. I provide no guarantee that it will be profitable, or that it won't lose all your money very quickly, or delete every file on your computer (by the way: it's not *supposed* to do that. Just in case you thought it was). All financial trading offers the possibility of loss. Leveraged trading, such as futures trading, may result in you losing all your money, and still owing more. Backtested results are no guarantee of future performance. I can take no responsibility for any losses caused by live trading using pysystemtrade. Use at your own risk. I am not registered or authorised by any financial regulator. 
 
 

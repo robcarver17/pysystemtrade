@@ -1,7 +1,7 @@
 
 from syscore.objects import success, failure, arg_not_supplied, missing_data
 from syscore.dateutils import get_datetime_input
-from syscore.genutils import get_and_convert, print_menu_and_get_response
+from syscore.interactive import get_and_convert, print_menu_and_get_response
 
 from sysdata.data_blob import dataBlob
 from sysproduction.data.capital import dataCapital

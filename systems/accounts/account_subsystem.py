@@ -3,9 +3,34 @@ from systems.accounts.account_costs import accountCosts
 from systems.accounts.pandl_calculators.pandl_SR_cost import pandlCalculationWithSRCosts
 from systems.accounts.pandl_calculators.pandl_cash_costs import pandlCalculationWithCashCostsAndFills
 from systems.accounts.curves.account_curve import accountCurve
+from systems.accounts.curves.account_curve_group import accountCurveGroup
+from systems.accounts.curves.dict_of_account_curves import dictOfAccountCurves
 
 class accountSubsystem(accountCosts):
+    @diagnostic(not_pickable=True)
+    def pandl_across_subsystems(self,  delayfill=True, roundpositions=False
+    ) -> accountCurveGroup:
 
+        dict_of_pandl_across_subsystems = dict([
+            (instrument_code,
+             self.pandl_for_subsystem(instrument_code,
+                                      delayfill=delayfill,
+                                      roundpositions=roundpositions))
+
+            for instrument_code in self.get_instrument_list()
+        ])
+
+        dict_of_pandl_across_subsystems = dictOfAccountCurves(dict_of_pandl_across_subsystems)
+
+        capital = self.get_notional_capital()
+
+        pandl_across_subsystems = accountCurveGroup(dict_of_pandl_across_subsystems,
+                          capital = capital,
+                          weighted = False)
+
+        return pandl_across_subsystems
+
+    #dont cache switch statement
     @dont_cache
     def pandl_for_subsystem(
         self, instrument_code, delayfill=True, roundpositions=False

@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 
 from syscore.objects import missing_data, arg_not_supplied
-from systems.accounts.pandl_calculators.pandl_calculation import pandlCalculation
+from systems.accounts.pandl_calculators.pandl_calculation import pandlCalculation, apply_weighting
 
 from sysobjects.fills import listOfFills
 
@@ -13,6 +13,20 @@ class pandlCalculationWithFills(pandlCalculation):
         # if fills aren't supplied, can be inferred from positions
         super().__init__(*args, **kwargs)
         self._fills = fills
+
+    def weight(self, weight: pd.Series):
+        ## we don't weight fills, instead will be inferred from positions
+        weighted_capital = apply_weighting(weight, self.capital)
+        weighted_positions = apply_weighting(weight, self.positions)
+
+        return pandlCalculationWithFills(self.price,
+                 positions = weighted_positions,
+                 fx = self.fx,
+                 capital = weighted_capital,
+                 value_per_point = self.value_per_point,
+                roundpositions = self.roundpositions,
+                delayfill = self.delayfill)
+
 
     @classmethod
     def using_positions_and_prices_merged_from_fills(pandlCalculation, price: pd.Series,

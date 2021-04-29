@@ -110,7 +110,6 @@ Let's run it and look at the output
 instrument_code='EDOLLAR'
 price=data.daily_prices(instrument_code)
 ewmac=calc_ewmac_forecast(price, 32, 128)
-ewmac.columns=['forecast']
 ewmac.tail(5)
 
 from matplotlib.pyplot import show
@@ -130,8 +129,8 @@ Freq: B, dtype: float64
 Did we make any money?
 
 ```python
-from syscore.accounting import accountCurve
-account = accountCurve(price, forecast=ewmac)
+from systems.accounts.account_forecast import pandl_for_instrument_forecast
+account = pandl_for_instrument_forecast(forecast = ewmac, price=price)
 account.percent().stats()
 ```
 
@@ -166,8 +165,8 @@ Looks like we did make a few bucks. `account`, by the way inherits from a pandas
 ```python
 account.sharpe() ## get the Sharpe Ratio (annualised), and any other statistic which is in the stats list
 account.curve().plot() ## plot the cumulative account curve (equivalent to account.cumsum().plot() inicidentally)
-account.percent() ## gives a % curve
-account.percent().drawdown().plot() ## see the drawdowns as a percentage
+account.percent ## gives a % curve
+account.percent.drawdown().plot() ## see the drawdowns as a percentage
 account.weekly ## weekly returns (also daily [default], monthly, annual)
 account.gross.ann_mean() ## annual mean for gross returns, also costs (there are none in this simple example)
 ```
@@ -434,7 +433,7 @@ Alternatively you can estimate div. multipliers, and weights.
 Note: Since we need to know the performance of different trading rules, we need to include an Accounts stage to calculate these:
 
 ```python
-from systems.account import Account
+from systems.accounts.accounts_stage import Account
 
 my_account = Account()
 
@@ -592,11 +591,11 @@ Freq: B, dtype: float64
 Although this is fine and dandy, we're probably going to be curious about whether this made money or not. So we'll need to add just one more stage, to count our virtual profits:
 
 ```python
-from systems.account import Account
+from systems.accounts.accounts_stage import Account
 accounts=Account()
 my_system=System([ fcs, empty_rules, combiner, possizer, portfolio, accounts], data, my_config)
 profits=my_system.accounts.portfolio()
-profits.percent().stats()
+profits.percent.stats()
 ```
 
 ```
@@ -609,8 +608,8 @@ Once again we have the now familiar accounting object. Some results have been re
 These are profits net of tax. You can see the gross profits and costs:
 
 ```python
-profits.gross.percent().stats() ## all other things work eg profits.gross.sharpe()
-profits.costs.percent().stats()
+profits.gross.percent.stats() ## all other things work eg profits.gross.sharpe()
+profits.costs.percent.stats()
 ```
 
 For more see the costs and accountCurve section of the userguide.

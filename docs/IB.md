@@ -15,40 +15,35 @@ Related documents:
 
 *IMPORTANT: Make sure you know what you are doing. All financial trading offers the possibility of loss. Leveraged trading, such as futures trading, may result in you losing all your money, and still owing more. Backtested results are no guarantee of future performance. No warranty is offered or implied for this software. I can take no responsibility for any losses caused by live trading using pysystemtrade. Use at your own risk.*
 
+
 Table of Contents
 =================
 
-   * [Preliminaries](#preliminaries)
-      * [Getting started with interactive brokers](#getting-started-with-interactive-brokers)
-         * [Gateway / TWS](#gateway--tws)
-         * [IB-insync library](#ib-insync-library)
-         * [IB Controller](#ib-controller)
-      * [Launching and configuring the Gateway](#launching-and-configuring-the-gateway)
-      * [Making a connection](#making-a-connection)
-   * [Reference](#reference)
-      * [Classes and object references](#classes-and-object-references)
-      * [Data source objects](#data-source-objects)
-         * [FX Data](#fx-data)
-         * [Futures price data](#futures-price-data)
-         * [Capital data](#capital-data)
-         * [Contracts data](#contracts-data)
-         * [Instruments data](#instruments-data)
-         * [Orders data](#orders-data)
-         * [Position data](#position-data)
-      * [Client objects](#client-objects)
-         * [ibClient (base client object)](#ibclient-base-client-object)
-         * [ibAccountingClient(ibClient)](#ibaccountingclientibclient)
-         * [ibPositionsClient(ibClient)](#ibpositionsclientibclient)
-         * [ibContractsClient(ibClient)](#ibcontractsclientibclient)
-         * [ibOrdersClient(ibContractsClient)](#ibordersclientibcontractsclient)
-         * [ibPriceClient(ibContractsClient)](#ibpriceclientibcontractsclient)
-         * [ibFxClient(ibPriceClient)](#ibfxclientibpriceclient)
-      * [Connection objects](#connection-objects)
-         * [Creating and closing connection objects](#creating-and-closing-connection-objects)
-         * [Using connections](#using-connections)
-         * [Make multiple connections](#make-multiple-connections)
+* [Preliminaries](#preliminaries)
+   * [Getting started with interactive brokers](#getting-started-with-interactive-brokers)
+      * [Gateway / TWS](#gateway--tws)
+      * [IB-insync library](#ib-insync-library)
+      * [IB Controller](#ib-controller)
+   * [Launching and configuring the Gateway](#launching-and-configuring-the-gateway)
+   * [Making a connection](#making-a-connection)
+* [Reference](#reference)
+   * [Classes and object references](#classes-and-object-references)
+   * [Data source objects](#data-source-objects)
+      * [FX Data](#fx-data)
+      * [Futures price data](#futures-price-data)
+      * [Capital data](#capital-data)
+      * [Contracts data](#contracts-data)
+      * [Instruments data](#instruments-data)
+      * [Orders data](#orders-data)
+      * [Position data](#position-data)
+   * [Client objects](#client-objects)
+   * [Connection objects](#connection-objects)
+      * [Creating and closing connection objects](#creating-and-closing-connection-objects)
+      * [Using connections](#using-connections)
+      * [Make multiple connections](#make-multiple-connections)
 
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
+
 
 # Preliminaries
 

@@ -16,14 +16,14 @@ from systems.forecast_scale_cap import ForecastScaleCap
 from systems.futures.rawdata import FuturesRawData
 from systems.positionsizing import PositionSizing
 from systems.portfolio import Portfolios
-from systems.account import Account
+from systems.accounts.accounts_stage import Account
 
 
 def futures_system(
         data=None,
         config=None,
         trading_rules=arg_not_supplied,
-        log_level="terse"):
+        log_level="on"):
     """
 
     :param data: data object (defaults to reading from csv files)

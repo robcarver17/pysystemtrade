@@ -112,7 +112,7 @@ print(my_system.combForecast.get_forecast_weights("EDOLLAR").tail(5))
 print(my_system.combForecast.get_forecast_diversification_multiplier("EDOLLAR").tail(5))
 
 # estimates:
-from systems.account import Account
+from systems.accounts.accounts_stage import Account
 
 my_account = Account()
 combiner = ForecastCombine()

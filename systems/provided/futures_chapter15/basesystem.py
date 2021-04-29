@@ -16,7 +16,7 @@ from systems.forecast_scale_cap import ForecastScaleCap
 from systems.futures.rawdata import FuturesRawData
 from systems.positionsizing import PositionSizing
 from systems.portfolio import Portfolios
-from systems.account import Account
+from systems.accounts.accounts_stage import Account
 
 
 def futures_system(data=arg_not_supplied,

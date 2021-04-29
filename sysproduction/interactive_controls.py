@@ -1,10 +1,6 @@
 import numpy as np
 
-from syscore.genutils import (
-    run_interactive_menu,
-    get_and_convert,
-    print_menu_and_get_response,
-)
+from syscore.interactive import get_and_convert, run_interactive_menu, print_menu_and_get_response
 from sysobjects.production.override import override_dict, Override
 from sysobjects.production.tradeable_object import instrumentStrategy
 

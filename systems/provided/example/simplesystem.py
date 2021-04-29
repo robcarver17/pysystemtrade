@@ -7,7 +7,7 @@ from systems.forecast_combine import ForecastCombine
 from systems.forecast_scale_cap import ForecastScaleCap
 from systems.positionsizing import PositionSizing
 from systems.portfolio import Portfolios
-from systems.account import Account
+from systems.accounts.accounts_stage import Account
 
 
 def simplesystem(data=None, config=None, log_level="on"):

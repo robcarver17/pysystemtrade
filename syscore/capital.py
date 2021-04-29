@@ -9,14 +9,14 @@ import numpy as np
 
 
 def fixed_capital(system, **ignored_args):
-    multiplier = copy(system.accounts.portfolio().percent())
+    multiplier = copy(system.accounts.portfolio().percent)
     multiplier[:] = 1.0
 
     return multiplier
 
 
 def full_compounding(system, **ignored_args):
-    pandl = system.accounts.portfolio().percent()
+    pandl = system.accounts.portfolio().percent
     multiplier = 1.0 + (pandl / 100.0)
     multiplier = multiplier.cumprod().ffill()
 
@@ -24,7 +24,7 @@ def full_compounding(system, **ignored_args):
 
 
 def half_compounding(system, **ignored_args):
-    pandl = system.accounts.portfolio().percent().curve().ffill().diff()
+    pandl = system.accounts.portfolio().percent.curve().ffill().diff()
     multiplier = 1.0
     multiplier_list = []
     for daily_return in pandl:

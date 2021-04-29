@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-from syscore.accounting import accountCurveGroup
+from systems.accounts.curves.account_curve_group import accountCurveGroup
 from syscore.genutils import flatten_list
 from syscore.dateutils import ROOT_BDAYS_INYEAR
 

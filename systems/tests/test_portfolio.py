@@ -4,7 +4,7 @@ import unittest
 from systems.tests.testdata import get_test_object_futures_with_pos_sizing
 from systems.basesystem import System
 from systems.portfolio import Portfolios
-from systems.account import Account
+from systems.accounts.accounts_stage import Account
 
 
 class Test(unittest.TestCase):

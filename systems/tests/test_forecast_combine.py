@@ -1,7 +1,7 @@
 import copy
 import unittest
 
-from systems.account import Account
+from systems.accounts.accounts_stage import Account
 from systems.basesystem import System
 from systems.tests.testdata import get_test_object_futures_with_rules_and_capping
 

@@ -1,5 +1,7 @@
 from sysobjects.instruments import instrumentCosts
 
+from syscore.pdutils import from_scalar_values_to_ts
+
 import pandas as pd
 from systems.stage import SystemStage
 from systems.system_cache import diagnostic
@@ -192,8 +194,48 @@ class accountInputs(SystemStage):
 
         return self.parent.portfolio.get_instrument_weights()
 
+    def get_instrument_list(self) -> list:
+        return self.parent.get_instrument_list()
 
     @property
     def config(self):
         return self.parent.config
 
+    def instrument_diversification_multiplier(self) -> pd.Series:
+        return self.parent.portfolio.get_instrument_diversification_multiplier()
+
+    def forecast_diversification_multiplier(self, instrument_code: str) -> pd.Series:
+        return self.parent.combForecast.get_forecast_diversification_multiplier(instrument_code)
+
+    def specific_instrument_weight(self, instrument_code: str) -> pd.Series:
+        instrument_weights = self.instrument_weights()
+
+        return instrument_weights[instrument_code]
+
+    def instrument_weights(self) -> pd.DataFrame:
+        return self.parent.portfolio.get_instrument_weights()
+
+    def forecast_weight(self, instrument_code:str, rule_variation_name:str) -> pd.Series:
+        forecast_weights_for_instrument = self.forecast_weights_for_instrument(instrument_code)
+        if rule_variation_name not in forecast_weights_for_instrument.columns:
+            price_series = self.get_raw_price(instrument_code)
+            zero_weights = from_scalar_values_to_ts(0.0, price_series.index)
+
+            return zero_weights
+        else:
+            return forecast_weights_for_instrument[rule_variation_name]
+
+    def forecast_weights_for_instrument(self, instrument_code: str) -> pd.DataFrame:
+        return self.parent.combForecast.get_forecast_weights(instrument_code)
+
+    def list_of_rules_for_code(self, instrument_code: str) -> list:
+        return self.parent.combForecast.get_trading_rule_list(instrument_code)
+
+    def list_of_trading_rules(self) -> list:
+        return self.parent.rules.trading_rules()
+
+    def get_actual_position(self, instrument_code: str) -> pd.Series:
+        return self.parent.portfolio.get_actual_position(instrument_code)
+
+    def get_actual_buffers_for_position(self, instrument_code: str) -> pd.DataFrame:
+        return self.parent.portfolio.get_actual_buffers_for_position(instrument_code)

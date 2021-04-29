@@ -1,7 +1,12 @@
 # Release notes
 
+## Version 0.90
+
+Completely refactored accounting code.
+Completely refactored optimisation code.
 Moved 'quant' type functions to sysquant: robust_vol_calc - you may get error messages - update your config 
 Renamed certain functions in systems.rawdata (used by 'fancier' trading rules) - update your config
+
 
 ## Version 0.85
 **WARNING! FROM VERSION 0.85.0 IS A MAJOR UPGRADE. SEE [pandas_upgrade](pandas_upgrade.md) BEFORE DOING ANYTHING!

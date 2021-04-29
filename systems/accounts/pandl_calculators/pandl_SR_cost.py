@@ -5,7 +5,7 @@ from syscore.objects import arg_not_supplied
 from syscore.pdutils import spread_out_annualised_return_over_periods
 from sysquant.estimators.vol import robust_daily_vol_given_price
 from systems.accounts.pandl_calculators.pandl_generic_costs import pandlCalculationWithGenericCosts
-
+from systems.accounts.pandl_calculators.pandl_calculation import apply_weighting
 
 class pandlCalculationWithSRCosts(pandlCalculationWithGenericCosts):
     def __init__(self, *args,
@@ -18,6 +18,26 @@ class pandlCalculationWithSRCosts(pandlCalculationWithGenericCosts):
         self._SR_cost = SR_cost
         self._daily_returns_volatility = daily_returns_volatility
         self._average_position = average_position
+
+    def weight(self, weight: pd.Series):
+        ## we don't weight fills, instead will be inferred from positions
+        weighted_capital = apply_weighting(weight, self.capital)
+        weighted_positions = apply_weighting(weight, self.positions)
+        weighted_average_position = apply_weighting(weight, self.average_position)
+
+        return pandlCalculationWithSRCosts(
+                 positions = weighted_positions,
+                 capital = weighted_capital,
+                 average_position=weighted_average_position,
+
+                price=self.price,
+                fx = self.fx,
+                SR_cost=self._SR_cost,
+                daily_returns_volatility=self.daily_returns_volatility,
+                 value_per_point = self.value_per_point,
+                roundpositions = self.roundpositions,
+                delayfill = self.delayfill)
+
 
     def costs_pandl_in_points(self) -> pd.Series:
         SR_cost_as_annualised_figure = self.SR_cost_as_annualised_figure_points()
@@ -52,11 +72,15 @@ class pandlCalculationWithSRCosts(pandlCalculationWithGenericCosts):
 
     @property
     def daily_price_volatility_points(self) -> pd.Series:
-        daily_price_volatility = self._daily_returns_volatility
+        daily_price_volatility = self.daily_returns_volatility
         if daily_price_volatility is arg_not_supplied:
             daily_price_volatility = robust_daily_vol_given_price(self.price)
 
         return daily_price_volatility
+
+    @property
+    def daily_returns_volatility(self) -> pd.Series:
+        return self._daily_returns_volatility
 
     @property
     def SR_cost(self) -> float:

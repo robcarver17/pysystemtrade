@@ -1,11 +1,10 @@
-from systems.system_cache import diagnostic, output, dont_cache
-from systems.accounts.account_costs import accountCosts
-from systems.accounts.accounts_buffering import accountBuffering
-from systems.accounts.pandl_calculators.pandl_SR_cost import pandlCalculationWithSRCosts
-from systems.accounts.pandl_calculators.pandl_cash_costs import pandlCalculationWithCashCostsAndFills
-from systems.accounts.curves.account_curve import accountCurve
+from systems.system_cache import output
+from systems.accounts.account_instruments import accountInstruments
+from systems.accounts.curves.dict_of_account_curves import dictOfAccountCurves
+from systems.accounts.curves.account_curve_group import accountCurveGroup
 
-class accountPortfolio(accountCosts, accountBuffering):
+
+class accountPortfolio(accountInstruments):
 
     @output(not_pickable=True)
     def portfolio(self, delayfill=True, roundpositions=True):
@@ -32,17 +31,21 @@ class accountPortfolio(accountCosts, accountBuffering):
         self.log.terse("Calculating pandl for portfolio")
         capital = self.get_notional_capital()
         instruments = self.get_instrument_list()
-        port_pandl = [
+        dict_of_pandl_by_instrument = dict([
+                                               (instrument_code,
             self.pandl_for_instrument(
                 instrument_code, delayfill=delayfill, roundpositions=roundpositions
-            )
+            ))
             for instrument_code in instruments
-        ]
+        ])
 
-        port_pandl = accountCurveGroup(
-            port_pandl, instruments, capital=capital, weighted_flag=True
-        )
+        dict_of_pandl_by_instrument = dictOfAccountCurves(dict_of_pandl_by_instrument)
 
-        return port_pandl
+        account_curve = accountCurveGroup(dict_of_pandl_by_instrument,
+                                          capital=capital,
+                                          weighted=True)
+
+        return account_curve
+
 
 

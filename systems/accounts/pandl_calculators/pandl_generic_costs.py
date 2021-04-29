@@ -1,6 +1,6 @@
 import pandas as pd
 
-from systems.accounts.pandl_calculators.pandl_calculation import pandlCalculation
+from systems.accounts.pandl_calculators.pandl_calculation import pandlCalculation, apply_weighting
 
 curve_types = ['gross', 'net', 'costs']
 GROSS_CURVE = 'gross'
@@ -9,6 +9,20 @@ COSTS_CURVE = 'costs'
 
 
 class pandlCalculationWithGenericCosts(pandlCalculation):
+
+    def weight(self, weight: pd.Series):
+
+        weighted_capital = apply_weighting(weight, self.capital)
+        weighted_positions = apply_weighting(weight, self.positions)
+
+        return pandlCalculationWithGenericCosts(self.price,
+                 positions = weighted_positions,
+                 fx = self.fx,
+                 capital = weighted_capital,
+                 value_per_point = self.value_per_point,
+                roundpositions = self.roundpositions,
+                delayfill = self.delayfill)
+
 
     def as_pd_series(self, percent = False, curve_type=NET_CURVE):
         if curve_type==NET_CURVE:
@@ -91,3 +105,4 @@ def _add_gross_and_costs(gross: pd.Series,
     net = gross + costs_aligned
 
     return net
+

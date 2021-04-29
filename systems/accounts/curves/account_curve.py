@@ -41,27 +41,91 @@ class accountCurve(pd.Series):
             "\n %s account curve; use object.stats() to see methods" %
             weight_comment)
 
+    def weight(self, weight: pd.Series):
+        pandl_calculator = self.pandl_calculator_with_costs
+        weighted_pandl_calculator = pandl_calculator.weight(weight)
+
+        return accountCurve(weighted_pandl_calculator,
+                            curve_type=self.curve_type,
+                            is_percentage=self.is_percentage,
+                            frequency=self.frequency,
+                            weighted=True)
+
+
     ## TO RETURN A 'NEW' ACCOUNT CURVE
     @property
     def gross(self):
         return accountCurve(self.pandl_calculator_with_costs,
                             curve_type=GROSS_CURVE,
                             is_percentage=self.is_percentage,
-                            frequency=self.frequency)
+                            frequency=self.frequency,
+                            weighted=self.weighted)
 
     @property
     def net(self):
         return accountCurve(self.pandl_calculator_with_costs,
                             curve_type=NET_CURVE,
                             is_percentage=self.is_percentage,
-                            frequency=self.frequency)
+                            frequency=self.frequency,
+                            weighted=self.weighted)
 
     @property
     def costs(self):
         return accountCurve(self.pandl_calculator_with_costs,
                             curve_type=COSTS_CURVE,
                             is_percentage=self.is_percentage,
-                            frequency=self.frequency)
+                            frequency=self.frequency,
+                            weighted=self.weighted)
+
+
+    @property
+    def daily(self):
+        return accountCurve(self.pandl_calculator_with_costs,
+                            curve_type=self.curve_type,
+                            is_percentage=self.is_percentage,
+                            frequency=Frequency.BDay,
+                            weighted=self.weighted)
+
+    @property
+    def weekly(self):
+        return accountCurve(self.pandl_calculator_with_costs,
+                            curve_type=self.curve_type,
+                            is_percentage=self.is_percentage,
+                            frequency=Frequency.Week,
+                            weighted=self.weighted)
+
+    @property
+    def monthly(self):
+        return accountCurve(self.pandl_calculator_with_costs,
+                            curve_type=self.curve_type,
+                            is_percentage=self.is_percentage,
+                            frequency=Frequency.Month,
+                            weighted=self.weighted)
+
+    @property
+    def annual(self):
+        return accountCurve(self.pandl_calculator_with_costs,
+                            curve_type=self.curve_type,
+                            is_percentage=self.is_percentage,
+                            frequency=Frequency.Year,
+                            weighted=self.weighted)
+
+
+    @property
+    def percent(self):
+        return accountCurve(self.pandl_calculator_with_costs,
+                            curve_type=self.curve_type,
+                            is_percentage=True,
+                            frequency=self.frequency,
+                            weighted=self.weighted)
+
+    @property
+    def value_terms(self):
+        return accountCurve(self.pandl_calculator_with_costs,
+                            curve_type=self.curve_type,
+                            is_percentage=False,
+                            frequency=self.frequency,
+                            weighted=self.weighted)
 
     def to_ncg_frame(self) -> pd.DataFrame:
         gross = self.gross
@@ -75,42 +139,8 @@ class accountCurve(pd.Series):
         return as_df
 
     @property
-    def daily(self):
-        return accountCurve(self.pandl_calculator_with_costs,
-                            curve_type=self.curve_type,
-                            is_percentage=self.is_percentage,
-                            frequency=Frequency.BDay)
-
-    @property
-    def weekly(self):
-        return accountCurve(self.pandl_calculator_with_costs,
-                            curve_type=self.curve_type,
-                            is_percentage=self.is_percentage,
-                            frequency=Frequency.Week)
-
-    @property
-    def monthly(self):
-        return accountCurve(self.pandl_calculator_with_costs,
-                            curve_type=self.curve_type,
-                            is_percentage=self.is_percentage,
-                            frequency=Frequency.Month)
-
-    @property
-    def annual(self):
-        return accountCurve(self.pandl_calculator_with_costs,
-                            curve_type=self.curve_type,
-                            is_percentage=self.is_percentage,
-                            frequency=Frequency.Year)
-
-
-    @property
-    def percent(self):
-        return accountCurve(self.pandl_calculator_with_costs,
-                            curve_type=self.curve_type,
-                            is_percentage=True,
-                            frequency=self.frequency)
-
-
+    def length_in_months(self) -> int:
+        return self.pandl_calculator_with_costs.length_in_months
 
     @property
     def capital(self) -> pd.Series:

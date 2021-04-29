@@ -17,7 +17,6 @@ across multiple parts of the code in more detail. The final part
 Table of Contents
 =================
 
-   * [Table of Contents](#table-of-contents)
    * [How do I?](#how-do-i)
       * [How do I.... Experiment with a single trading rule and instrument](#how-do-i-experiment-with-a-single-trading-rule-and-instrument)
       * [How do I....Create a standard futures backtest](#how-do-icreate-a-standard-futures-backtest)
@@ -121,14 +120,13 @@ Table of Contents
             * [Capital correction](#capital-correction)
             * [Writing new or modified portfolio stages](#writing-new-or-modified-portfolio-stages)
          * [Stage: Accounting](#stage-accounting)
-            * [Using the standard <a href="/systems/account.py">Account class</a>](#using-the-standard-account-class)
+            * [Using the standard <a href="/systems/accounts/accounts_stage.py">Account class</a>](#using-the-standard-account-class)
             * [accountCurve](#accountcurve)
             * [accountCurveGroup in more detail](#accountcurvegroup-in-more-detail)
             * [A nested accountCurveGroup](#a-nested-accountcurvegroup)
                * [Weighted and unweighted account curve groups](#weighted-and-unweighted-account-curve-groups)
             * [Testing account curves](#testing-account-curves)
             * [Costs](#costs)
-            * [Writing new or modified accounting stages](#writing-new-or-modified-accounting-stages)
    * [Processes](#processes)
       * [File names](#file-names)
       * [Logging](#logging)
@@ -178,8 +176,6 @@ Table of Contents
                * [Parameters for estimating forecast weights](#parameters-for-estimating-forecast-weights)
             * [Forecast diversification multiplier  (fixed)](#forecast-diversification-multiplier--fixed)
             * [Forecast diversification multiplier  (estimated)](#forecast-diversification-multiplier--estimated)
-               * [Forecast correlation calculation](#forecast-correlation-calculation)
-               * [Parameters for estimation of forecast diversification multiplier](#parameters-for-estimation-of-forecast-diversification-multiplier)
                * [Forecast mapping](#forecast-mapping-1)
          * [Position sizing stage](#position-sizing-stage)
             * [Capital scaling parameters](#capital-scaling-parameters)
@@ -188,8 +184,6 @@ Table of Contents
             * [Instrument weights (estimated)](#instrument-weights-estimated)
             * [Instrument diversification multiplier (fixed)](#instrument-diversification-multiplier-fixed)
             * [Instrument diversification multiplier (estimated)](#instrument-diversification-multiplier-estimated)
-               * [Instrument corrrelations](#instrument-corrrelations)
-               * [Parameters for estimation of instrument diversification multiplier](#parameters-for-estimation-of-instrument-diversification-multiplier)
             * [Buffering](#buffering)
          * [Accounting stage](#accounting-stage-1)
             * [Buffering and position intertia](#buffering-and-position-intertia-1)
@@ -197,6 +191,7 @@ Table of Contents
             * [Capital correction](#capital-correction-1)
 
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
+
 
 
 <a name="how_do_i">
@@ -280,8 +275,8 @@ from systems.provided.futures_chapter15.basesystem import futures_system
 system=futures_system()
 system.accounts.portfolio().stats() ## see some statistics
 system.accounts.portfolio().curve().plot() ## plot an account curve
-system.accounts.portfolio().percent().curve().plot() ## plot an account curve in percentage terms
-system.accounts.pandl_for_instrument("US10").percent().stats() ## produce % statistics for a 10 year bond
+system.accounts.portfolio().percent.curve().plot() ## plot an account curve in percentage terms
+system.accounts.pandl_for_instrument("US10").percent.stats() ## produce % statistics for a 10 year bond
 system.accounts.pandl_for_instrument_forecast("EDOLLAR", "carry").sharpe() ## Sharpe for a specific trading rule variation
 ```
 
@@ -1997,7 +1992,7 @@ from systems.forecast_scale_cap import ForecastScaleCap
 from systems.futures.rawdata import FuturesRawData
 from systems.positionsizing import PositionSizing
 from systems.portfolio import Portfolios
-from systems.account import Account
+from systems.accounts.accounts_stage import Account
 
 
 def futures_system( data=None, config=None, trading_rules=None,  log_level="on"):
@@ -3186,7 +3181,7 @@ The final stage is the all important accounting stage, which calculates p&l.
 
 <a name="standard_accounts_stage"> </a>
 
-#### Using the standard [Account class](/systems/account.py)
+#### Using the standard [Account class](/systems/accounts/accounts_stage.py)
 
 The standard accounting class includes several useful methods:
 
@@ -3346,51 +3341,27 @@ acc_curve.calc_data()['trades_to_use'] ## simulated trades
 ```
 
 Personally I prefer looking at statistics in percentage terms. This is easy.
-Just use the .percent() method before you use any statistical method:
+Just use the .percent property before you use any statistical method:
 
 ```python
 acc_curve.capital ## tells me the capital I will use to calculate %
-acc_curve.percent()
-acc_curve.gross.daily.percent()
-acc_curve.net.daily.percent()
-acc_curve.costs.monthly.percent()
-acc_curve.gross.daily.percent().stats()
-acc_curve.monthly.percent().sharpe()
-acc_curve.gross.weekly.percent().std()
-acc_curve.daily.percent().ann_std()
-acc_curve.costs.annual.percent().median()
-acc_curve.percent().rolling_ann_std()
-acc_curve.gross.percent().curve()
-acc_curve.net.monthly.percent().drawdown()
-acc_curve.costs.weekly.percent().curve()
+acc_curve.percent
+acc_curve.gross.daily.percent
+acc_curve.net.daily.percent
+acc_curve.costs.monthly.percent
+acc_curve.gross.daily.percent.stats()
+acc_curve.monthly.percent.sharpe()
+acc_curve.gross.weekly.percent.std()
+acc_curve.daily.percent.ann_std()
+acc_curve.costs.annual.percent.median()
+acc_curve.percent.rolling_ann_std()
+acc_curve.gross.percent.curve()
+acc_curve.net.monthly.percent.drawdown()
+acc_curve.costs.weekly.percent.curve()
 ```
 
+Incidentally you can 'daisy-chain' the percentage, frequency, and gross/net/costs operators in any order; the underlying object isn't actually changed, it's just the representation of it that is modified. If you want to reverse a percentage operator you can use .value_terms().
 
-You may also want to use *cumulated* returns, which use compound interest
-rather than the simple addition I normally use. See this [blog
-post](https://qoppac.blogspot.com/2016/06/capital-correction-pysystemtrade.html).
-
-```python
-acc_curve.cumulative()
-acc_curve.gross.daily.cumulative()
-acc_curve.net.daily.cumulative()
-acc_curve.costs.monthly.cumulative()
-acc_curve.gross.daily.cumulative().stats()
-acc_curve.monthly.cumulative().sharpe()
-acc_curve.gross.weekly.cumulative().std()
-acc_curve.daily.cumulative().ann_std()
-acc_curve.costs.annual.cumulative().median()
-acc_curve.cumulative().rolling_ann_std()
-acc_curve.gross.cumulative().curve()
-acc_curve.net.monthly.cumulative().drawdown()
-acc_curve.costs.weekly.cumulative().curve()
-```
-
-Or both
-```python
-acc_curve.cumulative().percent().stats()
-acc_curve.percent().cumulative().stats() ## these are equivalent
-```
 
 #### `accountCurveGroup` in more detail
 
@@ -3479,20 +3450,6 @@ acc_curve_group.get_stats("sharpe").pvalue(tim_weighted=True) ## p value of t st
 
 ```
 
-Sometimes it's useful to "stack" all the returns from different assets
-together, and perform statistical tests on those:
-
-```python
-stack=acc_curve_group.stack() ## looks like a very long history of returns for a single asset
-stack.net.weekly.sharpe() ## all this kind of stuff works
-boot=stack.bootstrap(no_runs=10) ## produce an accountCurveGroup object containing 10 bootstraps, each the same length as the original portfolio
-boot=stack.bootstrap(no_runs=10, length=250)  ## each account curve bootstrapped will be 250 business days long
-boot.net.get_stats("sharpe").pvalue() ## all this kind of stuff works. Time weighting isn't neccessary as all the same length
-```
-
-Note if you have a large number of instruments this code will probably fail.
-It's more useful when you have a small number, and are concerned about
-statistical robustness.
 
 
 #### A nested `accountCurveGroup`
@@ -3659,7 +3616,7 @@ To summarise:
 - With the exception of `pandl_for_trading_rule` the portfolio level curve for
   a weighted group is a proportion of the entire system capital.
 
-The attribute `weighted_flag` is set to either True (for weighted curves
+The attribute `weighted` is set to either True (for weighted curves
 including `pandl_for_trading_rule`) or False (otherwise). All curve __repr__
 methods also show either weighted or unweighted status.
 
@@ -3736,10 +3693,6 @@ forecast_cost_estimate:
 ```
 
 
-#### Writing new or modified accounting stages
-
-I plan to include ways of summarising profits over groups of assets (trading
-rules and instruments) in the account stage.
 
 <a name="Processes"> </a>
 
@@ -4049,21 +4002,7 @@ pooling or changes to cost calculation.
 
 #### Bootstrapping (recommended, but slow)
 
-Here we're bootstrapping, by default drawing 50 weeks of data at a time, 100
-times.
-
-
-```
-method: bootstrap
-   monte_runs: 100
-   equalise_SR: False
-   ann_target_SR: 0.5  ## Sharpe we head to if we're shrinking or equalising
-   equalise_vols: True
-
-```
-
-Notice that if you equalise Sharpe then this will override the effect of any
-pooling or changes to cost calculation.
+Bootstrapping is not currently implemented; after a code refactoring I couldn't think of an elegant way of doing it.
 
 #### Shrinkage (okay, but trick to calibrate)
 
@@ -4797,71 +4736,7 @@ config.forecast_weights=dict(SP500=["ewmac","carry"], US10=["ewmac"])
 ```
 ##### Parameters for estimating forecast weights
 
-Represented as: dict of str, or dict, each representing parameters. Defaults:
-See below
-
-To estimate the forecast weights we call the function defined in the `func`
-config element.
-
-The defaults given below are for the default generic optimiser function. See
-the section on [optimisation](#optimisation) for more information.
-
-YAML, showing defaults
-```
-forecast_weight_estimate:
-   func: syscore.optimisation.GenericOptimiser
-   method: shrinkage ## other options: one_period, bootstrap, equal_weights
-   pool_gross_returns: True
-   equalise_gross: False
-   cost_multiplier: 1.0
-   ceiling_cost_SR: 0.13
-   apply_cost_weight: True
-   frequency: "W" ## other options: D, M, Y
-   date_method: expanding ## other options: in_sample, rolling
-   rollyears: 20
-   cleaning: True
-   equalise_SR: True
-   ann_target_SR: 0.5  ## Sharpe we head to if we're shrinking or equalising
-   equalise_vols: True
-   shrinkage_SR: 0.90
-   shrinkage_corr: 0.50
-   monte_runs: 100
-   bootstrap_length: 50
-   correlation_estimate:
-     func: syscore.correlations.correlation_single_period
-     using_exponent: False
-     ew_lookback: 500
-     min_periods: 20
-     floor_at_zero: True
-   mean_estimate:
-     func: syscore.algos.mean_estimator
-     using_exponent: False
-     ew_lookback: 500
-     min_periods: 20
-   vol_estimate:
-     func: syscore.algos.vol_estimator
-     using_exponent: False
-     ew_lookback: 500
-     min_periods: 20
-```
-
-Python, example of how to change certain parameters:
-
-```python
-config.forecast_weight_estimate=dict()
-config.forecast_weight_estimate['method']='one_period'
-config.forecast_weight_estimate['mean_estimate']=dict(min_periods=30)
-```
-
-Note: if you are changing the config in situ within the system you should use
-the following to avoid overwriting the defaults within the system:
-
-```python
-config=system.config
-config.forecast_weight_estimate['method']='one_period'
-config.forecast_weight_estimate['mean_estimate']['min_periods']=30
-```
-
+See the section on [Optimisation](#optimisation)
 
 
 #### Forecast diversification multiplier  (fixed)
@@ -4898,75 +4773,9 @@ config.forecast_div_multiplier=dict(SP500=1.4, US10=1.0)
 
 #### Forecast diversification multiplier  (estimated)
 
-To calculate the diversification multiplier we need to have correlations.
-
-##### Forecast correlation calculation
-Represented as: dict of str, float and int. Keywords: parameter names Default:
-see below
-
-The method used to estimate forecast correlations on a rolling out of sample
-basis. Compulsory arguments are pool_instruments (determines if we pool
-estimate over multiple instruments) and func (str function pointer to use for
-estimation). The remaining arguments are passed to the estimation function. Any
-missing items will be pulled from the project defaults file.
-
-See [estimating correlations and the forecast diversification
-multiplier](#divmult).
-
-YAML:
-```
-# Here is how we do the estimation. These are also the *defaults*.
-forecast_correlation_estimate:
-   pool_instruments: True
-   func: syscore.correlations.CorrelationEstimator ## function to use for estimation. This handles both pooled and non pooled data
-   frequency: "W"   # frequency to downsample to before estimating correlations
-   date_method: "expanding" # what kind of window to use in backtest
-   using_exponent: True  # use an exponentially weighted correlation, or all the values equally
-   ew_lookback: 250 ## lookback when using exponential weighting
-   min_periods: 20  # min_periods
-   cleaning: True  # Replace missing values so we don't lose data early on
-```
-
-Python (example)
-```python
-config.forecast_correlation_estimate=dict(pool_instruments=False)
-```
-
-If you're considering using your own function please see [configuring defaults
-for your own functions](#config_function_defaults)
+See the section on [estimating correlations and diversification multipliers](#estimating-correlations-and-diversification-multipliers)
 
 
-##### Parameters for estimation of forecast diversification multiplier
-Represented as: dict of str, float and int. Keywords: parameter names Default:
-see below
-
-The method used to estimate forecast div. multipliers on a rolling out of
-sample basis. Any missing config elements are pulled from the project defaults.
-Compulsory arguments are: func (str function pointer to use for estimation).
-The remaining arguments are passed to the estimation function.
-
-See [estimating the forecast diversification multiplier](#divmult) for more
-detail.
-
-
-YAML:
-```
-# Here is how we do the estimation. These are also the *defaults*.
-use_forecast_div_mult_estimates: True
-forecast_div_mult_estimate:
-   func: syscore.divmultipliers.diversification_multiplier_from_list
-   ewma_span: 125   ## smooth to apply
-   floor_at_zero: True ## floor negative correlations
-   dm_max: 2.5 ## maximum
-```
-
-Python (example)
-```python
-config.forecast_div_mult_estimate=dict(ewma_span=125)
-```
-
-If you're considering using your own function please see [configuring defaults
-for your own functions](#config_function_defaults)
 
 ##### Forecast mapping
 
@@ -5065,70 +4874,7 @@ config.instrument_weights=dict(EDOLLAR=0.5, US10=0.5)
 
 #### Instrument weights (estimated)
 
-Represented as: dict of str, or dict, each representing parameters. Defaults:
-See below
-
-To estimate the instrument weights we call the function defined in the `func`
-config element. All other parameters are passed to the optimisation function.
-
-The defaults given below are for the default generic optimiser function. See
-the section on [optimisation](#optimisation) for more information.
-
-YAML, showing defaults
-```
-instrument_weight_estimate:
-   func: syscore.optimisation.GenericOptimiser
-   method: shrinkage ## other options: one_period, bootstrap, equal_weights
-   frequency: "W" ## other options: D, M, Y
-   equalise_gross: False
-   cost_multiplier: 1.0
-   apply_cost_weight: True
-   ceiling_cost_SR: 999 ## this means we don't apply ceiling costs at all
-   date_method: expanding ## other options: in_sample, rolling
-   rollyears: 20
-   cleaning: True
-   equalise_SR: True
-   ann_target_SR: 0.5  ## Sharpe we head to if we're shrinking or equalising
-   equalise_vols: True
-   shrinkage_SR: 0.90
-   shrinkage_corr: 0.50
-   monte_runs: 100
-   bootstrap_length: 50
-   correlation_estimate:
-     func: syscore.correlations.correlation_single_period
-     using_exponent: False
-     ew_lookback: 500
-     min_periods: 20
-     floor_at_zero: True
-   mean_estimate:
-     func: syscore.algos.mean_estimator
-     using_exponent: False
-     ew_lookback: 500
-     min_periods: 20
-   vol_estimate:
-     func: syscore.algos.vol_estimator
-     using_exponent: False
-     ew_lookback: 500
-     min_periods: 20
-```
-
-Python, example of how to change certain parameters:
-
-```python
-config.instrument_weight_estimate=dict()
-config.instrument_weight_estimate['method']='one_period'
-config.instrument_weight_estimate['mean_estimate']=dict(min_periods=30)
-```
-
-Note: if you are changing the config in situ within the system you should use
-the following to avoid overwriting the defaults within the system:
-
-```python
-config=system.config
-config.instrument_weight_estimate['method']='one_period'
-config.instrument_weight_estimate['mean_estimate']['min_periods']=30
-```
-
+See the section on [Optimisation](#optimisation)
 
 
 #### Instrument diversification multiplier (fixed)
@@ -5147,73 +4893,7 @@ config.instrument_div_multiplier=1.0
 
 #### Instrument diversification multiplier (estimated)
 
-To calculate the diversification multiplier we need to have correlations.
-
-##### Instrument corrrelations
-Represented as: dict of str, float and int. Keywords: parameter names Default:
-see below
-
-The method used to estimate instrument correlations on a rolling out of sample
-basis. Compulsory arguments are func (str function pointer to use for
-estimation). The remaining arguments are passed to the estimation function. Any
-missing items will be pulled from the project defaults file.
-
-See [estimating correlations](#divmult).
-
-YAML:
-```
-# Here is how we do the estimation. These are also the *defaults*.
-instrument_correlation_estimate:
-   func: syscore.correlations.CorrelationEstimator ## function to use for estimation. This handles both pooled and non pooled data
-   frequency: "W"   # frequency to downsample to before estimating correlations
-   date_method: "expanding" # what kind of window to use in backtest
-   using_exponent: True  # use an exponentially weighted correlation, or all the values equally
-   ew_lookback: 250 ## lookback when using exponential weighting
-   min_periods: 20  # min_periods
-   cleaning: True  # Replace missing values so we don't lose data early on
-```
-
-Python (example)
-```python
-config.instrument_correlation_estimate=dict(cleaning=False)
-```
-
-If you're considering using your own function please see [configuring defaults
-for your own functions](#config_function_defaults)
-
-
-
-##### Parameters for estimation of instrument diversification multiplier
-Represented as: dict of str, float and int. Keywords: parameter names Default:
-see below
-
-The method used to estimate the instrument div. multiplier on a rolling out of
-sample basis. Any missing config elements are pulled from the project defaults.
-Compulsory arguments are: func (str function pointer to use for estimation).
-The remaining arguments are passed to the estimation function.
-
-See [estimating diversification multipliers](#divmult).
-
-
-YAML:
-```
-# Here is how we do the estimation. These are also the *defaults*.
-use_instrument_div_mult_estimates: True
-instrument_div_mult_estimate:
-   func: syscore.divmultipliers.diversification_multiplier_from_list
-   ewma_span: 125   ## smooth to apply
-   floor_at_zero: True ## floor negative correlations
-   dm_max: 2.5 ## maximum
-```
-
-Python (example)
-```python
-config.use_instrument_div_mult_estimates=True
-config.instrument_div_mult_estimate=dict(ewma_span=125)
-```
-
-If you're considering using your own function please see [configuring defaults
-for your own functions](#config_function_defaults)
+See the section on [estimating correlations and diversification multipliers](#estimating-correlations-and-diversification-multipliers)
 
 
 #### Buffering

@@ -28,6 +28,18 @@ class pandlCalculation(object):
         self._delayfill = delayfill
         self._roundpositions = roundpositions
 
+    def weight(self, weight: pd.Series):
+
+        weighted_capital = apply_weighting(weight, self.capital)
+        weighted_positions = apply_weighting(weight, self.positions)
+
+        return pandlCalculation(self.price,
+                 positions = weighted_positions,
+                 fx = self.fx,
+                 capital = weighted_capital,
+                 value_per_point = self.value_per_point,
+                roundpositions = self.roundpositions,
+                delayfill = self.delayfill)
 
     def capital_as_pd_series_for_frequency(self,
                                            frequency: Frequency=DAILY_PRICE_FREQ) -> pd.Series:
@@ -111,6 +123,8 @@ class pandlCalculation(object):
 
         return returns
 
+
+
     @property
     def price_returns(self) -> pd.Series:
         prices = self.price
@@ -122,6 +136,13 @@ class pandlCalculation(object):
     def price(self) -> pd.Series:
         return self._price
 
+    @property
+    def length_in_months(self) -> int:
+        positions_monthly = self.positions.resample("1M").last()
+        positions_ffill = positions_monthly.ffill()
+        positions_no_nans = positions_ffill.dropna()
+
+        return len(positions_no_nans.index)
 
     @property
     def positions(self) -> pd.Series:
@@ -178,8 +199,17 @@ class pandlCalculation(object):
             capital = 1.0
 
         if type(capital) is float or type(capital) is int:
-            price_index = self.price.index
-            capital = pd.Series([capital] * len(price_index), price_index)
+            align_index = self._index_to_align_capital_to
+            capital = pd.Series([capital] * len(align_index), align_index)
 
         return capital
 
+    @property
+    def _index_to_align_capital_to(self):
+        return self.price.index
+
+def apply_weighting(weight: pd.Series, thing_to_weight: pd.Series) -> pd.Series:
+    aligned_weight = weight.reindex(thing_to_weight.index).ffill()
+    weighted_thing = thing_to_weight * aligned_weight
+
+    return weighted_thing

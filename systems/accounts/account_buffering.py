@@ -34,6 +34,7 @@ class accountBuffering(accountInputs):
 
         return turnover(positions, average_position_for_turnover)
 
+    @diagnostic()
     def get_buffers_for_position(self, instrument_code: str) -> pd.DataFrame:
         """
         Get the buffered position from a previous module
@@ -73,9 +74,25 @@ class accountBuffering(accountInputs):
         2015-12-11         1
         """
 
-        self.log.msg("Calculating buffered positions")
         optimal_position = self.get_notional_position(instrument_code)
         pos_buffers = self.get_buffers_for_position(instrument_code)
+
+        buffered_position = self._get_buffered_position_given_optimal_position_and_buffers(
+                        optimal_position = optimal_position,
+                        pos_buffers = pos_buffers,
+                        roundpositions=roundpositions
+                        )
+
+
+        return buffered_position
+
+    def _get_buffered_position_given_optimal_position_and_buffers(self,
+                                                                  optimal_position: pd.Series,
+                                                                  pos_buffers: pd.DataFrame,
+                                                                    roundpositions: bool=True) \
+                                        -> pd.Series:
+
+        self.log.msg("Calculating buffered positions")
         trade_to_edge = self.config.buffer_trade_to_edge
 
         buffered_position = apply_buffer(
@@ -84,6 +101,5 @@ class accountBuffering(accountInputs):
             trade_to_edge=trade_to_edge,
             roundpositions=roundpositions,
         )
-
 
         return buffered_position

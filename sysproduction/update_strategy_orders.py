@@ -1,4 +1,4 @@
-from syscore.genutils import print_menu_of_values_and_get_response
+from syscore.interactive import print_menu_of_values_and_get_response
 from syscontrol.strategy_tools import strategyRunner
 
 from sysdata.data_blob import dataBlob

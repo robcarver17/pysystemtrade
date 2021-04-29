@@ -15,7 +15,6 @@ class listOfFills(list):
             fill for fill in list_of_fills if fill is not missing_order]
         super().__init__(list_of_fills)
 
-
     def _as_dict_of_lists(self) -> dict:
         qty_list = [fill.qty for fill in self]
         price_list = [fill.price for fill in self]

@@ -1,18 +1,9 @@
-"""
-Correlations are important and used a lot
-"""
 import scipy.cluster.hierarchy as sch
 
-from copy import copy
 
 import numpy as np
 import pandas as pd
 
-from syscore.genutils import str2Bool, group_dict_from_natural, progressBar
-from syscore.dateutils import generate_fitting_dates
-from syscore.pdutils import stacked_df_with_added_time_from_list, must_have_item
-
-from syslogdiag.log_to_screen import logtoscreen
 
 
 def ordered_correlation_matrix(corr_matrix: pd.DataFrame):

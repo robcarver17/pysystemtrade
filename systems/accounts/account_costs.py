@@ -4,8 +4,9 @@ from syscore.genutils import str2Bool
 from syscore.dateutils import ROOT_BDAYS_INYEAR
 from syscore.pdutils import turnover
 
-from systems.system_cache import  diagnostic, input
+from sysquant.estimators.turnover import turnoverDataForTradingRule
 
+from systems.system_cache import  diagnostic, input
 from systems.accounts.account_inputs import accountInputs
 
 class accountCosts(accountInputs):
@@ -119,6 +120,20 @@ class accountCosts(accountInputs):
         return SR_cost
 
     @diagnostic()
+    def get_turnover_for_forecast_combination(self, codes_to_use: list, rule_variation_name: str) -> turnoverDataForTradingRule:
+        turnover_as_list = self._forecast_turnover_for_list_by_instrument(codes_to_use, rule_variation_name=rule_variation_name)
+        turnover_as_dict = dict([
+            (instrument_code, turnover)
+            for (instrument_code, turnover)
+            in zip(codes_to_use, turnover_as_list)
+        ])
+
+        turnover_data_for_trading_rule = turnoverDataForTradingRule(turnover_as_dict)
+
+        return turnover_data_for_trading_rule
+
+
+    @diagnostic()
     def forecast_turnover(self, instrument_code: str,
                           rule_variation_name: str) -> float:
         use_pooled_turnover = str2Bool(
@@ -164,9 +179,8 @@ class accountCosts(accountInputs):
 
         """
 
-        turnovers = [self._forecast_turnover_for_individual_instrument(instrument_code,
-                                                                      rule_variation_name)
-                     for instrument_code in instrument_code_list]
+        turnovers = self._forecast_turnover_for_list_by_instrument(codes_to_use=instrument_code_list,
+                                                                   rule_variation_name=rule_variation_name)
 
         # weight by length
         weights = self._get_forecast_length_weighting_for_list_of_instruments(instrument_code_list,
@@ -180,6 +194,13 @@ class accountCosts(accountInputs):
 
         return avg_turnover
 
+    @diagnostic()
+    def _forecast_turnover_for_list_by_instrument(self, codes_to_use: list, rule_variation_name: str) -> list:
+        turnovers = [self._forecast_turnover_for_individual_instrument(instrument_code,
+                                                                      rule_variation_name)
+                     for instrument_code in codes_to_use]
+
+        return turnovers
 
     @diagnostic()
     def _forecast_turnover_for_individual_instrument(

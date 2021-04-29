@@ -8,7 +8,7 @@ from systems.trading_rules import TradingRule
 from sysdata.config.configdata import Config
 from systems.forecast_scale_cap import ForecastScaleCap
 from systems.forecast_combine import ForecastCombine
-from systems.account import Account
+from systems.accounts.accounts_stage import Account
 from systems.positionsizing import PositionSizing
 from systems.portfolio import Portfolios
 import pytest

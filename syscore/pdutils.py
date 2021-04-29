@@ -36,6 +36,15 @@ def how_many_times_a_year_is_pd_frequency(frequency: str) -> float:
 
     return float(times_a_year)
 
+def sum_series(list_of_series: list, ffill = True)-> pd.Series:
+    list_of_series_as_df = pd.concat(list_of_series, axis=1)
+    if ffill:
+        list_of_series_as_df = list_of_series_as_df.ffill()
+
+    sum_of_series = list_of_series_as_df.sum(axis=1)
+
+    return sum_of_series
+
 
 def turnover(x, y):
     """
@@ -436,43 +445,7 @@ def strip_out_intraday(
     return data[daily_matches]
 
 
-def minimum_many_years_of_data_in_dataframe(data):
-    years_of_data_dict = how_many_years_of_data_in_dataframe(data)
-    years_of_data_values = years_of_data_dict.values()
-    min_years_of_data = min(years_of_data_values)
 
-    return min_years_of_data
-
-
-def how_many_years_of_data_in_dataframe(data):
-    """
-    How many years of non NA data do we have?
-    Assumes daily timestamp
-
-    :param data: pd.DataFrame with labelled columns
-    :return: dict of floats,
-    """
-    result_dict = dict(data.apply(how_many_years_of_data_in_pd_series, axis=0))
-
-    return result_dict
-
-
-def how_many_years_of_data_in_pd_series(data_series):
-    """
-    How many years of actual data do we have
-    Assume daily timestamp which is fairly regular
-
-    :param data_series:
-    :return: float
-    """
-    first_valid_date = data_series.first_valid_index()
-    last_valid_date = data_series.last_valid_index()
-
-    date_difference = last_valid_date - first_valid_date
-    date_difference_days = date_difference.days
-    date_difference_years = float(date_difference_days) / CALENDAR_DAYS_IN_YEAR
-
-    return date_difference_years
 
 
 def check_df_equals(x, y):
@@ -542,15 +515,16 @@ def replace_all_zeros_with_nan(result: pd.Series) -> pd.Series:
 
     return result
 
+
+def spread_out_annualised_return_over_periods(data_as_annual):
+    period_intervals_in_seconds = data_as_annual.index.to_series().diff().dt.total_seconds()
+    period_intervals_in_year_fractions = period_intervals_in_seconds / SECONDS_IN_YEAR
+    data_per_period = data_as_annual * period_intervals_in_year_fractions
+
+    return data_per_period
+
 if __name__ == "__main__":
     import doctest
 
     doctest.testmod()
 
-
-def spread_out_annualised_return_over_periods(data_as_annual):
-    period_intervals_in_seconds = data_as_annual.index.to_series().diff().dt.seconds
-    period_intervals_in_year_fractions = period_intervals_in_seconds / SECONDS_IN_YEAR
-    data_per_period = data_as_annual * period_intervals_in_year_fractions
-
-    return data_per_period

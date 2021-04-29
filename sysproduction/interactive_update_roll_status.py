@@ -9,7 +9,7 @@ from copy import copy
 import numpy as np
 import pandas as pd
 
-from syscore.genutils import print_menu_of_values_and_get_response
+from syscore.interactive import print_menu_of_values_and_get_response
 
 from sysobjects.contracts import futuresContract
 from sysobjects.instruments import futuresInstrument
