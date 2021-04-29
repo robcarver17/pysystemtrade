@@ -1,6 +1,5 @@
 from sysdata.sim.csv_futures_sim_data import csvFuturesSimData
 from sysquant.estimators.vol import robust_vol_calc
-from systems.accounts.curves.account_curve import accountCurve
 from systems.accounts.account_forecast import pandl_for_instrument_forecast
 from systems.provided.example.rules import ewmac_forecast_with_defaults as ewmac
 from systems.forecasting import Rules
@@ -11,6 +10,7 @@ from systems.forecast_scale_cap import ForecastScaleCap
 from systems.forecast_combine import ForecastCombine
 from systems.accounts.accounts_stage import Account
 from systems.positionsizing import PositionSizing
+from systems.futures.rawdata import RawData
 from systems.portfolio import Portfolios
 import pytest
 from systems.provided.example.simplesystem import simplesystem
@@ -59,13 +59,14 @@ class TestExamples:
         but without graph plotting
         """
         data = csvFuturesSimData()
+        raw_data = RawData()
         my_rules = Rules(ewmac)
         print(my_rules.trading_rules())
 
         my_rules = Rules(dict(ewmac=ewmac))
         print(my_rules.trading_rules())
 
-        my_system = System([my_rules], data)
+        my_system = System([my_rules, raw_data], data)
         print(my_system)
         print(my_system.rules.get_raw_forecast("EDOLLAR", "ewmac").tail(5))
 
@@ -83,7 +84,7 @@ class TestExamples:
         my_rules = Rules(dict(ewmac8=ewmac_8, ewmac32=ewmac_32))
         print(my_rules.trading_rules()["ewmac32"])
 
-        my_system = System([my_rules], data)
+        my_system = System([my_rules, raw_data], data)
         my_system.rules.get_raw_forecast("EDOLLAR", "ewmac32").tail(5)
 
         my_config = Config()
@@ -91,7 +92,7 @@ class TestExamples:
 
         empty_rules = Rules()
         my_config.trading_rules = dict(ewmac8=ewmac_8, ewmac32=ewmac_32)
-        my_system = System([empty_rules], data, my_config)
+        my_system = System([empty_rules, raw_data], data, my_config)
         my_system.rules.get_raw_forecast("EDOLLAR", "ewmac32").tail(5)
 
         # we can estimate these ourselves
@@ -99,7 +100,7 @@ class TestExamples:
         my_config.use_forecast_scale_estimates = True
 
         fcs = ForecastScaleCap()
-        my_system = System([fcs, my_rules], data, my_config)
+        my_system = System([fcs, my_rules, raw_data], data, my_config)
         my_config.forecast_scalar_estimate["pool_instruments"] = False
         print(
             my_system.forecastScaleCap.get_forecast_scalar(
@@ -118,19 +119,21 @@ class TestExamples:
 
         # defaults
         combiner = ForecastCombine()
-        my_system = System([fcs, my_rules, combiner], data, my_config)
+        my_system = System([fcs, my_rules, combiner, raw_data], data, my_config)
         print(my_system.combForecast.get_forecast_weights("EDOLLAR").tail(5))
         print(my_system.combForecast.get_forecast_diversification_multiplier("EDOLLAR").tail(5))
 
         # estimates:
         my_account = Account()
         combiner = ForecastCombine()
+        possizer = PositionSizing()
+
 
         my_config.forecast_weight_estimate = dict(method="one_period")
         my_config.use_forecast_weight_estimates = True
         my_config.use_forecast_div_mult_estimates = True
 
-        my_system = System([my_account, fcs, my_rules, combiner], data, my_config)
+        my_system = System([my_account, fcs, my_rules, combiner, raw_data, possizer], data, my_config)
 
         # this is a bit slow, better to know what's going on
         my_system.set_logging_level("on")
@@ -146,17 +149,16 @@ class TestExamples:
 
         combiner = ForecastCombine()
         my_system = System(
-            [fcs, empty_rules, combiner], data, my_config
+            [fcs, empty_rules, combiner, raw_data], data, my_config
         )  # no need for accounts if no estimation done
         my_system.combForecast.get_combined_forecast("EDOLLAR").tail(5)
 
         # size positions
-        possizer = PositionSizing()
         my_config.percentage_vol_target = 25
         my_config.notional_trading_capital = 500000
         my_config.base_currency = "GBP"
 
-        my_system = System([fcs, my_rules, combiner, possizer], data, my_config)
+        my_system = System([fcs, my_rules, combiner, possizer, raw_data], data, my_config)
 
         print(my_system.positionSize.get_price_volatility("EDOLLAR").tail(5))
         print(my_system.positionSize.get_block_value("EDOLLAR").tail(5))
@@ -175,7 +177,7 @@ class TestExamples:
             method="shrinkage", date_method="in_sample")
 
         my_system = System(
-            [my_account, fcs, my_rules, combiner, possizer, portfolio], data, my_config
+            [my_account, fcs, my_rules, combiner, possizer, portfolio, raw_data], data, my_config
         )
 
         my_system.set_logging_level("on")
@@ -191,19 +193,19 @@ class TestExamples:
         my_config.instrument_div_multiplier = 1.5
 
         my_system = System([fcs, my_rules, combiner, possizer,
-                            portfolio], data, my_config)
+                            portfolio, raw_data], data, my_config)
 
         print(my_system.portfolio.get_notional_position("EDOLLAR").tail(5))
 
         my_system = System(
-            [fcs, my_rules, combiner, possizer, portfolio, my_account], data, my_config
+            [fcs, my_rules, combiner, possizer, portfolio, my_account, raw_data], data, my_config
         )
         profits = my_system.accounts.portfolio()
-        print(profits.percent().stats())
+        print(profits.percent.stats())
 
         # have costs data now
-        print(profits.gross.percent().stats())
-        print(profits.net.percent().stats())
+        print(profits.gross.percent.stats())
+        print(profits.net.percent.stats())
 
         my_config = Config(
             dict(
@@ -226,7 +228,8 @@ class TestExamples:
                 PositionSizing(),
                 ForecastCombine(),
                 ForecastScaleCap(),
-                Rules()
+                Rules(),
+                RawData()
             ],
             data,
             my_config,
@@ -242,7 +245,8 @@ class TestExamples:
                 PositionSizing(),
                 ForecastCombine(),
                 ForecastScaleCap(),
-                Rules()
+                Rules(),
+                RawData()
             ],
             data,
             my_config,
