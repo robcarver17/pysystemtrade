@@ -90,9 +90,7 @@ def get_pandl_report_data(data, start_date, end_date):
             data, start_date, end_date
         )
     )
-    pandl_for_instruments_across_strategies.pandl = (
-        pandl_for_instruments_across_strategies.pandl * 100
-    )
+
     total_for_futures = pandl_for_instruments_across_strategies.pandl.sum()
     residual = total_capital_pandl - total_for_futures
     strategies = get_strategy_pandl_and_residual(data, start_date, end_date)
