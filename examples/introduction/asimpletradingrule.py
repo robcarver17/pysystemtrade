@@ -102,14 +102,14 @@ show()
 Did we make money?
 """
 
-from syscore.accounting import accountCurve
+from systems.accounts.account_forecast import pandl_for_instrument_forecast
 
-account = accountCurve(price, forecast=ewmac)
-account2 = accountCurve(price, forecast=ewmac2)
+account = pandl_for_instrument_forecast(forecast=ewmac, price = price)
+account2 = pandl_for_instrument_forecast(forecast=ewmac, price = price)
 
 account.curve()
 
 account.curve().plot()
 show()
 
-print(account.percent().stats())
+print(account.percent.stats())

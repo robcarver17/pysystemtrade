@@ -131,7 +131,7 @@ Did we make any money?
 ```python
 from systems.accounts.account_forecast import pandl_for_instrument_forecast
 account = pandl_for_instrument_forecast(forecast = ewmac, price=price)
-account.percent().stats()
+account.percent.stats()
 ```
 
 ```
@@ -430,11 +430,13 @@ Freq: B, dtype: float64
 
 Alternatively you can estimate div. multipliers, and weights.
 
-Note: Since we need to know the performance of different trading rules, we need to include an Accounts stage to calculate these:
+Note: Since we need to know the performance of different trading rules, we need to include an Accounts stage to calculate these which in turn uses position sizing and raw data:
 
 ```python
 from systems.accounts.accounts_stage import Account
-
+combiner = ForecastCombine()
+raw_data = RawData()
+position_size = PositionSizing()
 my_account = Account()
 
 ## let's use naive markowitz to get more interesting results...
@@ -443,7 +445,7 @@ my_config.use_forecast_weight_estimates = True
 my_config.use_forecast_div_mult_estimates = True
 
 combiner = ForecastCombine()
-my_system = System([my_account, fcs, my_rules, combiner], data, my_config)
+my_system = System([my_account, fcs, my_rules, combiner, position_size, raw_data], data, my_config)
 
 ## this is a bit slow, better to know what's going on
 my_system.set_logging_level("on")
@@ -480,7 +482,7 @@ my_config.forecast_weights=dict(ewmac8=0.5, ewmac32=0.5)
 my_config.forecast_div_multiplier=1.1
 my_config.use_forecast_weight_estimates = False
 my_config.use_forecast_div_mult_estimates = False
-my_system=System([fcs, empty_rules, combiner], data, my_config)
+my_system=System([fcs, empty_rules, combiner, raw_data, position_size], data, my_config)
 my_system.combForecast.get_combined_forecast("EDOLLAR").tail(5)
 ```
 
@@ -499,14 +501,12 @@ If you're working through my book you'd know the next stage is deciding what lev
 Let's do the position scaling:
 
 ```python
-from systems.positionsizing import PositionSizing
-possizer=PositionSizing()
 
 my_config.percentage_vol_target=25
 my_config.notional_trading_capital=500000
 my_config.base_currency="GBP"
 
-my_system=System([ fcs, empty_rules, combiner, possizer], data, my_config)
+my_system=System([ fcs, empty_rules, combiner, position_size, raw_data], data, my_config)
 
 my_system.positionSize.get_subsystem_position("EDOLLAR").tail(5)
 ```
@@ -536,7 +536,7 @@ my_config.use_instrument_weight_estimates = True
 my_config.use_instrument_div_mult_estimates = True
 my_config.instrument_weight_estimate=dict(method="shrinkage", date_method="in_sample") ## speeds things up
 
-my_system = System([my_account, fcs, my_rules, combiner, possizer,
+my_system = System([my_account, fcs, my_rules, combiner, position_size, raw_data,
                     portfolio], data, my_config)
 
 my_system.set_logging_level("on")
@@ -573,7 +573,7 @@ my_config.instrument_div_multiplier=1.5
 my_config.use_instrument_weight_estimates = False
 my_config.use_instrument_div_mult_estimates = False
 
-my_system=System([ fcs, empty_rules, combiner, possizer, portfolio], data, my_config)
+my_system=System([ fcs, empty_rules, combiner, position_size, raw_data, portfolio], data, my_config)
 
 my_system.portfolio.get_notional_position("EDOLLAR").tail(5)
 ```
@@ -593,7 +593,7 @@ Although this is fine and dandy, we're probably going to be curious about whethe
 ```python
 from systems.accounts.accounts_stage import Account
 accounts=Account()
-my_system=System([ fcs, empty_rules, combiner, possizer, portfolio, accounts], data, my_config)
+my_system=System([ fcs, empty_rules, combiner, position_size, raw_data, portfolio, accounts], data, my_config)
 profits=my_system.accounts.portfolio()
 profits.percent.stats()
 ```

@@ -113,15 +113,20 @@ print(my_system.combForecast.get_forecast_diversification_multiplier("EDOLLAR").
 
 # estimates:
 from systems.accounts.accounts_stage import Account
+from systems.futures.rawdata import RawData
+from systems.positionsizing import PositionSizing
 
 my_account = Account()
 combiner = ForecastCombine()
+raw_data = RawData()
+position_size = PositionSizing()
+
 
 my_config.forecast_weight_estimate = dict(method="one_period")
 my_config.use_forecast_weight_estimates = True
 my_config.use_forecast_div_mult_estimates = True
 
-my_system = System([my_account, fcs, my_rules, combiner], data, my_config)
+my_system = System([my_account, fcs, my_rules, combiner, raw_data, position_size], data, my_config)
 
 # this is a bit slow, better to know what's going on
 my_system.set_logging_level("on")
@@ -137,20 +142,18 @@ my_config.use_forecast_div_mult_estimates = False
 
 combiner = ForecastCombine()
 my_system = System(
-    [fcs, empty_rules, combiner], data, my_config
+    [fcs, empty_rules, combiner, raw_data, position_size], data, my_config
 )  # no need for accounts if no estimation done
 my_system.combForecast.get_combined_forecast("EDOLLAR").tail(5)
 
 # size positions
-
-from systems.positionsizing import PositionSizing
 
 possizer = PositionSizing()
 my_config.percentage_vol_target = 25
 my_config.notional_trading_capital = 500000
 my_config.base_currency = "GBP"
 
-my_system = System([fcs, my_rules, combiner, possizer], data, my_config)
+my_system = System([fcs, my_rules, combiner, possizer, raw_data], data, my_config)
 
 print(my_system.positionSize.get_price_volatility("EDOLLAR").tail(5))
 print(my_system.positionSize.get_block_value("EDOLLAR").tail(5))
@@ -171,7 +174,7 @@ my_config.instrument_weight_estimate = dict(
     method="shrinkage", date_method="in_sample")
 
 my_system = System(
-    [my_account, fcs, my_rules, combiner, possizer, portfolio], data, my_config
+    [my_account, fcs, my_rules, combiner, possizer, portfolio, raw_data], data, my_config
 )
 
 my_system.set_logging_level("on")
@@ -187,7 +190,7 @@ my_config.instrument_weights = dict(US10=0.1, EDOLLAR=0.4, CORN=0.3, SP500=0.2)
 my_config.instrument_div_multiplier = 1.5
 
 my_system = System([fcs, my_rules, combiner, possizer,
-                    portfolio], data, my_config)
+                    portfolio, raw_data], data, my_config)
 
 print(my_system.portfolio.get_notional_position("EDOLLAR").tail(5))
 """
@@ -195,14 +198,14 @@ Have we made some dosh?
 """
 
 my_system = System(
-    [fcs, my_rules, combiner, possizer, portfolio, my_account], data, my_config
+    [fcs, my_rules, combiner, possizer, portfolio, my_account, raw_data], data, my_config
 )
 profits = my_system.accounts.portfolio()
-print(profits.percent().stats())
+print(profits.percent.stats())
 
 # have costs data now
-print(profits.gross.percent().stats())
-print(profits.net.percent().stats())
+print(profits.gross.percent.stats())
+print(profits.net.percent.stats())
 """
 Another approach is to create a config object
 """
@@ -228,6 +231,7 @@ my_system = System(
         ForecastCombine(),
         ForecastScaleCap(),
         Rules(),
+        RawData()
     ],
     data,
     my_config,
@@ -246,6 +250,7 @@ my_system = System(
         ForecastCombine(),
         ForecastScaleCap(),
         Rules(),
+        RawData()
     ],
     data,
     my_config,
