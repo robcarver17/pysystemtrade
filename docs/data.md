@@ -679,7 +679,7 @@ You need to specify an IP address (host), and database name when you connect to 
 
 - Firstly, arguments passed to a `mongoDb()` instance, which is then optionally passed to any data object with the argument `mongo_db=mongoDb(mongo_host='localhost', mongo_database_name='production', mongo_port = 27017)` All arguments are optional. 
 - Then, variables set in the private `.yaml` configuration file /private/private_config.yaml: mongo_host, mongo_db, mongo_port
-- Finally, default arguments in the [system defaults configuration file](/systems/provided/defaults.yaml): mongo_host, mongo_db, mongo_port
+- Finally, default arguments in the [system defaults configuration file](/sysdata/config/defaults.yaml): mongo_host, mongo_db, mongo_port
 
 Note that `localhost` is equivalent to `127.0.0.1`, i.e. this machine. Note also that if you have a non-standard mongo port, you must use the url format for specifying the mongo host, eg
 

@@ -1352,7 +1352,7 @@ my_config_list:
 
 Similarly if you wanted to use project defaults for your new parameters you'll
 also need to include them in the [defaults.yaml
-file](/systems/provided/defaults.yaml). Make sure you understand [how the
+file](/sysdata/config/defaults.yaml). Make sure you understand [how the
 defaults work](#defaults_how).
 
 
