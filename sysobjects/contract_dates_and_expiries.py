@@ -5,7 +5,7 @@ Represent contract dates and expiries
 import datetime
 
 from syscore.dateutils import contract_month_from_number, month_from_contract_letter
-from syscore.genutils import list_of_items_seperated_by_underscores, np_convert
+from syscore.genutils import list_of_items_separated_by_underscores, np_convert
 
 NO_EXPIRY_DATE_PASSED = ""
 NO_DAY_PASSED = object()
@@ -512,7 +512,7 @@ def resolve_date_string_into_list_of_date_str(date_str) -> list:
     if type(date_str) is list:
         return date_str
 
-    date_str_as_list = list_of_items_seperated_by_underscores(date_str)
+    date_str_as_list = list_of_items_separated_by_underscores(date_str)
     return date_str_as_list
 
 def resolve_expiry_date_into_list_of_expiry_dates(expiry_date, date_str_as_list):

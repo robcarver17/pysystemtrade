@@ -27,7 +27,7 @@ class FuturesRawData(RawData):
         KEY INPUT
 
 
-        >>> from systems.tests.testfuturesrawdata import get_test_object_futures
+        >>> from systems.tests.testdata import get_test_object_futures
         >>> from systems.basesystem import System
         >>> (data, config)=get_test_object_futures()
         >>> system=System([FuturesRawData()], data)
@@ -52,7 +52,7 @@ class FuturesRawData(RawData):
 
         :returns: Tx4 pd.DataFrame
 
-        >>> from systems.tests.testfuturesrawdata import get_test_object_futures
+        >>> from systems.tests.testdata import get_test_object_futures
         >>> from systems.basesystem import System
         >>> (data, config)=get_test_object_futures()
         >>> system=System([FuturesRawData()], data)
@@ -81,7 +81,7 @@ class FuturesRawData(RawData):
 
         :returns: Tx4 pd.DataFrame
 
-        >>> from systems.tests.testfuturesrawdata import get_test_object_futures
+        >>> from systems.tests.testdata import get_test_object_futures
         >>> from systems.basesystem import System
         >>> (data, config)=get_test_object_futures()
         >>> system=System([FuturesRawData()], data)
@@ -109,7 +109,7 @@ class FuturesRawData(RawData):
 
         :returns: Tx4 pd.DataFrame
 
-        >>> from systems.tests.testfuturesrawdata import get_test_object_futures
+        >>> from systems.tests.testdata import get_test_object_futures
         >>> from systems.basesystem import System
         >>> (data, config)=get_test_object_futures()
         >>> system=System([FuturesRawData()], data)
@@ -145,7 +145,7 @@ class FuturesRawData(RawData):
 
 
 
-        >>> from systems.tests.testfuturesrawdata import get_test_object_futures
+        >>> from systems.tests.testdata import get_test_object_futures
         >>> from systems.basesystem import System
         >>> (data, config)=get_test_object_futures()
         >>> system=System([FuturesRawData()], data)
@@ -261,7 +261,7 @@ class FuturesRawData(RawData):
 
         KEY OUTPUT
 
-        >>> from systems.tests.testfuturesrawdata import get_test_object_futures
+        >>> from systems.tests.testdata import get_test_object_futures
         >>> from systems.basesystem import System
         >>> (data, config)=get_test_object_futures()
         >>> system=System([FuturesRawData()], data)

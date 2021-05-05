@@ -326,7 +326,7 @@ couple of directories first).
 You should then create a new system which points to the new config file:
 
 ```python
-from sysdata.configdata import Config
+from sysdata.config.configdata import Config
 from systems.provided.futures_chapter15.basesystem import futures_system
 
 my_config=Config("private.this_system_name.config.yaml"))
@@ -726,12 +726,18 @@ You can create your own directory for .csv files. For example supposed you wante
 from sysdata.sim.csv_futures_sim_data import csvFuturesSimData
 from systems.provided.futures_chapter15.basesystem import futures_system
 
-data=csvFuturesSimData(datapath_dict=dict(adjusted_prices = "private.system_name.adjusted_price_data"))
+data=csvFuturesSimData(csv_data_paths=dict(csvFuturesAdjustedPricesData = "private.system_name.adjusted_price_data"))
 system=futures_system(data=data)
 ```
 Notice that we use python style "." internal references within a project, we don't give actual path names. See [here](#filenames) for how to specify filenames in pysystemtrade.
 
-The full list of keys that you can use in the `datapath_dict` are `config_data` (configuration and costs), `multiple_price_data` (prices for current, next and carry contracts), and `spot_fx_data` (for FX prices). Note that you can't put adjusted prices and carry data in the same directory since they use the same file format.
+The full list of keys that you can use in the `csv_data_paths` are:
+* `csvFuturesInstrumentData` (configuration and costs)
+* `csvFuturesMultiplePricesData` (prices for current, next and carry contracts)
+* `csvFuturesAdjustedPricesData` (stitched back-adjusted prices)
+* `csvFxPricesData` (for FX prices)
+  
+Note that you can't put adjusted prices and carry data in the same directory since they use the same file format.
 
 There is more detail about using .csv files [here](#csv).
 
@@ -867,18 +873,19 @@ The `csvFuturesSimData` object works like this:
 from sysdata.sim.csv_futures_sim_data import csvFuturesSimData
 
 ## with the default folders
-data=csvFuturesData()
+data=csvFuturesSimData()
 
 ## OR with different folders, by providing a dict containing the folder(s) to use
-data=csvFuturesData(datapath_dict = dict(key_name = "pathtodata.with.dots"))
+data=csvFuturesSimData(csv_data_paths = dict(key_name = "pathtodata.with.dots"))
 
-# Permissible key names are 'spot_fx_data' (FX prices), 'multiple_price_data' (for carry and forward prices),
-# 'adjusted_prices' and 'config_data' (configuration and costs).
+# Permissible key names are 'csvFxPricesData' (FX prices), 'csvFuturesMultiplePricesData' 
+# (for carry and forward prices),
+# 'csvFuturesAdjustedPricesData' and 'csvFuturesInstrumentData' (configuration and costs).
 # If a keyname is not present then the system defaults will be used
 
 # An example to override with FX data stored in /psystemtrade/private/data/fxdata/:
 
-data=csvFuturesSimData(datapath_dict = dict(spot_fx_data="private.data.fxdata"))
+data=csvFuturesSimData(csv_data_paths = dict(csvFxPricesData="private.data.fxdata"))
 
 # WARNING: Do not store multiple_price_data and adjusted_price_data in the same directory
 #          They use the same file names!
@@ -3367,7 +3374,7 @@ Incidentally you can 'daisy-chain' the percentage, frequency, and gross/net/cost
 
 `accountCurveGroup`, is the output you get from `systems.account.portfolio`,
 `systems.account.pandl_across_subsystems`,
-pandl_for_instrument_rules_unweighted`, `pandl_for_trading_rule` and
+`pandl_for_instrument_rules_unweighted`, `pandl_for_trading_rule` and
 `pandl_for_trading_rule_unweighted`. For example:
 
 ```python
