@@ -246,7 +246,7 @@ ib_price_client.ib # live ib_inysnc.IB instance
 
 ## Connection objects
 
-You wouldn't normally open a seperate IB connection in pysystemtrade since they are opened by the [dataBlob](/docs/data.md#data-blobs) objects used in production. But it's useful to know how they work under the hood.
+You wouldn't normally open a separate IB connection in pysystemtrade since they are opened by the [dataBlob](/docs/data.md#data-blobs) objects used in production. But it's useful to know how they work under the hood.
 
 ### Creating and closing connection objects
 

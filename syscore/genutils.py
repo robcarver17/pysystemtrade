@@ -302,7 +302,7 @@ def get_unique_list(somelist):
 
 MISSING_STR = -1
 
-def list_of_items_seperated_by_underscores(this_str, result = ()):
+def list_of_items_separated_by_underscores(this_str, result = ()):
     find_underscore = this_str.find("_")
     if find_underscore is MISSING_STR:
         result_as_list = list(result)
@@ -314,7 +314,7 @@ def list_of_items_seperated_by_underscores(this_str, result = ()):
 
     remaining_str = this_str[find_underscore+1:]
 
-    return list_of_items_seperated_by_underscores(remaining_str, result=result)
+    return list_of_items_separated_by_underscores(remaining_str, result=result)
 
 
 def transfer_object_attributes(named_tuple_object, original_object):

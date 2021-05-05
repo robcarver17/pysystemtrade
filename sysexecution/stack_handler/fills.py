@@ -150,7 +150,7 @@ class stackHandlerForFills(stackHandlerForCompletions):
         )
 
         # if fill has changed then update positions
-        # we do this here, because we can get here eithier from fills process
+        # we do this here, because we can get here either from fills process
         # or after an execution
         ## At this point the contract stack has changed the contract order to reflect the fill, but the contract_order
         ##    here reflects the original contract order before fills applied, this allows comparision
