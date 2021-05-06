@@ -120,7 +120,7 @@ class stackHandlerForRolls(stackHandlerCore):
             for child_order in list_of_contract_orders:
                 child_order.parent = parent_order_id
 
-            # this will return eithier -
+            # this will return either -
             #     - a list of order IDS if all went well
             #     - an empty list if error and rolled back,
             #      - or an error something went wrong and couldn't rollback (the outer catch will try and rollback)
@@ -147,7 +147,7 @@ class stackHandlerForRolls(stackHandlerCore):
         except Exception as error_from_adding_child_orders:
             # okay it's gone wrong
             # Roll back parent order and possibly children
-            # At this point list_of_child_order_ids will eithier be empty (if succesful rollback) or contain child ids
+            # At this point list_of_child_order_ids will either be empty (if succesful rollback) or contain child ids
 
             rollback_parents_and_children_and_handle_exceptions(child_stack=contract_stack,
                                           parent_stack=instrument_stack,
