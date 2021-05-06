@@ -1,6 +1,7 @@
 Instrument,Pointsize,AssetClass,Currency,Slippage,PerBlock,Percentage,PerTrade,Description
 AEX,200,Equity,EUR,0.0282686043,2,0,0,Netherlands equity index AEX
 AUD,100000,FX,USD,5E-05,2.46,0,0,AUDUSD currency
+BITCOIN,0.1,Metals,USD,5,1,0,0,Micro Bitcoin
 BOBL,1000,Bond,EUR,0.005,2,0,0,German 5 year bond Bobl
 BTP,1000,Bond,EUR,0.005,2,0,0,Italian 10 year bond BTP
 BUND,1000,Bond,EUR,0.005,2,0,0,German 10 year bond Bund
