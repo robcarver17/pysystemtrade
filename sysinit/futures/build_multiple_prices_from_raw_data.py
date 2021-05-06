@@ -106,10 +106,10 @@ def _calc_roll_date_info(roll_calendar_with_roll_index: rollCalendarWithRollInde
     last_roll_date = roll_calendar.index[rolling_row_index - 1]
     next_roll_date = roll_calendar.index[rolling_row_index]
 
-    end_of_roll_period = next_roll_date - pd.DateOffset(
+    end_of_roll_period = next_roll_date
+    start_of_roll_period = last_roll_date + pd.DateOffset(
         seconds=1
     )  # to avoid overlaps
-    start_of_roll_period = last_roll_date
 
     roll_date_info = rollDateInfo(last_roll_date, next_roll_date,
                                   start_of_roll_period, end_of_roll_period,
@@ -173,9 +173,15 @@ def _get_current_next_carry_data(
                                  contract_date_info: contractAndPriceInfo
                                  ):
     dict_of_futures_contract_closing_prices = contract_date_info.dict_of_futures_contract_closing_prices
-    current_price_data = dict_of_futures_contract_closing_prices[
+    current_contract_data =dict_of_futures_contract_closing_prices[
                              contract_date_info.current_contract_str
-                         ][roll_date_info.start_of_roll_period:roll_date_info.end_of_roll_period]
+                         ]
+    last_date_in_data = current_contract_data.index[-1]
+    start_of_period = roll_date_info.start_of_roll_period
+    end_of_period =min([roll_date_info.end_of_roll_period, last_date_in_data])
+
+    current_contract_data = current_contract_data.sort_index()
+    current_price_data = current_contract_data[start_of_period:end_of_period]
 
     carry_price_data = _get_carry_price_data(contract_date_info,
                                              current_price_data,
@@ -212,9 +218,14 @@ def _get_next_price_data(contract_date_info: contractAndPriceInfo,
                 % (next_contract_str, str(roll_date_info.next_roll_date))
             )
     else:
-        next_price_data = dict_of_futures_contract_closing_prices[
+        next_price_data_for_contract = dict_of_futures_contract_closing_prices[
                               next_contract_str
-                          ][roll_date_info.start_of_roll_period:roll_date_info.end_of_roll_period]
+                          ]
+
+        next_price_data_for_contract = next_price_data_for_contract.sort_index()
+
+        next_price_data = \
+            next_price_data_for_contract[roll_date_info.start_of_roll_period:roll_date_info.end_of_roll_period]
 
     return  next_price_data
 
@@ -241,9 +252,11 @@ def _get_carry_price_data(contract_date_info: contractAndPriceInfo,
                 % (carry_contract_str, str(roll_date_info.next_roll_date))
             )
     else:
-        carry_price_data =    dict_of_futures_contract_closing_prices[
-        carry_contract_str][roll_date_info.start_of_roll_period:roll_date_info.end_of_roll_period]
-
+        carry_price_data_for_contract =    dict_of_futures_contract_closing_prices[
+        carry_contract_str]
+        carry_price_data_for_contract = carry_price_data_for_contract.sort_index()
+        carry_price_data = carry_price_data_for_contract[
+                           roll_date_info.start_of_roll_period:roll_date_info.end_of_roll_period]
 
     return  carry_price_data
 

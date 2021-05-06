@@ -45,7 +45,7 @@ class futuresAdjustedPrices(pd.Series):
         """
 
         adjusted_prices = _panama_stitch(
-            multiple_prices, forward_fill=forward_fill)
+            multiple_prices)
 
         return futuresAdjustedPrices(adjusted_prices)
 

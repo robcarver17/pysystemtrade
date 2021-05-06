@@ -120,8 +120,8 @@ def adjust_roll_calendar(instrument_code, roll_calendar):
     arctic_prices_per_contract = arcticFuturesContractPriceData()
     print("Getting prices to adjust roll calendar")
     dict_of_prices = arctic_prices_per_contract.get_all_prices_for_instrument(instrument_code)
-    final_prices = dict_of_prices.final_prices()
-    roll_calendar = adjust_to_price_series(roll_calendar, final_prices)
+    dict_of_futures_contract_prices = dict_of_prices.final_prices()
+    roll_calendar = adjust_to_price_series(roll_calendar, dict_of_futures_contract_prices)
 
     return roll_calendar
 

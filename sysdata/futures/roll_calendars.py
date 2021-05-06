@@ -32,7 +32,7 @@ class rollCalendarData(baseData):
         if self.is_code_in_data(instrument_code):
             return self._get_roll_calendar_without_checking(instrument_code)
         else:
-            return rollCalendar.create_empty()
+            raise Exception("Calendar for %s not found!" % instrument_code)
 
     def delete_roll_calendar(self, instrument_code:str, are_you_sure=False):
         self.log.label(instrument_code=instrument_code)
