@@ -43,7 +43,7 @@ Table of Contents
             * [The csvFuturesSimData object](#the-csvfuturessimdata-object)
             * [The arcticSimData object](#the-arcticsimdata-object)
                * [Setting up your Arctic and Mongo DB databases](#setting-up-your-arctic-and-mongo-db-databases)
-               * [Using arcticFuturesSimData](#using-arcticfuturessimdata)
+               * [Using dbFuturesSimData](#using-dbfuturessimdata)
          * [Creating your own data objects](#creating-your-own-data-objects)
             * [The Data() class](#the-data-class)
       * [Configuration](#configuration)
@@ -816,7 +816,7 @@ particular **source** (for example .csv files, databases and so on).
 ### Using the standard data objects
 
 Two kinds of specific data object is currently provided with the system in the
-current version - `csvFuturesSimData` (.csv files) and `arcticFuturesSimData` (database storage)
+current version - `csvFuturesSimData` (.csv files) and `dbFuturesSimData` (database storage)
 
 See [working with futures data](/docs/data.md)
 
@@ -957,19 +957,16 @@ You can do this from scratch, as per the ['futures data workflow'](/docs/data.md
 
 Of course it's also possible to mix these two methods.
 
-##### Using arcticFuturesSimData
+##### Using dbFuturesSimData
 
 Once you have the data it's just a matter of replacing the default csv data object:
 
 ```python
 from systems.provided.futures_chapter15.basesystem import futures_system
-from sysdata.arctic.arctic_and_mongo_sim_futures_data import arcticFuturesSimData
+from sysdata.sim.db_futures_sim_data import dbFuturesSimData
 
 # with the default database
-data = arcticFuturesSimData()
-
-# OR with an alternative database (if you've populated your data into it already)
-data = arcticFuturesSimData(database_name="alternative")
+data = dbFuturesSimData()
 
 # using with a system
 
