@@ -78,7 +78,7 @@ def build_and_write_roll_calendar(
 
 
 def check_saved_roll_calendar(
-    instrument_code, input_datapath=None, input_prices=None
+    instrument_code, input_datapath=arg_not_supplied, input_prices=arg_not_supplied
 ):
 
     if input_datapath is None:
@@ -89,7 +89,7 @@ def check_saved_roll_calendar(
 
     roll_calendar = csv_roll_calendars.get_roll_calendar(instrument_code)
 
-    if input_prices is None:
+    if input_prices is arg_not_supplied:
         prices = arcticFuturesContractPriceData()
     else:
         prices = input_prices

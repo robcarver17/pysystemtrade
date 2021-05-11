@@ -47,6 +47,8 @@ class csvRollCalendarData(rollCalendarData):
             self.log.warning("Can't find roll calendar file %s" % filename)
             return rollCalendar.create_empty()
 
+        roll_calendar = rollCalendar(roll_calendar)
+
         return roll_calendar
 
     def _delete_roll_calendar_data_without_any_warning_be_careful(self,
