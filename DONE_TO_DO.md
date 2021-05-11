@@ -1,177 +1,182 @@
 # Release notes
 
+## Version 1.00
+
+- Fixed a few bugs
+- Added Bitcoin data, as everyone wants it
+- Is pretty stable so version 1.0 seems appropriate (also my birthday)
+
 ## Version 0.90
 
-Completely refactored accounting code.
-Completely refactored optimisation code.
-Moved 'quant' type functions to sysquant: robust_vol_calc - you may get error messages - update your config 
-Renamed certain functions in systems.rawdata (used by 'fancier' trading rules) - update your config
+- Completely refactored accounting code.
+- Completely refactored optimisation code.
+- Moved 'quant' type functions to sysquant: robust_vol_calc - you may get error messages - update your config 
+- Renamed certain functions in systems.rawdata (used by 'fancier' trading rules) - update your config
 
 
 ## Version 0.85
 **WARNING! FROM VERSION 0.85.0 IS A MAJOR UPGRADE. SEE [pandas_upgrade](pandas_upgrade.md) BEFORE DOING ANYTHING!
 
-Upgraded pandas and arctic versions
-Added 'Pause' process status
-Refactored and tidied control code
-Control process now sleep when not needed to save energy
-Removed option to specify machine to run process on
+- Upgraded pandas and arctic versions
+- Added 'Pause' process status
+- Refactored and tidied control code
+- Control process now sleep when not needed to save energy
+- Removed option to specify machine to run process on
 
 ## Version 0.80
 
-Finished refactoring of production code (or at least, for now!)
-sysproduction/diagnostics now renamed reporting
-sysproduction/data code now uses generic handler and property methods to access data
-broker API now has proper base classes
-Tinkered with requirements to get running on new machine
+- Finished refactoring of production code (or at least, for now!)
+- sysproduction/diagnostics now renamed reporting
+- sysproduction/data code now uses generic handler and property methods to access data
+- broker API now has proper base classes
+- Tinkered with requirements to get running on new machine
 
 ## Version 0.75
 
-Moved defaults.yaml to /sysdata/config directory
-Removed 'example' strategy from config files - strategies need to be explicit in private yaml config
-Cleaned up configuration code. Production config now accessed through data blob where possible.
-Messed up order database by changing formats; let me know if you have any issues reading your old orders
+- Moved defaults.yaml to /sysdata/config directory
+- Removed 'example' strategy from config files - strategies need to be explicit in private yaml config
+- Cleaned up configuration code. Production config now accessed through data blob where possible.
+- Messed up order database by changing formats; let me know if you have any issues reading your old orders
 
 ## Version 0.70
 
-Massive refactoring mainly of order code but also IB client structure. Should be backwardly compatible with old saved orders except 'split' orders which are ignored. Read 'journey of an order' in production code for granular detail. 
-
-added remote monitoring
+- Massive refactoring mainly of order code but also IB client structure. Should be backwardly compatible with old saved orders except 'split' orders which are ignored. Read 'journey of an order' in production code for granular detail.
+- added remote monitoring
 
 ## Version 0.60.0
 
-Split out control configuration from other YAML files (**YOU WILL NEED TO CHANGE PRIVATE CONFIG** look at the production docs!)
-Refactoring of run and control processes mostly into new syscontrol module
-Added simple monitoring tool
-Added email 'to' option (**YOU WILL NEED TO CHANGE PRIVATE CONFIG TO INCLUDE email_to parameter**)
+- Split out control configuration from other YAML files (**YOU WILL NEED TO CHANGE PRIVATE CONFIG** look at the production docs!)
+- Refactoring of run and control processes mostly into new syscontrol module
+- Added simple monitoring tool
+- Added email 'to' option (**YOU WILL NEED TO CHANGE PRIVATE CONFIG TO INCLUDE email_to parameter**)
 
 ## Version 0.52.0
 
-Mostly refactoring and documenting the creation and storage of data
+- Mostly refactoring and documenting the creation and storage of data
 
 
 ## Version 0.51.0
 
-Essentially 'finished' production.md (in as much as anything can be finished...)
-Changed data Blobs so now take lists of objects rather than str, easier to see dependencies
+- Essentially 'finished' production.md (in as much as anything can be finished...)
+- Changed data Blobs so now take lists of objects rather than str, easier to see dependencies
 
 ## Version 0.50.0
 
-(Done loads of work but forgotten to update the version number or this file. So let's reward ourselves with a 0.20 version bump. The following list is almost certainly incomplete...)
-Done loads of documentation for production
-Added position limits
-Removed broker base classes as redundant
-Minimum tick size used in setting limit orders
-Stopped double counting of volumes when daily/intraday data mixed
-Added startup script
-Fixed issues with time zone mismatches
-Added trades report, strategy report, signals report, risk report, p&l report
-Position locks
-Added interactive diagnostics, interactive order stack, interactive controls
-Execution algo!
-Added capability to trade
+- (Done loads of work but forgotten to update the version number or this file. So let's reward ourselves with a 0.20 version bump. The following list is almost certainly incomplete...)
+- Done loads of documentation for production
+- Added position limits
+- Removed broker base classes as redundant
+- Minimum tick size used in setting limit orders
+- Stopped double counting of volumes when daily/intraday data mixed
+- Added startup script
+- Fixed issues with time zone mismatches
+- Added trades report, strategy report, signals report, risk report, p&l report
+- Position locks
+- Added interactive diagnostics, interactive order stack, interactive controls
+- Execution algo!
+- Added capability to trade
 
 ## Version 0.30.0
 
-Introduced capital model for production
-Fixed bug in implementation of correlation to covariance
-Added optional code for risk overlay [see blog](https://qoppac.blogspot.com/2020/05/when-endogenous-risk-management-isnt.html)
-Moved fx cross logic out of sim data into fxPricesData
-Strategies now run backtests from configuration file
+- Introduced capital model for production
+- Fixed bug in implementation of correlation to covariance
+- Added optional code for risk overlay [see blog](https://qoppac.blogspot.com/2020/05/when-endogenous-risk-management-isnt.html)
+- Moved fx cross logic out of sim data into fxPricesData
+- Strategies now run backtests from configuration file
 
 ## Version 0.29.0
 
-Added price 'spike' checker, and manual price checking service
-Removed PIL library (issue 161)
-Fixed ib_insync PIP issue (pull 162)
-MongoDb logs will now try to email user if a critical error is raised
+- Added price 'spike' checker, and manual price checking service
+- Removed PIL library (issue 161)
+- Fixed ib_insync PIP issue (pull 162)
+- MongoDb logs will now try to email user if a critical error is raised
 
 ## Version 0.28.0
 
-IB now uses ib_insync, not native IB library
+- IB now uses ib_insync, not native IB library
 
 ## Version 0.27.0
 
-Cleaned up way defaults and private config files work
-Removed separate mongodb config file
-Added production code to run a system backtest and save optimal position state
-Cleaned up the way path and filename resolution works
-Added production code to backup mongodb to .csv files
+- Cleaned up way defaults and private config files work
+- Removed separate mongodb config file
+- Added production code to run a system backtest and save optimal position state
+- Cleaned up the way path and filename resolution works
+- Added production code to backup mongodb to .csv files
 
 ## Version 0.26.0
 
-Added production code to get daily futures prices from IB, update sampled contracts, update multiple and adjusted prices.
+- Added production code to get daily futures prices from IB, update sampled contracts, update multiple and adjusted prices.
 
 ## Version 0.25.0
 
-Can now get individual futures prices from IB, both historical daily and intraday (with get_prices_at_frequency_for_* methods)
-Added code to deal with VIX weekly expiries - they can now be ignored
-Caching IB contract objects in IB client as rather expensive
-IB client will now avoid pacing violations
-Removed futuresContract.simple() method; you can now just do futuresContract("AUDUSD", "yyyymmdd")
-Cleaned up IB client code, error handling is now consistent
-Added  broker_get_contract_expiry_date method to brokerClient and ibClient
-IB connection will now check to see if a clientid is being used even if one is passed. Has '.terminate' method which will try and clear clientid.
-.csv config files are cached in IB price API objects
+- Can now get individual futures prices from IB, both historical daily and intraday (with get_prices_at_frequency_for_* methods)
+- Added code to deal with VIX weekly expiries - they can now be ignored
+- Caching IB contract objects in IB client as rather expensive
+- IB client will now avoid pacing violations
+- Removed futuresContract.simple() method; you can now just do futuresContract("AUDUSD", "yyyymmdd")
+- Cleaned up IB client code, error handling is now consistent
+- Added  broker_get_contract_expiry_date method to brokerClient and ibClient
+- IB connection will now check to see if a clientid is being used even if one is passed. Has '.terminate' method which will try and clear clientid.
+- .csv config files are cached in IB price API objects
 
 ## Version 0.24.0
 
-Can now pass keyword arguments to data methods when creating a trading rule (Enhancement # 141)
-Fixed bugs relating to building multiple and adjusted prices
-Slight refactoring of futuresContractPrices objects. These only have FINAL, not CLOSE or SETTLE prices now.
-Added more data
+- Can now pass keyword arguments to data methods when creating a trading rule (Enhancement # 141)
+- Fixed bugs relating to building multiple and adjusted prices
+- Slight refactoring of futuresContractPrices objects. These only have FINAL, not CLOSE or SETTLE prices now.
+- Added more data
 
 ## Version 0.23.0
 
-'get_filename_for_package' can now take absolute as well as relative paths, and can cope with separate file names
-Updated legacy .csv files
-Fixed a few bugs
-Can now get unexpired contracts for a given instrument using 'contractDateWithRollParameters.get_unexpired_contracts_from_now_to_contract_date()'
+- 'get_filename_for_package' can now take absolute as well as relative paths, and can cope with separate file names
+- Updated legacy .csv files
+- Fixed a few bugs
+- Can now get unexpired contracts for a given instrument using 'contractDateWithRollParameters.get_unexpired_contracts_from_now_to_contract_date()'
 
 ## Version 0.22.0
 
 *Now requires python 3.6.0, pandas 0.25.2*
-Fixed a few bugs in production functions for FX prices
-Logging now requires an explicit labelling argument, eg `log=logtoscreen("String required here")
-Changed mongodb logging so now indexes on unique ID
-Generally cleaned up logging code
-Moved update fx price logic inside generic fx price object
+- Fixed a few bugs in production functions for FX prices
+- Logging now requires an explicit labelling argument, eg `log=logtoscreen("String required here")
+- Changed mongodb logging so now indexes on unique ID
+- Generally cleaned up logging code
+- Moved update fx price logic inside generic fx price object
 
 ## Version 0.21.0
 
-Removed dependency on Quandl currency for setting up spot FX, now uses investing.com
-Fixed issues relating to robust vol calc, date offset in roll calendars
+- Removed dependency on Quandl currency for setting up spot FX, now uses investing.com
+- Fixed issues relating to robust vol calc, date offset in roll calendars
 
 ## Version 0.20.0
 
-Started documenting 'how to run a production system'
-Created logging to mongo database
-Refactoring of mongo and arctic connections
-Started creating crontab and scripts for various production functions (read and write FX prices)
-Added code to ensure unique client ID for IB
+- Started documenting 'how to run a production system'
+- Created logging to mongo database
+- Refactoring of mongo and arctic connections
+- Started creating crontab and scripts for various production functions (read and write FX prices)
+- Added code to ensure unique client ID for IB
 
 ## Version 0.19.0
 
-Added connection code for Interactive Brokers. See [connecting pysystemtrade to interactive brokers](/docs/IB.md) for more details.
-Implemented data socket for spot FX, getting data from IB
-Added handcrafting optimisation code.
+- Added connection code for Interactive Brokers. See [connecting pysystemtrade to interactive brokers](/docs/IB.md) for more details.
+- Implemented data socket for spot FX, getting data from IB
+- Added handcrafting optimisation code.
 
 ## Version 0.18.2
-Added methods to read weight data from csv files
-Put generalised non linear mapping into forecast combination
-Added flag option to use process pools for parallel processing - but not actually used yet
-Cleaned up setup.py file now finds data files recursively
-Fixed bug in getting asset class data from csv config files
+- Added methods to read weight data from csv files
+- Put generalised non linear mapping into forecast combination
+- Added flag option to use process pools for parallel processing - but not actually used yet
+- Cleaned up setup.py file now finds data files recursively
+- Fixed bug in getting asset class data from csv config files
 
 ## Version 0.18.1
-Finished populating configuration files for Quandl and roll configuration.
-Debugged futures.md documentation file.
+- Finished populating configuration files for Quandl and roll configuration.
+- Debugged futures.md documentation file.
 
 ## Version 0.18
-See [futures documentation](/docs/futures.md) for more details.
-New data sources: Quandl. Data storage in mongodb and arctic is now supported.
-Back-adjustment is possible and can be done 'on the fly' or from scratch with new data. 
-Further refactoring of sim data objects to support the above.
+- See [futures documentation](/docs/futures.md) for more details.
+- New data sources: Quandl. Data storage in mongodb and arctic is now supported.
+- Back-adjustment is possible and can be done 'on the fly' or from scratch with new data. 
+- Further refactoring of sim data objects to support the above.
 
 ## Version 0.17
 Massive refactoring of sim data objects, to support alternative data sources and backadjusting
@@ -189,14 +194,14 @@ Added quandl data (but only for individual futures contracts right now so useles
 Removed uses of old carry function which was deprecated
 
 ## Version 0.16.2
-Fixed incorrect calculation of returns over weekends
-Forecast scalars now only pool across the set of instruments using a given trading rule
-Changed error handling for empty Rules() objects
-Added TOC to userguide.md file
+- Fixed incorrect calculation of returns over weekends
+- Forecast scalars now only pool across the set of instruments using a given trading rule
+- Changed error handling for empty Rules() objects
+- Added TOC to userguide.md file
 
 ## Version 0.16.1
-Updated to pandas 0.22.0
-Fixed issue #64, #68, #70 and other issues relating to pandas API update breaking correlation matrices
+- Updated to pandas 0.22.0
+- Fixed issue #64, #68, #70 and other issues relating to pandas API update breaking correlation matrices
 
 ## Version 0.16.0
 Moved most examples except core to separate git [here](https://github.com/robcarver17/pysystemtrade_examples)
@@ -434,37 +439,5 @@ Moved most examples except core to separate git [here](https://github.com/robcar
 
 
 
-# Bugs to fix
-
-* If you use a non USD currency then you get a flat spot earlier in the account curve. It should be NAN
-
-# Features to add -next release
 
 
-# Features to add - later releases
-
-* Simulation:
-
-  * Parallel processing of - getting data, trading rules, p&l calculation, optimisation
-  * Create live config from a system object (Put final value of estimates into a yaml file) 
-  * Check systems have correct attributes; check turnover, minimum size, right forecast scalars (distribution across instruments) etc
-  * Check does 'cheap rules' not work when fixed instrument rules, know about weight==0
-  * Refactor yaml code to drop pyyaml (no long supported)
-  * Add risk overlay
-
-
-* Live trading:
-
-  * accounting
-  * order / position reconciliation
-  * issue market order 
-  * execution algos
-  * control functions
-  * get pricing data system 
-  * Reporting: 
-    * risk report
-      * risk by asset class
-    * interrogate signal object generated at run time
-    * p&l report
-    * trades report
-    
