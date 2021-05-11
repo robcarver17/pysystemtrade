@@ -164,10 +164,10 @@ def _apply_float_override(override_as_float: float,
 
     new_trade_value = override_new_position - original_position_no_override
 
-    proposed_trade.replace_required_trade_size_only_use_for_unsubmitted_trades(
+    new_trade = proposed_trade.replace_required_trade_size_only_use_for_unsubmitted_trades(
         tradeQuantity(new_trade_value))
 
-    return proposed_trade
+    return new_trade
 
 
 def _apply_reduce_only(
@@ -187,10 +187,10 @@ def _apply_reduce_only(
         # Reducing trade and sign not changing, we'll allow
         new_trade_value = proposed_trade_value
 
-    proposed_trade.replace_required_trade_size_only_use_for_unsubmitted_trades(
+    new_trade = proposed_trade.replace_required_trade_size_only_use_for_unsubmitted_trades(
         tradeQuantity(new_trade_value))
 
-    return proposed_trade
+    return new_trade
 
 
 def _apply_no_trading(proposed_trade: Order):
