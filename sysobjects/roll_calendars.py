@@ -116,22 +116,20 @@ def _check_row_of_row_calendar(calendar_row: pd.Series,
     carry_contract = calendar_row.carry_contract
     roll_date = calendar_row.name
 
-    checks_okay_this_row = True
-
     try:
         current_prices = dict_of_futures_contract_prices[current_contract]
     except KeyError:
         print(
             "On roll date %s contract %s is missing from futures prices" %
             (roll_date, current_contract))
-        checks_okay_this_row = False
+        return False
     try:
         next_prices = dict_of_futures_contract_prices[next_contract]
     except KeyError:
         print(
             "On roll date %s contract %s is missing from futures prices" %
             (roll_date, next_contract))
-        checks_okay_this_row = False
+        return False
 
     try:
         carry_prices = dict_of_futures_contract_prices[carry_contract]
@@ -139,7 +137,7 @@ def _check_row_of_row_calendar(calendar_row: pd.Series,
         print(
             "On roll date %s contract %s is missing from futures prices" %
             (roll_date, carry_contract))
-        checks_okay_this_row = False
+        return False
 
     try:
         current_price = current_prices.loc[roll_date]
@@ -148,7 +146,7 @@ def _check_row_of_row_calendar(calendar_row: pd.Series,
             "Roll date %s missing from prices for %s"
             % (roll_date, current_contract)
         )
-        checks_okay_this_row = False
+        return False
 
     try:
         next_price = next_prices.loc[roll_date]
@@ -157,19 +155,19 @@ def _check_row_of_row_calendar(calendar_row: pd.Series,
             "Roll date %s missing from prices for %s"
             % (roll_date, next_contract)
         )
-        checks_okay_this_row = False
+        return False
 
     if np.isnan(current_price):
         print(
             "NAN for price on %s for %s " %
             (roll_date, current_contract))
-        checks_okay_this_row = False
+        return False
 
     if np.isnan(next_price):
         print(
             "NAN for price on %s for %s " %
             (roll_date, current_contract))
-        checks_okay_this_row = False
+        return  False
 
-    return checks_okay_this_row
+    return True
 
