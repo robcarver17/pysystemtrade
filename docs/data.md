@@ -25,7 +25,7 @@ Table of Contents
       * [Roll calendars from existing 'multiple prices' .csv files](#roll-calendars-from-existing-multiple-prices-csv-files)
       * [Roll calendars shipped in .csv files](#roll-calendars-shipped-in-csv-files)
    * [Creating and storing multiple prices](#creating-and-storing-multiple-prices)
-      * [Creating multiple prices from adjusted prices](#creating-multiple-prices-from-adjusted-prices)
+      * [Creating multiple prices from contract prices](#creating-multiple-prices-from-contract-prices)
       * [Writing multiple prices from .csv to database](#writing-multiple-prices-from-csv-to-database)
    * [Creating and storing back adjusted prices](#creating-and-storing-back-adjusted-prices)
       * [Changing the stitching method](#changing-the-stitching-method)
@@ -299,7 +299,7 @@ A *valid* roll calendar will have current and next contract prices on the roll d
 
 #### Manually editing roll calendars
 
-Roll calendars are stored in .csv format [and here is an example](/data/futures/roll_calendars_csv/EDOLLAR.csv). Of course you could put these into Mongo DB, or Arctic, but I like the ability to hack them if required; plus we only use them when starting the system up from scratch. If you have to manually edit your .csv roll calendars, you can easily load them up and check they are monotonic and valid. The function [`check_saved_roll_calendar` is your friend.](/sysinit/futures/rollcalendars_from_arcticprices_to_csv.py). Just make sure you are using the right datapath.
+Roll calendars are stored in .csv format [and here is an example](/data/futures/roll_calendars_csv/EDOLLAR.csv). Of course you could put these into Mongo DB, or Arctic, but I like the ability to hack them if required; plus we only use them when starting the system up from scratch. If you have to manually edit your .csv roll calendars, you can easily load them up and check they are monotonic and valid. The function [`check_saved_roll_calendar`](/sysinit/futures/rollcalendars_from_arcticprices_to_csv.py) is your friend. Just make sure you are using the right datapath.
 
 
 <a name="roll_calendars_from_multiple"></a>
@@ -326,7 +326,7 @@ If you are too lazy even to do the previous step, I've done it for you and you c
 The next stage is to create and store *multiple prices*. Multiple prices are the price and contract identifier for the current contract we're holding, the next contract we'll hold, and the carry contract we compare with the current contract for the carry trading rule. They are required for the next stage, calculating back-adjusted prices, but are also used directly by the carry trading rule in a backtest. Constructing them requires a roll calendar, and prices for individual futures contracts. You can see an example of multiple prices [here](/data/futures/multiple_prices_csv/AEX.csv). Obviously this is a .csv, but the internal representation of a dataframe will look pretty similar.
 
 
-### Creating multiple prices from adjusted prices
+### Creating multiple prices from contract prices
 
 The [relevant script is here](/sysinit/futures/multipleprices_from_arcticprices_and_csv_calendars_to_arctic.py).
 
