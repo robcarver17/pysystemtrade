@@ -18,3 +18,12 @@ restats
 .idea
 .project
 .pydevproject
+
+# pyenv
+.python-version
+
+# venv
+env/
+
+# libreoffice
+.~lock.*
