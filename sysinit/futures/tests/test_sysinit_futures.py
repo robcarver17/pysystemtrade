@@ -11,7 +11,7 @@ class TestFuturesInit:
         input_date_index_name="Time",
         input_skiprows=0,
         input_skipfooter=0,
-        input_date_format='%Y-%m-%dT%M:%H:%S%z',
+        input_date_format='%Y-%m-%dT%H:%M:%S%z',
         input_column_mapping=dict(OPEN='Open', HIGH='High', LOW='Low', FINAL='Close', VOLUME='Volume'))
 
     def test_build_roll_calendar(self, tmp_path, monkeypatch):
@@ -29,7 +29,6 @@ class TestFuturesInit:
         build_and_write_roll_calendar('AUD', output_datapath=output_dir, input_prices=sample_prices,
             input_config=csvRollParametersData())
 
-    @pytest.mark.xfail
     def test_check_saved_roll_calendar(self):
         """
         Tests the function that checks a roll calendar generated from individual contract prices
