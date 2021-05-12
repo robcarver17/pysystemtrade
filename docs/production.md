@@ -1778,7 +1778,7 @@ Tools to control the system's behaviour, including operational risk controls.
 
 Python:
 ```python
-from sysproduction.interactive_controls
+from sysproduction.interactive_controls import interactive_controls 
 interactive_controls()
 ```
 
@@ -2319,7 +2319,7 @@ The linux crontab is a thing of beauty, but it can't (easily?) handle things lik
 
 ### Third party scheduler
 
-There are plenty of third party schedulers, particular if you are working with something like Docker / Pupper.
+There are plenty of third party schedulers, particular if you are working with something like Docker / Puppet.
 
 ### Windows task scheduler
 

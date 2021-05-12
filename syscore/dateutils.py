@@ -534,7 +534,7 @@ MISSING_STRING_PATTERN = "     ???      "
 
 
 def last_run_or_heartbeat_from_date_or_none(last_run_or_heartbeat: datetime.datetime):
-    if last_run_or_heartbeat is missing_data:
+    if last_run_or_heartbeat is missing_data or last_run_or_heartbeat is None:
         last_run_or_heartbeat = MISSING_STRING_PATTERN
     else:
         last_run_or_heartbeat = last_run_or_heartbeat.strftime(
