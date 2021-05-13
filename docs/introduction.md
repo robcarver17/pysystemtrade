@@ -52,7 +52,7 @@ Name: price, dtype: float64
 
 ```python
 data.keys() ## equivalent to data.get_instrument_list
-data['SP500'] ## equivalent to data.get_instrument_price
+data['SP500_micro'] ## equivalent to data.get_instrument_price
 ```
 
 Price data is useful, but is there any other data available? For futures, yes, we can get the data we need to implement a carry rule:
@@ -346,7 +346,7 @@ from systems.forecast_scale_cap import ForecastScaleCap
 
 ## By default we pool esimates across instruments. It's worth telling the system what instruments we want to use:
 #
-my_config.instruments=["EDOLLAR", "US10", "EDOLLAR", "CORN", "SP500"]
+my_config.instruments=["EDOLLAR", "US10", "EDOLLAR", "CORN", "SP500_micro"]
 
 ## this parameter ensures we estimate:
 my_config.use_forecast_scale_estimates=True
@@ -546,7 +546,7 @@ print(my_system.portfolio.get_instrument_diversification_multiplier())
 ```
 
 ```
-                CORN   EDOLLAR     SP500      US10
+                CORN   EDOLLAR     SP500_micro      US10
 2016-05-05  0.273715  0.245994  0.281982  0.198309
 2016-05-06  0.273715  0.245994  0.281982  0.198309
 2016-05-09  0.273715  0.245994  0.281982  0.198309
@@ -568,7 +568,7 @@ Alternatively we can just make up some instrument weights, and diversification m
 *Again if we really couldn't be bothered, this would default to equal weights and 1.0 respectively*
 
 ```python
-my_config.instrument_weights=dict(US10=.1, EDOLLAR=.4, CORN=.3, SP500=.8)
+my_config.instrument_weights=dict(US10=.1, EDOLLAR=.4, CORN=.3, SP500_micro=.8)
 my_config.instrument_div_multiplier=1.5
 my_config.use_instrument_weight_estimates = False
 my_config.use_instrument_div_mult_estimates = False
@@ -621,7 +621,7 @@ To speed things up you can also pass a dictionary to `Config()`. To reproduce th
 
 ```python
 from sysdata.configdata import Config
-my_config=Config(dict(trading_rules=dict(ewmac8=ewmac_8, ewmac32=ewmac_32), instrument_weights=dict(US10=.1, EDOLLAR=.4, CORN=.3, SP500=.2), instrument_div_multiplier=1.5, forecast_scalars=dict(ewmac8=5.3, ewmac32=2.65), forecast_weights=dict(ewmac8=0.5, ewmac32=0.5), forecast_div_multiplier=1.1
+my_config=Config(dict(trading_rules=dict(ewmac8=ewmac_8, ewmac32=ewmac_32), instrument_weights=dict(US10=.1, EDOLLAR=.4, CORN=.3, SP500_micro=.2), instrument_div_multiplier=1.5, forecast_scalars=dict(ewmac8=5.3, ewmac32=2.65), forecast_weights=dict(ewmac8=0.5, ewmac32=0.5), forecast_div_multiplier=1.1
 ,percentage_vol_target=25, notional_trading_capital=500000, base_currency="GBP"))
 my_config
 ```
