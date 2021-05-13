@@ -117,3 +117,9 @@ R1000,50,Equity,USD,0.25,1.5,0,0,E-Mini Russell 1000 Value Index Futures
 SGD,100000,FX,SGD,0.000125,3.5,0,0,SGX US Dollar in Singapore Dollar Futures (Full-Sized)
 SOFR,2500,Bond,USD,0.0025,1.5,0,0,Secured Overnight Financing Rate 3-month average of rates
 TOPIX,1000,Equity,JPY,0.125,50,0,0,Japan Mini Topix
+CRUDE_W_mini,500,OilGas,USD,0.0125,1.5,0,0,Light sweet crude Winter mini
+GAS_US_mini,2500,OilGas,USD,0.0025,1.5,0,0,Natural gas US mini
+GOLD_micro,10,Metals,USD,0.1,0.25,0,0,Gold micro
+KOSPI_mini,50000,Equity,KRW,0.02,8500,0,0,KOSPI mini
+NASDAQ_micro,2,Equity,USD,0.25,0.25,0,0,NASDAQ micro
+SP500_micro,5,Equity,USD,0.125,0.25,0,0,S&P 500 micro

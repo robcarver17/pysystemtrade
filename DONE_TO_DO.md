@@ -1,5 +1,36 @@
 # Release notes
 
+## Version 1.01
+
+* Added smaller contract sizes to IB config
+
+This update will switch to trading smaller contracts in several instruments. This allows more granular positions to be taken. These smaller contracts still pass my standard tests for volume and trading costs. It won't modify the database history of previously held positions. 
+
+If you want to use the small contracts purely for backtesting, and you are using the shipped .csv files for data, you only need to:
+
+- Modify your backtest .yaml file(s). Delete the large instruments and replace with the following new instruments: CRUDE_W_mini, GAS_US_mini, GOLD_micro, KOSPI_mini, NASDAQ_micro, SP500_micro
+
+If you want to use the smaller contracts in production:
+
+- Stop all running processes if any
+- The trade stacks should all be clear once you have done this
+- Backup all your data
+- Pull and install the update
+- Run the scripts [instruments_csv_mongo.py](/sysinit/futures/instruments_csv_mongo.py) and [roll_parameters_csv_mongo.py](/sysinit/futures/roll_parameters_csv_mongo.py) to copy the new roll config and instrument config to the database (It will warn you it's deleting your existing config, but unless you have something different from the contents of the shipped .csv files that shouldn't be an issue)
+- Run the script [clone_large_to_small_contracts.py](/sysinit/futures/clone_large_to_small_contracts.py) to create a clone of the individual futures prices, roll calendars, multiple prices, and adjusted prices (clones large contract files to become smaller contract files).
+- Modify your production backtest .yaml file(s) so the instrument weight on the larger contracts is zero, and move the instrument weights to the following new instruments: CRUDE_W_mini, GAS_US_mini, GOLD_micro, KOSPI_mini, NASDAQ_micro, SP500_micro
+- If you are using position thresholding, consider removing or modifying the parameters to reflect the smaller contracts.
+- Run update_sampled_contracts, interactive_manual_check_historical_prices (for the relevant instruments), update_multiple_adjusted_prices, update_system_backtests, update_strategy_orders; and check all is as expected
+- Check that the instrument trade stack contains a series of orders closing your large contract positions (if any), and opening up new positions in the smaller contracts (if any) (there may be other orders if there have been price changes since you last ran your production backtest)
+- Restart all running processes
+- The system will trade out of one set of positions and into the other (this will happen naturally with the stack_handler process, or you can use interactive_order_stack to control the process manually)
+- Once all the positions are closed, to tidy things up you can remove the old instruments entirely from your backtest .yaml files
+
+Note that the large contract prices will continue to be updated (best to keep doing this, in case we decide to switch back), and we'll still have history of prices and positions for the large contracts (which is good, or stuff like P&L and trade reporting will break horribly). 
+
+
+
+
 ## Version 1.00
 
 - Fixed a few bugs
