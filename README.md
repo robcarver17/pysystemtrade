@@ -21,7 +21,7 @@ See [DONE_TO_DO](DONE_TO_DO.md) for release notes, and future plans.
 
 ## Description
 
-**pysystemtrade** is the open source version of my own backtesting engine that implements systems according to the framework outlined in my book ["Systematic Trading"](https://www.systematicmoney.org/systematic-trading), which is further developed on [my blog](https://qoppac.blogspot.com).
+**pysystemtrade** is the open source version of my own backtesting and trading engine that implements systems according to the framework outlined in my book ["Systematic Trading"](https://www.systematicmoney.org/systematic-trading), which is further developed on [my blog](https://qoppac.blogspot.com).
 
 For a longer explanation of the motivation and point of this project see my [blog post.](https://qoppac.blogspot.com/2015/12/pysystemtrade.html)
 
@@ -40,7 +40,10 @@ pysystemtrade uses the [IB insync library](https://ib-insync.readthedocs.io/api.
 
 [Working with futures data](/docs/data.md)
 
-[Production system](/docs/) Documentation incomplete and in progress!
+[Connecting to interactive brokers](/docs/IB.md)
+
+[Running as a production system](/docs/production.md)
+ 
 
 ## Dependencies
 

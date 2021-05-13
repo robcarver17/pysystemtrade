@@ -79,7 +79,7 @@ my_system.rules.get_raw_forecast("EDOLLAR", "ewmac32").tail(5)
 from systems.forecast_scale_cap import ForecastScaleCap
 
 # we can estimate these ourselves
-my_config.instruments = ["US10", "EDOLLAR", "CORN", "SP500"]
+my_config.instruments = ["US10", "EDOLLAR", "CORN", "SP500_micro"]
 my_config.use_forecast_scale_estimates = True
 
 fcs = ForecastScaleCap()
@@ -212,7 +212,7 @@ Another approach is to create a config object
 my_config = Config(
     dict(
         trading_rules=dict(ewmac8=ewmac_8, ewmac32=ewmac_32),
-        instrument_weights=dict(US10=0.1, EDOLLAR=0.4, CORN=0.3, SP500=0.2),
+        instrument_weights=dict(US10=0.1, EDOLLAR=0.4, CORN=0.3, SP500_micro=0.2),
         instrument_div_multiplier=1.5,
         forecast_scalars=dict(ewmac8=5.3, ewmac32=2.65),
         forecast_weights=dict(ewmac8=0.5, ewmac32=0.5),
