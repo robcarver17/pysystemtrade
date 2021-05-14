@@ -78,6 +78,13 @@ class csvFuturesContractPriceData(futuresContractPriceData):
         """
         keyname_as_list = keyname.split("_")
 
+        if len(keyname_as_list) == 4:
+            keyname_as_list = [
+                "%s_%s_%s" % (keyname_as_list[0], keyname_as_list[1], keyname_as_list[2]),
+                keyname_as_list[3],
+            ]
+
+
         # It's possible to have GAS_US_20090700.csv, so we only take the second
         if len(keyname_as_list) == 3:
             keyname_as_list = [
