@@ -5,7 +5,7 @@ Represent contract dates and expiries
 import datetime
 
 from syscore.dateutils import contract_month_from_number, month_from_contract_letter
-from syscore.genutils import list_of_items_separated_by_underscores, np_convert
+from syscore.genutils import np_convert
 
 NO_EXPIRY_DATE_PASSED = ""
 NO_DAY_PASSED = object()
@@ -99,7 +99,8 @@ class singleContractDate(object):
                 "contractDate(contract_date) needs to be defined as a str, yyyymm or yyyymmdd"
             )
 
-        self._set_expiry_date(expiry_date, approx_expiry_offset)
+        self._expiry_date = expiry_date
+        self._approx_expiry_offset = approx_expiry_offset
 
 
     def __repr__(self):
@@ -120,7 +121,7 @@ class singleContractDate(object):
         :return: None
         """
 
-        self._date_str = date_str + "00"
+        self._date_str = ''.join([date_str, "00"])
         self._only_has_month = True
 
 
@@ -139,13 +140,6 @@ class singleContractDate(object):
             self._only_has_month = False
 
 
-    # Hidden setter only used in init
-    def _set_expiry_date(self, expiry_date: expiryDate, approx_expiry_offset: int=0):
-
-        if expiry_date is NO_EXPIRY_DATE_PASSED:
-            expiry_date = self._get_expiry_date_from_approx_expiry(approx_expiry_offset)
-
-        self._expiry_date = expiry_date
 
     def _get_expiry_date_from_approx_expiry(self, approx_expiry_offset):
         # guess from the contract date - we can always correct this later
@@ -166,7 +160,12 @@ class singleContractDate(object):
 
     @property
     def expiry_date(self):
-        return self._expiry_date
+        expiry_date =self._expiry_date
+        if expiry_date is NO_EXPIRY_DATE_PASSED:
+            approx_expiry_offset = self._approx_expiry_offset
+            expiry_date = self._get_expiry_date_from_approx_expiry(approx_expiry_offset)
+
+        return expiry_date
 
     @property
     def only_has_month(self):
@@ -297,7 +296,8 @@ class contractDate(object):
             self,
             date_str,
             expiry_date=NO_EXPIRY_DATE_PASSED,
-            approx_expiry_offset=0):
+            approx_expiry_offset=0,
+            simple=False):
         """
         Vanilla
         contractDate("202003")
@@ -319,9 +319,12 @@ class contractDate(object):
         :param expiry_date:  expiryDate object, or list same length as contract date list
         :param approx_expiry_offset: int (applied to all expiry dates if a spread)
         """
-
-        contract_date_list = resolve_date_string_into_list_of_single_contract_dates(date_str, expiry_date=expiry_date, approx_expiry_offset=approx_expiry_offset)
+        if simple:
+            contract_date_list = [singleContractDate(date_str)]
+        else:
+            contract_date_list = resolve_date_string_into_list_of_single_contract_dates(date_str, expiry_date=expiry_date, approx_expiry_offset=approx_expiry_offset)
         self._list_of_single_contract_dates = contract_date_list
+
 
     def __repr__(self):
         return self.key
@@ -512,7 +515,7 @@ def resolve_date_string_into_list_of_date_str(date_str) -> list:
     if type(date_str) is list:
         return date_str
 
-    date_str_as_list = list_of_items_separated_by_underscores(date_str)
+    date_str_as_list = date_str.split("_")
     return date_str_as_list
 
 def resolve_expiry_date_into_list_of_expiry_dates(expiry_date, date_str_as_list):
@@ -561,4 +564,4 @@ def contract_given_tuple(contract_date: contractDate, year_value:int, month_str:
     month_int = month_from_contract_letter(month_str)
     date_str = from_contract_numbers_to_contract_string(year_value, month_int, new_day_number)
 
-    return contractDate(date_str)
+    return contractDate(date_str, simple=True)

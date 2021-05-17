@@ -81,7 +81,7 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
 
         list_of_contract_tuples = self._get_contract_tuples_with_price_data()
         list_of_contracts = [
-            futuresContract(contract_tuple[0], contract_tuple[1])
+            futuresContract.from_two_strings(contract_tuple[0], contract_tuple[1])
             for contract_tuple in list_of_contract_tuples
         ]
 

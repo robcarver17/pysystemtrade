@@ -102,6 +102,7 @@ def _create_approx_calendar_from_earliest_contract(earliest_contract_with_roll_d
 
         roll_calendar_as_list.append(new_row)
         current_contract = copy(next_contract)
+        print(current_contract)
 
     roll_calendar = roll_calendar_as_list.to_pd_df()
 

@@ -18,11 +18,19 @@ class dictFuturesContractFinalPrices(dict):
         Time sorted contract ids
         :return:
         """
-
-        all_contract_date_str = listOfContractDateStr(self.keys())
-        all_contract_date_str_sorted = all_contract_date_str.sorted_date_str()
+        all_contract_date_str_sorted = getattr(self, "_all_contract_date_str_sorted", missing_data)
+        if all_contract_date_str_sorted is missing_data:
+            all_contract_date_str_sorted = self._get_and_set_sorted_contract_date_str()
 
         return all_contract_date_str_sorted
+
+    def _get_and_set_sorted_contract_date_str(self):
+        all_contract_date_str = listOfContractDateStr(self.keys())
+        all_contract_date_str_sorted = all_contract_date_str.sorted_date_str()
+        self._all_contract_date_str_sorted = all_contract_date_str_sorted
+
+        return all_contract_date_str_sorted
+
 
     def last_contract_date_str(self):
 

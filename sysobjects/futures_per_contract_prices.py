@@ -24,6 +24,12 @@ class futuresContractPrices(pd.DataFrame):
         _validate_price_data(price_data_as_df)
         price_data_as_df.index.name = "index"  # for arctic compatibility
         super().__init__(price_data_as_df)
+        self._downcast()
+
+    def _downcast(self):
+        self[VOLUME_COLUMN] = pd.to_numeric(self['VOLUME'], downcast="unsigned")
+        for col_name in PRICE_DATA_COLUMNS:
+            self[col_name] = pd.to_numeric(self[col_name], downcast='float')
 
 
     @classmethod

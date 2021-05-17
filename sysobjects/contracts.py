@@ -48,8 +48,10 @@ class futuresContract(object):
 
     """
 
-    def __init__(self, instrument_object: futuresInstrument, contract_date_object: contractDate,
-                 parameter_object: parametersForFuturesContract = arg_not_supplied):
+    def __init__(self, instrument_object: futuresInstrument,
+                 contract_date_object: contractDate,
+                 parameter_object: parametersForFuturesContract = arg_not_supplied,
+                 simple: bool = False):
         """
         futuresContract(futuresInstrument, contractDate)
         OR
@@ -58,8 +60,8 @@ class futuresContract(object):
         :param instrument_object: str or futuresInstrument
         :param contract_date_object: contractDate or contractDateWithRollParameters or str
         """
-
-        instrument_object, contract_date_object = _resolve_args_for_futures_contract(instrument_object, contract_date_object)
+        if not simple:
+            instrument_object, contract_date_object = _resolve_args_for_futures_contract(instrument_object, contract_date_object)
 
         if parameter_object is arg_not_supplied:
             parameter_object = parametersForFuturesContract()
@@ -68,6 +70,16 @@ class futuresContract(object):
         self._contract_date = contract_date_object
         self._params = parameter_object
 
+    @classmethod
+    def from_two_strings(futuresContract, instrument_code: str,
+                         contract_date_str: str):
+
+        instrument_object = futuresInstrument(instrument_code)
+        contract_date = contractDate(contract_date_str, simple=True)
+
+        return futuresContract(instrument_object,
+                               contract_date,
+                               simple=True)
 
     def specific_log(self, log):
         new_log = log.setup(instrument_code = self.instrument_code, contract_date = self.date_str)

@@ -118,7 +118,7 @@ class contractWithRollParametersAndPrices(object):
         while try_contract.date_str <= final_contract_date:
             if try_contract.date_str in list_of_contract_dates:
                 return try_contract
-            try_contract = getattr(self, contract_attribute_str)()
+            try_contract = getattr(try_contract, contract_attribute_str)()
 
         # Nothing found
         return missing_data
@@ -163,7 +163,7 @@ class contractWithRollParametersAndPrices(object):
         while try_contract.date_str >= first_contract_date:
             if try_contract.date_str in list_of_contract_dates:
                 return try_contract
-            try_contract = getattr(self, contract_attribute_str)()
+            try_contract = getattr(try_contract, contract_attribute_str)()
 
         # Nothing found
         return missing_data
