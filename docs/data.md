@@ -155,7 +155,17 @@ Now let's turn our attention to getting prices for individual futures contracts.
 
 This step is neccessary if you're going to run production code or you want newer data, newer than the data that is shipped by default. If you just want to run backtests,  but with data in a database rather than .csv, and you're not bothered about using old data, you can skip ahead to [multiple prices](#mult_adj_csv_to_arctic).
 
-We could get this from anywhere, but I'm going to use Barchart. As you'll see, the code is quite adaptable to any kind of data source that produces .csv files. You could also use an API; in live trading we use the IB API to update our prices (Barchart also has an API but I don't support that yet). 
+### Getting data from the broker (Interactive brokers)
+
+You can use [this script](/sysinit/futures/seed_price_data_from_IB.py) to get as much historical data as possible from Interactive Brokers. This will include expired contracts, but in any case will go back for a year of daily data. 
+
+### Getting data from an external data source (Barchart)
+
+OK, so we are limited in the historical data we can get from Interactive Brokers. What are the alternatives?
+
+We could get this from anywhere, but I'm going to use Barchart. As you'll see, the code is quite adaptable to any kind of data source that produces .csv files. You could also use an API; in live trading we use the IB API to update our prices (Barchart also has an API but I don't support that). 
+
+(Don't get data from both Barchart and IB. If you get the IB data first, the Barchart code will overwrite it. If you get the Barchart data first, the IB data won't be written.)
 
 Once we have the data we can also store it, in principal, anywhere but I will be using the open source [Arctic library](https://github.com/manahl/arctic) which was released by my former employers [AHL](https://www.ahl.com). This sits on top of Mongo DB (so we don't need yet another database) but provides straightforward and fast storage of pandas DataFrames. Once we have the data we can also copy it to .csv files.
 

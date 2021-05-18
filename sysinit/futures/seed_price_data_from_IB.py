@@ -25,7 +25,7 @@ def seed_price_data_for_contract(data: dataBlob, contract: futuresContract):
 
 if __name__ == "__main__":
     print("Get initial price data from IB")
-    instrument_code = input("Instrument code? <return to abort")
+    instrument_code = input("Instrument code? <return to abort> ")
     if instrument_code == "":
         exit()
 
