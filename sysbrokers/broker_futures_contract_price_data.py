@@ -1,3 +1,5 @@
+from syscore.dateutils import Frequency, DAILY_PRICE_FREQ
+
 from syscore.objects import missing_contract, missing_data
 
 
@@ -29,7 +31,9 @@ class brokerFuturesContractPriceData(futuresContractPriceData):
             "brokerFuturesContractPriceData")):
         super().__init__(log=log)
 
-
+    def get_prices_at_frequency_for_potentially_expired_contract_object(self, contract: futuresContract,
+            freq: Frequency = DAILY_PRICE_FREQ) -> futuresContractPrices:
+        raise NotImplementedError
 
     def get_ticker_object_for_order(self, order: contractOrder) -> tickerObject:
         raise NotImplementedError

@@ -146,6 +146,14 @@ class ibFuturesContractPriceData(brokerFuturesContractPriceData):
         raise NotImplementedError(
             "Do not use get_contracts_with_price_data with IB")
 
+    def get_prices_at_frequency_for_potentially_expired_contract_object(self, contract: futuresContract,
+                                                                           freq: Frequency = DAILY_PRICE_FREQ) -> futuresContractPrices:
+
+
+        price_data = self._get_prices_at_frequency_for_contract_object_no_checking(contract,
+                                                                                   freq=freq,
+                                                                                   allow_expired=True)
+        return price_data
 
     def _get_prices_for_contract_object_no_checking(self, contract_object: futuresContract) -> futuresContractPrices:
         price_series  =  self._get_prices_at_frequency_for_contract_object_no_checking(
@@ -155,7 +163,8 @@ class ibFuturesContractPriceData(brokerFuturesContractPriceData):
         return price_series
 
     def _get_prices_at_frequency_for_contract_object_no_checking(self, contract_object: futuresContract,
-                                                                 freq: Frequency
+                                                                 freq: Frequency,
+                                                                 allow_expired = False,
                                                     ) -> futuresContractPrices:
 
         """
@@ -172,12 +181,27 @@ class ibFuturesContractPriceData(brokerFuturesContractPriceData):
 
         contract_object_with_ib_broker_config = (
             self.futures_contract_data.get_contract_object_with_IB_data(
-                contract_object
+                contract_object,
+                allow_expired=allow_expired
             )
         )
         if contract_object_with_ib_broker_config is missing_contract:
             new_log.warn("Can't get data for %s" % str(contract_object))
             return futuresContractPrices.create_empty()
+
+        price_data = self._get_prices_at_frequency_for_ibcontract_object_no_checking(
+            contract_object_with_ib_broker_config,
+            freq=freq
+        )
+
+        return price_data
+
+    def _get_prices_at_frequency_for_ibcontract_object_no_checking(self,
+                                                                   contract_object_with_ib_broker_config,
+                                                                 freq: Frequency
+                                                    ) -> futuresContractPrices:
+
+        new_log = contract_object_with_ib_broker_config.log(self.log)
 
         price_data = self.ib_client.broker_get_historical_futures_data_for_contract(
             contract_object_with_ib_broker_config, bar_freq=freq)
@@ -185,13 +209,13 @@ class ibFuturesContractPriceData(brokerFuturesContractPriceData):
         if price_data is missing_data:
             new_log.warn(
                 "Something went wrong getting IB price data for %s" %
-                str(contract_object))
+                str(contract_object_with_ib_broker_config))
             price_data = futuresContractPrices.create_empty()
 
         elif len(price_data) == 0:
             new_log.warn(
                 "No IB price data found for %s" %
-                str(contract_object))
+                str(contract_object_with_ib_broker_config))
             price_data = futuresContractPrices.create_empty()
         else:
             price_data = futuresContractPrices(price_data)

@@ -49,7 +49,9 @@ class ibFuturesContractData(brokerFuturesContractData):
     def ib_futures_instrument_data(self) -> ibFuturesInstrumentData:
         return ibFuturesInstrumentData(self.ibconnection, log = self.log)
 
-    def get_contract_object_with_IB_data(self, futures_contract: futuresContract) ->futuresContract:
+    def get_contract_object_with_IB_data(self,
+                                         futures_contract: futuresContract,
+                                         allow_expired: bool= False) ->futuresContract:
         """
         Return contract_object with IB instrument meta data and correct expiry date added
 
@@ -62,7 +64,8 @@ class ibFuturesContractData(brokerFuturesContractData):
             return missing_contract
 
         futures_contract_with_ib_data = futures_contract_with_ib_data.update_expiry_dates_one_at_a_time_with_method(
-            self._get_actual_expiry_date_given_single_contract_with_ib_metadata)
+            self._get_actual_expiry_date_given_single_contract_with_ib_metadata,
+            allow_expired=allow_expired)
 
         return futures_contract_with_ib_data
 
@@ -90,7 +93,8 @@ class ibFuturesContractData(brokerFuturesContractData):
 
 
     def _get_actual_expiry_date_given_single_contract_with_ib_metadata(self,
-                                                futures_contract_with_ib_data: futuresContract
+                                                futures_contract_with_ib_data: futuresContract,
+                                                                       allow_expired = False
                                                                        ) -> expiryDate:
         log = futures_contract_with_ib_data.specific_log(self.log)
         if futures_contract_with_ib_data.is_spread_contract():
@@ -98,7 +102,8 @@ class ibFuturesContractData(brokerFuturesContractData):
             return missing_contract
 
         expiry_date = self.ib_client.broker_get_single_contract_expiry_date(
-            futures_contract_with_ib_data
+            futures_contract_with_ib_data,
+            allow_expired = allow_expired
         )
 
         if expiry_date is missing_contract:

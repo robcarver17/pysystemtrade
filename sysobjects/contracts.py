@@ -204,10 +204,10 @@ class futuresContract(object):
 
         return futuresContract(new_instrument_object, contract_date_object, parameter_object=params)
 
-    def update_expiry_dates_one_at_a_time_with_method(self, method):
+    def update_expiry_dates_one_at_a_time_with_method(self, method, **kwargs):
 
         as_list_of_individual_contracts = self.as_list_of_individual_contracts()
-        new_expiries = [method(single_contract) for single_contract in as_list_of_individual_contracts]
+        new_expiries = [method(single_contract, **kwargs) for single_contract in as_list_of_individual_contracts]
 
         for contract_index, expiry_date in enumerate(new_expiries):
             if expiry_date is missing_contract:
