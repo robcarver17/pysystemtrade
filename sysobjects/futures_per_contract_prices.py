@@ -24,10 +24,6 @@ class futuresContractPrices(pd.DataFrame):
         _validate_price_data(price_data_as_df)
         price_data_as_df.index.name = "index"  # for arctic compatibility
         super().__init__(price_data_as_df)
-        self._downcast()
-
-    def _downcast(self):
-        self[VOLUME_COLUMN] = pd.to_numeric(self['VOLUME'], downcast="unsigned")
 
     @classmethod
     def create_empty(futuresContractPrices):

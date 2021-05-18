@@ -65,7 +65,8 @@ class futuresContractPriceData(baseData):
         else:
             return False
 
-    def contracts_with_price_data_for_instrument_code(self, instrument_code: str) -> listOfFuturesContracts:
+    def contracts_with_price_data_for_instrument_code(self,
+                                                      instrument_code: str) -> listOfFuturesContracts:
         """
         Valid contracts
 

@@ -20,7 +20,8 @@ from sysexecution.trade_qty import tradeQuantity
 
 class ibContractsClient(ibClient):
     def broker_get_futures_contract_list(
-            self, futures_instrument_with_ib_data: futuresInstrumentWithIBConfigData) -> list:
+            self, futures_instrument_with_ib_data: futuresInstrumentWithIBConfigData,
+                include_expired: bool = False) -> list:
         ## Returns list of contract date strings YYYYMMDD
 
         specific_log = self.log.setup(
@@ -29,7 +30,8 @@ class ibContractsClient(ibClient):
 
         ibcontract_pattern = ib_futures_instrument(
             futures_instrument_with_ib_data)
-        contract_list = self.ib_get_contract_chain(ibcontract_pattern)
+        contract_list = self.ib_get_contract_chain(ibcontract_pattern,
+                                                   include_expired=include_expired)
         # if no contracts found will be empty
 
         # Extract expiry date strings from these
@@ -358,14 +360,15 @@ class ibContractsClient(ibClient):
 
         return contract_chain
 
-    def ib_get_contract_chain(self, ibcontract_pattern: Contract) -> list:
+    def ib_get_contract_chain(self, ibcontract_pattern: Contract,
+                              include_expired: bool = False) -> list:
         """
         Get all the IB contracts matching a pattern.
 
         :param ibcontract_pattern: ibContract which may not fully specify the contract
         :return: list of ibContracts
         """
-
+        ibcontract_pattern.includeExpired = include_expired
         new_contract_details_list = self.ib.reqContractDetails(
             ibcontract_pattern)
 
