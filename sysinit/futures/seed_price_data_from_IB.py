@@ -25,7 +25,7 @@ def seed_price_data_for_contract(data: dataBlob, contract: futuresContract):
 
     ## Use update to avoid issues with overwriting
     #data.db_futures_contract_price.update_prices_for_contract(contract, prices)
-    data.db_futures_contract_price.write_prices_for_contract_object(new_contract, prices)
+    data.db_futures_contract_price.write_prices_for_contract_object(new_contract, prices, ignore_duplication=True)
 
 if __name__ == "__main__":
     print("Get initial price data from IB")
