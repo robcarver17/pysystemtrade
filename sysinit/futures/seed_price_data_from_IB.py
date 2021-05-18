@@ -13,15 +13,19 @@ def seed_price_data_from_IB(instrument_code):
         seed_price_data_for_contract(data, contract)
 
 def seed_price_data_for_contract(data: dataBlob, contract: futuresContract):
+    print("ASSUMING ROLL YYYYMM IS SAME AS EXPIRY: WILL BE DIFFERENT FOR CERTAIN ENERGY CONTRACTS")
+    date_str = contract.contract_date.date_str[:6]
+    new_contract = futuresContract(contract.instrument,
+                                   date_str)
     prices = data.\
         broker_futures_contract_price. \
-        get_prices_at_frequency_for_potentially_expired_contract_object(contract)
+        get_prices_at_frequency_for_potentially_expired_contract_object(new_contract)
     if len(prices)==0:
         print("No data!")
 
     ## Use update to avoid issues with overwriting
-    data.db_futures_contract_price.update_prices_for_contract(contract, prices)
-
+    #data.db_futures_contract_price.update_prices_for_contract(contract, prices)
+    data.db_futures_contract_price.write_prices_for_contract_object(new_contract, prices)
 
 if __name__ == "__main__":
     print("Get initial price data from IB")
