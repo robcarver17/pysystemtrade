@@ -3,11 +3,11 @@ from sysdata.data_blob import dataBlob
 from sysbrokers.IB.ib_futures_contract_price_data import ibFuturesContractPriceData, futuresContract
 
 def seed_price_data_from_IB(instrument_code):
-    data = dataBlob()
-    data.add_class_list([ibFuturesContractPriceData])
-    list_of_contracts = data.\
-        broker_futures_contract_price.\
-        contracts_with_price_data_for_instrument_code(instrument_code, allow_expired=True)
+data = dataBlob()
+data.add_class_list([ibFuturesContractPriceData])
+list_of_contracts = data.\
+    broker_futures_contract_price.\
+    contracts_with_price_data_for_instrument_code(instrument_code,allow_expired=True)
 
     for contract in list_of_contracts:
         seed_price_data_for_contract(data, contract)

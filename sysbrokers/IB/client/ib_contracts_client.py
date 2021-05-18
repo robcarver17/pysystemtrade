@@ -21,7 +21,7 @@ from sysexecution.trade_qty import tradeQuantity
 class ibContractsClient(ibClient):
     def broker_get_futures_contract_list(
             self, futures_instrument_with_ib_data: futuresInstrumentWithIBConfigData,
-                include_expired: bool = False) -> list:
+                allow_expired: bool = False) -> list:
         ## Returns list of contract date strings YYYYMMDD
 
         specific_log = self.log.setup(
@@ -31,7 +31,7 @@ class ibContractsClient(ibClient):
         ibcontract_pattern = ib_futures_instrument(
             futures_instrument_with_ib_data)
         contract_list = self.ib_get_contract_chain(ibcontract_pattern,
-                                                   include_expired=include_expired)
+                                                   allow_expired=allow_expired)
         # if no contracts found will be empty
 
         # Extract expiry date strings from these
