@@ -28,9 +28,6 @@ class futuresContractPrices(pd.DataFrame):
 
     def _downcast(self):
         self[VOLUME_COLUMN] = pd.to_numeric(self['VOLUME'], downcast="unsigned")
-        for col_name in PRICE_DATA_COLUMNS:
-            self[col_name] = pd.to_numeric(self[col_name], downcast='float')
-
 
     @classmethod
     def create_empty(futuresContractPrices):
