@@ -117,6 +117,7 @@ class ibContractsClient(ibClient):
                             trade_list_for_multiple_legs: tradeQuantity = None
                             ) -> Contract:
 
+
         ibcontract_with_legs = self.ib_futures_contract_with_legs(futures_contract_with_ib_data=futures_contract_with_ib_data,
                                                                   allow_expired = allow_expired,
                                                                   always_return_single_leg=always_return_single_leg,

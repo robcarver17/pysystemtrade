@@ -27,7 +27,10 @@ class tickerWithBS(object):
 # we don't include ibClient since we get that through contracts client
 class ibPriceClient(ibContractsClient):
     def broker_get_historical_futures_data_for_contract(
-        self, contract_object_with_ib_broker_config: futuresContract, bar_freq: Frequency = DAILY_PRICE_FREQ
+        self,
+            contract_object_with_ib_broker_config: futuresContract,
+            bar_freq: Frequency = DAILY_PRICE_FREQ,
+            allow_expired = False
     ) -> pd.DataFrame:
         """
         Get historical daily data
@@ -40,7 +43,9 @@ class ibPriceClient(ibContractsClient):
         specific_log = contract_object_with_ib_broker_config.specific_log(self.log)
 
         ibcontract = self.ib_futures_contract(
-            contract_object_with_ib_broker_config)
+            contract_object_with_ib_broker_config,
+            allow_expired=allow_expired)
+
         if ibcontract is missing_contract:
             specific_log.warn(
                 "Can't resolve IB contract %s"
