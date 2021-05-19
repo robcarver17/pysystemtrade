@@ -145,7 +145,7 @@ class returnsPreProcessor(object):
 
     def get_dict_of_unadjusted_cost_SR_for_asset_name(self, asset_name: str) -> dictOfSR:
         if self.use_pooled_costs:
-            return self.get_dict_of_pooled_SR_costs()
+            return self.get_dict_of_pooled_SR_costs(asset_name)
 
         elif self.use_pooled_turnover:
             return self.get_pooled_SR_costs_using_turnover(asset_name)
@@ -153,12 +153,12 @@ class returnsPreProcessor(object):
         else:
             return self.get_unpooled_cost_SR_for_asset_name(asset_name)
 
-    def get_dict_of_pooled_SR_costs(self) -> dictOfSR:
+    def get_dict_of_pooled_SR_costs(self, asset_name:str) -> dictOfSR:
         self.log.msg("Using pooled cost SR")
 
         dict_of_costs = self.get_dict_of_cost_dicts_by_asset_name()
 
-        pooled_dict_of_costs = dict_of_costs.get_pooled_SR()
+        pooled_dict_of_costs = dict_of_costs.get_pooled_SR(asset_name)
 
         return pooled_dict_of_costs
 
@@ -199,7 +199,7 @@ def _calculate_pooled_turnover_costs(asset_name: str,
                                     turnovers: dict,
                                     dict_of_costs: dictOfSRacrossAssets) -> dictOfSR:
 
-    column_names = dict_of_costs.get_column_names()
+    column_names = turnovers.keys()
     column_SR_dict = dict([
         (column,
          _calculate_pooled_turnover_cost_for_column(asset_name,

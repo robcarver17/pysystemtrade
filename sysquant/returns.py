@@ -26,8 +26,8 @@ class dictOfSR(dict):
 
 
 class dictOfSRacrossAssets(dict):
-    def get_pooled_SR(self) -> dictOfSR:
-        column_names = self.get_column_names()
+    def get_pooled_SR(self, asset_name) -> dictOfSR:
+        column_names = self.get_column_names_for_asset(asset_name)
         column_SR_dict = dict([
             (column, self.get_avg_SR_for_column_name_across_dict(column))
             for column in column_names])
@@ -41,10 +41,12 @@ class dictOfSRacrossAssets(dict):
         avg_SR = np.mean(list_of_SR)
         return avg_SR
 
-    def get_column_names(self) -> list:
-        ## all names should match so shouldn't matter
-        column_names = list(self.values())[0].keys()
-        return column_names
+
+    def get_column_names_for_asset(self, asset_name) -> list:
+        return list(self.get_SR_dict_for_asset(asset_name).keys())
+
+    def get_SR_dict_for_asset(self, asset_name) -> dictOfSR:
+        return self[asset_name]
 
 class returnsForOptimisation(pd.DataFrame):
     def __init__(self, *args, frequency: str = "W", pooled_length: int = 1, **kwargs):

@@ -22,6 +22,7 @@ class genericOptimiser(object):
         self._log = log
         self._returns_processor = returns_pre_processor
         self._optimiser_over_time = optimiser_over_time
+        self._asset_name = asset_name
 
 
     @property
@@ -36,6 +37,10 @@ class genericOptimiser(object):
     def apply_cost_weights(self) -> bool:
         apply_cost_weight = self.weighting_params['apply_cost_weight']
         return apply_cost_weight
+
+    @property
+    def asset_name(self) -> str:
+        return self._asset_name
 
     @property
     def returns_processor(self) -> returnsPreProcessor:
@@ -68,7 +73,9 @@ class genericOptimiser(object):
         # cleaning is done elsewhere
 
         if self.apply_cost_weights:
-            costs_dict = self.returns_processor.get_dict_of_pooled_SR_costs()
+            asset_name = self.asset_name
+            costs_dict = self.\
+                returns_processor.get_dict_of_unadjusted_cost_SR_for_asset_name(asset_name)
             weights =  adjust_dataframe_of_weights_for_SR_costs(weights=weights,
                                                                 costs_dict=costs_dict)
 

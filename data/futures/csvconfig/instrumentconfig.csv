@@ -73,7 +73,7 @@ GASOILINE,42000,OilGas,USD,0.00035,1.5,0,0,RBOB Gasoline US
 HEATOIL,42000,OilGas,USD,0.00015,1.5,0,0,Heating oil
 ALUMINIUM,25,Metals,USD,2.375,1.5,0,0,NYMEX Aluminum Index
 SILVER,1000,Metals,USD,0.0025,1.5,0,0,NYMEX Silver Index
-CAD,100000,FX,USD,0.0000250,1.5,0,0,CADUSD currency
+CAD,100000,FX,USD,2.5E-05,1.5,0,0,CADUSD currency
 CHF,125000,FX,USD,5E-05,1.5,0,0,CHFUSD currency
 SEK,2000000,FX,USD,2E-05,1.5,0,0,SEKUSD currency
 NOK,2000000,FX,USD,3E-05,1.5,0,0,NOKUSD currency
@@ -86,7 +86,7 @@ DAX,1,Equity,EUR,4,0.4,0,0,DAX 30 Index (Deutsche Aktien Xchange 30)
 DOW,0.5,Equity,USD,0.5,0.25,0,0,Micro E-Mini Dow Jones Industrial Average Index
 RUSSELL,5,Equity,USD,0.1,0.25,0,0,Micro E-Mini Russell 2000 Index
 SP400,100,Equity,USD,0.3,1.5,0,0,E-mini S&P Midcap 400 Futures
-GBPEUR,125000,FX,GBP,7.5E-05,1.500000,0,0,GBPEUR currency
+GBPEUR,125000,FX,GBP,7.5E-05,1.5,0,0,GBPEUR currency
 YENEUR,125000,FX,JPY,0.01,1.5,0,0,YENEUR currency
 BUXL,1000,Bond,EUR,0.01,2,0,0,German Buxl 15 to 30 year bond
 BTP3,1000,Bond,EUR,0.005,2,0,0,Short-Term Euro-BTP Italian Government Bond
@@ -108,7 +108,7 @@ FTSETAIWAN,40,Equity,USD,0.125,1.5,0,0,FTSE Taiwan RIC Capped Price Return TWD I
 INR,200,FX,USD,0.01,2.85,0,0,SGX Indian Rupee in US Dollar Futures
 IRON,100,Metals,USD,0.8,2.85,0,0,SGX TSI Iron Ore Futures
 JGB,1000000,Bond,JPY,0.005,500,0,0,Standardized 6% 10-Year Japanese Government Bond
-KRWUSD,25000,FX,USD,0.0002,2.85,0,0,SGX Korean Won in US Dollar Futures (Mini)
+KRWUSD_mini,25000,FX,USD,0.0002,2.85,0,0,SGX Korean Won in US Dollar Futures (Mini)
 MSCISING,100,Equity,SGD,0.075,4,0,0,MSCI Singapore Free Index
 MUMMY,1000,Equity,JPY,0.5,50,0,0,TSE Mothers Index
 NIFTY,2,Equity,USD,1.75,2.85,0,0,CNX Nifty Index
@@ -123,3 +123,106 @@ GOLD_micro,10,Metals,USD,0.1,0.25,0,0,Gold micro
 KOSPI_mini,50000,Equity,KRW,0.02,8500,0,0,KOSPI mini
 NASDAQ_micro,2,Equity,USD,0.25,0.25,0,0,NASDAQ micro
 SP500_micro,5,Equity,USD,0.125,0.25,0,0,S&P 500 micro
+LUMBER,110,,USD,5.39999999999998,0.85,0,0,Random Length Lumber
+Ethereum,50,,USD,3.25,10,0,0,CME CF Ether-Dollar Reference Rate
+EU-Construction,50,,EUR,1.65000000000003,2,0,0,Dow Jones STOXX 600 Construction & Materials
+EU-DIV50,100,,EUR,0.100000000000001,2,0,0,Dow Jones EURO STOXX 50 Index-Dividenden
+FED,4167,,USD,0.001249999999999,0.85,0,0,30 Day Fed Funds
+MID-DAX,5,,EUR,100,2,0,0,Midcap DAX
+FTSEINDO,5,,USD,12.5,1.5,0,0,FTSE Indonesia Index
+EURCHF,125000,,CHF,9.9999999999989E-05,0.85,0,0,Euro/chf
+USIRS5ERIS,1000,,USD,0.009999999999998,0.85,0,0,5-Year Eris Swap Futures
+EU-DJ-UTIL,50,,EUR,0.449999999999989,2,0,0,Dow Jones Euro STOXX Utilities Index
+EU-DJ-OIL,50,,EUR,0.199999999999989,2,0,0,Dow Jones Euro STOXX Oil & Gas
+EU-MID,50,,EUR,2.80000000000001,2,0,0,Dow Jones STOXX MID 200 Index
+EU-MEDIA,50,,EUR,0.149999999999977,2,0,0,Dow Jones STOXX 600 Media
+EUROSTX-PRICE,50,,EUR,0.149999999999977,2,0,0,Dow Jones Euro STOXX Price Index
+JP-REALESTATE,1000,,JPY,13.75,500,0,0,TSE REIT Index
+EUROSTX-SMALL,50,,EUR,0.150000000000006,2,0,0,Euro Stoxx Small
+SMI-MID,10,,CHF,2.5,1,0,0,Swiss Mid-cap Index
+EU-FINANCE,50,,EUR,0.199999999999989,2,0,0,Dow Jones STOXX 600 Financial Services Index
+EU-DJ-INSURE,50,,EUR,0.349999999999994,2,0,0,Dow Jones Euro STOXX Insurance
+EU-DJ-TELECOM,50,,EUR,0.150000000000006,2,0,0,Dow Jones Euro STOXX Telecommunications
+JGB-MINI,100000,,JPY,0.009999999999991,85,0,0,SGX Mini JGB Index
+EUROSTX-MID,50,,EUR,1.20000000000005,2,0,0,Euro Stoxx Mid
+EU-REALESTATE,50,,EUR,0.100000000000009,2,0,0,Dow Jones STOXX 600 Real Estate
+EUROSTX200-LARGE,50,,EUR,0.150000000000006,2,0,0,Dow Jones STOXX Large 200 Index
+VNKI,10000,,JPY,0.049999999999999,400,0,0,Nikkei 225 Volatility Index
+EU-DJ-TECH,50,,EUR,9.44999999999999,2,0,0,Dow Jones Euro STOXX Technology
+DIVDAX,200,,EUR,0.175000000000011,2,0,0,DivDAX Price Index
+SILVER-mini,2500,,USD,0.012499999999999,0.85,0,0,COMEX MINY Silver
+EU-BANKS-DIVI,500,,EUR,0.12,2,0,0,EURO STOXX Banks Index Dividend Futures
+EU-HOUSE,50,,EUR,13.2499999999999,2,0,0,Dow Jones STOXX 600 Personal & Household Goods
+CH10,1000,,CHF,0.100000000000009,4,0,0,Swiss Federal Long-Term Bonds
+SGX,10,,SGD,,4,0,0,SGX Straits Times Index
+CHEESE,20000,,USD,0.0035,0.85,0,0,Cheese
+EURIBOR,2500,,EUR,0.0075,2,0,0,Three Month EURIBOR
+COPPER-mini,12500,,USD,0.002,0.85,0,0,COMEX MINY Copper
+MILK,440,,USD,0.375,0.85,0,0,NON FAT DRY MILK INDEX
+EU-DJ-FOOD,50,,EUR,1.55000000000001,2,0,0,Dow Jones Euro STOXX Food&Beverages
+R1000GROWTH-mini,50,,USD,0.399999999999864,0.85,0,0,E-mini Russell 1000 Growth Index Futures
+EU-DJ-HEALTH,50,,EUR,4.39999999999998,2,0,0,Dow Jones Euro STOXX Healthcare
+TWD,100000,,USD,0.00015,1.75,0,0,SGX Taiwan Dollar in US Dollar Futures (Mini)
+R1000mini,50,,USD,0.450000000000046,0.85,0,0,E-mini Russell 1000 Index Futures
+INR,500,,USD,0.015000000000001,0.85,0,0,Indian Rupee
+EUROSTX-LARGE,50,,EUR,2.04999999999998,2,0,0,Euro Stoxx Large
+INR-mini,100,,USD,0.120000000000005,0.85,0,0,Indian Rupee
+USIRS2,1000,,USD,0.004999999999995,0.85,0,0,2-Year Eris Swap Futures
+BUTTER,200,,USD,1.89375,0.85,0,0,CME Cash-Settled Butter Futures
+STEEL,20,,USD,5.5,0.85,0,0,Hot-Rolled Coil Steel Index
+HIGHYIELD,1000,,USD,0.02000000000001,0.85,0,0,iBoxx iShares $ High Yield Corporate Bond Index TR
+OMX,10,,EUR,11.75,2,0,0,OMX Helsinki 25 Index
+GICS,250,,USD,0.300000000000011,0.85,0,0,S&P-GSCI Index
+EU-DJ-MEDIA,50,,EUR,2.84999999999999,2,0,0,Dow Jones Euro STOXX Media Index
+KRWUSD,125000000,,USD,2.49999999999979E-07,0.85,0,0,Korean Won
+,3000,,USD,0.00975,2.1,0,0,SGX Taiwan Dollar in US Dollar Futures (Full-Sized)
+,50,,EUR,15.55,2,0,0,Dow Jones Euro STOXX Chemicals
+,10,,USD,1.5,2,0,0,MSCI Russia Index
+,50,,EUR,0.599999999999909,2,0,0,Dow Jones Euro STOXX Industrial Goods&Services
+,50,,USD,1.30000000000018,0.85,0,0,CME E-Mini NASDAQ Biotechnology
+,500000,,USD,0.00015,1.8,0,0,SGX onshore Chinese Renminbi (CNY) in US Dollar Futures (CY@SGX)
+,50,,EUR,2.09999999999997,2,0,0,Dow Jones Euro STOXX Retail
+,2000,,USD,0.092499999999999,0.85,0,0,Class IV Milk - 200k lbs
+,1000,,USD,0.019999999999996,0.85,0,0,iBoxx iShares $ Investment Grade Corporate Bond Index TR
+,10000,,USD,0.001,0.85,0,0,Natural Gas Penultimate Financial Futures Index
+,50,,EUR,6.25,2,0,0,Dow Jones Euro STOXX Financial Services Index
+,10,,EUR,3.25,4.5,0,0,BEL 20 Index (BFX@)
+,1,,USD,140,0.85,0,0,Bovespa Index - USD
+,500000,,USD,7.00000000000145E-05,0.85,0,0,Polish zloty
+,100000,,JPY,,85,0,0,Mini 10 Year JGB
+,1000,,CNH,7.45000000000002,0.85,0,0,Shanghai Gold Exchange Gold Benchmark PM Price Index - CNH Futures
+,21000,,USD,,0.85,0,0,NYMEX MINY Gasoline RBOB Index
+,29000,,USD,,0.85,0,0,Ethanol CME
+,250,,USD,2.5,0.85,0,0,Housing Index Composite
+,250,,USD,2.45,0.85,0,0,San Diego Housing Index
+,250,,USD,1.95,0.85,0,0,San Francisco Housing Index
+,21000,,USD,0.0325,0.85,0,0,NYMEX MINY Heating Oil Index
+,250,,USD,3,0.85,0,0,Chicago Housing Index
+,250,,USD,3,0.85,0,0,Denver Housing Index
+,250,,USD,3.90000000000001,0.85,0,0,Las Vegas Housing Index
+,250,,USD,4.29999999999998,0.85,0,0,Los Angeles Housing Index
+,30000000,,USD,6.5E-06,0.85,0,0,Hungarian forint
+,1000,,USD,0.09375,0.85,0,0,30-Year Deliverable Interest Rate Swap Futures
+,1000,,USD,,0.85,0,0,2-Year Deliverable Interest Rate Swap Futures
+,250,,USD,3.39999999999998,0.85,0,0,Boston Housing Index
+,50000000,,USD,,0.85,0,0,Chilean peso
+,4000000,,USD,9.19999999999983E-05,0.85,0,0,Czech koruna
+,2500,,USD,0.009999999999998,0.85,0,0,1 Month LIBOR (Int. Rate)
+,500000,,EUR,0.0003,0.85,0,0,Polish zloty EURO
+,1000000,,USD,0.000585,0.85,0,0,Israeli shekel
+,250,,USD,4.09999999999999,0.85,0,0,Miami Housing Index
+,100,,JPY,2100,0.85,0,0,Yen Denominated Nikkei 225 Index
+,250,,USD,3.59999999999999,0.85,0,0,New York Housing Index
+,250,,USD,,0.85,0,0,S&P 500 / Citigroup Growth Index
+,100,,USD,,0.85,0,0,E-Mini S&P SmallCap 600 Futures
+,1000,,USD,,0.85,0,0,NYMEX Brent Financial Futures Index
+,42000,,USD,,0.85,0,0,Gulf Coast ULSD (Platts) Up-Down Futures
+,50000,,USD,,0.85,0,0,NYMEX Cotton index
+,250,,USD,,0.85,0,0,NYMEX Uranium Index
+,1000,,JPY,,50,0,0,Topix Core30
+,1000,,EUR,,2,0,0,DivDAX Dividend Points Index
+,25000,,JPY,0.014999999999994,285,0,0,SGX Australian Dollar in Japanese Yen Futures
+,25000,,USD,0.00015,2.85,0,0,SGX Australian Dollar in US Dollar Futures
+,25000,,JPY,,285,0,0,SGX Korean Won in Japanese Yen Futures
+,500000,,JPY,0.009999999999998,360,0,0,SGX US Dollar in Japanese Yen Futures (Titan)
+,100000,,JPY,0.009999999999998,300,0,0,SGX US Dollar in Japanese Yen Futures (Standard)
