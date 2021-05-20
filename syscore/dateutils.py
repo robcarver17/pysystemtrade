@@ -27,6 +27,8 @@ ROOT_WEEKS_IN_YEAR = WEEKS_IN_YEAR ** 0.5
 MONTHS_IN_YEAR = 12.0
 ROOT_MONTHS_IN_YEAR = MONTHS_IN_YEAR ** 0.5
 
+APPROX_DAYS_IN_MONTH = CALENDAR_DAYS_IN_YEAR / MONTHS_IN_YEAR
+
 ARBITRARY_START = datetime.datetime(1900, 1, 1)
 
 HOURS_PER_DAY = 24
@@ -163,24 +165,23 @@ def get_datetime_from_datestring(datestring: str):
     """
 
     # do string expiry calc
-    if len(datestring) == 6:
-        return_date = datetime.datetime.strptime(datestring, "%Y%m")
-    elif len(datestring) == 8:
+    if len(datestring) == 8:
         if datestring[6:8] == "00":
-            datestring = datestring[:6] + "01"
-
-        return_date = datetime.datetime.strptime(datestring, "%Y%m%d")
+            return datetime.datetime.strptime(datestring, "%Y%m")
+        else:
+            return datetime.datetime.strptime(datestring, "%Y%m%d")
+    if len(datestring) == 6:
+        return datetime.datetime.strptime(datestring, "%Y%m")
     else:
         raise Exception(
             "%s needs to be a string with 6 or 8 digits" % datestring
         )
 
-    # 'Natural' form is datetime
-    return return_date
 
 
-def fraction_of_year_between_price_and_carry_expiries(carry_row: pd.Series,
-                                                      floor_date_diff: int=1) -> float:
+
+def _DEPRECATE_fraction_of_year_between_price_and_carry_expiries(carry_row: pd.Series,
+                                                      floor_date_diff: float = 1/CALENDAR_DAYS_IN_YEAR) -> float:
     """
     Given a pandas row containing CARRY_CONTRACT and PRICE_CONTRACT, both of
     which represent dates
@@ -208,36 +209,42 @@ def fraction_of_year_between_price_and_carry_expiries(carry_row: pd.Series,
     0.13689253935660506
 
     """
-    days_between_expiries = get_days_between_expiries(carry_row)
-    if np.isnan(days_between_expiries):
+    fraction_of_year_between_expiries = _DEPRECATE_get_fraction_of_year_between_expiries(carry_row)
+    if np.isnan(fraction_of_year_between_expiries):
         return np.nan
 
-    days_between_expiries = apply_floor_to_date_differential(days_between_expiries,
+    fraction_of_year_between_expiries = _DEPRECATE_apply_floor_to_date_differential(fraction_of_year_between_expiries,
                                                              floor_date_diff=floor_date_diff)
-
-    ## Annualise, ensuring float output
-    fraction_of_year_between_expiries = float(days_between_expiries) / CALENDAR_DAYS_IN_YEAR
 
     return fraction_of_year_between_expiries
 
-def get_days_between_expiries(carry_row) -> float:
+def _DEPRECATE_get_fraction_of_year_between_expiries(carry_row) -> float:
     if carry_row.PRICE_CONTRACT == "" or carry_row.CARRY_CONTRACT == "":
         return np.nan
 
-    carry_expiry =  get_datetime_from_datestring(carry_row.CARRY_CONTRACT)
-    price_expiry = get_datetime_from_datestring(carry_row.PRICE_CONTRACT)
-    period_between_expiries = carry_expiry - price_expiry
+    carry_expiry =  _DEPRECATE_get_approx_year_as_number_from_date_as_string(carry_row.CARRY_CONTRACT)
+    price_expiry = _DEPRECATE_get_approx_year_as_number_from_date_as_string(carry_row.PRICE_CONTRACT)
+    fraction_of_year_between_expiries = carry_expiry - price_expiry
 
-    days_between_expiries = period_between_expiries.days
+    return fraction_of_year_between_expiries
 
-    return days_between_expiries
+def _DEPRECATE_get_approx_year_as_number_from_date_as_string(date_string: str):
+    ## Faster than using get_datetime_from_datestring, and approximate
+    year = float(date_string[:4])
+    month = float(date_string[5:])
+    month_as_year_frac = month / 12.0
 
-def apply_floor_to_date_differential(days_between_expiries: float,
+    year_from_zero = year + month_as_year_frac
+
+    return year_from_zero
+
+def _DEPRECATE_apply_floor_to_date_differential(fraction_of_year_between_expiries: float,
                                      floor_date_diff: float):
-    if abs(days_between_expiries) < floor_date_diff:
-        days_between_expiries = sign(days_between_expiries) * floor_date_diff
+    if abs(fraction_of_year_between_expiries) < floor_date_diff:
+        fraction_of_year_between_expiries = \
+            sign(fraction_of_year_between_expiries) * floor_date_diff
 
-    return days_between_expiries
+    return fraction_of_year_between_expiries
 
 class fit_dates_object(object):
     def __init__(

@@ -67,6 +67,7 @@ def turnover(x, y):
     return avg_daily * BUSINESS_DAYS_IN_YEAR
 
 
+
 def uniquets(x):
     """
     Makes x unique
@@ -396,54 +397,11 @@ def dataframe_pad(starting_df, column_list, padwith=0.0):
 
     return new_df
 
+def apply_abs_min(x: pd.Series, min_value=0.1):
+    x[(x<min_value) & (x>0)] = min_value
+    x[(x > min_value) & (x < 0)] = -min_value
 
-def proportion_pd_object_intraday(
-    data, closing_time=NOTIONAL_CLOSING_TIME_AS_PD_OFFSET
-):
-    """
-    Return the proportion of intraday data in a pd.Series or DataFrame
-
-    :param data: the underlying data
-    :param closing_time: the time which we are using as a closing time
-    :return: float, the proportion of the data.index that matches an intraday timestamp
-
-    So 0 = All daily data, 1= All intraday data
-    """
-
-    data_index = data.index
-    length_index = len(data_index)
-
-    count_matches = [
-        time_matches(index_entry, closing_time) for index_entry in data_index
-    ]
-    total_matches = sum(count_matches)
-    proportion_matching_close = float(total_matches) / float(length_index)
-    proportion_intraday = 1 - proportion_matching_close
-
-    return proportion_intraday
-
-
-def strip_out_intraday(
-    data, closing_time=pd.DateOffset(hours=23, minutes=0, seconds=0)
-):
-    """
-    Return a pd.Series or DataFrame with only the times matching closing_time
-    Used when we have a mix of daily and intraday data, where the daily data has been given a nominal timestamp
-
-    :param data: pd object
-    :param closing_time: pdDateOffset with
-    :return: pd object
-    """
-
-    data_index = data.index
-    length_index = len(data_index)
-
-    daily_matches = [
-        time_matches(index_entry, closing_time) for index_entry in data_index
-    ]
-
-    return data[daily_matches]
-
+    return x
 
 
 

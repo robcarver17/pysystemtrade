@@ -2,10 +2,11 @@ import numpy as np
 import pandas as pd
 
 from systems.rawdata import RawData
-from syscore.dateutils import fraction_of_year_between_price_and_carry_expiries
 from syscore.pdutils import uniquets
 from systems.system_cache import input, diagnostic, output
 from syscore.dateutils import ROOT_BDAYS_INYEAR
+
+from sysobjects.carry_data import rawCarryData
 
 class FuturesRawData(RawData):
     """
@@ -15,7 +16,7 @@ class FuturesRawData(RawData):
     """
 
     @input
-    def get_instrument_raw_carry_data(self, instrument_code: str) -> pd.DataFrame:
+    def get_instrument_raw_carry_data(self, instrument_code: str) -> rawCarryData:
         """
         Returns the 4 columns PRICE, CARRY, PRICE_CONTRACT, CARRY_CONTRACT
 
@@ -40,6 +41,8 @@ class FuturesRawData(RawData):
         instrcarrydata = self.parent.data.get_instrument_raw_carry_data(
             instrument_code)
 
+        instrcarrydata = rawCarryData(instrcarrydata)
+
         return instrcarrydata
 
     @diagnostic()
@@ -63,11 +66,7 @@ class FuturesRawData(RawData):
         """
 
         carrydata = self.get_instrument_raw_carry_data(instrument_code)
-        raw_roll = carrydata.PRICE - carrydata.CARRY
-
-        raw_roll[raw_roll == 0] = np.nan
-
-        raw_roll = uniquets(raw_roll)
+        raw_roll = carrydata.raw_futures_roll()
 
         return raw_roll
 
@@ -91,11 +90,7 @@ class FuturesRawData(RawData):
         dtype: float64
         """
         carrydata = self.get_instrument_raw_carry_data(instrument_code)
-
-        roll_diff = carrydata.apply(fraction_of_year_between_price_and_carry_expiries, floor_date_diff = 1, axis=1)
-
-        roll_diff = uniquets(roll_diff)
-
+        roll_diff = carrydata.roll_differentials()
 
         return roll_diff
 
@@ -199,7 +194,9 @@ class FuturesRawData(RawData):
         return smooth_carry
 
     @diagnostic()
-    def _by_asset_class_median_carry_for_asset_class(self, asset_class: str) -> pd.Series:
+    def _by_asset_class_median_carry_for_asset_class(self,
+                                                     asset_class: str,
+                                                     smooth_days: int=90) -> pd.Series:
         """
 
         :param asset_class:
@@ -209,18 +206,21 @@ class FuturesRawData(RawData):
         instruments_in_asset_class = self.parent.data.all_instruments_in_asset_class(
             asset_class)
 
-        smoothed_carry_across_asset_class = [
-            self.smoothed_carry(instrument_code)
+        raw_carry_across_asset_class = [
+            self.raw_carry(instrument_code)
             for instrument_code in instruments_in_asset_class
         ]
 
-        smoothed_carry_across_asset_class = pd.concat(
-            smoothed_carry_across_asset_class, axis=1
+        raw_carry_across_asset_class_pd = pd.concat(
+            raw_carry_across_asset_class, axis=1
         )
+
+        smoothed_carrys_across_asset_class = \
+            raw_carry_across_asset_class_pd.ewm(smooth_days).mean()
 
         # we don't ffill before working out the median as this could lead to
         # bad data
-        median_carry = smoothed_carry_across_asset_class.median(axis=1)
+        median_carry = smoothed_carrys_across_asset_class.median(axis=1)
 
         return median_carry
 
@@ -238,7 +238,7 @@ class FuturesRawData(RawData):
             instrument_code)
         median_carry = self._by_asset_class_median_carry_for_asset_class(
             asset_class)
-        instrument_carry = self.smoothed_carry(instrument_code)
+        instrument_carry = self.raw_carry(instrument_code)
 
         # Align for an easy life
         # As usual forward fill at last moment
