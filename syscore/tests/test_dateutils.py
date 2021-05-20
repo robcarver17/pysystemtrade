@@ -7,7 +7,6 @@ import unittest as ut
 import numpy as np
 import pandas as pd
 
-from syscore.dateutils import fraction_of_year_between_price_and_carry_expiries
 
 
 class Test(ut.TestCase):
@@ -36,20 +35,6 @@ class Test(ut.TestCase):
         )
 
         return x
-
-    @ut.SkipTest
-    def test_expiry_diff(self):
-        x = self.test_data()
-        expiries = x.apply(fraction_of_year_between_price_and_carry_expiries, 1)
-        expected = [
-            -0.24640657084188911,
-            -0.24640657084188911,
-            -0.054757015742642023,
-            0.58590006844626963,
-        ]
-        self.assertTrue(all([np.isnan(y) for y in expiries[:3]]))
-        for (got, wanted) in zip(expiries[3:], expected):
-            self.assertAlmostEqual(got, wanted)
 
 
 if __name__ == "__main__":
