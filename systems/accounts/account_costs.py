@@ -1,5 +1,6 @@
 import pandas as pd
 
+from syscore.algos import calculate_weighted_average_with_nans
 from syscore.genutils import str2Bool
 from syscore.dateutils import ROOT_BDAYS_INYEAR
 from syscore.pdutils import turnover
@@ -185,12 +186,8 @@ class accountCosts(accountInputs):
         # weight by length
         weights = self._get_forecast_length_weighting_for_list_of_instruments(instrument_code_list,
                                                                              rule_variation_name)
-        weighted_turnovers = [turnover_for_instrument * weight_for_instrument
-                              for turnover_for_instrument, weight_for_instrument in\
-                              zip(turnovers, weights)
-        ]
 
-        avg_turnover = sum(weighted_turnovers)
+        avg_turnover = calculate_weighted_average_with_nans(weights, turnovers)
 
         return avg_turnover
 
