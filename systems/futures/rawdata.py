@@ -1,8 +1,7 @@
-import numpy as np
+
 import pandas as pd
 
 from systems.rawdata import RawData
-from syscore.pdutils import uniquets
 from systems.system_cache import input, diagnostic, output
 from syscore.dateutils import ROOT_BDAYS_INYEAR
 
@@ -275,7 +274,6 @@ class FuturesRawData(RawData):
         daily_prices = prices.resample("1B").last()
 
         return daily_prices
-
 
 if __name__ == "__main__":
     import doctest
