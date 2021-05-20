@@ -171,15 +171,7 @@ def must_have_item(slice_data):
     >>>
     """
 
-    def _any_data(xseries):
-        data_present = [not np.isnan(x) for x in xseries]
-
-        return any(data_present)
-
-    some_data = slice_data.apply(_any_data, axis=0)
-    some_data_flags = list(some_data.values)
-
-    return some_data_flags
+    return list(~slice_data.isna().all().values)
 
 def get_bootstrap_series(data: pd.DataFrame):
     length_of_series = len(data.index)
@@ -270,16 +262,23 @@ def fix_weights_vs_position_or_forecast(weights: pd.DataFrame,
     adj_weights[np.isnan(pdm_ffill)] = 0.0
 
     # change rows so weights add to one
-    def _sum_row_fix(weight_row):
-        swr = sum(weight_row)
-        if swr == 0.0:
-            return weight_row
-        new_weights = weight_row / swr
-        return new_weights
+    normalised_weights = weights_sum_to_one(adj_weights)
 
-    adj_weights = adj_weights.apply(_sum_row_fix, 1)
+    return normalised_weights
 
-    return adj_weights
+def weights_sum_to_one(weights: pd.DataFrame):
+    sum_weights = weights.sum(axis=1)
+    sum_weights[sum_weights==0.0] = 0.0001
+    weight_multiplier = 1.0 / sum_weights
+    weight_multiplier_array = np.array([weight_multiplier]*len(weights.columns))
+    weight_values = weights.values
+
+    normalised_weights_np = weight_multiplier_array.transpose() * weight_values
+    normalised_weights = pd.DataFrame(normalised_weights_np,
+                                      columns = weights.columns,
+                                      index = weights.index)
+
+    return normalised_weights
 
 
 def drawdown(x):
