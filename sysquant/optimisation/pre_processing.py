@@ -230,7 +230,7 @@ def _calculate_pooled_turnover_cost_for_column(asset_name: str,
 
 def _average_turnover(turnovers, column_name):
     all_turnovers = turnovers[column_name]
-    return np.mean(list(all_turnovers.values()))
+    return np.nanmean(list(all_turnovers.values()))
 
 
 def _calculate_cost_per_turnover(asset_name: str,
