@@ -1,5 +1,12 @@
 # Release notes
 
+## Version 1.02
+
+- Added code to get futures data from IB initially, rather than third party
+- Speeded up backtesting code after profiling
+- Minor bugs
+
+
 ## Version 1.01
 
 * Added smaller contract sizes to IB config

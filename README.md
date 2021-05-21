@@ -7,10 +7,10 @@ Rob Carver
 [https://qoppac.blogspot.com/p/pysystemtrade.html](https://qoppac.blogspot.com/p/pysystemtrade.html)
 
 
-Version 1.00.0
+Version 1.02
  
 
-20210511
+20210521
 
 
 
@@ -28,7 +28,7 @@ For a longer explanation of the motivation and point of this project see my [blo
 Pysystemtrade is a....:
 - Backtesting environment that will work "out of the box" for chapter 15 of my book ["Systematic Trading"](https://www.systematicmoney.org/systematic-trading)
 - Which implements all the optimisation and system design principles in the book and on my website.
-- And is a complete implementation of a fully automated system for futures trading (for interactive brokers)
+- A fully automated system for futures trading (for interactive brokers)
 
 pysystemtrade uses the [IB insync library](https://ib-insync.readthedocs.io/api.html) to connect to interactive brokers.
 
@@ -91,9 +91,6 @@ If you don't include the information above I will close the issue and then ignor
 
 I'll try and incorporate any feedback into the code, but this is a part time (and unpaid!) venture for me, and it will be competing with my other interests (writing books, blogging and research). But if you occasionally check github you will hopefully find it gradually improving. Offers to contribute will of course be gratefully accepted.
 
-## Examples
-
-A series of examples using pysystemtrade for my blog posts can be found [here](https://github.com/robcarver17/pysystemtrade_examples).
 
 ## Licensing and legal stuff
 
