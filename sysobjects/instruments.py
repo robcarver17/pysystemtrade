@@ -144,7 +144,7 @@ class assetClassesAndInstruments(dict):
         return assetClassesAndInstruments(as_dict)
 
     def all_asset_classes(self) -> list:
-        asset_classes = list(self.values)
+        asset_classes = list(self.values())
         unique_asset_classes = list(set(asset_classes))
         unique_asset_classes.sort()
 
