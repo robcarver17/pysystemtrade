@@ -89,6 +89,13 @@ class listOfDataFrames(list):
 
         return listOfDataFrames(data_resampled)
 
+    def resample_sum(self, frequency: str):
+        data_resampled = [
+            data_item.resample(frequency).sum() for data_item in self
+        ]
+
+        return listOfDataFrames(data_resampled)
+
     def stacked_df_with_added_time_from_list(self) -> pd.DataFrame:
         data_as_df = stacked_df_with_added_time_from_list(self)
 
@@ -114,6 +121,22 @@ class listOfDataFrames(list):
         common_unique_index.sort()
 
         return common_unique_index
+
+    def common_columns(self):
+        all_columns = [data_item.columns for data_item in self]
+        all_columns_flattened = flatten_list(all_columns)
+        common_unique_columns = list(set(all_columns_flattened))
+        common_unique_columns.sort()
+
+        return common_unique_columns
+
+    def reindex_to_common_columns(self, padwith=0.0):
+        common_columns = self.common_columns()
+        data_reindexed = [
+            dataframe_pad(data_item, common_columns, padwith=padwith)
+            for data_item in self
+        ]
+        return listOfDataFrames(data_reindexed)
 
 
 def stacked_df_with_added_time_from_list(data: listOfDataFrames) -> pd.DataFrame:

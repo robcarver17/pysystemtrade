@@ -108,7 +108,7 @@ class dictOfReturnsForOptimisation(dict):
         returns_as_list = listOfDataFrames(self.values())
         pooled_length = len(returns_as_list)
 
-        returns_as_list_downsampled = returns_as_list.resample(frequency)
+        returns_as_list_downsampled = returns_as_list.resample_sum(frequency)
         returns_as_list_common_ts = returns_as_list_downsampled.reindex_to_common_index()
 
         returns_for_optimisation = returns_as_list_common_ts.stacked_df_with_added_time_from_list()

@@ -1,5 +1,6 @@
 import pandas as pd
 
+from syscore.objects import arg_not_supplied
 from systems.system_cache import diagnostic
 from systems.accounts.account_forecast import accountForecast
 from systems.accounts.curves.dict_of_account_curves import dictOfAccountCurves, nestedDictOfAccountCurves
@@ -192,10 +193,12 @@ class accountTradingRules(accountForecast):
 
     @diagnostic(not_pickable=True)
     def pandl_for_instrument_rules_unweighted(self, instrument_code: str,
+                                              trading_rule_list = arg_not_supplied,
                                    delayfill: bool = True) -> accountCurveGroup:
 
         # (unweighted group - elements are pandl_for_instrument_forecast across trading rules)
-        list_of_rules = self.list_of_rules_for_code(instrument_code)
+        if trading_rule_list is arg_not_supplied:
+            trading_rule_list = self.list_of_rules_for_code(instrument_code)
         dict_of_pandl_by_rule = dict(
             [
                 (rule_variation_name,
@@ -205,7 +208,7 @@ class accountTradingRules(accountForecast):
                                 delayfill=delayfill)
                  )
 
-                for rule_variation_name in list_of_rules
+                for rule_variation_name in trading_rule_list
             ]
         )
 

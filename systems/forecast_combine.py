@@ -569,7 +569,7 @@ class ForecastCombine(SystemStage
 
     @diagnostic(not_pickable=True)
     def returns_pre_processing(self, codes_to_use: list, trading_rule_list: list) -> returnsPreProcessor:
-        pandl_forecasts = self.get_pandl_forecasts(codes_to_use)
+        pandl_forecasts = self.get_pandl_forecasts(codes_to_use, trading_rule_list)
         turnovers = self.get_turnover_for_list_of_rules(codes_to_use, trading_rule_list)
         config = self.config
 
@@ -602,10 +602,12 @@ class ForecastCombine(SystemStage
                                                              rule_variation_name=rule_variation_name)
 
     @dont_cache
-    def get_pandl_forecasts(self, codes_to_use: list) -> dictOfReturnsForOptimisationWithCosts:
+    def get_pandl_forecasts(self, codes_to_use: list,
+                            trading_rule_list: list) -> dictOfReturnsForOptimisationWithCosts:
         # returns a dict of accountCurveGroups
         pandl_forecasts = dict(
-            [(code, self.get_returns_for_optimisation(code)) for code in codes_to_use]
+            [(code, self.get_returns_for_optimisation(code,
+                                                      trading_rule_list)) for code in codes_to_use]
         )
 
         pandl_forecasts = dictOfReturnsForOptimisationWithCosts(pandl_forecasts)
@@ -726,7 +728,8 @@ class ForecastCombine(SystemStage
         return self.parent.accounts
 
     @input
-    def get_returns_for_optimisation(self, instrument_code: str) -> returnsForOptimisationWithCosts:
+    def get_returns_for_optimisation(self, instrument_code: str,
+                                     trading_rule_list: list) -> returnsForOptimisationWithCosts:
         """
         Get pandl for forecasts for a given rule
         THese will include both gross and net returns, in case we do any pooling
@@ -748,9 +751,8 @@ class ForecastCombine(SystemStage
             self.log.critical(error_msg)
             raise Exception(error_msg)
 
-        cheap_rule_list = self.cheap_trading_rules(instrument_code)
         pandl = accounts.pandl_for_instrument_rules_unweighted(
-            instrument_code, cheap_rule_list
+            instrument_code, trading_rule_list = trading_rule_list
         )
 
         pandl = returnsForOptimisationWithCosts(pandl)
