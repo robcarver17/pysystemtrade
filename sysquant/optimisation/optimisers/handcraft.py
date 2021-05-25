@@ -170,7 +170,11 @@ def create_sub_portfolios_from_portfolio(handcraft_portfolio: handcraftPortfolio
         # Boring correlation will break if we try and cluster
         clusters = arbitrary_split_of_correlation_matrix(handcraft_portfolio.correlation)
     else:
-        clusters = cluster_correlation_matrix_into_two_clusters(handcraft_portfolio.correlation)
+        try:
+            clusters = cluster_correlation_matrix_into_two_clusters(handcraft_portfolio.correlation)
+        except:
+            clusters = arbitrary_split_of_correlation_matrix(handcraft_portfolio.correlation)
+
 
     clusters_as_names = from_cluster_index_to_asset_names(clusters, handcraft_portfolio)
     sub_portfolios = create_sub_portfolios_given_clusters(clusters_as_names, handcraft_portfolio)
