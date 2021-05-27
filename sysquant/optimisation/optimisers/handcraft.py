@@ -9,7 +9,8 @@ from sysquant.estimators.diversification_multipliers import diversification_mult
 
 ## This is a cut down and rewritten version of the original code,
 ##   for example it does not do risk targeting
-
+##   and as it splits portfolios into subgroups of 2 doesn't worry about data history
+##    for correlations
 
 def handcraft_optimisation(estimates: Estimates,
                            equalise_SR: bool = False,

@@ -287,7 +287,7 @@ class contractPositionData(listOfEntriesData):
 
     def get_list_of_instruments_with_current_positions(self) -> list:
         list_of_current_positions = self.get_all_current_positions_as_list_with_contract_objects()
-        instrument_list = list_of_current_positions.instrument_code_list()
+        instrument_list = list_of_current_positions.unique_list_of_instruments()
 
         return instrument_list
 

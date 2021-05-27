@@ -235,8 +235,6 @@ class listOfPositionsWithInstruments(listOfPositions):
     def instrument_code_list(self) -> list:
         instrument_code_list = [str(position.instrument_code)
                                 for position in self]
-        ## unique
-        instrument_code_list = list(set(instrument_code_list))
 
         return instrument_code_list
 
@@ -312,7 +310,19 @@ class listOfContractPositions(listOfPositionsWithInstruments):
 
         return id_column_dict
 
+    def unique_list_of_contracts(self) -> list:
+        list_of_contracts = self.contract_code_list()
+        unique_list_of_contracts = list(set(list_of_contracts))
+        return unique_list_of_contracts
 
+    def contract_code_list(self) -> list:
+        contract_code_list = [position.contract
+                                for position in self]
+
+        return contract_code_list
+
+    def sum_for_contract(self):
+        return sum_for_contract(self)
 
 def sum_for_instrument(list_of_positions) -> listOfInstrumentPositions:
     """
@@ -332,6 +342,24 @@ def sum_for_instrument(list_of_positions) -> listOfInstrumentPositions:
 
     return list_of_instrument_position_object
 
+def sum_for_contract(list_of_positions: listOfContractPositions) -> listOfContractPositions:
+    """
+    Sum up positions for same instrument across strategies or contracts
+
+    :return: listOfInstrumentPositions
+    """
+
+    unique_list_of_contracts = list_of_positions.unique_list_of_contracts()
+    summed_positions = []
+    for contract in unique_list_of_contracts:
+        position_object = _position_for_contract_in_list(list_of_positions,
+                                                         contract)
+        summed_positions.append(position_object)
+
+    list_of_contract_position_object = listOfContractPositions(summed_positions)
+
+    return list_of_contract_position_object
+
 
 def _position_for_code_in_list(list_of_positions, instrument_code: str) -> instrumentPosition:
     positions_this_code = [
@@ -341,6 +369,19 @@ def _position_for_code_in_list(list_of_positions, instrument_code: str) -> instr
     ]
     position_object = instrumentPosition(
         sum(positions_this_code), instrument_code)
+
+    return position_object
+
+
+def _position_for_contract_in_list(list_of_positions: listOfContractPositions,
+                                   contract: futuresContract) -> contractPosition:
+    positions_this_contract = [
+        position.position
+        for position in list_of_positions
+        if position.contract == contract
+    ]
+    position_object = contractPosition(
+        sum(positions_this_contract), contract)
 
     return position_object
 
