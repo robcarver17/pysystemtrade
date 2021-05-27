@@ -123,13 +123,15 @@ forecast_cost_estimates:
 # Smooth forecast weights; weights are in business days
 forecast_weight_ewma_span: 125
 #
+forecast_post_ceiling_cost_SR: 0.13
+#
 forecast_weight_estimate:
    func: sysquant.optimisation.generic_optimiser.genericOptimiser
    pool_gross_returns: True
    equalise_gross: False
    cost_multiplier: 2.0
    apply_cost_weight: False
-   ceiling_cost_SR: 0.13
+   ceiling_cost_SR: 9999
    frequency: "W"
    date_method: "expanding"
    rollyears: 20
@@ -140,7 +142,6 @@ forecast_weight_estimate:
    equalise_vols: True
    shrinkage_SR: 0.9
    shrinkage_corr: 0.5
-   monte_runs: 100
    correlation_estimate:
      func: sysquant.estimators.correlation_estimator.correlationEstimator
      using_exponent: True

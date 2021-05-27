@@ -2958,6 +2958,10 @@ system](#futures_system). We switch to it by setting
 See [optimisation](#optimisation) for more information.
 
 
+##### Removing expensive trading rules
+
+
+
 ##### Estimating the forecast diversification multiplier
 
 See [estimating diversification multipliers](#divmult).
@@ -3881,10 +3885,13 @@ post](https://qoppac.blogspot.com/2016/05/optimising-weights-with-costs.html).
 ```
 forecast_weight_estimate:
    ceiling_cost_SR: 0.13 ## Max cost to allow for assets, annual SR units.
+    
 ```
 
 See ['costs'](#costs) to see how to configure pooling when estimating the costs
 of forecasts.
+
+By default this is set to 9999 which effectively means that all trading rules are included at the optimisation stage. However the use of `post_ceiling_cost_SR` can be used to remove rules that are too expensive. This is recommended if you are pooling gross returns.
 
 
 ### Pooling gross returns (forecast weights only)
@@ -3892,8 +3899,8 @@ of forecasts.
 Pooling across instruments is only available when calculating forecast weights.
 Again I recommend you check out this [blog
 post](https://qoppac.blogspot.com/2016/05/optimising-weights-with-costs.html).
-Only instruments whose rules have survived the application of a ceiling cost
-will be included in the pooling process.
+Only instruments whose rules have survived the application of a ceiling cost (`ceiling_cost_SR`)
+will be included in the pooling process. If you want to pool all instruments, regardless of costs, then you should set `ceiling_cost_SR` to be some high number, and use `post_ceiling_cost_SR` instead to eliminate expensive rules after the optimisation is complete (this is the default).
 
 
 ```
@@ -3905,10 +3912,8 @@ forecast_cost_estimate:
 ```
 
 See ['costs'](#costs) to see how to configure pooling when estimating the costs
-of forecasts. Notice if pool_gross_returns is True, and use_pooled_costs is
-True, then a single optimisation will be run across all instruments with a
-common set of trading rules. Otherwise each instrument is optimised
-individually, which is slower.
+of forecasts. 
+
 
 
 ### Working out net costs (both instrument and forecast weights)
@@ -3921,19 +3926,18 @@ forecast_weight_estimate:  ## can also be applied to instrument weights
    equalise_gross: False ## equalise gross returns so that only costs are used for optimisation
    cost_multiplier: 0.0 ## multiply costs by this number. Zero means grosss returns used. Higher than 1 means costs will be inflated. Use zero if apply_cost_weight=True (see later)
 ```
-Notice if equalise_gross is True, and use_pooled_costs is True, then a single optimisation will be run across all instruments with a common set of trading rules (regardless of the value of pool_gross_returns).
 
 
 ### Time periods
 
 
-There are three options available for the fitting period - expanding
-(recommended), in sample (never!) and rolling. See Chapter 3 of my book.
+There are three options available for the fitting period - `expanding`
+(recommended), `in sample` (never!) and `rolling`. See Chapter 3 of my book.
 
 From the config
 ```
    date_method: expanding ## other options: in_sample, rolling
-   rollyears: 20
+   rollyears: 20 ## only used when rolling
 ```
 
 ### Moment estimation
@@ -3981,10 +3985,9 @@ This will give everything in the optimisation equal weights.
    method: equal_weights
 ```
 
-This differs from the "fixed" flavour of forecast combination which gives equal
-weight to all trading rules; because here any trading rules that are too
-expensive for a particular instrument will not be included, and effectively
-have a zero weight.
+
+
+Tip: Set `date_method: in_sample` to speed things up.
 
 
 #### One period (not recommend)
@@ -4006,7 +4009,7 @@ pooling or changes to cost calculation.
 
 #### Bootstrapping (recommended, but slow)
 
-Bootstrapping is not currently implemented; after a code refactoring I couldn't think of an elegant way of doing it.
+Bootstrapping is no longer implemented; after a code refactoring I couldn't think of an elegant way of doing it.
 
 #### Shrinkage (okay, but trick to calibrate)
 
@@ -4035,7 +4038,7 @@ See [my series of blog posts](https://qoppac.blogspot.com/2018/12/portfolio-cons
 ```
    method: handcraft
    equalise_SR: False # optional
-   equalise_vols: True ## This *must* be true for it to work
+   equalise_vols: True ## This *must* be true for the code to work
 ```
 
 
@@ -4054,8 +4057,10 @@ is given a share of the weight.
 ```
    apply_cost_weight: False
    cleaning: True
+
 ```
 
+At this stage the other cost ceiling will be applied (`config.post_ceiling_cost_SR`). 
 
 <a name="divmult"> </a>
 
@@ -4652,6 +4657,15 @@ YAML: (example)
 ```
 forecast_weight_ewma_span: 6
 ```
+
+Remove trading rules which are too expensive for a given instrument:
+
+YAML: (example)
+```
+post_ceiling_cost_SR: 0.13
+```
+
+
 
 
 #### Forecast weights (fixed)

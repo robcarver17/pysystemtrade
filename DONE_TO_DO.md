@@ -1,5 +1,11 @@
 # Release notes
 
+## Version 1.03
+
+- IB positions now summed when returned (IB started returning multiple entries for same contract)
+- Added new configuration 'forecast_post_ceiling_cost_SR' which allows us to remove expensive rules after optimisation (so pooling everything works)
+- Few bugs in optimisation code
+
 ## Version 1.02
 
 - Added code to get futures data from IB initially, rather than third party

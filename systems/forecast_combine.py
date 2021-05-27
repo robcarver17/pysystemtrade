@@ -201,10 +201,15 @@ class ForecastCombine(SystemStage
         # These are monthly to save space, or possibly even only 2 rows long
         monthly_forecast_weights = self.get_raw_monthly_forecast_weights(instrument_code)
 
+        # Apply postprocessing cheap rules
+        monthly_forecast_weights_cheap_rules_only = \
+            self._remove_expensive_rules_from_weights(instrument_code,
+                monthly_forecast_weights)
+
         # fix to forecast time series
         forecast_weights_fixed_to_forecasts = self._fix_weights_to_forecasts(
             instrument_code=instrument_code,
-            monthly_forecast_weights=monthly_forecast_weights
+            monthly_forecast_weights=monthly_forecast_weights_cheap_rules_only
             )
 
         # Remap to business day frequency so the smoothing makes sense also space saver
@@ -212,6 +217,17 @@ class ForecastCombine(SystemStage
             forecast_weights_fixed_to_forecasts.resample("1B").mean()
 
         return daily_forecast_weights_fixed_to_forecasts_unsmoothed
+
+    @dont_cache
+    def _remove_expensive_rules_from_weights(self, instrument_code,
+                                             monthly_forecast_weights: pd.DataFrame)\
+                                    -> pd.DataFrame:
+
+        cheap_rules = self.cheap_trading_rules_post_processing(instrument_code)
+
+        monthly_forecast_weights_cheap_rules_only = monthly_forecast_weights[cheap_rules]
+
+        return monthly_forecast_weights_cheap_rules_only
 
     @dont_cache
     def _fix_weights_to_forecasts(self,instrument_code: str,
@@ -645,6 +661,29 @@ class ForecastCombine(SystemStage
 
         return matching_instruments
 
+
+    @diagnostic()
+    def cheap_trading_rules_post_processing(self, instrument_code: str) -> list:
+        """
+        Returns a list of trading rules which are cheap enough to trade, given a max tolerable
+          annualised SR cost
+
+        :param instrument_code:
+        :type str:
+
+        :returns: list of str
+
+
+        """
+
+        ceiling_cost_SR = self.config.forecast_post_ceiling_cost_SR
+
+        cheap_rule_list = self._cheap_trading_rules_generic(instrument_code,
+                                                            ceiling_cost_SR=ceiling_cost_SR)
+
+        return cheap_rule_list
+
+
     @diagnostic()
     def cheap_trading_rules(self, instrument_code: str) -> list:
         """
@@ -660,6 +699,27 @@ class ForecastCombine(SystemStage
         """
 
         ceiling_cost_SR = self.config.forecast_weight_estimate["ceiling_cost_SR"]
+
+        cheap_rule_list = self._cheap_trading_rules_generic(instrument_code,
+                                                            ceiling_cost_SR=ceiling_cost_SR)
+
+        return cheap_rule_list
+
+
+    @dont_cache
+    def _cheap_trading_rules_generic(self, instrument_code: str,
+                                     ceiling_cost_SR: float) -> list:
+        """
+        Returns a list of trading rules which are cheap enough to trade, given a max tolerable
+          annualised SR cost
+
+        :param instrument_code:
+        :type str:
+
+        :returns: list of str
+
+
+        """
 
         rule_list = self.get_trading_rule_list(instrument_code)
         SR_cost_list = [
@@ -687,6 +747,7 @@ class ForecastCombine(SystemStage
             )
 
         return cheap_rule_list
+
 
     @input
     def get_SR_cost_for_instrument_forecast(
