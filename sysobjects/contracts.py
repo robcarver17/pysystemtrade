@@ -40,6 +40,11 @@ def contract_key_from_code_and_id(instrument_code, contract_id):
 def contract_from_code_and_id(instrument_code, contract_id):
     return futuresContract(instrument_code, contract_id)
 
+def contract_from_key(contract_key):
+    instrument_code, contract_id = get_code_and_id_from_contract_key(contract_key)
+
+    return contract_from_code_and_id(instrument_code, contract_id)
+
 class futuresContract(object):
     """
     Define an individual futures contract

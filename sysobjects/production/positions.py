@@ -1,7 +1,7 @@
 import pandas as pd
 
 from syscore.genutils import get_unique_list
-from sysobjects.contracts import futuresContract
+from sysobjects.contracts import futuresContract, contract_from_key
 from sysobjects.instruments import futuresInstrument
 from sysobjects.production.tradeable_object import instrumentStrategy
 
@@ -310,13 +310,13 @@ class listOfContractPositions(listOfPositionsWithInstruments):
 
         return id_column_dict
 
-    def unique_list_of_contracts(self) -> list:
+    def unique_list_of_contract_codes(self) -> list:
         list_of_contracts = self.contract_code_list()
         unique_list_of_contracts = list(set(list_of_contracts))
         return unique_list_of_contracts
 
     def contract_code_list(self) -> list:
-        contract_code_list = [position.contract
+        contract_code_list = [position.contract.key
                                 for position in self]
 
         return contract_code_list
@@ -349,11 +349,11 @@ def sum_for_contract(list_of_positions: listOfContractPositions) -> listOfContra
     :return: listOfInstrumentPositions
     """
 
-    unique_list_of_contracts = list_of_positions.unique_list_of_contracts()
+    unique_list_of_contract_codes = list_of_positions.unique_list_of_contract_codes()
     summed_positions = []
-    for contract in unique_list_of_contracts:
+    for contract_key in unique_list_of_contract_codes:
         position_object = _position_for_contract_in_list(list_of_positions,
-                                                         contract)
+                                                         contract_from_key(contract_key))
         summed_positions.append(position_object)
 
     list_of_contract_position_object = listOfContractPositions(summed_positions)
