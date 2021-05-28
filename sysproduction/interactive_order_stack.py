@@ -548,7 +548,7 @@ def create_fx_trade(data):
             break
 
     result = data_broker.broker_fx_market_order(
-        qty, ccy1, account=broker_account, ccy2=ccy2
+        qty, ccy1, account_id=broker_account, ccy2=ccy2
     )
     print("%s" % result)
 

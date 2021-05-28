@@ -2,6 +2,9 @@
 from sysbrokers.IB.ib_connection import connectionIB
 from sysbrokers.IB.client.ib_accounting_client import ibAccountingClient
 from sysbrokers.broker_capital_data import brokerCapitalData
+
+from syscore.objects import arg_not_supplied
+
 from sysobjects.spot_fx_prices import listOfCurrencyValues
 
 from syslogdiag.logger import logger
@@ -29,8 +32,10 @@ class ibCapitalData(brokerCapitalData):
     def __repr__(self):
         return "IB capital data"
 
-    def get_account_value_across_currency_across_accounts(self) -> listOfCurrencyValues:
-        return self.ib_client.broker_get_account_value_across_currency_across_accounts()
+    def get_account_value_across_currency_across_accounts(self,
+                                                          account_id: str = arg_not_supplied) \
+            -> listOfCurrencyValues:
+        return self.ib_client.broker_get_account_value_across_currency(account_id=account_id)
 
 
     """

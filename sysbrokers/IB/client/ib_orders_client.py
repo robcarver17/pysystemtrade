@@ -63,7 +63,7 @@ class ibOrdersClient(ibContractsClient):
         self,
         futures_contract_with_ib_data: futuresContract,
         trade_list: tradeQuantity,
-        account: str,
+        account_id: str = arg_not_supplied,
         order_type: brokerOrderType = market_order_type,
         limit_price: float=None,
     ) -> tradeWithContract:
@@ -87,7 +87,7 @@ class ibOrdersClient(ibContractsClient):
         ibcontract = ibcontract_with_legs.ibcontract
 
         ib_order = self._build_ib_order(trade_list = trade_list,
-                                        account=account,
+                                        account_id=account_id,
                                         order_type = order_type,
                                         limit_price = limit_price)
 
@@ -99,7 +99,7 @@ class ibOrdersClient(ibContractsClient):
         return trade_with_contract
 
     def _build_ib_order(self,   trade_list: tradeQuantity,
-                        account: str="",
+                        account_id: str="",
         order_type: brokerOrderType = market_order_type,
         limit_price: float=None,
         ) -> ibOrder:
@@ -118,8 +118,8 @@ class ibOrdersClient(ibContractsClient):
             self.log.critical("Order type %s not recognised!" % order_type)
             return missing_order
 
-        if account != "":
-            ib_order.account = account
+        if account_id is not arg_not_supplied:
+            ib_order.account = account_id
 
         return ib_order
 

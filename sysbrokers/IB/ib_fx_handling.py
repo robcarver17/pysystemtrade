@@ -32,18 +32,16 @@ class ibFxHandlingData(brokerFxHandlingData):
 
         return client
 
-    def broker_fx_balances(self) -> dict:
-        return self.ib_client.broker_fx_balances()
+    def broker_fx_balances(self, account_id: str = arg_not_supplied) -> dict:
+        return self.ib_client.broker_fx_balances(account_id)
 
     def broker_fx_market_order(
             self,
             trade: float,
             ccy1: str,
-            account: str=arg_not_supplied,
+            account_id: str=arg_not_supplied,
             ccy2: str="USD") -> tradeWithContract:
 
-        submitted_fx_trade = self.ib_client.broker_fx_market_order(
-            trade, ccy1, ccy2=ccy2, account=account
-        )
+        submitted_fx_trade = self.ib_client.broker_fx_market_order(trade, ccy1, account_id=account_id, ccy2=ccy2)
 
         return submitted_fx_trade

@@ -123,7 +123,9 @@ forecast_cost_estimates:
 # Smooth forecast weights; weights are in business days
 forecast_weight_ewma_span: 125
 #
-forecast_post_ceiling_cost_SR: 0.13
+# Set this to 0.13 to enforce the speed limit even for fixed weights or
+#   regardless of what an estimator does
+forecast_post_ceiling_cost_SR: 999
 #
 forecast_weight_estimate:
    func: sysquant.optimisation.generic_optimiser.genericOptimiser

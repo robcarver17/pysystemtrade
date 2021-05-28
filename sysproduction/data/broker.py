@@ -94,7 +94,8 @@ class dataBroker(productionDataLayerGeneric):
     ## Methods
 
     def broker_fx_balances(self) -> dict:
-        return self.broker_fx_handling_data.broker_fx_balances()
+        account_id = self.get_broker_account()
+        return self.broker_fx_handling_data.broker_fx_balances(account_id=account_id)
 
     def get_fx_prices(self, fx_code: str) -> fxPrices:
         return self.broker_fx_price_data.get_fx_prices(fx_code)
@@ -106,13 +107,13 @@ class dataBroker(productionDataLayerGeneric):
             self,
             trade: float,
             ccy1: str,
-            account: str=arg_not_supplied,
+            account_id: str=arg_not_supplied,
             ccy2="USD"):
-        if account is arg_not_supplied:
-            account = self.get_broker_account()
+        if account_id is arg_not_supplied:
+            account_id = self.get_broker_account()
 
         result = self.broker_fx_handling_data.broker_fx_market_order(
-            trade, ccy1, ccy2="USD", account=account
+            trade, ccy1, ccy2="USD", account_id=account_id
         )
         if result is missing_order:
             self.log.warn(
@@ -441,7 +442,8 @@ class dataBroker(productionDataLayerGeneric):
 
     def get_total_capital_value_in_base_currency(self) ->float:
         currency_data = dataCurrency(self.data)
-        values_across_accounts = self.broker_capital_data.get_account_value_across_currency_across_accounts()
+        account_id = self.get_broker_account()
+        values_across_accounts = self.broker_capital_data.get_account_value_across_currency(account_id)
 
         # This assumes that each account only reports either in one currency or
         # for each currency, i.e. no double counting

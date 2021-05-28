@@ -11,19 +11,22 @@ from syscore.dateutils import Frequency, DAILY_PRICE_FREQ
 
 class ibFxClient(ibPriceClient):
 
-    def broker_fx_balances(self) -> dict:
-        account_summary = self.ib.accountSummary()
+    def broker_fx_balances(self,
+                           account_id: str = arg_not_supplied) -> dict:
+        if account_id is arg_not_supplied:
+            account_summary = self.ib.accountSummary()
+        else:
+            account_summary = self.ib.accountSummary(account = account_id)
+
         fx_balance_dict = extract_fx_balances_from_account_summary(
             account_summary)
 
         return fx_balance_dict
 
-    def broker_fx_market_order(
-            self,
-            trade: float,
-            ccy1: str,
-            account: str=arg_not_supplied,
-            ccy2: str="USD") -> tradeWithContract:
+    def broker_fx_market_order(self, trade: float,
+                               ccy1: str,
+                               account_id: str = arg_not_supplied,
+                               ccy2: str = "USD") -> tradeWithContract:
         """
         Get some spot fx data
 
@@ -37,7 +40,7 @@ class ibFxClient(ibPriceClient):
         if ibcontract is missing_contract:
             return missing_contract
 
-        ib_order = self._create_fx_market_order_for_submission(trade=trade, account=account)
+        ib_order = self._create_fx_market_order_for_submission(trade=trade, account_id=account_id)
         order_object = self.ib.placeOrder(ibcontract, ib_order)
 
         # for consistency with spread orders use this kind of object
@@ -48,15 +51,12 @@ class ibFxClient(ibPriceClient):
 
         return trade_with_contract
 
-    def _create_fx_market_order_for_submission(self,
-            trade: float,
-            account: str=arg_not_supplied,
-            ) -> MarketOrder:
+    def _create_fx_market_order_for_submission(self, trade: float, account_id: str = arg_not_supplied) -> MarketOrder:
 
         ib_BS_str, ib_qty = resolveBS(trade)
         ib_order = MarketOrder(ib_BS_str, ib_qty)
-        if account != "":
-            ib_order.account = account
+        if account_id is not arg_not_supplied:
+            ib_order.account = account_id
 
         return ib_order
 

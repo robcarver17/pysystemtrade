@@ -1,18 +1,25 @@
 import datetime
+
 from sysbrokers.IB.client.ib_client import ibClient, STALE_SECONDS_ALLOWED_ACCOUNT_SUMMARY
+
+from syscore.objects import arg_not_supplied
+
 from sysobjects.spot_fx_prices import currencyValue, listOfCurrencyValues
 
 class ibAccountingClient(ibClient):
 
-    def broker_get_account_value_across_currency_across_accounts(
-        self
+    def broker_get_account_value_across_currency(
+        self,
+            account_id: str = arg_not_supplied
     ) -> listOfCurrencyValues:
+
         list_of_currencies = self._get_list_of_currencies_for_liquidation_values()
         list_of_values_per_currency = list(
             [
                 currencyValue(
                     currency,
-                    self._get_liquidation_value_for_currency_across_accounts(currency),
+                    self._get_liquidation_value_for_currency_across_accounts(currency,
+                                                                             account_id = account_id),
                 )
                 for currency in list_of_currencies
             ]
@@ -22,11 +29,17 @@ class ibAccountingClient(ibClient):
 
         return list_of_values_per_currency
 
-    def _get_liquidation_value_for_currency_across_accounts(self, currency: str) -> float:
+    def _get_liquidation_value_for_currency_across_accounts(self,
+                                                            currency: str,
+                                                            account_id:str = arg_not_supplied) -> float:
         liquidiation_values_across_accounts_dict = (
             self._get_net_liquidation_value_across_accounts()
         )
-        list_of_account_ids = liquidiation_values_across_accounts_dict.keys()
+        if account_id is arg_not_supplied:
+            list_of_account_ids = liquidiation_values_across_accounts_dict.keys()
+        else:
+            list_of_account_ids = [account_id]
+
         values_for_currency = [
             liquidiation_values_across_accounts_dict[account_id].get(currency, 0.0)
             for account_id in list_of_account_ids
