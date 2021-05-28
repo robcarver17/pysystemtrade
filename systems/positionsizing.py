@@ -361,7 +361,7 @@ class PositionSizing(SystemStage):
         """
         rawdata = self.rawdata_stage
         if rawdata is missing_data:
-            daily_perc_vol = self._get_daily_vol_from_sim_data(instrument_code)
+            daily_perc_vol = self.calculate_daily_percentage_vol(instrument_code)
         else:
 
             daily_perc_vol = rawdata.get_daily_percentage_volatility(
@@ -371,16 +371,28 @@ class PositionSizing(SystemStage):
         return daily_perc_vol
 
     @diagnostic()
-    def _get_daily_vol_from_sim_data(self, instrument_code: str) -> pd.Series:
-        price = self.data.daily_prices(instrument_code)
-
+    def calculate_daily_percentage_vol(self, instrument_code: str) -> pd.Series:
         # backadjusted prices can be negative
-        abs_price = abs(price)
-        return_vol = robust_vol_calc(price.diff())
-        daily_vol_as_ratio = return_vol / abs_price
+        underlying_price = self.get_underlying_price(instrument_code)
+
+        return_vol = self.calculate_daily_returns_vol(instrument_code)
+
+        daily_vol_as_ratio = return_vol / underlying_price
         daily_perc_vol = 100.0 * daily_vol_as_ratio
 
         return daily_perc_vol
+
+    @diagnostic()
+    def calculate_daily_returns_vol(self, instrument_code: str) -> pd.Series:
+        price = self._daily_prices_direct_from_data(instrument_code)
+        returns_vol = robust_vol_calc(price.diff())
+
+        return returns_vol
+
+    @input
+    def _daily_prices_direct_from_data(self, instrument_code: str) -> pd.Series:
+        price = self.data.daily_prices(instrument_code)
+        return price
 
     @diagnostic()
     def get_vol_target_dict(self) -> dict:

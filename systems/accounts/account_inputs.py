@@ -1,6 +1,7 @@
 from sysobjects.instruments import instrumentCosts
 
 from syscore.pdutils import from_scalar_values_to_ts
+from syscore.objects import missing_data
 
 import pandas as pd
 from systems.stage import SystemStage
@@ -25,8 +26,13 @@ class accountInputs(SystemStage):
     @diagnostic()
     def get_daily_returns_volatility(self, instrument_code: str) -> pd.Series:
 
-        returns_vol = self.parent.rawdata.daily_returns_volatility(
-            instrument_code)
+        system = self.parent
+        rawdata = getattr(system, "rawdata", missing_data)
+        if rawdata is missing_data:
+            returns_vol = self.parent.positionSize.calculate_daily_returns_vol(instrument_code)
+        else:
+            returns_vol = self.parent.rawdata.daily_returns_volatility(
+                instrument_code)
 
         return returns_vol
 
