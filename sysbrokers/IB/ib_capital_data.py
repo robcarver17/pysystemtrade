@@ -32,7 +32,7 @@ class ibCapitalData(brokerCapitalData):
     def __repr__(self):
         return "IB capital data"
 
-    def get_account_value_across_currency_across_accounts(self,
+    def get_account_value_across_currency(self,
                                                           account_id: str = arg_not_supplied) \
             -> listOfCurrencyValues:
         return self.ib_client.broker_get_account_value_across_currency(account_id=account_id)
