@@ -24,6 +24,8 @@ def calculate_weighted_average_with_nans(weights: list, data: list):
                     in zip(weights, data)]
 
     sum_safe_weights = sum(safe_weights)
+    if sum_safe_weights==0:
+        return 0.0
     renormalise = 1.0 /sum_safe_weights
     weighted_value = [renormalise * weight * data_item for
                       weight, data_item in zip(safe_weights, data)]
