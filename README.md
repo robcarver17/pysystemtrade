@@ -47,7 +47,7 @@ pysystemtrade uses the [IB insync library](https://ib-insync.readthedocs.io/api.
 
 ## Dependencies
 
-Python 3.x, pandas, matplotlib, pyyaml, numpy, scipy, quandl, ib_insyc
+Python 3.x, pandas, matplotlib, pyyaml, numpy, scipy, quandl, ib_insync
 
 See [requirements.txt](requirements.txt) for full details.
 

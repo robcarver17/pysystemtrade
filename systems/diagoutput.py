@@ -199,7 +199,7 @@ class systemDiag(object):
             weights = dict(
                 system.combForecast.get_forecast_weights(instrument).iloc[-1]
             )
-            weights = dict((rule_name, float(weight))
+            weights = dict((str(rule_name), float(weight))
                            for rule_name, weight in weights.items())
             forecast_weights[instrument] = weights
 
