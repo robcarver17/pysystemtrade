@@ -178,9 +178,13 @@ def three_asset_corr_matrix(labelled_correlations):
 def optimise_for_corr_matrix(corr_matrix):
     ## arbitrary
     mean_list = [.05]*3
-    std = [.1]*3
+    std = .1
 
-    return optimise_using_correlation(mean_list, corr_matrix, std)
+    stdev_list = np.full(len(mean_list), std)
+    sigma = sigma_from_corr_and_std(stdev_list, corr_matrix)
+
+    return optimise(sigma, mean_list)
+
 
 
 def apply_min_weight(average_weights):
@@ -1445,3 +1449,8 @@ def addem(weights):
 def variance(weights, sigma):
     # returns the variance (NOT standard deviation) given weights and sigma
     return (weights * sigma * weights.transpose())[0, 0]
+
+from syscore.pdutils import pd_readcsv
+returns = pd_readcsv('/home/rob/Downloads/returns (1).csv', date_index_name = 'Date')
+portfolio = Portfolio(returns, risk_target=0.1)
+weights = portfolio.cash_weights()
