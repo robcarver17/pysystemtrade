@@ -481,6 +481,8 @@ system=futures_system(config=my_config)
 
 See [here](#filenames) for how to specify filenames in pysystemtrade.
 
+
+
 ### Change instruments: Change the configuration object
 
 We can also modify the configuration object in the system directly:
@@ -519,6 +521,27 @@ new_config.rule_variations=dict(SP500=['ewmac16_64','carry'], KR10=['ewmac32_128
 system=futures_system(config=new_config)
 
 ```
+
+## How do I....Run a backtest on all available instruments
+
+If there are is no `instrument_weights` or `instruments element` in the config, then the backtest will be run over all available instruments in the data. 
+
+## How do I.... Exclude some instruments from the backtest
+
+If you want to run the backtest without certain instruments (but without individually specifying which ones you want) then you can add a config element `ignore_instruments`. This will be a list containing instrument codes.
+
+As an example, to exclude the 'full sized' contracts in the data and only use the mini/micro versions:
+
+```
+ignore_instruments:
+  - CRUDE_W
+  - GAS_US
+  - GOLD
+  - KOSPI
+  - NASDAQ
+  - SP500
+```
+
 
 
 <a name="how_do_i_write_rules"> </a>

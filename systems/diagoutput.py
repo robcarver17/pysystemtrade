@@ -214,7 +214,7 @@ class systemDiag(object):
         system = self.system
         instrument_weights = system.portfolio.get_instrument_weights().iloc[-1]
         instrument_weights = dict(
-            (key, float(value)) for key, value in instrument_weights.items()
+            (str(key), float(value)) for key, value in instrument_weights.items()
         )
 
         return instrument_weights

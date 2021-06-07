@@ -1,4 +1,4 @@
-from syscore.objects import arg_not_supplied
+from syscore.objects import arg_not_supplied, missing_data
 from sysdata.config.configdata import Config
 from sysdata.sim.sim_data import simData
 from syslogdiag.log_to_screen import logtoscreen, logger
@@ -179,9 +179,21 @@ class System(object):
                     raise Exception("Can't find instrument_list anywhere!")
 
         instrument_list = sorted(set(list(instrument_list)))
+        instrument_list = _remove_instruments_from_instrument_list(instrument_list,
+                                                                   self.config)
+
         return instrument_list
 
+def _remove_instruments_from_instrument_list(instrument_list, config):
 
+    ignore_instruments = config.get_element_or_missing_data('ignore_instruments')
+    if ignore_instruments is missing_data:
+        return instrument_list
+
+    instrument_list = [instrument for instrument in instrument_list
+                       if instrument not in ignore_instruments]
+
+    return instrument_list
 
 if __name__ == "__main__":
     import doctest

@@ -1,5 +1,7 @@
 # Release notes
 
+- Can now 'ignore_instruments' in config file.
+
 ## Version 1.03
 
 - IB positions now summed when returned (IB started returning multiple entries for same contract)
