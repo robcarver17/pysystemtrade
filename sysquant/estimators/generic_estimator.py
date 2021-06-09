@@ -8,6 +8,10 @@ class Estimate():
     def assets_with_missing_data(self) -> list:
         raise NotImplementedError
 
+    def list_in_key_order(self, list_of_keys: list) -> list:
+        raise NotImplementedError
+
+
 class exponentialEstimator(object):
     def __init__(self, data,
                  ew_lookback:int =250,

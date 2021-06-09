@@ -26,9 +26,25 @@ class fitDates(object):
                 self.period_end,
             )
 
+
 class listOfFittingDates(list):
     def list_of_starting_periods(self) -> list:
         return [period.period_start for period in self]
+
+
+    def index_of_most_recent_period_before_relevant_date(self,
+                                                         relevant_date:
+                                                         datetime.datetime):
+        list_of_start_periods = self.list_of_starting_periods()
+        if relevant_date<list_of_start_periods[0]:
+            raise Exception("Date %s is before first fitting date" % str(relevant_date))
+
+        ## Assumes they are sorted
+        for index, start_date in enumerate(list_of_start_periods):
+            if relevant_date<start_date:
+                return index-1
+
+        return index
 
 IN_SAMPLE = "in_sample"
 ROLLING = "rolling"

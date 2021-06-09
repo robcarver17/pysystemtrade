@@ -1,4 +1,5 @@
-from random import random
+import datetime
+
 from copy import copy
 import pandas as pd
 import numpy as np
@@ -6,7 +7,7 @@ from dataclasses import dataclass
 from syscore.objects import arg_not_supplied
 from syscore.pdutils import must_have_item
 
-from sysquant.fitting_dates import fitDates
+from sysquant.fitting_dates import fitDates, listOfFittingDates
 from sysquant.estimators.generic_estimator import Estimate
 
 class correlationEstimate(Estimate):
@@ -308,7 +309,7 @@ def _get_cleaned_matrix_values(raw_corr_matrix: correlationEstimate,
 class CorrelationList:
     corr_list: list
     column_names: list
-    fit_dates: list
+    fit_dates: listOfFittingDates
 
     def __repr__(self):
         return (
@@ -316,3 +317,12 @@ class CorrelationList:
             (len(
                 self.corr_list), ",".join(
                 self.column_names)))
+
+    def most_recent_correlation_before_date(self,
+                                            relevant_date: datetime.datetime= arg_not_supplied):
+        if relevant_date is arg_not_supplied:
+            index_of_date = -1
+        else:
+            index_of_date = self.fit_dates.index_of_most_recent_period_before_relevant_date(relevant_date)
+
+        return self.corr_list[index_of_date]

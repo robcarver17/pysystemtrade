@@ -15,6 +15,8 @@ class stdevEstimates(dict, Estimate):
     def assets_with_missing_data(self) -> list:
         return [asset_name for asset_name in self.keys() if np.isnan(self[asset_name])]
 
+    def list_in_key_order(self, list_of_keys: list) -> list:
+        return [self[asset_name] for asset_name in list_of_keys]
 
 class exponentialStdev(exponentialEstimator):
     def __init__(self, data_for_stdev: pd.DataFrame,
