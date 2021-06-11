@@ -32,6 +32,14 @@ Pysystemtrade is a....:
 
 pysystemtrade uses the [IB insync library](https://ib-insync.readthedocs.io/api.html) to connect to interactive brokers.
 
+
+## Stale? Stable?
+
+I trade with pysystemtrade 20 hours a day, 5 days a week. Almost any improvement or change I make to my trading system will appear here. So except for periods of time when I'm doing other projects like writing books, you'll see pretty regular updates.
+
+My live production system is always on the latest release. I make, and eat, my own dogfood on the same day. But there if you download a major version, you'll be getting something a little more stable.
+
+
 ## Use and documentation
 
 [Introduction (start here)](docs/introduction.md)
