@@ -329,7 +329,7 @@ You should then create a new system which points to the new config file:
 from sysdata.config.configdata import Config
 from systems.provided.futures_chapter15.basesystem import futures_system
 
-my_config=Config("private.this_system_name.config.yaml"))
+my_config=Config("private.this_system_name.config.yaml")
 system=futures_system(config=my_config)
 ```
 
