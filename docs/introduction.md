@@ -82,7 +82,7 @@ from sysquant.estimators.vol import robust_vol_calc
 
 def calc_ewmac_forecast(price, Lfast, Lslow=None):
     """
-    Calculate the ewmac trading fule forecast, given a price and EWMA speeds Lfast, Lslow and vol_lookback
+    Calculate the ewmac trading rule forecast, given a price and EWMA speeds Lfast, Lslow and vol_lookback
 
     """
     ## price: This is the stitched price series
