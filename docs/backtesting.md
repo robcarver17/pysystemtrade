@@ -992,8 +992,7 @@ from sysdata.sim.db_futures_sim_data import dbFuturesSimData
 data = dbFuturesSimData()
 
 # using with a system
-
-system = futures_system(, log_level="on")
+system = futures_system(log_level="on")
 print(system.accounts.portfolio().sharpe())
 ```
 
