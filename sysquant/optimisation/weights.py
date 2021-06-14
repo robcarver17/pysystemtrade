@@ -46,6 +46,14 @@ class portfolioWeights(dict):
 
         return portfolio_weights
 
+    def with_zero_weights_for_missing_keys(self, list_of_asset_names):
+        all_assets = list(set(list_of_asset_names + self.keys()))
+        return portfolioWeights(dict([
+            (key, self.get(key, 0))
+            for key in all_assets
+        ]))
+
+
 
 @dataclass()
 class estimatesWithPortfolioWeights():

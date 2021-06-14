@@ -144,6 +144,14 @@ class correlationEstimate(Estimate):
         na_row_count = self.as_pd().isna().any(axis=1)
         return [keyname for keyname in na_row_count.keys() if na_row_count[keyname]]
 
+    def assets_with_data(self) -> list:
+        missing = self.assets_with_missing_data()
+        return [keyname for keyname in self.columns if keyname not in missing]
+
+    def without_missing_data(self):
+        assets_with_data = self.assets_with_data()
+        return self.subset(assets_with_data)
+
 def create_boring_corr_matrix(size: int,
                        offdiag: float=0.99,
                        diag: float=1.0,

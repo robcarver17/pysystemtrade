@@ -3,7 +3,9 @@ from sysquant.estimators.stdev_estimator import stdevEstimates
 from sysquant.optimisation.shared import sigma_from_corr_and_std
 
 class covarianceEstimate(correlationEstimate):
-    pass
+    def assets_with_missing_data(self) -> list:
+        na_row_count = self.as_pd().isna().all(axis=1)
+        return [keyname for keyname in na_row_count.keys() if na_row_count[keyname]]
 
 def covariance_from_stdev_and_correlation(correlation_estimate: correlationEstimate,
                                           stdev_estimate: stdevEstimates) -> covarianceEstimate:
