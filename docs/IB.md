@@ -23,7 +23,7 @@ Table of Contents
    * [Getting started with interactive brokers](#getting-started-with-interactive-brokers)
       * [Gateway / TWS](#gateway--tws)
       * [IB-insync library](#ib-insync-library)
-      * [IB Controller](#ib-controller)
+      * [IBC](#ibc)
    * [Launching and configuring the Gateway](#launching-and-configuring-the-gateway)
    * [Making a connection](#making-a-connection)
 * [Reference](#reference)
@@ -63,9 +63,9 @@ I use IB-insync as my API to the python Gateway. You will need the [ib_insync](h
 It is worth running the examples in the [IB-insync cookbook](https://ib-insync.readthedocs.io/api.html) to make sure your IB connection is working, that you have the right gateway settings, and so on. Pysystemtrade obviously won't work if IB insync can't work!!
 
 
-### IB Controller
+### IBC
 
-Many people find [ib-controller](https://github.com/ib-controller/ib-controller) is very useful. It will maintain an open IB Gateway session to avoid the pain of having to manually restart every day. This is particularly useful if you're running your system fully automated on a headless trading server.
+Many people find [ibcAlpha](https://github.com/IbcAlpha/IBC) is very useful. It will maintain an open IB Gateway session to avoid the pain of having to manually restart every day. This is particularly useful if you're running your system fully automated on a headless trading server.
 
 
 ## Launching and configuring the Gateway
