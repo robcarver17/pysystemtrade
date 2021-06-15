@@ -4,6 +4,7 @@ Suite of functions to analyse a system, and produce configuration that can be sa
 from syscore.dateutils import ROOT_BDAYS_INYEAR
 from syscore.algos import return_mapping_params
 import yaml
+import numpy as np
 
 
 class systemDiag(object):
@@ -104,10 +105,16 @@ class systemDiag(object):
             scalar = position / forecast
             scalar_ewma = scalar.ewm(500).mean()
             position_at_avg_forecast = avg_forecast * scalar_ewma.values[-1]
+
+            if np.isnan(position_at_avg_forecast): # In case no position was open for a given instrument
+                position_at_avg_forecast = 0.0
+                a_param = 0.0
+            else:
+                a_param = target_position_at_avg_forecast / position_at_avg_forecast
+
             print("%s avg position %.2f" %
                   (instrument, position_at_avg_forecast))
 
-            a_param = target_position_at_avg_forecast / position_at_avg_forecast
             if a_param < 1.2:
                 # no need to do anything
                 print("Forecast scaling not required for %s" % instrument)
