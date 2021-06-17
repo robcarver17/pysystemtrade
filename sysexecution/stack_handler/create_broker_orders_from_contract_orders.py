@@ -285,7 +285,8 @@ class stackHandlerCreateBrokerOrders(stackHandlerForFills):
         self.add_trade_to_trade_limits(broker_order)
 
         # apply fills and commissions
-        self.apply_broker_order_fills_to_database(broker_order)
+        self.apply_broker_order_fills_to_database(broker_order_id=broker_order.order_id,
+            broker_order = broker_order)
 
         # release contract order from algo
         contract_order_id = broker_order.parent

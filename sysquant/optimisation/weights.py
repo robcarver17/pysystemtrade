@@ -32,7 +32,6 @@ class portfolioWeights(dict):
         return portfolioWeights(pweights_as_list)
 
     def replace_weights_with_ints(self):
-        instruments = list(self.keys())
         new_weights_as_dict = dict([
             (instrument_code, _int_from_nan(value))
             for instrument_code, value in self.items()
