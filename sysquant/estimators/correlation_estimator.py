@@ -39,7 +39,7 @@ class correlationEstimator(genericEstimator):
         columns = self.data.columns
         size = len(columns)
 
-        return create_boring_corr_matrix(size)
+        return create_boring_corr_matrix(size, columns=columns)
 
 
 def correlation_estimator_for_subperiod(data_for_correlation,

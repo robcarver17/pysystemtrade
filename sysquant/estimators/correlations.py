@@ -327,7 +327,7 @@ class CorrelationList:
                 self.column_names)))
 
     def most_recent_correlation_before_date(self,
-                                            relevant_date: datetime.datetime= arg_not_supplied):
+                                            relevant_date: datetime.datetime= arg_not_supplied) -> correlationEstimate:
         if relevant_date is arg_not_supplied:
             index_of_date = -1
         else:

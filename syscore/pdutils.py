@@ -503,6 +503,23 @@ def spread_out_annualised_return_over_periods(data_as_annual):
 
     return data_per_period
 
+def from_series_to_matching_df_frame(pd_series: pd.Series,
+                                     pd_df_to_match: pd.DataFrame,
+                                     method="ffill") -> pd.DataFrame:
+    list_of_columns = list(pd_df_to_match.columns)
+    new_df = from_series_to_df_with_column_names(pd_series, list_of_columns)
+    new_df = new_df.reindex(pd_df_to_match.index, method=method)
+
+    return new_df
+
+def from_series_to_df_with_column_names(pd_series: pd.Series,
+                                        list_of_columns: list) -> pd.DataFrame:
+
+    new_df = pd.concat([pd_series]*len(list_of_columns), axis=1)
+    new_df.columns = list_of_columns
+
+    return new_df
+
 if __name__ == "__main__":
     import doctest
 
