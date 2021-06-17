@@ -225,18 +225,18 @@ class instrumentCosts(object):
 
     def calculate_slippage_instrument_currency(self, blocks_traded: float,
                                                block_price_multiplier: float) -> float:
-        return blocks_traded * self.price_slippage * block_price_multiplier
+        return abs(blocks_traded) * self.price_slippage * block_price_multiplier
 
     def calculate_per_trade_commission(self):
         return self.value_of_pertrade_commission
 
     def calculate_cost_per_block_commission(self, blocks_traded):
-        return blocks_traded * self.value_of_block_commission
+        return abs(blocks_traded) * self.value_of_block_commission
 
     def calculate_percentage_commission(self, blocks_traded, price_per_block):
         trade_value = self.calculate_trade_value(blocks_traded, price_per_block)
         return self._percentage_cost * trade_value
 
     def calculate_trade_value(self, blocks_traded, value_per_block):
-        return blocks_traded * value_per_block
+        return abs(blocks_traded) * value_per_block
 
