@@ -9,6 +9,7 @@ from sysquant.estimators.estimates import Estimates
 
 
 class portfolioWeights(dict):
+
     @classmethod
     def allzeros(portfolioWeights, list_of_keys: list):
         return portfolioWeights.all_one_value(list_of_keys, value = 0.0)
@@ -29,6 +30,15 @@ class portfolioWeights(dict):
         pweights_as_list = [(key, weight) for key,weight in zip(list_of_keys, list_of_weights)]
 
         return portfolioWeights(pweights_as_list)
+
+    def replace_weights_with_ints(self):
+        instruments = list(self.keys())
+        new_weights_as_dict = dict([
+            (instrument_code, _int_from_nan(value))
+            for instrument_code, value in self.items()
+        ])
+
+        return portfolioWeights(new_weights_as_dict)
 
     def as_list_given_keys(self, list_of_keys: list):
         return [self[key] for key in list_of_keys]
@@ -53,6 +63,12 @@ class portfolioWeights(dict):
             for key in all_assets
         ]))
 
+
+def _int_from_nan(x: float):
+    if np.isnan(x):
+        return 0
+    else:
+        return int(x)
 
 
 @dataclass()

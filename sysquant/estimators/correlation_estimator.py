@@ -1,5 +1,7 @@
 import pandas as pd
 
+from syscore.objects import arg_not_supplied
+
 from sysquant.estimators.correlations import correlationEstimate, create_boring_corr_matrix
 from sysquant.estimators.exponential_correlation import exponentialCorrelation
 from sysquant.fitting_dates import fitDates
@@ -46,6 +48,8 @@ def correlation_estimator_for_subperiod(data_for_correlation,
                                                      fit_period: fitDates,
                           cleaning: bool = True,
                           floor_at_zero: bool = True,
+                        offdiag = 0.99,
+                                        clip = arg_not_supplied,
                           **_ignored_kwargs):
 
     subperiod_data = data_for_correlation[fit_period.fit_start: fit_period.fit_end]
@@ -54,9 +58,12 @@ def correlation_estimator_for_subperiod(data_for_correlation,
     corr_matrix = correlationEstimate(corr_matrix_values, data_for_correlation.columns)
     if cleaning:
         corr_matrix = corr_matrix.clean_corr_matrix_given_data(data_for_correlation=data_for_correlation,
-                                                               fit_period=fit_period)
+                                                               fit_period=fit_period,
+                                                               offdiag=offdiag)
 
     if floor_at_zero:
         corr_matrix = corr_matrix.floor_correlation_matrix(floor = 0.0)
+
+    corr_matrix = corr_matrix.clip_correlation_matrix(clip = clip)
 
     return corr_matrix

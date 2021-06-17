@@ -87,7 +87,8 @@ class correlationEstimate(Estimate):
 
     def clean_corr_matrix_given_data(self,
                                      fit_period: fitDates,
-                                     data_for_correlation: pd.DataFrame):
+                                     data_for_correlation: pd.DataFrame,
+                                     offdiag = 0.99):
         if fit_period.no_data:
             return self
 
@@ -97,7 +98,7 @@ class correlationEstimate(Estimate):
         # kind of correlation
         must_haves = must_have_item(current_period_data)
 
-        clean_correlation = self.clean_correlations(must_haves)
+        clean_correlation = self.clean_correlations(must_haves, offdiag=offdiag)
 
         return clean_correlation
 
@@ -114,9 +115,26 @@ class correlationEstimate(Estimate):
 
         return create_boring_corr_matrix(self.size, offdiag=offdiag, diag = diag, columns=self.columns)
 
+    def clip_correlation_matrix(self,  clip=arg_not_supplied):
+        if clip is arg_not_supplied:
+            return self
+        clip = abs(clip)
+        corr_matrix = self.floor_correlation_matrix(floor = -clip)
+        corr_matrix = corr_matrix.ceil_correlation_matrix(ceil = clip)
+
+        return corr_matrix
+
     def floor_correlation_matrix(self,  floor=0.0):
         corr_matrix_values = copy(self.values)
         corr_matrix_values[corr_matrix_values < floor] = floor
+        np.fill_diagonal(corr_matrix_values, 1.0)
+        corr_matrix = correlationEstimate(corr_matrix_values, self.columns)
+        return corr_matrix
+
+    def ceil_correlation_matrix(self,  ceil=0.9):
+        corr_matrix_values = copy(self.values)
+        corr_matrix_values[corr_matrix_values > ceil] = ceil
+        np.fill_diagonal(corr_matrix_values, 1.0)
         corr_matrix = correlationEstimate(corr_matrix_values, self.columns)
         return corr_matrix
 
