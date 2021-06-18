@@ -181,7 +181,7 @@ def neg_SR(weights: list,
 
 def variance(weights: np.matrix, sigma: np.array):
     # returns the variance (NOT standard deviation) given weights and sigma
-    return (weights * sigma * weights.transpose())[0, 0]
+    return weights.dot(sigma).dot(weights.transpose())
 
 
 
