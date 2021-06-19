@@ -7,7 +7,7 @@ from sysquant.estimators.vol import robust_vol_calc
 
 def ewmac_forecast_with_defaults(price, Lfast=32, Lslow=128):
     """
-    Calculate the ewmac trading fule forecast, given a price and EWMA speeds
+    Calculate the ewmac trading rule forecast, given a price and EWMA speeds
       Lfast, Lslow and vol_lookback
 
     Assumes that 'price' is daily data
@@ -48,7 +48,7 @@ def ewmac_forecast_with_defaults(price, Lfast=32, Lslow=128):
 
 def ewmac_forecast_with_defaults_no_vol(price, vol, Lfast=16, Lslow=32):
     """
-    Calculate the ewmac trading fule forecast, given a price and EWMA speeds
+    Calculate the ewmac trading rule forecast, given a price and EWMA speeds
       Lfast, Lslow and vol_lookback
 
     Assumes that 'price' is daily data and that the vol is on the same timestamp
