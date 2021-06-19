@@ -12,8 +12,8 @@ def breakout(price, lookback=10, smooth=None):
     :param lookback: Lookback in days
     :type lookback: int
 
-    :param lookback: Smooth to apply in days. Must be less than lookback! Defaults to smooth/4
-    :type lookback: int
+    :param smooth: Smooth to apply in days. Must be less than lookback! Defaults to smooth/4
+    :type smooth: int
 
     :returns: pd.DataFrame -- unscaled, uncapped forecast
 
