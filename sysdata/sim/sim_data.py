@@ -271,7 +271,7 @@ def _resolve_start_date(config):
         start_date = missing_data
     else:
         start_date = getattr(config, "start_date", missing_data)
-        
+
     if start_date is missing_data:
         start_date = ARBITRARY_START
     else:
