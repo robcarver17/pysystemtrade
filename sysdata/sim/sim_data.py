@@ -1,6 +1,8 @@
 import pandas as pd
+import datetime
 
-from syscore.objects import get_methods
+from syscore.objects import get_methods, missing_data
+from syscore.dateutils import ARBITRARY_START
 from sysdata.base_data import baseData
 
 from sysobjects.spot_fx_prices import fxPrices
@@ -73,6 +75,32 @@ class simData(baseData):
     @property
     def parent(self):
         return self._parent
+
+    @property
+    def config(self):
+        return self.parent.config
+
+    def start_date_for_data(self):
+        start_date = getattr(self, "_start_date_for_data_from_config", missing_data)
+        if start_date is missing_data:
+            start_date= self._get_and_set_start_date_for_data_from_config()
+
+        return start_date
+
+    def _get_and_set_start_date_for_data_from_config(self) -> datetime:
+        config = self.config
+        start_date = getattr(config, "start_date", missing_data)
+        if start_date is missing_data:
+            start_date = ARBITRARY_START
+        else:
+            try:
+                start_date = datetime.datetime.strptime(start_date, "%Y-%m-%d")
+            except:
+                raise Exception("Start date %s in config file does not conform to pattern 2020-03-19")
+
+        self._start_date_for_data_from_config = start_date
+
+        return start_date
 
     def methods(self) -> list:
         return get_methods(self)
