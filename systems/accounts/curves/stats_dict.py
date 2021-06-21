@@ -184,7 +184,7 @@ class statsDict(dict):
 
         results_values = list(results.values())
 
-        return ttest_1samp(results_values, 0.0, alternative='greater').statistic
+        return ttest_1samp(results_values, 0.0).statistic
 
     def pvalue(self, timeweighted=True):
         if timeweighted:
@@ -194,7 +194,7 @@ class statsDict(dict):
 
         results_values = list(results.values())
 
-        return ttest_1samp(results_values, 0.0, alternative='greater').p_value
+        return ttest_1samp(results_values, 0.0).pvalue
 
     def _time_weights(self) -> dict:
         dict_of_time_lengths = dict(
