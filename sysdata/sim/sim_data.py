@@ -160,6 +160,24 @@ class simData(baseData):
         :returns: pd.Series
 
         """
+        start_date = self.start_date_for_data()
+
+        return self.get_raw_price_from_start_date(instrument_code,
+                                                  start_date=start_date)
+
+    def get_raw_price_from_start_date(self, instrument_code: str,
+                                      start_date: datetime.datetime) -> pd.Series:
+        """
+        Default method to get instrument price at 'natural' frequency
+
+        Will usually be overriden when inherited with specific data source
+
+        :param instrument_code: instrument to get prices for
+        :type instrument_code: str
+
+        :returns: pd.Series
+
+        """
         raise NotImplementedError("Need to inherit from simData")
 
 
@@ -224,6 +242,23 @@ class simData(baseData):
         )
 
     def _get_fx_data(self, currency1: str, currency2: str) -> fxPrices:
+        """
+        Get the FX rate currency1/currency2 between two currencies
+        Or return None if not available
+
+        (Normally we'd over ride this with a specific source)
+
+
+        """
+        start_date = self.start_date_for_data()
+
+        return self._get_fx_data_from_start_date(currency1,
+                                                 currency2,
+                                                 start_date=start_date)
+
+
+    def _get_fx_data_from_start_date(self, currency1: str, currency2: str,
+                                     start_date: datetime.datetime) -> fxPrices:
         """
         Get the FX rate currency1/currency2 between two currencies
         Or return None if not available
