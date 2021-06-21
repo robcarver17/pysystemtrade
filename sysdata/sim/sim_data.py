@@ -74,14 +74,21 @@ class simData(baseData):
 
     @property
     def parent(self):
-        return self._parent
+        return getattr(self, "_parent", missing_data)
 
     @property
     def config(self):
-        return self.parent.config
+        try:
+            return self.parent.config
+        except:
+            return missing_data
 
     def start_date_for_data(self):
-        start_date = getattr(self, "_start_date_for_data_from_config", missing_data)
+        try:
+            start_date = getattr(self, "_start_date_for_data_from_config", missing_data)
+        except:
+            start_date = missing_data
+            
         if start_date is missing_data:
             start_date= self._get_and_set_start_date_for_data_from_config()
 
