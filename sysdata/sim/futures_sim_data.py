@@ -195,8 +195,14 @@ class futuresSimData(simData):
 
 
     def get_multiple_prices(self, instrument_code: str) -> futuresMultiplePrices:
-        raise NotImplementedError()
+        start_date = self.start_date_for_data()
 
+        return self.get_multiple_prices_from_start_date(instrument_code,
+                                                        start_date=start_date)
+
+    def get_multiple_prices_from_start_date(self, instrument_code: str,
+                                            start_date) -> futuresMultiplePrices:
+        raise NotImplementedError()
 
 
     def _get_instrument_object_with_cost_data(self, instrument_code) -> futuresInstrumentWithMetaData:

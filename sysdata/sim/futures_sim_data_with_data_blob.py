@@ -65,10 +65,11 @@ class genericBlobUsingFuturesSimData(futuresSimData):
 
         return data
 
-    def get_multiple_prices(self, instrument_code: str) -> futuresMultiplePrices:
+    def get_multiple_prices_from_start_date(self, instrument_code: str,
+                                            start_date) -> futuresMultiplePrices:
         data = self.db_futures_multiple_prices_data.get_multiple_prices(instrument_code)
 
-        return data
+        return data[start_date:]
 
     def _get_instrument_object_with_cost_data(self, instrument_code: str) -> futuresInstrumentWithMetaData:
         ## cost and other meta data stored in the same place
