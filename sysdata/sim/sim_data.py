@@ -89,15 +89,7 @@ class simData(baseData):
 
     def _get_and_set_start_date_for_data_from_config(self) -> datetime:
         config = self.config
-        start_date = getattr(config, "start_date", missing_data)
-        if start_date is missing_data:
-            start_date = ARBITRARY_START
-        else:
-            try:
-                start_date = datetime.datetime.strptime(start_date, "%Y-%m-%d")
-            except:
-                raise Exception("Start date %s in config file does not conform to pattern 2020-03-19")
-
+        start_date = _resolve_start_date(config)
         self._start_date_for_data_from_config = start_date
 
         return start_date
@@ -270,3 +262,16 @@ class simData(baseData):
         raise NotImplementedError("Need to inherit for a specific data source")
 
 
+def _resolve_start_date(config):
+    start_date = getattr(config, "start_date", missing_data)
+    if start_date is missing_data:
+        start_date = ARBITRARY_START
+    else:
+        if type(start_date) is not datetime.datetime:
+            try:
+                start_date = datetime.datetime.strptime(start_date, "%Y-%m-%d")
+            except:
+                raise Exception(
+                    "Parameter start_date %s in config file does not conform to pattern 2020-03-19" % str(start_date))
+
+    return start_date
