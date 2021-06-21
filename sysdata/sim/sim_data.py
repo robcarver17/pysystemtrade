@@ -78,17 +78,14 @@ class simData(baseData):
 
     @property
     def config(self):
-        try:
-            return self.parent.config
-        except:
+        if self.parent is missing_data:
             return missing_data
+        else:
+            return self.parent.config
 
     def start_date_for_data(self):
-        try:
-            start_date = getattr(self, "_start_date_for_data_from_config", missing_data)
-        except:
-            start_date = missing_data
-            
+        start_date = getattr(self, "_start_date_for_data_from_config", missing_data)
+
         if start_date is missing_data:
             start_date= self._get_and_set_start_date_for_data_from_config()
 
@@ -270,7 +267,11 @@ class simData(baseData):
 
 
 def _resolve_start_date(config):
-    start_date = getattr(config, "start_date", missing_data)
+    if config is missing_data:
+        start_date = missing_data
+    else:
+        start_date = getattr(config, "start_date", missing_data)
+        
     if start_date is missing_data:
         start_date = ARBITRARY_START
     else:
