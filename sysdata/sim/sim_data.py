@@ -7,6 +7,7 @@ from sysobjects.spot_fx_prices import fxPrices
 from sysobjects.instruments import instrumentCosts
 
 
+
 class simData(baseData):
     """
     Core data object - Base class for simulation
@@ -67,6 +68,11 @@ class simData(baseData):
 
         # inherit the log
         self._log = base_system.log.setup(stage="data")
+        self._parent = base_system
+
+    @property
+    def parent(self):
+        return self._parent
 
     def methods(self) -> list:
         return get_methods(self)
