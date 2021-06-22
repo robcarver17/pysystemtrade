@@ -38,11 +38,11 @@ class optimisedPositions(SystemStage):
     def get_optimised_weights_df(self) -> pd.DataFrame:
         self.log.msg("Optimising positions for small capital: may take a while!")
         common_index = list(self.common_index())
-        p = progressBar(len(common_index))
+        p = progressBar(len(common_index), show_timings=True, show_each_time=True)
         previous_optimal_weights = portfolioWeights.allzeros(self.instrument_list())
         weights_list = []
         for relevant_date in common_index:
-            self.log.msg(relevant_date)
+            #self.log.msg(relevant_date)
             optimal_weights = self.get_optimal_weights_with_fixed_contract_values(relevant_date,
                                                                                   previous_weights=previous_optimal_weights)
             weights_list.append(optimal_weights)
@@ -189,8 +189,13 @@ class optimisedPositions(SystemStage):
     def get_cost_per_contract_as_proportion_of_capital(self, instrument_code)-> float:
         cost_per_contract = self.get_cost_per_contract_in_base_ccy(instrument_code)
         trading_capital = self.get_trading_capital()
+        cost_multiplier = self.cost_multiplier()
 
-        return cost_per_contract / trading_capital
+        return cost_multiplier * cost_per_contract / trading_capital
+
+    def cost_multiplier(self) -> float:
+        cost_multiplier = float(self.config.small_system['cost_multiplier'])
+        return cost_multiplier
 
     def get_cost_per_contract_in_base_ccy(self, instrument_code: str) -> float:
         raw_cost_data = self.get_raw_cost_data(instrument_code)

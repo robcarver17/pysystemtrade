@@ -2,6 +2,8 @@
 Utilities I can't put anywhere else...
 """
 
+import time
+
 from math import copysign, gcd
 from copy import copy
 import sys
@@ -199,15 +201,87 @@ class progressBar(object):
             range_to_iter,
             suffix="Progress",
             toolbar_width=80,
-            show_each_time=False):
+            show_each_time=False,
+            show_timings = False):
+
+        self._start_time = time.time()
         self.toolbar_width = toolbar_width
         self.current_iter = 0
         self.suffix = suffix
         self.range_to_iter = range_to_iter
         self.range_per_block = range_to_iter / np.float(toolbar_width)
-        self.display_bar()
         self._how_many_blocks_displayed = -1  # will always display first time
         self._show_each_time = show_each_time
+        self._show_timings = show_timings
+
+        self.display_bar()
+
+
+    def estimated_time_remaining(self):
+        total_iter = self.range_to_iter
+        iter_left = total_iter - self.current_iter
+        time_per_iter = self.time_per_iteration()
+
+        return iter_left * time_per_iter
+
+    def time_per_iteration(self) -> float:
+        list_of_time_per_iter = self.list_of_time_per_iter()
+        return np.mean(list_of_time_per_iter[-10:])
+
+    def list_of_time_per_iter(self):
+        list_of_time_per_iter = getattr(self, "_list_of_time_per_iter", [])
+        list_of_time_per_iter.append(self.time_per_iter_since_last_call())
+        self._list_of_time_per_iter = list_of_time_per_iter
+
+        return list_of_time_per_iter
+
+    def time_per_iter_since_last_call(self) -> float:
+        iter_since_last_called = self.iter_since_last_called()
+
+        if iter_since_last_called==0:
+            return 0.0
+
+        time_since_last_called = self.time_since_last_called()
+
+        return time_since_last_called / iter_since_last_called
+
+
+    def iter_since_last_called(self) -> int:
+        iter_of_last_call = self.get_and_set_iter_of_last_call()
+        current_iter = self.current_iter
+
+        return current_iter - iter_of_last_call
+
+    def time_since_last_called(self) -> float:
+        time_of_last_call = self.get_and_set_time_of_last_call()
+        current_time = self.current_time
+
+        return current_time - time_of_last_call
+
+    def get_and_set_time_of_last_call(self):
+        time_of_last_iter = copy(getattr(self, "_time_of_last_call", self.start_time))
+        self._time_of_last_call = self.current_time
+
+        return time_of_last_iter
+
+
+    def get_and_set_iter_of_last_call(self):
+        last_iter = copy(getattr(self, "_iter_of_last_call", 0))
+        self._iter_of_last_call = self.current_iter
+
+        return last_iter
+
+    def elapsed_time(self):
+        return self.current_time - self.start_time
+
+    @property
+    def start_time(self):
+        return self._start_time
+
+    @property
+    def current_time(self):
+        return time.time()
+
 
     def iterate(self):
         self.current_iter += 1
@@ -242,14 +316,24 @@ class progressBar(object):
             float(
                 self.range_to_iter),
             1)
+        if self._show_timings:
+            time_remaining = self.estimated_time_remaining()
+            time_elapsed = self.elapsed_time()
+            total_est_time = time_elapsed + time_remaining
+            time_str = "(%.1f/%.1f/%.1f secs left/elapsed/total)" \
+                       % (time_remaining, time_elapsed, total_est_time)
+        else:
+            time_str = ""
+
         bar = "=" * self.how_many_blocks_had() + "-" * self.how_many_blocks_left()
-        progress_string = "\0\r [%s] %s%s %s" % (
-            bar, percents, "%", self.suffix)
+        progress_string = "\0\r [%s] %s%s %s %s\n" % (
+            bar, percents, "%", self.suffix, time_str)
         sys.stdout.write(progress_string)
         sys.stdout.flush()
         self._how_many_blocks_displayed = self.how_many_blocks_had()
 
     def finished(self):
+        self.display_bar()
         sys.stdout.write("\n")
 
 

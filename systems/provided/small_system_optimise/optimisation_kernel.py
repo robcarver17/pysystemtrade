@@ -28,4 +28,6 @@ def neg_return_with_risk_penalty_and_costs(weights: list,
 
     risk_penalty = risk_aversion * variance_estimate /2.0
 
-    return -(estreturn - risk_penalty - cost_penalty)
+    result = -(estreturn - risk_penalty - cost_penalty)
+
+    return result

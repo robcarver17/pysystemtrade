@@ -1,6 +1,7 @@
 import datetime
 import numpy as np
 import pandas as pd
+from syscore.genutils import progressBar
 
 from systems.stage import SystemStage
 from systems.system_cache import diagnostic
@@ -65,7 +66,10 @@ class Risk(SystemStage):
     def _get_portfolio_risk_given_weights(self, portfolio_weights: pd.DataFrame) -> pd.Series:
         risk_series = []
         common_index = self.common_index()
+        p = progressBar(len(common_index), show_timings=True, show_each_time=False)
+
         for relevant_date in common_index:
+            p.iterate()
             weights_on_date = portfolioWeights(
                 get_row_of_df_aligned_to_weights_as_dict(portfolio_weights, relevant_date))
             covariance = self.get_covariance_matrix(relevant_date)
@@ -73,6 +77,7 @@ class Risk(SystemStage):
                                           covariance = covariance)
             risk_series.append(risk_on_date)
 
+        p.finished()
         risk_series = pd.Series(risk_series, common_index)
 
         return risk_series

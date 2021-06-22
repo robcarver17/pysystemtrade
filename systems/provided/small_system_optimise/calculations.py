@@ -97,12 +97,11 @@ def optimise_from_covariance_and_expected_returns_with_risk_coefficient(
     return weights
 
 
-def neg_return_with_risk_penalty(weights: list,
+def neg_return_with_risk_penalty(weights: np.array,
            covariance_as_np: np.array,
            mus: np.array,
                                  risk_aversion: float):
-    weights = np.matrix(weights)
-    estreturn = (weights * mus)[0, 0]
+    estreturn = weights.dot(mus)
 
     risk_penalty = risk_aversion * variance(weights, covariance_as_np) /2.0
 
@@ -200,7 +199,6 @@ def calculate_costs_as_np(list_of_instruments: list,
     # Expected returns are annual, costs happen over a single day
     # We should multiply costs by the number of times we expect to trade in a year
     ## cost = (cost as proportion of capital per contract) * contracts traded = (cost pppc) * (portfolio weight traded / value per contract) = (cost ppppc / value per contract) * portfolio weight traded
-    # FIXME apply cost multiplier here as well?
     cost_as_np_in_portfolio_weight_terms = \
         np.array(costs_as_list) / np.array(per_contract_value_as_list)
 
@@ -232,17 +230,20 @@ def grid_search_optimise_with_fixed_contract_values_and_processed_inputs(
 
 def find_optimal_weights_given_grid_points(grid_points: list,
                                            optimisation_parameters: tuple,
-                                           use_process_pool: bool = False):
+                                           use_process_pool: bool = False,
+                                           num_processes: int = 8):
 
     # we list() this since we need to have the index of the best weights
     grid_possibles = list(itertools.product(*grid_points))
+    chunksize = max(1, int(len(grid_possibles) / num_processes))
 
     if use_process_pool:
         with ProcessPoolExecutor() as pool:
             results = pool.map(
                 neg_return_with_risk_penalty_and_costs,
                          grid_possibles,
-                        itertools.repeat(optimisation_parameters)
+                        itertools.repeat(optimisation_parameters),
+                        chunksize=chunksize
                          )
     else:
         results = map(neg_return_with_risk_penalty_and_costs,

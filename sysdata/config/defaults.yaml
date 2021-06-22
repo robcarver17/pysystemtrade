@@ -267,3 +267,4 @@ small_system:
     max_risk_per_instrument_for_large_instrument_count: 0.1
   max_risk_ceiling_as_fraction_normal_risk: 2.0
   use_process_pool: True
+  cost_multiplier: 1.0
