@@ -74,14 +74,7 @@ class simData(baseData):
 
     @property
     def parent(self):
-        return getattr(self, "_parent", missing_data)
-
-    @property
-    def config(self):
-        if self.parent is missing_data:
-            return missing_data
-        else:
-            return self.parent.config
+        return self._parent
 
     def start_date_for_data(self):
         start_date = getattr(self, "_start_date_for_data_from_config", missing_data)
@@ -92,8 +85,7 @@ class simData(baseData):
         return start_date
 
     def _get_and_set_start_date_for_data_from_config(self) -> datetime:
-        config = self.config
-        start_date = _resolve_start_date(config)
+        start_date = _resolve_start_date(self)
         self._start_date_for_data_from_config = start_date
 
         return start_date
@@ -266,7 +258,10 @@ class simData(baseData):
         raise NotImplementedError("Need to inherit for a specific data source")
 
 
-def _resolve_start_date(config):
+def _resolve_start_date(sim_data: simData):
+
+    config = _resolve_config(sim_data)
+
     if config is missing_data:
         start_date = missing_data
     else:
@@ -283,3 +278,10 @@ def _resolve_start_date(config):
                     "Parameter start_date %s in config file does not conform to pattern 2020-03-19" % str(start_date))
 
     return start_date
+
+def _resolve_config(sim_data: simData):
+    try:
+        config = sim_data.parent.config
+        return config
+    except:
+        return missing_data

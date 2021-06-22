@@ -19,6 +19,7 @@ WEEKS_IN_YEAR,
 MONTHS_IN_YEAR
 
 )
+from syscore.objects import arg_not_supplied
 
 DEFAULT_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 
@@ -541,3 +542,17 @@ if __name__ == "__main__":
 
     doctest.testmod()
 
+
+def get_row_of_df_aligned_to_weights_as_dict(df: pd.DataFrame,
+                                             relevant_date: datetime.datetime = arg_not_supplied) \
+    -> dict:
+
+    if relevant_date is arg_not_supplied:
+        data_at_date = df.iloc[-1]
+    else:
+        try:
+            data_at_date = df.loc[relevant_date]
+        except KeyError:
+            raise Exception("Date %s not found in portfolio weights" % str(relevant_date))
+
+    return data_at_date.to_dict()
