@@ -2348,7 +2348,7 @@ following configurable attributes:
 YAML:
 ```
 volatility_calculation:
-  func: "syscore.algos.robust_vol_calc"
+  func: "sysquant.estimators.vol.robust_vol_calc"
   days: 35
   min_periods: 10
   vol_abs_min: 0.0000000001
@@ -3243,7 +3243,7 @@ The final stage is the all important accounting stage, which calculates p&l.
 
 The standard accounting class includes several useful methods:
 
-- `portfolio`: works out the p&l for the whole system (returns accountCurve)
+- `portfolio`: works out the p&l for the whole system (returns accountCurveGroup)
 - `pandl_for_instrument`: the contribution of a particular instrument to the
   p&l (returns accountCurve)
 - `pandl_for_subsystem`: work out how an instrument has done in isolation
@@ -3322,7 +3322,7 @@ system.accounts.portfolio().stats()
   ('t_stat', '2.852'),
   ('p_value', '0.004349')],
  ('You can also plot / print:',
-  ['rolling_ann_std', 'drawdown', 'curve', 'as_percent', 'as_cumulative'])]
+  ['rolling_ann_std', 'drawdown', 'curve', 'percent'])]
 ```
 
 The `stats` method lists three kinds of output:
@@ -3389,13 +3389,6 @@ acc_curve.rolling_ann_std() ## rolling annual standard deviation of daily (net) 
 acc_curve.gross.curve() ## cumulated returns = account curve of gross daily returns
 acc_curve.net.monthly.drawdown() ## drawdown of monthly net returns
 acc_curve.costs.weekly.curve() ## cumulated weekly costs
-```
-
-You probably won't need it but acc_curve.calc_data() returns a dict of all the
-information used to calculate a particular account curve. For example:
-
-```python
-acc_curve.calc_data()['trades_to_use'] ## simulated trades
 ```
 
 Personally I prefer looking at statistics in percentage terms. This is easy.
@@ -3465,7 +3458,6 @@ acc_curve_group['US10'].monthly.sharpe() ## Sharpe ratio based on annual
 acc_curve_group['US10'].gross.weekly.std() ## standard deviation of weekly returns
 acc_curve_group['US10'].daily.ann_std() ## annualised std. deviation of daily (net) returns
 acc_curve_group['US10'].costs.annual.median() ## median of annual costs
-acc_curve_group['US10'].calc_data()['trades_to_use'] ## list of trades
 
 acc_curve_group.gross['US10'].weekly.std() ## notice equivalent way of getting account curves
 ```
@@ -3495,7 +3487,7 @@ acc_curve_group.net.get_stats("sharpe", percent=False) ## defaults to giving sta
 
 ```
 
-*Warning see [weighted and unweighted account curve groups](#weighted_acg)
+*Warning see [weighted and unweighted account curve groups](#weighted_acg)*
 
 You can get summary statistics for these. These can either be simple averages
 across all assets, or time weighted by the amount of data each asset has.
@@ -3504,7 +3496,7 @@ across all assets, or time weighted by the amount of data each asset has.
 acc_curve_group.get_stats("sharpe").mean() ## get simple average of annualised sharpe ratios for net returns using daily data
 acc_curve_group.get_stats("sharpe").std(timeweighted=True) ## get time weighted standard deviation of sharpes across assets,
 acc_curve_group.get_stats("sharpe").tstat(timeweighted=False) ## t tstatistic for average sharpe ratio
-acc_curve_group.get_stats("sharpe").pvalue(tim_weighted=True) ## p value of t statistic of time weighted average sharpe ratio.
+acc_curve_group.get_stats("sharpe").pvalue(timeweighted=True) ## p value of t statistic of time weighted average sharpe ratio.
 
 ```
 
@@ -4521,7 +4513,7 @@ values:
 YAML:
 ```
 volatility_calculation:
-  func: "syscore.algos.robust_vol_calc"
+  func: "sysquant.estimators.vol.robust_vol_calc"
   days: 35
   min_periods: 10
   vol_abs_min: 0.0000000001

@@ -157,7 +157,7 @@ account.percent.stats()
   ('t_stat', '2.929'),
   ('p_value', '0.003405')],
  ('You can also plot / print:',
-  ['rolling_ann_std', 'drawdown', 'curve', 'percent', 'cumulative'])]
+  ['rolling_ann_std', 'drawdown', 'curve', 'percent'])]
 ```
 
 Looks like we did make a few bucks. `account`, by the way inherits from a pandas data frame. Here are some other things we can do with it:

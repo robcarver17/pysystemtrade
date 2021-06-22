@@ -335,7 +335,7 @@ class accountCurve(pd.Series):
 
         comment1 = (
             "You can also plot / print:",
-            ["rolling_ann_std", "drawdown", "curve", "percent", "cumulative"],
+            ["rolling_ann_std", "drawdown", "curve", "percent"],
         )
 
         return [build_stats, comment1]
