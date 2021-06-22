@@ -2321,7 +2321,7 @@ following configurable attributes:
 YAML:
 ```
 volatility_calculation:
-  func: "syscore.algos.robust_vol_calc"
+  func: "sysquant.estimators.vol.robust_vol_calc"
   days: 35
   min_periods: 10
   vol_abs_min: 0.0000000001
@@ -4486,7 +4486,7 @@ values:
 YAML:
 ```
 volatility_calculation:
-  func: "syscore.algos.robust_vol_calc"
+  func: "sysquant.estimators.vol.robust_vol_calc"
   days: 35
   min_periods: 10
   vol_abs_min: 0.0000000001

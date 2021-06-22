@@ -85,7 +85,7 @@ def resolve_function(func_or_func_name):
     >>> resolve_function(str)
     <class 'str'>
 
-    >>> resolve_function("syscore.algos.robust_vol_calc").__name__
+    >>> resolve_function("sysquant.estimators.vol.robust_vol_calc").__name__
     'robust_vol_calc'
 
     """
