@@ -101,7 +101,7 @@ class logEntry(object):
 
     @property
     def timestamp_as_text(self) -> str:
-        return self.timestamp.strftime("%Y-%m-%d:%H%M.%S")
+        return self.timestamp.strftime("%Y-%m-%d %H:%M:%S")
 
     @property
     def text(self) -> str:
