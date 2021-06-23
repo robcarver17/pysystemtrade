@@ -39,7 +39,7 @@ def get_implied_expected_returns(portfolio_weights: portfolioWeights,
 
 def calculate_implied_expected_returns_given_np(aligned_weights_as_np: np.array,
                                                 covariance_as_np_array: np.array,
-                                                risk_aversion: float = 3.0):
+                                                risk_aversion: float = 2.0):
 
     expected_returns_as_np = risk_aversion*aligned_weights_as_np.dot(covariance_as_np_array)
 

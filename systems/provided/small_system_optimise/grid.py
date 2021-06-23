@@ -26,12 +26,12 @@ class gridParameters:
         return self.max_portfolio_weights.as_list_given_keys(self.list_of_instruments)
 
 
+## FIX ME TO DO
+## add other constraints
+## reduce only (needs existing position): conflict with sign change so generate first?
+## don't trade (needs existing position)
 
 def generate_grid(grid_parameters: gridParameters):
-    ## FIX ME TO DO
-    ## add other constraints
-    ## reduce only (needs existing position): conflict with sign change so generate first?
-    ## don't trade (needs existing position)
 
     constraints = _generate_constraints(grid_parameters)
 
