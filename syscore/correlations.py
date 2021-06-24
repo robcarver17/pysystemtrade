@@ -77,7 +77,7 @@ class CorrelationList(object):
 
     def __repr__(self):
         return (
-            "%d correlation estimates for %s; use .corr_list, .columns, .fit_dates" %
+            "%d correlation estimates for %s; use .corr_list, .column_names, .fit_dates" %
             (len(
                 self.corr_list), ",".join(
                 self.columns)))
