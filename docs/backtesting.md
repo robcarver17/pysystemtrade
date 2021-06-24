@@ -4297,13 +4297,13 @@ Other methods exist to access logging and caching.
 | `rawdata.get_daily_prices` | Standard | `instrument_code` | I | `data.daily_prices`|
 | `rawdata.daily_denominator_price` | Standard | `instrument_code` | O | Price used to calculate % volatility (for futures the current contract price) |
 | `rawdata.daily_returns` | Standard | `instrument_code` | D, O | Daily returns in price units|
-| `rawdata.get_percentage_returns` | Standard | `instrument_code` | D | Daily returns as a percentage. |
+| `rawdata.get_daily_percentage_returns` | Standard | `instrument_code` | D | Daily returns as a percentage. |
 | `rawdata.daily_returns_volatility` | Standard | `instrument_code` | D,O | Daily standard deviation of returns in price units |
 | `rawdata.get_daily_percentage_volatility` | Standard | `instrument_code` | D,O | Daily standard deviation of returns in % (10.0 = 10%) |
-| `rawdata.norm_returns` | Standard | `instrument_code` | D | Daily returns normalised by vol (1.0 = 1 sigma) |
+| `rawdata.get_daily_vol_normalised_returns` | Standard | `instrument_code` | D | Daily returns normalised by vol (1.0 = 1 sigma) |
 | `rawdata.get_instrument_raw_carry_data` | Futures | `instrument_code` | I | data.get_instrument_raw_carry_data |
-| `rawdata.raw_futures_roll`| Futures | `instrument_code` | D | |
-| `rawdata.roll_differentials` | Futures | `instrument_code` | D | |
+| `rawdata.raw_futures_roll`| Futures | `instrument_code` | D | The raw difference between price and carry |
+| `rawdata.roll_differentials` | Futures | `instrument_code` | D | The annualisation factor |
 | `rawdata.annualised_roll` | Futures | `instrument_code` | D | Annualised roll |
 | `rawdata.daily_annualised_roll` | Futures | `instrument_code` | D | Annualised roll. Used for carry rule. |
 
@@ -4325,7 +4325,8 @@ Other methods exist to access logging and caching.
 |:-------------------------:|:---------:|:---------------:|:----:|:--------------------------------------------------------------:|
 | `forecastScaleCap.get_raw_forecast` | Standard | `instrument_code`, `rule_variation_name` | I | `rules.get_raw_forecast` |
 | `forecastScaleCap.get_forecast_scalar` | Standard / Estimate | `instrument_code`, `rule_variation_name` | D | Get the scalar to use for a forecast |
-| `forecastScaleCap.get_forecast_cap` | Standard | `instrument_code`, `rule_variation_name` | D,O | Get the maximum allowable forecast |
+| `forecastScaleCap.get_forecast_cap` | Standard |  | D,O | Get the maximum allowable forecast |
+| `forecastScaleCap.get_forecast_floor` | Standard |  | D,O | Get the minimum allowable forecast |
 | `forecastScaleCap.get_scaled_forecast` | Standard | `instrument_code`, `rule_variation_name` | D | Get the forecast after scaling (after capping) |
 | `forecastScaleCap.get_capped_forecast` | Standard | `instrument_code`, `rule_variation_name` | D, O | Get the forecast after scaling (after capping) |
 
@@ -4335,13 +4336,10 @@ Other methods exist to access logging and caching.
 
 | Call | Standard?| Arguments | Type | Description |
 |:-------------------------:|:---------:|:---------------:|:----:|:--------------------------------------------------------------:|
-| `combForecast.get_capped_forecast` | Standard | `instrument_code`, `rule_variation_name` | I | `forecastScaleCap.get_capped_forecast` |
 | `combForecast.get_trading_rule_list` | Standard | `instrument_code` | I | List of trading rules from config or prior stage |
-| `combForecast.get_all_forecasts` | Standard | `instrument_code`, (`rule_variation_name`) | D | pd.DataFrame of forecast values |
-| `combForecast.get_forecast_cap` | Standard | `instrument_code`, `rule_variation_name` | I | `forecastScaleCap.get_forecast_cap` |
-| combForecast.pandl_for_instrument_rules_unweighted| Estimate | `instrument_code` | I | `accounts.pandl_for_instrument_rules_unweighted` |
-| `combForecast.calculation_of_raw_forecast_weights | Estimate | `instrument_code` | D | Forecast weight calculation objects |
-| `combForecast.get_raw_forecast_weights` | Standard / Estimate | `instrument_code` | D | Forecast weights |
+| `combForecast.get_all_forecasts` | Standard | `instrument_code`, (`rule_variation_list`) | D | pd.DataFrame of forecast values |
+| `combForecast.get_forecast_cap` | Standard |  | I | `forecastScaleCap.get_forecast_cap` |
+| `combForecast.calculation_of_raw_estimated_monthly_forecast_weights` | Estimate | `instrument_code` | D | Forecast weight calculation objects |
 | `combForecast.get_forecast_weights` | Standard / Estimate| `instrument_code` | D | Forecast weights, adjusted for missing forecasts|
 | `combForecast.get_forecast_correlation_matrices` | Estimate | `instrument_code` | D | Correlations of forecasts |
 | `combForecast.get_forecast_diversification_multiplier` | Standard / Estimate | `instrument_code` | D | Get diversification multiplier |
@@ -4356,7 +4354,7 @@ Other methods exist to access logging and caching.
 |:-------------------------:|:---------:|:---------------:|:----:|:--------------------------------------------------------------:|
 | `positionSize.get_combined_forecast` | Standard | `instrument_code` | I | `combForecast.get_combined_forecast` |
 | `positionSize.get_price_volatility` | Standard | `instrument_code` | I | `rawdata.get_daily_percentage_volatility` (or `data.daily_prices`) |
-| `positionSize.get_instrument_sizing_data` | Standard | `instrument_code` | I | `rawdata.get_rawdata.daily_denominator_price( (or `data.daily_prices`); `data.get_value_of_block_price_move` |
+| `positionSize.get_underlying_price` | Standard | `instrument_code` | I | `rawdata.daily_denominator_price` (or `data.daily_prices`); `data.get_value_of_block_price_move` |
 | `positionSize.get_fx_rate` | Standard | `instrument_code` | I | `data.get_fx_for_instrument` |
 | `positionSize.get_daily_cash_vol_target` | Standard | | D | Dictionary of base_currency, percentage_vol_target, notional_trading_capital, annual_cash_vol_target, daily_cash_vol_target |
 | `positionSize.get_block_value` | Standard | `instrument_code` | D | Get value of a 1% move in the price |
@@ -4373,10 +4371,9 @@ Other methods exist to access logging and caching.
 | Call | Standard?| Arguments | Type | Description |
 |:-------------------------:|:---------:|:---------------:|:----:|:--------------------------------------------------------------:|
 | `portfolio.get_subsystem_position`| Standard | `instrument_code` | I |`positionSize.get_subsystem_position` |
-| `portfolio.get_instrument_list`| Standard | | I | `system.get_instrument_list` |
-| `portfolio.pandl_across_subsystems`| Estimate | `instrument_code` | I | `accounts.pandl_across_subsystems`|
-| `calculation_of_raw_instrument_weights`| Estimate | | D | Instrument weight calculation objects |
-| `portfolio.get_raw_instrument_weights`| Standard / Estimate| | D |Get instrument weights |
+| `portfolio.pandl_across_subsystems`| Estimate |  | I | `accounts.pandl_across_subsystems`|
+| `portfolio.calculation_of_raw_instrument_weights`| Estimate | | D | Instrument weight calculation objects |
+| `portfolio.get_unsmoothed_instrument_weights_fitted_to_position_lengths`| Standard / Estimate| | D |Get raw instrument weights |
 | `portfolio.get_instrument_weights`| Standard / Estimate| | D |Get instrument weights, adjusted for missing instruments |
 | `portfolio.get_instrument_diversification_multiplier`| Standard / Estimate | | D |Get instrument div. multiplier |
 | `portfolio.get_notional_position`| Standard | `instrument_code` | D,O |Get the *notional* position (with constant risk capital; doesn't allow for adjustments when profits or losses are made) |
@@ -4395,25 +4392,25 @@ Inputs:
 | `accounts.get_notional_position`| Standard | `instrument_code` | I | `portfolio.get_notional_position`|
 | `accounts.get_actual_position`| Standard | `instrument_code` | I | `portfolio.get_actual_position`|
 | `accounts.get_capped_forecast`| Standard | `instrument_code`, `rule_variation_name` | I | `forecastScaleCap.get_capped_forecast`|
-| `accounts.get_instrument_list`| Standard | | I | `portfolio.get_instrument_list`|
+| `accounts.get_instrument_list`| Standard | | I | `system.get_instrument_list` |
 | `accounts.get_notional_capital`| Standard | | I | `positionSize.get_daily_cash_vol_target`|
 | `accounts.get_fx_rate`| Standard | `instrument_code` | I | `positionSize.get_fx_rate`|
-| `accounts.get_value_of_price_move`| Standard | `instrument_code` | I | `positionSize.get_instrument_sizing_data`|
+| `accounts.get_value_of_block_price_move`| Standard | `instrument_code` | I | `data.get_value_of_block_price_move`|
 | `accounts.get_daily_returns_volatility`| Standard | `instrument_code` | I | `rawdata.daily_returns_volatility` or `data.daily_prices`|
 | `accounts.get_raw_cost_data`| Standard | `instrument_code` | I | `data.get_raw_cost_data` |
 | `accounts.get_buffers_for_position`| Standard | `instrument_code` | I | `portfolio.get_buffers_for_position`|
 | `accounts.get_actual_buffers_for_position`| Standard | `instrument_code` | I | `portfolio.get_actual_buffers_for_position`|
 | `accounts.get_instrument_diversification_multiplier`| Standard | | I | `portfolio.get_instrument_diversification_multiplier`|
 | `accounts.get_instrument_weights`| Standard | | I | `portfolio.get_instrument_weights`|
-| `accounts.get_trading_rules_list`| Standard | `instrument_code` | I | `combForecast.get_trading_rule_list`|
-| `accounts.has_same_rules_as_code`| Standard | `instrument_code` | I | `combForecast._has_same_rules_as_code`|
+| `accounts.list_of_rules_for_code`| Standard | `instrument_code` | I | `combForecast.get_trading_rule_list`|
+| `accounts.has_same_rules_as_code`| Standard | `instrument_code` | I | `combForecast.has_same_rules_as_code`|
 
 
 Diagnostics:
 
 | Call | Standard?| Arguments | Type | Description |
 |:-------------------------:|:---------:|:---------------:|:----:|:--------------------------------------------------------------:|
-| `accounts.get_entire_trading_rule_list`| Standard | | D | All trading rules across instruments|
+| `accounts.list_of_trading_rules`| Standard | | D | All trading rules across instruments|
 | `accounts.get_instrument_scaling_factor`| Standard | `instrument_code` | D | IDM * instrument weight|
 | `accounts.get_forecast_scaling_factor`| Standard | `instrument_code`, `rule_variation_name` | D | FDM * forecast weight|
 | `accounts.get_instrument_forecast_scaling_factor`| Standard | `instrument_code`, `rule_variation_name` | D | IDM * instrument weight * FDM * forecast weight|
