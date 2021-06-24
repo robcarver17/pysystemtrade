@@ -54,7 +54,7 @@ def boring_corr_matrix(size, offdiag=0.99, diag=1.0):
 class CorrelationList(object):
     """
     A correlation list is a list of correlations, packed in with date information about them
-
+    # FIXME DUPLICATE OF METHOD IN SYSQUANT; USED ONLY BY RISK OVERLAY CODE
     """
 
     def __init__(self, corr_list, column_names, fit_dates):
