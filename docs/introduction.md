@@ -307,7 +307,7 @@ Now let's introduce the idea of **config** objects. A `config` or configuration 
 Configuration objects can be created on the fly or by reading in files written in yaml (which we'll talk about below). A configuration object is just a collection of attributes. We create them interactively like so:
 
 ```python
-from sysdata.configdata import Config
+from sysdata.config.configdata import Config
 my_config=Config()
 my_config
 ```
@@ -346,7 +346,7 @@ from systems.forecast_scale_cap import ForecastScaleCap
 
 ## By default we pool esimates across instruments. It's worth telling the system what instruments we want to use:
 #
-my_config.instruments=["EDOLLAR", "US10", "EDOLLAR", "CORN", "SP500_micro"]
+my_config.instruments=["EDOLLAR", "US10", "CORN", "SP500_micro"]
 
 ## this parameter ensures we estimate:
 my_config.use_forecast_scale_estimates=True
@@ -433,6 +433,8 @@ Alternatively you can estimate div. multipliers, and weights.
 Note: Since we need to know the performance of different trading rules, we need to include an Accounts stage to calculate these which in turn uses position sizing and raw data:
 
 ```python
+from systems.rawdata import RawData
+from system.positionsizing import PositionSizing
 from systems.accounts.accounts_stage import Account
 combiner = ForecastCombine()
 raw_data = RawData()
@@ -620,7 +622,7 @@ For more see the costs and accountCurve section of the userguide.
 To speed things up you can also pass a dictionary to `Config()`. To reproduce the setup we had above we'd make a dict like so:
 
 ```python
-from sysdata.configdata import Config
+from sysdata.config.configdata import Config
 my_config=Config(dict(trading_rules=dict(ewmac8=ewmac_8, ewmac32=ewmac_32), instrument_weights=dict(US10=.1, EDOLLAR=.4, CORN=.3, SP500_micro=.2), instrument_div_multiplier=1.5, forecast_scalars=dict(ewmac8=5.3, ewmac32=2.65), forecast_weights=dict(ewmac8=0.5, ewmac32=0.5), forecast_div_multiplier=1.1
 ,percentage_vol_target=25, notional_trading_capital=500000, base_currency="GBP"))
 my_config
@@ -673,7 +675,7 @@ my_system.portfolio.get_notional_position("EDOLLAR").tail(5)
 By default this has loaded the same data and read the config from the same yaml file. However we can also do this manually, allowing us to use new `data` and a modified `config` with a pre-baked system.
 
 ```python
-from sysdata.configdata import Config
+from sysdata.config.configdata import Config
 from sysdata.sim.csv_futures_sim_data import csvFuturesSimData
 
 my_config=Config("systems.provided.example.simplesystemconfig.yaml")
