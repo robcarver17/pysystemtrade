@@ -4412,9 +4412,6 @@ Diagnostics:
 |:-------------------------:|:---------:|:---------------:|:----:|:--------------------------------------------------------------:|
 | `accounts.list_of_trading_rules`| Standard | | D | All trading rules across instruments|
 | `accounts.get_instrument_scaling_factor`| Standard | `instrument_code` | D | IDM * instrument weight|
-| `accounts.get_forecast_scaling_factor`| Standard | `instrument_code`, `rule_variation_name` | D | FDM * forecast weight|
-| `accounts.get_instrument_forecast_scaling_factor`| Standard | `instrument_code`, `rule_variation_name` | D | IDM * instrument weight * FDM * forecast weight|
-| `accounts.get_capital_in_rule`| Standard | `rule_variation_name` | D | Sum of `get_instrument_forecast_scaling_factor` for a given trading rule|
 | `accounts.get_buffered_position`| Standard | `instrument_code` | D | Buffered position at portfolio level|
 | `accounts.get_buffered_position_with_multiplier`| Standard | `instrument_code` | D | Buffered position at portfolio level, including capital multiplier|
 | `accounts.subsystem_turnover`| Standard | `instrument_code` | D | Annualised turnover of subsystem|
