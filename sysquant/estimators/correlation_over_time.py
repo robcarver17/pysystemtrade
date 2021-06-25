@@ -27,6 +27,7 @@ def correlation_over_time_for_returns(returns_for_correlation: pd.DataFrame,
 def correlation_over_time(data_for_correlation: pd.DataFrame,
                           date_method="expanding",
                           rollyears=20,
+                          interval_frequency: str = "12M",
                           **kwargs
                           ) -> CorrelationList:
 
@@ -34,7 +35,8 @@ def correlation_over_time(data_for_correlation: pd.DataFrame,
 
     # Generate time periods
     fit_dates = generate_fitting_dates(
-        data_for_correlation, date_method=date_method, rollyears=rollyears
+        data_for_correlation, date_method=date_method, rollyears=rollyears,
+        interval_frequency = interval_frequency
     )
 
     progress = progressBar(len(fit_dates), "Estimating correlations")

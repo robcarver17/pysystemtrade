@@ -250,6 +250,7 @@ risk_overlay:
 small_system:
   instrument_returns_correlation:
     func: sysquant.estimators.correlation_over_time.correlation_over_time_for_returns
+    interval_frequency: "1M"
     frequency: "W"
     date_method: "expanding"
     using_exponent: True
