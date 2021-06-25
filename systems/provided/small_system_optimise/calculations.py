@@ -238,17 +238,15 @@ def find_optimal_weights_given_grid_points(grid_points: list,
                                            use_process_pool: bool = False,
                                            num_processes: int = 8):
 
-    # we list() this since we need to have the index of the best weights
     grid_possibles = itertools.product(*grid_points)
-    chunksize = max(1, int(len(grid_possibles) / num_processes))
 
     if use_process_pool:
-        with ProcessPoolExecutor() as pool:
+        with ProcessPoolExecutor(max_workers=num_processes) as pool:
             results = pool.map(
                 neg_return_with_risk_penalty_and_costs,
                          grid_possibles,
                         itertools.repeat(optimisation_parameters),
-                        chunksize=chunksize
+
                          )
     else:
         results = map(neg_return_with_risk_penalty_and_costs,
