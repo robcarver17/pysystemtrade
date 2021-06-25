@@ -10,7 +10,7 @@ from sysquant.estimators.mean_estimator import meanEstimates
 from sysquant.optimisation.shared import variance
 from sysquant.optimisation.weights import portfolioWeights
 from systems.provided.small_system_optimise.grid import gridParameters, generate_grid
-from systems.provided.small_system_optimise.optimisation_kernel import neg_return_with_risk_penalty_and_costs
+from systems.provided.small_system_optimise.optimisation_kernel import neg_return_with_risk_penalty_and_costs, optimisationParameters
 
 
 def get_implied_expected_returns(portfolio_weights: portfolioWeights,
@@ -162,7 +162,7 @@ def build_optimisation_parameters(list_of_instruments: list,
                                     costs: meanEstimates,
                                     max_risk_as_variance:float = NO_RISK_LIMIT,
                                     previous_weights: portfolioWeights = arg_not_supplied)\
-        -> tuple:
+        -> optimisationParameters:
 
     covariance_with_valid_data =covariance_matrix.subset(list_of_instruments)
     covariance_as_np = covariance_with_valid_data.values
@@ -179,7 +179,12 @@ def build_optimisation_parameters(list_of_instruments: list,
     else:
         previous_weights_as_np = arg_not_supplied
 
-    optimisation_parameters = mus, risk_aversion, covariance_as_np, max_risk_as_variance, cost_as_np_in_portfolio_weight_terms, previous_weights_as_np
+    optimisation_parameters = optimisationParameters(mus=mus,
+                                                     risk_aversion=risk_aversion,
+                                                     covariance_as_np=covariance_as_np,
+                                                     max_risk_as_variance=max_risk_as_variance,
+                                                     cost_as_np_in_portfolio_weight_terms=cost_as_np_in_portfolio_weight_terms,
+                                                     previous_weights_as_np=previous_weights_as_np)
 
     return optimisation_parameters
 
@@ -209,7 +214,7 @@ def calculate_costs_as_np(list_of_instruments: list,
 
 def grid_search_optimise_with_fixed_contract_values_and_processed_inputs(
                                                                          grid_parameters: gridParameters,
-                                                                        optimisation_parameters: tuple,
+                                                                        optimisation_parameters: optimisationParameters,
                                                                     use_process_pool: bool = False
 ):
     ## FIX ME TO DO
@@ -229,12 +234,12 @@ def grid_search_optimise_with_fixed_contract_values_and_processed_inputs(
 
 
 def find_optimal_weights_given_grid_points(grid_points: list,
-                                           optimisation_parameters: tuple,
+                                           optimisation_parameters: optimisationParameters,
                                            use_process_pool: bool = False,
                                            num_processes: int = 8):
 
     # we list() this since we need to have the index of the best weights
-    grid_possibles = list(itertools.product(*grid_points))
+    grid_possibles = itertools.product(*grid_points)
     chunksize = max(1, int(len(grid_possibles) / num_processes))
 
     if use_process_pool:
@@ -251,9 +256,10 @@ def find_optimal_weights_given_grid_points(grid_points: list,
                       itertools.repeat(optimisation_parameters))
 
     results = list(results)
-    idx = results.index(min(results))
+    list_of_values = [result.value for result in results]
+    optimal_value_index = list_of_values.index(min(list_of_values))
 
-    optimal_weights_as_list = grid_possibles[idx]
+    optimal_weights_as_list = results[optimal_value_index].weights
 
     return optimal_weights_as_list
 
