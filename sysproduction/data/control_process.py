@@ -153,7 +153,7 @@ class diagControlProcess(productionDataLayerGeneric):
 
     def has_previous_process_finished_in_last_day(self, process_name: str) -> bool:
         previous_process = self.previous_process_name(process_name)
-        if previous_process is None:
+        if previous_process is None or previous_process is '':
             ## no previous process, so return True
             return True
         control_process = dataControlProcess(self.data)
