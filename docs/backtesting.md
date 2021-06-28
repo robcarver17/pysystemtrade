@@ -3610,8 +3610,9 @@ Weighting for trading rules p&l is a *little* complicated.
 
 *`pandl_for_instrument_forecast`:* If I want the p&l of a single trading rule
 for one instrument in isolation, then I use `pandl_for_instrument_forecast`.
+
 *`pandl_for_trading_rule_unweighted`*: If I aggregate these across instruments
-then I get `pandl_for_trading_rule_unweighted`. The individiual unweighted
+then I get `pandl_for_trading_rule_unweighted`. The individual unweighted
 curves are instrument p&l for each instrument and forecast.
 
 *`pandl_for_instrument_forecast_weighted`:* The weighted p&l of a single
