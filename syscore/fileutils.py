@@ -91,9 +91,11 @@ def get_resolved_ampersand_pathname(pathname):
 
 
 def get_pathname_from_list(path_as_list):
-    if path_as_list[0] == "" or path_as_list[0].endswith(":"):
+    if path_as_list[0] == "":
         # path_type_absolute
         resolved_pathname = get_absolute_pathname_from_list(path_as_list[1:])
+    elif path_as_list[0].endswith(":"):
+        resolved_pathname = get_absolute_pathname_from_list(path_as_list)
     else:
         # relativee
         resolved_pathname = get_pathname_for_package_from_list(path_as_list)
