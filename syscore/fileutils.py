@@ -47,6 +47,9 @@ def get_filename_for_package(pathname:str, filename=None):
     Relative filenames do not
     """
     markedup_pathname = add_ampersand_to_pathname(pathname)
+    if os.path.isfile(pathname) == True and filename == None:
+        #Check if pathname is a file
+        filename = pathname
     if filename is None:
         # filename will be at the end of the pathname
         path_as_list = markedup_pathname.rsplit("&")
