@@ -2,6 +2,7 @@ import pandas as pd
 
 from syscore.algos import apply_buffer
 from syscore.pdutils import turnover
+from syscore.objects import missing_data
 
 from systems.system_cache import diagnostic
 
@@ -75,6 +76,14 @@ class accountBuffering(accountInputs):
         """
 
         optimal_position = self.get_notional_position(instrument_code)
+
+        buffer_method = self.config.get_element_or_missing_data("buffer_method")
+        if buffer_method is missing_data:
+            if roundpositions:
+                return optimal_position.round()
+            else:
+                return optimal_position
+
         pos_buffers = self.get_buffers_for_position(instrument_code)
 
         buffered_position = self._get_buffered_position_given_optimal_position_and_buffers(

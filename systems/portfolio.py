@@ -113,6 +113,7 @@ class Portfolios(SystemStage):
         2015-12-11  1.679435  1.374083
         """
 
+
         position = self.get_notional_position(instrument_code)
         buffer = self.get_buffers(instrument_code)
 

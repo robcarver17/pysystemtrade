@@ -95,6 +95,7 @@ def get_pathname_from_list(path_as_list):
         # path_type_absolute
         resolved_pathname = get_absolute_pathname_from_list(path_as_list[1:])
     elif path_as_list[0].endswith(":"):
+        # windoze
         resolved_pathname = get_absolute_pathname_from_list(path_as_list)
     else:
         # relativee
