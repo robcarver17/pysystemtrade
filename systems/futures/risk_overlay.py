@@ -4,7 +4,7 @@ from systems.portfolio import Portfolios
 from systems.system_cache import input, dont_cache, diagnostic, output
 from syscore.objects import arg_not_supplied
 from syscore.genutils import progressBar
-from syscore.optimisation_utils import sigma_from_corr_and_std
+from sysquant.optimisation.shared import sigma_from_corr_and_std
 from syscore.correlations import boring_corr_matrix, CorrelationList
 
 

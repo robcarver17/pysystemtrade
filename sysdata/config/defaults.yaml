@@ -149,7 +149,7 @@ forecast_weight_estimate:
      using_exponent: True
      ew_lookback: 50000
      min_periods: 10
-     cleaning: True
+     cleaning: False
      floor_at_zero: False
    mean_estimate:
      func: sysquant.estimators.mean_estimator.meanEstimator
@@ -221,7 +221,7 @@ instrument_weight_estimate:
      ew_lookback: 500000
      min_periods: 10
      floor_at_zero: False
-     cleaning: True
+     cleaning: False
    mean_estimate:
      func: sysquant.estimators.mean_estimator.meanEstimator
      using_exponent: True

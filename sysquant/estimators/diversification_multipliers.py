@@ -95,13 +95,14 @@ def diversification_mult_single_period(corrmatrix: correlationEstimate,
     """
 
     # edge cases...
-    if all([x == 0.0 for x in list(weights)]) or np.all(np.isnan(weights)):
+    if all([x == 0.0 for x in list(weights)]) or np.all(np.isnan(weights)) or len(weights)==1:
         return 1.0
 
     weights = np.array(weights, ndmin=2)
-
-    dm = np.min([1.0 / (float(np.dot(np.dot(weights, corrmatrix.values),
-                                     weights.transpose())) ** 0.5), dm_max, ])
+    variance = np.dot(np.dot(weights, corrmatrix.values),
+                                     weights.transpose())
+    risk = (float(variance) ** 0.5)
+    dm = np.min([1.0 / risk, dm_max])
 
     return dm
 
