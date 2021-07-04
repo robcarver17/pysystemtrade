@@ -231,6 +231,7 @@ def _get_local_data_for_row_number(approx_calendar: pd.DataFrame,
 
 setOfPrices = namedtuple("setOfPrices", ["current_prices",
     "next_prices",
+    "curr_carry_prices",
     "carry_prices"])
 _no_carry_prices = object()
 
@@ -291,26 +292,31 @@ def _get_set_of_prices(local_row_data: localRowData,
 
     next_prices = dict_of_futures_contract_prices[next_contract]
 
-    carry_contract, carry_prices = _get_carry_contract_and_prices(local_row_data,
+    carry_contract, carry_prices, curr_carry_contract, curr_carry_prices = _get_carry_contract_and_prices(local_row_data,
                                                                                  dict_of_futures_contract_prices)
-    set_of_prices = setOfPrices(current_prices, next_prices, carry_prices)
+    set_of_prices = setOfPrices(current_prices, next_prices, curr_carry_prices, carry_prices)
 
     return set_of_prices
 
 
 def _get_carry_contract_and_prices(local_row_data, dict_of_futures_contract_prices):
     next_approx_row = local_row_data.next_row
+    curr_approx_row = local_row_data.current_row
 
     carry_comes_afterwards = _does_carry_come_after_current_contract(local_row_data)
 
     if carry_comes_afterwards:
         carry_prices = _no_carry_prices
         carry_contract = _no_carry_prices
+        curr_carry_prices = _no_carry_prices
+        curr_carry_contract = _no_carry_prices
     else:
         carry_contract = str(next_approx_row.carry_contract)
         carry_prices = dict_of_futures_contract_prices[carry_contract]
+        curr_carry_contract = str(curr_approx_row.carry_contract)
+        curr_carry_prices = dict_of_futures_contract_prices[curr_carry_contract]
 
-    return carry_contract, carry_prices
+    return carry_contract, carry_prices, curr_carry_contract, curr_carry_prices
 
 
 def _does_carry_come_after_current_contract(local_row_data: localRowData)->bool:
@@ -378,6 +384,7 @@ def _required_paired_prices(set_of_prices: setOfPrices)\
         paired_prices = pd.concat(
             [set_of_prices.current_prices,
              set_of_prices.next_prices,
+             set_of_prices.curr_carry_prices,
              set_of_prices.carry_prices], axis=1)
 
     return paired_prices
