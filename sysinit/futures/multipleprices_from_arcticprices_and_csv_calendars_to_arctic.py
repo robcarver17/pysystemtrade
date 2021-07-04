@@ -84,15 +84,13 @@ def process_multiple_prices_single_instrument(
         csv_multiple_prices,
     ) = _get_data_inputs(csv_roll_data_path, csv_multiple_data_path)
 
-    roll_calendar = csv_roll_calendars.get_roll_calendar(instrument_code)
-    if adjust_calendar_to_prices:
-        roll_calendar = adjust_roll_calendar(instrument_code, roll_calendar)
-
     dict_of_futures_contract_prices = (
         arctic_individual_futures_prices.get_all_prices_for_instrument(instrument_code))
     dict_of_futures_contract_closing_prices = (
         dict_of_futures_contract_prices.final_prices()
     )
+
+    roll_calendar = csv_roll_calendars.get_roll_calendar(instrument_code)
 
     m = mongoRollParametersData()
     roll_parameters = m.get_roll_parameters(instrument_code)
@@ -101,6 +99,9 @@ def process_multiple_prices_single_instrument(
     multiple_prices = futuresMultiplePrices.create_from_raw_data(
         roll_calendar, dict_of_futures_contract_closing_prices
     )
+
+    if adjust_calendar_to_prices:
+        roll_calendar = adjust_roll_calendar(instrument_code, roll_calendar)
 
     print(multiple_prices)
 
