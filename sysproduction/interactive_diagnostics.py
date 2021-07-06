@@ -547,8 +547,7 @@ def view_contract_config(data):
 
 
 
-def print_trading_hours_for_all_instruments(data=arg_not_supplied,
-                                            use_conservative = False):
+def print_trading_hours_for_all_instruments(data=arg_not_supplied):
     _generic_print_trading_hours_for_all_instruments(data, use_conservative=False)
 
 def print_conserative_trading_hours_for_all_instruments(data=arg_not_supplied):
@@ -575,10 +574,19 @@ def get_trading_hours_for_all_instruments(data=arg_not_supplied,
     for instrument_code in list_of_instruments:
         trading_hours = get_trading_hours_for_instrument(data, instrument_code,
                                                          use_conservative=use_conservative)
-        all_trading_hours[instrument_code] = trading_hours[:1]
+
+        ## will have several days use last one
+        trading_hours_this_instrument = trading_hours[:1]
+        check_trading_hours(trading_hours_this_instrument,
+                            instrument_code)
+        all_trading_hours[instrument_code] = trading_hours_this_instrument
 
     return all_trading_hours
 
+def check_trading_hours(trading_hours_this_instrument, instrument_code):
+    if trading_hours_this_instrument[0]<trading_hours_this_instrument[1]:
+        print("%s Trading hours %s appear to be wrong" % (instrument_code,
+                                                          str(trading_hours_this_instrument)))
 
 
 def get_trading_hours_for_instrument(data, instrument_code,
