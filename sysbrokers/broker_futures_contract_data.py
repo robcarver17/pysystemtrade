@@ -24,11 +24,17 @@ class brokerFuturesContractData(futuresContractData):
     def is_contract_okay_to_trade(self, futures_contract: futuresContract) -> bool:
         raise NotImplementedError
 
+    def is_contract_conservatively_okay_to_trade(self, futures_contract: futuresContract) -> bool:
+        raise NotImplementedError
+
     def less_than_N_hours_of_trading_left_for_contract(self, contract_object: futuresContract,
                                                        N_hours: float = 1.0) -> bool:
         raise NotImplementedError
 
     def get_trading_hours_for_contract(self, futures_contract: futuresContract) -> list :
+        raise NotImplementedError
+
+    def get_conservative_trading_hours_for_contract(self, futures_contract: futuresContract) -> list:
         raise NotImplementedError
 
     def get_list_of_contract_dates_for_instrument_code(self, instrument_code: str):

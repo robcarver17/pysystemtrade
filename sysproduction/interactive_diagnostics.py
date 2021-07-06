@@ -110,7 +110,8 @@ nested_menu_of_options = {0: {1: "Interactive python",
                               },
                           6: {60: "View instrument configuration data",
                               61: "View contract configuration data",
-                              62: "View trading hours for all instruments"
+                              62: "View trading hours for all instruments",
+                              63: "View conservative trading hours for all instruments"
                               },
                           }
 
@@ -546,14 +547,24 @@ def view_contract_config(data):
 
 
 
-def print_trading_hours_for_all_instruments(data=arg_not_supplied):
-    all_trading_hours = get_trading_hours_for_all_instruments(data)
+def print_trading_hours_for_all_instruments(data=arg_not_supplied,
+                                            use_conservative = False):
+    _generic_print_trading_hours_for_all_instruments(data, use_conservative=False)
+
+def print_conserative_trading_hours_for_all_instruments(data=arg_not_supplied):
+    _generic_print_trading_hours_for_all_instruments(data, use_conservative=True)
+
+
+def _generic_print_trading_hours_for_all_instruments(data=arg_not_supplied,
+                                            use_conservative = False):
+    all_trading_hours = get_trading_hours_for_all_instruments(data, use_conservative=use_conservative)
     for key, value in sorted(all_trading_hours.items(), key=lambda x: x[0]):
         print("{} : {}".format(key, value))
 
 
 
-def get_trading_hours_for_all_instruments(data=arg_not_supplied):
+def get_trading_hours_for_all_instruments(data=arg_not_supplied,
+                                          use_conservative = False):
     if data is arg_not_supplied:
         data = dataBlob()
 
@@ -562,13 +573,16 @@ def get_trading_hours_for_all_instruments(data=arg_not_supplied):
 
     all_trading_hours = {}
     for instrument_code in list_of_instruments:
-        trading_hours = get_trading_hours_for_instrument(data, instrument_code)
+        trading_hours = get_trading_hours_for_instrument(data, instrument_code,
+                                                         use_conservative=use_conservative)
         all_trading_hours[instrument_code] = trading_hours[:1]
 
     return all_trading_hours
 
 
-def get_trading_hours_for_instrument(data, instrument_code):
+
+def get_trading_hours_for_instrument(data, instrument_code,
+                                          use_conservative=False):
 
     diag_contracts = dataContracts(data)
     contract_id = diag_contracts.get_priced_contract_id(instrument_code)
@@ -576,7 +590,10 @@ def get_trading_hours_for_instrument(data, instrument_code):
     contract = futuresContract(instrument_code, contract_id)
 
     data_broker = dataBroker(data)
-    trading_hours = data_broker.get_trading_hours_for_contract(contract)
+    if use_conservative:
+        trading_hours = data_broker.get_conservative_trading_hours_for_contract(contract)
+    else:
+        trading_hours = data_broker.get_trading_hours_for_contract(contract)
 
     return trading_hours
 
@@ -611,5 +628,6 @@ dict_of_functions = {
     56: view_individual_order,
     60: view_instrument_config,
     61: view_contract_config,
-    62: print_trading_hours_for_all_instruments
+    62: print_trading_hours_for_all_instruments,
+    63: print_conserative_trading_hours_for_all_instruments,
 }

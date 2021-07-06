@@ -8,11 +8,6 @@ from syslogdiag.email_via_db_interface import send_production_mail_msg
 
 from sysproduction.reporting.report_configs import reportConfig
 
-pd.set_option("display.width", 1000)
-pd.set_option("display.max_columns", 1000)
-pd.set_option("display.max_rows", 1000)
-
-
 def run_report(report_config: reportConfig,
                data: dataBlob=arg_not_supplied):
     """
@@ -20,6 +15,7 @@ def run_report(report_config: reportConfig,
     :param report_config:
     :return:
     """
+    pandas_display_for_reports()
     if data is arg_not_supplied:
         data = dataBlob(log_name="Reporting %s" % report_config.title)
 
@@ -133,3 +129,10 @@ def measure_width(text: str) -> int:
         first_cr = len(text)
 
     return first_cr
+
+
+def pandas_display_for_reports():
+    pd.set_option("display.width", 1000)
+    pd.set_option("display.max_columns", 1000)
+    pd.set_option("display.max_rows", 1000)
+

@@ -563,3 +563,41 @@ def from_marker_to_datetime(datetime_marker):
     return datetime.datetime.strptime(datetime_marker, date_formatting)
 
 
+def adjust_trading_hours_conservatively(trading_hours: list,
+            conservative_times: tuple) -> list:
+
+    new_trading_hours = [adjust_single_day_conservatively(single_days_hours,
+                                                          conservative_times)
+                         for single_days_hours in trading_hours]
+
+    return new_trading_hours
+
+def adjust_single_day_conservatively(single_days_hours: tuple,
+                                     conservative_times: tuple) -> tuple:
+
+    adjusted_start_datetime = adjust_start_time_conservatively(single_days_hours[0],
+                                                               conservative_times[0])
+    adjusted_end_datetime = adjust_end_time_conservatively(single_days_hours[1],
+                                                           conservative_times[1])
+
+    return (adjusted_start_datetime, adjusted_end_datetime)
+
+def adjust_start_time_conservatively(start_datetime: datetime.datetime,
+                                     start_conservative: datetime.time) -> datetime.datetime:
+
+    start_conservative_datetime = adjust_date_conservatively(start_datetime,
+                                                             start_conservative)
+    return max(start_datetime, start_conservative_datetime)
+
+def adjust_end_time_conservatively(start_datetime: datetime.datetime,
+                                     start_conservative: datetime.time) -> datetime.datetime:
+
+    start_conservative_datetime = adjust_date_conservatively(start_datetime,
+                                                             start_conservative)
+    return max(start_datetime, start_conservative_datetime)
+
+
+def adjust_date_conservatively(datetime_to_be_adjusted: datetime.datetime,
+                               conservative_time: datetime.time) -> datetime.datetime:
+
+    return datetime.datetime.combine(datetime_to_be_adjusted.date(), conservative_time)
