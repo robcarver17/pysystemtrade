@@ -576,7 +576,7 @@ def get_trading_hours_for_all_instruments(data=arg_not_supplied,
                                                          use_conservative=use_conservative)
 
         ## will have several days use last one
-        trading_hours_this_instrument = trading_hours[:1]
+        trading_hours_this_instrument = trading_hours[0]
         check_trading_hours(trading_hours_this_instrument,
                             instrument_code)
         all_trading_hours[instrument_code] = trading_hours_this_instrument
