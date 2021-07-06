@@ -584,7 +584,7 @@ def get_trading_hours_for_all_instruments(data=arg_not_supplied,
     return all_trading_hours
 
 def check_trading_hours(trading_hours_this_instrument, instrument_code):
-    if trading_hours_this_instrument[0]<trading_hours_this_instrument[1]:
+    if trading_hours_this_instrument[0]>trading_hours_this_instrument[1]:
         print("%s Trading hours %s appear to be wrong" % (instrument_code,
                                                           str(trading_hours_this_instrument)))
 
