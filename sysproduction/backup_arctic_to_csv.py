@@ -270,8 +270,8 @@ def backup_adj_to_csv_for_instrument(data: dataBlob, instrument_code: str):
             )
 
 
-def backup_spreads_to_csv(data):
-    instrument_list = data.arctic_spreads_for_instrument_data.get_list_of_instruments()
+def backup_spreads_to_csv(data: dataBlob):
+    instrument_list = data.arctic_spreads_for_instrument.get_list_of_instruments()
     for instrument_code in instrument_list:
         backup_spreads_to_csv_for_instrument(data, instrument_code)
 
