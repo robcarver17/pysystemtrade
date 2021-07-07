@@ -1,6 +1,5 @@
 from dataclasses import  dataclass
 import pandas as pd
-from copy import copy
 
 from sysdata.fx.spotfx import fxPricesData
 from sysobjects.spot_fx_prices import fxPrices
