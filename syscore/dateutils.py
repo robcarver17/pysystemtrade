@@ -602,7 +602,7 @@ def adjust_end_time_conservatively(start_datetime: datetime.datetime,
 
     start_conservative_datetime = adjust_date_conservatively(start_datetime,
                                                              start_conservative)
-    return max(start_datetime, start_conservative_datetime)
+    return min(start_datetime, start_conservative_datetime)
 
 
 def adjust_date_conservatively(datetime_to_be_adjusted: datetime.datetime,
