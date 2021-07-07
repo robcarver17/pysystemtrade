@@ -1,4 +1,4 @@
-from sysexecution.tick_data import dataFrameOfRecentTicks
+
 from sysexecution.stack_handler.stackHandlerCore import stackHandlerCore
 from sysobjects.contracts import futuresContract
 
