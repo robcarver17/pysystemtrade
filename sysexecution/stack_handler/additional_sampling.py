@@ -9,7 +9,6 @@ class stackHandlerAdditionalSampling(stackHandlerCore):
         for contract in all_contracts:
             self.refresh_sampling_for_contract(contract)
 
-
     def get_all_instruments_priced_contracts(self):
         ## Cache for speed
         priced_contracts = getattr(self, "_all_priced_contracts", None)
