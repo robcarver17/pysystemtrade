@@ -45,7 +45,7 @@ class arcticSpreadsForInstrumentData(spreadsForInstrumentData):
         self, instrument_code: str, spreads: spreadsForInstrument
     ):
         spreads_as_pd = pd.DataFrame(spreads)
-        spreads_as_pd.columns = SPREAD_COLUMN_NAME
+        spreads_as_pd.columns = [SPREAD_COLUMN_NAME]
         spreads_as_pd = spreads_as_pd.astype(float)
         self.arctic.write(instrument_code, spreads_as_pd)
         self.log.msg(
