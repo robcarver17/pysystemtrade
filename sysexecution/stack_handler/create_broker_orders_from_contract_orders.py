@@ -98,7 +98,7 @@ class stackHandlerCreateBrokerOrders(stackHandlerForFills):
             ## Do no further checks or resizing whatsoever!
             return original_contract_order
 
-        data_broker = dataBroker(self.data)
+        data_broker = self.data_broker
 
         # CHECK FOR LOCKS
         data_locks = dataLocks(self.data)
@@ -173,7 +173,7 @@ class stackHandlerCreateBrokerOrders(stackHandlerForFills):
 
     def liquidity_size_contract_order(self, contract_order_after_trade_limits: contractOrder) -> contractOrder:
 
-        data_broker = dataBroker(self.data)
+        data_broker = self.data_broker
         log = contract_order_after_trade_limits.log_with_attributes(self.log)
 
         # check liquidity, and if neccessary carve up order

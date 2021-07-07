@@ -19,6 +19,9 @@ class dataFrameOfRecentTicks(pd.DataFrame):
         except:
             raise Exception("historical ticks should have columns %s" % str(required_columns))
 
+    def average_bid_offer_spread(self) -> float:
+        return average_bid_offer_spread(self)
+
 def analyse_tick_data_frame(tick_data: dataFrameOfRecentTicks, qty: int,
                             forward_fill:bool = False,
                             replace_qty_nans=False):
@@ -51,6 +54,15 @@ empty_tick = oneTick(np.nan, np.nan, np.nan, np.nan)
 
 
 def extract_final_row_of_tick_data_frame(tick_data: pd.DataFrame, forward_fill = False) -> oneTick:
+    final_row = extract_nth_row_of_tick_data_frame(tick_data,
+                                                   row_id =-1,
+                                                   forward_fill=forward_fill)
+    return final_row
+
+
+def extract_nth_row_of_tick_data_frame(tick_data: pd.DataFrame,
+                                       row_id: int,
+                                       forward_fill = False) -> oneTick:
     if len(tick_data) == 0:
         return empty_tick
     if forward_fill:
@@ -58,12 +70,24 @@ def extract_final_row_of_tick_data_frame(tick_data: pd.DataFrame, forward_fill =
     else:
         filled_data = copy(tick_data)
 
-    bid_price = tick_data.priceBid[-1]
-    ask_price = tick_data.priceAsk[-1]
-    bid_size = tick_data.sizeBid[-1]
-    ask_size = tick_data.sizeAsk[-1]
+    bid_price = filled_data.priceBid[row_id]
+    ask_price = filled_data.priceAsk[row_id]
+    bid_size = filled_data.sizeBid[row_id]
+    ask_size = filled_data.sizeAsk[row_id]
 
     return oneTick(bid_price, ask_price, bid_size, ask_size)
+
+def average_bid_offer_spread(tick_data: dataFrameOfRecentTicks) -> float:
+    if len(tick_data)==0:
+        return missing_data
+    all_spreads = tick_data.priceAsk - tick_data.priceBid
+    average_spread = all_spreads.mean(skipna=True)
+
+    if np.isnan(average_spread):
+        return missing_data
+
+    return average_spread
+
 
 VERY_LARGE_IMBALANCE = 9999
 

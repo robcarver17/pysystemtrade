@@ -169,7 +169,6 @@ class dataBroker(productionDataLayerGeneric):
         check_open = self.broker_futures_contract_data.is_contract_conservatively_okay_to_trade(futures_contract)
         return check_open
 
-
     def get_min_tick_size_for_contract(self, contract: futuresContract) -> float:
         result = self.broker_futures_contract_data.get_min_tick_size_for_contract(contract)
         return result

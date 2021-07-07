@@ -1,9 +1,8 @@
 ## Generate list of instruments ranked by liquidity: # of contracts per day and
 
-import datetime
 import numpy as np
 from syscore.genutils import progressBar
-
+from syscore.dateutils import two_weeks_ago
 from sysdata.data_blob import dataBlob
 
 from sysproduction.data.prices import diagPrices
@@ -67,10 +66,7 @@ def get_average_daily_volume_for_contract_object(data, contract_object):
 
     return volume
 
-def two_weeks_ago():
-    today = datetime.datetime.now()
-    d = datetime.timedelta(days = 50)
-    return today - d
+
 
 def get_best_average_daily_volume_for_instrument(data, instrument_code: str):
 

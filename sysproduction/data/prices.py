@@ -6,9 +6,12 @@ from syscore.dateutils import Frequency, from_config_frequency_to_frequency
 from sysobjects.contracts import futuresContract
 from sysobjects.dict_of_futures_per_contract_prices import dictFuturesContractPrices, \
     get_last_matched_date_and_prices_for_contract_list
+from sysobjects.spreads import spreadsForInstrument
+
 from sysdata.arctic.arctic_futures_per_contract_prices import arcticFuturesContractPriceData, futuresContractPrices
 from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesData, futuresMultiplePrices
 from sysdata.arctic.arctic_adjusted_prices import arcticFuturesAdjustedPricesData, futuresAdjustedPrices
+from sysdata.arctic.arctic_spreads import arcticSpreadsForInstrumentData, spreadsForInstrumentData
 from sysdata.mongodb.mongo_futures_contracts import mongoFuturesContractData
 
 from sysdata.futures.multiple_prices import futuresMultiplePricesData
@@ -27,21 +30,11 @@ class diagPrices(productionDataLayerGeneric):
     def _add_required_classes_to_data(self, data) -> dataBlob:
         data.add_class_list([
             arcticFuturesContractPriceData, arcticFuturesAdjustedPricesData,
-         arcticFuturesMultiplePricesData, mongoFuturesContractData]
+         arcticFuturesMultiplePricesData, mongoFuturesContractData,
+        arcticSpreadsForInstrumentData]
         )
         return data
 
-    @property
-    def db_futures_adjusted_prices_data(self) -> futuresAdjustedPricesData:
-        return self.data.db_futures_adjusted_prices
-
-    @property
-    def db_futures_multiple_prices_data(self) -> futuresMultiplePricesData:
-        return self.data.db_futures_multiple_prices
-
-    @property
-    def db_futures_contract_price_data(self) -> futuresContractPriceData:
-        return self.data.db_futures_contract_price
 
     def get_intraday_frequency_for_historical_download(self) -> Frequency:
         config = self.data.config
@@ -134,14 +127,8 @@ class diagPrices(productionDataLayerGeneric):
 
         return dict_of_prices
 
-
-class updatePrices(productionDataLayerGeneric):
-    def _add_required_classes_to_data(self, data) -> dataBlob:
-        data.add_class_list([
-            arcticFuturesContractPriceData, arcticFuturesMultiplePricesData,
-         mongoFuturesContractData, arcticFuturesAdjustedPricesData])
-
-        return data
+    def get_spreads(self, instrument_code: str) -> spreadsForInstrument:
+        return self.db_spreads_for_instrument_data.get_spreads(instrument_code)
 
     @property
     def db_futures_adjusted_prices_data(self) -> futuresAdjustedPricesData:
@@ -154,6 +141,21 @@ class updatePrices(productionDataLayerGeneric):
     @property
     def db_futures_contract_price_data(self) -> futuresContractPriceData:
         return self.data.db_futures_contract_price
+
+    @property
+    def db_spreads_for_instrument_data(self) -> spreadsForInstrumentData:
+        return self.db_spread_data.db_spreads_for_instrument
+
+
+class updatePrices(productionDataLayerGeneric):
+    def _add_required_classes_to_data(self, data) -> dataBlob:
+        data.add_class_list([
+            arcticFuturesContractPriceData, arcticFuturesMultiplePricesData,
+         mongoFuturesContractData, arcticFuturesAdjustedPricesData,
+        arcticSpreadsForInstrumentData])
+
+        return data
+
 
     def update_prices_for_contract(
         self, contract_object: futuresContract,
@@ -179,6 +181,26 @@ class updatePrices(productionDataLayerGeneric):
         self.db_futures_adjusted_prices_data.add_adjusted_prices(
             instrument_code, updated_adjusted_prices, ignore_duplication=ignore_duplication
         )
+
+    def add_spread_entry(self, instrument_code: str, spread: float):
+        self.db_spreads_for_instrument_data.add_spread_entry(instrument_code,
+                                                             spread=spread)
+
+    @property
+    def db_futures_adjusted_prices_data(self) -> futuresAdjustedPricesData:
+        return self.data.db_futures_adjusted_prices
+
+    @property
+    def db_futures_multiple_prices_data(self) -> futuresMultiplePricesData:
+        return self.data.db_futures_multiple_prices
+
+    @property
+    def db_futures_contract_price_data(self) -> futuresContractPriceData:
+        return self.data.db_futures_contract_price
+
+    @property
+    def db_spreads_for_instrument_data(self) -> spreadsForInstrumentData:
+        return self.db_spread_data.db_spreads_for_instrument
 
 
 def get_valid_instrument_code_from_user(

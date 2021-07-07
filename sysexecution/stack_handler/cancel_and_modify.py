@@ -65,7 +65,7 @@ class stackHandlerCancelAndModify(stackHandlerCore):
         log = broker_order.log_with_attributes(self.log)
         log.msg("Cancelling order on stack with broker %s" % str(broker_order))
 
-        data_broker = dataBroker(self.data)
+        data_broker = self.data_broker
         data_broker.cancel_order_on_stack(broker_order)
 
         return broker_order
@@ -101,7 +101,7 @@ class stackHandlerCancelAndModify(stackHandlerCore):
 
     def check_order_cancelled(self, broker_order:brokerOrder) -> bool:
 
-        data_broker = dataBroker(self.data)
+        data_broker = self.data_broker
         order_is_cancelled = data_broker.check_order_is_cancelled(broker_order)
 
         return order_is_cancelled

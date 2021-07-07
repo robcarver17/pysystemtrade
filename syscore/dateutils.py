@@ -562,6 +562,14 @@ def create_datetime_string(datetime_to_use):
 def from_marker_to_datetime(datetime_marker):
     return datetime.datetime.strptime(datetime_marker, date_formatting)
 
+def two_weeks_ago():
+    return n_days_ago(14)
+
+def n_days_ago(n_days: int):
+    today = datetime.datetime.now()
+    d = datetime.timedelta(days = n_days)
+    return today - d
+
 
 def adjust_trading_hours_conservatively(trading_hours: list,
             conservative_times: tuple) -> list:

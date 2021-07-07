@@ -10,6 +10,7 @@ from syscore.objects import (
     failure,
     success)
 
+
 from sysdata.data_blob import dataBlob
 
 from sysexecution.order_stacks.order_stack import orderStackData, failureWithRollback
@@ -17,6 +18,9 @@ from sysexecution.orders.base_orders import Order
 from sysexecution.orders.list_of_orders import listOfOrders
 
 from sysproduction.data.orders import dataOrders
+from sysproduction.data.prices import diagPrices, updatePrices
+from sysproduction.data.contracts import dataContracts
+from sysproduction.data.broker import dataBroker
 
 class stackHandlerCore(object):
     def __init__(self, data: dataBlob=arg_not_supplied):
@@ -56,6 +60,42 @@ class stackHandlerCore(object):
     @property
     def broker_stack(self):
         return self._broker_stack
+
+    @property
+    def diag_prices(self) -> diagPrices:
+        diag_prices = getattr(self, "_diag_prices", None)
+        if diag_prices is None:
+            diag_prices = diagPrices(self.data)
+            self._diag_prices = diag_prices
+
+        return diag_prices
+
+    @property
+    def data_contracts(self) -> dataContracts:
+        data_contracts = getattr(self, "_data_contracts", None)
+        if data_contracts is None:
+            data_contracts = dataContracts(self.data)
+            self._data_contracts = data_contracts
+
+        return data_contracts
+
+    @property
+    def data_broker(self) -> dataBroker:
+        data_broker = getattr(self, "_data_broker", None)
+        if data_broker is None:
+            data_broker = dataBroker(self.data)
+            self._data_broker = data_broker
+
+        return data_broker
+
+    @property
+    def update_prices(self) -> updatePrices:
+        update_prices = getattr(self, "_update_prices", None)
+        if update_prices is None:
+            update_prices = updatePrices(self.data)
+            self._update_prices = update_prices
+
+        return update_prices
 
 
 def put_children_on_stack(child_stack: orderStackData, parent_order: Order,
