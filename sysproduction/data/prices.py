@@ -144,7 +144,7 @@ class diagPrices(productionDataLayerGeneric):
 
     @property
     def db_spreads_for_instrument_data(self) -> spreadsForInstrumentData:
-        return self.db_spread_data.db_spreads_for_instrument
+        return self.data.db_spreads_for_instrument
 
 
 class updatePrices(productionDataLayerGeneric):
@@ -200,7 +200,7 @@ class updatePrices(productionDataLayerGeneric):
 
     @property
     def db_spreads_for_instrument_data(self) -> spreadsForInstrumentData:
-        return self.db_spread_data.db_spreads_for_instrument
+        return self.data.db_spreads_for_instrument
 
 
 def get_valid_instrument_code_from_user(
