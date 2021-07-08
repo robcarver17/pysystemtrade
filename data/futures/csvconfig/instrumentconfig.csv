@@ -1,7 +1,7 @@
 Instrument,Pointsize,AssetClass,Currency,Slippage,PerBlock,Percentage,PerTrade,Description
-AEX,200,Equity,EUR,0.0282686043,2,0,0,Netherlands equity index AEX
+AEX,200,Equity,EUR,0.1,2,0,0,Netherlands equity index AEX
 AUD,100000,FX,USD,5E-05,2.46,0,0,AUDUSD currency
-BITCOIN,0.1,Metals,USD,32,5,0,0,Micro Bitcoin
+BITCOIN,0.1,Metals,USD,50,5,0,0,Micro Bitcoin
 BOBL,1000,Bond,EUR,0.005,2,0,0,German 5 year bond Bobl
 BTP,1000,Bond,EUR,0.005,2,0,0,Italian 10 year bond BTP
 BUND,1000,Bond,EUR,0.005,2,0,0,German 10 year bond Bund
@@ -21,15 +21,15 @@ KR10,1000000,Bond,KRW,0.005,0,4E-05,0,Korean 10 year bond
 KR3,1000000,Bond,KRW,0.005,0,4E-05,0,Korean 3 year bond
 LEANHOG,400,Ags,USD,0.025,2.9,0,0,Lean hogs
 LIVECOW,400,Ags,USD,0.025,2.9,0,0,Live cattle
-MXP,500000,FX,USD,1.1567E-05,2.46,0,0,MEXUSD currency
-NASDAQ,20,Equity,USD,0.125,2.05,0,0,US equity index Nasdaq 
+MXP,500000,FX,USD,6E-06,2.46,0,0,MEXUSD currency
+NASDAQ,20,Equity,USD,0.25,2.05,0,0,US equity index Nasdaq 
 NZD,100000,FX,USD,0.000107147,2.46,0,0,NZDUSD currency
 OAT,1000,Bond,EUR,0.005,2,0,0,French 10 year bond OAT
-PALLAD,100,Metals,USD,0.3738801253,2.31,0,0,Palladium
-PLAT,50,Metals,USD,0.2401075437,2.31,0,0,Platinum
+PALLAD,100,Metals,USD,2,2.31,0,0,Palladium
+PLAT,50,Metals,USD,0.5,2.31,0,0,Platinum
 SHATZ,1000,Bond,EUR,0.0025,2,0,0,German 2 year bond Schatz
 SMI,10,Equity,CHF,1,4,0,0,Swiss equity index SMI
-SOYBEAN,50,Ags,USD,0.125,2.9,0,0,Soybean
+SOYBEAN,50,Ags,USD,0.25,2.9,0,0,Soybean
 SP500,50,Equity,USD,0.125,2.05,0,0,US equity index S&P500 
 US10,1000,Bond,USD,0.008,1.51,0,0,US 10 year bond note
 US2,2000,Bond,USD,0.004,1.51,0,0,US 2 year bond note
@@ -38,8 +38,8 @@ US5,1000,Bond,USD,0.004,1.51,0,0,US 5 year bond note
 USIRS5,1000,Bond,USD,0.01171875,1.5,0,0,US 5 year swap
 USIRS10,1000,Bond,USD,0.0234375,1.5,0,0,US 10 year swap
 US-REALESTATE,100,Sector,USD,0.1,1.5,0,0,US Real estate
-V2X,100,Vol,EUR,0.0255,2,0,0,Vol European equity V2X
-VIX,1000,Vol,USD,0.0255,2.2,0,0,Vol US equity VIX
+V2X,100,Vol,EUR,0.1,2,0,0,Vol European equity V2X
+VIX,1000,Vol,USD,0.05,2.2,0,0,Vol US equity VIX
 WHEAT,50,Ags,USD,0.25,2.9,0,0,Wheat
 EU-BASIC,50,Sector,EUR,1.25,2,0,0,Dow Jones STOXX 600 Basic Resources Index
 EU-DIV30,10,Equity,EUR,0.5,2,0,0,Dow Jones Euro STOXX Select Dividend 30 Index
@@ -73,7 +73,7 @@ GASOILINE,42000,OilGas,USD,0.00035,1.5,0,0,RBOB Gasoline US
 HEATOIL,42000,OilGas,USD,0.00015,1.5,0,0,Heating oil
 ALUMINIUM,25,Metals,USD,2.375,1.5,0,0,NYMEX Aluminum Index
 SILVER,1000,Metals,USD,0.0025,1.5,0,0,NYMEX Silver Index
-CAD,100000,FX,USD,2.5E-05,1.5,0,0,CADUSD currency
+CAD,100000,FX,USD,0.00015,1.5,0,0,CADUSD currency
 CHF,125000,FX,USD,5E-05,1.5,0,0,CHFUSD currency
 SEK,2000000,FX,USD,2E-05,1.5,0,0,SEKUSD currency
 NOK,2000000,FX,USD,3E-05,1.5,0,0,NOKUSD currency
@@ -117,10 +117,10 @@ R1000,50,Equity,USD,0.25,1.5,0,0,E-Mini Russell 1000 Value Index Futures
 SGD,100000,FX,SGD,0.000125,3.5,0,0,SGX US Dollar in Singapore Dollar Futures (Full-Sized)
 SOFR,2500,Bond,USD,0.0025,1.5,0,0,Secured Overnight Financing Rate 3-month average of rates
 TOPIX,1000,Equity,JPY,0.125,50,0,0,Japan Mini Topix
-CRUDE_W_mini,500,OilGas,USD,0.0125,1.5,0,0,Light sweet crude Winter mini
-GAS_US_mini,2500,OilGas,USD,0.0025,1.5,0,0,Natural gas US mini
-GOLD_micro,10,Metals,USD,0.1,0.25,0,0,Gold micro
-KOSPI_mini,50000,Equity,KRW,0.02,8500,0,0,KOSPI mini
+CRUDE_W_mini,500,OilGas,USD,0.03,1.5,0,0,Light sweet crude Winter mini
+GAS_US_mini,2500,OilGas,USD,0.005,1.5,0,0,Natural gas US mini
+GOLD_micro,10,Metals,USD,0.05,0.25,0,0,Gold micro
+KOSPI_mini,50000,Equity,KRW,17,8500,0,0,KOSPI mini
 NASDAQ_micro,2,Equity,USD,0.25,0.25,0,0,NASDAQ micro
 SP500_micro,5,Equity,USD,0.125,0.25,0,0,S&P 500 micro
 LUMBER,110,Ags,USD,5.39999999999998,0.85,0,0,Random Length Lumber

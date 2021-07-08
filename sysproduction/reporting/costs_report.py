@@ -24,7 +24,7 @@ def costs_report(
         end_date = datetime.datetime.now()
 
     if start_date is arg_not_supplied:
-        start_date = n_days_ago(calendar_days_back, date_ref=start_date)
+        start_date = n_days_ago(calendar_days_back, date_ref=end_date)
 
     costs_report_data = get_costs_report_data(
         data, start_date=start_date, end_date=end_date
