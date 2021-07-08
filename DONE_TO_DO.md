@@ -1,6 +1,12 @@
 # Release notes
 
+## Version 1.04
+
+- Added intraday bid/ask sampling to order stack handler
+- Added liquidity and cost reports
 - Can now 'ignore_instruments' in config file.
+- improved optimisation code
+- bug fixes particularly around roll calendars
 
 ## Version 1.03
 

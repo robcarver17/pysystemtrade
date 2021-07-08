@@ -43,6 +43,9 @@ process_configuration_methods:
     update_multiple_adjusted_prices:
       max_executions: 1
   run_stack_handler:
+    refresh_additional_sampling_all_instruments:
+      frequency: 60
+      max_executions: -1
     check_external_position_break:
       frequency: 0
       max_executions: -1

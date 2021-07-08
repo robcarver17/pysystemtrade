@@ -1197,8 +1197,6 @@ Well the stack handler code regularly runs the method sysexecution/stack_handler
 - if that fails we're buggered and we need to enter the fill manually using interactive_order_stack. Most likely this will happen if more than 24 hours passes after the order was executed, since IB only returns recent orders from it's API 
 
 
-CHECK AGAIN THIS IS WORKING
-
 Once we have the order from the broker, which includes the control objects, we can update the following fields in the broker order, and save it to the database:
 
 - fill, filled price, filled datetime
@@ -1661,6 +1659,8 @@ In addition the stack handler will:
 - Safely clear the order stacks at the end of the day or when the process is stopped by cancelling existing orders, and deleting them from the order stack.
 
 That's quite a list, hence the use of the [interactive_order_stack](#interactive-order-stack) to keep it in check!
+
+The stack handler will also periodically sample the bid/ask spread on all instruments. This is used to help with cost analysis (see the relevant [reports](#reports-1) section).
 
 ## Interactive scripts to modify data
 
@@ -2432,6 +2432,9 @@ process_configuration_methods:
     update_multiple_adjusted_prices:
       max_executions: 1
   run_stack_handler: # frequency 0 and max_executions -1 means we just keep doing them over and over again until the process stops...
+    refresh_additional_sampling_all_instruments:
+      frequency: 60
+      max_executions: -1
     check_external_position_break:
       frequency: 0
       max_executions: -1
@@ -2453,6 +2456,10 @@ process_configuration_methods:
     safe_stack_removal:
       run_on_completion_only: True   # only run this once we're done
   run_reports:  # all this stuff happens once.
+    costs_report:
+      max_executions: 1
+    liquidity_report:
+      max_executions: 1
     status_report:
       max_executions: 1
     roll_report:
@@ -3652,4 +3659,124 @@ CORN    -0.08 -0.11 -0.06 -0.06     0.68 -0.10  0.08    0.05  0.13 -0.10 -0.25  
 ********************************************************************************
 
 
+```
+
+### Liquidity report
+
+
+This allows us to check that markets are sufficiently liquid to trade. See this [blog post](https://qoppac.blogspot.com/2021/05/adding-new-instruments-or-how-i-learned.html) for more discussion.
+
+I require minimum volume ($1.25 million per day in risk units, and 100 contracts per day). The report uses the last two weeks of trading to determine the relevant values (not configurable - be careful if using a report just after new years day when liquidity may have fallen).
+
+
+Any instruments that don't meet these thresholds you should seriously consider removing from your portfolio.
+
+
+```
+
+********************************************************************************
+            Liquidity report produced on 2021-07-08 14:58:39.926324             
+********************************************************************************
+
+
+
+================================================================
+ Sorted by contracts: Less than 100 contracts a day is a problem
+================================================================
+
+                   contracts          risk
+EU-FOOD           139.888889      0.364353
+EU-RETAIL         177.444444      0.473291
+MILK              210.250000      0.535316
+EU-HEALTH         227.555556      0.958930
+OATIES            266.750000      1.059968
+RICE              322.250000      1.313220
+EU-TRAVEL         455.777778      1.234303
+EU-TECH           512.000000      1.891341
+PALLAD            647.125000     53.219742
+EU-UTILS          912.888889      2.733389
+CHF              1101.250000      6.785555
+EU-DIV30         1360.222222      2.717361
+.... snip....
+
+===================================================================
+Sorted by risk: Less than $1.5 million of risk per day is a problem
+===================================================================
+
+                   contracts          risk
+EU-FOOD           139.888889      0.364353
+EU-RETAIL         177.444444      0.473291
+MILK              210.250000      0.535316    <----- milk isn't liquid :-)'
+EU-HEALTH         227.555556      0.958930
+OATIES            266.750000      1.059968
+EU-TRAVEL         455.777778      1.234303
+RICE              322.250000      1.313220    <----- everything above this line might be too illiquid
+EU-TECH           512.000000      1.891341
+EU-DIV30         1360.222222      2.717361
+EU-UTILS          912.888889      2.733389
+USIRS5           1433.375000      2.873852
+BITCOIN          1522.888889      3.181693
+BBCOMM           3546.875000      3.637609
+.... snip....
+```
+
+
+### Costs report
+
+This allows us to check that the bid/ask spread costs set in the configuration file are sufficiently conservative. It will use three different sources, using data over the last 250 days (configurable):
+
+- Half the bid/ask spread captured before an order is entered (first column below)
+- The actual spread paid between the initial mid price and the price traded at (second column below). Positive numbers refer to a loss making spread (as normal), negative implies we managed to trade at better than mid (due to the execution algo)
+- Half the bid/ask spread as periodically captured by the stack handler (3rd column)
+
+We then calculate:
+
+- The worst (highest) of the above values (fourth column below))
+- The bid/ask spread cost configured in the instrument metadata database table (which in turn is normally initialised from ) (5th column)
+- The % difference between the configured and worst cost, as a % of the configured cost. +1.00 is a 100% difference, eg the highest spread is twice what is currently configured (final column)
+
+```
+
+********************************************************************************
+Costs report produced on 2021-07-08 14:58:53.991457 from 2020-10-31 14:58:50.220961 to 2021-07-08 14:58:50.220958
+********************************************************************************
+
+
+
+=================================================================================================
+                                              Costs                                              
+=================================================================================================
+
+               bid_ask_trades  total_trades  bid_ask_sampled      Worst  Configured  % Difference
+CRUDE_W_mini         0.037500     -0.006250         0.024006   0.037500    0.012500      2.000000  
+         <---- bid/ask before trading is 200% higher: 3x higher than configured. Actual trades have negative costs
+GAS_US_mini          0.002500      0.005000         0.006408   0.006408    0.002500      1.563158
+PLAT                 0.350000      0.550000         0.275935   0.550000    0.240108      1.290640  
+BBCOMM                    NaN           NaN         0.100000   0.100000    0.050000      1.000000  <---- we haven't done any actual trades here in last 250 days, only sampled'
+EUROSTX              1.000000      0.500000         0.261483   1.000000    0.500000      1.000000  <---- configured is same as trades, but pre trade was double
+SOYBEAN              0.250000      0.250000         0.201436   0.250000    0.125000      1.000000
+GBP                  0.000100     -0.000000         0.000059   0.000100    0.000050      1.000000
+......
+OATIES                    NaN           NaN         0.750000   0.750000    0.625000      0.200000  <---- sampled spreads are 20% worse than configured
+.....
+BOBL                 0.005000      0.005000         0.005000   0.005000    0.005000      0.000000  <---- spot on!
+EDOLLAR              0.002500      0.002500         0.002500   0.002500    0.002500      0.000000
+SHATZ                     NaN           NaN         0.002500   0.002500    0.002500      0.000000
+WHEAT                0.250000      0.187500         0.192896   0.250000    0.250000      0.000000
+....
+GOLD_micro           0.050000      0.050000         0.066546   0.066546    0.100000     -0.334545  <----- slippage about half or two thirds of configured value
+GOLD                      NaN           NaN         0.058550   0.058550    0.088530     -0.338639
+US-REALESTATE             NaN           NaN         0.066095   0.066095    0.100000     -0.339047
+EU-TECH                   NaN           NaN         0.196570   0.196570    0.300000     -0.344765
+COPPER                    NaN           NaN         0.000385   0.000385    0.000615     -0.374535
+CRUDE_W                   NaN           NaN         0.008526   0.008526    0.014533     -0.413304
+EUR                       NaN           NaN         0.000028   0.000028    0.000050     -0.439945
+MXP                  0.000005      0.000005         0.000006   0.000006    0.000012     -0.443000
+NZD                       NaN           NaN         0.000055   0.000055    0.000107     -0.483610
+US2                       NaN           NaN         0.001953   0.001953    0.004000     -0.511719
+EU-BASIC                  NaN           NaN         0.141791   0.141791    1.250000     -0.886568
+ASX                       NaN           NaN              NaN        NaN         NaN           NaN   <----- instrument in configuration file but no costs included
+.....
+KOSPI                     NaN           NaN              NaN        NaN    0.025000           NaN   <--- slippage is configured, but no sampling or trading done
+....
 ```
