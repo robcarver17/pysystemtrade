@@ -597,12 +597,12 @@ def adjust_start_time_conservatively(start_datetime: datetime.datetime,
                                                              start_conservative)
     return max(start_datetime, start_conservative_datetime)
 
-def adjust_end_time_conservatively(start_datetime: datetime.datetime,
-                                     start_conservative: datetime.time) -> datetime.datetime:
+def adjust_end_time_conservatively(end_datetime: datetime.datetime,
+                                     end_conservative: datetime.time) -> datetime.datetime:
 
-    start_conservative_datetime = adjust_date_conservatively(start_datetime,
-                                                             start_conservative)
-    return min(start_datetime, start_conservative_datetime)
+    end_conservative_datetime = adjust_date_conservatively(end_datetime,
+                                                             end_conservative)
+    return min(end_datetime, end_conservative_datetime)
 
 
 def adjust_date_conservatively(datetime_to_be_adjusted: datetime.datetime,
