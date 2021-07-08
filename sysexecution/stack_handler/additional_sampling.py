@@ -73,25 +73,3 @@ class stackHandlerAdditionalSampling(stackHandlerCore):
         update_prices = self.update_prices
 
         update_prices.add_spread_entry(instrument_code, spread=average_spread)
-
-    def mark_contract_sampled(self, contract:futuresContract):
-        key = contract.key
-        store = self.sampling_store
-
-        if key not in store:
-            store.append(key)
-
-        self.sampling_store = store
-
-    @property
-    def sampling_store(self)-> list:
-        sampling_store = getattr(self, "_sampling_store", None)
-        if sampling_store is None:
-            sampling_store = []
-            self._sampling_store = sampling_store
-
-        return sampling_store
-
-    @sampling_store.setter
-    def sampling_store(self, new_store):
-        self._sampling_store = new_store
