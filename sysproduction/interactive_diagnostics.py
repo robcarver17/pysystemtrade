@@ -1,4 +1,5 @@
-from syscore.dateutils import get_datetime_input
+import datetime
+from syscore.dateutils import get_datetime_input, SECONDS_PER_HOUR
 from syscore.interactive import get_and_convert, run_interactive_menu, print_menu_of_values_and_get_response, \
     print_menu_and_get_response
 from syscore.pdutils import set_pd_print_options
@@ -557,9 +558,30 @@ def print_conserative_trading_hours_for_all_instruments(data=arg_not_supplied):
 def _generic_print_trading_hours_for_all_instruments(data=arg_not_supplied,
                                             use_conservative = False):
     all_trading_hours = get_trading_hours_for_all_instruments(data, use_conservative=use_conservative)
-    for key, value in sorted(all_trading_hours.items(), key=lambda x: x[0]):
-        print("{} : {}".format(key, value))
+    display_a_dict_of_trading_hours(all_trading_hours)
 
+def display_a_dict_of_trading_hours(all_trading_hours):
+    for key, trading_hour_entry in sorted(all_trading_hours.items(), key=lambda x: x[0]):
+        print("%s: %s" % ('{:20}'.format(key),
+                              nice_print_trading_hours(trading_hour_entry)))
+
+
+def nice_print_trading_hours(trading_hour_entry) -> str:
+    start_datetime = trading_hour_entry[0]
+    end_datetime = trading_hour_entry[1]
+    diff_time = end_datetime - start_datetime
+    hours_in_between = (diff_time.total_seconds()) / SECONDS_PER_HOUR
+
+    NICE_FORMAT = "%d/%m %H:%M"
+
+    start_formatted = start_datetime.strftime(NICE_FORMAT)
+    end_formatted = end_datetime.strftime(NICE_FORMAT)
+
+    nice_string = "%s to %s (%.1f hours)" % (start_formatted,
+                                     end_formatted,
+                                     hours_in_between)
+
+    return nice_string
 
 
 def get_trading_hours_for_all_instruments(data=arg_not_supplied,
@@ -575,7 +597,7 @@ def get_trading_hours_for_all_instruments(data=arg_not_supplied,
         trading_hours = get_trading_hours_for_instrument(data, instrument_code,
                                                          use_conservative=use_conservative)
 
-        ## will have several days use last one
+        ## will have several days use first one
         trading_hours_this_instrument = trading_hours[0]
         check_trading_hours(trading_hours_this_instrument,
                             instrument_code)
@@ -585,8 +607,8 @@ def get_trading_hours_for_all_instruments(data=arg_not_supplied,
 
 def check_trading_hours(trading_hours_this_instrument, instrument_code):
     if trading_hours_this_instrument[0]>trading_hours_this_instrument[1]:
-        print("%s Trading hours %s appear to be wrong" % (instrument_code,
-                                                          str(trading_hours_this_instrument)))
+        print("%s Trading hours appear to be wrong: %s" % (instrument_code,
+                                                          nice_print_trading_hours(trading_hours_this_instrument)))
 
 
 def get_trading_hours_for_instrument(data, instrument_code,
