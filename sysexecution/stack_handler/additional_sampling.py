@@ -1,6 +1,7 @@
 
 from sysexecution.stack_handler.stackHandlerCore import stackHandlerCore
 from sysobjects.contracts import futuresContract
+from syscore.objects import missing_data
 
 class stackHandlerAdditionalSampling(stackHandlerCore):
 
