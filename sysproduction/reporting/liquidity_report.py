@@ -1,22 +1,57 @@
 ## Generate list of instruments ranked by liquidity: # of contracts per day and
 
 import numpy as np
+import datetime
+
 from syscore.genutils import progressBar
 from syscore.dateutils import two_weeks_ago
+from syscore.objects import header, table, body_text, arg_not_supplied, missing_data
+
 from sysdata.data_blob import dataBlob
 
 from sysproduction.data.prices import diagPrices
 from sysproduction.data.contracts import dataContracts
 from sysproduction.reporting.risk_report import get_risk_data_for_instrument
-from sysproduction.reporting.reporting_functions import pandas_display_for_reports, landing_strip
 
 import pandas as pd
 
-def liquidity_report(data: dataBlob):
-    all_liquidity_df = get_data(data)
-    print_data(all_liquidity_df)
+def liquidity_report(data: dataBlob=arg_not_supplied):
+    if data is arg_not_supplied:
+        data = dataBlob()
 
-def get_data(data):
+    liquidity_report_data = get_liquidity_report_data(
+        data)
+    formatted_output = format_liquidity_data(liquidity_report_data)
+
+    return formatted_output
+
+def get_liquidity_report_data(data: dataBlob):
+    all_liquidity_df = get_liquidity_data_df(data)
+    liquidity_report_data = dict(all_liquidity_df = all_liquidity_df)
+
+    return liquidity_report_data
+
+def format_liquidity_data(liquidity_report_data: dict) -> list:
+
+    formatted_output = []
+    all_liquidity_df = liquidity_report_data['all_liquidity_df']
+    formatted_output.append(
+        header("Liquidity report produced on %s" %
+               (str(datetime.datetime.now()))))
+
+    table1_df = all_liquidity_df.sort_values("contracts")
+    table1 = table(" Sorted by contracts: Less than 100 contracts a day is a problem", table1_df)
+    formatted_output.append(table1)
+
+    table2_df = all_liquidity_df.sort_values("risk")
+    table2 = table("Sorted by risk: Less than $1.5 million of risk per day is a problem", table2_df)
+    formatted_output.append(table2)
+
+
+    return formatted_output
+
+
+def get_liquidity_data_df(data: dataBlob):
     diag_prices = diagPrices(data)
 
     instrument_list = diag_prices.get_list_of_instruments_with_contract_prices()
@@ -33,18 +68,6 @@ def get_data(data):
     all_liquidity_df.index = instrument_list
 
     return all_liquidity_df
-
-def print_data(all_liquidity_df):
-    pandas_display_for_reports()
-    print(landing_strip(80))
-    print("\n\n Sorted by contracts: Less than 100 contracts a day is a problem\n")
-    print(all_liquidity_df.sort_values("contracts"))
-
-    print(landing_strip(80))
-    print("\n\n Sorted by risk: Less than $1.5 million of risk per day is a problem\n")
-    print(all_liquidity_df.sort_values("risk"))
-    print("\n\n")
-    print(landing_strip(80))
 
 
 def get_liquidity_dict_for_instrument_code(data, instrument_code: str) -> dict:
@@ -93,7 +116,3 @@ def annual_risk_per_contract(data, instrument_code: str) -> float:
         return np.nan
 
     return risk_data['annual_risk_per_contract']
-
-if __name__ == "__main__":
-    data = dataBlob()
-    liquidity_report(data)

@@ -39,7 +39,9 @@ from sysproduction.reporting.report_configs import (
     trade_report_config,
     reconcile_report_config,
     strategy_report_config,
-    risk_report_config
+    risk_report_config,
+liquidity_report_config,
+costs_report_config
 )
 
 
@@ -88,7 +90,9 @@ nested_menu_of_options = {0: {1: "Interactive python",
                               13: "Trade report",
                               14: "Reconcile report",
                               15: "Strategy report",
-                              16: "Risk report"
+                              16: "Risk report",
+                              17: "Costs report",
+                              18: "Liquidity report"
                               },
                           2: {20: "View stored emails",
                               21: "View errors",
@@ -204,6 +208,19 @@ def risk_report(data):
     report_config = email_or_print(risk_report_config)
     run_report(report_config, data=data)
 
+def cost_report(data):
+    start_date, end_date, calendar_days = get_report_dates(data)
+    report_config = email_or_print(costs_report_config)
+    report_config.modify_kwargs(
+        calendar_days_back=calendar_days,
+        start_date=start_date,
+        end_date=end_date)
+    run_report(report_config, data=data)
+
+
+def liquidity_report(data):
+    report_config = email_or_print(liquidity_report_config)
+    run_report(liquidity_report_config, data = data)
 
 def email_or_print(report_config):
     ans = get_and_convert(
@@ -625,6 +642,8 @@ dict_of_functions = {
     14: reconcile_report,
     15: strategy_report,
     16: risk_report,
+    17: cost_report,
+    18: liquidity_report,
     20: retrieve_emails,
     21: view_errors,
     22: view_logs,

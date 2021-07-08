@@ -130,6 +130,9 @@ class diagPrices(productionDataLayerGeneric):
     def get_spreads(self, instrument_code: str) -> spreadsForInstrument:
         return self.db_spreads_for_instrument_data.get_spreads(instrument_code)
 
+    def get_list_of_instruments_with_spread_data(self)-> list:
+        return self.db_spreads_for_instrument_data.get_list_of_instruments()
+
     @property
     def db_futures_adjusted_prices_data(self) -> futuresAdjustedPricesData:
         return self.data.db_futures_adjusted_prices

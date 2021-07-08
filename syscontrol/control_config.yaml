@@ -64,6 +64,10 @@ process_configuration_methods:
     safe_stack_removal:
       run_on_completion_only: True
   run_reports:
+    costs_report:
+      max_executions: 1
+    liquidity_report:
+      max_executions: 1
     status_report:
       max_executions: 1
     roll_report:

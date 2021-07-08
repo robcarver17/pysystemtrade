@@ -5,6 +5,7 @@ import datetime
 import numpy as np
 import pandas as pd
 
+from syscore.dateutils import n_days_ago
 from syscore.genutils import transfer_object_attributes
 from syscore.pdutils import make_df_from_list_of_named_tuple
 from syscore.objects import header, table, body_text, arg_not_supplied, missing_data
@@ -34,7 +35,7 @@ def trades_info(
         end_date = datetime.datetime.now()
 
     if start_date is arg_not_supplied:
-        start_date = end_date - datetime.timedelta(days=calendar_days_back)
+        start_date = n_days_ago(calendar_days_back, date_ref=start_date)
 
     results_object = get_trades_report_data(
         data, start_date=start_date, end_date=end_date

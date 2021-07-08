@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 
 from syscore.genutils import sign
-from syscore.objects import missing_data
+from syscore.objects import missing_data, arg_not_supplied
 
 """
 First some constants
@@ -566,10 +566,11 @@ def from_marker_to_datetime(datetime_marker):
 def two_weeks_ago():
     return n_days_ago(14)
 
-def n_days_ago(n_days: int):
-    today = datetime.datetime.now()
-    d = datetime.timedelta(days = n_days)
-    return today - d
+def n_days_ago(n_days: int, date_ref = arg_not_supplied):
+    if date_ref is arg_not_supplied:
+        date_ref = datetime.datetime.now()
+    date_diff = datetime.timedelta(days = n_days)
+    return date_ref - date_diff
 
 
 def adjust_trading_hours_conservatively(trading_hours: list,
