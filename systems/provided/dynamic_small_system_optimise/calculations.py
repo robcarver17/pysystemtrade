@@ -9,8 +9,8 @@ from sysquant.estimators.covariance import covarianceEstimate
 from sysquant.estimators.mean_estimator import meanEstimates
 from sysquant.optimisation.shared import variance
 from sysquant.optimisation.weights import portfolioWeights
-from systems.provided.small_system_optimise.grid import gridParameters, generate_grid
-from systems.provided.small_system_optimise.optimisation_kernel import neg_return_with_risk_penalty_and_costs, optimisationParameters
+from systems.provided.dynamic_small_system_optimise.grid import gridParameters, generate_grid
+from systems.provided.dynamic_small_system_optimise.optimisation_kernel import neg_return_with_risk_penalty_and_costs, optimisationParameters
 
 
 def get_implied_expected_returns(portfolio_weights: portfolioWeights,

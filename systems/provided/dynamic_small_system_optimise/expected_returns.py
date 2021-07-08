@@ -11,7 +11,7 @@ from sysquant.estimators.covariance import covarianceEstimate, covariance_from_s
 from sysquant.estimators.mean_estimator import meanEstimates
 from sysquant.estimators.stdev_estimator import stdevEstimates
 from sysquant.optimisation.weights import portfolioWeights
-from systems.provided.small_system_optimise.calculations import get_implied_expected_returns
+from systems.provided.dynamic_small_system_optimise.calculations import get_implied_expected_returns
 from systems.stage import SystemStage
 from systems.system_cache import diagnostic
 

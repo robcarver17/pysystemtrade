@@ -15,8 +15,8 @@ from sysquant.optimisation.weights import portfolioWeights
 from systems.stage import SystemStage
 from systems.system_cache import diagnostic
 
-from systems.provided.small_system_optimise.expected_returns import expectedReturnsStage
-from systems.provided.small_system_optimise.calculations import maximise_without_discrete_weights, \
+from systems.provided.dynamic_small_system_optimise.expected_returns import expectedReturnsStage
+from systems.provided.dynamic_small_system_optimise.calculations import maximise_without_discrete_weights, \
     optimise_with_fixed_contract_values
 
 
