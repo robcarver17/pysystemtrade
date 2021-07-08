@@ -111,8 +111,7 @@ nested_menu_of_options = {0: {1: "Interactive python",
                               },
                           6: {60: "View instrument configuration data",
                               61: "View contract configuration data",
-                              62: "View trading hours for all instruments",
-                              63: "View conservative trading hours for all instruments"
+                              62: "View trading hours for all instruments"
                               },
                           }
 
@@ -549,15 +548,7 @@ def view_contract_config(data):
 
 
 def print_trading_hours_for_all_instruments(data=arg_not_supplied):
-    _generic_print_trading_hours_for_all_instruments(data, use_conservative=False)
-
-def print_conserative_trading_hours_for_all_instruments(data=arg_not_supplied):
-    _generic_print_trading_hours_for_all_instruments(data, use_conservative=True)
-
-
-def _generic_print_trading_hours_for_all_instruments(data=arg_not_supplied,
-                                            use_conservative = False):
-    all_trading_hours = get_trading_hours_for_all_instruments(data, use_conservative=use_conservative)
+    all_trading_hours = get_trading_hours_for_all_instruments(data)
     display_a_dict_of_trading_hours(all_trading_hours)
 
 def display_a_dict_of_trading_hours(all_trading_hours):
@@ -584,18 +575,16 @@ def nice_print_trading_hours(trading_hour_entry) -> str:
     return nice_string
 
 
-def get_trading_hours_for_all_instruments(data=arg_not_supplied,
-                                          use_conservative = False):
+def get_trading_hours_for_all_instruments(data=arg_not_supplied):
     if data is arg_not_supplied:
         data = dataBlob()
 
-    diag_prices = diagPrices()
+    diag_prices = diagPrices(data)
     list_of_instruments = diag_prices.get_list_of_instruments_with_contract_prices()
 
     all_trading_hours = {}
     for instrument_code in list_of_instruments:
-        trading_hours = get_trading_hours_for_instrument(data, instrument_code,
-                                                         use_conservative=use_conservative)
+        trading_hours = get_trading_hours_for_instrument(data, instrument_code)
 
         ## will have several days use first one
         trading_hours_this_instrument = trading_hours[0]
@@ -611,8 +600,7 @@ def check_trading_hours(trading_hours_this_instrument, instrument_code):
                                                           nice_print_trading_hours(trading_hours_this_instrument)))
 
 
-def get_trading_hours_for_instrument(data, instrument_code,
-                                          use_conservative=False):
+def get_trading_hours_for_instrument(data, instrument_code):
 
     diag_contracts = dataContracts(data)
     contract_id = diag_contracts.get_priced_contract_id(instrument_code)
@@ -620,10 +608,7 @@ def get_trading_hours_for_instrument(data, instrument_code,
     contract = futuresContract(instrument_code, contract_id)
 
     data_broker = dataBroker(data)
-    if use_conservative:
-        trading_hours = data_broker.get_conservative_trading_hours_for_contract(contract)
-    else:
-        trading_hours = data_broker.get_trading_hours_for_contract(contract)
+    trading_hours = data_broker.get_trading_hours_for_contract(contract)
 
     return trading_hours
 
@@ -658,6 +643,5 @@ dict_of_functions = {
     56: view_individual_order,
     60: view_instrument_config,
     61: view_contract_config,
-    62: print_trading_hours_for_all_instruments,
-    63: print_conserative_trading_hours_for_all_instruments,
+    62: print_trading_hours_for_all_instruments
 }

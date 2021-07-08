@@ -47,7 +47,7 @@ class stackHandlerAdditionalSampling(stackHandlerCore):
     def is_contract_currently_okay_to_sample(self, contract:futuresContract) -> bool:
         data_broker = self.data_broker
         okay_to_sample =\
-            data_broker.is_contract_conservatively_okay_to_trade(contract)
+            data_broker.is_contract_okay_to_trade(contract)
 
         return okay_to_sample
 

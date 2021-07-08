@@ -165,10 +165,6 @@ class dataBroker(productionDataLayerGeneric):
         check_open = self.broker_futures_contract_data.is_contract_okay_to_trade(contract)
         return check_open
 
-    def is_contract_conservatively_okay_to_trade(self, contract: futuresContract) -> bool:
-        check_open = self.broker_futures_contract_data.is_contract_conservatively_okay_to_trade(contract)
-        return check_open
-
     def get_min_tick_size_for_contract(self, contract: futuresContract) -> float:
         result = self.broker_futures_contract_data.get_min_tick_size_for_contract(contract)
         return result
@@ -178,13 +174,6 @@ class dataBroker(productionDataLayerGeneric):
     ) -> list:
         result = self.broker_futures_contract_data.get_trading_hours_for_contract(contract)
         return result
-
-    def get_conservative_trading_hours_for_contract(
-        self, contract: futuresContract
-    ) -> list:
-        result = self.broker_futures_contract_data.get_conservative_trading_hours_for_contract(contract)
-        return result
-
 
     def get_all_current_contract_positions(self) -> listOfContractPositions:
 

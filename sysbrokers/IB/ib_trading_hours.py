@@ -4,6 +4,8 @@ from ib_insync import ContractDetails as ibContractDetails
 from syscore.dateutils import adjust_trading_hours_conservatively
 
 def get_conservative_trading_hours(ib_contract_details: ibContractDetails):
+    ## KEEP THE GENERAL IDEA, BUT AT SOME POINT REPLACE WITH A MAPPING FUNCTION
+    ##   BASED ON ACTUAL LIQUIDITY
     time_zone_id = ib_contract_details.timeZoneId
     conservative_times = get_conservative_trading_time_UTC(time_zone_id)
 
