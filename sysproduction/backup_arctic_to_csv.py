@@ -99,7 +99,7 @@ def get_data_and_create_csv_directories(logname):
         dir_name = "%s/%s/" % (csv_dump_dir, path)
         class_paths[class_name] = dir_name
         if not os.path.exists(dir_name):
-            os.mkdir(dir_name)
+            os.makedirs(dir_name)
 
     data = dataBlob(
         csv_data_paths=class_paths, keep_original_prefix=True, log_name=logname
