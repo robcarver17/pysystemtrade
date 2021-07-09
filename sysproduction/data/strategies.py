@@ -1,5 +1,5 @@
 from sysdata.data_blob import dataBlob
-from syscore.objects import arg_not_supplied
+from syscore.objects import missing_data, arg_not_supplied
 from syscore.interactive import print_menu_of_values_and_get_response
 from sysproduction.data.positions import diagPositions, dataOptimalPositions
 
@@ -17,12 +17,16 @@ class diagStrategiesConfig(productionDataLayerGeneric):
 
     def get_strategy_config_dict_for_strategy(self, strategy_name: str) -> dict:
         strategy_dict = self.get_all_strategy_dict()
+        if strategy_dict is missing_data:
+                raise Exception("strategy_list not defined in defaults.yaml or private yaml config!")
         this_strategy_dict = strategy_dict[strategy_name]
 
         return this_strategy_dict
 
     def get_list_of_strategies(self) -> list:
         strategy_dict = self.get_all_strategy_dict()
+        if strategy_dict is missing_data:
+                raise Exception("strategy_list not defined in defaults.yaml or private yaml config!")
         list_of_strategies = list(strategy_dict.keys())
 
         return list_of_strategies

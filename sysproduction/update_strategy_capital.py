@@ -44,7 +44,7 @@ class updateStrategyCapital(object):
         except Exception as e:
             # Problem, will send email
             self.data.log.critical(
-                "Error %s whilst allocating strategy capital" %
+                "Error [%s] whilst allocating strategy capital" %
                 e)
 
         return None
