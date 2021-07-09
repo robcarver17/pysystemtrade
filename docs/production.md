@@ -732,6 +732,22 @@ email_server: 'smtp.anemailadress.com'
 email_to: "someotherbloke@anothermail.com"
 ```
 
+Pysystemtrade will automatically try to negotiate TLS encryption when connecting to SMTP server and will resort to unencrypted communication only as a last resort.
+
+To use Google SMTP server without trusting the config file with your plain text password, you can create an 'App password' specifically for pysystemtrade:
+- Go to [Manage my Google account](https://myaccount.google.com/security) and its 'Signing in to Google' subsection
+- Ensure that '2-step verification' is On
+- In 'App passwords' section generate a new one: Select app: Mail. Select device: Other, and name it 'pysystemtrade'. Click 'Generate' and copy the 16-character password (such as 'abcd efgh ijkl mnop').
+
+For sending notifications via gmail to yourself, edit the config file as below:
+```
+email_address: "youraddress@gmail.com"
+email_pwd: "abcdefghijklmnop"
+email_server: 'smtp.gmail.com'
+email_to: "youraddress@gmail.com"
+```
+
+
 Reports are run automatically every day by the [run reports](#run-all-reports) process, but you can also run ad-hoc reports in the [interactive diagnostics](#reports) tool. Ad hoc reports can be emailed or displayed on screen.
 
 Full details of reports are given [here](#reports-1).
