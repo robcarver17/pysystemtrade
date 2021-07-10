@@ -6,8 +6,9 @@ from sysquant.estimators.estimates import Estimates, meanEstimates, stdevEstimat
 from sysquant.optimisation.shared import neg_SR
 from syscore.dateutils import WEEKS_IN_YEAR
 
-
+## THIS MIGHT NEED TWEAKING, DEPENDING ON CAPITAL
 max_instrument_weight = 0.05
+
 notional_starting_IDM = 1.0
 minimum_instrument_weight_idm = max_instrument_weight * notional_starting_IDM
 
