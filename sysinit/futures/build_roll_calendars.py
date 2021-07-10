@@ -198,6 +198,10 @@ def adjust_to_price_series(approx_calendar: pd.DataFrame,
         adjusted_roll_calendar_as_list.append(adjusted_row)
         _print_adjustment_message(local_row_data, adjusted_row)
 
+    if len(adjusted_roll_calendar_as_list) == 0:
+        raise Exception(
+            "Error! Empty roll calendar after adjustment! Most likely corrupted roll calendar or maybe using old roll calendar .csv files with new price data?")
+
     new_calendar = adjusted_roll_calendar_as_list.to_pd_df()
 
     return new_calendar
@@ -287,10 +291,9 @@ def _get_set_of_prices(local_row_data: localRowData,
 
     try:
         current_prices = dict_of_futures_contract_prices[current_contract]
+        next_prices = dict_of_futures_contract_prices[next_contract]
     except KeyError:
         return _bad_row
-
-    next_prices = dict_of_futures_contract_prices[next_contract]
 
     carry_contract, carry_prices, curr_carry_contract, curr_carry_prices = _get_carry_contract_and_prices(local_row_data,
                                                                                  dict_of_futures_contract_prices)
@@ -311,10 +314,16 @@ def _get_carry_contract_and_prices(local_row_data, dict_of_futures_contract_pric
         curr_carry_prices = _no_carry_prices
         curr_carry_contract = _no_carry_prices
     else:
-        carry_contract = str(next_approx_row.carry_contract)
-        carry_prices = dict_of_futures_contract_prices[carry_contract]
-        curr_carry_contract = str(curr_approx_row.carry_contract)
-        curr_carry_prices = dict_of_futures_contract_prices[curr_carry_contract]
+        try:
+            carry_contract = str(next_approx_row.carry_contract)
+            carry_prices = dict_of_futures_contract_prices[carry_contract]
+        except KeyError:
+            carry_prices = _no_carry_prices
+        try:
+            curr_carry_contract = str(curr_approx_row.carry_contract)
+            curr_carry_prices = dict_of_futures_contract_prices[curr_carry_contract]
+        except KeyError:
+            curr_carry_prices = _no_carry_prices
 
     return carry_contract, carry_prices, curr_carry_contract, curr_carry_prices
 
@@ -377,7 +386,8 @@ def _required_paired_prices(set_of_prices: setOfPrices)\
                             -> pd.DataFrame:
 
     no_carry_exists = set_of_prices.carry_prices is _no_carry_prices
-    if no_carry_exists:
+    no_curr_carry_exists = set_of_prices.curr_carry_prices is _no_carry_prices
+    if no_carry_exists or no_curr_carry_exists:
         paired_prices = pd.concat([set_of_prices.current_prices,
                                    set_of_prices.next_prices], axis=1)
     else:
