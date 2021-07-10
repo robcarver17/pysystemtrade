@@ -12,13 +12,13 @@ def strip_file_names(pathname):
     for filename in file_names:
         identifier = filename.split("_")[0]
         yearcode = int(identifier[len(identifier)-2:])
-        monthcode = identifier[len(identifier)-3]
+        monthcode = identifier[len(identifier)-3].upper()
         if yearcode>50:
             year = 1900+yearcode
         else:
             year = 2000+yearcode
         month = month_from_contract_letter(monthcode)
-        marketcode = identifier[:len(identifier)-3]
+        marketcode = identifier[:len(identifier)-3].upper()
         instrument = market_map[marketcode]
 
         datecode = str(year)+'{0:02d}'.format(month)
@@ -39,17 +39,18 @@ market_map = dict( AE="AEX", A6="AUD", HR="BOBL", II = "BTP",MX = "CAC", GG="BUN
                    PA="PALLAD",                   HF="SHATZ", PL="PLAT",ZS = "SOYBEAN",
                    ES="SP500",ZT = "US2",   ZF = "US5",ZN = "US10",
                    ZB="US20",VI = "VIX",ZW="WHEAT",
-                   DV="V2X",
-                    UD = "US30"
+                   DV="V2X", UD = "US30", FX = "EUROSTX", 
+                   GR = "GOLD_micro", NM = "NASDAQ_micro", QM = "CRUDE_W_mini", QG = "GAS_US_mini", ET ="SP500_micro"
                    )
 
 
-barchart_csv_config = ConfigCsvFuturesPrices(input_date_index_name="Date Time",
-                                input_skiprows=1, input_skipfooter=1,
+barchart_csv_config = ConfigCsvFuturesPrices(input_date_index_name="Time",
+                                input_skiprows=0, input_skipfooter=1,
+                                input_date_format="%m/%d/%Y",
                                 input_column_mapping=dict(OPEN='Open',
                                                           HIGH='High',
                                                           LOW='Low',
-                                                          FINAL='Close',
+                                                          FINAL='Last',
                                                           VOLUME='Volume'
                                                           ))
 
