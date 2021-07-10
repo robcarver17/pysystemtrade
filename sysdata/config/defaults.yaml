@@ -32,6 +32,7 @@ echo_directory: 'data.echos'
 ib_ipaddress: 127.0.0.1
 ib_port: 4001
 ib_idoffset: 100
+ib_readonly: False
 #
 # Mongo DB
 mongo_host: 127.0.0.1

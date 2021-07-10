@@ -1,14 +1,14 @@
 from sysdata.config.production_config import get_production_config
 from syscore.objects import arg_not_supplied
 
-LIST_OF_IB_PARAMS = ["ib_ipaddress", "ib_port", "ib_idoffset"]
+LIST_OF_IB_PARAMS = ["ib_ipaddress", "ib_port", "ib_idoffset", "ib_readonly"]
 
 
 def ib_defaults(**kwargs):
     """
     Returns ib configuration with following precedence
-    1- if passed in arguments: ipaddress, port, idoffset - use that
-    2- if defined in private_config file, use that. ib_ipaddress, ib_port, ib_idoffset
+    1- if passed in arguments: ipaddress, port, idoffset, readonly - use that
+    2- if defined in private_config file, use that. ib_ipaddress, ib_port, ib_idoffset, ib_readonly
     3 - if defined in system defaults file, use that
 
     :return: mongo db, hostname, port
@@ -33,5 +33,6 @@ def ib_defaults(**kwargs):
     ipaddress = output_dict['ib_ipaddress']
     port = output_dict['ib_port']
     idoffset = output_dict['ib_idoffset']
+    readonly = output_dict['ib_readonly']
 
-    return ipaddress, port, idoffset
+    return ipaddress, port, readonly, idoffset

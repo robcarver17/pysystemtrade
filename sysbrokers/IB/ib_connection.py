@@ -28,6 +28,7 @@ class connectionIB(object):
         ib_ipaddress: str=arg_not_supplied,
         ib_port: int=arg_not_supplied,
         account: str = arg_not_supplied,
+        ib_readonly: str = arg_not_supplied,
         log=logtoscreen("connectionIB")
     ):
         """
@@ -35,12 +36,12 @@ class connectionIB(object):
         :param ipaddress: IP address of machine running IB Gateway or TWS. If not passed then will get from private config file, or defaults
         :param port: Port listened to by IB Gateway or TWS
         :param log: logging object
-        :param mongo_db: mongoDB connection
+        :param ib_readonly: Connection can be made to gateway/TWS that is in read-only mode
         """
 
         # resolve defaults
 
-        ipaddress, port, __ = ib_defaults(ib_ipaddress=ib_ipaddress, ib_port=ib_port)
+        ipaddress, port, readonly, __ = ib_defaults(ib_ipaddress=ib_ipaddress, ib_port=ib_port, readonly=ib_readonly)
 
         # The client id is pulled from a mongo database
         # If for example you want to use a different database you could do something like:
@@ -52,7 +53,7 @@ class connectionIB(object):
         # If you copy for another broker include this line
         log.label(broker="IB", clientid=client_id)
         self._ib_connection_config = dict(
-            ipaddress=ipaddress, port=port, client=client_id)
+            ipaddress=ipaddress, port=port, client=client_id, readonly=readonly)
 
         ib = IB()
 
@@ -63,10 +64,10 @@ class connectionIB(object):
         ## that may still return missing data...
         if account is missing_data:
             self.log.error("Broker account ID not found in private config - may cause issues")
-            ib.connect(ipaddress, port, clientId=client_id)
+            ib.connect(ipaddress, port, clientId=client_id, readonly=readonly)
         else:
-            ## conncect using account
-            ib.connect(ipaddress, port, clientId=client_id, account=account)
+            ## connect using account
+            ib.connect(ipaddress, port, clientId=client_id, readonly=readonly, account=account)
 
         # Sometimes takes a few seconds to resolve... only have to do this once per process so no biggie
         time.sleep(5)
@@ -74,6 +75,7 @@ class connectionIB(object):
         self._ib = ib
         self._log = log
         self._account = account
+        self._readonly = readonly
 
     @property
     def ib(self):

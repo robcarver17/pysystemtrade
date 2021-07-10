@@ -506,7 +506,7 @@ You are probably going to want to link your system to a broker, to do one or mor
 
 ... although one or more of these can also be done manually.
 
-You should now read [connecting pysystemtrade to interactive brokers](/docs/IB.md). The fields `broker_account`,`ib_ipaddress`, `ib_port` and `ib_idoffset` should be set in the [private config file](/private/private_config.yaml).
+You should now read [connecting pysystemtrade to interactive brokers](/docs/IB.md). The fields `broker_account`,`ib_ipaddress`, `ib_port`, `ib_readonly` and `ib_idoffset` should be set in the [private config file](/private/private_config.yaml).
 
 
 ## Other data sources
@@ -2619,6 +2619,7 @@ The following are configuration options that are in defaults.yaml and can be ove
 [Broker](#linking-to-a-broker)
 - `ib_ipaddress`: 127.0.0.1
 - `ib_port`: 4001
+- `ib_readonly`: False
 - `ib_idoffset`: 100
 
 [Database](#data-storage)

@@ -80,14 +80,14 @@ You will also need to configure the Gateway:
 
 - Socket port: Should be 4001. If you use a different port you'll need to change your connection calls [here](#making-a-connection) and [here](#creating-and-closing-connection-objects)
 - White list for trusted IP addresses: Should include 127.0.0.1. If you are going to be running the Gateway on one machine, and accessing it via another, then you need to add the IP address of your other machines here.
-- If you are going to be trading, then 'Read only API' should be turned off
+- If you are going to be trading, then 'Read only API' should be turned off. You can however use the Gateway in Read only mode for fetching (historical) market data and simulating creating orders (see [here](#creating-and-closing-connection-objects) how to configure that)
 - You may also need to change precautions and preset options
 
 ## Making a connection
 
 ```
 from sysbrokers.IB.ib_connection import connectionIB
-conn = connectionIB( 999, ib_ipaddress = "127.0.0.1", ib_port=4001, account="U999999") # the first compulsory value is the client_id; the keyword args are the default values and can be omitted
+conn = connectionIB( 999, ib_ipaddress = "127.0.0.1", ib_port=4001, ib_readonly=false, account="U999999") # the first compulsory value is the client_id; the keyword args are the default values and can be omitted
 conn
 # In production the client id is assigned from a database to avoid conflicts
 Out[13]: IB broker connection{'ipaddress': '127.0.0.1', 'port': 4001, 'client': 999} 
@@ -252,7 +252,7 @@ You wouldn't normally open a separate IB connection in pysystemtrade since they 
 
 ```
 from sysbrokers.IB.ib_connection import connectionIB
-conn = connectionIB(1, ib_ipaddress = "127.0.0.1", ib_port=4001, account="U123456")
+conn = connectionIB(1, ib_ipaddress = "127.0.0.1", ib_port=4001, ib_readonly=false, account="U123456")
 ```
 
 Portid should match that in the Gateway configuration. Client ids (eg 1) must not be duplicated by an already connected python process (even if it's hung... normally in production the client id is assigned from a database to avoid conflicts). The IP address shown means 'this machine'; only change this if you are planning to run the Gateway on a different network machine.
@@ -267,8 +267,12 @@ You should first create a file 'private_config.yaml' in the private directory of
 ```
 ib_ipaddress: 192.168.0.10
 ib_port: 4001
+ib_readonly: False
 broker_account: U123456
 ```
+
+For preliminary testing you can allow the framework to handle Read only mode by setting 'ib_readonly: True'. This will make it possible to fetch historical market data with 'seed_price_data_from_IB.py' even if Read only mode is enabled in the Gateway. Market orders created by stack handler will be delivered to IB API but will be canceled and bounced back. In current implementation the stack handler will keep recreating the orders indefinitely though. 
+
 
 ```
 conn = connectionIB(config)
