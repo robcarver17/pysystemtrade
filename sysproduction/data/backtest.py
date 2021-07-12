@@ -177,7 +177,7 @@ def store_backtest_state(data, system, strategy_name="default_strategy"):
 
     ensure_backtest_directory_exists(strategy_name)
 
-    datetime_marker = create_datetime_string(datetime_to_use)
+    datetime_marker = create_datetime_string()
 
     pickle_filename = get_backtest_pickle_filename(
         strategy_name, datetime_marker)
