@@ -556,3 +556,12 @@ def get_row_of_df_aligned_to_weights_as_dict(df: pd.DataFrame,
             raise Exception("Date %s not found in portfolio weights" % str(relevant_date))
 
     return data_at_date.to_dict()
+
+
+def get_max_index_before_datetime(index, date_point):
+    matching_index_size = index[index < date_point].size
+
+    if matching_index_size == 0:
+        return None
+    else:
+        return matching_index_size - 1

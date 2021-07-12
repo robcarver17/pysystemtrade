@@ -118,15 +118,15 @@ class exponentialCorrelationResults(object):
         raw_correlations = self.raw_correlations
 
         # slicing is weird
-        corr_matrix_values = raw_correlations[(first_index+1):(last_index+1)].values
+        corr_matrix_values = raw_correlations[first_index:last_index].values
         columns = self.columns
 
         return correlationEstimate(values=corr_matrix_values, columns=columns)
 
     def _range_of_indices_for_date(self, date_point: datetime.datetime) -> (int, int):
-        last_index = self._index_of_datetime_in_data(date_point)
-        size_of_matrix = self.size_of_matrix
-        first_index = last_index - size_of_matrix
+        index = self.raw_correlations.index
+        last_index = index[index.get_level_values(0) < date_point].size
+        first_index = last_index - self.size_of_matrix
 
         return first_index, last_index
 
@@ -137,31 +137,3 @@ class exponentialCorrelationResults(object):
     @property
     def columns(self)-> list:
         return self._columns
-
-    def _index_of_datetime_in_data(self, date_point: datetime.datetime) -> int:
-        ts_index = self.index
-        xpoint = [index_idx for index_idx, index_date in
-                  enumerate(ts_index) if index_date<date_point]
-        if len(xpoint)==0:
-            return 0
-
-        last_index = xpoint[-1]
-
-        return last_index
-
-    @property
-    def index(self) -> list:
-        # don't recalculate as slow
-        ts_index = getattr(self, "_ts_index", None)
-        if ts_index is None:
-            ts_index = self._ts_index = \
-                self._calculate_index_of_timestampes_in_raw_correlations()
-
-        return ts_index
-
-    def _calculate_index_of_timestampes_in_raw_correlations(self) -> list:
-        raw_correlations = self.raw_correlations
-        ts_index = [x[0] for x in raw_correlations.index]
-
-        return ts_index
-

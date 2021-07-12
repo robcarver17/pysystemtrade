@@ -2,7 +2,7 @@ import pandas as pd
 import  numpy as np
 
 from syscore.algos import apply_with_min_periods
-from syscore.pdutils import how_many_times_a_year_is_pd_frequency
+from syscore.pdutils import how_many_times_a_year_is_pd_frequency, get_max_index_before_datetime
 
 from sysquant.fitting_dates import fitDates
 from sysquant.estimators.generic_estimator import genericEstimator, exponentialEstimator, Estimate
@@ -54,15 +54,11 @@ class exponentialMeans(exponentialEstimator):
 
 
     def get_estimate_for_fitperiod_with_data(self, fit_period: fitDates) -> meanEstimates:
+        exponential_mean_df = self.calculations
 
-        exponential_mean_df= self.calculations
-        ts_index = exponential_mean_df.index
-        xpoint = [index_idx for index_idx, index_date in
-                  enumerate(ts_index) if index_date<fit_period.fit_end]
-        if len(xpoint)==0:
-            return empty_mean(self.data)
-
-        last_index = xpoint[-1]
+        last_index = get_max_index_before_datetime(exponential_mean_df.index, fit_period.fit_end)
+        if last_index is None:
+            return empty_stdev(self.data)
 
         mean = meanEstimates(exponential_mean_df.iloc[last_index])
         mean = annualise_mean_estimate(mean, frequency=self.frequency)

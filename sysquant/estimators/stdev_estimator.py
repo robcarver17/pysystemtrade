@@ -2,7 +2,7 @@ import pandas as pd
 import  numpy as np
 
 from syscore.algos import apply_with_min_periods
-from syscore.pdutils import how_many_times_a_year_is_pd_frequency
+from syscore.pdutils import how_many_times_a_year_is_pd_frequency, get_max_index_before_datetime
 
 from sysquant.fitting_dates import fitDates
 from sysquant.estimators.generic_estimator import genericEstimator, exponentialEstimator, Estimate
@@ -48,16 +48,13 @@ class exponentialStdev(exponentialEstimator):
 
         return stdev_calculations
 
+
     def get_estimate_for_fitperiod_with_data(self, fit_period: fitDates) -> stdevEstimates:
+        exponential_std_deviation = self.calculations
 
-        exponential_std_deviation= self.calculations
-        ts_index = exponential_std_deviation.index
-        xpoint = [index_idx for index_idx, index_date in
-                  enumerate(ts_index) if index_date<fit_period.fit_end]
-        if len(xpoint)==0:
+        last_index = get_max_index_before_datetime(exponential_std_deviation.index, fit_period.fit_end)
+        if last_index is None:
             return empty_stdev(self.data)
-
-        last_index = xpoint[-1]
 
         stdev = stdevEstimates(exponential_std_deviation.iloc[last_index])
         stdev = annualise_stdev_estimate(stdev, frequency=self.frequency)
