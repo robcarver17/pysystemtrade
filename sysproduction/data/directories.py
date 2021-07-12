@@ -25,10 +25,15 @@ def get_csv_backup_directory():
 
 
 def get_csv_dump_dir():
-    return production_config.get_element_or_missing_data("csv_backup_directory")
+    ans = production_config.get_element_or_missing_data("csv_backup_directory")
+    if ans is missing_data:
+        raise Exception("Need to specify csv_backup_directory in production config file")
+    return get_resolved_pathname(ans)
 
 def get_mongo_dump_directory():
     ans = production_config.get_element_or_missing_data("mongo_dump_directory")
+    if ans is missing_data:
+        raise Exception("Need to specify mongo_dump_directory production in config file")
     return get_resolved_pathname(ans)
 
 
@@ -52,12 +57,14 @@ def get_statefile_backup_directory():
 
 def get_echo_file_directory():
     ans = production_config.get_element_or_missing_data("echo_directory")
-
+    if ans is missing_data:
+        raise Exception("Need to specify echo_directory in production config")
     return ans
 
 def get_echo_extension():
     ans = production_config.get_element_or_missing_data("echo_extension")
-
+    if ans is missing_data:
+        raise Exception("Need to specify echo_extension in production config")
     return ans
 
 
