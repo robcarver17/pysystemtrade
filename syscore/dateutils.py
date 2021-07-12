@@ -554,7 +554,10 @@ def last_run_or_heartbeat_from_date_or_none(last_run_or_heartbeat: datetime.date
 date_formatting = "%Y%m%d_%H%M%S"
 
 
-def create_datetime_string(datetime_to_use):
+def create_datetime_string(datetime_to_use: datetime = arg_not_supplied):
+    if datetime_to_use is arg_not_supplied:
+        datetime_to_use = datetime.datetime.now()
+        
     datetime_marker = datetime_to_use.strftime(date_formatting)
 
     return datetime_marker
