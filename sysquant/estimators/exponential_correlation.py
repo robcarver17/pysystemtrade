@@ -101,7 +101,6 @@ class exponentialCorrelationResults(object):
         columns = data_for_correlation.columns
         self._columns = columns
 
-
         raw_correlations = data_for_correlation.ewm(
             span=ew_lookback,
             min_periods=min_periods, ignore_na=True).corr(
@@ -114,26 +113,17 @@ class exponentialCorrelationResults(object):
         return self._raw_correlations
 
     def last_valid_cor_matrix_for_date(self, date_point: datetime.datetime) -> correlationEstimate:
-        first_index, last_index = self._range_of_indices_for_date(date_point)
         raw_correlations = self.raw_correlations
+        corr_matrix_values = \
+                raw_correlations[raw_correlations.index.get_level_values(0) < date_point].\
+                tail(self.size_of_matrix).values
 
-        # slicing is weird
-        corr_matrix_values = raw_correlations[first_index:last_index].values
-        columns = self.columns
-
-        return correlationEstimate(values=corr_matrix_values, columns=columns)
-
-    def _range_of_indices_for_date(self, date_point: datetime.datetime) -> (int, int):
-        index = self.raw_correlations.index
-        last_index = index[index.get_level_values(0) < date_point].size
-        first_index = last_index - self.size_of_matrix
-
-        return first_index, last_index
+        return correlationEstimate(values=corr_matrix_values, columns=self.columns)
 
     @property
     def size_of_matrix(self) -> int:
         return len(self.columns)
 
     @property
-    def columns(self)-> list:
+    def columns(self) -> list:
         return self._columns
