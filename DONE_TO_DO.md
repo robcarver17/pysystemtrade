@@ -1,5 +1,7 @@
 # Release notes
 
+- Can now `allocate_zero_instrument_weights_to_these_instruments` in config file.
+
 ## Version 1.04
 
 - Added intraday bid/ask sampling to order stack handler

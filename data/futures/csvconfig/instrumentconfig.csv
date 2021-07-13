@@ -11,9 +11,9 @@ CORN,50,Ags,USD,0.125,2.9,0,0,Corn
 CRUDE_W,1000,OilGas,USD,0.0145328653,2.31,0,0,Light sweet crude Winter
 EDOLLAR,2500,Bond,USD,0.0025,2.11,0,0,US STIR Eurodollar
 EUR,125000,FX,USD,5E-05,2.46,0,0,EURUSD currency
-EUROSTX,10,Equity,EUR,0.5,2,0,0,European equity index EUROSTOXX50
+EUROSTX,10,Equity,EUR,1,2,0,0,European equity index EUROSTOXX50
 GAS_US,10000,OilGas,USD,0.0009387043,2.31,0,0,Natural gas US
-GBP,62500,FX,USD,5E-05,2.46,0,0,GBPUSD currency
+GBP,62500,FX,USD,1E-04,2.46,0,0,GBPUSD currency
 GOLD,100,Metals,USD,0.0885298446,2.31,0,0,Gold
 JPY,12500000,FX,USD,4.80871993208629E-07,2.46,0,0,JPYUSD currency
 KOSPI,500000,Equity,KRW,0.025,0,0.0004,0,Korean equity index KOSPI
@@ -22,7 +22,7 @@ KR3,1000000,Bond,KRW,0.005,0,4E-05,0,Korean 3 year bond
 LEANHOG,400,Ags,USD,0.025,2.9,0,0,Lean hogs
 LIVECOW,400,Ags,USD,0.025,2.9,0,0,Live cattle
 MXP,500000,FX,USD,6E-06,2.46,0,0,MEXUSD currency
-NASDAQ,20,Equity,USD,0.25,2.05,0,0,US equity index Nasdaq 
+NASDAQ,20,Equity,USD,0.3,2.05,0,0,US equity index Nasdaq 
 NZD,100000,FX,USD,0.000107147,2.46,0,0,NZDUSD currency
 OAT,1000,Bond,EUR,0.005,2,0,0,French 10 year bond OAT
 PALLAD,100,Metals,USD,2,2.31,0,0,Palladium
@@ -62,18 +62,18 @@ US-PROPERTY,250,Sector,USD,0.075,1.5,0,0,Real Estate Select Sector Index
 US-TECH,100,Sector,USD,0.25,1.5,0,0,Technology Select Sector Index -
 US-UTILS,100,Sector,USD,0.15,1.5,0,0,Utilities Select Sector Index
 FEEDCOW,500,Ags,USD,0.05,1.5,0,0,Feeder cattle
-BBCOMM,100,Ags,USD,0.05,1.5,0,0,Bloomberg Commodity Index
+BBCOMM,100,Ags,USD,0.1,1.5,0,0,Bloomberg Commodity Index
 SOYMEAL,100,Ags,USD,0.05,1.5,0,0,Soybean Meal
 REDWHEAT,50,Ags,USD,0.25,1.5,0,0,Hard Red Winter Wheat -KCBOT-
 OATIES,50,Ags,USD,0.625,1.5,0,0,Oat Futures
 RICE,2000,Ags,USD,0.015,1.5,0,0,Rough Rice
-MILK,2000,Ags,USD,0.035,1.5,0,0,Milk class III
+MILK,2000,Ags,USD,0.09,1.5,0,0,Milk class III
 SOYOIL,600,Ags,USD,0.015,1.5,0,0,Soybean oil
 GASOILINE,42000,OilGas,USD,0.00035,1.5,0,0,RBOB Gasoline US
 HEATOIL,42000,OilGas,USD,0.00015,1.5,0,0,Heating oil
 ALUMINIUM,25,Metals,USD,2.375,1.5,0,0,NYMEX Aluminum Index
 SILVER,1000,Metals,USD,0.0025,1.5,0,0,NYMEX Silver Index
-CAD,100000,FX,USD,0.00015,1.5,0,0,CADUSD currency
+CAD,100000,FX,USD,0.0001,1.5,0,0,CADUSD currency
 CHF,125000,FX,USD,5E-05,1.5,0,0,CHFUSD currency
 SEK,2000000,FX,USD,2E-05,1.5,0,0,SEKUSD currency
 NOK,2000000,FX,USD,3E-05,1.5,0,0,NOKUSD currency
@@ -119,7 +119,7 @@ SOFR,2500,Bond,USD,0.0025,1.5,0,0,Secured Overnight Financing Rate 3-month avera
 TOPIX,1000,Equity,JPY,0.125,50,0,0,Japan Mini Topix
 CRUDE_W_mini,500,OilGas,USD,0.03,1.5,0,0,Light sweet crude Winter mini
 GAS_US_mini,2500,OilGas,USD,0.005,1.5,0,0,Natural gas US mini
-GOLD_micro,10,Metals,USD,0.05,0.25,0,0,Gold micro
+GOLD_micro,10,Metals,USD,0.07,0.25,0,0,Gold micro
 KOSPI_mini,50000,Equity,KRW,17,8500,0,0,KOSPI mini
 NASDAQ_micro,2,Equity,USD,0.25,0.25,0,0,NASDAQ micro
 SP500_micro,5,Equity,USD,0.125,0.25,0,0,S&P 500 micro

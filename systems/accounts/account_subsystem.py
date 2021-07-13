@@ -7,8 +7,22 @@ from systems.accounts.curves.account_curve_group import accountCurveGroup
 from systems.accounts.curves.dict_of_account_curves import dictOfAccountCurves
 
 class accountSubsystem(accountCosts):
+
     @diagnostic(not_pickable=True)
     def pandl_across_subsystems(self,  delayfill=True, roundpositions=False
+    ) -> accountCurveGroup:
+
+        instrument_list = self.get_instrument_list()
+
+        pandl_across_subsystems = self.pandl_across_subsystems_given_instrument_list(instrument_list,
+                                                                                     delayfill=delayfill,
+                                                                                     roundpositions=roundpositions)
+
+        return pandl_across_subsystems
+
+    @diagnostic(not_pickable=True)
+    def pandl_across_subsystems_given_instrument_list(self,  instrument_list: list,
+                                                      delayfill=True, roundpositions=False
     ) -> accountCurveGroup:
 
         dict_of_pandl_across_subsystems = dict([
@@ -17,7 +31,7 @@ class accountSubsystem(accountCosts):
                                       delayfill=delayfill,
                                       roundpositions=roundpositions))
 
-            for instrument_code in self.get_instrument_list()
+            for instrument_code in instrument_list
         ])
 
         dict_of_pandl_across_subsystems = dictOfAccountCurves(dict_of_pandl_across_subsystems)
@@ -29,6 +43,7 @@ class accountSubsystem(accountCosts):
                           weighted = False)
 
         return pandl_across_subsystems
+
 
     #dont cache switch statement
     @dont_cache

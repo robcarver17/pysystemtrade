@@ -28,7 +28,6 @@ def find_best_ordered_set_of_instruments(system,
     best_market = find_best_market(system = system)
     set_of_instruments_used = [best_market]
 
-    from copy import copy
     unused_list_of_instruments = copy(list_of_instruments)
     unused_list_of_instruments.remove(best_market)
 

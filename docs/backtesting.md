@@ -554,6 +554,13 @@ ignore_instruments:
   - SP500
 ```
 
+## How do I.... Exclude some instruments from having positive instrument weights
+
+You might want to calculate forecasts for certain instruments (so don't include them in ignore_instruments'), but not actually trade them.
+
+If you include the config element `allocate_zero_instrument_weights_to_these_instruments` then those instruments will have a zero instrument weight calculated, and the system will produce a zero desired position for them.
+
+
 
 
 <a name="how_do_i_write_rules"> </a>

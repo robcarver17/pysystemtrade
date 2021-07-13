@@ -2,7 +2,7 @@ import pandas as pd
 from copy import copy
 
 from syscore.pdutils import fix_weights_vs_position_or_forecast, from_dict_of_values_to_df, from_scalar_values_to_ts
-from syscore.objects import  resolve_function, missing_data
+from syscore.objects import  resolve_function, missing_data, arg_not_supplied
 from syscore.genutils import str2Bool
 
 from sysdata.config.configdata import Config
@@ -14,6 +14,7 @@ from sysquant.returns import dictOfReturnsForOptimisationWithCosts, returnsForOp
 from systems.stage import SystemStage
 from systems.system_cache import input, dont_cache, diagnostic, output
 from systems.positionsizing import PositionSizing
+from systems.accounts.curves.account_curve_group import accountCurveGroup
 
 """
 Stage for portfolios
@@ -567,9 +568,11 @@ class Portfolios(SystemStage):
         except:
             instrument_weights_dict = self.get_equal_instrument_weights_dict()
 
+        instrument_weights_dict = self._add_zero_instrument_weights(instrument_weights_dict)
+
         # Now we have a dict, fixed_weights.
         # Need to turn into a timeseries covering the range of subsystem positions
-        instrument_list = self.parent.get_instrument_list()
+        instrument_list = self.get_instrument_list()
 
         subsystem_positions = self._get_all_subsystem_positions()
         position_series_index = subsystem_positions.index
@@ -583,21 +586,35 @@ class Portfolios(SystemStage):
 
     @dont_cache
     def get_equal_instrument_weights_dict(self) -> dict:
-        instruments = self.parent.get_instrument_list()
-        weight = 1.0 / len(instruments)
+        instruments_with_weights = self.get_instrument_list(for_instrument_weights=True)
+        weight = 1.0 / len(instruments_with_weights)
 
         warn_msg = (
                 "WARNING: No instrument weights  - using equal weights of %.4f over all %d instruments in data" %
-                (weight, len(instruments)))
+                (weight, len(instruments_with_weights)))
 
         self.log.warn(warn_msg)
 
         instrument_weights = dict(
-            [(instrument_code, weight) for instrument_code in instruments]
+            [(instrument_code, weight) for instrument_code in instruments_with_weights]
         )
 
         return instrument_weights
 
+    def _add_zero_instrument_weights(self, instrument_weights: dict) -> dict:
+        copy_instrument_weights = copy(instrument_weights)
+        instruments_with_zero_weights = self.allocate_zero_instrument_weights_to_these_instruments()
+        for instrument_code in instruments_with_zero_weights:
+            copy_instrument_weights[instrument_code] = 0.0
+
+        return copy_instrument_weights
+
+    def _remove_zero_weighted_instruments_from_df(self, some_data_frame: pd.DataFrame) -> pd.DataFrame:
+        copy_df = copy(some_data_frame)
+        instruments_with_zero_weights = self.allocate_zero_instrument_weights_to_these_instruments()
+        copy_df.drop(instruments_with_zero_weights)
+
+        return copy_df
 
     @diagnostic()
     def _get_all_subsystem_positions(self) -> pd.DataFrame:
@@ -605,7 +622,7 @@ class Portfolios(SystemStage):
 
         :return: single pd.matrix of all the positions
         """
-        instrument_codes = self.parent.get_instrument_list()
+        instrument_codes = self.get_instrument_list()
 
         positions = [self.get_subsystem_position(
             instr_code) for instr_code in instrument_codes]
@@ -641,8 +658,11 @@ class Portfolios(SystemStage):
 
         # these will probably be annual
         optimiser = self.calculation_of_raw_instrument_weights()
-        return optimiser.weights()
+        weights_of_instruments_with_weights = optimiser.weights()
 
+        instrument_weights = self._add_zero_weights_to_instrument_weights_df(weights_of_instruments_with_weights)
+
+        return instrument_weights
 
 
     @diagnostic(protected=True, not_pickable=True)
@@ -677,7 +697,8 @@ class Portfolios(SystemStage):
     @diagnostic(not_pickable=True)
     def returns_pre_processor(self)  -> returnsPreProcessor:
 
-        pandl_across_subsystems_raw = self.pandl_across_subsystems()
+        instrument_list = self.get_instrument_list(for_instrument_weights=True)
+        pandl_across_subsystems_raw = self.pandl_across_subsystems(instrument_list=instrument_list)
         pandl_across_subsystems_as_returns_object = returnsForOptimisationWithCosts(pandl_across_subsystems_raw)
         pandl_across_subsystems = dictOfReturnsForOptimisationWithCosts(pandl_across_subsystems_as_returns_object)
 
@@ -693,8 +714,40 @@ class Portfolios(SystemStage):
 
         return returns_pre_processor
 
+    def _add_zero_weights_to_instrument_weights_df(self, instrument_weights: pd.DataFrame) -> pd.DataFrame:
+        instrument_list_to_add = self.allocate_zero_instrument_weights_to_these_instruments()
+        weight_index = instrument_weights.index
+        new_pd_as_dict = dict(
+            [
+                (instrument_code,
+                pd.Series([0.0]* len(weight_index)))
+                for instrument_code in instrument_list_to_add
+            ]
+        )
+        new_pd = pd.DataFrame(new_pd_as_dict)
 
+        padded_instrument_weights = pd.concat([instrument_weights, new_pd], axis=1)
 
+        return padded_instrument_weights
+
+    def get_instrument_list(self, for_instrument_weights = False) -> list:
+        instrument_list = self.parent.get_instrument_list()
+        if for_instrument_weights:
+            instrument_list = copy(instrument_list)
+            allocate_zero_instrument_weights_to_these_instruments = \
+                self.allocate_zero_instrument_weights_to_these_instruments()
+
+            for instrument_code_to_remove in allocate_zero_instrument_weights_to_these_instruments:
+                instrument_list.remove(instrument_code_to_remove)
+
+        return instrument_list
+
+    def allocate_zero_instrument_weights_to_these_instruments(self) -> list:
+        config = self.config
+        allocate_zero_instrument_weights_to_these_instruments = \
+            getattr(config,"allocate_zero_instrument_weights_to_these_instruments", [])
+
+        return allocate_zero_instrument_weights_to_these_instruments
 
     @input
     def get_subsystem_position(self, instrument_code: str) -> pd.Series:
@@ -726,7 +779,7 @@ class Portfolios(SystemStage):
 
 
     @input
-    def pandl_across_subsystems(self) -> pd.DataFrame:
+    def pandl_across_subsystems(self, instrument_list: list = arg_not_supplied) -> accountCurveGroup:
         """
         Return profitability of each instrument
 
@@ -745,12 +798,16 @@ class Portfolios(SystemStage):
             self.log.critical(error_msg)
             raise Exception(error_msg)
 
-        return accounts.pandl_across_subsystems()
+        if instrument_list is arg_not_supplied:
+            instrument_list = self.get_instrument_list()
+
+        return accounts.pandl_across_subsystems_given_instrument_list(instrument_list,
+            roundpositions=False)
 
     @input
     def turnover_across_subsystems(self) -> turnoverDataAcrossSubsystems:
 
-        instrument_list = self.parent.get_instrument_list()
+        instrument_list = self.get_instrument_list(for_instrument_weights=True)
         turnover_as_list = [self.accounts_stage.subsystem_turnover(instrument_code)
                             for instrument_code in instrument_list]
 
