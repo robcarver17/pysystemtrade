@@ -14,14 +14,10 @@ class genericOptimiser(object):
 
         net_returns = returns_pre_processor.get_net_returns(asset_name)
 
-        optimiser_over_time = optimiseWeightsOverTime(net_returns, log = log,
-                                          **weighting_params)
-
         self._net_returns = net_returns
         self._weighting_params = weighting_params
         self._log = log
         self._returns_processor = returns_pre_processor
-        self._optimiser_over_time = optimiser_over_time
         self._asset_name = asset_name
 
 
@@ -50,12 +46,7 @@ class genericOptimiser(object):
     def weighting_params(self) -> dict:
         return self._weighting_params
 
-    @property
-    def optimiser_over_time(self) -> optimiseWeightsOverTime:
-        return self._optimiser_over_time
-
     def weights(self) -> pd.DataFrame:
-
         raw_weights = self.raw_weights()
         weights = self.weights_post_processing(raw_weights)
 
@@ -63,10 +54,9 @@ class genericOptimiser(object):
         return weights
 
     def raw_weights(self) -> pd.DataFrame:
-        optimiser = self.optimiser_over_time
-        weights = optimiser.weights()
+        optimiser = optimiseWeightsOverTime(self.net_returns, log=self.log, **self.weighting_params)
 
-        return weights
+        return optimiser.weights()
 
     def weights_post_processing(self, weights: pd.DataFrame) -> pd.DataFrame:
         # apply cost weights
