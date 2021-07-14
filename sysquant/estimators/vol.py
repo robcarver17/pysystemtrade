@@ -1,5 +1,8 @@
+
 import numpy as np
 import pandas as pd
+
+from syscore.dateutils import BUSINESS_DAYS_IN_YEAR
 
 def robust_daily_vol_given_price(price: pd.Series, **kwargs):
     price = price.resample("1B").ffill()
@@ -110,3 +113,68 @@ def backfill_vol(vol: pd.Series) -> pd.Series:
     vol_backfilled = vol_forward_fill.fillna(method="bfill")
 
     return vol_backfilled
+
+
+
+def mixed_vol_calc(
+        daily_returns: pd.Series,
+        days: int = 35,
+        min_periods: int = 10,
+        slow_vol_years: int = 20,
+        proportion_of_slow_vol: float = 0.3,
+        vol_abs_min: float = 0.0000000001,
+        backfill: bool = False,
+        **ignored_kwargs
+) -> pd.Series:
+    """
+    Robust exponential volatility calculation, assuming daily series of prices
+    We apply an absolute minimum level of vol (absmin);
+    and a volfloor based on lowest vol over recent history
+
+    :param x: data
+    :type x: Tx1 pd.Series
+
+    :param days: Number of days in lookback (*default* 35)
+    :type days: int
+
+    :param min_periods: The minimum number of observations (*default* 10)
+    :type min_periods: int
+
+    :param vol_abs_min: The size of absolute minimum (*default* =0.0000000001)
+      0.0= not used
+    :type absmin: float or None
+
+    :param vol_floor Apply a floor to volatility (*default* True)
+    :type vol_floor: bool
+
+    :param floor_min_quant: The quantile to use for volatility floor (eg 0.05
+      means we use 5% vol) (*default 0.05)
+    :type floor_min_quant: float
+
+    :param floor_days: The lookback for calculating volatility floor, in days
+      (*default* 500)
+    :type floor_days: int
+
+    :param floor_min_periods: Minimum observations for floor - until reached
+      floor is zero (*default* 100)
+    :type floor_min_periods: int
+
+    :returns: pd.DataFrame -- volatility measure
+    """
+
+    # Standard deviation will be nan for first 10 non nan values
+    vol = daily_returns.ewm(adjust=True, span=days, min_periods=min_periods).std()
+
+    slow_vol_days = slow_vol_years * BUSINESS_DAYS_IN_YEAR
+    long_vol = vol.ewm(slow_vol_days).mean()
+
+    vol = long_vol*proportion_of_slow_vol + vol*(1-proportion_of_slow_vol)
+
+    vol = apply_min_vol(vol, vol_abs_min=vol_abs_min)
+
+
+    if backfill:
+        # use the first vol in the past, sort of cheating
+        vol = backfill_vol(vol)
+
+    return vol

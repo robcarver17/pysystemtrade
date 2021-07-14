@@ -13,7 +13,7 @@ EDOLLAR,2500,Bond,USD,0.0025,2.11,0,0,US STIR Eurodollar
 EUR,125000,FX,USD,5E-05,2.46,0,0,EURUSD currency
 EUROSTX,10,Equity,EUR,1,2,0,0,European equity index EUROSTOXX50
 GAS_US,10000,OilGas,USD,0.0009387043,2.31,0,0,Natural gas US
-GBP,62500,FX,USD,1E-04,2.46,0,0,GBPUSD currency
+GBP,62500,FX,USD,0.0001,2.46,0,0,GBPUSD currency
 GOLD,100,Metals,USD,0.0885298446,2.31,0,0,Gold
 JPY,12500000,FX,USD,4.80871993208629E-07,2.46,0,0,JPYUSD currency
 KOSPI,500000,Equity,KRW,0.025,0,0.0004,0,Korean equity index KOSPI
@@ -31,7 +31,7 @@ SHATZ,1000,Bond,EUR,0.0025,2,0,0,German 2 year bond Schatz
 SMI,10,Equity,CHF,1,4,0,0,Swiss equity index SMI
 SOYBEAN,50,Ags,USD,0.25,2.9,0,0,Soybean
 SP500,50,Equity,USD,0.125,2.05,0,0,US equity index S&P500 
-US10,1000,Bond,USD,0.008,1.51,0,0,US 10 year bond note
+US10,1000,Bond,USD,0.02,1.51,0,0,US 10 year bond note
 US2,2000,Bond,USD,0.004,1.51,0,0,US 2 year bond note
 US20,1000,Bond,USD,0.016,1.51,0,0,US 20 year bond
 US5,1000,Bond,USD,0.004,1.51,0,0,US 5 year bond note
@@ -120,7 +120,7 @@ TOPIX,1000,Equity,JPY,0.125,50,0,0,Japan Mini Topix
 CRUDE_W_mini,500,OilGas,USD,0.03,1.5,0,0,Light sweet crude Winter mini
 GAS_US_mini,2500,OilGas,USD,0.005,1.5,0,0,Natural gas US mini
 GOLD_micro,10,Metals,USD,0.07,0.25,0,0,Gold micro
-KOSPI_mini,50000,Equity,KRW,17,8500,0,0,KOSPI mini
+KOSPI_mini,50000,Equity,KRW,2,8500,0,0,KOSPI mini
 NASDAQ_micro,2,Equity,USD,0.25,0.25,0,0,NASDAQ micro
 SP500_micro,5,Equity,USD,0.125,0.25,0,0,S&P 500 micro
 LUMBER,110,Ags,USD,5.39999999999998,0.85,0,0,Random Length Lumber
