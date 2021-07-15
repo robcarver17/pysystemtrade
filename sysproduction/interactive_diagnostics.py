@@ -1,4 +1,4 @@
-import datetime
+
 from syscore.dateutils import get_datetime_input, SECONDS_PER_HOUR
 from syscore.interactive import get_and_convert, run_interactive_menu, print_menu_of_values_and_get_response, \
     print_menu_and_get_response
@@ -101,6 +101,7 @@ nested_menu_of_options = {0: {1: "Interactive python",
                               31: "Multiple prices",
                               32: "Adjusted prices",
                               33: "FX prices",
+                              34: "Spreads"
                               },
                           4: {40: "Capital for an individual strategy",
                               41: "Capital for global account, all strategies",
@@ -359,6 +360,15 @@ def fx_prices(data):
     diag_prices = dataCurrency(data)
     prices = diag_prices.get_fx_prices(fx_code)
     print(prices)
+
+    return None
+
+def spreads(data):
+    instrument_code = get_valid_instrument_code_from_user(data)
+    diag_prices = diagPrices(data)
+    spreads = diag_prices.get_spreads(instrument_code)
+
+    print(spreads)
 
     return None
 
@@ -651,6 +661,7 @@ dict_of_functions = {
     31: multiple_prices,
     32: adjusted_prices,
     33: fx_prices,
+    34: spreads,
     40: capital_strategy,
     41: total_current_capital,
     50: optimal_positions,

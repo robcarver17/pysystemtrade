@@ -59,9 +59,8 @@ def get_status_report_data(data):
     position = get_last_optimal_position_updates_as_df(data)
     limits = get_trade_limits_as_df(data)
     position_limits = get_position_limits_as_df(data)
-    overrides = get_overrides_as_df(data)  # NOT WORKING
+    overrides = get_overrides_as_df(data)
     locks = get_list_of_position_locks(data)
-
 
     results_object = dict(
         process=process,
