@@ -183,6 +183,16 @@ class instrumentCosts(object):
         self._percentage_cost = percentage_cost
         self._value_of_pertrade_commission = value_of_pertrade_commission
 
+    @classmethod
+    def from_meta_data(instrumentCosts, meta_data: instrumentMetaData):
+        return instrumentCosts(
+            price_slippage=meta_data.Slippage,
+            value_of_block_commission=meta_data.PerBlock,
+            percentage_cost=meta_data.Percentage,
+            value_of_pertrade_commission=meta_data.PerTrade,
+        )
+
+
     def __repr__(self):
         return "instrumentCosts slippage %f block_commission %f percentage cost %f per trade commission %f " % \
             (self.price_slippage, self.value_of_block_commission, self.percentage_cost, self.value_of_pertrade_commission)
@@ -203,9 +213,24 @@ class instrumentCosts(object):
     def value_of_pertrade_commission(self):
         return self._value_of_pertrade_commission
 
+    def calculate_cost_percentage_terms(self, blocks_traded: float,
+                                           block_price_multiplier: float,
+                                           price: float) -> float:
+        cost_in_currency_terms = \
+            self.calculate_cost_instrument_currency(blocks_traded,
+                                                         block_price_multiplier=block_price_multiplier,
+                                                         price=price)
+
+        value_per_block = price * block_price_multiplier
+        total_value = blocks_traded * value_per_block
+        cost_in_percentage_terms = cost_in_currency_terms / total_value
+
+        return cost_in_percentage_terms
+
     def calculate_cost_instrument_currency(self, blocks_traded: float,
                                            block_price_multiplier: float,
-                                           price: float):
+                                           price: float) -> float:
+
         value_per_block = price * block_price_multiplier
         slippage = self.calculate_slippage_instrument_currency(blocks_traded,
                                                                block_price_multiplier= block_price_multiplier)

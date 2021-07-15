@@ -6,6 +6,7 @@ from sysproduction.data.currency_data import dataCurrency
 from sysproduction.data.generic_production_data import productionDataLayerGeneric
 from sysdata.futures.instruments import futuresInstrumentData
 from sysobjects.spot_fx_prices import currencyValue
+from sysobjects.instruments import instrumentCosts
 
 
 class diagInstruments(productionDataLayerGeneric):
@@ -17,6 +18,11 @@ class diagInstruments(productionDataLayerGeneric):
     @property
     def db_futures_instrument_data(self) -> futuresInstrumentData:
         return self.data.db_futures_instrument
+
+    def get_cost_object(self, instrument_code: str) -> instrumentCosts:
+        meta_data =self.get_meta_data(instrument_code)
+
+        return instrumentCosts.from_meta_data(meta_data)
 
     def get_point_size(self, instrument_code: str) -> float:
         return self.get_meta_data(instrument_code).Pointsize

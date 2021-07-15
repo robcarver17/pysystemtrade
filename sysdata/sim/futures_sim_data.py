@@ -132,12 +132,10 @@ class futuresSimData(simData):
             self.log.warn("Cost data missing for %s will use zero costs" % instrument_code)
             return instrumentCosts()
 
-        instrument_costs = instrumentCosts(
-            price_slippage=cost_data_object.meta_data.Slippage,
-            value_of_block_commission=cost_data_object.meta_data.PerBlock,
-            percentage_cost=cost_data_object.meta_data.Percentage,
-            value_of_pertrade_commission=cost_data_object.meta_data.PerTrade,
-        )
+        instrument_meta_data = cost_data_object.meta_data
+        instrument_costs = \
+            instrumentCosts.from_meta_data(instrument_meta_data
+            )
 
         return instrument_costs
 

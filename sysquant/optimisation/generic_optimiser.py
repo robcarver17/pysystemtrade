@@ -16,12 +16,13 @@ class genericOptimiser(object):
 
         optimiser_over_time = optimiseWeightsOverTime(net_returns, log = log,
                                           **weighting_params)
+        self._optimiser_over_time = optimiser_over_time
+
 
         self._net_returns = net_returns
         self._weighting_params = weighting_params
         self._log = log
         self._returns_processor = returns_pre_processor
-        self._optimiser_over_time = optimiser_over_time
         self._asset_name = asset_name
 
 
