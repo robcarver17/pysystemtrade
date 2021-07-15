@@ -28,7 +28,7 @@ def liquidity_report(data: dataBlob=arg_not_supplied):
 
 def get_liquidity_report_data(data: dataBlob):
     all_liquidity_df = get_liquidity_data_df(data)
-    all_liquidity_df = annonate_df_index_with_positions_held(all_liquidity_df)
+    all_liquidity_df = annonate_df_index_with_positions_held(data, all_liquidity_df)
     liquidity_report_data = dict(all_liquidity_df = all_liquidity_df)
 
     return liquidity_report_data
