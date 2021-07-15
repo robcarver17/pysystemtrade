@@ -8,10 +8,12 @@ from syscore.dateutils import n_days_ago
 
 from sysproduction.data.prices import diagPrices
 from sysproduction.data.instruments import diagInstruments
+from sysproduction.data.positions import annonate_df_index_with_positions_held
 from sysproduction.reporting.trades_report import create_raw_slippage_df, get_recent_broker_orders
 from sysproduction.reporting.risk_report import get_risk_data_for_instrument
 
-from syscore.objects import header, table, body_text, arg_not_supplied, missing_data
+from syscore.objects import header, table, arg_not_supplied
+
 
 def costs_report(
     data: dataBlob=arg_not_supplied,
@@ -42,9 +44,13 @@ def get_costs_report_data(data: dataBlob,
                                                  start_date=start_date,
                                                  end_date=end_date)
     combined_df_costs = combined_df_costs.round(6)
+    combined_df_costs = annonate_df_index_with_positions_held(data=data,
+                                                              pd_df=combined_df_costs)
 
     table_of_SR_costs =get_table_of_SR_costs(data)
     table_of_SR_costs = table_of_SR_costs.round(5)
+    table_of_SR_costs = annonate_df_index_with_positions_held(data=data,
+                                                              pd_df=table_of_SR_costs)
 
     costs_report_data = dict(combined_df_costs = combined_df_costs,
                              start_date = start_date,
@@ -203,7 +209,6 @@ def get_percentage_ann_stdev(data, instrument_code):
         return np.nan
 
     return risk_data['annual_perc_stdev']/100.0
-
 
 
 def format_costs_data(costs_report_data: dict) -> list:

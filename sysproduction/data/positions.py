@@ -467,3 +467,27 @@ class updatePositions(productionDataLayerGeneric):
                 new_position_db,
             )
         )
+
+
+def annonate_df_index_with_positions_held(data: dataBlob, pd_df: pd.DataFrame):
+    instrument_code_list = list(pd_df.index)
+    held_instruments = get_list_of_instruments_with_current_positions(data)
+
+    def _annotate(instrument_code, held_instruments):
+        if instrument_code in held_instruments:
+            return "%s*" % instrument_code
+        else:
+            return instrument_code
+
+    instrument_code_list = [_annotate(instrument_code, held_instruments)
+                            for instrument_code in instrument_code_list]
+    pd_df.index = instrument_code_list
+
+    return pd_df
+
+
+def get_list_of_instruments_with_current_positions(data):
+    diag_positions = diagPositions(data)
+    all_contract_positions = diag_positions.get_all_current_contract_positions()
+
+    return all_contract_positions.unique_list_of_instruments()
