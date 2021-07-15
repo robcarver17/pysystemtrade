@@ -12,7 +12,7 @@ from sysproduction.data.positions import annonate_df_index_with_positions_held
 from sysproduction.reporting.trades_report import create_raw_slippage_df, get_recent_broker_orders
 from sysproduction.reporting.risk_report import get_risk_data_for_instrument
 
-from syscore.objects import header, table, arg_not_supplied
+from syscore.objects import header, table, arg_not_supplied, body_text
 
 
 def costs_report(
@@ -221,6 +221,8 @@ def format_costs_data(costs_report_data: dict) -> list:
                 costs_report_data['start_date'],
                 costs_report_data['end_date']))
     )
+
+    formatted_output.append(body_text("* indicates currently held position"))
 
     table1_df = costs_report_data['combined_df_costs']
     table1 = table("Check of slippage", table1_df)

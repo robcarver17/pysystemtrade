@@ -41,9 +41,12 @@ def format_liquidity_data(liquidity_report_data: dict) -> list:
         header("Liquidity report produced on %s" %
                (str(datetime.datetime.now()))))
 
+    formatted_output.append(body_text("* indicates currently held position"))
+
     table1_df = all_liquidity_df.sort_values("contracts")
     table1 = table(" Sorted by contracts: Less than 100 contracts a day is a problem", table1_df)
     formatted_output.append(table1)
+
 
     table2_df = all_liquidity_df.sort_values("risk")
     table2 = table("Sorted by risk: Less than $1.5 million of risk per day is a problem", table2_df)
