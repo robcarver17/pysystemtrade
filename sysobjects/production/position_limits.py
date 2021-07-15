@@ -67,6 +67,13 @@ class positionLimitAndPosition(object):
         return self._position_limit_object.position_limit
 
     @property
+    def spare(self) -> float:
+        if self.position_limit==NO_LIMIT:
+            return 9999999
+
+        return self.position_limit - abs(self.position)
+
+    @property
     def key(self):
         return self._position_limit_object.key
 
