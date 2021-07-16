@@ -20,7 +20,8 @@ def spotfx_from_csv_and_investing_dot_com(datapath, ADD_TO_ARCTIC = True, ADD_TO
     # You can adapt this for different providers by changing these parameters
     if ADD_EXTRA_DATA:
         investingDotCom_csv_fx_prices = csvFxPricesData(
-            datapath=datapath)
+            datapath = datapath,
+            config = investing_dot_com_config)
     if ADD_TO_ARCTIC:
         arctic_fx_prices = arcticFxPricesData()
     my_csv_fx_prices = csvFxPricesData()
