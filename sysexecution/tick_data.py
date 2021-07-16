@@ -19,8 +19,8 @@ class dataFrameOfRecentTicks(pd.DataFrame):
         except:
             raise Exception("historical ticks should have columns %s" % str(required_columns))
 
-    def average_bid_offer_spread(self) -> float:
-        return average_bid_offer_spread(self)
+    def average_bid_offer_spread(self, remove_negative = True) -> float:
+        return average_bid_offer_spread(self, remove_negative = remove_negative)
 
 def analyse_tick_data_frame(tick_data: dataFrameOfRecentTicks, qty: int,
                             forward_fill:bool = False,
@@ -77,10 +77,13 @@ def extract_nth_row_of_tick_data_frame(tick_data: pd.DataFrame,
 
     return oneTick(bid_price, ask_price, bid_size, ask_size)
 
-def average_bid_offer_spread(tick_data: dataFrameOfRecentTicks) -> float:
+def average_bid_offer_spread(tick_data: dataFrameOfRecentTicks,
+                             remove_negative:bool = True) -> float:
     if len(tick_data)==0:
         return missing_data
     all_spreads = tick_data.priceAsk - tick_data.priceBid
+    if remove_negative:
+        all_spreads[all_spreads<0] = np.nan
     average_spread = all_spreads.mean(skipna=True)
 
     if np.isnan(average_spread):
