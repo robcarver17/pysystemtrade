@@ -71,7 +71,7 @@ def strategy_weights_if_none_passed(data: dataBlob) -> dict:
     list_of_strategies = get_list_of_strategies_from_config(data)
     count_of_strateges = len(list_of_strategies)
     weight = 100.0/count_of_strateges
-    data.log("No configuration for strategy weight defined in private config; equally weighting across %s each gets %f percent" %
+    data.log.warn("No configuration for strategy weight defined in private config; equally weighting across %s each gets %f percent" %
              (str(list_of_strategies), weight))
     output_dict = dict([(strat_name, weight) for strat_name in list_of_strategies])
 

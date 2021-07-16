@@ -309,7 +309,7 @@ class dataBlob(object):
 
     @property
     def log_name(self) -> str:
-        log_name = getattr(self, "_logname", "")
+        log_name = getattr(self, "_log_name", "")
         return log_name
 
 
