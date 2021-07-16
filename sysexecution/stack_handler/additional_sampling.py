@@ -61,7 +61,12 @@ class stackHandlerAdditionalSampling(stackHandlerCore):
         data_broker = self.data_broker
         tick_data = data_broker.get_recent_bid_ask_tick_data_for_contract_object(contract)
 
-        average_spread = tick_data.average_bid_offer_spread()
+        average_spread = tick_data.average_bid_offer_spread(remove_negative=True)
+
+        ## Shouldn't happen, but just in case
+        if average_spread is not missing_data:
+            if average_spread<0.0:
+                return missing_data
 
         return average_spread
 
