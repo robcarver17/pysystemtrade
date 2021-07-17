@@ -129,7 +129,7 @@ def resolve_data_method(some_object,
 
     :returns: method in some_object
 
-    >>> from sysdata.data import simData
+    >>> from sysdata.sim.sim_data import simData
     >>>
     >>> data=simData()
     >>> resolve_data_method(data, "get_instrument_price")
@@ -199,7 +199,7 @@ def hasallattr(some_object, attrlist=[]):
 
     :returns: bool
 
-    >>> from sysdata.data import simData
+    >>> from sysdata.sim.sim_data import simData
     >>> data=simData()
     >>> setattr(data, "one", 1)
     >>> setattr(data, "two", 2)
