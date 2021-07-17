@@ -243,7 +243,7 @@ Roll calendars are always saved as .csv files, which have the advantage of being
 
 Once we have the roll calendar we can also adjust it so it is viable given the individual contract futures prices we have from the [previous stage](#get_historical_data). As an arbitrary example, you might assume you can roll 10 days before the expiry but that happens to be Thanksgiving so there are no prices available. The logic would find the closest date when you can actually trade. 
 
-Then the roll calendar, plus the individual futures contract prices, can be used together to build multiple prices, from which we can get a single contionous backadjusted price series.
+Then the roll calendar, plus the individual futures contract prices, can be used together to build multiple prices, from which we can get a single continuous backadjusted price series.
 
 <a name="roll_calendars_from_approx"></a>
 ### Generate a roll calendar from actual futures prices
@@ -367,7 +367,7 @@ Once we have multiple prices we can then create a backadjusted price series. The
 
 ### Changing the stitching method
 
-The default method for stiching the prices is 'panama' stiching. If you don't like panama stitching then you can modify the method. More details later in this document, [here](#futuresAdjustedPrices).
+The default method for stitching the prices is 'panama' stitching. If you don't like panama stitching then you can modify the method. More details later in this document, [here](#futuresAdjustedPrices).
 
 
 <a name="create_fx_data"></a>
@@ -650,10 +650,10 @@ from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesDat
 arctic_multiple_prices = arcticFuturesMultiplePricesData()
 multiple_prices = arctic_multiple_prices.get_multiple_prices("EDOLLAR")
 
-adjusted_prices = futuresAdjustedPrices.stich_multiple_prices(multiple_prices)
+adjusted_prices = futuresAdjustedPrices.stitch_multiple_prices(multiple_prices)
 ```
 
-The adjustment defaults to the panama method. If you want to use your own stitching method then override the method `futuresAdjustedPrices.stich_multiple_prices`.
+The adjustment defaults to the panama method. If you want to use your own stitching method then override the method `futuresAdjustedPrices.stitch_multiple_prices`.
 
 
 <a name="fxPrices"></a>

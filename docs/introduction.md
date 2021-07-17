@@ -46,7 +46,7 @@ Name: price, dtype: float64
 
 *I'll update the data regularly, as well as including methods for you to get your own data from different sources*
 
-*Technical note: This is the 'back-adjusted' price for the future, formed from stiching adjacent contracts together using the 'panama' method*
+*Technical note: This is the 'back-adjusted' price for the future, formed from stitching adjacent contracts together using the 'panama' method*
 
 `data` objects behave a bit like dicts (though they don't formally inherit from them). So these both work:
 
