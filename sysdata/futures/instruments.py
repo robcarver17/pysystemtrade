@@ -4,7 +4,7 @@ Read / write and represent instrument data
 
 import pandas as pd
 from sysdata.base_data import baseData
-from sysobjects.instruments import futuresInstrumentWithMetaData, listOffuturesInstrumentWithMetaData
+from sysobjects.instruments import futuresInstrumentWithMetaData, listOfFuturesInstrumentWithMetaData
 from syslogdiag.log_to_screen import logtoscreen
 
 USE_CHILD_CLASS_ERROR = "You need to use a child class of futuresInstrumentData"
@@ -30,13 +30,13 @@ class futuresInstrumentData(baseData):
     def __getitem__(self, instrument_code: str):
         return self.get_instrument_data(instrument_code)
 
-    def get_all_instrument_data_as_list_of_instrument_objects(self) -> listOffuturesInstrumentWithMetaData:
+    def get_all_instrument_data_as_list_of_instrument_objects(self) -> listOfFuturesInstrumentWithMetaData:
         all_instrument_codes = self.get_list_of_instruments()
         all_instrument_objects = [
             self.get_instrument_data(instrument_code)
             for instrument_code in all_instrument_codes
         ]
-        list_of_instrument_objects = listOffuturesInstrumentWithMetaData(all_instrument_objects)
+        list_of_instrument_objects = listOfFuturesInstrumentWithMetaData(all_instrument_objects)
 
         return list_of_instrument_objects
 
