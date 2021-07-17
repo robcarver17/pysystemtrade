@@ -141,7 +141,8 @@ def format_roll_data_for_instrument(results_dict):
     formatted_output.append(table1)
     formatted_output.append(
         body_text(
-            "Roll_exp is days until preferred roll set by roll parameters. Prc_exp is days until price contract rolls, Crry_exp is days until carry contract rolls"
+            "Roll_exp is days until preferred roll set by roll parameters. Prc_exp is days until price contract expires, "
+            "Crry_exp is days until carry contract expires"
         )
     )
 
