@@ -14,7 +14,7 @@ from sysobjects.contracts import futuresContract
 
 class ibContractPositionData(brokerContractPositionData):
     def __init__(self, ibconnection: connectionIB, log=logtoscreen(
-            "ibFuturesContractPriceData")):
+            "ibContractPositionData")):
         self._ibconnection = ibconnection
         super().__init__(log=log)
 
