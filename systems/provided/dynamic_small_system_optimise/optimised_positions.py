@@ -315,7 +315,7 @@ class optimisedPositions(SystemStage):
                              relevant_date: datetime.datetime = arg_not_supplied
                                                                        ) -> portfolioWeights:
         ## test to make sure code works and for comparisions
-        optimal_weights = self.get_optimal_weights_maximise_with_contionous_weights(relevant_date)
+        optimal_weights = self.get_optimal_weights_maximise_with_continuous_weights(relevant_date)
         per_contract_value = self.get_per_contract_value(relevant_date)
 
         contract_positions = calculate_contract_positions_from_weights_and_values(optimal_weights, per_contract_value)
@@ -323,7 +323,7 @@ class optimisedPositions(SystemStage):
         return contract_positions
 
     ## CODE FOR TESTING ONLY NOT USED IN PRODUCTION
-    def get_optimal_weights_maximise_with_contionous_weights(self,
+    def get_optimal_weights_maximise_with_continuous_weights(self,
                                          relevant_date: datetime.datetime = arg_not_supplied):
         ## test to make sure code works
         covariance_matrix = self.get_covariance_matrix(relevant_date=relevant_date)
