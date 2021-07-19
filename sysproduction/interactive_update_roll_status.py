@@ -63,7 +63,7 @@ def interactive_update_roll_status():
             if roll_state_required is roll_adj_state:
                 roll_adjusted_prices(data, instrument_code, roll_data.original_roll_status)
 
-            ans = input("Another <y> ? or <RETURN> to exit: ")
+            ans = input("Another <type anything> ? or <RETURN> to exit: ")
             if ans == "":
                 do_another = False
 

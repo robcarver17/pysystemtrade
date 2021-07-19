@@ -35,7 +35,7 @@ def interactive_manual_check_historical_prices():
             check_instrument_ok_for_broker(data, instrument_code)
             data.log.label(instrument_code=instrument_code)
             update_historical_prices_with_checks_for_instrument(instrument_code, data)
-            ans = input("Another <y> ? or <RETURN> to exit: ")
+            ans = input("Another <type anything> ? or <RETURN> to exit: ")
             if ans == "":
                 do_another = False
 
