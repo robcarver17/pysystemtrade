@@ -43,25 +43,31 @@ def interactive_update_roll_status():
     """
 
     with dataBlob(log_name="Interactive_Update-Roll-Status") as data:
-        instrument_code = get_valid_instrument_code_from_user(data=data)
-        data.log.setup(instrument_code = instrument_code)
-        # First get the roll info
-        # This will also update to console
-        run_roll_report(data, instrument_code)
+        do_another = True
+        while do_another:
+            instrument_code = get_valid_instrument_code_from_user(data=data)
+            data.log.setup(instrument_code = instrument_code)
+            # First get the roll info
+            # This will also update to console
+            run_roll_report(data, instrument_code)
 
-        roll_data = get_required_roll_state(
-            data, instrument_code
-        )
-        if roll_data is no_state_available:
-            exit()
-        roll_state_required = roll_data.required_state
+            roll_data = get_required_roll_state(
+                data, instrument_code
+            )
+            if roll_data is no_state_available:
+                exit()
+            roll_state_required = roll_data.required_state
 
-        modify_roll_state(data, instrument_code, roll_state_required)
+            modify_roll_state(data, instrument_code, roll_state_required)
 
-        if roll_state_required is roll_adj_state:
-            roll_adjusted_prices(data, instrument_code, roll_data.original_roll_status)
+            if roll_state_required is roll_adj_state:
+                roll_adjusted_prices(data, instrument_code, roll_data.original_roll_status)
 
-    exit()
+            ans = input("Another <type anything> ? or <RETURN> to exit: ")
+            if ans == "":
+                do_another = False
+
+    return success
 
 def run_roll_report(data:dataBlob, instrument_code: str):
     config = roll_report_config.new_config_with_modified_output("console")
