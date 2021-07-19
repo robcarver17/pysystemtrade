@@ -2291,7 +2291,7 @@ Each of these stages is described in more detail below.
 ### Stage: Raw data
 
 The raw data stage is used to pre-process data for calculating trading rules,
-scaling positions, or anything else we might. Good reasons to include something
+scaling positions, or anything else we might need. Good reasons to include something
 in raw data are:
 
 1. If it is used multiple times, eg price volatility

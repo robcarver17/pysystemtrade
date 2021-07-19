@@ -8,7 +8,7 @@ from sysquant.estimators.vol import robust_vol_calc
 
 def ewmac(price, vol, Lfast, Lslow):
     """
-    Calculate the ewmac trading rule forecast, given a price and EWMA speeds Lfast, Lslow and vol_lookback
+    Calculate the ewmac trading rule forecast, given a price, volatility and EWMA speeds Lfast and Lslow
 
     Assumes that 'price' and vol is daily data
 
@@ -26,7 +26,7 @@ def ewmac(price, vol, Lfast, Lslow):
     :param Lslow: Lookback for slow in days
     :type Lslow: int
 
-    :returns: pd.DataFrame -- unscaled, uncapped forecast
+    :returns: pd.Series -- unscaled, uncapped forecast
 
 
     >>> from systems.tests.testdata import get_test_object_futures
@@ -56,9 +56,10 @@ def ewmac(price, vol, Lfast, Lslow):
 
 def ewmac_calc_vol(price, Lfast, Lslow, vol_days=35):
     """
-    Calculate the ewmac trading rule forecast, given a price and EWMA speeds Lfast, Lslow and vol_lookback
+    Calculate the ewmac trading rule forecast, given a price and EWMA speeds Lfast, Lslow and number of days to
+    lookback for volatility
 
-    Assumes that 'price' and vol is daily data
+    Assumes that 'price' is daily data
 
     This version recalculates the price volatility, and does not do capping or scaling
 
@@ -71,7 +72,10 @@ def ewmac_calc_vol(price, Lfast, Lslow, vol_days=35):
     :param Lslow: Lookback for slow in days
     :type Lslow: int
 
-    :returns: pd.DataFrame -- unscaled, uncapped forecast
+    :param vol_days: Lookback for volatility in days
+    :type vol_days: int
+
+    :returns: pd.Series -- unscaled, uncapped forecast
 
 
     >>> from systems.tests.testdata import get_test_object_futures

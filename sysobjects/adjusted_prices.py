@@ -28,7 +28,7 @@ class futuresAdjustedPrices(pd.Series):
         return futures_contract_prices
 
     @classmethod
-    def stich_multiple_prices(
+    def stitch_multiple_prices(
         futuresAdjustedPrices, multiple_prices: futuresMultiplePrices,
             forward_fill: bool=False
     ):
