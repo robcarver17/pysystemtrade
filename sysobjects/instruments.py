@@ -98,7 +98,7 @@ class futuresInstrumentWithMetaData:
     def empty(self):
         return self.instrument.empty()
 
-class listOffuturesInstrumentWithMetaData(list):
+class listOfFuturesInstrumentWithMetaData(list):
     def as_df(self):
         instrument_codes = [instrument_object.instrument_code for instrument_object in self]
         meta_data_keys = [

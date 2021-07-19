@@ -2888,7 +2888,7 @@ The roll report can be run for all markets (default for the email), or for a sin
           Status  Roll_exp  Prc_exp  Crry_exp
 EDOLLAR  Passive      -128      972       874
 
-Roll_exp is days until preferred roll set by roll parameters. Prc_exp is days until price contract rolls, Crry_exp is days until carry contract rolls
+Roll_exp is days until preferred roll set by roll parameters. Prc_exp is days until price contract expires, Crry_exp is days until carry contract expires
 
 "When should you roll? Certainly before the current priced contract (what we're currently trading) expires
 (note for some contracts, eg fixed income, you should roll before the first notice date).

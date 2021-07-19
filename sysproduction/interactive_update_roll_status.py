@@ -298,7 +298,7 @@ class _rollingAdjustedAndMultiplePrices(object):
         new_adjusted_prices = getattr(self, "_new_adjusted_prices", None)
         if new_adjusted_prices is None:
 
-            new_adjusted_prices = self._new_adjusted_prices = futuresAdjustedPrices.stich_multiple_prices(
+            new_adjusted_prices = self._new_adjusted_prices = futuresAdjustedPrices.stitch_multiple_prices(
                 self.updated_multiple_prices
             )
 

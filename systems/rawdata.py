@@ -157,7 +157,7 @@ class RawData(SystemStage):
         2015-12-10  0.054145
         2015-12-11  0.058522
         >>>
-        >>> from sysdata.configdata import Config
+        >>> from sysdata.config.configdata import Config
         >>> config=Config("systems.provided.example.exampleconfig.yaml")
         >>> system=System([rawdata], data, config)
         >>> system.rawdata.daily_returns_volatility("EDOLLAR").tail(2)
