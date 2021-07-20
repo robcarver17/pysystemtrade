@@ -187,13 +187,23 @@ def adjust_to_price_series(approx_calendar: pd.DataFrame,
                                                            dict_of_futures_contract_prices)
 
         if adjusted_row is _bad_row:
-            have_some_data_already = len(adjusted_roll_calendar_as_list)>0
-            if have_some_data_already:
-                break
-            else:
-                ## not at the start yet, let's keep trying for valid data
-                _print_data_at_start_not_valid_flag(local_row_data)
-                continue
+            # No suitable roll date was found for this entry. Let's try again but this time
+            # without requiring prices for carry contracts to be available (Even though carry
+            # contract is present the price  might not necessarily be available on otherwise
+            # suitable roll dates)
+            _print_roll_date_carry_warning(local_row_data)
+            adjusted_row = _adjust_row_of_approx_roll_calendar(local_row_data,
+                                                           dict_of_futures_contract_prices, omit_carry=True)
+
+            if adjusted_row is _bad_row:
+                _print_roll_date_error(local_row_data)
+                have_some_data_already = len(adjusted_roll_calendar_as_list)>0
+                if have_some_data_already:
+                    break
+                else:
+                    ## not at the start yet, let's keep trying for valid data
+                    _print_data_at_start_not_valid_flag(local_row_data)
+                    continue
 
         adjusted_roll_calendar_as_list.append(adjusted_row)
         _print_adjustment_message(local_row_data, adjusted_row)
@@ -241,10 +251,11 @@ _no_carry_prices = object()
 
 
 def _adjust_row_of_approx_roll_calendar(local_row_data: localRowData,
-                                        dict_of_futures_contract_prices: dictFuturesContractFinalPrices):
+                                        dict_of_futures_contract_prices: dictFuturesContractFinalPrices,
+                                        omit_carry:bool = False):
 
     roll_date, date_to_avoid = _get_roll_date_and_date_to_avoid(local_row_data)
-    set_of_prices = _get_set_of_prices(local_row_data, dict_of_futures_contract_prices)
+    set_of_prices = _get_set_of_prices(local_row_data, dict_of_futures_contract_prices, omit_carry)
     if set_of_prices is _bad_row:
         _print_roll_date_error(local_row_data)
         return  _bad_row
@@ -256,8 +267,6 @@ def _adjust_row_of_approx_roll_calendar(local_row_data: localRowData,
             avoid_date=date_to_avoid,
         )
     except LookupError:
-        _print_roll_date_error(local_row_data)
-
         return _bad_row
 
     adjusted_row = _get_adjusted_row(local_row_data, adjusted_roll_date)
@@ -281,7 +290,8 @@ def _get_roll_date_and_date_to_avoid(local_row_data: localRowData):
 
 
 def _get_set_of_prices(local_row_data: localRowData,
-                       dict_of_futures_contract_prices: dictFuturesContractFinalPrices) \
+                       dict_of_futures_contract_prices: dictFuturesContractFinalPrices,
+                       omit_carry:bool=False) \
                         ->setOfPrices:
 
     approx_row = local_row_data.current_row
@@ -295,8 +305,15 @@ def _get_set_of_prices(local_row_data: localRowData,
     except KeyError:
         return _bad_row
 
-    carry_contract, carry_prices, curr_carry_contract, curr_carry_prices = _get_carry_contract_and_prices(local_row_data,
+    if omit_carry:
+        carry_prices = _no_carry_prices
+        carry_contract = _no_carry_prices
+        curr_carry_prices = _no_carry_prices
+        curr_carry_contract = _no_carry_prices
+    else:
+        carry_contract, carry_prices, curr_carry_contract, curr_carry_prices = _get_carry_contract_and_prices(local_row_data,
                                                                                  dict_of_futures_contract_prices)
+
     set_of_prices = setOfPrices(current_prices, next_prices, curr_carry_prices, carry_prices)
 
     return set_of_prices
@@ -340,16 +357,33 @@ def _does_carry_come_after_current_contract(local_row_data: localRowData)->bool:
 
 
 def _print_roll_date_error(local_row_data: localRowData):
-    approx_row =local_row_data.current_row
+    approx_row = local_row_data.current_row
+    next_approx_row = local_row_data.next_row 
     current_contract = approx_row.current_contract
     next_contract = approx_row.next_contract
     carry_contract = approx_row.carry_contract
+    next_carry_contract = next_approx_row.carry_contract
 
     print(
-        "Couldn't find matching roll date for contracts %s, %s and %s"
-        % (current_contract, next_contract, carry_contract)
+        "Couldn't find matching roll date for contracts %s, %s (even after omitting carry contracts %s and %s)"
+        % (current_contract, next_contract, carry_contract, next_carry_contract)
     )
     print("OK if happens at the end or beginning of a roll calendar, otherwise problematic")
+
+def _print_roll_date_carry_warning(local_row_data: localRowData):
+    approx_row =local_row_data.current_row
+    next_approx_row = local_row_data.next_row 
+    current_contract = approx_row.current_contract
+    next_contract = approx_row.next_contract
+    carry_contract = approx_row.carry_contract
+    next_carry_contract = next_approx_row.carry_contract
+
+    print(
+        "Warning! Couldn't find matching roll date with concurrent prices for carry contracts (Current: %s Next: %s Carry: %s Next carry: %s)"
+        % (current_contract, next_contract, carry_contract, next_carry_contract)
+    )
+    print("Now trying to find suitable roll date without requiring carry contracts")
+
 
 
 def _find_best_matching_roll_date(
