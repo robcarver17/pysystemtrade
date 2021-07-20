@@ -478,7 +478,7 @@ def make_df_from_list_of_named_tuple(tuple_class, list_of_tuples):
 
 
 def set_pd_print_options():
-    pd.set_option("display.max_rows", 100)
+    pd.set_option("display.max_rows", 500)
     pd.set_option("display.max_columns", 100)
     pd.set_option("display.width", 1000)
 
