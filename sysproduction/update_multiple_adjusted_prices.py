@@ -20,9 +20,9 @@ from sysobjects.multiple_prices import futuresMultiplePrices, setOfNamedContract
 from sysobjects.contracts import futuresContract
 
 from sysdata.data_blob import dataBlob
-from sysproduction.data.prices import diagPrices, updatePrices
+from sysproduction.data.prices import diagPrices, updatePrices, get_valid_instrument_code_from_user
 
-
+ALL_INSTRUMENTS = "ALL"
 def update_multiple_adjusted_prices():
     """
     Do a daily update for multiple and adjusted prices
@@ -33,7 +33,9 @@ def update_multiple_adjusted_prices():
     with dataBlob(log_name="Update-Multiple-Adjusted-Prices") as data:
         update_multiple_adjusted_prices_object = updateMultipleAdjustedPrices(
             data)
-        update_multiple_adjusted_prices_object.update_multiple_adjusted_prices()
+        instrument_code = get_valid_instrument_code_from_user(all_code=ALL_INSTRUMENTS,
+                                                              allow_all=True)
+        update_multiple_adjusted_prices_object.update_multiple_adjusted_prices(instrument_code=instrument_code)
 
     return success
 
@@ -42,15 +44,18 @@ class updateMultipleAdjustedPrices(object):
     def __init__(self, data: dataBlob):
         self.data = data
 
-    def update_multiple_adjusted_prices(self):
+    def update_multiple_adjusted_prices(self, instrument_code: str = ALL_INSTRUMENTS):
         data = self.data
-        update_multiple_adjusted_prices_with_data(data)
+        update_multiple_adjusted_prices_with_data(data, instrument_code=instrument_code)
 
-def update_multiple_adjusted_prices_with_data(data: dataBlob):
+def update_multiple_adjusted_prices_with_data(data: dataBlob, instrument_code: str = ALL_INSTRUMENTS):
     diag_prices = diagPrices(data)
+    if instrument_code == ALL_INSTRUMENTS:
+        list_of_codes = diag_prices.get_list_of_instruments_in_multiple_prices()
+    else:
+        list_of_codes = [instrument_code]
 
-    list_of_codes_all = diag_prices.get_list_of_instruments_in_multiple_prices()
-    for instrument_code in list_of_codes_all:
+    for instrument_code in list_of_codes:
         update_multiple_adjusted_prices_for_instrument(
             instrument_code, data)
 

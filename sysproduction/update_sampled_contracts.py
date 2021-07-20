@@ -12,7 +12,7 @@ from sysproduction.data.broker import dataBroker
 
 ALL_INSTRUMENTS = "ALL"
 
-def update_sampled_contracts(instrument_code: str = arg_not_supplied):
+def update_sampled_contracts():
     """
     Update the active contracts, according to what is available in IB for a given instrument
 
@@ -39,9 +39,8 @@ def update_sampled_contracts(instrument_code: str = arg_not_supplied):
     """
     with dataBlob(log_name="Update-Sampled_Contracts") as data:
         update_contracts_object = updateSampledContracts(data)
-        if instrument_code is arg_not_supplied:
-            instrument_code = get_valid_instrument_code_from_user(allow_all=True,
-                                                                  all_code=ALL_INSTRUMENTS)
+        instrument_code = get_valid_instrument_code_from_user(allow_all=True,
+                                                              all_code=ALL_INSTRUMENTS)
         update_contracts_object.update_sampled_contracts(instrument_code=instrument_code)
 
 
