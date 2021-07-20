@@ -3,7 +3,8 @@ from syscore.objects import arg_not_supplied
 from sysdata.csv.csv_futures_contract_prices import csvFuturesContractPriceData
 from sysdata.arctic.arctic_futures_per_contract_prices import arcticFuturesContractPriceData
 from sysobjects.contracts import futuresContract
-
+import datetime
+import numpy as np
 
 def init_arctic_with_csv_futures_contract_prices(datapath: str, csv_config = arg_not_supplied):
     csv_prices = csvFuturesContractPriceData(datapath)
@@ -27,6 +28,14 @@ def init_arctic_with_csv_futures_contract_prices_for_code(instrument_code:str, d
 
     for contract_date_str, prices_for_contract in csv_price_dict.items():
         print("Processing %s" % contract_date_str)
+
+        # Append date with time (23:00:00) if according to csv config the time won't be included in the date column
+        date_format = csv_config.input_date_format
+        if '%H' not in date_format and '%I' not in date_format:
+            p_datetime = prices_for_contract.index.values.copy()
+            p_datetime = p_datetime + np.timedelta64(23,'h')
+            prices_for_contract.index = p_datetime
+
         print(".csv prices are \n %s" % str(prices_for_contract))
         contract = futuresContract(instrument_code, contract_date_str)
         print("Contract object is %s" % str(contract))
