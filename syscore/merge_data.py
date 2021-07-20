@@ -253,16 +253,51 @@ def _check_for_spikes_in_change_in_avg_units(change_in_avg_units_to_check: pd.Se
 
     return first_spike
 
-def full_merge_of_existing_data(old_data, new_data):
+def full_merge_of_existing_data(old_data, new_data, 
+    check_for_spike=False, column_to_check=arg_not_supplied, keep_older:bool=True):
     """
     Merges old data with new data.
     Any Nan in the existing data will be replaced (be careful!)
 
     :param old_data: pd.DataFrame
     :param new_data: pd.DataFrame
+    :param check_for_spike: bool
+    :param column_to_check: column name to check for spike
+    :param keep_older: bool. Keep older data (default)
 
     :returns: pd.DataFrame
     """
+    merged_data_with_status = full_merge_of_existing_data_no_checks(old_data, new_data,
+        keep_older=keep_older)
+
+    # check for spike
+    if check_for_spike:
+        merged_data_with_status = spike_check_merged_data(
+            merged_data_with_status,
+            column_to_check=column_to_check,
+        )
+        if merged_data_with_status.spike_present:
+            return spike_in_data
+
+    return merged_data_with_status.merged_data
+
+
+def full_merge_of_existing_data_no_checks(old_data, new_data, 
+    keep_older:bool=True) -> mergingDataWithStatus: 
+    """
+    Merges old data with new data.
+    Any Nan in the existing data will be replaced (be careful!)
+
+    :param old_data: pd.DataFrame
+    :param new_data: pd.DataFrame
+    :param keep_older: bool. Keep older data (default)
+
+    :returns: mergingDataWithStatus
+    """
+    if len(old_data.index) == 0:
+        return mergingDataWithStatus.only_new_data(new_data)
+    if len(new_data.index) == 0:
+        return mergingDataWithStatus.only_old_data(old_data)
 
     old_columns = old_data.columns
     merged_data = {}
@@ -275,23 +310,32 @@ def full_merge_of_existing_data(old_data, new_data):
             merged_data[colname] = old_data
             continue
 
-        merged_series = full_merge_of_existing_series(old_series, new_series)
+        merged_series = full_merge_of_existing_series(old_series, new_series, keep_older)
 
         merged_data[colname] = merged_series
 
     merged_data_as_df = pd.DataFrame(merged_data)
     merged_data_as_df = merged_data_as_df.sort_index()
 
-    return merged_data_as_df
+    # get the difference between merged dataset and old one to get the earliest change
+    actually_new_data = pd.concat([merged_data_as_df, old_data]).drop_duplicates(keep=False)
+
+    if len(actually_new_data.index) == 0:
+        return mergingDataWithStatus.only_old_data(old_data)
+
+    first_date_in_new_data = actually_new_data.index[0]
+
+    return mergingDataWithStatus(status_merged_data, first_date_in_new_data, merged_data_as_df)
 
 
-def full_merge_of_existing_series(old_series, new_series):
+def full_merge_of_existing_series(old_series, new_series, keep_older:bool=True):
     """
     Merges old data with new data.
     Any Nan in the existing data will be replaced (be careful!)
 
     :param old_data: pd.Series
     :param new_data: pd.Series
+    :param keep_older: bool. Keep older data (default)
 
     :returns: pd.Series
     """
@@ -300,12 +344,17 @@ def full_merge_of_existing_series(old_series, new_series):
     if len(new_series) == 0:
         return old_series
 
-    joint_data = pd.concat([old_series, new_series], axis=1)
-    joint_data.columns = ["original", "new"]
+    if keep_older:
+        joint_data = pd.concat([old_series, new_series], axis=1)
+        joint_data.columns = ["original", "new"]
 
-    # fill to the left
-    joint_data_filled_across = joint_data.bfill(1)
-    merged_data = joint_data_filled_across["original"]
+        # fill to the left
+        joint_data_filled_across = joint_data.bfill(1)
+        merged_data = joint_data_filled_across["original"]
+    else:
+        # update older data with non-NA values from new data series
+        merged_data = old_series.copy()
+        merged_data.update(new_series)
 
     return merged_data
 
