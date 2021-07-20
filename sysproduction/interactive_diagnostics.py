@@ -49,7 +49,7 @@ costs_report_config
 
 def interactive_diagnostics():
     print("\n\n INTERACTIVE DIAGONSTICS\n\n")
-
+    set_pd_print_options()
     with dataBlob(log_name="Interactive-Diagnostics") as data:
         menu = run_interactive_menu(
             top_level_menu_of_options,
@@ -65,7 +65,7 @@ def interactive_diagnostics():
             return None
         if option_chosen == -2:
             continue
-        set_pd_print_options()
+
         method_chosen = dict_of_functions[option_chosen]
         method_chosen(data)
 

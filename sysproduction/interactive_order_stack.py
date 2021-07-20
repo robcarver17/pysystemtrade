@@ -10,6 +10,7 @@ Do standard things to the instrument, order and broker stack (normally automated
 from syscore.objects import missing_order
 from syscore.dateutils import get_datetime_input
 from syscore.interactive import get_and_convert, run_interactive_menu, print_menu_of_values_and_get_response
+from syscore.pdutils import set_pd_print_options
 
 from sysdata.data_blob import dataBlob
 from sysproduction.data.positions import diagPositions, dataOptimalPositions
@@ -32,6 +33,7 @@ from sysexecution.algos.allocate_algo_to_order import list_of_algos
 
 def interactive_order_stack():
     with dataBlob(log_name="Interactive-Order-Stack") as data:
+        
         menu = run_interactive_menu(
             top_level_menu_of_options,
             nested_menu_of_options,
@@ -46,7 +48,7 @@ def interactive_order_stack():
                 return None
             if option_chosen == -2:
                 continue
-
+            set_pd_print_options()
             method_chosen = dict_of_functions[option_chosen]
             method_chosen(data)
 
