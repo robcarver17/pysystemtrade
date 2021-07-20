@@ -1,4 +1,4 @@
-from syscore.objects import missing_contract
+from syscore.objects import missing_contract, arg_not_supplied
 
 from sysobjects.contract_dates_and_expiries import contractDate, expiryDate
 from sysobjects.contracts import futuresContract, listOfFuturesContracts
@@ -6,12 +6,13 @@ from sysobjects.instruments import futuresInstrument
 from sysobjects.rolls import contractDateWithRollParameters
 
 from sysdata.data_blob import dataBlob
-from sysproduction.data.prices import diagPrices
+from sysproduction.data.prices import diagPrices, get_valid_instrument_code_from_user
 from sysproduction.data.contracts import dataContracts
 from sysproduction.data.broker import dataBroker
 
+ALL_INSTRUMENTS = "ALL"
 
-def update_sampled_contracts():
+def update_sampled_contracts(instrument_code: str = arg_not_supplied):
     """
     Update the active contracts, according to what is available in IB for a given instrument
 
@@ -38,21 +39,28 @@ def update_sampled_contracts():
     """
     with dataBlob(log_name="Update-Sampled_Contracts") as data:
         update_contracts_object = updateSampledContracts(data)
-        update_contracts_object.update_sampled_contracts()
+        if instrument_code is arg_not_supplied:
+            instrument_code = get_valid_instrument_code_from_user(allow_all=True,
+                                                                  all_code=ALL_INSTRUMENTS)
+        update_contracts_object.update_sampled_contracts(instrument_code=instrument_code)
 
 
 class updateSampledContracts(object):
     def __init__(self, data):
         self.data = data
 
-    def update_sampled_contracts(self):
+    def update_sampled_contracts(self, instrument_code: str  = ALL_INSTRUMENTS):
         data = self.data
-        update_active_contracts_with_data(data)
+        update_active_contracts_with_data(data, instrument_code=instrument_code)
 
-def update_active_contracts_with_data(data: dataBlob):
+def update_active_contracts_with_data(data: dataBlob, instrument_code: str = ALL_INSTRUMENTS):
     diag_prices = diagPrices(data)
-    list_of_codes_all = diag_prices.get_list_of_instruments_in_multiple_prices()
-    for instrument_code in list_of_codes_all:
+    if instrument_code is ALL_INSTRUMENTS:
+        list_of_codes = diag_prices.get_list_of_instruments_in_multiple_prices()
+    else:
+        list_of_codes = [instrument_code]
+
+    for instrument_code in list_of_codes:
         update_active_contracts_for_instrument(
             instrument_code, data)
 
