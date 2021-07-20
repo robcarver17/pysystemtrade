@@ -33,7 +33,7 @@ from sysexecution.algos.allocate_algo_to_order import list_of_algos
 
 def interactive_order_stack():
     with dataBlob(log_name="Interactive-Order-Stack") as data:
-        
+
         menu = run_interactive_menu(
             top_level_menu_of_options,
             nested_menu_of_options,

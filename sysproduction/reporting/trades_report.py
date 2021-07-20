@@ -63,6 +63,7 @@ def get_trades_report_data(data, start_date, end_date):
             "filled_price",
         ]
     ]
+    overview = overview.sort_values("instrument_code")
 
     delays = create_delay_df(broker_orders)
     raw_slippage = create_raw_slippage_df(broker_orders)
