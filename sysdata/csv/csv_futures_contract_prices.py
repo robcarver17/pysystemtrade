@@ -181,6 +181,10 @@ class csvFuturesContractPriceData(futuresContractPriceData):
 
         return list_of_contract_tuples
 
+    def has_data_for_contract(self, contract_object: futuresContract) ->bool:
+        if self._keyname_given_contract_object(contract_object) in self._all_keynames_in_library():
+            return True
+
     def get_contracts_with_price_data(self) ->listOfFuturesContracts:
         """
 
