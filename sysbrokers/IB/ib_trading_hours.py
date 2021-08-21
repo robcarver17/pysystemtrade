@@ -129,6 +129,8 @@ def get_time_difference(time_zone_id: str) -> int:
         "JST": -8,
         "Japan": -8,
         "US/Central": 6,
+        "GB-Eire": 0,
+        "Hongkong": -7,
         "": 0
     }
     diff_hours = time_diff_dict.get(time_zone_id, None)
