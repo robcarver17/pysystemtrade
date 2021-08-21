@@ -104,6 +104,8 @@ class simData(baseData):
 
         """
         instrprice = self.get_raw_price(instrument_code)
+        if len(instrprice) == 0:
+            raise Exception("No adjusted daily prices for %s" % instrument_code )
         dailyprice = instrprice.resample("1B").last()
 
         return dailyprice
