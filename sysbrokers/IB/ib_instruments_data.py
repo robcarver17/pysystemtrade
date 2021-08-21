@@ -45,6 +45,8 @@ class ibFuturesInstrumentData(brokerFuturesInstrumentData):
 
     def get_brokers_instrument_code(self, instrument_code:str) -> str:
         futures_instrument_with_ib_data = self.get_futures_instrument_object_with_IB_data(instrument_code)
+        if futures_instrument_with_ib_data is missing_instrument:
+            return missing_instrument
         return futures_instrument_with_ib_data.broker_symbol
 
     def get_instrument_code_from_broker_code(self, ib_code: str) -> str:
