@@ -1,47 +1,38 @@
-
 from sysdata.csv.csv_futures_contract_prices import ConfigCsvFuturesPrices
-import os
-from syscore.fileutils import files_with_extension_in_pathname
-from syscore.dateutils import month_from_contract_letter
-
 from sysinit.futures.contract_prices_from_csv_to_arctic import init_arctic_with_csv_futures_contract_prices
 
-def strip_file_names(pathname):
-    # These won't have .csv attached
-    file_names = files_with_extension_in_pathname(pathname)
-    for filename in file_names:
-        identifier = filename.split("_")[0]
-        yearcode = int(identifier[len(identifier)-2:])
-        monthcode = identifier[len(identifier)-3].upper()
-        if yearcode>50:
-            year = 1900+yearcode
-        else:
-            year = 2000+yearcode
-        month = month_from_contract_letter(monthcode)
-        marketcode = identifier[:len(identifier)-3].upper()
-        instrument = market_map[marketcode]
+barchart_symbol_map = { "AEX" : 'ae', "AUD" : "a6", "BOBL" : "hr", "BTP" : "ii", "CAC" : "mx", "BUND" : "gg",
+                        "COPPER" : "hg", "CORN": "zc", "CRUDE_W" : "cl", "EDOLLAR" : "ge", "EUR" : "e6", "GAS_US" : "ng",
+                        "GBP" : "b6", "GOLD" : "gc", "JPY" : "j6", "LEANHOG" : "he", "LIVECOW" : "le", 
+                        "MXP" : "m6", "NASDAQ" : "nq", "NZD" : "n6", "OAT" : "fn", 
+                        "PALLAD" : "pa", "SHATZ" : "hf", "PLAT" : "pl", "SOYBEAN" : "zs", 
+                        "SP500" : "es", "US2" : "zt", "US5" : "zf", "US10" : "zn",
+                        "US20" : "zb", "VIX" : "vi", "WHEAT" : "zw",
+                        "V2X" : "dv", "US30" : "ud", "EUROSTX" : "fx", 
+                        "GOLD_micro" : "gr", "NASDAQ_micro":"nm", "CRUDE_W_mini":"qm", "GAS_US_mini":"qg", "SP500_micro":"et",
+                        "BITCOIN" : "ba", "COPPER-mini" : "qc" }
 
-        datecode = str(year)+'{0:02d}'.format(month)
+barchart_input_filename_format="%{BS}%{LETTER}%{YEAR2}_%{IGNORE}.csv"
+# Scans files in target directory corresponding to format above. 
+# For example 'plf19_daily_historical-data-07-04-2021.csv' translates to PLAT JAN 2019
 
-        new_file_name = "%s_%s00.csv" % (instrument, datecode)
-        new_full_name = "%s%s" % (pathname, new_file_name)
-        old_full_name = "%s%s.csv" % (pathname, filename)
-        print("Rename %s to\n %s" % (old_full_name, new_full_name))
+example_1_barchart_input_filename_format="%{IGNORE}_%{BS}/%{BS}%{LETTER}%{YEAR2}_%{IGNORE}.csv"
+# Scans files in target directory and its subdirectories corresponding to format abobe.
+# For example file 'PLAT_pl/plf19_daily_historical-data-07-04-2021.csv' translates to PLAT JAN 2019 in directory 'PLAT_pl'
+# Note that here the instrument code 'PLAT' in directory name is ignored and conversion from broker symbol to instrument code 
+# is done with the symbol map above
 
-        os.rename(old_full_name, new_full_name)
+example_2_barchart_input_filename_format="%{IC}_%{IGNORE}/%{IGNORE}%{LETTER}%{YEAR2}_%{IGNORE}.csv"
+# Scans files in target directory and its subdirectories corresponding to format above. 
+# For example file 'PLAT_pl/plf19_daily_historical-data-07-04-2021.csv' translates to PLAT JAN 2019 in directory 'PLAT_pl'
+# Note that here the broker symbol instead is ignored and we extract the instrument code directly from the directory name
 
-    return None
+# Please see sysdata/csv/parametric_csv_database.py for the translation codes (e.g. %{BS})
 
-market_map = dict( AE="AEX", A6="AUD", HR="BOBL", II = "BTP",MX = "CAC", GG="BUND",HG = "COPPER", ZC="CORN",
-                   CL="CRUDE_W",GE = "EDOLLAR", E6="EUR",  NG = "GAS_US",
-                     B6="GBP",                    GC="GOLD",J6 = "JPY", HE = "LEANHOG",LE ="LIVECOW",
-                    M6="MXP",NQ = "NASDAQ",N6 = "NZD",                    FN="OAT",
-                   PA="PALLAD",                   HF="SHATZ", PL="PLAT",ZS = "SOYBEAN",
-                   ES="SP500",ZT = "US2",   ZF = "US5",ZN = "US10",
-                   ZB="US20",VI = "VIX",ZW="WHEAT",
-                   DV="V2X", UD = "US30", FX = "EUROSTX", 
-                   GR = "GOLD_micro", NM = "NASDAQ_micro", QM = "CRUDE_W_mini", QG = "GAS_US_mini", ET ="SP500_micro"
-                   )
+# Unit multiplier: Because our saved contract price data from IB has for example JPY prices in USD/YEN but in Barchart (and other sources..) the units 
+# are USD/ 100 YEN, so we need to multiply these prices accordingly.  
+# If adding other instruments please check that prices match or add corresponding multiplier here
+barchart_instrument_price_multiplier = { "JPY" : 0.01  }
 
 
 barchart_csv_config = ConfigCsvFuturesPrices(input_date_index_name="Time",
@@ -51,11 +42,13 @@ barchart_csv_config = ConfigCsvFuturesPrices(input_date_index_name="Time",
                                                           HIGH='High',
                                                           LOW='Low',
                                                           FINAL='Last',
-                                                          VOLUME='Volume'
-                                                          ))
+                                                          VOLUME='Volume'),
+                                input_filename_format = barchart_input_filename_format,
+                                instrument_price_multiplier = barchart_instrument_price_multiplier,
+                                append_default_daily_time = True,   # we add 23:00:00 because the time is missing from .csv files
+                                broker_symbols = barchart_symbol_map )
 
 def transfer_barchart_prices_to_arctic(datapath):
-    strip_file_names(datapath)
     init_arctic_with_csv_futures_contract_prices(datapath, csv_config= barchart_csv_config)
 
 if __name__ == "__main__":

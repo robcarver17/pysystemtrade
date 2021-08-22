@@ -4,50 +4,56 @@ from sysdata.futures.adjusted_prices import (
     futuresAdjustedPricesData,
 )
 from sysobjects.adjusted_prices import futuresAdjustedPrices
-from syscore.fileutils import get_filename_for_package, files_with_extension_in_pathname
-from syscore.pdutils import pd_readcsv
-from syscore.objects import arg_not_supplied
+from sysdata.csv.parametric_csv_database import parametricCsvDatabase, ConfigCsvFuturesPrices
+from syscore.objects import arg_not_supplied, missing_data
 from syslogdiag.log_to_screen import logtoscreen
 
 ADJUSTED_PRICES_DIRECTORY = "data.futures.adjusted_prices_csv"
 DATE_INDEX_NAME = "DATETIME"
 
+DEFAULT_ADJUSTED_FILENAME_FORMAT = "%{IC}.csv" # e.g. CRUDE_W.csv
 
 class csvFuturesAdjustedPricesData(futuresAdjustedPricesData):
     """
-
     Class for adjusted prices write / to from csv
     """
 
     def __init__(self, datapath=arg_not_supplied, log=logtoscreen(
-            "csvFuturesContractPriceData")):
+            "csvFuturesContractPriceData"), config:ConfigCsvFuturesPrices = arg_not_supplied ):
 
         super().__init__(log=log)
 
         if datapath is arg_not_supplied:
             datapath = ADJUSTED_PRICES_DIRECTORY
 
-        self._datapath = datapath
+        if config is arg_not_supplied:
+            config = ConfigCsvFuturesPrices(continuous_contracts=True, input_filename_format=DEFAULT_ADJUSTED_FILENAME_FORMAT)
+
+        self.db = parametricCsvDatabase(log=log, datapath=datapath, config=config)
+
 
     def __repr__(self):
-        return "csvFuturesAdjustedPricesData accessing %s" % self._datapath
+        return "csvFuturesAdjustedPricesData accessing %s" % self.datapath
 
     @property
     def datapath(self):
-        return self._datapath
+        return self.db.datapath
 
     def get_list_of_instruments(self) -> list:
-        return files_with_extension_in_pathname(self.datapath, ".csv")
+        return self.db.get_list_of_instrument_codes()
 
     def _get_adjusted_prices_without_checking(self, instrument_code: str) -> futuresAdjustedPrices:
-        filename = self._filename_given_instrument_code(instrument_code)
+        filename = self.db.filename_given_instrument_code(instrument_code)
 
         try:
-            instrpricedata = pd_readcsv(filename)
+            instrpricedata = self.db.load_and_process_prices(filename, instrument_code)
         except OSError:
             self.log.warning("Can't find adjusted price file %s" % filename)
             return futuresAdjustedPrices.create_empty()
 
+        if len(instrpricedata.columns) > 1:
+            # discard all other columns  
+            instrpricedata = pd.DataFrame( instrpricedata['FINAL'])
         instrpricedata.columns = ["price"]
         instrpricedata = instrpricedata.groupby(level=0).last()
         instrpricedata = pd.Series(instrpricedata.iloc[:, 0])
@@ -70,11 +76,7 @@ class csvFuturesAdjustedPricesData(futuresAdjustedPricesData):
         adjusted_price_data_as_dataframe = pd.DataFrame(adjusted_price_data)
         adjusted_price_data_as_dataframe.columns = ["price"]
 
-        filename = self._filename_given_instrument_code(instrument_code)
+        filename = self.db.filename_given_instrument_code(instrument_code)
         adjusted_price_data_as_dataframe.to_csv(
             filename, index_label=DATE_INDEX_NAME)
 
-    def _filename_given_instrument_code(self, instrument_code:str):
-        return get_filename_for_package(
-            self.datapath, "%s.csv" %
-            (instrument_code))
