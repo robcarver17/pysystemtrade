@@ -62,6 +62,27 @@ class csvFuturesAdjustedPricesData(futuresAdjustedPricesData):
 
         return instrpricedata
 
+    def get_adjusted_prices_as_pd(self, instrument_code: str) -> pd.DataFrame:
+        """
+        Get adjusted prices as Pandas dataframe. If original OPEN/HIGH/LOW/FINAL data are available then keep them unchanged.
+
+        :param instrument_code: self-explanatory
+        :return: DataFrame containing all available columns (etc. OPEN/HIGH/LOW/FINAL or price)
+        """
+        if not self.is_code_in_data(instrument_code):
+            return missing_data
+
+        filename = self.db.filename_given_instrument_code(instrument_code)
+        try:
+            instrpricedata = self.db.load_and_process_prices(filename, instrument_code)
+        except OSError:
+            self.log.warning("Can't find adjusted price file %s" % filename)
+            return missing_data
+
+        instrpricedata = instrpricedata.groupby(level=0).last()
+        return instrpricedata
+
+
     def _delete_adjusted_prices_without_any_warning_be_careful(
             self, instrument_code: str):
         raise NotImplementedError(
