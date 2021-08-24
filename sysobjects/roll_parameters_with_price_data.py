@@ -118,6 +118,12 @@ class contractWithRollParametersAndPrices(object):
         while try_contract.date_str <= final_contract_date:
             if try_contract.date_str in list_of_contract_dates:
                 return try_contract
+            else:
+                if contract_type == HELD:
+                    roll_cycle = self.roll_parameters.hold_rollcycle
+                else:
+                    roll_cycle = self.roll_parameters.priced_rollcycle
+                print("Warning! After", self.date_str, "the next expected contract", try_contract.date_str, "in the",contract_type,"roll cycle (", roll_cycle, ") not available! (OK if this is at the end of the calendar)")
             try_contract = getattr(try_contract, contract_attribute_str)()
 
         # Nothing found
@@ -163,6 +169,12 @@ class contractWithRollParametersAndPrices(object):
         while try_contract.date_str >= first_contract_date:
             if try_contract.date_str in list_of_contract_dates:
                 return try_contract
+            else:
+                if contract_type == HELD:
+                    roll_cycle = self.roll_parameters.hold_rollcycle
+                else:
+                    roll_cycle = self.roll_parameters.priced_rollcycle
+                print("Warning! Before", self.date_str, "the previous expected contract", try_contract.date_str, "in the",contract_type,"roll cycle (", roll_cycle, ") not available! (OK if this is at the end of the calendar)")
             try_contract = getattr(try_contract, contract_attribute_str)()
 
         # Nothing found
