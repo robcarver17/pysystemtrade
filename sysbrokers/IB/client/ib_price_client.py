@@ -224,28 +224,13 @@ class ibPriceClient(ibContractsClient):
             # daily, nothing to do
             return timestamp_ib
 
-        timestamp_ib_with_tz = self._add_tz_to_ib_time(timestamp_ib)
+        # IB timestamp already includes tz
+        timestamp_ib_with_tz = timestamp_ib
         local_timestamp_ib_with_tz = timestamp_ib_with_tz.astimezone(
             tz.tzlocal())
         local_timestamp_ib = strip_timezone_fromdatetime(local_timestamp_ib_with_tz)
 
         return local_timestamp_ib
-
-    def _add_tz_to_ib_time(self, timestamp_ib):
-        ib_tz = self._get_ib_timezone()
-        timestamp_ib_with_tz = timestamp_ib.tz_localize(ib_tz)
-
-        return timestamp_ib_with_tz
-
-    def _get_ib_timezone(self):
-        # cache
-        ib_tz = getattr(self, "_ib_time_zone", None)
-        if ib_tz is None:
-            ib_time = self.ib.reqCurrentTime()
-            ib_tz = ib_time.timetz().tzinfo
-            self._ib_time_zone = ib_tz
-
-        return ib_tz
 
 
     # HISTORICAL DATA
@@ -277,7 +262,7 @@ class ibPriceClient(ibContractsClient):
             barSizeSetting=barSizeSetting,
             whatToShow=whatToShow,
             useRTH=True,
-            formatDate=1,
+            formatDate=2,
         )
         df = util.df(bars)
 
@@ -331,7 +316,7 @@ def _avoid_pacing_violation(last_call_datetime: datetime.datetime, log: logger=l
     while _pause_for_pacing(last_call_datetime):
         if not printed_warning_already:
             log.msg("Pausing %f seconds to avoid pacing violation" %
-                    (datetime.datetime.now() - last_call_datetime).total_seconds())
+                    (last_call_datetime + datetime.timedelta(seconds=PACING_INTERVAL_SECONDS) - datetime.datetime.now()).total_seconds())
             printed_warning_already = True
         pass
 
