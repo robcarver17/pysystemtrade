@@ -68,14 +68,16 @@ class futuresContractPrices(pd.DataFrame):
             self,
             new_futures_per_contract_prices,
             only_add_rows=True,
-            check_for_spike=True):
+            check_for_spike=True,
+            keep_older:bool=True):
         """
         Merges self with new data.
         If only_add_rows is True,
         Otherwise: Any Nan in the existing data will be replaced (be careful!)
 
         :param new_futures_per_contract_prices: another futures per contract prices object
-
+        :param keep_older: bool. Keep older data if not NaN (default). False : overwrite older data with non-NaN values. Applicable only to full merge (only_add_rows=False)
+        :param check_for_spike Checks for data spikes. 
         :return: merged futures_per_contract object
         """
         if only_add_rows:
@@ -84,19 +86,29 @@ class futuresContractPrices(pd.DataFrame):
                 check_for_spike=check_for_spike)
         else:
             return self._full_merge_of_existing_data(
-                new_futures_per_contract_prices)
+                new_futures_per_contract_prices, 
+                check_for_spike=check_for_spike, keep_older=keep_older)
 
-    def _full_merge_of_existing_data(self, new_futures_per_contract_prices):
+    def _full_merge_of_existing_data(self, new_futures_per_contract_prices, 
+        check_for_spike=False, keep_older:bool=True):
         """
         Merges self with new data.
         Any Nan in the existing data will be replaced (be careful!)
 
         :param new_futures_per_contract_prices: the new data
+        :param check_for_spike Checks for data spikes. 
+        :param keep_older: bool. Keep older data (default).
         :return: updated data, doesn't update self
         """
 
         merged_data = full_merge_of_existing_data(
-            self, new_futures_per_contract_prices)
+            self, new_futures_per_contract_prices, 
+            check_for_spike=check_for_spike,
+            column_to_check=FINAL_COLUMN,
+            keep_older=keep_older)
+
+        if merged_data is spike_in_data:
+            return spike_in_data
 
         return futuresContractPrices(merged_data)
 
