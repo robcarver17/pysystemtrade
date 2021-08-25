@@ -1,7 +1,7 @@
 import pandas as pd
 
 from syscore.objects import arg_not_supplied
-from syscore.merge_data import merge_newer_data_no_checks, spike_check_merged_data
+from syscore.merge_data import full_merge_of_existing_data_no_checks, merge_newer_data_no_checks, spike_check_merged_data
 
 
 def manual_price_checker(
@@ -10,6 +10,8 @@ def manual_price_checker(
     column_to_check=arg_not_supplied,
     delta_columns=arg_not_supplied,
     type_new_data=pd.DataFrame,
+    only_add_rows=True,
+    keep_older:bool=True
 ):
     """
     Allows a user to manually merge old and new data, checking any usually large changes and overwriting
@@ -22,6 +24,8 @@ def manual_price_checker(
 
     :param old_data:
     :param new_data:
+    :param only_add_rows: bool. True (default): Only append rows (otherwise do a full merge)
+    :param keep_older: bool. True = When merging keep older data if not NaN (default). False = overwrite older data with non-NaN values from new data 
     :return: new_data with no spike issues
     """
 
@@ -42,8 +46,13 @@ def manual_price_checker(
 
     while data_iterating:
 
-        merged_data_with_status = merge_newer_data_no_checks(
-            old_data, new_data)
+        if only_add_rows:
+            merged_data_with_status = merge_newer_data_no_checks(
+                old_data, new_data)
+        else:
+            merged_data_with_status = full_merge_of_existing_data_no_checks(
+                old_data, new_data, keep_older)
+
         merged_data_with_status = spike_check_merged_data(
             merged_data_with_status,
             column_to_check=column_to_check,
@@ -79,6 +88,13 @@ def manual_price_checker(
         # Replace original value in new data
         new_data.loc[first_spike, column_to_check] = value_to_use
 
+        # If we are doing full merging but keeping older values, there
+        # might be odd occasion where the old data also contained large
+        # variation which was now detected. We have to let the user
+        # modify also the older value as well if needed
+        if only_add_rows==False and keep_older==True:
+            old_data.loc[first_spike, column_to_check] = value_to_use
+
         if delta_columns is not arg_not_supplied:
             # 'Delta columns' adjust eg delta_columns=['OPEN', 'HIGH', 'LOW'] in line with change to key column
             new_data = _adjust_delta_columns(
@@ -91,7 +107,8 @@ def manual_price_checker(
         if adjust_old_and_new_data:
             # Change old_data so it now includes the spike checked bit
             old_data, new_data = _adjust_old_and_new_data(
-                old_data, new_data, position_of_spike_in_newdata
+                old_data, new_data, position_of_spike_in_newdata,
+                only_add_rows=only_add_rows, keep_older=keep_older
             )
             if len(new_data) == 0:
                 data_iterating = False
@@ -101,13 +118,19 @@ def manual_price_checker(
     # and new data that may have shrunk to nothing
 
     # One last merge
-    merged_data_with_status = merge_newer_data_no_checks(old_data, new_data)
-    merged_data = merged_data_with_status.merged_data
+    if only_add_rows:
+        merged_data_with_status = merge_newer_data_no_checks(old_data, new_data)
+        merged_data = merged_data_with_status.merged_data
 
-    old_data = merged_data[
-        :original_last_date_of_old_data
-    ]  # Not used, but for tidiness
-    new_data = merged_data[original_last_date_of_old_data:][1:]
+        old_data = merged_data[
+            :original_last_date_of_old_data
+        ]  # Not used, but for tidiness
+        new_data = merged_data[original_last_date_of_old_data:][1:]
+    else:
+        new_data = full_merge_of_existing_data_no_checks(
+            old_data, new_data, keep_older=keep_older )
+        new_data = new_data.merged_data
+
     new_data_as_input_type = type_new_data(new_data)
 
     return new_data_as_input_type
@@ -186,12 +209,18 @@ def _get_new_value(
     return value_to_use, adjust_old_and_new_data
 
 
-def _adjust_old_and_new_data(old_data, new_data, position_of_spike_in_newdata):
+def _adjust_old_and_new_data(old_data, new_data, position_of_spike_in_newdata,
+    only_add_rows:bool=True, keep_older:bool=True):
     checked_new_data = new_data[: position_of_spike_in_newdata + 1]
     unchecked_new_data = new_data[position_of_spike_in_newdata + 1:]
-    merged_data_with_status = merge_newer_data_no_checks(
-        old_data, checked_new_data
-    )
+    if only_add_rows:
+        merged_data_with_status = merge_newer_data_no_checks(
+            old_data, checked_new_data
+        )
+    else:
+        merged_data_with_status = full_merge_of_existing_data_no_checks(
+            old_data, checked_new_data, keep_older=keep_older
+        )
 
     old_data = merged_data_with_status.merged_data
     new_data = unchecked_new_data
