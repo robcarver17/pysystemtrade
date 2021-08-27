@@ -2,7 +2,7 @@
 This is a base class that is used by csv_futures_contract_prices and csv_adjusted_prices to allow for parametric access to CSV file database 
 containing price data for separate futures contracts or adjusted/continuous contracts. 
 
-Please see sysinit/futures/barchart_futures_contract_prices.py for how to use this class (via csvFuturesContractPriceData)
+Please see sysinit/futures/barchart_futures_contract_prices.py for how to use this class via csvFuturesContractPriceData
 
 The benefits are two-fold: First there's no need to write separate middle-ware conversion tool to daily process data from other sources 
 (such as CSI Data or Barchart) but one can just configure the file naming convention and other parameters and use the original CSV files as they are.
@@ -11,13 +11,14 @@ Secondly you can keep all CSV files in separate directories based on the instrum
 The database is constructed by scanning target 'datapath' directory for .csv files having a suitable filename format.
 The format string can contain formatting codes (instrument or broker code, year, month etc) that map the file to a corresponding 
 instrument code/contract pair. See below for available formatting codes. Formatting string can also be configured to scan subdirectories
-(see below DEFAULT_FILENAME_FORMAT_FOR_SUBDIRECTORIES)
+(see below DEFAULT_FILENAME_FORMAT_FOR_SUBDIRECTORIES). As the formatting string is eventually processed as regular expression, you
+can embed regexp into the formatting string if you want to get really wacky.
 
 Because data sources have different symbol names for instruments (broker code), we have to map those to match the corresponding instrument code
 we have in our database. This is done via ConfigCsvFuturesPrices.broker_symbols dict.
 
-Some instruments might have uncommon unit compared to prices that are fetched from Interactive Brokers
-(e.g. JPY contract unit is actually USD/100 Japanese Yen but IB uses unit of USD/Yen ) so a multiplier is used to convert prices
+Some instruments might have uncommon quotation unit compared to prices that are fetched from Interactive Brokers
+(e.g. JPY contract unit is actually USD/100 Japanese Yen but IB uses unit of USD/Yen) so a multiplier is used to convert prices
 to the unit that IB uses (and is stored in Arctic). This is done with ConfigCsvFuturesPrices.instrument_price_multiplier dict
 
 """
@@ -29,7 +30,7 @@ from dataclasses import  dataclass
 from syscore.objects import arg_not_supplied, missingData
 from sysobjects.contract_dates_and_expiries import contractDate
 from syscore.fileutils import get_resolved_pathname, get_filename_for_package
-from syscore.dateutils import month_from_contract_letter
+from syscore.dateutils import month_from_contract_letter, NOTIONAL_CLOSING_TIME
 import os,re
 import numpy as np
 
@@ -46,7 +47,7 @@ YEAR2_CODE = "%{YEAR2}"            # two digit year (century cut off is <50 -> 1
 
 DEFAULT_FILENAME_FORMAT = "%{IC}_%{YEAR}%{MONTH2}%{DAY2}.csv" # e.g. CRUDE_W_20190900.csv
 
-# Example format for separating files into subdirectories base on instrument code
+# Example format for separating files into subdirectories based on instrument code
 DEFAULT_FILENAME_FORMAT_FOR_SUBDIRECTORIES = "%{IC}/%{IC}_%{YEAR}%{MONTH2}%{DAY2}.csv" # e.g. CRUDE_W/CRUDE_W_20190900.csv
 
 
@@ -73,7 +74,6 @@ class ConfigCsvFuturesPrices:
     input_skiprows: int = 0
     input_skipfooter: int = 0
     input_filename_format:str = DEFAULT_FILENAME_FORMAT
-    append_default_daily_time: bool = False     # append default time (23:00:00) of daily price data if the input datetime column does not include it
     broker_symbols: dict = arg_not_supplied     # dict of instrument code -> broker symbol mapping
     broker_symbol_ignore_case: bool = True
     continuous_contracts: bool = False          # If scanning for continuous (back-adjusted) contracts then date related codes are ignored
@@ -82,6 +82,8 @@ class ConfigCsvFuturesPrices:
     #  (e.g. JPY is USD/100 Japanese Yen but IB data is USD/Yen ) so a multiplier is used 
     # to convert prices to the IB compatible magnitude
     instrument_price_multiplier: dict = arg_not_supplied  
+
+    verbose_scanning: bool = True
 
 
 class parametricCsvDatabase(baseData):
@@ -124,6 +126,7 @@ class parametricCsvDatabase(baseData):
                     broker_symbols[key] = value.upper()
                 config.broker_symbols = broker_symbols
 
+        self._convert_format_string_to_regexp()
         self._filename_cache = dict()
         self.update_filename_cache()
 
@@ -228,6 +231,20 @@ class parametricCsvDatabase(baseData):
         return missingData
 
 
+    def _convert_format_string_to_regexp(self):
+        # convert each format code from format string to regular expression groups.
+        # Also save each group name, so they can be referenced later
+        self.regexp_group_names = dict()
+        processed_str = self.config.input_filename_format
+        for format_code, regexp_single in format_code_to_regexp.items():
+            processed_str, group_names = self._convert_format_codes_to_regexp_groups(processed_str, format_code)
+            if len(group_names)>0 and format_code != MATCH_ALL_CODE:
+                # save group names for checking below
+                self.regexp_group_names[ format_code ] = group_names
+
+        self.input_filename_regexp = processed_str
+
+
     def keyname_given_filename( self, filename: str ):
         """
         Convert filename to keyname using a format string defined in ConfigCsvFuturesPrices.input_filename_format
@@ -238,19 +255,10 @@ class parametricCsvDatabase(baseData):
         :return keyname or missingData if filename didn't match the format
         """
         format = self.config.input_filename_format
+        group_names_dict = self.regexp_group_names
 
-        # convert each format code from format string first to regular expression ..
-        group_names_dict = dict()
-        processed_str = format
-        for format_code, regexp_single in format_code_to_regexp.items():
-            processed_str, group_names = self._convert_format_codes_to_regexp_groups(processed_str, format_code)
-            if len(group_names)>0 and format_code != MATCH_ALL_CODE:
-                # save group names for checking below
-                group_names_dict[ format_code ] = group_names
-
-        pattern = re.compile(processed_str, re.VERBOSE)
-
-        # .. and then check if filename matches the regexp pattern
+        # check if the filename matches the regexp pattern
+        pattern = re.compile(self.input_filename_regexp, re.VERBOSE)
         match = pattern.match(filename)
         if match:
 
@@ -294,7 +302,9 @@ class parametricCsvDatabase(baseData):
                 broker_symbol = match.group(group_names_dict[BROKER_SYMBOL_CODE][0])
                 instr_code = self.instrument_code_given_broker_symbol(broker_symbol)
                 if instr_code is missingData:
-                    print("Warning! Missing broker symbol %s (file %s)" % (broker_symbol, filename))
+                    if self.config.verbose_scanning:
+                        self.log.warn("Missing instrument code mapping for broker symbol %s (file %s)" % 
+                            (broker_symbol, filename))
                     return missingData
             if self.config.continuous_contracts == True:
                 return instr_code + "_" + CONTINUOUS_CONTRACT_ID
@@ -305,8 +315,12 @@ class parametricCsvDatabase(baseData):
 
 
     def update_filename_cache(self):
+        print("Updating file cache. This might take a while...")
         path = get_resolved_pathname(self._datapath)
         for root,dirs,files in os.walk(path):
+            if self.config.verbose_scanning:
+                print("Scanning directory %s with %d files and %d subdirectories" % 
+                    (os.path.join(path,root), len(files), len(dirs)) )
             for filename in files:
                 # gets only the sub directory part
                 relative_path = os.path.relpath(root,path)
@@ -321,7 +335,9 @@ class parametricCsvDatabase(baseData):
                 if keyname is not missingData:
                     self._filename_cache[keyname] = os.path.join(root, filename)
                 else:
-                    print("Warning! Filename %s does not conform to format '%s'!" % (relative_filename,self.config.input_filename_format))
+                    if self.config.verbose_scanning:
+                        self.log.warn("Filename %s does not conform to format '%s'!" %
+                            (relative_filename,self.config.input_filename_format))
         
 
     def _get_filename_from_cache(self, keyname):
@@ -434,11 +450,12 @@ class parametricCsvDatabase(baseData):
                     instrpricedata["LOW"] = instrpricedata["LOW"] * mult
                     instrpricedata["FINAL"] = instrpricedata["FINAL"] * mult
 
-        if config.append_default_daily_time:
-            # Append date with the default time (23:00:00) of daily data 
-            # when it's not included in the datetime column
+        if '%H' not in self.config.input_date_format and '%I' not in self.config.input_date_format: 
+            # Append date with the default notional closing time (23:00:00)
+            # when the time is not included in the datetime column format
             p_datetime = instrpricedata.index.values.copy()
-            p_datetime = p_datetime + np.timedelta64(23,'h')
+            p_datetime = p_datetime + np.timedelta64(NOTIONAL_CLOSING_TIME['hours'],'h') + \
+                np.timedelta64(NOTIONAL_CLOSING_TIME['minutes'],'m') + np.timedelta64(NOTIONAL_CLOSING_TIME['seconds'],'s')
             instrpricedata.index = p_datetime
         
         return instrpricedata

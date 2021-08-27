@@ -45,7 +45,6 @@ barchart_csv_config = ConfigCsvFuturesPrices(input_date_index_name="Time",
                                                           VOLUME='Volume'),
                                 input_filename_format = barchart_input_filename_format,
                                 instrument_price_multiplier = barchart_instrument_price_multiplier,
-                                append_default_daily_time = True,   # we add 23:00:00 because the time is missing from .csv files
                                 broker_symbols = barchart_symbol_map )
 
 def transfer_barchart_prices_to_arctic(datapath):
