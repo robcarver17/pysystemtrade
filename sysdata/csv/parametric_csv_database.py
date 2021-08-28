@@ -27,12 +27,14 @@ from pandas.core.frame import DataFrame
 from syscore.pdutils import pd_readcsv, DEFAULT_DATE_FORMAT
 from sysdata.base_data import baseData
 from dataclasses import  dataclass
-from syscore.objects import arg_not_supplied, missingData
+from syscore.objects import arg_not_supplied, missing_data, named_object
 from sysobjects.contract_dates_and_expiries import contractDate
 from syscore.fileutils import get_resolved_pathname, get_filename_for_package
 from syscore.dateutils import month_from_contract_letter, NOTIONAL_CLOSING_TIME
 import os,re
 import numpy as np
+
+ignored_symbol = named_object("ignored symbol")
 
 INSTRUMENT_CODE = "%{IC}"          # Instrument code. 
 MATCH_ALL_CODE = "%{IGNORE}"       # 'Match all' type. Used for ignoring useless fields
@@ -83,6 +85,8 @@ class ConfigCsvFuturesPrices:
     # to convert prices to the IB compatible magnitude
     instrument_price_multiplier: dict = arg_not_supplied  
 
+    # list of symbols for which we suppress warnings if corrensponding instrument code is not found. Can be set to 'ALL' or ['ALL'] as well
+    ignore_missing_symbols = []
     verbose_scanning: bool = True
 
 
@@ -156,7 +160,7 @@ class parametricCsvDatabase(baseData):
             format = format.replace(INSTRUMENT_CODE,instr_code)
         if BROKER_SYMBOL_CODE in format:
             broker_symbol = self.broker_symbol_given_instrument_code(instr_code)
-            if broker_symbol is missingData:
+            if broker_symbol is missing_data:
                 raise Exception("Instrument code %s not found in broker symbol dictionary!" % instr_code)
             format = format.replace(BROKER_SYMBOL_CODE,broker_symbol)
 
@@ -222,13 +226,13 @@ class parametricCsvDatabase(baseData):
             if self.config.broker_symbol_ignore_case:
                 if symbol == broker_symbol.upper():
                     return instr_code
-        return missingData
+        return missing_data
 
 
     def broker_symbol_given_instrument_code(self, instrument_code:str):
         if instrument_code in self.config.broker_symbols:
             return self.config.broker_symbols[instrument_code]
-        return missingData
+        return missing_data
 
 
     def _convert_format_string_to_regexp(self):
@@ -272,7 +276,7 @@ class parametricCsvDatabase(baseData):
                         match_n = match.group(group_names[idx])
                         if match1 != match_n:
                             print("Warning! Unexpected filename! %s -> %s" % (self.config.input_filename_format, filename))
-                            return missingData
+                            return missing_data
 
             if INSTRUMENT_CODE in format:
                 instr_code = match.group(group_names_dict[INSTRUMENT_CODE][0])
@@ -301,17 +305,25 @@ class parametricCsvDatabase(baseData):
             if BROKER_SYMBOL_CODE in format:
                 broker_symbol = match.group(group_names_dict[BROKER_SYMBOL_CODE][0])
                 instr_code = self.instrument_code_given_broker_symbol(broker_symbol)
-                if instr_code is missingData:
+                if instr_code is missing_data:
+                    if isinstance(self.config.ignore_missing_symbols, list):
+                        if 'ALL' in self.config.ignore_missing_symbols:
+                            return ignored_symbol
+                        if broker_symbol in self.config.ignore_missing_symbols:
+                            return ignored_symbol
+                    else:
+                        if self.config.ignore_missing_symbols == 'ALL':
+                            return ignored_symbol
                     if self.config.verbose_scanning:
                         self.log.warn("Missing instrument code mapping for broker symbol %s (file %s)" % 
                             (broker_symbol, filename))
-                    return missingData
+                    return missing_data
             if self.config.continuous_contracts == True:
                 return instr_code + "_" + CONTINUOUS_CONTRACT_ID
             else:
                 return instr_code + "_" + str(year) + str(month).zfill(2) + str(day).zfill(2)
         else:
-            return missingData
+            return missing_data
 
 
     def update_filename_cache(self):
@@ -332,19 +344,22 @@ class parametricCsvDatabase(baseData):
                     relative_filename = filename
                 # deduce the key name using relative filename and format string
                 keyname = self.keyname_given_filename(relative_filename)
-                if keyname is not missingData:
-                    self._filename_cache[keyname] = os.path.join(root, filename)
+                if keyname is ignored_symbol:
+                    pass
                 else:
-                    if self.config.verbose_scanning:
-                        self.log.warn("Filename %s does not conform to format '%s'!" %
-                            (relative_filename,self.config.input_filename_format))
+                    if keyname is not missing_data:
+                        self._filename_cache[keyname] = os.path.join(root, filename)
+                    else:
+                        if self.config.verbose_scanning:
+                            self.log.warn("Filename %s does not conform to format '%s'!" %
+                                (relative_filename,self.config.input_filename_format))
         
 
     def _get_filename_from_cache(self, keyname):
         if keyname in self._filename_cache:
             return self._filename_cache[keyname]
         else:
-            return missingData
+            return missing_data
 
 
     def _contract_tuple_given_keyname(self, keyname: str) -> tuple:
@@ -384,7 +399,7 @@ class parametricCsvDatabase(baseData):
 
     def filename_given_key_name(self, keyname: str):
         filename = self._get_filename_from_cache(keyname)
-        if filename is missingData:
+        if filename is missing_data:
             filename = self._construct_filename(keyname)
             self._filename_cache[keyname] = filename
         return filename
