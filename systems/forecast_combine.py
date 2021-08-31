@@ -334,22 +334,9 @@ class ForecastCombine(SystemStage
 
         # Let's try the config
         config = self.config
-        if hasattr(config, "forecast_weights"):
-            # a dict of weights, nested or un nested
-            if instrument_code in config.forecast_weights:
-                # nested dict
-                rules = config.forecast_weights[instrument_code].keys()
-            else:
-                # seems it's a non nested dict (weights same across instruments), but let's check 
-                # that just in case it IS nested dict but instrument weight is missing
-                for val in config.forecast_weights.values():
-                    if isinstance(val, dict):
-                        # so it is a nested dict..
-                        raise Exception("Missing forecast weight for instrument ",instrument_code)
-                rules = config.forecast_weights.keys()
-        else:
-            ## not supplied as a config item, use the name of the rules
-            rules = self._get_list_of_all_trading_rules_from_forecasting_stage()
+        rules = _get_list_of_rules_from_config_for_instrument(config = config,
+                           instrument_code = instrument_code,
+                            forecast_combine_stage = self)
 
         rules = sorted(rules)
 
@@ -1342,6 +1329,27 @@ def _get_fixed_fdm_scalar_value_from_config(forecast_div_multiplier_config: dict
 
     return fixed_div_mult
 
+def _get_list_of_rules_from_config_for_instrument(config: Config,
+                           instrument_code: str,
+                            forecast_combine_stage: ForecastCombine) -> list:
+    if hasattr(config, "forecast_weights"):
+        # a dict of weights, nested or un nested
+        if instrument_code in config.forecast_weights:
+            # nested dict
+            rules = config.forecast_weights[instrument_code].keys()
+        else:
+            # seems it's a non nested dict (weights same across instruments), but let's check
+            # that just in case it IS nested dict but instrument weight is missing
+            for val in config.forecast_weights.values():
+                if isinstance(val, dict):
+                    # so it is a nested dict..
+                    raise Exception("Missing forecast weight for instrument ", instrument_code)
+            rules = config.forecast_weights.keys()
+    else:
+        ## forecast weights not supplied as a config item, use the name of the rules
+        rules = forecast_combine_stage._get_list_of_all_trading_rules_from_forecasting_stage()
+
+    return rules
 
 if __name__ == "__main__":
     import doctest
