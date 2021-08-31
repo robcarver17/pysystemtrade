@@ -49,6 +49,9 @@ class arcticData(object):
     def get_keynames(self) -> list:
         return self.library.list_symbols()
 
+    def has_keyname(self, keyname) -> bool:
+        return self.library.has_symbol(keyname)
+
     def delete(self, ident: str):
         self.library.delete(ident)
 

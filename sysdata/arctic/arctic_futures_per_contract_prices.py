@@ -89,6 +89,11 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
 
         return list_of_contracts
 
+
+    def has_data_for_contract(self, contract_object: futuresContract) ->bool:
+        return self.arctic_connection.has_keyname(from_contract_to_key(contract_object))
+
+
     def _get_contract_tuples_with_price_data(self) -> list:
         """
 

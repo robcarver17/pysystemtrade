@@ -170,10 +170,8 @@ class futuresContractPriceData(baseData):
         :return: None
         """
 
-        if self.has_data_for_contract(futures_contract_object):
-            if ignore_duplication:
-                pass
-            else:
+        if ignore_duplication == False:
+            if self.has_data_for_contract(futures_contract_object):
                 log = futures_contract_object.log(self.log)
                 log.warn(
                     "There is already existing data for %s" % futures_contract_object.key)
