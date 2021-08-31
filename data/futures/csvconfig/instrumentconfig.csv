@@ -226,3 +226,24 @@ AUD-SGX,25000,,USD,0.00015,2.85,0,0,SGX Australian Dollar in US Dollar Futures
 KRWJPY,25000,,JPY,,285,0,0,SGX Korean Won in Japanese Yen Futures
 JPY-SGX-TITAN,500000,,JPY,0.009999999999998,360,0,0,SGX US Dollar in Japanese Yen Futures (Titan)
 JPY-SGX,100000,,JPY,0.009999999999998,300,0,0,SGX US Dollar in Japanese Yen Futures (Standard)
+COTTON2,50000,Ags,USD,0.01,3,0,0,Cotton #2
+SUGAR11,112000,Ags,USD,0.00005,3,0,0,Sugar #11
+OJ,15000,Ags,USD,0.01075,3,0,0,Orange Juice (FCOJ-A)
+EUA,1000,OilGas,EUR,0.25,3,0,0,ECX EU carbon emissions allowance futures
+STERLING3,1250,Bond,GBP,0.0025,1.7,0,0,3 month Sterling interest rate
+FTSE100,10,Equity,GBP,0.1,1.7,0,0,FTSE100 Index
+DX,1000,FX,USD,0.1,2.2,0,0,US Dollar Index
+GASOIL,100,OilGas,USD,0.1,1.7,0,0,ICE-EU Low Sulphur Gasoil
+COCOA,10,Ags,USD,0.5,3,0,0,Cocoa NY
+COFFEE,37500,Ags,USD,0.001,3,0,0,Coffee
+ROBUSTA,10,Ags,USD,0.5,3,0,0,Robusta Coffee
+SPI200,25,Equity,AUD,1,5,0,0,ASX SPI200 Index
+CORN_mini,10,Ags,USD,0.125,2.9,0,0,Corn mini
+SOYBEAN_mini,10,Ags,USD,0.25,2.9,0,0,Soybean mini
+WHEAT_mini,10,Ags,USD,0.25,2.9,0,0,Wheat mini
+JPY_micro,1250000,FX,USD,4.80871993208629E-06,0.33,0,0,JPYUSD currency micro
+RUBBER,50,Other,USD,0.05,3,0,0,TSR 20 Rubber
+VIX_mini,100,Vol,USD,0.05,0.5,0,0,Vol US equity VIX mini
+CANOLA,20,Ags,CAD,2,2,0,0,Rapeseed (Canola) in CAD
+WTI_micro,100,OilGas,USD,0.01,0.7,0,0,micro WTI crude oil
+
