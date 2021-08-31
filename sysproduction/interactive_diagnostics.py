@@ -470,7 +470,7 @@ def actual_contract_position(data):
 def list_of_instrument_orders(data):
     order_pd = get_order_pd(
         data,
-        list_method="get_historic_instrument_orders_in_date_range",
+        list_method="get_historic_instrument_order_ids_in_date_range",
         getter_method="get_historic_instrument_order_from_order_id",
     )
     print(order_pd)
@@ -479,7 +479,7 @@ def list_of_instrument_orders(data):
 
 def get_order_pd(
     data,
-    list_method="get_historic_instrument_orders_in_date_range",
+    list_method="get_historic_instrument_order_ids_in_date_range",
     getter_method="get_historic_instrument_order_from_order_id",
 ):
     start_date = get_datetime_input("Start Date", allow_default=True)
@@ -500,7 +500,7 @@ def get_order_pd(
 def list_of_contract_orders(data):
     order_pd = get_order_pd(
         data,
-        list_method="get_historic_contract_orders_in_date_range",
+        list_method="get_historic_contract_order_ids_in_date_range",
         getter_method="get_historic_contract_order_from_order_id",
     )
     print(order_pd)
@@ -510,7 +510,7 @@ def list_of_contract_orders(data):
 def list_of_broker_orders(data):
     order_pd = get_order_pd(
         data,
-        list_method="get_historic_broker_orders_in_date_range",
+        list_method="get_historic_broker_order_ids_in_date_range",
         getter_method="get_historic_broker_order_from_order_id",
     )
     print(order_pd)
@@ -675,3 +675,6 @@ dict_of_functions = {
     61: view_contract_config,
     62: print_trading_hours_for_all_instruments
 }
+
+if __name__ == "__main__":
+    interactive_diagnostics()

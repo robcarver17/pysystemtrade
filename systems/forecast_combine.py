@@ -340,7 +340,12 @@ class ForecastCombine(SystemStage
                 # nested dict
                 rules = config.forecast_weights[instrument_code].keys()
             else:
-                # assume it's a non nested dict, eg weights same across instruments
+                # seems it's a non nested dict (weights same across instruments), but let's check 
+                # that just in case it IS nested dict but instrument weight is missing
+                for val in config.forecast_weights.values():
+                    if isinstance(val, dict):
+                        # so it is a nested dict..
+                        raise Exception("Missing forecast weight for instrument ",instrument_code)
                 rules = config.forecast_weights.keys()
         else:
             ## not supplied as a config item, use the name of the rules
