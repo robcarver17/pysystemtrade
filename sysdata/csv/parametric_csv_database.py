@@ -1,5 +1,5 @@
 """
-This is a base class that is used by csv_futures_contract_prices and csv_adjusted_prices to allow for parametric access to CSV file database 
+This is utility class used by csv_futures_contract_prices and csv_adjusted_prices to allow for parametric access to CSV file database 
 containing price data for separate futures contracts or adjusted/continuous contracts. 
 
 Please see sysinit/futures/barchart_futures_contract_prices.py for how to use this class via csvFuturesContractPriceData
@@ -60,7 +60,7 @@ format_code_to_regexp = {
     YEAR_CODE : "[0-9]{4}",             # Year
     YEAR2_CODE : "[0-9]{2}",            # two digit year (cut off is 1950)
     MONTH_LETTER_CODE : "[FGHJKMNQUVXZfghjkmnquvxz]{1}", # Month letter code
-    MONTH_LZ_CODE : "[0-9]{2}",         # mont with zero padding
+    MONTH_LZ_CODE : "[0-9]{2}",         # month with zero padding
     MONTH_CODE : "[0-9]{1,2}",          # month without zero padding 
     DAY_LZ_CODE : "[0-9]{2}",           # day with zero padding
     DAY_CODE : "[0-9]{1,2}",            # day without zero padding
@@ -113,7 +113,7 @@ class parametricCsvDatabase(baseData):
 
         if INSTRUMENT_CODE not in format and BROKER_SYMBOL_CODE not in format:
             raise Exception("Input filename format string needs instrument code or broker symbol code!")
-        if config.continuous_contracts == False:
+        if not config.continuous_contracts:
             if MONTH_CODE not in format and MONTH_LZ_CODE not in format and MONTH_LETTER_CODE not in format:
                 raise Exception("Input filename format string needs month code!")
             if YEAR_CODE not in format and YEAR2_CODE not in format:
@@ -281,7 +281,7 @@ class parametricCsvDatabase(baseData):
             if INSTRUMENT_CODE in format:
                 instr_code = match.group(group_names_dict[INSTRUMENT_CODE][0])
 
-            if self.config.continuous_contracts == False:
+            if not self.config.continuous_contracts:
                 if MONTH_LZ_CODE in format:
                     month = match.group(group_names_dict[MONTH_LZ_CODE][0])
                 if MONTH_CODE in format:
@@ -318,7 +318,7 @@ class parametricCsvDatabase(baseData):
                         self.log.warn("Missing instrument code mapping for broker symbol %s (file %s)" % 
                             (broker_symbol, filename))
                     return missing_data
-            if self.config.continuous_contracts == True:
+            if self.config.continuous_contracts:
                 return instr_code + "_" + CONTINUOUS_CONTRACT_ID
             else:
                 return instr_code + "_" + str(year) + str(month).zfill(2) + str(day).zfill(2)
@@ -408,7 +408,7 @@ class parametricCsvDatabase(baseData):
         return self._filename_cache.keys()
 
     def keyname_given_instrument_code(self, instrument_code:str):
-        if self.config.continuous_contracts == False:
+        if not self.config.continuous_contracts:
             raise Exception("Cannot deduce key name from only an instrument code when not processing continuous contracts!")
         return str(instrument_code) + "_" + str(CONTINUOUS_CONTRACT_ID)
 

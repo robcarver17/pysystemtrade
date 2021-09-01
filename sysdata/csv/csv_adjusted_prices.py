@@ -7,6 +7,7 @@ from sysobjects.adjusted_prices import futuresAdjustedPrices
 from sysdata.csv.parametric_csv_database import parametricCsvDatabase, ConfigCsvFuturesPrices
 from syscore.objects import arg_not_supplied, missing_data
 from syslogdiag.log_to_screen import logtoscreen
+from sysobjects.futures_per_contract_prices import FINAL_COLUMN
 
 ADJUSTED_PRICES_DIRECTORY = "data.futures.adjusted_prices_csv"
 DATE_INDEX_NAME = "DATETIME"
@@ -53,7 +54,7 @@ class csvFuturesAdjustedPricesData(futuresAdjustedPricesData):
 
         if len(instrpricedata.columns) > 1:
             # discard all other columns  
-            instrpricedata = pd.DataFrame( instrpricedata['FINAL'])
+            instrpricedata = pd.DataFrame( instrpricedata[FINAL_COLUMN])
         instrpricedata.columns = ["price"]
         instrpricedata = instrpricedata.groupby(level=0).last()
         instrpricedata = pd.Series(instrpricedata.iloc[:, 0])
