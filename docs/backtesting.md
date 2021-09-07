@@ -964,10 +964,11 @@ the instrument_code):
 1. Static configuration and cost data- `instrument_config.csv` headings: Instrument, Pointsize,
    AssetClass, Currency. Additional headings for costs: Slippage, PerBlock,
    Percentage, PerTrade. See ['costs'](#costs) for more detail.
-2. Adjusted price data- `code.csv` (eg SP500.csv) headings: DATETIME, PRICE
-3. Carry and forward data - `code.csv` (eg AEX.csv): headings:
+2. Roll parameters data. See [storing futures and spot FX data](/docs/data.md) for more detail.
+3. Adjusted price data- `code.csv` (eg SP500.csv) headings: DATETIME, PRICE
+4. Carry and forward data - `code.csv` (eg AEX.csv): headings:
    DATETIME, PRICE,CARRY,FORWARD,CARRY_CONTRACT PRICE_CONTRACT, FORWARD_CONTRACT
-4. Currency data - `ccy1ccy2fx.csv` (eg AUDUSDfx.csv) headings: DATETIME,
+5. Currency data - `ccy1ccy2fx.csv` (eg AUDUSDfx.csv) headings: DATETIME,
    FXRATE
 
 DATETIME should be something that `pandas.to_datetime` can parse. Note that the
@@ -3719,6 +3720,8 @@ The latter method is optional for costs derived from actual positions
 methods. It is useful for comparing with live trading history, but I do not
 recommend it for historical purposes as I don't think it is accurate in the
 past.
+
+*IMPORTANT NOTE: Actual costs per trade do not include holding costs from regular rolling of held positions! However these are included in Sharpe Ratio costs*
 
 Costs that can be included are:
 

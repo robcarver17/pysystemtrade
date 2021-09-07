@@ -13,6 +13,8 @@ class FuturesRawData(RawData):
 
     Name: rawdata
     """
+    def rolls_per_year(self, instrument_code: str) -> int:
+        return self.parent.data.get_rolls_per_year(instrument_code)
 
     @input
     def get_instrument_raw_carry_data(self, instrument_code: str) -> rawCarryData:

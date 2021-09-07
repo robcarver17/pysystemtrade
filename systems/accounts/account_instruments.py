@@ -119,11 +119,11 @@ class accountInstruments(accountCosts, accountBuffering):
 
         capital = self.get_notional_capital()
 
-        SR_cost_per_trade = self.get_SR_cost_per_trade_for_instrument(instrument_code)
         instrument_turnover = self.instrument_turnover(
                 instrument_code, roundpositions=roundpositions
             )
-        annualised_SR_cost = SR_cost_per_trade * instrument_turnover
+        annualised_SR_cost = self.get_SR_cost_given_turnover(instrument_code,
+                                                             instrument_turnover)
 
         average_position = self.get_average_position_for_instrument_at_portfolio_level(instrument_code)
 

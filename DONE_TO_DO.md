@@ -1,5 +1,8 @@
 # Release notes
 
+## Version 1.05
+
+- SR costs now include holding costs
 - Can now `allocate_zero_instrument_weights_to_these_instruments` in config file.
 - Moved roll config to /data/futures/csvconfig/ directory
 

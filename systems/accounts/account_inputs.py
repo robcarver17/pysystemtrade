@@ -64,6 +64,9 @@ class accountInputs(SystemStage):
     def get_raw_cost_data(self, instrument_code: str)  -> instrumentCosts:
         return self.parent.data.get_raw_cost_data(instrument_code)
 
+    def get_rolls_per_year(self, instrument_code: str) -> int:
+        return self.parent.rawdata.get_rolls_per_year(instrument_code)
+
     def get_value_of_block_price_move(self, instrument_code: str) -> float:
         return self.parent.data.get_value_of_block_price_move(instrument_code)
 

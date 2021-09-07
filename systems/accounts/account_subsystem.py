@@ -107,9 +107,9 @@ class accountSubsystem(accountCosts):
 
         average_position = self.get_volatility_scalar(instrument_code)
 
-        SR_cost_per_trade = self.get_SR_cost_per_trade_for_instrument(instrument_code)
         subsystem_turnover = self.subsystem_turnover(instrument_code)
-        annualised_SR_cost = SR_cost_per_trade * subsystem_turnover
+        annualised_SR_cost = self.get_SR_cost_given_turnover(instrument_code,
+                                                             subsystem_turnover)
 
         capital = self.get_notional_capital()
 
