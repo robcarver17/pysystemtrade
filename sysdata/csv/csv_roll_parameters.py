@@ -6,7 +6,7 @@ from syslogdiag.log_to_screen import logtoscreen
 
 import pandas as pd
 
-ROLLS_DATAPATH = "sysinit.futures.config."
+ROLLS_DATAPATH = "data.futures.csvconfig."
 ROLLS_CONFIG_FILE = "rollconfig.csv"
 
 
