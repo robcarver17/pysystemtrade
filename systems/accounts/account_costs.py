@@ -119,7 +119,7 @@ class accountCosts(accountInputs):
 
         return SR_cost
 
-    @diagnostic
+    @diagnostic()
     def get_SR_cost_given_turnover(self, instrument_code: str,
                                     turnover: float) -> float:
 
