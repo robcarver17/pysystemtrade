@@ -7,6 +7,7 @@ from sysobjects.adjusted_prices import futuresAdjustedPrices
 from sysobjects.instruments import assetClassesAndInstruments, instrumentCosts, futuresInstrumentWithMetaData
 from sysobjects.multiple_prices import futuresMultiplePrices
 from sysobjects.dict_of_named_futures_per_contract_prices import price_name, carry_name, forward_name, contract_name_from_column_name
+from sysobjects.rolls import rollParameters
 
 price_contract_name = contract_name_from_column_name(price_name)
 carry_contract_name = contract_name_from_column_name(carry_name)
@@ -105,6 +106,13 @@ class futuresSimData(simData):
         return all_price_data[
             [price_name, forward_name,price_contract_name,forward_contract_name]
         ]
+
+
+    def get_rolls_per_year(self, instrument_code: str) -> int:
+        roll_parameters = self.get_roll_parameters(instrument_code)
+        rolls_per_year = roll_parameters.rolls_per_year_in_hold_cycle()
+
+        return rolls_per_year
 
 
     def get_raw_cost_data(self, instrument_code: str) -> instrumentCosts:
@@ -212,6 +220,8 @@ class futuresSimData(simData):
         """
         raise NotImplementedError()
 
+    def get_roll_parameters(self, instrument_code: str) -> rollParameters:
+        raise NotImplementedError
 
     def _get_instrument_object_with_meta_data(self, instrument_code: str) -> futuresInstrumentWithMetaData:
         """

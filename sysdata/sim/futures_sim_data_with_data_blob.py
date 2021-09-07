@@ -4,6 +4,7 @@ from sysdata.futures.adjusted_prices import futuresAdjustedPricesData
 from sysdata.fx.spotfx import fxPricesData
 from sysdata.futures.instruments import futuresInstrumentData
 from sysdata.futures.multiple_prices import futuresMultiplePricesData
+from sysdata.futures.rolls_parameters import rollParametersData
 from sysdata.data_blob import dataBlob
 
 
@@ -11,6 +12,7 @@ from sysobjects.instruments import assetClassesAndInstruments,  futuresInstrumen
 from sysobjects.spot_fx_prices import fxPrices
 from sysobjects.adjusted_prices import futuresAdjustedPrices
 from sysobjects.multiple_prices import futuresMultiplePrices
+from sysobjects.rolls import rollParameters
 
 class genericBlobUsingFuturesSimData(futuresSimData):
     """
@@ -40,6 +42,9 @@ class genericBlobUsingFuturesSimData(futuresSimData):
     def db_futures_multiple_prices_data(self) -> futuresMultiplePricesData:
         return self.data.db_futures_multiple_prices
 
+    @property
+    def db_roll_parameters(self) -> rollParametersData:
+        return self.data.db_roll_parameters
 
     def get_instrument_list(self):
         return self.db_futures_adjusted_prices_data.get_list_of_instruments()
@@ -80,4 +85,7 @@ class genericBlobUsingFuturesSimData(futuresSimData):
 
         return instrument
 
+    def get_roll_parameters(self, instrument_code: str) -> rollParameters:
+        roll_parameters = self.db_roll_parameters.get_roll_parameters(instrument_code)
 
+        return roll_parameters

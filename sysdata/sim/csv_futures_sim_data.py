@@ -8,6 +8,7 @@ from sysdata.csv.csv_multiple_prices import csvFuturesMultiplePricesData
 from sysdata.csv.csv_adjusted_prices import csvFuturesAdjustedPricesData
 from sysdata.csv.csv_spot_fx import csvFxPricesData
 from sysdata.csv.csv_instrument_data import csvFuturesInstrumentData
+from sysdata.csv.csv_roll_parameters import csvRollParametersData
 
 from sysdata.data_blob import dataBlob
 from sysdata.sim.futures_sim_data_with_data_blob import genericBlobUsingFuturesSimData
@@ -26,7 +27,8 @@ class csvFuturesSimData(genericBlobUsingFuturesSimData):
                               class_list=[csvFuturesAdjustedPricesData,
                                           csvFuturesMultiplePricesData,
                                           csvFuturesInstrumentData,
-                                          csvFxPricesData])
+                                          csvFxPricesData,
+                                          csvRollParametersData])
 
         super().__init__(data = data)
 

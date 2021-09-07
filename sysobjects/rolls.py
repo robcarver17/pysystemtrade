@@ -31,6 +31,9 @@ class rollCycle(object):
     def __repr__(self):
         return self.cyclestring
 
+    def __len__(self) -> int:
+        return len(self.cyclestring)
+
     @property
     def cyclestring(self):
         return self._cyclestring
@@ -232,12 +235,12 @@ class rollParameters(object):
         return "Rollcycle parameters " + str_rep
 
     @property
-    def priced_rollcycle(self):
+    def priced_rollcycle(self) -> rollCycle:
         return self._priced_rollcycle
 
 
     @property
-    def hold_rollcycle(self):
+    def hold_rollcycle(self) -> rollCycle:
         return self._hold_rollcycle
 
     @property
@@ -261,6 +264,9 @@ class rollParameters(object):
             approx_expiry_offset=self.approx_expiry_offset,
         )
 
+    def rolls_per_year_in_hold_cycle(self) -> int:
+        hold_cycle = self.hold_rollcycle
+        return len(hold_cycle)
 
 
 

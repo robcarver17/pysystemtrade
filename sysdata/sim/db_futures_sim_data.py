@@ -9,6 +9,7 @@ from sysdata.arctic.arctic_adjusted_prices import arcticFuturesAdjustedPricesDat
 from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesData
 from sysdata.arctic.arctic_spotfx_prices import arcticFxPricesData
 from sysdata.mongodb.mongo_futures_instruments import mongoFuturesInstrumentData
+from sysdata.mongodb.mongo_roll_data import mongoRollParametersData
 from sysdata.data_blob import dataBlob
 from sysdata.sim.futures_sim_data_with_data_blob import genericBlobUsingFuturesSimData
 
@@ -22,7 +23,8 @@ class dbFuturesSimData(genericBlobUsingFuturesSimData):
         if data is arg_not_supplied:
             data = dataBlob(log = log,
                               class_list=[arcticFuturesAdjustedPricesData, arcticFuturesMultiplePricesData,
-                         arcticFxPricesData, mongoFuturesInstrumentData])
+                         arcticFxPricesData, mongoFuturesInstrumentData,
+                                          mongoRollParametersData])
 
         super().__init__(data=data)
 

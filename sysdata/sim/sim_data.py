@@ -110,6 +110,7 @@ class simData(baseData):
 
         return dailyprice
 
+
     def get_fx_for_instrument(self, instrument_code: str, base_currency: str) -> fxPrices:
         """
         Get the FX rate between the FX rate for the instrument and the base (account) currency
