@@ -2659,7 +2659,7 @@ The following are configurations mainly for mapping from our codes to broker cod
 
 The following are configurations used when initialising the database with it's initial configuration:
 
-- [/sysinit/futures/config/rollconfig.csv](/sysinit/futures/config/rollconfig.csv)
+- [/sysinit/futures/config/rollconfig.csv](/data/futures/csvconfig/rollconfig.csv)
 - [/data/futures/csvconfig/instrumentconfig.csv](/data/futures/csvconfig/instrumentconfig.csv) (though this may be used by the simulation environment)
 
 

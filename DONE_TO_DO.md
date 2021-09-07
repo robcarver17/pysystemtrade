@@ -1,6 +1,7 @@
 # Release notes
 
 - Can now `allocate_zero_instrument_weights_to_these_instruments` in config file.
+- Moved roll config to /data/futures/csvconfig/ directory
 
 ## Version 1.04
 
