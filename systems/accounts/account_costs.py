@@ -123,15 +123,15 @@ class accountCosts(accountInputs):
     def get_SR_cost_given_turnover(self, instrument_code: str,
                                     turnover: float) -> float:
 
-        SR_cost_trading = self.get_SR_tradng_cost_only_given_turnover(instrument_code,
-                                                                      turnover)
+        SR_cost_trading = self.get_SR_trading_cost_only_given_turnover(instrument_code,
+                                                                       turnover)
         SR_cost_holding = self.get_SR_holding_cost_only(instrument_code)
         SR_cost = SR_cost_holding + SR_cost_trading
 
         return SR_cost
 
-    def get_SR_tradng_cost_only_given_turnover(self, instrument_code: str,
-                                               turnover: float) -> float:
+    def get_SR_trading_cost_only_given_turnover(self, instrument_code: str,
+                                                turnover: float) -> float:
         cost_per_trade = self.get_SR_cost_per_trade_for_instrument(instrument_code)
 
         SR_cost_trading = turnover * cost_per_trade
