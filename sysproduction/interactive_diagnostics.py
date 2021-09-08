@@ -381,14 +381,14 @@ def capital_strategy(data):
     )
     capital_series = data_capital.get_capital_pd_series_for_strategy(
         strategy_name)
-    print(capital_series)
+    print(capital_series.tail(30))
     return None
 
 
 def total_current_capital(data):
     data_capital = dataCapital(data)
     capital_series = data_capital.get_series_of_all_global_capital()
-    print(capital_series)
+    print(capital_series.tail(30))
     return None
 
 

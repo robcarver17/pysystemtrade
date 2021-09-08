@@ -3740,6 +3740,21 @@ system.accounts.instrument_turnover(instrument_code) ### Annualised turnover of 
 system.accounts.forecast_turnover(instrument_code, rule_variation_name) ## Annualised turnover of forecast
 ```
 
+To see holding costs in SR units:
+
+
+```
+system.accounts.get_rolls_per_year("EDOLLAR") ## four
+system.accounts.get_SR_cost_per_trade_for_instrument("EDOLLAR") ## about 1 SR unit
+system.accounts.get_SR_holding_cost_only("EDOLLAR") ## cost of 4 rolls per year: which is two 'turnovers'
+system.accounts.get_SR_trading_cost_only_given_turnover("EDOLLAR", 5.0) ## trading five times a year, no holding cost
+system.accounts.get_SR_cost_given_turnover("EDOLLAR", 5) ## includes both holding and trading costs for a turnover of 5
+system.accounts.get_SR_cost_for_instrument_forecast("EDOLLAR", "carry") ## includes both
+system.accounts.pandl_for_subsystem("EDOLLAR") ## includes both, assuming you're using SR costs
+```
+
+
+
 For calculating forecast costs (`pandl_for_instrument_forecast`... and so on.
 Note these are used for estimating forecast weights) I offer the option to pool
 costs across instruments. You can either pool the estimate of turnovers (which
