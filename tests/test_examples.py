@@ -10,7 +10,7 @@ from systems.forecast_scale_cap import ForecastScaleCap
 from systems.forecast_combine import ForecastCombine
 from systems.accounts.accounts_stage import Account
 from systems.positionsizing import PositionSizing
-from systems.futures.rawdata import RawData
+from systems.rawdata import RawData
 from systems.portfolio import Portfolios
 import pytest
 from systems.provided.example.simplesystem import simplesystem
