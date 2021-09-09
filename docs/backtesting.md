@@ -84,7 +84,6 @@ Table of Contents
          * [Stage: Raw data](#stage-raw-data)
             * [Using the standard <a href="/systems/rawdata.py">RawData class</a>](#using-the-standard-rawdata-class)
                * [Volatility calculation](#volatility-calculation)
-            * [Using the <a href="/systems/futures/rawdata.py">FuturesRawData class</a>](#using-the-futuresrawdata-class)
             * [New or modified raw data classes](#new-or-modified-raw-data-classes)
          * [Stage: Rules](#stage-rules)
          * [Trading rules](#trading-rules)
@@ -1528,7 +1527,7 @@ config=Config("systems.provided.futures_chapter15.futuresconfig.yaml") ## or the
 ## Optionally the user can provide trading_rules (something which can be parsed as a set of trading rules); however this defaults to None in which case
 ##     the rules in the config will be used.
 
-system=System([Account(), PortfoliosFixed(), PositionSizing(), FuturesRawData(), ForecastCombine(),
+system=System([Account(), PortfoliosFixed(), PositionSizing(), RawData(), ForecastCombine(),
                    ForecastScaleCap(), Rules(trading_rules)], data, config)
 ```
 
@@ -1557,7 +1556,7 @@ config=Config("systems.provided.futures_chapter15.futuresconfig.yaml") ## or the
 ## Optionally the user can provide trading_rules (something which can be parsed as a set of trading rules); however this defaults to None in which case
 ##     the rules in the config will be used.
 
-system=System([Account(), PortfoliosEsimated(), PositionSizing(), FuturesRawData(), ForecastCombine(),
+system=System([Account(), PortfoliosEsimated(), PositionSizing(), RawData(), ForecastCombine(),
                    ForecastScaleCap(), Rules(trading_rules)], data, config)
 ```
 
@@ -2051,26 +2050,25 @@ from systems.forecasting import Rules
 from systems.basesystem import System
 from systems.forecast_combine import ForecastCombine
 from systems.forecast_scale_cap import ForecastScaleCap
-from systems.futures.rawdata import FuturesRawData
+from systems.rawdata import RawData
 from systems.positionsizing import PositionSizing
 from systems.portfolio import Portfolios
 from systems.accounts.accounts_stage import Account
 
 
-def futures_system( data=None, config=None, trading_rules=None,  log_level="on"):
-
+def futures_system(data=None, config=None, trading_rules=None, log_level="on"):
     if data is None:
-        data=csvFuturesSimData()
+        data = csvFuturesSimData()
 
     if config is None:
-        config=Config("systems.provided.futures_chapter15.futuresconfig.yaml")
+        config = Config("systems.provided.futures_chapter15.futuresconfig.yaml")
 
     ## It's nice to keep the option to dynamically load trading rules but if you prefer you can remove this and set rules=Rules() here
-    rules=Rules(trading_rules)
+    rules = Rules(trading_rules)
 
     ## build the system
-    system=System([Account(), Portfolios(), PositionSizing(), FuturesRawData(), ForecastCombine(),
-                   ForecastScaleCap(), rules], data, config)
+    system = System([Account(), Portfolios(), PositionSizing(), RawData(), ForecastCombine(),
+                     ForecastScaleCap(), rules], data, config)
 
     system.set_logging_level(log_level)
 
@@ -2305,6 +2303,11 @@ in raw data are:
 The base RawData class includes methods to get instrument prices, daily
 returns, volatility, and normalised returns (return over volatility).
 
+As we are trading futures the raw data class has some extra methods needed to calculate the carry
+rule for futures, and to expose the intermediate calculations.
+
+(Versions prior to 1.06 had a seperate FuturesRawData class)
+
 <a name="vol_calc"> </a>
 
 ##### Volatility calculation
@@ -2335,9 +2338,8 @@ past and the percentage returns will be large or have the wrong sign.
 
 For this reason there is a special method in the data class called
 `daily_denominator_price`. This tells the code what price to use for the P* in
-the calculation above. In the base class this defaults to the stitched price
-(but in the futures class, described below, it uses the raw price of the
-current contract).
+the calculation above. As we are trading futures this uses the raw price of the
+current contract.
 
 The other point to note is that the price difference volatility calculation is
 configurable through `config.volatility_calculation`.
@@ -2371,12 +2373,6 @@ If you're considering using your own function please see [configuring defaults
 for your own functions](#config_function_defaults)
 
 
-#### Using the [FuturesRawData class](/systems/futures/rawdata.py)
-
-The futures raw data class has some extra methods needed to calculate the carry
-rule for futures, and to expose the intermediate calculations. It also
-overrides `daily_denominator_price` with the raw price of the futures contract
-currently traded (as noted [above](#vol_calc) ).
 
 
 #### New or modified raw data classes
@@ -2540,7 +2536,7 @@ config = Config(
 
 # First let's add a new method to our rawdata
 # As well as the usual instrument_code this has a keyword argument, span, which we are going to access in our trading rule definitions
-class newRawData(FuturesRawData):
+class newRawData(RawData):
    def moving_average(self, instrument_code, span=8):
       price = self.get_daily_prices(instrument_code)
       return price.ewm(span=span).mean()
@@ -2599,7 +2595,7 @@ from systems.basesystem import System
 
 ## We now import all the stages we need
 from systems.forecasting import Rules
-from systems.futures.rawdata import FuturesRawData
+from systems.rawdata import RawData
 
 data=csvFuturesSimData()
 config=Config("systems.provided.futures_chapter15.futuresconfig.yaml")
@@ -2607,7 +2603,7 @@ config=Config("systems.provided.futures_chapter15.futuresconfig.yaml")
 rules=Rules()
 
 ## build the system
-system=System([rules, FuturesRawData()], data, config)
+system=System([rules, RawData()], data, config)
 
 rules
 ```
@@ -2743,7 +2739,7 @@ Once we have our new rules object we can create a new system with it:
 
 ```python
 ## build the system
-system=System([rules, FuturesRawData()], data, config)
+system=System([rules, RawData()], data, config)
 
 ```
 

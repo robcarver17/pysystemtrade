@@ -12,7 +12,6 @@ from systems.forecasting import (
 from systems.trading_rules import TradingRule
 from systems.basesystem import System
 from systems.rawdata import RawData
-from systems.futures.rawdata import FuturesRawData
 from systems.provided.futures_chapter15.rules import carry2
 from sysdata.config.configdata import Config
 from systems.tests.testdata import get_test_object
@@ -184,7 +183,7 @@ class Test(unittest.TestCase):
     def testCarryRule(self):
         NOTUSEDrawdata, data, NOTUSEDconfig = get_test_object()
 
-        rawdata = FuturesRawData()
+        rawdata = RawData()
         rules = Rules()
         system = System([rawdata, rules], data)
         rule = TradingRule(

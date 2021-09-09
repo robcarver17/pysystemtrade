@@ -1,5 +1,9 @@
 # Release notes
 
+## Version 1.06
+
+- Removed FuturesRawData, just use RawData now
+
 ## Version 1.05
 
 - SR costs now include holding costs

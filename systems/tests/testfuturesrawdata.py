@@ -1,5 +1,5 @@
 import numpy as np
-from systems.futures.rawdata import FuturesRawData
+from systems.rawdata import RawData
 from systems.basesystem import System
 from sysdata.sim.csv_futures_sim_data import csvFuturesSimData
 from sysdata.config.configdata import Config
@@ -12,7 +12,7 @@ def get_test_object_futures():
     """
     data = csvFuturesSimData()
     config = Config("systems.provided.example.exampleconfig.yaml")
-    rawdata = FuturesRawData()
+    rawdata = RawData()
     return (rawdata, data, config)
 
 

@@ -1,6 +1,5 @@
 from systems.accounts.accounts_stage import Account
 from systems.portfolio import Portfolios
-from systems.futures.rawdata import FuturesRawData
 from systems.rawdata import RawData
 from sysdata.sim.csv_futures_sim_data import csvFuturesSimData
 from sysdata.config.configdata import Config
@@ -25,7 +24,7 @@ def get_test_object_futures():
     Returns some standard test data
     """
     data = csvFuturesSimData()
-    rawdata = FuturesRawData()
+    rawdata = RawData()
     config = Config("systems.provided.example.exampleconfig.yaml")
     return (rawdata, data, config)
 
@@ -35,7 +34,7 @@ def get_test_object_futures_with_rules():
     Returns some standard test data
     """
     data = csvFuturesSimData()
-    rawdata = FuturesRawData()
+    rawdata = RawData()
     rules = Rules()
     config = Config("systems.provided.example.exampleconfig.yaml")
     return (rules, rawdata, data, config)
@@ -46,7 +45,7 @@ def get_test_object_futures_with_rules_and_capping():
     Returns some standard test data
     """
     data = csvFuturesSimData()
-    rawdata = FuturesRawData()
+    rawdata = RawData()
     rules = Rules()
     config = Config("systems.provided.example.exampleconfig.yaml")
     capobject = ForecastScaleCap()
@@ -58,7 +57,7 @@ def get_test_object_futures_with_comb_forecasts():
     Returns some standard test data
     """
     data = csvFuturesSimData()
-    rawdata = FuturesRawData()
+    rawdata = RawData()
     rules = Rules()
     config = Config("systems.provided.example.exampleconfig.yaml")
     capobject = ForecastScaleCap()
@@ -71,7 +70,7 @@ def get_test_object_futures_with_pos_sizing():
     Returns some standard test data
     """
     data = csvFuturesSimData()
-    rawdata = FuturesRawData()
+    rawdata = RawData()
     rules = Rules()
     config = Config("systems.provided.example.exampleconfig.yaml")
     capobject = ForecastScaleCap()
@@ -85,7 +84,7 @@ def get_test_object_futures_with_portfolios():
     Returns some standard test data
     """
     data = csvFuturesSimData()
-    rawdata = FuturesRawData()
+    rawdata = RawData()
     rules = Rules()
     config = Config("systems.provided.example.exampleconfig.yaml")
     capobject = ForecastScaleCap()
@@ -108,7 +107,7 @@ def get_test_object_futures_with_rules_and_capping_estimate():
     Returns some standard test data
     """
     data = csvFuturesSimData()
-    rawdata = FuturesRawData()
+    rawdata = RawData()
     rules = Rules()
     config = Config("systems.provided.example.estimateexampleconfig.yaml")
     capobject = ForecastScaleCap()
@@ -121,7 +120,7 @@ def get_test_object_futures_with_pos_sizing_estimates():
     Returns some standard test data
     """
     data = csvFuturesSimData()
-    rawdata = FuturesRawData()
+    rawdata = RawData()
     rules = Rules()
     config = Config("systems.provided.example.estimateexampleconfig.yaml")
     capobject = ForecastScaleCap()
