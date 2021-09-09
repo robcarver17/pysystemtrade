@@ -156,7 +156,7 @@ def backup_futures_contract_prices_for_instrument_to_csv(data: dataBlob, instrum
         csv_data = data.csv_futures_contract_price.get_prices_for_contract_object(contract)
 
         if check_df_equals(arctic_data, csv_data):
-            # No updated needed, move on
+            # No update needed, move on
             print("No update needed")
         else:
             # Write backup
@@ -181,7 +181,7 @@ def backup_fx_to_csv(data):
         arctic_data = data.arctic_fx_prices.get_fx_prices(fx_code)
         csv_data = data.csv_fx_prices.get_fx_prices(fx_code)
         if check_ts_equals(arctic_data, csv_data):
-            print("No updated needed")
+            print("No update needed")
         else:
             # Write backup
             try:
@@ -198,7 +198,7 @@ def backup_fx_to_csv(data):
         arctic_data = data.arctic_fx_prices.get_fx_prices(fx_code)
         csv_data = data.csv_fx_prices.get_fx_prices(fx_code)
         if check_ts_equals(arctic_data, csv_data):
-            print("No updated needed")
+            print("No update needed")
         else:
             # Write backup
             try:

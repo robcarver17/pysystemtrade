@@ -256,7 +256,7 @@ class accountCosts(accountInputs):
         >>> (portfolio, posobject, combobject, capobject, rules, rawdata, data, config)=get_test_object_futures_with_portfolios()
         >>> system=System([portfolio, posobject, combobject, capobject, rules, rawdata, Account()], data, config)
         >>>
-        >>> system.accounts.get_SR_cost_of_trading_instrument("EDOLLAR")
+        >>> system.accounts.get_SR_cost_per_trade_for_instrument("EDOLLAR")
         0.0065584086244069775
         """
 
