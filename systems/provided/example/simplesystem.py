@@ -8,7 +8,7 @@ from systems.forecast_scale_cap import ForecastScaleCap
 from systems.positionsizing import PositionSizing
 from systems.portfolio import Portfolios
 from systems.accounts.accounts_stage import Account
-
+from systems.rawdata import RawData
 
 def simplesystem(data=None, config=None, log_level="on"):
     """
@@ -27,6 +27,7 @@ def simplesystem(data=None, config=None, log_level="on"):
             ForecastCombine(),
             ForecastScaleCap(),
             Rules(),
+            RawData()
         ],
         data,
         config,
