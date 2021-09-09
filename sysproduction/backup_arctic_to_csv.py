@@ -157,7 +157,7 @@ def backup_futures_contract_prices_for_instrument_to_csv(data: dataBlob, instrum
 
         if check_df_equals(arctic_data, csv_data):
             # No update needed, move on
-            print("No update needed")
+            data.log.msg("No prices backup needed for %s" % contract)
         else:
             # Write backup
             try:
@@ -181,7 +181,7 @@ def backup_fx_to_csv(data):
         arctic_data = data.arctic_fx_prices.get_fx_prices(fx_code)
         csv_data = data.csv_fx_prices.get_fx_prices(fx_code)
         if check_ts_equals(arctic_data, csv_data):
-            print("No update needed")
+            data.log.msg("No fx backup needed for %s" % fx_code)
         else:
             # Write backup
             try:
@@ -198,7 +198,7 @@ def backup_fx_to_csv(data):
         arctic_data = data.arctic_fx_prices.get_fx_prices(fx_code)
         csv_data = data.csv_fx_prices.get_fx_prices(fx_code)
         if check_ts_equals(arctic_data, csv_data):
-            print("No update needed")
+            data.log.msg("No fx backup needed for %s" % fx_code)
         else:
             # Write backup
             try:
@@ -223,7 +223,7 @@ def backup_multiple_to_csv_for_instrument(data, instrument_code: str):
         instrument_code)
 
     if check_df_equals(arctic_data, csv_data):
-        print("No update needed")
+        data.log.msg("No multiple prices backup needed for %s" % instrument_code)
         pass
     else:
         try:
@@ -253,7 +253,7 @@ def backup_adj_to_csv_for_instrument(data: dataBlob, instrument_code: str):
         instrument_code)
 
     if check_ts_equals(arctic_data, csv_data):
-        print("No update needed")
+        data.log.msg("No adjusted prices backup needed for %s" % instrument_code)
         pass
     else:
         try:
@@ -283,7 +283,7 @@ def backup_spreads_to_csv_for_instrument(data: dataBlob, instrument_code: str):
         instrument_code)
 
     if check_ts_equals(arctic_data, csv_data):
-        print("No update needed")
+        data.log.msg("No spreads backup needed for %s" % instrument_code)
         pass
     else:
         try:
@@ -369,25 +369,27 @@ def backup_capital(data):
             strategy_name
         ] = data.mongo_capital.get_capital_pd_df_for_strategy(strategy_name)
 
-    capital_data["TOTAL_total"] = data.mongo_capital.get_total_capital_pd_df()
-    capital_data[
-        "TOTAL_broker"
-    ] = data.mongo_capital.get_broker_account_value_pd_df()
-    capital_data["TOTAL_max"] = data.mongo_capital.get_maximum_account_value_pd_df()
-    capital_data[
-        "TOTAL_pandl"
-    ] = data.mongo_capital.get_profit_and_loss_account_pd_df()
+    if len(capital_data) > 0:
+        capital_data["TOTAL_total"] = data.mongo_capital.get_total_capital_pd_df()
+        capital_data[
+            "TOTAL_broker"
+        ] = data.mongo_capital.get_broker_account_value_pd_df()
+        capital_data["TOTAL_max"] = data.mongo_capital.get_maximum_account_value_pd_df()
+        capital_data[
+            "TOTAL_pandl"
+        ] = data.mongo_capital.get_profit_and_loss_account_pd_df()
 
-    capital_data = pd.concat(capital_data, axis=1)
-    capital_data.columns = strategy_list + [
-        "TOTAL_total",
-        "TOTAL_broker",
-        "TOTAL_max",
-        "TOTAL_pandl",
-    ]
-    capital_data = capital_data.ffill()
+        capital_data = pd.concat(capital_data, axis=1)
+        capital_data.columns = strategy_list + [
+            "TOTAL_total",
+            "TOTAL_broker",
+            "TOTAL_max",
+            "TOTAL_pandl",
+        ]
+        capital_data = capital_data.ffill()
 
-    data.csv_capital.write_df_of_all_capital(capital_data)
+        data.csv_capital.write_df_of_all_capital(capital_data)
+
     data.log.msg("Backed up capital data")
 
 
