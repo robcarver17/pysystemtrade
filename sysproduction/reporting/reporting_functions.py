@@ -38,9 +38,9 @@ def run_report_with_data_blob(report_config: reportConfig,
     parsed_report = parse_report_results(report_results)
 
     # We either print or email
-    if report_config.output is "console":
+    if report_config.output == "console":
         print(parsed_report)
-    elif report_config.output is "email":
+    elif report_config.output == "email":
         send_production_mail_msg(
             data, parsed_report, subject=report_config.title, email_is_report=True
         )

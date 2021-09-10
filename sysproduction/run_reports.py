@@ -4,7 +4,7 @@ from sysproduction.reporting.report_configs import all_configs
 from sysdata.data_blob import dataBlob
 
 
-# JUST A COPY AND PAST JOB RIGHT NOW
+# JUST A COPY AND PASTE JOB RIGHT NOW
 
 
 def run_reports():
