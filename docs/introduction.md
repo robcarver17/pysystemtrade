@@ -178,7 +178,7 @@ account.gross.ann_mean() ## annual mean for gross returns, also costs (there are
 
 This is all very well, but what we probably want to do is build a trading **system** composed of several trading rules, and a few more instruments.
 
-A system consists of some `data` (which we've already seen), a number of processing *stages*, and optionally a configuration to modify each of the stages behaves.
+A system consists of some `data` (which we've already seen), a number of processing *stages*, and optionally a configuration to modify how each of the stages behaves.
 
 A full list of stages would include:
 

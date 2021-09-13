@@ -12,7 +12,10 @@ DATE_INDEX_NAME = "DATETIME"
 
 def from_list_of_orders_to_df(list_of_orders):
     list_as_dict = [order.as_dict() for order in list_of_orders]
-    keys = list(list_as_dict[-1].keys())
+    if len(list_of_orders) > 0:
+        keys = list(list_as_dict[-1].keys())
+    else:
+        keys = []
     key_data = {}
     for key_name in keys:
         key_data[key_name] = [dict_entry[key_name]

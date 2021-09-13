@@ -36,7 +36,7 @@ Table of Contents
    * [Data backup](#data-backup)
       * [Mongo data](#mongo-data)
       * [Mongo / csv data](#mongo--csv-data)
-   * [Echoes, Logging, diagnostics and reporting](#echoes-logging-diagnostics-and-reporting)
+   * [Echos, Logging, diagnostics and reporting](#echos-logging-diagnostics-and-reporting)
       * [Echos: stdout output](#echos-stdout-output)
          * [Cleaning old echo files](#cleaning-old-echo-files)
       * [Logging](#logging)
@@ -593,11 +593,11 @@ Linux script:
 ```
 
 
-## Echoes, Logging, diagnostics and reporting
+## Echos, Logging, diagnostics and reporting
 
 We need to know what our system is doing, especially if it is fully automated. Here are the methods by which this should be done:
 
-- Echoes of stdout output from processes that are running
+- Echos of stdout output from processes that are running
 - Storage of logging output in a database, tagged with keys to identify them
 - Storage of diagnostics in a database, tagged with keys to identify them
 - the option to run reports both scheduled and ad-hoc, which can optionally be automatically emailed
@@ -613,7 +613,7 @@ ECHO_PATH="$HOME:/echos"
 0 6  * * 1-5 $SCRIPT_PATH/updatefxprices  >> $ECHO_PATH/updatefxprices.txt 2>&1
 ```
 
-The above line will run the script `updatefxprices`, but instead of outputting the results to stdout they will go to `updatefxprices.txt`. These echo files are must useful when processes crash, in which case you may want to examine the stack trace. Usually however the log files will be more useful.
+The above line will run the script `updatefxprices`, but instead of outputting the results to stdout they will go to `updatefxprices.txt`. These echo files are most useful when processes crash, in which case you may want to examine the stack trace. Usually however the log files will be more useful.
 
 #### Cleaning old echo files
 
@@ -1681,7 +1681,7 @@ The stack handler will also periodically sample the bid/ask spread on all instru
 ## Interactive scripts to modify data
 
 ### Manual check of futures contract historical price data
-(Whever required)
+(Whenever required)
 
 You should run these if the normal price collection has identified a spike (for which you'd be sent an email, if you've set that up).
 
@@ -1706,7 +1706,7 @@ Once all spikes are checked for a given contract then the checked data is writte
 
 
 ### Manual check of FX price data
-(Whever required)
+(Whenever required)
 
 You should run these if the normal price collection has identified a spike (for which you'd be sent an email, if you've set that up).
 
