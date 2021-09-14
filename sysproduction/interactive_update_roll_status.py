@@ -32,6 +32,7 @@ from sysdata.data_blob import dataBlob
 from sysproduction.data.prices import diagPrices, updatePrices, get_valid_instrument_code_from_user
 
 no_state_available = named_object("No state available")
+EXIT_CODE = "EXIT"
 
 def interactive_update_roll_status():
     """
@@ -45,27 +46,35 @@ def interactive_update_roll_status():
     with dataBlob(log_name="Interactive_Update-Roll-Status") as data:
         do_another = True
         while do_another:
-            instrument_code = get_valid_instrument_code_from_user(data=data)
-            data.log.setup(instrument_code = instrument_code)
-            # First get the roll info
-            # This will also update to console
-            run_roll_report(data, instrument_code)
-
-            roll_data = get_required_roll_state(
-                data, instrument_code
-            )
-            if roll_data is no_state_available:
-                exit()
-            roll_state_required = roll_data.required_state
-
-            modify_roll_state(data, instrument_code, roll_state_required)
-
-            if roll_state_required is roll_adj_state:
-                roll_adjusted_prices(data, instrument_code, roll_data.original_roll_status)
-
-            ans = input("Another <type anything> ? or <RETURN> to exit: ")
-            if ans == "":
+            instrument_code = get_valid_instrument_code_from_user(data=data,
+                                                                  allow_exit=True,
+                                                                  exit_code=EXIT_CODE)
+            if instrument_code is EXIT_CODE:
+                # belt and braces
                 do_another = False
+                break
+
+            update_roll_state_for_code(data, instrument_code)
+
+    return success
+
+def update_roll_state_for_code(data: dataBlob, instrument_code: str):
+    data.log.setup(instrument_code=instrument_code)
+    # First get the roll info
+    # This will also update to console
+    run_roll_report(data, instrument_code)
+
+    roll_data = get_required_roll_state(
+        data, instrument_code
+    )
+    if roll_data is no_state_available:
+        exit()
+    roll_state_required = roll_data.required_state
+
+    modify_roll_state(data, instrument_code, roll_state_required)
+
+    if roll_state_required is roll_adj_state:
+        roll_adjusted_prices(data, instrument_code, roll_data.original_roll_status)
 
     return success
 

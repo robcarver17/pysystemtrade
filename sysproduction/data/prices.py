@@ -209,7 +209,9 @@ class updatePrices(productionDataLayerGeneric):
 def get_valid_instrument_code_from_user(
         data: dataBlob=arg_not_supplied,
         allow_all: bool=False,
+        allow_exit: bool=False,
         all_code = "ALL",
+        exit_code="",
             source = 'multiple') -> str:
     if data is arg_not_supplied:
         data = dataBlob()
@@ -218,12 +220,17 @@ def get_valid_instrument_code_from_user(
     input_prompt = "Instrument code?"
     if allow_all:
         input_prompt = input_prompt + "(Return for ALL)"
+    elif allow_exit:
+        input_prompt = input_prompt + "(Return to EXIT"
     while invalid_input:
         instrument_code = input(input_prompt)
 
         if allow_all:
             if instrument_code == "" or instrument_code == "ALL":
                 return all_code
+        elif allow_exit:
+            if instrument_code == "":
+                return exit_code
 
         if instrument_code in instrument_code_list:
             break
