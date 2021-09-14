@@ -85,9 +85,12 @@ nested_menu_of_options = {
 def view_trade_limits(data):
     trade_limits = dataTradeLimits(data)
     all_limits = trade_limits.get_all_limits()
+    all_limits_and_codes = [("%s %d" % (str(limit.instrument_strategy), limit.period_days),
+                             limit) for limit in all_limits]
+    all_limits_and_codes = sorted(all_limits_and_codes, key = lambda x:x[0])
     print("All limits\n")
-    for limit in all_limits:
-        print(limit)
+    for limit_and_code in all_limits_and_codes:
+        print(limit_and_code[1])
     print("\n")
 
 
