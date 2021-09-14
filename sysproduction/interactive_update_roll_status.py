@@ -68,7 +68,8 @@ def update_roll_state_for_code(data: dataBlob, instrument_code: str):
         data, instrument_code
     )
     if roll_data is no_state_available:
-        exit()
+        return failure
+
     roll_state_required = roll_data.required_state
 
     modify_roll_state(data, instrument_code, roll_state_required)
