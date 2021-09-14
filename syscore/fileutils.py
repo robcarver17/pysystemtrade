@@ -151,9 +151,21 @@ def files_with_extension_in_pathname(pathname, extension=".csv"):
     :param extension: str
     :return: list of files, with extensions stripped off
     """
-    pathname = get_resolved_pathname(pathname)
+    resolved_pathname = get_resolved_pathname(pathname)
 
-    file_list = os.listdir(pathname)
+    return files_with_extension_in_resolved_pathname(resolved_pathname, extension=extension)
+
+
+def files_with_extension_in_resolved_pathname(resolved_pathname, extension=".csv"):
+    """
+    Find all the files with a particular extension in a directory
+
+    :param pathname: absolute eg "home/user/data" or relative inside pysystemtrade eg "data.futures"
+    :param extension: str
+    :return: list of files, with extensions stripped off
+    """
+
+    file_list = os.listdir(resolved_pathname)
     file_list = [
         filename for filename in file_list if filename.endswith(extension)]
     file_list_no_extension = [filename.split(".")[0] for filename in file_list]
