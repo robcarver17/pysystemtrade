@@ -24,8 +24,8 @@ def strip_file_names(pathname):
         datecode = str(year)+'{0:02d}'.format(month)
 
         new_file_name = "%s_%s00.csv" % (instrument, datecode)
-        new_full_name = "%s%s" % (pathname, new_file_name)
-        old_full_name = "%s%s.csv" % (pathname, filename)
+        new_full_name = os.path.join(pathname, new_file_name)
+        old_full_name = os.path.join(pathname, filename)
         print("Rename %s to\n %s" % (old_full_name, new_full_name))
 
         os.rename(old_full_name, new_full_name)
