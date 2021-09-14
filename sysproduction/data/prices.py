@@ -221,7 +221,7 @@ def get_valid_instrument_code_from_user(
     if allow_all:
         input_prompt = input_prompt + "(Return for ALL)"
     elif allow_exit:
-        input_prompt = input_prompt + "(Return to EXIT"
+        input_prompt = input_prompt + "(Return to EXIT)"
     while invalid_input:
         instrument_code = input(input_prompt)
 
