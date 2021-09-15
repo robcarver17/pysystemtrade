@@ -54,7 +54,8 @@ nested_menu_of_options = {
         2: "Reset global trade limit for instrument",
         3: "Change/add trade limit for instrument & strategy",
         4: "Reset trade limit for instrument & strategy",
-        5: "Auto populate trade limits"
+        5: "Reset all trade limits",
+        6: "Auto populate trade limits"
     },
     1: {
         10: "View position limits",
@@ -84,13 +85,10 @@ nested_menu_of_options = {
 
 def view_trade_limits(data):
     trade_limits = dataTradeLimits(data)
-    all_limits = trade_limits.get_all_limits()
-    all_limits_and_codes = [("%s %d" % (str(limit.instrument_strategy), limit.period_days),
-                             limit) for limit in all_limits]
-    all_limits_and_codes = sorted(all_limits_and_codes, key = lambda x:x[0])
+    all_limits = trade_limits.get_all_limits_sorted()
     print("All limits\n")
-    for limit_and_code in all_limits_and_codes:
-        print(limit_and_code[1])
+    for limit in all_limits:
+        print(limit)
     print("\n")
 
 
@@ -114,6 +112,7 @@ def change_limit_for_instrument(data):
         )
 
 
+
 def reset_limit_for_instrument(data):
     trade_limits = dataTradeLimits(data)
     instrument_code = get_valid_instrument_code_from_user(data)
@@ -125,7 +124,15 @@ def reset_limit_for_instrument(data):
     ans = input(
         "Reset means trade 'clock' will restart. Are you sure? (y/other)")
     if ans == "y":
-        trade_limits.reset_instrument_limit(instrument_code, period_days)
+            trade_limits.reset_instrument_limit(instrument_code, period_days)
+
+def reset_all_limits(data):
+    trade_limits = dataTradeLimits(data)
+    ans = input(
+        "Reset means trade 'clock' will restart. Are you sure? (y/other)")
+    if ans == "y":
+        trade_limits.reset_all_limits()
+
 
 
 def change_limit_for_instrument_strategy(data):
@@ -136,16 +143,15 @@ def change_limit_for_instrument_strategy(data):
         type_expected=int,
         allow_default=True,
         default_value=1)
-    strategy_name = get_valid_strategy_name_from_user(data=data, source="positions")
     new_limit = get_and_convert(
         "Limit (in contracts?)", type_expected=int, allow_default=False
     )
-    instrument_strategy = instrumentStrategy(instrument_code=instrument_code, strategy_name=strategy_name)
 
     ans = input(
         "Update will change number of trades allowed in periods, but won't reset 'clock'. Are you sure? (y/other)"
     )
     if ans == "y":
+        instrument_strategy = instrumentStrategy(instrument_code=instrument_code, strategy_name=strategy_name)
         trade_limits.update_instrument_strategy_limit_with_new_limit(
             instrument_strategy=instrument_strategy, period_days=period_days, new_limit=new_limit
         )
@@ -160,11 +166,11 @@ def reset_limit_for_instrument_strategy(data):
         allow_default=True,
         default_value=1)
     strategy_name = get_valid_strategy_name_from_user(data=data, source="positions")
-    instrument_strategy = instrumentStrategy(instrument_code=instrument_code, strategy_name=strategy_name)
 
     ans = input(
         "Reset means trade 'clock' will restart. Are you sure? (y/other)")
     if ans == "y":
+        instrument_strategy = instrumentStrategy(instrument_code=instrument_code, strategy_name=strategy_name)
         trade_limits.reset_instrument_strategy_limit(
             instrument_strategy=instrument_strategy, period_days=period_days
         )
@@ -476,7 +482,8 @@ dict_of_functions = {
     2: reset_limit_for_instrument,
     3: change_limit_for_instrument_strategy,
     4: reset_limit_for_instrument_strategy,
-    5: auto_populate_limits,
+    5: reset_all_limits,
+    6: auto_populate_limits,
     10: view_position_limit,
     11: change_position_limit_for_instrument,
     12: change_position_limit_for_instrument_strategy,

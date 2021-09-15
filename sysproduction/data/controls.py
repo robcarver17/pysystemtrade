@@ -1,5 +1,3 @@
-from syscore.objects import arg_not_supplied
-from syscore.genutils import sign
 
 from sysobjects.production.position_limits import positionLimitAndPosition
 from sysdata.mongodb.mongo_lock_data import mongoLockData
@@ -102,6 +100,14 @@ class dataTradeLimits(productionDataLayerGeneric):
         self.db_trade_limit_data.remove_trade(
             instrument_strategy, trade)
 
+    def get_all_limits_sorted(self) -> list:
+        all_limits = self.get_all_limits()
+        all_limits_and_codes = [("%s %d" % (str(limit.instrument_strategy), limit.period_days),
+                                 limit) for limit in all_limits]
+        all_limits_and_codes = sorted(all_limits_and_codes, key=lambda x: x[0])
+        all_limits_sorted = [limit_and_code[1] for limit_and_code in all_limits_and_codes]
+
+        return all_limits_sorted
 
     def get_all_limits(self) -> list:
         all_limits =self.db_trade_limit_data.get_all_limits()
@@ -113,6 +119,9 @@ class dataTradeLimits(productionDataLayerGeneric):
         self.db_trade_limit_data.update_instrument_limit_with_new_limit(
             instrument_code, period_days, new_limit
         )
+
+    def reset_all_limits(self):
+        self.db_trade_limit_data.reset_all_limits()
 
     def reset_instrument_limit(self, instrument_code: str, period_days: int):
         self.db_trade_limit_data.reset_instrument_limit(

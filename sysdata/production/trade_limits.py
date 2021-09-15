@@ -125,9 +125,20 @@ class tradeLimitData(baseData):
         trade_limit.update_limit(new_limit)
         self._update_trade_limit_object(trade_limit)
 
+    def reset_all_limits(self):
+        all_limits = self.get_all_limits()
+        for limit in all_limits:
+            self.reset_instrument_strategy_limit(instrument_strategy=limit.instrument_strategy,
+                                                 period_days = limit.period_days)
+
     def reset_instrument_limit(self, instrument_code:str, period_days: int):
         instrument_strategy = instrument_strategy_for_instrument_only(instrument_code)
         self.reset_instrument_strategy_limit(instrument_strategy, period_days)
+
+    def reset_strategy_limit_all_instruments(self,
+            strategy_name:str , period_days: int):
+
+        pass
 
     def reset_instrument_strategy_limit(
         self, instrument_strategy: instrumentStrategy, period_days: int
