@@ -80,12 +80,8 @@ class ibFxPricesData(brokerFxPricesData):
         return fx_prices
 
     def _get_raw_fx_prices(self, ib_config_for_code: ibFXConfig) -> pd.Series:
-        if ib_config_for_code.invert:
-            ccy1 = ib_config_for_code.ccy2
-            ccy2 = ib_config_for_code.ccy1
-        else:
-            ccy1 = ib_config_for_code.ccy1
-            ccy2 = ib_config_for_code.ccy2
+        ccy1 = ib_config_for_code.ccy1
+        ccy2 = ib_config_for_code.ccy2
 
         raw_fx_prices = self.ib_client.broker_get_daily_fx_data(
             ccy1, ccy2
@@ -94,9 +90,6 @@ class ibFxPricesData(brokerFxPricesData):
         if raw_fx_prices is missing_data:
             return pd.Series()
         raw_fx_prices_as_series = raw_fx_prices["FINAL"]
-
-        if ib_config_for_code.invert:
-            raw_fx_prices_as_series = 1.0/raw_fx_prices_as_series
 
         return raw_fx_prices_as_series
 
