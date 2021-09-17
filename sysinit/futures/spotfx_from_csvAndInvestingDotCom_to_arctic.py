@@ -26,7 +26,9 @@ def spotfx_from_csv_and_investing_dot_com(datapath, ADD_TO_ARCTIC = True, ADD_TO
         arctic_fx_prices = arcticFxPricesData()
     my_csv_fx_prices_data = csvFxPricesData()
 
-    list_of_ccy_codes = my_csv_fx_prices_data.get_list_of_fxcodes()
+    current_list_of_ccy_codes = my_csv_fx_prices_data.get_list_of_fxcodes()
+    new_list_of_ccy_codes = investingDotCom_csv_fx_prices.get_list_of_fxcodes()
+    list_of_ccy_codes= list(set(current_list_of_ccy_codes+ new_list_of_ccy_codes))
 
     for currency_code in list_of_ccy_codes:
 
