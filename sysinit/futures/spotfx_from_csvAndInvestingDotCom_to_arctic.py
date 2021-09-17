@@ -24,7 +24,7 @@ def spotfx_from_csv_and_investing_dot_com(datapath, ADD_TO_ARCTIC = True, ADD_TO
             config = investing_dot_com_config)
     if ADD_TO_ARCTIC:
         arctic_fx_prices = arcticFxPricesData()
-    my_csv_fx_prices_data = csvFxPricesData()
+    my_csv_fx_prices_data = csvFxPricesData(".home.rob.pysystemtrade.data.futures.fx_prices_csv")
 
     current_list_of_ccy_codes = my_csv_fx_prices_data.get_list_of_fxcodes()
     new_list_of_ccy_codes = investingDotCom_csv_fx_prices.get_list_of_fxcodes()
