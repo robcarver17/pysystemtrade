@@ -185,49 +185,49 @@ EU-DJ-RETAIL,50,Sector,EUR,2.09999999999997,2,0,0,Dow Jones Euro STOXX Retail
 MILKWET,2000,Ags,USD,0.092499999999999,0.85,0,0,Class IV Milk - 200k lbs
 IG,1000,Bond,USD,0.019999999999996,0.85,0,0,iBoxx iShares $ Investment Grade Corporate Bond Index TR
 GAS-PEN,10000,OilGas,USD,0.001,0.85,0,0,Natural Gas Penultimate Financial Futures Index
-EU-DJ-FINANCE,50,,EUR,6.25,2,0,0,Dow Jones Euro STOXX Financial Services Index
-BEL20,10,,EUR,3.25,4.5,0,0,BEL 20 Index (BFX@)
-BOVESPA,1,,USD,140,0.85,0,0,Bovespa Index - USD
-PLN,500000,,USD,7.00000000000145E-05,0.85,0,0,Polish zloty
-JGB-mini,100000,,JPY,,85,0,0,Mini 10 Year JGB
-GOLD-CHINA,1000,,CNH,7.45000000000002,0.85,0,0,Shanghai Gold Exchange Gold Benchmark PM Price Index - CNH Futures
-GASOILINE-mini,21000,,USD,,0.85,0,0,NYMEX MINY Gasoline RBOB Index
-ETHANOL,29000,,USD,,0.85,0,0,Ethanol CME
-HOUSE-US,250,,USD,2.5,0.85,0,0,Housing Index Composite
-HOUSE-SD,250,,USD,2.45,0.85,0,0,San Diego Housing Index
-HOUSE-SF,250,,USD,1.95,0.85,0,0,San Francisco Housing Index
-HEATOIL-mini,21000,,USD,0.0325,0.85,0,0,NYMEX MINY Heating Oil Index
-HOUSE-CG,250,,USD,3,0.85,0,0,Chicago Housing Index
-HOUSE-DN,250,,USD,3,0.85,0,0,Denver Housing Index
-HOUSE-LV,250,,USD,3.90000000000001,0.85,0,0,Las Vegas Housing Index
-HOUSE-LA,250,,USD,4.29999999999998,0.85,0,0,Los Angeles Housing Index
-HUF,30000000,,USD,6.5E-06,0.85,0,0,Hungarian forint
-USIRS30,1000,,USD,0.09375,0.85,0,0,30-Year Deliverable Interest Rate Swap Futures
-USIRS2,1000,,USD,,0.85,0,0,2-Year Deliverable Interest Rate Swap Futures
-HOUSE-BO,250,,USD,3.39999999999998,0.85,0,0,Boston Housing Index
-CLP,50000000,,USD,,0.85,0,0,Chilean peso
-CZK,4000000,,USD,9.19999999999983E-05,0.85,0,0,Czech koruna
-LIBOR1,2500,,USD,0.009999999999998,0.85,0,0,1 Month LIBOR (Int. Rate)
-PLZEUR,500000,,EUR,0.0003,0.85,0,0,Polish zloty EURO
-IRS,1000000,,USD,0.000585,0.85,0,0,Israeli shekel
-HOUSE-MI,250,,USD,4.09999999999999,0.85,0,0,Miami Housing Index
-NIKKEI-JPY,100,,JPY,2100,0.85,0,0,Yen Denominated Nikkei 225 Index
-HOUSE-NY,250,,USD,3.59999999999999,0.85,0,0,New York Housing Index
-SP500-GROWTH,250,,USD,,0.85,0,0,S&P 500 / Citigroup Growth Index
-SP600-SMALL,100,,USD,,0.85,0,0,E-Mini S&P SmallCap 600 Futures
-BRENT,1000,,USD,,0.85,0,0,NYMEX Brent Financial Futures Index
-PIPELINE,42000,,USD,,0.85,0,0,Gulf Coast ULSD (Platts) Up-Down Futures
-COTTON,50000,,USD,,0.85,0,0,NYMEX Cotton index
-URANIUM,250,,USD,,0.85,0,0,NYMEX Uranium Index
-TOPIX30,1000,,JPY,,50,0,0,Topix Core30
-DIVDAX-DIVI,1000,,EUR,,2,0,0,DivDAX Dividend Points Index
-AUDJPY,25000,,JPY,0.014999999999994,285,0,0,SGX Australian Dollar in Japanese Yen Futures
-AUD-SGX,25000,,USD,0.00015,2.85,0,0,SGX Australian Dollar in US Dollar Futures
-KRWJPY,25000,,JPY,,285,0,0,SGX Korean Won in Japanese Yen Futures
-JPY-SGX-TITAN,500000,,JPY,0.009999999999998,360,0,0,SGX US Dollar in Japanese Yen Futures (Titan)
-JPY-SGX,100000,,JPY,0.009999999999998,300,0,0,SGX US Dollar in Japanese Yen Futures (Standard)
+EU-DJ-FINANCE,50,Sector,EUR,6.25,2,0,0,Dow Jones Euro STOXX Financial Services Index
+BEL20,10,Equity,EUR,3.25,4.5,0,0,BEL 20 Index (BFX@)
+BOVESPA,1,Equity,USD,140,0.85,0,0,Bovespa Index - USD
+PLN,500000,FX,USD,7.00000000000145E-05,0.85,0,0,Polish zloty
+JGB-mini,100000,Bond,JPY,,85,0,0,Mini 10 Year JGB
+GOLD-CHINA,1000,Metals,CNH,7.45000000000002,0.85,0,0,Shanghai Gold Exchange Gold Benchmark PM Price Index - CNH Futures
+GASOILINE-mini,21000,OilGas,USD,,0.85,0,0,NYMEX MINY Gasoline RBOB Index
+ETHANOL,29000,OilGas,USD,,0.85,0,0,Ethanol CME
+HOUSE-US,250,Housing,USD,2.5,0.85,0,0,Housing Index Composite
+HOUSE-SD,250,Housing,USD,2.45,0.85,0,0,San Diego Housing Index
+HOUSE-SF,250,Housing,USD,1.95,0.85,0,0,San Francisco Housing Index
+HEATOIL-mini,21000,OilGas,USD,0.0325,0.85,0,0,NYMEX MINY Heating Oil Index
+HOUSE-CG,250,Housing,USD,3,0.85,0,0,Chicago Housing Index
+HOUSE-DN,250,Housing,USD,3,0.85,0,0,Denver Housing Index
+HOUSE-LV,250,Housing,USD,3.90000000000001,0.85,0,0,Las Vegas Housing Index
+HOUSE-LA,250,Housing,USD,4.29999999999998,0.85,0,0,Los Angeles Housing Index
+HUF,30000000,FX,USD,6.5E-06,0.85,0,0,Hungarian forint
+USIRS30,1000,Bond,USD,0.09375,0.85,0,0,30-Year Deliverable Interest Rate Swap Futures
+USIRS2,1000,Bond,USD,,0.85,0,0,2-Year Deliverable Interest Rate Swap Futures
+HOUSE-BO,250,Housing,USD,3.39999999999998,0.85,0,0,Boston Housing Index
+CLP,50000000,FX,USD,,0.85,0,0,Chilean peso
+CZK,4000000,FX,USD,9.19999999999983E-05,0.85,0,0,Czech koruna
+LIBOR1,2500,Bond,USD,0.009999999999998,0.85,0,0,1 Month LIBOR (Int. Rate)
+PLZEUR,500000,FX,EUR,0.0003,0.85,0,0,Polish zloty EURO
+IRS,1000000,FX,USD,0.000585,0.85,0,0,Israeli shekel
+HOUSE-MI,250,Housing,USD,4.09999999999999,0.85,0,0,Miami Housing Index
+NIKKEI-JPY,100,Equity,JPY,2100,0.85,0,0,Yen Denominated Nikkei 225 Index
+HOUSE-NY,250,Housing,USD,3.59999999999999,0.85,0,0,New York Housing Index
+SP500-GROWTH,250,Equity,USD,,0.85,0,0,S&P 500 / Citigroup Growth Index
+SP600-SMALL,100,Equity,USD,,0.85,0,0,E-Mini S&P SmallCap 600 Futures
+BRENT,1000,OilGas,USD,,0.85,0,0,NYMEX Brent Financial Futures Index
+PIPELINE,42000,OilGas,USD,,0.85,0,0,Gulf Coast ULSD (Platts) Up-Down Futures
+COTTON,50000,Ags,USD,,0.85,0,0,NYMEX Cotton index
+URANIUM,250,OilGas,USD,,0.85,0,0,NYMEX Uranium Index
+TOPIX30,1000,Equity,JPY,,50,0,0,Topix Core30
+DIVDAX-DIVI,1000,Equity,EUR,,2,0,0,DivDAX Dividend Points Index
+AUDJPY,25000,FX,JPY,0.014999999999994,285,0,0,SGX Australian Dollar in Japanese Yen Futures
+AUD-SGX,25000,FX,USD,0.00015,2.85,0,0,SGX Australian Dollar in US Dollar Futures
+KRWJPY,25000,FX,JPY,,285,0,0,SGX Korean Won in Japanese Yen Futures
+JPY-SGX-TITAN,500000,FX,JPY,0.009999999999998,360,0,0,SGX US Dollar in Japanese Yen Futures (Titan)
+JPY-SGX,100000,FX,JPY,0.009999999999998,300,0,0,SGX US Dollar in Japanese Yen Futures (Standard)
 COTTON2,50000,Ags,USD,0.01,3,0,0,Cotton #2
-SUGAR11,112000,Ags,USD,0.00005,3,0,0,Sugar #11
+SUGAR11,112000,Ags,USD,5E-05,3,0,0,Sugar #11
 OJ,15000,Ags,USD,0.01075,3,0,0,Orange Juice (FCOJ-A)
 EUA,1000,OilGas,EUR,0.25,3,0,0,ECX EU carbon emissions allowance futures
 STERLING3,1250,Bond,GBP,0.0025,1.7,0,0,3 month Sterling interest rate
@@ -246,4 +246,3 @@ RUBBER,50,Other,USD,0.05,3,0,0,TSR 20 Rubber
 VIX_mini,100,Vol,USD,0.05,0.5,0,0,Vol US equity VIX mini
 CANOLA,20,Ags,CAD,2,2,0,0,Rapeseed (Canola) in CAD
 WTI_micro,100,OilGas,USD,0.01,0.7,0,0,micro WTI crude oil
-

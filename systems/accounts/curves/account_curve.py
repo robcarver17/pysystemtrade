@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from scipy.stats import skew,  ttest_1samp
+from scipy.stats import skew,  ttest_1samp, norm
 
 from syscore.dateutils import Frequency, from_frequency_to_times_per_year
 from syscore.pdutils import drawdown
@@ -8,6 +8,9 @@ from syscore.pdutils import drawdown
 from systems.accounts.pandl_calculators.pandl_generic_costs import GROSS_CURVE, NET_CURVE, COSTS_CURVE, \
     pandlCalculationWithGenericCosts
 
+QUANT_PERCENTILE_EXTREME = 0.01
+QUANT_PERCENTILE_STD = 0.3
+NORMAL_DISTR_RATIO = norm.ppf(QUANT_PERCENTILE_EXTREME) / norm.ppf(QUANT_PERCENTILE_STD)
 
 class accountCurve(pd.Series):
     def __init__(self, pandl_calculator_with_costs: pandlCalculationWithGenericCosts,
@@ -300,6 +303,26 @@ class accountCurve(pd.Series):
 
     def p_value(self):
         return float(self.t_test()[1])
+
+    def average_quant_ratio(self):
+        upper = self.quant_ratio_upper()
+        lower = self.quant_ratio_lower()
+
+        return np.mean([upper, lower])
+
+    def quant_ratio_lower(self):
+        x = self.demeaned()
+        raw_ratio =x.quantile(QUANT_PERCENTILE_EXTREME) / x.quantile(QUANT_PERCENTILE_STD)
+        return raw_ratio / NORMAL_DISTR_RATIO
+
+    def quant_ratio_upper(self):
+        x = self.demeaned()
+        raw_ratio = x.quantile(1 - QUANT_PERCENTILE_EXTREME) / x.quantile(1 - QUANT_PERCENTILE_STD)
+        return raw_ratio / NORMAL_DISTR_RATIO
+
+    def demeaned(self):
+        x = self.as_ts
+        return x - x.mean()
 
     def stats(self):
 
