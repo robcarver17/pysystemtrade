@@ -5,7 +5,7 @@ from systems.accounts.pandl_calculators.pandl_cash_costs import pandlCalculation
 from systems.accounts.curves.account_curve import accountCurve
 from systems.accounts.curves.account_curve_group import accountCurveGroup
 from systems.accounts.curves.dict_of_account_curves import dictOfAccountCurves
-
+ 
 class accountSubsystem(accountCosts):
 
     @diagnostic(not_pickable=True)
