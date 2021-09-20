@@ -130,9 +130,9 @@ class systemDiag(object):
                     capped_value,
                 ) = return_mapping_params(a_param)
                 map_dict = dict(
-                    a_param=a_param,
-                    b_param=b_param,
-                    threshold_value=threshold_value)
+                    a_param=float(a_param),
+                    b_param=float(b_param),
+                    threshold_value=float(threshold_value))
                 forecast_mapping[instrument] = map_dict
 
         return forecast_mapping
