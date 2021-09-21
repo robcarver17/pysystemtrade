@@ -27,6 +27,7 @@ Table of Contents
    * [Creating and storing multiple prices](#creating-and-storing-multiple-prices)
       * [Creating multiple prices from contract prices](#creating-multiple-prices-from-contract-prices)
       * [Writing multiple prices from .csv to database](#writing-multiple-prices-from-csv-to-database)
+      * [Updating shipped multiple prices](#update-shipped-data)
    * [Creating and storing back adjusted prices](#creating-and-storing-back-adjusted-prices)
       * [Changing the stitching method](#changing-the-stitching-method)
    * [Getting and storing FX data](#getting-and-storing-fx-data)
@@ -145,6 +146,7 @@ For example for Bund futures, the ExpiryOffset is 6; the contract notionally exp
 
 Let's take a more extreme example, Eurodollar. The ExpiryOffset is 18, and the roll offset is -1100 (no not a typo!). We'd roll this product 1100 days before it expired on the 19th day of the month.
 
+<a name="carry-offset"></a>
 'CarryOffset': Whether we take carry from an earlier dated contract (-1, which is preferable) or a later dated contract (+1, which isn't ideal but if we hold the front contract we have no choice). This calculation is done based on the *priced* roll cycle, so for example for winter crude where the *hold* roll cycle is just 'Z' (we hold December), and the carry offset is -1 we take the previous month in the *priced* roll cycle (which is a full year FGHJKMNQUVXZ) i.e. November (whose code is 'X'). You read more in Appendix B of [my first book](https://www.systematicmoney.org/systematic-trading).
 
 
@@ -261,8 +263,8 @@ In this script (which you should run for each instrument in turn):
 
 I strongly suggest putting an output datapath here; somewhere you can store temporary data. Otherwise you will overwrite the provided roll calendars [here](/data/futures/roll_calendars_csv/). OK, you can restore them with a git pull, but it's nice to be able to compare the 'official' and generated roll calendars.
 
-#### Calculate the roll calendar
 
+#### Calculate the roll calendar
 The actual code that generates the roll calendar is [here](/sysobjects/roll_calendars.py) which mostly calls code from [here](/sysinit/futures/build_roll_calendars.py):
 
 The interesting part is:
@@ -358,6 +360,87 @@ Step 5 can sometimes throw up warnings or outright errors if things don't look r
 The use case here is you are happy to use the shipped .csv data, even though it's probably out of date, but you want to use a database for backtesting. You don't want to try and find and upload individual futures prices, or create roll calendars.... the good news is you don't have to. Instead you can just use [this script](/sysinit/futures/multiple_and_adjusted_from_csv_to_arctic.py) which will just copy from .csv (default ['shipping' directory](/data/futures/multiple_prices_csv)) to Arctic.
 
 This will also copy adjusted prices, so you can now skip ahead to [creating FX data](#create_fx_data).
+
+
+<a name="update-shipped-data"></a>
+### Updating shipped multiple prices
+
+Assuming that you have an Interactive Brokers account, you might want to update the (stale) data that you have [downloaded from the repo](/docs/backtesting.md#setting-up-your-arctic-and-mongo-db-databases) before [calculating back adjusted prices](#back_adjusted_prices).
+
+A first step is to [update the sampled contracts available](/docs/production.md#update-sampled-contracts-daily), and [their historical prices](/docs/production.md#update-futures-contract-historical-price-data-daily).  This might entail [manually checking](/docs/production.md#manual-check-of-futures-contract-historical-price-data) historical prices with spikes.
+
+We'll then need to splice the new data onto the end of the repo data, with a few checks along the way.
+
+*Nb: some of the repo multiple prices, particularly where the historical prices for mini contracts have been calculated from main-size contracts, have the [carry offset](#carry-offset) different to as per the [rollconfig.csv](/data/futures/csvconfig/rollconfig.csv).  If you use a carry trading rule you might want to check this is consistent (by temporarily altering the rollconfig.csv, for example)*
+
+First we'll create some temporary working folders, then [build a roll calendar from the downloaded contract prices](#roll_calendars_from_approx):
+```python
+import os
+
+roll_calendars_from_arctic = os.path.join('data', 'futures', 'roll_calendars_from_arctic')
+if not os.path.exists(roll_calendars_from_arctic):
+    os.makedirs(roll_calendars_from_arctic)
+
+multiple_prices_from_arctic = os.path.join('data', 'futures', 'multiple_from_arctic')
+if not os.path.exists(multiple_prices_from_arctic):
+    os.makedirs(multiple_prices_from_arctic)
+
+spliced_multiple_prices = os.path.join('data', 'futures', 'multiple_prices_csv_spliced')
+if not os.path.exists(spliced_multiple_prices):
+    os.makedirs(spliced_multiple_prices)
+
+from sysinit.futures.rollcalendars_from_arcticprices_to_csv import build_and_write_roll_calendar
+instrument_code = 'GAS_US_mini' # for example
+build_and_write_roll_calendar(instrument_code, 
+    output_datapath=roll_calendars_from_arctic)
+```
+We use our updated prices and the roll calendar just built to [calculate multiple prices](#/sysinit/futures/multipleprices_from_arcticprices_and_csv_calendars_to_arctic):
+```python
+from sysinit.futures.multipleprices_from_arcticprices_and_csv_calendars_to_arctic import process_multiple_prices_single_instrument
+
+process_multiple_prices_single_instrument(instrument_code, 
+    csv_multiple_data_path=multiple_prices_from_arctic, ADD_TO_ARCTIC=False, 
+    csv_roll_data_path=roll_calendars_from_arctic, ADD_TO_CSV=True)
+```
+
+...which we splice onto the repo data (checking that the price and forward contracts match):
+
+```python
+supplied_file = os.path.join('data', 'futures', 'multiple_prices_csv', instrument_code + '.csv') # repo data
+generated_file = os.path.join(multiple_prices_from_arctic, instrument_code + '.csv')
+
+import pandas as pd
+supplied = pd.read_csv(supplied_file, index_col=0, parse_dates=True)
+generated = pd.read_csv(generated_file, index_col=0, parse_dates=True)
+
+# get final datetime of the supplied multiple_prices for this instrument
+last_supplied = supplied.index[-1] 
+
+print(f"last datetime of supplied prices {last_supplied}, first datetime of updated prices is {generated.index[0]}")
+
+# assuming the latter is later than the former, truncate the generated data:
+generated = generated.loc[last_supplied:]
+
+# if first datetime in generated is the same as last datetime in repo, skip that row
+first_generated = generated.index[0] 
+if first_generated == last_supplied:
+    generated = generated.iloc[1:]
+
+# check we're using the same price and forward contracts (i.e. no rolls missing, which there shouldn't be if there is date overlap)
+assert(supplied.iloc[-1].PRICE_CONTRACT == generated.loc[last_supplied:].iloc[0].PRICE_CONTRACT)
+assert(supplied.iloc[-1].FORWARD_CONTRACT == generated.loc[last_supplied:].iloc[0].FORWARD_CONTRACT)
+# nb we don't assert that the CARRY_CONTRACT is the same for supplied and generated, as some of the rolls implicit in the supplied multiple_prices don't match the pattern in the rollconfig.csv
+```
+
+...finally, we splice these multiple prices onto the repo's multiple prices and [save to Arctic](#mult_adj_csv_to_arctic):
+
+```python
+spliced = pd.concat([supplied, generated])
+spliced.to_csv(os.path.join(spliced_multiple_prices, instrument_code+'.csv'))
+
+from sysinit.futures.multiple_and_adjusted_from_csv_to_arctic import init_arctic_with_csv_prices_for_code
+init_arctic_with_csv_prices_for_code(instrument_code, multiple_price_datapath=spliced_multiple_prices)
+```
 
 <a name="back_adjusted_prices"></a>
 ## Creating and storing back adjusted prices
