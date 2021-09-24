@@ -1,23 +1,21 @@
 import datetime
 from copy import copy
+from dataclasses import dataclass
 
 import numpy as np
 import pandas as pd
 
-from syscore.genutils import progressBar, str2Bool
+from syscore.genutils import progressBar, str2Bool, sign
 from syscore.objects import arg_not_supplied
-from syscore.pdutils import get_row_of_df_aligned_to_weights_as_dict, from_series_to_matching_df_frame
-
-from sysquant.estimators.covariance import covarianceEstimate
-from sysquant.estimators.mean_estimator import meanEstimates
-from sysquant.optimisation.weights import portfolioWeights
 
 from systems.stage import SystemStage
 from systems.system_cache import diagnostic
 
-from systems.provided.dynamic_small_system_optimise.expected_returns import expectedReturnsStage
-from systems.provided.dynamic_small_system_optimise.calculations import maximise_without_discrete_weights, \
-    optimise_with_fixed_contract_values
+from systems.provided.dynamic_small_system_optimise.portfolio_weights import portfolioWeightsStage
+
+from sysquant.optimisation.weights import portfolioWeights
+from sysquant.estimators.covariance import covarianceEstimate
+from sysquant.estimators.mean_estimator import meanEstimates
 
 
 class optimisedPositions(SystemStage):
@@ -59,117 +57,24 @@ class optimisedPositions(SystemStage):
                                                        previous_weights: portfolioWeights = arg_not_supplied) -> portfolioWeights:
 
         covariance_matrix = self.get_covariance_matrix(relevant_date=relevant_date)
-        risk_aversion = self.risk_aversion_coefficient()
-        expected_returns = self.get_implied_expected_returns(relevant_date)
         per_contract_value = self.get_per_contract_value(relevant_date)
-        max_portfolio_weights = self.get_maximum_portfolio_weight_at_date(relevant_date)
         original_portfolio_weights = self.original_portfolio_weights_for_relevant_date(relevant_date)
-        max_risk_as_variance = self.get_max_risk_as_variance()
+
+        covariance_matrix = covariance_matrix.clean_correlations()
 
         costs = self.get_costs_per_contract_as_proportion_of_capital_all_instruments()
 
         use_process_pool = str2Bool(self.config.small_system['use_process_pool'])
 
-        ## split up a bit??
-        optimal_weights = optimise_with_fixed_contract_values(per_contract_value=per_contract_value,
-                                                              expected_returns=expected_returns,
-                                                              risk_aversion=risk_aversion,
-                                                              covariance_matrix=covariance_matrix,
-                                                              max_portfolio_weights=max_portfolio_weights,
-                                                              original_portfolio_weights = original_portfolio_weights,
-                                                              max_risk_as_variance = max_risk_as_variance,
-                                                              costs = costs,
-                                                              previous_weights = previous_weights,
-                                                              use_process_pool = use_process_pool)
+        obj_instance = objectiveFunctionForGreedy(weights_optimal=original_portfolio_weights,
+                                                  covariance_matrix=covariance_matrix,
+                                                  per_contract_value = per_contract_value,
+                                                  weights_prior=previous_weights,
+                                                  costs = costs)
+
+        optimal_weights = obj_instance.optimise()
 
         return optimal_weights
-
-
-    def get_max_risk_as_variance(self) -> float:
-        max_risk_scalar = self.config.small_system['max_risk_ceiling_as_fraction_normal_risk']
-        risk_target = self.risk_target()
-
-        max_risk_ceiling = max_risk_scalar * risk_target
-        max_risk_as_variance = max_risk_ceiling**2
-
-        return max_risk_as_variance
-
-    def get_maximum_portfolio_weight_at_date(self,
-                                             relevant_date: datetime.datetime = arg_not_supplied) -> portfolioWeights:
-
-        max_portfolio_weight = self.get_maximum_portfolio_weight_as_df()
-        max_weight_at_date = get_row_of_df_aligned_to_weights_as_dict(max_portfolio_weight,
-                                                                      relevant_date)
-
-        return portfolioWeights(max_weight_at_date)
-
-    ## MAXIMUM PORTFOLIO WEIGHTS FOR OPTIMISATION
-    @diagnostic()
-    def get_maximum_portfolio_weight_as_df(self) -> pd.DataFrame:
-        risk_multiplier = self.get_risk_multiplier_df()
-        max_risk_per_instrument = self.get_series_of_maximum_risk_per_instrument()
-
-        ## funky aligntment
-        common_index = self.common_index()
-        risk_multiplier_aligned = risk_multiplier.reindex(common_index, method="ffill")
-        max_risk_per_instrument_aligned_df = \
-            from_series_to_matching_df_frame(max_risk_per_instrument,
-                risk_multiplier_aligned)
-
-        max_portfolio_weights = risk_multiplier_aligned.ffill() \
-                                * max_risk_per_instrument_aligned_df.ffill()
-        return max_portfolio_weights
-
-    ## MAXIMUM ALLOWABLE RISK PER INSTRUMENT
-    @diagnostic()
-    def get_series_of_maximum_risk_per_instrument(self) -> pd.Series:
-        ## Given N instruments we have an average of IDM/N
-        ## max portfolio weight = Fudge_factor * IDM / N
-        ## fudge factor is highest possible instrument weight versus average
-
-        max_instrument_weight = self.get_max_instrument_weight()
-        idm = self.get_instrument_diversification_multiplier()
-        ratio_of_max_to_average_forecast = self.get_ratio_of_max_to_average_forecast()
-        my_config = self.config.small_system['max_risk_per_instrument']
-
-        max_risk_per_instrument = \
-            calculate_max_risk_per_instrument(ratio_of_max_to_average_forecast = ratio_of_max_to_average_forecast,
-                                                idm = idm,
-                                                max_instrument_weight=max_instrument_weight,
-                                              my_config = my_config)
-
-        return max_risk_per_instrument
-
-
-    def get_max_instrument_weight(self) -> pd.Series:
-        instrument_weights = self.get_instrument_weights()
-        max_instrument_weight = instrument_weights.max(axis=1)
-
-        return max_instrument_weight
-
-    ## RISK MULTIPLIER (relative vol instrument: target)
-    def get_risk_multiplier_df(self) -> pd.DataFrame:
-        instrument_list = self.instrument_list()
-        multiplier_as_dict = dict([
-            (instrument_code,
-                self.get_risk_multiplier_series(instrument_code))
-                           for instrument_code in instrument_list])
-
-        multiplier_as_pd = pd.DataFrame(multiplier_as_dict)
-        common_index= self.common_index()
-        multiplier_as_pd = multiplier_as_pd.reindex(common_index, method="ffill")
-
-        return multiplier_as_pd
-
-    def get_risk_multiplier_series(self, instrument_code: str) -> pd.Series:
-
-        risk_target = self.risk_target()
-        annualised_instrument_stdev = self.annualised_percentage_vol(instrument_code)
-
-        return risk_target / annualised_instrument_stdev
-
-    def risk_target(self) -> float:
-        return self.percentage_vol_target()/100.0
 
 
 
@@ -217,38 +122,17 @@ class optimisedPositions(SystemStage):
 
 
     ## INPUTS FROM OTHER STAGES
-    def get_implied_expected_returns(self,
-                                     relevant_date: datetime.datetime = arg_not_supplied) \
-            -> meanEstimates:
-
-        return self.expected_returns_stage.get_implied_expected_returns(relevant_date)
 
     def get_covariance_matrix(self,
                               relevant_date: datetime.datetime = arg_not_supplied) -> covarianceEstimate:
 
-            return self.expected_returns_stage.get_covariance_matrix(relevant_date=relevant_date)
-
-    def risk_aversion_coefficient(self) -> float:
-
-        return self.expected_returns_stage.risk_aversion_coefficient()
-
-    def annualised_percentage_vol(self, instrument_code: str) -> pd.Series:
-        return self.expected_returns_stage.annualised_percentage_vol(instrument_code)
+            return self.portfolio_weights_stage.get_covariance_matrix(relevant_date=relevant_date)
 
     def get_per_contract_value(self, relevant_date: datetime.datetime = arg_not_supplied):
-        return self.expected_returns_stage.get_per_contract_value(relevant_date)
+        return self.portfolio_weights_stage.get_per_contract_value(relevant_date)
 
     def get_per_contract_value_as_proportion_of_capital_df(self) -> pd.DataFrame:
-        return self.expected_returns_stage.get_per_contract_value_as_proportion_of_capital_df()
-
-    def get_ratio_of_max_to_average_forecast(self) -> float:
-        average_forecast = self.forecast_scaling_stage.target_abs_forecast()
-        max_forecast = self.forecast_scaling_stage.get_forecast_cap()
-
-        return max_forecast / average_forecast
-
-    def percentage_vol_target(self) -> float:
-        return self.position_size_stage.get_percentage_vol_target()
+        return self.portfolio_weights_stage.get_per_contract_value_as_proportion_of_capital_df()
 
     def instrument_list(self) -> list:
         return self.parent.get_instrument_list()
@@ -257,15 +141,12 @@ class optimisedPositions(SystemStage):
         return self.portfolio_stage.get_instrument_weights()
 
     def common_index(self):
-        return self.expected_returns_stage.common_index()
+        return self.portfolio_weights_stage.common_index()
 
     def original_portfolio_weights_for_relevant_date(self,
                                                      relevant_date: datetime.datetime = arg_not_supplied):
-        return self.expected_returns_stage.get_portfolio_weights_for_relevant_date(relevant_date)
+        return self.portfolio_weights_stage.get_portfolio_weights_for_relevant_date(relevant_date)
 
-
-    def get_instrument_diversification_multiplier(self) -> pd.Series:
-        return self.portfolio_stage.get_instrument_diversification_multiplier()
 
     def get_raw_cost_data(self, instrument_code: str):
         return self.accounts_stage().get_raw_cost_data(instrument_code)
@@ -287,8 +168,8 @@ class optimisedPositions(SystemStage):
         return self.parent.accounts
 
     @property
-    def expected_returns_stage(self) -> expectedReturnsStage:
-        return self.parent.expectedReturns
+    def portfolio_weights_stage(self) -> portfolioWeightsStage:
+        return self.parent.portfolioWeights
 
     @property
     def position_size_stage(self):
@@ -310,101 +191,174 @@ class optimisedPositions(SystemStage):
     def config(self):
         return self.parent.config
 
-    ## CODE FOR TESTING ONLY NOT USED IN PRODUCTION
-    def get_optimal_position_in_contract_units_using_continous_weights(self,
-                             relevant_date: datetime.datetime = arg_not_supplied
-                                                                       ) -> portfolioWeights:
-        ## test to make sure code works and for comparisions
-        optimal_weights = self.get_optimal_weights_maximise_with_continuous_weights(relevant_date)
-        per_contract_value = self.get_per_contract_value(relevant_date)
-
-        contract_positions = calculate_contract_positions_from_weights_and_values(optimal_weights, per_contract_value)
-
-        return contract_positions
-
-    ## CODE FOR TESTING ONLY NOT USED IN PRODUCTION
-    def get_optimal_weights_maximise_with_continuous_weights(self,
-                                         relevant_date: datetime.datetime = arg_not_supplied):
-        ## test to make sure code works
-        covariance_matrix = self.get_covariance_matrix(relevant_date=relevant_date)
-        expected_returns = self.get_implied_expected_returns(relevant_date)
-        risk_aversion = self.risk_aversion_coefficient()
-
-        optimal_weights = maximise_without_discrete_weights(expected_returns = expected_returns,
-                                                        covariance_matrix = covariance_matrix,
-                                                            risk_aversion = risk_aversion)
-
-        return optimal_weights
 
 
 
-def calculate_contract_positions_from_weights_and_values(optimal_weights: portfolioWeights,
-                                                         per_contract_value: portfolioWeights) -> portfolioWeights:
-
-    instrument_list = list(optimal_weights.keys())
-    optimal_weights_as_np = np.array(optimal_weights.as_list_given_keys(instrument_list))
-    per_contract_value_as_np = np.array(per_contract_value.as_list_given_keys(instrument_list))
-
-    positions_as_np = optimal_weights_as_np / per_contract_value_as_np
-
-    positions = portfolioWeights.from_weights_and_keys(positions_as_np,
-                                                       instrument_list)
-
-    return positions
 
 
-def calculate_max_risk_per_instrument(
-                                      idm: pd.Series,
-                                      max_instrument_weight: pd.Series,
-                                        my_config: dict,
-                                        ratio_of_max_to_average_forecast: float = 2.0,
-                                    ):
-    risk_shifting_multiplier = my_config['risk_shifting_multiplier']  # to allow risk to shift between instruments
-    max_risk_per_instrument_for_large_instrument_count = my_config['max_risk_per_instrument_for_large_instrument_count']
+@dataclass
+class objectiveFunctionForGreedy:
+    weights_optimal: portfolioWeights
+    covariance_matrix: covarianceEstimate
+    per_contract_value: portfolioWeights
+    costs: meanEstimates
+    trade_shadow_cost: float= 0.1
+    weights_prior: portfolioWeights = arg_not_supplied
 
-    idm_aligned = idm.reindex(max_instrument_weight.index, method="ffill")
+    def optimise(self):
+        weights_without_missing_items_as_np = greedy_ad_integer_values(self)
+        optimal_weights = \
+            portfolioWeights.from_weights_and_keys(
+                list_of_keys=self.keys_with_valid_data,
+                list_of_weights=list(weights_without_missing_items_as_np))
 
-    max_risk_per_instrument_for_large_instrument_count = \
-        _calculate_max_risk_per_instrument_for_large_instrument_count(idm_aligned=idm_aligned,
-                                                                      ratio_of_max_to_average_forecast=ratio_of_max_to_average_forecast,
-                                                                      max_risk_per_instrument_for_large_instrument_count=max_risk_per_instrument_for_large_instrument_count
-                                                                      )
-    max_risk_per_instrument_normal = _calculate_max_risk_per_instrument_normal(
-        idm_aligned=idm_aligned,
-        max_instrument_weight=max_instrument_weight,
-        ratio_of_max_to_average_forecast=ratio_of_max_to_average_forecast,
-        risk_shifting_multiplier=risk_shifting_multiplier
-    )
+        optimal_weights_for_all_keys = \
+            optimal_weights.with_zero_weights_for_missing_keys(list(self.weights_optimal.keys()))
 
-    two_series_to_check = \
-        pd.concat([max_risk_per_instrument_for_large_instrument_count,
-                   max_risk_per_instrument_normal], axis=1)
+        return optimal_weights_for_all_keys
 
-    max_risk_per_instrument = two_series_to_check.max(axis=1)
+    def evaluate(self, weights: np.array):
+        solution_gap = weights - self.weights_optimal_as_np
+        track_error = \
+            (solution_gap.dot(self.covariance_matrix_as_np).dot(solution_gap))**.5
 
-    return max_risk_per_instrument
+        trade_costs = self.calculate_costs(weights)
+        return track_error + trade_costs
 
-def _calculate_max_risk_per_instrument_normal(
-                                      idm_aligned: pd.Series,
-                                      max_instrument_weight: pd.Series,
-                                        ratio_of_max_to_average_forecast: float = 2.0,
-                                      risk_shifting_multiplier: float = 2.0) -> pd.Series:
+    def calculate_costs(self, weights: np.array) -> float:
+        if self.no_prior_weights_provided:
+            return 0.0
+        trade_gap = weights - self.weights_prior_as_np
+        costs_per_trade = self.costs_as_np
+        trade_costs = sum(abs(costs_per_trade * trade_gap * self.trade_shadow_cost))
 
-    max_risk_per_instrument_normal = \
-      idm_aligned * max_instrument_weight * ratio_of_max_to_average_forecast * risk_shifting_multiplier
+        return trade_costs
 
-    return max_risk_per_instrument_normal
+    @property
+    def no_prior_weights_provided(self) -> bool:
+        return self.weights_prior is arg_not_supplied
 
-def _calculate_max_risk_per_instrument_for_large_instrument_count(
-                                      idm_aligned: pd.Series,
-                                    ratio_of_max_to_average_forecast: float = 2.0,
-                                      max_risk_per_instrument_for_large_instrument_count: float = 0.1) -> pd.Series:
+    @property
+    def keys_with_valid_data(self) -> list:
+        valid_correlation_keys = self.covariance_matrix.assets_with_data()
+        valid_optimal_weight_keys = self.weights_optimal.assets_with_data()
+        valid_per_contract_keys = self.per_contract_value.assets_with_data()
 
-    max_risk_per_instrument_for_large_instrument_count_given_forecast = \
-        max_risk_per_instrument_for_large_instrument_count * ratio_of_max_to_average_forecast
+        valid_correlation_keys_set = set(valid_correlation_keys)
+        valid_optimal_weight_keys_set = set(valid_optimal_weight_keys)
+        valid_per_contract_keys_set = set(valid_per_contract_keys)
 
-    max_risk_per_instrument_for_large_instrument_count = \
-        pd.Series(max_risk_per_instrument_for_large_instrument_count_given_forecast,
-                  index=idm_aligned.index)
+        valid_keys = valid_correlation_keys_set.intersection(valid_optimal_weight_keys_set)
+        valid_keys = valid_keys.intersection(valid_per_contract_keys_set)
 
-    return max_risk_per_instrument_for_large_instrument_count
+        return list(valid_keys)
+
+    @property
+    def weights_optimal_as_np(self) -> np.array:
+        weights_optimal_as_np = getattr(self, "_weights_optimal_as_np", None)
+        if weights_optimal_as_np is None:
+            weights_optimal_as_np = \
+                np.array(
+                    self.weights_optimal.as_list_given_keys(
+                    self.keys_with_valid_data))
+            self._weights_optimal_as_np = weights_optimal_as_np
+
+        return weights_optimal_as_np
+
+    @property
+    def per_contract_value_as_np(self) -> np.array:
+        per_contract_value_as_np = getattr(self, "_per_contract_value_as_np", None)
+        if per_contract_value_as_np is None:
+            per_contract_value_as_np = np.array(
+                self.per_contract_value.as_list_given_keys(
+                    self.keys_with_valid_data
+                ))
+            self._per_contract_value_as_np = per_contract_value_as_np
+
+        return per_contract_value_as_np
+
+    @property
+    def weights_prior_as_np(self) -> np.array:
+        weights_prior_as_np = getattr(self, "_weights_prior_as_np", None)
+        if weights_prior_as_np is None:
+            weights_prior_as_np = np.array(
+                self.weights_prior.as_list_given_keys(
+                  self.keys_with_valid_data
+                ))
+            self._weights_prior_as_np = weights_prior_as_np
+
+        return weights_prior_as_np
+
+    @property
+    def covariance_matrix_as_np(self) -> np.array:
+        covariance_matrix_as_np = getattr(self, "_covariance_matrix_as_np", None)
+        if covariance_matrix_as_np is None:
+            covariance_matrix_as_np = self.covariance_matrix.subset(
+                self.keys_with_valid_data
+            ).values
+            self._covariance_matrix_as_np  = covariance_matrix_as_np
+
+        return covariance_matrix_as_np
+
+    @property
+    def costs_as_np(self) -> np.array:
+        costs_as_np = getattr(self, "_costs_as_np", None)
+        if costs_as_np is None:
+            costs_as_np = np.array(list(self.costs.subset(
+                self.keys_with_valid_data
+            ).values()))
+            self._costs_as_np = costs_as_np
+
+        return costs_as_np
+
+    @property
+    def optimal_signs(self) -> np.array:
+        optimal_signs = getattr(self, "_optimal_signs", None)
+        if optimal_signs is None:
+            optimal_signs = self._calculate_optimal_signs()
+            self._optimal_signs = optimal_signs
+
+        return optimal_signs
+
+    def _calculate_optimal_signs(self) -> np.array:
+        weights_optimal_as_np = self.weights_optimal_as_np
+        optimal_signs = np.array([sign(x) for x in weights_optimal_as_np])
+
+        return optimal_signs
+
+
+
+
+def greedy_ad_integer_values(obj_instance: objectiveFunctionForGreedy
+                             ):
+
+    weight_sign = obj_instance.optimal_signs
+    fixed_units = obj_instance.per_contract_value_as_np
+    count_assets = len(weight_sign)
+
+    weight_start = np.array([0.0]*count_assets)
+    best_value = obj_instance.evaluate(weight_start)
+    best_solution = weight_start
+
+    done = False
+
+    while not done:
+        new_best = best_value
+        new_solution = best_solution
+        for i in range(count_assets):
+            temp_step = copy(best_solution)
+            temp_step[i] = temp_step[i] + fixed_units[i] * weight_sign[i]
+            temp_objective_value = obj_instance.evaluate(temp_step)
+            if temp_objective_value<new_best:
+                new_best = temp_objective_value
+                new_solution = temp_step
+
+        if new_best<best_value:
+            best_value = new_best
+            best_solution = new_solution
+        else:
+            done = True
+            break
+
+    return best_solution
+

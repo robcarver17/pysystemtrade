@@ -8,34 +8,16 @@ from syscore.objects import arg_not_supplied, resolve_function
 from syscore.pdutils import get_row_of_df_aligned_to_weights_as_dict
 from sysquant.estimators.correlations import correlationEstimate, create_boring_corr_matrix, CorrelationList
 from sysquant.estimators.covariance import covarianceEstimate, covariance_from_stdev_and_correlation
-from sysquant.estimators.mean_estimator import meanEstimates
 from sysquant.estimators.stdev_estimator import stdevEstimates
 from sysquant.optimisation.weights import portfolioWeights
-from systems.provided.dynamic_small_system_optimise.calculations import get_implied_expected_returns
 from systems.stage import SystemStage
 from systems.system_cache import diagnostic
 
 
-class expectedReturnsStage(SystemStage):
+class portfolioWeightsStage(SystemStage):
     @property
     def name(self):
-        return "expectedReturns"
-
-    @diagnostic()
-    def get_implied_expected_returns(self,
-                                     relevant_date: datetime.datetime = arg_not_supplied) \
-            -> meanEstimates:
-
-        portfolio_weights = self.get_portfolio_weights_for_relevant_date(relevant_date)
-        covariance_matrix = self.get_covariance_matrix(relevant_date=relevant_date)
-        risk_aversion = self.risk_aversion_coefficient()
-
-        expected_returns = get_implied_expected_returns(portfolio_weights=portfolio_weights,
-                                                        covariance_matrix=covariance_matrix,
-                                                        risk_aversion=risk_aversion)
-
-        return expected_returns
-
+        return "portfolioWeights"
 
 
     def get_portfolio_weights_for_relevant_date(self,
@@ -230,10 +212,6 @@ class expectedReturnsStage(SystemStage):
     def get_fx_for_contract(self, instrument_code: str) -> pd.Series:
         return self.position_size_stage.get_fx_rate(instrument_code)
 
-
-    @diagnostic()
-    def risk_aversion_coefficient(self) -> float:
-        return self.config.small_system['risk_aversion_coefficient']
 
     def instrument_list(self):
         return self.parent.get_instrument_list()

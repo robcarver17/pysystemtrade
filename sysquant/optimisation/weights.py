@@ -62,6 +62,8 @@ class portfolioWeights(dict):
             for key in all_assets
         ]))
 
+    def assets_with_data(self) -> list:
+        return [key for key, value in self.items() if not np.isnan(value)]
 
 def _int_from_nan(x: float):
     if np.isnan(x):

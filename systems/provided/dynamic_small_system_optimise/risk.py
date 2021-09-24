@@ -9,7 +9,7 @@ from systems.system_cache import diagnostic
 from syscore.objects import arg_not_supplied
 from syscore.pdutils import listOfDataFrames, get_row_of_df_aligned_to_weights_as_dict
 
-from systems.provided.dynamic_small_system_optimise.expected_returns import expectedReturnsStage
+from systems.provided.dynamic_small_system_optimise.portfolio_weights import portfolioWeightsStage
 
 from sysquant.optimisation.shared import variance
 from sysquant.optimisation.weights import portfolioWeights
@@ -102,7 +102,7 @@ class Risk(SystemStage):
         return self.parent.accounts
 
     @property
-    def expected_returns_stage(self) -> expectedReturnsStage:
+    def expected_returns_stage(self) -> portfolioWeightsStage:
         return self.parent.expectedReturns
 
     def instrument_list(self) -> list:
