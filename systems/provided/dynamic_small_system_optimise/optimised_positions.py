@@ -205,19 +205,30 @@ class objectiveFunctionForGreedy:
     trade_shadow_cost: float= 0.1
     weights_prior: portfolioWeights = arg_not_supplied
 
-    def optimise(self):
-        weights_without_missing_items_as_np = greedy_ad_integer_values(self)
-        optimal_weights = \
-            portfolioWeights.from_weights_and_keys(
-                list_of_keys=self.keys_with_valid_data,
-                list_of_weights=list(weights_without_missing_items_as_np))
+    def zero_weights_as_np(self):
+        count_assets = len(self.keys_with_valid_data)
+        weight_start = np.array([0.0] * count_assets)
+
+        return weight_start
+
+    def optimise(self) -> portfolioWeights:
+        optimal_weights = self._optimise_for_valid_keys()
 
         optimal_weights_for_all_keys = \
             optimal_weights.with_zero_weights_for_missing_keys(list(self.weights_optimal.keys()))
 
         return optimal_weights_for_all_keys
 
-    def evaluate(self, weights: np.array):
+    def _optimise_for_valid_keys(self) -> portfolioWeights:
+        weights_without_missing_items_as_np = greedy_algo_across_integer_values(self)
+        optimal_weights = \
+            portfolioWeights.from_weights_and_keys(
+                list_of_keys=self.keys_with_valid_data,
+                list_of_weights=list(weights_without_missing_items_as_np))
+
+        return optimal_weights
+
+    def evaluate(self, weights: np.array) -> float:
         solution_gap = weights - self.weights_optimal_as_np
         track_error = \
             (solution_gap.dot(self.covariance_matrix_as_np).dot(solution_gap))**.5
@@ -312,7 +323,7 @@ class objectiveFunctionForGreedy:
         return costs_as_np
 
     @property
-    def optimal_signs(self) -> np.array:
+    def optimal_signs_as_np(self) -> np.array:
         optimal_signs = getattr(self, "_optimal_signs", None)
         if optimal_signs is None:
             optimal_signs = self._calculate_optimal_signs()
@@ -329,36 +340,48 @@ class objectiveFunctionForGreedy:
 
 
 
-def greedy_ad_integer_values(obj_instance: objectiveFunctionForGreedy
-                             ):
+def greedy_algo_across_integer_values(
+        obj_instance: objectiveFunctionForGreedy
+                                    ) -> np.array:
 
-    weight_sign = obj_instance.optimal_signs
-    fixed_units = obj_instance.per_contract_value_as_np
-    count_assets = len(weight_sign)
-
-    weight_start = np.array([0.0]*count_assets)
+    weight_start = obj_instance.zero_weights_as_np()
     best_value = obj_instance.evaluate(weight_start)
     best_solution = weight_start
 
     done = False
 
     while not done:
-        new_best = best_value
-        new_solution = best_solution
-        for i in range(count_assets):
-            temp_step = copy(best_solution)
-            temp_step[i] = temp_step[i] + fixed_units[i] * weight_sign[i]
-            temp_objective_value = obj_instance.evaluate(temp_step)
-            if temp_objective_value<new_best:
-                new_best = temp_objective_value
-                new_solution = temp_step
+        new_best_value, new_solution = find_possible_new_best(best_solution = best_solution,
+                                                              best_value=best_value,
+                                                              obj_instance=obj_instance)
 
-        if new_best<best_value:
-            best_value = new_best
+        if new_best_value<best_value:
+            # reached a new optimium
+            best_value = new_best_value
             best_solution = new_solution
         else:
-            done = True
+            # we can't do any better
             break
 
     return best_solution
 
+def find_possible_new_best(best_solution: np.array,
+                           best_value: float,
+                           obj_instance: objectiveFunctionForGreedy) -> tuple:
+
+    new_best_value = best_value
+    new_solution = best_solution
+
+    fixed_units = obj_instance.per_contract_value_as_np
+    weight_sign = obj_instance.optimal_signs_as_np
+
+    count_assets = len(best_solution)
+    for i in range(count_assets):
+        temp_step = copy(best_solution)
+        temp_step[i] = temp_step[i] + fixed_units[i] * weight_sign[i]
+        temp_objective_value = obj_instance.evaluate(temp_step)
+        if temp_objective_value < new_best_value:
+            new_best_value = temp_objective_value
+            new_solution = temp_step
+
+    return new_best_value, new_solution
