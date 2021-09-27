@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="static/css/styles.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="static/js/update.js"></script>
+</head>
+<body>
+
+<div class="tabinator">
+<input type = "radio" id = "tab_rolls" name = "tabs" checked>
+<label for = "tab_rolls">Rolls</label>
+<input type = "radio" id = "tab_processes" name = "tabs">
+<label for = "tab_processes">Processes</label>
+<input type = "radio" id = "tab_pandl" name = "tabs">
+<label for = "tab_pandl">P&L</label>
+<input type = "radio" id = "tab_trades" name = "tabs">
+<label for = "tab_trades">Trades</label>
+<input type = "radio" id = "tab_reconciliation" name = "tabs">
+<label for = "tab_reconciliation">Reconciliation</label>
+<input type = "radio" id = "tab_strategy" name = "tabs">
+<label for = "tab_strategy">Strategy</label>
+<input type = "radio" id = "tab_risk" name = "tabs">
+<label for = "tab_risk">Risk</label>
+<input type = "radio" id = "tab_liquidity" name = "tabs">
+<label for = "tab_liquidity">Liquidity</label>
+<input type = "radio" id = "tab_costs" name = "tabs">
+<label for = "tab_costs">Costs</label>
+
+<div id="rolls">
+  <table id="rolls_status">
+    <caption>Status</caption>
+    <thead><tr><th>Contract</th><th>State</th><th>Roll Expiry</th>
+        <th>Carry Expiry</th><th>Price Expiry</th></tr><thead>
+    <tbody></tbody>
+  </table>
+  <br>
+  <table id="rolls_details">
+    <caption>Details</caption>
+    <thead><tr><th>Contract</th></tr><thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<div id="processes">
+  <h1>Processes</h1>
+</div>
+
+<div id="pandl">
+  <h1>Profit and Loss</h1>
+</div>
+
+<div id="trades">
+  <h1>Trades</h1>
+</div>
+
+<div id="reconciliation">
+  <h1>Reconciliation</h1>
+</div>
+
+<div id="strategy">
+  <h1>Strategy</h1>
+</div>
+
+<div id="risk">
+  <h1>Risk</h1>
+</div>
+
+<div id="liquidity">
+  <h1>Liquidity</h1>
+</div>
+
+<div id="costs">
+  <h1>Costs</h1>
+</div>
+
+</div>
+
+</body>
+</html>
