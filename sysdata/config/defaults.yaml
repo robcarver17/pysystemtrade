@@ -262,12 +262,6 @@ small_system:
     forward_fill_price_index: True
     offdiag: 0.0
     clip: 0.90
-  risk_aversion_coefficient: 2.0
-  max_risk_per_instrument:
-    risk_shifting_multiplier: 2.0
-    max_risk_per_instrument_for_large_instrument_count: 0.1
-  max_risk_ceiling_as_fraction_normal_risk: 2.0
-  use_process_pool: True
   cost_multiplier: 1.0
 ignore_instruments:
   - CRUDE_W

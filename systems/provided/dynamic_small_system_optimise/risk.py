@@ -31,7 +31,7 @@ class Risk(SystemStage):
         return self._get_portfolio_risk_given_weights(weights)
 
     def  get_original_portfolio_weight_df(self) -> pd.DataFrame:
-        return self.expected_returns_stage.get_original_portfolio_weight_df()
+        return self.portfolio_weights_stage.get_original_portfolio_weight_df()
 
     @diagnostic()
     def get_portfolio_risk_for_original_positions_rounded_buffered(self) -> pd.Series:
@@ -58,7 +58,7 @@ class Risk(SystemStage):
         return self.accounts_stage.get_buffered_position(instrument_code, roundpositions=True)
 
     def _get_portfolio_risk_given_positions(self, positions: pd.DataFrame) -> pd.Series:
-        weight_per_position = self.expected_returns_stage.get_per_contract_value_as_proportion_of_capital_df()
+        weight_per_position = self.portfolio_weights_stage.get_per_contract_value_as_proportion_of_capital_df()
         portfolio_weights = listOfDataFrames([weight_per_position, positions]).fill_and_multipy()
 
         return self._get_portfolio_risk_given_weights(portfolio_weights)
@@ -85,10 +85,10 @@ class Risk(SystemStage):
     def get_covariance_matrix(self,
                               relevant_date: datetime.datetime = arg_not_supplied) -> covarianceEstimate:
 
-            return self.expected_returns_stage.get_covariance_matrix(relevant_date=relevant_date)
+            return self.portfolio_weights_stage.get_covariance_matrix(relevant_date=relevant_date)
 
     def common_index(self):
-        return self.expected_returns_stage.common_index()
+        return self.portfolio_weights_stage.common_index()
 
     def get_optimised_weights_df(self):
         return self.optimised_stage.get_optimised_weights_df()
@@ -102,8 +102,8 @@ class Risk(SystemStage):
         return self.parent.accounts
 
     @property
-    def expected_returns_stage(self) -> portfolioWeightsStage:
-        return self.parent.expectedReturns
+    def portfolio_weights_stage(self) -> portfolioWeightsStage:
+        return self.parent.portfolioWeights
 
     def instrument_list(self) -> list:
         return self.parent.get_instrument_list()

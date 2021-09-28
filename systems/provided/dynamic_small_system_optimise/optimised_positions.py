@@ -1,12 +1,11 @@
 import datetime
 from copy import copy
-from dataclasses import dataclass
 
-import numpy as np
 import pandas as pd
 
-from syscore.genutils import progressBar, str2Bool, sign
+from syscore.genutils import progressBar
 from syscore.objects import arg_not_supplied
+from systems.provided.dynamic_small_system_optimise.optimisation import objectiveFunctionForGreedy
 
 from systems.stage import SystemStage
 from systems.system_cache import diagnostic
@@ -52,9 +51,32 @@ class optimisedPositions(SystemStage):
         return weights_list_df
 
 
-
     def get_optimal_weights_with_fixed_contract_values(self, relevant_date: datetime.datetime = arg_not_supplied,
-                                                       previous_weights: portfolioWeights = arg_not_supplied) -> portfolioWeights:
+                                                       previous_weights: portfolioWeights = arg_not_supplied,
+                                                       reduce_only_keys: list = arg_not_supplied,
+                                                       no_trade_keys: list = arg_not_supplied,
+                                                       maximum_position_weights: portfolioWeights = arg_not_supplied) -> portfolioWeights:
+
+        obj_instance = self.\
+            _get_optimal_weights_objective_instance(
+                relevant_date=relevant_date,
+                previous_weights=previous_weights,
+                reduce_only_keys=reduce_only_keys,
+                no_trade_keys=no_trade_keys,
+                maximum_position_weights=maximum_position_weights
+        )
+
+        optimal_weights = obj_instance.optimise()
+
+        return optimal_weights
+
+
+    def _get_optimal_weights_objective_instance(self,
+                                                relevant_date: datetime.datetime = arg_not_supplied,
+                                                       previous_weights: portfolioWeights = arg_not_supplied,
+                                                       reduce_only_keys: list = arg_not_supplied,
+                                                       no_trade_keys: list = arg_not_supplied,
+                                                       maximum_position_weights: portfolioWeights = arg_not_supplied) -> objectiveFunctionForGreedy:
 
         covariance_matrix = self.get_covariance_matrix(relevant_date=relevant_date)
         per_contract_value = self.get_per_contract_value(relevant_date)
@@ -64,19 +86,17 @@ class optimisedPositions(SystemStage):
 
         costs = self.get_costs_per_contract_as_proportion_of_capital_all_instruments()
 
-        use_process_pool = str2Bool(self.config.small_system['use_process_pool'])
+        obj_instance = objectiveFunctionForGreedy(
+                                                weights_optimal=original_portfolio_weights,
+                                                covariance_matrix=covariance_matrix,
+                                                per_contract_value = per_contract_value,
+                                                weights_prior=previous_weights,
+                                                costs = costs,
+                                                reduce_only_keys = reduce_only_keys,
+                                                no_trade_keys = no_trade_keys,
+                                                maximum_position_weights = maximum_position_weights)
 
-        obj_instance = objectiveFunctionForGreedy(weights_optimal=original_portfolio_weights,
-                                                  covariance_matrix=covariance_matrix,
-                                                  per_contract_value = per_contract_value,
-                                                  weights_prior=previous_weights,
-                                                  costs = costs)
-
-        optimal_weights = obj_instance.optimise()
-
-        return optimal_weights
-
-
+        return obj_instance
 
     ## COSTS
     @diagnostic()
@@ -194,194 +214,3 @@ class optimisedPositions(SystemStage):
 
 
 
-
-
-@dataclass
-class objectiveFunctionForGreedy:
-    weights_optimal: portfolioWeights
-    covariance_matrix: covarianceEstimate
-    per_contract_value: portfolioWeights
-    costs: meanEstimates
-    trade_shadow_cost: float= 0.1
-    weights_prior: portfolioWeights = arg_not_supplied
-
-    def zero_weights_as_np(self):
-        count_assets = len(self.keys_with_valid_data)
-        weight_start = np.array([0.0] * count_assets)
-
-        return weight_start
-
-    def optimise(self) -> portfolioWeights:
-        optimal_weights = self._optimise_for_valid_keys()
-
-        optimal_weights_for_all_keys = \
-            optimal_weights.with_zero_weights_for_missing_keys(list(self.weights_optimal.keys()))
-
-        return optimal_weights_for_all_keys
-
-    def _optimise_for_valid_keys(self) -> portfolioWeights:
-        weights_without_missing_items_as_np = greedy_algo_across_integer_values(self)
-        optimal_weights = \
-            portfolioWeights.from_weights_and_keys(
-                list_of_keys=self.keys_with_valid_data,
-                list_of_weights=list(weights_without_missing_items_as_np))
-
-        return optimal_weights
-
-    def evaluate(self, weights: np.array) -> float:
-        solution_gap = weights - self.weights_optimal_as_np
-        track_error = \
-            (solution_gap.dot(self.covariance_matrix_as_np).dot(solution_gap))**.5
-
-        trade_costs = self.calculate_costs(weights)
-        return track_error + trade_costs
-
-    def calculate_costs(self, weights: np.array) -> float:
-        if self.no_prior_weights_provided:
-            return 0.0
-        trade_gap = weights - self.weights_prior_as_np
-        costs_per_trade = self.costs_as_np
-        trade_costs = sum(abs(costs_per_trade * trade_gap * self.trade_shadow_cost))
-
-        return trade_costs
-
-    @property
-    def no_prior_weights_provided(self) -> bool:
-        return self.weights_prior is arg_not_supplied
-
-    @property
-    def keys_with_valid_data(self) -> list:
-        valid_correlation_keys = self.covariance_matrix.assets_with_data()
-        valid_optimal_weight_keys = self.weights_optimal.assets_with_data()
-        valid_per_contract_keys = self.per_contract_value.assets_with_data()
-
-        valid_correlation_keys_set = set(valid_correlation_keys)
-        valid_optimal_weight_keys_set = set(valid_optimal_weight_keys)
-        valid_per_contract_keys_set = set(valid_per_contract_keys)
-
-        valid_keys = valid_correlation_keys_set.intersection(valid_optimal_weight_keys_set)
-        valid_keys = valid_keys.intersection(valid_per_contract_keys_set)
-
-        return list(valid_keys)
-
-    @property
-    def weights_optimal_as_np(self) -> np.array:
-        weights_optimal_as_np = getattr(self, "_weights_optimal_as_np", None)
-        if weights_optimal_as_np is None:
-            weights_optimal_as_np = \
-                np.array(
-                    self.weights_optimal.as_list_given_keys(
-                    self.keys_with_valid_data))
-            self._weights_optimal_as_np = weights_optimal_as_np
-
-        return weights_optimal_as_np
-
-    @property
-    def per_contract_value_as_np(self) -> np.array:
-        per_contract_value_as_np = getattr(self, "_per_contract_value_as_np", None)
-        if per_contract_value_as_np is None:
-            per_contract_value_as_np = np.array(
-                self.per_contract_value.as_list_given_keys(
-                    self.keys_with_valid_data
-                ))
-            self._per_contract_value_as_np = per_contract_value_as_np
-
-        return per_contract_value_as_np
-
-    @property
-    def weights_prior_as_np(self) -> np.array:
-        weights_prior_as_np = getattr(self, "_weights_prior_as_np", None)
-        if weights_prior_as_np is None:
-            weights_prior_as_np = np.array(
-                self.weights_prior.as_list_given_keys(
-                  self.keys_with_valid_data
-                ))
-            self._weights_prior_as_np = weights_prior_as_np
-
-        return weights_prior_as_np
-
-    @property
-    def covariance_matrix_as_np(self) -> np.array:
-        covariance_matrix_as_np = getattr(self, "_covariance_matrix_as_np", None)
-        if covariance_matrix_as_np is None:
-            covariance_matrix_as_np = self.covariance_matrix.subset(
-                self.keys_with_valid_data
-            ).values
-            self._covariance_matrix_as_np  = covariance_matrix_as_np
-
-        return covariance_matrix_as_np
-
-    @property
-    def costs_as_np(self) -> np.array:
-        costs_as_np = getattr(self, "_costs_as_np", None)
-        if costs_as_np is None:
-            costs_as_np = np.array(list(self.costs.subset(
-                self.keys_with_valid_data
-            ).values()))
-            self._costs_as_np = costs_as_np
-
-        return costs_as_np
-
-    @property
-    def optimal_signs_as_np(self) -> np.array:
-        optimal_signs = getattr(self, "_optimal_signs", None)
-        if optimal_signs is None:
-            optimal_signs = self._calculate_optimal_signs()
-            self._optimal_signs = optimal_signs
-
-        return optimal_signs
-
-    def _calculate_optimal_signs(self) -> np.array:
-        weights_optimal_as_np = self.weights_optimal_as_np
-        optimal_signs = np.array([sign(x) for x in weights_optimal_as_np])
-
-        return optimal_signs
-
-
-
-
-def greedy_algo_across_integer_values(
-        obj_instance: objectiveFunctionForGreedy
-                                    ) -> np.array:
-
-    weight_start = obj_instance.zero_weights_as_np()
-    best_value = obj_instance.evaluate(weight_start)
-    best_solution = weight_start
-
-    done = False
-
-    while not done:
-        new_best_value, new_solution = find_possible_new_best(best_solution = best_solution,
-                                                              best_value=best_value,
-                                                              obj_instance=obj_instance)
-
-        if new_best_value<best_value:
-            # reached a new optimium
-            best_value = new_best_value
-            best_solution = new_solution
-        else:
-            # we can't do any better
-            break
-
-    return best_solution
-
-def find_possible_new_best(best_solution: np.array,
-                           best_value: float,
-                           obj_instance: objectiveFunctionForGreedy) -> tuple:
-
-    new_best_value = best_value
-    new_solution = best_solution
-
-    fixed_units = obj_instance.per_contract_value_as_np
-    weight_sign = obj_instance.optimal_signs_as_np
-
-    count_assets = len(best_solution)
-    for i in range(count_assets):
-        temp_step = copy(best_solution)
-        temp_step[i] = temp_step[i] + fixed_units[i] * weight_sign[i]
-        temp_objective_value = obj_instance.evaluate(temp_step)
-        if temp_objective_value < new_best_value:
-            new_best_value = temp_objective_value
-            new_solution = temp_step
-
-    return new_best_value, new_solution
