@@ -105,7 +105,7 @@ class Portfolios(SystemStage):
         >>> from systems.tests.testdata import get_test_object_futures_with_pos_sizing
         >>> from systems.basesystem import System
         >>> (posobject, combobject, capobject, rules, rawdata, data, config)=get_test_object_futures_with_pos_sizing()
-        >>> system=System([rawdata, rules, posobject, combobject, capobject,PortfoliosFixed()], data, config)
+        >>> system=System([rawdata, rules, posobject, combobject, capobject,Portfolios()], data, config)
         >>>
         >>> ## from config
         >>> system.portfolio.get_buffers_for_position("EDOLLAR").tail(2)
@@ -160,7 +160,7 @@ class Portfolios(SystemStage):
         >>> from systems.tests.testdata import get_test_object_futures_with_pos_sizing
         >>> from systems.basesystem import System
         >>> (posobject, combobject, capobject, rules, rawdata, data, config)=get_test_object_futures_with_pos_sizing()
-        >>> system=System([rawdata, rules, posobject, combobject, capobject,PortfoliosFixed()], data, config)
+        >>> system=System([rawdata, rules, posobject, combobject, capobject,Portfolios()], data, config)
         >>>
         >>> ## from config
         >>> system.portfolio.get_forecast_method_buffer("EDOLLAR").tail(2)
@@ -203,7 +203,7 @@ class Portfolios(SystemStage):
         >>> from systems.tests.testdata import get_test_object_futures_with_pos_sizing
         >>> from systems.basesystem import System
         >>> (posobject, combobject, capobject, rules, rawdata, data, config)=get_test_object_futures_with_pos_sizing()
-        >>> system=System([rawdata, rules, posobject, combobject, capobject,PortfoliosFixed()], data, config)
+        >>> system=System([rawdata, rules, posobject, combobject, capobject,Portfolios()], data, config)
         >>>
         >>> ## from config
         >>> system.portfolio.get_position_method_buffer("EDOLLAR").tail(2)
@@ -256,7 +256,7 @@ class Portfolios(SystemStage):
         >>> from systems.tests.testdata import get_test_object_futures_with_pos_sizing
         >>> from systems.basesystem import System
         >>> (posobject, combobject, capobject, rules, rawdata, data, config)=get_test_object_futures_with_pos_sizing()
-        >>> system=System([rawdata, rules, posobject, combobject, capobject,PortfoliosFixed()], data, config)
+        >>> system=System([rawdata, rules, posobject, combobject, capobject,Portfolios()], data, config)
         >>>
         >>> ## from config
         >>> system.portfolio.get_notional_position("EDOLLAR").tail(2)
@@ -336,7 +336,7 @@ class Portfolios(SystemStage):
         >>> from systems.tests.testdata import get_test_object_futures_with_pos_sizing_estimates
         >>> from systems.basesystem import System
         >>> (account, posobject, combobject, capobject, rules, rawdata, data, config)=get_test_object_futures_with_pos_sizing_estimates()
-        >>> system=System([rawdata, rules, posobject, combobject, capobject,PortfoliosEstimated(), account], data, config)
+        >>> system=System([rawdata, rules, posobject, combobject, capobject,Portfolios(), account], data, config)
         >>> system.config.forecast_weight_estimate["method"]="shrinkage" ## speed things up
         >>> system.config.forecast_weight_estimate["date_method"]="in_sample" ## speed things up
         >>> system.config.instrument_weight_estimate["date_method"]="in_sample" ## speed things up
@@ -382,7 +382,7 @@ class Portfolios(SystemStage):
         >>> from systems.tests.testdata import get_test_object_futures_with_pos_sizing
         >>> from systems.basesystem import System
         >>> (posobject, combobject, capobject, rules, rawdata, data, config)=get_test_object_futures_with_pos_sizing()
-        >>> system=System([rawdata, rules, posobject, combobject, capobject,PortfoliosFixed()], data, config)
+        >>> system=System([rawdata, rules, posobject, combobject, capobject,Portfolios()], data, config)
         >>>
         >>> ## from config
         >>> system.portfolio.get_instrument_diversification_multiplier().tail(2)
@@ -392,7 +392,7 @@ class Portfolios(SystemStage):
         >>>
         >>> ## from defaults
         >>> del(config.instrument_div_multiplier)
-        >>> system2=System([rawdata, rules, posobject, combobject, capobject,PortfoliosFixed()], data, config)
+        >>> system2=System([rawdata, rules, posobject, combobject, capobject,Portfolios()], data, config)
         >>> system2.portfolio.get_instrument_diversification_multiplier().tail(2)
                     idm
         2015-12-10    1
@@ -427,7 +427,7 @@ class Portfolios(SystemStage):
         >>> from systems.tests.testdata import get_test_object_futures_with_pos_sizing_estimates
         >>> from systems.basesystem import System
         >>> (account, posobject, combobject, capobject, rules, rawdata, data, config)=get_test_object_futures_with_pos_sizing_estimates()
-        >>> system=System([rawdata, rules, posobject, combobject, capobject,PortfoliosEstimated(), account], data, config)
+        >>> system=System([rawdata, rules, posobject, combobject, capobject,Portfolios(), account], data, config)
         >>> system.config.forecast_weight_estimate["method"]="shrinkage" ## speed things up
         >>> system.config.forecast_weight_estimate["date_method"]="in_sample" ## speed things up
         >>> system.config.instrument_weight_estimate["date_method"]="in_sample" ## speed things up
@@ -544,7 +544,7 @@ class Portfolios(SystemStage):
         >>> from systems.basesystem import System
         >>> (posobject, combobject, capobject, rules, rawdata, data, config)=get_test_object_futures_with_pos_sizing()
         >>> config.instrument_weights=dict(EDOLLAR=0.1, US10=0.9)
-        >>> system=System([rawdata, rules, posobject, combobject, capobject,PortfoliosFixed()], data, config)
+        >>> system=System([rawdata, rules, posobject, combobject, capobject,Portfolios()], data, config)
         >>>
         >>> ## from config
         >>> system.portfolio.get_instrument_weights().tail(2)
@@ -553,7 +553,7 @@ class Portfolios(SystemStage):
         2015-12-11      0.1   0.9
         >>>
         >>> del(config.instrument_weights)
-        >>> system2=System([rawdata, rules, posobject, combobject, capobject,PortfoliosFixed()], data, config)
+        >>> system2=System([rawdata, rules, posobject, combobject, capobject,Portfolios()], data, config)
         >>> system2.portfolio.get_instrument_weights().tail(2)
         WARNING: No instrument weights  - using equal weights of 0.3333 over all 3 instruments in data
                         BUND   EDOLLAR      US10
@@ -645,7 +645,7 @@ class Portfolios(SystemStage):
         >>> from systems.tests.testdata import get_test_object_futures_with_pos_sizing_estimates
         >>> from systems.basesystem import System
         >>> (account, posobject, combobject, capobject, rules, rawdata, data, config)=get_test_object_futures_with_pos_sizing_estimates()
-        >>> system=System([account, rawdata, rules, posobject, combobject, capobject,PortfoliosEstimated()], data, config)
+        >>> system=System([account, rawdata, rules, posobject, combobject, capobject,Portfolios()], data, config)
         >>> system.config.forecast_weight_estimate["method"]="shrinkage" ## speed things up
         >>> system.config.forecast_weight_estimate["date_method"]="in_sample" ## speed things up
         >>> system.config.instrument_weight_estimate["method"]="shrinkage"
@@ -765,7 +765,7 @@ class Portfolios(SystemStage):
         >>> from systems.tests.testdata import get_test_object_futures_with_pos_sizing
         >>> from systems.basesystem import System
         >>> (posobject, combobject, capobject, rules, rawdata, data, config)=get_test_object_futures_with_pos_sizing()
-        >>> system=System([rawdata, rules, posobject, combobject, capobject,PortfoliosFixed()], data, config)
+        >>> system=System([rawdata, rules, posobject, combobject, capobject,Portfolios()], data, config)
         >>>
         >>> ## from config
         >>> system.portfolio.get_subsystem_position("EDOLLAR").tail(2)
@@ -837,7 +837,8 @@ class Portfolios(SystemStage):
         >>> from systems.tests.testdata import get_test_object_futures_with_pos_sizing
         >>> from systems.basesystem import System
         >>> (posobject, combobject, capobject, rules, rawdata, data, config)=get_test_object_futures_with_pos_sizing()
-        >>> system=System([rawdata, rules, posobject, combobject, capobject,PortfoliosFixed()], data, config)
+        >>> system=System([rawdata, rules, posobject, combobject, capobject,Portfolios
+        ()], data, config)
         >>>
         >>> ## from config
         >>> system.portfolio.get_volatility_scalar("EDOLLAR").tail(2)
