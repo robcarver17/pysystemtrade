@@ -434,7 +434,7 @@ Note: Since we need to know the performance of different trading rules, we need 
 
 ```python
 from systems.rawdata import RawData
-from system.positionsizing import PositionSizing
+from systems.positionsizing import PositionSizing
 from systems.accounts.accounts_stage import Account
 combiner = ForecastCombine()
 raw_data = RawData()
