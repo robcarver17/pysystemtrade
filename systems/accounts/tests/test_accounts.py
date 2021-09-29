@@ -22,7 +22,6 @@ def system():
     return system
 
 
-@pytest.mark.skip
 class TestAccounts:
 
     def test_costs_per_trade(self, system):
@@ -111,7 +110,7 @@ class TestAccounts:
     @staticmethod
     def assert_holding_cost(system, instr: str, expected: float):
         actual = system.accounts.get_SR_holding_cost_only(instr)
-        assert actual == approx(expected, rel=1e-3)\
+        assert actual == approx(expected, rel=1e-3)
 
     @staticmethod
     def assert_total_cost(system, instr: str, turnover: float, expected: float):
