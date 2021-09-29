@@ -138,6 +138,7 @@ def reset_all_limits(data):
 def change_limit_for_instrument_strategy(data):
     trade_limits = dataTradeLimits(data)
     instrument_code = get_valid_instrument_code_from_user(data)
+    strategy_name = get_valid_strategy_name_from_user(data)
     period_days = get_and_convert(
         "Period of days?",
         type_expected=int,
@@ -179,18 +180,32 @@ def reset_limit_for_instrument_strategy(data):
 
 def auto_populate_limits(data: dataBlob):
     instrument_list = get_list_of_instruments(data)
-    risk_multiplier = get_risk_multiplier()
+    risk_multiplier, max_leverage = get_risk_multiplier_and_max_leverage()
     trade_multiplier = get_and_convert("Higgest proportion of standard position expected to trade daily?",
                                        type_expected=float, default_value=0.33)
-    day_count = get_and_convert("What period in days to set limit for?", type_expected=int, default_value=1)
-    _ = [set_trade_limit_for_instrument(data, instrument_code, risk_multiplier, trade_multiplier, day_count)
+    period_days = get_and_convert("What period in days to set limit for?", type_expected=int, default_value=1)
+    _ = [set_trade_limit_for_instrument(data, instrument_code=instrument_code,
+                                        risk_multiplier=risk_multiplier,
+                                        trade_multiplier=trade_multiplier,
+                                        period_days=period_days,
+                                        max_leverage = max_leverage)
                         for instrument_code in instrument_list]
     return None
 
-def set_trade_limit_for_instrument(data, instrument_code, risk_multiplier, trade_multiplier, period_days):
+def set_trade_limit_for_instrument(data,
+                                   instrument_code: str,
+                                   risk_multiplier: float,
+                                   trade_multiplier: float,
+                                   period_days: int,
+                                   max_leverage: float):
 
     trade_limits = dataTradeLimits(data)
-    new_limit = calc_trade_limit_for_instrument(data, instrument_code, risk_multiplier, trade_multiplier, period_days)
+    new_limit = calc_trade_limit_for_instrument(data,
+                                                instrument_code=instrument_code,
+                                                risk_multiplier=risk_multiplier,
+                                                trade_multiplier=trade_multiplier,
+                                                max_leverage = max_leverage,
+                                                period_days=period_days)
     if np.isnan(new_limit):
         print("Can't calculate trade limit for %s, not setting" % instrument_code)
     else:
@@ -198,25 +213,37 @@ def set_trade_limit_for_instrument(data, instrument_code, risk_multiplier, trade
             instrument_code, period_days, new_limit)
 
 
-def calc_trade_limit_for_instrument(data, instrument_code, risk_multiplier, trade_multiplier, day_count):
-    standard_position = get_standardised_position(data, instrument_code, risk_multiplier)
+def calc_trade_limit_for_instrument(data: dataBlob,
+                                    instrument_code: str,
+                                    risk_multiplier: float,
+                                    trade_multiplier: float,
+                                    period_days: int,
+                                    max_leverage: float):
+    standard_position = get_standardised_position(data,
+                                                  instrument_code= instrument_code,
+                                                  risk_multiplier=risk_multiplier,
+                                                  max_leverage=max_leverage)
     if np.isnan(standard_position):
         return np.nan
 
-    adj_trade_multiplier = (float(day_count)**.5) * trade_multiplier
+    adj_trade_multiplier = (float(period_days)**.5) * trade_multiplier
     standard_trade = float(standard_position) * adj_trade_multiplier
     standard_trade_int = max(4, int(np.ceil(abs(standard_trade))))
 
     return standard_trade_int
 
-def get_risk_multiplier() -> float:
+def get_risk_multiplier_and_max_leverage() -> (float, float):
     print("Enter parameters to estimate typical position sizes")
     notional_risk_target = get_and_convert("Notional risk target (% per year)", type_expected=float, default_value=.25)
     approx_IDM = get_and_convert("Approximate IDM", type_expected=float, default_value=2.5)
     notional_instrument_weight = get_and_convert("Notional instrument weight (go large for safety!)",
                                                  type_expected=float, default_value=.1)
+    max_leverage = get_and_convert("Maximum Leverage per instrument (notional exposure*# contracts / capital)",
+                                   type_expected=float,
+                                   default_value=1.0)
+    risk_multiplier = notional_risk_target * approx_IDM * notional_instrument_weight
 
-    return notional_risk_target * approx_IDM * notional_instrument_weight
+    return  risk_multiplier, max_leverage
 
 def get_list_of_instruments(data):
     diag_positions = diagPositions(data)
@@ -226,22 +253,37 @@ def get_list_of_instruments(data):
 
 
 
-def get_standardised_position(data: dataBlob, instrument_code: str, risk_multiplier: float
-                              )-> int:
+def get_standardised_position(data: dataBlob, instrument_code: str,
+                              risk_multiplier: float,
+                            max_leverage: float = 1.0
+                              )-> float:
 
 
     risk_data = get_risk_data_for_instrument(data, instrument_code)
+    position_for_risk = get_standardised_position_for_risk(risk_data, risk_multiplier)
+    position_with_leverage = get_maximum_position_given_leverage_limit(risk_data, max_leverage)
+
+    return min(position_for_risk, position_with_leverage)
+
+def get_standardised_position_for_risk(risk_data: dict, risk_multiplier: float
+                              ) -> int:
+
     capital = risk_data['capital']
     annual_risk_per_contract = risk_data['annual_risk_per_contract']
 
     annual_risk_target = capital * risk_multiplier
     standard_position = annual_risk_target / annual_risk_per_contract
 
-    return standard_position
+    return abs(standard_position)
 
+def get_maximum_position_given_leverage_limit(risk_data: dict, leverage_limit: float = 1.0) -> float:
+    notional_exposure_per_contract = risk_data['contract_exposure']
+    max_exposure = risk_data['capital'] * leverage_limit
+
+    return abs(max_exposure / notional_exposure_per_contract)
 
 def view_position_limit(data):
-    # FIXME NICER ORDE
+
     data_position_limits = dataPositionLimits(data)
     instrument_limits = data_position_limits.get_all_instrument_limits_and_positions()
     strategy_instrument_limits = data_position_limits.get_all_strategy_instrument_limits_and_positions()
@@ -288,22 +330,39 @@ def change_position_limit_for_instrument_strategy(data):
 
 def auto_populate_position_limits(data: dataBlob):
     instrument_list = get_list_of_instruments(data)
-    risk_multiplier = get_risk_multiplier()
-    [set_position_limit_for_instrument(data, instrument_code, risk_multiplier)
+    risk_multiplier, max_leverage = get_risk_multiplier_and_max_leverage()
+    [set_position_limit_for_instrument(data,
+                                       instrument_code=instrument_code,
+                                       risk_multiplier=risk_multiplier,
+                                       max_leverage=max_leverage)
                         for instrument_code in instrument_list]
     return None
 
-def set_position_limit_for_instrument(data, instrument_code, risk_multiplier):
+def set_position_limit_for_instrument(data,
+                                      instrument_code: str,
+                                      risk_multiplier: float,
+                                      max_leverage: float):
 
     data_position_limits = dataPositionLimits(data)
-    max_position_int = get_max_position_for_instrument(data, instrument_code, risk_multiplier)
+    max_position_int = get_max_position_for_instrument(data,
+                                                       instrument_code=instrument_code,
+                                                       risk_multiplier=risk_multiplier,
+                                                       max_leverage=max_leverage)
+
     if np.isnan(max_position_int):
         print("Can't get standard position for %s, not setting max position" % instrument_code)
     else:
         data_position_limits.set_abs_position_limit_for_instrument( instrument_code, max_position_int)
 
-def get_max_position_for_instrument(data, instrument_code, risk_multiplier):
-    standard_position = get_standardised_position(data, instrument_code, risk_multiplier)
+def get_max_position_for_instrument(data,
+                                    instrument_code: str,
+                                    risk_multiplier: float,
+                                    max_leverage: float):
+
+    standard_position = get_standardised_position(data,
+                                                  instrument_code=instrument_code,
+                                                  risk_multiplier=risk_multiplier,
+                                                  max_leverage=max_leverage)
     if np.isnan(standard_position):
         return np.nan
 
