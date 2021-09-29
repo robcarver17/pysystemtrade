@@ -33,6 +33,7 @@ class CsvFuturesSimTestData(genericBlobUsingFuturesSimData):
 
         data = dataBlob(
             log=log,
+            csv_data_paths=dict(csvFuturesAdjustedPricesData="data.test.adjusted_prices_csv"),
             class_list=[
                 csvFuturesAdjustedPricesData,
                 csvFuturesMultiplePricesData,
@@ -84,5 +85,15 @@ class CsvFuturesSimTestData(genericBlobUsingFuturesSimData):
 
     def daily_prices(self, instrument_code: str) -> pd.Series:
         data = super().daily_prices(instrument_code)
+        date_adjusted = data[self.start_date:self.end_date]
+        return date_adjusted
+
+    def get_instrument_raw_carry_data(self, instrument_code: str) -> pd.DataFrame:
+        data = super().get_instrument_raw_carry_data(instrument_code)
+        date_adjusted = data[self.start_date:self.end_date]
+        return date_adjusted
+
+    def get_current_and_forward_price_data(self, instrument_code: str) -> pd.DataFrame:
+        data = super().get_current_and_forward_price_data(instrument_code)
         date_adjusted = data[self.start_date:self.end_date]
         return date_adjusted
