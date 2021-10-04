@@ -67,11 +67,7 @@ class mongoDataWithSingleKey(object):
             return 0
 
     def get_list_of_values_for_dict_key(self, dict_key):
-        key_list = self.get_list_of_keys()
-        list_of_results = [self.get_result_dict_for_key(key) for key in key_list]
-        list_of_values = [item_dict.get(dict_key, None) for item_dict in list_of_results]
-
-        return list_of_values
+        return [row[dict_key] for row in self.collection.find({self.key_name: {"$exists": True}}, {dict_key: 1})]
 
     def get_result_dict_for_key(self, key) ->dict:
         key_name = self.key_name
