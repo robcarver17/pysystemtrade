@@ -477,7 +477,7 @@ def write_optimised_positions_data_for_code(data: dataBlob,
     data_optimal_positions = dataOptimalPositions(data)
     instrument_strategy = instrumentStrategy(instrument_code=instrument_code,
                                              strategy_name=strategy_name)
-
+ 
     data.log.msg("Adding optimal position for %s of %s" % (str(instrument_strategy), optimised_position_entry.verbose_repr()))
     data_optimal_positions. \
         update_optimal_position_for_instrument_strategy(
