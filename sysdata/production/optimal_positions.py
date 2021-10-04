@@ -14,7 +14,7 @@ from sysdata.production.timed_storage import (
     listOfEntriesData,
 )
 from sysobjects.production.optimal_positions import simpleOptimalPosition, bufferedOptimalPositions, \
-    instrumentStrategyAndOptimalPosition, listOfOptimalPositionsAcrossInstrumentStrategies
+    instrumentStrategyAndOptimalPosition, listOfOptimalPositionsAcrossInstrumentStrategies, optimalPositionWithReference
 from sysobjects.production.timed_storage import listOfEntries
 from sysobjects.production.tradeable_object import listOfInstrumentStrategies, instrumentStrategy
 
@@ -37,6 +37,18 @@ class bufferedOptimalPositionForInstrument(listOfEntries):
 
     def _entry_class(self):
         return bufferedOptimalPositions
+
+
+## THIS HAS TO STAY HERE OR OLD DATA WILL BREAK - DO NOT MOVE
+class optimalPositionWithReferenceForAsset(listOfEntries):
+    """
+    A list of positions over time
+    """
+
+    def _entry_class(self):
+        return optimalPositionWithReference
+
+
 
 class optimalPositionData(listOfEntriesData):
     """

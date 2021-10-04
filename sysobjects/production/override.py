@@ -51,6 +51,9 @@ class Override:
     def override_value(self):
         return self._override
 
+    def __eq__(self, other):
+        return self.override_value == other.override_value
+
     def as_float(self):
         assert self.is_float_like()
         value = self.override_value
@@ -140,7 +143,9 @@ class Override:
         return Override(another_override.as_float() * self.as_float())
 
 DEFAULT_OVERRIDE = Override(1.0)
-
+NO_TRADE_OVERRIDE = Override(override_no_trading)
+REDUCE_ONLY_OVERRIDE = Override(override_reduce_only)
+CLOSE_OVERRIDE = Override(override_close)
 
 def _apply_float_override(override_as_float: float,
         original_position_no_override: int,

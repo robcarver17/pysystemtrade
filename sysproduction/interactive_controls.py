@@ -18,6 +18,9 @@ from sysproduction.data.strategies import get_valid_strategy_name_from_user
 from sysproduction.data.positions import diagPositions
 from sysproduction.reporting.risk_report import get_risk_data_for_instrument
 
+# could get from config, but might be different by system
+MAX_VS_AVERAGE_FORECAST = 2.0
+
 def interactive_controls():
     with dataBlob(log_name="Interactive-Controls") as data:
         menu = run_interactive_menu(
@@ -209,6 +212,7 @@ def set_trade_limit_for_instrument(data,
     if np.isnan(new_limit):
         print("Can't calculate trade limit for %s, not setting" % instrument_code)
     else:
+        print("Update limit for %s %d with %d" % (instrument_code, period_days, new_limit))
         trade_limits.update_instrument_limit_with_new_limit(
             instrument_code, period_days, new_limit)
 
@@ -238,9 +242,12 @@ def get_risk_multiplier_and_max_leverage() -> (float, float):
     approx_IDM = get_and_convert("Approximate IDM", type_expected=float, default_value=2.5)
     notional_instrument_weight = get_and_convert("Notional instrument weight (go large for safety!)",
                                                  type_expected=float, default_value=.1)
-    max_leverage = get_and_convert("Maximum Leverage per instrument (notional exposure*# contracts / capital)",
+    raw_max_leverage = get_and_convert("Maximum Leverage per instrument (notional exposure*# contracts / capital)",
                                    type_expected=float,
                                    default_value=1.0)
+    # because we multiply by eg 2, need to half this
+    max_leverage = raw_max_leverage / MAX_VS_AVERAGE_FORECAST
+
     risk_multiplier = notional_risk_target * approx_IDM * notional_instrument_weight
 
     return  risk_multiplier, max_leverage
@@ -263,7 +270,14 @@ def get_standardised_position(data: dataBlob, instrument_code: str,
     position_for_risk = get_standardised_position_for_risk(risk_data, risk_multiplier)
     position_with_leverage = get_maximum_position_given_leverage_limit(risk_data, max_leverage)
 
-    return min(position_for_risk, position_with_leverage)
+    standard_position = min(position_for_risk, position_with_leverage)
+
+    print("Standardised position for %s is %f, minimum of %f (risk) and %f (leverage)" % (instrument_code,
+                                                                                          standard_position,
+                                                                                          position_for_risk,
+                                                                                          position_with_leverage))
+
+    return standard_position
 
 def get_standardised_position_for_risk(risk_data: dict, risk_multiplier: float
                               ) -> int:
@@ -352,6 +366,7 @@ def set_position_limit_for_instrument(data,
     if np.isnan(max_position_int):
         print("Can't get standard position for %s, not setting max position" % instrument_code)
     else:
+        print("Update limit for %s with %d" % (instrument_code, max_position_int))
         data_position_limits.set_abs_position_limit_for_instrument( instrument_code, max_position_int)
 
 def get_max_position_for_instrument(data,
@@ -366,7 +381,7 @@ def get_max_position_for_instrument(data,
     if np.isnan(standard_position):
         return np.nan
 
-    max_position = 2*standard_position
+    max_position = MAX_VS_AVERAGE_FORECAST*standard_position
     max_position_int = max(1, int(np.ceil(abs(max_position))))
 
     return max_position_int

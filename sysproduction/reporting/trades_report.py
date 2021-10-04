@@ -8,13 +8,14 @@ import pandas as pd
 from syscore.dateutils import n_days_ago
 from syscore.genutils import transfer_object_attributes
 from syscore.pdutils import make_df_from_list_of_named_tuple
-from syscore.objects import header, table, body_text, arg_not_supplied, missing_data
+from syscore.objects import header, table, body_text, arg_not_supplied
 
 from sysdata.data_blob import dataBlob
 from sysproduction.data.orders import dataOrders
 from sysproduction.data.instruments import diagInstruments
 
-from sysproduction.reporting.risk_report import  get_current_annualised_stdev_for_instrument
+from sysproduction.utilities.risk_metrics import get_current_annualised_stdev_for_instrument
+
 
 def trades_info(
     data=arg_not_supplied,

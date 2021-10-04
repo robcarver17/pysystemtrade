@@ -1,18 +1,16 @@
 ## Generate expected spread from actual trades, and sampled spreads
 import datetime
 import pandas as pd
-import numpy as np
 from sysdata.data_blob import dataBlob
 
 from syscore.dateutils import n_days_ago
 
 from sysproduction.data.prices import diagPrices
-from sysproduction.data.instruments import diagInstruments
 from sysproduction.data.positions import annonate_df_index_with_positions_held
 from sysproduction.reporting.trades_report import create_raw_slippage_df, get_recent_broker_orders
-from sysproduction.reporting.risk_report import get_risk_data_for_instrument
 
 from syscore.objects import header, table, arg_not_supplied, body_text
+from sysproduction.utilities.costs import get_current_configured_spread_cost, get_SR_cost_for_instrument
 
 
 def costs_report(
@@ -129,23 +127,6 @@ def get_average_half_spread_by_instrument_from_raw_slippage(raw_slippage, use_co
 
     return average_half_spread_by_code
 
-def get_current_configured_spread_cost(data):
-    diag_instruments = diagInstruments(data)
-    list_of_instruments = diag_instruments.get_list_of_instruments()
-
-    spreads_as_list = [get_configured_spread_cost_for_instrument(data, instrument_code)
-                       for instrument_code in list_of_instruments]
-
-    spreads_as_df = pd.Series(spreads_as_list, index = list_of_instruments)
-
-    return spreads_as_df
-
-
-def get_configured_spread_cost_for_instrument(data, instrument_code):
-    diag_instruments = diagInstruments(data)
-    meta_data = diag_instruments.get_meta_data(instrument_code)
-
-    return meta_data.Slippage
 
 def get_table_of_SR_costs(data):
     diag_prices = diagPrices(data)
@@ -161,54 +142,6 @@ def get_table_of_SR_costs(data):
     SR_costs = SR_costs.sort_values('SR_cost', ascending=False)
 
     return SR_costs
-
-def get_SR_cost_for_instrument(data: dataBlob, instrument_code: str):
-    print("Costs for %s" % instrument_code)
-    percentage_cost = get_percentage_cost_for_instrument(data, instrument_code)
-    avg_annual_vol_perc = get_percentage_ann_stdev(data, instrument_code)
-
-    # cost per round trip
-    SR_cost = 2.0 * percentage_cost / avg_annual_vol_perc
-
-    return SR_cost
-
-
-def get_percentage_cost_for_instrument(data: dataBlob, instrument_code: str):
-    diag_instruments = diagInstruments(data)
-    costs_object = diag_instruments.get_cost_object(instrument_code)
-    blocks_traded = 1
-    block_price_multiplier = get_block_size(data, instrument_code)
-    price = recent_average_price(data, instrument_code)
-    percentage_cost = \
-        costs_object.calculate_cost_percentage_terms(blocks_traded=blocks_traded,
-                                                     block_price_multiplier=block_price_multiplier,
-                                                     price=price)
-
-    return percentage_cost
-
-def recent_average_price(data: dataBlob, instrument_code: str) -> float:
-    diag_prices = diagPrices(data)
-    prices = diag_prices.get_adjusted_prices(instrument_code)
-    if len(prices)==0:
-        return np.nan
-    one_year_ago = n_days_ago(365)
-    recent_prices= prices[one_year_ago:]
-
-    return recent_prices.mean(skipna=True)
-
-
-def get_block_size(data, instrument_code):
-    diag_instruments = diagInstruments(data)
-    return diag_instruments.get_point_size(instrument_code)
-
-def get_percentage_ann_stdev(data, instrument_code):
-    try:
-        risk_data = get_risk_data_for_instrument(data, instrument_code)
-    except:
-        ## can happen for brand new instruments not properly loaded
-        return np.nan
-
-    return risk_data['annual_perc_stdev']/100.0
 
 
 def format_costs_data(costs_report_data: dict) -> list:
