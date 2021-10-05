@@ -98,3 +98,29 @@ tbody tr:nth-child(odd) {
 tbody tr:nth-child(even) {
   background-color: #eee;
 }
+
+
+.traffic-light {
+  border: none;
+  color: white;
+  padding: 20px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
+  border-radius: 12px;
+}
+
+.green {
+  background: #00FF00;
+}
+
+.orange {
+  background: #FF8C00;
+}
+
+.red {
+  background: #FF0000;
+}
