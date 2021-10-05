@@ -1,12 +1,14 @@
 $(document).ready(function(){
   $.ajax({
     type: "GET",
-    url: "/traffic_lights",
+    url: "/capital",
     success: function(data) {
-      $.each(data, function(k,v) {
-        //$("#"+k).addClass(v);
+      $('#capital-tl').html('$'+data['now'].toLocaleString());
+      if (data['now'] >= data['yesterday']) {
+        $('#capital-tl').addClass('green');
+      } else {
+        $('#capital-tl').addClass('green');
       }
-      );
     }
   }
   );
