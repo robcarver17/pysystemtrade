@@ -1,21 +1,22 @@
 $(document).ready(function(){
   $.ajax({
     type: "GET",
-    url: "/strategy",
+    url: "/reconcile",
     success: function(data) {
-      $('#breaks-tl').addClass(data['overall']);
-      $("#strategy_strategy > tbody").empty();
-      $("#strategy_contract > tbody").empty();
-      $("#strategy_broker > tbody").empty();
+      var overall = "green";
+      $("#reconcile_strategy > tbody").empty();
+      $("#reconcile_contract > tbody").empty();
+      $("#reconcile_broker > tbody").empty();
       $.each(data['strategy'], function(contract, details) {
         if (details['break']) {
-        $("#strategy_strategy tbody").append(`
+        $("#reconcile_strategy tbody").append(`
           <tr><td>${contract}</td>
           <td class="red">${details['current']}</td>
           <td class="red">${details['optimal']}</td>
           </tr>`);
+          overall = "orange";
         } else {
-        $("#strategy_strategy tbody").append(`
+        $("#reconcile_strategy tbody").append(`
           <tr><td>${contract}</td>
           <td>${details['current']}</td>
           <td>${details['optimal']}</td>
@@ -23,6 +24,25 @@ $(document).ready(function(){
         }
       }
       );
+      $.each(data['positions'], function(contract, details) {
+        var line = `<tr><td>${details['code']}</td>
+          <td>${details['contract_date']}</td>`;
+        if (details['code'] in data['db_breaks']) {
+          line += `<td class="red">${details['db_position']}</td>`;
+          overall = "red";
+        } else {
+          line += `<td>${details['db_position']}</td>`;
+        }
+        if (details['code'] in data['ib_breaks']) {
+          line += `<td class="red">${details['ib_position']}</td>`;
+          overall = "red";
+        } else {
+          line += `<td>${details['ib_position']}</td>`;
+        }
+        $("#reconcile_contract tbody").append(line);
+      }
+      );
+      $('#breaks-tl').addClass(overall);
     }
   }
   );
