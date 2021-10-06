@@ -107,7 +107,8 @@ def calculate_optimised_positions_data(data: dataBlob,
     data_for_objective = get_data_for_objective_instance(data,
                                                          strategy_name=strategy_name,
                                                          previous_positions=previous_positions,
-                                                         raw_optimal_position_data=raw_optimal_position_data)
+                                                         raw_optimal_position_data=raw_optimal_position_data
+                                                         )
 
     objective_function = get_objective_instance(data_for_objective)
 
@@ -349,7 +350,7 @@ def get_weights_given_positions(
 
 def get_trade_shadow_cost() -> float:
     config = get_production_config()
-    shadow_cost = getattr(config, "shadow_cost", 10.0)
+    shadow_cost = getattr(config, "dynamic_shadow_cost", 10.0)
 
     return shadow_cost
 

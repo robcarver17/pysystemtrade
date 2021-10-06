@@ -1,12 +1,16 @@
 import pandas as pd
+import os
 
-from syscore.objects import resolve_function,  arg_not_supplied
+from syscore.objects import resolve_function,  arg_not_supplied, missing_data
 from syscore.objects import header, table, body_text
-
+from syscore.fileutils import get_resolved_pathname
 from sysdata.data_blob import dataBlob
+from sysdata.config.production_config import get_production_config
+
 from syslogdiag.email_via_db_interface import send_production_mail_msg
 
 from sysproduction.reporting.report_configs import reportConfig
+
 
 def run_report(report_config: reportConfig,
                data: dataBlob=arg_not_supplied):
@@ -36,14 +40,23 @@ def run_report_with_data_blob(report_config: reportConfig,
 
     report_results = report_function(data, **report_kwargs)
     parsed_report = parse_report_results(report_results)
+    output = report_config.output
 
     # We either print or email
-    if report_config.output == "console":
+    if output == "console":
         print(parsed_report)
-    elif report_config.output == "email":
+    elif output == "email":
         send_production_mail_msg(
             data, parsed_report, subject=report_config.title, email_is_report=True
         )
+    elif output=="file":
+        filename_with_spaces = report_config.title
+        filename = filename_with_spaces.replace(" ", "_")
+        write_report_to_file(
+            data, parsed_report, filename = filename
+        )
+    else:
+        raise Exception("Report config %s not recognised!" % output)
 
 
 
@@ -136,3 +149,22 @@ def pandas_display_for_reports():
     pd.set_option("display.max_columns", 1000)
     pd.set_option("display.max_rows", 1000)
 
+def write_report_to_file(
+            data: dataBlob, parsed_report: str, filename: str
+        ):
+    use_directory = get_directory_for_reporting()
+    use_directory_resolved = get_resolved_pathname(use_directory)
+    full_filename = os.path.join(use_directory_resolved, filename)
+    with open(full_filename, "w") as f:
+        f.write(parsed_report)
+    data.log.msg("Written report to %s" % full_filename)
+
+
+def get_directory_for_reporting():
+    # eg '/home/rob/reports/'
+    production_config = get_production_config()
+    store_directory = production_config.get_element_or_missing_data("reporting_directory")
+    if store_directory is missing_data:
+        raise Exception("Need to specify reporting_directory in config file")
+
+    return store_directory
