@@ -1,6 +1,37 @@
 $(document).ready(function(){
   $.ajax({
     type: "GET",
+    url: "/strategy",
+    success: function(data) {
+      $('#breaks-tl').addClass(data['overall']);
+      $("#strategy_strategy > tbody").empty();
+      $("#strategy_contract > tbody").empty();
+      $("#strategy_broker > tbody").empty();
+      $.each(data['strategy'], function(contract, details) {
+        if (details['break']) {
+        $("#strategy_strategy tbody").append(`
+          <tr><td>${contract}</td>
+          <td class="red">${details['current']}</td>
+          <td class="red">${details['optimal']}</td>
+          </tr>`);
+        } else {
+        $("#strategy_strategy tbody").append(`
+          <tr><td>${contract}</td>
+          <td>${details['current']}</td>
+          <td>${details['optimal']}</td>
+          </tr>`);
+        }
+      }
+      );
+    }
+  }
+  );
+  }
+);
+
+$(document).ready(function(){
+  $.ajax({
+    type: "GET",
     url: "/capital",
     success: function(data) {
       $('#capital-tl').html('$'+data['now'].toLocaleString());
