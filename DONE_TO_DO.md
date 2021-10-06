@@ -1,5 +1,7 @@
 # Release notes
 
+- Added dynamic optimisation code
+
 ## Version 1.06
 
 - Removed FuturesRawData, just use RawData now
