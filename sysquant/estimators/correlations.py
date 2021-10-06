@@ -29,6 +29,9 @@ class correlationEstimate(Estimate):
     def is_boring(self, is_boring: bool):
         self._is_boring = is_boring
 
+    def as_np(self) -> np.array:
+        return self.values
+
     def as_pd(self) -> pd.DataFrame:
         values = self.values
         columns = self.columns
@@ -46,6 +49,9 @@ class correlationEstimate(Estimate):
     @property
     def columns(self) -> list:
         return self._columns
+
+    def list_of_keys(self):
+        return self.columns
 
     @property
     def size(self) -> int:
@@ -147,6 +153,15 @@ class correlationEstimate(Estimate):
         avg_corr = np.nanmean(new_corr_values)
 
         return avg_corr
+
+    def ordered_correlation_matrix(self):
+        list_of_keys = self.columns
+        list_of_keys.sort()
+
+        return self.list_in_key_order(list_of_keys)
+
+    def list_in_key_order(self, list_of_keys: list) -> list:
+        return self.subset(list_of_keys)
 
     def subset(self, subset_of_asset_names: list):
         as_pd = self.as_pd()

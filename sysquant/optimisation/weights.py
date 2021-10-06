@@ -39,6 +39,16 @@ class portfolioWeights(dict):
 
         return portfolioWeights(new_weights_as_dict)
 
+    def as_np(self) -> np.array:
+        as_list = self.as_list()
+        return np.array(as_list)
+
+    def as_list(self) -> list:
+        keys = list(self.keys())
+        as_list = self.as_list_given_keys(keys)
+
+        return as_list
+
     def as_list_given_keys(self, list_of_keys: list):
         return [self[key] for key in list_of_keys]
 

@@ -16,7 +16,7 @@ from sysproduction.data.control_process import dataControlProcess, diagControlPr
 from sysproduction.data.prices import get_valid_instrument_code_from_user
 from sysproduction.data.strategies import get_valid_strategy_name_from_user
 from sysproduction.data.positions import diagPositions
-from sysproduction.reporting.risk_report import get_risk_data_for_instrument
+from sysproduction.utilities.risk_metrics import get_risk_data_for_instrument
 
 # could get from config, but might be different by system
 MAX_VS_AVERAGE_FORECAST = 2.0

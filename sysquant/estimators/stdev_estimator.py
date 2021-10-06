@@ -18,6 +18,9 @@ class stdevEstimates(dict, Estimate):
     def list_in_key_order(self, list_of_keys: list) -> list:
         return [self[asset_name] for asset_name in list_of_keys]
 
+    def list_of_keys(self) -> list:
+        return list(self.keys())
+
 class exponentialStdev(exponentialEstimator):
     def __init__(self, data_for_stdev: pd.DataFrame,
                  ew_lookback: int = 250,

@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from sysquant.fitting_dates import fitDates
 
 class Estimate():
@@ -10,6 +11,19 @@ class Estimate():
 
     def list_in_key_order(self, list_of_keys: list) -> list:
         raise NotImplementedError
+
+    def list_of_keys(self):
+        raise NotImplementedError
+
+    def as_np(self) -> np.array:
+        as_list = self.as_list()
+        return np.array(as_list)
+
+    def as_list(self) -> list:
+        keys = list(self.list_of_keys())
+        as_list = self.list_in_key_order(keys)
+
+        return as_list
 
 
 class exponentialEstimator(object):

@@ -12,7 +12,7 @@ from sysdata.data_blob import dataBlob
 from sysproduction.data.prices import diagPrices
 from sysproduction.data.contracts import dataContracts
 from sysproduction.data.positions import annonate_df_index_with_positions_held
-from sysproduction.reporting.risk_report import get_risk_data_for_instrument
+from sysproduction.utilities.risk_metrics import get_risk_data_for_instrument
 
 import pandas as pd
 

@@ -1,17 +1,21 @@
 import numpy as np
 import pandas as pd
 
-from syscore.correlations import ordered_correlation_matrix
 from syscore.dateutils import ROOT_BDAYS_INYEAR
 from syscore.objects import missing_data
+
 from sysobjects.production.tradeable_object import instrumentStrategy
+
 from sysquant.estimators.covariance import covarianceEstimate, covariance_from_stdev_and_correlation
 from sysquant.estimators.correlations import correlationEstimate
 from sysquant.estimators.stdev_estimator import stdevEstimates
+from sysquant.optimisation.weights import portfolioWeights
+
 from sysproduction.data.capital import dataCapital
 from sysproduction.data.instruments import diagInstruments
 from sysproduction.data.positions import diagPositions
 from sysproduction.data.prices import diagPrices
+
 from sysquant.optimisation.shared import sigma_from_corr_and_std
 
 ## FIX ME SOME DUPLICATE CODE HERE AND DIFFERENT METHODS SHOULD BE MAKING MORE OF SYSQUANT
@@ -26,17 +30,31 @@ def get_annualised_perc_of_capital_risk_of_positions_held_for_instruments_across
 
 
 def get_portfolio_risk_for_strategy(data, strategy_name):
-    instrument_list = get_instruments_with_positions(data, strategy_name)
-    weights = [
-        get_perc_of_capital_position_size_for_instrument(data, strategy_name, instrument_code)
-        for instrument_code in instrument_list]
 
+    weights = get_perc_of_capital_position_size_across_instruments_for_strategy(data,
+                                                                                strategy_name)
+    instrument_list = list(weights.keys())
     cmatrix = get_correlation_matrix(data, instrument_list)
-    std_dev = get_list_of_annualised_stdev_of_instruments(data, instrument_list)
+    std_dev = get_annualised_stdev_for_instruments(data, instrument_list)
 
     risk = get_annualised_risk_given_inputs(std_dev, cmatrix, weights)
 
     return risk
+
+def get_perc_of_capital_position_size_across_instruments_for_strategy(
+        data,
+        strategy_name: str) -> portfolioWeights:
+
+    instrument_list = get_instruments_with_positions(data, strategy_name)
+    weights = portfolioWeights(
+        [(
+            instrument_code,
+        get_perc_of_capital_position_size_for_instrument(data, strategy_name, instrument_code)
+          )
+        for instrument_code in instrument_list]
+    )
+
+    return weights
 
 def get_covariance_matrix(data, list_of_instruments: list) -> covarianceEstimate:
     corr_matrix = get_correlation_matrix(data,
@@ -48,19 +66,30 @@ def get_covariance_matrix(data, list_of_instruments: list) -> covarianceEstimate
 
     return covariance
 
-def get_annualised_risk_given_inputs(std_dev, cmatrix, weights):
-    weights = np.array(weights)
-    std_dev = np.array(std_dev)
-    std_dev, cmatrix, weights = clean_values(std_dev, cmatrix, weights)
-    sigma = sigma_from_corr_and_std(std_dev, cmatrix)
+def get_annualised_risk_given_inputs(
+        std_dev: stdevEstimates,
+        cmatrix: correlationEstimate,
+        weights: portfolioWeights) -> float:
 
-    portfolio_variance = weights.dot(sigma).dot(weights.transpose())
+    weights_as_np = weights.as_np()
+    std_dev_as_np = std_dev.as_np()
+    cmatrix_as_np = cmatrix.as_np()
+
+    std_dev_as_np, cmatrix_as_np, weights_as_np = clean_values(std_dev_as_np,
+                                                               cmatrix_as_np,
+                                                               weights_as_np)
+    sigma = sigma_from_corr_and_std(std_dev_as_np, cmatrix_as_np)
+
+    portfolio_variance = weights_as_np.dot(sigma).dot(weights_as_np.transpose())
     portfolio_std = portfolio_variance**.5
 
     return portfolio_std
 
 
-def clean_values(std_dev, cmatrix, weights):
+def clean_values(std_dev: np.array,
+                 cmatrix: np.array,
+                 weights: np.array):
+
     cmatrix[np.isnan(cmatrix)] = 1.0
     weights[np.isnan(weights)] = 0.0
     std_dev[np.isnan(std_dev)] = 100.0
@@ -68,15 +97,15 @@ def clean_values(std_dev, cmatrix, weights):
     return std_dev, cmatrix, weights
 
 
-def get_correlation_matrix_all_instruments(data):
+def get_correlation_matrix_all_instruments(data) -> correlationEstimate:
     instrument_list = get_instruments_with_positions_all_strategies(data)
     cmatrix = get_correlation_matrix(data, instrument_list)
-    cmatrix = ordered_correlation_matrix(cmatrix)
+    cmatrix = cmatrix.ordered_correlation_matrix()
 
     return cmatrix
 
 
-def get_correlation_matrix(data, instrument_list):
+def get_correlation_matrix(data, instrument_list) -> correlationEstimate:
     perc_returns = dict([(instrument_code, get_daily_perc_returns(data, instrument_code))
                 for instrument_code in instrument_list])
     price_df = pd.DataFrame(perc_returns)
@@ -99,10 +128,19 @@ def get_list_of_annualised_stdev_of_instruments_as_estimate(data, instrument_lis
     return stdev_estimate
 
 
-def get_list_of_annualised_stdev_of_instruments(data, instrument_list):
-    stdev_list = [get_current_annualised_perc_stdev_for_instrument(data, instrument_code)
-                  for instrument_code in instrument_list]
-    return stdev_list
+def get_annualised_stdev_for_instruments(data,
+                                         instrument_list: list) -> stdevEstimates:
+
+    stdev_dict = dict(
+        [(
+            instrument_code,
+            get_current_annualised_perc_stdev_for_instrument(data, instrument_code)
+            )
+            for instrument_code in instrument_list]
+    )
+
+    stdev = stdevEstimates(stdev_dict)
+    return stdev
 
 
 def get_current_annualised_perc_stdev_for_instrument(data, instrument_code):
@@ -327,3 +365,95 @@ def get_annual_perc_stdev_for_instrument(data, instrument_code):
     annual_perc_stdev = 100* annual_price_stdev / price
 
     return annual_perc_stdev
+
+
+def get_risk_data_for_instrument(data, instrument_code):
+    daily_price_stdev = get_current_daily_stdev_for_instrument(data, instrument_code)
+    annual_price_stdev= daily_price_stdev * ROOT_BDAYS_INYEAR
+    price = get_current_price_of_instrument(data, instrument_code)
+    daily_perc_stdev = 100* daily_price_stdev / price
+    annual_perc_stdev = 100* annual_price_stdev / price
+    point_size_base = get_base_currency_point_size_per_contract(data, instrument_code)
+    contract_exposure = point_size_base * price
+    daily_risk_per_contract = daily_price_stdev * point_size_base
+    annual_risk_per_contract = annual_price_stdev * point_size_base
+    position = get_current_position_for_instrument_code_across_strategies(data, instrument_code)
+    capital = total_capital(data)
+    exposure_held_perc_capital = 100* position * contract_exposure / capital
+    annual_risk_perc_capital = 100* annual_risk_per_contract * position / capital
+
+    return dict(daily_price_stdev = daily_price_stdev,
+                annual_price_stdev = annual_price_stdev,
+                price = price,
+                daily_perc_stdev = daily_perc_stdev,
+                annual_perc_stdev = annual_perc_stdev,
+                point_size_base = point_size_base,
+                contract_exposure = contract_exposure,
+                daily_risk_per_contract= daily_risk_per_contract,
+                annual_risk_per_contract = annual_risk_per_contract,
+                position = position,
+                capital = capital,
+                exposure_held_perc_capital = exposure_held_perc_capital,
+                annual_risk_perc_capital = annual_risk_perc_capital)
+
+
+def get_portfolio_risk_for_all_strategies(data):
+    ## TOTAL PORTFOLIO RISK
+    weights = get_perc_of_capital_position_size_all_strategies(data)
+    instrument_list= list(weights.keys())
+    cmatrix = get_correlation_matrix(data, instrument_list)
+    std_dev = get_annualised_stdev_for_instruments(data, instrument_list)
+
+    risk = get_annualised_risk_given_inputs(std_dev, cmatrix, weights)
+
+    return risk
+
+def get_perc_of_capital_position_size_all_strategies(
+        data
+        ) -> portfolioWeights:
+
+    instrument_list = get_instruments_with_positions_all_strategies(data)
+    weights = portfolioWeights([
+        (instrument_code,
+        get_perc_of_capital_position_size_for_instrument_across_strategies(data, instrument_code)
+         )
+        for instrument_code in instrument_list])
+
+    return weights
+
+def get_portfolio_risk_across_strategies(data):
+    ## PORTFOLIO RISK PER STRATEGY
+    diag_positions = diagPositions(data)
+    strategy_list = diag_positions.get_list_of_strategies_with_positions()
+    risk_across_strategies = dict([(strategy_name, get_portfolio_risk_for_strategy(data, strategy_name))
+                  for strategy_name in strategy_list])
+
+    df_of_capital_risk = pd.DataFrame(risk_across_strategies, index=['risk'])
+
+    df_of_capital_risk = sorted_clean_df(df_of_capital_risk, sortby='risk')
+
+    return df_of_capital_risk
+
+
+def get_df_annualised_risk_as_perc_of_capital_per_instrument_across_strategies(data):
+    ## RISK PER INSTRUMENT
+    ## EQUAL TO ANNUALISED INSTRUMENT RISK PER CONTRACT IN BASE CCY MULTIPLIED BY POSITIONS HELD / CAPITAL
+    instrument_list = get_instruments_with_positions_all_strategies(data)
+
+    perc_of_capital_risk_of_positions_held = dict([(instrument_code,
+                                                    get_annualised_perc_of_capital_risk_of_positions_held_for_instruments_across_strategies(data, instrument_code))
+        for instrument_code in instrument_list
+                ])
+
+    df_of_capital_risk = pd.DataFrame(perc_of_capital_risk_of_positions_held, index=['risk'])
+    df_of_capital_risk = sorted_clean_df(df_of_capital_risk, sortby='risk')
+
+    return df_of_capital_risk
+
+
+def sorted_clean_df(df_of_risk, sortby='risk'):
+    df_of_risk = df_of_risk.transpose()
+    df_of_risk = df_of_risk.dropna()
+    df_of_risk = df_of_risk.sort_values(sortby)
+
+    return df_of_risk
