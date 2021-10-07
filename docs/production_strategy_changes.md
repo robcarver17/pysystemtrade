@@ -87,7 +87,7 @@ strategy_list:
 strategy_capital_allocation:
   function: sysproduction.strategy_code.strategy_allocation.weighted_strategy_allocation
   strategy_weights:
-    dynamic_TF_carry: 99.99
+    dynamic_TF_carry: 99.99   
     medium_speed_TF_carry: 0.01
 ```
 
@@ -133,14 +133,14 @@ I'd recommend running the full suite of reports to make sure everything works, a
 
 
 
+# Restart processes
+
+You can now restart your running processes.
+
+
 # Delete replaced strategies from configuration files
 
 This is a housekeeping stage to ensure 
-
-
-# Restart processes
-
-You can now restart
 
 
 # Clean up
