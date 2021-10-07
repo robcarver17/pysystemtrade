@@ -273,11 +273,11 @@ class dataOptimalPositions(productionDataLayerGeneric):
 
 
 
-    def get_list_of_current_optimal_positions_for_instrument_strategy(self, instrument_strategy: str)\
+    def get_list_of_current_optimal_positions_for_strategy_name(self, strategy_name: str)\
             -> listOfOptimalPositionsAcrossInstrumentStrategies:
 
         all_optimal_positions = self.get_list_of_optimal_positions()
-        optimal_positions_for_strategy = all_optimal_positions.filter_by_strategy()
+        optimal_positions_for_strategy = all_optimal_positions.filter_by_strategy(strategy_name)
 
         return optimal_positions_for_strategy
 

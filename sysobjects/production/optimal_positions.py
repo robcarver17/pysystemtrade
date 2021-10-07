@@ -208,6 +208,10 @@ class instrumentStrategyAndOptimalPosition(object):
     def key(self):
         return self.instrument_strategy.key
 
+    def is_for_strategy(self, strategy_name:str):
+        return self.instrument_strategy.strategy_name== strategy_name
+
+
 class instrumentStrategyWithOptimalAndCurrentPosition(object):
     def __init__(
             self,
