@@ -11,7 +11,7 @@ from sysproduction.data.positions import diagPositions
 from sysobjects.production.backtest_storage import interactiveBacktest
 from sysobjects.production.tradeable_object import instrumentStrategy
 
-def report_system_classic(data, backtest: interactiveBacktest):
+def report_system_classic(data, backtest: interactiveBacktest) -> list:
     """
 
     :param strategy_name: str
@@ -29,6 +29,25 @@ def report_system_classic(data, backtest: interactiveBacktest):
         (strategy_name, timestamp, str(
             datetime.datetime.now())))
     format_output.append(report_header)
+
+    format_output = report_system_classic_no_header_or_footer(data, backtest=backtest,
+                                                              format_output = format_output)
+
+    format_output.append(body_text("End of report for %s" % strategy_name))
+
+    return format_output
+
+
+def report_system_classic_no_header_or_footer(data,
+                                              backtest: interactiveBacktest,
+                                              format_output: list) -> list:
+    """
+
+    :param strategy_name: str
+    :param data: dataBlob
+    :param backtest: dataBacktest object populated with a specific backtest
+    :return: list of report format type objects
+    """
 
     unweighted_forecasts_df = get_forecast_matrix(
         backtest,
@@ -153,8 +172,6 @@ def report_system_classic(data, backtest: interactiveBacktest):
     )
 
     format_output.append(versus_buffers_and_positions_table)
-
-    format_output.append(body_text("End of report for %s" % strategy_name))
 
     return format_output
 

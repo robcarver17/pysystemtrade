@@ -1,20 +1,36 @@
+import datetime
 import pandas as pd
 
 from syscore.objects import header, table, body_text
 from sysdata.data_blob import dataBlob
 from sysobjects.production.backtest_storage import interactiveBacktest
-from sysproduction.strategy_code.report_system_classic import report_system_classic
+from sysproduction.strategy_code.report_system_classic import report_system_classic_no_header_or_footer
 from sysproduction.data.positions import dataOptimalPositions
 
 def report_system_dynamic(data: dataBlob, backtest: interactiveBacktest):
-    format_output = report_system_classic(data=data,
-                                          backtest=backtest)
+
+    format_output = []
+
+    strategy_name = backtest.strategy_name
+    timestamp = backtest.timestamp
 
     optimal_positions_df = get_optimal_positions_table_as_df(data=data,
                                                           strategy_name =
                                                           backtest.strategy_name)
     optimal_positions_table = table("Optimal positions", optimal_positions_df)
     format_output.append(optimal_positions_table)
+
+    report_header = header(
+        "Strategy report for %s backtest timestamp %s produced at %s" %
+        (strategy_name, timestamp, str(
+            datetime.datetime.now())))
+    format_output.append(report_header)
+
+    format_output = report_system_classic_no_header_or_footer(data, backtest=backtest,
+                                                              format_output = format_output)
+
+    format_output.append(body_text("End of report for %s" % strategy_name))
+
 
     return format_output
 
