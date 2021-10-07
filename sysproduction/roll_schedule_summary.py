@@ -21,10 +21,9 @@ def roll_summary(to_file=True, to_terminal=True):
     '''Docstring to come'''
     
     d = diagPrices()
-
     instrument_list = sorted(d.get_list_of_instruments_with_contract_prices())
-
     results = dict()
+    
     with dataBlob(log_name="Summarise-Portfolio-Roll-Status") as data:
         for instrument in instrument_list:
             try:
@@ -38,7 +37,6 @@ def roll_summary(to_file=True, to_terminal=True):
         output.loc[instrument] = results[instrument]
     output.volumes = output.volumes.apply(_round_list)
     output = output.sort_values(by='code')
-
 
     if to_terminal:
         roll_summary_to_terminal(output)
