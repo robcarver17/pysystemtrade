@@ -1,6 +1,22 @@
 $(document).ready(function(){
   $.ajax({
     type: "GET",
+    url: "/processes",
+    success: function(data) {
+      if (data['running_modes']['run_stack_handler'] == 'running') {
+        $('#stack-tl').addClass("green");
+      } else {
+        $('#stack-tl').addClass("red");
+      }
+    }
+  }
+  );
+  }
+);
+
+$(document).ready(function(){
+  $.ajax({
+    type: "GET",
     url: "/reconcile",
     success: function(data) {
       var overall = "green";

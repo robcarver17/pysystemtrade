@@ -6,6 +6,7 @@ from sysdata.data_blob import dataBlob
 from sysproduction.data.prices import diagPrices
 from sysproduction.reporting import roll_report
 from sysproduction.data.broker import dataBroker
+from sysproduction.data.control_process import dataControlProcess
 from sysproduction.data.capital import dataCapital
 from sysproduction.data.positions import diagPositions, dataOptimalPositions
 
