@@ -1,5 +1,6 @@
 import pandas as pd
 
+from syscore.genutils import flatten_list
 from sysobjects.production.positions import instrumentStrategyPosition, listOfInstrumentStrategyPositions
 from sysobjects.production.tradeable_object import instrumentStrategy
 from sysobjects.production.timed_storage import timedEntry
@@ -175,7 +176,7 @@ class optimalPositionWithDynamicCalculations(simpleOptimalPosition):
     def containing_data_class_name(self):
         ## FIX ME WHAT DOES THIS ACTUALLY DO??
         return (
-            "sysdata.production.optimal_positions.bufferedOptimalPositionForInstrument"
+            "sysdata.production.optimal_positions.dynamicOptimalPositionForInstrument"
         )
 
     def _argument_checks(self, kwargs):
@@ -235,6 +236,8 @@ class instrumentStrategyWithOptimalAndCurrentPosition(object):
         # checks to see if current position is outslide the limits defined by the optimal position
         return self.optimal_position.check_position_break(self.position)
 
+    def is_for_strategy(self, strategy_name:str):
+        return self.instrument_strategy.strategy_name== strategy_name
 
 class listOfOptimalAndCurrentPositionsAcrossInstrumentStrategies(list):
     # list of instrumentStrategyWithOptimalAndCurrentPosition
@@ -264,8 +267,29 @@ class listOfOptimalAndCurrentPositionsAcrossInstrumentStrategies(list):
 
 class listOfOptimalPositionsAcrossInstrumentStrategies(list):
     # list of instrumentStrategyAndOptimalPosition
+    def filter_by_strategy(self, strategy_name:str):
+        filtered_list = [
+            instrument_strategy_with_optimal_and_current_position
+            for instrument_strategy_with_optimal_and_current_position in
+            self
+            if instrument_strategy_with_optimal_and_current_position.is_for_strategy(strategy_name)
+        ]
+
+        return listOfOptimalPositionsAcrossInstrumentStrategies(filtered_list)
+
+    def as_verbose_pd(self) -> pd.DataFrame:
+        list_of_optimal = [pos.optimal_position for pos in self]
+        list_of_optimal_as_dict = [optimal_position.as_dict() \
+                                   for optimal_position in list_of_optimal]
+        as_pd = pd.DataFrame(list_of_optimal_as_dict)
+        list_of_keys = [pos.key() for pos in self]
+        as_pd.index = list_of_keys
+
+        return as_pd
+
+
     def as_pd(self) -> pd.DataFrame:
-        list_of_keys = [pos.key for pos in self]
+        list_of_keys = [pos.key() for pos in self]
         list_of_optimal = [pos.optimal_position for pos in self]
 
         return pd.DataFrame(dict(key=list_of_keys, optimal=list_of_optimal))

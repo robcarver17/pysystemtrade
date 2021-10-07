@@ -14,7 +14,8 @@ from sysdata.production.timed_storage import (
     listOfEntriesData,
 )
 from sysobjects.production.optimal_positions import simpleOptimalPosition, bufferedOptimalPositions, \
-    instrumentStrategyAndOptimalPosition, listOfOptimalPositionsAcrossInstrumentStrategies, optimalPositionWithReference
+    instrumentStrategyAndOptimalPosition, listOfOptimalPositionsAcrossInstrumentStrategies, optimalPositionWithReference, \
+    optimalPositionWithDynamicCalculations
 from sysobjects.production.timed_storage import listOfEntries
 from sysobjects.production.tradeable_object import listOfInstrumentStrategies, instrumentStrategy
 
@@ -37,6 +38,15 @@ class bufferedOptimalPositionForInstrument(listOfEntries):
 
     def _entry_class(self):
         return bufferedOptimalPositions
+
+class dynamicOptimalPositionForInstrument(listOfEntries):
+    """
+    A list of positions over time
+    """
+
+    def _entry_class(self):
+        return optimalPositionWithDynamicCalculations
+
 
 
 ## THIS HAS TO STAY HERE OR OLD DATA WILL BREAK - DO NOT MOVE

@@ -25,11 +25,10 @@ from sysquant.estimators.covariance import covarianceEstimate
 from sysquant.estimators.mean_estimator import meanEstimates
 from sysquant.optimisation.weights import portfolioWeights
 
-from sysproduction.data.positions import dataOptimalPositions
+from sysproduction.data.positions import dataOptimalPositions, strategy_name_with_raw_tag
 from sysproduction.data.controls import diagOverrides
 from sysproduction.utilities.risk_metrics import get_covariance_matrix, get_perc_of_strategy_capital_for_instrument_per_contract, capital_for_strategy
 from sysproduction.utilities.costs import get_cash_cost_in_base_for_instrument
-from sysproduction.strategy_code.run_dynamic_optimised_system import strategy_name_with_raw_tag
 
 from systems.provided.dynamic_small_system_optimise.optimisation import objectiveFunctionForGreedy
 
@@ -73,15 +72,14 @@ class orderGeneratorForDynamicPositions(orderGeneratorForStrategy):
 
         data = self.data
         strategy_name = self.strategy_name
-        raw_strategy_name = strategy_name_with_raw_tag(strategy_name)
 
         optimal_position_data = dataOptimalPositions(data)
 
         list_of_instruments = optimal_position_data.\
             get_list_of_instruments_for_strategy_with_optimal_position(
-            raw_strategy_name)
+            strategy_name, raw_positions=True)
 
-        list_of_instrument_strategies = [instrumentStrategy(strategy_name=raw_strategy_name,
+        list_of_instrument_strategies = [instrumentStrategy(strategy_name=strategy_name,
                                                  instrument_code=instrument_code)
             for instrument_code in list_of_instruments]
 
@@ -89,7 +87,7 @@ class orderGeneratorForDynamicPositions(orderGeneratorForStrategy):
             [
                 (instrument_strategy.instrument_code,
                  optimal_position_data.get_current_optimal_position_for_instrument_strategy(
-                    instrument_strategy),
+                    instrument_strategy, raw_positions=True),
                  ) for instrument_strategy in list_of_instrument_strategies])
 
         return raw_optimal_positions

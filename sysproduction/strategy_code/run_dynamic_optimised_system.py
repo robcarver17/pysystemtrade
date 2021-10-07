@@ -7,7 +7,7 @@ from sysobjects.production.tradeable_object import instrumentStrategy
 from sysproduction.data.sim_data import get_sim_data_object_for_production
 from sysproduction.strategy_code.run_system_classic import runSystemClassic
 from sysproduction.data.contracts import dataContracts
-from sysproduction.data.positions import dataOptimalPositions
+from sysproduction.data.positions import dataOptimalPositions, strategy_name_with_raw_tag
 from sysproduction.data.backtest import store_backtest_state
 
 from syslogdiag.log_to_screen import logtoscreen
@@ -117,15 +117,6 @@ def futures_system(data, config):
     return system
 
 
-
-
-POST_TAG_FOR_RAW_OPTIMAL_POSITION = "_raw"
-
-
-def strategy_name_with_raw_tag(strategy_name):
-    return strategy_name+POST_TAG_FOR_RAW_OPTIMAL_POSITION
-
-
 def updated_optimal_positions(data: dataBlob,
                                strategy_name: str,
                                system: System):
@@ -140,12 +131,12 @@ def updated_optimal_positions(data: dataBlob,
             system=system,
             instrument_code=instrument_code,
         )
-        raw_strategy_name = strategy_name_with_raw_tag(strategy_name)
         instrument_strategy = instrumentStrategy(instrument_code=instrument_code,
-                                                 strategy_name=raw_strategy_name)
+                                                 strategy_name=strategy_name)
         data_optimal_positions.\
             update_optimal_position_for_instrument_strategy(
             instrument_strategy=instrument_strategy,
+            raw_positions = True,
             position_entry=position_entry)
 
         log.msg(
