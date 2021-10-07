@@ -13,7 +13,7 @@ from sysproduction.data.controls import (
     dataBrokerClientIDs
 )
 from sysproduction.data.control_process import dataControlProcess, diagControlProcess
-from sysproduction.data.prices import get_valid_instrument_code_from_user
+from sysproduction.data.prices import get_valid_instrument_code_from_user, get_list_of_instruments
 from sysproduction.data.strategies import get_valid_strategy_name_from_user
 from sysproduction.data.positions import diagPositions
 from sysproduction.utilities.risk_metrics import get_risk_data_for_instrument
@@ -252,11 +252,6 @@ def get_risk_multiplier_and_max_leverage() -> (float, float):
 
     return  risk_multiplier, max_leverage
 
-def get_list_of_instruments(data):
-    diag_positions = diagPositions(data)
-    instrument_list = diag_positions.get_list_of_instruments_with_any_position()
-
-    return instrument_list
 
 
 

@@ -9,7 +9,8 @@ It's important that the following steps are followed, in order.
 3. Make a backup of your data
 4. Stop any processes running
 5. Update private_config.yaml and private_control_config.yaml
-6. Check the production backtest will run
+6. Update strategy capital
+7. Check the production backtest will run
 
 Not all the steps are described in detail in this document, see [the production documents](/docs/production.md) for details.
 
@@ -90,9 +91,46 @@ strategy_capital_allocation:
     medium_speed_TF_carry: 0.01
 ```
 
-Again we refer to the custom run_system and reporting classes, or to default provided classes. Notice that the contents of `strategy_weights` will depend on exactly what you'd like to do. Here we're replacing `medium_speed_TF_carry` with `dynamic_TF_carry`. Of course we could also want to do this more gradually, or only allocate part of our capital to the new strategy rather than all of it.
+Again we refer to the custom run_system and reporting classes, or to default provided classes. Notice that the contents of strategy_weights will depend on exactly what you'd like to do. Here we're replacing `medium_speed_TF_carry` with `dynamic_TF_carry`. Of course we could also want to do this more gradually, or only allocate part of our capital to the new strategy rather than all of it.
+
+# Update strategy capital
+
+Next we need to update the strategy capital (using the provided script `update_strategy_capital`). This is required to ensure the backtest will actually run. You should do this even if you're going to start with a nominal amount of capital just to make sure everything works.
 
 # Check the production backtest will run
+
+Using the `update_system_backtests` script make sure that the production system runs okay, and generates optimal positions. 
+
+# Transfer positions between strategies
+
+If you are replacing a strategy, wholly or partially, then it makes sense to transfer the positions across. Otherwise you'll do costly trading as one strategy closes it's positions, and the other opens up new ones.
+
+For example (python):
+
+```python
+from sysinit.futures.strategy_transfer import *
+ransfer_positions_between_strategies('medium_speed_TF_carry', 'dynamic_TF_carry')
+```
+
+# Run any strategy backtests that will be closing or reducing in capital
+
+This tidying up stage ensures that the optimal positions for existing strategies are correctly adjusted for the new capital, stops position breaks appearing, and ensures that we won't generate uneccessary orders for the old strategy.
+
+# Ensure position and trade limits are appropriate
+
+Using the interactive_controls script, you may want to create strategy specific limits or tweak existing limits.
+
+
+# Manually generate instrument orders
+
+
+You may want to use 
+
+# Run reports
+
+I'd recommend running the full suite of reports to make sure everything works.
+
+
 
 
 
@@ -107,3 +145,15 @@ blah
 ## Dynamic optimisation strategy
 
 This is the strategy as described [here](https://qoppac.blogspot.com/2021/10/mr-greedy-and-tale-of-minimum-tracking.html).
+
+# Strategy backtest output of optimal positions
+
+
+# Ensure position and trade limits are appropriate
+
+It's particularly important to ensure position limits are in place, because these are used by the dynamic optimisation.
+
+# Ensure any 'don't trade'  or 'reduce only' flags are in place
+
+This is 
+
