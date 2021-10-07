@@ -26,4 +26,4 @@ You may also need to override the `run_backtest` method if you need your strateg
 
 # Update configuration files
 
-Even if you're replacing a strategy I strongly advise that you initially *add* your new strategies to configuration files before .
+Even if you're replacing a strategy I strongly advise that you initially *add* your new strategies to configuration files before . 
