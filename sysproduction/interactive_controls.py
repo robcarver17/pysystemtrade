@@ -385,8 +385,10 @@ def view_overrides(data):
     diag_overrides = diagOverrides(data)
     all_overrides = diag_overrides.get_dict_of_all_overrides()
     print("All overrides:\n")
-    for key, item in all_overrides.items():
-        print("%s %s" % (key, str(item)))
+    list_of_keys = list(all_overrides.keys())
+    list_of_keys.sort()
+    for key in list_of_keys:
+        print("%s %s" % (key, str(all_overrides[key])))
     print("\n")
 
 

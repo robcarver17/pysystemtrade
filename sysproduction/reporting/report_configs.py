@@ -49,7 +49,7 @@ roll_report_config = reportConfig(
 )
 
 daily_pandl_report_config = reportConfig(
-    title="One day P&L report",
+    title="P&L report",
     function="sysproduction.reporting.pandl_report.pandl_info",
     calendar_days_back=1,
 )
