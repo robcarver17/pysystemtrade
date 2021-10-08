@@ -1,6 +1,10 @@
 # Release notes
 
+## Version 1.10
+
 - Added dynamic optimisation code
+- Added leverage constraint to autopopulate limits and trades
+- Started reorganising production risk code
 
 ## Version 1.06
 

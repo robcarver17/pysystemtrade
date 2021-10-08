@@ -267,6 +267,6 @@ ignore_instruments:
   - CRUDE_W
   - GAS_US
   - GOLD
-  - KOSPI
+  - KOSPI_mini
   - NASDAQ
   - SP500

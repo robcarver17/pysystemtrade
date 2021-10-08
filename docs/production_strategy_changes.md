@@ -87,7 +87,7 @@ strategy_list:
 strategy_capital_allocation:
   function: sysproduction.strategy_code.strategy_allocation.weighted_strategy_allocation
   strategy_weights:
-    dynamic_TF_carry: 99.99
+    dynamic_TF_carry: 99.99   
     medium_speed_TF_carry: 0.01
 ```
 
@@ -123,15 +123,29 @@ Using the interactive_controls script, you may want to create strategy specific 
 
 # Manually generate instrument orders
 
+I'd recommend running the `update_strategy_orders` script. You can run these for both the new and existing strategies. If you're replacing an existing strategy, all the optimal positions should be zero, and if you've transferred all the positions it shouldn't generate any traders.
 
-You may want to use 
+It may be worth running `interactive_order_stack` and looking at both positions and the instrument order stack to check all is as expected.
 
 # Run reports
 
-I'd recommend running the full suite of reports to make sure everything works.
+I'd recommend running the full suite of reports to make sure everything works, and also to check that all is as it should be (the strategy report should be especially interesting in this respect).
 
 
 
+# Restart processes
+
+You can now restart your running processes.
+
+
+# Delete replaced strategies from configuration files
+
+This is a housekeeping stage to ensure 
+
+
+# Clean up
+
+Note that the optimised positions break checking diagnostics will still include the old strategy. 
 
 
 # Implementing specific strategies
@@ -146,6 +160,13 @@ blah
 
 This is the strategy as described [here](https://qoppac.blogspot.com/2021/10/mr-greedy-and-tale-of-minimum-tracking.html).
 
+# Ignore instruments
+
+# Set shadow cost
+
+dynamic_shadow_cost: 500
+
+
 # Strategy backtest output of optimal positions
 
 
@@ -156,4 +177,5 @@ It's particularly important to ensure position limits are in place, because thes
 # Ensure any 'don't trade'  or 'reduce only' flags are in place
 
 This is 
+
 

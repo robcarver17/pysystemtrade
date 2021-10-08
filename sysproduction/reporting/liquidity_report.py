@@ -71,6 +71,7 @@ def get_liquidity_data_df(data: dataBlob):
 
     all_liquidity_df = pd.DataFrame(all_liquidity)
     all_liquidity_df.index = instrument_list
+    all_liquidity_df['contracts'] = all_liquidity_df['contracts'].round(0)
 
     return all_liquidity_df
 
