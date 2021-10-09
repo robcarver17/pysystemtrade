@@ -26,7 +26,7 @@ def get_data():
 def cleanup_data(exception):
     if hasattr(g, "data"):
         g.data.close()
-    del g.data
+        del g.data
 
 
 @app.route("/")
