@@ -23,6 +23,9 @@ def get_data():
     return g.data
 
 
+data = LocalProxy(get_data)
+
+
 @app.teardown_appcontext
 def cleanup_data(exception):
     if hasattr(g, "data"):
@@ -37,11 +40,9 @@ def index():
 
 @app.route("/processes")
 def processes():
-    data = get_data()
     data_control = dataControlProcess(data)
     control_process_data = data_control.db_control_process_data
     names = control_process_data.get_list_of_process_names()
-    pprint(names)
     running_modes = {}
     for name in names:
         running_modes[name] = control_process_data.get_control_for_process_name(
@@ -53,11 +54,8 @@ def processes():
 
 @app.route("/capital")
 def capital():
-    data = get_data()
     asyncio.set_event_loop(asyncio.new_event_loop())
     capital_data = dataCapital(data)
-    print(f"data capital: {id(capital_data)}")
-    print(f"data blob: {id(data)}")
 
     capital_series = capital_data.get_series_of_all_global_capital()
     now = capital_series.iloc[-1]["Actual"]
@@ -67,7 +65,6 @@ def capital():
 
 @app.route("/reconcile")
 def reconcile():
-    data = get_data()
     diag_positions = diagPositions(data)
     data_optimal = dataOptimalPositions(data)
     optimal_positions = data_optimal.get_pd_of_position_breaks().to_dict()
@@ -81,8 +78,6 @@ def reconcile():
 
     asyncio.set_event_loop(asyncio.new_event_loop())
     data_broker = dataBroker(data)
-    print(f"data broker: {id(data_broker)}")
-    print(f"data blob: {id(data)}")
     db_contract_pos = (
         data_broker.get_db_contract_positions_with_IB_expiries().as_pd_df().to_dict()
     )
@@ -121,7 +116,6 @@ def reconcile():
 
 @app.route("/rolls")
 def rolls():
-    data = get_data()
     diag_prices = diagPrices(data)
 
     all_instruments = diag_prices.get_list_of_instruments_in_multiple_prices()
@@ -132,7 +126,6 @@ def rolls():
 
 
 if __name__ == "__main__":
-    # strategy()
     app.run(
         threaded=True, use_debugger=False, use_reloader=False, passthrough_errors=True
     )
