@@ -23,7 +23,7 @@ def get_data():
     return g.data
 
 
-@app.teardown_request
+@app.teardown_appcontext
 def cleanup_data(exception):
     if hasattr(g, "data"):
         g.data.close()
