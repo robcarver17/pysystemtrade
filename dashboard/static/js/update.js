@@ -25,6 +25,11 @@ $(document).ready(function(){
         }
       }
       );
+      if (data["prices_update"]) {
+        $('#prices-tl').addClass("green");
+      } else {
+        $('#prices-tl').addClass("red");
+      }
 
     }
   }

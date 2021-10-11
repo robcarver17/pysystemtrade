@@ -49,7 +49,9 @@ def processes():
         running_modes[name] = control_process_data.get_control_for_process_name(
             name
         ).running_mode_str
-    return {"running_modes": running_modes}
+    return {"running_modes": running_modes,
+        "prices_update": control_process_data.has_process_finished_in_last_day("run_daily_prices_updates")
+    }
 
 
 @app.route("/capital")
