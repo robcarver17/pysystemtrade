@@ -83,7 +83,7 @@ def format_risk_report(results_dict: dict) -> list:
     text2 = body_text("Sum of abs(annualised risk %% capital) %.1f" %  results_dict['abs_total_all_risk_annualised'])
     formatted_output.append(text2)
 
-    text3 = body_text("Net sum of annualised risk %% capital %1.f " %  results_dict['net_total_all_risk_annualised'])
+    text3 = body_text("Net sum of annualised risk %% capital %.1f " %  results_dict['net_total_all_risk_annualised'])
     formatted_output.append(text3)
 
     table4_df = results_dict['corr_data'].as_pd()
