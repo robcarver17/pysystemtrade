@@ -5,9 +5,27 @@ $(document).ready(function(){
     success: function(data) {
       if (data['running_modes']['run_stack_handler'] == 'running') {
         $('#stack-tl').addClass("green");
-      } else {
+      } else if (data['running_modes']['run_stack_handler'] == 'crashed') {
         $('#stack-tl').addClass("red");
+      } else {
+        $('#stack-tl').addClass("orange");
       }
+      $("#processes_status > tbody").empty();
+      $.each(data['running_modes'], function(process, status) {
+        if (status == 'crashed') {
+        $("#processes_status tbody").append(`
+          <tr><td>${process}</td>
+          <td class="red">${status}</td>
+          </tr>`);
+        } else {
+          $("#processes_status tbody").append(`
+          <tr><td>${process}</td>
+          <td>${status}</td>
+          </tr>`);
+        }
+      }
+      );
+
     }
   }
   );
@@ -59,6 +77,11 @@ $(document).ready(function(){
       }
       );
       $('#breaks-tl').addClass(overall);
+      if (data['gateway_ok']) {
+        $('#gateway-tl').addClass("green");
+      } else {
+        $('#gateway-tl').addClass("red");
+      }
     }
   }
   );

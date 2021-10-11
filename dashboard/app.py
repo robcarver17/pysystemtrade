@@ -41,6 +41,7 @@ def index():
 @app.route("/processes")
 def processes():
     data_control = dataControlProcess(data)
+    data_control.check_if_pid_running_and_if_not_finish_all_processes()
     control_process_data = data_control.db_control_process_data
     names = control_process_data.get_list_of_process_names()
     running_modes = {}
@@ -48,15 +49,12 @@ def processes():
         running_modes[name] = control_process_data.get_control_for_process_name(
             name
         ).running_mode_str
-    processes = data_control.get_dict_of_control_processes()
     return {"running_modes": running_modes}
 
 
 @app.route("/capital")
 def capital():
-    asyncio.set_event_loop(asyncio.new_event_loop())
     capital_data = dataCapital(data)
-
     capital_series = capital_data.get_series_of_all_global_capital()
     now = capital_series.iloc[-1]["Actual"]
     yesterday = capital_series.last("1D").iloc[0]["Actual"]
@@ -76,41 +74,48 @@ def reconcile():
             "current": optimal_positions["current"][instrument],
         }
 
-    asyncio.set_event_loop(asyncio.new_event_loop())
-    data_broker = dataBroker(data)
-    db_contract_pos = (
-        data_broker.get_db_contract_positions_with_IB_expiries().as_pd_df().to_dict()
-    )
     positions = {}
-    for idx in db_contract_pos["instrument_code"].keys():
-        code = db_contract_pos["instrument_code"][idx]
-        contract_date = db_contract_pos["contract_date"][idx]
-        position = db_contract_pos["position"][idx]
-        positions[code + "-" + contract_date] = {
-            "code": code,
-            "contract_date": contract_date,
-            "db_position": position,
-        }
-    ib_contract_pos = (
-        data_broker.get_all_current_contract_positions().as_pd_df().to_dict()
-    )
-    for idx in ib_contract_pos["instrument_code"].keys():
-        code = ib_contract_pos["instrument_code"][idx]
-        contract_date = ib_contract_pos["contract_date"][idx]
-        position = ib_contract_pos["position"][idx]
-        positions[code + "-" + contract_date]["ib_position"] = position
 
     db_breaks = (
         diag_positions.get_list_of_breaks_between_contract_and_strategy_positions()
     )
-    ib_breaks = (
-        data_broker.get_list_of_breaks_between_broker_and_db_contract_positions()
-    )
+    ib_breaks = []
+    gateway_ok = True
+    try:
+        asyncio.set_event_loop(asyncio.new_event_loop())
+        data_broker = dataBroker(data)
+        db_contract_pos = (
+            data_broker.get_db_contract_positions_with_IB_expiries().as_pd_df().to_dict()
+        )
+        for idx in db_contract_pos["instrument_code"].keys():
+            code = db_contract_pos["instrument_code"][idx]
+            contract_date = db_contract_pos["contract_date"][idx]
+            position = db_contract_pos["position"][idx]
+            positions[code + "-" + contract_date] = {
+                "code": code,
+                "contract_date": contract_date,
+                "db_position": position,
+            }
+        ib_contract_pos = (
+            data_broker.get_all_current_contract_positions().as_pd_df().to_dict()
+        )
+        for idx in ib_contract_pos["instrument_code"].keys():
+            code = ib_contract_pos["instrument_code"][idx]
+            contract_date = ib_contract_pos["contract_date"][idx]
+            position = ib_contract_pos["position"][idx]
+            positions[code + "-" + contract_date]["ib_position"] = position
+        ib_breaks = (
+            data_broker.get_list_of_breaks_between_broker_and_db_contract_positions()
+        )
+    except:
+        # IB gateway connection failed
+        gateway_ok = False
     return {
         "strategy": strategies,
         "positions": positions,
         "db_breaks": db_breaks,
         "ib_breaks": ib_breaks,
+        "gateway_ok": gateway_ok,
     }
 
 
