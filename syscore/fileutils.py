@@ -96,7 +96,7 @@ def get_pathname_from_list(path_as_list):
         resolved_pathname = get_absolute_pathname_from_list(path_as_list[1:])
     elif path_as_list[0].endswith(":"):
         # windoze
-        resolved_pathname = get_absolute_pathname_from_list(path_as_list)
+        resolved_pathname = get_absolute_pathname_from_list(path_as_list, windows=True)
     else:
         # relativee
         resolved_pathname = get_pathname_for_package_from_list(path_as_list)
@@ -128,7 +128,7 @@ def get_pathname_for_package_from_list(path_as_list):
     return pathname
 
 
-def get_absolute_pathname_from_list(path_as_list):
+def get_absolute_pathname_from_list(path_as_list, windows=False):
     """
     Returns the absolute pathname from a list
 
@@ -138,7 +138,9 @@ def get_absolute_pathname_from_list(path_as_list):
     :returns: full pathname of package
     """
     pathname = os.path.join(*path_as_list)
-    pathname = os.path.sep + pathname
+
+    if not windows:
+        pathname = os.path.sep + pathname
 
     return pathname
 
