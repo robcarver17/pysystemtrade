@@ -55,14 +55,12 @@ class logToMongod(logToDb):
 
         :return: int or None
         """
-        all_log_ids = self._get_all_log_ids()
-        if len(all_log_ids)==0:
+        current_max = self.mongo_data.get_max_of_keys()
+        if current_max == None:
             return 0
 
-        return max(all_log_ids)
+        return current_max
 
-    def _get_all_log_ids(self) -> list:
-        return self.mongo_data.get_list_of_keys()
 
     def _reserve_log_id(self, next_id: int) -> bool:
         try:
