@@ -3,6 +3,7 @@ import datetime
 import pandas as pd
 
 from syscore.objects import header, table, body_text
+from sysdata.data_blob import dataBlob
 from sysproduction.utilities.risk_metrics import \
     get_correlation_matrix_all_instruments, \
     get_instruments_with_positions_all_strategies, get_risk_data_for_instrument, \
@@ -13,7 +14,7 @@ from sysproduction.utilities.risk_metrics import \
 # BUT THEN MAYBE CACHING SHOULD BE INTRODUCED MORE GENERALLY AT SYSPRODUCTION_DATA LEVEL?
 # ALSO, WHY DO WE GET POSITIONS FOR WHICH THE CURRENT POSITION IS ZERO?
 
-def risk_report(data):
+def risk_report(data: dataBlob):
     """
     Get risk report info
     """
@@ -23,19 +24,30 @@ def risk_report(data):
     return formatted_output
 
 
-def calculate_risk_report_data(data):
+def calculate_risk_report_data(data: dataBlob):
     ## Correlations, instrument risk calcs, risk per instrument, portfolio risk total, portfolio risk for strategies
     corr_data = get_correlation_matrix_all_instruments(data)
     instrument_risk_data = get_instrument_risk_table(data)
     strategy_risk = get_portfolio_risk_across_strategies(data)
     portfolio_risk_total = get_portfolio_risk_for_all_strategies(data)
 
+    all_risk_perc_capital = instrument_risk_data.exposure_held_perc_capital
+    abs_total_all_risk_perc_capital = all_risk_perc_capital.abs().sum()
+
+    all_risk_annualised = instrument_risk_data.annual_risk_perc_capital
+    abs_total_all_risk_annualised = all_risk_annualised.abs().sum()
+    net_total_all_risk_annualised = all_risk_annualised.sum()
+
+
     result_dict = dict(corr_data = corr_data, instrument_risk_data = instrument_risk_data,
-                  portfolio_risk_total = portfolio_risk_total, strategy_risk = strategy_risk)
+                       abs_total_all_risk_perc_capital = abs_total_all_risk_perc_capital,
+                       abs_total_all_risk_annualised = abs_total_all_risk_annualised ,
+                       net_total_all_risk_annualised = net_total_all_risk_annualised,
+    portfolio_risk_total = portfolio_risk_total, strategy_risk = strategy_risk)
 
     return result_dict
 
-def format_risk_report(results_dict):
+def format_risk_report(results_dict: dict) -> list:
     """
     Put the results into a printable format
 
@@ -64,6 +76,15 @@ def format_risk_report(results_dict):
     table3_df = table3_df.round(1)
     table3 = table("Instrument risk", table3_df)
     formatted_output.append(table3)
+
+    text1 = body_text("Sum of abs(notional exposure %% capital) %.1f" %  results_dict['abs_total_all_risk_perc_capital'])
+    formatted_output.append(text1)
+
+    text2 = body_text("Sum of abs(annualised risk %% capital) %.1f" %  results_dict['abs_total_all_risk_annualised'])
+    formatted_output.append(text2)
+
+    text3 = body_text("Net sum of annualised risk %% capital %1.f " %  results_dict['net_total_all_risk_annualised'])
+    formatted_output.append(text3)
 
     table4_df = results_dict['corr_data'].as_pd()
     table4_df = table4_df.round(2)

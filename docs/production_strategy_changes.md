@@ -4,19 +4,33 @@ This document describes how you'd make changes to strategies in production: addi
 
 It's important that the following steps are followed, in order.
 
-1. Ensure you have a working backtest, with a production configuration .yaml file
-2. Create custom classes to run the strategy
-3. Make a backup of your data
-4. Stop any processes running
-5. Update private_config.yaml and private_control_config.yaml
-6. Update strategy capital
-7. Check the production backtest will run
+1. Set up any new instruments and get their prices sampling
+2. Ensure you have a working backtest, with a production configuration .yaml file
+3. Create custom classes to run the strategy
+4. Make a backup of your data
+5. Stop any processes running
+6. Update private_config.yaml and private_control_config.yaml
+7. Update strategy capital
+8. Check the production backtest will run
+9. Transfer positions between strategies
+10. Run any strategy backtests that will be closing or reducing in capital
+11. Ensure position and trade limits are appropriate
+12. Manually generate instrument orders
+13. Run reports
+14. Restart processes
+15. Delete replaced strategies from configuration files
+16. Clean up
+
 
 Not all the steps are described in detail in this document, see [the production documents](/docs/production.md) for details.
 
-# Create custom classes to run the strategy
+## 
 
-## Create a run_system to run the strategy backtest
+
+
+## Create custom classes to run the strategy
+
+### Create a run_system to run the strategy backtest
 
 If you are using a completely vanilla 'out of the box' strategy that can be run with the default provided stages then this isn't neccessary. For clarity these are the default strategies:
 
@@ -27,7 +41,7 @@ Otherwise you will need to create your own runSystem class. There is an example 
 
 You may also need to override the `run_backtest` method if you need your strategy to do something different in terms of saving optimised positions (again that is the principal difference between the classic and dynamic systems).
 
-## Create an order management class
+### Create an order management class
 
 If you are using a completely vanilla 'out of the box' strategy that can be run with the default order management functions then this isn't neccessary. For clarity these are the default strategies:
 
@@ -37,7 +51,7 @@ If you are using a completely vanilla 'out of the box' strategy that can be run 
 Otherwise you'll need to write an order management function. You will need to overwrite the method `get_required_orders`.
 
 
-## Create a reporting class
+### Create a reporting class
 
 If you are using a completely vanilla 'out of the box' strategy that can be run with the default reporting functions then this isn't neccessary. For clarity these are the default strategies:
 
@@ -49,7 +63,7 @@ Otherwise you'll need to write a reporting function. If your strategy is similar
 
 
 
-# Update configuration files
+## Update configuration files
 
 Even if you're replacing a strategy I strongly advise that you initially *add* your new strategies to configuration files, keeping the old strategies in place for the time being. 
 
@@ -114,6 +128,7 @@ ransfer_positions_between_strategies('medium_speed_TF_carry', 'dynamic_TF_carry'
 
 # Run any strategy backtests that will be closing or reducing in capital
 
+
 This tidying up stage ensures that the optimal positions for existing strategies are correctly adjusted for the new capital, stops position breaks appearing, and ensures that we won't generate uneccessary orders for the old strategy.
 
 # Ensure position and trade limits are appropriate
@@ -129,16 +144,22 @@ It may be worth running `interactive_order_stack` and looking at both positions 
 
 # Run reports
 
+
 I'd recommend running the full suite of reports to make sure everything works, and also to check that all is as it should be (the strategy report should be especially interesting in this respect).
 
 
 
 # Restart processes
 
+
+
 You can now restart your running processes.
+
+Check that any new instruments can actually trade (eg R871)
 
 
 # Delete replaced strategies from configuration files
+
 
 This is a housekeeping stage to ensure 
 
@@ -160,21 +181,21 @@ blah
 
 This is the strategy as described [here](https://qoppac.blogspot.com/2021/10/mr-greedy-and-tale-of-minimum-tracking.html).
 
-# Ignore instruments
+### Ignore instruments
 
-# Set shadow cost
+### Set shadow cost
 
 dynamic_shadow_cost: 500
 
 
-# Strategy backtest output of optimal positions
+### Strategy backtest output of optimal positions
 
 
-# Ensure position and trade limits are appropriate
+### Ensure position and trade limits are appropriate
 
 It's particularly important to ensure position limits are in place, because these are used by the dynamic optimisation.
 
-# Ensure any 'don't trade'  or 'reduce only' flags are in place
+### Ensure any 'don't trade'  or 'reduce only' flags are in place
 
 This is 
 
