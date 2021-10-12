@@ -102,7 +102,7 @@ $(document).ready(function(){
       if (data['now'] >= data['yesterday']) {
         $('#capital-tl').addClass('green');
       } else {
-        $('#capital-tl').addClass('green');
+        $('#capital-tl').addClass('red');
       }
     }
   }
