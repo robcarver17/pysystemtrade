@@ -145,6 +145,8 @@ def get_absolute_pathname_from_list(path_as_list):
 def get_absolute_windows_pathname_from_list(path_as_list: list):
     """
     :param path_as_list: eg ['D:', 'GitHub', 'pysystemtrade', 'private', 'barchart']
+
+    Should return eg D:\GitHub\pysystemtrade\private\barchart\
     """
     raise NotImplementedError("Don't use windoze! It sucks!")
 
