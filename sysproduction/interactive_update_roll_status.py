@@ -15,7 +15,7 @@ from sysdata.data_blob import dataBlob
 
 from sysobjects.contracts import futuresContract
 from sysobjects.production.roll_state import default_state, roll_adj_state, explain_roll_state_str, \
-    allowable_roll_state_from_current_and_position, RollState
+    allowable_roll_state_from_current_and_position, RollState, no_roll_state
 
 from sysproduction.reporting.report_configs import roll_report_config
 from sysproduction.reporting.reporting_functions import run_report_with_data_blob
@@ -233,7 +233,7 @@ STATE_OPTIONS_AS_STR = [str(state) for state in STATE_OPTIONS]
 
 def get_state_to_use_for_held_position()-> RollState:
 
-    print("Choose state to assume if we have a position in priced contract")
+    print("Choose state to automatically assume if we have a position in priced contract AND roll state is currently NO ROLL")
 
     select_state_for_position_held = print_menu_of_values_and_get_response(
         STATE_OPTIONS_AS_STR,
@@ -260,7 +260,6 @@ def auto_selected_roll_state_instrument(data: dataBlob,
 
     if no_position_held:
         print_with_landing_strips_around("No position held, auto rolling adjusted price for %s" % roll_data.instrument_code)
-
         return roll_adj_state
 
     if auto_parameters.manual_prompt_for_position:
@@ -268,12 +267,19 @@ def auto_selected_roll_state_instrument(data: dataBlob,
         roll_state_required = get_roll_state_required(roll_data)
         return roll_state_required
 
-    roll_state_required = auto_parameters.state_when_position_held
+    original_roll_status = roll_data.original_roll_status
+    if original_roll_status is no_roll_state:
+        roll_state_required = auto_parameters.state_when_position_held
 
-    print_with_landing_strips_around("Automatically changing to state %s for %s" % (
-        roll_state_required,
-        roll_data.instrument_code
-                                                         ))
+        print_with_landing_strips_around("Automatically changing state from %s to %s for %s" % (
+            original_roll_status,
+            roll_state_required,
+            roll_data.instrument_code))
+    else:
+        print_with_landing_strips_around("Roll status already set to %s for %s: not changing" % (
+            original_roll_status,
+            roll_data.instrument_code))
+        return no_change_required
 
     return roll_state_required
 

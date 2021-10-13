@@ -1805,6 +1805,7 @@ Again this will first choose a subset of instruments that are expiring soon. Wha
 
 If a decision is made to roll adjusted prices, you will be asked to confirm you are happy with the prices changes before they are written to the database.
 
+I recommend that you run a roll report after doing this to see what state things are in.
 
 #### Cycle through instrument codes automatically, auto decide when to roll, automatically roll
 
