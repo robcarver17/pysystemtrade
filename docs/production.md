@@ -1767,6 +1767,17 @@ Linux script:
 . $SCRIPT_PATH/interactive_update_roll_status
 ```
 
+There are four different modes that this can be run in:
+
+- Manually input instrument codes and manually decide when to roll
+- Cycle through instrument codes automatically, but manually decide when to roll
+- Cycle through instrument codes automatically, auto decide when to roll, manually confirm rolls
+- Cycle through instrument codes automatically, auto decide when to roll, automatically roll
+
+#### Manually input instrument codes and manually decide when to roll
+
+You enter the instrument code you wish to think about rolling.
+
 The first thing the process will do is create and print a roll report. See the [roll report](#roll-report-daily) for more information on how to interpret the information shown. You will then have the option of switching between roll modes. Not all modes will be allowed, depending on the current positions that you are holding and the current roll state.
 
 The possible options are:
@@ -1775,8 +1786,29 @@ The possible options are:
 - Passive. This will tactically reduce positions in the priced contract, and open new positions in the forward contract.
 - Force. This will pause all normal trading in the relevant instrument, and the stack handler will create a calendar spread trade to roll from the priced to the forward contract.
 - Force legs. This will pause all normal trading, and create two outright trades (closing the priced contract position, opening a forward position).
-- Roll adjusted. This is only possible if you have no positions in the current price contract. It will create a new adjusted and multiple price series, hence the current forward contract will become the new priced contract (and everything else will shift accordingly).
+- Roll adjusted. This is only possible if you have no positions in the current price contract. It will create a new adjusted and multiple price series, hence the current forward contract will become the new priced contract (and everything else will shift accordingly). Adjusted price changes are manually confirmed before writing to the database.
 
+Once you've updated the roll status you have the option of choosing another instrument, or aborting.
+
+#### Cycle through instrument codes automatically, but manually decide when to roll
+
+This chooses a subset of instruments that are expiring soon. You will be prompted for the number of days ahead you want to look for expiries. This then behaves exactly like the manual option above, except it automatically cycles through the relevant subset of instruments.
+
+#### Cycle through instrument codes automatically, auto decide when to roll, manually confirm rolls
+
+Again this will first choose a subset of instruments that are expiring soon. What happens next will depend on the parameters you have decided upon:
+
+- If the volume in the forward contract is less than the required relative volume, we do nothing
+- If the relative volume is fine and you have no position in the priced contract, then we automatically decide to roll adjusted prices
+- If the relative volume is fine and you have a position in the priced contract, and you have asked to manually input the required state on a case by case basis: that's what will happen
+- If the relative volume is fine and you have a position in the priced contract, and you have NOT asked to manually input the required state, then the state will automatically be changed to one of passive, force, or force leg (as selected). I strongly recommend using Passive rolling here, and then manually changing individual instruments if required.
+
+If a decision is made to roll adjusted prices, you will be asked to confirm you are happy with the prices changes before they are written to the database.
+
+
+#### Cycle through instrument codes automatically, auto decide when to roll, automatically roll
+
+This is exactly like the previous option, except that if a decision is made to roll adjusted prices, this will happen automatically without user confirmation.
 
 ## Menu driven interactive scripts
 

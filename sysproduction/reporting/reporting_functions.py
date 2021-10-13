@@ -4,6 +4,7 @@ import os
 from syscore.objects import resolve_function,  arg_not_supplied, missing_data
 from syscore.objects import header, table, body_text
 from syscore.fileutils import get_resolved_pathname
+from syscore.text import landing_strip_from_str, landing_strip, centralise_text
 from sysdata.data_blob import dataBlob
 from sysdata.config.production_config import get_production_config
 
@@ -110,38 +111,6 @@ def parse_header(report_header: header) -> str:
     header_text = centralise_text(report_header.Heading, header_line)
 
     return "\n%s\n%s\n%s\n\n\n" % (header_line, header_text, header_line)
-
-
-def landing_strip_from_str(str_to_match: str, strip: str="=") -> str:
-    str_width = measure_width(str_to_match)
-    return landing_strip(width=str_width, strip=strip)
-
-
-def landing_strip(width: int=80, strip: str="*"):
-    return strip * width
-
-
-def centralise_text(text: str, str_to_match: str, pad_with: str=" ") ->str:
-    match_len = measure_width(str_to_match)
-    text_len = len(text)
-    if text_len >= match_len:
-        return text
-    pad_left = int((match_len - text_len) / 2.0)
-    pad_right = match_len - pad_left - text_len
-    pad_left_text = pad_with * pad_left
-    pad_right_text = pad_with * pad_right
-
-    new_text = "%s%s%s" % (pad_left_text, text, pad_right_text)
-
-    return new_text
-
-
-def measure_width(text: str) -> int:
-    first_cr = text.find("\n")
-    if first_cr == -1:
-        first_cr = len(text)
-
-    return first_cr
 
 
 def pandas_display_for_reports():

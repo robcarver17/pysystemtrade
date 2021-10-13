@@ -130,3 +130,42 @@ def camel_case_split(some_str) -> list:
             words[-1].append(c)
 
     return ["".join(word) for word in words]
+
+def print_with_landing_strips_around(str_to_match, strip: str="*"):
+    str_to_print = landing_strip_around_string(str_to_match, strip)
+    print(str_to_print)
+
+def landing_strip_around_string(str_to_match, strip: str="*")-> str:
+    strip = landing_strip_from_str(str_to_match, strip=strip)
+    return strip+"\n"+str_to_match+"\n"+strip
+
+def landing_strip_from_str(str_to_match: str, strip: str="=") -> str:
+    str_width = measure_width(str_to_match)
+    return landing_strip(width=str_width, strip=strip)
+
+
+def landing_strip(width: int=80, strip: str="*"):
+    return strip * width
+
+
+def centralise_text(text: str, str_to_match: str, pad_with: str=" ") ->str:
+    match_len = measure_width(str_to_match)
+    text_len = len(text)
+    if text_len >= match_len:
+        return text
+    pad_left = int((match_len - text_len) / 2.0)
+    pad_right = match_len - pad_left - text_len
+    pad_left_text = pad_with * pad_left
+    pad_right_text = pad_with * pad_right
+
+    new_text = "%s%s%s" % (pad_left_text, text, pad_right_text)
+
+    return new_text
+
+
+def measure_width(text: str) -> int:
+    first_cr = text.find("\n")
+    if first_cr == -1:
+        first_cr = len(text)
+
+    return first_cr

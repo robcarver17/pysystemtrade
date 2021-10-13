@@ -11,7 +11,6 @@ RollState = Enum("RollState",(
 default_state = RollState.No_Roll
 roll_adj_state = RollState.Roll_Adjusted
 
-
 roll_explanations = {
     RollState.No_Roll:"No rolling happens. Will only trade priced contract.",
     RollState.Passive:"Allow the contract to roll naturally (closing trades in priced contract, opening trades in forward contract)",
