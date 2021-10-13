@@ -147,8 +147,15 @@ def get_absolute_windows_pathname_from_list(path_as_list: list):
     :param path_as_list: eg ['D:', 'GitHub', 'pysystemtrade', 'private', 'barchart']
 
     Should return eg D:\GitHub\pysystemtrade\private\barchart\
+
+    **there maybe a more python-esque way of doing this**
     """
-    raise NotImplementedError("Don't use windoze! It sucks!")
+    if path_as_list[0].endswith(":"):
+        path_as_list[0] = path_as_list[0].replace(":", ":\\")
+
+    pathname = os.path.join(*path_as_list)
+    
+    return pathname
 
 
 def files_with_extension_in_pathname(pathname, extension=".csv"):
