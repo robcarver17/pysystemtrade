@@ -150,6 +150,7 @@ def update_roll_status_full_auto(data: dataBlob):
         if roll_state_required is no_change_required:
             warn_not_rolling(instrument_code, auto_parameters)
         else:
+
             modify_roll_state(data=data,
                               instrument_code=instrument_code,
                               original_roll_state=roll_data.original_roll_status,
@@ -455,11 +456,15 @@ def roll_adjusted_and_multiple_prices(data: dataBlob,
     print("")
     print("Rolling adjusted prices!")
     print("")
+    try:
+        rolling_adj_and_mult_object = rollingAdjustedAndMultiplePrices(data, instrument_code)
 
-    rolling_adj_and_mult_object = rollingAdjustedAndMultiplePrices(data, instrument_code)
-
-    # this will also do the roll calculations
-    rolling_adj_and_mult_object.compare_old_and_new_prices()
+        # this will also do the roll calculations
+        rolling_adj_and_mult_object.compare_old_and_new_prices()
+    except Exception as e:
+        print("Error %s when trying to calculate roll prices"
+               % str(e))
+        return failure
 
     if confirm_adjusted_price_change:
         confirm_roll = input(

@@ -322,6 +322,7 @@ class accountCosts(accountInputs):
     @diagnostic()
     def subsystem_turnover(self, instrument_code: str) -> float:
         positions = self.get_subsystem_position(instrument_code)
+
         average_position_for_turnover = self.get_volatility_scalar(
             instrument_code
         )
