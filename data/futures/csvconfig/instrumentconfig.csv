@@ -125,7 +125,7 @@ NASDAQ_micro,2,Equity,USD,0.25,0.25,0,0,NASDAQ micro
 SP500_micro,5,Equity,USD,0.125,0.25,0,0,S&P 500 micro
 LUMBER,110,Ags,USD,5.39999999999998,0.85,0,0,Random Length Lumber
 ETHEREUM,50,FX,USD,3.25,10,0,0,CME CF Ether-Dollar Reference Rate
-EU-Construction,50,Sector,EUR,1.65000000000003,2,0,0,Dow Jones STOXX 600 Construction & Materials
+EU-CONSTRUCTION,50,Sector,EUR,1.65000000000003,2,0,0,Dow Jones STOXX 600 Construction & Materials
 EU-DIV50,100,Equity,EUR,0.100000000000001,2,0,0,Dow Jones EURO STOXX 50 Index-Dividenden
 FED,4167,Bond,USD,0.001249999999999,0.85,0,0,30 Day Fed Funds
 MID-DAX,5,Equity,EUR,100,2,0,0,Midcap DAX
