@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="static/css/styles.css">
+  <link rel="shortcut icon" href="static/favicon.ico">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="static/js/update.js"></script>
+</head>
+<body>
+
+<div id="traffic_lights_div">
+  <button id="capital-tl" class="traffic-light" onclick="getElementById('tab_pandl').checked = true">12345</button>
+  <button id="stack-tl" class="traffic-light" onclick="getElementById('tab_processes').checked = true">Stack</button>
+  <button id="gateway-tl" class="traffic-light" onclick="getElementById('tab_processes').checked = true">Gateway</button>
+  <button id="rolls-tl" class="traffic-light" onclick="getElementById('tab_rolls').checked = true">Rolls</button>
+  <button id="breaks-tl" class="traffic-light" onclick="getElementById('tab_reconciliation').checked = true">Breaks</button>
+  <button id="prices-tl" class="traffic-light" onclick="getElementById('tab_processes').checked = true">Prices</button>
+</div>
+
+<div class="tabinator">
+<input type = "radio" id = "tab_rolls" name = "tabs" checked>
+<label for = "tab_rolls">Rolls</label>
+<input type = "radio" id = "tab_processes" name = "tabs">
+<label for = "tab_processes">Processes</label>
+<input type = "radio" id = "tab_pandl" name = "tabs">
+<label for = "tab_pandl">P&L</label>
+<input type = "radio" id = "tab_trades" name = "tabs">
+<label for = "tab_trades">Trades</label>
+<input type = "radio" id = "tab_reconciliation" name = "tabs">
+<label for = "tab_reconciliation">Reconciliation</label>
+<input type = "radio" id = "tab_strategy" name = "tabs">
+<label for = "tab_strategy">Strategy</label>
+<input type = "radio" id = "tab_risk" name = "tabs">
+<label for = "tab_risk">Risk</label>
+<input type = "radio" id = "tab_liquidity" name = "tabs">
+<label for = "tab_liquidity">Liquidity</label>
+<input type = "radio" id = "tab_costs" name = "tabs">
+<label for = "tab_costs">Costs</label>
+
+<div id="rolls">
+  <table id="rolls_status">
+    <caption>Status</caption>
+    <thead><tr><th>Contract</th><th>State</th><th>Roll Expiry</th>
+        <th>Carry Expiry</th><th>Price Expiry</th></tr><thead>
+    <tbody></tbody>
+  </table>
+  <br>
+  <table id="rolls_details">
+    <caption>Details</caption>
+    <thead><tr><th>Contract</th></tr><thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<div id="processes">
+  <table id="processes_status">
+    <caption>Status</caption>
+    <thead><tr><th>Process</th><th>Status</th></tr></thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<div id="pandl">
+  <h1>Profit and Loss</h1>
+</div>
+
+<div id="trades">
+  <h1>Trades</h1>
+</div>
+
+<div id="reconciliation">
+  <table id="reconcile_strategy">
+    <caption>Strategy level</caption>
+    <thead><tr><th>Instrument</th><th>Current</th><th>Optimal</th></tr><thead>
+    <tbody></tbody>
+  </table>
+  <br>
+  <table id="reconcile_contract">
+    <caption>Contract level</caption>
+    <thead><tr><th>Instrument</th><th>Contract Date</th><th>Database</th><th>Broker</th></tr><thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<div id="strategy">
+</div>
+
+<div id="risk">
+  <h1>Risk</h1>
+</div>
+
+<div id="liquidity">
+  <h1>Liquidity</h1>
+</div>
+
+<div id="costs">
+  <h1>Costs</h1>
+</div>
+
+</div>
+
+</body>
+</html>
