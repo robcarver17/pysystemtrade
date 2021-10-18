@@ -165,6 +165,7 @@ def get_data_for_objective_instance(data: dataBlob,
                                                                 list_of_instruments=list_of_instruments)
 
     data.log.msg("Getting covariance matrix")
+    # FIXME THIS REALLY OUGHT TO BE BASED ON small_system:   instrument_returns_correlation: in .yaml file
     covariance_matrix = get_covariance_matrix(data,
                                               list_of_instruments=list_of_instruments)
 

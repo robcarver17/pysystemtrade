@@ -48,6 +48,7 @@ top_level_menu_of_options = {
     2: "Trade control (override)",
     3: "Broker client IDS",
     4: "Process control and monitoring",
+    5: "Update configuration"
 }
 
 nested_menu_of_options = {
@@ -83,6 +84,9 @@ nested_menu_of_options = {
         44: "Mark all dead processes as finished",
         45: "View process configuration (set in YAML, cannot change here)",
     },
+    5: {
+        50: "Auto update spread cost configuration based on sampling and trades"
+    }
 }
 
 
@@ -541,6 +545,8 @@ def finish_all_processes(data):
     data_control = dataControlProcess(data)
     data_control.check_if_pid_running_and_if_not_finish_all_processes()
 
+def auto_update_spread_costs(data):
+    pass
 
 
 def not_defined(data):
@@ -570,5 +576,6 @@ dict_of_functions = {
     43: finish_process,
     44: finish_all_processes,
     45: view_process_config,
+    50: auto_update_spread_costs
 }
 

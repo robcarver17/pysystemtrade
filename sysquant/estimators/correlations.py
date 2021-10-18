@@ -155,7 +155,7 @@ class correlationEstimate(Estimate):
         return avg_corr
 
     def ordered_correlation_matrix(self):
-        list_of_keys = self.columns
+        list_of_keys = list(self.columns)
         list_of_keys.sort()
 
         return self.list_in_key_order(list_of_keys)

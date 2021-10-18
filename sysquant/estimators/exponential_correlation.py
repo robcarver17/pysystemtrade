@@ -1,7 +1,7 @@
 import datetime
 import pandas as pd
 from syscore.genutils import str2Bool
-from syscore.objects import missing_data, arg_not_supplied
+from syscore.objects import arg_not_supplied
 from sysquant.fitting_dates import fitDates
 from sysquant.estimators.correlations import correlationEstimate, create_boring_corr_matrix
 from sysquant.estimators.generic_estimator import exponentialEstimator
@@ -57,9 +57,12 @@ class exponentialCorrelation(exponentialEstimator):
         return create_boring_corr_matrix(len(asset_names),
                                          columns = asset_names)
 
-    def get_estimate_for_fitperiod_with_data(self, fit_period: fitDates) -> correlationEstimate:
+    def get_estimate_for_fitperiod_with_data(self, fit_period: fitDates = arg_not_supplied) -> correlationEstimate:
 
-        raw_corr_matrix = self._get_raw_corr_for_datetime(fit_period)
+        if fit_period is arg_not_supplied:
+            fit_period = self._get_default_fit_period_cover_all_data()
+
+        raw_corr_matrix = self._get_raw_corr_for_fitperiod(fit_period)
 
         cleaning = self.cleaning
         if cleaning:
@@ -81,10 +84,25 @@ class exponentialCorrelation(exponentialEstimator):
 
         return corr_matrix
 
-    def _get_raw_corr_for_datetime(self, fit_period: fitDates) -> correlationEstimate:
-        correlation_calculations = self.calculations
+    def _get_default_fit_period_cover_all_data(self) -> fitDates:
+        last_date_in_fit_period = self.data.last_valid_index()
+        first_date_in_fit_period = self.data.first_valid_index()
+
+        fit_period = fitDates(period_start=first_date_in_fit_period,
+                              period_end=last_date_in_fit_period,
+                              fit_start=first_date_in_fit_period,
+                              fit_end=last_date_in_fit_period)
+
+        return fit_period
+
+
+    def _get_raw_corr_for_fitperiod(self, fit_period: fitDates) -> correlationEstimate:
         last_date_in_fit_period = fit_period.fit_end
-        ## some kind of access
+
+        return self._get_raw_corr_period_ends_at_date(last_date_in_fit_period)
+
+    def _get_raw_corr_period_ends_at_date(self, last_date_in_fit_period: datetime.datetime) -> correlationEstimate:
+        correlation_calculations = self.calculations
         raw_corr_matrix = correlation_calculations.\
             last_valid_cor_matrix_for_date(last_date_in_fit_period)
 

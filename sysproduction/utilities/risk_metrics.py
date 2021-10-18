@@ -1,13 +1,14 @@
 import numpy as np
 import pandas as pd
 
-from syscore.dateutils import ROOT_BDAYS_INYEAR
+from syscore.dateutils import ROOT_BDAYS_INYEAR, BUSINESS_DAYS_IN_YEAR
 from syscore.objects import missing_data
 
 from sysobjects.production.tradeable_object import instrumentStrategy
 
 from sysquant.estimators.covariance import covarianceEstimate, covariance_from_stdev_and_correlation
 from sysquant.estimators.correlations import correlationEstimate
+from sysquant.estimators.exponential_correlation import exponentialCorrelation
 from sysquant.estimators.stdev_estimator import stdevEstimates
 from sysquant.optimisation.weights import portfolioWeights
 
@@ -104,18 +105,18 @@ def get_correlation_matrix_all_instruments(data) -> correlationEstimate:
 
     return cmatrix
 
-
-def get_correlation_matrix(data, instrument_list) -> correlationEstimate:
+def get_correlation_matrix(data, instrument_list: list,
+                           span_days: int = 375) -> correlationEstimate:
     perc_returns = dict([(instrument_code, get_daily_perc_returns(data, instrument_code))
                 for instrument_code in instrument_list])
     price_df = pd.DataFrame(perc_returns)
 
-    # daily use last 6 months
-    price_df = price_df[-128:]
-    price_corr = price_df.corr()
+    price_df = price_df[-span_days:]
 
-    return correlationEstimate.from_pd(price_corr)
+    exp_correlation_estimator = exponentialCorrelation(price_df,ew_lookback=span_days, floor_at_zero=False)
+    last_correlation = exp_correlation_estimator.get_estimate_for_fitperiod_with_data()
 
+    return last_correlation
 
 def get_list_of_annualised_stdev_of_instruments_as_estimate(data, instrument_list) -> stdevEstimates:
     stdev_estimate = stdevEstimates([
