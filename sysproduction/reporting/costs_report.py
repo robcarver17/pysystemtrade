@@ -75,16 +75,17 @@ def get_combined_df_of_costs(data: dataBlob,
 
     combined.columns = ["bid_ask_trades", "total_trades", "bid_ask_sampled"]
 
-    estimate = best_estimate_from_cost_data(bid_ask_costs=bid_ask_costs,
+    estimate_with_data = best_estimate_from_cost_data(bid_ask_costs=bid_ask_costs,
                                             actual_trade_costs=actual_trade_costs,
                                             order_count=order_count,
                                             sampling_costs=sampling_costs,
                                             sample_count=sample_count,
                                             configured_costs=configured_costs)
 
-    perc_difference = (estimate - configured_costs) / configured_costs
+    perc_difference = (estimate_with_data.estimate - configured_costs) / configured_costs
 
-    all_together = pd.concat([combined, estimate, configured_costs, perc_difference], axis=1)
+    all_together = pd.concat([combined,
+                              estimate_with_data, configured_costs, perc_difference], axis=1)
     all_together.columns = list(combined.columns) + ["Estimate", "Configured", "% Difference"]
 
     all_together = all_together.sort_values("% Difference", ascending=False)
@@ -138,7 +139,13 @@ def best_estimate_from_cost_data(bid_ask_costs: pd.Series,
 
     estimate = weighted_trading + weighted_samples + weighted_config
 
-    return estimate
+    estimate_with_data = pd.concat([weighted_trading, weighted_samples, weighted_config, estimate], axis=1)
+    estimate_with_data.columns = ['weight_trades',
+                                  'weight_samples',
+                                  'weight_config',
+                                  'estimate']
+
+    return estimate_with_data
 
 def get_average_half_spread_from_sampling(data, start_date, end_date):
     diag_prices = diagPrices(data)
