@@ -169,6 +169,9 @@ def get_data_for_objective_instance(data: dataBlob,
     covariance_matrix = get_covariance_matrix(data,
                                               list_of_instruments=list_of_instruments)
 
+    print("Covariance matrix")
+    print(covariance_matrix)
+
     data.log.msg("Getting per contract values")
     per_contract_value = \
         get_per_contract_values(data,
