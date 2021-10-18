@@ -41,13 +41,23 @@
   <table id="rolls_status">
     <caption>Status</caption>
     <thead><tr><th>Contract</th><th>State</th><th>Roll Expiry</th>
-        <th>Carry Expiry</th><th>Price Expiry</th></tr><thead>
+        <th>Carry Expiry</th><th>Price Expiry</th><th>Options</th></tr></thead>
     <tbody></tbody>
   </table>
+  <div id="roll_prices" class="hidden">
+    <table id="roll_prices_table">
+      <br>
+      <caption>Proposed Adjusted Prices - </caption>
+      <thead><tr><th>Current Multiple</th><th>New Multiple</th>
+          <th>Current Adjusted</th><th>New Adjusted</th>
+        </tr></thead>
+        <tbody></tbody>
+    </table>
+  </div>
   <br>
   <table id="rolls_details">
     <caption>Details</caption>
-    <thead><tr><th>Contract</th></tr><thead>
+    <thead><tr><th>Contract</th></tr></thead>
     <tbody></tbody>
   </table>
 </div>
@@ -71,13 +81,13 @@
 <div id="reconciliation">
   <table id="reconcile_strategy">
     <caption>Strategy level</caption>
-    <thead><tr><th>Instrument</th><th>Current</th><th>Optimal</th></tr><thead>
+    <thead><tr><th>Instrument</th><th>Current</th><th>Optimal</th></tr></thead>
     <tbody></tbody>
   </table>
   <br>
   <table id="reconcile_contract">
     <caption>Contract level</caption>
-    <thead><tr><th>Instrument</th><th>Contract Date</th><th>Database</th><th>Broker</th></tr><thead>
+    <thead><tr><th>Instrument</th><th>Contract Date</th><th>Database</th><th>Broker</th></tr></thead>
     <tbody></tbody>
   </table>
 </div>
