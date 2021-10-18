@@ -1,0 +1,126 @@
+@import url('https://fonts.googleapis.com/css?family=Open+Sans:400,600,700');
+* {
+  margin: 0;
+  padding: 0;
+}
+body {
+  padding: 50px;
+  background: #E5E4E2;
+}
+.tabinator {
+  background: #fff;
+  padding: 40px;
+  font-family: Open Sans;
+}
+.tabinator h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+.tabinator input {
+  display: none;
+}
+.tabinator label {
+  box-sizing: border-box;
+  display: inline-block;
+  padding: 15px 25px;
+  color: #ccc;
+  margin-bottom: -1px;
+  margin-left: -1px;
+}
+.tabinator label:before {
+  content:'';
+  display:block;
+  width:100%;
+  height:15px;
+  background-color:#fff;
+  position:absolute;
+  bottom:-11px;
+  left:0;
+  z-index:10;  
+}
+.tabinator label:hover {
+  color: #888;
+  cursor: pointer;
+}
+.tabinator input:checked + label {
+  position: relative;
+  color: #000;
+  background: #fff;
+  border: 1px solid #bbb;
+  border-bottom: 1px solid #fff;
+  border-radius: 5px 5px 0 0;
+}
+.tabinator input:checked + label:after {
+  display: block;
+  content: '';
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  box-shadow: 0 0 15px #939393;
+}
+#rolls, #processes, #pandl, #trades, #reconciliation, #strategy, #risk, #liquidity, #costs {
+  display: none;
+  border-top: 1px solid #bbb;
+  padding: 15px;
+}
+#tab_rolls:checked ~ #rolls,
+#tab_processes:checked ~ #processes,
+#tab_pandl:checked ~ #pandl,
+#tab_trades:checked ~ #trades,
+#tab_reconciliation:checked ~ #reconciliation,
+#tab_strategy:checked ~ #strategy,
+#tab_risk:checked ~ #risk,
+#tab_liquidity:checked ~ #liquidity,
+#tab_costs:checked ~ #costs
+{
+  display: block;
+  box-shadow: 0 0 15px #939393;
+}
+
+
+
+caption {
+  font-weight: bold;
+  font-size: 24px;
+  text-align: left;
+  color: #333;
+  margin-bottom: 16px;
+}
+
+thead {
+  background-color: #333;
+  color: white;
+}
+
+tbody tr:nth-child(odd) {
+  background-color: #fff;
+}
+
+tbody tr:nth-child(even) {
+  background-color: #eee;
+}
+
+
+.traffic-light {
+  border: none;
+  color: white;
+  padding: 20px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
+  border-radius: 12px;
+}
+
+.green {
+  background: #00FF00;
+}
+
+.orange {
+  background: #FF8C00;
+}
+
+.red {
+  background: #FF0000;
+}
