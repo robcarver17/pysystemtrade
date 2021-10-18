@@ -139,7 +139,9 @@ def best_estimate_from_cost_data(bid_ask_costs: pd.Series,
 
     estimate = weighted_trading + weighted_samples + weighted_config
 
-    estimate_with_data = pd.concat([weighted_trading, weighted_samples, weighted_config, estimate], axis=1)
+    estimate_with_data = pd.concat([weight_on_trades,
+                                    weight_on_samples,
+                                    weight_on_config, estimate], axis=1)
     estimate_with_data.columns = ['weight_trades',
                                   'weight_samples',
                                   'weight_config',
