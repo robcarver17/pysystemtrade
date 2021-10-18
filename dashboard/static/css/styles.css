@@ -36,7 +36,7 @@ body {
   position:absolute;
   bottom:-11px;
   left:0;
-  z-index:10;  
+  z-index:10;
 }
 .tabinator label:hover {
   color: #888;
@@ -76,7 +76,9 @@ body {
   box-shadow: 0 0 15px #939393;
 }
 
-
+div.hidden {
+  display: none;
+}
 
 caption {
   font-weight: bold;
@@ -97,6 +99,14 @@ tbody tr:nth-child(odd) {
 
 tbody tr:nth-child(even) {
   background-color: #eee;
+}
+
+th,td {
+  padding: 0px 10px;
+}
+
+td > button:not(:last-child) {
+  margin-right: 10px;
 }
 
 

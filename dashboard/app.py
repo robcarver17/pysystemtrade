@@ -1,7 +1,9 @@
-from flask import Flask, render_template, _app_ctx_stack, g
+from flask import Flask, g, render_template, request
 from werkzeug.local import LocalProxy
 
 from sysdata.data_blob import dataBlob
+
+from sysobjects.production.roll_state import RollState
 
 from sysproduction.data.prices import diagPrices
 from sysproduction.reporting import roll_report
@@ -9,6 +11,11 @@ from sysproduction.data.broker import dataBroker
 from sysproduction.data.control_process import dataControlProcess
 from sysproduction.data.capital import dataCapital
 from sysproduction.data.positions import diagPositions, dataOptimalPositions
+from sysproduction.interactive_update_roll_status import (
+    modify_roll_state,
+    setup_roll_data_with_state_reporting,
+)
+from sysproduction.utilities.rolls import rollingAdjustedAndMultiplePrices
 
 from pprint import pprint
 
@@ -49,8 +56,11 @@ def processes():
         running_modes[name] = control_process_data.get_control_for_process_name(
             name
         ).running_mode_str
-    return {"running_modes": running_modes,
-        "prices_update": control_process_data.has_process_finished_in_last_day("run_daily_prices_updates")
+    return {
+        "running_modes": running_modes,
+        "prices_update": control_process_data.has_process_finished_in_last_day(
+            "run_daily_prices_updates"
+        ),
     }
 
 
@@ -87,7 +97,9 @@ def reconcile():
         asyncio.set_event_loop(asyncio.new_event_loop())
         data_broker = dataBroker(data)
         db_contract_pos = (
-            data_broker.get_db_contract_positions_with_IB_expiries().as_pd_df().to_dict()
+            data_broker.get_db_contract_positions_with_IB_expiries()
+            .as_pd_df()
+            .to_dict()
         )
         for idx in db_contract_pos["instrument_code"].keys():
             code = db_contract_pos["instrument_code"][idx]
@@ -129,7 +141,41 @@ def rolls():
     report = {}
     for instrument in all_instruments:
         report[instrument] = roll_report.get_roll_data_for_instrument(instrument, data)
+        roll_data = setup_roll_data_with_state_reporting(data, instrument)
+        report[instrument]["allowable"] = roll_data.allowable_roll_states_as_list_of_str
+
     return report
+
+
+@app.route("/rolls", methods=["POST"])
+def rolls_post():
+    instrument = request.form["instrument"]
+    new_state = RollState[request.form["state"]]
+
+    if new_state == RollState.Roll_Adjusted and request.form["confirmed"] != "true":
+        # Send back the adjusted prices for checking
+        try:
+            rolling = rollingAdjustedAndMultiplePrices(data, instrument)
+            prices = {
+                "current_multiple": rolling.current_multiple_prices.tail(6),
+                "updated_multiple": rolling.updated_multiple_prices.tail(6),
+                "current_adjusted": rolling.current_adjusted_prices.tail(6),
+                "new_adjusted": rolling.new_adjusted_prices.tail(6),
+            }
+            return prices
+        except:
+            # Cannot roll for some reason
+            return {}
+
+    roll_data = setup_roll_data_with_state_reporting(data, instrument)
+    modify_roll_state(
+        data, instrument, roll_data.original_roll_status, new_state, False
+    )
+    roll_data = setup_roll_data_with_state_reporting(data, instrument)
+    return {
+        "new_state": request.form["state"],
+        "allowable": roll_data.allowable_roll_states_as_list_of_str,
+    }
 
 
 if __name__ == "__main__":

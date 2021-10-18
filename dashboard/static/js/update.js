@@ -116,12 +116,17 @@ function update_rolls() {
       $("#rolls_details > tbody").empty();
       var overall = "green";
       $.each(data, function(contract, details) {
+        var buttons = "";
+        $.each(details['allowable'], function(_, option) {
+          buttons += `<button onClick="roll_post('${contract}', '${option}')">${option}</button>`
+        });
         $("#rolls_status tbody").append(`
-          <tr><td>${contract}</td>
+          <tr id="rolls_${contract}"><td>${contract}</td>
           <td>${details['status']}</td>
           <td>${details['roll_expiry']}</td>
           <td>${details['carry_expiry']}</td>
           <td>${details['price_expiry']}</td>
+          <td>${buttons}</td>
           </tr>`);
         if (details['roll_expiry'] < 0) {
           overall = "red";
@@ -143,6 +148,45 @@ function update_rolls() {
       }
       );
       $("#rolls-tl").addClass(overall);
+    }
+  });
+}
+
+function roll_post(instrument, state, confirmed = false) {
+  $.ajax({
+    type: "POST",
+    url: "/rolls",
+    data: {'instrument': instrument, 'state': state, 'confirmed': confirmed},
+    success: function(data)
+    {
+      $("#roll_prices").addClass("hidden");
+      if (data["new_state"] == "Roll_Adjusted") {
+        // Lots has changed so refresh everything
+        update_rolls();
+      } else if (data["current_multiple"]){
+        // Populate the div to show the new prices
+        $("#roll_prices").removeClass("hidden");
+        $("#roll_prices_table caption").text("Proposed Adjusted Prices - " + instrument);
+        $.each(data['current_multiple'], function(i, _) {
+        $("#roll_prices_table tbody").append(`
+          <tr>
+          <td>${data['current_multiple'][i]}</td>
+          <td>${data['updated_multiple'][i]}</td>
+          <td>${data['current_adjusted'][i]}</td>
+          <td>${data['new_adjusted'][i]}</td>
+          </tr>`);
+        });
+        $("#roll_prices").append(`<button onClick="roll_post('${instrument}', '${state}', true)">${state}</button>`);
+        $("#roll_prices").display = true;
+      } else if (data["allowable"]) {
+        // Only need to update this line
+        var buttons = "";
+        $.each(data['allowable'], function(_, option) {
+          buttons += `<button onClick="roll_post('${instrument}', '${option}')">${option}</button>`
+        });
+        $("#rolls_" + instrument).find("td:eq(1)").html(data["new_state"]);
+        $("#rolls_" + instrument).find("td:eq(5)").html(buttons);
+      }
     }
   });
 }
