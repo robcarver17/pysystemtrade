@@ -86,7 +86,7 @@ def get_combined_df_of_costs(data: dataBlob,
 
     all_together = pd.concat([combined,
                               estimate_with_data, configured_costs, perc_difference], axis=1)
-    all_together.columns = list(combined.columns) + ["Estimate", "Configured", "% Difference"]
+    all_together.columns = list(combined.columns) + list(estimate_with_data.columns)+["Configured", "% Difference"]
 
     all_together = all_together.sort_values("% Difference", ascending=False)
 
