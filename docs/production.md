@@ -2901,7 +2901,9 @@ The better case is when the mongo DB is fine. In this case (once you've [restore
 
 # Reports
 
+## Dashboard
 
+A lot of the information in the reports described below can also be found in the [Web Dashboard](/docs/dashboard.md)
 
 ### Roll report (Daily)
 
