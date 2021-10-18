@@ -1,4 +1,4 @@
-$(document).ready(function(){
+function update_processes() {
   $.ajax({
     type: "GET",
     url: "/processes",
@@ -34,10 +34,9 @@ $(document).ready(function(){
     }
   }
   );
-  }
-);
+}
 
-$(document).ready(function(){
+function update_reconcile() {
   $.ajax({
     type: "GET",
     url: "/reconcile",
@@ -90,10 +89,9 @@ $(document).ready(function(){
     }
   }
   );
-  }
-);
+}
 
-$(document).ready(function(){
+function update_capital() {
   $.ajax({
     type: "GET",
     url: "/capital",
@@ -107,10 +105,9 @@ $(document).ready(function(){
     }
   }
   );
-  }
-);
+}
 
-$(document).ready(function(){
+function update_rolls() {
   $.ajax({
     type: "GET",
     url: "/rolls",
@@ -148,5 +145,10 @@ $(document).ready(function(){
       $("#rolls-tl").addClass(overall);
     }
   });
-});
+}
+
+$(document).ready(update_processes());
+$(document).ready(update_reconcile());
+$(document).ready(update_capital());
+$(document).ready(update_rolls());
 
