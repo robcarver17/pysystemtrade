@@ -85,7 +85,7 @@ EURO600,50,Equity,EUR,0.14000000000,2,0,0,Dow Jones STOXX 600 Index
 DAX,1,Equity,EUR,1.50000000000,0.4,0,0,DAX 30 Index (Deutsche Aktien Xchange 30)
 DOW,0.5,Equity,USD,0.72000000000,0.25,0,0,Micro E-Mini Dow Jones Industrial Average Index
 RUSSELL,5,Equity,USD,0.10000000000,0.25,0,0,Micro E-Mini Russell 2000 Index
-SP400,100,Equity,USD,0.30000000000,1.5,0,0,E-mini S&P Midcap 400 Futures
+SP400,100,Equity,USD,0.54000000000,1.5,0,0,E-mini S&P Midcap 400 Futures
 GBPEUR,125000,FX,GBP,0.00007500000,1.5,0,0,GBPEUR currency
 YENEUR,125000,FX,JPY,0.01000000000,1.5,0,0,YENEUR currency
 BUXL,1000,Bond,EUR,0.01300000000,2,0,0,German Buxl 15 to 30 year bond
@@ -120,7 +120,7 @@ TOPIX,1000,Equity,JPY,0.20000000000,50,0,0,Japan Mini Topix
 CRUDE_W_mini,500,OilGas,USD,0.03300000000,1.5,0,0,Light sweet crude Winter mini
 GAS_US_mini,2500,OilGas,USD,0.00500000000,1.5,0,0,Natural gas US mini
 GOLD_micro,10,Metals,USD,0.10000000000,0.25,0,0,Gold micro
-KOSPI_mini,50000,Equity,KRW,2.00000000000,8500,0,0,KOSPI mini
+KOSPI_mini,50000,Equity,KRW,0.60000000000,8500,0,0,KOSPI mini
 NASDAQ_micro,2,Equity,USD,0.25000000000,0.25,0,0,NASDAQ micro
 SP500_micro,5,Equity,USD,0.12500000000,0.25,0,0,S&P 500 micro
 LUMBER,110,Ags,USD,5.40000000000,0.85,0,0,Random Length Lumber

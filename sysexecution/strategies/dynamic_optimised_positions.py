@@ -204,6 +204,7 @@ def get_data_for_objective_instance(data: dataBlob,
                                             per_contract_value=per_contract_value)
 
     trade_shadow_cost = get_trade_shadow_cost()
+    data.log.msg("Shadow cost %f" % trade_shadow_cost)
 
     data_for_objective = dataForObjectiveInstance(weights_optimal=weights_optimal,
                                                   positions_optimal = positions_optimal,
