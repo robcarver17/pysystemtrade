@@ -154,14 +154,45 @@ def rolls_post():
 
     if new_state == RollState.Roll_Adjusted and request.form["confirmed"] != "true":
         # Send back the adjusted prices for checking
+        number_to_return = 6
         try:
             rolling = rollingAdjustedAndMultiplePrices(data, instrument)
-            prices = {
-                "current_multiple": rolling.current_multiple_prices.tail(6),
-                "updated_multiple": rolling.updated_multiple_prices.tail(6),
-                "current_adjusted": rolling.current_adjusted_prices.tail(6),
-                "new_adjusted": rolling.new_adjusted_prices.tail(6),
+            current_multiple = {
+                str(k): v
+                for k, v in rolling.current_multiple_prices.tail(number_to_return)
+                .to_dict(orient="index")
+                .items()
             }
+            new_multiple = {
+                str(k): v
+                for k, v in rolling.updated_multiple_prices.tail(number_to_return + 1)
+                .to_dict(orient="index")
+                .items()
+            }
+            current_adjusted = {
+                str(k): v
+                for k, v in rolling.current_adjusted_prices.tail(number_to_return)
+                .to_dict()
+                .items()
+            }
+            new_adjusted = {
+                str(k): v
+                for k, v in rolling.new_adjusted_prices.tail(number_to_return + 1)
+                .to_dict()
+                .items()
+            }
+            single = {
+                k: {"current": current_adjusted[k], "new": new_adjusted[k]}
+                for k in current_adjusted.keys()
+            }
+            multiple = {
+                k: {"current": current_multiple[k], "new": new_multiple[k]}
+                for k in current_adjusted.keys()
+            }
+            new_date = list(new_adjusted.keys())[-1]
+            single[new_date] = {"new": new_adjusted[new_date]}
+            multiple[new_date] = {"new": new_multiple[new_date]}
+            prices = {"single": single, "multiple": multiple}
             return prices
         except:
             # Cannot roll for some reason
