@@ -3,30 +3,34 @@ from ib_insync import MarketOrder, Forex
 
 from sysbrokers.IB.client.ib_price_client import ibPriceClient
 from sysbrokers.IB.ib_contracts import ibcontractWithLegs
-from sysbrokers.IB.ib_positions import extract_fx_balances_from_account_summary, resolveBS
+from sysbrokers.IB.ib_positions import (
+    extract_fx_balances_from_account_summary,
+    resolveBS,
+)
 from sysbrokers.IB.ib_translate_broker_order_objects import tradeWithContract
 
 from syscore.objects import arg_not_supplied, missing_contract, missing_data
 from syscore.dateutils import Frequency, DAILY_PRICE_FREQ
 
-class ibFxClient(ibPriceClient):
 
-    def broker_fx_balances(self,
-                           account_id: str = arg_not_supplied) -> dict:
+class ibFxClient(ibPriceClient):
+    def broker_fx_balances(self, account_id: str = arg_not_supplied) -> dict:
         if account_id is arg_not_supplied:
             account_summary = self.ib.accountValues()
         else:
-            account_summary = self.ib.accountValues(account = account_id)
+            account_summary = self.ib.accountValues(account=account_id)
 
-        fx_balance_dict = extract_fx_balances_from_account_summary(
-            account_summary)
+        fx_balance_dict = extract_fx_balances_from_account_summary(account_summary)
 
         return fx_balance_dict
 
-    def broker_fx_market_order(self, trade: float,
-                               ccy1: str,
-                               account_id: str = arg_not_supplied,
-                               ccy2: str = "USD") -> tradeWithContract:
+    def broker_fx_market_order(
+        self,
+        trade: float,
+        ccy1: str,
+        account_id: str = arg_not_supplied,
+        ccy2: str = "USD",
+    ) -> tradeWithContract:
         """
         Get some spot fx data
 
@@ -40,18 +44,20 @@ class ibFxClient(ibPriceClient):
         if ibcontract is missing_contract:
             return missing_contract
 
-        ib_order = self._create_fx_market_order_for_submission(trade=trade, account_id=account_id)
+        ib_order = self._create_fx_market_order_for_submission(
+            trade=trade, account_id=account_id
+        )
         order_object = self.ib.placeOrder(ibcontract, ib_order)
 
         # for consistency with spread orders use this kind of object
-        contract_object_to_return =ibcontractWithLegs(ibcontract)
-        trade_with_contract = tradeWithContract(
-            contract_object_to_return, order_object
-        )
+        contract_object_to_return = ibcontractWithLegs(ibcontract)
+        trade_with_contract = tradeWithContract(contract_object_to_return, order_object)
 
         return trade_with_contract
 
-    def _create_fx_market_order_for_submission(self, trade: float, account_id: str = arg_not_supplied) -> MarketOrder:
+    def _create_fx_market_order_for_submission(
+        self, trade: float, account_id: str = arg_not_supplied
+    ) -> MarketOrder:
 
         ib_BS_str, ib_qty = resolveBS(trade)
         ib_order = MarketOrder(ib_BS_str, ib_qty)
@@ -60,8 +66,9 @@ class ibFxClient(ibPriceClient):
 
         return ib_order
 
-
-    def broker_get_daily_fx_data(self, ccy1: str, ccy2: str="USD", bar_freq: Frequency=DAILY_PRICE_FREQ) -> pd.Series:
+    def broker_get_daily_fx_data(
+        self, ccy1: str, ccy2: str = "USD", bar_freq: Frequency = DAILY_PRICE_FREQ
+    ) -> pd.Series:
         """
         Get some spot fx data
 
@@ -81,10 +88,10 @@ class ibFxClient(ibPriceClient):
 
         # uses parent class ibClientPrices
         fx_data = self._get_generic_data_for_contract(
-            ibcontract, log=log, bar_freq=bar_freq, whatToShow="MIDPOINT")
+            ibcontract, log=log, bar_freq=bar_freq, whatToShow="MIDPOINT"
+        )
 
         return fx_data
-
 
     def ib_spotfx_contract(self, ccy1, ccy2="USD") -> Forex:
 
