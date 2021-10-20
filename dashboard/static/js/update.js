@@ -163,18 +163,34 @@ function roll_post(instrument, state, confirmed = false) {
       if (data["new_state"] == "Roll_Adjusted") {
         // Lots has changed so refresh everything
         update_rolls();
-      } else if (data["current_multiple"]){
+      } else if (data["single"]){
         // Populate the div to show the new prices
         $("#roll_prices").removeClass("hidden");
-        $("#roll_prices_table caption").text("Proposed Adjusted Prices - " + instrument);
-        $.each(data['current_multiple'], function(i, _) {
-        $("#roll_prices_table tbody").append(`
-          <tr>
-          <td>${data['current_multiple'][i]}</td>
-          <td>${data['updated_multiple'][i]}</td>
-          <td>${data['current_adjusted'][i]}</td>
-          <td>${data['new_adjusted'][i]}</td>
-          </tr>`);
+        $("#roll_instrument_name").text("Proposed Adjusted Prices - " + instrument);
+        $.each(data['single'], function(date, val) {
+          current = val['current'] ? val['current'] : "";
+          $("#roll_prices_single tbody").append(`
+            <tr>
+            <td>${date}</td>
+            <td>${current}</td>
+            <td>${val['new']}</td>
+            </tr>`);
+        });
+        $.each(data['multiple'], function(date, val) {
+          current = val['current'] ? val['current'] : {'CARRY': '', 'PRICE': '', 'FORWARD': ''};
+          $("#roll_prices_multiple tbody").append(`
+            <tr>
+            <td>${date}</td>
+            <td>${val['new']['CARRY_CONTRACT']}</td>
+            <td>${current['CARRY']}</td>
+            <td>${val['new']['CARRY']}</td>
+            <td>${val['new']['PRICE_CONTRACT']}</td>
+            <td>${current['PRICE']}</td>
+            <td>${val['new']['PRICE']}</td>
+            <td>${val['new']['FORWARD_CONTRACT']}</td>
+            <td>${current['FORWARD']}</td>
+            <td>${val['new']['FORWARD']}</td>
+            </tr>`);
         });
         $("#roll_prices").append(`<button onClick="roll_post('${instrument}', '${state}', true)">${state}</button>`);
         $("#roll_prices").display = true;
