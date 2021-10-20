@@ -31,6 +31,10 @@ class portfolioWeights(dict):
 
         return portfolioWeights(pweights_as_list)
 
+    @property
+    def assets(self) -> list:
+        return list(self.keys())
+
     def replace_weights_with_ints(self):
         new_weights_as_dict = dict([
             (instrument_code, _int_from_nan(value))
@@ -74,6 +78,25 @@ class portfolioWeights(dict):
 
     def assets_with_data(self) -> list:
         return [key for key, value in self.items() if not np.isnan(value)]
+
+    def __truediv__(self, other: 'portfolioWeights'):
+        return self._operate_on_other(other, "__truediv__")
+
+    def __mul__(self, other: 'portfolioWeights'):
+        return self._operate_on_other(other, "__mul__")
+
+    def _operate_on_other(self, other: 'portfolioWeights', func_to_use):
+        asset_list = self.assets
+        np_self = np.array(self.as_list_given_keys(asset_list))
+        np_other =  np.array(other.as_list_given_keys(asset_list))
+
+        np_func = getattr(np_self, func_to_use)
+        np_results = np_func(np_other)
+
+        return portfolioWeights.from_weights_and_keys(list_of_weights=list(np_results),
+                                                  list_of_keys=asset_list)
+
+
 
 def _int_from_nan(x: float):
     if np.isnan(x):
