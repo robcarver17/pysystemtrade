@@ -113,7 +113,7 @@ class dataBroker(productionDataLayerGeneric):
             account_id = self.get_broker_account()
 
         result = self.broker_fx_handling_data.broker_fx_market_order(
-            trade, ccy1, ccy2="USD", account_id=account_id
+            trade, ccy1, ccy2=ccy2, account_id=account_id
         )
         if result is missing_order:
             self.log.warn(

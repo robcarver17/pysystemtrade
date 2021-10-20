@@ -541,7 +541,7 @@ def create_fx_trade(data):
         if qty < 0:
             print("Selling %d of %s, buying %s" % (qty, ccy1, ccy2))
         elif qty > 0:
-            print("Buying %d of %s, buying %s" % (qty, ccy1, ccy2))
+            print("Buying %d of %s, selling %s" % (qty, ccy1, ccy2))
 
         ans = input("Are you sure that's right? Y-yes / other")
         if ans != "Y":
