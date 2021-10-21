@@ -1,3 +1,32 @@
+function update_capital() {
+  $.ajax({
+    type: "GET",
+    url: "/capital",
+    success: function(data) {
+      $('#capital-tl').html('$'+data['now'].toLocaleString());
+      if (data['now'] >= data['yesterday']) {
+        $('#capital-tl').addClass('green');
+      } else {
+        $('#capital-tl').addClass('red');
+      }
+    }
+  }
+  );
+}
+
+function update_forex() {
+  $.ajax({
+    type: "GET",
+    url: "/forex",
+    success: function(data) {
+      $.each(data, function(currency, balance) {
+        $("#forex_table tbody").append(`<tr><td>${currency}</td><td>${balance}</td></tr>`);
+      });
+    }
+  }
+  );
+}
+
 function update_processes() {
   $.ajax({
     type: "GET",
@@ -85,35 +114,6 @@ function update_reconcile() {
         $('#gateway-tl').addClass("green");
       } else {
         $('#gateway-tl').addClass("red");
-      }
-    }
-  }
-  );
-}
-
-function update_forex() {
-  $.ajax({
-    type: "GET",
-    url: "/forex",
-    success: function(data) {
-      $.each(data, function(currency, balance) {
-        $("#forex_table tbody").append(`<tr><td>${currency}</td><td>${balance}</td></tr>`);
-      });
-    }
-  }
-  );
-}
-
-function update_capital() {
-  $.ajax({
-    type: "GET",
-    url: "/capital",
-    success: function(data) {
-      $('#capital-tl').html('$'+data['now'].toLocaleString());
-      if (data['now'] >= data['yesterday']) {
-        $('#capital-tl').addClass('green');
-      } else {
-        $('#capital-tl').addClass('red');
       }
     }
   }
@@ -220,9 +220,9 @@ function roll_post(instrument, state, confirmed = false) {
   });
 }
 
-$(document).ready(update_processes());
-$(document).ready(update_reconcile());
 $(document).ready(update_capital());
 $(document).ready(update_forex());
+$(document).ready(update_processes());
+$(document).ready(update_reconcile());
 $(document).ready(update_rolls());
 
