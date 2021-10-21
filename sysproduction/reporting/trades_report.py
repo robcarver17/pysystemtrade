@@ -71,19 +71,7 @@ def get_trades_report_data(data, start_date, end_date):
     vol_slippage = create_vol_norm_slippage_df(raw_slippage, data)
     cash_slippage = create_cash_slippage_df(raw_slippage, data)
 
-    summary_dict = {}
-    item_list = [
-        "delay",
-        "bid_ask",
-        "execution",
-        "versus_limit",
-        "versus_parent_limit",
-        "total_trading",
-    ]
-    detailed_raw_results = get_stats_for_slippage_groups(
-        raw_slippage, item_list)
-    summary_dict.update(detailed_raw_results)
-
+    summary_dict={}
     item_list = [
         "delay_cash",
         "bid_ask_cash",
@@ -554,13 +542,8 @@ def get_stats_for_slippage_groups(df_to_process, item_list):
 
         sum_data = df_to_process.groupby(
             ["strategy_name", "instrument_code"]).agg({item_name: "sum"})
-        count_data = df_to_process.groupby(
-            ["strategy_name", "instrument_code"]).agg({item_name: "count"})
-        avg_data = sum_data / count_data
 
         results[item_name + " Sum"] = sum_data
-        results[item_name + " Count"] = count_data
-        results[item_name + " Mean"] = avg_data
 
         total_sum_data = df_to_process.groupby(["strategy_name"]).agg(
             {item_name: "sum"}
