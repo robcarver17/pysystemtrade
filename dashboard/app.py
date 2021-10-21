@@ -10,6 +10,7 @@ from sysproduction.reporting import (
     costs_report,
     liquidity_report,
     pandl_report,
+    risk_report,
     roll_report,
 )
 from sysproduction.data.broker import dataBroker
@@ -262,7 +263,13 @@ def rolls_post():
 
 @app.route("/risk")
 def risk():
-    return {}
+    risk_data = risk_report.calculate_risk_report_data(data)
+    risk_data["corr_data"] = risk_data["corr_data"].as_pd()
+    risk_data = {
+        k: v.to_dict(orient="index") if hasattr(v, "to_dict") else v
+        for k, v in risk_data.items()
+    }
+    return risk_data
 
 
 @app.route("/trades")

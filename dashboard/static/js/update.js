@@ -210,7 +210,38 @@ function update_risk() {
     type: "GET",
     url: "/risk",
     success: function(data) {
-      $.each(data, function(k, v) {
+      var cols = "<td></td>";
+      $.each(data["corr_data"], function(k, v) {
+        var row = `<td>${k}</td>`;
+        cols += row;
+        $.each(v, function(_, corr) {
+          row += `<td>${corr.toFixed(3)}</td>`
+        });
+        $("#risk_corr_table tbody").append(`<tr>${row}</tr>`);
+      });
+      $("#risk_corr_table tbody").prepend(`<tr>${cols}</tr>`);
+
+      $.each(data["strategy_risk"], function(k,v) {
+        $("#risk_table tbody").append(`<tr><td>${k}</td><td>${(v['risk']*100.0).toFixed(1)}</td></tr>`);
+      });
+      $("#risk_table tbody").append(`<tr><th>Total</th><th>${(data["portfolio_risk_total"]*100.0).toFixed(1)}</th></tr>`);
+      
+      $.each(data["instrument_risk_data"], function(k,v) {
+        $("#risk_details_table tbody").append(`<tr><td>${k}</td>
+          <td>${v["daily_price_stdev"].toFixed(1)}</td>
+          <td>${v["annual_price_stdev"].toFixed(1)}</td>
+          <td>${v["price"].toFixed(1)}</td>
+          <td>${v["daily_perc_stdev"].toFixed(1)}</td>
+          <td>${v["annual_perc_stdev"].toFixed(1)}</td>
+          <td>${v["point_size_base"].toFixed(1)}</td>
+          <td>${v["contract_exposure"].toFixed(1)}</td>
+          <td>${v["daily_risk_per_contract"].toFixed(1)}</td>
+          <td>${v["annual_risk_per_contract"].toFixed(1)}</td>
+          <td>${v["position"].toFixed(0)}</td>
+          <td>${v["capital"].toFixed(1)}</td>
+          <td>${v["exposure_held_perc_capital"].toFixed(1)}</td>
+          <td>${v["annual_risk_perc_capital"].toFixed(1)}</td>
+          </tr>`);
       });
     }
   }
