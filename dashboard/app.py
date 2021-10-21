@@ -54,6 +54,13 @@ def capital():
     return {"now": now, "yesterday": yesterday}
 
 
+@app.route("/forex")
+def forex():
+    asyncio.set_event_loop(asyncio.new_event_loop())
+    data_broker = dataBroker(data)
+    return data_broker.broker_fx_balances()
+
+
 @app.route("/processes")
 def processes():
     data_control = dataControlProcess(data)

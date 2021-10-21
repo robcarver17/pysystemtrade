@@ -91,6 +91,19 @@ function update_reconcile() {
   );
 }
 
+function update_forex() {
+  $.ajax({
+    type: "GET",
+    url: "/forex",
+    success: function(data) {
+      $.each(data, function(currency, balance) {
+        $("#forex_table tbody").append(`<tr><td>${currency}</td><td>${balance}</td></tr>`);
+      });
+    }
+  }
+  );
+}
+
 function update_capital() {
   $.ajax({
     type: "GET",
@@ -210,5 +223,6 @@ function roll_post(instrument, state, confirmed = false) {
 $(document).ready(update_processes());
 $(document).ready(update_reconcile());
 $(document).ready(update_capital());
+$(document).ready(update_forex());
 $(document).ready(update_rolls());
 
