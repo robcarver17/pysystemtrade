@@ -45,6 +45,15 @@ def index():
     return render_template("index.html")
 
 
+@app.route("/capital")
+def capital():
+    capital_data = dataCapital(data)
+    capital_series = capital_data.get_series_of_all_global_capital()
+    now = capital_series.iloc[-1]["Actual"]
+    yesterday = capital_series.last("1D").iloc[0]["Actual"]
+    return {"now": now, "yesterday": yesterday}
+
+
 @app.route("/processes")
 def processes():
     data_control = dataControlProcess(data)
@@ -62,15 +71,6 @@ def processes():
             "run_daily_prices_updates"
         ),
     }
-
-
-@app.route("/capital")
-def capital():
-    capital_data = dataCapital(data)
-    capital_series = capital_data.get_series_of_all_global_capital()
-    now = capital_series.iloc[-1]["Actual"]
-    yesterday = capital_series.last("1D").iloc[0]["Actual"]
-    return {"now": now, "yesterday": yesterday}
 
 
 @app.route("/reconcile")
