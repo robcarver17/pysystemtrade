@@ -163,20 +163,22 @@ def rolls_post():
                 .to_dict(orient="index")
                 .items()
             }
+            # We need to convert values to strings because there are
+            # sometimes NaNs which are not valid json
             new_multiple = {
-                str(k): v
+                str(k): {kk: str(vv) for kk, vv in v.items()}
                 for k, v in rolling.updated_multiple_prices.tail(number_to_return + 1)
                 .to_dict(orient="index")
                 .items()
             }
             current_adjusted = {
-                str(k): v
+                str(k): round(v, 2)
                 for k, v in rolling.current_adjusted_prices.tail(number_to_return)
                 .to_dict()
                 .items()
             }
             new_adjusted = {
-                str(k): v
+                str(k): round(v, 2)
                 for k, v in rolling.new_adjusted_prices.tail(number_to_return + 1)
                 .to_dict()
                 .items()
