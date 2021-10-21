@@ -57,7 +57,7 @@ body {
   top: 0; right: 0; bottom: 0; left: 0;
   box-shadow: 0 0 15px #939393;
 }
-#rolls, #processes, #pandl, #trades, #reconciliation, #strategy, #risk, #liquidity, #costs {
+#rolls, #processes, #pandl, #trades, #reconciliation, #strategy, #risk, #liquidity, #costs, #forex {
   display: none;
   border-top: 1px solid #bbb;
   padding: 15px;
@@ -70,7 +70,8 @@ body {
 #tab_strategy:checked ~ #strategy,
 #tab_risk:checked ~ #risk,
 #tab_liquidity:checked ~ #liquidity,
-#tab_costs:checked ~ #costs
+#tab_costs:checked ~ #costs,
+#tab_forex:checked ~ #forex
 {
   display: block;
   box-shadow: 0 0 15px #939393;

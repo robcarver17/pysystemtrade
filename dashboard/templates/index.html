@@ -36,6 +36,8 @@
 <label for = "tab_liquidity">Liquidity</label>
 <input type = "radio" id = "tab_costs" name = "tabs">
 <label for = "tab_costs">Costs</label>
+<input type = "radio" id = "tab_forex" name = "tabs">
+<label for = "tab_forex">Forex</label>
 
 <div id="rolls">
   <table id="rolls_status">
@@ -84,11 +86,75 @@
 </div>
 
 <div id="pandl">
-  <h1>Profit and Loss</h1>
+  <table id="pandl_instrument_table">
+    <caption>Instrument</caption>
+    <thead><tr><th>Instrument</th><th>P&L (%)</th></tr></thead>
+    <tbody></tbody>
+  </table>
+  <br>
+  <table id="pandl_strategy_table">
+    <caption>Strategy</caption>
+    <thead><tr><th>Strategy</th><th>P&L (%)</th></tr></thead>
+    <tbody></tbody>
+  </table>
+  <br>
+  <table id="pandl_class_table">
+    <caption>Class</caption>
+    <thead><tr><th>Class</th><th>P&L (%)</th></tr></thead>
+    <tbody></tbody>
+  </table>
 </div>
 
 <div id="trades">
-  <h1>Trades</h1>
+  <table id="trades_overview_table">
+    <caption>Overview</caption>
+    <thead><tr><th>Order ID</th><th>Instrument</th><th>Contract</th>
+        <th>Strategy</th>
+        <th>Fill Time</th><th>Fill Amount</th><th>Fill Price</th>
+      </tr></thead>
+    <tbody></tbody>
+  </table>
+  <br>
+  <table id="trades_delay_table">
+    <caption>Delays</caption>
+    <thead><tr><th>Order ID</th><th>Instrument</th>
+        <th>Strategy</th>
+        <th>Generated</th><th>Submitted</th><th>Filled</th>
+        <th>Submission Delay</th><th>Fill Delay</th>
+      </tr></thead>
+  <br>
+  <table id="trades_slippage_table">
+    <caption>Raw Slippage</caption>
+    <thead><tr><th>Order ID</th><th>Instrument</th>
+        <th>Strategy</th>
+        <th>Trade</th><th>Parent Reference Price</th><th>Parent Limit Price</th>
+        <th>Calc Mid Price</th><th>Calc Side Price</th>
+        <th>Limit Price</th><th>Calc Filled Price</th>
+        <th>Delay</th><th>Bid/Ask</th><th>Execution</th>
+        <th>vs Limit</th><th>vs Parent Limit</th><th>Total Trading</th>
+      </tr></thead>
+  </table>
+  <br>
+  <table id="trades_vol_slippage_table">
+    <caption>Volume Normalised Slippage</caption>
+    <thead><tr><th>Order ID</th><th>Instrument</th>
+        <th>Strategy</th><th>Trade</th>
+        <th>Last Annual Vol</th><th>Delay</th><th>Bid/Ask</th>
+        <th>Execution</th><th>vs Limit Vol</th>
+        <th>vs Parent Limit</th><th>Total Trading</th>
+      </tr></thead>
+  </table>
+  <br>
+  <table id="trades_cash_slippage_table">
+    <caption>Cash Slippage</caption>
+    <thead><tr><th>Order ID</th><th>Instrument</th>
+        <th>Strategy</th><th>Trade</th>
+        <th>Price Point Value</th><th>Delay</th><th>Bid/Ask</th>
+        <th>Execution</th><th>vs Limit</th>
+        <th>vs Parent Limit</th><th>Total Trading</th>
+      </tr></thead>
+    <tbody></tbody>
+  </table>
 </div>
 
 <div id="reconciliation">
@@ -109,15 +175,81 @@
 </div>
 
 <div id="risk">
-  <h1>Risk</h1>
+  <table id="risk_table">
+    <caption>Annualised</caption>
+    <thead><tr><th>Strategy</th><th>Risk %</th></tr></thead>
+    <tbody></tbody>
+  </table>
+  <br>
+  <table id="risk_corr_table">
+    <caption>Correlation</caption>
+    <thead></thead>
+    <tbody></tbody>
+  </table>
+  <br>
+  <table id="risk_details_table">
+    <caption>Details</caption>
+    <thead>
+      <tr>
+        <th>Instrument</th>
+        <th>Daily price stdev</th>
+        <th>Annual price stdev</th>
+        <th>Price</th>
+        <th>Daily % stdev</th>
+        <th>Annual % stdev</th>
+        <th>Point size base</th>
+        <th>Contract exposure</th>
+        <th>Daily risk per contract</th>
+        <th>Annual risk per contract</th>
+        <th>Position</th>
+        <th>Capital</th>
+        <th>Exposure held % capital</th>
+        <th>Annual risk % capital</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
 </div>
 
 <div id="liquidity">
-  <h1>Liquidity</h1>
+  <table id="liquidity_table">
+    <caption>Liquidity</caption>
+    <thead><tr><th>Instrument</th><th>Contracts</th><th>Risk ($M)</th></tr></thead>
+    <tbody></tbody>
+  </table>
 </div>
 
 <div id="costs">
-  <h1>Costs</h1>
+  <table id="costs_table">
+    <caption>Costs</caption>
+    <thead><tr><th>Instrument</th><th>Cost (SR)</th></tr></thead>
+    <tbody></tbody>
+  </table>
+  <br>
+  <table id="costs_detail_table">
+    <caption>Cost Breakdown</caption>
+    <thead><tr><th>Instrument</th>
+        <th>% Diff</th>
+        <th>Configured</th>
+        <th>Bid ask sampled</th>
+        <th>Bid ask trades</th>
+        <th>Estimate</th>
+        <th>Total trades</th>
+        <th>Weight config</th>
+        <th>Weight samples</th>
+        <th>Weight trades</th>
+      </tr></thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<div id="forex">
+  <table id="forex_table">
+    <caption>Forex</caption>
+    <thead><tr><th>Currency</th><th>Balance</th></tr></thead>
+    <tbody></tbody>
+  </table>
 </div>
 
 </div>

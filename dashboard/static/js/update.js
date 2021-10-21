@@ -1,3 +1,117 @@
+function update_capital() {
+  $.ajax({
+    type: "GET",
+    url: "/capital",
+    success: function(data) {
+      $('#capital-tl').html('$'+data['now'].toLocaleString());
+      if (data['now'] >= data['yesterday']) {
+        $('#capital-tl').addClass('green');
+      } else {
+        $('#capital-tl').addClass('red');
+      }
+    }
+  }
+  );
+}
+
+function update_costs() {
+  $.ajax({
+    type: "GET",
+    url: "/costs",
+    success: function(data) {
+      $.each(data["table_of_SR_costs"], function(instrument, cost) {
+        $("#costs_table tbody").append(
+          `<tr><td>${instrument}</td><td>${cost["SR_cost"]}</td></tr>`
+        );
+      });
+      $.each(data["combined_df_costs"], function(instrument, vals) {
+        $("#costs_detail_table tbody").append(
+          `<tr><td>${instrument}</td>
+          <td>${vals["% Difference"]}</td>
+          <td>${vals["Configured"]}</td>
+          <td>${vals["bid_ask_sampled"]}</td>
+          <td>${vals["bid_ask_trades"]}</td>
+          <td>${vals["estimate"]}</td>
+          <td>${vals["total_trades"]}</td>
+          <td>${vals["weight_config"]}</td>
+          <td>${vals["weight_samples"]}</td>
+          <td>${vals["weight_trades"]}</td>
+          </tr>`
+        );
+      });
+    }
+  });
+}
+
+function update_forex() {
+  $.ajax({
+    type: "GET",
+    url: "/forex",
+    success: function(data) {
+      $.each(data, function(currency, balance) {
+        $("#forex_table tbody").append(`<tr><td>${currency}</td><td>${balance}</td></tr>`);
+      });
+    }
+  }
+  );
+}
+
+function update_liquidity() {
+  $.ajax({
+    type: "GET",
+    url: "/liquidity",
+    success: function(data) {
+      $.each(data, function(instrument, vals) {
+        var contracts = "";
+        var risk = "";
+        if (vals["contracts"] < 100) {
+          contracts = `<td class="red">${vals["contracts"]}</td>`;
+        } else {
+          contracts = `<td>${vals["contracts"]}</td>`;
+        }
+        if (vals["risk"] < 1.5) {
+          risk = `<td class="red">${vals["risk"].toFixed(1)}</td>`;
+        } else {
+          risk = `<td>${vals["risk"].toFixed(1)}</td>`;
+        }
+        $("#liquidity_table tbody").append(
+          `<tr><td>${instrument}</td>${contracts}
+          ${risk}</tr>`
+        );
+      });
+    }
+  }
+  );
+}
+
+function update_pandl() {
+  $.ajax({
+    type: "GET",
+    url: "/pandl",
+    success: function(data) {
+      $.each(data["pandl_for_instruments_across_strategies"], function(k, v) {
+        $("#pandl_instrument_table tbody").append(`<tr>
+          <td>${v["codes"]}</td><td>${v["pandl"].toFixed(2)}</td></tr>`);
+      });
+      $("#pandl_instrument_table tbody").append(`<tr>
+        <th>Residual</td><td>${data["residual"].toFixed(2)}</td></th>`);
+      $("#pandl_instrument_table tbody").append(`<tr>
+        <th>Total</td><td>${data["total_capital_pandl"].toFixed(2)}</td></th>`);
+
+      $.each(data["strategies"], function(k, v) {
+        $("#pandl_strategy_table tbody").append(`<tr>
+          <td>${v["codes"]}</td><td>${v["pandl"].toFixed(2)}</td></tr>`);
+      });
+
+      $.each(data["sector_pandl"], function(k, v) {
+        $("#pandl_class_table tbody").append(`<tr>
+          <td>${v["codes"]}</td><td>${v["pandl"].toFixed(2)}</td></tr>`);
+      });
+    }
+  }
+  );
+}
+
 function update_processes() {
   $.ajax({
     type: "GET",
@@ -91,17 +205,44 @@ function update_reconcile() {
   );
 }
 
-function update_capital() {
+function update_risk() {
   $.ajax({
     type: "GET",
-    url: "/capital",
+    url: "/risk",
     success: function(data) {
-      $('#capital-tl').html('$'+data['now'].toLocaleString());
-      if (data['now'] >= data['yesterday']) {
-        $('#capital-tl').addClass('green');
-      } else {
-        $('#capital-tl').addClass('red');
-      }
+      var cols = "<td></td>";
+      $.each(data["corr_data"], function(k, v) {
+        var row = `<td>${k}</td>`;
+        cols += row;
+        $.each(v, function(_, corr) {
+          row += `<td>${corr.toFixed(3)}</td>`
+        });
+        $("#risk_corr_table tbody").append(`<tr>${row}</tr>`);
+      });
+      $("#risk_corr_table tbody").prepend(`<tr>${cols}</tr>`);
+
+      $.each(data["strategy_risk"], function(k,v) {
+        $("#risk_table tbody").append(`<tr><td>${k}</td><td>${(v['risk']*100.0).toFixed(1)}</td></tr>`);
+      });
+      $("#risk_table tbody").append(`<tr><th>Total</th><th>${(data["portfolio_risk_total"]*100.0).toFixed(1)}</th></tr>`);
+      
+      $.each(data["instrument_risk_data"], function(k,v) {
+        $("#risk_details_table tbody").append(`<tr><td>${k}</td>
+          <td>${v["daily_price_stdev"].toFixed(1)}</td>
+          <td>${v["annual_price_stdev"].toFixed(1)}</td>
+          <td>${v["price"].toFixed(1)}</td>
+          <td>${v["daily_perc_stdev"].toFixed(1)}</td>
+          <td>${v["annual_perc_stdev"].toFixed(1)}</td>
+          <td>${v["point_size_base"].toFixed(1)}</td>
+          <td>${v["contract_exposure"].toFixed(1)}</td>
+          <td>${v["daily_risk_per_contract"].toFixed(1)}</td>
+          <td>${v["annual_risk_per_contract"].toFixed(1)}</td>
+          <td>${v["position"].toFixed(0)}</td>
+          <td>${v["capital"].toFixed(1)}</td>
+          <td>${v["exposure_held_perc_capital"].toFixed(1)}</td>
+          <td>${v["annual_risk_perc_capital"].toFixed(1)}</td>
+          </tr>`);
+      });
     }
   }
   );
@@ -150,6 +291,101 @@ function update_rolls() {
       $("#rolls-tl").addClass(overall);
     }
   });
+}
+
+function update_strategy() {
+  $.ajax({
+    type: "GET",
+    url: "/strategy",
+    success: function(data) {
+      $.each(data, function(k, v) {
+      });
+    }
+  }
+  );
+}
+
+function update_trades() {
+  $.ajax({
+    type: "GET",
+    url: "/trades",
+    success: function(data) {
+      $.each(data["overview"], function(k, v) {
+        $("#trades_overview_table").append(`<tr>
+          <td>${k}</td>
+          <td>${v["instrument_code"]}</td>
+          <td>${v["contract_date"]}</td>
+          <td>${v["strategy_name"]}</td>
+          <td>${v["fill_datetime"]}</td>
+          <td>${v["fill"]}</td>
+          <td>${v["filled_price"]}</td>
+          </tr>`)
+      });
+      $.each(data["delays"], function(k, v) {
+        $("#trades_delay_table").append(`<tr>
+          <td>${k}</td>
+          <td>${v["instrument_code"]}</td>
+          <td>${v["strategy_name"]}</td>
+          <td>${v["parent_reference_datetime"]}</td>
+          <td>${v["submit_datetime"]}</td>
+          <td>${v["fill_datetime"]}</td>
+          <td>${v["submit_minus_generated"]}</td>
+          <td>${v["filled_minus_submit"]}</td>
+          </tr>`)
+      });
+      $.each(data["raw_slippage"], function(k, v) {
+        $("#trades_slippage_table").append(`<tr>
+          <td>${k}</td>
+          <td>${v["instrument_code"]}</td>
+          <td>${v["strategy_name"]}</td>
+          <td>${v["trade"]}</td>
+          <td>${v["parent_reference_price"]}</td>
+          <td>${v["parent_limit_price"]}</td>
+          <td>${v["mid_price"]}</td>
+          <td>${v["side_price"]}</td>
+          <td>${v["limit_price"]}</td>
+          <td>${v["filled_price"]}</td>
+          <td>${parseFloat(v["delay"]).toPrecision(3)}</td>
+          <td>${parseFloat(v["bid_ask"]).toPrecision(3)}</td>
+          <td>${parseFloat(v["execution"]).toPrecision(3)}</td>
+          <td>${parseFloat(v["versus_limit"]).toPrecision(3)}</td>
+          <td>${v["versus_parent_limit"]}</td>
+          <td>${parseFloat(v["total_trading"]).toPrecision(3)}</td>
+          </tr>`)
+      });
+      $.each(data["vol_slippage"], function(k, v) {
+        $("#trades_vol_slippage_table").append(`<tr>
+          <td>${k}</td>
+          <td>${v["instrument_code"]}</td>
+          <td>${v["strategy_name"]}</td>
+          <td>${v["trade"]}</td>
+          <td>${v["last_annual_vol"]}</td>
+          <td>${v["delay_vol"]}</td>
+          <td>${v["bid_ask_vol"]}</td>
+          <td>${v["execution_vol"]}</td>
+          <td>${v["versus_limit_vol"]}</td>
+          <td>${v["versus_parent_limit_vol"]}</td>
+          <td>${v["total_trading_vol"]}</td>
+          </tr>`)
+      });
+      $.each(data["cash_slippage"], function(k, v) {
+        $("#trades_cash_slippage_table").append(`<tr>
+          <td>${k}</td>
+          <td>${v["instrument_code"]}</td>
+          <td>${v["strategy_name"]}</td>
+          <td>${v["trade"]}</td>
+          <td>${v["value_of_price_point"]}</td>
+          <td>${v["delay_cash"]}</td>
+          <td>${v["bid_ask_cash"]}</td>
+          <td>${v["execution_cash"]}</td>
+          <td>${v["versus_limit_cash"]}</td>
+          <td>${v["versus_parent_limit_cash"]}</td>
+          <td>${v["total_trading_cash"]}</td>
+          </tr>`)
+      });
+    }
+  }
+  );
 }
 
 function roll_post(instrument, state, confirmed = false) {
@@ -207,8 +443,15 @@ function roll_post(instrument, state, confirmed = false) {
   });
 }
 
+$(document).ready(update_capital());
+$(document).ready(update_forex());
+$(document).ready(update_pandl());
 $(document).ready(update_processes());
 $(document).ready(update_reconcile());
-$(document).ready(update_capital());
+$(document).ready(update_risk());
+$(document).ready(update_strategy());
+$(document).ready(update_trades());
 $(document).ready(update_rolls());
+$(document).ready(update_liquidity());
+$(document).ready(update_costs());
 
