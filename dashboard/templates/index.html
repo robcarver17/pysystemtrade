@@ -106,7 +106,55 @@
 </div>
 
 <div id="trades">
-  <h1>Trades</h1>
+  <table id="trades_overview_table">
+    <caption>Overview</caption>
+    <thead><tr><th>Order ID</th><th>Instrument</th><th>Contract</th>
+        <th>Strategy</th>
+        <th>Fill Time</th><th>Fill Amount</th><th>Fill Price</th>
+      </tr></thead>
+    <tbody></tbody>
+  </table>
+  <br>
+  <table id="trades_delay_table">
+    <caption>Delays</caption>
+    <thead><tr><th>Order ID</th><th>Instrument</th>
+        <th>Strategy</th>
+        <th>Generated</th><th>Submitted</th><th>Filled</th>
+        <th>Submission Delay</th><th>Fill Delay</th>
+      </tr></thead>
+  <br>
+  <table id="trades_slippage_table">
+    <caption>Raw Slippage</caption>
+    <thead><tr><th>Order ID</th><th>Instrument</th>
+        <th>Strategy</th>
+        <th>Trade</th><th>Parent Reference Price</th><th>Parent Limit Price</th>
+        <th>Calc Mid Price</th><th>Calc Side Price</th>
+        <th>Limit Price</th><th>Calc Filled Price</th>
+        <th>Delay</th><th>Bid/Ask</th><th>Execution</th>
+        <th>vs Limit</th><th>vs Parent Limit</th><th>Total Trading</th>
+      </tr></thead>
+  </table>
+  <br>
+  <table id="trades_vol_slippage_table">
+    <caption>Volume Normalised Slippage</caption>
+    <thead><tr><th>Order ID</th><th>Instrument</th>
+        <th>Strategy</th><th>Trade</th>
+        <th>Last Annual Vol</th><th>Delay</th><th>Bid/Ask</th>
+        <th>Execution</th><th>vs Limit Vol</th>
+        <th>vs Parent Limit</th><th>Total Trading</th>
+      </tr></thead>
+  </table>
+  <br>
+  <table id="trades_cash_slippage_table">
+    <caption>Cash Slippage</caption>
+    <thead><tr><th>Order ID</th><th>Instrument</th>
+        <th>Strategy</th><th>Trade</th>
+        <th>Price Point Value</th><th>Delay</th><th>Bid/Ask</th>
+        <th>Execution</th><th>vs Limit</th>
+        <th>vs Parent Limit</th><th>Total Trading</th>
+      </tr></thead>
+    <tbody></tbody>
+  </table>
 </div>
 
 <div id="reconciliation">

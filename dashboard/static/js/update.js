@@ -310,7 +310,78 @@ function update_trades() {
     type: "GET",
     url: "/trades",
     success: function(data) {
-      $.each(data, function(k, v) {
+      $.each(data["overview"], function(k, v) {
+        $("#trades_overview_table").append(`<tr>
+          <td>${k}</td>
+          <td>${v["instrument_code"]}</td>
+          <td>${v["contract_date"]}</td>
+          <td>${v["strategy_name"]}</td>
+          <td>${v["fill_datetime"]}</td>
+          <td>${v["fill"]}</td>
+          <td>${v["filled_price"]}</td>
+          </tr>`)
+      });
+      $.each(data["delays"], function(k, v) {
+        $("#trades_delay_table").append(`<tr>
+          <td>${k}</td>
+          <td>${v["instrument_code"]}</td>
+          <td>${v["strategy_name"]}</td>
+          <td>${v["parent_reference_datetime"]}</td>
+          <td>${v["submit_datetime"]}</td>
+          <td>${v["fill_datetime"]}</td>
+          <td>${v["submit_minus_generated"]}</td>
+          <td>${v["filled_minus_submit"]}</td>
+          </tr>`)
+      });
+      $.each(data["raw_slippage"], function(k, v) {
+        $("#trades_slippage_table").append(`<tr>
+          <td>${k}</td>
+          <td>${v["instrument_code"]}</td>
+          <td>${v["strategy_name"]}</td>
+          <td>${v["trade"]}</td>
+          <td>${v["parent_reference_price"]}</td>
+          <td>${v["parent_limit_price"]}</td>
+          <td>${v["mid_price"]}</td>
+          <td>${v["side_price"]}</td>
+          <td>${v["limit_price"]}</td>
+          <td>${v["filled_price"]}</td>
+          <td>${parseFloat(v["delay"]).toPrecision(3)}</td>
+          <td>${parseFloat(v["bid_ask"]).toPrecision(3)}</td>
+          <td>${parseFloat(v["execution"]).toPrecision(3)}</td>
+          <td>${parseFloat(v["versus_limit"]).toPrecision(3)}</td>
+          <td>${v["versus_parent_limit"]}</td>
+          <td>${parseFloat(v["total_trading"]).toPrecision(3)}</td>
+          </tr>`)
+      });
+      $.each(data["vol_slippage"], function(k, v) {
+        $("#trades_vol_slippage_table").append(`<tr>
+          <td>${k}</td>
+          <td>${v["instrument_code"]}</td>
+          <td>${v["strategy_name"]}</td>
+          <td>${v["trade"]}</td>
+          <td>${v["last_annual_vol"]}</td>
+          <td>${v["delay_vol"]}</td>
+          <td>${v["bid_ask_vol"]}</td>
+          <td>${v["execution_vol"]}</td>
+          <td>${v["versus_limit_vol"]}</td>
+          <td>${v["versus_parent_limit_vol"]}</td>
+          <td>${v["total_trading_vol"]}</td>
+          </tr>`)
+      });
+      $.each(data["cash_slippage"], function(k, v) {
+        $("#trades_cash_slippage_table").append(`<tr>
+          <td>${k}</td>
+          <td>${v["instrument_code"]}</td>
+          <td>${v["strategy_name"]}</td>
+          <td>${v["trade"]}</td>
+          <td>${v["value_of_price_point"]}</td>
+          <td>${v["delay_cash"]}</td>
+          <td>${v["bid_ask_cash"]}</td>
+          <td>${v["execution_cash"]}</td>
+          <td>${v["versus_limit_cash"]}</td>
+          <td>${v["versus_parent_limit_cash"]}</td>
+          <td>${v["total_trading_cash"]}</td>
+          </tr>`)
       });
     }
   }

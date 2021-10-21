@@ -12,6 +12,7 @@ from sysproduction.reporting import (
     pandl_report,
     risk_report,
     roll_report,
+    trades_report,
 )
 from sysproduction.data.broker import dataBroker
 from sysproduction.data.control_process import dataControlProcess
@@ -48,6 +49,13 @@ def cleanup_data(exception):
     if hasattr(g, "data"):
         g.data.close()
         del g.data
+
+
+def dict_of_df_to_dict(d, orient):
+    return {
+        k: v.to_dict(orient=orient) if hasattr(v, "to_dict") else v
+        for k, v in d.items()
+    }
 
 
 @app.route("/")
@@ -265,16 +273,40 @@ def rolls_post():
 def risk():
     risk_data = risk_report.calculate_risk_report_data(data)
     risk_data["corr_data"] = risk_data["corr_data"].as_pd()
-    risk_data = {
-        k: v.to_dict(orient="index") if hasattr(v, "to_dict") else v
-        for k, v in risk_data.items()
-    }
+    risk_data = dict_of_df_to_dict(risk_data, "index")
     return risk_data
 
 
 @app.route("/trades")
 def trades():
-    return {}
+    end = datetime.datetime.now()
+    start = syscore.dateutils.n_days_ago(1)
+    return_data = {}
+    trades_data = dict_of_df_to_dict(
+        trades_report.get_trades_report_data(data, start, end), "index"
+    )
+    return_data["overview"] = {
+        k: {kk: str(vv) for kk, vv in v.items()}
+        for k, v in trades_data["overview"].items()
+    }
+    return_data["delays"] = {
+        k: {kk: str(vv) for kk, vv in v.items()}
+        for k, v in trades_data["delays"].items()
+    }
+    return_data["raw_slippage"] = {
+        k: {kk: str(vv) for kk, vv in v.items()}
+        for k, v in trades_data["raw_slippage"].items()
+    }
+    return_data["vol_slippage"] = {
+        k: {kk: str(vv) for kk, vv in v.items()}
+        for k, v in trades_data["vol_slippage"].items()
+    }
+    return_data["cash_slippage"] = {
+        k: {kk: str(vv) for kk, vv in v.items()}
+        for k, v in trades_data["cash_slippage"].items()
+    }
+
+    return return_data
 
 
 @app.route("/strategy")
