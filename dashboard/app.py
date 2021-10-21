@@ -6,7 +6,7 @@ from sysdata.data_blob import dataBlob
 from sysobjects.production.roll_state import RollState
 
 from sysproduction.data.prices import diagPrices
-from sysproduction.reporting import roll_report
+from sysproduction.reporting import costs_report, roll_report
 from sysproduction.data.broker import dataBroker
 from sysproduction.data.control_process import dataControlProcess
 from sysproduction.data.capital import dataCapital
@@ -17,9 +17,13 @@ from sysproduction.interactive_update_roll_status import (
 )
 from sysproduction.utilities.rolls import rollingAdjustedAndMultiplePrices
 
+import syscore.dateutils
+
+
 from pprint import pprint
 
 import asyncio
+import datetime
 
 app = Flask(__name__)
 
@@ -56,7 +60,14 @@ def capital():
 
 @app.route("/costs")
 def costs():
-    return {}
+    end = datetime.datetime.now()
+    start = syscore.dateutils.n_days_ago(250)
+    costs = costs_report.get_costs_report_data(data, start, end)
+    df_costs = costs["combined_df_costs"].to_dict(orient="index")
+    df_costs = {k: {kk: str(vv) for kk, vv in v.items()} for k, v in df_costs.items()}
+    costs["combined_df_costs"] = df_costs
+    costs["table_of_SR_costs"] = costs["table_of_SR_costs"].to_dict(orient="index")
+    return costs
 
 
 @app.route("/forex")

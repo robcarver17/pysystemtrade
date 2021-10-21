@@ -19,11 +19,28 @@ function update_costs() {
     type: "GET",
     url: "/costs",
     success: function(data) {
-      $.each(data, function(k, v) {
+      $.each(data["table_of_SR_costs"], function(instrument, cost) {
+        $("#costs_table tbody").append(
+          `<tr><td>${instrument}</td><td>${cost["SR_cost"]}</td></tr>`
+        );
+      });
+      $.each(data["combined_df_costs"], function(instrument, vals) {
+        $("#costs_detail_table tbody").append(
+          `<tr><td>${instrument}</td>
+          <td>${vals["% Difference"]}</td>
+          <td>${vals["Configured"]}</td>
+          <td>${vals["bid_ask_sampled"]}</td>
+          <td>${vals["bid_ask_trades"]}</td>
+          <td>${vals["estimate"]}</td>
+          <td>${vals["total_trades"]}</td>
+          <td>${vals["weight_config"]}</td>
+          <td>${vals["weight_samples"]}</td>
+          <td>${vals["weight_trades"]}</td>
+          </tr>`
+        );
       });
     }
-  }
-  );
+  });
 }
 
 function update_forex() {
