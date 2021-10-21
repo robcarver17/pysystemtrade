@@ -9,6 +9,7 @@ from sysproduction.data.prices import diagPrices
 from sysproduction.reporting import (
     costs_report,
     liquidity_report,
+    pandl_report,
     roll_report,
 )
 from sysproduction.data.broker import dataBroker
@@ -91,7 +92,15 @@ def liquidity():
 
 @app.route("/pandl")
 def pandl():
-    return {}
+    end = datetime.datetime.now()
+    start = syscore.dateutils.n_days_ago(1)
+    pandl_data = pandl_report.get_pandl_report_data(data, start, end)._asdict()
+    pandl_data["pandl_for_instruments_across_strategies"] = pandl_data[
+        "pandl_for_instruments_across_strategies"
+    ].to_dict(orient="records")
+    pandl_data["strategies"] = pandl_data["strategies"].to_dict(orient="records")
+    pandl_data["sector_pandl"] = pandl_data["sector_pandl"].to_dict(orient="records")
+    return pandl_data
 
 
 @app.route("/processes")
