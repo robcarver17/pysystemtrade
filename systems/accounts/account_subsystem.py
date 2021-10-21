@@ -105,6 +105,7 @@ class accountSubsystem(accountCosts):
             instrument_code
         )
 
+        ## following doesn't include IDM or instrument weight
         average_position = self.get_volatility_scalar(instrument_code)
 
         subsystem_turnover = self.subsystem_turnover(instrument_code)
@@ -132,8 +133,6 @@ class accountSubsystem(accountCosts):
     def _pandl_for_subsystem_with_cash_costs(
             self, instrument_code, delayfill=True, roundpositions=True
     ) -> accountCurve:
-        if not roundpositions:
-            self.log.warn("Using roundpositions=False with cash costs may lead to inaccurate costs (fixed costs, eg commissions will be overstated!!!")
 
         raw_costs = self.get_raw_cost_data(instrument_code)
         price = self.get_daily_price(instrument_code)
@@ -145,6 +144,9 @@ class accountSubsystem(accountCosts):
 
         capital = self.get_notional_capital()
 
+        vol_normalise_currency_costs = self.config.vol_normalise_currency_costs
+        rolls_per_year = self.get_rolls_per_year(instrument_code)
+
         pandl_calculator = pandlCalculationWithCashCostsAndFills(price,
                                                     raw_costs=raw_costs,
                                                        positions=positions,
@@ -152,7 +154,9 @@ class accountSubsystem(accountCosts):
                                                        value_per_point=value_of_price_point,
                                                        delayfill=delayfill,
                                                        fx=fx,
-                                                       roundpositions=roundpositions)
+                                                       roundpositions=roundpositions,
+                                                        vol_normalise_currency_costs=vol_normalise_currency_costs,
+                                                        rolls_per_year=rolls_per_year)
 
         account_curve = accountCurve(pandl_calculator)
 

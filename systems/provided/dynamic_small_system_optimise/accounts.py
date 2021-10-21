@@ -1,5 +1,7 @@
 import pandas as pd
+import numpy as np
 
+from syscore.pdutils import turnover
 from systems.accounts.accounts_stage import Account
 from systems.accounts.curves.account_curve import accountCurve
 from systems.accounts.curves.account_curve_group import accountCurveGroup
@@ -51,6 +53,31 @@ class accountForOptimisedStage(Account):
                                                           delayfill=delayfill)
 
         return instrument_pandl
+
+    def total_optimised_portfolio_level_turnover(self) -> float:
+        list_of_instruments = self.get_instrument_list()
+        list_of_turnovers_at_portfolio_level = [
+            self.optimised_turnover_at_portfolio_level(instrument_code)
+            for instrument_code in list_of_instruments
+        ]
+
+        total_turnover = np.nansum(list_of_turnovers_at_portfolio_level)
+
+        return total_turnover
+
+    def optimised_turnover_at_portfolio_level(self, instrument_code: str,
+                                    ) -> float:
+
+        ## assumes we use all capital
+        average_position_for_turnover = self.get_volatility_scalar(
+            instrument_code
+        )
+
+        ## Using actual capital
+        positions = self.get_optimised_position(instrument_code)
+
+        ## Turnover will be at portfolio level, so a small number, but meaningful when added up
+        return turnover(positions, average_position_for_turnover)
 
     def get_optimised_position(self, instrument_code: str) -> pd.Series:
         opt_position_df = self.get_optimised_position_df()

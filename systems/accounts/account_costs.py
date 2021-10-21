@@ -331,6 +331,7 @@ class accountCosts(accountInputs):
 
         return subsystem_turnover
 
+
     @property
     def use_SR_costs(self) -> float:
         return str2Bool(self.config.use_SR_costs)

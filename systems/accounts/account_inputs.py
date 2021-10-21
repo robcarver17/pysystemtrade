@@ -27,12 +27,8 @@ class accountInputs(SystemStage):
     def get_daily_returns_volatility(self, instrument_code: str) -> pd.Series:
 
         system = self.parent
-        rawdata = getattr(system, "rawdata", missing_data)
-        if rawdata is missing_data:
-            returns_vol = self.parent.positionSize.calculate_daily_returns_vol(instrument_code)
-        else:
-            returns_vol = self.parent.rawdata.daily_returns_volatility(
-                instrument_code)
+        returns_vol = system.rawdata.daily_returns_volatility(
+            instrument_code)
 
         return returns_vol
 

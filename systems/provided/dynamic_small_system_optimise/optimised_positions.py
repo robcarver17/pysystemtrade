@@ -86,6 +86,8 @@ class optimisedPositions(SystemStage):
 
         costs = self.get_costs_per_contract_as_proportion_of_capital_all_instruments()
 
+        shadow_cost = self.shadow_cost
+
         obj_instance = objectiveFunctionForGreedy(
                                                 weights_optimal=original_portfolio_weights,
                                                 covariance_matrix=covariance_matrix,
@@ -94,9 +96,17 @@ class optimisedPositions(SystemStage):
                                                 costs = costs,
                                                 reduce_only_keys = reduce_only_keys,
                                                 no_trade_keys = no_trade_keys,
-                                                maximum_position_weights = maximum_position_weights)
+                                                maximum_position_weights = maximum_position_weights,
+                                                trade_shadow_cost=shadow_cost)
 
         return obj_instance
+
+    @property
+    def shadow_cost(self)-> float:
+        shadow_cost = self.config.small_system['shadow_cost']
+
+        return shadow_cost
+
 
     ## COSTS
     @diagnostic()

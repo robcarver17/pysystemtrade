@@ -471,3 +471,24 @@ def adjust_date_conservatively(datetime_to_be_adjusted: datetime.datetime,
                                conservative_time: datetime.time) -> datetime.datetime:
 
     return datetime.datetime.combine(datetime_to_be_adjusted.date(), conservative_time)
+
+def generate_equal_dates_within_year(year: int,
+                                     number_of_dates: int,
+                                     force_start_year_align: bool = False) -> list:
+
+    days_between_periods = int(CALENDAR_DAYS_IN_YEAR / float(number_of_dates))
+    full_increment = datetime.timedelta(days = days_between_periods)
+    start_of_year = datetime.datetime(year, 1,1)
+
+    if force_start_year_align:
+        ## more realistic for most rolling calendars
+        first_date =start_of_year
+    else:
+        half_period = int(days_between_periods / 2)
+        half_period_increment = datetime.timedelta(days = half_period)
+        first_date = start_of_year+half_period_increment
+
+    all_dates = [first_date + full_increment * increment_size
+                        for increment_size in range(number_of_dates)]
+
+    return all_dates

@@ -8,10 +8,9 @@ These are 'virtual' orders, because they are per instrument. We translate that t
 Desired virtual orders have to be labelled with the desired type: limit, market,best-execution
 """
 from dataclasses import dataclass
-import numpy as np
 
+from syscore.objects import missing_data
 from sysdata.data_blob import dataBlob
-from sysdata.config.production_config import get_production_config
 
 from sysexecution.orders.instrument_orders import instrumentOrder, best_order_type
 from sysexecution.orders.list_of_orders import listOfOrders
@@ -21,18 +20,18 @@ from sysobjects.production.tradeable_object import instrumentStrategy
 from sysobjects.production.optimal_positions import optimalPositionWithDynamicCalculations
 from sysobjects.production.override import Override, CLOSE_OVERRIDE, NO_TRADE_OVERRIDE, REDUCE_ONLY_OVERRIDE
 
-from sysquant.estimators.covariance import covarianceEstimate
+from sysproduction.data.controls import dataPositionLimits
+from sysproduction.data.positions import dataOptimalPositions
+from sysproduction.data.controls import diagOverrides
+
+from sysproduction.utilities.risk_metrics import get_perc_of_strategy_capital_for_instrument_per_contract, capital_for_strategy, get_covariance_matrix_for_instrument_returns
+from sysproduction.utilities.costs import get_cash_cost_in_base_for_instrument
+
+from sysquant.estimators.covariance import covarianceEstimate, covariance_from_stdev_and_correlation
 from sysquant.estimators.mean_estimator import meanEstimates
 from sysquant.optimisation.weights import portfolioWeights
 
-from sysproduction.data.positions import dataOptimalPositions, strategy_name_with_raw_tag
-from sysproduction.data.controls import diagOverrides
-from sysproduction.utilities.risk_metrics import get_covariance_matrix, get_perc_of_strategy_capital_for_instrument_per_contract, capital_for_strategy
-from sysproduction.utilities.costs import get_cash_cost_in_base_for_instrument
-
 from systems.provided.dynamic_small_system_optimise.optimisation import objectiveFunctionForGreedy
-
-
 
 class orderGeneratorForDynamicPositions(orderGeneratorForStrategy):
     def get_required_orders(self) -> listOfOrders:
@@ -165,12 +164,8 @@ def get_data_for_objective_instance(data: dataBlob,
                                                                 list_of_instruments=list_of_instruments)
 
     data.log.msg("Getting covariance matrix")
-    # FIXME THIS REALLY OUGHT TO BE BASED ON small_system:   instrument_returns_correlation: in .yaml file
-    covariance_matrix = get_covariance_matrix(data,
+    covariance_matrix = get_covariance_matrix_for_instrument_returns(data,
                                               list_of_instruments=list_of_instruments)
-
-    print("Covariance matrix")
-    print(covariance_matrix)
 
     data.log.msg("Getting per contract values")
     per_contract_value = \
@@ -206,7 +201,7 @@ def get_data_for_objective_instance(data: dataBlob,
                                             positions=maximum_position_contracts,
                                             per_contract_value=per_contract_value)
 
-    trade_shadow_cost = get_trade_shadow_cost()
+    trade_shadow_cost = get_trade_shadow_cost(data)
     data.log.msg("Shadow cost %f" % trade_shadow_cost)
 
     data_for_objective = dataForObjectiveInstance(weights_optimal=weights_optimal,
@@ -228,7 +223,6 @@ def get_data_for_objective_instance(data: dataBlob,
 
     return data_for_objective
 
-from sysproduction.data.controls import dataPositionLimits
 
 def get_maximum_position_contracts(data, strategy_name: str,
                                    previous_positions: dict,
@@ -264,6 +258,7 @@ def get_maximum_position_contracts_for_instrument_strategy(data: dataBlob,
     maximum = int(spare)+abs(previous_position)
 
     return maximum
+
 
 
 def get_per_contract_values(data: dataBlob,
@@ -342,20 +337,25 @@ def get_weights_given_positions(
                                 positions: portfolioWeights,
                                 per_contract_value: portfolioWeights) -> portfolioWeights:
 
-    instrument_list = list(positions.keys())
-    np_positions = np.array(positions.as_list_given_keys(instrument_list))
-    np_values =  np.array(per_contract_value.as_list_given_keys(instrument_list))
+    weights = positions * per_contract_value
 
-    weights = np_positions * np_values
+    return weights
 
-    return portfolioWeights.from_weights_and_keys(list_of_weights=list(weights),
-                                                  list_of_keys=instrument_list)
-
-def get_trade_shadow_cost() -> float:
-    config = get_production_config()
-    shadow_cost = getattr(config, "dynamic_shadow_cost", 10.0)
+def get_trade_shadow_cost(data) -> float:
+    system_config = get_config_parameters(data)
+    shadow_cost = system_config.get("shadow_cost", missing_data)
+    if shadow_cost is missing_data:
+        raise Exception("config.small_system doesn't include shadow_cost: you've probably messed up your private_config")
 
     return shadow_cost
+
+def get_config_parameters(data: dataBlob) -> dict:
+    config = data.config
+    system_config = config.get_element_or_missing_data("small_system")
+    if system_config is missing_data:
+        raise Exception("Config doesn't include 'small_system' which should be in defaults.yaml")
+
+    return system_config
 
 
 def get_objective_instance(data_for_objective: dataForObjectiveInstance)\
@@ -414,16 +414,10 @@ def get_positions_given_weights(
                                 weights: portfolioWeights,
                                 per_contract_value: portfolioWeights) -> portfolioWeights:
 
-    instrument_list = list(weights.keys())
-    np_weights = np.array(weights.as_list_given_keys(instrument_list))
-    np_values =  np.array(per_contract_value.as_list_given_keys(instrument_list))
+    positions = weights / per_contract_value
+    positions = positions.replace_weights_with_ints()
 
-    np_positions = np_weights / np_values
-    positions = list(np_positions)
-    positions = [int(pos) for pos in positions]
-
-    return portfolioWeights.from_weights_and_keys(list_of_weights=positions,
-                                                  list_of_keys=instrument_list)
+    return positions
 
 def get_optimal_position_entry_with_calcs_for_code(
         instrument_code: str,

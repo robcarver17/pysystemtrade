@@ -1,5 +1,7 @@
 import pandas as pd
 
+from syscore.pdutils import turnover
+
 from systems.system_cache import diagnostic, output, dont_cache
 from systems.accounts.account_costs import accountCosts
 from systems.accounts.account_buffering import accountBuffering
@@ -142,6 +144,24 @@ class accountInstruments(accountCosts, accountBuffering):
 
         return account_curve
 
+
+    @diagnostic()
+    def turnover_at_portfolio_level(self, instrument_code: str,
+                                    roundpositions: bool = True) -> float:
+
+        ## assumes we use all capital
+        average_position_for_turnover = self.get_volatility_scalar(
+            instrument_code
+        )
+
+        ## Using actual capital
+        positions = self.get_buffered_position(
+            instrument_code, roundpositions=roundpositions
+        )
+
+        ## Turnover will be at portfolio level, so a small number, but meaningful when added up
+        return turnover(positions, average_position_for_turnover)
+
     @diagnostic(not_pickable=True)
     def _pandl_for_instrument_with_cash_costs(
             self, instrument_code: str,
@@ -161,6 +181,9 @@ class accountInstruments(accountCosts, accountBuffering):
 
         capital = self.get_notional_capital()
 
+        vol_normalise_currency_costs = self.config.vol_normalise_currency_costs
+        rolls_per_year = self.get_rolls_per_year(instrument_code)
+
         pandl_calculator = pandlCalculationWithCashCostsAndFills(price,
                                                     raw_costs=raw_costs,
                                                        positions=positions,
@@ -168,7 +191,9 @@ class accountInstruments(accountCosts, accountBuffering):
                                                        value_per_point=value_of_price_point,
                                                        delayfill=delayfill,
                                                        fx=fx,
-                                                       roundpositions=roundpositions)
+                                                       roundpositions=roundpositions,
+                                                    vol_normalise_currency_costs=vol_normalise_currency_costs,
+                                                        rolls_per_year=rolls_per_year)
 
         account_curve = accountCurve(pandl_calculator, weighted=True)
 

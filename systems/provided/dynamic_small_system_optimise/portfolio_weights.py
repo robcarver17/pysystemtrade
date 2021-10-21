@@ -6,10 +6,12 @@ import pandas as pd
 from syscore.dateutils import ROOT_BDAYS_INYEAR
 from syscore.objects import arg_not_supplied, resolve_function
 from syscore.pdutils import get_row_of_df_aligned_to_weights_as_dict
+
 from sysquant.estimators.correlations import correlationEstimate, create_boring_corr_matrix, CorrelationList
 from sysquant.estimators.covariance import covarianceEstimate, covariance_from_stdev_and_correlation
 from sysquant.estimators.stdev_estimator import stdevEstimates
 from sysquant.optimisation.weights import portfolioWeights
+
 from systems.stage import SystemStage
 from systems.system_cache import diagnostic
 
@@ -64,7 +66,7 @@ class portfolioWeightsStage(SystemStage):
         config = self.config
 
         # Get some useful stuff from the config
-        corr_params = copy(config.small_system['instrument_returns_correlation'])
+        corr_params = copy(config.instrument_returns_correlation)
 
         # which function to use for calculation
         corr_func = resolve_function(corr_params.pop("func"))
@@ -191,11 +193,11 @@ class portfolioWeightsStage(SystemStage):
         return fx_rate_aligned*contract_prices * contract_multiplier
 
     def annualised_percentage_vol(self, instrument_code: str) -> pd.Series:
-        daily_vol = self.daily_percentage_vol_100scale(instrument_code)
-        return (ROOT_BDAYS_INYEAR/100.0)*daily_vol
+        daily_vol = self.daily_percentage_vol100scale(instrument_code)
+        return ROOT_BDAYS_INYEAR*daily_vol/100.0
 
-    def daily_percentage_vol_100scale(self, instrument_code: str) -> pd.Series:
-        return self.position_size_stage.calculate_daily_percentage_vol(instrument_code)
+    def daily_percentage_vol100scale(self, instrument_code: str) -> pd.Series:
+        return self.rawdata.get_daily_percentage_volatility(instrument_code)
 
     def get_trading_capital(self) -> float:
         return self.position_size_stage.get_notional_trading_capital()

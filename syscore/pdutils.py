@@ -568,3 +568,10 @@ def get_max_index_before_datetime(index, date_point):
         return None
     else:
         return matching_index_size - 1
+
+def years_in_data(data: pd.Series) -> list:
+    all_years = [x.year for x in data.index]
+    unique_years = list(set(all_years))
+    unique_years.sort()
+
+    return unique_years

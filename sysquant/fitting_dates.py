@@ -122,11 +122,25 @@ def _in_sample_dates(start_date: datetime.datetime,
 def _list_of_starting_dates_per_period(start_date: datetime.datetime,
                                        end_date: datetime.datetime,
                                        interval_frequency: str= "12M"):
-    return  list(
+    ## We don't want to do offsets
+    if interval_frequency=="W":
+        use_interval_frequency="7D"
+    elif interval_frequency=="M":
+        use_interval_frequency="30D"
+    elif interval_frequency=="12M" or interval_frequency=="Y":
+        use_interval_frequency="365D"
+    else:
+        use_interval_frequency = interval_frequency
+
+    results = list(
         pd.date_range(
-            start_date,
             end_date,
-            freq=interval_frequency)) + [end_date]
+            start_date,
+            freq="-"+use_interval_frequency))
+
+    results.reverse()
+
+    return results
 
 def _fit_dates_for_period_index(period_index: int,
                                 list_of_starting_dates_per_period: list,

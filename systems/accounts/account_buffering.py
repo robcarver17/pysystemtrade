@@ -1,15 +1,15 @@
 import pandas as pd
 
 from syscore.algos import apply_buffer
-from syscore.pdutils import turnover
 from syscore.objects import missing_data
-
+from syscore.pdutils import turnover
 from systems.system_cache import diagnostic
 
 from systems.accounts.account_inputs import accountInputs
 
 
 class accountBuffering(accountInputs):
+
 
     @diagnostic()
     def instrument_turnover(self, instrument_code: str,

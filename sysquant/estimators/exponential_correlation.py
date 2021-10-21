@@ -132,11 +132,12 @@ class exponentialCorrelationResults(object):
 
     def last_valid_cor_matrix_for_date(self, date_point: datetime.datetime) -> correlationEstimate:
         raw_correlations = self.raw_correlations
-        corr_matrix_values = \
-                raw_correlations[raw_correlations.index.get_level_values(0) < date_point].\
-                tail(self.size_of_matrix).values
+        columns = self.columns
 
-        return correlationEstimate(values=corr_matrix_values, columns=self.columns)
+        return last_valid_cor_matrix_for_date(raw_correlations=raw_correlations,
+                                              date_point=date_point,
+                                              columns=columns)
+
 
     @property
     def size_of_matrix(self) -> int:
@@ -145,3 +146,14 @@ class exponentialCorrelationResults(object):
     @property
     def columns(self) -> list:
         return self._columns
+
+def last_valid_cor_matrix_for_date(raw_correlations: pd.DataFrame,
+                                   columns: list,
+                                   date_point: datetime.datetime) -> correlationEstimate:
+
+    size_of_matrix = len(columns)
+    corr_matrix_values = \
+            raw_correlations[raw_correlations.index.get_level_values(0) < date_point].\
+            tail(size_of_matrix).values
+
+    return correlationEstimate(values=corr_matrix_values, columns=columns)

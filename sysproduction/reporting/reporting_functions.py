@@ -121,7 +121,7 @@ def pandas_display_for_reports():
 def write_report_to_file(
             data: dataBlob, parsed_report: str, filename: str
         ):
-    use_directory = get_directory_for_reporting()
+    use_directory = get_directory_for_reporting(data)
     use_directory_resolved = get_resolved_pathname(use_directory)
     full_filename = os.path.join(use_directory_resolved, filename)
     with open(full_filename, "w") as f:
@@ -129,9 +129,9 @@ def write_report_to_file(
     data.log.msg("Written report to %s" % full_filename)
 
 
-def get_directory_for_reporting():
+def get_directory_for_reporting(data):
     # eg '/home/rob/reports/'
-    production_config = get_production_config()
+    production_config = data.config
     store_directory = production_config.get_element_or_missing_data("reporting_directory")
     if store_directory is missing_data:
         raise Exception("Need to specify reporting_directory in config file")
