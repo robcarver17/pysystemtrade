@@ -14,6 +14,18 @@ function update_capital() {
   );
 }
 
+function update_costs() {
+  $.ajax({
+    type: "GET",
+    url: "/costs",
+    success: function(data) {
+      $.each(data, function(k, v) {
+      });
+    }
+  }
+  );
+}
+
 function update_forex() {
   $.ajax({
     type: "GET",
@@ -21,6 +33,30 @@ function update_forex() {
     success: function(data) {
       $.each(data, function(currency, balance) {
         $("#forex_table tbody").append(`<tr><td>${currency}</td><td>${balance}</td></tr>`);
+      });
+    }
+  }
+  );
+}
+
+function update_liquidity() {
+  $.ajax({
+    type: "GET",
+    url: "/liquidity",
+    success: function(data) {
+      $.each(data, function(k, v) {
+      });
+    }
+  }
+  );
+}
+
+function update_pandl() {
+  $.ajax({
+    type: "GET",
+    url: "/pandl",
+    success: function(data) {
+      $.each(data, function(k, v) {
       });
     }
   }
@@ -120,6 +156,18 @@ function update_reconcile() {
   );
 }
 
+function update_risk() {
+  $.ajax({
+    type: "GET",
+    url: "/risk",
+    success: function(data) {
+      $.each(data, function(k, v) {
+      });
+    }
+  }
+  );
+}
+
 function update_rolls() {
   $.ajax({
     type: "GET",
@@ -163,6 +211,30 @@ function update_rolls() {
       $("#rolls-tl").addClass(overall);
     }
   });
+}
+
+function update_strategy() {
+  $.ajax({
+    type: "GET",
+    url: "/strategy",
+    success: function(data) {
+      $.each(data, function(k, v) {
+      });
+    }
+  }
+  );
+}
+
+function update_trades() {
+  $.ajax({
+    type: "GET",
+    url: "/trades",
+    success: function(data) {
+      $.each(data, function(k, v) {
+      });
+    }
+  }
+  );
 }
 
 function roll_post(instrument, state, confirmed = false) {
@@ -221,8 +293,14 @@ function roll_post(instrument, state, confirmed = false) {
 }
 
 $(document).ready(update_capital());
+$(document).ready(update_costs());
 $(document).ready(update_forex());
+$(document).ready(update_liquidity());
+$(document).ready(update_pandl());
 $(document).ready(update_processes());
 $(document).ready(update_reconcile());
+$(document).ready(update_risk());
 $(document).ready(update_rolls());
+$(document).ready(update_strategy());
+$(document).ready(update_trades());
 

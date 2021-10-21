@@ -54,11 +54,26 @@ def capital():
     return {"now": now, "yesterday": yesterday}
 
 
+@app.route("/costs")
+def costs():
+    return {}
+
+
 @app.route("/forex")
 def forex():
     asyncio.set_event_loop(asyncio.new_event_loop())
     data_broker = dataBroker(data)
     return data_broker.broker_fx_balances()
+
+
+@app.route("/liquidity")
+def liquidity():
+    return {}
+
+
+@app.route("/pandl")
+def pandl():
+    return {}
 
 
 @app.route("/processes")
@@ -216,6 +231,21 @@ def rolls_post():
         "new_state": request.form["state"],
         "allowable": roll_data.allowable_roll_states_as_list_of_str,
     }
+
+
+@app.route("/risk")
+def risk():
+    return {}
+
+
+@app.route("/trades")
+def trades():
+    return {}
+
+
+@app.route("/strategy")
+def strategy():
+    return {}
 
 
 if __name__ == "__main__":
