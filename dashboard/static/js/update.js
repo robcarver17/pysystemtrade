@@ -61,7 +61,23 @@ function update_liquidity() {
     type: "GET",
     url: "/liquidity",
     success: function(data) {
-      $.each(data, function(k, v) {
+      $.each(data, function(instrument, vals) {
+        var contracts = "";
+        var risk = "";
+        if (vals["contracts"] < 100) {
+          contracts = `<td class="red">${vals["contracts"]}</td>`;
+        } else {
+          contracts = `<td>${vals["contracts"]}</td>`;
+        }
+        if (vals["risk"] < 1.5) {
+          risk = `<td class="red">${vals["risk"].toFixed(1)}</td>`;
+        } else {
+          risk = `<td>${vals["risk"].toFixed(1)}</td>`;
+        }
+        $("#liquidity_table tbody").append(
+          `<tr><td>${instrument}</td>${contracts}
+          ${risk}</tr>`
+        );
       });
     }
   }
@@ -310,14 +326,14 @@ function roll_post(instrument, state, confirmed = false) {
 }
 
 $(document).ready(update_capital());
-$(document).ready(update_costs());
 $(document).ready(update_forex());
-$(document).ready(update_liquidity());
 $(document).ready(update_pandl());
 $(document).ready(update_processes());
 $(document).ready(update_reconcile());
 $(document).ready(update_risk());
-$(document).ready(update_rolls());
 $(document).ready(update_strategy());
 $(document).ready(update_trades());
+$(document).ready(update_rolls());
+$(document).ready(update_liquidity());
+$(document).ready(update_costs());
 

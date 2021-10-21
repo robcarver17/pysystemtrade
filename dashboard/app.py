@@ -6,7 +6,11 @@ from sysdata.data_blob import dataBlob
 from sysobjects.production.roll_state import RollState
 
 from sysproduction.data.prices import diagPrices
-from sysproduction.reporting import costs_report, roll_report
+from sysproduction.reporting import (
+    costs_report,
+    liquidity_report,
+    roll_report,
+)
 from sysproduction.data.broker import dataBroker
 from sysproduction.data.control_process import dataControlProcess
 from sysproduction.data.capital import dataCapital
@@ -79,7 +83,10 @@ def forex():
 
 @app.route("/liquidity")
 def liquidity():
-    return {}
+    liquidity_data = liquidity_report.get_liquidity_report_data(data)[
+        "all_liquidity_df"
+    ].to_dict(orient="index")
+    return liquidity_data
 
 
 @app.route("/pandl")
