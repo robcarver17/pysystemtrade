@@ -132,7 +132,7 @@ class systemDiag(object):
                 map_dict = dict(
                     a_param=float(a_param),
                     b_param=float(b_param),
-                    threshold_value=float(threshold_value))
+                    threshold=float(threshold_value))
                 forecast_mapping[instrument] = map_dict
 
         return forecast_mapping
