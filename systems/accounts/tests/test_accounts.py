@@ -22,7 +22,6 @@ def system():
     return system
 
 
-@pytest.mark.skip
 class TestAccounts:
 
     def test_costs_per_trade(self, system):

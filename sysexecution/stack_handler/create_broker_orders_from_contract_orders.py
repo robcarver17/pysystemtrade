@@ -176,7 +176,7 @@ class stackHandlerCreateBrokerOrders(stackHandlerForFills):
         data_broker = self.data_broker
         log = contract_order_after_trade_limits.log_with_attributes(self.log)
 
-        # check liquidity, and if neccessary carve up order
+        # check liquidity, and if necessary carve up order
         # Note for spread orders we check liquidity in the component markets
         liquid_qty = (
             data_broker.get_largest_offside_liquid_size_for_contract_order_by_leg(

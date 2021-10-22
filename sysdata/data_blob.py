@@ -213,7 +213,7 @@ class dataBlob(object):
     def _add_new_class_with_new_name(self, resolved_instance, attr_name:str):
         already_exists = self._already_existing_class_name(attr_name)
         if already_exists:
-            ## not uncommon don't log or would be a sea of span
+            ## not uncommon don't log or would be a sea of spam
             pass
         else:
             setattr(self, attr_name, resolved_instance)
