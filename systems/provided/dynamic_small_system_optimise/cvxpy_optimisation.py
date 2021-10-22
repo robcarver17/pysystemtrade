@@ -9,6 +9,9 @@ from sysquant.estimators.covariance import covarianceEstimate
 from sysquant.estimators.mean_estimator import meanEstimates
 from sysquant.optimisation.weights import portfolioWeights
 
+default_max_portfolio_weight = 2.0
+
+
 @dataclass
 class objectiveFunctionForMixedInt:
     weights_optimal: portfolioWeights
@@ -21,22 +24,6 @@ class objectiveFunctionForMixedInt:
     no_trade_keys: list = arg_not_supplied,
     maximum_position_weights: portfolioWeights = arg_not_supplied
 
-    def optimise(self) -> portfolioWeights:
-        optimal_weights = self._optimise_for_valid_keys()
-
-        optimal_weights_for_all_keys = \
-            optimal_weights.with_zero_weights_for_missing_keys(list(self.weights_optimal.keys()))
-
-        return optimal_weights_for_all_keys
-
-    def _optimise_for_valid_keys(self) -> portfolioWeights:
-        weights_without_missing_items_as_np = new_algo_across_integer_values(self)
-        optimal_weights = \
-            portfolioWeights.from_weights_and_keys(
-                list_of_keys=self.keys_with_valid_data,
-                list_of_weights=list(weights_without_missing_items_as_np))
-
-        return optimal_weights
 
     def evaluate_contracts(self, contracts: np.array):
         weights = self.from_contracts_to_weights(contracts)
@@ -57,8 +44,6 @@ class objectiveFunctionForMixedInt:
         return track_error + trade_costs
 
     def calculate_costs(self, weights: np.array) -> float:
-        if self.no_prior_weights_provided:
-            return 0.0
         trade_gap = weights - self.weights_prior_as_np
         costs_per_trade = self.costs_as_np
         trade_costs = sum(abs(costs_per_trade * trade_gap * self.trade_shadow_cost))
@@ -69,7 +54,12 @@ class objectiveFunctionForMixedInt:
     def no_prior_weights_provided(self) -> bool:
         return self.weights_prior is arg_not_supplied
 
-
+    @property
+    def use_shadow_cost(self) -> float:
+        if self.no_prior_weights_provided:
+            return 0.0
+        else:
+            return self.trade_shadow_cost
 
     @property
     def maxima_as_np(self) -> np.array:
@@ -239,7 +229,7 @@ class dataForOptimisation(object):
     def maximum_position_weight_for_code(self, instrument_code: str) -> float:
         maximum_position_weights = self.maximum_position_weights
         if maximum_position_weights is arg_not_supplied:
-            return A_VERY_LARGE_NUMBER
+            return default_max_portfolio_weight
         else:
             return maximum_position_weights.get(instrument_code, arg_not_supplied)
 
@@ -286,7 +276,6 @@ class dataForOptimisation(object):
         return list(valid_keys)
 
 
-A_VERY_LARGE_NUMBER = 999999999
 
 
 
@@ -366,8 +355,8 @@ def calculations_for_code(reduce_only: bool = False,
                                                    weight_prior=weight_prior,
                                                    weight_tolerance=weight_tolerance)
 
-    minimum = minimum_weight / per_contract_value
-    maximum = maximum_weight / per_contract_value
+    minimum = np.ceil(minimum_weight / per_contract_value)
+    maximum = np.floor(maximum_weight / per_contract_value)
 
     assert maximum >= minimum
 
@@ -375,6 +364,9 @@ def calculations_for_code(reduce_only: bool = False,
     return minAndMaxForCode(minimum=minimum,
                                              maximum=maximum,
             )
+
+
+A_VERY_LARGE_NUMBER = 10
 
 def calculate_minima_and_maxima_weights(reduce_only: bool = False,
                                 no_trade: bool = False,
@@ -414,17 +406,56 @@ def calculate_minima_and_maxima_weights(reduce_only: bool = False,
 
 import cvxpy as cp
 
+"""
+minimise track_error + trade_costs
+
+minimise x vector of contracts:
+ (solution_gap.dot(self.covariance_matrix_as_np).dot(solution_gap))**.5 + trade_costs
+((weights - self.weights_optimal_as_np).dot(self.covariance_matrix_as_np).dot(weights - self.weights_optimal_as_np))**.5 + trade_costs
+((weights - self.weights_optimal_as_np).dot(self.covariance_matrix_as_np).dot(weights - self.weights_optimal_as_np))**.5 + trade_costs
+
+((x * per_contract- optimal).
+     dot(covariance).
+           dot(x*per_contract - optimal))**.5 
+              + sum(abs(costs_per_trade * 
+                  (x * per_contract - weights_prior_as_np) * 
+                      shadow_cost))
+
+
+
+"""
 
 def new_algo_across_integer_values(
         obj_instance: objectiveFunctionForMixedInt
                                     ) -> np.array:
 
 
-    best_value = obj_instance.evaluate_contracts()
     maxima = obj_instance.maxima_as_np
     minima = obj_instance.minima_as_np
+    per_contract = obj_instance.per_contract_value_as_np
+    covariance = obj_instance.covariance_matrix_as_np
+    optimal = obj_instance.weights_optimal_as_np
+    costs_per_trade = obj_instance.costs_as_np
+    weights_prior = obj_instance.weights_prior
+    shadow_cost = obj_instance.use_shadow_cost
 
     x = cp.Variable(len(maxima), integer=True)
+
+    obj = cp.Minimize((x @ per_contract@covariance@x @ per_contract))
+
+
+    obj = cp.Minimize(((x @ per_contract- optimal)@
+     covariance@
+           (x@per_contract - optimal)))
+
+
+              + sum(abs(costs_per_trade *
+                  (x * per_contract - weights_prior) *
+                      shadow_cost)))
+
+    prob = cp.Problem(obj)
+    prob.solve()
+
     constraints = [x + y == 1,
                    x - y >= 1]
     objective = cp.Minimize(obj_instance.evaluate_contracts(x))
@@ -435,9 +466,5 @@ obj_instance = objectiveFunctionForMixedInt(
     weights_optimal=original_portfolio_weights,
     covariance_matrix=covariance_matrix,
     per_contract_value=per_contract_value,
-    weights_prior=previous_weights,
     costs=costs,
-    reduce_only_keys=reduce_only_keys,
-    no_trade_keys=no_trade_keys,
-    maximum_position_weights=maximum_position_weights,
-    trade_shadow_cost=shadow_cost)
+)
