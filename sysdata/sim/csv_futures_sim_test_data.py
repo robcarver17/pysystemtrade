@@ -33,7 +33,9 @@ class CsvFuturesSimTestData(genericBlobUsingFuturesSimData):
 
         data = dataBlob(
             log=log,
-            csv_data_paths=dict(csvFuturesAdjustedPricesData="data.test.adjusted_prices_csv"),
+            csv_data_paths=dict(
+                csvFuturesAdjustedPricesData="data.test.adjusted_prices_csv",
+                csvFuturesInstrumentData="data.test.csvconfig"),
             class_list=[
                 csvFuturesAdjustedPricesData,
                 csvFuturesMultiplePricesData,
