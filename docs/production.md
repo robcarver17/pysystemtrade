@@ -584,7 +584,7 @@ mongorestore
 
 As I am super paranoid, I also like to output all my mongo_db data into .csv files, which I then regularly backup. This will allow a system recovery, should the mongo files be corrupted.
 
-This currently supports: FX, individual futures contract prices, multiple prices, adjusted prices, position data, historical trades, capital, contract meta-data, instrument data, optimal positions. Some other state information relating to the control of trading and processes is also stored in the database and this will be lost, however this can be recovered with a litle work: roll status, trade limits, position limits, and overrides. Log data will also be lost; but archived [echo files](#echos-stdout-output) could be searched if neccessary.
+This currently supports: FX, individual futures contract prices, multiple prices, adjusted prices, position data, historical trades, capital, contract meta-data, instrument data, optimal positions. Some other state information relating to the control of trading and processes is also stored in the database and this will be lost, however this can be recovered with a litle work: roll status, trade limits, position limits, and overrides. Log data will also be lost; but archived [echo files](#echos-stdout-output) could be searched if necessary.
 
 
 Linux script:
@@ -2145,7 +2145,7 @@ The complexity of the order stacks is there for a reason; it allows different ki
 
 ##### Lock/unlock order
 
-There is a 'lock' in the order database, basically an explicit flag preventing the order from being modified. Certain operations which span multiple data tables will impose locks first so the commit does not partially fail (I'm using noSQL so there is no explicit cross table commit available). If operations fail mid lock they will usually try and fall back and remove locks, but this doesn't always work out. So it sometimes neccessary to manually unlock orders, and for symmettry manually lock them.
+There is a 'lock' in the order database, basically an explicit flag preventing the order from being modified. Certain operations which span multiple data tables will impose locks first so the commit does not partially fail (I'm using noSQL so there is no explicit cross table commit available). If operations fail mid lock they will usually try and fall back and remove locks, but this doesn't always work out. So it sometimes necessary to manually unlock orders, and for symmettry manually lock them.
 
 
 ##### Lock/unlock instrument code
@@ -2380,7 +2380,7 @@ You can use python itself as a scheduler, using something like [this](https://gi
 
 ### Manual system
 
-It's possible to run pysystemtrade without any scheduling, by manually starting the neccessary processes as required. This option might make sense for traders who are not running a fully automated system (though [you may want to keep most of the scheduling running anyway](#automation-options)).
+It's possible to run pysystemtrade without any scheduling, by manually starting the necessary processes as required. This option might make sense for traders who are not running a fully automated system (though [you may want to keep most of the scheduling running anyway](#automation-options)).
 
 ### Hybrid of python and cron
 
@@ -2865,11 +2865,10 @@ Example [here](/sysproduction/strategy_code/report_system_classic.py).
 Here's some general advice about recovering from a crash:
 
 - If you're not using IBC restart the IB Gateway; and if you are check it has started ok
-- Temporarily turn off the crontab to stop processes from spawning before you are reading
+- Temporarily turn off the crontab to stop processes from spawning before you are ready
 - Check you have a mongoDB instance running okay
-
 - Run a full set of reports, and carefully check them, especially the status and reconcile reports, to see that all is well.
-- If neccessary take steps to recover data (see next section). 
+- If necessary take steps to recover data (see next section). 
 - If this goes well you will have an empty order stack. Run update_strategy_orders to repopulate it.
 - You should turn the crontab back on when everything is working fine
 - Processes are started by the scheduler, eg Cron, you will need to start them manually if their normal start time has passed (I find [linux screen](https://linuxize.com/post/how-to-use-linux-screen/) helpful for this on my headless server). Everything should work normally the following day.
@@ -2878,9 +2877,9 @@ Here's some general advice about recovering from a crash:
 
 ## Data recovery
 
-Let's first consider an awful case where your mongo DB is corrupted, and the backups are also corrupted. In this case you can use the backed up .csv database dump files to recover the following: FX, individual futures contract prices, multiple prices, adjusted prices, position data, historical trades, capital, contract meta-data, instrument data, optimal positions. Note that scripts don't neccessarily exist to do all this automatically yet FIX ME TO DO.
+Let's first consider an awful case where your mongo DB is corrupted, and the backups are also corrupted. In this case you can use the backed up .csv database dump files to recover the following: FX, individual futures contract prices, multiple prices, adjusted prices, position data, historical trades, capital, contract meta-data, instrument data, optimal positions. Note that scripts don't necessarily exist to do all this automatically yet FIX ME TO DO.
 
-Some other state information relating to the control of trading and processes is also stored in the database and this will be lost, however this can be recovered with a litle work: roll status, trade limits, position limits, and overrides. Log data will also be lost; but archived [echo files](#echos-stdout-output) could be searched if neccessary.
+Some other state information relating to the control of trading and processes is also stored in the database and this will be lost, however this can be recovered with a litle work: roll status, trade limits, position limits, and overrides. Log data will also be lost; but archived [echo files](#echos-stdout-output) could be searched if necessary.
 
 The better case is when the mongo DB is fine. In this case (once you've [restored](#mongo-data) it) you will have only lost everything from your last nightly backup onwards. Here is what you do to get it back (if possible)
 

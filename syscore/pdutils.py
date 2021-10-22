@@ -417,7 +417,7 @@ def create_arbitrary_pdseries(
 
 def dataframe_pad(starting_df, column_list, padwith=0.0):
     """
-    Takes a dataframe and adds extra columns if neccessary so we end up with columns named column_list
+    Takes a dataframe and adds extra columns if necessary so we end up with columns named column_list
 
     :param starting_df: A pd.dataframe with named columns
     :param column_list: A list of column names
