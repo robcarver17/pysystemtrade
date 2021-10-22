@@ -344,7 +344,7 @@ We could estimate these on a rolling out of sample basis:
 from systems.forecast_scale_cap import ForecastScaleCap
 
 
-## By default we pool esimates across instruments. It's worth telling the system what instruments we want to use:
+## By default we pool estimates across instruments. It's worth telling the system what instruments we want to use:
 #
 my_config.instruments=["EDOLLAR", "US10", "CORN", "SP500_micro"]
 

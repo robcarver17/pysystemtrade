@@ -555,7 +555,7 @@ ignore_instruments:
 
 ## How do I.... Exclude some instruments from having positive instrument weights
 
-You might want to calculate forecasts for certain instruments (so don't include them in ignore_instruments'), but not actually trade them.
+You might want to calculate forecasts for certain instruments (so don't include them in `ignore_instruments`), but not actually trade them.
 
 If you include the config element `allocate_zero_instrument_weights_to_these_instruments` then those instruments will have a zero instrument weight calculated, and the system will produce a zero desired position for them.
 
@@ -635,7 +635,7 @@ keyword arguments are missing then the function will use its own defaults.
 At this stage we can also remove any trading rules that we don't want. We also
 ought to modify the forecast scalars (See [forecast scale
 estimation](#scalar_estimate]), forecast weights and probably the forecast
-diversification multiplier ( see [estimating the forecast diversification
+diversification multiplier (see [estimating the forecast diversification
 multiplier](#divmult)). If you're estimating weights and scalars (i.e. in the
 pre-baked estimated futures system provided) this will be automatic.
 
@@ -761,7 +761,7 @@ test
 You can also add new files for new instruments. Be sure to keep the file format and header names consistent.
 
 You can create your own directory for .csv files. For example supposed you wanted to get your adjusted prices from
-`pysystemtrade/private/system_name/adjusted_price_data'. Here is how you'd use it:
+`pysystemtrade/private/system_name/adjusted_price_data`. Here is how you'd use it:
 
 ```python
 from sysdata.sim.csv_futures_sim_data import csvFuturesSimData
@@ -1466,7 +1466,7 @@ Change the list of attr_names depending on what you want to output. You can then
 
 ### Modifying the configuration class
 
-It shouldn't be neccessary to modify the configuration class since it's
+It shouldn't be necessary to modify the configuration class since it's
 deliberately lightweight and flexible.
 
 <a name="system"> </a>
@@ -1556,7 +1556,7 @@ config=Config("systems.provided.futures_chapter15.futuresestimateconfig.yaml") #
 ## Optionally the user can provide trading_rules (something which can be parsed as a set of trading rules); however this defaults to None in which case
 ##     the rules in the config will be used.
 
-system=System([Account(), PortfoliosEsimated(), PositionSizing(), RawData(), ForecastCombine(),
+system=System([Account(), Portfolios(), PositionSizing(), RawData(), ForecastCombine(),
                    ForecastScaleCap(), Rules(trading_rules)], data, config)
 ```
 
@@ -2078,7 +2078,7 @@ def futures_system(data=None, config=None, trading_rules=None, log_level="on"):
 
 ### Changing or making a new System class
 
-It shouldn't be neccessary to modify the `System()` class or create new ones.
+It shouldn't be necessary to modify the `System()` class or create new ones.
 
 
 <a name="stage_general"> </a>
@@ -2400,7 +2400,7 @@ description is different from the others; and will be in the form of a tutorial
 around creating trading rules.
 
 The base class, Rules() [is here](/systems/forecasting.py); and it shouldn't be
-neccessary to modify this class.
+necessary to modify this class.
 
 <a name="TradingRules"> </a>
 
@@ -2885,7 +2885,7 @@ See [this blog
 post](https://qoppac.blogspot.com/2016/01/pysystemtrader-estimated-forecast.html).
 
 You may prefer to estimate your forecast scales from the available data. This
-is often neccessary if you have a new trading rule and have no idea at all what
+is often necessary if you have a new trading rule and have no idea at all what
 the scaling should be. To do this you need to turn on estimation
 `config.use_forecast_scale_estimates=True`. It is included in the pre-baked
 [estimated futures system](#futures_system).
@@ -3766,7 +3766,7 @@ multipliers, optimisation, and capital correction.
 
 ## File names
 
-There are a number of different ways one might want to specify path and file names. Firstly, we could use a *relative* pathname. A relative pathname Secondly, we might want to use an *absolute* path, which is the actual full pathname. This is useful if we want to access something outside the pysystemtrade directory structure. Finally we have the issue of OS differences; are you a '\\' or a '/' person?
+There are a number of different ways one might want to specify path and file names. Firstly, we could use a *relative* pathname. Secondly, we might want to use an *absolute* path, which is the actual full pathname. This is useful if we want to access something outside the pysystemtrade directory structure. Finally we have the issue of OS differences; are you a '\\' or a '/' person?
 
 For convenience I have written some functions that translate betweeen these different formats, and the underlying OS representation.
 
@@ -4063,7 +4063,7 @@ pooling or changes to cost calculation.
 
 Bootstrapping is no longer implemented; after a code refactoring I couldn't think of an elegant way of doing it.
 
-#### Shrinkage (okay, but trick to calibrate)
+#### Shrinkage (okay, but tricky to calibrate)
 
 This is a basic shrinkage towards a prior of equal sharpe ratios, and equal
 correlations; with priors equal to the average of estimates from the data.
@@ -4167,11 +4167,11 @@ instrument_div_mult_estimate:
    div_mult: 2.5 ## maximum allowable multiplier
 ```
 
-I've included a smoothing function, other wise jumps in the multiplier will
+I've included a smoothing function, otherwise jumps in the multiplier will
 cause trading in the backtest. Note that the FDM is calculated on an instrument
 by instrument basis, but if instruments have had their forecast weights and
 correlations estimated on a pooled basis they'll have the same FDM. It's also a
-good idea to floor negative correlations at zero to avoid inflation the DM to
+good idea to floor negative correlations at zero to avoid inflating the DM to
 very high values.
 
 

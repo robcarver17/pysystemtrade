@@ -12,7 +12,7 @@ from syslogdiag.log_to_screen import logtoscreen
 
 
 class ibCapitalData(brokerCapitalData):
-    def __init__(self, ibconnection: connectionIB, log: logger=logtoscreen("ibFxPricesData")):
+    def __init__(self, ibconnection: connectionIB, log: logger=logtoscreen("ibCapitalData")):
         super().__init__(log=log)
         self._ibconnection = ibconnection
 
