@@ -1,9 +1,15 @@
 from flask import Flask, g, render_template, request
 from werkzeug.local import LocalProxy
 
+from syscore.objects import missing_data
+from syscore.genutils import str2Bool
+
+from sysdata.config.control_config import get_control_config
+
 from sysdata.data_blob import dataBlob
 
 from sysobjects.production.roll_state import RollState
+
 
 from sysproduction.data.prices import diagPrices
 from sysproduction.reporting import (
@@ -313,8 +319,25 @@ def trades():
 def strategy():
     return {}
 
+def visible_on_lan() -> bool:
+    config = get_control_config()
+    visible = config.get_element_or_missing_data("dashboard_visible_on_lan")
+    if visible is missing_data:
+        return False
+
+    visible = str2Bool(visible)
+
+    return visible
 
 if __name__ == "__main__":
-    app.run(
-        threaded=True, use_debugger=False, use_reloader=False, passthrough_errors=True
-    )
+    visible = visible_on_lan()
+    if visible:
+        app.run(
+            threaded=True, use_debugger=False, use_reloader=False, passthrough_errors=True,
+            host="0.0.0.0"
+        )
+
+    else:
+        app.run(
+            threaded=True, use_debugger=False, use_reloader=False, passthrough_errors=True
+        )
