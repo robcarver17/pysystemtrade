@@ -2932,11 +2932,6 @@ We do this if `pool_instruments=False`. Other parameters work in the same way.
 
 Note: The estimate is [cached](#caching) separately for each instrument.
 
-#### New or modified forecast scaling and capping
-
-Possible changes here could include putting in response functions (as described
-in [this AHL paper](http://papers.ssrn.com/sol3/papers.cfm?abstract_id=2695101)
-).
 
 <a name="stage_combine"> </a>
 
@@ -3014,7 +3009,7 @@ See [optimisation](#optimisation) for more information.
 
 ##### Removing expensive trading rules
 
-
+See [optimisation](#optimisation) for more information.
 
 ##### Estimating the forecast diversification multiplier
 
@@ -3022,7 +3017,7 @@ See [estimating diversification multipliers](#divmult).
 
 #### Forecast mapping
 
-A new feature introduced in version 0.18.2 is *forecast mapping*. This is the non linear mapping discussed in [this blog post](https://qoppac.blogspot.com/2016/03/diversification-and-small-account-size.html) whereby we do not take a forecast until it has reached some threshold. Because this will reduce the standard deviation of our forecasts we compensate by ramping up the forecast more quickly until the raw forecast reaches the existing cap (which defaults to 20). This is probably illustrated better if we look at the non-linear mapping function:
+A new optional feature introduced in version 0.18.2 is *forecast mapping*. This is the non linear mapping discussed in [this blog post](https://qoppac.blogspot.com/2016/03/diversification-and-small-account-size.html) whereby we do not take a forecast until it has reached some threshold. Because this will reduce the standard deviation of our forecasts we compensate by ramping up the forecast more quickly until the raw forecast reaches the existing cap (which defaults to 20). This is probably illustrated better if we look at the non-linear mapping function:
 
 ```python
 #This is syscore.algos.map_forecast_value
@@ -3090,11 +3085,6 @@ forecast_mapping:
 
 If the forecast_mapping key is missing from the configuration object, or the instrument is missing from the dict, then no mapping will be done (the raw forecast will remain unchanged). Also note that if a_param = b_param = 1, and threshold=0, then this is equivalent to no mapping.
 
-#### Writing new or modified forecast combination stages
-
-I have no plans to write new stages here.
-
-<a name="position_scale"> </a>
 
 ### Stage: Position scaling
 
@@ -3222,18 +3212,15 @@ system.portfolio.get_buffers_for_position("US10") ## get the upper and lower edg
 system.accounts.get_buffered_position("US10", roundpositions=True) ## get the buffered position.
 ```
 
-Note that in a live trading system buffering should be done downstream of the
+Note that in a live trading system buffering is done downstream of the
 system module, in a process which can also see the actual current positions we
-hold.
+hold [the strategy order generation)](/docs/production.md).
 
 #### Capital correction
 
 If you want to see positions that reflect varying capital, then read the
 section on [capital correction](#capcorrection).
 
-#### Writing new or modified portfolio stages
-
-I currently have no plans to modify this stage.
 
 <a name="accounts_stage"> </a>
 
@@ -3702,7 +3689,7 @@ I work out costs in two different ways:
 
 - by applying a constant drag calculated according to the standardised cost in
   Sharpe ratio terms and the estimated turnover (see chapter 12 of my book)
-- using the actual costs for each trade.
+- using the actual costs for each trade. 
 
 The former method is always used for costs derived from forecasts
 (`pandl_for_instrument_forecast`, `pandl_for_instrument_forecast_weighted`,
@@ -3711,13 +3698,11 @@ The former method is always used for costs derived from forecasts
 `pandl_for_trading_rule_weighted`, `pandl_for_instrument_rules_unweighted`, and
 `pandl_for_instrument_rules`).
 
-The latter method is optional for costs derived from actual positions
-(everything else). Set `config.use_SR_costs = False` to use it for these
-methods. It is useful for comparing with live trading history, but I do not
-recommend it for historical purposes as I don't think it is accurate in the
-past.
+For costs derived from actual positions (everything else) we can use eithier method. Actual cash costs are more accurate especially if your system has sparse positions (eg the dynamic optimised system I describe elsewhere). However it's quicker to use SR costs, so if you set `use_SR_costs=True` you will speed things up with some loss of accuracy.
 
-*IMPORTANT NOTE: Actual costs per trade do not include holding costs from regular rolling of held positions! However these are included in Sharpe Ratio costs*
+Both cost methods now account for holding - rollover costs.
+
+Note that 'actual costs' are normally standardised for historic volatility (although you can optionally turn this off in config `vol_normalise_currency_costs=False` which is useful for comparing with live trading purposes, but I do not recommend it for historical purposes as I don't think it is accurate in the past)
 
 Costs that can be included are:
 
@@ -3731,10 +3716,13 @@ Costs that can be included are:
 To see the turnover that has been estimated use:
 
 ```
+system.accounts.turnover_at_portfolio_level() ## Total portfolio turnover
 system.accounts.subsystem_turnover(instrument_code) ### Annualised turnover of subsystem
 system.accounts.instrument_turnover(instrument_code) ### Annualised turnover of portfolio level position
 system.accounts.forecast_turnover(instrument_code, rule_variation_name) ## Annualised turnover of forecast
 ```
+
+Instrument level turnovers are accurate for the vanilla system but may be misleading for systems with sparse positions (eg the dynamic optimised system I describe elsewhere) because the notion of 'average position' is difficult to quantify. 
 
 To see holding costs in SR units:
 
