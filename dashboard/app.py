@@ -332,6 +332,8 @@ def visible_on_lan() -> bool:
 if __name__ == "__main__":
     visible = visible_on_lan()
     if visible:
+        data = dataBlob()
+        data.log.warn("Starting dashboard with web page visible to all - security implications!!!!")
         app.run(
             threaded=True, use_debugger=False, use_reloader=False, passthrough_errors=True,
             host="0.0.0.0"

@@ -1,8 +1,15 @@
 # Release notes
 
+## Version 1.11
+
+- Added dashboard (thanks James!)
+- Aligned production and backtesting risk calculation code
+- More refactoring of production risk code
+- Simplified risk report
+
 ## Version 1.10
 
-- Added dynamic optimisation code
+- Added dynamic optimisation code (thanks Doug!)
 - Added leverage constraint to autopopulate limits and trades
 - Started reorganising production risk code
 
