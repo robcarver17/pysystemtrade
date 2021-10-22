@@ -555,7 +555,7 @@ ignore_instruments:
 
 ## How do I.... Exclude some instruments from having positive instrument weights
 
-You might want to calculate forecasts for certain instruments (so don't include them in ignore_instruments'), but not actually trade them.
+You might want to calculate forecasts for certain instruments (so don't include them in `ignore_instruments`), but not actually trade them.
 
 If you include the config element `allocate_zero_instrument_weights_to_these_instruments` then those instruments will have a zero instrument weight calculated, and the system will produce a zero desired position for them.
 
@@ -635,7 +635,7 @@ keyword arguments are missing then the function will use its own defaults.
 At this stage we can also remove any trading rules that we don't want. We also
 ought to modify the forecast scalars (See [forecast scale
 estimation](#scalar_estimate]), forecast weights and probably the forecast
-diversification multiplier ( see [estimating the forecast diversification
+diversification multiplier (see [estimating the forecast diversification
 multiplier](#divmult)). If you're estimating weights and scalars (i.e. in the
 pre-baked estimated futures system provided) this will be automatic.
 
@@ -761,7 +761,7 @@ test
 You can also add new files for new instruments. Be sure to keep the file format and header names consistent.
 
 You can create your own directory for .csv files. For example supposed you wanted to get your adjusted prices from
-`pysystemtrade/private/system_name/adjusted_price_data'. Here is how you'd use it:
+`pysystemtrade/private/system_name/adjusted_price_data`. Here is how you'd use it:
 
 ```python
 from sysdata.sim.csv_futures_sim_data import csvFuturesSimData
@@ -1556,7 +1556,7 @@ config=Config("systems.provided.futures_chapter15.futuresestimateconfig.yaml") #
 ## Optionally the user can provide trading_rules (something which can be parsed as a set of trading rules); however this defaults to None in which case
 ##     the rules in the config will be used.
 
-system=System([Account(), PortfoliosEsimated(), PositionSizing(), RawData(), ForecastCombine(),
+system=System([Account(), Portfolios(), PositionSizing(), RawData(), ForecastCombine(),
                    ForecastScaleCap(), Rules(trading_rules)], data, config)
 ```
 
