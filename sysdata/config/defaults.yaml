@@ -264,7 +264,7 @@ instrument_returns_correlation:
 
 # small system optimisation
 small_system:
-  shadow_cost: 10
+  shadow_cost: 300
   cost_multiplier: 1.0
 ignore_instruments:
   - CRUDE_W

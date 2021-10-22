@@ -10,7 +10,7 @@ from sysquant.estimators.mean_estimator import meanEstimates
 from sysquant.optimisation.weights import portfolioWeights
 
 @dataclass
-class objectiveFunctionForGreedy:
+class objectiveFunctionForMixedInt:
     weights_optimal: portfolioWeights
     covariance_matrix: covarianceEstimate
     per_contract_value: portfolioWeights
@@ -21,9 +21,6 @@ class objectiveFunctionForGreedy:
     no_trade_keys: list = arg_not_supplied,
     maximum_position_weights: portfolioWeights = arg_not_supplied
 
-    def starting_weights_as_np(self) -> np.array:
-        return self.input_data.starting_weights_as_np
-
     def optimise(self) -> portfolioWeights:
         optimal_weights = self._optimise_for_valid_keys()
 
@@ -33,7 +30,7 @@ class objectiveFunctionForGreedy:
         return optimal_weights_for_all_keys
 
     def _optimise_for_valid_keys(self) -> portfolioWeights:
-        weights_without_missing_items_as_np = greedy_algo_across_integer_values(self)
+        weights_without_missing_items_as_np = new_algo_across_integer_values(self)
         optimal_weights = \
             portfolioWeights.from_weights_and_keys(
                 list_of_keys=self.keys_with_valid_data,
@@ -41,7 +38,16 @@ class objectiveFunctionForGreedy:
 
         return optimal_weights
 
-    def evaluate(self, weights: np.array) -> float:
+    def evaluate_contracts(self, contracts: np.array):
+        weights = self.from_contracts_to_weights(contracts)
+
+        return self.evaluate_weights(weights)
+
+    def from_contracts_to_weights(self, contracts: np.array) -> np.array:
+        per_contract_value = self.per_contract_value_as_np
+        return per_contract_value * contracts
+
+    def evaluate_weights(self, weights: np.array) -> float:
         solution_gap = weights - self.weights_optimal_as_np
         track_error = \
             (solution_gap.dot(self.covariance_matrix_as_np).dot(solution_gap))**.5
@@ -98,10 +104,6 @@ class objectiveFunctionForGreedy:
         return self.input_data.costs_as_np
 
     @property
-    def direction_as_np(self) -> np.array:
-        return self.input_data.direction_as_np
-
-    @property
     def input_data(self):
         input_data = getattr(self, "_input_data", None)
         if input_data is None:
@@ -114,7 +116,7 @@ class objectiveFunctionForGreedy:
 
 
 class dataForOptimisation(object):
-    def __init__(self, obj_instance: objectiveFunctionForGreedy):
+    def __init__(self, obj_instance: objectiveFunctionForMixedInt):
         self.covariance_matrix = obj_instance.covariance_matrix
         self.weights_optimal = obj_instance.weights_optimal
         self.per_contract_value = obj_instance.per_contract_value
@@ -157,15 +159,6 @@ class dataForOptimisation(object):
     @property
     def costs_as_np(self) -> np.array:
         return self.get_key("costs_as_np")
-
-    @property
-    def starting_weights_as_np(self) -> np.array:
-        return self.get_key("starting_weights_as_np")
-
-    @property
-    def direction_as_np(self) -> np.array:
-        return self.get_key("direction_as_np")
-
 
     @property
     def minima_as_np(self) -> np.array:
@@ -237,24 +230,6 @@ class dataForOptimisation(object):
 
         return costs_as_np
 
-    @property
-    def _starting_weights_as_np(self) -> np.array:
-        starting_weights = self._starting_weights
-        starting_weights_as_np = np.array(list(starting_weights.as_list_given_keys(
-            self.keys_with_valid_data
-        )))
-
-        return starting_weights_as_np
-
-    @property
-    def _direction_as_np(self) -> np.array:
-
-        return np.array(
-            [
-                sign(optimal_weight)
-                for optimal_weight in self.weights_optimal_as_np
-            ]
-            )
 
     ## not cached as only called at init of data
     def optimal_weights_for_code(self, instrument_code: str) -> float:
@@ -282,21 +257,17 @@ class dataForOptimisation(object):
     ## not cached as not used by outside functions
     @property
     def _minima(self) -> portfolioWeights:
-        return self._min_max_and_direction_start.minima
+        return self._min_max_object.minima
 
     @property
     def _maxima(self) -> portfolioWeights:
-        return self._min_max_and_direction_start.maxima
+        return self._min_max_object.maxima
 
     @property
-    def _starting_weights(self) -> portfolioWeights:
-        return self._min_max_and_direction_start.starting_weights
+    def _min_max_object(self):
+        min_max_object = calculate_min_and_max(self)
 
-    @property
-    def _min_max_and_direction_start(self) -> 'minMaxAndDirectionAndStart':
-        min_max_and_direction_start = calculate_min_max_and_direction_and_start(self)
-
-        return min_max_and_direction_start
+        return min_max_object
 
 
     @property
@@ -320,7 +291,7 @@ A_VERY_LARGE_NUMBER = 999999999
 
 
 
-class minMaxAndDirectionAndStart(dict):
+class allMinAndMax(dict):
     @property
     def minima(self) -> portfolioWeights:
         return portfolioWeights(self._get_dict_for_value_across_codes('minimum'))
@@ -329,14 +300,6 @@ class minMaxAndDirectionAndStart(dict):
     def maxima(self) -> portfolioWeights:
         return portfolioWeights(self._get_dict_for_value_across_codes('maximum'))
 
-    @property
-    def direction(self) -> portfolioWeights:
-        return portfolioWeights(self._get_dict_for_value_across_codes('direction'))
-
-    @property
-    def starting_weights(self) -> portfolioWeights:
-        return portfolioWeights(self._get_dict_for_value_across_codes('start_weight'))
-
     def _get_dict_for_value_across_codes(self, entry_name: str):
 
         return dict([(instrument_code, getattr(dict_value, entry_name))
@@ -344,24 +307,23 @@ class minMaxAndDirectionAndStart(dict):
 
 
 @dataclass
-class minMaxAndDirectionAndStartForCode:
+class minAndMaxForCode:
     minimum: float
     maximum: float
-    direction: float
-    start_weight: float
 
-def calculate_min_max_and_direction_and_start(input_data: dataForOptimisation) -> minMaxAndDirectionAndStart:
+
+def calculate_min_and_max(input_data: dataForOptimisation) -> allMinAndMax:
     all_codes = list(input_data.weights_optimal.keys())
     all_results = dict([(instrument_code,
                          get_data_and_calculate_for_code(instrument_code,
                                                          input_data=input_data))
                         for instrument_code in all_codes])
 
-    return minMaxAndDirectionAndStart(all_results)
+    return allMinAndMax(all_results)
 
 def get_data_and_calculate_for_code(instrument_code: str,
                                     input_data: dataForOptimisation) \
-        -> minMaxAndDirectionAndStartForCode:
+        -> minAndMaxForCode:
 
     if input_data.reduce_only_keys is arg_not_supplied:
         reduce_only = False
@@ -375,52 +337,46 @@ def get_data_and_calculate_for_code(instrument_code: str,
 
     max_position = input_data.maximum_position_weight_for_code(instrument_code)
     weight_prior = input_data.prior_weight_for_code(instrument_code)
-    optimium_weight = input_data.optimal_weights_for_code(instrument_code)
     per_contract_value = input_data.per_contract_value_for_code(instrument_code)
 
-    min_max_and_direction_and_start_for_code = calculations_for_code(
+    min_max_for_code = calculations_for_code(
         reduce_only=reduce_only,
         no_trade=no_trade,
         max_position=max_position,
         weight_prior=weight_prior,
-        optimium_weight=optimium_weight,
         per_contract_value=per_contract_value
     )
 
-    return min_max_and_direction_and_start_for_code
+    return min_max_for_code
 
 
 def calculations_for_code(reduce_only: bool = False,
                           no_trade: bool = False,
                           max_position: float = arg_not_supplied,
                           weight_prior: float = arg_not_supplied,
-                          optimium_weight: float = np.nan,
                           per_contract_value: float = np.nan):
 
     # required because weights vary slightly
     # if it was 0.5 then could get rounding issues
     weight_tolerance = per_contract_value * .25
 
-    minimum, maximum = calculate_minima_and_maxima(reduce_only=reduce_only,
+    minimum_weight, maximum_weight = calculate_minima_and_maxima_weights(reduce_only=reduce_only,
                                                    no_trade=no_trade,
                                                    max_position=max_position,
                                                    weight_prior=weight_prior,
                                                    weight_tolerance=weight_tolerance)
 
+    minimum = minimum_weight / per_contract_value
+    maximum = maximum_weight / per_contract_value
+
     assert maximum >= minimum
 
-    direction = calculate_direction(optimum_weight=optimium_weight,
-                                    minimum=minimum,
-                                    maximum=maximum)
 
-    start_weight = calculate_starting_weight(minimum, maximum)
-
-    return minMaxAndDirectionAndStartForCode(minimum=minimum,
+    return minAndMaxForCode(minimum=minimum,
                                              maximum=maximum,
-                                             direction=direction,
-                                             start_weight=start_weight)
+            )
 
-def calculate_minima_and_maxima(reduce_only: bool = False,
+def calculate_minima_and_maxima_weights(reduce_only: bool = False,
                                 no_trade: bool = False,
                                 max_position: float = arg_not_supplied,
                                 weight_prior: float = arg_not_supplied,
@@ -455,115 +411,33 @@ def calculate_minima_and_maxima(reduce_only: bool = False,
 
     return minimum, maximum
 
-def calculate_direction(optimum_weight: float,
-                        minimum: float = -A_VERY_LARGE_NUMBER,
-                        maximum: float = A_VERY_LARGE_NUMBER,
-                        ) -> float:
 
-    if minimum >= 0:
-        return 1
-
-    if maximum <= 0:
-        return -1
-
-    if np.isnan(optimum_weight):
-        return 1
-
-    return sign(optimum_weight)
-
-def calculate_starting_weight(minimum, maximum) -> float:
-
-    if maximum == minimum:
-        ## no trade possible
-        return maximum
-
-    if minimum > 0:
-        return minimum
-
-    if maximum < 0:
-        return maximum
-
-    return 0.0
+import cvxpy as cp
 
 
-
-def greedy_algo_across_integer_values(
-        obj_instance: objectiveFunctionForGreedy
+def new_algo_across_integer_values(
+        obj_instance: objectiveFunctionForMixedInt
                                     ) -> np.array:
 
-    ## Starting weights
-    ## These will eithier be all zero, or in the presence of constraints will include the minima
-    weight_start = obj_instance.starting_weights_as_np()
-    best_value = obj_instance.evaluate(weight_start)
-    best_solution = weight_start
 
-    at_limit = [False]*len(weight_start)
+    best_value = obj_instance.evaluate_contracts()
+    maxima = obj_instance.maxima_as_np
+    minima = obj_instance.minima_as_np
 
-    done = False
+    x = cp.Variable(len(maxima), integer=True)
+    constraints = [x + y == 1,
+                   x - y >= 1]
+    objective = cp.Minimize(obj_instance.evaluate_contracts(x))
+prob = cp.Problem(objective)
+prob.solve()
 
-    while not done:
-        new_best_value, new_solution, at_limit = _find_possible_new_best_live(best_solution = best_solution,
-                                                              best_value=best_value,
-                                                              obj_instance=obj_instance,
-                                                               at_limit = at_limit)
-
-        if new_best_value<best_value:
-            # reached a new optimium
-            best_value = new_best_value
-            best_solution = new_solution
-        else:
-            # we can't do any better
-            break
-
-    return best_solution
-
-
-def _find_possible_new_best_live(best_solution: np.array,
-                           best_value: float,
-                           obj_instance: objectiveFunctionForGreedy,
-                            at_limit: list) -> tuple:
-
-    new_best_value = best_value
-    new_solution = best_solution
-
-    per_contract_value = obj_instance.per_contract_value_as_np
-    direction = obj_instance.direction_as_np
-
-    count_assets = len(best_solution)
-    for i in range(count_assets):
-        if at_limit[i]:
-            continue
-        temp_step = copy(best_solution)
-        temp_step[i] = temp_step[i] + per_contract_value[i] * direction[i]
-        at_limit = _update_at_limit(i, at_limit=at_limit,
-                                    temp_step=temp_step,
-                                    obj_instance=obj_instance)
-        if at_limit[i]:
-            continue
-
-        temp_objective_value = obj_instance.evaluate(temp_step)
-        if temp_objective_value < new_best_value:
-            new_best_value = temp_objective_value
-            new_solution = temp_step
-
-    return new_best_value, new_solution, at_limit
-
-def _update_at_limit(i: int,
-                     at_limit: list,
-                     temp_step: np.array,
-                     obj_instance: objectiveFunctionForGreedy) -> list:
-
-    direction_this_item = obj_instance.direction_as_np[i]
-    temp_weight_this_item = temp_step[i]
-    if direction_this_item>0:
-        max_this_item = obj_instance.maxima_as_np[i]
-        if temp_weight_this_item>max_this_item:
-            at_limit[i] = True
-
-    else:
-        min_this_item = obj_instance.minima_as_np[i]
-        if temp_weight_this_item<min_this_item:
-            at_limit[i]= True
-
-    return at_limit
-
+obj_instance = objectiveFunctionForMixedInt(
+    weights_optimal=original_portfolio_weights,
+    covariance_matrix=covariance_matrix,
+    per_contract_value=per_contract_value,
+    weights_prior=previous_weights,
+    costs=costs,
+    reduce_only_keys=reduce_only_keys,
+    no_trade_keys=no_trade_keys,
+    maximum_position_weights=maximum_position_weights,
+    trade_shadow_cost=shadow_cost)
