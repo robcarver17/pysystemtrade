@@ -15,5 +15,5 @@ python3 app.py
 
 Visit `http://localhost:5000/` to view the dashboard. To remap this location or to make it accessible from outside machines (do this at your own peril!) you need to do the following:
 
-- Bash terminal (linux): sudo ufw allow 5000
+- Bash terminal (linux): `sudo ufw allow 5000`
 - Add the following parameter to your private_control_config.yaml `dashboard_visible_on_lan: True`
