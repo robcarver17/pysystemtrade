@@ -110,6 +110,7 @@ class processToRun(object):
     def _main_loop_over_methods(self):
         is_running = True
         while is_running:
+            time.sleep(0.5)
             list_of_timer_functions = self._list_of_timer_functions
             we_should_stop = _check_for_stop(self)
             if we_should_stop:
