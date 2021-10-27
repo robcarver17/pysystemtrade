@@ -15,6 +15,7 @@ function update_capital() {
 }
 
 function update_costs() {
+  $("#costs").prepend('<div class="loading">Loading...</div>');
   $.ajax({
     type: "GET",
     url: "/costs",
@@ -39,11 +40,13 @@ function update_costs() {
           </tr>`
         );
       });
+      $("#costs > div.loading").remove();
     }
   });
 }
 
 function update_forex() {
+  $("#forex").prepend('<div class="loading">Loading...</div>');
   $.ajax({
     type: "GET",
     url: "/forex",
@@ -51,12 +54,14 @@ function update_forex() {
       $.each(data, function(currency, balance) {
         $("#forex_table tbody").append(`<tr><td>${currency}</td><td>${balance}</td></tr>`);
       });
+      $("#forex > div.loading").remove();
     }
   }
   );
 }
 
 function update_liquidity() {
+  $("#liquidity").prepend('<div class="loading">Loading...</div>');
   $.ajax({
     type: "GET",
     url: "/liquidity",
@@ -79,12 +84,14 @@ function update_liquidity() {
           ${risk}</tr>`
         );
       });
+      $("#liquidity > div.loading").remove();
     }
   }
   );
 }
 
 function update_pandl() {
+  $("#pandl").prepend('<div class="loading">Loading...</div>');
   $.ajax({
     type: "GET",
     url: "/pandl",
@@ -107,12 +114,14 @@ function update_pandl() {
         $("#pandl_class_table tbody").append(`<tr>
           <td>${v["codes"]}</td><td>${v["pandl"].toFixed(2)}</td></tr>`);
       });
+      $("#pandl > div.loading").remove();
     }
   }
   );
 }
 
 function update_processes() {
+  $("#processes").prepend('<div class="loading">Loading...</div>');
   $.ajax({
     type: "GET",
     url: "/processes",
@@ -144,13 +153,14 @@ function update_processes() {
       } else {
         $('#prices-tl').addClass("red");
       }
-
+      $("#processes > div.loading").remove();
     }
   }
   );
 }
 
 function update_reconcile() {
+  $("#reconciliation").prepend('<div class="loading">Loading...</div>');
   $.ajax({
     type: "GET",
     url: "/reconcile",
@@ -200,12 +210,15 @@ function update_reconcile() {
       } else {
         $('#gateway-tl').addClass("red");
       }
+      $("#reconciliation > div.loading").remove();
+      $("#tab_reconciliation").one("click", update_reconcile);
     }
   }
   );
 }
 
 function update_risk() {
+  $("#risk").prepend('<div class="loading">Loading...</div>');
   $.ajax({
     type: "GET",
     url: "/risk",
@@ -243,12 +256,14 @@ function update_risk() {
           <td>${v["annual_risk_perc_capital"].toFixed(1)}</td>
           </tr>`);
       });
+      $("#risk > div.loading").remove();
     }
   }
   );
 }
 
 function update_rolls() {
+  $("#rolls").prepend('<div class="loading">Loading...</div>');
   $.ajax({
     type: "GET",
     url: "/rolls",
@@ -289,23 +304,27 @@ function update_rolls() {
       }
       );
       $("#rolls-tl").addClass(overall);
+      $("#rolls > div.loading").remove();
     }
   });
 }
 
 function update_strategy() {
+  $("#strategy").prepend('<div class="loading">Loading...</div>');
   $.ajax({
     type: "GET",
     url: "/strategy",
     success: function(data) {
       $.each(data, function(k, v) {
       });
+      $("#strategy > div.loading").remove();
     }
   }
   );
 }
 
 function update_trades() {
+  $("#trades").prepend('<div class="loading">Loading...</div>');
   $.ajax({
     type: "GET",
     url: "/trades",
@@ -383,6 +402,7 @@ function update_trades() {
           <td>${v["total_trading_cash"]}</td>
           </tr>`)
       });
+      $("#trades > div.loading").remove();
     }
   }
   );
@@ -445,13 +465,14 @@ function roll_post(instrument, state, confirmed = false) {
 
 $(document).ready(update_capital());
 $(document).ready(update_forex());
-$(document).ready(update_pandl());
 $(document).ready(update_processes());
 $(document).ready(update_reconcile());
-$(document).ready(update_risk());
-$(document).ready(update_strategy());
-$(document).ready(update_trades());
 $(document).ready(update_rolls());
-$(document).ready(update_liquidity());
-$(document).ready(update_costs());
-
+$(document).ready(function() {
+  $("#tab_costs").one("click", update_costs);
+  $("#tab_risk").one("click", update_risk);
+  $("#tab_pandl").one("click", update_pandl);
+  $("#tab_trades").one("click", update_trades);
+  $("#tab_strategy").one("click", update_strategy);
+  $("#tab_liquidity").one("click", update_liquidity);
+});
