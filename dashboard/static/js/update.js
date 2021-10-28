@@ -15,7 +15,7 @@ function update_capital() {
 }
 
 function update_costs() {
-  $("#costs").prepend('<div class="loading">Loading...</div>');
+  $("#costs > div.loading").show();
   $("#costs > table").hide();
   $.ajax({
     type: "GET",
@@ -41,14 +41,14 @@ function update_costs() {
           </tr>`
         );
       });
-      $("#costs > div.loading").remove();
+      $("#costs > div.loading").hide();
       $("#costs > table").show("slow");
     }
   });
 }
 
 function update_forex() {
-  $("#forex").prepend('<div class="loading">Loading...</div>');
+  $("#forex > div.loading").show();
   $("#forex > table").hide();
   $.ajax({
     type: "GET",
@@ -57,7 +57,7 @@ function update_forex() {
       $.each(data, function(currency, balance) {
         $("#forex_table tbody").append(`<tr><td>${currency}</td><td>${balance}</td></tr>`);
       });
-      $("#forex > div.loading").remove();
+      $("#forex > div.loading").hide();
       $("#forex > table").show("slow");
     }
   }
@@ -65,7 +65,7 @@ function update_forex() {
 }
 
 function update_liquidity() {
-  $("#liquidity").prepend('<div class="loading">Loading...</div>');
+  $("#liquidity > div.loading").show();
   $("#liquidity > table").hide();
   $.ajax({
     type: "GET",
@@ -89,7 +89,7 @@ function update_liquidity() {
           ${risk}</tr>`
         );
       });
-      $("#liquidity > div.loading").remove();
+      $("#liquidity > div.loading").hide();
       $("#liquidity > table").show("slow");
     }
   }
@@ -97,7 +97,7 @@ function update_liquidity() {
 }
 
 function update_pandl() {
-  $("#pandl").prepend('<div class="loading">Loading...</div>');
+  $("#pandl > div.loading").show();
   $("#pandl > table").hide();
   $.ajax({
     type: "GET",
@@ -121,7 +121,7 @@ function update_pandl() {
         $("#pandl_class_table tbody").append(`<tr>
           <td>${v["codes"]}</td><td>${v["pandl"].toFixed(2)}</td></tr>`);
       });
-      $("#pandl > div.loading").remove();
+      $("#pandl > div.loading").hide();
       $("#pandl > table").show("slow");
     }
   }
@@ -129,7 +129,7 @@ function update_pandl() {
 }
 
 function update_processes() {
-  $("#processes").prepend('<div class="loading">Loading...</div>');
+  $("#processes > div.loading").show();
   $("#processes > table").hide();
   $.ajax({
     type: "GET",
@@ -162,7 +162,7 @@ function update_processes() {
       } else {
         $('#prices-tl').addClass("red");
       }
-      $("#processes > div.loading").remove();
+      $("#processes > div.loading").hide();
       $("#processes > table").show("slow");
     }
   }
@@ -170,7 +170,7 @@ function update_processes() {
 }
 
 function update_reconcile() {
-  $("#reconciliation").prepend('<div class="loading">Loading...</div>');
+  $("#reconciliation > div.loading").show();
   $("#reconciliation > table").hide();
   $.ajax({
     type: "GET",
@@ -221,7 +221,7 @@ function update_reconcile() {
       } else {
         $('#gateway-tl').addClass("red");
       }
-      $("#reconciliation > div.loading").remove();
+      $("#reconciliation > div.loading").hide();
       $("#tab_reconciliation").one("click", update_reconcile);
       $("#reconciliation > table").show("slow");
     }
@@ -230,7 +230,7 @@ function update_reconcile() {
 }
 
 function update_risk() {
-  $("#risk").prepend('<div class="loading">Loading...</div>');
+  $("#risk > div.loading").show();
   $("#risk > table").hide();
   $.ajax({
     type: "GET",
@@ -269,7 +269,7 @@ function update_risk() {
           <td>${v["annual_risk_perc_capital"].toFixed(1)}</td>
           </tr>`);
       });
-      $("#risk > div.loading").remove();
+      $("#risk > div.loading").hide();
       $("#risk > table").show("slow");
     }
   }
@@ -277,7 +277,7 @@ function update_risk() {
 }
 
 function update_rolls() {
-  $("#rolls").prepend('<div class="loading">Loading...</div>');
+  $("#rolls > div.loading").show();
   $("#rolls > table").hide();
   $.ajax({
     type: "GET",
@@ -319,14 +319,14 @@ function update_rolls() {
       }
       );
       $("#rolls-tl").removeClass("red orange green").addClass(overall);
-      $("#rolls > div.loading").remove();
+      $("#rolls > div.loading").hide();
       $("#rolls > table").show("slow");
     }
   });
 }
 
 function update_strategy() {
-  $("#strategy").prepend('<div class="loading">Loading...</div>');
+  $("#strategy > div.loading").show();
   $("#strategy > table").hide();
   $.ajax({
     type: "GET",
@@ -334,7 +334,7 @@ function update_strategy() {
     success: function(data) {
       $.each(data, function(k, v) {
       });
-      $("#strategy > div.loading").remove();
+      $("#strategy > div.loading").hide();
       $("#strategy > table").show("slow");
     }
   }
@@ -342,7 +342,7 @@ function update_strategy() {
 }
 
 function update_trades() {
-  $("#trades").prepend('<div class="loading">Loading...</div>');
+  $("#trades > div.loading").show();
   $("#trades > table").hide();
   $.ajax({
     type: "GET",
@@ -421,7 +421,7 @@ function update_trades() {
           <td>${v["total_trading_cash"]}</td>
           </tr>`)
       });
-      $("#trades > div.loading").remove();
+      $("#trades > div.loading").hide();
       $("#trades > table").show("slow");
     }
   }
