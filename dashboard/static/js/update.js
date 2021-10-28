@@ -16,6 +16,7 @@ function update_capital() {
 
 function update_costs() {
   $("#costs").prepend('<div class="loading">Loading...</div>');
+  $("#costs > table").hide();
   $.ajax({
     type: "GET",
     url: "/costs",
@@ -41,12 +42,14 @@ function update_costs() {
         );
       });
       $("#costs > div.loading").remove();
+      $("#costs > table").show("slow");
     }
   });
 }
 
 function update_forex() {
   $("#forex").prepend('<div class="loading">Loading...</div>');
+  $("#forex > table").hide();
   $.ajax({
     type: "GET",
     url: "/forex",
@@ -55,6 +58,7 @@ function update_forex() {
         $("#forex_table tbody").append(`<tr><td>${currency}</td><td>${balance}</td></tr>`);
       });
       $("#forex > div.loading").remove();
+      $("#forex > table").show("slow");
     }
   }
   );
@@ -62,6 +66,7 @@ function update_forex() {
 
 function update_liquidity() {
   $("#liquidity").prepend('<div class="loading">Loading...</div>');
+  $("#liquidity > table").hide();
   $.ajax({
     type: "GET",
     url: "/liquidity",
@@ -85,6 +90,7 @@ function update_liquidity() {
         );
       });
       $("#liquidity > div.loading").remove();
+      $("#liquidity > table").show("slow");
     }
   }
   );
@@ -92,6 +98,7 @@ function update_liquidity() {
 
 function update_pandl() {
   $("#pandl").prepend('<div class="loading">Loading...</div>');
+  $("#pandl > table").hide();
   $.ajax({
     type: "GET",
     url: "/pandl",
@@ -115,6 +122,7 @@ function update_pandl() {
           <td>${v["codes"]}</td><td>${v["pandl"].toFixed(2)}</td></tr>`);
       });
       $("#pandl > div.loading").remove();
+      $("#pandl > table").show("slow");
     }
   }
   );
@@ -122,6 +130,7 @@ function update_pandl() {
 
 function update_processes() {
   $("#processes").prepend('<div class="loading">Loading...</div>');
+  $("#processes > table").hide();
   $.ajax({
     type: "GET",
     url: "/processes",
@@ -154,6 +163,7 @@ function update_processes() {
         $('#prices-tl').addClass("red");
       }
       $("#processes > div.loading").remove();
+      $("#processes > table").show("slow");
     }
   }
   );
@@ -161,6 +171,7 @@ function update_processes() {
 
 function update_reconcile() {
   $("#reconciliation").prepend('<div class="loading">Loading...</div>');
+  $("#reconciliation > table").hide();
   $.ajax({
     type: "GET",
     url: "/reconcile",
@@ -212,6 +223,7 @@ function update_reconcile() {
       }
       $("#reconciliation > div.loading").remove();
       $("#tab_reconciliation").one("click", update_reconcile);
+      $("#reconciliation > table").show("slow");
     }
   }
   );
@@ -219,6 +231,7 @@ function update_reconcile() {
 
 function update_risk() {
   $("#risk").prepend('<div class="loading">Loading...</div>');
+  $("#risk > table").hide();
   $.ajax({
     type: "GET",
     url: "/risk",
@@ -257,6 +270,7 @@ function update_risk() {
           </tr>`);
       });
       $("#risk > div.loading").remove();
+      $("#risk > table").show("slow");
     }
   }
   );
@@ -264,6 +278,7 @@ function update_risk() {
 
 function update_rolls() {
   $("#rolls").prepend('<div class="loading">Loading...</div>');
+  $("#rolls > table").hide();
   $.ajax({
     type: "GET",
     url: "/rolls",
@@ -303,14 +318,16 @@ function update_rolls() {
         );
       }
       );
-      $("#rolls-tl").addClass(overall);
+      $("#rolls-tl").removeClass("red orange green").addClass(overall);
       $("#rolls > div.loading").remove();
+      $("#rolls > table").show("slow");
     }
   });
 }
 
 function update_strategy() {
   $("#strategy").prepend('<div class="loading">Loading...</div>');
+  $("#strategy > table").hide();
   $.ajax({
     type: "GET",
     url: "/strategy",
@@ -318,6 +335,7 @@ function update_strategy() {
       $.each(data, function(k, v) {
       });
       $("#strategy > div.loading").remove();
+      $("#strategy > table").show("slow");
     }
   }
   );
@@ -325,6 +343,7 @@ function update_strategy() {
 
 function update_trades() {
   $("#trades").prepend('<div class="loading">Loading...</div>');
+  $("#trades > table").hide();
   $.ajax({
     type: "GET",
     url: "/trades",
@@ -403,6 +422,7 @@ function update_trades() {
           </tr>`)
       });
       $("#trades > div.loading").remove();
+      $("#trades > table").show("slow");
     }
   }
   );
