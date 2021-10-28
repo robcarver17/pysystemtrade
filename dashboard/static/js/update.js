@@ -135,24 +135,25 @@ function update_processes() {
     type: "GET",
     url: "/processes",
     success: function(data) {
-      if (data['running_modes']['run_stack_handler'] == 'running') {
+      if (data['process']['run_stack_handler']['running'] == 'running') {
         $('#stack-tl').addClass("green");
-      } else if (data['running_modes']['run_stack_handler'] == 'crashed') {
+      } else if (data['process']['run_stack_handler']['running'] == 'crashed') {
         $('#stack-tl').addClass("red");
       } else {
         $('#stack-tl').addClass("orange");
       }
       $("#processes_status > tbody").empty();
-      $.each(data['running_modes'], function(process, status) {
-        if (status == 'crashed') {
+      $.each(data['process'], function(process, stat) {
+        var running = stat['running']
+        if (running == 'crashed') {
         $("#processes_status tbody").append(`
           <tr><td>${process}</td>
-          <td class="red">${status}</td>
+          <td class="red">${running}</td>
           </tr>`);
         } else {
           $("#processes_status tbody").append(`
           <tr><td>${process}</td>
-          <td>${status}</td>
+          <td>${running}</td>
           </tr>`);
         }
       }
