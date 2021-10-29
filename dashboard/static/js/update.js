@@ -174,11 +174,47 @@ function update_processes() {
         }
       }
       );
-      if (data["prices_update"]) {
-        $('#prices-tl').addClass("green");
-      } else {
-        $('#prices-tl').addClass("red");
-      }
+      var now = new Date();
+      var most_recent_diff = 999;
+      var most_recent_date = new Date();
+      // Find the most recent update
+      $.each(data['price'], function(instrument, update) {
+        var date = new Date(update['last_update']);
+        var days = (now.getTime() - date.getTime()) / (1000 * 24 * 60 * 60);
+        if (days < most_recent_diff) {
+          most_recent_diff = days;
+          most_recent_date = date;
+        }
+      });
+
+      var price_overall = 'green';
+      $.each(data['price'], function(instrument, update) {
+        var str = update['last_update'];
+        var date = new Date(str);
+        var diff = (most_recent_date.getTime() - date.getTime()) / (1000 * 24 * 60 * 60);  // days
+        var short_date = str.substring(5,7) + "/" + str.substring(8,10) + " " + str.substring(11,19);
+        if (most_recent_diff > 1.0) {
+          price_overall = "orange";
+        }
+        if (diff <= 1.0)
+        {
+          $("#processes_prices tbody").append(`
+          <tr>
+            <td>${instrument}</td>
+            <td>${short_date}
+          </tr>
+          `);
+        } else {
+          $("#processes_prices tbody").append(`
+          <tr>
+            <td>${instrument}</td>
+            <td class="red">${short_date} ${most_recent_diff} ${diff}
+          </tr>
+          `);
+          price_overall = 'red';
+        }
+      });
+      $('#prices-tl').removeClass("red orange green").addClass(price_overall);
       $("#processes > div.loading").hide();
       $("#processes > table").show("slow");
     }
