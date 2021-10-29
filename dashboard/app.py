@@ -144,7 +144,6 @@ def processes():
     status_data["process"] = allprocess
     status_data.pop("process2")
     status_data.pop("process3")
-    pprint(status_data)
     return status_data
 
 
