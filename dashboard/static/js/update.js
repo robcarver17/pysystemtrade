@@ -148,12 +148,28 @@ function update_processes() {
         if (running == 'crashed') {
         $("#processes_status tbody").append(`
           <tr><td>${process}</td>
+          <td>${stat['status']}</td>
           <td class="red">${running}</td>
+          <td>${stat['PID']}</td>
+          <td>${stat['previous_process']}</td>
+          <td>${stat['prev_process']}</td>
+          <td>${stat['start_time']}</td>
+          <td>${stat['end_time']}</td>
+          <td>${stat['start']}</td>
+          <td>${stat['end']}</td>
           </tr>`);
         } else {
           $("#processes_status tbody").append(`
           <tr><td>${process}</td>
+          <td>${stat['status']}</td>
           <td>${running}</td>
+          <td>${stat['PID']}</td>
+          <td>${stat['previous_process']}</td>
+          <td>${stat['prev_process']}</td>
+          <td>${stat['start_time']}</td>
+          <td>${stat['end_time']}</td>
+          <td>${stat['start']}</td>
+          <td>${stat['end']}</td>
           </tr>`);
         }
       }
