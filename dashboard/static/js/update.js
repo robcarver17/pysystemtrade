@@ -224,7 +224,6 @@ function update_processes() {
 
 function update_reconcile() {
   $("#reconciliation > div.loading").show();
-  $("#reconciliation > table").hide();
   $.ajax({
     type: "GET",
     url: "/reconcile",
