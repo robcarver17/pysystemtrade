@@ -6,7 +6,7 @@ from sysdata.data_blob import dataBlob
 from sysproduction.data.currency_data import dataCurrency
 from sysproduction.data.instruments import diagInstruments
 from sysproduction.data.prices import diagPrices
-from sysproduction.utilities.risk_metrics import get_annual_perc_stdev_for_instrument
+from sysproduction.utilities.risk_metrics import get_current_annualised_perc_stdev_for_instrument
 
 
 def get_current_configured_spread_cost(data):
@@ -95,9 +95,9 @@ def get_block_size(data, instrument_code):
 
 def get_percentage_ann_stdev(data, instrument_code):
     try:
-        perc = get_annual_perc_stdev_for_instrument(data, instrument_code)
+        perc =get_current_annualised_perc_stdev_for_instrument(data, instrument_code)
     except:
         ## can happen for brand new instruments not properly loaded
         return np.nan
 
-    return perc/100.0
+    return perc

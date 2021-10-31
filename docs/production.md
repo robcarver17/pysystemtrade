@@ -584,7 +584,7 @@ mongorestore
 
 As I am super paranoid, I also like to output all my mongo_db data into .csv files, which I then regularly backup. This will allow a system recovery, should the mongo files be corrupted.
 
-This currently supports: FX, individual futures contract prices, multiple prices, adjusted prices, position data, historical trades, capital, contract meta-data, instrument data, optimal positions. Some other state information relating to the control of trading and processes is also stored in the database and this will be lost, however this can be recovered with a litle work: roll status, trade limits, position limits, and overrides. Log data will also be lost; but archived [echo files](#echos-stdout-output) could be searched if neccessary.
+This currently supports: FX, individual futures contract prices, multiple prices, adjusted prices, position data, historical trades, capital, contract meta-data, instrument data, optimal positions. Some other state information relating to the control of trading and processes is also stored in the database and this will be lost, however this can be recovered with a litle work: roll status, trade limits, position limits, and overrides. Log data will also be lost; but archived [echo files](#echos-stdout-output) could be searched if necessary.
 
 
 Linux script:
@@ -1767,6 +1767,17 @@ Linux script:
 . $SCRIPT_PATH/interactive_update_roll_status
 ```
 
+There are four different modes that this can be run in:
+
+- Manually input instrument codes and manually decide when to roll
+- Cycle through instrument codes automatically, but manually decide when to roll
+- Cycle through instrument codes automatically, auto decide when to roll, manually confirm rolls
+- Cycle through instrument codes automatically, auto decide when to roll, automatically roll
+
+#### Manually input instrument codes and manually decide when to roll
+
+You enter the instrument code you wish to think about rolling.
+
 The first thing the process will do is create and print a roll report. See the [roll report](#roll-report-daily) for more information on how to interpret the information shown. You will then have the option of switching between roll modes. Not all modes will be allowed, depending on the current positions that you are holding and the current roll state.
 
 The possible options are:
@@ -1775,8 +1786,30 @@ The possible options are:
 - Passive. This will tactically reduce positions in the priced contract, and open new positions in the forward contract.
 - Force. This will pause all normal trading in the relevant instrument, and the stack handler will create a calendar spread trade to roll from the priced to the forward contract.
 - Force legs. This will pause all normal trading, and create two outright trades (closing the priced contract position, opening a forward position).
-- Roll adjusted. This is only possible if you have no positions in the current price contract. It will create a new adjusted and multiple price series, hence the current forward contract will become the new priced contract (and everything else will shift accordingly).
+- Roll adjusted. This is only possible if you have no positions in the current price contract. It will create a new adjusted and multiple price series, hence the current forward contract will become the new priced contract (and everything else will shift accordingly). Adjusted price changes are manually confirmed before writing to the database.
 
+Once you've updated the roll status you have the option of choosing another instrument, or aborting.
+
+#### Cycle through instrument codes automatically, but manually decide when to roll
+
+This chooses a subset of instruments that are expiring soon. You will be prompted for the number of days ahead you want to look for expiries. This then behaves exactly like the manual option above, except it automatically cycles through the relevant subset of instruments.
+
+#### Cycle through instrument codes automatically, auto decide when to roll, manually confirm rolls
+
+Again this will first choose a subset of instruments that are expiring soon. What happens next will depend on the parameters you have decided upon:
+
+- If the volume in the forward contract is less than the required relative volume, we do nothing
+- If the relative volume is fine and you have no position in the priced contract, then we automatically decide to roll adjusted prices
+- If the relative volume is fine and you have a position in the priced contract, and you have asked to manually input the required state on a case by case basis: that's what will happen
+- If the relative volume is fine and you have a position in the priced contract, and you have NOT asked to manually input the required state, then the state will automatically be changed to one of passive, force, or force leg (as selected). I strongly recommend using Passive rolling here, and then manually changing individual instruments if required.
+
+If a decision is made to roll adjusted prices, you will be asked to confirm you are happy with the prices changes before they are written to the database.
+
+I recommend that you run a roll report after doing this to see what state things are in.
+
+#### Cycle through instrument codes automatically, auto decide when to roll, automatically roll
+
+This is exactly like the previous option, except that if a decision is made to roll adjusted prices, this will happen automatically without user confirmation.
 
 ## Menu driven interactive scripts
 
@@ -1855,7 +1888,7 @@ See [scheduling](#pysystemtrade-scheduling).
 Here's an example of the relevant output, start/end times, currently running, status, and PID (process ID).
 
 ```
-un_capital_update            : Last started 2020-12-08 15:56:32.323000 Last ended status 2020-12-08 14:31:46.601000 GO      PID 63652.0    is running
+run_capital_update            : Last started 2020-12-08 15:56:32.323000 Last ended status 2020-12-08 14:31:46.601000 GO      PID 63652.0    is running
 run_daily_prices_updates      : Last started 2020-12-08 12:36:04.850000 Last ended status 2020-12-08 13:54:47.885000 GO      PID None       is not running
 run_systems                   : Last started 2020-12-08 14:10:30.485000 Last ended status 2020-12-08 14:42:40.945000 GO      PID None       is not running
 run_strategy_order_generator  : Last started 2020-12-08 14:46:28.013000 Last ended status 2020-12-08 14:49:44.081000 GO      PID None       is not running
@@ -2112,7 +2145,7 @@ The complexity of the order stacks is there for a reason; it allows different ki
 
 ##### Lock/unlock order
 
-There is a 'lock' in the order database, basically an explicit flag preventing the order from being modified. Certain operations which span multiple data tables will impose locks first so the commit does not partially fail (I'm using noSQL so there is no explicit cross table commit available). If operations fail mid lock they will usually try and fall back and remove locks, but this doesn't always work out. So it sometimes neccessary to manually unlock orders, and for symmettry manually lock them.
+There is a 'lock' in the order database, basically an explicit flag preventing the order from being modified. Certain operations which span multiple data tables will impose locks first so the commit does not partially fail (I'm using noSQL so there is no explicit cross table commit available). If operations fail mid lock they will usually try and fall back and remove locks, but this doesn't always work out. So it sometimes necessary to manually unlock orders, and for symmettry manually lock them.
 
 
 ##### Lock/unlock instrument code
@@ -2347,7 +2380,7 @@ You can use python itself as a scheduler, using something like [this](https://gi
 
 ### Manual system
 
-It's possible to run pysystemtrade without any scheduling, by manually starting the neccessary processes as required. This option might make sense for traders who are not running a fully automated system (though [you may want to keep most of the scheduling running anyway](#automation-options)).
+It's possible to run pysystemtrade without any scheduling, by manually starting the necessary processes as required. This option might make sense for traders who are not running a fully automated system (though [you may want to keep most of the scheduling running anyway](#automation-options)).
 
 ### Hybrid of python and cron
 
@@ -2832,11 +2865,10 @@ Example [here](/sysproduction/strategy_code/report_system_classic.py).
 Here's some general advice about recovering from a crash:
 
 - If you're not using IBC restart the IB Gateway; and if you are check it has started ok
-- Temporarily turn off the crontab to stop processes from spawning before you are reading
+- Temporarily turn off the crontab to stop processes from spawning before you are ready
 - Check you have a mongoDB instance running okay
-
 - Run a full set of reports, and carefully check them, especially the status and reconcile reports, to see that all is well.
-- If neccessary take steps to recover data (see next section). 
+- If necessary take steps to recover data (see next section). 
 - If this goes well you will have an empty order stack. Run update_strategy_orders to repopulate it.
 - You should turn the crontab back on when everything is working fine
 - Processes are started by the scheduler, eg Cron, you will need to start them manually if their normal start time has passed (I find [linux screen](https://linuxize.com/post/how-to-use-linux-screen/) helpful for this on my headless server). Everything should work normally the following day.
@@ -2845,9 +2877,9 @@ Here's some general advice about recovering from a crash:
 
 ## Data recovery
 
-Let's first consider an awful case where your mongo DB is corrupted, and the backups are also corrupted. In this case you can use the backed up .csv database dump files to recover the following: FX, individual futures contract prices, multiple prices, adjusted prices, position data, historical trades, capital, contract meta-data, instrument data, optimal positions. Note that scripts don't neccessarily exist to do all this automatically yet FIX ME TO DO.
+Let's first consider an awful case where your mongo DB is corrupted, and the backups are also corrupted. In this case you can use the backed up .csv database dump files to recover the following: FX, individual futures contract prices, multiple prices, adjusted prices, position data, historical trades, capital, contract meta-data, instrument data, optimal positions. Note that scripts don't necessarily exist to do all this automatically yet FIX ME TO DO.
 
-Some other state information relating to the control of trading and processes is also stored in the database and this will be lost, however this can be recovered with a litle work: roll status, trade limits, position limits, and overrides. Log data will also be lost; but archived [echo files](#echos-stdout-output) could be searched if neccessary.
+Some other state information relating to the control of trading and processes is also stored in the database and this will be lost, however this can be recovered with a litle work: roll status, trade limits, position limits, and overrides. Log data will also be lost; but archived [echo files](#echos-stdout-output) could be searched if necessary.
 
 The better case is when the mongo DB is fine. In this case (once you've [restored](#mongo-data) it) you will have only lost everything from your last nightly backup onwards. Here is what you do to get it back (if possible)
 
@@ -2868,7 +2900,9 @@ The better case is when the mongo DB is fine. In this case (once you've [restore
 
 # Reports
 
+## Dashboard
 
+A lot of the information in the reports described below can also be found in the [Web Dashboard](/docs/dashboard.md)
 
 ### Roll report (Daily)
 

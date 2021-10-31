@@ -63,6 +63,8 @@ class objectiveFunctionForGreedy:
     def no_prior_weights_provided(self) -> bool:
         return self.weights_prior is arg_not_supplied
 
+
+
     @property
     def maxima_as_np(self) -> np.array:
         return self.input_data.maxima_as_np
@@ -411,7 +413,9 @@ def calculations_for_code(reduce_only: bool = False,
                                     minimum=minimum,
                                     maximum=maximum)
 
-    start_weight = calculate_starting_weight(minimum, maximum)
+    start_weight = calculate_starting_weight(minimum=minimum,
+                                             maximum=maximum,
+                                             weight_prior=weight_prior)
 
     return minMaxAndDirectionAndStartForCode(minimum=minimum,
                                              maximum=maximum,
@@ -469,7 +473,7 @@ def calculate_direction(optimum_weight: float,
 
     return sign(optimum_weight)
 
-def calculate_starting_weight(minimum, maximum) -> float:
+def calculate_starting_weight(minimum, maximum, weight_prior: float = arg_not_supplied) -> float:
 
     if maximum == minimum:
         ## no trade possible
@@ -482,6 +486,8 @@ def calculate_starting_weight(minimum, maximum) -> float:
         return maximum
 
     return 0.0
+
+
 
 
 def greedy_algo_across_integer_values(
@@ -532,6 +538,7 @@ def _find_possible_new_best_live(best_solution: np.array,
             continue
         temp_step = copy(best_solution)
         temp_step[i] = temp_step[i] + per_contract_value[i] * direction[i]
+        
         at_limit = _update_at_limit(i, at_limit=at_limit,
                                     temp_step=temp_step,
                                     obj_instance=obj_instance)
@@ -542,6 +549,8 @@ def _find_possible_new_best_live(best_solution: np.array,
         if temp_objective_value < new_best_value:
             new_best_value = temp_objective_value
             new_solution = temp_step
+
+
 
     return new_best_value, new_solution, at_limit
 

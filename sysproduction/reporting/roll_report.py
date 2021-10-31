@@ -1,10 +1,7 @@
 import datetime
 import pandas as pd
 
-from sysproduction.data.volumes import diagVolumes
-from sysproduction.data.contracts import dataContracts
 from sysproduction.data.prices import diagPrices
-from sysproduction.data.positions import diagPositions
 
 from syscore.objects import header, table, body_text
 
@@ -13,6 +10,7 @@ from syscore.objects import header, table, body_text
 # To have it emailed, we'll call the report function and optionally pass the output to a text file not stdout
 # Reports consist of multiple calls to functions with data object, each of which returns a displayable object
 # We also chuck in a title and a timestamp
+from sysproduction.utilities.rolls import get_roll_data_for_instrument
 
 ALL_ROLL_INSTRUMENTS = "ALL"
 
@@ -49,60 +47,6 @@ def roll_info(data, instrument_code=ALL_ROLL_INSTRUMENTS):
     formatted_output = format_roll_data_for_instrument(results_dict)
 
     return formatted_output
-
-
-def get_roll_data_for_instrument(instrument_code, data):
-    """
-    Get roll data for an individual instrument
-
-    :param instrument_code: str
-    :param data: dataBlob
-    :return:
-    """
-    c_data = dataContracts(data)
-    relevant_contract_dict = c_data.get_labelled_dict_of_current_contracts(
-        instrument_code
-    )
-    list_of_relevant_contract_date_str = relevant_contract_dict["contracts"]
-    contract_labels = relevant_contract_dict["labels"]
-
-    v_data = diagVolumes(data)
-    volumes = v_data.get_normalised_smoothed_volumes_of_contract_list(
-        instrument_code, list_of_relevant_contract_date_str
-    )
-
-
-    # length to expiries / length to suggested roll
-    price_expiry = c_data.get_priced_expiry(instrument_code)
-    carry_expiry = c_data.get_carry_expiry(instrument_code)
-    when_to_roll = c_data.when_to_roll_priced_contract(instrument_code)
-
-    now = datetime.datetime.now()
-    price_expiry_days = (price_expiry - now).days
-    carry_expiry_days = (carry_expiry - now).days
-    when_to_roll_days = (when_to_roll - now).days
-
-    # roll status
-    diag_positions = diagPositions(data)
-    roll_status = diag_positions.get_name_of_roll_state(instrument_code)
-
-    # Positions
-    positions = diag_positions.get_positions_for_instrument_and_contract_list(
-        instrument_code, list_of_relevant_contract_date_str
-    )
-
-    results_dict_code = dict(
-        code=instrument_code,
-        status=roll_status,
-        roll_expiry=when_to_roll_days,
-        price_expiry=price_expiry_days,
-        carry_expiry=carry_expiry_days,
-        contract_labels=contract_labels,
-        volumes=volumes,
-        positions=positions,
-    )
-
-    return results_dict_code
 
 
 def format_roll_data_for_instrument(results_dict):

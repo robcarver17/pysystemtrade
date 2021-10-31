@@ -97,13 +97,13 @@ In general each step relies on the previous step to work; more formally:
 Before we start, another note: Confusingly, data can be stored or come from various places, which include: 
 
 1. .csv files containing data that pysystemtrade is shipped with (stored in [this set of directories](/data/futures/)); it includes everything above except for roll parameters, and is periodically updated from my own live data. Any .csv data 'pipeline' object defaults to using this data set.
-2. configuration .csv files used to iniatilise the system, such as [this file](/data/futures/csvconfig/instrumentconfig.csv)
+2. configuration .csv files used to initialise the system, such as [this file](/data/futures/csvconfig/instrumentconfig.csv)
 3. Temporary .csv files created in the process of initialising the databases
 4. Backup .csv files, created by the production system.
 5. External sources such as our broker, or data providers like Barchart and Quandl
 6. Mongo DB or other databases
 
-It's important to be clear where data is coming from, and where it is going to, during the intialisation process. Once we're actually running, the main storage will usually be in mongo DB (for production and possibly simulation).
+It's important to be clear where data is coming from, and where it is going to, during the initialisation process. Once we're actually running, the main storage will usually be in mongo DB (for production and possibly simulation).
 
 For simulation we could just use the provided .csv files (1), and this is the default for how the backtesting part of pysystemtrade works, since you probably don't want to start down the road of building up your data stack before you've even tested out any ideas. I don't advise using .csv files for production - it won't work. As we'll see later, you can use mongoDB data for simulation and production.
 
@@ -155,7 +155,7 @@ Let's take a more extreme example, Eurodollar. The ExpiryOffset is 18, and the r
 
 Now let's turn our attention to getting prices for individual futures contracts. 
 
-This step is neccessary if you're going to run production code or you want newer data, newer than the data that is shipped by default. If you just want to run backtests,  but with data in a database rather than .csv, and you're not bothered about using old data, you can skip ahead to [multiple prices](#mult_adj_csv_to_arctic).
+This step is necessary if you're going to run production code or you want newer data, newer than the data that is shipped by default. If you just want to run backtests,  but with data in a database rather than .csv, and you're not bothered about using old data, you can skip ahead to [multiple prices](#mult_adj_csv_to_arctic).
 
 ### Getting data from the broker (Interactive brokers)
 
@@ -346,7 +346,7 @@ The script should be reasonably self explanatory in terms of data pipelines, but
 
 1. Get the roll calendars from `csv_roll_data_path` (which defaults to [this](/data/futures/roll_calendars_csv), so make sure you change it if you followed my advice to store your roll calendars somewhere else more temporary), which we have spent so much time and energy creating.
 2. Get some closing prices for each individual future (we don't use OHLC data in the multiple and adjusted prices stage).
-3. Optionally but recommended: adjust the roll calendar so it aligns to the closing prices. This isn't strictly neccessary if you've used method 1 above, deriving the calendar from individual futures contract prices. But it is if you've used methods 2 or 3, and strongly advisable if you've done any manual hacking of the roll calendar files. 
+3. Optionally but recommended: adjust the roll calendar so it aligns to the closing prices. This isn't strictly necessary if you've used method 1 above, deriving the calendar from individual futures contract prices. But it is if you've used methods 2 or 3, and strongly advisable if you've done any manual hacking of the roll calendar files. 
 4. Add a 'phantom' roll a week in the future. Otherwise the data won't be complete up the present day. This will fix itself the first time you run the live production code to update prices, but some people find it annoying.
 5. Create the multiple prices; basically stitching together contract data for different roll periods. 
 6. Depending on flags, write the multiple prices data to`csv_multiple_data_path` (which defaults to [this](/data/futures/multiple_prices_csv)) and / or to Arctic. I like to write to both: Arctic for production, .csv as a backup and sometimes I prefer to use that for backtesting.
@@ -924,7 +924,7 @@ For futures simData objects need to know the source of:
 - spot FX prices
 - instrument configuration and cost information
 
-Direct access to other kinds of information isn't neccessary for simulations.
+Direct access to other kinds of information isn't necessary for simulations.
 
 ### Provided simData objects
 
@@ -971,7 +971,7 @@ Configuration information about futures instruments is stored in a number of dif
 - Roll configuration information in [this .csv file](/data/futures/csvconfig/rollconfig.csv), which will be copied to Mongo DB with [this script](/sysinit/futures/roll_parameters_csv_mongo.py)
 - Interactive brokers configuration in [this file](/sysbrokers/IB/ib_config_spot_FX.csv) and [this file](/sysbrokers/IB/ib_config_futures.csv).
 
-The instruments in these lists won't neccessarily match up, however under the principal of DRY there shouldn't be duplicated column headings across files.
+The instruments in these lists won't necessarily match up, however under the principal of DRY there shouldn't be duplicated column headings across files.
 
 The `system.get_instrument_list()` method is used by the simulation to decide which markets to trade; if no explicit list of instruments is included then it will fall back on the method `system.data.get_instrument_list()`. In both the provided simData objects this will resolve to the method `get_instrument_list` in the class which gets back adjusted prices, or in whatever overrides it for a given data source (.csv or Mongo DB). In practice this means it's okay if your instrument configuration (or roll configuration, when used) is a superset of the instruments you have adjusted prices for. But it's not okay if you have adjusted prices for an instrument, but no configuration information.
 

@@ -57,18 +57,17 @@ class mongoDataWithSingleKey(object):
         return self._mongo.collection
 
     def get_list_of_keys(self)->list:
-        cursor = self.collection.find()
-        key_name = self.key_name
-        key_list = [db_entry[key_name] for db_entry in cursor]
+        return self.collection.distinct(self.key_name)
 
-        return key_list
+    def get_max_of_keys(self)->int:
+        doc = self.collection.find_one(sort=[(self.key_name, -1)])
+        if self.key_name in doc:
+            return doc[self.key_name]
+        else:
+            return 0
 
     def get_list_of_values_for_dict_key(self, dict_key):
-        key_list = self.get_list_of_keys()
-        list_of_results = [self.get_result_dict_for_key(key) for key in key_list]
-        list_of_values = [item_dict.get(dict_key, None) for item_dict in list_of_results]
-
-        return list_of_values
+        return [row[dict_key] for row in self.collection.find({self.key_name: {"$exists": True}}, {dict_key: 1})]
 
     def get_result_dict_for_key(self, key) ->dict:
         key_name = self.key_name

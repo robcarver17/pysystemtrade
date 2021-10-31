@@ -153,6 +153,7 @@ class diagOverrides(productionDataLayerGeneric):
 
     def get_dict_of_all_overrides(self) -> dict:
         all_overrides = self.db_override_data.get_dict_of_all_overrides()
+
         return all_overrides
 
     def get_cumulative_override_for_instrument_strategy(

@@ -238,7 +238,8 @@ buffer_method: position
 buffer_size: 0.10
 buffer_trade_to_edge: False
 # costs and accounting
-use_SR_costs: True
+use_SR_costs: False
+vol_normalise_currency_costs: True
 #
 # risk overlay
 risk_overlay:
@@ -246,27 +247,29 @@ risk_overlay:
   max_risk_fraction_correlation_risk: 4.0
   max_risk_fraction_stdev_risk: 6.0
 #
+instrument_returns_correlation:
+  func: sysquant.estimators.correlation_over_time.correlation_over_time_for_returns
+  interval_frequency: "W"
+  frequency: "7D"
+  date_method: "rolling"
+  using_exponent: True
+  ew_lookback: 75
+  min_periods: 10
+  cleaning: True
+  rollyears: 5
+  floor_at_zero: False
+  forward_fill_price_index: True
+  offdiag: 0.0
+  clip: 0.90
+
 # small system optimisation
 small_system:
-  instrument_returns_correlation:
-    func: sysquant.estimators.correlation_over_time.correlation_over_time_for_returns
-    interval_frequency: "1M"
-    frequency: "W"
-    date_method: "expanding"
-    using_exponent: True
-    ew_lookback: 25
-    min_periods: 10
-    cleaning: True
-    rollyears: 20
-    floor_at_zero: False
-    forward_fill_price_index: True
-    offdiag: 0.0
-    clip: 0.90
+  shadow_cost: 300
   cost_multiplier: 1.0
 ignore_instruments:
   - CRUDE_W
   - GAS_US
   - GOLD
-  - KOSPI
+  - KOSPI_mini
   - NASDAQ
   - SP500

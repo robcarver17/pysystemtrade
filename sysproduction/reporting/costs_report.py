@@ -1,4 +1,5 @@
 ## Generate expected spread from actual trades, and sampled spreads
+import numpy as np
 import datetime
 import pandas as pd
 from sysdata.data_blob import dataBlob
@@ -62,11 +63,9 @@ def get_combined_df_of_costs(data: dataBlob,
                              start_date: datetime.datetime,
                              end_date: datetime.datetime) -> pd.DataFrame:
 
-    bid_ask_costs, actual_trade_costs = get_costs_from_slippage(data, start_date, end_date)
-    sampling_costs = get_average_half_spread_from_sampling(data, start_date, end_date)
+    bid_ask_costs, actual_trade_costs,order_count = get_costs_from_slippage(data, start_date, end_date)
+    sampling_costs, sample_count = get_average_half_spread_from_sampling(data, start_date, end_date)
     configured_costs = get_current_configured_spread_cost(data)
-
-
 
     combined = pd.concat([bid_ask_costs,
                           actual_trade_costs,
@@ -76,35 +75,101 @@ def get_combined_df_of_costs(data: dataBlob,
 
     combined.columns = ["bid_ask_trades", "total_trades", "bid_ask_sampled"]
 
-    worst = combined.max(axis=1)
-    perc_difference = (worst - configured_costs) / configured_costs
+    estimate_with_data = best_estimate_from_cost_data(bid_ask_costs=bid_ask_costs,
+                                            actual_trade_costs=actual_trade_costs,
+                                            order_count=order_count,
+                                            sampling_costs=sampling_costs,
+                                            sample_count=sample_count,
+                                            configured_costs=configured_costs)
 
-    all_together = pd.concat([combined, worst, configured_costs, perc_difference], axis=1)
-    all_together.columns = list(combined.columns) + ["Worst", "Configured", "% Difference"]
+    perc_difference = (estimate_with_data.estimate - configured_costs) / configured_costs
+
+    all_together = pd.concat([combined,
+                              estimate_with_data, configured_costs, perc_difference], axis=1)
+    all_together.columns = list(combined.columns) + list(estimate_with_data.columns)+["Configured", "% Difference"]
 
     all_together = all_together.sort_values("% Difference", ascending=False)
 
     return all_together
 
+def best_estimate_from_cost_data(bid_ask_costs: pd.Series,
+                                 actual_trade_costs: pd.Series,
+                                 order_count: pd.Series,
+                                 sampling_costs: pd.Series,
+                                 sample_count: pd.Series,
+                                 configured_costs: pd.Series,
+                                 trades_to_count_as_config = 10,
+                                 samples_to_count_as_config = 150) -> pd.Series:
+
+    worst_execution = pd.concat([bid_ask_costs, actual_trade_costs], axis=1)
+    worst_execution = worst_execution.max(axis=1)
+
+    all_weights = pd.concat([worst_execution,
+                             order_count, sample_count,
+                             sampling_costs, configured_costs], axis=1)
+
+
+    all_weights.columns= ['trading', 'order_count',
+                          'sample_count', 'sampled', 'configured']
+
+    weight_on_trades = all_weights.order_count / trades_to_count_as_config
+    weight_on_trades[weight_on_trades.isna()] = 0.0
+    weight_on_trades[all_weights.trading.isna()] = 0.0
+    all_weights.trading[all_weights.trading.isna()] = 0.0
+
+    weight_on_samples = all_weights.sample_count / samples_to_count_as_config
+    weight_on_samples[weight_on_samples.isna()] = 0.0
+    weight_on_samples[all_weights.sampled.isna()] = 0.0
+    all_weights.sampled[all_weights.sampled.isna()] = 0.0
+
+    weight_on_config = pd.Series([1.0]*len(configured_costs), index= configured_costs.index)
+    weight_on_config[weight_on_config.isna()] = 0.0
+    weight_on_config[all_weights.configured.isna()] = 0.0
+
+    weight_all = weight_on_samples + weight_on_trades + weight_on_config
+    weight_all[weight_all==0.0] = np.nan
+
+    weight_on_trades = weight_on_trades / weight_all
+    weight_on_samples = weight_on_samples / weight_all
+    weight_on_config = weight_on_config / weight_all
+
+    weighted_trading = all_weights.trading*weight_on_trades
+    weighted_samples = all_weights.sampled*weight_on_samples
+    weighted_config = all_weights.configured*weight_on_config
+
+    estimate = weighted_trading + weighted_samples + weighted_config
+
+    estimate_with_data = pd.concat([weight_on_trades,
+                                    weight_on_samples,
+                                    weight_on_config, estimate], axis=1)
+    estimate_with_data.columns = ['weight_trades',
+                                  'weight_samples',
+                                  'weight_config',
+                                  'estimate']
+
+    return estimate_with_data
+
 def get_average_half_spread_from_sampling(data, start_date, end_date):
     diag_prices = diagPrices(data)
     list_of_instruments = diag_prices.get_list_of_instruments_with_spread_data()
 
-    spreads_as_list = [get_average_sampled_half_spread_for_instrument(data, instrument_code,
-                                                                 start_date=start_date,
-                                                                 end_date=end_date)
+    spreads_and_counts_as_list = [get_average_sampled_half_spread_and_count_for_instrument(data, instrument_code,
+                                                                                start_date=start_date,
+                                                                                end_date=end_date)
                        for instrument_code in list_of_instruments]
 
-    spreads_as_df = pd.DataFrame(spreads_as_list, index = list_of_instruments)
+    spreads_as_df = pd.DataFrame(spreads_and_counts_as_list, index = list_of_instruments)
 
-    return spreads_as_df
+    return spreads_as_df.average_half_spread, spreads_as_df.count_of_spreads
 
-def get_average_sampled_half_spread_for_instrument(data, instrument_code, start_date, end_date):
+def get_average_sampled_half_spread_and_count_for_instrument(data, instrument_code, start_date, end_date) -> dict:
     diag_prices = diagPrices(data)
     raw_spreads = diag_prices.get_spreads(instrument_code)
     spreads_in_period = raw_spreads[start_date:end_date]
     average_half_spread = spreads_in_period.median(skipna=True) / 2.0
-    return average_half_spread
+    count_of_spreads = len(spreads_in_period)
+
+    return dict(average_half_spread = average_half_spread, count_of_spreads = count_of_spreads)
 
 
 def get_costs_from_slippage(data, start_date, end_date):
@@ -115,7 +180,12 @@ def get_costs_from_slippage(data, start_date, end_date):
     bid_ask_costs = get_average_half_spread_by_instrument_from_raw_slippage(raw_slippage, "bid_ask")
     actual_trade_costs = get_average_half_spread_by_instrument_from_raw_slippage(raw_slippage, "total_trading")
 
-    return bid_ask_costs, actual_trade_costs
+    order_count = order_count_by_instrument(list_of_orders)
+
+    return bid_ask_costs, actual_trade_costs, order_count
+
+def order_count_by_instrument(list_of_orders):
+    return list_of_orders.instrument_code.value_counts()
 
 def get_average_half_spread_by_instrument_from_raw_slippage(raw_slippage, use_column = "bid_ask"):
 

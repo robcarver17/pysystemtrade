@@ -8,9 +8,10 @@ RollState = Enum("RollState",(
     "Force_Outright",
     "Roll_Adjusted"))
 
-default_state = RollState.No_Roll
+no_roll_state = RollState.No_Roll
 roll_adj_state = RollState.Roll_Adjusted
 
+default_state = no_roll_state
 
 roll_explanations = {
     RollState.No_Roll:"No rolling happens. Will only trade priced contract.",

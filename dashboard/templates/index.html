@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="static/css/styles.css">
+  <link rel="shortcut icon" href="static/favicon.ico">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="static/js/update.js"></script>
+</head>
+<body>
+
+<div id="traffic_lights_div">
+  <button id="capital-tl" class="traffic-light" onclick="getElementById('tab_pandl').checked = true">12345</button>
+  <button id="stack-tl" class="traffic-light" onclick="getElementById('tab_processes').checked = true">Stack</button>
+  <button id="gateway-tl" class="traffic-light" onclick="getElementById('tab_processes').checked = true">Gateway</button>
+  <button id="rolls-tl" class="traffic-light" onclick="getElementById('tab_rolls').checked = true">Rolls</button>
+  <button id="breaks-tl" class="traffic-light" onclick="getElementById('tab_reconciliation').checked = true">Breaks</button>
+  <button id="prices-tl" class="traffic-light" onclick="getElementById('tab_processes').checked = true">Prices</button>
+</div>
+
+<div class="tabinator">
+<input type = "radio" id = "tab_rolls" name = "tabs" checked>
+<label for = "tab_rolls">Rolls</label>
+<input type = "radio" id = "tab_processes" name = "tabs">
+<label for = "tab_processes">Processes</label>
+<input type = "radio" id = "tab_pandl" name = "tabs">
+<label for = "tab_pandl">P&L</label>
+<input type = "radio" id = "tab_trades" name = "tabs">
+<label for = "tab_trades">Trades</label>
+<input type = "radio" id = "tab_reconciliation" name = "tabs">
+<label for = "tab_reconciliation">Reconciliation</label>
+<input type = "radio" id = "tab_strategy" name = "tabs">
+<label for = "tab_strategy">Strategy</label>
+<input type = "radio" id = "tab_risk" name = "tabs">
+<label for = "tab_risk">Risk</label>
+<input type = "radio" id = "tab_liquidity" name = "tabs">
+<label for = "tab_liquidity">Liquidity</label>
+<input type = "radio" id = "tab_costs" name = "tabs">
+<label for = "tab_costs">Costs</label>
+<input type = "radio" id = "tab_forex" name = "tabs">
+<label for = "tab_forex">Forex</label>
+
+<div id="rolls">
+  <table id="rolls_status">
+    <caption>Status</caption>
+    <thead><tr><th>Contract</th><th>State</th><th>Roll Expiry</th>
+        <th>Carry Expiry</th><th>Price Expiry</th><th>Options</th></tr></thead>
+    <tbody></tbody>
+  </table>
+  <div id="roll_prices" class="hidden">
+    <br>
+    <h3 id="roll_instrument_name"></h3>
+    <table id="roll_prices_single">
+      <caption>Single</caption>
+      <thead><tr><th>Date</th><th>Current</th><th>New</th>
+        </tr></thead>
+        <tbody></tbody>
+    </table>
+    <br>
+    <table id="roll_prices_multiple">
+      <caption>Multiple</caption>
+      <thead>
+        <tr><th></th><th colspan="3">Carry</th><th colspan="3">Price</th><th colspan="3">Forward</th></tr>
+        <tr>
+          <th>Date</th>
+          <th>Contract</th><th>Current</th><th>New</th>
+          <th>Contract</th><th>Current</th><th>New</th>
+          <th>Contract</th><th>Current</th><th>New</th>
+        </tr></thead>
+        <tbody></tbody>
+    </table>
+  </div>
+  <br>
+  <table id="rolls_details">
+    <caption>Details</caption>
+    <thead><tr><th>Contract</th></tr></thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<div id="processes">
+  <table id="processes_status">
+    <caption>Status</caption>
+    <thead><tr><th>Process</th><th>Status</th></tr></thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<div id="pandl">
+  <table id="pandl_instrument_table">
+    <caption>Instrument</caption>
+    <thead><tr><th>Instrument</th><th>P&L (%)</th></tr></thead>
+    <tbody></tbody>
+  </table>
+  <br>
+  <table id="pandl_strategy_table">
+    <caption>Strategy</caption>
+    <thead><tr><th>Strategy</th><th>P&L (%)</th></tr></thead>
+    <tbody></tbody>
+  </table>
+  <br>
+  <table id="pandl_class_table">
+    <caption>Class</caption>
+    <thead><tr><th>Class</th><th>P&L (%)</th></tr></thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<div id="trades">
+  <table id="trades_overview_table">
+    <caption>Overview</caption>
+    <thead><tr><th>Order ID</th><th>Instrument</th><th>Contract</th>
+        <th>Strategy</th>
+        <th>Fill Time</th><th>Fill Amount</th><th>Fill Price</th>
+      </tr></thead>
+    <tbody></tbody>
+  </table>
+  <br>
+  <table id="trades_delay_table">
+    <caption>Delays</caption>
+    <thead><tr><th>Order ID</th><th>Instrument</th>
+        <th>Strategy</th>
+        <th>Generated</th><th>Submitted</th><th>Filled</th>
+        <th>Submission Delay</th><th>Fill Delay</th>
+      </tr></thead>
+  <br>
+  <table id="trades_slippage_table">
+    <caption>Raw Slippage</caption>
+    <thead><tr><th>Order ID</th><th>Instrument</th>
+        <th>Strategy</th>
+        <th>Trade</th><th>Parent Reference Price</th><th>Parent Limit Price</th>
+        <th>Calc Mid Price</th><th>Calc Side Price</th>
+        <th>Limit Price</th><th>Calc Filled Price</th>
+        <th>Delay</th><th>Bid/Ask</th><th>Execution</th>
+        <th>vs Limit</th><th>vs Parent Limit</th><th>Total Trading</th>
+      </tr></thead>
+  </table>
+  <br>
+  <table id="trades_vol_slippage_table">
+    <caption>Volume Normalised Slippage</caption>
+    <thead><tr><th>Order ID</th><th>Instrument</th>
+        <th>Strategy</th><th>Trade</th>
+        <th>Last Annual Vol</th><th>Delay</th><th>Bid/Ask</th>
+        <th>Execution</th><th>vs Limit Vol</th>
+        <th>vs Parent Limit</th><th>Total Trading</th>
+      </tr></thead>
+  </table>
+  <br>
+  <table id="trades_cash_slippage_table">
+    <caption>Cash Slippage</caption>
+    <thead><tr><th>Order ID</th><th>Instrument</th>
+        <th>Strategy</th><th>Trade</th>
+        <th>Price Point Value</th><th>Delay</th><th>Bid/Ask</th>
+        <th>Execution</th><th>vs Limit</th>
+        <th>vs Parent Limit</th><th>Total Trading</th>
+      </tr></thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<div id="reconciliation">
+  <table id="reconcile_strategy">
+    <caption>Strategy level</caption>
+    <thead><tr><th>Instrument</th><th>Current</th><th>Optimal</th></tr></thead>
+    <tbody></tbody>
+  </table>
+  <br>
+  <table id="reconcile_contract">
+    <caption>Contract level</caption>
+    <thead><tr><th>Instrument</th><th>Contract Date</th><th>Database</th><th>Broker</th></tr></thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<div id="strategy">
+</div>
+
+<div id="risk">
+  <table id="risk_table">
+    <caption>Annualised</caption>
+    <thead><tr><th>Strategy</th><th>Risk %</th></tr></thead>
+    <tbody></tbody>
+  </table>
+  <br>
+  <table id="risk_corr_table">
+    <caption>Correlation</caption>
+    <thead></thead>
+    <tbody></tbody>
+  </table>
+  <br>
+  <table id="risk_details_table">
+    <caption>Details</caption>
+    <thead>
+      <tr>
+        <th>Instrument</th>
+        <th>Daily price stdev</th>
+        <th>Annual price stdev</th>
+        <th>Price</th>
+        <th>Daily % stdev</th>
+        <th>Annual % stdev</th>
+        <th>Point size base</th>
+        <th>Contract exposure</th>
+        <th>Daily risk per contract</th>
+        <th>Annual risk per contract</th>
+        <th>Position</th>
+        <th>Capital</th>
+        <th>Exposure held % capital</th>
+        <th>Annual risk % capital</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+</div>
+
+<div id="liquidity">
+  <table id="liquidity_table">
+    <caption>Liquidity</caption>
+    <thead><tr><th>Instrument</th><th>Contracts</th><th>Risk ($M)</th></tr></thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<div id="costs">
+  <table id="costs_table">
+    <caption>Costs</caption>
+    <thead><tr><th>Instrument</th><th>Cost (SR)</th></tr></thead>
+    <tbody></tbody>
+  </table>
+  <br>
+  <table id="costs_detail_table">
+    <caption>Cost Breakdown</caption>
+    <thead><tr><th>Instrument</th>
+        <th>% Diff</th>
+        <th>Configured</th>
+        <th>Bid ask sampled</th>
+        <th>Bid ask trades</th>
+        <th>Estimate</th>
+        <th>Total trades</th>
+        <th>Weight config</th>
+        <th>Weight samples</th>
+        <th>Weight trades</th>
+      </tr></thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<div id="forex">
+  <table id="forex_table">
+    <caption>Forex</caption>
+    <thead><tr><th>Currency</th><th>Balance</th></tr></thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+</div>
+
+</body>
+</html>

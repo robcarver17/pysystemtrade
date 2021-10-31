@@ -213,7 +213,7 @@ class dataBlob(object):
     def _add_new_class_with_new_name(self, resolved_instance, attr_name:str):
         already_exists = self._already_existing_class_name(attr_name)
         if already_exists:
-            ## not uncommon don't log or would be a sea of span
+            ## not uncommon don't log or would be a sea of spam
             pass
         else:
             setattr(self, attr_name, resolved_instance)
@@ -258,11 +258,25 @@ class dataBlob(object):
         return ib_conn
 
     def _get_new_ib_connection(self) -> connectionIB:
+        # Try this 5 times...
+        attempts = 0
+        failed_ids = []
         client_id = self._get_next_client_id_for_ib()
+        while True:
+            try:
+                ib_conn = connectionIB(client_id, log=self.log)
+                for id in failed_ids:
+                    self.db_ib_broker_client_id.release_clientid(id)
+                return ib_conn
+            except Exception as e:
+                failed_ids.append(client_id)
+                client_id = self._get_next_client_id_for_ib()
+                attempts += 1
+                if attempts > 5:
+                    for id in failed_ids:
+                        self.db_ib_broker_client_id.release_clientid(id)
+                    raise e
 
-        ib_conn = connectionIB(client_id,
-                               log=self.log)
-        return ib_conn
 
     def _get_next_client_id_for_ib(self) -> int:
         ## default to tracking ID through mongo change if required

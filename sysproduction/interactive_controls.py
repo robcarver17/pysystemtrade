@@ -13,7 +13,7 @@ from sysproduction.data.controls import (
     dataBrokerClientIDs
 )
 from sysproduction.data.control_process import dataControlProcess, diagControlProcess
-from sysproduction.data.prices import get_valid_instrument_code_from_user
+from sysproduction.data.prices import get_valid_instrument_code_from_user, get_list_of_instruments
 from sysproduction.data.strategies import get_valid_strategy_name_from_user
 from sysproduction.data.positions import diagPositions
 from sysproduction.utilities.risk_metrics import get_risk_data_for_instrument
@@ -48,6 +48,7 @@ top_level_menu_of_options = {
     2: "Trade control (override)",
     3: "Broker client IDS",
     4: "Process control and monitoring",
+    5: "Update configuration"
 }
 
 nested_menu_of_options = {
@@ -83,6 +84,9 @@ nested_menu_of_options = {
         44: "Mark all dead processes as finished",
         45: "View process configuration (set in YAML, cannot change here)",
     },
+    5: {
+        50: "Auto update spread cost configuration based on sampling and trades"
+    }
 }
 
 
@@ -252,11 +256,6 @@ def get_risk_multiplier_and_max_leverage() -> (float, float):
 
     return  risk_multiplier, max_leverage
 
-def get_list_of_instruments(data):
-    diag_positions = diagPositions(data)
-    instrument_list = diag_positions.get_list_of_instruments_with_any_position()
-
-    return instrument_list
 
 
 
@@ -390,8 +389,10 @@ def view_overrides(data):
     diag_overrides = diagOverrides(data)
     all_overrides = diag_overrides.get_dict_of_all_overrides()
     print("All overrides:\n")
-    for key, item in all_overrides.items():
-        print("%s %s" % (key, str(item)))
+    list_of_keys = list(all_overrides.keys())
+    list_of_keys.sort()
+    for key in list_of_keys:
+        print("%s %s" % (key, str(all_overrides[key])))
     print("\n")
 
 
@@ -544,6 +545,8 @@ def finish_all_processes(data):
     data_control = dataControlProcess(data)
     data_control.check_if_pid_running_and_if_not_finish_all_processes()
 
+def auto_update_spread_costs(data):
+    pass
 
 
 def not_defined(data):
@@ -573,5 +576,6 @@ dict_of_functions = {
     43: finish_process,
     44: finish_all_processes,
     45: view_process_config,
+    50: auto_update_spread_costs
 }
 

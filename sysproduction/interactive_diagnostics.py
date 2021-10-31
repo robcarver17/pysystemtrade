@@ -153,14 +153,14 @@ def backtest_html(data):
 # reports
 def roll_report(data):
     instrument_code = get_valid_instrument_code_from_user(data, allow_all=True, all_code=ALL_ROLL_INSTRUMENTS)
-    report_config = email_or_print(roll_report_config)
+    report_config = email_or_print_or_file(roll_report_config)
     report_config.modify_kwargs(instrument_code=instrument_code)
     run_report(report_config, data=data)
 
 
 def pandl_report(data):
     start_date, end_date, calendar_days = get_report_dates(data)
-    report_config = email_or_print(daily_pandl_report_config)
+    report_config = email_or_print_or_file(daily_pandl_report_config)
     report_config.modify_kwargs(
         calendar_days_back=calendar_days,
         start_date=start_date,
@@ -169,13 +169,13 @@ def pandl_report(data):
 
 
 def status_report(data):
-    report_config = email_or_print(status_report_config)
+    report_config = email_or_print_or_file(status_report_config)
     run_report(report_config, data=data)
 
 
 def trade_report(data):
     start_date, end_date, calendar_days = get_report_dates(data)
-    report_config = email_or_print(trade_report_config)
+    report_config = email_or_print_or_file(trade_report_config)
     report_config.modify_kwargs(
         calendar_days_back=calendar_days,
         start_date=start_date,
@@ -184,7 +184,7 @@ def trade_report(data):
 
 
 def reconcile_report(data):
-    report_config = email_or_print(reconcile_report_config)
+    report_config = email_or_print_or_file(reconcile_report_config)
     run_report(report_config, data=data)
 
 
@@ -199,19 +199,19 @@ def strategy_report(data):
     else:
         timestamp = arg_not_supplied
 
-    report_config = email_or_print(strategy_report_config)
+    report_config = email_or_print_or_file(strategy_report_config)
     report_config.modify_kwargs(
         strategy_name=strategy_name,
         timestamp=timestamp)
     run_report(report_config, data=data)
 
 def risk_report(data):
-    report_config = email_or_print(risk_report_config)
+    report_config = email_or_print_or_file(risk_report_config)
     run_report(report_config, data=data)
 
 def cost_report(data):
     start_date, end_date, calendar_days = get_report_dates(data)
-    report_config = email_or_print(costs_report_config)
+    report_config = email_or_print_or_file(costs_report_config)
     report_config.modify_kwargs(
         calendar_days_back=calendar_days,
         start_date=start_date,
@@ -220,22 +220,24 @@ def cost_report(data):
 
 
 def liquidity_report(data):
-    report_config = email_or_print(liquidity_report_config)
-    run_report(liquidity_report_config, data = data)
+    report_config = email_or_print_or_file(liquidity_report_config)
+    run_report(report_config, data = data)
 
-def email_or_print(report_config):
+def email_or_print_or_file(report_config):
     ans = get_and_convert(
-        "1: Email or 2: print?",
+        "1: Print or 2: email or 3: file?",
         type_expected=int,
         allow_default=True,
         default_str="Print",
-        default_value=2,
+        default_value=1,
     )
     if ans == 1:
-        report_config = report_config.new_config_with_modified_output("email")
-    else:
         report_config = report_config.new_config_with_modified_output(
             "console")
+    elif ans==2:
+        report_config = report_config.new_config_with_modified_output("email")
+    else:
+        report_config = report_config.new_config_with_modified_output("file")
 
     return report_config
 

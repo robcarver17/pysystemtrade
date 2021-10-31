@@ -46,18 +46,18 @@ def get_filename_for_package(pathname:str, filename=None):
     Absolute filenames always begin with ., / or \
     Relative filenames do not
     """
-    markedup_pathname = add_ampersand_to_pathname(pathname)
+    pathname_replaced_with_ampersands = add_ampersand_to_pathname(pathname)
     if filename is None:
         # filename will be at the end of the pathname
-        path_as_list = markedup_pathname.rsplit("&")
+        path_as_list = pathname_replaced_with_ampersands.rsplit("&")
         filename = ".".join(path_as_list[-2:])
-        split_pathname = "&".join(path_as_list[0:-2])
+        split_pathname_with_ampersands = "&".join(path_as_list[0:-2])
     else:
         # filename is already separate
-        split_pathname = markedup_pathname
+        split_pathname_with_ampersands = pathname_replaced_with_ampersands
 
     # Resolve pathname
-    resolved_pathname = get_resolved_ampersand_pathname(split_pathname)
+    resolved_pathname = get_resolved_ampersand_pathname(split_pathname_with_ampersands)
 
     # Glue together
     full_path_and_file = os.path.join(resolved_pathname, filename)
@@ -65,24 +65,24 @@ def get_filename_for_package(pathname:str, filename=None):
     return full_path_and_file
 
 
-def add_ampersand_to_pathname(pathname: str):
-    pathname_replaced = pathname.replace(".", "&")
-    pathname_replaced = pathname_replaced.replace("/", "&")
-    pathname_replaced = pathname_replaced.replace("\\", "&")
+def add_ampersand_to_pathname(pathname: str) -> str:
+    pathname_replace_dots = pathname.replace(".", "&")
+    pathname_replace_forward_slash = pathname_replace_dots.replace("/", "&")
+    pathname_replaced_with_ampersands = pathname_replace_forward_slash.replace("\\", "&")
 
-    return pathname_replaced
+    return pathname_replaced_with_ampersands
 
 
 def get_resolved_pathname(pathname):
     # Turn /,\ into . so system independent
-    pathname_replaced = add_ampersand_to_pathname(pathname)
-    resolved_pathname = get_resolved_ampersand_pathname(pathname_replaced)
+    pathname_replaced_with_ampersands = add_ampersand_to_pathname(pathname)
+    resolved_pathname = get_resolved_ampersand_pathname(pathname_replaced_with_ampersands)
 
     return resolved_pathname
 
 
-def get_resolved_ampersand_pathname(pathname):
-    path_as_list = pathname.rsplit("&")
+def get_resolved_ampersand_pathname(pathname_replaced_with_ampersands: str) -> str:
+    path_as_list = pathname_replaced_with_ampersands.rsplit("&")
 
     # Check for absolute or relative
     pathname = get_pathname_from_list(path_as_list)
@@ -96,7 +96,7 @@ def get_pathname_from_list(path_as_list):
         resolved_pathname = get_absolute_pathname_from_list(path_as_list[1:])
     elif path_as_list[0].endswith(":"):
         # windoze
-        resolved_pathname = get_absolute_pathname_from_list(path_as_list)
+        resolved_pathname = get_absolute_windows_pathname_from_list(path_as_list)
     else:
         # relativee
         resolved_pathname = get_pathname_for_package_from_list(path_as_list)
@@ -140,6 +140,21 @@ def get_absolute_pathname_from_list(path_as_list):
     pathname = os.path.join(*path_as_list)
     pathname = os.path.sep + pathname
 
+    return pathname
+
+def get_absolute_windows_pathname_from_list(path_as_list: list):
+    """
+    :param path_as_list: eg ['D:', 'GitHub', 'pysystemtrade', 'private', 'barchart']
+
+    Should return eg D:\GitHub\pysystemtrade\private\barchart\
+
+    **there maybe a more python-esque way of doing this**
+    """
+    if path_as_list[0].endswith(":"):
+        path_as_list[0] = path_as_list[0].replace(":", ":\\")
+
+    pathname = os.path.join(*path_as_list)
+    
     return pathname
 
 

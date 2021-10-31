@@ -47,7 +47,7 @@ def sum_series(list_of_series: list, ffill = True)-> pd.Series:
     return sum_of_series
 
 
-def turnover(x, y):
+def turnover(x, y, smooth_y_days: int = 250):
     """
     Gives the turnover of x, once normalised for y
 
@@ -59,7 +59,10 @@ def turnover(x, y):
     if isinstance(y, float) or isinstance(y, int):
         daily_y = pd.Series(np.full(daily_x.shape[0], float(y)), daily_x.index)
     else:
-        daily_y = y.resample("1B").last()
+        daily_y = y.reindex(daily_x.index, method="ffill")
+        ## need to apply a drag to this or will give zero turnover for constant risk
+        daily_y =daily_y.ewm(smooth_y_days).mean()
+
 
     norm_x = daily_x / daily_y.ffill()
 
@@ -414,7 +417,7 @@ def create_arbitrary_pdseries(
 
 def dataframe_pad(starting_df, column_list, padwith=0.0):
     """
-    Takes a dataframe and adds extra columns if neccessary so we end up with columns named column_list
+    Takes a dataframe and adds extra columns if necessary so we end up with columns named column_list
 
     :param starting_df: A pd.dataframe with named columns
     :param column_list: A list of column names
@@ -565,3 +568,10 @@ def get_max_index_before_datetime(index, date_point):
         return None
     else:
         return matching_index_size - 1
+
+def years_in_data(data: pd.Series) -> list:
+    all_years = [x.year for x in data.index]
+    unique_years = list(set(all_years))
+    unique_years.sort()
+
+    return unique_years

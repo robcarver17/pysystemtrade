@@ -14,9 +14,9 @@ class ibFxClient(ibPriceClient):
     def broker_fx_balances(self,
                            account_id: str = arg_not_supplied) -> dict:
         if account_id is arg_not_supplied:
-            account_summary = self.ib.accountSummary()
+            account_summary = self.ib.accountValues()
         else:
-            account_summary = self.ib.accountSummary(account = account_id)
+            account_summary = self.ib.accountValues(account = account_id)
 
         fx_balance_dict = extract_fx_balances_from_account_summary(
             account_summary)
