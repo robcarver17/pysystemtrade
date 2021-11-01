@@ -86,7 +86,8 @@ class optimisedPositions(SystemStage):
 
         costs = self.get_costs_per_contract_as_proportion_of_capital_all_instruments()
 
-        shadow_cost = self.shadow_cost
+        trade_shadow_cost = self.trade_shadow_cost
+        tracking_error_buffer = self.tracking_error_buffer
 
         obj_instance = objectiveFunctionForGreedy(
                                                 weights_optimal=original_portfolio_weights,
@@ -97,15 +98,22 @@ class optimisedPositions(SystemStage):
                                                 reduce_only_keys = reduce_only_keys,
                                                 no_trade_keys = no_trade_keys,
                                                 maximum_position_weights = maximum_position_weights,
-                                                trade_shadow_cost=shadow_cost)
+                                                trade_shadow_cost=trade_shadow_cost,
+                                                tracking_error_buffer = tracking_error_buffer)
 
         return obj_instance
 
     @property
-    def shadow_cost(self)-> float:
-        shadow_cost = self.config.small_system['shadow_cost']
+    def trade_shadow_cost(self)-> float:
+        trade_shadow_cost = self.config.small_system['shadow_cost']
 
-        return shadow_cost
+        return trade_shadow_cost
+
+    @property
+    def tracking_error_buffer(self) -> float:
+        tracking_error_buffer = self.config.small_system['tracking_error_buffer']
+
+        return tracking_error_buffer
 
 
     ## COSTS

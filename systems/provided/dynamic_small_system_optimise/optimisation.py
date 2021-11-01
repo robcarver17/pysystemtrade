@@ -16,6 +16,7 @@ class objectiveFunctionForGreedy:
     per_contract_value: portfolioWeights
     costs: meanEstimates
     trade_shadow_cost: float= 10
+    tracking_error_buffer: float = 0.02
     weights_prior: portfolioWeights = arg_not_supplied
     reduce_only_keys: list = arg_not_supplied,
     no_trade_keys: list = arg_not_supplied,
@@ -25,30 +26,65 @@ class objectiveFunctionForGreedy:
         return self.input_data.starting_weights_as_np
 
     def optimise(self) -> portfolioWeights:
-        optimal_weights = self._optimise_for_valid_keys()
+        optimal_weights_without_missing_items_as_np = self._optimise_for_valid_keys()
+        optimal_weights_without_missing_items_as_list = \
+            list(optimal_weights_without_missing_items_as_np)
+
+        optimal_weights = \
+            portfolioWeights.from_weights_and_keys(
+                list_of_keys=self.keys_with_valid_data,
+                list_of_weights=optimal_weights_without_missing_items_as_list)
 
         optimal_weights_for_all_keys = \
-            optimal_weights.with_zero_weights_for_missing_keys(list(self.weights_optimal.keys()))
+            optimal_weights.with_zero_weights_for_missing_keys(
+                list(self.weights_optimal.keys()))
 
         return optimal_weights_for_all_keys
 
     def _optimise_for_valid_keys(self) -> portfolioWeights:
-        weights_without_missing_items_as_np = greedy_algo_across_integer_values(self)
-        optimal_weights = \
-            portfolioWeights.from_weights_and_keys(
-                list_of_keys=self.keys_with_valid_data,
-                list_of_weights=list(weights_without_missing_items_as_np))
+        tracking_error_of_prior_smaller_than_buffer = \
+            self.is_tracking_error_of_prior_smaller_than_buffer()
 
-        return optimal_weights
+        if tracking_error_of_prior_smaller_than_buffer:
+            weights_without_missing_items_as_np = self.weights_prior_as_np
+        else:
+            weights_without_missing_items_as_np = greedy_algo_across_integer_values(self)
+
+        return weights_without_missing_items_as_np
+
+    def is_tracking_error_of_prior_smaller_than_buffer(self) -> bool:
+        if self.no_prior_weights_provided:
+            return False
+
+        tracking_error_buffer = self.tracking_error_buffer
+        tracking_error = self.tracking_error_of_prior_weights()
+
+        tracking_error_of_prior_smaller_than_buffer = \
+            tracking_error < tracking_error_buffer
+
+        return tracking_error_of_prior_smaller_than_buffer
+
+
+    def tracking_error_of_prior_weights(self) -> float:
+
+        prior_weights = self.weights_prior_as_np
+        tracking_error = self.tracking_error(prior_weights)
+
+        return tracking_error
+
 
     def evaluate(self, weights: np.array) -> float:
+        track_error = self.tracking_error(weights)
+        trade_costs = self.calculate_costs(weights)
+
+        return track_error + trade_costs
+
+    def tracking_error(self, weights: np.array) -> float:
         solution_gap = weights - self.weights_optimal_as_np
         track_error = \
             (solution_gap.dot(self.covariance_matrix_as_np).dot(solution_gap))**.5
 
-        trade_costs = self.calculate_costs(weights)
-
-        return track_error + trade_costs
+        return track_error
 
     def calculate_costs(self, weights: np.array) -> float:
         if self.no_prior_weights_provided:
