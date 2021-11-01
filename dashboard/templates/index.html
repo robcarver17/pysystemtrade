@@ -9,7 +9,7 @@
 <body>
 
 <div id="traffic_lights_div">
-  <button id="capital-tl" class="traffic-light" onclick="getElementById('tab_pandl').checked = true">12345</button>
+  <button id="capital-tl" class="traffic-light" onclick="getElementById('tab_pandl').checked = true; update_capital()">12345</button>
   <button id="stack-tl" class="traffic-light" onclick="getElementById('tab_processes').checked = true">Stack</button>
   <button id="gateway-tl" class="traffic-light" onclick="getElementById('tab_processes').checked = true">Gateway</button>
   <button id="rolls-tl" class="traffic-light" onclick="getElementById('tab_rolls').checked = true">Rolls</button>
@@ -18,29 +18,30 @@
 </div>
 
 <div class="tabinator">
-<input type = "radio" id = "tab_rolls" name = "tabs" checked>
+<input type = "radio" id = "tab_rolls" name = "tabs" checked />
 <label for = "tab_rolls">Rolls</label>
-<input type = "radio" id = "tab_processes" name = "tabs">
+<input type = "radio" id = "tab_processes" name = "tabs" />
 <label for = "tab_processes">Processes</label>
-<input type = "radio" id = "tab_pandl" name = "tabs">
+<input type = "radio" id = "tab_pandl" name = "tabs" />
 <label for = "tab_pandl">P&L</label>
-<input type = "radio" id = "tab_trades" name = "tabs">
+<input type = "radio" id = "tab_trades" name = "tabs" />
 <label for = "tab_trades">Trades</label>
-<input type = "radio" id = "tab_reconciliation" name = "tabs">
-<label for = "tab_reconciliation">Reconciliation</label>
-<input type = "radio" id = "tab_strategy" name = "tabs">
+<input type = "radio" id = "tab_reconciliation" name = "tabs" />
+<label for = "tab_reconciliation">Reconciliation &#x21bb</label>
+<input type = "radio" id = "tab_strategy" name = "tabs" />
 <label for = "tab_strategy">Strategy</label>
-<input type = "radio" id = "tab_risk" name = "tabs">
+<input type = "radio" id = "tab_risk" name = "tabs" />
 <label for = "tab_risk">Risk</label>
-<input type = "radio" id = "tab_liquidity" name = "tabs">
+<input type = "radio" id = "tab_liquidity" name = "tabs" />
 <label for = "tab_liquidity">Liquidity</label>
-<input type = "radio" id = "tab_costs" name = "tabs">
+<input type = "radio" id = "tab_costs" name = "tabs" />
 <label for = "tab_costs">Costs</label>
-<input type = "radio" id = "tab_forex" name = "tabs">
+<input type = "radio" id = "tab_forex" name = "tabs" />
 <label for = "tab_forex">Forex</label>
 
 <div id="rolls">
-  <table id="rolls_status">
+  <div class="loading">Loading...</div>
+  <table id="rolls_status" hidden>
     <caption>Status</caption>
     <thead><tr><th>Contract</th><th>State</th><th>Roll Expiry</th>
         <th>Carry Expiry</th><th>Price Expiry</th><th>Options</th></tr></thead>
@@ -56,7 +57,7 @@
         <tbody></tbody>
     </table>
     <br>
-    <table id="roll_prices_multiple">
+    <table id="roll_prices_multiple" hidden>
       <caption>Multiple</caption>
       <thead>
         <tr><th></th><th colspan="3">Carry</th><th colspan="3">Price</th><th colspan="3">Forward</th></tr>
@@ -70,7 +71,7 @@
     </table>
   </div>
   <br>
-  <table id="rolls_details">
+  <table id="rolls_details" hidden>
     <caption>Details</caption>
     <thead><tr><th>Contract</th></tr></thead>
     <tbody></tbody>
@@ -78,14 +79,27 @@
 </div>
 
 <div id="processes">
-  <table id="processes_status">
+  <div class="loading">Loading...</div>
+  <table id="processes_status" hidden>
     <caption>Status</caption>
-    <thead><tr><th>Process</th><th>Status</th></tr></thead>
+    <thead><tr><th>Process</th><th>Status</th><th>Condition</th><th>PID</th>
+        <th>Previous Process</th><th>Previous Process Run</th>
+        <th>Scheduled Start</th><th>Scheduled Finish</th>
+        <th>Last Start</th><th>Last Finish</th>
+      </tr></thead>
+    <tbody></tbody>
+  </table>
+  <br>
+  <table id="processes_prices" hidden>
+    <caption>Prices</caption>
+    <thead><tr><th>Instrument</th><th>Last Update</th>
+      </tr></thead>
     <tbody></tbody>
   </table>
 </div>
 
 <div id="pandl">
+  <div class="loading">Loading...</div>
   <table id="pandl_instrument_table">
     <caption>Instrument</caption>
     <thead><tr><th>Instrument</th><th>P&L (%)</th></tr></thead>
@@ -106,6 +120,7 @@
 </div>
 
 <div id="trades">
+  <div class="loading">Loading...</div>
   <table id="trades_overview_table">
     <caption>Overview</caption>
     <thead><tr><th>Order ID</th><th>Instrument</th><th>Contract</th>
@@ -158,13 +173,14 @@
 </div>
 
 <div id="reconciliation">
-  <table id="reconcile_strategy">
+  <div class="loading">Loading...</div>
+  <table id="reconcile_strategy" hidden>
     <caption>Strategy level</caption>
     <thead><tr><th>Instrument</th><th>Current</th><th>Optimal</th></tr></thead>
     <tbody></tbody>
   </table>
   <br>
-  <table id="reconcile_contract">
+  <table id="reconcile_contract" hidden>
     <caption>Contract level</caption>
     <thead><tr><th>Instrument</th><th>Contract Date</th><th>Database</th><th>Broker</th></tr></thead>
     <tbody></tbody>
@@ -175,6 +191,7 @@
 </div>
 
 <div id="risk">
+  <div class="loading">Loading...</div>
   <table id="risk_table">
     <caption>Annualised</caption>
     <thead><tr><th>Strategy</th><th>Risk %</th></tr></thead>
@@ -209,10 +226,10 @@
     </thead>
     <tbody></tbody>
   </table>
-
 </div>
 
 <div id="liquidity">
+  <div class="loading">Loading...</div>
   <table id="liquidity_table">
     <caption>Liquidity</caption>
     <thead><tr><th>Instrument</th><th>Contracts</th><th>Risk ($M)</th></tr></thead>
@@ -221,6 +238,7 @@
 </div>
 
 <div id="costs">
+  <div class="loading">Loading...</div>
   <table id="costs_table">
     <caption>Costs</caption>
     <thead><tr><th>Instrument</th><th>Cost (SR)</th></tr></thead>
@@ -245,6 +263,7 @@
 </div>
 
 <div id="forex">
+  <div class="loading">Loading...</div>
   <table id="forex_table">
     <caption>Forex</caption>
     <thead><tr><th>Currency</th><th>Balance</th></tr></thead>

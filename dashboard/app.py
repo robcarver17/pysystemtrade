@@ -19,6 +19,7 @@ from sysproduction.reporting import (
     risk_report,
     roll_report,
     trades_report,
+    status_reporting,
 )
 from sysproduction.data.broker import dataBroker
 from sysproduction.data.control_process import dataControlProcess
@@ -37,6 +38,8 @@ from pprint import pprint
 
 import asyncio
 import datetime
+import json
+import pandas as pd
 
 app = Flask(__name__)
 
@@ -59,7 +62,9 @@ def cleanup_data(exception):
 
 def dict_of_df_to_dict(d, orient):
     return {
-        k: v.to_dict(orient=orient) if hasattr(v, "to_dict") else v
+        k: json.loads(v.to_json(orient=orient, date_format="iso"))
+        if isinstance(v, pd.DataFrame)
+        else v
         for k, v in d.items()
     }
 
@@ -120,21 +125,26 @@ def pandl():
 
 @app.route("/processes")
 def processes():
+    status_data = status_reporting.get_status_report_data(data)
     data_control = dataControlProcess(data)
     data_control.check_if_pid_running_and_if_not_finish_all_processes()
-    control_process_data = data_control.db_control_process_data
-    names = control_process_data.get_list_of_process_names()
-    running_modes = {}
-    for name in names:
-        running_modes[name] = control_process_data.get_control_for_process_name(
-            name
-        ).running_mode_str
-    return {
-        "running_modes": running_modes,
-        "prices_update": control_process_data.has_process_finished_in_last_day(
-            "run_daily_prices_updates"
-        ),
-    }
+    df = status_data["method"]
+    df.set_index(["process_name"], append=True, inplace=True)
+    df = df.swaplevel(0, 1)
+    status_data["method"] = df
+    status_data["position_limits"].set_index(["keys"], inplace=True)
+    status_data = dict_of_df_to_dict(status_data, orient="index")
+    allprocess = {}
+    for k in status_data["process"].keys():
+        allprocess[k] = {
+            **status_data["process"].get(k, {}),
+            **status_data["process2"].get(k, {}),
+            **status_data["process3"].get(k, {}),
+        }
+    status_data["process"] = allprocess
+    status_data.pop("process2")
+    status_data.pop("process3")
+    return status_data
 
 
 @app.route("/reconcile")
@@ -319,6 +329,7 @@ def trades():
 def strategy():
     return {}
 
+
 def visible_on_lan() -> bool:
     config = get_control_config()
     visible = config.get_element_or_missing_data("dashboard_visible_on_lan")
@@ -329,17 +340,26 @@ def visible_on_lan() -> bool:
 
     return visible
 
+
 if __name__ == "__main__":
     visible = visible_on_lan()
     if visible:
         data = dataBlob()
-        data.log.warn("Starting dashboard with web page visible to all - security implications!!!!")
+        data.log.warn(
+            "Starting dashboard with web page visible to all - security implications!!!!"
+        )
         app.run(
-            threaded=True, use_debugger=False, use_reloader=False, passthrough_errors=True,
-            host="0.0.0.0"
+            threaded=True,
+            use_debugger=False,
+            use_reloader=False,
+            passthrough_errors=True,
+            host="0.0.0.0",
         )
 
     else:
         app.run(
-            threaded=True, use_debugger=False, use_reloader=False, passthrough_errors=True
+            threaded=True,
+            use_debugger=False,
+            use_reloader=False,
+            passthrough_errors=True,
         )

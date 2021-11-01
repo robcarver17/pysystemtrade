@@ -15,6 +15,8 @@ function update_capital() {
 }
 
 function update_costs() {
+  $("#costs > div.loading").show();
+  $("#costs > table").hide();
   $.ajax({
     type: "GET",
     url: "/costs",
@@ -39,11 +41,15 @@ function update_costs() {
           </tr>`
         );
       });
+      $("#costs > div.loading").hide();
+      $("#costs > table").show("slow");
     }
   });
 }
 
 function update_forex() {
+  $("#forex > div.loading").show();
+  $("#forex > table").hide();
   $.ajax({
     type: "GET",
     url: "/forex",
@@ -51,12 +57,16 @@ function update_forex() {
       $.each(data, function(currency, balance) {
         $("#forex_table tbody").append(`<tr><td>${currency}</td><td>${balance}</td></tr>`);
       });
+      $("#forex > div.loading").hide();
+      $("#forex > table").show("slow");
     }
   }
   );
 }
 
 function update_liquidity() {
+  $("#liquidity > div.loading").show();
+  $("#liquidity > table").hide();
   $.ajax({
     type: "GET",
     url: "/liquidity",
@@ -79,12 +89,16 @@ function update_liquidity() {
           ${risk}</tr>`
         );
       });
+      $("#liquidity > div.loading").hide();
+      $("#liquidity > table").show("slow");
     }
   }
   );
 }
 
 function update_pandl() {
+  $("#pandl > div.loading").show();
+  $("#pandl > table").hide();
   $.ajax({
     type: "GET",
     url: "/pandl",
@@ -107,50 +121,109 @@ function update_pandl() {
         $("#pandl_class_table tbody").append(`<tr>
           <td>${v["codes"]}</td><td>${v["pandl"].toFixed(2)}</td></tr>`);
       });
+      $("#pandl > div.loading").hide();
+      $("#pandl > table").show("slow");
     }
   }
   );
 }
 
 function update_processes() {
+  $("#processes > div.loading").show();
+  $("#processes > table").hide();
   $.ajax({
     type: "GET",
     url: "/processes",
     success: function(data) {
-      if (data['running_modes']['run_stack_handler'] == 'running') {
+      if (data['process']['run_stack_handler']['running'] == 'running') {
         $('#stack-tl').addClass("green");
-      } else if (data['running_modes']['run_stack_handler'] == 'crashed') {
+      } else if (data['process']['run_stack_handler']['running'] == 'crashed') {
         $('#stack-tl').addClass("red");
       } else {
         $('#stack-tl').addClass("orange");
       }
       $("#processes_status > tbody").empty();
-      $.each(data['running_modes'], function(process, status) {
-        if (status == 'crashed') {
+      $.each(data['process'], function(process, stat) {
+        var running = stat['running']
+        if (running == 'crashed') {
         $("#processes_status tbody").append(`
           <tr><td>${process}</td>
-          <td class="red">${status}</td>
+          <td>${stat['status']}</td>
+          <td class="red">${running}</td>
+          <td>${stat['PID']}</td>
+          <td>${stat['previous_process']}</td>
+          <td>${stat['prev_process']}</td>
+          <td>${stat['start_time']}</td>
+          <td>${stat['end_time']}</td>
+          <td>${stat['start']}</td>
+          <td>${stat['end']}</td>
           </tr>`);
         } else {
           $("#processes_status tbody").append(`
           <tr><td>${process}</td>
-          <td>${status}</td>
+          <td>${stat['status']}</td>
+          <td>${running}</td>
+          <td>${stat['PID']}</td>
+          <td>${stat['previous_process']}</td>
+          <td>${stat['prev_process']}</td>
+          <td>${stat['start_time']}</td>
+          <td>${stat['end_time']}</td>
+          <td>${stat['start']}</td>
+          <td>${stat['end']}</td>
           </tr>`);
         }
       }
       );
-      if (data["prices_update"]) {
-        $('#prices-tl').addClass("green");
-      } else {
-        $('#prices-tl').addClass("red");
-      }
+      var now = new Date();
+      var most_recent_diff = 999;
+      var most_recent_date = new Date();
+      // Find the most recent update
+      $.each(data['price'], function(instrument, update) {
+        var date = new Date(update['last_update']);
+        var days = (now.getTime() - date.getTime()) / (1000 * 24 * 60 * 60);
+        if (days < most_recent_diff) {
+          most_recent_diff = days;
+          most_recent_date = date;
+        }
+      });
 
+      var price_overall = 'green';
+      $.each(data['price'], function(instrument, update) {
+        var str = update['last_update'];
+        var date = new Date(str);
+        var diff = (most_recent_date.getTime() - date.getTime()) / (1000 * 24 * 60 * 60);  // days
+        var short_date = str.substring(5,7) + "/" + str.substring(8,10) + " " + str.substring(11,19);
+        if (most_recent_diff > 1.0) {
+          price_overall = "orange";
+        }
+        if (diff <= 1.0)
+        {
+          $("#processes_prices tbody").append(`
+          <tr>
+            <td>${instrument}</td>
+            <td>${short_date}</td>
+          </tr>
+          `);
+        } else {
+          $("#processes_prices tbody").append(`
+          <tr>
+            <td>${instrument}</td>
+            <td class="red">${short_date}</td>
+          </tr>
+          `);
+          price_overall = 'red';
+        }
+      });
+      $('#prices-tl').removeClass("red orange green").addClass(price_overall);
+      $("#processes > div.loading").hide();
+      $("#processes > table").show("slow");
     }
   }
   );
 }
 
 function update_reconcile() {
+  $("#reconciliation > div.loading").show();
   $.ajax({
     type: "GET",
     url: "/reconcile",
@@ -200,12 +273,17 @@ function update_reconcile() {
       } else {
         $('#gateway-tl').addClass("red");
       }
+      $("#reconciliation > div.loading").hide();
+      $("#tab_reconciliation").one("click", update_reconcile);
+      $("#reconciliation > table").show("slow");
     }
   }
   );
 }
 
 function update_risk() {
+  $("#risk > div.loading").show();
+  $("#risk > table").hide();
   $.ajax({
     type: "GET",
     url: "/risk",
@@ -243,12 +321,16 @@ function update_risk() {
           <td>${v["annual_risk_perc_capital"].toFixed(1)}</td>
           </tr>`);
       });
+      $("#risk > div.loading").hide();
+      $("#risk > table").show("slow");
     }
   }
   );
 }
 
 function update_rolls() {
+  $("#rolls > div.loading").show();
+  $("#rolls > table").hide();
   $.ajax({
     type: "GET",
     url: "/rolls",
@@ -288,24 +370,32 @@ function update_rolls() {
         );
       }
       );
-      $("#rolls-tl").addClass(overall);
+      $("#rolls-tl").removeClass("red orange green").addClass(overall);
+      $("#rolls > div.loading").hide();
+      $("#rolls > table").show("slow");
     }
   });
 }
 
 function update_strategy() {
+  $("#strategy > div.loading").show();
+  $("#strategy > table").hide();
   $.ajax({
     type: "GET",
     url: "/strategy",
     success: function(data) {
       $.each(data, function(k, v) {
       });
+      $("#strategy > div.loading").hide();
+      $("#strategy > table").show("slow");
     }
   }
   );
 }
 
 function update_trades() {
+  $("#trades > div.loading").show();
+  $("#trades > table").hide();
   $.ajax({
     type: "GET",
     url: "/trades",
@@ -383,6 +473,8 @@ function update_trades() {
           <td>${v["total_trading_cash"]}</td>
           </tr>`)
       });
+      $("#trades > div.loading").hide();
+      $("#trades > table").show("slow");
     }
   }
   );
@@ -445,13 +537,14 @@ function roll_post(instrument, state, confirmed = false) {
 
 $(document).ready(update_capital());
 $(document).ready(update_forex());
-$(document).ready(update_pandl());
 $(document).ready(update_processes());
 $(document).ready(update_reconcile());
-$(document).ready(update_risk());
-$(document).ready(update_strategy());
-$(document).ready(update_trades());
 $(document).ready(update_rolls());
-$(document).ready(update_liquidity());
-$(document).ready(update_costs());
-
+$(document).ready(function() {
+  $("#tab_costs").one("click", update_costs);
+  $("#tab_risk").one("click", update_risk);
+  $("#tab_pandl").one("click", update_pandl);
+  $("#tab_trades").one("click", update_trades);
+  $("#tab_strategy").one("click", update_strategy);
+  $("#tab_liquidity").one("click", update_liquidity);
+});
