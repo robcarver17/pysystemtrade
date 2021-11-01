@@ -110,7 +110,7 @@ def calculate_optimised_positions_data(data: dataBlob,
     objective_function = get_objective_instance(data_for_objective)
 
     data.log.msg("Tracking error of prior weights %.2f vs buffer %.2f" % (objective_function.tracking_error_of_prior_weights(),
-                                                                       data_for_objective.tracking_error_buffer)
+                                                                       data_for_objective.tracking_error_buffer))
 
     optimised_positions_data = get_optimised_positions_data_dict_given_optimisation(data_for_objective=data_for_objective,
                                                                                objective_function=objective_function)
