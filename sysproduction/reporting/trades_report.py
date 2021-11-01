@@ -25,11 +25,17 @@ def trades_info(
 
     formatted_output = []
     formatted_output.append(reporting_api.std_header("Trades report"))
-    formatted_output.append(reporting_api.table_of_orders_overview())
-    formatted_output.append(reporting_api.table_of_order_delays())
-    formatted_output.append(reporting_api.table_of_raw_slippage())
-    formatted_output.append(reporting_api.table_of_vol_slippage())
-    formatted_output.append(reporting_api.table_of_cash_slippage())
+    list_of_table_names = ['table_of_orders_overview',
+                           'table_of_order_delays',
+                           'table_of_raw_slippage',
+                           'table_of_vol_slippage',
+                           'table_of_cash_slippage']
+
+    for table_name in list_of_table_names:
+        func = getattr(reporting_api, table_name)
+        formatted_output.append(func())
+
+    ## special case
     list_of_summary = reporting_api.list_of_cash_summary_text()
     formatted_output = formatted_output + list_of_summary
 
