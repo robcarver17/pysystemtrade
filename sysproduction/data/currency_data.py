@@ -104,10 +104,17 @@ def get_list_of_fxcodes(data: dataBlob=arg_not_supplied) -> list:
     return list_of_codes
 
 
-def get_valid_fx_code_from_user(data: dataBlob=arg_not_supplied) -> str:
+
+def get_valid_fx_code_from_user(data: dataBlob=arg_not_supplied,
+                                allow_none = False,
+                                none_str = "None"
+                                ) -> str:
     if data is arg_not_supplied:
         data = dataBlob()
     all_fx_codes = get_list_of_fxcodes(data)
-    fx_code = print_menu_of_values_and_get_response(all_fx_codes)
+    if allow_none:
+        fx_code = print_menu_of_values_and_get_response(all_fx_codes, default_str=none_str)
+    else:
+        fx_code = print_menu_of_values_and_get_response(all_fx_codes)
 
     return fx_code

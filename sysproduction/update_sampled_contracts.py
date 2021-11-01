@@ -1,4 +1,4 @@
-from syscore.objects import missing_contract, arg_not_supplied
+from syscore.objects import missing_contract, success
 
 from sysobjects.contract_dates_and_expiries import contractDate, expiryDate
 from sysobjects.contracts import futuresContract, listOfFuturesContracts
@@ -41,7 +41,22 @@ def update_sampled_contracts():
         update_contracts_object = updateSampledContracts(data)
         instrument_code = get_valid_instrument_code_from_user(allow_all=True,
                                                               all_code=ALL_INSTRUMENTS)
+
         update_contracts_object.update_sampled_contracts(instrument_code=instrument_code)
+
+        if instrument_code is ALL_INSTRUMENTS:
+            return success
+
+        do_another = True
+
+        while do_another:
+            EXIT_CODE="EXIT"
+            instrument_code = get_valid_instrument_code_from_user(allow_exit=True,
+                                                                  exit_code=EXIT_CODE)
+            if instrument_code is EXIT_CODE:
+                do_another= False
+            else:
+                update_contracts_object.update_sampled_contracts(instrument_code=instrument_code)
 
 
 class updateSampledContracts(object):

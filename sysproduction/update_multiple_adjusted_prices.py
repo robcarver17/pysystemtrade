@@ -33,9 +33,26 @@ def update_multiple_adjusted_prices():
     with dataBlob(log_name="Update-Multiple-Adjusted-Prices") as data:
         update_multiple_adjusted_prices_object = updateMultipleAdjustedPrices(
             data)
+
         instrument_code = get_valid_instrument_code_from_user(all_code=ALL_INSTRUMENTS,
                                                               allow_all=True)
+
         update_multiple_adjusted_prices_object.update_multiple_adjusted_prices(instrument_code=instrument_code)
+        if instrument_code is ALL_INSTRUMENTS:
+            ## done
+            return success
+
+        ## else go into a loop
+        do_another = True
+
+        while do_another:
+            EXIT_CODE = "EXIT"
+            instrument_code = get_valid_instrument_code_from_user(allow_exit=True,
+                                                                  exit_code="EXIT")
+            if instrument_code is EXIT_CODE:
+                do_another = False
+            else:
+                update_multiple_adjusted_prices_object.update_multiple_adjusted_prices(instrument_code=instrument_code)
 
     return success
 
