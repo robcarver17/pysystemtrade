@@ -39,4 +39,6 @@ def trades_info(
     list_of_summary = reporting_api.list_of_cash_summary_text()
     formatted_output = formatted_output + list_of_summary
 
+    formatted_output.append(reporting_api.footer())
+
     return formatted_output

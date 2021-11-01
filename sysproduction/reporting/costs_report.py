@@ -25,6 +25,7 @@ def costs_report(
     formatted_output.append(body_text("* indicates currently held position"))
     formatted_output.append(reporting_api.table_of_sr_costs())
     formatted_output.append(body_text("* indicates currently held position"))
+    formatted_output.append(reporting_api.footer())
 
     return formatted_output
 

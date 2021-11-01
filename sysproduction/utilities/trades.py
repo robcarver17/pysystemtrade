@@ -1,3 +1,4 @@
+import datetime
 from collections import namedtuple
 from copy import copy
 
@@ -6,6 +7,7 @@ import pandas as pd
 
 from syscore.genutils import transfer_object_attributes
 from syscore.pdutils import make_df_from_list_of_named_tuple
+from sysproduction.data.broker import dataBroker
 from sysproduction.data.instruments import diagInstruments
 from sysproduction.data.orders import dataOrders
 from sysproduction.utilities.risk_metrics import get_current_annualised_stdev_for_instrument
@@ -42,6 +44,19 @@ def get_tuple_object_from_order_id(data, order_id):
     tuple_object = transfer_object_attributes(tradesData, order)
 
     return tuple_object
+
+
+terseTradesData = namedtuple(
+    "terseTradesData",
+    [
+        "instrument_code",
+        "strategy_name",
+        "contract_date",
+        "fill_datetime",
+        "fill",
+        "filled_price",
+    ],
+)
 
 
 tradesData = namedtuple(
@@ -413,3 +428,27 @@ def delay_calc(first_time, second_time):
         return np.nan
 
     return time_diff_seconds
+
+
+def get_recent_trades_from_db_as_terse_df(data):
+    data_orders = dataOrders(data)
+    start_date = datetime.datetime.now() - datetime.timedelta(days=1)
+    order_id_list = data_orders.get_historic_broker_order_ids_in_date_range(
+        start_date)
+    orders_as_list = [get_tuple_object_from_order_id(
+        data, order_id) for order_id in order_id_list]
+    pdf = make_df_from_list_of_named_tuple(terseTradesData, orders_as_list)
+
+    return pdf
+
+
+def get_broker_trades_as_terse_df(data):
+    data_broker = dataBroker(data)
+    list_of_orders = data_broker.get_list_of_orders()
+    tuple_list = [
+        transfer_object_attributes(
+            tradesData,
+            order) for order in list_of_orders]
+    pdf = make_df_from_list_of_named_tuple(terseTradesData, tuple_list)
+
+    return pdf

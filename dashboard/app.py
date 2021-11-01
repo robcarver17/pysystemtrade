@@ -1,6 +1,7 @@
 from flask import Flask, g, render_template, request
 from werkzeug.local import LocalProxy
 
+import sysproduction.reporting.api
 from syscore.objects import missing_data
 from syscore.genutils import str2Bool
 
@@ -104,7 +105,7 @@ def forex():
 
 @app.route("/liquidity")
 def liquidity():
-    liquidity_data = liquidity_report.get_liquidity_report_data(data)[
+    liquidity_data = sysproduction.reporting.api.get_liquidity_report_data(data)[
         "all_liquidity_df"
     ].to_dict(orient="index")
     return liquidity_data

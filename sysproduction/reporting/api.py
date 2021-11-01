@@ -11,7 +11,10 @@ from sysproduction.reporting.reporting_functions import header, table
 
 from sysproduction.utilities.costs import get_table_of_SR_costs, get_combined_df_of_costs
 from sysproduction.utilities.trades import get_recent_broker_orders, create_raw_slippage_df, create_cash_slippage_df, \
-    create_vol_norm_slippage_df, get_stats_for_slippage_groups, create_delay_df
+    create_vol_norm_slippage_df, get_stats_for_slippage_groups, create_delay_df, get_recent_trades_from_db_as_terse_df, get_broker_trades_as_terse_df
+from sysproduction.utilities.positions import get_optimal_positions, get_my_positions, get_broker_positions, \
+    get_position_breaks
+from sysproduction.utilities.volume import get_liquidity_data_df
 
 
 class reportingApi(object):
@@ -30,12 +33,88 @@ class reportingApi(object):
         end_date = self.end_date
         std_header = header("%s report produced on %s from %s to %s" %
                (report_name,
-                   create_datetime_string(datetime.datetime.now()),
-                create_datetime_string(start_date),
-               create_datetime_string(end_date)))
+                   str(datetime.datetime.now()),
+                str(start_date),
+               str(end_date)))
 
         return std_header
 
+    def terse_header(self, report_name: str):
+        terse_header = header("%s report produced on %s" %
+               (report_name,
+                   str(datetime.datetime.now())))
+
+        return terse_header
+
+    def footer(self):
+        return header("END OF REPORT")
+
+    ##### RECONCILE #####
+    def table_of_optimal_positions(self):
+        positions_optimal = get_optimal_positions(self.data)
+        table_positions_optimal = table("Optimal versus actual positions", positions_optimal)
+        return table_positions_optimal
+
+    def table_of_my_positions(self):
+        positions_mine = get_my_positions(self.data)
+        table_positions_mine = table("Positions in DB",positions_mine)
+        
+        return table_positions_mine
+
+    def table_of_ib_positions(self):
+        positions_ib = get_broker_positions(self.data)
+        table_positions_ib = table("Positions broker", positions_ib)
+
+        return table_positions_ib
+
+    def body_text_position_breaks(self):
+        position_breaks = get_position_breaks(self.data)
+        text_position_breaks = body_text(position_breaks)
+
+        return text_position_breaks
+
+    def table_of_my_recent_trades_from_db(self):
+        trades_mine = get_recent_trades_from_db_as_terse_df(self.data)
+        table_trades_mine = table("Trades in DB", trades_mine)
+
+        return table_trades_mine
+
+    def table_of_recent_ib_trades(self):
+        trades_ib = get_broker_trades_as_terse_df(self.data)
+        table_trades_ib = table("Trades from broker", trades_ib)
+
+        return table_trades_ib
+
+
+    ##### LIQUIDITY ######
+    def table_of_liquidity_contract_sort(self) -> table:
+        all_liquidity_df = self.liquidity_data
+        all_liquidity_df = all_liquidity_df.sort_values("contracts")
+        table_liquidity = table(" Sorted by contracts: Less than 100 contracts a day is a problem",
+                                all_liquidity_df)
+
+        return table_liquidity
+
+    def table_of_liquidity_risk_sort(self) -> table:
+        all_liquidity_df = self.liquidity_data
+        all_liquidity_df = all_liquidity_df.sort_values("risk")
+        table_liquidity = table("Sorted by risk: Less than $1.5 million of risk per day is a problem",
+                                all_liquidity_df)
+
+        return table_liquidity
+
+    @property
+    def liquidity_data(self) -> pd.DataFrame:
+        liquidity = getattr(self, "_liquidity_data", missing_data)
+        if liquidity is missing_data:
+            liquidity = self._liquidity_data = self._get_liquidity_data()
+
+        return liquidity
+
+    def _get_liquidity_data(self) -> pd.DataFrame:
+        return get_liquidity_data_df(self.data)
+
+    ##### COSTS ######
     def table_of_sr_costs(self):
         table_of_sr_costs = get_table_of_SR_costs_as_formatted_table(self.data)
 
@@ -47,6 +126,9 @@ class reportingApi(object):
                                                               end_date=self.end_date)
 
         return table_of_slippage
+
+
+    ##### TRADES ######
 
     def table_of_orders_overview(self):
         broker_orders = self.broker_orders
@@ -177,6 +259,8 @@ class reportingApi(object):
                                                  end_date = self.end_date)
         return broker_orders
 
+    ##### DATA AND DATES #####
+
     @property
     def data(self) -> dataBlob:
         return self._data
@@ -238,3 +322,9 @@ def get_table_of_SR_costs_as_formatted_table(data):
 
     return formatted_table
 
+
+def get_liquidity_report_data(data: dataBlob) -> pd.DataFrame:
+    all_liquidity_df = get_liquidity_data_df(data)
+    all_liquidity_df = annonate_df_index_with_positions_held(data, all_liquidity_df)
+
+    return all_liquidity_df
