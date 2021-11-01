@@ -447,7 +447,7 @@ def get_broker_trades_as_terse_df(data):
     list_of_orders = data_broker.get_list_of_orders()
     tuple_list = [
         transfer_object_attributes(
-            tradesData,
+            terseTradesData,
             order) for order in list_of_orders]
     pdf = make_df_from_list_of_named_tuple(terseTradesData, tuple_list)
 

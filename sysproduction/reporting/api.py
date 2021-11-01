@@ -58,7 +58,7 @@ class reportingApi(object):
     def table_of_my_positions(self):
         positions_mine = get_my_positions(self.data)
         table_positions_mine = table("Positions in DB",positions_mine)
-        
+
         return table_positions_mine
 
     def table_of_ib_positions(self):
