@@ -109,6 +109,9 @@ def calculate_optimised_positions_data(data: dataBlob,
 
     objective_function = get_objective_instance(data_for_objective)
 
+    data.log.msg("Tracking error of prior weights %.2f vs buffer %.2f" % (objective_function.tracking_error_of_prior_weights(),
+                                                                       data_for_objective.tracking_error_buffer)
+
     optimised_positions_data = get_optimised_positions_data_dict_given_optimisation(data_for_objective=data_for_objective,
                                                                                objective_function=objective_function)
 
@@ -130,7 +133,8 @@ class dataForObjectiveInstance:
     maximum_position_contracts: portfolioWeights
     reduce_only_keys: list
     no_trade_keys: list
-    trade_shadow_cost: float= 10
+    trade_shadow_cost: float
+    tracking_error_buffer: float
 
 
 def get_data_for_objective_instance(data: dataBlob,
@@ -204,6 +208,9 @@ def get_data_for_objective_instance(data: dataBlob,
     trade_shadow_cost = get_trade_shadow_cost(data)
     data.log.msg("Shadow cost %f" % trade_shadow_cost)
 
+    tracking_error_buffer = get_tracking_error_buffer(data)
+    data.log.msg("Tracking error buffer %f" % tracking_error_buffer)
+
     data_for_objective = dataForObjectiveInstance(weights_optimal=weights_optimal,
                                                   positions_optimal = positions_optimal,
                                                   per_contract_value=per_contract_value,
@@ -218,7 +225,8 @@ def get_data_for_objective_instance(data: dataBlob,
                                                   maximum_position_contracts=maximum_position_contracts,
                                                   reduce_only_keys=reduce_only_keys,
                                                   no_trade_keys=no_trade_keys,
-                                                  trade_shadow_cost = trade_shadow_cost)
+                                                  trade_shadow_cost = trade_shadow_cost,
+                                                  tracking_error_buffer=tracking_error_buffer)
 
 
     return data_for_objective
@@ -349,6 +357,14 @@ def get_trade_shadow_cost(data) -> float:
 
     return shadow_cost
 
+def get_tracking_error_buffer(data) -> float:
+    system_config = get_config_parameters(data)
+    tracking_error_buffer = system_config.get("tracking_error_buffer", missing_data)
+    if tracking_error_buffer is missing_data:
+        raise Exception("config.small_system doesn't include tracking_error_buffer: you've probably messed up your private_config")
+
+    return tracking_error_buffer
+
 def get_config_parameters(data: dataBlob) -> dict:
     config = data.config
     system_config = config.get_element_or_missing_data("small_system")
@@ -369,7 +385,8 @@ def get_objective_instance(data_for_objective: dataForObjectiveInstance)\
                         reduce_only_keys=data_for_objective.reduce_only_keys,
                         no_trade_keys=data_for_objective.no_trade_keys,
                         maximum_position_weights=data_for_objective.maximum_position_weights,
-                        per_contract_value=data_for_objective.per_contract_value
+                        per_contract_value=data_for_objective.per_contract_value,
+                        tracking_error_buffer=data_for_objective.tracking_error_buffer
                         )
 
     return objective_function
