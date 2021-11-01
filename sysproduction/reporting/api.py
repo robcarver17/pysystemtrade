@@ -2,7 +2,7 @@ import datetime
 
 import pandas as pd
 
-from syscore.dateutils import n_days_ago, create_datetime_string
+from syscore.dateutils import n_days_ago
 from syscore.objects import arg_not_supplied, missing_data, body_text
 from sysdata.data_blob import dataBlob
 
@@ -14,6 +14,10 @@ from sysproduction.utilities.trades import get_recent_broker_orders, create_raw_
     create_vol_norm_slippage_df, get_stats_for_slippage_groups, create_delay_df, get_recent_trades_from_db_as_terse_df, get_broker_trades_as_terse_df
 from sysproduction.utilities.positions import get_optimal_positions, get_my_positions, get_broker_positions, \
     get_position_breaks
+from sysproduction.utilities.risk_metrics import \
+    get_correlation_matrix_all_instruments, get_instrument_risk_table, \
+    get_portfolio_risk_for_all_strategies, get_portfolio_risk_across_strategies
+
 from sysproduction.utilities.volume import get_liquidity_data_df
 
 
@@ -48,6 +52,73 @@ class reportingApi(object):
 
     def footer(self):
         return header("END OF REPORT")
+
+    #### RISK REPORT ####
+    def table_of_correlations(self):
+        corr_data = get_correlation_matrix_all_instruments(self.data)
+        corr_data = corr_data.as_pd().round(2)
+        table_corr = table("Correlations", corr_data)
+
+        return table_corr
+
+    def table_of_instrument_risk(self):
+        instrument_risk_data = self.instrument_risk_data
+        instrument_risk_data_rounded = instrument_risk_data.round(2)
+        table_instrument_risk = table("Instrument risk", instrument_risk_data_rounded)
+        return table_instrument_risk
+
+
+    def table_of_strategy_risk(self):
+        strategy_risk = get_portfolio_risk_across_strategies(self.data)
+        strategy_risk = strategy_risk*100.0
+        strategy_risk = strategy_risk.round(1)
+        table_strategy_risk = table("Risk per strategy, annualised percentage", strategy_risk)
+
+        return table_strategy_risk
+
+    def body_text_portfolio_risk_total(self):
+        portfolio_risk_total = get_portfolio_risk_for_all_strategies(self.data)
+        portfolio_risk_total = portfolio_risk_total*100.0
+        portfolio_risk_total = portfolio_risk_total.round(1)
+        portfolio_risk_total_text = body_text("Total risk across all strategies, annualised percentage %.1f" % portfolio_risk_total)
+
+        return portfolio_risk_total_text
+
+    def body_text_abs_total_all_risk_perc_capital(self):
+        instrument_risk_data =self.instrument_risk_data
+        all_risk_perc_capital = instrument_risk_data.exposure_held_perc_capital
+        abs_total_all_risk_perc_capital = all_risk_perc_capital.abs().sum()
+
+        return body_text("Sum of abs(notional exposure %% capital) %.1f" %
+                         abs_total_all_risk_perc_capital)
+
+    def body_text_abs_total_all_risk_annualised(self):
+        instrument_risk_data = self.instrument_risk_data
+        all_risk_annualised = instrument_risk_data.annual_risk_perc_capital
+        abs_total_all_risk_annualised = all_risk_annualised.abs().sum()
+
+        return body_text("Sum of abs(annualised risk %% capital) %.1f" %
+                         abs_total_all_risk_annualised)
+
+    def body_text_net_total_all_risk_annualised(self):
+        instrument_risk_data = self.instrument_risk_data
+        all_risk_annualised = instrument_risk_data.annual_risk_perc_capital
+        net_total_all_risk_annualised = all_risk_annualised.sum()
+
+        return body_text("Net sum of annualised risk %% capital %.1f " %
+                         net_total_all_risk_annualised)
+
+    @property
+    def instrument_risk_data(self):
+        instrument_risk = getattr(self, "_instrument_risk", missing_data)
+        if instrument_risk is missing_data:
+            instrument_risk = self._instrument_risk = self._get_instrument_risk()
+
+        return instrument_risk
+
+    def _get_instrument_risk(self):
+        instrument_risk_data = get_instrument_risk_table(self.data)
+        return instrument_risk_data
 
     ##### RECONCILE #####
     def table_of_optimal_positions(self):

@@ -20,6 +20,19 @@ from sysproduction.data.prices import diagPrices
 
 DAILY_RISK_CALC_LOOKBACK = int(BUSINESS_DAYS_IN_YEAR*2)
 
+
+def get_instrument_risk_table(data):
+    ## INSTRUMENT RISK (daily %, annual %, return space daily and annual, base currency per contract daily and annual, positions)
+    instrument_list = get_instruments_with_positions_all_strategies(data)
+    risk_data_list = dict([(instrument_code, get_risk_data_for_instrument(data, instrument_code))
+                           for instrument_code in instrument_list])
+    risk_df = pd.DataFrame(risk_data_list)
+    risk_df = sorted_clean_df(risk_df, 'annual_risk_perc_capital')
+
+    return risk_df
+
+
+
 def get_risk_data_for_instrument(data, instrument_code):
     daily_price_stdev = get_current_daily_stdev_for_instrument(data, instrument_code)
     annual_price_stdev= daily_price_stdev * ROOT_BDAYS_INYEAR
