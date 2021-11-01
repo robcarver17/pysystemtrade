@@ -201,14 +201,14 @@ function update_processes() {
           $("#processes_prices tbody").append(`
           <tr>
             <td>${instrument}</td>
-            <td>${short_date}
+            <td>${short_date}</td>
           </tr>
           `);
         } else {
           $("#processes_prices tbody").append(`
           <tr>
             <td>${instrument}</td>
-            <td class="red">${short_date} ${most_recent_diff} ${diff}
+            <td class="red">${short_date}</td>
           </tr>
           `);
           price_overall = 'red';
