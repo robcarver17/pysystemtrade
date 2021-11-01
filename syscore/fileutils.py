@@ -75,6 +75,9 @@ def add_ampersand_to_pathname(pathname: str) -> str:
 
 def get_resolved_pathname(pathname):
     # Turn /,\ into . so system independent
+    if "@" in pathname:
+        # This is an ssh address for rsync - don't change
+        return pathname
     pathname_replaced_with_ampersands = add_ampersand_to_pathname(pathname)
     resolved_pathname = get_resolved_ampersand_pathname(pathname_replaced_with_ampersands)
 

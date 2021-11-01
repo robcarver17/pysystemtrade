@@ -38,7 +38,5 @@ def dump_mongo_data(data):
 def backup_mongo_dump(data):
     source_path = get_mongo_dump_directory()
     destination_path = get_mongo_backup_directory()
-    shutil.rmtree(destination_path)
     data.log.msg("Copy from %s to %s" % (source_path, destination_path))
-    shutil.copytree(source_path, destination_path)
-
+    os.system("rsync -av %s %s" % (source_path, destination_path))
