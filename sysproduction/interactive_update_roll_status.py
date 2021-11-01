@@ -101,9 +101,8 @@ def update_roll_status_manual_cycle(data: dataBlob):
         if instrument_code is EXIT_CODE:
             # belt and braces
             do_another = False
-            break
-
-        manually_report_and_update_roll_state_for_code(data, instrument_code)
+        else:
+            manually_report_and_update_roll_state_for_code(data, instrument_code)
 
     return success
 

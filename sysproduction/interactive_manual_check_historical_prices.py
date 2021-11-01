@@ -31,13 +31,16 @@ def interactive_manual_check_historical_prices():
     with dataBlob(log_name="Update-Historical-prices-manually") as data:
         do_another = True
         while do_another:
-            instrument_code = get_valid_instrument_code_from_user(data, source='single')
-            check_instrument_ok_for_broker(data, instrument_code)
-            data.log.label(instrument_code=instrument_code)
-            update_historical_prices_with_checks_for_instrument(instrument_code, data)
-            ans = input("Another <type anything> ? or <RETURN> to exit: ")
-            if ans == "":
+            EXIT_STR = "Finished: Exit"
+            instrument_code = get_valid_instrument_code_from_user(data, source='single',
+                                                                  allow_exit=True,
+                                                                  exit_code=EXIT_STR)
+            if instrument_code is EXIT_STR:
                 do_another = False
+            else:
+                check_instrument_ok_for_broker(data, instrument_code)
+                data.log.label(instrument_code=instrument_code)
+                update_historical_prices_with_checks_for_instrument(instrument_code, data)
 
     return success
 
