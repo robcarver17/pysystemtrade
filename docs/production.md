@@ -1634,7 +1634,7 @@ Linux script:
 Called by: `run_strategy_order_generator`
 
 
-The code to run each strategies backtest is defined in the configuration parameter in the control_config.yaml file (or overriden in the private_control_config.yaml file): `process_configuration_methods/run_systems/strategy_name/`. For example:
+The code to run each strategy's backtest is defined in the configuration parameter in the control_config.yaml file (or overriden in the private_control_config.yaml file): `process_configuration_methods/run_systems/strategy_name/`. For example:
 
 
 ```
@@ -1644,7 +1644,7 @@ The code to run each strategies backtest is defined in the configuration paramet
       max_executions: 1
 ```
 
-- `object` the class of the code that generates the orders, eg `sysexecution.strategies.classic_buffered_positions.orderGeneratorForBufferedPositions`. This must provide a method `get_and_place_orders` (which it will, as long if the class inherits from `orderGeneratorForStrategy`)
+- `object` the class of the code that generates the orders, eg `sysexecution.strategies.classic_buffered_positions.orderGeneratorForBufferedPositions`. This must provide a method `get_and_place_orders` (which it will, as long as the class inherits from `orderGeneratorForStrategy`)
 
 The following optional parameters are used only by `run_strategy_order_generator`:
 - `max_executions` the number of times the generator should be run on each iteration of run_systems. Normally 1, unless you have some whacky intraday system. Can be omitted.
