@@ -6,6 +6,7 @@ from syscore.dateutils import n_days_ago
 from syscore.objects import arg_not_supplied, missing_data, body_text
 from sysdata.data_blob import dataBlob
 
+from sysproduction.data.prices import diagPrices
 from sysproduction.data.positions import annonate_df_index_with_positions_held
 from sysproduction.reporting.reporting_functions import header, table
 
@@ -17,7 +18,7 @@ from sysproduction.utilities.positions import get_optimal_positions, get_my_posi
 from sysproduction.utilities.risk_metrics import \
     get_correlation_matrix_all_instruments, get_instrument_risk_table, \
     get_portfolio_risk_for_all_strategies, get_portfolio_risk_across_strategies
-
+from sysproduction.utilities.rolls import get_roll_data_for_instrument, ALL_ROLL_INSTRUMENTS
 from sysproduction.utilities.volume import get_liquidity_data_df
 
 
@@ -52,6 +53,58 @@ class reportingApi(object):
 
     def footer(self):
         return header("END OF REPORT")
+
+    #### ROLL REPORT ####
+    def table_of_roll_data(self, instrument_code: str = ALL_ROLL_INSTRUMENTS):
+        result_pd = self._roll_data_as_pd(instrument_code)
+        table_result = table("Status and time to roll in days", result_pd)
+
+        return table_result
+
+    def _roll_data_as_pd(self, instrument_code: str = ALL_ROLL_INSTRUMENTS):
+        roll_data_dict = self.roll_data_dict_for_instrument_code(instrument_code)
+
+        result_pd = pd.DataFrame(roll_data_dict)
+        result_pd = result_pd.transpose()
+
+        result_pd = result_pd.sort_values("roll_expiry")
+
+        return result_pd
+
+
+    def roll_data_dict_for_instrument_code(self, instrument_code: str = ALL_ROLL_INSTRUMENTS):
+        roll_data_dict = self.roll_data_dict
+        if instrument_code is ALL_ROLL_INSTRUMENTS:
+            return roll_data_dict
+        else:
+            return {instrument_code: roll_data_dict[instrument_code]}
+
+    @property
+    def roll_data_dict(self):
+        roll_data_dict = getattr(self, "_roll_data_dict", missing_data)
+        if roll_data_dict is missing_data:
+            roll_data_dict = self._roll_data_dict = self._get_roll_data_dict()
+
+        return roll_data_dict
+
+
+    def _get_roll_data_dict(self):
+        list_of_instruments = self._list_of_all_instruments()
+        data = self.data
+
+        roll_data_dict = {}
+        for instrument_code in list_of_instruments:
+            roll_data = get_roll_data_for_instrument(instrument_code, data)
+            roll_data_dict[instrument_code] = roll_data
+
+        return roll_data_dict
+
+    def _list_of_all_instruments(self):
+        diag_prices = diagPrices(self.data)
+        list_of_instruments = diag_prices.get_list_of_instruments_in_multiple_prices()
+
+        return list_of_instruments
+
 
     #### RISK REPORT ####
     def table_of_correlations(self):

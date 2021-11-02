@@ -19,7 +19,7 @@ from sysproduction.data.prices import diagPrices, updatePrices
 from sysproduction.data.volumes import diagVolumes
 
 
-def get_roll_data_for_instrument(instrument_code, data):
+def get_roll_data_for_instrument_DEPRECATED(instrument_code, data):
     """
     Get roll data for an individual instrument
 
@@ -68,8 +68,59 @@ def get_roll_data_for_instrument(instrument_code, data):
 
     return results_dict_code
 
+
+def get_roll_data_for_instrument(instrument_code, data):
+    """
+    Get roll data for an individual instrument
+
+    :param instrument_code: str
+    :param data: dataBlob
+    :return:
+    """
+    c_data = dataContracts(data)
+    contract_priced = c_data.get_priced_contract_id(instrument_code)
+    contract_fwd = c_data.get_forward_contract_id(instrument_code)
+
+    volumes = relative_volume_in_forward_contract_and_price(data, instrument_code)
+    volume_priced = volumes[0]
+    volume_fwd = volumes[1]
+
+    # length to expiries / length to suggested roll
+
+    price_expiry_days = c_data.days_until_price_expiry(instrument_code)
+    carry_expiry_days = c_data.days_until_carry_expiry(instrument_code)
+    when_to_roll_days = c_data.days_until_roll(instrument_code)
+
+    # roll status
+    diag_positions = diagPositions(data)
+    roll_status = diag_positions.get_name_of_roll_state(instrument_code)
+
+    # Positions
+    position_priced = diag_positions.get_position_for_contract(futuresContract(instrument_code, contract_priced))
+
+    results_dict_code = dict(
+        status=roll_status,
+        roll_expiry=when_to_roll_days,
+        price_expiry=price_expiry_days,
+        carry_expiry=carry_expiry_days,
+        contract_priced = contract_priced,
+        contract_fwd = contract_fwd,
+        position_priced = position_priced,
+        volume_priced = volume_priced,
+        volume_fwd = volume_fwd
+    )
+
+    return results_dict_code
+
 def relative_volume_in_forward_contract_versus_price(data: dataBlob,
                                         instrument_code: str) -> float:
+
+    volumes = relative_volume_in_forward_contract_and_price(data, instrument_code)
+
+    return volumes[1]
+
+def relative_volume_in_forward_contract_and_price(data: dataBlob,
+                                        instrument_code: str) -> list:
 
     c_data = dataContracts(data)
     forward_contract_id =c_data.get_forward_contract_id(instrument_code)
@@ -79,7 +130,8 @@ def relative_volume_in_forward_contract_versus_price(data: dataBlob,
         instrument_code, [current_contract, forward_contract_id]
     )
 
-    return volumes[1]
+    return volumes
+
 
 
 
@@ -466,3 +518,6 @@ def rollback_adjustment(
         return failure
 
     return success
+
+
+ALL_ROLL_INSTRUMENTS = "ALL"

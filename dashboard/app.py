@@ -215,7 +215,7 @@ def rolls():
     all_instruments = diag_prices.get_list_of_instruments_in_multiple_prices()
     report = {}
     for instrument in all_instruments:
-        report[instrument] = roll_report.get_roll_data_for_instrument(instrument, data)
+        report[instrument] = roll_report.get_roll_data_for_instrument_DEPRECATED(instrument, data)
         roll_data = setup_roll_data_with_state_reporting(data, instrument)
         report[instrument]["allowable"] = roll_data.allowable_roll_states_as_list_of_str
 

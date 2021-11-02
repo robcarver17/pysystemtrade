@@ -1,6 +1,7 @@
 from copy import copy
 
-from sysproduction.reporting.roll_report import ALL_ROLL_INSTRUMENTS
+from sysproduction.utilities.rolls import ALL_ROLL_INSTRUMENTS
+
 
 class reportConfig(object):
     def __init__(self, title, function, output="console", **kwargs):
