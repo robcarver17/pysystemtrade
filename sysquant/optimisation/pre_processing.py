@@ -169,7 +169,7 @@ class returnsPreProcessor(object):
 
         # a dict, keys are forecasts, each entry is a list ordered by instrument code
         turnovers = self.turnovers
-        costs = _calculate_pooled_turnover_costs(asset_name,
+        costs = _calculate_pooled_turnover_costs(self, asset_name,
                                                            turnovers= turnovers,
                                                            dict_of_costs = dict_of_costs)
 
@@ -195,14 +195,14 @@ class returnsPreProcessor(object):
 
 
 
-def _calculate_pooled_turnover_costs(asset_name: str,
+def _calculate_pooled_turnover_costs(self, asset_name: str,
                                     turnovers: dict,
                                     dict_of_costs: dictOfSRacrossAssets) -> dictOfSR:
 
     column_names = turnovers.keys()
     column_SR_dict = dict([
         (column,
-         _calculate_pooled_turnover_cost_for_column(asset_name,
+         _calculate_pooled_turnover_cost_for_column(self, asset_name,
                                                             turnovers=turnovers,
                                                             column_name=column,
                                                             dict_of_costs=dict_of_costs)
@@ -214,12 +214,14 @@ def _calculate_pooled_turnover_costs(asset_name: str,
     return column_SR_dict
 
 
-def _calculate_pooled_turnover_cost_for_column(asset_name: str,
+def _calculate_pooled_turnover_cost_for_column(self, 
+                                    asset_name: str,
                                     turnovers: dict,
                                     dict_of_costs: dict,
                                     column_name) -> float:
 
-    cost_per_turnover_this_asset = _calculate_cost_per_turnover(asset_name,
+    cost_per_turnover_this_asset = _calculate_cost_per_turnover(self, 
+                                                                asset_name,
                                                                 column_name=column_name,
                                                                 dict_of_costs=dict_of_costs,
                                                                 turnovers=turnovers)
@@ -233,7 +235,8 @@ def _average_turnover(turnovers, column_name):
     return np.nanmean(list(all_turnovers.values()))
 
 
-def _calculate_cost_per_turnover(asset_name: str,
+def _calculate_cost_per_turnover(self, 
+                                 asset_name: str,
                                  column_name: str,
                                  turnovers: dict,
                                  dict_of_costs: dict):
@@ -244,7 +247,7 @@ def _calculate_cost_per_turnover(asset_name: str,
         return cost / turnover
     else:
         self.log.msg(f"No turnover for asset:rule combination {asset_name}:{column_name} in sysquant.optimisation.pre_processing._calculate_cost_per_turnover")
-        return
+        return np.nan
 
 def _turnover_for_asset_and_column(asset_name:str,
                                    column_name: str,
@@ -257,8 +260,4 @@ def _cost_for_asset_and_column(asset_name: str,
                                  dict_of_costs: dict):
 
     return dict_of_costs[asset_name][column_name]
-
-
-
-
 
