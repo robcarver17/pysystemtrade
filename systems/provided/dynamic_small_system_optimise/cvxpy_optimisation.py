@@ -434,14 +434,18 @@ def new_algo_across_integer_values(
     minima = obj_instance.minima_as_np
     per_contract = obj_instance.per_contract_value_as_np
     covariance = obj_instance.covariance_matrix_as_np
-    optimal = obj_instance.weights_optimal_as_np
+    optimal_weights = obj_instance.weights_optimal_as_np
     costs_per_trade = obj_instance.costs_as_np
     weights_prior = obj_instance.weights_prior
     shadow_cost = obj_instance.use_shadow_cost
 
-    x = cp.Variable(len(maxima), integer=True)
+    optimised_contracts = cp.Variable(len(maxima), integer=True)
+    optimised_weights = optimised_contracts @ per_contract
+    weight_difference = optimised_weights - optimal_weights
+    tracking_error_variance = cp.quad_form(weight_difference, covariance)
+    tracking_error_std = tracking_error_variance**.5
 
-    obj = cp.Minimize((x @ per_contract@covariance@x @ per_contract))
+    obj = cp.Minimize(tracking_error_std)
 
 
     obj = cp.Minimize(((x @ per_contract- optimal)@

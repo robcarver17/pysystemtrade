@@ -243,8 +243,8 @@ def _calculate_cost_per_turnover(asset_name: str,
         cost = _cost_for_asset_and_column(asset_name, column_name, dict_of_costs)
         return cost / turnover
     else:
-        self.log.msg(f"No turnover for asset:rule combination {asset_name}:{column_name} in sysquant.optimisation.pre_processing._calculate_cost_per_turnover")
-        return
+        print(f"No turnover for asset:rule combination {asset_name}:{column_name} in sysquant.optimisation.pre_processing._calculate_cost_per_turnover")
+        return np.nan
 
 def _turnover_for_asset_and_column(asset_name:str,
                                    column_name: str,
