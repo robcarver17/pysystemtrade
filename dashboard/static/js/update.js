@@ -143,6 +143,11 @@ function update_processes() {
         $('#stack-tl').addClass("orange");
       }
       $("#processes_status > tbody").empty();
+      $("#processes_config tbody").append(`
+        <tr><td>Monitoring target</td><td>${data['config']['monitor']}</td></tr>
+        <tr><td>Mongo DB</td><td>${data['config']['mongo']}</td></tr>
+        <tr><td>IB gateway</td><td>${data['config']['ib']}</td></tr>
+        `)
       $.each(data['process'], function(process, stat) {
         var running = stat['running']
         if (running == 'crashed') {

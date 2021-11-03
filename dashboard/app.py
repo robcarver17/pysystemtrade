@@ -5,6 +5,8 @@ import sysproduction.reporting.api
 from syscore.objects import missing_data
 from syscore.genutils import str2Bool
 
+from syscontrol.list_running_pids import describe_trading_server_login_data
+
 from sysdata.config.control_config import get_control_config
 
 from sysdata.data_blob import dataBlob
@@ -126,6 +128,7 @@ def pandl():
 
 @app.route("/processes")
 def processes():
+    asyncio.set_event_loop(asyncio.new_event_loop())
     status_data = status_reporting.get_status_report_data(data)
     data_control = dataControlProcess(data)
     data_control.check_if_pid_running_and_if_not_finish_all_processes()
@@ -145,6 +148,11 @@ def processes():
     status_data["process"] = allprocess
     status_data.pop("process2")
     status_data.pop("process3")
+    status_data["config"] = {
+        "monitor": describe_trading_server_login_data(),
+        "mongo": f"{data.mongo_db.host}:{data.mongo_db.port} - {data.mongo_db.database_name}",
+        "ib": f"{data.ib_conn._ib_connection_config['ipaddress']}:{data.ib_conn._ib_connection_config['port']}",
+    }
     return status_data
 
 
@@ -215,7 +223,9 @@ def rolls():
     all_instruments = diag_prices.get_list_of_instruments_in_multiple_prices()
     report = {}
     for instrument in all_instruments:
-        report[instrument] = roll_report.get_roll_data_for_instrument_DEPRECATED(instrument, data)
+        report[instrument] = roll_report.get_roll_data_for_instrument_DEPRECATED(
+            instrument, data
+        )
         roll_data = setup_roll_data_with_state_reporting(data, instrument)
         report[instrument]["allowable"] = roll_data.allowable_roll_states_as_list_of_str
 
