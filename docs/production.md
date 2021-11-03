@@ -1898,7 +1898,7 @@ run_cleaners                  : Last started 2020-12-08 14:51:19.380000 Last end
 run_backups                   : Last started 2020-12-08 14:54:04.856000 Last ended status 2020-12-08 00:05:48.444000 GO      PID 61604.0    is running
 ```
 
-You can use the PID to check using the Linux command line eg `ps aux | grep 86140` if a process really is running (in this case I'm checking if run_capital_update really is still going), or if it's abnormally aborted (in which case you will need to change it to 'not running' before relaunching - see below). This is also done automatically by the monitor function (see [scheduling](#pysystemtrade-scheduling)).
+You can use the PID to check using the Linux command line eg `ps aux | grep 86140` if a process really is running (in this case I'm checking if run_capital_update really is still going), or if it's abnormally aborted (in which case you will need to change it to 'not running' before relaunching - see below). This is also done automatically by the [system monitor and/or dashboard](/docs/dashboard_and_monitor.md), if running.
 
 Note that processes that have launched but waiting to properly start (perhaps because it is not their scheduled start time, or because another process has not yet started) will be shown as not running and will have no PID registered. You can safely kill them.
 
@@ -1923,7 +1923,7 @@ Note that the startup script will also mark all processes as finished (as there 
 
 #####  Mark all dead processes as finished
 
-This will check to see if a process PID is active, and if not it will mark a process as finished, assumed crashed. This is also done periodically by the system monitor.
+This will check to see if a process PID is active, and if not it will mark a process as finished, assumed crashed. This is also done periodically by the [system monitor and/or dashboard](/docs/dashboard_and_monitor.md), if running.
 
 #####  View process configuration
 
@@ -2550,33 +2550,10 @@ process_configuration_methods:
       max_executions: 1
 ```
 
-### System monitor
+### System monitor and dashboard
 
-It can be hard to keep track of what's going on, so I added a simple monitoring tool which outputs an .html file. To use it, add the following to your crontab:
+There is a crude monitoring tool, and a more sophisticated dashboard, which you can use to monitor what the system is up to. [Read the doc file here.](/docs/dashboard_and_monitor.md)
 
-```
-@reboot             cd ~pysystemtrade/private/; python3 -m http.server
-@reboot             cd ~pysystemtrade/syscontrol/; python3 monitor.py
-```
-
-Once your machine has started you should be able to go to `http://192.168.1.13:8000/` (change the IP address as required) on any LAN connected machine and see the status of the system.
-
-Whilst running the monitor will also handle any 'crashed' processes (those where the PID that is registered is killed without the process being properly finished); it will email the user, update the web log, and mark the process as finished so it can be run again. **It will not automatically respawn the processes!** (you will have to do that manually or wait until the crontab does so the next day).
-
-You may prefer to run your monitor from another machine. To do this on the trading server (the machine that is being monitored), assuming that is also the machine that is hosting your mongoDB instance:
-
-- Add an ip address to the `bind_ip` line in the `/etc/mongod.conf` file to allow connections from other machines `eg bind_ip=localhost, 192.168.0.10` or change your call to mongodb `mongod --dbpath /home/rob/data/mongodb --bind_ip_all` (**warning, insecure unless you have other security eg firewall**).
-- You may need to change your firewall settings, either UFW (`sudo ufw enable`, `sudo ufw allow 27017 from 192.168.0.10`) or iptables
-- set up ssh so that it does not require password login, only ssh-key (**again, has security implications so make sure you know what you are doing!**)
-
-Then on the monitoring machine:
-
-- you will need to modify the `private_config.yaml` system configuration file so it connects to a different IP address `mongo_host: 192.168.0.13`
-- add the following to your `private_config.yaml` file
-
-`trading_server_ip: 192.168.0.121`
-`trading_server_username: 'rob'`
-`trading_server_ssh_port: 22` (optional, defaults to port 22)
 
 
 ### Troubleshooting?
@@ -2915,12 +2892,15 @@ The roll report can be run for all markets (default for the email), or for a sin
 
 "The roll report gives you all the information you need to decide when to roll from one futures contract to the next"
 
-=============================================
-       Status and time to roll in days       
-=============================================
 
-          Status  Roll_exp  Prc_exp  Crry_exp
-EDOLLAR  Passive      -128      972       874
+============================================================================================================================================
+                                                      Status and time to roll in days                                                       
+============================================================================================================================================
+
+                        status roll_expiry price_expiry carry_expiry contract_priced contract_fwd position_priced volume_priced   volume_fwd
+EDOLLAR                Passive        -143          957          866        20240600     20240900               2             1     0.853933
+GAS_US_mini            No_Roll         -14           21           55        20211200     20220100              -2             1    0.0949909
+BRENT-LAST             Passive         -13           27           -5        20220100     20220200               1             1    0.0907098
 
 Roll_exp is days until preferred roll set by roll parameters. Prc_exp is days until price contract expires, Crry_exp is days until carry contract expires
 
@@ -2931,35 +2911,9 @@ assuming that there is enough liquidity, or carry calculations will become stale
 Suggested times to roll before an expiry are shown, and these are used in the backtest to generate
 historical roll dates, but you do not need to treat these as gospel in live trading"
 
-========================================================
-                   List of contracts                    
-========================================================
+"contract priced/contract forward This shows the contracts we're currently primarily trading (price), and will trade next (forward)"
 
-                C0         C1         C2        C3 C4 C5
-EDOLLAR  20230300c  20230600p  20230900f  20231200      
-
-Suffix: p=price, f=forward, c=carry
-
-"This shows the contracts we're currently primarily trading (price), will trade next (forward),
- and are using for carry calculation (carry). Other contracts may also be shown."
-
-===========================================
-                 Positions                 
-===========================================
-
-         Pos0  Pos1  Pos2  Pos3  Pos4  Pos5
-EDOLLAR   0.0   0.0  11.0   0.0   0.0   0.0
-
-
-"The position we have in each contract. Here we are long 11 futures lots in the second contract
- (which from above is 202309: the forward contract)."
-
-========================================
-            Relative volumes            
-========================================
-
-           V0    V1    V2   V3   V4   V5
-EDOLLAR  0.98  0.82  0.88  1.0  0.0  0.0
+"The position we have in the priced contract"
 
 Contract volumes over recent days, normalised so largest volume is 1.0
 
