@@ -24,8 +24,8 @@ from sysproduction.data.controls import dataPositionLimits
 from sysproduction.data.positions import dataOptimalPositions
 from sysproduction.data.controls import diagOverrides
 
-from sysproduction.utilities.risk_metrics import get_perc_of_strategy_capital_for_instrument_per_contract, capital_for_strategy, get_covariance_matrix_for_instrument_returns
-from sysproduction.utilities.costs import get_cash_cost_in_base_for_instrument
+from sysproduction.reporting.data.risk_metrics import get_perc_of_strategy_capital_for_instrument_per_contract, capital_for_strategy, get_covariance_matrix_for_instrument_returns
+from sysproduction.reporting.data.costs import get_cash_cost_in_base_for_instrument
 
 from sysquant.estimators.covariance import covarianceEstimate
 from sysquant.estimators.mean_estimator import meanEstimates

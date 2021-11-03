@@ -41,8 +41,6 @@ class objectiveFunctionForGreedy:
         self.speed_control = speed_control
         self.constraints = constraints
 
-        self.previous_positions = previous_positions
-
         weights_optimal = contracts_optimal * per_contract_value
 
         self.weights_optimal = weights_optimal
@@ -51,9 +49,11 @@ class objectiveFunctionForGreedy:
         if previous_positions is arg_not_supplied:
             weights_prior = arg_not_supplied
         else:
+            previous_positions = previous_positions.with_zero_weights_instead_of_nan()
             weights_prior = previous_positions * per_contract_value
 
         self.weights_prior = weights_prior
+        self.previous_positions = previous_positions
 
         if maximum_positions is arg_not_supplied:
             maximum_position_weights = arg_not_supplied

@@ -10,7 +10,7 @@ from syscore.pdutils import make_df_from_list_of_named_tuple
 from sysproduction.data.broker import dataBroker
 from sysproduction.data.instruments import diagInstruments
 from sysproduction.data.orders import dataOrders
-from sysproduction.utilities.risk_metrics import get_current_annualised_stdev_for_instrument
+from sysproduction.reporting.data.risk_metrics import get_current_annualised_stdev_for_instrument
 
 
 def get_recent_broker_orders(data, start_date, end_date):

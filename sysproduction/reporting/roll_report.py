@@ -1,9 +1,4 @@
-import datetime
-import pandas as pd
-
-from sysproduction.data.prices import diagPrices
-
-from syscore.objects import header, table, body_text
+from syscore.objects import body_text
 
 # We want a roll report (We could merge this into another kind of report)
 # We want to be able to have it emailed, or run it offline
@@ -11,7 +6,7 @@ from syscore.objects import header, table, body_text
 # Reports consist of multiple calls to functions with data object, each of which returns a displayable object
 # We also chuck in a title and a timestamp
 from sysproduction.reporting.api import reportingApi
-from sysproduction.utilities.rolls import get_roll_data_for_instrument_DEPRECATED, ALL_ROLL_INSTRUMENTS
+from sysproduction.reporting.data.rolls import ALL_ROLL_INSTRUMENTS
 
 
 def roll_info(data, instrument_code=ALL_ROLL_INSTRUMENTS):

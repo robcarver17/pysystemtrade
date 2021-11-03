@@ -10,16 +10,22 @@ from sysproduction.data.prices import diagPrices
 from sysproduction.data.positions import annonate_df_index_with_positions_held
 from sysproduction.reporting.reporting_functions import header, table
 
-from sysproduction.utilities.costs import get_table_of_SR_costs, get_combined_df_of_costs
-from sysproduction.utilities.trades import get_recent_broker_orders, create_raw_slippage_df, create_cash_slippage_df, \
+from sysproduction.reporting.data.costs import get_table_of_SR_costs, get_combined_df_of_costs
+from sysproduction.reporting.data.trades import get_recent_broker_orders, create_raw_slippage_df, create_cash_slippage_df, \
     create_vol_norm_slippage_df, get_stats_for_slippage_groups, create_delay_df, get_recent_trades_from_db_as_terse_df, get_broker_trades_as_terse_df
-from sysproduction.utilities.positions import get_optimal_positions, get_my_positions, get_broker_positions, \
+from sysproduction.reporting.data.pandl import get_total_capital_pandl, pandlCalculateAndStore
+from sysproduction.reporting.data.positions import get_optimal_positions, get_my_positions, get_broker_positions, \
     get_position_breaks
-from sysproduction.utilities.risk_metrics import \
+from sysproduction.reporting.data.risk_metrics import \
     get_correlation_matrix_all_instruments, get_instrument_risk_table, \
     get_portfolio_risk_for_all_strategies, get_portfolio_risk_across_strategies
-from sysproduction.utilities.rolls import get_roll_data_for_instrument, ALL_ROLL_INSTRUMENTS
-from sysproduction.utilities.volume import get_liquidity_data_df
+from sysproduction.reporting.data.rolls import get_roll_data_for_instrument, ALL_ROLL_INSTRUMENTS
+from sysproduction.reporting.data.status import get_overrides_as_df, get_trade_limits_as_df, \
+    get_process_status_list_for_all_processes_as_df, get_control_config_list_for_all_processes_as_df, \
+    get_control_status_list_for_all_processes_as_df, get_control_data_list_for_all_methods_as_df, \
+    get_last_price_updates_as_df, get_last_optimal_position_updates_as_df, get_list_of_position_locks, \
+    get_position_limits_as_df
+from sysproduction.reporting.data.volume import get_liquidity_data_df
 
 
 class reportingApi(object):
@@ -53,6 +59,158 @@ class reportingApi(object):
 
     def footer(self):
         return header("END OF REPORT")
+
+    #### PROFIT AND LOSS ####
+    def body_text_total_capital_pandl(self):
+        total_capital_pandl = self.total_capital_pandl()
+
+        return body_text("Total p&l is %.3f%%" % total_capital_pandl)
+
+    def table_pandl_for_instruments_across_strategies(self):
+
+        pandl_for_instruments_across_strategies_df = self.pandl_for_instruments_across_strategies()
+        pandl_for_instruments_across_strategies_df = \
+            pandl_for_instruments_across_strategies_df.round(1)
+
+        return table("P&L by instrument for all strategies", pandl_for_instruments_across_strategies_df)
+
+    def body_text_total_pandl_for_futures(self):
+        total_for_futures = self.total_pandl_for_futures()
+        return \
+            body_text("Total futures p&l is %.3f%%" % total_for_futures)
+
+    def total_pandl_for_futures(self) -> float:
+        pandl_for_instruments_across_strategies = self.pandl_for_instruments_across_strategies()
+        total_for_futures = pandl_for_instruments_across_strategies.pandl.sum()
+
+        return total_for_futures
+
+    def pandl_for_instruments_across_strategies(self) -> pd.DataFrame:
+        pandl_for_instruments_across_strategies = getattr(self, "_pandl_for_instruments_across_strategies", missing_data)
+        if pandl_for_instruments_across_strategies is missing_data:
+            pandl_for_instruments_across_strategies = \
+                self._pandl_for_instruments_across_strategies = \
+                    self._get_pandl_for_instruments_across_strategies()
+
+        return pandl_for_instruments_across_strategies
+
+    def _get_pandl_for_instruments_across_strategies(self)-> pd.DataFrame:
+
+        pandl_for_instruments_across_strategies_df = \
+            self.pandl_calculator.get_ranked_list_of_pandl_by_instrument_all_strategies_in_date_range()
+
+        return pandl_for_instruments_across_strategies_df
+
+    def total_capital_pandl(self) -> float:
+        total_capital_pandl = getattr(self, "_total_capital_pandl", missing_data)
+        if total_capital_pandl is missing_data:
+            total_capital_pandl = self._total_capital_pandl = self._get_total_capital_pandl()
+
+        return total_capital_pandl
+
+    def _get_total_capital_pandl(self) -> float:
+        total_capital_pandl = (
+            get_total_capital_pandl(self.data, self.start_date, end_date=self.end_date)
+        )
+
+        return total_capital_pandl
+
+    def body_text_residual_pandl(self):
+
+        residual = self.total_capital_pandl() - self.total_pandl_for_futures()
+        return (
+            body_text("Residual p&l is %.3f%%" % residual)
+        )
+
+    def table_strategy_pandl_and_residual(self):
+
+        strategies_pandl_df = self.pandl_calculator.get_strategy_pandl_and_residual()
+        strategies_pandl_df = strategies_pandl_df.round(2)
+
+        return table("P&L by strategy", strategies_pandl_df)
+
+    def table_sector_pandl(self):
+        sector_pandl_df = self.pandl_calculator.get_sector_pandl()
+        sector_pandl_df = sector_pandl_df.round(2)
+
+        return table("P&L by asset class", sector_pandl_df)
+
+    @property
+    def pandl_calculator(self) -> pandlCalculateAndStore:
+        pandl_calculator = getattr(self, "_pandl_calculator", missing_data)
+        if pandl_calculator is missing_data:
+            pandl_calculator = self._pandl_calculator = self._get_pandl_calculator()
+
+        return pandl_calculator
+
+    def _get_pandl_calculator(self) -> pandlCalculateAndStore:
+        return pandlCalculateAndStore(self.data,
+                                      start_date = self.start_date,
+                                      end_date = self.end_date)
+
+
+    ##### STATUS #####
+
+    def table_of_control_config_list_for_all_processes(self):
+        process = get_control_config_list_for_all_processes_as_df(self.data)
+        process_table = table("Config for process control", process)
+
+        return process_table
+
+    def table_of_control_status_list_for_all_processes(self):
+        process2 = get_control_status_list_for_all_processes_as_df(self.data)
+        process2_table = table("Status of process control", process2)
+
+        return process2_table
+
+    def table_of_process_status_list_for_all_processes(self):
+        process3 = get_process_status_list_for_all_processes_as_df(self.data)
+        process3_table = table("Status of process control", process3)
+
+        return process3_table
+
+    def table_of_control_data_list_for_all_methods(self):
+        method = get_control_data_list_for_all_methods_as_df(self.data)
+        method_table = table("Status of methods", method)
+
+        return method_table
+
+    def table_of_last_price_updates(self):
+        price = get_last_price_updates_as_df(self.data)
+        price_table = table("Status of adjusted price / FX price collection", price)
+
+        return price_table
+
+
+    def table_of_last_optimal_position_updates(self):
+        position = get_last_optimal_position_updates_as_df(self.data)
+        position_table = table("Status of optimal position generation", position)
+
+        return position_table
+
+    def table_of_trade_limits(self):
+        limits = get_trade_limits_as_df(self.data)
+        limits_table = table("Status of trade limits", limits)
+
+        return limits_table
+
+    def table_of_position_limits(self):
+        position_limits = get_position_limits_as_df(self.data)
+        position_limits_table = table("Status of position limits", position_limits)
+
+        return position_limits_table
+
+    def table_of_overrides(self):
+        overrides = get_overrides_as_df(self.data)
+        overrides_table = table("Status of overrides", overrides)
+
+        return overrides_table
+
+    def body_text_of_position_locks(self):
+        locks = get_list_of_position_locks(self.data)
+        locks_text = body_text(str(locks))
+
+        return locks_text
 
     #### ROLL REPORT ####
     def table_of_roll_data(self, instrument_code: str = ALL_ROLL_INSTRUMENTS):

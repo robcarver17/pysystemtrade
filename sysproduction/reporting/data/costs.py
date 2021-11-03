@@ -8,8 +8,8 @@ from sysdata.data_blob import dataBlob
 from sysproduction.data.currency_data import dataCurrency
 from sysproduction.data.instruments import diagInstruments
 from sysproduction.data.prices import diagPrices
-from sysproduction.utilities.trades import get_recent_broker_orders, create_raw_slippage_df
-from sysproduction.utilities.risk_metrics import get_current_annualised_perc_stdev_for_instrument
+from sysproduction.reporting.data.trades import get_recent_broker_orders, create_raw_slippage_df
+from sysproduction.reporting.data.risk_metrics import get_current_annualised_perc_stdev_for_instrument
 
 
 def get_current_configured_spread_cost(data):

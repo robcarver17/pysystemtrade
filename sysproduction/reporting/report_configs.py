@@ -1,6 +1,6 @@
 from copy import copy
 
-from sysproduction.utilities.rolls import ALL_ROLL_INSTRUMENTS
+from sysproduction.reporting.data.rolls import ALL_ROLL_INSTRUMENTS
 
 
 class reportConfig(object):

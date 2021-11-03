@@ -35,7 +35,7 @@ class optimisedPositions(SystemStage):
     @diagnostic()
     def get_optimised_position_df(self) -> pd.DataFrame:
         self.log.msg("Optimising positions for small capital: may take a while!")
-        common_index = list(self.common_index())[:-1000]
+        common_index = list(self.common_index())
         p = progressBar(len(common_index), show_timings=True, show_each_time=True)
         previous_optimal_positions = portfolioWeights.allzeros(self.instrument_list())
         position_list = []

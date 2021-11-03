@@ -15,7 +15,7 @@ from sysproduction.data.backtest import user_choose_backtest, interactively_choo
 from sysproduction.data.capital import dataCapital
 from sysproduction.data.contracts import (
     get_valid_instrument_code_and_contractid_from_user,
-    dataContracts, get_valid_contract_object_from_user
+    get_valid_contract_object_from_user
 )
 from sysproduction.data.currency_data import dataCurrency, get_valid_fx_code_from_user
 from sysproduction.data.instruments import diagInstruments
@@ -30,7 +30,7 @@ from sysproduction.data.broker import dataBroker
 
 from syslogdiag.email_via_db_interface import retrieve_and_delete_stored_messages
 from sysproduction.reporting.reporting_functions import run_report
-from sysproduction.utilities.rolls import ALL_ROLL_INSTRUMENTS
+from sysproduction.reporting.data.rolls import ALL_ROLL_INSTRUMENTS
 from sysproduction.reporting.strategies_report import ALL_STRATEGIES
 from sysproduction.reporting.report_configs import (
     roll_report_config,

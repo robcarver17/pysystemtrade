@@ -77,6 +77,19 @@ class portfolioWeights(dict):
             for key in all_assets
         ]))
 
+    def with_zero_weights_instead_of_nan(self):
+        all_assets = self.keys()
+        def _replace(x):
+            if np.isnan(x):
+                return 0.0
+            else:
+                return x
+
+        return portfolioWeights(dict([
+            (key, _replace(self[key]))
+            for key in all_assets
+        ]))
+
     def assets_with_data(self) -> list:
         return [key for key, value in self.items() if not np.isnan(value)]
 

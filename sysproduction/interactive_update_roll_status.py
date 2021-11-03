@@ -7,7 +7,7 @@ NOTE: this does not update the roll calendar .csv files stored elsewhere. Under 
 from dataclasses import dataclass
 import numpy as np
 
-from syscore.interactive import print_menu_of_values_and_get_response, get_and_convert, print_menu_and_get_response
+from syscore.interactive import print_menu_of_values_and_get_response, get_and_convert
 from syscore.objects import success, failure, status, named_object
 from syscore.text import landing_strip, print_with_landing_strips_around
 
@@ -24,7 +24,7 @@ from sysproduction.data.positions import diagPositions, updatePositions
 from sysproduction.data.contracts import dataContracts
 from sysproduction.data.prices import diagPrices, get_valid_instrument_code_from_user
 
-from sysproduction.utilities.rolls import rollingAdjustedAndMultiplePrices, relative_volume_in_forward_contract_versus_price
+from sysproduction.reporting.data.rolls import rollingAdjustedAndMultiplePrices, relative_volume_in_forward_contract_versus_price
 
 
 no_change_required = named_object("No roll required")
