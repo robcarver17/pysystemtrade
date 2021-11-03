@@ -9,7 +9,7 @@ from systems.system_cache import diagnostic
 from syscore.objects import arg_not_supplied
 from syscore.pdutils import listOfDataFrames, get_row_of_df_aligned_to_weights_as_dict
 
-from systems.provided.dynamic_small_system_optimise.portfolio_weights import portfolioWeightsStage
+from systems.provided.dynamic_small_system_optimise.portfolio_weights_stage import portfolioWeightsStage
 
 from sysquant.optimisation.shared import variance
 from sysquant.optimisation.weights import portfolioWeights

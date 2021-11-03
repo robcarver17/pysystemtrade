@@ -27,6 +27,7 @@ class portfolioWeights(dict):
     def from_weights_and_keys( portfolioWeights,
                                list_of_weights: list,
                                list_of_keys: list):
+        assert len(list_of_keys)==len(list_of_weights)
         pweights_as_list = [(key, weight) for key,weight in zip(list_of_keys, list_of_weights)]
 
         return portfolioWeights(pweights_as_list)

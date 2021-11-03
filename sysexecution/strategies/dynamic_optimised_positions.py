@@ -27,11 +27,13 @@ from sysproduction.data.controls import diagOverrides
 from sysproduction.utilities.risk_metrics import get_perc_of_strategy_capital_for_instrument_per_contract, capital_for_strategy, get_covariance_matrix_for_instrument_returns
 from sysproduction.utilities.costs import get_cash_cost_in_base_for_instrument
 
-from sysquant.estimators.covariance import covarianceEstimate, covariance_from_stdev_and_correlation
+from sysquant.estimators.covariance import covarianceEstimate
 from sysquant.estimators.mean_estimator import meanEstimates
 from sysquant.optimisation.weights import portfolioWeights
 
-from systems.provided.dynamic_small_system_optimise.optimisation import objectiveFunctionForGreedy
+from systems.provided.dynamic_small_system_optimise.optimisation import objectiveFunctionForGreedy, constraintsForDynamicOpt
+from systems.provided.dynamic_small_system_optimise.buffering import speedControlForDynamicOpt
+
 
 class orderGeneratorForDynamicPositions(orderGeneratorForStrategy):
     def get_required_orders(self) -> listOfOrders:
@@ -110,7 +112,7 @@ def calculate_optimised_positions_data(data: dataBlob,
     objective_function = get_objective_instance(data_for_objective)
 
     data.log.msg("Tracking error of prior weights %.2f vs buffer %.2f" % (objective_function.tracking_error_of_prior_weights(),
-                                                                       data_for_objective.tracking_error_buffer))
+                                                                       data_for_objective.speed_control.tracking_error_buffer))
 
     optimised_positions_data = get_optimised_positions_data_dict_given_optimisation(data_for_objective=data_for_objective,
                                                                                objective_function=objective_function)
@@ -119,7 +121,6 @@ def calculate_optimised_positions_data(data: dataBlob,
 
 @dataclass
 class dataForObjectiveInstance:
-    weights_optimal: portfolioWeights
     positions_optimal: portfolioWeights
     covariance_matrix: covarianceEstimate
     per_contract_value: portfolioWeights
@@ -127,15 +128,26 @@ class dataForObjectiveInstance:
     reference_prices: dict
     reference_contracts: dict
     reference_dates: dict
-    weights_prior: portfolioWeights
     previous_positions: portfolioWeights
-    maximum_position_weights: portfolioWeights
     maximum_position_contracts: portfolioWeights
-    reduce_only_keys: list
-    no_trade_keys: list
-    trade_shadow_cost: float
-    tracking_error_buffer: float
+    constraints: constraintsForDynamicOpt
+    speed_control: speedControlForDynamicOpt
+    constraints: constraintsForDynamicOpt
 
+    @property
+    def weights_prior(self) -> portfolioWeights:
+        return get_weights_given_positions(self.previous_positions,
+                                           self.per_contract_value)
+
+    @property
+    def maximum_position_weights(self) -> portfolioWeights:
+        return get_weights_given_positions(self.previous_positions,
+                                           self.per_contract_value)
+
+    @property
+    def weights_optimal(self) -> portfolioWeights:
+        return get_weights_given_positions(self.positions_optimal,
+                                           self.per_contract_value)
 
 def get_data_for_objective_instance(data: dataBlob,
                                     strategy_name: str,
@@ -177,41 +189,22 @@ def get_data_for_objective_instance(data: dataBlob,
                                 strategy_name = strategy_name,
                                 list_of_instruments=list_of_instruments)
 
+    data.log.msg("Per contract values %s" % str(per_contract_value))
+
     data.log.msg("Getting costs")
     costs = calculate_costs_per_portfolio_weight(data,
                                                  strategy_name=strategy_name,
                                                  list_of_instruments=list_of_instruments)
 
-    no_trade_keys = get_no_trade_keys(data,
-                                      strategy_name=strategy_name,
-                                      list_of_instruments=list_of_instruments)
+    data.log.msg("Costs %s" % str(costs))
 
 
-    reduce_only_keys = get_reduce_only_keys(data,
-                                            strategy_name=strategy_name,
-                                            list_of_instruments=list_of_instruments)
+    constraints = get_constraints(data, strategy_name=strategy_name,
+                                  list_of_instruments=list_of_instruments)
 
-    weights_optimal = \
-        get_weights_given_positions(
-                                            positions=positions_optimal,
-                                            per_contract_value=per_contract_value)
+    speed_control = get_speed_control(data)
 
-    weights_prior =         get_weights_given_positions(
-                                            positions=previous_positions_as_weights_object,
-                                            per_contract_value=per_contract_value)
-
-
-    maximum_position_weights = get_weights_given_positions(
-                                            positions=maximum_position_contracts,
-                                            per_contract_value=per_contract_value)
-
-    trade_shadow_cost = get_trade_shadow_cost(data)
-    data.log.msg("Shadow cost %f" % trade_shadow_cost)
-
-    tracking_error_buffer = get_tracking_error_buffer(data)
-    data.log.msg("Tracking error buffer %f" % tracking_error_buffer)
-
-    data_for_objective = dataForObjectiveInstance(weights_optimal=weights_optimal,
+    data_for_objective = dataForObjectiveInstance(
                                                   positions_optimal = positions_optimal,
                                                   per_contract_value=per_contract_value,
                                                   covariance_matrix=covariance_matrix,
@@ -219,14 +212,10 @@ def get_data_for_objective_instance(data: dataBlob,
                                                   reference_dates=reference_dates,
                                                   reference_prices=reference_prices,
                                                   reference_contracts=reference_contracts,
-                                                  weights_prior=weights_prior,
                                                   previous_positions=previous_positions_as_weights_object,
-                                                  maximum_position_weights=maximum_position_weights,
                                                   maximum_position_contracts=maximum_position_contracts,
-                                                  reduce_only_keys=reduce_only_keys,
-                                                  no_trade_keys=no_trade_keys,
-                                                  trade_shadow_cost = trade_shadow_cost,
-                                                  tracking_error_buffer=tracking_error_buffer)
+                                                  constraints = constraints,
+                                                speed_control  = speed_control)
 
 
     return data_for_objective
@@ -299,6 +288,21 @@ def calculate_costs_per_portfolio_weight(data: dataBlob,
 
     return costs
 
+def get_constraints(data, strategy_name: str,
+                    list_of_instruments: list):
+    no_trade_keys = get_no_trade_keys(data,
+                                      strategy_name=strategy_name,
+                                      list_of_instruments=list_of_instruments)
+
+    reduce_only_keys = get_reduce_only_keys(data,
+                                            strategy_name=strategy_name,
+                                            list_of_instruments=list_of_instruments)
+
+    constraints = constraintsForDynamicOpt(no_trade_keys=no_trade_keys,
+                                           reduce_only_keys=reduce_only_keys)
+
+    return constraints
+
 
 def get_no_trade_keys(data: dataBlob,
                       strategy_name: str,
@@ -340,30 +344,25 @@ def get_override_for_instrument_strategy(data: dataBlob,
 
     return override
 
-
-def get_weights_given_positions(
-                                positions: portfolioWeights,
-                                per_contract_value: portfolioWeights) -> portfolioWeights:
-
-    weights = positions * per_contract_value
-
-    return weights
-
-def get_trade_shadow_cost(data) -> float:
+def get_speed_control(data):
     system_config = get_config_parameters(data)
-    shadow_cost = system_config.get("shadow_cost", missing_data)
-    if shadow_cost is missing_data:
-        raise Exception("config.small_system doesn't include shadow_cost: you've probably messed up your private_config")
-
-    return shadow_cost
-
-def get_tracking_error_buffer(data) -> float:
-    system_config = get_config_parameters(data)
+    trade_shadow_cost = system_config.get("shadow_cost", missing_data)
     tracking_error_buffer = system_config.get("tracking_error_buffer", missing_data)
-    if tracking_error_buffer is missing_data:
-        raise Exception("config.small_system doesn't include tracking_error_buffer: you've probably messed up your private_config")
 
-    return tracking_error_buffer
+    if  (tracking_error_buffer is missing_data) or \
+            (trade_shadow_cost is missing_data):
+        raise Exception(
+            "config.small_system doesn't include buffer or shadow cost: you've probably messed up your private_config")
+
+    data.log.msg("Shadow cost %f" % trade_shadow_cost)
+    data.log.msg("Tracking error buffer %f" % tracking_error_buffer)
+
+    speed_control = speedControlForDynamicOpt(trade_shadow_cost=trade_shadow_cost,
+                                              tracking_error_buffer=tracking_error_buffer)
+
+    return speed_control
+
+
 
 def get_config_parameters(data: dataBlob) -> dict:
     config = data.config
@@ -374,19 +373,20 @@ def get_config_parameters(data: dataBlob) -> dict:
     return system_config
 
 
-def get_objective_instance(data_for_objective: dataForObjectiveInstance)\
+def get_objective_instance(data: dataBlob,
+                           data_for_objective: dataForObjectiveInstance)\
         -> objectiveFunctionForGreedy:
 
-    objective_function= objectiveFunctionForGreedy(weights_optimal=data_for_objective.weights_optimal,
+    objective_function= objectiveFunctionForGreedy(
+                        log = data.log,
+                        contracts_optimal=data_for_objective.positions_optimal,
                         covariance_matrix=data_for_objective.covariance_matrix,
                         costs=data_for_objective.costs,
-                        trade_shadow_cost=data_for_objective.trade_shadow_cost,
-                        weights_prior=data_for_objective.weights_prior,
-                        reduce_only_keys=data_for_objective.reduce_only_keys,
-                        no_trade_keys=data_for_objective.no_trade_keys,
-                        maximum_position_weights=data_for_objective.maximum_position_weights,
+                        speed_control=data_for_objective.speed_control,
+                        previous_positions=data_for_objective.previous_positions,
+                        constraints=data_for_objective.constraints,
+                        maximum_positions=data_for_objective.maximum_position_contracts,
                         per_contract_value=data_for_objective.per_contract_value,
-                        tracking_error_buffer=data_for_objective.tracking_error_buffer
                         )
 
     return objective_function
@@ -395,8 +395,8 @@ def get_optimised_positions_data_dict_given_optimisation(data_for_objective: dat
                                                          objective_function: objectiveFunctionForGreedy
                                                          ) -> dict:
 
-    optimised_position_weights = objective_function.optimise()
-    optimised_positions = get_positions_given_weights(optimised_position_weights,
+    optimised_positions = objective_function.optimise_positions()
+    optimised_position_weights = get_weights_given_positions(optimised_positions,
                                                       per_contract_value=data_for_objective.per_contract_value)
     instrument_list = list(optimised_position_weights.keys())
 
@@ -436,6 +436,14 @@ def get_positions_given_weights(
 
     return positions
 
+def get_weights_given_positions(
+                                positions: portfolioWeights,
+                                per_contract_value: portfolioWeights) -> portfolioWeights:
+
+    weights = positions * per_contract_value
+
+    return weights
+
 def get_optimal_position_entry_with_calcs_for_code(
         instrument_code: str,
             data_for_objective: dataForObjectiveInstance,
@@ -449,27 +457,27 @@ def get_optimal_position_entry_with_calcs_for_code(
     return \
         optimalPositionWithDynamicCalculations(
 
-        data_for_objective.reference_prices[instrument_code],
-        data_for_objective.reference_contracts[instrument_code],
-        data_for_objective.reference_dates[instrument_code],
-        data_for_objective.positions_optimal[instrument_code],
+        reference_price=data_for_objective.reference_prices[instrument_code],
+        reference_contract=data_for_objective.reference_contracts[instrument_code],
+        reference_date=data_for_objective.reference_dates[instrument_code],
+        optimal_position=data_for_objective.positions_optimal[instrument_code],
 
-        data_for_objective.per_contract_value[instrument_code],
-        data_for_objective.previous_positions[instrument_code],
-        data_for_objective.weights_prior[instrument_code],
-        instrument_code in data_for_objective.reduce_only_keys,
+        weight_per_contract=data_for_objective.per_contract_value[instrument_code],
+        previous_position=data_for_objective.previous_positions[instrument_code],
+        previous_weight=data_for_objective.weights_prior[instrument_code],
 
-        instrument_code in data_for_objective.no_trade_keys,
+        reduce_only= instrument_code in data_for_objective.constraints.reduce_only_keys,
+        dont_trade=instrument_code in data_for_objective.constraints.no_trade_keys,
 
-        data_for_objective.maximum_position_contracts[instrument_code],
-        data_for_objective.maximum_position_weights[instrument_code],
-        data_for_objective.weights_optimal[instrument_code],
+        position_limit_contracts=data_for_objective.maximum_position_contracts[instrument_code],
+        position_limit_weight=data_for_objective.maximum_position_weights[instrument_code],
+        optimum_weight=data_for_objective.weights_optimal[instrument_code],
 
-        minima_weights[instrument_code],
-        maxima_weights[instrument_code],
-        starting_weights[instrument_code],
-        optimised_position_weights[instrument_code],
-        optimised_positions[instrument_code]
+        minimum_weight=minima_weights[instrument_code],
+        maximum_weight=maxima_weights[instrument_code],
+        start_weight= starting_weights[instrument_code],
+        optimised_weight= optimised_position_weights[instrument_code],
+        optimised_position = optimised_positions[instrument_code]
 
     )
 

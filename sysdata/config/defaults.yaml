@@ -266,7 +266,7 @@ instrument_returns_correlation:
 small_system:
   shadow_cost: 50
   cost_multiplier: 1.0
-  tracking_error_buffer: 0.10
+  tracking_error_buffer: 0.025
 ignore_instruments:
   - CRUDE_W
   - GAS_US

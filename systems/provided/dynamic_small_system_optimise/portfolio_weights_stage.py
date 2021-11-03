@@ -13,7 +13,7 @@ from sysquant.estimators.stdev_estimator import stdevEstimates
 from sysquant.optimisation.weights import portfolioWeights
 
 from systems.stage import SystemStage
-from systems.system_cache import diagnostic
+from systems.system_cache import diagnostic, output
 
 
 class portfolioWeightsStage(SystemStage):
@@ -22,16 +22,16 @@ class portfolioWeightsStage(SystemStage):
         return "portfolioWeights"
 
 
-    def get_portfolio_weights_for_relevant_date(self,
+    def get_position_contracts_for_relevant_date(self,
                               relevant_date: datetime.datetime = arg_not_supplied) \
             -> portfolioWeights:
 
-        weights_as_df = self.get_original_portfolio_weight_df()
-        weights_at_date = get_row_of_df_aligned_to_weights_as_dict(weights_as_df, relevant_date)
+        position_contracts_as_df = self.get_position_contracts_as_df()
+        position_contracts_at_date = get_row_of_df_aligned_to_weights_as_dict(position_contracts_as_df, relevant_date)
 
-        portfolio_weights = portfolioWeights(weights_at_date)
+        position_contracts = portfolioWeights(position_contracts_at_date)
 
-        return portfolio_weights
+        return position_contracts
 
     def get_covariance_matrix(self,
                               relevant_date: datetime.datetime = arg_not_supplied) \
@@ -160,6 +160,21 @@ class portfolioWeightsStage(SystemStage):
 
         ## slight cheating
         values_as_pd = values_as_pd.bfill()
+
+        return values_as_pd
+
+    def get_position_contracts_as_df(self) -> pd.DataFrame:
+        instrument_list = self.instrument_list()
+        values_as_dict = dict([
+            (instrument_code,
+                self.get_contract_positions(instrument_code))
+                           for instrument_code in instrument_list])
+
+        values_as_pd = pd.DataFrame(values_as_dict)
+        common_index = self.common_index()
+
+        values_as_pd = values_as_pd.reindex(common_index)
+        values_as_pd = values_as_pd.ffill()
 
         return values_as_pd
 

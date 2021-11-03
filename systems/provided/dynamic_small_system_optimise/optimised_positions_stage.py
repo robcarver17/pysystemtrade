@@ -5,12 +5,13 @@ import pandas as pd
 
 from syscore.genutils import progressBar
 from syscore.objects import arg_not_supplied
-from systems.provided.dynamic_small_system_optimise.optimisation import objectiveFunctionForGreedy
+from systems.provided.dynamic_small_system_optimise.optimisation import objectiveFunctionForGreedy, constraintsForDynamicOpt
+from systems.provided.dynamic_small_system_optimise.buffering import speedControlForDynamicOpt
 
 from systems.stage import SystemStage
 from systems.system_cache import diagnostic
 
-from systems.provided.dynamic_small_system_optimise.portfolio_weights import portfolioWeightsStage
+from systems.provided.dynamic_small_system_optimise.portfolio_weights_stage import portfolioWeightsStage
 
 from sysquant.optimisation.weights import portfolioWeights
 from sysquant.estimators.covariance import covarianceEstimate
@@ -23,98 +24,88 @@ class optimisedPositions(SystemStage):
         return "optimisedPositions"
 
     @diagnostic()
-    def get_optimised_position_df(self):
-        weights_list_df = self.get_optimised_weights_df()
+    def get_optimised_weights_df(self) -> pd.DataFrame:
+        position_df = self.get_optimised_position_df()
         per_contract_value_as_proportion_of_df = self.get_per_contract_value_as_proportion_of_capital_df()
 
-        positions = weights_list_df / per_contract_value_as_proportion_of_df
+        weights = position_df * per_contract_value_as_proportion_of_df
 
-        return positions
+        return weights
 
     @diagnostic()
-    def get_optimised_weights_df(self) -> pd.DataFrame:
+    def get_optimised_position_df(self) -> pd.DataFrame:
         self.log.msg("Optimising positions for small capital: may take a while!")
-        common_index = list(self.common_index())
+        common_index = list(self.common_index())[:-1000]
         p = progressBar(len(common_index), show_timings=True, show_each_time=True)
-        previous_optimal_weights = portfolioWeights.allzeros(self.instrument_list())
-        weights_list = []
+        previous_optimal_positions = portfolioWeights.allzeros(self.instrument_list())
+        position_list = []
         for relevant_date in common_index:
             #self.log.msg(relevant_date)
-            optimal_weights = self.get_optimal_weights_with_fixed_contract_values(relevant_date,
-                                                                                  previous_weights=previous_optimal_weights)
-            weights_list.append(optimal_weights)
-            previous_optimal_weights = copy(optimal_weights)
+            optimal_positions = self.get_optimal_positions_with_fixed_contract_values(relevant_date,
+                                                                                  previous_positions=previous_optimal_positions)
+            position_list.append(optimal_positions)
+            previous_optimal_positions = copy(optimal_positions)
             p.iterate()
         p.finished()
-        weights_list_df = pd.DataFrame(weights_list, index=common_index)
+        position_df = pd.DataFrame(position_list, index=common_index)
 
-        return weights_list_df
+        return position_df
 
-
-    def get_optimal_weights_with_fixed_contract_values(self, relevant_date: datetime.datetime = arg_not_supplied,
-                                                       previous_weights: portfolioWeights = arg_not_supplied,
-                                                       reduce_only_keys: list = arg_not_supplied,
-                                                       no_trade_keys: list = arg_not_supplied,
-                                                       maximum_position_weights: portfolioWeights = arg_not_supplied) -> portfolioWeights:
+    def get_optimal_positions_with_fixed_contract_values(self, relevant_date: datetime.datetime = arg_not_supplied,
+                                                       previous_positions: portfolioWeights = arg_not_supplied,
+                                                        constraints: constraintsForDynamicOpt = arg_not_supplied,
+                                                       maximum_positions: portfolioWeights = arg_not_supplied) -> portfolioWeights:
 
         obj_instance = self.\
-            _get_optimal_weights_objective_instance(
+            _get_optimal_positions_objective_instance(
                 relevant_date=relevant_date,
-                previous_weights=previous_weights,
-                reduce_only_keys=reduce_only_keys,
-                no_trade_keys=no_trade_keys,
-                maximum_position_weights=maximum_position_weights
+                previous_positions=previous_positions,
+                constraints=constraints,
+                maximum_positions = maximum_positions
         )
 
-        optimal_weights = obj_instance.optimise()
+        optimal_positions = obj_instance.optimise_positions()
 
-        return optimal_weights
+        return optimal_positions
 
 
-    def _get_optimal_weights_objective_instance(self,
+    def _get_optimal_positions_objective_instance(self,
                                                 relevant_date: datetime.datetime = arg_not_supplied,
-                                                       previous_weights: portfolioWeights = arg_not_supplied,
-                                                       reduce_only_keys: list = arg_not_supplied,
-                                                       no_trade_keys: list = arg_not_supplied,
-                                                       maximum_position_weights: portfolioWeights = arg_not_supplied) -> objectiveFunctionForGreedy:
+                                                       previous_positions: portfolioWeights = arg_not_supplied,
+                                                        constraints: constraintsForDynamicOpt = arg_not_supplied,
+                                                       maximum_positions: portfolioWeights = arg_not_supplied) -> objectiveFunctionForGreedy:
 
         covariance_matrix = self.get_covariance_matrix(relevant_date=relevant_date)
-        per_contract_value = self.get_per_contract_value(relevant_date)
-        original_portfolio_weights = self.original_portfolio_weights_for_relevant_date(relevant_date)
 
-        covariance_matrix = covariance_matrix.clean_correlations()
+        per_contract_value = self.get_per_contract_value(relevant_date)
+        contracts_optimal = self.original_position_contracts_for_relevant_date(relevant_date)
 
         costs = self.get_costs_per_contract_as_proportion_of_capital_all_instruments()
+        speed_control = self.get_speed_control()
 
-        trade_shadow_cost = self.trade_shadow_cost
-        tracking_error_buffer = self.tracking_error_buffer
-
-        obj_instance = objectiveFunctionForGreedy(
-                                                weights_optimal=original_portfolio_weights,
+        obj_instance = objectiveFunctionForGreedy(log = self.log,
+                                                contracts_optimal=contracts_optimal,
                                                 covariance_matrix=covariance_matrix,
                                                 per_contract_value = per_contract_value,
-                                                weights_prior=previous_weights,
+                                                previous_positions = previous_positions,
                                                 costs = costs,
-                                                reduce_only_keys = reduce_only_keys,
-                                                no_trade_keys = no_trade_keys,
-                                                maximum_position_weights = maximum_position_weights,
-                                                trade_shadow_cost=trade_shadow_cost,
-                                                tracking_error_buffer = tracking_error_buffer)
+                                                constraints=constraints,
+                                                maximum_positions = maximum_positions,
+                                                speed_control=speed_control)
 
         return obj_instance
 
-    @property
-    def trade_shadow_cost(self)-> float:
-        trade_shadow_cost = self.config.small_system['shadow_cost']
+    def get_speed_control(self):
+        small_config = self.config.small_system
+        trade_shadow_cost = small_config['shadow_cost']
+        tracking_error_buffer = small_config['tracking_error_buffer']
 
-        return trade_shadow_cost
+        speed_control = speedControlForDynamicOpt(
+            trade_shadow_cost=trade_shadow_cost,
+            tracking_error_buffer=tracking_error_buffer
+        )
 
-    @property
-    def tracking_error_buffer(self) -> float:
-        tracking_error_buffer = self.config.small_system['tracking_error_buffer']
-
-        return tracking_error_buffer
-
+        return speed_control
 
     ## COSTS
     @diagnostic()
@@ -181,9 +172,9 @@ class optimisedPositions(SystemStage):
     def common_index(self):
         return self.portfolio_weights_stage.common_index()
 
-    def original_portfolio_weights_for_relevant_date(self,
+    def original_position_contracts_for_relevant_date(self,
                                                      relevant_date: datetime.datetime = arg_not_supplied):
-        return self.portfolio_weights_stage.get_portfolio_weights_for_relevant_date(relevant_date)
+        return self.portfolio_weights_stage.get_position_contracts_for_relevant_date(relevant_date)
 
 
     def get_raw_cost_data(self, instrument_code: str):
