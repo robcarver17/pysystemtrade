@@ -568,7 +568,10 @@ def get_list_of_changes_to_make_to_slippage(slippage_comparison_pd: pd.DataFrame
     for instrument_code in instrument_list:
         pd_row = slippage_comparison_pd.loc[instrument_code]
         difference = pd_row['% Difference']
-        if difference<filter:
+        if np.isnan(difference):
+            print("No data for %s" % instrument_code)
+            continue
+        if abs(difference)*100<filter:
             ## do nothing
             continue
 
