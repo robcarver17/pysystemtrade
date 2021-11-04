@@ -6,7 +6,6 @@ from syscore.objects import header, table, body_text
 from syscore.fileutils import get_resolved_pathname
 from syscore.text import landing_strip_from_str, landing_strip, centralise_text
 from sysdata.data_blob import dataBlob
-from sysdata.config.production_config import get_production_config
 
 from syslogdiag.email_via_db_interface import send_production_mail_msg
 

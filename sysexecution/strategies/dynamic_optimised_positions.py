@@ -109,10 +109,9 @@ def calculate_optimised_positions_data(data: dataBlob,
                                                          raw_optimal_position_data=raw_optimal_position_data
                                                          )
 
-    objective_function = get_objective_instance(data_for_objective)
+    objective_function = get_objective_instance(data=data,
+                                                data_for_objective=data_for_objective)
 
-    data.log.msg("Tracking error of prior weights %.2f vs buffer %.2f" % (objective_function.tracking_error_of_prior_weights(),
-                                                                       data_for_objective.speed_control.tracking_error_buffer))
 
     optimised_positions_data = get_optimised_positions_data_dict_given_optimisation(data_for_objective=data_for_objective,
                                                                                objective_function=objective_function)
@@ -189,15 +188,10 @@ def get_data_for_objective_instance(data: dataBlob,
                                 strategy_name = strategy_name,
                                 list_of_instruments=list_of_instruments)
 
-    data.log.msg("Per contract values %s" % str(per_contract_value))
-
     data.log.msg("Getting costs")
     costs = calculate_costs_per_portfolio_weight(data,
                                                  strategy_name=strategy_name,
                                                  list_of_instruments=list_of_instruments)
-
-    data.log.msg("Costs %s" % str(costs))
-
 
     constraints = get_constraints(data, strategy_name=strategy_name,
                                   list_of_instruments=list_of_instruments)
@@ -396,6 +390,8 @@ def get_optimised_positions_data_dict_given_optimisation(data_for_objective: dat
                                                          ) -> dict:
 
     optimised_positions = objective_function.optimise_positions()
+    optimised_positions = optimised_positions.replace_weights_with_ints()
+
     optimised_position_weights = get_weights_given_positions(optimised_positions,
                                                       per_contract_value=data_for_objective.per_contract_value)
     instrument_list = list(optimised_position_weights.keys())
@@ -405,7 +401,7 @@ def get_optimised_positions_data_dict_given_optimisation(data_for_objective: dat
     maxima_weights = portfolioWeights.from_weights_and_keys(list_of_keys=instrument_list,
                                                     list_of_weights=list(objective_function.maxima_as_np))
     starting_weights = portfolioWeights.from_weights_and_keys(list_of_keys=instrument_list,
-                                                              list_of_weights=list(objective_function.starting_weights_as_np()))
+                                                              list_of_weights=list(objective_function.starting_weights_as_np))
 
     data_dict = dict(
         [
@@ -456,7 +452,7 @@ def get_optimal_position_entry_with_calcs_for_code(
 )-> optimalPositionWithDynamicCalculations:
     return \
         optimalPositionWithDynamicCalculations(
-
+        dict(
         reference_price=data_for_objective.reference_prices[instrument_code],
         reference_contract=data_for_objective.reference_contracts[instrument_code],
         reference_date=data_for_objective.reference_dates[instrument_code],
@@ -478,7 +474,7 @@ def get_optimal_position_entry_with_calcs_for_code(
         start_weight= starting_weights[instrument_code],
         optimised_weight= optimised_position_weights[instrument_code],
         optimised_position = optimised_positions[instrument_code]
-
+        )
     )
 
 

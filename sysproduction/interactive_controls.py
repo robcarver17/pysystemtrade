@@ -1,6 +1,7 @@
 import numpy as np
-
+import pandas as pd
 from syscore.interactive import get_and_convert, run_interactive_menu, print_menu_and_get_response
+from syscore.pdutils import set_pd_print_options
 from sysobjects.production.override import override_dict, Override
 from sysobjects.production.tradeable_object import instrumentStrategy
 
@@ -15,12 +16,17 @@ from sysproduction.data.controls import (
 from sysproduction.data.control_process import dataControlProcess, diagControlProcess
 from sysproduction.data.prices import get_valid_instrument_code_from_user, get_list_of_instruments
 from sysproduction.data.strategies import get_valid_strategy_name_from_user
+from sysproduction.data.instruments import diagInstruments
 from sysproduction.reporting.data.risk_metrics import get_risk_data_for_instrument
+
+
+from sysproduction.reporting.api import reportingApi
 
 # could get from config, but might be different by system
 MAX_VS_AVERAGE_FORECAST = 2.0
 
 def interactive_controls():
+    set_pd_print_options()
     with dataBlob(log_name="Interactive-Controls") as data:
         menu = run_interactive_menu(
             top_level_menu_of_options,
@@ -545,8 +551,60 @@ def finish_all_processes(data):
     data_control.check_if_pid_running_and_if_not_finish_all_processes()
 
 def auto_update_spread_costs(data):
-    pass
+    reporting_api = reportingApi(data)
+    slippage_comparison_table = reporting_api.table_of_slippage_comparison()
+    slippage_comparison_pd = slippage_comparison_table.Body
 
+    changes_to_make = get_list_of_changes_to_make_to_slippage(slippage_comparison_pd)
+
+    make_changes_to_slippage(data, changes_to_make)
+
+def get_list_of_changes_to_make_to_slippage(slippage_comparison_pd: pd.DataFrame) -> list:
+
+    filter = get_filter_size_for_slippage()
+    changes_to_make = dict()
+    instrument_list = slippage_comparison_pd.index
+
+    for instrument_code in instrument_list:
+        pd_row = slippage_comparison_pd.loc[instrument_code]
+        difference = pd_row['% Difference']
+        if difference<filter:
+            ## do nothing
+            continue
+
+        print(pd_row)
+        configured = pd_row['Configured']
+        suggested_estimate = pd_row['estimate']
+        estimate_to_use = get_and_convert("New configured slippage value (current %f)" % configured,
+                                          type_expected=float,
+                                          allow_default=True,
+                                          default_value=suggested_estimate
+                                          )
+        changes_to_make[instrument_code] = estimate_to_use
+
+    return changes_to_make
+
+def get_filter_size_for_slippage() -> float:
+    filter = get_and_convert("% difference to filter on? (eg 30 means we ignore differences<30%",
+                    type_expected=float,
+                    allow_default=True,
+                    default_value=30.0)
+
+    return filter
+
+def make_changes_to_slippage(data: dataBlob, changes_to_make: dict):
+    futures_data = futuresInstrumentData(data)
+
+def make_changes_to_slippage_in_db(data: dataBlob, changes_to_make: dict):
+
+    existing_data =futures_data.get_instrument_data()
+
+
+def make_changes_to_slippage_in_db_for_instrument(data: dataBlob,
+                                                  instrument_code: str,
+                                                  new_slippage: float):
+    futures_data = diagInstruments()
+    existing_instrument =futures_data.get_instrument_data(instrument_code)
 
 def not_defined(data):
     print("\n\nFunction not yet defined\n\n")

@@ -203,7 +203,7 @@ class progressBar(object):
             suffix="Progress",
             toolbar_width=80,
             show_each_time=False,
-            show_timings = False):
+            show_timings = True):
 
         self._start_time = time.time()
         self.toolbar_width = toolbar_width
@@ -222,6 +222,8 @@ class progressBar(object):
         total_iter = self.range_to_iter
         iter_left = total_iter - self.current_iter
         time_per_iter = self.current_estimate_of_times
+        if time_per_iter is None:
+            return 0
 
         return iter_left * time_per_iter
 

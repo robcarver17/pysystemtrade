@@ -1,10 +1,25 @@
 import numpy as np
+from syscore.objects import arg_not_supplied
 from sysquant.estimators.correlations import correlationEstimate
 from sysquant.estimators.stdev_estimator import stdevEstimates
 from sysquant.optimisation.weights import portfolioWeights
 from sysquant.optimisation.shared import sigma_from_corr_and_std
 
 class covarianceEstimate(correlationEstimate):
+    def clean_correlations(self, must_haves: list =arg_not_supplied, offdiag = 0.99):
+        raise Exception("Can't clean covariance matrix")
+
+    def shrink(self, prior_corr: 'correlationEstimate', shrinkage_corr: float =1.0):
+        raise Exception("Can't shrink covariance matrix")
+
+    def boring_corr_matrix(self,
+                           offdiag: float=0.99,
+                       diag: float=1.0):
+        raise Exception("Can't have boring covariance")
+
+    def average_corr(self) -> float:
+        raise Exception("Can't do averaging with covariance")
+
     def assets_with_missing_data(self) -> list:
         na_row_count = self.as_pd().isna().all(axis=1)
         return [keyname for keyname in na_row_count.keys() if na_row_count[keyname]]

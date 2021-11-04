@@ -67,8 +67,8 @@ class objectiveFunctionForGreedy:
 
     def optimise_positions(self) -> portfolioWeights:
         optimal_weights = self.optimise_weights()
-
-        return optimal_weights / self.per_contract_value
+        optimal_positions =optimal_weights / self.per_contract_value
+        return optimal_positions
 
     def optimise_weights(self) -> portfolioWeights:
         optimal_weights_without_missing_items_as_np = self.optimise_np_for_valid_keys()
@@ -110,10 +110,10 @@ class objectiveFunctionForGreedy:
             tracking_error < tracking_error_buffer
 
         if tracking_error_smaller_than_buffer:
-            self.log.msg("Tracking error of current positions vs unrounded optimal is %.2f smaller than buffer %2.f, no trades needed"
+            self.log.msg("Tracking error of current positions vs unrounded optimal is %.4f smaller than buffer %4.f, no trades needed"
                          % (tracking_error, tracking_error_buffer))
         else:
-            self.log.msg("Tracking error of current positions vs unrounded optimal is %.2f larger than buffer %2.f"
+            self.log.msg("Tracking error of current positions vs unrounded optimal is %.4f larger than buffer %.4f"
                          % (tracking_error, tracking_error_buffer))
 
         return tracking_error_smaller_than_buffer
