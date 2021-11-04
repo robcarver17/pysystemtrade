@@ -16,7 +16,7 @@ from sysproduction.data.controls import (
 from sysproduction.data.control_process import dataControlProcess, diagControlProcess
 from sysproduction.data.prices import get_valid_instrument_code_from_user, get_list_of_instruments
 from sysproduction.data.strategies import get_valid_strategy_name_from_user
-from sysproduction.data.instruments import diagInstruments
+from sysproduction.data.instruments import dataInstruments
 from sysproduction.reporting.data.risk_metrics import get_risk_data_for_instrument
 
 
@@ -603,7 +603,7 @@ def make_changes_to_slippage_in_db(data: dataBlob, changes_to_make: dict):
 def make_changes_to_slippage_in_db_for_instrument(data: dataBlob,
                                                   instrument_code: str,
                                                   new_slippage: float):
-    futures_data = diagInstruments()
+    futures_data = dataInstruments()
     existing_instrument =futures_data.get_instrument_data(instrument_code)
 
 def not_defined(data):

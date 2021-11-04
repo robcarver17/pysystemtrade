@@ -13,11 +13,9 @@ class dataInstruments(productionDataLayerGeneric):
         data.add_class_object(mongoFuturesInstrumentData)
         return data
 
-    def update_slippage_costs(self, instrument_code):
-        existing_instrument_data = self.db_futures_instrument_data.get_instrument_data(
-            instrument_code
-        )
-        existing_instrument_data.meta_data
+    def update_slippage_costs(self, instrument_code: str, new_slippage: float):
+        self.db_futures_instrument_data. update_slippage_costs(
+            instrument_code, new_slippage)
 
     @property
     def db_futures_instrument_data(self) -> futuresInstrumentData:

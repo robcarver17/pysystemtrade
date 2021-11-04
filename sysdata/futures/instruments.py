@@ -30,6 +30,9 @@ class futuresInstrumentData(baseData):
     def __getitem__(self, instrument_code: str):
         return self.get_instrument_data(instrument_code)
 
+    def update_slippage_costs(self, instrument_code: str, new_slippage: float):
+        pass
+
     def get_all_instrument_data_as_list_of_instrument_objects(self) -> listOfFuturesInstrumentWithMetaData:
         all_instrument_codes = self.get_list_of_instruments()
         all_instrument_objects = [
