@@ -551,13 +551,18 @@ def finish_all_processes(data):
     data_control.check_if_pid_running_and_if_not_finish_all_processes()
 
 def auto_update_spread_costs(data):
-    reporting_api = reportingApi(data)
-    slippage_comparison_table = reporting_api.table_of_slippage_comparison()
-    slippage_comparison_pd = slippage_comparison_table.Body
-
+    slippage_comparison_pd = get_slippage_data(data)
     changes_to_make = get_list_of_changes_to_make_to_slippage(slippage_comparison_pd)
 
     make_changes_to_slippage(data, changes_to_make)
+
+def get_slippage_data(data) -> pd.DataFrame:
+    reporting_api = reportingApi(data)
+    print("Getting data might take a while...")
+    slippage_comparison_table = reporting_api.table_of_slippage_comparison()
+    slippage_comparison_pd = slippage_comparison_table.Body
+
+    return slippage_comparison_pd
 
 def get_list_of_changes_to_make_to_slippage(slippage_comparison_pd: pd.DataFrame) -> dict:
 
@@ -600,8 +605,8 @@ def make_changes_to_slippage(data: dataBlob, changes_to_make: dict):
     print("If you want your .csv slippage to update, wait until daily backup has completed, then copy the backed up instrumentconfig.csv to your pysystemtrade/data/futures/csvconfig/ directory")
 
 def make_changes_to_slippage_in_db(data: dataBlob, changes_to_make: dict):
-    futures_data = dataInstruments()
-    for instrument_code, new_slippage in changes_to_make:
+    futures_data = dataInstruments(data)
+    for instrument_code, new_slippage in changes_to_make.items():
         futures_data.update_slippage_costs(instrument_code, new_slippage)
 
 
