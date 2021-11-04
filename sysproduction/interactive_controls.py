@@ -3,10 +3,13 @@ import pandas as pd
 from syscore.interactive import get_and_convert, run_interactive_menu, print_menu_and_get_response
 from syscore.algos import magnitude
 from syscore.pdutils import set_pd_print_options
+from syscore.dateutils import CALENDAR_DAYS_IN_YEAR
+
+from sysdata.data_blob import dataBlob
+
 from sysobjects.production.override import override_dict, Override
 from sysobjects.production.tradeable_object import instrumentStrategy
 
-from sysdata.data_blob import dataBlob
 from sysproduction.data.controls import (
     diagOverrides,
     updateOverrides,
@@ -558,7 +561,7 @@ def auto_update_spread_costs(data):
     make_changes_to_slippage(data, changes_to_make)
 
 def get_slippage_data(data) -> pd.DataFrame:
-    reporting_api = reportingApi(data)
+    reporting_api = reportingApi(data, calendar_days_back=CALENDAR_DAYS_IN_YEAR)
     print("Getting data might take a while...")
     slippage_comparison_pd = reporting_api.combined_df_costs()
 
@@ -589,13 +592,32 @@ def get_list_of_changes_to_make_to_slippage(slippage_comparison_pd: pd.DataFrame
         if mult_factor>1:
             print("ALL VALUES MULTIPLIED BY %f INCLUDING INPUTS!!!!" % mult_factor)
 
+        suggested_estimate_multiplied = suggested_estimate*mult_factor
+        configured_estimate_multiplied = configured*mult_factor
+
         print(pd_row*mult_factor)
-        estimate_to_use = get_and_convert("New configured slippage value (current %f, default is estimate %f)" % (configured*mult_factor, suggested_estimate*mult_factor),
-                                          type_expected=float,
-                                          allow_default=True,
-                                          default_value=suggested_estimate*mult_factor
-                                          )
-        changes_to_make[instrument_code] = estimate_to_use / mult_factor
+        estimate_to_use_with_mult = \
+            get_and_convert(
+                "New configured slippage value (current %f, default is estimate %f)"
+                    % (configured_estimate_multiplied, suggested_estimate_multiplied),
+              type_expected=float,
+              allow_default=True,
+              default_value=suggested_estimate*mult_factor
+              )
+
+        if estimate_to_use_with_mult == configured_estimate_multiplied:
+            print("Same as configured, do nothing...")
+            continue
+        if estimate_to_use_with_mult!=suggested_estimate_multiplied:
+            difference = abs(estimate_to_use_with_mult/suggested_estimate_multiplied)-1.0
+            if difference>0.5:
+                ans = input("Quite a big difference from the suggested %f and yours %f, are you sure about this? (y/other)" %
+                            (suggested_estimate_multiplied, estimate_to_use_with_mult))
+                if ans!="y":
+                    continue
+
+        estimate_to_use = estimate_to_use_with_mult / mult_factor
+        changes_to_make[instrument_code] = estimate_to_use
 
     return changes_to_make
 
