@@ -577,17 +577,15 @@ def get_list_of_changes_to_make_to_slippage(slippage_comparison_pd: pd.DataFrame
         configured = pd_row['Configured']
         suggested_estimate = pd_row['estimate']
 
-        if np.isnan(difference) or np.isnan(configured):
+        if np.isnan(suggested_estimate) or np.isnan(configured):
             print("No data for %s" % instrument_code)
             continue
+
         if abs(difference)*100<filter:
             ## do nothing
             continue
-        if configured<0.01 or suggested_estimate<0.01:
-            mag = magnitude(min(suggested_estimate, configured))
-            mult_factor = 10**(-mag)
-        else:
-            mult_factor = 1
+
+        mult_factor = calculate_mult_factor(pd_row)
 
         if mult_factor>1:
             print("ALL VALUES MULTIPLIED BY %f INCLUDING INPUTS!!!!" % mult_factor)
@@ -602,6 +600,7 @@ def get_list_of_changes_to_make_to_slippage(slippage_comparison_pd: pd.DataFrame
 
     return changes_to_make
 
+
 def get_filter_size_for_slippage() -> float:
     filter = get_and_convert("% difference to filter on? (eg 30 means we ignore differences<30%",
                     type_expected=float,
@@ -609,6 +608,24 @@ def get_filter_size_for_slippage() -> float:
                     default_value=30.0)
 
     return filter
+
+def calculate_mult_factor(pd_row) -> float:
+    configured = pd_row['Configured']
+    suggested_estimate = pd_row['estimate']
+
+    smallest = min(configured, suggested_estimate)
+    if smallest>0.01:
+        return 1
+
+    if smallest ==0:
+        return 1000000
+
+    mag = magnitude(min(suggested_estimate, configured))
+    mult_factor = 10 ** (-mag)
+
+    return mult_factor
+
+
 
 def make_changes_to_slippage(data: dataBlob, changes_to_make: dict):
     make_changes_to_slippage_in_db(data, changes_to_make)
