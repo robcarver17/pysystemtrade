@@ -560,8 +560,7 @@ def auto_update_spread_costs(data):
 def get_slippage_data(data) -> pd.DataFrame:
     reporting_api = reportingApi(data)
     print("Getting data might take a while...")
-    slippage_comparison_table = reporting_api.table_of_slippage_comparison()
-    slippage_comparison_pd = slippage_comparison_table.Body
+    slippage_comparison_pd = reporting_api.combined_df_costs()
 
     return slippage_comparison_pd
 

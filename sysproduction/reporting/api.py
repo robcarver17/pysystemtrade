@@ -403,12 +403,22 @@ class reportingApi(object):
         return table_of_sr_costs
 
     def table_of_slippage_comparison(self):
-        table_of_slippage = get_combined_df_of_costs_as_table(self.data,
-                                                              start_date=self.start_date,
-                                                              end_date=self.end_date)
+        combined_df_costs = self.combined_df_costs()
+        combined_df_costs = combined_df_costs.round(6)
+        combined_df_costs = annonate_df_index_with_positions_held(data=data,
+                                                                  pd_df=combined_df_costs)
 
-        return table_of_slippage
+        combined_df_costs_as_formatted_table = table("Check of slippage", combined_df_costs)
 
+
+        return combined_df_costs_as_formatted_table
+
+    def combined_df_costs(self):
+        combined_df_costs = get_combined_df_of_costs(self.data,
+                                                     start_date=self.start_date,
+                                                     end_date=self.end_date)
+
+        return combined_df_costs
 
     ##### TRADES ######
 
