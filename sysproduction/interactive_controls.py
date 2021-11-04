@@ -583,13 +583,13 @@ def get_list_of_changes_to_make_to_slippage(slippage_comparison_pd: pd.DataFrame
             ## do nothing
             continue
         if configured<0.0001:
-            print("ALL VALUES MULTIPLIED BY 1000 INCLUDING INPUTS!!!!")
-            mult_factor = 1000
+            print("ALL VALUES MULTIPLIED BY 10,000 INCLUDING INPUTS!!!!")
+            mult_factor = 100000
         else:
             mult_factor = 1
 
         print(pd_row*mult_factor)
-        estimate_to_use = get_and_convert("New configured slippage value (current %f)" % (configured*mult_factor),
+        estimate_to_use = get_and_convert("New configured slippage value (current %f, default is estimate %f)" % (configured*mult_factor, suggested_estimate*mult_factor),
                                           type_expected=float,
                                           allow_default=True,
                                           default_value=suggested_estimate*mult_factor
