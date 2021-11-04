@@ -584,7 +584,7 @@ def get_list_of_changes_to_make_to_slippage(slippage_comparison_pd: pd.DataFrame
             ## do nothing
             continue
         if configured<0.01 or suggested_estimate<0.01:
-            mag = magnitude(suggested_estimate)
+            mag = magnitude(min(suggested_estimate, configured))
             mult_factor = 10**(-mag)
         else:
             mult_factor = 1
