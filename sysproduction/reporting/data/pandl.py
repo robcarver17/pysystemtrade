@@ -151,7 +151,7 @@ class pandlCalculateAndStore(object):
         list_pandl = [
             PandL(
                 strategy_name,
-                self.get_period_perc_pandl_for_strategy_in_date_range(),
+                self.get_period_perc_pandl_for_strategy_in_date_range(strategy_name=strategy_name),
             )
             for strategy_name in strategy_list
         ]
