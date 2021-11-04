@@ -181,6 +181,7 @@ def are_dicts_equal(d1, d2):
         return False
     return True
 
+PROGRESS_EXP_FACTOR = .9
 
 class progressBar(object):
     """
@@ -220,37 +221,34 @@ class progressBar(object):
     def estimated_time_remaining(self):
         total_iter = self.range_to_iter
         iter_left = total_iter - self.current_iter
-        time_per_iter = self.time_per_iteration()
+        time_per_iter = self.current_estimate_of_times
 
         return iter_left * time_per_iter
 
-    def time_per_iteration(self) -> float:
-        list_of_time_per_iter = self.list_of_time_per_iter()
-        return np.mean(list_of_time_per_iter[-10:])
-
-    def list_of_time_per_iter(self):
-        list_of_time_per_iter = getattr(self, "_list_of_time_per_iter", [])
-        list_of_time_per_iter.append(self.time_per_iter_since_last_call())
-        self._list_of_time_per_iter = list_of_time_per_iter
-
-        return list_of_time_per_iter
-
-    def time_per_iter_since_last_call(self) -> float:
-        iter_since_last_called = self.iter_since_last_called()
-
-        if iter_since_last_called==0:
-            return 0.0
-
-        time_since_last_called = self.time_since_last_called()
-
-        return time_since_last_called / iter_since_last_called
 
 
-    def iter_since_last_called(self) -> int:
-        iter_of_last_call = self.get_and_set_iter_of_last_call()
-        current_iter = self.current_iter
+    def update_time_estimate(self):
+        ## don't maintain a list per se, instead exponential
+        time_since_last_call = self.time_since_last_called()
+        current_estimate = self.current_estimate_of_times
+        if current_estimate is None:
+            ## seed
+            current_estimate = time_since_last_call
+        else:
+            current_estimate = ((1-PROGRESS_EXP_FACTOR) * time_since_last_call) +\
+                               (PROGRESS_EXP_FACTOR * current_estimate)
 
-        return current_iter - iter_of_last_call
+        self.current_estimate_of_times = current_estimate
+
+    @property
+    def current_estimate_of_times(self)-> float:
+        current_estimate = getattr(self, "current_estimate_of_times", None)
+        return current_estimate
+
+    @current_estimate_of_times.setter
+    def current_estimate_of_times(self, current_estimate: float):
+        self._current_estimate_of_times = current_estimate
+
 
     def time_since_last_called(self) -> float:
         time_of_last_call = self.get_and_set_time_of_last_call()
@@ -265,11 +263,6 @@ class progressBar(object):
         return time_of_last_iter
 
 
-    def get_and_set_iter_of_last_call(self):
-        last_iter = copy(getattr(self, "_iter_of_last_call", 0))
-        self._iter_of_last_call = self.current_iter
-
-        return last_iter
 
     def elapsed_time(self):
         return self.current_time - self.start_time
@@ -285,6 +278,7 @@ class progressBar(object):
 
     def iterate(self):
         self.current_iter += 1
+        self.update_time_estimate()
         if self.number_of_blocks_changed() or self._show_each_time:
             self.display_bar()
 

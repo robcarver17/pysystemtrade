@@ -83,7 +83,7 @@ class optimisedPositions(SystemStage):
         costs = self.get_costs_per_contract_as_proportion_of_capital_all_instruments()
         speed_control = self.get_speed_control()
 
-        obj_instance = objectiveFunctionForGreedy(log = self.log,
+        obj_instance = objectiveFunctionForGreedy(
                                                 contracts_optimal=contracts_optimal,
                                                 covariance_matrix=covariance_matrix,
                                                 per_contract_value = per_contract_value,

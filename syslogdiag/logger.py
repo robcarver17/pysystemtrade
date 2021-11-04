@@ -214,7 +214,37 @@ def get_update_attributes_list(parent_attributes: dict, new_attributes: dict) ->
     return {**parent_attributes, **new_attributes}
 
 
-if __name__ == "__main__":
-    import doctest
+class nullLog(logger):
+    ## When a log goes to null, does anyone in the forest hear the tree falling?
 
-    doctest.testmod()
+    ## Overriding these makes the logging faster
+    def msg(self, text: str, **kwargs) -> logEntry:
+        pass
+
+    def terse(self, text: str, **kwargs) -> logEntry:
+        pass
+
+    def warn(self, text: str, **kwargs) -> logEntry:
+        pass
+
+    def error(self, text: str, **kwargs) -> logEntry:
+        pass
+
+    def critical(self, text: str, **kwargs) -> logEntry:
+        pass
+
+    ## These should never be called but just to be on the safe side...
+    def log(self, *args, **kwargs):
+        pass
+
+    def log_handle_caller(
+            self,
+            *args,
+            **kwargs):
+
+        pass
+
+    def get_next_log_id(self) -> int:
+        return 0
+
+
