@@ -10,6 +10,7 @@ from sysdata.data_blob import dataBlob
 from sysobjects.production.override import override_dict, Override
 from sysobjects.production.tradeable_object import instrumentStrategy
 
+from sysproduction.backup_arctic_to_csv import get_data_and_create_csv_directories, backup_instrument_data
 from sysproduction.data.controls import (
     diagOverrides,
     updateOverrides,
@@ -650,7 +651,7 @@ def calculate_mult_factor(pd_row) -> float:
 
 def make_changes_to_slippage(data: dataBlob, changes_to_make: dict):
     make_changes_to_slippage_in_db(data, changes_to_make)
-    print("If you want your .csv slippage to update, wait until daily backup has completed, then copy the backed up instrumentconfig.csv to your pysystemtrade/data/futures/csvconfig/ directory")
+    backup_instrument_data_to_csv(data)
 
 def make_changes_to_slippage_in_db(data: dataBlob, changes_to_make: dict):
     futures_data = dataInstruments(data)
@@ -658,6 +659,11 @@ def make_changes_to_slippage_in_db(data: dataBlob, changes_to_make: dict):
         futures_data.update_slippage_costs(instrument_code, new_slippage)
 
 
+def backup_instrument_data_to_csv(data: dataBlob):
+    backup_data = get_data_and_create_csv_directories("")
+    backup_data.mongo_futures_instrument = data.db_futures_instrument
+    print("Backing up database to .csv %; you will need to copy to /pysystemtrade/data/csvconfig/ for it to work in sim")
+    backup_instrument_data(backup_data)
 
 def not_defined(data):
     print("\n\nFunction not yet defined\n\n")
