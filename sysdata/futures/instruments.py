@@ -3,6 +3,7 @@ Read / write and represent instrument data
 """
 
 import pandas as pd
+from syscore.objects import missing_data
 from sysdata.base_data import baseData
 from sysobjects.instruments import futuresInstrumentWithMetaData, listOfFuturesInstrumentWithMetaData
 from syslogdiag.log_to_screen import logtoscreen
@@ -31,7 +32,23 @@ class futuresInstrumentData(baseData):
         return self.get_instrument_data(instrument_code)
 
     def update_slippage_costs(self, instrument_code: str, new_slippage: float):
-        pass
+        self.upate_meta_data(instrument_code, meta_name="Slippage",
+                             new_value = new_slippage)
+
+    def upate_meta_data(self, instrument_code: str, meta_name: str, new_value):
+        instrument_object = self.get_instrument_data(instrument_code)
+        existing_meta_data = instrument_object.meta_data
+        existing_meta_data_value = getattr(existing_meta_data, meta_name, missing_data)
+        if existing_meta_data_value is missing_data:
+            raise Exception("Meta data %s does not exist for instrument %s" % (meta_name,
+                                                                               instrument_code))
+        setattr(existing_meta_data, meta_name, new_value)
+        self.add_instrument_data(instrument_object,
+                                 ignore_duplication=True)
+        self.log.msg("Updated %s for %s from %s to %s" % (
+            meta_name, instrument_code,
+            existing_meta_data_value, new_value
+        ))
 
     def get_all_instrument_data_as_list_of_instrument_objects(self) -> listOfFuturesInstrumentWithMetaData:
         all_instrument_codes = self.get_list_of_instruments()

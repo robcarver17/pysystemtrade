@@ -559,7 +559,7 @@ def auto_update_spread_costs(data):
 
     make_changes_to_slippage(data, changes_to_make)
 
-def get_list_of_changes_to_make_to_slippage(slippage_comparison_pd: pd.DataFrame) -> list:
+def get_list_of_changes_to_make_to_slippage(slippage_comparison_pd: pd.DataFrame) -> dict:
 
     filter = get_filter_size_for_slippage()
     changes_to_make = dict()
@@ -593,18 +593,15 @@ def get_filter_size_for_slippage() -> float:
     return filter
 
 def make_changes_to_slippage(data: dataBlob, changes_to_make: dict):
-    futures_data = futuresInstrumentData(data)
+    make_changes_to_slippage_in_db(data, changes_to_make)
+    print("If you want your .csv slippage to update, wait until daily backup has completed, then copy the backed up instrumentconfig.csv to your pysystemtrade/data/futures/csvconfig/ directory")
 
 def make_changes_to_slippage_in_db(data: dataBlob, changes_to_make: dict):
-
-    existing_data =futures_data.get_instrument_data()
-
-
-def make_changes_to_slippage_in_db_for_instrument(data: dataBlob,
-                                                  instrument_code: str,
-                                                  new_slippage: float):
     futures_data = dataInstruments()
-    existing_instrument =futures_data.get_instrument_data(instrument_code)
+    for instrument_code, new_slippage in changes_to_make:
+        futures_data.update_slippage_costs(instrument_code, new_slippage)
+
+
 
 def not_defined(data):
     print("\n\nFunction not yet defined\n\n")
