@@ -6,11 +6,12 @@ crossovers
 
 """
 import warnings
-
+import math as maths
 import numpy as np
 import pandas as pd
 
 from syscore.genutils import sign
+
 
 LARGE_NUMBER_OF_DAYS = 250 * 100 * 100
 
@@ -261,6 +262,9 @@ def map_forecast_value(
             capped_value,
             a_param,
             b_param))
+
+def magnitude(x):
+    return int(maths.log10(x))
 
 
 

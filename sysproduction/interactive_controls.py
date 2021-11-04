@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from syscore.interactive import get_and_convert, run_interactive_menu, print_menu_and_get_response
+from syscore.algos import magnitude
 from syscore.pdutils import set_pd_print_options
 from sysobjects.production.override import override_dict, Override
 from sysobjects.production.tradeable_object import instrumentStrategy
@@ -582,11 +583,14 @@ def get_list_of_changes_to_make_to_slippage(slippage_comparison_pd: pd.DataFrame
         if abs(difference)*100<filter:
             ## do nothing
             continue
-        if configured<0.0001:
-            print("ALL VALUES MULTIPLIED BY 10,000 INCLUDING INPUTS!!!!")
-            mult_factor = 100000
+        if configured<0.01 or suggested_estimate<0.01:
+            mag = magnitude(suggested_estimate)
+            mult_factor = 10**(-mag)
         else:
             mult_factor = 1
+
+        if mult_factor>1:
+            print("ALL VALUES MULTIPLIED BY %f INCLUDING INPUTS!!!!" % mult_factor)
 
         print(pd_row*mult_factor)
         estimate_to_use = get_and_convert("New configured slippage value (current %f, default is estimate %f)" % (configured*mult_factor, suggested_estimate*mult_factor),
