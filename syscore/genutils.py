@@ -242,7 +242,7 @@ class progressBar(object):
 
     @property
     def current_estimate_of_times(self)-> float:
-        current_estimate = getattr(self, "current_estimate_of_times", None)
+        current_estimate = getattr(self, "_current_estimate_of_times", None)
         return current_estimate
 
     @current_estimate_of_times.setter
