@@ -573,22 +573,28 @@ def get_list_of_changes_to_make_to_slippage(slippage_comparison_pd: pd.DataFrame
     for instrument_code in instrument_list:
         pd_row = slippage_comparison_pd.loc[instrument_code]
         difference = pd_row['% Difference']
-        if np.isnan(difference):
+        configured = pd_row['Configured']
+        if np.isnan(difference) or np.isnan(configured):
             print("No data for %s" % instrument_code)
             continue
         if abs(difference)*100<filter:
             ## do nothing
             continue
+        if configured<0.0001:
+            print("ALL VALUES MULTIPLIED BY 1000 INCLUDING INPUTS!!!!")
+            mult_factor = 1000
+        else:
+            mult_factor = 1
 
-        print(pd_row)
+        print(pd_row*mult_factor)
         configured = pd_row['Configured']
         suggested_estimate = pd_row['estimate']
-        estimate_to_use = get_and_convert("New configured slippage value (current %f)" % configured,
+        estimate_to_use = get_and_convert("New configured slippage value (current %f)" % configured*mult_factor,
                                           type_expected=float,
                                           allow_default=True,
                                           default_value=suggested_estimate
                                           )
-        changes_to_make[instrument_code] = estimate_to_use
+        changes_to_make[instrument_code] = estimate_to_use / mult_factor
 
     return changes_to_make
 
