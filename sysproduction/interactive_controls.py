@@ -756,7 +756,7 @@ def suggest_duplicate_markets_for_dict_entry(mkt_data, dict_entry: dict, filters
     included = dict_entry['included']
     excluded = dict_entry['excluded']
 
-    all_markets = set(list(included+excluded))
+    all_markets = list(set(list(included+excluded)))
     mkt_data_for_duplicates = get_df_of_data_for_duplicate(mkt_data, all_markets)
     best_market = get_best_market(mkt_data_for_duplicates, filters)
     print("\n\nCurrent list of included markets %s, excluded markets %s" % (included, excluded))
