@@ -273,7 +273,7 @@ class reportingApi(object):
         return table_corr
 
     def table_of_instrument_risk(self):
-        instrument_risk_data = self.instrument_risk_data
+        instrument_risk_data = self.instrument_risk_data()
         instrument_risk_data_rounded = instrument_risk_data.round(2)
         table_instrument_risk = table("Instrument risk", instrument_risk_data_rounded)
         return table_instrument_risk
@@ -296,7 +296,7 @@ class reportingApi(object):
         return portfolio_risk_total_text
 
     def body_text_abs_total_all_risk_perc_capital(self):
-        instrument_risk_data =self.instrument_risk_data
+        instrument_risk_data =self.instrument_risk_data()
         all_risk_perc_capital = instrument_risk_data.exposure_held_perc_capital
         abs_total_all_risk_perc_capital = all_risk_perc_capital.abs().sum()
 
@@ -304,7 +304,7 @@ class reportingApi(object):
                          abs_total_all_risk_perc_capital)
 
     def body_text_abs_total_all_risk_annualised(self):
-        instrument_risk_data = self.instrument_risk_data
+        instrument_risk_data = self.instrument_risk_data()
         all_risk_annualised = instrument_risk_data.annual_risk_perc_capital
         abs_total_all_risk_annualised = all_risk_annualised.abs().sum()
 
@@ -312,14 +312,13 @@ class reportingApi(object):
                          abs_total_all_risk_annualised)
 
     def body_text_net_total_all_risk_annualised(self):
-        instrument_risk_data = self.instrument_risk_data
+        instrument_risk_data = self.instrument_risk_data()
         all_risk_annualised = instrument_risk_data.annual_risk_perc_capital
         net_total_all_risk_annualised = all_risk_annualised.sum()
 
         return body_text("Net sum of annualised risk %% capital %.1f " %
                          net_total_all_risk_annualised)
 
-    @property
     def instrument_risk_data(self):
         instrument_risk = getattr(self, "_instrument_risk", missing_data)
         if instrument_risk is missing_data:
@@ -329,6 +328,21 @@ class reportingApi(object):
 
     def _get_instrument_risk(self):
         instrument_risk_data = get_instrument_risk_table(self.data)
+        return instrument_risk_data
+
+
+    def instrument_risk_data_all_instruments(self) ->pd.DataFrame:
+        instrument_risk_all = getattr(self, "_instrument_risk_all_instruments", missing_data)
+        if instrument_risk_all is missing_data:
+            instrument_risk_all = \
+                self._get_instrument_risk_all_instruments = \
+                    self._get_instrument_risk_all_instruments()
+
+        return instrument_risk_all
+
+
+    def _get_instrument_risk_all_instruments(self):
+        instrument_risk_data = get_instrument_risk_table(self.data, only_held_instruments = False)
         return instrument_risk_data
 
     ##### RECONCILE #####
@@ -370,7 +384,7 @@ class reportingApi(object):
 
     ##### LIQUIDITY ######
     def table_of_liquidity_contract_sort(self) -> table:
-        all_liquidity_df = self.liquidity_data
+        all_liquidity_df = self.liquidity_data()
         all_liquidity_df = all_liquidity_df.sort_values("contracts")
         table_liquidity = table(" Sorted by contracts: Less than 100 contracts a day is a problem",
                                 all_liquidity_df)
@@ -378,14 +392,13 @@ class reportingApi(object):
         return table_liquidity
 
     def table_of_liquidity_risk_sort(self) -> table:
-        all_liquidity_df = self.liquidity_data
+        all_liquidity_df = self.liquidity_data()
         all_liquidity_df = all_liquidity_df.sort_values("risk")
         table_liquidity = table("Sorted by risk: Less than $1.5 million of risk per day is a problem",
                                 all_liquidity_df)
 
         return table_liquidity
 
-    @property
     def liquidity_data(self) -> pd.DataFrame:
         liquidity = getattr(self, "_liquidity_data", missing_data)
         if liquidity is missing_data:

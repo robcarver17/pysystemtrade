@@ -9,6 +9,7 @@ from syscore.objects import missing_data
 
 from sysdata.data_blob import dataBlob
 from sysdata.config.production_config import get_production_config
+from sysdata.config.instruments import generate_matching_duplicate_dict
 from sysobjects.production.override import override_dict, Override
 from sysobjects.production.tradeable_object import instrumentStrategy
 
@@ -672,7 +673,7 @@ def backup_instrument_data_to_csv(data: dataBlob):
 
 def suggest_bad_markets(data: dataBlob):
     max_cost, min_contracts, min_risk = get_bad_market_filter_parameters()
-    SR_costs, liquidity_data = get_data_for_bad_markets(data)
+    SR_costs, liquidity_data, _unused_risk_data= get_data_for_markets(data)
     bad_markets = get_bad_market_list(SR_costs=SR_costs,
                                       liquidity_data=liquidity_data,
                                       min_risk=min_risk,
@@ -690,13 +691,14 @@ def get_bad_market_filter_parameters():
 
     return max_cost, min_contracts, min_risk
 
-def get_data_for_bad_markets(data):
+def get_data_for_markets(data):
     api = reportingApi(data)
     SR_costs = api.SR_costs()
     SR_costs = SR_costs.dropna()
-    liquidity_data = api.liquidity_data
+    liquidity_data = api.liquidity_data()
+    risk_data = api.instrument_risk_data_all_instruments()
 
-    return SR_costs, liquidity_data
+    return SR_costs, liquidity_data, risk_data
 
 def get_bad_market_list(SR_costs: pd.DataFrame,
                         liquidity_data: pd.DataFrame,
@@ -734,7 +736,36 @@ def display_bad_market_info(bad_markets: list):
 
 
 def suggest_duplicate_markets(data: dataBlob):
-    pass
+    duplicate_dict = generate_matching_duplicate_dict()
+    mkt_data = get_data_for_markets(data)
+    __ = [suggest_duplicate_markets_for_dict_entry(mkt_data, dict_entry)
+          for dict_entry in duplicate_dict.values()]
+
+def suggest_duplicate_markets_for_dict_entry(mkt_data, dict_entry: dict):
+    included = dict_entry['included']
+    excluded = dict_entry['excluded']
+
+    all_markets = set(list(included+excluded))
+    mkt_data_for_duplicates = [
+        get_market_data_for_duplicate(mkt_data, instrument_code)
+        for instrument_code in all_markets]
+
+    mkt_data_for_duplicates = pd.DataFrame(mkt_data_for_duplicates, index = all_markets)
+    print("\n\nCurrent list of included markets %s, excluded markets %s" % (included, excluded))
+    print("Prefer: SR_cost<0.01, volume_contracts>100, volume_risk>15, contract_size: small!\n")
+    print(mkt_data_for_duplicates)
+
+def get_market_data_for_duplicate(mkt_data, instrument_code: str):
+    SR_costs, liquidity_data, risk_data = mkt_data
+    SR_cost = SR_costs.SR_cost.get(instrument_code, np.nan)
+    volume_contracts = liquidity_data.contracts.get(instrument_code, np.nan)
+    volume_risk = liquidity_data.risk.get(instrument_code, np.nan)
+    contract_size = risk_data.annual_risk_per_contract.get(instrument_code, np.nan)
+
+    return dict(SR_cost = np.round(SR_cost, 6),
+                volume_contracts=volume_contracts,
+                volume_risk=np.round(volume_risk, 2),
+                contract_size=np.round(contract_size))
 
 def not_defined(data):
     print("\n\nFunction not yet defined\n\n")

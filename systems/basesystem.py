@@ -1,6 +1,6 @@
 from syscore.objects import arg_not_supplied, missing_data
-from syscore.genutils import flatten_list
 from sysdata.config.configdata import Config
+from sysdata.config.instruments import generate_duplicate_list_of_instruments_to_remove_from_config
 from sysdata.sim.sim_data import simData
 from syslogdiag.log_to_screen import logtoscreen, logger
 from systems.system_cache import systemCache, base_system_cache
@@ -208,7 +208,7 @@ class System(object):
         return joint_list
 
     def get_list_of_duplicate_instruments_to_remove(self):
-        duplicate_list = _generate_duplicate_list_of_instruments(self.config)
+        duplicate_list = generate_duplicate_list_of_instruments_to_remove_from_config(self.config)
         if len(duplicate_list)>0:
             self.log.msg("Following instruments are 'duplicate_markets' and will be excluded from sim %s " % str(
                 duplicate_list))
@@ -257,25 +257,6 @@ class System(object):
 
         return bad_markets
 
-def _generate_duplicate_list_of_instruments(config) -> list:
-    duplicate_instruments_config = config.get_element_or_missing_data('duplicate_instruments')
-
-    if duplicate_instruments_config is missing_data:
-        return []
-    exclude_dict = duplicate_instruments_config.get('exclude', missing_data)
-    if exclude_dict is missing_data:
-        return []
-    list_of_duplicates = list(exclude_dict.values())
-
-    ## do this because can have multiple duplicates
-    duplicate_list_flattened = []
-    for item in list_of_duplicates:
-        if type(item) is list:
-            duplicate_list_flattened = duplicate_list_flattened + item
-        else:
-            duplicate_list_flattened.append(item)
-
-    return duplicate_list_flattened
 
 if __name__ == "__main__":
     import doctest

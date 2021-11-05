@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 
 from syscore.dateutils import ROOT_BDAYS_INYEAR, BUSINESS_DAYS_IN_YEAR
+from syscore.genutils import progressBar
 from syscore.objects import missing_data, resolve_function
 
 from sysobjects.production.tradeable_object import instrumentStrategy
@@ -16,17 +17,28 @@ from sysquant.fitting_dates import IN_SAMPLE
 from sysproduction.data.capital import dataCapital
 from sysproduction.data.instruments import diagInstruments
 from sysproduction.data.positions import diagPositions
-from sysproduction.data.prices import diagPrices
+from sysproduction.data.prices import diagPrices, get_list_of_instruments
 
 DAILY_RISK_CALC_LOOKBACK = int(BUSINESS_DAYS_IN_YEAR*2)
 
 
-def get_instrument_risk_table(data):
+def get_instrument_risk_table(data,  only_held_instruments = True):
     ## INSTRUMENT RISK (daily %, annual %, return space daily and annual, base currency per contract daily and annual, positions)
-    instrument_list = get_instruments_with_positions_all_strategies(data)
-    risk_data_list = dict([(instrument_code, get_risk_data_for_instrument(data, instrument_code))
-                           for instrument_code in instrument_list])
-    risk_df = pd.DataFrame(risk_data_list)
+    if only_held_instruments:
+        instrument_list = get_instruments_with_positions_all_strategies(data)
+    else:
+        instrument_list = get_list_of_instruments()
+
+    p = progressBar(len(instrument_list))
+    risk_data_list =[]
+    for instrument_code in instrument_list:
+        risk_this_instrument = get_risk_data_for_instrument(data, instrument_code)
+        risk_data_list.append(risk_this_instrument)
+        p.iterate()
+
+    p.finished()
+
+    risk_df = pd.DataFrame(risk_data_list, index = instrument_list).transpose()
     risk_df = sorted_clean_df(risk_df, 'annual_risk_perc_capital')
 
     return risk_df

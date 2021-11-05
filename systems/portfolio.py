@@ -742,10 +742,18 @@ class Portfolios(SystemStage):
 
         return instrument_list
 
+    @diagnostic()
     def allocate_zero_instrument_weights_to_these_instruments(self) -> list:
+        likely_bad = self.parent.get_list_of_markets_not_trading_but_with_data()
         config = self.config
         allocate_zero_instrument_weights_to_these_instruments = \
             getattr(config,"allocate_zero_instrument_weights_to_these_instruments", [])
+
+        likely_bad_no_zero_allocation = set(likely_bad).difference(set(allocate_zero_instrument_weights_to_these_instruments))
+        if len(likely_bad_no_zero_allocation)>0:
+            self.log.warn("*** Following instruments are listed as trading_restrictions and/or bad_markets but still included in instrument weight optimisation: ***\n%s" % str(likely_bad_no_zero_allocation))
+            self.log.warn("This is fine for dynamic systems where we remove them in later optimisation, but may be problematic for static systems")
+            self.log.warn("Consider adding to config element allocate_zero_instrument_weights_to_these_instruments")
 
         return allocate_zero_instrument_weights_to_these_instruments
 

@@ -293,7 +293,7 @@ duplicate_instruments:
     soybean: 'SOYBEAN'
     sp500: 'SP500_micro'
     twd: 'TWD'
-    vix: 'VIX_mini'
+    vix: 'VIX'
     wheat: 'WHEAT'
   exclude:
     copper: 'COPPER-mini'
@@ -306,7 +306,7 @@ duplicate_instruments:
     jgb: ['JGB_mini', 'JGB-SGX-mini']
     jpy: ['JPY_micro','JPY-SGX-TITAN', 'JPY-SGX']
     kospi: 'KOSPI_mini'
-    krw: 'KRWUSD_mini'
+    krwusd: 'KRWUSD_mini'
     nasdaq: 'NASDAQ'
     silver: 'SILVER_mini'
     soybean: 'SOYBEAN_mini'
@@ -320,8 +320,7 @@ duplicate_instruments:
 # If you want to ignore because a duplicate market, use duplicate_instruments
 # If you want to include in sim data, but not actually trade, use trading_restrictions
 ignore_instruments:
-  - an_example
-  - another_example
+  - 'EURIBOR'
 #
 # Here we put stuff we can't trade, but for which we still want to bring in prices in sim
 # For the dynamically optimised strategy this list will be used in sim as 'don't trade'
