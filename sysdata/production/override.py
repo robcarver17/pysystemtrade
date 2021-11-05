@@ -62,6 +62,10 @@ class overrideData(baseData):
 
         return all_overrides
 
+    def delete_all_overrides(self, are_you_sure = False):
+        if are_you_sure:
+            self._delete_all_overrides_without_checking()
+
     def _get_dict_of_strategies_with_overrides(self) ->dict:
         return self._get_dict_of_items_with_overrides_for_type(strategy_overrides)
 
@@ -72,6 +76,9 @@ class overrideData(baseData):
     def _get_dict_of_instruments_with_overrides(self) ->dict:
         return self._get_dict_of_items_with_overrides_for_type(instrument_overrides)
 
+    def _delete_all_overrides_without_checking(self):
+        raise NotImplementedError
+
     def _update_override(self, override_type:str, key:str, new_override_object:Override):
         raise NotImplementedError
 
@@ -80,6 +87,8 @@ class overrideData(baseData):
 
     def _get_dict_of_items_with_overrides_for_type(self, override_type: str) -> dict:
         raise NotImplementedError
+
+
 
 def _key_from_instrument_strategy(instrument_strategy: instrumentStrategy):
     return instrument_strategy.strategy_name + "/" + instrument_strategy.instrument_code

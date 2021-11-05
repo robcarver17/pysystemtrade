@@ -1,6 +1,6 @@
 from syscore.objects import arg_not_supplied, missing_data
 from sysdata.config.configdata import Config
-from sysdata.config.instruments import generate_duplicate_list_of_instruments_to_remove_from_config
+from sysdata.config.instruments import get_duplicate_list_of_instruments_to_remove_from_config, get_list_of_bad_instruments_in_config, get_list_of_ignored_instruments_in_config, get_list_of_untradeable_instruments_in_config
 from sysdata.sim.sim_data import simData
 from syslogdiag.log_to_screen import logtoscreen, logger
 from systems.system_cache import systemCache, base_system_cache
@@ -208,7 +208,7 @@ class System(object):
         return joint_list
 
     def get_list_of_duplicate_instruments_to_remove(self):
-        duplicate_list = generate_duplicate_list_of_instruments_to_remove_from_config(self.config)
+        duplicate_list = get_duplicate_list_of_instruments_to_remove_from_config(self.config)
         if len(duplicate_list)>0:
             self.log.msg("Following instruments are 'duplicate_markets' and will be excluded from sim %s " % str(
                 duplicate_list))
@@ -217,11 +217,9 @@ class System(object):
 
     @base_system_cache()
     def get_list_of_ignored_instruments_to_remove(self) -> list:
-        ignore_instruments = self.config.get_element_or_missing_data('ignore_instruments')
-        if ignore_instruments is missing_data:
-            return []
-
-        self.log.msg("Following instruments are marked as 'ignore_instruments': not included: %s" % str(ignore_instruments))
+        ignore_instruments = get_list_of_ignored_instruments_in_config(self.config)
+        if len(ignore_instruments)>0:
+            self.log.msg("Following instruments are marked as 'ignore_instruments': not included: %s" % str(ignore_instruments))
 
         return ignore_instruments
 
@@ -237,10 +235,8 @@ class System(object):
 
     @base_system_cache()
     def get_list_of_markets_with_trading_restrictions(self) -> list:
-        trading_restrictions = self.config.get_element_or_missing_data("trading_restrictions")
-        if trading_restrictions is missing_data:
-            trading_restrictions = []
-        else:
+        trading_restrictions = get_list_of_untradeable_instruments_in_config(self.config)
+        if len(trading_restrictions)>0:
             ## will only log once as cached
             self.log.msg("Following instruments have restricted trading: optimisation will not trade them %s " % str(
                 trading_restrictions))
@@ -248,10 +244,8 @@ class System(object):
 
     @base_system_cache()
     def get_list_of_bad_markets(self) -> list:
-        bad_markets = self.config.get_element_or_missing_data("bad_markets")
-        if bad_markets is missing_data:
-            bad_markets = []
-        else:
+        bad_markets = get_list_of_bad_instruments_in_config(self.config)
+        if len(bad_markets)>0:
             ## will only log once as cached
             self.log.msg("Following instruments are marked as 'bad_markets': optimisation will not trade them %s" % str(bad_markets))
 

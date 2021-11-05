@@ -1,6 +1,24 @@
 from syscore.objects import missing_data, arg_not_supplied
 from sysdata.config.configdata import Config
 
+def get_list_of_bad_instruments_in_config(config: Config)-> list:
+    bad_markets = config.get_element_or_missing_data("bad_markets")
+    if bad_markets is missing_data:
+        bad_markets = []
+    return bad_markets
+
+def get_list_of_untradeable_instruments_in_config(config: Config) -> list:
+    trading_restrictions = config.get_element_or_missing_data("trading_restrictions")
+    if trading_restrictions is missing_data:
+        trading_restrictions = []
+    return trading_restrictions
+
+def get_list_of_ignored_instruments_in_config(config: Config) -> list:
+    ignore_instruments = config.get_element_or_missing_data('ignore_instruments')
+    if ignore_instruments is missing_data:
+        return []
+    return ignore_instruments
+
 def generate_matching_duplicate_dict(config: Config = arg_not_supplied):
     """
     Returns a dict, each element is a named set of duplicated instruments
@@ -61,7 +79,7 @@ def get_entry_for_key_in_dict(key: str, check_dict: dict, is_include_dict: bool 
 
 
 
-def generate_duplicate_list_of_instruments_to_remove_from_config(config: Config) -> list:
+def get_duplicate_list_of_instruments_to_remove_from_config(config: Config) -> list:
     duplicate_instruments_config = config.get_element_or_missing_data('duplicate_instruments')
 
     if duplicate_instruments_config is missing_data:

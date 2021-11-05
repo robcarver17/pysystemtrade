@@ -1,5 +1,8 @@
-
+from dataclasses import dataclass
 from sysobjects.production.position_limits import positionLimitAndPosition
+
+from sysdata.config.production_config import get_production_config
+from sysdata.config.instruments import get_list_of_bad_instruments_in_config, get_duplicate_list_of_instruments_to_remove_from_config, get_list_of_untradeable_instruments_in_config, get_list_of_ignored_instruments_in_config
 from sysdata.mongodb.mongo_lock_data import mongoLockData
 from sysdata.mongodb.mongo_position_limits import mongoPositionLimitData
 from sysdata.mongodb.mongo_trade_limits import mongoTradeLimitData
@@ -26,6 +29,21 @@ from sysobjects.production.override import Override
 from sysproduction.data.positions import diagPositions
 from sysproduction.data.generic_production_data import productionDataLayerGeneric
 
+from sysobjects.production.override import NO_TRADE_OVERRIDE, REDUCE_ONLY_OVERRIDE, DEFAULT_OVERRIDE
+
+OVERRIDE_FOR_BAD = REDUCE_ONLY_OVERRIDE
+OVERRIDE_FOR_UNTRADEABLE = NO_TRADE_OVERRIDE
+OVERRIDE_FOR_IGNORED = REDUCE_ONLY_OVERRIDE
+OVERRIDE_FOR_DUPLICATE = REDUCE_ONLY_OVERRIDE
+
+@dataclass()
+class OverrideWithReason:
+    override: Override
+    reason: str
+
+    def __repr__(self):
+        return "%s because %s" % (str(self.override),
+                                  self.reason)
 
 class dataBrokerClientIDs(productionDataLayerGeneric):
     def _add_required_classes_to_data(self, data) -> dataBlob:
@@ -152,11 +170,28 @@ class diagOverrides(productionDataLayerGeneric):
         return self.data.db_override
 
     def get_dict_of_all_overrides(self) -> dict:
-        all_overrides = self.db_override_data.get_dict_of_all_overrides()
+        all_overrides_in_db = self.db_override_data.get_dict_of_all_overrides()
+        all_overrides_in_db_with_reason = dict([
+            (key, OverrideWithReason(override, "in database"))
+            for key, override in all_overrides_in_db.items()
+        ])
+        all_overrides_in_config = self.get_dict_of_all_overrides_in_config()
+        all_overrides = {**all_overrides_in_db_with_reason, **all_overrides_in_config}
 
         return all_overrides
 
     def get_cumulative_override_for_instrument_strategy(
+        self, instrument_strategy: instrumentStrategy
+    ) -> Override:
+
+        cumulative_override_from_db = self.get_cumulative_override_for_instrument_strategy_from_db(instrument_strategy)
+        cumulative_override_from_config = self.get_cumulative_override_from_configuration(instrument_strategy)
+        joint_override = cumulative_override_from_db * cumulative_override_from_config
+
+        return joint_override
+
+
+    def get_cumulative_override_for_instrument_strategy_from_db(
         self, instrument_strategy: instrumentStrategy
     ) -> Override:
         cumulative_override = \
@@ -164,6 +199,111 @@ class diagOverrides(productionDataLayerGeneric):
                 instrument_strategy)
 
         return cumulative_override
+
+    def get_cumulative_override_from_configuration(self, instrument_strategy: instrumentStrategy) -> Override:
+        ## will look to private_config and defaults.yaml; *NOT* backtest .yaml files
+        instrument_code = instrument_strategy.instrument_code
+        bad_instrument_override= self.bad_instrument_override(instrument_code)
+        duplicate_instrument_override = self.duplicate_instrument_override(instrument_code)
+        ignored_instrument_override = self.ignored_instrument_override(instrument_code)
+        untradeable_instrument_override = self.untradeable_instrument_override(instrument_code)
+
+        joint_override = bad_instrument_override * duplicate_instrument_override * \
+            ignored_instrument_override * untradeable_instrument_override
+
+        return joint_override
+
+    def bad_instrument_override(self, instrument_code:str) -> Override:
+        if instrument_code in self.get_list_of_bad_instruments_in_config():
+            return OVERRIDE_FOR_BAD
+        else:
+            return DEFAULT_OVERRIDE
+
+    def duplicate_instrument_override(self, instrument_code:str) -> Override:
+        if instrument_code in self.get_duplicate_list_of_instruments_to_remove_from_config():
+            return OVERRIDE_FOR_DUPLICATE
+        else:
+            return DEFAULT_OVERRIDE
+
+    def ignored_instrument_override(self, instrument_code:str) -> Override:
+        if instrument_code in self.get_list_of_ignored_instruments_in_config():
+            return OVERRIDE_FOR_IGNORED
+        else:
+            return DEFAULT_OVERRIDE
+
+    def untradeable_instrument_override(self, instrument_code:str) -> Override:
+        if instrument_code in self.get_list_of_untradeable_instruments_in_config():
+            return OVERRIDE_FOR_UNTRADEABLE
+        else:
+            return DEFAULT_OVERRIDE
+
+    def get_dict_of_all_overrides_in_config(self) -> dict:
+        dict_of_bad_instrument_overrides = self.get_dict_of_bad_instrument_overrides()
+        dict_of_duplicate_instrument_overrides = self.get_dict_of_duplicate_instrument_overrides()
+        dict_of_ignored_instrument_overrides = self.get_dict_of_ignored_instrument_overrides()
+        dict_of_untradeable_instrument_overrides = self.get_dict_of_untradeable_instrument_overrides()
+
+        return {**dict_of_ignored_instrument_overrides,
+                **dict_of_untradeable_instrument_overrides,
+                **dict_of_bad_instrument_overrides,
+                **dict_of_duplicate_instrument_overrides}
+
+    def get_dict_of_duplicate_instrument_overrides(self):
+        list_of_instruments = self.get_duplicate_list_of_instruments_to_remove_from_config()
+        return dict(
+            [
+                (instrument_code,
+                 OverrideWithReason(OVERRIDE_FOR_DUPLICATE, "duplicate_instrument in config"))
+                for instrument_code in list_of_instruments
+                ]
+        )
+
+    def get_dict_of_bad_instrument_overrides(self):
+        list_of_instruments = self.get_list_of_bad_instruments_in_config()
+        return dict(
+            [
+                (instrument_code,
+                 OverrideWithReason(OVERRIDE_FOR_BAD, "bad_instrument in config"))
+                for instrument_code in list_of_instruments
+                ]
+        )
+
+    def get_dict_of_untradeable_instrument_overrides(self):
+        list_of_instruments = self.get_list_of_untradeable_instruments_in_config()
+        return dict(
+            [
+                (instrument_code,
+                 OverrideWithReason(OVERRIDE_FOR_UNTRADEABLE, "trading_restrictions in config"))
+                for instrument_code in list_of_instruments
+                ]
+        )
+
+    def get_dict_of_ignored_instrument_overrides(self):
+        list_of_instruments = self.get_list_of_ignored_instruments_in_config()
+        return dict(
+            [
+                (instrument_code,
+                 OverrideWithReason(OVERRIDE_FOR_IGNORED, "ignore_instruments in config"))
+                for instrument_code in list_of_instruments
+                ]
+        )
+
+    def get_list_of_bad_instruments_in_config(self) -> list:
+        return get_list_of_bad_instruments_in_config(self.config)
+
+    def get_duplicate_list_of_instruments_to_remove_from_config(self) -> list:
+        return get_duplicate_list_of_instruments_to_remove_from_config(self.config)
+
+    def get_list_of_untradeable_instruments_in_config(self) -> list:
+        return get_list_of_untradeable_instruments_in_config(self.config)
+
+    def get_list_of_ignored_instruments_in_config(self) -> list:
+        return get_list_of_ignored_instruments_in_config(self.config)
+
+    @property
+    def config(self):
+        return self.data.config
+
 
 class updateOverrides(productionDataLayerGeneric):
     def _add_required_classes_to_data(self, data) -> dataBlob:
@@ -190,7 +330,8 @@ class updateOverrides(productionDataLayerGeneric):
             instrument_code, new_override
         )
 
-
+    def delete_all_overrides_in_db(self, are_you_sure=False):
+        self.db_override_data.delete_all_overrides_in_db(are_you_sure)
 
 class dataPositionLimits(productionDataLayerGeneric):
     def _add_required_classes_to_data(self, data) -> dataBlob:

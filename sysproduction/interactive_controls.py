@@ -81,10 +81,11 @@ nested_menu_of_options = {
         13: "Auto populate position limits"
     },
     2: {
-        20: "View overrides",
-        21: "Update / add / remove override for strategy",
-        22: "Update / add / remove override for instrument",
-        23: "Update / add / remove override for strategy & instrument",
+        20: "View overrides (configured, and database)",
+        21: "Update / add / remove override for strategy in database",
+        22: "Update / add / remove override for instrument in database",
+        23: "Update / add / remove override for strategy & instrument in database",
+        24: "Delete all overrides in database"
     },
     3: {
         30: "Clear all unused client IDS"
@@ -463,6 +464,13 @@ def get_overide_object_from_user():
         except Exception as e:
             print(e)
 
+def delete_all_overrides_in_db(data):
+    update_overrides = updateOverrides(data)
+
+    print("Delete all overrides in database (not config!)")
+    ans = input("Are you sure? (y/other)")
+    if ans =="y":
+        update_overrides.delete_all_overrides_in_db(are_you_sure=True)
 
 def clear_used_client_ids(data):
     print("Clear all locks on broker client IDs. DO NOT DO IF ANY BROKER SESSIONS ARE ACTIVE!")
@@ -832,6 +840,7 @@ dict_of_functions = {
     21: update_strategy_override,
     22: update_instrument_override,
     23: update_strategy_instrument_override,
+    24: delete_all_overrides_in_db,
     30: clear_used_client_ids,
     40: view_process_controls,
     41: change_process_control_status,
