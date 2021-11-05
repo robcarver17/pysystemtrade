@@ -164,6 +164,15 @@ class System(object):
 
         :returns: list of instrument_code str
         """
+        instrument_list = self._get_raw_instrument_list_from_config()
+        instrument_list = self._remove_instruments_from_instrument_list(
+                                                                   instrument_list)
+
+        instrument_list = sorted(set(list(instrument_list)))
+
+        return instrument_list
+
+    def _get_raw_instrument_list_from_config(self) -> list:
         config = self.config
         try:
             # if instrument weights specified in config ...
@@ -179,28 +188,78 @@ class System(object):
                 except:
                     raise Exception("Can't find instrument_list anywhere!")
 
-        instrument_list = sorted(set(list(instrument_list)))
-        instrument_list = _remove_instruments_from_instrument_list(instrument_list,
-                                                                   self.config)
+        return instrument_list
+
+    def _remove_instruments_from_instrument_list(self, instrument_list):
+        list_of_instruments_to_remove = self.get_list_of_instruments_to_remove()
+
+        instrument_list = [instrument for instrument in instrument_list
+                           if instrument not in list_of_instruments_to_remove]
 
         return instrument_list
 
-def _remove_instruments_from_instrument_list(instrument_list, config):
-    instrument_list = _remove_duplicate_instruments_from_instrument_list(instrument_list, config)
-    instrument_list = _remove_ignored_instruments_from_instrument_list(instrument_list, config)
+    @base_system_cache()
+    def get_list_of_instruments_to_remove(self) -> list:
+        list_of_duplicates = self.get_list_of_duplicate_instruments_to_remove()
+        list_of_ignored = self.get_list_of_ignored_instruments_to_remove()
 
-    return instrument_list
+        joint_list = list(set(list_of_ignored+list_of_duplicates))
 
-def _remove_duplicate_instruments_from_instrument_list(instrument_list, config):
-    list_of_duplicate_instruments = _get_list_of_duplicate_instruments_to_remove(config)
+        return joint_list
 
-    instrument_list = [instrument for instrument in instrument_list
-                       if instrument not in list_of_duplicate_instruments]
+    def get_list_of_duplicate_instruments_to_remove(self):
+        duplicate_list = _generate_duplicate_list_of_instruments(self.config)
+        if len(duplicate_list)>0:
+            self.log.msg("Following instruments are 'duplicate_markets' and will be excluded from sim %s " % str(
+                duplicate_list))
 
-    return instrument_list
+        return duplicate_list
 
-def _get_list_of_duplicate_instruments_to_remove(config):
+    @base_system_cache()
+    def get_list_of_ignored_instruments_to_remove(self) -> list:
+        ignore_instruments = self.config.get_element_or_missing_data('ignore_instruments')
+        if ignore_instruments is missing_data:
+            return []
+
+        self.log.msg("Following instruments are marked as 'ignore_instruments': not included: %s" % str(ignore_instruments))
+
+        return ignore_instruments
+
+    @base_system_cache()
+    def get_list_of_markets_not_trading_but_with_data(self) -> list:
+        trading_restrictions = self.get_list_of_markets_with_trading_restrictions()
+        bad_markets = self.get_list_of_bad_markets()
+
+        not_trading = trading_restrictions + bad_markets
+        not_trading_unique = list(set(not_trading))
+
+        return not_trading_unique
+
+    @base_system_cache()
+    def get_list_of_markets_with_trading_restrictions(self) -> list:
+        trading_restrictions = self.config.get_element_or_missing_data("trading_restrictions")
+        if trading_restrictions is missing_data:
+            trading_restrictions = []
+        else:
+            ## will only log once as cached
+            self.log.msg("Following instruments have restricted trading: optimisation will not trade them %s " % str(
+                trading_restrictions))
+        return trading_restrictions
+
+    @base_system_cache()
+    def get_list_of_bad_markets(self) -> list:
+        bad_markets = self.config.get_element_or_missing_data("bad_markets")
+        if bad_markets is missing_data:
+            bad_markets = []
+        else:
+            ## will only log once as cached
+            self.log.msg("Following instruments are marked as 'bad_markets': optimisation will not trade them %s" % str(bad_markets))
+
+        return bad_markets
+
+def _generate_duplicate_list_of_instruments(config) -> list:
     duplicate_instruments_config = config.get_element_or_missing_data('duplicate_instruments')
+
     if duplicate_instruments_config is missing_data:
         return []
     exclude_dict = duplicate_instruments_config.get('exclude', missing_data)
@@ -209,25 +268,14 @@ def _get_list_of_duplicate_instruments_to_remove(config):
     list_of_duplicates = list(exclude_dict.values())
 
     ## do this because can have multiple duplicates
-    list_flattened = []
+    duplicate_list_flattened = []
     for item in list_of_duplicates:
         if type(item) is list:
-            list_flattened = list_flattened+item
+            duplicate_list_flattened = duplicate_list_flattened + item
         else:
-            list_flattened.append(item)
+            duplicate_list_flattened.append(item)
 
-    return list_flattened
-
-def _remove_ignored_instruments_from_instrument_list(instrument_list, config):
-
-    ignore_instruments = config.get_element_or_missing_data('ignore_instruments')
-    if ignore_instruments is missing_data:
-        return instrument_list
-
-    instrument_list = [instrument for instrument in instrument_list
-                       if instrument not in ignore_instruments]
-
-    return instrument_list
+    return duplicate_list_flattened
 
 if __name__ == "__main__":
     import doctest

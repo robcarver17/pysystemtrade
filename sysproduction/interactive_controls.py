@@ -671,7 +671,16 @@ def backup_instrument_data_to_csv(data: dataBlob):
     backup_instrument_data(backup_data)
 
 def suggest_bad_markets(data: dataBlob):
-    api = reportingApi(data)
+    max_cost, min_contracts, min_risk = get_bad_market_filter_parameters()
+    SR_costs, liquidity_data = get_data_for_bad_markets(data)
+    bad_markets = get_bad_market_list(SR_costs=SR_costs,
+                                      liquidity_data=liquidity_data,
+                                      min_risk=min_risk,
+                                      min_contracts=min_contracts,
+                                      max_cost=max_cost)
+    display_bad_market_info(bad_markets)
+
+def get_bad_market_filter_parameters():
     max_cost = get_and_convert("Maximum SR cost?", type_expected=float, allow_default=True,
                                default_value=0.01)
     min_contracts =get_and_convert("Minimum contracts traded per day?", type_expected=int,
@@ -679,17 +688,34 @@ def suggest_bad_markets(data: dataBlob):
     min_risk = get_and_convert("Min risk $m traded per day?", type_expected=float,
                                allow_default=True, default_value=1.5)
 
+    return max_cost, min_contracts, min_risk
+
+def get_data_for_bad_markets(data):
+    api = reportingApi(data)
     SR_costs = api.SR_costs()
     SR_costs = SR_costs.dropna()
+    liquidity_data = api.liquidity_data
+
+    return SR_costs, liquidity_data
+
+def get_bad_market_list(SR_costs: pd.DataFrame,
+                        liquidity_data: pd.DataFrame,
+                        max_cost: float = .01,
+                        min_risk: float = 1.5,
+                        min_contracts: int = 100) -> list:
     expensive = list(SR_costs[SR_costs.SR_cost>max_cost].index)
 
-    liquidity_data = api.liquidity_data
     not_enough_contracts = list(liquidity_data[liquidity_data.contracts<min_contracts].index)
     not_enough_risk = list(liquidity_data[liquidity_data.risk<min_risk].index)
 
     bad_markets = list(set(expensive+not_enough_risk+not_enough_contracts))
     bad_markets.sort()
 
+    return bad_markets
+
+def display_bad_market_info(bad_markets: list):
+    print("Add the following to yaml .config under bad_markets heading:\n")
+    print("bad_markets:")
     __ = [print("  - %s" % instrument) for instrument in bad_markets]
 
     production_config = get_production_config()
@@ -703,6 +729,8 @@ def suggest_bad_markets(data: dataBlob):
     new_bad_markets = list(set(bad_markets).difference(set(existing_bad_markets)))
     removed_bad_markets = list(set(existing_bad_markets).difference(set(bad_markets)))
 
+    print("New bad markets %s" % new_bad_markets)
+    print("Removed bad markets %s" % removed_bad_markets)
 
 
 def suggest_duplicate_markets(data: dataBlob):

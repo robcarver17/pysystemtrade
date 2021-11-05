@@ -346,12 +346,35 @@ trading_restrictions:
 # For static strategies, you will probably want to set these to zero instrument weights
 # In production, things here will be added to the 'reduce_only' list of instruments
 # Run interactive controls to get a list of suggested markets here
+# To override this list, change in sim .yaml config (sim) and private_config.yaml (production)
 bad_markets:
   - ALUMINIUM
-  - NOK
-  - EU-CONSTRUCTION
+  - BBCOMM
+  - CHEESE
+  - DJSTX-SMALL
+  - EU-BANKS
   - EU-CHEM
-  - KRWUSD
-  - MILKDRY
-  - EU-RETAIL
+  - EU-CONSTRUCTION
+  - EU-DIV30
+  - EU-FOOD
+  - EU-HEALTH
+  - EU-INSURE
+  - EU-TRAVEL
+  - EURIBOR
+  - FTSEINDO
   - INR
+  - KOSPI_mini
+  - KRWUSD
+  - LUMBER
+  - MILK
+  - MILKDRY
+  - MSCIASIA
+  - NOK
+  - OATIES
+  - RICE
+  - SGD
+  - SHATZ
+  - US-DISCRETE
+  - US-REALESTATE
+  - USIRS5
+  - V2X

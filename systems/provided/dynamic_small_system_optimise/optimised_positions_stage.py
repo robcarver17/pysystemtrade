@@ -100,15 +100,9 @@ class optimisedPositions(SystemStage):
 
         return constraintsForDynamicOpt(reduce_only_keys=reduce_only_keys)
 
+    @diagnostic()
     def get_reduce_only_instruments(self) -> list:
-        trading_restrictions = self.config.get_element_or_missing_data("trading_restrictions")
-        if trading_restrictions is missing_data:
-            trading_restrictions = []
-        bad_markets = self.config.get_element_or_missing_data("bad_markets")
-        if bad_markets is missing_data:
-            bad_markets = []
-
-        reduce_only_keys = trading_restrictions + bad_markets
+        reduce_only_keys = self.parent.get_list_of_markets_not_trading_but_with_data()
 
         return reduce_only_keys
 
