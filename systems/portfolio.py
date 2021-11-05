@@ -612,7 +612,7 @@ class Portfolios(SystemStage):
     def _remove_zero_weighted_instruments_from_df(self, some_data_frame: pd.DataFrame) -> pd.DataFrame:
         copy_df = copy(some_data_frame)
         instruments_with_zero_weights = self.allocate_zero_instrument_weights_to_these_instruments()
-        copy_df.drop(instruments_with_zero_weights)
+        copy_df.drop(labels=instruments_with_zero_weights)
 
         return copy_df
 

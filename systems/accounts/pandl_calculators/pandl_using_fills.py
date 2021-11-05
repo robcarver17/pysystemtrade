@@ -115,7 +115,7 @@ def unique_trades_df(trade_df: pd.DataFrame) -> pd.DataFrame:
     # qty and cash_flow will be correct, price won't be
     new_price = new_df.cash_flow / new_df.qty
     new_df["price"] = new_price
-    new_df = new_df.drop("cash_flow", axis=1)
+    new_df = new_df.drop(labels="cash_flow", axis=1)
 
     return new_df
 
