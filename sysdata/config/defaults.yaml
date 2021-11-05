@@ -267,10 +267,91 @@ small_system:
   shadow_cost: 250
   cost_multiplier: 1.0
   tracking_error_buffer: 0.025
+#
+# duplicated/excluded instruments are ignored in backtests
+# we still collect price data for them in production, do rolls etc
+# this is to avoid double counting of basically the same instrument
+# anything in the 'exclude' list is ignored in backtests
+# we use the 'include section to match up for reporting when deciding which to trade
+# Be careful when swapping between instruments, a bit dangerous if a position is held...
+# You can override this by modifying the backtest config .yaml file used in eithier sim or production
+duplicate_instruments:
+  include:
+    copper: 'COPPER'
+    corn: 'CORN'
+    crude: 'CRUDE_W_mini'
+    gas_us: 'GAS_US_mini'
+    gasoiline: 'GASOILINE'
+    gold: 'GOLD_micro'
+    heatoil: 'HEATOIL'
+    jgb: 'JGB'
+    jpy: 'JPY'
+    kospi: 'KOSPI'
+    krwusd: 'KRWUSD'
+    nasdaq: 'NASDAQ_micro'
+    silver: 'SILVER'
+    soybean: 'SOYBEAN'
+    sp500: 'SP500_micro'
+    twd: 'TWD'
+    vix: 'VIX_mini'
+    wheat: 'WHEAT'
+  exclude:
+    copper: 'COPPER-mini'
+    corn: 'CORN_mini'
+    crude: 'CRUDE_W'
+    gas_us: 'GAS_US'
+    gasoiline: 'GASOILINE_mini'
+    gold: 'GOLD'
+    heatoil: 'HEATOIL_mini'
+    jgb: ['JGB_mini', 'JGB-SGX-mini']
+    jpy: ['JPY_micro','JPY-SGX-TITAN', 'JPY-SGX']
+    kospi: 'KOSPI_mini'
+    krw: 'KRWUSD_mini'
+    nasdaq: 'NASDAQ'
+    silver: 'SILVER_mini'
+    soybean: 'SOYBEAN_mini'
+    sp500: 'SP500'
+    twd: 'TWD-mini'
+    vix: 'VIX_mini'
+    wheat: 'WHEAT_mini'
+# ignore_instruments are ignored in backtests
+# we still collect price data for them in production, do rolls etc
+# You can override this by modifying the backtest config .yaml file used in eithier sim or production
+# If you want to ignore because a duplicate market, use duplicate_instruments
+# If you want to include in sim data, but not actually trade, use trading_restrictions
 ignore_instruments:
-  - CRUDE_W
-  - GAS_US
-  - GOLD
-  - KOSPI_mini
-  - NASDAQ
-  - SP500
+  - an_example
+  - another_example
+#
+# Here we put stuff we can't trade, but for which we still want to bring in prices in sim
+# For the dynamically optimised strategy this list will be used in sim as 'don't trade'
+# For static strategies, you will probably want to set these to zero instrument weights
+# In production, things here will be added to the 'reduce_only' list of instruments
+# NOTE: This will be regionally biased, you will probably want to override this in private_config.yaml
+#
+trading_restrictions:
+  - US-DISCRETE
+  - US-ENERGY
+  - US-FINANCE
+  - US-HEALTH
+  - US-INDUSTRY
+  - US-MATERIAL
+  - US-PROPERTY
+  - US-REALESTATE
+  - US-STAPLES
+  - US-TECH
+  - US-UTILS
+# These are markets that are too expensive or illiquid to actually trade
+# For the dynamically optimised strategy this list will be used in sim as 'don't trade'
+# For static strategies, you will probably want to set these to zero instrument weights
+# In production, things here will be added to the 'reduce_only' list of instruments
+# Run interactive controls to get a list of suggested markets here
+bad_markets:
+  - ALUMINIUM
+  - NOK
+  - EU-CONSTRUCTION
+  - EU-CHEM
+  - KRWUSD
+  - MILKDRY
+  - EU-RETAIL
+  - INR

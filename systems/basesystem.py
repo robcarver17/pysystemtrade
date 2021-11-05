@@ -1,4 +1,5 @@
 from syscore.objects import arg_not_supplied, missing_data
+from syscore.genutils import flatten_list
 from sysdata.config.configdata import Config
 from sysdata.sim.sim_data import simData
 from syslogdiag.log_to_screen import logtoscreen, logger
@@ -185,6 +186,39 @@ class System(object):
         return instrument_list
 
 def _remove_instruments_from_instrument_list(instrument_list, config):
+    instrument_list = _remove_duplicate_instruments_from_instrument_list(instrument_list, config)
+    instrument_list = _remove_ignored_instruments_from_instrument_list(instrument_list, config)
+
+    return instrument_list
+
+def _remove_duplicate_instruments_from_instrument_list(instrument_list, config):
+    list_of_duplicate_instruments = _get_list_of_duplicate_instruments_to_remove(config)
+
+    instrument_list = [instrument for instrument in instrument_list
+                       if instrument not in list_of_duplicate_instruments]
+
+    return instrument_list
+
+def _get_list_of_duplicate_instruments_to_remove(config):
+    duplicate_instruments_config = config.get_element_or_missing_data('duplicate_instruments')
+    if duplicate_instruments_config is missing_data:
+        return []
+    exclude_dict = duplicate_instruments_config.get('exclude', missing_data)
+    if exclude_dict is missing_data:
+        return []
+    list_of_duplicates = list(exclude_dict.values())
+
+    ## do this because can have multiple duplicates
+    list_flattened = []
+    for item in list_of_duplicates:
+        if type(item) is list:
+            list_flattened = list_flattened+item
+        else:
+            list_flattened.append(item)
+
+    return list_flattened
+
+def _remove_ignored_instruments_from_instrument_list(instrument_list, config):
 
     ignore_instruments = config.get_element_or_missing_data('ignore_instruments')
     if ignore_instruments is missing_data:

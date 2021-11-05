@@ -426,6 +426,10 @@ def from_marker_to_datetime(datetime_marker):
 def two_weeks_ago():
     return n_days_ago(14)
 
+def four_weeks_ago():
+    return n_days_ago(28)
+
+
 def n_days_ago(n_days: int, date_ref = arg_not_supplied):
     if date_ref is arg_not_supplied:
         date_ref = datetime.datetime.now()

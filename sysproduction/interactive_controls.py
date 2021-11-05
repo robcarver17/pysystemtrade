@@ -1,12 +1,14 @@
 import numpy as np
 import pandas as pd
+
 from syscore.interactive import get_and_convert, run_interactive_menu, print_menu_and_get_response
 from syscore.algos import magnitude
 from syscore.pdutils import set_pd_print_options
 from syscore.dateutils import CALENDAR_DAYS_IN_YEAR
+from syscore.objects import missing_data
 
 from sysdata.data_blob import dataBlob
-
+from sysdata.config.production_config import get_production_config
 from sysobjects.production.override import override_dict, Override
 from sysobjects.production.tradeable_object import instrumentStrategy
 
@@ -95,7 +97,9 @@ nested_menu_of_options = {
         45: "View process configuration (set in YAML, cannot change here)",
     },
     5: {
-        50: "Auto update spread cost configuration based on sampling and trades"
+        50: "Auto update spread cost configuration based on sampling and trades",
+        51: "Suggest 'bad' markets (illiquid or costly)",
+        52: "Suggest which duplicate market to use"
     }
 }
 
@@ -662,8 +666,47 @@ def make_changes_to_slippage_in_db(data: dataBlob, changes_to_make: dict):
 def backup_instrument_data_to_csv(data: dataBlob):
     backup_data = get_data_and_create_csv_directories("")
     backup_data.mongo_futures_instrument = data.db_futures_instrument
-    print("Backing up database to .csv %; you will need to copy to /pysystemtrade/data/csvconfig/ for it to work in sim")
+    print("Backing up database to .csv %s; you will need to copy to /pysystemtrade/data/csvconfig/ for it to work in sim" %
+          backup_data.csv_futures_instrument.config_file)
     backup_instrument_data(backup_data)
+
+def suggest_bad_markets(data: dataBlob):
+    api = reportingApi(data)
+    max_cost = get_and_convert("Maximum SR cost?", type_expected=float, allow_default=True,
+                               default_value=0.01)
+    min_contracts =get_and_convert("Minimum contracts traded per day?", type_expected=int,
+                                   allow_default=True, default_value=100)
+    min_risk = get_and_convert("Min risk $m traded per day?", type_expected=float,
+                               allow_default=True, default_value=1.5)
+
+    SR_costs = api.SR_costs()
+    SR_costs = SR_costs.dropna()
+    expensive = list(SR_costs[SR_costs.SR_cost>max_cost].index)
+
+    liquidity_data = api.liquidity_data
+    not_enough_contracts = list(liquidity_data[liquidity_data.contracts<min_contracts].index)
+    not_enough_risk = list(liquidity_data[liquidity_data.risk<min_risk].index)
+
+    bad_markets = list(set(expensive+not_enough_risk+not_enough_contracts))
+    bad_markets.sort()
+
+    __ = [print("  - %s" % instrument) for instrument in bad_markets]
+
+    production_config = get_production_config()
+
+    ## this should be a function
+    existing_bad_markets = production_config.get_element_or_missing_data("bad_markets")
+    if existing_bad_markets is missing_data:
+        existing_bad_markets = []
+    existing_bad_markets.sort()
+
+    new_bad_markets = list(set(bad_markets).difference(set(existing_bad_markets)))
+    removed_bad_markets = list(set(existing_bad_markets).difference(set(bad_markets)))
+
+
+
+def suggest_duplicate_markets(data: dataBlob):
+    pass
 
 def not_defined(data):
     print("\n\nFunction not yet defined\n\n")
@@ -692,6 +735,8 @@ dict_of_functions = {
     43: finish_process,
     44: finish_all_processes,
     45: view_process_config,
-    50: auto_update_spread_costs
+    50: auto_update_spread_costs,
+    51: suggest_bad_markets,
+    52: suggest_duplicate_markets
 }
 

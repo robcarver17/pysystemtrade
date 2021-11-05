@@ -398,9 +398,19 @@ class reportingApi(object):
 
     ##### COSTS ######
     def table_of_sr_costs(self):
-        table_of_sr_costs = get_table_of_SR_costs_as_formatted_table(self.data)
+        SR_costs = self.SR_costs()
+        SR_costs = SR_costs.round(5)
+        SR_costs = annonate_df_index_with_positions_held(data=self.data,
+                                                                  pd_df=SR_costs)
+        formatted_table = \
+            table("SR costs (using stored slippage): more than 0.01 means panic", SR_costs)
 
-        return table_of_sr_costs
+        return formatted_table
+
+    def SR_costs(self) -> pd.DataFrame:
+        SR_costs = get_table_of_SR_costs(self.data)
+
+        return SR_costs
 
     def table_of_slippage_comparison(self):
         combined_df_costs = self.combined_df_costs()
