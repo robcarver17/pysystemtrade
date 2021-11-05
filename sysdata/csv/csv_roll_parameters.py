@@ -40,7 +40,7 @@ class csvRollParametersData(rollParametersData):
 
         try:
             config_data.index = config_data.Instrument
-            config_data.drop("Instrument", 1, inplace=True)
+            config_data.drop(labels="Instrument", axis=1, inplace=True)
 
         except BaseException:
             raise Exception("Badly configured file %s" % (self._config_file))

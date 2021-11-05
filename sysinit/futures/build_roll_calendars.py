@@ -74,7 +74,7 @@ class _listOfRollCalendarRows(list):
             self
         )
         result.index = result[INDEX_NAME]
-        result = result.drop(INDEX_NAME, axis=1)
+        result = result.drop(labels=INDEX_NAME, axis=1)
 
         return result
 
@@ -529,7 +529,7 @@ def _add_carry_calendar(
 
         # do the same with the calendar or will misalign
         first_roll_date = roll_calendar.index[0]
-        roll_calendar = roll_calendar.drop(first_roll_date)
+        roll_calendar = roll_calendar.drop(labels=first_roll_date)
 
     roll_calendar["carry_contract"] = carry_contract_dates
 
