@@ -331,7 +331,7 @@ class updateOverrides(productionDataLayerGeneric):
         )
 
     def delete_all_overrides_in_db(self, are_you_sure=False):
-        self.db_override_data.delete_all_overrides_in_db(are_you_sure)
+        self.db_override_data.delete_all_overrides(are_you_sure)
 
 class dataPositionLimits(productionDataLayerGeneric):
     def _add_required_classes_to_data(self, data) -> dataBlob:

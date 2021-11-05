@@ -535,30 +535,15 @@ start_date: 2000-01-19
 
 ## How do I....Run a backtest on all available instruments
 
-If there are is no `instrument_weights` or `instruments element` in the config, then the backtest will be run over all available instruments in the data. 
+If there are is no `instrument_weights` or `instruments` elements in the config, then the backtest will be run over all available instruments in the data. 
 
 ## How do I.... Exclude some instruments from the backtest
 
-If you want to run the backtest without certain instruments (but without individually specifying which ones you want) then you can add a config element `ignore_instruments`. This will be a list containing instrument codes.
-
-As an example, to exclude the 'full sized' contracts in the data and only use the mini/micro versions:
-
-```
-ignore_instruments:
-  - CRUDE_W
-  - GAS_US
-  - GOLD
-  - KOSPI
-  - NASDAQ
-  - SP500
-```
+Refer to the [instruments document](/docs/instruments.md).
 
 ## How do I.... Exclude some instruments from having positive instrument weights
 
-You might want to calculate forecasts for certain instruments (so don't include them in `ignore_instruments`), but not actually trade them.
-
-If you include the config element `allocate_zero_instrument_weights_to_these_instruments` then those instruments will have a zero instrument weight calculated, and the system will produce a zero desired position for them.
-
+Refer to the [instruments document](/docs/instruments.md).
 
 
 
@@ -1092,6 +1077,7 @@ Configuration (`config`) objects determine how a system behaves. Configuration
 objects are very simple; they have attributes which contain either parameters,
 or nested groups of parameters.
 
+
 ### Creating a configuration object
 
 There are three main ways to create a configuration object:
@@ -1214,6 +1200,8 @@ system if the parameters are not in the object. These can be found in the
 [defaults.yaml file](/sysdata/config/defaults.yaml). The section on
 [configuration options](#Configuration_options) explains what the defaults are,
 and where they are used.
+
+WARNING: The way that configuration and defaults are applied in a [production environment](/docs/production.md) is a bit complex, so be careful out there.
 
 I recommend that you do not change these defaults. It's better to use the
 settings you want in each system configuration file.
@@ -1616,12 +1604,25 @@ system.config.instrument_div_multiplier=1.2
 
 #### System methods
 
-Currently system only has two methods of it's own (apart from those used for
+The base system only has a public few methods of it's own (apart from those used for
 caching, described below):
 
 `system.get_instrument_list()` This will get the list of instruments in the
 system, either from the config object if it contains instrument weights, or
 from the data object.
+
+
+These methods also get lists of instruments, see [instrument documentation](/docs/instruments.md) for more.
+```
+get_list_of_bad_markets
+get_list_of_markets_not_trading_but_with_data
+get_list_of_duplicate_instruments_to_remove
+get_list_of_ignored_instruments_to_remove
+get_list_of_instruments_to_remove
+get_list_of_markets_with_trading_restrictions'
+```
+
+
 
 `system.log` and `system.set_logging_level()` provides access to the system's
 log. See [logging](#logging) for more details.
