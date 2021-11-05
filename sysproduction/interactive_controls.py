@@ -5,7 +5,7 @@ from syscore.interactive import get_and_convert, run_interactive_menu, print_men
 from syscore.algos import magnitude
 from syscore.pdutils import set_pd_print_options
 from syscore.dateutils import CALENDAR_DAYS_IN_YEAR
-from syscore.objects import missing_data
+from syscore.objects import missing_data, named_object
 
 from sysdata.data_blob import dataBlob
 from sysdata.config.production_config import get_production_config
@@ -734,26 +734,71 @@ def display_bad_market_info(bad_markets: list):
     print("New bad markets %s" % new_bad_markets)
     print("Removed bad markets %s" % removed_bad_markets)
 
+no_change= object()
 
 def suggest_duplicate_markets(data: dataBlob):
+    filters = get_bad_market_filter_parameters()
     duplicate_dict = generate_matching_duplicate_dict()
     mkt_data = get_data_for_markets(data)
-    __ = [suggest_duplicate_markets_for_dict_entry(mkt_data, dict_entry)
+    duplicates = [suggest_duplicate_markets_for_dict_entry(mkt_data, dict_entry, filters)
           for dict_entry in duplicate_dict.values()]
+    duplicates_changed = [duplicate_entry for duplicate_entry in duplicates if duplicate_entry is not no_change]
+    for duplicate_results in duplicates_changed:
+        print("Replace %s with %s" % (duplicate_results['existing_entry'],
+              duplicate_results['new_entry']))
 
-def suggest_duplicate_markets_for_dict_entry(mkt_data, dict_entry: dict):
+    if len(duplicates_changed)>0:
+        print("\n\n\n\n")
+        print("\n\n Make the following changes to config.duplicate_instruments\n\n")
+
+
+def suggest_duplicate_markets_for_dict_entry(mkt_data, dict_entry: dict, filters: tuple):
     included = dict_entry['included']
     excluded = dict_entry['excluded']
 
     all_markets = set(list(included+excluded))
+    mkt_data_for_duplicates = get_df_of_data_for_duplicate(mkt_data, all_markets)
+    best_market = get_best_market(mkt_data_for_duplicates, filters)
+    print("\n\nCurrent list of included markets %s, excluded markets %s" % (included, excluded))
+    print(mkt_data_for_duplicates)
+    print("Best market %s, current included market(s) %s" % (best_market, str(included)))
+
+    if best_market is no_good_markets:
+        return no_change
+
+    if len(included)>1:
+        return dict(new_entry = best_market, existing_entry = str(included))
+
+    if best_market!=included[0]:
+        return dict(new_entry=best_market, existing_entry=included[0])
+
+    return no_change
+
+
+def get_df_of_data_for_duplicate(mkt_data, all_markets: list) -> pd.DataFrame:
     mkt_data_for_duplicates = [
         get_market_data_for_duplicate(mkt_data, instrument_code)
         for instrument_code in all_markets]
 
     mkt_data_for_duplicates = pd.DataFrame(mkt_data_for_duplicates, index = all_markets)
-    print("\n\nCurrent list of included markets %s, excluded markets %s" % (included, excluded))
-    print("Prefer: SR_cost<0.01, volume_contracts>100, volume_risk>15, contract_size: small!\n")
-    print(mkt_data_for_duplicates)
+
+    return mkt_data_for_duplicates
+
+no_good_markets = named_object("<No good markets>")
+
+def get_best_market(mkt_data_for_duplicates: pd.DataFrame, filters: tuple) -> str:
+    max_cost, min_contracts, min_risk = filters
+    only_valid = mkt_data_for_duplicates.dropna()
+    only_valid = only_valid[only_valid.SR_cost<=max_cost]
+    only_valid = only_valid[only_valid.volume_contracts>min_contracts]
+    only_valid = only_valid[only_valid.volume_risk>min_risk]
+
+    if len(only_valid)==0:
+        return no_good_markets
+
+    only_valid = only_valid.sort_values('contract_size')
+    best_market = only_valid.index[0]
+    return best_market
 
 def get_market_data_for_duplicate(mkt_data, instrument_code: str):
     SR_costs, liquidity_data, risk_data = mkt_data
