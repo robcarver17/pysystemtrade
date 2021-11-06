@@ -475,7 +475,7 @@ def make_df_from_list_of_named_tuple(tuple_class, list_of_tuples):
 
     pdf = pd.DataFrame(dict_of_elements)
     pdf.index = pdf[elements[0]]
-    pdf = pdf.drop(elements[0], axis=1)
+    pdf = pdf.drop(labels=elements[0], axis=1)
 
     return pdf
 
