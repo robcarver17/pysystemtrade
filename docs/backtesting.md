@@ -1622,8 +1622,6 @@ get_list_of_instruments_to_remove
 get_list_of_markets_with_trading_restrictions'
 ```
 
-
-
 `system.log` and `system.set_logging_level()` provides access to the system's
 log. See [logging](#logging) for more details.
 

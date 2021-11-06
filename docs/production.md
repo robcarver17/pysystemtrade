@@ -819,8 +819,8 @@ The most complex part of any trading system is the order management process. It 
 
 When a backtest is run (regularly by run_systems, or an ad-hoc basis by update_system_backtests) it will generate a set of *optimal position rules* for each strategy/instrument combination. There is no fixed structure for optimal positions, but some examples could be:
 
-- A simple optimal position, eg trade until the position is +5 contracts
-- A buffered optimal position, eg position should be between +10.87 and +13.32 contracts. This is what is used in the default provided backtest systems.
+- A simple optimal position, eg trade until the position is +5 contracts. This used by the dynamic optimised trading system.
+- A buffered optimal position, eg position should be between +10.87 and +13.32 contracts. This is what is used in the default provided backtest 'static' systems.
 - A conditional optimal position, eg open a new buy if the price falls below this level, or close our current position if it goes above this level (which is what you'd use for mean reversion, with the addition of some stop orders). I plan to implement this kind of position management in a future trading system.
 
 Optimal positions exist because it's generally expensive to run backtests even when parameters are fixed rather than being estimated, as I recommend for production systems (it's possible to generate backtests that only use a limited amount of data, which speeds things up somewhat, but this is unsatisfying).
@@ -927,6 +927,8 @@ There are no significant differences, except that of course required positions w
 ### Overrides
 
 Overrides are applied before instrument orders are placed on the stack. They will take into account the desired trade, and the current position held.
+
+See the [instruments documentation](/docs/instruments.md) to understand more about overrides.
 
 
 ## Stack handler
@@ -1857,6 +1859,7 @@ We can set the maximum allowable position that can be held in a given instrument
 
 Autopopulate uses current levels of risk to estimate the appropriate position limit. So it will make position limits smaller when risk is higher, and vice versa. It makes a lot of assumptions when setting limits: that all your strategies have the same risk limit (which you can set), and the same IDM (also can be modified), and that all instruments have the same instrument weight (which you can set). It does not use actual instrument weights, and it only sets limits that are global for a particular instrument.
 
+See the [instruments documentation](instruments.md) for more discussion on position limits.
 
 #### Trade control / override
 
@@ -1865,6 +1868,8 @@ Overrides allow us to reduce positions for a given strategy, for a given instrum
 - a multiplier, between 0 and 1, by which we multiply the desired . A multiplier of 1 is equal to 'normal', and 0 means 'close everything'
 - a flag, allowing us only to submit trades which reduce our positions
 - a flag, allowing no trading to occur in the given instrument.
+
+Overrides are also set as a result of configured information about different instruments; see the [instruments documentation](/docs/instruments.md) for more detail.
 
 Instrument trades will be modified to achieve any required override effect (this occurs when run_strategy_order_generator is run). We can:
 
@@ -1928,6 +1933,14 @@ This will check to see if a process PID is active, and if not it will mark a pro
 #####  View process configuration
 
 This allows you to see the configuration for each process, either from `control_config.yaml` or the `private_control_config.yaml` file. See [scheduling](#pysystemtrade-scheduling).
+
+#### Update configuration
+
+These options allow you to update, or suggest how to update, the instrument configuration as discussed [here](/docs/instruments.md).
+
+- Auto update spread cost configuration based on sampling and trades
+- Suggest 'bad' markets (illiquid or costly)
+- Suggest which duplicate market to use
 
 
 ### Interactive diagnostics
@@ -2552,8 +2565,7 @@ process_configuration_methods:
 
 ### System monitor and dashboard
 
-There is a crude monitoring tool, and a more sophisticated dashboard, which you can use to monitor what the system is up to. [Read the doc file here.](/docs/dashboard_and_monitor.md)
-
+There is a crude monitoring tool, and a more sophisticated fancy dashboard, which you can use to monitor what the system is up to. [Read the doc file here.](/docs/dashboard_and_monitor.md)
 
 
 ### Troubleshooting?
@@ -2589,9 +2601,12 @@ Configuration for the system is spread across a few different places:
 
 - System defaults
 - Private config (which overrides the system defaults)
-- Backtest config
+- Backtest config (which overrides the system defaults)
+- Control configs: private and default
 - Broker and data source specific config
 - Initialisation config
+
+This ignores any control config
 
 ### System defaults & Private config
 
@@ -2657,6 +2672,15 @@ The following are configuration options that are in defaults.yaml and can be ove
 
 See the [user guide for backtesting](/docs/backtesting.md).
 
+The interaction of system, private, and backtest configs can be a bit confusing. Inside a backtest (which can eithier be in production or sim mode), configuration options will be pulled in the following priority (1) specific backtest .yaml configuration, (2) private_config.yaml *in production only*, (3) defaults.yaml file. 
+
+Outside of the backtest code, in production configuration options are pulled in the following priority order: (1) private_config.yaml *in production only*, (2) defaults.yaml file. *The production code can't see inside your backtest configuration files*. 
+
+
+### Control config files
+
+As discussed above, these are used purely for control and monitoring purposes in [/syscontrol/control_config.yaml](/syscontrol/control_config.yaml), overriden by /private/private_control_config.yaml).
+
 ### Broker and data source specific configuration files
 
 The following are configurations mainly for mapping from our codes to broker codes:
@@ -2671,6 +2695,7 @@ The following are configurations used when initialising the database with it's i
 
 - [/sysinit/futures/config/rollconfig.csv](/data/futures/csvconfig/rollconfig.csv)
 - [/data/futures/csvconfig/instrumentconfig.csv](/data/futures/csvconfig/instrumentconfig.csv) (though this may be used by the simulation environment)
+
 
 
 

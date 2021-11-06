@@ -34,7 +34,7 @@ def pandl_info(
                                  calendar_days_back=calendar_days_back)
 
     formatted_output = []
-    formatted_output.append(reporting_api.terse_header("Profit and loss report"))
+    formatted_output.append(reporting_api.std_header("Profit and loss report"))
     list_of_func_names = \
         ['body_text_total_capital_pandl',
          'table_pandl_for_instruments_across_strategies',
