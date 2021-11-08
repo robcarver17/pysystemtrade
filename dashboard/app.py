@@ -11,7 +11,9 @@ from sysdata.config.control_config import get_control_config
 
 from sysdata.data_blob import dataBlob
 
-from sysobjects.production.roll_state import RollState
+from sysobjects.production.roll_state import (
+    RollState,
+)
 
 
 from sysproduction.data.prices import diagPrices
@@ -23,6 +25,8 @@ from sysproduction.reporting import (
     trades_report,
     status_reporting,
 )
+from sysproduction.reporting.api import reportingApi
+
 from sysproduction.data.broker import dataBroker
 from sysproduction.data.control_process import dataControlProcess
 from sysproduction.data.capital import dataCapital
@@ -50,6 +54,13 @@ def get_data():
 
 
 data = LocalProxy(get_data)
+
+
+def get_reporting_api():
+    return reportingApi(data)
+
+
+reporting_api = LocalProxy(get_reporting_api)
 
 
 @app.teardown_appcontext
@@ -214,16 +225,12 @@ def reconcile():
 
 @app.route("/rolls")
 def rolls():
-    diag_prices = diagPrices(data)
+    rolls = reporting_api.table_of_roll_data().Body
+    report = rolls.to_dict(orient="index")
 
-    all_instruments = diag_prices.get_list_of_instruments_in_multiple_prices()
-    report = {}
-    for instrument in all_instruments:
-        report[instrument] = roll_report.get_roll_data_for_instrument_DEPRECATED(
-            instrument, data
-        )
-        roll_data = setup_roll_data_with_state_reporting(data, instrument)
-        report[instrument]["allowable"] = roll_data.allowable_roll_states_as_list_of_str
+    for instrument in rolls.index:
+        allowable = setup_roll_data_with_state_reporting(data, instrument)
+        report[instrument]["allowable"] = allowable.allowable_roll_states_as_list_of_str
 
     return report
 
