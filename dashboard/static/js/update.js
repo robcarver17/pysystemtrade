@@ -290,7 +290,7 @@ function update_risk() {
     url: "/risk",
     success: function(data) {
       var cols = "<td></td>";
-      $.each(data["corr_data"], function(k, v) {
+      $.each(data["correlations"], function(k, v) {
         var row = `<td>${k}</td>`;
         cols += row;
         $.each(v, function(_, corr) {
@@ -301,11 +301,10 @@ function update_risk() {
       $("#risk_corr_table tbody").prepend(`<tr>${cols}</tr>`);
 
       $.each(data["strategy_risk"], function(k,v) {
-        $("#risk_table tbody").append(`<tr><td>${k}</td><td>${(v['risk']*100.0).toFixed(1)}</td></tr>`);
+        $("#risk_table tbody").append(`<tr><td>${k}</td><td>${(v['risk']).toFixed(1)}</td></tr>`);
       });
-      $("#risk_table tbody").append(`<tr><th>Total</th><th>${(data["portfolio_risk_total"]*100.0).toFixed(1)}</th></tr>`);
       
-      $.each(data["instrument_risk_data"], function(k,v) {
+      $.each(data["instrument_risk"], function(k,v) {
         $("#risk_details_table tbody").append(`<tr><td>${k}</td>
           <td>${v["daily_price_stdev"].toFixed(1)}</td>
           <td>${v["annual_price_stdev"].toFixed(1)}</td>

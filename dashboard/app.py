@@ -309,8 +309,11 @@ def rolls_post():
 
 @app.route("/risk")
 def risk():
-    risk_data = risk_report.calculate_risk_report_data(data)
-    risk_data["corr_data"] = risk_data["corr_data"].as_pd()
+    risk_data = {
+        "correlations": reporting_api.table_of_correlations().Body,
+        "strategy_risk": reporting_api.table_of_strategy_risk().Body,
+        "instrument_risk": reporting_api.table_of_instrument_risk().Body,
+    }
     risk_data = dict_of_df_to_dict(risk_data, "index")
     return risk_data
 
