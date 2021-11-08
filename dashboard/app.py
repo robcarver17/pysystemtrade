@@ -122,45 +122,55 @@ def liquidity():
 
 @app.route("/pandl")
 def pandl():
-    end = datetime.datetime.now()
-    start = syscore.dateutils.n_days_ago(1)
-    pandl_data = pandl_report.get_pandl_report_data(data, start, end)._asdict()
-    pandl_data["pandl_for_instruments_across_strategies"] = pandl_data[
+    pandl_data = {}
+    pandl_data[
         "pandl_for_instruments_across_strategies"
-    ].to_dict(orient="records")
-    pandl_data["strategies"] = pandl_data["strategies"].to_dict(orient="records")
-    pandl_data["sector_pandl"] = pandl_data["sector_pandl"].to_dict(orient="records")
+    ] = reporting_api.table_pandl_for_instruments_across_strategies().Body.to_dict(
+        orient="records"
+    )
+    pandl_data[
+        "strategies"
+    ] = reporting_api.table_strategy_pandl_and_residual().Body.to_dict(orient="records")
+    pandl_data["sector_pandl"] = reporting_api.table_sector_pandl().Body.to_dict(
+        orient="records"
+    )
+
     return pandl_data
 
 
 @app.route("/processes")
 def processes():
     asyncio.set_event_loop(asyncio.new_event_loop())
-    status_data = status_reporting.get_status_report_data(data)
+
     data_control = dataControlProcess(data)
     data_control.check_if_pid_running_and_if_not_finish_all_processes()
-    df = status_data["method"]
-    df.set_index(["process_name"], append=True, inplace=True)
-    df = df.swaplevel(0, 1)
-    status_data["method"] = df
-    status_data["position_limits"].set_index(["keys"], inplace=True)
-    status_data = dict_of_df_to_dict(status_data, orient="index")
+
+    retval = {
+        "config": reporting_api.table_of_control_config_list_for_all_processes().Body,
+        "control": reporting_api.table_of_control_status_list_for_all_processes().Body,
+        "process": reporting_api.table_of_process_status_list_for_all_processes().Body,
+        # "method_data": reporting_api.table_of_control_data_list_for_all_methods().Body,
+        "price": reporting_api.table_of_last_price_updates().Body,
+    }
+
+    retval = dict_of_df_to_dict(retval, orient="index")
+
     allprocess = {}
-    for k in status_data["process"].keys():
+    for k in retval["config"].keys():
         allprocess[k] = {
-            **status_data["process"].get(k, {}),
-            **status_data["process2"].get(k, {}),
-            **status_data["process3"].get(k, {}),
+            **retval["config"].get(k, {}),
+            **retval["control"].get(k, {}),
+            **retval["process"].get(k, {}),
         }
-    status_data["process"] = allprocess
-    status_data.pop("process2")
-    status_data.pop("process3")
-    status_data["config"] = {
+    retval["process"] = allprocess
+    retval.pop("control")
+    retval["config"] = {
         "monitor": describe_trading_server_login_data(),
         "mongo": f"{data.mongo_db.host}:{data.mongo_db.port} - {data.mongo_db.database_name}",
         "ib": f"{data.ib_conn._ib_connection_config['ipaddress']}:{data.ib_conn._ib_connection_config['port']}",
     }
-    return status_data
+
+    return retval
 
 
 @app.route("/reconcile")

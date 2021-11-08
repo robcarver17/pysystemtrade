@@ -107,10 +107,6 @@ function update_pandl() {
         $("#pandl_instrument_table tbody").append(`<tr>
           <td>${v["codes"]}</td><td>${v["pandl"].toFixed(2)}</td></tr>`);
       });
-      $("#pandl_instrument_table tbody").append(`<tr>
-        <th>Residual</td><td>${data["residual"].toFixed(2)}</td></th>`);
-      $("#pandl_instrument_table tbody").append(`<tr>
-        <th>Total</td><td>${data["total_capital_pandl"].toFixed(2)}</td></th>`);
 
       $.each(data["strategies"], function(k, v) {
         $("#pandl_strategy_table tbody").append(`<tr>
