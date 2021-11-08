@@ -31,7 +31,7 @@ class Config(object):
         :param config_object: Either:
                         a string (which points to a YAML filename)
                         or a dict (which may nest many things)
-                        or a list of strings or dicts (build config from
+                        or a list of strings or dicts or configs (build config from
                         multiple elements, latter elements will overwrite
                         earlier oness)
 
@@ -123,6 +123,8 @@ class Config(object):
 
             self._create_config_from_dict(dict_to_parse)
 
+        elif isinstance(config_item, Config):
+            self._create_config_from_dict(config_item.as_dict())
         else:
             error_msg = (
                 "Can only create a config with a nested dict or the "

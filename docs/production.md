@@ -1859,7 +1859,7 @@ We can set the maximum allowable position that can be held in a given instrument
 
 Autopopulate uses current levels of risk to estimate the appropriate position limit. So it will make position limits smaller when risk is higher, and vice versa. It makes a lot of assumptions when setting limits: that all your strategies have the same risk limit (which you can set), and the same IDM (also can be modified), and that all instruments have the same instrument weight (which you can set). It does not use actual instrument weights, and it only sets limits that are global for a particular instrument.
 
-See the [instruments documentation](instruments.md) for more discussion on position limits.
+The dynamic optimisation strategy will also use position limits in it's optimisation in production (not in backtests, since fixed position limits make no sense for a historical backtest).
 
 #### Trade control / override
 
@@ -1876,6 +1876,7 @@ Instrument trades will be modified to achieve any required override effect (this
 - View overrides
 - Update / add / remove overide (for strategy, instrument, or instrument & strategy)
 
+See the [instruments documentation](instruments.md) for more discussion on overrides.
 
 #### Broker client IDs
 

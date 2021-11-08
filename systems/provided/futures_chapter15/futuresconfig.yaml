@@ -5,6 +5,7 @@
 #
 # Trading rules
 #
+#
 trading_rules:
   ewmac2_8:
      function: systems.provided.futures_chapter15.rules.ewmac

@@ -109,12 +109,7 @@ def production_classic_futures_system(
     log_level = "on"
 
     sim_data = get_sim_data_object_for_production(data)
-    production_config = sim_data.config
-    backtest_file_config = Config(config_filename)
-
-    # 'later elements overwrite earlier ones'
-    config = Config([ production_config, backtest_file_config])
-    # defaults will be added after this
+    config = set_up_config(data, config_filename)
 
     # Overwrite capital and base currency
     if notional_trading_capital is not arg_not_supplied:
@@ -130,6 +125,18 @@ def production_classic_futures_system(
 
     return system
 
+def set_up_config(data: dataBlob,
+                  config_filename: str) -> Config:
+    production_config = data.config
+    backtest_file_config = Config(config_filename)
+
+    # 'later elements overwrite earlier ones'
+    config = Config([ production_config, backtest_file_config])
+
+    ## this is also done by the system, but more transparent to do it here
+    config.fill_with_defaults()
+
+    return config
 
 def updated_buffered_positions(data: dataBlob,
                                strategy_name: str,
