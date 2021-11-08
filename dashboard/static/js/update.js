@@ -26,7 +26,7 @@ function update_costs() {
           `<tr><td>${instrument}</td><td>${cost["SR_cost"]}</td></tr>`
         );
       });
-      $.each(data["combined_df_costs"], function(instrument, vals) {
+      $.each(data["slippage"], function(instrument, vals) {
         $("#costs_detail_table tbody").append(
           `<tr><td>${instrument}</td>
           <td>${vals["% Difference"]}</td>

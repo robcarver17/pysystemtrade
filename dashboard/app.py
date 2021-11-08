@@ -95,13 +95,13 @@ def capital():
 
 @app.route("/costs")
 def costs():
-    end = datetime.datetime.now()
-    start = syscore.dateutils.n_days_ago(250)
-    costs = costs_report.get_costs_report_data(data, start, end)
-    df_costs = costs["combined_df_costs"].to_dict(orient="index")
-    df_costs = {k: {kk: str(vv) for kk, vv in v.items()} for k, v in df_costs.items()}
-    costs["combined_df_costs"] = df_costs
-    costs["table_of_SR_costs"] = costs["table_of_SR_costs"].to_dict(orient="index")
+    costs = {
+        "table_of_SR_costs": reporting_api.table_of_sr_costs().Body,
+        "slippage": reporting_api.table_of_slippage_comparison().Body,
+    }
+    from pprint import pprint
+
+    pprint(costs)
     return costs
 
 
