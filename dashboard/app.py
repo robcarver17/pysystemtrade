@@ -99,9 +99,7 @@ def costs():
         "table_of_SR_costs": reporting_api.table_of_sr_costs().Body,
         "slippage": reporting_api.table_of_slippage_comparison().Body,
     }
-    from pprint import pprint
-
-    pprint(costs)
+    costs = dict_of_df_to_dict(costs, orient="index")
     return costs
 
 

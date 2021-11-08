@@ -428,7 +428,7 @@ class reportingApi(object):
     def table_of_slippage_comparison(self):
         combined_df_costs = self.combined_df_costs()
         combined_df_costs = combined_df_costs.round(6)
-        combined_df_costs = annonate_df_index_with_positions_held(data=data,
+        combined_df_costs = annonate_df_index_with_positions_held(data=self.data,
                                                                   pd_df=combined_df_costs)
 
         combined_df_costs_as_formatted_table = table("Check of slippage", combined_df_costs)
