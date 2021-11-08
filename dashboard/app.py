@@ -1,7 +1,6 @@
 from flask import Flask, g, render_template, request
 from werkzeug.local import LocalProxy
 
-import sysproduction.reporting.api
 from syscore.objects import missing_data
 from syscore.genutils import str2Bool
 
@@ -11,32 +10,23 @@ from sysdata.config.control_config import get_control_config
 
 from sysdata.data_blob import dataBlob
 
-from sysobjects.production.roll_state import RollState
-
-
-from sysproduction.data.prices import diagPrices
-from sysproduction.reporting import (
-    costs_report,
-    pandl_report,
-    risk_report,
-    roll_report,
-    trades_report,
-    status_reporting,
+from sysobjects.production.roll_state import (
+    RollState,
 )
+
+
+from sysproduction.reporting.api import reportingApi
+
 from sysproduction.data.broker import dataBroker
 from sysproduction.data.control_process import dataControlProcess
 from sysproduction.data.capital import dataCapital
-from sysproduction.data.positions import diagPositions, dataOptimalPositions
 from sysproduction.interactive_update_roll_status import (
     modify_roll_state,
     setup_roll_data_with_state_reporting,
 )
 from sysproduction.reporting.data.rolls import rollingAdjustedAndMultiplePrices
 
-import syscore.dateutils
-
 import asyncio
-import datetime
 import json
 import pandas as pd
 
@@ -50,6 +40,13 @@ def get_data():
 
 
 data = LocalProxy(get_data)
+
+
+def get_reporting_api():
+    return reportingApi(data, calendar_days_back=1)
+
+
+reporting_api = LocalProxy(get_reporting_api)
 
 
 @app.teardown_appcontext
@@ -84,13 +81,11 @@ def capital():
 
 @app.route("/costs")
 def costs():
-    end = datetime.datetime.now()
-    start = syscore.dateutils.n_days_ago(250)
-    costs = costs_report.get_costs_report_data(data, start, end)
-    df_costs = costs["combined_df_costs"].to_dict(orient="index")
-    df_costs = {k: {kk: str(vv) for kk, vv in v.items()} for k, v in df_costs.items()}
-    costs["combined_df_costs"] = df_costs
-    costs["table_of_SR_costs"] = costs["table_of_SR_costs"].to_dict(orient="index")
+    costs = {
+        "table_of_SR_costs": reporting_api.table_of_sr_costs().Body,
+        "slippage": reporting_api.table_of_slippage_comparison().Body,
+    }
+    costs = dict_of_df_to_dict(costs, orient="index")
     return costs
 
 
@@ -103,127 +98,92 @@ def forex():
 
 @app.route("/liquidity")
 def liquidity():
-    liquidity_data = sysproduction.reporting.api.get_liquidity_report_data(data)[
-        "all_liquidity_df"
-    ].to_dict(orient="index")
+    liquidity_data = reporting_api.liquidity_data().to_dict(orient="index")
     return liquidity_data
 
 
 @app.route("/pandl")
 def pandl():
-    end = datetime.datetime.now()
-    start = syscore.dateutils.n_days_ago(1)
-    pandl_data = pandl_report.get_pandl_report_data(data, start, end)._asdict()
-    pandl_data["pandl_for_instruments_across_strategies"] = pandl_data[
+    pandl_data = {}
+    pandl_data[
         "pandl_for_instruments_across_strategies"
-    ].to_dict(orient="records")
-    pandl_data["strategies"] = pandl_data["strategies"].to_dict(orient="records")
-    pandl_data["sector_pandl"] = pandl_data["sector_pandl"].to_dict(orient="records")
+    ] = reporting_api.table_pandl_for_instruments_across_strategies().Body.to_dict(
+        orient="records"
+    )
+    pandl_data[
+        "strategies"
+    ] = reporting_api.table_strategy_pandl_and_residual().Body.to_dict(orient="records")
+    pandl_data["sector_pandl"] = reporting_api.table_sector_pandl().Body.to_dict(
+        orient="records"
+    )
+
     return pandl_data
 
 
 @app.route("/processes")
 def processes():
     asyncio.set_event_loop(asyncio.new_event_loop())
-    status_data = status_reporting.get_status_report_data(data)
+
     data_control = dataControlProcess(data)
     data_control.check_if_pid_running_and_if_not_finish_all_processes()
-    df = status_data["method"]
-    df.set_index(["process_name"], append=True, inplace=True)
-    df = df.swaplevel(0, 1)
-    status_data["method"] = df
-    status_data["position_limits"].set_index(["keys"], inplace=True)
-    status_data = dict_of_df_to_dict(status_data, orient="index")
+
+    retval = {
+        "config": reporting_api.table_of_control_config_list_for_all_processes().Body,
+        "control": reporting_api.table_of_control_status_list_for_all_processes().Body,
+        "process": reporting_api.table_of_process_status_list_for_all_processes().Body,
+        # "method_data": reporting_api.table_of_control_data_list_for_all_methods().Body,
+        "price": reporting_api.table_of_last_price_updates().Body,
+    }
+
+    retval = dict_of_df_to_dict(retval, orient="index")
+
     allprocess = {}
-    for k in status_data["process"].keys():
+    for k in retval["config"].keys():
         allprocess[k] = {
-            **status_data["process"].get(k, {}),
-            **status_data["process2"].get(k, {}),
-            **status_data["process3"].get(k, {}),
+            **retval["config"].get(k, {}),
+            **retval["control"].get(k, {}),
+            **retval["process"].get(k, {}),
         }
-    status_data["process"] = allprocess
-    status_data.pop("process2")
-    status_data.pop("process3")
-    status_data["config"] = {
+    retval["process"] = allprocess
+    retval.pop("control")
+    retval["config"] = {
         "monitor": describe_trading_server_login_data(),
         "mongo": f"{data.mongo_db.host}:{data.mongo_db.port} - {data.mongo_db.database_name}",
         "ib": f"{data.ib_conn._ib_connection_config['ipaddress']}:{data.ib_conn._ib_connection_config['port']}",
     }
-    return status_data
+
+    return retval
 
 
 @app.route("/reconcile")
 def reconcile():
-    diag_positions = diagPositions(data)
-    data_optimal = dataOptimalPositions(data)
-    optimal_positions = data_optimal.get_pd_of_position_breaks().to_dict()
-    strategies = {}
-    for instrument in optimal_positions["breaks"].keys():
-        strategies[instrument] = {
-            "break": optimal_positions["breaks"][instrument],
-            "optimal": str(optimal_positions["optimal"][instrument]),
-            "current": optimal_positions["current"][instrument],
-        }
-
-    positions = {}
-
-    db_breaks = (
-        diag_positions.get_list_of_breaks_between_contract_and_strategy_positions()
-    )
-    ib_breaks = []
-    gateway_ok = True
+    retval = {"gateway_ok": True}
     try:
         asyncio.set_event_loop(asyncio.new_event_loop())
-        data_broker = dataBroker(data)
-        db_contract_pos = (
-            data_broker.get_db_contract_positions_with_IB_expiries()
-            .as_pd_df()
-            .to_dict()
-        )
-        for idx in db_contract_pos["instrument_code"].keys():
-            code = db_contract_pos["instrument_code"][idx]
-            contract_date = db_contract_pos["contract_date"][idx]
-            position = db_contract_pos["position"][idx]
-            positions[code + "-" + contract_date] = {
-                "code": code,
-                "contract_date": contract_date,
-                "db_position": position,
-            }
-        ib_contract_pos = (
-            data_broker.get_all_current_contract_positions().as_pd_df().to_dict()
-        )
-        for idx in ib_contract_pos["instrument_code"].keys():
-            code = ib_contract_pos["instrument_code"][idx]
-            contract_date = ib_contract_pos["contract_date"][idx]
-            position = ib_contract_pos["position"][idx]
-            positions[code + "-" + contract_date]["ib_position"] = position
-        ib_breaks = (
-            data_broker.get_list_of_breaks_between_broker_and_db_contract_positions()
-        )
+        retval["optimal"] = reporting_api.table_of_optimal_positions().Body
+        retval["ib"] = reporting_api.table_of_ib_positions().Body
+        retval["my"] = reporting_api.table_of_my_positions().Body
+        # retval["trades_from_db"]= reporting_api.table_of_my_recent_trades_from_db().Body
+        # retval["trades_from_ib"]= reporting_api.table_of_recent_ib_trades().Body
+
+        # Reindex the position dataframes
+        retval["ib"].set_index("instrument_code", inplace=True)
+        retval["my"].set_index("instrument_code", inplace=True)
+        retval = dict_of_df_to_dict(retval, orient="index")
     except:
         # IB gateway connection failed
-        gateway_ok = False
-    return {
-        "strategy": strategies,
-        "positions": positions,
-        "db_breaks": db_breaks,
-        "ib_breaks": ib_breaks,
-        "gateway_ok": gateway_ok,
-    }
+        retval["gateway_ok"] = False
+    return retval
 
 
 @app.route("/rolls")
 def rolls():
-    diag_prices = diagPrices(data)
+    rolls = reporting_api.table_of_roll_data().Body
+    report = rolls.to_dict(orient="index")
 
-    all_instruments = diag_prices.get_list_of_instruments_in_multiple_prices()
-    report = {}
-    for instrument in all_instruments:
-        report[instrument] = roll_report.get_roll_data_for_instrument_DEPRECATED(
-            instrument, data
-        )
-        roll_data = setup_roll_data_with_state_reporting(data, instrument)
-        report[instrument]["allowable"] = roll_data.allowable_roll_states_as_list_of_str
+    for instrument in rolls.index:
+        allowable = setup_roll_data_with_state_reporting(data, instrument)
+        report[instrument]["allowable"] = allowable.allowable_roll_states_as_list_of_str
 
     return report
 
@@ -294,46 +254,32 @@ def rolls_post():
 
 @app.route("/risk")
 def risk():
-    risk_data = risk_report.calculate_risk_report_data(data)
-    risk_data["corr_data"] = risk_data["corr_data"].as_pd()
+    risk_data = {
+        "correlations": reporting_api.table_of_correlations().Body,
+        "strategy_risk": reporting_api.table_of_strategy_risk().Body,
+        "instrument_risk": reporting_api.table_of_instrument_risk().Body,
+    }
     risk_data = dict_of_df_to_dict(risk_data, "index")
     return risk_data
 
 
 @app.route("/trades")
 def trades():
-    end = datetime.datetime.now()
-    start = syscore.dateutils.n_days_ago(1)
-    return_data = {}
-    trades_data = dict_of_df_to_dict(
-        trades_report.get_trades_report_data(data, start, end), "index"
-    )
-    return_data["overview"] = {
-        k: {kk: str(vv) for kk, vv in v.items()}
-        for k, v in trades_data["overview"].items()
-    }
-    return_data["delays"] = {
-        k: {kk: str(vv) for kk, vv in v.items()}
-        for k, v in trades_data["delays"].items()
-    }
-    return_data["raw_slippage"] = {
-        k: {kk: str(vv) for kk, vv in v.items()}
-        for k, v in trades_data["raw_slippage"].items()
-    }
-    return_data["vol_slippage"] = {
-        k: {kk: str(vv) for kk, vv in v.items()}
-        for k, v in trades_data["vol_slippage"].items()
-    }
-    return_data["cash_slippage"] = {
-        k: {kk: str(vv) for kk, vv in v.items()}
-        for k, v in trades_data["cash_slippage"].items()
+    return_data = {
+        "overview": reporting_api.table_of_orders_overview().Body,
+        "delays": reporting_api.table_of_order_delays().Body,
+        "raw_slippage": reporting_api.table_of_raw_slippage().Body,
+        "vol_slippage": reporting_api.table_of_vol_slippage().Body,
+        "cash_slippage": reporting_api.table_of_cash_slippage().Body,
     }
 
+    return_data = dict_of_df_to_dict(return_data, orient="index")
     return return_data
 
 
 @app.route("/strategy")
 def strategy():
+
     return {}
 
 

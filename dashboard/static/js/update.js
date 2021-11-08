@@ -26,7 +26,7 @@ function update_costs() {
           `<tr><td>${instrument}</td><td>${cost["SR_cost"]}</td></tr>`
         );
       });
-      $.each(data["combined_df_costs"], function(instrument, vals) {
+      $.each(data["slippage"], function(instrument, vals) {
         $("#costs_detail_table tbody").append(
           `<tr><td>${instrument}</td>
           <td>${vals["% Difference"]}</td>
@@ -107,10 +107,6 @@ function update_pandl() {
         $("#pandl_instrument_table tbody").append(`<tr>
           <td>${v["codes"]}</td><td>${v["pandl"].toFixed(2)}</td></tr>`);
       });
-      $("#pandl_instrument_table tbody").append(`<tr>
-        <th>Residual</td><td>${data["residual"].toFixed(2)}</td></th>`);
-      $("#pandl_instrument_table tbody").append(`<tr>
-        <th>Total</td><td>${data["total_capital_pandl"].toFixed(2)}</td></th>`);
 
       $.each(data["strategies"], function(k, v) {
         $("#pandl_strategy_table tbody").append(`<tr>
@@ -237,7 +233,7 @@ function update_reconcile() {
       $("#reconcile_strategy > tbody").empty();
       $("#reconcile_contract > tbody").empty();
       $("#reconcile_broker > tbody").empty();
-      $.each(data['strategy'], function(contract, details) {
+      $.each(data['optimal'], function(contract, details) {
         if (details['break']) {
         $("#reconcile_strategy tbody").append(`
           <tr><td>${contract}</td>
@@ -249,25 +245,21 @@ function update_reconcile() {
         $("#reconcile_strategy tbody").append(`
           <tr><td>${contract}</td>
           <td>${details['current']}</td>
-          <td>${details['optimal']}</td>
+          <td>${details['optimal']['lower_position'].toFixed(1)} / ${details['optimal']['upper_position'].toFixed(1)}</td>
           </tr>`);
         }
       }
       );
-      $.each(data['positions'], function(contract, details) {
+      $.each(data['my'], function(contract, details) {
         var line = `<tr><td>${details['code']}</td>
           <td>${details['contract_date']}</td>`;
-        if (details['code'] in data['db_breaks']) {
-          line += `<td class="red">${details['db_position']}</td>`;
+        if (details['position'] != data['ib'][contract]['position']) {
+          line += `<td class="red">${details['position']}</td>
+            <td class="red">${data['ib'][contract]['position']}</td>`;
           overall = "red";
         } else {
-          line += `<td>${details['db_position']}</td>`;
-        }
-        if (details['code'] in data['ib_breaks']) {
-          line += `<td class="red">${details['ib_position']}</td>`;
-          overall = "red";
-        } else {
-          line += `<td>${details['ib_position']}</td>`;
+          line += `<td>${details['position']}</td>
+            <td>${data['ib'][contract]['position']}</td>`;
         }
         $("#reconcile_contract tbody").append(line);
       }
@@ -294,7 +286,7 @@ function update_risk() {
     url: "/risk",
     success: function(data) {
       var cols = "<td></td>";
-      $.each(data["corr_data"], function(k, v) {
+      $.each(data["correlations"], function(k, v) {
         var row = `<td>${k}</td>`;
         cols += row;
         $.each(v, function(_, corr) {
@@ -305,11 +297,10 @@ function update_risk() {
       $("#risk_corr_table tbody").prepend(`<tr>${cols}</tr>`);
 
       $.each(data["strategy_risk"], function(k,v) {
-        $("#risk_table tbody").append(`<tr><td>${k}</td><td>${(v['risk']*100.0).toFixed(1)}</td></tr>`);
+        $("#risk_table tbody").append(`<tr><td>${k}</td><td>${(v['risk']).toFixed(1)}</td></tr>`);
       });
-      $("#risk_table tbody").append(`<tr><th>Total</th><th>${(data["portfolio_risk_total"]*100.0).toFixed(1)}</th></tr>`);
       
-      $.each(data["instrument_risk_data"], function(k,v) {
+      $.each(data["instrument_risk"], function(k,v) {
         $("#risk_details_table tbody").append(`<tr><td>${k}</td>
           <td>${v["daily_price_stdev"].toFixed(1)}</td>
           <td>${v["annual_price_stdev"].toFixed(1)}</td>
@@ -354,6 +345,10 @@ function update_rolls() {
           <td>${details['roll_expiry']}</td>
           <td>${details['carry_expiry']}</td>
           <td>${details['price_expiry']}</td>
+          <td>${details['contract_priced']}</td>
+          <td>${details['contract_fwd']}</td>
+          <td>${details['volume_fwd'].toFixed(3)}</td>
+          <td>${details['position_priced']}</td>
           <td>${buttons}</td>
           </tr>`);
         if (details['roll_expiry'] < 0) {
@@ -361,18 +356,6 @@ function update_rolls() {
         } else if (details['roll_expiry'] < 5 && overall != "red") {
           overall = "orange";
         }
-        var row_data = "";
-        $.each(details['contract_labels'], function(i, entry) {
-          row_data +=`
-            <td>${details['contract_labels'][i]}<br>
-            ${details['positions'][i]}<br>
-            ${details['volumes'][i].toFixed(3)}<br></td>
-            `;
-        }
-        );
-        $("#rolls_details tbody").append(`
-          <tr><td>${contract}</td>${row_data}</tr>`
-        );
       }
       );
       $("#rolls-tl").removeClass("red orange green").addClass(overall);
@@ -409,7 +392,7 @@ function update_trades() {
         $("#trades_overview_table").append(`<tr>
           <td>${k}</td>
           <td>${v["instrument_code"]}</td>
-          <td>${v["contract_date"]}</td>
+          <td>${v["contract_date"]["date_str"]}</td>
           <td>${v["strategy_name"]}</td>
           <td>${v["fill_datetime"]}</td>
           <td>${v["fill"]}</td>
