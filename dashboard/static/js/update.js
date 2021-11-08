@@ -396,7 +396,7 @@ function update_trades() {
         $("#trades_overview_table").append(`<tr>
           <td>${k}</td>
           <td>${v["instrument_code"]}</td>
-          <td>${v["contract_date"]}</td>
+          <td>${v["contract_date"]["date_str"]}</td>
           <td>${v["strategy_name"]}</td>
           <td>${v["fill_datetime"]}</td>
           <td>${v["fill"]}</td>

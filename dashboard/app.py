@@ -57,7 +57,7 @@ data = LocalProxy(get_data)
 
 
 def get_reporting_api():
-    return reportingApi(data)
+    return reportingApi(data, calendar_days_back=1)
 
 
 reporting_api = LocalProxy(get_reporting_api)
@@ -318,33 +318,15 @@ def risk():
 
 @app.route("/trades")
 def trades():
-    end = datetime.datetime.now()
-    start = syscore.dateutils.n_days_ago(1)
-    return_data = {}
-    trades_data = dict_of_df_to_dict(
-        trades_report.get_trades_report_data(data, start, end), "index"
-    )
-    return_data["overview"] = {
-        k: {kk: str(vv) for kk, vv in v.items()}
-        for k, v in trades_data["overview"].items()
-    }
-    return_data["delays"] = {
-        k: {kk: str(vv) for kk, vv in v.items()}
-        for k, v in trades_data["delays"].items()
-    }
-    return_data["raw_slippage"] = {
-        k: {kk: str(vv) for kk, vv in v.items()}
-        for k, v in trades_data["raw_slippage"].items()
-    }
-    return_data["vol_slippage"] = {
-        k: {kk: str(vv) for kk, vv in v.items()}
-        for k, v in trades_data["vol_slippage"].items()
-    }
-    return_data["cash_slippage"] = {
-        k: {kk: str(vv) for kk, vv in v.items()}
-        for k, v in trades_data["cash_slippage"].items()
+    return_data = {
+        "overview": reporting_api.table_of_orders_overview().Body,
+        "delays": reporting_api.table_of_order_delays().Body,
+        "raw_slippage": reporting_api.table_of_raw_slippage().Body,
+        "vol_slippage": reporting_api.table_of_vol_slippage().Body,
+        "cash_slippage": reporting_api.table_of_cash_slippage().Body,
     }
 
+    return_data = dict_of_df_to_dict(return_data, orient="index")
     return return_data
 
 
