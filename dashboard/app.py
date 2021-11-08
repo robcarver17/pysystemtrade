@@ -171,62 +171,23 @@ def processes():
 
 @app.route("/reconcile")
 def reconcile():
-    diag_positions = diagPositions(data)
-    data_optimal = dataOptimalPositions(data)
-    optimal_positions = data_optimal.get_pd_of_position_breaks().to_dict()
-    strategies = {}
-    for instrument in optimal_positions["breaks"].keys():
-        strategies[instrument] = {
-            "break": optimal_positions["breaks"][instrument],
-            "optimal": str(optimal_positions["optimal"][instrument]),
-            "current": optimal_positions["current"][instrument],
-        }
-
-    positions = {}
-
-    db_breaks = (
-        diag_positions.get_list_of_breaks_between_contract_and_strategy_positions()
-    )
-    ib_breaks = []
-    gateway_ok = True
+    retval = {"gateway_ok": True}
     try:
         asyncio.set_event_loop(asyncio.new_event_loop())
-        data_broker = dataBroker(data)
-        db_contract_pos = (
-            data_broker.get_db_contract_positions_with_IB_expiries()
-            .as_pd_df()
-            .to_dict()
-        )
-        for idx in db_contract_pos["instrument_code"].keys():
-            code = db_contract_pos["instrument_code"][idx]
-            contract_date = db_contract_pos["contract_date"][idx]
-            position = db_contract_pos["position"][idx]
-            positions[code + "-" + contract_date] = {
-                "code": code,
-                "contract_date": contract_date,
-                "db_position": position,
-            }
-        ib_contract_pos = (
-            data_broker.get_all_current_contract_positions().as_pd_df().to_dict()
-        )
-        for idx in ib_contract_pos["instrument_code"].keys():
-            code = ib_contract_pos["instrument_code"][idx]
-            contract_date = ib_contract_pos["contract_date"][idx]
-            position = ib_contract_pos["position"][idx]
-            positions[code + "-" + contract_date]["ib_position"] = position
-        ib_breaks = (
-            data_broker.get_list_of_breaks_between_broker_and_db_contract_positions()
-        )
+        retval["optimal"] = reporting_api.table_of_optimal_positions().Body
+        retval["ib"] = reporting_api.table_of_ib_positions().Body
+        retval["my"] = reporting_api.table_of_my_positions().Body
+        # retval["trades_from_db"]= reporting_api.table_of_my_recent_trades_from_db().Body
+        # retval["trades_from_ib"]= reporting_api.table_of_recent_ib_trades().Body
+
+        # Reindex the position dataframes
+        retval["ib"].set_index("instrument_code", inplace=True)
+        retval["my"].set_index("instrument_code", inplace=True)
+        retval = dict_of_df_to_dict(retval, orient="index")
     except:
         # IB gateway connection failed
-        gateway_ok = False
-    return {
-        "strategy": strategies,
-        "positions": positions,
-        "db_breaks": db_breaks,
-        "ib_breaks": ib_breaks,
-        "gateway_ok": gateway_ok,
-    }
+        retval["gateway_ok"] = False
+    return retval
 
 
 @app.route("/rolls")
