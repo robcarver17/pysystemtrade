@@ -1,3 +1,20 @@
+This document describes how to monitor pysystemtrade in a production environment.
+
+It will make no sense unless you've already read:
+
+- [Using pysystemtrade in production(/docs/production.md)
+
+Table of Contents
+=================
+
+* [Web Dashboard](#web-dashboard)
+* [System monitor](#system-monitor)
+* [Handling of crashed processes](#handling-of-crashed-processes)
+* [Running a remote dashboard or monitor](#running-a-remote-dashboard-or-monitor)
+
+Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
+
+
 # Web Dashboard
 
 *The dashboard is currently a work in progress - functionality is still being added.*

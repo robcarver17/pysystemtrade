@@ -15,6 +15,9 @@ Related documents (which you should read before this one!):
 
 *IMPORTANT: Make sure you know what you are doing. All financial trading offers the possibility of loss. Leveraged trading, such as futures trading, may result in you losing all your money, and still owing more. Backtested results are no guarantee of future performance. No warranty is offered or implied for this software. I can take no responsibility for any losses caused by live trading using pysystemtrade. Use at your own risk.*
 
+
+Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
+
 Table of Contents
 =================
 
@@ -111,6 +114,10 @@ Table of Contents
       * [Manual check of FX price data](#manual-check-of-fx-price-data)
       * [Interactively modify capital values](#interactively-modify-capital-values)
       * [Interactively roll adjusted prices](#interactively-roll-adjusted-prices)
+         * [Manually input instrument codes and manually decide when to roll](#manually-input-instrument-codes-and-manually-decide-when-to-roll)
+         * [Cycle through instrument codes automatically, but manually decide when to roll](#cycle-through-instrument-codes-automatically-but-manually-decide-when-to-roll)
+         * [Cycle through instrument codes automatically, auto decide when to roll, manually confirm rolls](#cycle-through-instrument-codes-automatically-auto-decide-when-to-roll-manually-confirm-rolls)
+         * [Cycle through instrument codes automatically, auto decide when to roll, automatically roll](#cycle-through-instrument-codes-automatically-auto-decide-when-to-roll-automatically-roll)
    * [Menu driven interactive scripts](#menu-driven-interactive-scripts)
       * [Interactive controls](#interactive-controls)
          * [Trade limits](#trade-limits)
@@ -124,6 +131,7 @@ Table of Contents
             * [Mark as finished](#mark-as-finished)
             * [Mark all dead processes as finished](#mark-all-dead-processes-as-finished)
             * [View process configuration](#view-process-configuration)
+         * [Update configuration](#update-configuration)
       * [Interactive diagnostics](#interactive-diagnostics)
          * [Backtest objects](#backtest-objects)
             * [Output choice](#output-choice)
@@ -184,12 +192,13 @@ Table of Contents
       * [Configuring the scheduling](#configuring-the-scheduling)
          * [The crontab](#the-crontab)
          * [Process configuration](#process-configuration)
-      * [System monitor](#system-monitor)
+      * [System monitor and dashboard](#system-monitor-and-dashboard)
       * [Troubleshooting?](#troubleshooting)
 * [Production system concepts](#production-system-concepts)
    * [Configuration files](#configuration-files)
       * [System defaults &amp; Private config](#system-defaults--private-config)
       * [System backtest .yaml config file(s)](#system-backtest-yaml-config-files)
+      * [Control config files](#control-config-files)
       * [Broker and data source specific configuration files](#broker-and-data-source-specific-configuration-files)
       * [Only used when setting up the system](#only-used-when-setting-up-the-system)
    * [Capital](#capital)
@@ -208,16 +217,18 @@ Table of Contents
    * [General advice](#general-advice)
    * [Data recovery](#data-recovery)
 * [Reports](#reports-1)
-   * [Roll report (Daily)](#roll-report-daily)
-   * [P&amp;L report](#pl-report)
-   * [Status report](#status-report)
-   * [Trade report](#trade-report)
-   * [Reconcile report](#reconcile-report)
-   * [Strategy report](#strategy-report)
-   * [Risk report](#risk-report)
+   * [Dashboard](#dashboard)
+      * [Roll report (Daily)](#roll-report-daily)
+      * [P&amp;L report](#pl-report)
+      * [Status report](#status-report)
+      * [Trade report](#trade-report)
+      * [Reconcile report](#reconcile-report)
+      * [Strategy report](#strategy-report)
+      * [Risk report](#risk-report)
+      * [Liquidity report](#liquidity-report)
+      * [Costs report](#costs-report)
 
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
-
 
 # Quick start guide
 

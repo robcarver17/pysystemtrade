@@ -6,6 +6,31 @@ It will make no sense unless you've already read:
 - [Storing futures and spot FX data](/docs/data.md)
 - [Using pysystemtrade in production(/docs/production.md)
 
+Table of Contents
+=================
+
+* [Different instrument sets](#different-instrument-sets)
+* [The global superset of all instruments](#the-global-superset-of-all-instruments)
+* [The list of instruments we are sampling](#the-list-of-instruments-we-are-sampling)
+* [Instruments we have adjusted prices for, used for simulation and production system backtest raw data](#instruments-we-have-adjusted-prices-for-used-for-simulation-and-production-system-backtest-raw-data)
+* [Instruments used for simulation and production system backtests](#instruments-used-for-simulation-and-production-system-backtests)
+   * [The global list of instruments, when defined](#the-global-list-of-instruments-when-defined)
+   * [Always excluded](#always-excluded)
+      * [Duplicated instruments](#duplicated-instruments)
+      * [Ignored instruments](#ignored-instruments)
+   * [Excluded for optimisation](#excluded-for-optimisation)
+      * [Untradeable](#untradeable)
+      * [Bad markets](#bad-markets)
+* [Operating in production](#operating-in-production)
+   * [A note about configuration](#a-note-about-configuration)
+   * [Reduce only and other constraints in static systems](#reduce-only-and-other-constraints-in-static-systems)
+   * [Reduce only and other constraints in dynamic systems](#reduce-only-and-other-constraints-in-dynamic-systems)
+* [Deciding which are 'bad' markets](#deciding-which-are-bad-markets)
+   * [Check slippage costs are accurate](#check-slippage-costs-are-accurate)
+   * [Get list of bad markets](#get-list-of-bad-markets)
+* [Deciding which duplicate instruments to use](#deciding-which-duplicate-instruments-to-use)
+
+
 
 # Different instrument sets
 

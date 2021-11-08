@@ -17,6 +17,8 @@ Table of Contents
    * [Setting up some instrument configuration](#setting-up-some-instrument-configuration)
    * [Roll parameter configuration](#roll-parameter-configuration)
    * [Getting historical data for individual futures contracts](#getting-historical-data-for-individual-futures-contracts)
+      * [Getting data from the broker (Interactive brokers)](#getting-data-from-the-broker-interactive-brokers)
+      * [Getting data from an external data source (Barchart)](#getting-data-from-an-external-data-source-barchart)
    * [Roll calendars](#roll-calendars)
       * [Generate a roll calendar from actual futures prices](#generate-a-roll-calendar-from-actual-futures-prices)
          * [Calculate the roll calendar](#calculate-the-roll-calendar)
@@ -27,7 +29,7 @@ Table of Contents
    * [Creating and storing multiple prices](#creating-and-storing-multiple-prices)
       * [Creating multiple prices from contract prices](#creating-multiple-prices-from-contract-prices)
       * [Writing multiple prices from .csv to database](#writing-multiple-prices-from-csv-to-database)
-      * [Updating shipped multiple prices](#update-shipped-data)
+      * [Updating shipped multiple prices](#updating-shipped-multiple-prices)
    * [Creating and storing back adjusted prices](#creating-and-storing-back-adjusted-prices)
       * [Changing the stitching method](#changing-the-stitching-method)
    * [Getting and storing FX data](#getting-and-storing-fx-data)
@@ -68,6 +70,7 @@ Table of Contents
       * [Modifying simData objects](#modifying-simdata-objects)
          * [Getting data from another source](#getting-data-from-another-source)
    * [Production interface](#production-interface)
+
 
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 
