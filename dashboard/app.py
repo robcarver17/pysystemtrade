@@ -1,7 +1,6 @@
 from flask import Flask, g, render_template, request
 from werkzeug.local import LocalProxy
 
-import sysproduction.reporting.api
 from syscore.objects import missing_data
 from syscore.genutils import str2Bool
 
@@ -16,31 +15,18 @@ from sysobjects.production.roll_state import (
 )
 
 
-from sysproduction.data.prices import diagPrices
-from sysproduction.reporting import (
-    costs_report,
-    pandl_report,
-    risk_report,
-    roll_report,
-    trades_report,
-    status_reporting,
-)
 from sysproduction.reporting.api import reportingApi
 
 from sysproduction.data.broker import dataBroker
 from sysproduction.data.control_process import dataControlProcess
 from sysproduction.data.capital import dataCapital
-from sysproduction.data.positions import diagPositions, dataOptimalPositions
 from sysproduction.interactive_update_roll_status import (
     modify_roll_state,
     setup_roll_data_with_state_reporting,
 )
 from sysproduction.reporting.data.rolls import rollingAdjustedAndMultiplePrices
 
-import syscore.dateutils
-
 import asyncio
-import datetime
 import json
 import pandas as pd
 
@@ -293,6 +279,7 @@ def trades():
 
 @app.route("/strategy")
 def strategy():
+
     return {}
 
 
