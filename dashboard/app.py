@@ -114,9 +114,7 @@ def forex():
 
 @app.route("/liquidity")
 def liquidity():
-    liquidity_data = sysproduction.reporting.api.get_liquidity_report_data(data)[
-        "all_liquidity_df"
-    ].to_dict(orient="index")
+    liquidity_data = reporting_api.liquidity_data().to_dict(orient="index")
     return liquidity_data
 
 
