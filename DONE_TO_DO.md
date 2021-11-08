@@ -1,5 +1,13 @@
 # Release notes
 
+## Version 1.12
+
+- Added more flexible instrument exclusion, recommended lists of instruments
+- Refactored reporting code so uses common API
+- Suggestions for updating slippage cost estimates
+- Added buffering to dynamic optimisation code
+
+
 ## Version 1.11
 
 - Added dashboard (thanks James!)
