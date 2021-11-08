@@ -4,7 +4,7 @@ INCOMPLETE SCRATCH JOTTINGS RIGHT NOW!
 
 
 config
-
+(feels like this could be more bulletproof eg override complete sections??)
 
 
 You might want to calculate forecasts for certain instruments (so don't include them in `ignore_instruments`), but not actually trade them.

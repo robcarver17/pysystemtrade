@@ -314,66 +314,67 @@ duplicate_instruments:
     twd: 'TWD-mini'
     vix: 'VIX_mini'
     wheat: 'WHEAT_mini'
-# ignore_instruments are ignored in backtests
-# we still collect price data for them in production, do rolls etc
-# You can override this by modifying the backtest config .yaml file used in eithier sim or production
-# If you want to ignore because a duplicate market, use duplicate_instruments
-# If you want to include in sim data, but not actually trade, use trading_restrictions
-ignore_instruments:
-  - 'EURIBOR'
-#
-# Here we put stuff we can't trade, but for which we still want to bring in prices in sim
-# For the dynamically optimised strategy this list will be used in sim as 'don't trade'
-# For static strategies, you will probably want to set these to zero instrument weights
-# In production, things here will be added to the 'reduce_only' list of instruments
-# NOTE: This will be regionally biased, you will probably want to override this in private_config.yaml
-#
-trading_restrictions:
-  - US-DISCRETE
-  - US-ENERGY
-  - US-FINANCE
-  - US-HEALTH
-  - US-INDUSTRY
-  - US-MATERIAL
-  - US-PROPERTY
-  - US-REALESTATE
-  - US-STAPLES
-  - US-TECH
-  - US-UTILS
-# These are markets that are too expensive or illiquid to actually trade
-# For the dynamically optimised strategy this list will be used in sim as 'don't trade'
-# For static strategies, you will probably want to set these to zero instrument weights
-# In production, things here will be added to the 'reduce_only' list of instruments
-# Run interactive controls to get a list of suggested markets here
-# To override this list, change in sim .yaml config (sim) and private_config.yaml (production)
-bad_markets:
-  - ALUMINIUM
-  - BBCOMM
-  - CHEESE
-  - DJSTX-SMALL
-  - EU-BANKS
-  - EU-CHEM
-  - EU-CONSTRUCTION
-  - EU-DIV30
-  - EU-FOOD
-  - EU-HEALTH
-  - EU-INSURE
-  - EU-TRAVEL
-  - EURIBOR
-  - FTSEINDO
-  - INR
-  - KOSPI_mini
-  - KRWUSD
-  - LUMBER
-  - MILK
-  - MILKDRY
-  - MSCIASIA
-  - NOK
-  - OATIES
-  - RICE
-  - SGD
-  - SHATZ
-  - US-DISCRETE
-  - US-REALESTATE
-  - USIRS5
-  - V2X
+exclude_instrument_lists:
+  # ignore_instruments are ignored in backtests
+  # we still collect price data for them in production, do rolls etc
+  # You can override this by modifying the backtest config .yaml file used in eithier sim or production
+  # If you want to ignore because a duplicate market, use duplicate_instruments
+  # If you want to include in sim data, but not actually trade, use trading_restrictions
+  ignore_instruments:
+    - 'EURIBOR'
+  #
+  # Here we put stuff we can't trade, but for which we still want to bring in prices in sim
+  # For the dynamically optimised strategy this list will be used in sim as 'don't trade'
+  # For static strategies, you will probably want to set these to zero instrument weights
+  # In production, things here will be added to the 'reduce_only' list of instruments
+  # NOTE: This will be regionally biased, you will probably want to override this in private_config.yaml
+  #
+  trading_restrictions:
+    - US-DISCRETE
+    - US-ENERGY
+    - US-FINANCE
+    - US-HEALTH
+    - US-INDUSTRY
+    - US-MATERIAL
+    - US-PROPERTY
+    - US-REALESTATE
+    - US-STAPLES
+    - US-TECH
+    - US-UTILS
+  # These are markets that are too expensive or illiquid to actually trade
+  # For the dynamically optimised strategy this list will be used in sim as 'don't trade'
+  # For static strategies, you will probably want to set these to zero instrument weights
+  # In production, things here will be added to the 'reduce_only' list of instruments
+  # Run interactive controls to get a list of suggested markets here
+  # To override this list, change in sim .yaml config (sim) and private_config.yaml (production)
+  bad_markets:
+    - ALUMINIUM
+    - BBCOMM
+    - CHEESE
+    - DJSTX-SMALL
+    - EU-BANKS
+    - EU-CHEM
+    - EU-CONSTRUCTION
+    - EU-DIV30
+    - EU-FOOD
+    - EU-HEALTH
+    - EU-INSURE
+    - EU-TRAVEL
+    - EURIBOR
+    - FTSEINDO
+    - INR
+    - KOSPI_mini
+    - KRWUSD
+    - LUMBER
+    - MILK
+    - MILKDRY
+    - MSCIASIA
+    - NOK
+    - OATIES
+    - RICE
+    - SGD
+    - SHATZ
+    - US-DISCRETE
+    - US-REALESTATE
+    - USIRS5
+    - V2X

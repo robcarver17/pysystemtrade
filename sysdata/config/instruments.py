@@ -2,22 +2,29 @@ from syscore.objects import missing_data, arg_not_supplied
 from sysdata.config.configdata import Config
 
 def get_list_of_bad_instruments_in_config(config: Config)-> list:
-    bad_markets = config.get_element_or_missing_data("bad_markets")
-    if bad_markets is missing_data:
-        bad_markets = []
+    exclude_config = get_config_of_excluded_instruments(config)
+    bad_markets = exclude_config.get("bad_markets", [])
+
     return bad_markets
 
 def get_list_of_untradeable_instruments_in_config(config: Config) -> list:
-    trading_restrictions = config.get_element_or_missing_data("trading_restrictions")
-    if trading_restrictions is missing_data:
-        trading_restrictions = []
+    exclude_config = get_config_of_excluded_instruments(config)
+    trading_restrictions = exclude_config.get("trading_restrictions", [])
+
     return trading_restrictions
 
 def get_list_of_ignored_instruments_in_config(config: Config) -> list:
-    ignore_instruments = config.get_element_or_missing_data('ignore_instruments')
-    if ignore_instruments is missing_data:
-        return []
+    exclude_config = get_config_of_excluded_instruments(config)
+    ignore_instruments = exclude_config.get('ignore_instruments', [])
+
     return ignore_instruments
+
+def get_config_of_excluded_instruments(config:Config) -> dict:
+    exclude_instrument_lists = config.get_element_or_missing_data("exclude_instrument_lists")
+    if exclude_instrument_lists is missing_data:
+        return {}
+
+    return exclude_instrument_lists
 
 def generate_matching_duplicate_dict(config: Config = arg_not_supplied):
     """
