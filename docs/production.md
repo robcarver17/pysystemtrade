@@ -1851,7 +1851,7 @@ Linux script:
 
 #### Trade limits
 
-We can set limits for the maximum number of trades we will done over a given period, and for a specific instrument, or a specific instrument within a given strategy. Limits are applied within run_stack_handler whenever a broker order is about to be generated from a contract order. Options are as follows:
+We can set limits for the maximum number of trades we will do over a given period, and for a specific instrument, or a specific instrument within a given strategy. Limits are applied within run_stack_handler whenever a broker order is about to be generated from a contract order. Options are as follows:
 
 - View limits
 - Change limits (instrument, instrument & strategy)
