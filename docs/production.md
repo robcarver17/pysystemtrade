@@ -2684,7 +2684,7 @@ The following are configuration options that are in defaults.yaml and can be ove
 
 See the [user guide for backtesting](/docs/backtesting.md).
 
-The interaction of system, private, and backtest configs can be a bit confusing. Inside a backtest (which can eithier be in production or sim mode), configuration options will be pulled in the following priority (1) specific backtest .yaml configuration, (2) private_config.yaml *in production only*, (3) defaults.yaml file. 
+The interaction of system, private, and backtest configs can be a bit confusing. Inside a backtest (which can either be in production or sim mode), configuration options will be pulled in the following priority (1) specific backtest .yaml configuration, (2) private_config.yaml *in production only*, (3) defaults.yaml file. 
 
 Outside of the backtest code, in production configuration options are pulled in the following priority order: (1) private_config.yaml *in production only*, (2) defaults.yaml file. *The production code can't see inside your backtest configuration files*. 
 

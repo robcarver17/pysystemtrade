@@ -399,7 +399,7 @@ We always apply the most conservative override in any given situation.
 What this means in practice is that you can modify the list of instruments in the various categories and the system will automatically respond. So for example to remove a bad instrument:
 
 - Add it to the configured list of bad instruments
-- Set instrument weight to zero (eithier in one go, or gradually over time)
+- Set instrument weight to zero (either in one go, or gradually over time)
 - The production system will see it as having a 'reduce only' flag, and allow a trade that reduces the size of the position
 
 And to allow a bad instrument to begin trading again:
@@ -413,7 +413,7 @@ Similar logic will apply to ignored and duplicated instruments. Obviously if you
 
 The code that applies this constraints is generic; it won't load in the strategy configuration .yaml, so if you wish to change the default configuration of bad, duplicated, ignored or untradeable instruments you need to change the `private_config.yaml`.
 
-You can see the current list of instruments with overrides (eithier from configuration or set in the database) in the interactive_controls script:
+You can see the current list of instruments with overrides (either from configuration or set in the database) in the interactive_controls script:
 
 (bash)
 ```
