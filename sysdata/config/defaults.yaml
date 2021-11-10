@@ -274,7 +274,7 @@ small_system:
 # anything in the 'exclude' list is ignored in backtests
 # we use the 'include section to match up for reporting when deciding which to trade
 # Be careful when swapping between instruments, a bit dangerous if a position is held...
-# You can override this by modifying the backtest config .yaml file used in eithier sim or production
+# You can override this by modifying the backtest config .yaml file used in either sim or production
 duplicate_instruments:
   include:
     copper: 'COPPER'
@@ -317,7 +317,7 @@ duplicate_instruments:
 exclude_instrument_lists:
   # ignore_instruments are ignored in backtests
   # we still collect price data for them in production, do rolls etc
-  # You can override this by modifying the backtest config .yaml file used in eithier sim or production
+  # You can override this by modifying the backtest config .yaml file used in either sim or production
   # If you want to ignore because a duplicate market, use duplicate_instruments
   # If you want to include in sim data, but not actually trade, use trading_restrictions
   ignore_instruments:
