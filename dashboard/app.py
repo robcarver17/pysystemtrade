@@ -265,13 +265,29 @@ def risk():
 
 @app.route("/trades")
 def trades():
-    return_data = {
-        "overview": reporting_api.table_of_orders_overview().Body,
-        "delays": reporting_api.table_of_order_delays().Body,
-        "raw_slippage": reporting_api.table_of_raw_slippage().Body,
-        "vol_slippage": reporting_api.table_of_vol_slippage().Body,
-        "cash_slippage": reporting_api.table_of_cash_slippage().Body,
-    }
+    return_data = {}
+
+    # Sometimes there are not things in the body so ignore them if not
+    try:
+        return_data["overview"] = reporting_api.table_of_orders_overview().Body
+    except:
+        pass
+    try:
+        return_data["delays"] = reporting_api.table_of_order_delays().Body
+    except:
+        pass
+    try:
+        return_data["raw_slippage"] = reporting_api.table_of_raw_slippage().Body
+    except:
+        pass
+    try:
+        return_data["vol_slippage"] = reporting_api.table_of_vol_slippage().Body
+    except:
+        pass
+    try:
+        return_data["cash_slippage"] = reporting_api.table_of_cash_slippage().Body
+    except:
+        pass
 
     return_data = dict_of_df_to_dict(return_data, orient="index")
     return return_data
