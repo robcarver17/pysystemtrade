@@ -61,6 +61,8 @@ class mongoDataWithSingleKey(object):
 
     def get_max_of_keys(self)->int:
         doc = self.collection.find_one(sort=[(self.key_name, -1)])
+        if doc is None:
+            return 0
         if self.key_name in doc:
             return doc[self.key_name]
         else:
