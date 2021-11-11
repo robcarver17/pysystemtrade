@@ -517,7 +517,7 @@ function roll_post(instrument, state, confirmed = false) {
           buttons += `<button onClick="roll_post('${instrument}', '${option}')">${option}</button>`
         });
         $("#rolls_" + instrument).find("td:eq(1)").html(data["new_state"]);
-        $("#rolls_" + instrument).find("td:eq(5)").html(buttons);
+        $("#rolls_" + instrument).find("td:eq(9)").html(buttons);
       }
     }
   });
