@@ -75,7 +75,8 @@ class stackHandlerForFills(stackHandlerForCompletions):
             # FIXME TEMP HACK TO GET ISSUE 452 FIXED
             broker_order_with_commissions = data_broker.calculate_total_commission_for_broker_order(broker_order)
         except:
-            self.log.email_user("ERROR #452; original broker_order %s commisison %s" % (str(broker_order),
+            self.log.email_user("ERROR #452; original broker_order %s ---- %s ---- commisison %s" % (str(broker_order),
+                                                                                        str(broker_order.tradeable_object),
                                                                                         str(broker_order.commission)))
             raise Exception()
 
