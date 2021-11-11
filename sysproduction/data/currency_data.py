@@ -50,6 +50,9 @@ class dataCurrency(productionDataLayerGeneric):
         :return: eg fx rate for GBPUSD if base was USD
         """
         base = self.get_base_currency()
+        if currency==base:
+            return 1.0
+
         currency_pair = currency + base
 
         last_fx_rate = self.get_last_fx_rate_for_pair(currency_pair)
