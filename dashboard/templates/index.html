@@ -41,18 +41,7 @@
 
 <div id="rolls">
   <div class="loading">Loading...</div>
-  <table id="rolls_status" hidden>
-    <caption>Status</caption>
-    <thead><tr><th>Contract</th><th>State</th><th>Roll Expiry</th>
-        <th>Carry Expiry</th><th>Price Expiry</th>
-        <th>Price Contract</th><th>Forward Contract</th>
-        <th>Forward Rel Vol</th>
-        <th>Position</th>
-        <th>Options</th></tr></thead>
-    <tbody></tbody>
-  </table>
   <div id="roll_prices" class="hidden">
-    <br>
     <h3 id="roll_instrument_name"></h3>
     <table id="roll_prices_single">
       <caption>Single</caption>
@@ -61,7 +50,7 @@
         <tbody></tbody>
     </table>
     <br>
-    <table id="roll_prices_multiple" hidden>
+    <table id="roll_prices_multiple">
       <caption>Multiple</caption>
       <thead>
         <tr><th></th><th colspan="3">Carry</th><th colspan="3">Price</th><th colspan="3">Forward</th></tr>
@@ -73,7 +62,18 @@
         </tr></thead>
         <tbody></tbody>
     </table>
+    <br>
   </div>
+  <table id="rolls_status" hidden>
+    <caption>Status</caption>
+    <thead><tr><th>Contract</th><th>State</th><th>Roll Expiry</th>
+        <th>Carry Expiry</th><th>Price Expiry</th>
+        <th>Price Contract</th><th>Forward Contract</th>
+        <th>Forward Rel Vol</th>
+        <th>Position</th>
+        <th>Options</th></tr></thead>
+    <tbody></tbody>
+  </table>
 </div>
 
 <div id="processes">
