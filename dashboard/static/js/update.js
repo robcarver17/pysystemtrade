@@ -469,6 +469,11 @@ function update_trades() {
 }
 
 function roll_post(instrument, state, confirmed = false) {
+  // Disable all the buttons to avoid multiple presses
+  $("#rolls button").each(function(_, btn) {
+    btn.disabled = true;
+  });
+  $("#rolls > div.loading").show();
   $.ajax({
     type: "POST",
     url: "/rolls",
@@ -508,7 +513,7 @@ function roll_post(instrument, state, confirmed = false) {
             <td>${val['new']['FORWARD']}</td>
             </tr>`);
         });
-        $("#roll_prices").append(`<button onClick="roll_post('${instrument}', '${state}', true)">${state}</button>`);
+        $("#roll_prices").append(`<button onClick="roll_post('${instrument}', '${state}', true)">${state}</button><br><br>`);
         $("#roll_prices").display = true;
       } else if (data["allowable"]) {
         // Only need to update this line
@@ -519,6 +524,11 @@ function roll_post(instrument, state, confirmed = false) {
         $("#rolls_" + instrument).find("td:eq(1)").html(data["new_state"]);
         $("#rolls_" + instrument).find("td:eq(9)").html(buttons);
       }
+      
+      $("#rolls button").each(function(_, btn) {
+        btn.disabled = false;
+      });
+      $("#rolls > div.loading").hide();
     }
   });
 }
