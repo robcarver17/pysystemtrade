@@ -1,3 +1,4 @@
+from copy import copy
 import numpy as np
 
 from syscore.objects import arg_not_supplied, missing_data
@@ -61,6 +62,10 @@ class dataForOptimisation(object):
         return self.get_key("costs_as_np")
 
     @property
+    def weights_prior_as_np_replace_nans_with_zeros(self) -> np.array:
+        return self.get_key("weights_prior_as_np_replace_nans_with_zeros")
+
+    @property
     def starting_weights_as_np(self) -> np.array:
         return self.get_key("starting_weights_as_np")
 
@@ -108,6 +113,23 @@ class dataForOptimisation(object):
             ))
 
         return per_contract_value_as_np
+
+    @property
+    def _weights_prior_as_np_replace_nans_with_zeros(self) -> np.array:
+        weights_prior_as_np = copy(self.weights_prior_as_np)
+
+        if self.weights_prior_as_np is arg_not_supplied:
+            return arg_not_supplied
+
+        def _zero_if_nan(x):
+            if np.isnan(x):
+                return 0
+            else:
+                return x
+
+        weights_prior_as_np_zero_replaced = [_zero_if_nan(x) for x in weights_prior_as_np]
+
+        return np.array(weights_prior_as_np_zero_replaced)
 
     @property
     def _weights_prior_as_np(self) -> np.array:

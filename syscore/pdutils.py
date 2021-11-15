@@ -556,9 +556,22 @@ def get_row_of_df_aligned_to_weights_as_dict(df: pd.DataFrame,
         try:
             data_at_date = df.loc[relevant_date]
         except KeyError:
-            raise Exception("Date %s not found in portfolio weights" % str(relevant_date))
+            raise Exception("Date %s not found in data" % str(relevant_date))
 
     return data_at_date.to_dict()
+
+def get_row_of_series(series: pd.Series,
+                                             relevant_date: datetime.datetime = arg_not_supplied):
+
+    if relevant_date is arg_not_supplied:
+        data_at_date = series.values[-1]
+    else:
+        try:
+            data_at_date = series.loc[relevant_date]
+        except KeyError:
+            raise Exception("Date %s not found in data" % str(relevant_date))
+
+    return data_at_date
 
 
 def get_max_index_before_datetime(index, date_point):
@@ -575,3 +588,14 @@ def years_in_data(data: pd.Series) -> list:
     unique_years.sort()
 
     return unique_years
+
+def calculate_cost_deflator(price: pd.Series) -> pd.Series:
+    ## crude but doesn't matter
+    daily_price = price.resample("1B")
+    daily_returns = price.diff()
+    vol_price = daily_returns.rolling(180, min_periods=3).std().ffill()
+    final_vol = vol_price[-1]
+
+    cost_scalar = vol_price / final_vol
+
+    return cost_scalar

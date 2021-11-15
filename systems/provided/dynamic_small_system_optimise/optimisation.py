@@ -92,7 +92,7 @@ class objectiveFunctionForGreedy:
             self.is_tracking_error_of_prior_smaller_than_buffer()
 
         if tracking_error_of_prior_smaller_than_buffer:
-            return self.weights_prior_as_np
+            return self.weights_prior_as_np_replace_nans_with_zeros
 
         weights_as_np = \
             self.optimise_np_with_large_tracking_error()
@@ -121,7 +121,7 @@ class objectiveFunctionForGreedy:
 
     def tracking_error_of_prior_weights(self) -> float:
 
-        prior_weights = self.weights_prior_as_np
+        prior_weights = self.weights_prior_as_np_replace_nans_with_zeros
         tracking_error = self.tracking_error_against_optimal(prior_weights)
 
         return tracking_error
@@ -149,7 +149,7 @@ class objectiveFunctionForGreedy:
         if self.no_prior_positions_provided:
             return optimised_weights_as_np
 
-        prior_weights_as_np = self.weights_prior_as_np
+        prior_weights_as_np = self.weights_prior_as_np_replace_nans_with_zeros
         tracking_error_of_prior = \
             self.tracking_error_against_passed_weights(prior_weights_as_np, optimised_weights_as_np)
         speed_control = self.speed_control
@@ -195,7 +195,7 @@ class objectiveFunctionForGreedy:
     def calculate_costs(self, weights: np.array) -> float:
         if self.no_prior_positions_provided:
             return 0.0
-        trade_gap = weights - self.weights_prior_as_np
+        trade_gap = weights - self.weights_prior_as_np_replace_nans_with_zeros
         costs_per_trade = self.costs_as_np
         trade_shadow_cost = self.trade_shadow_cost
         trade_costs = sum(abs(costs_per_trade * trade_gap * trade_shadow_cost))
@@ -235,8 +235,8 @@ class objectiveFunctionForGreedy:
         return self.input_data.per_contract_value_as_np
 
     @property
-    def weights_prior_as_np(self) -> np.array:
-        return self.input_data.weights_prior_as_np
+    def weights_prior_as_np_replace_nans_with_zeros(self) -> np.array:
+        return self.input_data.weights_prior_as_np_replace_nans_with_zeros
 
     @property
     def covariance_matrix_as_np(self) -> np.array:

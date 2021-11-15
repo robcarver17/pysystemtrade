@@ -5,6 +5,7 @@ import pandas as pd
 
 from syscore.genutils import progressBar
 from syscore.objects import arg_not_supplied, missing_data
+from syscore.pdutils import calculate_cost_deflator, get_row_of_series
 from systems.provided.dynamic_small_system_optimise.optimisation import objectiveFunctionForGreedy, constraintsForDynamicOpt
 from systems.provided.dynamic_small_system_optimise.buffering import speedControlForDynamicOpt
 
@@ -77,7 +78,7 @@ class optimisedPositions(SystemStage):
         per_contract_value = self.get_per_contract_value(relevant_date)
         contracts_optimal = self.original_position_contracts_for_relevant_date(relevant_date)
 
-        costs = self.get_costs_per_contract_as_proportion_of_capital_all_instruments()
+        costs = self.get_costs_per_contract_as_proportion_of_capital_all_instruments(relevant_date)
         speed_control = self.get_speed_control()
         constraints = self.get_constraints()
 
@@ -120,10 +121,10 @@ class optimisedPositions(SystemStage):
 
     ## COSTS
     @diagnostic()
-    def get_costs_per_contract_as_proportion_of_capital_all_instruments(self) -> meanEstimates:
+    def get_costs_per_contract_as_proportion_of_capital_all_instruments(self, relevant_date: arg_not_supplied) -> meanEstimates:
         instrument_list = self.instrument_list()
         costs = dict([
-            (instrument_code, self.get_cost_per_contract_as_proportion_of_capital(instrument_code))
+            (instrument_code, self.get_cost_per_contract_as_proportion_of_capital_on_date(instrument_code, relevant_date=relevant_date))
             for instrument_code in instrument_list
         ])
 
@@ -131,6 +132,27 @@ class optimisedPositions(SystemStage):
 
         return costs
 
+    def get_cost_per_contract_as_proportion_of_capital_on_date(self, instrument_code, relevant_date: datetime.datetime = arg_not_supplied)-> float:
+        cost_deflator = self.get_cost_deflator_on_date(instrument_code, relevant_date=relevant_date)
+        cost_per_contract_as_proportion_of_capital = self.get_cost_per_contract_as_proportion_of_capital(instrument_code)
+
+        return cost_per_contract_as_proportion_of_capital * cost_deflator
+
+    def get_cost_deflator_on_date(self, instrument_code: str, relevant_date: datetime.datetime = arg_not_supplied) -> float:
+        deflator = self.get_cost_deflator(instrument_code)
+
+        return get_row_of_series(deflator, relevant_date)
+
+    @diagnostic()
+    def get_cost_deflator(self, instrument_code: str):
+        price = self.get_raw_price(instrument_code)
+        deflator = calculate_cost_deflator(price)
+        common_index = self.common_index()
+        deflator_indexed = deflator.reindex(common_index).ffill()
+
+        return deflator_indexed
+
+    @diagnostic()
     def get_cost_per_contract_as_proportion_of_capital(self, instrument_code)-> float:
         cost_per_contract = self.get_cost_per_contract_in_base_ccy(instrument_code)
         trading_capital = self.get_trading_capital()
