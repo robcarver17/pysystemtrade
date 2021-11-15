@@ -196,50 +196,47 @@ def rolls_post():
     if new_state == RollState.Roll_Adjusted and request.form["confirmed"] != "true":
         # Send back the adjusted prices for checking
         number_to_return = 6
-        try:
-            rolling = rollingAdjustedAndMultiplePrices(data, instrument)
-            current_multiple = {
-                str(k): v
-                for k, v in rolling.current_multiple_prices.tail(number_to_return)
-                .to_dict(orient="index")
-                .items()
-            }
-            # We need to convert values to strings because there are
-            # sometimes NaNs which are not valid json
-            new_multiple = {
-                str(k): {kk: str(vv) for kk, vv in v.items()}
-                for k, v in rolling.updated_multiple_prices.tail(number_to_return + 1)
-                .to_dict(orient="index")
-                .items()
-            }
-            current_adjusted = {
-                str(k): round(v, 2)
-                for k, v in rolling.current_adjusted_prices.tail(number_to_return)
-                .to_dict()
-                .items()
-            }
-            new_adjusted = {
-                str(k): round(v, 2)
-                for k, v in rolling.new_adjusted_prices.tail(number_to_return + 1)
-                .to_dict()
-                .items()
-            }
-            single = {
-                k: {"current": current_adjusted[k], "new": new_adjusted[k]}
-                for k in current_adjusted.keys()
-            }
-            multiple = {
-                k: {"current": current_multiple[k], "new": new_multiple[k]}
-                for k in current_adjusted.keys()
-            }
-            new_date = list(new_adjusted.keys())[-1]
-            single[new_date] = {"new": new_adjusted[new_date]}
-            multiple[new_date] = {"new": new_multiple[new_date]}
-            prices = {"single": single, "multiple": multiple}
-            return prices
-        except:
-            # Cannot roll for some reason
-            return {}
+        rolling = rollingAdjustedAndMultiplePrices(data, instrument)
+        # We need to convert values to strings because there are
+        # sometimes NaNs which are not valid json
+        current_multiple = {
+            str(k): {kk: str(vv) for kk, vv in v.items()}
+            for k, v in rolling.current_multiple_prices.tail(number_to_return)
+            .to_dict(orient="index")
+            .items()
+        }
+        # There can sometimes be more than one new value, so get 5 more to be sure
+        new_multiple = {
+            str(k): {kk: str(vv) for kk, vv in v.items()}
+            for k, v in rolling.updated_multiple_prices.tail(number_to_return + 5)
+            .to_dict(orient="index")
+            .items()
+        }
+        current_adjusted = {
+            str(k): round(v, 2)
+            for k, v in rolling.current_adjusted_prices.tail(number_to_return)
+            .to_dict()
+            .items()
+        }
+        new_adjusted = {
+            str(k): round(v, 2)
+            for k, v in rolling.new_adjusted_prices.tail(number_to_return + 5)
+            .to_dict()
+            .items()
+        }
+        single = {
+            k: {"current": current_adjusted[k], "new": new_adjusted[k]}
+            for k in current_adjusted.keys()
+        }
+        multiple = {
+            k: {"current": current_multiple[k], "new": new_multiple[k]}
+            for k in current_adjusted.keys()
+        }
+        new_date = list(new_adjusted.keys())[-1]
+        single[new_date] = {"new": new_adjusted[new_date]}
+        multiple[new_date] = {"new": new_multiple[new_date]}
+        prices = {"single": single, "multiple": multiple}
+        return prices
 
     roll_data = setup_roll_data_with_state_reporting(data, instrument)
     modify_roll_state(
