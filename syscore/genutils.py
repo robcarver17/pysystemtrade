@@ -11,6 +11,18 @@ import numpy as np
 import datetime
 import functools
 
+def true_if_answer_is_yes(prompt=""):
+    invalid = True
+    while invalid:
+        x=input(prompt)
+        x=x.lower()
+        if x[0]=="y":
+            return True
+        elif x[0]=="n":
+            return False
+        print("Need one of yes/no, Yes/No, y/n, Y/N")
+
+
 def flatten_list(some_list):
     flattened = [
         item for sublist in some_list for item in sublist
