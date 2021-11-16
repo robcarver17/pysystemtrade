@@ -372,7 +372,7 @@ My own implementation runs on a Linux machine, and some of the implementation de
 ### Automation options
 
 You can run pysystemtrade as a fully automated system, which does everything from getting prices through to executing orders.
-If running fully automated, [IBC](https://github.com/IbcAlpha/IBC) is very useful. But other patterns make sense. In particular you may wish to do your trading manually, after pulling in prices and generating optimal positions manually. It will also possible to trade manually, but allow pysystemtrade to pick up your fills from the broker rather than entering them manually. or example, you might not trust the system (I wouldn't blame you), it gives you more control, you might think your execution is better than an algo, you might be doing some testing, or you simply want to use a broker that doesn't offer an API.
+If running fully automated, [IBC](https://github.com/IbcAlpha/IBC) is very useful. But other patterns make sense. In particular you may wish to do your trading manually, after pulling in prices and generating optimal positions manually. It will also possible to trade manually, but allow pysystemtrade to pick up your fills from the broker rather than entering them manually. For example, you might not trust the system (I wouldn't blame you), it gives you more control, you might think your execution is better than an algo, you might be doing some testing, or you simply want to use a broker that doesn't offer an API.
 
 I suggest the following:
 
@@ -956,7 +956,7 @@ If you are trading multiple strategies, and/or generating orders for a single st
 
 If the roll status is 'not rolling', then contract orders are generated from instrument orders by spawn_children_from_new_instrument_orders in the stack handler.
 
-For normal strategies when there is no rolling, there will just a single child contract order for each instrument order, trading in the current priced contract. Because it is a truth universally acknowledged that the contract order seeks to completely fufill the required instrument order (this isn't true for broker and contract orders, of which more later).
+For normal strategies when there is no rolling, there will just a single child contract order for each instrument order, trading in the current priced contract. Because it is a truth universally acknowledged that the contract order seeks to completely fulfill the required instrument order (this isn't true for broker and contract orders, of which more later).
 
 Fields for a new contract order (once added to the database):
 
