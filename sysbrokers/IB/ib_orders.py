@@ -81,7 +81,7 @@ class ibOrderWithControls(orderWithControls):
 
 class ibExecutionStackData(brokerExecutionStackData):
     def __init__(self, ibconnection: connectionIB, log=logtoscreen(
-            "ibFuturesContractPriceData")):
+            "ibExecutionStackData")):
         super().__init__(log=log)
         self._ibconnection = ibconnection
 
