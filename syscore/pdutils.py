@@ -591,8 +591,8 @@ def years_in_data(data: pd.Series) -> list:
 
 def calculate_cost_deflator(price: pd.Series) -> pd.Series:
     ## crude but doesn't matter
-    daily_price = price.resample("1B")
-    daily_returns = price.diff()
+    daily_price = price.resample("1B").ffill()
+    daily_returns = daily_price.diff()
     vol_price = daily_returns.rolling(180, min_periods=3).std().ffill()
     final_vol = vol_price[-1]
 

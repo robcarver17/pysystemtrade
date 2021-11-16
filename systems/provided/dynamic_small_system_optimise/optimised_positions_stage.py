@@ -148,7 +148,7 @@ class optimisedPositions(SystemStage):
         price = self.get_raw_price(instrument_code)
         deflator = calculate_cost_deflator(price)
         common_index = self.common_index()
-        deflator_indexed = deflator.reindex(common_index).ffill()
+        deflator_indexed = deflator.reindex(common_index, method="ffill")
 
         return deflator_indexed
 

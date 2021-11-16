@@ -186,10 +186,17 @@ class objectiveFunctionForGreedy:
 
     def tracking_error_against_passed_weights(self, weights: np.array, optimal_weights: np.array) -> float:
         solution_gap = weights - optimal_weights
-        track_error = \
-            (solution_gap.dot(self.covariance_matrix_as_np).dot(solution_gap)) ** .5
+        track_error_var = \
+            (solution_gap.dot(self.covariance_matrix_as_np).dot(solution_gap))
 
-        return track_error
+        if track_error_var<0:
+            ## can happen in some corner cases due to way covar estimated
+            ## this effectively means we won't trade until problem solved seems reasonable
+            return 0.0
+
+        track_error_std = track_error_var**.5
+
+        return track_error_std
 
 
     def calculate_costs(self, weights: np.array) -> float:
