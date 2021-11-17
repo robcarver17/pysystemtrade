@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from syscore.algos import get_near_psd
 from syscore.objects import arg_not_supplied
 
 from syslogdiag.logger import logger, nullLog
@@ -206,12 +207,19 @@ class objectiveFunctionForGreedy:
         if track_error_var<0:
             ## can happen in some corner cases due to way covar estimated
             ## this effectively means we won't trade until problem solved seems reasonable
-            raise Exception("Negative variance : covariance screwed up?")
+            self.log.warn("Negative covariance, finding nearest PSD instead")
+            self.convert_covariance_as_np_to_psd()
+            return self.tracking_error_against_passed_weights(weights, optimal_weights)
 
         track_error_std = track_error_var**.5
 
         return track_error_std
 
+    def convert_covariance_as_np_to_psd(self):
+        covariance = self.covariance_matrix_as_np
+        new_covariance = get_near_psd(covariance)
+
+        self.covariance_matrix_as_np = new_covariance
 
     def calculate_costs(self, weights: np.array) -> float:
         if self.no_prior_positions_provided:
@@ -265,6 +273,10 @@ class objectiveFunctionForGreedy:
     @property
     def covariance_matrix_as_np(self) -> np.array:
         return self.input_data.covariance_matrix_as_np
+
+    @covariance_matrix_as_np.setter
+    def covariance_matrix_as_np(self, new_array: np.array) -> np.array:
+        self.input_data.covariance_matrix_as_np = new_array
 
     @property
     def costs_as_np(self) -> np.array:

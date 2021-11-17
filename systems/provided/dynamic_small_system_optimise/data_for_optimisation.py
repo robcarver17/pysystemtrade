@@ -37,6 +37,10 @@ class dataForOptimisation(object):
         else:
             return stored_value
 
+    def set_key(self, keyname, value):
+        reference = "_stored_" + keyname
+        setattr(self, reference, value)
+
     @property
     def weights_optimal_as_np(self) -> list:
         return self.get_key("weights_optimal_as_np")
@@ -56,6 +60,10 @@ class dataForOptimisation(object):
     @property
     def covariance_matrix_as_np(self) -> np.array:
         return self.get_key("covariance_matrix_as_np")
+
+    @covariance_matrix_as_np.setter
+    def covariance_matrix_as_np(self, cov_matrix:np.array):
+        self.set_key("covariance_matrix_as_np", cov_matrix)
 
     @property
     def costs_as_np(self) -> np.array:

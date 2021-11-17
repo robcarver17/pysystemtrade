@@ -185,6 +185,7 @@ class correlationEstimate(Estimate):
         assets_with_data = self.assets_with_data()
         return self.subset(assets_with_data)
 
+
 def create_boring_corr_matrix(size: int,
                        offdiag: float=0.99,
                        diag: float=1.0,

@@ -266,7 +266,12 @@ def map_forecast_value(
 def magnitude(x):
     return int(maths.log10(x))
 
+def get_near_psd(A: np.array):
+    C = (A + A.T)/2
+    eigval, eigvec = np.linalg.eig(C)
+    eigval[eigval < 0] = 0
 
+    return np.array(eigvec.dot(np.diag(eigval)).dot(eigvec.T))
 
 if __name__ == "__main__":
     import doctest
