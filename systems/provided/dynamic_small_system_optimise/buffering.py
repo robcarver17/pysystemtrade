@@ -18,6 +18,8 @@ def calculate_adjustment_factor(speed_control: speedControlForDynamicOpt,
 
     ## returns 1.0 if we do an entire trade (ok never happens)
     ## returns 0.0 if we do none of it
+    if tracking_error_of_prior<=0:
+        return 0.0
 
     tracking_error_buffer = speed_control.tracking_error_buffer
 

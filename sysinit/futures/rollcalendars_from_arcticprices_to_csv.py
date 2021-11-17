@@ -1,4 +1,6 @@
+from syscore.genutils import true_if_answer_is_yes
 from syscore.objects import arg_not_supplied
+
 from sysdata.arctic.arctic_futures_per_contract_prices import (
     arcticFuturesContractPriceData,
 )
@@ -60,14 +62,14 @@ def build_and_write_roll_calendar(
     # Will not work if an existing calendar exists
 
     if check_before_writing:
-        check_happy_to_write = input(
-            "Are you ok to write this csv to path %s/%s.csv? [might be worth writing and hacking manually] (yes/other)?" %
+        check_happy_to_write = true_if_answer_is_yes(
+            "Are you ok to write this csv to path %s/%s.csv? [might be worth writing and hacking manually]?" %
             (csv_roll_calendars.datapath, instrument_code)
         )
     else:
-        check_happy_to_write = "yes"
+        check_happy_to_write = True
 
-    if check_happy_to_write == "yes":
+    if check_happy_to_write:
         print("Adding roll calendar")
         csv_roll_calendars.add_roll_calendar(instrument_code, roll_calendar, ignore_duplication=True)
     else:

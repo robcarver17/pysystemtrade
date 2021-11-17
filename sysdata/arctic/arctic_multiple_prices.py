@@ -49,7 +49,7 @@ class arcticFuturesMultiplePricesData(futuresMultiplePricesData):
         self.arctic.delete(instrument_code)
         self.log.msg(
             "Deleted multiple prices for %s from %s" %
-            (instrument_code, str(self)), instrument_code)
+            (instrument_code, str(self)))
 
     def _add_multiple_prices_without_checking_for_existing_entry(
         self, instrument_code: str, multiple_price_data_object: futuresMultiplePrices
