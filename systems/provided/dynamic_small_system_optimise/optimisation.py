@@ -145,8 +145,9 @@ class objectiveFunctionForGreedy:
         try:
             optimised_weights_as_np = greedy_algo_across_integer_values(self)
         except Exception as E:
-            self.log.error("Optimisation failed error %s using prior weights" % str(E))
-            return self.weights_prior_as_np_replace_nans_with_zeros
+            msg = "Optimisation failed error %s" % str(E)
+            self.log.error(msg)
+            raise Exception(msg)
 
         if all(optimised_weights_as_np==0):
             # pretty unlikely
@@ -224,6 +225,9 @@ class objectiveFunctionForGreedy:
         costs_per_trade = self.costs_as_np
         trade_shadow_cost = self.trade_shadow_cost
         trade_costs = sum(abs(costs_per_trade * trade_gap * trade_shadow_cost))
+
+        if np.isnan(trade_costs):
+            raise Exception("Trade costs are zero, most likely have a zero cost somewhere")
 
         return trade_costs
 

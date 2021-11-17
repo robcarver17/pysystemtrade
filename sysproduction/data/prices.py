@@ -242,8 +242,12 @@ def get_valid_instrument_code_from_user(
 def get_list_of_instruments(data: dataBlob=arg_not_supplied, source = 'multiple') -> list:
     price_data = diagPrices(data)
     if source=="multiple":
-        return price_data.get_list_of_instruments_in_multiple_prices()
+        instrument_list = price_data.get_list_of_instruments_in_multiple_prices()
     elif source=="single":
-        return price_data.get_list_of_instruments_with_contract_prices()
+        instrument_list = price_data.get_list_of_instruments_with_contract_prices()
     else:
         raise Exception("%s not recognised must be multiple or single" % source)
+
+    instrument_list.sort()
+
+    return instrument_list

@@ -12,8 +12,6 @@ def greedy_algo_across_integer_values(
     weight_start = obj_instance.starting_weights_as_np
     best_value = obj_instance.evaluate(weight_start)
     best_solution = weight_start
-    if np.isnan(best_value):
-        raise Exception("Evaluates to nan, something wrong")
 
     at_limit = [False] * len(weight_start)
 
