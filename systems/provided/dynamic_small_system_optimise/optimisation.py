@@ -142,12 +142,7 @@ class objectiveFunctionForGreedy:
         return optimised_weights_as_np_track_adjusted
 
     def get_optimisation_results_raw(self):
-        try:
-            optimised_weights_as_np = greedy_algo_across_integer_values(self)
-        except Exception as E:
-            msg = "Optimisation failed error %s" % str(E)
-            self.log.error(msg)
-            raise Exception(msg)
+        optimised_weights_as_np = greedy_algo_across_integer_values(self)
 
         if all(optimised_weights_as_np==0):
             # pretty unlikely

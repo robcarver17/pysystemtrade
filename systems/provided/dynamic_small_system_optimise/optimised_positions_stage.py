@@ -63,7 +63,11 @@ class optimisedPositions(SystemStage):
                 maximum_positions = maximum_positions
         )
 
-        optimal_positions = obj_instance.optimise_positions()
+        try:
+            optimal_positions = obj_instance.optimise_positions()
+        except Exception as e:
+            msg = "Error %s when optimising at %s with previous positions %s" % (str(e), str(relevant_date), str(previous_positions))
+            raise Exception(msg)
 
         return optimal_positions
 
