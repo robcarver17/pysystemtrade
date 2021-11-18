@@ -238,7 +238,7 @@ function update_reconcile() {
         $("#reconcile_strategy tbody").append(`
           <tr><td>${contract}</td>
           <td class="red">${details['current']}</td>
-          <td class="red">${details['optimal']}</td>
+          <td class="red">${details['optimal']['lower_position'].toFixed(1)} / ${details['optimal']['upper_position'].toFixed(1)}</td>
           </tr>`);
           overall = "orange";
         } else {
