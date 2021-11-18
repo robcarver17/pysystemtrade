@@ -167,8 +167,12 @@ def reconcile():
         # retval["trades_from_ib"]= reporting_api.table_of_recent_ib_trades().Body
 
         # Reindex the position dataframes
-        retval["ib"].set_index(["instrument_code", "contract_date"], inplace=True)
-        retval["my"].set_index(["instrument_code", "contract_date"], inplace=True)
+        retval["ib"].set_index(
+            ["instrument_code", "contract_date"], inplace=True, drop=False
+        )
+        retval["my"].set_index(
+            ["instrument_code", "contract_date"], inplace=True, drop=False
+        )
     except:
         # IB gateway connection failed
         retval["gateway_ok"] = False
