@@ -234,7 +234,7 @@ function update_reconcile() {
       $("#reconcile_contract > tbody").empty();
       $("#reconcile_broker > tbody").empty();
       $.each(data['optimal'], function(contract, details) {
-        if (details['break']) {
+        if (details['breaks']) {
         $("#reconcile_strategy tbody").append(`
           <tr><td>${contract}</td>
           <td class="red">${details['current']}</td>
