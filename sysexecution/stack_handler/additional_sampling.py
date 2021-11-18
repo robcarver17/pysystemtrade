@@ -22,6 +22,7 @@ class stackHandlerAdditionalSampling(stackHandlerCore):
     def _get_all_instruments_priced_contracts_from_db(self):
         instrument_list = self._get_all_instruments()
         data_contracts = self.data_contracts
+
         priced_contracts = [futuresContract(instrument_code,
             data_contracts.get_priced_contract_id(instrument_code))
                             for instrument_code in instrument_list]
@@ -31,7 +32,7 @@ class stackHandlerAdditionalSampling(stackHandlerCore):
 
     def _get_all_instruments(self):
         diag_prices = self.diag_prices
-        instrument_list = diag_prices.get_list_of_instruments_with_contract_prices()
+        instrument_list = diag_prices.get_list_of_instruments_in_multiple_prices()
 
         return instrument_list
 

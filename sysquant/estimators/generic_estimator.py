@@ -120,6 +120,7 @@ class genericEstimator(object):
         return estimate
 
 
+
     def calculate_estimate_normally(self, fit_period: fitDates):
         raise NotImplementedError("Have to inherit from base class")
 

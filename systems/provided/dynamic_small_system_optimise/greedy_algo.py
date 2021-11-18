@@ -57,10 +57,7 @@ def _find_possible_new_best_live(best_solution: np.array,
         if at_limit[i]:
             continue
 
-        try:
-            temp_objective_value = obj_instance.evaluate(temp_step)
-        except:
-            print(list(temp_step))
+        temp_objective_value = obj_instance.evaluate(temp_step)
 
         if temp_objective_value < new_best_value:
             new_best_value = temp_objective_value

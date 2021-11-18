@@ -261,6 +261,7 @@ instrument_returns_correlation:
   forward_fill_price_index: True
   offdiag: 0.0
   clip: 0.90
+  shrinkage_parameter: 0.5
 # small system optimisation
 small_system:
   shadow_cost: 250

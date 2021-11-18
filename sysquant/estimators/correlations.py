@@ -1,8 +1,10 @@
 import datetime
 
 from copy import copy
+from statsmodels.stats.correlation_tools import corr_nearest
 import pandas as pd
 import numpy as np
+
 from dataclasses import dataclass
 from syscore.objects import arg_not_supplied
 from syscore.pdutils import must_have_item
@@ -12,6 +14,10 @@ from sysquant.estimators.generic_estimator import Estimate
 
 class correlationEstimate(Estimate):
     def __init__(self, values: np.array, columns =arg_not_supplied):
+        if type(values) is pd.DataFrame:
+            columns = values.columns
+            values = values.values
+
         if columns is arg_not_supplied:
             columns = [""]*len(values)
         self._values = values
@@ -185,6 +191,51 @@ class correlationEstimate(Estimate):
         assets_with_data = self.assets_with_data()
         return self.subset(assets_with_data)
 
+    def quantize(self, quant_factor = 0.2):
+        as_pd = self.as_pd()
+        multipier = 1/quant_factor
+        multiplied_pd = as_pd*multipier
+        multiplied_pd_rounded = multiplied_pd.round()
+        pd_quantized = multiplied_pd_rounded / multipier
+
+        return correlationEstimate(values = pd_quantized.values,
+                                   columns=pd_quantized.columns)
+
+    def is_psd(self) -> bool:
+        try:
+            np.linalg.cholesky(self.as_np())
+            return True
+
+        except np.linalg.LinAlgError:
+            return False
+
+    def make_psd(self) -> 'correlationEstimate':
+        assets_with_data = self.assets_with_data()
+        assets_without_data =self.assets_with_missing_data()
+
+        valid_assets_corr_as_np = self.subset(assets_with_data).as_np()
+        nearest_as_np_for_valid_assets = corr_nearest(valid_assets_corr_as_np, n_fact=10)
+        corr_with_valid_assets = correlationEstimate(values=nearest_as_np_for_valid_assets,
+                                                     columns=self.assets_with_data())
+        corr_with_all = corr_with_valid_assets.add_assets_with_nan_values(assets_without_data)
+
+        return corr_with_all
+
+    def add_assets_with_nan_values(self, new_asset_names):
+        l1 = self.as_pd()
+        r1 = pd.DataFrame([[np.nan]*len(new_asset_names)]*len(self.columns), columns=new_asset_names,
+                          index = self.columns)
+        top_row = pd.concat([l1, r1], axis=1)
+        r2 = pd.DataFrame([[np.nan]*len(new_asset_names)]*len(new_asset_names), columns=new_asset_names,
+                          index = new_asset_names)
+        l2 = pd.DataFrame([[np.nan]*len(self.columns)]*len(new_asset_names), columns=self.columns,
+                          index = new_asset_names)
+        bottom_row = pd.concat([l2,r2], axis=1)
+        both_rows = pd.concat([top_row, bottom_row], axis=0)
+
+        new_cmatrix = correlationEstimate(values=both_rows.values, columns=both_rows.columns)
+
+        return new_cmatrix
 
 def create_boring_corr_matrix(size: int,
                        offdiag: float=0.99,
@@ -368,3 +419,20 @@ class CorrelationList:
             index_of_date = self.fit_dates.index_of_most_recent_period_before_relevant_date(relevant_date)
 
         return self.corr_list[index_of_date]
+
+
+def modify_correlation(corr_matrix: correlationEstimate,
+                       floor_at_zero: bool = True,
+                       shrinkage: float = 0.0,
+                       clip=arg_not_supplied,
+                       ):
+
+    if floor_at_zero:
+        corr_matrix = corr_matrix.floor_correlation_matrix(floor = 0.0)
+
+    corr_matrix = corr_matrix.clip_correlation_matrix(clip = clip)
+
+    if shrinkage > 0:
+        corr_matrix = corr_matrix.shrink_to_average(shrinkage)
+
+    return corr_matrix

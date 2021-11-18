@@ -207,19 +207,14 @@ class objectiveFunctionForGreedy:
         if track_error_var<0:
             ## can happen in some corner cases due to way covar estimated
             ## this effectively means we won't trade until problem solved seems reasonable
-            self.log.warn("Negative covariance, finding nearest PSD instead")
-            self.convert_covariance_as_np_to_psd()
-            return self.tracking_error_against_passed_weights(weights, optimal_weights)
+            msg = "Negative covariance when optimising!"
+            self.log.critical(msg)
+            raise Exception(msg)
 
         track_error_std = track_error_var**.5
 
         return track_error_std
 
-    def convert_covariance_as_np_to_psd(self):
-        covariance = self.covariance_matrix_as_np
-        new_covariance = get_near_psd(covariance)
-
-        self.covariance_matrix_as_np = new_covariance
 
     def calculate_costs(self, weights: np.array) -> float:
         if self.no_prior_positions_provided:
