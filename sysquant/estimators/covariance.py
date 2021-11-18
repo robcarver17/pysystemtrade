@@ -27,11 +27,20 @@ class covarianceEstimate(correlationEstimate):
 def covariance_from_stdev_and_correlation(correlation_estimate: correlationEstimate,
                                           stdev_estimate: stdevEstimates) -> covarianceEstimate:
 
-    list_of_assets = list(correlation_estimate.columns)
-    aligned_stdev_list = stdev_estimate.list_in_key_order(list_of_assets)
-    sigma = sigma_from_corr_and_std(aligned_stdev_list, correlation_estimate.values)
+    all_assets = set(correlation_estimate.columns + stdev_estimate.list_of_keys())
+    list_of_assets_with_data = list(set(correlation_estimate.assets_with_data()).
+                          intersection(set(stdev_estimate.assets_with_data())))
+    assets_without_data = list(all_assets.difference(list_of_assets_with_data))
 
-    return covarianceEstimate(sigma, list_of_assets)
+    aligned_stdev_list = stdev_estimate.list_in_key_order(list_of_assets_with_data)
+    aligned_corr_list = correlation_estimate.subset(list_of_assets_with_data)
+    sigma = sigma_from_corr_and_std(aligned_stdev_list, aligned_corr_list.values)
+
+    cov_assets_with_data = covarianceEstimate(sigma, columns=list_of_assets_with_data)
+
+    cov = cov_assets_with_data.add_assets_with_nan_values(assets_without_data)
+
+    return cov
 
 def get_annualised_risk(
         std_dev: stdevEstimates,

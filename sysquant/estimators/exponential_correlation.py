@@ -14,6 +14,7 @@ class exponentialCorrelation(exponentialEstimator):
                  floor_at_zero:bool = True,
                  length_adjustment: int = 1,
                  shrinkage_parameter: float = 0.0,
+                 offdiag: float = 0.99,
                  **_ignored_kwargs):
 
         super().__init__(data_for_correlation,
@@ -23,6 +24,7 @@ class exponentialCorrelation(exponentialEstimator):
                          floor_at_zero=floor_at_zero,
                          length_adjustment=length_adjustment,
                          shrinkage_parameter = shrinkage_parameter,
+                         offdiag=offdiag,
                          **_ignored_kwargs)
 
 
@@ -37,6 +39,10 @@ class exponentialCorrelation(exponentialEstimator):
                                                                  min_periods=adjusted_min_periods)
 
         return correlation_calculations
+
+    @property
+    def offdiag(self) -> float:
+        return self.other_kwargs['offdiag']
 
     @property
     def cleaning(self) -> bool:
@@ -74,7 +80,7 @@ class exponentialCorrelation(exponentialEstimator):
         cleaning = self.cleaning
         if cleaning:
             data_for_correlation = self.data
-            offdiag = self.other_kwargs.get('offdiag', 0.99)
+            offdiag = self.offdiag
             corr_matrix = raw_corr_matrix.clean_corr_matrix_given_data(
                                                                fit_period,
                                                                data_for_correlation,

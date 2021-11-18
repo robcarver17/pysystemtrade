@@ -9,6 +9,9 @@ from sysquant.estimators.generic_estimator import genericEstimator, exponentialE
 
 
 class stdevEstimates(dict, Estimate):
+    def assets_with_data(self) -> list:
+        return [asset_name for asset_name in self.keys() if ~np.isnan(self[asset_name])]
+
     def subset(self, subset_of_asset_names: list):
         return stdevEstimates([(asset_name, self[asset_name]) for asset_name in subset_of_asset_names])
 

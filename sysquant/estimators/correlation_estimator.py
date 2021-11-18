@@ -48,8 +48,8 @@ def correlation_estimator_for_subperiod(data_for_correlation,
                                                      fit_period: fitDates,
                           cleaning: bool = True,
                           floor_at_zero: bool = True,
-                        offdiag = 0.99,
-                                        clip = arg_not_supplied,
+                        offdiag: float = 0.99,
+                                        clip: float = arg_not_supplied,
                                         shrinkage: float = 0.0,
                           **_ignored_kwargs):
 
