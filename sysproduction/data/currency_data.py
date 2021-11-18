@@ -38,6 +38,9 @@ class dataCurrency(productionDataLayerGeneric):
 
     def currency_value_in_base(self, currency_value: currencyValue) -> float:
         value = currency_value.value
+        if value==0.0:
+            return 0.0
+
         last_fx_rate = self.get_last_fx_rate_to_base(currency_value.currency)
         base_value = value * last_fx_rate
 
@@ -49,6 +52,9 @@ class dataCurrency(productionDataLayerGeneric):
         :param currency: eg GBP
         :return: eg fx rate for GBPUSD if base was USD
         """
+        if currency=="":
+            raise Exception("Empty currency field!")
+        
         base = self.get_base_currency()
         if currency==base:
             return 1.0

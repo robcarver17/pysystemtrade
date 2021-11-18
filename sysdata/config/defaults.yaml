@@ -256,10 +256,10 @@ instrument_returns_correlation:
   ew_lookback: 75
   min_periods: 10
   cleaning: False
+  offdiag: 0.0
   rollyears: 5
   floor_at_zero: False
   forward_fill_price_index: True
-  offdiag: 0.0
   clip: 0.90
   shrinkage_parameter: 0.5
 # small system optimisation

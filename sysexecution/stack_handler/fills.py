@@ -71,14 +71,7 @@ class stackHandlerForFills(stackHandlerForCompletions):
 
         # Turn commissions into floats
         data_broker = dataBroker(self.data)
-        try:
-            # FIXME TEMP HACK TO GET ISSUE 452 FIXED
-            broker_order_with_commissions = data_broker.calculate_total_commission_for_broker_order(broker_order)
-        except:
-            self.log.email_user("ERROR #452; original broker_order %s ---- %s ---- commisison %s" % (str(broker_order),
-                                                                                        str(broker_order.tradeable_object),
-                                                                                        str(broker_order.commission)))
-            raise Exception()
+        broker_order_with_commissions = data_broker.calculate_total_commission_for_broker_order(broker_order)
 
         # This will add commissions, fills, etc
         result = self.broker_stack.add_execution_details_from_matched_broker_order(
