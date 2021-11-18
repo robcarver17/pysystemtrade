@@ -169,11 +169,10 @@ def reconcile():
         # Reindex the position dataframes
         retval["ib"].set_index("instrument_code", inplace=True)
         retval["my"].set_index("instrument_code", inplace=True)
-        retval = dict_of_df_to_dict(retval, orient="index")
     except:
         # IB gateway connection failed
         retval["gateway_ok"] = False
-    return retval
+    return dict_of_df_to_dict(retval, orient="index")
 
 
 @app.route("/rolls")
