@@ -127,10 +127,10 @@ class handcraftPortfolio(object):
 
     def div_mult(self, weights: portfolioWeights):
         asset_names = self.asset_names
-        weights_list = weights.as_list_given_keys(asset_names)
+        weights_aligned = weights.reorder(asset_names)
         correlation = self.estimates.correlation
 
-        div_mult = diversification_mult_single_period(weights=weights_list,
+        div_mult = diversification_mult_single_period(weights=weights_aligned,
                                            corrmatrix=correlation)
 
         return div_mult

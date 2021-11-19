@@ -140,8 +140,9 @@ class optimisedPositions(SystemStage):
     def get_cost_per_contract_as_proportion_of_capital_on_date(self, instrument_code, relevant_date: datetime.datetime = arg_not_supplied)-> float:
         cost_deflator = self.get_cost_deflator_on_date(instrument_code, relevant_date=relevant_date)
         cost_per_contract_as_proportion_of_capital = self.get_cost_per_contract_as_proportion_of_capital(instrument_code)
+        deflated_cost = cost_per_contract_as_proportion_of_capital * cost_deflator
 
-        return cost_per_contract_as_proportion_of_capital * cost_deflator
+        return deflated_cost
 
     def get_cost_deflator_on_date(self, instrument_code: str, relevant_date: datetime.datetime = arg_not_supplied) -> float:
         deflator = self.get_cost_deflator(instrument_code)
@@ -152,10 +153,10 @@ class optimisedPositions(SystemStage):
     def get_cost_deflator(self, instrument_code: str):
         price = self.get_raw_price(instrument_code)
         deflator = calculate_cost_deflator(price)
-        common_index = self.common_index()
-        deflator_indexed = deflator.reindex(common_index, method="ffill")
+        deflator = deflator.reindex(self.common_index()).ffill()
+        deflator[deflator.isna()] = 10000.0
 
-        return deflator_indexed
+        return deflator
 
     @diagnostic()
     def get_cost_per_contract_as_proportion_of_capital(self, instrument_code)-> float:

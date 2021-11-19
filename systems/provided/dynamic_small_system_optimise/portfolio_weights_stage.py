@@ -115,14 +115,11 @@ class portfolioWeightsStage(SystemStage):
                            for instrument_code in instrument_list])
 
         vol_as_pd = pd.DataFrame(vol_as_dict)
-
-        common_index = self.common_index()
-        vol_as_pd = vol_as_pd.reindex(common_index)
         vol_as_pd = vol_as_pd.ffill()
 
         return vol_as_pd
 
-
+    @diagnostic()
     def common_index(self):
         portfolio_weights = self.get_original_portfolio_weight_df()
         common_index = portfolio_weights.index

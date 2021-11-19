@@ -27,7 +27,7 @@ class covarianceEstimate(correlationEstimate):
 def covariance_from_stdev_and_correlation(correlation_estimate: correlationEstimate,
                                           stdev_estimate: stdevEstimates) -> covarianceEstimate:
 
-    all_assets = set(correlation_estimate.columns + stdev_estimate.list_of_keys())
+    all_assets = set(list(correlation_estimate.columns) + stdev_estimate.list_of_keys())
     list_of_assets_with_data = list(set(correlation_estimate.assets_with_data()).
                           intersection(set(stdev_estimate.assets_with_data())))
     assets_without_data = list(all_assets.difference(list_of_assets_with_data))

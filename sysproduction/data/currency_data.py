@@ -54,7 +54,7 @@ class dataCurrency(productionDataLayerGeneric):
         """
         if currency=="":
             raise Exception("Empty currency field!")
-        
+
         base = self.get_base_currency()
         if currency==base:
             return 1.0

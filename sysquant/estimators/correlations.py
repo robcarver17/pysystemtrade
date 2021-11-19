@@ -180,7 +180,7 @@ class correlationEstimate(Estimate):
         return new_correlation
 
     def assets_with_missing_data(self) -> list:
-        na_row_count = self.as_pd().isna().all(axis=1)
+        na_row_count = (~self.as_pd().isna()).sum()<2
         return [keyname for keyname in na_row_count.keys() if na_row_count[keyname]]
 
     def assets_with_data(self) -> list:
@@ -234,6 +234,7 @@ class correlationEstimate(Estimate):
         both_rows = pd.concat([top_row, bottom_row], axis=0)
 
         new_cmatrix = correlationEstimate(values=both_rows.values, columns=both_rows.columns)
+        new_cmatrix = new_cmatrix.ordered_correlation_matrix()
 
         return new_cmatrix
 

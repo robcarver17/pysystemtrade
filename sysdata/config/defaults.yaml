@@ -255,7 +255,7 @@ instrument_returns_correlation:
   using_exponent: True
   ew_lookback: 75
   min_periods: 10
-  cleaning: False
+  cleaning: True
   offdiag: 0.0
   rollyears: 5
   floor_at_zero: False

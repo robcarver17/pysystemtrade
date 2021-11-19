@@ -356,13 +356,13 @@ class Portfolios(SystemStage):
         idm_func = resolve_function(div_mult_params.pop("func"))
 
         # annual
-        correlation_list_object = self.get_instrument_correlation_matrix()
+        correlation_list = self.get_instrument_correlation_matrix()
 
         # daily
         weight_df = self.get_instrument_weights()
 
         ts_idm = idm_func(
-            correlation_list_object,
+            correlation_list,
             weight_df,
             **div_mult_params)
 
@@ -730,12 +730,15 @@ class Portfolios(SystemStage):
 
         return padded_instrument_weights
 
-    def get_instrument_list(self, for_instrument_weights = False) -> list:
+    def get_instrument_list(self,
+                            for_instrument_weights = False,
+                            auto_remove_bad_instruments = False) -> list:
+
         instrument_list = self.parent.get_instrument_list()
         if for_instrument_weights:
             instrument_list = copy(instrument_list)
             allocate_zero_instrument_weights_to_these_instruments = \
-                self.allocate_zero_instrument_weights_to_these_instruments()
+                self.allocate_zero_instrument_weights_to_these_instruments(auto_remove_bad_instruments)
 
             for instrument_code_to_remove in allocate_zero_instrument_weights_to_these_instruments:
                 instrument_list.remove(instrument_code_to_remove)
@@ -743,7 +746,8 @@ class Portfolios(SystemStage):
         return instrument_list
 
     @diagnostic()
-    def allocate_zero_instrument_weights_to_these_instruments(self) -> list:
+    def allocate_zero_instrument_weights_to_these_instruments(self,
+                                                              auto_remove_bad_instruments: bool = False) -> list:
         likely_bad = self.parent.get_list_of_markets_not_trading_but_with_data()
         config = self.config
         allocate_zero_instrument_weights_to_these_instruments = \
@@ -751,10 +755,14 @@ class Portfolios(SystemStage):
         instrument_list = self.get_instrument_list()
         likely_bad_in_instrument_list = list(set(instrument_list).intersection(set(likely_bad)))
         likely_bad_no_zero_allocation = list(set(likely_bad_in_instrument_list).difference(set(allocate_zero_instrument_weights_to_these_instruments)))
+
         if len(likely_bad_no_zero_allocation)>0:
-            self.log.warn("*** Following instruments are listed as trading_restrictions and/or bad_markets but still included in instrument weight optimisation: ***\n%s" % str(likely_bad_no_zero_allocation))
-            self.log.warn("This is fine for dynamic systems where we remove them in later optimisation, but may be problematic for static systems")
-            self.log.warn("Consider adding to config element allocate_zero_instrument_weights_to_these_instruments")
+            if auto_remove_bad_instruments:
+                allocate_zero_instrument_weights_to_these_instruments = allocate_zero_instrument_weights_to_these_instruments+likely_bad_no_zero_allocation
+            else:
+                self.log.warn("*** Following instruments are listed as trading_restrictions and/or bad_markets but still included in instrument weight optimisation: ***\n%s" % str(likely_bad_no_zero_allocation))
+                self.log.warn("This is fine for dynamic systems where we remove them in later optimisation, but may be problematic for static systems")
+                self.log.warn("Consider adding to config element allocate_zero_instrument_weights_to_these_instruments")
 
         if len(allocate_zero_instrument_weights_to_these_instruments)>0:
             self.log.msg("Following instruments will have zero weight in optimisation of instrument weights%s" % str(allocate_zero_instrument_weights_to_these_instruments))

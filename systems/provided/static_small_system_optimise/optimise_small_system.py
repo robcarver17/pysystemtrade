@@ -21,7 +21,8 @@ def find_best_ordered_set_of_instruments(system,
     system.config.notional_trading_capital = capital
     system.config.instrument_correlation_estimate['floor_at_zero'] = False
 
-    list_of_instruments = system.portfolio.get_instrument_list(for_instrument_weights = True)
+    list_of_instruments = system.portfolio.get_instrument_list(for_instrument_weights = True,
+                                                               auto_remove_bad_instruments=True)
     list_of_correlations = system.portfolio.get_instrument_correlation_matrix()
     corr_matrix = list_of_correlations.corr_list[-1]
 

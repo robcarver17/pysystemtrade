@@ -6,7 +6,7 @@ import numpy as np
 from syscore.genutils import flatten_list
 
 from sysquant.estimators.estimates import Estimates
-
+from sysquant.estimators.correlation_estimator import correlationEstimate
 
 class portfolioWeights(dict):
 
@@ -35,6 +35,20 @@ class portfolioWeights(dict):
     @property
     def assets(self) -> list:
         return list(self.keys())
+
+    def all_weights_are_zero(self):
+        return all([x==0.0 for x in self.values()])
+
+    def subset(self, asset_names: list):
+        return self.reorder(asset_names)
+
+    def reorder(self, asset_names: list):
+        return portfolioWeights(
+            [
+                (key, self[key])
+            for key in asset_names
+            ]
+        )
 
     def replace_weights_with_ints(self):
         new_weights_as_dict = dict([
@@ -99,6 +113,9 @@ class portfolioWeights(dict):
     def __mul__(self, other: 'portfolioWeights'):
         return self._operate_on_other(other, "__mul__")
 
+    def __sub__(self, other):
+        return self._operate_on_other(other, "__sub__")
+
     def _operate_on_other(self, other: 'portfolioWeights', func_to_use):
         asset_list = self.assets
         np_self = np.array(self.as_list_given_keys(asset_list))
@@ -110,7 +127,21 @@ class portfolioWeights(dict):
         return portfolioWeights.from_weights_and_keys(list_of_weights=list(np_results),
                                                   list_of_keys=asset_list)
 
+    def portfolio_stdev(self, cmatrix: correlationEstimate):
+        valid_assets = list(set(self.assets_with_data()).
+                            intersection(set(cmatrix.assets_with_data())))
+        weights_valid = self.subset(valid_assets)
+        corr_valid = cmatrix.subset(valid_assets)
 
+        weights_np = weights_valid.as_np()
+        corr_np = corr_valid.as_np()
+
+        variance = \
+            (weights_np.dot(corr_np).dot(weights_np))
+
+        risk = variance ** 0.5
+
+        return risk
 
 def _int_from_nan(x: float):
     if np.isnan(x):

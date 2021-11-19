@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 
 from sysquant.estimators.correlations import CorrelationList, correlationEstimate
+from sysquant.optimisation.weights import portfolioWeights
 
 def diversification_multiplier_from_list(
     correlation_list: CorrelationList,
@@ -51,7 +52,8 @@ def diversification_multiplier_from_list(
             continue
 
         # take the current weights and work out the DM
-        weights = list(weight_slice.iloc[-1, :].values)
+        weights_dict = weight_slice.iloc[-1].to_dict()
+        weights = portfolioWeights(weights_dict)
         div_multiplier = diversification_mult_single_period(
             corrmatrix, weights, **kwargs
         )
@@ -71,37 +73,24 @@ def diversification_multiplier_from_list(
 
 
 def diversification_mult_single_period(corrmatrix: correlationEstimate,
-                                       weights: list,
+                                       weights: portfolioWeights,
                                        dm_max: float=2.5) -> float:
     """
     Given N assets with a correlation matrix of H and  weights W summing to 1,
     the diversification multiplier will be 1 / [ ( W x H x WT ) 1/2 ]
 
-    :param corrmatrix: Correlation matrix
-    :type corrmatrix: np.array square, 2-dim
-
-    :param weights: Weights of assets
-    :type weights: list of floats (aligned with corrmatrix)
-
-    :param dm_max: Max value
-    :type dm_max: float
-
-    :returns: float
-
-    >>> corrmatrix=np.array([[1.0,0.0], [0.0,1.0]])
-    >>> weights=[.5,.5]
-    >>> diversification_mult_single_period(corrmatrix, weights) # square root of two
-    1.414213562373095
     """
+    try:
+        risk = weights.portfolio_stdev(corrmatrix)
+    except:
+        risk = np.nan
 
-    # edge cases...
-    if all([x == 0.0 for x in list(weights)]) or np.all(np.isnan(weights)) or len(weights)==1:
+    if np.isnan(risk):
         return 1.0
 
-    weights = np.array(weights, ndmin=2)
-    variance = np.dot(np.dot(weights, corrmatrix.values),
-                                     weights.transpose())
-    risk = (float(variance) ** 0.5)
+    if risk<0.0000001:
+        return 1.0
+
     dm = np.min([1.0 / risk, dm_max])
 
     return dm
