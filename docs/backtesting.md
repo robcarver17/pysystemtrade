@@ -461,6 +461,12 @@ For estimated instrument weights you'd change this section:
 instruments: ["EDOLLAR", "US10", "EUROSTX", "V2X", "MXP", "CORN"]
 ```
 
+Note that if moving from fixed to estimated instrument weights (by changing `system.config.use_instrument_weight_estimates` to `True`), the set of instruments selected in your `system.config.instrument_weights` will be ignored; if you want to continue using this same set of instruments, you need to say so:
+
+```python
+system.config.instruments = list(system.config.instrument_weights.keys())
+```
+
 (The IDM will be re-estimated automatically)
 
 You may also need to change this section, if you have different rules for each
