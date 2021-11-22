@@ -234,11 +234,11 @@ function update_reconcile() {
       $("#reconcile_contract > tbody").empty();
       $("#reconcile_broker > tbody").empty();
       $.each(data['optimal'], function(contract, details) {
-        if (details['break']) {
+        if (details['breaks']) {
         $("#reconcile_strategy tbody").append(`
           <tr><td>${contract}</td>
           <td class="red">${details['current']}</td>
-          <td class="red">${details['optimal']}</td>
+          <td class="red">${details['optimal']['lower_position'].toFixed(1)} / ${details['optimal']['upper_position'].toFixed(1)}</td>
           </tr>`);
           overall = "orange";
         } else {
@@ -251,7 +251,7 @@ function update_reconcile() {
       }
       );
       $.each(data['my'], function(contract, details) {
-        var line = `<tr><td>${contract}</td>
+        var line = `<tr><td>${details['instrument_code']}</td>
           <td>${details['contract_date']}</td>`;
         if (details['position'] != data['ib'][contract]['position']) {
           line += `<td class="red">${details['position']}</td>

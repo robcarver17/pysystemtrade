@@ -104,6 +104,11 @@ system.get_instrument_list()
 >['US5', 'US10']
 ```
 
+The code snips above make this is a good time to point out that, if you are moving from running a fixed system (i.e. fixed instrument weights) to running an estimated system (i.e. the system sets the weights), your config needs to specify a list of `instruments` *explicitly*.  The system will not presume that the set of instruments you were using in `instrument_weights` for a fixed system will be the same set of instruments you want to use for the estimated system (it will instead use all instruments for which it has data), so you need to set this config item directly, e.g.:
+
+```python
+system.config.instruments = list(system.config.instrument_weights.keys())
+```
 
 
 ## Always excluded
