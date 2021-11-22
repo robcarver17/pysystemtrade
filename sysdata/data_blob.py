@@ -83,16 +83,17 @@ class dataBlob(object):
             self.add_class_object(class_object)
 
     def add_class_object(self, class_object):
-        resolved_instance = self._get_resolved_instance_of_class(class_object)
         class_name = get_class_name(class_object)
-        self._resolve_names_and_add(resolved_instance, class_name)
+        attr_name = self._get_new_name(class_name)
+        if not self._already_existing_class_name(attr_name):
+            resolved_instance = self._get_resolved_instance_of_class(class_object)
+            self._resolve_names_and_add(resolved_instance, class_name)
 
     def _get_resolved_instance_of_class(self, class_object):
         class_adding_method = self._get_class_adding_method(class_object)
         resolved_instance = class_adding_method(class_object)
 
         return resolved_instance
-
 
     def _get_class_adding_method(self, class_object):
         prefix = self._get_class_prefix(class_object)

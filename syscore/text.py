@@ -1,7 +1,6 @@
 import re
 from copy import copy
 
-
 def sort_dict_by_underscore_length(other_args):
     """
     Sort dict according to keys and presence of leading underscores
@@ -119,17 +118,8 @@ def force_args_to_same_length(data_args_input, data, pad_with={}):
 
     return padded_data_args
 
-
 def camel_case_split(some_str) -> list:
-    words = [[some_str[0]]]
-
-    for c in some_str[1:]:
-        if words[-1][-1].islower() and c.isupper():
-            words.append(list(c))
-        else:
-            words[-1].append(c)
-
-    return ["".join(word) for word in words]
+    return re.split('(?<!^)(?=[A-Z])', some_str)
 
 def print_with_landing_strips_around(str_to_match, strip: str="*"):
     str_to_print = landing_strip_around_string(str_to_match, strip)
