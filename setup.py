@@ -9,6 +9,10 @@ if StrictVersion(platform.python_version()) < StrictVersion("3.6.0"):
     print("pysystemtrade requires Python 3.6.0 or later. Exiting.", file=sys.stderr)
     sys.exit(1)
 
+if StrictVersion(platform.python_version()) >= StrictVersion("3.9.0"):
+    print("pysystemtrade requires Python 3.8.* or earlier (pandas issue). Exiting.", file=sys.stderr)
+    sys.exit(1)
+
 
 def read(fname):
     """Utility function to read the README file."""
