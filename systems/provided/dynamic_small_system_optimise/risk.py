@@ -73,8 +73,7 @@ class Risk(SystemStage):
             weights_on_date = portfolioWeights(
                 get_row_of_df_aligned_to_weights_as_dict(portfolio_weights, relevant_date))
             covariance = self.get_covariance_matrix(relevant_date)
-            risk_on_date = calculate_risk(weights = weights_on_date,
-                                          covariance = covariance)
+            risk_on_date = weights_on_date.portfolio_stdev(covariance)
             risk_series.append(risk_on_date)
 
         p.finished()

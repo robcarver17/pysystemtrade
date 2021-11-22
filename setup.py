@@ -67,7 +67,7 @@ print(package_data)
 
 setup(
     name="pysystemtrade",
-    version="0.85.0",
+    version="1.12.0",
     author="Robert Carver",
     description=(
         "Python framework for running systems as in Robert Carver's book Systematic Trading"
@@ -81,12 +81,17 @@ setup(
     install_requires=[
         "pandas==1.0.5",
         "matplotlib>=3.0.0",
-        "PyYAML>=5.3.1",
+        "PyYAML>==5.4",
         "numpy>=1.19.4",
         "scipy>=1.0.0",
         "pymongo==3.9.0",
         "arctic==1.79.2",
-        "ib-insync==0.9.65"
+        "ib-insync==0.9.65",
+        "psutil==5.6.6",
+        "pytest>6.2",
+        "Flask>=2.0.1",
+        "Werkzeug>=2.0.1",
+        "statsmodels==0.12.2"
     ],
     tests_require=[
         "nose",

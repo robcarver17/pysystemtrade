@@ -11,5 +11,4 @@ dataclasses==0.7; python_version < '3.7'
 pytest>6.2
 Flask>=2.0.1
 Werkzeug>=2.0.1
-cvxpy>=1.1.15
 statsmodel==0.12.2
