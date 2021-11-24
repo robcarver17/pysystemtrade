@@ -1536,13 +1536,13 @@ See [capital](#capital) to understand how capital works. On a daily basis we nee
 
 Python:
 ```python
-from sysproduction.update_account_values
-update_account_values()
+from sysproduction.update_total_capital import update_total_capital
+update_total_capital()
 ```
 
 Linux script:
 ```
-. $SCRIPT_PATH/update_account_values
+. $SCRIPT_PATH/update_total_capital
 ```
 
 Called by: `run_capital_update`
