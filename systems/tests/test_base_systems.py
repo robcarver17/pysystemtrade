@@ -29,7 +29,7 @@ class Test(unittest.TestCase):
         self.assertEqual(instrument_list, ["another_code", "code"])
 
         # get instrument list lives in cache
-        self.assertEqual(len(system.cache), 1)
+        self.assertEqual(3, len(system.cache))
         self.assertEqual(system, system.test.parent)
 
         system.set_logging_level("on")

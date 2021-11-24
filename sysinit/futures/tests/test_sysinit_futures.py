@@ -24,16 +24,14 @@ class TestFuturesInit:
 
         sample_prices = csvFuturesContractPriceData(
             datapath='sysinit.futures.tests.price', config=self.csv_config)
-        output_dir = tmp_path/'output'
+        output_dir = str(tmp_path)
 
         build_and_write_roll_calendar('AUD', output_datapath=output_dir, input_prices=sample_prices,
-            input_config=csvRollParametersData())
+            input_config=csvRollParametersData(), check_before_writing=False)
 
     def test_check_saved_roll_calendar(self):
         """
         Tests the function that checks a roll calendar generated from individual contract prices
-
-        *** FAILING TEST: once the function is working the annotation can be removed ***
         """
         sample_prices = csvFuturesContractPriceData(
             datapath='sysinit.futures.tests.price', config=self.csv_config)
