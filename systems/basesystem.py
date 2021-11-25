@@ -156,9 +156,16 @@ class System(object):
 
         self.data.log.set_logging_level(new_log_level)
 
+
     # note we have to use this special cache here, or we get recursion problems
     @base_system_cache()
-    def get_instrument_list(self) -> list:
+    def get_instrument_list(self,
+                            remove_duplicates=True,
+                            remove_ignored=True,
+                            remove_trading_restrictions=False,
+                            remove_bad_markets=False,
+                            remove_short_history=False,
+                            days_required = 750) -> list:
         """
         Get the instrument list
 
@@ -166,7 +173,13 @@ class System(object):
         """
         instrument_list = self._get_raw_instrument_list_from_config()
         instrument_list = self._remove_instruments_from_instrument_list(
-                                                                   instrument_list)
+                                                instrument_list,
+                                                remove_duplicates=remove_duplicates,
+                                                remove_short_history=remove_short_history,
+                                                remove_bad_markets=remove_bad_markets,
+                                                remove_ignored=remove_ignored,
+                                                remove_trading_restrictions=remove_trading_restrictions,
+                                                days_required=days_required)
 
         instrument_list = sorted(set(list(instrument_list)))
 
@@ -190,8 +203,22 @@ class System(object):
 
         return instrument_list
 
-    def _remove_instruments_from_instrument_list(self, instrument_list):
-        list_of_instruments_to_remove = self.get_list_of_instruments_to_remove()
+    def _remove_instruments_from_instrument_list(self, instrument_list,
+                                                 remove_duplicates=True,
+                                                 remove_ignored=True,
+                                                 remove_trading_restrictions=False,
+                                                 remove_bad_markets=False,
+                                                 remove_short_history=False,
+                                                 days_required: int = 750):
+
+        list_of_instruments_to_remove = self.get_list_of_instruments_to_remove(                                                remove_duplicates=remove_duplicates,
+                                                remove_short_history=remove_short_history,
+                                                remove_bad_markets=remove_bad_markets,
+                                                remove_ignored=remove_ignored,
+                                                remove_trading_restrictions=remove_trading_restrictions,
+                                                days_required=days_required)
+
+        self.log.msg("Following instruments removed entirely from sim: %s" % str(list_of_instruments_to_remove))
 
         instrument_list = [instrument for instrument in instrument_list
                            if instrument not in list_of_instruments_to_remove]
@@ -199,18 +226,71 @@ class System(object):
         return instrument_list
 
     @base_system_cache()
-    def get_list_of_instruments_to_remove(self) -> list:
-        list_of_duplicates = self.get_list_of_duplicate_instruments_to_remove()
-        list_of_ignored = self.get_list_of_ignored_instruments_to_remove()
+    def get_list_of_markets_not_trading_but_with_data(self,
+                                                      remove_duplicates=True,
+                                                      remove_ignored=True,
+                                                      remove_trading_restrictions=True,
+                                                      remove_bad_markets=True,
+                                                      remove_short_history=False,
+                                                      days_required=750
+                                                      ) -> list:
 
-        joint_list = list(set(list_of_ignored+list_of_duplicates))
+        not_trading = self.get_list_of_instruments_to_remove(                                                remove_duplicates=remove_duplicates,
+                                                remove_short_history=remove_short_history,
+                                                remove_bad_markets=remove_bad_markets,
+                                                remove_ignored=remove_ignored,
+                                                remove_trading_restrictions=remove_trading_restrictions,
+                                                days_required=days_required)
 
-        return joint_list
+        instrument_list = self.get_instrument_list()
 
+        ## don't bother if already removed
+        not_trading_in_instrument_list = list(set(instrument_list).intersection(set(not_trading)))
+
+        self.log.msg("Following instruments marked as not trading %s" % str(not_trading_in_instrument_list))
+
+        return not_trading_in_instrument_list
+
+
+    @base_system_cache()
+    def get_list_of_instruments_to_remove(self,
+                                          remove_duplicates=True,
+                                          remove_ignored=True,
+                                          remove_trading_restrictions=False,
+                                          remove_bad_markets=False,
+                                          remove_short_history=False,
+                                          days_required=750) -> list:
+
+        list_to_remove = []
+        if remove_duplicates:
+            list_of_duplicates = self.get_list_of_duplicate_instruments_to_remove()
+            list_to_remove.extend(list_of_duplicates)
+
+        if remove_ignored:
+            list_of_ignored = self.get_list_of_ignored_instruments_to_remove()
+            list_to_remove.extend(list_of_ignored)
+
+        if remove_bad_markets:
+            list_of_bad = self.get_list_of_bad_markets()
+            list_to_remove.extend(list_of_bad)
+
+        if remove_trading_restrictions:
+            list_of_restricted = self.get_list_of_markets_with_trading_restrictions()
+            list_to_remove.extend(list_of_restricted)
+
+        if remove_short_history:
+            list_of_short = self.get_list_of_short_history(days_required)
+            list_to_remove.extend(list_of_short)
+
+        list_to_remove = list(set(list_to_remove))
+
+        return list_to_remove
+
+    @base_system_cache()
     def get_list_of_duplicate_instruments_to_remove(self):
         duplicate_list = get_duplicate_list_of_instruments_to_remove_from_config(self.config)
         if len(duplicate_list)>0:
-            self.log.msg("Following instruments are 'duplicate_markets' and will be excluded from sim %s " % str(
+            self.log.msg("Following instruments are 'duplicate_markets' %s " % str(
                 duplicate_list))
 
         return duplicate_list
@@ -223,22 +303,13 @@ class System(object):
 
         return ignore_instruments
 
-    @base_system_cache()
-    def get_list_of_markets_not_trading_but_with_data(self) -> list:
-        trading_restrictions = self.get_list_of_markets_with_trading_restrictions()
-        bad_markets = self.get_list_of_bad_markets()
-
-        not_trading = trading_restrictions + bad_markets
-        not_trading_unique = list(set(not_trading))
-
-        return not_trading_unique
 
     @base_system_cache()
     def get_list_of_markets_with_trading_restrictions(self) -> list:
         trading_restrictions = get_list_of_untradeable_instruments_in_config(self.config)
         if len(trading_restrictions)>0:
             ## will only log once as cached
-            self.log.msg("Following instruments have restricted trading: optimisation will not trade them %s " % str(
+            self.log.msg("Following instruments have restricted trading:  %s " % str(
                 trading_restrictions))
         return trading_restrictions
 
@@ -247,10 +318,22 @@ class System(object):
         bad_markets = get_list_of_bad_instruments_in_config(self.config)
         if len(bad_markets)>0:
             ## will only log once as cached
-            self.log.msg("Following instruments are marked as 'bad_markets': optimisation will not trade them %s" % str(bad_markets))
+            self.log.msg("Following instruments are marked as 'bad_markets':  %s" % str(bad_markets))
 
         return bad_markets
 
+    @base_system_cache()
+    def get_list_of_short_history(self, days_required = 750) -> list:
+        instrument_list = self.data.get_instrument_list()
+
+        too_short = [instrument_code
+                          for instrument_code in instrument_list
+            if self.data.length_of_history_in_days_for_instrument(instrument_code)<days_required]
+
+        if len(too_short)>0:
+            self.log.msg("Following instruments have insufficient history: %s" % str(too_short))
+
+        return too_short
 
 if __name__ == "__main__":
     import doctest

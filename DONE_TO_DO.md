@@ -1,5 +1,13 @@
 # Release notes
 
+## Version 1.13
+
+- Better documentation of instrument handling
+- Customised ability to set instrument lists in sim
+- Requires python 3.7 to 3.9
+- Tweaks to dynamic optimisation
+- Dashboard improvements
+
 ## Version 1.12
 
 - Added more flexible instrument exclusion, recommended lists of instruments

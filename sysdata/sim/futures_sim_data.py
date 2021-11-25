@@ -51,6 +51,8 @@ class futuresSimData(simData):
 
         return asset_class
 
+    def length_of_history_in_days_for_instrument(self, instrument_code: str) -> int:
+        return len(self.daily_prices(instrument_code))
 
     def get_raw_price_from_start_date(self, instrument_code: str,
                                       start_date) -> pd.Series:
