@@ -311,6 +311,32 @@ system.get_list_of_bad_markets()
 ```
 
 
+## Customising the list of 'all instruments' and 'excluded for optimisation'
+
+If you make two calls to system *before you do anything else with a system* you can decide exactly what is, or is not, included in the instrument lists. The following calls will reproduce the default system behaviour, but you can modify them if desired. IMPORTANT: they must be called in this order if you want to change the instrument_list() call.
+
+```python
+## days_required is used if we remove markets with short history
+system.get_instrument_list(
+                            remove_duplicates=True,
+                            remove_ignored=True,
+                            remove_trading_restrictions=False,
+                            remove_bad_markets=False,
+                            remove_short_history=False,
+                            days_required = 750)
+
+system.get_list_of_markets_not_trading_but_with_data(
+                                                      remove_duplicates=True,
+                                                      remove_ignored=True,
+                                                      remove_trading_restrictions=True,
+                                                      remove_bad_markets=True,
+                                                      remove_short_history=False,
+                                                      days_required=750
+                                                      )
+
+```
+
+
 # Operating in production 
 
 Operating in the production environment is a bit more complex, due to the interaction of configuration files, the way that constraints operate, and the possibility of pulling in additional constraints from a database.
