@@ -237,7 +237,7 @@ class instrumentStrategyWithOptimalAndCurrentPosition(object):
         return self.instrument_strategy.key
 
     def check_break(self) -> bool:
-        # checks to see if current position is outslide the limits defined by the optimal position
+        # checks to see if current position is outside the limits defined by the optimal position
         return self.optimal_position.check_position_break(self.position)
 
     def is_for_strategy(self, strategy_name:str):
