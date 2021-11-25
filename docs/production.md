@@ -372,7 +372,7 @@ My own implementation runs on a Linux machine, and some of the implementation de
 ### Automation options
 
 You can run pysystemtrade as a fully automated system, which does everything from getting prices through to executing orders.
-If running fully automated, [IBC](https://github.com/IbcAlpha/IBC) is very useful. But other patterns make sense. In particular you may wish to do your trading manually, after pulling in prices and generating optimal positions manually. It will also possible to trade manually, but allow pysystemtrade to pick up your fills from the broker rather than entering them manually. or example, you might not trust the system (I wouldn't blame you), it gives you more control, you might think your execution is better than an algo, you might be doing some testing, or you simply want to use a broker that doesn't offer an API.
+If running fully automated, [IBC](https://github.com/IbcAlpha/IBC) is very useful. But other patterns make sense. In particular you may wish to do your trading manually, after pulling in prices and generating optimal positions manually. It will also possible to trade manually, but allow pysystemtrade to pick up your fills from the broker rather than entering them manually. For example, you might not trust the system (I wouldn't blame you), it gives you more control, you might think your execution is better than an algo, you might be doing some testing, or you simply want to use a broker that doesn't offer an API.
 
 I suggest the following:
 
@@ -956,7 +956,7 @@ If you are trading multiple strategies, and/or generating orders for a single st
 
 If the roll status is 'not rolling', then contract orders are generated from instrument orders by spawn_children_from_new_instrument_orders in the stack handler.
 
-For normal strategies when there is no rolling, there will just a single child contract order for each instrument order, trading in the current priced contract. Because it is a truth universally acknowledged that the contract order seeks to completely fufill the required instrument order (this isn't true for broker and contract orders, of which more later).
+For normal strategies when there is no rolling, there will just a single child contract order for each instrument order, trading in the current priced contract. Because it is a truth universally acknowledged that the contract order seeks to completely fulfill the required instrument order (this isn't true for broker and contract orders, of which more later).
 
 Fields for a new contract order (once added to the database):
 
@@ -1536,13 +1536,13 @@ See [capital](#capital) to understand how capital works. On a daily basis we nee
 
 Python:
 ```python
-from sysproduction.update_account_values
-update_account_values()
+from sysproduction.update_total_capital import update_total_capital
+update_total_capital()
 ```
 
 Linux script:
 ```
-. $SCRIPT_PATH/update_account_values
+. $SCRIPT_PATH/update_total_capital
 ```
 
 Called by: `run_capital_update`
@@ -1634,7 +1634,7 @@ Linux script:
 Called by: `run_strategy_order_generator`
 
 
-The code to run each strategies backtest is defined in the configuration parameter in the control_config.yaml file (or overriden in the private_control_config.yaml file): `process_configuration_methods/run_systems/strategy_name/`. For example:
+The code to run each strategy's backtest is defined in the configuration parameter in the control_config.yaml file (or overriden in the private_control_config.yaml file): `process_configuration_methods/run_systems/strategy_name/`. For example:
 
 
 ```
@@ -1644,7 +1644,7 @@ The code to run each strategies backtest is defined in the configuration paramet
       max_executions: 1
 ```
 
-- `object` the class of the code that generates the orders, eg `sysexecution.strategies.classic_buffered_positions.orderGeneratorForBufferedPositions`. This must provide a method `get_and_place_orders` (which it will, as long if the class inherits from `orderGeneratorForStrategy`)
+- `object` the class of the code that generates the orders, eg `sysexecution.strategies.classic_buffered_positions.orderGeneratorForBufferedPositions`. This must provide a method `get_and_place_orders` (which it will, as long as the class inherits from `orderGeneratorForStrategy`)
 
 The following optional parameters are used only by `run_strategy_order_generator`:
 - `max_executions` the number of times the generator should be run on each iteration of run_systems. Normally 1, unless you have some whacky intraday system. Can be omitted.
@@ -1851,7 +1851,7 @@ Linux script:
 
 #### Trade limits
 
-We can set limits for the maximum number of trades we will done over a given period, and for a specific instrument, or a specific instrument within a given strategy. Limits are applied within run_stack_handler whenever a broker order is about to be generated from a contract order. Options are as follows:
+We can set limits for the maximum number of trades we will do over a given period, and for a specific instrument, or a specific instrument within a given strategy. Limits are applied within run_stack_handler whenever a broker order is about to be generated from a contract order. Options are as follows:
 
 - View limits
 - Change limits (instrument, instrument & strategy)
@@ -2684,7 +2684,7 @@ The following are configuration options that are in defaults.yaml and can be ove
 
 See the [user guide for backtesting](/docs/backtesting.md).
 
-The interaction of system, private, and backtest configs can be a bit confusing. Inside a backtest (which can eithier be in production or sim mode), configuration options will be pulled in the following priority (1) specific backtest .yaml configuration, (2) private_config.yaml *in production only*, (3) defaults.yaml file. 
+The interaction of system, private, and backtest configs can be a bit confusing. Inside a backtest (which can either be in production or sim mode), configuration options will be pulled in the following priority (1) specific backtest .yaml configuration, (2) private_config.yaml *in production only*, (3) defaults.yaml file. 
 
 Outside of the backtest code, in production configuration options are pulled in the following priority order: (1) private_config.yaml *in production only*, (2) defaults.yaml file. *The production code can't see inside your backtest configuration files*. 
 

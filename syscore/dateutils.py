@@ -289,7 +289,7 @@ def get_datetime_input(prompt:str, allow_default:bool=True, allow_no_arg:bool=Fa
     invalid_input = True
     input_str = (
         prompt +
-        ": Enter date and time in format %Y%-%m-%d eg '2020-05-30' OR '%Y-%m-%d %H:%M:%S' eg '2020-05-30 14:04:11'")
+        ": Enter date and time in format %Y-%m-%d eg '2020-05-30' OR '%Y-%m-%d %H:%M:%S' eg '2020-05-30 14:04:11'")
     if allow_default:
         input_str = input_str + " <RETURN for now>"
     if allow_no_arg:

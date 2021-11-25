@@ -36,7 +36,7 @@ If your new strategy has new instruments, [set these up first](/docs/data.md). Y
 
 ### Create a run_system to run the strategy backtest
 
-If you are using a completely vanilla 'out of the box' strategy that can be run with the default provided stages then this isn't neccessary. For clarity these are the default strategies:
+If you are using a completely vanilla 'out of the box' strategy that can be run with the default provided stages then this isn't necessary. For clarity these are the default strategies:
 
 - [Classic system](/sysproduction/strategy_code/run_system_classic.py)
 - [Dynamic system](/sysproduction/strategy_code/run_dynamic_optimised_system.py) (as described [here](https://qoppac.blogspot.com/2021/10/mr-greedy-and-tale-of-minimum-tracking.html))
@@ -48,7 +48,7 @@ You may also need to override the `run_backtest` method if you need your strateg
 
 ### Create an order creation class
 
-If you are using a completely vanilla 'out of the box' strategy that can be run with the default order creation functions then this isn't neccessary. For clarity these are the default strategies:
+If you are using a completely vanilla 'out of the box' strategy that can be run with the default order creation functions then this isn't necessary. For clarity these are the default strategies:
 
 - [Classic system](/sysexecution/strategies/classic_buffered_positions.py)
 - [Dynamic system](/sysexecution/strategies/dynamic_optimised_positions.py) (as described [here](https://qoppac.blogspot.com/2021/10/mr-greedy-and-tale-of-minimum-tracking.html))
@@ -58,7 +58,7 @@ Otherwise you'll need to write an order management function. You will need to ov
 
 ### Create a reporting class
 
-If you are using a completely vanilla 'out of the box' strategy that can be run with the default reporting functions then this isn't neccessary. For clarity these are the default strategies:
+If you are using a completely vanilla 'out of the box' strategy that can be run with the default reporting functions then this isn't necessary. For clarity these are the default strategies:
 
 - [Classic system](/sysproduction/strategy_code/report_system_classic.py)
 - [Dynamic system](/sysproduction/strategy_code/report_system_dynamic_optimised.py) (as described [here](https://qoppac.blogspot.com/2021/10/mr-greedy-and-tale-of-minimum-tracking.html))
@@ -134,7 +134,7 @@ transfer_positions_between_strategies('medium_speed_TF_carry', 'dynamic_TF_carry
 
 # Run any strategy backtests that will be closing or reducing in capital
 
-This tidying up stage ensures that the optimal positions for existing strategies are correctly adjusted for the new capital, stops position breaks appearing, and ensures that we won't generate uneccessary orders for the old strategy.
+This tidying up stage ensures that the optimal positions for existing strategies are correctly adjusted for the new capital, stops position breaks appearing, and ensures that we won't generate unnecessary orders for the old strategy.
 
 
 # Ensure position and trade limits are appropriate
