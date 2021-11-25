@@ -8,7 +8,7 @@ def greedy_algo_across_integer_values(
         obj_instance: 'objectiveFunctionForGreedy'
 ) -> np.array:
     ## Starting weights
-    ## These will eithier be all zero, or in the presence of constraints will include the minima
+    ## These will either be all zero, or in the presence of constraints will include the minima
     weight_start = obj_instance.starting_weights_as_np
     best_value = obj_instance.evaluate(weight_start)
     best_solution = weight_start

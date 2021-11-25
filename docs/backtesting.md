@@ -3707,7 +3707,7 @@ The former method is always used for costs derived from forecasts
 `pandl_for_trading_rule_weighted`, `pandl_for_instrument_rules_unweighted`, and
 `pandl_for_instrument_rules`).
 
-For costs derived from actual positions (everything else) we can use eithier method. Actual cash costs are more accurate especially if your system has sparse positions (eg the dynamic optimised system I describe elsewhere). However it's quicker to use SR costs, so if you set `use_SR_costs=True` you will speed things up with some loss of accuracy.
+For costs derived from actual positions (everything else) we can use either method. Actual cash costs are more accurate especially if your system has sparse positions (eg the dynamic optimised system I describe elsewhere). However it's quicker to use SR costs, so if you set `use_SR_costs=True` you will speed things up with some loss of accuracy.
 
 Both cost methods now account for holding - rollover costs.
 

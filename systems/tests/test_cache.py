@@ -75,68 +75,67 @@ class TestCache(unittest.TestCase):
     def test_get_instrument_list(self):
         self.system.get_instrument_list()
         self.system.get_instrument_list()
-        self.assertEqual(len(self.system.cache.get_items_with_data()), 1)
+        self.assertEqual(3, len(self.system.cache.get_items_with_data()))
 
     def test_stage_input_wrapper(self):
         # this shouldn't cache
         not_used = self.system.test_stage2.input2_stage_no_caching(5.0)
         # check cache still empty
-        self.assertEqual(len(self.system.cache.get_items_with_data()), 0)
+        self.assertEqual(0, len(self.system.cache.get_items_with_data()))
 
     def test_single_instrument_no_keywords(self):
 
         self.system.test_stage1.single_instrument_no_keywords("code")
         cache_ref = self.system.cache.get_cacherefs_for_stage("test_stage1")[0]
-        self.assertEqual(cache_ref.instrument_code, "code")
-        self.assertEqual(self.system.cache[cache_ref].value(), 5)
+        self.assertEqual("code", cache_ref.instrument_code)
+        self.assertEqual(5, self.system.cache[cache_ref].value())
         self.assertEqual(
-            len(self.system.cache._get_pickable_items()), 2
+            4, len(self.system.cache._get_pickable_items())
         )  # includes cache of instrument list
-        self.assertEqual(len(self.system.cache._get_protected_items()), 0)
+        self.assertEqual(0, len(self.system.cache._get_protected_items()))
 
         cache_ref_list = self.system.cache.get_items_with_data()
 
         # no protected, so should still have two elements inside
         self.assertEqual(
-            len(
+            4, len(
                 self.system.cache.cache_ref_list_with_protected_removed(cache_ref_list)
-            ),
-            2,
+            )
         )
 
         self.system.cache.delete_all_items()
 
         # not protected so deletion should work
-        self.assertEqual(len(self.system.cache.get_items_with_data()), 0)
+        self.assertEqual(0, len(self.system.cache.get_items_with_data()))
 
     def test_single_instrument_with_keywords(self):
 
         self.system.test_stage1.single_instrument_with_keywords(
             "code", "keyname")
         cache_ref = self.system.cache.get_cacherefs_for_stage("test_stage1")[0]
-        self.assertEqual(cache_ref.instrument_code, "code")
-        self.assertEqual(cache_ref.keyname, "keyname")
-        self.assertEqual(self.system.cache[cache_ref].value(), 6)
+        self.assertEqual("code", cache_ref.instrument_code)
+        self.assertEqual("keyname", cache_ref.keyname)
+        self.assertEqual(6, self.system.cache[cache_ref].value())
 
     def test_single_instrument_with_keywords_and_flags(self):
         self.system.test_stage1.single_instrument_with_keywords_and_flags(
             "code", "keyname", x_flag=True
         )
         cache_ref = self.system.cache.get_cacherefs_for_stage("test_stage1")[0]
-        self.assertEqual(cache_ref.instrument_code, "code")
-        self.assertEqual(cache_ref.keyname, "keyname")
-        self.assertEqual(self.system.cache[cache_ref].value(), (7, True))
-        self.assertEqual(cache_ref.flags, "x_flag=True")
+        self.assertEqual("code", cache_ref.instrument_code)
+        self.assertEqual("keyname", cache_ref.keyname)
+        self.assertEqual((7, True), self.system.cache[cache_ref].value())
+        self.assertEqual("x_flag=True", cache_ref.flags)
 
     def test_across_markets_no_keywords(self):
         ans = self.system.test_stage1.across_markets_no_keywords()
         cache_ref = self.system.cache.get_cacherefs_for_stage("test_stage1")[0]
-        self.assertEqual(cache_ref.instrument_code, ALL_KEYNAME)
-        self.assertEqual(cache_ref.keyname, "")
+        self.assertEqual(ALL_KEYNAME, cache_ref.instrument_code)
+        self.assertEqual("", cache_ref.keyname)
 
         ans = self.system.cache.get_cache_refs_across_system()
         self.assertEqual(
-            len(ans), 2
+            4, len(ans)
         )  # also includes base_system.get_instrument_list()
 
         # test deletion across ...
@@ -146,30 +145,30 @@ class TestCache(unittest.TestCase):
         self.system.cache.delete_items_across_system()  # ... when we do this
 
         cache_refs = self.system.cache.get_cacherefs_for_stage("test_stage1")
-        self.assertEqual(len(cache_refs), 1)
+        self.assertEqual(1, len(cache_refs))
         cache_ref = cache_refs[0]
-        self.assertEqual(cache_ref.itemname, "single_instrument_no_keywords")
+        self.assertEqual("single_instrument_no_keywords", cache_ref.itemname)
 
         # incidentally should also wipe out this guy
         cache_refs = self.system.cache.get_cacherefs_for_stage(
             self.system.name)
-        self.assertEqual(len(cache_refs), 0)
+        self.assertEqual(0, len(cache_refs))
 
     def test_pickling(self):
         ans = self.system.test_stage1.across_markets_no_keywords()
         ans2 = self.system.test_stage1.single_instrument_not_pickable()
 
         cache_refs = self.system.cache.get_cacherefs_for_stage("test_stage1")
-        self.assertEqual(len(cache_refs), 2)
+        self.assertEqual(2, len(cache_refs))
 
         cache_refs = self.system.cache.get_items_with_data()
-        self.assertEqual(len(cache_refs), 3)
+        self.assertEqual(5, len(cache_refs))
 
         cache_refs = self.system.cache._get_pickable_items()
-        self.assertEqual(len(cache_refs), 2)
+        self.assertEqual(4, len(cache_refs))
 
         partial_cache = self.system.cache.partial_cache(cache_refs)
-        self.assertEqual(len(partial_cache), 2)
+        self.assertEqual(4, len(partial_cache))
 
         # pickle, and then unpickle, after which should have lost one item
         self.system.cache.pickle("systems.tests.tempcachefile.pck")
@@ -177,7 +176,7 @@ class TestCache(unittest.TestCase):
             "systems.tests.tempcachefile.pck",
             clearcache=True)
         cache_refs = self.system.cache.get_items_with_data()
-        self.assertEqual(len(cache_refs), 2)
+        self.assertEqual(4, len(cache_refs))
 
     def test_protection_and_deletion_across(self):
 
@@ -191,24 +190,24 @@ class TestCache(unittest.TestCase):
 
         cache_refs = self.system.cache.get_items_with_data()
         # includes base system get_instruments
-        self.assertEqual(len(cache_refs), 5)
+        self.assertEqual(7, len(cache_refs))
 
         self.system.cache.delete_items_across_system()
         cache_refs = self.system.cache.get_items_with_data()
         self.assertEqual(
-            len(cache_refs), 3
+            3, len(cache_refs)
         )  # unprotected in stage, and across base_system, have gone
 
         cache_refs = self.system.cache.get_cache_refs_across_system()
-        self.assertEqual(len(cache_refs), 1)  # protected across system
+        self.assertEqual(1, len(cache_refs))  # protected across system
         cache_ref = cache_refs[0]
         self.assertEqual(
-            cache_ref.itemname, "across_markets_protected"
+            "across_markets_protected", cache_ref.itemname
         )  # make sure right one
 
         self.system.cache.delete_items_across_system(delete_protected=True)
         cache_refs = self.system.cache.get_cache_refs_across_system()
-        self.assertEqual(len(cache_refs), 0)  # should all be gone now
+        self.assertEqual(0, len(cache_refs))  # should all be gone now
 
     def test_protection_and_deletion_for_code(self):
         # one protected, one unprotected
@@ -220,41 +219,41 @@ class TestCache(unittest.TestCase):
             "another_code")
 
         cache_refs = self.system.cache.get_cacherefs_for_stage("test_stage1")
-        self.assertEqual(len(cache_refs), 4)
+        self.assertEqual(4, len(cache_refs))
 
         cache_refs = self.system.cache.cache_ref_list_with_protected_removed(
             cache_refs)
-        self.assertEqual(len(cache_refs), 2)
+        self.assertEqual(2, len(cache_refs))
 
         self.system.cache.delete_items_for_instrument("code")
         cache_refs = self.system.cache.get_cacherefs_for_stage("test_stage1")
         # unprotected 'code' in stage is gone
-        self.assertEqual(len(cache_refs), 3)
+        self.assertEqual(3, len(cache_refs))
 
         self.system.cache.delete_items_for_stage("test_stage1")
         cache_refs = self.system.cache.get_cacherefs_for_stage("test_stage1")
         self.assertEqual(
-            len(cache_refs), 2
+            2, len(cache_refs)
         )  # unprotected 'another_code' in stage is gone
 
         self.system.cache.delete_items_for_instrument(
             "code", delete_protected=True)
         cache_refs = self.system.cache.get_cacherefs_for_stage("test_stage1")
         # just one left 'another code' protected
-        self.assertEqual(len(cache_refs), 1)
+        self.assertEqual(1, len(cache_refs))
         cache_ref = cache_refs[0]
         self.assertEqual(
-            cache_ref.itemname, "single_instrument_protected"
+            "single_instrument_protected", cache_ref.itemname
         )  # make sure right one
         self.assertEqual(
-            cache_ref.instrument_code, "another_code"
+            "another_code", cache_ref.instrument_code
         )  # make sure right one
 
         # now delete everything
         self.system.cache.delete_all_items(delete_protected=True)
 
         cache_refs = self.system.cache.get_cacherefs_for_stage("test_stage1")
-        self.assertEqual(len(cache_refs), 0)  # all gone
+        self.assertEqual(0, len(cache_refs))  # all gone
 
     def test_across_stages(self):
         self.system.test_stage1.single_instrument_no_keywords("code")
@@ -268,25 +267,25 @@ class TestCache(unittest.TestCase):
         )
 
         cache_refs = self.system.cache.get_cache_refs_for_instrument("code")
-        self.assertEqual(len(cache_refs), 2)
+        self.assertEqual(2, len(cache_refs))
 
         cache_refs = self.system.cache.get_cacherefs_for_stage("test_stage1")
-        self.assertEqual(len(cache_refs), 3)
+        self.assertEqual(3, len(cache_refs))
 
         cache_refs = self.system.cache.get_cacherefs_for_stage("test_stage1")
         itemnames = sorted(
             self.system.cache.get_itemnames_for_stage("test_stage2"))
         self.assertEqual(
-            itemnames, [
-                "single2_instrument_no_keywords", "single_instrument_with_keywords"], )
+            ["single2_instrument_no_keywords", "single_instrument_with_keywords"],
+            itemnames)
 
         self.system.cache.delete_items_for_stage("test_stage2")
         cache_refs = self.system.cache.get_cacherefs_for_stage("test_stage2")
-        self.assertEqual(len(cache_refs), 0)
+        self.assertEqual(0, len(cache_refs))
         cache_refs = self.system.cache.get_cacherefs_for_stage("test_stage1")
-        self.assertEqual(len(cache_refs), 3)
+        self.assertEqual(3, len(cache_refs))
         cache_refs = self.system.cache.get_cache_refs_for_instrument("code")
-        self.assertEqual(len(cache_refs), 1)
+        self.assertEqual(1, len(cache_refs))
 
     def test_filtering(self):
         self.system.test_stage1.single_instrument_no_keywords("code")
@@ -300,31 +299,33 @@ class TestCache(unittest.TestCase):
         )
 
         cache_refs = self.system.cache.get_items_with_data()
-        self.assertEqual(len(cache_refs.filter_by_instrument_code("code")), 2)
-        self.assertEqual(len(cache_refs.filter_by_itemname(
-            "single_instrument_with_keywords")), 2)
+        self.assertEqual(2, len(cache_refs.filter_by_instrument_code("code")))
+        self.assertEqual(2, len(cache_refs.filter_by_itemname(
+            "single_instrument_with_keywords")))
         self.assertEqual(
-            len(cache_refs.filter_by_stage_name("test_stage1")), 3)
+            3, len(cache_refs.filter_by_stage_name("test_stage1")))
         codes = sorted(cache_refs.unique_list_of_instrument_codes())
-        self.assertEqual(codes, ["All_instruments", "another_code", "code"])
+        self.assertEqual(["All_instruments", "another_code", "code"], codes)
 
         items = cache_refs.unique_list_of_item_names()
         items.sort()
         self.assertEqual(
-            items,
             [
                 "get_instrument_list",
+                "get_list_of_ignored_instruments_to_remove",
+                "get_list_of_instruments_to_remove",
                 "single2_instrument_no_keywords",
                 "single_instrument_no_keywords",
                 "single_instrument_with_keywords",
             ],
+            items
         )
 
         stage_names = cache_refs.unique_list_of_stage_names()
         stage_names.sort()
         self.assertEqual(
-            stage_names, [
-                "base_system", "test_stage1", "test_stage2"])
+            ["base_system", "test_stage1", "test_stage2"],
+            stage_names)
 
 
 if __name__ == "__main__":

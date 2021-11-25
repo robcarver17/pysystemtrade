@@ -311,6 +311,32 @@ system.get_list_of_bad_markets()
 ```
 
 
+## Customising the list of 'all instruments' and 'excluded for optimisation'
+
+If you make two calls to system *before you do anything else with a system* you can decide exactly what is, or is not, included in the instrument lists. The following calls will reproduce the default system behaviour, but you can modify them if desired. IMPORTANT: they must be called in this order if you want to change the instrument_list() call.
+
+```python
+## days_required is used if we remove markets with short history
+system.get_instrument_list(
+                            remove_duplicates=True,
+                            remove_ignored=True,
+                            remove_trading_restrictions=False,
+                            remove_bad_markets=False,
+                            remove_short_history=False,
+                            days_required = 750)
+
+system.get_list_of_markets_not_trading_but_with_data(
+                                                      remove_duplicates=True,
+                                                      remove_ignored=True,
+                                                      remove_trading_restrictions=True,
+                                                      remove_bad_markets=True,
+                                                      remove_short_history=False,
+                                                      days_required=750
+                                                      )
+
+```
+
+
 # Operating in production 
 
 Operating in the production environment is a bit more complex, due to the interaction of configuration files, the way that constraints operate, and the possibility of pulling in additional constraints from a database.
@@ -399,7 +425,7 @@ We always apply the most conservative override in any given situation.
 What this means in practice is that you can modify the list of instruments in the various categories and the system will automatically respond. So for example to remove a bad instrument:
 
 - Add it to the configured list of bad instruments
-- Set instrument weight to zero (eithier in one go, or gradually over time)
+- Set instrument weight to zero (either in one go, or gradually over time)
 - The production system will see it as having a 'reduce only' flag, and allow a trade that reduces the size of the position
 
 And to allow a bad instrument to begin trading again:
@@ -413,7 +439,7 @@ Similar logic will apply to ignored and duplicated instruments. Obviously if you
 
 The code that applies this constraints is generic; it won't load in the strategy configuration .yaml, so if you wish to change the default configuration of bad, duplicated, ignored or untradeable instruments you need to change the `private_config.yaml`.
 
-You can see the current list of instruments with overrides (eithier from configuration or set in the database) in the interactive_controls script:
+You can see the current list of instruments with overrides (either from configuration or set in the database) in the interactive_controls script:
 
 (bash)
 ```

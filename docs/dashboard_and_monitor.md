@@ -53,7 +53,7 @@ Whilst running the monitor and dashboard will also handle any 'crashed' processe
 You may prefer to run your monitor or dashboard from another machine. Let's assume the trading server (the machine that is being monitored), is also the machine that is hosting your mongoDB instance, and has an IP address of 192.168.0.13; and the remote monitoring machine is on 192.168.0.10:
 
 - Add an ip address to the `bind_ip` line in the `/etc/mongod.conf` file to allow connections from other machines `eg bind_ip=localhost, 192.168.0.10` or change your call to mongodb eg in linux `mongod --dbpath /home/rob/data/mongodb --bind_ip_all` (**warning, insecure unless you have other security eg firewall**). This is required
-- set up ssh so that it does not require password login from the remote machine, only ssh-key (**again, has security implications so make sure you know what you are doing!**). This is neccessary for remote process monitoring to work via ssh.
+- set up ssh so that it does not require password login from the remote machine, only ssh-key (**again, has security implications so make sure you know what you are doing!**). This is necessary for remote process monitoring to work via ssh.
 - Add the monitoring machine IP (192.168.0.10) to the whitelist for your IB gateway software.
 - - You may need to change your firewall settings to open up ports 27017 (mongodb) and 4001 (IB, unless you use a different port); eg in linux using UFW (`sudo ufw enable`, `sudo ufw allow 27017 from 192.168.0.10`) or iptables
 
