@@ -1,5 +1,5 @@
 import os
-import shutil
+from sysdata.config.production_config import get_production_config
 
 from sysproduction.data.directories import get_mongo_dump_directory, \
     get_mongo_backup_directory
@@ -29,9 +29,13 @@ class backupMongo(object):
 
 
 def dump_mongo_data(data):
+    host = get_production_config().get_element_or_arg_not_supplied('mongo_host')
     path = get_mongo_dump_directory()
     data.log.msg("Dumping mongo data to %s NOT TESTED IN WINDOWS" % path)
-    os.system("mongodump -o=%s" % path)
+    if host.startswith('mongodb://'):
+        os.system("mongodump --uri='%s' -o=%s" % (host, path))
+    else:
+        os.system("mongodump --host='%s' -o=%s" % (host, path))
     data.log.msg("Dumped")
 
 
