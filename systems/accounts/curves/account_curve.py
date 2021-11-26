@@ -184,14 +184,20 @@ class accountCurve(pd.Series):
         return float(self.as_ts.std())
 
     def ann_mean(self):
-        avg = self.mean()
+        ## If nans, then mean will be biased upwards
+        total = self.sum()
+        divisor = self.number_of_years_in_data
 
-        return avg * self.returns_scalar
+        return total / divisor
 
     def ann_std(self):
         period_std = self.std()
 
         return period_std * self.vol_scalar
+
+    @property
+    def number_of_years_in_data(self) -> float:
+        return len(self) / self.returns_scalar
 
     @property
     def returns_scalar(self) -> float:
