@@ -322,6 +322,7 @@ exclude_instrument_lists:
   # If you want to include in sim data, but not actually trade, use trading_restrictions
   ignore_instruments:
     - 'EURIBOR'
+    - 'SGX'
   #
   # Here we put stuff we can't trade, but for which we still want to bring in prices in sim
   # For the dynamically optimised strategy this list will be used in sim as 'don't trade'

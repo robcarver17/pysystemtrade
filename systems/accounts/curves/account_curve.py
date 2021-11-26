@@ -311,17 +311,18 @@ class accountCurve(pd.Series):
         return np.mean([upper, lower])
 
     def quant_ratio_lower(self):
-        x = self.demeaned()
+        x = self.demeaned_remove_zeros()
         raw_ratio =x.quantile(QUANT_PERCENTILE_EXTREME) / x.quantile(QUANT_PERCENTILE_STD)
         return raw_ratio / NORMAL_DISTR_RATIO
 
     def quant_ratio_upper(self):
-        x = self.demeaned()
+        x = self.demeaned_remove_zeros()
         raw_ratio = x.quantile(1 - QUANT_PERCENTILE_EXTREME) / x.quantile(1 - QUANT_PERCENTILE_STD)
         return raw_ratio / NORMAL_DISTR_RATIO
 
-    def demeaned(self):
+    def demeaned_remove_zeros(self):
         x = self.as_ts
+        x[x==0] = np.nan
         return x - x.mean()
 
     def stats(self):

@@ -283,12 +283,14 @@ class System(object):
             list_to_remove.extend(list_of_short)
 
         list_to_remove = list(set(list_to_remove))
+        list_to_remove.sort()
 
         return list_to_remove
 
     @base_system_cache()
     def get_list_of_duplicate_instruments_to_remove(self):
         duplicate_list = get_duplicate_list_of_instruments_to_remove_from_config(self.config)
+        duplicate_list.sort()
         if len(duplicate_list)>0:
             self.log.msg("Following instruments are 'duplicate_markets' %s " % str(
                 duplicate_list))
@@ -298,6 +300,7 @@ class System(object):
     @base_system_cache()
     def get_list_of_ignored_instruments_to_remove(self) -> list:
         ignore_instruments = get_list_of_ignored_instruments_in_config(self.config)
+        ignore_instruments.sort()
         if len(ignore_instruments)>0:
             self.log.msg("Following instruments are marked as 'ignore_instruments': not included: %s" % str(ignore_instruments))
 
@@ -307,6 +310,7 @@ class System(object):
     @base_system_cache()
     def get_list_of_markets_with_trading_restrictions(self) -> list:
         trading_restrictions = get_list_of_untradeable_instruments_in_config(self.config)
+        trading_restrictions.sort()
         if len(trading_restrictions)>0:
             ## will only log once as cached
             self.log.msg("Following instruments have restricted trading:  %s " % str(
@@ -316,6 +320,7 @@ class System(object):
     @base_system_cache()
     def get_list_of_bad_markets(self) -> list:
         bad_markets = get_list_of_bad_instruments_in_config(self.config)
+        bad_markets.sort()
         if len(bad_markets)>0:
             ## will only log once as cached
             self.log.msg("Following instruments are marked as 'bad_markets':  %s" % str(bad_markets))
@@ -329,6 +334,8 @@ class System(object):
         too_short = [instrument_code
                           for instrument_code in instrument_list
             if self.data.length_of_history_in_days_for_instrument(instrument_code)<days_required]
+
+        too_short.sort()
 
         if len(too_short)>0:
             self.log.msg("Following instruments have insufficient history: %s" % str(too_short))
