@@ -23,6 +23,11 @@ from syscore.objects import arg_not_supplied
 
 DEFAULT_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 
+
+def prices_to_daily_prices(x):
+    return x.resample("1B").last()
+
+
 def how_many_times_a_year_is_pd_frequency(frequency: str) -> float:
     DICT_OF_FREQ = {'B': BUSINESS_DAYS_IN_YEAR,
                     'W': WEEKS_IN_YEAR,

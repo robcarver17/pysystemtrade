@@ -5,6 +5,7 @@ import pandas as pd
 from syscore.dateutils import ROOT_BDAYS_INYEAR, BUSINESS_DAYS_IN_YEAR
 from syscore.genutils import progressBar
 from syscore.objects import missing_data, resolve_function
+from syscore.pdutils import prices_to_daily_prices
 
 from sysobjects.production.tradeable_object import instrumentStrategy
 
@@ -470,7 +471,7 @@ def get_daily_price_series(data, instrument_code):
     if len(price_series)==0:
         return price_series
 
-    daily_prices = price_series.resample("1B").last()
+    daily_prices = prices_to_daily_prices(price_series)
 
     return daily_prices[-DAILY_RISK_CALC_LOOKBACK:]
 
