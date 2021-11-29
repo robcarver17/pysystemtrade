@@ -474,6 +474,8 @@ function roll_post(instrument, state, confirmed = false) {
     btn.disabled = true;
   });
   $("#rolls > div.loading").show();
+  $("#roll_prices_single > tbody").empty();
+  $("#roll_prices_multiple > tbody").empty();
   $.ajax({
     type: "POST",
     url: "/rolls",
@@ -513,7 +515,8 @@ function roll_post(instrument, state, confirmed = false) {
             <td>${val['new']['FORWARD']}</td>
             </tr>`);
         });
-        $("#roll_prices").append(`<button onClick="roll_post('${instrument}', '${state}', true)">${state}</button><br><br>`);
+        $("#roll_confirm").remove();
+        $("#roll_prices").append(`<div id="roll_confirm"><button onClick="roll_post('${instrument}', '${state}', true)">${state}</button><br><br></div>`);
         $("#roll_prices").display = true;
       } else if (data["allowable"]) {
         // Only need to update this line
