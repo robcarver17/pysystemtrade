@@ -27,7 +27,7 @@ body {
   margin-bottom: -1px;
   margin-left: -1px;
 }
-.tabinator label:before {
+.tabinator input:checked + label:before {
   content:'';
   display:block;
   width:100%;
