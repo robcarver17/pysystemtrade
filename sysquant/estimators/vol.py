@@ -24,6 +24,7 @@ def robust_vol_calc(
         floor_min_periods: int = 100,
         floor_days: int = 500,
         backfill: bool = False,
+        **kwargs
 ) -> pd.Series:
     """
     Robust exponential volatility calculation, assuming daily series of prices
