@@ -55,186 +55,186 @@ use_attenuation:
    - 'momentum64'
 trading_rules:
   breakout10:
-     function: systems.rob_system.rules.breakout
+     function: systems.provided.rob_system.rules.breakout
      data:
          - "rawdata.get_daily_prices"
      other_args:
        lookback: 10
   breakout20:
-     function: systems.rob_system.rules.breakout
+     function: systems.provided.rob_system.rules.breakout
      data:
          - "rawdata.get_daily_prices"
      other_args:
        lookback: 20
   breakout40:
-     function: systems.rob_system.rules.breakout
+     function: systems.provided.rob_system.rules.breakout
      data:
          - "rawdata.get_daily_prices"
      other_args:
        lookback: 40
   breakout80:
-     function: systems.rob_system.rules.breakout
+     function: systems.provided.rob_system.rules.breakout
      data:
          - "rawdata.get_daily_prices"
      other_args:
        lookback: 80
   breakout160:
-     function: systems.rob_system.rules.breakout
+     function: systems.provided.rob_system.rules.breakout
      data:
          - "rawdata.get_daily_prices"
      other_args:
        lookback: 160
   breakout320:
-     function: systems.rob_system.rules.breakout
+     function: systems.provided.rob_system.rules.breakout
      data:
          - "rawdata.get_daily_prices"
      other_args:
        lookback: 320
   relmomentum10:
-     function: systems.rob_system.rules.relative_momentum
+     function: systems.provided.rob_system.rules.relative_momentum
      data:
          - "rawdata.get_cumulative_daily_vol_normalised_returns"
          - "rawdata.normalised_price_for_asset_class"
      other_args:
        horizon: 10
   relmomentum20:
-     function: systems.rob_system.rules.relative_momentum
+     function: systems.provided.rob_system.rules.relative_momentum
      data:
          - "rawdata.get_cumulative_daily_vol_normalised_returns"
          - "rawdata.normalised_price_for_asset_class"
      other_args:
        horizon: 20
   relmomentum40:
-     function: systems.rob_system.rules.relative_momentum
+     function: systems.provided.rob_system.rules.relative_momentum
      data:
          - "rawdata.get_cumulative_daily_vol_normalised_returns"
          - "rawdata.normalised_price_for_asset_class"
      other_args:
        horizon: 40
   relmomentum80:
-     function: systems.rob_system.rules.relative_momentum
+     function: systems.provided.rob_system.rules.relative_momentum
      data:
          - "rawdata.get_cumulative_daily_vol_normalised_returns"
          - "rawdata.normalised_price_for_asset_class"
      other_args:
        horizon: 80
   mrinasset160:
-     function: systems.rob_system.rules.cross_sectional_mean_reversion
+     function: systems.provided.rob_system.rules.cross_sectional_mean_reversion
      data:
          - "rawdata.get_cumulative_daily_vol_normalised_returns"
          - "rawdata.normalised_price_for_asset_class"
      other_args:
        horizon: 160
   carry10:
-     function: systems.rob_system.rules.carry
+     function: systems.provided.rob_system.rules.carry
      data:
          - "rawdata.raw_carry"
      other_args:
          smooth_days: 10
   carry30:
-     function: systems.rob_system.rules.carry
+     function: systems.provided.rob_system.rules.carry
      data:
          - "rawdata.raw_carry"
      other_args:
          smooth_days: 30
   carry60:
-     function: systems.rob_system.rules.carry
+     function: systems.provided.rob_system.rules.carry
      data:
          - "rawdata.raw_carry"
      other_args:
          smooth_days: 60
   carry125:
-     function: systems.rob_system.rules.carry
+     function: systems.provided.rob_system.rules.carry
      data:
          - "rawdata.raw_carry"
      other_args:
          smooth_days: 125
   assettrend2:
-     function: systems.rob_system.rules.ewmac_calc_vol
+     function: systems.provided.rob_system.rules.ewmac_calc_vol
      data:
          - "rawdata.normalised_price_for_asset_class"
      other_args:
          Lfast: 2
          Lslow: 8
   assettrend4:
-     function: systems.rob_system.rules.ewmac_calc_vol
+     function: systems.provided.rob_system.rules.ewmac_calc_vol
      data:
          - "rawdata.normalised_price_for_asset_class"
      other_args:
          Lfast: 4
          Lslow: 16
   assettrend8:
-     function: systems.rob_system.rules.ewmac_calc_vol
+     function: systems.provided.rob_system.rules.ewmac_calc_vol
      data:
          - "rawdata.normalised_price_for_asset_class"
      other_args:
          Lfast: 8
          Lslow: 32
   assettrend16:
-     function: systems.rob_system.rules.ewmac_calc_vol
+     function: systems.provided.rob_system.rules.ewmac_calc_vol
      data:
          - "rawdata.normalised_price_for_asset_class"
      other_args:
          Lfast: 16
          Lslow: 64
   assettrend32:
-     function: systems.rob_system.rules.ewmac_calc_vol
+     function: systems.provided.rob_system.rules.ewmac_calc_vol
      data:
          - "rawdata.normalised_price_for_asset_class"
      other_args:
          Lfast: 32
          Lslow: 128
   assettrend64:
-     function: systems.rob_system.rules.ewmac_calc_vol
+     function: systems.provided.rob_system.rules.ewmac_calc_vol
      data:
          - "rawdata.normalised_price_for_asset_class"
      other_args:
          Lfast: 64
          Lslow: 256
   normmom2:
-     function: systems.rob_system.rules.ewmac_calc_vol
+     function: systems.provided.rob_system.rules.ewmac_calc_vol
      data:
          - "rawdata.get_cumulative_daily_vol_normalised_returns"
      other_args:
          Lfast: 2
          Lslow: 8
   normmom4:
-     function: systems.rob_system.rules.ewmac_calc_vol
+     function: systems.provided.rob_system.rules.ewmac_calc_vol
      data:
          - "rawdata.get_cumulative_daily_vol_normalised_returns"
      other_args:
          Lfast: 4
          Lslow: 16
   normmom8:
-     function: systems.rob_system.rules.ewmac_calc_vol
+     function: systems.provided.rob_system.rules.ewmac_calc_vol
      data:
          - "rawdata.get_cumulative_daily_vol_normalised_returns"
      other_args:
          Lfast: 8
          Lslow: 32
   normmom16:
-     function: systems.rob_system.rules.ewmac_calc_vol
+     function: systems.provided.rob_system.rules.ewmac_calc_vol
      data:
          - "rawdata.get_cumulative_daily_vol_normalised_returns"
      other_args:
          Lfast: 16
          Lslow: 64
   normmom32:
-     function: systems.rob_system.rules.ewmac_calc_vol
+     function: systems.provided.rob_system.rules.ewmac_calc_vol
      data:
          - "rawdata.get_cumulative_daily_vol_normalised_returns"
      other_args:
          Lfast: 32
          Lslow: 128
   normmom64:
-     function: systems.rob_system.rules.ewmac_calc_vol
+     function: systems.provided.rob_system.rules.ewmac_calc_vol
      data:
          - "rawdata.get_cumulative_daily_vol_normalised_returns"
      other_args:
          Lfast: 64
          Lslow: 256
   momentum4:
-     function: systems.rob_system.rules.ewmac
+     function: systems.provided.rob_system.rules.ewmac
      data:
          - "rawdata.get_daily_prices"
          - "rawdata.daily_returns_volatility"
@@ -242,7 +242,7 @@ trading_rules:
          Lfast: 4
          Lslow: 16
   momentum8:
-     function: systems.rob_system.rules.ewmac
+     function: systems.provided.rob_system.rules.ewmac
      data:
          - "rawdata.get_daily_prices"
          - "rawdata.daily_returns_volatility"
@@ -250,7 +250,7 @@ trading_rules:
          Lfast: 8
          Lslow: 32
   momentum16:
-     function: systems.rob_system.rules.ewmac
+     function: systems.provided.rob_system.rules.ewmac
      data:
          - "rawdata.get_daily_prices"
          - "rawdata.daily_returns_volatility"
@@ -258,7 +258,7 @@ trading_rules:
          Lfast: 16
          Lslow: 64
   momentum32:
-     function: systems.rob_system.rules.ewmac
+     function: systems.provided.rob_system.rules.ewmac
      data:
          - "rawdata.get_daily_prices"
          - "rawdata.daily_returns_volatility"
@@ -266,7 +266,7 @@ trading_rules:
          Lfast: 32
          Lslow: 128
   momentum64:
-     function: systems.rob_system.rules.ewmac
+     function: systems.provided.rob_system.rules.ewmac
      data:
          - "rawdata.get_daily_prices"
          - "rawdata.daily_returns_volatility"
@@ -274,12 +274,12 @@ trading_rules:
          Lfast: 64
          Lslow: 256
   relcarry:
-     function: systems.rob_system.rules.relative_carry
+     function: systems.provided.rob_system.rules.relative_carry
      data:
           - "rawdata.smoothed_carry"
           - "rawdata.median_carry_for_asset_class"
   skewabs365:
-     function: systems.rob_system.rules.factor_trading_rule
+     function: systems.provided.rob_system.rules.factor_trading_rule
      data:
           - 'rawdata.get_demeanded_factor_value'
      other_args:
@@ -288,7 +288,7 @@ trading_rules:
           _demean_method: 'historic_average_factor_value_all_assets'
           _lookback_days: 365
   skewabs180:
-     function: systems.rob_system.rules.factor_trading_rule
+     function: systems.provided.rob_system.rules.factor_trading_rule
      data:
           - 'rawdata.get_demeanded_factor_value'
      other_args:
@@ -297,7 +297,7 @@ trading_rules:
           _demean_method: 'historic_average_factor_value_all_assets'
           _lookback_days: 180
   skewrv365:
-     function: systems.rob_system.rules.factor_trading_rule
+     function: systems.provided.rob_system.rules.factor_trading_rule
      data:
           - 'rawdata.get_demeanded_factor_value'
      other_args:
@@ -306,7 +306,7 @@ trading_rules:
           _demean_method: 'average_factor_value_in_asset_class_for_instrument'
           _lookback_days: 365
   skewrv180:
-     function: systems.rob_system.rules.factor_trading_rule
+     function: systems.provided.rob_system.rules.factor_trading_rule
      data:
           - 'rawdata.get_demeanded_factor_value'
      other_args:
@@ -315,28 +315,28 @@ trading_rules:
           _demean_method: 'average_factor_value_in_asset_class_for_instrument'
           _lookback_days: 180
   accel16:
-    function: systems.rob_system.rules.accel
+    function: systems.provided.rob_system.rules.accel
     data:
          - "rawdata.get_daily_prices"
          - "rawdata.daily_returns_volatility"
     other_args:
          Lfast: 16
   accel32:
-    function: systems.rob_system.rules.accel
+    function: systems.provided.rob_system.rules.accel
     data:
          - "rawdata.get_daily_prices"
          - "rawdata.daily_returns_volatility"
     other_args:
          Lfast: 32
   accel64:
-    function: systems.rob_system.rules.accel
+    function: systems.provided.rob_system.rules.accel
     data:
          - "rawdata.get_daily_prices"
          - "rawdata.daily_returns_volatility"
     other_args:
          Lfast: 64
   mrwrings4:
-    function: systems.rob_system.rules.mr_wings
+    function: systems.provided.rob_system.rules.mr_wings
     data:
          - "rawdata.get_daily_prices"
          - "rawdata.daily_returns_volatility"
