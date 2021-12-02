@@ -58,6 +58,9 @@ class RawData(SystemStage):
         )
         dailyprice = self.data_stage.daily_prices(instrument_code)
 
+        if len(dailyprice)==0:
+            raise Exception("Data for %s not found! Remove from instrument list, or add to config.ignore_instruments")
+
         return dailyprice
 
     @input
@@ -68,6 +71,9 @@ class RawData(SystemStage):
         )
 
         natural_prices = self.data_stage.get_raw_price(instrument_code)
+
+        if len(natural_prices)==0:
+            raise Exception("Data for %s not found! Remove from instrument list, or add to config.ignore_instruments")
 
         return natural_prices
 
@@ -367,6 +373,9 @@ class RawData(SystemStage):
 
         instrcarrydata = self.parent.data.get_instrument_raw_carry_data(
             instrument_code)
+        if len(instrcarrydata)==0:
+            raise Exception("Data for %s not found! Remove from instrument list, or add to config.ignore_instruments")
+
 
         instrcarrydata = rawCarryData(instrcarrydata)
 
