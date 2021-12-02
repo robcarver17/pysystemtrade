@@ -59,7 +59,7 @@ class RawData(SystemStage):
         dailyprice = self.data_stage.daily_prices(instrument_code)
 
         if len(dailyprice)==0:
-            raise Exception("Data for %s not found! Remove from instrument list, or add to config.ignore_instruments")
+            raise Exception("Data for %s not found! Remove from instrument list, or add to config.ignore_instruments" % instrument_code)
 
         return dailyprice
 
@@ -374,7 +374,7 @@ class RawData(SystemStage):
         instrcarrydata = self.parent.data.get_instrument_raw_carry_data(
             instrument_code)
         if len(instrcarrydata)==0:
-            raise Exception("Data for %s not found! Remove from instrument list, or add to config.ignore_instruments")
+            raise Exception("Data for %s not found! Remove from instrument list, or add to config.ignore_instruments" % instrument_code)
 
 
         instrcarrydata = rawCarryData(instrcarrydata)
