@@ -73,8 +73,12 @@ def update_multiple_adjusted_prices_with_data(data: dataBlob, instrument_code: s
         list_of_codes = [instrument_code]
 
     for instrument_code in list_of_codes:
-        update_multiple_adjusted_prices_for_instrument(
-            instrument_code, data)
+        try:
+            update_multiple_adjusted_prices_for_instrument(
+                instrument_code, data)
+        except Exception as e:
+            data.log.critical("Something went wrong with adjusted prices for %s! [%s]" %
+                              (instrument_code, str(e)))
 
 
 def update_multiple_adjusted_prices_for_instrument(instrument_code: str, data: dataBlob):
