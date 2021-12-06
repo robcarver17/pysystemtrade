@@ -476,6 +476,17 @@ Save the files in a directory with no other content, using the filename format "
 You can also run the script with `ADD_EXTRA_DATA = False, ADD_TO_CSV = True`. Then it will just do a straight copy from provided .csv data to Arctic. Your data will be stale, but in production it will automatically be updated with data from IB (as long as the provided data isn't more than a year out of date, since IB will give you only a year of daily prices).
 
 
+## Updating the data
+
+If you want your data to update:
+
+- [Ensure you are sampling all the contracts you want to sample](/docs/production.md#update-sampled-contracts-daily)
+- [Update the individual contract data]/docs/production.md#update-futures-contract-historical-price-data-daily)
+- [Update multiple and adjusted prices](/docs/production.md#update-multiple-and-adjusted-prices-daily)
+
+These will be run daily if you're using the pysystemtrade production environment, and have set your [scheduler](/docs/production.md#scheduling) up to do `run_daily_price_updates`. But it's worth running them manually just the once (in the above order), especially after you've added data for a new market.
+
+
 ## Finished!
 
 That's it. You've got all the price and configuration data you need to start live trading, or run backtests using the database rather than .csv files. The rest of the document goes into much more detail about how the data storage works in pysystemtrade.
