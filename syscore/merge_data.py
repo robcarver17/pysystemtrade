@@ -449,8 +449,8 @@ def merge_data_series_with_label_column(
     data_column = col_names["data"]
 
     merged_data = full_merge_of_existing_series(
-        original_data[data_column][first_date_after_series_mismatch:],
-        new_data[data_column][first_date_after_series_mismatch:],
+        original_data[data_column][original_data.index>=first_date_after_series_mismatch],
+        new_data[data_column][new_data.index>=first_date_after_series_mismatch],
     )
 
     labels_in_new_data = new_data[last_date_when_series_mismatch:][label_column]
