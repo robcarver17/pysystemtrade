@@ -113,6 +113,12 @@ class RawData(SystemStage):
         return dailyreturns
 
     @output()
+    def annualised_returns_volatility(self, instrument_code: str) -> pd.Series:
+        daily_returns_volatility = self.daily_returns_volatility(instrument_code)
+
+        return daily_returns_volatility * ROOT_BDAYS_INYEAR
+
+    @output()
     def daily_returns_volatility(self, instrument_code: str) -> pd.Series:
         """
         Gets volatility of daily returns (not % returns)

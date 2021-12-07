@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from sysquant.estimators.vol import robust_vol_calc
+from sysquant.estimators.vol import robust_daily_vol_given_price, robust_vol_calc
 
 
 def ewmac(price, vol, Lfast, Lslow):
@@ -219,7 +219,7 @@ def ewmac_calc_vol(price, Lfast, Lslow, vol_days=35):
     slow_ewma = price.ewm(span=Lslow).mean()
     raw_ewmac = fast_ewma - slow_ewma
 
-    vol = robust_vol_calc(price, vol_days)
+    vol = robust_daily_vol_given_price(price, days = vol_days)
 
     return raw_ewmac / vol.ffill()
 
