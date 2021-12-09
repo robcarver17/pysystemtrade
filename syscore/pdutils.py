@@ -1,12 +1,16 @@
 """
 Utilities to help with pandas
 """
+import numpy
+import pandas
 import pandas as pd
 import datetime
 import random
 
 import numpy as np
 from copy import copy
+
+from statsmodels.distributions import ECDF
 
 from syscore.genutils import flatten_list
 from syscore.dateutils import (
@@ -604,3 +608,21 @@ def calculate_cost_deflator(price: pd.Series) -> pd.Series:
     cost_scalar = vol_price / final_vol
 
     return cost_scalar
+
+
+def quantile_of_points_in_data_series(data_series: pd.Series) ->pd.Series:
+    results = [quantile_of_points_in_data_series_row(data_series, irow) for irow in range(len(data_series))]
+    results_series = pd.Series(results, index = data_series.index)
+
+    return results_series
+
+
+def quantile_of_points_in_data_series_row(data_series: pd.Series, irow: int) -> float:
+    if irow<2:
+        return np.nan
+    historical_data = list(data_series[:irow].values)
+    current_value = data_series[irow]
+    ecdf_s = ECDF(historical_data)
+
+    return ecdf_s(current_value)
+

@@ -15,7 +15,7 @@ def robust_daily_vol_given_price(price: pd.Series, **kwargs):
 
 
 def robust_vol_calc(
-        x: pd.Series,
+        daily_returns: pd.Series,
         days: int = 35,
         min_periods: int = 10,
         vol_abs_min: float = 0.0000000001,
@@ -63,7 +63,9 @@ def robust_vol_calc(
     """
 
     # Standard deviation will be nan for first 10 non nan values
-    vol = x.ewm(adjust=True, span=days, min_periods=min_periods).std()
+    vol = simple_ewvol_calc(daily_returns,
+                            days=days,
+                            min_periods=min_periods)
     vol = apply_min_vol(vol, vol_abs_min=vol_abs_min)
 
     if vol_floor:
@@ -165,7 +167,9 @@ def mixed_vol_calc(
     """
 
     # Standard deviation will be nan for first 10 non nan values
-    vol = daily_returns.ewm(adjust=True, span=days, min_periods=min_periods).std()
+    vol = simple_ewvol_calc(daily_returns,
+                            days=days,
+                            min_periods=min_periods)
 
     slow_vol_days = slow_vol_years * BUSINESS_DAYS_IN_YEAR
     long_vol = vol.ewm(slow_vol_days).mean()
@@ -178,5 +182,29 @@ def mixed_vol_calc(
     if backfill:
         # use the first vol in the past, sort of cheating
         vol = backfill_vol(vol)
+
+    return vol
+
+def simple_ewvol_calc(
+        daily_returns: pd.Series,
+        days: int = 35,
+        min_periods: int = 10,
+        **ignored_kwargs
+) -> pd.Series:
+
+    # Standard deviation will be nan for first 10 non nan values
+    vol = daily_returns.ewm(adjust=True, span=days, min_periods=min_periods).std()
+
+    return vol
+
+def simple_vol_calc(
+        daily_returns: pd.Series,
+        days: int = 25,
+        min_periods: int = 10,
+        **ignored_kwargs
+) -> pd.Series:
+
+    # Standard deviation will be nan for first 10 non nan values
+    vol = daily_returns.rolling(days, min_periods=min_periods).std()
 
     return vol

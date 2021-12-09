@@ -199,49 +199,49 @@ GASOILINE-mini,OilGas,Product,,,,,NYMEX MINY Gasoline RBOB Index
 HEATOIL-mini,OilGas,Product,,,,,NYMEX MINY Heating Oil Index
 PIPELINE,OilGas,Product,,,,,Gulf Coast ULSD (Platts) Up-Down Futures
 URANIUM,OilGas,Product,,,,,NYMEX Uranium Index
-EU-AUTO,Sector,Discretion,Price,,EU,,Dow Jones STOXX 600 Automobiles & Parts
-EU-DJ-RETAIL,Sector,Discretion,Price,,EU,,Dow Jones Euro STOXX Retail
-EU-RETAIL,Sector,Discretion,Price,,EU,,Dow Jones STOXX 600 Retail
-EU-TRAVEL,Sector,Discretion,Price,,EU,,Dow Jones STOXX 600 Travel & Leisure
-US-DISCRETE,Sector,Discretion,Price,,US,,Consumer Discretionary Select Sector Index
-EU-DJ-OIL,Sector,Energy,Price,,EU,,Dow Jones Euro STOXX Oil & Gas
-EU-OIL,Sector,Energy,Price,,EU,,Dow Jones STOXX 600 Oil & Gas
-US-ENERGY,Sector,Energy,Price,,US,,Energy Select Sector Index
-EU-BANKS,Sector,Financials,Price,,EU,,Dow Jones Euro STOXX Banks Index
-EU-BANKS-DIVI,Sector,Financials,Dividend,,EU,,EURO STOXX Banks Index Dividend Futures
-EU-DJ-FINANCE,Sector,Financials,Price,,EU,,Dow Jones Euro STOXX Financial Services Index
-EU-DJ-INSURE,Sector,Financials,Price,,EU,,Dow Jones Euro STOXX Insurance
-EU-FINANCE,Sector,Financials,Price,,EU,,Dow Jones STOXX 600 Financial Services Index
-EU-INSURE,Sector,Financials,Price,,EU,,Dow Jones STOXX 600 Insurance
-US-FINANCE,Sector,Financials,Price,,US,,Financial Select Sector Index
-EU-DJ-HEALTH,Sector,Health,Price,,EU,,Dow Jones Euro STOXX Healthcare
-EU-HEALTH,Sector,Health,Price,,EU,,Dow Jones STOXX 600 Healthcare
-NASBIO-mini,Sector,Health,Price,,US,,CME E-Mini NASDAQ Biotechnology
-US-HEALTH,Sector,Health,Price,,US,,Health Care Select Sector Index
-EU-DJ-INDUSTRY,Sector,Industrial,Price,,EU,,Dow Jones Euro STOXX Industrial Goods&Services
-US-INDUSTRY,Sector,Industrial,Price,,US,,Industrial Select Sector Index
-EU-BASIC,Sector,Materials,Price,,EU,,Dow Jones STOXX 600 Basic Resources Index
-EU-CHEM,Sector,Materials,Price,,EU,,Dow Jones STOXX 600 Chemicals
-EU-Construction,Sector,Materials,Price,,EU,,Dow Jones STOXX 600 Construction & Materials
-EU-DJ-CHEM,Sector,Materials,Price,,EU,,Dow Jones Euro STOXX Chemicals
-US-MATERIAL,Sector,Materials,Price,,US,,Materials Select Sector Index
-EU-REALESTATE,Sector,Property,Price,,EU,,Dow Jones STOXX 600 Real Estate
-JP-REALESTATE,Sector,Property,Price,,JP,,TSE REIT Index
-US-PROPERTY,Sector,Property,Price,,US,,Real Estate Select Sector Index
-US-REALESTATE,Sector,Property,Price,,US,,US Real estate
-EU-DJ-FOOD,Sector,Staples,Price,,EU,,Dow Jones Euro STOXX Food&Beverages
-EU-FOOD,Sector,Staples,Price,,EU,,Dow Jones STOXX 600 Food & Beverage Index
-EU-HOUSE,Sector,Staples,Price,,EU,,Dow Jones STOXX 600 Personal & Household Goods
-US-STAPLES,Sector,Staples,Price,,US,,Consumer Staples Select Sector Index
-EU-DJ-TECH,Sector,Tech,Price,,EU,,Dow Jones Euro STOXX Technology
-EU-TECH,Sector,Tech,Price,,EU,,Dow Jones STOXX 600 Technology
-US-TECH,Sector,Tech,Price,,US,,Technology Select Sector Index -
-EU-DJ-MEDIA,Sector,Telecom,Price,,EU,,Dow Jones Euro STOXX Media Index
-EU-DJ-TELECOM,Sector,Telecom,Price,,EU,,Dow Jones Euro STOXX Telecommunications
-EU-MEDIA,Sector,Telecom,Price,,EU,,Dow Jones STOXX 600 Media
-EU-DJ-UTIL,Sector,Utilities,Price,,EU,,Dow Jones Euro STOXX Utilities Index
-EU-UTILS,Sector,Utilities,Price,,EU,,Dow Jones STOXX 600 Utilities
-US-UTILS,Sector,Utilities,Price,,US,,Utilities Select Sector Index
+EU-AUTO,Equity,Discretion,Price,,EU,,Dow Jones STOXX 600 Automobiles & Parts
+EU-DJ-RETAIL,Equity,Discretion,Price,,EU,,Dow Jones Euro STOXX Retail
+EU-RETAIL,Equity,Discretion,Price,,EU,,Dow Jones STOXX 600 Retail
+EU-TRAVEL,Equity,Discretion,Price,,EU,,Dow Jones STOXX 600 Travel & Leisure
+US-DISCRETE,Equity,Discretion,Price,,US,,Consumer Discretionary Select Sector Index
+EU-DJ-OIL,Equity,Energy,Price,,EU,,Dow Jones Euro STOXX Oil & Gas
+EU-OIL,Equity,Energy,Price,,EU,,Dow Jones STOXX 600 Oil & Gas
+US-ENERGY,Equity,Energy,Price,,US,,Energy Select Sector Index
+EU-BANKS,Equity,Financials,Price,,EU,,Dow Jones Euro STOXX Banks Index
+EU-BANKS-DIVI,Equity,Financials,Dividend,,EU,,EURO STOXX Banks Index Dividend Futures
+EU-DJ-FINANCE,Equity,Financials,Price,,EU,,Dow Jones Euro STOXX Financial Services Index
+EU-DJ-INSURE,Equity,Financials,Price,,EU,,Dow Jones Euro STOXX Insurance
+EU-FINANCE,Equity,Financials,Price,,EU,,Dow Jones STOXX 600 Financial Services Index
+EU-INSURE,Equity,Financials,Price,,EU,,Dow Jones STOXX 600 Insurance
+US-FINANCE,Equity,Financials,Price,,US,,Financial Select Sector Index
+EU-DJ-HEALTH,Equity,Health,Price,,EU,,Dow Jones Euro STOXX Healthcare
+EU-HEALTH,Equity,Health,Price,,EU,,Dow Jones STOXX 600 Healthcare
+NASBIO-mini,Equity,Health,Price,,US,,CME E-Mini NASDAQ Biotechnology
+US-HEALTH,Equity,Health,Price,,US,,Health Care Select Sector Index
+EU-DJ-INDUSTRY,Equity,Industrial,Price,,EU,,Dow Jones Euro STOXX Industrial Goods&Services
+US-INDUSTRY,Equity,Industrial,Price,,US,,Industrial Select Sector Index
+EU-BASIC,Equity,Materials,Price,,EU,,Dow Jones STOXX 600 Basic Resources Index
+EU-CHEM,Equity,Materials,Price,,EU,,Dow Jones STOXX 600 Chemicals
+EU-Construction,Equity,Materials,Price,,EU,,Dow Jones STOXX 600 Construction & Materials
+EU-DJ-CHEM,Equity,Materials,Price,,EU,,Dow Jones Euro STOXX Chemicals
+US-MATERIAL,Equity,Materials,Price,,US,,Materials Select Sector Index
+EU-REALESTATE,Equity,Property,Price,,EU,,Dow Jones STOXX 600 Real Estate
+JP-REALESTATE,Equity,Property,Price,,JP,,TSE REIT Index
+US-PROPERTY,Equity,Property,Price,,US,,Real Estate Select Sector Index
+US-REALESTATE,Equity,Property,Price,,US,,US Real estate
+EU-DJ-FOOD,Equity,Staples,Price,,EU,,Dow Jones Euro STOXX Food&Beverages
+EU-FOOD,Equity,Staples,Price,,EU,,Dow Jones STOXX 600 Food & Beverage Index
+EU-HOUSE,Equity,Staples,Price,,EU,,Dow Jones STOXX 600 Personal & Household Goods
+US-STAPLES,Equity,Staples,Price,,US,,Consumer Staples Select Sector Index
+EU-DJ-TECH,Equity,Tech,Price,,EU,,Dow Jones Euro STOXX Technology
+EU-TECH,Equity,Tech,Price,,EU,,Dow Jones STOXX 600 Technology
+US-TECH,Equity,Tech,Price,,US,,Technology Select Sector Index -
+EU-DJ-MEDIA,Equity,Telecom,Price,,EU,,Dow Jones Euro STOXX Media Index
+EU-DJ-TELECOM,Equity,Telecom,Price,,EU,,Dow Jones Euro STOXX Telecommunications
+EU-MEDIA,Equity,Telecom,Price,,EU,,Dow Jones STOXX 600 Media
+EU-DJ-UTIL,Equity,Utilities,Price,,EU,,Dow Jones Euro STOXX Utilities Index
+EU-UTILS,Equity,Utilities,Price,,EU,,Dow Jones STOXX 600 Utilities
+US-UTILS,Equity,Utilities,Price,,US,,Utilities Select Sector Index
 V2X,Vol,,,,EU,,Vol European equity V2X
 VIX,Vol,,,,US,,Vol US equity VIX
 VIX_mini,Vol,,,,US,,Vol US equity VIX mini
