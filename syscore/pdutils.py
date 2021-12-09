@@ -10,8 +10,6 @@ import random
 import numpy as np
 from copy import copy
 
-from statsmodels.distributions import ECDF
-
 from syscore.genutils import flatten_list
 from syscore.dateutils import (
     BUSINESS_DAYS_IN_YEAR,
@@ -610,19 +608,15 @@ def calculate_cost_deflator(price: pd.Series) -> pd.Series:
     return cost_scalar
 
 
-def quantile_of_points_in_data_series(data_series: pd.Series) ->pd.Series:
-    results = [quantile_of_points_in_data_series_row(data_series, irow) for irow in range(len(data_series))]
-    results_series = pd.Series(results, index = data_series.index)
+def quantile_of_points_in_data_series(data_series):
+    ## With thanks to https://github.com/PurpleHazeIan for this implementation
+    numpy_series = np.array(data_series)
+    results = []
 
+    for irow in range(len(data_series)):
+        current_value = numpy_series[irow]
+        count_less_than = (numpy_series < current_value)[:irow].sum()
+        results.append(count_less_than / (irow + 1))
+
+    results_series = pd.Series(results, index=data_series.index)
     return results_series
-
-
-def quantile_of_points_in_data_series_row(data_series: pd.Series, irow: int) -> float:
-    if irow<2:
-        return np.nan
-    historical_data = list(data_series[:irow].values)
-    current_value = data_series[irow]
-    ecdf_s = ECDF(historical_data)
-
-    return ecdf_s(current_value)
-
