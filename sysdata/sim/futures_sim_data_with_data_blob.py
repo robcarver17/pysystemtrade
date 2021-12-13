@@ -65,13 +65,20 @@ class genericBlobUsingFuturesSimData(futuresSimData):
         return data_after_start
 
     def get_instrument_asset_classes(self) -> assetClassesAndInstruments:
-        all_instrument_data = (
-            self.db_futures_instrument_data.get_all_instrument_data_as_df()
-        )
+        all_instrument_data = self.get_all_instrument_data_as_df()
         asset_classes = all_instrument_data["AssetClass"]
         asset_class_data = assetClassesAndInstruments.from_pd_series(asset_classes)
 
         return asset_class_data
+
+    def get_all_instrument_data_as_df(self):
+        all_instrument_data = (
+            self.db_futures_instrument_data.get_all_instrument_data_as_df()
+        )
+        instrument_list= self.get_instrument_list()
+        all_instrument_data = all_instrument_data[all_instrument_data.index.isin(instrument_list)]
+
+        return all_instrument_data
 
     def get_backadjusted_futures_price(
         self, instrument_code: str
