@@ -189,7 +189,7 @@ function update_processes() {
       });
 
       var price_overall = 'green';
-      $.each(data['price'], function(instrument, update) {
+      $.each(data['price'], function(idx, update) {
         var str = update['last_update'];
         var date = new Date(str);
         var diff = (most_recent_date.getTime() - date.getTime()) / (1000 * 24 * 60 * 60);  // days
@@ -201,14 +201,14 @@ function update_processes() {
         {
           $("#processes_prices tbody").append(`
           <tr>
-            <td>${instrument}</td>
+            <td>${update['name']}</td>
             <td>${short_date}</td>
           </tr>
           `);
         } else {
           $("#processes_prices tbody").append(`
           <tr>
-            <td>${instrument}</td>
+            <td>${update['name']}</td>
             <td class="red">${short_date}</td>
           </tr>
           `);
