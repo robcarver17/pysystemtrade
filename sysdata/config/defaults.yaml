@@ -302,7 +302,7 @@ duplicate_instruments:
     gasoiline: 'GASOILINE_mini'
     gold: 'GOLD'
     heatoil: 'HEATOIL_mini'
-    inr: 'INR_mini',
+    inr: 'INR-mini',
     jgb: ['JGB_mini', 'JGB-SGX-mini']
     jpy: ['JPY_micro','JPY-SGX-TITAN', 'JPY-SGX']
     kospi: 'KOSPI_mini'
