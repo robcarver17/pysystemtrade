@@ -115,7 +115,6 @@ GAS-LAST,1.5,USD,0.004,OilGas,Natural Gas Last Day Financial Futures Index,10000
 GAS-PEN,0.85,USD,0.001,OilGas,Natural Gas Penultimate Financial Futures Index,10000,0,0
 GASOIL,1.7,USD,0.1,OilGas,ICE-EU Low Sulphur Gasoil,100,0,0
 GASOILINE,1.5,USD,0.0005,OilGas,RBOB Gasoline US,42000,0,0
-GASOILINE-mini,0.85,USD,,OilGas,NYMEX MINY Gasoline RBOB Index,21000,0,0
 GASOIL_W,,USD,,OilGas,Gas oil winter,100,,
 GAS_UK,,GBP,,OilGas,Natural gas UK,31000,,
 GAS_US,2.31,USD,0.001025,OilGas,Natural gas US,10000,0,0
