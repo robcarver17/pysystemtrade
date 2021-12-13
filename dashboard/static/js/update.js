@@ -189,7 +189,7 @@ function update_processes() {
       });
 
       var price_overall = 'green';
-      $.each(data['price'], function(instrument, update) {
+      $.each(data['price'], function(idx, update) {
         var str = update['last_update'];
         var date = new Date(str);
         var diff = (most_recent_date.getTime() - date.getTime()) / (1000 * 24 * 60 * 60);  // days
@@ -201,14 +201,14 @@ function update_processes() {
         {
           $("#processes_prices tbody").append(`
           <tr>
-            <td>${instrument}</td>
+            <td>${update['name']}</td>
             <td>${short_date}</td>
           </tr>
           `);
         } else {
           $("#processes_prices tbody").append(`
           <tr>
-            <td>${instrument}</td>
+            <td>${update['name']}</td>
             <td class="red">${short_date}</td>
           </tr>
           `);
@@ -234,18 +234,25 @@ function update_reconcile() {
       $("#reconcile_contract > tbody").empty();
       $("#reconcile_broker > tbody").empty();
       $.each(data['optimal'], function(contract, details) {
+	if (details['optimal']['upper_position']) {
+	  // Static strategy
+          var optimal = `${details['optimal']['lower_position'].toFixed(1)} / ${details['optimal']['upper_position'].toFixed(1)}`;
+	} else {
+	  var optimal = details['optimal'];
+	}
+
         if (details['breaks']) {
         $("#reconcile_strategy tbody").append(`
           <tr><td>${contract}</td>
           <td class="red">${details['current']}</td>
-          <td class="red">${details['optimal']['lower_position'].toFixed(1)} / ${details['optimal']['upper_position'].toFixed(1)}</td>
+          <td class="red">${optimal}</td>
           </tr>`);
           overall = "orange";
         } else {
         $("#reconcile_strategy tbody").append(`
           <tr><td>${contract}</td>
           <td>${details['current']}</td>
-          <td>${details['optimal']['lower_position'].toFixed(1)} / ${details['optimal']['upper_position'].toFixed(1)}</td>
+          <td>${optimal}</td>
           </tr>`);
         }
       }
