@@ -55,15 +55,15 @@ My live production system is always on the latest release. I make, and eat, my o
 
 ## Dependencies
 
-Python 3.x, pandas, matplotlib, pyyaml, numpy, scipy, quandl, ib_insync
-
 See [requirements.txt](requirements.txt) for full details.
 
-Make sure you get the python3 versions of the relevant packages, i.e. use:
+Make sure you get the python3 versions of the relevant packages, i.e. use: (in linux)
 
 ```
 sudo pip3 install ....
 ```
+
+(Your machine may not need pip3 if python3 is the default python on your machine)
 
 ## Installation
 
@@ -79,7 +79,7 @@ python3 setup.py develop # required if using ipython so sessions can see files i
 python3 setup.py install --user # avoids use of sudo
 ```
 
-
+Again, you may be okay with python rather than python3.
 
 ### A note on support
 

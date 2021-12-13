@@ -87,13 +87,13 @@ class genericBlobUsingFuturesSimData(futuresSimData):
 
         return data[start_date:]
 
-    def _get_instrument_object_with_cost_data(
+    def get_instrument_meta_data(
         self, instrument_code: str
     ) -> futuresInstrumentWithMetaData:
         ## cost and other meta data stored in the same place
-        return self._get_instrument_object_with_meta_data(instrument_code)
+        return self.get_instrument_object_with_meta_data(instrument_code)
 
-    def _get_instrument_object_with_meta_data(
+    def get_instrument_object_with_meta_data(
         self, instrument_code: str
     ) -> futuresInstrumentWithMetaData:
         instrument = self.db_futures_instrument_data.get_instrument_data(

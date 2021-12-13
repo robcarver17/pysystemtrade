@@ -29,6 +29,16 @@ data.get_instrument_list()
 ['CORN', 'LEANHOG', 'LIVECOW', 'SOYBEAN', 'WHEAT', 'KR10', 'KR3', 'BOBL', 'BTP', 'BUND', 'OAT', 'SHATZ', 'US10', 'US2', 'US20', 'US5', 'V2X', 'VIX', 'KOSPI', 'AEX', 'CAC', 'SMI', 'NASDAQ', 'SP500', 'AUD', 'EUR', 'GBP', 'JPY', 'MXP', 'NZD', 'COPPER', 'GOLD', 'PALLAD', 'PLAT', 'CRUDE_W', 'GAS_US', 'EDOLLAR', 'EUROSTX']
 ```
 
+Not all the instruments are easily identifiable
+
+```
+data.get_instrument_object_with_meta_data("MUMMY")
+```
+
+```
+futuresInstrumentWithMetaData(instrument=MUMMY, meta_data=instrumentMetaData(Description='TSE Mothers Index', Pointsize=1000.0, Currency='JPY', AssetClass='Equity', Slippage=0.5, PerBlock=50.0, Percentage=0.0, PerTrade=0.0))
+```
+
 And what kind of data can we get for them?
 
 ```python

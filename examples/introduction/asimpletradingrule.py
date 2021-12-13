@@ -32,6 +32,14 @@ data can also behave in a dict like manner (though it's not a dict)
 
 print(data["VIX"])
 print(data.keys())
+
+"""
+Not all the instruments are easily identifiable
+"""
+
+print(data.get_instrument_object_with_meta_data("MUMMY"))
+
+
 """
 
 ... however this will only access prices

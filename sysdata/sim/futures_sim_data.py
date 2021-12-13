@@ -145,7 +145,7 @@ class futuresSimData(simData):
 
         """
 
-        cost_data_object = self._get_instrument_object_with_cost_data(instrument_code)
+        cost_data_object = self.get_instrument_object_with_meta_data(instrument_code)
 
         if cost_data_object is missing_instrument:
             self.log.warn(
@@ -169,7 +169,7 @@ class futuresSimData(simData):
 
         """
 
-        instr_object = self._get_instrument_object_with_meta_data(instrument_code)
+        instr_object = self.get_instrument_object_with_meta_data(instrument_code)
         meta_data = instr_object.meta_data
         block_move_value = meta_data.Pointsize
 
@@ -185,7 +185,7 @@ class futuresSimData(simData):
         :returns: str
 
         """
-        instr_object = self._get_instrument_object_with_meta_data(instrument_code)
+        instr_object = self.get_instrument_object_with_meta_data(instrument_code)
         meta_data = instr_object.meta_data
         currency = meta_data.Currency
 
@@ -222,7 +222,7 @@ class futuresSimData(simData):
     ) -> futuresMultiplePrices:
         raise NotImplementedError()
 
-    def _get_instrument_object_with_cost_data(
+    def get_instrument_meta_data(
         self, instrument_code
     ) -> futuresInstrumentWithMetaData:
         """
@@ -236,7 +236,8 @@ class futuresSimData(simData):
     def get_roll_parameters(self, instrument_code: str) -> rollParameters:
         raise NotImplementedError
 
-    def _get_instrument_object_with_meta_data(
+
+    def get_instrument_object_with_meta_data(
         self, instrument_code: str
     ) -> futuresInstrumentWithMetaData:
         """
