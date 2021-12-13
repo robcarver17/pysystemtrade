@@ -132,7 +132,9 @@ def processes():
         "control": reporting_api.table_of_control_status_list_for_all_processes().Body,
         "process": reporting_api.table_of_process_status_list_for_all_processes().Body,
         # "method_data": reporting_api.table_of_control_data_list_for_all_methods().Body,
-        "price": reporting_api.table_of_last_price_updates().Body.reset_index(drop=False),
+        "price": reporting_api.table_of_last_price_updates().Body.reset_index(
+            drop=False
+        ),
     }
     retval = dict_of_df_to_dict(retval, orient="index")
 
@@ -175,7 +177,11 @@ def reconcile():
     except:
         # IB gateway connection failed
         retval["gateway_ok"] = False
-    return dict_of_df_to_dict(retval, orient="index")
+    if "optimal" in retval["optimal"].columns:
+        # Force the underlying class to do the optimal position calc for us
+        retval["optimal"]["optimal"] = retval["optimal"]["optimal"].astype(str)
+    retval = dict_of_df_to_dict(retval, orient="index")
+    return retval
 
 
 @app.route("/rolls")
