@@ -15,8 +15,7 @@ if __name__ == "__main__":
 
     for instrument_code in instrument_list:
         print(instrument_code)
-        multiple_prices = csv_multiple_prices.get_multiple_prices(
-            instrument_code)
+        multiple_prices = csv_multiple_prices.get_multiple_prices(instrument_code)
 
         print(multiple_prices)
 

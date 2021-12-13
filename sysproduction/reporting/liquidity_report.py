@@ -9,7 +9,7 @@ from sysdata.data_blob import dataBlob
 from sysproduction.reporting.api import reportingApi
 
 
-def liquidity_report(data: dataBlob=arg_not_supplied):
+def liquidity_report(data: dataBlob = arg_not_supplied):
     if data is arg_not_supplied:
         data = dataBlob()
 
@@ -24,6 +24,3 @@ def liquidity_report(data: dataBlob=arg_not_supplied):
     formatted_output.append(reporting_api.footer())
 
     return formatted_output
-
-
-

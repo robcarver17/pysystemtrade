@@ -1,10 +1,11 @@
-
 from syscore.objects import arg_not_supplied
 
 from sysdata.data_blob import dataBlob
 
 from sysproduction.data.sim_data import get_sim_data_object_for_production
-from sysproduction.strategy_code.run_dynamic_optimised_system import runSystemCarryTrendDynamic
+from sysproduction.strategy_code.run_dynamic_optimised_system import (
+    runSystemCarryTrendDynamic,
+)
 
 from syslogdiag.log_to_screen import logtoscreen
 
@@ -15,9 +16,9 @@ class runMySystemCarryTrendDynamic(runSystemCarryTrendDynamic):
 
     # DO NOT CHANGE THE NAME OF THIS FUNCTION; IT IS HARDCODED INTO CONFIGURATION FILES
     # BECAUSE IT IS ALSO USED TO LOAD BACKTESTS
-    def system_method(self,
-                      notional_trading_capital: float=None,
-                      base_currency: str=None) -> System:
+    def system_method(
+        self, notional_trading_capital: float = None, base_currency: str = None
+    ) -> System:
         data = self.data
         backtest_config_filename = self.backtest_config_filename
 
@@ -36,8 +37,8 @@ def production_carry_trend_dynamic_system(
     data: dataBlob,
     config_filename: str,
     log=logtoscreen("futures_system"),
-    notional_trading_capital: float=arg_not_supplied,
-    base_currency: str=arg_not_supplied,
+    notional_trading_capital: float = arg_not_supplied,
+    base_currency: str = arg_not_supplied,
 ) -> System:
 
     log_level = "on"
@@ -59,6 +60,7 @@ def production_carry_trend_dynamic_system(
 
     return system
 
+
 from sysdata.config.configdata import Config
 
 from systems.forecasting import Rules
@@ -68,10 +70,17 @@ from private.systems.carrytrend.forecastScaleCap import volAttenForecastScaleCap
 from private.systems.carrytrend.rawdata import myFuturesRawData
 from systems.positionsizing import PositionSizing
 from systems.portfolio import Portfolios
-from systems.provided.dynamic_small_system_optimise.portfolio_weights_stage import portfolioWeightsStage
-from systems.provided.dynamic_small_system_optimise.optimised_positions_stage import optimisedPositions
+from systems.provided.dynamic_small_system_optimise.portfolio_weights_stage import (
+    portfolioWeightsStage,
+)
+from systems.provided.dynamic_small_system_optimise.optimised_positions_stage import (
+    optimisedPositions,
+)
 from systems.provided.dynamic_small_system_optimise.risk import Risk
-from systems.provided.dynamic_small_system_optimise.accounts_stage import accountForOptimisedStage
+from systems.provided.dynamic_small_system_optimise.accounts_stage import (
+    accountForOptimisedStage,
+)
+
 
 def futures_system(data, config):
 
@@ -87,7 +96,6 @@ def futures_system(data, config):
             ForecastCombine(),
             volAttenForecastScaleCap(),
             Rules(),
-
         ],
         data,
         config,
@@ -95,6 +103,3 @@ def futures_system(data, config):
     system.set_logging_level("on")
 
     return system
-
-
-

@@ -13,7 +13,7 @@ class tradeQuantity(list):
         elif isinstance(trade_or_fill_qty, int):
             trade_or_fill_qty = [trade_or_fill_qty]
 
-        elif (isinstance(trade_or_fill_qty, float)):
+        elif isinstance(trade_or_fill_qty, float):
             trade_or_fill_qty = [int(trade_or_fill_qty)]
         else:
             # must be a list
@@ -21,17 +21,13 @@ class tradeQuantity(list):
 
         super().__init__(trade_or_fill_qty)
 
-
     def zero_version(self):
         len_self = len(self)
         return tradeQuantity([0] * len_self)
 
     def fill_less_than_or_equal_to_desired_trade(self, proposed_fill):
         return all(
-            [
-                abs(x) <= abs(y) and x * y >= 0
-                for x, y in zip(proposed_fill, self)
-            ]
+            [abs(x) <= abs(y) and x * y >= 0 for x, y in zip(proposed_fill, self)]
         )
 
     def equals_zero(self):
@@ -39,7 +35,6 @@ class tradeQuantity(list):
 
     def sign_equal(self, other):
         return all([sign(x) == sign(y) for x, y in zip(self, other)])
-
 
     def __eq__(self, other):
         return all([x == y for x, y in zip(self, other)])
@@ -68,7 +63,9 @@ class tradeQuantity(list):
         return sum(abs_qty_list)
 
     def change_trade_size_proportionally_to_meet_abs_qty_limit(self, max_abs_qty: int):
-        new_qty = change_trade_size_proportionally_to_meet_abs_qty_limit(self, max_abs_qty)
+        new_qty = change_trade_size_proportionally_to_meet_abs_qty_limit(
+            self, max_abs_qty
+        )
         return tradeQuantity(new_qty)
 
     def sort_with_idx(self, idx_list: list):
@@ -84,11 +81,15 @@ class tradeQuantity(list):
     def reduce_trade_size_proportionally_to_abs_limit_per_leg(self, abs_list: list):
         # for each item in _trade and abs_list, return the signed minimum of the zip
         # eg if self._trade = [2,-2] and abs_list = [1,1], return [2,-2]
-        applied_list = reduce_trade_size_proportionally_to_abs_limit_per_leg(self, abs_list)
+        applied_list = reduce_trade_size_proportionally_to_abs_limit_per_leg(
+            self, abs_list
+        )
 
         return tradeQuantity(applied_list)
 
-    def reduce_trade_size_proportionally_so_smallest_leg_is_max_size(self, max_size: int):
+    def reduce_trade_size_proportionally_so_smallest_leg_is_max_size(
+        self, max_size: int
+    ):
         """
         Cut the trade down proportionally so the smallest leg is min_size
         eg self = [2], min_size = 1 -> [1]
@@ -100,19 +101,26 @@ class tradeQuantity(list):
         :return: tradeQuantity
         """
 
-        new_trade_list = reduce_trade_size_proportionally_so_smallest_leg_is_max_size(self, max_size)
+        new_trade_list = reduce_trade_size_proportionally_so_smallest_leg_is_max_size(
+            self, max_size
+        )
         return tradeQuantity(new_trade_list)
 
     def buy_or_sell(self) -> int:
         # sign of trade quantity
         return sign(self[0])
 
-    def single_leg_trade_qty_with_lowest_abs_value_trade_from_list(self, list_of_trade_qty: list) -> 'tradeQuantity':
+    def single_leg_trade_qty_with_lowest_abs_value_trade_from_list(
+        self, list_of_trade_qty: list
+    ) -> "tradeQuantity":
         # only works with single legs
-        trade_qty_list_as_single_legs = [trade_qty.as_single_trade_qty_or_error()
-                                         for trade_qty in list_of_trade_qty]
+        trade_qty_list_as_single_legs = [
+            trade_qty.as_single_trade_qty_or_error() for trade_qty in list_of_trade_qty
+        ]
 
-        abs_values_of_list_of_trade_qty = [abs(trade_qty) for trade_qty in trade_qty_list_as_single_legs]
+        abs_values_of_list_of_trade_qty = [
+            abs(trade_qty) for trade_qty in trade_qty_list_as_single_legs
+        ]
 
         min_abs_value_from_list = min(abs_values_of_list_of_trade_qty)
 
@@ -123,14 +131,16 @@ class tradeQuantity(list):
 
         return signed_abs_value_as_trade_qty
 
+
 class listOfTradeQuantity(list):
     def total_filled_qty(self) -> tradeQuantity:
         total_filled_qty = sum(self)
         return total_filled_qty
 
 
-
-def change_trade_size_proportionally_to_meet_abs_qty_limit(trade_list: tradeQuantity, max_abs_qty: int) -> list:
+def change_trade_size_proportionally_to_meet_abs_qty_limit(
+    trade_list: tradeQuantity, max_abs_qty: int
+) -> list:
     """
 
     :param trade_list: tradeQuantity
@@ -141,22 +151,26 @@ def change_trade_size_proportionally_to_meet_abs_qty_limit(trade_list: tradeQuan
     """
     original_qty = trade_list
     current_abs_qty = trade_list.total_abs_qty()
-    if current_abs_qty ==0:
+    if current_abs_qty == 0:
         return original_qty
-    if max_abs_qty==0:
-        return [0]*len(original_qty)
+    if max_abs_qty == 0:
+        return [0] * len(original_qty)
     max_abs_qty = float(max_abs_qty)
     ratio = max_abs_qty / current_abs_qty
-    if ratio>=1.0:
+    if ratio >= 1.0:
         return original_qty
 
     new_qty = [abs(int(np.floor(ratio * qty))) for qty in trade_list]
-    new_qty_adjusted = reduce_trade_size_proportionally_to_abs_limit_per_leg(original_qty, new_qty)
+    new_qty_adjusted = reduce_trade_size_proportionally_to_abs_limit_per_leg(
+        original_qty, new_qty
+    )
 
     return new_qty_adjusted
 
 
-def reduce_trade_size_proportionally_to_abs_limit_per_leg(trade_list_qty: list, abs_list: list) -> list:
+def reduce_trade_size_proportionally_to_abs_limit_per_leg(
+    trade_list_qty: list, abs_list: list
+) -> list:
     """
 
     :param trade_list_qty:
@@ -168,7 +182,7 @@ def reduce_trade_size_proportionally_to_abs_limit_per_leg(trade_list_qty: list, 
     # for each item in _trade and abs_list, return the signed minimum of the zip
     # eg if self._trade = [2,-2] and abs_list = [1,1], return [2,-2]
 
-    assert all([x>=0 for x in abs_list])
+    assert all([x >= 0 for x in abs_list])
     assert len(trade_list_qty) == len(abs_list)
 
     abs_trade_list = [abs(x) for x in trade_list_qty]
@@ -184,8 +198,7 @@ def reduce_trade_size_proportionally_to_abs_limit_per_leg(trade_list_qty: list, 
     new_smallest_leg = np.floor(smallest_abs_leg * min_abs_size_ratio)
     ratio_applied = new_smallest_leg / smallest_abs_leg
     trade_list_with_ratio_as_float = [x * ratio_applied for x in trade_list_qty]
-    trade_list_with_ratio_as_int = [int(x)
-                                    for x in trade_list_with_ratio_as_float]
+    trade_list_with_ratio_as_int = [int(x) for x in trade_list_with_ratio_as_float]
     diff = [
         abs(x - y)
         for x, y in zip(trade_list_with_ratio_as_float, trade_list_with_ratio_as_int)
@@ -197,7 +210,9 @@ def reduce_trade_size_proportionally_to_abs_limit_per_leg(trade_list_qty: list, 
     return trade_list_with_ratio_as_int
 
 
-def reduce_trade_size_proportionally_so_smallest_leg_is_max_size(trade_list_qty: list, max_size: int):
+def reduce_trade_size_proportionally_so_smallest_leg_is_max_size(
+    trade_list_qty: list, max_size: int
+):
     """
     Cut the trade down proportionally so the smallest leg is min_size
 
@@ -207,25 +222,24 @@ def reduce_trade_size_proportionally_so_smallest_leg_is_max_size(trade_list_qty:
 
     """
 
-    if max_size==0:
-        return [0]*len(trade_list_qty)
+    if max_size == 0:
+        return [0] * len(trade_list_qty)
 
     assert max_size > 0
 
     abs_trade_list = [abs(x) for x in trade_list_qty]
     smallest_abs_leg = min(abs_trade_list)
 
-    if smallest_abs_leg==0:
+    if smallest_abs_leg == 0:
         return trade_list_qty
 
     new_smallest_leg = max_size
     ratio_applied = new_smallest_leg / smallest_abs_leg
-    if ratio_applied>=1.0:
+    if ratio_applied >= 1.0:
         return trade_list_qty
 
     trade_list_with_ratio_as_float = [x * ratio_applied for x in trade_list_qty]
-    trade_list_with_ratio_as_int = [int(x)
-                                    for x in trade_list_with_ratio_as_float]
+    trade_list_with_ratio_as_int = [int(x) for x in trade_list_with_ratio_as_float]
     diff = [
         abs(x - y)
         for x, y in zip(trade_list_with_ratio_as_float, trade_list_with_ratio_as_int)
@@ -235,4 +249,3 @@ def reduce_trade_size_proportionally_so_smallest_leg_is_max_size(trade_list_qty:
         return trade_list_qty
 
     return trade_list_with_ratio_as_int
-

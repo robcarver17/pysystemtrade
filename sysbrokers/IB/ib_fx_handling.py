@@ -1,5 +1,4 @@
-
-from syscore.objects import  arg_not_supplied
+from syscore.objects import arg_not_supplied
 from syslogdiag.log_to_screen import logtoscreen
 
 from sysbrokers.IB.client.ib_fx_client import ibFxClient
@@ -8,16 +7,13 @@ from sysbrokers.IB.ib_translate_broker_order_objects import tradeWithContract
 from sysbrokers.broker_fx_handling import brokerFxHandlingData
 
 
-
 class ibFxHandlingData(brokerFxHandlingData):
-    def __init__(self, ibconnection: connectionIB, log=logtoscreen(
-            "ibFXHandlingData")):
+    def __init__(self, ibconnection: connectionIB, log=logtoscreen("ibFXHandlingData")):
         self._ibconnection = ibconnection
         super().__init__(log=log)
 
     def __repr__(self):
         return "IB FX handling data %s" % str(self.ib_client)
-
 
     @property
     def ibconnection(self) -> connectionIB:
@@ -27,8 +23,9 @@ class ibFxHandlingData(brokerFxHandlingData):
     def ib_client(self) -> ibFxClient:
         client = getattr(self, "_ib_client", None)
         if client is None:
-             client = self._ib_client = ibFxClient(ibconnection=self.ibconnection,
-                                                   log = self.log)
+            client = self._ib_client = ibFxClient(
+                ibconnection=self.ibconnection, log=self.log
+            )
 
         return client
 
@@ -36,12 +33,15 @@ class ibFxHandlingData(brokerFxHandlingData):
         return self.ib_client.broker_fx_balances(account_id)
 
     def broker_fx_market_order(
-            self,
-            trade: float,
-            ccy1: str,
-            account_id: str=arg_not_supplied,
-            ccy2: str="USD") -> tradeWithContract:
+        self,
+        trade: float,
+        ccy1: str,
+        account_id: str = arg_not_supplied,
+        ccy2: str = "USD",
+    ) -> tradeWithContract:
 
-        submitted_fx_trade = self.ib_client.broker_fx_market_order(trade, ccy1, account_id=account_id, ccy2=ccy2)
+        submitted_fx_trade = self.ib_client.broker_fx_market_order(
+            trade, ccy1, account_id=account_id, ccy2=ccy2
+        )
 
         return submitted_fx_trade

@@ -19,10 +19,7 @@ We kick them all off in the crontab at a specific time (midnight is easiest), bu
 import time
 import sys
 from syscontrol.report_process_status import reportProcessStatus
-from syscore.objects import (success,
-                             failure,
-                             status
-                             )
+from syscore.objects import success, failure, status
 
 from syscontrol.timer_functions import get_list_of_timer_functions, listOfTimerFunctions
 
@@ -30,7 +27,11 @@ from sysdata.data_blob import dataBlob
 
 from syslogdiag.logger import logger
 
-from sysobjects.production.process_control import process_no_run, process_running, process_stop
+from sysobjects.production.process_control import (
+    process_no_run,
+    process_running,
+    process_stop,
+)
 
 from sysproduction.data.control_process import dataControlProcess, diagControlProcess
 
@@ -44,18 +45,15 @@ class processToRun(object):
         self,
         process_name: str,
         data: dataBlob,
-        list_of_timer_names_and_functions_as_strings: list
+        list_of_timer_names_and_functions_as_strings: list,
     ):
         self._data = data
         self._process_name = process_name
         self._list_of_timer_functions = get_list_of_timer_functions(
-            data,
-            process_name,
-            list_of_timer_names_and_functions_as_strings
+            data, process_name, list_of_timer_names_and_functions_as_strings
         )
 
         self._setup()
-
 
     @property
     def process_name(self):
@@ -127,26 +125,25 @@ class processToRun(object):
                 if not we_should_pause:
                     timer_class.check_and_run()
 
-
     def _finish(self):
         self.list_of_timer_functions.run_methods_which_run_on_exit_only()
         self._finish_control_process()
         self.data.close()
-
 
     def _finish_control_process(self):
         result_of_finish = self.data_control.finish_process(self.process_name)
 
         if result_of_finish is failure:
             self.log.warn(
-                "Process %s won't finish in process control as already finished: weird!" %
-                self.process_name)
+                "Process %s won't finish in process control as already finished: weird!"
+                % self.process_name
+            )
         elif result_of_finish is success:
-            self.log.msg(
-                "Process control %s marked finished" %
-                self.process_name)
+            self.log.msg("Process control %s marked finished" % self.process_name)
+
 
 ### STARTUP CODE
+
 
 def _start_or_wait(process_to_run: processToRun) -> status:
     waiting = True
@@ -179,27 +176,32 @@ def _is_okay_to_start(process_to_run: processToRun) -> bool:
         return False
 
 
-NOT_STARTING_CONDITION =  "Not starting process"
+NOT_STARTING_CONDITION = "Not starting process"
+
 
 def _check_if_process_status_is_okay_to_run(process_to_run: processToRun) -> bool:
     data_control = process_to_run.data_control
     process_name = process_to_run.process_name
-    okay_to_run = data_control.check_if_okay_to_start_process(
-        process_name
-    )
+    okay_to_run = data_control.check_if_okay_to_start_process(process_name)
 
     wait_reporter = process_to_run.wait_reporter
     if okay_to_run is process_running:
         # already running
-        wait_reporter.report_wait_condition("because already running",NOT_STARTING_CONDITION)
+        wait_reporter.report_wait_condition(
+            "because already running", NOT_STARTING_CONDITION
+        )
         return False
 
     elif okay_to_run is process_stop:
-        wait_reporter.report_wait_condition("because process STOP status", NOT_STARTING_CONDITION)
+        wait_reporter.report_wait_condition(
+            "because process STOP status", NOT_STARTING_CONDITION
+        )
         return False
 
     elif okay_to_run is process_no_run:
-        wait_reporter.report_wait_condition("because process NO RUN status", NOT_STARTING_CONDITION)
+        wait_reporter.report_wait_condition(
+            "because process NO RUN status", NOT_STARTING_CONDITION
+        )
         return False
 
     elif okay_to_run is success:
@@ -208,14 +210,14 @@ def _check_if_process_status_is_okay_to_run(process_to_run: processToRun) -> boo
 
     else:
         process_running.log.critical(
-            "Process control returned unknown object %s!" %
-            str(okay_to_run))
+            "Process control returned unknown object %s!" % str(okay_to_run)
+        )
+
 
 def _is_it_time_to_run(process_to_run: processToRun) -> bool:
     diag_process = process_to_run.diag_process
     process_name = process_to_run.process_name
     time_to_run = diag_process.is_it_time_to_run(process_name)
-
 
     TIME_TO_RUN_REASON = "because Not yet time to run"
     wait_reporter = process_to_run.wait_reporter
@@ -225,24 +227,27 @@ def _is_it_time_to_run(process_to_run: processToRun) -> bool:
     else:
         wait_reporter.report_wait_condition(TIME_TO_RUN_REASON, NOT_STARTING_CONDITION)
 
-    return  time_to_run
+    return time_to_run
+
 
 def _has_previous_process_finished(process_to_run: processToRun) -> bool:
     diag_process = process_to_run.diag_process
     process_name = process_to_run.process_name
 
-    other_process_finished = (
-        diag_process.has_previous_process_finished_in_last_day(
-            process_name
-        )
+    other_process_finished = diag_process.has_previous_process_finished_in_last_day(
+        process_name
     )
     PREVIOUS_PROCESS_REASON = "because Previous process still running"
     wait_reporter = process_to_run.wait_reporter
 
     if other_process_finished:
-        wait_reporter.clear_wait_condition(PREVIOUS_PROCESS_REASON, NOT_STARTING_CONDITION)
+        wait_reporter.clear_wait_condition(
+            PREVIOUS_PROCESS_REASON, NOT_STARTING_CONDITION
+        )
     else:
-        wait_reporter.report_wait_condition(PREVIOUS_PROCESS_REASON, NOT_STARTING_CONDITION)
+        wait_reporter.report_wait_condition(
+            PREVIOUS_PROCESS_REASON, NOT_STARTING_CONDITION
+        )
 
     return other_process_finished
 
@@ -268,26 +273,23 @@ def _is_okay_to_wait_before_starting(process_to_run: processToRun):
 
     return okay_to_wait
 
-def _check_if_okay_to_wait_before_starting_process(process_to_run: processToRun) -> bool:
+
+def _check_if_okay_to_wait_before_starting_process(
+    process_to_run: processToRun,
+) -> bool:
     data_control = process_to_run.data_control
     process_name = process_to_run.process_name
 
-    okay_to_run = data_control.check_if_okay_to_start_process(
-        process_name
-    )
+    okay_to_run = data_control.check_if_okay_to_start_process(process_name)
 
     log = process_to_run.log
     if okay_to_run is process_running:
-        log.warn(
-            "Can't start process %s at all since already running"
-            % process_name
-        )
+        log.warn("Can't start process %s at all since already running" % process_name)
         return False
 
     elif okay_to_run is process_stop:
         log.warn(
-            "Can't start process %s at all since STOPPED by control"
-            % process_name
+            "Can't start process %s at all since STOPPED by control" % process_name
         )
         return False
 
@@ -299,29 +301,36 @@ def _check_if_okay_to_wait_before_starting_process(process_to_run: processToRun)
         # will 'wait' but on next iteration will run
         return True
     else:
-        error_msg ="Process control returned unknown object %s!" %\
-            str(okay_to_run)
+        error_msg = "Process control returned unknown object %s!" % str(okay_to_run)
         log.critical(error_msg)
         raise Exception(error_msg)
 
 
 ## WAIT CODE
 
+
 def wait_for_next_method_run_time(process_to_run: processToRun):
     list_of_timer_functions = process_to_run.list_of_timer_functions
     seconds_to_next_run = list_of_timer_functions.seconds_until_next_method_runs()
-    if seconds_to_next_run>10.0:
+    if seconds_to_next_run > 10.0:
         sleep_time = min(seconds_to_next_run, 60)
-        msg = "Sleeping for %d seconds as %d seconds until next method ready to run (will react to STOP or PAUSE at that point)" % (sleep_time, seconds_to_next_run)
+        msg = (
+            "Sleeping for %d seconds as %d seconds until next method ready to run (will react to STOP or PAUSE at that point)"
+            % (sleep_time, seconds_to_next_run)
+        )
         process_to_run.log.msg(msg)
         sys.stdout.flush()
         time.sleep(seconds_to_next_run)
 
+
 ## PAUSE CODE
+
 
 def check_for_pause_and_log(process_to_run: processToRun) -> bool:
     data_control = process_to_run.data_control
-    should_pause=data_control.check_if_should_pause_process(process_to_run.process_name)
+    should_pause = data_control.check_if_should_pause_process(
+        process_to_run.process_name
+    )
 
     wait_reporter = process_to_run.wait_reporter
     condition = "Paused running methods"
@@ -333,8 +342,6 @@ def check_for_pause_and_log(process_to_run: processToRun) -> bool:
         wait_reporter.clear_wait_condition(reason, condition)
 
     return should_pause
-
-
 
 
 ## FINISH CODE
@@ -367,19 +374,19 @@ def _check_for_stop(process_to_run: processToRun) -> bool:
     else:
         return False
 
+
 def _check_for_stop_control_process(process_to_run: processToRun) -> bool:
     data_control = process_to_run.data_control
     process_name = process_to_run.process_name
 
-    check_for_stop = data_control.check_if_process_status_stopped( process_name
-    )
+    check_for_stop = data_control.check_if_process_status_stopped(process_name)
 
     return check_for_stop
+
 
 def _check_if_all_methods_finished(process_to_run: processToRun) -> bool:
     list_of_timer_functions = process_to_run.list_of_timer_functions
     check_for_all_methods_finished = list_of_timer_functions.check_all_finished()
-
 
     return check_for_all_methods_finished
 

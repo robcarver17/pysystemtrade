@@ -8,7 +8,7 @@ These are 'virtual' orders, because they are per instrument. We translate that t
 
 Desired virtual orders have to be labelled with the desired type: limit, market,best-execution
 """
-from collections import  namedtuple
+from collections import namedtuple
 
 from sysdata.data_blob import dataBlob
 
@@ -20,13 +20,16 @@ from sysobjects.production.tradeable_object import instrumentStrategy
 
 from sysproduction.data.positions import dataOptimalPositions
 
-optimalPositions = namedtuple("optimalPositions",  [
-            "upper_positions",
-            "lower_positions",
-            "reference_prices",
-            "reference_contracts",
-            "ref_dates",
-        ])
+optimalPositions = namedtuple(
+    "optimalPositions",
+    [
+        "upper_positions",
+        "lower_positions",
+        "reference_prices",
+        "reference_contracts",
+        "ref_dates",
+    ],
+)
 
 
 class orderGeneratorForBufferedPositions(orderGeneratorForStrategy):
@@ -49,18 +52,27 @@ class orderGeneratorForBufferedPositions(orderGeneratorForStrategy):
         optimal_position_data = dataOptimalPositions(data)
 
         list_of_instruments = optimal_position_data.get_list_of_instruments_for_strategy_with_optimal_position(
-            strategy_name)
+            strategy_name
+        )
 
-        list_of_instrument_strategies = [instrumentStrategy(strategy_name=strategy_name,
-                                                 instrument_code=instrument_code)
-            for instrument_code in list_of_instruments]
+        list_of_instrument_strategies = [
+            instrumentStrategy(
+                strategy_name=strategy_name, instrument_code=instrument_code
+            )
+            for instrument_code in list_of_instruments
+        ]
 
         optimal_positions = dict(
             [
-                (instrument_strategy.instrument_code,
-                 optimal_position_data.get_current_optimal_position_for_instrument_strategy(
-                    instrument_strategy),
-                 ) for instrument_strategy in list_of_instrument_strategies])
+                (
+                    instrument_strategy.instrument_code,
+                    optimal_position_data.get_current_optimal_position_for_instrument_strategy(
+                        instrument_strategy
+                    ),
+                )
+                for instrument_strategy in list_of_instrument_strategies
+            ]
+        )
 
         ref_dates = dict(
             [
@@ -96,18 +108,21 @@ class orderGeneratorForBufferedPositions(orderGeneratorForStrategy):
             ]
         )
 
-        optimal_positions = optimalPositions(upper_positions=upper_positions,
-                                             lower_positions=lower_positions,
-                                             reference_prices=reference_prices,
-                                             reference_contracts=reference_contracts,
-                                             ref_dates=ref_dates)
+        optimal_positions = optimalPositions(
+            upper_positions=upper_positions,
+            lower_positions=lower_positions,
+            reference_prices=reference_prices,
+            reference_contracts=reference_contracts,
+            ref_dates=ref_dates,
+        )
         return optimal_positions
+
 
 def list_of_trades_given_optimal_and_actual_positions(
     data: dataBlob,
-        strategy_name: str,
-        optimal_positions: optimalPositions,
-        actual_positions: dict
+    strategy_name: str,
+    optimal_positions: optimalPositions,
+    actual_positions: dict,
 ) -> listOfOrders:
 
     upper_positions = optimal_positions.upper_positions
@@ -126,12 +141,11 @@ def list_of_trades_given_optimal_and_actual_positions(
 
 def trade_given_optimal_and_actual_positions(
     data: dataBlob,
-        strategy_name: str,
-        instrument_code: str,
-        optimal_positions: optimalPositions,
-        actual_positions: dict
+    strategy_name: str,
+    instrument_code: str,
+    optimal_positions: optimalPositions,
+    actual_positions: dict,
 ) -> instrumentOrder:
-
 
     upper_for_instrument = optimal_positions.upper_positions[instrument_code]
     lower_for_instrument = optimal_positions.lower_positions[instrument_code]
@@ -152,7 +166,6 @@ def trade_given_optimal_and_actual_positions(
     reference_contract = optimal_positions.reference_contracts[instrument_code]
     reference_price = optimal_positions.reference_prices[instrument_code]
 
-
     ref_date = optimal_positions.ref_dates[instrument_code]
 
     # No limit orders, just best execution
@@ -168,14 +181,16 @@ def trade_given_optimal_and_actual_positions(
 
     log = order_required.log_with_attributes(data.log)
     log.msg(
-        "Upper %.2f Lower %.2f Current %d Required position %d Required trade %d Reference price %f  for contract %s" %
-        (upper_for_instrument,
-         lower_for_instrument,
-         actual_for_instrument,
-         required_position,
-         trade_required,
-         reference_price,
-         reference_contract,
-         ))
+        "Upper %.2f Lower %.2f Current %d Required position %d Required trade %d Reference price %f  for contract %s"
+        % (
+            upper_for_instrument,
+            lower_for_instrument,
+            actual_for_instrument,
+            required_position,
+            trade_required,
+            reference_price,
+            reference_contract,
+        )
+    )
 
     return order_required

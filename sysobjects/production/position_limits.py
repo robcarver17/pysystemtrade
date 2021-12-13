@@ -46,7 +46,9 @@ class positionLimitForStrategyInstrument(positionLimit):
         super().__init__(instrument_strategy, position_limit)
 
     @classmethod
-    def no_limit(positionLimitForStrategyInstrument, instrument_strategy: instrumentStrategy):
+    def no_limit(
+        positionLimitForStrategyInstrument, instrument_strategy: instrumentStrategy
+    ):
         return positionLimitForStrategyInstrument(instrument_strategy, NO_LIMIT)
 
 
@@ -56,7 +58,11 @@ class positionLimitAndPosition(object):
         self._position = position
 
     def __repr__(self):
-        return "Position limit for %s is %s with current position %d" % (str(self.key), str(self.position_limit), self.position)
+        return "Position limit for %s is %s with current position %d" % (
+            str(self.key),
+            str(self.position_limit),
+            self.position,
+        )
 
     @property
     def position(self):
@@ -68,7 +74,7 @@ class positionLimitAndPosition(object):
 
     @property
     def spare(self) -> float:
-        if self.position_limit==NO_LIMIT:
+        if self.position_limit == NO_LIMIT:
             return 9999999
 
         return self.position_limit - abs(self.position)
@@ -83,25 +89,33 @@ class positionLimitAndPosition(object):
         position = self.position
         position_limit = self.position_limit
 
-        possible_trade = what_trade_is_possible(position=position, position_limit=position_limit, order=order)
+        possible_trade = what_trade_is_possible(
+            position=position, position_limit=position_limit, order=order
+        )
 
         return possible_trade
+
 
 def what_trade_is_possible(position: int, position_limit: int, order: Order) -> Order:
 
     ## POSIITON LIMITS CAN ONLY BE APPLIED TO SINGLE LEG TRADES, EG INSTRUMENT ORDERS
     proposed_trade = order.as_single_trade_qty_or_error()
-    possible_trade = what_trade_is_possible_single_leg_trade(position=position,
-                                                             position_limit=position_limit,
-                                                             proposed_trade=proposed_trade)
+    possible_trade = what_trade_is_possible_single_leg_trade(
+        position=position, position_limit=position_limit, proposed_trade=proposed_trade
+    )
 
     possible_trade_as_trade_qty = tradeQuantity(possible_trade)
 
-    order = order.replace_required_trade_size_only_use_for_unsubmitted_trades(possible_trade_as_trade_qty)
+    order = order.replace_required_trade_size_only_use_for_unsubmitted_trades(
+        possible_trade_as_trade_qty
+    )
 
     return order
 
-def what_trade_is_possible_single_leg_trade(position: int, position_limit: int, proposed_trade: int)-> int:
+
+def what_trade_is_possible_single_leg_trade(
+    position: int, position_limit: int, proposed_trade: int
+) -> int:
     """
     >>> what_trade_is_possible(1, 1, 0)
     0
@@ -175,7 +189,7 @@ def what_trade_is_possible_single_leg_trade(position: int, position_limit: int, 
     -6
 
     """
-    if proposed_trade==0:
+    if proposed_trade == 0:
         return proposed_trade
 
     new_position = position + proposed_trade
@@ -184,11 +198,11 @@ def what_trade_is_possible_single_leg_trade(position: int, position_limit: int, 
     abs_position_limit = abs(position_limit)
     signed_position_limit = int(abs_position_limit * sign(new_position))
 
-    if abs(new_position)<=abs_position_limit:
+    if abs(new_position) <= abs_position_limit:
         ## new position is within limits
         return proposed_trade
 
-    if position>=0 and abs(position)<=abs_position_limit:
+    if position >= 0 and abs(position) <= abs_position_limit:
         ## Was okay, but won't be after trade
         ## We move to the limit, either long or short depending on what the trade wanted to do
         possible_new_position = signed_position_limit
@@ -196,12 +210,12 @@ def what_trade_is_possible_single_leg_trade(position: int, position_limit: int, 
 
         return possible_trade
 
-    if position>=0 and abs(position)>abs_position_limit:
+    if position >= 0 and abs(position) > abs_position_limit:
         ## Was already too big
-        if proposed_trade>=0:
+        if proposed_trade >= 0:
             # want to buy when already too big
             return 0
-        if new_position>0:
+        if new_position > 0:
             ## selling, but sell isn't big enough to get within limits
             ## we don't increase the size of a trade
             return proposed_trade
@@ -212,7 +226,7 @@ def what_trade_is_possible_single_leg_trade(position: int, position_limit: int, 
 
             return possible_trade
 
-    if position<0 and abs(position)<=abs_position_limit:
+    if position < 0 and abs(position) <= abs_position_limit:
         ## Was okay, but won't be after trade
         ## We move to the limit, either long or short depending on what the trade wanted to do
         possible_new_position = signed_position_limit
@@ -220,12 +234,12 @@ def what_trade_is_possible_single_leg_trade(position: int, position_limit: int, 
 
         return possible_trade
 
-    if position<0 and abs(position)>abs_position_limit:
+    if position < 0 and abs(position) > abs_position_limit:
         ## Was already too big
-        if proposed_trade<0:
+        if proposed_trade < 0:
             # want to sell when already too big
             return 0
-        if new_position<0:
+        if new_position < 0:
             ## buying but not big enough to get within limits
             ## we don't increase the size of a trade
             return proposed_trade
@@ -236,5 +250,7 @@ def what_trade_is_possible_single_leg_trade(position: int, position_limit: int, 
 
             return possible_trade
 
-    raise Exception("Don't know how to handle original position %f proposed trade %f limit %f" % (position, proposed_trade, abs_position_limit))
-
+    raise Exception(
+        "Don't know how to handle original position %f proposed trade %f limit %f"
+        % (position, proposed_trade, abs_position_limit)
+    )

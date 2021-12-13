@@ -21,12 +21,13 @@ from syscore.objects import (
     success,
     failure,
     named_object,
-    missing_data, arg_not_supplied)
+    missing_data,
+    arg_not_supplied,
+)
 
 process_stop = named_object("process stop")
 process_no_run = named_object("process no run")
 process_running = named_object("process running")
-
 
 
 go_status = "GO"
@@ -40,7 +41,8 @@ possible_status = [go_status, no_run_status, stop_status, pause_status]
 start_run_idx = 0
 end_run_idx = 1
 
-missing_date_str=""
+missing_date_str = ""
+
 
 class dictOfRunningMethods(dict):
     def log_start_run_for_method(self, method_name: str):
@@ -61,7 +63,7 @@ class dictOfRunningMethods(dict):
         if last_end is missing_data:
             return True
 
-        if last_start>last_end:
+        if last_start > last_end:
             return True
 
         return False
@@ -80,36 +82,35 @@ class dictOfRunningMethods(dict):
             return missing_data
         return end_run
 
-
     def as_dict(self):
         return dict(self)
 
     def get_current_entry(self, method_name: str) -> list:
         missing_entry = [missing_date_str, missing_date_str]
         entry = self.get(method_name, missing_entry)
-        copied_entry= copy(entry)
+        copied_entry = copy(entry)
 
         return copied_entry
 
     def set_entry(self, method_name: str, new_entry: list):
         self[method_name] = new_entry
 
+
 not_running = "not running"
 still_running_and_pid_ok = "running"
 was_running_pid_notok_closed = "crashed"
 
 
-
 class controlProcess(object):
     def __init__(
         self,
-        last_start_time: datetime.datetime=None,
-        last_end_time: datetime.datetime=None,
-        currently_running: bool=False,
-        status: str=go_status,
-        process_id: int=default_process_id,
+        last_start_time: datetime.datetime = None,
+        last_end_time: datetime.datetime = None,
+        currently_running: bool = False,
+        status: str = go_status,
+        process_id: int = default_process_id,
         recently_crashed: bool = False,
-        running_methods: dictOfRunningMethods = arg_not_supplied
+        running_methods: dictOfRunningMethods = arg_not_supplied,
     ):
         if running_methods is arg_not_supplied:
             running_methods = dictOfRunningMethods()
@@ -124,7 +125,6 @@ class controlProcess(object):
 
     def __repr__(self):
         return " ".join(self.as_printable_list())
-
 
     @property
     def running_mode_str(self) -> str:
@@ -173,15 +173,17 @@ class controlProcess(object):
             status=self.status,
             currently_running=self.currently_running,
             process_id=self.process_id,
-            running_methods = self.running_methods.as_dict(),
-            recently_crashed = self.recently_crashed
+            running_methods=self.running_methods.as_dict(),
+            recently_crashed=self.recently_crashed,
         )
 
         return output
 
     @classmethod
     def from_dict(controlProcess, input_dict):
-        input_dict['running_methods'] = dictOfRunningMethods(input_dict.get('running_methods', {}))
+        input_dict["running_methods"] = dictOfRunningMethods(
+            input_dict.get("running_methods", {})
+        )
         control_process = controlProcess(**input_dict)
 
         return control_process
@@ -226,7 +228,6 @@ class controlProcess(object):
 
         return success
 
-
     def check_if_should_pause(self) -> bool:
         should_pause = self.status == pause_status
 
@@ -248,7 +249,6 @@ class controlProcess(object):
 
         return success
 
-
     def log_start_run_for_method(self, method_name: str):
         self.running_methods.log_start_run_for_method(method_name)
 
@@ -263,7 +263,6 @@ class controlProcess(object):
 
     def method_currently_running(self, method_name: str):
         return self.running_methods.currently_running(method_name)
-
 
     def check_if_pid_running(self) -> bool:
         ## I don't normally make jokes in code, or use weird variable names, so allow me this one please
@@ -307,23 +306,24 @@ class controlProcess(object):
         run_string = self.running_mode_str
         status_string = f"{''+self.status:<7}"
         process_id_string = f"{''+str(self.process_id):<8}"
-        return ["Started %s" %
-                last_run_or_heartbeat_from_date_or_none(self.last_start_time),
-                "ended %s" %
-                last_run_or_heartbeat_from_date_or_none(self.last_end_time),
-                "Status %s" % status_string,
-                "PID %s" % process_id_string,
-                run_string
-                ]
+        return [
+            "Started %s"
+            % last_run_or_heartbeat_from_date_or_none(self.last_start_time),
+            "ended %s" % last_run_or_heartbeat_from_date_or_none(self.last_end_time),
+            "Status %s" % status_string,
+            "PID %s" % process_id_string,
+            run_string,
+        ]
 
     def as_printable_dict(self) -> dict:
         run_string = self.running_mode_str
-        return dict(start = last_run_or_heartbeat_from_date_or_none(self.last_start_time),
-                    end = last_run_or_heartbeat_from_date_or_none(self.last_end_time),
-                    status = self.status,
-                    PID = self.process_id,
-                    running = run_string
-                    )
+        return dict(
+            start=last_run_or_heartbeat_from_date_or_none(self.last_start_time),
+            end=last_run_or_heartbeat_from_date_or_none(self.last_end_time),
+            status=self.status,
+            PID=self.process_id,
+            running=run_string,
+        )
 
 
 class dictOfControlProcesses(dict):
@@ -337,12 +337,12 @@ class dictOfControlProcesses(dict):
 
     def _pretty_print_element(self, key) -> str:
         name_string = f"{'' + key:<32}"
-        all_string = name_string+str(self[key])
+        all_string = name_string + str(self[key])
 
         return all_string
 
     def list_of_printable_lists(self) -> list:
-        lol = [[key]+value.as_printable_list() for key, value in self.items()]
+        lol = [[key] + value.as_printable_list() for key, value in self.items()]
         return lol
 
     def to_html_table_in_file(self, file):

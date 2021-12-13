@@ -1,6 +1,7 @@
 import re
 from copy import copy
 
+
 def sort_dict_by_underscore_length(other_args):
     """
     Sort dict according to keys and presence of leading underscores
@@ -43,8 +44,8 @@ def sort_keywords_by_underscore_length(other_arg_keys):
     sorted_keywords = []
     for key_len in range(max_key + 1):
         keys_with_key_value = [
-            key for key,
-            key_value in counted_keys.items() if key_value == key_len]
+            key for key, key_value in counted_keys.items() if key_value == key_len
+        ]
         sorted_keywords.append(keys_with_key_value)
 
     return sorted_keywords
@@ -113,32 +114,37 @@ def force_args_to_same_length(data_args_input, data, pad_with={}):
 
     if len(data_args) > 0:
         print(
-            "WARNING: some unused data arguments passed when creating trading rule (had %d leftover, only needed %d)" %
-            (len(data_args), len(data)))
+            "WARNING: some unused data arguments passed when creating trading rule (had %d leftover, only needed %d)"
+            % (len(data_args), len(data))
+        )
 
     return padded_data_args
 
-def camel_case_split(some_str) -> list:
-    return re.split('(?<!^)(?=[A-Z])', some_str)
 
-def print_with_landing_strips_around(str_to_match, strip: str="*"):
+def camel_case_split(some_str) -> list:
+    return re.split("(?<!^)(?=[A-Z])", some_str)
+
+
+def print_with_landing_strips_around(str_to_match, strip: str = "*"):
     str_to_print = landing_strip_around_string(str_to_match, strip)
     print(str_to_print)
 
-def landing_strip_around_string(str_to_match, strip: str="*")-> str:
-    strip = landing_strip_from_str(str_to_match, strip=strip)
-    return strip+"\n"+str_to_match+"\n"+strip
 
-def landing_strip_from_str(str_to_match: str, strip: str="=") -> str:
+def landing_strip_around_string(str_to_match, strip: str = "*") -> str:
+    strip = landing_strip_from_str(str_to_match, strip=strip)
+    return strip + "\n" + str_to_match + "\n" + strip
+
+
+def landing_strip_from_str(str_to_match: str, strip: str = "=") -> str:
     str_width = measure_width(str_to_match)
     return landing_strip(width=str_width, strip=strip)
 
 
-def landing_strip(width: int=80, strip: str="*"):
+def landing_strip(width: int = 80, strip: str = "*"):
     return strip * width
 
 
-def centralise_text(text: str, str_to_match: str, pad_with: str=" ") ->str:
+def centralise_text(text: str, str_to_match: str, pad_with: str = " ") -> str:
     match_len = measure_width(str_to_match)
     text_len = len(text)
     if text_len >= match_len:

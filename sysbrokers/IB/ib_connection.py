@@ -8,12 +8,11 @@ import time
 from ib_insync import IB
 
 from sysbrokers.IB.ib_connection_defaults import ib_defaults
-from syscore.objects import missing_data,arg_not_supplied
+from syscore.objects import missing_data, arg_not_supplied
 
 from syslogdiag.log_to_screen import logtoscreen
 
 from sysdata.config.production_config import get_production_config
-
 
 
 class connectionIB(object):
@@ -25,10 +24,10 @@ class connectionIB(object):
     def __init__(
         self,
         client_id: int,
-        ib_ipaddress: str=arg_not_supplied,
-        ib_port: int=arg_not_supplied,
+        ib_ipaddress: str = arg_not_supplied,
+        ib_port: int = arg_not_supplied,
         account: str = arg_not_supplied,
-        log=logtoscreen("connectionIB")
+        log=logtoscreen("connectionIB"),
     ):
         """
         :param client_id: client id
@@ -52,7 +51,8 @@ class connectionIB(object):
         # If you copy for another broker include this line
         log.label(broker="IB", clientid=client_id)
         self._ib_connection_config = dict(
-            ipaddress=ipaddress, port=port, client=client_id)
+            ipaddress=ipaddress, port=port, client=client_id
+        )
 
         ib = IB()
 
@@ -62,7 +62,9 @@ class connectionIB(object):
 
         ## that may still return missing data...
         if account is missing_data:
-            self.log.error("Broker account ID not found in private config - may cause issues")
+            self.log.error(
+                "Broker account ID not found in private config - may cause issues"
+            )
             ib.connect(ipaddress, port, clientId=client_id)
         else:
             ## conncect using account
@@ -104,9 +106,7 @@ class connectionIB(object):
             )
 
 
-
 def get_broker_account() -> str:
     production_config = get_production_config()
-    account_id = production_config.get_element_or_missing_data(
-        "broker_account")
+    account_id = production_config.get_element_or_missing_data("broker_account")
     return account_id

@@ -29,5 +29,3 @@ class cleanTruncateEchoFiles:
         delete_old_files_with_extension_in_pathname(
             pathname, extension=".arch", days_old=30
         )
-
-

@@ -36,14 +36,15 @@ class algoMarket(Algo):
 
         return broker_order_with_controls
 
-    def manage_trade(self, broker_order_with_controls: orderWithControls) -> orderWithControls:
-        broker_order_with_controls = self.manage_live_trade( broker_order_with_controls)
-        broker_order_with_controls = post_trade_processing(self.data,
-            broker_order_with_controls
+    def manage_trade(
+        self, broker_order_with_controls: orderWithControls
+    ) -> orderWithControls:
+        broker_order_with_controls = self.manage_live_trade(broker_order_with_controls)
+        broker_order_with_controls = post_trade_processing(
+            self.data, broker_order_with_controls
         )
 
         return broker_order_with_controls
-
 
     def prepare_and_submit_trade(self):
         contract_order = self.contract_order
@@ -53,7 +54,9 @@ class algoMarket(Algo):
             log.msg("PANIC ORDER! DON'T RESIZE AND DO ENTIRE TRADE")
             cut_down_contract_order = copy(contract_order)
         else:
-            cut_down_contract_order = contract_order.reduce_trade_size_proportionally_so_smallest_leg_is_max_size(SIZE_LIMIT)
+            cut_down_contract_order = contract_order.reduce_trade_size_proportionally_so_smallest_leg_is_max_size(
+                SIZE_LIMIT
+            )
 
         if cut_down_contract_order.trade != contract_order.trade:
             log.msg(
@@ -69,16 +72,17 @@ class algoMarket(Algo):
 
         return broker_order_with_controls
 
-
-    def manage_live_trade(self,
-                    broker_order_with_controls: orderWithControls) \
-            -> orderWithControls:
+    def manage_live_trade(
+        self, broker_order_with_controls: orderWithControls
+    ) -> orderWithControls:
         log = broker_order_with_controls.order.log_with_attributes(self.data.log)
         data_broker = self.data_broker
 
         trade_open = True
-        log.msg("Managing trade %s with market order" %
-                str(broker_order_with_controls.order))
+        log.msg(
+            "Managing trade %s with market order"
+            % str(broker_order_with_controls.order)
+        )
         while trade_open:
             log_message_required = broker_order_with_controls.message_required(
                 messaging_frequency_seconds=MESSAGING_FREQUENCY
@@ -88,9 +92,13 @@ class algoMarket(Algo):
 
             is_order_completed = broker_order_with_controls.completed()
             is_order_timeout = (
-                broker_order_with_controls.seconds_since_submission() > ORDER_TIME_OUT)
-            is_order_cancelled = data_broker.check_order_is_cancelled_given_control_object(
-                broker_order_with_controls)
+                broker_order_with_controls.seconds_since_submission() > ORDER_TIME_OUT
+            )
+            is_order_cancelled = (
+                data_broker.check_order_is_cancelled_given_control_object(
+                    broker_order_with_controls
+                )
+            )
             if is_order_completed:
                 log.msg("Trade completed")
                 break
@@ -98,7 +106,8 @@ class algoMarket(Algo):
             if is_order_timeout:
                 log.msg("Run out of time to execute: cancelling")
                 broker_order_with_controls = cancel_order(
-                    self.data, broker_order_with_controls)
+                    self.data, broker_order_with_controls
+                )
                 break
 
             if is_order_cancelled:

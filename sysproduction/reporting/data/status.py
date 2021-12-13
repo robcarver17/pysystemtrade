@@ -8,7 +8,12 @@ from syscore.objects import missing_data
 from syscore.pdutils import make_df_from_list_of_named_tuple
 from sysobjects.production.tradeable_object import instrumentStrategy
 from sysproduction.data.control_process import dataControlProcess, diagControlProcess
-from sysproduction.data.controls import diagOverrides, dataTradeLimits, dataLocks, dataPositionLimits
+from sysproduction.data.controls import (
+    diagOverrides,
+    dataTradeLimits,
+    dataLocks,
+    dataPositionLimits,
+)
 from sysproduction.data.currency_data import get_list_of_fxcodes, dataCurrency
 from sysproduction.data.positions import dataOptimalPositions
 from sysproduction.data.prices import get_list_of_instruments, diagPrices
@@ -31,7 +36,7 @@ dataForProcess = namedtuple(
         "previous_required",
         "previous_finished",
         "time_to_stop",
-        "pid"
+        "pid",
     ],
 )
 dataForLimits = namedtuple(
@@ -46,9 +51,15 @@ dataForLimits = namedtuple(
     ],
 )
 dataForMethod = namedtuple(
-    "dataForMethod", [
-        "method_or_strategy", "process_name", "last_start", "last_end", "currently_running"
-    ])
+    "dataForMethod",
+    [
+        "method_or_strategy",
+        "process_name",
+        "last_start",
+        "last_end",
+        "currently_running",
+    ],
+)
 genericUpdate = namedtuple("genericUpdate", ["name", "last_update"])
 dataOverride = namedtuple("dataOverride", ["name", "override"])
 uses_instruments = [
@@ -173,8 +184,9 @@ def get_last_futures_price_update_for_instrument(data, instrument_code):
 
 def get_list_of_last_fx_price_updates(data):
     list_of_codes = get_list_of_fxcodes(data)
-    updates = [get_last_fx_price_update_for_code(
-        data, fx_code) for fx_code in list_of_codes]
+    updates = [
+        get_last_fx_price_update_for_code(data, fx_code) for fx_code in list_of_codes
+    ]
     return updates
 
 
@@ -209,8 +221,7 @@ def get_list_of_position_updates_for_strategy(data, strategy_name):
         for instrument_code in instrument_list
     ]
 
-    list_of_updates = [
-        update for update in list_of_updates if update is not None]
+    list_of_updates = [update for update in list_of_updates if update is not None]
 
     return list_of_updates
 
@@ -219,10 +230,13 @@ def get_last_position_update_for_strategy_instrument(
     data, strategy_name, instrument_code
 ):
     op = dataOptimalPositions(data)
-    instrument_strategy = instrumentStrategy(instrument_code=instrument_code,
-                                             strategy_name=strategy_name)
+    instrument_strategy = instrumentStrategy(
+        instrument_code=instrument_code, strategy_name=strategy_name
+    )
 
-    pos_data = op.get_optimal_position_as_df_for_instrument_strategy(instrument_strategy)
+    pos_data = op.get_optimal_position_as_df_for_instrument_strategy(
+        instrument_strategy
+    )
     if pos_data is missing_data:
         return None
     last_update = pos_data.index[-1]
@@ -291,9 +305,9 @@ def get_control_data_for_single_ordinary_method(data, method_name_and_process):
     data_for_method = dataForMethod(
         method_or_strategy=method,
         process_name=process_name,
-        last_start= last_start_as_str,
-        last_end = last_end_as_str,
-        currently_running=str(currently_running)
+        last_start=last_start_as_str,
+        last_end=last_end_as_str,
+        currently_running=str(currently_running),
     )
 
     return data_for_method
@@ -314,7 +328,7 @@ def get_method_names_and_process_names(data):
     return method_and_process_list
 
 
-def  get_list_of_all_processes(data):
+def get_list_of_all_processes(data):
     all_methods_dict = get_methods_dict(data)
     ordinary_process_names = list(all_methods_dict.keys())
 
@@ -324,7 +338,8 @@ def  get_list_of_all_processes(data):
 def get_methods_dict(data):
     diag_process_config = diagControlProcess(data)
     all_methods_dict = diag_process_config.get_process_configuration_for_item_name(
-        "methods")
+        "methods"
+    )
 
     return all_methods_dict
 
@@ -338,20 +353,30 @@ def get_list_of_position_locks(data):
 
 def get_position_limits_as_df(data):
     strat_instrument_limits_as_df = get_strategy_instrument_limits_as_df(data)
-    strat_instrument_limits_as_df = strat_instrument_limits_as_df.sort_values('spare', ascending=True)
+    strat_instrument_limits_as_df = strat_instrument_limits_as_df.sort_values(
+        "spare", ascending=True
+    )
 
     instrument_limits_as_df = get_instrument_limits_as_df(data)
-    instrument_limits_as_df = instrument_limits_as_df.sort_values('spare', ascending=True)
+    instrument_limits_as_df = instrument_limits_as_df.sort_values(
+        "spare", ascending=True
+    )
 
-    agg_limits = pd.concat([strat_instrument_limits_as_df, instrument_limits_as_df], axis=0)
+    agg_limits = pd.concat(
+        [strat_instrument_limits_as_df, instrument_limits_as_df], axis=0
+    )
 
     return agg_limits
 
 
 def get_strategy_instrument_limits_as_df(data):
     data_position_limits = dataPositionLimits(data)
-    strat_instrument_limits = data_position_limits.get_all_strategy_instrument_limits_and_positions()
-    strat_instrument_limits_as_df = df_from_list_of_limits_and_positions(strat_instrument_limits)
+    strat_instrument_limits = (
+        data_position_limits.get_all_strategy_instrument_limits_and_positions()
+    )
+    strat_instrument_limits_as_df = df_from_list_of_limits_and_positions(
+        strat_instrument_limits
+    )
 
     return strat_instrument_limits_as_df
 
@@ -370,7 +395,8 @@ def df_from_list_of_limits_and_positions(pos_limit_list):
     pos_limit = [pos.position_limit for pos in pos_limit_list]
     spare = [pos.spare for pos in pos_limit_list]
 
-    df = pd.DataFrame(dict(keys = keys, position = position, pos_limit = pos_limit,
-                           spare = spare))
+    df = pd.DataFrame(
+        dict(keys=keys, position=position, pos_limit=pos_limit, spare=spare)
+    )
 
     return df

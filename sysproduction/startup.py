@@ -10,5 +10,3 @@ def startup():
 
     data_clientids = dataBrokerClientIDs()
     data_clientids.clear_all_clientids()
-
-

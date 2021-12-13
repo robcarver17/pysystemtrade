@@ -19,8 +19,7 @@ def get_list_of_timer_functions_for_capital_update():
     data_strategy_capital = dataBlob(log_name="strategy_allocation")
 
     total_capital_update_object = totalCapitalUpdate(data_total_capital)
-    strategy_capital_update_object = updateStrategyCapital(
-        data_strategy_capital)
+    strategy_capital_update_object = updateStrategyCapital(data_strategy_capital)
     list_of_timer_names_and_functions = [
         ("update_total_capital", total_capital_update_object),
         ("strategy_allocation", strategy_capital_update_object),

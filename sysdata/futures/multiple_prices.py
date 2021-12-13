@@ -33,18 +33,22 @@ class futuresMultiplePricesData(baseData):
     def keys(self):
         return self.get_list_of_instruments()
 
-    def __getitem__(self, instrument_code: str) ->futuresMultiplePrices:
+    def __getitem__(self, instrument_code: str) -> futuresMultiplePrices:
         return self.get_multiple_prices(instrument_code)
 
     def get_multiple_prices(self, instrument_code: str) -> futuresMultiplePrices:
         if self.is_code_in_data(instrument_code):
-            multiple_prices= self._get_multiple_prices_without_checking(instrument_code)
+            multiple_prices = self._get_multiple_prices_without_checking(
+                instrument_code
+            )
         else:
-            multiple_prices= futuresMultiplePrices.create_empty()
+            multiple_prices = futuresMultiplePrices.create_empty()
 
         return multiple_prices
 
-    def delete_multiple_prices(self, instrument_code: str, are_you_sure=False) -> status:
+    def delete_multiple_prices(
+        self, instrument_code: str, are_you_sure=False
+    ) -> status:
         log = self.log.setup(instrument_code=instrument_code)
 
         if are_you_sure:
@@ -52,9 +56,7 @@ class futuresMultiplePricesData(baseData):
                 self._delete_multiple_prices_without_any_warning_be_careful(
                     instrument_code
                 )
-                log.terse(
-                    "Deleted multiple price data for %s" %
-                    instrument_code)
+                log.terse("Deleted multiple price data for %s" % instrument_code)
 
                 return success
 
@@ -66,11 +68,8 @@ class futuresMultiplePricesData(baseData):
                 )
                 return failure
         else:
-            log.error(
-                "You need to call delete_multiple_prices with a flag to be sure"
-            )
+            log.error("You need to call delete_multiple_prices with a flag to be sure")
             return failure
-
 
     def is_code_in_data(self, instrument_code: str) -> bool:
         if instrument_code in self.get_list_of_instruments():
@@ -79,7 +78,10 @@ class futuresMultiplePricesData(baseData):
             return False
 
     def add_multiple_prices(
-        self, instrument_code: str, multiple_price_data: futuresMultiplePrices, ignore_duplication=False
+        self,
+        instrument_code: str,
+        multiple_price_data: futuresMultiplePrices,
+        ignore_duplication=False,
     ) -> status:
         log = self.log.setup(instrument_code=instrument_code)
         if self.is_code_in_data(instrument_code):
@@ -87,8 +89,9 @@ class futuresMultiplePricesData(baseData):
                 pass
             else:
                 log.error(
-                    "There is already %s in the data, you have to delete it first" %
-                    instrument_code)
+                    "There is already %s in the data, you have to delete it first"
+                    % instrument_code
+                )
                 return failure
 
         self._add_multiple_prices_without_checking_for_existing_entry(
@@ -107,9 +110,12 @@ class futuresMultiplePricesData(baseData):
     def get_list_of_instruments(self) -> list:
         raise NotImplementedError(USE_CHILD_CLASS_ERROR)
 
-    def _get_multiple_prices_without_checking(self, instrument_code:str) -> futuresMultiplePrices:
+    def _get_multiple_prices_without_checking(
+        self, instrument_code: str
+    ) -> futuresMultiplePrices:
         raise NotImplementedError(USE_CHILD_CLASS_ERROR)
 
-    def _delete_multiple_prices_without_any_warning_be_careful(self,
-            instrument_code: str):
+    def _delete_multiple_prices_without_any_warning_be_careful(
+        self, instrument_code: str
+    ):
         raise NotImplementedError(USE_CHILD_CLASS_ERROR)

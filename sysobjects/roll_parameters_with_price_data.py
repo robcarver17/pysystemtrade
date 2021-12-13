@@ -2,11 +2,14 @@ import datetime
 from syscore.objects import missing_data
 from sysobjects.rolls import contractDateWithRollParameters, rollParameters
 from sysobjects.contracts import contractDate
-from sysobjects.dict_of_futures_per_contract_prices import dictFuturesContractFinalPrices
+from sysobjects.dict_of_futures_per_contract_prices import (
+    dictFuturesContractFinalPrices,
+)
 from sysobjects.contract_dates_and_expiries import listOfContractDateStr
 
-HELD= "held"
-PRICED= "priced"
+HELD = "held"
+PRICED = "priced"
+
 
 class contractWithRollParametersAndPrices(object):
     """
@@ -14,9 +17,10 @@ class contractWithRollParametersAndPrices(object):
     """
 
     def __init__(
-            self,
-            contract_with_roll_parameters: contractDateWithRollParameters,
-            dict_of_final_price_data: dictFuturesContractFinalPrices):
+        self,
+        contract_with_roll_parameters: contractDateWithRollParameters,
+        dict_of_final_price_data: dictFuturesContractFinalPrices,
+    ):
         """
 
         :param contract_with_roll_parameters: contractWithRollParameters
@@ -39,7 +43,7 @@ class contractWithRollParametersAndPrices(object):
         return self.contract.roll_parameters
 
     @property
-    def date_str(self) ->str:
+    def date_str(self) -> str:
         return self.contract.date_str
 
     @property
@@ -123,12 +127,21 @@ class contractWithRollParametersAndPrices(object):
                     roll_cycle = self.roll_parameters.hold_rollcycle
                 else:
                     roll_cycle = self.roll_parameters.priced_rollcycle
-                print("Warning! After", self.date_str, "the next expected contract", try_contract.date_str, "in the",contract_type,"roll cycle (", roll_cycle, ") not available! (OK if this is at the end of the calendar)")
+                print(
+                    "Warning! After",
+                    self.date_str,
+                    "the next expected contract",
+                    try_contract.date_str,
+                    "in the",
+                    contract_type,
+                    "roll cycle (",
+                    roll_cycle,
+                    ") not available! (OK if this is at the end of the calendar)",
+                )
             try_contract = getattr(try_contract, contract_attribute_str)()
 
         # Nothing found
         return missing_data
-
 
     def find_previous_priced_contract_with_price_data(self):
         """
@@ -174,12 +187,21 @@ class contractWithRollParametersAndPrices(object):
                     roll_cycle = self.roll_parameters.hold_rollcycle
                 else:
                     roll_cycle = self.roll_parameters.priced_rollcycle
-                print("Warning! Before", self.date_str, "the previous expected contract", try_contract.date_str, "in the",contract_type,"roll cycle (", roll_cycle, ") not available! (OK if this is at the end of the calendar)")
+                print(
+                    "Warning! Before",
+                    self.date_str,
+                    "the previous expected contract",
+                    try_contract.date_str,
+                    "in the",
+                    contract_type,
+                    "roll cycle (",
+                    roll_cycle,
+                    ") not available! (OK if this is at the end of the calendar)",
+                )
             try_contract = getattr(try_contract, contract_attribute_str)()
 
         # Nothing found
         return missing_data
-
 
     def find_best_carry_contract_with_price_data(self):
         """
@@ -202,30 +224,34 @@ class contractWithRollParametersAndPrices(object):
         return best_carry_contract
 
 
+def find_earliest_held_contract_with_price_data(
+    roll_parameters_object: rollParameters, price_dict: dictFuturesContractFinalPrices
+) -> contractWithRollParametersAndPrices:
+    """
+    Find the earliest contract we can hold in a given list of contract dates
+    To hold the contract, it needs to be in the held roll cycle and the list_of_contract_dates
+    And it's carry contract needs to be in the priced roll cycle and the list_of_contract_dates
 
-def find_earliest_held_contract_with_price_data( roll_parameters_object: rollParameters,
-                 price_dict: dictFuturesContractFinalPrices)\
-                ->contractWithRollParametersAndPrices:
-        """
-        Find the earliest contract we can hold in a given list of contract dates
-        To hold the contract, it needs to be in the held roll cycle and the list_of_contract_dates
-        And it's carry contract needs to be in the priced roll cycle and the list_of_contract_dates
+    :return: contract with roll parameters, or None
+    """
+    list_of_contract_dates = price_dict.sorted_contract_date_str()
 
-        :return: contract with roll parameters, or None
-        """
-        list_of_contract_dates = price_dict.sorted_contract_date_str()
+    earliest_contract = _find_earliest_held_contract_with_data(
+        list_of_contract_dates, roll_parameters_object, price_dict
+    )
 
-        earliest_contract = _find_earliest_held_contract_with_data(list_of_contract_dates, roll_parameters_object,
-                                                                   price_dict)
+    return earliest_contract
 
-        return earliest_contract
 
-def _find_earliest_held_contract_with_data(list_of_contract_dates: listOfContractDateStr,
-                                           roll_parameters_object: rollParameters,
-                                           price_dict: dictFuturesContractFinalPrices) \
-                                     -> contractWithRollParametersAndPrices:
+def _find_earliest_held_contract_with_data(
+    list_of_contract_dates: listOfContractDateStr,
+    roll_parameters_object: rollParameters,
+    price_dict: dictFuturesContractFinalPrices,
+) -> contractWithRollParametersAndPrices:
 
-    try_contract = _initial_contract_to_try_with(list_of_contract_dates, roll_parameters_object, price_dict)
+    try_contract = _initial_contract_to_try_with(
+        list_of_contract_dates, roll_parameters_object, price_dict
+    )
     final_contract_date = list_of_contract_dates[-1]
 
     while try_contract.date_str <= final_contract_date:
@@ -242,14 +268,19 @@ def _find_earliest_held_contract_with_data(list_of_contract_dates: listOfContrac
     return missing_data
 
 
-def _initial_contract_to_try_with(list_of_contract_dates: list,
-                                 roll_parameters_object: rollParameters,
-                                 price_dict: dictFuturesContractFinalPrices)\
-                            ->contractWithRollParametersAndPrices:
+def _initial_contract_to_try_with(
+    list_of_contract_dates: list,
+    roll_parameters_object: rollParameters,
+    price_dict: dictFuturesContractFinalPrices,
+) -> contractWithRollParametersAndPrices:
 
     plausible_earliest_contract_date = list_of_contract_dates[0]
     plausible_earliest_contract = contractDateWithRollParameters(
-        contractDate(plausible_earliest_contract_date, approx_expiry_offset=roll_parameters_object.approx_expiry_offset), roll_parameters_object
+        contractDate(
+            plausible_earliest_contract_date,
+            approx_expiry_offset=roll_parameters_object.approx_expiry_offset,
+        ),
+        roll_parameters_object,
     )
 
     try_contract = contractWithRollParametersAndPrices(
@@ -258,15 +289,15 @@ def _initial_contract_to_try_with(list_of_contract_dates: list,
 
     return try_contract
 
-def _check_valid_contract(try_contract: contractWithRollParametersAndPrices,
-                         list_of_contract_dates: listOfContractDateStr)\
-                        -> bool:
+
+def _check_valid_contract(
+    try_contract: contractWithRollParametersAndPrices,
+    list_of_contract_dates: listOfContractDateStr,
+) -> bool:
 
     if try_contract.date_str in list_of_contract_dates:
         # possible candidate, let's check carry
-        try_carry_contract = (
-            try_contract.find_best_carry_contract_with_price_data()
-        )
+        try_carry_contract = try_contract.find_best_carry_contract_with_price_data()
 
         ## No good
         if try_carry_contract is missing_data:

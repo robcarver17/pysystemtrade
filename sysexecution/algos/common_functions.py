@@ -12,8 +12,9 @@ MESSAGING_FREQUENCY = 30
 CANCEL_WAIT_TIME = 60
 
 
-def post_trade_processing(data: dataBlob,
-                          broker_order_with_controls: orderWithControls) -> orderWithControls:
+def post_trade_processing(
+    data: dataBlob, broker_order_with_controls: orderWithControls
+) -> orderWithControls:
     data_broker = dataBroker(data)
     data_broker.cancel_market_data_for_order(broker_order_with_controls.order)
 
@@ -23,13 +24,14 @@ def post_trade_processing(data: dataBlob,
     # This order will now contain all fills so we set trades==fills
     # so the order is treated as completed
     # FIXME don't think I need to do this
-    #broker_order_with_controls.order.change_trade_qty_to_filled_qty()
+    # broker_order_with_controls.order.change_trade_qty_to_filled_qty()
 
     return broker_order_with_controls
 
 
-def cancel_order(data: dataBlob,
-                 broker_order_with_controls: orderWithControls) -> orderWithControls:
+def cancel_order(
+    data: dataBlob, broker_order_with_controls: orderWithControls
+) -> orderWithControls:
 
     log = broker_order_with_controls.order.log_with_attributes(data.log)
     data_broker = dataBroker(data)
@@ -41,7 +43,8 @@ def cancel_order(data: dataBlob,
     not_cancelled = True
     while not_cancelled:
         is_cancelled = data_broker.check_order_is_cancelled_given_control_object(
-            broker_order_with_controls)
+            broker_order_with_controls
+        )
         if is_cancelled:
             log.msg("Cancelled order")
             break
@@ -52,14 +55,17 @@ def cancel_order(data: dataBlob,
     return broker_order_with_controls
 
 
-def set_limit_price(data: dataBlob,
-                    broker_order_with_controls: orderWithControls,
-                    new_limit_price: float):
+def set_limit_price(
+    data: dataBlob,
+    broker_order_with_controls: orderWithControls,
+    new_limit_price: float,
+):
 
     log = broker_order_with_controls.order.log_with_attributes(data.log)
     data_broker = dataBroker(data)
     can_be_modified = data_broker.check_order_can_be_modified_given_control_object(
-        broker_order_with_controls)
+        broker_order_with_controls
+    )
     if can_be_modified:
         broker_order_with_controls = (
             data_broker.modify_limit_price_given_control_object(
@@ -72,9 +78,13 @@ def set_limit_price(data: dataBlob,
 
     return broker_order_with_controls
 
+
 limit_price_is_at_inside_spread = -99999999999999.99
 
-def check_current_limit_price_at_inside_spread(broker_order_with_controls: orderWithControls) -> float:
+
+def check_current_limit_price_at_inside_spread(
+    broker_order_with_controls: orderWithControls,
+) -> float:
     # When we are aggressive we want to remain on the correct side of the
     # spread
 

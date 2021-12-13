@@ -1,7 +1,7 @@
 from dateutil.tz import tz
 import datetime
 
-from ib_insync import  Contract
+from ib_insync import Contract
 from ib_insync import IB
 
 from sysbrokers.IB.ib_connection import connectionIB
@@ -29,20 +29,20 @@ class ibClient(object):
 
     """
 
-    def __init__(self, ibconnection: connectionIB, log: logger=logtoscreen("ibClient")):
+    def __init__(
+        self, ibconnection: connectionIB, log: logger = logtoscreen("ibClient")
+    ):
 
         # means our first call won't be throttled for pacing
         self.last_historic_price_calltime = (
-            datetime.datetime.now() -
-            datetime.timedelta(
-                seconds=_PACING_PERIOD_SECONDS))
+            datetime.datetime.now() - datetime.timedelta(seconds=_PACING_PERIOD_SECONDS)
+        )
 
         # Add error handler
         ibconnection.ib.errorEvent += self.error_handler
 
         self._ib_connnection = ibconnection
         self._log = log
-
 
     @property
     def ib_connection(self) -> connectionIB:
@@ -60,8 +60,9 @@ class ibClient(object):
     def log(self):
         return self._log
 
-
-    def error_handler(self, reqid: int, error_code: int, error_string: str, contract: Contract):
+    def error_handler(
+        self, reqid: int, error_code: int, error_string: str, contract: Contract
+    ):
         """
         Error handler called from server
         Needs to be attached to ib connection
@@ -80,8 +81,7 @@ class ibClient(object):
                 contract.lastTradeDateOrContractMonth,
             )
 
-        msg = "Reqid %d: %d %s %s" % (
-            reqid, error_code, error_string, contract_str)
+        msg = "Reqid %d: %d %s %s" % (reqid, error_code, error_string, contract_str)
 
         iserror = error_code in IB_IS_ERROR
         if iserror:
@@ -93,7 +93,6 @@ class ibClient(object):
             # just a warning / general message
             self.broker_message(msg)
 
-
     def broker_error(self, msg, myerror_type):
         self.log.warn(msg)
 
@@ -103,13 +102,9 @@ class ibClient(object):
     def refresh(self):
         self.ib.sleep(0.00001)
 
-
     def get_broker_time_local_tz(self) -> datetime.datetime:
         ib_time = self.ib.reqCurrentTime()
         local_ib_time_with_tz = ib_time.astimezone(tz.tzlocal())
         local_ib_time = strip_timezone_fromdatetime(local_ib_time_with_tz)
 
         return local_ib_time
-
-
-

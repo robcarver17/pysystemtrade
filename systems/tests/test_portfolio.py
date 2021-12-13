@@ -81,8 +81,7 @@ class Test(unittest.TestCase):
             self.data,
             config,
         )
-        ans = system2.portfolio.get_instrument_correlation_matrix(
-        ).corr_list[-1]
+        ans = system2.portfolio.get_instrument_correlation_matrix().corr_list[-1]
 
         self.assertAlmostEqual(ans[0][1], 0.3889, places=3)
         self.assertAlmostEqual(ans[0][2], 0.5014, places=3)
@@ -110,13 +109,19 @@ class Test(unittest.TestCase):
 
     @unittest.SkipTest
     def test_get_position_method_buffer(self):
-        self.assertAlmostEqual(self.system.portfolio.get_position_method_buffer(
-            "EDOLLAR").values[-1], 0.12231, places=3, )
+        self.assertAlmostEqual(
+            self.system.portfolio.get_position_method_buffer("EDOLLAR").values[-1],
+            0.12231,
+            places=3,
+        )
 
     @unittest.SkipTest
     def test_get_forecast_method_buffer(self):
-        self.assertAlmostEqual(self.system.portfolio.get_forecast_method_buffer(
-            "EDOLLAR").values[-1], 0.496673, places=3, )
+        self.assertAlmostEqual(
+            self.system.portfolio.get_forecast_method_buffer("EDOLLAR").values[-1],
+            0.496673,
+            places=3,
+        )
 
     @unittest.SkipTest
     def test_get_buffers_for_position(self):

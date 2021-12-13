@@ -33,12 +33,8 @@ class cacheRef(object):
     """
 
     def __init__(
-            self,
-            stage_name,
-            itemname,
-            instrument_code=ALL_KEYNAME,
-            flags="",
-            keyname=""):
+        self, stage_name, itemname, instrument_code=ALL_KEYNAME, flags="", keyname=""
+    ):
 
         self.stage_name = stage_name
         self.itemname = itemname
@@ -65,8 +61,7 @@ class cacheRef(object):
         return tuple(v for k, v in sorted(self.__dict__.items()))
 
     def __eq__(self, other):
-        return isinstance(
-            other, self.__class__) and self.__key() == other.__key()
+        return isinstance(other, self.__class__) and self.__key() == other.__key()
 
     def __hash__(self):
         return hash(self.__key())
@@ -83,13 +78,13 @@ class listOfCacheRefs(list):
 
     def filter_by_stage_name(self, stage_name):
         new_list = [
-            cache_ref for cache_ref in self if cache_ref.stage_name == stage_name]
+            cache_ref for cache_ref in self if cache_ref.stage_name == stage_name
+        ]
 
         return listOfCacheRefs(new_list)
 
     def filter_by_itemname(self, itemname):
-        new_list = [
-            cache_ref for cache_ref in self if cache_ref.itemname == itemname]
+        new_list = [cache_ref for cache_ref in self if cache_ref.itemname == itemname]
 
         return listOfCacheRefs(new_list)
 
@@ -103,8 +98,7 @@ class listOfCacheRefs(list):
         return listOfCacheRefs(new_list)
 
     def filter_by_keyname(self, keyname):
-        new_list = [
-            cache_ref for cache_ref in self if cache_ref.keyname == keyname]
+        new_list = [cache_ref for cache_ref in self if cache_ref.keyname == keyname]
 
         return listOfCacheRefs(new_list)
 
@@ -302,8 +296,7 @@ class systemCache(dict):
         """
 
         cache_ref_list = self.get_items_with_data()
-        cache_ref_list = cache_ref_list.filter_by_instrument_code(
-            instrument_code)
+        cache_ref_list = cache_ref_list.filter_by_instrument_code(instrument_code)
 
         return cache_ref_list
 
@@ -357,7 +350,8 @@ class systemCache(dict):
         """
 
         cache_ref_list = [
-            cache_ref for cache_ref in cache_ref_list if not self[cache_ref].protected()]
+            cache_ref for cache_ref in cache_ref_list if not self[cache_ref].protected()
+        ]
 
         return listOfCacheRefs(cache_ref_list)
 
@@ -380,10 +374,7 @@ class systemCache(dict):
             cache_ref_list, delete_protected=delete_protected
         )
 
-    def delete_items_for_instrument(
-            self,
-            instrument_code,
-            delete_protected=False):
+    def delete_items_for_instrument(self, instrument_code, delete_protected=False):
         """
         Delete everything in the system relating to a particular instrument_code
 
@@ -424,8 +415,7 @@ class systemCache(dict):
 
         """
 
-        self.delete_items_for_instrument(
-            ALL_KEYNAME, delete_protected=delete_protected)
+        self.delete_items_for_instrument(ALL_KEYNAME, delete_protected=delete_protected)
 
     def delete_all_items(self, delete_protected=False):
         """
@@ -443,8 +433,7 @@ class systemCache(dict):
             cache_ref_list, delete_protected=delete_protected
         )
 
-    def delete_elements_in_cache_ref_list(
-            self, cache_ref_list, delete_protected=False):
+    def delete_elements_in_cache_ref_list(self, cache_ref_list, delete_protected=False):
         """
         Delete everything in the cache
 
@@ -456,8 +445,7 @@ class systemCache(dict):
         """
 
         if not delete_protected:
-            cache_ref_list = self.cache_ref_list_with_protected_removed(
-                cache_ref_list)
+            cache_ref_list = self.cache_ref_list_with_protected_removed(cache_ref_list)
 
         self._delete_elements_in_cache_ref_list_dangerous(cache_ref_list)
 
@@ -488,12 +476,7 @@ class systemCache(dict):
         if cache_ref in self:
             del self[cache_ref]
 
-    def set_item_in_cache(
-            self,
-            value,
-            cache_ref,
-            protected=False,
-            not_pickable=False):
+    def set_item_in_cache(self, value, cache_ref, protected=False, not_pickable=False):
         """
         Set an item in a cache to a specific value.
 
@@ -575,11 +558,8 @@ class systemCache(dict):
         # Turn all the arguments into things we can use to identify the cache
         # element uniquely
         cache_ref = self.cache_ref(
-            func,
-            this_stage,
-            *args,
-            instrument_classify=instrument_classify,
-            **kwargs)
+            func, this_stage, *args, instrument_classify=instrument_classify, **kwargs
+        )
 
         value = self._get_item_from_cache(cache_ref)
 
@@ -588,10 +568,8 @@ class systemCache(dict):
             # 'self'
             value = func(this_stage, *args, **kwargs)
             self.set_item_in_cache(
-                value,
-                cache_ref,
-                protected=protected,
-                not_pickable=not_pickable)
+                value, cache_ref, protected=protected, not_pickable=not_pickable
+            )
 
         return value
 
@@ -695,9 +673,8 @@ def resolve_kwargs_to_str(kwargs):
         return "%s=%s" % (single_flag, str(argvalue))
 
     long_flag_string = [
-        resolve_individual_flag(
-            single_flag,
-            kwargs) for single_flag in kwargs.keys()]
+        resolve_individual_flag(single_flag, kwargs) for single_flag in kwargs.keys()
+    ]
 
     return ", ".join(long_flag_string)
 

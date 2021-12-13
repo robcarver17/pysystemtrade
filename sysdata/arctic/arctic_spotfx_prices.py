@@ -6,6 +6,7 @@ import pandas as pd
 
 SPOTFX_COLLECTION = "spotfx_prices"
 
+
 class arcticFxPricesData(fxPricesData):
     """
     Class to read / write fx prices
@@ -38,19 +39,21 @@ class arcticFxPricesData(fxPricesData):
         self.log.label(currency_code=currency_code)
         self.arctic.delete(currency_code)
         self.log.msg(
-            "Deleted fX prices for %s from %s" %
-            (currency_code, str(self)), fx_code = currency_code)
+            "Deleted fX prices for %s from %s" % (currency_code, str(self)),
+            fx_code=currency_code,
+        )
 
     def _add_fx_prices_without_checking_for_existing_entry(
         self, currency_code: str, fx_price_data: fxPrices
     ):
         self.log.label(currency_code=currency_code)
         fx_price_data_aspd = pd.DataFrame(fx_price_data)
-        fx_price_data_aspd.columns = ['price']
+        fx_price_data_aspd.columns = ["price"]
         fx_price_data_aspd = fx_price_data_aspd.astype(float)
 
         self.arctic.write(currency_code, fx_price_data_aspd)
         self.log.msg(
             "Wrote %s lines of prices for %s to %s"
-            % (len(fx_price_data), currency_code, str(self)), fx_code = currency_code
+            % (len(fx_price_data), currency_code, str(self)),
+            fx_code=currency_code,
         )

@@ -1,4 +1,3 @@
-
 import matplotlib.pyplot as pyplot
 
 import pandas as pd
@@ -7,6 +6,7 @@ from syscore.fileutils import file_in_home_dir
 from syscore.objects import user_exit, missing_data
 from syscore.interactive import print_menu_of_values_and_get_response
 from syscore.interactively_run_functions import fill_args_and_run_func
+
 
 class interactiveBacktest(object):
     # store backtests and interact with them
@@ -29,7 +29,6 @@ class interactiveBacktest(object):
     @property
     def system(self):
         return self._system
-
 
     def print_config_dict(self):
         system = self.system
@@ -186,4 +185,3 @@ class interactiveBacktest(object):
 
     def get_trading_rules(self):
         return self.system.rules.trading_rules().keys()
-

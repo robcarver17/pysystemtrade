@@ -1,4 +1,10 @@
-from sysexecution.trade_qty import tradeQuantity, change_trade_size_proportionally_to_meet_abs_qty_limit, reduce_trade_size_proportionally_so_smallest_leg_is_max_size, reduce_trade_size_proportionally_to_abs_limit_per_leg
+from sysexecution.trade_qty import (
+    tradeQuantity,
+    change_trade_size_proportionally_to_meet_abs_qty_limit,
+    reduce_trade_size_proportionally_so_smallest_leg_is_max_size,
+    reduce_trade_size_proportionally_to_abs_limit_per_leg,
+)
+
 
 def _doc_tests1():
     """
@@ -86,6 +92,7 @@ def _doc_tests1():
     >>> reduce_trade_size_proportionally_so_smallest_leg_is_max_size([-2,4,-2], 2)
     [-2, 4, -2]
     """
+
 
 def _doc_tests2():
     """
@@ -264,6 +271,7 @@ def _doc_tests2():
     [-2, 4, -2]
 
     """
+
 
 def _doctests3():
     """

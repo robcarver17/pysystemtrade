@@ -141,7 +141,6 @@ class PositionSizing(SystemStage):
 
         return vol_scalar
 
-
     @diagnostic()
     def get_instrument_value_vol(self, instrument_code: str) -> pd.Series:
         """
@@ -221,8 +220,7 @@ class PositionSizing(SystemStage):
         daily_perc_vol = self.get_price_volatility(instrument_code)
 
         ## FIXME WHY NOT RESAMPLE?
-        (block_value, daily_perc_vol) = block_value.align(
-            daily_perc_vol, join="inner")
+        (block_value, daily_perc_vol) = block_value.align(daily_perc_vol, join="inner")
 
         instr_ccy_vol = block_value.ffill() * daily_perc_vol
 
@@ -256,17 +254,14 @@ class PositionSizing(SystemStage):
 
         """
 
-        underlying_price = self.get_underlying_price(
-            instrument_code)
+        underlying_price = self.get_underlying_price(instrument_code)
         value_of_price_move = self.parent.data.get_value_of_block_price_move(
             instrument_code
         )
 
-        block_value =  underlying_price.ffill() * value_of_price_move * 0.01
+        block_value = underlying_price.ffill() * value_of_price_move * 0.01
 
         return block_value
-
-
 
     @diagnostic()
     def get_underlying_price(self, instrument_code: str) -> pd.Series:
@@ -314,7 +309,6 @@ class PositionSizing(SystemStage):
             underlying_price = self.rawdata_stage.daily_denominator_price(
                 instrument_code
             )
-
 
         return underlying_price
 
@@ -365,7 +359,6 @@ class PositionSizing(SystemStage):
         )
 
         return daily_perc_vol
-
 
     @diagnostic()
     def get_vol_target_dict(self) -> dict:
@@ -440,14 +433,12 @@ class PositionSizing(SystemStage):
 
     @input
     def get_notional_trading_capital(self) -> float:
-        notional_trading_capital = float(
-            self.config.notional_trading_capital)
+        notional_trading_capital = float(self.config.notional_trading_capital)
         return notional_trading_capital
 
     @input
     def get_percentage_vol_target(self):
         return float(self.config.percentage_vol_target)
-
 
     @diagnostic()
     def get_base_currency(self) -> str:
@@ -479,11 +470,9 @@ class PositionSizing(SystemStage):
         """
 
         base_currency = self.get_base_currency()
-        fx_rate = self.data.get_fx_for_instrument(
-            instrument_code, base_currency)
+        fx_rate = self.data.get_fx_for_instrument(instrument_code, base_currency)
 
         return fx_rate
-
 
     @input
     def get_combined_forecast(self, instrument_code: str) -> pd.Series:
@@ -513,6 +502,7 @@ class PositionSizing(SystemStage):
     @property
     def comb_forecast_stage(self) -> ForecastCombine:
         return self.parent.combForecast
+
 
 if __name__ == "__main__":
     import doctest

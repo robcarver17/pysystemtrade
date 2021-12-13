@@ -11,8 +11,7 @@ Fill = namedtuple("Fill", ["date", "qty", "price"])
 
 class listOfFills(list):
     def __init__(self, list_of_fills):
-        list_of_fills = [
-            fill for fill in list_of_fills if fill is not missing_order]
+        list_of_fills = [fill for fill in list_of_fills if fill is not missing_order]
         super().__init__(list_of_fills)
 
     def _as_dict_of_lists(self) -> dict:
@@ -31,37 +30,43 @@ class listOfFills(list):
         return df
 
     @classmethod
-    def from_position_series_and_prices(listOfFills,
-                                        positions: pd.Series,
-                                        price: pd.Series):
+    def from_position_series_and_prices(
+        listOfFills, positions: pd.Series, price: pd.Series
+    ):
 
-        list_of_fills = _list_of_fills_from_position_series_and_prices(positions = positions,
-                                                                       price=price)
+        list_of_fills = _list_of_fills_from_position_series_and_prices(
+            positions=positions, price=price
+        )
 
         return list_of_fills
 
 
 def _list_of_fills_from_position_series_and_prices(
-                                    positions: pd.Series,
-                                    price: pd.Series) -> listOfFills:
+    positions: pd.Series, price: pd.Series
+) -> listOfFills:
 
-    trades_without_zeros, prices_aligned_to_trades = _get_valid_trades_and_aligned_prices(positions=positions,
-                                                                                          price=price)
+    (
+        trades_without_zeros,
+        prices_aligned_to_trades,
+    ) = _get_valid_trades_and_aligned_prices(positions=positions, price=price)
 
     trades_as_list = list(trades_without_zeros.values)
     prices_as_list = list(prices_aligned_to_trades.values)
     dates_as_list = list(prices_aligned_to_trades.index)
 
-    list_of_fills_as_list = [Fill(date, qty, price) for date,qty,price in
-                             zip(dates_as_list, trades_as_list, prices_as_list)]
+    list_of_fills_as_list = [
+        Fill(date, qty, price)
+        for date, qty, price in zip(dates_as_list, trades_as_list, prices_as_list)
+    ]
 
     list_of_fills = listOfFills(list_of_fills_as_list)
 
     return list_of_fills
 
+
 def _get_valid_trades_and_aligned_prices(
-                                    positions: pd.Series,
-                                    price: pd.Series) -> tuple:
+    positions: pd.Series, price: pd.Series
+) -> tuple:
     # No delaying done here so we assume positions are already delayed
     trades = positions.diff()
     trades_without_na = trades[~trades.isna()]
@@ -71,9 +76,10 @@ def _get_valid_trades_and_aligned_prices(
 
     return trades_without_zeros, prices_aligned_to_trades
 
+
 def fill_from_order(order: Order) -> Fill:
     try:
-        assert len(order.trade)==1
+        assert len(order.trade) == 1
     except:
         raise Exception("Can't get fills from multi-leg orders")
 
@@ -91,4 +97,3 @@ def fill_from_order(order: Order) -> Fill:
         return missing_order
 
     return Fill(fill_datetime, fill_qty, fill_price)
-

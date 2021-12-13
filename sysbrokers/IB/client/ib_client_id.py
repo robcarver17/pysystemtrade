@@ -5,6 +5,7 @@ from syslogdiag.log_to_screen import logtoscreen
 from sysbrokers.IB.ib_connection_defaults import ib_defaults
 from sysdata.production.broker_client_id import brokerClientIdData
 
+
 class ibBrokerClientIdData(brokerClientIdData):
     """
     Read and write data class to get next used client id
@@ -12,7 +13,7 @@ class ibBrokerClientIdData(brokerClientIdData):
 
     def __init__(
         self,
-            idoffset = arg_not_supplied,
+        idoffset=arg_not_supplied,
         log=logtoscreen("brokerClientIdTracker"),
     ):
         if idoffset is arg_not_supplied:
@@ -22,4 +23,3 @@ class ibBrokerClientIdData(brokerClientIdData):
 
     def __repr__(self):
         return "Tracking IB client IDs"
-

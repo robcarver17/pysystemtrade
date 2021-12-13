@@ -15,21 +15,25 @@ from syscore.genutils import sign
 
 LARGE_NUMBER_OF_DAYS = 250 * 100 * 100
 
+
 def calculate_weighted_average_with_nans(weights: list, data: list):
     def _zero_weight(weight, data_item):
         if np.isnan(weight) or np.isnan(data_item):
             return 0.0
         return weight
 
-    safe_weights = [_zero_weight(weight, data_item) for weight, data_item
-                    in zip(weights, data)]
+    safe_weights = [
+        _zero_weight(weight, data_item) for weight, data_item in zip(weights, data)
+    ]
 
     sum_safe_weights = sum(safe_weights)
-    if sum_safe_weights==0:
+    if sum_safe_weights == 0:
         return 0.0
-    renormalise = 1.0 /sum_safe_weights
-    weighted_value = [renormalise * weight * data_item for
-                      weight, data_item in zip(safe_weights, data)]
+    renormalise = 1.0 / sum_safe_weights
+    weighted_value = [
+        renormalise * weight * data_item
+        for weight, data_item in zip(safe_weights, data)
+    ]
 
     # could still be nan in data
     return np.nansum(weighted_value)
@@ -103,9 +107,9 @@ def apply_buffer_single_period(
 
 def apply_buffer(
     optimal_position: pd.Series,
-        pos_buffers: pd.DataFrame,
-        trade_to_edge: bool=False,
-        roundpositions: bool=False
+    pos_buffers: pd.DataFrame,
+    trade_to_edge: bool = False,
+    roundpositions: bool = False,
 ) -> pd.Series:
     """
     Apply a buffer to a position
@@ -157,9 +161,7 @@ def apply_buffer(
         )
         buffered_position_list.append(current_position)
 
-    buffered_position = pd.Series(
-        buffered_position_list,
-        index=optimal_position.index)
+    buffered_position = pd.Series(buffered_position_list, index=optimal_position.index)
 
     return buffered_position
 
@@ -230,12 +232,7 @@ def map_forecast_value_scalar(x, threshold, capped_value, a_param, b_param):
     raise Exception("This should cover all conditions!")
 
 
-def map_forecast_value(
-        x,
-        threshold=0.0,
-        capped_value=20,
-        a_param=1.0,
-        b_param=1.0):
+def map_forecast_value(x, threshold=0.0, capped_value=20, a_param=1.0, b_param=1.0):
     """
     Non linear mapping of x value; replaces forecast capping; with defaults will map 1 for 1, across time series
 
@@ -256,22 +253,21 @@ def map_forecast_value(
     """
 
     return x.apply(
-        map_forecast_value_scalar,
-        args=(
-            threshold,
-            capped_value,
-            a_param,
-            b_param))
+        map_forecast_value_scalar, args=(threshold, capped_value, a_param, b_param)
+    )
+
 
 def magnitude(x):
     return int(maths.log10(x))
 
+
 def get_near_psd(A: np.array):
-    C = (A + A.T)/2
+    C = (A + A.T) / 2
     eigval, eigvec = np.linalg.eig(C)
     eigval[eigval < 0] = 0
 
     return np.array(eigvec.dot(np.diag(eigval)).dot(eigvec.T))
+
 
 if __name__ == "__main__":
     import doctest

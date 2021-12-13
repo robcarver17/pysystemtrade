@@ -11,9 +11,9 @@ class tradeLimit(object):
         self,
         trade_limit: int,
         instrument_strategy: instrumentStrategy,
-        period_days: int=1,
-        trades_since_last_reset: int=0,
-        last_reset_time: datetime.datetime =arg_not_supplied,
+        period_days: int = 1,
+        trades_since_last_reset: int = 0,
+        last_reset_time: datetime.datetime = arg_not_supplied,
     ):
 
         self._trade_limit = int(trade_limit)
@@ -28,23 +28,24 @@ class tradeLimit(object):
 
     def __repr__(self):
         return (
-            "Trade limit for %s of %d over %d days, %d trades since last reset %s" %
-            (str(self.instrument_strategy),
-             self._trade_limit,
-             self.period_days,
-             self.trades_since_last_reset,
-             str(
-                 self._last_reset_time),
-             ))
+            "Trade limit for %s of %d over %d days, %d trades since last reset %s"
+            % (
+                str(self.instrument_strategy),
+                self._trade_limit,
+                self.period_days,
+                self.trades_since_last_reset,
+                str(self._last_reset_time),
+            )
+        )
 
     def as_dict(self) -> dict:
-        instrument_strategy_key =  self.instrument_strategy.key
+        instrument_strategy_key = self.instrument_strategy.key
         result_dict = dict(
             trade_limit=self.trade_limit,
             period_days=self.period_days,
             trades_since_last_reset=self.trades_since_last_reset,
             last_reset_time=self._last_reset_time,
-            instrument_strategy_key =instrument_strategy_key
+            instrument_strategy_key=instrument_strategy_key,
         )
 
         return result_dict
@@ -52,9 +53,9 @@ class tradeLimit(object):
     @classmethod
     def from_dict(tradeLimit, trade_limit_dict):
         ## new style
-        instrument_strategy_key = trade_limit_dict.pop('instrument_strategy_key')
+        instrument_strategy_key = trade_limit_dict.pop("instrument_strategy_key")
         instrument_strategy = instrumentStrategy.from_key(instrument_strategy_key)
-        trade_limit_dict['instrument_strategy'] = instrument_strategy
+        trade_limit_dict["instrument_strategy"] = instrument_strategy
 
         return tradeLimit(**trade_limit_dict)
 
@@ -138,8 +139,7 @@ class tradeLimit(object):
 class listOfTradeLimits(list):
     def what_trade_is_possible(self, proposed_trade: int):
         abs_proposed_trade = abs(proposed_trade)
-        possible_abs_trade = self.what_abs_trade_is_possible(
-            abs_proposed_trade)
+        possible_abs_trade = self.what_abs_trade_is_possible(abs_proposed_trade)
         # convert to same sign as proposed
         possible_trade = possible_abs_trade * sign(proposed_trade)
 
@@ -163,8 +163,7 @@ class listOfTradeLimits(list):
         __ = [trade_limit.add_trade(trade_to_add) for trade_limit in self]
 
     def remove_trade(self, trade_to_remove: int):
-        __ = [trade_limit.remove_trade(
-            trade_to_remove) for trade_limit in self]
+        __ = [trade_limit.remove_trade(trade_to_remove) for trade_limit in self]
 
     def reset_all(self):
         __ = [trade_limit.reset() for trade_limit in self]

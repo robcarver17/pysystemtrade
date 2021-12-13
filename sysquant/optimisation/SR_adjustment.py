@@ -1,13 +1,17 @@
 import scipy.stats as stats
-import  pandas as pd
+import pandas as pd
 import numpy as np
 
 from sysquant.estimators.correlations import boring_corr_matrix_values
-from sysquant.optimisation.shared import sigma_from_corr_and_std, optimise_from_sigma_and_mean_list
+from sysquant.optimisation.shared import (
+    sigma_from_corr_and_std,
+    optimise_from_sigma_and_mean_list,
+)
 
 
-def adjust_dataframe_of_weights_for_SR_costs(weights: pd.DataFrame,
-                                       costs_dict: dict) -> pd.DataFrame:
+def adjust_dataframe_of_weights_for_SR_costs(
+    weights: pd.DataFrame, costs_dict: dict
+) -> pd.DataFrame:
 
     asset_names = list(weights.columns)
     SR_list = [costs_dict[asset] for asset in asset_names]
@@ -18,50 +22,66 @@ def adjust_dataframe_of_weights_for_SR_costs(weights: pd.DataFrame,
     # very high as costs are 'certain'
     ASSUMED_LENGTH_OF_DATA_IN_YEARS_FOR_COSTS = 100
 
-    adj_weights  = adjust_dataframe_of_weights_for_SR(weights,
-                                                      SR_list=SR_list,
-                                                      years_of_data=ASSUMED_LENGTH_OF_DATA_IN_YEARS_FOR_COSTS,
-                                                      avg_correlation=PSEUDO_CORRELATION_FOR_COSTS)
+    adj_weights = adjust_dataframe_of_weights_for_SR(
+        weights,
+        SR_list=SR_list,
+        years_of_data=ASSUMED_LENGTH_OF_DATA_IN_YEARS_FOR_COSTS,
+        avg_correlation=PSEUDO_CORRELATION_FOR_COSTS,
+    )
 
     return adj_weights
 
 
-def adjust_dataframe_of_weights_for_SR(weights: pd.DataFrame,
-                                       SR_list: list,
-                                       avg_correlation: float = 0.5,
-                                       years_of_data: float = 10) -> pd.DataFrame:
+def adjust_dataframe_of_weights_for_SR(
+    weights: pd.DataFrame,
+    SR_list: list,
+    avg_correlation: float = 0.5,
+    years_of_data: float = 10,
+) -> pd.DataFrame:
 
-    list_of_weight_lists = [list(weights.iloc[idx].values) for idx in range(len(weights.index))]
+    list_of_weight_lists = [
+        list(weights.iloc[idx].values) for idx in range(len(weights.index))
+    ]
 
-    adj_weight_list = adjust_list_of_weight_lists_for_SR(list_of_weight_lists,
-                                                         SR_list=SR_list,
-                                                         avg_correlation=avg_correlation,
-                                                         years_of_data=years_of_data)
+    adj_weight_list = adjust_list_of_weight_lists_for_SR(
+        list_of_weight_lists,
+        SR_list=SR_list,
+        avg_correlation=avg_correlation,
+        years_of_data=years_of_data,
+    )
 
-    adj_weights = pd.DataFrame(adj_weight_list, columns=weights.columns, index = weights.index)
+    adj_weights = pd.DataFrame(
+        adj_weight_list, columns=weights.columns, index=weights.index
+    )
 
     return adj_weights
 
-def adjust_list_of_weight_lists_for_SR(list_of_weight_lists: list,
-                                        SR_list: list,
-                                       avg_correlation: float = 0.5,
-                                       years_of_data: float = 10) -> list:
 
-    adj_weight_list = [adjust_weights_for_SR(weights_as_list,
-                                             SR_list = SR_list,
-                                             avg_correlation=avg_correlation,
-                                             years_of_data=years_of_data)
-                       for weights_as_list
-                       in list_of_weight_lists]
+def adjust_list_of_weight_lists_for_SR(
+    list_of_weight_lists: list,
+    SR_list: list,
+    avg_correlation: float = 0.5,
+    years_of_data: float = 10,
+) -> list:
+
+    adj_weight_list = [
+        adjust_weights_for_SR(
+            weights_as_list,
+            SR_list=SR_list,
+            avg_correlation=avg_correlation,
+            years_of_data=years_of_data,
+        )
+        for weights_as_list in list_of_weight_lists
+    ]
 
     return adj_weight_list
 
-def adjust_weights_for_SR(weights_as_list: list,
-                            SR_list: list,
-                          avg_correlation: float,
-                          years_of_data: float) -> list:
 
-    if len(weights_as_list)==1:
+def adjust_weights_for_SR(
+    weights_as_list: list, SR_list: list, avg_correlation: float, years_of_data: float
+) -> list:
+
+    if len(weights_as_list) == 1:
         return weights_as_list
 
     avg_SR = np.nanmean(SR_list)
@@ -77,9 +97,9 @@ def adjust_weights_for_SR(weights_as_list: list,
     return norm_new_weights
 
 
-def multiplier_from_relative_SR(relative_SR: float,
-                                avg_correlation: float,
-                                years_of_data: float) -> float:
+def multiplier_from_relative_SR(
+    relative_SR: float, avg_correlation: float, years_of_data: float
+) -> float:
     # Return a multiplier
     # 1 implies no adjustment required
     ratio = mini_bootstrap_ratio_given_SR_diff(
@@ -113,13 +133,7 @@ def mini_bootstrap_ratio_given_SR_diff(
     :param p_step: Step size to go through in the CDF of the mean estimate
     :return: float, ratio of weight of asset with different SR to 1/n weight
     """
-    dist_points = np.arange(
-        p_step,
-        stop=(
-            1 -
-            p_step) +
-        0.00000001,
-        step=p_step)
+    dist_points = np.arange(p_step, stop=(1 - p_step) + 0.00000001, step=p_step)
     list_of_weights = [
         weights_given_SR_diff(
             SR_diff,
@@ -189,12 +203,12 @@ def weights_given_SR_diff(
 
     # Work out what the mean is with appropriate confidence
     confident_mean_difference = calculate_confident_mean_difference(
-        std, years_of_data, mean_difference, confidence_interval, avg_correlation)
+        std, years_of_data, mean_difference, confidence_interval, avg_correlation
+    )
 
     confident_asset1_mean = confident_mean_difference + average_mean
 
-    mean_list = [confident_asset1_mean] + \
-        [average_mean] * (how_many_assets - 1)
+    mean_list = [confident_asset1_mean] + [average_mean] * (how_many_assets - 1)
 
     weights = optimise_using_correlation(mean_list, avg_correlation, std)
 
@@ -203,42 +217,39 @@ def weights_given_SR_diff(
 
 def calculate_confident_mean_difference(
     std: float,
-        years_of_data: float,
-        mean_difference: float,
-        confidence_interval: float,
-        avg_correlation: float
+    years_of_data: float,
+    mean_difference: float,
+    confidence_interval: float,
+    avg_correlation: float,
 ) -> float:
 
-    omega_difference = calculate_omega_difference(
-        std, years_of_data, avg_correlation)
-    confident_mean_difference = stats.norm(
-        mean_difference, omega_difference).ppf(confidence_interval)
+    omega_difference = calculate_omega_difference(std, years_of_data, avg_correlation)
+    confident_mean_difference = stats.norm(mean_difference, omega_difference).ppf(
+        confidence_interval
+    )
 
     return confident_mean_difference
 
 
-def calculate_omega_difference(std: float,
-                               years_of_data: float,
-                               avg_correlation: float):
+def calculate_omega_difference(
+    std: float, years_of_data: float, avg_correlation: float
+):
 
     omega_one_asset = std / (years_of_data) ** 0.5
-    omega_variance_difference = 2 * \
-        (omega_one_asset ** 2) * (1 - avg_correlation)
+    omega_variance_difference = 2 * (omega_one_asset ** 2) * (1 - avg_correlation)
     omega_difference = omega_variance_difference ** 0.5
 
     return omega_difference
 
 
-def optimise_using_correlation(mean_list: list,
-                               avg_correlation: float,
-                               std: float):
+def optimise_using_correlation(mean_list: list, avg_correlation: float, std: float):
     corr_matrix = boring_corr_matrix_values(len(mean_list), offdiag=avg_correlation)
     stdev_list = np.full(len(mean_list), std)
     sigma = sigma_from_corr_and_std(stdev_list, corr_matrix)
 
     weights = optimise_from_sigma_and_mean_list(sigma, mean_list)
 
-    return  weights
+    return weights
 
 
 def norm_weights(list_of_weights: list) -> list:

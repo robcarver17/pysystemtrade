@@ -36,17 +36,25 @@ class Test(unittest.TestCase):
 
     @unittest.SkipTest
     def test_raw_futures_roll(self):
-        self.assertAlmostEqual(self.system.rawdata.raw_futures_roll(
-            "EDOLLAR").ffill().tail(1).values[0], -0.015, )
+        self.assertAlmostEqual(
+            self.system.rawdata.raw_futures_roll("EDOLLAR").ffill().tail(1).values[0],
+            -0.015,
+        )
 
     def test_roll_differentials(self):
-        self.assertAlmostEqual(self.system.rawdata.roll_differentials(
-            "EDOLLAR").ffill().tail(1).values[0], -0.2518823, places=6, )
+        self.assertAlmostEqual(
+            self.system.rawdata.roll_differentials("EDOLLAR").ffill().tail(1).values[0],
+            -0.2518823,
+            places=6,
+        )
 
     @unittest.SkipTest
     def test_annualised_roll(self):
-        self.assertAlmostEqual(self.system.rawdata.annualised_roll(
-            "EDOLLAR").ffill().tail(1).values[0], 0.059551, places=4, )
+        self.assertAlmostEqual(
+            self.system.rawdata.annualised_roll("EDOLLAR").ffill().tail(1).values[0],
+            0.059551,
+            places=4,
+        )
 
     @unittest.SkipTest
     def test_daily_annualised_roll(self):

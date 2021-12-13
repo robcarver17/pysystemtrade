@@ -4,6 +4,7 @@ from syscore.objects import arg_not_supplied, missing_data
 
 from sysexecution.trade_qty import tradeQuantity
 
+
 def extract_fx_balances_from_account_summary(account_summary) -> dict:
     relevant_tag = "TotalCashBalance"
 
@@ -14,8 +15,7 @@ def extract_fx_balances_from_account_summary(account_summary) -> dict:
     return result
 
 
-def extract_currency_dict_for_tag_from_account_summary(
-        account_summary, relevant_tag):
+def extract_currency_dict_for_tag_from_account_summary(account_summary, relevant_tag):
     result = dict(
         [
             (summary_item.currency, summary_item.value)
@@ -30,7 +30,10 @@ def extract_currency_dict_for_tag_from_account_summary(
 class positionsFromIB(dict):
     pass
 
-def from_ib_positions_to_dict(raw_positions, account_id=arg_not_supplied) -> positionsFromIB:
+
+def from_ib_positions_to_dict(
+    raw_positions, account_id=arg_not_supplied
+) -> positionsFromIB:
     """
 
     :param raw_positions: list of positions in form Position(...)
@@ -50,16 +53,14 @@ def from_ib_positions_to_dict(raw_positions, account_id=arg_not_supplied) -> pos
         asset_class = position.contract.secType
         method = position_methods.get(asset_class, None)
         if method is None:
-            raise Exception(
-                "Can't find asset class %s in methods dict" %
-                asset_class)
+            raise Exception("Can't find asset class %s in methods dict" % asset_class)
 
         resolved_position = method(position)
         asset_class_list = resolved_positions_dict.get(asset_class, [])
         asset_class_list.append(resolved_position)
         resolved_positions_dict[asset_class] = asset_class_list
 
-    resolved_positions_dict =positionsFromIB(resolved_positions_dict)
+    resolved_positions_dict = positionsFromIB(resolved_positions_dict)
 
     return resolved_positions_dict
 

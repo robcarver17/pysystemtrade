@@ -14,8 +14,9 @@ class csvContractPositionData(contractPositionData):
     Class for contract_positions write to / read from csv
     """
 
-    def __init__(self, datapath=arg_not_supplied,
-                 log=logtoscreen("csvContractPositionData")):
+    def __init__(
+        self, datapath=arg_not_supplied, log=logtoscreen("csvContractPositionData")
+    ):
 
         super().__init__(log=log)
 
@@ -33,10 +34,7 @@ class csvContractPositionData(contractPositionData):
         filename = self._filename_given_contract(contract)
         position_df.to_csv(filename, index_label=DATE_INDEX_NAME)
 
-
-    def _filename_given_contract(
-        self, contract: futuresContract
-    ):
+    def _filename_given_contract(self, contract: futuresContract):
         return get_filename_for_package(
-            self._datapath, "%s_%s.csv" %
-            (contract.instrument_code, contract.date_str))
+            self._datapath, "%s_%s.csv" % (contract.instrument_code, contract.date_str)
+        )

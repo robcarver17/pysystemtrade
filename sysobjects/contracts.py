@@ -1,6 +1,6 @@
 import datetime
 
-from dataclasses import  dataclass
+from dataclasses import dataclass
 
 from syscore.objects import arg_not_supplied, missing_contract
 
@@ -10,8 +10,8 @@ from sysobjects.contract_dates_and_expiries import contractDate, expiryDate
 from sysobjects.instruments import futuresInstrument
 
 
-
 NO_ROLL_CYCLE_PASSED = object()
+
 
 @dataclass
 class parametersForFuturesContract:
@@ -26,7 +26,7 @@ class parametersForFuturesContract:
     @classmethod
     def from_dict(parametersForFuturesContract, input_dict):
         keys = parametersForFuturesContract.__dataclass_fields__.keys()
-        args_list = [input_dict.get(key, None) for key in keys ]
+        args_list = [input_dict.get(key, None) for key in keys]
         args_list = [value for value in args_list if value is not None]
 
         return parametersForFuturesContract(*args_list)
@@ -40,10 +40,12 @@ def contract_key_from_code_and_id(instrument_code, contract_id):
 def contract_from_code_and_id(instrument_code, contract_id):
     return futuresContract(instrument_code, contract_id)
 
+
 def contract_from_key(contract_key):
     instrument_code, contract_id = get_code_and_id_from_contract_key(contract_key)
 
     return contract_from_code_and_id(instrument_code, contract_id)
+
 
 class futuresContract(object):
     """
@@ -53,10 +55,13 @@ class futuresContract(object):
 
     """
 
-    def __init__(self, instrument_object: futuresInstrument,
-                 contract_date_object: contractDate,
-                 parameter_object: parametersForFuturesContract = arg_not_supplied,
-                 simple: bool = False):
+    def __init__(
+        self,
+        instrument_object: futuresInstrument,
+        contract_date_object: contractDate,
+        parameter_object: parametersForFuturesContract = arg_not_supplied,
+        simple: bool = False,
+    ):
         """
         futuresContract(futuresInstrument, contractDate)
         OR
@@ -66,7 +71,12 @@ class futuresContract(object):
         :param contract_date_object: contractDate or contractDateWithRollParameters or str
         """
         if not simple:
-            instrument_object, contract_date_object = _resolve_args_for_futures_contract(instrument_object, contract_date_object)
+            (
+                instrument_object,
+                contract_date_object,
+            ) = _resolve_args_for_futures_contract(
+                instrument_object, contract_date_object
+            )
 
         if parameter_object is arg_not_supplied:
             parameter_object = parametersForFuturesContract()
@@ -76,18 +86,17 @@ class futuresContract(object):
         self._params = parameter_object
 
     @classmethod
-    def from_two_strings(futuresContract, instrument_code: str,
-                         contract_date_str: str):
+    def from_two_strings(futuresContract, instrument_code: str, contract_date_str: str):
 
         instrument_object = futuresInstrument(instrument_code)
         contract_date = contractDate(contract_date_str, simple=True)
 
-        return futuresContract(instrument_object,
-                               contract_date,
-                               simple=True)
+        return futuresContract(instrument_object, contract_date, simple=True)
 
     def specific_log(self, log):
-        new_log = log.setup(instrument_code = self.instrument_code, contract_date = self.date_str)
+        new_log = log.setup(
+            instrument_code=self.instrument_code, contract_date=self.date_str
+        )
 
         return new_log
 
@@ -130,7 +139,9 @@ class futuresContract(object):
         self.params.sampling = False
 
     def log(self, log: logger):
-        return log.setup(instrument_code =self.instrument_code, contract_date = self.date_str)
+        return log.setup(
+            instrument_code=self.instrument_code, contract_date=self.date_str
+        )
 
     def as_dict(self):
         """
@@ -164,13 +175,12 @@ class futuresContract(object):
         instrument_dict = futures_contract_dict["instrument_dict"]
         contract_params_dict = futures_contract_dict["contract_params"]
 
-        contract_date_object = contractDate.create_from_dict(
-            contract_date_dict)
+        contract_date_object = contractDate.create_from_dict(contract_date_dict)
         instrument_object = futuresInstrument.create_from_dict(instrument_dict)
         parameter_object = parametersForFuturesContract.from_dict(contract_params_dict)
 
         return futuresContract(
-            instrument_object, contract_date_object, parameter_object= parameter_object
+            instrument_object, contract_date_object, parameter_object=parameter_object
         )
 
     @property
@@ -191,7 +201,7 @@ class futuresContract(object):
 
     def expired(self):
         expiry_date = self.expiry_date
-        if expiry_date<datetime.datetime.now():
+        if expiry_date < datetime.datetime.now():
             return True
         else:
             return False
@@ -202,17 +212,21 @@ class futuresContract(object):
     def is_spread_contract(self):
         return self.contract_date.is_spread_contract
 
-    def new_contract_with_replaced_instrument_object(
-            self, new_instrument_object):
+    def new_contract_with_replaced_instrument_object(self, new_instrument_object):
         contract_date_object = self.contract_date
         params = self.params
 
-        return futuresContract(new_instrument_object, contract_date_object, parameter_object=params)
+        return futuresContract(
+            new_instrument_object, contract_date_object, parameter_object=params
+        )
 
     def update_expiry_dates_one_at_a_time_with_method(self, method, **kwargs):
 
         as_list_of_individual_contracts = self.as_list_of_individual_contracts()
-        new_expiries = [method(single_contract, **kwargs) for single_contract in as_list_of_individual_contracts]
+        new_expiries = [
+            method(single_contract, **kwargs)
+            for single_contract in as_list_of_individual_contracts
+        ]
 
         for contract_index, expiry_date in enumerate(new_expiries):
             if expiry_date is missing_contract:
@@ -227,18 +241,26 @@ class futuresContract(object):
         self.contract_date.update_nth_expiry_date(contract_index, expiry_date)
 
     def as_list_of_individual_contracts(self) -> list:
-        return [self.new_contract_with_nth_contract_date(contract_index)
-                for contract_index in range(len(self.list_of_single_contract_dates()))]
+        return [
+            self.new_contract_with_nth_contract_date(contract_index)
+            for contract_index in range(len(self.list_of_single_contract_dates()))
+        ]
 
     def new_contract_with_first_contract_date(self):
         return self.new_contract_with_nth_contract_date(0)
 
     def new_contract_with_nth_contract_date(self, contract_index: int):
-        new_contract_date_object = self.contract_date.nth_single_contract_as_contract_date(contract_index)
+        new_contract_date_object = (
+            self.contract_date.nth_single_contract_as_contract_date(contract_index)
+        )
 
-        return self.new_contract_with_replaced_contract_date_object(new_contract_date_object)
+        return self.new_contract_with_replaced_contract_date_object(
+            new_contract_date_object
+        )
 
-    def new_contract_with_replaced_contract_date_object(self, new_contract_date_object: contractDate):
+    def new_contract_with_replaced_contract_date_object(
+        self, new_contract_date_object: contractDate
+    ):
         instrument_object = self.instrument
         params = self.params
 
@@ -248,13 +270,18 @@ class futuresContract(object):
         return self.contract_date.list_of_single_contract_dates
 
 
-def _resolve_args_for_futures_contract(instrument_object, contract_date_object) -> tuple:
+def _resolve_args_for_futures_contract(
+    instrument_object, contract_date_object
+) -> tuple:
 
     if isinstance(instrument_object, str):
         instrument_object = futuresInstrument(instrument_object)
 
-    if isinstance(contract_date_object, list) or isinstance(contract_date_object, str) \
-            or isinstance(contract_date_object, dict):
+    if (
+        isinstance(contract_date_object, list)
+        or isinstance(contract_date_object, str)
+        or isinstance(contract_date_object, dict)
+    ):
         contract_date_object = contractDate(contract_date_object)
 
     return instrument_object, contract_date_object
@@ -267,8 +294,10 @@ def key_contains_instrument_code(contract_key, instrument_code):
     else:
         return False
 
+
 def get_contract_key_from_code_and_id(instrument_code, contract_id):
     return instrument_code + "/" + contract_id
+
 
 def get_code_and_id_from_contract_key(contract_key):
     return contract_key.split("/")
@@ -278,16 +307,18 @@ class listOfFuturesContracts(list):
     """
     List of futuresContracts
     """
+
     def unique_list_of_instrument_codes(self):
-        list_of_instruments = [
-            contract.instrument_code for contract in self]
+        list_of_instruments = [contract.instrument_code for contract in self]
 
         # will contain duplicates, make unique
         unique_list_of_instruments = list(set(list_of_instruments))
 
         return unique_list_of_instruments
 
-    def contract_date_str_for_contracts_in_list_for_instrument_code(self, instrument_code: str) -> list:
+    def contract_date_str_for_contracts_in_list_for_instrument_code(
+        self, instrument_code: str
+    ) -> list:
         list_of_contracts = self.contracts_in_list_for_instrument_code(instrument_code)
         list_of_date_str = list_of_contracts.list_of_dates()
         list_of_date_str = list(set(list_of_date_str))
@@ -295,9 +326,7 @@ class listOfFuturesContracts(list):
 
     def contracts_in_list_for_instrument_code(self, instrument_code: str):
         list_of_contracts = [
-            contract
-            for contract in self
-            if contract.instrument_code == instrument_code
+            contract for contract in self if contract.instrument_code == instrument_code
         ]
 
         list_of_contracts = listOfFuturesContracts(list_of_contracts)
@@ -316,12 +345,13 @@ class listOfFuturesContracts(list):
         contract_dates = [contract.date_str for contract in self]
         return contract_dates
 
-    def as_dict(self) ->dict:
+    def as_dict(self) -> dict:
         contract_dates_keys = self.list_of_dates()
         contract_values = self
 
-        contract_dict = dict([(key, value) for key, value in zip(
-            contract_dates_keys, contract_values)])
+        contract_dict = dict(
+            [(key, value) for key, value in zip(contract_dates_keys, contract_values)]
+        )
 
         return contract_dict
 
@@ -330,9 +360,13 @@ class listOfFuturesContracts(list):
         self_contract_dates = set(self.list_of_dates())
         another_contract_list_dates = set(another_contract_list.list_of_dates())
 
-        list_of_differential_dates =self_contract_dates.difference(another_contract_list_dates)
+        list_of_differential_dates = self_contract_dates.difference(
+            another_contract_list_dates
+        )
 
-        list_of_contracts = self._subset_of_list_from_list_of_dates(list_of_differential_dates)
+        list_of_contracts = self._subset_of_list_from_list_of_dates(
+            list_of_differential_dates
+        )
 
         return list_of_contracts
 

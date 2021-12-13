@@ -10,16 +10,14 @@ class csvRollStateData(rollStateData):
 
     """
 
-    def __init__(self, datapath=arg_not_supplied,
-                 log=logtoscreen("csvRollStateData")):
+    def __init__(self, datapath=arg_not_supplied, log=logtoscreen("csvRollStateData")):
 
         super().__init__(log=log)
 
         if datapath is arg_not_supplied:
             raise Exception("Datapath needs to be passed")
 
-        self._config_file = get_filename_for_package(
-            datapath, "roll_state.csv")
+        self._config_file = get_filename_for_package(datapath, "roll_state.csv")
         self.name = "Roll state data from %s" % self._config_file
 
     def __repr__(self):

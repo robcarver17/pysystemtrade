@@ -14,9 +14,7 @@ from sysobjects.spot_fx_prices import fxPrices, get_fx_tuple_from_code, DEFAULT_
 DEFAULT_DATES = pd.date_range(
     start=datetime.datetime(1970, 1, 1), freq="B", end=datetime.datetime.now()
 )
-DEFAULT_RATE_SERIES = pd.Series(
-    np.full(len(DEFAULT_DATES), 1.0),
-    index=DEFAULT_DATES)
+DEFAULT_RATE_SERIES = pd.Series(np.full(len(DEFAULT_DATES), 1.0), index=DEFAULT_DATES)
 
 USE_CHILD_CLASS_ERROR = "You need to use a child class of fxPricesData"
 
@@ -38,8 +36,7 @@ class fxPricesData(baseData):
     def __getitem__(self, code):
         return self.get_fx_prices(code)
 
-
-    def get_fx_prices(self, fx_code:str) ->fxPrices:
+    def get_fx_prices(self, fx_code: str) -> fxPrices:
         """
         Get a historical series of FX prices
 
@@ -68,12 +65,12 @@ class fxPricesData(baseData):
 
     def _get_standard_fx_prices(self, fx_code: str) -> fxPrices:
         currency1, currency2 = get_fx_tuple_from_code(fx_code)
-        assert currency2==DEFAULT_CURRENCY
+        assert currency2 == DEFAULT_CURRENCY
         fx_data = self._get_fx_prices_vs_default(currency1)
 
         return fx_data
 
-    def _get_fx_prices_for_inversion(self, fx_code:str) -> fxPrices:
+    def _get_fx_prices_for_inversion(self, fx_code: str) -> fxPrices:
         """
         Get a historical series of FX prices, must be USDXXX
 
@@ -95,8 +92,7 @@ class fxPricesData(baseData):
 
         return inverted_fx_data
 
-
-    def _get_fx_cross(self, fx_code: str) ->fxPrices:
+    def _get_fx_cross(self, fx_code: str) -> fxPrices:
         """
         Get a currency cross rate XXXYYY, eg not XXXUSD or USDXXX or XXXXXX
 
@@ -117,7 +113,7 @@ class fxPricesData(baseData):
 
         return fx_rate_series
 
-    def _get_fx_prices_vs_default(self, currency1: str) ->fxPrices:
+    def _get_fx_prices_vs_default(self, currency1: str) -> fxPrices:
         """
         Get a historical series of FX prices, must be XXXUSD
 
@@ -149,36 +145,37 @@ class fxPricesData(baseData):
 
             else:
                 # doesn't exist anyway
-                self.log.warn(
-                    "Tried to delete non existent fx prices for %s" %
-                    code)
+                self.log.warn("Tried to delete non existent fx prices for %s" % code)
         else:
-            self.log.warn(
-                "You need to call delete_fx_prices with a flag to be sure")
+            self.log.warn("You need to call delete_fx_prices with a flag to be sure")
 
-    def is_code_in_data(self, code: str) ->bool:
+    def is_code_in_data(self, code: str) -> bool:
         if code in self.get_list_of_fxcodes():
             return True
         else:
             return False
 
-    def add_fx_prices(self, code: str, fx_price_data: fxPrices, ignore_duplication:bool =False):
+    def add_fx_prices(
+        self, code: str, fx_price_data: fxPrices, ignore_duplication: bool = False
+    ):
         self.log.label(fx_code=code)
         if self.is_code_in_data(code):
             if ignore_duplication:
                 pass
             else:
                 self.log.warn(
-                    "There is already %s in the data, you have to delete it first, or set ignore_duplication=True, or use update_fx_prices" %
-                    code)
+                    "There is already %s in the data, you have to delete it first, or set ignore_duplication=True, or use update_fx_prices"
+                    % code
+                )
                 return None
 
-        self._add_fx_prices_without_checking_for_existing_entry(
-            code, fx_price_data)
+        self._add_fx_prices_without_checking_for_existing_entry(code, fx_price_data)
 
         self.log.terse("Added fx data for code %s" % code)
 
-    def update_fx_prices(self, code: str, new_fx_prices: fxPrices, check_for_spike=True) -> int:
+    def update_fx_prices(
+        self, code: str, new_fx_prices: fxPrices, check_for_spike=True
+    ) -> int:
         """
         Checks existing data, adds any new data with a timestamp greater than the existing data
 
@@ -199,11 +196,8 @@ class fxPricesData(baseData):
         rows_added = len(merged_fx_prices) - len(old_fx_prices)
 
         if rows_added == 0:
-            if len(old_fx_prices)==0:
-                new_log.msg(
-                    "No new or old prices for %s"
-                    % code
-                )
+            if len(old_fx_prices) == 0:
+                new_log.msg("No new or old prices for %s" % code)
 
             else:
                 new_log.msg(
@@ -218,12 +212,10 @@ class fxPricesData(baseData):
 
         return rows_added
 
-
     def get_list_of_fxcodes(self):
         raise NotImplementedError(USE_CHILD_CLASS_ERROR)
 
-    def _add_fx_prices_without_checking_for_existing_entry(
-            self, code, fx_price_data):
+    def _add_fx_prices_without_checking_for_existing_entry(self, code, fx_price_data):
         raise NotImplementedError(USE_CHILD_CLASS_ERROR)
 
     def _delete_fx_prices_without_any_warning_be_careful(self, code):
@@ -231,4 +223,3 @@ class fxPricesData(baseData):
 
     def _get_fx_prices_without_checking(self, code):
         raise NotImplementedError(USE_CHILD_CLASS_ERROR)
-

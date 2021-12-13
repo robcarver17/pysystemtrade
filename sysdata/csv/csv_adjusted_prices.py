@@ -19,8 +19,9 @@ class csvFuturesAdjustedPricesData(futuresAdjustedPricesData):
     Class for adjusted prices write / to from csv
     """
 
-    def __init__(self, datapath=arg_not_supplied, log=logtoscreen(
-            "csvFuturesContractPriceData")):
+    def __init__(
+        self, datapath=arg_not_supplied, log=logtoscreen("csvFuturesContractPriceData")
+    ):
 
         super().__init__(log=log)
 
@@ -39,7 +40,9 @@ class csvFuturesAdjustedPricesData(futuresAdjustedPricesData):
     def get_list_of_instruments(self) -> list:
         return files_with_extension_in_pathname(self.datapath, ".csv")
 
-    def _get_adjusted_prices_without_checking(self, instrument_code: str) -> futuresAdjustedPrices:
+    def _get_adjusted_prices_without_checking(
+        self, instrument_code: str
+    ) -> futuresAdjustedPrices:
         filename = self._filename_given_instrument_code(instrument_code)
 
         try:
@@ -57,13 +60,14 @@ class csvFuturesAdjustedPricesData(futuresAdjustedPricesData):
         return instrpricedata
 
     def _delete_adjusted_prices_without_any_warning_be_careful(
-            self, instrument_code: str):
+        self, instrument_code: str
+    ):
         raise NotImplementedError(
             "You can't delete adjusted prices stored as a csv - Add to overwrite existing or delete file manually"
         )
 
     def _add_adjusted_prices_without_checking_for_existing_entry(
-        self, instrument_code:str, adjusted_price_data: futuresAdjustedPrices
+        self, instrument_code: str, adjusted_price_data: futuresAdjustedPrices
     ):
 
         # Ensures the file will be written with a column header
@@ -71,10 +75,7 @@ class csvFuturesAdjustedPricesData(futuresAdjustedPricesData):
         adjusted_price_data_as_dataframe.columns = ["price"]
 
         filename = self._filename_given_instrument_code(instrument_code)
-        adjusted_price_data_as_dataframe.to_csv(
-            filename, index_label=DATE_INDEX_NAME)
+        adjusted_price_data_as_dataframe.to_csv(filename, index_label=DATE_INDEX_NAME)
 
-    def _filename_given_instrument_code(self, instrument_code:str):
-        return get_filename_for_package(
-            self.datapath, "%s.csv" %
-            (instrument_code))
+    def _filename_given_instrument_code(self, instrument_code: str):
+        return get_filename_for_package(self.datapath, "%s.csv" % (instrument_code))

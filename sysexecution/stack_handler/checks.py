@@ -17,7 +17,8 @@ from syscore.objects import (
     order_is_in_status_modified,
     resolve_function,
     arg_not_supplied,
-    missing_data)
+    missing_data,
+)
 
 from sysexecution.stack_handler.stackHandlerCore import stackHandlerCore
 
@@ -38,17 +39,19 @@ class stackHandlerChecks(stackHandlerCore):
 
         diag_positions = diagPositions(self.data)
         breaks = (
-            diag_positions.get_list_of_breaks_between_contract_and_strategy_positions())
+            diag_positions.get_list_of_breaks_between_contract_and_strategy_positions()
+        )
         for tradeable_object in breaks:
             self.log.critical(
-                "Internal break for %s not locking just warning" % (str(tradeable_object))
+                "Internal break for %s not locking just warning"
+                % (str(tradeable_object))
             )
 
     def check_external_position_break(self):
         data_broker = dataBroker(self.data)
         breaks = (
-            data_broker.get_list_of_breaks_between_broker_and_db_contract_positions())
-
+            data_broker.get_list_of_breaks_between_broker_and_db_contract_positions()
+        )
 
         self.log_and_lock_new_breaks(breaks)
         self.clear_position_locks_where_breaks_fixed(breaks)
@@ -66,9 +69,7 @@ class stackHandlerChecks(stackHandlerCore):
             # alread locked
             return None
         else:
-            self.log.critical(
-                "Break for %s: locking instrument" % (str(contract))
-            )
+            self.log.critical("Break for %s: locking instrument" % (str(contract)))
             data_locks.add_lock_for_instrument(instrument_code)
 
     def clear_position_locks_where_breaks_fixed(self, breaks: list):
@@ -78,7 +79,9 @@ class stackHandlerChecks(stackHandlerCore):
             tradeable_object.instrument_code for tradeable_object in breaks
         ]
         for instrument in locked_instruments:
-            instrument_is_locked_but_no_longer_has_a_break = instrument not in instruments_with_breaks
+            instrument_is_locked_but_no_longer_has_a_break = (
+                instrument not in instruments_with_breaks
+            )
             if instrument_is_locked_but_no_longer_has_a_break:
                 self.log.msg("Clearing lock for %s" % instrument)
                 data_locks.remove_lock_for_instrument(instrument)
@@ -86,8 +89,7 @@ class stackHandlerChecks(stackHandlerCore):
                 # instrument has a break and needs a break
                 pass
 
-
-    def clear_position_locks_no_checks(self, instrument_code: str=arg_not_supplied):
+    def clear_position_locks_no_checks(self, instrument_code: str = arg_not_supplied):
         data_locks = dataLocks(self.data)
         if instrument_code is arg_not_supplied:
             locked_instruments = data_locks.get_list_of_locked_instruments()
@@ -96,5 +98,3 @@ class stackHandlerChecks(stackHandlerCore):
         for instrument in locked_instruments:
             self.log.msg("Clearing lock for %s" % instrument)
             data_locks.remove_lock_for_instrument(instrument)
-
-

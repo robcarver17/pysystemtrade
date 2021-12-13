@@ -1,10 +1,9 @@
-
 from sysexecution.stack_handler.stackHandlerCore import stackHandlerCore
 from sysobjects.contracts import futuresContract
 from syscore.objects import missing_data
 
-class stackHandlerAdditionalSampling(stackHandlerCore):
 
+class stackHandlerAdditionalSampling(stackHandlerCore):
     def refresh_additional_sampling_all_instruments(self):
         all_contracts = self.get_all_instruments_priced_contracts()
         for contract in all_contracts:
@@ -23,12 +22,14 @@ class stackHandlerAdditionalSampling(stackHandlerCore):
         instrument_list = self._get_all_instruments()
         data_contracts = self.data_contracts
 
-        priced_contracts = [futuresContract(instrument_code,
-            data_contracts.get_priced_contract_id(instrument_code))
-                            for instrument_code in instrument_list]
+        priced_contracts = [
+            futuresContract(
+                instrument_code, data_contracts.get_priced_contract_id(instrument_code)
+            )
+            for instrument_code in instrument_list
+        ]
 
         return priced_contracts
-
 
     def _get_all_instruments(self):
         diag_prices = self.diag_prices
@@ -44,35 +45,33 @@ class stackHandlerAdditionalSampling(stackHandlerCore):
 
         self.refresh_sampling_without_checks(contract)
 
-
-    def is_contract_currently_okay_to_sample(self, contract:futuresContract) -> bool:
+    def is_contract_currently_okay_to_sample(self, contract: futuresContract) -> bool:
         data_broker = self.data_broker
-        okay_to_sample =\
-            data_broker.is_contract_okay_to_trade(contract)
+        okay_to_sample = data_broker.is_contract_okay_to_trade(contract)
 
         return okay_to_sample
-
 
     def refresh_sampling_without_checks(self, contract: futuresContract):
         average_spread = self.get_average_spread(contract)
         if average_spread is not missing_data:
             self.add_spread_data_to_db(contract, average_spread)
 
-    def get_average_spread(self, contract:futuresContract) -> float:
+    def get_average_spread(self, contract: futuresContract) -> float:
         data_broker = self.data_broker
-        tick_data = data_broker.get_recent_bid_ask_tick_data_for_contract_object(contract)
+        tick_data = data_broker.get_recent_bid_ask_tick_data_for_contract_object(
+            contract
+        )
 
         average_spread = tick_data.average_bid_offer_spread(remove_negative=True)
 
         ## Shouldn't happen, but just in case
         if average_spread is not missing_data:
-            if average_spread<0.0:
+            if average_spread < 0.0:
                 return missing_data
 
         return average_spread
 
-    def add_spread_data_to_db(self, contract: futuresContract,
-                              average_spread: float):
+    def add_spread_data_to_db(self, contract: futuresContract, average_spread: float):
 
         ## we store by instrument
         instrument_code = contract.instrument_code

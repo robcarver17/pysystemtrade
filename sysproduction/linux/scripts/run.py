@@ -16,8 +16,9 @@ def resolve_func(func_reference_name):
     split_func = func_reference_name.rsplit(".", 1)
     if len(split_func) == 1:
         raise Exception(
-            "%s should include filename as well as function e.g. filename.funcname or module.filename.funcname" %
-            func_reference_name)
+            "%s should include filename as well as function e.g. filename.funcname or module.filename.funcname"
+            % func_reference_name
+        )
     funcname = split_func.pop()
     funcsource = split_func.pop()
 
@@ -37,8 +38,9 @@ def resolve_func(func_reference_name):
 
     if func is None:
         raise Exception(
-            "NOT FOUND: function %s in module %s  specified for function reference %s" %
-            (funcname, mod, func_reference_name))
+            "NOT FOUND: function %s in module %s  specified for function reference %s"
+            % (funcname, mod, func_reference_name)
+        )
 
     return func
 

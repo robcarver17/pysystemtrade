@@ -26,18 +26,17 @@ class listOfOrders(list):
             dict(
                 fill_datetime=date_list,
                 key=key_list,
-                trade = trade_list,
+                trade=trade_list,
                 fill=fill_list,
-                price=price_list),
+                price=price_list,
+            ),
             index=id_list,
         )
 
         return pd_df
 
     def list_of_filled_price(self) -> list:
-        list_of_filled_price = [
-            order.filled_price for order in self]
-
+        list_of_filled_price = [order.filled_price for order in self]
 
         return list_of_filled_price
 
@@ -66,7 +65,7 @@ class listOfOrders(list):
 
     def final_fill_datetime(self) -> datetime.datetime:
         list_of_filled_datetime = self.list_of_filled_datetime()
-        final_fill_datetime =list_of_filled_datetime.final_fill_datetime()
+        final_fill_datetime = list_of_filled_datetime.final_fill_datetime()
 
         return final_fill_datetime
 

@@ -14,17 +14,17 @@ from sysproduction.data.control_process import get_list_of_strategies_for_proces
 
 def run_systems():
     data = dataBlob(log_name=process_name)
-    list_of_timer_names_and_functions = get_list_of_backtest_timer_functions_for_strategies(
-        data)
+    list_of_timer_names_and_functions = (
+        get_list_of_backtest_timer_functions_for_strategies(data)
+    )
 
-    system_process = processToRun(
-        process_name,
-        data,
-        list_of_timer_names_and_functions)
+    system_process = processToRun(process_name, data, list_of_timer_names_and_functions)
     system_process.run_process()
+
 
 def backtest_function_to_be_renamed(self):
     self.run_strategy_method()
+
 
 def get_list_of_backtest_timer_functions_for_strategies(data):
     list_of_strategy_names = get_list_of_strategies_for_process(data, process_name)
@@ -39,7 +39,3 @@ def get_list_of_backtest_timer_functions_for_strategies(data):
         list_of_timer_names_and_functions.append(strategy_tuple)
 
     return list_of_timer_names_and_functions
-
-
-
-

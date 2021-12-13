@@ -13,14 +13,15 @@ def risk_report(data: dataBlob = arg_not_supplied):
     reporting_api = reportingApi(data)
     formatted_output = []
     formatted_output.append(reporting_api.terse_header("Risk report"))
-    list_of_func_names = ['body_text_portfolio_risk_total',
-                          'table_of_strategy_risk',
-                          'table_of_instrument_risk',
-                          'body_text_abs_total_all_risk_perc_capital',
-                          'body_text_abs_total_all_risk_annualised',
-                          'body_text_net_total_all_risk_annualised',
-                          'table_of_correlations'
-                          ]
+    list_of_func_names = [
+        "body_text_portfolio_risk_total",
+        "table_of_strategy_risk",
+        "table_of_instrument_risk",
+        "body_text_abs_total_all_risk_perc_capital",
+        "body_text_abs_total_all_risk_annualised",
+        "body_text_net_total_all_risk_annualised",
+        "table_of_correlations",
+    ]
 
     for func_name in list_of_func_names:
         func = getattr(reporting_api, func_name)
@@ -29,4 +30,3 @@ def risk_report(data: dataBlob = arg_not_supplied):
     formatted_output.append(reporting_api.footer())
 
     return formatted_output
-

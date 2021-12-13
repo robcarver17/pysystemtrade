@@ -7,8 +7,7 @@ def run_stack_handler():
     process_name = "run_stack_handler"
     data = dataBlob(log_name=process_name)
     list_of_timer_names_and_functions = get_list_of_timer_functions_for_stack_handler()
-    price_process = processToRun(
-        process_name, data, list_of_timer_names_and_functions)
+    price_process = processToRun(process_name, data, list_of_timer_names_and_functions)
     price_process.run_process()
 
 
@@ -23,7 +22,7 @@ def get_list_of_timer_functions_for_stack_handler():
         ("process_fills_stack", stack_handler),
         ("handle_completed_orders", stack_handler),
         ("safe_stack_removal", stack_handler),
-        ("refresh_additional_sampling_all_instruments", stack_handler)
+        ("refresh_additional_sampling_all_instruments", stack_handler),
     ]
 
     return list_of_timer_names_and_functions

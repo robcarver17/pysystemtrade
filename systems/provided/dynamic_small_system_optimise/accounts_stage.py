@@ -10,33 +10,35 @@ from systems.system_cache import output, dont_cache
 
 
 class accountForOptimisedStage(Account):
-
     @output(not_pickable=True)
     def optimised_portfolio(self, delayfill=True):
 
         self.log.terse("Calculating pandl for portfolio")
         capital = self.get_notional_capital()
         instruments = self.get_instrument_list()
-        dict_of_pandl_by_instrument = dict([
-                                               (instrument_code,
-            self.pandl_for_optimised_instrument(
-                instrument_code, delayfill=delayfill
-            ))
-            for instrument_code in instruments
-        ])
+        dict_of_pandl_by_instrument = dict(
+            [
+                (
+                    instrument_code,
+                    self.pandl_for_optimised_instrument(
+                        instrument_code, delayfill=delayfill
+                    ),
+                )
+                for instrument_code in instruments
+            ]
+        )
 
         dict_of_pandl_by_instrument = dictOfAccountCurves(dict_of_pandl_by_instrument)
 
-        account_curve = accountCurveGroup(dict_of_pandl_by_instrument,
-                                          capital=capital,
-                                          weighted=True)
+        account_curve = accountCurveGroup(
+            dict_of_pandl_by_instrument, capital=capital, weighted=True
+        )
 
         return account_curve
 
     @dont_cache
     def pandl_for_optimised_instrument(
-        self, instrument_code:str,
-            delayfill: bool=True
+        self, instrument_code: str, delayfill: bool = True
     ) -> accountCurve:
 
         self.log.msg(
@@ -44,13 +46,11 @@ class accountForOptimisedStage(Account):
             instrument_code=instrument_code,
         )
 
-        positions = self.get_optimised_position(
-            instrument_code
-        )
+        positions = self.get_optimised_position(instrument_code)
 
-        instrument_pandl = self._pandl_for_instrument_with_positions(instrument_code,
-                                                          positions=positions,
-                                                          delayfill=delayfill)
+        instrument_pandl = self._pandl_for_instrument_with_positions(
+            instrument_code, positions=positions, delayfill=delayfill
+        )
 
         return instrument_pandl
 
@@ -65,13 +65,13 @@ class accountForOptimisedStage(Account):
 
         return total_turnover
 
-    def optimised_turnover_at_portfolio_level(self, instrument_code: str,
-                                    ) -> float:
+    def optimised_turnover_at_portfolio_level(
+        self,
+        instrument_code: str,
+    ) -> float:
 
         ## assumes we use all capital
-        average_position_for_turnover = self.get_volatility_scalar(
-            instrument_code
-        )
+        average_position_for_turnover = self.get_volatility_scalar(instrument_code)
 
         ## Using actual capital
         positions = self.get_optimised_position(instrument_code)
@@ -82,7 +82,6 @@ class accountForOptimisedStage(Account):
     def get_optimised_position(self, instrument_code: str) -> pd.Series:
         opt_position_df = self.get_optimised_position_df()
         return opt_position_df[instrument_code]
-
 
     def get_optimised_position_df(self) -> pd.DataFrame:
         return self.parent.optimisedPositions.get_optimised_position_df()

@@ -2,7 +2,11 @@ from collections import namedtuple
 
 import pandas as pd
 
-from syscore.merge_data import merge_newer_data, full_merge_of_existing_data, spike_in_data
+from syscore.merge_data import (
+    merge_newer_data,
+    full_merge_of_existing_data,
+    spike_in_data,
+)
 
 
 class fxPrices(pd.Series):
@@ -87,8 +91,10 @@ class fxPrices(pd.Series):
 
 currencyValue = namedtuple("currencyValue", "currency, value")
 
+
 class listOfCurrencyValues(list):
     pass
+
 
 # by convention we always get prices vs the dollar
 DEFAULT_CURRENCY = "USD"

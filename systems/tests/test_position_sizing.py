@@ -18,8 +18,7 @@ class Test(unittest.TestCase):
             data,
             config,
         ) = get_test_object_futures_with_comb_forecasts()
-        system = System([rawdata, rules, fcs, comb,
-                         PositionSizing()], data, config)
+        system = System([rawdata, rules, fcs, comb, PositionSizing()], data, config)
 
         self.system = system
         self.config = config
@@ -32,13 +31,17 @@ class Test(unittest.TestCase):
 
     @unittest.SkipTest
     def test_get_combined_forecast(self):
-        self.assertAlmostEqual(self.system.positionSize.get_combined_forecast(
-            "EDOLLAR").values[-1], 2.462610227, )
+        self.assertAlmostEqual(
+            self.system.positionSize.get_combined_forecast("EDOLLAR").values[-1],
+            2.462610227,
+        )
 
     @unittest.SkipTest
     def test_get_price_volatility(self):
-        self.assertAlmostEqual(self.system.positionSize.get_price_volatility(
-            "EDOLLAR").values[-1], 0.059789159138, )
+        self.assertAlmostEqual(
+            self.system.positionSize.get_price_volatility("EDOLLAR").values[-1],
+            0.059789159138,
+        )
 
         # now without rawdata, should default to calculate on adj price
         system2 = System(
@@ -46,8 +49,9 @@ class Test(unittest.TestCase):
             self.data,
             self.config,
         )
-        self.assertAlmostEqual(system2.positionSize.get_price_volatility(
-            "EDOLLAR").values[-1], 0.059723565)
+        self.assertAlmostEqual(
+            system2.positionSize.get_price_volatility("EDOLLAR").values[-1], 0.059723565
+        )
 
     @unittest.SkipTest
     def test_get_instrument_sizing_data(self):
@@ -87,18 +91,22 @@ class Test(unittest.TestCase):
             self.system.positionSize.get_fx_rate("EDOLLAR").values[-1],
             0.6607594769427981,
         )
-        self.assertAlmostEqual(self.system.positionSize.get_fx_rate(
-            "BUND").values[-1], 0.72446329811485333)
+        self.assertAlmostEqual(
+            self.system.positionSize.get_fx_rate("BUND").values[-1], 0.72446329811485333
+        )
 
     @unittest.SkipTest
     def test_get_block_value(self):
-        self.assertAlmostEqual(self.system.positionSize.get_block_value(
-            "EDOLLAR").values[-1], 2449.6875)
+        self.assertAlmostEqual(
+            self.system.positionSize.get_block_value("EDOLLAR").values[-1], 2449.6875
+        )
 
     @unittest.SkipTest
     def test_get_instrument_currency_vol(self):
-        self.assertAlmostEqual(self.system.positionSize.get_instrument_currency_vol(
-            "EDOLLAR").values[-1], 146.46475577626, )
+        self.assertAlmostEqual(
+            self.system.positionSize.get_instrument_currency_vol("EDOLLAR").values[-1],
+            146.46475577626,
+        )
 
     @unittest.SkipTest
     def test_get_instrument_value_vol(self):
@@ -120,8 +128,10 @@ class Test(unittest.TestCase):
 
     @unittest.SkipTest
     def test_get_subsystem_position(self):
-        self.assertAlmostEqual(self.system.positionSize.get_subsystem_position(
-            "EDOLLAR").values[-1], 2.5445977941854627, )
+        self.assertAlmostEqual(
+            self.system.positionSize.get_subsystem_position("EDOLLAR").values[-1],
+            2.5445977941854627,
+        )
 
 
 if __name__ == "__main__":

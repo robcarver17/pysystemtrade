@@ -1,7 +1,7 @@
 from syscore.objects import arg_not_supplied, missing_data
 
 from sysdata.futures.instruments import futuresInstrumentData
-from sysobjects.instruments import  futuresInstrumentWithMetaData
+from sysobjects.instruments import futuresInstrumentWithMetaData
 from sysdata.mongodb.mongo_generic import mongoDataWithSingleKey
 from syslogdiag.log_to_screen import logtoscreen
 
@@ -16,11 +16,14 @@ class mongoFuturesInstrumentData(futuresInstrumentData):
 
     """
 
-    def __init__(self, mongo_db=arg_not_supplied, log=logtoscreen(
-            "mongoFuturesInstrumentData")):
+    def __init__(
+        self, mongo_db=arg_not_supplied, log=logtoscreen("mongoFuturesInstrumentData")
+    ):
 
         super().__init__(log=log)
-        self._mongo_data = mongoDataWithSingleKey(INSTRUMENT_COLLECTION, "instrument_code", mongo_db = mongo_db)
+        self._mongo_data = mongoDataWithSingleKey(
+            INSTRUMENT_COLLECTION, "instrument_code", mongo_db=mongo_db
+        )
 
     def __repr__(self):
         return "mongoFuturesInstrumentData %s" % str(self.mongo_data)
@@ -43,8 +46,7 @@ class mongoFuturesInstrumentData(futuresInstrumentData):
 
         return instrument_object
 
-    def _delete_instrument_data_without_any_warning_be_careful(
-            self, instrument_code):
+    def _delete_instrument_data_without_any_warning_be_careful(self, instrument_code):
         self.mongo_data.delete_data_without_any_warning(instrument_code)
 
     def _add_instrument_data_without_checking_for_existing_entry(
@@ -52,4 +54,6 @@ class mongoFuturesInstrumentData(futuresInstrumentData):
     ):
         instrument_object_dict = instrument_object.as_dict()
         instrument_code = instrument_object_dict.pop("instrument_code")
-        self.mongo_data.add_data(instrument_code, instrument_object_dict, allow_overwrite=True)
+        self.mongo_data.add_data(
+            instrument_code, instrument_object_dict, allow_overwrite=True
+        )

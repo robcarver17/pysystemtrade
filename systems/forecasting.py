@@ -3,9 +3,8 @@ import pandas as pd
 from systems.stage import SystemStage
 from syscore.objects import arg_not_supplied
 
-from systems.system_cache import  output, dont_cache
+from systems.system_cache import output, dont_cache
 from systems.trading_rules import TradingRule
-
 
 
 class Rules(SystemStage):
@@ -60,7 +59,6 @@ class Rules(SystemStage):
         # ... store the ones we've been passed for now
         self._passed_trading_rules = trading_rules
 
-
     @property
     def name(self):
         return "rules"
@@ -76,10 +74,10 @@ class Rules(SystemStage):
 
         return "Rules object with rules " + rule_names
 
-
     @output()
-    def get_raw_forecast(self, instrument_code: str,
-                         rule_variation_name: str) -> pd.Series:
+    def get_raw_forecast(
+        self, instrument_code: str, rule_variation_name: str
+    ) -> pd.Series:
         """
         Does what it says on the tin - pulls the forecast for the trading rule
 
@@ -105,7 +103,6 @@ class Rules(SystemStage):
         result = pd.Series(result)
 
         return result
-
 
     @dont_cache
     def trading_rules(self):
@@ -209,6 +206,7 @@ def process_trading_rules(passed_rules) -> dict:
 
     return processed_rules
 
+
 def _process_trading_rules_in_list(trading_rules: list):
     processed_rules = dict(
         [
@@ -217,6 +215,7 @@ def _process_trading_rules_in_list(trading_rules: list):
         ]
     )
     return processed_rules
+
 
 def _is_a_single_trading_rule_in_a_dict(trading_rules: dict):
     if isinstance(trading_rules, dict):
@@ -237,12 +236,10 @@ def _is_a_dict_of_multiple_trading_rules(trading_rules: dict):
 
 def _process_dict_of_trading_rules(trading_rules: dict):
     processed_rules = dict(
-        [
-            (keyname, TradingRule(trading_rules[keyname]))
-            for keyname in trading_rules
-        ]
+        [(keyname, TradingRule(trading_rules[keyname])) for keyname in trading_rules]
     )
     return processed_rules
+
 
 def _process_single_trading_rule(trading_rule):
     list_of_rules = [trading_rule]
@@ -254,4 +251,3 @@ if __name__ == "__main__":
     import doctest
 
     doctest.testmod()
-

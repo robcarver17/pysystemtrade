@@ -20,6 +20,7 @@ from sysdata.futures.manual_price_checker import manual_price_checker
 from sysobjects.futures_per_contract_prices import futuresContractPrices
 from sysobjects.contracts import futuresContract
 
+
 def interactive_manual_check_historical_prices():
     """
     Do a daily update for futures contract prices, using IB historical data
@@ -32,30 +33,32 @@ def interactive_manual_check_historical_prices():
         do_another = True
         while do_another:
             EXIT_STR = "Finished: Exit"
-            instrument_code = get_valid_instrument_code_from_user(data, source='single',
-                                                                  allow_exit=True,
-                                                                  exit_code=EXIT_STR)
+            instrument_code = get_valid_instrument_code_from_user(
+                data, source="single", allow_exit=True, exit_code=EXIT_STR
+            )
             if instrument_code is EXIT_STR:
                 do_another = False
             else:
                 check_instrument_ok_for_broker(data, instrument_code)
                 data.log.label(instrument_code=instrument_code)
-                update_historical_prices_with_checks_for_instrument(instrument_code, data)
+                update_historical_prices_with_checks_for_instrument(
+                    instrument_code, data
+                )
 
     return success
+
 
 def check_instrument_ok_for_broker(data: dataBlob, instrument_code: str):
     diag_prices = diagPrices(data)
     list_of_codes_all = diag_prices.get_list_of_instruments_with_contract_prices()
     if instrument_code not in list_of_codes_all:
-        print(
-            "\n\n\ %s is not an instrument with price data \n\n" %
-            instrument_code)
+        print("\n\n\ %s is not an instrument with price data \n\n" % instrument_code)
         raise Exception()
 
 
 def update_historical_prices_with_checks_for_instrument(
-        instrument_code: str, data: dataBlob):
+    instrument_code: str, data: dataBlob
+):
     """
     Do a daily update for futures contract prices, using IB historical data
 
@@ -67,7 +70,8 @@ def update_historical_prices_with_checks_for_instrument(
     """
     diag_contracts = dataContracts(data)
     all_contracts_list = diag_contracts.get_all_contract_objects_for_instrument_code(
-        instrument_code)
+        instrument_code
+    )
     contract_list = all_contracts_list.currently_sampling()
 
     if len(contract_list) == 0:
@@ -77,13 +81,15 @@ def update_historical_prices_with_checks_for_instrument(
     for contract_object in contract_list:
         data.log.label(contract_date=contract_object.date_str)
         update_historical_prices_with_checks_for_instrument_and_contract(
-            contract_object, data)
+            contract_object, data
+        )
 
     return success
 
 
 def update_historical_prices_with_checks_for_instrument_and_contract(
-    contract_object: futuresContract, data: dataBlob):
+    contract_object: futuresContract, data: dataBlob
+):
     """
     Do a daily update for futures contract prices, using IB historical data, with checking
 
@@ -100,14 +106,16 @@ def update_historical_prices_with_checks_for_instrument_and_contract(
     get_and_check_prices_for_frequency(
         data, contract_object, frequency=intraday_frequency
     )
-    get_and_check_prices_for_frequency(
-        data, contract_object, frequency=daily_frequency)
+    get_and_check_prices_for_frequency(data, contract_object, frequency=daily_frequency)
 
     return success
 
 
 def get_and_check_prices_for_frequency(
-        data: dataBlob, contract_object: futuresContract, frequency: Frequency=DAILY_PRICE_FREQ):
+    data: dataBlob,
+    contract_object: futuresContract,
+    frequency: Frequency = DAILY_PRICE_FREQ,
+):
 
     broker_data = dataBroker(data)
     price_data = diagPrices(data)
@@ -119,14 +127,10 @@ def get_and_check_prices_for_frequency(
         contract_object, frequency
     )
     if len(broker_prices) == 0:
-        print(
-            "No broker prices found for %s nothing to check" %
-            str(contract_object))
+        print("No broker prices found for %s nothing to check" % str(contract_object))
         return failure
 
-    print(
-        "\n\n Manually checking prices for %s \n\n" %
-        str(contract_object))
+    print("\n\n Manually checking prices for %s \n\n" % str(contract_object))
     new_prices_checked = manual_price_checker(
         old_prices,
         broker_prices,

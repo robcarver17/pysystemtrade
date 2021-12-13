@@ -2,15 +2,21 @@ import numpy as np
 from copy import copy
 import datetime
 
-from syscore.genutils import none_to_object, object_to_none, list_of_ints_with_highest_common_factor_positive_first
+from syscore.genutils import (
+    none_to_object,
+    object_to_none,
+    list_of_ints_with_highest_common_factor_positive_first,
+)
 from syscore.objects import no_order_id, no_children, no_parent
 
 from sysexecution.trade_qty import tradeQuantity
 
 from sysobjects.production.tradeable_object import tradeableObject
 
+
 class overFilledOrder(Exception):
     pass
+
 
 class orderType(object):
     def __repr__(self):
@@ -23,7 +29,9 @@ class orderType(object):
         if type_string is None:
             type_string = ""
         else:
-            assert type_string in self.allowed_types(), "Type %s not valid" % type_string
+            assert type_string in self.allowed_types(), (
+                "Type %s not valid" % type_string
+            )
 
         self._type = type_string
 
@@ -32,6 +40,7 @@ class orderType(object):
 
     def __eq__(self, other):
         return self.as_string() == other.as_string()
+
 
 class Order(object):
     """
@@ -45,14 +54,14 @@ class Order(object):
         self,
         tradeable_object: tradeableObject,
         trade: tradeQuantity,
-        fill: tradeQuantity=None,
-        filled_price: float=None,
-        fill_datetime: datetime.datetime=None,
+        fill: tradeQuantity = None,
+        filled_price: float = None,
+        fill_datetime: datetime.datetime = None,
         locked=False,
-        order_id: int=no_order_id,
-        parent: int=no_parent,
-        children: list =no_children,
-        active:bool =True,
+        order_id: int = no_order_id,
+        parent: int = no_parent,
+        children: list = no_children,
+        active: bool = True,
         order_type: orderType = orderType("market"),
         **order_info
     ):
@@ -75,7 +84,6 @@ class Order(object):
         (
             resolved_trade,
             resolved_fill,
-
         ) = resolve_inputs_to_order(trade, fill)
 
         if children == []:
@@ -103,7 +111,6 @@ class Order(object):
         full_repr = terse_repr + " %s" % str(self._order_info)
 
         return full_repr
-
 
     def terse_repr(self):
         if self._locked:
@@ -142,15 +149,20 @@ class Order(object):
     def as_single_trade_qty_or_error(self) -> int:
         return self.trade.as_single_trade_qty_or_error()
 
-    def replace_required_trade_size_only_use_for_unsubmitted_trades(self, new_trade: tradeQuantity):
+    def replace_required_trade_size_only_use_for_unsubmitted_trades(
+        self, new_trade: tradeQuantity
+    ):
 
         # ensure refactoring works
         assert type(new_trade) is tradeQuantity
 
         try:
-            assert len(new_trade)==len(self.trade)
+            assert len(new_trade) == len(self.trade)
         except:
-            raise Exception("Trying to replace trade of length %d with one of length %d" % (len(self.trade), len(new_trade)))
+            raise Exception(
+                "Trying to replace trade of length %d with one of length %d"
+                % (len(self.trade), len(new_trade))
+            )
 
         new_order = copy(self)
         new_order._trade = new_trade
@@ -177,16 +189,20 @@ class Order(object):
     def fill_datetime(self):
         return self._fill_datetime
 
-    def fill_order(self, fill_qty: tradeQuantity,
-                   filled_price: float,
-                   fill_datetime: datetime.datetime=None):
+    def fill_order(
+        self,
+        fill_qty: tradeQuantity,
+        filled_price: float,
+        fill_datetime: datetime.datetime = None,
+    ):
         # Fill qty is cumulative, eg this is the new amount filled
         try:
-            assert self.trade.fill_less_than_or_equal_to_desired_trade(
-            fill_qty)
+            assert self.trade.fill_less_than_or_equal_to_desired_trade(fill_qty)
         except:
-            raise overFilledOrder("Can't fill order with fill %s more than trade quantity %s "
-                                      % (str(fill_qty), str(self.trade)))
+            raise overFilledOrder(
+                "Can't fill order with fill %s more than trade quantity %s "
+                % (str(fill_qty), str(self.trade))
+            )
 
         self._fill = fill_qty
         self._filled_price = filled_price
@@ -266,39 +282,67 @@ class Order(object):
 
         return new_order
 
-
-    def change_trade_size_proportionally_to_meet_abs_qty_limit(self, max_abs_qty:int):
+    def change_trade_size_proportionally_to_meet_abs_qty_limit(self, max_abs_qty: int):
         # if this is a single leg trade, does a straight replacement
         # otherwise
 
         new_order = copy(self)
-        old_trade =  new_order.trade
-        new_trade = old_trade.change_trade_size_proportionally_to_meet_abs_qty_limit(max_abs_qty)
-        new_order = new_order.replace_required_trade_size_only_use_for_unsubmitted_trades(new_trade)
+        old_trade = new_order.trade
+        new_trade = old_trade.change_trade_size_proportionally_to_meet_abs_qty_limit(
+            max_abs_qty
+        )
+        new_order = (
+            new_order.replace_required_trade_size_only_use_for_unsubmitted_trades(
+                new_trade
+            )
+        )
 
         return new_order
 
-    def reduce_trade_size_proportionally_so_smallest_leg_is_max_size(self, max_size: int):
+    def reduce_trade_size_proportionally_so_smallest_leg_is_max_size(
+        self, max_size: int
+    ):
 
         new_order = copy(self)
         old_trade = new_order.trade
-        new_trade = old_trade.reduce_trade_size_proportionally_so_smallest_leg_is_max_size(max_size)
-        new_order = new_order.replace_required_trade_size_only_use_for_unsubmitted_trades(new_trade)
+        new_trade = (
+            old_trade.reduce_trade_size_proportionally_so_smallest_leg_is_max_size(
+                max_size
+            )
+        )
+        new_order = (
+            new_order.replace_required_trade_size_only_use_for_unsubmitted_trades(
+                new_trade
+            )
+        )
 
         return new_order
 
-
-    def trade_qty_with_lowest_abs_value_trade_from_order_list(self, list_of_orders: list) -> 'Order':
+    def trade_qty_with_lowest_abs_value_trade_from_order_list(
+        self, list_of_orders: list
+    ) -> "Order":
         ## only deals with single legs right now
-        new_order = self.single_leg_trade_qty_with_lowest_abs_value_trade_from_order_list(list_of_orders)
+        new_order = (
+            self.single_leg_trade_qty_with_lowest_abs_value_trade_from_order_list(
+                list_of_orders
+            )
+        )
 
         return new_order
 
-    def single_leg_trade_qty_with_lowest_abs_value_trade_from_order_list(self, list_of_orders: list) -> 'Order':
+    def single_leg_trade_qty_with_lowest_abs_value_trade_from_order_list(
+        self, list_of_orders: list
+    ) -> "Order":
         list_of_trade_qty = [order.trade for order in list_of_orders]
         my_trade_qty = self.trade
-        new_trade = my_trade_qty.single_leg_trade_qty_with_lowest_abs_value_trade_from_list(list_of_trade_qty)
-        new_order= self.replace_required_trade_size_only_use_for_unsubmitted_trades(new_trade)
+        new_trade = (
+            my_trade_qty.single_leg_trade_qty_with_lowest_abs_value_trade_from_list(
+                list_of_trade_qty
+            )
+        )
+        new_order = self.replace_required_trade_size_only_use_for_unsubmitted_trades(
+            new_trade
+        )
 
         return new_order
 
@@ -422,7 +466,6 @@ class Order(object):
         return log
 
 
-
 def resolve_inputs_to_order(trade, fill) -> (tradeQuantity, tradeQuantity):
     resolved_trade = tradeQuantity(trade)
     if fill is None:
@@ -433,37 +476,42 @@ def resolve_inputs_to_order(trade, fill) -> (tradeQuantity, tradeQuantity):
     return resolved_trade, resolved_fill
 
 
-def resolve_orderid(order_id:int):
+def resolve_orderid(order_id: int):
     if order_id is no_order_id:
         return no_order_id
     if order_id is None:
         return no_order_id
-    order_id= int(order_id)
+    order_id = int(order_id)
     return order_id
+
 
 def resolve_parent(parent: int):
     if parent is no_parent:
         return no_parent
     if parent is None:
         return no_parent
-    parent= int(parent)
+    parent = int(parent)
 
     return parent
 
 
-def resolve_multi_leg_price_to_single_price(trade_list: tradeQuantity, price_list: list) -> float:
+def resolve_multi_leg_price_to_single_price(
+    trade_list: tradeQuantity, price_list: list
+) -> float:
 
-    if len(price_list)==0:
+    if len(price_list) == 0:
         ## This will be the case when an order is first created or has no fills
         return None
 
-    if len(price_list)==1:
+    if len(price_list) == 1:
         return price_list[0]
 
     assert len(price_list) == len(trade_list)
 
-    trade_list_as_common_factor = list_of_ints_with_highest_common_factor_positive_first(trade_list)
-    fill_price = [x * y for x,y in zip(trade_list_as_common_factor, price_list)]
+    trade_list_as_common_factor = (
+        list_of_ints_with_highest_common_factor_positive_first(trade_list)
+    )
+    fill_price = [x * y for x, y in zip(trade_list_as_common_factor, price_list)]
 
     fill_price = sum(fill_price)
     if np.isnan(fill_price):

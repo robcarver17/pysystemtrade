@@ -45,7 +45,6 @@ def roll_info(data, instrument_code=ALL_ROLL_INSTRUMENTS):
         )
     )
 
-
     formatted_output.append(reporting_api.footer())
 
     return formatted_output

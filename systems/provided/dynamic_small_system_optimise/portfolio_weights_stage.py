@@ -7,8 +7,15 @@ from syscore.dateutils import ROOT_BDAYS_INYEAR
 from syscore.objects import arg_not_supplied, resolve_function
 from syscore.pdutils import get_row_of_df_aligned_to_weights_as_dict
 
-from sysquant.estimators.correlations import correlationEstimate, create_boring_corr_matrix, CorrelationList
-from sysquant.estimators.covariance import covarianceEstimate, covariance_from_stdev_and_correlation
+from sysquant.estimators.correlations import (
+    correlationEstimate,
+    create_boring_corr_matrix,
+    CorrelationList,
+)
+from sysquant.estimators.covariance import (
+    covarianceEstimate,
+    covariance_from_stdev_and_correlation,
+)
 from sysquant.estimators.stdev_estimator import stdevEstimates
 from sysquant.optimisation.weights import portfolioWeights
 
@@ -21,48 +28,50 @@ class portfolioWeightsStage(SystemStage):
     def name(self):
         return "portfolioWeights"
 
-
-    def get_position_contracts_for_relevant_date(self,
-                              relevant_date: datetime.datetime = arg_not_supplied) \
-            -> portfolioWeights:
+    def get_position_contracts_for_relevant_date(
+        self, relevant_date: datetime.datetime = arg_not_supplied
+    ) -> portfolioWeights:
 
         position_contracts_as_df = self.get_position_contracts_as_df()
-        position_contracts_at_date = get_row_of_df_aligned_to_weights_as_dict(position_contracts_as_df, relevant_date)
+        position_contracts_at_date = get_row_of_df_aligned_to_weights_as_dict(
+            position_contracts_as_df, relevant_date
+        )
 
         position_contracts = portfolioWeights(position_contracts_at_date)
 
         return position_contracts
 
-    def get_covariance_matrix(self,
-                              relevant_date: datetime.datetime = arg_not_supplied) \
-            -> covarianceEstimate:
+    def get_covariance_matrix(
+        self, relevant_date: datetime.datetime = arg_not_supplied
+    ) -> covarianceEstimate:
 
-        correlation_estimate = \
-            self.get_correlation_matrix(relevant_date=relevant_date)
-        stdev_estimate = self.get_stdev_estimate(relevant_date = relevant_date)
+        correlation_estimate = self.get_correlation_matrix(relevant_date=relevant_date)
+        stdev_estimate = self.get_stdev_estimate(relevant_date=relevant_date)
 
-        covariance = covariance_from_stdev_and_correlation(correlation_estimate,
-                                                           stdev_estimate)
+        covariance = covariance_from_stdev_and_correlation(
+            correlation_estimate, stdev_estimate
+        )
 
         return covariance
 
-    def get_correlation_matrix(self,
-                              relevant_date: datetime.datetime = arg_not_supplied) \
-            -> correlationEstimate:
+    def get_correlation_matrix(
+        self, relevant_date: datetime.datetime = arg_not_supplied
+    ) -> correlationEstimate:
         list_of_correlations = self.get_list_of_instrument_returns_correlations()
         try:
-            correlation_matrix = list_of_correlations.most_recent_correlation_before_date(relevant_date)
+            correlation_matrix = (
+                list_of_correlations.most_recent_correlation_before_date(relevant_date)
+            )
         except:
             instrument_list = self.instrument_list()
-            correlation_matrix = create_boring_corr_matrix(len(instrument_list),
-                                                           columns=instrument_list,
-                                                           offdiag = 0.0)
+            correlation_matrix = create_boring_corr_matrix(
+                len(instrument_list), columns=instrument_list, offdiag=0.0
+            )
 
         return correlation_matrix
 
-
     @diagnostic(not_pickable=True)
-    def get_list_of_instrument_returns_correlations(self) ->CorrelationList:
+    def get_list_of_instrument_returns_correlations(self) -> CorrelationList:
         config = self.config
 
         # Get some useful stuff from the config
@@ -78,10 +87,15 @@ class portfolioWeightsStage(SystemStage):
     @diagnostic()
     def returns_across_instruments_as_df(self) -> pd.DataFrame:
         instrument_list = self.instrument_list()
-        returns_as_dict = dict([
-            (instrument_code,
-                self.percentage_return_for_instrument(instrument_code))
-                           for instrument_code in instrument_list])
+        returns_as_dict = dict(
+            [
+                (
+                    instrument_code,
+                    self.percentage_return_for_instrument(instrument_code),
+                )
+                for instrument_code in instrument_list
+            ]
+        )
 
         returns_as_pd = pd.DataFrame(returns_as_dict)
 
@@ -90,17 +104,24 @@ class portfolioWeightsStage(SystemStage):
     def percentage_return_for_instrument(self, instrument_code) -> pd.Series:
         return self.rawdata.get_daily_percentage_returns(instrument_code)
 
-    def get_per_contract_value(self, relevant_date: datetime.datetime = arg_not_supplied) -> portfolioWeights:
+    def get_per_contract_value(
+        self, relevant_date: datetime.datetime = arg_not_supplied
+    ) -> portfolioWeights:
         df_of_values = self.get_per_contract_value_as_proportion_of_capital_df()
-        values_at_date = get_row_of_df_aligned_to_weights_as_dict(df_of_values, relevant_date)
+        values_at_date = get_row_of_df_aligned_to_weights_as_dict(
+            df_of_values, relevant_date
+        )
         contract_values = portfolioWeights(values_at_date)
 
         return contract_values
 
-
-    def get_stdev_estimate(self, relevant_date: datetime.datetime = arg_not_supplied) -> stdevEstimates:
+    def get_stdev_estimate(
+        self, relevant_date: datetime.datetime = arg_not_supplied
+    ) -> stdevEstimates:
         df_of_vol = self.get_df_of_perc_vol()
-        stdev_at_date = get_row_of_df_aligned_to_weights_as_dict(df_of_vol, relevant_date)
+        stdev_at_date = get_row_of_df_aligned_to_weights_as_dict(
+            df_of_vol, relevant_date
+        )
 
         stdev_estimate = stdevEstimates(stdev_at_date)
 
@@ -109,10 +130,12 @@ class portfolioWeightsStage(SystemStage):
     @diagnostic()
     def get_df_of_perc_vol(self) -> pd.DataFrame:
         instrument_list = self.instrument_list()
-        vol_as_dict = dict([
-            (instrument_code,
-                self.annualised_percentage_vol(instrument_code))
-                           for instrument_code in instrument_list])
+        vol_as_dict = dict(
+            [
+                (instrument_code, self.annualised_percentage_vol(instrument_code))
+                for instrument_code in instrument_list
+            ]
+        )
 
         vol_as_pd = pd.DataFrame(vol_as_dict)
         vol_as_pd = vol_as_pd.ffill()
@@ -126,28 +149,40 @@ class portfolioWeightsStage(SystemStage):
 
         return common_index
 
-
     @diagnostic()
     def get_original_portfolio_weight_df(self) -> pd.DataFrame:
         instrument_list = self.instrument_list()
-        weights_as_dict = dict([
-            (instrument_code,
-                self.get_portfolio_weight_series_from_contract_positions(instrument_code))
-                           for instrument_code in instrument_list])
+        weights_as_dict = dict(
+            [
+                (
+                    instrument_code,
+                    self.get_portfolio_weight_series_from_contract_positions(
+                        instrument_code
+                    ),
+                )
+                for instrument_code in instrument_list
+            ]
+        )
 
         weights_as_pd = pd.DataFrame(weights_as_dict)
         weights_as_pd = weights_as_pd.ffill()
 
         return weights_as_pd
 
-
     @diagnostic()
     def get_per_contract_value_as_proportion_of_capital_df(self) -> pd.DataFrame:
         instrument_list = self.instrument_list()
-        values_as_dict = dict([
-            (instrument_code,
-                self.get_per_contract_value_as_proportion_of_capital(instrument_code))
-                           for instrument_code in instrument_list])
+        values_as_dict = dict(
+            [
+                (
+                    instrument_code,
+                    self.get_per_contract_value_as_proportion_of_capital(
+                        instrument_code
+                    ),
+                )
+                for instrument_code in instrument_list
+            ]
+        )
 
         values_as_pd = pd.DataFrame(values_as_dict)
         common_index = self.common_index()
@@ -162,10 +197,12 @@ class portfolioWeightsStage(SystemStage):
 
     def get_position_contracts_as_df(self) -> pd.DataFrame:
         instrument_list = self.instrument_list()
-        values_as_dict = dict([
-            (instrument_code,
-                self.get_contract_positions(instrument_code))
-                           for instrument_code in instrument_list])
+        values_as_dict = dict(
+            [
+                (instrument_code, self.get_contract_positions(instrument_code))
+                for instrument_code in instrument_list
+            ]
+        )
 
         values_as_pd = pd.DataFrame(values_as_dict)
         common_index = self.common_index()
@@ -175,25 +212,30 @@ class portfolioWeightsStage(SystemStage):
 
         return values_as_pd
 
-
     @diagnostic()
-    def get_portfolio_weight_series_from_contract_positions(self, instrument_code: str) -> pd.Series:
+    def get_portfolio_weight_series_from_contract_positions(
+        self, instrument_code: str
+    ) -> pd.Series:
         contract_positions = self.get_contract_positions(instrument_code)
-        per_contract_value_as_proportion_of_capital = self.get_per_contract_value_as_proportion_of_capital(instrument_code)
+        per_contract_value_as_proportion_of_capital = (
+            self.get_per_contract_value_as_proportion_of_capital(instrument_code)
+        )
 
         weights_as_proportion_of_capital = get_portfolio_weights_from_contract_positions(
-                                                      contract_positions=contract_positions,
-                                                                                per_contract_value_as_proportion_of_capital=per_contract_value_as_proportion_of_capital)
+            contract_positions=contract_positions,
+            per_contract_value_as_proportion_of_capital=per_contract_value_as_proportion_of_capital,
+        )
         return weights_as_proportion_of_capital
 
-    def get_per_contract_value_as_proportion_of_capital(self, instrument_code: str)-> pd.Series:
+    def get_per_contract_value_as_proportion_of_capital(
+        self, instrument_code: str
+    ) -> pd.Series:
         trading_capital = self.get_trading_capital()
         contract_values = self.get_baseccy_value_per_contract(instrument_code)
 
         per_contract_value_as_proportion_of_capital = contract_values / trading_capital
 
         return per_contract_value_as_proportion_of_capital
-
 
     def get_baseccy_value_per_contract(self, instrument_code: str) -> pd.Series:
         contract_prices = self.get_contract_prices(instrument_code)
@@ -202,11 +244,11 @@ class portfolioWeightsStage(SystemStage):
 
         fx_rate_aligned = fx_rate.reindex(contract_prices.index, method="ffill")
 
-        return fx_rate_aligned*contract_prices * contract_multiplier
+        return fx_rate_aligned * contract_prices * contract_multiplier
 
     def annualised_percentage_vol(self, instrument_code: str) -> pd.Series:
         daily_vol = self.daily_percentage_vol100scale(instrument_code)
-        return ROOT_BDAYS_INYEAR*daily_vol/100.0
+        return ROOT_BDAYS_INYEAR * daily_vol / 100.0
 
     def daily_percentage_vol100scale(self, instrument_code: str) -> pd.Series:
         return self.rawdata.get_daily_percentage_volatility(instrument_code)
@@ -225,7 +267,6 @@ class portfolioWeightsStage(SystemStage):
 
     def get_fx_for_contract(self, instrument_code: str) -> pd.Series:
         return self.position_size_stage.get_fx_rate(instrument_code)
-
 
     def instrument_list(self):
         return self.parent.get_instrument_list()
@@ -252,10 +293,13 @@ class portfolioWeightsStage(SystemStage):
 
 
 def get_portfolio_weights_from_contract_positions(
-                                                  contract_positions: pd.Series,
-                                                  per_contract_value_as_proportion_of_capital: pd.Series) -> pd.Series:
+    contract_positions: pd.Series,
+    per_contract_value_as_proportion_of_capital: pd.Series,
+) -> pd.Series:
 
-    aligned_values = per_contract_value_as_proportion_of_capital.reindex(contract_positions.index, method="ffill")
+    aligned_values = per_contract_value_as_proportion_of_capital.reindex(
+        contract_positions.index, method="ffill"
+    )
     weights_as_proportion_of_capital = contract_positions * aligned_values
 
     return weights_as_proportion_of_capital

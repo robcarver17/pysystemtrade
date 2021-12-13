@@ -1,4 +1,3 @@
-
 def fill_config_dict_with_defaults(config_dict: dict, defaults_dict: dict) -> dict:
     """
     >>> fill_config_dict_with_defaults({a:2}, {b:3})
@@ -7,7 +6,7 @@ def fill_config_dict_with_defaults(config_dict: dict, defaults_dict: dict) -> di
     ## Works at multiple levels
     default_keys = list(defaults_dict.keys())
     config_keys = list(config_dict.keys())
-    joint_keys = list(set(default_keys+config_keys))
+    joint_keys = list(set(default_keys + config_keys))
 
     for key in joint_keys:
         config_value = config_dict.get(key, None)

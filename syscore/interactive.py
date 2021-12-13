@@ -2,17 +2,13 @@ from copy import copy
 
 
 def get_and_convert(
-        prompt,
-        type_expected=int,
-        allow_default=True,
-        default_value=0,
-        default_str=None):
+    prompt, type_expected=int, allow_default=True, default_value=0, default_str=None
+):
     invalid = True
     input_str = prompt + " "
     if allow_default:
         if default_str is None:
-            input_str = input_str + \
-                "<RETURN for default %s> " % str(default_value)
+            input_str = input_str + "<RETURN for default %s> " % str(default_value)
         else:
             input_str = input_str + "<RETURN for %s> " % default_str
 
@@ -25,9 +21,7 @@ def get_and_convert(
             result = type_expected(ans)
             return result
         except BaseException:
-            print(
-                "%s is not of expected type %s" %
-                (ans, type_expected.__name__))
+            print("%s is not of expected type %s" % (ans, type_expected.__name__))
             continue
 
 
@@ -79,8 +73,7 @@ class run_interactive_menu(object):
                 return result
 
 
-def print_menu_of_values_and_get_response(
-       menu_of_options_as_list, default_str=""):
+def print_menu_of_values_and_get_response(menu_of_options_as_list, default_str=""):
 
     copy_menu_of_options_as_list = copy(menu_of_options_as_list)
     if default_str != "":
@@ -107,10 +100,7 @@ def print_menu_of_values_and_get_response(
     return option_chosen
 
 
-def print_menu_and_get_response(
-        menu_of_options,
-        default_option=None,
-        default_str=""):
+def print_menu_and_get_response(menu_of_options, default_option=None, default_str=""):
     """
 
     :param copy_menu_of_options: A dict, keys are ints, values are str

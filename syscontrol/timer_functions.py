@@ -11,7 +11,8 @@ from syslogdiag.log_to_screen import logtoscreen
 INFINITE_EXECUTIONS = -1
 
 ## Used to indicate not yet run
-A_LONG_LONG_TIME_AGO = datetime.datetime(1980,1,1)
+A_LONG_LONG_TIME_AGO = datetime.datetime(1980, 1, 1)
+
 
 class timerClassWithFunction(object):
     def __init__(
@@ -26,15 +27,13 @@ class timerClassWithFunction(object):
         self._data = data
         self._parameters = parameters
 
-
-        log.setup(type = self.process_name)
+        log.setup(type=self.process_name)
         self._log = log
         self._report_status = reportStatus(log)
 
         self._actual_executions = 0
 
         self._log_on_startup()
-
 
     def _log_on_startup(self):
         log = self.log
@@ -48,13 +47,17 @@ class timerClassWithFunction(object):
         if max_executions == INFINITE_EXECUTIONS:
             exec_string = "until process ends"
         else:
-            exec_string= "at most %d times" % max_executions
+            exec_string = "at most %d times" % max_executions
 
         log.msg(
             "%s will run every %d minutes %s with heartbeats every %d minutes"
-            % (method_name, self.frequency_minutes, exec_string, self.minutes_between_heartbeats)
+            % (
+                method_name,
+                self.frequency_minutes,
+                exec_string,
+                self.minutes_between_heartbeats,
+            )
         )
-
 
     @property
     def data(self):
@@ -104,10 +107,10 @@ class timerClassWithFunction(object):
     def report_status(self) -> reportStatus:
         return self._report_status
 
-    def log_msg(self, msg:str):
-        self.log.msg(msg, type = self.process_name)
+    def log_msg(self, msg: str):
+        self.log.msg(msg, type=self.process_name)
 
-    def check_and_run(self, last_run: bool=False):
+    def check_and_run(self, last_run: bool = False):
         """
 
         :return: None
@@ -121,7 +124,6 @@ class timerClassWithFunction(object):
         self.run_function()
         self.finished_running_method()
 
-
     def check_if_okay_to_run(self, last_run=False) -> bool:
         if self.run_on_completion_only:
             okay_to_run = self.check_if_okay_to_run_if_runs_at_end_only(last_run)
@@ -131,19 +133,22 @@ class timerClassWithFunction(object):
         okay_to_run = self.check_if_okay_to_run_normal_run(last_run)
         return okay_to_run
 
-    def check_if_okay_to_run_if_runs_at_end_only(self, last_run:bool = False) -> bool:
+    def check_if_okay_to_run_if_runs_at_end_only(self, last_run: bool = False) -> bool:
         if last_run:
             self.log_msg(
-                "Running %s as this is the final run for process %s" %
-                (self.method_name, self.process_name))
+                "Running %s as this is the final run for process %s"
+                % (self.method_name, self.process_name)
+            )
 
             return True
 
         # not the last run, don't run yet
         # use report status to avoid spamming
 
-        self.report_status.log_status("Not running %s as only runs when process %s ends" \
-                                      % (self.method_name, self.process_name))
+        self.report_status.log_status(
+            "Not running %s as only runs when process %s ends"
+            % (self.method_name, self.process_name)
+        )
         return False
 
     def check_if_okay_to_run_normal_run(self, last_run: bool = False) -> bool:
@@ -158,25 +163,28 @@ class timerClassWithFunction(object):
 
         return okay_to_run
 
-
     def check_if_okay_to_run_normal_run_if_not_last_run(self) -> bool:
 
-        exceeded_max =  self.completed_max_runs()
+        exceeded_max = self.completed_max_runs()
         if exceeded_max:
             return False
 
-        enough_time_has_passed = self.check_if_enough_time_has_passed_and_report_status()
+        enough_time_has_passed = (
+            self.check_if_enough_time_has_passed_and_report_status()
+        )
 
         if enough_time_has_passed:
             return True
         else:
             return False
 
-    def check_if_enough_time_has_passed_and_report_status(self) ->bool:
+    def check_if_enough_time_has_passed_and_report_status(self) -> bool:
 
         enough_time_has_passed = self.check_if_enough_time_has_elapsed_since_last_run()
-        enough_time_has_passed_status = "Not enough time has passed since last run of %s in %s" %\
-                                          (self.method_name, self.process_name)
+        enough_time_has_passed_status = (
+            "Not enough time has passed since last run of %s in %s"
+            % (self.method_name, self.process_name)
+        )
         if not enough_time_has_passed:
             self.report_status.log_status(enough_time_has_passed_status)
         else:
@@ -184,15 +192,13 @@ class timerClassWithFunction(object):
 
         return enough_time_has_passed
 
-
-
     def check_if_enough_time_has_elapsed_since_last_run(self) -> bool:
         minutes_until_next_run = self.minutes_until_next_run()
         if np.isnan(minutes_until_next_run):
             ## completed the run
             return False
 
-        if minutes_until_next_run==0:
+        if minutes_until_next_run == 0:
             return True
         else:
             return False
@@ -204,7 +210,7 @@ class timerClassWithFunction(object):
         time_since_run = self.minutes_since_last_run()
         minutes_between_runs = self.frequency_minutes
 
-        remaining_minutes = max(minutes_between_runs - time_since_run,0)
+        remaining_minutes = max(minutes_between_runs - time_since_run, 0)
 
         return remaining_minutes
 
@@ -213,7 +219,6 @@ class timerClassWithFunction(object):
         time_since_heartbeat = self.minutes_since_last_heartbeat()
         if time_since_heartbeat > self.minutes_between_heartbeats:
             self.log_heartbeat()
-
 
     def log_heartbeat(self):
         if self.max_executions is INFINITE_EXECUTIONS:
@@ -224,9 +229,7 @@ class timerClassWithFunction(object):
         if self.run_on_completion_only:
             log_msg = "%s will run on completion" % self.method_name
         else:
-            log_msg=\
-            "%s still alive, done %d of %s executions every %d minutes"\
-            % (
+            log_msg = "%s still alive, done %d of %s executions every %d minutes" % (
                 self.method_name,
                 self.actual_executions,
                 exec_string,
@@ -237,7 +240,6 @@ class timerClassWithFunction(object):
 
         self._last_heartbeat = datetime.datetime.now()
 
-
     def minutes_since_last_run(self) -> float:
         when_last_run = self.when_last_run()
         time_now = datetime.datetime.now()
@@ -247,7 +249,7 @@ class timerClassWithFunction(object):
         return delta_minutes
 
     def when_last_run(self) -> datetime.datetime:
-        when_last_run = getattr(self, "_last_run",  A_LONG_LONG_TIME_AGO)
+        when_last_run = getattr(self, "_last_run", A_LONG_LONG_TIME_AGO)
 
         return when_last_run
 
@@ -277,7 +279,6 @@ class timerClassWithFunction(object):
 
         return False
 
-
     def setup_about_to_run_method(self):
         self.increment_executions()
         self.set_time_of_last_run()
@@ -288,7 +289,6 @@ class timerClassWithFunction(object):
 
     def set_time_of_last_run(self):
         self._last_run = datetime.datetime.now()
-
 
     def store_in_db_run_start_method(self):
         data_process = dataControlProcess(self.data)
@@ -309,12 +309,11 @@ class timerClassWithFunction(object):
     def log_msg_when_completed_last_run(self):
         if self.completed_max_runs():
             self.log_msg(
-                "%s executed %d times so done" %
-                (self.method_name, self.max_executions))
+                "%s executed %d times so done" % (self.method_name, self.max_executions)
+            )
 
 
 class listOfTimerFunctions(list):
-
     def check_all_finished(self) -> bool:
         if len(self) == 0:
             return True
@@ -328,42 +327,49 @@ class listOfTimerFunctions(list):
         for timer_class in self:
             timer_class.check_and_run(last_run=True)
 
-
     def seconds_until_next_method_runs(self) -> float:
-        minutes_remaining = [timer_object.minutes_until_next_run() for timer_object in self]
+        minutes_remaining = [
+            timer_object.minutes_until_next_run() for timer_object in self
+        ]
         min_minutes = np.nanmin(minutes_remaining)
-        min_seconds  = min_minutes*60.0
+        min_seconds = min_minutes * 60.0
 
         return min_seconds
 
-def get_list_of_timer_functions(
-        data: dataBlob,
-        process_name: str,
-        list_of_timer_names_and_functions_as_strings: list) -> listOfTimerFunctions:
 
-    list_of_timer_functions_as_list = [_get_timer_class(data, process_name, entry)
-                               for entry in list_of_timer_names_and_functions_as_strings]
+def get_list_of_timer_functions(
+    data: dataBlob,
+    process_name: str,
+    list_of_timer_names_and_functions_as_strings: list,
+) -> listOfTimerFunctions:
+
+    list_of_timer_functions_as_list = [
+        _get_timer_class(data, process_name, entry)
+        for entry in list_of_timer_names_and_functions_as_strings
+    ]
 
     list_of_timer_functions = listOfTimerFunctions(list_of_timer_functions_as_list)
 
     return list_of_timer_functions
 
-def _get_timer_class(data: dataBlob, process_name: str, entry) ->timerClassWithFunction:
+
+def _get_timer_class(
+    data: dataBlob, process_name: str, entry
+) -> timerClassWithFunction:
     method_name, object = entry
 
     function_object = getattr(object, method_name)
 
     diag_process = diagControlProcess(data)
-    timer_parameters = diag_process.get_method_timer_parameters(process_name, method_name)
+    timer_parameters = diag_process.get_method_timer_parameters(
+        process_name, method_name
+    )
 
     # we use this rather than data.log as it will be marked up with the correct type
     log = object.data.log
 
     timer_class = timerClassWithFunction(
-        function_object,
-        data=data,
-        log=log,
-        parameters=timer_parameters
+        function_object, data=data, log=log, parameters=timer_parameters
     )
 
     return timer_class

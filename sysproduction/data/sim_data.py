@@ -14,8 +14,14 @@ def get_sim_data_object_for_production(data=arg_not_supplied) -> dataBlob:
     if data is arg_not_supplied:
         data = dataBlob()
 
-    data.add_class_list([arcticFuturesAdjustedPricesData, arcticFuturesMultiplePricesData,
-                         arcticFxPricesData, mongoFuturesInstrumentData, mongoRollParametersData])
-
+    data.add_class_list(
+        [
+            arcticFuturesAdjustedPricesData,
+            arcticFuturesMultiplePricesData,
+            arcticFxPricesData,
+            mongoFuturesInstrumentData,
+            mongoRollParametersData,
+        ]
+    )
 
     return dbFuturesSimData(data)

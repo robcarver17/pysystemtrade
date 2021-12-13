@@ -6,6 +6,7 @@ from syslogdiag.log_to_screen import logtoscreen
 LOCK_STATUS_COLLECTION = "locks"
 LOCK_DICT_KEY = "lock"
 
+
 class mongoLockData(lockData):
     """
     Read and write data class to get lock data
@@ -16,7 +17,9 @@ class mongoLockData(lockData):
     def __init__(self, mongo_db=arg_not_supplied, log=logtoscreen("mongoLockData")):
 
         super().__init__(log=log)
-        self._mongo_data = mongoDataWithSingleKey(LOCK_STATUS_COLLECTION, "instrument_code", mongo_db = mongo_db)
+        self._mongo_data = mongoDataWithSingleKey(
+            LOCK_STATUS_COLLECTION, "instrument_code", mongo_db=mongo_db
+        )
 
     def __repr__(self):
         return "mongoLockData %s" % str(self.mongo_data)
@@ -42,7 +45,10 @@ class mongoLockData(lockData):
 
     def get_list_of_locked_instruments(self):
         all_instruments = self.mongo_data.get_list_of_keys()
-        all_instruments_with_locks = [instrument_code for instrument_code in all_instruments \
-                                      if self.is_instrument_locked(instrument_code)]
+        all_instruments_with_locks = [
+            instrument_code
+            for instrument_code in all_instruments
+            if self.is_instrument_locked(instrument_code)
+        ]
 
         return all_instruments_with_locks

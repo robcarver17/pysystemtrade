@@ -14,8 +14,9 @@ class csvOptimalPositionData(optimalPositionData):
     Class for contract_positions write to / read from csv
     """
 
-    def __init__(self, datapath=arg_not_supplied,
-                 log=logtoscreen("csvOptimalPositionData")):
+    def __init__(
+        self, datapath=arg_not_supplied, log=logtoscreen("csvOptimalPositionData")
+    ):
 
         super().__init__(log=log)
 
@@ -37,5 +38,7 @@ class csvOptimalPositionData(optimalPositionData):
         self, instrument_strategy: instrumentStrategy
     ):
         return get_filename_for_package(
-            self._datapath, "%s_%s.csv" % (instrument_strategy.strategy_name, instrument_strategy.instrument_code)
+            self._datapath,
+            "%s_%s.csv"
+            % (instrument_strategy.strategy_name, instrument_strategy.instrument_code),
         )

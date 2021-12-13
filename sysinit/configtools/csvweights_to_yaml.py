@@ -35,8 +35,7 @@ def instr_weights_csv_to_yaml(filename_input, filename_output):
     return data
 
 
-def forecast_weights_by_instrument_csv_to_yaml(
-        filename_input, filename_output):
+def forecast_weights_by_instrument_csv_to_yaml(filename_input, filename_output):
     """
     Read in a configuration csv file containing forecast weights, different for each instrument, and output as yaml
 

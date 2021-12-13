@@ -8,8 +8,7 @@ DATE_INDEX_NAME = "DATETIME"
 
 
 class csvCapitalData(capitalData):
-    def __init__(self, datapath=arg_not_supplied,
-                 log=logtoscreen("csvCapitalData")):
+    def __init__(self, datapath=arg_not_supplied, log=logtoscreen("csvCapitalData")):
 
         super().__init__(log=log)
 
@@ -19,7 +18,5 @@ class csvCapitalData(capitalData):
         self._datapath = datapath
 
     def write_df_of_all_capital(self, capital_data):
-        filename = get_filename_for_package(
-            self._datapath, "%s.csv" %
-            ("capital_data"))
+        filename = get_filename_for_package(self._datapath, "%s.csv" % ("capital_data"))
         capital_data.to_csv(filename, index_label=DATE_INDEX_NAME)

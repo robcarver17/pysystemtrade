@@ -84,10 +84,9 @@ class ibBrokerOrder(brokerOrder):
             # remain_qty = tradeQuantity(remain_qty_list)
 
             total_qty_scalar = (
-                unsigned_total_qty_scalar *
-                extracted_trade_data.order.order_sign)
-            total_qty_list = [int(total_qty_scalar * ratio)
-                              for ratio in leg_ratios]
+                unsigned_total_qty_scalar * extracted_trade_data.order.order_sign
+            )
+            total_qty_list = [int(total_qty_scalar * ratio) for ratio in leg_ratios]
 
             total_qty = tradeQuantity(total_qty_list)
 
@@ -96,7 +95,7 @@ class ibBrokerOrder(brokerOrder):
         if fill_totals is missing_data:
             fill_datetime = None
             fill = total_qty.zero_version()
-            filled_price_list =[]
+            filled_price_list = []
             commission = None
             broker_tempid = extracted_trade_data.order.order_id
             broker_clientid = extracted_trade_data.order.client_id
@@ -115,9 +114,8 @@ class ibBrokerOrder(brokerOrder):
                 for contractid in contract_id_list
             ]
             fill_list = [
-                signed_qty_dict.get(
-                    contractid,
-                    None) for contractid in contract_id_list]
+                signed_qty_dict.get(contractid, None) for contractid in contract_id_list
+            ]
             missing_fill = [
                 fill_price_item is None or fill is None
                 for fill_price_item, fill in zip(filled_price_list, fill_list)
@@ -132,8 +130,9 @@ class ibBrokerOrder(brokerOrder):
         if total_qty is None:
             total_qty = fill
 
-        fill_price = resolve_multi_leg_price_to_single_price(trade_list=total_qty,
-                                                             price_list=filled_price_list)
+        fill_price = resolve_multi_leg_price_to_single_price(
+            trade_list=total_qty, price_list=filled_price_list
+        )
 
         broker_order = ibBrokerOrder(
             strategy_name,
@@ -167,8 +166,9 @@ class ibBrokerOrder(brokerOrder):
         self._broker_objects = broker_objects
 
 
-def create_broker_order_from_trade_with_contract(trade_with_contract_from_ib: tradeWithContract,
-                                                 instrument_code: str) -> ibBrokerOrder:
+def create_broker_order_from_trade_with_contract(
+    trade_with_contract_from_ib: tradeWithContract, instrument_code: str
+) -> ibBrokerOrder:
     # pretty horrible code to convert IB order and contract objects into my
     # world
 
@@ -186,18 +186,22 @@ def create_broker_order_from_trade_with_contract(trade_with_contract_from_ib: tr
         raise ibOrderCouldntCreateException()
 
     ib_broker_order._order_info["broker_tempid"] = create_tempid_from_broker_details(
-        ib_broker_order)
+        ib_broker_order
+    )
 
     return ib_broker_order
 
 
-def create_tempid_from_broker_details(broker_order_from_trade_object: ibBrokerOrder) -> str:
+def create_tempid_from_broker_details(
+    broker_order_from_trade_object: ibBrokerOrder,
+) -> str:
     tempid = "%s/%s/%s" % (
         broker_order_from_trade_object.broker_account,
         broker_order_from_trade_object.broker_clientid,
         broker_order_from_trade_object.broker_tempid,
     )
     return tempid
+
 
 def extract_totals_from_fill_data(list_of_fills):
     """
@@ -259,8 +263,7 @@ def extract_totals_from_fill_data(list_of_fills):
     )
 
 
-def extract_totals_from_fill_data_for_contract_id(
-        list_of_fills_for_contractid):
+def extract_totals_from_fill_data_for_contract_id(list_of_fills_for_contractid):
     """
     Sum up info over fills
 
@@ -322,12 +325,8 @@ def extract_trade_info(placed_broker_trade_object):
         ["order", "contract", "fills", "algo_msg", "active", "trade_object"],
     )
     trade_info = tradeInfo(
-        order_info,
-        contract_info,
-        fill_info,
-        algo_msg,
-        active,
-        trade_to_process)
+        order_info, contract_info, fill_info, algo_msg, active, trade_to_process
+    )
 
     return trade_info
 
@@ -536,6 +535,7 @@ def sign_from_BOT_SEL(action):
     if action == "BOT":
         return 1
     return -1
+
 
 class listOfTradesWithContracts(list):
     pass

@@ -1,4 +1,3 @@
-
 """
 
 Historic orders
@@ -25,7 +24,7 @@ from sysexecution.orders.broker_orders import single_fill_from_broker_order
 from sysexecution.order_stacks.order_stack import missingOrder
 from sysexecution.orders.list_of_orders import listOfOrders
 
-from sysobjects.production.tradeable_object import  instrumentStrategy, futuresContract
+from sysobjects.production.tradeable_object import instrumentStrategy, futuresContract
 
 from syslogdiag.log_to_screen import logtoscreen
 
@@ -36,7 +35,6 @@ class genericOrdersData(baseData):
 
     def __repr__(self):
         return "genericOrdersData object"
-
 
     def delete_order_with_orderid(self, order_id: int):
         order = self.get_order_with_orderid(order_id)
@@ -54,7 +52,6 @@ class genericOrdersData(baseData):
         # return missing_order if not found
         raise NotImplementedError
 
-
     def _delete_order_with_orderid_without_checking(self, order_id: int):
         raise NotImplementedError
 
@@ -62,13 +59,12 @@ class genericOrdersData(baseData):
         raise NotImplementedError
 
     def get_list_of_order_ids_in_date_range(
-            self,
-            period_start: datetime.datetime,
-            period_end: datetime.datetime=arg_not_supplied) -> list:
+        self,
+        period_start: datetime.datetime,
+        period_end: datetime.datetime = arg_not_supplied,
+    ) -> list:
 
         raise NotImplementedError
-
-
 
 
 class strategyHistoricOrdersData(genericOrdersData):
@@ -89,8 +85,12 @@ class strategyHistoricOrdersData(genericOrdersData):
 
         return list_of_fills
 
-    def get_list_of_orders_for_instrument_strategy(self, instrument_strategy: instrumentStrategy) -> listOfOrders:
-        list_of_ids = self.get_list_of_order_ids_for_instrument_strategy(instrument_strategy)
+    def get_list_of_orders_for_instrument_strategy(
+        self, instrument_strategy: instrumentStrategy
+    ) -> listOfOrders:
+        list_of_ids = self.get_list_of_order_ids_for_instrument_strategy(
+            instrument_strategy
+        )
         order_list = []
         for order_id in list_of_ids:
             order = self.get_order_with_orderid(order_id)
@@ -100,13 +100,16 @@ class strategyHistoricOrdersData(genericOrdersData):
 
         return order_list
 
-    def get_list_of_order_ids_for_instrument_strategy(self, instrument_strategy: instrumentStrategy):
+    def get_list_of_order_ids_for_instrument_strategy(
+        self, instrument_strategy: instrumentStrategy
+    ):
 
         raise NotImplementedError
 
 
 class contractHistoricOrdersData(genericOrdersData):
     pass
+
 
 class brokerHistoricOrdersData(contractHistoricOrdersData):
     def get_fills_history_for_contract(
@@ -124,7 +127,10 @@ class brokerHistoricOrdersData(contractHistoricOrdersData):
         list_of_order_ids = self.get_list_of_order_ids_for_instrument_and_contract_str(
             instrument_code=instrument_code, contract_str=contract_str
         )
-        list_of_fills = [self.get_fill_from_order_id(orderid, contract_str) for orderid in list_of_order_ids]
+        list_of_fills = [
+            self.get_fill_from_order_id(orderid, contract_str)
+            for orderid in list_of_order_ids
+        ]
         list_of_fills = [fill for fill in list_of_fills if fill is not missing_order]
         list_of_fills = listOfFills(list_of_fills)
 
@@ -136,10 +142,7 @@ class brokerHistoricOrdersData(contractHistoricOrdersData):
 
         return fill
 
-
-
-    def get_list_of_order_ids_for_instrument_and_contract_str(self, instrument_code: str,
-                                                              contract_str: str) -> list:
+    def get_list_of_order_ids_for_instrument_and_contract_str(
+        self, instrument_code: str, contract_str: str
+    ) -> list:
         raise NotImplementedError
-
-

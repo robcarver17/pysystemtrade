@@ -23,8 +23,9 @@ RESERVED_NAMES = ["log", "_elements", "elements", "_default_filename", "_default
 
 
 class Config(object):
-    def __init__(self, config_object=arg_not_supplied,
-                 default_filename = arg_not_supplied):
+    def __init__(
+        self, config_object=arg_not_supplied, default_filename=arg_not_supplied
+    ):
         """
         Config objects control the behaviour of systems
 
@@ -51,7 +52,7 @@ class Config(object):
         """
 
         # this will normally be overriden by the base system
-        self.log= logtoscreen(type="config", stage="config")
+        self.log = logtoscreen(type="config", stage="config")
 
         self._default_filename = default_filename
 
@@ -65,7 +66,6 @@ class Config(object):
         elements = getattr(self, "_elements", [])
 
         return elements
-
 
     def add_elements(self, new_elements: list):
         _ = [self.add_single_element(element_name) for element_name in new_elements]
@@ -88,7 +88,7 @@ class Config(object):
 
     def get_element_or_arg_not_supplied(self, element_name):
         result = getattr(self, element_name, arg_not_supplied)
-        return  result
+        return result
 
     def __repr__(self):
         elements = self.elements
@@ -104,7 +104,6 @@ class Config(object):
 
         self._create_config_from_list(config_list)
 
-
     def _create_config_from_list(self, config_object):
         for config_item in config_object:
             self._create_config_from_item(config_item)
@@ -118,8 +117,7 @@ class Config(object):
             # must be a file YAML'able, from which we load the
             filename = get_filename_for_package(config_item)
             with open(filename) as file_to_parse:
-                dict_to_parse = yaml.load(
-                    file_to_parse, Loader=yaml.FullLoader)
+                dict_to_parse = yaml.load(file_to_parse, Loader=yaml.FullLoader)
 
             self._create_config_from_dict(dict_to_parse)
 
@@ -147,8 +145,7 @@ class Config(object):
             self._create_config_from_item(base_config)
 
         attr_names = list(config_object.keys())
-        [setattr(self, keyname, config_object[keyname])
-         for keyname in config_object]
+        [setattr(self, keyname, config_object[keyname]) for keyname in config_object]
 
         self.add_elements(attr_names)
 
@@ -181,7 +178,7 @@ class Config(object):
 
         self.remove_element(element_name)
 
-    def __setattr__(self, element_name:str, value):
+    def __setattr__(self, element_name: str, value):
         """
         Add / replace element_name in config
 
@@ -200,23 +197,23 @@ class Config(object):
 
     def fill_with_defaults(self):
         """
-        Fills with defaults
-        >>> config=Config(dict(forecast_cap=22.0, forecast_scalar_estimate=dict(backfill=False), forecast_weight_estimate=dict(correlation_estimate=dict(min_periods=40))))
-        >>> config
-        Config with elements: forecast_cap, forecast_scalar_estimate, forecast_weight_estimate
-import sysquant.estimators.forecast_scalar        >>> config.fill_with_defaults()
-        >>> sysquant.estimators.forecast_scalar.forecast_scalar
-        1.0
-        >>> config.forecast_cap
-        22.0
-        >>> config.forecast_scalar_estimate['pool_instruments']
-        True
-        >>> config.forecast_scalar_estimate['backfill']
-        False
-        >>> config.forecast_weight_estimate['correlation_estimate']['min_periods']
-        40
-        >>> config.forecast_weight_estimate['correlation_estimate']['ew_lookback']
-        500
+                Fills with defaults
+                >>> config=Config(dict(forecast_cap=22.0, forecast_scalar_estimate=dict(backfill=False), forecast_weight_estimate=dict(correlation_estimate=dict(min_periods=40))))
+                >>> config
+                Config with elements: forecast_cap, forecast_scalar_estimate, forecast_weight_estimate
+        import sysquant.estimators.forecast_scalar        >>> config.fill_with_defaults()
+                >>> sysquant.estimators.forecast_scalar.forecast_scalar
+                1.0
+                >>> config.forecast_cap
+                22.0
+                >>> config.forecast_scalar_estimate['pool_instruments']
+                True
+                >>> config.forecast_scalar_estimate['backfill']
+                False
+                >>> config.forecast_weight_estimate['correlation_estimate']['min_periods']
+                40
+                >>> config.forecast_weight_estimate['correlation_estimate']['ew_lookback']
+                500
         """
         self.log.msg("Adding config defaults")
 

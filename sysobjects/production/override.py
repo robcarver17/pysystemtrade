@@ -39,8 +39,9 @@ class Override:
             override_value = float(value)
         else:
             raise Exception(
-                "Override must be between 0.0 and 1.0, or one of the following objects %s" %
-                str(override_dict))
+                "Override must be between 0.0 and 1.0, or one of the following objects %s"
+                % str(override_dict)
+            )
 
         self._override = override_value
 
@@ -73,7 +74,7 @@ class Override:
         if self.override_value is override_none:
             return True
 
-        if self.override_value==1.0:
+        if self.override_value == 1.0:
             return True
 
         return False
@@ -83,9 +84,11 @@ class Override:
         """
         override_close and override_none are equivalent to float values of 0 and 1 respectively
         """
-        if isinstance(override_value, float) or \
-            override_value is override_close or \
-            override_value is override_none:
+        if (
+            isinstance(override_value, float)
+            or override_value is override_close
+            or override_value is override_none
+        ):
             return True
         else:
             return False
@@ -96,7 +99,9 @@ class Override:
 
         return Override(value_or_object)
 
-    def apply_override(self, original_position_no_override: int, proposed_trade: Order)->Order:
+    def apply_override(
+        self, original_position_no_override: int, proposed_trade: Order
+    ) -> Order:
         """
         Apply an override to a position
 
@@ -107,8 +112,8 @@ class Override:
         override_value = self.override_value
         if self.is_float_like():
             override_as_float = self.as_float()
-            new_trade = _apply_float_override(override_as_float,
-                original_position_no_override, proposed_trade
+            new_trade = _apply_float_override(
+                override_as_float, original_position_no_override, proposed_trade
             )
 
         elif override_value is override_reduce_only:
@@ -126,7 +131,6 @@ class Override:
 
         return new_trade
 
-
     def __mul__(self, another_override):
         self_value = self.override_value
         another_value = another_override.override_value
@@ -142,14 +146,16 @@ class Override:
 
         return Override(another_override.as_float() * self.as_float())
 
+
 DEFAULT_OVERRIDE = Override(1.0)
 NO_TRADE_OVERRIDE = Override(override_no_trading)
 REDUCE_ONLY_OVERRIDE = Override(override_reduce_only)
 CLOSE_OVERRIDE = Override(override_close)
 
-def _apply_float_override(override_as_float: float,
-        original_position_no_override: int,
-        proposed_trade: Order) -> Order:
+
+def _apply_float_override(
+    override_as_float: float, original_position_no_override: int, proposed_trade: Order
+) -> Order:
     """
     Works if override value is float, or override_close (float value is 0.0) or override_none (float value is 1.0)
 
@@ -161,23 +167,26 @@ def _apply_float_override(override_as_float: float,
     if override_as_float == 1.0:
         return proposed_trade
 
-    desired_new_position = original_position_no_override + proposed_trade.trade.as_single_trade_qty_or_error()
-    override_new_position = int(
-        np.floor(
-            desired_new_position *
-            override_as_float))
+    desired_new_position = (
+        original_position_no_override
+        + proposed_trade.trade.as_single_trade_qty_or_error()
+    )
+    override_new_position = int(np.floor(desired_new_position * override_as_float))
 
     new_trade_value = override_new_position - original_position_no_override
 
-    new_trade = proposed_trade.replace_required_trade_size_only_use_for_unsubmitted_trades(
-        tradeQuantity(new_trade_value))
+    new_trade = (
+        proposed_trade.replace_required_trade_size_only_use_for_unsubmitted_trades(
+            tradeQuantity(new_trade_value)
+        )
+    )
 
     return new_trade
 
 
 def _apply_reduce_only(
-        original_position_no_override: int,
-        proposed_trade: Order) -> Order:
+    original_position_no_override: int, proposed_trade: Order
+) -> Order:
 
     proposed_trade_value = proposed_trade.trade.as_single_trade_qty_or_error()
     desired_new_position = original_position_no_override + proposed_trade_value
@@ -192,14 +201,20 @@ def _apply_reduce_only(
         # Reducing trade and sign not changing, we'll allow
         new_trade_value = proposed_trade_value
 
-    new_trade = proposed_trade.replace_required_trade_size_only_use_for_unsubmitted_trades(
-        tradeQuantity(new_trade_value))
+    new_trade = (
+        proposed_trade.replace_required_trade_size_only_use_for_unsubmitted_trades(
+            tradeQuantity(new_trade_value)
+        )
+    )
 
     return new_trade
 
 
 def _apply_no_trading(proposed_trade: Order):
-    new_trade = proposed_trade.replace_required_trade_size_only_use_for_unsubmitted_trades(
-        tradeQuantity(0))
+    new_trade = (
+        proposed_trade.replace_required_trade_size_only_use_for_unsubmitted_trades(
+            tradeQuantity(0)
+        )
+    )
 
     return new_trade

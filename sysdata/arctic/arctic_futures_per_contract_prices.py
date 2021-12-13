@@ -4,14 +4,17 @@ Read and write data from mongodb for individual futures contracts
 """
 
 from sysdata.arctic.arctic_connection import arcticData
-from sysdata.futures.futures_per_contract_prices import futuresContractPriceData, listOfFuturesContracts
+from sysdata.futures.futures_per_contract_prices import (
+    futuresContractPriceData,
+    listOfFuturesContracts,
+)
 from sysobjects.futures_per_contract_prices import futuresContractPrices
 from sysobjects.contracts import futuresContract, get_code_and_id_from_contract_key
 from syslogdiag.log_to_screen import logtoscreen
 
 import pandas as pd
 
-CONTRACT_COLLECTION = 'futures_contract_prices'
+CONTRACT_COLLECTION = "futures_contract_prices"
 
 
 class arcticFuturesContractPriceData(futuresContractPriceData):
@@ -19,9 +22,9 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
     Class to read / write futures price data to and from arctic
     """
 
-    def __init__(self,
-                 mongo_db=None,
-                 log=logtoscreen("arcticFuturesContractPriceData")):
+    def __init__(
+        self, mongo_db=None, log=logtoscreen("arcticFuturesContractPriceData")
+    ):
 
         super().__init__(log=log)
 
@@ -34,9 +37,9 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
     def arctic_connection(self):
         return self._arctic_connection
 
-
-    def _get_prices_for_contract_object_no_checking(self,
-                                                    futures_contract_object: futuresContract) -> futuresContractPrices:
+    def _get_prices_for_contract_object_no_checking(
+        self, futures_contract_object: futuresContract
+    ) -> futuresContractPrices:
         """
         Read back the prices for a given contract object
 
@@ -51,9 +54,11 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
 
         return futuresContractPrices(data)
 
-    def _write_prices_for_contract_object_no_checking(self,
-                                                      futures_contract_object: futuresContract,
-                                                      futures_price_data: futuresContractPrices):
+    def _write_prices_for_contract_object_no_checking(
+        self,
+        futures_contract_object: futuresContract,
+        futures_price_data: futuresContractPrices,
+    ):
         """
         Write prices
         CHECK prices are overriden on second write
@@ -69,9 +74,10 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
 
         self.arctic_connection.write(ident, futures_price_data_as_pd)
 
-        log.msg("Wrote %s lines of prices for %s to %s" %
-                     (len(futures_price_data),
-                      str(futures_contract_object.key), str(self)))
+        log.msg(
+            "Wrote %s lines of prices for %s to %s"
+            % (len(futures_price_data), str(futures_contract_object.key), str(self))
+        )
 
     def get_contracts_with_price_data(self) -> listOfFuturesContracts:
         """
@@ -89,10 +95,8 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
 
         return list_of_contracts
 
-
-    def has_data_for_contract(self, contract_object: futuresContract) ->bool:
+    def has_data_for_contract(self, contract_object: futuresContract) -> bool:
         return self.arctic_connection.has_keyname(from_contract_to_key(contract_object))
-
 
     def _get_contract_tuples_with_price_data(self) -> list:
         """
@@ -102,8 +106,7 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
 
         all_keynames = self._all_keynames_in_library()
         list_of_contract_tuples = [
-            from_key_to_tuple(keyname)
-            for keyname in all_keynames
+            from_key_to_tuple(keyname) for keyname in all_keynames
         ]
 
         return list_of_contract_tuples
@@ -112,7 +115,8 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
         return self.arctic_connection.get_keynames()
 
     def _delete_prices_for_contract_object_with_no_checks_be_careful(
-            self, futures_contract_object: futuresContract):
+        self, futures_contract_object: futuresContract
+    ):
         """
         Delete prices for a given contract object without performing any checks
 
@@ -124,15 +128,19 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
 
         ident = from_contract_to_key(futures_contract_object)
         self.arctic_connection.delete(ident)
-        log.msg("Deleted all prices for %s from %s" %
-                     (futures_contract_object.key, str(self)))
+        log.msg(
+            "Deleted all prices for %s from %s"
+            % (futures_contract_object.key, str(self))
+        )
 
 
 def from_key_to_tuple(keyname):
     return keyname.split(".")
 
+
 def from_contract_to_key(contract: futuresContract):
     return from_tuple_to_key([contract.instrument_code, contract.date_str])
 
+
 def from_tuple_to_key(keytuple):
-    return keytuple[0]+"."+keytuple[1]
+    return keytuple[0] + "." + keytuple[1]

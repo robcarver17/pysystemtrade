@@ -6,10 +6,18 @@ from sysdata.production.timed_storage import (
     listOfEntriesData,
 )
 from sysobjects.production.timed_storage import timedEntry, listOfEntries
-from sysobjects.production.positions import instrumentStrategyPosition, contractPosition, \
-    listOfInstrumentStrategyPositions, listOfContractPositions
-from sysobjects.production.tradeable_object import listOfInstrumentStrategies, instrumentStrategy
+from sysobjects.production.positions import (
+    instrumentStrategyPosition,
+    contractPosition,
+    listOfInstrumentStrategyPositions,
+    listOfContractPositions,
+)
+from sysobjects.production.tradeable_object import (
+    listOfInstrumentStrategies,
+    instrumentStrategy,
+)
 import datetime
+
 
 class historicPosition(timedEntry):
     """
@@ -39,7 +47,6 @@ class listPositions(listOfEntries):
         return historicPosition
 
 
-
 class strategyPositionData(listOfEntriesData):
     """
     Store and retrieve the instrument positions assigned to a particular strategy
@@ -52,19 +59,19 @@ class strategyPositionData(listOfEntriesData):
 
     def get_position_as_df_for_instrument_strategy_object(
         self, instrument_strategy: instrumentStrategy
-           ) -> pd.DataFrame:
+    ) -> pd.DataFrame:
 
-        position_series = self._get_series_for_args_dict(
-            instrument_strategy.as_dict()
-        )
+        position_series = self._get_series_for_args_dict(instrument_strategy.as_dict())
         df_object = position_series.as_pd_df()
         return df_object
 
     def get_current_position_for_instrument_strategy_object(
         self, instrument_strategy: instrumentStrategy
-         ) -> int:
+    ) -> int:
 
-        position_entry = self.get_current_position_entry_for_instrument_strategy_object(instrument_strategy)
+        position_entry = self.get_current_position_entry_for_instrument_strategy_object(
+            instrument_strategy
+        )
         if position_entry is missing_data:
             return 0
         else:
@@ -73,7 +80,7 @@ class strategyPositionData(listOfEntriesData):
 
     def get_current_position_entry_for_instrument_strategy_object(
         self, instrument_strategy: instrumentStrategy
-         ) -> historicPosition:
+    ) -> historicPosition:
 
         current_position_entry = self._get_current_entry_for_args_dict(
             instrument_strategy.as_dict()
@@ -82,8 +89,10 @@ class strategyPositionData(listOfEntriesData):
         return current_position_entry
 
     def update_position_for_instrument_strategy_object(
-        self, instrument_strategy: instrumentStrategy, position: int,
-            date: datetime.datetime=arg_not_supplied
+        self,
+        instrument_strategy: instrumentStrategy,
+        position: int,
+        date: datetime.datetime = arg_not_supplied,
     ):
         if date is arg_not_supplied:
             date = datetime.datetime.now()
@@ -91,29 +100,32 @@ class strategyPositionData(listOfEntriesData):
         position_entry = historicPosition(position, date=date)
         args_dict = instrument_strategy.as_dict()
         try:
-            self._update_entry_for_args_dict(
-                position_entry,
-                args_dict
-            )
+            self._update_entry_for_args_dict(position_entry, args_dict)
         except Exception as e:
             self.log.critical(
                 "Error %s when updating position for %s with %s"
                 % (str(e), str(instrument_strategy), str(position_entry))
             )
 
-
     def get_list_of_strategies_and_instruments_with_positions(
-        self, ignore_zero_positions: bool=True
+        self, ignore_zero_positions: bool = True
     ) -> listOfInstrumentStrategies:
 
         list_of_instrument_strategies = self.get_list_of_instrument_strategies()
 
         if ignore_zero_positions:
-            list_of_instrument_strategies = [instrument_strategy for
-                                             instrument_strategy in list_of_instrument_strategies
-                if self.get_current_position_for_instrument_strategy_object(instrument_strategy)!=0]
+            list_of_instrument_strategies = [
+                instrument_strategy
+                for instrument_strategy in list_of_instrument_strategies
+                if self.get_current_position_for_instrument_strategy_object(
+                    instrument_strategy
+                )
+                != 0
+            ]
 
-            list_of_instrument_strategies = listOfInstrumentStrategies(list_of_instrument_strategies)
+            list_of_instrument_strategies = listOfInstrumentStrategies(
+                list_of_instrument_strategies
+            )
 
         return list_of_instrument_strategies
 
@@ -126,30 +138,33 @@ class strategyPositionData(listOfEntriesData):
                 ignore_zero_positions=ignore_zero_positions
             )
         )
-        list_of_instruments = list_of_instrument_strategies.get_list_of_instruments_for_strategy(strategy_name)
+        list_of_instruments = (
+            list_of_instrument_strategies.get_list_of_instruments_for_strategy(
+                strategy_name
+            )
+        )
 
         return list_of_instruments
 
     def get_list_of_strategies_with_positions(self) -> list:
-        list_of_instrument_strategies = \
+        list_of_instrument_strategies = (
             self.get_list_of_strategies_and_instruments_with_positions(
                 ignore_zero_positions=True
             )
+        )
         list_of_strategies = list_of_instrument_strategies.get_list_of_strategies()
 
         return list_of_strategies
 
-
     def delete_last_position_for_instrument_strategy_object(
-        self, instrument_strategy: instrumentStrategy, are_you_sure: bool=False
+        self, instrument_strategy: instrumentStrategy, are_you_sure: bool = False
     ):
         args_dict = instrument_strategy.as_dict()
-        self._delete_last_entry_for_args_dict(
-            args_dict,
-            are_you_sure=are_you_sure
-        )
+        self._delete_last_entry_for_args_dict(args_dict, are_you_sure=are_you_sure)
 
-    def get_all_current_positions_as_list_with_instrument_objects(self) -> listOfInstrumentStrategyPositions:
+    def get_all_current_positions_as_list_with_instrument_objects(
+        self,
+    ) -> listOfInstrumentStrategyPositions:
         """
         Current positions are returned in a different class
 
@@ -159,12 +174,12 @@ class strategyPositionData(listOfEntriesData):
         list_of_instrument_strategies = self.get_list_of_instrument_strategies()
         current_positions = []
         for instrument_strategy in list_of_instrument_strategies:
-            position = self.get_current_position_for_instrument_strategy_object(instrument_strategy)
-            if position==0:
-                continue
-            position_object = instrumentStrategyPosition(
-                position, instrument_strategy
+            position = self.get_current_position_for_instrument_strategy_object(
+                instrument_strategy
             )
+            if position == 0:
+                continue
+            position_object = instrumentStrategyPosition(position, instrument_strategy)
             current_positions.append(position_object)
 
         list_of_current_position_objects = listOfInstrumentStrategyPositions(
@@ -175,7 +190,8 @@ class strategyPositionData(listOfEntriesData):
 
     def get_all_current_positions_as_df(self):
         return (
-            self.get_all_current_positions_as_list_with_instrument_objects().as_pd_df())
+            self.get_all_current_positions_as_list_with_instrument_objects().as_pd_df()
+        )
 
     def get_list_of_instrument_strategies(self) -> listOfInstrumentStrategies:
         all_positions_dict = self._get_list_of_args_dict()
@@ -184,11 +200,15 @@ class strategyPositionData(listOfEntriesData):
             instrument_strategy = instrumentStrategy.from_dict(dict_entry)
             list_of_instrument_strategies.append(instrument_strategy)
 
-        list_of_instrument_strategies = listOfInstrumentStrategies(list_of_instrument_strategies)
+        list_of_instrument_strategies = listOfInstrumentStrategies(
+            list_of_instrument_strategies
+        )
 
         return list_of_instrument_strategies
 
-CONTRACTID_KEY = 'contractid'
+
+CONTRACTID_KEY = "contractid"
+
 
 class contractPositionData(listOfEntriesData):
     """
@@ -205,7 +225,9 @@ class contractPositionData(listOfEntriesData):
     def _data_class_name(self):
         return "sysdata.production.historic_positions.listPositions"
 
-    def _keyname_given_contract_object(self, futures_contract_object: futuresContract) -> str:
+    def _keyname_given_contract_object(
+        self, futures_contract_object: futuresContract
+    ) -> str:
         """
         We could do this using the .ident() method of the contract object, but this way we keep control inside this class
 
@@ -215,11 +237,16 @@ class contractPositionData(listOfEntriesData):
         :return: str
         """
 
-        return (futures_contract_object.instrument_code +
-                "." + futures_contract_object.date_str)
+        return (
+            futures_contract_object.instrument_code
+            + "."
+            + futures_contract_object.date_str
+        )
 
     def _contract_given_contractid(self, contractid: str):
-        instrument_code, contract_date_str = self._contract_tuple_given_keyname(contractid)
+        instrument_code, contract_date_str = self._contract_tuple_given_keyname(
+            contractid
+        )
 
         # ignore IDE warning as we also accept str here
         return futuresContract(instrument_code, contract_date_str)
@@ -238,17 +265,17 @@ class contractPositionData(listOfEntriesData):
 
         return instrument_code, contract_date_str
 
-
     def get_position_as_df_for_contract_object(self, contract_object: futuresContract):
         contractid = self._keyname_given_contract_object(contract_object)
-        position_series = self._get_series_for_args_dict(
-            {CONTRACTID_KEY: contractid})
+        position_series = self._get_series_for_args_dict({CONTRACTID_KEY: contractid})
         df_object = position_series.as_pd_df()
 
         return df_object
 
     def get_current_position_for_contract_object(self, contract_object):
-        position_entry = self.get_current_position_entry_for_contract_object(contract_object)
+        position_entry = self.get_current_position_entry_for_contract_object(
+            contract_object
+        )
         if position_entry is missing_data:
             return 0.0
 
@@ -269,9 +296,7 @@ class contractPositionData(listOfEntriesData):
             date = datetime.datetime.now()
 
         position_entry = historicPosition(position, date=date)
-        self._update_entry_for_args_dict(
-            position_entry, {CONTRACTID_KEY: contractid}
-        )
+        self._update_entry_for_args_dict(position_entry, {CONTRACTID_KEY: contractid})
 
     def delete_last_position_for_contract_object(
         self, contract_object, are_you_sure=False
@@ -286,87 +311,112 @@ class contractPositionData(listOfEntriesData):
         return list_of_contracts.unique_list_of_instrument_codes()
 
     def get_list_of_instruments_with_current_positions(self) -> list:
-        list_of_current_positions = self.get_all_current_positions_as_list_with_contract_objects()
+        list_of_current_positions = (
+            self.get_all_current_positions_as_list_with_contract_objects()
+        )
         instrument_list = list_of_current_positions.unique_list_of_instruments()
 
         return instrument_list
 
     def get_list_of_contract_date_str_with_any_position_for_instrument(
-            self, instrument_code: str):
+        self, instrument_code: str
+    ):
         ## doesn't exclude zeros
-        list_of_contracts = self.get_list_of_contracts_for_instrument_code(instrument_code)
+        list_of_contracts = self.get_list_of_contracts_for_instrument_code(
+            instrument_code
+        )
         list_of_date_str = list_of_contracts.list_of_dates()
 
         return list_of_date_str
 
     def get_list_of_contract_date_str_with_any_position_for_instrument_in_date_range(
-        self, instrument_code, start_date: datetime.datetime, end_date: datetime.datetime
-        ) -> list:
+        self,
+        instrument_code,
+        start_date: datetime.datetime,
+        end_date: datetime.datetime,
+    ) -> list:
 
-        list_of_contracts = self.get_list_of_contracts_for_instrument_code(instrument_code)
-        list_of_contracts_with_position = [contract for contract in list_of_contracts
-                                          if self.any_positions_for_contract_in_date_range(
-                                            contract,
-                                            start_date, end_date)]
+        list_of_contracts = self.get_list_of_contracts_for_instrument_code(
+            instrument_code
+        )
+        list_of_contracts_with_position = [
+            contract
+            for contract in list_of_contracts
+            if self.any_positions_for_contract_in_date_range(
+                contract, start_date, end_date
+            )
+        ]
 
-        list_of_date_str_with_position = [contract.date_str for contract in list_of_contracts_with_position]
+        list_of_date_str_with_position = [
+            contract.date_str for contract in list_of_contracts_with_position
+        ]
 
         return list_of_date_str_with_position
-
-
 
     def get_all_current_positions_as_df(self) -> pd.DataFrame:
         # excludes zeros
         return self.get_all_current_positions_as_list_with_contract_objects().as_pd_df()
 
-    def get_all_current_positions_as_list_with_contract_objects(self) -> listOfContractPositions:
+    def get_all_current_positions_as_list_with_contract_objects(
+        self,
+    ) -> listOfContractPositions:
         # excludes zeros
 
-        list_of_contracts = self.get_list_of_contracts() ## includes zeros
+        list_of_contracts = self.get_list_of_contracts()  ## includes zeros
         current_positions = []
         for contract in list_of_contracts:
             position = self.get_current_position_for_contract_object(contract)
             if position == 0:
                 continue
 
-            position_object = contractPosition(
-                position, contract)
+            position_object = contractPosition(position, contract)
             current_positions.append(position_object)
 
         list_of_current_positions = listOfContractPositions(current_positions)
 
         return list_of_current_positions
 
-
-    def get_list_of_contracts_for_instrument_code(self, instrument_code: str) -> listOfFuturesContracts:
+    def get_list_of_contracts_for_instrument_code(
+        self, instrument_code: str
+    ) -> listOfFuturesContracts:
         ## doesn't remove zero positions
         list_of_contracts = self.get_list_of_contracts()
-        list_of_contracts_for_code = list_of_contracts.contracts_in_list_for_instrument_code(instrument_code)
+        list_of_contracts_for_code = (
+            list_of_contracts.contracts_in_list_for_instrument_code(instrument_code)
+        )
 
         return list_of_contracts_for_code
 
     def get_list_of_contracts(self) -> listOfFuturesContracts:
         ## doesn't remove zero positions
         list_of_contractids = self.get_list_of_contractids()
-        list_of_contracts = [self._contract_given_contractid(contractid) for contractid in list_of_contractids]
+        list_of_contracts = [
+            self._contract_given_contractid(contractid)
+            for contractid in list_of_contractids
+        ]
         list_of_contracts = listOfFuturesContracts(list_of_contracts)
 
         return list_of_contracts
 
     def get_list_of_contractids(self):
         all_positions_dict = self._get_list_of_args_dict()
-        list_of_contractids = [arg_dict[CONTRACTID_KEY] for arg_dict in all_positions_dict]
+        list_of_contractids = [
+            arg_dict[CONTRACTID_KEY] for arg_dict in all_positions_dict
+        ]
 
         return list_of_contractids
 
-    def any_positions_for_contract_in_date_range(self, contract: futuresContract,
-                                                 start_date: datetime.datetime,
-                                                 end_date: datetime.datetime) -> bool:
+    def any_positions_for_contract_in_date_range(
+        self,
+        contract: futuresContract,
+        start_date: datetime.datetime,
+        end_date: datetime.datetime,
+    ) -> bool:
 
         df_positions = self.get_position_as_df_for_contract_object(contract)
         any_positions = any_positions_since_start_date(
-                df_positions, start_date, end_date
-            )
+            df_positions, start_date, end_date
+        )
 
         return any_positions
 
@@ -405,4 +455,3 @@ def any_positions_since_start_date(position_series, start_date, end_date):
         return False
     else:
         return True
-

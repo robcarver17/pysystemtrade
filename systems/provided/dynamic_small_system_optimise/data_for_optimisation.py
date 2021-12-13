@@ -3,12 +3,14 @@ import numpy as np
 
 from syscore.objects import arg_not_supplied, missing_data
 from sysquant.optimisation.weights import portfolioWeights
-from systems.provided.dynamic_small_system_optimise.set_up_constraints import A_VERY_LARGE_NUMBER, \
-    calculate_min_max_and_direction_and_start
+from systems.provided.dynamic_small_system_optimise.set_up_constraints import (
+    A_VERY_LARGE_NUMBER,
+    calculate_min_max_and_direction_and_start,
+)
 
 
 class dataForOptimisation(object):
-    def __init__(self, obj_instance: 'objectiveFunctionForGreedy'):
+    def __init__(self, obj_instance: "objectiveFunctionForGreedy"):
         self.covariance_matrix = obj_instance.covariance_matrix
         self.weights_optimal = obj_instance.weights_optimal
         self.per_contract_value = obj_instance.per_contract_value
@@ -62,7 +64,7 @@ class dataForOptimisation(object):
         return self.get_key("covariance_matrix_as_np")
 
     @covariance_matrix_as_np.setter
-    def covariance_matrix_as_np(self, cov_matrix:np.array):
+    def covariance_matrix_as_np(self, cov_matrix: np.array):
         self.set_key("covariance_matrix_as_np", cov_matrix)
 
     @property
@@ -106,19 +108,17 @@ class dataForOptimisation(object):
 
     @property
     def _weights_optimal_as_np(self) -> np.array:
-        weights_optimal_as_np = \
-            np.array(
-                self.weights_optimal.as_list_given_keys(
-                    self.keys_with_valid_data))
+        weights_optimal_as_np = np.array(
+            self.weights_optimal.as_list_given_keys(self.keys_with_valid_data)
+        )
 
         return weights_optimal_as_np
 
     @property
     def _per_contract_value_as_np(self) -> np.array:
         per_contract_value_as_np = np.array(
-            self.per_contract_value.as_list_given_keys(
-                self.keys_with_valid_data
-            ))
+            self.per_contract_value.as_list_given_keys(self.keys_with_valid_data)
+        )
 
         return per_contract_value_as_np
 
@@ -135,7 +135,9 @@ class dataForOptimisation(object):
             else:
                 return x
 
-        weights_prior_as_np_zero_replaced = [_zero_if_nan(x) for x in weights_prior_as_np]
+        weights_prior_as_np_zero_replaced = [
+            _zero_if_nan(x) for x in weights_prior_as_np
+        ]
 
         return np.array(weights_prior_as_np_zero_replaced)
 
@@ -145,9 +147,8 @@ class dataForOptimisation(object):
             return arg_not_supplied
 
         weights_prior_as_np = np.array(
-            self.weights_prior.as_list_given_keys(
-                self.keys_with_valid_data
-            ))
+            self.weights_prior.as_list_given_keys(self.keys_with_valid_data)
+        )
 
         return weights_prior_as_np
 
@@ -162,30 +163,27 @@ class dataForOptimisation(object):
     @property
     def _costs_as_np(self) -> np.array:
         costs = self.costs
-        costs_as_np = np.array(list(costs.subset(
-            self.keys_with_valid_data
-        ).values()))
+        costs_as_np = np.array(list(costs.subset(self.keys_with_valid_data).values()))
 
         return costs_as_np
 
     @property
     def _starting_weights_as_np(self) -> np.array:
         starting_weights = self._starting_weights
-        starting_weights_as_np = np.array(list(starting_weights.as_list_given_keys(
-            self.keys_with_valid_data
-        )))
+        starting_weights_as_np = np.array(
+            list(starting_weights.as_list_given_keys(self.keys_with_valid_data))
+        )
 
         return starting_weights_as_np
 
     @property
     def _direction_as_np(self) -> np.array:
         direction = self._direction
-        direction_as_np = np.array(list(direction.as_list_given_keys(
-            self.keys_with_valid_data
-        )))
+        direction_as_np = np.array(
+            list(direction.as_list_given_keys(self.keys_with_valid_data))
+        )
 
         return direction_as_np
-
 
     ## not cached as only called at init of data
     def optimal_weights_for_code(self, instrument_code: str) -> float:
@@ -228,7 +226,7 @@ class dataForOptimisation(object):
         return self._min_max_and_direction_start.direction
 
     @property
-    def _min_max_and_direction_start(self) -> 'minMaxAndDirectionAndStart':
+    def _min_max_and_direction_start(self) -> "minMaxAndDirectionAndStart":
         min_max_and_direction_start = calculate_min_max_and_direction_and_start(self)
 
         return min_max_and_direction_start
@@ -243,7 +241,9 @@ class dataForOptimisation(object):
         valid_optimal_weight_keys_set = set(valid_optimal_weight_keys)
         valid_per_contract_keys_set = set(valid_per_contract_keys)
 
-        valid_keys = valid_correlation_keys_set.intersection(valid_optimal_weight_keys_set)
+        valid_keys = valid_correlation_keys_set.intersection(
+            valid_optimal_weight_keys_set
+        )
         valid_keys = valid_keys.intersection(valid_per_contract_keys_set)
 
         return list(valid_keys)

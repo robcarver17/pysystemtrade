@@ -46,27 +46,29 @@ class futuresContractPriceData(baseData):
         """
         return self.get_contracts_with_price_data()
 
-    def get_list_of_instrument_codes_with_price_data(self)->list:
+    def get_list_of_instrument_codes_with_price_data(self) -> list:
         """
 
         :return: list of str
         """
 
         list_of_contracts_with_price_data = self.get_contracts_with_price_data()
-        unique_list_of_instruments = list_of_contracts_with_price_data.unique_list_of_instrument_codes()
+        unique_list_of_instruments = (
+            list_of_contracts_with_price_data.unique_list_of_instrument_codes()
+        )
 
         return unique_list_of_instruments
 
-
-    def has_data_for_contract(self, contract_object: futuresContract) ->bool:
+    def has_data_for_contract(self, contract_object: futuresContract) -> bool:
         list_of_contracts = self.get_contracts_with_price_data()
         if contract_object in list_of_contracts:
             return True
         else:
             return False
 
-    def contracts_with_price_data_for_instrument_code(self,
-                                                      instrument_code: str) -> listOfFuturesContracts:
+    def contracts_with_price_data_for_instrument_code(
+        self, instrument_code: str
+    ) -> listOfFuturesContracts:
         """
         Valid contracts
 
@@ -75,13 +77,17 @@ class futuresContractPriceData(baseData):
         """
 
         list_of_contracts_with_price_data = self.get_contracts_with_price_data()
-        list_of_contracts_for_instrument = \
-            list_of_contracts_with_price_data.contracts_in_list_for_instrument_code(instrument_code)
+        list_of_contracts_for_instrument = (
+            list_of_contracts_with_price_data.contracts_in_list_for_instrument_code(
+                instrument_code
+            )
+        )
 
         return list_of_contracts_for_instrument
 
     def contract_dates_with_price_data_for_instrument_code(
-            self, instrument_code:str) -> listOfContractDateStr:
+        self, instrument_code: str
+    ) -> listOfContractDateStr:
         """
 
         :param instrument_code:
@@ -93,14 +99,14 @@ class futuresContractPriceData(baseData):
         )
 
         contract_dates = [
-            str(contract.date_str)
-            for contract in list_of_contracts_with_price_data
+            str(contract.date_str) for contract in list_of_contracts_with_price_data
         ]
-        list_of_contract_date_str =listOfContractDateStr(contract_dates)
+        list_of_contract_date_str = listOfContractDateStr(contract_dates)
         return list_of_contract_date_str
 
-
-    def get_all_prices_for_instrument(self, instrument_code: str) ->dictFuturesContractPrices:
+    def get_all_prices_for_instrument(
+        self, instrument_code: str
+    ) -> dictFuturesContractPrices:
         """
         Get all the prices for this code, returned as dict
 
@@ -108,7 +114,9 @@ class futuresContractPriceData(baseData):
         :return: dictFuturesContractPrices
         """
 
-        list_of_contracts = self.contracts_with_price_data_for_instrument_code(instrument_code)
+        list_of_contracts = self.contracts_with_price_data_for_instrument_code(
+            instrument_code
+        )
         dict_of_prices = dictFuturesContractPrices(
             [
                 (
@@ -121,7 +129,6 @@ class futuresContractPriceData(baseData):
 
         return dict_of_prices
 
-
     def get_prices_for_contract_object(self, contract_object: futuresContract):
         """
         get all prices without worrying about frequency
@@ -131,15 +138,15 @@ class futuresContractPriceData(baseData):
         """
 
         if self.has_data_for_contract(contract_object):
-            prices = self._get_prices_for_contract_object_no_checking(
-                contract_object)
+            prices = self._get_prices_for_contract_object_no_checking(contract_object)
         else:
             prices = futuresContractPrices.create_empty()
 
         return prices
 
     def get_prices_at_frequency_for_contract_object(
-            self, contract_object: futuresContract, freq: Frequency = DAILY_PRICE_FREQ):
+        self, contract_object: futuresContract, freq: Frequency = DAILY_PRICE_FREQ
+    ):
         """
         get some prices at a given frequency
 
@@ -150,17 +157,17 @@ class futuresContractPriceData(baseData):
 
         if self.has_data_for_contract(contract_object):
             return self._get_prices_at_frequency_for_contract_object_no_checking(
-                contract_object, freq=freq)
+                contract_object, freq=freq
+            )
         else:
             return futuresContractPrices.create_empty()
 
-
-
     def write_prices_for_contract_object(
-            self,
-            futures_contract_object: futuresContract,
-            futures_price_data: futuresContractPrices,
-            ignore_duplication=False):
+        self,
+        futures_contract_object: futuresContract,
+        futures_price_data: futuresContractPrices,
+        ignore_duplication=False,
+    ):
         """
         Write some prices
 
@@ -174,19 +181,20 @@ class futuresContractPriceData(baseData):
             if self.has_data_for_contract(futures_contract_object):
                 log = futures_contract_object.log(self.log)
                 log.warn(
-                    "There is already existing data for %s" % futures_contract_object.key)
+                    "There is already existing data for %s"
+                    % futures_contract_object.key
+                )
                 return None
 
         self._write_prices_for_contract_object_no_checking(
             futures_contract_object, futures_price_data
         )
 
-
     def update_prices_for_contract(
         self,
         contract_object: futuresContract,
         new_futures_per_contract_prices: futuresContractPrices,
-        check_for_spike: bool=True,
+        check_for_spike: bool = True,
     ) -> int:
         """
         Reads existing data, merges with new_futures_prices, writes merged data
@@ -200,20 +208,20 @@ class futuresContractPriceData(baseData):
             new_log.msg("No new data")
             return 0
 
-        old_prices = self.get_prices_for_contract_object(
-            contract_object)
+        old_prices = self.get_prices_for_contract_object(contract_object)
         merged_prices = old_prices.add_rows_to_existing_data(
             new_futures_per_contract_prices, check_for_spike=check_for_spike
         )
 
         if merged_prices is spike_in_data:
             new_log.msg(
-                "Price has moved too much - will need to manually check - no price updated done")
+                "Price has moved too much - will need to manually check - no price updated done"
+            )
             return spike_in_data
 
         rows_added = len(merged_prices) - len(old_prices)
 
-        if rows_added<0:
+        if rows_added < 0:
             new_log.critical("Can't remove prices something gone wrong!")
             return 0
 
@@ -222,8 +230,7 @@ class futuresContractPriceData(baseData):
                 new_log.msg("No existing or additional data")
                 return 0
             else:
-                new_log.msg("No additional data since %s " %
-                        str(old_prices.index[-1]))
+                new_log.msg("No additional data since %s " % str(old_prices.index[-1]))
             return 0
 
         # We have guaranteed no duplication
@@ -235,7 +242,6 @@ class futuresContractPriceData(baseData):
 
         return rows_added
 
-
     def delete_prices_for_contract_object(
         self, futures_contract_object: futuresContract, areyousure=False
     ):
@@ -246,8 +252,7 @@ class futuresContractPriceData(baseData):
         """
 
         if not areyousure:
-            raise Exception(
-                "You have to be sure to delete prices_for_contract_object!")
+            raise Exception("You have to be sure to delete prices_for_contract_object!")
 
         if self.has_data_for_contract(futures_contract_object):
             self._delete_prices_for_contract_object_with_no_checks_be_careful(
@@ -258,23 +263,22 @@ class futuresContractPriceData(baseData):
             log.warn("Tried to delete non existent contract")
 
     def delete_all_prices_for_instrument_code(
-            self, instrument_code:str, areyousure=False):
+        self, instrument_code: str, areyousure=False
+    ):
         # We don't pass areyousure, otherwise if we weren't sure would get
         # multiple exceptions
         if not areyousure:
-            raise Exception(
-                "You have to be sure to delete_all_prices_for_instrument!")
+            raise Exception("You have to be sure to delete_all_prices_for_instrument!")
 
         all_contracts_to_delete = self.contracts_with_price_data_for_instrument_code(
-            instrument_code)
+            instrument_code
+        )
         for contract in all_contracts_to_delete:
             self.delete_prices_for_contract_object(contract, areyousure=True)
 
-
-    def get_contracts_with_price_data(self) ->listOfFuturesContracts:
+    def get_contracts_with_price_data(self) -> listOfFuturesContracts:
 
         raise NotImplementedError(BASE_CLASS_ERROR)
-
 
     def _delete_prices_for_contract_object_with_no_checks_be_careful(
         self, futures_contract_object: futuresContract
@@ -282,12 +286,16 @@ class futuresContractPriceData(baseData):
         raise NotImplementedError(BASE_CLASS_ERROR)
 
     def _write_prices_for_contract_object_no_checking(
-        self, futures_contract_object: futuresContract, futures_price_data: futuresContractPrices
+        self,
+        futures_contract_object: futuresContract,
+        futures_price_data: futuresContractPrices,
     ):
 
         raise NotImplementedError(BASE_CLASS_ERROR)
 
-    def _get_prices_for_contract_object_no_checking(self, contract_object: futuresContract) -> futuresContractPrices:
+    def _get_prices_for_contract_object_no_checking(
+        self, contract_object: futuresContract
+    ) -> futuresContractPrices:
 
         raise NotImplementedError(BASE_CLASS_ERROR)
 
@@ -296,4 +304,3 @@ class futuresContractPriceData(baseData):
     ) -> futuresContractPrices:
 
         raise NotImplementedError(BASE_CLASS_ERROR)
-

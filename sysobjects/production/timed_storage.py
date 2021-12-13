@@ -1,11 +1,13 @@
-from copy import  copy
+from copy import copy
 import datetime
 
 import pandas as pd
 
 from syscore.objects import success, arg_not_supplied, missing_data
 
-DATE_KEY_NAME= 'date'
+DATE_KEY_NAME = "date"
+
+
 class timedEntry(object):
     """
     These four functions normally overriden by an inheriting class
@@ -31,7 +33,7 @@ class timedEntry(object):
         ## inherited version should raise exception if problems
         pass
 
-    def __init__(self, *args, date: datetime.datetime=arg_not_supplied):
+    def __init__(self, *args, date: datetime.datetime = arg_not_supplied):
         """
         Can pass either a single dict (which can include 'date') or the arguments in the order of required_arguments
 
@@ -50,7 +52,7 @@ class timedEntry(object):
 
         self._init_data_from_passed_args(args_as_dict)
 
-    def _resolve_args(self, args: tuple, date:datetime.datetime) -> dict:
+    def _resolve_args(self, args: tuple, date: datetime.datetime) -> dict:
         ## We can either be passed a dict or a list of args
         ## If we're passed a dict, we put the date in if available
         ## Otherwise it's a list and
@@ -63,22 +65,27 @@ class timedEntry(object):
 
         return args_as_dict
 
-    def _resolve_args_passed_as_dict(self, args: tuple, date: datetime.datetime) -> dict:
+    def _resolve_args_passed_as_dict(
+        self, args: tuple, date: datetime.datetime
+    ) -> dict:
         args_as_dict = args[0]
         if DATE_KEY_NAME not in args_as_dict:
             args_as_dict[DATE_KEY_NAME] = date
 
         return args_as_dict
 
-    def _resolve_args_passed_as_star_args(self, args: tuple, date: datetime.datetime) -> dict:
+    def _resolve_args_passed_as_star_args(
+        self, args: tuple, date: datetime.datetime
+    ) -> dict:
 
         required_args = self.required_argument_names
         try:
             assert len(required_args) == len(args)
         except BaseException:
             raise Exception(
-                "Expecting to be passed arguments of length %d to match %s, instead got %d arguments" %
-                (len(required_args), str(required_args), len(args)))
+                "Expecting to be passed arguments of length %d to match %s, instead got %d arguments"
+                % (len(required_args), str(required_args), len(args))
+            )
 
         args_as_dict = {}
         for arg_name, arg_value in zip(required_args, args):
@@ -87,7 +94,6 @@ class timedEntry(object):
         args_as_dict[DATE_KEY_NAME] = date
 
         return args_as_dict
-
 
     def _init_data_from_passed_args(self, args_as_dict: dict):
         date = args_as_dict.pop(DATE_KEY_NAME)
@@ -107,12 +113,12 @@ class timedEntry(object):
         return self._date
 
     @property
-    def arg_names(self)-> list:
+    def arg_names(self) -> list:
         return self._arg_names
 
     @property
     def _all_arg_names_including_date(self) -> list:
-        return [DATE_KEY_NAME]+self.arg_names
+        return [DATE_KEY_NAME] + self.arg_names
 
     @property
     def _arg_dict_excluding_date(self) -> dict:
@@ -121,12 +127,17 @@ class timedEntry(object):
 
     @property
     def _arg_dict_including_date(self) -> dict:
-        result = dict([(key, getattr(self, key)) for key in self._all_arg_names_including_date])
+        result = dict(
+            [(key, getattr(self, key)) for key in self._all_arg_names_including_date]
+        )
         return result
 
-
     def __repr__(self):
-        return "%s %s: %s" % (self._name_, self.date, str(self._arg_dict_excluding_date))
+        return "%s %s: %s" % (
+            self._name_,
+            self.date,
+            str(self._arg_dict_excluding_date),
+        )
 
     def as_dict(self):
         return self._arg_dict_including_date
@@ -146,25 +157,26 @@ class timedEntry(object):
             assert my_args == another_args
         except BaseException:
             raise Exception(
-                "Parameters for %s (%s) don't match with %s" % (self._name_,
-                my_args,
-                another_args)
+                "Parameters for %s (%s) don't match with %s"
+                % (self._name_, my_args, another_args)
             )
 
         return success
 
 
-
 class listOfEntriesAsListOfDicts(list):
     def as_list_of_entries(self, class_of_entry_list):
         class_of_each_individual_entry = class_of_entry_list.as_empty()._entry_class()
-        list_of_class_entries = [class_of_each_individual_entry.from_dict(
-            entry_as_dict) for entry_as_dict in self]
+        list_of_class_entries = [
+            class_of_each_individual_entry.from_dict(entry_as_dict)
+            for entry_as_dict in self
+        ]
 
         return class_of_entry_list(list_of_class_entries)
 
     def as_plain_list(self):
         return list(self)
+
 
 class listOfEntries(list):
     """
@@ -182,7 +194,7 @@ class listOfEntries(list):
 
     @property
     def arg_names(self) -> list:
-        return  getattr(self, "_arg_names", [])
+        return getattr(self, "_arg_names", [])
 
     def as_list_of_dict(self) -> list:
         list_of_dict = [entry.as_dict() for entry in self]
@@ -192,8 +204,10 @@ class listOfEntries(list):
     @classmethod
     def from_list_of_dict(cls, list_of_dict: listOfEntriesAsListOfDicts):
         class_of_each_individual_entry = cls.as_empty()._entry_class()
-        list_of_class_entries = [class_of_each_individual_entry.from_dict(
-            entry_as_dict) for entry_as_dict in list_of_dict]
+        list_of_class_entries = [
+            class_of_each_individual_entry.from_dict(entry_as_dict)
+            for entry_as_dict in list_of_dict
+        ]
 
         return cls(list_of_class_entries)
 
@@ -261,4 +275,3 @@ class listOfEntries(list):
         self_as_df = self_as_df.sort_index()
 
         return self_as_df
-

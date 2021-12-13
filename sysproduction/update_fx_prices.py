@@ -34,6 +34,7 @@ class updateFxPrices(object):
         data = self.data
         update_fx_prices_with_data(data)
 
+
 def update_fx_prices_with_data(data: dataBlob):
     broker_fx_source = dataBroker(data)
     list_of_codes_all = (
@@ -50,8 +51,7 @@ def update_fx_prices_for_code(fx_code: str, data: dataBlob):
     broker_fx_data = dataBroker(data)
     db_fx_data = dataCurrency(data)
 
-    new_fx_prices = broker_fx_data.get_fx_prices(
-        fx_code)  # returns fxPrices object
+    new_fx_prices = broker_fx_data.get_fx_prices(fx_code)  # returns fxPrices object
     rows_added = db_fx_data.update_fx_prices_and_return_rows_added(
         fx_code, new_fx_prices, check_for_spike=True
     )
@@ -62,15 +62,14 @@ def update_fx_prices_for_code(fx_code: str, data: dataBlob):
 
     return success
 
+
 def report_fx_data_spike(data: dataBlob, fx_code: str):
     msg = (
-            "Spike found in prices for %s: need to manually check by running interactive_manual_check_fx_prices" %
-            str(fx_code))
+        "Spike found in prices for %s: need to manually check by running interactive_manual_check_fx_prices"
+        % str(fx_code)
+    )
     data.log.warn(msg)
     try:
-        send_production_mail_msg(
-            data, msg, "FX Price Spike %s" %
-                       str(fx_code))
+        send_production_mail_msg(data, msg, "FX Price Spike %s" % str(fx_code))
     except BaseException:
         data.log.warn("Couldn't send email about price spike")
-

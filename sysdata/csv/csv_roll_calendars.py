@@ -18,7 +18,9 @@ class csvRollCalendarData(rollCalendarData):
     Class for roll calendars write / to from csv
     """
 
-    def __init__(self, datapath=arg_not_supplied, log=logtoscreen("csvRollCalendarData")):
+    def __init__(
+        self, datapath=arg_not_supplied, log=logtoscreen("csvRollCalendarData")
+    ):
 
         super().__init__(log=log)
 
@@ -41,8 +43,7 @@ class csvRollCalendarData(rollCalendarData):
         filename = self._filename_given_instrument_code(instrument_code)
         try:
 
-            roll_calendar = pd_readcsv(
-                filename, date_index_name=DATE_INDEX_NAME)
+            roll_calendar = pd_readcsv(filename, date_index_name=DATE_INDEX_NAME)
         except OSError:
             self.log.warning("Can't find roll calendar file %s" % filename)
             return rollCalendar.create_empty()
@@ -51,18 +52,19 @@ class csvRollCalendarData(rollCalendarData):
 
         return roll_calendar
 
-    def _delete_roll_calendar_data_without_any_warning_be_careful(self,
-            instrument_code:str):
+    def _delete_roll_calendar_data_without_any_warning_be_careful(
+        self, instrument_code: str
+    ):
         raise NotImplementedError(
             "You can't delete a roll calendar stored as a csv - Add to overwrite existing or delete file manually"
         )
 
-    def _add_roll_calendar_without_checking_for_existing_entry(self, instrument_code:str, roll_calendar: rollCalendar):
+    def _add_roll_calendar_without_checking_for_existing_entry(
+        self, instrument_code: str, roll_calendar: rollCalendar
+    ):
         filename = self._filename_given_instrument_code(instrument_code)
         roll_calendar.to_csv(filename, index_label=DATE_INDEX_NAME)
         self.log.msg("Wrote calendar for %s to %s" % (instrument_code, str(filename)))
 
-    def _filename_given_instrument_code(self, instrument_code:str):
-        return get_filename_for_package(
-            self.datapath, "%s.csv" %
-            (instrument_code))
+    def _filename_given_instrument_code(self, instrument_code: str):
+        return get_filename_for_package(self.datapath, "%s.csv" % (instrument_code))

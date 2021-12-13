@@ -13,7 +13,8 @@ MONGO_INDEX_ID = "_id_"
 MONGO_ID_KEY = "_id"
 
 # regular expression pattern for mongodb connection URLs
-host_pattern = re.compile('^(mongodb://)([^:]+):([^@]+)@([^/]+)')
+host_pattern = re.compile("^(mongodb://)([^:]+):([^@]+)@([^/]+)")
+
 
 def mongo_defaults(**kwargs):
     """
@@ -27,7 +28,7 @@ def mongo_defaults(**kwargs):
     """
     # this will include defaults.yaml if not defined in private
     passed_param_names = list(kwargs.keys())
-    production_config =get_production_config()
+    production_config = get_production_config()
     output_dict = {}
     for param_name in LIST_OF_MONGO_PARAMS:
 
@@ -75,20 +76,25 @@ class MongoClientFactory(object):
 mongo_client_factory = MongoClientFactory()
 
 
-class mongoDb():
+class mongoDb:
     """
     Keeps track of mongo database we are connected to
 
     But requires adding a collection with mongoConnection before useful
     """
 
-    def __init__(self, mongo_database_name: str = arg_not_supplied,
-                 mongo_host: str = arg_not_supplied,
-                 mongo_port: int  = arg_not_supplied):
+    def __init__(
+        self,
+        mongo_database_name: str = arg_not_supplied,
+        mongo_host: str = arg_not_supplied,
+        mongo_port: int = arg_not_supplied,
+    ):
 
-        database_name, host, port = mongo_defaults(mongo_database_name = mongo_database_name,
-                                                   mongo_host = mongo_host,
-                                                   mongo_port = mongo_port)
+        database_name, host, port = mongo_defaults(
+            mongo_database_name=mongo_database_name,
+            mongo_host=mongo_host,
+            mongo_port=mongo_port,
+        )
 
         self.database_name = database_name
         self.host = host
@@ -114,7 +120,7 @@ class mongoConnection(object):
 
     """
 
-    def __init__(self, collection_name: str, mongo_db: mongoDb=arg_not_supplied):
+    def __init__(self, collection_name: str, mongo_db: mongoDb = arg_not_supplied):
 
         # FIXME REMOVE NONE WHEN CODE PROPERLY REFACTORED
         if mongo_db is arg_not_supplied or mongo_db is None:
@@ -140,7 +146,10 @@ class mongoConnection(object):
     def __repr__(self):
         clean_host = clean_mongo_host(self.host)
         return "Mongodb connection: host %s, db name %s, collection %s" % (
-            clean_host, self.database_name, self.collection_name, )
+            clean_host,
+            self.database_name,
+            self.collection_name,
+        )
 
     def get_indexes(self):
 
@@ -153,8 +162,9 @@ class mongoConnection(object):
         raw_index_information.pop(MONGO_INDEX_ID)
 
         # mongo have buried this deep...
-        index_keys = [index_entry["key"][0][0]
-                      for index_entry in raw_index_information.values()]
+        index_keys = [
+            index_entry["key"][0][0] for index_entry in raw_index_information.values()
+        ]
 
         return index_keys
 
@@ -183,6 +193,7 @@ class mongoConnection(object):
                 unique=True,
                 name=joint_indexname,
             )
+
 
 def mongo_clean_ints(dict_to_clean):
     """

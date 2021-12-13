@@ -13,6 +13,7 @@ from sysdata.data_blob import dataBlob
 
 from sysproduction.reporting.api import reportingApi
 
+
 def reconcile_info(data=arg_not_supplied):
     """
     Report on system status
@@ -26,13 +27,14 @@ def reconcile_info(data=arg_not_supplied):
     reporting_api = reportingApi(data)
     formatted_output = []
     formatted_output.append(reporting_api.terse_header("Reconcile report"))
-    list_of_func_names = ['table_of_optimal_positions',
-                          'table_of_my_positions',
-                          'table_of_ib_positions',
-                          'body_text_position_breaks',
-                          'table_of_my_recent_trades_from_db',
-                          'table_of_recent_ib_trades'
-                          ]
+    list_of_func_names = [
+        "table_of_optimal_positions",
+        "table_of_my_positions",
+        "table_of_ib_positions",
+        "body_text_position_breaks",
+        "table_of_my_recent_trades_from_db",
+        "table_of_recent_ib_trades",
+    ]
 
     for func_name in list_of_func_names:
         func = getattr(reporting_api, func_name)
@@ -40,7 +42,4 @@ def reconcile_info(data=arg_not_supplied):
 
     formatted_output.append(reporting_api.footer())
 
-
     return formatted_output
-
-

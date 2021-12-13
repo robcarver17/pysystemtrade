@@ -1,4 +1,4 @@
-from dataclasses import  dataclass
+from dataclasses import dataclass
 
 from sysdata.futures.futures_per_contract_prices import (
     futuresContractPriceData,
@@ -23,15 +23,15 @@ class ConfigCsvFuturesPrices:
 
 class csvFuturesContractPriceData(futuresContractPriceData):
     """
-    Class to read / write individual futures contract price data to and from csv files
-# no default datapath supplied as this is not normally used
+        Class to read / write individual futures contract price data to and from csv files
+    # no default datapath supplied as this is not normally used
     """
 
     def __init__(
         self,
-        datapath = arg_not_supplied,
+        datapath=arg_not_supplied,
         log=logtoscreen("csvFuturesContractPriceData"),
-        config: ConfigCsvFuturesPrices = arg_not_supplied
+        config: ConfigCsvFuturesPrices = arg_not_supplied,
     ):
 
         super().__init__(log=log)
@@ -54,7 +54,9 @@ class csvFuturesContractPriceData(futuresContractPriceData):
     def datapath(self):
         return self._datapath
 
-    def _keyname_given_contract_object(self, futures_contract_object: futuresContract) -> str:
+    def _keyname_given_contract_object(
+        self, futures_contract_object: futuresContract
+    ) -> str:
         """
         We could do this using the .ident() method of instrument_object, but this way we keep control inside this class
 
@@ -81,10 +83,10 @@ class csvFuturesContractPriceData(futuresContractPriceData):
 
         if len(keyname_as_list) == 4:
             keyname_as_list = [
-                "%s_%s_%s" % (keyname_as_list[0], keyname_as_list[1], keyname_as_list[2]),
+                "%s_%s_%s"
+                % (keyname_as_list[0], keyname_as_list[1], keyname_as_list[2]),
                 keyname_as_list[3],
             ]
-
 
         # It's possible to have GAS_US_20090700.csv, so we only take the second
         if len(keyname_as_list) == 3:
@@ -97,14 +99,16 @@ class csvFuturesContractPriceData(futuresContractPriceData):
             assert len(keyname_as_list) == 2
         except BaseException:
             self.log.error(
-                "Keyname (filename) %s in wrong format should be instrument_contractid" %
-                keyname)
+                "Keyname (filename) %s in wrong format should be instrument_contractid"
+                % keyname
+            )
         instrument_code, contract_date = tuple(keyname_as_list)
 
         return instrument_code, contract_date
 
     def _get_prices_for_contract_object_no_checking(
-            self, futures_contract_object: futuresContract) -> futuresContractPrices:
+        self, futures_contract_object: futuresContract
+    ) -> futuresContractPrices:
         """
         Read back the prices for a given contract object
 
@@ -144,7 +148,9 @@ class csvFuturesContractPriceData(futuresContractPriceData):
         return instrpricedata
 
     def _write_prices_for_contract_object_no_checking(
-        self, futures_contract_object: futuresContract, futures_price_data: futuresContractPrices
+        self,
+        futures_contract_object: futuresContract,
+        futures_price_data: futuresContractPrices,
     ):
         """
         Write prices
@@ -157,7 +163,8 @@ class csvFuturesContractPriceData(futuresContractPriceData):
         keyname = self._keyname_given_contract_object(futures_contract_object)
         filename = self._filename_given_key_name(keyname)
         futures_price_data.to_csv(
-            filename, index_label=self.config.input_date_index_name)
+            filename, index_label=self.config.input_date_index_name
+        )
 
     def _filename_given_key_name(self, keyname: str):
         return get_filename_for_package(self._datapath, "%s.csv" % (keyname))
@@ -179,16 +186,20 @@ class csvFuturesContractPriceData(futuresContractPriceData):
         """
 
         all_keynames = self._all_keynames_in_library()
-        list_of_contract_tuples = [self._contract_tuple_given_keyname(
-            keyname) for keyname in all_keynames]
+        list_of_contract_tuples = [
+            self._contract_tuple_given_keyname(keyname) for keyname in all_keynames
+        ]
 
         return list_of_contract_tuples
 
-    def has_data_for_contract(self, contract_object: futuresContract) ->bool:
-        if self._keyname_given_contract_object(contract_object) in self._all_keynames_in_library():
+    def has_data_for_contract(self, contract_object: futuresContract) -> bool:
+        if (
+            self._keyname_given_contract_object(contract_object)
+            in self._all_keynames_in_library()
+        ):
             return True
 
-    def get_contracts_with_price_data(self) ->listOfFuturesContracts:
+    def get_contracts_with_price_data(self) -> listOfFuturesContracts:
         """
 
         :return: list of contracts

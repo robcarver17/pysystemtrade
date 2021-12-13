@@ -22,12 +22,14 @@ import sysproduction
 import sysquant
 import systems
 
-def does_file_exist(filename:str):
+
+def does_file_exist(filename: str):
     resolved_filename = get_filename_for_package(filename)
     file_exists = os.path.isfile(resolved_filename)
     return file_exists
 
-def get_filename_for_package(pathname:str, filename=None):
+
+def get_filename_for_package(pathname: str, filename=None):
     """
     A way of resolving relative and absolute filenames, and dealing with akward OS specific things
 
@@ -68,7 +70,9 @@ def get_filename_for_package(pathname:str, filename=None):
 def add_ampersand_to_pathname(pathname: str) -> str:
     pathname_replace_dots = pathname.replace(".", "&")
     pathname_replace_forward_slash = pathname_replace_dots.replace("/", "&")
-    pathname_replaced_with_ampersands = pathname_replace_forward_slash.replace("\\", "&")
+    pathname_replaced_with_ampersands = pathname_replace_forward_slash.replace(
+        "\\", "&"
+    )
 
     return pathname_replaced_with_ampersands
 
@@ -79,7 +83,9 @@ def get_resolved_pathname(pathname):
         # This is an ssh address for rsync - don't change
         return pathname
     pathname_replaced_with_ampersands = add_ampersand_to_pathname(pathname)
-    resolved_pathname = get_resolved_ampersand_pathname(pathname_replaced_with_ampersands)
+    resolved_pathname = get_resolved_ampersand_pathname(
+        pathname_replaced_with_ampersands
+    )
 
     return resolved_pathname
 
@@ -145,6 +151,7 @@ def get_absolute_pathname_from_list(path_as_list):
 
     return pathname
 
+
 def get_absolute_windows_pathname_from_list(path_as_list: list):
     """
     :param path_as_list: eg ['D:', 'GitHub', 'pysystemtrade', 'private', 'barchart']
@@ -157,7 +164,7 @@ def get_absolute_windows_pathname_from_list(path_as_list: list):
         path_as_list[0] = path_as_list[0].replace(":", ":\\")
 
     pathname = os.path.join(*path_as_list)
-    
+
     return pathname
 
 
@@ -171,7 +178,9 @@ def files_with_extension_in_pathname(pathname, extension=".csv"):
     """
     resolved_pathname = get_resolved_pathname(pathname)
 
-    return files_with_extension_in_resolved_pathname(resolved_pathname, extension=extension)
+    return files_with_extension_in_resolved_pathname(
+        resolved_pathname, extension=extension
+    )
 
 
 def files_with_extension_in_resolved_pathname(resolved_pathname, extension=".csv"):
@@ -184,8 +193,7 @@ def files_with_extension_in_resolved_pathname(resolved_pathname, extension=".csv
     """
 
     file_list = os.listdir(resolved_pathname)
-    file_list = [
-        filename for filename in file_list if filename.endswith(extension)]
+    file_list = [filename for filename in file_list if filename.endswith(extension)]
     file_list_no_extension = [filename.split(".")[0] for filename in file_list]
 
     return file_list_no_extension
@@ -219,10 +227,7 @@ def rename_files_with_extension_in_pathname_as_archive(
         )
 
 
-def rename_file_as_archive(
-        full_filename,
-        old_extension=".txt",
-        new_extension=".arch"):
+def rename_file_as_archive(full_filename, old_extension=".txt", new_extension=".arch"):
     """
     Rename a file with archive suffix
      eg thing.txt will become thing_yyyymmdd.arch where yyyymmdd is todays date
@@ -275,12 +280,11 @@ def get_file_or_folder_age_in_days(full_filename_with_ext):
     return age_days
 
 
-
 def html_table(file, lol: list):
-  file.write('<table>')
-  for sublist in lol:
-    file.write('  <tr><td>')
-    file.write('    </td><td>'.join(sublist))
-    file.write('  </td></tr>')
+    file.write("<table>")
+    for sublist in lol:
+        file.write("  <tr><td>")
+        file.write("    </td><td>".join(sublist))
+        file.write("  </td></tr>")
 
-  file.write('</table>')
+    file.write("</table>")

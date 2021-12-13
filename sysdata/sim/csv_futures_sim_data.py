@@ -20,18 +20,26 @@ class csvFuturesSimData(genericBlobUsingFuturesSimData):
     """
     Uses default paths for .csv files, pass in dict of csv_data_paths to modify
     """
-    def __init__(self, csv_data_paths = arg_not_supplied, log =logtoscreen("csvFuturesSimData")):
 
-        data = dataBlob(log = log,
-                              csv_data_paths = csv_data_paths,
-                              class_list=[csvFuturesAdjustedPricesData,
-                                          csvFuturesMultiplePricesData,
-                                          csvFuturesInstrumentData,
-                                          csvFxPricesData,
-                                          csvRollParametersData])
+    def __init__(
+        self, csv_data_paths=arg_not_supplied, log=logtoscreen("csvFuturesSimData")
+    ):
 
-        super().__init__(data = data)
+        data = dataBlob(
+            log=log,
+            csv_data_paths=csv_data_paths,
+            class_list=[
+                csvFuturesAdjustedPricesData,
+                csvFuturesMultiplePricesData,
+                csvFuturesInstrumentData,
+                csvFxPricesData,
+                csvRollParametersData,
+            ],
+        )
+
+        super().__init__(data=data)
 
     def __repr__(self):
         return "csvFuturesSimData object with %d instruments" % len(
-            self.get_instrument_list())
+            self.get_instrument_list()
+        )

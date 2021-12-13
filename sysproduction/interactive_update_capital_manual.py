@@ -1,4 +1,3 @@
-
 from syscore.objects import success, failure, arg_not_supplied, missing_data
 from syscore.dateutils import get_datetime_input
 from syscore.interactive import get_and_convert, print_menu_and_get_response
@@ -6,6 +5,7 @@ from syscore.interactive import get_and_convert, print_menu_and_get_response
 from sysdata.data_blob import dataBlob
 from sysproduction.data.capital import dataCapital
 from sysproduction.data.broker import dataBroker
+
 
 def interactive_update_capital_manual():
     """
@@ -15,25 +15,24 @@ def interactive_update_capital_manual():
     """
     with dataBlob(log_name="Interactive-Update-Capital-Manual") as data:
 
-
         still_running = True
         while still_running:
             # display capital and get input
             user_option_int = print_capital_and_get_user_input(data)
-            function_list = [finished,
-                             setup_initial_capital,
-                             update_capital_from_ib,
-                            adjust_capital_for_delta,
-                            modify_any_value,
-                            delete_capital_since_time,
-                            delete_all_capital]
+            function_list = [
+                finished,
+                setup_initial_capital,
+                update_capital_from_ib,
+                adjust_capital_for_delta,
+                modify_any_value,
+                delete_capital_since_time,
+                delete_all_capital,
+            ]
 
             try:
                 function_to_run = function_list[user_option_int]
             except IndexError:
-                print(
-                    "%d is not a valid option" %
-                    str(user_option_int))
+                print("%d is not a valid option" % str(user_option_int))
 
             function_to_run(data)
 
@@ -41,8 +40,10 @@ def interactive_update_capital_manual():
 
     return success
 
+
 def finished(data):
     exit()
+
 
 def print_capital_and_get_user_input(data: dataBlob):
     data_capital = dataCapital(data)
@@ -59,20 +60,20 @@ def print_capital_and_get_user_input(data: dataBlob):
 
     print("\n")
 
-
     if no_capital_setup:
-        possible_options = {
-            1: "Setup initial capital parameters"}
+        possible_options = {1: "Setup initial capital parameters"}
     else:
         possible_options = {
             2: "Update capital from IB account value",
             3: "Adjust account value for withdrawal or deposit",
             4: "Modify any/all values",
             5: "Delete values of capital since time T",
-            6: "Delete everything and start again"}
+            6: "Delete everything and start again",
+        }
 
-    user_option_int = print_menu_and_get_response(possible_options, default_option=0,
-                                                  default_str="EXIT")
+    user_option_int = print_menu_and_get_response(
+        possible_options, default_option=0, default_str="EXIT"
+    )
 
     return user_option_int
 
@@ -98,7 +99,6 @@ def setup_initial_capital(data: dataBlob):
         )
 
 
-
 def get_initial_capital_values_from_user(data: dataBlob):
     broker_account_value = get_and_convert(
         "Broker account value",
@@ -111,9 +111,8 @@ def get_initial_capital_values_from_user(data: dataBlob):
         print("Got broker account value of %f from IB" % broker_account_value)
 
     total_capital = get_and_convert(
-        "Total capital at risk",
-        type_expected=float,
-        default_value=broker_account_value)
+        "Total capital at risk", type_expected=float, default_value=broker_account_value
+    )
 
     maximum_capital = get_and_convert(
         "Max capital, only used for half compounding",
@@ -133,8 +132,11 @@ def update_capital_from_ib(data: dataBlob):
     data_capital = dataCapital(data)
     broker_account_value = get_broker_account_value(data)
     try:
-        total_capital = data_capital.\
-            update_and_return_total_capital_with_new_broker_account_value(broker_account_value)
+        total_capital = (
+            data_capital.update_and_return_total_capital_with_new_broker_account_value(
+                broker_account_value
+            )
+        )
         print("New total capital is %s" % total_capital)
 
     except BaseException:
@@ -143,7 +145,8 @@ def update_capital_from_ib(data: dataBlob):
         )
         if ans == "Yes":
             total_capital = data_capital.update_and_return_total_capital_with_new_broker_account_value(
-                broker_account_value, check_limit=9999)
+                broker_account_value, check_limit=9999
+            )
         else:
             total_capital = "Capital not updated"
 
@@ -156,6 +159,7 @@ def get_broker_account_value(data: dataBlob):
 
     return capital_value
 
+
 def adjust_capital_for_delta(data: dataBlob):
     data_capital = dataCapital(data)
 
@@ -166,8 +170,9 @@ def adjust_capital_for_delta(data: dataBlob):
     old_capital = data_capital.get_current_total_capital()
     new_capital = old_capital + capital_delta
     ans = input(
-        "New brokerage capital will be %f, are you sure? Yes/<anything else for no>" %
-        new_capital)
+        "New brokerage capital will be %f, are you sure? Yes/<anything else for no>"
+        % new_capital
+    )
     if ans == "Yes":
         data_capital.total_capital_calculator.adjust_broker_account_for_delta(
             capital_delta

@@ -15,11 +15,13 @@ class mongoRollParametersData(rollParametersData):
 
     """
 
-
-    def __init__(self, mongo_db=arg_not_supplied, log=logtoscreen(
-        "mongoRollParametersData")):
+    def __init__(
+        self, mongo_db=arg_not_supplied, log=logtoscreen("mongoRollParametersData")
+    ):
         super().__init__(log=log)
-        self._mongo_data = mongoDataWithSingleKey(ROLL_COLLECTION, "instrument_code", mongo_db=mongo_db)
+        self._mongo_data = mongoDataWithSingleKey(
+            ROLL_COLLECTION, "instrument_code", mongo_db=mongo_db
+        )
 
     def __repr__(self):
         return "mongoRollParametersData %s" % str(self.mongo_data)
@@ -31,22 +33,31 @@ class mongoRollParametersData(rollParametersData):
     def get_list_of_instruments(self) -> list:
         return self.mongo_data.get_list_of_keys()
 
-    def _get_roll_parameters_without_checking(self, instrument_code:str) -> rollParameters:
-        result_dict = self.mongo_data.get_result_dict_for_key_without_key_value(instrument_code)
+    def _get_roll_parameters_without_checking(
+        self, instrument_code: str
+    ) -> rollParameters:
+        result_dict = self.mongo_data.get_result_dict_for_key_without_key_value(
+            instrument_code
+        )
         if result_dict is missing_data:
-            self.log.critical("%s just vanished from roll parameters??" % instrument_code)
+            self.log.critical(
+                "%s just vanished from roll parameters??" % instrument_code
+            )
 
         roll_parameters_object = rollParameters.create_from_dict(result_dict)
 
         return roll_parameters_object
 
     def _delete_roll_parameters_data_without_any_warning_be_careful(
-        self, instrument_code:str
+        self, instrument_code: str
     ):
         self.mongo_data.delete_data_without_any_warning(instrument_code)
 
-    def _add_roll_parameters_without_checking_for_existing_entry(self, instrument_code: str,
-                                                                 roll_parameters: rollParameters):
+    def _add_roll_parameters_without_checking_for_existing_entry(
+        self, instrument_code: str, roll_parameters: rollParameters
+    ):
 
         roll_parameters_object_dict = roll_parameters.as_dict()
-        self.mongo_data.add_data(instrument_code, roll_parameters_object_dict, allow_overwrite=True)
+        self.mongo_data.add_data(
+            instrument_code, roll_parameters_object_dict, allow_overwrite=True
+        )

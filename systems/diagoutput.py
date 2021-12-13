@@ -37,13 +37,11 @@ class systemDiag(object):
         results_list = []
         for rule in rule_list:
             for instrument in instrument_list:
-                forecast = system.forecastScaleCap.get_capped_forecast(
-                    instrument, rule)
+                forecast = system.forecastScaleCap.get_capped_forecast(instrument, rule)
                 error = forecast_error(forecast, target_forecast_value)
                 results_list.append((instrument, rule, error))
 
-        sorted_by_max_error = sorted(
-            results_list, key=lambda tup: tup[2], reverse=True)
+        sorted_by_max_error = sorted(results_list, key=lambda tup: tup[2], reverse=True)
 
         return sorted_by_max_error
 
@@ -83,8 +81,7 @@ class systemDiag(object):
             error = forecast_error(forecast, target_forecast_value)
             results_list.append((instrument, error))
 
-        sorted_by_max_error = sorted(
-            results_list, key=lambda tup: tup[1], reverse=True)
+        sorted_by_max_error = sorted(results_list, key=lambda tup: tup[1], reverse=True)
 
         return sorted_by_max_error
 
@@ -106,22 +103,24 @@ class systemDiag(object):
             scalar_ewma = scalar.ewm(500).mean()
             position_at_avg_forecast = avg_forecast * scalar_ewma.values[-1]
 
-            if np.isnan(position_at_avg_forecast): # In case no position was open for a given instrument
+            if np.isnan(
+                position_at_avg_forecast
+            ):  # In case no position was open for a given instrument
                 position_at_avg_forecast = 0.0
                 a_param = 0.0
             else:
                 a_param = target_position_at_avg_forecast / position_at_avg_forecast
 
-            print("%s avg position %.2f" %
-                  (instrument, position_at_avg_forecast))
+            print("%s avg position %.2f" % (instrument, position_at_avg_forecast))
 
             if a_param < 1.2:
                 # no need to do anything
                 print("Forecast scaling not required for %s" % instrument)
             elif a_param > 1.7:
                 print(
-                    "Warning! Position at avg forecast of %.2f is too small for mapping to work for %s " %
-                    (position_at_avg_forecast, instrument))
+                    "Warning! Position at avg forecast of %.2f is too small for mapping to work for %s "
+                    % (position_at_avg_forecast, instrument)
+                )
             else:
                 (
                     a_param,
@@ -132,7 +131,8 @@ class systemDiag(object):
                 map_dict = dict(
                     a_param=float(a_param),
                     b_param=float(b_param),
-                    threshold=float(threshold_value))
+                    threshold=float(threshold_value),
+                )
                 forecast_mapping[instrument] = map_dict
 
         return forecast_mapping
@@ -164,8 +164,9 @@ class systemDiag(object):
                 scalar_results[rule] = dict()
 
             for instrument in instrument_list:
-                scalar = float(system.forecastScaleCap.get_forecast_scalar(
-                    instrument, rule)[-1])
+                scalar = float(
+                    system.forecastScaleCap.get_forecast_scalar(instrument, rule)[-1]
+                )
                 if pooling:
                     # will be overwritten for each instrument
                     scalar_results[rule] = scalar
@@ -206,8 +207,9 @@ class systemDiag(object):
             weights = dict(
                 system.combForecast.get_forecast_weights(instrument).iloc[-1]
             )
-            weights = dict((str(rule_name), float(weight))
-                           for rule_name, weight in weights.items())
+            weights = dict(
+                (str(rule_name), float(weight)) for rule_name, weight in weights.items()
+            )
             forecast_weights[instrument] = weights
 
         return forecast_weights
@@ -333,8 +335,7 @@ class systemDiag(object):
             result = result_dict[instrument_code].ffill().iloc[-1]
             results[name] = result
 
-        attributes_all = [
-            "portfolio.get_instrument_diversification_multiplier"]
+        attributes_all = ["portfolio.get_instrument_diversification_multiplier"]
         attributes_names = ["IDM"]
         for attribute, name in zip(attributes_all, attributes_names):
             stage, method = attribute.split(".")
@@ -356,8 +357,7 @@ class systemDiag(object):
             "daily_cash_vol_target"
         ]
 
-        buffers = system.portfolio.get_buffers_for_position(
-            instrument_code).iloc[-1]
+        buffers = system.portfolio.get_buffers_for_position(instrument_code).iloc[-1]
         results["Bfr+"], results["Bfr-"] = buffers.values
 
         return results
@@ -365,42 +365,27 @@ class systemDiag(object):
     def explain_calculator_for_code(self, instrument_code):
         results = self.calculation_details(instrument_code)
         explainers = [
-            "Position  = Subsystem position * Instrument weight * IDM = %.2f * %.4f * %.2f = %.1f" %
-            (results["SS Pos"],
-             results["Instr.Wt"],
-             results["IDM"],
-             results["Pos."]),
-            "Subsystem position = Combined forecast * Vol scalar / 10 = %.2f * %.2f / 10.0 = %.2f" %
-            (results["Fcast"],
-             results["Vol scalar"],
-             results["SS Pos"]),
-            "Vol scalar = Daily cash vol target / Instrument value vol = %.1f / %.1f = %.2f" %
-            (results["Daily VolTgt"],
-             results["IVV"],
-             results["Vol scalar"]),
-            "Instrument Value Vol = Instrument currency vol * FX rate = %.2f * %.6f = %.2f" %
-            (results["ICV"],
-             results["FX"],
-             results["IVV"]),
-            "Instrument currency vol = Block value * Daily %% Price vol = %.2f * %.4f = %.2f" %
-            (results["Blck val"],
-             results["S(%daily)"],
-             results["ICV"]),
-            "Daily %% Price vol = 100* Return difference vol / Price = %.6f / %.6f = %.4f (%.2f%% per year)" %
-            (results["S(P_d)"],
+            "Position  = Subsystem position * Instrument weight * IDM = %.2f * %.4f * %.2f = %.1f"
+            % (results["SS Pos"], results["Instr.Wt"], results["IDM"], results["Pos."]),
+            "Subsystem position = Combined forecast * Vol scalar / 10 = %.2f * %.2f / 10.0 = %.2f"
+            % (results["Fcast"], results["Vol scalar"], results["SS Pos"]),
+            "Vol scalar = Daily cash vol target / Instrument value vol = %.1f / %.1f = %.2f"
+            % (results["Daily VolTgt"], results["IVV"], results["Vol scalar"]),
+            "Instrument Value Vol = Instrument currency vol * FX rate = %.2f * %.6f = %.2f"
+            % (results["ICV"], results["FX"], results["IVV"]),
+            "Instrument currency vol = Block value * Daily %% Price vol = %.2f * %.4f = %.2f"
+            % (results["Blck val"], results["S(%daily)"], results["ICV"]),
+            "Daily %% Price vol = 100* Return difference vol / Price = %.6f / %.6f = %.4f (%.2f%% per year)"
+            % (
+                results["S(P_d)"],
                 results["Price"],
                 results["S(%daily)"],
-                results["S(%daily)"] *
-                ROOT_BDAYS_INYEAR,
-             ),
-            "Block value = Price * Block size * 0.01 = %.6f * %.1f * 0.01 = %.2f" %
-            (results["Price"],
-             results["Blc size"],
-             results["Blck val"]),
-            "OR Instrument currency vol = Return difference vol * Block size = %.6f * %.1f = %.2f" %
-            (results["S(P_d)"],
-             results["Blc size"],
-             results["ICV"]),
+                results["S(%daily)"] * ROOT_BDAYS_INYEAR,
+            ),
+            "Block value = Price * Block size * 0.01 = %.6f * %.1f * 0.01 = %.2f"
+            % (results["Price"], results["Blc size"], results["Blck val"]),
+            "OR Instrument currency vol = Return difference vol * Block size = %.6f * %.1f = %.2f"
+            % (results["S(P_d)"], results["Blc size"], results["ICV"]),
         ]
         return explainers
 

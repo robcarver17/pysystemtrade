@@ -2,18 +2,20 @@ from syscore.objects import failure, success, missing_order
 from sysexecution.stack_handler.fills import stackHandlerForFills
 from sysexecution.orders.instrument_orders import instrumentOrder
 from sysexecution.orders.contract_orders import contractOrder
-from sysexecution.orders.contract_orders import balance_order_type as balance_order_type_for_contract_orders
-from sysexecution.orders.instrument_orders import balance_order_type as balance_order_type_for_instrument_orders
+from sysexecution.orders.contract_orders import (
+    balance_order_type as balance_order_type_for_contract_orders,
+)
+from sysexecution.orders.instrument_orders import (
+    balance_order_type as balance_order_type_for_instrument_orders,
+)
 from sysexecution.orders.broker_orders import brokerOrder
 
-class stackHandlerCreateBalanceTrades(
-        stackHandlerForFills):
 
+class stackHandlerCreateBalanceTrades(stackHandlerForFills):
     def create_balance_trade(self, broker_order: brokerOrder):
         log = broker_order.log_with_attributes(self.log)
 
-        contract_order = create_balance_contract_order_from_broker_order(
-            broker_order)
+        contract_order = create_balance_contract_order_from_broker_order(broker_order)
         instrument_order = create_balance_instrument_order_from_contract_order(
             contract_order
         )
@@ -41,46 +43,46 @@ class stackHandlerCreateBalanceTrades(
 
         log.msg("Updating positions")
         self.apply_position_change_to_stored_contract_positions(
-            contract_order, contract_order.fill,
-            apply_entire_trade=True
+            contract_order, contract_order.fill, apply_entire_trade=True
         )
         self.apply_position_change_to_instrument(
-            instrument_order, instrument_order.fill,
-            apply_entire_trade=True
+            instrument_order, instrument_order.fill, apply_entire_trade=True
         )
 
         log.msg("Marking balancing trades as completed and historic order data")
-        self.handle_completed_instrument_order(instrument_order_id, treat_inactive_as_complete=True)
+        self.handle_completed_instrument_order(
+            instrument_order_id, treat_inactive_as_complete=True
+        )
 
         return success
 
     def put_balance_trades_on_stack(
-        self, instrument_order: instrumentOrder,
-            contract_order: contractOrder,
-            broker_order: brokerOrder
+        self,
+        instrument_order: instrumentOrder,
+        contract_order: contractOrder,
+        broker_order: brokerOrder,
     ):
         log = instrument_order.log_with_attributes(self.log)
         log.msg("Putting balancing trades on stacks")
 
         try:
-            instrument_order_id = self.instrument_stack.put_manual_order_on_stack_and_return_order_id(
-                instrument_order
+            instrument_order_id = (
+                self.instrument_stack.put_manual_order_on_stack_and_return_order_id(
+                    instrument_order
+                )
             )
         except Exception as e:
             log.error(
-                "Couldn't add balancing instrument trade error condition %s"
-                % str(e)
+                "Couldn't add balancing instrument trade error condition %s" % str(e)
             )
             return failure, missing_order, missing_order, missing_order
 
         try:
             contract_order.parent = instrument_order_id
-            contract_order_id = self.contract_stack.put_order_on_stack(
-                contract_order)
+            contract_order_id = self.contract_stack.put_order_on_stack(contract_order)
         except Exception as e:
             log.error(
-                "Couldn't add balancing contract trade error condition %s "
-                % str(e)
+                "Couldn't add balancing contract trade error condition %s " % str(e)
             )
             return failure, instrument_order_id, missing_order, missing_order
 
@@ -97,15 +99,12 @@ class stackHandlerCreateBalanceTrades(
         try:
             broker_order_id = self.broker_stack.put_order_on_stack(broker_order)
         except Exception as e:
-            log.error(
-                "Couldn't add balancing broker trade error condition %s"
-                % str(e)
-            )
+            log.error("Couldn't add balancing broker trade error condition %s" % str(e))
             return failure, instrument_order_id, contract_order_id, missing_order
 
         try:
             self.contract_stack.add_children_to_order_without_existing_children(
-            contract_order_id, [broker_order_id]
+                contract_order_id, [broker_order_id]
             )
         except Exception as e:
             log.error("Couldn't add children to contract order exception %s" % str(e))
@@ -120,19 +119,19 @@ class stackHandlerCreateBalanceTrades(
     ):
 
         if instrument_order_id is not missing_order:
-            self.instrument_stack.remove_order_with_id_from_stack(
-                instrument_order_id)
+            self.instrument_stack.remove_order_with_id_from_stack(instrument_order_id)
         if contract_order_id is not missing_order:
-            self.contract_stack.remove_order_with_id_from_stack(
-                contract_order_id)
+            self.contract_stack.remove_order_with_id_from_stack(contract_order_id)
         if broker_order_id is not missing_order:
             self.broker_stack.remove_order_with_id_from_stack(broker_order_id)
 
     def create_balance_instrument_trade(self, instrument_order: instrumentOrder):
         log = instrument_order.log_with_attributes(self.log)
         log.msg("Putting balancing order on instrument stack")
-        instrument_order_id = self.instrument_stack.put_manual_order_on_stack_and_return_order_id(
-            instrument_order
+        instrument_order_id = (
+            self.instrument_stack.put_manual_order_on_stack_and_return_order_id(
+                instrument_order
+            )
         )
 
         instrument_order.order_id = instrument_order_id
@@ -159,7 +158,7 @@ def create_balance_contract_order_from_broker_order(broker_order: brokerOrder):
         manual_fill=True,
         manual_trade=True,
         active=False,
-        order_type= balance_order_type_for_contract_orders
+        order_type=balance_order_type_for_contract_orders,
     )
 
     return contract_order
@@ -175,6 +174,6 @@ def create_balance_instrument_order_from_contract_order(contract_order):
         fill_datetime=contract_order.fill_datetime,
         manual_trade=True,
         active=False,
-        order_type=balance_order_type_for_instrument_orders
+        order_type=balance_order_type_for_instrument_orders,
     )
     return instrument_order

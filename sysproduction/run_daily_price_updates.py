@@ -11,8 +11,7 @@ def run_daily_price_updates():
     process_name = "run_daily_prices_updates"
     data = dataBlob(log_name=process_name)
     list_of_timer_names_and_functions = get_list_of_timer_functions_for_price_update()
-    price_process = processToRun(
-        process_name, data, list_of_timer_names_and_functions)
+    price_process = processToRun(process_name, data, list_of_timer_names_and_functions)
     price_process.run_process()
 
 

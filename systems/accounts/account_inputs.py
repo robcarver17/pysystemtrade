@@ -9,16 +9,15 @@ from systems.system_cache import diagnostic
 
 
 class accountInputs(SystemStage):
-
-
     def get_raw_price(self, instrument_code: str) -> pd.Series:
         return self.parent.data.get_raw_price(instrument_code)
 
     def get_daily_price(self, instrument_code: str) -> pd.Series:
         return self.parent.data.daily_prices(instrument_code)
 
-    def get_capped_forecast(self, instrument_code: str,
-                            rule_variation_name: str) -> pd.Series:
+    def get_capped_forecast(
+        self, instrument_code: str, rule_variation_name: str
+    ) -> pd.Series:
         return self.parent.forecastScaleCap.get_capped_forecast(
             instrument_code, rule_variation_name
         )
@@ -27,13 +26,14 @@ class accountInputs(SystemStage):
     def get_daily_returns_volatility(self, instrument_code: str) -> pd.Series:
 
         system = self.parent
-        returns_vol = system.rawdata.daily_returns_volatility(
-            instrument_code)
+        returns_vol = system.rawdata.daily_returns_volatility(instrument_code)
 
         return returns_vol
 
     def get_daily_percentage_volatility(self, instrument_code: str) -> pd.Series:
-        daily_perc_vol = self.parent.rawdata.get_daily_percentage_volatility(instrument_code)
+        daily_perc_vol = self.parent.rawdata.get_daily_percentage_volatility(
+            instrument_code
+        )
 
         return daily_perc_vol
 
@@ -57,7 +57,7 @@ class accountInputs(SystemStage):
     def average_forecast(self) -> float:
         return self.config.average_absolute_forecast
 
-    def get_raw_cost_data(self, instrument_code: str)  -> instrumentCosts:
+    def get_raw_cost_data(self, instrument_code: str) -> instrumentCosts:
         return self.parent.data.get_raw_cost_data(instrument_code)
 
     def get_rolls_per_year(self, instrument_code: str) -> int:
@@ -101,17 +101,18 @@ class accountInputs(SystemStage):
         :returns: float
         """
         return (
-            self.parent.positionSize.get_vol_target_dict()[
-                "percentage_vol_target"
-            ]
+            self.parent.positionSize.get_vol_target_dict()["percentage_vol_target"]
             / 100.0
         )
 
-    def get_average_position_for_instrument_at_portfolio_level(self,
-                                                               instrument_code: str) -> pd.Series:
+    def get_average_position_for_instrument_at_portfolio_level(
+        self, instrument_code: str
+    ) -> pd.Series:
         average_position_for_subsystem = self.get_volatility_scalar(instrument_code)
         scaling_factor = self.get_instrument_scaling_factor(instrument_code)
-        scaling_factor_aligned = scaling_factor.reindex(average_position_for_subsystem.index, method="ffill")
+        scaling_factor_aligned = scaling_factor.reindex(
+            average_position_for_subsystem.index, method="ffill"
+        )
         average_position = scaling_factor_aligned * average_position_for_subsystem
 
         return average_position
@@ -210,7 +211,9 @@ class accountInputs(SystemStage):
         return self.parent.portfolio.get_instrument_diversification_multiplier()
 
     def forecast_diversification_multiplier(self, instrument_code: str) -> pd.Series:
-        return self.parent.combForecast.get_forecast_diversification_multiplier(instrument_code)
+        return self.parent.combForecast.get_forecast_diversification_multiplier(
+            instrument_code
+        )
 
     def specific_instrument_weight(self, instrument_code: str) -> pd.Series:
         instrument_weights = self.instrument_weights()
@@ -220,8 +223,12 @@ class accountInputs(SystemStage):
     def instrument_weights(self) -> pd.DataFrame:
         return self.parent.portfolio.get_instrument_weights()
 
-    def forecast_weight(self, instrument_code:str, rule_variation_name:str) -> pd.Series:
-        forecast_weights_for_instrument = self.forecast_weights_for_instrument(instrument_code)
+    def forecast_weight(
+        self, instrument_code: str, rule_variation_name: str
+    ) -> pd.Series:
+        forecast_weights_for_instrument = self.forecast_weights_for_instrument(
+            instrument_code
+        )
         if rule_variation_name not in forecast_weights_for_instrument.columns:
             price_series = self.get_raw_price(instrument_code)
             zero_weights = from_scalar_values_to_ts(0.0, price_series.index)

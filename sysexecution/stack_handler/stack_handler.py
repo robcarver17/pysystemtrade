@@ -1,14 +1,16 @@
-
-
 from sysexecution.stack_handler.spawn_children_from_instrument_orders import (
     stackHandlerForSpawning,
 )
 from sysexecution.stack_handler.roll_orders import stackHandlerForRolls
 from sysexecution.stack_handler.create_broker_orders_from_contract_orders import (
-    stackHandlerCreateBrokerOrders, )
+    stackHandlerCreateBrokerOrders,
+)
 from sysexecution.stack_handler.cancel_and_modify import stackHandlerCancelAndModify
 from sysexecution.stack_handler.checks import stackHandlerChecks
-from sysexecution.stack_handler.additional_sampling import stackHandlerAdditionalSampling
+from sysexecution.stack_handler.additional_sampling import (
+    stackHandlerAdditionalSampling,
+)
+
 
 class stackHandler(
     stackHandlerForSpawning,
@@ -16,7 +18,7 @@ class stackHandler(
     stackHandlerCreateBrokerOrders,
     stackHandlerCancelAndModify,
     stackHandlerChecks,
-    stackHandlerAdditionalSampling
+    stackHandlerAdditionalSampling,
 ):
     def safe_stack_removal(self):
         # Safe deletion of stack

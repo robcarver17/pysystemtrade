@@ -12,23 +12,27 @@ A_VERY_LARGE_NUMBER = 999999999
 class minMaxAndDirectionAndStart(dict):
     @property
     def minima(self) -> portfolioWeights:
-        return portfolioWeights(self._get_dict_for_value_across_codes('minimum'))
+        return portfolioWeights(self._get_dict_for_value_across_codes("minimum"))
 
     @property
     def maxima(self) -> portfolioWeights:
-        return portfolioWeights(self._get_dict_for_value_across_codes('maximum'))
+        return portfolioWeights(self._get_dict_for_value_across_codes("maximum"))
 
     @property
     def direction(self) -> portfolioWeights:
-        return portfolioWeights(self._get_dict_for_value_across_codes('direction'))
+        return portfolioWeights(self._get_dict_for_value_across_codes("direction"))
 
     @property
     def starting_weights(self) -> portfolioWeights:
-        return portfolioWeights(self._get_dict_for_value_across_codes('start_weight'))
+        return portfolioWeights(self._get_dict_for_value_across_codes("start_weight"))
 
     def _get_dict_for_value_across_codes(self, entry_name: str):
-        return dict([(instrument_code, getattr(dict_value, entry_name))
-                     for instrument_code, dict_value in self.items()])
+        return dict(
+            [
+                (instrument_code, getattr(dict_value, entry_name))
+                for instrument_code, dict_value in self.items()
+            ]
+        )
 
 
 @dataclass
@@ -39,19 +43,26 @@ class minMaxAndDirectionAndStartForCode:
     start_weight: float
 
 
-def calculate_min_max_and_direction_and_start(input_data: 'dataForOptimisation') -> minMaxAndDirectionAndStart:
+def calculate_min_max_and_direction_and_start(
+    input_data: "dataForOptimisation",
+) -> minMaxAndDirectionAndStart:
     all_codes = list(input_data.keys_with_valid_data)
-    all_results = dict([(instrument_code,
-                         get_data_and_calculate_for_code(instrument_code,
-                                                         input_data=input_data))
-                        for instrument_code in all_codes])
+    all_results = dict(
+        [
+            (
+                instrument_code,
+                get_data_and_calculate_for_code(instrument_code, input_data=input_data),
+            )
+            for instrument_code in all_codes
+        ]
+    )
 
     return minMaxAndDirectionAndStart(all_results)
 
 
-def get_data_and_calculate_for_code(instrument_code: str,
-                                    input_data: 'dataForOptimisation') \
-        -> minMaxAndDirectionAndStartForCode:
+def get_data_and_calculate_for_code(
+    instrument_code: str, input_data: "dataForOptimisation"
+) -> minMaxAndDirectionAndStartForCode:
     if input_data.reduce_only_keys is arg_not_supplied:
         reduce_only = False
     else:
@@ -71,42 +82,46 @@ def get_data_and_calculate_for_code(instrument_code: str,
         no_trade=no_trade,
         max_position=max_position,
         weight_prior=weight_prior,
-        optimium_weight=optimium_weight
+        optimium_weight=optimium_weight,
     )
 
     return min_max_and_direction_and_start_for_code
 
 
-def calculations_for_code(reduce_only: bool = False,
-                          no_trade: bool = False,
-                          max_position: float = arg_not_supplied,
-                          weight_prior: float = arg_not_supplied,
-                          optimium_weight: float = np.nan):
+def calculations_for_code(
+    reduce_only: bool = False,
+    no_trade: bool = False,
+    max_position: float = arg_not_supplied,
+    weight_prior: float = arg_not_supplied,
+    optimium_weight: float = np.nan,
+):
 
-    minimum, maximum = calculate_minima_and_maxima(reduce_only=reduce_only,
-                                                   no_trade=no_trade,
-                                                   max_position=max_position,
-                                                   weight_prior=weight_prior)
+    minimum, maximum = calculate_minima_and_maxima(
+        reduce_only=reduce_only,
+        no_trade=no_trade,
+        max_position=max_position,
+        weight_prior=weight_prior,
+    )
 
     assert maximum >= minimum
 
-    direction = calculate_direction(optimum_weight=optimium_weight,
-                                    minimum=minimum,
-                                    maximum=maximum)
+    direction = calculate_direction(
+        optimum_weight=optimium_weight, minimum=minimum, maximum=maximum
+    )
 
-    start_weight = calculate_starting_weight(minimum=minimum,
-                                             maximum=maximum)
+    start_weight = calculate_starting_weight(minimum=minimum, maximum=maximum)
 
-    return minMaxAndDirectionAndStartForCode(minimum=minimum,
-                                             maximum=maximum,
-                                             direction=direction,
-                                             start_weight=start_weight)
+    return minMaxAndDirectionAndStartForCode(
+        minimum=minimum, maximum=maximum, direction=direction, start_weight=start_weight
+    )
 
 
-def calculate_minima_and_maxima(reduce_only: bool = False,
-                                no_trade: bool = False,
-                                max_position: float = arg_not_supplied,
-                                weight_prior: float = arg_not_supplied) -> tuple:
+def calculate_minima_and_maxima(
+    reduce_only: bool = False,
+    no_trade: bool = False,
+    max_position: float = arg_not_supplied,
+    weight_prior: float = arg_not_supplied,
+) -> tuple:
 
     minimum = -A_VERY_LARGE_NUMBER
     maximum = A_VERY_LARGE_NUMBER
@@ -138,10 +153,11 @@ def calculate_minima_and_maxima(reduce_only: bool = False,
     return minimum, maximum
 
 
-def calculate_direction(optimum_weight: float,
-                        minimum: float = -A_VERY_LARGE_NUMBER,
-                        maximum: float = A_VERY_LARGE_NUMBER,
-                        ) -> float:
+def calculate_direction(
+    optimum_weight: float,
+    minimum: float = -A_VERY_LARGE_NUMBER,
+    maximum: float = A_VERY_LARGE_NUMBER,
+) -> float:
     if minimum >= 0:
         return 1
 

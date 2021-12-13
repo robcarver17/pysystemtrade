@@ -5,25 +5,34 @@ FLAG_BAD_SIGMA = 999999
 
 from scipy.optimize import minimize
 
-from sysquant.optimisation.weights import portfolioWeights, estimatesWithPortfolioWeights
+from sysquant.optimisation.weights import (
+    portfolioWeights,
+    estimatesWithPortfolioWeights,
+)
 from sysquant.estimators.estimates import Estimates
 
-def optimise_given_estimates(estimates: Estimates,
-                             equalise_SR: bool = True,
-                             ann_target_SR: float = 0.5,
-                             equalise_vols: bool = True,
-                             **_ignored_kwargs
-                             ) -> estimatesWithPortfolioWeights:
 
-    estimates = estimates.equalise_estimates(equalise_vols=equalise_vols,
-                                               equalise_SR=equalise_SR,
-                                               ann_target_SR=ann_target_SR)
+def optimise_given_estimates(
+    estimates: Estimates,
+    equalise_SR: bool = True,
+    ann_target_SR: float = 0.5,
+    equalise_vols: bool = True,
+    **_ignored_kwargs
+) -> estimatesWithPortfolioWeights:
+
+    estimates = estimates.equalise_estimates(
+        equalise_vols=equalise_vols,
+        equalise_SR=equalise_SR,
+        ann_target_SR=ann_target_SR,
+    )
 
     portfolio_weights = optimise_from_processed_estimates(estimates)
-    estimates_with_portfolio_weights = estimatesWithPortfolioWeights(weights=portfolio_weights,
-                                                                     estimates=estimates)
+    estimates_with_portfolio_weights = estimatesWithPortfolioWeights(
+        weights=portfolio_weights, estimates=estimates
+    )
 
     return estimates_with_portfolio_weights
+
 
 def optimise_from_processed_estimates(estimates: Estimates) -> portfolioWeights:
     stdev_list = estimates.stdev_list
@@ -35,19 +44,19 @@ def optimise_from_processed_estimates(estimates: Estimates) -> portfolioWeights:
 
     weights = optimise_from_sigma_and_mean_list(sigma, mean_list=mean_list)
 
-    portfolio_weights = portfolioWeights.from_weights_and_keys(list_of_weights=weights,
-                                                               list_of_keys=list_of_asset_names)
+    portfolio_weights = portfolioWeights.from_weights_and_keys(
+        list_of_weights=weights, list_of_keys=list_of_asset_names
+    )
 
     return portfolio_weights
+
 
 def sigma_from_corr_and_std(stdev_list: list, corrmatrix: list):
     sigma = np.diag(stdev_list).dot(corrmatrix).dot(np.diag(stdev_list))
     return sigma
 
 
-def optimise_from_sigma_and_mean_list(sigma: np.array,
-             mean_list: list) -> list:
-
+def optimise_from_sigma_and_mean_list(sigma: np.array, mean_list: list) -> list:
 
     mus = np.array(mean_list, ndmin=2).transpose()
     number_assets = sigma.shape[1]
@@ -72,7 +81,6 @@ def optimise_from_sigma_and_mean_list(sigma: np.array,
     return weights
 
 
-
 def fix_mus(mean_list):
     """
     Replace nans with unfeasibly large negatives
@@ -81,6 +89,7 @@ def fix_mus(mean_list):
     """
 
     return fix_vector(mean_list, replace_with=FLAG_BAD_RETURN)
+
 
 def fix_stdev(stdev_list):
     """
@@ -92,7 +101,7 @@ def fix_stdev(stdev_list):
     return fix_vector(stdev_list, replace_with=FLAG_BAD_SIGMA)
 
 
-def fix_vector(vector_list, replace_with = FLAG_BAD_RETURN):
+def fix_vector(vector_list, replace_with=FLAG_BAD_RETURN):
     """
     Replace nans with unfeasibly large negatives
 
@@ -122,13 +131,8 @@ def un_fix_weights(mean_list, weights):
             return xweight
 
     fixed_weights = [
-        _unfixit(
-            xmean,
-            xweight) for (
-            xmean,
-            xweight) in zip(
-                mean_list,
-            weights)]
+        _unfixit(xmean, xweight) for (xmean, xweight) in zip(mean_list, weights)
+    ]
 
     return fixed_weights
 
@@ -141,6 +145,7 @@ def fix_sigma(sigma):
 
     return fix_matrix(sigma, replace_with=FLAG_BAD_SIGMA)
 
+
 def fix_correlation(sigma):
     """
     Replace nans with very large numbers
@@ -150,7 +155,7 @@ def fix_correlation(sigma):
     return fix_matrix(sigma, replace_with=FLAG_BAD_SIGMA)
 
 
-def fix_matrix(some_matrix, replace_with = FLAG_BAD_SIGMA):
+def fix_matrix(some_matrix, replace_with=FLAG_BAD_SIGMA):
     """
     Replace nans with very large numbers
 
@@ -168,9 +173,8 @@ def fix_matrix(some_matrix, replace_with = FLAG_BAD_SIGMA):
 
     return new_matrix
 
-def neg_SR(weights: np.array,
-           sigma: np.array,
-           mus: np.array):
+
+def neg_SR(weights: np.array, sigma: np.array, mus: np.array):
     # Returns minus the Sharpe Ratio (as we're minimising)
 
     estreturn = float(weights.dot(mus))
@@ -184,12 +188,6 @@ def variance(weights: np.matrix, sigma: np.array):
     return weights.dot(sigma).dot(weights.transpose())
 
 
-
-
-
 def addem(weights: list):
     # Used for constraints
     return 1.0 - sum(weights)
-
-
-

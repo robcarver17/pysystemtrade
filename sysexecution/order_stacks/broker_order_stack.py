@@ -6,14 +6,13 @@ from sysexecution.orders.broker_orders import brokerOrder
 
 from sysexecution.tick_data import tickerObject
 
+
 class brokerOrderStackData(orderStackData):
     def _name(self):
         return "Broker order stack"
 
-
     def add_execution_details_from_matched_broker_order(
-        self, broker_order_id: int,
-            matched_broker_order: brokerOrder
+        self, broker_order_id: int, matched_broker_order: brokerOrder
     ):
         db_broker_order = self.get_order_with_id_from_stack(broker_order_id)
         result = db_broker_order.add_execution_details_from_matched_broker_order(
@@ -25,15 +24,13 @@ class brokerOrderStackData(orderStackData):
         self._change_order_on_stack(broker_order_id, db_broker_order)
 
     def find_order_with_broker_tempid(self, broker_tempid: str):
-        list_of_order_ids = self.get_list_of_order_ids(
-            exclude_inactive_orders=False)
+        list_of_order_ids = self.get_list_of_order_ids(exclude_inactive_orders=False)
         for order_id in list_of_order_ids:
             order = self.get_order_with_id_from_stack(order_id)
             if order.broker_tempid == broker_tempid:
                 return order
 
         return missing_order
-
 
     def get_order_with_id_from_stack(self, order_id: int) -> brokerOrder:
         # probably will be overriden in data implementation
@@ -44,7 +41,6 @@ class brokerOrderStackData(orderStackData):
         return order
 
 
-
 class orderWithControls(object):
     """
     An encapsulation of a submitted broker order which includes additional methods for monitoring and controlling the orders progress
@@ -53,9 +49,12 @@ class orderWithControls(object):
     Control objects are broker specific, and some methods need to be implemented by the broker inherited method
     """
 
-    def __init__(self, broker_order: brokerOrder,
-                 control_object,
-                 ticker_object: tickerObject=None):
+    def __init__(
+        self,
+        broker_order: brokerOrder,
+        control_object,
+        ticker_object: tickerObject = None,
+    ):
 
         self._order = broker_order
         self._control_object = control_object
@@ -89,7 +88,7 @@ class orderWithControls(object):
     def datetime_order_submitted(self):
         return self._date_submitted
 
-    def message_required(self, messaging_frequency_seconds: int=30) -> bool:
+    def message_required(self, messaging_frequency_seconds: int = 30) -> bool:
         time_elapsed = self.seconds_since_last_message()
         if time_elapsed > messaging_frequency_seconds:
             self.reset_last_message_time()

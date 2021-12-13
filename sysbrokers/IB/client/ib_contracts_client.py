@@ -2,12 +2,18 @@ from copy import copy
 from ib_insync import Contract
 
 from sysbrokers.IB.client.ib_client import ibClient
-from sysbrokers.IB.ib_instruments import ib_futures_instrument_just_symbol, futuresInstrumentWithIBConfigData, \
-    ib_futures_instrument
+from sysbrokers.IB.ib_instruments import (
+    ib_futures_instrument_just_symbol,
+    futuresInstrumentWithIBConfigData,
+    ib_futures_instrument,
+)
 from sysbrokers.IB.ib_trading_hours import get_trading_hours
 from sysbrokers.IB.ib_contracts import (
-    ibcontractWithLegs, get_ib_contract_with_specific_expiry, resolve_unique_contract_from_ibcontract_list,
-    _add_legs_to_ib_contract)
+    ibcontractWithLegs,
+    get_ib_contract_with_specific_expiry,
+    resolve_unique_contract_from_ibcontract_list,
+    _add_legs_to_ib_contract,
+)
 
 from syscore.objects import missing_contract
 from syscore.genutils import list_of_ints_with_highest_common_factor_positive_first
@@ -20,31 +26,34 @@ from sysexecution.trade_qty import tradeQuantity
 
 class ibContractsClient(ibClient):
     def broker_get_futures_contract_list(
-            self, futures_instrument_with_ib_data: futuresInstrumentWithIBConfigData,
-                allow_expired: bool = False) -> list:
+        self,
+        futures_instrument_with_ib_data: futuresInstrumentWithIBConfigData,
+        allow_expired: bool = False,
+    ) -> list:
         ## Returns list of contract date strings YYYYMMDD
 
         specific_log = self.log.setup(
             instrument_code=futures_instrument_with_ib_data.instrument_code
         )
 
-        ibcontract_pattern = ib_futures_instrument(
-            futures_instrument_with_ib_data)
-        contract_list = self.ib_get_contract_chain(ibcontract_pattern,
-                                                   allow_expired=allow_expired)
+        ibcontract_pattern = ib_futures_instrument(futures_instrument_with_ib_data)
+        contract_list = self.ib_get_contract_chain(
+            ibcontract_pattern, allow_expired=allow_expired
+        )
         # if no contracts found will be empty
 
         # Extract expiry date strings from these
         contract_dates = [
-            ibcontract.lastTradeDateOrContractMonth for ibcontract in contract_list]
+            ibcontract.lastTradeDateOrContractMonth for ibcontract in contract_list
+        ]
 
         return contract_dates
 
-
-
     def broker_get_single_contract_expiry_date(
-            self, futures_contract_with_ib_data: futuresContract,
-    allow_expired: bool = False) -> str:
+        self,
+        futures_contract_with_ib_data: futuresContract,
+        allow_expired: bool = False,
+    ) -> str:
         """
         Return the exact expiry date for a given contract
 
@@ -58,8 +67,9 @@ class ibContractsClient(ibClient):
 
         ibcontract = self.ib_futures_contract(
             futures_contract_with_ib_data,
-            allow_expired = allow_expired,
-            always_return_single_leg=True)
+            allow_expired=allow_expired,
+            always_return_single_leg=True,
+        )
 
         if ibcontract is missing_contract:
             specific_log.warn("Contract is missing can't get expiry")
@@ -69,8 +79,9 @@ class ibContractsClient(ibClient):
 
         return expiry_date
 
-
-    def ib_get_trading_hours(self, contract_object_with_ib_data: futuresContract) -> list:
+    def ib_get_trading_hours(
+        self, contract_object_with_ib_data: futuresContract
+    ) -> list:
         specific_log = contract_object_with_ib_data.specific_log(self.log)
         ib_contract = self.ib_futures_contract(
             contract_object_with_ib_data, always_return_single_leg=True
@@ -86,12 +97,17 @@ class ibContractsClient(ibClient):
         try:
             trading_hours = get_trading_hours(ib_contract_details)
         except Exception as e:
-            specific_log.warn("%s when getting trading hours from %s!" % (str(e), str(ib_contract_details)))
+            specific_log.warn(
+                "%s when getting trading hours from %s!"
+                % (str(e), str(ib_contract_details))
+            )
             return missing_contract
 
         return trading_hours
 
-    def ib_get_min_tick_size(self, contract_object_with_ib_data: futuresContract) -> float:
+    def ib_get_min_tick_size(
+        self, contract_object_with_ib_data: futuresContract
+    ) -> float:
         specific_log = contract_object_with_ib_data.specific_log(self.log)
         ib_contract = self.ib_futures_contract(
             contract_object_with_ib_data, always_return_single_leg=True
@@ -105,32 +121,36 @@ class ibContractsClient(ibClient):
         try:
             min_tick = ib_contract_details.minTick
         except Exception as e:
-            specific_log.warn("%s when getting min tick size from %s!" % (str(e), str(ib_contract_details)))
+            specific_log.warn(
+                "%s when getting min tick size from %s!"
+                % (str(e), str(ib_contract_details))
+            )
             return missing_contract
 
         return min_tick
 
-    def ib_futures_contract(self,
-                            futures_contract_with_ib_data: futuresContract,
-                            allow_expired = False,
-                            always_return_single_leg=False,
-                            trade_list_for_multiple_legs: tradeQuantity = None
-                            ) -> Contract:
+    def ib_futures_contract(
+        self,
+        futures_contract_with_ib_data: futuresContract,
+        allow_expired=False,
+        always_return_single_leg=False,
+        trade_list_for_multiple_legs: tradeQuantity = None,
+    ) -> Contract:
 
-
-        ibcontract_with_legs = self.ib_futures_contract_with_legs(futures_contract_with_ib_data=futures_contract_with_ib_data,
-                                                                  allow_expired = allow_expired,
-                                                                  always_return_single_leg=always_return_single_leg,
-                                                                  trade_list_for_multiple_legs=trade_list_for_multiple_legs)
+        ibcontract_with_legs = self.ib_futures_contract_with_legs(
+            futures_contract_with_ib_data=futures_contract_with_ib_data,
+            allow_expired=allow_expired,
+            always_return_single_leg=always_return_single_leg,
+            trade_list_for_multiple_legs=trade_list_for_multiple_legs,
+        )
         return ibcontract_with_legs.ibcontract
-
 
     def ib_futures_contract_with_legs(
         self,
         futures_contract_with_ib_data: futuresContract,
         allow_expired: bool = False,
-        always_return_single_leg: bool=False,
-        trade_list_for_multiple_legs: tradeQuantity=None
+        always_return_single_leg: bool = False,
+        trade_list_for_multiple_legs: tradeQuantity = None,
     ) -> ibcontractWithLegs:
         """
         Return a complete and unique IB contract that matches contract_object_with_ib_data
@@ -141,31 +161,40 @@ class ibContractsClient(ibClient):
         """
         contract_object_to_use = copy(futures_contract_with_ib_data)
         if always_return_single_leg and contract_object_to_use.is_spread_contract():
-            contract_object_to_use = contract_object_to_use.new_contract_with_first_contract_date()
+            contract_object_to_use = (
+                contract_object_to_use.new_contract_with_first_contract_date()
+            )
 
-        ibcontract_with_legs = self._get_stored_or_live_contract(contract_object_to_use=contract_object_to_use,
-                                                                 trade_list_for_multiple_legs=trade_list_for_multiple_legs,
-                                                                 allow_expired = allow_expired)
-
+        ibcontract_with_legs = self._get_stored_or_live_contract(
+            contract_object_to_use=contract_object_to_use,
+            trade_list_for_multiple_legs=trade_list_for_multiple_legs,
+            allow_expired=allow_expired,
+        )
 
         return ibcontract_with_legs
 
-    def _get_stored_or_live_contract(self, contract_object_to_use: futuresContract,
-                                            trade_list_for_multiple_legs: tradeQuantity = None,
-                                     allow_expired: bool = False):
+    def _get_stored_or_live_contract(
+        self,
+        contract_object_to_use: futuresContract,
+        trade_list_for_multiple_legs: tradeQuantity = None,
+        allow_expired: bool = False,
+    ):
 
-
-        ibcontract_with_legs = self._get_ib_futures_contract_from_cache(contract_object_to_use=contract_object_to_use,
-                                                                        trade_list_for_multiple_legs=trade_list_for_multiple_legs)
+        ibcontract_with_legs = self._get_ib_futures_contract_from_cache(
+            contract_object_to_use=contract_object_to_use,
+            trade_list_for_multiple_legs=trade_list_for_multiple_legs,
+        )
         if ibcontract_with_legs is missing_contract:
             ibcontract_with_legs = self._get_ib_futures_contract_from_broker(
                 contract_object_to_use,
                 trade_list_for_multiple_legs=trade_list_for_multiple_legs,
-                allow_expired = allow_expired
+                allow_expired=allow_expired,
             )
-            self._store_contract_in_cache(contract_object_to_use=contract_object_to_use,
-                                          trade_list_for_multiple_legs=trade_list_for_multiple_legs,
-                                          ibcontract_with_legs=ibcontract_with_legs)
+            self._store_contract_in_cache(
+                contract_object_to_use=contract_object_to_use,
+                trade_list_for_multiple_legs=trade_list_for_multiple_legs,
+                ibcontract_with_legs=ibcontract_with_legs,
+            )
 
         return ibcontract_with_legs
 
@@ -178,28 +207,40 @@ class ibContractsClient(ibClient):
 
         return cache
 
-    def _get_ib_futures_contract_from_cache(self, contract_object_to_use: futuresContract,
-                                            trade_list_for_multiple_legs: tradeQuantity = None) -> ibcontractWithLegs:
+    def _get_ib_futures_contract_from_cache(
+        self,
+        contract_object_to_use: futuresContract,
+        trade_list_for_multiple_legs: tradeQuantity = None,
+    ) -> ibcontractWithLegs:
 
-        key = self._get_contract_cache_key(contract_object_to_use=contract_object_to_use,
-                                           trade_list_for_multiple_legs=trade_list_for_multiple_legs)
+        key = self._get_contract_cache_key(
+            contract_object_to_use=contract_object_to_use,
+            trade_list_for_multiple_legs=trade_list_for_multiple_legs,
+        )
         cache = self.contract_cache
         ibcontract_with_legs = cache.get(key, missing_contract)
 
         return ibcontract_with_legs
 
-    def _store_contract_in_cache(self,  contract_object_to_use: futuresContract,
-                                 ibcontract_with_legs: ibcontractWithLegs,
-                                 trade_list_for_multiple_legs: tradeQuantity = None
-                                 ):
+    def _store_contract_in_cache(
+        self,
+        contract_object_to_use: futuresContract,
+        ibcontract_with_legs: ibcontractWithLegs,
+        trade_list_for_multiple_legs: tradeQuantity = None,
+    ):
         cache = self.contract_cache
-        key = self._get_contract_cache_key(contract_object_to_use=contract_object_to_use,
-                                           trade_list_for_multiple_legs=trade_list_for_multiple_legs)
+        key = self._get_contract_cache_key(
+            contract_object_to_use=contract_object_to_use,
+            trade_list_for_multiple_legs=trade_list_for_multiple_legs,
+        )
 
         cache[key] = ibcontract_with_legs
 
-    def _get_contract_cache_key(self, contract_object_to_use: futuresContract,
-                                            trade_list_for_multiple_legs: tradeQuantity = None) -> str:
+    def _get_contract_cache_key(
+        self,
+        contract_object_to_use: futuresContract,
+        trade_list_for_multiple_legs: tradeQuantity = None,
+    ) -> str:
 
         if not contract_object_to_use.is_spread_contract():
             trade_list_suffix = ""
@@ -217,9 +258,10 @@ class ibContractsClient(ibClient):
         return key
 
     def _get_ib_futures_contract_from_broker(
-        self, contract_object_with_ib_data: futuresContract,
-            trade_list_for_multiple_legs: tradeQuantity=None,
-            allow_expired: bool = False
+        self,
+        contract_object_with_ib_data: futuresContract,
+        trade_list_for_multiple_legs: tradeQuantity = None,
+        allow_expired: bool = False,
     ) -> ibcontractWithLegs:
         """
         Return a complete and unique IB contract that matches futures_contract_object
@@ -236,39 +278,38 @@ class ibContractsClient(ibClient):
             ibcontract_with_legs = self._get_spread_ib_futures_contract(
                 futures_instrument_with_ib_data,
                 contract_date,
-                allow_expired = allow_expired,
+                allow_expired=allow_expired,
                 trade_list_for_multiple_legs=trade_list_for_multiple_legs,
             )
         else:
-            ibcontract_with_legs = self._get_vanilla_ib_futures_contract_with_legs(futures_instrument_with_ib_data=futures_instrument_with_ib_data,
-                                                                                   allow_expired = allow_expired,
-                                                                                   contract_date=contract_date)
+            ibcontract_with_legs = self._get_vanilla_ib_futures_contract_with_legs(
+                futures_instrument_with_ib_data=futures_instrument_with_ib_data,
+                allow_expired=allow_expired,
+                contract_date=contract_date,
+            )
 
         return ibcontract_with_legs
 
     def _get_vanilla_ib_futures_contract_with_legs(
-        self, futures_instrument_with_ib_data: futuresInstrumentWithIBConfigData,
-            contract_date: contractDate,
-            allow_expired: bool = False
-
+        self,
+        futures_instrument_with_ib_data: futuresInstrumentWithIBConfigData,
+        contract_date: contractDate,
+        allow_expired: bool = False,
     ) -> ibcontractWithLegs:
 
         ibcontract = self._get_vanilla_ib_futures_contract(
-            futures_instrument_with_ib_data,
-            contract_date,
-            allow_expired = allow_expired
+            futures_instrument_with_ib_data, contract_date, allow_expired=allow_expired
         )
         legs = []
 
         return ibcontractWithLegs(ibcontract, legs)
 
-
     def _get_spread_ib_futures_contract(
         self,
         futures_instrument_with_ib_data: futuresInstrumentWithIBConfigData,
         contract_date: contractDate,
-        trade_list_for_multiple_legs: tradeQuantity=None,
-            allow_expired: bool = False
+        trade_list_for_multiple_legs: tradeQuantity = None,
+        allow_expired: bool = False,
     ) -> ibcontractWithLegs:
         """
         Return a complete and unique IB contract that matches contract_object_with_ib_data
@@ -287,23 +328,26 @@ class ibContractsClient(ibClient):
         list_of_contract_dates = contract_date.list_of_single_contract_dates
         resolved_legs = [
             self._get_vanilla_ib_futures_contract(
-                futures_instrument_with_ib_data, contract_date,
-                allow_expired = allow_expired
+                futures_instrument_with_ib_data,
+                contract_date,
+                allow_expired=allow_expired,
             )
             for contract_date in list_of_contract_dates
         ]
 
-        ibcontract_with_legs = _add_legs_to_ib_contract(ibcontract = ibcontract,
-                                                        resolved_legs = resolved_legs,
-                                                        trade_list_for_multiple_legs=trade_list_for_multiple_legs)
+        ibcontract_with_legs = _add_legs_to_ib_contract(
+            ibcontract=ibcontract,
+            resolved_legs=resolved_legs,
+            trade_list_for_multiple_legs=trade_list_for_multiple_legs,
+        )
 
         return ibcontract_with_legs
 
-
     def _get_vanilla_ib_futures_contract(
-        self, futures_instrument_with_ib_data: futuresInstrumentWithIBConfigData,
-            contract_date: contractDate,
-            allow_expired: bool = False
+        self,
+        futures_instrument_with_ib_data: futuresInstrumentWithIBConfigData,
+        contract_date: contractDate,
+        allow_expired: bool = False,
     ) -> Contract:
         """
         Return a complete and unique IB contract that matches contract_object_with_ib_data
@@ -313,16 +357,22 @@ class ibContractsClient(ibClient):
         :return: a single ib contract object
         """
 
-        ibcontract = get_ib_contract_with_specific_expiry(contract_date=contract_date,
-                                                          futures_instrument_with_ib_data = futures_instrument_with_ib_data)
+        ibcontract = get_ib_contract_with_specific_expiry(
+            contract_date=contract_date,
+            futures_instrument_with_ib_data=futures_instrument_with_ib_data,
+        )
 
         # We could get multiple contracts here in case we have 'yyyymm' and not
         #    specified expiry date for VIX
-        ibcontract_list = self.ib_get_contract_chain(ibcontract, allow_expired = allow_expired)
+        ibcontract_list = self.ib_get_contract_chain(
+            ibcontract, allow_expired=allow_expired
+        )
 
         try:
-            resolved_contract = resolve_unique_contract_from_ibcontract_list(ibcontract_list=ibcontract_list,
-                                                                             futures_instrument_with_ib_data=futures_instrument_with_ib_data)
+            resolved_contract = resolve_unique_contract_from_ibcontract_list(
+                ibcontract_list=ibcontract_list,
+                futures_instrument_with_ib_data=futures_instrument_with_ib_data,
+            )
         except Exception as exception:
             self.log.warn(
                 "%s could not resolve contracts: %s"
@@ -332,7 +382,7 @@ class ibContractsClient(ibClient):
 
         return resolved_contract
 
-    def ib_resolve_unique_contract(self, ibcontract_pattern, log:logger=None):
+    def ib_resolve_unique_contract(self, ibcontract_pattern, log: logger = None):
         """
         Returns the 'resolved' IB contract based on a pattern. We expect a unique contract.
 
@@ -349,8 +399,9 @@ class ibContractsClient(ibClient):
 
         if len(contract_chain) > 1:
             log.warn(
-                "Got multiple contracts for %s when only expected a single contract: Check contract date" %
-                str(ibcontract_pattern))
+                "Got multiple contracts for %s when only expected a single contract: Check contract date"
+                % str(ibcontract_pattern)
+            )
             return missing_contract
 
         if len(contract_chain) == 0:
@@ -379,8 +430,9 @@ class ibContractsClient(ibClient):
 
         return contract_chain
 
-    def ib_get_contract_chain(self, ibcontract_pattern: Contract,
-                              allow_expired: bool = False) -> list:
+    def ib_get_contract_chain(
+        self, ibcontract_pattern: Contract, allow_expired: bool = False
+    ) -> list:
         """
         Get all the IB contracts matching a pattern.
 
@@ -388,11 +440,10 @@ class ibContractsClient(ibClient):
         :return: list of ibContracts
         """
         ibcontract_pattern.includeExpired = allow_expired
-        new_contract_details_list = self.ib.reqContractDetails(
-            ibcontract_pattern)
+        new_contract_details_list = self.ib.reqContractDetails(ibcontract_pattern)
 
         ibcontract_list = [
-            contract_details.contract for contract_details in new_contract_details_list]
+            contract_details.contract for contract_details in new_contract_details_list
+        ]
 
         return ibcontract_list
-

@@ -3,7 +3,6 @@ from sysobjects.production.timed_storage import timedEntry
 
 
 class capitalEntry(timedEntry):
-
     @property
     def required_argument_names(self) -> list:
         return ["capital_value"]  # compulsory args
@@ -24,15 +23,19 @@ class totalCapitalUpdater(object):
     """
     All values must be set, we only include as named keywords to avoid mixups
     """
-    def __init__(self, new_broker_account_value: float = missing_data,
-                 prev_total_capital: float = missing_data,
-                 prev_maximum_capital: float = missing_data,
-                 prev_broker_account_value: float = missing_data,
-                 calc_method: str = missing_data):
+
+    def __init__(
+        self,
+        new_broker_account_value: float = missing_data,
+        prev_total_capital: float = missing_data,
+        prev_maximum_capital: float = missing_data,
+        prev_broker_account_value: float = missing_data,
+        calc_method: str = missing_data,
+    ):
 
         self._new_broker_account_value = new_broker_account_value
         self._calc_method = calc_method
-        self._prev_broker_account_value  = prev_broker_account_value
+        self._prev_broker_account_value = prev_broker_account_value
         self._prev_total_capital = prev_total_capital
         self._prev_maximum_capital = prev_maximum_capital
 
@@ -58,37 +61,49 @@ class totalCapitalUpdater(object):
 
     @property
     def new_total_capital(self) -> float:
-        new_total_capital =  getattr(self, "_new_total_capital", missing_data)
+        new_total_capital = getattr(self, "_new_total_capital", missing_data)
         if new_total_capital is missing_data:
-            raise Exception("Need to run calculate_new_total_and_max_capital_given_pandl()")
+            raise Exception(
+                "Need to run calculate_new_total_and_max_capital_given_pandl()"
+            )
 
         return new_total_capital
-
 
     @property
     def new_maximum_capital(self) -> float:
         new_max_capital = getattr(self, "_new_maximum_capital", missing_data)
         if new_max_capital is missing_data:
-            raise Exception("Need to run calculate_new_total_and_max_capital_given_pandl()")
+            raise Exception(
+                "Need to run calculate_new_total_and_max_capital_given_pandl()"
+            )
 
         return new_max_capital
 
     @property
     def profit_and_loss(self) -> float:
-        if self.new_broker_account_value is missing_data or self.prev_broker_account_value is missing_data:
+        if (
+            self.new_broker_account_value is missing_data
+            or self.prev_broker_account_value is missing_data
+        ):
             return missing_data
         return self.new_broker_account_value - self.prev_broker_account_value
 
-    def check_pandl_size(self, check_limit:float = 0.1):
+    def check_pandl_size(self, check_limit: float = 0.1):
         profit_and_loss = self.profit_and_loss
         prev_broker_account_value = self.prev_broker_account_value
 
         abs_perc_change = abs(profit_and_loss / prev_broker_account_value)
         if abs_perc_change > check_limit:
             raise Exception(
-                "New capital with new account value of %0.f profit of %.0f is more than %.1f%% away from original of %.0f, limit is %.1f%%" %
-                (self.new_broker_account_value,
-                 profit_and_loss, abs_perc_change * 100, prev_broker_account_value, check_limit))
+                "New capital with new account value of %0.f profit of %.0f is more than %.1f%% away from original of %.0f, limit is %.1f%%"
+                % (
+                    self.new_broker_account_value,
+                    profit_and_loss,
+                    abs_perc_change * 100,
+                    prev_broker_account_value,
+                    check_limit,
+                )
+            )
 
     def calculate_new_total_and_max_capital_given_pandl(self):
         """
@@ -107,9 +122,7 @@ class totalCapitalUpdater(object):
         elif calc_method == "fixed":
             self._fixed_capital_calculation()
         else:
-            raise Exception(
-                "Capital method should be one of full, half or fixed")
-
+            raise Exception("Capital method should be one of full, half or fixed")
 
     def _full_capital_calculation(self):
         """
@@ -131,7 +144,6 @@ class totalCapitalUpdater(object):
 
         self._new_maximum_capital = new_maximum_capital
         self._new_total_capital = new_total_capital
-
 
     def _half_capital_calculation(self):
         """

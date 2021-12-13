@@ -8,46 +8,56 @@ from sysexecution.orders.base_orders import (
     no_order_id,
     no_children,
     no_parent,
-     tradeQuantity, orderType)
+    tradeQuantity,
+    orderType,
+)
 
 from sysobjects.production.tradeable_object import instrumentStrategy
 
+
 class instrumentOrderType(orderType):
     def allowed_types(self):
-        return ['best', 'market', 'limit', 'Zero-roll-order', 'balance_trade', 'panic', 'transfer_trade']
+        return [
+            "best",
+            "market",
+            "limit",
+            "Zero-roll-order",
+            "balance_trade",
+            "panic",
+            "transfer_trade",
+        ]
 
-zero_roll_order_type = instrumentOrderType('Zero-roll-order')
-balance_order_type = instrumentOrderType('balance_trade')
-transfer_order_type = instrumentOrderType('transfer_trade')
-market_order_type = instrumentOrderType('market')
-best_order_type = instrumentOrderType('best')
-limit_order_type = instrumentOrderType('limit')
+
+zero_roll_order_type = instrumentOrderType("Zero-roll-order")
+balance_order_type = instrumentOrderType("balance_trade")
+transfer_order_type = instrumentOrderType("transfer_trade")
+market_order_type = instrumentOrderType("market")
+best_order_type = instrumentOrderType("best")
+limit_order_type = instrumentOrderType("limit")
+
 
 class instrumentOrder(Order):
     def __init__(
         self,
         *args,
-        fill: tradeQuantity=None,
+        fill: tradeQuantity = None,
         filled_price: float = None,
         fill_datetime: datetime.datetime = None,
-        locked: bool=False,
-        order_id: int =no_order_id,
-        parent: int =no_parent,
-        children: list=no_children,
-        active:bool =True,
+        locked: bool = False,
+        order_id: int = no_order_id,
+        parent: int = no_parent,
+        children: list = no_children,
+        active: bool = True,
         order_type: instrumentOrderType = instrumentOrderType("best"),
-
-        limit_price: float=None,
-        limit_contract: str=None,
-
-        reference_datetime: datetime.datetime=None,
-        reference_price: float=None,
-        reference_contract: str=None,
-
-        generated_datetime: datetime.datetime=None,
-        manual_trade: bool=False,
-        roll_order: bool=False,
-            **kwargs_not_used
+        limit_price: float = None,
+        limit_contract: str = None,
+        reference_datetime: datetime.datetime = None,
+        reference_price: float = None,
+        reference_contract: str = None,
+        generated_datetime: datetime.datetime = None,
+        manual_trade: bool = False,
+        roll_order: bool = False,
+        **kwargs_not_used
     ):
         """
 
@@ -82,15 +92,13 @@ class instrumentOrder(Order):
         :param type: str
         """
         if len(args) == 2:
-            tradeable_object = instrumentStrategy.from_key(
-                args[0])
+            tradeable_object = instrumentStrategy.from_key(args[0])
             trade = args[1]
         else:
             strategy = args[0]
             instrument = args[1]
             trade = args[2]
-            tradeable_object = instrumentStrategy(
-                strategy, instrument)
+            tradeable_object = instrumentStrategy(strategy, instrument)
 
         if generated_datetime is None:
             generated_datetime = datetime.datetime.now()
@@ -106,20 +114,20 @@ class instrumentOrder(Order):
             generated_datetime=generated_datetime,
         )
 
-        super().__init__(tradeable_object,
-                        trade= trade,
-                        fill = fill,
-                        filled_price= filled_price,
-                        fill_datetime = fill_datetime,
-                        locked = locked,
-                        order_id=order_id,
-                        parent = parent,
-                        children= children,
-                        active=active,
-                        order_type=order_type,
-                        ** order_info
-                        )
-
+        super().__init__(
+            tradeable_object,
+            trade=trade,
+            fill=fill,
+            filled_price=filled_price,
+            fill_datetime=fill_datetime,
+            locked=locked,
+            order_id=order_id,
+            parent=parent,
+            children=children,
+            active=active,
+            order_type=order_type,
+            **order_info
+        )
 
     @classmethod
     def from_dict(instrumentOrder, order_as_dict):
@@ -137,7 +145,6 @@ class instrumentOrder(Order):
 
         order_info = order_as_dict
 
-
         order = instrumentOrder(
             key,
             trade,
@@ -149,7 +156,7 @@ class instrumentOrder(Order):
             fill_datetime=fill_datetime,
             filled_price=filled_price,
             active=active,
-            order_type = order_type,
+            order_type=order_type,
             **order_info
         )
 
@@ -229,5 +236,3 @@ class instrumentOrder(Order):
         )
 
         return new_log
-
-

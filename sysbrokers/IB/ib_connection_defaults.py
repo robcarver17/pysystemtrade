@@ -30,8 +30,8 @@ def ib_defaults(**kwargs):
         output_dict[param_name] = param_value
 
     # Get from dictionary
-    ipaddress = output_dict['ib_ipaddress']
-    port = output_dict['ib_port']
-    idoffset = output_dict['ib_idoffset']
+    ipaddress = output_dict["ib_ipaddress"]
+    port = output_dict["ib_port"]
+    idoffset = output_dict["ib_idoffset"]
 
     return ipaddress, port, idoffset

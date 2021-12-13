@@ -10,7 +10,7 @@ class brokerClientIdData(baseData):
 
     def __init__(
         self,
-            idoffset: int = 0,
+        idoffset: int = 0,
         log=logtoscreen("brokerClientIdTracker"),
     ):
 
@@ -25,7 +25,7 @@ class brokerClientIdData(baseData):
     def __repr__(self):
         return "Tracking broker client IDs"
 
-    def return_valid_client_id(self, clientid_to_try: int=arg_not_supplied) -> int:
+    def return_valid_client_id(self, clientid_to_try: int = arg_not_supplied) -> int:
         """
         If clientid_to_try is None, return the next free ID
         If clientid_to_try is being used, return the next free ID, otherwise allow that to be used
@@ -46,8 +46,7 @@ class brokerClientIdData(baseData):
 
         return clientid_to_try
 
-
-    def _is_clientid_used(self, clientid: int)-> bool:
+    def _is_clientid_used(self, clientid: int) -> bool:
         """
         Checks if a clientis is in use
         :param clientid: int
@@ -59,7 +58,6 @@ class brokerClientIdData(baseData):
         else:
             return False
 
-
     def _get_and_lock_next_clientid(self) -> int:
         """
         Returns a client id which will be locked so no other use can use it
@@ -68,7 +66,9 @@ class brokerClientIdData(baseData):
         """
 
         current_list_of_ids = self._get_list_of_clientids()
-        next_id = get_next_id_from_current_list(current_list_of_ids, id_offset=self.idoffset)
+        next_id = get_next_id_from_current_list(
+            current_list_of_ids, id_offset=self.idoffset
+        )
 
         # lock
         self._lock_clientid(next_id)
@@ -88,7 +88,9 @@ class brokerClientIdData(baseData):
         :return:
         """
         client_id_list = self._get_list_of_clientids()
-        self.log.critical("Clearing all broker client IDs: if anything still running will probably break!")
+        self.log.critical(
+            "Clearing all broker client IDs: if anything still running will probably break!"
+        )
         for client_id in client_id_list:
             self.release_clientid(client_id)
 
@@ -107,19 +109,21 @@ def get_next_id_from_current_list(current_list_of_ids: list, id_offset: int = 0)
         # no IDS in use
         return id_offset
 
-    full_set_of_available_ids = set(
-        range(id_offset, max(current_list_of_ids) + 1)
-    )
+    full_set_of_available_ids = set(range(id_offset, max(current_list_of_ids) + 1))
 
-    next_id = get_next_id_from_current_list_and_full_set(current_list_of_ids, full_set_of_available_ids)
+    next_id = get_next_id_from_current_list_and_full_set(
+        current_list_of_ids, full_set_of_available_ids
+    )
 
     return next_id
 
 
-def get_next_id_from_current_list_and_full_set(current_list_of_ids: list, full_set_of_available_ids: set) -> int:
+def get_next_id_from_current_list_and_full_set(
+    current_list_of_ids: list, full_set_of_available_ids: set
+) -> int:
 
     unused_values = full_set_of_available_ids - set(current_list_of_ids)
-    if len(unused_values)==0:
+    if len(unused_values) == 0:
         # no gaps, return the higest number plus 1
         return max(current_list_of_ids) + 1
     else:

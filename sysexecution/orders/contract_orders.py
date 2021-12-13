@@ -6,25 +6,32 @@ from sysexecution.orders.base_orders import (
     no_order_id,
     no_children,
     no_parent,
-    resolve_inputs_to_order, orderType)
+    resolve_inputs_to_order,
+    orderType,
+)
 
 from sysexecution.trade_qty import tradeQuantity
 
-from sysobjects.production.tradeable_object import futuresContractStrategy, instrumentStrategy, futuresContract
+from sysobjects.production.tradeable_object import (
+    futuresContractStrategy,
+    instrumentStrategy,
+    futuresContract,
+)
 from syscore.genutils import none_to_object, object_to_none
 from syscore.objects import success
 
 
-
 class contractOrderType(orderType):
     def allowed_types(self):
-        return ['best', 'market', 'limit', 'balance_trade', '', 'panic']
+        return ["best", "market", "limit", "balance_trade", "", "panic"]
 
-best_order_type  = contractOrderType('best')
-balance_order_type = contractOrderType('balance_trade')
-panic_order_type = contractOrderType('panic')
+
+best_order_type = contractOrderType("best")
+balance_order_type = contractOrderType("balance_trade")
+panic_order_type = contractOrderType("panic")
 
 NO_CONTROLLING_ALGO = None
+
 
 class contractOrder(Order):
     def __init__(
@@ -39,18 +46,15 @@ class contractOrder(Order):
         children: list = no_children,
         active: bool = True,
         order_type: contractOrderType = contractOrderType("best"),
-
-        limit_price: float =None,
-        reference_price: float=None,
-        generated_datetime: datetime.datetime=None,
-
-        manual_fill:bool =False,
-        manual_trade: bool=False,
-        roll_order: bool=False,
-        inter_spread_order: bool=False,
-
-        algo_to_use: str="",
-        reference_of_controlling_algo: str=None,
+        limit_price: float = None,
+        reference_price: float = None,
+        generated_datetime: datetime.datetime = None,
+        manual_fill: bool = False,
+        manual_trade: bool = False,
+        roll_order: bool = False,
+        inter_spread_order: bool = False,
+        algo_to_use: str = "",
+        reference_of_controlling_algo: str = None,
         **kwargs_ignored
     ):
         """
@@ -111,24 +115,23 @@ class contractOrder(Order):
             calendar_spread_order=calendar_spread_order,
             inter_spread_order=inter_spread_order,
             generated_datetime=generated_datetime,
-            reference_of_controlling_algo=reference_of_controlling_algo
+            reference_of_controlling_algo=reference_of_controlling_algo,
         )
 
-        super().__init__(tradeable_object,
-                        trade= resolved_trade,
-                        fill = resolved_fill,
-                        filled_price= filled_price,
-                        fill_datetime = fill_datetime,
-                        locked = locked,
-                        order_id=order_id,
-                        parent = parent,
-                        children= children,
-                        active=active,
-                        order_type=order_type,
-                        **order_info
-                        )
-
-
+        super().__init__(
+            tradeable_object,
+            trade=resolved_trade,
+            fill=resolved_fill,
+            filled_price=filled_price,
+            fill_datetime=fill_datetime,
+            locked=locked,
+            order_id=order_id,
+            parent=parent,
+            children=children,
+            active=active,
+            order_type=order_type,
+            **order_info
+        )
 
     @classmethod
     def from_dict(contractOrder, order_as_dict):
@@ -159,7 +162,7 @@ class contractOrder(Order):
             active=active,
             fill_datetime=fill_datetime,
             filled_price=filled_price,
-            order_type = order_type,
+            order_type=order_type,
             **order_info
         )
 
@@ -229,7 +232,6 @@ class contractOrder(Order):
     def manual_fill(self, manual_fill):
         self.order_info["manual_fill"] = manual_fill
 
-
     @property
     def roll_order(self):
         return bool(self.order_info["roll_order"])
@@ -243,7 +245,9 @@ class contractOrder(Order):
         return self.order_info["reference_of_controlling_algo"]
 
     def is_order_controlled_by_algo(self):
-        return self.order_info["reference_of_controlling_algo"] is not NO_CONTROLLING_ALGO
+        return (
+            self.order_info["reference_of_controlling_algo"] is not NO_CONTROLLING_ALGO
+        )
 
     def add_controlling_algo_ref(self, control_algo_ref):
         if self.reference_of_controlling_algo == control_algo_ref:
@@ -285,15 +289,17 @@ class contractOrder(Order):
 
         return new_log
 
+
 @dataclass
-class contractOrderKeyArguments():
+class contractOrderKeyArguments:
     tradeable_object: futuresContractStrategy
     trade: tradeQuantity
     fill: tradeQuantity = None
 
     def resolve_inputs_to_order_with_key_arguments(self):
-        resolved_trade, resolved_fill = resolve_inputs_to_order(trade=self.trade,
-                                                                                       fill=self.fill)
+        resolved_trade, resolved_fill = resolve_inputs_to_order(
+            trade=self.trade, fill=self.fill
+        )
 
         self.fill = resolved_fill
         self.trade = resolved_trade
@@ -306,7 +312,9 @@ class contractOrderKeyArguments():
         self.tradeable_object.sort_contracts_with_idx(sort_order)
 
 
-def from_contract_order_args_to_resolved_args(args: tuple, fill: tradeQuantity) -> contractOrderKeyArguments:
+def from_contract_order_args_to_resolved_args(
+    args: tuple, fill: tradeQuantity
+) -> contractOrderKeyArguments:
 
     # different ways of specifying tradeable object
     key_arguments = split_contract_order_args(args, fill)
@@ -319,8 +327,10 @@ def from_contract_order_args_to_resolved_args(args: tuple, fill: tradeQuantity) 
 
     return key_arguments
 
-def split_contract_order_args(args: tuple, fill: tradeQuantity) \
-        -> contractOrderKeyArguments:
+
+def split_contract_order_args(
+    args: tuple, fill: tradeQuantity
+) -> contractOrderKeyArguments:
     if len(args) == 2:
         tradeable_object = futuresContractStrategy.from_key(args[0])
         trade = args[1]
@@ -329,16 +339,14 @@ def split_contract_order_args(args: tuple, fill: tradeQuantity) \
         instrument = args[1]
         contract_id = args[2]
         trade = args[3]
-        tradeable_object = futuresContractStrategy(
-            strategy, instrument, contract_id
-        )
+        tradeable_object = futuresContractStrategy(strategy, instrument, contract_id)
     else:
         raise Exception(
             "contractOrder(strategy, instrument, contractid, trade,  **kwargs) or ('strategy/instrument/contract_order_id', trade, **kwargs) "
         )
 
-    key_arguments = contractOrderKeyArguments(tradeable_object=tradeable_object, trade=trade, fill=fill)
+    key_arguments = contractOrderKeyArguments(
+        tradeable_object=tradeable_object, trade=trade, fill=fill
+    )
 
     return key_arguments
-
-

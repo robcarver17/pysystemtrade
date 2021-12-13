@@ -1,16 +1,18 @@
 import datetime
 
-from sysbrokers.IB.client.ib_client import ibClient, STALE_SECONDS_ALLOWED_ACCOUNT_SUMMARY
+from sysbrokers.IB.client.ib_client import (
+    ibClient,
+    STALE_SECONDS_ALLOWED_ACCOUNT_SUMMARY,
+)
 
 from syscore.objects import arg_not_supplied
 
 from sysobjects.spot_fx_prices import currencyValue, listOfCurrencyValues
 
-class ibAccountingClient(ibClient):
 
+class ibAccountingClient(ibClient):
     def broker_get_account_value_across_currency(
-        self,
-            account_id: str = arg_not_supplied
+        self, account_id: str = arg_not_supplied
     ) -> listOfCurrencyValues:
 
         list_of_currencies = self._get_list_of_currencies_for_liquidation_values()
@@ -18,8 +20,9 @@ class ibAccountingClient(ibClient):
             [
                 currencyValue(
                     currency,
-                    self._get_liquidation_value_for_currency_across_accounts(currency,
-                                                                             account_id = account_id),
+                    self._get_liquidation_value_for_currency_across_accounts(
+                        currency, account_id=account_id
+                    ),
                 )
                 for currency in list_of_currencies
             ]
@@ -29,9 +32,9 @@ class ibAccountingClient(ibClient):
 
         return list_of_values_per_currency
 
-    def _get_liquidation_value_for_currency_across_accounts(self,
-                                                            currency: str,
-                                                            account_id:str = arg_not_supplied) -> float:
+    def _get_liquidation_value_for_currency_across_accounts(
+        self, currency: str, account_id: str = arg_not_supplied
+    ) -> float:
         liquidiation_values_across_accounts_dict = (
             self._get_net_liquidation_value_across_accounts()
         )
@@ -65,7 +68,10 @@ class ibAccountingClient(ibClient):
         accounts = account_summary_dict.keys()
         liquidiation_values_across_accounts_dict = dict(
             [
-                (account_id, self._get_liquidation_values_for_single_account(account_id))
+                (
+                    account_id,
+                    self._get_liquidation_values_for_single_account(account_id),
+                )
                 for account_id in accounts
             ]
         )
@@ -76,7 +82,6 @@ class ibAccountingClient(ibClient):
         # returns a dict, with currencies as keys
         account_summary_dict = self._ib_get_account_summary()
         return account_summary_dict[account_id]["NetLiquidation"]
-
 
     def _ib_get_account_summary(self) -> dict:
         data_stale = self._is_ib_account_summary_cache_stale()
@@ -99,13 +104,15 @@ class ibAccountingClient(ibClient):
             return False
 
     def _get_elapsed_seconds_since_last_cache_update(self) -> float:
-        account_summary_data_update = getattr(self, "_account_summary_data_update", None)
+        account_summary_data_update = getattr(
+            self, "_account_summary_data_update", None
+        )
         if account_summary_data_update is None:
             # force an update
-            return STALE_SECONDS_ALLOWED_ACCOUNT_SUMMARY*9999
+            return STALE_SECONDS_ALLOWED_ACCOUNT_SUMMARY * 9999
 
         elapsed_seconds = (
-                datetime.datetime.now() - account_summary_data_update
+            datetime.datetime.now() - account_summary_data_update
         ).total_seconds()
 
         return elapsed_seconds
@@ -115,7 +122,6 @@ class ibAccountingClient(ibClient):
         self._record_cache_update()
         self._account_summary_data = account_summary_dict
 
-
     def _record_cache_update(self):
         self._account_summary_data_update = datetime.datetime.now()
 
@@ -124,15 +130,13 @@ class ibAccountingClient(ibClient):
         account_summary_rawdata = self.ib.accountSummary()
 
         # Weird format let's clean it up
-        account_summary_dict = clean_up_account_summary(
-            account_summary_rawdata)
+        account_summary_dict = clean_up_account_summary(account_summary_rawdata)
 
         return account_summary_dict
 
 
 def clean_up_account_summary(account_summary_rawdata: list) -> dict:
-    list_of_accounts = _unique_list_from_total(
-        account_summary_rawdata, "account")
+    list_of_accounts = _unique_list_from_total(account_summary_rawdata, "account")
     list_of_tags = _unique_list_from_total(account_summary_rawdata, "tag")
 
     account_summary_dict = {}
@@ -154,8 +158,8 @@ def clean_up_account_summary(account_summary_rawdata: list) -> dict:
 
 
 def _unique_list_from_total(account_summary_data: list, tag_name: str):
-    list_of_items = [getattr(account_value, tag_name)
-                     for account_value in account_summary_data]
+    list_of_items = [
+        getattr(account_value, tag_name) for account_value in account_summary_data
+    ]
     list_of_items = list(set(list_of_items))
     return list_of_items
-

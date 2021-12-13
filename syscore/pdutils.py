@@ -15,11 +15,10 @@ from syscore.dateutils import (
     BUSINESS_DAYS_IN_YEAR,
     time_matches,
     CALENDAR_DAYS_IN_YEAR,
-SECONDS_IN_YEAR,
+    SECONDS_IN_YEAR,
     NOTIONAL_CLOSING_TIME_AS_PD_OFFSET,
-WEEKS_IN_YEAR,
-MONTHS_IN_YEAR
-
+    WEEKS_IN_YEAR,
+    MONTHS_IN_YEAR,
 )
 from syscore.objects import arg_not_supplied
 
@@ -31,20 +30,25 @@ def prices_to_daily_prices(x):
 
 
 def how_many_times_a_year_is_pd_frequency(frequency: str) -> float:
-    DICT_OF_FREQ = {'B': BUSINESS_DAYS_IN_YEAR,
-                    'W': WEEKS_IN_YEAR,
-                    'M': MONTHS_IN_YEAR,
-                    'D': CALENDAR_DAYS_IN_YEAR}
+    DICT_OF_FREQ = {
+        "B": BUSINESS_DAYS_IN_YEAR,
+        "W": WEEKS_IN_YEAR,
+        "M": MONTHS_IN_YEAR,
+        "D": CALENDAR_DAYS_IN_YEAR,
+    }
 
     times_a_year = DICT_OF_FREQ.get(frequency, None)
 
     if times_a_year is None:
-        raise Exception("Frequency %s is no good I only know about %s" %
-                        (frequency, str(list(DICT_OF_FREQ.keys()))))
+        raise Exception(
+            "Frequency %s is no good I only know about %s"
+            % (frequency, str(list(DICT_OF_FREQ.keys())))
+        )
 
     return float(times_a_year)
 
-def sum_series(list_of_series: list, ffill = True)-> pd.Series:
+
+def sum_series(list_of_series: list, ffill=True) -> pd.Series:
     list_of_series_as_df = pd.concat(list_of_series, axis=1)
     if ffill:
         list_of_series_as_df = list_of_series_as_df.ffill()
@@ -68,15 +72,13 @@ def turnover(x, y, smooth_y_days: int = 250):
     else:
         daily_y = y.reindex(daily_x.index, method="ffill")
         ## need to apply a drag to this or will give zero turnover for constant risk
-        daily_y =daily_y.ewm(smooth_y_days).mean()
-
+        daily_y = daily_y.ewm(smooth_y_days).mean()
 
     norm_x = daily_x / daily_y.ffill()
 
     avg_daily = float(norm_x.diff().abs().mean())
 
     return avg_daily * BUSINESS_DAYS_IN_YEAR
-
 
 
 def uniquets(x):
@@ -87,23 +89,18 @@ def uniquets(x):
     return x
 
 
-
 class listOfDataFrames(list):
     def ffill(self):
         ffill_data = [item.ffill() for item in self]
         return listOfDataFrames(ffill_data)
 
     def resample(self, frequency: str):
-        data_resampled = [
-            data_item.resample(frequency).last() for data_item in self
-        ]
+        data_resampled = [data_item.resample(frequency).last() for data_item in self]
 
         return listOfDataFrames(data_resampled)
 
     def resample_sum(self, frequency: str):
-        data_resampled = [
-            data_item.resample(frequency).sum() for data_item in self
-        ]
+        data_resampled = [data_item.resample(frequency).sum() for data_item in self]
 
         return listOfDataFrames(data_resampled)
 
@@ -119,10 +116,7 @@ class listOfDataFrames(list):
         return reindexed_data
 
     def reindex(self, new_index: list):
-        data_reindexed = [
-            data_item.reindex(new_index)
-            for data_item in self
-        ]
+        data_reindexed = [data_item.reindex(new_index) for data_item in self]
         return listOfDataFrames(data_reindexed)
 
     def common_index(self):
@@ -165,7 +159,6 @@ class listOfDataFrames(list):
         return result
 
 
-
 def stacked_df_with_added_time_from_list(data: listOfDataFrames) -> pd.DataFrame:
     """
     Create a single data frame from list of data frames
@@ -177,7 +170,6 @@ def stacked_df_with_added_time_from_list(data: listOfDataFrames) -> pd.DataFrame
     THIS WILL ALSO DESTROY ANY AUTOCORRELATION PROPERTIES
     """
 
-
     if isinstance(data, list) or isinstance(data, listOfDataFrames):
         column_names = sorted(
             set(sum([list(data_item.columns) for data_item in data], []))
@@ -188,8 +180,7 @@ def stacked_df_with_added_time_from_list(data: listOfDataFrames) -> pd.DataFrame
 
         # add on an offset
         for (offset_value, data_item) in enumerate(new_data):
-            data_item.index = data_item.index + \
-                pd.Timedelta("%dus" % offset_value)
+            data_item.index = data_item.index + pd.Timedelta("%dus" % offset_value)
 
         # pooled
         # stack everything up
@@ -223,9 +214,12 @@ def must_have_item(slice_data):
 
     return list(~slice_data.isna().all().values)
 
+
 def get_bootstrap_series(data: pd.DataFrame):
     length_of_series = len(data.index)
-    random_indices = [int(random.uniform(0,length_of_series)) for _unused in range(length_of_series)]
+    random_indices = [
+        int(random.uniform(0, length_of_series)) for _unused in range(length_of_series)
+    ]
     bootstrap_data = data.iloc[random_indices]
 
     return bootstrap_data
@@ -279,8 +273,9 @@ def pd_readcsv(
     return new_ans
 
 
-def fix_weights_vs_position_or_forecast(weights: pd.DataFrame,
-                                        position_or_forecast: pd.DataFrame):
+def fix_weights_vs_position_or_forecast(
+    weights: pd.DataFrame, position_or_forecast: pd.DataFrame
+):
     """
     Take a matrix of weights and positions/forecasts (pdm)
 
@@ -316,17 +311,18 @@ def fix_weights_vs_position_or_forecast(weights: pd.DataFrame,
 
     return normalised_weights
 
+
 def weights_sum_to_one(weights: pd.DataFrame):
     sum_weights = weights.sum(axis=1)
-    sum_weights[sum_weights==0.0] = 0.0001
+    sum_weights[sum_weights == 0.0] = 0.0001
     weight_multiplier = 1.0 / sum_weights
-    weight_multiplier_array = np.array([weight_multiplier]*len(weights.columns))
+    weight_multiplier_array = np.array([weight_multiplier] * len(weights.columns))
     weight_values = weights.values
 
     normalised_weights_np = weight_multiplier_array.transpose() * weight_values
-    normalised_weights = pd.DataFrame(normalised_weights_np,
-                                      columns = weights.columns,
-                                      index = weights.index)
+    normalised_weights = pd.DataFrame(
+        normalised_weights_np, columns=weights.columns, index=weights.index
+    )
 
     return normalised_weights
 
@@ -345,7 +341,7 @@ def drawdown(x):
     return x - maxx
 
 
-def from_dict_of_values_to_df(data_dict: dict, long_ts_index, columns: list=None):
+def from_dict_of_values_to_df(data_dict: dict, long_ts_index, columns: list = None):
     """
     Turn a set of fixed values into a pd.dataframe that spans the long index
 
@@ -371,7 +367,6 @@ def from_dict_of_values_to_df(data_dict: dict, long_ts_index, columns: list=None
     return pd_dataframe
 
 
-
 def from_scalar_values_to_ts(scalar_value: float, long_ts_index) -> pd.Series:
     """
     Turn a set of fixed values into a pd.dataframe that spans the long index
@@ -382,10 +377,9 @@ def from_scalar_values_to_ts(scalar_value: float, long_ts_index) -> pd.Series:
     :return: pd.dataframe, column names from data_dict, values repeated scalars
     """
 
-    pd_series = pd.Series([scalar_value]*len(long_ts_index), index = long_ts_index)
+    pd_series = pd.Series([scalar_value] * len(long_ts_index), index=long_ts_index)
 
     return pd_series
-
 
 
 def create_arbitrary_pdseries(
@@ -412,10 +406,7 @@ def create_arbitrary_pdseries(
     Freq: B, dtype: int64
     """
 
-    date_index = pd.date_range(
-        start=date_start,
-        periods=len(data_list),
-        freq=freq)
+    date_index = pd.date_range(start=date_start, periods=len(data_list), freq=freq)
 
     pdseries = pd.Series(data_list, index=date_index)
 
@@ -438,21 +429,21 @@ def dataframe_pad(starting_df, column_list, padwith=0.0):
         else:
             return pd.Series(np.full(starting_df.shape[0], 0.0), starting_df.index)
 
-    new_data = [_pad_column(column_name, starting_df, padwith)
-                for column_name in column_list]
+    new_data = [
+        _pad_column(column_name, starting_df, padwith) for column_name in column_list
+    ]
 
     new_df = pd.concat(new_data, axis=1)
     new_df.columns = column_list
 
     return new_df
 
+
 def apply_abs_min(x: pd.Series, min_value=0.1):
-    x[(x<min_value) & (x>0)] = min_value
+    x[(x < min_value) & (x > 0)] = min_value
     x[(x > min_value) & (x < 0)] = -min_value
 
     return x
-
-
 
 
 def check_df_equals(x, y):
@@ -495,24 +486,37 @@ def set_pd_print_options():
 
 def closing_date_rows_in_pd_object(pd_object):
     return pd_object[
-        [time_matches(index_entry, NOTIONAL_CLOSING_TIME_AS_PD_OFFSET) for index_entry in pd_object.index]]
+        [
+            time_matches(index_entry, NOTIONAL_CLOSING_TIME_AS_PD_OFFSET)
+            for index_entry in pd_object.index
+        ]
+    ]
+
 
 def intraday_date_rows_in_pd_object(pd_object):
     return pd_object[
-        [not time_matches(index_entry, NOTIONAL_CLOSING_TIME_AS_PD_OFFSET) for index_entry in pd_object.index]]
+        [
+            not time_matches(index_entry, NOTIONAL_CLOSING_TIME_AS_PD_OFFSET)
+            for index_entry in pd_object.index
+        ]
+    ]
 
-def sumup_business_days_over_pd_series_without_double_counting_of_closing_data(pd_series):
+
+def sumup_business_days_over_pd_series_without_double_counting_of_closing_data(
+    pd_series,
+):
     closing_data = closing_date_rows_in_pd_object(pd_series)
     closing_data_summed = closing_data.resample("1B").sum()
     intraday_data = intraday_date_rows_in_pd_object(pd_series)
     intraday_data_summed = intraday_data.resample("1B").sum()
     intraday_data_summed.name = "intraday"
     both_sets_of_data = pd.concat([intraday_data_summed, closing_data_summed], axis=1)
-    both_sets_of_data[both_sets_of_data==0] = np.nan
+    both_sets_of_data[both_sets_of_data == 0] = np.nan
     joint_data = both_sets_of_data.ffill(axis=1)
-    joint_data = joint_data.iloc[:,1]
+    joint_data = joint_data.iloc[:, 1]
 
     return joint_data
+
 
 def replace_all_zeros_with_nan(result: pd.Series) -> pd.Series:
     check_result = copy(result)
@@ -524,28 +528,34 @@ def replace_all_zeros_with_nan(result: pd.Series) -> pd.Series:
 
 
 def spread_out_annualised_return_over_periods(data_as_annual):
-    period_intervals_in_seconds = data_as_annual.index.to_series().diff().dt.total_seconds()
+    period_intervals_in_seconds = (
+        data_as_annual.index.to_series().diff().dt.total_seconds()
+    )
     period_intervals_in_year_fractions = period_intervals_in_seconds / SECONDS_IN_YEAR
     data_per_period = data_as_annual * period_intervals_in_year_fractions
 
     return data_per_period
 
-def from_series_to_matching_df_frame(pd_series: pd.Series,
-                                     pd_df_to_match: pd.DataFrame,
-                                     method="ffill") -> pd.DataFrame:
+
+def from_series_to_matching_df_frame(
+    pd_series: pd.Series, pd_df_to_match: pd.DataFrame, method="ffill"
+) -> pd.DataFrame:
     list_of_columns = list(pd_df_to_match.columns)
     new_df = from_series_to_df_with_column_names(pd_series, list_of_columns)
     new_df = new_df.reindex(pd_df_to_match.index, method=method)
 
     return new_df
 
-def from_series_to_df_with_column_names(pd_series: pd.Series,
-                                        list_of_columns: list) -> pd.DataFrame:
 
-    new_df = pd.concat([pd_series]*len(list_of_columns), axis=1)
+def from_series_to_df_with_column_names(
+    pd_series: pd.Series, list_of_columns: list
+) -> pd.DataFrame:
+
+    new_df = pd.concat([pd_series] * len(list_of_columns), axis=1)
     new_df.columns = list_of_columns
 
     return new_df
+
 
 if __name__ == "__main__":
     import doctest
@@ -553,9 +563,9 @@ if __name__ == "__main__":
     doctest.testmod()
 
 
-def get_row_of_df_aligned_to_weights_as_dict(df: pd.DataFrame,
-                                             relevant_date: datetime.datetime = arg_not_supplied) \
-    -> dict:
+def get_row_of_df_aligned_to_weights_as_dict(
+    df: pd.DataFrame, relevant_date: datetime.datetime = arg_not_supplied
+) -> dict:
 
     if relevant_date is arg_not_supplied:
         data_at_date = df.iloc[-1]
@@ -567,8 +577,10 @@ def get_row_of_df_aligned_to_weights_as_dict(df: pd.DataFrame,
 
     return data_at_date.to_dict()
 
-def get_row_of_series(series: pd.Series,
-                                             relevant_date: datetime.datetime = arg_not_supplied):
+
+def get_row_of_series(
+    series: pd.Series, relevant_date: datetime.datetime = arg_not_supplied
+):
 
     if relevant_date is arg_not_supplied:
         data_at_date = series.values[-1]
@@ -589,12 +601,14 @@ def get_max_index_before_datetime(index, date_point):
     else:
         return matching_index_size - 1
 
+
 def years_in_data(data: pd.Series) -> list:
     all_years = [x.year for x in data.index]
     unique_years = list(set(all_years))
     unique_years.sort()
 
     return unique_years
+
 
 def calculate_cost_deflator(price: pd.Series) -> pd.Series:
     ## crude but doesn't matter

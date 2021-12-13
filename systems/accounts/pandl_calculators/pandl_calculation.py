@@ -1,4 +1,3 @@
-
 import pandas as pd
 import numpy as np
 
@@ -8,16 +7,16 @@ from syscore.dateutils import Frequency, DAILY_PRICE_FREQ
 
 
 class pandlCalculation(object):
-    def __init__(self,
-                 price: pd.Series,
-                 positions: pd.Series = arg_not_supplied,
-
-                 fx: pd.Series = arg_not_supplied,
-                 capital: pd.Series = arg_not_supplied,
-                 value_per_point: float = 1.0,
-                roundpositions = False,
-                delayfill = False
-                 ):
+    def __init__(
+        self,
+        price: pd.Series,
+        positions: pd.Series = arg_not_supplied,
+        fx: pd.Series = arg_not_supplied,
+        capital: pd.Series = arg_not_supplied,
+        value_per_point: float = 1.0,
+        roundpositions=False,
+        delayfill=False,
+    ):
 
         self._price = price
         self._positions = positions
@@ -33,16 +32,19 @@ class pandlCalculation(object):
         weighted_capital = apply_weighting(weight, self.capital)
         weighted_positions = apply_weighting(weight, self.positions)
 
-        return pandlCalculation(self.price,
-                 positions = weighted_positions,
-                 fx = self.fx,
-                 capital = weighted_capital,
-                 value_per_point = self.value_per_point,
-                roundpositions = self.roundpositions,
-                delayfill = self.delayfill)
+        return pandlCalculation(
+            self.price,
+            positions=weighted_positions,
+            fx=self.fx,
+            capital=weighted_capital,
+            value_per_point=self.value_per_point,
+            roundpositions=self.roundpositions,
+            delayfill=self.delayfill,
+        )
 
-    def capital_as_pd_series_for_frequency(self,
-                                           frequency: Frequency=DAILY_PRICE_FREQ) -> pd.Series:
+    def capital_as_pd_series_for_frequency(
+        self, frequency: Frequency = DAILY_PRICE_FREQ
+    ) -> pd.Series:
 
         capital = self.capital
         resample_freq = from_config_frequency_pandas_resample(frequency)
@@ -50,9 +52,9 @@ class pandlCalculation(object):
 
         return capital_at_frequency
 
-    def as_pd_series_for_frequency(self,
-                                   frequency: Frequency=DAILY_PRICE_FREQ,
-                                   **kwargs) -> pd.Series:
+    def as_pd_series_for_frequency(
+        self, frequency: Frequency = DAILY_PRICE_FREQ, **kwargs
+    ) -> pd.Series:
 
         as_pd_series = self.as_pd_series(**kwargs)
 
@@ -67,13 +69,11 @@ class pandlCalculation(object):
 
         return returns_at_frequency
 
-
-    def as_pd_series(self, percent = False):
+    def as_pd_series(self, percent=False):
         if percent:
             return self.percentage_pandl()
         else:
             return self.pandl_in_base_currency()
-
 
     def percentage_pandl(self) -> pd.Series:
         pandl_in_base = self.pandl_in_base_currency()
@@ -104,9 +104,11 @@ class pandlCalculation(object):
         pandl_in_points = self.pandl_in_points()
         pandl_in_ccy = self._pandl_in_instrument_ccy_given_points_pandl(pandl_in_points)
 
-        return  pandl_in_ccy
+        return pandl_in_ccy
 
-    def _pandl_in_instrument_ccy_given_points_pandl(self, pandl_in_points: pd.Series) -> pd.Series:
+    def _pandl_in_instrument_ccy_given_points_pandl(
+        self, pandl_in_points: pd.Series
+    ) -> pd.Series:
         point_size = self.value_per_point
 
         return pandl_in_points * point_size
@@ -122,8 +124,6 @@ class pandlCalculation(object):
         returns[returns.isna()] = 0.0
 
         return returns
-
-
 
     @property
     def price_returns(self) -> pd.Series:
@@ -164,7 +164,6 @@ class pandlCalculation(object):
             positions_to_use = positions_to_use.round()
 
         return positions_to_use
-
 
     def _get_passed_positions(self) -> pd.Series:
         positions = self._positions
@@ -207,6 +206,7 @@ class pandlCalculation(object):
     @property
     def _index_to_align_capital_to(self):
         return self.price.index
+
 
 def apply_weighting(weight: pd.Series, thing_to_weight: pd.Series) -> pd.Series:
     aligned_weight = weight.reindex(thing_to_weight.index).ffill()

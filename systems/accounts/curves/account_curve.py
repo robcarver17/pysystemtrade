@@ -1,34 +1,41 @@
 import pandas as pd
 import numpy as np
-from scipy.stats import skew,  ttest_1samp, norm
+from scipy.stats import skew, ttest_1samp, norm
 
 from syscore.dateutils import Frequency, from_frequency_to_times_per_year
 from syscore.pdutils import drawdown
 
-from systems.accounts.pandl_calculators.pandl_generic_costs import GROSS_CURVE, NET_CURVE, COSTS_CURVE, \
-    pandlCalculationWithGenericCosts
+from systems.accounts.pandl_calculators.pandl_generic_costs import (
+    GROSS_CURVE,
+    NET_CURVE,
+    COSTS_CURVE,
+    pandlCalculationWithGenericCosts,
+)
 
 QUANT_PERCENTILE_EXTREME = 0.01
 QUANT_PERCENTILE_STD = 0.3
 NORMAL_DISTR_RATIO = norm.ppf(QUANT_PERCENTILE_EXTREME) / norm.ppf(QUANT_PERCENTILE_STD)
 
-class accountCurve(pd.Series):
-    def __init__(self, pandl_calculator_with_costs: pandlCalculationWithGenericCosts,
-                 frequency: Frequency = Frequency.BDay,
-                 curve_type: str = NET_CURVE,
-                is_percentage: bool = False,
-                 weighted = False
-                 ):
 
-        as_pd_series = pandl_calculator_with_costs.as_pd_series_for_frequency( percent = is_percentage,
-                                                                 curve_type=curve_type,
-                                                                 frequency = frequency)
+class accountCurve(pd.Series):
+    def __init__(
+        self,
+        pandl_calculator_with_costs: pandlCalculationWithGenericCosts,
+        frequency: Frequency = Frequency.BDay,
+        curve_type: str = NET_CURVE,
+        is_percentage: bool = False,
+        weighted=False,
+    ):
+
+        as_pd_series = pandl_calculator_with_costs.as_pd_series_for_frequency(
+            percent=is_percentage, curve_type=curve_type, frequency=frequency
+        )
 
         super().__init__(as_pd_series)
 
         self._as_ts = as_pd_series
         self._pandl_calculator_with_costs = pandl_calculator_with_costs
-        self._frequency = frequency ## frequency type
+        self._frequency = frequency  ## frequency type
         self._curve_type = curve_type
         self._is_percentage = is_percentage
         self._weighted = weighted
@@ -40,103 +47,119 @@ class accountCurve(pd.Series):
             weight_comment = "Unweighted"
 
         return (
-            super().__repr__() +
-            "\n %s account curve; use object.stats() to see methods" %
-            weight_comment)
+            super().__repr__()
+            + "\n %s account curve; use object.stats() to see methods" % weight_comment
+        )
 
     def weight(self, weight: pd.Series):
         pandl_calculator = self.pandl_calculator_with_costs
         weighted_pandl_calculator = pandl_calculator.weight(weight)
 
-        return accountCurve(weighted_pandl_calculator,
-                            curve_type=self.curve_type,
-                            is_percentage=self.is_percentage,
-                            frequency=self.frequency,
-                            weighted=True)
-
+        return accountCurve(
+            weighted_pandl_calculator,
+            curve_type=self.curve_type,
+            is_percentage=self.is_percentage,
+            frequency=self.frequency,
+            weighted=True,
+        )
 
     ## TO RETURN A 'NEW' ACCOUNT CURVE
     @property
     def gross(self):
-        return accountCurve(self.pandl_calculator_with_costs,
-                            curve_type=GROSS_CURVE,
-                            is_percentage=self.is_percentage,
-                            frequency=self.frequency,
-                            weighted=self.weighted)
+        return accountCurve(
+            self.pandl_calculator_with_costs,
+            curve_type=GROSS_CURVE,
+            is_percentage=self.is_percentage,
+            frequency=self.frequency,
+            weighted=self.weighted,
+        )
 
     @property
     def net(self):
-        return accountCurve(self.pandl_calculator_with_costs,
-                            curve_type=NET_CURVE,
-                            is_percentage=self.is_percentage,
-                            frequency=self.frequency,
-                            weighted=self.weighted)
+        return accountCurve(
+            self.pandl_calculator_with_costs,
+            curve_type=NET_CURVE,
+            is_percentage=self.is_percentage,
+            frequency=self.frequency,
+            weighted=self.weighted,
+        )
 
     @property
     def costs(self):
-        return accountCurve(self.pandl_calculator_with_costs,
-                            curve_type=COSTS_CURVE,
-                            is_percentage=self.is_percentage,
-                            frequency=self.frequency,
-                            weighted=self.weighted)
-
+        return accountCurve(
+            self.pandl_calculator_with_costs,
+            curve_type=COSTS_CURVE,
+            is_percentage=self.is_percentage,
+            frequency=self.frequency,
+            weighted=self.weighted,
+        )
 
     @property
     def daily(self):
-        return accountCurve(self.pandl_calculator_with_costs,
-                            curve_type=self.curve_type,
-                            is_percentage=self.is_percentage,
-                            frequency=Frequency.BDay,
-                            weighted=self.weighted)
+        return accountCurve(
+            self.pandl_calculator_with_costs,
+            curve_type=self.curve_type,
+            is_percentage=self.is_percentage,
+            frequency=Frequency.BDay,
+            weighted=self.weighted,
+        )
 
     @property
     def weekly(self):
-        return accountCurve(self.pandl_calculator_with_costs,
-                            curve_type=self.curve_type,
-                            is_percentage=self.is_percentage,
-                            frequency=Frequency.Week,
-                            weighted=self.weighted)
+        return accountCurve(
+            self.pandl_calculator_with_costs,
+            curve_type=self.curve_type,
+            is_percentage=self.is_percentage,
+            frequency=Frequency.Week,
+            weighted=self.weighted,
+        )
 
     @property
     def monthly(self):
-        return accountCurve(self.pandl_calculator_with_costs,
-                            curve_type=self.curve_type,
-                            is_percentage=self.is_percentage,
-                            frequency=Frequency.Month,
-                            weighted=self.weighted)
+        return accountCurve(
+            self.pandl_calculator_with_costs,
+            curve_type=self.curve_type,
+            is_percentage=self.is_percentage,
+            frequency=Frequency.Month,
+            weighted=self.weighted,
+        )
 
     @property
     def annual(self):
-        return accountCurve(self.pandl_calculator_with_costs,
-                            curve_type=self.curve_type,
-                            is_percentage=self.is_percentage,
-                            frequency=Frequency.Year,
-                            weighted=self.weighted)
-
+        return accountCurve(
+            self.pandl_calculator_with_costs,
+            curve_type=self.curve_type,
+            is_percentage=self.is_percentage,
+            frequency=Frequency.Year,
+            weighted=self.weighted,
+        )
 
     @property
     def percent(self):
-        return accountCurve(self.pandl_calculator_with_costs,
-                            curve_type=self.curve_type,
-                            is_percentage=True,
-                            frequency=self.frequency,
-                            weighted=self.weighted)
+        return accountCurve(
+            self.pandl_calculator_with_costs,
+            curve_type=self.curve_type,
+            is_percentage=True,
+            frequency=self.frequency,
+            weighted=self.weighted,
+        )
 
     @property
     def value_terms(self):
-        return accountCurve(self.pandl_calculator_with_costs,
-                            curve_type=self.curve_type,
-                            is_percentage=False,
-                            frequency=self.frequency,
-                            weighted=self.weighted)
+        return accountCurve(
+            self.pandl_calculator_with_costs,
+            curve_type=self.curve_type,
+            is_percentage=False,
+            frequency=self.frequency,
+            weighted=self.weighted,
+        )
 
     def to_ncg_frame(self) -> pd.DataFrame:
         gross = self.gross
         costs = self.costs
         net = self.net
 
-        as_df = pd.concat([gross, costs, net],
-                         axis=1)
+        as_df = pd.concat([gross, costs, net], axis=1)
         as_df.columns = [GROSS_CURVE, COSTS_CURVE, NET_CURVE]
 
         return as_df
@@ -147,8 +170,9 @@ class accountCurve(pd.Series):
 
     @property
     def capital(self) -> pd.Series:
-        return self.pandl_calculator_with_costs.capital_as_pd_series_for_frequency(self.frequency)
-
+        return self.pandl_calculator_with_costs.capital_as_pd_series_for_frequency(
+            self.frequency
+        )
 
     @property
     def pandl_calculator_with_costs(self) -> pandlCalculationWithGenericCosts:
@@ -164,14 +188,14 @@ class accountCurve(pd.Series):
 
     @property
     def curve_type(self) -> str:
-        return  self._curve_type
+        return self._curve_type
 
     @property
     def is_percentage(self) -> bool:
         return self._is_percentage
 
     @property
-    def weighted(self)-> bool:
+    def weighted(self) -> bool:
         return self._weighted
 
     def curve(self):
@@ -206,7 +230,7 @@ class accountCurve(pd.Series):
     @property
     def vol_scalar(self) -> float:
         times_per_year = from_frequency_to_times_per_year(self.frequency)
-        return times_per_year**.5
+        return times_per_year ** 0.5
 
     def sharpe(self):
         mean_return = self.ann_mean()
@@ -318,17 +342,21 @@ class accountCurve(pd.Series):
 
     def quant_ratio_lower(self):
         x = self.demeaned_remove_zeros()
-        raw_ratio =x.quantile(QUANT_PERCENTILE_EXTREME) / x.quantile(QUANT_PERCENTILE_STD)
+        raw_ratio = x.quantile(QUANT_PERCENTILE_EXTREME) / x.quantile(
+            QUANT_PERCENTILE_STD
+        )
         return raw_ratio / NORMAL_DISTR_RATIO
 
     def quant_ratio_upper(self):
         x = self.demeaned_remove_zeros()
-        raw_ratio = x.quantile(1 - QUANT_PERCENTILE_EXTREME) / x.quantile(1 - QUANT_PERCENTILE_STD)
+        raw_ratio = x.quantile(1 - QUANT_PERCENTILE_EXTREME) / x.quantile(
+            1 - QUANT_PERCENTILE_STD
+        )
         return raw_ratio / NORMAL_DISTR_RATIO
 
     def demeaned_remove_zeros(self):
         x = self.as_ts
-        x[x==0] = np.nan
+        x[x == 0] = np.nan
         return x - x.mean()
 
     def stats(self):
@@ -369,4 +397,3 @@ class accountCurve(pd.Series):
         )
 
         return [build_stats, comment1]
-

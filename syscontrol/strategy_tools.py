@@ -4,9 +4,11 @@ from sysdata.data_blob import dataBlob
 from sysproduction.data.control_process import get_strategy_class_object_config
 
 
-class strategyRunner():
+class strategyRunner:
     ## needs to have method per strategy
-    def __init__(self, data: dataBlob, strategy_name: str, process_name: str, function_name: str):
+    def __init__(
+        self, data: dataBlob, strategy_name: str, process_name: str, function_name: str
+    ):
         self.data = data
         self._object_store = missing_data
         self._strategy_name = strategy_name
@@ -41,26 +43,32 @@ class strategyRunner():
     def get_strategy_method(self):
         method = self._object_store
         if method is missing_data:
-            method = get_strategy_method(self.data, self.strategy_name, self.process_name, self.function_name)
+            method = get_strategy_method(
+                self.data, self.strategy_name, self.process_name, self.function_name
+            )
             self.object_store = method
 
         return method
 
-def get_strategy_method(data: dataBlob,  strategy_name: str, process_name: str, function_name: str):
 
-    strategy_class_instance = get_strategy_class_instance(data=data,
-                                                          strategy_name=strategy_name,
-                                                          process_name=process_name)
+def get_strategy_method(
+    data: dataBlob, strategy_name: str, process_name: str, function_name: str
+):
+
+    strategy_class_instance = get_strategy_class_instance(
+        data=data, strategy_name=strategy_name, process_name=process_name
+    )
     method = getattr(strategy_class_instance, function_name)
 
     return method
 
-def get_strategy_class_instance(data: dataBlob,  strategy_name: str, process_name: str):
+
+def get_strategy_class_instance(data: dataBlob, strategy_name: str, process_name: str):
     # useful for debugging
 
-    strategy_class_object, other_args = get_class_object_and_other_arguments(data=data,
-                                                          strategy_name=strategy_name,
-                                                          process_name=process_name)
+    strategy_class_object, other_args = get_class_object_and_other_arguments(
+        data=data, strategy_name=strategy_name, process_name=process_name
+    )
 
     strategy_data = dataBlob(log_name=process_name)
     strategy_data.log.label(strategy_name=strategy_name)
@@ -71,8 +79,13 @@ def get_strategy_class_instance(data: dataBlob,  strategy_name: str, process_nam
 
     return strategy_class_instance
 
-def get_class_object_and_other_arguments(data: dataBlob,  strategy_name: str, process_name: str):
-    original_config_this_process = get_strategy_class_object_config(data, process_name, strategy_name)
+
+def get_class_object_and_other_arguments(
+    data: dataBlob, strategy_name: str, process_name: str
+):
+    original_config_this_process = get_strategy_class_object_config(
+        data, process_name, strategy_name
+    )
     config_this_process = copy(original_config_this_process)
     strategy_class_object = resolve_function(config_this_process.pop("object"))
 

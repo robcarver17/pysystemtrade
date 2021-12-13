@@ -14,6 +14,7 @@ from sysexecution.order_stacks.broker_order_stack import brokerOrderStackData
 ORDER_ID_STORE_KEY = "_ORDER_ID_STORE_KEY"
 MAX_ORDER_KEY = "max_order_id"
 
+
 class mongoOrderStackData(orderStackData):
     """
     Read and write data class to get roll state data
@@ -32,7 +33,9 @@ class mongoOrderStackData(orderStackData):
         # If we did have _state would risk breaking if we forgot to override methods
         # super().__init__()
         collection_name = self._collection_name()
-        self._mongo_data = mongoDataWithSingleKey(collection_name, "order_id", mongo_db=mongo_db)
+        self._mongo_data = mongoDataWithSingleKey(
+            collection_name, "order_id", mongo_db=mongo_db
+        )
 
         super().__init__(log=log)
 
@@ -41,8 +44,11 @@ class mongoOrderStackData(orderStackData):
         return self._mongo_data
 
     def __repr__(self):
-        return "%s: %s with %d active orders" % (self._name, str(self.mongo_data), self.number_of_orders_on_stack())
-
+        return "%s: %s with %d active orders" % (
+            self._name,
+            str(self.mongo_data),
+            self.number_of_orders_on_stack(),
+        )
 
     def get_order_with_id_from_stack(self, order_id: int):
         result_dict = self.mongo_data.get_result_dict_for_key(order_id)
@@ -54,7 +60,6 @@ class mongoOrderStackData(orderStackData):
 
         return order
 
-
     def _get_list_of_all_order_ids(self) -> list:
         order_ids = self.mongo_data.get_list_of_keys()
         try:
@@ -64,7 +69,7 @@ class mongoOrderStackData(orderStackData):
 
         return order_ids
 
-    def _change_order_on_stack_no_checking(self, order_id:int, order):
+    def _change_order_on_stack_no_checking(self, order_id: int, order):
         order_as_dict = order.as_dict()
 
         self.mongo_data.add_data(order_id, order_as_dict, allow_overwrite=True)
@@ -72,7 +77,9 @@ class mongoOrderStackData(orderStackData):
     def _put_order_on_stack_no_checking(self, order: Order):
         order_as_dict = order.as_dict()
 
-        self.mongo_data.add_data(int(order.order_id), order_as_dict, allow_overwrite=False)
+        self.mongo_data.add_data(
+            int(order.order_id), order_as_dict, allow_overwrite=False
+        )
 
     # ORDER ID
     def _get_next_order_id(self) -> int:
@@ -93,7 +100,9 @@ class mongoOrderStackData(orderStackData):
         return int(order_id)
 
     def _update_max_order_id(self, max_order_id: int):
-        self.mongo_data.add_data(ORDER_ID_STORE_KEY, {MAX_ORDER_KEY: max_order_id}, allow_overwrite=True)
+        self.mongo_data.add_data(
+            ORDER_ID_STORE_KEY, {MAX_ORDER_KEY: max_order_id}, allow_overwrite=True
+        )
 
     def _create_and_return_max_order_id(self):
         first_order_id = 1
@@ -104,9 +113,8 @@ class mongoOrderStackData(orderStackData):
     def _remove_order_with_id_from_stack_no_checking(self, order_id):
         self.mongo_data.delete_data_without_any_warning(order_id)
 
-class mongoInstrumentOrderStackData(
-        mongoOrderStackData,
-        instrumentOrderStackData):
+
+class mongoInstrumentOrderStackData(mongoOrderStackData, instrumentOrderStackData):
     def _collection_name(self):
         return "INSTRUMENT_ORDER_STACK"
 
@@ -128,4 +136,3 @@ class mongoBrokerOrderStackData(mongoOrderStackData, brokerOrderStackData):
 
     def _order_class(self):
         return brokerOrder
-

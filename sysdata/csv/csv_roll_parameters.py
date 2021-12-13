@@ -16,13 +16,14 @@ class csvRollParametersData(rollParametersData):
 
     """
 
-    def __init__(self, log = logtoscreen("csvRollParametersData"), datapath = arg_not_supplied):
+    def __init__(
+        self, log=logtoscreen("csvRollParametersData"), datapath=arg_not_supplied
+    ):
 
         super().__init__(log=log)
         if datapath is arg_not_supplied:
             datapath = ROLLS_DATAPATH
-        config_file =get_filename_for_package(
-            datapath, ROLLS_CONFIG_FILE)
+        config_file = get_filename_for_package(datapath, ROLLS_CONFIG_FILE)
 
         self._config_file = config_file
 
@@ -53,9 +54,10 @@ class csvRollParametersData(rollParametersData):
     def get_list_of_instruments(self) -> list:
         return list(self._get_config_information().index)
 
-    def _get_roll_parameters_without_checking(self, instrument_code:str) ->rollParameters:
-        config_for_this_instrument = self._get_config_information(
-        ).loc[instrument_code]
+    def _get_roll_parameters_without_checking(
+        self, instrument_code: str
+    ) -> rollParameters:
+        config_for_this_instrument = self._get_config_information().loc[instrument_code]
         roll_parameters_object = rollParameters(
             hold_rollcycle=config_for_this_instrument.HoldRollCycle,
             roll_offset_day=config_for_this_instrument.RollOffsetDays,
@@ -66,11 +68,12 @@ class csvRollParametersData(rollParametersData):
 
         return roll_parameters_object
 
-    def _delete_roll_parameters_data_without_any_warning_be_careful(self,
-            instrument_code:str):
+    def _delete_roll_parameters_data_without_any_warning_be_careful(
+        self, instrument_code: str
+    ):
         raise NotImplementedError("csv is read only")
 
-    def _add_roll_parameters_without_checking_for_existing_entry(self, instrument_code: str,
-                                                                 roll_parameters: rollParameters):
+    def _add_roll_parameters_without_checking_for_existing_entry(
+        self, instrument_code: str, roll_parameters: rollParameters
+    ):
         raise NotImplementedError("csv is read only")
-

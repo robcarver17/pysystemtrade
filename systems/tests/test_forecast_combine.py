@@ -5,6 +5,7 @@ from systems.accounts.accounts_stage import Account
 from systems.basesystem import System
 from systems.tests.testdata import get_test_object_futures_with_rules_and_capping
 
+
 @unittest.SkipTest
 class Test(unittest.TestCase):
     def setUp(self):
@@ -129,12 +130,7 @@ class Test(unittest.TestCase):
         setattr(
             config,
             "rule_variations",
-            dict(
-                EDOLLAR=["ewmac8"],
-                BUND=["ewmac16"],
-                US10=[
-                    "ewmac8",
-                    "ewmac16"]),
+            dict(EDOLLAR=["ewmac8"], BUND=["ewmac16"], US10=["ewmac8", "ewmac16"]),
         )
         system6 = System(
             [self.rawdata, self.rules, self.fcs, self.forecast_combine()],
@@ -216,14 +212,10 @@ class Test(unittest.TestCase):
         system = self.setUpWithEstimatedReturns()
 
         print(
-            system.combForecast.get_SR_cost_for_instrument_forecast(
-                "EDOLLAR", "ewmac8"))
-        print(
-            system.combForecast.get_SR_cost_for_instrument_forecast(
-                "BUND", "ewmac8"))
-        print(
-            system.combForecast.get_SR_cost_for_instrument_forecast(
-                "US10", "ewmac8"))
+            system.combForecast.get_SR_cost_for_instrument_forecast("EDOLLAR", "ewmac8")
+        )
+        print(system.combForecast.get_SR_cost_for_instrument_forecast("BUND", "ewmac8"))
+        print(system.combForecast.get_SR_cost_for_instrument_forecast("US10", "ewmac8"))
 
         print(system.combForecast.has_same_cheap_rules_as_code("EDOLLAR"))
         print(system.combForecast.has_same_cheap_rules_as_code("BUND"))

@@ -15,14 +15,15 @@ def update_system_backtests():
         list_of_strategies = get_list_of_strategies_for_process(data, process_name)
         ALL = "ALL"
         print("Which strategy?")
-        strategy_name = print_menu_of_values_and_get_response(list_of_strategies, default_str=ALL)
+        strategy_name = print_menu_of_values_and_get_response(
+            list_of_strategies, default_str=ALL
+        )
 
         if not strategy_name == ALL:
             list_of_strategies = [strategy_name]
 
-
         for strategy_name in list_of_strategies:
-            system_backtest_runner = strategyRunner(data, strategy_name, process_name, backtest_function)
+            system_backtest_runner = strategyRunner(
+                data, strategy_name, process_name, backtest_function
+            )
             system_backtest_runner.run_strategy_method()
-
-

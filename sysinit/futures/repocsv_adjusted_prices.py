@@ -18,8 +18,7 @@ if __name__ == "__main__":
     for instrument_code in instrument_list:
         print(instrument_code)
 
-        adjusted_prices = csv_adjusted_prices.get_adjusted_prices(
-            instrument_code)
+        adjusted_prices = csv_adjusted_prices.get_adjusted_prices(instrument_code)
 
         print(adjusted_prices)
 

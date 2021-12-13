@@ -72,18 +72,19 @@ strategy_report_config = reportConfig(
 )
 
 risk_report_config = reportConfig(
-    title= "Risk report",
-    function="sysproduction.reporting.risk_report.risk_report"
+    title="Risk report", function="sysproduction.reporting.risk_report.risk_report"
 )
 
 liquidity_report_config = reportConfig(
-    title = "Liquidity report",
-    function = "sysproduction.reporting.liquidity_report.liquidity_report")
+    title="Liquidity report",
+    function="sysproduction.reporting.liquidity_report.liquidity_report",
+)
 
-costs_report_config =  reportConfig(
-    title = "Costs report",
-    function = "sysproduction.reporting.costs_report.costs_report",
-    calendar_days_back = 250)
+costs_report_config = reportConfig(
+    title="Costs report",
+    function="sysproduction.reporting.costs_report.costs_report",
+    calendar_days_back=250,
+)
 
 ## The reports will be run in this order
 all_configs = dict(
@@ -92,8 +93,8 @@ all_configs = dict(
     reconcile_report=reconcile_report_config,
     trade_report=trade_report_config,
     strategy_report=strategy_report_config,
-    risk_report = risk_report_config,
-    status_report = status_report_config,
-    liquidity_report = liquidity_report_config,
-    costs_report = costs_report_config
+    risk_report=risk_report_config,
+    status_report=status_report_config,
+    liquidity_report=liquidity_report_config,
+    costs_report=costs_report_config,
 )

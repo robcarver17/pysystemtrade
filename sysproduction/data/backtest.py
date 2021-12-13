@@ -5,7 +5,13 @@ from shutil import copyfile
 
 from syscore.dateutils import create_datetime_string
 from syscore.fileutils import files_with_extension_in_pathname, get_resolved_pathname
-from syscore.objects import arg_not_supplied, resolve_function, success, failure, missing_data
+from syscore.objects import (
+    arg_not_supplied,
+    resolve_function,
+    success,
+    failure,
+    missing_data,
+)
 from syscore.interactive import print_menu_of_values_and_get_response
 
 
@@ -14,7 +20,10 @@ from sysdata.data_blob import dataBlob
 
 from sysobjects.production.backtest_storage import interactiveBacktest
 from sysproduction.data.generic_production_data import productionDataLayerGeneric
-from sysproduction.data.strategies import get_valid_strategy_name_from_user, diagStrategiesConfig
+from sysproduction.data.strategies import (
+    get_valid_strategy_name_from_user,
+    diagStrategiesConfig,
+)
 
 
 PICKLE_EXT = ".pck"
@@ -25,25 +34,35 @@ PICKLE_SUFFIX = PICKLE_FILE_SUFFIX + PICKLE_EXT
 CONFIG_SUFFIX = CONFIG_FILE_SUFFIX + CONFIG_EXT
 
 
-
-
 def user_choose_backtest(data: dataBlob = arg_not_supplied) -> interactiveBacktest:
-    strategy_name, timestamp = interactively_choose_strategy_name_timestamp_for_backtest(data)
+    (
+        strategy_name,
+        timestamp,
+    ) = interactively_choose_strategy_name_timestamp_for_backtest(data)
     data_backtest = dataBacktest(data=data)
-    backtest = data_backtest.load_backtest(strategy_name=strategy_name, timestamp=timestamp)
+    backtest = data_backtest.load_backtest(
+        strategy_name=strategy_name, timestamp=timestamp
+    )
 
     return backtest
 
-def interactively_choose_strategy_name_timestamp_for_backtest(data: dataBlob = arg_not_supplied) -> (str, str):
+
+def interactively_choose_strategy_name_timestamp_for_backtest(
+    data: dataBlob = arg_not_supplied,
+) -> (str, str):
     strategy_name = get_valid_strategy_name_from_user(data=data)
     timestamp = interactively_choose_timestamp(data=data, strategy_name=strategy_name)
 
     return strategy_name, timestamp
 
-def interactively_choose_timestamp(strategy_name: str, data: dataBlob = arg_not_supplied):
+
+def interactively_choose_timestamp(
+    strategy_name: str, data: dataBlob = arg_not_supplied
+):
     data_backtest = dataBacktest(data)
     list_of_timestamps = sorted(
-        data_backtest.get_list_of_timestamps_for_strategy(strategy_name))
+        data_backtest.get_list_of_timestamps_for_strategy(strategy_name)
+    )
     # most recent last
     print("Choose the backtest to load:\n")
     timestamp = print_menu_of_values_and_get_response(
@@ -52,28 +71,25 @@ def interactively_choose_timestamp(strategy_name: str, data: dataBlob = arg_not_
     return timestamp
 
 
-
 class dataBacktest(productionDataLayerGeneric):
-
     def get_most_recent_backtest(self, strategy_name: str) -> interactiveBacktest:
         list_of_timestamps = sorted(
-            self.get_list_of_timestamps_for_strategy(strategy_name))
+            self.get_list_of_timestamps_for_strategy(strategy_name)
+        )
         # most recent last
         timestamp_to_use = list_of_timestamps[-1]
 
         backtest = self.load_backtest(strategy_name, timestamp_to_use)
         return backtest
 
-    def load_backtest(self, strategy_name: str, timestamp: str)  -> interactiveBacktest:
-        system = create_system_with_saved_state(
-            self.data, strategy_name, timestamp)
+    def load_backtest(self, strategy_name: str, timestamp: str) -> interactiveBacktest:
+        system = create_system_with_saved_state(self.data, strategy_name, timestamp)
 
-        backtest = interactiveBacktest(system=system,
-                                       strategy_name=strategy_name,
-                                       timestamp=timestamp)
+        backtest = interactiveBacktest(
+            system=system, strategy_name=strategy_name, timestamp=timestamp
+        )
 
         return backtest
-
 
     def get_list_of_timestamps_for_strategy(self, strategy_name):
         timestamp_list = get_list_of_timestamps_for_strategy(strategy_name)
@@ -107,15 +123,17 @@ def create_system_with_saved_state(data, strategy_name, date_time_signature):
 def get_system_caller(data, strategy_name, date_time_signature):
     # returns a method we can use to recreate a system
 
-    strategy_loader_config_original = get_strategy_class_backtest_loader_config_without_warning(data = data,
-                                                                                       strategy_name = strategy_name)
+    strategy_loader_config_original = (
+        get_strategy_class_backtest_loader_config_without_warning(
+            data=data, strategy_name=strategy_name
+        )
+    )
 
     ## Whenever popping best to copy first
     strategy_loader_config = copy(strategy_loader_config_original)
     strategy_class_object = resolve_function(strategy_loader_config.pop("object"))
     function = strategy_loader_config.pop("function")
-    config_filename = get_backtest_config_filename(
-        strategy_name, date_time_signature)
+    config_filename = get_backtest_config_filename(strategy_name, date_time_signature)
 
     strategy_class_instance = strategy_class_object(
         data, strategy_name, backtest_config_filename=config_filename
@@ -125,26 +143,33 @@ def get_system_caller(data, strategy_name, date_time_signature):
     return method
 
 
-def get_loader_config(data:dataBlob, strategy_name: str) -> dict:
+def get_loader_config(data: dataBlob, strategy_name: str) -> dict:
     try:
-        strategy_loader_config = get_strategy_class_backtest_loader_config_without_warning(data, strategy_name)
+        strategy_loader_config = (
+            get_strategy_class_backtest_loader_config_without_warning(
+                data, strategy_name
+            )
+        )
     except BaseException:
         strategy_loader_config = dict(
             object="sysproduction.strategy_code.run_system_classic.runSystemClassic",
             function="system_method",
         )
         data.log.warn(
-            "No configuration strategy_list/strategy_name/load_backtests; using defaults %s" % str(
-                strategy_loader_config)
+            "No configuration strategy_list/strategy_name/load_backtests; using defaults %s"
+            % str(strategy_loader_config)
         )
 
     return strategy_loader_config
 
-def get_strategy_class_backtest_loader_config_without_warning(
-            data, strategy_name
-        ):
+
+def get_strategy_class_backtest_loader_config_without_warning(data, strategy_name):
     diag_strategy_config = diagStrategiesConfig(data)
-    strategy_loader_config = diag_strategy_config.get_strategy_config_dict_for_specific_process(strategy_name, "load_backtests")
+    strategy_loader_config = (
+        diag_strategy_config.get_strategy_config_dict_for_specific_process(
+            strategy_name, "load_backtests"
+        )
+    )
     return strategy_loader_config
 
 
@@ -179,16 +204,13 @@ def store_backtest_state(data, system, strategy_name="default_strategy"):
 
     datetime_marker = create_datetime_string()
 
-    pickle_filename = get_backtest_pickle_filename(
-        strategy_name, datetime_marker)
+    pickle_filename = get_backtest_pickle_filename(strategy_name, datetime_marker)
     pickle_state(data, system, pickle_filename)
 
-    config_save_filename = get_backtest_config_filename(
-        strategy_name, datetime_marker)
+    config_save_filename = get_backtest_config_filename(strategy_name, datetime_marker)
     system.config.save(config_save_filename)
 
     return success
-
 
 
 def ensure_backtest_directory_exists(strategy_name):
@@ -199,7 +221,6 @@ def ensure_backtest_directory_exists(strategy_name):
         pass
 
 
-
 def rchop(s, suffix):
     if suffix and s.endswith(suffix):
         return s[: -len(suffix)]
@@ -208,8 +229,7 @@ def rchop(s, suffix):
 
 def get_list_of_pickle_files_for_strategy(strategy_name):
     full_directory = get_backtest_directory_for_strategy(strategy_name)
-    list_of_files = files_with_extension_in_pathname(
-        full_directory, PICKLE_EXT)
+    list_of_files = files_with_extension_in_pathname(full_directory, PICKLE_EXT)
 
     return list_of_files
 
@@ -244,8 +264,7 @@ def get_backtest_directory_for_strategy(strategy_name):
     # eg '/home/rob/data/backtests/medium_speed_TF_carry'
     directory_store_backtests = get_directory_store_backtests()
 
-    directory_store_backtests = get_resolved_pathname(
-        directory_store_backtests)
+    directory_store_backtests = get_resolved_pathname(directory_store_backtests)
     full_directory = os.path.join(directory_store_backtests, strategy_name)
 
     return full_directory
@@ -254,7 +273,9 @@ def get_backtest_directory_for_strategy(strategy_name):
 def get_directory_store_backtests():
     # eg '/home/rob/data/backtests/'
     production_config = get_production_config()
-    store_directory = production_config.get_element_or_missing_data("backtest_store_directory")
+    store_directory = production_config.get_element_or_missing_data(
+        "backtest_store_directory"
+    )
     if store_directory is missing_data:
         raise Exception("Need to specify backtest_store_directory in config file")
 
@@ -269,15 +290,12 @@ def pickle_state(data, system, backtest_filename):
         return success
     except Exception as e:
         data.log.warn(
-            "Couldn't save backtest state to %s error %s" %
-            (backtest_filename, e))
+            "Couldn't save backtest state to %s error %s" % (backtest_filename, e)
+        )
         return failure
 
 
-def copy_config_file(
-        data,
-        resolved_backtest_config_filename,
-        config_save_filename):
+def copy_config_file(data, resolved_backtest_config_filename, config_save_filename):
     try:
         copyfile(resolved_backtest_config_filename, config_save_filename)
         data.log.msg(

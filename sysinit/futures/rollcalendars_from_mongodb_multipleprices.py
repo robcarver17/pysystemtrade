@@ -22,13 +22,12 @@ if __name__ == "__main__":
         print(instrument_code)
         multiple_prices = arctic_multiple_prices.get_multiple_prices(instrument_code)
 
-        roll_parameters = mongo_rollparameters.get_roll_parameters(
-            instrument_code)
-        roll_calendar = rollCalendar.back_out_from_multiple_prices(
-            multiple_prices
-        )
+        roll_parameters = mongo_rollparameters.get_roll_parameters(instrument_code)
+        roll_calendar = rollCalendar.back_out_from_multiple_prices(multiple_prices)
         print("Calendar:")
         print(roll_calendar)
 
         # We ignore duplicates since this is run regularly
-        csv_roll_calendars.add_roll_calendar(instrument_code, roll_calendar, ignore_duplication=True)
+        csv_roll_calendars.add_roll_calendar(
+            instrument_code, roll_calendar, ignore_duplication=True
+        )

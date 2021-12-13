@@ -1,7 +1,11 @@
 from syscore.objects import missing_data
 from sysdata.base_data import baseData
 from syslogdiag.log_to_screen import logtoscreen
-from sysobjects.production.roll_state import RollState, default_state,  name_of_roll_state
+from sysobjects.production.roll_state import (
+    RollState,
+    default_state,
+    name_of_roll_state,
+)
 
 
 class rollStateData(baseData):
@@ -27,16 +31,18 @@ class rollStateData(baseData):
 
         return state
 
-
     def set_roll_state(self, instrument_code: str, new_roll_state: RollState):
         new_roll_state_as_str = name_of_roll_state(new_roll_state)
-        self._set_roll_state_as_str_without_checking(instrument_code, new_roll_state_as_str)
+        self._set_roll_state_as_str_without_checking(
+            instrument_code, new_roll_state_as_str
+        )
 
     def get_list_of_instruments(self) -> list:
         raise NotImplementedError
 
     def _set_roll_state_as_str_without_checking(
-            self, instrument_code: str, new_roll_state_as_str: str):
+        self, instrument_code: str, new_roll_state_as_str: str
+    ):
         raise NotImplementedError("Need to use inheriting class")
 
     def _get_roll_state_as_str_no_default(self, instrument_code: str) -> str:

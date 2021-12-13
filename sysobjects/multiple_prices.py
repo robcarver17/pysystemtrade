@@ -1,17 +1,29 @@
 from syscore.objects import missing_data
-from dataclasses import  dataclass
+from dataclasses import dataclass
 import datetime as datetime
 from copy import copy
 import pandas as pd
 
-from sysinit.futures.build_multiple_prices_from_raw_data import create_multiple_price_stack_from_raw_data
-from sysobjects.dict_of_named_futures_per_contract_prices import list_of_price_column_names, \
-    list_of_contract_column_names, contract_column_names, setOfNamedContracts, contract_name_from_column_name, \
-    futuresNamedContractFinalPricesWithContractID, dictFuturesNamedContractFinalPricesWithContractID, price_column_names, \
-    price_name, carry_name, forward_name
+from sysinit.futures.build_multiple_prices_from_raw_data import (
+    create_multiple_price_stack_from_raw_data,
+)
+from sysobjects.dict_of_named_futures_per_contract_prices import (
+    list_of_price_column_names,
+    list_of_contract_column_names,
+    contract_column_names,
+    setOfNamedContracts,
+    contract_name_from_column_name,
+    futuresNamedContractFinalPricesWithContractID,
+    dictFuturesNamedContractFinalPricesWithContractID,
+    price_column_names,
+    price_name,
+    carry_name,
+    forward_name,
+)
 
-from sysobjects.dict_of_futures_per_contract_prices import dictFuturesContractFinalPrices
-
+from sysobjects.dict_of_futures_per_contract_prices import (
+    dictFuturesContractFinalPrices,
+)
 
 
 @dataclass
@@ -24,7 +36,9 @@ class singleRowMultiplePrices:
     forward_contract: str = None
 
     def concat_with_multiple_prices(self, multiple_prices, timedelta_seconds=1):
-        new_time_index = multiple_prices.index[-1] + datetime.timedelta(seconds=timedelta_seconds)
+        new_time_index = multiple_prices.index[-1] + datetime.timedelta(
+            seconds=timedelta_seconds
+        )
         new_df_row = self.as_aligned_pd_row(new_time_index)
 
         combined_df = pd.concat([pd.DataFrame(multiple_prices), new_df_row], axis=0)
@@ -33,16 +47,20 @@ class singleRowMultiplePrices:
 
         return new_multiple_prices
 
-    def as_aligned_pd_row(self, time_index: datetime.timedelta) ->pd.DataFrame:
+    def as_aligned_pd_row(self, time_index: datetime.timedelta) -> pd.DataFrame:
 
-        new_dict = {price_name: self.price, carry_name: self.carry, forward_name: self.forward,
-                    contract_name_from_column_name(price_name): self.price_contract,
-                    contract_name_from_column_name(carry_name): self.carry_contract,
-                    contract_name_from_column_name(forward_name): self.forward_contract
-                    }
+        new_dict = {
+            price_name: self.price,
+            carry_name: self.carry,
+            forward_name: self.forward,
+            contract_name_from_column_name(price_name): self.price_contract,
+            contract_name_from_column_name(carry_name): self.carry_contract,
+            contract_name_from_column_name(forward_name): self.forward_contract,
+        }
 
-        new_dict_with_nones_removed = dict([(key,value) for key,value in new_dict.items()
-                                            if value is not None])
+        new_dict_with_nones_removed = dict(
+            [(key, value) for key, value in new_dict.items() if value is not None]
+        )
 
         new_df_row = pd.DataFrame(new_dict_with_nones_removed, index=[time_index])
 
@@ -60,9 +78,10 @@ class futuresMultiplePrices(pd.DataFrame):
     @classmethod
     ## NOT TYPE CHECKING OF ROLL_CALENDAR AS WOULD CAUSE CIRCULAR IMPORT
     def create_from_raw_data(
-            futuresMultiplePrices,
-            roll_calendar,
-            dict_of_futures_contract_closing_prices: dictFuturesContractFinalPrices):
+        futuresMultiplePrices,
+        roll_calendar,
+        dict_of_futures_contract_closing_prices: dictFuturesContractFinalPrices,
+    ):
         """
 
         :param roll_calendar: rollCalendar
@@ -92,19 +111,19 @@ class futuresMultiplePrices(pd.DataFrame):
 
         return multiple_prices
 
-
     def current_contract_dict(self) -> setOfNamedContracts:
-        if len(self)==0:
+        if len(self) == 0:
             return missing_data
 
         final_row = self.iloc[-1]
-        contract_dict = dict([(key, final_row[value])
-                              for key, value in contract_column_names.items()])
+        contract_dict = dict(
+            [(key, final_row[value]) for key, value in contract_column_names.items()]
+        )
         contract_dict = setOfNamedContracts(contract_dict)
 
         return contract_dict
 
-    def as_dict(self) ->dictFuturesNamedContractFinalPricesWithContractID:
+    def as_dict(self) -> dictFuturesNamedContractFinalPricesWithContractID:
         """
         Split up and transform into dict
 
@@ -114,19 +133,23 @@ class futuresMultiplePrices(pd.DataFrame):
         self_as_dict = {}
         for price_column_name in list_of_price_column_names:
             contract_column_name = contract_name_from_column_name(price_column_name)
-            self_as_dict[price_column_name] = futuresNamedContractFinalPricesWithContractID(
+            self_as_dict[
+                price_column_name
+            ] = futuresNamedContractFinalPricesWithContractID(
                 self[price_column_name],
                 self[contract_column_name],
-                price_column_name=price_column_name
+                price_column_name=price_column_name,
             )
 
-        self_as_dict = dictFuturesNamedContractFinalPricesWithContractID(
-            self_as_dict)
+        self_as_dict = dictFuturesNamedContractFinalPricesWithContractID(self_as_dict)
 
         return self_as_dict
 
     @classmethod
-    def from_merged_dict(futuresMultiplePrices, prices_dict: dictFuturesNamedContractFinalPricesWithContractID):
+    def from_merged_dict(
+        futuresMultiplePrices,
+        prices_dict: dictFuturesNamedContractFinalPricesWithContractID,
+    ):
         """
         Re-create from dict, eg results of _as_dict
 
@@ -154,8 +177,7 @@ class futuresMultiplePrices(pd.DataFrame):
             list_of_contract_column_names
         ] = multiple_prices_data_frame[list_of_contract_column_names].ffill()
 
-        multiple_prices_object = futuresMultiplePrices(
-            multiple_prices_data_frame)
+        multiple_prices_object = futuresMultiplePrices(multiple_prices_data_frame)
 
         return multiple_prices_object
 
@@ -165,7 +187,9 @@ class futuresMultiplePrices(pd.DataFrame):
 
         return futuresMultiplePrices(sorted_df)
 
-    def update_multiple_prices_with_dict(self, new_prices_dict: dictFuturesNamedContractFinalPricesWithContractID):
+    def update_multiple_prices_with_dict(
+        self, new_prices_dict: dictFuturesNamedContractFinalPricesWithContractID
+    ):
         """
         Given a dict containing prices, forward, carry prices; update existing multiple prices
         Because of asynchronicity, we allow overwriting of earlier data
@@ -186,8 +210,7 @@ class futuresMultiplePrices(pd.DataFrame):
         current_prices_dict = self.as_dict()
 
         try:
-            merged_data_as_dict = current_prices_dict.merge_data(
-                new_prices_dict)
+            merged_data_as_dict = current_prices_dict.merge_data(new_prices_dict)
         except Exception as e:
             raise e
 
@@ -205,8 +228,9 @@ class futuresMultiplePrices(pd.DataFrame):
         found_zeros = True
 
         while found_zeros and len(new_multiple_prices) > 0:
-            last_prices_nan_values = (new_multiple_prices.isna(
-            ).iloc[-1][list_of_price_column_names].values)
+            last_prices_nan_values = (
+                new_multiple_prices.isna().iloc[-1][list_of_price_column_names].values
+            )
             if all(last_prices_nan_values):
                 # drop the last row
                 new_multiple_prices = new_multiple_prices[:-1]
@@ -221,7 +245,9 @@ class futuresMultiplePrices(pd.DataFrame):
 
         return futuresMultiplePrices(new_multiple_prices)
 
-    def add_one_row_with_time_delta(self, single_row_prices: singleRowMultiplePrices, timedelta_seconds: int=1):
+    def add_one_row_with_time_delta(
+        self, single_row_prices: singleRowMultiplePrices, timedelta_seconds: int = 1
+    ):
         """
         Add a row with a slightly different timestamp
 
@@ -231,7 +257,9 @@ class futuresMultiplePrices(pd.DataFrame):
         :return: new multiple prices
         """
 
-        new_multiple_prices = single_row_prices.concat_with_multiple_prices(self, timedelta_seconds=timedelta_seconds)
+        new_multiple_prices = single_row_prices.concat_with_multiple_prices(
+            self, timedelta_seconds=timedelta_seconds
+        )
         new_multiple_prices = new_multiple_prices.forward_fill_contracts()
 
         return new_multiple_prices
@@ -243,6 +271,7 @@ class futuresMultiplePrices(pd.DataFrame):
 
         return futuresMultiplePrices(combined_df)
 
+
 def _check_valid_multiple_price_data(data):
     data_present = sorted(data.columns)
     try:
@@ -250,6 +279,7 @@ def _check_valid_multiple_price_data(data):
     except AssertionError:
         raise Exception("futuresMultiplePrices has to conform to pattern")
 
+
 multiple_data_columns = sorted(
-    list_of_price_column_names +
-    list_of_contract_column_names)
+    list_of_price_column_names + list_of_contract_column_names
+)

@@ -318,9 +318,15 @@ exclude_instrument_lists:
   # You can override this by modifying the backtest config .yaml file used in either sim or production
   # If you want to ignore because a duplicate market, use duplicate_instruments
   # If you want to include in sim data, but not actually trade, use trading_restrictions
+  #
+  # BEST FOR INSTRUMENTS THAT LOOK EXPENSIVE, BUT WHERE WE HAVEN'T GOT ACCURATE DATA YET
+  #
+  # REVIEW REGULARLY AND CHECK THESE INSTRUMENTS AREN'T BETTER ELSEWHERE...
   ignore_instruments:
     - 'EURIBOR'
     - 'SGX'
+    - 'BRENT'
+    - 'CLP'
   #
   # Here we put stuff we can't trade, but for which we still want to bring in prices in sim
   # For the dynamically optimised strategy this list will be used in sim as 'don't trade'

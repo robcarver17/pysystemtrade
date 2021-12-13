@@ -19,7 +19,7 @@ class logger(object):
 
     """
 
-    def __init__(self, type: str, log_level: str=DEFAULT_LOG_LEVEL, **kwargs):
+    def __init__(self, type: str, log_level: str = DEFAULT_LOG_LEVEL, **kwargs):
         """
         Base class for logging.
 
@@ -69,9 +69,7 @@ class logger(object):
         log_attributes = dict(type=type)
         other_attributes = kwargs
 
-        log_attributes = get_update_attributes_list(
-            log_attributes, other_attributes
-        )
+        log_attributes = get_update_attributes_list(log_attributes, other_attributes)
 
         return log_attributes
 
@@ -80,9 +78,7 @@ class logger(object):
         new_attributes = kwargs
         parent_attributes = type.attributes
 
-        log_attributes = get_update_attributes_list(
-            parent_attributes, new_attributes
-        )
+        log_attributes = get_update_attributes_list(parent_attributes, new_attributes)
 
         return log_attributes
 
@@ -98,8 +94,10 @@ class logger(object):
         new_level = new_level.lower()
 
         if new_level not in ALLOWED_LOG_LEVELS:
-            raise Exception("You can't log with level %s must be one of %s",
-                            (new_level, str(ALLOWED_LOG_LEVELS)))
+            raise Exception(
+                "You can't log with level %s must be one of %s",
+                (new_level, str(ALLOWED_LOG_LEVELS)),
+            )
 
         self._log_level = new_level
 
@@ -123,8 +121,7 @@ class logger(object):
         log_attributes = new_log.attributes
         passed_attributes = kwargs
 
-        new_attributes = get_update_attributes_list(
-            log_attributes, passed_attributes)
+        new_attributes = get_update_attributes_list(log_attributes, passed_attributes)
 
         new_log._attributes = new_attributes
 
@@ -135,8 +132,7 @@ class logger(object):
         log_attributes = self.attributes
         passed_attributes = kwargs
 
-        new_attributes = get_update_attributes_list(
-            log_attributes, passed_attributes)
+        new_attributes = get_update_attributes_list(log_attributes, passed_attributes)
 
         self._attributes = new_attributes
 
@@ -160,23 +156,20 @@ class logger(object):
         msg_level = LOG_MAPPING["critical"]
         return self.log(text, msglevel=msg_level, **kwargs)
 
-
-    def log(self, text: str,
-            msglevel: int= DEFAULT_LOG_MSG_LEVEL, **kwargs) -> logEntry:
+    def log(
+        self, text: str, msglevel: int = DEFAULT_LOG_MSG_LEVEL, **kwargs
+    ) -> logEntry:
         log_attributes = self.attributes
         passed_attributes = kwargs
 
         log_id = self.get_next_log_id()
-        use_attributes = get_update_attributes_list(
-            log_attributes, passed_attributes)
+        use_attributes = get_update_attributes_list(log_attributes, passed_attributes)
 
-        log_result = self.log_handle_caller(msglevel=msglevel,
-                                            text=text,
-                                            attributes=use_attributes,
-                                            log_id=log_id)
+        log_result = self.log_handle_caller(
+            msglevel=msglevel, text=text, attributes=use_attributes, log_id=log_id
+        )
 
         return log_result
-
 
     def get_next_log_id(self) -> int:
         """
@@ -188,10 +181,9 @@ class logger(object):
             "You need to implement this method in an inherited class or use an inherited claass eg logToMongod"
         )
 
-    def log_handle_caller(self, msglevel:int,
-                          text: str,
-                          attributes: dict,
-                          log_id: int):
+    def log_handle_caller(
+        self, msglevel: int, text: str, attributes: dict, log_id: int
+    ):
         raise Exception(
             "You're using a base class for logger - you need to use an inherited class like logtoscreen()"
         )
@@ -237,14 +229,9 @@ class nullLog(logger):
     def log(self, *args, **kwargs):
         pass
 
-    def log_handle_caller(
-            self,
-            *args,
-            **kwargs):
+    def log_handle_caller(self, *args, **kwargs):
 
         pass
 
     def get_next_log_id(self) -> int:
         return 0
-
-

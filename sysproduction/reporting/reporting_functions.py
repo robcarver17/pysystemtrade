@@ -1,7 +1,7 @@
 import pandas as pd
 import os
 
-from syscore.objects import resolve_function,  arg_not_supplied, missing_data
+from syscore.objects import resolve_function, arg_not_supplied, missing_data
 from syscore.objects import header, table, body_text
 from syscore.fileutils import get_resolved_pathname
 from syscore.text import landing_strip_from_str, landing_strip, centralise_text
@@ -12,8 +12,7 @@ from syslogdiag.email_via_db_interface import send_production_mail_msg
 from sysproduction.reporting.report_configs import reportConfig
 
 
-def run_report(report_config: reportConfig,
-               data: dataBlob=arg_not_supplied):
+def run_report(report_config: reportConfig, data: dataBlob = arg_not_supplied):
     """
 
     :param report_config:
@@ -26,8 +25,7 @@ def run_report(report_config: reportConfig,
     run_report_with_data_blob(report_config, data)
 
 
-def run_report_with_data_blob(report_config: reportConfig,
-                              data: dataBlob):
+def run_report_with_data_blob(report_config: reportConfig, data: dataBlob):
     """
 
     :param report_config:
@@ -49,16 +47,12 @@ def run_report_with_data_blob(report_config: reportConfig,
         send_production_mail_msg(
             data, parsed_report, subject=report_config.title, email_is_report=True
         )
-    elif output=="file":
+    elif output == "file":
         filename_with_spaces = report_config.title
         filename = filename_with_spaces.replace(" ", "_")
-        write_report_to_file(
-            data, parsed_report, filename = filename
-        )
+        write_report_to_file(data, parsed_report, filename=filename)
     else:
         raise Exception("Report config %s not recognised!" % output)
-
-
 
 
 def parse_report_results(report_results: list):
@@ -117,9 +111,8 @@ def pandas_display_for_reports():
     pd.set_option("display.max_columns", 1000)
     pd.set_option("display.max_rows", 1000)
 
-def write_report_to_file(
-            data: dataBlob, parsed_report: str, filename: str
-        ):
+
+def write_report_to_file(data: dataBlob, parsed_report: str, filename: str):
     use_directory = get_directory_for_reporting(data)
     use_directory_resolved = get_resolved_pathname(use_directory)
     full_filename = os.path.join(use_directory_resolved, filename)
@@ -131,7 +124,9 @@ def write_report_to_file(
 def get_directory_for_reporting(data):
     # eg '/home/rob/reports/'
     production_config = data.config
-    store_directory = production_config.get_element_or_missing_data("reporting_directory")
+    store_directory = production_config.get_element_or_missing_data(
+        "reporting_directory"
+    )
     if store_directory is missing_data:
         raise Exception("Need to specify reporting_directory in config file")
 

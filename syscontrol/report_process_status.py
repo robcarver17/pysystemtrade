@@ -9,7 +9,6 @@ NO_LOG_ENTRY = object()
 FREQUENCY_TO_CHECK_LOG_MINUTES = 10
 
 
-
 class reportStatus(object):
     ## Report on status when waiting and paused, ensures we don't spam the log
     def __init__(self, log: logger = arg_not_supplied):
@@ -21,7 +20,7 @@ class reportStatus(object):
     def log(self):
         return self._log
 
-    def log_status(self, status:str= ""):
+    def log_status(self, status: str = ""):
         we_already_logged_recently = self._have_we_logged_recently(status)
 
         if we_already_logged_recently:
@@ -29,8 +28,7 @@ class reportStatus(object):
 
         self._log_and_mark_timing(status)
 
-
-    def clear_status(self, status:str=""):
+    def clear_status(self, status: str = ""):
         have_we_never_logged_before = self._have_we_never_logged_at_all_before(status)
         if have_we_never_logged_before:
             # nothing to clear
@@ -42,9 +40,9 @@ class reportStatus(object):
         self._log_clear_and_mark(status)
 
     def clear_all_status(self):
-        self._log_store={}
+        self._log_store = {}
 
-    def _have_we_logged_recently(self, status:str) -> bool:
+    def _have_we_logged_recently(self, status: str) -> bool:
         last_log_time = self._get_last_log_time(status)
         if last_log_time is NO_LOG_ENTRY:
             return False
@@ -56,7 +54,7 @@ class reportStatus(object):
         return True
 
     def _time_for_another_log(self, log_time):
-        elapsed_minutes  =self._minutes_elapsed_since_log(log_time)
+        elapsed_minutes = self._minutes_elapsed_since_log(log_time)
         if elapsed_minutes > FREQUENCY_TO_CHECK_LOG_MINUTES:
             return True
         else:
@@ -66,18 +64,18 @@ class reportStatus(object):
         time_now = datetime.datetime.now()
         elapsed_time = time_now - log_time
         elapsed_seconds = elapsed_time.total_seconds()
-        elapsed_minutes = elapsed_seconds/60
+        elapsed_minutes = elapsed_seconds / 60
 
         return elapsed_minutes
 
-    def _log_and_mark_timing(self, status:str):
+    def _log_and_mark_timing(self, status: str):
         self.log.msg(status)
         self._mark_timing_of_log(status)
 
     def _mark_timing_of_log(self, status):
         self._set_last_log_time(status, datetime.datetime.now())
 
-    def _have_we_logged_clear_already(self, status:str) -> bool:
+    def _have_we_logged_clear_already(self, status: str) -> bool:
         last_log_time = self._get_last_log_time(status)
 
         return last_log_time is LOG_CLEARED
@@ -87,14 +85,13 @@ class reportStatus(object):
 
         return last_log_time is NO_LOG_ENTRY
 
-
     def _get_all_keys_in_store(self) -> list:
         log_store = self._get_log_store()
         all_keys = list(log_store.keys())
 
         return all_keys
 
-    def _log_clear_and_mark(self, status:str):
+    def _log_clear_and_mark(self, status: str):
         self.log.msg("No longer- %s" % status)
         self._mark_log_of_clear(status)
 
@@ -117,8 +114,9 @@ class reportStatus(object):
             log_store = self._log_store = {}
         return log_store
 
+
 def _store_name(reason, condition):
-    return condition+":"+reason
+    return condition + ":" + reason
 
 
 def _split_name(keyname):
@@ -126,21 +124,23 @@ def _split_name(keyname):
 
 
 class reportProcessStatus(reportStatus):
-
-    def report_wait_condition(self, reason: str, condition_name:str=""):
+    def report_wait_condition(self, reason: str, condition_name: str = ""):
         status = _store_name(reason, condition_name)
         super().log_status(status)
 
     def clear_all_reasons_for_condition(self, condition_name: str):
         list_of_reasons = self._get_all_reasons_for_condition(condition_name)
-        _ = [self.clear_wait_condition(reason, condition_name) for reason in list_of_reasons]
+        _ = [
+            self.clear_wait_condition(reason, condition_name)
+            for reason in list_of_reasons
+        ]
 
-    def clear_wait_condition(self, reason, condition_name:str=""):
+    def clear_wait_condition(self, reason, condition_name: str = ""):
         status = _store_name(reason, condition_name)
         super().clear_status(status)
 
     def _get_all_reasons_for_condition(self, condition_name: str):
-        paired_keys =  self._get_all_paired_keys_in_store()
+        paired_keys = self._get_all_paired_keys_in_store()
         reason_list = [pair[1] for pair in paired_keys if pair[0] == condition_name]
 
         return reason_list
@@ -150,4 +150,3 @@ class reportProcessStatus(reportStatus):
         paired_keys = [_split_name(keyname) for keyname in all_keys]
 
         return paired_keys
-

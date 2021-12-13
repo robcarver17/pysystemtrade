@@ -12,9 +12,11 @@ from syscore.objects import arg_not_supplied, missing_contract
 from sysobjects.production.positions import contractPosition, listOfContractPositions
 from sysobjects.contracts import futuresContract
 
+
 class ibContractPositionData(brokerContractPositionData):
-    def __init__(self, ibconnection: connectionIB, log=logtoscreen(
-            "ibContractPositionData")):
+    def __init__(
+        self, ibconnection: connectionIB, log=logtoscreen("ibContractPositionData")
+    ):
         self._ibconnection = ibconnection
         super().__init__(log=log)
 
@@ -26,23 +28,22 @@ class ibContractPositionData(brokerContractPositionData):
     def ib_client(self) -> ibPositionsClient:
         client = getattr(self, "_ib_client", None)
         if client is None:
-             client = self._ib_client = ibPositionsClient(ibconnection=self.ibconnection,
-                                                   log = self.log)
+            client = self._ib_client = ibPositionsClient(
+                ibconnection=self.ibconnection, log=self.log
+            )
 
         return client
 
-
     def __repr__(self):
-        return "IB Futures per contract position data %s" % str(
-            self.ib_client)
+        return "IB Futures per contract position data %s" % str(self.ib_client)
 
     @property
-    def futures_contract_data(self) ->  ibFuturesContractData:
+    def futures_contract_data(self) -> ibFuturesContractData:
         return ibFuturesContractData(self.ibconnection, log=self.log)
 
     @property
     def futures_instrument_data(self) -> ibFuturesInstrumentData:
-        return ibFuturesInstrumentData(self.ibconnection, log = self.log)
+        return ibFuturesInstrumentData(self.ibconnection, log=self.log)
 
     def get_all_current_positions_as_list_with_contract_objects(
         self, account_id=arg_not_supplied
@@ -53,7 +54,9 @@ class ibContractPositionData(brokerContractPositionData):
         )
         current_positions = []
         for position_entry in all_positions:
-            contract_position_object = self._get_contract_position_for_raw_entry(position_entry)
+            contract_position_object = self._get_contract_position_for_raw_entry(
+                position_entry
+            )
             if contract_position_object is missing_contract:
                 continue
             else:
@@ -61,7 +64,9 @@ class ibContractPositionData(brokerContractPositionData):
 
         list_of_contract_positions = listOfContractPositions(current_positions)
 
-        list_of_contract_positions_no_duplicates = list_of_contract_positions.sum_for_contract()
+        list_of_contract_positions_no_duplicates = (
+            list_of_contract_positions.sum_for_contract()
+        )
 
         return list_of_contract_positions_no_duplicates
 
@@ -72,26 +77,24 @@ class ibContractPositionData(brokerContractPositionData):
 
         ib_code = position_entry["symbol"]
         instrument_code = (
-            self.futures_instrument_data.get_instrument_code_from_broker_code(ib_code))
+            self.futures_instrument_data.get_instrument_code_from_broker_code(ib_code)
+        )
         expiry = position_entry["expiry"]
 
         contract = futuresContract(instrument_code, expiry)
 
-        contract_position_object = contractPosition(
-            position, contract
-        )
+        contract_position_object = contractPosition(position, contract)
 
         return contract_position_object
 
     def _get_all_futures_positions_as_raw_list(
-            self, account_id: str=arg_not_supplied) -> list:
+        self, account_id: str = arg_not_supplied
+    ) -> list:
         self.ib_client.refresh()
-        all_positions = self.ib_client.broker_get_positions(
-            account_id=account_id)
+        all_positions = self.ib_client.broker_get_positions(account_id=account_id)
         positions = all_positions.get("FUT", [])
 
         return positions
-
 
     def get_position_as_df_for_contract_object(self, *args, **kwargs):
         raise Exception("Only current position data available from IB")
@@ -115,4 +118,4 @@ class ibContractPositionData(brokerContractPositionData):
         raise Exception("Args dict not used for IB")
 
     def get_list_of_instruments_with_any_position(self):
-        raise  Exception("Not implemented for IB")
+        raise Exception("Not implemented for IB")

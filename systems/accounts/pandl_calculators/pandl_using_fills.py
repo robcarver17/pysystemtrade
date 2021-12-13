@@ -2,13 +2,15 @@ import numpy as np
 import pandas as pd
 
 from syscore.objects import missing_data, arg_not_supplied
-from systems.accounts.pandl_calculators.pandl_calculation import pandlCalculation, apply_weighting
+from systems.accounts.pandl_calculators.pandl_calculation import (
+    pandlCalculation,
+    apply_weighting,
+)
 
 from sysobjects.fills import listOfFills
 
 
 class pandlCalculationWithFills(pandlCalculation):
-
     def __init__(self, *args, fills: pd.Series = arg_not_supplied, **kwargs):
         # if fills aren't supplied, can be inferred from positions
         super().__init__(*args, **kwargs)
@@ -19,28 +21,28 @@ class pandlCalculationWithFills(pandlCalculation):
         weighted_capital = apply_weighting(weight, self.capital)
         weighted_positions = apply_weighting(weight, self.positions)
 
-        return pandlCalculationWithFills(self.price,
-                 positions = weighted_positions,
-                 fx = self.fx,
-                 capital = weighted_capital,
-                 value_per_point = self.value_per_point,
-                roundpositions = self.roundpositions,
-                delayfill = self.delayfill)
-
+        return pandlCalculationWithFills(
+            self.price,
+            positions=weighted_positions,
+            fx=self.fx,
+            capital=weighted_capital,
+            value_per_point=self.value_per_point,
+            roundpositions=self.roundpositions,
+            delayfill=self.delayfill,
+        )
 
     @classmethod
-    def using_positions_and_prices_merged_from_fills(pandlCalculation, price: pd.Series,
-                                             positions: pd.Series,
-                                             fills: listOfFills,
-                                             **kwargs):
+    def using_positions_and_prices_merged_from_fills(
+        pandlCalculation,
+        price: pd.Series,
+        positions: pd.Series,
+        fills: listOfFills,
+        **kwargs
+    ):
 
-        merged_prices = merge_fill_prices_with_prices(price,
-                                                      fills)
+        merged_prices = merge_fill_prices_with_prices(price, fills)
 
-        return pandlCalculation(price = merged_prices,
-                                positions=positions,
-                                **kwargs)
-
+        return pandlCalculation(price=merged_prices, positions=positions, **kwargs)
 
     @property
     def fills(self) -> listOfFills:
@@ -53,7 +55,7 @@ class pandlCalculationWithFills(pandlCalculation):
 
         ## Fills passed in directly are expected to be precise, so we don't round or delay them
 
-        return  fills
+        return fills
 
     def _infer_fills_from_position(self) -> listOfFills:
 
@@ -62,8 +64,9 @@ class pandlCalculationWithFills(pandlCalculation):
         if positions is arg_not_supplied:
             raise Exception("Need to pass fills or positions")
 
-        fills = listOfFills.from_position_series_and_prices(positions=positions,
-                                                            price=self.price)
+        fills = listOfFills.from_position_series_and_prices(
+            positions=positions, price=self.price
+        )
         return fills
 
     @property
@@ -76,9 +79,7 @@ class pandlCalculationWithFills(pandlCalculation):
             return positions
         else:
             positions_to_use = self._process_positions(positions)
-            return  positions_to_use
-
-
+            return positions_to_use
 
     def _infer_position_from_fills(self) -> pd.Series:
         fills = self._fills
@@ -88,14 +89,15 @@ class pandlCalculationWithFills(pandlCalculation):
         raise Exception("Haven't implemented inferring position from fills")
 
 
-
-def merge_fill_prices_with_prices(prices: pd.Series,
-                                  list_of_fills: listOfFills) -> pd.Series:
+def merge_fill_prices_with_prices(
+    prices: pd.Series, list_of_fills: listOfFills
+) -> pd.Series:
     list_of_trades_as_pd_df = list_of_fills.as_pd_df()
     unique_trades_as_pd_df = unique_trades_df(list_of_trades_as_pd_df)
 
     prices_to_use = pd.concat(
-        [prices, unique_trades_as_pd_df.price], axis=1, join="outer")
+        [prices, unique_trades_as_pd_df.price], axis=1, join="outer"
+    )
 
     # Where no fill price available, use price
     prices_to_use = prices_to_use.fillna(axis=1, method="ffill")
@@ -155,7 +157,3 @@ Can have other class methods in future that allow you to just pass fills, trades
 
 
 """
-
-
-
-

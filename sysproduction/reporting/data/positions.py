@@ -33,10 +33,12 @@ def get_position_breaks(data):
 
     diag_positions = diagPositions(data)
     breaks_str1 = "Breaks Instrument vs Contract %s" % str(
-        diag_positions.get_list_of_breaks_between_contract_and_strategy_positions())
+        diag_positions.get_list_of_breaks_between_contract_and_strategy_positions()
+    )
 
     data_broker = dataBroker(data)
     breaks_str2 = "Breaks Broker vs Contract %s" % str(
-        data_broker.get_list_of_breaks_between_broker_and_db_contract_positions())
+        data_broker.get_list_of_breaks_between_broker_and_db_contract_positions()
+    )
 
     return breaks_str0 + "\n " + breaks_str1 + "\n " + breaks_str2

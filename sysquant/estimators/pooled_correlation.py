@@ -5,11 +5,10 @@ from syscore.pdutils import listOfDataFrames
 from sysquant.estimators.correlations import CorrelationList
 from sysquant.estimators.correlation_over_time import correlation_over_time
 
+
 def pooled_correlation_estimator(
-            data: listOfDataFrames,
-            frequency="W",
-            forward_fill_data = True,
-            **kwargs) -> CorrelationList:
+    data: listOfDataFrames, frequency="W", forward_fill_data=True, **kwargs
+) -> CorrelationList:
 
     copied_data = copy(data)
     if forward_fill_data:
@@ -27,8 +26,8 @@ def pooled_correlation_estimator(
     # Make into one giant dataframe
     pooled_data = data_at_common_frequency.stacked_df_with_added_time_from_list()
 
-    correlation_list = correlation_over_time(pooled_data,
-                                                 **kwargs,
-                                                 length_adjustment = length_adjustment)
+    correlation_list = correlation_over_time(
+        pooled_data, **kwargs, length_adjustment=length_adjustment
+    )
 
     return correlation_list

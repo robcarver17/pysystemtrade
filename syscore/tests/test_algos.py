@@ -23,7 +23,6 @@ def get_data(path):
 
 
 class Test(ut.TestCase):
-
     @ut.SkipTest
     def test_robust_vol_calc(self):
         prices = get_data("syscore.tests.pricetestdata.csv")

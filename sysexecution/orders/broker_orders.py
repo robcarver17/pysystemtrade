@@ -10,11 +10,14 @@ from sysexecution.orders.base_orders import (
 )
 from sysexecution.orders.base_orders import Order
 from sysexecution.trade_qty import tradeQuantity
-from sysobjects.fills import  fill_from_order, Fill
-from sysexecution.orders.contract_orders import contractOrder, from_contract_order_args_to_resolved_args
+from sysobjects.fills import fill_from_order, Fill
+from sysexecution.orders.contract_orders import (
+    contractOrder,
+    from_contract_order_args_to_resolved_args,
+)
 from sysexecution.orders.instrument_orders import instrumentOrder
 
-from sysobjects.production.tradeable_object import  instrumentStrategy, futuresContract
+from sysobjects.production.tradeable_object import instrumentStrategy, futuresContract
 
 from syscore.genutils import none_to_object, object_to_none
 from syscore.objects import fill_exceeds_trade, success
@@ -22,45 +25,43 @@ from syscore.objects import fill_exceeds_trade, success
 
 class brokerOrderType(orderType):
     def allowed_types(self):
-        return ['market', 'limit', 'balance_trade']
+        return ["market", "limit", "balance_trade"]
 
-market_order_type = brokerOrderType('market')
-limit_order_type = brokerOrderType('limit')
-balance_order_type = brokerOrderType('balance_trade')
+
+market_order_type = brokerOrderType("market")
+limit_order_type = brokerOrderType("limit")
+balance_order_type = brokerOrderType("balance_trade")
+
 
 class brokerOrder(Order):
     def __init__(
         self,
         *args,
-        fill: tradeQuantity=None,
-            filled_price: float = None,
-            fill_datetime: datetime.datetime = None,
+        fill: tradeQuantity = None,
+        filled_price: float = None,
+        fill_datetime: datetime.datetime = None,
         leg_filled_price: list = [],
-        locked: bool=False,
-        order_id: int=no_order_id,
-        parent: int=no_parent,
-        children: list=no_children,
-        active: bool=True,
+        locked: bool = False,
+        order_id: int = no_order_id,
+        parent: int = no_parent,
+        children: list = no_children,
+        active: bool = True,
         order_type: brokerOrderType = brokerOrderType("market"),
-
-        algo_used: str="",
-        algo_comment: str="",
-
-        limit_price: float=None,
-        submit_datetime: datetime.datetime=None,
-        side_price: float=None,
-        mid_price: float=None,
-        offside_price: float =None,
-
+        algo_used: str = "",
+        algo_comment: str = "",
+        limit_price: float = None,
+        submit_datetime: datetime.datetime = None,
+        side_price: float = None,
+        mid_price: float = None,
+        offside_price: float = None,
         roll_order: bool = False,
-
-        broker: str="",
-        broker_account: str="",
-        broker_clientid: str="",
+        broker: str = "",
+        broker_account: str = "",
+        broker_clientid: str = "",
         broker_permid: str = "",
         broker_tempid: str = "",
-        commission: float=0.0,
-        manual_fill: bool=False,
+        commission: float = 0.0,
+        manual_fill: bool = False,
         **kwargs_ignored
     ):
         """
@@ -113,7 +114,6 @@ class brokerOrder(Order):
         else:
             calendar_spread_order = True
 
-
         order_info = dict(
             algo_used=algo_used,
             submit_datetime=submit_datetime,
@@ -122,7 +122,7 @@ class brokerOrder(Order):
             calendar_spread_order=calendar_spread_order,
             side_price=side_price,
             mid_price=mid_price,
-            offside_price = offside_price,
+            offside_price=offside_price,
             algo_comment=algo_comment,
             broker=broker,
             broker_account=broker_account,
@@ -131,23 +131,23 @@ class brokerOrder(Order):
             broker_clientid=broker_clientid,
             commission=commission,
             roll_order=roll_order,
-            leg_filled_price = leg_filled_price
+            leg_filled_price=leg_filled_price,
         )
 
-        super().__init__(tradeable_object,
-                        trade= resolved_trade,
-                        fill = resolved_fill,
-                        filled_price= filled_price,
-                        fill_datetime = fill_datetime,
-                        locked = locked,
-                        order_id=order_id,
-                        parent = parent,
-                        children= children,
-                        active=active,
-                        order_type=order_type,
-                        **order_info
-                        )
-
+        super().__init__(
+            tradeable_object,
+            trade=resolved_trade,
+            fill=resolved_fill,
+            filled_price=filled_price,
+            fill_datetime=fill_datetime,
+            locked=locked,
+            order_id=order_id,
+            parent=parent,
+            children=children,
+            active=active,
+            order_type=order_type,
+            **order_info
+        )
 
     @property
     def strategy_name(self):
@@ -177,17 +177,13 @@ class brokerOrder(Order):
     def limit_price(self, limit_price):
         self.order_info["limit_price"] = limit_price
 
-
-
     @property
     def algo_used(self):
         return self.order_info["algo_used"]
 
-
     @property
     def calendar_spread_order(self):
         return self.order_info["calendar_spread_order"]
-
 
     @property
     def submit_datetime(self):
@@ -216,7 +212,6 @@ class brokerOrder(Order):
     @property
     def offside_price(self):
         return self.order_info["offside_price"]
-
 
     @property
     def algo_comment(self):
@@ -268,7 +263,10 @@ class brokerOrder(Order):
 
     @property
     def futures_contract(self):
-        return futuresContract(instrument_object=self.instrument_code, contract_date_object=self.contract_date)
+        return futuresContract(
+            instrument_object=self.instrument_code,
+            contract_date_object=self.contract_date,
+        )
 
     @property
     def leg_filled_price(self):
@@ -277,7 +275,6 @@ class brokerOrder(Order):
     @leg_filled_price.setter
     def leg_filled_price(self, leg_filled_price: list):
         self.order_info["leg_filled_price"] = leg_filled_price
-
 
     @classmethod
     def from_dict(instrumentOrder, order_as_dict):
@@ -313,7 +310,6 @@ class brokerOrder(Order):
 
         return order
 
-
     def log_with_attributes(self, log):
         """
         Returns a new log object with broker_order attributes added
@@ -331,8 +327,7 @@ class brokerOrder(Order):
 
         return new_log
 
-    def add_execution_details_from_matched_broker_order(
-            self, matched_broker_order):
+    def add_execution_details_from_matched_broker_order(self, matched_broker_order):
         fill_qty_okay = self.trade.fill_less_than_or_equal_to_desired_trade(
             matched_broker_order.fill
         )
@@ -353,20 +348,19 @@ class brokerOrder(Order):
 
 def create_new_broker_order_from_contract_order(
     contract_order: contractOrder,
-    order_type: brokerOrderType=brokerOrderType('market'),
-    limit_price: float=None,
-    submit_datetime: datetime.datetime=None,
-    side_price: float=None,
-    mid_price: float=None,
+    order_type: brokerOrderType = brokerOrderType("market"),
+    limit_price: float = None,
+    submit_datetime: datetime.datetime = None,
+    side_price: float = None,
+    mid_price: float = None,
     offside_price: float = None,
-    algo_comment: str="",
-    broker: str="",
-    broker_account: str="",
-    broker_clientid: str="",
-    broker_permid: str="",
-    broker_tempid: str="",
+    algo_comment: str = "",
+    broker: str = "",
+    broker_account: str = "",
+    broker_clientid: str = "",
+    broker_permid: str = "",
+    broker_tempid: str = "",
 ) -> brokerOrder:
-
 
     broker_order = brokerOrder(
         contract_order.key,
@@ -386,16 +380,21 @@ def create_new_broker_order_from_contract_order(
         broker_permid=broker_permid,
         broker_tempid=broker_tempid,
         roll_order=contract_order.roll_order,
-        manual_fill=contract_order.manual_fill
-
+        manual_fill=contract_order.manual_fill,
     )
 
     return broker_order
 
+
 ## Not very pretty but only used for diagnostic TCA
 class brokerOrderWithParentInformation(brokerOrder):
     @classmethod
-    def create_augemented_order(self, order: brokerOrder, instrument_order: instrumentOrder, contract_order: contractOrder):
+    def create_augemented_order(
+        self,
+        order: brokerOrder,
+        instrument_order: instrumentOrder,
+        contract_order: contractOrder,
+    ):
 
         # Price when the trade was generated. We use the contract order price since
         #  the instrument order price may refer to a different contract
@@ -403,7 +402,7 @@ class brokerOrderWithParentInformation(brokerOrder):
 
         # when the trade was originally generated, this is the instrument order
         # used to measure effects of delay eg from close
-        order.parent_reference_datetime =instrument_order.reference_datetime
+        order.parent_reference_datetime = instrument_order.reference_datetime
 
         # instrument order prices may refer to a different contract
         # so we use the contract order limit
@@ -414,14 +413,13 @@ class brokerOrderWithParentInformation(brokerOrder):
         return order
 
 
-
 def single_fill_from_broker_order(order: brokerOrder, contract_str: str):
     list_of_dates = order.contract_date.list_of_date_str
     if len(list_of_dates) == 1:
         # single leg
         return fill_from_order(order)
 
-    if len(order.leg_filled_price)==0:
+    if len(order.leg_filled_price) == 0:
         return missing_order
 
     index_of_date = list_of_dates.index(contract_str)

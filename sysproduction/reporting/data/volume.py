@@ -19,22 +19,26 @@ def get_liquidity_data_df(data: dataBlob):
     all_liquidity = []
     for instrument_code in instrument_list:
         p.iterate()
-        liquidity_this_instrument = get_liquidity_dict_for_instrument_code(data, instrument_code)
+        liquidity_this_instrument = get_liquidity_dict_for_instrument_code(
+            data, instrument_code
+        )
         all_liquidity.append(liquidity_this_instrument)
 
     all_liquidity_df = pd.DataFrame(all_liquidity)
     all_liquidity_df.index = instrument_list
-    all_liquidity_df['contracts'] = all_liquidity_df['contracts'].round(0)
+    all_liquidity_df["contracts"] = all_liquidity_df["contracts"].round(0)
 
     return all_liquidity_df
 
 
 def get_liquidity_dict_for_instrument_code(data, instrument_code: str) -> dict:
-    contract_volume = get_best_average_daily_volume_for_instrument(data, instrument_code)
+    contract_volume = get_best_average_daily_volume_for_instrument(
+        data, instrument_code
+    )
     risk_per_contract = annual_risk_per_contract(data, instrument_code)
     volume_in_risk_terms_m = risk_per_contract * contract_volume / 1000000
 
-    return dict(contracts = contract_volume, risk = volume_in_risk_terms_m)
+    return dict(contracts=contract_volume, risk=volume_in_risk_terms_m)
 
 
 def get_average_daily_volume_for_contract_object(data, contract_object):
@@ -54,10 +58,12 @@ def get_best_average_daily_volume_for_instrument(data, instrument_code: str):
     data_contracts = dataContracts(data)
     contract_dates = data_contracts.get_all_sampled_contracts(instrument_code)
 
-    volumes = [get_average_daily_volume_for_contract_object(data, contract_object)
-               for contract_object in contract_dates]
+    volumes = [
+        get_average_daily_volume_for_contract_object(data, contract_object)
+        for contract_object in contract_dates
+    ]
 
-    if len(volumes)==0:
+    if len(volumes) == 0:
         ## can happen with brand new instruments not properly added
         return np.nan
 
@@ -73,4 +79,4 @@ def annual_risk_per_contract(data, instrument_code: str) -> float:
         ## can happen for brand new instruments not properly loaded
         return np.nan
 
-    return risk_data['annual_risk_per_contract']
+    return risk_data["annual_risk_per_contract"]

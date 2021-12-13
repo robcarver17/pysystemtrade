@@ -12,17 +12,25 @@ from sysquant.estimators.mean_estimator import meanEstimates
 from sysquant.estimators.generic_estimator import genericEstimator
 
 from sysquant.optimisation.optimisers.call_optimiser import optimiser_for_method
-from sysquant.optimisation.weights import portfolioWeights, one_over_n_weights_given_data, estimatesWithPortfolioWeights
+from sysquant.optimisation.weights import (
+    portfolioWeights,
+    one_over_n_weights_given_data,
+    estimatesWithPortfolioWeights,
+)
 from sysquant.estimators.estimates import Estimates
 from sysquant.optimisation.cleaning import clean_weights, get_must_have_dict_from_data
 
 from sysquant.returns import returnsForOptimisation
 
-class portfolioOptimiser():
-    def __init__(self,net_returns: returnsForOptimisation,
-                 log: logger = logtoscreen("optimiser"),
-                 method="handcraft",
-                 **weighting_args):
+
+class portfolioOptimiser:
+    def __init__(
+        self,
+        net_returns: returnsForOptimisation,
+        log: logger = logtoscreen("optimiser"),
+        method="handcraft",
+        **weighting_args
+    ):
 
         self._net_returns = net_returns
         self._log = log
@@ -51,10 +59,9 @@ class portfolioOptimiser():
 
     @property
     def cleaning(self) -> bool:
-        return str2Bool(self.weighting_args['cleaning'])
+        return str2Bool(self.weighting_args["cleaning"])
 
-    def calculate_weights_for_period(self,
-            fit_period: fitDates)-> portfolioWeights:
+    def calculate_weights_for_period(self, fit_period: fitDates) -> portfolioWeights:
 
         if fit_period.no_data:
             return one_over_n_weights_given_data(self.net_returns)
@@ -66,30 +73,32 @@ class portfolioOptimiser():
 
         return weights
 
-    def clean_weights_for_period(self, weights: portfolioWeights, fit_period: fitDates) -> portfolioWeights:
+    def clean_weights_for_period(
+        self, weights: portfolioWeights, fit_period: fitDates
+    ) -> portfolioWeights:
 
         if fit_period.no_data:
             return weights
 
-        data_subset = self.net_returns[fit_period.fit_start: fit_period.fit_end]
+        data_subset = self.net_returns[fit_period.fit_start : fit_period.fit_end]
         must_haves = get_must_have_dict_from_data(data_subset)
 
-        cleaned_weights = clean_weights(weights=weights,
-                                        must_haves=must_haves)
+        cleaned_weights = clean_weights(weights=weights, must_haves=must_haves)
 
         return cleaned_weights
 
     def calculate_weights_given_data(self, fit_period: fitDates) -> portfolioWeights:
 
-        estimates_and_portfolio_weights = \
+        estimates_and_portfolio_weights = (
             self.get_weights_and_returned_estimates_for_period(fit_period)
+        )
         portfolio_weights = estimates_and_portfolio_weights.weights
 
         return portfolio_weights
 
-
-    def get_weights_and_returned_estimates_for_period(self, fit_period: fitDates) \
-        -> estimatesWithPortfolioWeights:
+    def get_weights_and_returned_estimates_for_period(
+        self, fit_period: fitDates
+    ) -> estimatesWithPortfolioWeights:
 
         method = self.method
         weighting_args = self._weighting_args
@@ -97,9 +106,9 @@ class portfolioOptimiser():
         estimates = self.get_estimators_for_period(fit_period)
         estimates = copy(estimates)
 
-        estimates_and_portfolio_weights = optimiser_for_method(method,
-                                                               estimates = estimates,
-                                                               **weighting_args)
+        estimates_and_portfolio_weights = optimiser_for_method(
+            method, estimates=estimates, **weighting_args
+        )
 
         return estimates_and_portfolio_weights
 
@@ -110,38 +119,51 @@ class portfolioOptimiser():
         data_length = self.data_length_for_period(fit_period)
         frequency = self.frequency
 
-        estimates = Estimates(correlation = correlation,
-                              mean = mean,
-                              stdev = stdev,
-                              data_length = data_length,
-                              frequency = frequency)
+        estimates = Estimates(
+            correlation=correlation,
+            mean=mean,
+            stdev=stdev,
+            data_length=data_length,
+            frequency=frequency,
+        )
 
         return estimates
-
 
     def data_length_for_period(self, fit_period: fitDates) -> int:
         if fit_period.no_data:
             return 0
 
-        return len(self.net_returns[fit_period.fit_start:fit_period.fit_end].index)
+        return len(self.net_returns[fit_period.fit_start : fit_period.fit_end].index)
 
-    def calculate_correlation_matrix_for_period(self, fit_period: fitDates) -> correlationEstimate:
-        return self.calculate_estimate_for_period(fit_period, param_entry="correlation_estimate")
+    def calculate_correlation_matrix_for_period(
+        self, fit_period: fitDates
+    ) -> correlationEstimate:
+        return self.calculate_estimate_for_period(
+            fit_period, param_entry="correlation_estimate"
+        )
 
     def calculate_stdev_for_period(self, fit_period: fitDates) -> stdevEstimates:
-        return self.calculate_estimate_for_period(fit_period, param_entry="vol_estimate")
+        return self.calculate_estimate_for_period(
+            fit_period, param_entry="vol_estimate"
+        )
 
     def calculate_mean_for_period(self, fit_period: fitDates) -> meanEstimates:
-        return self.calculate_estimate_for_period(fit_period, param_entry = "mean_estimate")
+        return self.calculate_estimate_for_period(
+            fit_period, param_entry="mean_estimate"
+        )
 
-    def calculate_estimate_for_period(self, fit_period: fitDates, param_entry: str="mean_estimate"):
+    def calculate_estimate_for_period(
+        self, fit_period: fitDates, param_entry: str = "mean_estimate"
+    ):
         estimator = self._generic_estimator(param_entry)
         estimate = estimator.calculate_estimate_for_period(fit_period)
 
         return estimate
 
-    def _generic_estimator(self, param_entry: str="mean_estimate") -> genericEstimator:
-        store_as_name = "_"+ param_entry
+    def _generic_estimator(
+        self, param_entry: str = "mean_estimate"
+    ) -> genericEstimator:
+        store_as_name = "_" + param_entry
         estimator = getattr(self, store_as_name, None)
         if estimator is None:
             estimator = self._get_estimator(param_entry)
@@ -149,17 +171,15 @@ class portfolioOptimiser():
 
         return estimator
 
-
     def _get_estimator(self, param_entry="mean_estimate") -> genericEstimator:
         params = copy(self.weighting_args[param_entry])
         func_name = params.pop("func")
         function_object = resolve_function(func_name)
 
         data = self.net_returns
-        params['length_adjustment'] = self.length_adjustment
-        params['frequency'] = self.frequency
+        params["length_adjustment"] = self.length_adjustment
+        params["frequency"] = self.frequency
 
         estimator = function_object(data, **params)
 
         return estimator
-

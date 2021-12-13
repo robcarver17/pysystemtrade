@@ -23,12 +23,9 @@ zero_order = named_object("zero order")
 
 fill_exceeds_trade = named_object("fill too big for trade")
 
-order_is_in_status_finished = named_object(
-    "order status is modification finished")
+order_is_in_status_finished = named_object("order status is modification finished")
 order_is_in_status_modified = named_object("order status is being modified")
-order_is_in_status_not_modified = named_object(
-    "order status is not currently modified"
-)
+order_is_in_status_not_modified = named_object("order status is not currently modified")
 order_is_in_status_reject_modification = named_object(
     "order status is modification rejected"
 )
@@ -42,8 +39,11 @@ ROLL_PSEUDO_STRATEGY = "_ROLL_PSEUDO_STRATEGY"
 
 not_updated = named_object("not updated")
 
+
 class status(named_object):
     pass
+
+
 success = status("success")
 failure = status("failure")
 
@@ -60,13 +60,13 @@ def get_methods(a_stage_object) -> list:
 
     # remove "_"
 
-    dir_list = [
-        method_name for method_name in dir_list if method_name[0] != "_"]
+    dir_list = [method_name for method_name in dir_list if method_name[0] != "_"]
 
     # remove special
     special_list = ["log", "name", "parent", "description"]
     dir_list = [
-        method_name for method_name in dir_list if method_name not in special_list]
+        method_name for method_name in dir_list if method_name not in special_list
+    ]
 
     return dir_list
 
@@ -116,8 +116,7 @@ def resolve_function(func_or_func_name):
     return func
 
 
-def resolve_data_method(some_object,
-                        data_string: str):
+def resolve_data_method(some_object, data_string: str):
     """
     eg if data_string="data1.data2.method" then returns the method some_object.data1.data2.method
 
@@ -151,8 +150,8 @@ def resolve_data_method(some_object,
 
     return _recursively_get_attr_within_list(some_object, list_to_parse)
 
-def _recursively_get_attr_within_list(an_object,
-                                      list_to_parse: list):
+
+def _recursively_get_attr_within_list(an_object, list_to_parse: list):
     if len(list_to_parse) == 0:
         return an_object
 

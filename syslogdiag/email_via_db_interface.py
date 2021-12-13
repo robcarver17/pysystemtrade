@@ -13,10 +13,14 @@ def send_production_mail_msg(data, body: str, subject: str, email_is_report=Fals
     After checking that we aren't sending too many emails per day
 
     """
-    send_email = can_we_send_this_email_now(data, subject, email_is_report=email_is_report)
+    send_email = can_we_send_this_email_now(
+        data, subject, email_is_report=email_is_report
+    )
 
     if send_email:
-        send_email_and_record_date_or_store_on_fail(data, body, subject, email_is_report=email_is_report)
+        send_email_and_record_date_or_store_on_fail(
+            data, body, subject, email_is_report=email_is_report
+        )
     else:
         # won't send an email to avoid clogging up the inbox
         # but might send one more to tell the user to check the logs of stored
@@ -24,7 +28,9 @@ def send_production_mail_msg(data, body: str, subject: str, email_is_report=Fals
         store_and_warn_email(data, body, subject, email_is_report=email_is_report)
 
 
-def send_email_and_record_date_or_store_on_fail(data, body: str, subject: str, email_is_report: bool=False):
+def send_email_and_record_date_or_store_on_fail(
+    data, body: str, subject: str, email_is_report: bool = False
+):
     try:
         send_mail_msg(body, subject)
         record_date_of_email_send(data, subject)
@@ -32,17 +38,18 @@ def send_email_and_record_date_or_store_on_fail(data, body: str, subject: str, e
     except Exception as e:
         # problem sending emails will store instead
         data.log.msg(
-            "Problem %s sending email subject %s, will store message instead" % (str(e), subject
-        ))
+            "Problem %s sending email subject %s, will store message instead"
+            % (str(e), subject)
+        )
         store_message(data, body, subject, email_is_report=email_is_report)
+
 
 def can_we_send_this_email_now(data, subject, email_is_report=False):
     if email_is_report:
         # always send reports
         return True
 
-    last_time_email_sent = get_time_last_email_sent_with_this_subject(
-        data, subject)
+    last_time_email_sent = get_time_last_email_sent_with_this_subject(data, subject)
     email_was_sent_in_last_day = check_if_sent_in_last_day(last_time_email_sent)
 
     if email_was_sent_in_last_day:
@@ -92,8 +99,7 @@ def send_warning_email(data, subject):
 
 def get_time_last_email_sent_with_this_subject(data, subject):
     email_control = dataEmailControl(data)
-    last_time = email_control.get_time_last_email_sent_with_this_subject(
-        subject)
+    last_time = email_control.get_time_last_email_sent_with_this_subject(subject)
     return last_time
 
 
@@ -105,7 +111,8 @@ def record_date_of_email_send(data, subject):
 def get_time_last_warning_email_sent_with_this_subject(data, subject):
     email_control = dataEmailControl(data)
     last_time = email_control.get_time_last_warning_email_sent_with_this_subject(
-        subject)
+        subject
+    )
     return last_time
 
 
@@ -157,7 +164,8 @@ class dataEmailControl:
 
     def get_time_last_warning_email_sent_with_this_subject(self, subject):
         last_time = self.data.db_email_control.get_time_last_warning_email_sent_with_this_subject(
-            subject)
+            subject
+        )
         return last_time
 
     def record_date_of_email_warning_send(self, subject):

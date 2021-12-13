@@ -23,8 +23,9 @@ class Test(unittest.TestCase):
             data,
             config,
         ) = get_test_object_futures_with_rules_and_capping_estimate()
-        system = System([accounts, rawdata, rules, fcs,
-                         ForecastCombineEstimated()], data, config)
+        system = System(
+            [accounts, rawdata, rules, fcs, ForecastCombineEstimated()], data, config
+        )
         setattr(self, "system", system)
 
     def tearDown(self):
@@ -84,8 +85,7 @@ class Test(unittest.TestCase):
         ans = self.system.combForecast.get_forecast_correlation_matrices(
             instrument_code
         )
-        self.assertAlmostEqual(
-            ans.corr_list[-1][0][1], 0.012915602974, places=5)
+        self.assertAlmostEqual(ans.corr_list[-1][0][1], 0.012915602974, places=5)
 
     @unittest.SkipTest
     def testDatemethod(self):
@@ -95,8 +95,7 @@ class Test(unittest.TestCase):
         ans = self.system.combForecast.get_forecast_correlation_matrices(
             instrument_code
         )
-        self.assertAlmostEqual(
-            ans.corr_list[-1][0][1], 0.1152719945526076, places=5)
+        self.assertAlmostEqual(ans.corr_list[-1][0][1], 0.1152719945526076, places=5)
 
     @unittest.SkipTest
     def testExponent(self):

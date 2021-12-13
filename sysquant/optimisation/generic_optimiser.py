@@ -5,12 +5,15 @@ from sysquant.optimisation.optimise_over_time import optimiseWeightsOverTime
 from sysquant.optimisation.SR_adjustment import adjust_dataframe_of_weights_for_SR_costs
 from sysquant.returns import returnsForOptimisation, SINGLE_NAME
 
+
 class genericOptimiser(object):
-    def __init__(self,
-                 returns_pre_processor: returnsPreProcessor,
+    def __init__(
+        self,
+        returns_pre_processor: returnsPreProcessor,
         asset_name: str = SINGLE_NAME,
         log: logger = logtoscreen("optimiser"),
-        **weighting_params):
+        **weighting_params
+    ):
 
         net_returns = returns_pre_processor.get_net_returns(asset_name)
 
@@ -19,7 +22,6 @@ class genericOptimiser(object):
         self._log = log
         self._returns_processor = returns_pre_processor
         self._asset_name = asset_name
-
 
     @property
     def net_returns(self) -> returnsForOptimisation:
@@ -31,7 +33,7 @@ class genericOptimiser(object):
 
     @property
     def apply_cost_weights(self) -> bool:
-        apply_cost_weight = self.weighting_params['apply_cost_weight']
+        apply_cost_weight = self.weighting_params["apply_cost_weight"]
         return apply_cost_weight
 
     @property
@@ -54,7 +56,9 @@ class genericOptimiser(object):
         return weights
 
     def raw_weights(self) -> pd.DataFrame:
-        optimiser = optimiseWeightsOverTime(self.net_returns, log=self.log, **self.weighting_params)
+        optimiser = optimiseWeightsOverTime(
+            self.net_returns, log=self.log, **self.weighting_params
+        )
 
         return optimiser.weights()
 
@@ -64,9 +68,13 @@ class genericOptimiser(object):
 
         if self.apply_cost_weights:
             asset_name = self.asset_name
-            costs_dict = self.\
-                returns_processor.get_dict_of_unadjusted_cost_SR_for_asset_name(asset_name)
-            weights =  adjust_dataframe_of_weights_for_SR_costs(weights=weights,
-                                                                costs_dict=costs_dict)
+            costs_dict = (
+                self.returns_processor.get_dict_of_unadjusted_cost_SR_for_asset_name(
+                    asset_name
+                )
+            )
+            weights = adjust_dataframe_of_weights_for_SR_costs(
+                weights=weights, costs_dict=costs_dict
+            )
 
         return weights

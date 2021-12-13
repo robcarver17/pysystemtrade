@@ -1,12 +1,16 @@
 import pandas as pd
-from systems.accounts.pandl_calculators.pandl_generic_costs import pandlCalculationWithGenericCosts
+from systems.accounts.pandl_calculators.pandl_generic_costs import (
+    pandlCalculationWithGenericCosts,
+)
 
 
 class pandlCalculationWithoutPositions(pandlCalculationWithGenericCosts):
-
-    def __init__(self, pandl_in_base_currency: pd.Series,
-                 costs_pandl_in_base_currency: pd.Series,
-                 capital: pd.Series):
+    def __init__(
+        self,
+        pandl_in_base_currency: pd.Series,
+        costs_pandl_in_base_currency: pd.Series,
+        capital: pd.Series,
+    ):
 
         super().__init__(price=pd.Series(), capital=capital)
 
@@ -60,8 +64,7 @@ class pandlCalculationWithoutPositions(pandlCalculationWithGenericCosts):
 
 
 class dictOfPandlCalculatorsWithGenericCosts(dict):
-    def sum(self,
-            capital) ->pandlCalculationWithoutPositions:
+    def sum(self, capital) -> pandlCalculationWithoutPositions:
 
         pandl_in_base_currency = self.sum_of_pandl_in_base_currency()
         costs_pandl_in_base_currency = self.sum_of_costs_pandl_in_base_currency()
@@ -69,11 +72,10 @@ class dictOfPandlCalculatorsWithGenericCosts(dict):
         pandl_calculator = pandlCalculationWithoutPositions(
             pandl_in_base_currency=pandl_in_base_currency,
             costs_pandl_in_base_currency=costs_pandl_in_base_currency,
-            capital = capital
-            )
+            capital=capital,
+        )
 
         return pandl_calculator
-
 
     def sum_of_pandl_in_base_currency(self) -> pd.Series:
         return sum_list_of_pandl_curves(self.list_of_pandl_in_base_currency)
@@ -90,7 +92,9 @@ class dictOfPandlCalculatorsWithGenericCosts(dict):
         return self._list_of_attr("costs_pandl_in_base_currency")
 
     def _list_of_attr(self, attr_name) -> list:
-        list_of_methods = [getattr(pandl_item, attr_name) for pandl_item in self.values()]
+        list_of_methods = [
+            getattr(pandl_item, attr_name) for pandl_item in self.values()
+        ]
         list_of_attr = [x() for x in list_of_methods]
 
         return list_of_attr

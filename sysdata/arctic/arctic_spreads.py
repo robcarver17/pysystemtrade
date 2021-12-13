@@ -7,15 +7,13 @@ import pandas as pd
 SPREAD_COLLECTION = "spreads"
 SPREAD_COLUMN_NAME = "spread"
 
-class arcticSpreadsForInstrumentData(spreadsForInstrumentData):
 
-    def __init__(self, mongo_db=None, log=logtoscreen(
-            "arcticSpreadsForInstrument")):
+class arcticSpreadsForInstrumentData(spreadsForInstrumentData):
+    def __init__(self, mongo_db=None, log=logtoscreen("arcticSpreadsForInstrument")):
 
         super().__init__(log=log)
 
         self._arctic = arcticData(SPREAD_COLLECTION, mongo_db=mongo_db)
-
 
     def __repr__(self):
         return repr(self._arctic)
@@ -27,19 +25,21 @@ class arcticSpreadsForInstrumentData(spreadsForInstrumentData):
     def get_list_of_instruments(self) -> list:
         return self.arctic.get_keynames()
 
-    def _get_spreads_without_checking(self, instrument_code: str) -> spreadsForInstrument:
+    def _get_spreads_without_checking(
+        self, instrument_code: str
+    ) -> spreadsForInstrument:
         data = self.arctic.read(instrument_code)
 
         spreads = spreadsForInstrument(data[SPREAD_COLUMN_NAME])
 
         return spreads
 
-    def _delete_spreads_without_any_warning_be_careful(
-            self, instrument_code: str):
+    def _delete_spreads_without_any_warning_be_careful(self, instrument_code: str):
         self.arctic.delete(instrument_code)
         self.log.msg(
-            "Deleted spreads for %s from %s" %
-            (instrument_code, str(self)), instrument_code = instrument_code)
+            "Deleted spreads for %s from %s" % (instrument_code, str(self)),
+            instrument_code=instrument_code,
+        )
 
     def _add_spreads_without_checking_for_existing_entry(
         self, instrument_code: str, spreads: spreadsForInstrument
@@ -51,5 +51,5 @@ class arcticSpreadsForInstrumentData(spreadsForInstrumentData):
         self.log.msg(
             "Wrote %s lines of spreads for %s to %s"
             % (len(spreads_as_pd), instrument_code, str(self)),
-            instrument_code = instrument_code
+            instrument_code=instrument_code,
         )

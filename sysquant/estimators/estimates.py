@@ -8,8 +8,9 @@ from sysquant.estimators.correlations import correlationEstimate
 from sysquant.estimators.mean_estimator import meanEstimates
 from sysquant.estimators.stdev_estimator import stdevEstimates
 
+
 @dataclass
-class Estimates():
+class Estimates:
     correlation: correlationEstimate
     mean: meanEstimates
     stdev: stdevEstimates
@@ -48,30 +49,34 @@ class Estimates():
 
     @property
     def data_length_years(self) -> float:
-        data_length_years = float(self.data_length) / \
-                            how_many_times_a_year_is_pd_frequency(self.frequency)
+        data_length_years = float(
+            self.data_length
+        ) / how_many_times_a_year_is_pd_frequency(self.frequency)
 
         return data_length_years
 
-    def equalise_estimates(self, equalise_SR: bool = True,
-                                    ann_target_SR: float= 0.5,
-                                    equalise_vols: bool = True):
+    def equalise_estimates(
+        self,
+        equalise_SR: bool = True,
+        ann_target_SR: float = 0.5,
+        equalise_vols: bool = True,
+    ):
 
-        return equalise_estimates(self,
-                           equalise_SR=equalise_SR,
-                           ann_target_SR=ann_target_SR,
-                           equalise_vols=equalise_vols)
-
+        return equalise_estimates(
+            self,
+            equalise_SR=equalise_SR,
+            ann_target_SR=ann_target_SR,
+            equalise_vols=equalise_vols,
+        )
 
     def shrink_correlation_to_average(self, shrinkage_corr: float):
         self.correlation = self.correlation.shrink_to_average(shrinkage_corr)
         return self
 
-    def shrink_means_to_SR(self, shrinkage_SR: float = 0.90,
-                                    ann_target_SR = 0.5):
-        self.mean = shrink_means_to_SR(self,
-                                       shrinkage_SR = shrinkage_SR,
-                                       target_SR = ann_target_SR)
+    def shrink_means_to_SR(self, shrinkage_SR: float = 0.90, ann_target_SR=0.5):
+        self.mean = shrink_means_to_SR(
+            self, shrinkage_SR=shrinkage_SR, target_SR=ann_target_SR
+        )
 
         return self
 
@@ -80,18 +85,22 @@ class Estimates():
         return self.subset(assets_with_available_data)
 
     def subset(self, subset_of_asset_names: list):
-        return Estimates(correlation=self.correlation.subset(subset_of_asset_names),
-                         mean=self.mean.subset(subset_of_asset_names),
-                         stdev=self.stdev.subset(subset_of_asset_names),
-                         frequency=self.frequency,
-                         data_length=self.data_length)
+        return Estimates(
+            correlation=self.correlation.subset(subset_of_asset_names),
+            mean=self.mean.subset(subset_of_asset_names),
+            stdev=self.stdev.subset(subset_of_asset_names),
+            frequency=self.frequency,
+            data_length=self.data_length,
+        )
 
     def assets_with_missing_data(self) -> list:
         missing_correlations = self.correlation.assets_with_missing_data()
         missing_means = self.correlation.assets_with_missing_data()
         missing_stdev = self.stdev.assets_with_missing_data()
 
-        missing_assets = list(set(flatten_list([missing_stdev,missing_means,missing_correlations])))
+        missing_assets = list(
+            set(flatten_list([missing_stdev, missing_means, missing_correlations]))
+        )
 
         return missing_assets
 
@@ -99,44 +108,62 @@ class Estimates():
         return list(np.setdiff1d(self.asset_names, self.assets_with_missing_data()))
 
 
-def equalise_estimates(estimates: Estimates,
-                                    equalise_SR: bool = True,
-                                    ann_target_SR: float= 0.5,
-                                    equalise_vols: bool = True) -> Estimates:
+def equalise_estimates(
+    estimates: Estimates,
+    equalise_SR: bool = True,
+    ann_target_SR: float = 0.5,
+    equalise_vols: bool = True,
+) -> Estimates:
 
     list_of_asset_names = estimates.asset_names
     mean_list = estimates.mean_list
     stdev_list = estimates.stdev_list
 
-    equalised_mean_list, equalised_stdev_list = \
-                            equalise_estimates_from_lists(mean_list = mean_list,
-                                                          stdev_list =stdev_list,
-                                                          equalise_SR = equalise_SR,
-                                                        ann_target_SR = ann_target_SR,
-                                                          equalise_vols=equalise_vols)
+    equalised_mean_list, equalised_stdev_list = equalise_estimates_from_lists(
+        mean_list=mean_list,
+        stdev_list=stdev_list,
+        equalise_SR=equalise_SR,
+        ann_target_SR=ann_target_SR,
+        equalise_vols=equalise_vols,
+    )
 
-    equalised_means  = meanEstimates([(asset_name, mean_value) for asset_name, mean_value in
-                                   zip(list_of_asset_names, equalised_mean_list)])
+    equalised_means = meanEstimates(
+        [
+            (asset_name, mean_value)
+            for asset_name, mean_value in zip(list_of_asset_names, equalised_mean_list)
+        ]
+    )
 
-    equalised_stdev = stdevEstimates([(asset_name, stdev_value) for asset_name, stdev_value in
-                                   zip(list_of_asset_names, equalised_stdev_list)])
+    equalised_stdev = stdevEstimates(
+        [
+            (asset_name, stdev_value)
+            for asset_name, stdev_value in zip(
+                list_of_asset_names, equalised_stdev_list
+            )
+        ]
+    )
 
     estimates.mean = equalised_means
     estimates.stdev = equalised_stdev
 
     return estimates
 
-def equalise_estimates_from_lists(mean_list: list,
-                                     stdev_list: list,
-                                    equalise_SR: bool = True,
-                                    ann_target_SR: float= 0.5,
-                                    equalise_vols: bool = True) -> list:
 
-    equalise_vols= str2Bool(equalise_vols)
+def equalise_estimates_from_lists(
+    mean_list: list,
+    stdev_list: list,
+    equalise_SR: bool = True,
+    ann_target_SR: float = 0.5,
+    equalise_vols: bool = True,
+) -> list:
+
+    equalise_vols = str2Bool(equalise_vols)
     equalise_SR = str2Bool(equalise_SR)
 
     if equalise_vols:
-        mean_list, stdev_list = vol_equaliser(mean_list=mean_list, stdev_list=stdev_list)
+        mean_list, stdev_list = vol_equaliser(
+            mean_list=mean_list, stdev_list=stdev_list
+        )
 
     if equalise_SR:
         mean_list = SR_equaliser(stdev_list, target_SR=ann_target_SR)
@@ -173,36 +200,44 @@ def vol_equaliser(mean_list, stdev_list):
     norm_factor = [asset_stdev / avg_stdev for asset_stdev in stdev_list]
 
     with np.errstate(invalid="ignore"):
-        norm_means = [mean_list[i] / norm_factor[i]
-                      for (i, notUsed) in enumerate(mean_list)]
-        norm_stdev = [stdev_list[i] / norm_factor[i]
-                      for (i, notUsed) in enumerate(stdev_list)]
+        norm_means = [
+            mean_list[i] / norm_factor[i] for (i, notUsed) in enumerate(mean_list)
+        ]
+        norm_stdev = [
+            stdev_list[i] / norm_factor[i] for (i, notUsed) in enumerate(stdev_list)
+        ]
 
     return (norm_means, norm_stdev)
 
 
-def shrink_means_to_SR(estimates: Estimates,
-              shrinkage_SR: float = 1.0,
-              target_SR=0.5) -> meanEstimates:
+def shrink_means_to_SR(
+    estimates: Estimates, shrinkage_SR: float = 1.0, target_SR=0.5
+) -> meanEstimates:
 
     list_of_asset_names = estimates.asset_names
     mean_list = estimates.mean_list
     stdev_list = estimates.stdev_list
 
-    shrunk_mean_list = shrink_SR_with_lists(mean_list=mean_list,
-                                            stdev_list=stdev_list,
-                                            shrinkage_SR=shrinkage_SR,
-                                            target_SR=target_SR)
+    shrunk_mean_list = shrink_SR_with_lists(
+        mean_list=mean_list,
+        stdev_list=stdev_list,
+        shrinkage_SR=shrinkage_SR,
+        target_SR=target_SR,
+    )
 
-    shrunk_means  = meanEstimates([(asset_name, mean_value) for asset_name, mean_value in
-                                   zip(list_of_asset_names, shrunk_mean_list)])
+    shrunk_means = meanEstimates(
+        [
+            (asset_name, mean_value)
+            for asset_name, mean_value in zip(list_of_asset_names, shrunk_mean_list)
+        ]
+    )
 
     return shrunk_means
 
-def shrink_SR_with_lists(mean_list: list,
-              stdev_list: list,
-              shrinkage_SR: float = 1.0,
-              target_SR=0.5):
+
+def shrink_SR_with_lists(
+    mean_list: list, stdev_list: list, shrinkage_SR: float = 1.0, target_SR=0.5
+):
     """
     >>> shrink_SR([.0,1.], [1.,2.], .5)
     [0.25, 1.0]

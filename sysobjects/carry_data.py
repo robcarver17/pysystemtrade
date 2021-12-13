@@ -3,10 +3,11 @@ import pandas as pd
 from syscore.dateutils import CALENDAR_DAYS_IN_YEAR
 from syscore.pdutils import uniquets, apply_abs_min
 
-class rawCarryData(pd.DataFrame):
 
-    def roll_differentials(self, floor_date_diff: float = 1/CALENDAR_DAYS_IN_YEAR)\
-            -> pd.Series:
+class rawCarryData(pd.DataFrame):
+    def roll_differentials(
+        self, floor_date_diff: float = 1 / CALENDAR_DAYS_IN_YEAR
+    ) -> pd.Series:
         raw_differential = self.raw_differential()
         floored_differential = apply_abs_min(raw_differential, floor_date_diff)
         unique_differential = uniquets(floored_differential)
@@ -34,7 +35,6 @@ class rawCarryData(pd.DataFrame):
 
         return raw_roll
 
-
     def carry_contract_as_float(self) -> pd.Series:
         carry_contract_as_float = self.carry_contract.astype(float)
         return carry_contract_as_float
@@ -51,7 +51,6 @@ class rawCarryData(pd.DataFrame):
     def price_contract(self) -> pd.Series:
         return self.PRICE_CONTRACT
 
-
     @property
     def price(self) -> pd.Series:
         return self.PRICE
@@ -60,19 +59,21 @@ class rawCarryData(pd.DataFrame):
     def carry(self) -> pd.Series:
         return self.CARRY
 
+
 def _total_year_frac_from_contract_series(x):
     years = _year_from_contract_series(x)
     month_frac = _month_as_year_frac_from_contract_series(x)
 
-    return years+month_frac
+    return years + month_frac
+
 
 def _year_from_contract_series(x):
     return x.floordiv(10000)
 
+
 def _month_as_year_frac_from_contract_series(x):
-    return _month_from_contract_series(x)/12.0
+    return _month_from_contract_series(x) / 12.0
+
 
 def _month_from_contract_series(x):
-    return x.mod(10000)/100.0
-
-
+    return x.mod(10000) / 100.0

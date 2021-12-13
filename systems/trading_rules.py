@@ -3,11 +3,21 @@ from copy import copy
 
 import pandas as pd
 
-from syscore.objects import arg_not_supplied, resolve_data_method, resolve_function, hasallattr
+from syscore.objects import (
+    arg_not_supplied,
+    resolve_data_method,
+    resolve_function,
+    hasallattr,
+)
 from syscore.pdutils import replace_all_zeros_with_nan
-from syscore.text import sort_dict_by_underscore_length, strip_underscores_from_dict_keys, force_args_to_same_length
+from syscore.text import (
+    sort_dict_by_underscore_length,
+    strip_underscores_from_dict_keys,
+    force_args_to_same_length,
+)
 
 DEFAULT_PRICE_SOURCE = "data.daily_prices"
+
 
 class TradingRule(object):
     """
@@ -16,8 +26,9 @@ class TradingRule(object):
     Can be called manually or will be called when configuring a system
     """
 
-    def __init__(self, rule, data: list=arg_not_supplied,
-                 other_args: dict=arg_not_supplied):
+    def __init__(
+        self, rule, data: list = arg_not_supplied, other_args: dict = arg_not_supplied
+    ):
         """
         Create a trading rule from a function
 
@@ -56,11 +67,9 @@ class TradingRule(object):
         :returns: single Tradingrule object
         """
 
-        rule_components = \
-            _get_trading_rule_components_depending_on_rule_input(
-                rule,
-                data=data,
-                other_args=other_args)
+        rule_components = _get_trading_rule_components_depending_on_rule_input(
+            rule, data=data, other_args=other_args
+        )
 
         # fill the object with the components we need
         self._function = rule_components.function
@@ -87,9 +96,7 @@ class TradingRule(object):
     def __repr__(self):
         return _repr_trading_rule(self)
 
-    def call(self,
-             system: 'System',
-             instrument_code: str) -> pd.Series:
+    def call(self, system: "System", instrument_code: str) -> pd.Series:
         """
         Actually call a trading rule
 
@@ -104,9 +111,7 @@ class TradingRule(object):
 
         return result
 
-    def _get_data_from_system(self,
-                             system: 'System',
-                             instrument_code: str):
+    def _get_data_from_system(self, system: "System", instrument_code: str):
         """
         Prepare the data for a function call
 
@@ -121,42 +126,43 @@ class TradingRule(object):
         list_of_data_str_references = self.data
         list_of_args_to_pass_to_data_calls = copy(self.data_args)
 
-        list_of_data_methods = \
-            self._get_data_methods_from_list_of_data_string(
-                list_of_data_str_references=list_of_data_str_references,
-                system=system)
+        list_of_data_methods = self._get_data_methods_from_list_of_data_string(
+            list_of_data_str_references=list_of_data_str_references, system=system
+        )
 
-        list_of_data_for_call = \
-            self._get_data_from_list_of_methods_and_arguments(
-                instrument_code=instrument_code,
-                list_of_args_to_pass_to_data_calls=list_of_args_to_pass_to_data_calls,
-                list_of_data_methods=list_of_data_methods)
+        list_of_data_for_call = self._get_data_from_list_of_methods_and_arguments(
+            instrument_code=instrument_code,
+            list_of_args_to_pass_to_data_calls=list_of_args_to_pass_to_data_calls,
+            list_of_data_methods=list_of_data_methods,
+        )
 
         return list_of_data_for_call
 
-    def _get_data_methods_from_list_of_data_string(self,
-                                                   list_of_data_str_references: list,
-                                          system) -> list:
+    def _get_data_methods_from_list_of_data_string(
+        self, list_of_data_str_references: list, system
+    ) -> list:
 
         # Turn a list of strings into a list of function objects
         list_of_data_methods = [
-            resolve_data_method(
-                system,
-                data_string) for data_string in list_of_data_str_references]
+            resolve_data_method(system, data_string)
+            for data_string in list_of_data_str_references
+        ]
 
         return list_of_data_methods
 
-    def _get_data_from_list_of_methods_and_arguments(self,
-                                                     instrument_code:str,
-                                                     list_of_data_methods:list,
-                                                     list_of_args_to_pass_to_data_calls: list)\
-            -> list:
+    def _get_data_from_list_of_methods_and_arguments(
+        self,
+        instrument_code: str,
+        list_of_data_methods: list,
+        list_of_args_to_pass_to_data_calls: list,
+    ) -> list:
 
         # Call the functions, providing additional data if neccesssary
         list_of_data_for_call = [
             data_method(instrument_code, **data_arguments)
-            for data_method, data_arguments in
-            zip(list_of_data_methods, list_of_args_to_pass_to_data_calls)
+            for data_method, data_arguments in zip(
+                list_of_data_methods, list_of_args_to_pass_to_data_calls
+            )
         ]
 
         return list_of_data_for_call
@@ -188,17 +194,20 @@ def _repr_trading_rule(rule: TradingRule):
 
 
 class tradingRuleComponents(object):
-    def __init__(self,
-    rule_function: 'function',
-    data: list,
-    other_args: dict,
-    data_args: list = arg_not_supplied):
+    def __init__(
+        self,
+        rule_function: "function",
+        data: list,
+        other_args: dict,
+        data_args: list = arg_not_supplied,
+    ):
 
-        rule_function, data, other_args, data_args = \
-            self._process_inputs(rule_function=rule_function,
-                                 data = data,
-                                 other_args=other_args,
-                                 data_args=data_args)
+        rule_function, data, other_args, data_args = self._process_inputs(
+            rule_function=rule_function,
+            data=data,
+            other_args=other_args,
+            data_args=data_args,
+        )
 
         self._data = data
         self._other_args = other_args
@@ -206,10 +215,13 @@ class tradingRuleComponents(object):
 
         self._check_values()
 
-    def _process_inputs(self, rule_function: 'function',
-                        data: list,
-                        other_args: dict,
-                        data_args: list =arg_not_supplied):
+    def _process_inputs(
+        self,
+        rule_function: "function",
+        data: list,
+        other_args: dict,
+        data_args: list = arg_not_supplied,
+    ):
 
         # turn string into a callable function if required
         self._rule_function = resolve_function(rule_function)
@@ -256,11 +268,9 @@ class tradingRuleComponents(object):
         assert len(self.data) == len(self.data_args)
 
 
-
-
-def _get_trading_rule_components_depending_on_rule_input(rule,
-                                                         data: list,
-                                                         other_args: dict) -> tradingRuleComponents:
+def _get_trading_rule_components_depending_on_rule_input(
+    rule, data: list, other_args: dict
+) -> tradingRuleComponents:
 
     if data is arg_not_supplied:
         data = []
@@ -270,35 +280,36 @@ def _get_trading_rule_components_depending_on_rule_input(rule,
 
     if _already_a_trading_rule(rule):
         # looks like it is already a trading rule
-        rule_components = \
-            _create_rule_from_existing_rule(rule, data=data, other_args=other_args)
+        rule_components = _create_rule_from_existing_rule(
+            rule, data=data, other_args=other_args
+        )
 
     elif isinstance(rule, tuple):
-        rule_components = _create_rule_from_tuple(rule,
-                                data=data,
-                                other_args=other_args
-                                )
+        rule_components = _create_rule_from_tuple(
+            rule, data=data, other_args=other_args
+        )
 
     elif isinstance(rule, dict):
-        rule_components = _create_rule_from_dict(rule,
-                                                 data=data,
-                                                other_args=other_args)
+        rule_components = _create_rule_from_dict(rule, data=data, other_args=other_args)
     else:
-        rule_components = _create_rule_from_passed_elements(rule,
-                                                            data = data,
-                                                            other_args = other_args)
+        rule_components = _create_rule_from_passed_elements(
+            rule, data=data, other_args=other_args
+        )
 
     return rule_components
+
 
 def _already_a_trading_rule(rule):
     return hasallattr(rule, ["function", "data", "other_args"])
 
 
-def _create_rule_from_existing_rule(rule,
-                            data:list,
-                            other_args: dict) -> tradingRuleComponents:
+def _create_rule_from_existing_rule(
+    rule, data: list, other_args: dict
+) -> tradingRuleComponents:
 
-    _throw_warning_if_passed_rule_and_data("tradingRule", data=data, other_args=other_args)
+    _throw_warning_if_passed_rule_and_data(
+        "tradingRule", data=data, other_args=other_args
+    )
     return tradingRuleComponents(
         rule_function=rule.function,
         data=rule.data,
@@ -306,18 +317,18 @@ def _create_rule_from_existing_rule(rule,
         data_args=rule.data_args,
     )
 
-def _throw_warning_if_passed_rule_and_data(type_of_rule_passed:str,
-                            data:list,
-                            other_args: dict):
+
+def _throw_warning_if_passed_rule_and_data(
+    type_of_rule_passed: str, data: list, other_args: dict
+):
     if len(data) > 0 or len(other_args) > 0:
         print(
-            "WARNING: Creating trade rule with 'rule' type %s argument, ignoring data and/or other args" % type_of_rule_passed
+            "WARNING: Creating trade rule with 'rule' type %s argument, ignoring data and/or other args"
+            % type_of_rule_passed
         )
 
 
-def _create_rule_from_tuple(rule,
-                            data:list,
-                            other_args: dict):
+def _create_rule_from_tuple(rule, data: list, other_args: dict):
 
     _throw_warning_if_passed_rule_and_data("tuple", data=data, other_args=other_args)
 
@@ -328,17 +339,13 @@ def _create_rule_from_tuple(rule,
     (rule_function, data, other_args) = rule
 
     rule_components = tradingRuleComponents(
-        rule_function=rule_function,
-        data=data,
-        other_args=other_args
+        rule_function=rule_function, data=data, other_args=other_args
     )
 
     return rule_components
 
 
-def _create_rule_from_dict(rule,
-                            data:list,
-                            other_args: dict) -> tradingRuleComponents:
+def _create_rule_from_dict(rule, data: list, other_args: dict) -> tradingRuleComponents:
 
     _throw_warning_if_passed_rule_and_data("dict", data=data, other_args=other_args)
 
@@ -352,24 +359,25 @@ def _create_rule_from_dict(rule,
     data = rule.get("data", [])
     other_args = rule.get("other_args", {})
 
-    rule_components = tradingRuleComponents(data = data,
-                                            rule_function=rule_function,
-                                            other_args=other_args)
+    rule_components = tradingRuleComponents(
+        data=data, rule_function=rule_function, other_args=other_args
+    )
 
     return rule_components
 
-def _create_rule_from_passed_elements(rule,
-                            data:list,
-                            other_args: dict) -> tradingRuleComponents:
 
-    rule_components = tradingRuleComponents(rule_function=rule,
-                                            data = data,
-                                            other_args=other_args)
+def _create_rule_from_passed_elements(
+    rule, data: list, other_args: dict
+) -> tradingRuleComponents:
+
+    rule_components = tradingRuleComponents(
+        rule_function=rule, data=data, other_args=other_args
+    )
 
     return rule_components
 
-def _separate_other_args(other_args: dict,
-                         data: list) -> tuple:
+
+def _separate_other_args(other_args: dict, data: list) -> tuple:
     """
     Separate out other arguments into those passed to the trading rule function, and any
      that will be passed to the data functions (data_args)
@@ -396,8 +404,9 @@ def _separate_other_args(other_args: dict,
 
     # The rest are data_args. At this point the key values still have "_" so
     # let's drop them
-    data_args = [strip_underscores_from_dict_keys(
-        arg_dict) for arg_dict in sorted_other_args]
+    data_args = [
+        strip_underscores_from_dict_keys(arg_dict) for arg_dict in sorted_other_args
+    ]
 
     # Force them to be the same length so things don't break later
     # Pad if required
@@ -407,11 +416,7 @@ def _separate_other_args(other_args: dict,
     return other_args_for_trading_rule, data_args_forced_to_length
 
 
-def create_variations_oneparameter(
-        baseRule,
-        list_of_args,
-        argname,
-        nameformat="%s_%s"):
+def create_variations_oneparameter(baseRule, list_of_args, argname, nameformat="%s_%s"):
     """
     Returns a dict of trading rule variations, varying only one named parameter
 
@@ -487,8 +492,7 @@ def create_variations(
             # okay to use argname as only seems to be one of them
             key_argname = list_of_args_dict[0].keys()[0]
         else:
-            raise Exception(
-                "need to specify argname if more than one possibility")
+            raise Exception("need to specify argname if more than one possibility")
 
     baseRulefunction = baseRule.function
     baseRuledata = baseRule.data
@@ -508,8 +512,7 @@ def create_variations(
         for arg_name in args_dict.keys():
             baseRuleargs[arg_name] = args_dict[arg_name]
 
-        rule_variation = TradingRule(
-            baseRulefunction, baseRuledata, baseRuleargs)
+        rule_variation = TradingRule(baseRulefunction, baseRuledata, baseRuleargs)
         var_name = nameformat % (key_argname, str(args_dict[key_argname]))
 
         variations[var_name] = rule_variation

@@ -53,6 +53,7 @@ def norm_weights(list_of_weights):
 # To make comparision easier we compare sorted correlations to sorted correlations; otherwise we'd need many more than 10
 # candidate matrices to cope with different ordering of the same matrix
 
+
 def get_weights_using_uncertainty_method(cmatrix, data_points=100):
     if len(cmatrix) == 1:
         return [1.0]
@@ -63,19 +64,26 @@ def get_weights_using_uncertainty_method(cmatrix, data_points=100):
     if len(cmatrix) > MAX_CLUSTER_SIZE:
         raise Exception("Cluster too big")
 
-    average_weights = optimised_weights_given_correlation_uncertainty(cmatrix, data_points)
+    average_weights = optimised_weights_given_correlation_uncertainty(
+        cmatrix, data_points
+    )
     weights = apply_min_weight(average_weights)
 
     return weights
 
-def optimised_weights_given_correlation_uncertainty(corr_matrix, data_points, p_step=PSTEP_FOR_CORR_ESTIMATION):
-    dist_points = np.arange(p_step, stop=(1-p_step)+0.000001, step=p_step)
+
+def optimised_weights_given_correlation_uncertainty(
+    corr_matrix, data_points, p_step=PSTEP_FOR_CORR_ESTIMATION
+):
+    dist_points = np.arange(p_step, stop=(1 - p_step) + 0.000001, step=p_step)
     list_of_weights = []
     for conf1 in dist_points:
         for conf2 in dist_points:
             for conf3 in dist_points:
                 conf_intervals = labelledCorrelations(conf1, conf2, conf3)
-                weights = optimise_for_corr_matrix_with_uncertainty(corr_matrix, conf_intervals, data_points)
+                weights = optimise_for_corr_matrix_with_uncertainty(
+                    corr_matrix, conf_intervals, data_points
+                )
                 list_of_weights.append(weights)
 
     array_of_weights = np.array(list_of_weights)
@@ -83,12 +91,18 @@ def optimised_weights_given_correlation_uncertainty(corr_matrix, data_points, p_
 
     return average_weights
 
-labelledCorrelations = namedtuple("labelledCorrelations", 'ab ac bc')
+
+labelledCorrelations = namedtuple("labelledCorrelations", "ab ac bc")
+
 
 def optimise_for_corr_matrix_with_uncertainty(corr_matrix, conf_intervals, data_points):
     labelled_correlations = extract_asset_pairwise_correlations_from_matrix(corr_matrix)
-    labelled_correlation_points = calculate_correlation_points_from_tuples(labelled_correlations, conf_intervals, data_points)
-    corr_matrix_at_distribution_point = three_asset_corr_matrix(labelled_correlation_points)
+    labelled_correlation_points = calculate_correlation_points_from_tuples(
+        labelled_correlations, conf_intervals, data_points
+    )
+    corr_matrix_at_distribution_point = three_asset_corr_matrix(
+        labelled_correlation_points
+    )
     weights = optimise_for_corr_matrix(corr_matrix_at_distribution_point)
 
     return weights
@@ -102,19 +116,25 @@ def extract_asset_pairwise_correlations_from_matrix(corr_matrix):
     return labelledCorrelations(ab=ab, ac=ac, bc=bc)
 
 
-def calculate_correlation_points_from_tuples(labelled_correlations, conf_intervals, data_points):
-    correlation_point_list = [get_correlation_distribution_point(corr_value, data_points, confidence_interval)
-                          for corr_value, confidence_interval in
-                          zip(labelled_correlations, conf_intervals)]
+def calculate_correlation_points_from_tuples(
+    labelled_correlations, conf_intervals, data_points
+):
+    correlation_point_list = [
+        get_correlation_distribution_point(corr_value, data_points, confidence_interval)
+        for corr_value, confidence_interval in zip(
+            labelled_correlations, conf_intervals
+        )
+    ]
     labelled_correlation_points = labelledCorrelations(*correlation_point_list)
 
     return labelled_correlation_points
 
 
-def get_correlation_distribution_point(corr_value,  data_points, conf_interval):
+def get_correlation_distribution_point(corr_value, data_points, conf_interval):
     fisher_corr = fisher_transform(corr_value)
-    point_in_fisher_units = \
-        get_fisher_confidence_point(fisher_corr, data_points, conf_interval)
+    point_in_fisher_units = get_fisher_confidence_point(
+        fisher_corr, data_points, conf_interval
+    )
 
     point_in_natural_units = inverse_fisher(point_in_fisher_units)
 
@@ -122,45 +142,48 @@ def get_correlation_distribution_point(corr_value,  data_points, conf_interval):
 
 
 def fisher_transform(corr_value):
-    if corr_value>=1.0:
-        corr_value =  0.99999999999999
-    elif corr_value<=-1.0:
+    if corr_value >= 1.0:
+        corr_value = 0.99999999999999
+    elif corr_value <= -1.0:
         corr_value = -0.99999999999999
-    return 0.5*np.log((1+corr_value) / (1-corr_value)) # also arctanh
+    return 0.5 * np.log((1 + corr_value) / (1 - corr_value))  # also arctanh
 
 
 def get_fisher_confidence_point(fisher_corr, data_points, conf_interval):
-    if conf_interval<0.5:
+    if conf_interval < 0.5:
         confidence_in_fisher_units = fisher_confidence(data_points, conf_interval)
         point_in_fisher_units = fisher_corr - confidence_in_fisher_units
-    elif conf_interval>0.5:
-        confidence_in_fisher_units = fisher_confidence(data_points, 1-conf_interval)
+    elif conf_interval > 0.5:
+        confidence_in_fisher_units = fisher_confidence(data_points, 1 - conf_interval)
         point_in_fisher_units = fisher_corr + confidence_in_fisher_units
     else:
         point_in_fisher_units = fisher_corr
 
     return point_in_fisher_units
 
+
 def fisher_confidence(data_points, conf_interval):
-    data_point_root =fisher_stdev(data_points)*FUDGE_FACTOR_FOR_CORR_WEIGHT_UNCERTAINTY
+    data_point_root = (
+        fisher_stdev(data_points) * FUDGE_FACTOR_FOR_CORR_WEIGHT_UNCERTAINTY
+    )
     conf_point = get_confidence_point(conf_interval)
 
     return data_point_root * conf_point
 
 
 def fisher_stdev(data_points):
-    data_point_root = 1/((data_points-3)**.5)
+    data_point_root = 1 / ((data_points - 3) ** 0.5)
     return data_point_root
 
 
 def get_confidence_point(conf_interval):
-    conf_point = norm.ppf(1-(conf_interval/2))
+    conf_point = norm.ppf(1 - (conf_interval / 2))
 
     return conf_point
 
-def inverse_fisher(fisher_corr_value):
-    return (np.exp(2*fisher_corr_value) - 1) / (np.exp(2*fisher_corr_value) + 1)
 
+def inverse_fisher(fisher_corr_value):
+    return (np.exp(2 * fisher_corr_value) - 1) / (np.exp(2 * fisher_corr_value) + 1)
 
 
 def three_asset_corr_matrix(labelled_correlations):
@@ -175,16 +198,16 @@ def three_asset_corr_matrix(labelled_correlations):
     m = np.array(m)
     return m
 
+
 def optimise_for_corr_matrix(corr_matrix):
     ## arbitrary
-    mean_list = [.05]*3
-    std = .1
+    mean_list = [0.05] * 3
+    std = 0.1
 
     stdev_list = np.full(len(mean_list), std)
     sigma = sigma_from_corr_and_std(stdev_list, corr_matrix)
 
     return optimise(sigma, mean_list)
-
 
 
 def apply_min_weight(average_weights):
@@ -193,13 +216,12 @@ def apply_min_weight(average_weights):
 
     return adj_weights
 
+
 def min_weight(weight):
-    if weight<APPROX_MIN_WEIGHT_IN_CORR_WEIGHTS:
+    if weight < APPROX_MIN_WEIGHT_IN_CORR_WEIGHTS:
         return APPROX_MIN_WEIGHT_IN_CORR_WEIGHTS
     else:
         return weight
-
-
 
 
 """
@@ -239,13 +261,7 @@ def mini_bootstrap_ratio_given_SR_diff(
     :param p_step: Step size to go through in the CDF of the mean estimate
     :return: float, ratio of weight of asset with different SR to 1/n weight
     """
-    dist_points = np.arange(
-        p_step,
-        stop=(
-            1 -
-            p_step) +
-        0.00000001,
-        step=p_step)
+    dist_points = np.arange(p_step, stop=(1 - p_step) + 0.00000001, step=p_step)
     list_of_weights = [
         weights_given_SR_diff(
             SR_diff,
@@ -312,12 +328,12 @@ def weights_given_SR_diff(
 
     # Work out what the mean is with appropriate confidence
     confident_mean_difference = calculate_confident_mean_difference(
-        std, years_of_data, mean_difference, confidence_interval, avg_correlation)
+        std, years_of_data, mean_difference, confidence_interval, avg_correlation
+    )
 
     confident_asset1_mean = confident_mean_difference + average_mean
 
-    mean_list = [confident_asset1_mean] + \
-        [average_mean] * (how_many_assets - 1)
+    mean_list = [confident_asset1_mean] + [average_mean] * (how_many_assets - 1)
 
     weights = optimise_using_correlation(mean_list, avg_correlation, std)
 
@@ -353,22 +369,20 @@ def boring_corr_matrix(size, offdiag=0.99, diag=1.0):
     return m
 
 
-
 def calculate_confident_mean_difference(
     std, years_of_data, mean_difference, confidence_interval, avg_correlation
 ):
-    omega_difference = calculate_omega_difference(
-        std, years_of_data, avg_correlation)
-    confident_mean_difference = stats.norm(
-        mean_difference, omega_difference).ppf(confidence_interval)
+    omega_difference = calculate_omega_difference(std, years_of_data, avg_correlation)
+    confident_mean_difference = stats.norm(mean_difference, omega_difference).ppf(
+        confidence_interval
+    )
 
     return confident_mean_difference
 
 
 def calculate_omega_difference(std, years_of_data, avg_correlation):
     omega_one_asset = std / (years_of_data) ** 0.5
-    omega_variance_difference = 2 * \
-        (omega_one_asset ** 2) * (1 - avg_correlation)
+    omega_variance_difference = 2 * (omega_one_asset ** 2) * (1 - avg_correlation)
     omega_difference = omega_variance_difference ** 0.5
 
     return omega_difference
@@ -423,19 +437,15 @@ class Portfolio:
         :param top_level_weights: (optionally) pass a list, same length as top level. Used for partioning to hit risk target.
         """
 
-        instrument_returns = self._clean_instruments_remove_missing(
-            instrument_returns)
+        instrument_returns = self._clean_instruments_remove_missing(instrument_returns)
         self.instrument_returns = instrument_returns
         self.instruments = list(instrument_returns.columns)
         self.corr_matrix = calc_correlation(instrument_returns)
-        self.vol_vector = np.array(
-            instrument_returns.std() * (WEEKS_IN_YEAR ** 0.5))
-        self.returns_vector = np.array(
-            instrument_returns.mean() * WEEKS_IN_YEAR)
+        self.vol_vector = np.array(instrument_returns.std() * (WEEKS_IN_YEAR ** 0.5))
+        self.returns_vector = np.array(instrument_returns.mean() * WEEKS_IN_YEAR)
         self.sharpe_ratio = self.returns_vector / self.vol_vector
 
-        self.years_of_data = minimum_many_years_of_data_in_dataframe(
-            instrument_returns)
+        self.years_of_data = minimum_many_years_of_data_in_dataframe(instrument_returns)
 
         self.allow_leverage = allow_leverage
         self.risk_target = risk_target
@@ -456,12 +466,12 @@ class Portfolio:
         missing_values = instrument_returns.isna().sum()
         total_data_length = len(instrument_returns)
         missing_instruments = [
-            instrument for instrument,
-            missing_value_this_instrument in zip(
-                instrument_returns.columns,
-                missing_values) if (
-                total_data_length -
-                missing_value_this_instrument) < min_periods]
+            instrument
+            for instrument, missing_value_this_instrument in zip(
+                instrument_returns.columns, missing_values
+            )
+            if (total_data_length - missing_value_this_instrument) < min_periods
+        ]
 
         return missing_instruments
 
@@ -471,10 +481,8 @@ class Portfolio:
         """
 
         all_instruments = instrument_returns.columns
-        missing_instruments = self._missing_data_instruments(
-            instrument_returns)
-        valid_instruments = [
-            x for x in all_instruments if x not in missing_instruments]
+        missing_instruments = self._missing_data_instruments(instrument_returns)
+        valid_instruments = [x for x in all_instruments if x not in missing_instruments]
 
         self.all_instruments = all_instruments
         self.missing_instruments = missing_instruments
@@ -501,9 +509,7 @@ class Portfolio:
         """
 
         risk_target = self.risk_target
-        self.log(
-            "Partioning into two groups to hit risk target of %f" %
-            risk_target)
+        self.log("Partioning into two groups to hit risk target of %f" % risk_target)
 
         assert risk_target is not NO_RISK_TARGET
 
@@ -518,8 +524,7 @@ class Portfolio:
                 "Risk target greater than vol of any instrument: will be impossible to hit risk target"
             )
 
-        if count_is_higher_risk < (
-                len(self.instruments) * WARN_ON_SUBPORTFOLIO_SIZE):
+        if count_is_higher_risk < (len(self.instruments) * WARN_ON_SUBPORTFOLIO_SIZE):
             self.log(
                 "Not many instruments have risk higher than target; portfolio will be concentrated to hit risk target"
             )
@@ -532,9 +537,8 @@ class Portfolio:
                 return 1
 
         cluster_list = [
-            _cluster_id(
-                instrument_vol,
-                risk_target) for instrument_vol in vol_vector]
+            _cluster_id(instrument_vol, risk_target) for instrument_vol in vol_vector
+        ]
 
         return cluster_list
 
@@ -641,14 +645,14 @@ class Portfolio:
             descrlist = ["%s Contains %s" % (prefix, str(self.instruments))]
             return descrlist
 
-        descrlist.append("%s Contains %d sub portfolios" %
-                         (prefix, len(self.sub_portfolios)))
+        descrlist.append(
+            "%s Contains %d sub portfolios" % (prefix, len(self.sub_portfolios))
+        )
 
         for idx, sub_portfolio in enumerate(self.sub_portfolios):
             descrlist.append(
-                sub_portfolio.show_subportfolio_tree(
-                    prefix="%s[%d]" %
-                    (prefix, idx)))
+                sub_portfolio.show_subportfolio_tree(prefix="%s[%d]" % (prefix, idx))
+            )
 
         return descrlist
 
@@ -723,8 +727,7 @@ class Portfolio:
 
         vol_weights = self.aggregate_portfolio.volatility_weights
         raw_weights = self.aggregate_portfolio.raw_weights
-        div_mult = [
-            sub_portfolio.div_mult for sub_portfolio in self.sub_portfolios]
+        div_mult = [sub_portfolio.div_mult for sub_portfolio in self.sub_portfolios]
         sharpe_ratios = list(self.aggregate_portfolio.sharpe_ratio)
 
         # unlabelled, sub portfolios don't get names
@@ -744,7 +747,8 @@ class Portfolio:
         diag.cash = diagobject()
 
         description = "Portfolio containing %d instruments (cash calculations)" % len(
-            self.instruments)
+            self.instruments
+        )
         diag.cash.description = description
 
         vol_weights = self.volatility_weights
@@ -772,7 +776,8 @@ class Portfolio:
         assert self.sub_portfolios is NO_SUB_PORTFOLIOS
 
         raw_weights = get_weights_using_uncertainty_method(
-            self.corr_matrix.values, len(self.instrument_returns.index))
+            self.corr_matrix.values, len(self.instrument_returns.index)
+        )
         self.raw_weights = raw_weights
 
         use_SR_estimates = self.use_SR_estimates
@@ -837,7 +842,8 @@ class Portfolio:
         assert self.sub_portfolios is not NO_SUB_PORTFOLIOS
 
         sub_portfolio_returns = [
-            sub_portfolio.portfolio_returns for sub_portfolio in self.sub_portfolios]
+            sub_portfolio.portfolio_returns for sub_portfolio in self.sub_portfolios
+        ]
         sub_portfolio_returns = pd.concat(sub_portfolio_returns, axis=1)
 
         return sub_portfolio_returns
@@ -873,10 +879,12 @@ class Portfolio:
                 )
             except BaseException:
                 raise Exception(
-                    "Top level weights length %d is different from number of top level groups %d" %
-                    (len(
-                        self.top_level_weights) == len(
-                        self.aggregate_portfolio.instruments)))
+                    "Top level weights length %d is different from number of top level groups %d"
+                    % (
+                        len(self.top_level_weights)
+                        == len(self.aggregate_portfolio.instruments)
+                    )
+                )
             aggregate_weights = self.top_level_weights
             raw_weights = aggregate_weights
 
@@ -896,16 +904,15 @@ class Portfolio:
                 if instrument_code in sub_portfolio.instruments:
                     if weight is not None:
                         raise Exception(
-                            "Instrument %s in multiple sub portfolios" %
-                            instrument_code)
+                            "Instrument %s in multiple sub portfolios" % instrument_code
+                        )
 
                     # A weight is the product of: the diversification multiplier for the subportfolio it comes from,
                     #                             the weight of that instrument within that subportfolio, and
                     # the weight of the subportfolio within the larger
                     # portfolio
                     div_mult = sub_portfolio.div_mult
-                    instrument_idx = sub_portfolio.instruments.index(
-                        instrument_code)
+                    instrument_idx = sub_portfolio.instruments.index(instrument_code)
                     instrument_weight = sub_portfolio.volatility_weights[instrument_idx]
 
                     weight = div_mult * instrument_weight * sub_weight
@@ -917,8 +924,8 @@ class Portfolio:
 
             if weight is None:
                 raise Exception(
-                    "Instrument %s missing from all sub portfolios" %
-                    instrument_code)
+                    "Instrument %s missing from all sub portfolios" % instrument_code
+                )
 
             vol_weights.append(weight)
 
@@ -1022,8 +1029,9 @@ class Portfolio:
             assert high_cash_weight <= 1.0
         except BaseException:
             raise Exception(
-                "Can't hit risk target of %f - make it lower or include riskier assets!" %
-                risk_target_std)
+                "Can't hit risk target of %f - make it lower or include riskier assets!"
+                % risk_target_std
+            )
 
         # new_weight is the weight on the HIGH_VOL portfolio
         low_cash_weight = 1.0 - high_cash_weight
@@ -1033,12 +1041,13 @@ class Portfolio:
         low_vol_weight = low_cash_weight * low_vol_std
 
         self.log(
-            "Need to limit low cash group to %f (vol) %f (cash) of portfolio to hit risk target of %f" %
-            (low_vol_weight, low_cash_weight, risk_target_std))
+            "Need to limit low cash group to %f (vol) %f (cash) of portfolio to hit risk target of %f"
+            % (low_vol_weight, low_cash_weight, risk_target_std)
+        )
 
         # Hard coded - high vol is second group
         top_level_weights = norm_weights([low_vol_weight, high_vol_weight])
-        #p.top_level_weights = top_level_weights
+        # p.top_level_weights = top_level_weights
 
         # We create an adjusted portfolio with the required top level weights as constraints
         #  we also need to pass the risk target to get same partitioning
@@ -1081,12 +1090,8 @@ class Portfolio:
             cash_required = (natural_std - target_std) / natural_std
             portfolio_capital_left = 1.0 - cash_required
 
-            self.log(
-                "Too much risk %f of the portfolio will be cash" %
-                cash_required)
-            cash_weights = list(
-                np.array(natural_cash_weights) *
-                portfolio_capital_left)
+            self.log("Too much risk %f of the portfolio will be cash" % cash_required)
+            cash_weights = list(np.array(natural_cash_weights) * portfolio_capital_left)
 
             # stored as diag
             self.cash_required = cash_required
@@ -1099,9 +1104,7 @@ class Portfolio:
                 # calc leverage
                 leverage = target_std / natural_std
 
-                self.log(
-                    "Not enough risk leverage factor of %f applied" %
-                    leverage)
+                self.log("Not enough risk leverage factor of %f applied" % leverage)
                 cash_weights = list(np.array(natural_cash_weights) * leverage)
                 # stored as diag
                 self.leverage = leverage
@@ -1111,8 +1114,7 @@ class Portfolio:
             else:
                 # no leverage allowed
                 # need to adjust weights
-                self.log(
-                    "Not enough risk, no leverage allowed, using partition method")
+                self.log("Not enough risk, no leverage allowed, using partition method")
 
                 return self._calculate_cash_weights_with_risk_target_partitioned()
 
@@ -1262,12 +1264,12 @@ class Portfolio:
 
             return diags
 
+
 def calc_correlation(instrument_returns):
     recent_instrument_returns = instrument_returns[-MAX_ROWS_FOR_CORR_ESTIMATION:]
     corr = recent_instrument_returns.corr()
 
     return corr
-
 
 
 def minimum_many_years_of_data_in_dataframe(data):
@@ -1289,7 +1291,9 @@ def how_many_years_of_data_in_dataframe(data):
 
     return result_dict
 
+
 from syscore.pdutils import pd_readcsv
+
 
 def how_many_years_of_data_in_pd_series(data_series):
     """
@@ -1327,7 +1331,7 @@ def get_avg_corr(sigma):
     return avg_corr
 
 
-def cluster_correlation_matrix(corr_matrix: np.array, max_cluster_size = 3) -> list:
+def cluster_correlation_matrix(corr_matrix: np.array, max_cluster_size=3) -> list:
     d = sch.distance.pdist(corr_matrix)
     L = sch.linkage(d, method="complete")
     ind = sch.fcluster(L, max_cluster_size, criterion="maxclust")
@@ -1404,13 +1408,8 @@ def un_fix_weights(mean_list, weights):
             return xweight
 
     fixed_weights = [
-        _unfixit(
-            xmean,
-            xweight) for (
-            xmean,
-            xweight) in zip(
-                mean_list,
-            weights)]
+        _unfixit(xmean, xweight) for (xmean, xweight) in zip(mean_list, weights)
+    ]
 
     return fixed_weights
 
@@ -1432,6 +1431,7 @@ def fix_sigma(sigma):
 
     return sigma
 
+
 def neg_SR(weights, sigma, mus):
     # Returns minus the Sharpe Ratio (as we're minimising)
     weights = np.matrix(weights)
@@ -1449,4 +1449,3 @@ def addem(weights):
 def variance(weights, sigma):
     # returns the variance (NOT standard deviation) given weights and sigma
     return (weights * sigma * weights.transpose())[0, 0]
-

@@ -6,12 +6,12 @@ from syscore.genutils import str2Bool
 
 
 def forecast_scalar(
-        cs_forecasts: pd.DataFrame,
-        target_abs_forecast: float = 10.0,
-        window: int=250000, ## JUST A VERY LARGE NUMBER TO USE ALL DATA
-        min_periods=500, # MINIMUM PERIODS BEFORE WE ESTIMATE A SCALAR,
-        backfill=True ## BACKFILL OUR FIRST ESTIMATE, SLIGHTLY CHEATING, BUT...
-    ) -> pd.Series:
+    cs_forecasts: pd.DataFrame,
+    target_abs_forecast: float = 10.0,
+    window: int = 250000,  ## JUST A VERY LARGE NUMBER TO USE ALL DATA
+    min_periods=500,  # MINIMUM PERIODS BEFORE WE ESTIMATE A SCALAR,
+    backfill=True,  ## BACKFILL OUR FIRST ESTIMATE, SLIGHTLY CHEATING, BUT...
+) -> pd.Series:
     """
     Work out the scaling factor for xcross such that T*x has an abs value of 10 (or whatever the average absolute forecast is)
 

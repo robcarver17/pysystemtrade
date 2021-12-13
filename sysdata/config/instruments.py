@@ -1,11 +1,13 @@
 from syscore.objects import missing_data, arg_not_supplied
 from sysdata.config.configdata import Config
 
-def get_list_of_bad_instruments_in_config(config: Config)-> list:
+
+def get_list_of_bad_instruments_in_config(config: Config) -> list:
     exclude_config = get_config_of_excluded_instruments(config)
     bad_markets = exclude_config.get("bad_markets", [])
 
     return bad_markets
+
 
 def get_list_of_untradeable_instruments_in_config(config: Config) -> list:
     exclude_config = get_config_of_excluded_instruments(config)
@@ -13,18 +15,23 @@ def get_list_of_untradeable_instruments_in_config(config: Config) -> list:
 
     return trading_restrictions
 
+
 def get_list_of_ignored_instruments_in_config(config: Config) -> list:
     exclude_config = get_config_of_excluded_instruments(config)
-    ignore_instruments = exclude_config.get('ignore_instruments', [])
+    ignore_instruments = exclude_config.get("ignore_instruments", [])
 
     return ignore_instruments
 
-def get_config_of_excluded_instruments(config:Config) -> dict:
-    exclude_instrument_lists = config.get_element_or_missing_data("exclude_instrument_lists")
+
+def get_config_of_excluded_instruments(config: Config) -> dict:
+    exclude_instrument_lists = config.get_element_or_missing_data(
+        "exclude_instrument_lists"
+    )
     if exclude_instrument_lists is missing_data:
         return {}
 
     return exclude_instrument_lists
+
 
 def generate_matching_duplicate_dict(config: Config = arg_not_supplied):
     """
@@ -37,43 +44,58 @@ def generate_matching_duplicate_dict(config: Config = arg_not_supplied):
     """
 
     if config is arg_not_supplied:
-        print("Using defaults.yaml config - won't include any elements from private_config or backtest configs")
+        print(
+            "Using defaults.yaml config - won't include any elements from private_config or backtest configs"
+        )
         config = Config()
         config.fill_with_defaults()
 
-    duplicate_instruments_config = config.get_element_or_missing_data('duplicate_instruments')
+    duplicate_instruments_config = config.get_element_or_missing_data(
+        "duplicate_instruments"
+    )
 
     if duplicate_instruments_config is missing_data:
         raise Exception("Need 'duplicate_instruments' in config")
-    exclude_dict = duplicate_instruments_config.get('exclude', missing_data)
-    include_dict = duplicate_instruments_config.get('include', missing_data)
+    exclude_dict = duplicate_instruments_config.get("exclude", missing_data)
+    include_dict = duplicate_instruments_config.get("include", missing_data)
     if exclude_dict is missing_data or include_dict is missing_data:
-        raise Exception("Need 'duplicate_instruments': exclude_dict and include_dict in config")
+        raise Exception(
+            "Need 'duplicate_instruments': exclude_dict and include_dict in config"
+        )
 
-    joint_keys = list(set(list(exclude_dict.keys())+list(include_dict.keys())))
+    joint_keys = list(set(list(exclude_dict.keys()) + list(include_dict.keys())))
 
-    results_dict = dict([(key, get_duplicate_dict_entry(key,
-                                                        include_dict,
-                                                        exclude_dict)) for key in joint_keys])
+    results_dict = dict(
+        [
+            (key, get_duplicate_dict_entry(key, include_dict, exclude_dict))
+            for key in joint_keys
+        ]
+    )
 
     return results_dict
 
-def get_duplicate_dict_entry(key: str,
-                             include_dict: dict,
-                             exclude_dict: dict) -> dict:
+
+def get_duplicate_dict_entry(key: str, include_dict: dict, exclude_dict: dict) -> dict:
 
     include_entry = get_entry_for_key_in_dict(key, include_dict, is_include_dict=True)
     exclude_entry = get_entry_for_key_in_dict(key, exclude_dict, is_include_dict=False)
 
-    return dict(included = include_entry, excluded = exclude_entry)
+    return dict(included=include_entry, excluded=exclude_entry)
+
 
 def get_entry_for_key_in_dict(key: str, check_dict: dict, is_include_dict: bool = True):
 
     if key not in check_dict.keys():
         if is_include_dict:
-            print("%s is under duplicate_instruments['exclude_dict'] but not include_dict: should match" % key)
+            print(
+                "%s is under duplicate_instruments['exclude_dict'] but not include_dict: should match"
+                % key
+            )
         else:
-            print("%s is under duplicate_instruments['include_dict'] but not exclude_dict: should match" % key)
+            print(
+                "%s is under duplicate_instruments['include_dict'] but not exclude_dict: should match"
+                % key
+            )
         entry = []
     else:
         entry = check_dict[key]
@@ -84,14 +106,14 @@ def get_entry_for_key_in_dict(key: str, check_dict: dict, is_include_dict: bool 
     return entry
 
 
-
-
 def get_duplicate_list_of_instruments_to_remove_from_config(config: Config) -> list:
-    duplicate_instruments_config = config.get_element_or_missing_data('duplicate_instruments')
+    duplicate_instruments_config = config.get_element_or_missing_data(
+        "duplicate_instruments"
+    )
 
     if duplicate_instruments_config is missing_data:
         return []
-    exclude_dict = duplicate_instruments_config.get('exclude', missing_data)
+    exclude_dict = duplicate_instruments_config.get("exclude", missing_data)
     if exclude_dict is missing_data:
         return []
     list_of_duplicates = list(exclude_dict.values())

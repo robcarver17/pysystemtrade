@@ -5,11 +5,12 @@ import pandas as pd
 from sysquant.estimators.correlations import CorrelationList, correlationEstimate
 from sysquant.optimisation.weights import portfolioWeights
 
+
 def diversification_multiplier_from_list(
     correlation_list: CorrelationList,
-        weight_df: pd.DataFrame,
-        ewma_span: int=125,
-        **kwargs
+    weight_df: pd.DataFrame,
+    ewma_span: int = 125,
+    **kwargs
 ) -> pd.Series:
     # FIXME THE FREQUENCY OF WEIGHT_DF MAY NOT MATCH EMWA_SPAN WHICH IS UNITLES IN ANY CASE...
     """
@@ -35,15 +36,12 @@ def diversification_multiplier_from_list(
     # align weights to corr list columns
     weight_df = weight_df[correlation_list.column_names]
 
-    ref_periods = [
-        fit_period.period_start for fit_period in correlation_list.fit_dates]
+    ref_periods = [fit_period.period_start for fit_period in correlation_list.fit_dates]
 
     # here's where we stack up the answers
     div_mult_vector = []
 
-    for (corrmatrix, start_of_period) in zip(
-        correlation_list.corr_list, ref_periods
-    ):
+    for (corrmatrix, start_of_period) in zip(correlation_list.corr_list, ref_periods):
 
         weight_slice = weight_df[:start_of_period]
         if weight_slice.shape[0] == 0:
@@ -72,9 +70,9 @@ def diversification_multiplier_from_list(
     return div_mult_df_smoothed
 
 
-def diversification_mult_single_period(corrmatrix: correlationEstimate,
-                                       weights: portfolioWeights,
-                                       dm_max: float=2.5) -> float:
+def diversification_mult_single_period(
+    corrmatrix: correlationEstimate, weights: portfolioWeights, dm_max: float = 2.5
+) -> float:
     """
     Given N assets with a correlation matrix of H and  weights W summing to 1,
     the diversification multiplier will be 1 / [ ( W x H x WT ) 1/2 ]
@@ -88,10 +86,9 @@ def diversification_mult_single_period(corrmatrix: correlationEstimate,
     if np.isnan(risk):
         return 1.0
 
-    if risk<0.0000001:
+    if risk < 0.0000001:
         return 1.0
 
     dm = np.min([1.0 / risk, dm_max])
 
     return dm
-

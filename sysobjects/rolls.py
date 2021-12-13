@@ -2,18 +2,12 @@ from syscore.genutils import np_convert
 import datetime
 from copy import copy
 
-from syscore.dateutils import (
-    month_from_contract_letter,
-    MONTH_LIST
-)
-from sysobjects.contract_dates_and_expiries import (
-    contractDate,
-    contract_given_tuple
+from syscore.dateutils import month_from_contract_letter, MONTH_LIST
+from sysobjects.contract_dates_and_expiries import contractDate, contract_given_tuple
 
-)
+forward = 1
+backwards = -1
 
-forward=1
-backwards=-1
 
 class rollCycle(object):
     """
@@ -38,18 +32,28 @@ class rollCycle(object):
     def cyclestring(self):
         return self._cyclestring
 
-    def iterate_contract_date(self, direction: int, contract_date: contractDate) -> contractDate:
+    def iterate_contract_date(
+        self, direction: int, contract_date: contractDate
+    ) -> contractDate:
         year_value, month_str = contract_date.date_str_to_year_month()
-        if direction==forward:
-            new_year_value, new_month_str = self._next_year_month_given_tuple(year_value, month_str)
-        elif direction==backwards:
-            new_year_value, new_month_str = self._previous_year_month_given_tuple(year_value, month_str)
+        if direction == forward:
+            new_year_value, new_month_str = self._next_year_month_given_tuple(
+                year_value, month_str
+            )
+        elif direction == backwards:
+            new_year_value, new_month_str = self._previous_year_month_given_tuple(
+                year_value, month_str
+            )
         else:
-            raise Exception("Direction %d has to be %s or %s" % (direction, forward, backwards))
+            raise Exception(
+                "Direction %d has to be %s or %s" % (direction, forward, backwards)
+            )
 
         return contract_given_tuple(contract_date, new_year_value, new_month_str)
 
-    def _previous_year_month_given_tuple(self, year_value: int, month_str: str)-> (int, str):
+    def _previous_year_month_given_tuple(
+        self, year_value: int, month_str: str
+    ) -> (int, str):
         """
         Returns a tuple (year, month: str)
 
@@ -64,7 +68,9 @@ class rollCycle(object):
 
         return year_value, new_month_as_str
 
-    def _next_year_month_given_tuple(self, year_value: int, month_str:str) -> (int, str):
+    def _next_year_month_given_tuple(
+        self, year_value: int, month_str: str
+    ) -> (int, str):
         """
         Returns a tuple (year, month: str)
 
@@ -79,8 +85,6 @@ class rollCycle(object):
 
         return year_value, new_month_as_str
 
-
-
     def _next_month(self, current_month: str) -> str:
         """
         Move one month forward in expiry cycle
@@ -91,7 +95,7 @@ class rollCycle(object):
 
         return self._offset_month(current_month, 1)
 
-    def _previous_month(self, current_month: str) ->str:
+    def _previous_month(self, current_month: str) -> str:
         """
         Move one month back in expiry cycle
 
@@ -101,7 +105,7 @@ class rollCycle(object):
 
         return self._offset_month(current_month, -1)
 
-    def _offset_month(self, current_month:str, offset: int) -> str:
+    def _offset_month(self, current_month: str, offset: int) -> str:
         """
         Move a number of months in the expiry cycle
 
@@ -125,14 +129,11 @@ class rollCycle(object):
         :return: int
         """
         if not self.check_is_month_in_rollcycle(current_month):
-            raise Exception(
-                "%s not in cycle %s" %
-                (current_month, self._cyclestring))
-
+            raise Exception("%s not in cycle %s" % (current_month, self._cyclestring))
 
         return self.cyclestring.index(current_month)
 
-    def _month_is_first(self, current_month:str) -> bool:
+    def _month_is_first(self, current_month: str) -> bool:
         """
         Is this the first month in the expiry cycle?
 
@@ -162,8 +163,7 @@ class rollCycle(object):
             for contract_letter in self.cyclestring
         ]
 
-
-    def check_is_month_in_rollcycle(self, current_month:str) -> bool:
+    def check_is_month_in_rollcycle(self, current_month: str) -> bool:
         """
         Is current_month in our expiry cycle?
 
@@ -192,9 +192,9 @@ class rollParameters(object):
         self,
         hold_rollcycle: str,
         priced_rollcycle: str,
-        roll_offset_day: int=0,
-        carry_offset: int=-1,
-        approx_expiry_offset: int=0,
+        roll_offset_day: int = 0,
+        carry_offset: int = -1,
+        approx_expiry_offset: int = 0,
     ):
         """
 
@@ -213,7 +213,6 @@ class rollParameters(object):
         self._roll_offset_day = roll_offset_day
         self._carry_offset = carry_offset
         self._approx_expiry_offset = approx_expiry_offset
-
 
     @property
     def roll_offset_day(self):
@@ -237,7 +236,6 @@ class rollParameters(object):
     @property
     def priced_rollcycle(self) -> rollCycle:
         return self._priced_rollcycle
-
 
     @property
     def hold_rollcycle(self) -> rollCycle:
@@ -269,15 +267,12 @@ class rollParameters(object):
         return len(hold_cycle)
 
 
-
 class contractDateWithRollParameters(object):
-    """
-
-    """
+    """ """
 
     def __init__(self, contract_date: contractDate, roll_parameters: rollParameters):
         """
-    Roll data plus a specific contract date means we can do things like iterate the roll cycle etc
+        Roll data plus a specific contract date means we can do things like iterate the roll cycle etc
         """
 
         self._roll_parameters = roll_parameters
@@ -296,17 +291,18 @@ class contractDateWithRollParameters(object):
         return self.contract_date.date_str
 
     def __repr__(self):
-        return "%s with roll parameters %s" % (str(self.contract_date), str(self.roll_parameters))
+        return "%s with roll parameters %s" % (
+            str(self.contract_date),
+            str(self.roll_parameters),
+        )
 
     def next_priced_contract(self):
         contract = self._closest_previous_valid_priced_contract()
-        return contract._iterate_contract(
-            forward, "priced_rollcycle")
+        return contract._iterate_contract(forward, "priced_rollcycle")
 
     def previous_priced_contract(self):
         contract = self._closest_next_valid_priced_contract()
-        return contract._iterate_contract(
-            backwards, "priced_rollcycle")
+        return contract._iterate_contract(backwards, "priced_rollcycle")
 
     def next_held_contract(self):
         contract = self._closest_previous_valid_held_contract()
@@ -314,8 +310,7 @@ class contractDateWithRollParameters(object):
 
     def previous_held_contract(self):
         contract = self._closest_next_valid_held_contract()
-        return contract._iterate_contract(
-            backwards, "hold_rollcycle")
+        return contract._iterate_contract(backwards, "hold_rollcycle")
 
     def _closest_next_valid_priced_contract(self):
         # returns current contract if a valid priced contract, or next one in
@@ -357,8 +352,7 @@ class contractDateWithRollParameters(object):
         return self._iterate_contract(forward, "global_rollcycle")
 
     def _previous_month_contract(self):
-        return self._iterate_contract(
-            backwards, "global_rollcycle")
+        return self._iterate_contract(backwards, "global_rollcycle")
 
     def _iterate_contract(self, direction: int, rollcycle_name: str):
         """
@@ -378,8 +372,9 @@ class contractDateWithRollParameters(object):
                 % (str(self.contract_date), rollcycle_name, str(rollcycle_to_use))
             )
 
-        new_contract_date = rollcycle_to_use.iterate_contract_date(direction,
-                                                                   self.contract_date)
+        new_contract_date = rollcycle_to_use.iterate_contract_date(
+            direction, self.contract_date
+        )
 
         existing_roll_parameters = self.roll_parameters
 
@@ -389,13 +384,13 @@ class contractDateWithRollParameters(object):
 
         return new_contract_date_with_roll_data_object
 
-    def _valid_date_in_priced_rollcycle(self) ->bool:
+    def _valid_date_in_priced_rollcycle(self) -> bool:
         return self._valid_date_in_named_rollcycle("priced_rollcycle")
 
-    def _valid_date_in_hold_rollcycle(self) ->bool:
+    def _valid_date_in_hold_rollcycle(self) -> bool:
         return self._valid_date_in_named_rollcycle("hold_rollcycle")
 
-    def _valid_date_in_named_rollcycle(self, rollcycle_name:str) ->bool:
+    def _valid_date_in_named_rollcycle(self, rollcycle_name: str) -> bool:
 
         relevant_rollcycle = getattr(self.roll_parameters, rollcycle_name)
         current_month = self.contract_date.letter_month()
@@ -411,7 +406,7 @@ class contractDateWithRollParameters(object):
             raise Exception("carry_offset needs to be +1 or -1")
 
     @property
-    def desired_roll_date(self) ->datetime.datetime:
+    def desired_roll_date(self) -> datetime.datetime:
         return self.contract_date.expiry_date + datetime.timedelta(
             days=np_convert(self.roll_parameters.roll_offset_day)
         )
@@ -429,12 +424,16 @@ class contractDateWithRollParameters(object):
         contract_dates = []
         current_contract_date_with_roll_parameters = copy(self)
 
-        while current_contract_date_with_roll_parameters.contract_date.expiry_date >= datetime_now:
-            current_contract_date = current_contract_date_with_roll_parameters.contract_date
+        while (
+            current_contract_date_with_roll_parameters.contract_date.expiry_date
+            >= datetime_now
+        ):
+            current_contract_date = (
+                current_contract_date_with_roll_parameters.contract_date
+            )
             contract_dates.append(current_contract_date)
-            current_contract_date_with_roll_parameters = current_contract_date_with_roll_parameters.previous_priced_contract()
+            current_contract_date_with_roll_parameters = (
+                current_contract_date_with_roll_parameters.previous_priced_contract()
+            )
 
         return contract_dates
-
-
-

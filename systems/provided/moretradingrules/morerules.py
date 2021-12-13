@@ -36,9 +36,7 @@ def breakout(price, lookback=10, smooth=None):
 
     # gives a nice natural scaling
     output = 40.0 * ((price - roll_mean) / (roll_max - roll_min))
-    smoothed_output = output.ewm(
-        span=smooth, min_periods=np.ceil(
-            smooth / 2.0)).mean()
+    smoothed_output = output.ewm(span=smooth, min_periods=np.ceil(smooth / 2.0)).mean()
 
     return smoothed_output
 
@@ -83,9 +81,7 @@ def long_bias(price):
     return forecast_ts
 
 
-def relative_carry(
-        smoothed_carry_this_instrument,
-        median_carry_for_asset_class):
+def relative_carry(smoothed_carry_this_instrument, median_carry_for_asset_class):
     """
     Relative carry rule
     Suggested inputs: rawdata.smoothed_carry, rawdata.median_carry_for_asset_class

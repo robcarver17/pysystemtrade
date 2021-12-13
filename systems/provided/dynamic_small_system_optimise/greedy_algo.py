@@ -3,9 +3,8 @@ from copy import copy
 import numpy as np
 
 
-
 def greedy_algo_across_integer_values(
-        obj_instance: 'objectiveFunctionForGreedy'
+    obj_instance: "objectiveFunctionForGreedy",
 ) -> np.array:
     ## Starting weights
     ## These will either be all zero, or in the presence of constraints will include the minima
@@ -18,10 +17,12 @@ def greedy_algo_across_integer_values(
     done = False
 
     while not done:
-        new_best_value, new_solution, at_limit = _find_possible_new_best_live(best_solution=best_solution,
-                                                                              best_value=best_value,
-                                                                              obj_instance=obj_instance,
-                                                                              at_limit=at_limit)
+        new_best_value, new_solution, at_limit = _find_possible_new_best_live(
+            best_solution=best_solution,
+            best_value=best_value,
+            obj_instance=obj_instance,
+            at_limit=at_limit,
+        )
 
         if new_best_value < best_value:
             # reached a new optimium
@@ -34,10 +35,12 @@ def greedy_algo_across_integer_values(
     return best_solution
 
 
-def _find_possible_new_best_live(best_solution: np.array,
-                                 best_value: float,
-                                 obj_instance: 'objectiveFunctionForGreedy',
-                                 at_limit: list) -> tuple:
+def _find_possible_new_best_live(
+    best_solution: np.array,
+    best_value: float,
+    obj_instance: "objectiveFunctionForGreedy",
+    at_limit: list,
+) -> tuple:
     new_best_value = best_value
     new_solution = best_solution
 
@@ -51,9 +54,9 @@ def _find_possible_new_best_live(best_solution: np.array,
         temp_step = copy(best_solution)
         temp_step[i] = temp_step[i] + per_contract_value[i] * direction[i]
 
-        at_limit = _update_at_limit(i, at_limit=at_limit,
-                                    temp_step=temp_step,
-                                    obj_instance=obj_instance)
+        at_limit = _update_at_limit(
+            i, at_limit=at_limit, temp_step=temp_step, obj_instance=obj_instance
+        )
         if at_limit[i]:
             continue
 
@@ -66,10 +69,12 @@ def _find_possible_new_best_live(best_solution: np.array,
     return new_best_value, new_solution, at_limit
 
 
-def _update_at_limit(i: int,
-                     at_limit: list,
-                     temp_step: np.array,
-                     obj_instance: 'objectiveFunctionForGreedy') -> list:
+def _update_at_limit(
+    i: int,
+    at_limit: list,
+    temp_step: np.array,
+    obj_instance: "objectiveFunctionForGreedy",
+) -> list:
     direction_this_item = obj_instance.direction_as_np[i]
     temp_weight_this_item = temp_step[i]
     if direction_this_item > 0:

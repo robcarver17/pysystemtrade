@@ -36,13 +36,13 @@ class updateHistoricalPrices(object):
         data = self.data
         update_historical_prices_with_data(data)
 
+
 def update_historical_prices_with_data(data: dataBlob):
     price_data = diagPrices(data)
     list_of_codes_all = price_data.get_list_of_instruments_in_multiple_prices()
     for instrument_code in list_of_codes_all:
-        data.log.label(instrument_code = instrument_code)
-        update_historical_prices_for_instrument(
-            instrument_code, data)
+        data.log.label(instrument_code=instrument_code)
+        update_historical_prices_for_instrument(instrument_code, data)
 
 
 def update_historical_prices_for_instrument(instrument_code: str, data: dataBlob):
@@ -55,7 +55,8 @@ def update_historical_prices_for_instrument(instrument_code: str, data: dataBlob
     """
     diag_contracts = dataContracts(data)
     all_contracts_list = diag_contracts.get_all_contract_objects_for_instrument_code(
-        instrument_code)
+        instrument_code
+    )
     contract_list = all_contracts_list.currently_sampling()
 
     if len(contract_list) == 0:
@@ -63,15 +64,15 @@ def update_historical_prices_for_instrument(instrument_code: str, data: dataBlob
         return failure
 
     for contract_object in contract_list:
-        data.log.label(contract_date = contract_object.date_str)
-        update_historical_prices_for_instrument_and_contract(
-            contract_object, data)
+        data.log.label(contract_date=contract_object.date_str)
+        update_historical_prices_for_instrument_and_contract(contract_object, data)
 
     return success
 
 
 def update_historical_prices_for_instrument_and_contract(
-        contract_object: futuresContract, data: dataBlob):
+    contract_object: futuresContract, data: dataBlob
+):
     """
     Do a daily update for futures contract prices, using IB historical data
 
@@ -108,19 +109,22 @@ def update_historical_prices_for_instrument_and_contract(
 
     # Get daily data
     # we don't care about the result flag for this
-    get_and_add_prices_for_frequency(
-        data, contract_object, frequency=daily_frequency)
+    get_and_add_prices_for_frequency(data, contract_object, frequency=daily_frequency)
 
 
 def get_and_add_prices_for_frequency(
-        data: dataBlob, contract_object: futuresContract, frequency: Frequency = DAILY_PRICE_FREQ):
+    data: dataBlob,
+    contract_object: futuresContract,
+    frequency: Frequency = DAILY_PRICE_FREQ,
+):
     broker_data_source = dataBroker(data)
     db_futures_prices = updatePrices(data)
 
     broker_prices = broker_data_source.get_prices_at_frequency_for_contract_object(
-        contract_object, frequency)
+        contract_object, frequency
+    )
 
-    if len(broker_prices)==0:
+    if len(broker_prices) == 0:
         data.log.msg("No prices from broker for %s" % str(contract_object))
         return failure
 
@@ -138,20 +142,20 @@ def get_and_add_prices_for_frequency(
     )
     return success
 
+
 def report_price_spike(data: dataBlob, contract_object: futuresContract):
     # SPIKE
     # Need to email user about this as will need manually checking
     msg = (
-            "Spike found in prices for %s: need to manually check by running interactive_manual_check_historical_prices" %
-            str(contract_object))
+        "Spike found in prices for %s: need to manually check by running interactive_manual_check_historical_prices"
+        % str(contract_object)
+    )
     data.log.warn(msg)
     try:
         send_production_mail_msg(
-            data, msg, "Price Spike %s" %
-                       contract_object.instrument_code)
+            data, msg, "Price Spike %s" % contract_object.instrument_code
+        )
     except BaseException:
         data.log.warn(
-            "Couldn't send email about price spike for %s"
-            % str(contract_object)
+            "Couldn't send email about price spike for %s" % str(contract_object)
         )
-

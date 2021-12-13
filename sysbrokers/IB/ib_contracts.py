@@ -1,7 +1,10 @@
 from ib_insync import Contract as ibContract, Contract, ComboLeg
 import re
 
-from sysbrokers.IB.ib_instruments import futuresInstrumentWithIBConfigData, ib_futures_instrument
+from sysbrokers.IB.ib_instruments import (
+    futuresInstrumentWithIBConfigData,
+    ib_futures_instrument,
+)
 from sysbrokers.IB.ib_positions import resolveBS
 from syscore.genutils import list_of_ints_with_highest_common_factor_positive_first
 from sysexecution.trade_qty import tradeQuantity
@@ -9,8 +12,9 @@ from sysobjects.contract_dates_and_expiries import contractDate
 
 
 def resolve_multiple_expiries(
-        ibcontract_list: list,
-        futures_instrument_with_ib_data: futuresInstrumentWithIBConfigData) -> ibContract:
+    ibcontract_list: list,
+    futures_instrument_with_ib_data: futuresInstrumentWithIBConfigData,
+) -> ibContract:
 
     code = futures_instrument_with_ib_data.instrument_code
     ib_data = futures_instrument_with_ib_data.ib_data
@@ -19,26 +23,25 @@ def resolve_multiple_expiries(
     if not ignore_weekly:
         # Can't be resolved
         raise Exception(
-            "%s has multiple plausible contracts but is not set to ignoreWeekly in IB config file" %
-            code)
+            "%s has multiple plausible contracts but is not set to ignoreWeekly in IB config file"
+            % code
+        )
 
     # It's a contract with weekly expiries (probably VIX)
     # Check it's the VIX
     if not code == "VIX":
         raise Exception(
-            "You have specified weekly expiries, but I don't have logic for %s" %
-            code)
+            "You have specified weekly expiries, but I don't have logic for %s" % code
+        )
 
     # Get the symbols
-    contract_symbols = [
-        ibcontract.localSymbol for ibcontract in ibcontract_list]
+    contract_symbols = [ibcontract.localSymbol for ibcontract in ibcontract_list]
     try:
-        are_monthly = [_is_vix_symbol_monthly(
-            symbol) for symbol in contract_symbols]
+        are_monthly = [_is_vix_symbol_monthly(symbol) for symbol in contract_symbols]
     except Exception as exception:
         raise Exception(exception.args[0])
 
-    if are_monthly.count(monthly)==1:
+    if are_monthly.count(monthly) == 1:
         index_of_monthly = are_monthly.index(monthly)
         resolved_contract = ibcontract_list[index_of_monthly]
     else:
@@ -62,10 +65,12 @@ def _is_vix_symbol_monthly(symbol):
     else:
         raise Exception("IB Local Symbol %s not recognised" % symbol)
 
+
 NO_LEGS = []
 
+
 class ibcontractWithLegs(object):
-    def __init__(self, ibcontract: ibContract, legs: list=NO_LEGS):
+    def __init__(self, ibcontract: ibContract, legs: list = NO_LEGS):
         self.ibcontract = ibcontract
         self.legs = legs
 
@@ -73,8 +78,10 @@ class ibcontractWithLegs(object):
         return str(self.ibcontract) + " " + str(self.legs)
 
 
-def get_ib_contract_with_specific_expiry(futures_instrument_with_ib_data: futuresInstrumentWithIBConfigData,
-                                         contract_date: contractDate) ->Contract:
+def get_ib_contract_with_specific_expiry(
+    futures_instrument_with_ib_data: futuresInstrumentWithIBConfigData,
+    contract_date: contractDate,
+) -> Contract:
 
     ibcontract = ib_futures_instrument(futures_instrument_with_ib_data)
     contract_date_string = str(contract_date.date_str)
@@ -93,8 +100,10 @@ def get_ib_contract_with_specific_expiry(futures_instrument_with_ib_data: future
     return ibcontract
 
 
-def resolve_unique_contract_from_ibcontract_list(ibcontract_list: list,
-                            futures_instrument_with_ib_data: futuresInstrumentWithIBConfigData) -> Contract:
+def resolve_unique_contract_from_ibcontract_list(
+    ibcontract_list: list,
+    futures_instrument_with_ib_data: futuresInstrumentWithIBConfigData,
+) -> Contract:
     if len(ibcontract_list) == 0:
         # No contracts found
         raise Exception("No contracts found matching pattern")
@@ -112,8 +121,11 @@ def resolve_unique_contract_from_ibcontract_list(ibcontract_list: list,
     return resolved_contract
 
 
-def _add_legs_to_ib_contract(ibcontract: Contract, trade_list_for_multiple_legs: tradeQuantity,
-                             resolved_legs: list) -> ibcontractWithLegs:
+def _add_legs_to_ib_contract(
+    ibcontract: Contract,
+    trade_list_for_multiple_legs: tradeQuantity,
+    resolved_legs: list,
+) -> ibcontractWithLegs:
 
     ratio_list = list_of_ints_with_highest_common_factor_positive_first(
         trade_list_for_multiple_legs

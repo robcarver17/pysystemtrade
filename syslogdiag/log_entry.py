@@ -7,12 +7,7 @@ from syscore.objects import arg_not_supplied
 LOG_MAPPING = dict(msg=0, terse=1, warn=2, error=3, critical=4)
 INVERSE_MAP = dict([(value, key) for key, value in LOG_MAPPING.items()])
 DEFAULT_LOG_MSG_LEVEL = 0
-MSG_LEVEL_DICT = dict(
-    m0="",
-    m1="",
-    m2="[Warning]",
-    m3="[Error]",
-    m4="*CRITICAL*")
+MSG_LEVEL_DICT = dict(m0="", m1="", m2="[Warning]", m3="[Error]", m4="*CRITICAL*")
 LEVEL_ID = (
     "_Level"  # use underscores so less chance of a conflict with labels used by users
 )
@@ -26,11 +21,14 @@ class logEntry(object):
     Abstraction for log entries
     """
 
-    def __init__(self, text: str,
-                 log_timestamp: datetime.datetime = arg_not_supplied,
-                 msglevel: int = DEFAULT_LOG_MSG_LEVEL,
-                 attributes: dict = arg_not_supplied,
-                 log_id: int = 0):
+    def __init__(
+        self,
+        text: str,
+        log_timestamp: datetime.datetime = arg_not_supplied,
+        msglevel: int = DEFAULT_LOG_MSG_LEVEL,
+        attributes: dict = arg_not_supplied,
+        log_id: int = 0,
+    ):
 
         if attributes is arg_not_supplied:
             attributes = {}
@@ -45,7 +43,6 @@ class logEntry(object):
         self._msg_level = msglevel
         self._timestamp = log_timestamp
         self._log_id = log_id
-
 
     @classmethod
     def log_entry_from_dict(logEntry, log_dict_input: dict):
@@ -124,4 +121,3 @@ class logEntry(object):
     @property
     def attributes(self):
         return self._attributes
-

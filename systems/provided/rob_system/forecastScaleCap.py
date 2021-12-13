@@ -3,7 +3,6 @@ from systems.forecast_scale_cap import *
 
 
 class volAttenForecastScaleCap(ForecastScaleCap):
-
     @diagnostic()
     def get_vol_quantile_points(self, instrument_code):
         ## More properly this would go in raw data perhaps
@@ -37,7 +36,9 @@ class volAttenForecastScaleCap(ForecastScaleCap):
     @diagnostic()
     def get_raw_forecast(self, instrument_code, rule_variation_name):
         ## overriden methon this will be called downstream so don't change name
-        raw_forecast_before_atten = self.get_raw_forecast_before_attenuation(instrument_code, rule_variation_name)
+        raw_forecast_before_atten = self.get_raw_forecast_before_attenuation(
+            instrument_code, rule_variation_name
+        )
         use_attenuation = self.config.use_attenuation
         if rule_variation_name not in use_attenuation:
             return raw_forecast_before_atten
@@ -51,8 +52,9 @@ class volAttenForecastScaleCap(ForecastScaleCap):
 
 # this is a little slow so suggestions for speeding up are welcome
 
+
 def multiplier_function(vol_quantile):
     if np.isnan(vol_quantile):
         return 1.0
 
-    return 2 - 1.5*vol_quantile
+    return 2 - 1.5 * vol_quantile

@@ -9,15 +9,14 @@ def run_backups():
     process_name = "run_backups"
     data = dataBlob(log_name=process_name)
     list_of_timer_names_and_functions = get_list_of_timer_functions_for_backup()
-    backup_process = processToRun(
-        process_name, data, list_of_timer_names_and_functions)
+    backup_process = processToRun(process_name, data, list_of_timer_names_and_functions)
     backup_process.run_process()
 
 
 def get_list_of_timer_functions_for_backup():
     data_arctic_backups = dataBlob(log_name="backup_arctic_to_csv")
     data_state_files = dataBlob(log_name="backup_files")
-    data_mongo_dump = dataBlob(log_name = "backup_mongo_data_as_dump")
+    data_mongo_dump = dataBlob(log_name="backup_mongo_data_as_dump")
 
     arctic_backup_object = backupArcticToCsv(data_arctic_backups)
     statefile_backup_object = backupStateFiles(data_state_files)
@@ -26,7 +25,7 @@ def get_list_of_timer_functions_for_backup():
     list_of_timer_names_and_functions = [
         ("backup_arctic_to_csv", arctic_backup_object),
         ("backup_mongo_data_as_dump", mongodump_backup_object),
-        ("backup_files", statefile_backup_object)
+        ("backup_files", statefile_backup_object),
     ]
 
     return list_of_timer_names_and_functions

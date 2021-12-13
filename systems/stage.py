@@ -3,6 +3,7 @@ from syslogdiag.logger import logger
 from syslogdiag.log_to_screen import logtoscreen
 from systems.basesystem import System
 
+
 class SystemStage(object):
     """
     Default stage object:  we inherit from this, rather than use 'in the raw'
@@ -22,8 +23,7 @@ class SystemStage(object):
 
     @property
     def name(self):
-         return "Need to replace method when inheriting"
-
+        return "Need to replace method when inheriting"
 
     def __repr__(self):
         return "SystemStage '%s' Try %s.methods()" % (
@@ -49,5 +49,5 @@ class SystemStage(object):
 
     @property
     def parent(self) -> System:
-        parent  = getattr(self, "_parent", None)
+        parent = getattr(self, "_parent", None)
         return parent

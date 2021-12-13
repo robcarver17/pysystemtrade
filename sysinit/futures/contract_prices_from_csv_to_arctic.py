@@ -1,20 +1,32 @@
 from syscore.objects import arg_not_supplied
 
 from sysdata.csv.csv_futures_contract_prices import csvFuturesContractPriceData
-from sysdata.arctic.arctic_futures_per_contract_prices import arcticFuturesContractPriceData
+from sysdata.arctic.arctic_futures_per_contract_prices import (
+    arcticFuturesContractPriceData,
+)
 from sysobjects.contracts import futuresContract
 
 
-def init_arctic_with_csv_futures_contract_prices(datapath: str, csv_config = arg_not_supplied):
+def init_arctic_with_csv_futures_contract_prices(
+    datapath: str, csv_config=arg_not_supplied
+):
     csv_prices = csvFuturesContractPriceData(datapath)
-    input("WARNING THIS WILL ERASE ANY EXISTING ARCTIC PRICES WITH DATA FROM %s ARE YOU SURE?! (CTRL-C TO STOP)" % csv_prices.datapath)
+    input(
+        "WARNING THIS WILL ERASE ANY EXISTING ARCTIC PRICES WITH DATA FROM %s ARE YOU SURE?! (CTRL-C TO STOP)"
+        % csv_prices.datapath
+    )
 
     instrument_codes = csv_prices.get_list_of_instrument_codes_with_price_data()
     instrument_codes.sort()
     for instrument_code in instrument_codes:
-        init_arctic_with_csv_futures_contract_prices_for_code(instrument_code, datapath, csv_config = csv_config)
+        init_arctic_with_csv_futures_contract_prices_for_code(
+            instrument_code, datapath, csv_config=csv_config
+        )
 
-def init_arctic_with_csv_futures_contract_prices_for_code(instrument_code:str, datapath: str, csv_config = arg_not_supplied):
+
+def init_arctic_with_csv_futures_contract_prices_for_code(
+    instrument_code: str, datapath: str, csv_config=arg_not_supplied
+):
     print(instrument_code)
     csv_prices = csvFuturesContractPriceData(datapath, config=csv_config)
     arctic_prices = arcticFuturesContractPriceData()
@@ -31,10 +43,13 @@ def init_arctic_with_csv_futures_contract_prices_for_code(instrument_code:str, d
         contract = futuresContract(instrument_code, contract_date_str)
         print("Contract object is %s" % str(contract))
         print("Writing to arctic")
-        arctic_prices.write_prices_for_contract_object(contract, prices_for_contract, ignore_duplication=True)
+        arctic_prices.write_prices_for_contract_object(
+            contract, prices_for_contract, ignore_duplication=True
+        )
         print("Reading back prices from arctic to check")
         written_prices = arctic_prices.get_prices_for_contract_object(contract)
         print("Read back prices are \n %s" % str(written_prices))
+
 
 if __name__ == "__main__":
     input("Will overwrite existing prices are you sure?! CTL-C to abort")

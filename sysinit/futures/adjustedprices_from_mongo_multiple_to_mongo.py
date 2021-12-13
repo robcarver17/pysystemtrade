@@ -23,8 +23,7 @@ def _get_data_inputs(csv_adj_data_path):
 def process_adjusted_prices_all_instruments(
     csv_adj_data_path=arg_not_supplied, ADD_TO_ARCTIC=True, ADD_TO_CSV=False
 ):
-    arctic_multiple_prices, _notused, _alsonotused = _get_data_inputs(
-        csv_adj_data_path)
+    arctic_multiple_prices, _notused, _alsonotused = _get_data_inputs(csv_adj_data_path)
     instrument_list = arctic_multiple_prices.get_list_of_instruments()
     for instrument_code in instrument_list:
         print(instrument_code)
@@ -37,17 +36,17 @@ def process_adjusted_prices_all_instruments(
 
 
 def process_adjusted_prices_single_instrument(
-        instrument_code,
-        csv_adj_data_path=arg_not_supplied,
-        ADD_TO_ARCTIC=True,
-        ADD_TO_CSV=False):
+    instrument_code,
+    csv_adj_data_path=arg_not_supplied,
+    ADD_TO_ARCTIC=True,
+    ADD_TO_CSV=False,
+):
     (
         arctic_multiple_prices,
         arctic_adjusted_prices,
         csv_adjusted_prices,
     ) = _get_data_inputs(csv_adj_data_path)
-    multiple_prices = arctic_multiple_prices.get_multiple_prices(
-        instrument_code)
+    multiple_prices = arctic_multiple_prices.get_multiple_prices(instrument_code)
     adjusted_prices = futuresAdjustedPrices.stitch_multiple_prices(
         multiple_prices, forward_fill=True
     )
@@ -65,7 +64,10 @@ def process_adjusted_prices_single_instrument(
 
     return adjusted_prices
 
+
 if __name__ == "__main__":
     input("Will overwrite existing prices are you sure?! CTL-C to abort")
     # modify flags and datapath as required
-    process_adjusted_prices_all_instruments(ADD_TO_ARCTIC=True, ADD_TO_CSV=True, csv_adj_data_path=arg_not_supplied)
+    process_adjusted_prices_all_instruments(
+        ADD_TO_ARCTIC=True, ADD_TO_CSV=True, csv_adj_data_path=arg_not_supplied
+    )

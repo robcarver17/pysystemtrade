@@ -6,22 +6,23 @@ from sysdata.csv.csv_spot_fx import csvFxPricesData, ConfigCsvFXPrices
 import pandas as pd
 
 
-
 # You may need to change this!
 # There must be ONLY fx prices here, with filenames "GBPUSD.csv" etc
 
 
 investing_dot_com_config = ConfigCsvFXPrices(
-        price_column="Price",
-        date_column="Date",
-        date_format="%b %d, %Y")
+    price_column="Price", date_column="Date", date_format="%b %d, %Y"
+)
 
-def spotfx_from_csv_and_investing_dot_com(datapath, ADD_TO_ARCTIC = True, ADD_TO_CSV = True, ADD_EXTRA_DATA = True):
+
+def spotfx_from_csv_and_investing_dot_com(
+    datapath, ADD_TO_ARCTIC=True, ADD_TO_CSV=True, ADD_EXTRA_DATA=True
+):
     # You can adapt this for different providers by changing these parameters
     if ADD_EXTRA_DATA:
         investingDotCom_csv_fx_prices = csvFxPricesData(
-            datapath = datapath,
-            config = investing_dot_com_config)
+            datapath=datapath, config=investing_dot_com_config
+        )
     if ADD_TO_ARCTIC:
         arctic_fx_prices = arcticFxPricesData()
     my_csv_fx_prices_data = csvFxPricesData()
@@ -34,12 +35,12 @@ def spotfx_from_csv_and_investing_dot_com(datapath, ADD_TO_ARCTIC = True, ADD_TO
 
         fx_prices_my_csv = my_csv_fx_prices_data.get_fx_prices(currency_code)
 
-        fx_prices = investingDotCom_csv_fx_prices.get_fx_prices(
-            currency_code)
+        fx_prices = investingDotCom_csv_fx_prices.get_fx_prices(currency_code)
 
         if ADD_EXTRA_DATA:
             fx_prices_investingDotCom = investingDotCom_csv_fx_prices.get_fx_prices(
-                    currency_code)
+                currency_code
+            )
             print(
                 "%d rows for my csv files, %d rows for investing.com"
                 % (len(fx_prices_my_csv), len(fx_prices_investingDotCom))

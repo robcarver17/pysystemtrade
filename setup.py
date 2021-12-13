@@ -10,7 +10,10 @@ if StrictVersion(platform.python_version()) <= StrictVersion("3.7.0"):
     sys.exit(1)
 
 if StrictVersion(platform.python_version()) >= StrictVersion("3.9.0"):
-    print("pysystemtrade requires Python 3.8.* or earlier (pandas issue). Exiting.", file=sys.stderr)
+    print(
+        "pysystemtrade requires Python 3.8.* or earlier (pandas issue). Exiting.",
+        file=sys.stderr,
+    )
     sys.exit(1)
 
 
@@ -75,7 +78,8 @@ setup(
     author="Robert Carver",
     description=(
         "Python framework for running systems as in Robert Carver's book Systematic Trading"
-        " (https://www.systematicmoney.org/systematic-trading)"),
+        " (https://www.systematicmoney.org/systematic-trading)"
+    ),
     license="GNU GPL v3",
     keywords="systematic trading interactive brokers",
     url="https://qoppac.blogspot.com/p/pysystemtrade.html",
@@ -95,11 +99,9 @@ setup(
         "pytest>6.2",
         "Flask>=2.0.1",
         "Werkzeug>=2.0.1",
-        "statsmodels==0.12.2"
+        "statsmodels==0.12.2",
     ],
-    tests_require=[
-        "nose",
-        "flake8"],
+    tests_require=["nose", "flake8"],
     extras_require=dict(),
     test_suite="nose.collector",
     include_package_data=True,

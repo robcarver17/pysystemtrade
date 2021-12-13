@@ -7,12 +7,14 @@ from syscore.dateutils import SECONDS_PER_DAY
 from syscore.objects import arg_not_supplied, named_object
 from sysdata.config.production_config import get_production_config
 
+
 class mergeStatus(object):
     def __init__(self, text):
         self._text = text
 
     def __repr__(self):
         return self._text
+
 
 status_old_data = mergeStatus("Only_Old_data")
 status_new_data = mergeStatus("Only_New_data")
@@ -21,10 +23,14 @@ status_merged_data = mergeStatus("Merged_data")
 no_spike = object()
 spike_in_data = object()
 
+
 class mergingDataWithStatus(object):
-    def __init__(self, status: mergeStatus,
-                 first_date: datetime.datetime,
-                 merged_data: pd.DataFrame):
+    def __init__(
+        self,
+        status: mergeStatus,
+        first_date: datetime.datetime,
+        merged_data: pd.DataFrame,
+    ):
         self._status = status
         self._first_date = first_date
         self._merged_data = merged_data
@@ -65,9 +71,9 @@ class mergingDataWithStatus(object):
     def add_spike_date(self, spike_date: datetime.datetime):
         self._spike_date = spike_date
 
+
 def merge_newer_data(
-    old_data, new_data,
-        check_for_spike=True, column_to_check=arg_not_supplied
+    old_data, new_data, check_for_spike=True, column_to_check=arg_not_supplied
 ):
     """
     Merge new data, with old data. Any new data that is older than the newest old data will be ignored
@@ -81,13 +87,12 @@ def merge_newer_data(
 
     :return:  pd.Series or DataFrame
     """
-    merged_data_with_status = merge_newer_data_no_checks(
-        old_data, new_data)
+    merged_data_with_status = merge_newer_data_no_checks(old_data, new_data)
 
     # check for spike
     if check_for_spike:
         merged_data_with_status = spike_check_merged_data(
-           merged_data_with_status,
+            merged_data_with_status,
             column_to_check=column_to_check,
         )
         if merged_data_with_status.spike_present:
@@ -97,7 +102,8 @@ def merge_newer_data(
 
     return merged_data
 
-def merge_newer_data_no_checks(old_data, new_data)-> mergingDataWithStatus:
+
+def merge_newer_data_no_checks(old_data, new_data) -> mergingDataWithStatus:
     """
     Merge new data, with old data. Any new data that is older than the newest old data will be ignored
 
@@ -114,13 +120,16 @@ def merge_newer_data_no_checks(old_data, new_data)-> mergingDataWithStatus:
     if len(old_data.index) == 0:
         return mergingDataWithStatus.only_new_data(new_data)
 
-
-    merged_data_with_status = _merge_newer_data_no_checks_if_both_old_and_new(old_data, new_data)
+    merged_data_with_status = _merge_newer_data_no_checks_if_both_old_and_new(
+        old_data, new_data
+    )
 
     return merged_data_with_status
 
 
-def _merge_newer_data_no_checks_if_both_old_and_new(old_data, new_data)-> mergingDataWithStatus:
+def _merge_newer_data_no_checks_if_both_old_and_new(
+    old_data, new_data
+) -> mergingDataWithStatus:
 
     last_date_in_old_data = old_data.index[-1]
     new_data.sort_index()
@@ -138,12 +147,14 @@ def _merge_newer_data_no_checks_if_both_old_and_new(old_data, new_data)-> mergin
     # remove duplicates (shouldn't be any, but...)
     merged_data = merged_data[~merged_data.index.duplicated(keep="first")]
 
-    return mergingDataWithStatus(status_merged_data, first_date_in_new_data, merged_data)
+    return mergingDataWithStatus(
+        status_merged_data, first_date_in_new_data, merged_data
+    )
 
 
 def spike_check_merged_data(
-        merged_data_with_status: mergingDataWithStatus,
-        column_to_check=arg_not_supplied) -> mergingDataWithStatus:
+    merged_data_with_status: mergingDataWithStatus, column_to_check=arg_not_supplied
+) -> mergingDataWithStatus:
 
     merge_status = merged_data_with_status.status
     merged_data = merged_data_with_status.merged_data
@@ -167,7 +178,6 @@ def spike_check_merged_data(
     return merged_data_with_status
 
 
-
 def _first_spike_in_data(
     merged_data, first_date_in_new_data=None, column_to_check=arg_not_supplied
 ):
@@ -179,13 +189,16 @@ def _first_spike_in_data(
     """
     data_to_check = _get_data_to_check(merged_data, column_to_check=column_to_check)
     change_in_avg_units = _calculate_change_in_avg_units(data_to_check)
-    change_in_avg_units_to_check = _get_change_in_avg_units_to_check(change_in_avg_units, first_date_in_new_data = first_date_in_new_data)
+    change_in_avg_units_to_check = _get_change_in_avg_units_to_check(
+        change_in_avg_units, first_date_in_new_data=first_date_in_new_data
+    )
 
     first_spike = _check_for_spikes_in_change_in_avg_units(change_in_avg_units_to_check)
 
     return first_spike
 
-def _get_data_to_check(merged_data, column_to_check = arg_not_supplied):
+
+def _get_data_to_check(merged_data, column_to_check=arg_not_supplied):
     col_list = getattr(merged_data, "columns", None)
     if col_list is None:
         # already a series
@@ -196,6 +209,7 @@ def _get_data_to_check(merged_data, column_to_check = arg_not_supplied):
         data_to_check = merged_data[column_to_check]
 
     return data_to_check
+
 
 def _calculate_change_in_avg_units(data_to_check: pd.Series) -> pd.Series:
 
@@ -213,12 +227,11 @@ def _calculate_change_in_avg_units(data_to_check: pd.Series) -> pd.Series:
 
     return change_in_avg_units
 
+
 def average_change_per_day(data_to_check: pd.Series) -> pd.Series:
     data_diff = data_to_check.diff()[1:]
     index_diff = data_to_check.index[1:] - data_to_check.index[:-1]
-    index_diff_days = [
-        diff.total_seconds() /
-        SECONDS_PER_DAY for diff in index_diff]
+    index_diff_days = [diff.total_seconds() / SECONDS_PER_DAY for diff in index_diff]
 
     change_per_day = [
         diff / (diff_days ** 0.5)
@@ -230,7 +243,9 @@ def average_change_per_day(data_to_check: pd.Series) -> pd.Series:
     return change_pd
 
 
-def _get_change_in_avg_units_to_check(change_in_avg_units: pd.Series, first_date_in_new_data = None):
+def _get_change_in_avg_units_to_check(
+    change_in_avg_units: pd.Series, first_date_in_new_data=None
+):
     if first_date_in_new_data is None:
         # No merged data so we check it all
         change_in_avg_units_to_check = change_in_avg_units
@@ -240,6 +255,7 @@ def _get_change_in_avg_units_to_check(change_in_avg_units: pd.Series, first_date
 
     return change_in_avg_units_to_check
 
+
 production_config = get_production_config()
 max_spike = production_config.max_price_spike
 
@@ -247,14 +263,22 @@ max_spike = production_config.max_price_spike
 def _check_for_spikes_in_change_in_avg_units(change_in_avg_units_to_check: pd.Series):
 
     if any(change_in_avg_units_to_check > max_spike):
-        first_spike=change_in_avg_units_to_check.index[change_in_avg_units_to_check > max_spike][0]
+        first_spike = change_in_avg_units_to_check.index[
+            change_in_avg_units_to_check > max_spike
+        ][0]
     else:
         first_spike = no_spike
 
     return first_spike
 
-def full_merge_of_existing_data(old_data, new_data, 
-    check_for_spike=False, column_to_check=arg_not_supplied, keep_older:bool=True):
+
+def full_merge_of_existing_data(
+    old_data,
+    new_data,
+    check_for_spike=False,
+    column_to_check=arg_not_supplied,
+    keep_older: bool = True,
+):
     """
     Merges old data with new data.
     Any Nan in the existing data will be replaced (be careful!)
@@ -267,8 +291,9 @@ def full_merge_of_existing_data(old_data, new_data,
 
     :returns: pd.DataFrame
     """
-    merged_data_with_status = full_merge_of_existing_data_no_checks(old_data, new_data,
-        keep_older=keep_older)
+    merged_data_with_status = full_merge_of_existing_data_no_checks(
+        old_data, new_data, keep_older=keep_older
+    )
 
     # check for spike
     if check_for_spike:
@@ -282,8 +307,9 @@ def full_merge_of_existing_data(old_data, new_data,
     return merged_data_with_status.merged_data
 
 
-def full_merge_of_existing_data_no_checks(old_data, new_data, 
-    keep_older:bool=True) -> mergingDataWithStatus: 
+def full_merge_of_existing_data_no_checks(
+    old_data, new_data, keep_older: bool = True
+) -> mergingDataWithStatus:
     """
     Merges old data with new data.
     Any Nan in the existing data will be replaced (be careful!)
@@ -310,7 +336,9 @@ def full_merge_of_existing_data_no_checks(old_data, new_data,
             merged_data[colname] = old_data
             continue
 
-        merged_series = full_merge_of_existing_series(old_series, new_series, keep_older)
+        merged_series = full_merge_of_existing_series(
+            old_series, new_series, keep_older
+        )
 
         merged_data[colname] = merged_series
 
@@ -318,17 +346,21 @@ def full_merge_of_existing_data_no_checks(old_data, new_data,
     merged_data_as_df = merged_data_as_df.sort_index()
 
     # get the difference between merged dataset and old one to get the earliest change
-    actually_new_data = pd.concat([merged_data_as_df, old_data]).drop_duplicates(keep=False)
+    actually_new_data = pd.concat([merged_data_as_df, old_data]).drop_duplicates(
+        keep=False
+    )
 
     if len(actually_new_data.index) == 0:
         return mergingDataWithStatus.only_old_data(old_data)
 
     first_date_in_new_data = actually_new_data.index[0]
 
-    return mergingDataWithStatus(status_merged_data, first_date_in_new_data, merged_data_as_df)
+    return mergingDataWithStatus(
+        status_merged_data, first_date_in_new_data, merged_data_as_df
+    )
 
 
-def full_merge_of_existing_series(old_series, new_series, keep_older:bool=True):
+def full_merge_of_existing_series(old_series, new_series, keep_older: bool = True):
     """
     Merges old data with new data.
     Any Nan in the existing data will be replaced (be careful!)
@@ -365,8 +397,8 @@ original_index_matches_new = named_object("original index matches new")
 
 
 def merge_data_series_with_label_column(
-    original_data, new_data, col_names=dict(
-        data="PRICE", label="PRICE_CONTRACT")):
+    original_data, new_data, col_names=dict(data="PRICE", label="PRICE_CONTRACT")
+):
     """
     For two pd.DataFrames with 2 columns, including a label column, update the data when the labels
       start consistently matching
@@ -449,20 +481,19 @@ def merge_data_series_with_label_column(
     data_column = col_names["data"]
 
     merged_data = full_merge_of_existing_series(
-        original_data[data_column][original_data.index>=first_date_after_series_mismatch],
-        new_data[data_column][new_data.index>=first_date_after_series_mismatch],
+        original_data[data_column][
+            original_data.index >= first_date_after_series_mismatch
+        ],
+        new_data[data_column][new_data.index >= first_date_after_series_mismatch],
     )
 
     labels_in_new_data = new_data[last_date_when_series_mismatch:][label_column]
-    labels_in_old_data = original_data[:
-                                       first_date_after_series_mismatch][label_column]
-    labels_in_merged_data = pd.concat(
-        [labels_in_old_data, labels_in_new_data], axis=0)
+    labels_in_old_data = original_data[:first_date_after_series_mismatch][label_column]
+    labels_in_merged_data = pd.concat([labels_in_old_data, labels_in_new_data], axis=0)
     labels_in_merged_data = labels_in_merged_data.loc[
         ~labels_in_merged_data.index.duplicated(keep="first")
     ]
-    labels_in_merged_data_reindexed = labels_in_merged_data.reindex(
-        merged_data.index)
+    labels_in_merged_data_reindexed = labels_in_merged_data.reindex(merged_data.index)
 
     labelled_merged_data = pd.concat(
         [labels_in_merged_data_reindexed, merged_data], axis=1
@@ -484,11 +515,8 @@ def merge_data_series_with_label_column(
 
 
 def find_dates_when_label_changes(
-    original_data,
-    new_data,
-    col_names=dict(
-        data="PRICE",
-        label="PRICE_CONTRACT")):
+    original_data, new_data, col_names=dict(data="PRICE", label="PRICE_CONTRACT")
+):
     """
     For two pd.DataFrames with 2 columns, including a label column, find the date after which the labelling
      is consistent across columns
@@ -524,8 +552,7 @@ def find_dates_when_label_changes(
 
     new_data_start = new_data.index[0]
 
-    existing_labels_in_new_period = joint_labels["current"][new_data_start:].ffill(
-    )
+    existing_labels_in_new_period = joint_labels["current"][new_data_start:].ffill()
     new_labels_in_new_period = joint_labels["new"][new_data_start:].ffill()
 
     # Find the last date when the labels didn't match, and the first date

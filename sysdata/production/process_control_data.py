@@ -1,6 +1,10 @@
 import datetime
 
-from sysobjects.production.process_control import dictOfControlProcesses, controlProcess, was_running_pid_notok_closed
+from sysobjects.production.process_control import (
+    dictOfControlProcesses,
+    controlProcess,
+    was_running_pid_notok_closed,
+)
 from syscore.objects import named_object, success, missing_data
 from sysdata.base_data import baseData
 from syslogdiag.log_to_screen import logtoscreen
@@ -11,37 +15,40 @@ class controlProcessData(baseData):
         super().__init__(log=log)
         self._control_store = dict()
 
-    def get_dict_of_control_processes(self) ->dictOfControlProcesses:
+    def get_dict_of_control_processes(self) -> dictOfControlProcesses:
         list_of_names = self.get_list_of_process_names()
-        output_dict = dict([(process_name, self.get_control_for_process_name(
-            process_name)) for process_name in list_of_names])
+        output_dict = dict(
+            [
+                (process_name, self.get_control_for_process_name(process_name))
+                for process_name in list_of_names
+            ]
+        )
         output_dict = dictOfControlProcesses(output_dict)
 
         return output_dict
 
-    def get_list_of_process_names(self) ->list:
+    def get_list_of_process_names(self) -> list:
         return list(self._control_store.keys())
 
     def get_control_for_process_name(self, process_name) -> controlProcess:
-        control = self._get_control_for_process_name_without_default(
-            process_name)
+        control = self._get_control_for_process_name_without_default(process_name)
         if control is missing_data:
             return controlProcess()
         else:
             return control
 
-    def _get_control_for_process_name_without_default(self, process_name) -> controlProcess:
+    def _get_control_for_process_name_without_default(
+        self, process_name
+    ) -> controlProcess:
         control = self._control_store.get(process_name, missing_data)
         return control
 
-    def _update_control_for_process_name(
-            self, process_name, new_control_object):
+    def _update_control_for_process_name(self, process_name, new_control_object):
         existing_control = self._get_control_for_process_name_without_default(
             process_name
         )
         if existing_control is missing_data:
-            self._add_control_for_process_name(
-                process_name, new_control_object)
+            self._add_control_for_process_name(process_name, new_control_object)
         else:
             self._modify_existing_control_for_process_name(
                 process_name, new_control_object
@@ -75,8 +82,7 @@ class controlProcessData(baseData):
         original_process = self.get_control_for_process_name(process_name)
         result = original_process.start_process()
         if result is success:
-            self._update_control_for_process_name(
-                process_name, original_process)
+            self._update_control_for_process_name(process_name, original_process)
 
         return result
 
@@ -89,10 +95,12 @@ class controlProcessData(baseData):
     def check_if_pid_running_and_if_not_finish_all_processes(self):
 
         list_of_names = self.get_list_of_process_names()
-        list_of_results = [self.check_if_pid_running_and_if_not_finish(process_name) for process_name in list_of_names]
+        list_of_results = [
+            self.check_if_pid_running_and_if_not_finish(process_name)
+            for process_name in list_of_names
+        ]
 
         return list_of_results
-
 
     def check_if_pid_running_and_if_not_finish(self, process_name: str):
         original_process = self.get_control_for_process_name(process_name)
@@ -100,9 +108,11 @@ class controlProcessData(baseData):
         result = original_process.check_if_pid_running_and_if_not_finish_return_status()
 
         if result is was_running_pid_notok_closed:
-            self.log.critical("Process %s with PID %d appears to have crashed, marking as finished: you may want to restart" % (process_name, PID))
+            self.log.critical(
+                "Process %s with PID %d appears to have crashed, marking as finished: you may want to restart"
+                % (process_name, PID)
+            )
             self._update_control_for_process_name(process_name, original_process)
-
 
     def finish_all_processes(self):
 
@@ -120,8 +130,7 @@ class controlProcessData(baseData):
         original_process = self.get_control_for_process_name(process_name)
         result = original_process.finish_process()
         if result is success:
-            self._update_control_for_process_name(
-                process_name, original_process)
+            self._update_control_for_process_name(process_name, original_process)
 
         return result
 
@@ -136,7 +145,7 @@ class controlProcessData(baseData):
 
         return result
 
-    def has_process_finished_in_last_day(self, process_name:str) -> bool:
+    def has_process_finished_in_last_day(self, process_name: str) -> bool:
         """
 
         :param process_name: str
@@ -177,11 +186,15 @@ class controlProcessData(baseData):
         original_process.log_end_run_for_method(method_name)
         self._update_control_for_process_name(process_name, original_process)
 
-    def when_method_last_started(self, process_name: str, method_name: str) -> datetime.datetime:
+    def when_method_last_started(
+        self, process_name: str, method_name: str
+    ) -> datetime.datetime:
         original_process = self.get_control_for_process_name(process_name)
         return original_process.when_method_last_started(method_name)
 
-    def when_method_last_ended(self, process_name: str, method_name: str) -> datetime.datetime:
+    def when_method_last_ended(
+        self, process_name: str, method_name: str
+    ) -> datetime.datetime:
         original_process = self.get_control_for_process_name(process_name)
         return original_process.when_method_last_ended(method_name)
 

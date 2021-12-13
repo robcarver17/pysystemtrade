@@ -14,14 +14,20 @@ from sysdata.csv.csv_multiple_prices import csvFuturesMultiplePricesData
 from sysdata.csv.csv_spot_fx import csvFxPricesData
 from sysdata.csv.csv_contract_position_data import csvContractPositionData
 from sysdata.csv.csv_strategy_position_data import csvStrategyPositionData
-from sysdata.csv.csv_historic_orders import csvStrategyHistoricOrdersData, csvContractHistoricOrdersData, csvBrokerHistoricOrdersData
+from sysdata.csv.csv_historic_orders import (
+    csvStrategyHistoricOrdersData,
+    csvContractHistoricOrdersData,
+    csvBrokerHistoricOrdersData,
+)
 from sysdata.csv.csv_capital_data import csvCapitalData
 from sysdata.csv.csv_optimal_position import csvOptimalPositionData
 from sysdata.csv.csv_instrument_data import csvFuturesInstrumentData
 from sysdata.csv.csv_roll_state_storage import csvRollStateData
 from sysdata.csv.csv_spreads import csvSpreadsForInstrumentData
 
-from sysdata.arctic.arctic_futures_per_contract_prices import arcticFuturesContractPriceData
+from sysdata.arctic.arctic_futures_per_contract_prices import (
+    arcticFuturesContractPriceData,
+)
 from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesData
 from sysdata.arctic.arctic_adjusted_prices import arcticFuturesAdjustedPricesData
 from sysdata.arctic.arctic_spotfx_prices import arcticFxPricesData
@@ -30,7 +36,11 @@ from sysdata.arctic.arctic_spreads import arcticSpreadsForInstrumentData
 from sysdata.mongodb.mongo_futures_contracts import mongoFuturesContractData
 from sysdata.mongodb.mongo_position_by_contract import mongoContractPositionData
 from sysdata.mongodb.mongo_positions_by_strategy import mongoStrategyPositionData
-from sysdata.mongodb.mongo_historic_orders import mongoBrokerHistoricOrdersData, mongoContractHistoricOrdersData, mongoStrategyHistoricOrdersData
+from sysdata.mongodb.mongo_historic_orders import (
+    mongoBrokerHistoricOrdersData,
+    mongoContractHistoricOrdersData,
+    mongoStrategyHistoricOrdersData,
+)
 from sysdata.mongodb.mongo_capital import mongoCapitalData
 from sysdata.mongodb.mongo_futures_instruments import mongoFuturesInstrumentData
 from sysdata.mongodb.mongo_optimal_position import mongoOptimalPositionData
@@ -75,7 +85,6 @@ class backupArcticToCsv:
         backup_csv_dump(self.data)
 
 
-
 def get_data_and_create_csv_directories(logname):
 
     csv_dump_dir = get_csv_dump_dir()
@@ -96,7 +105,7 @@ def get_data_and_create_csv_directories(logname):
         csvOptimalPositionData="optimal_positions",
         csvRollParametersData="roll_parameters",
         csvRollStateData="roll_state",
-        csvSpreadsForInstrumentData="spreads"
+        csvSpreadsForInstrumentData="spreads",
     )
 
     for class_name, path in class_paths.items():
@@ -109,26 +118,45 @@ def get_data_and_create_csv_directories(logname):
         csv_data_paths=class_paths, keep_original_prefix=True, log_name=logname
     )
 
-    data.add_class_list([
-        csvFuturesContractPriceData, csvFuturesAdjustedPricesData,
-                        csvFuturesMultiplePricesData, csvFxPricesData,
-                        csvContractPositionData, csvStrategyPositionData,
-                        csvBrokerHistoricOrdersData, csvContractHistoricOrdersData, csvStrategyHistoricOrdersData,
-                        csvCapitalData, csvOptimalPositionData, csvFuturesInstrumentData,
-                        csvRollStateData, csvFuturesContractData,
-                        csvSpreadsForInstrumentData]
+    data.add_class_list(
+        [
+            csvFuturesContractPriceData,
+            csvFuturesAdjustedPricesData,
+            csvFuturesMultiplePricesData,
+            csvFxPricesData,
+            csvContractPositionData,
+            csvStrategyPositionData,
+            csvBrokerHistoricOrdersData,
+            csvContractHistoricOrdersData,
+            csvStrategyHistoricOrdersData,
+            csvCapitalData,
+            csvOptimalPositionData,
+            csvFuturesInstrumentData,
+            csvRollStateData,
+            csvFuturesContractData,
+            csvSpreadsForInstrumentData,
+        ]
     )
 
-    data.add_class_list([
-        arcticFuturesContractPriceData, arcticFuturesMultiplePricesData,
-                        arcticFuturesAdjustedPricesData, arcticFxPricesData,
-                        arcticSpreadsForInstrumentData,
-
-                        mongoContractPositionData, mongoStrategyPositionData,
-                        mongoBrokerHistoricOrdersData, mongoContractHistoricOrdersData, mongoStrategyHistoricOrdersData,
-                        mongoCapitalData, mongoFuturesContractData, mongoFuturesInstrumentData,
-                        mongoOptimalPositionData, mongoRollParametersData, mongoRollStateData,
-    ]
+    data.add_class_list(
+        [
+            arcticFuturesContractPriceData,
+            arcticFuturesMultiplePricesData,
+            arcticFuturesAdjustedPricesData,
+            arcticFxPricesData,
+            arcticSpreadsForInstrumentData,
+            mongoContractPositionData,
+            mongoStrategyPositionData,
+            mongoBrokerHistoricOrdersData,
+            mongoContractHistoricOrdersData,
+            mongoStrategyHistoricOrdersData,
+            mongoCapitalData,
+            mongoFuturesContractData,
+            mongoFuturesInstrumentData,
+            mongoOptimalPositionData,
+            mongoRollParametersData,
+            mongoRollStateData,
+        ]
     )
 
     return data
@@ -146,14 +174,22 @@ def backup_futures_contract_prices_to_csv(data):
     for instrument_code in instrument_list:
         backup_futures_contract_prices_for_instrument_to_csv(data, instrument_code)
 
-def backup_futures_contract_prices_for_instrument_to_csv(data: dataBlob, instrument_code: str):
+
+def backup_futures_contract_prices_for_instrument_to_csv(
+    data: dataBlob, instrument_code: str
+):
     list_of_contracts = data.arctic_futures_contract_price.contracts_with_price_data_for_instrument_code(
-        instrument_code)
+        instrument_code
+    )
 
     for contract in list_of_contracts:
-        arctic_data = data.arctic_futures_contract_price.get_prices_for_contract_object(contract)
+        arctic_data = data.arctic_futures_contract_price.get_prices_for_contract_object(
+            contract
+        )
 
-        csv_data = data.csv_futures_contract_price.get_prices_for_contract_object(contract)
+        csv_data = data.csv_futures_contract_price.get_prices_for_contract_object(
+            contract
+        )
 
         if check_df_equals(arctic_data, csv_data):
             # No update needed, move on
@@ -162,16 +198,13 @@ def backup_futures_contract_prices_for_instrument_to_csv(data: dataBlob, instrum
             # Write backup
             try:
                 data.csv_futures_contract_price.write_prices_for_contract_object(
-                    contract, arctic_data, ignore_duplication=True, )
-                data.log.msg(
-                    "Written backup .csv of prices for %s"
-                    % (contract)
+                    contract,
+                    arctic_data,
+                    ignore_duplication=True,
                 )
+                data.log.msg("Written backup .csv of prices for %s" % (contract))
             except BaseException:
-                data.log.warn(
-                    "Problem writing .csv of prices for %s %s"
-                    % (contract)
-                )
+                data.log.warn("Problem writing .csv of prices for %s %s" % (contract))
 
 
 # fx
@@ -191,6 +224,7 @@ def backup_fx_to_csv(data):
                 data.log.msg("Written .csv backup for %s" % fx_code)
             except BaseException:
                 data.log.warn("Problem writing .csv backup for %s" % fx_code)
+
 
 def backup_fx_to_csv(data):
     fx_codes = data.arctic_fx_prices.get_list_of_fxcodes()
@@ -215,12 +249,12 @@ def backup_multiple_to_csv(data):
     for instrument_code in instrument_list:
         backup_multiple_to_csv_for_instrument(data, instrument_code)
 
+
 def backup_multiple_to_csv_for_instrument(data, instrument_code: str):
     arctic_data = data.arctic_futures_multiple_prices.get_multiple_prices(
         instrument_code
     )
-    csv_data = data.csv_futures_multiple_prices.get_multiple_prices(
-        instrument_code)
+    csv_data = data.csv_futures_multiple_prices.get_multiple_prices(instrument_code)
 
     if check_df_equals(arctic_data, csv_data):
         data.log.msg("No multiple prices backup needed for %s" % instrument_code)
@@ -230,13 +264,10 @@ def backup_multiple_to_csv_for_instrument(data, instrument_code: str):
             data.csv_futures_multiple_prices.add_multiple_prices(
                 instrument_code, arctic_data, ignore_duplication=True
             )
-            data.log.msg(
-                "Written .csv backup multiple prices for %s" %
-                instrument_code)
+            data.log.msg("Written .csv backup multiple prices for %s" % instrument_code)
         except BaseException:
             data.log.warn(
-                "Problem writing .csv backup multiple prices for %s"
-                % instrument_code
+                "Problem writing .csv backup multiple prices for %s" % instrument_code
             )
 
 
@@ -245,12 +276,12 @@ def backup_adj_to_csv(data):
     for instrument_code in instrument_list:
         backup_adj_to_csv_for_instrument(data, instrument_code)
 
+
 def backup_adj_to_csv_for_instrument(data: dataBlob, instrument_code: str):
     arctic_data = data.arctic_futures_adjusted_prices.get_adjusted_prices(
         instrument_code
     )
-    csv_data = data.csv_futures_adjusted_prices.get_adjusted_prices(
-        instrument_code)
+    csv_data = data.csv_futures_adjusted_prices.get_adjusted_prices(instrument_code)
 
     if check_ts_equals(arctic_data, csv_data):
         data.log.msg("No adjusted prices backup needed for %s" % instrument_code)
@@ -260,13 +291,10 @@ def backup_adj_to_csv_for_instrument(data: dataBlob, instrument_code: str):
             data.csv_futures_adjusted_prices.add_adjusted_prices(
                 instrument_code, arctic_data, ignore_duplication=True
             )
-            data.log.msg(
-                "Written .csv backup for adjusted prices %s" %
-                instrument_code)
+            data.log.msg("Written .csv backup for adjusted prices %s" % instrument_code)
         except BaseException:
             data.log.warn(
-                "Problem writing .csv backup for adjusted prices %s"
-                % instrument_code
+                "Problem writing .csv backup for adjusted prices %s" % instrument_code
             )
 
 
@@ -275,12 +303,10 @@ def backup_spreads_to_csv(data: dataBlob):
     for instrument_code in instrument_list:
         backup_spreads_to_csv_for_instrument(data, instrument_code)
 
+
 def backup_spreads_to_csv_for_instrument(data: dataBlob, instrument_code: str):
-    arctic_data = data.arctic_spreads_for_instrument.get_spreads(
-        instrument_code
-    )
-    csv_data = data.csv_spreads_for_instrument.get_spreads(
-        instrument_code)
+    arctic_data = data.arctic_spreads_for_instrument.get_spreads(instrument_code)
+    csv_data = data.csv_spreads_for_instrument.get_spreads(instrument_code)
 
     if check_ts_equals(arctic_data, csv_data):
         data.log.msg("No spreads backup needed for %s" % instrument_code)
@@ -290,45 +316,55 @@ def backup_spreads_to_csv_for_instrument(data: dataBlob, instrument_code: str):
             data.csv_spreads_for_instrument.add_spreads(
                 instrument_code, arctic_data, ignore_duplication=True
             )
-            data.log.msg(
-                "Written .csv backup for spreads %s" %
-                instrument_code)
+            data.log.msg("Written .csv backup for spreads %s" % instrument_code)
         except BaseException:
             data.log.warn(
-                "Problem writing .csv backup for spreads %s"
-                % instrument_code
+                "Problem writing .csv backup for spreads %s" % instrument_code
             )
-
 
 
 def backup_contract_position_data(data):
     instrument_list = (
-        data.mongo_contract_position.get_list_of_instruments_with_any_position())
+        data.mongo_contract_position.get_list_of_instruments_with_any_position()
+    )
     for instrument_code in instrument_list:
-        contract_list = data.mongo_contract_position.get_list_of_contracts_for_instrument_code(
-            instrument_code)
+        contract_list = (
+            data.mongo_contract_position.get_list_of_contracts_for_instrument_code(
+                instrument_code
+            )
+        )
         for contract in contract_list:
-            mongo_data = data.mongo_contract_position.get_position_as_df_for_contract_object(
-                contract)
+            mongo_data = (
+                data.mongo_contract_position.get_position_as_df_for_contract_object(
+                    contract
+                )
+            )
             data.csv_contract_position.write_position_df_for_contract(
-                 contract, mongo_data)
+                contract, mongo_data
+            )
             data.log.msg(
-                "Backed up %s %s contract position data" %
-                (instrument_code, contract))
+                "Backed up %s %s contract position data" % (instrument_code, contract)
+            )
 
 
 def backup_strategy_position_data(data):
     strategy_list = get_list_of_strategies(data)
     instrument_list = (
-        data.mongo_contract_position.get_list_of_instruments_with_any_position())
+        data.mongo_contract_position.get_list_of_instruments_with_any_position()
+    )
     for strategy_name in strategy_list:
         for instrument_code in instrument_list:
-            instrument_strategy = instrumentStrategy(strategy_name=strategy_name, instrument_code=instrument_code)
-            mongo_data = data.mongo_strategy_position.get_position_as_df_for_instrument_strategy_object(instrument_strategy)
+            instrument_strategy = instrumentStrategy(
+                strategy_name=strategy_name, instrument_code=instrument_code
+            )
+            mongo_data = data.mongo_strategy_position.get_position_as_df_for_instrument_strategy_object(
+                instrument_strategy
+            )
             if mongo_data is missing_data:
                 continue
             data.csv_strategy_position.write_position_df_for_instrument_strategy(
-                instrument_strategy, mongo_data)
+                instrument_strategy, mongo_data
+            )
             data.log.msg(
                 "Backed up %s %s strategy position data"
                 % (instrument_code, strategy_name)
@@ -365,9 +401,9 @@ def backup_capital(data):
     strategy_list = get_list_of_strategies(data)
     capital_data = dict()
     for strategy_name in strategy_list:
-        capital_data[
+        capital_data[strategy_name] = data.mongo_capital.get_capital_pd_df_for_strategy(
             strategy_name
-        ] = data.mongo_capital.get_capital_pd_df_for_strategy(strategy_name)
+        )
 
     if len(capital_data) > 0:
         capital_data["TOTAL_total"] = data.mongo_capital.get_total_capital_pd_df()
@@ -395,18 +431,20 @@ def backup_capital(data):
 
 def backup_optimal_positions(data):
 
-    strategy_instrument_list = data.mongo_optimal_position.get_list_of_instrument_strategies_with_optimal_position()
+    strategy_instrument_list = (
+        data.mongo_optimal_position.get_list_of_instrument_strategies_with_optimal_position()
+    )
 
     for instrument_strategy in strategy_instrument_list:
-        mongo_data = data.mongo_optimal_position.get_optimal_position_as_df_for_instrument_strategy(instrument_strategy)
+        mongo_data = data.mongo_optimal_position.get_optimal_position_as_df_for_instrument_strategy(
+            instrument_strategy
+        )
         if mongo_data is missing_data:
             continue
         data.csv_optimal_position.write_position_df_for_instrument_strategy(
-            instrument_strategy, mongo_data)
-        data.log.msg(
-            "Backed up %s  optimal position data"
-            % str(instrument_strategy)
+            instrument_strategy, mongo_data
         )
+        data.log.msg("Backed up %s  optimal position data" % str(instrument_strategy))
 
 
 def backup_instrument_data(data):
@@ -447,4 +485,3 @@ def backup_csv_dump(data):
     destination_path = get_csv_backup_directory()
     data.log.msg("Copy from %s to %s" % (source_path, destination_path))
     os.system("rsync -av %s %s" % (source_path, destination_path))
-

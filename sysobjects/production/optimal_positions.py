@@ -1,7 +1,10 @@
 import pandas as pd
 
 from syscore.genutils import flatten_list
-from sysobjects.production.positions import instrumentStrategyPosition, listOfInstrumentStrategyPositions
+from sysobjects.production.positions import (
+    instrumentStrategyPosition,
+    listOfInstrumentStrategyPositions,
+)
 from sysobjects.production.tradeable_object import instrumentStrategy
 from sysobjects.production.timed_storage import timedEntry
 
@@ -28,7 +31,9 @@ class simpleOptimalPosition(timedEntry):
         try:
             found_break = self.position == position
         except:
-            raise Exception("Can't check break for simpleOptimalPosition: most likely problem is data was stored incorrectly")
+            raise Exception(
+                "Can't check break for simpleOptimalPosition: most likely problem is data was stored incorrectly"
+            )
         return found_break
 
 
@@ -62,10 +67,12 @@ class bufferedOptimalPositions(simpleOptimalPosition):
         upper_position = kwargs["upper_position"]
         lower_position = kwargs["lower_position"]
         try:
-            assert upper_position >=lower_position
+            assert upper_position >= lower_position
         except BaseException:
             raise Exception(
-                "Upper position %f  has to be >= than lower position %f" % (upper_position, lower_position))
+                "Upper position %f  has to be >= than lower position %f"
+                % (upper_position, lower_position)
+            )
 
     def check_position_break(self, position: int):
         # ignore warnings set dynamically
@@ -78,14 +85,13 @@ class bufferedOptimalPositions(simpleOptimalPosition):
 
 
 class optimalPositionWithReference(simpleOptimalPosition):
-
     @property
     def required_argument_names(self) -> list:
         return [
             "optimal_position",
             "reference_price",
             "reference_contract",
-            "reference_date"
+            "reference_date",
         ]  # compulsory args
 
     @property
@@ -108,9 +114,7 @@ class optimalPositionWithReference(simpleOptimalPosition):
         return "%.3f" % (self.optimal_position)
 
 
-
 class optimalPositionWithDynamicCalculations(simpleOptimalPosition):
-
     @property
     def required_argument_names(self) -> list:
         return [
@@ -118,22 +122,19 @@ class optimalPositionWithDynamicCalculations(simpleOptimalPosition):
             "reference_contract",
             "reference_date",
             "optimal_position",
-
             "weight_per_contract",
             "previous_position",
             "previous_weight",
             "reduce_only",
-
             "dont_trade",
             "position_limit_contracts",
             "position_limit_weight",
-
             "optimum_weight",
             "minimum_weight",
             "maximum_weight",
             "start_weight",
             "optimised_weight",
-            "optimised_position"
+            "optimised_position",
         ]  # compulsory args
 
     @property
@@ -141,26 +142,32 @@ class optimalPositionWithDynamicCalculations(simpleOptimalPosition):
         return "optimalPositionWithReference"
 
     def verbose_repr(self):
-        ref_str =     "Reference %s/%f@%s " % \
-                      (self.reference_contract,
+        ref_str = "Reference %s/%f@%s " % (
+            self.reference_contract,
             self.reference_price,
-            str(self.reference_date))
+            str(self.reference_date),
+        )
 
-        pos_str = "Positions: Optimal %f Previous %d Limit %d Optimised %d, "% \
-                  (self.optimal_position,
+        pos_str = "Positions: Optimal %f Previous %d Limit %d Optimised %d, " % (
+            self.optimal_position,
             self.previous_position,
             self.position_limit_contracts,
-            self.optimised_position)
+            self.optimised_position,
+        )
 
-        weight_str = "Weights: Per contract %.3f Previous %.3f Optimum %.3f Limit %.3f Minimum %.3f Maximum %.3f Start %.3f Optimised %.3f" %\
-                     (self.weight_per_contract,
-            self.previous_weight,
-                      self.optimum_weight,
-            self.position_limit_weight,
-            self.minimum_weight,
-            self.maximum_weight,
-            self.start_weight,
-            self.optimised_weight)
+        weight_str = (
+            "Weights: Per contract %.3f Previous %.3f Optimum %.3f Limit %.3f Minimum %.3f Maximum %.3f Start %.3f Optimised %.3f"
+            % (
+                self.weight_per_contract,
+                self.previous_weight,
+                self.optimum_weight,
+                self.position_limit_weight,
+                self.minimum_weight,
+                self.maximum_weight,
+                self.start_weight,
+                self.optimised_weight,
+            )
+        )
 
         logic_str = ""
         if self.dont_trade:
@@ -170,7 +177,7 @@ class optimalPositionWithDynamicCalculations(simpleOptimalPosition):
         else:
             logic_str = ""
 
-        return ref_str+logic_str+pos_str+weight_str
+        return ref_str + logic_str + pos_str + weight_str
 
     @property
     def containing_data_class_name(self):
@@ -180,11 +187,11 @@ class optimalPositionWithDynamicCalculations(simpleOptimalPosition):
         )
 
     def _argument_checks(self, kwargs):
-        assert type(kwargs['optimised_position']) is int
+        assert type(kwargs["optimised_position"]) is int
 
     def check_position_break(self, position: int):
         optimised_position = self.optimised_position
-        if position!=optimised_position:
+        if position != optimised_position:
             return True
         else:
             return False
@@ -193,44 +200,55 @@ class optimalPositionWithDynamicCalculations(simpleOptimalPosition):
         return "%.3f" % (self.optimised_position)
 
 
-
-
 class instrumentStrategyAndOptimalPosition(object):
-    def __init__(self, instrument_strategy: instrumentStrategy,
-                 optimal_position_object: simpleOptimalPosition):
+    def __init__(
+        self,
+        instrument_strategy: instrumentStrategy,
+        optimal_position_object: simpleOptimalPosition,
+    ):
 
         self.instrument_strategy = instrument_strategy
         self.optimal_position = optimal_position_object
 
-    def check_instrument_strategies_match(self, instrument_strategy_and_position: instrumentStrategyPosition):
-        return self.instrument_strategy == instrument_strategy_and_position.instrument_strategy
+    def check_instrument_strategies_match(
+        self, instrument_strategy_and_position: instrumentStrategyPosition
+    ):
+        return (
+            self.instrument_strategy
+            == instrument_strategy_and_position.instrument_strategy
+        )
 
     def key(self):
         return self.instrument_strategy.key
 
-    def is_for_strategy(self, strategy_name:str):
-        return self.instrument_strategy.strategy_name== strategy_name
+    def is_for_strategy(self, strategy_name: str):
+        return self.instrument_strategy.strategy_name == strategy_name
 
 
 class instrumentStrategyWithOptimalAndCurrentPosition(object):
     def __init__(
-            self,
-            instrument_strategy_and_optimal_position: instrumentStrategyAndOptimalPosition,
-            instrument_strategy_and_position: instrumentStrategyPosition):
+        self,
+        instrument_strategy_and_optimal_position: instrumentStrategyAndOptimalPosition,
+        instrument_strategy_and_position: instrumentStrategyPosition,
+    ):
         # this is contains a instrumentStrategyPosition type thing, and a tradeableObjectAndOptimalPosition
         # type thing
 
         # same tradeable object, so that is stored plus Position, and
         # OptimalPosition
         assert (
-                instrument_strategy_and_optimal_position.check_instrument_strategies_match(
+            instrument_strategy_and_optimal_position.check_instrument_strategies_match(
                 instrument_strategy_and_position
             )
-                is True
+            is True
         )
-        self.instrument_strategy = instrument_strategy_and_optimal_position.instrument_strategy
+        self.instrument_strategy = (
+            instrument_strategy_and_optimal_position.instrument_strategy
+        )
         self.position = instrument_strategy_and_position.position
-        self.optimal_position = instrument_strategy_and_optimal_position.optimal_position
+        self.optimal_position = (
+            instrument_strategy_and_optimal_position.optimal_position
+        )
 
     @property
     def key(self) -> str:
@@ -240,12 +258,12 @@ class instrumentStrategyWithOptimalAndCurrentPosition(object):
         # checks to see if current position is outside the limits defined by the optimal position
         return self.optimal_position.check_position_break(self.position)
 
-    def is_for_strategy(self, strategy_name:str):
-        return self.instrument_strategy.strategy_name== strategy_name
+    def is_for_strategy(self, strategy_name: str):
+        return self.instrument_strategy.strategy_name == strategy_name
+
 
 class listOfOptimalAndCurrentPositionsAcrossInstrumentStrategies(list):
     # list of instrumentStrategyWithOptimalAndCurrentPosition
-
 
     def check_breaks(self) -> list:
         # return a list of bool
@@ -260,37 +278,36 @@ class listOfOptimalAndCurrentPositionsAcrossInstrumentStrategies(list):
         breaks = self.check_breaks()
 
         ans = pd.DataFrame(
-            dict(
-                current=current_positions,
-                optimal=optimal_positions,
-                breaks=breaks),
+            dict(current=current_positions, optimal=optimal_positions, breaks=breaks),
             index=instrument_strategies,
         )
 
         return ans
 
+
 class listOfOptimalPositionsAcrossInstrumentStrategies(list):
     # list of instrumentStrategyAndOptimalPosition
-    def filter_by_strategy(self, strategy_name:str):
+    def filter_by_strategy(self, strategy_name: str):
         filtered_list = [
             instrument_strategy_with_optimal_and_current_position
-            for instrument_strategy_with_optimal_and_current_position in
-            self
-            if instrument_strategy_with_optimal_and_current_position.is_for_strategy(strategy_name)
+            for instrument_strategy_with_optimal_and_current_position in self
+            if instrument_strategy_with_optimal_and_current_position.is_for_strategy(
+                strategy_name
+            )
         ]
 
         return listOfOptimalPositionsAcrossInstrumentStrategies(filtered_list)
 
     def as_verbose_pd(self) -> pd.DataFrame:
         list_of_optimal = [pos.optimal_position for pos in self]
-        list_of_optimal_as_dict = [optimal_position.as_dict() \
-                                   for optimal_position in list_of_optimal]
+        list_of_optimal_as_dict = [
+            optimal_position.as_dict() for optimal_position in list_of_optimal
+        ]
         as_pd = pd.DataFrame(list_of_optimal_as_dict)
         list_of_keys = [pos.key() for pos in self]
         as_pd.index = list_of_keys
 
         return as_pd
-
 
     def as_pd(self) -> pd.DataFrame:
         list_of_keys = [pos.key() for pos in self]
@@ -298,13 +315,18 @@ class listOfOptimalPositionsAcrossInstrumentStrategies(list):
 
         return pd.DataFrame(dict(key=list_of_keys, optimal=list_of_optimal))
 
-    def add_positions(self, position_list:  listOfInstrumentStrategyPositions)  \
-            -> listOfOptimalAndCurrentPositionsAcrossInstrumentStrategies:
+    def add_positions(
+        self, position_list: listOfInstrumentStrategyPositions
+    ) -> listOfOptimalAndCurrentPositionsAcrossInstrumentStrategies:
 
         list_of_optimal_and_current = []
         for opt_pos_object in self:
             instrument_strategy = opt_pos_object.instrument_strategy
-            relevant_position_item = position_list.position_object_for_instrument_strategy(instrument_strategy)
+            relevant_position_item = (
+                position_list.position_object_for_instrument_strategy(
+                    instrument_strategy
+                )
+            )
             new_object = instrumentStrategyWithOptimalAndCurrentPosition(
                 opt_pos_object, relevant_position_item
             )
@@ -316,4 +338,3 @@ class listOfOptimalPositionsAcrossInstrumentStrategies(list):
             )
         )
         return list_of_optimal_and_current
-

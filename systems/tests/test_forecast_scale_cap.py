@@ -19,8 +19,7 @@ class Test(unittest.TestCase):
 
     @unittest.SkipTest
     def test_get_raw_forecast(self):
-        ans = self.system.forecastScaleCap.get_raw_forecast(
-            "EDOLLAR", "ewmac8").tail(1)
+        ans = self.system.forecastScaleCap.get_raw_forecast("EDOLLAR", "ewmac8").tail(1)
         self.assertAlmostEqual(ans.values[0], 0.164383, places=6)
 
     def test_get_forecast_cap(self):
@@ -31,8 +30,9 @@ class Test(unittest.TestCase):
         # test defaults
         config = self.config
         del config.forecast_cap
-        system3 = System([self.rawdata, self.rules,
-                          self.forecast_scale_cap()], self.data, config)
+        system3 = System(
+            [self.rawdata, self.rules, self.forecast_scale_cap()], self.data, config
+        )
         ans = system3.forecastScaleCap.get_forecast_cap()
         self.assertEqual(ans, 20.0)
 
@@ -41,32 +41,35 @@ class Test(unittest.TestCase):
         # fixed
         # From config
         self.assertEqual(
-            self.system.forecastScaleCap.get_forecast_scalar(
-                "EDOLLAR", "ewmac8"), 5.3)
+            self.system.forecastScaleCap.get_forecast_scalar("EDOLLAR", "ewmac8"), 5.3
+        )
 
         # default
         config = copy.copy(self.config)
         unused = config.trading_rules["ewmac8"].pop("forecast_scalar")
-        system2 = System([self.rawdata, self.rules,
-                          self.forecast_scale_cap()], self.data, config)
+        system2 = System(
+            [self.rawdata, self.rules, self.forecast_scale_cap()], self.data, config
+        )
         self.assertEqual(
-            system2.forecastScaleCap.get_forecast_scalar(
-                "EDOLLAR", "ewmac8"), 1.0)
+            system2.forecastScaleCap.get_forecast_scalar("EDOLLAR", "ewmac8"), 1.0
+        )
 
         # other config location
         setattr(config, "forecast_scalars", dict(ewmac8=11.0))
-        system3 = System([self.rawdata, self.rules,
-                          self.forecast_scale_cap()], self.data, config)
+        system3 = System(
+            [self.rawdata, self.rules, self.forecast_scale_cap()], self.data, config
+        )
         self.assertEqual(
-            system3.forecastScaleCap.get_forecast_scalar(
-                "EDOLLAR", "ewmac8"), 11.0)
+            system3.forecastScaleCap.get_forecast_scalar("EDOLLAR", "ewmac8"), 11.0
+        )
 
         # estimated
         config = copy.copy(self.config)
         config.use_forecast_scale_estimates = True
 
-        system2 = System([self.rawdata, self.rules,
-                          self.forecast_scale_cap()], self.data, config)
+        system2 = System(
+            [self.rawdata, self.rules, self.forecast_scale_cap()], self.data, config
+        )
         # From default
         self.assertAlmostEqual(
             system2.forecastScaleCap.get_forecast_scalar("EDOLLAR", "ewmac8")
@@ -79,8 +82,9 @@ class Test(unittest.TestCase):
         # From config
         scale_config = dict(pool_instruments=False)
         config.forecast_scalar_estimate = scale_config
-        system2 = System([self.rawdata, self.rules,
-                          self.forecast_scale_cap()], self.data, config)
+        system2 = System(
+            [self.rawdata, self.rules, self.forecast_scale_cap()], self.data, config
+        )
         self.assertAlmostEqual(
             system2.forecastScaleCap.get_forecast_scalar("EDOLLAR", "ewmac8")
             .tail(1)
@@ -92,23 +96,30 @@ class Test(unittest.TestCase):
     def test_get_scaled_forecast(self):
 
         self.assertAlmostEqual(
-            self.system.forecastScaleCap.get_scaled_forecast(
-                "EDOLLAR", "ewmac8") .tail(1) .values[0], 0.871230635, )
+            self.system.forecastScaleCap.get_scaled_forecast("EDOLLAR", "ewmac8")
+            .tail(1)
+            .values[0],
+            0.871230635,
+        )
 
     @unittest.SkipTest
     def test_get_capped_forecast(self):
 
         # fixed, normal cap
         self.assertAlmostEqual(
-            self.system.forecastScaleCap.get_capped_forecast(
-                "EDOLLAR", "ewmac8") .tail(1) .values[0], 0.871230635, )
+            self.system.forecastScaleCap.get_capped_forecast("EDOLLAR", "ewmac8")
+            .tail(1)
+            .values[0],
+            0.871230635,
+        )
 
         # estimated, normal cap
         config = copy.copy(self.config)
         config.use_forecast_scale_estimates = True
 
-        system2 = System([self.rawdata, self.rules,
-                          self.forecast_scale_cap()], self.data, config)
+        system2 = System(
+            [self.rawdata, self.rules, self.forecast_scale_cap()], self.data, config
+        )
         self.assertAlmostEqual(
             system2.forecastScaleCap.get_forecast_scalar("EDOLLAR", "ewmac8")
             .tail(1)
@@ -120,8 +131,9 @@ class Test(unittest.TestCase):
         # binding cap
         config.use_forecast_scale_estimates = False
         config.forecast_cap = 0.2
-        system3 = System([self.rawdata, self.rules,
-                          self.forecast_scale_cap()], self.data, config)
+        system3 = System(
+            [self.rawdata, self.rules, self.forecast_scale_cap()], self.data, config
+        )
         self.assertAlmostEqual(
             system3.forecastScaleCap.get_capped_forecast("EDOLLAR", "ewmac8")
             .tail(1)

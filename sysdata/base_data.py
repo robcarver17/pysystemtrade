@@ -40,7 +40,6 @@ class baseData(object):
     def log(self):
         return self._log
 
-
     def __getitem__(self, keyname):
         """
          convenience method to get the price, make it look like a dict

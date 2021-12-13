@@ -53,10 +53,7 @@ def send_mail_pdfs(preamble, filelist, subject):
         fp = open(file, "rb")
         attach = MIMEApplication(fp.read(), "pdf")
         fp.close()
-        attach.add_header(
-            "Content-Disposition",
-            "attachment",
-            filename="file.pdf")
+        attach.add_header("Content-Disposition", "attachment", filename="file.pdf")
         msg.attach(attach)
 
     _send_msg(msg)
@@ -78,7 +75,7 @@ def _send_msg(msg):
     # Send the message via our own SMTP server, but don't include the
     # envelope header.
     s = smtplib.SMTP(email_server, email_port)
-    # add tls for those using yahoo or gmail. 
+    # add tls for those using yahoo or gmail.
     try:
         s.starttls()
     except:
@@ -98,6 +95,9 @@ def get_email_details():
         email_to = production_config.email_to
         email_port = production_config.email_port
     except:
-        raise Exception("Need to have all of these for email to work in private config: email_address, email_pwd, email_server, email_to", "email_port")
+        raise Exception(
+            "Need to have all of these for email to work in private config: email_address, email_pwd, email_server, email_to",
+            "email_port",
+        )
 
     return email_server, email_address, email_pwd, email_to, email_port

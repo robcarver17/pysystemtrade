@@ -9,11 +9,10 @@ from systems.accounts.account_inputs import accountInputs
 
 
 class accountBuffering(accountInputs):
-
-
     @diagnostic()
-    def instrument_turnover(self, instrument_code: str,
-                            roundpositions:bool = True) -> float:
+    def instrument_turnover(
+        self, instrument_code: str, roundpositions: bool = True
+    ) -> float:
         """
         Get the annualised turnover for an instrument
 
@@ -27,7 +26,9 @@ class accountBuffering(accountInputs):
 
 
         """
-        average_position_for_turnover =  self.get_average_position_for_instrument_at_portfolio_level(instrument_code)
+        average_position_for_turnover = (
+            self.get_average_position_for_instrument_at_portfolio_level(instrument_code)
+        )
 
         positions = self.get_buffered_position(
             instrument_code, roundpositions=roundpositions
@@ -51,8 +52,9 @@ class accountBuffering(accountInputs):
         return self.parent.portfolio.get_buffers_for_position(instrument_code)
 
     @diagnostic()
-    def get_buffered_position(self, instrument_code: str,
-                              roundpositions: bool=True) -> pd.Series:
+    def get_buffered_position(
+        self, instrument_code: str, roundpositions: bool = True
+    ) -> pd.Series:
         """
         Get the buffered position
 
@@ -86,20 +88,22 @@ class accountBuffering(accountInputs):
 
         pos_buffers = self.get_buffers_for_position(instrument_code)
 
-        buffered_position = self._get_buffered_position_given_optimal_position_and_buffers(
-                        optimal_position = optimal_position,
-                        pos_buffers = pos_buffers,
-                        roundpositions=roundpositions
-                        )
-
+        buffered_position = (
+            self._get_buffered_position_given_optimal_position_and_buffers(
+                optimal_position=optimal_position,
+                pos_buffers=pos_buffers,
+                roundpositions=roundpositions,
+            )
+        )
 
         return buffered_position
 
-    def _get_buffered_position_given_optimal_position_and_buffers(self,
-                                                                  optimal_position: pd.Series,
-                                                                  pos_buffers: pd.DataFrame,
-                                                                    roundpositions: bool=True) \
-                                        -> pd.Series:
+    def _get_buffered_position_given_optimal_position_and_buffers(
+        self,
+        optimal_position: pd.Series,
+        pos_buffers: pd.DataFrame,
+        roundpositions: bool = True,
+    ) -> pd.Series:
 
         self.log.msg("Calculating buffered positions")
         trade_to_edge = self.config.buffer_trade_to_edge

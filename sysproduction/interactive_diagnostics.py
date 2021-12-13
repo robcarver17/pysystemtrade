@@ -1,7 +1,10 @@
-
 from syscore.dateutils import get_datetime_input, SECONDS_PER_HOUR
-from syscore.interactive import get_and_convert, run_interactive_menu, print_menu_of_values_and_get_response, \
-    print_menu_and_get_response
+from syscore.interactive import (
+    get_and_convert,
+    run_interactive_menu,
+    print_menu_of_values_and_get_response,
+    print_menu_and_get_response,
+)
 from syscore.pdutils import set_pd_print_options
 from syscore.objects import user_exit, arg_not_supplied
 from sysexecution.orders.list_of_orders import listOfOrders
@@ -11,11 +14,14 @@ from sysdata.data_blob import dataBlob
 from sysobjects.contracts import futuresContract
 from sysobjects.production.tradeable_object import instrumentStrategy
 
-from sysproduction.data.backtest import user_choose_backtest, interactively_choose_timestamp
+from sysproduction.data.backtest import (
+    user_choose_backtest,
+    interactively_choose_timestamp,
+)
 from sysproduction.data.capital import dataCapital
 from sysproduction.data.contracts import (
     get_valid_instrument_code_and_contractid_from_user,
-    get_valid_contract_object_from_user
+    get_valid_contract_object_from_user,
 )
 from sysproduction.data.currency_data import dataCurrency, get_valid_fx_code_from_user
 from sysproduction.data.instruments import diagInstruments
@@ -40,11 +46,9 @@ from sysproduction.reporting.report_configs import (
     reconcile_report_config,
     strategy_report_config,
     risk_report_config,
-liquidity_report_config,
-costs_report_config
+    liquidity_report_config,
+    costs_report_config,
 )
-
-
 
 
 def interactive_diagnostics():
@@ -80,45 +84,46 @@ top_level_menu_of_options = {
     6: "View instrument configuration",
 }
 
-nested_menu_of_options = {0: {1: "Interactive python",
-                              2: "Plot method",
-                              3: "Print method",
-                              4: "HTML output"},
-                          1: {10: "Roll report",
-                              11: "P&L report",
-                              12: "Status report",
-                              13: "Trade report",
-                              14: "Reconcile report",
-                              15: "Strategy report",
-                              16: "Risk report",
-                              17: "Costs report",
-                              18: "Liquidity report"
-                              },
-                          2: {20: "View stored emails",
-                              21: "View errors",
-                              22: "View logs"},
-                          3: {30: "Individual futures contract prices",
-                              31: "Multiple prices",
-                              32: "Adjusted prices",
-                              33: "FX prices",
-                              34: "Spreads"
-                              },
-                          4: {40: "Capital for an individual strategy",
-                              41: "Capital for global account, all strategies",
-                              },
-                          5: {50: "Optimal position history (instruments for strategy)",
-                              51: "Actual position history (instruments for strategy)",
-                              52: "Actual position history (contracts for instrument)",
-                              53: "List of historic instrument level orders (for strategy)",
-                              54: "List of historic contract level orders (for strategy and instrument)",
-                              55: "List of historic broker level orders (for strategy and instrument)",
-                              56: "View individual order",
-                              },
-                          6: {60: "View instrument configuration data",
-                              61: "View contract configuration data",
-                              62: "View trading hours for all instruments"
-                              },
-                          }
+nested_menu_of_options = {
+    0: {1: "Interactive python", 2: "Plot method", 3: "Print method", 4: "HTML output"},
+    1: {
+        10: "Roll report",
+        11: "P&L report",
+        12: "Status report",
+        13: "Trade report",
+        14: "Reconcile report",
+        15: "Strategy report",
+        16: "Risk report",
+        17: "Costs report",
+        18: "Liquidity report",
+    },
+    2: {20: "View stored emails", 21: "View errors", 22: "View logs"},
+    3: {
+        30: "Individual futures contract prices",
+        31: "Multiple prices",
+        32: "Adjusted prices",
+        33: "FX prices",
+        34: "Spreads",
+    },
+    4: {
+        40: "Capital for an individual strategy",
+        41: "Capital for global account, all strategies",
+    },
+    5: {
+        50: "Optimal position history (instruments for strategy)",
+        51: "Actual position history (instruments for strategy)",
+        52: "Actual position history (contracts for instrument)",
+        53: "List of historic instrument level orders (for strategy)",
+        54: "List of historic contract level orders (for strategy and instrument)",
+        55: "List of historic broker level orders (for strategy and instrument)",
+        56: "View individual order",
+    },
+    6: {
+        60: "View instrument configuration data",
+        61: "View contract configuration data",
+        62: "View trading hours for all instruments",
+    },
+}
 
 
 def not_defined(data):
@@ -149,10 +154,11 @@ def backtest_html(data):
     return None
 
 
-
 # reports
 def roll_report(data):
-    instrument_code = get_valid_instrument_code_from_user(data, allow_all=True, all_code=ALL_ROLL_INSTRUMENTS)
+    instrument_code = get_valid_instrument_code_from_user(
+        data, allow_all=True, all_code=ALL_ROLL_INSTRUMENTS
+    )
     report_config = email_or_print_or_file(roll_report_config)
     report_config.modify_kwargs(instrument_code=instrument_code)
     run_report(report_config, data=data)
@@ -162,9 +168,8 @@ def pandl_report(data):
     start_date, end_date, calendar_days = get_report_dates(data)
     report_config = email_or_print_or_file(daily_pandl_report_config)
     report_config.modify_kwargs(
-        calendar_days_back=calendar_days,
-        start_date=start_date,
-        end_date=end_date)
+        calendar_days_back=calendar_days, start_date=start_date, end_date=end_date
+    )
     run_report(report_config, data=data)
 
 
@@ -177,9 +182,8 @@ def trade_report(data):
     start_date, end_date, calendar_days = get_report_dates(data)
     report_config = email_or_print_or_file(trade_report_config)
     report_config.modify_kwargs(
-        calendar_days_back=calendar_days,
-        start_date=start_date,
-        end_date=end_date)
+        calendar_days_back=calendar_days, start_date=start_date, end_date=end_date
+    )
     run_report(report_config, data=data)
 
 
@@ -191,37 +195,38 @@ def reconcile_report(data):
 def strategy_report(data):
 
     strategy_name = get_valid_strategy_name_from_user(
-        data=data, allow_all=True, all_code = ALL_STRATEGIES
+        data=data, allow_all=True, all_code=ALL_STRATEGIES
     )
     if strategy_name != ALL_STRATEGIES:
-        timestamp = interactively_choose_timestamp(strategy_name=strategy_name,
-            data=data)
+        timestamp = interactively_choose_timestamp(
+            strategy_name=strategy_name, data=data
+        )
     else:
         timestamp = arg_not_supplied
 
     report_config = email_or_print_or_file(strategy_report_config)
-    report_config.modify_kwargs(
-        strategy_name=strategy_name,
-        timestamp=timestamp)
+    report_config.modify_kwargs(strategy_name=strategy_name, timestamp=timestamp)
     run_report(report_config, data=data)
+
 
 def risk_report(data):
     report_config = email_or_print_or_file(risk_report_config)
     run_report(report_config, data=data)
 
+
 def cost_report(data):
     start_date, end_date, calendar_days = get_report_dates(data)
     report_config = email_or_print_or_file(costs_report_config)
     report_config.modify_kwargs(
-        calendar_days_back=calendar_days,
-        start_date=start_date,
-        end_date=end_date)
+        calendar_days_back=calendar_days, start_date=start_date, end_date=end_date
+    )
     run_report(report_config, data=data)
 
 
 def liquidity_report(data):
     report_config = email_or_print_or_file(liquidity_report_config)
-    run_report(report_config, data = data)
+    run_report(report_config, data=data)
+
 
 def email_or_print_or_file(report_config):
     ans = get_and_convert(
@@ -232,9 +237,8 @@ def email_or_print_or_file(report_config):
         default_value=1,
     )
     if ans == 1:
-        report_config = report_config.new_config_with_modified_output(
-            "console")
-    elif ans==2:
+        report_config = report_config.new_config_with_modified_output("console")
+    elif ans == 2:
         report_config = report_config.new_config_with_modified_output("email")
     else:
         report_config = report_config.new_config_with_modified_output("file")
@@ -297,6 +301,7 @@ def view_logs(data):
     )
     print_log_items(log_item_list)
 
+
 def print_log_items(log_item_list):
     for log_item in log_item_list:
         print(str(log_item) + "\n")
@@ -311,10 +316,14 @@ def build_attribute_dict(diag_logs, lookback_days):
             attribute_dict=attribute_dict, lookback_days=lookback_days
         )
         print("Which attribute to filter by?")
-        attribute_name = print_menu_of_values_and_get_response(
-            list_of_attributes)
-        list_of_attribute_values = diag_logs.get_unique_list_of_values_for_log_attribute(
-            attribute_name, attribute_dict=attribute_dict, lookback_days=lookback_days)
+        attribute_name = print_menu_of_values_and_get_response(list_of_attributes)
+        list_of_attribute_values = (
+            diag_logs.get_unique_list_of_values_for_log_attribute(
+                attribute_name,
+                attribute_dict=attribute_dict,
+                lookback_days=lookback_days,
+            )
+        )
         print("Which value for %s ?" % attribute_name)
         attribute_value = print_menu_of_values_and_get_response(
             list_of_attribute_values
@@ -330,7 +339,9 @@ def build_attribute_dict(diag_logs, lookback_days):
 
 # prices
 def individual_prices(data):
-    contract = get_valid_contract_object_from_user(data, only_include_priced_contracts=True)
+    contract = get_valid_contract_object_from_user(
+        data, only_include_priced_contracts=True
+    )
     diag_prices = diagPrices(data)
     prices = diag_prices.get_prices_for_contract_object(contract)
 
@@ -365,6 +376,7 @@ def fx_prices(data):
 
     return None
 
+
 def spreads(data):
     instrument_code = get_valid_instrument_code_from_user(data)
     diag_prices = diagPrices(data)
@@ -381,8 +393,7 @@ def capital_strategy(data):
     strategy_name = print_menu_of_values_and_get_response(
         strat_list, default_str=strat_list[0]
     )
-    capital_series = data_capital.get_capital_pd_series_for_strategy(
-        strategy_name)
+    capital_series = data_capital.get_capital_pd_series_for_strategy(strategy_name)
     print(capital_series.tail(30))
     return None
 
@@ -394,9 +405,10 @@ def total_current_capital(data):
     return None
 
 
-
 def optimal_positions(data):
-    strategy_name = get_valid_strategy_name_from_user(data=data, source="optimal_positions")
+    strategy_name = get_valid_strategy_name_from_user(
+        data=data, source="optimal_positions"
+    )
     optimal_data = dataOptimalPositions(data)
 
     instrument_code_list = (
@@ -407,8 +419,12 @@ def optimal_positions(data):
     instrument_code = get_valid_code_from_list(instrument_code_list)
     if instrument_code is user_exit:
         return None
-    instrument_strategy = instrumentStrategy(instrument_code=instrument_code, strategy_name=strategy_name)
-    data_series = optimal_data.get_optimal_position_as_df_for_instrument_strategy(instrument_strategy)
+    instrument_strategy = instrumentStrategy(
+        instrument_code=instrument_code, strategy_name=strategy_name
+    )
+    data_series = optimal_data.get_optimal_position_as_df_for_instrument_strategy(
+        instrument_strategy
+    )
     print(data_series)
 
     return None
@@ -434,13 +450,20 @@ def actual_instrument_position(data):
         return None
 
     instrument_code_list = (
-        diag_positions.get_list_of_instruments_for_strategy_with_position(strategy_name, ignore_zero_positions=False))
+        diag_positions.get_list_of_instruments_for_strategy_with_position(
+            strategy_name, ignore_zero_positions=False
+        )
+    )
     instrument_code = get_valid_code_from_list(instrument_code_list)
     if instrument_code is user_exit:
         return None
-    instrument_strategy = instrumentStrategy(strategy_name=strategy_name, instrument_code=instrument_code)
+    instrument_strategy = instrumentStrategy(
+        strategy_name=strategy_name, instrument_code=instrument_code
+    )
 
-    pos_series = diag_positions.get_position_df_for_instrument_strategy(instrument_strategy)
+    pos_series = diag_positions.get_position_df_for_instrument_strategy(
+        instrument_strategy
+    )
     print(pos_series)
     return None
 
@@ -528,17 +551,14 @@ def view_individual_order(data):
     print("Which order queue?")
     order_type = print_menu_of_values_and_get_response(list_of_order_types)
     order_id = get_and_convert(
-        "Order number?",
-        type_expected=int,
-        default_value=None,
-        default_str="CANCEL")
+        "Order number?", type_expected=int, default_value=None, default_str="CANCEL"
+    )
     if order_id is None:
         return None
 
     data_orders = dataOrders(data)
     if order_type == list_of_order_types[0]:
-        order = data_orders.get_historic_instrument_order_from_order_id(
-            order_id)
+        order = data_orders.get_historic_instrument_order_from_order_id(order_id)
     elif order_type == list_of_order_types[1]:
         order = data_orders.get_historic_contract_order_from_order_id(order_id)
     elif order_type == list_of_order_types[2]:
@@ -563,27 +583,34 @@ def view_instrument_config(data):
 
 def view_contract_config(data):
     instrument_code, contract_id = get_valid_instrument_code_and_contractid_from_user(
-        data)
+        data
+    )
     diag_contracts = dataContracts(data)
     contract_object = diag_contracts.get_contract_from_db_given_code_and_id(
-        instrument_code, contract_id)
+        instrument_code, contract_id
+    )
     contract_date = diag_contracts.get_contract_date_object_with_roll_parameters(
-        instrument_code, contract_id)
+        instrument_code, contract_id
+    )
     print(contract_object.as_dict())
     print(contract_date.roll_parameters)
 
     return None
 
 
-
 def print_trading_hours_for_all_instruments(data=arg_not_supplied):
     all_trading_hours = get_trading_hours_for_all_instruments(data)
     display_a_dict_of_trading_hours(all_trading_hours)
 
+
 def display_a_dict_of_trading_hours(all_trading_hours):
-    for key, trading_hour_entry in sorted(all_trading_hours.items(), key=lambda x: x[0]):
-        print("%s: %s" % ('{:20}'.format(key),
-                              nice_print_trading_hours(trading_hour_entry)))
+    for key, trading_hour_entry in sorted(
+        all_trading_hours.items(), key=lambda x: x[0]
+    ):
+        print(
+            "%s: %s"
+            % ("{:20}".format(key), nice_print_trading_hours(trading_hour_entry))
+        )
 
 
 def nice_print_trading_hours(trading_hour_entry) -> str:
@@ -597,9 +624,11 @@ def nice_print_trading_hours(trading_hour_entry) -> str:
     start_formatted = start_datetime.strftime(NICE_FORMAT)
     end_formatted = end_datetime.strftime(NICE_FORMAT)
 
-    nice_string = "%s to %s (%.1f hours)" % (start_formatted,
-                                     end_formatted,
-                                     hours_in_between)
+    nice_string = "%s to %s (%.1f hours)" % (
+        start_formatted,
+        end_formatted,
+        hours_in_between,
+    )
 
     return nice_string
 
@@ -617,16 +646,18 @@ def get_trading_hours_for_all_instruments(data=arg_not_supplied):
 
         ## will have several days use first one
         trading_hours_this_instrument = trading_hours[0]
-        check_trading_hours(trading_hours_this_instrument,
-                            instrument_code)
+        check_trading_hours(trading_hours_this_instrument, instrument_code)
         all_trading_hours[instrument_code] = trading_hours_this_instrument
 
     return all_trading_hours
 
+
 def check_trading_hours(trading_hours_this_instrument, instrument_code):
-    if trading_hours_this_instrument[0]>trading_hours_this_instrument[1]:
-        print("%s Trading hours appear to be wrong: %s" % (instrument_code,
-                                                          nice_print_trading_hours(trading_hours_this_instrument)))
+    if trading_hours_this_instrument[0] > trading_hours_this_instrument[1]:
+        print(
+            "%s Trading hours appear to be wrong: %s"
+            % (instrument_code, nice_print_trading_hours(trading_hours_this_instrument))
+        )
 
 
 def get_trading_hours_for_instrument(data, instrument_code):
@@ -675,7 +706,7 @@ dict_of_functions = {
     56: view_individual_order,
     60: view_instrument_config,
     61: view_contract_config,
-    62: print_trading_hours_for_all_instruments
+    62: print_trading_hours_for_all_instruments,
 }
 
 if __name__ == "__main__":

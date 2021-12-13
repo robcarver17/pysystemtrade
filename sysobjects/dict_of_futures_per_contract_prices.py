@@ -10,7 +10,8 @@ from sysobjects.contract_dates_and_expiries import listOfContractDateStr
 class dictFuturesContractFinalPrices(dict):
     def __repr__(self):
         object_repr = "Dict of final futures contract prices with %d contracts" % len(
-            self.keys())
+            self.keys()
+        )
         return object_repr
 
     def sorted_contract_date_str(self):
@@ -18,7 +19,9 @@ class dictFuturesContractFinalPrices(dict):
         Time sorted contract ids
         :return:
         """
-        all_contract_date_str_sorted = getattr(self, "_all_contract_date_str_sorted", missing_data)
+        all_contract_date_str_sorted = getattr(
+            self, "_all_contract_date_str_sorted", missing_data
+        )
         if all_contract_date_str_sorted is missing_data:
             all_contract_date_str_sorted = self._get_and_set_sorted_contract_date_str()
 
@@ -31,7 +34,6 @@ class dictFuturesContractFinalPrices(dict):
 
         return all_contract_date_str_sorted
 
-
     def last_contract_date_str(self):
 
         all_contract_date_str_sorted = self.sorted_contract_date_str()
@@ -40,8 +42,9 @@ class dictFuturesContractFinalPrices(dict):
 
     def joint_data(self):
 
-        joint_data = [pd.Series(prices, name=contractid)
-                      for contractid, prices in self.items()]
+        joint_data = [
+            pd.Series(prices, name=contractid) for contractid, prices in self.items()
+        ]
         joint_data = pd.concat(joint_data, axis=1)
 
         return joint_data
@@ -67,7 +70,8 @@ class dictFuturesContractFinalPrices(dict):
 class dictFuturesContractVolumes(dictFuturesContractFinalPrices):
     def __repr__(self):
         object_repr = "Dict of futures contract volumes with %d contracts" % len(
-            self.keys())
+            self.keys()
+        )
         return object_repr
 
 
@@ -82,10 +86,11 @@ class dictFuturesContractPrices(dict):
 
     def __repr__(self):
         object_repr = "Dict of futures contract prices with %d contracts" % len(
-            self.keys())
+            self.keys()
+        )
         return object_repr
 
-    def final_prices(self) ->dictFuturesContractFinalPrices:
+    def final_prices(self) -> dictFuturesContractFinalPrices:
         """
 
         :return: dict of final prices
@@ -98,12 +103,11 @@ class dictFuturesContractPrices(dict):
             final_prices.name = contract_id
             final_price_dict_as_list.append((contract_id, final_prices))
 
-        final_prices_dict = dictFuturesContractFinalPrices(
-            final_price_dict_as_list)
+        final_prices_dict = dictFuturesContractFinalPrices(final_price_dict_as_list)
 
         return final_prices_dict
 
-    def daily_volumes(self) ->dictFuturesContractVolumes:
+    def daily_volumes(self) -> dictFuturesContractVolumes:
         """
 
         :return: dict of daily volumes
@@ -121,7 +125,11 @@ class dictFuturesContractPrices(dict):
         return volumes_dict
 
 
-def get_last_matched_date_and_prices_for_contract_list(dict_of_prices: dictFuturesContractPrices, contracts_to_match: list, list_of_contract_date_str: list) -> (datetime.datetime, list):
+def get_last_matched_date_and_prices_for_contract_list(
+    dict_of_prices: dictFuturesContractPrices,
+    contracts_to_match: list,
+    list_of_contract_date_str: list,
+) -> (datetime.datetime, list):
     dict_of_final_prices = dict_of_prices.final_prices()
     matched_final_prices = dict_of_final_prices.matched_prices(
         contracts_to_match=contracts_to_match
@@ -137,7 +145,7 @@ def get_last_matched_date_and_prices_for_contract_list(dict_of_prices: dictFutur
 
     # pad with extra nan values
     last_matched_prices = last_matched_prices + [np.nan] * (
-            len(list_of_contract_date_str) - len(last_matched_prices)
+        len(list_of_contract_date_str) - len(last_matched_prices)
     )
 
     return last_matched_date, last_matched_prices

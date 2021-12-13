@@ -83,9 +83,7 @@ def breakout(price, lookback=10, smooth=None):
 
     # gives a nice natural scaling
     output = 40.0 * ((price - roll_mean) / (roll_max - roll_min))
-    smoothed_output = output.ewm(
-        span=smooth, min_periods=np.ceil(
-            smooth / 2.0)).mean()
+    smoothed_output = output.ewm(span=smooth, min_periods=np.ceil(smooth / 2.0)).mean()
 
     return smoothed_output
 
@@ -219,15 +217,12 @@ def ewmac_calc_vol(price, Lfast, Lslow, vol_days=35):
     slow_ewma = price.ewm(span=Lslow).mean()
     raw_ewmac = fast_ewma - slow_ewma
 
-    vol = robust_daily_vol_given_price(price, days = vol_days)
+    vol = robust_daily_vol_given_price(price, days=vol_days)
 
     return raw_ewmac / vol.ffill()
 
 
-
-def relative_carry(
-        smoothed_carry_this_instrument,
-        median_carry_for_asset_class):
+def relative_carry(smoothed_carry_this_instrument, median_carry_for_asset_class):
     """
     Relative carry rule
     Suggested inputs: rawdata.smoothed_carry, rawdata.median_carry_for_asset_class
@@ -244,22 +239,27 @@ def relative_carry(
 
     return relative_carry_forecast
 
+
 def factor_trading_rule(demean_factor_value, smooth=90):
-    vol =robust_vol_calc(demean_factor_value)
+    vol = robust_vol_calc(demean_factor_value)
     normalised_factor_value = demean_factor_value / vol
     smoothed_normalised_factor_value = normalised_factor_value.ewm(span=smooth).mean()
 
     return smoothed_normalised_factor_value
 
 
-def conditioned_factor_trading_rule(demean_factor_value, condition_demean_factor_value, smooth=90):
+def conditioned_factor_trading_rule(
+    demean_factor_value, condition_demean_factor_value, smooth=90
+):
     vol = robust_vol_calc(demean_factor_value)
     normalised_factor_value = demean_factor_value / vol
 
     sign_condition = condition_demean_factor_value.apply(np.sign)
-    sign_condition_resample = sign_condition.reindex(normalised_factor_value.index).ffill()
+    sign_condition_resample = sign_condition.reindex(
+        normalised_factor_value.index
+    ).ffill()
 
-    conditioned_factor = normalised_factor_value *sign_condition_resample
+    conditioned_factor = normalised_factor_value * sign_condition_resample
     smoothed_conditioned_factor = conditioned_factor.ewm(span=smooth).mean()
 
     return smoothed_conditioned_factor
@@ -269,11 +269,10 @@ def mr_wings(price, vol, Lfast=4):
     Lslow = Lfast * 4
     ewmac_signal = ewmac(price, vol, Lfast, Lslow)
     ewmac_std = ewmac_signal.rolling(5000, min_periods=3).std()
-    ewmac_signal[ewmac_signal.abs()<ewmac_std*3] = 0.0
+    ewmac_signal[ewmac_signal.abs() < ewmac_std * 3] = 0.0
     mr_signal = -ewmac_signal
 
     return mr_signal
-
 
 
 def accel(price, vol, Lfast=4):

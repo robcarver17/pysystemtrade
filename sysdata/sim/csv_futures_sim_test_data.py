@@ -24,25 +24,28 @@ class CsvFuturesSimTestData(genericBlobUsingFuturesSimData):
     or if a test is needed at a certain date/time or period
     """
 
-    DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
+    DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 
     # latest in CSV at time of writing
-    DEFAULT_END_DATE = datetime.strptime('2021-03-08 20:00:00', DATE_FORMAT)
+    DEFAULT_END_DATE = datetime.strptime("2021-03-08 20:00:00", DATE_FORMAT)
 
-    def __init__(self, start_date=None, end_date=None, log=logtoscreen("csvFuturesSimTestData")):
+    def __init__(
+        self, start_date=None, end_date=None, log=logtoscreen("csvFuturesSimTestData")
+    ):
 
         data = dataBlob(
             log=log,
             csv_data_paths=dict(
                 csvFuturesAdjustedPricesData="data.test.adjusted_prices_csv",
-                csvFuturesInstrumentData="data.test.csvconfig"),
+                csvFuturesInstrumentData="data.test.csvconfig",
+            ),
             class_list=[
                 csvFuturesAdjustedPricesData,
                 csvFuturesMultiplePricesData,
                 csvFuturesInstrumentData,
                 csvFxPricesData,
-                csvRollParametersData
-            ]
+                csvRollParametersData,
+            ],
         )
 
         super().__init__(data=data)
@@ -58,9 +61,11 @@ class CsvFuturesSimTestData(genericBlobUsingFuturesSimData):
             self._end_date = self.DEFAULT_END_DATE
 
     def __repr__(self):
-        return f"csvFuturesSimTestData with {self.get_instrument_list()} instruments, " \
-               f"start date {self.start_date.strftime(self.DATE_FORMAT)}, " \
-               f"end date {self.end_date.strftime(self.DATE_FORMAT)}"
+        return (
+            f"csvFuturesSimTestData with {self.get_instrument_list()} instruments, "
+            f"start date {self.start_date.strftime(self.DATE_FORMAT)}, "
+            f"end date {self.end_date.strftime(self.DATE_FORMAT)}"
+        )
 
     @property
     def start_date(self):
@@ -70,32 +75,38 @@ class CsvFuturesSimTestData(genericBlobUsingFuturesSimData):
     def end_date(self):
         return self._end_date
 
-    def get_backadjusted_futures_price(self, instrument_code: str) -> futuresAdjustedPrices:
-        data = super().db_futures_adjusted_prices_data.get_adjusted_prices(instrument_code)
-        date_adjusted = data[self.start_date:self.end_date]
+    def get_backadjusted_futures_price(
+        self, instrument_code: str
+    ) -> futuresAdjustedPrices:
+        data = super().db_futures_adjusted_prices_data.get_adjusted_prices(
+            instrument_code
+        )
+        date_adjusted = data[self.start_date : self.end_date]
         return date_adjusted
 
     def get_multiple_prices(self, instrument_code: str) -> futuresMultiplePrices:
         data = super().get_multiple_prices(instrument_code)
-        date_adjusted = data[self.start_date:self.end_date]
+        date_adjusted = data[self.start_date : self.end_date]
         return date_adjusted
 
-    def get_fx_for_instrument(self, instrument_code: str, base_currency: str) -> fxPrices:
+    def get_fx_for_instrument(
+        self, instrument_code: str, base_currency: str
+    ) -> fxPrices:
         data = super().get_fx_for_instrument(instrument_code, base_currency)
-        date_adjusted = data[self.start_date:self.end_date]
+        date_adjusted = data[self.start_date : self.end_date]
         return date_adjusted
 
     def daily_prices(self, instrument_code: str) -> pd.Series:
         data = super().daily_prices(instrument_code)
-        date_adjusted = data[self.start_date:self.end_date]
+        date_adjusted = data[self.start_date : self.end_date]
         return date_adjusted
 
     def get_instrument_raw_carry_data(self, instrument_code: str) -> pd.DataFrame:
         data = super().get_instrument_raw_carry_data(instrument_code)
-        date_adjusted = data[self.start_date:self.end_date]
+        date_adjusted = data[self.start_date : self.end_date]
         return date_adjusted
 
     def get_current_and_forward_price_data(self, instrument_code: str) -> pd.DataFrame:
         data = super().get_current_and_forward_price_data(instrument_code)
-        date_adjusted = data[self.start_date:self.end_date]
+        date_adjusted = data[self.start_date : self.end_date]
         return date_adjusted

@@ -1,21 +1,35 @@
-from ib_insync.order import MarketOrder as ibMarketOrder, LimitOrder as ibLimitOrder, Trade as ibTrade, Order as ibOrder
+from ib_insync.order import (
+    MarketOrder as ibMarketOrder,
+    LimitOrder as ibLimitOrder,
+    Trade as ibTrade,
+    Order as ibOrder,
+)
 from syscore.objects import arg_not_supplied, missing_order, missing_contract
 from sysbrokers.IB.client.ib_contracts_client import ibContractsClient
-from sysbrokers.IB.ib_translate_broker_order_objects import tradeWithContract, listOfTradesWithContracts
+from sysbrokers.IB.ib_translate_broker_order_objects import (
+    tradeWithContract,
+    listOfTradesWithContracts,
+)
 from sysbrokers.IB.ib_positions import (
     resolveBS_for_list,
 )
-from sysbrokers.IB.ib_contracts import (
-    ibcontractWithLegs)
+from sysbrokers.IB.ib_contracts import ibcontractWithLegs
 from sysexecution.trade_qty import tradeQuantity
-from sysexecution.orders.broker_orders import brokerOrderType, market_order_type, limit_order_type
+from sysexecution.orders.broker_orders import (
+    brokerOrderType,
+    market_order_type,
+    limit_order_type,
+)
 
 from sysobjects.contracts import futuresContract
 
 # we don't include ibClient since we get that through contracts client
 
+
 class ibOrdersClient(ibContractsClient):
-    def broker_get_orders(self, account_id: str=arg_not_supplied) -> listOfTradesWithContracts:
+    def broker_get_orders(
+        self, account_id: str = arg_not_supplied
+    ) -> listOfTradesWithContracts:
         """
         Get all active trades, orders and return them with the information needed
 
@@ -41,7 +55,9 @@ class ibOrdersClient(ibContractsClient):
 
         return trade_list
 
-    def add_contract_legs_to_order(self, raw_order_from_ib: ibTrade) -> tradeWithContract:
+    def add_contract_legs_to_order(
+        self, raw_order_from_ib: ibTrade
+    ) -> tradeWithContract:
         combo_legs = getattr(raw_order_from_ib.contract, "comboLegs", [])
         legs_data = []
         for leg in combo_legs:
@@ -53,11 +69,9 @@ class ibOrdersClient(ibContractsClient):
         ibcontract_with_legs = ibcontractWithLegs(
             raw_order_from_ib.contract, legs=legs_data
         )
-        trade_with_contract = tradeWithContract(
-            ibcontract_with_legs, raw_order_from_ib)
+        trade_with_contract = tradeWithContract(ibcontract_with_legs, raw_order_from_ib)
 
         return trade_with_contract
-
 
     def broker_submit_order(
         self,
@@ -65,7 +79,7 @@ class ibOrdersClient(ibContractsClient):
         trade_list: tradeQuantity,
         account_id: str = arg_not_supplied,
         order_type: brokerOrderType = market_order_type,
-        limit_price: float=None,
+        limit_price: float = None,
     ) -> tradeWithContract:
         """
 
@@ -78,31 +92,36 @@ class ibOrdersClient(ibContractsClient):
         :return: brokers trade object
 
         """
-        ibcontract_with_legs = self.ib_futures_contract_with_legs(futures_contract_with_ib_data=futures_contract_with_ib_data,
-                                              trade_list_for_multiple_legs=trade_list)
+        ibcontract_with_legs = self.ib_futures_contract_with_legs(
+            futures_contract_with_ib_data=futures_contract_with_ib_data,
+            trade_list_for_multiple_legs=trade_list,
+        )
 
         if ibcontract_with_legs is missing_contract:
             return missing_order
 
         ibcontract = ibcontract_with_legs.ibcontract
 
-        ib_order = self._build_ib_order(trade_list = trade_list,
-                                        account_id=account_id,
-                                        order_type = order_type,
-                                        limit_price = limit_price)
+        ib_order = self._build_ib_order(
+            trade_list=trade_list,
+            account_id=account_id,
+            order_type=order_type,
+            limit_price=limit_price,
+        )
 
         order_object = self.ib.placeOrder(ibcontract, ib_order)
 
-        trade_with_contract = tradeWithContract(
-            ibcontract_with_legs, order_object)
+        trade_with_contract = tradeWithContract(ibcontract_with_legs, order_object)
 
         return trade_with_contract
 
-    def _build_ib_order(self,   trade_list: tradeQuantity,
-                        account_id: str="",
+    def _build_ib_order(
+        self,
+        trade_list: tradeQuantity,
+        account_id: str = "",
         order_type: brokerOrderType = market_order_type,
-        limit_price: float=None,
-        ) -> ibOrder:
+        limit_price: float = None,
+    ) -> ibOrder:
 
         ib_BS_str, ib_qty = resolveBS_for_list(trade_list)
 
@@ -129,10 +148,11 @@ class ibOrdersClient(ibContractsClient):
         return new_trade_object
 
     def modify_limit_price_given_original_objects(
-            self,
-            original_order_object: ibOrder,
-            original_contract_object_with_legs: ibcontractWithLegs,
-            new_limit_price: float) -> tradeWithContract:
+        self,
+        original_order_object: ibOrder,
+        original_contract_object_with_legs: ibcontractWithLegs,
+        new_limit_price: float,
+    ) -> tradeWithContract:
 
         original_contract_object = original_contract_object_with_legs.ibcontract
         original_order_object.lmtPrice = new_limit_price

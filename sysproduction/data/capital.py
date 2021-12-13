@@ -1,5 +1,5 @@
-import  datetime
-import  pandas as pd
+import datetime
+import pandas as pd
 
 from syscore.objects import arg_not_supplied, missing_data
 
@@ -10,8 +10,8 @@ from sysdata.data_blob import dataBlob
 from sysproduction.data.generic_production_data import productionDataLayerGeneric
 from sysdata.production.capital import capitalData
 
-class dataCapital(productionDataLayerGeneric):
 
+class dataCapital(productionDataLayerGeneric):
     def _add_required_classes_to_data(self, data) -> dataBlob:
         data.add_class_object(mongoCapitalData)
 
@@ -27,11 +27,12 @@ class dataCapital(productionDataLayerGeneric):
         return self.total_capital_calculator.get_current_total_capital()
 
     def update_and_return_total_capital_with_new_broker_account_value(
-            self, total_account_value_in_base_currency: float, check_limit: float = 0.1
+        self, total_account_value_in_base_currency: float, check_limit: float = 0.1
     ) -> float:
 
         result = self.total_capital_calculator.update_and_return_total_capital_with_new_broker_account_value(
-            total_account_value_in_base_currency, check_limit=check_limit)
+            total_account_value_in_base_currency, check_limit=check_limit
+        )
 
         return result
 
@@ -52,10 +53,10 @@ class dataCapital(productionDataLayerGeneric):
     @property
     def total_capital_calculator(self) -> totalCapitalCalculationData:
         # cache because could be slow getting calculation method from yaml
-        total_capital_calculator =getattr(self, "_total_capital_calculator", None)
+        total_capital_calculator = getattr(self, "_total_capital_calculator", None)
         if total_capital_calculator is None:
             total_capital_calculator = self._get_total_capital_calculator()
-            self._total_capital_calculator  = total_capital_calculator
+            self._total_capital_calculator = total_capital_calculator
 
         return total_capital_calculator
 
@@ -71,7 +72,6 @@ class dataCapital(productionDataLayerGeneric):
         config = self.data.config
 
         return config.production_capital_method
-
 
     ## STRATEGY CAPITAL
     def get_capital_pd_series_for_strategy(self, strategy_name: str) -> pd.DataFrame:
@@ -89,21 +89,18 @@ class dataCapital(productionDataLayerGeneric):
             strategy_name
         )
         if capital_value is missing_data:
-            self.data.log.error(
-                "Capital data is missing for %s" %
-                strategy_name)
+            self.data.log.error("Capital data is missing for %s" % strategy_name)
             return missing_data
 
         return capital_value
 
     def update_capital_value_for_strategy(
-        self, strategy_name: str,
-            new_capital_value: float,
-            date: datetime.datetime=arg_not_supplied
+        self,
+        strategy_name: str,
+        new_capital_value: float,
+        date: datetime.datetime = arg_not_supplied,
     ):
 
         self.db_capital_data.update_capital_value_for_strategy(
             strategy_name, new_capital_value, date=date
         )
-
-

@@ -1,8 +1,10 @@
 import matplotlib
+
 matplotlib.use("TkAgg")
 
 from syscore.objects import arg_not_supplied
-#from sysdata.sim.csv_futures_sim_data import csvFuturesSimData
+
+# from sysdata.sim.csv_futures_sim_data import csvFuturesSimData
 from sysdata.sim.db_futures_sim_data import dbFuturesSimData
 from sysdata.config.configdata import Config
 
@@ -13,13 +15,21 @@ from systems.provided.rob_system.forecastScaleCap import volAttenForecastScaleCa
 from systems.provided.rob_system.rawdata import myFuturesRawData
 from systems.positionsizing import PositionSizing
 from systems.portfolio import Portfolios
-from systems.provided.dynamic_small_system_optimise.portfolio_weights_stage import portfolioWeightsStage
-from systems.provided.dynamic_small_system_optimise.optimised_positions_stage import optimisedPositions
+from systems.provided.dynamic_small_system_optimise.portfolio_weights_stage import (
+    portfolioWeightsStage,
+)
+from systems.provided.dynamic_small_system_optimise.optimised_positions_stage import (
+    optimisedPositions,
+)
 from systems.provided.dynamic_small_system_optimise.risk import Risk
-from systems.provided.dynamic_small_system_optimise.accounts_stage import accountForOptimisedStage
+from systems.provided.dynamic_small_system_optimise.accounts_stage import (
+    accountForOptimisedStage,
+)
 
-def futures_system(sim_data = arg_not_supplied,
-                   config_filename = "systems.provided.rob_system.config.yaml"):
+
+def futures_system(
+    sim_data=arg_not_supplied, config_filename="systems.provided.rob_system.config.yaml"
+):
 
     if sim_data is arg_not_supplied:
         sim_data = dbFuturesSimData()
@@ -38,7 +48,6 @@ def futures_system(sim_data = arg_not_supplied,
             ForecastCombine(),
             volAttenForecastScaleCap(),
             Rules(),
-
         ],
         sim_data,
         config,
@@ -46,4 +55,3 @@ def futures_system(sim_data = arg_not_supplied,
     system.set_logging_level("on")
 
     return system
-

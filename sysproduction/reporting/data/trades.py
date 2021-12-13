@@ -10,7 +10,9 @@ from syscore.pdutils import make_df_from_list_of_named_tuple
 from sysproduction.data.broker import dataBroker
 from sysproduction.data.instruments import diagInstruments
 from sysproduction.data.orders import dataOrders
-from sysproduction.reporting.data.risk_metrics import get_current_annualised_stdev_for_instrument
+from sysproduction.reporting.data.risk_metrics import (
+    get_current_annualised_stdev_for_instrument,
+)
 
 
 def get_recent_broker_orders(data, start_date, end_date):
@@ -18,8 +20,9 @@ def get_recent_broker_orders(data, start_date, end_date):
     order_id_list = data_orders.get_historic_broker_order_ids_in_date_range(
         start_date, end_date
     )
-    orders_as_list = [get_tuple_object_from_order_id(
-        data, order_id) for order_id in order_id_list]
+    orders_as_list = [
+        get_tuple_object_from_order_id(data, order_id) for order_id in order_id_list
+    ]
     pdf = make_df_from_list_of_named_tuple(tradesData, orders_as_list)
 
     return pdf
@@ -27,9 +30,8 @@ def get_recent_broker_orders(data, start_date, end_date):
 
 def create_raw_slippage_df(broker_orders):
     raw_slippage_data_as_list = [
-        raw_slippage_row(
-            broker_orders.iloc[irow]) for irow in range(
-            len(broker_orders))]
+        raw_slippage_row(broker_orders.iloc[irow]) for irow in range(len(broker_orders))
+    ]
     raw_slippage_df = pd.concat(raw_slippage_data_as_list, axis=1)
     raw_slippage_df = raw_slippage_df.transpose()
     raw_slippage_df.index = broker_orders.index
@@ -40,7 +42,8 @@ def create_raw_slippage_df(broker_orders):
 def get_tuple_object_from_order_id(data, order_id):
     data_orders = dataOrders(data)
     order = data_orders.get_historic_broker_order_from_order_id_with_execution_data(
-        order_id)
+        order_id
+    )
     tuple_object = transfer_object_attributes(tradesData, order)
 
     return tuple_object
@@ -158,9 +161,8 @@ def price_calculations_for_order_row(order_row):
     total_trading = bid_ask + execution
 
     versus_limit = price_slippage(
-        buying_multiplier,
-        order_row.limit_price,
-        order_row.filled_price)
+        buying_multiplier, order_row.limit_price, order_row.filled_price
+    )
 
     versus_parent_limit = price_slippage(
         buying_multiplier,
@@ -258,8 +260,9 @@ def cash_calculations_for_slippage_row(slippage_row, data):
         "versus_parent_limit",
         "total_trading",
     ]
-    output = [value_of_price_point * slippage_row[input_name]
-              for input_name in input_items]
+    output = [
+        value_of_price_point * slippage_row[input_name] for input_name in input_items
+    ]
 
     return tuple(output + [value_of_price_point])
 
@@ -337,16 +340,16 @@ def vol_calculations_for_slippage_row(slippage_row, data):
         "versus_parent_limit",
         "total_trading",
     ]
-    output = [10000 * slippage_row[input_name] /
-              last_annual_vol for input_name in input_items]
+    output = [
+        10000 * slippage_row[input_name] / last_annual_vol for input_name in input_items
+    ]
 
     return tuple(output + [last_annual_vol])
 
 
 def get_last_annual_vol_for_slippage_row(slippage_row, data):
     instrument_code = slippage_row.instrument_code
-    last_annual_vol = get_current_annualised_stdev_for_instrument(data,
-        instrument_code)
+    last_annual_vol = get_current_annualised_stdev_for_instrument(data, instrument_code)
 
     return last_annual_vol
 
@@ -355,8 +358,9 @@ def get_stats_for_slippage_groups(df_to_process, item_list):
     results = {}
     for item_name in item_list:
 
-        sum_data = df_to_process.groupby(
-            ["strategy_name", "instrument_code"]).agg({item_name: "sum"})
+        sum_data = df_to_process.groupby(["strategy_name", "instrument_code"]).agg(
+            {item_name: "sum"}
+        )
 
         results[item_name + " Sum"] = sum_data
 
@@ -371,9 +375,8 @@ def get_stats_for_slippage_groups(df_to_process, item_list):
 
 def create_delay_df(broker_orders):
     delay_data_as_list = [
-        delay_row(
-            broker_orders.iloc[irow]) for irow in range(
-            len(broker_orders))]
+        delay_row(broker_orders.iloc[irow]) for irow in range(len(broker_orders))
+    ]
     delay_data_df = pd.concat(delay_data_as_list, axis=1)
     delay_data_df = delay_data_df.transpose()
     delay_data_df.index = broker_orders.index
@@ -383,7 +386,8 @@ def create_delay_df(broker_orders):
 
 def delay_row(order_row):
     submit_minus_generated, filled_minus_submit = delay_calculations_for_order_row(
-        order_row)
+        order_row
+    )
     new_order_row = copy(order_row)
     new_order_row = new_order_row[
         [
@@ -410,9 +414,7 @@ def delay_calculations_for_order_row(order_row):
         order_row.parent_reference_datetime, order_row.submit_datetime
     )
 
-    filled_minus_submit = delay_calc(
-        order_row.submit_datetime,
-        order_row.fill_datetime)
+    filled_minus_submit = delay_calc(order_row.submit_datetime, order_row.fill_datetime)
 
     return submit_minus_generated, filled_minus_submit
 
@@ -433,10 +435,10 @@ def delay_calc(first_time, second_time):
 def get_recent_trades_from_db_as_terse_df(data):
     data_orders = dataOrders(data)
     start_date = datetime.datetime.now() - datetime.timedelta(days=1)
-    order_id_list = data_orders.get_historic_broker_order_ids_in_date_range(
-        start_date)
-    orders_as_list = [get_tuple_object_from_order_id(
-        data, order_id) for order_id in order_id_list]
+    order_id_list = data_orders.get_historic_broker_order_ids_in_date_range(start_date)
+    orders_as_list = [
+        get_tuple_object_from_order_id(data, order_id) for order_id in order_id_list
+    ]
     pdf = make_df_from_list_of_named_tuple(terseTradesData, orders_as_list)
 
     return pdf
@@ -446,9 +448,8 @@ def get_broker_trades_as_terse_df(data):
     data_broker = dataBroker(data)
     list_of_orders = data_broker.get_list_of_orders()
     tuple_list = [
-        transfer_object_attributes(
-            terseTradesData,
-            order) for order in list_of_orders]
+        transfer_object_attributes(terseTradesData, order) for order in list_of_orders
+    ]
     pdf = make_df_from_list_of_named_tuple(terseTradesData, tuple_list)
 
     return pdf

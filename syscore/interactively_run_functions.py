@@ -65,9 +65,7 @@ def input_and_type_cast_argument(argname, parameter_signature):
         else:
             type_string = ""
 
-        arg_value = input(
-            "Argument %s %s %s?" %
-            (argname, default_string, type_string))
+        arg_value = input("Argument %s %s %s?" % (argname, default_string, type_string))
 
         if arg_value == "":  # just pressed carriage return...
             if default_provided:
@@ -75,8 +73,9 @@ def input_and_type_cast_argument(argname, parameter_signature):
                 break
             else:
                 print(
-                    "No default provided for %s - need a value. Please type something!" %
-                    argname)
+                    "No default provided for %s - need a value. Please type something!"
+                    % argname
+                )
                 arg_value = NO_VALID_ARGUMENT_PASSED
         else:
             # A value has been typed - check if needs type casting

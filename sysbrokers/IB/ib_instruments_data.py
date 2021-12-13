@@ -1,6 +1,10 @@
 import pandas as pd
 
-from sysbrokers.IB.ib_instruments import NOT_REQUIRED_FOR_IB, ibInstrumentConfigData, futuresInstrumentWithIBConfigData
+from sysbrokers.IB.ib_instruments import (
+    NOT_REQUIRED_FOR_IB,
+    ibInstrumentConfigData,
+    futuresInstrumentWithIBConfigData,
+)
 from sysbrokers.IB.ib_connection import connectionIB
 from sysbrokers.broker_instrument_data import brokerFuturesInstrumentData
 
@@ -12,11 +16,12 @@ from sysobjects.instruments import futuresInstrument
 
 from syslogdiag.log_to_screen import logtoscreen
 
-IB_FUTURES_CONFIG_FILE = get_filename_for_package(
-    "sysbrokers.IB.ib_config_futures.csv")
+IB_FUTURES_CONFIG_FILE = get_filename_for_package("sysbrokers.IB.ib_config_futures.csv")
+
 
 class IBconfig(pd.DataFrame):
     pass
+
 
 def read_ib_config_from_file() -> IBconfig:
     df = pd.read_csv(IB_FUTURES_CONFIG_FILE)
@@ -32,7 +37,9 @@ class ibFuturesInstrumentData(brokerFuturesInstrumentData):
 
     """
 
-    def __init__(self, ibconnection: connectionIB, log=logtoscreen("ibFuturesContractData")):
+    def __init__(
+        self, ibconnection: connectionIB, log=logtoscreen("ibFuturesContractData")
+    ):
         super().__init__(log=log)
         self._ibconnection = ibconnection
 
@@ -43,8 +50,10 @@ class ibFuturesInstrumentData(brokerFuturesInstrumentData):
     def ibconnection(self) -> connectionIB:
         return self._ibconnection
 
-    def get_brokers_instrument_code(self, instrument_code:str) -> str:
-        futures_instrument_with_ib_data = self.get_futures_instrument_object_with_IB_data(instrument_code)
+    def get_brokers_instrument_code(self, instrument_code: str) -> str:
+        futures_instrument_with_ib_data = (
+            self.get_futures_instrument_object_with_IB_data(instrument_code)
+        )
         if futures_instrument_with_ib_data is missing_instrument:
             return missing_instrument
         return futures_instrument_with_ib_data.broker_symbol
@@ -59,8 +68,9 @@ class ibFuturesInstrumentData(brokerFuturesInstrumentData):
 
         if len(config_row) > 1:
             msg = (
-                "Broker symbol %s appears more than once in configuration file!" %
-                ib_code)
+                "Broker symbol %s appears more than once in configuration file!"
+                % ib_code
+            )
             self.log.critical(msg)
             raise Exception(msg)
 
@@ -69,22 +79,25 @@ class ibFuturesInstrumentData(brokerFuturesInstrumentData):
     def _get_instrument_data_without_checking(self, instrument_code: str):
         return self.get_futures_instrument_object_with_IB_data(instrument_code)
 
-    def get_futures_instrument_object_with_IB_data(self, instrument_code:str) ->futuresInstrumentWithIBConfigData:
+    def get_futures_instrument_object_with_IB_data(
+        self, instrument_code: str
+    ) -> futuresInstrumentWithIBConfigData:
         new_log = self.log.setup(instrument_code=instrument_code)
 
         try:
             assert instrument_code in self.get_list_of_instruments()
         except:
             new_log.warn(
-                "Instrument %s is not in IB configuration file" %
-                instrument_code)
+                "Instrument %s is not in IB configuration file" % instrument_code
+            )
             return missing_instrument
 
         config = self._get_ib_config()
         if config is missing_file:
             new_log.warn(
-                "Can't get config for instrument %s as IB configuration file missing" %
-                instrument_code)
+                "Can't get config for instrument %s as IB configuration file missing"
+                % instrument_code
+            )
             return missing_instrument
 
         instrument_object = get_instrument_object_from_config(
@@ -132,20 +145,26 @@ class ibFuturesInstrumentData(brokerFuturesInstrumentData):
 
         return config_data
 
-
-    def _delete_instrument_data_without_any_warning_be_careful(self,
-            instrument_code: str):
-        raise NotImplementedError("IB instrument config is read only - manually edit .csv file %s" % IB_FUTURES_CONFIG_FILE)
+    def _delete_instrument_data_without_any_warning_be_careful(
+        self, instrument_code: str
+    ):
+        raise NotImplementedError(
+            "IB instrument config is read only - manually edit .csv file %s"
+            % IB_FUTURES_CONFIG_FILE
+        )
 
     def _add_instrument_data_without_checking_for_existing_entry(
         self, instrument_object
     ):
         raise NotImplementedError(
-            "IB instrument config is read only - manually edit .csv file %s" % IB_FUTURES_CONFIG_FILE)
+            "IB instrument config is read only - manually edit .csv file %s"
+            % IB_FUTURES_CONFIG_FILE
+        )
 
 
-def get_instrument_object_from_config(instrument_code: str,
-                                      config: IBconfig=None) ->futuresInstrumentWithIBConfigData:
+def get_instrument_object_from_config(
+    instrument_code: str, config: IBconfig = None
+) -> futuresInstrumentWithIBConfigData:
     if config is None:
         config = read_ib_config_from_file()
 
@@ -154,20 +173,24 @@ def get_instrument_object_from_config(instrument_code: str,
     exchange = config_row.IBExchange.values[0]
     currency = value_or_npnan(config_row.IBCurrency.values[0], NOT_REQUIRED_FOR_IB)
     ib_multiplier = value_or_npnan(
-        config_row.IBMultiplier.values[0], NOT_REQUIRED_FOR_IB)
-    my_multiplier = value_or_npnan(
-        config_row.MyMultiplier.values[0], 1.0)
+        config_row.IBMultiplier.values[0], NOT_REQUIRED_FOR_IB
+    )
+    my_multiplier = value_or_npnan(config_row.MyMultiplier.values[0], 1.0)
     ignore_weekly = config_row.IgnoreWeekly.values[0]
 
     # We use the flexibility of futuresInstrument to add additional arguments
     instrument = futuresInstrument(instrument_code)
-    ib_data = ibInstrumentConfigData(symbol, exchange, currency=currency,
-                                     ibMultiplier=ib_multiplier,
-                                     myMultiplier=my_multiplier,
-                                     ignoreWeekly=ignore_weekly
-                                     )
+    ib_data = ibInstrumentConfigData(
+        symbol,
+        exchange,
+        currency=currency,
+        ibMultiplier=ib_multiplier,
+        myMultiplier=my_multiplier,
+        ignoreWeekly=ignore_weekly,
+    )
 
-    futures_instrument_with_ib_data = futuresInstrumentWithIBConfigData(instrument, ib_data)
+    futures_instrument_with_ib_data = futuresInstrumentWithIBConfigData(
+        instrument, ib_data
+    )
 
     return futures_instrument_with_ib_data
-

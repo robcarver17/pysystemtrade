@@ -1,4 +1,3 @@
-
 import pandas as pd
 
 from sysdata.futures.spreads import spreadsForInstrumentData
@@ -12,14 +11,16 @@ from syslogdiag.log_to_screen import logtoscreen
 DATE_INDEX_NAME = "DATETIME"
 SPREAD_COLUMN_NAME = "spread"
 
+
 class csvSpreadsForInstrumentData(spreadsForInstrumentData):
     """
 
     Class for adjusted prices write / to from csv
     """
 
-    def __init__(self, datapath=arg_not_supplied, log=logtoscreen(
-            "csvSpreadsForInstrumentData")):
+    def __init__(
+        self, datapath=arg_not_supplied, log=logtoscreen("csvSpreadsForInstrumentData")
+    ):
 
         super().__init__(log=log)
 
@@ -38,7 +39,9 @@ class csvSpreadsForInstrumentData(spreadsForInstrumentData):
     def get_list_of_instruments(self) -> list:
         return files_with_extension_in_pathname(self.datapath, ".csv")
 
-    def _get_spreads_without_checking(self, instrument_code: str) -> spreadsForInstrument:
+    def _get_spreads_without_checking(
+        self, instrument_code: str
+    ) -> spreadsForInstrument:
         filename = self._filename_given_instrument_code(instrument_code)
 
         try:
@@ -52,24 +55,21 @@ class csvSpreadsForInstrumentData(spreadsForInstrumentData):
 
         return spreads
 
-    def _delete_spreads_without_any_warning_be_careful(
-            self, instrument_code: str):
+    def _delete_spreads_without_any_warning_be_careful(self, instrument_code: str):
         raise NotImplementedError(
             "You can't delete data stored as a csv - Add to overwrite existing or delete file manually"
         )
 
     def _add_spreads_without_checking_for_existing_entry(
-        self, instrument_code:str, spreads: spreadsForInstrument):
+        self, instrument_code: str, spreads: spreadsForInstrument
+    ):
 
         # Ensures the file will be written with a column header
         spreads_as_dataframe = pd.DataFrame(spreads)
         spreads_as_dataframe.columns = [SPREAD_COLUMN_NAME]
 
         filename = self._filename_given_instrument_code(instrument_code)
-        spreads.to_csv(
-            filename, index_label=DATE_INDEX_NAME)
+        spreads.to_csv(filename, index_label=DATE_INDEX_NAME)
 
-    def _filename_given_instrument_code(self, instrument_code:str):
-        return get_filename_for_package(
-            self.datapath, "%s.csv" %
-            (instrument_code))
+    def _filename_given_instrument_code(self, instrument_code: str):
+        return get_filename_for_package(self.datapath, "%s.csv" % (instrument_code))

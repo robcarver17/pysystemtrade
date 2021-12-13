@@ -46,55 +46,68 @@ UNIXTIME_IN_YEAR = UNIXTIME_CONVERTER * SECONDS_IN_YEAR
 MONTH_LIST = ["F", "G", "H", "J", "K", "M", "N", "Q", "U", "V", "X", "Z"]
 
 
-Frequency = Enum('Frequency', 'Unknown Year Month Week BDay Day Hour Minutes_15 Minutes_5 Minute Seconds_10 Second')
+Frequency = Enum(
+    "Frequency",
+    "Unknown Year Month Week BDay Day Hour Minutes_15 Minutes_5 Minute Seconds_10 Second",
+)
 DAILY_PRICE_FREQ = Frequency.Day
 BUSINESS_DAY_FREQ = Frequency.BDay
 
+
 def from_config_frequency_pandas_resample(freq: Frequency) -> str:
-    LOOKUP_TABLE = {Frequency.BDay: 'B',
-                    Frequency.Week: 'W',
-                    Frequency.Month: 'M',
-                    Frequency.Hour: 'H',
-                    Frequency.Year: 'A',
-                    Frequency.Day: 'D',
-                    Frequency.Minutes_15: '15T',
-                    Frequency.Minutes_5: '5T',
-                    Frequency.Seconds_10: '10S',
-                    Frequency.Second: 'S'}
+    LOOKUP_TABLE = {
+        Frequency.BDay: "B",
+        Frequency.Week: "W",
+        Frequency.Month: "M",
+        Frequency.Hour: "H",
+        Frequency.Year: "A",
+        Frequency.Day: "D",
+        Frequency.Minutes_15: "15T",
+        Frequency.Minutes_5: "5T",
+        Frequency.Seconds_10: "10S",
+        Frequency.Second: "S",
+    }
     resample_string = LOOKUP_TABLE.get(freq, missing_data)
 
     return resample_string
 
+
 def from_frequency_to_times_per_year(freq: Frequency) -> float:
-    LOOKUP_TABLE = {Frequency.BDay: BUSINESS_DAYS_IN_YEAR,
-                    Frequency.Week: WEEKS_IN_YEAR,
-                    Frequency.Month: MONTHS_IN_YEAR,
-                    Frequency.Hour: HOURS_PER_DAY * BUSINESS_DAYS_IN_YEAR,
-                    Frequency.Year: 1,
-                    Frequency.Day: CALENDAR_DAYS_IN_YEAR,
-                    Frequency.Minutes_15: (MINUTES_PER_YEAR/15),
-                    Frequency.Minutes_5: (MINUTES_PER_YEAR/5),
-                    Frequency.Seconds_10: SECONDS_IN_YEAR/10,
-                    Frequency.Second: SECONDS_IN_YEAR}
+    LOOKUP_TABLE = {
+        Frequency.BDay: BUSINESS_DAYS_IN_YEAR,
+        Frequency.Week: WEEKS_IN_YEAR,
+        Frequency.Month: MONTHS_IN_YEAR,
+        Frequency.Hour: HOURS_PER_DAY * BUSINESS_DAYS_IN_YEAR,
+        Frequency.Year: 1,
+        Frequency.Day: CALENDAR_DAYS_IN_YEAR,
+        Frequency.Minutes_15: (MINUTES_PER_YEAR / 15),
+        Frequency.Minutes_5: (MINUTES_PER_YEAR / 5),
+        Frequency.Seconds_10: SECONDS_IN_YEAR / 10,
+        Frequency.Second: SECONDS_IN_YEAR,
+    }
     times_per_year = LOOKUP_TABLE.get(freq, missing_data)
 
     return float(times_per_year)
 
-def from_config_frequency_to_frequency(freq_as_str:str)-> Frequency:
-    LOOKUP_TABLE = {'Y': Frequency.Year,
-                    'm': Frequency.Month,
-        'W': Frequency.Week,
-        'D':Frequency.Day,
-                        'H':Frequency.Hour,
-                        '15M': Frequency.Minutes_15,
-                        '5M': Frequency.Minutes_5,
-                        'M': Frequency.Minute,
-                        '10S': Frequency.Seconds_10,
-                        'S': Frequency.Second}
+
+def from_config_frequency_to_frequency(freq_as_str: str) -> Frequency:
+    LOOKUP_TABLE = {
+        "Y": Frequency.Year,
+        "m": Frequency.Month,
+        "W": Frequency.Week,
+        "D": Frequency.Day,
+        "H": Frequency.Hour,
+        "15M": Frequency.Minutes_15,
+        "5M": Frequency.Minutes_5,
+        "M": Frequency.Minute,
+        "10S": Frequency.Seconds_10,
+        "S": Frequency.Second,
+    }
 
     frequency = LOOKUP_TABLE.get(freq_as_str, missing_data)
 
     return frequency
+
 
 def month_from_contract_letter(contract_letter: str) -> int:
     """
@@ -111,8 +124,10 @@ def month_from_contract_letter(contract_letter: str) -> int:
     try:
         month_number = MONTH_LIST.index(contract_letter)
     except ValueError:
-        raise Exception("Contract letter %s is not a valid future month (must be one of %s)" %
-                        (contract_letter, str(MONTH_LIST)))
+        raise Exception(
+            "Contract letter %s is not a valid future month (must be one of %s)"
+            % (contract_letter, str(MONTH_LIST))
+        )
 
     return month_number + 1
 
@@ -134,7 +149,7 @@ def contract_month_from_number(month_number: int) -> str:
     :return: str
     """
 
-    assert month_number>0 and month_number<13
+    assert month_number > 0 and month_number < 13
 
     return MONTH_LIST[month_number - 1]
 
@@ -174,20 +189,11 @@ def get_datetime_from_datestring(datestring: str):
     if len(datestring) == 6:
         return datetime.datetime.strptime(datestring, "%Y%m")
     else:
-        raise Exception(
-            "%s needs to be a string with 6 or 8 digits" % datestring
-        )
-
+        raise Exception("%s needs to be a string with 6 or 8 digits" % datestring)
 
 
 class fit_dates_object(object):
-    def __init__(
-            self,
-            fit_start,
-            fit_end,
-            period_start,
-            period_end,
-            no_data=False):
+    def __init__(self, fit_start, fit_end, period_start, period_end, no_data=False):
         setattr(self, "fit_start", fit_start)
         setattr(self, "fit_end", fit_end)
         setattr(self, "period_start", period_start)
@@ -223,7 +229,6 @@ def time_matches(
         return False
 
 
-
 """
 Convert date into a decimal, and back again
 """
@@ -233,13 +238,13 @@ LONG_JUST_DATE_FORMAT = "%Y%m%d"
 CONVERSION_FACTOR = 10000
 
 
-def datetime_to_long(date_to_convert: datetime.datetime)-> int:
+def datetime_to_long(date_to_convert: datetime.datetime) -> int:
     as_str = date_to_convert.strftime(LONG_DATE_FORMAT)
     as_float = float(as_str)
     return int(as_float * CONVERSION_FACTOR)
 
 
-def long_to_datetime(int_to_convert:int) -> datetime.datetime:
+def long_to_datetime(int_to_convert: int) -> datetime.datetime:
     as_float = float(int_to_convert) / CONVERSION_FACTOR
     str_to_convert = "%.6f" % as_float
 
@@ -256,11 +261,13 @@ def long_to_datetime(int_to_convert:int) -> datetime.datetime:
     return as_datetime
 
 
-
 NOTIONAL_CLOSING_TIME = dict(hours=23, minutes=0, seconds=0)
-NOTIONAL_CLOSING_TIME_AS_PD_OFFSET = pd.DateOffset(hours = NOTIONAL_CLOSING_TIME['hours'],
-                                                   minutes = NOTIONAL_CLOSING_TIME['minutes'],
-                                                   seconds = NOTIONAL_CLOSING_TIME['seconds'])
+NOTIONAL_CLOSING_TIME_AS_PD_OFFSET = pd.DateOffset(
+    hours=NOTIONAL_CLOSING_TIME["hours"],
+    minutes=NOTIONAL_CLOSING_TIME["minutes"],
+    seconds=NOTIONAL_CLOSING_TIME["seconds"],
+)
+
 
 def adjust_timestamp_to_include_notional_close_and_time_offset(
     timestamp: datetime.datetime,
@@ -285,11 +292,14 @@ def strip_timezone_fromdatetime(timestamp_with_tz_info) -> datetime.datetime:
     return new_timestamp
 
 
-def get_datetime_input(prompt:str, allow_default:bool=True, allow_no_arg:bool=False):
+def get_datetime_input(
+    prompt: str, allow_default: bool = True, allow_no_arg: bool = False
+):
     invalid_input = True
     input_str = (
-        prompt +
-        ": Enter date and time in format %Y-%m-%d eg '2020-05-30' OR '%Y-%m-%d %H:%M:%S' eg '2020-05-30 14:04:11'")
+        prompt
+        + ": Enter date and time in format %Y-%m-%d eg '2020-05-30' OR '%Y-%m-%d %H:%M:%S' eg '2020-05-30 14:04:11'"
+    )
     if allow_default:
         input_str = input_str + " <RETURN for now>"
     if allow_no_arg:
@@ -315,7 +325,6 @@ def get_datetime_input(prompt:str, allow_default:bool=True, allow_no_arg:bool=Fa
             continue
 
 
-
 class tradingStartAndEndDateTimes(object):
     def __init__(self, hour_tuple):
         self._start_time = hour_tuple[0]
@@ -336,7 +345,7 @@ class tradingStartAndEndDateTimes(object):
         else:
             return False
 
-    def hours_left_before_market_close(self)->float:
+    def hours_left_before_market_close(self) -> float:
         if not self.okay_to_trade_now():
             # market closed
             return 0
@@ -348,13 +357,13 @@ class tradingStartAndEndDateTimes(object):
 
         return hours_left
 
-
     def less_than_N_hours_left(self, N_hours: float = 1.0) -> bool:
         hours_left = self.hours_left_before_market_close()
-        if hours_left<N_hours:
+        if hours_left < N_hours:
             return True
         else:
             return False
+
 
 class manyTradingStartAndEndDateTimes(list):
     def __init__(self, list_of_trading_hours):
@@ -369,7 +378,6 @@ class manyTradingStartAndEndDateTimes(list):
             list_of_start_and_end_objects.append(this_period)
 
         super().__init__(list_of_start_and_end_objects)
-
 
     def okay_to_trade_now(self):
         for check_period in self:
@@ -402,8 +410,7 @@ def last_run_or_heartbeat_from_date_or_none(last_run_or_heartbeat: datetime.date
     if last_run_or_heartbeat is missing_data or last_run_or_heartbeat is None:
         last_run_or_heartbeat = MISSING_STRING_PATTERN
     else:
-        last_run_or_heartbeat = last_run_or_heartbeat.strftime(
-            SHORT_DATE_PATTERN)
+        last_run_or_heartbeat = last_run_or_heartbeat.strftime(SHORT_DATE_PATTERN)
 
     return last_run_or_heartbeat
 
@@ -423,76 +430,94 @@ def create_datetime_string(datetime_to_use: datetime = arg_not_supplied):
 def from_marker_to_datetime(datetime_marker):
     return datetime.datetime.strptime(datetime_marker, date_formatting)
 
+
 def two_weeks_ago():
     return n_days_ago(14)
+
 
 def four_weeks_ago():
     return n_days_ago(28)
 
 
-def n_days_ago(n_days: int, date_ref = arg_not_supplied):
+def n_days_ago(n_days: int, date_ref=arg_not_supplied):
     if date_ref is arg_not_supplied:
         date_ref = datetime.datetime.now()
-    date_diff = datetime.timedelta(days = n_days)
+    date_diff = datetime.timedelta(days=n_days)
     return date_ref - date_diff
 
 
-def adjust_trading_hours_conservatively(trading_hours: list,
-            conservative_times: tuple) -> list:
+def adjust_trading_hours_conservatively(
+    trading_hours: list, conservative_times: tuple
+) -> list:
 
-    new_trading_hours = [adjust_single_day_conservatively(single_days_hours,
-                                                          conservative_times)
-                         for single_days_hours in trading_hours]
+    new_trading_hours = [
+        adjust_single_day_conservatively(single_days_hours, conservative_times)
+        for single_days_hours in trading_hours
+    ]
 
     return new_trading_hours
 
-def adjust_single_day_conservatively(single_days_hours: tuple,
-                                     conservative_times: tuple) -> tuple:
 
-    adjusted_start_datetime = adjust_start_time_conservatively(single_days_hours[0],
-                                                               conservative_times[0])
-    adjusted_end_datetime = adjust_end_time_conservatively(single_days_hours[1],
-                                                           conservative_times[1])
+def adjust_single_day_conservatively(
+    single_days_hours: tuple, conservative_times: tuple
+) -> tuple:
+
+    adjusted_start_datetime = adjust_start_time_conservatively(
+        single_days_hours[0], conservative_times[0]
+    )
+    adjusted_end_datetime = adjust_end_time_conservatively(
+        single_days_hours[1], conservative_times[1]
+    )
 
     return (adjusted_start_datetime, adjusted_end_datetime)
 
-def adjust_start_time_conservatively(start_datetime: datetime.datetime,
-                                     start_conservative: datetime.time) -> datetime.datetime:
 
-    start_conservative_datetime = adjust_date_conservatively(start_datetime,
-                                                             start_conservative)
+def adjust_start_time_conservatively(
+    start_datetime: datetime.datetime, start_conservative: datetime.time
+) -> datetime.datetime:
+
+    start_conservative_datetime = adjust_date_conservatively(
+        start_datetime, start_conservative
+    )
     return max(start_datetime, start_conservative_datetime)
 
-def adjust_end_time_conservatively(end_datetime: datetime.datetime,
-                                     end_conservative: datetime.time) -> datetime.datetime:
 
-    end_conservative_datetime = adjust_date_conservatively(end_datetime,
-                                                             end_conservative)
+def adjust_end_time_conservatively(
+    end_datetime: datetime.datetime, end_conservative: datetime.time
+) -> datetime.datetime:
+
+    end_conservative_datetime = adjust_date_conservatively(
+        end_datetime, end_conservative
+    )
     return min(end_datetime, end_conservative_datetime)
 
 
-def adjust_date_conservatively(datetime_to_be_adjusted: datetime.datetime,
-                               conservative_time: datetime.time) -> datetime.datetime:
+def adjust_date_conservatively(
+    datetime_to_be_adjusted: datetime.datetime, conservative_time: datetime.time
+) -> datetime.datetime:
 
     return datetime.datetime.combine(datetime_to_be_adjusted.date(), conservative_time)
 
-def generate_equal_dates_within_year(year: int,
-                                     number_of_dates: int,
-                                     force_start_year_align: bool = False) -> list:
+
+def generate_equal_dates_within_year(
+    year: int, number_of_dates: int, force_start_year_align: bool = False
+) -> list:
 
     days_between_periods = int(CALENDAR_DAYS_IN_YEAR / float(number_of_dates))
-    full_increment = datetime.timedelta(days = days_between_periods)
-    start_of_year = datetime.datetime(year, 1,1)
+    full_increment = datetime.timedelta(days=days_between_periods)
+    start_of_year = datetime.datetime(year, 1, 1)
 
     if force_start_year_align:
         ## more realistic for most rolling calendars
-        first_date =start_of_year
+        first_date = start_of_year
     else:
         half_period = int(days_between_periods / 2)
-        half_period_increment = datetime.timedelta(days = half_period)
-        first_date = start_of_year+half_period_increment
+        half_period_increment = datetime.timedelta(days=half_period)
+        first_date = start_of_year + half_period_increment
 
-    all_dates = [first_date + full_increment * increment_size
-                        for increment_size in range(number_of_dates)]
+    all_dates = [
+        first_date + full_increment * increment_size
+        for increment_size in range(number_of_dates)
+    ]
 
     return all_dates

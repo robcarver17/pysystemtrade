@@ -1,4 +1,3 @@
-
 from syscore.objects import (
     no_children,
     missing_order,
@@ -10,15 +9,16 @@ from sysproduction.data.orders import dataOrders
 
 class stackHandlerForCompletions(stackHandlerCore):
     def handle_completed_orders(
-        self, allow_partial_completions:bool=False,
-            allow_zero_completions:bool=False,
-        treat_inactive_as_complete: bool = False
+        self,
+        allow_partial_completions: bool = False,
+        allow_zero_completions: bool = False,
+        treat_inactive_as_complete: bool = False,
     ):
         list_of_completed_instrument_orders = (
             self.instrument_stack.list_of_completed_order_ids(
                 allow_partial_completions=allow_partial_completions,
                 allow_zero_completions=allow_zero_completions,
-                treat_inactive_as_complete = treat_inactive_as_complete
+                treat_inactive_as_complete=treat_inactive_as_complete,
             )
         )
 
@@ -34,16 +34,15 @@ class stackHandlerForCompletions(stackHandlerCore):
         instrument_order_id: int,
         allow_partial_completions=False,
         allow_zero_completions=False,
-            treat_inactive_as_complete = False
+        treat_inactive_as_complete=False,
     ):
         # Check children all done
-
 
         completely_filled = self.confirm_all_children_and_grandchildren_are_filled(
             instrument_order_id,
             allow_partial_completions=allow_partial_completions,
             allow_zero_completions=allow_zero_completions,
-            treat_inactive_as_complete=treat_inactive_as_complete
+            treat_inactive_as_complete=treat_inactive_as_complete,
         )
 
         if not completely_filled:
@@ -59,12 +58,9 @@ class stackHandlerForCompletions(stackHandlerCore):
 
         # Make orders inactive
         # A subsequent process will delete them
-        self.deactivate_family_of_orders(
-            order_family)
+        self.deactivate_family_of_orders(order_family)
 
         self.add_order_family_to_historic_orders_database(order_family)
-
-
 
     def get_order_family_for_instrument_order_id(
         self, instrument_order_id: int
@@ -76,18 +72,25 @@ class stackHandlerForCompletions(stackHandlerCore):
         list_of_contract_order_id = instrument_order.children
         if list_of_contract_order_id is no_children:
             # childless, grandchildless
-            return orderFamily(instrument_order_id, [],[])
+            return orderFamily(instrument_order_id, [], [])
 
-        list_of_broker_order_id = \
-            self.get_all_grandchildren_from_list_of_contract_order_id(list_of_contract_order_id)
+        list_of_broker_order_id = (
+            self.get_all_grandchildren_from_list_of_contract_order_id(
+                list_of_contract_order_id
+            )
+        )
 
-        order_family = orderFamily(instrument_order_id=instrument_order_id,
-                                   list_of_contract_order_id=list_of_contract_order_id,
-                                   list_of_broker_order_id=list_of_broker_order_id)
+        order_family = orderFamily(
+            instrument_order_id=instrument_order_id,
+            list_of_contract_order_id=list_of_contract_order_id,
+            list_of_broker_order_id=list_of_broker_order_id,
+        )
 
         return order_family
 
-    def get_all_grandchildren_from_list_of_contract_order_id(self, list_of_contract_order_id: list) -> list:
+    def get_all_grandchildren_from_list_of_contract_order_id(
+        self, list_of_contract_order_id: list
+    ) -> list:
         list_of_broker_order_id = []
 
         for contract_order_id in list_of_contract_order_id:
@@ -110,26 +113,25 @@ class stackHandlerForCompletions(stackHandlerCore):
         instrument_order_id: int,
         allow_partial_completions=False,
         allow_zero_completions=False,
-            treat_inactive_as_complete=True
+        treat_inactive_as_complete=True,
     ):
 
         order_family = self.get_order_family_for_instrument_order_id(
             instrument_order_id
         )
 
-
         children_filled = self.check_list_of_contract_orders_complete(
             order_family.list_of_contract_order_id,
             allow_partial_completions=allow_partial_completions,
             allow_zero_completions=allow_zero_completions,
-            treat_inactive_as_complete=treat_inactive_as_complete
+            treat_inactive_as_complete=treat_inactive_as_complete,
         )
 
         grandchildren_filled = self.check_list_of_broker_orders_complete(
             order_family.list_of_broker_order_id,
             allow_partial_completions=allow_partial_completions,
             allow_zero_completions=allow_zero_completions,
-            treat_inactive_as_complete=treat_inactive_as_complete
+            treat_inactive_as_complete=treat_inactive_as_complete,
         )
 
         if grandchildren_filled and children_filled:
@@ -137,20 +139,19 @@ class stackHandlerForCompletions(stackHandlerCore):
         else:
             return False
 
-
     def check_list_of_contract_orders_complete(
         self,
         list_of_contract_order_id: list,
         allow_partial_completions=False,
         allow_zero_completions=False,
-        treat_inactive_as_complete = False
+        treat_inactive_as_complete=False,
     ) -> bool:
         for contract_order_id in list_of_contract_order_id:
             completely_filled = self.contract_stack.is_completed(
                 contract_order_id,
                 allow_zero_completions=allow_zero_completions,
                 allow_partial_completions=allow_partial_completions,
-                treat_inactive_as_complete=treat_inactive_as_complete
+                treat_inactive_as_complete=treat_inactive_as_complete,
             )
             if not completely_filled:
                 # OK We can't do this unless *all* our children are filled
@@ -164,7 +165,7 @@ class stackHandlerForCompletions(stackHandlerCore):
         list_of_broker_order_id: list,
         allow_partial_completions=False,
         allow_zero_completions=False,
-            treat_inactive_as_complete=False
+        treat_inactive_as_complete=False,
     ):
 
         for broker_order_id in list_of_broker_order_id:
@@ -172,7 +173,7 @@ class stackHandlerForCompletions(stackHandlerCore):
                 broker_order_id,
                 allow_zero_completions=allow_zero_completions,
                 allow_partial_completions=allow_partial_completions,
-                treat_inactive_as_complete=treat_inactive_as_complete
+                treat_inactive_as_complete=treat_inactive_as_complete,
             )
             if not completely_filled:
                 # OK We can't do this unless all our children are filled
@@ -180,19 +181,17 @@ class stackHandlerForCompletions(stackHandlerCore):
 
         return True
 
-
-
-
-
     def add_order_family_to_historic_orders_database(self, order_family: orderFamily):
 
         instrument_order = self.instrument_stack.get_order_with_id_from_stack(
             order_family.instrument_order_id
         )
         contract_order_list = self.contract_stack.get_list_of_orders_from_order_id_list(
-            order_family.list_of_contract_order_id)
+            order_family.list_of_contract_order_id
+        )
         broker_order_list = self.broker_stack.get_list_of_orders_from_order_id_list(
-            order_family.list_of_broker_order_id)
+            order_family.list_of_broker_order_id
+        )
 
         # Update historic order database
         order_data = dataOrders(self.data)
@@ -200,10 +199,7 @@ class stackHandlerForCompletions(stackHandlerCore):
             instrument_order, contract_order_list, broker_order_list
         )
 
-
-    def deactivate_family_of_orders(
-            self,
-            order_family: orderFamily):
+    def deactivate_family_of_orders(self, order_family: orderFamily):
 
         # Make orders inactive
         # A subsequent process will delete them

@@ -9,7 +9,6 @@ import numpy as np
 
 
 class Test(unittest.TestCase):
-
     @unittest.SkipTest
     def test_divide_df_single_column(self):
         x = pd.DataFrame(
@@ -40,16 +39,13 @@ class Test(unittest.TestCase):
 
         self.assertEqual(ans[2], -2.0)
 
-        ans = list(divide_df_single_column(
-            x, y, ffill=(True, False)).iloc[:, 0])
+        ans = list(divide_df_single_column(x, y, ffill=(True, False)).iloc[:, 0])
         self.assertEqual(ans[1], 1.0)
 
-        ans = list(divide_df_single_column(
-            x, y, ffill=(False, True)).iloc[:, 0])
+        ans = list(divide_df_single_column(x, y, ffill=(False, True)).iloc[:, 0])
         self.assertEqual(ans[4], 1.0)
 
-        ans = list(divide_df_single_column(
-            x, y, ffill=(True, True)).iloc[:, 0])
+        ans = list(divide_df_single_column(x, y, ffill=(True, True)).iloc[:, 0])
         self.assertEqual(list(ans)[1:], [1.0, -2.0, -2.0, 1.0, -1.0])
 
     def multiply_df_single_column(self):

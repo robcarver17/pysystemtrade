@@ -5,7 +5,10 @@ Read / write and represent instrument data
 import pandas as pd
 from syscore.objects import missing_data
 from sysdata.base_data import baseData
-from sysobjects.instruments import futuresInstrumentWithMetaData, listOfFuturesInstrumentWithMetaData
+from sysobjects.instruments import (
+    futuresInstrumentWithMetaData,
+    listOfFuturesInstrumentWithMetaData,
+)
 from syslogdiag.log_to_screen import logtoscreen
 
 USE_CHILD_CLASS_ERROR = "You need to use a child class of futuresInstrumentData"
@@ -32,31 +35,37 @@ class futuresInstrumentData(baseData):
         return self.get_instrument_data(instrument_code)
 
     def update_slippage_costs(self, instrument_code: str, new_slippage: float):
-        self.upate_meta_data(instrument_code, meta_name="Slippage",
-                             new_value = new_slippage)
+        self.upate_meta_data(
+            instrument_code, meta_name="Slippage", new_value=new_slippage
+        )
 
     def upate_meta_data(self, instrument_code: str, meta_name: str, new_value):
         instrument_object = self.get_instrument_data(instrument_code)
         existing_meta_data = instrument_object.meta_data
         existing_meta_data_value = getattr(existing_meta_data, meta_name, missing_data)
         if existing_meta_data_value is missing_data:
-            raise Exception("Meta data %s does not exist for instrument %s" % (meta_name,
-                                                                               instrument_code))
+            raise Exception(
+                "Meta data %s does not exist for instrument %s"
+                % (meta_name, instrument_code)
+            )
         setattr(existing_meta_data, meta_name, new_value)
-        self.add_instrument_data(instrument_object,
-                                 ignore_duplication=True)
-        self.log.msg("Updated %s for %s from %s to %s" % (
-            meta_name, instrument_code,
-            existing_meta_data_value, new_value
-        ))
+        self.add_instrument_data(instrument_object, ignore_duplication=True)
+        self.log.msg(
+            "Updated %s for %s from %s to %s"
+            % (meta_name, instrument_code, existing_meta_data_value, new_value)
+        )
 
-    def get_all_instrument_data_as_list_of_instrument_objects(self) -> listOfFuturesInstrumentWithMetaData:
+    def get_all_instrument_data_as_list_of_instrument_objects(
+        self,
+    ) -> listOfFuturesInstrumentWithMetaData:
         all_instrument_codes = self.get_list_of_instruments()
         all_instrument_objects = [
             self.get_instrument_data(instrument_code)
             for instrument_code in all_instrument_codes
         ]
-        list_of_instrument_objects = listOfFuturesInstrumentWithMetaData(all_instrument_objects)
+        list_of_instrument_objects = listOfFuturesInstrumentWithMetaData(
+            all_instrument_objects
+        )
 
         return list_of_instrument_objects
 
@@ -69,19 +78,22 @@ class futuresInstrumentData(baseData):
         :return: pd.DataFrame
         """
 
-        list_of_instrument_objects = self.get_all_instrument_data_as_list_of_instrument_objects()
+        list_of_instrument_objects = (
+            self.get_all_instrument_data_as_list_of_instrument_objects()
+        )
         list_as_df = list_of_instrument_objects.as_df()
 
         return list_as_df
 
-    def get_instrument_data(self, instrument_code: str) ->futuresInstrumentWithMetaData:
+    def get_instrument_data(
+        self, instrument_code: str
+    ) -> futuresInstrumentWithMetaData:
         if self.is_code_in_data(instrument_code):
             return self._get_instrument_data_without_checking(instrument_code)
         else:
             return futuresInstrumentWithMetaData.create_empty()
 
-
-    def delete_instrument_data(self, instrument_code: str, are_you_sure: bool=False):
+    def delete_instrument_data(self, instrument_code: str, are_you_sure: bool = False):
         self.log.label(instrument_code=instrument_code)
 
         if are_you_sure:
@@ -89,9 +101,7 @@ class futuresInstrumentData(baseData):
                 self._delete_instrument_data_without_any_warning_be_careful(
                     instrument_code
                 )
-                self.log.terse(
-                    "Deleted instrument object %s" %
-                    instrument_code)
+                self.log.terse("Deleted instrument object %s" % instrument_code)
 
             else:
                 # doesn't exist anyway
@@ -107,9 +117,11 @@ class futuresInstrumentData(baseData):
         else:
             return False
 
-
-    def add_instrument_data(self, instrument_object: futuresInstrumentWithMetaData,
-                            ignore_duplication:bool=False):
+    def add_instrument_data(
+        self,
+        instrument_object: futuresInstrumentWithMetaData,
+        ignore_duplication: bool = False,
+    ):
         instrument_code = instrument_object.instrument_code
 
         self.log.label(instrument_code=instrument_code)
@@ -119,28 +131,24 @@ class futuresInstrumentData(baseData):
                 pass
             else:
                 self.log.error(
-                    "There is already %s in the data, you have to delete it first" %
-                    instrument_code)
+                    "There is already %s in the data, you have to delete it first"
+                    % instrument_code
+                )
 
-        self._add_instrument_data_without_checking_for_existing_entry(
-            instrument_object)
+        self._add_instrument_data_without_checking_for_existing_entry(instrument_object)
 
-        self.log.terse(
-            "Added instrument object %s" %
-            instrument_object.instrument_code)
+        self.log.terse("Added instrument object %s" % instrument_object.instrument_code)
 
     def get_list_of_instruments(self):
         raise NotImplementedError(USE_CHILD_CLASS_ERROR)
 
-
     def _get_instrument_data_without_checking(self, instrument_code: str):
         raise NotImplementedError(USE_CHILD_CLASS_ERROR)
 
-
-    def _delete_instrument_data_without_any_warning_be_careful(self,
-            instrument_code: str):
+    def _delete_instrument_data_without_any_warning_be_careful(
+        self, instrument_code: str
+    ):
         raise NotImplementedError(USE_CHILD_CLASS_ERROR)
-
 
     def _add_instrument_data_without_checking_for_existing_entry(
         self, instrument_object: futuresInstrumentWithMetaData

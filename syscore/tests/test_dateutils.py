@@ -8,7 +8,6 @@ import numpy as np
 import pandas as pd
 
 
-
 class Test(ut.TestCase):
     def test_data(self):
         x = pd.DataFrame(

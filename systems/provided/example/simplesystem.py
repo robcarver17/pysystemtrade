@@ -10,6 +10,7 @@ from systems.portfolio import Portfolios
 from systems.accounts.accounts_stage import Account
 from systems.rawdata import RawData
 
+
 def simplesystem(data=None, config=None, log_level="on"):
     """
     Example of how to 'wrap' a complete system
@@ -27,7 +28,7 @@ def simplesystem(data=None, config=None, log_level="on"):
             ForecastCombine(),
             ForecastScaleCap(),
             Rules(),
-            RawData()
+            RawData(),
         ],
         data,
         config,

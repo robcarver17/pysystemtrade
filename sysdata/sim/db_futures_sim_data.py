@@ -17,20 +17,28 @@ from syslogdiag.log_to_screen import logtoscreen
 
 
 class dbFuturesSimData(genericBlobUsingFuturesSimData):
-    def __init__(self, data: dataBlob = arg_not_supplied,
-                 log =logtoscreen("dbFuturesSimData")):
+    def __init__(
+        self, data: dataBlob = arg_not_supplied, log=logtoscreen("dbFuturesSimData")
+    ):
 
         if data is arg_not_supplied:
-            data = dataBlob(log = log,
-                              class_list=[arcticFuturesAdjustedPricesData, arcticFuturesMultiplePricesData,
-                         arcticFxPricesData, mongoFuturesInstrumentData,
-                                          mongoRollParametersData])
+            data = dataBlob(
+                log=log,
+                class_list=[
+                    arcticFuturesAdjustedPricesData,
+                    arcticFuturesMultiplePricesData,
+                    arcticFxPricesData,
+                    mongoFuturesInstrumentData,
+                    mongoRollParametersData,
+                ],
+            )
 
         super().__init__(data=data)
 
     def __repr__(self):
         return "dbFuturesSimData object with %d instruments" % len(
-            self.get_instrument_list())
+            self.get_instrument_list()
+        )
 
 
 if __name__ == "__main__":

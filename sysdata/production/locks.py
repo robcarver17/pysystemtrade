@@ -1,5 +1,6 @@
 from syslogdiag.log_to_screen import logtoscreen
 from syscore.objects import missing_data
+
 lock_on = "ON"
 lock_off = "OFF"
 
@@ -8,7 +9,7 @@ class lockData(object):
     def __init__(self, log=logtoscreen("Locks")):
         self.log = log
 
-    def is_instrument_locked(self, instrument_code: str)-> bool:
+    def is_instrument_locked(self, instrument_code: str) -> bool:
         if self.get_lock_for_instrument(instrument_code) == lock_on:
             return True
         else:

@@ -17,5 +17,4 @@ if __name__ == "__main__":
         fx_prices = arctic_fx_prices.get_fx_prices(currency_code)
         print(fx_prices)
 
-        csv_fx_prices.add_fx_prices(
-            currency_code, fx_prices, ignore_duplication=True)
+        csv_fx_prices.add_fx_prices(currency_code, fx_prices, ignore_duplication=True)

@@ -16,6 +16,7 @@ from sysproduction.strategy_code.strategy_report import (
 
 ALL_STRATEGIES = "ALL"
 
+
 def strategy_report(
     data=arg_not_supplied, timestamp=arg_not_supplied, strategy_name=ALL_STRATEGIES
 ):
@@ -39,10 +40,7 @@ def strategy_report(
     return formatted_output
 
 
-def get_strategies_report_output(
-        data,
-        list_of_strategies,
-        timestamp=arg_not_supplied):
+def get_strategies_report_output(data, list_of_strategies, timestamp=arg_not_supplied):
 
     formatted_output = []
     for strategy_name in list_of_strategies:
@@ -55,19 +53,16 @@ def get_strategies_report_output(
     return formatted_output
 
 
-def get_output_for_single_strategy(
-        data,
-        strategy_name,
-        timestamp=arg_not_supplied):
+def get_output_for_single_strategy(data, strategy_name, timestamp=arg_not_supplied):
     strategy_reporting_function = get_reporting_function_instance_for_strategy_name(
-        data, strategy_name)
+        data, strategy_name
+    )
     data_backtest = dataBacktest(data)
     if timestamp is arg_not_supplied:
         backtest = data_backtest.get_most_recent_backtest(strategy_name)
     else:
         backtest = data_backtest.load_backtest(strategy_name, timestamp)
 
-    strategy_format_output_list = strategy_reporting_function(
-        data, backtest)
+    strategy_format_output_list = strategy_reporting_function(data, backtest)
 
     return strategy_format_output_list

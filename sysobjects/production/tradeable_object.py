@@ -2,6 +2,7 @@ from sysobjects.instruments import futuresInstrument
 from sysobjects.contracts import futuresContract
 from sysobjects.contract_dates_and_expiries import contractDate
 
+
 class tradeableObject(object):
     """
     Anything we can trade
@@ -11,11 +12,10 @@ class tradeableObject(object):
 
     def __init__(self, object_name):
         # probably overriden with nicer entry
-        self._key  = object_name
+        self._key = object_name
 
     def __repr__(self):
         return self.key
-
 
     @classmethod
     def from_key(tradeableObject, object_name):
@@ -32,16 +32,19 @@ class tradeableObject(object):
 
 class listOfInstrumentStrategies(list):
     def unique_join_with_other_list(self, other):
-        return listOfInstrumentStrategies(set(list(self+other)))
+        return listOfInstrumentStrategies(set(list(self + other)))
 
     def get_list_of_strategies(self) -> list:
-        list_of_strategies = list(set([instrument_strategy.strategy_name for
-                                       instrument_strategy in self]))
+        list_of_strategies = list(
+            set([instrument_strategy.strategy_name for instrument_strategy in self])
+        )
 
         return list_of_strategies
 
     def get_list_of_instruments_for_strategy(self, strategy_name: str) -> list:
-        list_of_instrument_strategies = self.get_list_of_instrument_strategies_for_strategy(strategy_name)
+        list_of_instrument_strategies = (
+            self.get_list_of_instrument_strategies_for_strategy(strategy_name)
+        )
         list_of_instruments = [
             instrument_strategy.instrument_code
             for instrument_strategy in list_of_instrument_strategies
@@ -59,18 +62,18 @@ class listOfInstrumentStrategies(list):
         return list_of_instrument_strategies
 
 
-STRATEGY_NAME_KEY = 'strategy_name'
-INSTRUMENT_CODE_KEY = 'instrument_code'
+STRATEGY_NAME_KEY = "strategy_name"
+INSTRUMENT_CODE_KEY = "instrument_code"
 
 
 class instrumentStrategy(tradeableObject):
-    def __init__(self, strategy_name: str, instrument_code:str):
+    def __init__(self, strategy_name: str, instrument_code: str):
         instrument_object = futuresInstrument(instrument_code)
         self._instrument = instrument_object
         self._strategy_name = strategy_name
 
     def __hash__(self):
-        return self.instrument_code.__hash__()+self.strategy_name.__hash__()
+        return self.instrument_code.__hash__() + self.strategy_name.__hash__()
 
     def __repr__(self):
         return self.key
@@ -81,7 +84,7 @@ class instrumentStrategy(tradeableObject):
 
     @property
     def old_key(self):
-        return self.strategy_name + '/' + str(self.instrument)
+        return self.strategy_name + "/" + str(self.instrument)
 
     def __eq__(self, other):
         if self.instrument != other.instrument:
@@ -105,20 +108,26 @@ class instrumentStrategy(tradeableObject):
         return self._strategy_name
 
     def as_dict(self):
-        return {STRATEGY_NAME_KEY: self.strategy_name, INSTRUMENT_CODE_KEY: self.instrument_code}
+        return {
+            STRATEGY_NAME_KEY: self.strategy_name,
+            INSTRUMENT_CODE_KEY: self.instrument_code,
+        }
 
     @classmethod
     def from_dict(instrumentStrategy, attr_dict):
-        return instrumentStrategy(attr_dict[STRATEGY_NAME_KEY], attr_dict[INSTRUMENT_CODE_KEY])
+        return instrumentStrategy(
+            attr_dict[STRATEGY_NAME_KEY], attr_dict[INSTRUMENT_CODE_KEY]
+        )
 
     @classmethod
     def from_key(instrumentStrategy, key):
-        if key.find("/")>-1:
+        if key.find("/") > -1:
             strategy_name, instrument_code = key.split("/")
         else:
             strategy_name, instrument_code = key.split(" ")
-        return instrumentStrategy(strategy_name=strategy_name, instrument_code=instrument_code)
-
+        return instrumentStrategy(
+            strategy_name=strategy_name, instrument_code=instrument_code
+        )
 
 
 class futuresContractStrategy(tradeableObject):
@@ -134,12 +143,15 @@ class futuresContractStrategy(tradeableObject):
         self._strategy_name = strategy_name
 
     @classmethod
-    def from_strategy_name_and_contract_object(futuresContractStrategy, strategy_name: str,
-                                               futures_contract: futuresContract):
+    def from_strategy_name_and_contract_object(
+        futuresContractStrategy, strategy_name: str, futures_contract: futuresContract
+    ):
 
-        return futuresContractStrategy(strategy_name=strategy_name,
-                                       contract_id=futures_contract.date_str,
-                                       instrument_code=futures_contract.instrument_code)
+        return futuresContractStrategy(
+            strategy_name=strategy_name,
+            contract_id=futures_contract.date_str,
+            instrument_code=futures_contract.instrument_code,
+        )
 
     def __eq__(self, other):
         if self.instrument != other.instrument:
@@ -159,8 +171,9 @@ class futuresContractStrategy(tradeableObject):
 
     @property
     def instrument_strategy(self) -> instrumentStrategy:
-        return instrumentStrategy(instrument_code=self.instrument_code,
-                                  strategy_name=self.strategy_name)
+        return instrumentStrategy(
+            instrument_code=self.instrument_code, strategy_name=self.strategy_name
+        )
 
     @classmethod
     def from_key(instrumentTradeableObject, key):
@@ -206,9 +219,9 @@ class futuresContractStrategy(tradeableObject):
 
     @property
     def alt_key(self):
-        return "/".join([self.strategy_name,
-                         self.instrument_code,
-                         self.alt_contract_date_key])
+        return "/".join(
+            [self.strategy_name, self.instrument_code, self.alt_contract_date_key]
+        )
 
     def sort_idx_for_contracts(self) -> list:
         return self.contract_date.index_of_sorted_contract_dates()

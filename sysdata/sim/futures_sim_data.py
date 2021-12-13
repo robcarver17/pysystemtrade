@@ -4,20 +4,30 @@ from syscore.objects import missing_instrument
 from sysdata.sim.sim_data import simData
 
 from sysobjects.adjusted_prices import futuresAdjustedPrices
-from sysobjects.instruments import assetClassesAndInstruments, instrumentCosts, futuresInstrumentWithMetaData
+from sysobjects.instruments import (
+    assetClassesAndInstruments,
+    instrumentCosts,
+    futuresInstrumentWithMetaData,
+)
 from sysobjects.multiple_prices import futuresMultiplePrices
-from sysobjects.dict_of_named_futures_per_contract_prices import price_name, carry_name, forward_name, contract_name_from_column_name
+from sysobjects.dict_of_named_futures_per_contract_prices import (
+    price_name,
+    carry_name,
+    forward_name,
+    contract_name_from_column_name,
+)
 from sysobjects.rolls import rollParameters
 
 price_contract_name = contract_name_from_column_name(price_name)
 carry_contract_name = contract_name_from_column_name(carry_name)
 forward_contract_name = contract_name_from_column_name(forward_name)
 
-class futuresSimData(simData):
 
+class futuresSimData(simData):
     def __repr__(self):
         return "futuresSimData object with %d instruments" % len(
-            self.get_instrument_list())
+            self.get_instrument_list()
+        )
 
     def all_asset_classes(self) -> list:
         asset_class_data = self.get_instrument_asset_classes()
@@ -33,8 +43,9 @@ class futuresSimData(simData):
         """
         asset_class_data = self.get_instrument_asset_classes()
         list_of_instrument_codes = self.get_instrument_list()
-        asset_class_instrument_list = asset_class_data.all_instruments_in_asset_class(asset_class, must_be_in = list_of_instrument_codes)
-
+        asset_class_instrument_list = asset_class_data.all_instruments_in_asset_class(
+            asset_class, must_be_in=list_of_instrument_codes
+        )
 
         return asset_class_instrument_list
 
@@ -54,8 +65,9 @@ class futuresSimData(simData):
     def length_of_history_in_days_for_instrument(self, instrument_code: str) -> int:
         return len(self.daily_prices(instrument_code))
 
-    def get_raw_price_from_start_date(self, instrument_code: str,
-                                      start_date) -> pd.Series:
+    def get_raw_price_from_start_date(
+        self, instrument_code: str, start_date
+    ) -> pd.Series:
         """
         For  futures the price is the backadjusted price
 
@@ -66,8 +78,7 @@ class futuresSimData(simData):
 
         return price[start_date:]
 
-
-    def get_instrument_raw_carry_data(self, instrument_code:str) -> pd.DataFrame:
+    def get_instrument_raw_carry_data(self, instrument_code: str) -> pd.DataFrame:
         """
         Returns a pd. dataframe with the 4 columns PRICE, CARRY, PRICE_CONTRACT, CARRY_CONTRACT
 
@@ -83,8 +94,9 @@ class futuresSimData(simData):
         """
 
         all_price_data = self.get_multiple_prices(instrument_code)
-        carry_data = all_price_data[[price_name, carry_name,
-                               price_contract_name, carry_contract_name]]
+        carry_data = all_price_data[
+            [price_name, carry_name, price_contract_name, carry_contract_name]
+        ]
 
         return carry_data
 
@@ -106,16 +118,14 @@ class futuresSimData(simData):
         all_price_data = self.get_multiple_prices(instrument_code)
 
         return all_price_data[
-            [price_name, forward_name,price_contract_name,forward_contract_name]
+            [price_name, forward_name, price_contract_name, forward_contract_name]
         ]
-
 
     def get_rolls_per_year(self, instrument_code: str) -> int:
         roll_parameters = self.get_roll_parameters(instrument_code)
         rolls_per_year = roll_parameters.rolls_per_year_in_hold_cycle()
 
         return rolls_per_year
-
 
     def get_raw_cost_data(self, instrument_code: str) -> instrumentCosts:
         """
@@ -135,20 +145,18 @@ class futuresSimData(simData):
 
         """
 
-        cost_data_object = self._get_instrument_object_with_cost_data(
-            instrument_code)
+        cost_data_object = self._get_instrument_object_with_cost_data(instrument_code)
 
         if cost_data_object is missing_instrument:
-            self.log.warn("Cost data missing for %s will use zero costs" % instrument_code)
+            self.log.warn(
+                "Cost data missing for %s will use zero costs" % instrument_code
+            )
             return instrumentCosts()
 
         instrument_meta_data = cost_data_object.meta_data
-        instrument_costs = \
-            instrumentCosts.from_meta_data(instrument_meta_data
-            )
+        instrument_costs = instrumentCosts.from_meta_data(instrument_meta_data)
 
         return instrument_costs
-
 
     def get_value_of_block_price_move(self, instrument_code: str) -> float:
         """
@@ -183,7 +191,6 @@ class futuresSimData(simData):
 
         return currency
 
-
     def get_instrument_asset_classes(self) -> assetClassesAndInstruments:
         """
 
@@ -192,7 +199,9 @@ class futuresSimData(simData):
 
         raise NotImplementedError()
 
-    def get_backadjusted_futures_price(self, instrument_code: str) -> futuresAdjustedPrices:
+    def get_backadjusted_futures_price(
+        self, instrument_code: str
+    ) -> futuresAdjustedPrices:
         """
 
         :param instrument_code:
@@ -201,19 +210,21 @@ class futuresSimData(simData):
 
         raise NotImplementedError()
 
-
     def get_multiple_prices(self, instrument_code: str) -> futuresMultiplePrices:
         start_date = self.start_date_for_data()
 
-        return self.get_multiple_prices_from_start_date(instrument_code,
-                                                        start_date=start_date)
+        return self.get_multiple_prices_from_start_date(
+            instrument_code, start_date=start_date
+        )
 
-    def get_multiple_prices_from_start_date(self, instrument_code: str,
-                                            start_date) -> futuresMultiplePrices:
+    def get_multiple_prices_from_start_date(
+        self, instrument_code: str, start_date
+    ) -> futuresMultiplePrices:
         raise NotImplementedError()
 
-
-    def _get_instrument_object_with_cost_data(self, instrument_code) -> futuresInstrumentWithMetaData:
+    def _get_instrument_object_with_cost_data(
+        self, instrument_code
+    ) -> futuresInstrumentWithMetaData:
         """
         Get a futures instrument where the meta data is cost data
 
@@ -225,7 +236,9 @@ class futuresSimData(simData):
     def get_roll_parameters(self, instrument_code: str) -> rollParameters:
         raise NotImplementedError
 
-    def _get_instrument_object_with_meta_data(self, instrument_code: str) -> futuresInstrumentWithMetaData:
+    def _get_instrument_object_with_meta_data(
+        self, instrument_code: str
+    ) -> futuresInstrumentWithMetaData:
         """
         Get data about an instrument, as a futuresInstrument
 

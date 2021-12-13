@@ -10,7 +10,6 @@ from sysobjects.spot_fx_prices import fxPrices
 from sysobjects.instruments import instrumentCosts
 
 
-
 class simData(baseData):
     """
     Core data object - Base class for simulation
@@ -32,8 +31,7 @@ class simData(baseData):
     """
 
     def __repr__(self):
-        return "simData object with %d instruments" % len(
-            self.get_instrument_list())
+        return "simData object with %d instruments" % len(self.get_instrument_list())
 
     def __getitem__(self, keyname: str):
         """
@@ -60,8 +58,7 @@ class simData(baseData):
         """
         return self.get_instrument_list()
 
-
-    def system_init(self, base_system: 'System'):
+    def system_init(self, base_system: "System"):
         """
         This is run when added to a base system
 
@@ -81,7 +78,7 @@ class simData(baseData):
         start_date = getattr(self, "_start_date_for_data_from_config", missing_data)
 
         if start_date is missing_data:
-            start_date= self._get_and_set_start_date_for_data_from_config()
+            start_date = self._get_and_set_start_date_for_data_from_config()
 
         return start_date
 
@@ -106,13 +103,14 @@ class simData(baseData):
         """
         instrprice = self.get_raw_price(instrument_code)
         if len(instrprice) == 0:
-            raise Exception("No adjusted daily prices for %s" % instrument_code )
+            raise Exception("No adjusted daily prices for %s" % instrument_code)
         dailyprice = prices_to_daily_prices(instrprice)
 
         return dailyprice
 
-
-    def get_fx_for_instrument(self, instrument_code: str, base_currency: str) -> fxPrices:
+    def get_fx_for_instrument(
+        self, instrument_code: str, base_currency: str
+    ) -> fxPrices:
         """
         Get the FX rate between the FX rate for the instrument and the base (account) currency
 
@@ -139,7 +137,6 @@ class simData(baseData):
 
         return fx_rate_series
 
-
     def get_raw_price(self, instrument_code: str) -> pd.Series:
         """
         Default method to get instrument price at 'natural' frequency
@@ -154,11 +151,13 @@ class simData(baseData):
         """
         start_date = self.start_date_for_data()
 
-        return self.get_raw_price_from_start_date(instrument_code,
-                                                  start_date=start_date)
+        return self.get_raw_price_from_start_date(
+            instrument_code, start_date=start_date
+        )
 
-    def get_raw_price_from_start_date(self, instrument_code: str,
-                                      start_date: datetime.datetime) -> pd.Series:
+    def get_raw_price_from_start_date(
+        self, instrument_code: str, start_date: datetime.datetime
+    ) -> pd.Series:
         """
         Default method to get instrument price at 'natural' frequency
 
@@ -172,7 +171,6 @@ class simData(baseData):
         """
         raise NotImplementedError("Need to inherit from simData")
 
-
     def get_instrument_list(self) -> list:
         """
         list of instruments in this data set
@@ -181,7 +179,6 @@ class simData(baseData):
 
         """
         raise NotImplementedError("Need to inherit from simData")
-
 
     def get_value_of_block_price_move(self, instrument_code: str) -> float:
         """
@@ -194,7 +191,9 @@ class simData(baseData):
         :returns: float
 
         """
-        self.log.warn("Using base method of simData, value of block price move may not be accurate")
+        self.log.warn(
+            "Using base method of simData, value of block price move may not be accurate"
+        )
 
         return 1.0
 
@@ -218,7 +217,7 @@ class simData(baseData):
 
         return instrumentCosts()
 
-    def get_instrument_currency(self, instrument_code: str)-> str:
+    def get_instrument_currency(self, instrument_code: str) -> str:
         """
         Get the currency for a particular instrument
 
@@ -244,13 +243,13 @@ class simData(baseData):
         """
         start_date = self.start_date_for_data()
 
-        return self._get_fx_data_from_start_date(currency1,
-                                                 currency2,
-                                                 start_date=start_date)
+        return self._get_fx_data_from_start_date(
+            currency1, currency2, start_date=start_date
+        )
 
-
-    def _get_fx_data_from_start_date(self, currency1: str, currency2: str,
-                                     start_date: datetime.datetime) -> fxPrices:
+    def _get_fx_data_from_start_date(
+        self, currency1: str, currency2: str, start_date: datetime.datetime
+    ) -> fxPrices:
         """
         Get the FX rate currency1/currency2 between two currencies
         Or return None if not available
@@ -279,9 +278,12 @@ def _resolve_start_date(sim_data: simData):
                 start_date = datetime.datetime.strptime(start_date, "%Y-%m-%d")
             except:
                 raise Exception(
-                    "Parameter start_date %s in config file does not conform to pattern 2020-03-19" % str(start_date))
+                    "Parameter start_date %s in config file does not conform to pattern 2020-03-19"
+                    % str(start_date)
+                )
 
     return start_date
+
 
 def _resolve_config(sim_data: simData):
     try:

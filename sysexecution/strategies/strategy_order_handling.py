@@ -18,6 +18,7 @@ from sysproduction.data.controls import diagOverrides, dataLocks, dataPositionLi
 
 name_of_main_generator_method = "get_and_place_orders"
 
+
 class orderGeneratorForStrategy(object):
     """
 
@@ -25,15 +26,13 @@ class orderGeneratorForStrategy(object):
 
     """
 
-    def __init__(self, data: dataBlob,
-                 strategy_name: str):
+    def __init__(self, data: dataBlob, strategy_name: str):
 
         self._strategy_name = strategy_name
         self._data = data
         data_orders = dataOrders(data)
         self._log = data.log
         self._data_orders = data_orders
-
 
     @property
     def data(self) -> dataBlob:
@@ -61,7 +60,6 @@ class orderGeneratorForStrategy(object):
         order_list_with_overrides = self.apply_overrides(order_list)
         self.submit_order_list(order_list_with_overrides)
 
-
     def get_required_orders(self) -> listOfOrders:
         raise Exception(
             "Need to inherit with a specific method for your type of strategy"
@@ -79,7 +77,9 @@ class orderGeneratorForStrategy(object):
         strategy_name = self.strategy_name
 
         diag_positions = diagPositions(data)
-        actual_positions = diag_positions.get_dict_of_actual_positions_for_strategy(strategy_name)
+        actual_positions = diag_positions.get_dict_of_actual_positions_for_strategy(
+            strategy_name
+        )
 
         return actual_positions
 
@@ -92,8 +92,9 @@ class orderGeneratorForStrategy(object):
 
         return new_order_list
 
-    def apply_overrides_for_instrument_and_strategy(self, proposed_order: instrumentOrder)\
-            -> instrumentOrder:
+    def apply_overrides_for_instrument_and_strategy(
+        self, proposed_order: instrumentOrder
+    ) -> instrumentOrder:
         """
         Apply an override to a trade
 
@@ -107,12 +108,15 @@ class orderGeneratorForStrategy(object):
 
         instrument_strategy = proposed_order.instrument_strategy
 
-        original_position = diag_positions.get_current_position_for_instrument_strategy(instrument_strategy)
+        original_position = diag_positions.get_current_position_for_instrument_strategy(
+            instrument_strategy
+        )
 
-        override = diag_overrides.get_cumulative_override_for_instrument_strategy(instrument_strategy)
+        override = diag_overrides.get_cumulative_override_for_instrument_strategy(
+            instrument_strategy
+        )
 
-        revised_order = override.apply_override(
-            original_position, proposed_order)
+        revised_order = override.apply_override(original_position, proposed_order)
 
         if revised_order.trade != proposed_order.trade:
             log = proposed_order.log_with_attributes(self.log)
@@ -123,7 +127,8 @@ class orderGeneratorForStrategy(object):
                     str(revised_order.trade),
                     str(proposed_order.trade),
                     str(override),
-                ))
+                )
+            )
 
         return revised_order
 
@@ -135,13 +140,11 @@ class orderGeneratorForStrategy(object):
             log = order.log_with_attributes(self.log)
             log.msg("Required order %s" % str(order))
 
-            instrument_locked = data_lock.is_instrument_locked(
-                order.instrument_code)
+            instrument_locked = data_lock.is_instrument_locked(order.instrument_code)
             if instrument_locked:
                 log.msg("Instrument locked, not submitting")
                 continue
             self.submit_order(order)
-
 
     def submit_order(self, order: instrumentOrder):
         log = order.log_with_attributes(self.log)
@@ -152,28 +155,40 @@ class orderGeneratorForStrategy(object):
         except zeroOrderException:
             # we checked for zero already, which means that there is an existing order on the stack
             # An existing order of the same size
-            log.warn("Ignoring new order as either zero size or it replicates an existing order on the stack")
+            log.warn(
+                "Ignoring new order as either zero size or it replicates an existing order on the stack"
+            )
 
         else:
             log.msg(
-                    "Added order %s to instrument order stack with order id %d"
-                    % (str(order), order_id),
-                    instrument_order_id=order_id,
-                )
+                "Added order %s to instrument order stack with order id %d"
+                % (str(order), order_id),
+                instrument_order_id=order_id,
+            )
 
-    def adjust_order_for_position_limits(self, order: instrumentOrder) -> instrumentOrder:
+    def adjust_order_for_position_limits(
+        self, order: instrumentOrder
+    ) -> instrumentOrder:
 
         log = order.log_with_attributes(self.log)
 
         data_position_limits = dataPositionLimits(self.data)
-        cut_down_order = data_position_limits.cut_down_proposed_instrument_trade_for_position_limits(order)
+        cut_down_order = (
+            data_position_limits.cut_down_proposed_instrument_trade_for_position_limits(
+                order
+            )
+        )
 
         if cut_down_order.trade != order.trade:
             if cut_down_order.is_zero_trade():
                 ## at position limit, can't do anything
-                log.warn("Can't trade at all because of position limits %s" % str(order))
+                log.warn(
+                    "Can't trade at all because of position limits %s" % str(order)
+                )
             else:
-                log.warn("Can't do full trade of %s because of position limits, can only do %s" %
-                         (str(order), str(cut_down_order.trade)))
+                log.warn(
+                    "Can't do full trade of %s because of position limits, can only do %s"
+                    % (str(order), str(cut_down_order.trade))
+                )
 
         return cut_down_order

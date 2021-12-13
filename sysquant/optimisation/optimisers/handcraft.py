@@ -3,36 +3,43 @@ import scipy.cluster.hierarchy as sch
 
 from sysquant.estimators.estimates import Estimates
 from sysquant.optimisation.SR_adjustment import adjust_weights_for_SR
-from sysquant.optimisation.weights import portfolioWeights, estimatesWithPortfolioWeights, one_over_n_weights_given_asset_names
+from sysquant.optimisation.weights import (
+    portfolioWeights,
+    estimatesWithPortfolioWeights,
+    one_over_n_weights_given_asset_names,
+)
 
-from sysquant.estimators.diversification_multipliers import diversification_mult_single_period
+from sysquant.estimators.diversification_multipliers import (
+    diversification_mult_single_period,
+)
 
 ## This is a cut down and rewritten version of the original code,
 ##   for example it does not do risk targeting
 ##   and as it splits portfolios into subgroups of 2 doesn't worry about data history
 ##    for correlations
 
-def handcraft_optimisation(estimates: Estimates,
-                           equalise_SR: bool = False,
-                           equalise_vols: bool =True,
-                           **_ignored_weighting_kwargs) -> estimatesWithPortfolioWeights:
 
+def handcraft_optimisation(
+    estimates: Estimates,
+    equalise_SR: bool = False,
+    equalise_vols: bool = True,
+    **_ignored_weighting_kwargs
+) -> estimatesWithPortfolioWeights:
 
-    weights = get_handcrafted_portfolio_weights_for_valid_data(estimates,
-                                                equalise_vols =equalise_vols,
-                                                equalise_SR = equalise_SR)
+    weights = get_handcrafted_portfolio_weights_for_valid_data(
+        estimates, equalise_vols=equalise_vols, equalise_SR=equalise_SR
+    )
 
-    estimates_and_portfolio_weights = estimatesWithPortfolioWeights(weights = weights,
-                                                                    estimates = estimates)
+    estimates_and_portfolio_weights = estimatesWithPortfolioWeights(
+        weights=weights, estimates=estimates
+    )
 
     return estimates_and_portfolio_weights
 
 
-
-
-def get_handcrafted_portfolio_weights_for_valid_data(estimates: Estimates,
-                                      equalise_vols: bool = True,
-                                      equalise_SR: bool= False) -> portfolioWeights:
+def get_handcrafted_portfolio_weights_for_valid_data(
+    estimates: Estimates, equalise_vols: bool = True, equalise_SR: bool = False
+) -> portfolioWeights:
 
     handcraft_portfolio = handcraftPortfolio(estimates)
     risk_weights = handcraft_portfolio.risk_weights(equalise_SR=equalise_SR)
@@ -42,8 +49,6 @@ def get_handcrafted_portfolio_weights_for_valid_data(estimates: Estimates,
         return risk_weights
     else:
         raise Exception("Non equalised vols not supported")
-
-
 
 
 FIXED_CLUSTER_SIZE = 2  # Do not change
@@ -67,12 +72,12 @@ class handcraftPortfolio(object):
         return self.estimates.mean_list
 
     @property
-    def stdev(self) ->list:
+    def stdev(self) -> list:
         return self.estimates.stdev_list
 
     @property
     def sharpe_ratio(self) -> list:
-        return [mean/stdev for mean, stdev in zip(self.mean, self.stdev)]
+        return [mean / stdev for mean, stdev in zip(self.mean, self.stdev)]
 
     @property
     def data_length_years(self) -> float:
@@ -95,7 +100,7 @@ class handcraftPortfolio(object):
         return self.estimates.asset_names
 
     def risk_weights(self, equalise_SR: bool = False) -> portfolioWeights:
-        if self.size<=FIXED_CLUSTER_SIZE:
+        if self.size <= FIXED_CLUSTER_SIZE:
             # don't cluster one or two assets
             raw_weights = self.risk_weights_this_portfolio()
         else:
@@ -105,8 +110,7 @@ class handcraftPortfolio(object):
             return raw_weights
         else:
             adjusted_weights = adjust_weights_for_SR_on_handcrafted_portfolio(
-                raw_weights=raw_weights,
-                handcraft_portfolio=self
+                raw_weights=raw_weights, handcraft_portfolio=self
             )
 
             return adjusted_weights
@@ -120,8 +124,9 @@ class handcraftPortfolio(object):
 
     def aggregated_risk_weights(self):
         sub_portfolios = create_sub_portfolios_from_portfolio(self)
-        aggregate_risk_weights = \
-            aggregate_risk_weights_over_sub_portfolios(sub_portfolios)
+        aggregate_risk_weights = aggregate_risk_weights_over_sub_portfolios(
+            sub_portfolios
+        )
 
         return aggregate_risk_weights
 
@@ -130,8 +135,9 @@ class handcraftPortfolio(object):
         weights_aligned = weights.reorder(asset_names)
         correlation = self.estimates.correlation
 
-        div_mult = diversification_mult_single_period(weights=weights_aligned,
-                                           corrmatrix=correlation)
+        div_mult = diversification_mult_single_period(
+            weights=weights_aligned, corrmatrix=correlation
+        )
 
         return div_mult
 
@@ -141,9 +147,10 @@ class handcraftPortfolio(object):
 
 ## SR ADJUSTMENT
 
-def adjust_weights_for_SR_on_handcrafted_portfolio(raw_weights: portfolioWeights,
-                          handcraft_portfolio: handcraftPortfolio) -> portfolioWeights:
 
+def adjust_weights_for_SR_on_handcrafted_portfolio(
+    raw_weights: portfolioWeights, handcraft_portfolio: handcraftPortfolio
+) -> portfolioWeights:
 
     SR_list = handcraft_portfolio.sharpe_ratio
     avg_correlation = handcraft_portfolio.avg_correlation
@@ -152,136 +159,172 @@ def adjust_weights_for_SR_on_handcrafted_portfolio(raw_weights: portfolioWeights
 
     weights_as_list = raw_weights.as_list_given_keys(asset_names)
 
-    weights = adjust_weights_for_SR(SR_list = SR_list,
-                                    avg_correlation = avg_correlation,
-                                    years_of_data = years_of_data,
-                                    weights_as_list=weights_as_list)
+    weights = adjust_weights_for_SR(
+        SR_list=SR_list,
+        avg_correlation=avg_correlation,
+        years_of_data=years_of_data,
+        weights_as_list=weights_as_list,
+    )
 
-    weights = portfolioWeights.from_weights_and_keys(list_of_weights=weights,
-                                                     list_of_keys=asset_names)
+    weights = portfolioWeights.from_weights_and_keys(
+        list_of_weights=weights, list_of_keys=asset_names
+    )
 
     return weights
 
 
 ## SUB PORTFOLIOS
 
+
 def create_sub_portfolios_from_portfolio(handcraft_portfolio: handcraftPortfolio):
 
     if handcraft_portfolio.boring_correlation:
         # Boring correlation will break if we try and cluster
-        clusters = arbitrary_split_of_correlation_matrix(handcraft_portfolio.correlation)
+        clusters = arbitrary_split_of_correlation_matrix(
+            handcraft_portfolio.correlation
+        )
     else:
         try:
-            clusters = cluster_correlation_matrix_into_two_clusters(handcraft_portfolio.correlation)
+            clusters = cluster_correlation_matrix_into_two_clusters(
+                handcraft_portfolio.correlation
+            )
         except:
-            clusters = arbitrary_split_of_correlation_matrix(handcraft_portfolio.correlation)
-
+            clusters = arbitrary_split_of_correlation_matrix(
+                handcraft_portfolio.correlation
+            )
 
     clusters_as_names = from_cluster_index_to_asset_names(clusters, handcraft_portfolio)
-    sub_portfolios = create_sub_portfolios_given_clusters(clusters_as_names, handcraft_portfolio)
+    sub_portfolios = create_sub_portfolios_given_clusters(
+        clusters_as_names, handcraft_portfolio
+    )
 
     return sub_portfolios
+
 
 def cluster_correlation_matrix_into_two_clusters(corr_matrix: np.array) -> list:
     d = sch.distance.pdist(corr_matrix)
     L = sch.linkage(d, method="complete")
 
-    cutoff = cutoff_distance_to_guarantee_two_clusters(corr_matrix=corr_matrix,
-                                                       L=L)
-    ind = sch.fcluster(L, cutoff, 'distance')
+    cutoff = cutoff_distance_to_guarantee_two_clusters(corr_matrix=corr_matrix, L=L)
+    ind = sch.fcluster(L, cutoff, "distance")
     ind = list(ind)
 
-    if max(ind)>2:
+    if max(ind) > 2:
         raise Exception("Couldn't cluster into two clusters")
 
     return ind
 
-def cutoff_distance_to_guarantee_two_clusters(corr_matrix: np.array,
-                                              L: np.array):
+
+def cutoff_distance_to_guarantee_two_clusters(corr_matrix: np.array, L: np.array):
     N = len(corr_matrix)
-    return L[N-2][2]-0.000001
+    return L[N - 2][2] - 0.000001
+
 
 def arbitrary_split_of_correlation_matrix(corr_matrix: np.array) -> list:
     # split correlation of 3 or more assets
     count_assets = len(corr_matrix)
     return arbitrary_split_for_asset_length(count_assets)
 
+
 def arbitrary_split_for_asset_length(count_assets: int) -> list:
-    half_assets = int(np.floor(count_assets/2))
+    half_assets = int(np.floor(count_assets / 2))
     first_half = [1 for idx in range(half_assets)]
     second_half = [2 for idx in range(count_assets - len(first_half))]
 
-    return first_half+second_half
+    return first_half + second_half
 
-def from_cluster_index_to_asset_names(clusters: list,
-                                      handcraft_portfolio: handcraftPortfolio) -> list:
+
+def from_cluster_index_to_asset_names(
+    clusters: list, handcraft_portfolio: handcraftPortfolio
+) -> list:
 
     all_clusters = list(set(clusters))
     asset_names = handcraft_portfolio.asset_names
-    list_of_asset_clusters = [get_asset_names_for_cluster_index(cluster_id,
-                                                                clusters,
-                                                                asset_names)
-                                for cluster_id in all_clusters]
+    list_of_asset_clusters = [
+        get_asset_names_for_cluster_index(cluster_id, clusters, asset_names)
+        for cluster_id in all_clusters
+    ]
 
     return list_of_asset_clusters
 
-def get_asset_names_for_cluster_index(cluster_id: int,
-                                      clusters: list,
-                                      asset_names: list):
 
-    list_of_assets = [asset for asset, cluster in zip(asset_names, clusters)
-                      if cluster == cluster_id]
+def get_asset_names_for_cluster_index(
+    cluster_id: int, clusters: list, asset_names: list
+):
+
+    list_of_assets = [
+        asset for asset, cluster in zip(asset_names, clusters) if cluster == cluster_id
+    ]
 
     return list_of_assets
 
-def create_sub_portfolios_given_clusters(clusters_as_names: list,
-                                         handcraft_portfolio: handcraftPortfolio) -> list:
-    list_of_sub_portfolios = [handcraft_portfolio.subset(subset_of_asset_names)
-                              for subset_of_asset_names in clusters_as_names]
+
+def create_sub_portfolios_given_clusters(
+    clusters_as_names: list, handcraft_portfolio: handcraftPortfolio
+) -> list:
+    list_of_sub_portfolios = [
+        handcraft_portfolio.subset(subset_of_asset_names)
+        for subset_of_asset_names in clusters_as_names
+    ]
 
     return list_of_sub_portfolios
 
-def aggregate_risk_weights_over_sub_portfolios(sub_portfolios: list) \
-        -> portfolioWeights:
+
+def aggregate_risk_weights_over_sub_portfolios(
+    sub_portfolios: list,
+) -> portfolioWeights:
     # sub portfolios guaranteed to be 2 long
     # We allocate half to each, adjusted for IDM
     # *We don't adjust for SR here*, but after we've aggregated
     # This is quicker and simpler
 
-    assert len(sub_portfolios)==2
-    subportfolio_weights = [.5,.5]
+    assert len(sub_portfolios) == 2
+    subportfolio_weights = [0.5, 0.5]
 
-    risk_weights_by_portfolio = [sub_portfolio.risk_weights(equalise_SR=True)
-                                 for sub_portfolio in sub_portfolios]
+    risk_weights_by_portfolio = [
+        sub_portfolio.risk_weights(equalise_SR=True) for sub_portfolio in sub_portfolios
+    ]
 
-    div_mult_by_portfolio = [sub_portfolio.div_mult(sub_weights)
-                             for sub_portfolio, sub_weights in
-                             zip(sub_portfolios, risk_weights_by_portfolio)]
+    div_mult_by_portfolio = [
+        sub_portfolio.div_mult(sub_weights)
+        for sub_portfolio, sub_weights in zip(sub_portfolios, risk_weights_by_portfolio)
+    ]
 
-    multiplied_out_risk_weights = \
-        [multiplied_out_risk_weight_for_sub_portfolios(
+    multiplied_out_risk_weights = [
+        multiplied_out_risk_weight_for_sub_portfolios(
             weights,
             div_mult_for_portfolio=div_mult,
-            weight_for_subportfolio = weight_for_subportfolio)
-                for weights, div_mult, weight_for_subportfolio
-            in zip(risk_weights_by_portfolio,
-                    div_mult_by_portfolio,
-                   subportfolio_weights)]
+            weight_for_subportfolio=weight_for_subportfolio,
+        )
+        for weights, div_mult, weight_for_subportfolio in zip(
+            risk_weights_by_portfolio, div_mult_by_portfolio, subportfolio_weights
+        )
+    ]
 
-    aggregate_weights = portfolioWeights.from_list_of_subportfolios(multiplied_out_risk_weights)
+    aggregate_weights = portfolioWeights.from_list_of_subportfolios(
+        multiplied_out_risk_weights
+    )
 
     return aggregate_weights
 
-def multiplied_out_risk_weight_for_sub_portfolios(weights_for_portfolio: portfolioWeights,
-                                                div_mult_for_portfolio:float = 1.0,
-                                                weight_for_subportfolio: float = .5) -> portfolioWeights:
+
+def multiplied_out_risk_weight_for_sub_portfolios(
+    weights_for_portfolio: portfolioWeights,
+    div_mult_for_portfolio: float = 1.0,
+    weight_for_subportfolio: float = 0.5,
+) -> portfolioWeights:
 
     asset_names = list(weights_for_portfolio.keys())
-    mult_weights = portfolioWeights([
-        (asset_name,
-      weight_for_subportfolio * div_mult_for_portfolio * weights_for_portfolio[asset_name])
-        for asset_name in asset_names])
+    mult_weights = portfolioWeights(
+        [
+            (
+                asset_name,
+                weight_for_subportfolio
+                * div_mult_for_portfolio
+                * weights_for_portfolio[asset_name],
+            )
+            for asset_name in asset_names
+        ]
+    )
 
     return mult_weights
-
-

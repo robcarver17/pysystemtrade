@@ -13,8 +13,9 @@ class csvFuturesContractData(futuresContractData):
 
     """
 
-    def __init__(self, datapath=arg_not_supplied,
-                 log=logtoscreen("csvFuturesContractData")):
+    def __init__(
+        self, datapath=arg_not_supplied, log=logtoscreen("csvFuturesContractData")
+    ):
 
         super().__init__(log=log)
 
@@ -30,12 +31,12 @@ class csvFuturesContractData(futuresContractData):
     def datapath(self):
         return self._datapath
 
-    def _filename_for_instrument_code(self, instrument_code:str):
-        return get_filename_for_package(
-            self.datapath, "%s.csv" %
-            instrument_code)
+    def _filename_for_instrument_code(self, instrument_code: str):
+        return get_filename_for_package(self.datapath, "%s.csv" % instrument_code)
 
-    def write_contract_list_as_df(self, instrument_code: str, contract_list: listOfFuturesContracts):
+    def write_contract_list_as_df(
+        self, instrument_code: str, contract_list: listOfFuturesContracts
+    ):
         list_of_expiry = [x.expiry_date.as_str() for x in contract_list]
         list_of_contract_date = [x.date_str for x in contract_list]
         list_of_sampling = [x.currently_sampling for x in contract_list]
@@ -64,11 +65,13 @@ class csvFuturesContractData(futuresContractData):
     def is_contract_in_data(self, instrument_code, contract_date):
         raise NotImplementedError("used for backup only no read methods")
 
-    def _add_contract_object_without_checking_for_existing_entry(
-            self, contract_object):
-        raise NotImplementedError(".csv can only write contract list en bloc use write_contract_list_as_df")
+    def _add_contract_object_without_checking_for_existing_entry(self, contract_object):
+        raise NotImplementedError(
+            ".csv can only write contract list en bloc use write_contract_list_as_df"
+        )
 
     def _get_contract_data_without_checking(
-            self, instrument_code: str, contract_date: str):
+        self, instrument_code: str, contract_date: str
+    ):
 
         raise NotImplementedError("used for backup only no read methods")
