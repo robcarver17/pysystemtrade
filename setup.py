@@ -94,7 +94,6 @@ setup(
         "scipy>=1.0.0",
         "pymongo==3.9.0",
         "arctic==1.79.2",
-        "ib-insync==0.9.65",
         "psutil==5.6.6",
         "pytest>6.2",
         "Flask>=2.0.1",
