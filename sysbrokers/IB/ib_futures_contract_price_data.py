@@ -241,7 +241,7 @@ class ibFuturesContractPriceData(brokerFuturesContractPriceData):
         price_data = price_data.remove_future_data()
 
         ## Some contract data is marked to model, don't want this
-        price_data = price_data.remove_zero_volumes()
+        #price_data = price_data.remove_zero_volumes()
 
         return price_data
 
