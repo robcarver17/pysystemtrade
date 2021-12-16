@@ -135,6 +135,11 @@ class futuresContractPrices(pd.DataFrame):
         new_data = self[self[VOLUME_COLUMN] > 0]
         return futuresContractPrices(new_data)
 
+    def remove_zero_prices_if_zero_volumes(self):
+        new_data = self[self[VOLUME_COLUMN] > 0 & self[FINAL_COLUMN]==0.0]
+        return futuresContractPrices(new_data)
+
+
     def remove_future_data(self):
         new_data = futuresContractPrices(self[self.index < datetime.datetime.now()])
 
