@@ -1,6 +1,7 @@
 import glob
 import datetime
 import time
+from importlib import import_module
 import os
 import sys
 
@@ -124,7 +125,7 @@ def get_pathname_for_package_from_list(path_as_list):
     """
     package_name = path_as_list[0]
     paths_or_files = path_as_list[1:]
-    d = os.path.dirname(sys.modules[package_name].__file__)
+    d = os.path.dirname(import_module(package_name).__file__)
 
     if len(paths_or_files) == 0:
         return d
