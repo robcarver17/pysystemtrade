@@ -1,3 +1,5 @@
+import dataclasses
+
 from syscore.fileutils import get_filename_for_package
 from sysdata.futures.instruments import futuresInstrumentData
 from syscore.objects import arg_not_supplied
@@ -91,7 +93,11 @@ class csvFuturesInstrumentData(futuresInstrumentData):
         )
 
     def write_all_instrument_data_from_df(self, instrument_data_as_df: pd.DataFrame):
-        instrument_data_as_df.to_csv(self._config_file, index_label="Instrument")
+        instrument_data_as_df.to_csv(
+            self._config_file,
+            index_label="Instrument",
+            columns=[field.name for field in dataclasses.fields(instrumentMetaData)]
+        )
 
 
 def get_instrument_with_meta_data_object(
