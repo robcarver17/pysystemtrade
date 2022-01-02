@@ -187,7 +187,7 @@ def reconcile():
 @app.route("/rolls")
 def rolls():
     rolls = reporting_api.table_of_roll_data().Body
-    report = rolls.to_dict(orient="index")
+    report = json.loads(rolls.to_json(orient="index"))
 
     for instrument in rolls.index:
         allowable = setup_roll_data_with_state_reporting(data, instrument)
