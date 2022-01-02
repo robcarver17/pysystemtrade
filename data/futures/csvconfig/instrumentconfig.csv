@@ -1,270 +1,272 @@
-Instrument,PerBlock,Currency,Slippage,AssetClass,Description,Pointsize,PerTrade,Percentage
-AEX,2,EUR,0.1,Equity,Netherlands equity index AEX,200,0,0
-ALUMINIUM,1.5,USD,8.5,Metals,NYMEX Aluminum Index,25,0,0
-ASX,,AUD,,Equity,Australian equity index ASX200,25,,
-AUD,2.46,USD,3.22215919456375E-05,FX,AUDUSD currency,100000,0,0
-AUD-SGX,2.85,USD,0.00015,FX,SGX Australian Dollar in US Dollar Futures,25000,0,0
-AUDJPY,285,JPY,0.015,FX,SGX Australian Dollar in Japanese Yen Futures,25000,0,0
-AUS10,,AUD,,Bond,Australian 10 year bond,9062,,
-AUS3,,AUD,,Bond,Australian 3 year bond,3011,,
-AUSSTIR,,AUD,,STIR,Australian STIR Bills,2414,,
-BBCOMM,1.5,USD,0.1,Ags,Bloomberg Commodity Index,100,0,0
-BEL20,4.5,EUR,3.25,Equity,BEL 20 Index (BFX@),10,0,0
-BITCOIN,5,USD,25,Metals,Micro Bitcoin,0.1,0,0
-BOBL,2,EUR,0.005,Bond,German 5 year bond Bobl,1000,0,0
-BONO,2,EUR,0.035,Bond,ES 10 year bonds,1000,0,0
-BOVESPA,0.85,USD,140,Equity,Bovespa Index - USD,1,0,0
-BRE,1.5,USD,0.000118,FX,BREUSD currency,100000,0,0
-BRENT,0.85,USD,,OilGas,NYMEX Brent Financial Futures Index,1000,0,0
-BRENT_W,,USD,,OilGas,Brent crude summer,1000,,
-BRENT-LAST,1.5,USD,0.012,OilGas,Brent Crude Oil - Last Day,1000,0,0
-BTP,2,EUR,0.005,Bond,Italian 10 year bond BTP,1000,0,0
-BTP3,2,EUR,0.005,Bond,Short-Term Euro-BTP Italian Government Bond,1000,0,0
-BUND,2,EUR,0.005,Bond,German 10 year bond Bund,1000,0,0
-BUTTER,0.85,USD,1.89375,Ags,CME Cash-Settled Butter Futures,200,0,0
-BUXL,2,EUR,0.013,Bond,German Buxl 15 to 30 year bond,1000,0,0
-CAC,2,EUR,0.25,Equity,French equity index CAC40,10,0,0
-CAD,1.5,USD,4.9E-05,FX,CADUSD currency,100000,0,0
-CAD10,,CAD,,Bond,Canadian 10 year bond,1000,,
-CADSTIR,,CAD,,STIR,Canadian STIR Bank acceptance,25,,
-CANOLA,2,CAD,2,Ags,Rapeseed (Canola) in CAD,20,0,0
-CH10,4,CHF,0.181353591160219,Bond,Swiss Federal Long-Term Bonds,1000,0,0
-CHEESE,0.85,USD,0.005360341151386,Ags,Cheese,20000,0,0
-CHF,1.5,USD,5E-05,FX,CHFUSD currency,125000,0,0
-CLP,0.85,USD,,FX,Chilean peso,50000000,0,0
-CNH,11.2,CNH,0.0009,FX,SGX US Dollar in offshore Chinese Renminbi (CNH),100000,0,0
-CNH-onshore,1.8,USD,0.00015,FX,SGX onshore Chinese Renminbi (CNY) in US Dollar Futures (CY@SGX),500000,0,0
-COCOA,3,USD,0.5,Ags,Cocoa NY,10,0,0
-COCOA_LDN,,GBP,,Ags,Cocoa London,10,,
-COCOA_NY,,USD,,Ags,Cocoa  NY,10,,
-COFFEE,3,USD,0.001,Ags,Coffee,37500,0,0
-COPPER,2.31,USD,0.000423883318893,Metals,Copper,25000,0,0
-COPPER-mini,0.85,USD,0.002,Metals,COMEX MINY Copper,12500,0,0
-CORN,2.9,USD,0.125,Ags,Corn,50,0,0
-CORN_mini,2.9,USD,0.125,Ags,Corn mini,10,0,0
-COTTON,0.85,USD,,Ags,NYMEX Cotton index,50000,0,0
-COTTON2,3,USD,0.01,Ags,Cotton #2,50000,0,0
-CRUDE_W,2.31,USD,0.009711689350737,OilGas,Light sweet crude Winter,1000,0,0
-CRUDE_W_mini,1.5,USD,0.025,OilGas,Light sweet crude Winter mini,500,0,0
-CZK,0.85,USD,9.2E-05,FX,Czech koruna,4000000,0,0
-DAX,0.4,EUR,1.5,Equity,DAX 30 Index (Deutsche Aktien Xchange 30),1,0,0
-DIVDAX,2,EUR,0.175,Equity,DivDAX Price Index,200,0,0
-DIVDAX-DIVI,2,EUR,,Equity,DivDAX Dividend Points Index,1000,0,0
-DJSTX-SMALL,2,EUR,0.2,Equity,Dow Jones STOXX Small 200 Index,50,0,0
-DOW,0.25,USD,0.72,Equity,Micro E-Mini Dow Jones Industrial Average Index,0.5,0,0
-DX,2.2,USD,0.1,FX,US Dollar Index,1000,0,0
-EDOLLAR,2.11,USD,0.0025,Bond,US STIR Eurodollar,2500,0,0
-ETHANOL,0.85,USD,1,OilGas,Ethanol CME,29000,0,0
-ETHEREUM,10,USD,3.25,Metals,CME CF Ether-Dollar Reference Rate,50,0,0
-ETHER-micro,0.2,USD,6,Metals,Ethereum micro,0.1,0,0
-EU-AUTO,2,EUR,0.15,Sector,Dow Jones STOXX 600 Automobiles & Parts,50,0,0
-EU-BANKS,2,EUR,0.325,Sector,Dow Jones Euro STOXX Banks Index,50,0,0
-EU-BANKS-DIVI,2,EUR,0.12,Sector,EURO STOXX Banks Index Dividend Futures,500,0,0
-EU-BASIC,2,EUR,0.185835645062497,Sector,Dow Jones STOXX 600 Basic Resources Index,50,0,0
-EU-CHEM,2,EUR,0.35,Sector,Dow Jones STOXX 600 Chemicals,50,0,0
-EU-CONSTRUCTION,2,EUR,0.924736112723472,Sector,Dow Jones STOXX 600 Construction & Materials,50,0,0
-EU-Construction,2,EUR,1.65000000000003,Sector,Dow Jones STOXX 600 Construction & Materials,50,0,0
-EU-DIV30,2,EUR,1,Equity,Dow Jones Euro STOXX Select Dividend 30 Index,10,0,0
-EU-DIV50,2,EUR,0.1,Equity,Dow Jones EURO STOXX 50 Index-Dividenden,100,0,0
-EU-DJ-CHEM,2,EUR,15.55,Sector,Dow Jones Euro STOXX Chemicals,50,0,0
-EU-DJ-FINANCE,2,EUR,6.25,Sector,Dow Jones Euro STOXX Financial Services Index,50,0,0
-EU-DJ-FOOD,2,EUR,1.55,Sector,Dow Jones Euro STOXX Food&Beverages,50,0,0
-EU-DJ-HEALTH,2,EUR,4.4,Sector,Dow Jones Euro STOXX Healthcare,50,0,0
-EU-DJ-INDUSTRY,2,EUR,0.6,Sector,Dow Jones Euro STOXX Industrial Goods&Services,50,0,0
-EU-DJ-INSURE,2,EUR,0.35,Sector,Dow Jones Euro STOXX Insurance,50,0,0
-EU-DJ-MEDIA,2,EUR,2.85,Sector,Dow Jones Euro STOXX Media Index,50,0,0
-EU-DJ-OIL,2,EUR,0.367045454545454,Sector,Dow Jones Euro STOXX Oil & Gas,50,0,0
-EU-DJ-RETAIL,2,EUR,2.1,Sector,Dow Jones Euro STOXX Retail,50,0,0
-EU-DJ-TECH,2,EUR,9.45,Sector,Dow Jones Euro STOXX Technology,50,0,0
-EU-DJ-TELECOM,2,EUR,0.15,Sector,Dow Jones Euro STOXX Telecommunications,50,0,0
-EU-DJ-UTIL,2,EUR,0.45,Sector,Dow Jones Euro STOXX Utilities Index,50,0,0
-EU-FINANCE,2,EUR,0.2,Sector,Dow Jones STOXX 600 Financial Services Index,50,0,0
-EU-FOOD,2,EUR,0.2,Sector,Dow Jones STOXX 600 Food & Beverage Index,50,0,0
-EU-HEALTH,2,EUR,0.5,Sector,Dow Jones STOXX 600 Healthcare,50,0,0
-EU-HOUSE,2,EUR,10,Sector,Dow Jones STOXX 600 Personal & Household Goods,50,0,0
-EU-INSURE,2,EUR,0.17278569993974,Sector,Dow Jones STOXX 600 Insurance,50,0,0
-EU-MEDIA,2,EUR,0.15,Sector,Dow Jones STOXX 600 Media,50,0,0
-EU-MID,2,EUR,2.8,Sector,Dow Jones STOXX MID 200 Index,50,0,0
-EU-OIL,2,EUR,0.172,Sector,Dow Jones STOXX 600 Oil & Gas,50,0,0
-EU-REALESTATE,2,EUR,0.1,Sector,Dow Jones STOXX 600 Real Estate,50,0,0
-EU-RETAIL,2,EUR,0.15,Sector,Dow Jones STOXX 600 Retail,50,0,0
-EU-TECH,2,EUR,0.3,Sector,Dow Jones STOXX 600 Technology,50,0,0
-EU-TRAVEL,2,EUR,0.5,Sector,Dow Jones STOXX 600 Travel & Leisure,50,0,0
-EU-UTILS,2,EUR,0.150195901145267,Sector,Dow Jones STOXX 600 Utilities,50,0,0
-EUA,3,EUR,0.25,OilGas,ECX EU carbon emissions allowance futures,1000,0,0
-EUR,2.46,USD,3.01853081309044E-05,FX,EURUSD currency,125000,0,0
-EURCHF,0.85,CHF,0.0001,FX,Euro/chf,125000,0,0
-EURIBOR,2,EUR,15,Bond,Three Month EURIBOR,2500,0,0
-EURO600,2,EUR,0.14,Equity,Dow Jones STOXX 600 Index,50,0,0
-EUROSTX,2,EUR,0.37,Equity,European equity index EUROSTOXX50,10,0,0
-EUROSTX-LARGE,2,EUR,2.05,Equity,Euro Stoxx Large,50,0,0
-EUROSTX-MID,2,EUR,1.2,Equity,Euro Stoxx Mid,50,0,0
-EUROSTX-PRICE,2,EUR,0.15,Equity,Dow Jones Euro STOXX Price Index,50,0,0
-EUROSTX-SMALL,2,EUR,0.15,Equity,Euro Stoxx Small,50,0,0
-EUROSTX200-LARGE,2,EUR,0.15,Sector,Dow Jones STOXX Large 200 Index,50,0,0
-FED,0.85,USD,0.00125,Bond,30 Day Fed Funds,4167,0,0
-FEEDCOW,1.5,USD,0.05,Ags,Feeder cattle,500,0,0
-FOX,,EUR,,Equity,Finnish equity index,10,,
-FTSE,,GBP,,Equity,UK Equity index FTSE100,10,,
-FTSE100,1.7,GBP,0.1,Equity,FTSE100 Index,10,0,0
-FTSECHINAA,2.85,USD,2,Equity,FTSE/Xinhua China A50,1,0,0
-FTSECHINAH,2.85,USD,15,Equity,FTSE China H50,2,0,0
-FTSEINDO,1.5,USD,8.14150047483381,Equity,FTSE Indonesia Index,5,0,0
-FTSETAIWAN,1.5,USD,0.15,Equity,FTSE Taiwan RIC Capped Price Return TWD Index,40,0,0
-GAS_UK,,GBP,,OilGas,Natural gas UK,31000,,
-GAS_US,2.31,USD,0.001025,OilGas,Natural gas US,10000,0,0
-GAS_US_mini,1.5,USD,0.005,OilGas,Natural gas US mini,2500,0,0
-GAS-LAST,1.5,USD,0.004,OilGas,Natural Gas Last Day Financial Futures Index,10000,0,0
-GAS-PEN,0.85,USD,0.001,OilGas,Natural Gas Penultimate Financial Futures Index,10000,0,0
-GASOIL,1.7,USD,0.1,OilGas,ICE-EU Low Sulphur Gasoil,100,0,0
-GASOIL_W,,USD,,OilGas,Gas oil winter,100,,
-GASOILINE,1.5,USD,0.0005,OilGas,RBOB Gasoline US,42000,0,0
-GBP,2.46,USD,6.61459616616592E-05,FX,GBPUSD currency,62500,0,0
-GBPEUR,1.5,GBP,7.5E-05,FX,GBPEUR currency,125000,0,0
-GICS,0.85,USD,0.3,Ags,S&P-GSCI Index,250,0,0
-GILT,,GBP,,Bond,UK 10 year bonds Long Gilt,1000,,
-GOLD,2.31,USD,0.0885298446,Metals,Gold,100,0,0
-GOLD_micro,0.25,USD,0.1,Metals,Gold micro,10,0,0
-GOLD-CHINA,0.85,CNH,7.45,Metals,Shanghai Gold Exchange Gold Benchmark PM Price Index - CNH Futures,1000,0,0
-HANG,,HKD,,Equity,Hong Kong equity index Hang Seng,50,,
-HEAT_S,,USD,,OilGas,Heating oil Summer,42000,,
-HEATOIL,1.5,USD,0.00045,OilGas,Heating oil,42000,0,0
-HEATOIL-mini,0.85,USD,0.0325,OilGas,NYMEX MINY Heating Oil Index,21000,0,0
-HIGHYIELD,0.85,USD,0.02,Bond,iBoxx iShares $ High Yield Corporate Bond Index TR,1000,0,0
-HOUSE-BO,0.85,USD,3.4,Housing,Boston Housing Index,250,0,0
-HOUSE-CG,0.85,USD,3,Housing,Chicago Housing Index,250,0,0
-HOUSE-DN,0.85,USD,3,Housing,Denver Housing Index,250,0,0
-HOUSE-LA,0.85,USD,4.3,Housing,Los Angeles Housing Index,250,0,0
-HOUSE-LV,0.85,USD,3.9,Housing,Las Vegas Housing Index,250,0,0
-HOUSE-MI,0.85,USD,4.1,Housing,Miami Housing Index,250,0,0
-HOUSE-NY,0.85,USD,3.6,Housing,New York Housing Index,250,0,0
-HOUSE-SD,0.85,USD,2.45,Housing,San Diego Housing Index,250,0,0
-HOUSE-SF,0.85,USD,1.95,Housing,San Francisco Housing Index,250,0,0
-HOUSE-US,0.85,USD,2.5,Housing,Housing Index Composite,250,0,0
-HUF,0.85,USD,6.5E-06,FX,Hungarian forint,30000000,0,0
-IBXEX,,EUR,,Equity,Spanish equity index IBEX,10,,
-IG,0.85,USD,0.02,Bond,iBoxx iShares $ Investment Grade Corporate Bond Index TR,1000,0,0
-INR,0.85,USD,0.015,FX,Indian Rupee,500,0,0
-INR-mini,0.85,USD,0.12,FX,Indian Rupee,100,0,0
-INR-SGX,2.85,USD,0.01,FX,SGX Indian Rupee in US Dollar Futures,200,0,0
-IRON,2.85,USD,0.125,Metals,SGX TSI Iron Ore Futures,100,0,0
-IRS,0.85,USD,0.000585,FX,Israeli shekel,1000000,0,0
-JGB,500,JPY,0.005,Bond,Standardized 6% 10-Year Japanese Government Bond,1000000,0,0
-JGB-mini,85,JPY,,Bond,Mini 10 Year JGB,100000,0,0
-JGB-SGX-mini,85,JPY,0.01,Bond,SGX Mini JGB Index,100000,0,0
-JP-REALESTATE,500,JPY,13.75,Sector,TSE REIT Index,1000,0,0
-JPY,2.46,USD,3.95831442810078E-07,FX,JPYUSD currency,12500000,0,0
-JPY_micro,0.33,USD,4.80872E-06,FX,JPYUSD currency micro,1250000,0,0
-JPY-SGX,300,JPY,0.01,FX,SGX US Dollar in Japanese Yen Futures (Standard),100000,0,0
-JPY-SGX-TITAN,360,JPY,0.01,FX,SGX US Dollar in Japanese Yen Futures (Titan),500000,0,0
-KOSDAQ,2000,KRW,0.12,Equity,KOSDAQ 150 Index,10000,0,0
-KOSPI,0,KRW,0.025,Equity,Korean equity index KOSPI,250000,0,0.0004
-KOSPI_mini,8500,KRW,0.2,Equity,KOSPI mini,50000,0,0
-KR10,0,KRW,0.005,Bond,Korean 10 year bond,1000000,0,4E-05
-KR3,0,KRW,0.005,Bond,Korean 3 year bond,1000000,0,4E-05
-KRWJPY,285,JPY,,FX,SGX Korean Won in Japanese Yen Futures,25000,0,0
-KRWUSD,0.85,USD,7E-07,FX,Korean Won,125000000,0,0
-KRWUSD_mini,2.85,USD,0.0002,FX,SGX Korean Won in US Dollar Futures (Mini),25000,0,0
-LEANHOG,2.9,USD,0.025,Ags,Lean hogs,400,0,0
-LIBOR1,0.85,USD,0.01,Bond,1 Month LIBOR (Int. Rate),2500,0,0
-LIVECOW,2.9,USD,0.025,Ags,Live cattle,400,0,0
-LUMBER,0.85,USD,5.4,Ags,Random Length Lumber,110,0,0
-MID-DAX,2,EUR,100,Equity,Midcap DAX,5,0,0
-MILK,1.5,USD,0.055882352941177,Ags,Milk class III,2000,0,0
-MILKDRY,0.85,USD,1.11779940031748,Ags,NON FAT DRY MILK INDEX,440,0,0
-MILKWET,0.85,USD,0.0925,Ags,Class IV Milk - 200k lbs,2000,0,0
-MSCIASIA,2.4,USD,0.4,Equity,MSCI Emerging Markets Asia,100,0,0
-MSCIRUSSIA,2,USD,1.5,Equity,MSCI Russia Index,10,0,0
-MSCISING,4,SGD,0.049302362865398,Equity,MSCI Singapore Free Index,100,0,0
-MUMMY,50,JPY,0.5,Equity,TSE Mothers Index,1000,0,0
-MXP,2.46,USD,6E-06,FX,MEXUSD currency,500000,0,0
-NASBIO-mini,0.85,USD,1.3,Sector,CME E-Mini NASDAQ Biotechnology,50,0,0
-NASDAQ,2.05,USD,0.3,Equity,US equity index Nasdaq ,20,0,0
-NASDAQ_micro,0.25,USD,0.25,Equity,NASDAQ micro,2,0,0
-NIFTY,2.85,USD,1.2,Equity,CNX Nifty Index,2,0,0
-NIKKEI,40,JPY,2.5,Equity,Nikkei 225 Mini,100,0,0
-NIKKEI-JPY,0.85,JPY,2100,Equity,Yen Denominated Nikkei 225 Index,100,0,0
-NIKKEI400,50,JPY,2.5,Equity,JPX-Nikkei Index 400,100,0,0
-NOK,1.5,USD,3E-05,FX,NOKUSD currency,2000000,0,0
-NZD,2.46,USD,5.8E-05,FX,NZDUSD currency,100000,0,0
-OAT,2,EUR,0.005,Bond,French 10 year bond OAT,1000,0,0
-OATIES,1.5,USD,1,Ags,Oat Futures,50,0,0
-OJ,3,USD,0.01075,Ags,Orange Juice (FCOJ-A),15000,0,0
-OMX,2,EUR,11.75,Equity,OMX Helsinki 25 Index,10,0,0
-PALLAD,2.31,USD,2,Metals,Palladium,100,0,0
-PIPELINE,0.85,USD,,OilGas,Gulf Coast ULSD (Platts) Up-Down Futures,42000,0,0
-PLAT,2.31,USD,0.3,Metals,Platinum,50,0,0
-PLN,0.85,USD,7E-05,FX,Polish zloty,500000,0,0
-PLZEUR,0.85,EUR,0.0003,FX,Polish zloty EURO,500000,0,0
-R1000,1.5,USD,0.25,Equity,E-Mini Russell 1000 Value Index Futures,50,0,0
-R1000GROWTH-mini,0.85,USD,0.4,Equity,E-mini Russell 1000 Growth Index Futures,50,0,0
-R1000mini,0.85,USD,0.45,Equity,E-mini Russell 1000 Index Futures,50,0,0
-REDWHEAT,1.5,USD,0.25,Ags,Hard Red Winter Wheat -KCBOT-,50,0,0
-RICE,1.5,USD,0.015,Ags,Rough Rice,2000,0,0
-ROBUSTA,3,USD,0.5,Ags,Robusta Coffee,10,0,0
-RUBBER,3,USD,0.05,Other,TSR 20 Rubber,50,0,0
-RUR,1.5,USD,5E-06,FX,RURUSD currency,2500000,0,0
-RUSSELL,0.25,USD,0.1,Equity,Micro E-Mini Russell 2000 Index,5,0,0
-SEK,1.5,USD,2E-05,FX,SEKUSD currency,2000000,0,0
-SGD,3.5,SGD,0.000125,FX,SGX US Dollar in Singapore Dollar Futures (Full-Sized),100000,0,0
-SGX,4,SGD,,Equity,SGX Straits Times Index,10,0,0
-SHATZ,2,EUR,0.0025,Bond,German 2 year bond Schatz,1000,0,0
-SILVER,1.5,USD,0.004,Metals,NYMEX Silver Index,1000,0,0
-SILVER-mini,0.85,USD,0.0125,Metals,COMEX MINY Silver,2500,0,0
-SMI,4,CHF,1,Equity,Swiss equity index SMI,10,0,0
-SMI-MID,1,CHF,2.5,Equity,Swiss Mid-cap Index,10,0,0
-SOFR,1.5,USD,0.0025,Bond,Secured Overnight Financing Rate 3-month average of rates,2500,0,0
-SOYBEAN,2.9,USD,0.25,Ags,Soybean,50,0,0
-SOYBEAN_mini,2.9,USD,0.25,Ags,Soybean mini,10,0,0
-SOYMEAL,1.5,USD,0.07,Ags,Soybean Meal,100,0,0
-SOYOIL,1.5,USD,0.015,Ags,Soybean oil,600,0,0
-SP400,1.5,USD,0.544478367863703,Equity,E-mini S&P Midcap 400 Futures,100,0,0
-SP500,2.05,USD,0.125,Equity,US equity index S&P500 ,50,0,0
-SP500_micro,0.25,USD,0.125,Equity,S&P 500 micro,5,0,0
-SP500-GROWTH,0.85,USD,,Equity,S&P 500 / Citigroup Growth Index,250,0,0
-SP600-SMALL,0.85,USD,,Equity,E-Mini S&P SmallCap 600 Futures,100,0,0
-SPI200,5,AUD,1,Equity,ASX SPI200 Index,25,0,0
-SSTERL,,GBP,,STIR,UK STIR Short Sterling,1250,,
-STEEL,0.85,USD,5.5,Metals,Hot-Rolled Coil Steel Index,20,0,0
-STERLING3,1.7,GBP,0.0025,Bond,3 month Sterling interest rate,1250,0,0
-SUGAR,,USD,,Ags,Sugar,112000,,
-SUGAR11,3,USD,5E-05,Ags,Sugar #11,112000,0,0
-TOPIX,50,JPY,0.2,Equity,Japan Mini Topix,1000,0,0
-TOPIX30,50,JPY,,Equity,Topix Core30,1000,0,0
-TSX,,CAD,,Equity,Canadian equity index TSX composite,5,,
-TWD,2.1,USD,0.00975,FX,SGX Taiwan Dollar in US Dollar Futures (Full-Sized),3000,0,0
-TWD-mini,1.75,USD,0.00015,FX,SGX Taiwan Dollar in US Dollar Futures (Mini),100000,0,0
-URANIUM,0.85,USD,,OilGas,NYMEX Uranium Index,250,0,0
-US-DISCRETE,1.5,USD,17.409669579606,Sector,Consumer Discretionary Select Sector Index,100,0,0
-US-ENERGY,1.5,USD,3.39269662921349,Sector,Energy Select Sector Index,100,0,0
-US-FINANCE,1.5,USD,2.46629213483146,Sector,Financial Select Sector Index,250,0,0
-US-HEALTH,1.5,USD,4.56629213483147,Sector,Health Care Select Sector Index,100,0,0
-US-INDUSTRY,1.5,USD,6,Sector,Industrial Select Sector Index,100,0,0
-US-MATERIAL,1.5,USD,7.5,Sector,Materials Select Sector Index,100,0,0
-US-PROPERTY,1.5,USD,1.04244186046512,Sector,Real Estate Select Sector Index,250,0,0
-US-REALESTATE,1.5,USD,8,Sector,US Real estate,100,0,0
-US-STAPLES,1.5,USD,3.21741573033709,Sector,Consumer Staples Select Sector Index,100,0,0
-US-TECH,1.5,USD,6.32255639097747,Sector,Technology Select Sector Index -,100,0,0
-US-UTILS,1.5,USD,3.62169811320754,Sector,Utilities Select Sector Index,100,0,0
-US10,1.51,USD,0.01,Bond,US 10 year bond note,1000,0,0
-US10U,1.5,USD,0.0078125,Bond,Ultra 10-Year US Treasury Note,1000,0,0
-US2,1.51,USD,0.002267,Bond,US 2 year bond note,2000,0,0
-US20,1.51,USD,0.016,Bond,US 20 year bond,1000,0,0
-US3,1.5,USD,0.00390625,Bond,US 3 year bond note,2000,0,0
-US30,1.5,USD,0.015625,Bond,Ultra Treasury Bond,1000,0,0
-US5,1.51,USD,0.004,Bond,US 5 year bond note,1000,0,0
-USIRS10,1.5,USD,0.0234375,Bond,US 10 year swap,1000,0,0
-USIRS2,0.85,USD,,Bond,2-Year Deliverable Interest Rate Swap Futures,1000,0,0
-USIRS2ERIS,0.85,USD,0.005,Bond,2-Year Eris Swap Futures,1000,0,0
-USIRS30,0.85,USD,0.09375,Bond,30-Year Deliverable Interest Rate Swap Futures,1000,0,0
-USIRS5,1.5,USD,0.05,Bond,US 5 year swap,1000,0,0
-USIRS5ERIS,0.85,USD,0.01,Bond,5-Year Eris Swap Futures,1000,0,0
-V2X,2,EUR,0.06,Vol,Vol European equity V2X,100,0,0
-VIX,2.2,USD,0.02812,Vol,Vol US equity VIX,1000,0,0
-VIX_mini,0.5,USD,0.05,Vol,Vol US equity VIX mini,100,0,0
-VNKI,400,JPY,0.05,Vol,Nikkei 225 Volatility Index,10000,0,0
-WHEAT,2.9,USD,0.25,Ags,Wheat,50,0,0
-WHEAT_mini,2.9,USD,0.25,Ags,Wheat mini,10,0,0
-WTI_micro,0.7,USD,0.01,OilGas,micro WTI crude oil,100,0,0
-XINA,,USD,,Equity,Chinese equity index,1,,
-YENEUR,1.5,JPY,0.01,FX,YENEUR currency,125000,0,0
+Instrument,Pointsize,Percentage,PerBlock,PerTrade,AssetClass,Currency,Description,Slippage
+AEX,200.0,0.0,2.0,0.0,Equity,EUR,Netherlands equity index AEX,0.1
+ALUMINIUM,25.0,0.0,1.5,0.0,Metals,USD,NYMEX Aluminum Index,8.5
+ASX,25.0,,,,Equity,AUD,Australian equity index ASX200,
+AUD,100000.0,0.0,2.46,0.0,FX,USD,AUDUSD currency,3.22215919456375e-05
+AUD-SGX,25000.0,0.0,2.85,0.0,FX,USD,SGX Australian Dollar in US Dollar Futures,0.00015
+AUDJPY,25000.0,0.0,285.0,0.0,FX,JPY,SGX Australian Dollar in Japanese Yen Futures,0.015
+AUS10,9062.0,,,,Bond,AUD,Australian 10 year bond,
+AUS3,3011.0,,,,Bond,AUD,Australian 3 year bond,
+AUSSTIR,2414.0,,,,STIR,AUD,Australian STIR Bills,
+BBCOMM,100.0,0.0,1.5,0.0,Ags,USD,Bloomberg Commodity Index,0.1
+BEL20,10.0,0.0,4.5,0.0,Equity,EUR,BEL 20 Index (BFX@),3.25
+BITCOIN,0.1,0.0,5.0,0.0,Metals,USD,Micro Bitcoin,25.0
+BOBL,1000.0,0.0,2.0,0.0,Bond,EUR,German 5 year bond Bobl,0.005
+BONO,1000.0,0.0,2.0,0.0,Bond,EUR,ES 10 year bonds,0.035
+BOVESPA,1.0,0.0,0.85,0.0,Equity,USD,Bovespa Index - USD,53000.0
+BRE,100000.0,0.0,1.5,0.0,FX,USD,BREUSD currency,0.000118
+BRENT,1000.0,0.0,0.85,0.0,OilGas,USD,NYMEX Brent Financial Futures Index,
+BRENT-LAST,1000.0,0.0,1.5,0.0,OilGas,USD,Brent Crude Oil - Last Day,0.012
+BRENT_W,1000.0,,,,OilGas,USD,Brent crude summer,
+BTP,1000.0,0.0,2.0,0.0,Bond,EUR,Italian 10 year bond BTP,0.005
+BTP3,1000.0,0.0,2.0,0.0,Bond,EUR,Short-Term Euro-BTP Italian Government Bond,0.005
+BUND,1000.0,0.0,2.0,0.0,Bond,EUR,German 10 year bond Bund,0.005
+BUTTER,200.0,0.0,0.85,0.0,Ags,USD,CME Cash-Settled Butter Futures,1.89375
+BUXL,1000.0,0.0,2.0,0.0,Bond,EUR,German Buxl 15 to 30 year bond,0.013000000000000001
+CAC,10.0,0.0,2.0,0.0,Equity,EUR,French equity index CAC40,0.25
+CAD,100000.0,0.0,1.5,0.0,FX,USD,CADUSD currency,3.4e-05
+CAD10,1000.0,,,,Bond,CAD,Canadian 10 year bond,
+CADSTIR,25.0,,,,STIR,CAD,Canadian STIR Bank acceptance,
+CANOLA,20.0,0.0,2.0,0.0,Ags,CAD,Rapeseed (Canola) in CAD,2.0
+CH10,1000.0,0.0,4.0,0.0,Bond,CHF,Swiss Federal Long-Term Bonds,0.18135359116021899
+CHEESE,20000.0,0.0,0.85,0.0,Ags,USD,Cheese,0.005360341151386
+CHF,125000.0,0.0,1.5,0.0,FX,USD,CHFUSD currency,5e-05
+CLP,50000000.0,0.0,0.85,0.0,FX,USD,Chilean peso,
+CNH,100000.0,0.0,11.2,0.0,FX,CNH,SGX US Dollar in offshore Chinese Renminbi (CNH),0.0004
+CNH-onshore,500000.0,0.0,1.8,0.0,FX,USD,SGX onshore Chinese Renminbi (CNY) in US Dollar Futures (CY@SGX),0.00015
+COCOA,10.0,0.0,3.0,0.0,Ags,USD,Cocoa NY,0.5
+COCOA_LDN,10.0,,,,Ags,GBP,Cocoa London,
+COCOA_NY,10.0,,,,Ags,USD,Cocoa  NY,
+COFFEE,37500.0,0.0,3.0,0.0,Ags,USD,Coffee,0.001
+COPPER,25000.0,0.0,2.31,0.0,Metals,USD,Copper,0.000423883318893
+COPPER-mini,12500.0,0.0,0.85,0.0,Metals,USD,COMEX MINY Copper,0.002
+CORN,50.0,0.0,2.9,0.0,Ags,USD,Corn,0.125
+CORN_mini,10.0,0.0,2.9,0.0,Ags,USD,Corn mini,0.125
+COTTON,50000.0,0.0,0.85,0.0,Ags,USD,NYMEX Cotton index,
+COTTON2,50000.0,0.0,3.0,0.0,Ags,USD,Cotton #2,0.01
+CRUDE_W,1000.0,0.0,2.31,0.0,OilGas,USD,Light sweet crude Winter,0.009711689350737
+CRUDE_W_mini,500.0,0.0,1.5,0.0,OilGas,USD,Light sweet crude Winter mini,0.025
+CZK,4000000.0,0.0,0.85,0.0,FX,USD,Czech koruna,9.2e-05
+DAX,1.0,0.0,0.4,0.0,Equity,EUR,DAX 30 Index (Deutsche Aktien Xchange 30),1.5
+DIVDAX,200.0,0.0,2.0,0.0,Equity,EUR,DivDAX Price Index,0.175
+DIVDAX-DIVI,1000.0,0.0,2.0,0.0,Equity,EUR,DivDAX Dividend Points Index,
+DJSTX-SMALL,50.0,0.0,2.0,0.0,Equity,EUR,Dow Jones STOXX Small 200 Index,0.2
+DOW,0.5,0.0,0.25,0.0,Equity,USD,Micro E-Mini Dow Jones Industrial Average Index,0.72
+DX,1000.0,0.0,2.2,0.0,FX,USD,US Dollar Index,0.1
+EDOLLAR,2500.0,0.0,2.11,0.0,Bond,USD,US STIR Eurodollar,0.0025
+ETHANOL,29000.0,0.0,0.85,0.0,OilGas,USD,Ethanol CME,1.0
+ETHER-micro,0.1,0.0,0.2,0.0,Metals,USD,Ethereum micro,110.0
+ETHEREUM,50.0,0.0,10.0,0.0,Metals,USD,CME CF Ether-Dollar Reference Rate,3.25
+EU-AUTO,50.0,0.0,2.0,0.0,Sector,EUR,Dow Jones STOXX 600 Automobiles & Parts,0.2
+EU-BANKS,50.0,0.0,2.0,0.0,Sector,EUR,Dow Jones Euro STOXX Banks Index,0.5
+EU-BANKS-DIVI,500.0,0.0,2.0,0.0,Sector,EUR,EURO STOXX Banks Index Dividend Futures,0.12
+EU-BASIC,50.0,0.0,2.0,0.0,Sector,EUR,Dow Jones STOXX 600 Basic Resources Index,0.18583564506249697
+EU-CHEM,50.0,0.0,2.0,0.0,Sector,EUR,Dow Jones STOXX 600 Chemicals,0.35
+EU-CONSTRUCTION,50.0,0.0,2.0,0.0,Sector,EUR,Dow Jones STOXX 600 Construction & Materials,0.42226957125178943
+EU-Construction,50.0,0.0,2.0,0.0,Sector,EUR,Dow Jones STOXX 600 Construction & Materials,1.65000000000003
+EU-DIV30,10.0,0.0,2.0,0.0,Equity,EUR,Dow Jones Euro STOXX Select Dividend 30 Index,1.0
+EU-DIV50,100.0,0.0,2.0,0.0,Equity,EUR,Dow Jones EURO STOXX 50 Index-Dividenden,0.1
+EU-DJ-CHEM,50.0,0.0,2.0,0.0,Sector,EUR,Dow Jones Euro STOXX Chemicals,15.55
+EU-DJ-FINANCE,50.0,0.0,2.0,0.0,Sector,EUR,Dow Jones Euro STOXX Financial Services Index,6.25
+EU-DJ-FOOD,50.0,0.0,2.0,0.0,Sector,EUR,Dow Jones Euro STOXX Food&Beverages,1.55
+EU-DJ-HEALTH,50.0,0.0,2.0,0.0,Sector,EUR,Dow Jones Euro STOXX Healthcare,4.4
+EU-DJ-INDUSTRY,50.0,0.0,2.0,0.0,Sector,EUR,Dow Jones Euro STOXX Industrial Goods&Services,0.6
+EU-DJ-INSURE,50.0,0.0,2.0,0.0,Sector,EUR,Dow Jones Euro STOXX Insurance,0.35
+EU-DJ-MEDIA,50.0,0.0,2.0,0.0,Sector,EUR,Dow Jones Euro STOXX Media Index,2.85
+EU-DJ-OIL,50.0,0.0,2.0,0.0,Sector,EUR,Dow Jones Euro STOXX Oil & Gas,0.75
+EU-DJ-RETAIL,50.0,0.0,2.0,0.0,Sector,EUR,Dow Jones Euro STOXX Retail,2.1
+EU-DJ-TECH,50.0,0.0,2.0,0.0,Sector,EUR,Dow Jones Euro STOXX Technology,3.0
+EU-DJ-TELECOM,50.0,0.0,2.0,0.0,Sector,EUR,Dow Jones Euro STOXX Telecommunications,0.15
+EU-DJ-UTIL,50.0,0.0,2.0,0.0,Sector,EUR,Dow Jones Euro STOXX Utilities Index,0.15
+EU-FINANCE,50.0,0.0,2.0,0.0,Sector,EUR,Dow Jones STOXX 600 Financial Services Index,0.2
+EU-FOOD,50.0,0.0,2.0,0.0,Sector,EUR,Dow Jones STOXX 600 Food & Beverage Index,0.2
+EU-HEALTH,50.0,0.0,2.0,0.0,Sector,EUR,Dow Jones STOXX 600 Healthcare,0.35
+EU-HOUSE,50.0,0.0,2.0,0.0,Sector,EUR,Dow Jones STOXX 600 Personal & Household Goods,0.3
+EU-INSURE,50.0,0.0,2.0,0.0,Sector,EUR,Dow Jones STOXX 600 Insurance,0.17278569993974
+EU-MEDIA,50.0,0.0,2.0,0.0,Sector,EUR,Dow Jones STOXX 600 Media,0.15
+EU-MID,50.0,0.0,2.0,0.0,Sector,EUR,Dow Jones STOXX MID 200 Index,0.15
+EU-OIL,50.0,0.0,2.0,0.0,Sector,EUR,Dow Jones STOXX 600 Oil & Gas,0.172
+EU-REALESTATE,50.0,0.0,2.0,0.0,Sector,EUR,Dow Jones STOXX 600 Real Estate,0.1
+EU-RETAIL,50.0,0.0,2.0,0.0,Sector,EUR,Dow Jones STOXX 600 Retail,0.15
+EU-TECH,50.0,0.0,2.0,0.0,Sector,EUR,Dow Jones STOXX 600 Technology,0.3
+EU-TRAVEL,50.0,0.0,2.0,0.0,Sector,EUR,Dow Jones STOXX 600 Travel & Leisure,0.25
+EU-UTILS,50.0,0.0,2.0,0.0,Sector,EUR,Dow Jones STOXX 600 Utilities,0.150195901145267
+EUA,1000.0,0.0,3.0,0.0,OilGas,EUR,ECX EU carbon emissions allowance futures,0.25
+EUR,125000.0,0.0,2.46,0.0,FX,USD,EURUSD currency,3.01853081309044e-05
+EURCHF,125000.0,0.0,0.85,0.0,FX,CHF,Euro/chf,0.0001
+EURIBOR,2500.0,0.0,2.0,0.0,Bond,EUR,Three Month EURIBOR,50.0
+EURO600,50.0,0.0,2.0,0.0,Equity,EUR,Dow Jones STOXX 600 Index,0.14
+EUROSTX,10.0,0.0,2.0,0.0,Equity,EUR,European equity index EUROSTOXX50,0.37
+EUROSTX-LARGE,50.0,0.0,2.0,0.0,Equity,EUR,Euro Stoxx Large,2.05
+EUROSTX-MID,50.0,0.0,2.0,0.0,Equity,EUR,Euro Stoxx Mid,1.2
+EUROSTX-PRICE,50.0,0.0,2.0,0.0,Equity,EUR,Dow Jones Euro STOXX Price Index,0.15
+EUROSTX-SMALL,50.0,0.0,2.0,0.0,Equity,EUR,Euro Stoxx Small,0.15
+EUROSTX200-LARGE,50.0,0.0,2.0,0.0,Sector,EUR,Dow Jones STOXX Large 200 Index,0.15
+Ethereum,50.0,0.0,10.0,0.0,FX,USD,CME CF Ether-Dollar Reference Rate,3.25
+FED,4167.0,0.0,0.85,0.0,Bond,USD,30 Day Fed Funds,0.00125
+FEEDCOW,500.0,0.0,1.5,0.0,Ags,USD,Feeder cattle,0.05
+FOX,10.0,,,,Equity,EUR,Finnish equity index,
+FTSE,10.0,,,,Equity,GBP,UK Equity index FTSE100,
+FTSE100,10.0,0.0,1.7,0.0,Equity,GBP,FTSE100 Index,0.1
+FTSECHINAA,1.0,0.0,2.85,0.0,Equity,USD,FTSE/Xinhua China A50,1.3
+FTSECHINAH,2.0,0.0,2.85,0.0,Equity,USD,FTSE China H50,15.0
+FTSEINDO,5.0,0.0,1.5,0.0,Equity,USD,FTSE Indonesia Index,8.141500474833808
+FTSETAIWAN,40.0,0.0,1.5,0.0,Equity,USD,FTSE Taiwan RIC Capped Price Return TWD Index,0.15
+GAS-LAST,10000.0,0.0,1.5,0.0,OilGas,USD,Natural Gas Last Day Financial Futures Index,0.004
+GAS-PEN,10000.0,0.0,0.85,0.0,OilGas,USD,Natural Gas Penultimate Financial Futures Index,0.001
+GASOIL,100.0,0.0,1.7,0.0,OilGas,USD,ICE-EU Low Sulphur Gasoil,0.1
+GASOILINE,42000.0,0.0,1.5,0.0,OilGas,USD,RBOB Gasoline US,0.0005
+GASOILINE-mini,21000.0,0.0,0.85,0.0,OilGas,USD,NYMEX MINY Gasoline RBOB Index,
+GASOIL_W,100.0,,,,OilGas,USD,Gas oil winter,
+GAS_UK,31000.0,,,,OilGas,GBP,Natural gas UK,
+GAS_US,10000.0,0.0,2.31,0.0,OilGas,USD,Natural gas US,0.0013
+GAS_US_mini,2500.0,0.0,1.5,0.0,OilGas,USD,Natural gas US mini,0.005
+GBP,62500.0,0.0,2.46,0.0,FX,USD,GBPUSD currency,6.614596166165921e-05
+GBPEUR,125000.0,0.0,1.5,0.0,FX,GBP,GBPEUR currency,7.5e-05
+GICS,250.0,0.0,0.85,0.0,Ags,USD,S&P-GSCI Index,0.3
+GILT,1000.0,,,,Bond,GBP,UK 10 year bonds Long Gilt,
+GOLD,100.0,0.0,2.31,0.0,Metals,USD,Gold,0.0885298446
+GOLD-CHINA,1000.0,0.0,0.85,0.0,Metals,CNH,Shanghai Gold Exchange Gold Benchmark PM Price Index - CNH Futures,7.45
+GOLD_micro,10.0,0.0,0.25,0.0,Metals,USD,Gold micro,0.1
+HANG,50.0,,,,Equity,HKD,Hong Kong equity index Hang Seng,
+HEATOIL,42000.0,0.0,1.5,0.0,OilGas,USD,Heating oil,0.00045
+HEATOIL-mini,21000.0,0.0,0.85,0.0,OilGas,USD,NYMEX MINY Heating Oil Index,0.0325
+HEAT_S,42000.0,,,,OilGas,USD,Heating oil Summer,
+HIGHYIELD,1000.0,0.0,0.85,0.0,Bond,USD,iBoxx iShares $ High Yield Corporate Bond Index TR,0.02
+HOUSE-BO,250.0,0.0,0.85,0.0,Housing,USD,Boston Housing Index,3.4
+HOUSE-CG,250.0,0.0,0.85,0.0,Housing,USD,Chicago Housing Index,3.0
+HOUSE-DN,250.0,0.0,0.85,0.0,Housing,USD,Denver Housing Index,3.0
+HOUSE-LA,250.0,0.0,0.85,0.0,Housing,USD,Los Angeles Housing Index,4.3
+HOUSE-LV,250.0,0.0,0.85,0.0,Housing,USD,Las Vegas Housing Index,3.9
+HOUSE-MI,250.0,0.0,0.85,0.0,Housing,USD,Miami Housing Index,4.1
+HOUSE-NY,250.0,0.0,0.85,0.0,Housing,USD,New York Housing Index,3.6
+HOUSE-SD,250.0,0.0,0.85,0.0,Housing,USD,San Diego Housing Index,2.45
+HOUSE-SF,250.0,0.0,0.85,0.0,Housing,USD,San Francisco Housing Index,1.95
+HOUSE-US,250.0,0.0,0.85,0.0,Housing,USD,Housing Index Composite,2.5
+HUF,30000000.0,0.0,0.85,0.0,FX,USD,Hungarian forint,6.5000000000000004e-06
+IBXEX,10.0,,,,Equity,EUR,Spanish equity index IBEX,
+IG,1000.0,0.0,0.85,0.0,Bond,USD,iBoxx iShares $ Investment Grade Corporate Bond Index TR,0.02
+INR,500.0,0.0,0.85,0.0,FX,USD,Indian Rupee,0.015
+INR-SGX,200.0,0.0,2.85,0.0,FX,USD,SGX Indian Rupee in US Dollar Futures,0.01
+INR-mini,100.0,0.0,0.85,0.0,FX,USD,Indian Rupee,0.12
+IRON,100.0,0.0,2.85,0.0,Metals,USD,SGX TSI Iron Ore Futures,0.125
+IRS,1000000.0,0.0,0.85,0.0,FX,USD,Israeli shekel,0.000585
+JGB,1000000.0,0.0,500.0,0.0,Bond,JPY,Standardized 6% 10-Year Japanese Government Bond,0.005
+JGB-SGX-mini,100000.0,0.0,85.0,0.0,Bond,JPY,SGX Mini JGB Index,0.01
+JGB-mini,100000.0,0.0,85.0,0.0,Bond,JPY,Mini 10 Year JGB,
+JP-REALESTATE,1000.0,0.0,500.0,0.0,Sector,JPY,TSE REIT Index,13.75
+JPY,12500000.0,0.0,2.46,0.0,FX,USD,JPYUSD currency,2.5e-07
+JPY-SGX,100000.0,0.0,300.0,0.0,FX,JPY,SGX US Dollar in Japanese Yen Futures (Standard),0.01
+JPY-SGX-TITAN,500000.0,0.0,360.0,0.0,FX,JPY,SGX US Dollar in Japanese Yen Futures (Titan),0.01
+JPY_micro,1250000.0,0.0,0.33,0.0,FX,USD,JPYUSD currency micro,4.80872e-06
+KOSDAQ,10000.0,0.0,2000.0,0.0,Equity,KRW,KOSDAQ 150 Index,0.12
+KOSPI,250000.0,0.0004,0.0,0.0,Equity,KRW,Korean equity index KOSPI,0.025
+KOSPI_mini,50000.0,0.0,8500.0,0.0,Equity,KRW,KOSPI mini,0.2
+KR10,1000000.0,4e-05,0.0,0.0,Bond,KRW,Korean 10 year bond,0.005
+KR3,1000000.0,4e-05,0.0,0.0,Bond,KRW,Korean 3 year bond,0.005
+KRWJPY,25000.0,0.0,285.0,0.0,FX,JPY,SGX Korean Won in Japanese Yen Futures,
+KRWUSD,125000000.0,0.0,0.85,0.0,FX,USD,Korean Won,4.0000000000000003e-07
+KRWUSD_mini,25000.0,0.0,2.85,0.0,FX,USD,SGX Korean Won in US Dollar Futures (Mini),0.0002
+LEANHOG,400.0,0.0,2.9,0.0,Ags,USD,Lean hogs,0.025
+LIBOR1,2500.0,0.0,0.85,0.0,Bond,USD,1 Month LIBOR (Int. Rate),0.01
+LIVECOW,400.0,0.0,2.9,0.0,Ags,USD,Live cattle,0.025
+LUMBER,110.0,0.0,0.85,0.0,Ags,USD,Random Length Lumber,5.4
+MID-DAX,5.0,0.0,2.0,0.0,Equity,EUR,Midcap DAX,25.0
+MILK,2000.0,0.0,1.5,0.0,Ags,USD,Milk class III,0.055882352941177
+MILKDRY,440.0,0.0,0.85,0.0,Ags,USD,NON FAT DRY MILK INDEX,1.11779940031748
+MILKWET,2000.0,0.0,0.85,0.0,Ags,USD,Class IV Milk - 200k lbs,0.3
+MSCIASIA,100.0,0.0,2.4,0.0,Equity,USD,MSCI Emerging Markets Asia,0.4
+MSCIRUSSIA,10.0,0.0,2.0,0.0,Equity,USD,MSCI Russia Index,1.5
+MSCISING,100.0,0.0,4.0,0.0,Equity,SGD,MSCI Singapore Free Index,0.049302362865398
+MUMMY,1000.0,0.0,50.0,0.0,Equity,JPY,TSE Mothers Index,0.5
+MXP,500000.0,0.0,2.46,0.0,FX,USD,MEXUSD currency,6e-06
+NASBIO-mini,50.0,0.0,0.85,0.0,Sector,USD,CME E-Mini NASDAQ Biotechnology,1.3
+NASDAQ,20.0,0.0,2.05,0.0,Equity,USD,US equity index Nasdaq ,0.3
+NASDAQ_micro,2.0,0.0,0.25,0.0,Equity,USD,NASDAQ micro,0.25
+NIFTY,2.0,0.0,2.85,0.0,Equity,USD,CNX Nifty Index,1.2
+NIKKEI,100.0,0.0,40.0,0.0,Equity,JPY,Nikkei 225 Mini,2.5
+NIKKEI-JPY,100.0,0.0,0.85,0.0,Equity,JPY,Yen Denominated Nikkei 225 Index,2100.0
+NIKKEI400,100.0,0.0,50.0,0.0,Equity,JPY,JPX-Nikkei Index 400,2.5
+NOK,2000000.0,0.0,1.5,0.0,FX,USD,NOKUSD currency,2.9999999999999997e-05
+NZD,100000.0,0.0,2.46,0.0,FX,USD,NZDUSD currency,5.7999999999999994e-05
+OAT,1000.0,0.0,2.0,0.0,Bond,EUR,French 10 year bond OAT,0.005
+OATIES,50.0,0.0,1.5,0.0,Ags,USD,Oat Futures,1.5
+OJ,15000.0,0.0,3.0,0.0,Ags,USD,Orange Juice (FCOJ-A),0.01075
+OMX,10.0,0.0,2.0,0.0,Equity,EUR,OMX Helsinki 25 Index,11.75
+PALLAD,100.0,0.0,2.31,0.0,Metals,USD,Palladium,2.0
+PIPELINE,42000.0,0.0,0.85,0.0,OilGas,USD,Gulf Coast ULSD (Platts) Up-Down Futures,
+PLAT,50.0,0.0,2.31,0.0,Metals,USD,Platinum,0.3
+PLN,500000.0,0.0,0.85,0.0,FX,USD,Polish zloty,7e-05
+PLZEUR,500000.0,0.0,0.85,0.0,FX,EUR,Polish zloty EURO,0.0003
+R1000,50.0,0.0,1.5,0.0,Equity,USD,E-Mini Russell 1000 Value Index Futures,0.5
+R1000GROWTH-mini,50.0,0.0,0.85,0.0,Equity,USD,E-mini Russell 1000 Growth Index Futures,0.4
+R1000mini,50.0,0.0,0.85,0.0,Equity,USD,E-mini Russell 1000 Index Futures,0.45
+REDWHEAT,50.0,0.0,1.5,0.0,Ags,USD,Hard Red Winter Wheat -KCBOT-,0.25
+RICE,2000.0,0.0,1.5,0.0,Ags,USD,Rough Rice,0.015
+ROBUSTA,10.0,0.0,3.0,0.0,Ags,USD,Robusta Coffee,0.5
+RUBBER,50.0,0.0,3.0,0.0,Other,USD,TSR 20 Rubber,0.05
+RUR,2500000.0,0.0,1.5,0.0,FX,USD,RURUSD currency,5e-06
+RUSSELL,5.0,0.0,0.25,0.0,Equity,USD,Micro E-Mini Russell 2000 Index,0.1
+SEK,2000000.0,0.0,1.5,0.0,FX,USD,SEKUSD currency,2e-05
+SGD,100000.0,0.0,3.5,0.0,FX,SGD,SGX US Dollar in Singapore Dollar Futures (Full-Sized),0.000125
+SGX,10.0,0.0,4.0,0.0,Equity,SGD,SGX Straits Times Index,
+SHATZ,1000.0,0.0,2.0,0.0,Bond,EUR,German 2 year bond Schatz,0.0025
+SILVER,1000.0,0.0,1.5,0.0,Metals,USD,NYMEX Silver Index,0.004
+SILVER-mini,2500.0,0.0,0.85,0.0,Metals,USD,COMEX MINY Silver,0.0125
+SMI,10.0,0.0,4.0,0.0,Equity,CHF,Swiss equity index SMI,1.0
+SMI-MID,10.0,0.0,1.0,0.0,Equity,CHF,Swiss Mid-cap Index,2.5
+SOFR,2500.0,0.0,1.5,0.0,Bond,USD,Secured Overnight Financing Rate 3-month average of rates,0.0025
+SOYBEAN,50.0,0.0,2.9,0.0,Ags,USD,Soybean,0.25
+SOYBEAN_mini,10.0,0.0,2.9,0.0,Ags,USD,Soybean mini,0.25
+SOYMEAL,100.0,0.0,1.5,0.0,Ags,USD,Soybean Meal,0.07
+SOYOIL,600.0,0.0,1.5,0.0,Ags,USD,Soybean oil,0.015
+SP400,100.0,0.0,1.5,0.0,Equity,USD,E-mini S&P Midcap 400 Futures,0.544478367863703
+SP500,50.0,0.0,2.05,0.0,Equity,USD,US equity index S&P500 ,0.125
+SP500-GROWTH,250.0,0.0,0.85,0.0,Equity,USD,S&P 500 / Citigroup Growth Index,
+SP500_micro,5.0,0.0,0.25,0.0,Equity,USD,S&P 500 micro,0.125
+SP600-SMALL,100.0,0.0,0.85,0.0,Equity,USD,E-Mini S&P SmallCap 600 Futures,
+SPI200,25.0,0.0,5.0,0.0,Equity,AUD,ASX SPI200 Index,1.0
+SSTERL,1250.0,,,,STIR,GBP,UK STIR Short Sterling,
+STEEL,20.0,0.0,0.85,0.0,Metals,USD,Hot-Rolled Coil Steel Index,5.5
+STERLING3,1250.0,0.0,1.7,0.0,Bond,GBP,3 month Sterling interest rate,0.0025
+SUGAR,112000.0,,,,Ags,USD,Sugar,
+SUGAR11,112000.0,0.0,3.0,0.0,Ags,USD,Sugar #11,5e-05
+TOPIX,1000.0,0.0,50.0,0.0,Equity,JPY,Japan Mini Topix,0.2
+TOPIX30,1000.0,0.0,50.0,0.0,Equity,JPY,Topix Core30,
+TSX,5.0,,,,Equity,CAD,Canadian equity index TSX composite,
+TWD,3000.0,0.0,2.1,0.0,FX,USD,SGX Taiwan Dollar in US Dollar Futures (Full-Sized),0.00975
+TWD-mini,100000.0,0.0,1.75,0.0,FX,USD,SGX Taiwan Dollar in US Dollar Futures (Mini),0.00015
+URANIUM,250.0,0.0,0.85,0.0,OilGas,USD,NYMEX Uranium Index,
+US-DISCRETE,100.0,0.0,1.5,0.0,Sector,USD,Consumer Discretionary Select Sector Index,17.409669579606
+US-ENERGY,100.0,0.0,1.5,0.0,Sector,USD,Energy Select Sector Index,7.0
+US-FINANCE,250.0,0.0,1.5,0.0,Sector,USD,Financial Select Sector Index,6.0
+US-HEALTH,100.0,0.0,1.5,0.0,Sector,USD,Health Care Select Sector Index,10.0
+US-INDUSTRY,100.0,0.0,1.5,0.0,Sector,USD,Industrial Select Sector Index,11.0
+US-MATERIAL,100.0,0.0,1.5,0.0,Sector,USD,Materials Select Sector Index,13.0
+US-PROPERTY,250.0,0.0,1.5,0.0,Sector,USD,Real Estate Select Sector Index,3.4
+US-REALESTATE,100.0,0.0,1.5,0.0,Sector,USD,US Real estate,8.0
+US-STAPLES,100.0,0.0,1.5,0.0,Sector,USD,Consumer Staples Select Sector Index,8.8
+US-TECH,100.0,0.0,1.5,0.0,Sector,USD,Technology Select Sector Index -,12.0
+US-UTILS,100.0,0.0,1.5,0.0,Sector,USD,Utilities Select Sector Index,8.0
+US10,1000.0,0.0,1.51,0.0,Bond,USD,US 10 year bond note,0.01
+US10U,1000.0,0.0,1.5,0.0,Bond,USD,Ultra 10-Year US Treasury Note,0.0078125
+US2,2000.0,0.0,1.51,0.0,Bond,USD,US 2 year bond note,0.0022670000000000004
+US20,1000.0,0.0,1.51,0.0,Bond,USD,US 20 year bond,0.016
+US3,2000.0,0.0,1.5,0.0,Bond,USD,US 3 year bond note,0.00390625
+US30,1000.0,0.0,1.5,0.0,Bond,USD,Ultra Treasury Bond,0.015625
+US5,1000.0,0.0,1.51,0.0,Bond,USD,US 5 year bond note,0.004
+USIRS10,1000.0,0.0,1.5,0.0,Bond,USD,US 10 year swap,0.0234375
+USIRS2,1000.0,0.0,0.85,0.0,Bond,USD,2-Year Deliverable Interest Rate Swap Futures,
+USIRS2ERIS,1000.0,0.0,0.85,0.0,Bond,USD,2-Year Eris Swap Futures,0.005
+USIRS30,1000.0,0.0,0.85,0.0,Bond,USD,30-Year Deliverable Interest Rate Swap Futures,0.09375
+USIRS5,1000.0,0.0,1.5,0.0,Bond,USD,US 5 year swap,0.05
+USIRS5ERIS,1000.0,0.0,0.85,0.0,Bond,USD,5-Year Eris Swap Futures,0.01
+V2X,100.0,0.0,2.0,0.0,Vol,EUR,Vol European equity V2X,0.06
+VIX,1000.0,0.0,2.2,0.0,Vol,USD,Vol US equity VIX,0.02812
+VIX_mini,100.0,0.0,0.5,0.0,Vol,USD,Vol US equity VIX mini,0.05
+VNKI,10000.0,0.0,400.0,0.0,Vol,JPY,Nikkei 225 Volatility Index,0.3
+WHEAT,50.0,0.0,2.9,0.0,Ags,USD,Wheat,0.25
+WHEAT_mini,10.0,0.0,2.9,0.0,Ags,USD,Wheat mini,0.25
+WTI_micro,100.0,0.0,0.7,0.0,OilGas,USD,micro WTI crude oil,0.01
+XINA,1.0,,,,Equity,USD,Chinese equity index,
+YENEUR,125000.0,0.0,1.5,0.0,FX,JPY,YENEUR currency,0.01
