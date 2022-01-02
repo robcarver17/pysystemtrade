@@ -275,9 +275,22 @@ small_system:
 # You can override this by modifying the backtest config .yaml file used in either sim or production
 duplicate_instruments:
   include:
+    aud: 'AUD'
+    cnh: 'CNH'
     copper: 'COPPER'
     corn: 'CORN'
     crude: 'CRUDE_W_mini'
+    ether: 'ETHER-micro'
+    eu-chem: 'EU-CHEM'
+    eu-finance: 'EU-FINANCE'
+    eu-food: 'EU-FOOD'
+    eu-health: 'EU-HEALTH'
+    eu-insure: 'EU-INSURE'
+    eu-media: 'EU-MEDIA'
+    eu-oil: 'EU-OIL'
+    eu-retail: 'EU-RETAIL'
+    eu-tech: 'EU-TECH'
+    eu-utils: 'EU-UTILS'
     gas_us: 'GAS_US_mini'
     gasoiline: 'GASOILINE'
     gold: 'GOLD_micro'
@@ -288,6 +301,8 @@ duplicate_instruments:
     kospi: 'KOSPI'
     krwusd: 'KRWUSD'
     nasdaq: 'NASDAQ_micro'
+    nikkei: 'NIKKEI'
+    r1000: 'R1000'
     silver: 'SILVER'
     soybean: 'SOYBEAN'
     sp500: 'SP500_micro'
@@ -295,19 +310,34 @@ duplicate_instruments:
     vix: 'VIX'
     wheat: 'WHEAT'
   exclude:
+    aud: 'AUD-SGX'
+    cnh: 'CNH-onshore'
     copper: 'COPPER-mini'
     corn: 'CORN_mini'
     crude: 'CRUDE_W'
+    ether: 'ETHEREUM'
+    eu-chem: 'EU-DJ-CHEM'
+    eu-finance: 'EU-DJ-FINANCE'
+    eu-food: 'EU-DJ-FOOD'
+    eu-health: 'EU-DJ-HEALTH'
+    eu-insure: 'EU-DJ-INSURE'
+    eu-media: 'EU-DJ-MEDIA'
+    eu-oil: 'EU-DJ-OIL'
+    eu-retail: 'EU-DJ-RETAIL'
+    eu-tech: 'EU-DJ-TECH'
+    eu-utils: 'EU-DJ-UTIL'
     gas_us: 'GAS_US'
     gasoiline: 'GASOILINE_mini'
     gold: 'GOLD'
     heatoil: 'HEATOIL_mini'
-    inr: 'INR-mini'
+    inr: ['INR-mini','INR-SGX']
     jgb: ['JGB_mini', 'JGB-SGX-mini']
     jpy: ['JPY_micro','JPY-SGX-TITAN', 'JPY-SGX']
     kospi: 'KOSPI_mini'
     krwusd: 'KRWUSD_mini'
     nasdaq: 'NASDAQ'
+    nikkei: 'NIKKEI-JPY'
+    r1000: 'R1000mini'
     silver: 'SILVER_mini'
     soybean: 'SOYBEAN_mini'
     sp500: 'SP500'
@@ -355,61 +385,70 @@ exclude_instrument_lists:
   # Run interactive controls to get a list of suggested markets here
   # To override this list, change in sim .yaml config (sim) and private_config.yaml (production)
   bad_markets:
-  - ALUMINIUM
-  - BBCOMM
-  - BITCOIN
-  - CH10
-  - CHEESE
-  - COPPER-mini
-  - DJSTX-SMALL
-  - EU-BANKS
-  - EU-CHEM
-  - EU-CONSTRUCTION
-  - EU-DJ-OIL
-  - EU-DJ-TECH
-  - EU-DJ-TELECOM
-  - EU-DJ-UTIL
-  - EU-FOOD
-  - EU-HOUSE
-  - EU-MEDIA
-  - EU-MID
-  - EU-REALESTATE
-  - EU-RETAIL
-  - EU-TRAVEL
-  - EURCHF
-  - EURIBOR
-  - EUROSTX-SMALL
-  - EUROSTX200-LARGE
-  - FTSEINDO
-  - INR
-  - JGB-SGX-mini
-  - JP-REALESTATE
-  - KOSPI_mini
-  - KRWUSD
-  - LUMBER
-  - MID-DAX
-  - MILK
-  - MILKDRY
-  - NOK
-  - OATIES
-  - R1000
-  - RICE
-  - SEK
-  - SGD
-  - SGX
-  - SHATZ
-  - SMI-MID
-  - US-DISCRETE
-  - US-ENERGY
-  - US-FINANCE
-  - US-HEALTH
-  - US-INDUSTRY
-  - US-MATERIAL
-  - US-PROPERTY
-  - US-REALESTATE
-  - US-STAPLES
-  - US-TECH
-  - US-UTILS
-  - USIRS5
-  - V2X
-  - VNKI
+    - ALUMINIUM
+    - BBCOMM
+    - BEL20
+    - BOVESPA
+    - BUTTER
+    - CH10
+    - CHEESE
+    - CNH-onshore
+    - COPPER-mini
+    - CZK
+    - DJSTX-SMALL
+    - ETHANOL
+    - ETHER-micro
+    - ETHEREUM
+    - EU-BANKS
+    - EU-CHEM
+    - EU-CONSTRUCTION
+    - EU-DJ-OIL
+    - EU-DJ-TECH
+    - EU-DJ-TELECOM
+    - EU-DJ-UTIL
+    - EU-FOOD
+    - EU-HOUSE
+    - EU-INSURE
+    - EU-MEDIA
+    - EU-MID
+    - EU-REALESTATE
+    - EU-RETAIL
+    - EU-UTILS
+    - EURCHF
+    - EURIBOR
+    - EUROSTX-LARGE
+    - EUROSTX-SMALL
+    - EUROSTX200-LARGE
+    - FTSEINDO
+    - IRS
+    - JGB-SGX-mini
+    - JP-REALESTATE
+    - KOSPI_mini
+    - KR3
+    - KRWUSD
+    - LUMBER
+    - MILK
+    - MILKDRY
+    - MILKWET
+    - NOK
+    - OATIES
+    - OMX
+    - R1000
+    - RICE
+    - SEK
+    - SGX
+    - SHATZ
+    - SMI-MID
+    - US-DISCRETE
+    - US-ENERGY
+    - US-FINANCE
+    - US-HEALTH
+    - US-INDUSTRY
+    - US-MATERIAL
+    - US-PROPERTY
+    - US-REALESTATE
+    - US-STAPLES
+    - US-TECH
+    - US-UTILS
+    - USIRS5
+    - VNKI
