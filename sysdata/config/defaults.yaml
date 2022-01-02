@@ -280,7 +280,7 @@ duplicate_instruments:
     copper: 'COPPER'
     corn: 'CORN'
     crude: 'CRUDE_W_mini'
-    ether: 'ETHER-micro'
+    ether: 'ETHEREUM'
     eu-chem: 'EU-CHEM'
     eu-finance: 'EU-FINANCE'
     eu-food: 'EU-FOOD'
@@ -315,7 +315,7 @@ duplicate_instruments:
     copper: 'COPPER-mini'
     corn: 'CORN_mini'
     crude: 'CRUDE_W'
-    ether: 'ETHEREUM'
+    ether: 'ETHER-micro'
     eu-chem: 'EU-DJ-CHEM'
     eu-finance: 'EU-DJ-FINANCE'
     eu-food: 'EU-DJ-FOOD'
@@ -398,7 +398,6 @@ exclude_instrument_lists:
     - DJSTX-SMALL
     - ETHANOL
     - ETHER-micro
-    - ETHEREUM
     - EU-BANKS
     - EU-CHEM
     - EU-CONSTRUCTION
