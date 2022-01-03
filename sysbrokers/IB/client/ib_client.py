@@ -10,9 +10,10 @@ from syscore.dateutils import strip_timezone_fromdatetime
 from syslogdiag.logger import logger
 from syslogdiag.log_to_screen import logtoscreen
 
-_PACING_PERIOD_SECONDS = 10 * 60
-_PACING_PERIOD_LIMIT = 60
-PACING_INTERVAL_SECONDS = 1 + (_PACING_PERIOD_SECONDS / _PACING_PERIOD_LIMIT)
+# IB state that pacing violations only occur for bar sizes of less than 1 minute
+# See footnote at bottom of
+# https://interactivebrokers.github.io/tws-api/historical_limitations.html#pacing_violations
+PACING_INTERVAL_SECONDS = 0.5
 
 
 STALE_SECONDS_ALLOWED_ACCOUNT_SUMMARY = 600
@@ -35,7 +36,7 @@ class ibClient(object):
 
         # means our first call won't be throttled for pacing
         self.last_historic_price_calltime = (
-            datetime.datetime.now() - datetime.timedelta(seconds=_PACING_PERIOD_SECONDS)
+            datetime.datetime.now() - datetime.timedelta(seconds=PACING_INTERVAL_SECONDS)
         )
 
         # Add error handler
