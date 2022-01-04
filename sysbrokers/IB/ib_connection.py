@@ -36,6 +36,7 @@ class connectionIB(object):
         :param log: logging object
         :param mongo_db: mongoDB connection
         """
+        self._log = log
 
         # resolve defaults
 
@@ -74,7 +75,6 @@ class connectionIB(object):
         time.sleep(5)
 
         self._ib = ib
-        self._log = log
         self._account = account
 
     @property
