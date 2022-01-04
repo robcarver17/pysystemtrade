@@ -83,7 +83,7 @@ class runSystemClassic(object):
     # DO NOT CHANGE THE NAME OF THIS FUNCTION; IT IS HARDCODED INTO CONFIGURATION FILES
     # BECAUSE IT IS ALSO USED TO LOAD BACKTESTS
     def system_method(
-        self, notional_trading_capital: float = None, base_currency: str = None
+        self, notional_trading_capital: float = arg_not_supplied, base_currency: str = arg_not_supplied
     ) -> System:
         data = self.data
         backtest_config_filename = self.backtest_config_filename
