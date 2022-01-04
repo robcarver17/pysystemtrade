@@ -169,12 +169,35 @@ class System(object):
         remove_bad_markets=False,
         remove_short_history=False,
         days_required=750,
+        force_to_passed_list = arg_not_supplied
     ) -> list:
         """
         Get the instrument list
 
         :returns: list of instrument_code str
         """
+        if force_to_passed_list is not arg_not_supplied:
+            instrument_list =  force_to_passed_list
+        else:
+            instrument_list = \
+                self._get_instrument_list_from_config(remove_duplicates=remove_duplicates,
+                remove_short_history=remove_short_history,
+                remove_bad_markets=remove_bad_markets,
+                remove_ignored=remove_ignored,
+                remove_trading_restrictions=remove_trading_restrictions,
+                days_required=days_required)
+
+        return instrument_list
+
+    def _get_instrument_list_from_config(self,
+                                         remove_duplicates=True,
+                                         remove_ignored=True,
+                                         remove_trading_restrictions=False,
+                                         remove_bad_markets=False,
+                                         remove_short_history=False,
+                                         days_required=750,
+                                         ) -> list:
+
         instrument_list = self._get_raw_instrument_list_from_config()
         instrument_list = self._remove_instruments_from_instrument_list(
             instrument_list,
@@ -304,7 +327,7 @@ class System(object):
             list_to_remove.extend(list_of_restricted)
 
         if remove_short_history:
-            list_of_short = self.get_list_of_short_history(days_required)
+            list_of_short = self.get_list_of_short_history(days_required=days_required)
             list_to_remove.extend(list_of_short)
 
         list_to_remove = list(set(list_to_remove))
@@ -366,7 +389,7 @@ class System(object):
         return bad_markets
 
     @base_system_cache()
-    def get_list_of_short_history(self, days_required=750) -> list:
+    def get_list_of_short_history(self, days_required: int=750) -> list:
         instrument_list = self.data.get_instrument_list()
 
         too_short = [

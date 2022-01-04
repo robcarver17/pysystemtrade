@@ -287,6 +287,29 @@ class totalCapitalCalculationData(object):
     def __repr__(self):
         return "capitalCalculationData for %s" % self._capital_data
 
+    def get_returns_as_account_curve(self) -> pd.DataFrame:
+        raise NotImplementedError()
+
+    def get_percentage_returns_as_pd(self) -> pd.DataFrame:
+        total_capital = self.get_total_capital()
+        daily_returns = self.get_daily_returns()
+        daily_capital = total_capital.reindex(daily_returns.index).ffill()
+
+        perc_returns = daily_returns / daily_capital
+
+        return perc_returns
+
+    def get_daily_returns(self) -> pd.Series:
+        daily_pandl = self.get_daily_profit_and_loss()
+        daily_returns = daily_pandl.diff()
+        return daily_returns
+
+    def get_daily_profit_and_loss(self) -> pd.Series:
+        pandl = self.get_profit_and_loss_account()
+        daily_pandl = pandl.resample("1B").last()
+
+        return daily_pandl
+
     def get_current_total_capital(self):
         return self.capital_data.get_current_total_capital()
 
