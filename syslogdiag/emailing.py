@@ -53,7 +53,10 @@ def send_mail_pdfs(preamble, filelist, subject):
         fp = open(file, "rb")
         attach = MIMEApplication(fp.read(), "pdf")
         fp.close()
-        attach.add_header("Content-Disposition", "attachment", filename="file.pdf")
+        attach.add_header(
+            "Content-Disposition",
+            "attachment",
+            filename="file.pdf")
         msg.attach(attach)
 
     _send_msg(msg)
@@ -65,21 +68,29 @@ def _send_msg(msg):
 
     """
 
-    email_server, email_address, email_pwd, email_to, email_port = get_email_details()
+    email_server, email_address, email_pwd, email_to, email_port, use_gmail = get_email_details()
 
     me = email_address
     you = email_to
     msg["From"] = me
     msg["To"] = you
 
+    if use_gmail is None:
+        use_gmail = False
+
     # Send the message via our own SMTP server, but don't include the
     # envelope header.
-    s = smtplib.SMTP(email_server, email_port)
+    if use_gmail:
+        s = smtplib.SMTP_SSL(email_server, email_port)
+    else:
+        s = smtplib.SMTP(email_server, email_port)
     # add tls for those using yahoo or gmail.
-    try:
-        s.starttls()
-    except:
-        pass
+    
+    if use_gmail:
+        try:
+            s.starttls()
+        except:
+            pass
     s.login(email_address, email_pwd)
     s.sendmail(me, [you], msg.as_string())
     s.quit()
@@ -94,10 +105,9 @@ def get_email_details():
         email_server = production_config.email_server
         email_to = production_config.email_to
         email_port = production_config.email_port
-    except:
-        raise Exception(
-            "Need to have all of these for email to work in private config: email_address, email_pwd, email_server, email_to",
-            "email_port",
-        )
+        use_gmail = production_config.use_gmail
 
-    return email_server, email_address, email_pwd, email_to, email_port
+    except:
+        raise Exception("Need to have all of these for email to work in private config: email_address, email_pwd, email_server, email_to", "email_port")
+
+    return email_server, email_address, email_pwd, email_to, email_port, use_gmail

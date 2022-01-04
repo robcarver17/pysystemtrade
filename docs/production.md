@@ -1449,7 +1449,7 @@ These control the core functionality of the system.
 
 Python:
 ```python
-from sysproduction.updateFxPrices import update_fx_prices
+from sysproduction.update_fx_prices import update_fx_prices
 
 update_fx_prices()
 ```
@@ -1474,7 +1474,7 @@ This ensures that we are currently sampling active contracts, and updates contra
 
 Python:
 ```python
-from sysproduction.update_sampled_contracts import updated_sampled_contracts
+from sysproduction.update_sampled_contracts import update_sampled_contracts
 update_sampled_prices()
 ```
 
