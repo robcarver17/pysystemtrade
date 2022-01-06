@@ -1,7 +1,8 @@
 import numpy as np
-import scipy.cluster.hierarchy as sch
 
+from sysquant.estimators.clustering_correlations import cluster_correlation_matrix
 from sysquant.estimators.estimates import Estimates
+from sysquant.estimators.correlations import correlationEstimate
 from sysquant.optimisation.SR_adjustment import adjust_weights_for_SR
 from sysquant.optimisation.weights import (
     portfolioWeights,
@@ -64,8 +65,8 @@ class handcraftPortfolio(object):
         return self._estimates
 
     @property
-    def correlation(self) -> np.array:
-        return self.estimates.correlation_matrix
+    def correlation(self) -> correlationEstimate:
+        return self.estimates.correlation
 
     @property
     def mean(self) -> list:
@@ -178,85 +179,14 @@ def adjust_weights_for_SR_on_handcrafted_portfolio(
 
 def create_sub_portfolios_from_portfolio(handcraft_portfolio: handcraftPortfolio):
 
-    if handcraft_portfolio.boring_correlation:
-        # Boring correlation will break if we try and cluster
-        clusters = arbitrary_split_of_correlation_matrix(
-            handcraft_portfolio.correlation
-        )
-    else:
-        try:
-            clusters = cluster_correlation_matrix_into_two_clusters(
-                handcraft_portfolio.correlation
-            )
-        except:
-            clusters = arbitrary_split_of_correlation_matrix(
-                handcraft_portfolio.correlation
-            )
+    clusters_as_names = \
+        cluster_correlation_matrix(handcraft_portfolio.correlation)
 
-    clusters_as_names = from_cluster_index_to_asset_names(clusters, handcraft_portfolio)
     sub_portfolios = create_sub_portfolios_given_clusters(
         clusters_as_names, handcraft_portfolio
     )
 
     return sub_portfolios
-
-
-def cluster_correlation_matrix_into_two_clusters(corr_matrix: np.array) -> list:
-    d = sch.distance.pdist(corr_matrix)
-    L = sch.linkage(d, method="complete")
-
-    cutoff = cutoff_distance_to_guarantee_two_clusters(corr_matrix=corr_matrix, L=L)
-    ind = sch.fcluster(L, cutoff, "distance")
-    ind = list(ind)
-
-    if max(ind) > 2:
-        raise Exception("Couldn't cluster into two clusters")
-
-    return ind
-
-
-def cutoff_distance_to_guarantee_two_clusters(corr_matrix: np.array, L: np.array):
-    N = len(corr_matrix)
-    return L[N - 2][2] - 0.000001
-
-
-def arbitrary_split_of_correlation_matrix(corr_matrix: np.array) -> list:
-    # split correlation of 3 or more assets
-    count_assets = len(corr_matrix)
-    return arbitrary_split_for_asset_length(count_assets)
-
-
-def arbitrary_split_for_asset_length(count_assets: int) -> list:
-    half_assets = int(np.floor(count_assets / 2))
-    first_half = [1 for idx in range(half_assets)]
-    second_half = [2 for idx in range(count_assets - len(first_half))]
-
-    return first_half + second_half
-
-
-def from_cluster_index_to_asset_names(
-    clusters: list, handcraft_portfolio: handcraftPortfolio
-) -> list:
-
-    all_clusters = list(set(clusters))
-    asset_names = handcraft_portfolio.asset_names
-    list_of_asset_clusters = [
-        get_asset_names_for_cluster_index(cluster_id, clusters, asset_names)
-        for cluster_id in all_clusters
-    ]
-
-    return list_of_asset_clusters
-
-
-def get_asset_names_for_cluster_index(
-    cluster_id: int, clusters: list, asset_names: list
-):
-
-    list_of_assets = [
-        asset for asset, cluster in zip(asset_names, clusters) if cluster == cluster_id
-    ]
-
-    return list_of_assets
 
 
 def create_sub_portfolios_given_clusters(
