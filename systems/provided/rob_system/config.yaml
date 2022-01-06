@@ -6867,5 +6867,5 @@ instrument_weights:
   VNKI: 0.01
   WHEAT: 0.00656
   YENEUR: 0.013
-#instrument_div_multiplier:
-#  2.5
+instrument_div_multiplier:
+  2.5
