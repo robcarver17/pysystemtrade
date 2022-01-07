@@ -2315,7 +2315,7 @@ returns, volatility, and normalised returns (return over volatility).
 As we are trading futures the raw data class has some extra methods needed to calculate the carry
 rule for futures, and to expose the intermediate calculations.
 
-(Versions prior to 1.06 had a seperate FuturesRawData class)
+(Versions prior to 1.06 had a separate FuturesRawData class)
 
 <a name="vol_calc"> </a>
 
@@ -3375,7 +3375,7 @@ methods:
 
 ```python
 acc_curve.gross.daily.stats() ## Get a list of methods. equivalent to acc_curve.gross.stats()
-acc_curve.monthly.sharpe() ## Sharpe ratio based on annual
+acc_curve.annual.sharpe() ## Sharpe ratio based on annual
 acc_curve.gross.weekly.std() ## standard deviation of weekly returns
 acc_curve.daily.ann_std() ## annualised std. deviation of daily (net) returns
 acc_curve.costs.annual.median() ## median of annual costs
@@ -3430,7 +3430,7 @@ curve object. So for example these all work:
 
 ```python
 acc_curve_group.gross.daily.stats() ## Get a list of methods. equivalent to acc_curve.gross.stats()
-acc_curve_group.monthly.sharpe() ## Sharpe ratio based on annual
+acc_curve_group.annual.sharpe() ## Sharpe ratio based on annual
 acc_curve_group.gross.weekly.std() ## standard deviation of weekly returns
 acc_curve_group.daily.ann_std() ## annualised std. deviation of daily (net) returns
 acc_curve_group.costs.annual.median() ## median of annual costs
@@ -3454,7 +3454,7 @@ we can do things like:
 
 ```python
 acc_curve_group['US10'].gross.daily.stats() ## Get a list of methods. equivalent to acc_curve.gross.stats()
-acc_curve_group['US10'].monthly.sharpe() ## Sharpe ratio based on annual
+acc_curve_group['US10'].annual.sharpe() ## Sharpe ratio based on annual
 acc_curve_group['US10'].gross.weekly.std() ## standard deviation of weekly returns
 acc_curve_group['US10'].daily.ann_std() ## annualised std. deviation of daily (net) returns
 acc_curve_group['US10'].costs.annual.median() ## median of annual costs
