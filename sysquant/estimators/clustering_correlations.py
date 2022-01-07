@@ -3,64 +3,75 @@ from scipy.cluster import hierarchy as sch
 
 from sysquant.estimators.correlations import correlationEstimate
 
-def cluster_correlation_matrix(corr_matrix: correlationEstimate):
+def cluster_correlation_matrix(corr_matrix: correlationEstimate,
+                               cluster_size: int = 2):
 
-    corr_as_np = corr_matrix.values
     if corr_matrix.is_boring:
         # Boring correlation will break if we try and cluster
+        corr_as_np = corr_matrix.values
         clusters = arbitrary_split_of_correlation_matrix(
-            corr_as_np
+            corr_as_np,
+            cluster_size=cluster_size
         )
     else:
-        try:
-            clusters = get_list_of_clusters_for_correlation_matrix(
-                corr_as_np
-            )
-        except:
-            clusters = arbitrary_split_of_correlation_matrix(
-                corr_as_np
-            )
-
+        clusters = get_list_of_clusters_for_non_boring_correlation_matrix(corr_matrix,
+                                                                          cluster_size=cluster_size)
     clusters_as_names = from_cluster_index_to_asset_names(clusters, corr_matrix)
 
     return clusters_as_names
 
 
-def get_list_of_clusters_for_correlation_matrix(corr_matrix: np.array,
+def get_list_of_clusters_for_non_boring_correlation_matrix(corr_matrix: np.array,
                                              cluster_size: int = 2) -> list:
-    d = sch.distance.pdist(corr_matrix)
+    corr_as_np = corr_matrix.values
+    try:
+        clusters = get_list_of_clusters_for_correlation_matrix(
+            corr_as_np,
+            cluster_size=cluster_size
+        )
+    except:
+        clusters = arbitrary_split_of_correlation_matrix(
+            corr_as_np,
+            cluster_size=cluster_size
+        )
+
+    return clusters
+
+def get_list_of_clusters_for_correlation_matrix(corr_as_np: np.array,
+                                             cluster_size: int = 2) -> list:
+    d = sch.distance.pdist(corr_as_np)
     L = sch.linkage(d, method="complete")
 
-    cutoff = cutoff_distance_to_guarantee_N_clusters(corr_matrix=corr_matrix, L=L,
+    cutoff = cutoff_distance_to_guarantee_N_clusters(corr_as_np, L=L,
                                                      cluster_size = cluster_size)
     ind = sch.fcluster(L, cutoff, "distance")
     ind = list(ind)
 
-    if max(ind) > 2:
+    if max(ind) > cluster_size:
         raise Exception("Couldn't cluster into %d clusters" % cluster_size)
 
     return ind
 
 
-def cutoff_distance_to_guarantee_N_clusters(corr_matrix: np.array, L: np.array,
+def cutoff_distance_to_guarantee_N_clusters(corr_as_np: np.array, L: np.array,
                                             cluster_size: int = 2):
-    assert cluster_size==2
-    N = len(corr_matrix)
-    return L[N - 2][2] - 0.000001
+    #assert cluster_size==2
+
+    N = len(corr_as_np)
+    return L[N - cluster_size][2] - 0.000001
 
 
-def arbitrary_split_of_correlation_matrix(corr_matrix: np.array) -> list:
+def arbitrary_split_of_correlation_matrix(corr_matrix: np.array,
+                                          cluster_size: int = 2) -> list:
     # split correlation of 3 or more assets
     count_assets = len(corr_matrix)
-    return arbitrary_split_for_asset_length(count_assets)
+    return arbitrary_split_for_asset_length(count_assets, cluster_size=cluster_size)
 
 
-def arbitrary_split_for_asset_length(count_assets: int) -> list:
-    half_assets = int(np.floor(count_assets / 2))
-    first_half = [1 for idx in range(half_assets)]
-    second_half = [2 for idx in range(count_assets - len(first_half))]
+def arbitrary_split_for_asset_length(count_assets: int,
+                                     cluster_size: int = 2) -> list:
 
-    return first_half + second_half
+    return [(x % cluster_size) + 1 for x in range(count_assets)]
 
 
 def from_cluster_index_to_asset_names(
@@ -86,3 +97,4 @@ def get_asset_names_for_cluster_index(
     ]
 
     return list_of_assets
+
