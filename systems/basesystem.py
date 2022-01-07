@@ -189,6 +189,7 @@ class System(object):
 
         return instrument_list
 
+    @base_system_cache()
     def _get_instrument_list_from_config(self,
                                          remove_duplicates=True,
                                          remove_ignored=True,
@@ -213,6 +214,7 @@ class System(object):
 
         return instrument_list
 
+    @base_system_cache()
     def _get_raw_instrument_list_from_config(self) -> list:
         config = self.config
         try:
@@ -231,6 +233,7 @@ class System(object):
 
         return instrument_list
 
+    @base_system_cache()
     def _remove_instruments_from_instrument_list(
         self,
         instrument_list,

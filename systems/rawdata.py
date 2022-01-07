@@ -294,8 +294,8 @@ class RawData(SystemStage):
         return cum_norm_returns
 
     @diagnostic()
-    def _aggregate_daily_vol_normalised_returns_for_asset_class(
-        self, asset_class: str
+    def _aggregate_daily_vol_normalised_returns_for_list_of_instruments(
+        self, list_of_instruments: list
     ) -> pd.Series:
         """
         Average normalised returns across an asset class
@@ -304,24 +304,32 @@ class RawData(SystemStage):
         :return: pd.Series
         """
 
-        instruments_in_asset_class = self.data_stage.all_instruments_in_asset_class(
-            asset_class
-        )
-
-        aggregate_returns_across_asset_class = [
+        aggregate_returns_across_instruments_list = [
             self.get_daily_vol_normalised_returns(instrument_code)
-            for instrument_code in instruments_in_asset_class
+            for instrument_code in list_of_instruments
         ]
 
-        aggregate_returns_across_asset_class = pd.concat(
-            aggregate_returns_across_asset_class, axis=1
+        aggregate_returns_across_instruments = pd.concat(
+            aggregate_returns_across_instruments_list, axis=1
         )
 
         # we don't ffill before working out the median as this could lead to
         # bad data
-        median_returns = aggregate_returns_across_asset_class.median(axis=1)
+        median_returns = aggregate_returns_across_instruments.median(axis=1)
 
         return median_returns
+
+    @diagnostic()
+    def _daily_vol_normalised_price_for_list_of_instruments(
+        self, list_of_instruments: list
+    ) -> pd.Series:
+
+        norm_returns = \
+            self._aggregate_daily_vol_normalised_returns_for_list_of_instruments(list_of_instruments)
+        norm_price = norm_returns.cumsum()
+
+        return norm_price
+
 
     @diagnostic()
     def _by_asset_class_daily_vol_normalised_price_for_asset_class(
@@ -334,10 +342,11 @@ class RawData(SystemStage):
         :return: pd.Series
         """
 
-        norm_returns = self._aggregate_daily_vol_normalised_returns_for_asset_class(
+        instruments_in_asset_class = self.data_stage.all_instruments_in_asset_class(
             asset_class
         )
-        norm_price = norm_returns.cumsum()
+
+        norm_price = self._daily_vol_normalised_price_for_list_of_instruments(instruments_in_asset_class)
 
         return norm_price
 

@@ -616,7 +616,8 @@ class systemCache(dict):
             use_arg_names = use_arg_names
         )  # instrument involved, and/or other keys eg rule name
         flags = resolve_kwargs_to_str(
-            kwargs
+            kwargs,
+            use_arg_names = use_arg_names
         )  # used mostly in accounts, eg to identify delayed returns
 
         cache_ref = cacheRef(
@@ -670,7 +671,7 @@ def resolve_args_to_code_and_key(args, list_of_codes,
     return (instrument_code, keyname)
 
 
-def resolve_kwargs_to_str(kwargs):
+def resolve_kwargs_to_str(kwargs, use_arg_names:bool = True):
     """
     Turn a list of named arguments into a flag string representing them,
     eg resolve_flags_to_str(dict(a=1, b=2)
@@ -679,6 +680,8 @@ def resolve_kwargs_to_str(kwargs):
     :param kwargs: dict of arguments passed to some function
     :return: str
     """
+    if not use_arg_names:
+        return ""
 
     def resolve_individual_flag(single_flag, kwargs):
         argvalue = str(kwargs[single_flag])
