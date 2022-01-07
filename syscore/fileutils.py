@@ -32,7 +32,7 @@ def does_file_exist(filename: str):
 
 def get_filename_for_package(pathname: str, filename=None):
     """
-    A way of resolving relative and absolute filenames, and dealing with akward OS specific things
+    A way of resolving relative and absolute filenames, and dealing with awkward OS specific things
 
     We can either have pathname = 'some.path.filename.csv' or pathname='some.path', filename='filename.csv'
 

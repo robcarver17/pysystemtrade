@@ -62,6 +62,7 @@ class testStage2(SystemStage):
         return 15
 
 
+@unittest.SkipTest
 class TestCache(unittest.TestCase):
     def setUp(self):
 
