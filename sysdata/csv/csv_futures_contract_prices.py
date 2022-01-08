@@ -1,8 +1,6 @@
 from dataclasses import dataclass
 
-from sysdata.futures.futures_per_contract_prices import (
-    futuresContractPriceData,
-)
+from sysdata.futures.futures_per_contract_prices import futuresContractPriceData
 from sysobjects.futures_per_contract_prices import futuresContractPrices
 from sysobjects.contracts import futuresContract, listOfFuturesContracts
 from syslogdiag.log_to_screen import logtoscreen
@@ -137,7 +135,7 @@ class csvFuturesContractPriceData(futuresContractPriceData):
             )
         except OSError:
             log = futures_contract_object.log(self.log)
-            log.warning("Can't find adjusted price file %s" % filename)
+            log.warn("Can't find adjusted price file %s" % filename)
             return futuresContractPrices.create_empty()
 
         instrpricedata = instrpricedata.groupby(level=0).last()

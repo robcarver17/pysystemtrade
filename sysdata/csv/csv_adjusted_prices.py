@@ -1,8 +1,6 @@
 import pandas as pd
 
-from sysdata.futures.adjusted_prices import (
-    futuresAdjustedPricesData,
-)
+from sysdata.futures.adjusted_prices import futuresAdjustedPricesData
 from sysobjects.adjusted_prices import futuresAdjustedPrices
 from syscore.fileutils import get_filename_for_package, files_with_extension_in_pathname
 from syscore.pdutils import pd_readcsv
@@ -48,7 +46,7 @@ class csvFuturesAdjustedPricesData(futuresAdjustedPricesData):
         try:
             instrpricedata = pd_readcsv(filename)
         except OSError:
-            self.log.warning("Can't find adjusted price file %s" % filename)
+            self.log.warn("Can't find adjusted price file %s" % filename)
             return futuresAdjustedPrices.create_empty()
 
         instrpricedata.columns = ["price"]
