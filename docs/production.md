@@ -251,7 +251,7 @@ You need to:
 - Read this document very thoroughly!
 - Prerequisites:
     - Install [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git), install or update [python3](https://docs.python-guide.org/starting/install3/linux/). You may also find a simple text editor (like emacs) is useful for fine tuning, and if you are using a headless server then [x11vnc](http://www.karlrunge.com/x11vnc/) is helpful.
-    - Add the following environment variables to your .profile: (feel free to use other directories):
+    - Add the following environment variables to your `~/.profile`: (feel free to use other directories):
         - MONGO_DATA=/home/user_name/data/mongodb/
         - PYSYS_CODE=/home/user_name/pysystemtrade
         - SCRIPT_PATH=/home/user_name/pysystemtrade/sysproduction/linux/scripts
