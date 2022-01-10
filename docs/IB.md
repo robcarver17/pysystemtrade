@@ -158,9 +158,10 @@ ibfuturesdata.get_prices_for_contract_object(futuresContract("EDOLLAR", "201203"
 ### Capital data
 
 ```
-ib_capital_data = ibCapitalData()
+from sysbrokers.IB.ib_capital_data import ibCapitalData
 ib_capital_data = ibCapitalData(conn)
-ib_capital_data.get_account_value_across_currency_across_accounts()
+
+ib_capital_data.get_account_value_across_currency()
 ```
 
 
