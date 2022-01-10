@@ -133,7 +133,7 @@ ib_orders_data.ibconnection
 ### FX Data
 
 ```
-from sysbrokers.IB.ib_spot_FX_data import ibFxPricesData
+from sysbrokers.IB.ib_Fx_prices_data import ibFxPricesData
 ibfxpricedata = ibFxPricesData(conn)
 
 ibfxpricedata.get_list_of_fxcodes()  # codes must be in .csv file /sysbrokers/IB/ibConfigSpotFX.csv
